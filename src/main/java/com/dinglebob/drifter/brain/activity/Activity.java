@@ -52,6 +52,11 @@ public abstract class Activity extends Task {
 		return Status.RUNNING;
 	}
 
+	/** Checked every tick: true drops the current step so {@link #next()} picks again at once. */
+	protected boolean rethink() {
+		return false;
+	}
+
 	/** Checked every tick: true ends the activity successfully at once (it found what it was looking for). */
 	protected boolean finishedEarly() {
 		return false;
@@ -66,6 +71,11 @@ public abstract class Activity extends Task {
 			}
 
 			return Status.SUCCESS;
+		}
+
+		if (this.child != null && this.rethink()) {
+			this.child.stop();
+			this.child = null;
 		}
 
 		if (this.child != null) {

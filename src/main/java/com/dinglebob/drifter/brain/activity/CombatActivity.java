@@ -49,6 +49,22 @@ public class CombatActivity extends Activity {
 		return true;
 	}
 
+	/** Looking around or looting after a fight and something new comes at it: back to fighting (found in review). */
+	@Override
+	protected boolean rethink() {
+		if (this.phase == 0 || this.ticksRunning() % 5 != 0) {
+			return false;
+		}
+
+		Threats.Assessment assessment = Threats.assess(this.drifter);
+		if (assessment.urgent() && assessment.decision().fights()) {
+			this.phase = 0;
+			return true;
+		}
+
+		return false;
+	}
+
 	@Override
 	protected Status next() {
 		if (this.phase == 0) {

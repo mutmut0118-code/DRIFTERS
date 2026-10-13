@@ -291,6 +291,17 @@ The "done when" test: it survives three nights in a row. Plus a combat-mod test 
 - **Shields**: equipped to the offhand by the equip goal; raised by the fight and the reflexes (vanilla blocking works for it: 0.25 s raise delay, slows it while held).
 - **Overlay / status**: `/drifter brain` and the overlay show the threat line ("threat 1.3 vs power 2.2 (1.69): engage carefully [zombie]") and the active reflex.
 
+### Fixed after a code review (before any in-game test)
+- **Mobs it hit went after its invisible helper** (the fake player standing where it swung), which made every fight free. Now each hit points the mob's revenge, anger and target (and zombies' called-in friends) at the Drifter. A sprint hit also costs the Drifter its momentum, as for a player.
+- **A mob attacking while it walked to or dug its night hole was ignored.** Fighting or fleeing a mob that's on it now outranks everything (shelter included) and doesn't wait for a checkpoint.
+- **It flip-flopped between fleeing and going back to work** as it stepped away from a chasing mob (the threat counted less with distance). A mob that's after it now counts in full however far away. Spiders don't count as a threat in daylight unless they're after it.
+- **After a reflex it stopped hitting** (the camera stayed where the reflex left it): it now aims at its target again. Reflexes give back the hotbar slot it was holding; the fight switches back to its weapon if something else ended up in its hand; pillaring looks straight down again if a reflex turned its head.
+- **Shields:** a blocked hit now wears the shield (and can break it), an axe hit disables it for 5 s, as for a player. Damage that scales with difficulty now hurts it like a player (half on Easy, x1.5 on Hard).
+- **Combat footwork** never backs or strafes it off a cliff or into lava (it checks the step first and sneaks near edges).
+- Fleeing: it only waits on its pillar if it really got up there. Looting after a fight: a new attacker sends it straight back to fighting.
+- Reflexes: escaping lava with no safe block in sight keeps one direction (it used to spin); the cactus step-away reflex now fires; incoming arrows are followed with gravity and drag (a straight line missed skeleton arrows until too late) and it sidesteps across the arrow's path; stepping aside from falling sand goes fully out of the column; the suffocation reflex digs the block its head is really in; without blocks it no longer loops backing away from lava it's only walking past.
+- Mobs look for Drifters as high and low as they look for players (it was only 4 blocks up and down). No sneaking on magma during a deliberate drop.
+
 ### Not done yet / left for later (TODOs in code)
 - Bows and crossbows (ranged mechanics), axe-vs-shield, sweeps lined up on groups, W-tap sprint resets: milestone 6 follow-up or milestone 9 (players).
 - Terrain sense (doorways, high ground, 2-high ceilings against endermen), backing into light: later.
@@ -298,7 +309,8 @@ The "done when" test: it survives three nights in a row. Plus a combat-mod test 
 - Golden apples, potions, totems, ender pearls: when it can get them (milestones 8 and 11).
 - Fighting styles and Skill-scaled timing and miss chances: milestone 7 (personality).
 - Better Combat / Combat Roll integration: see design question 9.
-- Brain-driven mobs targeting Drifters (piglins, hoglins, breezes): milestone 11 (Nether).
+- Brain-driven mobs targeting Drifters (piglins, hoglins, breezes): milestone 11 (Nether). Phantoms, guardians and shulkers use player-only targeting and don't go after Drifters yet.
+- Archers more than 5 blocks away are approached straight (the zigzag starts within 5 blocks).
 
 ### Next steps
 1. User finishes testing milestone 5, then tests milestone 6 (`docs/TESTING.md`, "Milestone 6").

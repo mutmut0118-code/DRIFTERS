@@ -33,6 +33,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.item.Items;
 
 /**
@@ -142,10 +143,15 @@ public final class Threats {
 	/** Base danger of this entity right now, or 0 if it's no threat (a passive animal, a calm neutral mob). */
 	public static double danger(DrifterEntity drifter, LivingEntity entity) {
 		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
-		boolean after = entity instanceof Mob mob && mob.getTarget() == drifter || drifter.getLastHurtByMob() == entity;
+		boolean after = isAfter(drifter, entity);
 		double danger;
 		if (entry != null) {
 			if (entry.neutral() && !after) {
+				return 0.0;
+			}
+
+			if (entity instanceof Spider && entity.getLightLevelDependentMagicValue() >= 0.5F && !after) {
+				// Spiders (and cave spiders) are neutral in daylight, as for a player.
 				return 0.0;
 			}
 
@@ -154,6 +160,11 @@ public final class Threats {
 				danger *= slime.getSize();
 			}
 		} else if (entity instanceof Enemy) {
+			if (entity instanceof Spider && entity.getLightLevelDependentMagicValue() >= 0.5F && !after) {
+				// Spiders (and cave spiders) are neutral in daylight, as for a player.
+				return 0.0;
+			}
+
 			danger = entity.getMaxHealth() / 20.0;
 		} else {
 			return after ? entity.getMaxHealth() / 20.0 : 0.0;
@@ -166,6 +177,11 @@ public final class Threats {
 		}
 
 		return after ? danger * 1.3 : danger;
+	}
+
+	/** It can tell this one is coming for it (it's heading at it, or just hit it). */
+	public static boolean isAfter(DrifterEntity drifter, LivingEntity entity) {
+		return entity instanceof Mob mob && mob.getTarget() == drifter || drifter.getLastHurtByMob() == entity;
 	}
 
 	/** Its own fighting power (1.0 is a fresh, unarmed player at full health). */
@@ -211,7 +227,9 @@ public final class Threats {
 				continue;
 			}
 
-			double proximity = distance <= 4.0 ? 1.0 : Mth.lerp((distance - 4.0) / (RANGE - 4.0), 1.0, 0.25);
+			// One that's chasing it counts in full however far it is, so stepping away doesn't flip the decision back
+			// and forth (found in review); others count less with distance.
+			double proximity = distance <= 4.0 || isAfter(drifter, living) ? 1.0 : Mth.lerp((distance - 4.0) / (RANGE - 4.0), 1.0, 0.25);
 			double score = danger * proximity;
 			threat += score;
 			hostiles.add(living);

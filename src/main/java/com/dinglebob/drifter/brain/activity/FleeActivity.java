@@ -30,6 +30,7 @@ public class FleeActivity extends Activity {
 
 	private int legs;
 	private boolean pillared;
+	private double pillarStartY;
 
 	public FleeActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -43,6 +44,14 @@ public class FleeActivity extends Activity {
 	@Override
 	protected int timeoutTicks() {
 		return 20 * 90;
+	}
+
+	@Override
+	protected void stepDone(com.dinglebob.drifter.executor.Task step, Status status) {
+		// It only waits up there if it really got up (it can be knocked off the column).
+		if (this.pillarStartY != 0.0 && !this.pillared && step instanceof NavigateTask) {
+			this.pillared = status == Status.SUCCESS && this.drifter.getY() >= this.pillarStartY + 2.0;
+		}
 	}
 
 	@Override
@@ -64,8 +73,8 @@ public class FleeActivity extends Activity {
 			}
 		}
 
-		if (melee >= SWARM_COUNT && Tools.buildingBlockCount(this.drifter) >= PILLAR_HEIGHT) {
-			this.pillared = true;
+		if (melee >= SWARM_COUNT && Tools.buildingBlockCount(this.drifter) >= PILLAR_HEIGHT && this.pillarStartY == 0.0) {
+			this.pillarStartY = this.drifter.getY();
 			this.think("swarmed: pillaring up out of reach");
 			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.drifter.blockPosition().above(PILLAR_HEIGHT)), 0.6,
 				"pillar up out of reach"));

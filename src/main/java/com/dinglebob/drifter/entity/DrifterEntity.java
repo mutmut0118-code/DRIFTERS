@@ -106,6 +106,7 @@ public class DrifterEntity extends PathfinderMob {
 	private long lastAttackTime = Long.MIN_VALUE / 2;
 	/** True during its own melee swing (see {@link #hurt} and {@link #knockback}). */
 	private boolean ownSwing;
+	private long shieldDisabledUntil;
 	/** Short- and long-term memory (section 6). Everything it knows about the world is in here. */
 	private final DrifterMemory memory = new DrifterMemory();
 	/** Perception (section 5): the only thing that looks at the world, and it writes into memory. */
@@ -206,6 +207,37 @@ public class DrifterEntity extends PathfinderMob {
 
 	public void resetAttackTimer() {
 		this.lastAttackTime = this.level().getGameTime();
+	}
+
+	/** Can it raise its shield now (holding one in the offhand, not disabled by an axe hit)? */
+	public boolean canUseShield() {
+		return this.getOffhandItem().is(net.minecraft.world.item.Items.SHIELD) && this.level().getGameTime() >= this.shieldDisabledUntil;
+	}
+
+	/** Player#hurtCurrentlyUsedShield: a blocked hit wears the shield down (and can break it). */
+	@Override
+	public void hurtCurrentlyUsedShield(float damage) {
+		if (this.useItem.is(net.minecraft.world.item.Items.SHIELD) && damage >= 3.0F) {
+			int wear = 1 + Mth.floor(damage);
+			net.minecraft.world.InteractionHand hand = this.getUsedItemHand();
+			this.useItem.hurtAndBreak(wear, this, getSlotForHand(hand));
+			if (this.useItem.isEmpty()) {
+				this.setItemSlot(hand == net.minecraft.world.InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+				this.useItem = ItemStack.EMPTY;
+				this.playSound(net.minecraft.sounds.SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level().random.nextFloat() * 0.4F);
+			}
+		}
+	}
+
+	/** Player#blockUsingShield: an axe hit knocks the shield down for 5 s, as for a player. */
+	@Override
+	protected void blockUsingShield(LivingEntity attacker) {
+		super.blockUsingShield(attacker);
+		if (attacker.canDisableShield()) {
+			this.shieldDisabledUntil = this.level().getGameTime() + 100;
+			this.stopUsingItem();
+			this.playSound(net.minecraft.sounds.SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level().random.nextFloat() * 0.4F);
+		}
 	}
 
 	public void setOwnSwing(boolean ownSwing) {
@@ -759,6 +791,21 @@ public class DrifterEntity extends PathfinderMob {
 		// Its own swings go through its fake-player helper, standing where it stands: a sword's sweep would hit itself.
 		if (this.ownSwing || source.getEntity() != null && source.getEntity().getUUID().equals(com.dinglebob.drifter.hands.FakePlayerBridge.helperId(this))) {
 			return false;
+		}
+
+		// Player#hurt: damage that scales with difficulty hurts it like it hurts a player (section 1, "Player vulnerability").
+		if (source.scalesWithDifficulty()) {
+			switch (this.level().getDifficulty()) {
+				case PEACEFUL -> amount = 0.0F;
+				case EASY -> amount = Math.min(amount / 2.0F + 1.0F, amount);
+				case HARD -> amount = amount * 3.0F / 2.0F;
+				default -> {
+				}
+			}
+
+			if (amount == 0.0F) {
+				return false;
+			}
 		}
 
 		boolean hit = super.hurt(source, amount);

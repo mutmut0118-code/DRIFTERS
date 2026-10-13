@@ -9,6 +9,7 @@ import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.hands.FakePlayerBridge;
 import com.dinglebob.drifter.hands.Tools;
+import com.dinglebob.drifter.mixin.AbstractArrowAccessor;
 import com.dinglebob.drifter.executor.task.MineTask;
 import com.dinglebob.drifter.executor.task.PlaceBlockTask;
 import com.dinglebob.drifter.executor.task.SelectItemTask;
@@ -102,8 +103,11 @@ public class Reflexes {
 	@Nullable
 	private Reflex pending;
 	private int pendingDelay;
+	private long contactUntil = -1;
 	@Nullable
-	private DamageSource contactHurt;
+	private Vec3 contactFrom;
+	/** The hotbar slot it held when the reflex started: given back afterwards (a reflex may take out a block). */
+	private int heldSlot = -1;
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
@@ -116,10 +120,11 @@ public class Reflexes {
 		return this.active;
 	}
 
-	/** Damage it took: a cactus or berry bush prick triggers the step-away reflex. */
+	/** Damage it took: a cactus or berry bush prick triggers the step-away reflex (for the next half second). */
 	public void onHurt(DamageSource source) {
 		if (source.is(DamageTypes.CACTUS) || source.is(DamageTypes.SWEET_BERRY_BUSH)) {
-			this.contactHurt = source;
+			this.contactUntil = this.drifter.level().getGameTime() + 10;
+			this.contactFrom = source.getSourcePosition();
 		}
 	}
 
@@ -154,6 +159,7 @@ public class Reflexes {
 			this.active = reflex;
 			this.activeTicks = 0;
 			this.drifter.getKeys().releaseAll();
+			this.heldSlot = this.drifter.getInventory().getSelected();
 			reflex.start(this.drifter);
 			this.drifter.getMemory().thoughts().add(now, "reflex: " + reflex.name());
 			return true;
@@ -172,6 +178,13 @@ public class Reflexes {
 		if (this.drifter.isUsingItem() && this.drifter.getUseItem().is(Items.SHIELD)) {
 			this.drifter.stopUsingItem();
 		}
+
+		// Back to what it was holding (the task it was doing expects its tool or weapon).
+		if (this.heldSlot >= 0 && this.drifter.getInventory().getSelected() != this.heldSlot) {
+			this.drifter.getInventory().requestSelect(this.heldSlot);
+		}
+
+		this.heldSlot = -1;
 	}
 
 	private int reactionDelay(Reflex reflex) {
@@ -286,6 +299,8 @@ public class Reflexes {
 	private static final class InLava extends Reflex {
 		@Nullable
 		private BlockPos safe;
+		/** No safe block in sight: a fixed way out (back the way it came), not one that turns with its head. */
+		private Vec3 escape = Vec3.ZERO;
 
 		@Override
 		public String name() {
@@ -305,6 +320,17 @@ public class Reflexes {
 		@Override
 		protected void start(DrifterEntity drifter) {
 			this.safe = nearestSafeSpot(drifter, 4);
+			if (this.safe == null) {
+				this.safe = nearestSafeSpot(drifter, 8);
+			}
+
+			Vec3 motion = drifter.getDeltaMovement();
+			Vec3 back = new Vec3(-motion.x, 0.0, -motion.z);
+			if (back.lengthSqr() < 1.0E-4) {
+				back = Vec3.directionFromRotation(0.0F, drifter.getYRot() + 180.0F);
+			}
+
+			this.escape = drifter.position().add(back.normalize().scale(6.0));
 		}
 
 		@Override
@@ -313,7 +339,7 @@ public class Reflexes {
 				return false;
 			}
 
-			Vec3 point = this.safe != null ? Vec3.atBottomCenterOf(this.safe) : awayFrom(drifter, drifter.position(), 3.0);
+			Vec3 point = this.safe != null ? Vec3.atBottomCenterOf(this.safe) : this.escape;
 			runTo(drifter, point, true);
 			return true;
 		}
@@ -487,11 +513,19 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
+			boolean hasBlocks = Tools.buildingBlockCount(drifter) > 0;
 			this.lava = null;
 			for (BlockPos body : List.of(feet, feet.above())) {
 				for (Direction direction : Direction.values()) {
 					BlockPos side = body.relative(direction);
 					if (level.getFluidState(side).is(FluidTags.LAVA) && drifter.getSenses().terrain().isKnown(side)) {
+						// Without blocks it only backs off when it's moving toward it: walking along a lava shore is
+						// fine (the pathfinder never steps in), and backing off every time it did made it loop (review).
+						Vec3 toLava = Vec3.atCenterOf(side).subtract(drifter.position());
+						if (!hasBlocks && drifter.getDeltaMovement().dot(new Vec3(toLava.x, 0.0, toLava.z)) <= 0.01) {
+							continue;
+						}
+
 						this.lava = side.immutable();
 						return true;
 					}
@@ -646,23 +680,44 @@ public class Reflexes {
 			this.projectile = null;
 			Vec3 eye = drifter.getEyePosition();
 			List<Projectile> flying = drifter.level().getEntitiesOfClass(Projectile.class, new AABB(eye, eye).inflate(RANGE),
-				p -> (p instanceof AbstractArrow arrow && !arrow.onGround() || p instanceof AbstractHurtingProjectile) && p.getOwner() != drifter);
+				p -> (p instanceof AbstractArrow arrow && !((AbstractArrowAccessor)arrow).drifter$isInGround() || p instanceof AbstractHurtingProjectile)
+					&& p.getOwner() != drifter);
 			flying.sort(Comparator.comparingDouble(p -> p.distanceToSqr(drifter)));
+			AABB body = drifter.getBoundingBox().inflate(HIT_RADIUS - 1.0 + 0.3);
 			for (Projectile candidate : flying) {
-				Vec3 velocity = candidate.getDeltaMovement();
-				if (velocity.lengthSqr() < 0.25) {
+				if (candidate.getDeltaMovement().lengthSqr() < 0.25 || !willHit(candidate, body)) {
 					continue;
 				}
 
-				// Closest approach to its body in the next second, along the projectile's line.
-				Vec3 toMe = drifter.position().add(0.0, drifter.getBbHeight() / 2.0, 0.0).subtract(candidate.position());
-				double t = Mth.clamp(toMe.dot(velocity) / velocity.lengthSqr(), 0.0, LOOKAHEAD_TICKS);
-				double miss = toMe.subtract(velocity.scale(t)).length();
 				boolean sees = drifter.level().clip(new ClipContext(eye, candidate.position(), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE,
 					drifter)).getType() == HitResult.Type.MISS;
-				if (t > 0.0 && miss < HIT_RADIUS && sees) {
+				if (sees) {
 					this.projectile = candidate;
 					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Follows its flight for the next second (arrows fall 0.05 a tick and slow 1% a tick; fireballs fly straight) and
+		 * checks whether it passes through its body (found in review: a straight line missed skeleton arrows, which are
+		 * aimed high and drop onto the target).
+		 */
+		private static boolean willHit(Projectile projectile, AABB body) {
+			boolean arrow = projectile instanceof AbstractArrow;
+			Vec3 position = projectile.position();
+			Vec3 velocity = projectile.getDeltaMovement();
+			for (int tick = 0; tick < LOOKAHEAD_TICKS; tick++) {
+				Vec3 next = position.add(velocity);
+				if (body.clip(position, next).isPresent() || body.contains(next)) {
+					return true;
+				}
+
+				position = next;
+				if (arrow) {
+					velocity = velocity.scale(0.99).subtract(0.0, 0.05, 0.0);
 				}
 			}
 
@@ -700,11 +755,16 @@ public class Reflexes {
 				return true;
 			}
 
-			// Sidestep across its line.
-			VirtualKeys keys = drifter.getKeys();
-			keys.set(VirtualKeys.Key.LEFT, this.left);
-			keys.set(VirtualKeys.Key.RIGHT, !this.left);
-			keys.set(VirtualKeys.Key.SPRINT, false);
+			// Sidestep across its line (not along it): perpendicular to its flight, on the side picked at the start.
+			Vec3 velocity = this.projectile.getDeltaMovement();
+			Vec3 across = new Vec3(-velocity.z, 0.0, velocity.x);
+			if (across.lengthSqr() < 1.0E-4) {
+				return false;
+			}
+
+			across = across.normalize().scale(this.left ? 2.0 : -2.0);
+			Steering.pressToward(drifter, drifter.position().add(across));
+			drifter.getKeys().set(VirtualKeys.Key.SPRINT, false);
 			return tick < 8;
 		}
 	}
@@ -721,9 +781,21 @@ public class Reflexes {
 			return drifter.isInWall();
 		}
 
+		/** The block its head is in, found the way Entity#isInWall finds it (the head box is 0.48 wide). */
 		@Override
 		protected Task makeTask(DrifterEntity drifter) {
-			return dig(drifter, BlockPos.containing(drifter.getEyePosition()));
+			float width = drifter.getBbWidth() * 0.8F;
+			AABB head = AABB.ofSize(drifter.getEyePosition(), width, 1.0E-6, width);
+			Level level = drifter.level();
+			BlockPos found = BlockPos.containing(drifter.getEyePosition());
+			for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(head.minX, head.minY, head.minZ), BlockPos.containing(head.maxX, head.maxY, head.maxZ))) {
+				if (!level.getBlockState(pos).isAir() && level.getBlockState(pos).isSuffocating(level, pos)) {
+					found = pos.immutable();
+					break;
+				}
+			}
+
+			return dig(drifter, found);
 		}
 
 		@Override
@@ -744,7 +816,7 @@ public class Reflexes {
 
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
-			AABB column = drifter.getBoundingBox().inflate(0.3, 0.0, 0.3).expandTowards(0.0, 6.0, 0.0);
+			AABB column = drifter.getBoundingBox().expandTowards(0.0, 6.0, 0.0);
 			return !drifter.level().getEntitiesOfClass(FallingBlockEntity.class, column, block -> block.getY() > drifter.getEyeY()).isEmpty();
 		}
 
@@ -772,8 +844,10 @@ public class Reflexes {
 				return false;
 			}
 
-			Steering.pressToward(drifter, Vec3.atBottomCenterOf(this.escape));
-			return drifter.blockPosition().distManhattan(this.escape) > 0;
+			// All the way out of the column (its body is 0.6 wide): close to the middle of the escape block.
+			Vec3 middle = Vec3.atBottomCenterOf(this.escape);
+			Steering.pressToward(drifter, middle);
+			return Math.abs(drifter.getX() - middle.x) > 0.2 || Math.abs(drifter.getZ() - middle.z) > 0.2;
 		}
 	}
 
@@ -818,13 +892,16 @@ public class Reflexes {
 
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
-			if (Reflexes.this.contactHurt == null) {
+			if (drifter.level().getGameTime() > Reflexes.this.contactUntil) {
 				return false;
 			}
 
-			Reflexes.this.contactHurt = null;
 			Level level = drifter.level();
-			this.from = null;
+			this.from = Reflexes.this.contactFrom;
+			if (this.from != null) {
+				return true;
+			}
+
 			for (BlockPos pos : BlockPos.betweenClosed(drifter.blockPosition().offset(-1, 0, -1), drifter.blockPosition().offset(1, 1, 1))) {
 				if (level.getBlockState(pos).is(Blocks.CACTUS) || level.getBlockState(pos).is(Blocks.SWEET_BERRY_BUSH)) {
 					this.from = Vec3.atCenterOf(pos);
@@ -833,6 +910,11 @@ public class Reflexes {
 			}
 
 			return false;
+		}
+
+		@Override
+		protected void start(DrifterEntity drifter) {
+			Reflexes.this.contactUntil = -1;
 		}
 
 		@Override

@@ -16,6 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.food.FoodConstants;
@@ -58,7 +59,8 @@ public class AttackTask extends Task {
 				return CREEPER;
 			}
 
-			if (target instanceof RangedAttackMob) {
+			// A drowned only shoots with a trident.
+			if (target instanceof RangedAttackMob && !(target instanceof Drowned drowned && !drowned.getMainHandItem().is(Items.TRIDENT))) {
 				return RANGED;
 			}
 
@@ -114,6 +116,11 @@ public class AttackTask extends Task {
 	private int backoff;
 	private int strafeTicks;
 	private boolean strafeLeft;
+	/** The camera aim it set; a reflex taking the head elsewhere changes the camera's token, so it aims again. */
+	private int lookToken = -1;
+	/** The weapon it took out; if something else ends up in its hand (a reflex used a block), it switches back. */
+	@Nullable
+	private ItemStack weapon;
 
 	public AttackTask(DrifterEntity drifter, LivingEntity target, String label) {
 		super(drifter);
@@ -142,7 +149,11 @@ public class AttackTask extends Task {
 			return Status.SUCCESS;
 		}
 
-		// Weapon first: like a player switching to the sword before a fight.
+		// Weapon first: like a player switching to the sword before a fight (and back to it if a reflex changed the item).
+		if (this.weaponChecked && this.weapon != null && this.drifter.getMainHandItem() != this.weapon && !this.weapon.isEmpty()) {
+			this.weaponChecked = false;
+		}
+
 		if (!this.weaponChecked) {
 			Status selecting = this.selectWeapon();
 			if (selecting != null) {
@@ -180,11 +191,19 @@ public class AttackTask extends Task {
 				this.follow = null;
 			}
 
-			this.drifter.getCamera().lookAt(this.target, CameraModel.TurnSpeed.COMBAT);
+			this.aim();
+		} else if (this.drifter.getCamera().targetToken() != this.lookToken) {
+			// Something else (a reflex) turned its head: back onto the target.
+			this.aim();
 		}
 
 		this.fight(distance);
 		return Status.RUNNING;
+	}
+
+	private void aim() {
+		this.drifter.getCamera().lookAt(this.target, CameraModel.TurnSpeed.COMBAT);
+		this.lookToken = this.drifter.getCamera().targetToken();
 	}
 
 	/** Returns a status while still switching to its weapon, or null once it holds it. */
@@ -193,6 +212,7 @@ public class AttackTask extends Task {
 		if (this.selectWeapon == null) {
 			int slot = Combat.bestWeaponSlot(this.drifter);
 			ItemStack weapon = slot < 0 ? ItemStack.EMPTY : this.drifter.getInventory().getItem(slot);
+			this.weapon = weapon;
 			if (weapon.isEmpty() || weapon == this.drifter.getMainHandItem()) {
 				this.weaponChecked = true;
 				return null;
@@ -245,7 +265,7 @@ public class AttackTask extends Task {
 		if (!stepIn) {
 			// Waiting for the cooldown: hover at the edge of reach, circling.
 			if (distance < HOVER_MIN) {
-				Steering.pressToward(this.drifter, this.drifter.position().subtract(at).scale(2.0).add(at));
+				this.stepBack(at);
 			} else if (distance > HOVER_MAX) {
 				Steering.pressToward(this.drifter, at);
 			} else {
@@ -253,6 +273,7 @@ public class AttackTask extends Task {
 			}
 
 			this.strafe(keys);
+			this.guardFootwork(at);
 			keys.set(VirtualKeys.Key.SPRINT, false);
 			keys.set(VirtualKeys.Key.JUMP, false);
 			// Shield up while an archer draws or a mob is about to swing in reach.
@@ -320,11 +341,68 @@ public class AttackTask extends Task {
 		}
 
 		Vec3 at = this.target.position();
-		Steering.pressToward(this.drifter, this.drifter.position().subtract(at).scale(2.0).add(at));
+		this.stepBack(at);
 		this.strafe(keys);
+		this.guardFootwork(at);
 		keys.set(VirtualKeys.Key.SPRINT, false);
-		keys.set(VirtualKeys.Key.JUMP, this.drifter.horizontalCollision && this.drifter.onGround());
+		keys.set(VirtualKeys.Key.JUMP, this.drifter.horizontalCollision && this.drifter.onGround() && !keys.isDown(VirtualKeys.Key.SNEAK));
 		this.shieldIf(distance < 4.0);
+	}
+
+	private void stepBack(Vec3 from) {
+		Steering.pressToward(this.drifter, this.drifter.position().subtract(from).scale(2.0).add(from));
+	}
+
+	/**
+	 * Fighting footwork never backs or strafes it off a cliff or into lava (found in review): if the step behind or to
+	 * the side isn't safe it doesn't take it (strafing the other way), and sneaks so it can't slip over an edge.
+	 */
+	private void guardFootwork(Vec3 from) {
+		VirtualKeys keys = this.drifter.getKeys();
+		Vec3 here = this.drifter.position();
+		Vec3 back = new Vec3(here.x - from.x, 0.0, here.z - from.z);
+		if (back.lengthSqr() < 1.0E-4) {
+			return;
+		}
+
+		back = back.normalize();
+		Vec3 right = new Vec3(back.z, 0.0, -back.x);
+		boolean unsafeBack = !this.safeStep(back);
+		boolean pressingBack = keys.isDown(VirtualKeys.Key.BACK) || !keys.isDown(VirtualKeys.Key.FORWARD) && unsafeBack;
+		if (unsafeBack && pressingBack) {
+			keys.set(VirtualKeys.Key.BACK, false);
+			keys.set(VirtualKeys.Key.FORWARD, false);
+		}
+
+		// Strafe keys are relative to where it faces (the target).
+		if (keys.isDown(VirtualKeys.Key.LEFT) && !this.safeStep(right.scale(-1.0)) || keys.isDown(VirtualKeys.Key.RIGHT) && !this.safeStep(right)) {
+			this.strafeLeft = !this.strafeLeft;
+			this.strafe(keys);
+		}
+
+		keys.set(VirtualKeys.Key.SNEAK, unsafeBack || !this.safeStep(right) || !this.safeStep(right.scale(-1.0)));
+	}
+
+	/** Ground within 3 blocks below a step in that direction, and no lava or fire there. */
+	private boolean safeStep(Vec3 direction) {
+		Level level = this.drifter.level();
+		BlockPos cell = BlockPos.containing(this.drifter.getX() + direction.x * 0.9, this.drifter.getY() + 0.1, this.drifter.getZ() + direction.z * 0.9);
+		for (int down = 0; down <= 3; down++) {
+			BlockPos pos = cell.below(down);
+			if (level.getFluidState(pos).is(net.minecraft.tags.FluidTags.LAVA) || level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.FIRE)) {
+				return false;
+			}
+
+			if (down > 0 && !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()) {
+				return true;
+			}
+
+			if (!level.getFluidState(pos).isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void strafe(VirtualKeys keys) {
@@ -338,7 +416,7 @@ public class AttackTask extends Task {
 	}
 
 	private boolean hasShield() {
-		return this.drifter.getOffhandItem().is(Items.SHIELD);
+		return this.drifter.canUseShield();
 	}
 
 	private void shieldIf(boolean raise) {

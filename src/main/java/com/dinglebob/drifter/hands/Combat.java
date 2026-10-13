@@ -9,7 +9,12 @@ import com.dinglebob.drifter.entity.DrifterInventory;
 import com.dinglebob.drifter.mixin.LivingEntityAccessor;
 
 import net.minecraft.world.InteractionHand;
+import net.fabricmc.fabric.api.entity.FakePlayer;
+
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -88,6 +93,31 @@ public final class Combat {
 		return Math.min(1.0F, (drifter.ticksSinceAttack() + 0.5F) / attackDelay(drifter));
 	}
 
+	/** Points a mob's revenge and anger at the Drifter instead of the fake player that made the hit. */
+	private static void redirectAnger(DrifterEntity drifter, Entity target) {
+		if (!(target instanceof LivingEntity living) || !living.isAlive()) {
+			return;
+		}
+
+		if (living.getLastHurtByMob() instanceof FakePlayer) {
+			living.setLastHurtByMob(drifter);
+		}
+
+		if (living instanceof Mob mob && mob.getTarget() instanceof FakePlayer) {
+			mob.setTarget(drifter);
+		}
+
+		if (living instanceof NeutralMob neutral && neutral.getPersistentAngerTarget() != null
+			&& neutral.getPersistentAngerTarget().equals(FakePlayerBridge.helperId(drifter))) {
+			neutral.setPersistentAngerTarget(drifter.getUUID());
+		}
+
+		// Zombies call their friends against the attacker: point those at the Drifter too.
+		for (Mob nearby : drifter.level().getEntitiesOfClass(Mob.class, living.getBoundingBox().inflate(32.0), mob -> mob.getTarget() instanceof FakePlayer)) {
+			nearby.setTarget(drifter);
+		}
+	}
+
 	/** Is this entity under its crosshair, within reach, with no block in the way? */
 	public static boolean canHit(DrifterEntity drifter, Entity target) {
 		Vec3 eye = drifter.getEyePosition();
@@ -143,9 +173,15 @@ public final class Combat {
 			return sprinting;
 		});
 
-		// A sprint hit stops the sprint, as for a player.
+		// The mob knows who hit it: the Drifter, not its invisible helper (found in review: zombies went after the helper
+		// standing where the Drifter last swung, which made every fight free). Kill credit stays with the helper, as a
+		// player's, for drops and experience.
+		redirectAnger(drifter, target);
+
+		// A sprint hit stops the sprint and costs momentum, as for a player (Player#attack).
 		if (wasSprinting && !stillSprinting) {
 			drifter.setSprinting(false);
+			drifter.setDeltaMovement(drifter.getDeltaMovement().multiply(0.6, 1.0, 0.6));
 		}
 
 		drifter.swing(InteractionHand.MAIN_HAND);

@@ -17,6 +17,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Hostile mobs hunt Drifters like players (DESIGN.md sections 1, 2 and 13, "Mobs targeting the Drifter"; on by
@@ -77,6 +78,12 @@ public final class MobTargeting {
 			super(mob, DrifterEntity.class, 10, mustSee, mustReach, null);
 			this.targetConditions = conditions;
 			this.onlyInTheDark = onlyInTheDark;
+		}
+
+		/** Like the player version (which has no height box): a skeleton on a cliff sees a Drifter far below. */
+		@Override
+		protected AABB getTargetSearchArea(double range) {
+			return this.mob.getBoundingBox().inflate(range, range, range);
 		}
 
 		@Override

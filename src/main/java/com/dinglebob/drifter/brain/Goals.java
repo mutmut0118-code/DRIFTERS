@@ -414,8 +414,9 @@ public final class Goals {
 				return 0.0;
 			}
 
+			// Above everything else, shelter included (its 0.95 plus commitment): a mob on it comes first.
 			if (threat.urgent()) {
-				return 0.95;
+				return 1.25;
 			}
 
 			// Something it could beat, further off: worth it if it's coming (or for the drops, if confident).
@@ -464,7 +465,7 @@ public final class Goals {
 			}
 
 			if (threat.urgent() || threat.nearest() <= 10.0) {
-				return threat.decision() == Threats.Decision.FLEE ? 0.97 : 0.9;
+				return threat.decision() == Threats.Decision.FLEE ? 1.3 : 1.2;
 			}
 
 			return 0.5;

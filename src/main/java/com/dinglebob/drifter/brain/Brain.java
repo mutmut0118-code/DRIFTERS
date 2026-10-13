@@ -161,8 +161,10 @@ public class Brain {
 			Scored currentScore = scores.stream().filter(s -> s.goal() == this.current).findFirst().orElse(null);
 			double currentValue = currentScore == null ? 0.0 : currentScore.score();
 			boolean committed = now - this.goalStarted < (this.current == null ? 0 : this.current.minCommitTicks());
+			// Fighting or fleeing a mob that's on it doesn't wait for a checkpoint (it drops a half-dug shelter block).
+			boolean survival = best.urgent() && ("fight".equals(best.goal().id()) || "flee".equals(best.goal().id()));
 			boolean takeOver = best.goal() != this.current && best.score() > currentValue + SWITCH_MARGIN
-				&& (best.urgent() || !committed) && this.activity.atCheckpoint();
+				&& (best.urgent() || !committed) && (this.activity.atCheckpoint() || survival);
 			if (takeOver) {
 				this.stopActivity("switching to " + best.name());
 				this.start(best, scores, context, now);

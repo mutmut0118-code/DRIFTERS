@@ -909,7 +909,7 @@ public class NavigateTask extends Task {
 		boolean nearEdge = !intentionalDrop && this.nearDeepDrop();
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
-		boolean onMagma = this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
+		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
 		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma;
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
 		if (sneaking && this.drifter.isSprinting()) {
@@ -1191,6 +1191,12 @@ public class NavigateTask extends Task {
 				this.pillarStage = 1;
 			}
 			case 1 -> {
+				if (this.drifter.getCamera().isSettled() && this.drifter.getXRot() < 80.0F) {
+					// Something (a reflex) turned its head: look straight down again before jumping.
+					this.pillarStage = 0;
+					return Status.RUNNING;
+				}
+
 				if (this.drifter.getCamera().isSettled() && this.drifter.onGround()) {
 					keys.set(VirtualKeys.Key.JUMP, true);
 					this.pillarStage = 2;
