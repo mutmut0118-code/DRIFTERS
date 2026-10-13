@@ -59,8 +59,14 @@ public final class Strategist {
 	/** The first target it hasn't reached yet, or null when the early game is done. */
 	@Nullable
 	public static Target nextTarget(DrifterEntity drifter) {
+		return nextTarget(drifter, target -> true);
+	}
+
+	/** The first target it hasn't reached yet that it can work on now (not just waiting on a furnace), or null. */
+	@Nullable
+	public static Target nextTarget(DrifterEntity drifter, Predicate<Target> workable) {
 		for (Target target : EARLY_TARGETS) {
-			if (!target.satisfied().test(drifter)) {
+			if (!target.satisfied().test(drifter) && workable.test(target)) {
 				return target;
 			}
 		}

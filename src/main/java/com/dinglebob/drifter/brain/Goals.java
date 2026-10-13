@@ -5,6 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.activity.Activity;
+import com.dinglebob.drifter.brain.activity.CollectSmeltActivity;
 import com.dinglebob.drifter.brain.activity.CombatActivity;
 import com.dinglebob.drifter.brain.activity.CraftActivity;
 import com.dinglebob.drifter.brain.activity.FleeActivity;
@@ -87,8 +88,9 @@ public final class Goals {
 			case Planner.Hunt hunt -> new HuntActivity(drifter, hunt.prey(), hunt.items(), hunt.total(), hunt.label());
 			case Planner.Craft craft -> new CraftActivity(drifter, craft.item(), craft.times());
 			case Planner.Place place -> new PlaceStationActivity(drifter, place.station());
-			case Planner.Smelt smelt -> new SmeltActivity(drifter, smelt.input(), smelt.inputLabel(), smelt.count(), smelt.fuel(), smelt.fuelLabel(),
-				smelt.fuelCount());
+			case Planner.Smelt smelt -> new SmeltActivity(drifter, smelt.output(), smelt.input(), smelt.inputLabel(), smelt.count(), smelt.fuel(),
+				smelt.fuelLabel(), smelt.fuelCount());
+			case Planner.Collect collect -> new CollectSmeltActivity(drifter, collect.job());
 			case Planner.Explore explore -> new ExploreActivity(drifter, explore.reason(), explore.toward(), explore.found());
 		};
 	}
@@ -117,6 +119,11 @@ public final class Goals {
 		public double feasibility(Context context) {
 			Planner.Plan plan = this.plan(context);
 			if (!plan.feasible() || plan.done()) {
+				return 0.0;
+			}
+
+			// Waiting on a furnace: do something else meanwhile (it comes back when the batch is done).
+			if (plan.next() instanceof Planner.Collect collect && !collect.job().ready(context.drifter().level().getGameTime())) {
 				return 0.0;
 			}
 
@@ -394,6 +401,53 @@ public final class Goals {
 		}
 	}
 
+	/** Go back for a batch that should be done cooking (section 10.4). */
+	public static final class CollectSmelting extends Goal {
+		@Nullable
+		private FurnaceJob ready(Context context) {
+			long now = context.drifter().level().getGameTime();
+			for (FurnaceJob job : context.drifter().getDrifterBrain().furnaceJobs()) {
+				if (job.ready(now)) {
+					return job;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public String id() {
+			return "collect";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "collect from the furnace";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			return this.ready(context) != null ? 0.55 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return context.time() >= Schedule.SHELTER_URGENT && context.time() < Schedule.NIGHT_END ? 0.3 : 1.0;
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			FurnaceJob job = this.ready(context);
+			return job == null ? null : new CollectSmeltActivity(context.drifter(), job);
+		}
+	}
+
 	/** Fight hostiles it can beat (section 13 ratio above 1.2, or cornered). */
 	public static final class Fight extends Goal {
 		@Override
@@ -543,6 +597,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new TakeShelter(), new Progress(), new Wander(), new Idle());
+		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new CollectSmelting(), new TakeShelter(), new Progress(),
+			new Wander(), new Idle());
 	}
 }

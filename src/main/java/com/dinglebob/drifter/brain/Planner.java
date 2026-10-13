@@ -59,6 +59,7 @@ public final class Planner {
 	private static final double COST_HUNT_KILL = 25.0;
 	private static final double DROPS_PER_KILL = 1.5;
 	private static final double COST_SMELT_EACH = 10.0;
+	private static final double COST_COLLECT = 5.0;
 	/** Items of each fuel per smelted item: coal and charcoal smelt 8, planks and logs 1.5. */
 	private static final double COAL_ITEMS = 8.0;
 	private static final double WOOD_ITEMS = 1.5;
@@ -67,7 +68,7 @@ public final class Planner {
 	// Actions
 	// ---------------------------------------------------------------------------------------------
 
-	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore {
+	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect {
 		String describe();
 	}
 
@@ -102,11 +103,19 @@ public final class Planner {
 		}
 	}
 
-	public record Smelt(Predicate<ItemStack> input, String inputLabel, int count, Predicate<ItemStack> fuel, String fuelLabel, int fuelCount)
-		implements Action {
+	public record Smelt(Item output, Predicate<ItemStack> input, String inputLabel, int count, Predicate<ItemStack> fuel, String fuelLabel,
+		int fuelCount) implements Action {
 		@Override
 		public String describe() {
 			return "smelt " + this.count + " " + this.inputLabel + " with " + this.fuelCount + " " + this.fuelLabel;
+		}
+	}
+
+	/** Go back to a furnace it left cooking and take the results out. */
+	public record Collect(FurnaceJob job) implements Action {
+		@Override
+		public String describe() {
+			return "collect " + name(this.job.output) + " from the furnace";
 		}
 	}
 
@@ -144,17 +153,21 @@ public final class Planner {
 		final Map<Item, Integer> inventory;
 		final List<Action> actions;
 		final Set<Block> placed;
+		/** How much of each cooking batch the plan has already counted on. */
+		final Map<FurnaceJob, Integer> fromFurnaces;
 		double cost;
 
-		State(Map<Item, Integer> inventory, List<Action> actions, Set<Block> placed, double cost) {
+		State(Map<Item, Integer> inventory, List<Action> actions, Set<Block> placed, Map<FurnaceJob, Integer> fromFurnaces, double cost) {
 			this.inventory = inventory;
 			this.actions = actions;
 			this.placed = placed;
+			this.fromFurnaces = fromFurnaces;
 			this.cost = cost;
 		}
 
 		State copy() {
-			return new State(new HashMap<>(this.inventory), new ArrayList<>(this.actions), new HashSet<>(this.placed), this.cost);
+			return new State(new HashMap<>(this.inventory), new ArrayList<>(this.actions), new HashSet<>(this.placed), new HashMap<>(this.fromFurnaces),
+				this.cost);
 		}
 
 		int count(Item item) {
@@ -188,6 +201,10 @@ public final class Planner {
 				}
 
 				if (earlier instanceof Explore a && action instanceof Explore b && a.reason().equals(b.reason())) {
+					return;
+				}
+
+				if (earlier instanceof Collect a && action instanceof Collect b && a.job() == b.job()) {
 					return;
 				}
 			}
@@ -225,7 +242,7 @@ public final class Planner {
 	 */
 	public static Plan plan(DrifterEntity drifter, KnownWorld world, List<Item> goal, int count) {
 		Planner planner = new Planner(drifter, world);
-		State start = new State(new HashMap<>(planner.realInventory), new ArrayList<>(), new HashSet<>(), 0.0);
+		State start = new State(new HashMap<>(planner.realInventory), new ArrayList<>(), new HashSet<>(), new HashMap<>(), 0.0);
 		State end = planner.obtainAny(start, goal, count, 0);
 		return end == null ? INFEASIBLE : new Plan(List.copyOf(end.actions), true, end.cost);
 	}
@@ -263,6 +280,25 @@ public final class Planner {
 			remaining -= base.take(item, remaining);
 			if (remaining <= 0) {
 				return base;
+			}
+		}
+
+		// Then what's cooking in a furnace it loaded: it only has to go back for it.
+		for (FurnaceJob job : this.drifter.getDrifterBrain().furnaceJobs()) {
+			if (!candidates.contains(job.output)) {
+				continue;
+			}
+
+			int left = job.count - base.fromFurnaces.getOrDefault(job, 0);
+			int take = Math.min(left, remaining);
+			if (take > 0) {
+				base.fromFurnaces.merge(job, take, Integer::sum);
+				base.addAction(new Collect(job));
+				base.cost += COST_COLLECT;
+				remaining -= take;
+				if (remaining <= 0) {
+					return base;
+				}
 			}
 		}
 
@@ -347,7 +383,12 @@ public final class Planner {
 		Predicate<BlockState> blocks = blockState -> source.blockGives(blockState, item);
 		BlockState example = this.world.exampleOf(blocks);
 		boolean known = example != null;
-		boolean digDown = !known && source.blockIds().stream().anyMatch(id -> id.equals("minecraft:stone") || id.equals("minecraft:deepslate"));
+		boolean underground = source.blockIds().stream().anyMatch(id -> id.equals("minecraft:stone") || id.equals("minecraft:deepslate"));
+		// Stone it hasn't seen: explore first (a cave, a cliff, a hillside) and dig straight down only as a last resort,
+		// after a few legs of exploring found nothing (user's rule: learn the land first).
+		String searchReason = "looking for " + name(item) + " (a cave or a cliff)";
+		boolean digDown = !known && underground
+			&& this.drifter.getDrifterBrain().timesExplored(searchReason) >= Brain.SEARCH_LEGS_BEFORE_DIGGING;
 
 		// A tool that can harvest it (tools aren't used up).
 		Item tool = source.toolItem();
@@ -373,7 +414,7 @@ public final class Planner {
 
 		boolean wood = new ItemStack(item).is(ItemTags.LOGS);
 		// It stops looking once it sees any block of this source it could take (any kind of log, not just this one).
-		state.addAction(new Explore("looking for " + (wood ? "trees" : label), wood ? this.world.treesHint : null,
+		state.addAction(new Explore(wood ? "looking for trees" : underground ? searchReason : "looking for " + label, wood ? this.world.treesHint : null,
 			drifter -> KnownWorld.anyTakeable(drifter, source::matchesBlock)));
 		state.cost += COST_EXPLORE + COST_GATHER_EACH * count;
 		return state;
@@ -481,7 +522,7 @@ public final class Planner {
 			if (attempt != null && (best == null || attempt.cost < best.cost)) {
 				best = attempt;
 				Set<Item> fuelSet = Set.copyOf(fuel);
-				bestAction = new Smelt(input::test, name(inputs.get(0)), count, stack -> fuelSet.contains(stack.getItem()),
+				bestAction = new Smelt(item, input::test, name(inputs.get(0)), count, stack -> fuelSet.contains(stack.getItem()),
 					fuel.size() == 1 ? name(fuel.get(0)) : (fuel.contains(Items.OAK_PLANKS) ? "planks" : "logs"), fuelCount);
 			}
 		}

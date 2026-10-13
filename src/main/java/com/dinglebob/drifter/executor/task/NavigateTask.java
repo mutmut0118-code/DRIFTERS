@@ -192,7 +192,8 @@ public class NavigateTask extends Task {
 	@Override
 	protected void onStart() {
 		this.sprintJumpTrip = this.drifter.getRandom().nextFloat() < SPRINT_JUMP_CHANCE;
-		this.plan("start");
+		// Planning on the move from the start too: whatever it was doing, it doesn't freeze while it thinks.
+		this.plan("start", true);
 	}
 
 	private VirtualKeys keys() {
@@ -616,6 +617,17 @@ public class NavigateTask extends Task {
 		double dx = this.drifter.getX() - center.x;
 		double dz = this.drifter.getZ() - center.z;
 		double horizontal = Math.sqrt(dx * dx + dz * dz);
+		// Walking a straight line to a point further on: an in-between point counts as reached once it's nearer the far
+		// point than that point is (it cut past it), or close.
+		if (this.smoothTo > this.index && this.smoothTo < this.path.size() && isFlatWalk(step)) {
+			Vec3 far = Vec3.atBottomCenterOf(this.path.get(this.smoothTo).to());
+			double mine = horizontalDistance(this.drifter.position(), far);
+			double its = horizontalDistance(center, far);
+			if (mine < its - 0.1 || horizontal < ARRIVE_STRAIGHT) {
+				return true;
+			}
+		}
+
 		boolean straight = this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1));
 		if (straight && this.passedInAir(step)) {
 			return true;
@@ -652,6 +664,75 @@ public class NavigateTask extends Task {
 		double along = (dx * stepX + dz * stepZ) / length;
 		double sideways = Math.abs(-dx * stepZ + dz * stepX) / length;
 		return along > -0.1 && sideways < ARRIVE_STRAIGHT;
+	}
+
+	/** How many steps ahead it looks for a straight line to walk (string-pulling). */
+	private static final int SMOOTH_STEPS = 5;
+	/** Path index it's currently walking straight toward (when greater than the current index). */
+	private int smoothTo = -1;
+
+	private static boolean isFlatWalk(PathStep step) {
+		return (step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL) && step.from().getY() == step.to().getY();
+	}
+
+	private static double horizontalDistance(Vec3 a, Vec3 b) {
+		double dx = a.x - b.x;
+		double dz = a.z - b.z;
+		return Math.sqrt(dx * dx + dz * dz);
+	}
+
+	/** The furthest step within reach of a clear straight line over flat walking steps, or the current index. */
+	private int smoothTarget(PathStep step) {
+		if (!isFlatWalk(step) || !this.drifter.onGround() && !this.hopping) {
+			return this.index;
+		}
+
+		int last = this.index;
+		for (int i = this.index; i < Math.min(this.path.size(), this.index + SMOOTH_STEPS); i++) {
+			PathStep candidate = this.path.get(i);
+			if (!isFlatWalk(candidate) || candidate.to().getY() != step.to().getY()) {
+				break;
+			}
+
+			last = i;
+		}
+
+		for (int i = last; i > this.index; i--) {
+			if (this.straightLineClear(this.drifter.position(), Vec3.atBottomCenterOf(this.path.get(i).to()), step.to().getY())) {
+				return i;
+			}
+		}
+
+		return this.index;
+	}
+
+	/**
+	 * Is the straight line from here to there walkable for a 0.6-wide body: open feet and head cells, solid floor, no
+	 * fluids, at this floor level?
+	 */
+	private boolean straightLineClear(Vec3 from, Vec3 to, int feetY) {
+		double dx = to.x - from.x;
+		double dz = to.z - from.z;
+		double length = Math.sqrt(dx * dx + dz * dz);
+		if (length < 0.5) {
+			return true;
+		}
+
+		double ux = dx / length;
+		double uz = dz / length;
+		for (double t = 0.0; t <= length; t += 0.4) {
+			for (double side = -0.3; side <= 0.3; side += 0.3) {
+				double x = from.x + ux * t - uz * side;
+				double z = from.z + uz * t + ux * side;
+				BlockPos cell = BlockPos.containing(x, feetY + 0.1, z);
+				if (!this.isClear(cell) || !this.isClear(cell.above()) || this.isClear(cell.below()) || this.isDoorLike(cell)
+					|| !this.level().getFluidState(cell).isEmpty() || !this.level().getFluidState(cell.below()).isEmpty()) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -873,6 +954,14 @@ public class NavigateTask extends Task {
 		// turning back to stand on it (found in testing: it fell straight down from every drop).
 		if (this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1)) && this.passedHorizontally(step)) {
 			goal = Vec3.atBottomCenterOf(this.path.get(this.index + 1).to());
+		}
+
+		// String-pulling (user's note from testing: "too zig-zaggy, it can walk two quarters of a diagonal"): when the
+		// straight line to a point a few steps on is clear flat ground, it walks that line at any angle instead of
+		// visiting every block centre.
+		this.smoothTo = this.smoothTarget(step);
+		if (this.smoothTo > this.index) {
+			goal = Vec3.atBottomCenterOf(this.path.get(this.smoothTo).to());
 		}
 
 		// A jump up from off to the side: line up in front of the step first (its start's middle), then jump.

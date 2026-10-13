@@ -39,6 +39,12 @@ public class ExploreActivity extends Activity {
 	}
 
 	@Override
+	protected void onStop() {
+		super.onStop();
+		this.drifter.getDrifterBrain().noteExplored(this.reason);
+	}
+
+	@Override
 	protected boolean finishedEarly() {
 		// Checked once a second: stops as soon as it has seen what it was looking for.
 		if (this.found != null && this.ticksRunning() % 20 == 10 && this.found.test(this.drifter)) {

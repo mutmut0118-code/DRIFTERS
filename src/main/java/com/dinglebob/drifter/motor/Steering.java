@@ -2,7 +2,11 @@ package com.dinglebob.drifter.motor;
 
 import com.dinglebob.drifter.entity.DrifterEntity;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
 /** Pressing movement keys toward a point, whichever way the head faces (forward, back and strafe keys combined). */
@@ -21,6 +25,37 @@ public final class Steering {
 		keys.set(VirtualKeys.Key.BACK, move && Math.abs(relative) > 112.5F);
 		keys.set(VirtualKeys.Key.LEFT, move && relative < -22.5F && relative > -157.5F);
 		keys.set(VirtualKeys.Key.RIGHT, move && relative > 22.5F && relative < 157.5F);
+	}
+
+	/**
+	 * Is a step in this direction safe: ground within 3 blocks below (or water), and no lava or fire? Used by fighting
+	 * footwork and running away, which steer without the pathfinder.
+	 */
+	public static boolean safeStep(DrifterEntity drifter, Vec3 direction) {
+		Level level = drifter.level();
+		BlockPos cell = BlockPos.containing(drifter.getX() + direction.x * 0.9, drifter.getY() + 0.1, drifter.getZ() + direction.z * 0.9);
+		for (int down = 0; down <= 3; down++) {
+			BlockPos pos = cell.below(down);
+			if (level.getFluidState(pos).is(FluidTags.LAVA) || level.getBlockState(pos).is(Blocks.FIRE)) {
+				return false;
+			}
+
+			if (down > 0 && !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty() || !level.getFluidState(pos).isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** A wall it can't just walk or jump over in that direction (two blocks high at its feet). */
+	public static boolean wallAhead(DrifterEntity drifter, Vec3 direction) {
+		Level level = drifter.level();
+		BlockPos cell = BlockPos.containing(drifter.getX() + direction.x * 0.9, drifter.getY() + 0.1, drifter.getZ() + direction.z * 0.9);
+		boolean feet = !level.getBlockState(cell).getCollisionShape(level, cell).isEmpty();
+		BlockPos head = cell.above();
+		boolean high = !level.getBlockState(head).getCollisionShape(level, head).isEmpty();
+		return feet && high;
 	}
 
 	public static void stopMoving(DrifterEntity drifter) {

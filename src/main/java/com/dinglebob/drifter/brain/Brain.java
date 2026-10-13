@@ -38,6 +38,35 @@ public class Brain {
 	/** How often (ticks) it checks for a close threat between re-scores. */
 	public static final int THREAT_CHECK_TICKS = 5;
 
+	/** Legs of exploring for stone before it digs straight down for it (a last resort). */
+	public static final int SEARCH_LEGS_BEFORE_DIGGING = 3;
+
+	private final Map<String, Integer> explored = new HashMap<>();
+	/** Batches it left cooking (saved). */
+	private final List<FurnaceJob> furnaceJobs = new ArrayList<>();
+
+	public List<FurnaceJob> furnaceJobs() {
+		return this.furnaceJobs;
+	}
+
+	public void addFurnaceJob(FurnaceJob job) {
+		this.furnaceJobs.removeIf(old -> old.furnace.equals(job.furnace) && old.output == job.output);
+		this.furnaceJobs.add(job);
+	}
+
+	public void removeFurnaceJob(FurnaceJob job) {
+		this.furnaceJobs.remove(job);
+	}
+
+	/** An exploring leg for this reason ended. */
+	public void noteExplored(String reason) {
+		this.explored.merge(reason, 1, Integer::sum);
+	}
+
+	public int timesExplored(String reason) {
+		return this.explored.getOrDefault(reason, 0);
+	}
+
 	/** Re-score at the next tick (it got hurt, or something else important happened). */
 	public void poke() {
 		this.sinceRescore = RESCORE_TICKS;
@@ -122,9 +151,18 @@ public class Brain {
 	}
 
 	private Goals.Context context() {
-		Strategist.Target target = Strategist.nextTarget(this.drifter);
 		int stage = Strategist.stage(this.drifter);
 		KnownWorld world = KnownWorld.scan(this.drifter);
+		// While one target waits on a furnace, it works on the next one (multitasking, section 10.4).
+		long now = this.drifter.level().getGameTime();
+		Strategist.Target target = Strategist.nextTarget(this.drifter, candidate -> {
+			if (this.furnaceJobs.isEmpty()) {
+				return true;
+			}
+
+			Planner.Plan plan = Planner.plan(this.drifter, world, candidate.items(), candidate.count());
+			return !(plan.next() instanceof Planner.Collect collect && !collect.job().ready(now));
+		});
 		Needs needs = Needs.compute(this.drifter, target != null, stage);
 		return new Goals.Context(this.drifter, world, needs, stage, target, Schedule.believedTime(this.drifter), Threats.assess(this.drifter),
 			Shelter.isSealedIn(this.drifter));
@@ -318,11 +356,22 @@ public class Brain {
 		CompoundTag tag = new CompoundTag();
 		tag.putInt("Version", SAVE_VERSION);
 		tag.putBoolean("Enabled", this.enabled);
+		net.minecraft.nbt.ListTag jobs = new net.minecraft.nbt.ListTag();
+		this.furnaceJobs.forEach(job -> jobs.add(job.save()));
+		tag.put("FurnaceJobs", jobs);
 		return tag;
 	}
 
 	public void load(CompoundTag tag) {
 		// Version 1 is the first format.
 		this.enabled = !tag.contains("Enabled") || tag.getBoolean("Enabled");
+		this.furnaceJobs.clear();
+		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
+		for (int i = 0; i < jobs.size(); i++) {
+			FurnaceJob job = FurnaceJob.load(jobs.getCompound(i));
+			if (job != null) {
+				this.furnaceJobs.add(job);
+			}
+		}
 	}
 }

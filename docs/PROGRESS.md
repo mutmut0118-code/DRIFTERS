@@ -302,6 +302,14 @@ The "done when" test: it survives three nights in a row. Plus a combat-mod test 
 - Reflexes: escaping lava with no safe block in sight keeps one direction (it used to spin); the cactus step-away reflex now fires; incoming arrows are followed with gravity and drag (a straight line missed skeleton arrows until too late) and it sidesteps across the arrow's path; stepping aside from falling sand goes fully out of the column; the suffocation reflex digs the block its head is really in; without blocks it no longer loops backing away from lava it's only walking past.
 - Mobs look for Drifters as high and low as they look for players (it was only 4 blocks up and down). No sneaking on magma during a deliberate drop.
 
+### Changes after the first in-game test of milestones 5 and 6 (need re-testing)
+User's report: survived a day, went into a cave, ran from a creeper, killed a skeleton, then died to the hill-step problem in a fight.
+- **Stone: explore first, dig down last** (user's rule: "learn the land, look for a cave, then mine"). Stone it hasn't seen now means exploring for caves, cliffs and hillsides (it stops the moment it sees stone it can reach); it digs a staircase straight down only after 3 legs of exploring found none.
+- **Smelting while multitasking** (user's rule, section 10.4): it loads the furnace (input and just enough fuel) and leaves; the batch is remembered (and saved) with when it'll be done. While a target waits on the furnace, the progress goal works on the next target; a "collect from the furnace" goal brings it back when the batch should be done (if some is still cooking it comes back again later). Plans count what's cooking as on its way ("collect cooked beef from the furnace").
+- **Running away without stopping to think** (user's note): fleeing now turns and sprints straight away from the danger with the keys, swerving around drops, lava and walls (trying directions up to 120 degrees off), and only asks the pathfinder when it's boxed in. Every walk also starts moving while the first route is still being worked out.
+- **Less zig-zag** (user's note: "walk 2 quarters of a diagonal"): on flat ground it walks straight at any angle to a point up to 5 steps ahead whenever that line is clear for its whole body (open feet and head, solid floor, no fluids, no doors), instead of visiting each block centre.
+- **Died at a 2-block step mid-fight**: up close the fight steers by hand, which ran into such steps and jumped at them. Now a wall it can't jump makes it let the pathfinder lead around it for 2 seconds.
+
 ### Not done yet / left for later (TODOs in code)
 - Bows and crossbows (ranged mechanics), axe-vs-shield, sweeps lined up on groups, W-tap sprint resets: milestone 6 follow-up or milestone 9 (players).
 - Terrain sense (doorways, high ground, 2-high ceilings against endermen), backing into light: later.

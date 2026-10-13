@@ -3,6 +3,7 @@ package com.dinglebob.drifter.brain.activity;
 import com.dinglebob.drifter.brain.Threats;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.task.NavigateTask;
+import com.dinglebob.drifter.executor.task.RunAwayTask;
 import com.dinglebob.drifter.executor.task.WaitTask;
 import com.dinglebob.drifter.executor.task.AttackTask;
 import com.dinglebob.drifter.hands.Tools;
@@ -80,24 +81,10 @@ public class FleeActivity extends Activity {
 				"pillar up out of reach"));
 		}
 
-		// Away from where the hostiles are, on average.
-		Vec3 here = this.drifter.position();
-		Vec3 centre = Vec3.ZERO;
-		for (LivingEntity hostile : assessment.hostiles()) {
-			centre = centre.add(hostile.position());
-		}
-
-		centre = centre.scale(1.0 / assessment.hostiles().size());
-		Vec3 away = new Vec3(here.x - centre.x, 0.0, here.z - centre.z);
-		if (away.lengthSqr() < 0.01) {
-			double angle = this.drifter.getRandom().nextDouble() * Math.PI * 2.0;
-			away = new Vec3(Math.cos(angle), 0.0, Math.sin(angle));
-		}
-
-		Vec3 target = here.add(away.normalize().scale(RUN_DISTANCE));
+		// Turn and run, now: no stopping to plan a route (user's note from testing).
 		this.legs++;
 		this.think("running away from the " + (assessment.main() == null ? "mobs"
 			: assessment.main().getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
-		return this.begin(new NavigateTask(this.drifter, target, 4.0, "run away", NavigateTask.Pace.TRAVEL));
+		return this.begin(new RunAwayTask(this.drifter, () -> Threats.assess(this.drifter).hostiles(), SAFE_DISTANCE, 20 * 8));
 	}
 }

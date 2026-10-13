@@ -472,7 +472,9 @@ thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints t
    - [ ] **Punches logs** from the bottom up and picks them up. It gathers all the logs it needs in one go.
    - [ ] Makes **planks**, a **crafting table**, places it next to itself, makes **sticks** and a **wooden pickaxe**
          (short "inventory open" pauses).
-   - [ ] Gets **stone**: mines stone it can see, or digs a **staircase down** through the dirt until it reaches stone.
+   - [ ] Gets **stone** (re-test after change): mines stone it can see; if it hasn't seen any, it **explores** for a cave,
+         a cliff or a hillside ("explore (looking for cobblestone (a cave or a cliff))") and mines there. Only after 3
+         rounds of exploring without finding stone does it dig a **staircase down**.
    - [ ] Walks back to its crafting table (or makes a new one) and makes a **stone pickaxe**, **sword** and **axe**, then
          a **furnace** (8 cobblestone), places it, and collects a stack of cobblestone.
    - [ ] **Hunts (re-test after fix)**: chases a cow, pig, sheep or chicken it has seen. It **switches to its best
@@ -549,7 +551,9 @@ within a second or two: "put on better gear").
       then fights it up close.
 - [ ] A **creeper**: it runs in, does **one sprint hit** (knocks it back), then backs off to 5+ blocks; repeat. If the
       creeper starts **hissing**, it sprints away immediately ("reflex: creeper hissing").
-- [ ] **Too many** (3 zombies with only fists or low health): the Threat line says "retreat" or "flee" and it runs away.
+- [ ] **Too many** (3 zombies with only fists or low health): the Threat line says "retreat" or "flee" and it **turns and
+      runs at once** (no standing still to think), swerving around drops, lava and walls.
+- [ ] **Hills mid-fight (re-test):** fighting near a 2-block step, it goes around instead of jumping at the wall.
       If 3 melee mobs surround it and it has blocks, it **pillars 3 blocks up** and waits.
 - [ ] If something keeps hitting it from close by while it's running, it turns and fights ("cornered").
 - [ ] After a fight: it looks around, picks up the drops, and eats if it's hurt.

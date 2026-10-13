@@ -114,6 +114,9 @@ public class AttackTask extends Task {
 	private boolean critJump;
 	private boolean missedCrit;
 	private int backoff;
+	/** Ticks left of letting the pathfinder lead (around a wall it can't jump). */
+	private int pathTicks;
+	private static final int PATH_AROUND_TICKS = 40;
 	private int strafeTicks;
 	private boolean strafeLeft;
 	/** The camera aim it set; a reflex taking the head elsewhere changes the camera's token, so it aims again. */
@@ -169,7 +172,19 @@ public class AttackTask extends Task {
 		}
 
 		double distance = this.drifter.getEyePosition().distanceTo(this.target.getBoundingBox().getCenter());
-		if ((distance > CLOSE_RANGE || !visible) && this.backoff == 0) {
+		// Up close it steers by hand; a wall in the way it can't jump (a 2-block step on a hill) means the pathfinder
+		// finds the way round for a couple of seconds (found in testing: it died jumping at such a step mid-fight).
+		Vec3 toTarget = new Vec3(this.target.getX() - this.drifter.getX(), 0.0, this.target.getZ() - this.drifter.getZ());
+		if (this.closeMode && this.backoff == 0 && this.drifter.horizontalCollision && toTarget.lengthSqr() > 1.0E-4
+			&& Steering.wallAhead(this.drifter, toTarget.normalize())) {
+			this.pathTicks = PATH_AROUND_TICKS;
+		}
+
+		if (this.pathTicks > 0) {
+			this.pathTicks--;
+		}
+
+		if ((distance > CLOSE_RANGE || !visible || this.pathTicks > 0) && this.backoff == 0) {
 			this.lowerShield();
 			if (this.closeMode || this.follow == null) {
 				this.closeMode = false;
@@ -383,26 +398,8 @@ public class AttackTask extends Task {
 		keys.set(VirtualKeys.Key.SNEAK, unsafeBack || !this.safeStep(right) || !this.safeStep(right.scale(-1.0)));
 	}
 
-	/** Ground within 3 blocks below a step in that direction, and no lava or fire there. */
 	private boolean safeStep(Vec3 direction) {
-		Level level = this.drifter.level();
-		BlockPos cell = BlockPos.containing(this.drifter.getX() + direction.x * 0.9, this.drifter.getY() + 0.1, this.drifter.getZ() + direction.z * 0.9);
-		for (int down = 0; down <= 3; down++) {
-			BlockPos pos = cell.below(down);
-			if (level.getFluidState(pos).is(net.minecraft.tags.FluidTags.LAVA) || level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.FIRE)) {
-				return false;
-			}
-
-			if (down > 0 && !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()) {
-				return true;
-			}
-
-			if (!level.getFluidState(pos).isEmpty()) {
-				return true;
-			}
-		}
-
-		return false;
+		return Steering.safeStep(this.drifter, direction);
 	}
 
 	private void strafe(VirtualKeys keys) {
