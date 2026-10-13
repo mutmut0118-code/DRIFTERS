@@ -519,7 +519,7 @@ public class Senses {
 			float pitch = Mth.clamp(this.drifter.getXRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_PITCH, -90.0F, 90.0F);
 			Vec3 direction = Vec3.directionFromRotation(pitch, yaw);
 			Vec3 end = eye.add(direction.scale(BLOCK_SIGHT_RANGE));
-			BlockHitResult hit = this.level().clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, this.drifter));
+			BlockHitResult hit = this.clipThroughGlass(eye, end, ClipContext.Fluid.ANY);
 			boolean notable = false;
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				notable = this.see(hit.getBlockPos(), hit.getDirection(), eye.distanceTo(hit.getLocation()));
@@ -530,6 +530,57 @@ public class Senses {
 				this.recentRays.removeFirst();
 			}
 		}
+	}
+
+	/** Most blocks a ray can pass looking through glass, glass panes and other see-through blocks. */
+	private static final int MAX_SEE_THROUGH = 8;
+
+	/**
+	 * Like a block ray, but it looks through see-through blocks (glass, glass panes): the ones vanilla gives a solid
+	 * body but no visual shape. Without this, a block behind glass could never be checked again (bug found in testing).
+	 */
+	private BlockHitResult clipThroughGlass(Vec3 from, Vec3 to, ClipContext.Fluid fluids) {
+		Vec3 start = from;
+		Vec3 direction = to.subtract(from).normalize();
+		BlockHitResult hit = null;
+		for (int i = 0; i <= MAX_SEE_THROUGH; i++) {
+			hit = this.level().clip(new ClipContext(start, to, ClipContext.Block.OUTLINE, fluids, this.drifter));
+			if (hit.getType() != HitResult.Type.BLOCK || !isSeeThrough(this.level(), hit.getBlockPos())) {
+				return hit;
+			}
+
+			start = exitPoint(hit.getLocation(), direction, hit.getBlockPos());
+			if (start.distanceToSqr(from) >= to.distanceToSqr(from)) {
+				break;
+			}
+		}
+
+		// Ran out of see-through blocks to pass (or reached the end): nothing solid in the way.
+		return BlockHitResult.miss(to, Direction.getNearest(direction.x, direction.y, direction.z), BlockPos.containing(to));
+	}
+
+	private static boolean isSeeThrough(Level level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		return state.getFluidState().isEmpty()
+			&& !state.getCollisionShape(level, pos).isEmpty()
+			&& state.getVisualShape(level, pos, net.minecraft.world.phys.shapes.CollisionContext.empty()).isEmpty();
+	}
+
+	/** Where a ray entering this block at {@code point} leaves it again, nudged just past the edge. */
+	private static Vec3 exitPoint(Vec3 point, Vec3 direction, BlockPos block) {
+		double exit = Double.MAX_VALUE;
+		double[] p = {point.x, point.y, point.z};
+		double[] d = {direction.x, direction.y, direction.z};
+		int[] lo = {block.getX(), block.getY(), block.getZ()};
+		for (int axis = 0; axis < 3; axis++) {
+			if (d[axis] > 1.0E-9) {
+				exit = Math.min(exit, (lo[axis] + 1 - p[axis]) / d[axis]);
+			} else if (d[axis] < -1.0E-9) {
+				exit = Math.min(exit, (lo[axis] - p[axis]) / d[axis]);
+			}
+		}
+
+		return point.add(direction.scale(Math.max(exit, 0.0) + 1.0E-4));
 	}
 
 	/** How far it can make out a block whose visible face has this light. Night vision lights everything up. */
@@ -639,7 +690,7 @@ public class Senses {
 			.toList();
 		for (MemoryEntry entry : inView) {
 			BlockPos pos = entry.blockPos();
-			BlockHitResult hit = this.level().clip(new ClipContext(eye, entry.pos, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this.drifter));
+			BlockHitResult hit = this.clipThroughGlass(eye, entry.pos, ClipContext.Fluid.NONE);
 			if (hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(pos)) {
 				if (eye.distanceTo(hit.getLocation()) > this.blockSightRange(pos.relative(hit.getDirection()))) {
 					continue;

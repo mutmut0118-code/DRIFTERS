@@ -247,7 +247,7 @@ surface** (a hillside, or place 8+ stone blocks on the ground yourself). The Dri
 
 ## Milestone 3: Senses and memory
 
-Nothing below has been run in-game yet; this is the first test.
+Passed: the user fully tested this milestone. Only the **glass** item below needs a re-check (a bug fix came after the test).
 
 **The goal of this milestone:** the debug overlay shows exactly what the Drifter knows, and nothing more.
 It can only know things it has seen (in front of it, in the light, not through walls), heard, or felt.
@@ -302,6 +302,9 @@ It can only know things it has seen (in front of it, in the light, not through w
 - [ ] **It notices changes:** with it looking at a remembered crafting table, break the table: the box disappears and
       its thoughts say the table "is gone". Do the same while it's looking **away**: the box **stays** (it doesn't
       know yet) until it looks back.
+- [ ] **Glass (re-check after the fix):** put a crafting table behind a glass wall in front of it, so it remembers it.
+      Then break the table (leave the glass): the box disappears and its thoughts say the table "is gone".
+      Place a diamond ore behind glass: it gets noticed through the glass.
 - [ ] Chests: `/drifter container <chest pos> putall` (from milestone 2), then `/drifter memory`: the chest entry shows
       what's inside.
 - [ ] Crafting uses memory: place a crafting table **behind** it, give it planks and sticks, `/drifter craft

@@ -9,7 +9,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 - **Build: green.** `./gradlew build` succeeds in the cloud (with the Maven Central mirror workaround described in `CLAUDE.md`).
 - **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
 - **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.
-- **Milestone 3 (Senses and memory): code complete, waiting for in-game testing.** The user chose to start it before finishing the milestone 2 checklist.
+- **Milestone 3 (Senses and memory): done.** The user fully tested it in-game. One bug found (blocks behind glass) was fixed afterwards; that one item needs a quick re-check.
 - The user tests by downloading the jar from the GitHub Actions run for the latest push (Artifacts zip, the jar without "sources") into a Fabric 1.21.1 instance with Fabric API, in the Modrinth App. The user doesn't code, so keep instructions plain and step by step.
 
 ## Milestones
@@ -19,7 +19,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 0 | Project setup | Done | Cloud build green; the user ran the mod in-game. |
 | 1 | Body | Done (in-game test passed) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
 | 2 | Hands | In progress: wood-to-stone script passed in-game; rest of the checklist pending | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
-| 3 | Senses and memory | In progress: code complete, untested in-game | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
+| 3 | Senses and memory | Done (fully tested in-game; glass fix needs a re-check) | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
 | 4 | Pathfinder | Not started | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
 | 5 | Brain and day one | Not started | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | Not started | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
@@ -123,7 +123,7 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 
 ## Milestone 3: Senses and memory
 
-### Done (code complete, untested in-game)
+### Done (fully tested in-game)
 - **Memory** (`memory/*`, DESIGN.md section 6): short-term and long-term tiers (working memory lives in the senses and the executor and isn't saved). Each entry has kind, position and dimension, recorded and last-confirmed time, confidence, source (seen, heard, inferred, told) and importance. Confidence fades by kind (mobs in seconds, items in minutes, player positions in minutes with identity kept forever, ores over days, stations never). Per-kind capacity limits drop the lowest importance x confidence first. Entries merge per position (trees and danger per 8-block patch, structure clues per 4). Saved with the Drifter, versioned.
 - **Consolidation at dusk** (by the Drifter's own sense of time, once per day): important short-term memories are promoted (a bad hit becomes a long-term danger zone); the rest of yesterday's short-term memory is dropped.
 - **Mental map** (`MentalMap`): one tile per chunk it has looked into, with biome and whether it saw water or lava. Up to 4096 tiles.
@@ -143,8 +143,10 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 - **Commands**: `/drifter debug on|off`, `/drifter memory [clear]`, `/drifter thoughts`, `/drifter senses`.
 - **Memory now used by the hands**: `/drifter craft` finds a crafting table from memory (it must have seen or placed one in reach), not by scanning the world.
 
+### Bugs found in in-game testing
+- **Blocks behind glass were never re-checked (fixed).** Block rays stopped at glass, so after a block behind glass was removed the Drifter kept believing it was there until the glass was removed too. Block sampling and re-checking now look through see-through blocks (vanilla's rule: a solid body but no visual shape, i.e. glass and glass panes). Seeing entities already looked through glass. Needs a quick re-check in-game.
+
 ### Not done yet / left for later (TODOs in code)
-- In-game verification of everything above (the milestone's "done when" test: the overlay shows exactly what it knows and nothing more).
 - "Pauses current action briefly" on a glimpse, investigating sounds, and interrupting tasks: the brain decides that (milestone 5). For now it only glances when idle.
 - Mob ambient sounds (groans, rattles) don't produce game events; hearing them needs a sound hook.
 - Shared memory between Drifters ("told") comes with groups (milestone 12); world-level registry for identity, relationships and home comes with disposition/progression milestones.
@@ -154,8 +156,8 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 - The wood-to-stone debug script still finds trees and stone with the debug world scan; it could be switched to memory once the brain exists.
 
 ### Next steps
-1. User tests milestone 3 with the overlay (`docs/TESTING.md`, "Milestone 3") and finishes the milestone 2 checklist.
-2. Fix what the tests find; mark milestones 2 and 3 done.
+1. User re-checks the glass fix and finishes the milestone 2 checklist.
+2. Fix what that finds; mark milestone 2 done.
 3. Milestone 4 (Pathfinder): A* with digging, bridging and pillaring.
 
 ## Decided
