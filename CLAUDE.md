@@ -50,6 +50,7 @@ clearly labeled debug command.
 
 ## How to work
 
+- **The user doesn't code.** They test by downloading the jar from the GitHub Actions run (Artifacts) into a Fabric 1.21.1 instance in the Modrinth App. Write `docs/TESTING.md` and replies in plain language, step by step, with exact commands, and answer decisions with a clear recommendation.
 - **One roadmap milestone at a time** (DESIGN.md section 25, tracked in `docs/PROGRESS.md`). Don't start the next milestone's systems early, beyond small stubs needed to compile.
 - **Don't change the design on your own.** If something in DESIGN.md seems wrong or impossible on 1.21.1, write it under "Design questions" in `docs/PROGRESS.md` and ask the user.
 - **Soft dependencies** (Simply Swords, Simply Bows, Better Combat, Combat Roll, Mob Control, EMF) are optional integrations for later milestones. Don't add them until their milestone, and then only as optional (detected at runtime, never required).

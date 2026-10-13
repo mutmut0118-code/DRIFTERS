@@ -3,17 +3,21 @@
 All in-game testing happens on your own machine. Cloud sessions only check that `./gradlew build` compiles.
 Each session updates this file with exactly what to check for everything built so far.
 
-When something fails, note the checklist item, what you saw, and any error from the log (`run/logs/latest.log`),
-and paste it into the next session.
+When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
+crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
-## Setup (local)
+## Getting the latest version (no coding needed)
 
-1. JDK 21 installed and on `PATH` (`java -version` shows 21).
-2. From the repo root: `./gradlew build` (Windows: `gradlew.bat build`). It should end with `BUILD SUCCESSFUL`.
-   The mod jar is `build/libs/drifter-0.1.0.jar`.
-3. Launch a dev client with `./gradlew runClient`, or copy the jar into a 1.21.1 Fabric instance's `mods` folder together with Fabric API.
-4. Create a new **Creative** world with cheats on, difficulty **Normal**. A superflat world makes the movement tests easier.
-5. Press F3 for coordinates, and F3+B to show hitboxes (handy for the pose tests).
+1. Open the repository's **Actions** tab on GitHub and click the newest **build** run for the branch (green tick).
+   Every push builds the mod there automatically.
+2. At the bottom, under **Artifacts**, download **Artifacts**. Unzip it and take **`drifter-0.1.0.jar`**
+   (not the one with "sources" in its name).
+3. In the Modrinth App, open your Fabric 1.21.1 instance (with Fabric API installed), remove the old
+   `drifter-0.1.0.jar` from its `mods` folder, and put the new one in.
+4. Launch, and make a new **Creative** world with **Allow Commands: ON**, difficulty **Normal**.
+   Press F3 for coordinates, and F3+B to show hitboxes.
+
+(Developers can instead run `./gradlew build` with JDK 21, or `./gradlew runClient`.)
 
 ## Command reference
 
@@ -121,7 +125,122 @@ Use `/drifter info` while it moves to read "horizontal speed last tick". Expecte
 - [ ] A lead can't be attached to it.
 
 ### Known gaps (don't report these as bugs)
-- It does nothing on its own yet: no AI, no attacking, no eating, mining or placing (milestones 2+).
+- It does nothing on its own yet: no AI, and no attacking (milestones 5 and 6). Milestone 2 actions only happen when you command them.
 - Zombies and other hostiles ignore it (milestone 6).
 - No nameplate unless it was given a name; no username generator yet.
 - No XP drop and no death message when it dies.
+
+## Milestone 2: Hands
+
+Nothing below has been run in-game yet; this is the first test.
+
+### How these commands work
+- Each command below gives the **nearest Drifter** one job. When the job ends, chat says **"Done: ..."** or
+  **"Failed: ... (reason)"**. A new command replaces the current job. `/drifter stop` cancels it.
+- Positions are block coordinates, like `10 64 -3`. The easiest way: look at a block, and when you type the
+  command, press **Tab**; the game fills in the coordinates of the block you're looking at.
+- Items can be a single item (`oak_planks`) or a tag with `#` (`#logs`, `#planks`).
+- Stand back and watch it: it should **turn its head to the block first**, then act. It can only touch blocks
+  within about 4.5 blocks that it can actually see.
+- Tip: `/drifter keys none` and `/drifter lookat stop` if it's still walking or staring from an earlier test.
+
+| Command | What it does |
+| --- | --- |
+| `/drifter mine <pos>` | Breaks that block with whatever it's holding |
+| `/drifter place <pos>` | Places its held block at that spot |
+| `/drifter place <pos> <item>` | Takes that block out (from anywhere in its inventory) and places it |
+| `/drifter useon <pos>` | Right-clicks the block with its held item (hoe, bone meal, flint and steel...) |
+| `/drifter use` | Right-clicks with its held item in the air (eats if it's food) |
+| `/drifter eat` | Takes out food and eats it |
+| `/drifter craft <item> [times]` | Crafts something (needs a crafting table in reach for 3x3 recipes) |
+| `/drifter container <pos> put <item> [count]` / `take <item> [count]` | Moves items into or out of a chest, barrel, furnace... |
+| `/drifter container <pos> putall` / `takeall` | Moves everything |
+| `/drifter smelt <furnace pos> <input> <count> <fuel>` | Loads a furnace, waits, takes the results |
+| `/drifter wear` | Puts on the best armor it carries |
+| `/drifter swaphands` | Swaps main hand and offhand (the F key) |
+| `/drifter walkto <pos>` | Walks there in a straight line (no pathfinding yet) |
+| `/drifter collect` | Walks over nearby dropped items to pick them up |
+| `/drifter script woodtostone` | The big test: from punching trees to stone tools, on its own |
+| `/drifter stop` / `/drifter task` | Cancel the current job / show what it's doing |
+
+### 1. Mining
+- [ ] Spawn a Drifter next to a tree. `/drifter mine <pos of a log>`: it looks at the log, swings its arm
+      continuously, the **crack pattern** grows on the block, and after about **3 seconds** (bare hands) the log
+      breaks and drops. It picks the log up if it's close enough.
+- [ ] Give it an axe (`/drifter give minecraft:stone_axe`, then `/drifter slot 0`) and mine another log: it's
+      much faster. `/drifter info` or `/drifter inventory` shows the axe lost a little durability.
+- [ ] Mine dirt or grass with bare hands: fast. Mine stone with bare hands: very slow, and it **drops nothing**
+      (like a player without a pickaxe). Mine stone with a pickaxe: cobblestone drops.
+- [ ] Tall grass or flowers break instantly.
+- [ ] Out of reach: `/drifter mine` on a block 8 blocks away fails with "can't see or reach it".
+- [ ] Through a wall: put a block between it and the target. It fails ("can't see or reach it") instead of
+      mining through the wall.
+- [ ] Bedrock: fails with "it can't be broken".
+
+### 2. Placing and using
+- [ ] `/drifter give minecraft:cobblestone 16`. `/drifter place <empty spot next to it>`: it takes out the
+      cobblestone, looks at a neighbouring block's side, swings, and the block appears with the normal place sound.
+- [ ] Mid-air: `/drifter place` on a spot with no blocks around it fails ("no block face to place against").
+- [ ] Stairs or logs placed by it face the way a player looking from its position would place them.
+- [ ] Place against a chest or crafting table: it **crouches briefly** while placing (like a player) instead of
+      opening the chest.
+- [ ] `/drifter give minecraft:wooden_hoe`, select it with `/drifter slot`, `/drifter useon <grass block>`:
+      it turns into farmland.
+- [ ] `/drifter give minecraft:bone_meal 3`, select it, `/drifter useon <sapling>`: bone meal particles.
+
+### 3. Crafting
+- [ ] `/drifter give minecraft:oak_log 2`, then `/drifter craft #planks 2`. It **stands still with its head tilted
+      down for half a second to two seconds** (inventory open), then you get "Done". `/drifter inventory` shows 8 planks.
+- [ ] `/drifter craft minecraft:crafting_table`: works without a table (it's a 2x2 recipe).
+- [ ] `/drifter craft minecraft:wooden_pickaxe` with no crafting table nearby: fails with "needs a crafting table
+      within reach". Place a crafting table next to it and try again: it **looks at the table first**, pauses,
+      then crafts.
+- [ ] Missing ingredients: `/drifter craft minecraft:diamond_pickaxe` fails with "doesn't have the ingredients".
+
+### 4. Containers and smelting
+- [ ] Place a chest next to it. `/drifter container <chest pos> putall`: it looks at the chest, the **lid opens**
+      with the chest sound, items move over a few seconds, then the lid closes. Open the chest yourself to check.
+- [ ] `/drifter container <chest pos> take #planks 4` takes 4 planks back out.
+- [ ] Double chests work. A chest with a solid block on top fails ("it won't open").
+- [ ] Barrels open and close (the barrel lid texture changes).
+- [ ] Furnace: `/drifter give minecraft:raw_iron 3` and `/drifter give minecraft:coal 1`, place a furnace next to
+      it, then `/drifter smelt <furnace pos> minecraft:raw_iron 3 minecraft:coal`. It puts the iron and one coal
+      in, the furnace lights, it **waits there** about 30 seconds, then takes out 3 iron ingots.
+- [ ] Ender chests are refused ("it won't open").
+
+### 5. Eating
+- [ ] `/drifter food 10`, `/drifter give minecraft:bread 3`, then `/drifter eat`. It takes out bread, eats for
+      **1.6 seconds** with the eating animation, crumbs and sounds, then burps. `/drifter info` shows food 15.
+- [ ] While eating, `/drifter keys forward`: it moves **very slowly** (like a player eating while walking).
+- [ ] Full: `/drifter food 20`, `/drifter eat` fails with "it isn't hungry". A golden apple still works when full.
+- [ ] Mushroom stew leaves an empty bowl in its inventory.
+
+### 6. Equipment
+- [ ] `/drifter give minecraft:iron_helmet` and `/drifter give minecraft:iron_chestplate`, then `/drifter wear`.
+      After a short pause it puts them on with the armor sound. Give it a diamond helmet and `/drifter wear` again:
+      it swaps the iron one for the diamond one.
+- [ ] Item deep in its inventory: fill its hotbar with 9 stacks of dirt (`/drifter give minecraft:dirt 576`), then
+      `/drifter give minecraft:cobblestone 4` (this lands in its backpack, not the hotbar). Now
+      `/drifter place <empty spot next to it> minecraft:cobblestone`: it **stands still briefly** ("inventory open")
+      to move the cobblestone to its hotbar, then places it.
+- [ ] `/drifter give minecraft:shield`, select it, `/drifter swaphands`: the shield moves to its other hand.
+
+### 7. The big test: wood to stone tools
+Set up: open, fairly flat ground with **a tree within about 20 blocks** and **some stone or cobblestone visible at the
+surface** (a hillside, or place 8+ stone blocks on the ground yourself). The Drifter should start with an empty inventory.
+- [ ] `/drifter spawn Tester`, then `/drifter script woodtostone`. Chat shows each step. Watch it:
+  1. walk to the tree and **punch logs** (bottom first), picking up the drops, until it has 4;
+  2. pause and craft **planks**, then a **crafting table**, and **place the table** next to itself;
+  3. craft **sticks** and, looking at the table, a **wooden pickaxe**;
+  4. take out the pickaxe, walk to the stone and **mine 8 stone**, picking up the cobblestone;
+  5. walk back to the table and craft a **stone pickaxe, axe, sword and shovel**.
+- [ ] Chat ends with "Wood to stone complete". `/drifter inventory` shows the four stone tools.
+- [ ] If it fails, chat says which step and why. Copy that message for me.
+
+### Known gaps for milestone 2 (don't report these as bugs)
+- It walks in **straight lines only** (no pathfinding until milestone 4): it gets stuck behind walls, can't cross
+  water or gaps, and gives up on things it can't simply walk to.
+- The wood-to-stone script "knows" where trees and stone are by scanning the world. That's a test shortcut;
+  real eyesight and memory are milestone 3.
+- It can break blocks that players placed if you tell it to (protection for player builds comes later).
+- No bows, shields-up, or attacking yet (milestone 6). No XP collection yet.

@@ -1,6 +1,7 @@
 package com.dinglebob.drifter.entity;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 
@@ -198,6 +199,41 @@ public class DrifterInventory implements Container {
 		existing.grow(moved);
 		existing.setPopTime(5);
 		return count - moved;
+	}
+
+	/** First slot in [from, to) whose stack matches, or -1. */
+	public int findSlot(Predicate<ItemStack> filter, int from, int to) {
+		for (int slot = from; slot < to; slot++) {
+			ItemStack stack = this.getItem(slot);
+			if (!stack.isEmpty() && filter.test(stack)) {
+				return slot;
+			}
+		}
+
+		return -1;
+	}
+
+	/** Total count of matching items in the main inventory. */
+	public int count(Predicate<ItemStack> filter) {
+		int total = 0;
+		for (ItemStack stack : this.items) {
+			if (!stack.isEmpty() && filter.test(stack)) {
+				total += stack.getCount();
+			}
+		}
+
+		return total;
+	}
+
+	public void swap(int slotA, int slotB) {
+		ItemStack a = this.getItem(slotA);
+		this.setItem(slotA, this.getItem(slotB));
+		this.setItem(slotB, a);
+	}
+
+	/** The F key: swaps the held item and the offhand item. */
+	public void swapHands() {
+		this.swap(this.selected, OFFHAND_SLOT);
 	}
 
 	public List<ItemStack> removeAll() {

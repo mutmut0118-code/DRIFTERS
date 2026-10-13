@@ -110,6 +110,7 @@ public final class DrifterCommands {
 		root.then(Commands.literal("info").executes(DrifterCommands::info));
 		root.then(Commands.literal("inventory").executes(DrifterCommands::inventory));
 		root.then(Commands.literal("remove").executes(DrifterCommands::remove));
+		HandsCommands.register(root, buildContext);
 
 		dispatcher.register(root);
 	}
@@ -131,7 +132,7 @@ public final class DrifterCommands {
 		throw new SimpleCommandExceptionType(Component.literal("Unknown speed '" + id + "' (idle, normal or combat)")).create();
 	}
 
-	private static DrifterEntity nearest(CommandSourceStack source) throws CommandSyntaxException {
+	static DrifterEntity nearest(CommandSourceStack source) throws CommandSyntaxException {
 		Vec3 pos = source.getPosition();
 		Optional<DrifterEntity> found = source.getLevel()
 			.getEntitiesOfClass(DrifterEntity.class, new AABB(pos, pos).inflate(SEARCH_RADIUS), DrifterEntity::isAlive)
@@ -140,7 +141,7 @@ public final class DrifterCommands {
 		return found.orElseThrow(NO_DRIFTER::create);
 	}
 
-	private static String label(DrifterEntity drifter) {
+	static String label(DrifterEntity drifter) {
 		return drifter.getName().getString();
 	}
 
@@ -320,7 +321,7 @@ public final class DrifterCommands {
 		return "offhand";
 	}
 
-	private static String describe(ItemStack stack) {
+	static String describe(ItemStack stack) {
 		return stack.isEmpty() ? "nothing" : stack.getCount() + "x " + stack.getHoverName().getString();
 	}
 

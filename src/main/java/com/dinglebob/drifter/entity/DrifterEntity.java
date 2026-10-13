@@ -2,10 +2,12 @@ package com.dinglebob.drifter.entity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.google.common.collect.ImmutableMap;
 
+import com.dinglebob.drifter.executor.TaskRunner;
 import com.dinglebob.drifter.mixin.ItemEntityAccessor;
 import com.dinglebob.drifter.motor.CameraModel;
 import com.dinglebob.drifter.motor.VirtualKeys;
@@ -25,6 +27,7 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -41,11 +44,14 @@ import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodConstants;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -89,6 +95,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final DrifterFoodData foodData = new DrifterFoodData();
 	private final VirtualKeys keys = new VirtualKeys();
 	private final CameraModel camera;
+	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
+	private final TaskRunner tasks = new TaskRunner(this);
 	/** Ticks until the debug command's held keys are released; -1 for "hold until changed". */
 	private int keysReleaseTimer = -1;
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
@@ -137,6 +145,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public CameraModel getCamera() {
 		return this.camera;
+	}
+
+	public TaskRunner getTasks() {
+		return this.tasks;
 	}
 
 	/** Holds keys for a number of ticks, then releases them all. Ticks of -1 hold until changed. */
@@ -201,6 +213,7 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 	protected void customServerAiStep() {
 		super.customServerAiStep();
+		this.tasks.tick();
 		float[] look = this.camera.tick(this.getEyePosition(), this.getYRot(), this.getXRot());
 		this.setYRot(look[0]);
 		this.setXRot(look[1]);
@@ -489,6 +502,89 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	// ---------------------------------------------------------------------------------------------
+	// Block breaking speed (mirrors Player#getDestroySpeed, Player#hasCorrectToolForDrops and
+	// BlockBehaviour#getDestroyProgress). Computed on the Drifter itself because its attributes and effects
+	// (Efficiency, Haste, Mining Fatigue, Aqua Affinity) are live here; the fake player never ticks.
+	// ---------------------------------------------------------------------------------------------
+
+	public float getDestroySpeed(BlockState state) {
+		float speed = this.inventory.getSelectedItem().getDestroySpeed(state);
+		if (speed > 1.0F) {
+			speed += (float)this.getAttributeValue(Attributes.MINING_EFFICIENCY);
+		}
+
+		if (MobEffectUtil.hasDigSpeed(this)) {
+			speed *= 1.0F + (MobEffectUtil.getDigSpeedAmplification(this) + 1) * 0.2F;
+		}
+
+		if (this.hasEffect(MobEffects.DIG_SLOWDOWN)) {
+			speed *= switch (this.getEffect(MobEffects.DIG_SLOWDOWN).getAmplifier()) {
+				case 0 -> 0.3F;
+				case 1 -> 0.09F;
+				case 2 -> 0.0027F;
+				default -> 8.1E-4F;
+			};
+		}
+
+		speed *= (float)this.getAttributeValue(Attributes.BLOCK_BREAK_SPEED);
+		if (this.isEyeInFluid(FluidTags.WATER)) {
+			speed *= (float)this.getAttributeValue(Attributes.SUBMERGED_MINING_SPEED);
+		}
+
+		if (!this.onGround()) {
+			speed /= 5.0F;
+		}
+
+		return speed;
+	}
+
+	public boolean hasCorrectToolForDrops(BlockState state) {
+		return !state.requiresCorrectToolForDrops() || this.inventory.getSelectedItem().isCorrectToolForDrops(state);
+	}
+
+	/** Fraction of the block broken per tick of holding attack on it; 1.0 or more breaks it this tick. */
+	public float getDestroyProgress(BlockState state, BlockGetter level, BlockPos pos) {
+		float hardness = state.getDestroySpeed(level, pos);
+		if (hardness == -1.0F) {
+			return 0.0F;
+		}
+
+		int divisor = this.hasCorrectToolForDrops(state) ? 30 : 100;
+		return this.getDestroySpeed(state) / hardness / divisor;
+	}
+
+	public double blockInteractionRange() {
+		return this.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Eating (mirrors Player#canEat and Player#eat)
+	// ---------------------------------------------------------------------------------------------
+
+	public boolean canEat(boolean canAlwaysEat) {
+		return canAlwaysEat || this.foodData.needsFood();
+	}
+
+	@Override
+	public ItemStack eat(Level level, ItemStack stack, FoodProperties food) {
+		this.foodData.eat(food);
+		level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+		ItemStack result = super.eat(level, stack, food);
+		Optional<ItemStack> leftover = food.usingConvertsTo();
+		if (leftover.isPresent()) {
+			if (result.isEmpty()) {
+				return leftover.get().copy();
+			}
+
+			if (!level.isClientSide()) {
+				this.inventory.add(leftover.get().copy());
+			}
+		}
+
+		return result;
+	}
+
+	// ---------------------------------------------------------------------------------------------
 	// Inventory and equipment
 	// ---------------------------------------------------------------------------------------------
 
@@ -592,6 +688,12 @@ public class DrifterEntity extends PathfinderMob {
 	 * so they aren't lost.
 	 */
 	@Override
+	public void die(DamageSource source) {
+		this.tasks.cancel("died");
+		super.die(source);
+	}
+
+	@Override
 	protected void dropEquipment() {
 		super.dropEquipment();
 		for (ItemStack stack : this.inventory.removeAll()) {
@@ -602,7 +704,7 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** Player#drop(stack, true, false): from just below the eyes, in a random direction, with the pickup delay. */
-	private void dropScattered(ItemStack stack) {
+	public void dropScattered(ItemStack stack) {
 		ItemEntity item = new ItemEntity(this.level(), this.getX(), this.getEyeY() - 0.3F, this.getZ(), stack);
 		item.setPickUpDelay(40);
 		float speed = this.random.nextFloat() * 0.5F;

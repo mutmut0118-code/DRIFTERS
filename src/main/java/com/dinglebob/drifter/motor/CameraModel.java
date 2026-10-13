@@ -130,6 +130,11 @@ public class CameraModel {
 		this.hasPreviousTarget = false;
 	}
 
+	/** True when the head has stopped on its target (or has no target): not mid-turn, not overshooting. */
+	public boolean isSettled() {
+		return this.yaw.isSettled() && this.pitch.isSettled();
+	}
+
 	public String describeTarget() {
 		return switch (this.targetKind) {
 			case NONE -> "none";
