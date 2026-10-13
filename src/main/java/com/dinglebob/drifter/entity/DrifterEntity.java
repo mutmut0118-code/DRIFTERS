@@ -123,6 +123,8 @@ public class DrifterEntity extends PathfinderMob {
 	private int keysReleaseTimer = -1;
 	/** It has its username (section 4): generated at spawn, or on first load for Drifters from before milestone 7. */
 	private boolean named;
+	/** Ticks left of the debug trace (/drifter trace): one log line per tick. */
+	private int traceTicks;
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
 	private boolean crouching;
 
@@ -276,6 +278,11 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** Holds keys for a number of ticks, then releases them all. Ticks of -1 hold until changed. */
+	/** Logs a line per tick for this many ticks (debug: /drifter trace). */
+	public void trace(int ticks) {
+		this.traceTicks = ticks;
+	}
+
 	public void holdKeys(List<VirtualKeys.Key> pressed, int ticks) {
 		this.keys.setOnly(pressed);
 		this.keysReleaseTimer = ticks;
@@ -392,6 +399,17 @@ public class DrifterEntity extends PathfinderMob {
 		// TODO(milestone 8): deliberate sprint-swimming on long swims (section 10.10).
 		com.dinglebob.drifter.motor.Steering.noSprintInWater(this);
 		this.applyMovementKeys();
+		if (this.traceTicks > 0) {
+			this.traceTicks--;
+			com.dinglebob.drifter.executor.Task leaf = this.tasks.current() == null ? null : this.tasks.current().leaf();
+			com.dinglebob.drifter.Drifter.LOGGER.info(String.format(java.util.Locale.ROOT,
+				"[trace %s] t%d pos %.2f %.2f %.2f vy %.3f %s%s%s%s%s pose %s pitch %.0f keys %s step %s", this.getName().getString(), this.tickCount,
+				this.getX(), this.getY(), this.getZ(), this.getDeltaMovement().y, this.onGround() ? "G" : "-", this.isInWater() ? "W" : "-",
+				this.isUnderWater() ? "U" : "-", this.isSwimming() ? "S" : "-", this.isSprinting() ? "R" : "-", this.getPose(), this.getXRot(),
+				this.keys.describe(), leaf instanceof com.dinglebob.drifter.executor.task.NavigateTask nav ? nav.debugStep()
+					: leaf == null ? "none" : leaf.describe()));
+		}
+
 		if (this.keysReleaseTimer > 0 && --this.keysReleaseTimer == 0) {
 			this.keys.releaseAll();
 			this.keysReleaseTimer = -1;
@@ -505,6 +523,16 @@ public class DrifterEntity extends PathfinderMob {
 		}
 
 		super.travel(input);
+	}
+
+	/**
+	 * Swimming up: a player rises 0.04 per tick while holding jump in water (LivingEntity#jumpInLiquid). Mob overrides it
+	 * with 0.3 per tick for mobs whose navigation can't float, which shot the Drifter out of the water like a cork
+	 * (found in testing: "bouncing very high"). Mirror the player's number.
+	 */
+	@Override
+	protected void jumpInLiquid(net.minecraft.tags.TagKey<net.minecraft.world.level.material.Fluid> fluid) {
+		this.setDeltaMovement(this.getDeltaMovement().add(0.0, 0.04F, 0.0));
 	}
 
 	@Override

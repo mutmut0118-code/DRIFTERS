@@ -132,6 +132,14 @@ public final class DrifterCommands {
 					.executes(ctx -> food(ctx, FloatArgumentType.getFloat(ctx, "saturation"))))));
 
 		root.then(Commands.literal("info").executes(DrifterCommands::info));
+		// Debug: one line per tick in the server log (position, vertical speed, water state, keys, path step).
+		root.then(Commands.literal("trace").then(Commands.argument("ticks", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 20 * 120))
+			.executes(ctx -> {
+				DrifterEntity drifter = nearest(ctx.getSource());
+				drifter.trace(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "ticks"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Tracing " + label(drifter) + " in the server log"), false);
+				return 1;
+			})));
 		root.then(Commands.literal("inventory").executes(DrifterCommands::inventory));
 		root.then(Commands.literal("remove").executes(DrifterCommands::remove));
 		HandsCommands.register(root, buildContext);

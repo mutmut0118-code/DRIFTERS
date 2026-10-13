@@ -429,6 +429,19 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
   required) marks a Drifter's equipment as changed every tick, as Lithium does for players. Checked on the test server
   with Lithium: armor counts and hotbar switches go through.
 
+- **Swimming, round 3** (user: "bouncing is still very high and they move like they don't know how to swim").
+  Traced tick by tick on a test pool (`/drifter trace <ticks>`, new debug command). Three causes:
+  1. **The real launcher, there since milestone 1:** vanilla `Mob#jumpInLiquid` adds **0.3** upward speed per tick
+     for mobs whose navigation can't float; a player (`LivingEntity`) gets **0.04**. A few ticks of jump underwater
+     shot it out like a cork. `DrifterEntity#jumpInLiquid` now uses the player's number.
+  2. It only treaded water on swim and walk steps; on diagonal, jump-up and step-down steps it sank to the bottom.
+     Now it holds jump whenever its head is under water, on every step (`NavigateTask#treadWater`), holds forward
+     and jump into a ledge to climb out like a player, and never jumps again once it's up on a step.
+  3. Points on the water's surface weren't counted as reached at floating height unless the step was a swim step,
+     so it hovered under them. Any point over water now uses the floating-height check.
+  Result on the test pool: crosses and climbs out every time, bobs gently at the surface (about 0.4 blocks), swims
+  about 2 blocks/s, never rises more than a normal jump.
+
 ### Not done yet in milestone 7 (next steps)
 1. In-game check by the user (see `docs/TESTING.md`, "Milestone 7"), then fixes.
 2. ~~Usernames and always-visible nameplates~~ (done). Join/leave chat lines and the world-level identity registry

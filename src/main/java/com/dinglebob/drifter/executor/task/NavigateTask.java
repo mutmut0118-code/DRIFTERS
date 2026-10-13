@@ -188,6 +188,16 @@ public class NavigateTask extends Task {
 		return this.pace == Pace.TRAVEL ? this.label : this.label + " (" + this.pace.id() + ")";
 	}
 
+	/** The step it's on, for the debug trace. */
+	public String debugStep() {
+		if (this.index >= this.path.size()) {
+			return "no step";
+		}
+
+		PathStep step = this.path.get(this.index);
+		return step.type().id() + " " + step.to().toShortString() + " (" + this.index + "/" + this.path.size() + ")";
+	}
+
 	@Override
 	protected int timeoutTicks() {
 		return this.follow ? Integer.MAX_VALUE : 20 * 60 * 5;
@@ -700,8 +710,10 @@ public class NavigateTask extends Task {
 			return to.getY();
 		}
 
-		boolean swimStep = step.type() == MoveType.SWIM || step.type() == MoveType.SWIM_UP;
-		return swimStep && this.level().getFluidState(to.below()).is(FluidTags.WATER) ? to.getY() - 1 : null;
+		// Any step onto the water's surface (the planner counts the air over water as somewhere to be, floating), whatever
+		// its type: a floating swimmer's feet are most of a block under that point (found in testing: it hung under a
+		// "jump up" point over the water, never reaching it).
+		return this.level().getFluidState(to.below()).is(FluidTags.WATER) ? to.getY() - 1 : null;
 	}
 
 	/**
@@ -1079,7 +1091,9 @@ public class NavigateTask extends Task {
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
 
 		boolean jump = switch (step.type()) {
-			case JUMP_UP -> !liningUp && (horizontal < 1.3 || this.drifter.horizontalCollision);
+			// Only while still below the step: once up on it, a little off its middle, it just walks there (found in testing:
+			// it kept jumping on the spot after climbing out of water).
+			case JUMP_UP -> !liningUp && this.feet().getY() < step.to().getY() && (horizontal < 1.3 || this.drifter.horizontalCollision);
 			case SWIM_UP, CLIMB_UP -> true;
 			// In water: keep its head above the surface (jump while its eyes are under, let go once they're out, so it
 			// bobs gently instead of bouncing out of the water), and jump up the bank when it swims into it.
@@ -1108,7 +1122,36 @@ public class NavigateTask extends Task {
 			jump = true;
 		}
 
+		if (this.drifter.isInWater()) {
+			jump = this.treadWater(step);
+		}
+
 		keys.set(VirtualKeys.Key.JUMP, jump);
+	}
+
+	/**
+	 * Jump in water like a player swimming across (found in testing: "bouncing very high, they move like they don't know
+	 * how to swim"). It holds jump only while its head is under, so it bobs at the surface, on every kind of step (it
+	 * used to only do that on swim and walk steps, and sank on the rest). Climbing out at a ledge it holds forward and
+	 * jump like a player: it rises up the wall until the game's own boost near the top lifts it out. (The launches seen in
+	 * testing came from the mob version of swimming up, 0.3 a tick instead of a player's 0.04; see
+	 * DrifterEntity#jumpInLiquid.) Standing in shallow water it jumps up a step like on land.
+	 */
+	private boolean treadWater(PathStep step) {
+		boolean goingUp = step.to().getY() > this.feet().getY();
+		if (step.type() == MoveType.SWIM_DOWN) {
+			return false;
+		}
+
+		if (this.drifter.horizontalCollision && goingUp) {
+			return true;
+		}
+
+		if (this.drifter.onGround()) {
+			return step.type() == MoveType.JUMP_UP && goingUp && Vec3.atBottomCenterOf(step.to()).subtract(this.drifter.position()).horizontalDistance() < 1.3;
+		}
+
+		return this.drifter.isUnderWater();
 	}
 
 	/**

@@ -677,6 +677,11 @@ Keep `/drifter debug on`: the panel has a new line like
       its hand, not the log or whatever it held before; switching items always shows the right one. Armor it puts on
       shows and protects it.
 
+- [ ] **Swimming (re-test after fix, round 3):** across a lake or river it swims along the surface with its head
+      out, bobbing a little (no big bounces), at about your normal swimming speed, and climbs out onto the bank
+      without launching into the air or getting stuck against it. Dropped into deep water (`/tp` it), it comes up and
+      swims to shore.
+
 ### 0. Usernames (new)
 - [ ] Every new Drifter (spawn egg or `/drifter spawn`) has a name over its head like a player's (`ryan_17`,
       `cosmic_bard`, `xXSourashXx`...), visible from up to 64 blocks, dimmed through walls, and hidden through walls
