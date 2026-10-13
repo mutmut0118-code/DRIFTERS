@@ -337,10 +337,9 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-**Status:** fifth test done: hills better, no more falling while bridging. Fixed after the fifth test: it reached the
-edge but couldn't "see" the side of the block to place against (an aiming bug), and it fell straight down from drops.
-Please re-test section 2 (bridging) and the "hills" and "drops" items in section 1. If bridging still fails, send the
-whole chat line: it now says how far past the edge its eye got.
+**Status:** sixth test: it placed its first bridge block. Now it bridges like a player, facing away from the gap and
+sneaking backward. Please re-test section 2 (bridging) and the "hills" and "drops" items in section 1. If bridging still
+fails, send the whole chat line: it says how far past the edge its eye got.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -404,8 +403,9 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide
       and too deep to climb, and `/drifter goto <a block on the other side>`. The path shows **blue** across the gap
       (if it hasn't seen the gap yet, the path may first go straight across; when it reaches the edge it looks down
-      and plans again, and then it's blue). It **sneaks** to the edge, looks down into the gap, leans out, places a
-      block against the side of the block it stands on, steps onto it, and repeats until it's across.
+      and plans again, and then it's blue). At the edge it looks down into the gap once, then **turns its back to the
+      gap**, looks steeply down and **sneaks backward**: leaning out, it places a block against the side of the block
+      it stands on, shuffles back onto it, and repeats until it's across, then turns round and walks on.
 - [ ] **Re-test after fix (it fell in):** it should take the cobblestone out **a few blocks before the edge** (it stops
       for a moment, as if opening its inventory), not at the edge. At the edge it must be sneaking (not sprinting or
       jumping) and must never fall in. `/drifter inventory` shows where the cobblestone is.

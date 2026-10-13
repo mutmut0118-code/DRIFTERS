@@ -98,6 +98,11 @@ public class NavigateTask extends Task {
 	private static final int CHASE_PREDICT_TICKS = 10;
 	private static final int WAIT_TO_SEE_TICKS = 15;
 	private static final int BRIDGE_CREEP_TICKS = 40;
+	/**
+	 * Back-bridging pitch: looking this steeply down while facing away from the gap, the side of the block it stands on
+	 * comes into view right below its eyes as it leans out backward.
+	 */
+	private static final float BRIDGE_PITCH = 82.0F;
 	/** It keeps moving while it plans for at most this long, then stops to think. */
 	private static final int MAX_PLAN_ON_THE_MOVE_TICKS = 10;
 	/** After planning on the move, the new path is picked up at the nearest of its first this-many steps. */
@@ -137,6 +142,8 @@ public class NavigateTask extends Task {
 	private int unstick;
 	private int waitToSee;
 	private int planningTicks;
+	/** The back-bridging head pose was set for this step (set again after each placement). */
+	private boolean bridgePoseSet;
 	private String lastReplanReason = "";
 
 	// Bridge and pillar sub-steps for the current step.
@@ -325,6 +332,7 @@ public class NavigateTask extends Task {
 		this.pillarTries = 0;
 		this.pillarTicks = 0;
 		this.waitToSee = 0;
+		this.bridgePoseSet = false;
 	}
 
 	@Override
@@ -528,15 +536,17 @@ public class NavigateTask extends Task {
 		if (this.needsFloor(step) && !this.hasFloor(step.to())) {
 			if (step.type() == MoveType.BRIDGE) {
 				// Look down into the gap first, like a player at an edge. If it's only one block deep, step down instead.
+				// (Only before the first block: mid-bridge it faces away from the gap and doesn't turn round to look.)
 				BlockPos gapFloor = step.to().below(2);
-				if (!this.drifter.getSenses().terrain().isKnown(gapFloor) && this.waitToSee++ < WAIT_TO_SEE_TICKS) {
+				boolean firstBlock = this.index == 0 || this.path.get(this.index - 1).type() != MoveType.BRIDGE;
+				if (firstBlock && !this.drifter.getSenses().terrain().isKnown(gapFloor) && this.waitToSee++ < WAIT_TO_SEE_TICKS) {
 					this.drifter.getCamera().track(Vec3.atCenterOf(gapFloor), CameraModel.TurnSpeed.NORMAL);
 					this.keys().releaseAll();
 					this.keys().set(VirtualKeys.Key.SNEAK, true);
 					return Status.RUNNING;
 				}
 
-				if (this.drifter.getSenses().terrain().isKnown(gapFloor) && this.hasFloor(step.to().below())) {
+				if (firstBlock && this.drifter.getSenses().terrain().isKnown(gapFloor) && this.hasFloor(step.to().below())) {
 					this.replan("the gap at " + step.to().toShortString() + " is only one block deep", true);
 					return Status.RUNNING;
 				}
@@ -558,6 +568,12 @@ public class NavigateTask extends Task {
 
 			this.replan("no ground where it expected it at " + step.to().below().toShortString(), true);
 			return Status.RUNNING;
+		}
+
+		if (step.type() == MoveType.BRIDGE) {
+			// The block is placed: shuffle backward onto it, still facing away from the gap.
+			this.backBridgeMove(step);
+			return this.checkStuck();
 		}
 
 		this.steer(step);
@@ -831,19 +847,7 @@ public class NavigateTask extends Task {
 			return;
 		}
 
-		if (horizontal > 0.05) {
-			float wantedYaw = (float)(Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
-			float relative = Mth.wrapDegrees(wantedYaw - this.drifter.getYRot());
-			keys.set(VirtualKeys.Key.FORWARD, Math.abs(relative) < 67.5F);
-			keys.set(VirtualKeys.Key.BACK, Math.abs(relative) > 112.5F);
-			keys.set(VirtualKeys.Key.LEFT, relative < -22.5F && relative > -157.5F);
-			keys.set(VirtualKeys.Key.RIGHT, relative > 22.5F && relative < 157.5F);
-		} else {
-			keys.set(VirtualKeys.Key.FORWARD, false);
-			keys.set(VirtualKeys.Key.BACK, false);
-			keys.set(VirtualKeys.Key.LEFT, false);
-			keys.set(VirtualKeys.Key.RIGHT, false);
-		}
+		this.pressToward(goal);
 
 		// Sneak on bridges and whenever a deep drop is right beside it (section 12: "sneaks near edges"), so momentum can
 		// never carry it over (found in testing: it ran off a ravine edge). Not on a deliberate step down: sneaking
@@ -1064,6 +1068,8 @@ public class NavigateTask extends Task {
 		this.keys().set(VirtualKeys.Key.SPRINT, false);
 		if (Reach.aimPoint(this.drifter, support, face).isPresent()) {
 			this.startSub(new UseOnBlockTask(this.drifter, support, face, "bridge toward " + step.to().toShortString()));
+			// After placing, take up the bridging pose again (the aim moved the head).
+			this.bridgePoseSet = false;
 			return Status.RUNNING;
 		}
 
@@ -1075,12 +1081,43 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
-		// Creep toward the edge, looking down at where the block will go (always in front of it, so it never turns round
-		// once it leans out past the edge).
-		this.steer(step);
-		this.drifter.getCamera().track(Vec3.atCenterOf(step.to().below()), CameraModel.TurnSpeed.NORMAL);
-		this.keys().set(VirtualKeys.Key.JUMP, false);
+		// Sneak backward to the edge, facing away from the gap and looking steeply down, like a player bridging.
+		this.backBridgeMove(step);
 		return Status.RUNNING;
+	}
+
+	/**
+	 * Back-bridging, the way players bridge (user's tip from testing): face away from the gap, look steeply down, and
+	 * sneak backward. Leaning out backward past the edge, the side of the block it stands on is then right in front
+	 * of and below its eyes. Facing the gap instead, that side ends up behind its eyes once it leans out, and it had
+	 * to spin round to aim at it (found in testing: the one block it placed was when it happened to face backward).
+	 */
+	private void backBridgeMove(PathStep step) {
+		if (!this.bridgePoseSet) {
+			float awayYaw = (float)(Mth.atan2(step.from().getZ() - step.to().getZ(), step.from().getX() - step.to().getX()) * Mth.RAD_TO_DEG) - 90.0F;
+			this.drifter.getCamera().lookAt(awayYaw, BRIDGE_PITCH, CameraModel.TurnSpeed.NORMAL);
+			this.bridgePoseSet = true;
+		}
+
+		VirtualKeys keys = this.keys();
+		keys.set(VirtualKeys.Key.SNEAK, true);
+		keys.set(VirtualKeys.Key.SPRINT, false);
+		keys.set(VirtualKeys.Key.JUMP, false);
+		this.pressToward(Vec3.atBottomCenterOf(step.to()));
+	}
+
+	/** Movement keys toward a point, whichever way it's facing (backward and sideways keys included). */
+	private void pressToward(Vec3 goal) {
+		VirtualKeys keys = this.keys();
+		double dx = goal.x - this.drifter.getX();
+		double dz = goal.z - this.drifter.getZ();
+		boolean move = dx * dx + dz * dz > 0.05 * 0.05;
+		float wantedYaw = (float)(Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
+		float relative = Mth.wrapDegrees(wantedYaw - this.drifter.getYRot());
+		keys.set(VirtualKeys.Key.FORWARD, move && Math.abs(relative) < 67.5F);
+		keys.set(VirtualKeys.Key.BACK, move && Math.abs(relative) > 112.5F);
+		keys.set(VirtualKeys.Key.LEFT, move && relative < -22.5F && relative > -157.5F);
+		keys.set(VirtualKeys.Key.RIGHT, move && relative > 22.5F && relative < 157.5F);
 	}
 
 	/** Pillar up: take out a building block, look straight down, jump, and place it under itself at the top. */
