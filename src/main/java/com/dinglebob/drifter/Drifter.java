@@ -1,5 +1,8 @@
 package com.dinglebob.drifter;
 
+import com.dinglebob.drifter.command.DrifterCommands;
+import com.dinglebob.drifter.registry.ModEntities;
+
 import net.fabricmc.api.ModInitializer;
 
 import net.minecraft.resources.ResourceLocation;
@@ -14,7 +17,8 @@ public class Drifter implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// Milestone 1 (Body) registration goes here: entity type, attributes, commands.
+		ModEntities.register();
+		DrifterCommands.register();
 		LOGGER.info("Drifter initialized");
 	}
 

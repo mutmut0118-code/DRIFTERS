@@ -2,38 +2,19 @@
 
 Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at a time.
 
-Status values: **Not started**, **In progress**, **Blocked**, **Done** (done means its "done when" test passed in-game on the user's machine).
+Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
 ## Current state (end of session 1, 2026-10-13)
 
-- **Build status: not verified.** The cloud sandbox's network policy blocks the Fabric and Mojang hosts, so `./gradlew build` cannot resolve Fabric Loom. See "Blockers" below.
-- Project scaffold is in place from the official template; no gameplay code yet.
-
-## Blockers
-
-### Cloud build cannot download dependencies (session 1)
-
-`./gradlew build` was run once and failed at plugin resolution:
-
-```
-Plugin [id: 'net.fabricmc.fabric-loom-remap', version: '1.17-SNAPSHOT'] was not found ...
-  Searched in: Fabric(https://maven.fabricmc.net/), MavenRepo, Gradle Central Plugin Repository
-```
-
-The environment's network policy answers 403 for: `maven.fabricmc.net`, `meta.fabricmc.net`, `piston-meta.mojang.com`,
-`libraries.minecraft.net`, `resources.download.minecraft.net` (and `piston-data.mojang.com` will be needed too).
-`services.gradle.org`, `repo.maven.apache.org` and `plugins.gradle.org` work.
-
-Fix (user side): in the cloud environment's settings, change Network access to allow those hosts (or a broader
-access level). Until then, no cloud session can verify that code compiles, so milestone 1 code was **not** written
-this session (it couldn't be kept "green" if the build can't run).
+- **Build: green.** `./gradlew build` succeeds in the cloud (with the Maven Central mirror workaround described in `CLAUDE.md`).
+- **Milestone 1 (Body): code complete, waiting for in-game testing.** Nothing has been run in Minecraft yet. Every item in `docs/TESTING.md` is untested.
 
 ## Milestones
 
 | # | Milestone | Status | Notes |
 | --- | --- | --- | --- |
-| 0 | Project setup | In progress | Scaffold written; first clean `./gradlew build` still pending (blocked, see above). |
-| 1 | Body | Not started (blocked) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
+| 0 | Project setup | Done (build verified in cloud) | Local build and launch not yet confirmed by the user. |
+| 1 | Body | In progress: code complete, untested in-game | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
 | 2 | Hands | Not started | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
 | 3 | Senses and memory | Not started | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
 | 4 | Pathfinder | Not started | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
@@ -51,35 +32,57 @@ this session (it couldn't be kept "green" if the build can't run).
 
 ### Done
 - Gradle project from the official `FabricMC/fabric-example-mod` template, branch `1.21.1`: Minecraft 1.21.1, Fabric Loader 0.19.5, Fabric API `0.116.17+1.21.1`, official Mojang mappings, split client/common source sets.
-- Renamed to mod ID `drifter`, package `com.dinglebob.drifter`; entrypoints `Drifter` (common) and `client.DrifterClient` (client); empty mixin configs `drifter.mixins.json` and `drifter.client.mixins.json`.
+- Mod ID `drifter`, package `com.dinglebob.drifter`; entrypoints `Drifter` (common) and `client.DrifterClient` (client); mixin configs `drifter.mixins.json` and `drifter.client.mixins.json`.
 - `CLAUDE.md`, this file, and `docs/TESTING.md`.
 - GitHub Actions build workflow from the template (runs `./gradlew build` on push), set to JDK 21.
+- Cloud build verified. The first attempt was blocked by the network policy (fixed by the user), then by Maven Central rate-limiting the sandbox IP (HTTP 429). That was worked around with a sandbox-only Google mirror the user approved (see `CLAUDE.md`).
 
 ### Deviations from the template (please confirm)
-- **Loom 1.17 instead of 1.18, Gradle 9.5.0 instead of 9.7.1.** The template's Loom 1.18 is compiled for Java 25, so Gradle would need a Java 25 JDK to even start. The cloud sandbox only has Java 21, and you asked for Java 21. Loom 1.17 is the newest version that runs on Java 21; Gradle 9.5.0 is the version Loom 1.17 itself builds with. If you'd rather follow the template exactly (and install JDK 25 locally), say so.
-- License in `fabric.mod.json` set to `All-Rights-Reserved` and no LICENSE file added (the template ships CC0). Tell me if you want a different license.
+- **Loom 1.17 instead of 1.18, Gradle 9.5.0 instead of 9.7.1.** The template's Loom 1.18 is compiled for Java 25, so Gradle would need a Java 25 JDK just to start. Loom 1.17 is the newest version that runs on Java 21; Gradle 9.5.0 is the version Loom 1.17 itself builds with.
+- License in `fabric.mod.json` set to `All-Rights-Reserved` and no LICENSE file added (the template ships CC0).
 - Mod version starts at `0.1.0`.
-
-### Next
-- Get one clean `./gradlew build` once the network policy allows the Fabric and Mojang hosts.
 
 ## Milestone 1: Body
 
-### Done
-- Nothing yet (blocked on the build).
+All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Player, LocalPlayer, ServerPlayer, FoodData, Inventory, PlayerRenderer), not from memory.
 
-### Planned order for the next session
-1. `DrifterEntity` (extends `PathfinderMob`), registered with Fabric's entity registry; player-sized hitbox and eye height; attributes copied from `Player.createAttributes()` (health 20, movement speed, block/entity interaction range, etc.). Never despawns like a hostile mob.
-2. Renderer in `src/client` reusing the vanilla `PlayerModel` and the vanilla player model layers (`ModelLayers.PLAYER` / `PLAYER_SLIM`) for wide and slim arms, per the EMF note in section 2. Armor layers, held items, arrow and bee-stinger layers; skin chosen from a small bundled pool and synced to the client.
-3. Inventory: 36 slots (9 hotbar) plus 4 armor and offhand, mirrored to equipment slots for rendering; selected hotbar slot with a 1 to 3 tick switch delay; save/load with a version number; drop everything on death.
-4. Hunger model mirroring the player's `FoodData` rules (food, saturation, exhaustion, regen, starvation by difficulty).
-5. Virtual-key movement (forward, strafe, jump, sneak, sprint) driving the normal living-entity travel physics, with sprint blocked at food 6 or lower and sneak never falling off edges; sneaking/sprinting/swimming poses set exactly like a player's.
-6. Camera model: head seeks with acceleration, overshoot and correction, idle jitter, body follows movement, body turns when still only past ~50 degrees.
-7. Debug commands (`/drifter spawn`, `/drifter keys`, `/drifter look`, `/drifter give`, `/drifter food`, `/drifter info`) to drive it by hand.
+### Done (code complete, untested in-game)
+- **Entity** (`entity/DrifterEntity`, registered as `drifter:drifter`): a `PathfinderMob` with the player's attributes (`Player.createAttributes()`: 20 HP, speed 0.1, 4.5 block reach, 3.0 entity reach, sneak speed, etc.), player hitbox and eye height for every pose, player sounds (hurt by damage type, death, falls, swimming, `players` sound category). Never despawns. Can't be leashed. Position and rotation are sent to clients every 2 ticks, like a player. Spawn egg in the Spawn Eggs tab.
+- **Vanilla mob controls are disabled** (move, look and jump controls are no-ops), so only the virtual keys and the camera model drive the body.
+- **Rendering** (`client/render/DrifterRenderer`, `DrifterModelRenderer`): vanilla `PlayerModel` baked from the vanilla `ModelLayers.PLAYER` / `PLAYER_SLIM` layers (per the EMF advice in section 2), picked per Drifter. Player armor layers (wide and slim), items in both hands, arrows and bee stingers stuck in the body, heads/skulls, elytra, riptide effect. Player 0.9375 scale, crouch offset, swim tilt, and all player arm poses (bow draw, crossbow charge/hold, shield, trident, spyglass, horn, brush).
+- **Skins** (`entity/SkinPool`): skin texture and arm type are picked once, synced to clients and saved. The pool is the 9 vanilla default skins in both arm types (18 skins), which every client already has.
+- **Inventory** (`entity/DrifterInventory`): 36 slots (9 hotbar) + 4 armor + offhand, same numbering, stacking order and save format as the player inventory. Equipment (held item, armor, offhand) is read straight from the inventory, so armor gives armor points and renders. Hotbar switching takes a 1 to 3 tick human delay. Picks up any item type like a player does (same pickup box, pickup delay and item "target" rules). On death, the whole inventory drops scattered like a player's (Curse of Vanishing items are destroyed).
+- **Hunger** (`entity/DrifterFoodData`): exact mirror of vanilla `FoodData` (exhaustion, saturation, regen at 18+, fast saturation regen at 20, starvation limits by difficulty), using the game's `FoodConstants`. Exhaustion from sprinting (0.1/block), swimming (0.01/block), jumping (0.05), sprint-jumping (0.2) and taking damage; walking and sneaking are free. Peaceful regeneration like a player.
+- **Virtual-key movement** (`motor/VirtualKeys` + `DrifterEntity#applyMovementKeys`): forward/back/left/right/jump/sneak/sprint keys turned into input exactly like the client's `KeyboardInput` and `LocalPlayer`: diagonal strafing, sneak slows to the sneak-speed attribute, using an item slows to 20%, sprint needs 80% forward input and food above 6, sprint keeps going after the key is released until forward input stops, and stops on wall bumps and when leaving water. Player air control while jumping. Sneaking never walks off an edge taller than step height (vanilla edge back-off). Swimming follows the camera pitch. Player poses: standing, crouching, swimming/crawling (auto-crawl when there isn't room to stand).
+- **Camera model** (`motor/CameraModel`): head yaw = camera yaw, like a player. Seeks targets (angles, a position, or an entity's eyes) with acceleration-limited turns, in three speed bands (idle 30-90, normal 180-360, combat 700-1000 degrees/s). Turns over 15 degrees at normal/combat speed overshoot by 1-5 degrees (scaled by Skill) and snap back. Idle jitter (random walk, up to 0.4 degrees) while settled.
+- **Body rotation**: the player's body rule (body eases toward the movement direction; while still, it only turns when the head is more than 50 degrees off, or 15 while blocking), replacing the mob body controller.
+- **Saving**: versioned (`DrifterSaveVersion` = 1): inventory, selected slot, food, skin and arm type.
+- **Debug commands** (`command/DrifterCommands`, op level 2): `/drifter spawn|keys|look|lookat|slot|give|food|info|inventory|remove`. See `docs/TESTING.md`.
+
+### Not done yet in milestone 1
+- **In-game verification** of everything above (the milestone's "done when" test).
+- **EMF / Fresh Animations Player Extension check** (section 2 says to test this first in milestone 1): needs the user's local install. Instructions are in `docs/TESTING.md`.
+- Skill is a fixed placeholder (0.5) in the camera model until traits exist (milestone 7).
+- Elytra glide body tilt and the sleeping pose are rendered by vanilla code paths but untested; they belong to later milestones (beds, elytra).
+- Optional "veteran" cape (section 2): not built.
+
+### Deliberately left for later milestones (stubbed or noted with TODOs)
+- Eating, block breaking/placing, crafting, attacking (and their exhaustion): milestone 2 (Hands) and 6 (Combat).
+- Pickup filters and junk list (section 10.18): later (TODO in `DrifterEntity#tryPickUp`).
+- XP orbs, XP on death, death messages, respawn and keepInventory: later milestones (TODO in `DrifterEntity#dropEquipment`).
+- Hostile mobs targeting the Drifter: milestone 6.
+- Username generator and always-visible nameplate (section 4): for now a Drifter only shows a nameplate if given a name (`/drifter spawn <name>` or a name tag).
+- Natural spawning and despawning rules for fresh Drifters (section 4): later (TODO in `DrifterEntity#removeWhenFarAway`).
+
+### Next steps
+1. User runs the milestone 1 checklist in `docs/TESTING.md` and reports problems.
+2. Fix whatever the in-game test finds; then mark milestone 1 done.
+3. Start milestone 2 (Hands): Fabric `FakePlayer` helper, mining with player break speed and crack overlay, placing with reach and face checks, 2x2/3x3 crafting, furnace use, eating, containers.
 
 ## Design questions
 
 Questions for the user. Nothing here has been changed in the design.
 
-1. **Own spawn group (sections 18 and 22).** On 1.21.1, mob spawn groups are a hard-coded enum (`MobCategory`), and Fabric API has no way to add a new one. Options: (a) don't use vanilla natural spawning at all and run Drifter spawning from our own rare spawner (section 4 already describes a custom, rare, out-of-sight check every few minutes), which also keeps them out of the monster and creature caps; (b) add an enum entry via a mixin/enum-extension hack. I'd recommend (a). Not needed until natural spawning is built.
-2. **Player sleep blocking (section 18).** Vanilla only blocks sleep for mobs of the `Monster` class. Making a hostile-to-you Drifter block sleep will need a small mixin on the bed check; fine on 1.21.1, just noting it needs a mixin rather than being free. No decision needed unless you object to mixins there.
+1. **Own spawn group (sections 18 and 22).** On 1.21.1, mob spawn groups are a hard-coded enum (`MobCategory`), and Fabric API has no way to add a new one. Options: (a) don't use vanilla natural spawning and run Drifter spawning from our own rare spawner (section 4 already describes a custom, rare, out-of-sight check every few minutes), which also keeps them out of the monster and creature caps; (b) add an enum entry via a mixin/enum-extension hack. I recommend (a). For now the entity type uses the `MISC` category, which means no vanilla natural spawning and no share of any cap, consistent with (a).
+2. **Player sleep blocking (section 18).** Vanilla only blocks sleep for mobs of the `Monster` class. Making a hostile-to-you Drifter block sleep will need a small mixin on the bed check. Fine on 1.21.1; no decision needed unless you object to mixins there.
+3. **Idle jitter is mostly invisible over the network (section 16.1).** Minecraft sends entity rotations to clients in steps of 360/256 = about 1.4 degrees. The design's "fraction of a degree" jitter therefore shows up as an occasional 1.4-degree tick rather than a smooth tremble, and only when the jitter crosses a step. Options: (a) accept it; (b) raise the jitter amplitude to about 1.5 degrees so it reliably shows; (c) later, send exact rotations with a small custom packet (costs a little network per Drifter). I've implemented the design value (0.4 degrees) for now; please tell me which you prefer after seeing it in-game.
