@@ -97,6 +97,10 @@ public class NavigateTask extends Task {
 	private static final int CHASE_PREDICT_TICKS = 10;
 	private static final int WAIT_TO_SEE_TICKS = 15;
 	private static final int BRIDGE_CREEP_TICKS = 40;
+	/** It keeps moving while it plans for at most this long, then stops to think. */
+	private static final int MAX_PLAN_ON_THE_MOVE_TICKS = 10;
+	/** After planning on the move, the new path is picked up at the nearest of its first this-many steps. */
+	private static final int PICK_UP_STEPS = 8;
 	/** Horizontal speed (squared, blocks per tick) below which it counts as standing still. */
 	private static final double STOPPED_SPEED_SQR = 1.0E-4;
 	/** A drop this deep or deeper next to it makes it sneak (falls of 4+ blocks hurt). */
@@ -131,6 +135,7 @@ public class NavigateTask extends Task {
 	private int replans;
 	private int unstick;
 	private int waitToSee;
+	private int planningTicks;
 	private String lastReplanReason = "";
 
 	// Bridge and pillar sub-steps for the current step.
@@ -206,9 +211,25 @@ public class NavigateTask extends Task {
 			&& (this.drifter.onGround() || this.drifter.isInWater() || this.drifter.onClimbable());
 	}
 
+	/** Plans again, stopping first (something is in the way, or it's stuck). */
 	private void plan(String reason) {
+		this.plan(reason, false);
+	}
+
+	/**
+	 * Plans again. With {@code onTheMove}, it keeps moving the way it was going while it thinks, like a player (found in
+	 * testing: stopping dead at every surprise made trips slow and jerky); the new path then picks up from wherever it
+	 * has got to. Either way it keeps sneaking next to a deep drop.
+	 */
+	private void plan(String reason, boolean onTheMove) {
 		this.stopSub();
-		this.keys().releaseAll();
+		if (onTheMove) {
+			this.keepSafe();
+		} else {
+			this.releaseKeys();
+		}
+
+		this.planningTicks = 0;
 		this.plannedTarget = this.target.get();
 		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5));
 		this.path = List.of();
@@ -222,8 +243,49 @@ public class NavigateTask extends Task {
 	}
 
 	private void replan(String reason) {
+		this.replan(reason, false);
+	}
+
+	private void replan(String reason, boolean onTheMove) {
 		this.replans++;
-		this.plan(reason);
+		this.plan(reason, onTheMove);
+	}
+
+	/**
+	 * Lets go of every key, except sneak while a deep drop is right beside or under it: with sneak released, even the
+	 * slow creep it had toward the edge carries it over (found in testing: replanning while creeping out to bridge
+	 * dropped it into the ravine).
+	 */
+	private void releaseKeys() {
+		this.keys().releaseAll();
+		if (this.edgeBeside()) {
+			this.keys().set(VirtualKeys.Key.SNEAK, true);
+		}
+	}
+
+	/** Keeps the keys as they are, but at a deep edge it sneaks and doesn't sprint or jump. */
+	private void keepSafe() {
+		if (this.edgeBeside()) {
+			this.keys().set(VirtualKeys.Key.SNEAK, true);
+			this.keys().set(VirtualKeys.Key.SPRINT, false);
+			this.keys().set(VirtualKeys.Key.JUMP, false);
+		}
+	}
+
+	/** A deep drop under it (leaning out over an edge) or right beside it, from where it stands. */
+	private boolean edgeBeside() {
+		BlockPos here = this.feet();
+		if (this.isDeepDrop(here)) {
+			return true;
+		}
+
+		for (Direction direction : Direction.Plane.HORIZONTAL) {
+			if (this.isDeepDrop(here.relative(direction))) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void resetStepState() {
@@ -243,7 +305,7 @@ public class NavigateTask extends Task {
 
 			// Follow mode: wait here until the target moves away again.
 			this.stopSub();
-			this.keys().releaseAll();
+			this.releaseKeys();
 			if (this.chased != null) {
 				this.drifter.getCamera().track(this.chased.getEyePosition(), CameraModel.TurnSpeed.NORMAL);
 			}
@@ -262,7 +324,7 @@ public class NavigateTask extends Task {
 		}
 
 		if (this.search == null && this.path.isEmpty()) {
-			this.plan("target moved");
+			this.plan("target moved", true);
 		}
 
 		if (this.search != null) {
@@ -271,7 +333,7 @@ public class NavigateTask extends Task {
 
 		this.sinceReplan++;
 		if (this.follow && this.sinceReplan % CHASE_REPATH_TICKS == 0 && this.target.get().distanceTo(this.plannedTarget) > CHASE_REPATH_DISTANCE) {
-			this.plan("target moved");
+			this.plan("target moved", true);
 			return Status.RUNNING;
 		}
 
@@ -280,12 +342,12 @@ public class NavigateTask extends Task {
 		}
 
 		if (this.index >= this.path.size()) {
-			this.replan(this.partial ? "reached the end of a partial path" : "path ended short of the goal");
+			this.replan(this.partial ? "reached the end of a partial path" : "path ended short of the goal", true);
 			return Status.RUNNING;
 		}
 
 		if (this.sinceReplan >= ROLLING_REPLAN_TICKS && this.unknownAhead()) {
-			this.plan("rolling replan: now it has seen more of the way");
+			this.plan("rolling replan: now it has seen more of the way", true);
 			return Status.RUNNING;
 		}
 
@@ -295,6 +357,13 @@ public class NavigateTask extends Task {
 	private Status tickPlanning() {
 		PathSearch.Status status = this.search.tick(PathBudget.take(this.level()));
 		if (status == PathSearch.Status.RUNNING) {
+			// Thinking on the move only for a moment; a long think happens standing still.
+			if (++this.planningTicks == MAX_PLAN_ON_THE_MOVE_TICKS) {
+				this.releaseKeys();
+			} else {
+				this.keepSafe();
+			}
+
 			return Status.RUNNING;
 		}
 
@@ -306,9 +375,24 @@ public class NavigateTask extends Task {
 		this.path = new ArrayList<>(this.search.result());
 		this.partial = status == PathSearch.Status.PARTIAL;
 		this.search = null;
-		this.index = 0;
+		this.index = this.nearestStep();
 		this.drifter.setDebugPath(this.path, 0);
 		return Status.RUNNING;
+	}
+
+	/** It may have moved on while planning: pick up the path at the step that starts nearest to where it is now. */
+	private int nearestStep() {
+		int best = 0;
+		double bestDistance = Double.MAX_VALUE;
+		for (int i = 0; i < Math.min(this.path.size(), PICK_UP_STEPS); i++) {
+			double distance = this.drifter.position().distanceToSqr(Vec3.atBottomCenterOf(this.path.get(i).from()));
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				best = i;
+			}
+		}
+
+		return best;
 	}
 
 	private Status tickSub() {
@@ -365,10 +449,8 @@ public class NavigateTask extends Task {
 			this.sinceProgress = 0;
 			this.resetStepState();
 			this.drifter.setDebugPath(this.path, this.index);
-			if (this.index < this.path.size() && this.path.get(this.index).type() != MoveType.BRIDGE) {
-				this.keys().set(VirtualKeys.Key.SNEAK, false);
-			}
-
+			// (Sneak is left as it is: the next tick's steering decides. Letting go of it here for a tick, at the end of a
+			// bridge, could walk it off.)
 			return Status.RUNNING;
 		}
 
@@ -422,22 +504,26 @@ public class NavigateTask extends Task {
 				}
 
 				if (this.drifter.getSenses().terrain().isKnown(gapFloor) && this.hasFloor(step.to().below())) {
-					this.replan("the gap at " + step.to().toShortString() + " is only one block deep");
+					this.replan("the gap at " + step.to().toShortString() + " is only one block deep", true);
 					return Status.RUNNING;
 				}
 
 				return this.bridge(step);
 			}
 
-			// It assumed ground it hadn't seen: look at it first, then replan if it's really not there.
+			// It assumed ground it hadn't seen. It glances down while carrying on, sneaking, so it stops at the edge if the
+			// drop turns out deep; then it replans on the move (found in testing: it stopped dead at every step down a
+			// hill). A short drop it then just walks off.
 			if (!this.drifter.getSenses().terrain().isKnown(step.to().below()) && this.waitToSee++ < WAIT_TO_SEE_TICKS) {
+				this.steer(step);
 				this.drifter.getCamera().track(Vec3.atCenterOf(step.to().below()), CameraModel.TurnSpeed.NORMAL);
-				this.keys().releaseAll();
-				this.keys().set(VirtualKeys.Key.SNEAK, this.nearDeepDrop());
+				this.keys().set(VirtualKeys.Key.SNEAK, true);
+				this.keys().set(VirtualKeys.Key.SPRINT, false);
+				this.keys().set(VirtualKeys.Key.JUMP, false);
 				return Status.RUNNING;
 			}
 
-			this.replan("no ground where it expected it at " + step.to().below().toShortString());
+			this.replan("no ground where it expected it at " + step.to().below().toShortString(), true);
 			return Status.RUNNING;
 		}
 
@@ -492,21 +578,20 @@ public class NavigateTask extends Task {
 		return along > -0.1 && sideways < ARRIVE_STRAIGHT && Math.abs(this.drifter.getY() - step.to().getY()) < 1.3;
 	}
 
-	/** Two flat walking steps in a row that turn by 45 degrees or less (a straight line or a gentle bend). */
+	/**
+	 * Two steps on foot in a row (walking, or a step up or down) that turn by 45 degrees or less: it runs straight on
+	 * through, without slowing to stand on the point between them (found in testing: it paused at every step down).
+	 */
 	private boolean flowsInto(PathStep a, PathStep b) {
-		if (!isFlatWalk(a) || !isFlatWalk(b)) {
-			return false;
-		}
-
-		double ax = a.to().getX() - a.from().getX();
-		double az = a.to().getZ() - a.from().getZ();
-		double bx = b.to().getX() - b.from().getX();
-		double bz = b.to().getZ() - b.from().getZ();
-		return (ax * bx + az * bz) / (Math.sqrt(ax * ax + az * az) * Math.sqrt(bx * bx + bz * bz)) >= HOP_MAX_TURN_COS;
+		return this.onFoot(a) && this.onFoot(b) && this.gentleTurn(a, b);
 	}
 
-	private static boolean isFlatWalk(PathStep step) {
-		return step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL;
+	private boolean onFoot(PathStep step) {
+		return switch (step.type()) {
+			case WALK, DIAGONAL, JUMP_UP -> true;
+			case STEP_DOWN -> !this.level().getFluidState(step.to()).is(FluidTags.WATER);
+			default -> false;
+		};
 	}
 
 	/** The cells that must be open for this step, in the order to dig them (top first). */
@@ -582,6 +667,10 @@ public class NavigateTask extends Task {
 	/** Is there a deep drop right beside where it stands or where it's heading? Then it sneaks, like a player. */
 	private boolean nearDeepDrop() {
 		BlockPos here = this.feet();
+		if (this.isDeepDrop(here)) {
+			return true;
+		}
+
 		for (Direction direction : Direction.Plane.HORIZONTAL) {
 			if (this.isDeepDrop(here.relative(direction))) {
 				return true;
@@ -995,7 +1084,7 @@ public class NavigateTask extends Task {
 	@Override
 	protected void onStop() {
 		this.stopSub();
-		this.keys().releaseAll();
+		this.releaseKeys();
 		this.drifter.getCamera().clearTarget();
 		this.drifter.setDebugPath(List.of(), 0);
 	}

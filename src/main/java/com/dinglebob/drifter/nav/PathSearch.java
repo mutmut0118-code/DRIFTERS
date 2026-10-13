@@ -389,10 +389,12 @@ public class PathSearch {
 			// It never drops 2+ blocks onto ground it hasn't seen (found in testing: it walked into a dark ravine). Nor does
 			// it step down into a hole it can see is open air but whose bottom it can't see: that is a ravine, not a step
 			// (found in testing: "step down onto assumed ground" was always cheaper than bridging, so it never bridged).
-			// Unseen ground under unseen or solid blocks (digging a stair down) is still assumed, as everywhere else.
+			// Unseen ground under unseen or solid blocks (digging a stair down) is still assumed, as everywhere else, and so is
+			// a step down a hillside: seen ground right next to it at the lower level (found in testing: without that, it
+			// planned bridges down hills).
 			boolean floorSeen = this.view.cell(t.below()).kind() != NavView.Kind.UNKNOWN;
 			boolean seenHole = this.view.cell(t).kind() == NavView.Kind.OPEN;
-			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && !seenHole)) {
+			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t)))) {
 				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
 				double cost = WALK + STEP_DOWN_EXTRA * k + c.cost + damage * FALL_DAMAGE_COST * this.caution * 2.0;
 				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN, cost, c, 0);
@@ -457,6 +459,20 @@ public class PathSearch {
 				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);
 			}
 		}
+	}
+
+	/** Seen ground to stand on right beside this spot, at its level: the lower step of a slope, not a ravine. */
+	private boolean groundBeside(BlockPos feet) {
+		for (Direction d : Direction.Plane.HORIZONTAL) {
+			BlockPos side = feet.relative(d);
+			NavView.Kind kind = this.view.cell(side).kind();
+			NavView.Kind floor = this.view.cell(side.below()).kind();
+			if ((kind == NavView.Kind.OPEN || kind == NavView.Kind.LOW) && floor == NavView.Kind.SOLID && this.view.standable(side.below())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** True if a seen drop of 4+ blocks is right beside this spot. */

@@ -337,9 +337,9 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-**Status:** third test done. Pillaring passed. Fixed after the third test: falling in while bridging, sprinting while
-sneaking, crouching at doors instead of opening them, sprint-jumping indoors and in caves, and it now takes drops that
-cost up to one heart. Please re-test sections 1 (village, doors, sprint-jumping, drops), 2 and 4 with the newest build.
+**Status:** fourth test done: doors, indoor sprinting and drops passed. Fixed after the fourth test: it still walked
+off the edge while bridging (it let go of sneak whenever it re-planned), and it stopped before every step down a hill.
+Please re-test section 2 (bridging) and the new "hills" item in section 1.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -384,6 +384,8 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
       back after jumping past a point.
 - [ ] **No sprint-jumping indoors or in caves (new):** `/drifter goto` a spot across a big room in a house, or along a
       cave: it sprints but doesn't jump (ceiling within 4 blocks, or a narrow corridor).
+- [ ] **Hills (re-test after fix):** `/drifter goto` a spot at the bottom of a hill or down some terraces about 30
+      blocks away. It runs down without stopping before each step (it may glance down, and slow a little at a big drop).
 - [ ] **Drops (new):** stand it on a ledge 5 blocks above flat ground (with full health) and `/drifter goto` a spot on
       the ground below that would need a long walk round. It walks off the ledge and lands, losing about one heart. From
       6+ blocks up it walks round instead (unless there's water below). With low health
