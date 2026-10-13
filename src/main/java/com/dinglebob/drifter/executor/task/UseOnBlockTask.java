@@ -30,15 +30,30 @@ public class UseOnBlockTask extends Task {
 	private final Direction face;
 	private final String label;
 	private final BlockAim aim;
+	/** Use the block itself (open a door, a gate): never sneaking, or the click would go to the held item instead. */
+	private final boolean useBlock;
 	private boolean sneak;
 	private int sneakSettle;
 
 	public UseOnBlockTask(DrifterEntity drifter, BlockPos pos, Direction face, String label) {
+		this(drifter, pos, face, label, false);
+	}
+
+	private UseOnBlockTask(DrifterEntity drifter, BlockPos pos, Direction face, String label, boolean useBlock) {
 		super(drifter);
 		this.pos = pos.immutable();
 		this.face = face;
 		this.label = label;
+		this.useBlock = useBlock;
 		this.aim = new BlockAim(drifter, this.pos, face, CameraModel.TurnSpeed.NORMAL);
+	}
+
+	/**
+	 * Right-clicks a block for what it does itself (opens a door or gate), standing up: a player holding an item who
+	 * sneak-clicks a door places the item against it instead (found in testing: it sneaked at doors over and over).
+	 */
+	public static UseOnBlockTask useBlock(DrifterEntity drifter, BlockPos pos, Direction face, String label) {
+		return new UseOnBlockTask(drifter, pos, face, label, true);
 	}
 
 	@Override
@@ -53,6 +68,15 @@ public class UseOnBlockTask extends Task {
 
 	@Override
 	protected void onStart() {
+		if (this.useBlock) {
+			if (this.drifter.isShiftKeyDown()) {
+				this.sneakSettle = SNEAK_SETTLE_TICKS;
+			}
+
+			this.drifter.getKeys().set(VirtualKeys.Key.SNEAK, false);
+			return;
+		}
+
 		Level level = this.drifter.level();
 		this.sneak = hasOwnUse(level, this.pos, level.getBlockState(this.pos));
 		if (this.sneak) {

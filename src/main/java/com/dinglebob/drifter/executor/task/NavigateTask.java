@@ -97,6 +97,8 @@ public class NavigateTask extends Task {
 	private static final int CHASE_PREDICT_TICKS = 10;
 	private static final int WAIT_TO_SEE_TICKS = 15;
 	private static final int BRIDGE_CREEP_TICKS = 40;
+	/** Horizontal speed (squared, blocks per tick) below which it counts as standing still. */
+	private static final double STOPPED_SPEED_SQR = 1.0E-4;
 	/** A drop this deep or deeper next to it makes it sneak (falls of 4+ blocks hurt). */
 	private static final int DEEP_DROP = 4;
 
@@ -392,7 +394,15 @@ public class NavigateTask extends Task {
 
 		BlockPos door = this.closedDoor(step);
 		if (door != null) {
-			this.startSub(new UseOnBlockTask(this.drifter, door, this.faceToward(door), "open the door at " + door.toShortString()));
+			this.startSub(UseOnBlockTask.useBlock(this.drifter, door, this.faceToward(door), "open the door at " + door.toShortString()));
+			return Status.RUNNING;
+		}
+
+		// Take out a building block a few steps before a bridge or pillar, on safe ground. Taking one from the inventory
+		// opens it, which lets go of every key, sneak included (found in testing: doing it at the edge of a ravine
+		// stood it up mid-slide and it fell in).
+		if (this.buildStepSoon() && !Tools.BUILDING_BLOCK.test(this.drifter.getMainHandItem()) && !this.nearDeepDrop() && this.drifter.onGround()) {
+			this.startSub(new SelectItemTask(this.drifter, Tools.BUILDING_BLOCK, "a building block"));
 			return Status.RUNNING;
 		}
 
@@ -433,6 +443,18 @@ public class NavigateTask extends Task {
 
 		this.steer(step);
 		return this.checkStuck();
+	}
+
+	/** A bridge or pillar step is this one or one of the next two. */
+	private boolean buildStepSoon() {
+		for (int i = this.index; i < Math.min(this.path.size(), this.index + 3); i++) {
+			MoveType type = this.path.get(i).type();
+			if (type == MoveType.BRIDGE || type == MoveType.PILLAR) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean arrived(PathStep step) {
@@ -691,8 +713,17 @@ public class NavigateTask extends Task {
 		// never carry it over (found in testing: it ran off a ravine edge). Not on a deliberate step down: sneaking
 		// would stop it at the step.
 		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN;
-		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || !intentionalDrop && this.nearDeepDrop() || this.nearSculk();
+		boolean nearEdge = !intentionalDrop && this.nearDeepDrop();
+		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
+		if (sneaking && this.drifter.isSprinting()) {
+			// Sprinting carries on while sneaking (as for a player) until forward input stops: let go of the movement keys
+			// for a moment, as a player does before creeping to an edge (found in testing: it sprint-sneaked to bridge).
+			keys.set(VirtualKeys.Key.FORWARD, false);
+			keys.set(VirtualKeys.Key.BACK, false);
+			keys.set(VirtualKeys.Key.LEFT, false);
+			keys.set(VirtualKeys.Key.RIGHT, false);
+		}
 		// Section 10.9 pace: on a TRAVEL trip it sprints the whole way when it can. It can't when hungry (food 6 or
 		// less) and shouldn't when sneaking, bridging, near an edge or almost there.
 		boolean sprint = this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
@@ -720,7 +751,9 @@ public class NavigateTask extends Task {
 
 		// Auto-jump over an unexpected 1-block bump (players jump without thinking). Only a real bump with room to jump:
 		// jumping into a door frame or under a low ceiling just bonks its head, again and again (found in testing).
-		if (this.drifter.horizontalCollision && this.drifter.onGround() && step.type() != MoveType.BRIDGE && this.bumpAhead(dx, dz, horizontal)) {
+		// Never near an edge or on a bridge: a jump there lifts it off the ground, and sneaking only holds it on the ground.
+		if (this.drifter.horizontalCollision && this.drifter.onGround() && step.type() != MoveType.BRIDGE && !nearEdge
+			&& this.bumpAhead(dx, dz, horizontal)) {
 			jump = true;
 		}
 
@@ -733,7 +766,7 @@ public class NavigateTask extends Task {
 	 * drop beside the way.
 	 */
 	private boolean clearToHop() {
-		if (this.index + HOP_LOOKAHEAD > this.path.size()) {
+		if (this.index + HOP_LOOKAHEAD > this.path.size() || this.cramped(this.feet())) {
 			return false;
 		}
 
@@ -771,10 +804,36 @@ public class NavigateTask extends Task {
 				}
 			}
 
+			if (this.cramped(to)) {
+				return false;
+			}
+
 			previous = step;
 		}
 
 		return this.gentleTurn(first, last);
+	}
+
+	/**
+	 * Indoors or in a tight cave: a ceiling within 4 blocks of the floor, or walls close on two or more sides. Players
+	 * don't sprint-jump there (user's rule).
+	 */
+	private boolean cramped(BlockPos feet) {
+		for (int up = 3; up <= 4; up++) {
+			if (!this.isClear(feet.above(up))) {
+				return true;
+			}
+		}
+
+		int walls = 0;
+		for (Direction direction : Direction.Plane.HORIZONTAL) {
+			// A wall at head height (a fence or a bush at foot level doesn't make a corridor).
+			if (!this.isClear(feet.relative(direction).above())) {
+				walls++;
+			}
+		}
+
+		return walls >= 2;
 	}
 
 	/** The horizontal direction changes by 45 degrees or less from one step to the other. */
@@ -845,7 +904,13 @@ public class NavigateTask extends Task {
 	 */
 	private Status bridge(PathStep step) {
 		if (!Tools.BUILDING_BLOCK.test(this.drifter.getMainHandItem())) {
-			this.startSub(new SelectItemTask(this.drifter, Tools.BUILDING_BLOCK, "a building block"));
+			// Opening the inventory lets go of sneak: come to a full stop first, so nothing carries it over the edge.
+			this.keys().releaseAll();
+			this.keys().set(VirtualKeys.Key.SNEAK, true);
+			if (this.drifter.onGround() && this.drifter.getDeltaMovement().horizontalDistanceSqr() < STOPPED_SPEED_SQR) {
+				this.startSub(new SelectItemTask(this.drifter, Tools.BUILDING_BLOCK, "a building block"));
+			}
+
 			return Status.RUNNING;
 		}
 

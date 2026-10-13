@@ -17,6 +17,8 @@ import com.dinglebob.drifter.memory.MemoryKind;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -67,9 +69,18 @@ public class PathSearch {
 	public static final double DIG_RESOURCE = 0.05;
 	/** Known roads (its own trails) cost less (section 12, "Discounts"). */
 	public static final double TRAIL_DISCOUNT = 0.8;
-	/** Drops this deep are only taken into water. */
+	/** Drops deeper than this count as a deep edge (edge risk, sneaking). */
 	public static final int SAFE_DROP = 3;
 	public static final int WATER_DROP = 8;
+	/**
+	 * It takes drops onto ground that cost up to this much fall damage (2 = one heart), like a player who doesn't bother
+	 * walking round (user's rule). Deeper drops only into water.
+	 */
+	public static final float MAX_DROP_DAMAGE = 2.0F;
+	/** ...and only with at least this much health left afterwards (3 hearts). */
+	public static final float MIN_HEALTH_AFTER_DROP = 6.0F;
+	/** Seconds-equivalent per point of fall damage, before the Caution weight. */
+	public static final double FALL_DAMAGE_COST = 1.5;
 
 	private static final class Node {
 		final BlockPos pos;
@@ -98,6 +109,8 @@ public class PathSearch {
 	private final double thrift;
 	private final List<Vec3> dangers;
 	private final DrifterMemory memory;
+	/** Deepest drop onto ground it takes, from the player's own fall-damage attributes and its health. */
+	private final int maxDrop;
 	private final PriorityQueue<Node> open = new PriorityQueue<>((a, b) -> Double.compare(a.f, b.f));
 	private final Map<Long, Node> nodes = new HashMap<>();
 	private Node best;
@@ -117,6 +130,13 @@ public class PathSearch {
 		this.caution = 0.5;
 		this.thrift = 0.5;
 		this.memory = drifter.getMemory();
+		int maxDrop = SAFE_DROP;
+		while (maxDrop < WATER_DROP && fallDamage(drifter, maxDrop + 1) <= MAX_DROP_DAMAGE
+			&& drifter.getHealth() - fallDamage(drifter, maxDrop + 1) >= MIN_HEALTH_AFTER_DROP) {
+			maxDrop++;
+		}
+
+		this.maxDrop = maxDrop;
 		var dimension = drifter.level().dimension().location();
 		this.dangers = this.memory.find(MemoryKind.DANGER, entry -> entry.dimension.equals(dimension)
 			&& entry.pos.distanceTo(Vec3.atCenterOf(start)) <= WINDOW + DANGER_RADIUS).stream().map(entry -> entry.pos).toList();
@@ -138,6 +158,12 @@ public class PathSearch {
 
 	public int expanded() {
 		return this.expanded;
+	}
+
+	/** LivingEntity#calculateFallDamage for a drop of {@code blocks}, with the player's own attributes. */
+	public static int fallDamage(DrifterEntity drifter, int blocks) {
+		double safe = drifter.getAttributeValue(Attributes.SAFE_FALL_DISTANCE);
+		return Math.max(0, Mth.ceil((blocks - safe) * drifter.getAttributeValue(Attributes.FALL_DAMAGE_MULTIPLIER)));
 	}
 
 	private double heuristic(BlockPos pos) {
@@ -324,7 +350,10 @@ public class PathSearch {
 		}
 	}
 
-	/** Step or drop down 1 to 3 blocks (deeper only into water); one block down may be dug out as a stair. */
+	/**
+	 * Step or drop down: onto ground as far as costs at most one heart of fall damage (4-5 blocks for a player at
+	 * healthy HP; damage is part of the cost), deeper only into water. One block down may be dug out as a stair.
+	 */
 	private void tryDown(Node node, BlockPos f) {
 		for (int k = 1; k <= WATER_DROP; k++) {
 			BlockPos t = f.below(k);
@@ -348,7 +377,7 @@ public class PathSearch {
 			}
 
 			boolean intoWater = this.view.isWater(t);
-			if (k > SAFE_DROP && !intoWater) {
+			if (k > this.maxDrop && !intoWater) {
 				// Too far to drop onto ground; keep looking deeper for water.
 				if (this.view.cell(t.below()).kind() != NavView.Kind.OPEN && this.view.cell(t.below()).kind() != NavView.Kind.WATER) {
 					return;
@@ -364,7 +393,9 @@ public class PathSearch {
 			boolean floorSeen = this.view.cell(t.below()).kind() != NavView.Kind.UNKNOWN;
 			boolean seenHole = this.view.cell(t).kind() == NavView.Kind.OPEN;
 			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && !seenHole)) {
-				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN, WALK + STEP_DOWN_EXTRA * k + c.cost, c, 0);
+				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
+				double cost = WALK + STEP_DOWN_EXTRA * k + c.cost + damage * FALL_DAMAGE_COST * this.caution * 2.0;
+				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN, cost, c, 0);
 				return;
 			}
 

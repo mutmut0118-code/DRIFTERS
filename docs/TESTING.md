@@ -337,9 +337,9 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-**Status:** second test done. Pillaring passed. Bridging and sprint-jumping were fixed again after the second test
-(and it no longer sprint-jumps into doorways): please re-test sections 1 (village and sprint-jumping), 2 and 4 with the
-newest build.
+**Status:** third test done. Pillaring passed. Fixed after the third test: falling in while bridging, sprinting while
+sneaking, crouching at doors instead of opening them, sprint-jumping indoors and in caves, and it now takes drops that
+cost up to one heart. Please re-test sections 1 (village, doors, sprint-jumping, drops), 2 and 4 with the newest build.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -382,7 +382,14 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
       holding space (not random single hops). Other times it just sprints. Gentle bends don't stop it; it stops
       jumping before sharp corners, under low ceilings, near cliff edges, and in the last few blocks, and doesn't turn
       back after jumping past a point.
-- [ ] **Doors (re-test after fix):** `/drifter goto <a spot inside a house>` from about 20 blocks away, once with a
+- [ ] **No sprint-jumping indoors or in caves (new):** `/drifter goto` a spot across a big room in a house, or along a
+      cave: it sprints but doesn't jump (ceiling within 4 blocks, or a narrow corridor).
+- [ ] **Drops (new):** stand it on a ledge 5 blocks above flat ground (with full health) and `/drifter goto` a spot on
+      the ground below that would need a long walk round. It walks off the ledge and lands, losing about one heart. From
+      6+ blocks up it walks round instead (unless there's water below). With low health
+      (`/damage @e[type=drifter:drifter,limit=1,sort=nearest] 14`) it won't take the 5-block drop.
+- [ ] **Doors (re-test after 2nd fix):** it **opens** the door standing up (no crouching up and down), then walks
+      through. Also: `/drifter goto <a spot inside a house>` from about 20 blocks away, once with a
       wooden door and once with an empty 2-block-high doorway. A few blocks before the doorway it **stops jumping**,
       sprints or walks through, and never gets stuck bonking its head on the frame.
 - [ ] `/drifter goto <pos> stroll`: it walks. `/drifter goto <pos> sneak`: it sneaks the whole way.
@@ -395,6 +402,9 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
       (if it hasn't seen the gap yet, the path may first go straight across; when it reaches the edge it looks down
       and plans again, and then it's blue). It **sneaks** to the edge, looks down into the gap, leans out, places a
       block against the side of the block it stands on, steps onto it, and repeats until it's across.
+- [ ] **Re-test after fix (it fell in):** it should take the cobblestone out **a few blocks before the edge** (it stops
+      for a moment, as if opening its inventory), not at the edge. At the edge it must be sneaking (not sprinting or
+      jumping) and must never fall in. `/drifter inventory` shows where the cobblestone is.
 - [ ] A gap only **one** block deep: it steps down into it and jumps out the other side instead of bridging.
 - [ ] **Safety (re-test after fix):** near the edge of the ravine it should be **sneaking**, never running, and it must
       **never fall in**. Also try walking it along the edge of a cliff: it sneaks the whole way.
