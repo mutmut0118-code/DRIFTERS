@@ -7,14 +7,15 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 ## Current state (end of session 1, 2026-10-13)
 
 - **Build: green.** `./gradlew build` succeeds in the cloud (with the Maven Central mirror workaround described in `CLAUDE.md`).
-- **Milestone 1 (Body): code complete, waiting for in-game testing.** Nothing has been run in Minecraft yet. Every item in `docs/TESTING.md` is untested.
+- **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
+- **Next: milestone 2 (Hands)**, once the user says go.
 
 ## Milestones
 
 | # | Milestone | Status | Notes |
 | --- | --- | --- | --- |
-| 0 | Project setup | Done (build verified in cloud) | Local build and launch not yet confirmed by the user. |
-| 1 | Body | In progress: code complete, untested in-game | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
+| 0 | Project setup | Done | Cloud build green; the user ran the mod in-game. |
+| 1 | Body | Done (in-game test passed) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
 | 2 | Hands | Not started | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
 | 3 | Senses and memory | Not started | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
 | 4 | Pathfinder | Not started | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
@@ -46,7 +47,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 
 All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Player, LocalPlayer, ServerPlayer, FoodData, Inventory, PlayerRenderer), not from memory.
 
-### Done (code complete, untested in-game)
+### Done (in-game test passed)
 - **Entity** (`entity/DrifterEntity`, registered as `drifter:drifter`): a `PathfinderMob` with the player's attributes (`Player.createAttributes()`: 20 HP, speed 0.1, 4.5 block reach, 3.0 entity reach, sneak speed, etc.), player hitbox and eye height for every pose, player sounds (hurt by damage type, death, falls, swimming, `players` sound category). Never despawns. Can't be leashed. Position and rotation are sent to clients every 2 ticks, like a player. Spawn egg in the Spawn Eggs tab.
 - **Vanilla mob controls are disabled** (move, look and jump controls are no-ops), so only the virtual keys and the camera model drive the body.
 - **Rendering** (`client/render/DrifterRenderer`, `DrifterModelRenderer`): vanilla `PlayerModel` baked from the vanilla `ModelLayers.PLAYER` / `PLAYER_SLIM` layers (per the EMF advice in section 2), picked per Drifter. Player armor layers (wide and slim), items in both hands, arrows and bee stingers stuck in the body, heads/skulls, elytra, riptide effect. Player 0.9375 scale, crouch offset, swim tilt, and all player arm poses (bow draw, crossbow charge/hold, shield, trident, spyglass, horn, brush).
@@ -60,8 +61,7 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Playe
 - **Debug commands** (`command/DrifterCommands`, op level 2): `/drifter spawn|keys|look|lookat|slot|give|food|info|inventory|remove`. See `docs/TESTING.md`.
 
 ### Not done yet in milestone 1
-- **In-game verification** of everything above (the milestone's "done when" test).
-- **EMF / Fresh Animations Player Extension check** (section 2 says to test this first in milestone 1): needs the user's local install. Instructions are in `docs/TESTING.md`.
+- **EMF / Fresh Animations Player Extension check** (section 2): result not reported yet. Only matters if the user plays with EMF and Fresh Animations.
 - Skill is a fixed placeholder (0.5) in the camera model until traits exist (milestone 7).
 - Elytra glide body tilt and the sleeping pose are rendered by vanilla code paths but untested; they belong to later milestones (beds, elytra).
 - Optional "veteran" cape (section 2): not built.
@@ -75,9 +75,7 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Playe
 - Natural spawning and despawning rules for fresh Drifters (section 4): later (TODO in `DrifterEntity#removeWhenFarAway`).
 
 ### Next steps
-1. User runs the milestone 1 checklist in `docs/TESTING.md` and reports problems.
-2. Fix whatever the in-game test finds; then mark milestone 1 done.
-3. Start milestone 2 (Hands): Fabric `FakePlayer` helper, mining with player break speed and crack overlay, placing with reach and face checks, 2x2/3x3 crafting, furnace use, eating, containers.
+1. Start milestone 2 (Hands): Fabric `FakePlayer` helper, mining with player break speed and crack overlay, placing with reach and face checks, 2x2/3x3 crafting, furnace use, eating, containers.
 
 ## Design questions
 

@@ -51,7 +51,7 @@ Yaw reference (same as your F3 "Facing"): 0 = south (+Z), 90 = west, 180 = north
 
 ## Milestone 1: Body
 
-Nothing below has been run in-game yet; this is the first test.
+Passed: the user ran this milestone in-game and reported that everything works. Re-run it after big changes to the body, movement or rendering.
 
 ### 1. Spawning and rendering
 - [ ] `/drifter spawn Alice slim` spawns a player-shaped figure facing the way you face, with a nameplate "Alice". Slim (3-pixel) arms.
