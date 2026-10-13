@@ -1,5 +1,6 @@
 package com.dinglebob.drifter;
 
+import com.dinglebob.drifter.brain.Sources;
 import com.dinglebob.drifter.command.DrifterCommands;
 import com.dinglebob.drifter.debug.overlay.DebugOverlayServer;
 import com.dinglebob.drifter.registry.ModEntities;
@@ -23,6 +24,7 @@ public class Drifter implements ModInitializer {
 		PlayerPlacedBlocks.register();
 		DrifterCommands.register();
 		DebugOverlayServer.register();
+		Sources.register();
 		LOGGER.info("Drifter initialized");
 	}
 

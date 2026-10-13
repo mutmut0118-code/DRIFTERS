@@ -101,6 +101,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final CameraModel camera;
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
 	private final TaskRunner tasks = new TaskRunner(this);
+	private final com.dinglebob.drifter.brain.Brain brain = new com.dinglebob.drifter.brain.Brain(this);
+	private long lastAttackTime = Long.MIN_VALUE / 2;
 	/** Short- and long-term memory (section 6). Everything it knows about the world is in here. */
 	private final DrifterMemory memory = new DrifterMemory();
 	/** Perception (section 5): the only thing that looks at the world, and it writes into memory. */
@@ -161,6 +163,10 @@ public class DrifterEntity extends PathfinderMob {
 		return this.camera;
 	}
 
+	public com.dinglebob.drifter.brain.Brain getDrifterBrain() {
+		return this.brain;
+	}
+
 	public TaskRunner getTasks() {
 		return this.tasks;
 	}
@@ -184,6 +190,15 @@ public class DrifterEntity extends PathfinderMob {
 
 	public int getDebugPathIndex() {
 		return this.debugPathIndex;
+	}
+
+	/** Ticks since its last swing at an entity (the player attack cooldown, Player#attackStrengthTicker). */
+	public int ticksSinceAttack() {
+		return (int)Math.min(Integer.MAX_VALUE, this.level().getGameTime() - this.lastAttackTime);
+	}
+
+	public void resetAttackTimer() {
+		this.lastAttackTime = this.level().getGameTime();
 	}
 
 	/** Registers its ears with the game's vibration system, like the Allay and the Warden do. */
@@ -261,6 +276,7 @@ public class DrifterEntity extends PathfinderMob {
 		super.customServerAiStep();
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		this.senses.tick();
+		this.brain.tick();
 		this.tasks.tick();
 		float[] look = this.camera.tick(this.getEyePosition(), this.getYRot(), this.getXRot());
 		this.setYRot(look[0]);
@@ -838,6 +854,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.putString("Skin", this.getSkinTexture().toString());
 		tag.putBoolean("SlimArms", this.hasSlimArms());
 		tag.put("DrifterMemory", this.memory.save());
+		tag.put("DrifterBrain", this.brain.save());
 	}
 
 	@Override
@@ -847,6 +864,10 @@ public class DrifterEntity extends PathfinderMob {
 		this.inventory.load(this.registryAccess(), tag.getList("DrifterInventory", Tag.TAG_COMPOUND));
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
 		this.foodData.readAdditionalSaveData(tag);
+		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {
+			this.brain.load(tag.getCompound("DrifterBrain"));
+		}
+
 		if (tag.contains("DrifterMemory", Tag.TAG_COMPOUND)) {
 			this.memory.load(tag.getCompound("DrifterMemory"));
 		}

@@ -10,7 +10,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 - **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
 - **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.
 - **Milestone 3 (Senses and memory): done.** The user fully tested it in-game. One bug found (blocks behind glass) was fixed afterwards; that one item needs a quick re-check.
-- **Milestone 4 (Pathfinder): in testing.** First in-game test: pillaring works; bridging, the ravine test and the village test failed. Fixes are in (see "Bugs found in in-game testing" under milestone 4) and need re-testing. The milestone 2 checklist and the milestone 3 glass re-check are still open.
+- **Milestone 4 (Pathfinder): done.** After six rounds of in-game fixes the user reported bridging across a whole ravine works, and everything else in its checklist worked earlier; the user moved on. (The "tunnel through a hill" item wasn't reported on separately: worth a quick look when convenient.)
+- **Milestone 5 (Brain and day one): first version written, not tested in-game yet.** See "Milestone 5" below. The milestone 2 checklist and the milestone 3 glass re-check are still open.
 - The user tests by downloading the jar from the GitHub Actions run for the latest push (Artifacts zip, the jar without "sources") into a Fabric 1.21.1 instance with Fabric API, in the Modrinth App. The user doesn't code, so keep instructions plain and step by step.
 
 ## Milestones
@@ -21,8 +22,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 1 | Body | Done (in-game test passed) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
 | 2 | Hands | In progress: wood-to-stone script passed in-game; rest of the checklist pending | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
 | 3 | Senses and memory | Done (fully tested in-game; glass fix needs a re-check) | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
-| 4 | Pathfinder | In progress: first test found bugs, fixes need re-testing | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
-| 5 | Brain and day one | Not started | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
+| 4 | Pathfinder | Done (in-game: ravine bridging, village, drops, doors) | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
+| 5 | Brain and day one | In progress: first version written, needs in-game testing | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | Not started | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Not started | Done when: people watching a short clip can't reliably tell it from a player. |
 | 8 | Progression and building | Not started | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
@@ -224,6 +225,38 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 3. Milestone 5 (Brain and day one): selector, planner, executor, the Stage 1 to 3 loop.
 
 
+## Milestone 5: Brain and day one
+
+The "done when" test: a Fresh Drifter (empty inventory) survives its first night unaided on most seeds.
+
+### Done (code complete, not yet tested in-game)
+- **Brain** (`brain/Brain`, sections 7 and 8, the selector layer): on by default for every Drifter. Re-scores its goals once a second and at once when an activity ends. Score = need urgency x feasibility x risk, plus a commitment bonus (0.15) for the current goal and a little jitter. With nothing running it keeps its current goal during the goal's minimum commit time, otherwise picks among the top three by weighted chance (sharpness 4, a stand-in for the Efficiency trait). A running activity is only replaced at a safe checkpoint (between steps, or while walking or waiting; never mid-block, mid-craft or mid-bite), by an urgent goal at once or by a clearly better one after the commit time. A failed activity makes its goal score lower for 15 s. Every decision goes to the thought log ("picked get a stone pickaxe 0.65 over get food 0.30, explore 0.15").
+- **Manual commands take over**: any task command (`goto`, `mine`, `script`...) switches the brain off; `/drifter stop` switches it off too; `/drifter brain on` resumes.
+- **Needs** (`brain/Needs`, section 7 curves): hunger (flat to 14, steep below 6), health (squared), shelter (by its own sense of time: rising from 10500, urgent from 11500, all night; "climb out" in the morning), gear (while early targets remain), food supply (carried hunger points vs 24, weighted by stage), curiosity (small constant).
+- **Goals** (`brain/Goals`): eat, get food (hunt and cook; raw meat if cooking would take too long while getting hungry), shelter for the night, progress (the strategist's next target), explore, idle.
+- **Strategist** (`brain/Strategist`, section 9): stage computed from what it owns (0 arrival, 1 wood, 2 stone, 3 first night); targets in order: wooden pickaxe, stone pickaxe, stone sword, stone axe, furnace, 16 cobblestone, 8 torches, stone shovel.
+- **Planner** (`brain/Planner`, section 8): backward-chains from the wanted item through the game's own crafting and smelting recipes and a curated source table (`data/drifter/drifter_sources/early_game.json`: which blocks and animals give which items, and the cheapest tool needed), choosing the cheapest alternative by a rough cost in seconds. Uses what it carries first, places a crafting table or furnace when none is known within 24 blocks, picks fuel (coal, charcoal, planks, logs), merges repeated steps (one trip for all the logs). Unknown sources become "explore" steps (toward remembered trees when it has some); stone it hasn't seen becomes "dig down for stone". Only the first step runs; it plans again after each.
+- **Knowledge only through perception**: decisions use `brain/KnownBlocks` / `brain/KnownWorld`, which only consider blocks it has seen (the pathfinder's seen-terrain map), animals it has seen recently, and stations it remembers. The milestone 2 test scanner (`debug/DebugScan`) is no longer used by the AI.
+- **Activities** (`brain/activity`, section 10): gather (nearest seen blocks, lowest first, pick up drops; a 2-high staircase down to find stone that stops at caves, fluids and falling blocks), craft (2x2 or at a known table, walking back to it), place a station, smelt (load input and just enough fuel, wait, take out), hunt (chase an adult animal it has seen, clumsy close-in steering, full-strength hits only), eat (food that fills without waste, cooked before raw, bad food only when desperate), shelter (tier 1: dig 3 down, cover the hole, wait for morning by its time sense, dig out and climb up), explore (look around 360, walk 20-32 blocks toward unexplored ground or remembered trees, stop as soon as it sees what it was looking for), idle (look around).
+- **Melee** (`hands/Combat`, `executor/task/AttackTask`): only what's under the crosshair within 3 blocks, no hits through walls, the player attack cooldown from its weapon's attack speed, and a real player attack through the fake player (with the held weapon's damage and speed applied, sprint hits, crits).
+- **Failure handling** (section 8): failed targets (unreachable trees, blocks) go on a 3-minute blacklist; activities give up after 6 failed steps.
+- **Overlay and commands**: the overlay's text panel shows brain on/off, stage, next target, the goal and current step, the top scores, the plan, and the needs. `/drifter brain`, `/drifter brain on|off`, `/drifter brain goal <eat|food|shelter|progress|explore|idle>`.
+- Saved data: the brain's on/off switch ("DrifterBrain", version 1).
+
+### Not done yet / left for later (TODOs in code)
+- **Beds and sleep** (stage 3 "a bed if 3 sheep of one color are around"; section 18 sleeping): not yet. The first night is spent in the dug-in shelter.
+- Tier 2 hillside dig-in and tier 3 starter hut, home site selection: milestone 8 (and the hillside dig-in could come back here if testing shows the tier 1 hole isn't enough).
+- Fighting back against hostile mobs, fleeing, reflexes (lava, drowning, creepers): milestone 6. If something attacks it now, it doesn't fight back.
+- Personality traits (Efficiency, Caution, Knowledge, habits like eating threshold and tidiness): fixed stand-in values until milestone 7.
+- Natural spawning (section 4): not yet; spawn with `/drifter spawn`.
+- The strategist's daily agenda, home and storage (stages 4+): milestone 8.
+- Picking the crafting table back up (Tidy Drifters): milestone 7 habits.
+
+### Next steps
+1. User tests milestone 5 (`docs/TESTING.md`, "Milestone 5").
+2. Fix what the test finds, until a fresh Drifter gets through its first night on most seeds.
+3. Milestone 6 (combat and reflexes) only after the user says go.
+
 ## Long-term goal: manhunt test
 
 The user's "ultimate test" is a **1v1 manhunt**, now in DESIGN.md section 25 ("Manhunt test mode"). It's **only a test**:
@@ -250,4 +283,6 @@ Questions for the user. Nothing here has been changed in the design.
 3. **Idle jitter is mostly invisible over the network (section 16.1).** Minecraft sends entity rotations to clients in steps of 360/256 = about 1.4 degrees. The design's "fraction of a degree" jitter therefore shows up as an occasional 1.4-degree tick rather than a smooth tremble, and only when the jitter crosses a step. Options: (a) accept it; (b) raise the jitter amplitude to about 1.5 degrees so it reliably shows; (c) later, send exact rotations with a small custom packet (costs a little network per Drifter). **Decided: (a), keep 0.4 degrees** for now; raise it if the user later finds the head looks frozen.
 6. **(Decided: hunter first, optional test mode only.)** Manhunt role. Now in DESIGN.md section 25.
 5. **Pathfinding reads the real terrain for blocks it has seen (sections 1, 8, 12).** Section 8 says pathfinding is one of the few systems allowed to touch the live world. To keep it fair anyway, it only reads blocks the Drifter has actually seen (or touched, or revealed by mining); everything else is treated as unknown, exactly as section 12 describes. One small leak remains: if a block it saw changes while it's not looking, the pathfinder sees the new state. I think that's fine (it replans as soon as it gets there anyway). No decision needed unless you want it stricter.
+7. **Night-one shelter is tier 1 (section 11).** For milestone 5 the Drifter digs three blocks straight down and covers the hole (the tier 1 "digs down and covers the hole" option) rather than the tier 2 hillside room, because it works on any ground and is the most reliable way to survive night one before combat exists (milestone 6). The worked example in section 24 has it dig a 3x3 hillside room on day 1; that can follow in milestone 8 (or sooner if you prefer). No decision needed unless you want the hillside room now.
+8. **The planner's data file location.** Section 8 says acquisition rules live in data files. They're in `data/<namespace>/drifter_sources/*.json` (a datapack can add more). Recipes come from the game. No decision needed.
 4. **Break speed computed on the Drifter (section 3).** The design says to compute mining time through the fake-player helper. I compute it on the Drifter with an exact copy of the player's formula instead, because the helper never ticks, so its Haste, Mining Fatigue and Efficiency would be out of date. The numbers are identical to a player's. No decision needed unless you want it done differently.

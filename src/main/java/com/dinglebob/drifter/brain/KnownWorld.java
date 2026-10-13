@@ -1,0 +1,135 @@
+package com.dinglebob.drifter.brain;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.memory.MemoryEntry;
+import com.dinglebob.drifter.memory.MemoryKind;
+import com.dinglebob.drifter.perception.Awareness;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+
+/**
+ * A snapshot of what the Drifter knows around it, taken about once a second for the planner and the goals (DESIGN.md
+ * section 8, "plan from memory, not the world"): the minable blocks it has seen nearby, the animals it has seen
+ * recently, and the stations it remembers. Everything comes from its perception and memory.
+ */
+public final class KnownWorld {
+	public static final int RADIUS = 24;
+	/** Animals remembered this far away still count as "known". */
+	public static final double ANIMAL_MEMORY_RANGE = 48.0;
+	public static final double TREE_MEMORY_RANGE = 96.0;
+
+	private final Map<Block, List<BlockPos>> blocks = new HashMap<>();
+	private final Map<Block, BlockState> examples = new HashMap<>();
+	private final Set<EntityType<?>> animals = new HashSet<>();
+	public final boolean tableNear;
+	public final boolean furnaceNear;
+	/** A remembered grove of trees farther away, if any. */
+	@Nullable
+	public final Vec3 treesHint;
+
+	private KnownWorld(DrifterEntity drifter) {
+		Level level = drifter.level();
+		long now = level.getGameTime();
+		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
+		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, pos -> {
+			if (!level.isLoaded(pos)) {
+				return;
+			}
+
+			BlockState state = level.getBlockState(pos);
+			if (state.isAir() || !state.getFluidState().isEmpty() || state.getDestroySpeed(level, pos) < 0.0F || !exposed(level, pos)
+				|| !KnownBlocks.mayTake(level, pos) || blacklist.contains(pos, now)) {
+				return;
+			}
+
+			this.blocks.computeIfAbsent(state.getBlock(), block -> new ArrayList<>()).add(pos.immutable());
+			this.examples.putIfAbsent(state.getBlock(), state);
+		});
+
+		for (Awareness awareness : drifter.getSenses().tracked()) {
+			if (awareness.identified && awareness.entity.isAlive() && now - awareness.lastSeenTick < 20 * 30
+				&& !(awareness.entity instanceof AgeableMob ageable && ageable.isBaby())) {
+				this.animals.add(awareness.entity.getType());
+			}
+		}
+
+		ResourceLocation dimension = level.dimension().location();
+		for (MemoryEntry entry : drifter.getMemory().find(MemoryKind.MOB,
+			e -> e.dimension.equals(dimension) && e.pos.distanceTo(drifter.position()) <= ANIMAL_MEMORY_RANGE)) {
+			EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(entry.label));
+			this.animals.add(type);
+		}
+
+		this.tableNear = Stations.nearest(drifter, Blocks.CRAFTING_TABLE, Stations.USE_RANGE) != null;
+		this.furnaceNear = Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null;
+		MemoryEntry trees = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), TREE_MEMORY_RANGE,
+			e -> e.label.equals("trees"));
+		this.treesHint = trees == null ? null : trees.pos;
+	}
+
+	public static KnownWorld scan(DrifterEntity drifter) {
+		return new KnownWorld(drifter);
+	}
+
+	/** Has it seen a block (that it may take) matching this, nearby? */
+	public boolean knowsBlock(Predicate<BlockState> filter) {
+		for (Map.Entry<Block, BlockState> example : this.examples.entrySet()) {
+			if (filter.test(example.getValue())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** An example state of a known block matching this, or null. */
+	@Nullable
+	public BlockState exampleOf(Predicate<BlockState> filter) {
+		for (BlockState state : this.examples.values()) {
+			if (filter.test(state)) {
+				return state;
+			}
+		}
+
+		return null;
+	}
+
+	public boolean knowsAnimal(EntityType<?> type) {
+		return this.animals.contains(type);
+	}
+
+	public int knownBlockTypes() {
+		return this.blocks.size();
+	}
+
+	private static boolean exposed(Level level, BlockPos pos) {
+		for (Direction direction : Direction.values()) {
+			BlockPos side = pos.relative(direction);
+			if (level.getBlockState(side).getCollisionShape(level, side).isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}

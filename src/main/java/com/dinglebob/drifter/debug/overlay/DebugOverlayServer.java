@@ -82,7 +82,13 @@ public final class DebugOverlayServer {
 		List<String> lines = new ArrayList<>();
 		lines.add(drifter.getName().getString());
 		Task task = drifter.getTasks().current();
-		lines.add("Task: " + (task == null ? "none" : task.describe()));
+		List<String> brain = com.dinglebob.drifter.command.BrainCommands.describe(drifter);
+		lines.add(brain.get(0).substring(brain.get(0).indexOf(':') + 2));
+		if (brain.size() > 1) {
+			lines.addAll(brain.subList(1, brain.size()));
+		} else {
+			lines.add("Task: " + (task == null ? "none" : task.describe()));
+		}
 		Awareness ofViewer = senses.awarenessOf(viewer);
 		lines.add(ofViewer == null ? "Awareness of you: none"
 			: String.format(Locale.ROOT, "Awareness of you: %.2f (%s)", ofViewer.value, ofViewer.identified ? "knows it's you" : ofViewer.level().id()));

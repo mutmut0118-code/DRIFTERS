@@ -97,6 +97,40 @@ public class TerrainKnowledge {
 		}
 	}
 
+	/**
+	 * Calls {@code action} for every known block within {@code radius} (a cube) of {@code center}. The position passed
+	 * is reused between calls: copy it with {@code immutable()} to keep it.
+	 */
+	public void forEachKnown(BlockPos center, int radius, java.util.function.Consumer<BlockPos.MutableBlockPos> action) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		int minSx = SectionPos.blockToSectionCoord(center.getX() - radius);
+		int maxSx = SectionPos.blockToSectionCoord(center.getX() + radius);
+		int minSy = SectionPos.blockToSectionCoord(center.getY() - radius);
+		int maxSy = SectionPos.blockToSectionCoord(center.getY() + radius);
+		int minSz = SectionPos.blockToSectionCoord(center.getZ() - radius);
+		int maxSz = SectionPos.blockToSectionCoord(center.getZ() + radius);
+		for (int sx = minSx; sx <= maxSx; sx++) {
+			for (int sy = minSy; sy <= maxSy; sy++) {
+				for (int sz = minSz; sz <= maxSz; sz++) {
+					// Plain get without touching the access order isn't available on LinkedHashMap; a scan touching order is harmless.
+					BitSet bits = this.sections.get(SectionPos.asLong(sx, sy, sz));
+					if (bits == null) {
+						continue;
+					}
+
+					for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1)) {
+						int x = (sx << 4) + (i >> 8 & 15);
+						int y = (sy << 4) + (i >> 4 & 15);
+						int z = (sz << 4) + (i & 15);
+						if (Math.abs(x - center.getX()) <= radius && Math.abs(y - center.getY()) <= radius && Math.abs(z - center.getZ()) <= radius) {
+							action.accept(pos.set(x, y, z));
+						}
+					}
+				}
+			}
+		}
+	}
+
 	public void clear() {
 		this.sections.clear();
 	}

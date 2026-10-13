@@ -144,7 +144,13 @@ final class HandsCommands {
 
 		root.then(Commands.literal("stop").executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
-			if (!drifter.getTasks().cancel("stopped by command")) {
+			boolean brainWasOn = drifter.getDrifterBrain().isEnabled();
+			drifter.getDrifterBrain().setEnabled(false);
+			if (brainWasOn) {
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + "'s brain is off (/drifter brain on to resume)"), false);
+			}
+
+			if (!drifter.getTasks().cancel("stopped by command") && !brainWasOn) {
 				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " wasn't doing anything"), false);
 			}
 

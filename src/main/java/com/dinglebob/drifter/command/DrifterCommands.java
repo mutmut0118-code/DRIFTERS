@@ -113,6 +113,7 @@ public final class DrifterCommands {
 		HandsCommands.register(root, buildContext);
 		SensesCommands.register(root);
 		NavCommands.register(root);
+		BrainCommands.register(root);
 
 		dispatcher.register(root);
 	}

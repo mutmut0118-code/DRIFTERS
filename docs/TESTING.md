@@ -40,6 +40,9 @@ Every `/drifter` command except `spawn` acts on the **Drifter nearest to you** (
 | `/drifter info` | Health, armor, food, saturation, exhaustion, pose, sprinting, speed, keys, camera, held item |
 | `/drifter inventory` | Lists every non-empty slot |
 | `/drifter remove` | Deletes it (no drops) |
+| `/drifter brain` | What its brain is doing: stage, next target, goal, scores, plan, needs |
+| `/drifter brain on` / `off` | Lets it play on its own, or stops it (any other task command also switches the brain off) |
+| `/drifter brain goal <eat\|food\|shelter\|progress\|explore\|idle>` | Makes it work on that goal now |
 
 Vanilla commands also work on it. To put armor or an offhand item on it:
 `/item replace entity @e[type=drifter:drifter,sort=nearest,limit=1] armor.chest with minecraft:iron_chestplate`
@@ -337,9 +340,8 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-**Status:** sixth test: it placed its first bridge block. Now it bridges like a player, facing away from the gap and
-sneaking backward. Please re-test section 2 (bridging) and the "hills" and "drops" items in section 1. If bridging still
-fails, send the whole chat line: it says how far past the edge its eye got.
+**Status:** done. Bridging across a whole ravine works (sixth test), and the rest passed earlier. The "tunnelling
+through a hill" check (section 4) wasn't reported separately: worth a quick look when convenient.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -445,3 +447,71 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - No parkour jumps, boats or horses yet.
 - It doesn't close doors behind it yet.
 - Very far targets (more than ~48 blocks) are reached in hops: it plans part of the way, walks, plans again.
+
+## Milestone 5: Brain and day one
+
+**Status:** first version, not tested yet. **The goal of this milestone:** a fresh Drifter with nothing in its
+inventory gets through its first night on its own, on most seeds.
+
+**Important:** the brain is now **on by default** for every Drifter, including old ones in your test world: they will
+start playing on their own. Any task command (`/drifter goto`, `/drifter mine`, `/drifter script ...`) and
+`/drifter stop` switch the brain off; `/drifter brain on` switches it back on. It does **not** fight mobs yet
+(that's milestone 6), so test on **Peaceful** first, then on **Easy/Normal**.
+
+Keep `/drifter debug on`: the text panel now shows its **stage**, **next target**, the **goal** it picked and what it's
+doing right now, the **top scores**, the **plan** (the steps it worked out) and its **needs**. The last few lines are its
+thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints the same in chat.
+
+### 1. The first day (the main test)
+1. Make a new world or find a fresh spot: a **forest edge** with some animals around, in the **morning**
+   (`/time set 0`). Start on Peaceful: `/difficulty peaceful` (animals still spawn on Peaceful).
+2. `/drifter spawn Tester` (it starts with an empty inventory, like the "Fresh" kit), then `/drifter debug on`.
+3. Watch it. What it should do, roughly in this order (it may wander off to look at something, like a player):
+   - [ ] **Looks around** (a slow turn), then walks to the **nearest tree** it saw. If it saw none, it explores until it
+         does ("explore (looking for trees)").
+   - [ ] **Punches logs** from the bottom up and picks them up. It gathers all the logs it needs in one go.
+   - [ ] Makes **planks**, a **crafting table**, places it next to itself, makes **sticks** and a **wooden pickaxe**
+         (short "inventory open" pauses).
+   - [ ] Gets **stone**: mines stone it can see, or digs a **staircase down** through the dirt until it reaches stone.
+   - [ ] Walks back to its crafting table (or makes a new one) and makes a **stone pickaxe**, **sword** and **axe**, then
+         a **furnace** (8 cobblestone), places it, and collects a stack of cobblestone.
+   - [ ] **Hunts**: chases a cow, pig, sheep or chicken it has seen, hits it (only full-strength swings, from within 3
+         blocks), picks up the meat. Then **cooks** it in its furnace (fuel: coal, charcoal, planks or logs), waiting by
+         the furnace.
+   - [ ] Makes **torches** (from coal it saw, or charcoal it smelts from logs).
+   - [ ] **Eats** when its food drops to about 14 (cooked food first, the piece that fills without waste).
+4. Check the plan line now and then: it should make sense ("gather oak log (to 3) > craft oak planks > craft crafting
+   table > place a crafting table > ...").
+
+### 2. The first night
+- [ ] Around dusk (from about `11500` on its own clock; the panel shows what time it *thinks* it is), it stops what it's
+      doing at the next safe moment and **digs 3 blocks straight down**, then **puts a block over its head**
+      ("sealed in for the night"). To get there faster: `/time set 11000`.
+- [ ] It stays down there all night. It can't see the sky down there, so **it doesn't notice `/time set`**: it climbs
+      out when **it thinks** it's morning (its clock keeps running, a bit off). That's on purpose (section 5).
+- [ ] In the morning it **digs out the cover block and climbs up** (pillaring with the dirt it dug), then carries on
+      with its day.
+- [ ] If it's standing on sand, gravel or water at dusk, it moves a few blocks and tries again there.
+- [ ] Repeat on **Easy or Normal**: the main test is that it's **alive the next morning** with food. Try a few different
+      spots or seeds; it should survive most of them. (It won't fight back if a mob catches it in the open before dusk:
+      that's milestone 6.)
+
+### 3. Smaller checks
+- [ ] `/drifter brain goal food` with animals nearby: it hunts and cooks. `/drifter brain goal shelter` in the
+      afternoon: it digs in.
+- [ ] Hunger: `/drifter food 8` while it has food: within a second or two it stops at a safe moment and **eats**.
+- [ ] It never breaks **your** blocks or chests to get resources, and it only goes after blocks it has **seen** (a buried
+      ore it never saw doesn't exist for it).
+- [ ] `/drifter brain off`: it stops and stands still. `/drifter brain on`: it picks up where it left off.
+- [ ] Save and quit, reload: its brain is still on (or off, if you switched it off).
+
+### What to send me if something goes wrong
+The **text panel** (a screenshot), especially the **Goal**, **Plan** and the thought lines at the bottom, plus what it was
+doing. If it gets stuck repeating something, `/drifter brain` in chat gives the same lines.
+
+### Known gaps for milestone 5 (don't report these as bugs)
+- It doesn't fight back against mobs, flee, or react to lava or drowning yet (milestone 6).
+- No bed or sleeping yet: the first night is spent in a 1x2 hole.
+- Every Drifter behaves the same way for now (no personalities until milestone 7).
+- It leaves crafting tables behind (that's the "messy player" default for now).
+- No natural spawning yet: use `/drifter spawn`.
