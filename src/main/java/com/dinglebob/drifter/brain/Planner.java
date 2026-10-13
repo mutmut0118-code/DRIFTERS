@@ -531,7 +531,9 @@ public final class Planner {
 			return null;
 		}
 
-		best = this.station(best, Blocks.FURNACE, Items.FURNACE, this.world.furnaceNear, depth);
+		// Food can go in a smoker it knows instead (twice as fast); it doesn't build one yet (milestone 8, home).
+		boolean smoker = new ItemStack(item).has(net.minecraft.core.component.DataComponents.FOOD) && this.world.smokerNear;
+		best = this.station(best, Blocks.FURNACE, Items.FURNACE, this.world.furnaceNear || smoker, depth);
 		if (best == null) {
 			return null;
 		}
@@ -566,6 +568,8 @@ public final class Planner {
 	private static RecipeManager indexedFor;
 	private static Map<Item, List<RecipeHolder<CraftingRecipe>>> craftingIndex = Map.of();
 	private static Map<Item, List<RecipeHolder<? extends AbstractCookingRecipe>>> smeltingIndex = Map.of();
+	/** Raw food to what it cooks into (from the game's furnace recipes). */
+	private static Map<Item, Item> cookedIndex = Map.of();
 
 	private static synchronized void index(Level level) {
 		RecipeManager manager = level.getRecipeManager();
@@ -590,8 +594,22 @@ public final class Planner {
 			}
 		}
 
+		Map<Item, Item> cooked = new HashMap<>();
+		smelting.forEach((output, recipes) -> {
+			if (new ItemStack(output).has(net.minecraft.core.component.DataComponents.FOOD)) {
+				for (RecipeHolder<? extends AbstractCookingRecipe> holder : recipes) {
+					for (Item raw : itemsOf(holder.value().getIngredients().get(0))) {
+						if (new ItemStack(raw).has(net.minecraft.core.component.DataComponents.FOOD)) {
+							cooked.putIfAbsent(raw, output);
+						}
+					}
+				}
+			}
+		});
+
 		craftingIndex = crafting;
 		smeltingIndex = smelting;
+		cookedIndex = cooked;
 		indexedFor = manager;
 	}
 
@@ -603,6 +621,13 @@ public final class Planner {
 	private static Map<Item, List<RecipeHolder<? extends AbstractCookingRecipe>>> smelting(Level level) {
 		index(level);
 		return smeltingIndex;
+	}
+
+	/** What this raw food cooks into in a furnace or smoker, or null if it isn't food that cooks (section 10.5). */
+	@Nullable
+	public static Item cookedForm(Level level, Item raw) {
+		index(level);
+		return cookedIndex.get(raw);
 	}
 
 	private static List<Item> itemsOf(Ingredient ingredient) {

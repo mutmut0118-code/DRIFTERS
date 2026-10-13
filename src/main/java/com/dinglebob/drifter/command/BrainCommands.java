@@ -33,7 +33,7 @@ public final class BrainCommands {
 			.then(Commands.literal("off").executes(ctx -> toggle(ctx, false)))
 			.then(Commands.literal("goal")
 				.then(Commands.argument("goal", StringArgumentType.word())
-					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "collect", "shelter", "progress", "explore", "idle"}, builder))
+					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "progress", "explore", "idle"}, builder))
 					.executes(BrainCommands::force))));
 	}
 

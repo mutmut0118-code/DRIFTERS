@@ -36,6 +36,8 @@ public class SmeltActivity extends Activity {
 	public static final int FURNACE_RESULT = 2;
 	/** A furnace smelts one item per 10 s. */
 	public static final int TICKS_PER_ITEM = 200;
+	/** Smokers (food) and blast furnaces (ores) take half that. */
+	public static final int FAST_TICKS_PER_ITEM = 100;
 
 	private final Item output;
 	private final Predicate<ItemStack> input;
@@ -64,6 +66,12 @@ public class SmeltActivity extends Activity {
 		this.fuelCount = fuelCount;
 	}
 
+	/** Ticks per item for the furnace-like block at this spot. */
+	public static int ticksPerItem(net.minecraft.world.level.Level level, BlockPos pos) {
+		var state = level.getBlockState(pos);
+		return state.is(Blocks.SMOKER) || state.is(Blocks.BLAST_FURNACE) ? FAST_TICKS_PER_ITEM : TICKS_PER_ITEM;
+	}
+
 	/** How many of this fuel it takes to smelt {@code items} items, or 0 if it doesn't burn. */
 	public static int fuelNeeded(Item fuel, int items) {
 		Map<Item, Integer> burnTimes = AbstractFurnaceBlockEntity.getFuel();
@@ -87,9 +95,10 @@ public class SmeltActivity extends Activity {
 			this.stepFailure = step.describe() + ": " + step.failureReason();
 		} else if (this.started && this.furnace != null) {
 			// Loaded: remember the batch and go do something else.
+			int ticks = ticksPerItem(this.drifter.level(), this.furnace);
 			this.drifter.getDrifterBrain().addFurnaceJob(new FurnaceJob(this.furnace, this.output, this.count,
-				this.now() + (long)this.count * TICKS_PER_ITEM + 20));
-			this.think("left " + this.count + " " + this.inputLabel + " cooking; back in about " + (this.count * TICKS_PER_ITEM / 20) + " s");
+				this.now() + (long)this.count * ticks + 20));
+			this.think("left " + this.count + " " + this.inputLabel + " cooking; back in about " + (this.count * ticks / 20) + " s");
 		}
 	}
 
@@ -103,7 +112,16 @@ public class SmeltActivity extends Activity {
 			return Status.SUCCESS;
 		}
 
-		BlockPos furnace = Stations.nearest(this.drifter, Blocks.FURNACE, Stations.USE_RANGE);
+		// Food goes in a smoker if it knows one (twice as fast, same fuel per item), otherwise a furnace.
+		BlockPos furnace = null;
+		if (new ItemStack(this.output).has(net.minecraft.core.component.DataComponents.FOOD)) {
+			furnace = Stations.nearest(this.drifter, Blocks.SMOKER, Stations.USE_RANGE);
+		}
+
+		if (furnace == null) {
+			furnace = Stations.nearest(this.drifter, Blocks.FURNACE, Stations.USE_RANGE);
+		}
+
 		if (furnace == null) {
 			return this.fail("needs a furnace");
 		}

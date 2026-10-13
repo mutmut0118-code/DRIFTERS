@@ -247,6 +247,90 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Cook the raw food it carries (section 10.5: raw meat "only when it can't cook"; user's rule: cook it, ideally before
+	 * it gets hungry). One kind at a time, the kind it has most of: loads a furnace (or a smoker it knows) and goes off
+	 * to do something else until it's done.
+	 */
+	public static final class Cook extends PlannedGoal {
+		/** Enough raw food to be worth a trip to the furnace before it's hungry. */
+		private static final int BATCH = 3;
+
+		@Nullable
+		private static Item raw(Context context) {
+			java.util.Map<Item, Integer> counts = new java.util.HashMap<>();
+			var inventory = context.drifter().getInventory();
+			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+				ItemStack stack = inventory.getItem(slot);
+				if (Food.isCookable(context.drifter().level(), stack)) {
+					counts.merge(stack.getItem(), stack.getCount(), Integer::sum);
+				}
+			}
+
+			return counts.entrySet().stream().max(java.util.Map.Entry.comparingByValue()).map(java.util.Map.Entry::getKey).orElse(null);
+		}
+
+		private static int rawCount(Context context) {
+			Item raw = raw(context);
+			return raw == null ? 0 : context.drifter().getInventory().count(stack -> stack.is(raw));
+		}
+
+		@Override
+		public String id() {
+			return "cook";
+		}
+
+		@Override
+		public String name(Context context) {
+			Item raw = raw(context);
+			return raw == null ? "cook food" : "cook " + Planner.name(raw);
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			Item raw = raw(context);
+			Item cooked = raw == null ? null : Planner.cookedForm(context.drifter().level(), raw);
+			return cooked == null ? List.of() : List.of(cooked);
+		}
+
+		@Override
+		protected int count(Context context) {
+			Item raw = raw(context);
+			Item cooked = raw == null ? null : Planner.cookedForm(context.drifter().level(), raw);
+			if (cooked == null) {
+				return 0;
+			}
+
+			return context.drifter().getInventory().count(stack -> stack.is(cooked)) + context.drifter().getInventory().count(stack -> stack.is(raw));
+		}
+
+		@Override
+		public double urgency(Context context) {
+			int raw = rawCount(context);
+			if (raw == 0) {
+				return 0.0;
+			}
+
+			// Hungry with nothing it would eat yet: cooking is how it eats.
+			int food = context.drifter().getFoodData().getFoodLevel();
+			if (food < Food.EAT_THRESHOLD && Food.choose(context.drifter()) == null) {
+				return Math.max(0.6, context.needs().hunger() + 0.1);
+			}
+
+			// Ahead of time: a batch is worth a short detour to a furnace it knows (a bit above routine progress).
+			if (raw >= BATCH) {
+				return context.world().furnaceNear || context.world().smokerNear ? 0.55 : 0.4;
+			}
+
+			return 0.25;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+	}
+
 	/** Dig in for the night (section 11 shelter tier 1), and climb out in the morning. */
 	public static final class TakeShelter extends Goal {
 		@Override
@@ -427,7 +511,18 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
-			return this.ready(context) != null ? 0.55 : 0.0;
+			FurnaceJob job = this.ready(context);
+			if (job == null) {
+				return 0.0;
+			}
+
+			// Its meal is in there and it's hungry with nothing else it would eat: go get it.
+			if (new ItemStack(job.output).has(net.minecraft.core.component.DataComponents.FOOD)
+				&& context.drifter().getFoodData().getFoodLevel() < Food.EAT_THRESHOLD && Food.choose(context.drifter()) == null) {
+				return Math.max(0.65, context.needs().hunger() + 0.15);
+			}
+
+			return 0.55;
 		}
 
 		@Override
@@ -597,7 +692,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new CollectSmelting(), new TakeShelter(), new Progress(),
+		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new Progress(),
 			new Wander(), new Idle());
 	}
 }

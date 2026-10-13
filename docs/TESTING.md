@@ -42,7 +42,7 @@ Every `/drifter` command except `spawn` acts on the **Drifter nearest to you** (
 | `/drifter remove` | Deletes it (no drops) |
 | `/drifter brain` | What its brain is doing: stage, next target, goal, scores, plan, needs |
 | `/drifter brain on` / `off` | Lets it play on its own, or stops it (any other task command also switches the brain off) |
-| `/drifter brain goal <fight\|flee\|equip\|eat\|food\|shelter\|progress\|explore\|idle>` | Makes it work on that goal now |
+| `/drifter brain goal <fight\|flee\|equip\|eat\|food\|cook\|collect\|shelter\|progress\|explore\|idle>` | Makes it work on that goal now |
 
 Vanilla commands also work on it. To put armor or an offhand item on it:
 `/item replace entity @e[type=drifter:drifter,sort=nearest,limit=1] armor.chest with minecraft:iron_chestplate`
@@ -490,6 +490,13 @@ thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints t
          angle, instead of zig-zagging along the block grid. It still goes around trees, holes and water.
    - [ ] Makes **torches** (from coal it saw, or charcoal it smelts from logs).
    - [ ] **Eats** when its food drops to about 14 (cooked food first, the piece that fills without waste).
+   - [ ] **Cooks before eating (new):** it doesn't eat raw meat while it could cook it. Test: `/drifter give minecraft:beef 4`
+         and `/drifter give minecraft:coal 2` with a furnace it has seen nearby (or 8 cobblestone in its inventory). The
+         goal line says "cook beef" fairly soon, even before it's hungry; it loads the furnace, goes off, comes back
+         for the steak, and later eats steak. It eats raw meat only when its food is at 6 or below (the panel's food
+         number) or when it has no way to cook at all.
+   - [ ] **Smoker (new):** place a smoker near it (`/setblock <pos> minecraft:smoker`, and let it see it) and repeat:
+         it uses the smoker for the meat (it says "back in about 20 s" for 4 meat instead of 40 s).
 4. Check the plan line now and then: it should make sense ("gather oak log (to 3) > craft oak planks > craft crafting
    table > place a crafting table > ...").
 

@@ -61,7 +61,7 @@ public class CollectSmeltActivity extends Activity {
 			int left = container == null ? 0 : container.getItem(SmeltActivity.FURNACE_INPUT).getCount();
 			if (left > 0) {
 				this.job.count = left;
-				this.job.readyAt = this.now() + (long)left * SmeltActivity.TICKS_PER_ITEM + 20;
+				this.job.readyAt = this.now() + (long)left * SmeltActivity.ticksPerItem(this.drifter.level(), furnace) + 20;
 			} else {
 				this.drifter.getDrifterBrain().removeFurnaceJob(this.job);
 			}

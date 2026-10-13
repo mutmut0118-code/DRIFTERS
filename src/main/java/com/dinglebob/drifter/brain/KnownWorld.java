@@ -43,6 +43,7 @@ public final class KnownWorld {
 	private final Set<EntityType<?>> animals = new HashSet<>();
 	public final boolean tableNear;
 	public final boolean furnaceNear;
+	public final boolean smokerNear;
 	/** A remembered grove of trees farther away, if any. */
 	@Nullable
 	public final Vec3 treesHint;
@@ -83,6 +84,7 @@ public final class KnownWorld {
 
 		this.tableNear = Stations.nearest(drifter, Blocks.CRAFTING_TABLE, Stations.USE_RANGE) != null;
 		this.furnaceNear = Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null;
+		this.smokerNear = Stations.nearest(drifter, Blocks.SMOKER, Stations.USE_RANGE) != null;
 		// Groves farther than what it can see from here (the one it's standing in is already counted, or cut down).
 		MemoryEntry trees = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), TREE_MEMORY_RANGE,
 			e -> e.label.equals("trees") && e.pos.distanceTo(drifter.position()) > RADIUS);
