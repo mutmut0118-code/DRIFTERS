@@ -255,6 +255,9 @@ The "done when" test: a Fresh Drifter (empty inventory) survives its first night
 - Baby animals are marked in its memory and never hunted or planned around; source data is resolved once at load (less work per tick); standing-spot search raycasts nearest spots first.
 - Known small issue left: the plan shown in the overlay can list a merged step slightly out of order; it corrects itself on the next replan.
 
+### Bugs found in the first in-game test (fixed, need re-testing)
+- **Hunting with whatever it held (planks) and "spam punching".** It never took out a weapon, and with an empty hand or a block the vanilla cooldown refills every 5 ticks, so full-strength hits really are that fast. Now `AttackTask` first takes out its best weapon (most damage per second, from the item's real attack damage and speed: a sword beats an axe, anything beats planks), then fights like a player who knows 1.9+ combat: only full-strength swings (over 0.9, the vanilla threshold), and with a slow weapon (sword, axe) **critical hits**: it closes in, jumps as the cooldown is about to refill, lets go of sprint in the air (a sprinting hit can't crit), and hits on the way down (vanilla crit rules: full strength, falling, off the ground, not sprinting, not in water or on a ladder) for 1.5x damage. With a fast item it just times plain full-strength hits (a jump takes about 12 ticks, so crit-jumping would do less damage per second). A crit attempt that lands without hitting falls back to a plain hit; no crit jumps under a low ceiling or in water.
+
 ### Not done yet / left for later (TODOs in code)
 - **Beds and sleep** (stage 3 "a bed if 3 sheep of one color are around"; section 18 sleeping): not yet. The first night is spent in the dug-in shelter.
 - Tier 2 hillside dig-in and tier 3 starter hut, home site selection: milestone 8 (and the hillside dig-in could come back here if testing shows the tier 1 hole isn't enough).

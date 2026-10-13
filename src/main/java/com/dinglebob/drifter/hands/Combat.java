@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.entity.DrifterInventory;
 import com.dinglebob.drifter.mixin.LivingEntityAccessor;
 
 import net.minecraft.world.InteractionHand;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
@@ -26,6 +28,54 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class Combat {
 	private Combat() {
+	}
+
+	/** Damage per hit and swings per second an item gives in the main hand (base player values plus its modifiers). */
+	public record WeaponStats(double damage, double speed) {
+		public double perSecond() {
+			return this.damage * this.speed;
+		}
+	}
+
+	public static WeaponStats weaponStats(DrifterEntity drifter, ItemStack stack) {
+		double[] damage = {drifter.getAttributeBaseValue(Attributes.ATTACK_DAMAGE)};
+		double[] speed = {drifter.getAttributeBaseValue(Attributes.ATTACK_SPEED)};
+		stack.forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+			if (modifier.operation() != AttributeModifier.Operation.ADD_VALUE) {
+				return;
+			}
+
+			if (attribute.is(Attributes.ATTACK_DAMAGE)) {
+				damage[0] += modifier.amount();
+			} else if (attribute.is(Attributes.ATTACK_SPEED)) {
+				speed[0] += modifier.amount();
+			}
+		});
+		return new WeaponStats(damage[0], Math.max(0.1, speed[0]));
+	}
+
+	/**
+	 * The inventory slot of its best melee weapon (most damage per second, so a sword beats an axe and anything beats a
+	 * block of planks), or -1 if nothing beats an empty hand.
+	 */
+	public static int bestWeaponSlot(DrifterEntity drifter) {
+		DrifterInventory inventory = drifter.getInventory();
+		int best = -1;
+		double bestScore = weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01;
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			double score = weaponStats(drifter, stack).perSecond();
+			if (score > bestScore) {
+				bestScore = score;
+				best = slot;
+			}
+		}
+
+		return best;
 	}
 
 	/** Ticks for a full-strength swing with what it holds (Player#getCurrentItemAttackStrengthDelay). */

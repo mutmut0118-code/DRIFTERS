@@ -475,8 +475,11 @@ thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints t
    - [ ] Gets **stone**: mines stone it can see, or digs a **staircase down** through the dirt until it reaches stone.
    - [ ] Walks back to its crafting table (or makes a new one) and makes a **stone pickaxe**, **sword** and **axe**, then
          a **furnace** (8 cobblestone), places it, and collects a stack of cobblestone.
-   - [ ] **Hunts**: chases a cow, pig, sheep or chicken it has seen, hits it (only full-strength swings, from within 3
-         blocks), picks up the meat. Then **cooks** it in its furnace (fuel: coal, charcoal, planks or logs), waiting by
+   - [ ] **Hunts (re-test after fix)**: chases a cow, pig, sheep or chicken it has seen. It **switches to its best
+         weapon first** (the stone sword, not planks). With the sword it **jumps and hits on the way down** (critical
+         hits: you'll see the crit particles, the little stars), one full-strength swing per jump, never spam-clicking.
+         With only its fist it does plain hits a quarter-second apart (that's the vanilla fist cooldown). It picks up
+         the meat. Then **cooks** it in its furnace (fuel: coal, charcoal, planks or logs), waiting by
          the furnace.
    - [ ] Makes **torches** (from coal it saw, or charcoal it smelts from logs).
    - [ ] **Eats** when its food drops to about 14 (cooked food first, the piece that fills without waste).
