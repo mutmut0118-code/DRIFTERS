@@ -1,0 +1,18 @@
+{
+	"_comment": "Where items come from, for the planner (DESIGN.md section 8, Acquisition rules). Crafting and smelting come from the game's own recipes; this file covers mining and mob drops. 'drops: self' means the block drops itself. 'tool' is the cheapest tool to make when it carries nothing that can harvest the block. Datapacks can add more files in drifter_sources.",
+	"sources": [
+		{ "item": "#minecraft:logs", "block": ["#minecraft:logs"], "drops": "self" },
+		{ "item": "minecraft:cobblestone", "block": ["minecraft:stone", "minecraft:cobblestone"], "tool": "minecraft:wooden_pickaxe" },
+		{ "item": "minecraft:cobbled_deepslate", "block": ["minecraft:deepslate", "minecraft:cobbled_deepslate"], "tool": "minecraft:wooden_pickaxe" },
+		{ "item": "minecraft:dirt", "block": ["minecraft:dirt", "minecraft:grass_block", "minecraft:rooted_dirt"] },
+		{ "item": "minecraft:sand", "block": ["minecraft:sand"], "drops": "self" },
+		{ "item": "minecraft:coal", "block": ["minecraft:coal_ore", "minecraft:deepslate_coal_ore"], "tool": "minecraft:wooden_pickaxe" },
+		{ "item": "minecraft:raw_iron", "block": ["minecraft:iron_ore", "minecraft:deepslate_iron_ore"], "tool": "minecraft:stone_pickaxe" },
+		{ "item": "minecraft:beef", "mob": "minecraft:cow" },
+		{ "item": "minecraft:leather", "mob": "minecraft:cow" },
+		{ "item": "minecraft:porkchop", "mob": "minecraft:pig" },
+		{ "item": "minecraft:mutton", "mob": "minecraft:sheep" },
+		{ "item": "minecraft:chicken", "mob": "minecraft:chicken" },
+		{ "item": "minecraft:feather", "mob": "minecraft:chicken" }
+	]
+}

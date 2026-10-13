@@ -3,6 +3,15 @@
 	"package": "com.dinglebob.drifter.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"AbstractArrowAccessor",
+		"BlockItemMixin",
+		"EntitySoundMixin",
+		"ExplosionMixin",
+		"ItemEntityAccessor",
+		"LivingEntityAccessor",
+		"MobAccessor",
+		"NearestAttackableTargetGoalAccessor",
+		"TargetGoalAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -8,6 +8,7 @@ This is a long, multi-session project. Follow these rules in every session.
 1. `docs/DESIGN.md` — the full design and the source of truth. Sections 1 (fairness rules) and 2 (architecture) are hard constraints.
 2. `docs/PROGRESS.md` — what is done, half-done, next, and open design questions.
 3. `docs/TESTING.md` — what the user checks in-game.
+4. `docs/HANDOFF.md` — the short version of everything from the first (cloud) session: state, what's waiting on a test, the user's rules and preferences from the chat, notes for milestone 7.
 
 ## Version targets
 
@@ -50,6 +51,7 @@ clearly labeled debug command.
 
 ## How to work
 
+- **The user doesn't code.** They test by downloading the jar from the GitHub Actions run (Artifacts) into a Fabric 1.21.1 instance in the Modrinth App. Write `docs/TESTING.md` and replies in plain language, step by step, with exact commands, and answer decisions with a clear recommendation.
 - **One roadmap milestone at a time** (DESIGN.md section 25, tracked in `docs/PROGRESS.md`). Don't start the next milestone's systems early, beyond small stubs needed to compile.
 - **Don't change the design on your own.** If something in DESIGN.md seems wrong or impossible on 1.21.1, write it under "Design questions" in `docs/PROGRESS.md` and ask the user.
 - **Soft dependencies** (Simply Swords, Simply Bows, Better Combat, Combat Roll, Mob Control, EMF) are optional integrations for later milestones. Don't add them until their milestone, and then only as optional (detected at runtime, never required).
@@ -61,6 +63,29 @@ clearly labeled debug command.
 - **Cloud sessions** (like Claude Code on the web) write code and check that it compiles with `./gradlew build`. That is the **only** verification done in the cloud.
 - **Never run `./gradlew runClient` or `./gradlew runServer`, and never try to launch Minecraft in a cloud session.** All in-game testing happens on the user's own machine.
 - If a build fails because dependencies can't download (network or sandbox limits), **stop and tell the user what failed**. Don't retry over and over. The build needs these hosts: `maven.fabricmc.net`, `meta.fabricmc.net`, `piston-meta.mojang.com`, `piston-data.mojang.com`, `libraries.minecraft.net`, `resources.download.minecraft.net`, plus `services.gradle.org`, `repo.maven.apache.org` and `plugins.gradle.org`.
+- **Known cloud issue: Maven Central rate limit.** Maven Central often answers HTTP 429 ("Your ip has exceeded rate limits") to the cloud sandbox's shared IP. In session 1 the user approved working around this with a sandbox-only Gradle init script that points Maven Central at Google's official mirror. It lives outside the repo, so each new cloud session must recreate it at `~/.gradle/init.d/central-mirror.gradle` before building:
+  ```groovy
+  // Sandbox-only (user-approved): Maven Central rate-limits this cloud IP (HTTP 429), so use Google's Maven Central mirror.
+  def mirror = 'https://maven-central.storage-download.googleapis.com/maven2/'
+  def redirect = { RepositoryHandler repos ->
+      repos.withType(MavenArtifactRepository).configureEach { r ->
+          def u = r.url.toString()
+          if (u.startsWith('https://repo.maven.apache.org/maven2') || u.startsWith('https://repo1.maven.org/maven2')) {
+              r.url = mirror
+          }
+      }
+  }
+  beforeSettings { settings ->
+      redirect(settings.pluginManagement.repositories)
+      redirect(settings.dependencyResolutionManagement.repositories)
+  }
+  allprojects {
+      redirect(buildscript.repositories)
+      redirect(repositories)
+  }
+  ```
+  Never commit this into the repo; local builds use Maven Central normally.
+- To read vanilla code, run `./gradlew genSources` (decompiles Minecraft with Mojang names) and unzip the `-sources.jar` files from `.gradle/loom-cache/minecraftMaven/net/minecraft/` into the scratchpad. Mirror vanilla player logic from the real source rather than from memory.
 - The GitHub Actions workflow (`.github/workflows/build.yml`) also runs `./gradlew build` on every push.
 
 ## End of every session

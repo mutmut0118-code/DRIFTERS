@@ -252,15 +252,15 @@ The Drifter knows only what a player at its position, looking where it is lookin
 
 - **View cone:** about 110 degrees horizontal and 70 degrees vertical, centered on the head, not the body. A Drifter looking at a furnace genuinely cannot see the zombie behind it.
 - **Peripheral zone:** 110 to 180 degrees, motion only. Something moving there produces a glimpse that makes it turn its head, but no identification.
-- **Range:** up to 48 blocks in daylight for entities, scaled by the light level at the target. In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing.
-- **Line of sight:** a ray from the eye to the target's head and feet. Seeing either counts; seeing both counts more.
+- **Range:** configurable (`/drifter config sight <chunks>`, default 10 chunks = 160 blocks; the user's call, since a player sees far more than a mob) in daylight for entities, scaled by the light level at the target and by its size (a chicken is a speck long before a horse is). In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing. Peripheral motion only counts within about 32 blocks.
+- **Line of sight:** a ray from the eye to the target's head and feet. Seeing either counts; seeing both counts more. Beyond 32 blocks one ray to the middle is used, only a few far checks run per re-rank, and far tracked entities are re-checked less often, so long sight stays cheap.
 - **Modifiers:** rain shortens range by about a quarter, thunderstorms more; underwater range is short; Blindness and Darkness effects apply exactly as for players.
 - **Sneaking targets:** harder to spot, and their nameplate is hidden behind blocks just like for players.
 - **Invisible targets:** effectively unseen, except for armor they're wearing and particles.
 
 ### Awareness meter
 
-Detection is gradual rather than instant. Each perceived entity has an awareness value from 0 to 1 that fills faster when the target is close, moving, lit, and in the center of view, and drains when it isn't.
+Detection is gradual rather than instant, but quick, like a player's common sense: something close and in plain view is identified in about a third of a second, something far off and still in a second or two. Each perceived entity has an awareness value from 0 to 1 that fills faster when the target is close, moving, lit, and in the center of view, and drains when it isn't.
 
 | Level | Threshold | Reaction |
 | --- | --- | --- |
@@ -276,6 +276,7 @@ This is the core of stealth play against hostile Drifters: a sneaking player in 
 - **Mining reveals:** breaking a block reveals its six neighbors. This is how mining discovers ores, and it is the only way the Drifter learns what's inside rock.
 - **No guessing beyond probability:** the Drifter can use Y-level odds ("diamonds are common near the bottom") to choose where to dig, exactly like a player who's read the wiki, but never knows a specific hidden ore.
 - **Budget scaling:** more rays when a player is nearby and the Drifter is visible, fewer when it's far away.
+- **Far sight:** a couple of extra rays per tick near the horizon (inside the view cone) reach the sight range in daylight, shorter in the dark and in rain. They note **landmarks**: mountains and high ground, villages (bells and villager workstations), and bare stone (cliffs, cave mouths) as a place to get stone, plus groves of trees. Only the first part of each ray (the path range) goes into the pathfinder's block knowledge. Rays never look into unloaded chunks.
 
 ### Hearing
 
@@ -293,7 +294,7 @@ Hearing uses the same vibration events that sculk sensors listen to, which alrea
 | Creeper fuse | 8 to 16 | Immediate reflex (section 15), even without line of sight |
 | Mob ambient sounds (groans, rattles, clicks) | 16 | Rough type and direction of nearby mobs |
 
-- Hearing gives direction, rough distance and kind of sound, never identity.
+- Hearing gives direction, rough distance and kind of sound, never which player. A creature's own sounds (a moo, a groan, a bone rattle, a spider's skitter, a creeper's hiss) tell it what kind of creature it is, as they would a player, but only roughly where: it fights only what it has seen, and turns to look.
 - Sneaking players make no step vibrations, matching how sculk treats sneaking. Wool blocks muffle sounds that pass through them.
 - A sound produces a look-toward reaction and, if repeated or suspicious, an investigation.
 
@@ -316,7 +317,7 @@ On a player it can see, the Drifter perceives: name, held item, armor material p
 
 ### Attention budget
 
-- Track at most about 8 entities in detail at once, chosen by threat and salience. Everything else is background.
+- Track at most about 12 entities in detail at once, chosen by threat and salience. Everything else is background.
 - Re-rank the tracked set every 10 ticks.
 - Being hit, hearing a creeper fuse, or seeing a player always forces the source into the tracked set.
 
@@ -650,7 +651,7 @@ Mining methods, chosen by stage, target and personality:
 
 ### 10.9 Travel
 
-- **Sprinting:** whenever food is above 6 and the distance is more than about 10 blocks; sprint-jumps across flat open ground.
+- **Pace:** like players, most trips (about 80%) are sprint-jumped the whole way when possible; the rest are sprinted. It slows down when it doesn't need to hurry (lounging, strolling through a village: it walks), when it shouldn't go fast (sneaking up on something, bridging, near a cliff edge: it sneaks), and when it can't (food 6 or lower, a low ceiling, a sharp turn, almost there, the deep dark or an ancient city: it walks or sneaks).
 - **Cautious caves:** stops sprinting in dark or unknown areas.
 - **Boats:** carries one from early on; uses it on any water wider than a few blocks.
 - **Horses:** for long overland trips once it has one.
@@ -1815,6 +1816,21 @@ Each milestone ends with a test you can actually run.
 12. **Groups, modpack factions, camps, config polish.**
 13. **The End** (optional).
 
+Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 13. They are tests, not milestones of their own.
+
+### Manhunt test mode
+
+A 1v1 manhunt (a real player against a Drifter, in the style of the well-known YouTube manhunt videos) is the "ultimate test" of the mod: it stresses perception, memory, pathfinding, combat, eating under pressure and reflexes all at once. It is **only a test scenario**. The mod is not built around it, it is off unless started by command, and it changes no core rules.
+
+- **Starting it:** an operator command picks a Drifter and a player, for example `/drifter manhunt start <drifter> <player> hunter`, and `/drifter manhunt stop`. Nothing happens in normal play.
+- **Roles:** **hunter first** (the player is the runner; the Drifter hunts). **Speedrunner** (the Drifter runs, the player hunts) comes later, once the Nether and End milestones exist.
+- **Fairness still applies** (section 1): no x-ray, player reach, player timings, no free items. The Drifter starts with nothing, like a manhunt hunter.
+- **Tracking compass:** like human hunters, the Drifter gets a tracking compass that points at the runner when it's used. It knows only what the compass shows (a direction, in the same dimension), not the runner's exact position or what they're doing; everything else comes from its own senses.
+- **Disposition:** toward the runner only, the Drifter behaves as Vengeful/Predatory (section 14) for the length of the game. Both sides agreed to the fight, so the first-contact telegraph is replaced by the start of the game. All other players are treated normally, and the anti-frustration rules (no griefing, no bed or spawn camping between deaths) still apply.
+- **Deaths:** a hunter Drifter respawns like a manhunt hunter (at its spawn point, with nothing), regardless of the normal respawn mode; the runner dying ends the game.
+- **Win conditions:** the runner wins by killing the Ender Dragon (or a configurable simpler goal, such as reaching the Nether, for earlier tests); the hunter wins by killing the runner.
+- **Speedrunner role extras (later):** the Drifter uses the Speedrunner archetype (section 17), routes for the Nether and End, flees and evades the hunter, and needs the End and dragon fight switched on for that game only.
+
 ### Open questions
 
 - Decided: usernames and skins look like real online players (section 21).
@@ -1823,3 +1839,4 @@ Each milestone ends with a test you can actually run.
 - Decided: factions are built in; Mob Control integration is optional.
 - Decided: Simply Swords, Simply Bows, Better Combat and Combat Roll first (section 21).
 - Decided: aim for 10, adjusted after profiling.
+- Decided: a 1v1 manhunt is the ultimate test, as an optional test mode only; hunter role first (see "Manhunt test mode").

@@ -1,5 +1,13 @@
 package com.dinglebob.drifter;
 
+import com.dinglebob.drifter.brain.Sources;
+import com.dinglebob.drifter.brain.Threats;
+import com.dinglebob.drifter.command.DrifterCommands;
+import com.dinglebob.drifter.debug.overlay.DebugOverlayServer;
+import com.dinglebob.drifter.registry.ModEntities;
+import com.dinglebob.drifter.world.MobTargeting;
+import com.dinglebob.drifter.world.PlayerPlacedBlocks;
+
 import net.fabricmc.api.ModInitializer;
 
 import net.minecraft.resources.ResourceLocation;
@@ -14,7 +22,15 @@ public class Drifter implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// Milestone 1 (Body) registration goes here: entity type, attributes, commands.
+		DrifterConfig.load();
+		ModEntities.register();
+		PlayerPlacedBlocks.register();
+		DrifterCommands.register();
+		DebugOverlayServer.register();
+		Sources.register();
+		Threats.register();
+		MobTargeting.register();
+		com.dinglebob.drifter.perception.CreatureHearing.register();
 		LOGGER.info("Drifter initialized");
 	}
 

@@ -1,0 +1,124 @@
+package com.dinglebob.drifter.executor.task;
+
+import java.util.Optional;
+import java.util.function.Predicate;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.executor.Task;
+import com.dinglebob.drifter.hands.Reach;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+
+/**
+ * Place (DESIGN.md section 8): puts a block from the inventory into an empty spot by taking it in hand and
+ * right-clicking a neighbouring block's face that the Drifter can see and reach (section 11 placement rules).
+ * Fails if there's no such face: no floating blocks.
+ */
+public class PlaceBlockTask extends Task {
+	private final BlockPos target;
+	private final Predicate<ItemStack> item;
+	private final String label;
+	private final SelectItemTask select;
+	@Nullable
+	private UseOnBlockTask use;
+
+	public PlaceBlockTask(DrifterEntity drifter, BlockPos target, Predicate<ItemStack> item, String label) {
+		super(drifter);
+		this.target = target.immutable();
+		this.item = item;
+		this.label = label;
+		this.select = new SelectItemTask(drifter, item, label);
+	}
+
+	@Override
+	public String describe() {
+		return "place " + this.label + " at " + this.target.toShortString();
+	}
+
+	@Override
+	protected int timeoutTicks() {
+		return 20 * 12;
+	}
+
+	@Override
+	protected void onStart() {
+		if (!this.drifter.level().getBlockState(this.target).canBeReplaced()) {
+			this.fail("that spot is already taken");
+		}
+	}
+
+	@Override
+	protected Status onTick() {
+		if (this.use == null) {
+			Status selected = this.select.tick();
+			if (selected != Status.SUCCESS) {
+				return selected == Status.FAILURE ? this.fail(this.select.failureReason()) : Status.RUNNING;
+			}
+
+			this.select.stop();
+			Direction[] support = this.chooseSupport();
+			if (support == null) {
+				return this.fail("no block face to place against within reach");
+			}
+
+			BlockPos supportPos = this.target.relative(support[0]);
+			this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+		}
+
+		Status used = this.use.tick();
+		if (used == Status.RUNNING) {
+			return Status.RUNNING;
+		}
+
+		this.use.stop();
+		if (used == Status.FAILURE) {
+			return this.fail(this.use.failureReason());
+		}
+
+		BlockState placed = this.drifter.level().getBlockState(this.target);
+		if (placed.canBeReplaced()) {
+			return this.fail("the block didn't end up there");
+		}
+
+		this.drifter.getSenses().placedBlock(this.target);
+		return Status.SUCCESS;
+	}
+
+	/** {direction from target to the support block, face of the support block to click}, or null. */
+	@Nullable
+	private Direction[] chooseSupport() {
+		Vec3 eye = this.drifter.getEyePosition();
+		Direction[] best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (Direction toSupport : Direction.values()) {
+			BlockPos supportPos = this.target.relative(toSupport);
+			BlockState support = this.drifter.level().getBlockState(supportPos);
+			if (support.isAir() || support.canBeReplaced()) {
+				continue;
+			}
+
+			Direction face = toSupport.getOpposite();
+			Optional<Vec3> point = Reach.aimPoint(this.drifter, supportPos, face);
+			if (point.isPresent() && eye.distanceToSqr(point.get()) < bestDistance) {
+				bestDistance = eye.distanceToSqr(point.get());
+				best = new Direction[]{toSupport, face};
+			}
+		}
+
+		return best;
+	}
+
+	@Override
+	protected void onStop() {
+		this.select.stop();
+		if (this.use != null) {
+			this.use.stop();
+		}
+	}
+}
