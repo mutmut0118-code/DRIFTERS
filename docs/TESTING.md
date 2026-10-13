@@ -337,8 +337,9 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-**Status:** first test done. Pillaring passed. Bridging, the ravine and the village test failed and have been fixed:
-please re-test sections 1 (village), 2 and 4 with the newest build.
+**Status:** second test done. Pillaring passed. Bridging and sprint-jumping were fixed again after the second test
+(and it no longer sprint-jumps into doorways): please re-test sections 1 (village and sprint-jumping), 2 and 4 with the
+newest build.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -376,17 +377,25 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
       `/drifter stop` ends it.
 - [ ] It never walks into lava or fire.
 
-- [ ] **Sprint-jumping:** `/drifter goto <a block 40 blocks away across flat ground>` a few times. Most times (about 4 in
-      5) it **sprint-jumps** the whole way, like a player; other times it just sprints. It stops jumping for turns, under
-      low ceilings, and in the last few blocks, and doesn't turn back after jumping past a point.
+- [ ] **Sprint-jumping (re-test after fix):** `/drifter goto <a block 40 blocks away across flat ground>` a few times.
+      Most times (about 4 in 5) it **sprint-jumps the whole way, jumping again the instant it lands**, like a player
+      holding space (not random single hops). Other times it just sprints. Gentle bends don't stop it; it stops
+      jumping before sharp corners, under low ceilings, near cliff edges, and in the last few blocks, and doesn't turn
+      back after jumping past a point.
+- [ ] **Doors (re-test after fix):** `/drifter goto <a spot inside a house>` from about 20 blocks away, once with a
+      wooden door and once with an empty 2-block-high doorway. A few blocks before the doorway it **stops jumping**,
+      sprints or walks through, and never gets stuck bonking its head on the frame.
 - [ ] `/drifter goto <pos> stroll`: it walks. `/drifter goto <pos> sneak`: it sneaks the whole way.
 - [ ] Hungry: `/drifter food 6`, then `/drifter goto` somewhere far: it walks (it can't sprint).
 - [ ] Ancient city (optional): near sculk sensors or shriekers it has seen, it sneaks and never sprints.
 
 ### 2. Bridging (crossing a ravine)
 - [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide
-      and too deep to climb, and `/drifter goto <a block on the other side>`. The path shows **blue** across the gap.
-      It **sneaks** to the edge, looks down, places a block, steps onto it, and repeats until it's across.
+      and too deep to climb, and `/drifter goto <a block on the other side>`. The path shows **blue** across the gap
+      (if it hasn't seen the gap yet, the path may first go straight across; when it reaches the edge it looks down
+      and plans again, and then it's blue). It **sneaks** to the edge, looks down into the gap, leans out, places a
+      block against the side of the block it stands on, steps onto it, and repeats until it's across.
+- [ ] A gap only **one** block deep: it steps down into it and jumps out the other side instead of bridging.
 - [ ] **Safety (re-test after fix):** near the edge of the ravine it should be **sneaking**, never running, and it must
       **never fall in**. Also try walking it along the edge of a cliff: it sneaks the whole way.
 - [ ] Without blocks (`/drifter memory clear` doesn't matter; just make sure it has no dirt/cobblestone/planks):

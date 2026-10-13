@@ -264,9 +264,12 @@ public class PathSearch {
 	private void expand(Node node) {
 		BlockPos n = node.pos;
 		boolean inWater = this.view.isWater(n);
-		// A block it plans to place (bridge or pillar) will be solid footing for the next move too.
+		// A block it plans to place (bridge or pillar) will be solid footing for the next move too. Ground it hasn't seen
+		// counts as well, like everywhere else in the plan (found in testing: the near edge of a ravine was often unseen
+		// from where it started, so it never planned a bridge at all); it checks the ground when it gets there.
+		NavView.Kind floor = this.view.cell(n.below()).kind();
 		boolean onSolidFloor = node.move == MoveType.BRIDGE || node.move == MoveType.PILLAR
-			|| this.view.cell(n.below()).kind() == NavView.Kind.SOLID && this.view.standable(n.below());
+			|| (floor == NavView.Kind.SOLID || floor == NavView.Kind.UNKNOWN) && this.view.standable(n.below());
 
 		for (Direction d : Direction.Plane.HORIZONTAL) {
 			BlockPos f = n.relative(d);
@@ -354,9 +357,13 @@ public class PathSearch {
 				continue;
 			}
 
-			// It never drops 2+ blocks onto ground it hasn't seen (found in testing: it walked into a dark ravine).
+			// It never drops 2+ blocks onto ground it hasn't seen (found in testing: it walked into a dark ravine). Nor does
+			// it step down into a hole it can see is open air but whose bottom it can't see: that is a ravine, not a step
+			// (found in testing: "step down onto assumed ground" was always cheaper than bridging, so it never bridged).
+			// Unseen ground under unseen or solid blocks (digging a stair down) is still assumed, as everywhere else.
 			boolean floorSeen = this.view.cell(t.below()).kind() != NavView.Kind.UNKNOWN;
-			if (intoWater || this.view.standable(t.below()) && (k == 1 || floorSeen)) {
+			boolean seenHole = this.view.cell(t).kind() == NavView.Kind.OPEN;
+			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && !seenHole)) {
 				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN, WALK + STEP_DOWN_EXTRA * k + c.cost, c, 0);
 				return;
 			}

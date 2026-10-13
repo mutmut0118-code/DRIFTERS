@@ -77,8 +77,13 @@ public class NavigateTask extends Task {
 	/** Stop sprinting this close to the goal, and stop sprint-jumping a bit earlier. */
 	private static final double SPRINT_MIN_REMAINING = 3.0;
 	private static final double SPRINT_JUMP_MIN_REMAINING = 5.0;
-	/** Sprint-jump only with at least this many straight steps ahead (no jumping into a turn). */
-	private static final int SPRINT_JUMP_MIN_STRAIGHT = 3;
+	/**
+	 * Sprint-jump only while the next this-many steps are clear for it: no sharp turn, no door or 2-block doorway, no low
+	 * ceiling, no edge. One sprint-jump carries it about 4 blocks, so it stops hopping in time.
+	 */
+	private static final int HOP_LOOKAHEAD = 5;
+	/** Cosine of the sharpest turn it keeps hopping through (45 degrees: a diagonal bend, not a corner). */
+	private static final double HOP_MAX_TURN_COS = 0.7;
 	/** Sculk sensors or shriekers remembered this close: sneak, never sprint (ancient cities, section 15). */
 	private static final double SCULK_CAUTION_RANGE = 12.0;
 	private static final int UNSTICK_AFTER = 60;
@@ -101,6 +106,11 @@ public class NavigateTask extends Task {
 	private final Pace pace;
 	/** Rolled once per trip: whether this is one of the (most) trips it sprint-jumps. */
 	private boolean sprintJumpTrip;
+	/**
+	 * Sprint-jumping right now. Decided each time it's on the ground; while it is, the jump key stays held down, so it
+	 * jumps again the moment it lands, like a player holding space (found in testing: it used to tap jump now and then).
+	 */
+	private boolean hopping;
 	/** Following a moving target: re-path as it moves, and don't finish on arrival (follow mode). */
 	private final boolean follow;
 	@Nullable
@@ -204,6 +214,7 @@ public class NavigateTask extends Task {
 		this.sinceProgress = 0;
 		this.sinceReplan = 0;
 		this.lastReplanReason = reason;
+		this.hopping = false;
 		this.resetStepState();
 		this.drifter.setDebugPath(List.of(), 0);
 	}
@@ -391,6 +402,20 @@ public class NavigateTask extends Task {
 
 		if (this.needsFloor(step) && !this.hasFloor(step.to())) {
 			if (step.type() == MoveType.BRIDGE) {
+				// Look down into the gap first, like a player at an edge. If it's only one block deep, step down instead.
+				BlockPos gapFloor = step.to().below(2);
+				if (!this.drifter.getSenses().terrain().isKnown(gapFloor) && this.waitToSee++ < WAIT_TO_SEE_TICKS) {
+					this.drifter.getCamera().track(Vec3.atCenterOf(gapFloor), CameraModel.TurnSpeed.NORMAL);
+					this.keys().releaseAll();
+					this.keys().set(VirtualKeys.Key.SNEAK, true);
+					return Status.RUNNING;
+				}
+
+				if (this.drifter.getSenses().terrain().isKnown(gapFloor) && this.hasFloor(step.to().below())) {
+					this.replan("the gap at " + step.to().toShortString() + " is only one block deep");
+					return Status.RUNNING;
+				}
+
 				return this.bridge(step);
 			}
 
@@ -415,8 +440,7 @@ public class NavigateTask extends Task {
 		double dx = this.drifter.getX() - center.x;
 		double dz = this.drifter.getZ() - center.z;
 		double horizontal = Math.sqrt(dx * dx + dz * dz);
-		boolean straight = this.index + 1 < this.path.size() && this.sameDirection(step, this.path.get(this.index + 1))
-			&& (step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL);
+		boolean straight = this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1));
 		if (straight && this.passedInAir(step, dx, dz)) {
 			return true;
 		}
@@ -430,8 +454,8 @@ public class NavigateTask extends Task {
 	}
 
 	/**
-	 * Sprint-jumping sails over path points without standing on them. On a straight run, a point counts as reached
-	 * once it's behind the Drifter (within a little sideways), even in mid-air.
+	 * Sprint-jumping sails over path points without standing on them. On a straight run (or a gentle bend), a point
+	 * counts as reached once it's behind the Drifter (within a little sideways), even in mid-air.
 	 */
 	private boolean passedInAir(PathStep step, double dx, double dz) {
 		double stepX = step.to().getX() - step.from().getX();
@@ -446,8 +470,21 @@ public class NavigateTask extends Task {
 		return along > -0.1 && sideways < ARRIVE_STRAIGHT && Math.abs(this.drifter.getY() - step.to().getY()) < 1.3;
 	}
 
-	private boolean sameDirection(PathStep a, PathStep b) {
-		return a.to().getX() - a.from().getX() == b.to().getX() - b.from().getX() && a.to().getZ() - a.from().getZ() == b.to().getZ() - b.from().getZ();
+	/** Two flat walking steps in a row that turn by 45 degrees or less (a straight line or a gentle bend). */
+	private boolean flowsInto(PathStep a, PathStep b) {
+		if (!isFlatWalk(a) || !isFlatWalk(b)) {
+			return false;
+		}
+
+		double ax = a.to().getX() - a.from().getX();
+		double az = a.to().getZ() - a.from().getZ();
+		double bx = b.to().getX() - b.from().getX();
+		double bz = b.to().getZ() - b.from().getZ();
+		return (ax * bx + az * bz) / (Math.sqrt(ax * ax + az * az) * Math.sqrt(bx * bx + bz * bz)) >= HOP_MAX_TURN_COS;
+	}
+
+	private static boolean isFlatWalk(PathStep step) {
+		return step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL;
 	}
 
 	/** The cells that must be open for this step, in the order to dig them (top first). */
@@ -668,51 +705,112 @@ public class NavigateTask extends Task {
 			case SWIM, WALK -> this.drifter.isInWater() && step.to().getY() >= this.feet().getY();
 			default -> false;
 		};
-		// Sprint-jump on most trips: on flat straight runs with headroom, not into a turn, not right at the end.
-		if (sprint && this.sprintJumpTrip && this.drifter.onGround() && (step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL)
-			&& this.straightRunAhead() >= SPRINT_JUMP_MIN_STRAIGHT && this.remainingDistance() > SPRINT_JUMP_MIN_REMAINING && this.headroomAhead()) {
+		// Sprint-jump on most trips, holding the jump key down the whole stretch. Whether to keep going is decided on
+		// the ground (in mid-air the key just stays down); it stops before turns, doors, doorways, low ceilings and edges,
+		// and near the end of the trip.
+		if (!sprint || !this.sprintJumpTrip) {
+			this.hopping = false;
+		} else if (this.drifter.onGround()) {
+			this.hopping = this.remainingDistance() > SPRINT_JUMP_MIN_REMAINING && this.clearToHop();
+		}
+
+		if (this.hopping) {
 			jump = true;
 		}
 
-		// Auto-jump over an unexpected 1-block bump (players jump without thinking).
-		if (this.drifter.horizontalCollision && this.drifter.onGround() && step.type() != MoveType.BRIDGE) {
+		// Auto-jump over an unexpected 1-block bump (players jump without thinking). Only a real bump with room to jump:
+		// jumping into a door frame or under a low ceiling just bonks its head, again and again (found in testing).
+		if (this.drifter.horizontalCollision && this.drifter.onGround() && step.type() != MoveType.BRIDGE && this.bumpAhead(dx, dz, horizontal)) {
 			jump = true;
 		}
 
 		keys.set(VirtualKeys.Key.JUMP, jump);
 	}
 
-	/** No low ceiling over the next few steps (a sprint-jump would bonk its head). */
-	private boolean headroomAhead() {
-		for (int i = this.index; i < Math.min(this.path.size(), this.index + SPRINT_JUMP_MIN_STRAIGHT); i++) {
-			BlockPos to = this.path.get(i).to();
-			if (!this.isClear(to.above(2)) || !this.isClear(this.path.get(i).from().above(2))) {
-				return false;
-			}
+	/**
+	 * Is the next stretch fit for sprint-jumping? Flat walking steps (or single steps up and down) with no sharp turn,
+	 * no door, gate or trapdoor, room above the head for the jump (a 2-block doorway or tunnel has none), and no deep
+	 * drop beside the way.
+	 */
+	private boolean clearToHop() {
+		if (this.index + HOP_LOOKAHEAD > this.path.size()) {
+			return false;
 		}
 
-		return true;
+		PathStep first = this.path.get(this.index);
+		PathStep last = this.path.get(this.index + HOP_LOOKAHEAD - 1);
+		PathStep previous = null;
+		for (int i = this.index; i < this.index + HOP_LOOKAHEAD; i++) {
+			PathStep step = this.path.get(i);
+			boolean stepOk = switch (step.type()) {
+				case WALK, DIAGONAL, JUMP_UP -> true;
+				case STEP_DOWN -> step.from().getY() - step.to().getY() == 1;
+				default -> false;
+			};
+			if (!stepOk || previous != null && !this.gentleTurn(previous, step)) {
+				return false;
+			}
+
+			for (BlockPos cell : this.cellsToClear(step)) {
+				if (this.isDoorLike(cell)) {
+					return false;
+				}
+			}
+
+			// Room for the jump: the block two above the feet, all along the way (a diagonal passes two corners too).
+			BlockPos from = step.from();
+			BlockPos to = step.to();
+			if (!this.isClear(from.above(2)) || !this.isClear(to.above(2)) || !this.isClear(new BlockPos(to.getX(), from.getY(), from.getZ()).above(2))
+				|| !this.isClear(new BlockPos(from.getX(), from.getY(), to.getZ()).above(2))) {
+				return false;
+			}
+
+			for (Direction direction : Direction.Plane.HORIZONTAL) {
+				if (this.isDeepDrop(step.to().relative(direction))) {
+					return false;
+				}
+			}
+
+			previous = step;
+		}
+
+		return this.gentleTurn(first, last);
+	}
+
+	/** The horizontal direction changes by 45 degrees or less from one step to the other. */
+	private boolean gentleTurn(PathStep a, PathStep b) {
+		double ax = a.to().getX() - a.from().getX();
+		double az = a.to().getZ() - a.from().getZ();
+		double bx = b.to().getX() - b.from().getX();
+		double bz = b.to().getZ() - b.from().getZ();
+		double lengths = Math.sqrt(ax * ax + az * az) * Math.sqrt(bx * bx + bz * bz);
+		return lengths > 0.0 && (ax * bx + az * bz) / lengths >= HOP_MAX_TURN_COS;
+	}
+
+	private boolean isDoorLike(BlockPos pos) {
+		BlockState state = this.level().getBlockState(pos);
+		return state.is(BlockTags.DOORS) || state.is(BlockTags.TRAPDOORS) || state.is(BlockTags.FENCE_GATES);
+	}
+
+	/** A block at foot level right in front, with room above it and above its own head to jump up onto it. */
+	private boolean bumpAhead(double dx, double dz, double horizontal) {
+		if (horizontal < 0.05) {
+			return false;
+		}
+
+		BlockPos feet = this.feet();
+		if (!this.isClear(feet.above(2))) {
+			return false;
+		}
+
+		BlockPos front = BlockPos.containing(this.drifter.getX() + dx / horizontal * 0.8, feet.getY() + 0.5, this.drifter.getZ() + dz / horizontal * 0.8);
+		return !this.isClear(front) && this.isClear(front.above()) && this.isClear(front.above(2));
 	}
 
 	/** Remembered sculk sensors or shriekers nearby (it has seen them): an ancient city or deep dark, so it creeps. */
 	private boolean nearSculk() {
 		return this.drifter.getMemory().nearest(MemoryKind.DANGER, this.level().dimension().location(), this.drifter.position(),
 			SCULK_CAUTION_RANGE, entry -> entry.label.equals(BlockNotes.SCULK)) != null;
-	}
-
-	private int straightRunAhead() {
-		int run = 0;
-		PathStep first = this.path.get(this.index);
-		for (int i = this.index; i < this.path.size(); i++) {
-			PathStep step = this.path.get(i);
-			if (step.type() != MoveType.WALK && step.type() != MoveType.DIAGONAL || !this.sameDirection(first, step)) {
-				break;
-			}
-
-			run++;
-		}
-
-		return run;
 	}
 
 	private double remainingDistance() {
@@ -765,9 +863,10 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
-		// Creep toward the edge, looking down at where the block will go.
+		// Creep toward the edge, looking down at where the block will go (always in front of it, so it never turns round
+		// once it leans out past the edge).
 		this.steer(step);
-		this.drifter.getCamera().track(Vec3.atCenterOf(support).add(Vec3.atLowerCornerOf(face.getNormal()).scale(0.5)), CameraModel.TurnSpeed.NORMAL);
+		this.drifter.getCamera().track(Vec3.atCenterOf(step.to().below()), CameraModel.TurnSpeed.NORMAL);
 		this.keys().set(VirtualKeys.Key.JUMP, false);
 		return Status.RUNNING;
 	}
