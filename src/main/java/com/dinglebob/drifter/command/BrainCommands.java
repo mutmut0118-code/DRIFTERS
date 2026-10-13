@@ -33,7 +33,7 @@ public final class BrainCommands {
 			.then(Commands.literal("off").executes(ctx -> toggle(ctx, false)))
 			.then(Commands.literal("goal")
 				.then(Commands.argument("goal", StringArgumentType.word())
-					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"eat", "food", "shelter", "progress", "explore", "idle"}, builder))
+					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "shelter", "progress", "explore", "idle"}, builder))
 					.executes(BrainCommands::force))));
 	}
 
@@ -91,6 +91,16 @@ public final class BrainCommands {
 			}
 
 			lines.add("Needs: " + context.needs().describe());
+		}
+
+		com.dinglebob.drifter.brain.Threats.Assessment threat = com.dinglebob.drifter.brain.Threats.assess(drifter);
+		if (threat.decision() != com.dinglebob.drifter.brain.Threats.Decision.NONE) {
+			lines.add("Threat: " + threat.describe());
+		}
+
+		String reflex = drifter.getReflexes().describe();
+		if (!reflex.isEmpty()) {
+			lines.add(reflex);
 		}
 
 		return lines;

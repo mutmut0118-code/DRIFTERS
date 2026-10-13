@@ -1,9 +1,11 @@
 package com.dinglebob.drifter;
 
 import com.dinglebob.drifter.brain.Sources;
+import com.dinglebob.drifter.brain.Threats;
 import com.dinglebob.drifter.command.DrifterCommands;
 import com.dinglebob.drifter.debug.overlay.DebugOverlayServer;
 import com.dinglebob.drifter.registry.ModEntities;
+import com.dinglebob.drifter.world.MobTargeting;
 import com.dinglebob.drifter.world.PlayerPlacedBlocks;
 
 import net.fabricmc.api.ModInitializer;
@@ -25,6 +27,8 @@ public class Drifter implements ModInitializer {
 		DrifterCommands.register();
 		DebugOverlayServer.register();
 		Sources.register();
+		Threats.register();
+		MobTargeting.register();
 		LOGGER.info("Drifter initialized");
 	}
 

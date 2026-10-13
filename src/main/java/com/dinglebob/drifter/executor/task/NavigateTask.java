@@ -907,7 +907,10 @@ public class NavigateTask extends Task {
 		// would stop it at the step.
 		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN;
 		boolean nearEdge = !intentionalDrop && this.nearDeepDrop();
-		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk();
+		// Magma blocks only burn you when you don't sneak (section 15).
+		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
+		boolean onMagma = this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
+		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma;
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
 		if (sneaking && this.drifter.isSprinting()) {
 			// Sprinting carries on while sneaking (as for a player) until forward input stops: let go of the movement keys

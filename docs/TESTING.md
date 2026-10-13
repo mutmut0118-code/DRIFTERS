@@ -42,7 +42,7 @@ Every `/drifter` command except `spawn` acts on the **Drifter nearest to you** (
 | `/drifter remove` | Deletes it (no drops) |
 | `/drifter brain` | What its brain is doing: stage, next target, goal, scores, plan, needs |
 | `/drifter brain on` / `off` | Lets it play on its own, or stops it (any other task command also switches the brain off) |
-| `/drifter brain goal <eat\|food\|shelter\|progress\|explore\|idle>` | Makes it work on that goal now |
+| `/drifter brain goal <fight\|flee\|equip\|eat\|food\|shelter\|progress\|explore\|idle>` | Makes it work on that goal now |
 
 Vanilla commands also work on it. To put armor or an offhand item on it:
 `/item replace entity @e[type=drifter:drifter,sort=nearest,limit=1] armor.chest with minecraft:iron_chestplate`
@@ -522,3 +522,68 @@ doing. If it gets stuck repeating something, `/drifter brain` in chat gives the 
 - Every Drifter behaves the same way for now (no personalities until milestone 7).
 - It leaves crafting tables behind (that's the "messy player" default for now).
 - No natural spawning yet: use `/drifter spawn`.
+
+## Milestone 6: Combat and reflexes
+
+**Status:** first version, not tested yet. **The goal of this milestone:** it survives **three nights in a row** on
+its own, on Normal difficulty. Mobs now hunt it like they hunt you, it fights what it can beat (with real 1.9+ timing),
+runs from what it can't, and has quick reflexes for lava, creepers, drowning and the like.
+
+Keep `/drifter debug on`. The panel now also shows a **Threat** line, for example
+`threat 1.3 vs power 2.2 (1.69): engage carefully [zombie]` (its danger estimate, its own strength, the ratio, and what it
+decided), and a **Reflex** line when a reflex fires. Reflex thoughts start with "reflex:".
+
+Give it gear quickly with commands if you don't want to wait for it: `/drifter give minecraft:stone_sword`,
+`/drifter give minecraft:shield`, `/drifter give minecraft:iron_chestplate` (it puts armor and the shield on by itself
+within a second or two: "put on better gear").
+
+### 1. Mobs go after it
+- [ ] On Normal at night (`/difficulty normal`, `/time set 14000`), zombies, skeletons, spiders and creepers come for it
+      just like they come for you. Spiders leave it alone in daylight (like you).
+- [ ] An enderman ignores it unless it hits the enderman.
+
+### 2. Fighting (give it a stone sword)
+- [ ] One **zombie**: it takes the sword out, jumps and crits, then **steps back** out of reach while its sword recharges,
+      strafing sideways, and steps in again. With a shield it holds the shield up while backing off.
+- [ ] A **skeleton** shooting from far away: it **zigzags** toward it (shield up while the skeleton draws, if it has one),
+      then fights it up close.
+- [ ] A **creeper**: it runs in, does **one sprint hit** (knocks it back), then backs off to 5+ blocks; repeat. If the
+      creeper starts **hissing**, it sprints away immediately ("reflex: creeper hissing").
+- [ ] **Too many** (3 zombies with only fists or low health): the Threat line says "retreat" or "flee" and it runs away.
+      If 3 melee mobs surround it and it has blocks, it **pillars 3 blocks up** and waits.
+- [ ] If something keeps hitting it from close by while it's running, it turns and fights ("cornered").
+- [ ] After a fight: it looks around, picks up the drops, and eats if it's hurt.
+
+### 3. Reflexes (each should happen within about a quarter to half a second; sometimes a bit late on purpose)
+- [ ] **Lava:** `/drifter goto` somewhere next to a lava pool, or let it mine into lava: when lava is right next to it, it
+      **places a block** over it (if it has blocks) or backs away. Dropped **into** lava (`/tp` it in): it jumps out to the
+      nearest solid block.
+- [ ] **Drowning:** `/tp` it to the bottom of deep water: when its air gets low it **swims up** (or toward open water).
+- [ ] **On fire** with water nearby: it runs into the water.
+- [ ] **Lit TNT** near it: it runs away 8+ blocks.
+- [ ] **Arrows:** a skeleton shooting at it: with a shield it raises it at the arrow, without one it **sidesteps**.
+- [ ] **Falling sand/gravel:** drop sand above it: it steps aside; if buried, it digs out.
+- [ ] **Cobweb:** walk it into a cobweb: it cuts it (fast with a sword).
+- [ ] **Cactus:** when it touches a cactus it steps away. On **magma blocks** it sneaks.
+- [ ] **Water-bucket clutch:** `/drifter give minecraft:water_bucket` (it must be in the hotbar), then `/tp` it 20 blocks
+      up: just before landing it looks down, places water, lands in it, and scoops the water back up.
+
+### 4. The big test: three nights
+1. New spot, Normal difficulty, morning: `/drifter spawn Tester`, then leave it alone (keep the chunk loaded: stay
+   within about 100 blocks, or watch from a hill).
+2. It should do its day (wood, stone tools, furnace, food), dig in at dusk, climb out in the morning, and deal with
+   whatever mobs are around in the morning and evening.
+3. [ ] Still alive after **3 nights**. If it dies, send me the last thought lines and what killed it (the death message
+   in chat says).
+
+### 5. Combat-mod test pass (optional, when you have time)
+- [ ] With **Simply Swords** installed: give it one of those swords (`/drifter give simplyswords:...`). It should pick
+      it as its weapon if it does more damage per second than what it has, and fight with it normally.
+- [ ] With **Better Combat** installed: it still fights normally (vanilla-style swings for now); nothing crashes.
+- [ ] With **Combat Roll** installed: nothing breaks (it doesn't roll yet; see design question 9 in PROGRESS.md).
+
+### Known gaps for milestone 6 (don't report these as bugs)
+- No bows or crossbows yet; it always fights in melee.
+- It doesn't use doorways, high ground or light to its advantage yet, and doesn't retreat home (no home until milestone 8).
+- No golden apples, potions or ender pearls yet.
+- Every Drifter fights the same way (personalities come in milestone 7).

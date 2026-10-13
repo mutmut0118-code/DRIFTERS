@@ -7,6 +7,7 @@ import com.dinglebob.drifter.executor.Task;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * Equip (armor part, DESIGN.md sections 8 and 10.17): opens its inventory and puts on the best armor it carries,
@@ -26,7 +27,7 @@ public class WearArmorTask extends Task {
 
 	@Override
 	public String describe() {
-		return "put on its best armor";
+		return "put on its best armor and shield";
 	}
 
 	@Override
@@ -55,7 +56,43 @@ public class WearArmorTask extends Task {
 			}
 		}
 
+		// A shield goes in the offhand (section 13, "Shield").
+		if (this.slotIndex == ARMOR_SLOTS.length) {
+			this.slotIndex++;
+			int shield = shieldSlot(this.drifter);
+			if (shield >= 0) {
+				this.drifter.getInventory().swap(shield, DrifterInventory.OFFHAND_SLOT);
+				this.wornPieces++;
+				this.wait = InventoryPause.CLICK_TICKS;
+				return Status.RUNNING;
+			}
+		}
+
 		return this.wornPieces > 0 ? Status.SUCCESS : this.fail("has no better armor to put on");
+	}
+
+	/** Has armor better than what it wears, or a shield it isn't holding in its offhand. */
+	public static boolean hasUpgrade(DrifterEntity drifter) {
+		DrifterInventory inventory = drifter.getInventory();
+		for (EquipmentSlot slot : ARMOR_SLOTS) {
+			double worn = score(drifter.getItemBySlot(slot), slot);
+			for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
+				if (score(inventory.getItem(i), slot) > worn) {
+					return true;
+				}
+			}
+		}
+
+		return shieldSlot(drifter) >= 0;
+	}
+
+	/** A shield in the main inventory while the offhand holds no shield, or -1. */
+	private static int shieldSlot(DrifterEntity drifter) {
+		if (drifter.getOffhandItem().is(Items.SHIELD)) {
+			return -1;
+		}
+
+		return drifter.getInventory().findSlot(stack -> stack.is(Items.SHIELD), 0, DrifterInventory.MAIN_SIZE);
 	}
 
 	private boolean wearBest(EquipmentSlot slot) {

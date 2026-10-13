@@ -35,6 +35,14 @@ public class Brain {
 	/** A goal whose activity failed scores less for a while, so it tries something else. */
 	public static final int FAILED_COOLDOWN_TICKS = 20 * 15;
 	public static final double FAILED_PENALTY = 0.3;
+	/** How often (ticks) it checks for a close threat between re-scores. */
+	public static final int THREAT_CHECK_TICKS = 5;
+
+	/** Re-score at the next tick (it got hurt, or something else important happened). */
+	public void poke() {
+		this.sinceRescore = RESCORE_TICKS;
+	}
+
 	/** A better goal must beat the current one by this much to take over at a checkpoint. */
 	public static final double SWITCH_MARGIN = 0.05;
 
@@ -98,7 +106,10 @@ public class Brain {
 			this.activity = null;
 		}
 
-		if (++this.sinceRescore < RESCORE_TICKS && !finished && this.activity != null) {
+		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks.
+		boolean danger = this.drifter.tickCount % THREAT_CHECK_TICKS == 0 && this.current != null && !"fight".equals(this.current.id())
+			&& !"flee".equals(this.current.id()) && Threats.assess(this.drifter).urgent();
+		if (++this.sinceRescore < RESCORE_TICKS && !finished && this.activity != null && !danger) {
 			return;
 		}
 
@@ -115,7 +126,8 @@ public class Brain {
 		int stage = Strategist.stage(this.drifter);
 		KnownWorld world = KnownWorld.scan(this.drifter);
 		Needs needs = Needs.compute(this.drifter, target != null, stage);
-		return new Goals.Context(this.drifter, world, needs, stage, target, Schedule.believedTime(this.drifter));
+		return new Goals.Context(this.drifter, world, needs, stage, target, Schedule.believedTime(this.drifter), Threats.assess(this.drifter),
+			Shelter.isSealedIn(this.drifter));
 	}
 
 	private void decide() {

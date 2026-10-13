@@ -6,7 +6,10 @@
 		"BlockItemMixin",
 		"ExplosionMixin",
 		"ItemEntityAccessor",
-		"LivingEntityAccessor"
+		"LivingEntityAccessor",
+		"MobAccessor",
+		"NearestAttackableTargetGoalAccessor",
+		"TargetGoalAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

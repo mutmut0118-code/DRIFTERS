@@ -5,7 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.activity.Activity;
+import com.dinglebob.drifter.brain.activity.CombatActivity;
 import com.dinglebob.drifter.brain.activity.CraftActivity;
+import com.dinglebob.drifter.brain.activity.FleeActivity;
 import com.dinglebob.drifter.brain.activity.EatActivity;
 import com.dinglebob.drifter.brain.activity.ExploreActivity;
 import com.dinglebob.drifter.brain.activity.GatherActivity;
@@ -15,6 +17,9 @@ import com.dinglebob.drifter.brain.activity.ShelterActivity;
 import com.dinglebob.drifter.brain.activity.SmeltActivity;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.task.LookAroundTask;
+import com.dinglebob.drifter.executor.task.WearArmorTask;
+
+import net.minecraft.world.entity.LivingEntity;
 
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
@@ -31,7 +36,8 @@ public final class Goals {
 	}
 
 	/** Everything a goal needs to score itself, computed once per decision. */
-	public record Context(DrifterEntity drifter, KnownWorld world, Needs needs, int stage, @Nullable Strategist.Target target, long time) {
+	public record Context(DrifterEntity drifter, KnownWorld world, Needs needs, int stage, @Nullable Strategist.Target target, long time,
+		Threats.Assessment threat, boolean sealedIn) {
 	}
 
 	public abstract static class Goal {
@@ -388,7 +394,154 @@ public final class Goals {
 		}
 	}
 
+	/** Fight hostiles it can beat (section 13 ratio above 1.2, or cornered). */
+	public static final class Fight extends Goal {
+		@Override
+		public String id() {
+			return "fight";
+		}
+
+		@Override
+		public String name(Context context) {
+			LivingEntity main = context.threat().main();
+			return main == null ? "fight" : "fight the " + main.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+		}
+
+		@Override
+		public double urgency(Context context) {
+			Threats.Assessment threat = context.threat();
+			if (context.sealedIn() || !threat.decision().fights()) {
+				return 0.0;
+			}
+
+			if (threat.urgent()) {
+				return 0.95;
+			}
+
+			// Something it could beat, further off: worth it if it's coming (or for the drops, if confident).
+			return threat.decision() == Threats.Decision.ENGAGE ? 0.4 : 0.2;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return context.threat().urgent() && context.threat().decision().fights() && !context.sealedIn();
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 0;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new CombatActivity(context.drifter());
+		}
+	}
+
+	/** Get away from hostiles it can't beat (section 13 ratio below 1.2), or that it's too hurt to fight. */
+	public static final class Flee extends Goal {
+		@Override
+		public String id() {
+			return "flee";
+		}
+
+		@Override
+		public String name(Context context) {
+			LivingEntity main = context.threat().main();
+			return main == null ? "get away" : "get away from the " + main.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+		}
+
+		@Override
+		public double urgency(Context context) {
+			Threats.Assessment threat = context.threat();
+			if (context.sealedIn() || threat.decision() == Threats.Decision.NONE || threat.decision().fights()) {
+				return 0.0;
+			}
+
+			if (threat.urgent() || threat.nearest() <= 10.0) {
+				return threat.decision() == Threats.Decision.FLEE ? 0.97 : 0.9;
+			}
+
+			return 0.5;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return context.threat().urgent() && !context.threat().decision().fights() && !context.sealedIn();
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 0;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new FleeActivity(context.drifter());
+		}
+	}
+
+	/** Put on better armor or a shield the moment it has one (section 10.17, "Upgrades"). */
+	public static final class Equip extends Goal {
+		@Override
+		public String id() {
+			return "equip";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "put on better gear";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			return WearArmorTask.hasUpgrade(context.drifter()) ? 0.75 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 0;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new Activity(context.drifter()) {
+				private boolean done;
+
+				@Override
+				public String describe() {
+					return "put on better gear";
+				}
+
+				@Override
+				protected Status next() {
+					if (this.done) {
+						return Status.SUCCESS;
+					}
+
+					this.done = true;
+					return this.begin(new WearArmorTask(this.drifter));
+				}
+			};
+		}
+	}
+
 	public static List<Goal> all() {
-		return List.of(new Eat(), new GetFood(), new TakeShelter(), new Progress(), new Wander(), new Idle());
+		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new TakeShelter(), new Progress(), new Wander(), new Idle());
 	}
 }

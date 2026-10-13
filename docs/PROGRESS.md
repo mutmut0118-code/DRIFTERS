@@ -11,7 +11,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 - **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.
 - **Milestone 3 (Senses and memory): done.** The user fully tested it in-game. One bug found (blocks behind glass) was fixed afterwards; that one item needs a quick re-check.
 - **Milestone 4 (Pathfinder): done.** After six rounds of in-game fixes the user reported bridging across a whole ravine works, and everything else in its checklist worked earlier; the user moved on. (The "tunnel through a hill" item wasn't reported on separately: worth a quick look when convenient.)
-- **Milestone 5 (Brain and day one): first version written, not tested in-game yet.** See "Milestone 5" below. The milestone 2 checklist and the milestone 3 glass re-check are still open.
+- **Milestone 5 (Brain and day one): in testing.** Two rounds of in-game fixes so far (hunting with the right weapon and crits, sky through leaves, hill steps); the user is re-testing.
+- **Milestone 6 (Combat and reflexes): first version written while the user tests milestone 5, not tested in-game yet.** See "Milestone 6" below. The milestone 2 checklist and the milestone 3 glass re-check are still open.
 - The user tests by downloading the jar from the GitHub Actions run for the latest push (Artifacts zip, the jar without "sources") into a Fabric 1.21.1 instance with Fabric API, in the Modrinth App. The user doesn't code, so keep instructions plain and step by step.
 
 ## Milestones
@@ -23,8 +24,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 2 | Hands | In progress: wood-to-stone script passed in-game; rest of the checklist pending | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
 | 3 | Senses and memory | Done (fully tested in-game; glass fix needs a re-check) | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
 | 4 | Pathfinder | Done (in-game: ravine bridging, village, drops, doors) | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
-| 5 | Brain and day one | In progress: first version written, needs in-game testing | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
-| 6 | Combat and reflexes | Not started | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
+| 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
+| 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Not started | Done when: people watching a short clip can't reliably tell it from a player. |
 | 8 | Progression and building | Not started | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
@@ -276,6 +277,34 @@ The "done when" test: a Fresh Drifter (empty inventory) survives its first night
 2. Fix what the test finds, until a fresh Drifter gets through its first night on most seeds.
 3. Milestone 6 (combat and reflexes) only after the user says go.
 
+## Milestone 6: Combat and reflexes
+
+The "done when" test: it survives three nights in a row. Plus a combat-mod test pass (section 21).
+
+### Done (code complete, not yet tested in-game)
+- **Mobs hunt Drifters like players** (`world/MobTargeting`, sections 1, 2 and 13; on by default): every mob with an "attack the nearest player" goal gets a matching "attack the nearest Drifter" goal at the same priority, with the same rules (line of sight, reachability, the mob's own conditions: drowned only in water, slimes near their height, zombified piglins only when angry, spiders only in the dark). Not covered yet: brain-driven mobs (piglins, hoglins, wardens, breezes) and endermen (they only get angry if the Drifter hits them, since it never stares).
+- **Threat assessment** (`brain/Threats`, section 13): threat = sum over noticed hostiles of base danger (data file `data/drifter/drifter_threats/vanilla.json`) x visible gear x proximity (x1.3 when it's coming for the Drifter); power = health x armor x weapon damage per second x shield x food. The ratio picks: engage (above 2), engage carefully (1.2-2), avoid (0.8-1.2), retreat (0.5-0.8), flee (below 0.5); "cornered" (a hostile within 3.5 blocks just hit it, and it isn't hopeless) means fight back. Only hostiles it has noticed count (perception), plus whatever just hit it.
+- **Goals**: fight (urgent when a beatable hostile is within 6 blocks or just hit it), flee (urgent when it can't win), equip (puts on better armor and a shield in the offhand as soon as it has them). Danger is checked every 5 ticks between the once-a-second re-scores, and getting hurt triggers an immediate re-score. No fighting or fleeing while sealed in its night shelter (nothing can reach it).
+- **Fighting** (`executor/task/AttackTask`, section 13 melee mechanics and per-mob protocols): best weapon first, full-strength swings only, jump crits with slow weapons. Melee mobs (zombies, spiders...): hit, then step back out of reach while the cooldown refills, hovering at 2.4-3.3 blocks and strafing (direction changes every 0.5-2 s), shield up while backing off. Archers (skeletons, pillagers...): zigzag in, shield up while they draw, then melee. Creepers: a sprint-knockback hit (never a jump crit), then back off to 5+ blocks before stepping in again; a hissing creeper makes it back off at once. After the fight: a nervous look around, then it picks up the drops (and eats, since being hurt raises the eat goal).
+- **Fleeing** (`brain/activity/FleeActivity`): sprints away from the hostiles; swarmed by 3+ melee mobs with 3+ blocks, it pillars 3 up out of reach and waits. At night the shelter goal digs it in once it's clear.
+- **Reflexes** (`reflex/Reflexes`, section 15): a layer that runs before the brain every tick and takes the body over for a moment, then hands it back to the paused task. Human reaction delay of 150-400 ms (3-8 ticks, +3 if the hazard is behind it) and a 15% chance to react 4-8 ticks late. Catalog: in lava (jump out to the nearest safe block), drowning (swim up, or toward open water), on fire (run into water within 4 blocks), creeper hissing within 6 (sprint clear; shield up if it can't get away in time), lit TNT within 8 (run), lava next to its body (place a block over it, or back away), heavy fall with a water bucket in the hotbar (water-bucket clutch 1-3 blocks above the ground, then scoops it back up), arrow or fireball on a collision course (shield up, or sidestep), suffocating (dig out), sand or gravel falling on it (step aside), stuck in a cobweb (cut it), pricked by a cactus or berry bush (step away). Sneaks on magma blocks.
+- **Shields**: equipped to the offhand by the equip goal; raised by the fight and the reflexes (vanilla blocking works for it: 0.25 s raise delay, slows it while held).
+- **Overlay / status**: `/drifter brain` and the overlay show the threat line ("threat 1.3 vs power 2.2 (1.69): engage carefully [zombie]") and the active reflex.
+
+### Not done yet / left for later (TODOs in code)
+- Bows and crossbows (ranged mechanics), axe-vs-shield, sweeps lined up on groups, W-tap sprint resets: milestone 6 follow-up or milestone 9 (players).
+- Terrain sense (doorways, high ground, 2-high ceilings against endermen), backing into light: later.
+- Retreating toward home or light, blocking itself in when pursued: milestone 8 (needs a home).
+- Golden apples, potions, totems, ender pearls: when it can get them (milestones 8 and 11).
+- Fighting styles and Skill-scaled timing and miss chances: milestone 7 (personality).
+- Better Combat / Combat Roll integration: see design question 9.
+- Brain-driven mobs targeting Drifters (piglins, hoglins, breezes): milestone 11 (Nether).
+
+### Next steps
+1. User finishes testing milestone 5, then tests milestone 6 (`docs/TESTING.md`, "Milestone 6").
+2. Fix what the tests find; the "done when" is three nights survived in a row.
+3. Combat-mod test pass (section 21): with Simply Swords and Better Combat installed.
+
 ## Long-term goal: manhunt test
 
 The user's "ultimate test" is a **1v1 manhunt**, now in DESIGN.md section 25 ("Manhunt test mode"). It's **only a test**:
@@ -304,4 +333,5 @@ Questions for the user. Nothing here has been changed in the design.
 5. **Pathfinding reads the real terrain for blocks it has seen (sections 1, 8, 12).** Section 8 says pathfinding is one of the few systems allowed to touch the live world. To keep it fair anyway, it only reads blocks the Drifter has actually seen (or touched, or revealed by mining); everything else is treated as unknown, exactly as section 12 describes. One small leak remains: if a block it saw changes while it's not looking, the pathfinder sees the new state. I think that's fine (it replans as soon as it gets there anyway). No decision needed unless you want it stricter.
 7. **Night-one shelter is tier 1 (section 11).** For milestone 5 the Drifter digs three blocks straight down and covers the hole (the tier 1 "digs down and covers the hole" option) rather than the tier 2 hillside room, because it works on any ground and is the most reliable way to survive night one before combat exists (milestone 6). The worked example in section 24 has it dig a 3x3 hillside room on day 1; that can follow in milestone 8 (or sooner if you prefer). No decision needed unless you want the hillside room now.
 8. **The planner's data file location.** Section 8 says acquisition rules live in data files. They're in `data/<namespace>/drifter_sources/*.json` (a datapack can add more). Recipes come from the game. No decision needed.
+9. **Better Combat and Combat Roll (section 21, milestone 6 "combat-mod test pass").** What already works without any special code: modded weapons (Simply Swords and the like) are judged by their real attack damage and speed, and its reach comes from the reach attribute, so they're picked up and used correctly. What section 21 asks beyond that: reading Better Combat's per-weapon ranges and combos, and giving the Drifter the same dodge roll as Combat Roll. Doing that properly means compiling against those mods (as optional, "compile only" dependencies, never required at runtime), which adds their download sites to the build. **My recommendation:** for this milestone, just run the combat-mod test pass to check nothing breaks with them installed (the Drifter's hits go through vanilla's player attack, which those mods leave working), and add the real Better Combat / Combat Roll integration as a follow-up once you say it's OK to add those optional build dependencies. Question for you: OK to add them later?
 4. **Break speed computed on the Drifter (section 3).** The design says to compute mining time through the fake-player helper. I compute it on the Drifter with an exact copy of the player's formula instead, because the helper never ticks, so its Haste, Mining Fatigue and Efficiency would be out of date. The numbers are identical to a player's. No decision needed unless you want it done differently.

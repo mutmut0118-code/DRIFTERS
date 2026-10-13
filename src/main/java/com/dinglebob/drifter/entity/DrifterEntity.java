@@ -102,6 +102,7 @@ public class DrifterEntity extends PathfinderMob {
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
 	private final TaskRunner tasks = new TaskRunner(this);
 	private final com.dinglebob.drifter.brain.Brain brain = new com.dinglebob.drifter.brain.Brain(this);
+	private final com.dinglebob.drifter.reflex.Reflexes reflexes = new com.dinglebob.drifter.reflex.Reflexes(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
 	/** True during its own melee swing (see {@link #hurt} and {@link #knockback}). */
 	private boolean ownSwing;
@@ -163,6 +164,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public CameraModel getCamera() {
 		return this.camera;
+	}
+
+	public com.dinglebob.drifter.reflex.Reflexes getReflexes() {
+		return this.reflexes;
 	}
 
 	public com.dinglebob.drifter.brain.Brain getDrifterBrain() {
@@ -290,8 +295,11 @@ public class DrifterEntity extends PathfinderMob {
 		super.customServerAiStep();
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		this.senses.tick();
-		this.brain.tick();
-		this.tasks.tick();
+		// Reflexes first (section 8, layer 5): while one has the body, the brain and the executor wait.
+		if (!this.reflexes.tick()) {
+			this.brain.tick();
+			this.tasks.tick();
+		}
 		float[] look = this.camera.tick(this.getEyePosition(), this.getYRot(), this.getXRot());
 		this.setYRot(look[0]);
 		this.setXRot(look[1]);
@@ -756,6 +764,8 @@ public class DrifterEntity extends PathfinderMob {
 		boolean hit = super.hurt(source, amount);
 		if (hit && !this.level().isClientSide) {
 			this.senses.onHurt(source, amount);
+			this.reflexes.onHurt(source);
+			this.brain.poke();
 		}
 
 		return hit;
