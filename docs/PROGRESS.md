@@ -271,6 +271,7 @@ The "done when" test: a Fresh Drifter (empty inventory) survives its first night
 - Natural spawning (section 4): not yet; spawn with `/drifter spawn`.
 - The strategist's daily agenda, home and storage (stages 4+): milestone 8.
 - Picking the crafting table back up (Tidy Drifters): milestone 7 habits.
+- **Mining style by personality** (user's note for milestone 7, fits DESIGN.md section 10.3 "chosen by stage, target and personality"): some Drifters should lean on strip or branch mining, others on caving and exploring the surface, and the mix should differ between Drifters. Today every Drifter uses the same rule (explore for caves first, staircase down after 3 failed legs).
 
 ### Next steps
 1. User tests milestone 5 (`docs/TESTING.md`, "Milestone 5").

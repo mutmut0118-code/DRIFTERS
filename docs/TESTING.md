@@ -481,8 +481,13 @@ thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints t
          weapon first** (the stone sword, not planks). With the sword it **jumps and hits on the way down** (critical
          hits: you'll see the crit particles, the little stars), one full-strength swing per jump, never spam-clicking.
          With only its fist it does plain hits a quarter-second apart (that's the vanilla fist cooldown). It picks up
-         the meat. Then **cooks** it in its furnace (fuel: coal, charcoal, planks or logs), waiting by
-         the furnace.
+         the meat. Then **cooks** it in its furnace (fuel: coal, charcoal, planks or logs).
+   - [ ] **Smelting while doing other things (new):** when it puts something in a furnace, the thought line says
+         "left N ... cooking; back in about X s" and it **walks off to do something else** (gather, hunt, explore)
+         instead of standing there. When the batch should be done it comes back ("collect ... from the furnace") and
+         takes the result. `/drifter inventory` then shows the cooked food or smelted items.
+   - [ ] **Straighter walking (new):** on open ground it walks in a **straight line** toward where it's going, at any
+         angle, instead of zig-zagging along the block grid. It still goes around trees, holes and water.
    - [ ] Makes **torches** (from coal it saw, or charcoal it smelts from logs).
    - [ ] **Eats** when its food drops to about 14 (cooked food first, the piece that fills without waste).
 4. Check the plan line now and then: it should make sense ("gather oak log (to 3) > craft oak planks > craft crafting
