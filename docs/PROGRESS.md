@@ -190,6 +190,22 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 3. Milestone 5 (Brain and day one): selector, planner, executor, the Stage 1 to 3 loop.
 
 
+## Long-term goal from the user (not in DESIGN.md yet)
+
+The user would like the **ultimate test** of the mod to be a **1v1 Minecraft manhunt** (like Dream's Manhunt videos):
+a real player against a Drifter. Nothing in DESIGN.md has been changed for this; it's a north star to keep in mind.
+Open question: which role does the Drifter play (see design question 6)? Notes so far:
+- **Drifter as hunter** fits the design best and comes earliest: it needs the pathfinder and chasing (milestone 4),
+  combat and reflexes (6), and the hostile/vengeful behaviours (9). Manhunt hunters carry a tracking compass; giving the
+  Drifter the same compass item (and reading it like a player reads a compass) keeps the "knowledge only through
+  perception" rule intact.
+- **Drifter as speedrunner** is the harder, more impressive version: it needs the brain and planner (5), a very fast
+  "Speedrunner" archetype (section 17 already has one), the Nether (11), and the End (13), which is optional and off by
+  default in the design, so it would need turning on. It would also need fleeing and evasion from a hunter.
+- Things manhunts lean on that the design doesn't fully cover yet: parkour jumps and boat/water escapes (section 12
+  lists them as later), ender pearls and bartering (section 19), bed explosions in the End (banned by default in
+  section 15), and duelling a human (section 1 non-goal: "imitating a top-tier PvP player perfectly").
+
 ## Decided
 
 - **Build setup:** Loom 1.17 + Gradle 9.5.0 on Java 21 (user: "use your recommendations").
@@ -205,5 +221,9 @@ Questions for the user. Nothing here has been changed in the design.
 1. **(Decided: option a.) Own spawn group (sections 18 and 22).** On 1.21.1, mob spawn groups are a hard-coded enum (`MobCategory`), and Fabric API has no way to add a new one. Options: (a) don't use vanilla natural spawning and run Drifter spawning from our own rare spawner (section 4 already describes a custom, rare, out-of-sight check every few minutes), which also keeps them out of the monster and creature caps; (b) add an enum entry via a mixin/enum-extension hack. I recommend (a). For now the entity type uses the `MISC` category, which means no vanilla natural spawning and no share of any cap, consistent with (a).
 2. **(Decided: use a mixin.) Player sleep blocking (section 18).** Vanilla only blocks sleep for mobs of the `Monster` class. Making a hostile-to-you Drifter block sleep will need a small mixin on the bed check. Fine on 1.21.1; no decision needed unless you object to mixins there.
 3. **Idle jitter is mostly invisible over the network (section 16.1).** Minecraft sends entity rotations to clients in steps of 360/256 = about 1.4 degrees. The design's "fraction of a degree" jitter therefore shows up as an occasional 1.4-degree tick rather than a smooth tremble, and only when the jitter crosses a step. Options: (a) accept it; (b) raise the jitter amplitude to about 1.5 degrees so it reliably shows; (c) later, send exact rotations with a small custom packet (costs a little network per Drifter). **Decided: (a), keep 0.4 degrees** for now; raise it if the user later finds the head looks frozen.
+6. **Manhunt role (user's long-term goal).** Should the Drifter be the hunter, the speedrunner, or both (a setting)?
+   And should a "manhunt mode" be added to the design as an official scenario (with the End and dragon fight switched on
+   for it)? My recommendation: plan for **hunter first** (it falls out of milestones 4, 6 and 9 with little extra),
+   then **speedrunner** after the Nether and End milestones.
 5. **Pathfinding reads the real terrain for blocks it has seen (sections 1, 8, 12).** Section 8 says pathfinding is one of the few systems allowed to touch the live world. To keep it fair anyway, it only reads blocks the Drifter has actually seen (or touched, or revealed by mining); everything else is treated as unknown, exactly as section 12 describes. One small leak remains: if a block it saw changes while it's not looking, the pathfinder sees the new state. I think that's fine (it replans as soon as it gets there anyway). No decision needed unless you want it stricter.
 4. **Break speed computed on the Drifter (section 3).** The design says to compute mining time through the fake-player helper. I compute it on the Drifter with an exact copy of the player's formula instead, because the helper never ticks, so its Haste, Mining Fatigue and Efficiency would be out of date. The numbers are identical to a player's. No decision needed unless you want it done differently.
