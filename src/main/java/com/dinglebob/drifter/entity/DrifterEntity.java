@@ -336,6 +336,8 @@ public class DrifterEntity extends PathfinderMob {
 		this.setYRot(look[0]);
 		this.setXRot(look[1]);
 		this.setYHeadRot(look[0]);
+		// TODO(milestone 8): deliberate sprint-swimming on long swims (section 10.10).
+		com.dinglebob.drifter.motor.Steering.noSprintInWater(this);
 		this.applyMovementKeys();
 		if (this.keysReleaseTimer > 0 && --this.keysReleaseTimer == 0) {
 			this.keys.releaseAll();

@@ -96,6 +96,41 @@ public final class KnownBlocks {
 	}
 
 	/**
+	 * The nearest dry spot it has seen, at least {@code minDistance} away, with no water or lava within
+	 * {@code margin} blocks around it at foot level and the two levels below: somewhere it can stand on land and dig
+	 * in for the night without water pouring into the hole. Null if it knows none.
+	 */
+	@Nullable
+	public static BlockPos nearestDryGround(DrifterEntity drifter, int radius, double minDistance, int margin) {
+		Level level = drifter.level();
+		Vec3 from = drifter.position();
+		double minSqr = minDistance * minDistance;
+		BlockPos[] best = {null};
+		double[] bestDistance = {Double.MAX_VALUE};
+		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
+			BlockPos above = pos.above();
+			double distance = above.distToCenterSqr(from);
+			if (distance >= bestDistance[0] || distance < minSqr || !level.isLoaded(pos) || !isStandable(level, above)) {
+				return;
+			}
+
+			for (int dx = -margin; dx <= margin; dx++) {
+				for (int dz = -margin; dz <= margin; dz++) {
+					for (int dy = -2; dy <= 0; dy++) {
+						if (!level.getFluidState(above.offset(dx, dy, dz)).isEmpty()) {
+							return;
+						}
+					}
+				}
+			}
+
+			bestDistance[0] = distance;
+			best[0] = above.immutable();
+		});
+		return best[0];
+	}
+
+	/**
 	 * The nearest spot (to the Drifter) whose floor it has seen and from which a standing player could see and reach
 	 * the target block.
 	 */

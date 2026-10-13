@@ -58,6 +58,27 @@ public final class Steering {
 		return feet && high;
 	}
 
+	/**
+	 * No face-down sprint-swimming yet (it comes with the rest of section 10.10, milestone 8). In that mode the body
+	 * follows where the head points, so holding jump while looking up launched it out of the water and looking down
+	 * sank it (found in testing). In water it lets go of sprint, and if it's still sprinting (sprint carries on into
+	 * the water, as for a player) it lets go of the movement keys for a tick, which is how a player stops.
+	 */
+	public static void noSprintInWater(DrifterEntity drifter) {
+		if (!drifter.isInWater()) {
+			return;
+		}
+
+		VirtualKeys keys = drifter.getKeys();
+		keys.set(VirtualKeys.Key.SPRINT, false);
+		if (drifter.isSprinting() || drifter.isSwimming()) {
+			keys.set(VirtualKeys.Key.FORWARD, false);
+			keys.set(VirtualKeys.Key.BACK, false);
+			keys.set(VirtualKeys.Key.LEFT, false);
+			keys.set(VirtualKeys.Key.RIGHT, false);
+		}
+	}
+
 	public static void stopMoving(DrifterEntity drifter) {
 		VirtualKeys keys = drifter.getKeys();
 		keys.set(VirtualKeys.Key.FORWARD, false);

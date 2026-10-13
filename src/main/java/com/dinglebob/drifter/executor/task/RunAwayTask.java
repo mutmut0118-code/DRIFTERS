@@ -111,7 +111,8 @@ public class RunAwayTask extends Task {
 		Steering.pressToward(this.drifter, target);
 		keys.set(VirtualKeys.Key.SNEAK, false);
 		keys.set(VirtualKeys.Key.SPRINT, keys.isDown(VirtualKeys.Key.FORWARD) && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL);
-		keys.set(VirtualKeys.Key.JUMP, this.drifter.horizontalCollision && this.drifter.onGround());
+		// Jump bumps; in water, keep its head above the surface.
+		keys.set(VirtualKeys.Key.JUMP, this.drifter.horizontalCollision && this.drifter.onGround() || this.drifter.isUnderWater());
 		return Status.RUNNING;
 	}
 

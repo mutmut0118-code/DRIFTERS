@@ -415,9 +415,10 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - [ ] Hungry: `/drifter food 6`, then `/drifter goto` somewhere far: it walks (it can't sprint).
 - [ ] Ancient city (optional): near sculk sensors or shriekers it has seen, it sneaks and never sprints.
 
-- [ ] **Swimming across a river (re-test after fix):** `/drifter goto` a spot on the far side of a river or lake.
-      It swims at the surface with its head out, bobbing gently (no big bounces out of the water), at about walking
-      speed in water (roughly 2 blocks a second), and climbs out on the far bank. It shouldn't stop in the middle.
+- [ ] **Swimming across a river (re-test after 2nd fix):** `/drifter goto` a spot on the far side of a river or lake.
+      It swims at the surface with its head out, bobbing gently (**no big bounces out of the water, no sinking**), at
+      about walking speed in water (roughly 2 blocks a second), and climbs out on the far bank. It shouldn't stop in
+      the middle. Also try it running and jumping into the water from a bank: it should not start swimming face-down.
 
 ### 2. Bridging (crossing a ravine)
 - [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide
@@ -527,6 +528,13 @@ thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints t
 - [ ] In the morning it **digs out the cover block and climbs up** (pillaring with the dirt it dug), then carries on
       with its day.
 - [ ] If it's standing on sand, gravel or water at dusk, it moves a few blocks and tries again there.
+- [ ] **In the water at dusk (re-test after fix):** put it in a river or lake around `/time set 11500`. It says "getting
+      out of the water for the night", swims out, walks **all the way onto land** (a couple of blocks from the water)
+      and digs in there. It must not stand at the shore.
+- [ ] **Walling in (new):** at dusk on a sandy beach or desert (`/drifter give minecraft:dirt 16` first), it can't dig
+      down in sand, so after a few tries it says "...walling itself in instead" and puts blocks around itself (feet and
+      head height on all four sides, one on top of a wall, then the roof). Then "walled in for the night". In the
+      morning it breaks out through one wall.
 - [ ] **Re-test after fix:** when it climbs out under a tree in the morning, it sees the sky through the leaves (the
       panel's time stops saying "[guessing]") and carries on with its day.
 - [ ] **Hills (re-test after fix):** send it up a steep hill or mountain (`/drifter goto <a block near the top>`). At a
