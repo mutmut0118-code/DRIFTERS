@@ -574,12 +574,13 @@ public final class Goals {
 
 		@Override
 		public double feasibility(Context context) {
-			return 1.0;
+			// Only something it can see (one it only heard, it looks for first).
+			return context.threat().main() != null ? 1.0 : 0.0;
 		}
 
 		@Override
 		public boolean urgent(Context context) {
-			return context.threat().urgent() && context.threat().decision().fights() && !context.sealedIn();
+			return context.threat().urgent() && context.threat().decision().fights() && !context.sealedIn() && context.threat().main() != null;
 		}
 
 		@Override

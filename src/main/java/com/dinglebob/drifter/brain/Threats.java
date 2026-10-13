@@ -211,13 +211,16 @@ public final class Threats {
 				continue;
 			}
 
-			// Noticed and recently in sight, or the one that just hit it (it knows that much without seeing it).
-			boolean noticed = awareness.identified && now - awareness.lastSeenTick < 20 * 4;
-			if (!noticed && !(recentlyHit && living == lastAttacker)) {
+			// Noticed and recently in sight, heard (a groan, a rattle: it knows what's there and roughly where), or the one
+			// that just hit it (it knows that much without seeing it).
+			boolean seen = awareness.identified && awareness.seenWithin(now, 20 * 4);
+			boolean heard = awareness.identified && awareness.heardWithin(now, 20 * 4);
+			if (!seen && !heard && !(recentlyHit && living == lastAttacker)) {
 				continue;
 			}
 
-			double distance = living.distanceTo(drifter);
+			double distance = seen || recentlyHit && living == lastAttacker ? living.distanceTo(drifter)
+				: awareness.believedPos(now, 20 * 4).distanceTo(drifter.position());
 			if (distance > RANGE) {
 				continue;
 			}
@@ -234,8 +237,9 @@ public final class Threats {
 			threat += score;
 			hostiles.add(living);
 			nearest = Math.min(nearest, distance);
-			// The one to deal with first: the most dangerous up close.
-			if (score > mainScore) {
+			// The one to deal with first: the most dangerous up close, of the ones it can see (it doesn't go for one it
+			// only heard; it's on its guard and looks).
+			if (score > mainScore && (seen || recentlyHit && living == lastAttacker)) {
 				mainScore = score;
 				main = living;
 			}

@@ -21,8 +21,23 @@ public final class BlockNotes {
 
 	/** Label for sculk sensors and shriekers: the deep dark, where it sneaks (section 15). */
 	public static final String SCULK = "sculk";
+	/** Bare natural stone seen from afar: a cliff, a cave mouth, a mountainside (a place to get stone). */
+	public static final String EXPOSED_STONE = "exposed stone";
 
 	private BlockNotes() {
+	}
+
+	/** Blocks that (in a natural world) only villages have: the bell and villager workstations. */
+	public static boolean isVillageBlock(BlockState state) {
+		return state.is(Blocks.BELL) || state.is(Blocks.LECTERN) || state.is(Blocks.COMPOSTER) || state.is(Blocks.FLETCHING_TABLE)
+			|| state.is(Blocks.CARTOGRAPHY_TABLE) || state.is(Blocks.LOOM) || state.is(Blocks.GRINDSTONE) || state.is(Blocks.STONECUTTER);
+	}
+
+	/** The ground itself (not trees, plants, water or buildings): what a hill or a mountain is made of. */
+	public static boolean isNaturalGround(BlockState state) {
+		return state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(Blocks.GRAVEL)
+			|| state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW) || state.is(Blocks.POWDER_SNOW) || state.is(BlockTags.ICE)
+			|| state.is(BlockTags.TERRACOTTA) || state.is(Blocks.CALCITE);
 	}
 
 	@Nullable

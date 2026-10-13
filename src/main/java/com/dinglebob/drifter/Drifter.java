@@ -29,6 +29,7 @@ public class Drifter implements ModInitializer {
 		Sources.register();
 		Threats.register();
 		MobTargeting.register();
+		com.dinglebob.drifter.perception.CreatureHearing.register();
 		LOGGER.info("Drifter initialized");
 	}
 

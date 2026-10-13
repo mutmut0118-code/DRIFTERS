@@ -47,6 +47,11 @@ public final class KnownWorld {
 	/** A remembered grove of trees farther away, if any. */
 	@Nullable
 	public final Vec3 treesHint;
+	/** Bare stone (a cliff, a cave mouth) or a mountain it saw from afar, if any: where to look for stone. */
+	@Nullable
+	public final Vec3 stoneHint;
+	/** How far away far-sight hints count. */
+	public static final double FAR_HINT_RANGE = 112.0;
 
 	private KnownWorld(DrifterEntity drifter) {
 		Level level = drifter.level();
@@ -89,6 +94,14 @@ public final class KnownWorld {
 		MemoryEntry trees = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), TREE_MEMORY_RANGE,
 			e -> e.label.equals("trees") && e.pos.distanceTo(drifter.position()) > RADIUS);
 		this.treesHint = trees == null ? null : trees.pos;
+		MemoryEntry stone = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), FAR_HINT_RANGE,
+			e -> e.label.equals(com.dinglebob.drifter.perception.BlockNotes.EXPOSED_STONE) && e.pos.distanceTo(drifter.position()) > RADIUS);
+		if (stone == null) {
+			stone = drifter.getMemory().nearest(MemoryKind.LANDMARK, dimension, drifter.position(), FAR_HINT_RANGE,
+				e -> e.label.equals("mountain") && e.pos.distanceTo(drifter.position()) > RADIUS);
+		}
+
+		this.stoneHint = stone == null ? null : stone.pos;
 	}
 
 	public static KnownWorld scan(DrifterEntity drifter) {

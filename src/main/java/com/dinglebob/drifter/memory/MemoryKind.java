@@ -34,7 +34,9 @@ public enum MemoryKind {
 	/** Places to fear: lava, bad hits. Fades over days unless renewed. */
 	DANGER(Tier.LONG, 24000 * 3, false, 16, 8, null),
 	/** Structure clues: spawners, portals, bookshelves, mossy cobblestone. */
-	STRUCTURE(Tier.LONG, 24000 * 30, false, 32, 4, null);
+	STRUCTURE(Tier.LONG, 24000 * 30, false, 32, 4, null),
+	/** Big things seen from afar: mountains, villages. They don't go anywhere, so they don't fade. */
+	LANDMARK(Tier.LONG, 0, true, 32, 48, null);
 
 	public enum Tier {
 		SHORT, LONG

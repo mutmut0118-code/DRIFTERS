@@ -252,15 +252,15 @@ The Drifter knows only what a player at its position, looking where it is lookin
 
 - **View cone:** about 110 degrees horizontal and 70 degrees vertical, centered on the head, not the body. A Drifter looking at a furnace genuinely cannot see the zombie behind it.
 - **Peripheral zone:** 110 to 180 degrees, motion only. Something moving there produces a glimpse that makes it turn its head, but no identification.
-- **Range:** up to 48 blocks in daylight for entities, scaled by the light level at the target. In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing.
-- **Line of sight:** a ray from the eye to the target's head and feet. Seeing either counts; seeing both counts more.
+- **Range:** up to 112 blocks (7 chunks; the user's call, since a player sees far more than a mob) in daylight for entities, scaled by the light level at the target and by its size (a chicken is a speck long before a horse is). In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing. Peripheral motion only counts within about 32 blocks.
+- **Line of sight:** a ray from the eye to the target's head and feet. Seeing either counts; seeing both counts more. Beyond 32 blocks one ray to the middle is used, only a few far checks run per re-rank, and far tracked entities are re-checked less often, so long sight stays cheap.
 - **Modifiers:** rain shortens range by about a quarter, thunderstorms more; underwater range is short; Blindness and Darkness effects apply exactly as for players.
 - **Sneaking targets:** harder to spot, and their nameplate is hidden behind blocks just like for players.
 - **Invisible targets:** effectively unseen, except for armor they're wearing and particles.
 
 ### Awareness meter
 
-Detection is gradual rather than instant. Each perceived entity has an awareness value from 0 to 1 that fills faster when the target is close, moving, lit, and in the center of view, and drains when it isn't.
+Detection is gradual rather than instant, but quick, like a player's common sense: something close and in plain view is identified in about a third of a second, something far off and still in a second or two. Each perceived entity has an awareness value from 0 to 1 that fills faster when the target is close, moving, lit, and in the center of view, and drains when it isn't.
 
 | Level | Threshold | Reaction |
 | --- | --- | --- |
@@ -276,6 +276,7 @@ This is the core of stealth play against hostile Drifters: a sneaking player in 
 - **Mining reveals:** breaking a block reveals its six neighbors. This is how mining discovers ores, and it is the only way the Drifter learns what's inside rock.
 - **No guessing beyond probability:** the Drifter can use Y-level odds ("diamonds are common near the bottom") to choose where to dig, exactly like a player who's read the wiki, but never knows a specific hidden ore.
 - **Budget scaling:** more rays when a player is nearby and the Drifter is visible, fewer when it's far away.
+- **Far sight:** a couple of extra rays per tick near the horizon (inside the view cone) reach 112 blocks in daylight, shorter in the dark and in rain. They note **landmarks**: mountains and high ground, villages (bells and villager workstations), and bare stone (cliffs, cave mouths) as a place to get stone, plus groves of trees. Only the first 48 blocks of each ray go into the pathfinder's block knowledge. Rays never look into unloaded chunks.
 
 ### Hearing
 
@@ -293,7 +294,7 @@ Hearing uses the same vibration events that sculk sensors listen to, which alrea
 | Creeper fuse | 8 to 16 | Immediate reflex (section 15), even without line of sight |
 | Mob ambient sounds (groans, rattles, clicks) | 16 | Rough type and direction of nearby mobs |
 
-- Hearing gives direction, rough distance and kind of sound, never identity.
+- Hearing gives direction, rough distance and kind of sound, never which player. A creature's own sounds (a moo, a groan, a bone rattle, a spider's skitter, a creeper's hiss) tell it what kind of creature it is, as they would a player, but only roughly where: it fights only what it has seen, and turns to look.
 - Sneaking players make no step vibrations, matching how sculk treats sneaking. Wool blocks muffle sounds that pass through them.
 - A sound produces a look-toward reaction and, if repeated or suspicious, an investigation.
 
@@ -316,7 +317,7 @@ On a player it can see, the Drifter perceives: name, held item, armor material p
 
 ### Attention budget
 
-- Track at most about 8 entities in detail at once, chosen by threat and salience. Everything else is background.
+- Track at most about 12 entities in detail at once, chosen by threat and salience. Everything else is background.
 - Re-rank the tracked set every 10 ticks.
 - Being hit, hearing a creeper fuse, or seeing a player always forces the source into the tracked set.
 

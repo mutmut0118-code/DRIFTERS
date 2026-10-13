@@ -50,6 +50,10 @@ public class Awareness {
 	public long lastSeenTick;
 	/** Ticks this entity stays in the tracked set regardless of the attention budget (it hit us, a fuse hissed). */
 	public int forcedTicks;
+	/** Where it last heard this one's own sounds (a moo, a groan, a rattle; roughly), and when. */
+	@org.jetbrains.annotations.Nullable
+	public Vec3 heardPos;
+	public long heardTick = Long.MIN_VALUE / 2;
 	Level lastLevel = Level.NONE;
 
 	public Awareness(Entity entity, long now) {
@@ -60,5 +64,22 @@ public class Awareness {
 
 	public Level level() {
 		return Level.of(this.value);
+	}
+
+	public boolean seenWithin(long now, long ticks) {
+		return now - this.lastSeenTick < ticks;
+	}
+
+	public boolean heardWithin(long now, long ticks) {
+		return this.heardPos != null && now - this.heardTick < ticks;
+	}
+
+	/** Where it believes this one is: where it saw it (live, while seen recently), else where it heard it. */
+	public Vec3 believedPos(long now, long ticks) {
+		if (this.seenWithin(now, ticks) || this.heardPos == null) {
+			return this.visibleNow ? this.entity.position() : this.lastSeenPos;
+		}
+
+		return this.heardPos;
 	}
 }

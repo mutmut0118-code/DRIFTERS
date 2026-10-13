@@ -58,38 +58,70 @@ public class Senses {
 	/** Peripheral zone: out to 180 degrees horizontal; motion only. */
 	public static final float PERIPHERAL_HALF_YAW = 90.0F;
 	public static final float PERIPHERAL_HALF_PITCH = 60.0F;
-	/** Entity sight range in full light, and in full darkness. */
-	public static final double DAYLIGHT_RANGE = 48.0;
+	/** Entity sight range in full light (7 chunks, the user's call: a player sees much farther than a mob), and in full darkness. */
+	public static final double DAYLIGHT_RANGE = 112.0;
 	public static final double DARK_RANGE = 8.0;
+	/** How far above and below it looks for entities (beyond that they're behind terrain anyway). */
+	public static final double VERTICAL_RANGE = 48.0;
+	/** Small creatures are harder to make out far away: range scales with the square root of size (player-sized 1.0). */
+	public static final double SIZE_FACTOR_MIN = 0.5;
+	public static final double SIZE_FACTOR_MAX = 1.2;
+	/**
+	 * Beyond this, an entity is checked with one sight line (to its middle) instead of head and feet, only a few such
+	 * checks run per re-rank, and a tracked one is re-checked every third update: far sight stays cheap.
+	 */
+	public static final double DETAIL_RANGE = 32.0;
+	public static final int FAR_CHECKS_PER_RANK = 16;
+	public static final int FAR_UPDATE_EVERY = 3;
 	public static final double RAIN_FACTOR = 0.75;
 	public static final double THUNDER_FACTOR = 0.6;
 	public static final double UNDERWATER_RANGE = 12.0;
 	public static final double BLINDNESS_RANGE = 5.0;
 	public static final double DARKNESS_EFFECT_RANGE = 10.0;
-	/** Awareness gained per tick at the center of view, close, with the target moving and fully visible. */
-	public static final float FILL_RATE = 0.06F;
-	/** Peripheral motion fills slower and can only produce a glimpse. */
-	public static final float PERIPHERAL_FILL_RATE = 0.03F;
+	/**
+	 * Awareness gained per tick at the center of view, close, with the target moving and fully visible: about a third
+	 * of a second to know what it is (user's rule: common sense, not a mob's slow noticing).
+	 */
+	public static final float FILL_RATE = 0.15F;
+	/** Peripheral motion fills slower and can only produce a glimpse (which turns its head). */
+	public static final float PERIPHERAL_FILL_RATE = 0.08F;
 	public static final float PERIPHERAL_CAP = 0.35F;
 	public static final float DRAIN_RATE = 0.01F;
 	public static final float SNEAKING_FACTOR = 0.4F;
-	public static final float STILL_FACTOR = 0.6F;
+	public static final float STILL_FACTOR = 0.8F;
 	/** An invisible entity wearing armor can be spotted by the armor, slowly. */
 	public static final float INVISIBLE_ARMOR_FACTOR = 0.3F;
 	public static final double MOVING_SPEED = 0.02;
 	/** Attention budget: entities tracked in detail at once, re-ranked every RANK_INTERVAL ticks. */
-	public static final int ATTENTION_BUDGET = 8;
+	public static final int ATTENTION_BUDGET = 12;
 	public static final int RANK_INTERVAL = 10;
 	public static final int AWARENESS_INTERVAL = 2;
 	public static final int FORCED_TRACK_TICKS = 100;
 	/** Items on the ground are noticed within this distance. */
-	public static final double ITEM_SIGHT_RANGE = 16.0;
+	public static final double ITEM_SIGHT_RANGE = 32.0;
 
 	// ----- Seeing blocks (section 5) -----
 	public static final int BLOCK_RAYS_BASE = 6;
 	public static final int BLOCK_RAYS_PLAYER_NEAR = 12;
-	public static final double BLOCK_SIGHT_RANGE = 32.0;
+	public static final double BLOCK_SIGHT_RANGE = 48.0;
 	public static final double BLOCK_DARK_RANGE = 8.0;
+	/**
+	 * Far sight (user's rule: see a mountain or a village in the distance, out to 7 chunks): a couple of long rays per
+	 * tick near the horizon. They note landmarks and resources, but only the first TERRAIN_MARK_RANGE blocks of each
+	 * go into the pathfinder's block knowledge (it plans within 48 blocks), which keeps memory small.
+	 */
+	public static final int FAR_RAYS = 2;
+	public static final double FAR_SIGHT_RANGE = 112.0;
+	/** Far rays aim between this far below and above the horizon (degrees). */
+	public static final float FAR_PITCH_DOWN = 12.0F;
+	public static final float FAR_PITCH_UP = 15.0F;
+	public static final double TERRAIN_MARK_RANGE = 48.0;
+	/** Landmarks: high ground this far above sea level, or this far above its feet, seen from at least MIN distance. */
+	public static final int MOUNTAIN_ABOVE_SEA = 40;
+	public static final int MOUNTAIN_RISE = 30;
+	public static final double LANDMARK_MIN_DISTANCE = 24.0;
+	/** Bare stone seen farther than this is remembered as a place to get stone (closer, it just sees it). */
+	public static final double STONE_HINT_DISTANCE = 24.0;
 	/** How many remembered blocks in view are re-checked per second (stations are "verified on arrival"). */
 	public static final int VERIFY_PER_SECOND = 6;
 	public static final double VERIFY_RANGE = 24.0;
@@ -97,6 +129,8 @@ public class Senses {
 	// ----- Hearing and reactions -----
 	public static final double HEARING_POSITION_ERROR = 0.15;
 	public static final int SOUND_MEMORY_TICKS = 20 * 30;
+	/** A creature heard again this soon isn't news (no new thought). */
+	public static final int HEARD_AGAIN_TICKS = 20 * 20;
 	public static final int MAX_SOUNDS = 16;
 	/** A sound of the same kind this close to a recent one, this soon after, is the same ongoing sound. */
 	public static final double SAME_SOUND_DISTANCE = 4.0;
@@ -254,7 +288,11 @@ public class Senses {
 		return yaw <= PERIPHERAL_HALF_YAW && pitch <= PERIPHERAL_HALF_PITCH ? Zone.PERIPHERAL : Zone.NONE;
 	}
 
+	/** Sight lines cast so far (for the far-sight budget). */
+	private int sightLines;
+
 	private boolean lineOfSight(Vec3 from, Vec3 to) {
+		this.sightLines++;
 		return this.level().clip(new ClipContext(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, this.drifter)).getType() == HitResult.Type.MISS;
 	}
 
@@ -303,23 +341,37 @@ public class Senses {
 		Vec3 eye = this.drifter.getEyePosition();
 		Vec3 head = target.getEyePosition();
 		double distance = eye.distanceTo(head);
-		double range = this.sightRange(target);
+		double range = this.sightRange(target) * sizeFactor(target);
 		if (distance > range) {
 			return Sighting.NOT_SEEN;
 		}
 
 		float[] angle = this.angleTo(target.getBoundingBox().getCenter());
 		Zone zone = this.zoneOf(angle);
-		if (zone == Zone.NONE) {
+		// Out of the corner of its eye it only catches movement nearby.
+		if (zone == Zone.NONE || zone == Zone.PERIPHERAL && distance > DETAIL_RANGE) {
 			return Sighting.NOT_SEEN;
 		}
 
-		// A ray to the head and one to the feet: either counts, both count more.
-		boolean headSeen = this.lineOfSight(eye, head);
-		boolean feetSeen = this.lineOfSight(eye, target.position().add(0.0, 0.1, 0.0));
-		float visibility = headSeen && feetSeen ? 1.0F : headSeen || feetSeen ? 0.6F : 0.0F;
-		float centrality = 1.0F - 0.6F * Math.min(1.0F, Math.max(Math.abs(angle[0]) / CONE_HALF_YAW, Math.abs(angle[1]) / CONE_HALF_PITCH));
+		float visibility;
+		if (distance > DETAIL_RANGE) {
+			// Far away: one sight line to its middle.
+			visibility = this.lineOfSight(eye, target.getBoundingBox().getCenter()) ? 0.8F : 0.0F;
+		} else {
+			// A ray to the head and one to the feet: either counts, both count more.
+			boolean headSeen = this.lineOfSight(eye, head);
+			boolean feetSeen = this.lineOfSight(eye, target.position().add(0.0, 0.1, 0.0));
+			visibility = headSeen && feetSeen ? 1.0F : headSeen || feetSeen ? 0.6F : 0.0F;
+		}
+
+		float centrality = 1.0F - 0.4F * Math.min(1.0F, Math.max(Math.abs(angle[0]) / CONE_HALF_YAW, Math.abs(angle[1]) / CONE_HALF_PITCH));
 		return new Sighting(zone, visibility, distance, range, centrality);
+	}
+
+	/** Bigger things are seen from farther (a chicken is a speck long before a horse is). */
+	private static double sizeFactor(Entity target) {
+		double size = Math.max(target.getBbHeight(), target.getBbWidth()) / 1.8;
+		return Mth.clamp(Math.sqrt(size), SIZE_FACTOR_MIN, SIZE_FACTOR_MAX);
 	}
 
 	private static boolean isMoving(Entity entity) {
@@ -346,14 +398,27 @@ public class Senses {
 	/** Attention budget (section 5): re-rank what's worth tracking in detail. Players and forced ones always stay. */
 	private void rankAttention() {
 		long now = this.now();
-		AABB area = this.drifter.getBoundingBox().inflate(DAYLIGHT_RANGE);
+		AABB area = this.drifter.getBoundingBox().inflate(DAYLIGHT_RANGE, VERTICAL_RANGE, DAYLIGHT_RANGE);
 		List<Entity> candidates = this.level().getEntities(this.drifter, area,
 			entity -> entity instanceof LivingEntity && entity.isAlive() && !entity.isSpectator());
+		// Nearest first, so the far-sight budget goes to the closest of the far ones.
+		candidates.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(this.drifter)));
 		List<Map.Entry<Entity, Double>> ranked = new ArrayList<>();
+		int farChecks = 0;
 		for (Entity entity : candidates) {
-			Sighting sighting = this.look(entity);
 			Awareness current = this.tracked.get(entity.getId());
 			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold);
+			boolean far = entity.distanceToSqr(this.drifter) > DETAIL_RANGE * DETAIL_RANGE;
+			if (far && !keep && farChecks >= FAR_CHECKS_PER_RANK) {
+				continue;
+			}
+
+			int raysBefore = this.sightLines;
+			Sighting sighting = this.look(entity);
+			if (far && this.sightLines != raysBefore) {
+				farChecks++;
+			}
+
 			if (!sighting.seen() && !keep) {
 				continue;
 			}
@@ -387,30 +452,38 @@ public class Senses {
 
 	private void updateAwareness() {
 		long now = this.now();
+		int update = this.ticks / AWARENESS_INTERVAL;
 		for (Awareness awareness : this.tracked.values()) {
 			Entity entity = awareness.entity;
 			if (awareness.forcedTicks > 0) {
 				awareness.forcedTicks -= AWARENESS_INTERVAL;
 			}
 
+			// Far ones are re-checked every third update (and gain three updates' worth): cheaper, hardly different.
+			boolean far = !entity.isRemoved() && entity.distanceToSqr(this.drifter) > DETAIL_RANGE * DETAIL_RANGE;
+			if (far && Math.floorMod(update + entity.getId(), FAR_UPDATE_EVERY) != 0) {
+				continue;
+			}
+
+			int ticks = AWARENESS_INTERVAL * (far ? FAR_UPDATE_EVERY : 1);
 			Sighting sighting = entity.isRemoved() ? Sighting.NOT_SEEN : this.look(entity);
 			float stealth = stealthFactor(entity);
 			awareness.visibleNow = sighting.seen() && stealth > 0.0F;
 			if (awareness.visibleNow) {
-				float closeness = (float)(0.35 + 0.65 * (1.0 - sighting.distance() / sighting.range()));
+				float closeness = (float)(0.6 + 0.4 * (1.0 - sighting.distance() / sighting.range()));
 				float motion = isMoving(entity) ? 1.0F : STILL_FACTOR;
 				if (sighting.zone() == Zone.CONE) {
 					float gain = FILL_RATE * sighting.visibility() * closeness * sighting.centrality() * motion * stealth;
-					awareness.value = Math.min(1.0F, awareness.value + gain * AWARENESS_INTERVAL);
+					awareness.value = Math.min(1.0F, awareness.value + gain * ticks);
 				} else if (isMoving(entity) && awareness.value < PERIPHERAL_CAP) {
 					float gain = PERIPHERAL_FILL_RATE * sighting.visibility() * closeness * stealth;
-					awareness.value = Math.min(PERIPHERAL_CAP, awareness.value + gain * AWARENESS_INTERVAL);
+					awareness.value = Math.min(PERIPHERAL_CAP, awareness.value + gain * ticks);
 				}
 
 				awareness.lastSeenPos = entity.position();
 				awareness.lastSeenTick = now;
 			} else {
-				awareness.value = Math.max(0.0F, awareness.value - DRAIN_RATE * AWARENESS_INTERVAL);
+				awareness.value = Math.max(0.0F, awareness.value - DRAIN_RATE * ticks);
 			}
 
 			this.onAwarenessChanged(awareness);
@@ -433,7 +506,11 @@ public class Senses {
 		}
 
 		if (level == Awareness.Level.NONE && awareness.lastLevel != Awareness.Level.NONE && awareness.identified) {
-			this.think("lost track of " + describe(entity));
+			// (Something it only heard just fades from mind.)
+			if (awareness.seenWithin(this.now(), 20 * 30)) {
+				this.think("lost track of " + describe(entity));
+			}
+
 			awareness.identified = false;
 		}
 
@@ -533,26 +610,63 @@ public class Senses {
 		for (int i = 0; i < rays; i++) {
 			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_YAW;
 			float pitch = Mth.clamp(this.drifter.getXRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_PITCH, -90.0F, 90.0F);
-			Vec3 direction = Vec3.directionFromRotation(pitch, yaw);
-			Vec3 end = eye.add(direction.scale(BLOCK_SIGHT_RANGE));
-			BlockHitResult hit = this.clipThroughGlass(eye, end, ClipContext.Fluid.ANY);
-			boolean notable = false;
-			if (hit.getType() == HitResult.Type.BLOCK && eye.distanceTo(hit.getLocation()) <= this.blockSightRange(hit.getBlockPos().relative(hit.getDirection()))) {
-				// Nudge into the hit block so the walk includes it.
-				this.terrain.markRay(eye, hit.getLocation().add(direction.scale(0.01)));
-			} else if (hit.getType() != HitResult.Type.BLOCK) {
-				this.terrain.markRay(eye, eye.add(direction.scale(this.blockSightRange(BlockPos.containing(eye)))));
-			}
+			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), BLOCK_SIGHT_RANGE);
+		}
 
-			if (hit.getType() == HitResult.Type.BLOCK) {
-				notable = this.see(hit.getBlockPos(), hit.getDirection(), eye.distanceTo(hit.getLocation()));
-			}
+		// Far sight: near the horizon, where mountains, villages and cliffs show up. Only the part of the horizon band
+		// that's inside its view (looking at its feet, it doesn't see the skyline).
+		float low = Math.max(-FAR_PITCH_UP, this.drifter.getXRot() - CONE_HALF_PITCH);
+		float high = Math.min(FAR_PITCH_DOWN, this.drifter.getXRot() + CONE_HALF_PITCH);
+		for (int i = 0; i < FAR_RAYS && low < high; i++) {
+			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_YAW;
+			float pitch = Mth.lerp(this.drifter.getRandom().nextFloat(), low, high);
+			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), FAR_SIGHT_RANGE);
+		}
+	}
 
-			this.recentRays.addLast(new Ray(eye, hit.getLocation(), hit.getType() == HitResult.Type.BLOCK, notable));
-			while (this.recentRays.size() > RECENT_RAYS) {
-				this.recentRays.removeFirst();
+	private void castBlockRay(Vec3 eye, Vec3 direction, double maxRange) {
+		// Never look into chunks that aren't loaded: reading them would load (or even generate) them.
+		double reach = this.loadedReach(eye, direction, maxRange);
+		if (reach <= 1.0) {
+			return;
+		}
+
+		Vec3 end = eye.add(direction.scale(reach));
+		BlockHitResult hit = this.clipThroughGlass(eye, end, ClipContext.Fluid.ANY);
+		boolean blockHit = hit.getType() == HitResult.Type.BLOCK;
+		double distance = eye.distanceTo(hit.getLocation());
+		double range = blockHit ? this.blockSightRange(hit.getBlockPos().relative(hit.getDirection()), maxRange) : 0.0;
+		// What it saw across goes into the pathfinder's block knowledge, but only nearby (it plans within 48 blocks).
+		if (blockHit && distance <= Math.min(range, TERRAIN_MARK_RANGE)) {
+			// Nudge into the hit block so the walk includes it.
+			this.terrain.markRay(eye, hit.getLocation().add(direction.scale(0.01)));
+		} else {
+			double seenAcross = Math.min(blockHit ? Math.min(distance, range) : this.blockSightRange(BlockPos.containing(eye), maxRange), TERRAIN_MARK_RANGE);
+			this.terrain.markRay(eye, eye.add(direction.scale(seenAcross)));
+		}
+
+		boolean notable = false;
+		if (blockHit && distance <= range) {
+			notable = this.see(hit.getBlockPos(), hit.getDirection(), distance, range);
+		}
+
+		this.recentRays.addLast(new Ray(eye, hit.getLocation(), blockHit, notable));
+		while (this.recentRays.size() > RECENT_RAYS) {
+			this.recentRays.removeFirst();
+		}
+	}
+
+	/** How far along this direction the chunks are loaded (checked every 8 blocks), up to {@code range}. */
+	private double loadedReach(Vec3 from, Vec3 direction, double range) {
+		for (double along = 0.0; along < range; along += 8.0) {
+			Vec3 point = from.add(direction.scale(along));
+			if (!this.level().hasChunk(Mth.floor(point.x) >> 4, Mth.floor(point.z) >> 4)) {
+				return Math.max(0.0, along - 8.0);
 			}
 		}
+
+		Vec3 end = from.add(direction.scale(range));
+		return this.level().hasChunk(Mth.floor(end.x) >> 4, Mth.floor(end.z) >> 4) ? range : Math.max(0.0, range - 8.0);
 	}
 
 	/** Most blocks a ray can pass looking through glass, glass panes and other see-through blocks. */
@@ -608,13 +722,23 @@ public class Senses {
 
 	/** How far it can make out a block whose visible face has this light. Night vision lights everything up. */
 	private double blockSightRange(BlockPos litFrom) {
-		int light = this.drifter.hasEffect(MobEffects.NIGHT_VISION) ? 15 : this.level().getRawBrightness(litFrom, this.level().getSkyDarken());
-		return BLOCK_DARK_RANGE + (BLOCK_SIGHT_RANGE - BLOCK_DARK_RANGE) * light / 15.0;
+		return this.blockSightRange(litFrom, BLOCK_SIGHT_RANGE);
 	}
 
-	/** It sees a block face. Records the chunk as explored and the block if it's notable. */
-	private boolean see(BlockPos pos, Direction face, double distance) {
-		if (distance > this.blockSightRange(pos.relative(face))) {
+	private double blockSightRange(BlockPos litFrom, double fullLightRange) {
+		int light = this.drifter.hasEffect(MobEffects.NIGHT_VISION) ? 15 : this.level().getRawBrightness(litFrom, this.level().getSkyDarken());
+		double range = BLOCK_DARK_RANGE + (fullLightRange - BLOCK_DARK_RANGE) * light / 15.0;
+		BlockPos eyePos = BlockPos.containing(this.drifter.getEyePosition());
+		if (fullLightRange > BLOCK_SIGHT_RANGE && this.level().isRainingAt(eyePos)) {
+			range *= this.level().isThundering() ? THUNDER_FACTOR : RAIN_FACTOR;
+		}
+
+		return range;
+	}
+
+	/** It sees a block face. Records the chunk as explored, the block if it's notable, and any landmark. */
+	private boolean see(BlockPos pos, Direction face, double distance, double range) {
+		if (distance > range) {
 			return false;
 		}
 
@@ -631,7 +755,46 @@ public class Senses {
 			tile.lava = true;
 		}
 
-		return this.rememberBlock(pos, state, MemorySource.SEEN);
+		boolean landmark = this.noticeLandmark(pos, state, distance);
+		return this.rememberBlock(pos, state, MemorySource.SEEN) || landmark;
+	}
+
+	/**
+	 * Big things seen from afar (user's rule: a player sees a mountain or a village in the distance and knows it):
+	 * high ground, village blocks, and bare stone (a cliff, a quarry face, a cave mouth) as a place to get stone.
+	 */
+	private boolean noticeLandmark(BlockPos pos, BlockState state, double distance) {
+		if (BlockNotes.isVillageBlock(state)) {
+			return this.rememberLandmark("village", pos, 0.8F, distance);
+		}
+
+		if (distance < LANDMARK_MIN_DISTANCE || !BlockNotes.isNaturalGround(state)) {
+			return false;
+		}
+
+		int seaLevel = this.level().getSeaLevel();
+		if (pos.getY() >= seaLevel + MOUNTAIN_ABOVE_SEA || pos.getY() - this.drifter.getBlockY() >= MOUNTAIN_RISE) {
+			this.rememberLandmark("mountain", pos, 0.6F, distance);
+		}
+
+		if (distance > STONE_HINT_DISTANCE && state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)) {
+			this.memory.remember(MemoryKind.RESOURCE, BlockNotes.EXPOSED_STONE, Vec3.atCenterOf(pos), this.dimension(), this.now(), MemorySource.SEEN,
+				0.25F, null);
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean rememberLandmark(String label, BlockPos pos, float importance, double distance) {
+		DrifterMemory.Remembered remembered = this.memory.remember(MemoryKind.LANDMARK, label, Vec3.atCenterOf(pos), this.dimension(), this.now(),
+			MemorySource.SEEN, importance, null);
+		if (remembered.isNew()) {
+			this.think(String.format(Locale.ROOT, "spotted a %s %s, about %d blocks away", label, this.direction(Vec3.atCenterOf(pos)),
+				(int)Math.round(distance)));
+		}
+
+		return true;
 	}
 
 	private boolean rememberBlock(BlockPos pos, BlockState state, MemorySource source) {
@@ -744,10 +907,7 @@ public class Senses {
 	void onHeard(HeardSound.Kind kind, Vec3 source, @Nullable Entity maker) {
 		Vec3 eye = this.drifter.getEyePosition();
 		double distance = eye.distanceTo(source);
-		double error = distance * HEARING_POSITION_ERROR;
-		Vec3 offset = new Vec3(this.drifter.getRandom().nextGaussian(), this.drifter.getRandom().nextGaussian() * 0.3, this.drifter.getRandom().nextGaussian())
-			.normalize().scale(error * this.drifter.getRandom().nextDouble());
-		Vec3 rough = source.add(offset);
+		Vec3 rough = this.roughly(source);
 		double roughDistance = Math.max(1.0, Math.round(eye.distanceTo(rough)));
 		// Footsteps and digging repeat: the same kind of sound from about the same place is one ongoing sound.
 		boolean ongoing = this.sounds.removeIf(sound -> sound.kind() == kind && sound.roughPos().distanceTo(rough) < SAME_SOUND_DISTANCE
@@ -769,6 +929,60 @@ public class Senses {
 
 		if (kind != HeardSound.Kind.MOVEMENT || distance < 8.0) {
 			this.glanceAt(rough);
+		}
+	}
+
+	/** Where a sound came from, as well as ears can tell: off by up to 15% of the distance. */
+	private Vec3 roughly(Vec3 source) {
+		double error = this.drifter.getEyePosition().distanceTo(source) * HEARING_POSITION_ERROR;
+		Vec3 offset = new Vec3(this.drifter.getRandom().nextGaussian(), this.drifter.getRandom().nextGaussian() * 0.3, this.drifter.getRandom().nextGaussian())
+			.normalize().scale(error * this.drifter.getRandom().nextDouble());
+		return source.add(offset);
+	}
+
+	/**
+	 * A creature's own sound (from {@link CreatureHearing}): like a player, it knows what makes that sound (a moo is a
+	 * cow, a rattle is a skeleton, a hiss is a creeper) and roughly where, without looking (user's rule; section 5,
+	 * "Mob ambient sounds"). It doesn't know the exact spot until it sees it.
+	 */
+	public void heardCreature(LivingEntity creature) {
+		long now = this.now();
+		Vec3 rough = this.roughly(creature.position());
+		Awareness awareness = this.tracked.get(creature.getId());
+		if (awareness == null) {
+			awareness = new Awareness(creature, now);
+			// Heard, not seen.
+			awareness.lastSeenPos = rough;
+			awareness.lastSeenTick = Long.MIN_VALUE / 2;
+			this.tracked.put(creature.getId(), awareness);
+		}
+
+		boolean news = !awareness.identified || !awareness.heardWithin(now, HEARD_AGAIN_TICKS);
+		awareness.identified = true;
+		awareness.heardPos = rough;
+		awareness.heardTick = now;
+		awareness.value = Math.max(awareness.value, Awareness.Level.SUSPICIOUS.threshold);
+		awareness.lastLevel = awareness.level();
+		boolean hostile = creature instanceof Enemy;
+		if (hostile) {
+			awareness.forcedTicks = Math.max(awareness.forcedTicks, FORCED_TRACK_TICKS);
+		}
+
+		float importance = hostile ? 0.4F : 0.2F;
+		MemoryEntry entry = this.memory.remember(MemoryKind.MOB, BuiltInRegistries.ENTITY_TYPE.getKey(creature.getType()).toString(), rough,
+			this.dimension(), now, MemorySource.HEARD, importance, creature.getUUID()).entry();
+		if (entry.source == MemorySource.HEARD) {
+			// (A higher voice gives a baby away.)
+			entry.detail = creature.isBaby() ? "baby" : "";
+		}
+
+		if (news) {
+			double distance = this.drifter.getEyePosition().distanceTo(rough);
+			this.think(String.format(Locale.ROOT, "heard %s %s, about %d blocks away", describe(creature), this.direction(rough),
+				(int)Math.max(1, Math.round(distance))));
+			if (hostile || distance < 8.0) {
+				this.glanceAt(rough);
+			}
 		}
 	}
 

@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public class TerrainKnowledge {
 	/** Chunk sections (16x16x16) remembered at once; the least recently touched are forgotten first. */
-	public static final int MAX_SECTIONS = 256;
+	public static final int MAX_SECTIONS = 512;
 
 	private final Map<Long, BitSet> sections = new LinkedHashMap<>(64, 0.75F, true) {
 		@Override

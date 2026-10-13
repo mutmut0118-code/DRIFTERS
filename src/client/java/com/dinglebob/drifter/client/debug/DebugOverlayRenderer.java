@@ -242,6 +242,7 @@ public final class DebugOverlayRenderer {
 			case MINED -> 0x888888;
 			case HURT -> 0xFF7777;
 			case MOB -> 0xFFAA55;
+			case LANDMARK -> 0x66AAFF;
 		};
 	}
 

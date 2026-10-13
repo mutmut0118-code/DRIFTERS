@@ -333,6 +333,20 @@ It can only know things it has seen (in front of it, in the light, not through w
       memories (mobs, items) are cleared; important ones stay.
 - [ ] Save and quit, reopen the world: `/drifter memory` still lists its long-term memories.
 
+### Sharper senses (new, after the milestone 5 and 6 tests)
+- [ ] **Far sight:** on open ground in daylight, `/drifter senses` (or the overlay) should list animals and mobs up
+      to about 100 blocks away once it has looked their way. Small ones (chickens) only from closer.
+- [ ] **Quick noticing:** walk a zombie (`/summon minecraft:zombie ~ ~ ~5`) into its view: the thought "detected a
+      zombie" comes within about half a second, not several seconds.
+- [ ] **Knowing by sound:** put a cow or pig behind a wall near it (within 16 blocks) and wait for it to moo or oink:
+      the thought says "heard a cow ... about N blocks away" (it names the animal without seeing it). A zombie's groan
+      or a skeleton's rattle does the same, and it turns to look.
+- [ ] **Landmarks:** near a village or a mountain, look at its thoughts (`/drifter thoughts` or the overlay): "spotted a
+      village ahead, about 90 blocks away" or "spotted a mountain ...". `/drifter memory` lists them as landmarks.
+- [ ] **Looking for stone:** with no stone in sight but a cliff or mountain in the distance, it explores toward it.
+- [ ] **Server speed:** with one or two Drifters around, the game shouldn't feel slower than before. If it does,
+      tell me (and how many Drifters).
+
 ### Known gaps for milestone 3 (don't report these as bugs)
 - It doesn't **act** on what it knows yet (no AI): it only glances. The brain is milestone 5.
 - It can't hear mob groans or rattles yet (they don't make game "vibrations").

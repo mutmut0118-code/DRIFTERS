@@ -5,6 +5,7 @@
 	"mixins": [
 		"AbstractArrowAccessor",
 		"BlockItemMixin",
+		"EntitySoundMixin",
 		"ExplosionMixin",
 		"ItemEntityAccessor",
 		"LivingEntityAccessor",

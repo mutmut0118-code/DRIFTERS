@@ -414,7 +414,9 @@ public final class Planner {
 
 		boolean wood = new ItemStack(item).is(ItemTags.LOGS);
 		// It stops looking once it sees any block of this source it could take (any kind of log, not just this one).
-		state.addAction(new Explore(wood ? "looking for trees" : underground ? searchReason : "looking for " + label, wood ? this.world.treesHint : null,
+		// Head for what it saw from afar: a grove, or bare stone and mountains when it needs stone.
+		state.addAction(new Explore(wood ? "looking for trees" : underground ? searchReason : "looking for " + label,
+			wood ? this.world.treesHint : underground ? this.world.stoneHint : null,
 			drifter -> KnownWorld.anyTakeable(drifter, source::matchesBlock)));
 		state.cost += COST_EXPLORE + COST_GATHER_EACH * count;
 		return state;
