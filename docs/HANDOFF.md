@@ -8,9 +8,9 @@
   command script (see CLAUDE.md "Local sessions"); the built jar goes into the Modrinth profile "DRIFTER TEST".
 - **User rules from session 2:** torches are way markers in caves and at night (same side going in, so the way back is
   clear); recorded in DESIGN.md 10.3 and 18 with the night/mining-style notes.
-- **Open:** this folder isn't a git repository (copied from branch `claude/gifted-archimedes-n6yen5`), and `gh` isn't
-  installed, so nothing from session 2 is committed or pushed. Ask the user how they want it saved (see the reply at the
-  end of session 2). Also design question 10 (usernames and nameplates now?).
+- **Git:** the folder is now a checkout of `claude/gifted-archimedes-n6yen5` (user said yes); commits are pushed with
+  plain `git push` (Git Credential Manager; the user signed in once in the browser). `gh` isn't installed.
+- **Usernames:** done in session 2 (user said yes to design question 10).
 
 # Handoff: cloud session 1 → local session
 

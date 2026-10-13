@@ -1,0 +1,47 @@
+{
+  "_comment": "Word lists for Drifter usernames (DESIGN.md section 4, Identity). Datapacks can add files in data/<namespace>/drifter_names/; lists from every file are merged. 'banned' are exact names never used (public figures, creators, game names); 'banned_parts' are substrings never allowed anywhere in a name.",
+  "words": [
+    "pine", "wick", "moss", "fern", "ember", "frost", "cobble", "creek", "drift", "maple", "birch", "river", "stone",
+    "ash", "sky", "storm", "lunar", "pixel", "toast", "noodle", "waffle", "otter", "fox", "wolf", "raven", "crow",
+    "badger", "moth", "pebble", "clover", "sprout", "cinder", "flint", "quartz", "copper", "marble", "juniper",
+    "willow", "hazel", "rowan", "bramble", "thistle", "nimbus", "comet", "orbit", "echo", "static", "velvet", "mango",
+    "biscuit", "pickle", "tofu", "cactus", "cobalt", "indigo", "crimson", "amber", "jade", "onyx", "acorn", "lantern",
+    "kettle", "button", "socks", "pancake", "muffin", "bean", "turnip", "radish", "carrot", "melon", "berry", "cocoa",
+    "honey", "panda", "koala", "gecko", "newt", "heron", "finch", "wren", "robin", "lynx", "bison", "moose", "yak",
+    "squid", "kraken", "golem", "slime", "blaze", "spark", "volt", "byte", "glitch", "nova", "zephyr", "tundra", "dune",
+    "canyon", "ridge", "harbor", "meadow", "grove", "hollow", "cove", "marsh", "glade", "summit", "basalt", "granite",
+    "obsidian", "redstone", "lapis", "torch", "anvil", "shovel", "pickaxe", "lantern", "compass", "map", "bucket",
+    "hopper", "piston", "minecart", "saddle", "arrow", "quiver", "shield", "helm", "rune", "sigil", "relic", "ghost",
+    "shadow", "phantom", "wisp", "sprite", "goblin", "troll", "wizard", "knight", "ranger", "rogue", "bard", "monk",
+    "pilot", "sailor", "miner", "farmer", "builder", "baker", "potato", "nugget", "crumb", "doodle", "zigzag", "puzzle"
+  ],
+  "adjectives": [
+    "sleepy", "lazy", "sneaky", "happy", "grumpy", "fuzzy", "tiny", "big", "silent", "swift", "lucky", "mighty",
+    "dusty", "salty", "frosty", "shady", "cozy", "odd", "wild", "bold", "calm", "quiet", "loud", "brave", "clumsy",
+    "rusty", "shiny", "soggy", "crispy", "spicy", "sour", "sweet", "dark", "bright", "pale", "golden", "silver",
+    "mossy", "stormy", "misty", "cloudy", "sunny", "rainy", "windy", "icy", "fiery", "humble", "jolly", "nifty",
+    "random", "chill", "epic", "mega", "ultra", "hyper", "retro", "neon", "cosmic", "lost", "hidden", "secret", "wandering"
+  ],
+  "first_names": [
+    "alex", "sam", "max", "leo", "mia", "zoe", "kai", "finn", "nora", "eli", "jay", "ben", "ava", "liv", "theo", "milo",
+    "ruby", "otto", "nico", "luca", "ella", "ivy", "jack", "noah", "owen", "lily", "emma", "jake", "luke", "evan", "cole",
+    "zack", "ryan", "dylan", "tyler", "kyle", "maya", "sara", "nina", "lena", "jonas", "felix", "oscar", "hugo", "ezra",
+    "jude", "remy", "sol", "tess", "wes", "vic", "abby", "cass", "dani", "gus", "hank", "iris", "june", "kit", "lou"
+  ],
+  "styled_prefixes": ["xX", "itz", "im", "its", "the", "mr", "not", "real", "just", "lil", "big", "x", "o"],
+  "styled_suffixes": ["Xx", "mc", "yt", "pvp", "gg", "hd", "x", "z", "ttv", "lol", "uwu", "ez", "pro", "boi", "yo"],
+  "banned": [
+    "notch", "jeb", "jeb_", "dinnerbone", "grumm", "dream", "technoblade", "techno", "grian", "mumbo", "mumbojumbo",
+    "philza", "ph1lza", "tommyinnit", "georgenotfound", "sapnap", "captainsparklez", "stampylonghead", "stampy",
+    "dantdm", "prestonplayz", "preston", "skeppy", "badboyhalo", "ranboo", "tubbo", "quackity", "wilbursoot",
+    "karljacobs", "jschlatt", "xisuma", "xisumavoid", "etho", "ethoslab", "bdubs", "bdoubleo100", "iskall85",
+    "goodtimeswithscar", "impulsesv", "ldshadowlady", "aphmau", "pewdiepie", "markiplier", "jacksepticeye",
+    "herobrine", "steve", "alexmc", "minecraft", "mojang", "microsoft", "admin", "moderator", "owner", "server",
+    "console", "system", "anthropic", "claude", "drifter"
+  ],
+  "banned_parts": [
+    "fuck", "shit", "cunt", "nigg", "nigga", "fag", "rape", "nazi", "hitler", "kkk", "porn", "sex", "cock", "dick",
+    "pussy", "whore", "slut", "bitch", "retard", "tranny", "chink", "kike", "coon", "wank", "twat", "penis",
+    "vagina", "anal", "cum", "tits", "boob", "nude", "hentai", "isis", "jihad", "suicide", "kill_", "murder"
+  ]
+}

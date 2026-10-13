@@ -121,6 +121,8 @@ public class DrifterEntity extends PathfinderMob {
 	private int debugPathIndex;
 	/** Ticks until the debug command's held keys are released; -1 for "hold until changed". */
 	private int keysReleaseTimer = -1;
+	/** It has its username (section 4): generated at spawn, or on first load for Drifters from before milestone 7. */
+	private boolean named;
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
 	private boolean crouching;
 
@@ -307,10 +309,40 @@ public class DrifterEntity extends PathfinderMob {
 	// Ticking
 	// ---------------------------------------------------------------------------------------------
 
+	/** Spawn eggs and the spawn command come through here: it gets its username straight away. */
+	@Override
+	public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(net.minecraft.world.level.ServerLevelAccessor level,
+		net.minecraft.world.DifficultyInstance difficulty, net.minecraft.world.entity.MobSpawnType spawnType,
+		@org.jetbrains.annotations.Nullable net.minecraft.world.entity.SpawnGroupData groupData) {
+		net.minecraft.world.entity.SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, groupData);
+		this.ensureName();
+		return data;
+	}
+
+	/**
+	 * Section 4 identity: a player-like username shown like a player's nameplate (always over its head within 64
+	 * blocks, dimmed through walls, hidden through walls while it sneaks). A name you give it (spawn command, name tag)
+	 * is kept.
+	 */
+	public void ensureName() {
+		if (this.named || this.level().isClientSide || this.getServer() == null) {
+			return;
+		}
+
+		this.named = true;
+		if (!this.hasCustomName()) {
+			this.setCustomName(net.minecraft.network.chat.Component.literal(
+				com.dinglebob.drifter.identity.Usernames.generate(this.random, this.getServer())));
+		}
+
+		this.setCustomNameVisible(true);
+	}
+
 	@Override
 	public void tick() {
 		super.tick();
 		if (!this.level().isClientSide) {
+			this.ensureName();
 			this.foodData.tick(this);
 			this.checkMovementStatistics(this.getX() - this.xo, this.getY() - this.yo, this.getZ() - this.zo);
 			this.updatePlayerPose();
@@ -958,6 +990,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.put("DrifterMemory", this.memory.save());
 		tag.put("DrifterBrain", this.brain.save());
 		tag.put("DrifterPersonality", this.personality.save());
+		tag.putBoolean("DrifterNamed", this.named);
 	}
 
 	@Override
@@ -972,6 +1005,7 @@ public class DrifterEntity extends PathfinderMob {
 		}
 
 		// Drifters saved before milestone 7 have no personality yet: they keep the one rolled at load, which is then saved.
+		this.named = tag.getBoolean("DrifterNamed");
 		if (tag.contains("DrifterPersonality", Tag.TAG_COMPOUND)) {
 			this.personality.load(tag.getCompound("DrifterPersonality"));
 		}

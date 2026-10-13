@@ -9,8 +9,9 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 - **Milestone 7 started** (user's request) while 5 and 6 are still in testing: personality, habits, mood, the
   mannerism (tic) layer, and night behaviour by personality are in. Smoke-tested on a headless dev server (also with
   Lithium and FerriteCore); the jar is installed in the user's Modrinth profile "DRIFTER TEST". See "Milestone 7".
-- **This folder is not a git repository** (it was copied from the session 1 branch), so session 2's work isn't
-  committed or pushed yet: see the open question in `docs/HANDOFF.md`.
+- **Git:** this folder is now a checkout of branch `claude/gifted-archimedes-n6yen5` (remote
+  `https://github.com/mutmut0118-code/DRIFTERS`); session 2's work is committed and pushed (the user signed in to
+  GitHub in the browser for the first push).
 
 ## Before session 2 (end of session 1)
 
@@ -410,13 +411,20 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
     blocks off caves and water it breaks into, stops at gravel/sand/hard rock, puts a torch every 8 steps **on its
     habit's side going in** (user's note: players use torches to know where they are and the way back), and walks
     back to the shaft in the morning to climb out.
+- **Usernames** (`identity/Usernames`, section 4, design question 10): every Drifter gets a player-like name (word plus
+  digits, two words joined, words with underscores, a first name and a number, the odd styled one like `xXFrostXx`),
+  3 to 16 letters/digits/underscores, never one a player online or a loaded Drifter has, never a listed creator or
+  public figure, filtered for offensive words. Word lists in `data/drifter/drifter_names/default.json` (datapacks can
+  add more). Shown like a player's nameplate (always above its head within 64 blocks; through walls unless it
+  sneaks). A name you give it is kept; Drifters from older worlds get one when they load.
 - **Commands**: `/drifter personality [reroll [archetype]]`, `/drifter mood [mood]`, `/drifter tic <tic>`,
   `/drifter night [shelter|hunt|mine]`, `/drifter brain goal nighthunt`. The overlay shows archetype, mood, key
   traits and the current tic.
 
 ### Not done yet in milestone 7 (next steps)
 1. In-game check by the user (see `docs/TESTING.md`, "Milestone 7"), then fixes.
-2. Usernames and always-visible nameplates (section 4 identity) — see design question 10.
+2. ~~Usernames and always-visible nameplates~~ (done). Join/leave chat lines and the world-level identity registry
+   (section 4) stay with spawning/milestone 12.
 3. Beds and sleeping (section 18: sleep a few seconds, then cautious ones stay in bed, others do chores or mine).
 4. More tics: corner peek, edge peek, wall stare, sprint stutter, door double-flip, toss and pick up an item,
    over-mine one block, accidental grass break, look a new player up and down (milestone 9 with greetings),
@@ -458,7 +466,7 @@ Questions for the user. Nothing here has been changed in the design.
 7. **Night-one shelter is tier 1 (section 11).** For milestone 5 the Drifter digs three blocks straight down and covers the hole (the tier 1 "digs down and covers the hole" option) rather than the tier 2 hillside room, because it works on any ground and is the most reliable way to survive night one before combat exists (milestone 6). The worked example in section 24 has it dig a 3x3 hillside room on day 1; that can follow in milestone 8 (or sooner if you prefer). No decision needed unless you want the hillside room now.
 8. **The planner's data file location.** Section 8 says acquisition rules live in data files. They're in `data/<namespace>/drifter_sources/*.json` (a datapack can add more). Recipes come from the game. No decision needed.
 9. **Better Combat and Combat Roll (section 21, milestone 6 "combat-mod test pass").** What already works without any special code: modded weapons (Simply Swords and the like) are judged by their real attack damage and speed, and its reach comes from the reach attribute, so they're picked up and used correctly. What section 21 asks beyond that: reading Better Combat's per-weapon ranges and combos, and giving the Drifter the same dodge roll as Combat Roll. Doing that properly means compiling against those mods (as optional, "compile only" dependencies, never required at runtime), which adds their download sites to the build. **My recommendation:** for this milestone, just run the combat-mod test pass to check nothing breaks with them installed (the Drifter's hits go through vanilla's player attack, which those mods leave working), and add the real Better Combat / Combat Roll integration as a follow-up once you say it's OK to add those optional build dependencies. **Decided (user: "yea add them later, use your recommendation"):** test pass now; the optional compile-only integration comes later as a follow-up.
-10. **Usernames and nameplates (section 4, "Identity").** Milestone 7's test is "people watching a clip can't tell it
+10. **(Decided: add them now, user: "use your recommendations".) Usernames and nameplates (section 4, "Identity").** Milestone 7's test is "people watching a clip can't tell it
     from a player", and every player has a name over their head. Section 4 asks for generated player-like usernames
     (word plus digits, two words joined...) shown like a player's nameplate; that was left for the spawning milestone.
     **My recommendation:** add the username generator and the always-visible nameplate now, as part of milestone 7

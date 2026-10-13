@@ -29,6 +29,7 @@ public class Drifter implements ModInitializer {
 		DebugOverlayServer.register();
 		Sources.register();
 		Threats.register();
+		com.dinglebob.drifter.identity.Usernames.register();
 		MobTargeting.register();
 		com.dinglebob.drifter.perception.CreatureHearing.register();
 		LOGGER.info("Drifter initialized");

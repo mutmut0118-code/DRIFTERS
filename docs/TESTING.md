@@ -672,6 +672,12 @@ Keep `/drifter debug on`: the panel has a new line like
 | `/drifter night` | Tonight's plan (stays in / goes out hunting / digs in then mines) and what it would pick |
 | `/drifter night <shelter\|hunt\|mine>` | Forces tonight's plan (for testing) |
 
+### 0. Usernames (new)
+- [ ] Every new Drifter (spawn egg or `/drifter spawn`) has a name over its head like a player's (`ryan_17`,
+      `cosmic_bard`, `xXSourashXx`...), visible from up to 64 blocks, dimmed through walls, and hidden through walls
+      while it sneaks. `/drifter spawn <name>` still uses your name.
+- [ ] Drifters from your older test worlds get a name the first time you load them.
+
 ### 1. Personalities are different (quick)
 1. Spawn three: `/drifter spawn A`, `/drifter spawn B`, `/drifter spawn C`. Stand next to each and run
    `/drifter personality`.
@@ -744,7 +750,7 @@ Use `/drifter night` to see tonight's plan, or force one with `/drifter night hu
       well-armed ones "go out hunting", patient hard-working ones "dig in, then mine".
 
 ### Known gaps for milestone 7 (don't report these as bugs)
-- No usernames or always-on nameplates yet (only a name you give it), no beds or sleeping yet.
+- No beds or sleeping yet; no "joined the game" chat lines yet.
 - Not all habits are used yet: closing doors, picking up crafting tables, 2x2 or 3x3 tunnels, trail markers,
   hotbar layout, offhand torch.
 - Some tics from the design aren't in yet (corner peek, edge peek, sprint stutter, door flips, tossing an item).
