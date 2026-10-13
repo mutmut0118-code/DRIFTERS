@@ -252,7 +252,7 @@ The Drifter knows only what a player at its position, looking where it is lookin
 
 - **View cone:** about 110 degrees horizontal and 70 degrees vertical, centered on the head, not the body. A Drifter looking at a furnace genuinely cannot see the zombie behind it.
 - **Peripheral zone:** 110 to 180 degrees, motion only. Something moving there produces a glimpse that makes it turn its head, but no identification.
-- **Range:** up to 112 blocks (7 chunks; the user's call, since a player sees far more than a mob) in daylight for entities, scaled by the light level at the target and by its size (a chicken is a speck long before a horse is). In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing. Peripheral motion only counts within about 32 blocks.
+- **Range:** configurable (`/drifter config sight <chunks>`, default 10 chunks = 160 blocks; the user's call, since a player sees far more than a mob) in daylight for entities, scaled by the light level at the target and by its size (a chicken is a speck long before a horse is). In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing. Peripheral motion only counts within about 32 blocks.
 - **Line of sight:** a ray from the eye to the target's head and feet. Seeing either counts; seeing both counts more. Beyond 32 blocks one ray to the middle is used, only a few far checks run per re-rank, and far tracked entities are re-checked less often, so long sight stays cheap.
 - **Modifiers:** rain shortens range by about a quarter, thunderstorms more; underwater range is short; Blindness and Darkness effects apply exactly as for players.
 - **Sneaking targets:** harder to spot, and their nameplate is hidden behind blocks just like for players.
@@ -276,7 +276,7 @@ This is the core of stealth play against hostile Drifters: a sneaking player in 
 - **Mining reveals:** breaking a block reveals its six neighbors. This is how mining discovers ores, and it is the only way the Drifter learns what's inside rock.
 - **No guessing beyond probability:** the Drifter can use Y-level odds ("diamonds are common near the bottom") to choose where to dig, exactly like a player who's read the wiki, but never knows a specific hidden ore.
 - **Budget scaling:** more rays when a player is nearby and the Drifter is visible, fewer when it's far away.
-- **Far sight:** a couple of extra rays per tick near the horizon (inside the view cone) reach 112 blocks in daylight, shorter in the dark and in rain. They note **landmarks**: mountains and high ground, villages (bells and villager workstations), and bare stone (cliffs, cave mouths) as a place to get stone, plus groves of trees. Only the first 48 blocks of each ray go into the pathfinder's block knowledge. Rays never look into unloaded chunks.
+- **Far sight:** a couple of extra rays per tick near the horizon (inside the view cone) reach the sight range in daylight, shorter in the dark and in rain. They note **landmarks**: mountains and high ground, villages (bells and villager workstations), and bare stone (cliffs, cave mouths) as a place to get stone, plus groves of trees. Only the first part of each ray (the path range) goes into the pathfinder's block knowledge. Rays never look into unloaded chunks.
 
 ### Hearing
 

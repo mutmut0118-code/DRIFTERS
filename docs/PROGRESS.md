@@ -6,6 +6,9 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 
 ## Current state (end of session 1, 2026-10-13)
 
+- **Moving to a local session.** See `docs/HANDOFF.md` for the short version of everything from this cloud session. Next: the user re-tests the latest fixes, then **milestone 7**.
+- **Testing settings:** `/drifter config sight <chunks>` (default 10) and `/drifter config path <blocks>` (default 64; how far one path search reaches, search nodes grow with it), saved in `config/drifter.json`. `/drifter giveall <item> [count]` gives to every Drifter.
+
 - **Build: green.** `./gradlew build` succeeds in the cloud (with the Maven Central mirror workaround described in `CLAUDE.md`).
 - **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
 - **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.

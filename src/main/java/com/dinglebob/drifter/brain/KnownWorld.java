@@ -94,10 +94,10 @@ public final class KnownWorld {
 		MemoryEntry trees = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), TREE_MEMORY_RANGE,
 			e -> e.label.equals("trees") && e.pos.distanceTo(drifter.position()) > RADIUS);
 		this.treesHint = trees == null ? null : trees.pos;
-		MemoryEntry stone = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), FAR_HINT_RANGE,
+		MemoryEntry stone = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), com.dinglebob.drifter.DrifterConfig.sightRange(),
 			e -> e.label.equals(com.dinglebob.drifter.perception.BlockNotes.EXPOSED_STONE) && e.pos.distanceTo(drifter.position()) > RADIUS);
 		if (stone == null) {
-			stone = drifter.getMemory().nearest(MemoryKind.LANDMARK, dimension, drifter.position(), FAR_HINT_RANGE,
+			stone = drifter.getMemory().nearest(MemoryKind.LANDMARK, dimension, drifter.position(), com.dinglebob.drifter.DrifterConfig.sightRange(),
 				e -> e.label.equals("mountain") && e.pos.distanceTo(drifter.position()) > RADIUS);
 		}
 

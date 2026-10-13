@@ -333,6 +333,15 @@ It can only know things it has seen (in front of it, in the light, not through w
       memories (mobs, items) are cleared; important ones stay.
 - [ ] Save and quit, reopen the world: `/drifter memory` still lists its long-term memories.
 
+### Testing settings (new)
+- `/drifter config` shows the settings. `/drifter config sight 12` sets how far they see (in chunks, 2 to 16, default
+  10). `/drifter config path 96` sets how far one path search reaches (blocks, 24 to 160, default 64): longer paths in
+  one go, a little more work per search. Saved in `config/drifter.json`, so they stay after a restart.
+- `/drifter giveall minecraft:stone_sword` gives one to every Drifter (`/drifter giveall minecraft:bread 8` for more).
+  Vanilla `@a`/`@p` only pick real players. Any `/drifter` command can also run for every Drifter with
+  `/execute as @e[type=drifter:drifter] at @s run drifter <command>`.
+- [ ] With 40 Drifters, try sight 16 and path 160 and see whether the game slows down; tell me where it starts to.
+
 ### Sharper senses (new, after the milestone 5 and 6 tests)
 - [ ] **Far sight:** on open ground in daylight, `/drifter senses` (or the overlay) should list animals and mobs up
       to about 100 blocks away once it has looked their way. Small ones (chickens) only from closer.

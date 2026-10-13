@@ -22,6 +22,7 @@ public class Drifter implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		DrifterConfig.load();
 		ModEntities.register();
 		PlayerPlacedBlocks.register();
 		DrifterCommands.register();

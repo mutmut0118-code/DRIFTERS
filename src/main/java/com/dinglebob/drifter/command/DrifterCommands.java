@@ -101,6 +101,30 @@ public final class DrifterCommands {
 				.then(Commands.argument("count", IntegerArgumentType.integer(1, 64 * DrifterInventory.MAIN_SIZE))
 					.executes(ctx -> give(ctx, IntegerArgumentType.getInteger(ctx, "count"))))));
 
+		// Every Drifter at once (vanilla /give and @a only pick real players).
+		root.then(Commands.literal("giveall")
+			.then(Commands.argument("item", ItemArgument.item(buildContext))
+				.executes(ctx -> giveAll(ctx, 1))
+				.then(Commands.argument("count", IntegerArgumentType.integer(1, 64 * DrifterInventory.MAIN_SIZE))
+					.executes(ctx -> giveAll(ctx, IntegerArgumentType.getInteger(ctx, "count"))))));
+
+		root.then(Commands.literal("config")
+			.executes(DrifterCommands::showConfig)
+			.then(Commands.literal("sight")
+				.then(Commands.argument("chunks", IntegerArgumentType.integer(com.dinglebob.drifter.DrifterConfig.MIN_SIGHT_CHUNKS,
+						com.dinglebob.drifter.DrifterConfig.MAX_SIGHT_CHUNKS))
+					.executes(ctx -> {
+						com.dinglebob.drifter.DrifterConfig.setSightChunks(IntegerArgumentType.getInteger(ctx, "chunks"));
+						return showConfig(ctx);
+					})))
+			.then(Commands.literal("path")
+				.then(Commands.argument("blocks", IntegerArgumentType.integer(com.dinglebob.drifter.DrifterConfig.MIN_PATH_RANGE,
+						com.dinglebob.drifter.DrifterConfig.MAX_PATH_RANGE))
+					.executes(ctx -> {
+						com.dinglebob.drifter.DrifterConfig.setPathRange(IntegerArgumentType.getInteger(ctx, "blocks"));
+						return showConfig(ctx);
+					}))));
+
 		root.then(Commands.literal("food")
 			.then(Commands.argument("food", IntegerArgumentType.integer(0, FoodConstants.MAX_FOOD))
 				.executes(ctx -> food(ctx, null))
@@ -231,6 +255,48 @@ public final class DrifterCommands {
 		drifter.getInventory().requestSelect(slot);
 		ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " switches to hotbar slot " + slot), false);
 		return 1;
+	}
+
+	private static int showConfig(CommandContext<CommandSourceStack> ctx) {
+		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
+			"Drifter config (config/drifter.json): sight %d chunks (%d blocks in daylight), path range %d blocks (%d search nodes)",
+			com.dinglebob.drifter.DrifterConfig.sightChunks(), (int)com.dinglebob.drifter.DrifterConfig.sightRange(),
+			com.dinglebob.drifter.DrifterConfig.pathRange(), com.dinglebob.drifter.DrifterConfig.pathNodes())), true);
+		return 1;
+	}
+
+	private static int giveAll(CommandContext<CommandSourceStack> ctx, int count) throws CommandSyntaxException {
+		var input = ItemArgument.getItem(ctx, "item");
+		int drifters = 0;
+		for (DrifterEntity drifter : ctx.getSource().getLevel().getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class),
+			DrifterEntity::isAlive)) {
+			giveTo(drifter, input, count);
+			drifters++;
+		}
+
+		int total = drifters;
+		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT, "Gave %d %s to each of %d Drifters", count,
+			input.getItem().getDescription().getString(), total)), true);
+		return total;
+	}
+
+	/** Adds up to {@code count}; returns how many fit. */
+	private static int giveTo(DrifterEntity drifter, net.minecraft.commands.arguments.item.ItemInput input, int count) throws CommandSyntaxException {
+		int maxStack = input.getItem().getDefaultMaxStackSize();
+		int remaining = count;
+		int given = 0;
+		while (remaining > 0) {
+			int amount = Math.min(maxStack, remaining);
+			ItemStack stack = input.createItemStack(amount, false);
+			drifter.getInventory().add(stack);
+			given += amount - stack.getCount();
+			remaining -= amount;
+			if (!stack.isEmpty()) {
+				break;
+			}
+		}
+
+		return given;
 	}
 
 	private static int give(CommandContext<CommandSourceStack> ctx, int count) throws CommandSyntaxException {

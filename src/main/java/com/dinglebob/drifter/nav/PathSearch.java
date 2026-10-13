@@ -34,6 +34,7 @@ public class PathSearch {
 	}
 
 	// ----- Tunables (section 12 cost model; seconds unless noted) -----
+	/** Defaults; the live values come from DrifterConfig (`/drifter config path`). */
 	public static final int WINDOW = 48;
 	public static final int MAX_NODES = 8000;
 	public static final double WALK = 1.0 / 4.317;
@@ -141,7 +142,7 @@ public class PathSearch {
 		this.maxDrop = maxDrop;
 		var dimension = drifter.level().dimension().location();
 		this.dangers = this.memory.find(MemoryKind.DANGER, entry -> entry.dimension.equals(dimension)
-			&& entry.pos.distanceTo(Vec3.atCenterOf(start)) <= WINDOW + DANGER_RADIUS).stream().map(entry -> entry.pos).toList();
+			&& entry.pos.distanceTo(Vec3.atCenterOf(start)) <= com.dinglebob.drifter.DrifterConfig.pathRange() + DANGER_RADIUS).stream().map(entry -> entry.pos).toList();
 		Node first = new Node(this.start);
 		first.f = this.heuristic(this.start);
 		this.nodes.put(this.start.asLong(), first);
@@ -196,7 +197,7 @@ public class PathSearch {
 				return this.finish(node, false);
 			}
 
-			if (++this.expanded >= MAX_NODES) {
+			if (++this.expanded >= com.dinglebob.drifter.DrifterConfig.pathNodes()) {
 				return this.finish(this.best, true);
 			}
 
@@ -285,8 +286,9 @@ public class PathSearch {
 	}
 
 	private boolean inWindow(BlockPos pos) {
-		return Math.abs(pos.getX() - this.start.getX()) <= WINDOW && Math.abs(pos.getZ() - this.start.getZ()) <= WINDOW
-			&& Math.abs(pos.getY() - this.start.getY()) <= WINDOW;
+		int window = com.dinglebob.drifter.DrifterConfig.pathRange();
+		return Math.abs(pos.getX() - this.start.getX()) <= window && Math.abs(pos.getZ() - this.start.getZ()) <= window
+			&& Math.abs(pos.getY() - this.start.getY()) <= window;
 	}
 
 	private void expand(Node node) {

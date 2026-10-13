@@ -22,10 +22,16 @@ public class TerrainKnowledge {
 	/** Chunk sections (16x16x16) remembered at once; the least recently touched are forgotten first. */
 	public static final int MAX_SECTIONS = 512;
 
+	/** Enough sections to cover the path range around it (it grows with `/drifter config path`). */
+	private static int maxSections() {
+		int across = 2 * com.dinglebob.drifter.DrifterConfig.pathRange() / 16 + 2;
+		return Math.max(MAX_SECTIONS, across * across * 6);
+	}
+
 	private final Map<Long, BitSet> sections = new LinkedHashMap<>(64, 0.75F, true) {
 		@Override
 		protected boolean removeEldestEntry(Map.Entry<Long, BitSet> eldest) {
-			return this.size() > MAX_SECTIONS;
+			return this.size() > maxSections();
 		}
 	};
 

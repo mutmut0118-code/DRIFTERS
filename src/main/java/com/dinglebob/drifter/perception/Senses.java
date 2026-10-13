@@ -107,7 +107,7 @@ public class Senses {
 	public static final double BLOCK_DARK_RANGE = 8.0;
 	/**
 	 * Far sight (user's rule: see a mountain or a village in the distance, out to 7 chunks): a couple of long rays per
-	 * tick near the horizon. They note landmarks and resources, but only the first TERRAIN_MARK_RANGE blocks of each
+	 * tick near the horizon. They note landmarks and resources, but only the first terrainMarkRange() blocks of each
 	 * go into the pathfinder's block knowledge (it plans within 48 blocks), which keeps memory small.
 	 */
 	public static final int FAR_RAYS = 2;
@@ -115,7 +115,10 @@ public class Senses {
 	/** Far rays aim between this far below and above the horizon (degrees). */
 	public static final float FAR_PITCH_DOWN = 12.0F;
 	public static final float FAR_PITCH_UP = 15.0F;
-	public static final double TERRAIN_MARK_RANGE = 48.0;
+	/** (Follows the path range, `/drifter config path`: the pathfinder needs to know what it plans across.) */
+	public static double terrainMarkRange() {
+		return com.dinglebob.drifter.DrifterConfig.pathRange();
+	}
 	/** Landmarks: high ground this far above sea level, or this far above its feet, seen from at least MIN distance. */
 	public static final int MOUNTAIN_ABOVE_SEA = 40;
 	public static final int MOUNTAIN_RISE = 30;
@@ -304,7 +307,7 @@ public class Senses {
 			light = 15;
 		}
 
-		double range = DARK_RANGE + (DAYLIGHT_RANGE - DARK_RANGE) * light / 15.0;
+		double range = DARK_RANGE + (com.dinglebob.drifter.DrifterConfig.sightRange() - DARK_RANGE) * light / 15.0;
 		BlockPos eyePos = BlockPos.containing(this.drifter.getEyePosition());
 		if (level.isThundering() && level.isRainingAt(eyePos)) {
 			range *= THUNDER_FACTOR;
@@ -398,7 +401,7 @@ public class Senses {
 	/** Attention budget (section 5): re-rank what's worth tracking in detail. Players and forced ones always stay. */
 	private void rankAttention() {
 		long now = this.now();
-		AABB area = this.drifter.getBoundingBox().inflate(DAYLIGHT_RANGE, VERTICAL_RANGE, DAYLIGHT_RANGE);
+		AABB area = this.drifter.getBoundingBox().inflate(com.dinglebob.drifter.DrifterConfig.sightRange(), VERTICAL_RANGE, com.dinglebob.drifter.DrifterConfig.sightRange());
 		List<Entity> candidates = this.level().getEntities(this.drifter, area,
 			entity -> entity instanceof LivingEntity && entity.isAlive() && !entity.isSpectator());
 		// Nearest first, so the far-sight budget goes to the closest of the far ones.
@@ -620,7 +623,7 @@ public class Senses {
 		for (int i = 0; i < FAR_RAYS && low < high; i++) {
 			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_YAW;
 			float pitch = Mth.lerp(this.drifter.getRandom().nextFloat(), low, high);
-			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), FAR_SIGHT_RANGE);
+			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), com.dinglebob.drifter.DrifterConfig.sightRange());
 		}
 	}
 
@@ -637,11 +640,11 @@ public class Senses {
 		double distance = eye.distanceTo(hit.getLocation());
 		double range = blockHit ? this.blockSightRange(hit.getBlockPos().relative(hit.getDirection()), maxRange) : 0.0;
 		// What it saw across goes into the pathfinder's block knowledge, but only nearby (it plans within 48 blocks).
-		if (blockHit && distance <= Math.min(range, TERRAIN_MARK_RANGE)) {
+		if (blockHit && distance <= Math.min(range, terrainMarkRange())) {
 			// Nudge into the hit block so the walk includes it.
 			this.terrain.markRay(eye, hit.getLocation().add(direction.scale(0.01)));
 		} else {
-			double seenAcross = Math.min(blockHit ? Math.min(distance, range) : this.blockSightRange(BlockPos.containing(eye), maxRange), TERRAIN_MARK_RANGE);
+			double seenAcross = Math.min(blockHit ? Math.min(distance, range) : this.blockSightRange(BlockPos.containing(eye), maxRange), terrainMarkRange());
 			this.terrain.markRay(eye, eye.add(direction.scale(seenAcross)));
 		}
 
