@@ -12,6 +12,7 @@ import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.hands.FakePlayerBridge;
 import com.dinglebob.drifter.hands.Reach;
 import com.dinglebob.drifter.hands.Tools;
+import com.dinglebob.drifter.memory.MemoryKind;
 import com.dinglebob.drifter.motor.CameraModel;
 import com.dinglebob.drifter.motor.VirtualKeys;
 import com.dinglebob.drifter.nav.MoveType;
@@ -19,6 +20,7 @@ import com.dinglebob.drifter.nav.NavView;
 import com.dinglebob.drifter.nav.PathBudget;
 import com.dinglebob.drifter.nav.PathSearch;
 import com.dinglebob.drifter.nav.PathStep;
+import com.dinglebob.drifter.perception.BlockNotes;
 import com.dinglebob.drifter.world.PlayerPlacedBlocks;
 
 import net.minecraft.core.BlockPos;
@@ -49,13 +51,36 @@ import net.minecraft.world.phys.Vec3;
  * after 3 s it jumps and strafes, after 8 s it replans, and it gives up after too many replans.
  */
 public class NavigateTask extends Task {
+	/**
+	 * How it moves on this trip (section 10.9): TRAVEL sprints (and usually sprint-jumps) whenever it can; STROLL walks,
+	 * for when there's no hurry (lounging, a village); SNEAK sneaks the whole way (creeping up on something).
+	 * Until the brain exists, commands choose; TRAVEL is the default.
+	 */
+	public enum Pace {
+		TRAVEL, STROLL, SNEAK;
+
+		public String id() {
+			return this.name().toLowerCase(Locale.ROOT);
+		}
+	}
+
 	/** Horizontal distance to a step's target at which the step counts as done. */
 	private static final double ARRIVE = 0.35;
 	/** Looser on straight runs, so it doesn't brake at every block (imperfect corner cutting, section 12). */
 	private static final double ARRIVE_STRAIGHT = 0.6;
 	private static final int LOOK_AHEAD_STEPS = 3;
-	private static final int SPRINT_MIN_STRAIGHT = 4;
-	private static final double SPRINT_MIN_REMAINING = 6.0;
+	/**
+	 * How players travel (user's rule, DESIGN.md section 10.9): most trips are sprint-jumped the whole way when
+	 * possible. Rolled once per trip.
+	 */
+	public static final float SPRINT_JUMP_CHANCE = 0.8F;
+	/** Stop sprinting this close to the goal, and stop sprint-jumping a bit earlier. */
+	private static final double SPRINT_MIN_REMAINING = 3.0;
+	private static final double SPRINT_JUMP_MIN_REMAINING = 5.0;
+	/** Sprint-jump only with at least this many straight steps ahead (no jumping into a turn). */
+	private static final int SPRINT_JUMP_MIN_STRAIGHT = 3;
+	/** Sculk sensors or shriekers remembered this close: sneak, never sprint (ancient cities, section 15). */
+	private static final double SCULK_CAUTION_RANGE = 12.0;
 	private static final int UNSTICK_AFTER = 60;
 	private static final int UNSTICK_FOR = 10;
 	private static final int REPLAN_AFTER = 160;
@@ -73,6 +98,9 @@ public class NavigateTask extends Task {
 	private final Supplier<Vec3> target;
 	private final double radius;
 	private final String label;
+	private final Pace pace;
+	/** Rolled once per trip: whether this is one of the (most) trips it sprint-jumps. */
+	private boolean sprintJumpTrip;
 	/** Following a moving target: re-path as it moves, and don't finish on arrival (follow mode). */
 	private final boolean follow;
 	@Nullable
@@ -100,27 +128,33 @@ public class NavigateTask extends Task {
 	private int pillarTicks;
 
 	public NavigateTask(DrifterEntity drifter, Vec3 target, double radius, String label) {
-		this(drifter, () -> target, radius, label, false, null);
+		this(drifter, target, radius, label, Pace.TRAVEL);
 	}
 
-	private NavigateTask(DrifterEntity drifter, Supplier<Vec3> target, double radius, String label, boolean follow, @Nullable Entity chased) {
+	public NavigateTask(DrifterEntity drifter, Vec3 target, double radius, String label, Pace pace) {
+		this(drifter, () -> target, radius, label, false, null, pace);
+	}
+
+	private NavigateTask(DrifterEntity drifter, Supplier<Vec3> target, double radius, String label, boolean follow, @Nullable Entity chased,
+		Pace pace) {
 		super(drifter);
 		this.target = target;
 		this.radius = radius;
 		this.label = label;
 		this.follow = follow;
 		this.chased = chased;
+		this.pace = pace;
 	}
 
 	/** Follows an entity, keeping within {@code radius}, until cancelled. */
 	public static NavigateTask follow(DrifterEntity drifter, Entity entity, double radius) {
 		return new NavigateTask(drifter, () -> entity.position().add(entity.getDeltaMovement().scale(CHASE_PREDICT_TICKS)), radius,
-			"follow " + entity.getName().getString(), true, entity);
+			"follow " + entity.getName().getString(), true, entity, Pace.TRAVEL);
 	}
 
 	@Override
 	public String describe() {
-		return this.label;
+		return this.pace == Pace.TRAVEL ? this.label : this.label + " (" + this.pace.id() + ")";
 	}
 
 	@Override
@@ -130,6 +164,7 @@ public class NavigateTask extends Task {
 
 	@Override
 	protected void onStart() {
+		this.sprintJumpTrip = this.drifter.getRandom().nextFloat() < SPRINT_JUMP_CHANCE;
 		this.plan("start");
 	}
 
@@ -382,12 +417,33 @@ public class NavigateTask extends Task {
 		double horizontal = Math.sqrt(dx * dx + dz * dz);
 		boolean straight = this.index + 1 < this.path.size() && this.sameDirection(step, this.path.get(this.index + 1))
 			&& (step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL);
+		if (straight && this.passedInAir(step, dx, dz)) {
+			return true;
+		}
+
 		if (horizontal > (straight ? ARRIVE_STRAIGHT : ARRIVE)) {
 			return false;
 		}
 
 		boolean supported = this.drifter.onGround() || this.drifter.isInWater() || this.drifter.onClimbable();
 		return supported && Math.abs(this.drifter.getY() - step.to().getY()) < 0.6;
+	}
+
+	/**
+	 * Sprint-jumping sails over path points without standing on them. On a straight run, a point counts as reached
+	 * once it's behind the Drifter (within a little sideways), even in mid-air.
+	 */
+	private boolean passedInAir(PathStep step, double dx, double dz) {
+		double stepX = step.to().getX() - step.from().getX();
+		double stepZ = step.to().getZ() - step.from().getZ();
+		double length = Math.sqrt(stepX * stepX + stepZ * stepZ);
+		if (length < 0.5) {
+			return false;
+		}
+
+		double along = (dx * stepX + dz * stepZ) / length;
+		double sideways = Math.abs(-dx * stepZ + dz * stepX) / length;
+		return along > -0.1 && sideways < ARRIVE_STRAIGHT && Math.abs(this.drifter.getY() - step.to().getY()) < 1.3;
 	}
 
 	private boolean sameDirection(PathStep a, PathStep b) {
@@ -598,10 +654,13 @@ public class NavigateTask extends Task {
 		// never carry it over (found in testing: it ran off a ravine edge). Not on a deliberate step down: sneaking
 		// would stop it at the step.
 		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN;
-		boolean sneaking = step.type() == MoveType.BRIDGE || !intentionalDrop && this.nearDeepDrop();
+		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || !intentionalDrop && this.nearDeepDrop() || this.nearSculk();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
-		keys.set(VirtualKeys.Key.SPRINT, !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && this.straightRunAhead() >= SPRINT_MIN_STRAIGHT
-			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL);
+		// Section 10.9 pace: on a TRAVEL trip it sprints the whole way when it can. It can't when hungry (food 6 or
+		// less) and shouldn't when sneaking, bridging, near an edge or almost there.
+		boolean sprint = this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
+			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
+		keys.set(VirtualKeys.Key.SPRINT, sprint);
 
 		boolean jump = switch (step.type()) {
 			case JUMP_UP -> horizontal < 1.3 || this.drifter.horizontalCollision;
@@ -609,12 +668,36 @@ public class NavigateTask extends Task {
 			case SWIM, WALK -> this.drifter.isInWater() && step.to().getY() >= this.feet().getY();
 			default -> false;
 		};
+		// Sprint-jump on most trips: on flat straight runs with headroom, not into a turn, not right at the end.
+		if (sprint && this.sprintJumpTrip && this.drifter.onGround() && (step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL)
+			&& this.straightRunAhead() >= SPRINT_JUMP_MIN_STRAIGHT && this.remainingDistance() > SPRINT_JUMP_MIN_REMAINING && this.headroomAhead()) {
+			jump = true;
+		}
+
 		// Auto-jump over an unexpected 1-block bump (players jump without thinking).
 		if (this.drifter.horizontalCollision && this.drifter.onGround() && step.type() != MoveType.BRIDGE) {
 			jump = true;
 		}
 
 		keys.set(VirtualKeys.Key.JUMP, jump);
+	}
+
+	/** No low ceiling over the next few steps (a sprint-jump would bonk its head). */
+	private boolean headroomAhead() {
+		for (int i = this.index; i < Math.min(this.path.size(), this.index + SPRINT_JUMP_MIN_STRAIGHT); i++) {
+			BlockPos to = this.path.get(i).to();
+			if (!this.isClear(to.above(2)) || !this.isClear(this.path.get(i).from().above(2))) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** Remembered sculk sensors or shriekers nearby (it has seen them): an ancient city or deep dark, so it creeps. */
+	private boolean nearSculk() {
+		return this.drifter.getMemory().nearest(MemoryKind.DANGER, this.level().dimension().location(), this.drifter.position(),
+			SCULK_CAUTION_RANGE, entry -> entry.label.equals(BlockNotes.SCULK)) != null;
 	}
 
 	private int straightRunAhead() {

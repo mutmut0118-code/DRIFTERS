@@ -180,6 +180,12 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 - **It walked off a ravine and died.** It didn't sneak near drops, so momentum carried it over; the stuck-recovery "strafe and jump" could fire at an edge; and the planner assumed solid ground at the bottom of 2-3 block drops it couldn't see. Now: it sneaks (and never sprints) whenever a 4+ block drop is right beside it or its next step; it never does the strafe-jump next to a drop (it replans instead); it never drops 2+ blocks onto ground it hasn't seen; and walking right along a deep edge costs extra (section 12 edge risk).
 - **It took the most destructive path in a village** (broke carpet, a house log, and a window instead of using the door). Causes: when it met a block it hadn't seen while planning, it dug through it instead of replanning; digging was costed only by break time (a window takes 1.5 s); and carpet counted as a solid block. Now: it only digs blocks the plan chose to dig, and replans when anything else is in the way; every block dug costs 2 s extra, and blocks that plainly belong to a build (glass, planks, wool, doors, stairs, slabs, fences, walls, bricks, beds...) cost 12 s extra, so it goes around or uses the door; carpet and thin snow are walked on. Standing on slabs and dirt paths is handled better too.
 
+### Travel pace (user feedback, added after the first test)
+- `NavigateTask.Pace`: **travel** (default: sprints whenever it can, and sprint-jumps on 80% of trips, rolled per trip), **stroll** (walks), **sneak** (sneaks all the way). `/drifter goto <pos> [travel|stroll|sneak]`. The brain will pick the pace later (strolling in a village, sneaking up on something).
+- Sprint-jumps only on flat straight runs (3+ steps), with headroom, not into a turn, not in the last 5 blocks. Stops sprinting near deep drops (sneaks), when bridging, in water, in the last 3 blocks, and at food 6 or lower.
+- Sculk sensors and shriekers are now remembered (as danger "sculk"); within 12 blocks of one it remembers, it sneaks and never sprints (ancient cities, section 15).
+- Path progress now counts points it sails past in mid-air on a straight run, so sprint-jumping doesn't make it turn back.
+
 ### Not done yet / left for later (TODOs in code)
 - In-game verification (the milestone's "done when" test: it crosses a ravine and tunnels through a hill to reach a target).
 - Long-range planning over mental-map tiles (section 12 step 1) is simplified to "partial path toward the target, then plan again".
@@ -209,6 +215,7 @@ manhunt-only features before then.
 - **Idle head jitter:** keep the design value (0.4 degrees). The user tested milestone 1 in-game, reported everything works, and chose my recommendations (which was: only raise it if it looks frozen).
 - **Own spawn group:** option (a), the mod's own rare spawner instead of a vanilla spawn group; the entity stays in `MISC` (user: "use your recommendations"). See design question 1 below for the background.
 - **Player sleep blocking:** a small mixin on the bed check, when that milestone comes (user: "use your recommendations").
+- **Travel pace:** players sprint-jump the whole way about 80% of the time unless they don't need to, shouldn't, or can't. DESIGN.md section 10.9 was updated with this (user's rule).
 - **Manhunt:** added to DESIGN.md as an optional test mode (section 25), hunter role first, not the centre of the mod (user decision).
 
 ## Design questions

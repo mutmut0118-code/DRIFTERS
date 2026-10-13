@@ -35,16 +35,22 @@ final class NavCommands {
 					String.format(Locale.ROOT, "go to %s at %d %d %d", player.getGameProfile().getName(), (int)Math.floor(at.x), (int)Math.floor(at.y),
 						(int)Math.floor(at.z))));
 			}))
-			.then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(ctx -> {
-				BlockPos pos = BlockPosArgument.getBlockPos(ctx, "pos");
-				return start(ctx, drifter -> new NavigateTask(drifter, Vec3.atBottomCenterOf(pos), 0.5, "go to " + pos.toShortString()));
-			})));
+			.then(Commands.argument("pos", BlockPosArgument.blockPos())
+				.executes(ctx -> gotoPos(ctx, NavigateTask.Pace.TRAVEL))
+				.then(Commands.literal("travel").executes(ctx -> gotoPos(ctx, NavigateTask.Pace.TRAVEL)))
+				.then(Commands.literal("stroll").executes(ctx -> gotoPos(ctx, NavigateTask.Pace.STROLL)))
+				.then(Commands.literal("sneak").executes(ctx -> gotoPos(ctx, NavigateTask.Pace.SNEAK)))));
 
 		root.then(Commands.literal("follow")
 			.then(Commands.literal("me").executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				return start(ctx, drifter -> NavigateTask.follow(drifter, player, NEAR_PLAYER + 1.0));
 			})));
+	}
+
+	private static int gotoPos(CommandContext<CommandSourceStack> ctx, NavigateTask.Pace pace) throws CommandSyntaxException {
+		BlockPos pos = BlockPosArgument.getBlockPos(ctx, "pos");
+		return start(ctx, drifter -> new NavigateTask(drifter, Vec3.atBottomCenterOf(pos), 0.5, "go to " + pos.toShortString(), pace));
 	}
 
 	@FunctionalInterface

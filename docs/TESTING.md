@@ -349,6 +349,7 @@ to dig**. The text panel shows "Path: N steps left, X blocks to dig, Y to place"
 | Command | What it does |
 | --- | --- |
 | `/drifter goto <pos>` | Finds its own way to that block (press Tab while looking at a block to fill in the position) |
+| `/drifter goto <pos> stroll` / `sneak` | Same, but walking / sneaking the whole way (default is `travel`: sprinting) |
 | `/drifter goto me` | Comes to where you're standing now |
 | `/drifter follow me` | Keeps following you until `/drifter stop` |
 
@@ -374,6 +375,13 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - [ ] `/drifter follow me` and walk/run around: it follows, catching up when you get away, and waits when it's close.
       `/drifter stop` ends it.
 - [ ] It never walks into lava or fire.
+
+- [ ] **Sprint-jumping:** `/drifter goto <a block 40 blocks away across flat ground>` a few times. Most times (about 4 in
+      5) it **sprint-jumps** the whole way, like a player; other times it just sprints. It stops jumping for turns, under
+      low ceilings, and in the last few blocks, and doesn't turn back after jumping past a point.
+- [ ] `/drifter goto <pos> stroll`: it walks. `/drifter goto <pos> sneak`: it sneaks the whole way.
+- [ ] Hungry: `/drifter food 6`, then `/drifter goto` somewhere far: it walks (it can't sprint).
+- [ ] Ancient city (optional): near sculk sensors or shriekers it has seen, it sneaks and never sprints.
 
 ### 2. Bridging (crossing a ravine)
 - [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide

@@ -650,7 +650,7 @@ Mining methods, chosen by stage, target and personality:
 
 ### 10.9 Travel
 
-- **Sprinting:** whenever food is above 6 and the distance is more than about 10 blocks; sprint-jumps across flat open ground.
+- **Pace:** like players, most trips (about 80%) are sprint-jumped the whole way when possible; the rest are sprinted. It slows down when it doesn't need to hurry (lounging, strolling through a village: it walks), when it shouldn't go fast (sneaking up on something, bridging, near a cliff edge: it sneaks), and when it can't (food 6 or lower, a low ceiling, a sharp turn, almost there, the deep dark or an ancient city: it walks or sneaks).
 - **Cautious caves:** stops sprinting in dark or unknown areas.
 - **Boats:** carries one from early on; uses it on any water wider than a few blocks.
 - **Horses:** for long overland trips once it has one.

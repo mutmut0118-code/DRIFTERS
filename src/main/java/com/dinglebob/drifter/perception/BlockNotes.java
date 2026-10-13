@@ -19,6 +19,9 @@ public final class BlockNotes {
 	public record Note(MemoryKind kind, String label, float importance) {
 	}
 
+	/** Label for sculk sensors and shriekers: the deep dark, where it sneaks (section 15). */
+	public static final String SCULK = "sculk";
+
 	private BlockNotes() {
 	}
 
@@ -27,6 +30,10 @@ public final class BlockNotes {
 		String id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
 		if (state.getFluidState().is(FluidTags.LAVA)) {
 			return new Note(MemoryKind.DANGER, "lava", 0.6F);
+		}
+
+		if (state.is(Blocks.SCULK_SENSOR) || state.is(Blocks.CALIBRATED_SCULK_SENSOR) || state.is(Blocks.SCULK_SHRIEKER)) {
+			return new Note(MemoryKind.DANGER, SCULK, 0.8F);
 		}
 
 		if (state.is(BlockTags.DIAMOND_ORES) || state.is(Blocks.ANCIENT_DEBRIS)) {
