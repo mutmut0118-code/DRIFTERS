@@ -310,6 +310,23 @@ public class NavigateTask extends Task {
 		}
 	}
 
+	/**
+	 * Is now a safe moment to stop walking and do something else (section 7, "Atomic actions finish first")? Not while
+	 * digging, bridging or pillaring, and not at a deep edge, where letting go of the keys could drop it.
+	 */
+	public boolean isSafeToInterrupt() {
+		if (this.sub != null || this.edgeBeside()) {
+			return false;
+		}
+
+		if (this.index < this.path.size()) {
+			MoveType type = this.path.get(this.index).type();
+			return type != MoveType.BRIDGE && type != MoveType.PILLAR;
+		}
+
+		return true;
+	}
+
 	/** A deep drop under it (leaning out over an edge) or right beside it, from where it stands. */
 	private boolean edgeBeside() {
 		BlockPos here = this.feet();

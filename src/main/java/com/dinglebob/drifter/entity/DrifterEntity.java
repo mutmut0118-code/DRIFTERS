@@ -103,6 +103,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final TaskRunner tasks = new TaskRunner(this);
 	private final com.dinglebob.drifter.brain.Brain brain = new com.dinglebob.drifter.brain.Brain(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
+	/** True during its own melee swing (see {@link #hurt} and {@link #knockback}). */
+	private boolean ownSwing;
 	/** Short- and long-term memory (section 6). Everything it knows about the world is in here. */
 	private final DrifterMemory memory = new DrifterMemory();
 	/** Perception (section 5): the only thing that looks at the world, and it writes into memory. */
@@ -199,6 +201,18 @@ public class DrifterEntity extends PathfinderMob {
 
 	public void resetAttackTimer() {
 		this.lastAttackTime = this.level().getGameTime();
+	}
+
+	public void setOwnSwing(boolean ownSwing) {
+		this.ownSwing = ownSwing;
+	}
+
+	/** No knockback from its own sword's sweep (knockback is applied before the hit, so {@link #hurt} can't stop it). */
+	@Override
+	public void knockback(double strength, double x, double z) {
+		if (!this.ownSwing) {
+			super.knockback(strength, x, z);
+		}
 	}
 
 	/** Registers its ears with the game's vibration system, like the Allay and the Warden do. */
@@ -734,6 +748,11 @@ public class DrifterEntity extends PathfinderMob {
 	/** Touch (section 5): it feels every hit, even one its armor fully absorbs. */
 	@Override
 	public boolean hurt(DamageSource source, float amount) {
+		// Its own swings go through its fake-player helper, standing where it stands: a sword's sweep would hit itself.
+		if (this.ownSwing || source.getEntity() != null && source.getEntity().getUUID().equals(com.dinglebob.drifter.hands.FakePlayerBridge.helperId(this))) {
+			return false;
+		}
+
 		boolean hit = super.hurt(source, amount);
 		if (hit && !this.level().isClientSide) {
 			this.senses.onHurt(source, amount);

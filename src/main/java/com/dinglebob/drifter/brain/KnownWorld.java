@@ -57,8 +57,7 @@ public final class KnownWorld {
 			}
 
 			BlockState state = level.getBlockState(pos);
-			if (state.isAir() || !state.getFluidState().isEmpty() || state.getDestroySpeed(level, pos) < 0.0F || !exposed(level, pos)
-				|| !KnownBlocks.mayTake(level, pos) || blacklist.contains(pos, now)) {
+			if (!takeable(level, pos, state, blacklist, now)) {
 				return;
 			}
 
@@ -67,28 +66,58 @@ public final class KnownWorld {
 		});
 
 		for (Awareness awareness : drifter.getSenses().tracked()) {
-			if (awareness.identified && awareness.entity.isAlive() && now - awareness.lastSeenTick < 20 * 30
-				&& !(awareness.entity instanceof AgeableMob ageable && ageable.isBaby())) {
+			if (isHuntable(awareness, now)) {
 				this.animals.add(awareness.entity.getType());
 			}
 		}
 
 		ResourceLocation dimension = level.dimension().location();
 		for (MemoryEntry entry : drifter.getMemory().find(MemoryKind.MOB,
-			e -> e.dimension.equals(dimension) && e.pos.distanceTo(drifter.position()) <= ANIMAL_MEMORY_RANGE)) {
-			EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(entry.label));
-			this.animals.add(type);
+			e -> e.dimension.equals(dimension) && e.pos.distanceTo(drifter.position()) <= ANIMAL_MEMORY_RANGE
+				&& (e.detail == null || !e.detail.contains("baby")))) {
+			ResourceLocation id = ResourceLocation.tryParse(entry.label);
+			if (id != null) {
+				BuiltInRegistries.ENTITY_TYPE.getOptional(id).ifPresent(this.animals::add);
+			}
 		}
 
 		this.tableNear = Stations.nearest(drifter, Blocks.CRAFTING_TABLE, Stations.USE_RANGE) != null;
 		this.furnaceNear = Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null;
+		// Groves farther than what it can see from here (the one it's standing in is already counted, or cut down).
 		MemoryEntry trees = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), TREE_MEMORY_RANGE,
-			e -> e.label.equals("trees"));
+			e -> e.label.equals("trees") && e.pos.distanceTo(drifter.position()) > RADIUS);
 		this.treesHint = trees == null ? null : trees.pos;
 	}
 
 	public static KnownWorld scan(DrifterEntity drifter) {
 		return new KnownWorld(drifter);
+	}
+
+	/** The same test the scan uses: a seen block it could go and take (exposed, not anyone's, not blacklisted). */
+	private static boolean takeable(Level level, BlockPos pos, BlockState state, Blacklist blacklist, long now) {
+		return !state.isAir() && state.getFluidState().isEmpty() && state.getDestroySpeed(level, pos) >= 0.0F && exposed(level, pos)
+			&& KnownBlocks.mayTake(level, pos) && !blacklist.contains(pos, now);
+	}
+
+	/** Has it seen a block matching this that it could go and take, by the same rules the planner uses? */
+	public static boolean anyTakeable(DrifterEntity drifter, Predicate<BlockState> filter) {
+		Level level = drifter.level();
+		long now = level.getGameTime();
+		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
+		boolean[] found = {false};
+		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, pos -> {
+			if (!found[0] && level.isLoaded(pos)) {
+				BlockState state = level.getBlockState(pos);
+				found[0] = filter.test(state) && takeable(level, pos, state, blacklist, now);
+			}
+		});
+		return found[0];
+	}
+
+	/** An adult animal it can see or saw in the last half minute. */
+	public static boolean isHuntable(Awareness awareness, long now) {
+		return awareness.identified && awareness.entity.isAlive() && now - awareness.lastSeenTick < 20 * 30
+			&& !(awareness.entity instanceof AgeableMob ageable && ageable.isBaby());
 	}
 
 	/** Has it seen a block (that it may take) matching this, nearby? */

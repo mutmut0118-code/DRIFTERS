@@ -104,7 +104,7 @@ public abstract class Activity extends Task {
 	 * waiting. A block half-broken, a craft or a bite of food finishes first.
 	 */
 	public boolean atCheckpoint() {
-		return this.child == null || this.child instanceof NavigateTask || this.child instanceof WaitTask;
+		return this.child == null || this.child instanceof NavigateTask navigate && navigate.isSafeToInterrupt() || this.child instanceof WaitTask;
 	}
 
 	/** What it's doing right now, for the overlay. */

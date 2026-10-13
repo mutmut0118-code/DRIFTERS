@@ -85,7 +85,7 @@ public class HuntActivity extends Activity {
 
 		if (!this.searched) {
 			MemoryEntry remembered = this.drifter.getMemory().nearest(MemoryKind.MOB, this.drifter.level().dimension().location(),
-				this.drifter.position(), MEMORY_RANGE, entry -> this.isPreyId(entry.label));
+				this.drifter.position(), MEMORY_RANGE, entry -> this.isPreyId(entry.label) && (entry.detail == null || !entry.detail.contains("baby")));
 			if (remembered != null) {
 				this.searched = true;
 				this.think("going to where it saw a " + remembered.label.replace("minecraft:", ""));

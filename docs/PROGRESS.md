@@ -243,6 +243,18 @@ The "done when" test: a Fresh Drifter (empty inventory) survives its first night
 - **Overlay and commands**: the overlay's text panel shows brain on/off, stage, next target, the goal and current step, the top scores, the plan, and the needs. `/drifter brain`, `/drifter brain on|off`, `/drifter brain goal <eat|food|shelter|progress|explore|idle>`.
 - Saved data: the brain's on/off switch ("DrifterBrain", version 1).
 
+### Fixed after a code review (before any in-game test)
+- Night shelter: it now steps to the middle of its block before digging (off-centre, its 0.6-wide body stayed on the rim of its own hole); gets to dry ground first if it's swimming or climbing at dusk; gives up cleanly if it can't get its feet on the ground.
+- Its own sword sweep no longer hurts or knocks back the Drifter itself (the fake-player helper stands where it stands).
+- Exploring for trees or animals stops by the same rules the planner uses (no endless "explore, found it, explore" loop on out-of-reach logs or baby animals), and stops on seeing any kind of tree or huntable animal; remembered groves it's standing in no longer count as somewhere to go.
+- The brain no longer restarts a goal that just failed during its commit time (the 15 s cooldown now works); a goal with nothing to do can't be re-picked by jitter.
+- A failed craft or smelt is reported as a failure (it was reported as done and retried forever).
+- The dig-down staircase gives up when boxed in (water, lava, sand, someone's blocks on all four sides) instead of turning forever; it never digs its own crafting table, furnace or chests; stone is gathered at its own level, not from under its feet (no pits).
+- Goal switches only happen while walking when it isn't bridging, pillaring, digging or at a deep edge.
+- Fuel lists skip crimson and warped wood (they don't burn); the "raw meat" fallback no longer hunts chickens it won't eat raw.
+- Baby animals are marked in its memory and never hunted or planned around; source data is resolved once at load (less work per tick); standing-spot search raycasts nearest spots first.
+- Known small issue left: the plan shown in the overlay can list a merged step slightly out of order; it corrects itself on the next replan.
+
 ### Not done yet / left for later (TODOs in code)
 - **Beds and sleep** (stage 3 "a bed if 3 sheep of one color are around"; section 18 sleeping): not yet. The first night is spent in the dug-in shelter.
 - Tier 2 hillside dig-in and tier 3 starter hut, home site selection: milestone 8 (and the hillside dig-in could come back here if testing shows the tier 1 hole isn't enough).

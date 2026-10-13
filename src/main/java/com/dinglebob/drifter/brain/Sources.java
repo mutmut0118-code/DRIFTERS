@@ -4,6 +4,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -41,9 +42,10 @@ public final class Sources {
 	public static final String DIRECTORY = "drifter_sources";
 
 	/** One way to get an item: break a block, or kill a mob. */
-	public record Source(String itemId, List<String> blockIds, boolean dropsSelf, @Nullable ResourceLocation tool, @Nullable ResourceLocation mob) {
+	public record Source(String itemId, List<String> blockIds, boolean dropsSelf, @Nullable ResourceLocation tool, @Nullable ResourceLocation mob,
+		Predicate<Item> itemMatcher, List<Predicate<BlockState>> blockMatchers) {
 		public boolean givesItem(Item item) {
-			return matchesItem(this.itemId, item);
+			return this.itemMatcher.test(item);
 		}
 
 		public boolean isBlock() {
@@ -52,7 +54,7 @@ public final class Sources {
 
 		/** Breaking this block gives the item (for "drops self", only the block whose item it is). */
 		public boolean blockGives(BlockState state, Item item) {
-			if (!this.isBlock() || !this.blockIds.stream().anyMatch(id -> Sources.matchesBlock(id, state))) {
+			if (!this.matchesBlock(state)) {
 				return false;
 			}
 
@@ -60,7 +62,13 @@ public final class Sources {
 		}
 
 		public boolean matchesBlock(BlockState state) {
-			return this.blockIds.stream().anyMatch(id -> Sources.matchesBlock(id, state));
+			for (Predicate<BlockState> matcher : this.blockMatchers) {
+				if (matcher.test(state)) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		@Nullable
@@ -119,10 +127,12 @@ public final class Sources {
 						}
 					}
 
-					loaded.add(new Source(entry.get("item").getAsString(), List.copyOf(blocks),
+					String itemId = entry.get("item").getAsString();
+					loaded.add(new Source(itemId, List.copyOf(blocks),
 						entry.has("drops") && entry.get("drops").getAsString().equals("self"),
 						entry.has("tool") ? ResourceLocation.parse(entry.get("tool").getAsString()) : null,
-						entry.has("mob") ? ResourceLocation.parse(entry.get("mob").getAsString()) : null));
+						entry.has("mob") ? ResourceLocation.parse(entry.get("mob").getAsString()) : null,
+						itemMatcher(itemId), blocks.stream().map(Sources::blockMatcher).toList()));
 				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter sources file {}", file.getKey(), e);
@@ -133,22 +143,25 @@ public final class Sources {
 		Drifter.LOGGER.info("Loaded {} Drifter item sources", loaded.size());
 	}
 
-	/** An item id or {@code #tag} against an item. */
-	public static boolean matchesItem(String id, Item item) {
+	/** An item id or {@code #tag}, resolved once (tags are checked when used, so they follow datapack reloads). */
+	private static Predicate<Item> itemMatcher(String id) {
 		if (id.startsWith("#")) {
-			return new ItemStack(item).is(TagKey.create(Registries.ITEM, ResourceLocation.parse(id.substring(1))));
+			TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.parse(id.substring(1)));
+			return item -> item.builtInRegistryHolder().is(tag);
 		}
 
-		return BuiltInRegistries.ITEM.getKey(item).equals(ResourceLocation.parse(id));
+		Item wanted = BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
+		return item -> item == wanted;
 	}
 
-	/** A block id or {@code #tag} against a block state. */
-	public static boolean matchesBlock(String id, BlockState state) {
+	/** A block id or {@code #tag}, resolved once. */
+	private static Predicate<BlockState> blockMatcher(String id) {
 		if (id.startsWith("#")) {
-			return state.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse(id.substring(1))));
+			TagKey<Block> tag = TagKey.create(Registries.BLOCK, ResourceLocation.parse(id.substring(1)));
+			return state -> state.is(tag);
 		}
 
 		Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(id));
-		return state.is(block);
+		return state -> state.is(block);
 	}
 }

@@ -16,7 +16,9 @@ import com.dinglebob.drifter.brain.activity.SmeltActivity;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.task.LookAroundTask;
 
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
@@ -74,7 +76,8 @@ public final class Goals {
 	/** Turns a planner action into the activity that carries it out. */
 	public static Activity activityFor(DrifterEntity drifter, Planner.Action action) {
 		return switch (action) {
-			case Planner.Gather gather -> new GatherActivity(drifter, gather.label(), gather.blocks(), gather.items(), gather.total(), gather.digDown());
+			case Planner.Gather gather -> new GatherActivity(drifter, gather.label(), gather.blocks(), gather.items(), gather.total(), gather.digDown(),
+				new ItemStack(gather.item()).is(ItemTags.LOGS));
 			case Planner.Hunt hunt -> new HuntActivity(drifter, hunt.prey(), hunt.items(), hunt.total(), hunt.label());
 			case Planner.Craft craft -> new CraftActivity(drifter, craft.item(), craft.times());
 			case Planner.Place place -> new PlaceStationActivity(drifter, place.station());
@@ -175,10 +178,11 @@ public final class Goals {
 		}
 	}
 
-	/** Hunt and cook: keep enough food on it (section 10.5; stage 3 "2 to 4 animals of food"). */
+	/** Hunt and cook: keep enough food on it (section 10.5; stage 3 "2 to 4 animals of food"). Raw chicken isn't on the
+	 * "raw meat" list: it makes you sick, so it doesn't eat it (only cooked). */
 	public static final class GetFood extends PlannedGoal {
 		private static final List<Item> COOKED = List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON, Items.COOKED_CHICKEN);
-		private static final List<Item> RAW = List.of(Items.BEEF, Items.PORKCHOP, Items.MUTTON, Items.CHICKEN);
+		private static final List<Item> RAW = List.of(Items.BEEF, Items.PORKCHOP, Items.MUTTON);
 		/** A cooked plan dearer than this (seconds) when it's getting hungry: just get raw meat. */
 		private static final double TOO_SLOW = 400.0;
 

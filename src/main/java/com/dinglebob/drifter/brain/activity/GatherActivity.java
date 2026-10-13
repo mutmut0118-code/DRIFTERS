@@ -44,6 +44,9 @@ public class GatherActivity extends Activity {
 	private final Predicate<ItemStack> items;
 	private final int wanted;
 	private final boolean digDown;
+	/** Trees are taken from the bottom up; other blocks at its own level or above, so it doesn't dig pits. */
+	private final boolean lowestFirst;
+	private int turnsInARow;
 	/** The block it last walked toward; if it still can't reach it after arriving, it's blacklisted. */
 	@Nullable
 	private BlockPos walkedTo;
@@ -53,8 +56,10 @@ public class GatherActivity extends Activity {
 	private boolean collectNext;
 	private final Set<BlockPos> badSpots = new HashSet<>();
 
-	public GatherActivity(DrifterEntity drifter, String label, Predicate<BlockState> blocks, Predicate<ItemStack> items, int wanted, boolean digDown) {
+	public GatherActivity(DrifterEntity drifter, String label, Predicate<BlockState> blocks, Predicate<ItemStack> items, int wanted, boolean digDown,
+		boolean lowestFirst) {
 		super(drifter);
+		this.lowestFirst = lowestFirst;
 		this.label = label;
 		this.blocks = blocks;
 		this.items = items;
@@ -96,9 +101,13 @@ public class GatherActivity extends Activity {
 		}
 
 		Level level = this.drifter.level();
-		BlockPos below = this.drifter.blockPosition().below();
+		BlockPos feet = this.drifter.blockPosition();
+		BlockPos below = feet.below();
+		// Not the block it stands on, nor (when digging down) the next stair it will stand on.
+		BlockPos nextStair = this.stairDirection == null ? null : feet.relative(this.stairDirection).below();
 		List<BlockPos> candidates = KnownBlocks.find(this.drifter, SEARCH_RADIUS, this.blocks, MAX_CANDIDATES * 4).stream()
-			.filter(pos -> !pos.equals(below) && !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos))
+			.filter(pos -> !pos.equals(below) && !pos.equals(nextStair) && (this.lowestFirst || !underfoot(pos, feet))
+				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos))
 			.limit(MAX_CANDIDATES)
 			.toList();
 
@@ -114,9 +123,10 @@ public class GatherActivity extends Activity {
 		Optional<BlockPos> inReach = candidates.stream()
 			.filter(pos -> !this.blacklist().contains(pos, this.now()) && pos.distToCenterSqr(eye) <= REACH_CHECK_DISTANCE * REACH_CHECK_DISTANCE)
 			.filter(pos -> Reach.canReach(this.drifter, pos))
-			.min((a, b) -> a.getY() != b.getY() ? Integer.compare(a.getY(), b.getY())
+			.min((a, b) -> this.lowestFirst && a.getY() != b.getY() ? Integer.compare(a.getY(), b.getY())
 				: Double.compare(a.distToCenterSqr(this.drifter.position()), b.distToCenterSqr(this.drifter.position())));
 		if (inReach.isPresent()) {
+			this.turnsInARow = 0;
 			this.collectNext = true;
 			return this.begin(this.dig(inReach.get()));
 		}
@@ -145,6 +155,21 @@ public class GatherActivity extends Activity {
 		}
 
 		return this.fail("doesn't know where to find any " + this.label);
+	}
+
+	/** Below its feet, in its own column or right beside it: digging there just makes a pit to fall into. */
+	private static boolean underfoot(BlockPos pos, BlockPos feet) {
+		return pos.getY() < feet.getY() && Math.abs(pos.getX() - feet.getX()) <= 1 && Math.abs(pos.getZ() - feet.getZ()) <= 1;
+	}
+
+	/** Turns the staircase a quarter turn; boxed in on all four sides, it gives up. */
+	private Status turn() {
+		this.stairDirection = this.stairDirection.getClockWise();
+		if (++this.turnsInARow >= 4) {
+			return this.fail("can't dig down here (water, lava, sand or someone's blocks all round)");
+		}
+
+		return Status.RUNNING;
 	}
 
 	/** Water or lava right next to a block it would dig: digging it would let the fluid in. */
@@ -190,23 +215,18 @@ public class GatherActivity extends Activity {
 		BlockPos step = front.below();
 		for (BlockPos cell : List.of(front.above(), front, step)) {
 			if (!level.getFluidState(cell).isEmpty() || fluidBeside(level, cell)) {
-				this.stairDirection = this.stairDirection.getClockWise();
-				return this.fail("hit water or lava while digging down");
+				return this.turn();
 			}
 
 			BlockState state = level.getBlockState(cell);
 			if (!state.getCollisionShape(level, cell).isEmpty()) {
-				if (!KnownBlocks.mayTake(level, cell) || state.getDestroySpeed(level, cell) < 0.0F) {
-					this.stairDirection = this.stairDirection.getClockWise();
-					return Status.RUNNING;
+				if (!KnownBlocks.mayTake(level, cell) || state.getDestroySpeed(level, cell) < 0.0F
+					|| level.getBlockState(cell.above()).getBlock() instanceof FallingBlock && cell.equals(front.above())) {
+					// Something it won't dig (or sand that would pour in on its head): try the next direction.
+					return this.turn();
 				}
 
-				if (level.getBlockState(cell.above()).getBlock() instanceof FallingBlock && cell.equals(front.above())) {
-					// Sand or gravel would pour in on its head; dig the other way.
-					this.stairDirection = this.stairDirection.getClockWise();
-					return Status.RUNNING;
-				}
-
+				this.turnsInARow = 0;
 				this.collectNext = true;
 				return this.begin(this.dig(cell));
 			}
@@ -217,6 +237,7 @@ public class GatherActivity extends Activity {
 			return this.fail("digging down opened into a cave or a drop");
 		}
 
+		this.turnsInARow = 0;
 		this.stairSteps++;
 		return this.begin(new SequenceTask(this.drifter, "step down the staircase", List.of(
 			new NavigateTask(this.drifter, Vec3.atBottomCenterOf(step), 0.4, "step down"))));

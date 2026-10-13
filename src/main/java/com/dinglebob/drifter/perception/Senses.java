@@ -461,6 +461,10 @@ public class Senses {
 	 */
 	private static String appearance(LivingEntity living) {
 		List<String> parts = new ArrayList<>();
+		if (living.isBaby()) {
+			parts.add("baby");
+		}
+
 		ItemStack held = living.getMainHandItem();
 		if (!held.isEmpty()) {
 			parts.add("holding " + itemName(held));

@@ -40,6 +40,8 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private BlockPos top;
 	private int spotTries;
+	private int offGroundTicks;
+	private boolean soughtDryGround;
 
 	public ShelterActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -73,6 +75,23 @@ public class ShelterActivity extends Activity {
 		BlockPos feet = this.drifter.blockPosition();
 		switch (this.phase) {
 			case DIG -> {
+				if (this.drifter.isInWater() || this.drifter.onClimbable()) {
+					// Can't dig in while swimming or on a ladder: get to dry ground first.
+					BlockPos dry = this.soughtDryGround ? null : KnownBlocks.nearestStandable(this.drifter, 16);
+					if (dry == null) {
+						return this.fail("can't dig in while in water or climbing");
+					}
+
+					this.soughtDryGround = true;
+					this.top = null;
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(dry), 1.0, "get to dry ground"));
+				}
+
+				if (!this.drifter.onGround()) {
+					return ++this.offGroundTicks > 40 ? this.fail("can't get its feet on the ground to dig in") : Status.RUNNING;
+				}
+
+				this.offGroundTicks = 0;
 				if (this.top == null) {
 					this.top = feet;
 					this.think("digging in for the night");
@@ -84,11 +103,14 @@ public class ShelterActivity extends Activity {
 					return Status.RUNNING;
 				}
 
-				if (!this.drifter.onGround()) {
-					return Status.RUNNING;
+				// Stand in the middle of the block first: its body is 0.6 wide, so off-centre it would stay standing on the
+				// rim of its own hole instead of dropping in (found in review).
+				Vec3 middle = Vec3.atBottomCenterOf(this.top);
+				if (depth == 0 && (Math.abs(this.drifter.getX() - middle.x) > 0.2 || Math.abs(this.drifter.getZ() - middle.z) > 0.2)) {
+					return this.begin(new CenterOnBlockTask(this.drifter, middle));
 				}
 
-				BlockPos below = feet.below();
+				BlockPos below = depth == 0 ? this.top.below() : feet.below();
 				if (!this.diggable(level, below) || !this.solidFloor(level, below.below())) {
 					return this.tryAnotherSpot(depth);
 				}
@@ -164,6 +186,45 @@ public class ShelterActivity extends Activity {
 		this.top = null;
 		this.think("the ground here is no good for digging in; trying a few blocks over");
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 1.5, "find a spot to dig in"));
+	}
+
+	/** Shuffles to the middle of the block it stands on, slowly (sneaking), with the movement keys. */
+	private static final class CenterOnBlockTask extends com.dinglebob.drifter.executor.Task {
+		private final Vec3 middle;
+
+		CenterOnBlockTask(DrifterEntity drifter, Vec3 middle) {
+			super(drifter);
+			this.middle = middle;
+		}
+
+		@Override
+		public String describe() {
+			return "step to the middle of the block";
+		}
+
+		@Override
+		protected int timeoutTicks() {
+			return 20 * 3;
+		}
+
+		@Override
+		protected Status onTick() {
+			if (Math.abs(this.drifter.getX() - this.middle.x) <= 0.15 && Math.abs(this.drifter.getZ() - this.middle.z) <= 0.15) {
+				com.dinglebob.drifter.motor.Steering.stopMoving(this.drifter);
+				this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, false);
+				return Status.SUCCESS;
+			}
+
+			this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, true);
+			com.dinglebob.drifter.motor.Steering.pressToward(this.drifter, this.middle);
+			return Status.RUNNING;
+		}
+
+		@Override
+		protected void onStop() {
+			com.dinglebob.drifter.motor.Steering.stopMoving(this.drifter);
+			this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, false);
+		}
 	}
 
 	/** Dirt, stone and the like: no sand or gravel (it would pour in), no fluids beside it, quick enough to dig. */

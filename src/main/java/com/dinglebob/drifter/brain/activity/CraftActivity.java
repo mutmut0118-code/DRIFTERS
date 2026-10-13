@@ -27,6 +27,8 @@ public class CraftActivity extends Activity {
 	private final String label;
 	private boolean walked;
 	private boolean crafted;
+	@org.jetbrains.annotations.Nullable
+	private String stepFailure;
 
 	public CraftActivity(DrifterEntity drifter, Item item, int times) {
 		super(drifter);
@@ -46,7 +48,18 @@ public class CraftActivity extends Activity {
 	}
 
 	@Override
+	protected void stepDone(com.dinglebob.drifter.executor.Task step, Status status) {
+		if (status == Status.FAILURE) {
+			this.stepFailure = step.describe() + ": " + step.failureReason();
+		}
+	}
+
+	@Override
 	protected Status next() {
+		if (this.stepFailure != null) {
+			return this.fail(this.stepFailure);
+		}
+
 		if (this.crafted) {
 			return Status.SUCCESS;
 		}

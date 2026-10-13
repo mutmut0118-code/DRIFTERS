@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.hands.Reach;
+import com.dinglebob.drifter.memory.MemoryKind;
+import com.dinglebob.drifter.perception.BlockNotes;
 import com.dinglebob.drifter.perception.TerrainKnowledge;
 import com.dinglebob.drifter.world.PlayerPlacedBlocks;
 
@@ -50,9 +52,17 @@ public final class KnownBlocks {
 		return !find(drifter, radius, filter, 1).isEmpty();
 	}
 
-	/** Not someone's build and not a container or other block entity: fair game to mine for resources. */
+	/**
+	 * Not someone's build, not a container or other block entity, and not a station (its own crafting table): fair
+	 * game to mine for resources.
+	 */
 	public static boolean mayTake(Level level, BlockPos pos) {
-		return !PlayerPlacedBlocks.isPlayerPlaced(level, pos) && level.getBlockEntity(pos) == null;
+		if (PlayerPlacedBlocks.isPlayerPlaced(level, pos) || level.getBlockEntity(pos) != null) {
+			return false;
+		}
+
+		BlockNotes.Note note = BlockNotes.classify(level.getBlockState(pos));
+		return note == null || note.kind() != MemoryKind.STATION && note.kind() != MemoryKind.STORAGE;
 	}
 
 	/** A spot a player could stand on: sturdy floor, two blocks of open space, no fluid. */
@@ -65,6 +75,26 @@ public final class KnownBlocks {
 			&& level.getFluidState(pos.above()).isEmpty();
 	}
 
+	/** The nearest dry spot it has seen where it could stand (for getting out of water), or null. */
+	@Nullable
+	public static BlockPos nearestStandable(DrifterEntity drifter, int radius) {
+		Level level = drifter.level();
+		Vec3 from = drifter.position();
+		BlockPos[] best = {null};
+		double[] bestDistance = {Double.MAX_VALUE};
+		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
+			BlockPos above = pos.above();
+			if (level.isLoaded(pos) && isStandable(level, above) && level.getFluidState(pos).isEmpty()) {
+				double distance = above.distToCenterSqr(from);
+				if (distance < bestDistance[0]) {
+					bestDistance[0] = distance;
+					best[0] = above.immutable();
+				}
+			}
+		});
+		return best[0];
+	}
+
 	/**
 	 * The nearest spot (to the Drifter) whose floor it has seen and from which a standing player could see and reach
 	 * the target block.
@@ -73,31 +103,27 @@ public final class KnownBlocks {
 	public static BlockPos standingSpotFor(DrifterEntity drifter, BlockPos target, Set<BlockPos> excluded) {
 		Level level = drifter.level();
 		TerrainKnowledge terrain = drifter.getSenses().terrain();
-		BlockPos best = null;
-		double bestDistance = Double.MAX_VALUE;
+		// Nearest standable spots first; the first one it could reach the target from wins (few raycasts).
+		List<BlockPos> spots = new ArrayList<>();
 		for (BlockPos pos : BlockPos.betweenClosed(target.offset(-3, -4, -3), target.offset(3, 1, 3))) {
-			if (pos.equals(target) || pos.equals(target.below()) || excluded.contains(pos) || !terrain.isKnown(pos.below())
-				|| !isStandable(level, pos)) {
-				continue;
-			}
-
-			Vec3 eye = new Vec3(pos.getX() + 0.5, pos.getY() + Player.DEFAULT_EYE_HEIGHT, pos.getZ() + 0.5);
-			boolean reachable = false;
-			for (Direction face : Direction.values()) {
-				if (Reach.aimPointFrom(drifter, eye, target, face).isPresent()) {
-					reachable = true;
-					break;
-				}
-			}
-
-			double distance = pos.distToCenterSqr(drifter.position());
-			if (reachable && distance < bestDistance) {
-				bestDistance = distance;
-				best = pos.immutable();
+			if (!pos.equals(target) && !pos.equals(target.below()) && !excluded.contains(pos) && terrain.isKnown(pos.below())
+				&& isStandable(level, pos)) {
+				spots.add(pos.immutable());
 			}
 		}
 
-		return best;
+		Vec3 from = drifter.position();
+		spots.sort(Comparator.comparingDouble(pos -> pos.distToCenterSqr(from)));
+		for (BlockPos pos : spots) {
+			Vec3 eye = new Vec3(pos.getX() + 0.5, pos.getY() + Player.DEFAULT_EYE_HEIGHT, pos.getZ() + 0.5);
+			for (Direction face : Direction.values()) {
+				if (Reach.aimPointFrom(drifter, eye, target, face).isPresent()) {
+					return pos;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/** An empty spot next to the Drifter (not where it stands) where a block can sit on a sturdy floor it can see. */

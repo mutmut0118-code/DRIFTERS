@@ -77,9 +77,11 @@ public final class Combat {
 			((LivingEntityAccessor)fake).drifter$setAttackStrengthTicker(sinceAttack);
 			fake.setSprinting(wasSprinting);
 			fake.fallDistance = drifter.fallDistance;
+			drifter.setOwnSwing(true);
 			try {
 				fake.attack(target);
 			} finally {
+				drifter.setOwnSwing(false);
 				for (int i = 0; i < touched.size(); i++) {
 					touched.get(i).removeModifier(added.get(i).id());
 				}

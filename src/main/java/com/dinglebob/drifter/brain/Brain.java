@@ -38,7 +38,8 @@ public class Brain {
 	/** A better goal must beat the current one by this much to take over at a checkpoint. */
 	public static final double SWITCH_MARGIN = 0.05;
 
-	public record Scored(Goals.Goal goal, String name, double score, boolean urgent) {
+	/** {@code base}: the score before the commitment bonus and jitter (0 means it has nothing to do). */
+	public record Scored(Goals.Goal goal, String name, double score, boolean urgent, double base) {
 	}
 
 	private final DrifterEntity drifter;
@@ -123,17 +124,21 @@ public class Brain {
 		long now = this.drifter.level().getGameTime();
 		List<Scored> scores = new ArrayList<>();
 		for (Goals.Goal goal : this.goals) {
-			double score = goal.score(context);
-			if (score > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
-				score *= FAILED_PENALTY;
+			double base = goal.score(context);
+			if (base > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
+				base *= FAILED_PENALTY;
 			}
 
-			if (goal == this.current && score > 0.0) {
+			double score = base;
+			if (goal == this.current && base > 0.0) {
 				score += COMMITMENT_BONUS;
 			}
 
-			score += (this.drifter.getRandom().nextDouble() * 2.0 - 1.0) * JITTER;
-			scores.add(new Scored(goal, goal.name(context), Math.max(0.0, score), goal.urgent(context)));
+			if (base > 0.0) {
+				score += (this.drifter.getRandom().nextDouble() * 2.0 - 1.0) * JITTER;
+			}
+
+			scores.add(new Scored(goal, goal.name(context), Math.max(0.0, score), goal.urgent(context), base));
 		}
 
 		scores.sort(Comparator.comparingDouble(Scored::score).reversed());
@@ -154,12 +159,14 @@ public class Brain {
 			return;
 		}
 
-		// Nothing running: carry on with the current goal while committed, else a weighted pick among the top three.
+		// Nothing running: carry on with the current goal while committed (unless it just failed or has nothing left to
+		// do), else a weighted pick among the top three.
 		Scored chosen = null;
-		if (this.current != null && now - this.goalStarted < this.current.minCommitTicks()) {
+		boolean justFailed = this.current != null && this.failedUntil.getOrDefault(this.current.id(), 0L) > now;
+		if (this.current != null && !justFailed && now - this.goalStarted < this.current.minCommitTicks()) {
 			int rank = 0;
 			for (Scored scored : scores) {
-				if (scored.goal() == this.current && rank < 3 && scored.score() > 0.0 && !best.urgent()) {
+				if (scored.goal() == this.current && rank < 3 && scored.base() > 0.0 && !(best.urgent() && best.base() > 0.0)) {
 					chosen = scored;
 				}
 
@@ -178,11 +185,11 @@ public class Brain {
 
 	@Nullable
 	private Scored pickTopThree(List<Scored> scores) {
-		if (scores.get(0).urgent()) {
+		if (scores.get(0).urgent() && scores.get(0).base() > 0.0) {
 			return scores.get(0);
 		}
 
-		List<Scored> top = scores.stream().filter(s -> s.score() > 0.0).limit(3).toList();
+		List<Scored> top = scores.stream().filter(s -> s.base() > 0.0).limit(3).toList();
 		if (top.isEmpty()) {
 			return null;
 		}
@@ -231,6 +238,8 @@ public class Brain {
 		String text = message.getString();
 		if (text.contains("Failed:")) {
 			this.failedUntil.put(goal.id(), this.drifter.level().getGameTime() + FAILED_COOLDOWN_TICKS);
+			// The commitment ends with the failure: something else gets a turn.
+			this.goalStarted = Long.MIN_VALUE / 2;
 		}
 
 		this.think(text.replaceFirst("^\\[[^]]*] ", ""));
@@ -279,7 +288,7 @@ public class Brain {
 				this.enabled = true;
 				this.stopActivity("forced " + id);
 				this.current = null;
-				this.start(new Scored(goal, goal.name(context), 1.0, true), List.of(), context, this.drifter.level().getGameTime());
+				this.start(new Scored(goal, goal.name(context), 1.0, true, 1.0), List.of(), context, this.drifter.level().getGameTime());
 				return this.activity != null;
 			}
 		}

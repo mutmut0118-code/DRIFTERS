@@ -372,8 +372,9 @@ public final class Planner {
 		}
 
 		boolean wood = new ItemStack(item).is(ItemTags.LOGS);
+		// It stops looking once it sees any block of this source it could take (any kind of log, not just this one).
 		state.addAction(new Explore("looking for " + (wood ? "trees" : label), wood ? this.world.treesHint : null,
-			drifter -> KnownBlocks.any(drifter, KnownWorld.RADIUS, blocks)));
+			drifter -> KnownWorld.anyTakeable(drifter, source::matchesBlock)));
 		state.cost += COST_EXPLORE + COST_GATHER_EACH * count;
 		return state;
 	}
@@ -413,10 +414,18 @@ public final class Planner {
 			return state;
 		}
 
-		state.addAction(new Explore("looking for animals", null, drifter -> drifter.getSenses().tracked().stream()
-			.anyMatch(a -> a.identified && a.entity.getType() == type)));
+		// It stops looking once it sees any adult animal it could hunt for food or materials.
+		state.addAction(new Explore("looking for animals", null, drifter -> {
+			long now = drifter.level().getGameTime();
+			return drifter.getSenses().tracked().stream().anyMatch(a -> KnownWorld.isHuntable(a, now) && isPrey(a.entity.getType()));
+		}));
 		state.cost += COST_EXPLORE + COST_HUNT_KILL * count;
 		return state;
+	}
+
+	/** Any animal the sources table lists as a source of something. */
+	private static boolean isPrey(EntityType<?> type) {
+		return Sources.all().stream().anyMatch(source -> source.mobType() == type);
 	}
 
 	@Nullable
@@ -559,9 +568,14 @@ public final class Planner {
 		return Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).distinct().toList();
 	}
 
+	/** Items in a tag that burn in a furnace (crimson and warped wood don't). */
 	private static List<Item> tagItems(net.minecraft.tags.TagKey<Item> tag) {
 		List<Item> items = new ArrayList<>();
-		BuiltInRegistries.ITEM.getTagOrEmpty(tag).forEach(holder -> items.add(holder.value()));
+		BuiltInRegistries.ITEM.getTagOrEmpty(tag).forEach(holder -> {
+			if (net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.isFuel(new ItemStack(holder.value()))) {
+				items.add(holder.value());
+			}
+		});
 		return items;
 	}
 

@@ -46,6 +46,8 @@ public class SmeltActivity extends Activity {
 	private final int fuelCount;
 	private boolean walked;
 	private boolean started;
+	@org.jetbrains.annotations.Nullable
+	private String stepFailure;
 
 	public SmeltActivity(DrifterEntity drifter, Predicate<ItemStack> input, String inputLabel, int count, Predicate<ItemStack> fuel,
 		String fuelLabel, int fuelCount) {
@@ -76,7 +78,18 @@ public class SmeltActivity extends Activity {
 	}
 
 	@Override
+	protected void stepDone(Task step, Status status) {
+		if (status == Status.FAILURE) {
+			this.stepFailure = step.describe() + ": " + step.failureReason();
+		}
+	}
+
+	@Override
 	protected Status next() {
+		if (this.stepFailure != null) {
+			return this.fail(this.stepFailure);
+		}
+
 		if (this.started) {
 			return Status.SUCCESS;
 		}
