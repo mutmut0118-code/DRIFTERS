@@ -342,6 +342,8 @@ public class DrifterEntity extends PathfinderMob {
 	public void tick() {
 		super.tick();
 		if (!this.level().isClientSide) {
+			// Held item and armor live in its inventory, like a player's: make sure the next equipment check runs (Lithium).
+			com.dinglebob.drifter.compat.LithiumCompat.markEquipmentChanged(this);
 			this.ensureName();
 			this.foodData.tick(this);
 			this.checkMovementStatistics(this.getX() - this.xo, this.getY() - this.yo, this.getZ() - this.zo);

@@ -421,6 +421,14 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
   `/drifter night [shelter|hunt|mine]`, `/drifter brain goal nighthunt`. The overlay shows archetype, mood, key
   traits and the current tic.
 
+### Bugs found in the first in-game test of milestone 7 (fixed, need re-testing)
+- **Mining with a pickaxe while showing a log in its hand.** Not milestone 7 code: the test profile got **Lithium**,
+  which skips a mob's "has its equipment changed?" check unless its vanilla equipment lists change (players are the
+  exception, since their equipment lives in an inventory, like a Drifter's). Hotbar switches never reached clients, and
+  armor and weapon attribute updates could be skipped too. `compat/LithiumCompat` (optional, found at runtime, never
+  required) marks a Drifter's equipment as changed every tick, as Lithium does for players. Checked on the test server
+  with Lithium: armor counts and hotbar switches go through.
+
 ### Not done yet in milestone 7 (next steps)
 1. In-game check by the user (see `docs/TESTING.md`, "Milestone 7"), then fixes.
 2. ~~Usernames and always-visible nameplates~~ (done). Join/leave chat lines and the world-level identity registry

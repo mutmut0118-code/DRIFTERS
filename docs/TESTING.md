@@ -672,6 +672,11 @@ Keep `/drifter debug on`: the panel has a new line like
 | `/drifter night` | Tonight's plan (stays in / goes out hunting / digs in then mines) and what it would pick |
 | `/drifter night <shelter\|hunt\|mine>` | Forces tonight's plan (for testing) |
 
+### Re-test after fix
+- [ ] With Lithium installed (your DRIFTER TEST profile has it): when it mines stone or ore, the **pickaxe** shows in
+      its hand, not the log or whatever it held before; switching items always shows the right one. Armor it puts on
+      shows and protects it.
+
 ### 0. Usernames (new)
 - [ ] Every new Drifter (spawn egg or `/drifter spawn`) has a name over its head like a player's (`ryan_17`,
       `cosmic_bard`, `xXSourashXx`...), visible from up to 64 blocks, dimmed through walls, and hidden through walls
