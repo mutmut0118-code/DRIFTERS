@@ -96,6 +96,9 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 - **Scripted test** (`debug/WoodToStoneScript`, `/drifter script woodtostone`): the milestone's "done when" sequence. Punches 4 logs, crafts planks, a crafting table (placed next to it), sticks and a wooden pickaxe, mines 8 stone, walks back to the table and crafts a stone pickaxe, axe, sword and shovel. It finds trees and stone with `debug/DebugScan`, which reads the world directly: **debug only**, clearly labelled, and never to be used by AI code (perception is milestone 3).
 - **Commands** (`command/HandsCommands`): `/drifter mine|place|useon|use|eat|craft|container|smelt|wear|swaphands|walkto|collect|script|stop|task`. See `docs/TESTING.md`.
 
+### Bugs found in in-game testing
+- **No arm swing when mining (fixed).** Vanilla only advances the swing animation (`updateSwingTime`) for players and monsters, so the Drifter's arm never moved and the server only ever sent the first swing. `DrifterEntity#aiStep` now calls it on both sides, like `Monster` does. This also fixes the swing for placing, using items and opening containers.
+
 ### Implementation notes
 - **Break speed is computed on the Drifter, not through the fake player.** DESIGN.md section 3 says to compute mining time "through the fake-player helper so it always matches the player exactly". The helper is never ticked, so its attributes and potion effects would be stale (Efficiency, Haste and Aqua Affinity live on the Drifter). So `DrifterEntity#getDestroySpeed` is a line-for-line copy of `Player#getDestroySpeed` using the Drifter's own live attributes and effects. Same numbers, which is the design's intent. See design question 4.
 - Taking items out of a furnace through a container doesn't pop the smelting XP; the furnace keeps it until something takes the output through a real menu. XP for Drifters comes later.

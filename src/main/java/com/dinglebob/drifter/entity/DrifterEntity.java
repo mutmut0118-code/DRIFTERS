@@ -197,6 +197,9 @@ public class DrifterEntity extends PathfinderMob {
 
 	@Override
 	public void aiStep() {
+		// Advances the arm swing (attack/mining animation). Vanilla only does this for players and monsters, so
+		// without it the arm never moves on clients and the server never sends a second swing.
+		this.updateSwingTime();
 		if (!this.level().isClientSide) {
 			this.tickPeacefulRegeneration();
 			this.inventory.tick();
