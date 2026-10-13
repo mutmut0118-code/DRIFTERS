@@ -337,7 +337,8 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-Nothing below has been run in-game yet; this is the first test.
+**Status:** first test done. Pillaring passed. Bridging, the ravine and the village test failed and have been fixed:
+please re-test sections 1 (village), 2 and 4 with the newest build.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -364,6 +365,10 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - [ ] Going down: a 2-3 block drop on the way: it steps down. A 10-block cliff: it doesn't jump off (unless there's
       water at the bottom).
 - [ ] Doors: put the target inside a house with a **wooden door**: it opens the door and walks in.
+- [ ] **Village (re-test after fix):** put it inside a village house and `/drifter goto` a spot inside another house.
+      It should go **out through the door** and **in through the other door**, walking over carpet. It should **not**
+      break glass, logs, planks or carpet. (If it hasn't seen the second house's door yet, it may walk up to the wall,
+      look, and then change its route to the door: that's expected.)
 - [ ] Ladders: target at the top of a ladder: it climbs the ladder.
 - [ ] Water: target across a small pond: it swims across.
 - [ ] `/drifter follow me` and walk/run around: it follows, catching up when you get away, and waits when it's close.
@@ -374,6 +379,8 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide
       and too deep to climb, and `/drifter goto <a block on the other side>`. The path shows **blue** across the gap.
       It **sneaks** to the edge, looks down, places a block, steps onto it, and repeats until it's across.
+- [ ] **Safety (re-test after fix):** near the edge of the ravine it should be **sneaking**, never running, and it must
+      **never fall in**. Also try walking it along the edge of a cliff: it sneaks the whole way.
 - [ ] Without blocks (`/drifter memory clear` doesn't matter; just make sure it has no dirt/cobblestone/planks):
       it walks down and around through the ravine if it can, or fails with "it knows no way there".
 - [ ] It never bridges using valuable blocks (logs, ores, chests). Only dirt, cobblestone, stone-type blocks and planks.
@@ -383,10 +390,12 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
       shows **cyan**: it looks straight down, jumps and places a block under itself, over and over.
 
 ### 4. Tunnelling through a hill (the big test)
-- [ ] Give it a pickaxe (`/drifter give minecraft:iron_pickaxe`) and **no** building blocks. Pick a target on the far
-      side of a big hill or mountain (or a thick wall of stone you built... but see 5: it won't dig **your** blocks).
-      `/drifter goto <target>`. It walks to the hill and **tunnels through** it: red boxes show the blocks it will dig,
-      it takes the pickaxe out, mines a 1x2 tunnel and walks through. Chat says "Done" on the far side.
+- [ ] Give it a pickaxe (`/drifter give minecraft:iron_pickaxe`) and **no** building blocks. Since the fix it prefers
+      walking around or climbing over things rather than digging (like a player), so give it a target it **has** to dig
+      to: for example a spot **inside a closed stone box** made with a command (commands don't count as "your"
+      blocks): stand a few blocks away and run `/fill ~5 ~ ~5 ~11 ~6 ~11 minecraft:stone hollow`, then
+      `/drifter goto <a block inside the box>`. Or a target in a cave under a mountain. Red boxes show the blocks it
+      will dig; it takes the pickaxe out, mines a 1x2 tunnel and walks in. Chat says "Done".
 - [ ] Watch the overlay as it digs: when it breaks into the hill, the path may change as it learns what's inside.
 - [ ] Gravel or sand in the tunnel: it digs again when it falls back down.
 

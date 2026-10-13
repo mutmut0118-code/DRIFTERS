@@ -10,7 +10,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 - **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
 - **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.
 - **Milestone 3 (Senses and memory): done.** The user fully tested it in-game. One bug found (blocks behind glass) was fixed afterwards; that one item needs a quick re-check.
-- **Milestone 4 (Pathfinder): code complete, waiting for in-game testing.** Started at the user's request with the milestone 2 checklist and the milestone 3 glass re-check still open.
+- **Milestone 4 (Pathfinder): in testing.** First in-game test: pillaring works; bridging, the ravine test and the village test failed. Fixes are in (see "Bugs found in in-game testing" under milestone 4) and need re-testing. The milestone 2 checklist and the milestone 3 glass re-check are still open.
 - The user tests by downloading the jar from the GitHub Actions run for the latest push (Artifacts zip, the jar without "sources") into a Fabric 1.21.1 instance with Fabric API, in the Modrinth App. The user doesn't code, so keep instructions plain and step by step.
 
 ## Milestones
@@ -21,7 +21,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 1 | Body | Done (in-game test passed) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
 | 2 | Hands | In progress: wood-to-stone script passed in-game; rest of the checklist pending | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
 | 3 | Senses and memory | Done (fully tested in-game; glass fix needs a re-check) | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
-| 4 | Pathfinder | In progress: code complete, untested in-game | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
+| 4 | Pathfinder | In progress: first test found bugs, fixes need re-testing | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
 | 5 | Brain and day one | Not started | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | Not started | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Not started | Done when: people watching a short clip can't reliably tell it from a player. |
@@ -175,11 +175,16 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 - The wood-to-stone script and drop collection now walk with the pathfinder instead of the straight-line stub.
 - **Commands**: `/drifter goto <pos>`, `/drifter goto me`, `/drifter follow me` (`/drifter walkto` is still the old straight-line walk).
 
+### Bugs found in in-game testing (all fixed, need re-testing)
+- **Bridging never happened.** It aimed at the middle of the side of the block it stood on; from the edge, that ray hits the block's top corner first, so it never "saw" the side face. Aiming now tries several points across a face (`Reach.aimPointFrom`), including the lower part a player looks at when bridging.
+- **It walked off a ravine and died.** It didn't sneak near drops, so momentum carried it over; the stuck-recovery "strafe and jump" could fire at an edge; and the planner assumed solid ground at the bottom of 2-3 block drops it couldn't see. Now: it sneaks (and never sprints) whenever a 4+ block drop is right beside it or its next step; it never does the strafe-jump next to a drop (it replans instead); it never drops 2+ blocks onto ground it hasn't seen; and walking right along a deep edge costs extra (section 12 edge risk).
+- **It took the most destructive path in a village** (broke carpet, a house log, and a window instead of using the door). Causes: when it met a block it hadn't seen while planning, it dug through it instead of replanning; digging was costed only by break time (a window takes 1.5 s); and carpet counted as a solid block. Now: it only digs blocks the plan chose to dig, and replans when anything else is in the way; every block dug costs 2 s extra, and blocks that plainly belong to a build (glass, planks, wool, doors, stairs, slabs, fences, walls, bricks, beds...) cost 12 s extra, so it goes around or uses the door; carpet and thin snow are walked on. Standing on slabs and dirt paths is handled better too.
+
 ### Not done yet / left for later (TODOs in code)
 - In-game verification (the milestone's "done when" test: it crosses a ravine and tunnels through a hill to reach a target).
 - Long-range planning over mental-map tiles (section 12 step 1) is simplified to "partial path toward the target, then plan again".
 - Parkour jumps, boats and horses: later (boats and horses with the progression milestone).
-- Slabs, stairs and other partial blocks as floors aren't modelled well yet: paths across them may fail or replan.
+- Stairs and other partial blocks as floors aren't modelled well yet (slabs and dirt paths are better since the test fixes): paths across them may replan.
 - Tidy Drifters closing doors behind them, and closing their own door at night: milestone 7 (habits) / 8 (base).
 - Detail tiers (coarser pathing far from players): milestone 10.
 - Using a hostile player's blocks (griefing config): milestone 9.

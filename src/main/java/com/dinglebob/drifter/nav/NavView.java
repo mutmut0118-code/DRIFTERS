@@ -8,6 +8,8 @@ import com.dinglebob.drifter.hands.Tools;
 import com.dinglebob.drifter.perception.TerrainKnowledge;
 import com.dinglebob.drifter.world.PlayerPlacedBlocks;
 
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -26,9 +28,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * Hard bans: never through lava or fire, never digging player-placed blocks or containers.
  */
 public final class NavView {
+	/** Blocks no taller than this (carpet, snow layers) are walked on, not climbed or dug. */
+	public static final double LOW_BLOCK_HEIGHT = 0.2;
+
 	public enum Kind {
 		/** Air or something you walk through (grass, flowers, torches). */
 		OPEN,
+		/** A thin block you walk on top of: carpet, a thin snow layer. Passable, but not something to stand above. */
+		LOW,
 		/** Solid: has to be dug ({@link Cell#digSeconds}, infinite if it can't be). */
 		SOLID,
 		WATER,
@@ -44,9 +51,17 @@ public final class NavView {
 		UNKNOWN
 	}
 
-	public record Cell(Kind kind, float digSeconds, boolean fallingAbove, boolean liquidBeside) {
+	/**
+	 * @param built it plainly belongs to somebody's build (glass, planks, wool, doors, stairs...): players go around
+	 *              those rather than through them
+	 */
+	public record Cell(Kind kind, float digSeconds, boolean fallingAbove, boolean liquidBeside, boolean built) {
+		public Cell(Kind kind, float digSeconds, boolean fallingAbove, boolean liquidBeside) {
+			this(kind, digSeconds, fallingAbove, liquidBeside, false);
+		}
+
 		public boolean passable() {
-			return this.kind == Kind.OPEN || this.kind == Kind.WATER || this.kind == Kind.CLIMB || this.kind == Kind.DOOR
+			return this.kind == Kind.OPEN || this.kind == Kind.LOW || this.kind == Kind.WATER || this.kind == Kind.CLIMB || this.kind == Kind.DOOR
 				|| this.kind == Kind.AVOID || this.kind == Kind.UNKNOWN;
 		}
 
@@ -106,6 +121,10 @@ public final class NavView {
 			return new Cell(fluid.is(FluidTags.WATER) ? Kind.WATER : Kind.OPEN, 0.0F, false, false);
 		}
 
+		if (collision.max(Direction.Axis.Y) <= LOW_BLOCK_HEIGHT) {
+			return new Cell(Kind.LOW, 0.0F, false, false);
+		}
+
 		boolean protectedBlock = this.level.getBlockEntity(pos) != null || PlayerPlacedBlocks.isPlayerPlaced(this.level, pos);
 		float dig = protectedBlock ? Float.POSITIVE_INFINITY : Tools.digSeconds(this.drifter, state, this.level, pos);
 		BlockState above = this.level.getBlockState(pos.above());
@@ -123,7 +142,16 @@ public final class NavView {
 			}
 		}
 
-		return new Cell(Kind.SOLID, dig, falling, liquidBeside);
+		return new Cell(Kind.SOLID, dig, falling, liquidBeside, looksBuilt(state));
+	}
+
+	/** Blocks a player can tell are part of a build just by looking at them. */
+	public static boolean looksBuilt(BlockState state) {
+		return state.is(BlockTags.PLANKS) || state.is(BlockTags.WOOL) || state.is(BlockTags.WOOL_CARPETS) || state.is(BlockTags.STAIRS)
+			|| state.is(BlockTags.SLABS) || state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES) || state.is(BlockTags.WALLS)
+			|| state.is(BlockTags.DOORS) || state.is(BlockTags.TRAPDOORS) || state.is(BlockTags.BEDS) || state.is(BlockTags.STONE_BRICKS)
+			|| state.is(ConventionalBlockTags.GLASS_BLOCKS) || state.is(ConventionalBlockTags.GLASS_PANES) || state.is(Blocks.BRICKS)
+			|| state.is(Blocks.BOOKSHELF) || state.is(Blocks.TORCH) || state.is(Blocks.LANTERN);
 	}
 
 	/** Something it can stand on top of: a known solid block no taller than a full block, or unknown (assumed). */
@@ -131,6 +159,11 @@ public final class NavView {
 		Cell cell = this.cell(floor);
 		if (cell.kind() == Kind.UNKNOWN) {
 			return true;
+		}
+
+		if (cell.kind() == Kind.LOW) {
+			// Standing on carpet puts the feet in the carpet's own block, not above it.
+			return false;
 		}
 
 		if (cell.kind() != Kind.SOLID) {

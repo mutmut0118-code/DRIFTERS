@@ -60,6 +60,15 @@ public final class Reach {
 		return aimPointFrom(drifter, drifter.getEyePosition(), pos, face);
 	}
 
+	/**
+	 * Points across a face to try, as fractions of its half-size: the centre first, then nearer its edges. From a
+	 * steep angle (looking down past the edge of the block it stands on, to bridge) only the lower part of a side face
+	 * can be seen, so the centre alone isn't enough (bug found in testing).
+	 */
+	private static final double[][] FACE_SAMPLES = {
+		{0, 0}, {0, -0.7}, {0, 0.7}, {-0.7, 0}, {0.7, 0}, {-0.6, -0.6}, {0.6, -0.6}, {-0.6, 0.6}, {0.6, 0.6}
+	};
+
 	/** Same as {@link #aimPoint(DrifterEntity, BlockPos, Direction)}, but from a hypothetical eye position. */
 	public static Optional<Vec3> aimPointFrom(DrifterEntity drifter, Vec3 eye, BlockPos pos, Direction face) {
 		AABB box = outline(drifter, pos);
@@ -75,18 +84,36 @@ public final class Reach {
 			return Optional.empty();
 		}
 
-		Vec3 target = center.add(normal.scale(Math.max(halfDepth - FACE_INSET, 0.0)));
-		Vec3 farTarget = eye.add(target.subtract(eye).scale(1.5));
-		BlockHitResult hit = drifter.level().clip(new ClipContext(eye, farTarget, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, drifter));
-		if (hit.getType() != HitResult.Type.BLOCK || !hit.getBlockPos().equals(pos) || hit.getDirection() != face) {
-			return Optional.empty();
+		// Two in-plane axes of the face, scaled to its half-size: "u" sideways, "v" up (or north-south on top/bottom faces).
+		Vec3 u;
+		Vec3 v;
+		switch (face.getAxis()) {
+			case X -> {
+				u = new Vec3(0, 0, box.getZsize() / 2.0);
+				v = new Vec3(0, box.getYsize() / 2.0, 0);
+			}
+			case Z -> {
+				u = new Vec3(box.getXsize() / 2.0, 0, 0);
+				v = new Vec3(0, box.getYsize() / 2.0, 0);
+			}
+			default -> {
+				u = new Vec3(box.getXsize() / 2.0, 0, 0);
+				v = new Vec3(0, 0, box.getZsize() / 2.0);
+			}
 		}
 
-		if (eye.distanceTo(hit.getLocation()) > drifter.blockInteractionRange()) {
-			return Optional.empty();
+		Vec3 inset = center.add(normal.scale(Math.max(halfDepth - FACE_INSET, 0.0)));
+		for (double[] sample : FACE_SAMPLES) {
+			Vec3 target = inset.add(u.scale(sample[0])).add(v.scale(sample[1]));
+			Vec3 farTarget = eye.add(target.subtract(eye).scale(1.5));
+			BlockHitResult hit = drifter.level().clip(new ClipContext(eye, farTarget, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, drifter));
+			if (hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(pos) && hit.getDirection() == face
+				&& eye.distanceTo(hit.getLocation()) <= drifter.blockInteractionRange()) {
+				return Optional.of(target);
+			}
 		}
 
-		return Optional.of(target);
+		return Optional.empty();
 	}
 
 	public static boolean canReach(DrifterEntity drifter, BlockPos pos) {

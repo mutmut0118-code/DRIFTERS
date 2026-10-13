@@ -15,6 +15,7 @@ import com.dinglebob.drifter.hands.Tools;
 import com.dinglebob.drifter.motor.CameraModel;
 import com.dinglebob.drifter.motor.VirtualKeys;
 import com.dinglebob.drifter.nav.MoveType;
+import com.dinglebob.drifter.nav.NavView;
 import com.dinglebob.drifter.nav.PathBudget;
 import com.dinglebob.drifter.nav.PathSearch;
 import com.dinglebob.drifter.nav.PathStep;
@@ -66,6 +67,8 @@ public class NavigateTask extends Task {
 	private static final int CHASE_PREDICT_TICKS = 10;
 	private static final int WAIT_TO_SEE_TICKS = 15;
 	private static final int BRIDGE_CREEP_TICKS = 40;
+	/** A drop this deep or deeper next to it makes it sneak (falls of 4+ blocks hurt). */
+	private static final int DEEP_DROP = 4;
 
 	private final Supplier<Vec3> target;
 	private final double radius;
@@ -140,8 +143,15 @@ public class NavigateTask extends Task {
 
 	private BlockPos feet() {
 		BlockPos feet = this.drifter.blockPosition();
-		// Standing on a slab or path block puts the feet a little inside the block below's space.
-		return this.drifter.getY() - feet.getY() > 0.9 ? feet.above() : feet;
+		// Standing on a slab or a dirt path puts the feet inside that block's space; the path node is the block above.
+		// Carpet and thin snow are walked "in" (see NavView.LOW_BLOCK_HEIGHT).
+		BlockState state = this.level().getBlockState(feet);
+		var shape = state.getCollisionShape(this.level(), feet);
+		if (!shape.isEmpty() && shape.max(Direction.Axis.Y) > NavView.LOW_BLOCK_HEIGHT) {
+			return feet.above();
+		}
+
+		return feet;
 	}
 
 	private boolean atGoal() {
@@ -314,9 +324,16 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
-		// Reality check: anything in the way now has to be dug out (or the plan was wrong).
+		// Reality check: it only digs what the plan chose to dig. Anything else in the way means the plan was based on
+		// a guess about unseen ground, so it plans again now that it can see it (section 12; found in testing: it used
+		// to dig through whatever it found, including house walls).
 		for (BlockPos cell : this.cellsToClear(step)) {
 			if (!this.isClear(cell)) {
+				if (!step.digs().contains(cell)) {
+					this.replan("found " + this.blockName(cell) + " where it expected open space");
+					return Status.RUNNING;
+				}
+
 				if (!this.canDig(cell)) {
 					this.replan("blocked by " + this.blockName(cell) + " it can't dig");
 					return Status.RUNNING;
@@ -346,6 +363,7 @@ public class NavigateTask extends Task {
 			if (!this.drifter.getSenses().terrain().isKnown(step.to().below()) && this.waitToSee++ < WAIT_TO_SEE_TICKS) {
 				this.drifter.getCamera().track(Vec3.atCenterOf(step.to().below()), CameraModel.TurnSpeed.NORMAL);
 				this.keys().releaseAll();
+				this.keys().set(VirtualKeys.Key.SNEAK, this.nearDeepDrop());
 				return Status.RUNNING;
 			}
 
@@ -419,11 +437,52 @@ public class NavigateTask extends Task {
 		return cells;
 	}
 
-	/** Can it walk through this block right now? */
+	/** Can it walk through this block right now? (Carpet and thin snow count: it walks on them.) */
 	private boolean isClear(BlockPos pos) {
 		BlockState state = this.level().getBlockState(pos);
-		return state.getCollisionShape(this.level(), pos).isEmpty() || state.is(BlockTags.CLIMBABLE) || state.is(BlockTags.WOODEN_DOORS)
-			|| state.getBlock() instanceof FenceGateBlock;
+		var shape = state.getCollisionShape(this.level(), pos);
+		return shape.isEmpty() || shape.max(Direction.Axis.Y) <= NavView.LOW_BLOCK_HEIGHT || state.is(BlockTags.CLIMBABLE)
+			|| state.is(BlockTags.WOODEN_DOORS) || state.getBlock() instanceof FenceGateBlock;
+	}
+
+	/**
+	 * A spot with nothing to land on for 4+ blocks (a cliff edge, a ravine). It only checks the blocks right beside
+	 * it, which it always knows (it can see the edge it's standing at).
+	 */
+	private boolean isDeepDrop(BlockPos pos) {
+		if (!this.isClear(pos) || this.level().getFluidState(pos).is(FluidTags.WATER)) {
+			return false;
+		}
+
+		for (int i = 1; i <= DEEP_DROP; i++) {
+			BlockPos below = pos.below(i);
+			if (!this.isClear(below) || this.level().getFluidState(below).is(FluidTags.WATER)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** Is there a deep drop right beside where it stands or where it's heading? Then it sneaks, like a player. */
+	private boolean nearDeepDrop() {
+		BlockPos here = this.feet();
+		for (Direction direction : Direction.Plane.HORIZONTAL) {
+			if (this.isDeepDrop(here.relative(direction))) {
+				return true;
+			}
+		}
+
+		if (this.index < this.path.size()) {
+			BlockPos next = this.path.get(this.index).to();
+			for (Direction direction : Direction.Plane.HORIZONTAL) {
+				if (this.isDeepDrop(next.relative(direction))) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	private boolean canDig(BlockPos pos) {
@@ -535,7 +594,11 @@ public class NavigateTask extends Task {
 			keys.set(VirtualKeys.Key.RIGHT, false);
 		}
 
-		boolean sneaking = step.type() == MoveType.BRIDGE;
+		// Sneak on bridges and whenever a deep drop is right beside it (section 12: "sneaks near edges"), so momentum can
+		// never carry it over (found in testing: it ran off a ravine edge). Not on a deliberate step down: sneaking
+		// would stop it at the step.
+		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN;
+		boolean sneaking = step.type() == MoveType.BRIDGE || !intentionalDrop && this.nearDeepDrop();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
 		keys.set(VirtualKeys.Key.SPRINT, !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && this.straightRunAhead() >= SPRINT_MIN_STRAIGHT
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL);
@@ -574,7 +637,10 @@ public class NavigateTask extends Task {
 	}
 
 	private Status checkStuck() {
-		if (++this.sinceProgress == UNSTICK_AFTER) {
+		if (++this.sinceProgress == UNSTICK_AFTER && this.nearDeepDrop()) {
+			// Never jump and strafe blindly next to a drop: plan again instead.
+			this.replan("stuck next to a drop");
+		} else if (this.sinceProgress == UNSTICK_AFTER) {
 			// Section 12: no progress for 3 s, jump and strafe sideways, then try again.
 			this.unstick = UNSTICK_FOR;
 			this.keys().releaseAll();

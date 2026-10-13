@@ -49,6 +49,15 @@ public class PathSearch {
 	public static final double AVOID = 4.0;
 	/** Unknown cells are assumed passable "at a moderate cost". */
 	public static final double UNKNOWN = 0.4;
+	/**
+	 * Players dig to get somewhere only when it saves real time: every block dug on the way costs this much extra on
+	 * top of the time to break it (found in testing: without it, breaking a window looked cheaper than using the door).
+	 */
+	public static final double DIG_PENALTY = 2.0;
+	/** Blocks that plainly belong to a build (glass, planks, doors...) cost far more to dig: go around, use the door. */
+	public static final double BUILT_PENALTY = 12.0;
+	/** Walking right next to a drop of 4+ blocks it can see (section 12 risk: "height and exposed edges"). */
+	public static final double EDGE_RISK = 1.0;
 	public static final double FALLING_ABOVE_DIG = 1.0;
 	public static final double LIQUID_BESIDE_DIG = 2.0;
 	public static final double DANGER_NEAR = 3.0;
@@ -210,7 +219,7 @@ public class PathSearch {
 		for (BlockPos cell : cells) {
 			NavView.Cell info = this.view.cell(cell);
 			switch (info.kind()) {
-				case OPEN, WATER, CLIMB -> {
+				case OPEN, LOW, WATER, CLIMB -> {
 				}
 				case UNKNOWN -> {
 					clearance.cost += UNKNOWN;
@@ -223,7 +232,11 @@ public class PathSearch {
 						return null;
 					}
 
-					clearance.cost += info.digSeconds() + DIG_RESOURCE * this.thrift * 2.0;
+					clearance.cost += info.digSeconds() + DIG_PENALTY + DIG_RESOURCE * this.thrift * 2.0;
+					if (info.built()) {
+						clearance.cost += BUILT_PENALTY;
+					}
+
 					if (info.fallingAbove()) {
 						clearance.cost += FALLING_ABOVE_DIG * this.caution * 2.0;
 					}
@@ -341,7 +354,9 @@ public class PathSearch {
 				continue;
 			}
 
-			if (intoWater || this.view.standable(t.below())) {
+			// It never drops 2+ blocks onto ground it hasn't seen (found in testing: it walked into a dark ravine).
+			boolean floorSeen = this.view.cell(t.below()).kind() != NavView.Kind.UNKNOWN;
+			if (intoWater || this.view.standable(t.below()) && (k == 1 || floorSeen)) {
 				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN, WALK + STEP_DOWN_EXTRA * k + c.cost, c, 0);
 				return;
 			}
@@ -406,6 +421,24 @@ public class PathSearch {
 		}
 	}
 
+	/** True if a seen drop of 4+ blocks is right beside this spot. */
+	private boolean besideDeepDrop(BlockPos feet) {
+		for (Direction d : Direction.Plane.HORIZONTAL) {
+			BlockPos side = feet.relative(d);
+			boolean deep = true;
+			for (int i = 0; i <= SAFE_DROP && deep; i++) {
+				NavView.Kind kind = this.view.cell(side.below(i)).kind();
+				deep = kind == NavView.Kind.OPEN || kind == NavView.Kind.LOW && i == 0;
+			}
+
+			if (deep) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private void add(Node from, BlockPos to, MoveType move, double cost, Clearance clearance, int blocks) {
 		if (!this.inWindow(to)) {
 			return;
@@ -422,6 +455,10 @@ public class PathSearch {
 				stepCost += DANGER_NEAR * this.caution * 2.0;
 				break;
 			}
+		}
+
+		if (this.besideDeepDrop(to)) {
+			stepCost += EDGE_RISK * this.caution * 2.0;
 		}
 
 		double g = from.g + stepCost;
