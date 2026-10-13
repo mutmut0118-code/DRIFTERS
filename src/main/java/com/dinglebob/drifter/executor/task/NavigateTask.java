@@ -98,6 +98,8 @@ public class NavigateTask extends Task {
 	private static final int CHASE_PREDICT_TICKS = 10;
 	private static final int WAIT_TO_SEE_TICKS = 15;
 	private static final int BRIDGE_CREEP_TICKS = 40;
+	/** Further than this to the side of a jump-up step's line, it lines up before jumping. */
+	private static final double JUMP_LINE_UP = 0.3;
 	/**
 	 * Back-bridging pitch: looking this steeply down while facing away from the gap, the side of the block it stands on
 	 * comes into view right below its eyes as it leans out backward.
@@ -657,7 +659,35 @@ public class NavigateTask extends Task {
 	 * through, without slowing to stand on the point between them (found in testing: it paused at every step down).
 	 */
 	private boolean flowsInto(PathStep a, PathStep b) {
-		return this.onFoot(a) && this.onFoot(b) && this.gentleTurn(a, b);
+		if (!this.onFoot(a) || !this.onFoot(b)) {
+			return false;
+		}
+
+		// Into a jump up it must be lined up with the step: cutting the corner on the way, it runs into the block beside
+		// the step (often two high on a hillside) and jumps against it (found in testing).
+		if (b.type() == MoveType.JUMP_UP) {
+			return sameDirection(a, b);
+		}
+
+		return this.gentleTurn(a, b);
+	}
+
+	private static boolean sameDirection(PathStep a, PathStep b) {
+		return a.to().getX() - a.from().getX() == b.to().getX() - b.from().getX() && a.to().getZ() - a.from().getZ() == b.to().getZ() - b.from().getZ();
+	}
+
+	/** How far it is to the side of the line a step runs along (from its start's middle through its end's middle). */
+	private double offLine(PathStep step) {
+		double stepX = step.to().getX() - step.from().getX();
+		double stepZ = step.to().getZ() - step.from().getZ();
+		double length = Math.sqrt(stepX * stepX + stepZ * stepZ);
+		if (length < 0.5) {
+			return 0.0;
+		}
+
+		double dx = this.drifter.getX() - (step.from().getX() + 0.5);
+		double dz = this.drifter.getZ() - (step.from().getZ() + 0.5);
+		return Math.abs(-dx * stepZ + dz * stepX) / length;
 	}
 
 	private boolean onFoot(PathStep step) {
@@ -845,6 +875,12 @@ public class NavigateTask extends Task {
 			goal = Vec3.atBottomCenterOf(this.path.get(this.index + 1).to());
 		}
 
+		// A jump up from off to the side: line up in front of the step first (its start's middle), then jump.
+		boolean liningUp = step.type() == MoveType.JUMP_UP && this.drifter.onGround() && this.offLine(step) > JUMP_LINE_UP;
+		if (liningUp) {
+			goal = Vec3.atBottomCenterOf(step.from());
+		}
+
 		double dx = goal.x - here.x;
 		double dz = goal.z - here.z;
 		double horizontal = Math.sqrt(dx * dx + dz * dz);
@@ -888,7 +924,7 @@ public class NavigateTask extends Task {
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
 
 		boolean jump = switch (step.type()) {
-			case JUMP_UP -> horizontal < 1.3 || this.drifter.horizontalCollision;
+			case JUMP_UP -> !liningUp && (horizontal < 1.3 || this.drifter.horizontalCollision);
 			case SWIM_UP, CLIMB_UP -> true;
 			case SWIM, WALK -> this.drifter.isInWater() && step.to().getY() >= this.feet().getY();
 			default -> false;

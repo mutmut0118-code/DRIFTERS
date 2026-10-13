@@ -495,6 +495,10 @@ thoughts ("picked get a stone pickaxe 0.65 over ..."). `/drifter brain` prints t
 - [ ] In the morning it **digs out the cover block and climbs up** (pillaring with the dirt it dug), then carries on
       with its day.
 - [ ] If it's standing on sand, gravel or water at dusk, it moves a few blocks and tries again there.
+- [ ] **Re-test after fix:** when it climbs out under a tree in the morning, it sees the sky through the leaves (the
+      panel's time stops saying "[guessing]") and carries on with its day.
+- [ ] **Hills (re-test after fix):** send it up a steep hill or mountain (`/drifter goto <a block near the top>`). At a
+      2-block step it uses a 1-block step next to it instead of jumping against the wall.
 - [ ] Repeat on **Easy or Normal**: the main test is that it's **alive the next morning** with food. Try a few different
       spots or seeds; it should survive most of them. (It won't fight back if a mob catches it in the open before dusk:
       that's milestone 6.)

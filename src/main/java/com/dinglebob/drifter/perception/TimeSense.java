@@ -3,6 +3,7 @@ package com.dinglebob.drifter.perception;
 import com.dinglebob.drifter.entity.DrifterEntity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
@@ -33,7 +34,7 @@ public class TimeSense {
 		Level level = drifter.level();
 		long actual = level.getDayTime();
 		double before = this.estimate;
-		this.skyVisible = level.dimensionType().hasSkyLight() && level.canSeeSky(BlockPos.containing(drifter.getEyePosition()));
+		this.skyVisible = level.dimensionType().hasSkyLight() && seesSky(level, BlockPos.containing(drifter.getEyePosition()));
 		boolean hasClock = level.dimensionType().natural() && drifter.getInventory().count(stack -> stack.is(Items.CLOCK)) > 0;
 		if (this.estimate < 0 || this.skyVisible || hasClock) {
 			this.estimate = actual;
@@ -53,6 +54,30 @@ public class TimeSense {
 		}
 
 		return before >= 0 && Math.floorMod((long)before, 24000L) < DUSK && Math.floorMod((long)this.estimate, 24000L) >= DUSK;
+	}
+
+	/** Above this many see-through blocks (a glass tower), it stops looking. */
+	private static final int MAX_SEE_THROUGH = 64;
+
+	/**
+	 * Can it see the sky straight up from here? Like a player with fancy leaves, it sees through leaves, glass and
+	 * plants, just not through solid blocks (found in testing: under a tree it thought it was still night). Vanilla's
+	 * canSeeSky counts any block overhead, leaves included.
+	 */
+	public static boolean seesSky(Level level, BlockPos eye) {
+		int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, eye.getX(), eye.getZ());
+		BlockPos.MutableBlockPos pos = eye.mutable();
+		for (int y = eye.getY(); y < top; y++) {
+			if (y - eye.getY() > MAX_SEE_THROUGH) {
+				return false;
+			}
+
+			if (level.getBlockState(pos.setY(y)).canOcclude()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public long believedTimeOfDay() {
