@@ -1,5 +1,8 @@
 package com.dinglebob.drifter.executor;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.entity.DrifterEntity;
@@ -8,12 +11,26 @@ import com.dinglebob.drifter.entity.DrifterEntity;
  * One executor task (DESIGN.md section 8, layer 4): a small state machine that runs every tick and reports
  * running, success or failure. Every task has a timeout of roughly 3x its expected time.
  *
- * <p>TODO(milestone 7): tasks declare which body parts (head, hands, legs) they use, so mannerisms only use free ones.
+ * <p>Tasks say which body parts (head, hands, legs) they leave free right now (section 8 "body-part claims"), so the
+ * mannerism layer (section 16.6) only uses free ones. By default a task claims the whole body.
  */
 public abstract class Task {
 	public enum Status {
 		RUNNING, SUCCESS, FAILURE
 	}
+
+	/** Body parts a task can leave free for mannerisms (section 8). */
+	public enum BodyPart {
+		/** The camera (head yaw and pitch). */
+		HEAD,
+		/** The hotbar, swinging, and the offhand. */
+		HANDS,
+		/** The movement keys. */
+		LEGS
+	}
+
+	public static final Set<BodyPart> NOTHING_FREE = EnumSet.noneOf(BodyPart.class);
+	public static final Set<BodyPart> ALL_FREE = EnumSet.allOf(BodyPart.class);
 
 	protected final DrifterEntity drifter;
 	private int ticks;
@@ -66,7 +83,17 @@ public abstract class Task {
 		}
 	}
 
-	protected int ticksRunning() {
+	/** Body parts this task leaves free right now (section 8). Default: none, the task has the whole body. */
+	public Set<BodyPart> freeParts() {
+		return NOTHING_FREE;
+	}
+
+	/** The innermost task actually running (a composite task's current step). */
+	public Task leaf() {
+		return this;
+	}
+
+	public int ticksRunning() {
 		return this.ticks;
 	}
 

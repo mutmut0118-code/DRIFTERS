@@ -80,8 +80,19 @@ public class CameraModel {
 	private boolean hasPreviousTarget;
 	private float jitterYaw;
 	private float jitterPitch;
-	/** 0 to 1; until personality exists (milestone 7) every Drifter uses the middle value. */
+	/** 0 to 1, the Skill trait (set every tick from the personality). */
 	private float skill = 0.5F;
+	/**
+	 * A mannerism's glance (section 16): while set, the head goes here instead of the task's target, which is kept and
+	 * returned to afterwards (a quick look to the side while walking, a sky check, a spin).
+	 */
+	private boolean overriding;
+	private float overrideYaw;
+	private float overridePitch;
+	@Nullable
+	private Vec3 overridePos;
+	/** The speed the task asked for (the active speed differs while a mannerism has the head). */
+	private TurnSpeed taskSpeed = TurnSpeed.NORMAL;
 
 	public CameraModel(RandomSource random) {
 		this.random = random;
@@ -107,24 +118,33 @@ public class CameraModel {
 	public void clearTarget() {
 		this.targetKind = TargetKind.NONE;
 		this.targetEntity = null;
-		this.hasPreviousTarget = false;
+		if (!this.overriding) {
+			this.hasPreviousTarget = false;
+		}
 	}
 
 	public void lookAt(float yaw, float pitch, TurnSpeed speed) {
 		this.targetToken++;
-		this.setSpeed(speed);
+		this.taskTurn(speed);
 		this.targetKind = TargetKind.ANGLES;
 		this.targetYaw = yaw;
 		this.targetPitch = Mth.clamp(pitch, -90.0F, 90.0F);
-		this.hasPreviousTarget = false;
 	}
 
 	public void lookAt(Vec3 position, TurnSpeed speed) {
 		this.targetToken++;
-		this.setSpeed(speed);
+		this.taskTurn(speed);
 		this.targetKind = TargetKind.POSITION;
 		this.targetPos = position;
-		this.hasPreviousTarget = false;
+	}
+
+	/** A task's new look target: a fresh flick at its speed (kept for later while a mannerism has the head). */
+	private void taskTurn(TurnSpeed speed) {
+		this.taskSpeed = speed;
+		if (!this.overriding) {
+			this.setSpeed(speed);
+			this.hasPreviousTarget = false;
+		}
 	}
 
 	/**
@@ -132,7 +152,7 @@ public class CameraModel {
 	 * update as a new flick. Starts a normal look if it wasn't already tracking a point at this speed.
 	 */
 	public void track(Vec3 position, TurnSpeed speed) {
-		if (this.targetKind == TargetKind.POSITION && this.speed == speed) {
+		if (this.targetKind == TargetKind.POSITION && this.taskSpeed == speed) {
 			this.targetPos = position;
 			return;
 		}
@@ -142,10 +162,43 @@ public class CameraModel {
 
 	public void lookAt(Entity entity, TurnSpeed speed) {
 		this.targetToken++;
-		this.setSpeed(speed);
+		this.taskTurn(speed);
 		this.targetKind = TargetKind.ENTITY;
 		this.targetEntity = entity;
+	}
+
+	/** A mannerism takes the head to these angles until {@link #releaseOverride()}; the task's own target is kept. */
+	public void override(float yaw, float pitch, TurnSpeed speed) {
+		this.overriding = true;
+		this.overridePos = null;
+		this.overrideYaw = yaw;
+		this.overridePitch = Mth.clamp(pitch, -90.0F, 90.0F);
+		this.setSpeed(speed);
 		this.hasPreviousTarget = false;
+	}
+
+	/** A mannerism looks at a point (a sound, a creature) until {@link #releaseOverride()}. */
+	public void override(Vec3 position, TurnSpeed speed) {
+		this.overriding = true;
+		this.overridePos = position;
+		this.setSpeed(speed);
+		this.hasPreviousTarget = false;
+	}
+
+	/** Hands the head back to the task's target (a fresh flick back to it, with its overshoot). */
+	public void releaseOverride() {
+		if (!this.overriding) {
+			return;
+		}
+
+		this.overriding = false;
+		this.overridePos = null;
+		this.setSpeed(this.taskSpeed);
+		this.hasPreviousTarget = false;
+	}
+
+	public boolean isOverridden() {
+		return this.overriding;
 	}
 
 	public boolean hasTarget() {
@@ -186,8 +239,8 @@ public class CameraModel {
 			this.clearTarget();
 		}
 
-		if (this.targetKind != TargetKind.NONE) {
-			float[] wanted = this.resolveTarget(eyePosition);
+		if (this.overriding || this.targetKind != TargetKind.NONE) {
+			float[] wanted = this.overriding ? this.resolveOverride(eyePosition) : this.resolveTarget(eyePosition);
 			boolean newFlick = !this.hasPreviousTarget
 				|| Math.abs(Mth.wrapDegrees(wanted[0] - this.yaw.target)) > NEW_FLICK_THRESHOLD
 				|| Math.abs(wanted[1] - this.pitch.target) > NEW_FLICK_THRESHOLD;
@@ -207,12 +260,20 @@ public class CameraModel {
 		return new float[]{outYaw, outPitch};
 	}
 
+	private float[] resolveOverride(Vec3 eye) {
+		return this.overridePos != null ? anglesTo(eye, this.overridePos) : new float[]{this.overrideYaw, this.overridePitch};
+	}
+
 	private float[] resolveTarget(Vec3 eye) {
 		if (this.targetKind == TargetKind.ANGLES) {
 			return new float[]{this.targetYaw, this.targetPitch};
 		}
 
 		Vec3 point = this.targetKind == TargetKind.ENTITY && this.targetEntity != null ? this.targetEntity.getEyePosition() : this.targetPos;
+		return anglesTo(eye, point);
+	}
+
+	private static float[] anglesTo(Vec3 eye, Vec3 point) {
 		double dx = point.x - eye.x;
 		double dy = point.y - eye.y;
 		double dz = point.z - eye.z;

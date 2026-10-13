@@ -28,6 +28,12 @@ public class WaitTask extends Task {
 		return this.timeout;
 	}
 
+	/** Waiting leaves the whole body free: this is when players jump-spam, fidget and go AFK (section 16.4). */
+	@Override
+	public java.util.Set<BodyPart> freeParts() {
+		return ALL_FREE;
+	}
+
 	@Override
 	protected Status onTick() {
 		return this.done.getAsBoolean() ? Status.SUCCESS : Status.RUNNING;

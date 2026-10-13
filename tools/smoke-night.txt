@@ -1,0 +1,36 @@
+until Done_( 900
+wait 3
+time set 1000
+forceload add ~-112 ~-112 ~112 ~112
+drifter spawn Alice
+execute positioned ~40 ~ ~ run drifter spawn Bob
+execute positioned ~-40 ~ ~ run drifter spawn Carl
+drifter giveall stone_pickaxe
+drifter giveall stone_sword
+drifter giveall cobblestone 32
+drifter giveall torch 16
+drifter giveall cooked_beef 8
+execute as @e[type=drifter:drifter,name=Alice] at @s run drifter personality reroll speedrunner
+execute as @e[type=drifter:drifter,name=Alice] at @s run drifter night hunt
+execute as @e[type=drifter:drifter,name=Bob] at @s run drifter night mine
+execute as @e[type=drifter:drifter,name=Carl] at @s run drifter night shelter
+execute as @e[type=drifter:drifter] at @s run drifter night
+wait 15
+time set 12300
+wait 30
+execute as @e[type=drifter:drifter] at @s run drifter brain
+execute at @e[type=drifter:drifter,name=Alice] run summon zombie ~10 ~ ~6
+execute at @e[type=drifter:drifter,name=Alice] run summon skeleton ~-10 ~ ~8
+wait 60
+execute as @e[type=drifter:drifter] at @s run drifter brain
+execute as @e[type=drifter:drifter] at @s run drifter thoughts
+execute as @e[type=drifter:drifter] at @s run drifter mood
+wait 120
+execute as @e[type=drifter:drifter] at @s run drifter brain
+execute as @e[type=drifter:drifter] at @s run drifter thoughts
+execute as @e[type=drifter:drifter] at @s run drifter inventory
+time set 23950
+wait 70
+execute as @e[type=drifter:drifter] at @s run drifter brain
+execute as @e[type=drifter:drifter] at @s run drifter thoughts
+execute as @e[type=drifter:drifter] at @s run drifter info

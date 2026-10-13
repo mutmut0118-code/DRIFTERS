@@ -16,8 +16,13 @@ import net.minecraft.world.level.block.Blocks;
 
 /** Food choices (DESIGN.md section 10.5, "Eating policy"). */
 public final class Food {
-	/** Eats when food drops to this (a habit fingerprint later, 12 to 17). TODO(milestone 7): per-Drifter. */
-	public static final int EAT_THRESHOLD = 14;
+	/** Eats when food drops to this: its habit (section 17 habit fingerprint, 12 to 17). */
+	public static int eatThreshold(DrifterEntity drifter) {
+		return drifter.getPersonality().habits().eatThreshold;
+	}
+
+	/** Below the eat threshold, eating beats routine work (progress scores 0.5). */
+	public static final double AT_THRESHOLD_URGENCY = 0.6;
 	/** Below this, it eats anything, rotten flesh included. */
 	public static final int DESPERATE = 4;
 	/**

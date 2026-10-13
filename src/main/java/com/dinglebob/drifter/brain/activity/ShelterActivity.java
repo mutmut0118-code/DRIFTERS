@@ -3,6 +3,7 @@ package com.dinglebob.drifter.brain.activity;
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.KnownBlocks;
+import com.dinglebob.drifter.brain.NightTunnel;
 import com.dinglebob.drifter.brain.Schedule;
 import com.dinglebob.drifter.brain.Shelter;
 import com.dinglebob.drifter.entity.DrifterEntity;
@@ -24,6 +25,9 @@ import net.minecraft.world.phys.Vec3;
  * The night-one shelter (DESIGN.md section 11, tier 1 "panic shelter": "digs down and covers the hole"): digs three
  * blocks straight down where it stands, puts a block over its head, waits there until morning (by its own sense of
  * time), then digs out and climbs back up. Mobs can't reach it and can't spawn in the 1x2 space it fills.
+ * <p>Night miners (section 18, by personality) don't just wait: once sealed in they dig a tunnel out from the bottom of
+ * the shaft, mining the ore they uncover, blocking off any cave or water they break into, and walk back to the shaft
+ * in the morning.
  * TODO(milestone 8): tier 2 hillside dig-in with a 3x3 room, tier 3 starter hut, sleeping in a bed.
  */
 public class ShelterActivity extends Activity {
@@ -37,8 +41,24 @@ public class ShelterActivity extends Activity {
 	private static final int DRY_MARGIN = 2;
 
 	private enum Phase {
-		DIG, BOX, SEAL, WAIT, EXIT, DONE
+		DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
 	}
+
+	/** Digging a tunnel block slower than this (seconds) isn't worth it: it turns. */
+	private static final float MAX_TUNNEL_DIG_SECONDS = 6.0F;
+	/** What the current step of the tunnel work is, so {@link #stepDone} knows what just finished. */
+	@Nullable
+	private BlockPos digging;
+	@Nullable
+	private BlockPos stepping;
+	@Nullable
+	private BlockPos refill;
+	private final java.util.ArrayDeque<BlockPos> ores = new java.util.ArrayDeque<>();
+	/** The step running now is an ore out of the tunnel wall (missing one isn't a failure: it may just be out of view). */
+	private boolean oreStep;
+	/** Ores it couldn't get at from where it stood: tried again once it has moved on a step. */
+	private final java.util.Map<BlockPos, Integer> oreTries = new java.util.HashMap<>();
+	private final java.util.List<BlockPos> retryOres = new java.util.ArrayList<>();
 
 	private Phase phase = Phase.DIG;
 	@Nullable
@@ -58,6 +78,8 @@ public class ShelterActivity extends Activity {
 			case BOX -> "wall itself in for the night";
 			case SEAL -> "seal the shelter";
 			case WAIT -> "wait for morning in the shelter";
+			case MINE -> "mine from the shelter";
+			case RETURN -> "walk back to the shelter shaft";
 			case EXIT, DONE -> "climb out of the shelter";
 		};
 	}
@@ -69,7 +91,11 @@ public class ShelterActivity extends Activity {
 
 	@Override
 	protected void onStart() {
-		if (Shelter.isSealedIn(this.drifter)) {
+		NightTunnel tunnel = this.drifter.getDrifterBrain().nightTunnel();
+		if (tunnel != null && tunnel.contains(this.drifter.blockPosition())) {
+			// Back from a break (a meal, a fight) in its own night tunnel: carry on.
+			this.phase = Schedule.isNight(this.drifter) && !tunnel.done ? Phase.MINE : Phase.RETURN;
+		} else if (Shelter.isSealedIn(this.drifter)) {
 			this.phase = Phase.WAIT;
 		}
 	}
@@ -125,6 +151,15 @@ public class ShelterActivity extends Activity {
 					return this.begin(new CenterOnBlockTask(this.drifter, middle));
 				}
 
+				// Grass, a flower or a snow layer where it stands is in the way of its crosshair (found in testing: it
+				// stood in grass on a mountain and "couldn't see" the block under its feet, over and over). A player just
+				// breaks it first.
+				BlockState inTheWay = level.getBlockState(feet);
+				if (depth == 0 && !inTheWay.isAir() && inTheWay.getCollisionShape(level, feet).isEmpty() && level.getFluidState(feet).isEmpty()
+					&& inTheWay.getDestroySpeed(level, feet) >= 0.0F) {
+					return this.begin(this.dig(feet));
+				}
+
 				BlockPos below = depth == 0 ? this.top.below() : feet.below();
 				if (!this.diggable(level, below) || !this.solidFloor(level, below.below())) {
 					return this.tryAnotherSpot(depth);
@@ -140,6 +175,15 @@ public class ShelterActivity extends Activity {
 				if (!level.getBlockState(cover).getCollisionShape(level, cover).isEmpty()) {
 					this.phase = Phase.WAIT;
 					this.think("sealed in for the night");
+					if (this.drifter.getDrifterBrain().nightStyle() == Schedule.NightStyle.MINE
+						&& this.drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PICKAXES)) > 0) {
+						Direction direction = Direction.from2DDataValue(this.drifter.getRandom().nextInt(4));
+						this.drifter.getDrifterBrain().setNightTunnel(new NightTunnel(feet, direction,
+							net.minecraft.util.Mth.nextInt(this.drifter.getRandom(), NightTunnel.MAIN_LEG_MIN, NightTunnel.MAIN_LEG_MAX)));
+						this.phase = Phase.MINE;
+						this.think("time doesn't matter underground: mining " + direction.getName() + " from the shelter");
+					}
+
 					return Status.RUNNING;
 				}
 
@@ -160,6 +204,18 @@ public class ShelterActivity extends Activity {
 
 				return this.begin(new WaitTask(this.drifter, "morning", () -> !Schedule.isNight(this.drifter)
 					&& Schedule.believedTime(this.drifter) < Schedule.SHELTER_THINKING, 20 * 60));
+			}
+			case MINE -> {
+				return this.mine(level, feet);
+			}
+			case RETURN -> {
+				NightTunnel tunnel = this.drifter.getDrifterBrain().nightTunnel();
+				if (tunnel == null || feet.equals(tunnel.shaftBottom)) {
+					this.phase = Schedule.isNight(this.drifter) ? Phase.WAIT : Phase.EXIT;
+					return Status.RUNNING;
+				}
+
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(tunnel.shaftBottom), 0.3, "walk back to the shaft"));
 			}
 			case EXIT -> {
 				if (this.boxedAtSurface(feet)) {
@@ -201,13 +257,190 @@ public class ShelterActivity extends Activity {
 
 	@Override
 	protected boolean countsAsFailure(com.dinglebob.drifter.executor.Task step) {
-		return !(step instanceof WaitTask);
+		return !(step instanceof WaitTask) && !this.oreStep;
 	}
 
 	@Override
 	public boolean atCheckpoint() {
-		// Only once sealed in (eating can happen in there); never half dug.
-		return this.phase == Phase.WAIT && super.atCheckpoint();
+		// Only once sealed in or mining between blocks (eating can happen in there); never half dug.
+		return (this.phase == Phase.WAIT || this.phase == Phase.MINE) && super.atCheckpoint();
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Night mining (section 18 by personality; section 10.3 strip mining): a 1x2 tunnel from the shaft bottom.
+	// It only reads blocks mining has revealed (each dug block shows it its six neighbours), never further.
+	// ---------------------------------------------------------------------------------------------
+
+	private Status mine(Level level, BlockPos feet) {
+		NightTunnel tunnel = this.drifter.getDrifterBrain().nightTunnel();
+		if (tunnel == null) {
+			this.phase = Phase.WAIT;
+			return Status.RUNNING;
+		}
+
+		if (!Schedule.isNight(this.drifter)) {
+			this.phase = Phase.RETURN;
+			this.think("morning: back to the shaft");
+			return Status.RUNNING;
+		}
+
+		// Broke into a cave or water: block the opening back up first (section 10.3 "blocks flowing water").
+		if (this.refill != null) {
+			BlockPos cell = this.refill;
+			if (solidAt(level, cell) || this.drifter.getInventory().count(ShelterActivity::isCoverBlock) == 0) {
+				this.refill = null;
+				if (!solidAt(level, cell)) {
+					tunnel.done = true;
+				}
+
+				return Status.RUNNING;
+			}
+
+			java.util.function.Predicate<ItemStack> block = this.drifter.getInventory().count(Tools.BUILDING_BLOCK) > 0
+				? Tools.BUILDING_BLOCK : ShelterActivity::isCoverBlock;
+			return this.begin(new PlaceBlockTask(this.drifter, cell, block, "a block to close off the opening"));
+		}
+
+		// Section 10.3 "Veins: always finishes a visible ore vein before moving on".
+		while (!this.ores.isEmpty()) {
+			BlockPos ore = this.ores.poll();
+			if (isOre(level.getBlockState(ore)) && this.canMineOre(level, ore)
+				&& this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(ore)) <= this.drifter.blockInteractionRange()) {
+				this.digging = ore;
+				this.oreStep = true;
+				return this.begin(this.dig(ore));
+			}
+		}
+
+		if (tunnel.done || tunnel.steps >= NightTunnel.MAX_STEPS) {
+			tunnel.done = true;
+			this.phase = Phase.RETURN;
+			this.think("done mining for tonight");
+			return Status.RUNNING;
+		}
+
+		if (!feet.equals(tunnel.tip)) {
+			this.stepping = null;
+			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(tunnel.tip), 0.3, "walk to the end of the tunnel"));
+		}
+
+		// A torch now and then, if it has any, always on its habit's side going in (section 10.3: "torches on the right
+		// going in" so the way out is on the left; user's note: players use torches to know where they are and the way
+		// back). Head height, one step back, on the side wall.
+		if (tunnel.sinceTorch >= NightTunnel.TORCH_EVERY
+			&& this.drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.TORCH)) > 0) {
+			tunnel.sinceTorch = 0;
+			BlockPos spot = feet.relative(tunnel.direction.getOpposite()).above();
+			Direction wall = this.drifter.getPersonality().habits().torchSide == com.dinglebob.drifter.personality.Habits.Side.RIGHT
+				? tunnel.direction.getClockWise() : tunnel.direction.getCounterClockWise();
+			if (tunnel.opened.contains(spot) && level.getBlockState(spot).isAir()) {
+				return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(net.minecraft.world.item.Items.TORCH), "a torch")
+					.preferSupport(wall));
+			}
+		}
+
+		if (tunnel.legSteps >= tunnel.legLength) {
+			if (++tunnel.legs >= NightTunnel.MAX_LEGS) {
+				tunnel.done = true;
+				return Status.RUNNING;
+			}
+
+			tunnel.direction = this.drifter.getRandom().nextBoolean() ? tunnel.direction.getClockWise() : tunnel.direction.getCounterClockWise();
+			tunnel.legSteps = 0;
+			tunnel.legLength = net.minecraft.util.Mth.nextInt(this.drifter.getRandom(), NightTunnel.SIDE_LEG_MIN, NightTunnel.SIDE_LEG_MAX);
+			this.think("turning " + tunnel.direction.getName() + " in the tunnel");
+		}
+
+		BlockPos nextFeet = feet.relative(tunnel.direction);
+		BlockPos nextHead = nextFeet.above();
+		for (BlockPos cell : new BlockPos[]{nextHead, nextFeet}) {
+			BlockState state = level.getBlockState(cell);
+			boolean open = state.getCollisionShape(level, cell).isEmpty();
+			boolean bad = !level.getFluidState(cell).isEmpty() || open && !tunnel.opened.contains(cell) || state.getBlock() instanceof FallingBlock
+				|| !open && (!KnownBlocks.mayTake(level, cell) || state.getDestroySpeed(level, cell) < 0.0F
+				|| Tools.digSeconds(this.drifter, state, level, cell) > MAX_TUNNEL_DIG_SECONDS);
+			if (bad) {
+				// Water, a cave, gravel, or rock too hard: this way's no good, turn.
+				tunnel.legSteps = tunnel.legLength;
+				return Status.RUNNING;
+			}
+		}
+
+		for (BlockPos cell : new BlockPos[]{nextHead, nextFeet}) {
+			if (!level.getBlockState(cell).getCollisionShape(level, cell).isEmpty()) {
+				this.digging = cell;
+				return this.begin(this.dig(cell));
+			}
+		}
+
+		this.stepping = nextFeet;
+		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(nextFeet), 0.3, "step along the tunnel"));
+	}
+
+	@Override
+	protected void stepDone(com.dinglebob.drifter.executor.Task step, Status status) {
+		NightTunnel tunnel = this.drifter.getDrifterBrain().nightTunnel();
+		Level level = this.drifter.level();
+		if (tunnel != null && this.digging != null && status == Status.SUCCESS
+			&& level.getBlockState(this.digging).getCollisionShape(level, this.digging).isEmpty()) {
+			BlockPos dug = this.digging;
+			tunnel.opened.add(dug);
+			for (Direction direction : Direction.values()) {
+				BlockPos neighbor = dug.relative(direction);
+				if (tunnel.opened.contains(neighbor)) {
+					continue;
+				}
+
+				BlockState state = level.getBlockState(neighbor);
+				if (!level.getFluidState(neighbor).isEmpty() || state.isAir()) {
+					// Broke into a cave or water: close it off, and this way's done.
+					this.refill = dug;
+					tunnel.opened.remove(dug);
+					tunnel.legSteps = tunnel.legLength;
+					if (++tunnel.breaches >= 3) {
+						tunnel.done = true;
+					}
+
+					this.think(state.isAir() ? "broke into a cave: blocking it off" : "hit water: blocking it off");
+					break;
+				}
+
+				if (isOre(state) && !this.ores.contains(neighbor)) {
+					this.ores.add(neighbor);
+				}
+			}
+		}
+
+		if (this.oreStep && status == Status.FAILURE && this.digging != null && this.oreTries.merge(this.digging, 1, Integer::sum) < 2) {
+			// Out of view from here: it tries again from the next step along.
+			this.retryOres.add(this.digging);
+		}
+
+		if (tunnel != null && this.stepping != null && status == Status.SUCCESS && this.drifter.blockPosition().equals(this.stepping)) {
+			this.ores.addAll(this.retryOres);
+			this.retryOres.clear();
+			tunnel.tip = this.stepping;
+			tunnel.legSteps++;
+			tunnel.steps++;
+			tunnel.sinceTorch++;
+		}
+
+		this.digging = null;
+		this.stepping = null;
+		this.oreStep = false;
+	}
+
+	private boolean canMineOre(Level level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		int slot = Tools.bestToolSlot(this.drifter, state, level, pos);
+		return slot >= 0 && this.drifter.getInventory().getItem(slot).isCorrectToolForDrops(state) && KnownBlocks.mayTake(level, pos);
+	}
+
+	private static boolean isOre(BlockState state) {
+		return state.is(net.minecraft.tags.BlockTags.COAL_ORES) || state.is(net.minecraft.tags.BlockTags.IRON_ORES)
+			|| state.is(net.minecraft.tags.BlockTags.COPPER_ORES) || state.is(net.minecraft.tags.BlockTags.GOLD_ORES)
+			|| state.is(net.minecraft.tags.BlockTags.REDSTONE_ORES) || state.is(net.minecraft.tags.BlockTags.LAPIS_ORES)
+			|| state.is(net.minecraft.tags.BlockTags.DIAMOND_ORES) || state.is(net.minecraft.tags.BlockTags.EMERALD_ORES);
 	}
 
 	/** Phase for the overlay and the selector: is it already safe? */

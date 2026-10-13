@@ -4,7 +4,15 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Current state (end of session 1, 2026-10-13)
+## Current state (session 2, local, 2026-10-13)
+
+- **Milestone 7 started** (user's request) while 5 and 6 are still in testing: personality, habits, mood, the
+  mannerism (tic) layer, and night behaviour by personality are in. Smoke-tested on a headless dev server (also with
+  Lithium and FerriteCore); the jar is installed in the user's Modrinth profile "DRIFTER TEST". See "Milestone 7".
+- **This folder is not a git repository** (it was copied from the session 1 branch), so session 2's work isn't
+  committed or pushed yet: see the open question in `docs/HANDOFF.md`.
+
+## Before session 2 (end of session 1)
 
 - **Moving to a local session.** See `docs/HANDOFF.md` for the short version of everything from this cloud session. Next: the user re-tests the latest fixes, then **milestone 7**.
 - **Testing settings:** `/drifter config sight <chunks>` (default 10) and `/drifter config path <blocks>` (default 64; how far one path search reaches, search nodes grow with it), saved in `config/drifter.json`. `/drifter giveall <item> [count]` gives to every Drifter.
@@ -29,7 +37,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 4 | Pathfinder | Done (in-game: ravine bridging, village, drops, doors) | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
 | 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
-| 7 | Mannerisms, personality and mood | Not started | Done when: people watching a short clip can't reliably tell it from a player. |
+| 7 | Mannerisms, personality and mood | In progress: first part written and smoke-tested (session 2), not played yet | Done when: people watching a short clip can't reliably tell it from a player. |
 | 8 | Progression and building | Not started | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
@@ -336,6 +344,90 @@ User's report: survived a day, went into a cave, ran from a creeper, killed a sk
 2. Fix what the tests find; the "done when" is three nights survived in a row.
 3. Combat-mod test pass (section 21): with Simply Swords and Better Combat installed.
 
+## Milestone 7: Mannerisms, personality and mood
+
+The "done when" test: people watching a short clip can't reliably tell it from a player. Started in session 2 (local),
+at the user's request, while milestones 5 and 6 are still in testing.
+
+### Done in session 2 (code complete, smoke-tested on a headless dev server, not yet played)
+
+Smoke tests run (`tools/smoke.py`): personalities roll, show and survive a restart; all 12 tics play by command with
+no errors; a forced night hunter prowled at dusk and backed off from a zombie and skeleton together; a night miner dug
+in, tunnelled with turns, placed torches, blocked off three cave openings and came away with iron and coal; the
+"stays in" one sealed in and got bored. Fixed from those runs: it couldn't dig in while standing in grass or flowers
+(the plant was in the way of its crosshair; older bug), and wall ores it couldn't see counted as failures.
+- **Personality** (`personality/*`, section 17): 17 traits (0 to 1), 12 archetypes with the section 17 spawn weights
+  and trait presets (preset + noise of 0.13, Caution and Bravery pulled against each other), rolled once per Drifter
+  and saved (`DrifterPersonality`, version 1). Older Drifters get one rolled the first time they load.
+- **Habit fingerprint** (`Habits`): eat threshold (12 to 17), scroller or number-keyer, auto-jump, sprint toggle,
+  tunnel shape and branch spacing, torch side, offhand, door etiquette, picks up crafting tables or not, celebration
+  and greeting style, sleep timing, trail markers, hotbar layout, dirt stack, favourite wood/stone/wool, and a
+  **mining lean** (user's note: strip/branch miners vs cavers and surface explorers, different for every Drifter).
+  Rolled from the traits, so habits fit the person. Several are only used by later milestones (rolled now so a
+  Drifter's identity never changes).
+- **Mood** (`Mood`, `MoodState`): every mood has a pressure that events push and that fades with its own half-life.
+  Getting hurt and danger make it anxious, nearly dying with something after it makes it panic, kills make it
+  triumphant, good gear keeps it confident, failed jobs frustrate it, nothing new for 2 minutes (or idling, or a long
+  wait in the shelter) bores it. Moods pull on traits while they last (Panicked: Skill -0.2, Bravery -0.25; Bored:
+  Curiosity +0.2, Fidget +0.2; and so on). Mood changes go to the thought log.
+- **Traits wired into what already existed** (all the milestone 7 TODOs):
+  - Brain: how predictable the top-three pick is comes from Efficiency (section 7).
+  - Eating: eats at its own threshold (eating beats routine work at or below it).
+  - Shelter timing: a cautious Drifter starts heading in up to ~1000 ticks earlier, a reckless one later; starting
+    long jobs late in the day is scaled by Caution (section 7 risk).
+  - Exploring: curiosity need from the Curiosity trait, plus boredom.
+  - Fights: Bravery and Caution shift the fight/flee ratio (x0.7 to x1.3); cowards (Bravery under 0.3) only fight
+    when cornered; aggressive ones go after mobs further off. Fighting styles (section 13): brawler (stays in and
+    trades hits), duelist (the old behaviour), turtle (shield up while waiting, backs off longer).
+  - Skill: camera overshoot, reflex reaction time (3-6 ticks skilled, 4-10 clumsy) and how often it's late, how full
+    the cooldown is before it swings, how often it goes for a crit, whiffs (a swing at the air that resets the
+    cooldown, like a player's miss). Panic means spam-clicking and more whiffs. Kills give a little practice (Skill
+    can grow up to +0.2).
+  - Pathfinding: Caution and Thrift weights from the traits.
+  - Inventory pauses (crafting, moving items) scaled by Efficiency.
+  - Hotbar: scrollers visibly scroll through the slots in between; number-keyers jump straight there; low Skill
+    sometimes grabs the slot next to it first, then corrects.
+  - Mining style: legs of exploring for stone before digging down: 0-1 for a strip miner, up to 5 for a caver;
+    frustration halves it.
+- **Mannerism layer** (`mannerism/Mannerisms`, section 16): tasks now say which body parts they leave free
+  (`Task.freeParts`: plain walking frees head and hands; waiting frees everything; looking around frees hands and
+  legs; everything else claims the whole body). A camera "glance override" lets a tic borrow the head and hand it
+  back to the task. Section 16.6 rules: one tic per 2 s at most, never the same twice in a row, per-tic cooldowns,
+  nothing during reflexes, fights, fleeing, swimming, eating or anything fiddly, rates scale with Fidget and mood.
+  Tics: side glances while walking (toward a sound or creature when there is one), look-backs (walking at night,
+  anxious, and repeatedly for 30 s after nearly dying), sky check at dusk and when coming up from underground,
+  360 sweep (careful types, after surfacing), jump-spam while waiting, crouch-spam / spin / swing at air to
+  celebrate a kill (by its celebration habit), spin on new armor, hotbar scroll fidget, nervous shield raise at
+  night when it hears a monster it can't see, going AFK in long waits, and a rage fit when very frustrated.
+- **Night by personality** (section 18, user's notes): chosen once each evening (`Schedule.NightStyle`):
+  - **Stays in** (most, and always the cautious): digs in as before.
+  - **Goes out hunting** (Bravery 0.62+, Caution under 0.6, calm, 14+ health, food 10+, a weapon at least as good
+    as a wooden sword): a "hunt mobs in the dark" goal prowls 8-20 blocks around where it was at dusk; any hostile
+    it can take becomes the fight goal (drops are picked up after). Once hurt or hungry it digs in like everyone else.
+  - **Digs in, then mines** (strip-miner lean 0.55+, Industriousness 0.45+, has a pickaxe): after sealing the
+    shelter it digs a 1x2 tunnel from the bottom of the shaft (a main leg of 10-18, then up to 3 side legs of 5-9,
+    48 steps a night at most), mines ore it uncovers (whole veins within reach, only with the right pickaxe),
+    blocks off caves and water it breaks into, stops at gravel/sand/hard rock, puts a torch every 8 steps **on its
+    habit's side going in** (user's note: players use torches to know where they are and the way back), and walks
+    back to the shaft in the morning to climb out.
+- **Commands**: `/drifter personality [reroll [archetype]]`, `/drifter mood [mood]`, `/drifter tic <tic>`,
+  `/drifter night [shelter|hunt|mine]`, `/drifter brain goal nighthunt`. The overlay shows archetype, mood, key
+  traits and the current tic.
+
+### Not done yet in milestone 7 (next steps)
+1. In-game check by the user (see `docs/TESTING.md`, "Milestone 7"), then fixes.
+2. Usernames and always-visible nameplates (section 4 identity) — see design question 10.
+3. Beds and sleeping (section 18: sleep a few seconds, then cautious ones stay in bed, others do chores or mine).
+4. More tics: corner peek, edge peek, wall stare, sprint stutter, door double-flip, toss and pick up an item,
+   over-mine one block, accidental grass break, look a new player up and down (milestone 9 with greetings),
+   torch spam when anxious in a dark cave.
+5. Signature moment "finding diamonds" (needs ore memory events), "meeting a player" (milestone 9).
+6. Habits not used yet: tunnel shape 2x2/3x3, offhand habit, door etiquette (closing doors), picking crafting
+   tables back up, trail markers, hotbar layout, junk policy. Tidy habits come next.
+7. Knowledge trait limiting recipes (section 8): not yet (it could stall day one for newbies; needs care).
+8. Torches as way markers while **caving** (user's note): caving itself is milestone 8; the torch-side habit is in
+   place for it.
+
 ## Long-term goal: manhunt test
 
 The user's "ultimate test" is a **1v1 manhunt**, now in DESIGN.md section 25 ("Manhunt test mode"). It's **only a test**:
@@ -366,4 +458,9 @@ Questions for the user. Nothing here has been changed in the design.
 7. **Night-one shelter is tier 1 (section 11).** For milestone 5 the Drifter digs three blocks straight down and covers the hole (the tier 1 "digs down and covers the hole" option) rather than the tier 2 hillside room, because it works on any ground and is the most reliable way to survive night one before combat exists (milestone 6). The worked example in section 24 has it dig a 3x3 hillside room on day 1; that can follow in milestone 8 (or sooner if you prefer). No decision needed unless you want the hillside room now.
 8. **The planner's data file location.** Section 8 says acquisition rules live in data files. They're in `data/<namespace>/drifter_sources/*.json` (a datapack can add more). Recipes come from the game. No decision needed.
 9. **Better Combat and Combat Roll (section 21, milestone 6 "combat-mod test pass").** What already works without any special code: modded weapons (Simply Swords and the like) are judged by their real attack damage and speed, and its reach comes from the reach attribute, so they're picked up and used correctly. What section 21 asks beyond that: reading Better Combat's per-weapon ranges and combos, and giving the Drifter the same dodge roll as Combat Roll. Doing that properly means compiling against those mods (as optional, "compile only" dependencies, never required at runtime), which adds their download sites to the build. **My recommendation:** for this milestone, just run the combat-mod test pass to check nothing breaks with them installed (the Drifter's hits go through vanilla's player attack, which those mods leave working), and add the real Better Combat / Combat Roll integration as a follow-up once you say it's OK to add those optional build dependencies. **Decided (user: "yea add them later, use your recommendation"):** test pass now; the optional compile-only integration comes later as a follow-up.
+10. **Usernames and nameplates (section 4, "Identity").** Milestone 7's test is "people watching a clip can't tell it
+    from a player", and every player has a name over their head. Section 4 asks for generated player-like usernames
+    (word plus digits, two words joined...) shown like a player's nameplate; that was left for the spawning milestone.
+    **My recommendation:** add the username generator and the always-visible nameplate now, as part of milestone 7
+    (small: a name list, a filter, and showing the name like a player's), and leave natural spawning for later.
 4. **Break speed computed on the Drifter (section 3).** The design says to compute mining time through the fake-player helper. I compute it on the Drifter with an exact copy of the player's formula instead, because the helper never ticks, so its Haste, Mining Fatigue and Efficiency would be out of date. The numbers are identical to a player's. No decision needed unless you want it done differently.

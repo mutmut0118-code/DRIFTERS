@@ -8,6 +8,13 @@ crashes, copy the crash report the launcher shows. Paste it all into the next se
 
 ## Getting the latest version (no coding needed)
 
+**Local sessions (since session 2):** Claude builds the mod on your computer and copies the new jar straight into the
+Modrinth profile **DRIFTER TEST** (`C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`), replacing
+the old `drifter-*.jar`. Just close the game if it's open and launch that profile. Claude also smoke-tests each build on
+a headless test server first (spawning Drifters and running commands), so crashes should be caught before you play.
+
+**From GitHub instead:**
+
 1. Open the repository's **Actions** tab on GitHub and click the newest **build** run for the branch (green tick).
    Every push builds the mod there automatically.
 2. At the bottom, under **Artifacts**, download **Artifacts**. Unzip it and take **`drifter-0.1.0.jar`**
@@ -637,4 +644,108 @@ within a second or two: "put on better gear").
 - No bows or crossbows yet; it always fights in melee.
 - It doesn't use doorways, high ground or light to its advantage yet, and doesn't retreat home (no home until milestone 8).
 - No golden apples, potions or ender pearls yet.
-- Every Drifter fights the same way (personalities come in milestone 7).
+- Fighting styles now come from personality (milestone 7): some trade hits up close (brawlers), some keep their
+  shield up (turtles), timid ones back off unless cornered.
+
+## Milestone 7: Mannerisms, personality and mood
+
+**Status:** first part written (session 2), smoke-tested on a test server (no crashes), not played yet.
+**The goal of this milestone:** watching a short clip, people can't reliably tell it from a player.
+
+Every Drifter now has a **personality**: an archetype (Casual, Newbie, Builder, Miner, Homebody, Speedrunner, Nomad,
+Hoarder, Hermit, PvP Sweat, Bandit, Helper), 17 traits, a set of **habits** that never change, and a **mood** that comes
+and goes. On top of whatever it's doing it now has little **tics** (glances, look-backs, jump-spam while waiting...).
+Drifters from older worlds get a personality the first time they load.
+
+Keep `/drifter debug on`: the panel has a new line like
+`Casual, mood bored 45% (nothing to do) | brave 0.52 caution 0.48 skill 0.61 curious 0.55 | tic: glance`.
+
+### New commands
+| Command | What it does |
+| --- | --- |
+| `/drifter personality` | Its archetype, traits (with "now" values when its mood is pulling on them), and habits |
+| `/drifter personality reroll` | A brand-new random personality (for testing) |
+| `/drifter personality reroll <archetype>` | A new personality of that archetype, e.g. `newbie`, `pvp_sweat`, `homebody` |
+| `/drifter mood` | Its mood and what's pushing it |
+| `/drifter mood <mood>` | Forces a mood: `calm`, `anxious`, `panicked`, `confident`, `frustrated`, `bored`, `triumphant` (it fades by itself) |
+| `/drifter tic <tic>` | Plays a tic now: `glance`, `look_back`, `sky_check`, `sweep`, `jump_spam`, `crouch_spam`, `spin`, `swing_air`, `hotbar_fidget`, `shield_raise`, `afk`, `rage` |
+| `/drifter night` | Tonight's plan (stays in / goes out hunting / digs in then mines) and what it would pick |
+| `/drifter night <shelter\|hunt\|mine>` | Forces tonight's plan (for testing) |
+
+### 1. Personalities are different (quick)
+1. Spawn three: `/drifter spawn A`, `/drifter spawn B`, `/drifter spawn C`. Stand next to each and run
+   `/drifter personality`.
+2. - [ ] They have different archetypes, traits and habits. Habits make sense for the person (tidy ones tend to
+     "pick up crafting tables", cautious ones eat earlier).
+3. - [ ] Leave the world and come back: `/drifter personality` shows exactly the same as before.
+
+### 2. Tics (one at a time, by command)
+Stand in front of a Drifter (brain on is fine) and try each. Each should look like something a person at a keyboard does.
+- [ ] `/drifter tic spin`: a quick full turn of the head and body.
+- [ ] `/drifter tic sweep`: a slower 360 look around, a quarter at a time.
+- [ ] `/drifter tic sky_check`: looks up at the sky for about a second.
+- [ ] `/drifter tic look_back`: a glance over its shoulder, then back.
+- [ ] `/drifter tic jump_spam`: a few bunny hops on the spot.
+- [ ] `/drifter tic crouch_spam`: sneak-unsneak a few times quickly.
+- [ ] `/drifter tic swing_air`: swings its arm at nothing a few times.
+- [ ] `/drifter tic hotbar_fidget` (give it a few items first): the item in its hand flicks through a few slots and back.
+- [ ] `/drifter tic shield_raise` (give it a shield: `/drifter give minecraft:shield`, it puts it in its offhand):
+      raises the shield for a second.
+- [ ] `/drifter tic afk`: freezes facing one way for 30 s or more (hitting it wakes it up).
+- [ ] `/drifter tic rage`: spins fast twice, punches the air, crouch-spams.
+
+### 3. Tics on their own (just watch it play for a few minutes)
+- [ ] **Walking:** every few seconds it glances to the side (toward a sound or an animal if there is one) without
+      losing its way; it still sprints and sprint-jumps.
+- [ ] **No tics** while it fights, flees, swims, eats, bridges, pillars, digs or goes through a door.
+- [ ] **At dusk** (`/time set 11500`) out in the open: it looks up at the sky once.
+- [ ] **In its night shelter:** now and then jump-spam (only if there's head room), hotbar fiddling, and sometimes
+      it goes AFK (stands still facing one way for half a minute).
+- [ ] **After killing a mob:** sometimes it celebrates its own way (crouch-spam, a spin, swinging, or nothing:
+      see "celebrates:" in `/drifter personality`).
+- [ ] **After nearly dying** (health 3 hearts or less, then escaping): for about 30 s it keeps looking back over its shoulder.
+- [ ] **Hotbar:** with `/drifter personality`, check "scrolls the hotbar" or "number keys". Scrollers visibly flick
+      through the items in between when switching; number-keyers jump straight to the item. Clumsy ones (low skill)
+      sometimes grab the wrong slot first and then correct.
+- [ ] It doesn't look twitchy: at most one tic every 2 seconds, never the same one twice in a row (side glances aside).
+
+### 4. Moods
+- [ ] Hit it a few times: `/drifter mood` shows it **anxious**; nearly kill it while a mob is after it: **panicked**
+      (it swings more wildly and misses more). It calms down after a minute or so.
+- [ ] Let it kill a zombie: **triumphant** for a while.
+- [ ] Leave it with nothing to do (`/drifter brain goal idle`, or sealed in at night): it gets **bored** after a
+      couple of minutes and then explores more (in the day) or fidgets more.
+- [ ] Mood changes appear in `/drifter thoughts` ("feeling anxious: got hurt", "calmed down").
+
+### 5. Personality changes what it does
+- [ ] Compare a cautious one (`/drifter personality reroll homebody`) with a reckless one (`reroll speedrunner`):
+      the homebody heads for shelter clearly earlier in the evening (check "shelter" in `/drifter brain` from about
+      `/time set 9500`).
+- [ ] A timid one backs off from a single zombie it could beat; a brave or aggressive one goes after it.
+- [ ] Brawlers (aggressive, not very skilled) stay in and trade hits; turtles (cautious, with a shield) keep the
+      shield up while waiting to swing.
+- [ ] Mining style (line "mining:" in `/drifter personality`): a **strip miner** digs down for stone soon after
+      looking around once; a **caver and surface explorer** walks around looking for caves and cliffs for longer.
+
+### 6. Night by personality (the user's milestone 7 notes)
+Give it what it needs first: `/drifter give minecraft:stone_sword`, `/drifter give minecraft:stone_pickaxe`,
+`/drifter give minecraft:cobblestone 32`, `/drifter give minecraft:torch 16`, `/drifter give minecraft:cooked_beef 8`.
+Use `/drifter night` to see tonight's plan, or force one with `/drifter night hunt|mine|shelter`, then
+`/time set 12000` (Normal difficulty).
+- [ ] **Stays in:** digs in and waits for morning as before.
+- [ ] **Goes out hunting:** at dusk it doesn't dig in; it prowls around near where it was ("hunt mobs in the dark"),
+      fights mobs it can take and picks up their drops. Hurt (7 hearts or less) or hungry, it digs in where it is.
+- [ ] **Digs in, then mines:** it digs in as usual, then digs a 1x2 tunnel sideways from the bottom of its hole
+      ("time doesn't matter underground: mining ..."), turns a few times, mines coal/iron it uncovers, and puts a
+      torch on the wall every 8 blocks, **always on the same side going in** (its "torches on the ..." habit), so the
+      way back is on the other side. Breaking into a cave or water, it **blocks the opening** and turns. In the
+      morning it walks back to the hole and climbs out.
+- [ ] Use `/drifter night` on a few different Drifters on a normal evening: careful ones mostly "stay in", brave
+      well-armed ones "go out hunting", patient hard-working ones "dig in, then mine".
+
+### Known gaps for milestone 7 (don't report these as bugs)
+- No usernames or always-on nameplates yet (only a name you give it), no beds or sleeping yet.
+- Not all habits are used yet: closing doors, picking up crafting tables, 2x2 or 3x3 tunnels, trail markers,
+  hotbar layout, offhand torch.
+- Some tics from the design aren't in yet (corner peek, edge peek, sprint stutter, door flips, tossing an item).
+- No "finding diamonds" moment yet, no greetings (players come in milestone 9).

@@ -49,7 +49,7 @@ import net.minecraft.world.phys.Vec3;
  *
  * <p>Priority, highest first: in lava, drowning, on fire, a creeper about to blow, lit TNT, lava in the way, a heavy fall,
  * an incoming arrow or fireball, suffocating, falling sand or gravel, stuck in a cobweb, touching a cactus or berry
- * bush. TODO(milestone 7): reaction times and miss chances from the Skill trait.
+ * bush. Reaction times and the chance to react late come from the Skill trait (milestone 7).
  */
 public class Reflexes {
 	// ----- Tuning (section 15; tunable, meant for a data file later) -----
@@ -187,8 +187,16 @@ public class Reflexes {
 		this.heldSlot = -1;
 	}
 
+	/**
+	 * Human reaction time (150 to 400 ms), scaled by Skill (section 17: Mechanical Skill covers reaction time and
+	 * clutches): a skilled Drifter reacts in 3 to 6 ticks and is rarely late, a clumsy one in 4 to 10 and late more often.
+	 * Panic makes it worse (its Skill drops while Panicked).
+	 */
 	private int reactionDelay(Reflex reflex) {
-		int delay = Mth.nextInt(this.drifter.getRandom(), MIN_DELAY_TICKS, MAX_DELAY_TICKS);
+		float skill = this.drifter.getPersonality().getF(com.dinglebob.drifter.personality.Trait.SKILL);
+		int min = Math.round(Mth.lerp(skill, MIN_DELAY_TICKS + 1, MIN_DELAY_TICKS));
+		int max = Math.round(Mth.lerp(skill, MAX_DELAY_TICKS + 2, MAX_DELAY_TICKS - 2));
+		int delay = Mth.nextInt(this.drifter.getRandom(), min, Math.max(min, max));
 		Vec3 where = reflex.where(this.drifter);
 		if (where != null) {
 			Vec3 toHazard = where.subtract(this.drifter.getEyePosition()).normalize();
@@ -197,7 +205,7 @@ public class Reflexes {
 			}
 		}
 
-		if (this.drifter.getRandom().nextFloat() < LATE_CHANCE) {
+		if (this.drifter.getRandom().nextFloat() < LATE_CHANCE * Mth.lerp(skill, 1.6F, 0.4F)) {
 			delay += Mth.nextInt(this.drifter.getRandom(), LATE_MIN_TICKS, LATE_MAX_TICKS);
 		}
 

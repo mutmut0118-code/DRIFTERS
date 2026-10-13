@@ -117,6 +117,16 @@ public abstract class Activity extends Task {
 		return this.child == null || this.child instanceof NavigateTask navigate && navigate.isSafeToInterrupt() || this.child instanceof WaitTask;
 	}
 
+	@Override
+	public java.util.Set<BodyPart> freeParts() {
+		return this.child == null ? NOTHING_FREE : this.child.freeParts();
+	}
+
+	@Override
+	public Task leaf() {
+		return this.child == null ? this : this.child.leaf();
+	}
+
 	/** What it's doing right now, for the overlay. */
 	public String currentStep() {
 		return this.child == null ? "thinking" : this.child.describe();

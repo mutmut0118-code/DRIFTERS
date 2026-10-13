@@ -50,6 +50,16 @@ public class SequenceTask extends Task {
 	}
 
 	@Override
+	public java.util.Set<BodyPart> freeParts() {
+		return this.index < this.steps.size() ? this.steps.get(this.index).freeParts() : NOTHING_FREE;
+	}
+
+	@Override
+	public Task leaf() {
+		return this.index < this.steps.size() ? this.steps.get(this.index).leaf() : this;
+	}
+
+	@Override
 	protected void onStop() {
 		if (this.index < this.steps.size()) {
 			this.steps.get(this.index).stop();

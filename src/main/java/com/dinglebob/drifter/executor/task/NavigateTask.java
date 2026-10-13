@@ -334,6 +334,44 @@ public class NavigateTask extends Task {
 		return true;
 	}
 
+	/** Steps ahead checked for anything fiddly before it lends its head or hands to a mannerism. */
+	private static final int FREE_LOOKAHEAD = 6;
+
+	/**
+	 * Plain walking leaves the head free for a glance and the hands free for a fidget (section 16.1: "glances to the
+	 * sides every 3 to 8 s"); its legs stay busy. Nothing is free near an edge, in water, while planning or unsticking,
+	 * or with anything but walking in the next few steps (digging, building, a door, a jump up, a climb).
+	 */
+	@Override
+	public java.util.Set<BodyPart> freeParts() {
+		if (this.chased != null || this.path.isEmpty() || this.unstick > 0 || this.drifter.isInWater() || !this.isSafeToInterrupt()
+			|| this.planningTicks > 0 || this.waitToSee > 0) {
+			return NOTHING_FREE;
+		}
+
+		for (int i = this.index; i < Math.min(this.path.size(), this.index + FREE_LOOKAHEAD); i++) {
+			PathStep step = this.path.get(i);
+			boolean plain = step.type() == MoveType.WALK || step.type() == MoveType.DIAGONAL || step.type() == MoveType.STEP_DOWN
+				|| step.type() == MoveType.START;
+			if (!plain || !step.digs().isEmpty() || this.isDoor(step.to()) || this.isDoor(step.to().above())) {
+				return NOTHING_FREE;
+			}
+		}
+
+		return java.util.EnumSet.of(BodyPart.HEAD, BodyPart.HANDS);
+	}
+
+	private boolean isDoor(BlockPos pos) {
+		BlockState state = this.level().getBlockState(pos);
+		return state.getBlock() instanceof net.minecraft.world.level.block.DoorBlock || state.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock
+			|| state.getBlock() instanceof net.minecraft.world.level.block.TrapDoorBlock;
+	}
+
+	/** True while it's walking the path (not planning, digging, building or stuck). */
+	public boolean isWalking() {
+		return !this.path.isEmpty() && this.sub == null && this.unstick == 0;
+	}
+
 	/** A deep drop under it (leaning out over an edge) or right beside it, from where it stands. */
 	private boolean edgeBeside() {
 		BlockPos here = this.feet();

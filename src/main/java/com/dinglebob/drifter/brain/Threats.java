@@ -41,8 +41,9 @@ import net.minecraft.world.item.Items;
  * what that ratio says to do. Base danger per mob comes from the data files {@code data/<namespace>/drifter_threats/}.
  *
  * <p>Threat = sum over noticed hostiles of base danger x gear x proximity (x1.3 when it's coming for the Drifter).
- * Power = health x armor x weapon damage per second x shield x food. TODO(milestone 7): Bravery and Caution shift
- * the thresholds.
+ * Power = health x armor x weapon damage per second x shield x food. Bravery and Caution shift the thresholds
+ * (section 17): the ratio is judged through {@link #courage}, so a brave Drifter takes fights a careful one avoids.
+ * A coward (low Bravery) only fights when cornered (section 13 "Coward").
  */
 public final class Threats {
 	public static final String DIRECTORY = "drifter_threats";
@@ -184,6 +185,18 @@ public final class Threats {
 		return entity instanceof Mob mob && mob.getTarget() == drifter || drifter.getLastHurtByMob() == entity;
 	}
 
+	/** Below this Bravery it fights like a coward (section 13 fighting styles). */
+	public static final double COWARD_BRAVERY = 0.3;
+
+	/**
+	 * How the personality reads the odds (section 17): 1.0 for a middling Drifter, up to about 1.3 for a brave, careless
+	 * one and down to about 0.7 for a timid, careful one. Moods count (Confident is braver, Panicked much less so).
+	 */
+	public static double courage(DrifterEntity drifter) {
+		com.dinglebob.drifter.personality.Personality p = drifter.getPersonality();
+		return 1.0 + 0.6 * (p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) - 0.5) - 0.3 * (p.get(com.dinglebob.drifter.personality.Trait.CAUTION) - 0.5);
+	}
+
 	/** Its own fighting power (1.0 is a fresh, unarmed player at full health). */
 	public static double power(DrifterEntity drifter) {
 		double health = (drifter.getHealth() + drifter.getAbsorptionAmount()) / 20.0;
@@ -251,9 +264,14 @@ public final class Threats {
 
 		hostiles.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(drifter)));
 		double power = power(drifter);
-		double ratio = power / threat;
+		double ratio = power / threat * courage(drifter);
 		Decision decision = ratio > 2.0 ? Decision.ENGAGE : ratio >= 1.2 ? Decision.ENGAGE_CAREFUL : ratio >= 0.8 ? Decision.AVOID
 			: ratio >= 0.5 ? Decision.RETREAT : Decision.FLEE;
+		// A coward backs off from fights it could take (section 13 "Coward: disengages early, fights only cornered").
+		if (decision == Decision.ENGAGE_CAREFUL && drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY) < COWARD_BRAVERY) {
+			decision = Decision.AVOID;
+		}
+
 		// Cornered: something close just hit it and it isn't hopeless: fight back.
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5) {
 			decision = Decision.ENGAGE_CAREFUL;

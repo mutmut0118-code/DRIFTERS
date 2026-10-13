@@ -30,18 +30,74 @@ public class Brain {
 	/** The current goal's flat bonus (about 15% of the max score, section 7). */
 	public static final double COMMITMENT_BONUS = 0.15;
 	public static final double JITTER = 0.02;
-	/** How sharply it prefers the best of the top three (higher is more predictable). TODO(milestone 7): Efficiency. */
-	public static final double PICK_SHARPNESS = 4.0;
+	/**
+	 * How sharply it prefers the best of the top three (higher is more predictable): from the Efficiency trait (section
+	 * 7), from scatterbrained (wanders off to chase a sheep mid-task) to methodical.
+	 */
+	public static final double PICK_SHARPNESS_MIN = 1.5;
+	public static final double PICK_SHARPNESS_MAX = 8.0;
 	/** A goal whose activity failed scores less for a while, so it tries something else. */
 	public static final int FAILED_COOLDOWN_TICKS = 20 * 15;
 	public static final double FAILED_PENALTY = 0.3;
 	/** How often (ticks) it checks for a close threat between re-scores. */
 	public static final int THREAT_CHECK_TICKS = 5;
 
-	/** Legs of exploring for stone before it digs straight down for it (a last resort). */
-	public static final int SEARCH_LEGS_BEFORE_DIGGING = 3;
+	/**
+	 * Legs of exploring for stone before it digs down for it, by mining style (user's note for milestone 7, section 10.3
+	 * "chosen by personality"): a strip miner digs after at most one look around, a caver and surface explorer keeps
+	 * looking for caves and cliffs for up to 5 legs. Frustration makes it dig sooner (section 17: riskier shortcuts).
+	 */
+	public static final int SEARCH_LEGS_MAX = 5;
+
+	public int searchLegsBeforeDigging() {
+		com.dinglebob.drifter.personality.Personality p = this.drifter.getPersonality();
+		int legs = (int)Math.round((1.0 - p.habits().miningLean) * SEARCH_LEGS_MAX);
+		if (p.is(com.dinglebob.drifter.personality.Mood.FRUSTRATED)) {
+			legs /= 2;
+		}
+
+		return Math.max(0, Math.min(SEARCH_LEGS_MAX, legs));
+	}
 
 	private final Map<String, Integer> explored = new HashMap<>();
+	/** Tonight's plan (section 18), chosen once per night, and the night tunnel if it's mining. Not saved: chosen again. */
+	private Schedule.NightStyle nightStyle = Schedule.NightStyle.SHELTER;
+	private long nightStyleDay = Long.MIN_VALUE;
+	@Nullable
+	private NightTunnel nightTunnel;
+
+	/**
+	 * How it spends tonight: chosen when it first thinks about shelter each day (late afternoon), then kept for the
+	 * night. A hunter that stops being fit for it (hurt, hungry) still digs in: see {@link Schedule#fitToHunt}.
+	 */
+	public Schedule.NightStyle nightStyle() {
+		long time = Schedule.believedTime(this.drifter);
+		long day = this.drifter.getSenses().time().believedDay();
+		boolean evening = time >= Schedule.shelterThinking(this.drifter);
+		if (evening && this.nightStyleDay != day) {
+			this.nightStyleDay = day;
+			this.nightStyle = Schedule.chooseNightStyle(this.drifter);
+			this.nightTunnel = null;
+			this.think("tonight it " + this.nightStyle.describe());
+		}
+
+		return this.nightStyleDay == day || Schedule.isNight(time) ? this.nightStyle : Schedule.NightStyle.SHELTER;
+	}
+
+	@Nullable
+	public NightTunnel nightTunnel() {
+		return this.nightTunnel;
+	}
+
+	public void setNightTunnel(@Nullable NightTunnel tunnel) {
+		this.nightTunnel = tunnel;
+	}
+
+	/** Forces tonight's plan (debug command). */
+	public void forceNightStyle(Schedule.NightStyle style) {
+		this.nightStyle = style;
+		this.nightStyleDay = this.drifter.getSenses().time().believedDay();
+	}
 	/** Batches it left cooking (saved). */
 	private final List<FurnaceJob> furnaceJobs = new ArrayList<>();
 
@@ -246,10 +302,12 @@ public class Brain {
 			return null;
 		}
 
-		double total = top.stream().mapToDouble(s -> Math.pow(s.score(), PICK_SHARPNESS)).sum();
+		double sharpness = net.minecraft.util.Mth.lerp(this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.EFFICIENCY),
+			PICK_SHARPNESS_MIN, PICK_SHARPNESS_MAX);
+		double total = top.stream().mapToDouble(s -> Math.pow(s.score(), sharpness)).sum();
 		double roll = this.drifter.getRandom().nextDouble() * total;
 		for (Scored scored : top) {
-			roll -= Math.pow(scored.score(), PICK_SHARPNESS);
+			roll -= Math.pow(scored.score(), sharpness);
 			if (roll <= 0.0) {
 				return scored;
 			}
@@ -290,6 +348,9 @@ public class Brain {
 		String text = message.getString();
 		if (text.contains("Failed:")) {
 			this.failedUntil.put(goal.id(), this.drifter.level().getGameTime() + FAILED_COOLDOWN_TICKS);
+			// Repeated failures wear on it (section 17, Frustrated).
+			this.drifter.getPersonality().feel(com.dinglebob.drifter.personality.Mood.FRUSTRATED, 0.18,
+				"couldn't " + (this.lastContext == null ? goal.id() : goal.name(this.lastContext)));
 			// The commitment ends with the failure: something else gets a turn.
 			this.goalStarted = Long.MIN_VALUE / 2;
 		}

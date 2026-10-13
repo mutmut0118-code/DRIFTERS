@@ -52,7 +52,7 @@ public final class Goals {
 		/** 0 to 1: can it actually do this now (section 7, "Feasibility")? */
 		public abstract double feasibility(Context context);
 
-		/** Lower when the goal is risky (a long trip near dusk). TODO(milestone 7): scaled by Caution. */
+		/** Lower when the goal is risky (a long trip near dusk); see {@link #lateInTheDay} for the Caution scaling. */
 		public double risk(Context context) {
 			return 1.0;
 		}
@@ -78,6 +78,19 @@ public final class Goals {
 		public double score(Context context) {
 			return this.urgency(context) * this.feasibility(context) * this.risk(context);
 		}
+	}
+
+	/**
+	 * The risk factor for starting something late in the day (section 7: "risk lowers the score in proportion to the
+	 * Caution trait"): {@code factor} for a middling Drifter, lower for a cautious one, closer to 1 for a reckless one.
+	 */
+	static double lateInTheDay(Context context, double factor) {
+		if (!(context.time() >= Schedule.shelterThinking(context.drifter()) && context.time() < Schedule.NIGHT_END)) {
+			return 1.0;
+		}
+
+		double caution = context.drifter().getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
+		return net.minecraft.util.Mth.clamp(factor + (0.5 - caution) * 0.6, 0.1, 1.0);
 	}
 
 	/** Turns a planner action into the activity that carries it out. */
@@ -133,8 +146,8 @@ public final class Goals {
 
 		@Override
 		public double risk(Context context) {
-			// Don't start long jobs late in the day.
-			return context.time() >= Schedule.SHELTER_THINKING && context.time() < Schedule.NIGHT_END ? 0.5 : 1.0;
+			// Don't start long jobs late in the day (more so for careful types: section 7, risk scales with Caution).
+			return lateInTheDay(context, 0.5);
 		}
 
 		@Nullable
@@ -165,9 +178,12 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
-			// Hungry, or hurt and able to heal by eating (natural regeneration needs food 18+).
-			double hurt = context.needs().health() > 0.05 && context.drifter().getFoodData().getFoodLevel() < 18 ? 0.5 : 0.0;
-			return Math.max(context.needs().hunger(), hurt);
+			// Hungry, or hurt and able to heal by eating (natural regeneration needs food 18+), or down to its habit's
+			// eating point (some top up at 17, others let it run down to 12).
+			int food = context.drifter().getFoodData().getFoodLevel();
+			double hurt = context.needs().health() > 0.05 && food < 18 ? 0.5 : 0.0;
+			double habit = food <= Food.eatThreshold(context.drifter()) ? Food.AT_THRESHOLD_URGENCY : 0.0;
+			return Math.max(context.needs().hunger(), Math.max(hurt, habit));
 		}
 
 		@Override
@@ -313,7 +329,7 @@ public final class Goals {
 
 			// Hungry with nothing it would eat yet: cooking is how it eats.
 			int food = context.drifter().getFoodData().getFoodLevel();
-			if (food < Food.EAT_THRESHOLD && Food.choose(context.drifter()) == null) {
+			if (food < Food.eatThreshold(context.drifter()) && Food.choose(context.drifter()) == null) {
 				return Math.max(0.6, context.needs().hunger() + 0.1);
 			}
 
@@ -426,7 +442,7 @@ public final class Goals {
 
 		@Override
 		public double risk(Context context) {
-			return context.time() >= Schedule.SHELTER_THINKING && context.time() < Schedule.NIGHT_END ? 0.3 : 1.0;
+			return lateInTheDay(context, 0.3);
 		}
 
 		@Override
@@ -518,7 +534,7 @@ public final class Goals {
 
 			// Its meal is in there and it's hungry with nothing else it would eat: go get it.
 			if (new ItemStack(job.output).has(net.minecraft.core.component.DataComponents.FOOD)
-				&& context.drifter().getFoodData().getFoodLevel() < Food.EAT_THRESHOLD && Food.choose(context.drifter()) == null) {
+				&& context.drifter().getFoodData().getFoodLevel() < Food.eatThreshold(context.drifter()) && Food.choose(context.drifter()) == null) {
 				return Math.max(0.65, context.needs().hunger() + 0.15);
 			}
 
@@ -532,7 +548,7 @@ public final class Goals {
 
 		@Override
 		public double risk(Context context) {
-			return context.time() >= Schedule.SHELTER_URGENT && context.time() < Schedule.NIGHT_END ? 0.3 : 1.0;
+			return context.time() >= Schedule.shelterUrgent(context.drifter()) && context.time() < Schedule.NIGHT_END ? 0.3 : 1.0;
 		}
 
 		@Nullable
@@ -568,8 +584,14 @@ public final class Goals {
 				return 1.25;
 			}
 
-			// Something it could beat, further off: worth it if it's coming (or for the drops, if confident).
-			return threat.decision() == Threats.Decision.ENGAGE ? 0.4 : 0.2;
+			// Out hunting at night (section 18): this is what it came out for.
+			if (NightHunt.hunting(context)) {
+				return 1.0;
+			}
+
+			// Something it could beat, further off: worth it if it's coming (or for the drops, if it likes a fight).
+			double aggression = context.drifter().getPersonality().get(com.dinglebob.drifter.personality.Trait.AGGRESSION);
+			return (threat.decision() == Threats.Decision.ENGAGE ? 0.25 : 0.1) + 0.3 * aggression;
 		}
 
 		@Override
@@ -642,6 +664,67 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Out after mobs at night for their drops (section 18 "Night variations by personality": brave or confident
+	 * Drifters go out to fight mobs for bones, string, gunpowder, ender pearls and XP). It prowls near where it was at
+	 * dusk; the fight goal takes over when it sees something it can take, and picks up the drops afterwards. If it gets
+	 * hurt or hungry it stops being fit for it and digs in like everyone else.
+	 */
+	public static final class NightHunt extends Goal {
+		@Nullable
+		private net.minecraft.world.phys.Vec3 anchor;
+
+		static boolean hunting(Context context) {
+			boolean evening = context.time() >= Schedule.shelterUrgent(context.drifter()) && context.time() < Schedule.NIGHT_END;
+			return evening && !context.sealedIn() && context.drifter().getDrifterBrain().nightStyle() == Schedule.NightStyle.HUNT
+				&& Schedule.fitToHunt(context.drifter());
+		}
+
+		@Override
+		public String id() {
+			return "nighthunt";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "hunt mobs in the dark";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			if (!hunting(context)) {
+				this.anchor = null;
+				return 0.0;
+			}
+
+			return 0.8;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			if (this.anchor == null) {
+				this.anchor = context.drifter().position();
+			}
+
+			// Prowl around where it was at dusk: a point 8 to 20 blocks off it.
+			var random = context.drifter().getRandom();
+			double angle = random.nextDouble() * Math.PI * 2.0;
+			double distance = 8.0 + random.nextDouble() * 12.0;
+			net.minecraft.world.phys.Vec3 point = this.anchor.add(Math.cos(angle) * distance, 0.0, Math.sin(angle) * distance);
+			return new ExploreActivity(context.drifter(), "hunting mobs", point, drifter -> Threats.assess(drifter).main() != null);
+		}
+	}
+
 	/** Put on better armor or a shield the moment it has one (section 10.17, "Upgrades"). */
 	public static final class Equip extends Goal {
 		@Override
@@ -693,7 +776,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new Progress(),
-			new Wander(), new Idle());
+		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+			new Progress(), new Wander(), new Idle());
 	}
 }

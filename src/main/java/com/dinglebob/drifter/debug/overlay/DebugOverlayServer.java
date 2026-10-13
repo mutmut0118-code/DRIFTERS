@@ -89,6 +89,8 @@ public final class DebugOverlayServer {
 		} else {
 			lines.add("Task: " + (task == null ? "none" : task.describe()));
 		}
+		String tic = drifter.getMannerisms().describe();
+		lines.add(drifter.getPersonality().summary() + (tic.isEmpty() ? "" : " | " + tic));
 		Awareness ofViewer = senses.awarenessOf(viewer);
 		lines.add(ofViewer == null ? "Awareness of you: none"
 			: String.format(Locale.ROOT, "Awareness of you: %.2f (%s)", ofViewer.value, ofViewer.identified ? "knows it's you" : ofViewer.level().id()));

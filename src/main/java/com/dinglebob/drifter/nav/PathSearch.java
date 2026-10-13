@@ -129,9 +129,9 @@ public class PathSearch {
 		this.target = target;
 		this.goalRadius = goalRadius;
 		this.blocksAvailable = Tools.buildingBlockCount(drifter);
-		// TODO(milestone 7): Caution and Thrift come from the personality traits.
-		this.caution = 0.5;
-		this.thrift = 0.5;
+		// Section 12 cost model: risk x Caution, resources x Thrift, from its personality (mood included).
+		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
+		this.thrift = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.THRIFT);
 		this.memory = drifter.getMemory();
 		int maxDrop = SAFE_DROP;
 		while (maxDrop < WATER_DROP && fallDamage(drifter, maxDrop + 1) <= MAX_DROP_DAMAGE

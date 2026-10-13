@@ -388,7 +388,7 @@ public final class Planner {
 		// after a few legs of exploring found nothing (user's rule: learn the land first).
 		String searchReason = "looking for " + name(item) + " (a cave or a cliff)";
 		boolean digDown = !known && underground
-			&& this.drifter.getDrifterBrain().timesExplored(searchReason) >= Brain.SEARCH_LEGS_BEFORE_DIGGING;
+			&& this.drifter.getDrifterBrain().timesExplored(searchReason) >= this.drifter.getDrifterBrain().searchLegsBeforeDigging();
 
 		// A tool that can harvest it (tools aren't used up).
 		Item tool = source.toolItem();

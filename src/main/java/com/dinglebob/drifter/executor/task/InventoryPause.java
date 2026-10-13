@@ -4,8 +4,8 @@ import com.dinglebob.drifter.entity.DrifterEntity;
 
 /**
  * The "inventory open" pause (DESIGN.md sections 1 and 10.2): a player has to open a screen to craft or move items,
- * so they stand still for a moment. Durations in ticks.
- * TODO(milestone 7): scale by the Efficiency trait.
+ * so they stand still for a moment. Durations in ticks, scaled by the Efficiency trait (an efficient player knows
+ * where everything is in the inventory; a scatterbrained one hunts around for it).
  */
 final class InventoryPause {
 	/** Crafting session: 0.5 to 2 s (section 10.2). */
@@ -26,6 +26,8 @@ final class InventoryPause {
 	}
 
 	static int roll(DrifterEntity drifter, int min, int max) {
-		return min + drifter.getRandom().nextInt(max - min + 1);
+		double efficiency = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.EFFICIENCY);
+		double scale = net.minecraft.util.Mth.lerp(efficiency, 1.4, 0.7);
+		return Math.max(1, (int)Math.round((min + drifter.getRandom().nextInt(max - min + 1)) * scale));
 	}
 }

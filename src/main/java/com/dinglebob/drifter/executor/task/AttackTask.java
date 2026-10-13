@@ -40,9 +40,35 @@ import net.minecraft.world.phys.Vec3;
  * </ul>
  * Far away or out of sight it follows with the pathfinder; close up it steers with the keys, camera on the target.
  * Hits only land under the crosshair within 3 blocks (player reach).
- * TODO(milestone 7): fighting styles (brawler, archer, turtle, coward) and Skill-scaled timing errors.
+ * Fighting style and timing come from the personality (section 13 "Fighting styles", section 17 Skill): a brawler
+ * runs in and trades hits, a duelist keeps its spacing, a turtle keeps its shield up; low Skill swings a little early,
+ * goes for fewer crits and sometimes whiffs, and panic turns it into spam-clicking. (Cowards are decided in
+ * {@link com.dinglebob.drifter.brain.Threats}; archers need bows, a later milestone.)
  */
 public class AttackTask extends Task {
+	/** Section 13 fighting styles that apply to melee. */
+	public enum Style {
+		/** Runs in and trades hits; uses sprint-knockback. */
+		BRAWLER,
+		/** Controls spacing, waits for full cooldown, times crits, strafes. */
+		DUELIST,
+		/** Shield up most of the time, hits in the gaps. */
+		TURTLE;
+
+		public static Style of(DrifterEntity drifter) {
+			com.dinglebob.drifter.personality.Personality p = drifter.getPersonality();
+			if (p.base(com.dinglebob.drifter.personality.Trait.CAUTION) > 0.62 && drifter.canUseShield()) {
+				return TURTLE;
+			}
+
+			if (p.base(com.dinglebob.drifter.personality.Trait.AGGRESSION) > 0.62 && p.base(com.dinglebob.drifter.personality.Trait.SKILL) < 0.65) {
+				return BRAWLER;
+			}
+
+			return DUELIST;
+		}
+	}
+
 	/** How it fights this target (section 13, "Per-mob protocols"). */
 	public enum Protocol {
 		/** An animal: chase and hit. */
@@ -103,6 +129,9 @@ public class AttackTask extends Task {
 	private final LivingEntity target;
 	private final String label;
 	private final Protocol protocol;
+	private final Style style;
+	/** Rolled per swing: does it go for a crit this time (low Skill often doesn't bother). */
+	private boolean wantsCrit = true;
 	@Nullable
 	private NavigateTask follow;
 	@Nullable
@@ -130,6 +159,27 @@ public class AttackTask extends Task {
 		this.target = target;
 		this.label = label;
 		this.protocol = Protocol.of(target);
+		this.style = Style.of(drifter);
+	}
+
+	public Style style() {
+		return this.style;
+	}
+
+	private float skill() {
+		return this.drifter.getPersonality().getF(com.dinglebob.drifter.personality.Trait.SKILL);
+	}
+
+	/**
+	 * How full the cooldown must be before it swings: about 0.95 for a skilled player, 0.8 for a clumsy one (a little
+	 * early, a little weaker, no crit); a panicking one spam-clicks (section 17, Panicked).
+	 */
+	private float swingStrength() {
+		if (this.drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.PANICKED)) {
+			return 0.35F;
+		}
+
+		return Math.max(FULL_STRENGTH - 0.12F, Mth.lerp(this.skill(), FULL_STRENGTH - 0.12F, FULL_STRENGTH + 0.03F));
 	}
 
 	@Override
@@ -276,7 +326,8 @@ public class AttackTask extends Task {
 				: Mth.nextInt(this.drifter.getRandom(), STRAFE_MIN_TICKS, STRAFE_MAX_TICKS);
 		}
 
-		boolean stepIn = !fightingMob || strength >= STEP_IN_STRENGTH;
+		// A brawler doesn't hover: it stays in and trades hits.
+		boolean stepIn = !fightingMob || strength >= STEP_IN_STRENGTH || this.style == Style.BRAWLER;
 		if (!stepIn) {
 			// Waiting for the cooldown: hover at the edge of reach, circling.
 			if (distance < HOVER_MIN) {
@@ -291,8 +342,8 @@ public class AttackTask extends Task {
 			this.guardFootwork(at);
 			keys.set(VirtualKeys.Key.SPRINT, false);
 			keys.set(VirtualKeys.Key.JUMP, false);
-			// Shield up while an archer draws or a mob is about to swing in reach.
-			this.shieldIf(this.threatening(distance));
+			// Shield up while an archer draws or a mob is about to swing in reach (a turtle keeps it up all the while).
+			this.shieldIf(this.threatening(distance) || this.style == Style.TURTLE);
 			return;
 		}
 
@@ -318,7 +369,7 @@ public class AttackTask extends Task {
 			boolean sprint = keys.isDown(VirtualKeys.Key.FORWARD) && (horizontal > JUMP_RANGE || this.protocol == Protocol.CREEPER)
 				&& this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 			keys.set(VirtualKeys.Key.SPRINT, sprint);
-			boolean jump = !this.missedCrit && this.canJump() && horizontal <= JUMP_RANGE && ticksToFull <= JUMP_LEAD_TICKS;
+			boolean jump = !this.missedCrit && this.wantsCrit && this.canJump() && horizontal <= JUMP_RANGE && ticksToFull <= JUMP_LEAD_TICKS;
 			keys.set(VirtualKeys.Key.JUMP, jump || this.drifter.horizontalCollision);
 			if (jump) {
 				this.critJump = true;
@@ -326,7 +377,7 @@ public class AttackTask extends Task {
 			}
 
 			// A plain hit when it can't (or failed to) crit, at full strength only.
-			if ((this.missedCrit || !this.canJump()) && strength >= FULL_STRENGTH && Combat.canHit(this.drifter, this.target)) {
+			if ((this.missedCrit || !this.wantsCrit || !this.canJump()) && strength >= this.swingStrength() && Combat.canHit(this.drifter, this.target)) {
 				this.hit();
 			}
 
@@ -342,7 +393,7 @@ public class AttackTask extends Task {
 		}
 
 		boolean falling = this.drifter.fallDistance > 0.0F && this.drifter.getDeltaMovement().y < 0.0;
-		if (falling && !this.drifter.isSprinting() && strength >= FULL_STRENGTH && Combat.canHit(this.drifter, this.target)) {
+		if (falling && !this.drifter.isSprinting() && strength >= Math.max(FULL_STRENGTH, this.swingStrength()) && Combat.canHit(this.drifter, this.target)) {
 			this.hit();
 		}
 	}
@@ -433,14 +484,38 @@ public class AttackTask extends Task {
 	}
 
 	private void hit() {
+		// Low Skill sometimes whiffs: a swing at the air beside it, which resets the cooldown like a player's miss.
+		float whiff = (1.0F - this.skill()) * 0.12F + (this.drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.PANICKED) ? 0.15F : 0.0F);
+		if (this.drifter.getRandom().nextFloat() < whiff) {
+			this.drifter.swing(InteractionHand.MAIN_HAND);
+			this.drifter.resetAttackTimer();
+			this.critJump = false;
+			this.missedCrit = false;
+			this.rollCrit();
+			return;
+		}
+
 		if (Combat.attack(this.drifter, this.target)) {
+			this.rollCrit();
+			if (!this.target.isAlive()) {
+				this.drifter.getMannerisms().onKill(this.target);
+			}
+
 			this.critJump = false;
 			this.missedCrit = false;
 			if (this.protocol != Protocol.PREY) {
-				this.backoff = this.protocol == Protocol.CREEPER ? CREEPER_BACKOFF_TICKS : BACKOFF_TICKS + this.drifter.getRandom().nextInt(4);
+				// A brawler stays in and trades hits; a turtle backs off longer behind its shield.
+				this.backoff = this.protocol == Protocol.CREEPER ? CREEPER_BACKOFF_TICKS
+					: this.style == Style.BRAWLER ? 0
+					: BACKOFF_TICKS + this.drifter.getRandom().nextInt(4) + (this.style == Style.TURTLE ? 4 : 0);
 				this.strafeLeft = this.drifter.getRandom().nextBoolean();
 			}
 		}
+	}
+
+	/** Whether the next swing goes for a crit: always at high Skill, about a third of the time at the lowest. */
+	private void rollCrit() {
+		this.wantsCrit = this.drifter.getRandom().nextFloat() < Mth.lerp(this.skill(), 0.35F, 1.05F);
 	}
 
 	/** Worth jumping for a crit: a slow enough weapon, room to jump, not in water or on a ladder, not at a creeper. */

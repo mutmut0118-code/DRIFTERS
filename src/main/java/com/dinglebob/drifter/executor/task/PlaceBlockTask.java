@@ -27,6 +27,9 @@ public class PlaceBlockTask extends Task {
 	private final SelectItemTask select;
 	@Nullable
 	private UseOnBlockTask use;
+	/** A support side to use when it can (a torch on the right-hand wall, section 17 torch habit). */
+	@Nullable
+	private Direction preferred;
 
 	public PlaceBlockTask(DrifterEntity drifter, BlockPos target, Predicate<ItemStack> item, String label) {
 		super(drifter);
@@ -34,6 +37,12 @@ public class PlaceBlockTask extends Task {
 		this.item = item;
 		this.label = label;
 		this.select = new SelectItemTask(drifter, item, label);
+	}
+
+	/** Place against this side of the target if that face is in view and reach; any other face otherwise. */
+	public PlaceBlockTask preferSupport(Direction toSupport) {
+		this.preferred = toSupport;
+		return this;
 	}
 
 	@Override
@@ -105,6 +114,10 @@ public class PlaceBlockTask extends Task {
 
 			Direction face = toSupport.getOpposite();
 			Optional<Vec3> point = Reach.aimPoint(this.drifter, supportPos, face);
+			if (point.isPresent() && toSupport == this.preferred) {
+				return new Direction[]{toSupport, face};
+			}
+
 			if (point.isPresent() && eye.distanceToSqr(point.get()) < bestDistance) {
 				bestDistance = eye.distanceToSqr(point.get());
 				best = new Direction[]{toSupport, face};

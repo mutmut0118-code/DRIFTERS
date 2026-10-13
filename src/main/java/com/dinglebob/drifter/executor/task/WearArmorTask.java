@@ -68,7 +68,17 @@ public class WearArmorTask extends Task {
 			}
 		}
 
-		return this.wornPieces > 0 ? Status.SUCCESS : this.fail("has no better armor to put on");
+		if (this.wornPieces > 0) {
+			// Section 16.5 "First iron armor: equips it piece by piece, then a quick spin" (and a little confidence).
+			this.drifter.getPersonality().feel(com.dinglebob.drifter.personality.Mood.CONFIDENT, 0.1 * this.wornPieces, "new gear");
+			if (this.drifter.getArmorValue() >= 6) {
+				this.drifter.getMannerisms().event(com.dinglebob.drifter.mannerism.Mannerisms.Event.NEW_GEAR);
+			}
+
+			return Status.SUCCESS;
+		}
+
+		return this.fail("has no better armor to put on");
 	}
 
 	/** Has armor better than what it wears, or a shield it isn't holding in its offhand. */

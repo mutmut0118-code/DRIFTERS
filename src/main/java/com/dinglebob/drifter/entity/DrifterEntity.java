@@ -103,6 +103,10 @@ public class DrifterEntity extends PathfinderMob {
 	private final TaskRunner tasks = new TaskRunner(this);
 	private final com.dinglebob.drifter.brain.Brain brain = new com.dinglebob.drifter.brain.Brain(this);
 	private final com.dinglebob.drifter.reflex.Reflexes reflexes = new com.dinglebob.drifter.reflex.Reflexes(this);
+	/** Who it is (section 17): archetype, traits, habit fingerprint and mood. Rolled once, saved. */
+	private final com.dinglebob.drifter.personality.Personality personality;
+	/** The mannerism layer (section 16): tics on top of whatever it's doing, with the body parts its task leaves free. */
+	private final com.dinglebob.drifter.mannerism.Mannerisms mannerisms = new com.dinglebob.drifter.mannerism.Mannerisms(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
 	/** True during its own melee swing (see {@link #hurt} and {@link #knockback}). */
 	private boolean ownSwing;
@@ -123,6 +127,7 @@ public class DrifterEntity extends PathfinderMob {
 	public DrifterEntity(EntityType<? extends DrifterEntity> entityType, Level level) {
 		super(entityType, level);
 		this.camera = new CameraModel(this.random);
+		this.personality = com.dinglebob.drifter.personality.Personality.roll(this.random, null);
 		this.senses = new Senses(this, this.memory);
 		this.hearingListener = new DynamicGameEventListener<>(this.senses.hearing());
 		// The Drifter is driven by virtual keys and its camera model, not by vanilla mob controls.
@@ -169,6 +174,14 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.reflex.Reflexes getReflexes() {
 		return this.reflexes;
+	}
+
+	public com.dinglebob.drifter.personality.Personality getPersonality() {
+		return this.personality;
+	}
+
+	public com.dinglebob.drifter.mannerism.Mannerisms getMannerisms() {
+		return this.mannerisms;
 	}
 
 	public com.dinglebob.drifter.brain.Brain getDrifterBrain() {
@@ -327,10 +340,16 @@ public class DrifterEntity extends PathfinderMob {
 		super.customServerAiStep();
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		this.senses.tick();
-		// Reflexes first (section 8, layer 5): while one has the body, the brain and the executor wait.
+		this.personality.tick(this);
+		// Skill moves the head (section 16.1: lower Skill overshoots more); mood can shake it (Panicked).
+		this.camera.setSkill(this.personality.getF(com.dinglebob.drifter.personality.Trait.SKILL));
+		// Reflexes first (section 8, layer 5): while one has the body, the brain, the executor and the tics wait.
 		if (!this.reflexes.tick()) {
 			this.brain.tick();
 			this.tasks.tick();
+			this.mannerisms.tick();
+		} else {
+			this.mannerisms.interrupt("reflex");
 		}
 		float[] look = this.camera.tick(this.getEyePosition(), this.getYRot(), this.getXRot());
 		this.setYRot(look[0]);
@@ -815,6 +834,11 @@ public class DrifterEntity extends PathfinderMob {
 			this.senses.onHurt(source, amount);
 			this.reflexes.onHurt(source);
 			this.brain.poke();
+			this.mannerisms.onHurt(amount);
+			this.personality.feel(com.dinglebob.drifter.personality.Mood.ANXIOUS, amount / 10.0, "got hurt");
+			if (this.getHealth() <= 6.0F) {
+				this.personality.feel(com.dinglebob.drifter.personality.Mood.PANICKED, 0.3, "nearly dead");
+			}
 		}
 
 		return hit;
@@ -933,6 +957,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.putBoolean("SlimArms", this.hasSlimArms());
 		tag.put("DrifterMemory", this.memory.save());
 		tag.put("DrifterBrain", this.brain.save());
+		tag.put("DrifterPersonality", this.personality.save());
 	}
 
 	@Override
@@ -944,6 +969,11 @@ public class DrifterEntity extends PathfinderMob {
 		this.foodData.readAdditionalSaveData(tag);
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {
 			this.brain.load(tag.getCompound("DrifterBrain"));
+		}
+
+		// Drifters saved before milestone 7 have no personality yet: they keep the one rolled at load, which is then saved.
+		if (tag.contains("DrifterPersonality", Tag.TAG_COMPOUND)) {
+			this.personality.load(tag.getCompound("DrifterPersonality"));
 		}
 
 		if (tag.contains("DrifterMemory", Tag.TAG_COMPOUND)) {

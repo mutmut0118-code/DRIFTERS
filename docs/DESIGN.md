@@ -602,6 +602,7 @@ Mining methods, chosen by stage, target and personality:
 - **Water:** blocks flowing water with the nearest junk block.
 - **Spawners:** surrounds with torches or breaks them, then loots the chest.
 - **Torch placement:** whenever the area ahead gets dark, always on its favorite side (habit fingerprint). Some Drifters use the classic "torches on the right going in" rule so the way out is on the left.
+- **Torches as way markers** (user's rule): like players, it uses torches in caves, tunnels and at night to keep track of where it is and how to get back: always on the same side going in, so on the way out they're on the other side, and a line of torches leads home.
 - **Inventory full:** throws junk per its policy (section 10.18) or heads home. Cautious Drifters go home early when carrying diamonds.
 - **Tools:** uses Fortune on coal, lapis, redstone and diamonds; Silk Touch on glass, ice, ender chests. Thrifty Drifters avoid using a diamond pickaxe on plain stone.
 
@@ -1386,6 +1387,8 @@ Players can't sleep with monsters nearby. Whether a Drifter counts as one should
 - **Brave or confident Drifters** go out to fight mobs for bones, string, gunpowder, ender pearls and XP.
 - **Hostile Drifters** prefer night for stalking players.
 - **Cautious ones** never leave the base after dusk.
+- **Strip-mining types** (user's note) dig in and then mine from the shelter, since time doesn't matter underground; with a bed, they sleep first.
+- **Mining style differs per Drifter** (user's note, see section 10.3): some lean on strip and branch mining, others on caving and exploring the surface.
 
 ### Weather
 

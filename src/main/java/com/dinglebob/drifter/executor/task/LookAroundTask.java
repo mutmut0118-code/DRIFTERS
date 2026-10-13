@@ -29,6 +29,12 @@ public class LookAroundTask extends Task {
 		return 20 * 10;
 	}
 
+	/** The head is busy looking around; hands and legs are free (a crouch-spam after a kill, a hotbar fidget). */
+	@Override
+	public java.util.Set<BodyPart> freeParts() {
+		return java.util.EnumSet.of(BodyPart.HANDS, BodyPart.LEGS);
+	}
+
 	@Override
 	protected void onStart() {
 		this.drifter.getKeys().releaseAll();

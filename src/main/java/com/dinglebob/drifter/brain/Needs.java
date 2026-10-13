@@ -8,8 +8,9 @@ import net.minecraft.util.Mth;
 
 /**
  * Need urgencies, 0 to 1, from response curves (DESIGN.md section 7, "Needs" and "Scoring a goal"). Milestone 5 covers
- * hunger, health, shelter, gear and food supply; curiosity is a small constant.
- * TODO(milestone 7): personality weights reshape these curves (a Cautious Drifter's shelter curve starts earlier).
+ * hunger, health, shelter, gear and food supply, and curiosity. Personality reshapes the curves (section 7 "personality
+ * weight"): a cautious Drifter's shelter curve starts earlier, a curious one's exploring is worth more, a bored one's
+ * even more.
  */
 public record Needs(double hunger, double health, double shelter, double gear, double foodSupply, double curiosity) {
 	/** Hunger points of carried food it wants before night (about four cooked meats). */
@@ -32,16 +33,22 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 		double health = missing * missing;
 
 		long time = Schedule.believedTime(drifter);
-		boolean sealedIn = Shelter.isSealedIn(drifter);
+		// In its own night tunnel counts as being in its shelter (it mines there, and climbs out in the morning).
+		NightTunnel tunnel = drifter.getDrifterBrain().nightTunnel();
+		boolean sealedIn = Shelter.isSealedIn(drifter) || tunnel != null && tunnel.contains(drifter.blockPosition());
+		// A night hunter (section 18: brave ones go out after mobs) only needs shelter once it isn't fit to be out.
+		boolean hunting = !sealedIn && drifter.getDrifterBrain().nightStyle() == Schedule.NightStyle.HUNT && Schedule.fitToHunt(drifter);
 		double shelter;
-		boolean dusk = time >= Schedule.SHELTER_URGENT && time < Schedule.NIGHT_START;
+		long thinking = Schedule.shelterThinking(drifter);
+		long urgent = Schedule.shelterUrgent(drifter);
+		boolean dusk = time >= urgent && time < Schedule.NIGHT_START;
 		if (Schedule.isNight(time) || dusk) {
-			shelter = sealedIn ? 1.0 : 0.95;
+			shelter = sealedIn ? 1.0 : hunting ? 0.15 : 0.95;
 		} else if (time >= Schedule.NIGHT_END) {
 			// Dawn twilight: stay put until the sun is up.
 			shelter = sealedIn ? 0.9 : 0.0;
-		} else if (time >= Schedule.SHELTER_THINKING) {
-			shelter = Mth.lerp((time - Schedule.SHELTER_THINKING) / (double)(Schedule.SHELTER_URGENT - Schedule.SHELTER_THINKING), 0.2, 0.7);
+		} else if (time >= thinking) {
+			shelter = Mth.lerp((time - thinking) / (double)Math.max(1L, urgent - thinking), 0.2, 0.7);
 		} else {
 			// Morning: climb out of the night's hole before anything else.
 			shelter = sealedIn ? 0.6 : 0.0;
@@ -56,7 +63,11 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 			foodSupply = Math.max(foodSupply, 0.8);
 		}
 
-		return new Needs(hunger, health, shelter, gear, foodSupply, 0.15);
+		// Curiosity (section 7): 0.05 for an incurious homebody up to 0.25 for a nomad; boredom pushes it up (section 17).
+		com.dinglebob.drifter.personality.Personality personality = drifter.getPersonality();
+		double curiosity = 0.05 + 0.2 * personality.get(com.dinglebob.drifter.personality.Trait.CURIOSITY)
+			+ 0.25 * Math.min(1.0, personality.mood().pressure(com.dinglebob.drifter.personality.Mood.BORED));
+		return new Needs(hunger, health, shelter, gear, foodSupply, curiosity);
 	}
 
 	public String describe() {

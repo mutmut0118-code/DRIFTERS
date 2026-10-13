@@ -138,6 +138,7 @@ public final class DrifterCommands {
 		SensesCommands.register(root);
 		NavCommands.register(root);
 		BrainCommands.register(root);
+		PersonalityCommands.register(root);
 
 		dispatcher.register(root);
 	}

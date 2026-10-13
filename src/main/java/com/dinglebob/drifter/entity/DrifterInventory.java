@@ -69,6 +69,16 @@ public class DrifterInventory implements Container {
 		this.switchDelay = MIN_SWITCH_DELAY + this.owner.getRandom().nextInt(MAX_SWITCH_DELAY - MIN_SWITCH_DELAY + 1);
 	}
 
+	/** Selects a hotbar slot after exactly {@code delay} ticks (one scroll-wheel notch is a tick). */
+	public void requestSelect(int slot, int delay) {
+		if (!isHotbarSlot(slot) || slot == this.selected && this.pendingSelected == -1) {
+			return;
+		}
+
+		this.pendingSelected = slot;
+		this.switchDelay = Math.max(1, delay);
+	}
+
 	public boolean isSwitching() {
 		return this.pendingSelected != -1;
 	}
