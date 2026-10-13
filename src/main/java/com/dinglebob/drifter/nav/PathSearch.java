@@ -43,6 +43,8 @@ public class PathSearch {
 	public static final double JUMP_EXTRA = 0.3;
 	public static final double STEP_DOWN_EXTRA = 0.1;
 	public static final double SWIM = 0.5;
+	/** Extra for swimming with its head under water (air risk, section 12): it keeps to the surface. */
+	public static final double SWIM_UNDER = 0.5;
 	public static final double CLIMB_UP = 0.45;
 	public static final double CLIMB_DOWN = 0.35;
 	public static final double BRIDGE = 1.4;
@@ -317,7 +319,7 @@ public class PathSearch {
 
 		if (this.view.isWater(f) || inWater && !this.view.standable(f.below())) {
 			if (this.view.isWater(f) || this.view.isWater(f.below())) {
-				this.add(node, f, MoveType.SWIM, SWIM + c.cost, c, 0);
+				this.add(node, f, MoveType.SWIM, SWIM + (this.view.isWater(f.above()) ? SWIM_UNDER : 0.0) + c.cost, c, 0);
 			}
 
 			return;

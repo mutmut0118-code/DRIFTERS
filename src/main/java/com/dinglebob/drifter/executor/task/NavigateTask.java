@@ -69,6 +69,10 @@ public class NavigateTask extends Task {
 	private static final double ARRIVE = 0.35;
 	/** Looser on straight runs, so it doesn't brake at every block (imperfect corner cutting, section 12). */
 	private static final double ARRIVE_STRAIGHT = 0.6;
+	/** Swimming drifts: a point in the water counts as reached this close. */
+	private static final double ARRIVE_SWIM = 0.7;
+	/** A swimmer floats with its feet up to this far under the water's top block. */
+	private static final double SWIM_FLOAT_DEPTH = 1.3;
 	private static final int LOOK_AHEAD_STEPS = 3;
 	/**
 	 * How players travel (user's rule, DESIGN.md section 10.9): most trips are sprint-jumped the whole way when
@@ -629,6 +633,15 @@ public class NavigateTask extends Task {
 		}
 
 		boolean straight = this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1));
+		// Swimming: it floats with its feet most of a block under the water's top and drifts, so a point in the water
+		// counts as reached when it's close (or past it on a straight line) at about that height (found in testing: it
+		// hung in the middle of a river, never quite reaching each point, then gave up and planned again).
+		Integer swimLevel = this.swimLevel(step);
+		if (swimLevel != null && this.drifter.isInWater()) {
+			double dy = this.drifter.getY() - swimLevel;
+			return dy > -SWIM_FLOAT_DEPTH && dy < 0.6 && (horizontal < ARRIVE_SWIM || straight && this.passedHorizontally(step));
+		}
+
 		if (straight && this.passedInAir(step)) {
 			return true;
 		}
@@ -639,6 +652,18 @@ public class NavigateTask extends Task {
 
 		boolean supported = this.drifter.onGround() || this.drifter.isInWater() || this.drifter.onClimbable();
 		return supported && Math.abs(this.drifter.getY() - step.to().getY()) < 0.6;
+	}
+
+	/** The height of the water it swims at for this step (the step's own block, or the water just under it), or null. */
+	@Nullable
+	private Integer swimLevel(PathStep step) {
+		BlockPos to = step.to();
+		if (this.level().getFluidState(to).is(FluidTags.WATER)) {
+			return to.getY();
+		}
+
+		boolean swimStep = step.type() == MoveType.SWIM || step.type() == MoveType.SWIM_UP;
+		return swimStep && this.level().getFluidState(to.below()).is(FluidTags.WATER) ? to.getY() - 1 : null;
 	}
 
 	/**
@@ -1018,7 +1043,10 @@ public class NavigateTask extends Task {
 		boolean jump = switch (step.type()) {
 			case JUMP_UP -> !liningUp && (horizontal < 1.3 || this.drifter.horizontalCollision);
 			case SWIM_UP, CLIMB_UP -> true;
-			case SWIM, WALK -> this.drifter.isInWater() && step.to().getY() >= this.feet().getY();
+			// In water: keep its head above the surface (jump while its eyes are under, let go once they're out, so it
+			// bobs gently instead of bouncing out of the water), and jump up the bank when it swims into it.
+			case SWIM, WALK -> this.drifter.isInWater() && (this.drifter.isUnderWater() && step.to().getY() >= this.feet().getY()
+				|| this.drifter.horizontalCollision && step.to().getY() > this.feet().getY());
 			default -> false;
 		};
 		// Sprint-jump on most trips, holding the jump key down the whole stretch. Whether to keep going is decided on

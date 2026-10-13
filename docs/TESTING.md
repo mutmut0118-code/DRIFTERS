@@ -401,6 +401,10 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
 - [ ] Hungry: `/drifter food 6`, then `/drifter goto` somewhere far: it walks (it can't sprint).
 - [ ] Ancient city (optional): near sculk sensors or shriekers it has seen, it sneaks and never sprints.
 
+- [ ] **Swimming across a river (re-test after fix):** `/drifter goto` a spot on the far side of a river or lake.
+      It swims at the surface with its head out, bobbing gently (no big bounces out of the water), at about walking
+      speed in water (roughly 2 blocks a second), and climbs out on the far bank. It shouldn't stop in the middle.
+
 ### 2. Bridging (crossing a ravine)
 - [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide
       and too deep to climb, and `/drifter goto <a block on the other side>`. The path shows **blue** across the gap
