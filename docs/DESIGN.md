@@ -1815,6 +1815,21 @@ Each milestone ends with a test you can actually run.
 12. **Groups, modpack factions, camps, config polish.**
 13. **The End** (optional).
 
+Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 13. They are tests, not milestones of their own.
+
+### Manhunt test mode
+
+A 1v1 manhunt (a real player against a Drifter, in the style of the well-known YouTube manhunt videos) is the "ultimate test" of the mod: it stresses perception, memory, pathfinding, combat, eating under pressure and reflexes all at once. It is **only a test scenario**. The mod is not built around it, it is off unless started by command, and it changes no core rules.
+
+- **Starting it:** an operator command picks a Drifter and a player, for example `/drifter manhunt start <drifter> <player> hunter`, and `/drifter manhunt stop`. Nothing happens in normal play.
+- **Roles:** **hunter first** (the player is the runner; the Drifter hunts). **Speedrunner** (the Drifter runs, the player hunts) comes later, once the Nether and End milestones exist.
+- **Fairness still applies** (section 1): no x-ray, player reach, player timings, no free items. The Drifter starts with nothing, like a manhunt hunter.
+- **Tracking compass:** like human hunters, the Drifter gets a tracking compass that points at the runner when it's used. It knows only what the compass shows (a direction, in the same dimension), not the runner's exact position or what they're doing; everything else comes from its own senses.
+- **Disposition:** toward the runner only, the Drifter behaves as Vengeful/Predatory (section 14) for the length of the game. Both sides agreed to the fight, so the first-contact telegraph is replaced by the start of the game. All other players are treated normally, and the anti-frustration rules (no griefing, no bed or spawn camping between deaths) still apply.
+- **Deaths:** a hunter Drifter respawns like a manhunt hunter (at its spawn point, with nothing), regardless of the normal respawn mode; the runner dying ends the game.
+- **Win conditions:** the runner wins by killing the Ender Dragon (or a configurable simpler goal, such as reaching the Nether, for earlier tests); the hunter wins by killing the runner.
+- **Speedrunner role extras (later):** the Drifter uses the Speedrunner archetype (section 17), routes for the Nether and End, flees and evades the hunter, and needs the End and dragon fight switched on for that game only.
+
 ### Open questions
 
 - Decided: usernames and skins look like real online players (section 21).
@@ -1823,3 +1838,4 @@ Each milestone ends with a test you can actually run.
 - Decided: factions are built in; Mob Control integration is optional.
 - Decided: Simply Swords, Simply Bows, Better Combat and Combat Roll first (section 21).
 - Decided: aim for 10, adjusted after profiling.
+- Decided: a 1v1 manhunt is the ultimate test, as an optional test mode only; hunter role first (see "Manhunt test mode").
