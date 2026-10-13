@@ -68,6 +68,9 @@ clearly labeled debug command.
   `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`, replacing the old one (that profile also has
   Sodium, Lithium, FerriteCore, EntityCulling, EMF/ETF and Mod Menu). Stop test servers by their own process ID, never
   by killing every java.exe.
+- **Never replace the jar while Minecraft is running** (found the hard way: the game reads classes from the jar on
+  demand, so swapping it mid-game crashed it with "invalid LOC header"). First check `tasklist /FI "IMAGENAME eq javaw.exe"`;
+  if the game is open, ask the user to close it (or tell them the new jar is ready in `build/libs`) and copy it after.
 - If a build fails because dependencies can't download (network or sandbox limits), **stop and tell the user what failed**. Don't retry over and over. The build needs these hosts: `maven.fabricmc.net`, `meta.fabricmc.net`, `piston-meta.mojang.com`, `piston-data.mojang.com`, `libraries.minecraft.net`, `resources.download.minecraft.net`, plus `services.gradle.org`, `repo.maven.apache.org` and `plugins.gradle.org`.
 - **Known cloud issue: Maven Central rate limit.** Maven Central often answers HTTP 429 ("Your ip has exceeded rate limits") to the cloud sandbox's shared IP. In session 1 the user approved working around this with a sandbox-only Gradle init script that points Maven Central at Google's official mirror. It lives outside the repo, so each new cloud session must recreate it at `~/.gradle/init.d/central-mirror.gradle` before building:
   ```groovy
