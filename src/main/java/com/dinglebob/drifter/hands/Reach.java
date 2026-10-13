@@ -23,8 +23,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * within its block interaction range (4.5), exactly like a player's pick ray. Nothing through walls.
  */
 public final class Reach {
-	/** How far inside a face to aim, so the ray clearly enters through that face. */
-	private static final double FACE_INSET = 0.1;
+	/**
+	 * How far inside a face to aim, just enough that the ray enters through that face. It must be tiny: from a steep
+	 * angle (leaning out over an edge to bridge), the line toward a point 0.1 inside the block passes over the block's
+	 * top corner, so it had to lean about 0.2 blocks out before it could "see" the side (found in testing: bridging
+	 * never started). Aiming at the surface itself, 0.03 is enough.
+	 */
+	private static final double FACE_INSET = 0.01;
 
 	private Reach() {
 	}

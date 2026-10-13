@@ -337,9 +337,10 @@ It can only know things it has seen (in front of it, in the light, not through w
 
 ## Milestone 4: Pathfinder
 
-**Status:** fourth test done: doors, indoor sprinting and drops passed. Fixed after the fourth test: it still walked
-off the edge while bridging (it let go of sneak whenever it re-planned), and it stopped before every step down a hill.
-Please re-test section 2 (bridging) and the new "hills" item in section 1.
+**Status:** fifth test done: hills better, no more falling while bridging. Fixed after the fifth test: it reached the
+edge but couldn't "see" the side of the block to place against (an aiming bug), and it fell straight down from drops.
+Please re-test section 2 (bridging) and the "hills" and "drops" items in section 1. If bridging still fails, send the
+whole chat line: it now says how far past the edge its eye got.
 
 **The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
 Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
@@ -386,6 +387,7 @@ hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'
       cave: it sprints but doesn't jump (ceiling within 4 blocks, or a narrow corridor).
 - [ ] **Hills (re-test after fix):** `/drifter goto` a spot at the bottom of a hill or down some terraces about 30
       blocks away. It runs down without stopping before each step (it may glance down, and slow a little at a big drop).
+      When it drops off a ledge it **keeps moving forward through the air** along the path, not straight down.
 - [ ] **Drops (new):** stand it on a ledge 5 blocks above flat ground (with full health) and `/drifter goto` a spot on
       the ground below that would need a long walk round. It walks off the ledge and lands, losing about one heart. From
       6+ blocks up it walks round instead (unless there's water below). With low health

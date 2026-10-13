@@ -37,6 +37,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -203,7 +204,37 @@ public class NavigateTask extends Task {
 			return feet.above();
 		}
 
+		// Leaning out over an edge (sneaking lets it hang 0.3 past it), its middle is over the gap, but it stands on the
+		// block beside. Plans must start from there (found in testing: replanning while leaning out to bridge planned
+		// from the air over the gap, and every plan after that was wrong).
+		if (this.drifter.onGround() && !this.hasFloor(feet)) {
+			AABB box = this.drifter.getBoundingBox();
+			BlockPos best = null;
+			double bestArea = 0.0;
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					BlockPos cell = feet.offset(dx, 0, dz);
+					if ((dx != 0 || dz != 0) && this.hasFloor(cell)) {
+						double area = overlap(box.minX, box.maxX, cell.getX()) * overlap(box.minZ, box.maxZ, cell.getZ());
+						if (area > bestArea) {
+							bestArea = area;
+							best = cell;
+						}
+					}
+				}
+			}
+
+			if (best != null) {
+				return best;
+			}
+		}
+
 		return feet;
+	}
+
+	/** How much of [min, max] lies in the block column starting at {@code start}. */
+	private static double overlap(double min, double max, int start) {
+		return Math.max(0.0, Math.min(max, start + 1.0) - Math.max(min, start));
 	}
 
 	private boolean atGoal() {
@@ -346,7 +377,9 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
-		if (this.sinceReplan >= ROLLING_REPLAN_TICKS && this.unknownAhead()) {
+		// Not in the middle of a bridge or pillar: those finish first.
+		MoveType current = this.path.get(this.index).type();
+		if (this.sinceReplan >= ROLLING_REPLAN_TICKS && this.unknownAhead() && current != MoveType.BRIDGE && current != MoveType.PILLAR) {
 			this.plan("rolling replan: now it has seen more of the way", true);
 			return Status.RUNNING;
 		}
@@ -549,7 +582,7 @@ public class NavigateTask extends Task {
 		double dz = this.drifter.getZ() - center.z;
 		double horizontal = Math.sqrt(dx * dx + dz * dz);
 		boolean straight = this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1));
-		if (straight && this.passedInAir(step, dx, dz)) {
+		if (straight && this.passedInAir(step)) {
 			return true;
 		}
 
@@ -565,7 +598,15 @@ public class NavigateTask extends Task {
 	 * Sprint-jumping sails over path points without standing on them. On a straight run (or a gentle bend), a point
 	 * counts as reached once it's behind the Drifter (within a little sideways), even in mid-air.
 	 */
-	private boolean passedInAir(PathStep step, double dx, double dz) {
+	private boolean passedInAir(PathStep step) {
+		return this.passedHorizontally(step) && Math.abs(this.drifter.getY() - step.to().getY()) < 1.3;
+	}
+
+	/** Its position has reached or passed the step's point along the step's direction, within a little sideways. */
+	private boolean passedHorizontally(PathStep step) {
+		Vec3 center = Vec3.atBottomCenterOf(step.to());
+		double dx = this.drifter.getX() - center.x;
+		double dz = this.drifter.getZ() - center.z;
 		double stepX = step.to().getX() - step.from().getX();
 		double stepZ = step.to().getZ() - step.from().getZ();
 		double length = Math.sqrt(stepX * stepX + stepZ * stepZ);
@@ -575,7 +616,7 @@ public class NavigateTask extends Task {
 
 		double along = (dx * stepX + dz * stepZ) / length;
 		double sideways = Math.abs(-dx * stepZ + dz * stepX) / length;
-		return along > -0.1 && sideways < ARRIVE_STRAIGHT && Math.abs(this.drifter.getY() - step.to().getY()) < 1.3;
+		return along > -0.1 && sideways < ARRIVE_STRAIGHT;
 	}
 
 	/**
@@ -765,6 +806,12 @@ public class NavigateTask extends Task {
 	private void steer(PathStep step) {
 		Vec3 here = this.drifter.position();
 		Vec3 goal = Vec3.atBottomCenterOf(step.to());
+		// Already past this point (still dropping down to it, or in mid-jump): carry on toward the next one instead of
+		// turning back to stand on it (found in testing: it fell straight down from every drop).
+		if (this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1)) && this.passedHorizontally(step)) {
+			goal = Vec3.atBottomCenterOf(this.path.get(this.index + 1).to());
+		}
+
 		double dx = goal.x - here.x;
 		double dz = goal.z - here.z;
 		double horizontal = Math.sqrt(dx * dx + dz * dz);
@@ -992,6 +1039,14 @@ public class NavigateTask extends Task {
 	 * sneaking").
 	 */
 	private Status bridge(PathStep step) {
+		// It must be standing on the block it bridges from (it could have slid or been pushed off it).
+		Vec3 start = Vec3.atBottomCenterOf(step.from());
+		if (Math.abs(this.drifter.getX() - start.x) > 1.0 || Math.abs(this.drifter.getZ() - start.z) > 1.0
+			|| Math.abs(this.drifter.getY() - start.y) > 0.6) {
+			this.replan("not where it planned to bridge from", true);
+			return Status.RUNNING;
+		}
+
 		if (!Tools.BUILDING_BLOCK.test(this.drifter.getMainHandItem())) {
 			// Opening the inventory lets go of sneak: come to a full stop first, so nothing carries it over the edge.
 			this.keys().releaseAll();
@@ -1013,7 +1068,10 @@ public class NavigateTask extends Task {
 		}
 
 		if (++this.creep > BRIDGE_CREEP_TICKS) {
-			this.replan("couldn't reach the edge to bridge");
+			// Say how far out it got, to tell "never reached the edge" from "reached it but couldn't see the side".
+			double out = this.drifter.getEyePosition().subtract(Vec3.atCenterOf(support)).dot(Vec3.atLowerCornerOf(face.getNormal())) - 0.5;
+			this.replan(String.format(Locale.ROOT, "couldn't reach the edge to bridge (eye %.2f past the edge, %s)", out,
+				this.drifter.onGround() ? "on the ground" : "in the air"));
 			return Status.RUNNING;
 		}
 
