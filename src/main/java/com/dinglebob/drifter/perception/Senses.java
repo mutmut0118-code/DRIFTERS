@@ -52,9 +52,17 @@ import net.minecraft.world.phys.Vec3;
  */
 public class Senses {
 	// ----- Vision (section 5) -----
-	/** View cone: about 110 degrees horizontal and 70 vertical, centered on the head. */
-	public static final float CONE_HALF_YAW = 55.0F;
-	public static final float CONE_HALF_PITCH = 35.0F;
+	/**
+	 * View cone, centered on the head: from the FOV setting (`/drifter config fov`, like the game's FOV slider). At the
+	 * default 70 it's about 102 degrees wide and 70 high, a player's view on a 16:9 screen.
+	 */
+	public static float coneHalfYaw() {
+		return com.dinglebob.drifter.DrifterConfig.coneHalfYaw();
+	}
+
+	public static float coneHalfPitch() {
+		return com.dinglebob.drifter.DrifterConfig.coneHalfPitch();
+	}
 	/** Peripheral zone: out to 180 degrees horizontal; motion only. */
 	public static final float PERIPHERAL_HALF_YAW = 90.0F;
 	public static final float PERIPHERAL_HALF_PITCH = 60.0F;
@@ -284,7 +292,7 @@ public class Senses {
 	private Zone zoneOf(float[] angle) {
 		float yaw = Math.abs(angle[0]);
 		float pitch = Math.abs(angle[1]);
-		if (yaw <= CONE_HALF_YAW && pitch <= CONE_HALF_PITCH) {
+		if (yaw <= coneHalfYaw() && pitch <= coneHalfPitch()) {
 			return Zone.CONE;
 		}
 
@@ -367,7 +375,7 @@ public class Senses {
 			visibility = headSeen && feetSeen ? 1.0F : headSeen || feetSeen ? 0.6F : 0.0F;
 		}
 
-		float centrality = 1.0F - 0.4F * Math.min(1.0F, Math.max(Math.abs(angle[0]) / CONE_HALF_YAW, Math.abs(angle[1]) / CONE_HALF_PITCH));
+		float centrality = 1.0F - 0.4F * Math.min(1.0F, Math.max(Math.abs(angle[0]) / coneHalfYaw(), Math.abs(angle[1]) / coneHalfPitch()));
 		return new Sighting(zone, visibility, distance, range, centrality);
 	}
 
@@ -611,17 +619,17 @@ public class Senses {
 		int rays = playerNear ? BLOCK_RAYS_PLAYER_NEAR : BLOCK_RAYS_BASE;
 		Vec3 eye = this.drifter.getEyePosition();
 		for (int i = 0; i < rays; i++) {
-			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_YAW;
-			float pitch = Mth.clamp(this.drifter.getXRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_PITCH, -90.0F, 90.0F);
+			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfYaw();
+			float pitch = Mth.clamp(this.drifter.getXRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfPitch(), -90.0F, 90.0F);
 			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), BLOCK_SIGHT_RANGE);
 		}
 
 		// Far sight: near the horizon, where mountains, villages and cliffs show up. Only the part of the horizon band
 		// that's inside its view (looking at its feet, it doesn't see the skyline).
-		float low = Math.max(-FAR_PITCH_UP, this.drifter.getXRot() - CONE_HALF_PITCH);
-		float high = Math.min(FAR_PITCH_DOWN, this.drifter.getXRot() + CONE_HALF_PITCH);
+		float low = Math.max(-FAR_PITCH_UP, this.drifter.getXRot() - coneHalfPitch());
+		float high = Math.min(FAR_PITCH_DOWN, this.drifter.getXRot() + coneHalfPitch());
 		for (int i = 0; i < FAR_RAYS && low < high; i++) {
-			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * CONE_HALF_YAW;
+			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfYaw();
 			float pitch = Mth.lerp(this.drifter.getRandom().nextFloat(), low, high);
 			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), com.dinglebob.drifter.DrifterConfig.sightRange());
 		}

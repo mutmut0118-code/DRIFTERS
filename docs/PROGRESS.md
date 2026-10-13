@@ -442,6 +442,11 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
   Result on the test pool: crosses and climbs out every time, bobs gently at the surface (about 0.4 blocks), swims
   about 2 blocks/s, never rises more than a normal jump.
 
+- **Configurable FOV** (user's request): `/drifter config fov <30-110>`, like the game's FOV slider (vertical degrees;
+  the cone's width follows from a 16:9 screen), saved in `config/drifter.json`. Default 70 = a player's default view,
+  about 102 x 70 degrees (it was a fixed 110 x 70). The debug overlay draws the cone from the same setting (in
+  multiplayer the overlay uses the client's own config file).
+
 ### Not done yet in milestone 7 (next steps)
 1. In-game check by the user (see `docs/TESTING.md`, "Milestone 7"), then fixes.
 2. ~~Usernames and always-visible nameplates~~ (done). Join/leave chat lines and the world-level identity registry

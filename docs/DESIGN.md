@@ -250,7 +250,7 @@ The Drifter knows only what a player at its position, looking where it is lookin
 
 ### Vision
 
-- **View cone:** about 110 degrees horizontal and 70 degrees vertical, centered on the head, not the body. A Drifter looking at a furnace genuinely cannot see the zombie behind it.
+- **View cone:** configurable like a player's FOV slider (`/drifter config fov`, 30 to 110, default 70; user's request in session 2): the vertical angle is the FOV and the width follows from a 16:9 screen, so the default is about 102 degrees horizontal and 70 vertical (the first design said 110 x 70). Centered on the head, not the body. A Drifter looking at a furnace genuinely cannot see the zombie behind it.
 - **Peripheral zone:** 110 to 180 degrees, motion only. Something moving there produces a glimpse that makes it turn its head, but no identification.
 - **Range:** configurable (`/drifter config sight <chunks>`, default 10 chunks = 160 blocks; the user's call, since a player sees far more than a mob) in daylight for entities, scaled by the light level at the target and by its size (a chicken is a speck long before a horse is). In full darkness, a target is seen at about 8 blocks unless it is holding a light source, on fire, or glowing. Peripheral motion only counts within about 32 blocks.
 - **Line of sight:** a ray from the eye to the target's head and feet. Seeing either counts; seeing both counts more. Beyond 32 blocks one ray to the middle is used, only a few far checks run per re-rank, and far tracked entities are re-checked less often, so long sight stays cheap.

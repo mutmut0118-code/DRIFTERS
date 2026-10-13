@@ -343,7 +343,11 @@ It can only know things it has seen (in front of it, in the light, not through w
 ### Testing settings (new)
 - `/drifter config` shows the settings. `/drifter config sight 12` sets how far they see (in chunks, 2 to 16, default
   10). `/drifter config path 96` sets how far one path search reaches (blocks, 24 to 160, default 64): longer paths in
-  one go, a little more work per search. Saved in `config/drifter.json`, so they stay after a restart.
+  one go, a little more work per search. `/drifter config fov 90` sets their field of view like the game's FOV slider
+  (30 to 110, default 70 = "Normal"; the view cone is then about 102 x 70 degrees, a player's view on a 16:9 screen).
+  Saved in `config/drifter.json`, so they stay after a restart.
+- [ ] **FOV (new):** with `/drifter debug on`, the view cone drawn from its head gets wider with `/drifter config fov 110`
+      and narrower with `/drifter config fov 30`; with a narrow FOV it notices you much later when you come from the side.
 - `/drifter giveall minecraft:stone_sword` gives one to every Drifter (`/drifter giveall minecraft:bread 8` for more).
   Vanilla `@a`/`@p` only pick real players. Any `/drifter` command can also run for every Drifter with
   `/execute as @e[type=drifter:drifter] at @s run drifter <command>`.

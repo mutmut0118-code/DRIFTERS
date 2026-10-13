@@ -143,8 +143,8 @@ public final class DebugOverlayRenderer {
 		float yaw = drifter.getViewYRot(partialTick);
 		float pitch = drifter.getViewXRot(partialTick);
 		float[][] corners = {
-			{-Senses.CONE_HALF_YAW, -Senses.CONE_HALF_PITCH}, {Senses.CONE_HALF_YAW, -Senses.CONE_HALF_PITCH},
-			{Senses.CONE_HALF_YAW, Senses.CONE_HALF_PITCH}, {-Senses.CONE_HALF_YAW, Senses.CONE_HALF_PITCH}
+			{-Senses.coneHalfYaw(), -Senses.coneHalfPitch()}, {Senses.coneHalfYaw(), -Senses.coneHalfPitch()},
+			{Senses.coneHalfYaw(), Senses.coneHalfPitch()}, {-Senses.coneHalfYaw(), Senses.coneHalfPitch()}
 		};
 		Vec3[] ends = new Vec3[corners.length];
 		for (int i = 0; i < corners.length; i++) {

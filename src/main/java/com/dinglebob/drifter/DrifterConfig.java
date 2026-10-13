@@ -24,6 +24,16 @@ public final class DrifterConfig {
 	public static final int DEFAULT_PATH_RANGE = 64;
 	public static final int MIN_PATH_RANGE = 24;
 	public static final int MAX_PATH_RANGE = 160;
+	/**
+	 * Field of view, like the game's FOV slider (vertical degrees; 70 is "Normal", 110 "Quake Pro"). The width of its
+	 * view cone follows from a 16:9 screen, as for a player.
+	 */
+	public static final int DEFAULT_FOV = 70;
+	public static final int MIN_FOV = 30;
+	public static final int MAX_FOV = 110;
+	private static final double SCREEN_ASPECT = 16.0 / 9.0;
+	/** The cone never gets wider than the peripheral zone around it (Senses). */
+	private static final double MAX_HALF_YAW = 85.0;
 	/** Search nodes per block of path range squared, from the tested 8000 nodes for 48 blocks. */
 	private static final double NODES_PER_AREA = 8000.0 / (48.0 * 48.0);
 	private static final int MAX_NODES = 60000;
@@ -35,6 +45,7 @@ public final class DrifterConfig {
 		int version = 1;
 		int sightChunks = DEFAULT_SIGHT_CHUNKS;
 		int pathRange = DEFAULT_PATH_RANGE;
+		int fov = DEFAULT_FOV;
 	}
 
 	private static Data data = new Data();
@@ -61,6 +72,7 @@ public final class DrifterConfig {
 
 		data.sightChunks = Mth.clamp(data.sightChunks, MIN_SIGHT_CHUNKS, MAX_SIGHT_CHUNKS);
 		data.pathRange = Mth.clamp(data.pathRange, MIN_PATH_RANGE, MAX_PATH_RANGE);
+		data.fov = data.fov == 0 ? DEFAULT_FOV : Mth.clamp(data.fov, MIN_FOV, MAX_FOV);
 		save();
 	}
 
@@ -97,6 +109,26 @@ public final class DrifterConfig {
 	public static void setPathRange(int blocks) {
 		data.pathRange = Mth.clamp(blocks, MIN_PATH_RANGE, MAX_PATH_RANGE);
 		save();
+	}
+
+	public static int fov() {
+		return data.fov;
+	}
+
+	public static void setFov(int degrees) {
+		data.fov = Mth.clamp(degrees, MIN_FOV, MAX_FOV);
+		save();
+	}
+
+	/** Half the view cone's height, degrees. */
+	public static float coneHalfPitch() {
+		return data.fov / 2.0F;
+	}
+
+	/** Half the view cone's width, degrees: the vertical FOV spread over a 16:9 screen. */
+	public static float coneHalfYaw() {
+		double halfPitch = Math.toRadians(data.fov / 2.0);
+		return (float)Math.min(MAX_HALF_YAW, Math.toDegrees(Math.atan(Math.tan(halfPitch) * SCREEN_ASPECT)));
 	}
 
 	/** Search nodes allowed per path, growing with the area the search covers. */

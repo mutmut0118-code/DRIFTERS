@@ -123,6 +123,13 @@ public final class DrifterCommands {
 					.executes(ctx -> {
 						com.dinglebob.drifter.DrifterConfig.setPathRange(IntegerArgumentType.getInteger(ctx, "blocks"));
 						return showConfig(ctx);
+					})))
+			.then(Commands.literal("fov")
+				.then(Commands.argument("degrees", IntegerArgumentType.integer(com.dinglebob.drifter.DrifterConfig.MIN_FOV,
+						com.dinglebob.drifter.DrifterConfig.MAX_FOV))
+					.executes(ctx -> {
+						com.dinglebob.drifter.DrifterConfig.setFov(IntegerArgumentType.getInteger(ctx, "degrees"));
+						return showConfig(ctx);
 					}))));
 
 		root.then(Commands.literal("food")
@@ -268,9 +275,11 @@ public final class DrifterCommands {
 
 	private static int showConfig(CommandContext<CommandSourceStack> ctx) {
 		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
-			"Drifter config (config/drifter.json): sight %d chunks (%d blocks in daylight), path range %d blocks (%d search nodes)",
+			"Drifter config (config/drifter.json): sight %d chunks (%d blocks in daylight), path range %d blocks (%d search nodes), FOV %d (view cone %.0f x %.0f degrees)",
 			com.dinglebob.drifter.DrifterConfig.sightChunks(), (int)com.dinglebob.drifter.DrifterConfig.sightRange(),
-			com.dinglebob.drifter.DrifterConfig.pathRange(), com.dinglebob.drifter.DrifterConfig.pathNodes())), true);
+			com.dinglebob.drifter.DrifterConfig.pathRange(), com.dinglebob.drifter.DrifterConfig.pathNodes(),
+			com.dinglebob.drifter.DrifterConfig.fov(), com.dinglebob.drifter.DrifterConfig.coneHalfYaw() * 2.0F,
+			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F)), true);
 		return 1;
 	}
 
