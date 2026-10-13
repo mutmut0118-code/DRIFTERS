@@ -8,7 +8,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 
 - **Build: green.** `./gradlew build` succeeds in the cloud (with the Maven Central mirror workaround described in `CLAUDE.md`).
 - **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
-- **Milestone 2 (Hands): code complete, waiting for in-game testing.** Nothing in milestone 2 has been run in Minecraft yet.
+- **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.
 - The user tests by downloading the jar from the GitHub Actions run for the latest push (Artifacts zip, the jar without "sources") into a Fabric 1.21.1 instance with Fabric API, in the Modrinth App. The user doesn't code, so keep instructions plain and step by step.
 
 ## Milestones
@@ -17,7 +17,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | --- | --- | --- | --- |
 | 0 | Project setup | Done | Cloud build green; the user ran the mod in-game. |
 | 1 | Body | Done (in-game test passed) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
-| 2 | Hands | In progress: code complete, untested in-game | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
+| 2 | Hands | In progress: wood-to-stone script passed in-game; rest of the checklist pending | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
 | 3 | Senses and memory | Not started | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
 | 4 | Pathfinder | Not started | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
 | 5 | Brain and day one | Not started | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
@@ -79,7 +79,7 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Playe
 
 All vanilla behavior below was mirrored from the decompiled 1.21.1 source (MultiPlayerGameMode, ServerPlayerGameMode, Player, crafting menus), not from memory.
 
-### Done (code complete, untested in-game)
+### Done (scripted test passed in-game; individual commands not all checked yet)
 - **Executor** (`executor/Task`, `TaskRunner`, `executor/task/*`; DESIGN.md section 8 layer 4): tasks are small state machines that report running, success or failure, each with a timeout of about 3x its expected time. One top-level task per Drifter; a new one cancels the old. Results are reported in chat to whoever started them.
 - **Fake-player helper** (`hands/FakePlayerBridge`): borrows a Fabric `FakePlayer` (one profile per Drifter) only for the moment of an interaction. It is put exactly where the Drifter stands, looking where it looks, crouching if it crouches, holding the Drifter's own item stacks; everything is copied back afterwards, including the food exhaustion the action cost.
 - **Reach and line of sight** (`hands/Reach`, `executor/task/BlockAim`): every block action first turns the head with the camera model, then requires the crosshair (a player pick ray, 4.5 blocks) to actually be on that block or face. Nothing through walls, nothing out of reach.
@@ -116,8 +116,8 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 - Body-part claims for tasks (head, hands, legs; section 8) come with mannerisms (milestone 7).
 
 ### Next steps
-1. User runs the milestone 2 checklist in `docs/TESTING.md`, ending with `/drifter script woodtostone`.
-2. Fix whatever the test finds; then mark milestone 2 done.
+1. Finish the rest of the milestone 2 checklist in `docs/TESTING.md` (the script part already passed), in a local session with the user.
+2. Fix whatever that finds; then mark milestone 2 done.
 3. Start milestone 3 (Senses and memory): view cone, awareness meter, block sampling, hearing, memory tiers, debug overlay.
 
 ## Decided
