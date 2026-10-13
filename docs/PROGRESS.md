@@ -469,6 +469,13 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
 8. Torches as way markers while **caving** (user's note): caving itself is milestone 8; the torch-side habit is in
    place for it.
 
+## Notes for milestone 9 (from testing)
+
+- **User expectation (session 2):** punching a PvP Sweat Drifter should turn into a real pursuit. Today any Drifter
+  only fights back while the hit is fresh (about 5 s, the game's "last hurt by" memory), then goes back to what it
+  was doing. Grudges, Trust, Vengefulness and chasing a player down are milestone 9 (section 14); PvP Sweats and
+  Bandits should pursue hard there.
+
 ## Long-term goal: manhunt test
 
 The user's "ultimate test" is a **1v1 manhunt**, now in DESIGN.md section 25 ("Manhunt test mode"). It's **only a test**:
