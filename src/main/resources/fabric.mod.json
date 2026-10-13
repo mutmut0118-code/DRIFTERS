@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "drifter",
+	"version": "${version}",
+	"name": "Drifter",
+	"description": "A player-skinned humanoid mob that plays survival by the same rules a player does.",
+	"authors": [
+		"dinglebob"
+	],
+	"contact": {
+		"sources": "https://github.com/mutmut0118-code/DRIFTERS"
+	},
+	"license": "All-Rights-Reserved",
+	"icon": "assets/drifter/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.dinglebob.drifter.Drifter"
+		],
+		"client": [
+			"com.dinglebob.drifter.client.DrifterClient"
+		]
+	},
+	"mixins": [
+		"drifter.mixins.json",
+		{
+			"config": "drifter.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
