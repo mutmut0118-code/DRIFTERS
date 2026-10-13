@@ -447,6 +447,13 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
   about 102 x 70 degrees (it was a fixed 110 x 70). The debug overlay draws the cone from the same setting (in
   multiplayer the overlay uses the client's own config file).
 
+- **View cone is now a flat 16:9 screen** (user: "is the cone supposed to look vertical, like portrait mode?"). It
+  was built from angles on a sphere (yaw +- half, pitch +- half), which came out nearly square, looked tall from the
+  side, and bent badly when looking up or down (looking straight down, almost everything around counted as in view).
+  Now vision (`Senses.screenAngles`, `viewBasis`, `screenDirection`), the random block rays (spread evenly over the
+  picture, like pixels) and the overlay outline all use the same flat screen at the FOV setting, as for a player.
+  The peripheral zone around it is unchanged.
+
 ### Not done yet in milestone 7 (next steps)
 1. In-game check by the user (see `docs/TESTING.md`, "Milestone 7"), then fixes.
 2. ~~Usernames and always-visible nameplates~~ (done). Join/leave chat lines and the world-level identity registry

@@ -348,6 +348,8 @@ It can only know things it has seen (in front of it, in the light, not through w
   Saved in `config/drifter.json`, so they stay after a restart.
 - [ ] **FOV (new):** with `/drifter debug on`, the view cone drawn from its head gets wider with `/drifter config fov 110`
       and narrower with `/drifter config fov 30`; with a narrow FOV it notices you much later when you come from the side.
+- [ ] **Cone shape (re-test after fix):** the outline is a wide rectangle like your screen (16:9), not tall; when it
+      looks up or down the rectangle tilts with its head and keeps its shape.
 - `/drifter giveall minecraft:stone_sword` gives one to every Drifter (`/drifter giveall minecraft:bread 8` for more).
   Vanilla `@a`/`@p` only pick real players. Any `/drifter` command can also run for every Drifter with
   `/execute as @e[type=drifter:drifter] at @s run drifter <command>`.

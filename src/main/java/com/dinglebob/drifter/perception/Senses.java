@@ -63,6 +63,25 @@ public class Senses {
 	public static float coneHalfPitch() {
 		return com.dinglebob.drifter.DrifterConfig.coneHalfPitch();
 	}
+
+	/**
+	 * The view as a flat screen, like a player's (found in testing: the cone looked "portrait"; it was built from
+	 * angles on a sphere, which came out nearly square, and bent badly when looking up or down). {forward, right, up}
+	 * for a head yaw and pitch.
+	 */
+	public static Vec3[] viewBasis(float yaw, float pitch) {
+		Vec3 forward = Vec3.directionFromRotation(pitch, yaw);
+		Vec3 right = Vec3.directionFromRotation(0.0F, yaw + 90.0F);
+		return new Vec3[]{forward, right, right.cross(forward)};
+	}
+
+	/** The direction through a point on its screen: {@code sx} and {@code sy} from -1 (left, bottom) to 1 (right, top). */
+	public static Vec3 screenDirection(float yaw, float pitch, float sx, float sy) {
+		Vec3[] basis = viewBasis(yaw, pitch);
+		double tanX = Math.tan(Math.toRadians(coneHalfYaw()));
+		double tanY = Math.tan(Math.toRadians(coneHalfPitch()));
+		return basis[0].add(basis[1].scale(sx * tanX)).add(basis[2].scale(sy * tanY)).normalize();
+	}
 	/** Peripheral zone: out to 180 degrees horizontal; motion only. */
 	public static final float PERIPHERAL_HALF_YAW = 90.0F;
 	public static final float PERIPHERAL_HALF_PITCH = 60.0F;
@@ -289,14 +308,30 @@ public class Senses {
 		return new float[]{Mth.wrapDegrees(yaw - this.drifter.getYHeadRot()), pitch - this.drifter.getXRot()};
 	}
 
-	private Zone zoneOf(float[] angle) {
-		float yaw = Math.abs(angle[0]);
-		float pitch = Math.abs(angle[1]);
-		if (yaw <= coneHalfYaw() && pitch <= coneHalfPitch()) {
+	/**
+	 * Where a point is in its view: {degrees across the screen (+ right), degrees up the screen (+ up), degrees above or
+	 * below the view's middle plane}. The first two describe a flat screen: inside the cone means on screen, exactly as
+	 * for a player at this FOV. The third is for the peripheral zone around it.
+	 */
+	private float[] screenAngles(Vec3 point) {
+		Vec3[] basis = viewBasis(this.drifter.getYHeadRot(), this.drifter.getXRot());
+		Vec3 d = point.subtract(this.drifter.getEyePosition());
+		double x = d.dot(basis[1]);
+		double y = d.dot(basis[2]);
+		double z = d.dot(basis[0]);
+		float across = (float)(Mth.atan2(x, z) * Mth.RAD_TO_DEG);
+		float up = z > 1.0E-6 ? (float)(Math.atan(y / z) * Mth.RAD_TO_DEG) : y >= 0.0 ? 90.0F : -90.0F;
+		float elevation = (float)(Mth.atan2(y, Math.sqrt(x * x + z * z)) * Mth.RAD_TO_DEG);
+		return new float[]{across, up, elevation};
+	}
+
+	private Zone zoneOf(float[] screen) {
+		float across = Math.abs(screen[0]);
+		if (across < 90.0F && across <= coneHalfYaw() && Math.abs(screen[1]) <= coneHalfPitch()) {
 			return Zone.CONE;
 		}
 
-		return yaw <= PERIPHERAL_HALF_YAW && pitch <= PERIPHERAL_HALF_PITCH ? Zone.PERIPHERAL : Zone.NONE;
+		return across <= PERIPHERAL_HALF_YAW && Math.abs(screen[2]) <= PERIPHERAL_HALF_PITCH ? Zone.PERIPHERAL : Zone.NONE;
 	}
 
 	/** Sight lines cast so far (for the far-sight budget). */
@@ -357,7 +392,7 @@ public class Senses {
 			return Sighting.NOT_SEEN;
 		}
 
-		float[] angle = this.angleTo(target.getBoundingBox().getCenter());
+		float[] angle = this.screenAngles(target.getBoundingBox().getCenter());
 		Zone zone = this.zoneOf(angle);
 		// Out of the corner of its eye it only catches movement nearby.
 		if (zone == Zone.NONE || zone == Zone.PERIPHERAL && distance > DETAIL_RANGE) {
@@ -601,7 +636,7 @@ public class Senses {
 		Vec3 eye = this.drifter.getEyePosition();
 		for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, this.drifter.getBoundingBox().inflate(ITEM_SIGHT_RANGE))) {
 			Vec3 center = item.getBoundingBox().getCenter();
-			if (this.zoneOf(this.angleTo(center)) == Zone.CONE && eye.distanceTo(center) <= ITEM_SIGHT_RANGE && this.lineOfSight(eye, center)) {
+			if (this.zoneOf(this.screenAngles(center)) == Zone.CONE && eye.distanceTo(center) <= ITEM_SIGHT_RANGE && this.lineOfSight(eye, center)) {
 				MemoryEntry entry = this.memory.remember(MemoryKind.ITEM, BuiltInRegistries.ITEM.getKey(item.getItem().getItem()).toString(),
 					item.position(), this.dimension(), this.now(), MemorySource.SEEN, 0.3F, item.getUUID()).entry();
 				entry.detail = item.getItem().getCount() + "x";
@@ -619,9 +654,10 @@ public class Senses {
 		int rays = playerNear ? BLOCK_RAYS_PLAYER_NEAR : BLOCK_RAYS_BASE;
 		Vec3 eye = this.drifter.getEyePosition();
 		for (int i = 0; i < rays; i++) {
-			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfYaw();
-			float pitch = Mth.clamp(this.drifter.getXRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfPitch(), -90.0F, 90.0F);
-			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), BLOCK_SIGHT_RANGE);
+			// A random point on its screen, evenly over the whole picture (as pixels are).
+			float sx = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
+			float sy = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
+			this.castBlockRay(eye, screenDirection(this.drifter.getYHeadRot(), this.drifter.getXRot(), sx, sy), BLOCK_SIGHT_RANGE);
 		}
 
 		// Far sight: near the horizon, where mountains, villages and cliffs show up. Only the part of the horizon band
@@ -883,7 +919,7 @@ public class Senses {
 		ResourceLocation dimension = this.dimension();
 		List<MemoryEntry> inView = this.memory.all()
 			.filter(entry -> entry.kind.isBlockKind() && entry.kind.cellSize == 1 && entry.dimension.equals(dimension)
-				&& entry.pos.distanceTo(eye) <= VERIFY_RANGE && this.zoneOf(this.angleTo(entry.pos)) == Zone.CONE)
+				&& entry.pos.distanceTo(eye) <= VERIFY_RANGE && this.zoneOf(this.screenAngles(entry.pos)) == Zone.CONE)
 			.sorted(Comparator.comparingLong(entry -> entry.confirmedAt))
 			.limit(VERIFY_PER_SECOND)
 			.toList();

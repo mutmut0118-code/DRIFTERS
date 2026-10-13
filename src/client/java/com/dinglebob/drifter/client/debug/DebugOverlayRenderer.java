@@ -142,13 +142,11 @@ public final class DebugOverlayRenderer {
 		Vec3 eye = drifter.getEyePosition(partialTick);
 		float yaw = drifter.getViewYRot(partialTick);
 		float pitch = drifter.getViewXRot(partialTick);
-		float[][] corners = {
-			{-Senses.coneHalfYaw(), -Senses.coneHalfPitch()}, {Senses.coneHalfYaw(), -Senses.coneHalfPitch()},
-			{Senses.coneHalfYaw(), Senses.coneHalfPitch()}, {-Senses.coneHalfYaw(), Senses.coneHalfPitch()}
-		};
+		// Its screen's four corners (a flat 16:9 picture at its FOV, the same test its eyes use).
+		float[][] corners = {{-1.0F, -1.0F}, {1.0F, -1.0F}, {1.0F, 1.0F}, {-1.0F, 1.0F}};
 		Vec3[] ends = new Vec3[corners.length];
 		for (int i = 0; i < corners.length; i++) {
-			ends[i] = eye.add(Vec3.directionFromRotation(Mth.clamp(pitch + corners[i][1], -90.0F, 90.0F), yaw + corners[i][0]).scale(CONE_LENGTH));
+			ends[i] = eye.add(Senses.screenDirection(yaw, pitch, corners[i][0], corners[i][1]).scale(CONE_LENGTH));
 			line(poseStack, lines, eye, ends[i], 0xCCFFFFFF);
 		}
 
