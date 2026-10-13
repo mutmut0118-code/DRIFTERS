@@ -10,6 +10,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import com.dinglebob.drifter.debug.overlay.DebugSnapshotPayload;
 import com.dinglebob.drifter.memory.MemoryKind;
+import com.dinglebob.drifter.nav.MoveType;
 import com.dinglebob.drifter.perception.Senses;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -35,6 +36,7 @@ import net.minecraft.world.phys.Vec3;
  *   <li>tracked entities as boxes where it last saw them: yellow (glimpse), orange (suspicious), red (detected);</li>
  *   <li>remembered blocks as boxes coloured by kind, fading with confidence, labelled up close;</li>
  *   <li>heard sounds as purple crosses where it thinks they came from;</li>
+ *   <li>the path it's following, coloured by move, with red boxes on blocks it will dig;</li>
  *   <li>a text panel over its head: task, awareness of you, time sense, memory counts, last thoughts.</li>
  * </ul>
  */
@@ -106,6 +108,16 @@ public final class DebugOverlayRenderer {
 				AABB box = new AABB(at.x - width / 2, at.y, at.z - width / 2, at.x + width / 2, at.y + height, at.z + width / 2).inflate(0.05);
 				int color = awarenessColor(mark.awareness());
 				LevelRenderer.renderLineBox(poseStack, lines, box, red(color), green(color), blue(color), mark.visible() ? 1.0F : 0.4F);
+			}
+
+			Vec3 previous = drifter.getPosition(partialTick).add(0.0, 0.1, 0.0);
+			for (DebugSnapshotPayload.PathMark step : snapshot.path()) {
+				Vec3 point = Vec3.atBottomCenterOf(step.to()).add(0.0, 0.1, 0.0);
+				line(poseStack, lines, previous, point, moveColor(step.type()));
+				previous = point;
+				for (net.minecraft.core.BlockPos dig : step.digs()) {
+					LevelRenderer.renderLineBox(poseStack, lines, new AABB(dig).deflate(0.05), 1.0F, 0.2F, 0.2F, 0.9F);
+				}
 			}
 
 			for (DebugSnapshotPayload.SoundMark sound : snapshot.sounds()) {
@@ -189,6 +201,19 @@ public final class DebugOverlayRenderer {
 		int b = argb & 0xFF;
 		lines.addVertex(pose, (float)from.x, (float)from.y, (float)from.z).setColor(r, g, b, a).setNormal(pose, (float)normal.x, (float)normal.y, (float)normal.z);
 		lines.addVertex(pose, (float)to.x, (float)to.y, (float)to.z).setColor(r, g, b, a).setNormal(pose, (float)normal.x, (float)normal.y, (float)normal.z);
+	}
+
+	/** Path colours by move: walking white, up/down light blue, bridge blue, pillar cyan, climb green, swim aqua. */
+	private static int moveColor(int ordinal) {
+		MoveType type = MoveType.values()[Mth.clamp(ordinal, 0, MoveType.values().length - 1)];
+		return switch (type) {
+			case BRIDGE -> 0xFF3355FF;
+			case PILLAR -> 0xFF33FFFF;
+			case JUMP_UP, STEP_DOWN -> 0xFF99CCFF;
+			case CLIMB_UP, CLIMB_DOWN -> 0xFF66FF66;
+			case SWIM, SWIM_UP, SWIM_DOWN -> 0xFF33CCCC;
+			default -> 0xFFFFFFFF;
+		};
 	}
 
 	private static int awarenessColor(float awareness) {

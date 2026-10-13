@@ -103,6 +103,8 @@ public class Senses {
 	public static final int SAME_SOUND_TICKS = 40;
 	public static final int GLANCE_HOLD_TICKS = 30;
 	public static final int GLANCE_COOLDOWN_TICKS = 40;
+	/** It always knows the blocks this close around its feet (touch and the edge of its vision). */
+	public static final int BODY_KNOWLEDGE_RADIUS = 1;
 	/** Kept for the debug overlay: the most recent block rays. */
 	public static final int RECENT_RAYS = 24;
 
@@ -113,6 +115,7 @@ public class Senses {
 	private final DrifterMemory memory;
 	private final Hearing hearing;
 	private final TimeSense time = new TimeSense();
+	private final TerrainKnowledge terrain = new TerrainKnowledge();
 	private final Map<Integer, Awareness> tracked = new HashMap<>();
 	private final Deque<HeardSound> sounds = new ArrayDeque<>();
 	private final Deque<Ray> recentRays = new ArrayDeque<>();
@@ -133,6 +136,11 @@ public class Senses {
 
 	public TimeSense time() {
 		return this.time;
+	}
+
+	/** Which blocks it has seen, for the pathfinder (section 12). */
+	public TerrainKnowledge terrain() {
+		return this.terrain;
 	}
 
 	public List<Awareness> tracked() {
@@ -188,6 +196,10 @@ public class Senses {
 		}
 
 		this.sampleBlocks();
+		if (this.ticks % 5 == 0) {
+			this.terrain.markAround(this.drifter.blockPosition(), BODY_KNOWLEDGE_RADIUS, 2, 3);
+		}
+
 		if (this.ticks % 20 == 0) {
 			this.verifyRememberedBlocks();
 			this.memory.decay(this.now());
@@ -521,6 +533,13 @@ public class Senses {
 			Vec3 end = eye.add(direction.scale(BLOCK_SIGHT_RANGE));
 			BlockHitResult hit = this.clipThroughGlass(eye, end, ClipContext.Fluid.ANY);
 			boolean notable = false;
+			if (hit.getType() == HitResult.Type.BLOCK && eye.distanceTo(hit.getLocation()) <= this.blockSightRange(hit.getBlockPos().relative(hit.getDirection()))) {
+				// Nudge into the hit block so the walk includes it.
+				this.terrain.markRay(eye, hit.getLocation().add(direction.scale(0.01)));
+			} else if (hit.getType() != HitResult.Type.BLOCK) {
+				this.terrain.markRay(eye, eye.add(direction.scale(this.blockSightRange(BlockPos.containing(eye)))));
+			}
+
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				notable = this.see(hit.getBlockPos(), hit.getDirection(), eye.distanceTo(hit.getLocation()));
 			}
@@ -638,8 +657,10 @@ public class Senses {
 
 	public void revealAround(BlockPos broken) {
 		this.memory.forgetBlockAt(broken, this.dimension());
+		this.terrain.mark(broken);
 		for (Direction direction : Direction.values()) {
 			BlockPos neighbor = broken.relative(direction);
+			this.terrain.mark(neighbor);
 			this.rememberBlock(neighbor, this.level().getBlockState(neighbor), MemorySource.SEEN);
 		}
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.dinglebob.drifter.Drifter;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -20,7 +21,8 @@ public record DebugSnapshotPayload(
 	List<RayLine> rays,
 	List<TrackedMark> tracked,
 	List<MemoryMark> memories,
-	List<SoundMark> sounds
+	List<SoundMark> sounds,
+	List<PathMark> path
 ) implements CustomPacketPayload {
 	public static final Type<DebugSnapshotPayload> TYPE = new Type<>(Drifter.id("debug_snapshot"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, DebugSnapshotPayload> CODEC = StreamCodec.of(DebugSnapshotPayload::write, DebugSnapshotPayload::read);
@@ -35,6 +37,10 @@ public record DebugSnapshotPayload(
 
 	/** A remembered thing: kind (MemoryKind ordinal), where, how sure, what, short or long term. */
 	public record MemoryMark(int kind, Vec3 pos, float confidence, String label, boolean longTerm) {
+	}
+
+	/** One remaining step of the path it's following: where to, the move type (MoveType ordinal), blocks to dig first. */
+	public record PathMark(BlockPos to, int type, List<BlockPos> digs) {
 	}
 
 	/** A heard sound: rough position, kind, how many ticks ago. */
@@ -93,6 +99,14 @@ public record DebugSnapshotPayload(
 			buf.writeUtf(mark.kind());
 			buf.writeVarInt(mark.age());
 		}
+
+		buf.writeVarInt(payload.path.size());
+		for (PathMark mark : payload.path) {
+			buf.writeBlockPos(mark.to());
+			buf.writeVarInt(mark.type());
+			buf.writeVarInt(mark.digs().size());
+			mark.digs().forEach(buf::writeBlockPos);
+		}
 	}
 
 	private static DebugSnapshotPayload read(RegistryFriendlyByteBuf buf) {
@@ -122,6 +136,18 @@ public record DebugSnapshotPayload(
 			sounds.add(new SoundMark(readVec(buf), buf.readUtf(), buf.readVarInt()));
 		}
 
-		return new DebugSnapshotPayload(id, lines, rays, tracked, memories, sounds);
+		List<PathMark> path = new ArrayList<>();
+		for (int i = buf.readVarInt(); i > 0; i--) {
+			BlockPos to = buf.readBlockPos();
+			int type = buf.readVarInt();
+			List<BlockPos> digs = new ArrayList<>();
+			for (int j = buf.readVarInt(); j > 0; j--) {
+				digs.add(buf.readBlockPos());
+			}
+
+			path.add(new PathMark(to, type, digs));
+		}
+
+		return new DebugSnapshotPayload(id, lines, rays, tracked, memories, sounds, path);
 	}
 }

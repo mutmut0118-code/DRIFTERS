@@ -38,6 +38,9 @@ public class DrifterMemory {
 	private final Map<String, MemoryEntry> longTerm = new LinkedHashMap<>();
 	private final MentalMap map = new MentalMap();
 	private final ThoughtLog thoughts = new ThoughtLog();
+	/** Blocks it has walked (its own roads, section 6 "Mental map"): the pathfinder prefers them. Oldest dropped first. */
+	private final java.util.LinkedHashSet<Long> trail = new java.util.LinkedHashSet<>();
+	public static final int MAX_TRAIL = 4096;
 	/** The in-game day (by its own time sense) of the last consolidation. */
 	private long lastConsolidatedDay = -1;
 
@@ -47,6 +50,19 @@ public class DrifterMemory {
 
 	public ThoughtLog thoughts() {
 		return this.thoughts;
+	}
+
+	public void walked(BlockPos feet) {
+		long key = feet.asLong();
+		this.trail.remove(key);
+		this.trail.add(key);
+		if (this.trail.size() > MAX_TRAIL) {
+			this.trail.remove(this.trail.iterator().next());
+		}
+	}
+
+	public boolean isOnTrail(BlockPos feet) {
+		return this.trail.contains(feet.asLong());
 	}
 
 	private static String key(MemoryKind kind, String label, Vec3 pos, @Nullable UUID entity) {
@@ -207,6 +223,7 @@ public class DrifterMemory {
 		tag.put("Entries", entries);
 		tag.putLong("LastConsolidatedDay", this.lastConsolidatedDay);
 		tag.put("Map", this.map.save());
+		tag.putLongArray("Trail", this.trail.stream().mapToLong(Long::longValue).toArray());
 		return tag;
 	}
 
@@ -224,6 +241,10 @@ public class DrifterMemory {
 
 		this.lastConsolidatedDay = tag.getLong("LastConsolidatedDay");
 		this.map.load(tag.getList("Map", Tag.TAG_COMPOUND));
+		this.trail.clear();
+		for (long key : tag.getLongArray("Trail")) {
+			this.trail.add(key);
+		}
 	}
 
 	/** Wipes everything (debug command). */
@@ -231,6 +252,7 @@ public class DrifterMemory {
 		this.shortTerm.clear();
 		this.longTerm.clear();
 		this.map.clear();
+		this.trail.clear();
 		this.lastConsolidatedDay = -1;
 	}
 }

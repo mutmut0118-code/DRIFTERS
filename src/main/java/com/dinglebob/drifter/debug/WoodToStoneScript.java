@@ -16,7 +16,7 @@ import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.executor.task.CollectItemsTask;
 import com.dinglebob.drifter.executor.task.CraftTask;
 import com.dinglebob.drifter.executor.task.MineTask;
-import com.dinglebob.drifter.executor.task.MoveToTask;
+import com.dinglebob.drifter.executor.task.NavigateTask;
 import com.dinglebob.drifter.executor.task.PlaceBlockTask;
 import com.dinglebob.drifter.executor.task.SelectItemTask;
 import com.dinglebob.drifter.executor.task.SequenceTask;
@@ -36,8 +36,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * DEBUG SCRIPT for milestone 2's "done when" test (DESIGN.md section 25): from punching wood to stone tools.
  * A fixed sequence, not AI: no decisions, no planner (that's milestone 5). It finds trees and stone with
- * {@link DebugScan} (no perception yet) and walks in straight lines (no pathfinder yet), so run it on fairly open
- * ground with a tree and some exposed stone nearby. Every action itself (mining, crafting, placing) follows the
+ * {@link DebugScan} (a test shortcut instead of its memory) and walks there with the pathfinder. Every action itself (mining, crafting, placing) follows the
  * player rules.
  */
 public class WoodToStoneScript extends Task {
@@ -198,7 +197,7 @@ public class WoodToStoneScript extends Task {
 					yield null;
 				}
 
-				yield new MoveToTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.4);
+				yield new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk back to the crafting table");
 			}
 			case STONE_PICKAXE -> this.craftAtTable(Items.STONE_PICKAXE, "a stone pickaxe");
 			case STONE_AXE -> this.craftAtTable(Items.STONE_AXE, "a stone axe");
@@ -266,7 +265,7 @@ public class WoodToStoneScript extends Task {
 			if (spot != null) {
 				this.childTarget = target;
 				this.walkedTo = target;
-				return new MoveToTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.4);
+				return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk to the " + what);
 			}
 
 			this.blacklist.add(target);

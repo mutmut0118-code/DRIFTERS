@@ -127,6 +127,19 @@ public class CameraModel {
 		this.hasPreviousTarget = false;
 	}
 
+	/**
+	 * Keeps looking at a point that moves a little each tick (a look-ahead point along a path) without treating every
+	 * update as a new flick. Starts a normal look if it wasn't already tracking a point at this speed.
+	 */
+	public void track(Vec3 position, TurnSpeed speed) {
+		if (this.targetKind == TargetKind.POSITION && this.speed == speed) {
+			this.targetPos = position;
+			return;
+		}
+
+		this.lookAt(position, speed);
+	}
+
 	public void lookAt(Entity entity, TurnSpeed speed) {
 		this.targetToken++;
 		this.setSpeed(speed);

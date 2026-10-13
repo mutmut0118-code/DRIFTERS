@@ -106,6 +106,9 @@ public class DrifterEntity extends PathfinderMob {
 	/** Perception (section 5): the only thing that looks at the world, and it writes into memory. */
 	private final Senses senses;
 	private final DynamicGameEventListener<?> hearingListener;
+	/** The path it's following right now and how far along it is, for the debug overlay only. */
+	private List<com.dinglebob.drifter.nav.PathStep> debugPath = List.of();
+	private int debugPathIndex;
 	/** Ticks until the debug command's held keys are released; -1 for "hold until changed". */
 	private int keysReleaseTimer = -1;
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
@@ -168,6 +171,19 @@ public class DrifterEntity extends PathfinderMob {
 
 	public Senses getSenses() {
 		return this.senses;
+	}
+
+	public void setDebugPath(List<com.dinglebob.drifter.nav.PathStep> path, int index) {
+		this.debugPath = path;
+		this.debugPathIndex = index;
+	}
+
+	public List<com.dinglebob.drifter.nav.PathStep> getDebugPath() {
+		return this.debugPath;
+	}
+
+	public int getDebugPathIndex() {
+		return this.debugPathIndex;
 	}
 
 	/** Registers its ears with the game's vibration system, like the Allay and the Warden do. */

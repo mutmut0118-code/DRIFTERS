@@ -12,6 +12,8 @@ import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.memory.DrifterMemory;
 import com.dinglebob.drifter.memory.MemoryKind;
 import com.dinglebob.drifter.memory.ThoughtLog;
+import com.dinglebob.drifter.nav.MoveType;
+import com.dinglebob.drifter.nav.PathStep;
 import com.dinglebob.drifter.perception.Awareness;
 import com.dinglebob.drifter.perception.Senses;
 import com.dinglebob.drifter.perception.TimeSense;
@@ -35,6 +37,7 @@ public final class DebugOverlayServer {
 	/** Memories farther than this from the Drifter aren't drawn (keeps packets small). */
 	public static final double MEMORY_DRAW_RANGE = 48.0;
 	public static final int MAX_MEMORY_MARKS = 200;
+	public static final int MAX_PATH_MARKS = 128;
 
 	private static final Set<UUID> SUBSCRIBERS = new HashSet<>();
 
@@ -114,7 +117,20 @@ public final class DebugOverlayServer {
 			.map(sound -> new DebugSnapshotPayload.SoundMark(sound.roughPos(), sound.kind().id(), (int)(now - sound.time())))
 			.toList();
 
-		return new DebugSnapshotPayload(drifter.getId(), lines, rays, tracked, memories, sounds);
+		List<PathStep> fullPath = drifter.getDebugPath();
+		List<DebugSnapshotPayload.PathMark> path = fullPath.subList(Math.min(drifter.getDebugPathIndex(), fullPath.size()),
+				Math.min(fullPath.size(), drifter.getDebugPathIndex() + MAX_PATH_MARKS)).stream()
+			.map(step -> new DebugSnapshotPayload.PathMark(step.to(), step.type().ordinal(), step.digs()))
+			.toList();
+		if (!fullPath.isEmpty()) {
+			long digs = fullPath.stream().skip(drifter.getDebugPathIndex()).mapToLong(step -> step.digs().size()).sum();
+			long placed = fullPath.stream().skip(drifter.getDebugPathIndex())
+				.filter(step -> step.type() == MoveType.BRIDGE || step.type() == MoveType.PILLAR).count();
+			lines.add(2, String.format(Locale.ROOT, "Path: %d steps left, %d blocks to dig, %d to place",
+				fullPath.size() - drifter.getDebugPathIndex(), digs, placed));
+		}
+
+		return new DebugSnapshotPayload(drifter.getId(), lines, rays, tracked, memories, sounds, path);
 	}
 
 	private static String label(Awareness awareness) {

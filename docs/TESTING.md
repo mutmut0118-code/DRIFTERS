@@ -334,3 +334,74 @@ It can only know things it has seen (in front of it, in the light, not through w
 - It doesn't **act** on what it knows yet (no AI): it only glances. The brain is milestone 5.
 - It can't hear mob groans or rattles yet (they don't make game "vibrations").
 - The wood-to-stone script still uses its test shortcut to find trees and stone.
+
+## Milestone 4: Pathfinder
+
+Nothing below has been run in-game yet; this is the first test.
+
+**The goal of this milestone:** it crosses a ravine and tunnels through a hill to reach a target, finding its own way.
+Keep `/drifter debug on` for these tests: you'll see the **path** drawn from its feet (white = walk, light blue =
+step up/down, **blue = bridge**, **cyan = pillar up**, green = climb, aqua = swim) and **red boxes on blocks it plans
+to dig**. The text panel shows "Path: N steps left, X blocks to dig, Y to place".
+
+### New commands
+| Command | What it does |
+| --- | --- |
+| `/drifter goto <pos>` | Finds its own way to that block (press Tab while looking at a block to fill in the position) |
+| `/drifter goto me` | Comes to where you're standing now |
+| `/drifter follow me` | Keeps following you until `/drifter stop` |
+
+**Fairness note:** it can only plan with terrain it has **seen**. Ground it hasn't seen yet is a guess. So it will
+sometimes head somewhere, look, and then change its plan ("replan"). That's on purpose: it doesn't know what's behind a
+hill until it gets there. `/drifter thoughts` doesn't show replans yet, but you'll see the path line change.
+
+### 1. Walking around things
+- [ ] Open ground: `/drifter goto <a block 20 blocks away>`. It walks there, **looking ahead** (not at its feet),
+      and sprints on the long straight part. Chat says "Done".
+- [ ] Obstacles: put a wall of blocks between it and the target (with a way around). It walks **around** the wall.
+- [ ] Steps: a 1-block step up on the way: it jumps up. A 2-block wall with no way around and no blocks to use:
+      it digs through (see 4) or fails.
+- [ ] Going down: a 2-3 block drop on the way: it steps down. A 10-block cliff: it doesn't jump off (unless there's
+      water at the bottom).
+- [ ] Doors: put the target inside a house with a **wooden door**: it opens the door and walks in.
+- [ ] Ladders: target at the top of a ladder: it climbs the ladder.
+- [ ] Water: target across a small pond: it swims across.
+- [ ] `/drifter follow me` and walk/run around: it follows, catching up when you get away, and waits when it's close.
+      `/drifter stop` ends it.
+- [ ] It never walks into lava or fire.
+
+### 2. Bridging (crossing a ravine)
+- [ ] Give it blocks: `/drifter give minecraft:cobblestone 64`. Find or dig a **ravine** or gap at least 3 blocks wide
+      and too deep to climb, and `/drifter goto <a block on the other side>`. The path shows **blue** across the gap.
+      It **sneaks** to the edge, looks down, places a block, steps onto it, and repeats until it's across.
+- [ ] Without blocks (`/drifter memory clear` doesn't matter; just make sure it has no dirt/cobblestone/planks):
+      it walks down and around through the ravine if it can, or fails with "it knows no way there".
+- [ ] It never bridges using valuable blocks (logs, ores, chests). Only dirt, cobblestone, stone-type blocks and planks.
+
+### 3. Pillaring
+- [ ] Give it cobblestone, and put the target on top of a tall pillar or cliff (5+ blocks up, no stairs). The path
+      shows **cyan**: it looks straight down, jumps and places a block under itself, over and over.
+
+### 4. Tunnelling through a hill (the big test)
+- [ ] Give it a pickaxe (`/drifter give minecraft:iron_pickaxe`) and **no** building blocks. Pick a target on the far
+      side of a big hill or mountain (or a thick wall of stone you built... but see 5: it won't dig **your** blocks).
+      `/drifter goto <target>`. It walks to the hill and **tunnels through** it: red boxes show the blocks it will dig,
+      it takes the pickaxe out, mines a 1x2 tunnel and walks through. Chat says "Done" on the far side.
+- [ ] Watch the overlay as it digs: when it breaks into the hill, the path may change as it learns what's inside.
+- [ ] Gravel or sand in the tunnel: it digs again when it falls back down.
+
+### 5. Respecting your builds
+- [ ] Build a wall yourself (place the blocks by hand) and send it through: it **won't dig your blocks**; it goes
+      around, or fails with "it knows no way there".
+- [ ] A natural hill of the same block: it digs through that fine.
+- [ ] It never digs chests, furnaces or other blocks with contents.
+
+### 6. Milestone 2 script again
+- [ ] `/drifter script woodtostone` still works, now walking with the pathfinder (it can go around things on the way to
+      the tree and the stone).
+
+### Known gaps for milestone 4 (don't report these as bugs)
+- Paths over **slabs and stairs** may fail or replan a lot (partial blocks aren't modelled well yet).
+- No parkour jumps, boats or horses yet.
+- It doesn't close doors behind it yet.
+- Very far targets (more than ~48 blocks) are reached in hops: it plans part of the way, walks, plans again.
