@@ -4,10 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 import com.google.common.collect.ImmutableMap;
 
 import com.dinglebob.drifter.executor.TaskRunner;
+import com.dinglebob.drifter.memory.DrifterMemory;
+import com.dinglebob.drifter.perception.Senses;
 import com.dinglebob.drifter.mixin.ItemEntityAccessor;
 import com.dinglebob.drifter.motor.CameraModel;
 import com.dinglebob.drifter.motor.VirtualKeys;
@@ -51,6 +54,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.DynamicGameEventListener;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -97,6 +101,11 @@ public class DrifterEntity extends PathfinderMob {
 	private final CameraModel camera;
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
 	private final TaskRunner tasks = new TaskRunner(this);
+	/** Short- and long-term memory (section 6). Everything it knows about the world is in here. */
+	private final DrifterMemory memory = new DrifterMemory();
+	/** Perception (section 5): the only thing that looks at the world, and it writes into memory. */
+	private final Senses senses;
+	private final DynamicGameEventListener<?> hearingListener;
 	/** Ticks until the debug command's held keys are released; -1 for "hold until changed". */
 	private int keysReleaseTimer = -1;
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
@@ -105,6 +114,8 @@ public class DrifterEntity extends PathfinderMob {
 	public DrifterEntity(EntityType<? extends DrifterEntity> entityType, Level level) {
 		super(entityType, level);
 		this.camera = new CameraModel(this.random);
+		this.senses = new Senses(this, this.memory);
+		this.hearingListener = new DynamicGameEventListener<>(this.senses.hearing());
 		// The Drifter is driven by virtual keys and its camera model, not by vanilla mob controls.
 		this.moveControl = new IdleMoveControl(this);
 		this.lookControl = new IdleLookControl(this);
@@ -149,6 +160,22 @@ public class DrifterEntity extends PathfinderMob {
 
 	public TaskRunner getTasks() {
 		return this.tasks;
+	}
+
+	public DrifterMemory getMemory() {
+		return this.memory;
+	}
+
+	public Senses getSenses() {
+		return this.senses;
+	}
+
+	/** Registers its ears with the game's vibration system, like the Allay and the Warden do. */
+	@Override
+	public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerLevel> registrar) {
+		if (this.level() instanceof ServerLevel serverLevel && this.hearingListener != null) {
+			registrar.accept(this.hearingListener, serverLevel);
+		}
 	}
 
 	/** Holds keys for a number of ticks, then releases them all. Ticks of -1 hold until changed. */
@@ -216,6 +243,8 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 	protected void customServerAiStep() {
 		super.customServerAiStep();
+		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
+		this.senses.tick();
 		this.tasks.tick();
 		float[] look = this.camera.tick(this.getEyePosition(), this.getYRot(), this.getXRot());
 		this.setYRot(look[0]);
@@ -670,6 +699,17 @@ public class DrifterEntity extends PathfinderMob {
 	// Damage and death
 	// ---------------------------------------------------------------------------------------------
 
+	/** Touch (section 5): it feels every hit, even one its armor fully absorbs. */
+	@Override
+	public boolean hurt(DamageSource source, float amount) {
+		boolean hit = super.hurt(source, amount);
+		if (hit && !this.level().isClientSide) {
+			this.senses.onHurt(source, amount);
+		}
+
+		return hit;
+	}
+
 	/** Taking damage costs food exhaustion, like a player (only when health actually drops). */
 	@Override
 	protected void actuallyHurt(DamageSource source, float amount) {
@@ -781,6 +821,7 @@ public class DrifterEntity extends PathfinderMob {
 		this.foodData.addAdditionalSaveData(tag);
 		tag.putString("Skin", this.getSkinTexture().toString());
 		tag.putBoolean("SlimArms", this.hasSlimArms());
+		tag.put("DrifterMemory", this.memory.save());
 	}
 
 	@Override
@@ -790,6 +831,10 @@ public class DrifterEntity extends PathfinderMob {
 		this.inventory.load(this.registryAccess(), tag.getList("DrifterInventory", Tag.TAG_COMPOUND));
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
 		this.foodData.readAdditionalSaveData(tag);
+		if (tag.contains("DrifterMemory", Tag.TAG_COMPOUND)) {
+			this.memory.load(tag.getCompound("DrifterMemory"));
+		}
+
 		if (tag.contains("Skin", Tag.TAG_STRING)) {
 			ResourceLocation texture = ResourceLocation.tryParse(tag.getString("Skin"));
 			if (texture != null) {

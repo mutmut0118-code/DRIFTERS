@@ -244,3 +244,90 @@ surface** (a hillside, or place 8+ stone blocks on the ground yourself). The Dri
   real eyesight and memory are milestone 3.
 - It can break blocks that players placed if you tell it to (protection for player builds comes later).
 - No bows, shields-up, or attacking yet (milestone 6). No XP collection yet.
+
+## Milestone 3: Senses and memory
+
+Nothing below has been run in-game yet; this is the first test.
+
+**The goal of this milestone:** the debug overlay shows exactly what the Drifter knows, and nothing more.
+It can only know things it has seen (in front of it, in the light, not through walls), heard, or felt.
+
+### New commands
+| Command | What it does |
+| --- | --- |
+| `/drifter debug on` / `off` | Shows the overlay for every Drifter within 64 blocks of you |
+| `/drifter memory` | Lists what the nearest Drifter remembers (closest things first) |
+| `/drifter memory clear` | Makes it forget everything (handy before a test) |
+| `/drifter thoughts` | Its last 15 "thoughts": what it noticed, heard, felt |
+| `/drifter senses` | What it's tracking, what it heard, what time it thinks it is |
+
+### What the overlay shows
+- **White lines from its head:** its field of view (about 110 degrees wide). Grey lines at its sides: the edge of
+  its side vision, where it only notices movement. A yellow line: exactly where it's looking.
+- **Faint blue lines:** the "eye rays" it uses to notice blocks. They turn **green** when they find something worth
+  remembering.
+- **Boxes around mobs and players it's tracking:** grey (barely noticed), **yellow** (glimpse), **orange**
+  (suspicious), **red** (it knows what it is). The label shows "?" until it knows. Faded boxes with
+  "(last seen)" are where it *thinks* something is after losing sight of it.
+- **Coloured boxes on blocks it remembers:** cyan ores, green stations (crafting table, furnace, bed), brown storage
+  (chests, barrels), red danger (lava), light green trees, pink structure clues (spawners, bookshelves). They fade as
+  it becomes less sure. Walk close to read the labels.
+- **Purple crosses:** sounds it heard, placed where it *thinks* they came from (deliberately a bit off).
+- **Text over its head:** its job, **how aware it is of you**, what time it thinks it is, how much it remembers, and
+  its latest thoughts.
+
+### 1. Eyesight and the awareness meter
+- [ ] `/drifter spawn Watcher`, `/drifter debug on`. You see the view lines from its head and the text panel.
+- [ ] Daylight, walk into view in front of it about 10 blocks away: "Awareness of you" climbs quickly to 1.00 and
+      it says it knows it's you. Your box goes yellow, orange, red. `/drifter thoughts` says "detected <your name>".
+- [ ] Stand still far away (30+ blocks) at the edge of its view: awareness climbs **slowly**.
+- [ ] **Sneak up from behind** (stay behind its back): awareness stays at none. It doesn't know you're there.
+- [ ] Side vision: stand beside it (90 degrees to its side) and walk around: it only gets a **glimpse** (yellow),
+      and its head **turns toward you** (when it's not busy with a job). Standing still beside it: nothing.
+- [ ] Hide behind a wall: your box fades to "(last seen)" where you were, and the awareness drains.
+- [ ] Darkness: at night (`/time set midnight`), far from torches, stand 20 blocks away: it can't see you. Hold a
+      **torch**: now it can.
+- [ ] Invisibility potion: it can't see you. Put on armor while invisible: it can, slowly.
+- [ ] Glass: it can see you through glass.
+- [ ] Mobs: let a zombie or cow walk in front of it: box, then "detected a zombie" in its thoughts.
+
+### 2. Seeing and remembering blocks (no x-ray)
+- [ ] `/drifter memory clear`. Place a **crafting table, chest and diamond ore** in front of it in the light: green,
+      brown and cyan boxes appear within a second or two, and `/drifter memory` lists them.
+- [ ] Place the same blocks **behind** it: **no boxes**. It hasn't seen them. Turn it around
+      (`/drifter look 180 0`): the boxes appear.
+- [ ] **No x-ray:** bury a diamond ore inside solid stone right next to it. No box. Then mine the stone next to it
+      (give it a pickaxe, `/drifter mine <that stone>`): when the stone breaks, the ore gets a box (mining reveals
+      neighbours).
+- [ ] **It notices changes:** with it looking at a remembered crafting table, break the table: the box disappears and
+      its thoughts say the table "is gone". Do the same while it's looking **away**: the box **stays** (it doesn't
+      know yet) until it looks back.
+- [ ] Chests: `/drifter container <chest pos> putall` (from milestone 2), then `/drifter memory`: the chest entry shows
+      what's inside.
+- [ ] Crafting uses memory: place a crafting table **behind** it, give it planks and sticks, `/drifter craft
+      minecraft:wooden_pickaxe` fails "(one it has seen)". Then `/drifter lookat <table pos>` and try again: it works.
+- [ ] Lava in view gets a red box.
+
+### 3. Hearing and feeling
+- [ ] Walk around **behind** it (not sneaking): purple crosses appear where you walk, and its thoughts say
+      "heard something moving behind". Its head turns toward the sound (when idle).
+- [ ] **Sneak** behind it: no sounds.
+- [ ] Open a chest or door behind it: "heard a container or door".
+- [ ] Put a wall of **wool** between you and it: it can't hear you through the wool.
+- [ ] Light TNT about 40 blocks away: it hears "an explosion".
+- [ ] Hit it (or shoot it with an arrow) from behind: its thoughts say "got hurt by an attack behind ...", and its
+      head turns to look.
+
+### 4. Sense of time and memory over time
+- [ ] `/drifter senses` outdoors: it knows the exact time and the weather.
+- [ ] Wall it in completely with stone (no sky above) for a few minutes, then `/drifter senses`: it says
+      "(guessing)" and its time slowly drifts from the real time. Give it a **clock** (`/drifter give minecraft:clock`):
+      it knows the exact time again.
+- [ ] Dusk: `/time set 11900`, wait about 10 seconds: its thoughts say "thinking over the day". Old short-term
+      memories (mobs, items) are cleared; important ones stay.
+- [ ] Save and quit, reopen the world: `/drifter memory` still lists its long-term memories.
+
+### Known gaps for milestone 3 (don't report these as bugs)
+- It doesn't **act** on what it knows yet (no AI): it only glances. The brain is milestone 5.
+- It can't hear mob groans or rattles yet (they don't make game "vibrations").
+- The wood-to-stone script still uses its test shortcut to find trees and stone.

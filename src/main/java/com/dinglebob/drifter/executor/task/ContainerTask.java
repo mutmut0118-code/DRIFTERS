@@ -149,6 +149,7 @@ public class ContainerTask extends Task {
 
 		this.drifter.swing(InteractionHand.MAIN_HAND);
 		this.drifter.getKeys().releaseAll();
+		this.drifter.getSenses().sawContents(this.pos, this.container);
 		Containers.playOpen(this.drifter.level(), this.pos);
 		this.opened = true;
 		this.wait = InventoryPause.roll(this.drifter, InventoryPause.CONTAINER_MIN, InventoryPause.CONTAINER_MAX);
@@ -230,6 +231,11 @@ public class ContainerTask extends Task {
 	@Override
 	protected void onStop() {
 		if (this.opened) {
+			Container current = Containers.get(this.drifter.level(), this.pos);
+			if (current != null) {
+				this.drifter.getSenses().sawContents(this.pos, current);
+			}
+
 			Containers.playClose(this.drifter.level(), this.pos);
 		}
 	}

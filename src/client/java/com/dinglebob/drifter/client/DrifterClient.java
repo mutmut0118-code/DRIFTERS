@@ -1,5 +1,6 @@
 package com.dinglebob.drifter.client;
 
+import com.dinglebob.drifter.client.debug.DebugOverlayRenderer;
 import com.dinglebob.drifter.client.render.DrifterRenderer;
 import com.dinglebob.drifter.registry.ModEntities;
 
@@ -10,5 +11,6 @@ public class DrifterClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		EntityRendererRegistry.register(ModEntities.DRIFTER, DrifterRenderer::new);
+		DebugOverlayRenderer.register();
 	}
 }

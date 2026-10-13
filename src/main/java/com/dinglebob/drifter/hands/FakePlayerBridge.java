@@ -48,9 +48,13 @@ public final class FakePlayerBridge {
 	}
 
 	private static GameProfile profileFor(DrifterEntity drifter) {
-		UUID id = UUID.nameUUIDFromBytes(("drifter-hands:" + drifter.getUUID()).getBytes(StandardCharsets.UTF_8));
 		String name = drifter.getName().getString();
-		return new GameProfile(id, VALID_NAME.matcher(name).matches() ? name : "Drifter");
+		return new GameProfile(helperId(drifter), VALID_NAME.matcher(name).matches() ? name : "Drifter");
+	}
+
+	/** The UUID of this Drifter's fake player, so its own actions can be told apart (it shouldn't "hear" itself). */
+	public static UUID helperId(DrifterEntity drifter) {
+		return UUID.nameUUIDFromBytes(("drifter-hands:" + drifter.getUUID()).getBytes(StandardCharsets.UTF_8));
 	}
 
 	private static void syncIn(DrifterEntity drifter, FakePlayer fake) {

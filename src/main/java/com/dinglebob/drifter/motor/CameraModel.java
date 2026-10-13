@@ -73,6 +73,8 @@ public class CameraModel {
 	@Nullable
 	private Entity targetEntity;
 	private TurnSpeed speed = TurnSpeed.NORMAL;
+	/** Changes every time a new target is set, so callers can tell whether "their" target is still the current one. */
+	private int targetToken;
 	private float maxSpeed;
 	private float accel;
 	private boolean hasPreviousTarget;
@@ -109,6 +111,7 @@ public class CameraModel {
 	}
 
 	public void lookAt(float yaw, float pitch, TurnSpeed speed) {
+		this.targetToken++;
 		this.setSpeed(speed);
 		this.targetKind = TargetKind.ANGLES;
 		this.targetYaw = yaw;
@@ -117,6 +120,7 @@ public class CameraModel {
 	}
 
 	public void lookAt(Vec3 position, TurnSpeed speed) {
+		this.targetToken++;
 		this.setSpeed(speed);
 		this.targetKind = TargetKind.POSITION;
 		this.targetPos = position;
@@ -124,10 +128,19 @@ public class CameraModel {
 	}
 
 	public void lookAt(Entity entity, TurnSpeed speed) {
+		this.targetToken++;
 		this.setSpeed(speed);
 		this.targetKind = TargetKind.ENTITY;
 		this.targetEntity = entity;
 		this.hasPreviousTarget = false;
+	}
+
+	public boolean hasTarget() {
+		return this.targetKind != TargetKind.NONE;
+	}
+
+	public int targetToken() {
+		return this.targetToken;
 	}
 
 	/** True when the head has stopped on its target (or has no target): not mid-turn, not overshooting. */

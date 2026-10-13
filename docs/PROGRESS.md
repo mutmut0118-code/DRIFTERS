@@ -9,6 +9,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 - **Build: green.** `./gradlew build` succeeds in the cloud (with the Maven Central mirror workaround described in `CLAUDE.md`).
 - **Milestone 1 (Body): done.** The user tested it in-game (Modrinth App, jar from the GitHub Actions build) and reported that everything works.
 - **Milestone 2 (Hands): the "done when" test passed in-game.** The user ran `/drifter script woodtostone` and reported it works perfectly. The rest of the milestone 2 checklist in `docs/TESTING.md` isn't fully tested yet; the user plans to finish it in a local session.
+- **Milestone 3 (Senses and memory): code complete, waiting for in-game testing.** The user chose to start it before finishing the milestone 2 checklist.
 - The user tests by downloading the jar from the GitHub Actions run for the latest push (Artifacts zip, the jar without "sources") into a Fabric 1.21.1 instance with Fabric API, in the Modrinth App. The user doesn't code, so keep instructions plain and step by step.
 
 ## Milestones
@@ -18,7 +19,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 0 | Project setup | Done | Cloud build green; the user ran the mod in-game. |
 | 1 | Body | Done (in-game test passed) | Entity, player rendering with skins and poses, inventory, hunger model, virtual-key movement, camera model. Done when: you can drive it by command and it moves like a player. |
 | 2 | Hands | In progress: wood-to-stone script passed in-game; rest of the checklist pending | Fake-player helper; mining, placing, crafting, smelting, eating, containers. Done when: a scripted sequence goes from punching wood to stone tools. |
-| 3 | Senses and memory | Not started | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
+| 3 | Senses and memory | In progress: code complete, untested in-game | View cone, awareness meter, block sampling, hearing, memory tiers, debug overlay. Done when: the overlay shows exactly what it knows and nothing more. |
 | 4 | Pathfinder | Not started | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
 | 5 | Brain and day one | Not started | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | Not started | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
@@ -118,7 +119,44 @@ All vanilla behavior below was mirrored from the decompiled 1.21.1 source (Multi
 ### Next steps
 1. Finish the rest of the milestone 2 checklist in `docs/TESTING.md` (the script part already passed), in a local session with the user.
 2. Fix whatever that finds; then mark milestone 2 done.
-3. Start milestone 3 (Senses and memory): view cone, awareness meter, block sampling, hearing, memory tiers, debug overlay.
+3. ~~Start milestone 3~~ (started at the user's request before step 1 was finished).
+
+## Milestone 3: Senses and memory
+
+### Done (code complete, untested in-game)
+- **Memory** (`memory/*`, DESIGN.md section 6): short-term and long-term tiers (working memory lives in the senses and the executor and isn't saved). Each entry has kind, position and dimension, recorded and last-confirmed time, confidence, source (seen, heard, inferred, told) and importance. Confidence fades by kind (mobs in seconds, items in minutes, player positions in minutes with identity kept forever, ores over days, stations never). Per-kind capacity limits drop the lowest importance x confidence first. Entries merge per position (trees and danger per 8-block patch, structure clues per 4). Saved with the Drifter, versioned.
+- **Consolidation at dusk** (by the Drifter's own sense of time, once per day): important short-term memories are promoted (a bad hit becomes a long-term danger zone); the rest of yesterday's short-term memory is dropped.
+- **Mental map** (`MentalMap`): one tile per chunk it has looked into, with biome and whether it saw water or lava. Up to 4096 tiles.
+- **Thought log** (`ThoughtLog`, section 25): the last 64 things it noticed, in plain words.
+- **Vision** (`perception/Senses`, section 5): a view cone of 110 x 70 degrees around its head, plus a peripheral zone out to 180 degrees that only notices movement. Sight range 48 blocks in full light, about 8 in darkness (unless the target is on fire, glowing or holding a light), shorter in rain, thunder, underwater, with Blindness or Darkness; Night Vision lights everything up. Line of sight is a ray to the target's head and one to its feet (glass is see-through).
+- **Awareness meter** (`Awareness`): 0 to 1 per entity, filling faster when the target is close, moving, fully visible and near the center of view; sneaking targets fill much slower; invisible ones only through their armor. Thresholds: glimpse 0.3, suspicious 0.6, detected 1.0 (only then does it know what or who it is). Drains when out of sight.
+- **Attention budget**: at most 8 entities tracked in detail, re-ranked every half second by threat and salience; players, anything that hit it, and a creeper whose fuse it heard are always tracked.
+- **Seeing players** (section 5): name, held item, armor per slot, enchantment glint, sneaking, sprinting, blocking, using an item, just got hurt. Never health or inventory.
+- **Seeing blocks**: 6 random rays per tick across the view cone (12 when a player is near and in view), up to 32 blocks, less in the dark. Ores, chests, barrels, crafting tables, furnaces, beds and other stations, lava, spawners, portals, bookshelves, mossy cobblestone, trees, sugar cane and clay are remembered. Every block it looks at marks its chunk explored.
+- **Mining reveals** the six neighbours of every block it breaks (the only way it learns what's inside rock). Blocks it places are remembered. Opening a chest or barrel remembers a summary of the contents.
+- **Verification**: remembered blocks in view are re-checked; still there refreshes the memory, a clear view of an empty spot or a different block means it forgets it ("the crafting table at ... is gone").
+- **Hearing** (`Hearing`, section 5): through the game's vibration events (what sculk sensors hear), within each sound kind's radius: movement 16, building/mining 16, containers and doors 16, eating 8, projectiles 16, something hurt 16, fuses 12. Sneaking makes no step sounds; wool blocks sound. Explosions carry 64 (a small mixin, since vanilla game events stop at 16). It only learns the kind of sound, a rough position (off by up to 15% of the distance) and roughly how far, never who. It ignores its own sounds, including what its fake-player helper does.
+- **Touch**: it knows which way a hit came from and what kind of thing it was, and remembers getting hurt there.
+- **Time and weather sense** (`TimeSense`): exact time and weather while it can see the sky (or carries a clock); underground its own estimate drifts by up to 10% per in-game hour.
+- **Glances**: when idle, its head turns toward something it glimpsed or heard (section 5 awareness table).
+- **Debug overlay** (`debug/overlay/*`, `client/debug/DebugOverlayRenderer`; section 25): `/drifter debug on` (operators). Draws, from data the server sends, only what each Drifter within 64 blocks perceives and remembers: view cone, block rays, tracked entities with awareness, remembered blocks coloured by kind and fading with confidence, heard sounds, and a text panel (task, awareness of you, believed time, memory counts, last thoughts).
+- **Commands**: `/drifter debug on|off`, `/drifter memory [clear]`, `/drifter thoughts`, `/drifter senses`.
+- **Memory now used by the hands**: `/drifter craft` finds a crafting table from memory (it must have seen or placed one in reach), not by scanning the world.
+
+### Not done yet / left for later (TODOs in code)
+- In-game verification of everything above (the milestone's "done when" test: the overlay shows exactly what it knows and nothing more).
+- "Pauses current action briefly" on a glimpse, investigating sounds, and interrupting tasks: the brain decides that (milestone 5). For now it only glances when idle.
+- Mob ambient sounds (groans, rattles) don't produce game events; hearing them needs a sound hook.
+- Shared memory between Drifters ("told") comes with groups (milestone 12); world-level registry for identity, relationships and home comes with disposition/progression milestones.
+- Death location memory: Drifters don't respawn yet, so memory is lost with the entity on death.
+- Known roads and "mined out" tiles in the mental map: milestone 4 (pathfinder).
+- Detail tiers (fewer rays when nobody is near): milestone 10.
+- The wood-to-stone debug script still finds trees and stone with the debug world scan; it could be switched to memory once the brain exists.
+
+### Next steps
+1. User tests milestone 3 with the overlay (`docs/TESTING.md`, "Milestone 3") and finishes the milestone 2 checklist.
+2. Fix what the tests find; mark milestones 2 and 3 done.
+3. Milestone 4 (Pathfinder): A* with digging, bridging and pillaring.
 
 ## Decided
 

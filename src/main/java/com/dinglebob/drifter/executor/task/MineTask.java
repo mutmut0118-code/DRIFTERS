@@ -135,6 +135,8 @@ public class MineTask extends Task {
 			return this.fail("the block can't be broken here (protected?)");
 		}
 
+		this.drifter.getSenses().minedBlock(this.pos, this.target);
+
 		if (!afterHolding) {
 			return Status.SUCCESS;
 		}

@@ -82,7 +82,12 @@ public class PlaceBlockTask extends Task {
 		}
 
 		BlockState placed = this.drifter.level().getBlockState(this.target);
-		return placed.canBeReplaced() ? this.fail("the block didn't end up there") : Status.SUCCESS;
+		if (placed.canBeReplaced()) {
+			return this.fail("the block didn't end up there");
+		}
+
+		this.drifter.getSenses().placedBlock(this.target);
+		return Status.SUCCESS;
 	}
 
 	/** {direction from target to the support block, face of the support block to click}, or null. */

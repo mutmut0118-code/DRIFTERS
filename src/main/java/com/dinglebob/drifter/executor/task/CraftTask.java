@@ -9,6 +9,8 @@ import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.hands.Crafting;
 import com.dinglebob.drifter.hands.Reach;
+import com.dinglebob.drifter.memory.MemoryEntry;
+import com.dinglebob.drifter.memory.MemoryKind;
 import com.dinglebob.drifter.motor.CameraModel;
 
 import net.minecraft.core.BlockPos;
@@ -21,11 +23,12 @@ import net.minecraft.world.level.block.Blocks;
  * recipe fits; otherwise the Drifter must look at a crafting table in reach to "open" it. Either way it then stands
  * still with its head tilted slightly down for 0.5 to 2 s (the inventory screen is open), and each craft after that
  * takes a click.
- * TODO(milestone 3): find tables from memory instead of the reach-limited search here.
+ * The table comes from memory (it must have seen it, or placed it itself), then has to be in reach and in view.
  */
 public class CraftTask extends Task {
 	/** A crafting menu closes when the player is more than this far from the table. */
 	private static final double TABLE_MENU_RANGE = 8.0;
+	private static final String CRAFTING_TABLE_ID = "minecraft:crafting_table";
 
 	private enum Phase {
 		OPEN_TABLE, PAUSE, CRAFT
@@ -80,7 +83,7 @@ public class CraftTask extends Task {
 		}
 
 		if (this.table == null || !this.drifter.level().getBlockState(this.table).is(Blocks.CRAFTING_TABLE)) {
-			this.fail("needs a crafting table within reach");
+			this.fail("needs a crafting table within reach (one it has seen)");
 			return;
 		}
 
@@ -149,23 +152,13 @@ public class CraftTask extends Task {
 		this.phase = Phase.PAUSE;
 	}
 
+	/** A crafting table it remembers that is within reach and in view right now. */
 	@Nullable
 	private BlockPos findTableInReach() {
-		BlockPos center = BlockPos.containing(this.drifter.getEyePosition());
-		int radius = Mth.ceil(this.drifter.blockInteractionRange());
-		BlockPos best = null;
-		double bestDistance = Double.MAX_VALUE;
-		for (BlockPos pos : BlockPos.betweenClosed(center.offset(-radius, -radius, -radius), center.offset(radius, radius, radius))) {
-			if (this.drifter.level().getBlockState(pos).is(Blocks.CRAFTING_TABLE) && Reach.canReach(this.drifter, pos)) {
-				double distance = pos.distToCenterSqr(this.drifter.getEyePosition());
-				if (distance < bestDistance) {
-					bestDistance = distance;
-					best = pos.immutable();
-				}
-			}
-		}
-
-		return best;
+		MemoryEntry remembered = this.drifter.getMemory().nearest(MemoryKind.STATION, this.drifter.level().dimension().location(),
+			this.drifter.getEyePosition(), this.drifter.blockInteractionRange() + 1.0,
+			entry -> entry.label.equals(CRAFTING_TABLE_ID) && Reach.canReach(this.drifter, entry.blockPos()));
+		return remembered == null ? null : remembered.blockPos();
 	}
 
 	@Override

@@ -111,6 +111,7 @@ public final class DrifterCommands {
 		root.then(Commands.literal("inventory").executes(DrifterCommands::inventory));
 		root.then(Commands.literal("remove").executes(DrifterCommands::remove));
 		HandsCommands.register(root, buildContext);
+		SensesCommands.register(root);
 
 		dispatcher.register(root);
 	}

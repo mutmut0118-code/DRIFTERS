@@ -1,6 +1,7 @@
 package com.dinglebob.drifter;
 
 import com.dinglebob.drifter.command.DrifterCommands;
+import com.dinglebob.drifter.debug.overlay.DebugOverlayServer;
 import com.dinglebob.drifter.registry.ModEntities;
 
 import net.fabricmc.api.ModInitializer;
@@ -19,6 +20,7 @@ public class Drifter implements ModInitializer {
 	public void onInitialize() {
 		ModEntities.register();
 		DrifterCommands.register();
+		DebugOverlayServer.register();
 		LOGGER.info("Drifter initialized");
 	}
 
