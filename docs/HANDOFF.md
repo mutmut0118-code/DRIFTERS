@@ -9,6 +9,10 @@
   copy without `.git`, `build`, `.gradle/9.5.0`, `.gradle/configuration-cache`, `.gradle/loom-cache/launch.cfg`, lock
   files); random seeds per run; `/drifter thoughts log true` plus the death black box (last 10 s of movement written to
   the log on death) explain every death. Stop leftover servers by PID.
+- **Running state when session 2 ended (2026-10-14 evening):** 10-day regression runs are `scratchpad/ten.sh <prefix>
+  miner builder casual` (testbed copy, random seeds, the loaded area follows the Drifter); results print one line per
+  run. The user watches their own game; their log is in the Modrinth profile's `logs/latest.log`. Never start a second
+  test server while one runs (the scripts now refuse; one run was ruined that way).
 - **Lessons:** for a mob, `isImmobile()` also stops the AI step (a sleeping Drifter never woke); `Reach.canReach` can't
   aim at liquids (use a clip to the surface); placement on an empty cell needs a distance check, not `canReach`.
 

@@ -819,7 +819,19 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Whole trees:** cut the whole tree (the leaves then decay and make room; trunks left floating look wrong). Done: once
   it starts on a tree it takes every log of it, lowest first, pillaring beside the trunk for the high ones.
 
-### Step 9: the 10-day run (in progress)
+### Step 9: the 10-day run (in progress; latest state 2026-10-14 evening)
+- **Batch 7 (all fixes to then):** all three survived 10 days. Miner: diamond pickaxe and sword (stage 7), a stone house,
+  a 52-block farm (this meets the milestone's "done when"). Builder: a finished wooden house, a 37-block farm all
+  planted, iron pickaxe (it lingers in settlement, as the design says Builders do). Casual: stage 6 (farm, pen, full
+  iron armor) and a house. Batch 8 was running when the session ended (logs in the session scratchpad, `t8_*.log`).
+- **Fixed after batch 7:** pen site on hills (32/49 cells, clear of the house), sneaking when pillaring off a block
+  that opens (its own crafting table under it broke the hut roof every day), no stations in the middle of the hut or
+  house, the out-of-air reflex runs up to 30 s and can mine up through a ceiling (a fully sealed underwater pocket is
+  still not solved: mining while floating is too slow).
+- **User's own test (new world, 8 random Drifters, latest jar installed 18:28):** two drownings on the 18:02 build (both
+  addressed by later fixes). Their game log is `ModrinthApp/profiles/DRIFTER TEST/logs/latest.log` (thought logging on).
+- **Next:** read batch 8 and the user's log; keep fixing what stalls runs; then call milestone 8 done if most runs
+  reach diamonds with a base.
 - Fresh Drifters with nothing, random seeds, 10 game days each (`sprint` lines), a Miner, a Builder and a Casual.
 - **Fixed before it:** `/drifter spawn` from the console put it on the world spawn's block corner, sometimes inside a
   tree, where it suffocated; it now picks the nearest open spot, and like a player it's nudged out of blocks it
