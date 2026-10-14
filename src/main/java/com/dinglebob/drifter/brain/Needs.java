@@ -16,6 +16,9 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 	/** Hunger points of carried food it wants before night (about four cooked meats). */
 	public static final int FOOD_STOCK_TARGET = 24;
 
+	/** Deep underground (below sea level, under cover) the time doesn't matter (user's rule): no shelter need there. */
+	private static final int UNDERGROUND_BELOW_SEA = -4;
+
 	public static Needs compute(DrifterEntity drifter, boolean hasGearTarget, int stage) {
 		int food = drifter.getFoodData().getFoodLevel();
 		double hunger;
@@ -43,8 +46,10 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 		long urgent = Schedule.shelterUrgent(drifter);
 		boolean dusk = time >= urgent && time < Schedule.NIGHT_START;
 		// Deep underground the time doesn't matter (user's rule, session 2): it carries on, and shelters once it's back up.
+		// (Whatever it's doing down there: found in a user's test, a mining trip's sub-steps slipped past a "while on a trip"
+		// check and it walled itself in deep underground at dusk.)
 		boolean deep = !sealedIn && com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
-			&& drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.MineTripActivity;
+			&& drifter.getBlockY() < UNDERGROUND_BELOW_SEA + drifter.level().getSeaLevel();
 		if (deep) {
 			shelter = 0.1;
 		} else if (Schedule.isNight(time) || dusk) {
