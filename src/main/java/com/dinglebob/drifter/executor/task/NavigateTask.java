@@ -671,7 +671,10 @@ public class NavigateTask extends Task {
 					return Status.RUNNING;
 				}
 
-				if (firstBlock && this.drifter.getSenses().terrain().isKnown(gapFloor) && this.hasFloor(step.to().below())) {
+				// (Once per gap: if the new plan bridges it again, stepping down doesn't work there, so it fills the hole;
+				// found in testing: it re-planned the same one-deep gap 27 times over.)
+				if (firstBlock && this.drifter.getSenses().terrain().isKnown(gapFloor) && this.hasFloor(step.to().below())
+					&& this.shallowGaps.add(step.to().immutable())) {
 					this.replan("the gap at " + step.to().toShortString() + " is only one block deep", true);
 					return Status.RUNNING;
 				}
@@ -1039,6 +1042,12 @@ public class NavigateTask extends Task {
 			new MineTask(this.drifter, cell)));
 	}
 
+	/** Over a drop, it lets go of the keys this close (horizontally) to the landing block's middle. */
+	private static final double DROP_LET_GO = 0.45;
+
+	/** One-deep gaps it already re-planned for (the next plan that bridges one fills it). */
+	private final java.util.Set<BlockPos> shallowGaps = new java.util.HashSet<>();
+
 	/** A door it opened on this walk (to close behind it). */
 	@Nullable
 	private BlockPos openedDoor;
@@ -1163,7 +1172,18 @@ public class NavigateTask extends Task {
 		}
 		// Section 10.9 pace: on a TRAVEL trip it sprints the whole way when it can. It can't when hungry (food 6 or
 		// less) and shouldn't when sneaking, bridging, near an edge or almost there.
-		boolean sprint = this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
+		// A drop of 2+ blocks: walked off, not sprinted, and no more keys once it's over the landing block (found in testing:
+		// sprinting off a 3-block drop down a hillside carried it past the landing and off the next edge).
+		boolean bigDrop = step.type() == MoveType.STEP_DOWN && step.from().getY() - step.to().getY() >= 2;
+		if (bigDrop && !this.drifter.onGround()
+			&& Vec3.atBottomCenterOf(step.to()).subtract(this.drifter.position()).horizontalDistance() < DROP_LET_GO) {
+			keys.set(VirtualKeys.Key.FORWARD, false);
+			keys.set(VirtualKeys.Key.BACK, false);
+			keys.set(VirtualKeys.Key.LEFT, false);
+			keys.set(VirtualKeys.Key.RIGHT, false);
+		}
+
+		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
 

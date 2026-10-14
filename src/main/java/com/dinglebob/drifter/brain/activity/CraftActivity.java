@@ -77,6 +77,9 @@ public class CraftActivity extends Activity {
 
 		if (!Reach.canReach(this.drifter, table)) {
 			if (this.walked) {
+				// Stood where it should reach it and still can't (behind a wall, under a block): that one's forgotten, so the
+				// next plan puts a table down where it is (found in testing: the same table failed it again and again).
+				Stations.giveUp(this.drifter, Blocks.CRAFTING_TABLE, table);
 				return this.fail("can't get within reach of the crafting table");
 			}
 

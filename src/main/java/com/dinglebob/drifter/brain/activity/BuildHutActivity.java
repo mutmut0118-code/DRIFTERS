@@ -52,6 +52,8 @@ public class BuildHutActivity extends Activity {
 	private final java.util.Map<BlockPos, Integer> misses = new java.util.HashMap<>();
 	/** Cells it has given up on for this visit (two misses, or a dig it already tried). */
 	protected final Set<BlockPos> failed = new HashSet<>();
+	/** Cells it has broken something out of to build there (once each). */
+	private final Set<BlockPos> clearedOnce = new HashSet<>();
 	@Nullable
 	protected BlockPos placing;
 	/** Missed once in this pass: skipped until the next pass of the same list. */
@@ -449,6 +451,13 @@ public class BuildHutActivity extends Activity {
 		for (BlockPos cell : cells) {
 			if (StarterHut.filled(level, cell) || this.failed.contains(cell)) {
 				continue;
+			}
+
+			// Something in the way that a block can't go over (sugar cane, a sapling, a torch): broken first, as a player does
+			// (found in testing: "that spot is already taken", sixteen times over).
+			BlockState there = level.getBlockState(cell);
+			if (!there.isAir() && !there.canBeReplaced() && this.clearable(level, cell) && this.reach(cell) && this.clearedOnce.add(cell)) {
+				return this.begin(this.dig(cell));
 			}
 
 			if (this.retryLater.contains(cell)) {

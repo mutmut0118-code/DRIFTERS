@@ -378,7 +378,9 @@ public class DrifterEntity extends PathfinderMob {
 	/** Holds keys for a number of ticks, then releases them all. Ticks of -1 hold until changed. */
 	/** Debug: with thoughts going to the log, traces the next 10 s after something went wrong (stuck, out of air). */
 	public void autoTrace() {
-		if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0 && this.autoTraces++ < MAX_AUTO_TRACES) {
+		long now = this.level().getGameTime();
+		if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0 && now - this.lastAutoTrace >= AUTO_TRACE_GAP) {
+			this.lastAutoTrace = now;
 			// The run-up too: the black box has the last few seconds.
 			com.dinglebob.drifter.Drifter.LOGGER.info("[auto trace] the last {} ticks:", Math.min(60, this.blackBox.size()));
 			this.blackBox.stream().skip(Math.max(0, this.blackBox.size() - 60)).forEach(com.dinglebob.drifter.Drifter.LOGGER::info);
@@ -386,8 +388,9 @@ public class DrifterEntity extends PathfinderMob {
 		}
 	}
 
-	private int autoTraces;
-	private static final int MAX_AUTO_TRACES = 6;
+	private long lastAutoTrace = Long.MIN_VALUE / 2;
+	/** At most one automatic trace this often (2 minutes), so a loop doesn't fill the log. */
+	private static final long AUTO_TRACE_GAP = 20 * 120;
 
 	/** Logs a line per tick for this many ticks (debug: /drifter trace). */
 	public void trace(int ticks) {

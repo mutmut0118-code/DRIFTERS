@@ -222,8 +222,11 @@ public final class Goals {
 	/** Hunt and cook: keep enough food on it (section 10.5; stage 3 "2 to 4 animals of food"). Raw chicken isn't on the
 	 * "raw meat" list: it makes you sick, so it doesn't eat it (only cooked). */
 	public static final class GetFood extends PlannedGoal {
-		private static final List<Item> COOKED = List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON, Items.COOKED_CHICKEN);
-		private static final List<Item> RAW = List.of(Items.BEEF, Items.PORKCHOP, Items.MUTTON);
+		// Rabbit too (found in testing: in a snowy taiga with only rabbits about it went hungry for days), and bread from
+		// its farm's wheat.
+		private static final List<Item> COOKED = List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON, Items.COOKED_CHICKEN,
+			Items.COOKED_RABBIT, Items.BREAD);
+		private static final List<Item> RAW = List.of(Items.BEEF, Items.PORKCHOP, Items.MUTTON, Items.RABBIT);
 		/** A cooked plan dearer than this (seconds) when it's getting hungry: just get raw meat. */
 		private static final double TOO_SLOW = 400.0;
 

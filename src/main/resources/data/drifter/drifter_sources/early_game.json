@@ -18,6 +18,8 @@
 		{ "item": "minecraft:mutton", "mob": "minecraft:sheep" },
 		{ "item": "minecraft:chicken", "mob": "minecraft:chicken" },
 		{ "item": "minecraft:feather", "mob": "minecraft:chicken" },
+		{ "item": "minecraft:rabbit", "mob": "minecraft:rabbit" },
+		{ "item": "minecraft:rabbit_hide", "mob": "minecraft:rabbit" },
 		{ "item": "minecraft:white_wool", "mob": "minecraft:sheep", "color": "white" },
 		{ "item": "minecraft:orange_wool", "mob": "minecraft:sheep", "color": "orange" },
 		{ "item": "minecraft:magenta_wool", "mob": "minecraft:sheep", "color": "magenta" },

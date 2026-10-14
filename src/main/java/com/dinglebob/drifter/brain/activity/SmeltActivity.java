@@ -129,6 +129,7 @@ public class SmeltActivity extends Activity {
 
 		if (!Reach.canReach(this.drifter, furnace)) {
 			if (this.walked) {
+				Stations.giveUp(this.drifter, Blocks.FURNACE, furnace);
 				return this.fail("can't get within reach of the furnace");
 			}
 

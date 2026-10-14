@@ -15,6 +15,7 @@ import com.dinglebob.drifter.executor.task.CollectItemsTask;
 import com.dinglebob.drifter.executor.task.NavigateTask;
 import com.dinglebob.drifter.executor.task.SequenceTask;
 import com.dinglebob.drifter.hands.Reach;
+import com.dinglebob.drifter.hands.Tools;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -102,6 +103,18 @@ public class GatherActivity extends Activity {
 
 	@Override
 	protected void stepDone(Task step, Status status) {
+		// A block it couldn't hit from where it stood: leaves in the way get broken (a player clears them to get at the
+		// trunk); a second miss leaves that block alone for a while (found in testing: the same log failed it for days).
+		if (status == Status.FAILURE && this.digging != null && step.failureReason() != null && step.failureReason().contains("can't see or reach")) {
+			BlockPos missed = this.digging;
+			if (!this.missedOnce.add(missed)) {
+				this.blacklist().add(missed, this.now());
+			} else {
+				this.leavesInTheWay = this.leavesBetween(missed);
+			}
+		}
+
+		this.digging = null;
 		if (status == Status.FAILURE && step instanceof NavigateTask && this.walkedTo != null) {
 			this.blacklist().add(this.walkedTo, this.now());
 			this.walkedTo = null;
@@ -154,10 +167,28 @@ public class GatherActivity extends Activity {
 			.filter(pos -> Reach.canReach(this.drifter, pos))
 			.min((a, b) -> this.lowestFirst && a.getY() != b.getY() ? Integer.compare(a.getY(), b.getY())
 				: Double.compare(a.distToCenterSqr(this.drifter.position()), b.distToCenterSqr(this.drifter.position())));
+		if (this.leavesInTheWay != null) {
+			BlockPos leaves = this.leavesInTheWay;
+			this.leavesInTheWay = null;
+			if (Reach.canReach(this.drifter, leaves)) {
+				return this.begin(this.dig(leaves));
+			}
+		}
+
 		if (inReach.isPresent()) {
 			this.turnsInARow = 0;
 			this.collectNext = true;
+			this.digging = inReach.get();
 			return this.begin(this.dig(inReach.get()));
+		}
+
+		// Up on a pillar it built for a tall tree, nothing more in reach: back down, digging out its own pillar.
+		if (this.pillarBase != null) {
+			if (feet.getY() > this.pillarBase.getY() && Tools.BUILDING_BLOCK.test(new ItemStack(level.getBlockState(below).getBlock().asItem()))) {
+				return this.begin(this.dig(below));
+			}
+
+			this.pillarBase = null;
 		}
 
 		int searched = 0;
@@ -176,6 +207,26 @@ public class GatherActivity extends Activity {
 				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk to the " + this.label));
 			}
 
+			// A log too high to reach from the ground (tall spruce, jungle trees): pillar up beside the trunk, as players do
+			// (found in testing: in a spruce forest it cut the bottom logs of every tree and then had no wood for days).
+			if (this.lowestFirst && level.getBlockState(target).is(net.minecraft.tags.BlockTags.LOGS) && this.pillars < MAX_PILLARS
+				&& Tools.buildingBlockCount(this.drifter) >= MAX_PILLAR) {
+				BlockPos base = this.pillarSpot(level, target);
+				if (base != null) {
+					if (!feet.equals(base)) {
+						if (this.pillarWalks++ < 3) {
+							return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(base), 0.3, "walk to the trunk"));
+						}
+					} else {
+						this.pillars++;
+						this.pillarWalks = 0;
+						this.pillarBase = base;
+						int height = Math.max(1, Math.min(MAX_PILLAR, target.getY() - base.getY() - 3));
+						return this.begin(new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, height));
+					}
+				}
+			}
+
 			this.blacklist().add(target, this.now());
 		}
 
@@ -184,6 +235,68 @@ public class GatherActivity extends Activity {
 		}
 
 		return this.fail("doesn't know where to find any " + this.label);
+	}
+
+	/** The block it's digging now, blocks it missed once, and leaves to break that were in the way. */
+	@Nullable
+	private BlockPos digging;
+	private final Set<BlockPos> missedOnce = new HashSet<>();
+	@Nullable
+	private BlockPos leavesInTheWay;
+
+	/** The first leaves block on the line from its eyes to this block's middle, or null. */
+	@Nullable
+	private BlockPos leavesBetween(BlockPos target) {
+		var hit = this.drifter.level().clip(new net.minecraft.world.level.ClipContext(this.drifter.getEyePosition(), Vec3.atCenterOf(target),
+			net.minecraft.world.level.ClipContext.Block.OUTLINE, net.minecraft.world.level.ClipContext.Fluid.NONE, this.drifter));
+		if (hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK || hit.getBlockPos().equals(target)) {
+			return null;
+		}
+
+		return this.drifter.level().getBlockState(hit.getBlockPos()).is(net.minecraft.tags.BlockTags.LEAVES) ? hit.getBlockPos().immutable() : null;
+	}
+
+	/** Highest it pillars up for a log, and how many pillars per gathering trip. */
+	private static final int MAX_PILLAR = 6;
+	private static final int MAX_PILLARS = 4;
+	private int pillars;
+	private int pillarWalks;
+	/** Where its pillar for a tall tree stands (it digs back down to here), or null. */
+	@Nullable
+	private BlockPos pillarBase;
+
+	/**
+	 * Ground right beside the trunk under a high log, with open air above it up to the log's height, low enough that a
+	 * short pillar brings the log within reach. Null if there's none.
+	 */
+	@Nullable
+	private BlockPos pillarSpot(Level level, BlockPos log) {
+		BlockPos best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			BlockPos column = log.relative(side);
+			for (int down = 3; down <= 3 + MAX_PILLAR; down++) {
+				BlockPos ground = column.below(down);
+				if (!KnownBlocks.isStandable(level, ground) || !this.drifter.getSenses().terrain().isKnown(ground.below())) {
+					continue;
+				}
+
+				boolean open = true;
+				for (int up = 0; up < down + 1 && open; up++) {
+					open = level.getBlockState(ground.above(up)).getCollisionShape(level, ground.above(up)).isEmpty()
+						&& level.getFluidState(ground.above(up)).isEmpty();
+				}
+
+				if (open && ground.distSqr(this.drifter.blockPosition()) < bestDistance) {
+					bestDistance = ground.distSqr(this.drifter.blockPosition());
+					best = ground.immutable();
+				}
+
+				break;
+			}
+		}
+
+		return best;
 	}
 
 	/** Below its feet, in its own column or right beside it: digging there just makes a pit to fall into. */

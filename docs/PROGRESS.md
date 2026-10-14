@@ -806,6 +806,22 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Fixed before it:** `/drifter spawn` from the console put it on the world spawn's block corner, sometimes inside a
   tree, where it suffocated; it now picks the nearest open spot, and like a player it's nudged out of blocks it
   overlaps (`LocalPlayer#moveTowardsClosestSpace`). With thoughts logged, a walk that ends "stuck" traces itself.
+- **Found in the first 10-day runs (fixed):**
+  - A furnace job with nothing to take pulled it back to the furnace 37 times (it now looks inside first).
+  - It froze to death in powder snow (now off-limits without leather boots; a reflex breaks its way out).
+  - The house needed a perfectly flat 9x9 it had seen; it now takes slightly bumpy ground and levels it.
+  - A one-block-deep gap in its path made it re-plan the same bridge forever (27 times in one run).
+  - In a snowy taiga with only rabbits about it went hungry for days: rabbits are now food (and bread from its wheat).
+  - In a spruce forest it cut the low logs of every tree and then had no wood: for logs out of reach it now pillars up
+    beside the trunk, cuts what it can reach, and digs its pillar back down.
+  - Walking down a hillside it sprinted off a 3-block drop and overshot the landing onto the next edge (a fatal fall):
+    on drops of 2+ it walks, and lets go of the keys over the landing block.
+  - Sugar cane (or a sapling) in a wall cell of its hut: "that spot is already taken" 16 times; it now breaks it first.
+  - A crafting table or furnace it stood next to but still couldn't reach was tried again and again; it now forgets
+    that one and puts down a new one.
+  - A log behind leaves it couldn't hit: it breaks the leaves in the way, and leaves a log alone after a second miss.
+  - The test server only kept the area round spawn loaded, so a Drifter that walked off froze (test scripts now keep
+    the area round the Drifter loaded, as a player would).
 
 ## Notes for milestone 9 (from testing)
 
