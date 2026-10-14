@@ -57,6 +57,7 @@ public final class KnownWorld {
 		Level level = drifter.level();
 		long now = level.getGameTime();
 		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
+		TreeLogs treeCheck = new TreeLogs(level);
 		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, pos -> {
 			if (!level.isLoaded(pos)) {
 				return;
@@ -64,6 +65,11 @@ public final class KnownWorld {
 
 			BlockState state = level.getBlockState(pos);
 			if (!takeable(level, pos, state, blacklist, now)) {
+				return;
+			}
+
+			// Wood only from trees: a village house's log posts aren't a tree.
+			if (state.is(net.minecraft.tags.BlockTags.LOGS) && !treeCheck.check(pos)) {
 				return;
 			}
 

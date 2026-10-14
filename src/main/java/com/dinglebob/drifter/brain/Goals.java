@@ -357,7 +357,7 @@ public final class Goals {
 
 		@Override
 		public String name(Context context) {
-			return Shelter.isSealedIn(context.drifter()) && !Schedule.isNight(context.time()) ? "climb out of the shelter" : "shelter for the night";
+			return Shelter.isSheltered(context.drifter()) && !Schedule.isNight(context.time()) ? "leave the shelter" : "shelter for the night";
 		}
 
 		@Override
@@ -576,7 +576,8 @@ public final class Goals {
 		@Override
 		public double urgency(Context context) {
 			Threats.Assessment threat = context.threat();
-			if (context.sealedIn() || !threat.decision().fights()) {
+			// Sheltered, it lets them howl outside; only something that got in and hit it gets a fight.
+			if (context.sealedIn() && !threat.recentlyHit() || !threat.decision().fights()) {
 				return 0.0;
 			}
 
@@ -603,7 +604,8 @@ public final class Goals {
 
 		@Override
 		public boolean urgent(Context context) {
-			return context.threat().urgent() && context.threat().decision().fights() && !context.sealedIn() && context.threat().main() != null;
+			return context.threat().urgent() && context.threat().decision().fights() && (!context.sealedIn() || context.threat().recentlyHit())
+				&& context.threat().main() != null;
 		}
 
 		@Override
@@ -895,6 +897,57 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Build the starter hut at home (section 11, tier 3: "days 1 to 3"), and patch it up when something knocks a hole in
+	 * it (section 11 "Repair").
+	 */
+	public static final class BuildHut extends Goal {
+		@Override
+		public String id() {
+			return "hut";
+		}
+
+		@Override
+		public String name(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			return home != null && home.hutBuilt ? "repair the hut" : "build a hut";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			if (home == null || !home.hasChest() || context.stage() < 4 || !home.near(context.drifter(), Home.STORAGE_RANGE)) {
+				return 0.0;
+			}
+
+			if (home.hutBuilt) {
+				return com.dinglebob.drifter.building.StarterHut.of(home).shellBuilt(context.drifter().level()) ? 0.0 : 0.45;
+			}
+
+			return context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD ? 0.1 : 0.55;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.BuildHutActivity(context.drifter());
+		}
+	}
+
 	/** Put on better armor or a shield the moment it has one (section 10.17, "Upgrades"). */
 	public static final class Equip extends Goal {
 		@Override
@@ -947,6 +1000,6 @@ public final class Goals {
 
 	public static List<Goal> all() {
 		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
-			new MakeRoom(), new Settle(), new Store(), new Progress(), new Wander(), new Idle());
+			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }

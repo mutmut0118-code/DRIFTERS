@@ -74,8 +74,10 @@ public final class NavView {
 	private final Level level;
 	private final TerrainKnowledge knowledge;
 	private final Map<Long, Cell> cache = new HashMap<>();
+	private final com.dinglebob.drifter.brain.TreeLogs trees;
 
 	public NavView(DrifterEntity drifter) {
+		this.trees = new com.dinglebob.drifter.brain.TreeLogs(drifter.level());
 		this.drifter = drifter;
 		this.level = drifter.level();
 		this.knowledge = drifter.getSenses().terrain();
@@ -142,12 +144,18 @@ public final class NavView {
 			}
 		}
 
-		return new Cell(Kind.SOLID, dig, falling, liquidBeside, looksBuilt(state));
+		// A log that isn't part of a tree is somebody's build (a village house post, a cabin wall).
+		boolean built = looksBuilt(state) || state.is(BlockTags.LOGS) && !this.trees.check(pos);
+		return new Cell(Kind.SOLID, dig, falling, liquidBeside, built);
 	}
 
-	/** Blocks a player can tell are part of a build just by looking at them. */
+	/**
+	 * Blocks a player can tell are part of a build just by looking at them. Cobblestone too: in a natural world it only
+	 * turns up in villages, dungeons and temples (stone drops it, but stone itself is natural).
+	 */
 	public static boolean looksBuilt(BlockState state) {
-		return state.is(BlockTags.PLANKS) || state.is(BlockTags.WOOL) || state.is(BlockTags.WOOL_CARPETS) || state.is(BlockTags.STAIRS)
+		return state.is(Blocks.COBBLESTONE) || state.is(Blocks.MOSSY_COBBLESTONE) || state.is(Blocks.COBBLED_DEEPSLATE) || state.is(Blocks.SMOOTH_STONE)
+			|| state.is(BlockTags.PLANKS) || state.is(BlockTags.WOOL) || state.is(BlockTags.WOOL_CARPETS) || state.is(BlockTags.STAIRS)
 			|| state.is(BlockTags.SLABS) || state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES) || state.is(BlockTags.WALLS)
 			|| state.is(BlockTags.DOORS) || state.is(BlockTags.TRAPDOORS) || state.is(BlockTags.BEDS) || state.is(BlockTags.STONE_BRICKS)
 			|| state.is(ConventionalBlockTags.GLASS_BLOCKS) || state.is(ConventionalBlockTags.GLASS_PANES) || state.is(Blocks.BRICKS)

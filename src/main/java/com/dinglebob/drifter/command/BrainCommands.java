@@ -33,8 +33,9 @@ public final class BrainCommands {
 			.then(Commands.literal("off").executes(ctx -> toggle(ctx, false)))
 			.then(Commands.literal("goal")
 				.then(Commands.argument("goal", StringArgumentType.word())
-					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "store", "progress", "explore", "idle"}, builder))
+					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "hut", "store", "progress", "explore", "idle"}, builder))
 					.executes(BrainCommands::force))));
+		root.then(Commands.literal("hut").executes(BrainCommands::showHut));
 		root.then(Commands.literal("home")
 			.executes(BrainCommands::showHome)
 			.then(Commands.literal("here").executes(ctx -> {
@@ -50,6 +51,64 @@ public final class BrainCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " forgot its home"), true);
 				return 1;
 			})));
+	}
+
+	/**
+	 * The hut as a little map, one layer per line from the floor up (debug): # wall or solid, . air, D door, C chest,
+	 * T table, F furnace, i torch, @ the Drifter.
+	 */
+	private static int showHut(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
+		if (home == null) {
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("No home yet")).create();
+		}
+
+		com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+		net.minecraft.world.level.Level level = drifter.level();
+		java.util.List<String> lines = new java.util.ArrayList<>();
+		lines.add(String.format(Locale.ROOT, "%s's hut at %s, door %s, %s, %d blocks missing", DrifterCommands.label(drifter),
+			hut.center.toShortString(), hut.door.getName(), home.hutBuilt ? "finished" : "not finished", hut.missingBlocks(level)));
+		int half = com.dinglebob.drifter.building.StarterHut.HALF;
+		for (int dy = -1; dy <= com.dinglebob.drifter.building.StarterHut.ROOF_LAYER; dy++) {
+			StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "y%+d:", dy));
+			for (int dz = -half; dz <= half; dz++) {
+				line.append(' ');
+				for (int dx = -half; dx <= half; dx++) {
+					net.minecraft.core.BlockPos pos = hut.center.offset(dx, dy, dz);
+					net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+					char c;
+					if (drifter.blockPosition().equals(pos)) {
+						c = '@';
+					} else if (state.getBlock() instanceof net.minecraft.world.level.block.DoorBlock) {
+						c = 'D';
+					} else if (com.dinglebob.drifter.brain.Home.isStorageBlock(state)) {
+						c = 'C';
+					} else if (state.is(net.minecraft.world.level.block.Blocks.CRAFTING_TABLE)) {
+						c = 'T';
+					} else if (state.is(net.minecraft.world.level.block.Blocks.FURNACE)) {
+						c = 'F';
+					} else if (state.is(net.minecraft.world.level.block.Blocks.TORCH) || state.is(net.minecraft.world.level.block.Blocks.WALL_TORCH)) {
+						c = 'i';
+					} else if (com.dinglebob.drifter.building.StarterHut.filled(level, pos)) {
+						c = '#';
+					} else {
+						c = '.';
+					}
+
+					line.append(c);
+				}
+			}
+
+			lines.add(line.toString());
+		}
+
+		lines.add("(each row of 5 is one z line, west to east; rows go north to south)");
+		for (String line : lines) {
+			ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		}
+
+		return 1;
 	}
 
 	private static int showHome(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

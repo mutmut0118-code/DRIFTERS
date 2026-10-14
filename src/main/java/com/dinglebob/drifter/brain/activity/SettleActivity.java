@@ -33,6 +33,7 @@ public class SettleActivity extends Activity {
 	private static final int MAX_SITE_LEGS = 8;
 	@Nullable
 	private BlockPos placing;
+	private final java.util.Set<BlockPos> tried = new java.util.HashSet<>();
 	private int placeTries;
 	private boolean walked;
 
@@ -119,6 +120,7 @@ public class SettleActivity extends Activity {
 		}
 
 		this.placing = spot;
+		this.tried.add(spot);
 		return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(Items.CHEST), "a chest"));
 	}
 
@@ -133,9 +135,29 @@ public class SettleActivity extends Activity {
 		return false;
 	}
 
-	/** A free spot two blocks off the home's middle with a sturdy floor (the hut's corner later). */
+	/**
+	 * Inside the hut-to-be: its corners (the hut is built around the chest). Failing that, a free spot a little off the
+	 * home's middle with a sturdy floor.
+	 */
 	@Nullable
 	private BlockPos chestSpot(Level level, Home home) {
+		if (home.hutDoor == null) {
+			home.hutDoor = com.dinglebob.drifter.building.StarterHut.chooseDoor(level, home.center);
+		}
+
+		for (BlockPos corner : com.dinglebob.drifter.building.StarterHut.of(home).furnitureSpots()) {
+			if (level.getBlockState(corner).canBeReplaced() && level.getFluidState(corner).isEmpty() && !nextToChest(level, corner)
+				&& level.getBlockState(corner.below()).isFaceSturdy(level, corner.below(), Direction.UP) && !corner.equals(this.drifter.blockPosition())
+				&& !this.tried.contains(corner)) {
+				return corner;
+			}
+		}
+
+		return this.offCenterSpot(level, home);
+	}
+
+	@Nullable
+	private BlockPos offCenterSpot(Level level, Home home) {
 		for (int turn = 0; turn < 4; turn++) {
 			Direction direction = Direction.from2DDataValue((this.placeTries + turn) % 4);
 			// Each extra chest goes a step further round the home's middle.

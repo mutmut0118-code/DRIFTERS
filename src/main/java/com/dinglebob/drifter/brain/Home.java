@@ -37,6 +37,11 @@ public final class Home {
 	public final BlockPos center;
 	public final ResourceLocation dimension;
 	public final long settledAt;
+	/** Its starter hut (section 11 tier 3): which side the door is on (null until it decides), and whether it's finished. */
+	@Nullable
+	public net.minecraft.core.Direction hutDoor;
+	public boolean hutBuilt;
+
 	/** Its chests, in the order it placed them, with what it last saw in each. */
 	private final Map<BlockPos, Map<Item, Integer>> chests = new LinkedHashMap<>();
 
@@ -145,6 +150,11 @@ public final class Home {
 		tag.put("Center", NbtUtils.writeBlockPos(this.center));
 		tag.putString("Dimension", this.dimension.toString());
 		tag.putLong("SettledAt", this.settledAt);
+		if (this.hutDoor != null) {
+			tag.putString("HutDoor", this.hutDoor.getName());
+		}
+
+		tag.putBoolean("HutBuilt", this.hutBuilt);
 		ListTag chests = new ListTag();
 		this.chests.forEach((pos, contents) -> {
 			CompoundTag chest = new CompoundTag();
@@ -167,6 +177,8 @@ public final class Home {
 		}
 
 		Home home = new Home(center, dimension, tag.getLong("SettledAt"));
+		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
+		home.hutBuilt = tag.getBoolean("HutBuilt");
 		ListTag chests = tag.getList("Chests", Tag.TAG_COMPOUND);
 		for (int i = 0; i < chests.size(); i++) {
 			CompoundTag chest = chests.getCompound(i);

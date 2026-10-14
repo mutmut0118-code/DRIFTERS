@@ -41,7 +41,7 @@ public class ShelterActivity extends Activity {
 	private static final int DRY_MARGIN = 2;
 
 	private enum Phase {
-		DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
+		HUT, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
 	}
 
 	/** Digging a tunnel block slower than this (seconds) isn't worth it: it turns. */
@@ -66,6 +66,8 @@ public class ShelterActivity extends Activity {
 	private int spotTries;
 	private int offGroundTicks;
 	private int dryTries;
+	private int hutTries;
+	private int doorTries;
 	/** It has walked home for the night already (or has no home to go to). */
 	private boolean wentHome;
 
@@ -79,6 +81,7 @@ public class ShelterActivity extends Activity {
 			case DIG -> "dig in for the night";
 			case BOX -> "wall itself in for the night";
 			case SEAL -> "seal the shelter";
+			case HUT -> "go into the hut for the night";
 			case WAIT -> "wait for morning in the shelter";
 			case MINE -> "mine from the shelter";
 			case RETURN -> "walk back to the shelter shaft";
@@ -97,9 +100,51 @@ public class ShelterActivity extends Activity {
 		if (tunnel != null && tunnel.contains(this.drifter.blockPosition())) {
 			// Back from a break (a meal, a fight) in its own night tunnel: carry on.
 			this.phase = Schedule.isNight(this.drifter) && !tunnel.done ? Phase.MINE : Phase.RETURN;
-		} else if (Shelter.isSealedIn(this.drifter)) {
+		} else if (Shelter.isSheltered(this.drifter)) {
 			this.phase = Phase.WAIT;
+		} else if (this.hut() != null) {
+			this.phase = Phase.HUT;
 		}
+	}
+
+	/** Its finished hut, if it has one in reach for tonight (otherwise it digs in, as before). */
+	@Nullable
+	private com.dinglebob.drifter.building.StarterHut hut() {
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE)) {
+			return null;
+		}
+
+		com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+		return hut.shellBuilt(this.drifter.level()) ? hut : null;
+	}
+
+	/** Into the hut, door shut behind it (section 18: "Dusk: heads home ... closes doors"). */
+	private Status enterHut(com.dinglebob.drifter.building.StarterHut hut) {
+		Level level = this.drifter.level();
+		if (!hut.isInside(this.drifter.blockPosition())) {
+			if (++this.hutTries > 4) {
+				this.phase = Phase.DIG;
+				this.think("can't get into the hut: digging in instead");
+				return Status.RUNNING;
+			}
+
+			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(hut.center), 0.3, "go into the hut"));
+		}
+
+		if (!Shelter.doorShut(level, hut)) {
+			if (++this.doorTries > 3) {
+				this.phase = Phase.WAIT;
+				return Status.RUNNING;
+			}
+
+			return this.begin(com.dinglebob.drifter.executor.task.UseOnBlockTask.useBlock(this.drifter, hut.doorPos(), hut.door.getOpposite(),
+				"shut the door"));
+		}
+
+		this.think("in the hut for the night");
+		this.phase = Phase.WAIT;
+		return Status.RUNNING;
 	}
 
 	@Override
@@ -107,7 +152,21 @@ public class ShelterActivity extends Activity {
 		Level level = this.drifter.level();
 		BlockPos feet = this.drifter.blockPosition();
 		switch (this.phase) {
+			case HUT -> {
+				com.dinglebob.drifter.building.StarterHut hut = this.hut();
+				if (hut == null) {
+					this.phase = Phase.DIG;
+					return Status.RUNNING;
+				}
+
+				return this.enterHut(hut);
+			}
 			case DIG -> {
+				if (this.top == null && this.hut() != null && this.hutTries == 0) {
+					this.phase = Phase.HUT;
+					return Status.RUNNING;
+				}
+
 				if (this.drifter.isInWater() || this.drifter.onClimbable()) {
 					// Can't dig in while swimming or on a ladder: get all the way onto dry land first, away from the water
 					// (found in testing: it stopped at the shore, still in the water, and gave up for the night).
@@ -168,7 +227,7 @@ public class ShelterActivity extends Activity {
 				// rim of its own hole instead of dropping in (found in review).
 				Vec3 middle = Vec3.atBottomCenterOf(this.top);
 				if (depth == 0 && (Math.abs(this.drifter.getX() - middle.x) > 0.2 || Math.abs(this.drifter.getZ() - middle.z) > 0.2)) {
-					return this.begin(new CenterOnBlockTask(this.drifter, middle));
+					return this.begin(new com.dinglebob.drifter.executor.task.CenterOnBlockTask(this.drifter, middle));
 				}
 
 				// Grass, a flower or a snow layer where it stands is in the way of its crosshair (found in testing: it
@@ -238,6 +297,14 @@ public class ShelterActivity extends Activity {
 				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(tunnel.shaftBottom), 0.3, "walk back to the shaft"));
 			}
 			case EXIT -> {
+				// Morning in the hut: it walks out (the door opens on the way).
+				com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+				if (home != null && home.hutBuilt && com.dinglebob.drifter.building.StarterHut.of(home).isInside(feet)) {
+					com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+					this.phase = Phase.DONE;
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(hut.doorPos().relative(hut.door, 2)), 0.8, "walk out of the hut"));
+				}
+
 				if (this.boxedAtSurface(feet)) {
 					// Walled in at ground level: break out through one wall (head first, then feet), toward dry ground.
 					for (Direction direction : Direction.Plane.HORIZONTAL) {
@@ -602,44 +669,6 @@ public class ShelterActivity extends Activity {
 		return open >= 2;
 	}
 
-	/** Shuffles to the middle of the block it stands on, slowly (sneaking), with the movement keys. */
-	private static final class CenterOnBlockTask extends com.dinglebob.drifter.executor.Task {
-		private final Vec3 middle;
-
-		CenterOnBlockTask(DrifterEntity drifter, Vec3 middle) {
-			super(drifter);
-			this.middle = middle;
-		}
-
-		@Override
-		public String describe() {
-			return "step to the middle of the block";
-		}
-
-		@Override
-		protected int timeoutTicks() {
-			return 20 * 3;
-		}
-
-		@Override
-		protected Status onTick() {
-			if (Math.abs(this.drifter.getX() - this.middle.x) <= 0.15 && Math.abs(this.drifter.getZ() - this.middle.z) <= 0.15) {
-				com.dinglebob.drifter.motor.Steering.stopMoving(this.drifter);
-				this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, false);
-				return Status.SUCCESS;
-			}
-
-			this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, true);
-			com.dinglebob.drifter.motor.Steering.pressToward(this.drifter, this.middle);
-			return Status.RUNNING;
-		}
-
-		@Override
-		protected void onStop() {
-			com.dinglebob.drifter.motor.Steering.stopMoving(this.drifter);
-			this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, false);
-		}
-	}
 
 	/** Dirt, stone and the like: no sand or gravel (it would pour in), no fluids beside it, quick enough to dig. */
 	private boolean diggable(Level level, BlockPos pos) {

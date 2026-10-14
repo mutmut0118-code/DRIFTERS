@@ -154,7 +154,7 @@ public final class MoodState {
 		}
 
 		Goals.Goal goal = drifter.getDrifterBrain().currentGoal();
-		boolean idle = goal == null || "idle".equals(goal.id()) || "shelter".equals(goal.id()) && com.dinglebob.drifter.brain.Shelter.isSealedIn(drifter);
+		boolean idle = goal == null || "idle".equals(goal.id()) || "shelter".equals(goal.id()) && com.dinglebob.drifter.brain.Shelter.isSheltered(drifter);
 		if (now - this.lastNovelty > BORED_AFTER_TICKS || idle) {
 			// Impatient types get bored quicker.
 			double rate = (idle ? 0.012 : 0.003) * (1.5 - personality.base(Trait.PATIENCE));

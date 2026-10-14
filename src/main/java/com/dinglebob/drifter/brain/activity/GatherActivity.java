@@ -105,9 +105,11 @@ public class GatherActivity extends Activity {
 		BlockPos below = feet.below();
 		// Not the block it stands on, nor (when digging down) the next stair it will stand on.
 		BlockPos nextStair = this.stairDirection == null ? null : feet.relative(this.stairDirection).below();
+		com.dinglebob.drifter.brain.TreeLogs trees = new com.dinglebob.drifter.brain.TreeLogs(level);
 		List<BlockPos> candidates = KnownBlocks.find(this.drifter, SEARCH_RADIUS, this.blocks, MAX_CANDIDATES * 4).stream()
 			.filter(pos -> !pos.equals(below) && !pos.equals(nextStair) && (this.lowestFirst || !underfoot(pos, feet))
-				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos))
+				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos)
+				&& (!level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) || trees.check(pos)))
 			.limit(MAX_CANDIDATES)
 			.toList();
 

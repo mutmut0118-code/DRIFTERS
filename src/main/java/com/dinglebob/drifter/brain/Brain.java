@@ -249,7 +249,7 @@ public class Brain {
 		});
 		Needs needs = Needs.compute(this.drifter, target != null, stage);
 		return new Goals.Context(this.drifter, world, needs, stage, target, Schedule.believedTime(this.drifter), Threats.assess(this.drifter),
-			Shelter.isSealedIn(this.drifter));
+			Shelter.isSheltered(this.drifter));
 	}
 
 	private void decide() {

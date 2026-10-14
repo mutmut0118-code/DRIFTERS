@@ -513,6 +513,19 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Commands:** `/drifter home` (where, chests, fullness, what's stored), `/drifter home here` (settle on the spot),
   `/drifter home clear`, `/drifter brain goal settle|store|makeroom`.
 
+### Step 2: starter hut (IN PROGRESS, session 2; not finished)
+- Village-safe gathering (user's question): wood only from real trees (`brain/TreeLogs`: logs connected to natural
+  leaves), cobblestone only from natural stone (source table), logs that aren't trees and cobblestone count as
+  "somebody's build" for pathing. Tested: it chopped the tree and left a bare log post standing.
+- Hut (`building/StarterHut`, `brain/activity/BuildHutActivity`, `executor/task/PillarUpTask`, `CenterOnBlockTask`):
+  5x5, walls 2 high, 5x5 flat roof, door, chest/table/furnace/torch inside; built from inside, roof from a one-block
+  pillar in the middle, middle roof block last from the floor; blocks it misses get a second try from a spot where it
+  can see a face. Goal "build a hut" (stage 4). At night, a finished hut is used instead of digging in (go in, shut
+  the door, walk out in the morning); sheltered in the hut it only fights something that got in and hit it.
+- `/drifter hut` prints the hut as a layer map. Last test (flat world): everything built except 2 roof blocks; just
+  added a retry of missed roof blocks from the floor (built, NOT yet tested). Next: re-run the hut test
+  (scratchpad script recreated from TESTING notes), then night-in-hut test, then docs/TESTING for step 2.
+
 ## Notes for milestone 9 (from testing)
 
 - **User expectation (session 2):** punching a PvP Sweat Drifter should turn into a real pursuit. Today any Drifter
