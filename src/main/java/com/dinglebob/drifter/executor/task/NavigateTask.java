@@ -1295,6 +1295,15 @@ public class NavigateTask extends Task {
 				}
 			}
 
+			// A sprint-jump can carry it a block or two past where it lands: no deep drop within two blocks ahead along the
+			// way either (found in a user's test: hopping down a hillside it sailed past a step and off a cliff, 28 blocks).
+			int ax = Integer.signum(to.getX() - from.getX());
+			int az = Integer.signum(to.getZ() - from.getZ());
+			if ((ax != 0 || az != 0) && (this.isDeepDrop(to.offset(ax, 0, az)) || this.isDeepDrop(to.offset(ax * 2, 0, az * 2))
+				|| this.isDeepDrop(to.offset(ax, -1, az)) || this.isDeepDrop(to.offset(ax * 2, -1, az * 2)))) {
+				return false;
+			}
+
 			if (this.cramped(to)) {
 				return false;
 			}
