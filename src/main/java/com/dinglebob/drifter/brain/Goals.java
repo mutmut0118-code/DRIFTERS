@@ -669,6 +669,7 @@ public final class Goals {
 				&& com.dinglebob.drifter.brain.activity.FarmActivity.nearestWater(context.drifter(), 24) != null;
 			if (home == null || !home.hasChest() || !home.near(context.drifter(), Schedule.GO_HOME_RANGE)
 				|| !bucket && home.farm == null && !byWater
+				|| home.farm == null && context.drifter().level().getGameTime() - home.farmFailedAt < 20L * 60 * 10
 				|| context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD) {
 				return 0.0;
 			}

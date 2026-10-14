@@ -56,6 +56,8 @@ public class GatherActivity extends Activity {
 	private int stairSteps;
 	private boolean collectNext;
 	private final Set<BlockPos> badSpots = new HashSet<>();
+	/** Blocks it walked over to have a look at (once each) before giving up on them. */
+	private final Set<BlockPos> approached = new HashSet<>();
 
 	public GatherActivity(DrifterEntity drifter, String label, Predicate<BlockState> blocks, Predicate<ItemStack> items, int wanted, boolean digDown,
 		boolean lowestFirst) {
@@ -235,6 +237,12 @@ public class GatherActivity extends Activity {
 						return this.begin(new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, height));
 					}
 				}
+			}
+
+			// No spot it knows of to stand by it yet (the ground round it unseen, just after arriving): it walks over to look
+			// once before giving up on it (found in testing: right after spawning it wrote off the trees in sight).
+			if (this.approached.add(target) && target.distSqr(feet) > 4 * 4) {
+				return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(target), 3.0, "walk over to the " + this.label));
 			}
 
 			this.blacklist().add(target, this.now());

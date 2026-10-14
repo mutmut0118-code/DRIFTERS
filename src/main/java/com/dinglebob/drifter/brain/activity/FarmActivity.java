@@ -46,7 +46,7 @@ public class FarmActivity extends Activity {
 	/** How far from home it looks for a plot. */
 	private static final int[] DISTANCES = {8, 10, 12, 15, 18, 22};
 	/** Good cells (of 80) a plot needs: real ground is rarely perfect, and it tills what fits (found in testing). */
-	private static final int MIN_GOOD = 30;
+	private static final int MIN_GOOD = 20;
 	/** Blocks of a patch it must have seen for it to count (it looked at it). */
 	private static final int MIN_SEEN = 6;
 	/** Seeds it gathers at once when it has none. */
@@ -122,6 +122,7 @@ public class FarmActivity extends Activity {
 			}
 
 			if (plot == null) {
+				home.farmFailedAt = level.getGameTime();
 				return this.fail("no flat ground near home for a farm (best patch " + lastBestScore + "/80 good)");
 			}
 

@@ -51,6 +51,25 @@ public class PlaceStationActivity extends Activity {
 		}
 	}
 
+	private int digsDown;
+	private static final int MAX_DIG_DOWN = 8;
+
+	/** Standing on a lone column: a building block underfoot with nothing to stand on beside it. */
+	private boolean onPillar(BlockPos below) {
+		var level = this.drifter.level();
+		if (!com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(level.getBlockState(below).getBlock().asItem()))) {
+			return false;
+		}
+
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			if (!level.getBlockState(below.relative(side)).getCollisionShape(level, below.relative(side)).isEmpty()) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	@Override
 	protected Status next() {
 		if (this.placed) {
@@ -59,6 +78,13 @@ public class PlaceStationActivity extends Activity {
 
 		Optional<BlockPos> spot = KnownBlocks.placementSpotNear(this.drifter, this.tried);
 		if (spot.isEmpty()) {
+			// Up on a pillar (it built one to reach something): down first, digging out its own blocks (found in testing:
+			// "no free spot" for a crafting table on top of the pillar it had built to reach a tree).
+			BlockPos below = this.drifter.blockPosition().below();
+			if (this.digsDown++ < MAX_DIG_DOWN && this.onPillar(below)) {
+				return this.begin(this.dig(below));
+			}
+
 			return this.fail("no free spot next to it for the " + this.label);
 		}
 
