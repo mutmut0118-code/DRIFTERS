@@ -124,6 +124,8 @@ public class PathSearch {
 	private final int maxDrop;
 	/** Moves in a row under water it plans: none for a while after it nearly drowned, unless it's under water now. */
 	private final int maxUnderwater;
+	/** Its head is under water already (it may swim under to get out). */
+	private final boolean startUnderwater;
 	/** Highest drop into water it plans (its bravery). */
 	private final int waterDrop;
 	private final PriorityQueue<Node> open = new PriorityQueue<>((a, b) -> Double.compare(a.f, b.f));
@@ -155,6 +157,7 @@ public class PathSearch {
 		// Low on air already: no more moves with its head under (found in testing: at 40% air in a flooded cave its route still
 		// went deeper, and it drowned).
 		boolean lowOnAir = drifter.getAirSupply() < drifter.getMaxAirSupply() * 0.6;
+		this.startUnderwater = drifter.isEyeInFluid(net.minecraft.tags.FluidTags.WATER);
 		this.maxUnderwater = lowOnAir || drifter.recentlyOutOfAir() && !drifter.isEyeInFluid(net.minecraft.tags.FluidTags.WATER) ? 0 : MAX_UNDERWATER;
 		// Water stops all fall damage, from any height: brave ones jump into water they can see from high up (a cave
 		// with a pool at the bottom), careful ones only short drops (user's question in session 2).
@@ -573,6 +576,12 @@ public class PathSearch {
 		// testing: it drowned under a ceiling at night).
 		int underwater = this.headUnder(to) ? from.underwater + 1 : 0;
 		if (underwater > this.maxUnderwater) {
+			return;
+		}
+
+		// Underground (no open sky over the water), never a move with its head under, unless it's under already and getting
+		// out: a flooded cave passage can go on further than it can see (found in testing: the main cause of death left).
+		if (underwater > 0 && !this.startUnderwater && !this.drifter.level().canSeeSky(to.above())) {
 			return;
 		}
 
