@@ -637,8 +637,23 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   pickaxe; caver: caving trips into real caves, iron pickaxe day 4; neither died.
 - **Testing speed:** `tools/smoke.py` has a `sprint <ticks>` line (`/tick sprint`, as fast as the machine runs, then
   waits for "Sprint completed"): 5 game days take about 2 minutes (user's idea).
-- **Known, next:** water underground: it can't always plug water it breaks into ("no block face") and drowned once when
-  a branch tunnel flooded; a player would back out of a flooding tunnel. Cavers find iron slower than strip miners.
+- **Underground water and suffocation (session 2, from sprint runs):** it remembers where its head was last in air and,
+  with no air it can swim to nearby, swims back there (staged test: a flooded tunnel, it swam 8 blocks back unhurt);
+  the out-of-air reflex fires at half air and only heads for air it can actually swim into (over or beside the water,
+  not a sealed pocket); after nearly drowning it plans no underwater routes for two minutes, and two scares in a minute
+  make "get out of the water" an urgent goal (it had kept going back under for what it was doing). Stuck with its head
+  in a block (falling sand), it can always dig that block out (the crosshair is on it from inside, as for a player;
+  it had suffocated "unable to see" it). Water it can't plug when a step breaks into it: it fills its own step back in
+  and turns (staged test: works). Also: a block is never placed where its own body is ("it's standing in the way"), and
+  the fallback chest spot is never in the hut's middle, walls or door (jumping off a chest there to roof the hut opened
+  the chest instead of placing a block).
+- **Debug:** `/drifter tunnel <length> [targetY]` digs one test tunnel (level, or stairs down to a height) with the
+  mining digger, for staged tests.
+- **Results after these fixes** (5 game days each, the user's seed): 6 of the last 6 runs survived; caver: hut, iron
+  pickaxe day 1, bucket, shield, chestplate; strip miner: hut, iron pickaxe, bucket, shield on day 1, chestplate day 2,
+  leggings by day 4. Some runs still get no iron when home is ringed by water and caves (it tries other sides).
+- **Known, next:** standing in water by home at night it sometimes can't find a way onto dry land for hours ("couldn't
+  get onto dry land: stuck"); cavers are still a little slower to iron than strip miners on average.
 - **Known:** the starter hut's own pillar step sometimes can't place under itself ("can't get up to put the roof on"),
   now with a detailed reason in the thought log to find out why; a cave found by breaking in sometimes yields nothing to
   explore (it now looks around first).

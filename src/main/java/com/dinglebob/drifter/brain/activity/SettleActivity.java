@@ -121,8 +121,20 @@ public class SettleActivity extends Activity {
 
 		BlockPos spot = this.placeTries++ > 6 ? null : this.chestSpot(level, home);
 		if (spot == null) {
-			// Any free floor right next to it will do.
-			spot = KnownBlocks.placementSpotNear(this.drifter, this.tried).orElse(null);
+			// Any free floor right next to it will do, but not where the hut goes: its walls, door, or the middle (found in
+			// testing: a chest in the middle of the hut, and jumping off it to put the roof on opened the chest instead).
+			java.util.Set<BlockPos> notHere = new java.util.HashSet<>(this.tried);
+			com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+			java.util.List<BlockPos> corners = hut.furnitureSpots();
+			for (BlockPos cell : hut.inside()) {
+				if (!corners.contains(cell)) {
+					notHere.add(cell);
+				}
+			}
+
+			notHere.addAll(hut.wallLayer(0));
+			notHere.add(hut.doorPos());
+			spot = KnownBlocks.placementSpotNear(this.drifter, notHere).orElse(null);
 		}
 
 		if (spot == null) {

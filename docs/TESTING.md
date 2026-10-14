@@ -849,6 +849,9 @@ Quick setup (skips the early game): `/drifter spawn Digger`, then give it `minec
 - [ ] **Looting (new):** in a dungeon (mossy cobblestone room with a spawner) it breaks the spawner and takes what's
       useful from the chests; in a mineshaft it loots the chest minecarts ("looting a chest minecart"). It never loots
       its own chests or chests above ground.
+- [ ] **Flooding:** if water gets into its tunnel, it swims back to where it last had air instead of drowning; after a
+      scare it gets out of the water ("nearly drowned: getting out of the water") and doesn't dive straight back in.
+      Drop sand on its head in a tunnel: it digs itself out.
 - [ ] **Water:** a brave Drifter jumps into a pool from high up (water stops fall damage); a careful one finds another
       way down. Under water with something overhead, it heads for air and doesn't plan long swims under water.
 - Handy for long watches: `/drifter thoughts log true` writes every thought into the game log as it happens
