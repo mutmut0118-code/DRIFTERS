@@ -46,11 +46,17 @@ public class StoreActivity extends Activity {
 		return 20 * 60 * 3;
 	}
 
+	private boolean unreachable;
+
 	@Override
 	protected void stepDone(Task step, Status status) {
 		if (step instanceof ContainerTask) {
 			if (status == Status.SUCCESS) {
 				this.stored = true;
+			} else if (step.failureReason() != null && !step.failureReason().contains("no room")) {
+				// Couldn't get at it (out of view, blocked): that's not the same as full (found in testing: it built chest
+				// after chest, or tried to, because one it couldn't see counted as full).
+				this.unreachable = true;
 			}
 
 			// Done with this chest either way (full, or it took everything): the next pass picks another if needed.
@@ -80,6 +86,10 @@ public class StoreActivity extends Activity {
 		if (this.chest == null) {
 			this.chest = home.chests().stream().filter(pos -> !this.tried.contains(pos)).findFirst().orElse(null);
 			if (this.chest == null) {
+				if (this.unreachable) {
+					return this.stored ? Status.SUCCESS : this.fail("couldn't get at its chest");
+				}
+
 				this.drifter.getDrifterBrain().noteStorageFull();
 				return this.stored ? Status.SUCCESS : this.fail("its chests are full");
 			}
@@ -90,6 +100,7 @@ public class StoreActivity extends Activity {
 			if (spot == null) {
 				this.tried.add(this.chest);
 				this.chest = null;
+				this.unreachable = true;
 				return Status.RUNNING;
 			}
 

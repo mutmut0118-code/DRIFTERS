@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.Food;
 import com.dinglebob.drifter.brain.Home;
+import com.dinglebob.drifter.brain.KnownBlocks;
 import com.dinglebob.drifter.brain.Schedule;
 import com.dinglebob.drifter.brain.Storage;
 import com.dinglebob.drifter.brain.mining.Caver;
@@ -593,7 +594,7 @@ public class MineTripActivity extends Activity {
 	private BlockPos rememberedOre(double range) {
 		ResourceLocation dimension = this.drifter.level().dimension().location();
 		MemoryEntry entry = this.drifter.getMemory().nearest(MemoryKind.ORE, dimension, this.drifter.position(), range, e -> {
-			if (this.wentFor.contains(e.blockPos())) {
+			if (this.wentFor.contains(e.blockPos()) || KnownBlocks.underWater(this.drifter.level(), e.blockPos())) {
 				return false;
 			}
 

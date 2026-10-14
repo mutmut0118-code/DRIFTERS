@@ -65,6 +65,17 @@ public final class KnownBlocks {
 		return note == null || note.kind() != MemoryKind.STATION && note.kind() != MemoryKind.STORAGE;
 	}
 
+	/** Water touching it (ore at the bottom of a lake): not worth diving for (found in testing: it drowned going for it). */
+	public static boolean underWater(Level level, BlockPos pos) {
+		for (Direction direction : Direction.values()) {
+			if (level.getFluidState(pos.relative(direction)).is(net.minecraft.tags.FluidTags.WATER)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** A spot a player could stand on: sturdy floor, two blocks of open space, no fluid. */
 	public static boolean isStandable(Level level, BlockPos pos) {
 		BlockPos below = pos.below();

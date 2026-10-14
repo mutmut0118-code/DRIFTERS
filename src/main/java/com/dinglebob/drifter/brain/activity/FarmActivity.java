@@ -44,7 +44,11 @@ public class FarmActivity extends Activity {
 	/** The plot reaches this far from its middle (9x9). */
 	public static final int RADIUS = 4;
 	/** How far from home it looks for a plot. */
-	private static final int[] DISTANCES = {9, 11, 13};
+	private static final int[] DISTANCES = {8, 10, 12, 15, 18, 22};
+	/** Good cells (of 80) a plot needs: real ground is rarely perfect, and it tills what fits (found in testing). */
+	private static final int MIN_GOOD = 30;
+	/** Blocks of a patch it must have seen for it to count (it looked at it). */
+	private static final int MIN_SEEN = 6;
 	/** Seeds it gathers at once when it has none. */
 	private static final int SEED_BATCH = 16;
 	/** Steps per visit at most (it comes back for the rest). */
@@ -52,6 +56,9 @@ public class FarmActivity extends Activity {
 
 	private int steps;
 	private int walksToWater;
+	private int looks;
+	/** Debug: the best plot score the last search found. */
+	private static int lastBestScore;
 	private int harvested;
 	private final Set<BlockPos> skipped = new java.util.HashSet<>();
 	private final Set<BlockPos> walkedTo = new java.util.HashSet<>();
@@ -86,8 +93,28 @@ public class FarmActivity extends Activity {
 
 		if (home.farm == null) {
 			BlockPos plot = choosePlot(this.drifter, home);
+			// It looks round home first (days underground push the ground at home out of its memory, found in testing),
+			// then walks a little way out each side and looks again.
+			if (plot == null && this.looks < 5) {
+				this.looks++;
+				if (this.looks == 1) {
+					if (this.drifter.blockPosition().distSqr(home.center) > 6 * 6) {
+						this.looks = 0;
+						return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 3.0, "go home to plan the farm"));
+					}
+
+					return this.begin(new com.dinglebob.drifter.executor.task.LookAroundTask(this.drifter));
+				}
+
+				Direction side = Direction.from2DDataValue(this.looks);
+				BlockPos out = home.center.relative(side, 12);
+				return this.begin(new com.dinglebob.drifter.executor.task.SequenceTask(this.drifter, "look for a place for the farm", List.of(
+					new NavigateTask(this.drifter, Vec3.atBottomCenterOf(out), 4.0, "walk out to look for farmland", NavigateTask.Pace.STROLL),
+					new com.dinglebob.drifter.executor.task.LookAroundTask(this.drifter))));
+			}
+
 			if (plot == null) {
-				return this.fail("no flat ground near home for a farm");
+				return this.fail("no flat ground near home for a farm (best patch " + lastBestScore + "/80 good)");
 			}
 
 			home.farm = plot;
@@ -121,7 +148,25 @@ public class FarmActivity extends Activity {
 			return this.planFor(Items.WOODEN_HOE, 1, "a hoe");
 		}
 
-		// 4. Till the ground (grass or a flower on it first).
+		// 4. Level the plot like a player: dig the bumps off, fill the dips (and puddles) with dirt (found in testing: real
+		// ground near home was never flat enough for a farm).
+		BlockPos bump = this.first(level, home.farm, (pos, state) -> pos.getY() == home.farm.getY() - 1 && bump(level, pos));
+		if (bump != null) {
+			BlockPos top = bump.above();
+			return this.reachThen(top, () -> this.dig(top), "level the farm");
+		}
+
+		BlockPos dip = this.first(level, home.farm, (pos, state) -> pos.getY() == home.farm.getY() - 1 && dip(level, pos));
+		if (dip != null) {
+			if (this.drifter.getInventory().count(stack -> stack.is(Items.DIRT)) == 0) {
+				return this.planFor(Items.DIRT, 8, "dirt");
+			}
+
+			return this.reachThen(dip, () -> new com.dinglebob.drifter.executor.task.PlaceBlockTask(this.drifter, dip, stack -> stack.is(Items.DIRT),
+				"dirt to level the farm"), "fill the farm's dips");
+		}
+
+		// 5. Till the ground (grass or a flower on it first).
 		BlockPos till = this.first(level, home.farm, (pos, state) -> canTill(level, pos));
 		if (till != null) {
 			BlockPos above = till.above();
@@ -134,7 +179,7 @@ public class FarmActivity extends Activity {
 				new UseOnBlockTask(this.drifter, till, Direction.UP, "till " + till.toShortString()))), "till the ground");
 		}
 
-		// 5. Plant the farmland.
+		// 6. Plant the farmland.
 		BlockPos empty = this.first(level, home.farm, (pos, state) -> state.is(Blocks.FARMLAND) && level.getBlockState(pos.above()).isAir());
 		if (empty != null) {
 			if (this.drifter.getInventory().count(stack -> stack.is(Items.WHEAT_SEEDS)) == 0) {
@@ -226,6 +271,20 @@ public class FarmActivity extends Activity {
 
 			BlockPos source = nearestWater(this.drifter, 48);
 			if (source == null) {
+				// Where it remembers seeing water (its map of the area), or a look round for some (found in testing: a home
+				// with no water nearby in view, and the farm never got its water).
+				if (this.waterSearches++ < 3) {
+					BlockPos wet = this.nearestWetChunk(home(this.drifter));
+					if (wet != null) {
+						this.think("going to fetch water for the farm");
+						return this.begin(new SequenceTask(this.drifter, "go to the water", List.of(
+							new NavigateTask(this.drifter, Vec3.atBottomCenterOf(wet), 8.0, "walk to the water"),
+							new com.dinglebob.drifter.executor.task.LookAroundTask(this.drifter))));
+					}
+
+					return this.begin(new ExploreActivity(this.drifter, "looking for water", null, d -> nearestWater(d, 48) != null));
+				}
+
 				return this.fail("knows no water to fill its bucket at");
 			}
 
@@ -267,8 +326,60 @@ public class FarmActivity extends Activity {
 			new UseItemTask(this.drifter))));
 	}
 
+	private int waterSearches;
+
+	private static BlockPos home(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		return home != null ? home.center : drifter.blockPosition();
+	}
+
+	/** The middle of the nearest chunk it remembers water in (within about 6 chunks of home), at home's height, or null. */
+	@Nullable
+	private BlockPos nearestWetChunk(BlockPos around) {
+		net.minecraft.world.level.ChunkPos centre = new net.minecraft.world.level.ChunkPos(around);
+		BlockPos best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (int dx = -6; dx <= 6; dx++) {
+			for (int dz = -6; dz <= 6; dz++) {
+				com.dinglebob.drifter.memory.MentalMap.Tile tile = this.drifter.getMemory().map().get(new net.minecraft.world.level.ChunkPos(centre.x + dx, centre.z + dz));
+				if (tile == null || !tile.water) {
+					continue;
+				}
+
+				BlockPos middle = new BlockPos((centre.x + dx) * 16 + 8, around.getY(), (centre.z + dz) * 16 + 8);
+				double distance = middle.distSqr(this.drifter.blockPosition());
+				if (distance < bestDistance) {
+					bestDistance = distance;
+					best = middle;
+				}
+			}
+		}
+
+		return best;
+	}
+
 	public static boolean isWaterSource(Level level, BlockPos pos) {
 		return level.getFluidState(pos).is(FluidTags.WATER) && level.getFluidState(pos).isSource();
+	}
+
+	/** A block of ground sticking up out of the plot (the soil cell is solid ground, and so is the one above it). */
+	private static boolean bump(Level level, BlockPos soil) {
+		BlockState above = level.getBlockState(soil.above());
+		// Only a one-high bump (room above it): bigger hills aren't a farm.
+		return isGround(level.getBlockState(soil)) && isGround(above) && KnownBlocks.mayTake(level, soil.above())
+			&& level.getBlockState(soil.above(2)).getCollisionShape(level, soil.above(2)).isEmpty();
+	}
+
+	/** A hole in the plot: no ground at the soil cell (air, a plant or water), ground under it. */
+	private static boolean dip(Level level, BlockPos soil) {
+		BlockState state = level.getBlockState(soil);
+		boolean open = state.isAir() || state.canBeReplaced();
+		return open && isGround(level.getBlockState(soil.below()));
+	}
+
+	private static boolean isGround(BlockState state) {
+		return state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(Blocks.COARSE_DIRT) || state.is(Blocks.PODZOL)
+			|| state.is(Blocks.STONE) || state.is(Blocks.GRAVEL) || state.is(Blocks.SAND) || state.is(Blocks.FARMLAND);
 	}
 
 	/** Ground a hoe turns to farmland, with room above (plants it clears first). */
@@ -287,7 +398,9 @@ public class FarmActivity extends Activity {
 		BlockPos[] best = {null};
 		double[] bestDistance = {Double.MAX_VALUE};
 		drifter.getSenses().terrain().forEachKnown(feet, radius, pos -> {
-			if (isWaterSource(level, pos) && !level.getFluidState(pos.above()).is(FluidTags.WATER)) {
+			// Plain water with air over it: water with seagrass or kelp in it can't be scooped up with a bucket, nor water
+			// under another block of water (found in testing: "filling its bucket" again and again).
+			if (isWaterSource(level, pos) && level.getBlockState(pos).is(Blocks.WATER) && level.getBlockState(pos.above()).isAir()) {
 				double distance = pos.distSqr(feet);
 				if (distance < bestDistance[0]) {
 					bestDistance[0] = distance;
@@ -313,11 +426,23 @@ public class FarmActivity extends Activity {
 				BlockPos around = home.center.offset((int)Math.round(Math.cos(angle) * distance), 0, (int)Math.round(Math.sin(angle) * distance));
 				for (int dy = -2; dy <= 2; dy++) {
 					BlockPos middle = around.above(dy);
+					// It has to have looked at the patch (some of it seen); the open ground's surface is then taken in at a glance,
+					// as a player does (its sight samples are sparse, so block by block it had seen only 9-16 of 80; found in
+					// testing).
+					int seen = 0;
 					int score = 0;
 					for (BlockPos soil : cells(middle)) {
-						if (drifter.getSenses().terrain().isKnown(soil) && canTill(level, soil) && level.canSeeSky(soil.above())) {
+						if (drifter.getSenses().terrain().isKnown(soil) || drifter.getSenses().terrain().isKnown(soil.above())) {
+							seen++;
+						}
+
+						if ((canTill(level, soil) || bump(level, soil) || dip(level, soil)) && level.canSeeSky(soil.above(2))) {
 							score++;
 						}
+					}
+
+					if (seen < MIN_SEEN) {
+						continue;
 					}
 
 					if (canTill(level, middle.below()) && score > bestScore) {
@@ -332,7 +457,8 @@ public class FarmActivity extends Activity {
 			}
 		}
 
-		return bestScore >= 50 ? best : null;
+		lastBestScore = bestScore;
+		return bestScore >= MIN_GOOD ? best : null;
 	}
 
 	/** Anything to do on the farm right now (for the goal's urgency). */

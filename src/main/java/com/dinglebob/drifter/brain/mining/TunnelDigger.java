@@ -99,7 +99,10 @@ public final class TunnelDigger {
 
 	/** A missed ore (out of view from here), or a vein it couldn't step over to, isn't a failure of the job. */
 	public boolean countsAsFailure(Task step) {
-		return !this.oreStep && !this.veinWalk && !(step instanceof com.dinglebob.drifter.executor.task.CollectItemsTask);
+		// Nor a block it couldn't put somewhere (a plug, a torch, a hole in the floor): the digger turns or fills its own
+		// step back in instead (found in testing: plug failures ended whole mining trips).
+		return !this.oreStep && !this.veinWalk && !(step instanceof com.dinglebob.drifter.executor.task.CollectItemsTask)
+			&& !(step instanceof PlaceBlockTask);
 	}
 
 	/** The next step, or null when the tunnel is finished ({@link Tunnel#done}) or out of legs. */

@@ -134,7 +134,45 @@ public final class BrainCommands {
 			(int)Math.sqrt(drifter.blockPosition().distSqr(home.center)), home.chests().size(), home.chests().size() == 1 ? "" : "s",
 			home.fullness() * 100.0, stored.isEmpty() ? "" : ": " + stored)
 			+ (home.mineBottom == null ? "" : String.format(Locale.ROOT, "; mine down to %s, %d trip%s", home.mineBottom.toShortString(),
-				home.mineTrips, home.mineTrips == 1 ? "" : "s"));
+				home.mineTrips, home.mineTrips == 1 ? "" : "s"))
+			+ farmSummary(drifter, home) + penSummary(drifter, home)
+			+ (home.houseBed == null ? "" : "; lives in a village house (bed at " + home.houseBed.toShortString() + ")");
+	}
+
+	private static String farmSummary(DrifterEntity drifter, com.dinglebob.drifter.brain.Home home) {
+		if (home.farm == null) {
+			return "";
+		}
+
+		var level = drifter.level();
+		int farmland = 0;
+		int planted = 0;
+		int ripe = 0;
+		for (net.minecraft.core.BlockPos soil : com.dinglebob.drifter.brain.activity.FarmActivity.cells(home.farm)) {
+			if (level.getBlockState(soil).is(net.minecraft.world.level.block.Blocks.FARMLAND)) {
+				farmland++;
+			}
+
+			var crop = level.getBlockState(soil.above());
+			if (crop.getBlock() instanceof net.minecraft.world.level.block.CropBlock wheat) {
+				planted++;
+				if (wheat.isMaxAge(crop)) {
+					ripe++;
+				}
+			}
+		}
+
+		return String.format(Locale.ROOT, "; farm at %s: %d farmland, %d planted, %d ripe, water %s", home.farm.toShortString(), farmland, planted, ripe,
+			com.dinglebob.drifter.brain.activity.FarmActivity.isWaterSource(level, home.farm.below()) ? "yes" : "no");
+	}
+
+	private static String penSummary(DrifterEntity drifter, com.dinglebob.drifter.brain.Home home) {
+		if (home.pen == null) {
+			return "";
+		}
+
+		return String.format(Locale.ROOT, "; pen at %s with %d animals", home.pen.toShortString(),
+			com.dinglebob.drifter.brain.activity.PenActivity.animalsInside(drifter.level(), home.pen).size());
 	}
 
 	private static int toggle(CommandContext<CommandSourceStack> ctx, boolean on) throws CommandSyntaxException {
