@@ -231,6 +231,7 @@ public class DrifterEntity extends PathfinderMob {
 		this.camera = new CameraModel(this.random);
 		this.personality = com.dinglebob.drifter.personality.Personality.roll(this.random, null);
 		this.senses = new Senses(this, this.memory);
+		this.memory.thoughts().setOwner(() -> this.getName().getString());
 		this.hearingListener = new DynamicGameEventListener<>(this.senses.hearing());
 		// The Drifter is driven by virtual keys and its camera model, not by vanilla mob controls.
 		this.moveControl = new IdleMoveControl(this);

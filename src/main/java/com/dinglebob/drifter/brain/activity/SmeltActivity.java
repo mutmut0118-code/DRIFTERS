@@ -91,7 +91,9 @@ public class SmeltActivity extends Activity {
 
 	@Override
 	protected int timeoutTicks() {
-		return 20 * 60;
+		// The walk back to the furnace at home (up to 64 blocks) plus waiting for its last batch (found in testing: 60 s timed
+		// out 15 times making charcoal).
+		return 20 * 120;
 	}
 
 	@Override

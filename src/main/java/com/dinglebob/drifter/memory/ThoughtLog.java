@@ -19,6 +19,12 @@ public class ThoughtLog {
 	public static boolean echo;
 
 	private final Deque<Thought> thoughts = new ArrayDeque<>();
+	/** Whose thoughts these are (for the server log, where several Drifters' thoughts mix). */
+	private java.util.function.Supplier<String> owner = () -> "?";
+
+	public void setOwner(java.util.function.Supplier<String> owner) {
+		this.owner = owner;
+	}
 
 	public void add(long time, String text) {
 		Thought last = this.thoughts.peekLast();
@@ -28,7 +34,7 @@ public class ThoughtLog {
 
 		this.thoughts.addLast(new Thought(time, text));
 		if (echo) {
-			com.dinglebob.drifter.Drifter.LOGGER.info("[thought @{}] {}", time, text);
+			com.dinglebob.drifter.Drifter.LOGGER.info("[thought {} @{}] {}", this.owner.get(), time, text);
 		}
 
 		while (this.thoughts.size() > CAPACITY) {
