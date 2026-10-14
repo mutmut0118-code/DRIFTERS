@@ -152,7 +152,10 @@ public class PathSearch {
 		}
 
 		this.maxDrop = maxDrop;
-		this.maxUnderwater = drifter.recentlyOutOfAir() && !drifter.isEyeInFluid(net.minecraft.tags.FluidTags.WATER) ? 0 : MAX_UNDERWATER;
+		// Low on air already: no more moves with its head under (found in testing: at 40% air in a flooded cave its route still
+		// went deeper, and it drowned).
+		boolean lowOnAir = drifter.getAirSupply() < drifter.getMaxAirSupply() * 0.6;
+		this.maxUnderwater = lowOnAir || drifter.recentlyOutOfAir() && !drifter.isEyeInFluid(net.minecraft.tags.FluidTags.WATER) ? 0 : MAX_UNDERWATER;
 		// Water stops all fall damage, from any height: brave ones jump into water they can see from high up (a cave
 		// with a pool at the bottom), careful ones only short drops (user's question in session 2).
 		double bravery = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY);

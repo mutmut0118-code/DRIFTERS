@@ -436,7 +436,7 @@ public class Reflexes {
 	}
 
 	/** How far (in blocks swum) the drowning reflex looks for a way up to air. */
-	private static final int AIR_SEARCH_STEPS = 12;
+	private static final int AIR_SEARCH_STEPS = 20;
 
 	/**
 	 * The next block for its head on the shortest swim from {@code head} to air (a breadth-first search through the

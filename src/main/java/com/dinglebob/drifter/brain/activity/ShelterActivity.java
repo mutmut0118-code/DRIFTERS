@@ -550,7 +550,18 @@ public class ShelterActivity extends Activity {
 		}
 
 		int needed = this.boxCellsNeeded(this.drifter.blockPosition());
-		if (this.drifter.getInventory().count(ShelterActivity::isCoverBlock) < needed) {
+		int have = this.drifter.getInventory().count(ShelterActivity::isCoverBlock);
+		if (have < needed && this.blockRuns++ < 2) {
+			// Short of blocks: it digs some up round here first (dirt, stone), as a player would (found in testing: it failed
+			// to shelter all night, over and over, for want of a few blocks).
+			this.think("digging up some blocks to wall itself in with");
+			boolean pickaxe = this.drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PICKAXES)) > 0;
+			return this.begin(new GatherActivity(this.drifter, "blocks to wall in with",
+				state -> state.is(net.minecraft.tags.BlockTags.DIRT) || pickaxe && isGroundForBlocks(state),
+				ShelterActivity::isCoverBlock, needed + 2, false, false));
+		}
+
+		if (have < needed) {
 			return this.fail(why + ", and not enough blocks to wall itself in (needs " + needed + ")");
 		}
 
@@ -674,6 +685,14 @@ public class ShelterActivity extends Activity {
 
 	private boolean solidFloor(Level level, BlockPos pos) {
 		return !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty() && level.getFluidState(pos).isEmpty();
+	}
+
+	private int blockRuns;
+
+	/** Ground it can dig up quickly for wall blocks (with or without a pickaxe): dirt and grass, and stone with a pickaxe. */
+	private static boolean isGroundForBlocks(net.minecraft.world.level.block.state.BlockState state) {
+		return state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.world.level.block.Blocks.STONE) || state.is(net.minecraft.world.level.block.Blocks.DEEPSLATE) || state.is(net.minecraft.world.level.block.Blocks.SANDSTONE)
+			|| state.is(net.minecraft.world.level.block.Blocks.TERRACOTTA) || state.is(net.minecraft.world.level.block.Blocks.NETHERRACK);
 	}
 
 	private static boolean isCoverBlock(ItemStack stack) {
