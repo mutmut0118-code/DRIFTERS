@@ -354,6 +354,7 @@ public class Reflexes {
 	}
 
 	/** Low on air under water: swim up, or toward the nearest air. */
+	/** (Up to 30 s: mining up through a ceiling while floating takes a player about 10 s a block.) */
 	private static final class Drowning extends Reflex {
 		@Override
 		public String name() {
@@ -373,7 +374,7 @@ public class Reflexes {
 
 		@Override
 		protected int maxTicks() {
-			return 200;
+			return 600;
 		}
 
 		@Override
@@ -426,12 +427,46 @@ public class Reflexes {
 
 			if (open != null) {
 				runTo(drifter, Vec3.atCenterOf(open), true);
-			} else if (drifter.lastAir() != null && drifter.lastAir().distanceTo(drifter.position()) < 32.0) {
+				return true;
+			}
+
+			// Sealed in under a ceiling with no way to air it can swim (found in a user's test: it held jump under the rock
+			// until it drowned): it mines up through the ceiling, as a player would, with its best tool for the block.
+			BlockPos ceiling = head.above();
+			net.minecraft.world.level.block.state.BlockState rock = level.getBlockState(ceiling);
+			if (this.digUp != null) {
+				if (this.digUp.tick() != Task.Status.RUNNING) {
+					this.digUp = null;
+				}
+
+				keys.set(VirtualKeys.Key.JUMP, true);
+				return true;
+			}
+
+			if (!rock.isAir() && rock.getDestroySpeed(level, ceiling) >= 0.0F && !level.getFluidState(ceiling.above()).is(FluidTags.LAVA)
+				&& !(rock.getBlock() instanceof net.minecraft.world.level.block.FallingBlock)) {
+				this.digUp = dig(drifter, ceiling);
+				drifter.getMemory().thoughts().add(level.getGameTime(), "no air to swim to: mining up through the ceiling");
+				return true;
+			}
+
+			if (drifter.lastAir() != null && drifter.lastAir().distanceTo(drifter.position()) < 32.0) {
 				// No air in sight (a flooded tunnel): back the way it came, where it was breathing a moment ago.
 				runTo(drifter, drifter.lastAir(), true);
 			}
 
 			return true;
+		}
+
+		@Nullable
+		private Task digUp;
+
+		@Override
+		protected void stop(DrifterEntity drifter) {
+			if (this.digUp != null) {
+				this.digUp.stop();
+				this.digUp = null;
+			}
 		}
 	}
 
