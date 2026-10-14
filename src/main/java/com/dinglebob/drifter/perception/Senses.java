@@ -494,6 +494,7 @@ public class Senses {
 		this.tracked.clear();
 		this.tracked.putAll(next);
 		this.noticeItems();
+		this.noticeChestCarts();
 	}
 
 	private void updateAwareness() {
@@ -629,6 +630,21 @@ public class Senses {
 	private static String itemName(ItemStack stack) {
 		String name = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().replace('_', ' ');
 		return stack.hasFoil() ? name + " (enchanted)" : name;
+	}
+
+	/** A mineshaft's chest minecarts in view (lit or close enough to make out) go into memory, for looting. */
+	public static final String CHEST_CART = "minecraft:chest_minecart";
+
+	private void noticeChestCarts() {
+		Vec3 eye = this.drifter.getEyePosition();
+		for (net.minecraft.world.entity.vehicle.MinecartChest cart : this.level().getEntitiesOfClass(net.minecraft.world.entity.vehicle.MinecartChest.class,
+			this.drifter.getBoundingBox().inflate(ITEM_SIGHT_RANGE))) {
+			Vec3 center = cart.getBoundingBox().getCenter();
+			if (this.zoneOf(this.screenAngles(center)) == Zone.CONE && eye.distanceTo(center) <= this.blockSightRange(cart.blockPosition(), ITEM_SIGHT_RANGE)
+				&& this.lineOfSight(eye, center)) {
+				this.memory.remember(MemoryKind.STORAGE, CHEST_CART, cart.position(), this.dimension(), this.now(), MemorySource.SEEN, 0.6F, cart.getUUID());
+			}
+		}
 	}
 
 	/** Dropped items in view go into short-term memory. */

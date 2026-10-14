@@ -237,6 +237,11 @@ public final class TunnelDigger {
 			String why = this.bad(level, cell);
 			if (why != null) {
 				this.turnReason = why;
+				if (why.equals("a cave")) {
+					// A way into a cave right ahead (a caver goes in; a strip miner turns).
+					this.caveBreach = cell.immutable();
+				}
+
 				if (!leg.stairs()) {
 					this.say("the tunnel ran into " + why);
 				}
@@ -337,6 +342,26 @@ public final class TunnelDigger {
 		return true;
 	}
 
+	/** A cave it just broke into (for a caver to go and explore instead of plugging it). */
+	@Nullable
+	private BlockPos caveBreach;
+
+	/** The cave it just broke into, once (then forgotten). */
+	@Nullable
+	public BlockPos takeCaveBreach() {
+		BlockPos breach = this.caveBreach;
+		this.caveBreach = null;
+		return breach;
+	}
+
+	/** Forget the hole it meant to plug (it's going into the cave instead). */
+	public void leaveOpen() {
+		this.plug = null;
+		this.plugging = false;
+		this.refill = null;
+		this.pendingTurn = false;
+	}
+
 	/** Floor holes it has tried to fill (once each). */
 	private final java.util.Set<BlockPos> bridged = new java.util.HashSet<>();
 
@@ -420,6 +445,9 @@ public final class TunnelDigger {
 						this.plugFrom = dug;
 						this.plugging = false;
 						this.say(state.isAir() ? "broke into a cave: plugging the hole" : "hit water: plugging it");
+						if (state.isAir()) {
+							this.caveBreach = neighbor.immutable();
+						}
 					}
 
 					continue;

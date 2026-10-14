@@ -46,6 +46,8 @@ public class PathSearch {
 	public static final double SWIM = 0.5;
 	/** Extra for swimming with its head under water (air risk, section 12): it keeps to the surface. */
 	public static final double SWIM_UNDER = 0.5;
+	/** Most moves in a row under water on a planned route (about a third of a held breath's swim). */
+	public static final int MAX_UNDERWATER = 10;
 	public static final double CLIMB_UP = 0.45;
 	public static final double CLIMB_DOWN = 0.35;
 	public static final double BRIDGE = 1.4;
@@ -75,6 +77,8 @@ public class PathSearch {
 	/** Drops deeper than this count as a deep edge (edge risk, sneaking). */
 	public static final int SAFE_DROP = 3;
 	public static final int WATER_DROP = 8;
+	/** The highest drop into water the bravest will plan. */
+	public static final int BRAVE_WATER_DROP = 32;
 	/**
 	 * It takes drops onto ground that cost up to this much fall damage (2 = one heart), like a player who doesn't bother
 	 * walking round (user's rule). Deeper drops only into water.
@@ -95,6 +99,8 @@ public class PathSearch {
 		List<BlockPos> digs = List.of();
 		int unknown;
 		int blocksUsed;
+		/** Moves in a row with its head under water up to here (a held breath). */
+		int underwater;
 		boolean closed;
 
 		Node(BlockPos pos) {
@@ -114,6 +120,8 @@ public class PathSearch {
 	private final DrifterMemory memory;
 	/** Deepest drop onto ground it takes, from the player's own fall-damage attributes and its health. */
 	private final int maxDrop;
+	/** Highest drop into water it plans (its bravery). */
+	private final int waterDrop;
 	private final PriorityQueue<Node> open = new PriorityQueue<>((a, b) -> Double.compare(a.f, b.f));
 	private final Map<Long, Node> nodes = new HashMap<>();
 	private Node best;
@@ -140,6 +148,10 @@ public class PathSearch {
 		}
 
 		this.maxDrop = maxDrop;
+		// Water stops all fall damage, from any height: brave ones jump into water they can see from high up (a cave
+		// with a pool at the bottom), careful ones only short drops (user's question in session 2).
+		double bravery = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY);
+		this.waterDrop = WATER_DROP + (int)Math.round(Math.max(0.0, bravery - 0.4) / 0.6 * (BRAVE_WATER_DROP - WATER_DROP));
 		var dimension = drifter.level().dimension().location();
 		this.dangers = this.memory.find(MemoryKind.DANGER, entry -> entry.dimension.equals(dimension)
 			&& entry.pos.distanceTo(Vec3.atCenterOf(start)) <= com.dinglebob.drifter.DrifterConfig.pathRange() + DANGER_RADIUS).stream().map(entry -> entry.pos).toList();
@@ -365,7 +377,7 @@ public class PathSearch {
 	 * healthy HP; damage is part of the cost), deeper only into water. One block down may be dug out as a stair.
 	 */
 	private void tryDown(Node node, BlockPos f) {
-		for (int k = 1; k <= WATER_DROP; k++) {
+		for (int k = 1; k <= this.waterDrop; k++) {
 			BlockPos t = f.below(k);
 			Clearance c;
 			if (k == 1) {
@@ -525,6 +537,13 @@ public class PathSearch {
 			stepCost += EDGE_RISK * this.caution * 2.0;
 		}
 
+		// A held breath lasts about 15 s: no route with a longer swim under water than that, with a margin (found in
+		// testing: it drowned under a ceiling at night).
+		int underwater = this.view.isWater(to.above()) ? from.underwater + 1 : 0;
+		if (underwater > MAX_UNDERWATER) {
+			return;
+		}
+
 		double g = from.g + stepCost;
 		Node node = this.nodes.computeIfAbsent(to.asLong(), key -> new Node(to.immutable()));
 		if (node.closed || node.parent != null && g >= node.g || node == this.nodes.get(this.start.asLong())) {
@@ -534,6 +553,7 @@ public class PathSearch {
 		node.g = g;
 		node.f = g + this.heuristic(to);
 		node.parent = from;
+		node.underwater = underwater;
 		node.move = move;
 		node.digs = clearance.digs.isEmpty() ? List.of() : List.copyOf(clearance.digs);
 		node.unknown = clearance.unknown;

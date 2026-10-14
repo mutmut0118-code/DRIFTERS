@@ -9,6 +9,7 @@ import com.dinglebob.drifter.brain.Food;
 import com.dinglebob.drifter.brain.Home;
 import com.dinglebob.drifter.brain.Schedule;
 import com.dinglebob.drifter.brain.Storage;
+import com.dinglebob.drifter.brain.mining.Caver;
 import com.dinglebob.drifter.brain.mining.Tunnel;
 import com.dinglebob.drifter.brain.mining.TunnelDigger;
 import com.dinglebob.drifter.building.StarterHut;
@@ -55,7 +56,7 @@ public class MineTripActivity extends Activity {
 	private static final long RETURN_MARGIN = 1200;
 
 	private enum Phase {
-		START, REMEMBERED, DIG, HOME
+		START, REMEMBERED, DIG, CAVE, HOME
 	}
 
 	private final Item item;
@@ -69,6 +70,12 @@ public class MineTripActivity extends Activity {
 	@Nullable
 	private TunnelDigger digger;
 	private boolean branched;
+	/** Exploring a cave (section 10.3 "Caving"), or null. */
+	@Nullable
+	private Caver caver;
+	/** Caving is over for this trip (the cave ran out); the rest is dug. */
+	private boolean cavingDone;
+	private boolean torchesChecked;
 	@Nullable
 	private String why;
 
@@ -110,11 +117,16 @@ public class MineTripActivity extends Activity {
 
 	@Override
 	protected boolean rethink() {
-		return this.phase == Phase.DIG && this.child() instanceof NavigateTask walk && walk.ticksRunning() > MAX_WALK_TICKS;
+		return (this.phase == Phase.DIG || this.phase == Phase.CAVE) && this.child() instanceof NavigateTask walk && walk.ticksRunning() > MAX_WALK_TICKS;
 	}
 
 	@Override
 	protected boolean countsAsFailure(Task step) {
+		// Caving: a spot it couldn't get to or a torch that wouldn't go on the wall is part of exploring, not a failure.
+		if (this.phase == Phase.CAVE) {
+			return false;
+		}
+
 		return this.phase != Phase.DIG || this.digger == null || this.digger.countsAsFailure(step);
 	}
 
@@ -123,7 +135,76 @@ public class MineTripActivity extends Activity {
 		if (this.phase == Phase.DIG && this.digger != null) {
 			this.digger.stepDone(step, status);
 			this.relayThought();
+			this.enterCave();
 		}
+
+		if (this.phase == Phase.CAVE && this.caver != null) {
+			this.caver.stepDone(step, status);
+			String thought = this.caver.takeThought();
+			if (thought != null) {
+				this.think(thought);
+			}
+		}
+	}
+
+	/** Broke into a cave, or found one right ahead: a caver goes in and explores it (a strip miner plugs it and carries on). */
+	private boolean enterCave() {
+		BlockPos breach = this.digger == null ? null : this.digger.takeCaveBreach();
+		if (breach == null || !this.caves() || this.cavingDone || this.caver != null) {
+			return false;
+		}
+
+		this.digger.leaveOpen();
+		this.caver = new Caver(this.drifter, breach, this.depth, this.caveLegs());
+		this.phase = Phase.CAVE;
+		this.think("broke into a cave: exploring it");
+		return true;
+	}
+
+	/** Goes caving rather than strip mining (its mining style habit: everyone but strip miners). */
+	private boolean caves() {
+		return this.drifter.getPersonality().habits().miningLean < STRIP_MINER;
+	}
+
+	/** Walks to new spots per cave trip: braver ones go further. */
+	private int caveLegs() {
+		return 16 + (int)Math.round((Caver.MAX_LEGS - 16) * this.drifter.getPersonality().get(Trait.BRAVERY));
+	}
+
+	/** Mining style habit at or above this: a strip miner. */
+	private static final double STRIP_MINER = 0.65;
+	/** How far from home it looks for a cave it has seen. */
+	private static final int CAVE_SEARCH = 48;
+	/** Torches it wants before going caving. */
+	private static final int CAVE_TORCHES = 16;
+
+	/** In the cave: ore it spots first, then the next place to explore; when the cave runs out, back to digging. */
+	private Status cave() {
+		BlockPos spotted = this.rememberedOre(SPOTTED_RANGE);
+		if (spotted != null) {
+			return this.goFor(spotted, "spotted " + this.label + " at " + spotted.toShortString() + ": going to get it");
+		}
+
+		Task step = this.caver.next();
+		String thought = this.caver.takeThought();
+		if (thought != null) {
+			this.think(thought);
+		}
+
+		if (step != null) {
+			return this.begin(step);
+		}
+
+		// The cave's done: the rest the usual way (stairs and a branch mine), or home if that's enough for one trip.
+		this.caver = null;
+		this.cavingDone = true;
+		this.phase = this.have() > 0 ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
+		this.why = "explored the cave";
+		if (this.phase == Phase.HOME) {
+			this.think("heading back up: explored the cave");
+		}
+
+		return Status.RUNNING;
 	}
 
 	private void relayThought() {
@@ -150,11 +231,12 @@ public class MineTripActivity extends Activity {
 			case REMEMBERED -> {
 				// Went to the ore it remembered and gathered what it could; anything still missing means a dig (or back to
 				// the tunnel it was digging, for ore it spotted on the way).
-				this.phase = this.have() >= this.total ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
+				this.phase = this.have() >= this.total ? Phase.HOME : this.caver != null ? Phase.CAVE : this.tunnel != null ? Phase.DIG : Phase.START;
 				this.rememberedTried = true;
 				yield Status.RUNNING;
 			}
 			case DIG -> this.dig();
+			case CAVE -> this.cave();
 			case HOME -> this.goHome();
 		};
 	}
@@ -278,6 +360,34 @@ public class MineTripActivity extends Activity {
 			}
 		}
 
+		// Cavers go to a cave they've seen near home (an opening in a hillside, a ravine, one a tunnel broke into), with
+		// torches to light the way (the user's request: caving finds more iron than strip mining, and teaches it the land).
+		if (this.caves() && !this.cavingDone) {
+			if (!this.torchesChecked) {
+				this.torchesChecked = true;
+				int torches = this.drifter.getInventory().count(stack -> stack.is(Items.TORCH));
+				if (torches < CAVE_TORCHES) {
+					com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+						com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.TORCH, CAVE_TORCHES);
+					if (plan.feasible() && plan.next() != null) {
+						this.think("making torches before going caving");
+						this.torchesChecked = false;
+						return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
+					}
+				}
+			}
+
+			Home caveHome = this.drifter.getDrifterBrain().home();
+			BlockPos from = caveHome != null && caveHome.near(this.drifter, Home.STORAGE_RANGE) ? caveHome.center : this.drifter.blockPosition();
+			BlockPos cave = Caver.findFrontier(this.drifter, from, CAVE_SEARCH, this.depth, java.util.Set.of(), java.util.Set.of());
+			if (cave != null) {
+				this.caver = new Caver(this.drifter, cave, this.depth, this.caveLegs());
+				this.phase = Phase.CAVE;
+				this.think("going caving: a cave it saw at " + cave.toShortString());
+				return Status.RUNNING;
+			}
+		}
+
 		Home home = this.drifter.getDrifterBrain().home();
 		int targetY = this.depth + Mth.nextInt(this.drifter.getRandom(), -4, 4);
 		int startY = home != null ? home.center.getY() : this.drifter.blockPosition().getY();
@@ -337,6 +447,10 @@ public class MineTripActivity extends Activity {
 
 		Task step = this.digger.next();
 		this.relayThought();
+		if (this.enterCave()) {
+			return Status.RUNNING;
+		}
+
 		if (step != null) {
 			return this.begin(step);
 		}

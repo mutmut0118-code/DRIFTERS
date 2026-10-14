@@ -387,11 +387,12 @@ public class Reflexes {
 				return true;
 			}
 
-			// Blocked above: toward the nearest spot with open water or air overhead.
+			// Blocked above: toward the nearest air it can get its head into (found in testing: "open water" counted too, so
+			// under a ceiling it swam from one drowned spot to the next and died).
 			BlockPos open = null;
 			double best = Double.MAX_VALUE;
-			for (BlockPos pos : BlockPos.betweenClosed(head.offset(-5, 0, -5), head.offset(5, 2, 5))) {
-				if (!solid(level, pos) && !solid(level, pos.above()) && pos.distToCenterSqr(drifter.getEyePosition()) < best) {
+			for (BlockPos pos : BlockPos.betweenClosed(head.offset(-6, -1, -6), head.offset(6, 3, 6))) {
+				if (!solid(level, pos) && level.getFluidState(pos).isEmpty() && pos.distToCenterSqr(drifter.getEyePosition()) < best) {
 					best = pos.distToCenterSqr(drifter.getEyePosition());
 					open = pos.immutable();
 				}

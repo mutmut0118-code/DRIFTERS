@@ -594,6 +594,14 @@ Mining methods, chosen by stage, target and personality:
 | Ravine work | Exposed ores in ravines | Bridge along walls, block off drops | Medium |
 | Straight down | Only reckless Drifters | 1x1 hole | High |
 
+- **Caving first (user's decision, session 2):** since 1.18 caves are the main source of iron, so caving is the default
+  way to find ore for everyone except strip miners (the mining style habit). It goes deep, lights the way with torches
+  as breadcrumbs, mines exposed ore, fights cave mobs, loots mineshafts and dungeons it finds (section 10.11), and turns
+  back on low health, food, torches or pickaxe, or the time; what it sees stays in memory, so caves become routes it
+  knows. Personality sets how deep and how far (braver goes further; cautious turns back sooner). A staircase that
+  breaks into a cave turns into caving. Strip miners plug caves and branch mine, but still go for ore they see.
+- **Water drops:** water stops all fall damage from any height. Brave Drifters plan drops of up to 32 blocks into water
+  they can see; careful ones keep to about 8.
 - **Target depths (1.18+ ore distribution):** coal high in mountains and hills, copper in the middle heights, iron in a band around the low teens and again high in mountains, lapis around Y 0, gold around Y -16, redstone and diamonds near the bottom of the world, diamonds best around Y -58.
 - **Tunnel shape is a habit:** 1x2 (most), 2x2 (comfort-lovers) or 3x3 (Builders). Branch spacing is a habit too.
 - **Veins:** always finishes a visible ore vein before moving on.

@@ -26,6 +26,8 @@ public class PillarUpTask extends Task {
 	private int stage;
 	private int ticks;
 	private int tries;
+	/** Highest it got above where it jumped from (for the failure message). */
+	private double peak;
 	/** The feet level it jumped from: the new block goes there. */
 	private int jumpFeet;
 	private SelectItemTask select;
@@ -100,6 +102,7 @@ public class PillarUpTask extends Task {
 			}
 			case 2 -> {
 				keys.set(VirtualKeys.Key.JUMP, false);
+				this.peak = Math.max(this.peak, this.drifter.getY() - this.jumpFeet);
 				// Up a block: the crosshair is on the top of the block it jumped from; put one there.
 				if (this.drifter.getY() >= this.jumpFeet + 1.0 && !this.drifter.onGround()) {
 					BlockHitResult hit = Reach.crosshair(this.drifter);
@@ -118,7 +121,11 @@ public class PillarUpTask extends Task {
 				if (++this.ticks > 4 && this.drifter.onGround()) {
 					// Landed without placing: try again.
 					if (++this.tries > 4) {
-						return this.fail("couldn't get a block under itself");
+						BlockHitResult seen = Reach.crosshair(this.drifter);
+						BlockPos over = this.drifter.blockPosition().above(2);
+						return this.fail(String.format(java.util.Locale.ROOT, "couldn't get a block under itself (jumped %.2f, looking at %s, over its head %s)",
+							this.peak, seen == null ? "nothing" : seen.getBlockPos().toShortString() + " " + seen.getDirection().getName(),
+							this.drifter.level().getBlockState(over).getBlock().getName().getString()));
 					}
 
 					this.stage = 1;
