@@ -323,11 +323,13 @@ public class BuildHutActivity extends Activity {
 				}
 			}
 
-			return this.fail("couldn't place every block of the " + this.what() + " yet");
+			if (!this.acceptableGaps(level, hut)) {
+				return this.fail("couldn't place every block of the " + this.what() + " yet");
+			}
 		}
 
 		for (int dy = 0; dy < hut.wallHeight; dy++) {
-			if (!this.allFilled(level, hut.wallLayer(dy))) {
+			if (!this.allFilled(level, hut.wallLayer(dy)) && !this.acceptableGaps(level, hut)) {
 				return this.fail("couldn't place every block of the " + this.what() + " yet");
 			}
 		}
@@ -366,6 +368,12 @@ public class BuildHutActivity extends Activity {
 		}
 
 		if (hut.shellBuilt(level)) {
+			this.finished(home);
+			return Status.SUCCESS;
+		}
+
+		if (this.acceptableGaps(level, hut)) {
+			this.think("left " + hut.missingBlocks(level) + " block(s) of the " + this.what() + " it can't reach");
 			this.finished(home);
 			return Status.SUCCESS;
 		}
@@ -650,6 +658,34 @@ public class BuildHutActivity extends Activity {
 		}
 
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk over to clear the spot"));
+	}
+
+	/** Most blocks it leaves missing when it truly can't place them (a corner it can't reach from anywhere). */
+	private static final int MAX_GAPS = 3;
+
+	/**
+	 * Blocks still missing are only a few it has tried and can't place from anywhere it can stand: the shell counts as done
+	 * as it is (found in testing: two corner blocks of a house on a hillside failed it 39 visits running).
+	 */
+	private boolean acceptableGaps(Level level, StarterHut hut) {
+		int missing = hut.missingBlocks(level);
+		if (missing > MAX_GAPS) {
+			return false;
+		}
+
+		java.util.List<BlockPos> cells = new java.util.ArrayList<>(hut.floor());
+		cells.addAll(hut.roof());
+		for (int dy = 0; dy < hut.wallHeight; dy++) {
+			cells.addAll(hut.wallLayer(dy));
+		}
+
+		for (BlockPos cell : cells) {
+			if (!StarterHut.filled(level, cell) && !this.failed.contains(cell)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/** Natural blocks in the way it may dig (not its chest, table or furnace, not someone's build). */

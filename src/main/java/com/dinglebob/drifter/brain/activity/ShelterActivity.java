@@ -190,12 +190,13 @@ public class ShelterActivity extends Activity {
 
 		// Its house once it's up (milestone 8 step 8): the same routine, door shut, into bed.
 		com.dinglebob.drifter.building.StarterHut house = home.houseBuilt ? home.house() : null;
-		if (house != null && house.shellBuilt(this.drifter.level())) {
+		// (A block or two it couldn't reach when building, high in a wall, doesn't let anything in.)
+		if (house != null && house.missingBlocks(this.drifter.level()) <= 3) {
 			return house;
 		}
 
 		com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
-		return hut.shellBuilt(this.drifter.level()) ? hut : null;
+		return hut.missingBlocks(this.drifter.level()) <= 3 ? hut : null;
 	}
 
 	/** Into the hut, door shut behind it (section 18: "Dusk: heads home ... closes doors"). */

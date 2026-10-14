@@ -272,6 +272,8 @@ public class MineTripActivity extends Activity {
 	private static final int STUCK_STAIRS = 4;
 	/** Food level at or under which it doesn't set off without food. */
 	private static final int HUNGRY_TO_GO = 10;
+	/** Health under which it doesn't set off (it heads back at 10). */
+	private static final float HURT_TO_GO = 14.0F;
 	/** Trips to below this height take a crafting table and sticks along. */
 	private static final int KIT_DEPTH = 8;
 	private static final int KIT_STICKS = 4;
@@ -369,6 +371,11 @@ public class MineTripActivity extends Activity {
 		// Not down the mine hungry with nothing to eat: it would only turn back (found in testing: nine trips in a row).
 		if (this.drifter.getFoodData().getFoodLevel() <= HUNGRY_TO_GO && Food.choose(this.drifter) == null) {
 			return this.fail("too hungry to go mining, with nothing to eat");
+		}
+
+		// Nor badly hurt: it turns back at 10 health anyway (found in testing: 12 trips in a row turned straight back).
+		if (this.drifter.getHealth() < HURT_TO_GO) {
+			return this.fail("too hurt to go mining yet");
 		}
 
 		// Section 10.17 "Spares: keeps a spare pickaxe": with only one, half worn, it makes another before going down.
