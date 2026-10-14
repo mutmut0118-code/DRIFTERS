@@ -7,12 +7,15 @@ import com.dinglebob.drifter.entity.DrifterEntity;
  * Times are in-game ticks of the day. TODO(section 25): move to the Schedule data file.
  */
 public final class Schedule {
-	/** It starts thinking about shelter from here (late afternoon). */
-	public static final long SHELTER_THINKING = 10500;
-	/** Shelter becomes urgent: dusk, with time to dig in before mobs come out (about 13000). */
-	public static final long SHELTER_URGENT = 11500;
-	/** Night: from dusk until dawn. */
-	public static final long NIGHT_START = 12000;
+	/**
+	 * It starts thinking about shelter from here (user's rule, session 2: they were sheltering far too early; it should be
+	 * around 13000). Caution moves it by up to 1000 either way, and it leaves earlier by its travel time home.
+	 */
+	public static final long SHELTER_THINKING = 12000;
+	/** Shelter becomes urgent: just before mobs come out (about 13200). */
+	public static final long SHELTER_URGENT = 12800;
+	/** Night: from when beds can be used until dawn. */
+	public static final long NIGHT_START = 12542;
 	public static final long NIGHT_END = 23200;
 
 	private Schedule() {

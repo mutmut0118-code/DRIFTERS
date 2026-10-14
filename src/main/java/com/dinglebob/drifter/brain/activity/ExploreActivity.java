@@ -24,6 +24,7 @@ public class ExploreActivity extends Activity {
 	private static final int DIRECTION_TRIES = 8;
 
 	private final String reason;
+	private boolean wentUp;
 	@Nullable
 	private final Vec3 toward;
 	@Nullable
@@ -68,6 +69,18 @@ public class ExploreActivity extends Activity {
 	@Override
 	protected Status next() {
 		// A failed walk still got it somewhere new: it just carries on with the next phase.
+		// Underground (the end of a mining trip): up to the surface first, by way of home; looking for animals or trees in
+		// the caves gets it lost and near lava (found in testing: it walked into lava "looking for animals" at Y 28).
+		if (this.phase == 0 && !this.wentUp && !this.reason.contains("cave") && !this.reason.contains("lava")
+			&& com.dinglebob.drifter.brain.mining.Caver.underground(this.drifter, this.drifter.blockPosition())) {
+			this.wentUp = true;
+			com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+			if (home != null && home.center.getY() > this.drifter.getBlockY() + 4) {
+				return this.begin(new com.dinglebob.drifter.executor.task.NavigateTask(this.drifter, net.minecraft.world.phys.Vec3.atBottomCenterOf(home.center),
+					3.0, "head up to the surface"));
+			}
+		}
+
 		return switch (this.phase++) {
 			case 0 -> this.begin(new LookAroundTask(this.drifter));
 			case 1 -> this.begin(new NavigateTask(this.drifter, this.toward != null ? this.toward : this.pickDirection(),

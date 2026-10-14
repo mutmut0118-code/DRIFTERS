@@ -109,6 +109,7 @@ public final class Goals {
 				mine.depth(), mine.mountain());
 			case Planner.Fetch fetch -> new com.dinglebob.drifter.brain.activity.FetchActivity(drifter, fetch.chest(), fetch.item(), fetch.count());
 			case Planner.MakeObsidian obsidian -> new com.dinglebob.drifter.brain.activity.ObsidianActivity(drifter, obsidian.total());
+			case Planner.TakeBed take -> new com.dinglebob.drifter.brain.activity.PickUpBlockActivity(drifter, take.bed(), "the villager's bed");
 		};
 	}
 
@@ -659,8 +660,15 @@ public final class Goals {
 		@Override
 		public double urgency(Context context) {
 			com.dinglebob.drifter.brain.Home home = context.drifter().getDrifterBrain().home();
+			// With a bucket, anywhere; without one, by water near home (a pond or a river), and not again for a while if there
+			// was nowhere.
+			boolean bucket = home != null && Strategist.has(context.drifter(), stack -> stack.is(net.minecraft.world.item.Items.BUCKET)
+				|| stack.is(net.minecraft.world.item.Items.WATER_BUCKET));
+			boolean byWater = home != null && home.farm == null && !bucket
+				&& context.drifter().level().getGameTime() - home.farmFailedAt > 20L * 60 * 10 && context.stage() >= 4
+				&& com.dinglebob.drifter.brain.activity.FarmActivity.nearestWater(context.drifter(), 24) != null;
 			if (home == null || !home.hasChest() || !home.near(context.drifter(), Schedule.GO_HOME_RANGE)
-				|| !Strategist.has(context.drifter(), stack -> stack.is(net.minecraft.world.item.Items.BUCKET) || stack.is(net.minecraft.world.item.Items.WATER_BUCKET))
+				|| !bucket && home.farm == null && !byWater
 				|| context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD) {
 				return 0.0;
 			}

@@ -61,6 +61,9 @@ public final class Home {
 	public String houseStyle = "";
 	public boolean houseBuilt;
 
+	/** When it last looked for a farm by the water and found nowhere (not saved): it looks again later. */
+	public long farmFailedAt = Long.MIN_VALUE / 2;
+
 	/** When it last looked for a spot for its house and found none (not saved): it looks again later. */
 	public long houseSiteFailedAt = Long.MIN_VALUE / 2;
 

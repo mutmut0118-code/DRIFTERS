@@ -128,6 +128,8 @@ public class GatherActivity extends Activity {
 			return this.begin(new CollectItemsTask(this.drifter, DROP_PICKUP_RADIUS));
 		}
 
+		Level level = this.drifter.level();
+		List<BlockPos> restOfTree = List.of();
 		if (this.have() >= this.wanted) {
 			// Ore: the rest of the vein right here too, like a player (found by the user: half-mined veins left behind).
 			BlockPos rest = this.restOfVein();
@@ -136,16 +138,20 @@ public class GatherActivity extends Activity {
 				return this.begin(this.dig(rest));
 			}
 
-			return Status.SUCCESS;
+			// Wood: the rest of the tree it started on, top included (user's rule: a whole tree, so the leaves decay and it
+			// doesn't leave floating trunks), and down off any pillar it built for it.
+			restOfTree = this.restOfTree(level);
+			if (restOfTree.isEmpty() && (this.pillarBase == null || this.drifter.getBlockY() <= this.pillarBase.getY())) {
+				return Status.SUCCESS;
+			}
 		}
 
-		Level level = this.drifter.level();
 		BlockPos feet = this.drifter.blockPosition();
 		BlockPos below = feet.below();
 		// Not the block it stands on, nor (when digging down) the next stair it will stand on.
 		BlockPos nextStair = this.stairDirection == null ? null : feet.relative(this.stairDirection).below();
 		com.dinglebob.drifter.brain.TreeLogs trees = new com.dinglebob.drifter.brain.TreeLogs(level);
-		List<BlockPos> candidates = KnownBlocks.find(this.drifter, SEARCH_RADIUS, this.blocks, MAX_CANDIDATES * 4).stream()
+		List<BlockPos> candidates = this.have() >= this.wanted ? restOfTree : KnownBlocks.find(this.drifter, SEARCH_RADIUS, this.blocks, MAX_CANDIDATES * 4).stream()
 			.filter(pos -> !pos.equals(below) && !pos.equals(nextStair) && (this.lowestFirst || !underfoot(pos, feet))
 				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos)
 				&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(level.getBlockState(pos)) && KnownBlocks.underWater(level, pos))
@@ -179,6 +185,10 @@ public class GatherActivity extends Activity {
 			this.turnsInARow = 0;
 			this.collectNext = true;
 			this.digging = inReach.get();
+			if (this.lowestFirst && this.tree == null && level.getBlockState(inReach.get()).is(net.minecraft.tags.BlockTags.LOGS)) {
+				this.tree = connectedLogs(level, inReach.get());
+			}
+
 			return this.begin(this.dig(inReach.get()));
 		}
 
@@ -235,6 +245,49 @@ public class GatherActivity extends Activity {
 		}
 
 		return this.fail("doesn't know where to find any " + this.label);
+	}
+
+	/** The logs of the tree it's felling (it takes them all), or null. */
+	@Nullable
+	private Set<BlockPos> tree;
+	/** Most extra logs it takes to finish a tree (a giant one is mostly left to its own trip). */
+	private static final int MAX_TREE_EXTRA = 40;
+	private int treeExtra;
+
+	/** Logs of its tree still standing, lowest first, that it hasn't given up on. */
+	private List<BlockPos> restOfTree(Level level) {
+		if (this.tree == null || this.treeExtra > MAX_TREE_EXTRA) {
+			return List.of();
+		}
+
+		List<BlockPos> left = this.tree.stream()
+			.filter(pos -> level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) && !this.blacklist().contains(pos, this.now()))
+			.sorted(java.util.Comparator.comparingInt(BlockPos::getY))
+			.toList();
+		if (!left.isEmpty()) {
+			this.treeExtra++;
+		}
+
+		return left;
+	}
+
+	/** The logs joined to this one (diagonals too, for branches), up to a big tree's worth. */
+	private static Set<BlockPos> connectedLogs(Level level, BlockPos start) {
+		Set<BlockPos> logs = new HashSet<>();
+		java.util.ArrayDeque<BlockPos> open = new java.util.ArrayDeque<>();
+		logs.add(start.immutable());
+		open.add(start.immutable());
+		while (!open.isEmpty() && logs.size() < 64) {
+			BlockPos log = open.poll();
+			for (BlockPos next : BlockPos.betweenClosed(log.offset(-1, -1, -1), log.offset(1, 1, 1))) {
+				if (!logs.contains(next) && level.getBlockState(next).is(net.minecraft.tags.BlockTags.LOGS)) {
+					logs.add(next.immutable());
+					open.add(next.immutable());
+				}
+			}
+		}
+
+		return logs;
 	}
 
 	/** The block it's digging now, blocks it missed once, and leaves to break that were in the way. */

@@ -24,6 +24,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * moving into an empty village house.
  */
 public final class HomeSite {
+	/** Deepest below sea level it settles (lower is a ravine or a pit). */
+	private static final int MAX_BELOW_SEA = 8;
+
 	/** How far around it looks for a site (blocks it has seen). */
 	public static final int SEARCH_RADIUS = 32;
 	/** The footprint it wants flat: 7x7 (a 5x5 hut plus a ring around it). */
@@ -70,7 +73,10 @@ public final class HomeSite {
 			}
 
 			if (Math.floorMod(pos.getX(), GRID) == 0 && Math.floorMod(pos.getZ(), GRID) == 0 && KnownBlocks.isStandable(level, pos.above())
-				&& level.canSeeSky(pos.above()) && !state.is(BlockTags.LEAVES) && !state.is(BlockTags.LOGS)) {
+				&& level.canSeeSky(pos.above()) && !state.is(BlockTags.LEAVES) && !state.is(BlockTags.LOGS)
+				// Not down in a ravine or a pit (open to the sky, but no place for a home; found in testing: it settled on a
+				// ravine floor at Y 32 and its errands wandered the caves).
+				&& pos.getY() >= level.getSeaLevel() - MAX_BELOW_SEA) {
 				floors.add(pos.above().immutable());
 			}
 		});

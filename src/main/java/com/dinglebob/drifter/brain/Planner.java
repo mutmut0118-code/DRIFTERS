@@ -72,7 +72,7 @@ public final class Planner {
 	// Actions
 	// ---------------------------------------------------------------------------------------------
 
-	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch, Mine, MakeObsidian {
+	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch, Mine, MakeObsidian, TakeBed {
 		String describe();
 	}
 
@@ -129,6 +129,14 @@ public final class Planner {
 		@Override
 		public String describe() {
 			return "go mining for " + this.label + " (to " + this.total + ", around Y " + this.depth + ")";
+		}
+	}
+
+	/** A bed from a village house it has seen (user's rule, session 2: it may take a villager's bed as its own). */
+	public record TakeBed(net.minecraft.core.BlockPos bed, Item item) implements Action {
+		@Override
+		public String describe() {
+			return "take the " + name(this.item) + " from the village house at " + this.bed.toShortString();
 		}
 	}
 
@@ -416,6 +424,10 @@ public final class Planner {
 				best = cheaper(best, this.makeObsidian(state.copy(), count, depth));
 			}
 
+			if (count == 1 && new ItemStack(item).is(ItemTags.BEDS)) {
+				best = cheaper(best, this.takeBed(state.copy(), item));
+			}
+
 			for (RecipeHolder<? extends AbstractCookingRecipe> recipe : smelting(this.level).getOrDefault(item, List.of())) {
 				best = cheaper(best, this.smelt(state.copy(), recipe.value(), item, count, depth));
 			}
@@ -500,6 +512,34 @@ public final class Planner {
 		state.cost += COST_EXPLORE + COST_GATHER_EACH * count;
 		return state;
 	}
+
+	/**
+	 * A bed of this colour in a village house it remembers (under a roof, not its own home's), as an action: walk over,
+	 * break it, pick it up. Null if it knows none.
+	 */
+	@Nullable
+	private State takeBed(State state, Item item) {
+		var dimension = this.drifter.level().dimension().location();
+		Home home = this.drifter.getDrifterBrain().home();
+		var entry = this.drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.STATION, dimension, this.drifter.position(), TAKE_BED_RANGE,
+			e -> {
+				net.minecraft.core.BlockPos pos = e.blockPos();
+				var block = this.drifter.level().getBlockState(pos);
+				return block.getBlock() instanceof net.minecraft.world.level.block.BedBlock && block.getBlock().asItem() == item
+					&& !this.drifter.level().canSeeSky(pos.above()) && (home == null || !home.inOwnBuilding(pos, 1))
+					&& (home == null || home.houseBed == null || !home.houseBed.closerThan(pos, 2.0));
+			});
+		if (entry == null) {
+			return null;
+		}
+
+		state.addAction(new TakeBed(entry.blockPos(), item));
+		state.cost += COST_GATHER_TRIP + Math.sqrt(entry.blockPos().distSqr(this.drifter.blockPosition())) * SECONDS_PER_BLOCK * 2.0;
+		return state;
+	}
+
+	/** How far it goes to take a village bed. */
+	private static final double TAKE_BED_RANGE = 96.0;
 
 	/** Seconds-ish per block of obsidian made with buckets: scoop, pour, wait, mine (9.4 s with a diamond pickaxe). */
 	private static final double COST_OBSIDIAN_EACH = 30.0;

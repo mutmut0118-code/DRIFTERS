@@ -543,6 +543,18 @@ public final class TunnelDigger {
 			}
 		}
 
+		// A tunnel block it can't hit (something in the way it can't see past): twice, and it turns (found in testing: it
+		// tried the same stone 114 times from its night shelter).
+		if (!this.oreStep && status == Task.Status.FAILURE && this.digging != null && step.failureReason() != null
+			&& step.failureReason().contains("can't see or reach") && this.digTries.merge(this.digging.immutable(), 1, Integer::sum) >= 2) {
+			if (t.leg != null) {
+				this.say("can't get at the block ahead: turning");
+				this.turn(this.drifter.blockPosition(), t.leg);
+			} else {
+				t.done = true;
+			}
+		}
+
 		if (this.oreStep && status == Task.Status.FAILURE && this.digging != null && this.oreTries.merge(this.digging, 1, Integer::sum) < 2) {
 			// Out of view from here: it tries again from the next step along.
 			this.retryOres.add(this.digging);
@@ -575,6 +587,8 @@ public final class TunnelDigger {
 	}
 
 	private boolean pendingTurn;
+	/** Tunnel blocks it failed to hit, and how often. */
+	private final java.util.Map<BlockPos, Integer> digTries = new java.util.HashMap<>();
 
 	private boolean canMineOre(Level level, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);

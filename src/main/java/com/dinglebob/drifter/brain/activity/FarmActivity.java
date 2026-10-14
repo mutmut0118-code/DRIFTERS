@@ -92,7 +92,15 @@ public class FarmActivity extends Activity {
 		}
 
 		if (home.farm == null) {
-			BlockPos plot = choosePlot(this.drifter, home);
+			// Without a bucket: by water that's already there (a pond's or river's edge), as players do before they have iron
+			// (found in testing: hunger cut every mining trip short, so it never got the iron for a bucket, and had no food).
+			boolean bucket = this.drifter.getInventory().count(stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET)) > 0;
+			BlockPos plot = bucket ? choosePlot(this.drifter, home) : choosePlotByWater(this.drifter, home);
+			if (plot == null && !bucket) {
+				home.farmFailedAt = level.getGameTime();
+				return this.fail("no good ground by the water near home for a farm");
+			}
+
 			// It looks round home first (days underground push the ground at home out of its memory, found in testing),
 			// then walks a little way out each side and looks again.
 			if (plot == null && this.looks < 5) {
@@ -473,6 +481,48 @@ public class FarmActivity extends Activity {
 		lastBestScore = bestScore;
 		return bestScore >= MIN_GOOD ? best : null;
 	}
+
+	/**
+	 * A plot round a water source it has seen near home, at the water's level (the middle is the water itself), with
+	 * enough ground round it to till. Null if there's none.
+	 */
+	@Nullable
+	public static BlockPos choosePlotByWater(DrifterEntity drifter, Home home) {
+		Level level = drifter.level();
+		BlockPos best = null;
+		int bestScore = 0;
+		java.util.List<BlockPos> sources = new java.util.ArrayList<>();
+		drifter.getSenses().terrain().forEachKnown(home.center, WATER_PLOT_RANGE, pos -> {
+			if (isWaterSource(level, pos) && level.getBlockState(pos.above()).isAir() && sources.size() < 200) {
+				sources.add(pos.immutable());
+			}
+		});
+
+		for (BlockPos water : sources) {
+			if (home.inOwnBuilding(water, 2)) {
+				continue;
+			}
+
+			BlockPos middle = water.above();
+			int score = 0;
+			for (BlockPos soil : cells(middle)) {
+				if (canTill(level, soil) && level.canSeeSky(soil.above(2))) {
+					score++;
+				}
+			}
+
+			if (score > bestScore) {
+				bestScore = score;
+				best = middle;
+			}
+		}
+
+		lastBestScore = bestScore;
+		return bestScore >= MIN_GOOD ? best : null;
+	}
+
+	/** How far from home it looks for water to farm by. */
+	private static final int WATER_PLOT_RANGE = 24;
 
 	/** Anything to do on the farm right now (for the goal's urgency). */
 	public static boolean workToDo(DrifterEntity drifter, Home home) {

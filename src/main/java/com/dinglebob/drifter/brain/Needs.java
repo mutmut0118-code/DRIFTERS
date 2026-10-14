@@ -42,7 +42,12 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 		long thinking = Schedule.shelterThinking(drifter);
 		long urgent = Schedule.shelterUrgent(drifter);
 		boolean dusk = time >= urgent && time < Schedule.NIGHT_START;
-		if (Schedule.isNight(time) || dusk) {
+		// Deep underground the time doesn't matter (user's rule, session 2): it carries on, and shelters once it's back up.
+		boolean deep = !sealedIn && com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
+			&& drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.MineTripActivity;
+		if (deep) {
+			shelter = 0.1;
+		} else if (Schedule.isNight(time) || dusk) {
 			shelter = sealedIn ? 1.0 : hunting ? 0.15 : 0.95;
 		} else if (time >= Schedule.NIGHT_END) {
 			// Dawn twilight: stay put until the sun is up.

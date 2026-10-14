@@ -801,6 +801,21 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   wood or stone while it has some (then a mix, the patchy look of real builds).
 - **Not yet:** pitched stair roofs, porches, walls and paths (tier 5), more rooms.
 
+### User notes (session 2, 2026-10-14), to do after the step 9 bug fixes
+- **Shelter later:** Drifters take shelter far too early; they should start heading in at about time 13000. Done: it
+  starts thinking about shelter at 12000 (11000-13000 by caution, earlier by its walk home), urgent at 12800, night
+  (beds) from 12542.
+- **Caves:** in caves they shouldn't stop for the night; they carry on until they get back to the surface, then sleep.
+  Done: underground on a mining trip the time doesn't end the trip or make it shelter; when the trip ends it walks home
+  and goes to bed. Surface errands that start underground head up first.
+- **Villager beds:** they may take a villager's bed and use it as their own. Done: the planner can "take the bed from
+  the village house at ..." (a bed it has seen under a roof that isn't its own), then it carries it home.
+- **Underground bases** are fine if a Drifter wants one, just not in an awkward position like a ravine floor. Partly:
+  it no longer settles on ravine or pit floors (more than 8 below sea level); a dug-in underground base (Hermits,
+  Miners' bunkers) is planned (needs its own blueprint).
+- **Whole trees:** cut the whole tree (the leaves then decay and make room; trunks left floating look wrong). Done: once
+  it starts on a tree it takes every log of it, lowest first, pillaring beside the trunk for the high ones.
+
 ### Step 9: the 10-day run (in progress)
 - Fresh Drifters with nothing, random seeds, 10 game days each (`sprint` lines), a Miner, a Builder and a Casual.
 - **Fixed before it:** `/drifter spawn` from the console put it on the world spawn's block corner, sometimes inside a
@@ -816,6 +831,10 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
     beside the trunk, cuts what it can reach, and digs its pillar back down.
   - Walking down a hillside it sprinted off a 3-block drop and overshot the landing onto the next edge (a fatal fall):
     on drops of 2+ it walks, and lets go of the keys over the landing block.
+  - It settled on a ravine floor (open to the sky) at Y 32; a surface errand then took it through the caves into lava.
+  - Night mining from its shelter tried the same stone 114 times ("can't see or reach it"); the tunnel now turns.
+  - With no animals about it starved its mining trips short (32 times) and never got the iron for a bucket, so no farm
+    either: without a bucket it now farms by a pond or river near home.
   - Sugar cane (or a sapling) in a wall cell of its hut: "that spot is already taken" 16 times; it now breaks it first.
   - A crafting table or furnace it stood next to but still couldn't reach was tried again and again; it now forgets
     that one and puts down a new one.

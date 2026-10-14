@@ -303,7 +303,9 @@ public class MineTripActivity extends Activity {
 			return "pockets full";
 		}
 
-		if (Schedule.believedTime(d) >= Schedule.shelterThinking(d) - RETURN_MARGIN && Schedule.believedTime(d) < Schedule.NIGHT_END) {
+		// Underground the time doesn't matter (user's rule, session 2): it carries on, and sleeps once it's back up.
+		if (Schedule.believedTime(d) >= Schedule.shelterThinking(d) - RETURN_MARGIN && Schedule.believedTime(d) < Schedule.NIGHT_END
+			&& !com.dinglebob.drifter.brain.mining.Caver.underground(d, d.blockPosition())) {
 			return "it must be getting late";
 		}
 
