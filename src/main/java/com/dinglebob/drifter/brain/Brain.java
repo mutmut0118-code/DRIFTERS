@@ -172,6 +172,9 @@ public class Brain {
 		return this.explored.getOrDefault(reason, 0);
 	}
 
+	/** The heading (radians) it keeps on a long search for something, per reason. Not saved. */
+	public final java.util.Map<String, Double> exploreHeading = new java.util.HashMap<>();
+
 	/** Re-score at the next tick (it got hurt, or something else important happened). */
 	public void poke() {
 		this.sinceRescore = RESCORE_TICKS;

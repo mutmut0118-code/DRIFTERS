@@ -22,6 +22,10 @@ public class ExploreActivity extends Activity {
 	private static final int MIN_LEG = 20;
 	private static final int MAX_LEG = 32;
 	private static final int DIRECTION_TRIES = 8;
+	/** Legs for one reason before the search turns into long legs on a heading. */
+	private static final int LONG_SEARCH_AFTER = 3;
+	private static final int LEGS_PER_HEADING = 6;
+	private static final double LONG_LEG = 96.0;
 
 	private final String reason;
 	private boolean wentUp;
@@ -93,6 +97,19 @@ public class ExploreActivity extends Activity {
 	/** A point 20 to 32 blocks away, preferring a direction whose ground it hasn't explored. */
 	private Vec3 pickDirection() {
 		Vec3 here = this.drifter.position();
+		// A long search (no trees in a desert): longer legs on one heading, as a player sets off in a straight line, turning
+		// a quarter every few legs in case that way is sea or mountains (found in testing: short random legs in badlands
+		// kept it near spawn for days without wood).
+		int legs = this.drifter.getDrifterBrain().timesExplored(this.reason);
+		if (legs >= LONG_SEARCH_AFTER) {
+			double heading = this.drifter.getDrifterBrain().exploreHeading.computeIfAbsent(this.reason,
+				reason -> this.drifter.getRandom().nextDouble() * Math.PI * 2.0);
+			heading += Math.PI / 2.0 * ((legs - LONG_SEARCH_AFTER) / LEGS_PER_HEADING);
+			heading += (this.drifter.getRandom().nextDouble() - 0.5) * 0.4;
+			double distance = Math.min(LONG_LEG, MAX_LEG + 12.0 * (legs - LONG_SEARCH_AFTER + 1));
+			return here.add(Math.cos(heading) * distance, 0.0, Math.sin(heading) * distance);
+		}
+
 		Vec3 fallback = null;
 		for (int i = 0; i < DIRECTION_TRIES; i++) {
 			double angle = this.drifter.getRandom().nextDouble() * Math.PI * 2.0;
