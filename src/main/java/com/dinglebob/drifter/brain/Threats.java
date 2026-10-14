@@ -185,6 +185,17 @@ public final class Threats {
 		return entity instanceof Mob mob && mob.getTarget() == drifter || drifter.getLastHurtByMob() == entity;
 	}
 
+	/** A switch between fighting and backing off waits this long after the last change. */
+	private static final long COMMIT_TICKS = 60;
+	/** An archer closer than this: it rushes it rather than backing off in the open. */
+	private static final double ARCHER_RUSH = 12.0;
+
+	/** A mob that shoots (skeletons, pillagers, anything holding a bow or crossbow). */
+	public static boolean isArcher(LivingEntity entity) {
+		return entity instanceof net.minecraft.world.entity.monster.AbstractSkeleton
+			|| entity.getMainHandItem().getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem;
+	}
+
 	/** Below this Bravery it fights like a coward (section 13 fighting styles). */
 	public static final double COWARD_BRAVERY = 0.3;
 
@@ -276,6 +287,31 @@ public final class Threats {
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5) {
 			decision = Decision.ENGAGE_CAREFUL;
 			main = lastAttacker;
+		}
+
+		// An archer close by (a skeleton): backing off in the open only gets it shot in the back, so it rushes it unless it's
+		// hopeless (found in a user's test: shot dead switching between fighting and fleeing a skeleton).
+		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && main != null && isArcher(main) && main.distanceTo(drifter) < ARCHER_RUSH) {
+			decision = Decision.ENGAGE_CAREFUL;
+		}
+
+		// Commitment: a switch between fighting and backing off within 3 s doesn't happen unless it's become hopeless (each
+		// hit tipped the odds and it dithered until it died).
+		com.dinglebob.drifter.brain.Brain brain = drifter.getDrifterBrain();
+		boolean fightNow = decision == Decision.ENGAGE || decision == Decision.ENGAGE_CAREFUL;
+		boolean backOffNow = decision == Decision.AVOID || decision == Decision.RETREAT;
+		if (brain.lastThreatDecision != null && now - brain.lastThreatDecisionAt < COMMIT_TICKS) {
+			Decision before = brain.lastThreatDecision;
+			boolean wasFighting = before == Decision.ENGAGE || before == Decision.ENGAGE_CAREFUL;
+			boolean wasBackingOff = before == Decision.AVOID || before == Decision.RETREAT;
+			if (wasFighting && backOffNow || wasBackingOff && fightNow) {
+				decision = before;
+			}
+		}
+
+		if (decision != brain.lastThreatDecision) {
+			brain.lastThreatDecision = decision;
+			brain.lastThreatDecisionAt = now;
 		}
 
 		return new Assessment(threat, power, decision, main, List.copyOf(hostiles), nearest, recentlyHit);
