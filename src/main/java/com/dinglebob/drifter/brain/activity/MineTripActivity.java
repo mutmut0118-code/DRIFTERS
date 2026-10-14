@@ -83,6 +83,8 @@ public class MineTripActivity extends Activity {
 	/** Ores also common high in mountains (iron, coal: section 10.3): on high ground it mines into the mountain. */
 	public static final int MOUNTAIN_ABOVE = 96;
 	public static final int MOUNTAIN_DIG = 24;
+	/** Lowest it digs for mountain ore. */
+	public static final int MOUNTAIN_FLOOR = 90;
 
 	private final boolean mountain;
 
@@ -271,6 +273,8 @@ public class MineTripActivity extends Activity {
 
 	private boolean rememberedTried;
 	private boolean kitChecked;
+	/** The height this trip's staircase heads for (the ore's depth, or higher up in a mountain). */
+	private int targetY = Integer.MIN_VALUE;
 	/** This trip carries on down an old staircase. */
 	private boolean continuedStairs;
 	/** A continued staircase that gets fewer steps than this before it's done is blocked. */
@@ -485,8 +489,12 @@ public class MineTripActivity extends Activity {
 		Home home = this.drifter.getDrifterBrain().home();
 		int targetY = this.depth + Mth.nextInt(this.drifter.getRandom(), -4, 4);
 		int startY = home != null ? home.center.getY() : this.drifter.blockPosition().getY();
+		this.targetY = targetY;
 		if (this.mountain && startY >= MOUNTAIN_ABOVE) {
-			targetY = startY - MOUNTAIN_DIG + Mth.nextInt(this.drifter.getRandom(), -4, 4);
+			// Mountain ore (iron, coal) is above Y 80 (iron peaks around 232): it stays up in that band and branches into the
+			// mountain (found in testing: 24 down from Y 103 put it just under the band, and it found 2 iron in 10 days).
+			targetY = Math.max(MOUNTAIN_FLOOR, startY - MOUNTAIN_DIG + Mth.nextInt(this.drifter.getRandom(), -4, 4));
+			this.targetY = targetY;
 		}
 		if (home != null && home.mineBottom != null && home.mineDirection != null && home.near(this.drifter, Home.STORAGE_RANGE)
 			&& home.mineBottom.getY() - targetY > 12) {
@@ -553,7 +561,10 @@ public class MineTripActivity extends Activity {
 		// Out of legs: at the bottom of the stairs for the first time, it starts the branch mine (and home remembers it).
 		Tunnel t = this.tunnel;
 		int y = this.drifter.blockPosition().getY();
-		if (!this.branched && (!t.done && y <= this.depth + 6 || t.done && t.steps < t.maxSteps && y <= this.depth + GOOD_ENOUGH)) {
+		// (Against the height this trip set out for: in mountains that's high up, not the ore's usual depth; found in testing,
+		// mountain trips never started their branch mine and came home empty.)
+		int target = this.targetY != Integer.MIN_VALUE ? this.targetY : this.depth;
+		if (!this.branched && (!t.done && y <= target + 6 || t.done && t.steps < t.maxSteps && y <= target + GOOD_ENOUGH)) {
 			// A staircase that had to stop a little short (caves, gravel, water all round) still branches from there: the
 			// ore is not only at the one best height (found in testing: cave-riddled ground sent it home empty every trip).
 			this.branched = true;
