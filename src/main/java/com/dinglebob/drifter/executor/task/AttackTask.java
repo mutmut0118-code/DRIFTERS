@@ -196,6 +196,13 @@ public class AttackTask extends Task {
 		return this.target;
 	}
 
+	/** Within this (eyes to its middle) it fights whether it can see it or not; within the other, even with no path. */
+	private static final double TURN_AND_FIGHT = 3.5;
+	private static final double NO_PATH_FIGHT = 5.0;
+	/** After a failed path, it steers by hand this long before looking for a path again. */
+	private static final int NO_PATH_RETRY_TICKS = 40;
+	private int noPathTicks;
+
 	@Override
 	protected Status onTick() {
 		if (!this.target.isAlive() || this.target.isRemoved()) {
@@ -234,7 +241,15 @@ public class AttackTask extends Task {
 			this.pathTicks--;
 		}
 
-		if ((distance > CLOSE_RANGE || !visible || this.pathTicks > 0) && this.backoff == 0) {
+		// In reach, seen or not (it was just hit from behind or below): it turns round and fights, like a player, instead of
+		// pathing (found in a user's test: "can't get to it" with a zombie hitting it from behind, until it died).
+		boolean inReach = distance <= TURN_AND_FIGHT;
+		if (this.noPathTicks > 0) {
+			this.noPathTicks--;
+		}
+
+		boolean steerByHand = this.noPathTicks > 0 && distance <= NO_PATH_FIGHT;
+		if ((distance > CLOSE_RANGE || !visible && !inReach || this.pathTicks > 0) && this.backoff == 0 && !steerByHand) {
 			this.lowerShield();
 			if (this.closeMode || this.follow == null) {
 				this.closeMode = false;
@@ -243,6 +258,14 @@ public class AttackTask extends Task {
 
 			Status status = this.follow.tick();
 			if (status == Status.FAILURE) {
+				// No way round, but it's right there: fight from where it stands.
+				if (distance <= NO_PATH_FIGHT) {
+					this.follow = null;
+					this.pathTicks = 0;
+					this.noPathTicks = NO_PATH_RETRY_TICKS;
+					return Status.RUNNING;
+				}
+
 				return this.fail("can't get to it: " + this.follow.failureReason());
 			}
 
