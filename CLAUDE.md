@@ -64,7 +64,8 @@ clearly labeled debug command.
 - **Never run `./gradlew runClient` or `./gradlew runServer`, and never try to launch Minecraft in a cloud session.** All in-game testing happens on the user's own machine.
 - **Local sessions** (on the user's Windows PC, from session 2): the user allowed testing directly. Smoke-test each
   build on a headless dev server with `python tools/smoke.py <project dir> <script> <log>` (see the script's header;
-  example script `tools/smoke-night.txt`), then copy `build/libs/drifter-<version>.jar` into the Modrinth profile
+  example script `tools/smoke-night.txt`; for long runs add `tick rate 60` (3x speed, all Drifter logic is in game
+  ticks; user's idea) and `drifter thoughts log true` (every thought goes to the log)), then copy `build/libs/drifter-<version>.jar` into the Modrinth profile
   `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`, replacing the old one (that profile also has
   Sodium, Lithium, FerriteCore, EntityCulling, EMF/ETF and Mod Menu). Stop test servers by their own process ID, never
   by killing every java.exe.

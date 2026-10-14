@@ -71,13 +71,21 @@ public class PlaceBlockTask extends Task {
 			}
 
 			this.select.stop();
-			Direction[] support = this.chooseSupport();
-			if (support == null) {
-				return this.fail("no block face to place against within reach");
-			}
+			// Grass, a flower or snow in the spot: a player clicks it and the block goes in its place (the grass is in the
+			// way of the face under it anyway; found in testing: hut corners on grassy ground were "unreachable").
+			Direction plantFace = clickableFace(this.drifter, this.drifter.getEyePosition(), this.target);
+			if (plantFace != null) {
+				this.use = new UseOnBlockTask(this.drifter, this.target, plantFace, "click the " + this.drifter.level().getBlockState(this.target).getBlock()
+					.getName().getString().toLowerCase(java.util.Locale.ROOT));
+			} else {
+				Direction[] support = this.chooseSupport();
+				if (support == null) {
+					return this.fail("no block face to place against within reach");
+				}
 
-			BlockPos supportPos = this.target.relative(support[0]);
-			this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+				BlockPos supportPos = this.target.relative(support[0]);
+				this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+			}
 		}
 
 		Status used = this.use.tick();
@@ -97,6 +105,32 @@ public class PlaceBlockTask extends Task {
 
 		this.drifter.getSenses().placedBlock(this.target);
 		return Status.SUCCESS;
+	}
+
+	/** A replaceable block with a shape you can click (grass, flowers, snow), not air or water. */
+	public static boolean isClickableReplaceable(net.minecraft.world.level.Level level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		return !state.isAir() && state.canBeReplaced() && level.getFluidState(pos).isEmpty() && !state.getShape(level, pos).isEmpty();
+	}
+
+	/** The face of a clickable replaceable block in the target spot it can see from there, or null. */
+	@Nullable
+	public static Direction clickableFace(DrifterEntity drifter, Vec3 eye, BlockPos target) {
+		if (!isClickableReplaceable(drifter.level(), target)) {
+			return null;
+		}
+
+		Direction best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (Direction face : Direction.values()) {
+			Optional<Vec3> point = Reach.aimPointFrom(drifter, eye, target, face);
+			if (point.isPresent() && eye.distanceToSqr(point.get()) < bestDistance) {
+				bestDistance = eye.distanceToSqr(point.get());
+				best = face;
+			}
+		}
+
+		return best;
 	}
 
 	/** {direction from target to the support block, face of the support block to click}, or null. */

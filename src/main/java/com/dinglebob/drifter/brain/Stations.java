@@ -18,6 +18,31 @@ public final class Stations {
 	private Stations() {
 	}
 
+	/** From this far from home it walks back to the stations there rather than making new ones. */
+	public static final double HOME_RANGE = 64.0;
+
+	/**
+	 * A station it would use: one close by, or (within {@link #HOME_RANGE} of home) the one at home (found in testing:
+	 * 24 blocks from home after mining, it made a second table and furnace).
+	 */
+	@Nullable
+	public static BlockPos usable(DrifterEntity drifter, Block block) {
+		BlockPos near = nearest(drifter, block, USE_RANGE);
+		if (near != null) {
+			return near;
+		}
+
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null || !home.near(drifter, HOME_RANGE)) {
+			return null;
+		}
+
+		String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+		MemoryEntry entry = drifter.getMemory().nearest(MemoryKind.STATION, drifter.level().dimension().location(),
+			net.minecraft.world.phys.Vec3.atCenterOf(home.center), USE_RANGE, e -> e.label.equals(id));
+		return entry == null ? null : entry.blockPos();
+	}
+
 	/**
 	 * The nearest remembered station of this block within a range. Memories that turn out wrong when it can see the
 	 * spot (the block is gone) are forgotten.

@@ -56,6 +56,7 @@ public final class Planner {
 	private static final double COST_GATHER_TRIP = 8.0;
 	private static final double COST_DIG_DOWN = 40.0;
 	private static final double COST_EXPLORE = 150.0;
+	private static final double COST_MINE_TRIP = 240.0;
 	private static final double COST_HUNT_KILL = 25.0;
 	private static final double DROPS_PER_KILL = 1.5;
 	private static final double COST_SMELT_EACH = 10.0;
@@ -71,7 +72,7 @@ public final class Planner {
 	// Actions
 	// ---------------------------------------------------------------------------------------------
 
-	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch {
+	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch, Mine {
 		String describe();
 	}
 
@@ -119,6 +120,14 @@ public final class Planner {
 		@Override
 		public String describe() {
 			return "collect " + name(this.job.output) + " from the furnace";
+		}
+	}
+
+	/** A mining trip down to where this ore is common (section 10.3), until it carries {@code total} of the items. */
+	public record Mine(Item item, String label, Predicate<BlockState> blocks, int total, int depth, boolean mountain) implements Action {
+		@Override
+		public String describe() {
+			return "go mining for " + this.label + " (to " + this.total + ", around Y " + this.depth + ")";
 		}
 	}
 
@@ -220,6 +229,11 @@ public final class Planner {
 				}
 
 				if (earlier instanceof Collect a && action instanceof Collect b && a.job() == b.job()) {
+					return;
+				}
+
+				if (earlier instanceof Mine a && action instanceof Mine b && a.item() == b.item()) {
+					this.actions.set(i, new Mine(a.item(), a.label(), a.blocks(), a.total() + b.total(), a.depth(), a.mountain()));
 					return;
 				}
 
@@ -449,6 +463,13 @@ public final class Planner {
 		if (known || digDown) {
 			state.addAction(new Gather(item, label, blocks, stack -> stack.is(item), this.targetTotal(state, item, count), digDown));
 			state.cost += COST_GATHER_TRIP + COST_GATHER_EACH * count + (digDown ? COST_DIG_DOWN : 0.0);
+			return state;
+		}
+
+		// An ore it hasn't seen: a mining trip to where it's common, rather than wandering the surface.
+		if (source.depth() != null) {
+			state.addAction(new Mine(item, label, blocks, this.targetTotal(state, item, count), source.depth(), source.mountain()));
+			state.cost += COST_MINE_TRIP + COST_GATHER_EACH * count;
 			return state;
 		}
 

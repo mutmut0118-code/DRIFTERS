@@ -15,6 +15,9 @@ public class ThoughtLog {
 	public record Thought(long time, String text) {
 	}
 
+	/** Debug (`/drifter thoughts log on`): every thought also goes to the server log as it happens. */
+	public static boolean echo;
+
 	private final Deque<Thought> thoughts = new ArrayDeque<>();
 
 	public void add(long time, String text) {
@@ -24,6 +27,10 @@ public class ThoughtLog {
 		}
 
 		this.thoughts.addLast(new Thought(time, text));
+		if (echo) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[thought @{}] {}", time, text);
+		}
+
 		while (this.thoughts.size() > CAPACITY) {
 			this.thoughts.removeFirst();
 		}

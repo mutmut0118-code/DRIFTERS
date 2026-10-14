@@ -129,6 +129,12 @@ public abstract class Activity extends Task {
 		return this.child == null ? this : this.child.leaf();
 	}
 
+	/** The step running now, if any. */
+	@Nullable
+	protected Task child() {
+		return this.child;
+	}
+
 	/** What it's doing right now, for the overlay. */
 	public String currentStep() {
 		return this.child == null ? "thinking" : this.child.describe();
@@ -152,15 +158,20 @@ public abstract class Activity extends Task {
 
 	/** Takes out the best tool it has for the block, then mines it. */
 	protected Task dig(BlockPos pos) {
-		BlockState state = this.drifter.level().getBlockState(pos);
-		int slot = Tools.bestToolSlot(this.drifter, state, this.drifter.level(), pos);
+		return digTask(this.drifter, pos);
+	}
+
+	/** Takes out the best tool it has for the block, then mines it (for helpers that hand tasks to an activity). */
+	public static Task digTask(DrifterEntity drifter, BlockPos pos) {
+		BlockState state = drifter.level().getBlockState(pos);
+		int slot = Tools.bestToolSlot(drifter, state, drifter.level(), pos);
 		if (slot < 0) {
-			return new MineTask(this.drifter, pos);
+			return new MineTask(drifter, pos);
 		}
 
-		ItemStack tool = this.drifter.getInventory().getItem(slot);
-		return new SequenceTask(this.drifter, "dig " + state.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT), java.util.List.of(
-			new SelectItemTask(this.drifter, stack -> stack == tool, tool.getHoverName().getString()),
-			new MineTask(this.drifter, pos)));
+		ItemStack tool = drifter.getInventory().getItem(slot);
+		return new SequenceTask(drifter, "dig " + state.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT), java.util.List.of(
+			new SelectItemTask(drifter, stack -> stack == tool, tool.getHoverName().getString()),
+			new MineTask(drifter, pos)));
 	}
 }

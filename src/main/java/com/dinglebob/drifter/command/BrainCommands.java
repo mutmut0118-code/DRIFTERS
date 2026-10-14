@@ -132,7 +132,9 @@ public final class BrainCommands {
 				.append(entry.getKey().getDescription().getString().toLowerCase(Locale.ROOT)));
 		return String.format(Locale.ROOT, "Home at %s, %d blocks away, %d chest%s (%.0f%% full)%s", home.center.toShortString(),
 			(int)Math.sqrt(drifter.blockPosition().distSqr(home.center)), home.chests().size(), home.chests().size() == 1 ? "" : "s",
-			home.fullness() * 100.0, stored.isEmpty() ? "" : ": " + stored);
+			home.fullness() * 100.0, stored.isEmpty() ? "" : ": " + stored)
+			+ (home.mineBottom == null ? "" : String.format(Locale.ROOT, "; mine down to %s, %d trip%s", home.mineBottom.toShortString(),
+				home.mineTrips, home.mineTrips == 1 ? "" : "s"));
 	}
 
 	private static int toggle(CommandContext<CommandSourceStack> ctx, boolean on) throws CommandSyntaxException {

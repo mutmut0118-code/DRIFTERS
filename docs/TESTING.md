@@ -767,7 +767,8 @@ Use `/drifter night` to see tonight's plan, or force one with `/drifter night hu
 
 ## Milestone 8: Progression and building
 
-**Status:** step 1 of 9 (home and storage) written and smoke-tested on a test server, not played yet. The goal of the
+**Status:** steps 1 to 3 of 9 (home and storage, starter hut, iron age) written and smoke-tested on a test server,
+not played yet. The goal of the
 whole milestone: left alone for 10 days, a Drifter reaches diamonds and builds a base you'd recognize.
 
 ### Step 1: home and storage
@@ -804,10 +805,38 @@ have to go mining first (without them it gathers the blocks itself).
       foundations and paths for materials; it gets wood from trees and stone from natural stone, and walks around
       houses rather than through them.
 
+### Step 3: iron age, mining trips (new)
+Quick setup (skips the early game): `/drifter spawn Digger`, then give it `minecraft:stone_pickaxe`,
+`minecraft:stone_sword`, `minecraft:furnace`, `minecraft:crafting_table`, `minecraft:chest`, `minecraft:oak_planks 32`,
+`minecraft:cobblestone 100`, `minecraft:torch 32`, `minecraft:cooked_beef 16` and `minecraft:coal 16` (each with
+`/drifter give`). `/drifter personality reroll miner` makes a keen miner. Set the time to morning (`/time set 1000`).
+- [ ] It settles and builds its hut as in steps 1-2, then: "go mining for raw iron". If it remembers iron ore it saw,
+      it goes there first. Otherwise it digs a **2-high staircase down** from just outside the hut (a different side
+      each trip), down to about y 16 (in a mountain: about 24 blocks into it).
+- [ ] At the bottom it digs a **branch mine**: one long tunnel with side tunnels every few blocks. Torches every 8
+      blocks, always on the same side going in. It mines the ore it uncovers (coal, iron, copper...).
+- [ ] Breaking into a cave or water, it **plugs the hole** with a block and digs a different way ("turning north on the
+      way down (a cave)"). It never digs through dungeon walls (mossy cobblestone) or mineshaft planks.
+- [ ] If it **sees iron** in a cave it broke into (or in a wall), it goes and mines it ("spotted raw iron at ...: going to
+      get it"), then goes back to its tunnel. On cave-filled ground this is how it gets most of its iron.
+- [ ] Before a trip it makes **spare stone pickaxes** if its pickaxes won't last the dig (a stone pickaxe lasts 131
+      blocks). Give it a nearly broken one to see: `/drifter give minecraft:stone_pickaxe[damage=120]`.
+- [ ] It uses the crafting table and furnace in its hut, even after mining a long way off (it doesn't make new ones).
+- [ ] On grassy ground, building the hut and digging the stairs work (it clicks grass to put a block there, like you).
+- [ ] It heads home when it has enough, its pockets are full, it's getting late, it's hurt or hungry, or its pickaxe
+      is nearly worn out (it makes a spare first if it has the stuff). At home it smelts the iron and crafts.
+- [ ] Over a few days: **iron pickaxe**, then **bucket**, **shield** and iron armor pieces. `/drifter status` shows the
+      stage ("iron age" once it has the pickaxe, bucket, shield and two armor pieces).
+- [ ] Next trip it walks back down its old staircase instead of digging a new one from the top (`/drifter home` shows
+      "mine" and how many trips).
+- Handy for long watches: `/drifter thoughts log true` writes every thought into the game log as it happens
+  (`/drifter thoughts log false` to stop). `/tick rate 60` makes the game run 3x faster to see a few days quicker.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
 - The hut is always 5x5 with a flat roof (bigger houses by personality are step 8); no bed yet (step 4); the crafting
   table it used for the chest may end up as part of the wall.
-- With nothing to do at stage 4 it wanders (mining trips are step 3).
+- Mining is always a staircase plus a 1x2 branch mine; caving (exploring caves on purpose) and 2x2/3x3 tunnels by
+  mining style come later.
 - It doesn't sort or label chests yet.
 
 ### Known gaps for milestone 7 (don't report these as bugs)

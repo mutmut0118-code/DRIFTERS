@@ -64,7 +64,7 @@ public class Brain {
 	private Schedule.NightStyle nightStyle = Schedule.NightStyle.SHELTER;
 	private long nightStyleDay = Long.MIN_VALUE;
 	@Nullable
-	private NightTunnel nightTunnel;
+	private com.dinglebob.drifter.brain.mining.Tunnel nightTunnel;
 
 	/**
 	 * How it spends tonight: chosen when it first thinks about shelter each day (late afternoon), then kept for the
@@ -85,11 +85,11 @@ public class Brain {
 	}
 
 	@Nullable
-	public NightTunnel nightTunnel() {
+	public com.dinglebob.drifter.brain.mining.Tunnel nightTunnel() {
 		return this.nightTunnel;
 	}
 
-	public void setNightTunnel(@Nullable NightTunnel tunnel) {
+	public void setNightTunnel(@Nullable com.dinglebob.drifter.brain.mining.Tunnel tunnel) {
 		this.nightTunnel = tunnel;
 	}
 

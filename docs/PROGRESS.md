@@ -39,7 +39,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Mostly done: the user tested it and moved on to milestone 8 (session 2); leftovers listed below | Done when: people watching a short clip can't reliably tell it from a player. |
-| 8 | Progression and building | In progress: steps 1 (home and storage) and 2 (starter hut) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
+| 8 | Progression and building | In progress: steps 1 (home and storage), 2 (starter hut) and 3 (iron age) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | Not started | Section 19. |
@@ -531,8 +531,52 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   pockets high up from inside, and the chest in the corner blocked the view to the floor next to it; the middle roof
   block closed too soon blocked pillaring up again. The 2-high design with a one-block pillar and a "walk to where it
   can see a face" fallback solved it.
-- Known: with nothing else to do at stage 4 it just explores (step 3 gives it mining trips); the crafting table it
-  used for the chest sometimes ends up as part of the wall.
+- Known: the crafting table it used for the chest sometimes ends up as part of the wall.
+
+### Step 3: iron age (code complete, smoke-tested on the dev server, not played yet)
+- **Targets** (`brain/Strategist`): once settled (or straight away for Nomads) it works through iron pickaxe, bucket,
+  shield, chestplate, leggings, helmet, boots, shears, flint and steel. Stage 5 "iron age" = iron pickaxe, bucket,
+  shield and two armor pieces. Before those, "a spare pickaxe" whenever its only pickaxe is half worn (section 10.17);
+  it keeps the spare on it instead of storing it.
+- **Mining trips** (`brain/activity/MineTripActivity`, planner action `Mine`): when the planner needs an ore it hasn't
+  seen, it plans a trip to the ore's depth from the source table (`drifter_sources`: iron around y 16, coal 40, copper
+  48; in mountains above y 96 it digs 24 down into the mountain instead). Remembered ore goes first. Otherwise a 2-high
+  staircase from just outside the hut (a different side when one fails) down to the depth, then a branch mine: a main
+  tunnel and side branches every few blocks (its branch spacing habit). Home remembers the mine: the next trip walks
+  back down and branches a new way, or carries on down a staircase it didn't finish. A staircase that has to stop
+  within 24 blocks of the depth still branches from there.
+- **Ore it spots on the way** (caves it breaks into, walls): within 16 blocks, it goes and mines it (and the vein), then
+  back to its tunnel. In cave-riddled ground this is how it actually finds most of its iron, like players since 1.18.
+- **Enough pickaxes:** before a trip it estimates the digging (3 blocks per stair step plus about 100 for branches) and
+  makes extra stone pickaxes (up to 4) if what it carries won't last. It goes home when it has enough, its pockets are
+  full, it's getting late, it's hurt or hungry, or its last pickaxe is nearly worn out. No trips late in the day.
+- **Shared tunnel digger** (`brain/mining/Tunnel`, `TunnelDigger`), used by night mining too: torches every 8 blocks on
+  its habit side, mines ore veins it uncovers, plugs holes into caves and water, turns to whichever side is clear
+  (never back into its hut, and its thoughts say why it turned), never digs gravel/sand over its head, slow blocks, or
+  anything that **looks built** (found in testing: it dug through a dungeon's mossy cobblestone wall).
+- **Stations at home:** within 64 blocks of home it walks back to the table and furnace there instead of making new
+  ones (found in testing: 24 blocks out after mining, it made a second table and furnace).
+- **Grass and flowers** (found in testing, affected building and mining): they have no collision but block a click, so
+  "can't see that face" failures piled up on grassy ground. Placing now clicks the grass itself (the block replaces
+  it, as for a player), and the staircase breaks plants in its way. The hut also fills dips up to 3 deep under its
+  floor before laying it.
+- **Other fixes found while testing this:** caves made the staircase fail (now plugged or turned round); a furnace was
+  made at the bottom of the mine (it now counts the one at home); after filling a hole back in, it kept trying to walk
+  to the old tunnel end for minutes; a walk inside the mine is given up after a minute; it no longer sets off and turns
+  back every tick late in the day.
+- **Debug:** `/drifter thoughts log true` copies every thought into the server log as it happens (for long tests).
+- **Testing speed:** smoke tests now use `/tick rate 60` (3x speed); everything the Drifter does counts game ticks, so
+  the behaviour is the same (user's idea, session 2).
+- **Smoke test (your world seed, -7697369017275805093):**
+  a miner with a starter kit (stone tools, a half-worn pickaxe, 100 cobblestone, torches, food) at 3x speed. Run 13:
+  settled, made a spare pickaxe, dug a staircase, broke into a cave and saw iron ("spotted raw iron ...: going to get
+  it"), mined the vein, smelted it at home, made an **iron pickaxe**, then a **bucket** and a **shield**, and put on
+  armor; the next trip carried on down its old staircase. Run 15: hut finished, iron pickaxe and bucket on day 2.
+  Earlier runs on the same seed (before these fixes) never got iron: the ground there is full of caves, water pockets
+  and an old mineshaft.
+- **Known, next to fix:** a flooded staircase can trap it: standing in shallow flowing water partway down, the path
+  planner keeps giving it a jump that's too high, and it hops in place for a long time (seen once, run 15). Each failed
+  staircase also leaves a hole by the hut; trips sometimes still come back empty in very cave-riddled ground.
 
 ## Notes for milestone 9 (from testing)
 

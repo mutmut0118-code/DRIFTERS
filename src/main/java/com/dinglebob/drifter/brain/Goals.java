@@ -105,6 +105,8 @@ public final class Goals {
 				smelt.fuelLabel(), smelt.fuelCount());
 			case Planner.Collect collect -> new CollectSmeltActivity(drifter, collect.job());
 			case Planner.Explore explore -> new ExploreActivity(drifter, explore.reason(), explore.toward(), explore.found());
+			case Planner.Mine mine -> new com.dinglebob.drifter.brain.activity.MineTripActivity(drifter, mine.item(), mine.label(), mine.blocks(), mine.total(),
+				mine.depth(), mine.mountain());
 			case Planner.Fetch fetch -> new com.dinglebob.drifter.brain.activity.FetchActivity(drifter, fetch.chest(), fetch.item(), fetch.count());
 		};
 	}
@@ -138,6 +140,11 @@ public final class Goals {
 
 			// Waiting on a furnace: do something else meanwhile (it comes back when the batch is done).
 			if (plan.next() instanceof Planner.Collect collect && !collect.job().ready(context.drifter().level().getGameTime())) {
+				return 0.0;
+			}
+
+			// Too late in the day for a mining trip (found in testing: it set off, turned round at once, every tick).
+			if (plan.next() instanceof Planner.Mine && com.dinglebob.drifter.brain.activity.MineTripActivity.tooLateToGo(context.drifter())) {
 				return 0.0;
 			}
 

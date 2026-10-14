@@ -75,11 +75,20 @@ public class SettleActivity extends Activity {
 			HomeSite.Site site = HomeSite.choose(this.drifter, picky ? HomeSite.MIN_FLATNESS : HomeSite.FALLBACK_FLATNESS);
 			if (site == null) {
 				if (this.drifter.getDrifterBrain().timesExplored(SITE_SEARCH) >= MAX_SITE_LEGS) {
-					return this.fail("found nowhere to settle around here");
-				}
+					// Looked long enough: anywhere half decent, or right here (it levels the spot as it builds).
+					site = HomeSite.choose(this.drifter, 0.25);
+					BlockPos here = this.drifter.blockPosition();
+					if (site == null && this.drifter.onGround() && !this.drifter.isInWater() && KnownBlocks.isStandable(level, here)) {
+						site = new HomeSite.Site(here, 0.0, "nowhere better around: settling right here");
+					}
 
-				return this.begin(new ExploreActivity(this.drifter, SITE_SEARCH, null,
-					drifter -> HomeSite.choose(drifter, HomeSite.MIN_FLATNESS) != null));
+					if (site == null) {
+						return this.fail("found nowhere to settle around here");
+					}
+				} else {
+					return this.begin(new ExploreActivity(this.drifter, SITE_SEARCH, null,
+						drifter -> HomeSite.choose(drifter, HomeSite.MIN_FLATNESS) != null));
+				}
 			}
 
 			home = new Home(site.pos(), level.dimension().location(), this.now());
@@ -110,12 +119,20 @@ public class SettleActivity extends Activity {
 			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.0, "walk home"));
 		}
 
-		if (++this.placeTries > 6) {
-			return this.fail("can't find a spot for the chest at home");
+		BlockPos spot = this.placeTries++ > 6 ? null : this.chestSpot(level, home);
+		if (spot == null) {
+			// Any free floor right next to it will do.
+			spot = KnownBlocks.placementSpotNear(this.drifter, this.tried).orElse(null);
 		}
 
-		BlockPos spot = this.chestSpot(level, home);
 		if (spot == null) {
+			// This spot's no good (a mountaintop, a ledge): look for another place to settle.
+			if (!home.hasChest()) {
+				this.drifter.getDrifterBrain().setHome(null);
+				this.think("no room for a chest here: looking for a better place to settle");
+				return Status.RUNNING;
+			}
+
 			return this.fail("no free floor next to home for a chest");
 		}
 

@@ -42,8 +42,12 @@ public final class Sources {
 	public static final String DIRECTORY = "drifter_sources";
 
 	/** One way to get an item: break a block, or kill a mob. */
+	/**
+	 * {@code depth}: for ores, the height it's most common at (section 10.3 "Target depths"); unseen ores with a depth
+	 * mean a mining trip down there rather than wandering the surface. Null for everything else.
+	 */
 	public record Source(String itemId, List<String> blockIds, boolean dropsSelf, @Nullable ResourceLocation tool, @Nullable ResourceLocation mob,
-		Predicate<Item> itemMatcher, List<Predicate<BlockState>> blockMatchers) {
+		Predicate<Item> itemMatcher, List<Predicate<BlockState>> blockMatchers, @Nullable Integer depth, boolean mountain) {
 		public boolean givesItem(Item item) {
 			return this.itemMatcher.test(item);
 		}
@@ -132,7 +136,8 @@ public final class Sources {
 						entry.has("drops") && entry.get("drops").getAsString().equals("self"),
 						entry.has("tool") ? ResourceLocation.parse(entry.get("tool").getAsString()) : null,
 						entry.has("mob") ? ResourceLocation.parse(entry.get("mob").getAsString()) : null,
-						itemMatcher(itemId), blocks.stream().map(Sources::blockMatcher).toList()));
+						itemMatcher(itemId), blocks.stream().map(Sources::blockMatcher).toList(),
+						entry.has("depth") ? entry.get("depth").getAsInt() : null, entry.has("mountain") && entry.get("mountain").getAsBoolean()));
 				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter sources file {}", file.getKey(), e);

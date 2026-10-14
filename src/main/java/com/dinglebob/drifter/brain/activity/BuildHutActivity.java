@@ -164,6 +164,13 @@ public class BuildHutActivity extends Activity {
 			return this.begin(this.dig(feet.below()));
 		}
 
+		// Holes deeper than one block under the floor get filled from the bottom up first (found in testing: a corner over a
+		// dip by the water had nothing to place the floor against).
+		Status deep = this.placeFirstMissing(level, this.foundation(level, hut), onFloor, false);
+		if (deep != null) {
+			return deep;
+		}
+
 		// The floor and the walls, from the floor (moving to a better spot for any it can't place from where it is).
 		Status low = this.placeFirstMissing(level, hut.floor(), onFloor, false);
 		if (low != null) {
@@ -276,6 +283,33 @@ public class BuildHutActivity extends Activity {
 	 * can't move). Null when none are left.
 	 */
 	@Nullable
+	/** Most blocks it fills under one floor cell. */
+	private static final int FOUNDATION_DEPTH = 3;
+
+	/** Air or water under missing floor blocks, down to solid ground (a few blocks at most), lowest first. */
+	private List<BlockPos> foundation(Level level, StarterHut hut) {
+		List<BlockPos> cells = new java.util.ArrayList<>();
+		for (BlockPos floor : hut.floor()) {
+			if (StarterHut.filled(level, floor)) {
+				continue;
+			}
+
+			List<BlockPos> column = new java.util.ArrayList<>();
+			BlockPos below = floor.below();
+			while (column.size() < FOUNDATION_DEPTH && !StarterHut.filled(level, below)) {
+				column.add(below);
+				below = below.below();
+			}
+
+			if (StarterHut.filled(level, below)) {
+				cells.addAll(column);
+			}
+		}
+
+		cells.sort(java.util.Comparator.comparingInt(BlockPos::getY));
+		return cells;
+	}
+
 	private Status placeFirstMissing(Level level, List<BlockPos> cells, boolean inPosition, boolean fixedSpot) {
 		Home home = this.drifter.getDrifterBrain().home();
 		StarterHut hut = StarterHut.of(home);
@@ -348,8 +382,8 @@ public class BuildHutActivity extends Activity {
 				continue;
 			}
 
-			boolean sees = false;
-			for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+			boolean sees = com.dinglebob.drifter.executor.task.PlaceBlockTask.clickableFace(this.drifter, eye, cell) != null;
+			for (net.minecraft.core.Direction side : sees ? new net.minecraft.core.Direction[0] : net.minecraft.core.Direction.values()) {
 				BlockPos support = cell.relative(side);
 				BlockState state = level.getBlockState(support);
 				if (!state.isAir() && !state.canBeReplaced()

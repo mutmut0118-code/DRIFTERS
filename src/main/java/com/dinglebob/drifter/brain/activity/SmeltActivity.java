@@ -115,11 +115,11 @@ public class SmeltActivity extends Activity {
 		// Food goes in a smoker if it knows one (twice as fast, same fuel per item), otherwise a furnace.
 		BlockPos furnace = null;
 		if (new ItemStack(this.output).has(net.minecraft.core.component.DataComponents.FOOD)) {
-			furnace = Stations.nearest(this.drifter, Blocks.SMOKER, Stations.USE_RANGE);
+			furnace = Stations.usable(this.drifter, Blocks.SMOKER);
 		}
 
 		if (furnace == null) {
-			furnace = Stations.nearest(this.drifter, Blocks.FURNACE, Stations.USE_RANGE);
+			furnace = Stations.usable(this.drifter, Blocks.FURNACE);
 		}
 
 		if (furnace == null) {

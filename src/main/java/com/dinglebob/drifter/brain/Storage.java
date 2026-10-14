@@ -118,6 +118,17 @@ public final class Storage {
 			}
 		}
 
+		// Section 10.17: it keeps a spare pickaxe on it too (the next best one).
+		Integer bestPickaxe = bestToolSlot.get("pickaxe");
+		int sparePickaxe = -1;
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.is(ItemTags.PICKAXES) && bestPickaxe != null && slot != bestPickaxe
+				&& (sparePickaxe < 0 || toolScore(stack) > toolScore(inventory.getItem(sparePickaxe)))) {
+				sparePickaxe = slot;
+			}
+		}
+
 		Map<Integer, Integer> deposit = new HashMap<>();
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
@@ -127,7 +138,7 @@ public final class Storage {
 
 			String kind = toolKind(stack);
 			if (kind != null) {
-				if (bestToolSlot.get(kind) != slot) {
+				if (bestToolSlot.get(kind) != slot && slot != sparePickaxe) {
 					deposit.put(slot, stack.getCount());
 				}
 

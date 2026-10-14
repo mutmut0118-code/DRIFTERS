@@ -157,6 +157,8 @@ public class NavigateTask extends Task {
 	private int pillarStage;
 	private int pillarTries;
 	private int pillarTicks;
+	/** Highest it got above the block it jumped from, for the failure message. */
+	private double pillarPeak;
 
 	public NavigateTask(DrifterEntity drifter, Vec3 target, double radius, String label) {
 		this(drifter, target, radius, label, Pace.TRAVEL);
@@ -403,6 +405,7 @@ public class NavigateTask extends Task {
 		this.pillarStage = 0;
 		this.pillarTries = 0;
 		this.pillarTicks = 0;
+		this.pillarPeak = 0.0;
 		this.waitToSee = 0;
 		this.bridgePoseSet = false;
 	}
@@ -1418,11 +1421,15 @@ public class NavigateTask extends Task {
 					}
 				}
 
+				this.pillarPeak = Math.max(this.pillarPeak, this.drifter.getY() - from.getY());
 				// A few ticks' grace: on the first tick of the jump it is still on the ground.
 				if (++this.pillarTicks > 4 && this.drifter.onGround() && this.drifter.getY() < from.getY() + 0.5) {
 					// Landed without placing: try again.
 					if (++this.pillarTries > 3) {
-						this.replan("couldn't pillar up");
+						BlockHitResult hit = Reach.crosshair(this.drifter);
+						this.replan(String.format(java.util.Locale.ROOT, "couldn't pillar up at %s (jumped %.2f, looking at %s, holding %s)",
+							from.toShortString(), this.pillarPeak, hit == null ? "nothing" : hit.getBlockPos().toShortString() + " " + hit.getDirection().getName(),
+							this.drifter.getMainHandItem().getItem().toString()));
 					} else {
 						this.pillarStage = 1;
 					}

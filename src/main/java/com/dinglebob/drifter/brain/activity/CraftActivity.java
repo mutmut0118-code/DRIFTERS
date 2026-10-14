@@ -69,7 +69,7 @@ public class CraftActivity extends Activity {
 			return this.begin(new CraftTask(this.drifter, stack -> stack.is(this.item), this.label, this.times, null));
 		}
 
-		BlockPos table = Stations.nearest(this.drifter, Blocks.CRAFTING_TABLE, Stations.USE_RANGE);
+		BlockPos table = Stations.usable(this.drifter, Blocks.CRAFTING_TABLE);
 		if (table == null) {
 			return this.fail("needs a crafting table");
 		}

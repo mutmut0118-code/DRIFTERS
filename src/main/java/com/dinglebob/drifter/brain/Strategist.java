@@ -35,14 +35,68 @@ public final class Strategist {
 		new Target("a stone axe", List.of(Items.STONE_AXE), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.AXES)
 			&& !stack.is(Items.WOODEN_AXE) && !stack.is(Items.GOLDEN_AXE))),
 		new Target("a furnace", List.of(Items.FURNACE), 1,
-			drifter -> has(drifter, stack -> stack.is(Items.FURNACE)) || Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null),
+			drifter -> has(drifter, stack -> stack.is(Items.FURNACE)) || Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null
+				|| furnaceAtHome(drifter)),
 		new Target("some cobblestone", List.of(Items.COBBLESTONE, Items.COBBLED_DEEPSLATE), 16,
 			drifter -> drifter.getInventory().count(stack -> stack.is(ItemTags.STONE_TOOL_MATERIALS)) >= 16),
 		new Target("torches", List.of(Items.TORCH), 8, drifter -> drifter.getInventory().count(stack -> stack.is(Items.TORCH)) >= 8),
 		new Target("a stone shovel", List.of(Items.STONE_SHOVEL), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.SHOVELS)
 			&& !stack.is(Items.WOODEN_SHOVEL) && !stack.is(Items.GOLDEN_SHOVEL))));
 
+	/** It has a furnace set up at home (it doesn't need another one while it's off mining). */
+	private static boolean furnaceAtHome(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null) {
+			return false;
+		}
+
+		var dimension = drifter.level().dimension().location();
+		return drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.STATION, dimension, net.minecraft.world.phys.Vec3.atCenterOf(home.center),
+			Stations.USE_RANGE, entry -> entry.label.equals("minecraft:furnace")) != null;
+	}
+
+	/** Iron-age armor: worn or owned, iron or better (diamond, netherite). */
+	private static Predicate<DrifterEntity> armor(Item iron, Item diamond, Item netherite) {
+		return drifter -> has(drifter, stack -> stack.is(iron) || stack.is(diamond) || stack.is(netherite));
+	}
+
+	/**
+	 * Stage 5 targets, in the order players make them (section 9 "Within-stage priorities: Iron"): pickaxe, bucket,
+	 * shield, chestplate, leggings, helmet, boots, then shears and flint and steel. Full iron armor takes 24 ingots,
+	 * so armor is spread over several mining trips.
+	 */
+	public static final List<Target> IRON_TARGETS = List.of(
+		new Target("an iron pickaxe", List.of(Items.IRON_PICKAXE), 1,
+			drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()))),
+		new Target("a bucket", List.of(Items.BUCKET), 1,
+			drifter -> has(drifter, stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || stack.is(Items.LAVA_BUCKET))),
+		new Target("a shield", List.of(Items.SHIELD), 1, drifter -> has(drifter, stack -> stack.is(Items.SHIELD))),
+		new Target("an iron chestplate", List.of(Items.IRON_CHESTPLATE), 1, armor(Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
+		new Target("iron leggings", List.of(Items.IRON_LEGGINGS), 1, armor(Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
+		new Target("an iron helmet", List.of(Items.IRON_HELMET), 1, armor(Items.IRON_HELMET, Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
+		new Target("iron boots", List.of(Items.IRON_BOOTS), 1, armor(Items.IRON_BOOTS, Items.DIAMOND_BOOTS, Items.NETHERITE_BOOTS)),
+		new Target("shears", List.of(Items.SHEARS), 1, drifter -> has(drifter, stack -> stack.is(Items.SHEARS))),
+		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))));
+
 	private Strategist() {
+	}
+
+	/** Spare pickaxes: start a trip with a half-worn one, and it needs another. */
+	public static final double SPARE_WEAR = 0.5;
+
+	/** Its only pickaxe on it is half worn (or it has none on it). */
+	public static boolean needsSparePickaxe(DrifterEntity drifter) {
+		int carried = 0;
+		double leastWorn = 1.0;
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = drifter.getInventory().getItem(slot);
+			if (stack.is(ItemTags.PICKAXES)) {
+				carried++;
+				leastWorn = Math.min(leastWorn, stack.isDamageableItem() ? stack.getDamageValue() / (double)stack.getMaxDamage() : 0.0);
+			}
+		}
+
+		return carried == 0 || carried == 1 && leastWorn > SPARE_WEAR;
 	}
 
 	/** Carried, worn, or stored in its chests at home (section 9: stage counts home storage). */
@@ -81,6 +135,28 @@ public final class Strategist {
 			}
 		}
 
+		// The iron age once it has settled (stage 4); nomads, who barely settle, get there anyway after their first night.
+		Home home = drifter.getDrifterBrain().home();
+		boolean settled = home != null && home.hasChest()
+			|| drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD;
+		if (settled) {
+			// Section 10.17 "Spares: keeps a spare pickaxe": its only pickaxe half worn, it makes a stone one first (found in
+			// testing: it came up from the mine with a worn pickaxe and no wood for sticks, and never went down again).
+			if (needsSparePickaxe(drifter)) {
+				int stone = drifter.getInventory().count(stack -> stack.is(Items.STONE_PICKAXE));
+				Target spare = new Target("a spare pickaxe", List.of(Items.STONE_PICKAXE), stone + 1, d -> !needsSparePickaxe(d));
+				if (workable.test(spare)) {
+					return spare;
+				}
+			}
+
+			for (Target target : IRON_TARGETS) {
+				if (!target.satisfied().test(drifter) && workable.test(target)) {
+					return target;
+				}
+			}
+		}
+
 		return null;
 	}
 
@@ -90,9 +166,20 @@ public final class Strategist {
 	 */
 	public static int stage(DrifterEntity drifter) {
 		if (EARLY_TARGETS.get(1).satisfied().test(drifter) && EARLY_TARGETS.get(4).satisfied().test(drifter)) {
-			// Stage 4, settling: a home with a chest.
+			// Stage 4, settling: a home with a chest. Stage 5, iron: an iron pickaxe, a bucket, a shield and 2+ armor pieces.
 			Home home = drifter.getDrifterBrain().home();
-			return home != null && home.hasChest() ? 4 : 3;
+			if (home == null || !home.hasChest()) {
+				return 3;
+			}
+
+			int armor = 0;
+			for (int i = 3; i <= 6; i++) {
+				armor += IRON_TARGETS.get(i).satisfied().test(drifter) ? 1 : 0;
+			}
+
+			boolean iron = IRON_TARGETS.get(0).satisfied().test(drifter) && IRON_TARGETS.get(1).satisfied().test(drifter)
+				&& IRON_TARGETS.get(2).satisfied().test(drifter) && armor >= 2;
+			return iron ? 5 : 4;
 		}
 
 		if (EARLY_TARGETS.get(0).satisfied().test(drifter)) {
@@ -108,7 +195,8 @@ public final class Strategist {
 			case 1 -> "wood";
 			case 2 -> "stone";
 			case 3 -> "first night";
-			default -> "settling";
+			case 4 -> "settling";
+			default -> "iron";
 		};
 	}
 }

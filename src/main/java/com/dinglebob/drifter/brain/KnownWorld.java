@@ -93,9 +93,9 @@ public final class KnownWorld {
 			}
 		}
 
-		this.tableNear = Stations.nearest(drifter, Blocks.CRAFTING_TABLE, Stations.USE_RANGE) != null;
-		this.furnaceNear = Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null;
-		this.smokerNear = Stations.nearest(drifter, Blocks.SMOKER, Stations.USE_RANGE) != null;
+		this.tableNear = Stations.usable(drifter, Blocks.CRAFTING_TABLE) != null;
+		this.furnaceNear = Stations.usable(drifter, Blocks.FURNACE) != null;
+		this.smokerNear = Stations.usable(drifter, Blocks.SMOKER) != null;
 		// Groves farther than what it can see from here (the one it's standing in is already counted, or cut down).
 		MemoryEntry trees = drifter.getMemory().nearest(MemoryKind.RESOURCE, dimension, drifter.position(), TREE_MEMORY_RANGE,
 			e -> e.label.equals("trees") && e.pos.distanceTo(drifter.position()) > RADIUS);

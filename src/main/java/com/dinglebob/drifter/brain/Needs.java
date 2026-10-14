@@ -34,7 +34,7 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 
 		long time = Schedule.believedTime(drifter);
 		// In its own night tunnel counts as being in its shelter (it mines there, and climbs out in the morning).
-		NightTunnel tunnel = drifter.getDrifterBrain().nightTunnel();
+		com.dinglebob.drifter.brain.mining.Tunnel tunnel = drifter.getDrifterBrain().nightTunnel();
 		boolean sealedIn = Shelter.isSheltered(drifter) || tunnel != null && tunnel.contains(drifter.blockPosition());
 		// A night hunter (section 18: brave ones go out after mobs) only needs shelter once it isn't fit to be out.
 		boolean hunting = !sealedIn && drifter.getDrifterBrain().nightStyle() == Schedule.NightStyle.HUNT && Schedule.fitToHunt(drifter);

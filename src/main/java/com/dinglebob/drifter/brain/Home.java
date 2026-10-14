@@ -41,6 +41,12 @@ public final class Home {
 	@Nullable
 	public net.minecraft.core.Direction hutDoor;
 	public boolean hutBuilt;
+	/** Its mine (section 10.3): the bottom of the staircase it dug from home, which way it went, and trips made from it. */
+	@Nullable
+	public BlockPos mineBottom;
+	@Nullable
+	public net.minecraft.core.Direction mineDirection;
+	public int mineTrips;
 
 	/** Its chests, in the order it placed them, with what it last saw in each. */
 	private final Map<BlockPos, Map<Item, Integer>> chests = new LinkedHashMap<>();
@@ -155,6 +161,12 @@ public final class Home {
 		}
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
+		if (this.mineBottom != null && this.mineDirection != null) {
+			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
+			tag.putString("MineDirection", this.mineDirection.getName());
+		}
+
+		tag.putInt("MineTrips", this.mineTrips);
 		ListTag chests = new ListTag();
 		this.chests.forEach((pos, contents) -> {
 			CompoundTag chest = new CompoundTag();
@@ -179,6 +191,9 @@ public final class Home {
 		Home home = new Home(center, dimension, tag.getLong("SettledAt"));
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
+		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
+		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
+		home.mineTrips = tag.getInt("MineTrips");
 		ListTag chests = tag.getList("Chests", Tag.TAG_COMPOUND);
 		for (int i = 0; i < chests.size(); i++) {
 			CompoundTag chest = chests.getCompound(i);
