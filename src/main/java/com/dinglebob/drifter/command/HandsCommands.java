@@ -70,6 +70,16 @@ final class HandsCommands {
 	}
 
 	static void register(LiteralArgumentBuilder<CommandSourceStack> root, CommandBuildContext context) {
+		// Debug: a tunnel straight ahead (level, or stairs down to a height) with the mining digger, for staged tests.
+		root.then(Commands.literal("tunnel")
+			.then(Commands.argument("length", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 200))
+				.executes(ctx -> start(ctx, drifter -> new com.dinglebob.drifter.brain.activity.TunnelActivity(drifter,
+					com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length"), com.dinglebob.drifter.brain.mining.Tunnel.LEVEL)))
+				.then(Commands.argument("targetY", com.mojang.brigadier.arguments.IntegerArgumentType.integer(-64, 320))
+					.executes(ctx -> start(ctx, drifter -> new com.dinglebob.drifter.brain.activity.TunnelActivity(drifter,
+						com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length"),
+						com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "targetY")))))));
+
 		root.then(Commands.literal("mine")
 			.then(Commands.argument("pos", BlockPosArgument.blockPos())
 				.executes(ctx -> start(ctx, drifter -> new MineTask(drifter, BlockPosArgument.getLoadedBlockPos(ctx, "pos"))))));

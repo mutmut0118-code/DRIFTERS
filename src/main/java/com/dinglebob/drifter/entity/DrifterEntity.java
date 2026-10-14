@@ -127,6 +127,45 @@ public class DrifterEntity extends PathfinderMob {
 	@org.jetbrains.annotations.Nullable
 	private BlockPos lastDryGround;
 
+	/** Game time it last nearly ran out of air: for a while after, it plans no routes under water. */
+	private long outOfAirAt = Long.MIN_VALUE / 2;
+
+	/** Times it nearly ran out of air lately (one per scare, not per tick). */
+	private final java.util.ArrayDeque<Long> airScares = new java.util.ArrayDeque<>();
+
+	public void ranOutOfAir() {
+		long now = this.level().getGameTime();
+		if (now - this.outOfAirAt > 60) {
+			this.airScares.addLast(now);
+		}
+
+		this.outOfAirAt = now;
+	}
+
+	/** Twice or more in the last minute: get out of the water, whatever it was doing. */
+	public boolean keepsRunningOutOfAir() {
+		long now = this.level().getGameTime();
+		while (!this.airScares.isEmpty() && now - this.airScares.peekFirst() > 20L * 60) {
+			this.airScares.removeFirst();
+		}
+
+		return this.airScares.size() >= 2 && this.isInWater();
+	}
+
+	/** It nearly drowned in the last two minutes (found in testing: it surfaced, then its job sent it straight back under). */
+	public boolean recentlyOutOfAir() {
+		return this.level().getGameTime() - this.outOfAirAt < 20L * 120;
+	}
+
+	/** Where its head was last out of the water (a player swims back the way they came when a tunnel floods). */
+	@org.jetbrains.annotations.Nullable
+	private Vec3 lastAir;
+
+	@org.jetbrains.annotations.Nullable
+	public Vec3 lastAir() {
+		return this.lastAir;
+	}
+
 	@org.jetbrains.annotations.Nullable
 	public BlockPos lastDryGround() {
 		return this.lastDryGround;
@@ -379,6 +418,10 @@ public class DrifterEntity extends PathfinderMob {
 	public void tick() {
 		super.tick();
 		if (!this.level().isClientSide) {
+			if (!this.isEyeInFluid(net.minecraft.tags.FluidTags.WATER)) {
+				this.lastAir = this.getEyePosition().subtract(0.0, this.getEyeHeight() - 0.1, 0.0);
+			}
+
 			if (this.tickCount % 10 == 0 && this.onGround() && !this.isInWater() && this.level().getFluidState(this.blockPosition().below()).isEmpty()) {
 				this.lastDryGround = this.blockPosition();
 			}

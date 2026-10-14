@@ -362,7 +362,13 @@ public class Reflexes {
 
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
-			return drifter.isEyeInFluid(FluidTags.WATER) && drifter.getAirSupply() < drifter.getMaxAirSupply() * 0.3;
+			// At half its air: enough left to swim back the way it came (at 30% it ran out on the way, found in testing).
+			boolean low = drifter.isEyeInFluid(FluidTags.WATER) && drifter.getAirSupply() < drifter.getMaxAirSupply() * 0.5;
+			if (low) {
+				drifter.ranOutOfAir();
+			}
+
+			return low;
 		}
 
 		@Override
@@ -392,7 +398,13 @@ public class Reflexes {
 			BlockPos open = null;
 			double best = Double.MAX_VALUE;
 			for (BlockPos pos : BlockPos.betweenClosed(head.offset(-6, -1, -6), head.offset(6, 3, 6))) {
-				if (!solid(level, pos) && level.getFluidState(pos).isEmpty() && pos.distToCenterSqr(drifter.getEyePosition()) < best) {
+				// Air it can swim into: right over the water or right beside it, not a pocket sealed off behind stone.
+				boolean byTheWater = !level.getFluidState(pos.below()).isEmpty();
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					byTheWater |= !level.getFluidState(pos.relative(side)).isEmpty();
+				}
+
+				if (byTheWater && !solid(level, pos) && level.getFluidState(pos).isEmpty() && pos.distToCenterSqr(drifter.getEyePosition()) < best) {
 					best = pos.distToCenterSqr(drifter.getEyePosition());
 					open = pos.immutable();
 				}
@@ -400,6 +412,9 @@ public class Reflexes {
 
 			if (open != null) {
 				runTo(drifter, Vec3.atCenterOf(open), true);
+			} else if (drifter.lastAir() != null && drifter.lastAir().distanceTo(drifter.position()) < 32.0) {
+				// No air in sight (a flooded tunnel): back the way it came, where it was breathing a moment ago.
+				runTo(drifter, drifter.lastAir(), true);
 			}
 
 			return true;

@@ -636,6 +636,44 @@ public final class Goals {
 		}
 	}
 
+	/** Out of the water after running out of air twice in a minute (found in testing: it drowned going back under). */
+	public static final class GetOutOfWater extends Goal {
+		@Override
+		public String id() {
+			return "outofwater";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "get out of the water";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			return context.drifter().keepsRunningOutOfAir() ? 1.4 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return context.drifter().keepsRunningOutOfAir();
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 0;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.GetOutOfWaterActivity(context.drifter());
+		}
+	}
+
 	/** Get away from hostiles it can't beat (section 13 ratio below 1.2), or that it's too hurt to fight. */
 	public static final class Flee extends Goal {
 		@Override
@@ -1016,7 +1054,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		return List.of(new GetOutOfWater(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }

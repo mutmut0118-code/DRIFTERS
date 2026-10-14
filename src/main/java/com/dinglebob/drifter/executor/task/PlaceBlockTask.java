@@ -59,6 +59,9 @@ public class PlaceBlockTask extends Task {
 	protected void onStart() {
 		if (!this.drifter.level().getBlockState(this.target).canBeReplaced()) {
 			this.fail("that spot is already taken");
+		} else if (new net.minecraft.world.phys.AABB(this.target).intersects(this.drifter.getBoundingBox().deflate(1.0E-3))) {
+			// A block can't go where its own body is (found in testing: hut walls "nothing happened" again and again).
+			this.fail("it's standing in the way");
 		}
 	}
 

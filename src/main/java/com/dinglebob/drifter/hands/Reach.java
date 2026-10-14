@@ -78,6 +78,12 @@ public final class Reach {
 	public static Optional<Vec3> aimPointFrom(DrifterEntity drifter, Vec3 eye, BlockPos pos, Direction face) {
 		AABB box = outline(drifter, pos);
 		Vec3 center = box.getCenter();
+		// Its head inside the block (sand fell on it, a block in its face): the crosshair is on that block whichever way it
+		// looks, as for a player, so it can always dig itself out (found in testing: it suffocated "unable to see" it).
+		if (box.contains(eye) && face == Direction.UP) {
+			return Optional.of(eye.add(0.0, 0.1, 0.0));
+		}
+
 		Vec3 normal = Vec3.atLowerCornerOf(face.getNormal());
 		double halfDepth = switch (face.getAxis()) {
 			case X -> box.getXsize() / 2.0;

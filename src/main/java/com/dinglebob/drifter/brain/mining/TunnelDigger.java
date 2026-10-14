@@ -354,7 +354,8 @@ public final class TunnelDigger {
 		BlockPos front = feet.relative(direction);
 		for (BlockPos cell : new BlockPos[]{front.above(), front, front.below()}) {
 			String why = this.bad(level, cell);
-			if (why != null) {
+			// Cave space is fine to go through (same as going straight on).
+			if (why != null && !why.equals("a cave")) {
 				this.turnReason = why;
 				return false;
 			}

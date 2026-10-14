@@ -120,6 +120,8 @@ public class PathSearch {
 	private final DrifterMemory memory;
 	/** Deepest drop onto ground it takes, from the player's own fall-damage attributes and its health. */
 	private final int maxDrop;
+	/** Moves in a row under water it plans: none for a while after it nearly drowned, unless it's under water now. */
+	private final int maxUnderwater;
 	/** Highest drop into water it plans (its bravery). */
 	private final int waterDrop;
 	private final PriorityQueue<Node> open = new PriorityQueue<>((a, b) -> Double.compare(a.f, b.f));
@@ -148,6 +150,7 @@ public class PathSearch {
 		}
 
 		this.maxDrop = maxDrop;
+		this.maxUnderwater = drifter.recentlyOutOfAir() && !drifter.isEyeInFluid(net.minecraft.tags.FluidTags.WATER) ? 0 : MAX_UNDERWATER;
 		// Water stops all fall damage, from any height: brave ones jump into water they can see from high up (a cave
 		// with a pool at the bottom), careful ones only short drops (user's question in session 2).
 		double bravery = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY);
@@ -540,7 +543,7 @@ public class PathSearch {
 		// A held breath lasts about 15 s: no route with a longer swim under water than that, with a margin (found in
 		// testing: it drowned under a ceiling at night).
 		int underwater = this.view.isWater(to.above()) ? from.underwater + 1 : 0;
-		if (underwater > MAX_UNDERWATER) {
+		if (underwater > this.maxUnderwater) {
 			return;
 		}
 
