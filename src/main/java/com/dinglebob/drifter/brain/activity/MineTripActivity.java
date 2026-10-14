@@ -264,6 +264,11 @@ public class MineTripActivity extends Activity {
 		};
 	}
 
+	/** A preparation plan with no mining trip in it (a trip inside a trip nested without end and crashed the server). */
+	private static boolean noTrip(com.dinglebob.drifter.brain.Planner.Plan plan) {
+		return plan.actions().stream().noneMatch(action -> action instanceof com.dinglebob.drifter.brain.Planner.Mine);
+	}
+
 	private boolean rememberedTried;
 	private boolean kitChecked;
 	/** This trip carries on down an old staircase. */
@@ -391,7 +396,7 @@ public class MineTripActivity extends Activity {
 				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.STONE_PICKAXE,
 					this.drifter.getInventory().count(stack -> stack.is(Items.STONE_PICKAXE)) + 1);
-				if (plan.feasible() && plan.next() != null) {
+				if (plan.feasible() && plan.next() != null && noTrip(plan)) {
 					this.think("making a spare pickaxe before going down");
 					this.spareChecked = false;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
@@ -411,7 +416,7 @@ public class MineTripActivity extends Activity {
 
 				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), need.getKey(), need.getValue());
-				if (plan.feasible() && plan.next() != null && !plan.needsExploring()) {
+				if (plan.feasible() && plan.next() != null && !plan.needsExploring() && noTrip(plan)) {
 					this.think("taking " + (need.getKey() == Items.STICK ? "sticks" : "a crafting table") + " along, to make a pickaxe down there if one breaks");
 					this.kitChecked = false;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
@@ -438,7 +443,10 @@ public class MineTripActivity extends Activity {
 			if (torches < wanted) {
 				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.TORCH, wanted);
-				if (plan.feasible() && plan.next() != null && !plan.needsExploring()) {
+				// Never another mining trip for them (found in testing: torches for a coal trip planned a coal trip, which
+				// planned one for its torches, and so on until the server crashed); it goes down with what it has.
+				if (plan.feasible() && plan.next() != null && !plan.needsExploring()
+					&& noTrip(plan)) {
 					this.think("making torches before going down");
 					this.torchesChecked = false;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));

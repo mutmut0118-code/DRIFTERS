@@ -62,8 +62,26 @@ public abstract class Activity extends Task {
 		return false;
 	}
 
+	/** How deep activities are nested right now (server thread only). */
+	private static int depth;
+	/** Deeper than this is a loop of activities starting each other: the innermost fails instead of crashing the server. */
+	private static final int MAX_DEPTH = 24;
+
 	@Override
 	protected final Status onTick() {
+		if (depth >= MAX_DEPTH) {
+			return this.fail("activities nested too deep (a loop)");
+		}
+
+		depth++;
+		try {
+			return this.tickInside();
+		} finally {
+			depth--;
+		}
+	}
+
+	private Status tickInside() {
 		if (this.finishedEarly()) {
 			if (this.child != null) {
 				this.child.stop();
