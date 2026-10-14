@@ -304,7 +304,7 @@ public class PathSearch {
 		for (Direction d : Direction.Plane.HORIZONTAL) {
 			BlockPos f = n.relative(d);
 			this.tryLevel(node, f, inWater, onSolidFloor);
-			this.tryJumpUp(node, f);
+			this.tryJumpUp(node, f, onSolidFloor);
 			this.tryDown(node, f);
 		}
 
@@ -341,7 +341,13 @@ public class PathSearch {
 	}
 
 	/** Jump up one block onto the block in front. */
-	private void tryJumpUp(Node node, BlockPos f) {
+	private void tryJumpUp(Node node, BlockPos f, boolean onSolidFloor) {
+		// A jump needs a floor, a ladder, or still water to float in: water running down a staircase doesn't hold you up
+		// (found in testing: it hopped for minutes at a ledge two blocks above its feet in a flooded stair).
+		if (!onSolidFloor && this.view.cell(node.pos).kind() != NavView.Kind.CLIMB && !this.view.isStillWater(node.pos)) {
+			return;
+		}
+
 		NavView.Cell front = this.view.cell(f);
 		if (front.passable() && front.kind() != NavView.Kind.UNKNOWN || !this.view.standable(f)) {
 			return;

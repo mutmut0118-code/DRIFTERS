@@ -26,6 +26,7 @@ public class CraftActivity extends Activity {
 	private final int times;
 	private final String label;
 	private boolean walked;
+	private boolean approached;
 	private boolean crafted;
 	@org.jetbrains.annotations.Nullable
 	private String stepFailure;
@@ -80,8 +81,14 @@ public class CraftActivity extends Activity {
 			}
 
 			@Nullable BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, table, Set.of());
+			if (spot == null && !this.approached && this.drifter.blockPosition().distSqr(table) > 4 * 4) {
+				// It doesn't remember the ground round it well enough from here (its home, seen hours ago): go and look.
+				this.approached = true;
+				return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(table), 3.0, "walk over to the crafting table"));
+			}
+
 			if (spot == null) {
-				return this.fail("can't find a spot by the crafting table");
+				return this.fail("can't find a spot by the crafting table at " + table.toShortString());
 			}
 
 			this.walked = true;

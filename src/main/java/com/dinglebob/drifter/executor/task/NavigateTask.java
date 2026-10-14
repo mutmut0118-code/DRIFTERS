@@ -157,6 +157,8 @@ public class NavigateTask extends Task {
 	private int pillarStage;
 	private int pillarTries;
 	private int pillarTicks;
+	/** Ticks it gives a jump out of water to get high enough before calling it a miss. */
+	private static final int PILLAR_WET_TICKS = 40;
 	/** Highest it got above the block it jumped from, for the failure message. */
 	private double pillarPeak;
 
@@ -1405,8 +1407,11 @@ public class NavigateTask extends Task {
 				}
 			}
 			case 2 -> {
-				keys.set(VirtualKeys.Key.JUMP, false);
 				BlockPos from = step.from();
+				// In water a tap of jump only bobs; you hold it to rise (found in testing: pillaring out of a flooded stair
+				// "landed" after a few ticks every time and gave up).
+				boolean wet = this.drifter.isInWater();
+				keys.set(VirtualKeys.Key.JUMP, wet && this.drifter.getY() < from.getY() + 1.0);
 				if (this.drifter.getY() >= from.getY() + 1.0) {
 					BlockHitResult hit = Reach.crosshair(this.drifter);
 					if (hit != null && hit.getBlockPos().equals(from.below()) && hit.getDirection() == Direction.UP) {
@@ -1423,7 +1428,7 @@ public class NavigateTask extends Task {
 
 				this.pillarPeak = Math.max(this.pillarPeak, this.drifter.getY() - from.getY());
 				// A few ticks' grace: on the first tick of the jump it is still on the ground.
-				if (++this.pillarTicks > 4 && this.drifter.onGround() && this.drifter.getY() < from.getY() + 0.5) {
+				if (++this.pillarTicks > (wet ? PILLAR_WET_TICKS : 4) && this.drifter.onGround() && this.drifter.getY() < from.getY() + 0.5) {
 					// Landed without placing: try again.
 					if (++this.pillarTries > 3) {
 						BlockHitResult hit = Reach.crosshair(this.drifter);

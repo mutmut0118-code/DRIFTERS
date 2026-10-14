@@ -572,11 +572,18 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   settled, made a spare pickaxe, dug a staircase, broke into a cave and saw iron ("spotted raw iron ...: going to get
   it"), mined the vein, smelted it at home, made an **iron pickaxe**, then a **bucket** and a **shield**, and put on
   armor; the next trip carried on down its old staircase. Run 15: hut finished, iron pickaxe and bucket on day 2.
+  Run 16 (fresh world, after the water fixes): hut, then iron spotted in a cave at y 20, smelted, iron pickaxe on day 1;
+  it wore that out by day 2 (night mining plus trips) and went back down for more, like a player would.
   Earlier runs on the same seed (before these fixes) never got iron: the ground there is full of caves, water pockets
   and an old mineshaft.
-- **Known, next to fix:** a flooded staircase can trap it: standing in shallow flowing water partway down, the path
-  planner keeps giving it a jump that's too high, and it hops in place for a long time (seen once, run 15). Each failed
-  staircase also leaves a hole by the hut; trips sometimes still come back empty in very cave-riddled ground.
+- **Flooded staircase (found in run 15, fixed):** water got into a staircase and it hopped for a long time at a ledge
+  two blocks above its feet. Two causes: the path planner let it "jump" from water running down the stairs as if
+  floating in still water (now only from still water, a floor or a ladder), and pillaring in water tapped jump once
+  like on land (in water it now holds jump and waits for the rise). Reloading the stuck world with the fix, it walked
+  out, pillared one block and climbed its stairs home. Also: when it can't pick a spot by its table or furnace from far
+  away (it doesn't remember the ground there well), it walks over and looks first.
+- **Known:** each failed staircase leaves a hole by the hut; in very cave-riddled ground trips still sometimes come back
+  empty (it tries another side next time).
 
 ## Notes for milestone 9 (from testing)
 

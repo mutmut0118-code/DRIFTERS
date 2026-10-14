@@ -47,6 +47,7 @@ public class SmeltActivity extends Activity {
 	private final String fuelLabel;
 	private final int fuelCount;
 	private boolean walked;
+	private boolean approached;
 	private boolean started;
 	@org.jetbrains.annotations.Nullable
 	private String stepFailure;
@@ -132,8 +133,14 @@ public class SmeltActivity extends Activity {
 			}
 
 			BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, furnace, Set.of());
+			if (spot == null && !this.approached && this.drifter.blockPosition().distSqr(furnace) > 4 * 4) {
+				// It doesn't remember the ground round it well enough from here (its home, seen hours ago): go and look.
+				this.approached = true;
+				return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(furnace), 3.0, "walk over to the furnace"));
+			}
+
 			if (spot == null) {
-				return this.fail("can't find a spot by the furnace");
+				return this.fail("can't find a spot by the furnace at " + furnace.toShortString());
 			}
 
 			this.walked = true;

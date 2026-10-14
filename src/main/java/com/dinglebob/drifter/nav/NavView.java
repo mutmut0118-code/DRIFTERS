@@ -185,4 +185,9 @@ public final class NavView {
 	public boolean isWater(BlockPos pos) {
 		return this.cell(pos).kind() == Kind.WATER;
 	}
+
+	/** Water you can float in (a source block), not water running past. */
+	public boolean isStillWater(BlockPos pos) {
+		return this.isWater(pos) && this.level.getFluidState(pos).isSource();
+	}
 }
