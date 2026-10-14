@@ -813,6 +813,9 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Underground bases** are fine if a Drifter wants one, just not in an awkward position like a ravine floor. Partly:
   it no longer settles on ravine or pit floors (more than 8 below sea level); a dug-in underground base (Hermits,
   Miners' bunkers) is planned (needs its own blueprint).
+- **Farms by personality** (user agreed): Nomads, Speedrunners, Bandits and PvP Sweats don't farm or keep a pen;
+  Miners and Hermits only when food runs short (then they keep up the one they made); Homebodies and Builders are keen;
+  the rest as before. Done.
 - **Whole trees:** cut the whole tree (the leaves then decay and make room; trunks left floating look wrong). Done: once
   it starts on a tree it takes every log of it, lowest first, pillaring beside the trunk for the high ones.
 

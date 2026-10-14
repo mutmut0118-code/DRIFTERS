@@ -888,6 +888,9 @@ Set up as for step 3, plus `/drifter give minecraft:bucket` (the farm needs one)
 - [ ] With wheat or seeds on it, it builds a small **fenced pen** with a gate, leads two animals of a kind in (they
       follow it while it holds wheat), feeds them so they breed, and shuts the gate.
 - [ ] Putting things away, it puts each thing into the chest that already has that kind in it.
+- [ ] **Farms by personality:** Nomads, Speedrunners, Bandits and PvP Sweats never make a farm or pen; Miners and
+      Hermits only when they're short of food; Homebodies and Builders get to it first. (`/drifter personality reroll
+      homebody` to see a keen farmer.) Without a bucket, a farm goes by a pond or river near home.
 - [ ] (Re-test after fix) In water under a ceiling (a flooded cave) it finds its way to air instead of pushing against
       a wall; it doesn't plan long swims under water.
 - [ ] (Re-test after fix) **Sleeping:** in bed at night, it gets up in the morning (a bug kept it in bed for days).

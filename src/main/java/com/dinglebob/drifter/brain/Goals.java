@@ -642,6 +642,24 @@ public final class Goals {
 	}
 
 	/**
+	 * How keen it is on farming and animals, by archetype (section 9 "Pacing by archetype"; user agreed, session 2):
+	 * Nomads, Speedrunners, Bandits and PvP Sweats skip it (they live off hunting and what they find); Miners and Hermits
+	 * only when food runs short (or to keep up one they already have); Homebodies and Builders are keen; the rest as usual.
+	 */
+	static double farmingKeenness(Context context, boolean alreadyHasOne) {
+		var archetype = context.drifter().getPersonality().archetype();
+		return switch (archetype) {
+			case NOMAD, SPEEDRUNNER, BANDIT, PVP_SWEAT -> 0.0;
+			case MINER, HERMIT -> alreadyHasOne ? 0.8 : context.needs().foodSupply() >= FOOD_SHORT ? 1.0 : 0.0;
+			case HOMEBODY, BUILDER -> 1.2;
+			default -> 1.0;
+		};
+	}
+
+	/** Food supply need from which a Miner or Hermit turns to farming (it's short of food). */
+	private static final double FOOD_SHORT = 0.3;
+
+	/**
 	 * The wheat farm (section 9 stage 6 "Settlement"; milestone 8 step 5): once it's settled and has a bucket (for the
 	 * water in the middle), it makes one near home and comes back to harvest and replant.
 	 */
@@ -674,7 +692,8 @@ public final class Goals {
 				return 0.0;
 			}
 
-			return com.dinglebob.drifter.brain.activity.FarmActivity.workToDo(context.drifter(), home) ? 0.5 : 0.0;
+			double keen = farmingKeenness(context, home.farm != null);
+			return keen > 0.0 && com.dinglebob.drifter.brain.activity.FarmActivity.workToDo(context.drifter(), home) ? 0.5 * keen : 0.0;
 		}
 
 		@Override
@@ -723,7 +742,8 @@ public final class Goals {
 				return 0.0;
 			}
 
-			return com.dinglebob.drifter.brain.activity.PenActivity.workToDo(context.drifter(), home) ? 0.42 : 0.0;
+			double keen = farmingKeenness(context, home.pen != null);
+			return keen > 0.0 && com.dinglebob.drifter.brain.activity.PenActivity.workToDo(context.drifter(), home) ? 0.42 * keen : 0.0;
 		}
 
 		@Override
