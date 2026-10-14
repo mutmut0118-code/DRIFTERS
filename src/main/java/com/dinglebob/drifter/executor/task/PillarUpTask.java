@@ -26,6 +26,8 @@ public class PillarUpTask extends Task {
 	private int stage;
 	private int ticks;
 	private int tries;
+	/** Sneaking for this jump (the block under it opens when clicked). */
+	private boolean sneak;
 	/** Highest it got above where it jumped from (for the failure message). */
 	private double peak;
 	/** The feet level it jumped from: the new block goes there. */
@@ -94,6 +96,10 @@ public class PillarUpTask extends Task {
 				if (this.drifter.getCamera().isSettled() && this.drifter.getXRot() < 80.0F) {
 					this.stage = 0;
 				} else if (this.drifter.getCamera().isSettled() && this.drifter.onGround()) {
+					// Standing on a crafting table, chest, furnace...: sneaking, or the click opens it instead of placing (found
+					// in testing: "couldn't get a block under itself" on its own table in the middle of the hut, every day).
+					this.sneak = UseOnBlockTask.hasOwnUse(this.drifter.level(), feet.below(), this.drifter.level().getBlockState(feet.below()));
+					keys.set(VirtualKeys.Key.SNEAK, this.sneak);
 					keys.set(VirtualKeys.Key.JUMP, true);
 					this.jumpFeet = feet.getY();
 					this.stage = 2;
@@ -102,6 +108,7 @@ public class PillarUpTask extends Task {
 			}
 			case 2 -> {
 				keys.set(VirtualKeys.Key.JUMP, false);
+				keys.set(VirtualKeys.Key.SNEAK, this.sneak);
 				this.peak = Math.max(this.peak, this.drifter.getY() - this.jumpFeet);
 				// Up a block: the crosshair is on the top of the block it jumped from; put one there.
 				if (this.drifter.getY() >= this.jumpFeet + 1.0 && !this.drifter.onGround()) {
