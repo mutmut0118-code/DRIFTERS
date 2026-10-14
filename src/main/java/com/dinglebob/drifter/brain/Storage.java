@@ -200,6 +200,9 @@ public final class Storage {
 			return "bucket";
 		} else if (stack.is(Items.CRAFTING_TABLE)) {
 			return "table";
+		} else if (stack.is(Items.FURNACE)) {
+			// Kept until it's set up at home (the hut's furnace); a spare one goes in the chest.
+			return "furnace";
 		} else if (stack.is(Items.TORCH)) {
 			return "torch";
 		} else if (Food.of(stack) != null && !Food.isBad(stack)) {
@@ -223,7 +226,7 @@ public final class Storage {
 	private static int keepLimit(String category) {
 		return switch (category) {
 			case "bucket" -> 2;
-			case "table" -> 1;
+			case "table", "furnace" -> 1;
 			case "torch" -> KEEP_TORCHES;
 			case "food" -> KEEP_FOOD;
 			case "building" -> KEEP_BUILDING_BLOCKS;

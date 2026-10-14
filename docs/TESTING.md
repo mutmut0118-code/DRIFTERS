@@ -789,8 +789,25 @@ play until it has stone tools and a furnace.
 - [ ] (Re-test after fix) In a lake at dusk with no shore in sight, it swims back toward where it came from instead of
       giving up and nearly drowning.
 
+### Step 2: the starter hut (new)
+Same setup as step 1, plus `/drifter give minecraft:cobblestone 64` and `/drifter give minecraft:torch 8` so it doesn't
+have to go mining first (without them it gathers the blocks itself).
+- [ ] After settling, it builds a **5x5 hut** around its chest: walls 2 high first (standing inside, corners first),
+      then it hops up one block in the middle and puts the roof on, climbs down and closes the last roof block over
+      its head, then puts in a **door**, its furnace and a torch on the back wall. `/drifter hut` shows a map of it
+      layer by layer (# block, D door, C chest, F furnace, T table, i torch, @ the Drifter) and "finished".
+- [ ] Patient Drifters gather all the blocks first; impatient ones start with what they have and go for more.
+- [ ] **At dusk** it walks home, goes inside and **shuts the door** ("in the hut for the night"). Mobs outside don't get
+      it out (it only fights something that got in and hit it). In the morning it walks out.
+- [ ] Break a hole in its hut: on a later day it **repairs** it ("repair the hut").
+- [ ] **Villages (your question):** in a village it doesn't chop the log corners of houses or mine cobblestone
+      foundations and paths for materials; it gets wood from trees and stone from natural stone, and walks around
+      houses rather than through them.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
-- No hut yet (step 2): at home it still digs into the ground at night.
+- The hut is always 5x5 with a flat roof (bigger houses by personality are step 8); no bed yet (step 4); the crafting
+  table it used for the chest may end up as part of the wall.
+- With nothing to do at stage 4 it wanders (mining trips are step 3).
 - It doesn't sort or label chests yet.
 
 ### Known gaps for milestone 7 (don't report these as bugs)

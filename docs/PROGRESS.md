@@ -39,7 +39,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Mostly done: the user tested it and moved on to milestone 8 (session 2); leftovers listed below | Done when: people watching a short clip can't reliably tell it from a player. |
-| 8 | Progression and building | In progress: step 1 (home and storage) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
+| 8 | Progression and building | In progress: steps 1 (home and storage) and 2 (starter hut) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | Not started | Section 19. |
@@ -513,7 +513,7 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Commands:** `/drifter home` (where, chests, fullness, what's stored), `/drifter home here` (settle on the spot),
   `/drifter home clear`, `/drifter brain goal settle|store|makeroom`.
 
-### Step 2: starter hut (IN PROGRESS, session 2; not finished)
+### Step 2: starter hut (code complete, smoke-tested on the dev server, not played yet)
 - Village-safe gathering (user's question): wood only from real trees (`brain/TreeLogs`: logs connected to natural
   leaves), cobblestone only from natural stone (source table), logs that aren't trees and cobblestone count as
   "somebody's build" for pathing. Tested: it chopped the tree and left a bare log post standing.
@@ -522,9 +522,17 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   pillar in the middle, middle roof block last from the floor; blocks it misses get a second try from a spot where it
   can see a face. Goal "build a hut" (stage 4). At night, a finished hut is used instead of digging in (go in, shut
   the door, walk out in the morning); sheltered in the hut it only fights something that got in and hit it.
-- `/drifter hut` prints the hut as a layer map. Last test (flat world): everything built except 2 roof blocks; just
-  added a retry of missed roof blocks from the floor (built, NOT yet tested). Next: re-run the hut test
-  (scratchpad script recreated from TESTING notes), then night-in-hut test, then docs/TESTING for step 2.
+- `/drifter hut` prints the hut as a layer map.
+- Smoke test (flat world): from settling to a finished hut (door, chest, furnace, torch, 0 blocks missing) in about
+  40 s of building; at dusk it went in and shut the door ("in the hut for the night"), ignored a zombie outside, and
+  stayed in until morning by its own clock. It keeps one furnace and one crafting table on it (so the hut gets its
+  furnace instead of it going in the chest).
+- Found while building it (fixed): a taller 4-high design couldn't be finished because a player can't see corner
+  pockets high up from inside, and the chest in the corner blocked the view to the floor next to it; the middle roof
+  block closed too soon blocked pillaring up again. The 2-high design with a one-block pillar and a "walk to where it
+  can see a face" fallback solved it.
+- Known: with nothing else to do at stage 4 it just explores (step 3 gives it mining trips); the crafting table it
+  used for the chest sometimes ends up as part of the wall.
 
 ## Notes for milestone 9 (from testing)
 
