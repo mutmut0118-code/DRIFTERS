@@ -196,6 +196,31 @@ public class DrifterEntity extends PathfinderMob {
 		this.failedBridges.put(to.immutable(), this.level().getGameTime() + 20L * 60 * 5);
 	}
 
+	/** Where it got burned by lava lately, until a game time: routes keep clear of them and the blocks touching them. */
+	private final java.util.Map<BlockPos, Long> lavaBurns = new java.util.HashMap<>();
+
+	/** Remembers a spot where it stepped into lava (for 10 minutes; found in testing: the next route led straight back in). */
+	public void burnedByLavaAt(BlockPos pos) {
+		this.lavaBurns.put(pos.immutable(), this.level().getGameTime() + 20L * 60 * 10);
+	}
+
+	/** At or right beside (diagonals too) a spot where it got into lava lately. */
+	public boolean nearRecentLava(BlockPos pos) {
+		if (this.lavaBurns.isEmpty()) {
+			return false;
+		}
+
+		long now = this.level().getGameTime();
+		this.lavaBurns.values().removeIf(until -> until < now);
+		for (BlockPos burn : this.lavaBurns.keySet()) {
+			if (burn.distSqr(pos) <= 2) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public boolean bridgeFailedRecently(BlockPos to) {
 		Long until = this.failedBridges.get(to);
 		if (until == null) {

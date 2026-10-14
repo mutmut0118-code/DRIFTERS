@@ -96,6 +96,12 @@ public final class NavView {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 
+		// Near where it just got into lava: kept clear for a while (it walked straight back in and burned to death).
+		// (Never the blocks right round where it stands, so it can always walk out.)
+		if (this.drifter.nearRecentLava(pos) && pos.distSqr(this.drifter.blockPosition()) > 2) {
+			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
+		}
+
 		if (!this.knowledge.isKnown(pos)) {
 			// Under water it has seen, it expects more water, not ground (its sight stops at the surface; found in
 			// testing: it planned to walk across a pond on "unseen ground" just under the surface, and couldn't get out).

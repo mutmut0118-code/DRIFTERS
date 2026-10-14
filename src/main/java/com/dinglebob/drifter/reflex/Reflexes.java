@@ -327,6 +327,7 @@ public class Reflexes {
 
 		@Override
 		protected void start(DrifterEntity drifter) {
+			drifter.burnedByLavaAt(drifter.blockPosition());
 			this.safe = nearestSafeSpot(drifter, 4);
 			if (this.safe == null) {
 				this.safe = nearestSafeSpot(drifter, 8);
