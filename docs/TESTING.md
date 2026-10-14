@@ -829,6 +829,15 @@ Quick setup (skips the early game): `/drifter spawn Digger`, then give it `minec
       stage ("iron age" once it has the pickaxe, bucket, shield and two armor pieces).
 - [ ] Next trip it walks back down its old staircase instead of digging a new one from the top (`/drifter home` shows
       "mine" and how many trips).
+- [ ] (Re-test after fix) When it pillars up, it first shuffles to the middle of the block; if a jump is blocked anyway,
+      it goes another way instead of trying the same spot for minutes.
+- [ ] (Re-test after fix) Break 2-3 roof blocks of a finished hut (corners and edges): next day it repairs them from
+      its pillar, knocking out a roof block in the way and putting it back, without building and breaking the pillar
+      over and over. The middle of the roof is never left open.
+- [ ] (Re-test after fix) Night mining doesn't walk it off into a cave: a hole in the tunnel floor gets a block, or it
+      turns.
+- Known, being fixed next: going back down an old mine it can get lost for a long time, and if that makes it late it
+  can dither between running from mobs and heading home at night.
 - Handy for long watches: `/drifter thoughts log true` writes every thought into the game log as it happens
   (`/drifter thoughts log false` to stop). `/tick rate 60` makes the game run 3x faster to see a few days quicker.
 
