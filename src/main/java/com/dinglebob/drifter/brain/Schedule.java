@@ -23,7 +23,23 @@ public final class Schedule {
 	 * (section 17: Caution means "going home early"; section 18: "a Caution margin").
 	 */
 	public static long shelterThinking(DrifterEntity drifter) {
-		return SHELTER_THINKING - Math.round((caution(drifter) - 0.5) * 2000.0);
+		return SHELTER_THINKING - Math.round((caution(drifter) - 0.5) * 2000.0) - homeTravelTicks(drifter);
+	}
+
+	/** Blocks from home beyond which it no longer heads home for the night (it shelters where it is). */
+	public static final double GO_HOME_RANGE = 96.0;
+
+	/**
+	 * Section 18: far-away Drifters start heading home based on travel time. Ticks it needs to get home at a sprint
+	 * (about 5 blocks a second, with a margin for the way not being straight), or 0 with no home in range.
+	 */
+	public static long homeTravelTicks(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null || !home.near(drifter, GO_HOME_RANGE)) {
+			return 0L;
+		}
+
+		return Math.round(Math.sqrt(drifter.blockPosition().distSqr(home.center)) / 5.0 * 1.4 * 20.0);
 	}
 
 	/** When shelter becomes urgent for this Drifter (never after nightfall). */

@@ -765,6 +765,34 @@ Use `/drifter night` to see tonight's plan, or force one with `/drifter night hu
 - [ ] Use `/drifter night` on a few different Drifters on a normal evening: careful ones mostly "stay in", brave
       well-armed ones "go out hunting", patient hard-working ones "dig in, then mine".
 
+## Milestone 8: Progression and building
+
+**Status:** step 1 of 9 (home and storage) written and smoke-tested on a test server, not played yet. The goal of the
+whole milestone: left alone for 10 days, a Drifter reaches diamonds and builds a base you'd recognize.
+
+### Step 1: home and storage
+Quick setup: `/drifter spawn Homey`, then `/drifter give minecraft:stone_pickaxe`, `/drifter give minecraft:furnace`,
+`/drifter give minecraft:oak_planks 24` (that's enough to count as "stone age" and to make a chest). Or let a fresh one
+play until it has stone tools and a furnace.
+- [ ] Within a minute or two it **settles**: the thought "settling at x y z (flat 80%, water nearby, trees...)", then
+      it makes a chest and puts it down near that spot. `/drifter home` shows where home is and what's stored.
+      On bumpy ground (mountains, forests) it may walk around looking first.
+- [ ] **Storing:** give it a lot of stuff (`/drifter give minecraft:iron_ore 20`, `/drifter give minecraft:bone 10`,
+      `/drifter give minecraft:cobblestone 200`). When it's nearly full, or near home with a load, or at the end of the
+      day, it walks home, opens the chest and puts things in, keeping its tools, weapon, food, torches and a stack of
+      blocks on it. When the chest fills up it makes and places a second one (not touching the first).
+- [ ] **Junk:** fill it up with junk (`/drifter give minecraft:andesite 640`): it stops, looks down a little, and throws
+      the junk out in front of it one stack at a time; it doesn't pick it back up.
+- [ ] **Fetching:** things it needs that are in its chest it walks back for ("fetch 16 cobblestone from its chest").
+- [ ] **Evening:** it heads home earlier the farther away it is ("heading home for the night") and digs in at home.
+- [ ] Leave and rejoin the world: `/drifter home` shows the same home, chests and contents.
+- [ ] (Re-test after fix) In a lake at dusk with no shore in sight, it swims back toward where it came from instead of
+      giving up and nearly drowning.
+
+### Known gaps for milestone 8 so far (don't report these as bugs)
+- No hut yet (step 2): at home it still digs into the ground at night.
+- It doesn't sort or label chests yet.
+
 ### Known gaps for milestone 7 (don't report these as bugs)
 - No beds or sleeping yet; no "joined the game" chat lines yet.
 - Not all habits are used yet: closing doors, picking up crafting tables, 2x2 or 3x3 tunnels, trail markers,

@@ -123,6 +123,15 @@ public class DrifterEntity extends PathfinderMob {
 	private int keysReleaseTimer = -1;
 	/** It has its username (section 4): generated at spawn, or on first load for Drifters from before milestone 7. */
 	private boolean named;
+	/** The last spot it stood on dry ground (where it came from, when it's lost in water). Not saved. */
+	@org.jetbrains.annotations.Nullable
+	private BlockPos lastDryGround;
+
+	@org.jetbrains.annotations.Nullable
+	public BlockPos lastDryGround() {
+		return this.lastDryGround;
+	}
+
 	/** Ticks left of the debug trace (/drifter trace): one log line per tick. */
 	private int traceTicks;
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
@@ -349,6 +358,10 @@ public class DrifterEntity extends PathfinderMob {
 	public void tick() {
 		super.tick();
 		if (!this.level().isClientSide) {
+			if (this.tickCount % 10 == 0 && this.onGround() && !this.isInWater() && this.level().getFluidState(this.blockPosition().below()).isEmpty()) {
+				this.lastDryGround = this.blockPosition();
+			}
+
 			// Held item and armor live in its inventory, like a player's: make sure the next equipment check runs (Lithium).
 			com.dinglebob.drifter.compat.LithiumCompat.markEquipmentChanged(this);
 			this.ensureName();
@@ -854,6 +867,13 @@ public class DrifterEntity extends PathfinderMob {
 		}
 
 		ItemStack stack = item.getItem();
+		// Section 10.18 pickup filter: nearly full, it leaves junk lying (and never picks back up what it just threw).
+		// Never what it threw away itself.
+		if (item.getOwner() == this
+			|| com.dinglebob.drifter.brain.Storage.freeSlots(this) <= 2 && com.dinglebob.drifter.brain.Storage.isJunk(this, stack)) {
+			return;
+		}
+
 		int count = stack.getCount();
 		if (this.inventory.add(stack)) {
 			this.take(item, count);
@@ -940,6 +960,26 @@ public class DrifterEntity extends PathfinderMob {
 				this.dropScattered(stack);
 			}
 		}
+	}
+
+	/** Player#drop(stack, false, true), pressing Q: thrown forward where it looks, with the pickup delay. */
+	public void tossForward(ItemStack stack) {
+		ItemEntity item = new ItemEntity(this.level(), this.getX(), this.getEyeY() - 0.3F, this.getZ(), stack);
+		item.setPickUpDelay(40);
+		item.setThrower(this);
+		float pitch = this.getXRot() * Mth.DEG_TO_RAD;
+		float yaw = this.getYRot() * Mth.DEG_TO_RAD;
+		float sinPitch = Mth.sin(pitch);
+		float cosPitch = Mth.cos(pitch);
+		float sinYaw = Mth.sin(yaw);
+		float cosYaw = Mth.cos(yaw);
+		float spread = this.random.nextFloat() * (float)(Math.PI * 2);
+		float spreadAmount = 0.02F * this.random.nextFloat();
+		item.setDeltaMovement(-sinYaw * cosPitch * 0.3F + Math.cos(spread) * spreadAmount,
+			-sinPitch * 0.3F + 0.1F + (this.random.nextFloat() - this.random.nextFloat()) * 0.1F,
+			cosYaw * cosPitch * 0.3F + Math.sin(spread) * spreadAmount);
+		this.level().addFreshEntity(item);
+		this.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
 	}
 
 	/** Player#drop(stack, true, false): from just below the eyes, in a random direction, with the pickup delay. */

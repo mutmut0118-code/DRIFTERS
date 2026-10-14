@@ -46,6 +46,9 @@ public class ContainerTask extends Task {
 	@Nullable
 	private final int[] slots;
 	private final BlockAim aim;
+	/** Putting away exact amounts from particular stacks (storing at home): stack -> how many of it to put in. */
+	@Nullable
+	private java.util.IdentityHashMap<ItemStack, Integer> quota;
 	private Phase phase = Phase.AIM;
 	@Nullable
 	private Container container;
@@ -62,6 +65,16 @@ public class ContainerTask extends Task {
 		this.amount = amount;
 		this.slots = slots;
 		this.aim = new BlockAim(drifter, this.pos, null, CameraModel.TurnSpeed.NORMAL);
+	}
+
+	/**
+	 * One visit to a chest putting away these amounts from these stacks (section 10.18, going home): like shift-clicking a
+	 * few things in, and leaving part of a stack on it.
+	 */
+	public static ContainerTask deposit(DrifterEntity drifter, BlockPos pos, java.util.Map<ItemStack, Integer> amounts, String label) {
+		ContainerTask task = new ContainerTask(drifter, pos, Mode.PUT, stack -> amounts.containsKey(stack), label, Integer.MAX_VALUE, null);
+		task.quota = new java.util.IdentityHashMap<>(amounts);
+		return task;
 	}
 
 	@Override
@@ -174,13 +187,14 @@ public class ContainerTask extends Task {
 	/** Shift-click one matching stack from the Drifter's main inventory into the container. */
 	private int putOneStack() {
 		DrifterInventory inventory = this.drifter.getInventory();
-		int from = inventory.findSlot(this.filter, 0, DrifterInventory.MAIN_SIZE);
+		int from = this.quota == null ? inventory.findSlot(this.filter, 0, DrifterInventory.MAIN_SIZE)
+			: inventory.findSlot(stack -> this.quota.getOrDefault(stack, 0) > 0, 0, DrifterInventory.MAIN_SIZE);
 		if (from < 0) {
 			return 0;
 		}
 
 		ItemStack stack = inventory.getItem(from);
-		int wanted = Math.min(stack.getCount(), this.amount - this.moved);
+		int wanted = Math.min(stack.getCount(), this.quota == null ? this.amount - this.moved : this.quota.get(stack));
 		int before = wanted;
 		ItemStack moving = stack.split(wanted);
 		for (int slot = 0; slot < this.container.getContainerSize() && !moving.isEmpty(); slot++) {
@@ -203,7 +217,16 @@ public class ContainerTask extends Task {
 		// Whatever didn't fit goes back where it came from.
 		stack.grow(moving.getCount());
 		this.container.setChanged();
-		return before - moving.getCount();
+		int moved = before - moving.getCount();
+		if (this.quota != null) {
+			// Done with this stack whether it all fit or not (a full chest ends the visit on the next click).
+			this.quota.put(stack, moved == before ? 0 : -1);
+			if (moved < before) {
+				return 0;
+			}
+		}
+
+		return moved;
 	}
 
 	/** Shift-click one matching stack from the container into the Drifter's inventory. */

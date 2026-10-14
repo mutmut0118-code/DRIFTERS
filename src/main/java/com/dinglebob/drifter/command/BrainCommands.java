@@ -33,8 +33,47 @@ public final class BrainCommands {
 			.then(Commands.literal("off").executes(ctx -> toggle(ctx, false)))
 			.then(Commands.literal("goal")
 				.then(Commands.argument("goal", StringArgumentType.word())
-					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "progress", "explore", "idle"}, builder))
+					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "store", "progress", "explore", "idle"}, builder))
 					.executes(BrainCommands::force))));
+		root.then(Commands.literal("home")
+			.executes(BrainCommands::showHome)
+			.then(Commands.literal("here").executes(ctx -> {
+				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+				drifter.getDrifterBrain().setHome(new com.dinglebob.drifter.brain.Home(drifter.blockPosition(), drifter.level().dimension().location(),
+					drifter.level().getGameTime()));
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " now lives here (it still needs a chest)"), true);
+				return 1;
+			}))
+			.then(Commands.literal("clear").executes(ctx -> {
+				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+				drifter.getDrifterBrain().setHome(null);
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " forgot its home"), true);
+				return 1;
+			})));
+	}
+
+	private static int showHome(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		String line = homeLine(drifter);
+		ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + ": " + (line == null ? "no home yet" : line)), false);
+		return 1;
+	}
+
+	/** One line about its home, or null. */
+	@org.jetbrains.annotations.Nullable
+	public static String homeLine(DrifterEntity drifter) {
+		com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
+		if (home == null) {
+			return null;
+		}
+
+		StringBuilder stored = new StringBuilder();
+		home.stored().entrySet().stream().sorted(java.util.Map.Entry.<net.minecraft.world.item.Item, Integer>comparingByValue().reversed()).limit(6)
+			.forEach(entry -> stored.append(stored.isEmpty() ? "" : ", ").append(entry.getValue()).append(' ')
+				.append(entry.getKey().getDescription().getString().toLowerCase(Locale.ROOT)));
+		return String.format(Locale.ROOT, "Home at %s, %d blocks away, %d chest%s (%.0f%% full)%s", home.center.toShortString(),
+			(int)Math.sqrt(drifter.blockPosition().distSqr(home.center)), home.chests().size(), home.chests().size() == 1 ? "" : "s",
+			home.fullness() * 100.0, stored.isEmpty() ? "" : ": " + stored);
 	}
 
 	private static int toggle(CommandContext<CommandSourceStack> ctx, boolean on) throws CommandSyntaxException {
@@ -91,6 +130,11 @@ public final class BrainCommands {
 			}
 
 			lines.add("Needs: " + context.needs().describe());
+		}
+
+		String home = homeLine(drifter);
+		if (home != null) {
+			lines.add(home);
 		}
 
 		com.dinglebob.drifter.brain.Threats.Assessment threat = com.dinglebob.drifter.brain.Threats.assess(drifter);

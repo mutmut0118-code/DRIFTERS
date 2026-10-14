@@ -38,8 +38,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 4 | Pathfinder | Done (in-game: ravine bridging, village, drops, doors) | A* with digging, bridging and pillaring. Done when: it crosses a ravine and tunnels through a hill to reach a target. |
 | 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
-| 7 | Mannerisms, personality and mood | In progress: first part written and smoke-tested (session 2), not played yet | Done when: people watching a short clip can't reliably tell it from a player. |
-| 8 | Progression and building | Not started | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
+| 7 | Mannerisms, personality and mood | Mostly done: the user tested it and moved on to milestone 8 (session 2); leftovers listed below | Done when: people watching a short clip can't reliably tell it from a player. |
+| 8 | Progression and building | In progress: step 1 (home and storage) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | Not started | Section 19. |
@@ -468,6 +468,50 @@ in, tunnelled with turns, placed torches, blocked off three cave openings and ca
 7. Knowledge trait limiting recipes (section 8): not yet (it could stall day one for newbies; needs care).
 8. Torches as way markers while **caving** (user's note): caving itself is milestone 8; the torch-side habit is in
    place for it.
+
+## Milestone 8: Progression and building
+
+The "done when" test: an unattended 10-day run reaches diamonds with a recognizable base. The user said "things are
+looking good, we can go to milestone 8" in session 2. Plan, one step at a time, each tested before the next:
+1. **Home and storage (stage 4).** Done, see below.
+2. Starter hut (shelter tier 3): the building system's first blueprint (5x5 or 7x7 box with a door, table, furnace,
+   chest, torches), built in a player's order; Drifters with a home sleep in it instead of digging in.
+3. Iron age (stage 5): mining trips to the right depth, branch mine or caving by mining style, torches as way markers,
+   back home to smelt; iron pickaxe, bucket, shield, armor.
+4. Beds and sleeping (wool from sheep).
+5. Settlement (stage 6): 9x9 wheat farm, animal pen and breeding, organized chests, full iron armor.
+6. Diamonds (stage 7): branch mining near the bottom of the world; diamond pickaxe, then sword, then armor.
+7. Enchanting (stage 8): obsidian, books, enchanting table, bookshelves, anvil.
+8. Houses (tier 4, by archetype) and compounds (tier 5), plus the tidy habits left from milestone 7.
+9. The 10-day unattended run and tuning.
+
+### Step 1: home and storage (code complete, smoke-tested on the dev server, not played yet)
+- **Home** (`brain/Home`, saved with the brain): where it settled, its chests, and an exact record of what's in each
+  (updated every time it looks inside one; if someone takes things it finds out when it next opens the chest).
+- **Choosing a site** (`brain/HomeSite`, section 11): from blocks it has seen only: a 7x7 footprint of dry standable
+  ground (one block up or down counts half), open sky, water within 16, trees and stone within 24, a little higher for
+  Builders, stone nearby for cautious ones, not too far. Picky for two looks around, then it takes bumpier ground;
+  with nothing at all it explores for a site.
+- **Settle goal** (stage 3+, after stone tools and a furnace): picks the site, makes a chest through the planner,
+  walks home and puts it down; another chest (kept apart, not a double chest) when they're full. Nomads hardly bother.
+- **Store goal** (section 10.18): goes home to put things away when nearly full, when near home with a load, and on
+  the way in at the end of the day. It keeps its working kit on it (`brain/Storage`): best tool of each kind, weapon,
+  shield, buckets, a table, 16 food, 32 torches, 64 building blocks, 16 wood, 16 sticks, 16 coal; everything else
+  goes in, in one visit per chest (`ContainerTask.deposit`).
+- **Home storage counts as owned** (section 9): the planner has a "fetch from its chest" step (cost: the walk), and
+  the stage and targets count what's stored. Stage 4 "settling" = stage 3 plus a home with a chest.
+- **Heading home at night** (section 18): the evening starts earlier by its travel time home (within 96 blocks); the
+  shelter walks home first, then digs in there (the hut comes in step 2).
+- **Junk policy** (section 10.18; found in testing: a full Drifter crafted a chest that fell on the floor): when it's
+  nearly full it throws out andesite, diorite, granite, tuff, calcite, poisonous potatoes, gravel and sand beyond 16,
+  dirt beyond one stack (only if that's its habit or it has no cobblestone), rotten flesh when it has real food; it
+  opens its inventory and drops them one at a time in front of it (`TossJunkTask`, like pressing Q). Full with junk
+  is urgent. It never picks up what it threw, and leaves junk lying when it's nearly full. Hoarders keep everything.
+- **Fixes found while testing this:** a job running a sub-job (setting up home, gathering logs) never let the brain
+  switch goals, so it ignored nightfall (nested activities now count as safe to interrupt when their step is); lost
+  in a deep lake at night with no dry land it had seen, it swims back to where it last stood on dry ground.
+- **Commands:** `/drifter home` (where, chests, fullness, what's stored), `/drifter home here` (settle on the spot),
+  `/drifter home clear`, `/drifter brain goal settle|store|makeroom`.
 
 ## Notes for milestone 9 (from testing)
 

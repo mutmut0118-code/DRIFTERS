@@ -60,6 +60,9 @@ public final class Planner {
 	private static final double DROPS_PER_KILL = 1.5;
 	private static final double COST_SMELT_EACH = 10.0;
 	private static final double COST_COLLECT = 5.0;
+	/** Opening its chest, plus the walk (seconds per block at a sprint). */
+	private static final double COST_FETCH = 6.0;
+	private static final double SECONDS_PER_BLOCK = 0.18;
 	/** Items of each fuel per smelted item: coal and charcoal smelt 8, planks and logs 1.5. */
 	private static final double COAL_ITEMS = 8.0;
 	private static final double WOOD_ITEMS = 1.5;
@@ -68,7 +71,7 @@ public final class Planner {
 	// Actions
 	// ---------------------------------------------------------------------------------------------
 
-	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect {
+	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch {
 		String describe();
 	}
 
@@ -119,6 +122,14 @@ public final class Planner {
 		}
 	}
 
+	/** Take something it stored out of its chest at home (section 9: home storage counts as owned). */
+	public record Fetch(net.minecraft.core.BlockPos chest, Item item, int count) implements Action {
+		@Override
+		public String describe() {
+			return "fetch " + this.count + " " + name(this.item) + " from its chest";
+		}
+	}
+
 	/** Look for something; {@code found} says when it has seen what it was looking for. */
 	public record Explore(String reason, @Nullable Vec3 toward, @Nullable Predicate<DrifterEntity> found) implements Action {
 		@Override
@@ -155,19 +166,23 @@ public final class Planner {
 		final Set<Block> placed;
 		/** How much of each cooking batch the plan has already counted on. */
 		final Map<FurnaceJob, Integer> fromFurnaces;
+		/** How much of each stored item the plan has already counted on taking from home. */
+		final Map<Item, Integer> fromHome;
 		double cost;
 
-		State(Map<Item, Integer> inventory, List<Action> actions, Set<Block> placed, Map<FurnaceJob, Integer> fromFurnaces, double cost) {
+		State(Map<Item, Integer> inventory, List<Action> actions, Set<Block> placed, Map<FurnaceJob, Integer> fromFurnaces, Map<Item, Integer> fromHome,
+			double cost) {
 			this.inventory = inventory;
 			this.actions = actions;
 			this.placed = placed;
 			this.fromFurnaces = fromFurnaces;
+			this.fromHome = fromHome;
 			this.cost = cost;
 		}
 
 		State copy() {
 			return new State(new HashMap<>(this.inventory), new ArrayList<>(this.actions), new HashSet<>(this.placed), new HashMap<>(this.fromFurnaces),
-				this.cost);
+				new HashMap<>(this.fromHome), this.cost);
 		}
 
 		int count(Item item) {
@@ -207,6 +222,11 @@ public final class Planner {
 				if (earlier instanceof Collect a && action instanceof Collect b && a.job() == b.job()) {
 					return;
 				}
+
+				if (earlier instanceof Fetch a && action instanceof Fetch b && a.item() == b.item()) {
+					this.actions.set(i, new Fetch(a.chest(), a.item(), a.count() + b.count()));
+					return;
+				}
 			}
 
 			this.actions.add(action);
@@ -242,7 +262,7 @@ public final class Planner {
 	 */
 	public static Plan plan(DrifterEntity drifter, KnownWorld world, List<Item> goal, int count) {
 		Planner planner = new Planner(drifter, world);
-		State start = new State(new HashMap<>(planner.realInventory), new ArrayList<>(), new HashSet<>(), new HashMap<>(), 0.0);
+		State start = new State(new HashMap<>(planner.realInventory), new ArrayList<>(), new HashSet<>(), new HashMap<>(), new HashMap<>(), 0.0);
 		State end = planner.obtainAny(start, goal, count, 0);
 		return end == null ? INFEASIBLE : new Plan(List.copyOf(end.actions), true, end.cost);
 	}
@@ -298,6 +318,26 @@ public final class Planner {
 				remaining -= take;
 				if (remaining <= 0) {
 					return base;
+				}
+			}
+		}
+
+		// Then what it stored at home: a walk to the chest.
+		Home home = this.drifter.getDrifterBrain().home();
+		if (home != null && home.near(this.drifter, Home.STORAGE_RANGE)) {
+			double walk = Math.sqrt(this.drifter.blockPosition().distSqr(home.center)) * SECONDS_PER_BLOCK;
+			for (Item item : candidates) {
+				int left = home.stored(item) - base.fromHome.getOrDefault(item, 0);
+				int take = Math.min(left, remaining);
+				net.minecraft.core.BlockPos chest = take > 0 ? home.chestWith(item) : null;
+				if (chest != null) {
+					base.fromHome.merge(item, take, Integer::sum);
+					base.addAction(new Fetch(chest, item, take));
+					base.cost += COST_FETCH + walk;
+					remaining -= take;
+					if (remaining <= 0) {
+						return base;
+					}
 				}
 			}
 		}

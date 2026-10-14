@@ -98,6 +98,34 @@ public class Brain {
 		this.nightStyle = style;
 		this.nightStyleDay = this.drifter.getSenses().time().believedDay();
 	}
+	/** Where it settled, its chests and what's in them (section 9 stage 4; saved). */
+	@Nullable
+	private Home home;
+
+	@Nullable
+	public Home home() {
+		return this.home;
+	}
+
+	public void setHome(@Nullable Home home) {
+		this.home = home;
+	}
+
+	/** Its chests were all full last time it tried to put things away: it wants another chest. */
+	private boolean storageFull;
+
+	public boolean storageFull() {
+		return this.storageFull;
+	}
+
+	public void noteStorageFull() {
+		this.storageFull = true;
+	}
+
+	public void clearStorageFull() {
+		this.storageFull = false;
+	}
+
 	/** Batches it left cooking (saved). */
 	private final List<FurnaceJob> furnaceJobs = new ArrayList<>();
 
@@ -420,12 +448,17 @@ public class Brain {
 		net.minecraft.nbt.ListTag jobs = new net.minecraft.nbt.ListTag();
 		this.furnaceJobs.forEach(job -> jobs.add(job.save()));
 		tag.put("FurnaceJobs", jobs);
+		if (this.home != null) {
+			tag.put("Home", this.home.save());
+		}
+
 		return tag;
 	}
 
 	public void load(CompoundTag tag) {
 		// Version 1 is the first format.
 		this.enabled = !tag.contains("Enabled") || tag.getBoolean("Enabled");
+		this.home = tag.contains("Home", net.minecraft.nbt.Tag.TAG_COMPOUND) ? Home.load(tag.getCompound("Home")) : null;
 		this.furnaceJobs.clear();
 		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
 		for (int i = 0; i < jobs.size(); i++) {

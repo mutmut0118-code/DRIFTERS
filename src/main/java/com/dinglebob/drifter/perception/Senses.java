@@ -908,6 +908,11 @@ public class Senses {
 		MemoryEntry entry = this.memory.remember(note.kind(), note.label(), Vec3.atCenterOf(pos), this.dimension(), this.now(), MemorySource.SEEN,
 			note.importance(), null).entry();
 		entry.detail = summary;
+		// One of its own chests at home: it knows exactly what's in it now (for planning, section 9 "home storage").
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		if (home != null && home.isChest(pos)) {
+			home.record(pos, container);
+		}
 	}
 
 	/**

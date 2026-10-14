@@ -45,11 +45,21 @@ public final class Strategist {
 	private Strategist() {
 	}
 
+	/** Carried, worn, or stored in its chests at home (section 9: stage counts home storage). */
 	private static boolean has(DrifterEntity drifter, Predicate<ItemStack> filter) {
 		DrifterInventory inventory = drifter.getInventory();
 		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
 			if (filter.test(inventory.getItem(slot))) {
 				return true;
+			}
+		}
+
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null) {
+			for (Item item : home.stored().keySet()) {
+				if (filter.test(new ItemStack(item))) {
+					return true;
+				}
 			}
 		}
 
@@ -80,7 +90,9 @@ public final class Strategist {
 	 */
 	public static int stage(DrifterEntity drifter) {
 		if (EARLY_TARGETS.get(1).satisfied().test(drifter) && EARLY_TARGETS.get(4).satisfied().test(drifter)) {
-			return 3;
+			// Stage 4, settling: a home with a chest.
+			Home home = drifter.getDrifterBrain().home();
+			return home != null && home.hasChest() ? 4 : 3;
 		}
 
 		if (EARLY_TARGETS.get(0).satisfied().test(drifter)) {
@@ -95,7 +107,8 @@ public final class Strategist {
 			case 0 -> "arrival";
 			case 1 -> "wood";
 			case 2 -> "stone";
-			default -> "first night";
+			case 3 -> "first night";
+			default -> "settling";
 		};
 	}
 }

@@ -66,6 +66,8 @@ public class ShelterActivity extends Activity {
 	private int spotTries;
 	private int offGroundTicks;
 	private int dryTries;
+	/** It has walked home for the night already (or has no home to go to). */
+	private boolean wentHome;
 
 	public ShelterActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -119,6 +121,13 @@ public class ShelterActivity extends Activity {
 						dry = KnownBlocks.nearestStandable(this.drifter, radius);
 					}
 
+					// Nothing it has seen will do (a deep lake in the hills): back to where it last stood on dry ground.
+					if (dry == null && this.drifter.lastDryGround() != null
+						&& this.drifter.lastDryGround().distSqr(this.drifter.blockPosition()) < 96 * 96) {
+						dry = this.drifter.lastDryGround();
+						this.think("swimming back to where it came from");
+					}
+
 					if (dry == null) {
 						return this.fail("knows no dry land to get to");
 					}
@@ -126,6 +135,17 @@ public class ShelterActivity extends Activity {
 					this.top = null;
 					this.think("getting out of the water for the night");
 					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(dry), 0.4, "get onto dry land"));
+				}
+
+				// With a home, the night is spent there (section 18: "Dusk: heads home").
+				// TODO(milestone 8 step 2): sleep in the starter hut instead of digging in beside it.
+				com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+				if (!this.wentHome && this.top == null) {
+					this.wentHome = true;
+					if (home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4) {
+						this.think("heading home for the night");
+						return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.5, "go home for the night"));
+					}
 				}
 
 				if (!this.drifter.onGround()) {

@@ -114,7 +114,9 @@ public abstract class Activity extends Task {
 	 * waiting. A block half-broken, a craft or a bite of food finishes first.
 	 */
 	public boolean atCheckpoint() {
-		return this.child == null || this.child instanceof NavigateTask navigate && navigate.isSafeToInterrupt() || this.child instanceof WaitTask;
+		// A job running another job (setting up home -> gathering logs): safe when that one is.
+		return this.child == null || this.child instanceof NavigateTask navigate && navigate.isSafeToInterrupt() || this.child instanceof WaitTask
+			|| this.child instanceof Activity activity && activity.atCheckpoint();
 	}
 
 	@Override

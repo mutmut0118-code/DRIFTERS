@@ -105,6 +105,7 @@ public final class Goals {
 				smelt.fuelLabel(), smelt.fuelCount());
 			case Planner.Collect collect -> new CollectSmeltActivity(drifter, collect.job());
 			case Planner.Explore explore -> new ExploreActivity(drifter, explore.reason(), explore.toward(), explore.found());
+			case Planner.Fetch fetch -> new com.dinglebob.drifter.brain.activity.FetchActivity(drifter, fetch.chest(), fetch.item(), fetch.count());
 		};
 	}
 
@@ -725,6 +726,175 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Settle down (section 9 stage 4: "a home site chosen", "a chest"): once it has stone tools and a furnace and has
+	 * survived its first night, it picks a home and puts a chest there; another chest when they're full. Nomads hardly
+	 * bother (section 9 pacing: "never really settles").
+	 */
+	public static final class Settle extends Goal {
+		@Override
+		public String id() {
+			return "settle";
+		}
+
+		@Override
+		public String name(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			return home == null ? "find a place to settle" : home.hasChest() ? "put down another chest" : "set up home";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			boolean wants = home == null || !home.hasChest() || context.drifter().getDrifterBrain().storageFull();
+			if (!wants || context.stage() < 3) {
+				return 0.0;
+			}
+
+			return context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD ? 0.15 : 0.55;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.4);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.SettleActivity(context.drifter());
+		}
+	}
+
+	/**
+	 * Put things away at home (section 10.18, "Going home: when full, when carrying something precious, or before dark"):
+	 * urgent-ish when its inventory is nearly full, worth a detour when it's near home with a load, and on the way in at
+	 * the end of the day.
+	 */
+	public static final class Store extends Goal {
+		@Override
+		public String id() {
+			return "store";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "put things away at home";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.hasChest() || drifter.getDrifterBrain().storageFull() || !home.near(drifter, Home.STORAGE_RANGE)) {
+				return 0.0;
+			}
+
+			int load = Storage.depositCount(drifter);
+			if (load == 0) {
+				return 0.0;
+			}
+
+			if (Storage.freeSlots(drifter) <= Storage.FULL_FREE_SLOTS) {
+				return 0.75;
+			}
+
+			boolean evening = context.time() >= Schedule.shelterThinking(drifter) && context.time() < Schedule.NIGHT_START;
+			if (evening && home.near(drifter, 48.0)) {
+				return 0.5;
+			}
+
+			return load >= 32 && home.near(drifter, 24.0) ? 0.35 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.StoreActivity(context.drifter());
+		}
+	}
+
+	/**
+	 * Make room (section 10.18 junk policy): a full inventory with junk in it means throwing the junk out, first thing
+	 * (found in testing: a full Drifter crafted a chest that fell on the ground and couldn't pick it up).
+	 */
+	public static final class MakeRoom extends Goal {
+		@Override
+		public String id() {
+			return "makeroom";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "throw out junk";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			int free = Storage.freeSlots(context.drifter());
+			if (free > Storage.FULL_FREE_SLOTS || Storage.junk(context.drifter()).isEmpty()) {
+				return 0.0;
+			}
+
+			return free <= 1 ? 0.85 : 0.45;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return Storage.freeSlots(context.drifter()) == 0 && !Storage.junk(context.drifter()).isEmpty();
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 0;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new Activity(context.drifter()) {
+				private boolean done;
+
+				@Override
+				public String describe() {
+					return "throw out junk";
+				}
+
+				@Override
+				protected Status next() {
+					if (this.done) {
+						return Status.SUCCESS;
+					}
+
+					this.done = true;
+					return this.begin(new com.dinglebob.drifter.executor.task.TossJunkTask(this.drifter));
+				}
+			};
+		}
+	}
+
 	/** Put on better armor or a shield the moment it has one (section 10.17, "Upgrades"). */
 	public static final class Equip extends Goal {
 		@Override
@@ -777,6 +947,6 @@ public final class Goals {
 
 	public static List<Goal> all() {
 		return List.of(new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
-			new Progress(), new Wander(), new Idle());
+			new MakeRoom(), new Settle(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }
