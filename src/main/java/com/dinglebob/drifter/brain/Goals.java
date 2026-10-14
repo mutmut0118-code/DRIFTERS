@@ -1413,7 +1413,7 @@ public final class Goals {
 	}
 
 	/** Blocks a finished hut or house can be missing before it's a repair job (gaps it couldn't reach when building). */
-	private static final int MAX_LEFT_GAPS = 3;
+	private static final int MAX_LEFT_GAPS = 4;
 
 	/** Put on better armor or a shield the moment it has one (section 10.17, "Upgrades"). */
 	public static final class Equip extends Goal {

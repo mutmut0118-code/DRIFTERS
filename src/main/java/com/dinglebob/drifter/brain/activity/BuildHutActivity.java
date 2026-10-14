@@ -661,7 +661,7 @@ public class BuildHutActivity extends Activity {
 	}
 
 	/** Most blocks it leaves missing when it truly can't place them (a corner it can't reach from anywhere). */
-	private static final int MAX_GAPS = 3;
+	private static final int MAX_GAPS = 4;
 
 	/**
 	 * Blocks still missing are only a few it has tried and can't place from anywhere it can stand: the shell counts as done
