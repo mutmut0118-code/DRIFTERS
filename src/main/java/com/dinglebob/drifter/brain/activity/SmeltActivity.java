@@ -47,6 +47,10 @@ public class SmeltActivity extends Activity {
 	private final String fuelLabel;
 	private final int fuelCount;
 	private boolean walked;
+	private int cleared;
+	private int waited;
+	/** Longest it waits for a furnace to finish someone else's batch. */
+	private static final int MAX_WAIT_TICKS = 20 * 30;
 	private boolean approached;
 	private boolean started;
 	@org.jetbrains.annotations.Nullable
@@ -149,6 +153,29 @@ public class SmeltActivity extends Activity {
 
 			this.walked = true;
 			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk to the furnace"));
+		}
+
+		// A look inside first (found in testing: pork still cooking in it, the logs for charcoal wouldn't go in, and it gave up
+		// on torches). Something else done in the output slot: taken out (it would block this batch). Something else still
+		// cooking: it waits a little for it, or it's busy.
+		net.minecraft.world.Container inside = com.dinglebob.drifter.hands.Containers.get(this.drifter.level(), furnace);
+		if (inside != null) {
+			ItemStack result = inside.getItem(FURNACE_RESULT);
+			if (!result.isEmpty() && !result.is(this.output) && this.cleared++ < 2) {
+				return this.begin(new ContainerTask(this.drifter, furnace, ContainerTask.Mode.TAKE, stack -> true, "what's done", Integer.MAX_VALUE,
+					new int[]{FURNACE_RESULT}));
+			}
+
+			ItemStack cooking = inside.getItem(FURNACE_INPUT);
+			if (!cooking.isEmpty() && !this.input.test(cooking)) {
+				long left = (long)cooking.getCount() * ticksPerItem(this.drifter.level(), furnace);
+				if (left <= MAX_WAIT_TICKS && this.waited++ < 2) {
+					return this.begin(new com.dinglebob.drifter.executor.task.WaitTask(this.drifter, "the furnace to finish",
+						() -> inside.getItem(FURNACE_INPUT).isEmpty(), (int)left + 20));
+				}
+
+				return this.fail("the furnace is busy cooking something else");
+			}
 		}
 
 		this.started = true;

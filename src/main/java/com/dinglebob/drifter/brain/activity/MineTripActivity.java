@@ -266,6 +266,10 @@ public class MineTripActivity extends Activity {
 
 	private boolean rememberedTried;
 	private boolean kitChecked;
+	/** This trip carries on down an old staircase. */
+	private boolean continuedStairs;
+	/** A continued staircase that gets fewer steps than this before it's done is blocked. */
+	private static final int STUCK_STAIRS = 4;
 	/** Food level at or under which it doesn't set off without food. */
 	private static final int HUNGRY_TO_GO = 10;
 	/** Trips to below this height take a crafting table and sticks along. */
@@ -474,6 +478,7 @@ public class MineTripActivity extends Activity {
 			// A staircase it didn't finish last time: back down it and carry on.
 			this.tunnel = new Tunnel(home.mineBottom, home.mineDirection, MAX_STEPS);
 			this.tunnel.legs.add(new Tunnel.Leg(home.mineBottom, home.mineDirection, 400, targetY));
+			this.continuedStairs = true;
 			this.think(String.format(Locale.ROOT, "back down its stairs, carrying on toward Y %d for %s", targetY, this.label));
 		} else if (home != null && home.mineBottom != null && home.mineDirection != null && home.near(this.drifter, Home.STORAGE_RANGE)
 			&& Math.abs(home.mineBottom.getY() - targetY) <= 12) {
@@ -555,6 +560,19 @@ public class MineTripActivity extends Activity {
 		}
 
 		this.why = t.done ? "the tunnel's done" : "dug what it planned";
+		// Its old staircase going nowhere (water, openings it can't plug): it gives that one up, and the next trip digs a new
+		// way down from another side of home (found in testing: 22 trips down the same blocked stairs and back).
+		if (this.continuedStairs && t.done && t.steps < STUCK_STAIRS) {
+			Home home = this.drifter.getDrifterBrain().home();
+			if (home != null) {
+				home.mineBottom = null;
+				home.mineDirection = null;
+				home.mineTrips++;
+			}
+
+			this.think("its old stairs are blocked: next time it digs a new way down");
+		}
+
 		this.think("heading back up: " + this.why);
 		this.rememberStairs();
 		this.phase = Phase.HOME;
