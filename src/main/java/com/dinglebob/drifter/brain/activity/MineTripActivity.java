@@ -274,6 +274,11 @@ public class MineTripActivity extends Activity {
 	private boolean rememberedTried;
 	private boolean kitChecked;
 	private int torchTries;
+	private boolean foodChecked;
+	/** Hunger points of food it wants along on a trip. */
+	private static final int TRIP_FOOD = 6;
+	private static final java.util.List<net.minecraft.world.item.Item> TRIP_FOODS = java.util.List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP,
+		Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT, Items.BREAD, Items.BEEF, Items.PORKCHOP, Items.MUTTON, Items.RABBIT);
 	/** The height this trip's staircase heads for (the ore's depth, or higher up in a mountain). */
 	private int targetY = Integer.MIN_VALUE;
 	/** This trip carries on down an old staircase. */
@@ -381,6 +386,20 @@ public class MineTripActivity extends Activity {
 		// Not down the mine hungry with nothing to eat: it would only turn back (found in testing: nine trips in a row).
 		if (this.drifter.getFoodData().getFoodLevel() <= HUNGRY_TO_GO && Food.choose(this.drifter) == null) {
 			return this.fail("too hungry to go mining, with nothing to eat");
+		}
+
+		// Food for the trip (a player packs some): with little on it, it gets some first if it knows a way that doesn't mean
+		// exploring (found in testing: 37 trips turned back "hungry with nothing to eat").
+		if (!this.foodChecked) {
+			this.foodChecked = true;
+			if (Food.carriedNutrition(this.drifter) < TRIP_FOOD) {
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), TRIP_FOODS, 3);
+				if (plan.feasible() && plan.next() != null && !plan.needsExploring() && noTrip(plan)) {
+					this.think("getting some food together before going down");
+					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
+				}
+			}
 		}
 
 		// Nor badly hurt: it turns back at 10 health anyway (found in testing: 12 trips in a row turned straight back).
