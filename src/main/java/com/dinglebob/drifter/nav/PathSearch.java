@@ -342,7 +342,11 @@ public class PathSearch {
 			return;
 		}
 
-		if (this.view.standable(f.below())) {
+		// From the water, only onto ground it has seen (found in testing: unseen ground counted as a floor, so it planned to
+		// walk out across a pond and couldn't get out of it for hours).
+		boolean floor = inWater ? this.view.cell(f.below()).kind() == NavView.Kind.SOLID && this.view.standable(f.below())
+			: this.view.standable(f.below());
+		if (floor) {
 			this.add(node, f, MoveType.WALK, WALK + c.cost, c, 0);
 			return;
 		}
@@ -365,6 +369,11 @@ public class PathSearch {
 
 		NavView.Cell front = this.view.cell(f);
 		if (front.passable() && front.kind() != NavView.Kind.UNKNOWN || !this.view.standable(f)) {
+			return;
+		}
+
+		// Out of the water only onto a block it has seen (unseen ones at the surface are usually more water).
+		if (this.view.isWater(node.pos) && front.kind() != NavView.Kind.SOLID) {
 			return;
 		}
 
@@ -478,7 +487,10 @@ public class PathSearch {
 			this.add(node, n.below(), MoveType.CLIMB_DOWN, CLIMB_DOWN, new Clearance(), 0);
 		}
 
-		if (onSolidFloor && node.blocksUsed < this.blocksAvailable && !this.drifter.pillarFailedRecently(n)) {
+		// Not from water: floating, there's nothing to jump off and the block can't go under its feet (found in testing: in
+		// a pool with high sides it planned pillars from the water and bobbed there; it digs a step into the side instead).
+		if (onSolidFloor && !inWater && !this.view.isWater(n.below()) && node.blocksUsed < this.blocksAvailable
+			&& !this.drifter.pillarFailedRecently(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
 				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);

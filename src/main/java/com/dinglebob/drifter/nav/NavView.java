@@ -97,6 +97,21 @@ public final class NavView {
 		}
 
 		if (!this.knowledge.isKnown(pos)) {
+			// Under water it has seen, it expects more water, not ground (its sight stops at the surface; found in
+			// testing: it planned to walk across a pond on "unseen ground" just under the surface, and couldn't get out).
+			BlockPos above = pos.above();
+			if (this.knowledge.isKnown(above) && this.level.getFluidState(above).is(FluidTags.WATER)) {
+				return new Cell(Kind.WATER, 0.0F, false, false);
+			}
+
+			// Beside water it has seen, at the same height: water is level, so it expects more of it (the banks it can see).
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				BlockPos next = pos.relative(side);
+				if (this.knowledge.isKnown(next) && this.level.getFluidState(next).is(FluidTags.WATER) && this.level.getFluidState(next).isSource()) {
+					return new Cell(Kind.WATER, 0.0F, false, false);
+				}
+			}
+
 			return new Cell(Kind.UNKNOWN, 0.0F, false, false);
 		}
 

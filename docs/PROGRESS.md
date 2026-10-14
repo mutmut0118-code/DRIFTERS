@@ -652,8 +652,13 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Results after these fixes** (5 game days each, the user's seed): 6 of the last 6 runs survived; caver: hut, iron
   pickaxe day 1, bucket, shield, chestplate; strip miner: hut, iron pickaxe, bucket, shield on day 1, chestplate day 2,
   leggings by day 4. Some runs still get no iron when home is ringed by water and caves (it tries other sides).
-- **Known, next:** standing in water by home at night it sometimes can't find a way onto dry land for hours ("couldn't
-  get onto dry land: stuck"); cavers are still a little slower to iron than strip miners on average.
+- **Getting out of ponds (fixed, staged tests: pools with sides 2 and 3 blocks above the water):** it planned walks across
+  the surface on "unseen ground" (its sight stops at the water's surface) and jumps from the water that fall just short.
+  Now: under or beside water it has seen it expects more water; from the water it only steps or jumps onto blocks it
+  has seen are solid; it never plans a pillar from water; swimming, it can tell the blocks within 3 around it; and it
+  keeps its head up whatever step it's on (it used to let go of every key while turning its head, and sank). Out in
+  about 26 s (2-high sides, was 36) and 32 s (3-high, was 54), digging a step into the side like a player.
+- **Known:** cavers are still a little slower to iron than strip miners on average.
 - **Known:** the starter hut's own pillar step sometimes can't place under itself ("can't get up to put the roof on"),
   now with a detailed reason in the thought log to find out why; a cave found by breaking in sometimes yields nothing to
   explore (it now looks around first).

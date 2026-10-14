@@ -418,6 +418,30 @@ public class NavigateTask extends Task {
 
 	@Override
 	protected Status onTick() {
+		Status status = this.tickSteps();
+		this.stayAfloat();
+		return status;
+	}
+
+	/**
+	 * Whatever it's doing on the way (turning its head toward the next step, lining up, pillaring), with its head under
+	 * water it keeps swimming up, like a player tapping space (found in testing: while it waited for its head to turn it
+	 * let go of every key and sank to the bottom of a pond, over and over; getting out took a minute).
+	 */
+	private void stayAfloat() {
+		if (!this.drifter.isUnderWater() || this.drifter.getAirSupply() <= 0 && this.drifter.onGround()) {
+			return;
+		}
+
+		PathStep step = this.index < this.path.size() ? this.path.get(this.index) : null;
+		if (step != null && step.type() == MoveType.SWIM_DOWN) {
+			return;
+		}
+
+		this.keys().set(VirtualKeys.Key.JUMP, true);
+	}
+
+	private Status tickSteps() {
 		if (this.atGoal()) {
 			if (!this.follow) {
 				return Status.SUCCESS;
