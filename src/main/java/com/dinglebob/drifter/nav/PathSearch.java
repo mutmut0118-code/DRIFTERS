@@ -383,7 +383,8 @@ public class PathSearch {
 		}
 
 		BlockPos t = f.above();
-		Clearance c = this.clear(true, node.pos.above(2), t, t.above());
+		// (Not a jump that failed it a moment ago; the same memory as bridges.)
+		Clearance c = this.drifter.bridgeFailedRecently(t) ? null : this.clear(true, node.pos.above(2), t, t.above());
 		if (c != null) {
 			this.add(node, t, MoveType.JUMP_UP, WALK + JUMP_EXTRA + c.cost, c, 0);
 		}

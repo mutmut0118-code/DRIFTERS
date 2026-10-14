@@ -1387,6 +1387,12 @@ public class NavigateTask extends Task {
 			this.keys().set(this.drifter.getRandom().nextBoolean() ? VirtualKeys.Key.LEFT : VirtualKeys.Key.RIGHT, true);
 			this.keys().set(VirtualKeys.Key.JUMP, true);
 		} else if (this.sinceProgress >= REPLAN_AFTER) {
+			// A jump up it couldn't make (out of water at a corner of the bank): that one's avoided for a while, so the new
+			// plan goes another way (found in testing: the same jump out of a pond, night after night).
+			if (this.path != null && this.index < this.path.size() && this.path.get(this.index).type() == MoveType.JUMP_UP) {
+				this.drifter.bridgeFailedAt(this.path.get(this.index).to());
+			}
+
 			this.replan("no progress for " + REPLAN_AFTER / 20 + " s");
 		}
 
