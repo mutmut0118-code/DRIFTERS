@@ -742,6 +742,10 @@ public final class Goals {
 				return 0.0;
 			}
 
+			if (home.pen == null && context.drifter().level().getGameTime() - home.penFailedAt < 20L * 60 * 10) {
+				return 0.0;
+			}
+
 			double keen = farmingKeenness(context, home.pen != null);
 			return keen > 0.0 && com.dinglebob.drifter.brain.activity.PenActivity.workToDo(context.drifter(), home) ? 0.42 * keen : 0.0;
 		}

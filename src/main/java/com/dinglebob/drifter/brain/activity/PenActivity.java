@@ -105,6 +105,7 @@ public class PenActivity extends Activity {
 		if (home.pen == null) {
 			BlockPos spot = chooseSpot(this.drifter, home);
 			if (spot == null) {
+				home.penFailedAt = this.drifter.level().getGameTime();
 				return this.fail("no flat ground near home for a pen");
 			}
 
@@ -381,6 +382,12 @@ public class PenActivity extends Activity {
 					continue;
 				}
 
+				// Not on its house or its enchanting corner either.
+				if (home.inOwnBuilding(around, INSIDE + 2) || home.enchantingTable != null
+					&& Math.abs(around.getX() - home.enchantingTable.getX()) <= INSIDE + 4 && Math.abs(around.getZ() - home.enchantingTable.getZ()) <= INSIDE + 4) {
+					continue;
+				}
+
 				for (int dy = -2; dy <= 2; dy++) {
 					BlockPos middle = around.above(dy);
 					int score = 0;
@@ -405,7 +412,8 @@ public class PenActivity extends Activity {
 			}
 		}
 
-		return bestScore >= 38 ? best : null;
+		// (32 of 49 is enough: hillsides rarely give more, and it was turned down 11 times running in testing.)
+		return bestScore >= 32 ? best : null;
 	}
 
 	/** Anything to do at the pen (for the goal). */
