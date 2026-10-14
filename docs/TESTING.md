@@ -840,6 +840,17 @@ Quick setup (skips the early game): `/drifter spawn Digger`, then give it `minec
       with the mobs on the far side it runs home ("running home") and shuts itself in the hut; with the mobs between it
       and home it says "the mobs are between it and home" and digs in where it gets clear, instead of dithering.
 - Known: going back down an old mine it can get lost for a long time (caving, next, replaces most of those trips).
+- [ ] **Caving (new):** a Drifter whose `/drifter personality` habits say "caver and surface explorer" or "mixed" goes
+      caving instead of digging stairs when it knows a cave near home ("going caving: a cave it saw at ..."), or when its
+      stairs break into a cave ("broke into a cave: exploring it"). It walks deeper, places torches on its habit side as
+      it goes, mines ore it spots, and comes back out when it has enough, is hurt, hungry, out of torches, or it's late.
+      `/drifter personality reroll speedrunner` makes a brave caver; `reroll miner` usually makes a strip miner (who
+      still plugs caves).
+- [ ] **Looting (new):** in a dungeon (mossy cobblestone room with a spawner) it breaks the spawner and takes what's
+      useful from the chests; in a mineshaft it loots the chest minecarts ("looting a chest minecart"). It never loots
+      its own chests or chests above ground.
+- [ ] **Water:** a brave Drifter jumps into a pool from high up (water stops fall damage); a careful one finds another
+      way down. Under water with something overhead, it heads for air and doesn't plan long swims under water.
 - Handy for long watches: `/drifter thoughts log true` writes every thought into the game log as it happens
   (`/drifter thoughts log false` to stop). `/tick rate 60` makes the game run 3x faster to see a few days quicker.
 

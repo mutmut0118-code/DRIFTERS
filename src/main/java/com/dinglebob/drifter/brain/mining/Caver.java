@@ -59,6 +59,7 @@ public final class Caver {
 
 	private final int maxLegs;
 	private boolean reachedEntrance;
+	private boolean peeked;
 
 	public Caver(DrifterEntity drifter, BlockPos entrance, int depth, int maxLegs) {
 		this.drifter = drifter;
@@ -89,11 +90,21 @@ public final class Caver {
 		}
 
 		// First into the cave it chose.
+		// Into the opening first, then a look round from inside (found in testing: looking round from its tunnel, only one
+		// way faced the hole, it saw almost nothing of the cave and found nowhere to go).
+		// A peek through the opening first: it's often in the floor ahead (a hole down into the cave), which looking round
+		// level never shows (found in testing: it knew almost nothing of the caves it broke into).
+		if (!this.peeked) {
+			this.peeked = true;
+			return new com.dinglebob.drifter.executor.task.LookAtTask(this.drifter, Vec3.atCenterOf(this.entrance), 30);
+		}
+
 		if (!this.reachedEntrance) {
 			this.reachedEntrance = true;
-			if (feet.distSqr(this.entrance) > 3 * 3) {
+			if (feet.distSqr(this.entrance) > 1) {
 				this.goingTo = this.entrance;
-				return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.entrance), 1.5, "walk to the cave");
+				this.lookPending = true;
+				return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.entrance), 1.0, "step into the cave");
 			}
 		}
 
@@ -111,7 +122,7 @@ public final class Caver {
 
 		BlockPos target = this.frontier(feet);
 		if (target == null) {
-			this.say("nothing left in this cave it can get to");
+			this.say("nothing left in this cave it can get to " + debugCounts(this.drifter, feet, SEARCH_RADIUS, this.visited, this.unreachable));
 			return null;
 		}
 
@@ -310,6 +321,78 @@ public final class Caver {
 		return best[0];
 	}
 
+	/** Why no frontier (debug): standable seen spots, of those underground, of those at an edge, of those not visited. */
+	private static String debugCounts(DrifterEntity drifter, BlockPos around, int radius, Set<Long> visited, Set<BlockPos> unreachable) {
+		Level level = drifter.level();
+		TerrainKnowledge terrain = drifter.getSenses().terrain();
+		int[] counts = new int[5];
+		terrain.forEachKnown(around, radius, pos -> {
+			counts[0]++;
+			if (!terrain.isKnown(pos.below()) || !KnownBlocks.isStandable(level, pos)) {
+				return;
+			}
+
+			counts[1]++;
+			if (!underground(drifter, pos)) {
+				return;
+			}
+
+			counts[2]++;
+			boolean edge = false;
+			for (Direction direction : Direction.values()) {
+				if (!terrain.isKnown(pos.relative(direction)) || !terrain.isKnown(pos.above().relative(direction))) {
+					edge = true;
+					break;
+				}
+			}
+
+			if (edge) {
+				counts[3]++;
+				if (!visited.contains(region(pos)) && !unreachable.contains(pos)) {
+					counts[4]++;
+				}
+			}
+		});
+		return String.format(java.util.Locale.ROOT, "(known %d, standable %d, underground %d, edge %d, new %d)", counts[0], counts[1], counts[2], counts[3], counts[4]);
+	}
+
+	/** Open blocks a hole must lead into to count as a cave. */
+	private static final int MIN_CAVE_SPACE = 20;
+
+	/**
+	 * A real cave at this spot: underground, with enough open space joined to it, none of it open to the sky (a glance
+	 * into the opening tells a player that much; found in testing: air under overhangs and pockets of a block or two).
+	 */
+	public static boolean isCave(DrifterEntity drifter, BlockPos pos) {
+		return underground(drifter, pos) && openSpaceBehind(drifter.level(), pos) >= MIN_CAVE_SPACE;
+	}
+
+	/** Open (air, not water) blocks joined to this one, nearby, counted up to a little over what makes a cave. */
+	private static int openSpaceBehind(net.minecraft.world.level.Level level, BlockPos start) {
+		java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+		java.util.Set<BlockPos> seen = new java.util.HashSet<>();
+		queue.add(start);
+		seen.add(start);
+		while (!queue.isEmpty() && seen.size() <= MIN_CAVE_SPACE * 2) {
+			BlockPos pos = queue.poll();
+			for (Direction direction : Direction.values()) {
+				BlockPos next = pos.relative(direction);
+				if (next.distSqr(start) <= 8 * 8 && !seen.contains(next) && level.getBlockState(next).getCollisionShape(level, next).isEmpty()
+					&& level.getFluidState(next).isEmpty()) {
+					// Open to the sky: air under an overhang or a slope by the surface, not a cave (found in testing).
+					if (level.canSeeSky(next)) {
+						return 0;
+					}
+
+					seen.add(next);
+					queue.add(next);
+				}
+			}
+		}
+
+		return seen.size();
+	}
+
 	/** Ground over its head (not just leaves, and not its own hut's roof): somewhere a cave is. */
 	public static boolean underground(DrifterEntity drifter, BlockPos pos) {
 		Level level = drifter.level();
@@ -323,8 +406,8 @@ public final class Caver {
 			|| Math.abs(pos.getY() - home.center.getY()) > 4;
 	}
 
-	/** Blocks of ground above it, at least, for a spot to count as in a cave (found in testing: "a cave" under a tree). */
-	private static final int COVER = 3;
+	/** A solid block (not leaves) over its head, for a spot to count as in a cave (found in testing: "a cave" under a tree; with 3 blocks of cover required, shallow caves had no spots at all). */
+	private static final int COVER = 2;
 
 	private static long region(BlockPos pos) {
 		return BlockPos.asLong(Math.floorDiv(pos.getX(), REGION), Math.floorDiv(pos.getY(), REGION), Math.floorDiv(pos.getZ(), REGION));

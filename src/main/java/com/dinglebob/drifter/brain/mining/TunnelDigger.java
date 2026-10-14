@@ -124,7 +124,15 @@ public final class TunnelDigger {
 				return new PlaceBlockTask(this.drifter, hole, block, "a block to plug the opening");
 			}
 
-			// Couldn't: back to filling in its own block, and this way's done.
+			// Couldn't plug a hole into a cave (air): it leaves it open and carries on, like a player passing a cave (found in
+			// testing: every unpluggable cave opening turned the stairs, and near the surface they turned until they gave up).
+			if (level.getFluidState(hole).isEmpty()) {
+				this.plug = null;
+				this.say("left the opening to the cave");
+				return this.next();
+			}
+
+			// Water it couldn't plug: back to filling in its own block, and this way's done.
 			this.plug = null;
 			this.refill = this.plugFrom;
 			if (this.refill != null) {
@@ -238,8 +246,11 @@ public final class TunnelDigger {
 			if (why != null) {
 				this.turnReason = why;
 				if (why.equals("a cave")) {
-					// A way into a cave right ahead (a caver goes in; a strip miner turns).
+					// A way into a cave right ahead: a caver may go in; otherwise the stairs go straight through it (the cells
+					// are open already, the floor is checked below).
 					this.caveBreach = cell.immutable();
+					this.turnReason = null;
+					continue;
 				}
 
 				if (!leg.stairs()) {
@@ -256,10 +267,20 @@ public final class TunnelDigger {
 		if (!this.tunnel.opened.contains(floor) && level.getBlockState(floor).getCollisionShape(level, floor).isEmpty()
 			&& this.allOpen(level, cells)) {
 			boolean fluid = !level.getFluidState(floor).isEmpty();
-			if (!fluid && this.bridged.add(floor.immutable()) && this.drifter.getInventory().count(TunnelDigger::isBlock) > 0) {
+			// Only a dip of one block (solid under it): over a real drop it would be building stairs down through the air.
+			boolean dip = solid(level, floor.below());
+			if (!fluid && dip && this.bridged.add(floor.immutable()) && this.drifter.getInventory().count(TunnelDigger::isBlock) > 0) {
 				Predicate<ItemStack> block = this.drifter.getInventory().count(Tools.BUILDING_BLOCK) > 0 ? Tools.BUILDING_BLOCK : TunnelDigger::isBlock;
 				this.say("a hole in the floor: filling it");
 				return new PlaceBlockTask(this.drifter, floor, block, "a block over the hole");
+			}
+
+			// Stairs over a cave floor a couple of blocks down: hop down onto it and carry on from there (going down is the
+			// point; found in testing: at a cave's edge every way was "a drop" and the stairs turned until they gave up).
+			BlockPos landing = leg.stairs() && !fluid ? this.landing(level, floor) : null;
+			if (landing != null) {
+				this.stepping = landing;
+				return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(landing), 0.4, "hop down into the cave");
 			}
 
 			this.turnReason = fluid ? "water under the floor" : "a drop";
@@ -360,6 +381,28 @@ public final class TunnelDigger {
 		this.plugging = false;
 		this.refill = null;
 		this.pendingTurn = false;
+	}
+
+	/** Most blocks it hops down off its stairs onto a cave floor. */
+	private static final int HOP_DOWN = 3;
+
+	/** Where it lands dropping through this open floor cell: dry, solid ground at most {@link #HOP_DOWN} down, or null. */
+	@Nullable
+	private BlockPos landing(Level level, BlockPos floor) {
+		BlockPos cell = floor;
+		for (int k = 1; k <= HOP_DOWN; k++) {
+			if (!level.getFluidState(cell).isEmpty() || !level.getBlockState(cell).getCollisionShape(level, cell).isEmpty()) {
+				return null;
+			}
+
+			if (solid(level, cell.below())) {
+				return cell.immutable();
+			}
+
+			cell = cell.below();
+		}
+
+		return null;
 	}
 
 	/** Floor holes it has tried to fill (once each). */

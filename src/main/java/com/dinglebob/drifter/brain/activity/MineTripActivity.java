@@ -150,9 +150,17 @@ public class MineTripActivity extends Activity {
 	/** Broke into a cave, or found one right ahead: a caver goes in and explores it (a strip miner plugs it and carries on). */
 	private boolean enterCave() {
 		BlockPos breach = this.digger == null ? null : this.digger.takeCaveBreach();
-		if (breach == null || !this.caves() || this.cavingDone || this.caver != null) {
+		if (breach == null || !this.caves() || this.cavingDone || this.caver != null || this.cavesEntered >= MAX_CAVES) {
 			return false;
 		}
+
+		// A glance through the hole: an air pocket of a block or two isn't a cave (found in testing: most "caves" its stairs
+		// broke into were pockets, and it gave up caving for the trip on each).
+		if (!Caver.isCave(this.drifter, breach)) {
+			return false;
+		}
+
+		this.cavesEntered++;
 
 		this.digger.leaveOpen();
 		this.caver = new Caver(this.drifter, breach, this.depth, this.caveLegs());
@@ -160,6 +168,10 @@ public class MineTripActivity extends Activity {
 		this.think("broke into a cave: exploring it");
 		return true;
 	}
+
+	/** Caves it goes into from its tunnel on one trip at most. */
+	private static final int MAX_CAVES = 3;
+	private int cavesEntered;
 
 	/** Goes caving rather than strip mining (its mining style habit: everyone but strip miners). */
 	private boolean caves() {
@@ -197,7 +209,7 @@ public class MineTripActivity extends Activity {
 
 		// The cave's done: the rest the usual way (stairs and a branch mine), or home if that's enough for one trip.
 		this.caver = null;
-		this.cavingDone = true;
+		this.cavingDone = this.cavesEntered >= MAX_CAVES || this.tunnel == null;
 		this.phase = this.have() > 0 ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
 		this.why = "explored the cave";
 		if (this.phase == Phase.HOME) {
@@ -379,7 +391,22 @@ public class MineTripActivity extends Activity {
 
 			Home caveHome = this.drifter.getDrifterBrain().home();
 			BlockPos from = caveHome != null && caveHome.near(this.drifter, Home.STORAGE_RANGE) ? caveHome.center : this.drifter.blockPosition();
-			BlockPos cave = Caver.findFrontier(this.drifter, from, CAVE_SEARCH, this.depth, java.util.Set.of(), java.util.Set.of());
+			// Only a real cave (not air under an overhang by the surface; found in testing): a few tries.
+			java.util.Set<BlockPos> notCaves = new java.util.HashSet<>();
+			BlockPos cave = null;
+			for (int tries = 0; tries < 5 && cave == null; tries++) {
+				BlockPos candidate = Caver.findFrontier(this.drifter, from, CAVE_SEARCH, this.depth, java.util.Set.of(), notCaves);
+				if (candidate == null) {
+					break;
+				}
+
+				if (Caver.isCave(this.drifter, candidate)) {
+					cave = candidate;
+				} else {
+					notCaves.add(candidate);
+				}
+			}
+
 			if (cave != null) {
 				this.caver = new Caver(this.drifter, cave, this.depth, this.caveLegs());
 				this.phase = Phase.CAVE;

@@ -143,8 +143,11 @@ public final class Goals {
 				return 0.0;
 			}
 
-			// Too late in the day for a mining trip (found in testing: it set off, turned round at once, every tick).
-			if (plan.next() instanceof Planner.Mine && com.dinglebob.drifter.brain.activity.MineTripActivity.tooLateToGo(context.drifter())) {
+			// Too late in the day to set off on a mining trip (found in testing: it set off, turned round at once, every tick).
+			// Only for setting off: a trip already underground heads home on its own (found in testing: zeroing it then
+			// left it wandering deep in a cave, where it walked into lava).
+			if (plan.next() instanceof Planner.Mine && com.dinglebob.drifter.brain.activity.MineTripActivity.tooLateToGo(context.drifter())
+				&& !com.dinglebob.drifter.brain.mining.Caver.underground(context.drifter(), context.drifter().blockPosition())) {
 				return 0.0;
 			}
 
@@ -440,6 +443,13 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
+			// Not deep underground: a player doesn't wander about a dark cave for the sake of it (found in testing: it
+			// wandered onto unseen ground in a cave and into lava).
+			if (com.dinglebob.drifter.brain.mining.Caver.underground(context.drifter(), context.drifter().blockPosition())
+				&& context.drifter().getY() < context.drifter().level().getSeaLevel() - 8) {
+				return 0.0;
+			}
+
 			return context.needs().curiosity();
 		}
 

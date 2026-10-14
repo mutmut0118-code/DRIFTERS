@@ -1,8 +1,8 @@
 """Headless smoke test: runs the dev server, feeds console commands with delays, logs everything.
 
 Usage: python smoke.py <project_dir> <script_file> <log_file>
-Script lines: "wait <seconds>", "until <text> <timeout>" (underscores in <text> stand for spaces), or a console
-command. Start scripts with "until Done_( 900" (server ready) and "forceload add ~-112 ~-112 ~112 ~112": with no player
+Script lines: "wait <seconds>", "until <text> <timeout>" (underscores in <text> stand for spaces), "sprint <ticks>"
+(run that many game ticks as fast as possible with /tick sprint and wait for it to finish), or a console command. Start scripts with "until Done_( 900" (server ready) and "forceload add ~-112 ~-112 ~112 ~112": with no player
 online only force-loaded chunks tick, so Drifters elsewhere freeze. Spawn Drifters apart ("execute positioned ~40 ~ ~
 run drifter spawn Bob"): /drifter commands act on the nearest one. Run from the project root; the world is run/world.
 Local sessions only (never in the cloud).
@@ -54,6 +54,15 @@ for line in open(script, encoding='utf-8'):
         break
     if line.startswith('wait '):
         time.sleep(float(line.split()[1]))
+    elif line.startswith('sprint '):
+        # Runs that many game ticks as fast as the machine can (/tick sprint), then waits for the server to say it's
+        # done. Same ticks in the same order as normal play, just no waiting between them (user's idea, session 2).
+        with lock:
+            start = len(lines)
+        send('tick sprint ' + line.split()[1])
+        end = time.time() + 900
+        while time.time() < end and not seen('Sprint completed', start) and proc.poll() is None:
+            time.sleep(0.5)
     elif line.startswith('until '):
         _, text, timeout = line.split(' ', 2)
         text = text.replace('_', ' ')

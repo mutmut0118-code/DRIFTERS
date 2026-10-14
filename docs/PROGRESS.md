@@ -608,17 +608,52 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Known:** each failed staircase leaves a hole by the hut; in very cave-riddled ground trips still sometimes come back
   empty (it tries another side next time).
 
-### User requests for step 3 (session 2), next up
-- **Caving first** (user: "it should fully explore caves, go deep in them; it has the tools to defend itself, a higher
+### Caving and looting (session 2, user's request; written and smoke-tested)
+- **Caving** (`brain/mining/Caver`, `MineTripActivity` phase CAVE): everyone but strip miners (mining style habit below
+  0.65). It goes to a cave it has seen near home (a "frontier": a spot it saw it can stand on, with 3+ blocks of ground
+  above, next to blocks it hasn't seen), or into a cave its staircase breaks into (in front or beside). It looks around,
+  walks to the next frontier (nearer and deeper first), lights the way with torches on its habit side where block light
+  is under 7 (every 6 blocks at most), goes for ore it spots within 16, and stops after 16-48 walks (bravery) or when
+  the cave runs out; then the usual stairs. It makes torches first if it has fewer than 16.
+- **Looting while caving** (`Caver.loot`, `executor/task/LootCartTask`, perception of chest minecarts): breaks spawners
+  it sees, loots chests underground that aren't its own (not junk), and mineshaft chest minecarts (look, open, pause,
+  one stack per click). Each is dealt with once (`Brain.looted`). Test (flat world, a buried room with a real dungeon
+  chest, a spawner and a mineshaft chest minecart): it found all three, broke the spawner, took gunpowder, an
+  enchanted book, a name tag, a music disc, bread, rails and more.
+- **Water drops:** brave Drifters plan drops of up to 32 blocks into water they can see; careful ones about 8.
+- **Drowning (found in testing, fixed):** at night it went under a ceiling and drowned: the out-of-air reflex headed for
+  "open water" as well as air. Now it heads for air only, and planned routes keep head-under-water stretches to 10
+  moves.
+- **Real-seed runs (the user's seed):** a Speedrunner went caving ("going caving: a cave it saw at -9, 45, 22"),
+  spotted iron at y 40 and mined it; another run: iron pickaxe, bucket and shield by day 2.
+- **Fixes from 5-day sprint runs (both personalities, the user's seed):** most "caves" its stairs broke into were air
+  pockets or air under overhangs by the surface: a cave now has to be underground (a solid block, not leaves, over its
+  head), have 20+ open blocks joined to it, and none of them open to the sky; it peeks into the opening and steps in
+  before looking round. Strip miners (and cavers in a pocket) go straight through cave space crossing their stairs and
+  hop down onto a cave floor up to 3 blocks below instead of turning; an air opening it can't plug is left open (water
+  still turns it). The "too late to set off" rule no longer cuts a trip short underground (it had left one wandering in
+  a cave, where it walked into lava), and it never wanders about deep underground.
+  Result (5 game days each, sprinted): strip miner: iron pickaxe day 2, then bucket, shield, armor, a second iron
+  pickaxe; caver: caving trips into real caves, iron pickaxe day 4; neither died.
+- **Testing speed:** `tools/smoke.py` has a `sprint <ticks>` line (`/tick sprint`, as fast as the machine runs, then
+  waits for "Sprint completed"): 5 game days take about 2 minutes (user's idea).
+- **Known, next:** water underground: it can't always plug water it breaks into ("no block face") and drowned once when
+  a branch tunnel flooded; a player would back out of a flooding tunnel. Cavers find iron slower than strip miners.
+- **Known:** the starter hut's own pillar step sometimes can't place under itself ("can't get up to put the roof on"),
+  now with a detailed reason in the thought log to find out why; a cave found by breaking in sometimes yields nothing to
+  explore (it now looks around first).
+
+### User requests for step 3 (session 2), status
+- **Caving first** (done, see above; user: "it should fully explore caves, go deep in them; it has the tools to defend itself, a higher
   chance of finding iron than strip mining, and it learns the land"): remembered cave openings, explore toward the
   deep unexplored parts, torches on its habit side as breadcrumbs, mine visible ore, fight cave mobs, turn back on low
   health/food/torches/pickaxe or the time; next trip continues. Personality sets how deep and how often; strip miners
   still strip mine. This changes the mining part of the design; record it in DESIGN.md as the user's decision.
-- **Water drops:** it knows landing in water stops fall damage, but only plans drops of up to 8 blocks and only when it
+- **Water drops** (done): it knows landing in water stops fall damage, but only plans drops of up to 8 blocks and only when it
   has seen the whole shaft. Plan: brave ones jump any height into water they can see; cautious ones stick to short
   drops or dig down.
-- **Looting:** mineshafts (cobwebs, cave spider spawner, chest minecarts) and dungeons (spawner, chests) together with
-  caving; ruined portals, shipwrecks and temples later in milestone 8; villages after milestone 9.
+- **Looting:** mineshafts (chest minecarts) and dungeons (spawner, chests) done with caving (cobwebs still just
+  avoided); ruined portals, shipwrecks and temples later in milestone 8; villages after milestone 9.
 
 ## Notes for milestone 9 (from testing)
 
