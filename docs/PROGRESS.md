@@ -39,7 +39,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Mostly done: the user tested it and moved on to milestone 8 (session 2); leftovers listed below | Done when: people watching a short clip can't reliably tell it from a player. |
-| 8 | Progression and building | In progress: steps 1 (home and storage), 2 (starter hut) and 3 (iron age) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
+| 8 | Progression and building | In progress: steps 1-3 done (home and storage, starter hut, iron age with caving and looting); step 4 (beds) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | Not started | Section 19. |
@@ -662,6 +662,28 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Known:** the starter hut's own pillar step sometimes can't place under itself ("can't get up to put the roof on"),
   now with a detailed reason in the thought log to find out why; a cave found by breaking in sometimes yields nothing to
   explore (it now looks around first).
+
+### Step 4: beds and sleeping (written and smoke-tested, session 2; village houses still to do)
+- **Wool by colour:** sheep are remembered with their colour ("white wool" in what it saw); the sources table has one
+  entry per wool colour ("color" field), the planner only hunts a colour it has seen, and hunting only targets sheep of
+  that colour. Staged test: three white sheep and a red one: it killed the white ones and crafted a white bed.
+- **Target "a bed"** once the hut is up, but only when it has seen sheep of a usable colour (found in testing: without
+  sheep it wandered for five days looking and never went for iron). It keeps one bed on it until it's in the hut (it
+  had gone into the chest and never into the hut).
+- **Bed in the hut:** along the right wall, foot in the door-side corner, head toward the back (the click sets the way
+  it faces); chest, table and furnace take the other three corners. The hut goal comes back to put a carried bed in.
+- **Sleeping** (`ShelterActivity` phase SLEEP, section 18): in the hut at night it gets into bed by the player's rules
+  (only at night or in a thunderstorm, no monsters within 8 blocks round and 5 up/down), `startSleeping` (sleeping pose,
+  doesn't move; any hurt wakes it, as for a player). Careful and homebody types stay in bed till morning; others get up
+  after about 6 s (it can't skip the night). In at dusk before beds work, it goes to bed once it's dark.
+- **Also fixed while testing:** torches couldn't be placed in its own block (a torch has no collision; only solid blocks
+  are refused where its body is); pointed dripstone is never walked or dropped onto (a caver died on stalagmites);
+  underground, mineshaft planks and dungeon walls no longer turn its stairs (above ground, "looks built" still does,
+  for villages; player-placed blocks are always protected).
+- **Results (5 game days each, the user's seed, 8 runs):** beds crafted in about half (white, blue), sleeping seen;
+  iron pickaxe in 6 of 8; 1 death (drowned on the way up a flooded staircase).
+- **Next:** village houses (move into a house with a bed instead of building a hut, don't strip it); the flooded
+  staircase drowning; the occasional hut pillar failure at one site.
 
 ### User requests for step 3 (session 2), status
 - **Caving first** (done, see above; user: "it should fully explore caves, go deep in them; it has the tools to defend itself, a higher

@@ -99,6 +99,21 @@ public final class Strategist {
 		return carried == 0 || carried == 1 && leastWorn > SPARE_WEAR;
 	}
 
+	/** Every colour of bed. */
+	public static final List<Item> BEDS = List.of(Items.WHITE_BED, Items.ORANGE_BED, Items.MAGENTA_BED, Items.LIGHT_BLUE_BED, Items.YELLOW_BED,
+		Items.LIME_BED, Items.PINK_BED, Items.GRAY_BED, Items.LIGHT_GRAY_BED, Items.CYAN_BED, Items.PURPLE_BED, Items.BLUE_BED, Items.BROWN_BED,
+		Items.GREEN_BED, Items.RED_BED, Items.BLACK_BED);
+
+	/** It has a bed: in its hut, carried, or stored. */
+	public static boolean hasBed(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null && home.hutBuilt && com.dinglebob.drifter.building.StarterHut.of(home).bed(drifter.level()) != null) {
+			return true;
+		}
+
+		return has(drifter, stack -> stack.is(ItemTags.BEDS));
+	}
+
 	/** Carried, worn, or stored in its chests at home (section 9: stage counts home storage). */
 	private static boolean has(DrifterEntity drifter, Predicate<ItemStack> filter) {
 		DrifterInventory inventory = drifter.getInventory();
@@ -147,6 +162,17 @@ public final class Strategist {
 				Target spare = new Target("a spare pickaxe", List.of(Items.STONE_PICKAXE), stone + 1, d -> !needsSparePickaxe(d));
 				if (workable.test(spare)) {
 					return spare;
+				}
+			}
+
+			// A bed for the hut (section 9 stage 3/4; step 4 of milestone 8): three wool of one colour and three planks.
+			// Only once it has seen sheep of a colour it can use: a player without sheep around gets on with other things
+			// (found in testing: it wandered for five days looking for sheep and never went for iron).
+			if (home != null && home.hutBuilt && !hasBed(drifter)) {
+				Target bed = new Target("a bed", BEDS, 1, Strategist::hasBed);
+				Planner.Plan plan = Planner.plan(drifter, KnownWorld.scan(drifter), BEDS, 1);
+				if (plan.feasible() && !(plan.next() instanceof Planner.Explore) && workable.test(bed)) {
+					return bed;
 				}
 			}
 

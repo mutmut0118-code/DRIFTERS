@@ -40,8 +40,18 @@ public class HuntActivity extends Activity {
 	private boolean searched;
 	private int kills;
 
+	/** Only animals of this kind (a sheep's colour), or null. */
+	@org.jetbrains.annotations.Nullable
+	private final String variant;
+
 	public HuntActivity(DrifterEntity drifter, Set<EntityType<?>> prey, Predicate<ItemStack> items, int wanted, String label) {
+		this(drifter, prey, items, wanted, label, null);
+	}
+
+	public HuntActivity(DrifterEntity drifter, Set<EntityType<?>> prey, Predicate<ItemStack> items, int wanted, String label,
+		@org.jetbrains.annotations.Nullable String variant) {
 		super(drifter);
+		this.variant = variant;
 		this.prey = prey;
 		this.items = items;
 		this.wanted = wanted;
@@ -85,7 +95,8 @@ public class HuntActivity extends Activity {
 
 		if (!this.searched) {
 			MemoryEntry remembered = this.drifter.getMemory().nearest(MemoryKind.MOB, this.drifter.level().dimension().location(),
-				this.drifter.position(), MEMORY_RANGE, entry -> this.isPreyId(entry.label) && (entry.detail == null || !entry.detail.contains("baby")));
+				this.drifter.position(), MEMORY_RANGE, entry -> this.isPreyId(entry.label) && (entry.detail == null || !entry.detail.contains("baby"))
+					&& (this.variant == null || entry.detail != null && entry.detail.contains(this.variant + " wool")));
 			if (remembered != null) {
 				this.searched = true;
 				this.think("going to where it saw a " + remembered.label.replace("minecraft:", ""));
@@ -96,6 +107,11 @@ public class HuntActivity extends Activity {
 		return this.kills > 0 ? Status.SUCCESS : this.fail("hasn't seen any " + this.label + " animals nearby");
 	}
 
+	/** A sheep's wool colour (what it can see), or "" for other animals. */
+	public static String variantOf(net.minecraft.world.entity.LivingEntity living) {
+		return living instanceof net.minecraft.world.entity.animal.Sheep sheep && !sheep.isSheared() ? sheep.getColor().getName() : "";
+	}
+
 	private boolean isPreyId(String id) {
 		return this.prey.stream().anyMatch(type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString().equals(id));
 	}
@@ -104,7 +120,8 @@ public class HuntActivity extends Activity {
 	private LivingEntity pickTarget() {
 		return this.drifter.getSenses().tracked().stream()
 			.filter(a -> a.identified && a.entity instanceof LivingEntity living && living.isAlive() && this.prey.contains(living.getType())
-				&& !(living instanceof AgeableMob ageable && ageable.isBaby()) && this.now() - a.lastSeenTick < 20 * 5)
+				&& !(living instanceof AgeableMob ageable && ageable.isBaby()) && this.now() - a.lastSeenTick < 20 * 5
+				&& (this.variant == null || variantOf(living).equals(this.variant)))
 			.min(Comparator.comparingDouble(a -> a.entity.distanceToSqr(this.drifter)))
 			.map(a -> (LivingEntity)a.entity)
 			.orElse(null);

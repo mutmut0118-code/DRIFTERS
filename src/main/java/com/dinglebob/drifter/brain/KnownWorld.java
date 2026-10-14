@@ -41,6 +41,8 @@ public final class KnownWorld {
 	private final Map<Block, List<BlockPos>> blocks = new HashMap<>();
 	private final Map<Block, BlockState> examples = new HashMap<>();
 	private final Set<EntityType<?>> animals = new HashSet<>();
+	/** Kinds of animals seen ("minecraft:sheep/white"), for wool of a colour. */
+	private final Set<String> variants = new HashSet<>();
 	public final boolean tableNear;
 	public final boolean furnaceNear;
 	public final boolean smokerNear;
@@ -90,6 +92,13 @@ public final class KnownWorld {
 			ResourceLocation id = ResourceLocation.tryParse(entry.label);
 			if (id != null) {
 				BuiltInRegistries.ENTITY_TYPE.getOptional(id).ifPresent(this.animals::add);
+				if (entry.detail != null && entry.detail.contains(" wool")) {
+					for (String part : entry.detail.split("; ")) {
+						if (part.endsWith(" wool")) {
+							this.variants.add(id + "/" + part.substring(0, part.length() - " wool".length()));
+						}
+					}
+				}
 			}
 		}
 
@@ -166,6 +175,11 @@ public final class KnownWorld {
 
 	public boolean knowsAnimal(EntityType<?> type) {
 		return this.animals.contains(type);
+	}
+
+	/** Seen an adult of this kind (a sheep of this colour) nearby. */
+	public boolean knowsAnimal(EntityType<?> type, String variant) {
+		return this.variants.contains(BuiltInRegistries.ENTITY_TYPE.getKey(type) + "/" + variant);
 	}
 
 	public int knownBlockTypes() {

@@ -207,6 +207,11 @@ public final class Storage {
 	}
 
 	private static String category(DrifterEntity drifter, ItemStack stack) {
+		// A bed it hasn't put in its hut yet stays on it (found in testing: it went into the chest and never into the hut).
+		if (stack.is(net.minecraft.tags.ItemTags.BEDS)) {
+			return "bed";
+		}
+
 		if (stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || stack.is(Items.LAVA_BUCKET)) {
 			return "bucket";
 		} else if (stack.is(Items.CRAFTING_TABLE)) {
@@ -237,7 +242,7 @@ public final class Storage {
 	private static int keepLimit(String category) {
 		return switch (category) {
 			case "bucket" -> 2;
-			case "table", "furnace" -> 1;
+			case "table", "furnace", "bed" -> 1;
 			case "torch" -> KEEP_TORCHES;
 			case "food" -> KEEP_FOOD;
 			case "building" -> KEEP_BUILDING_BLOCKS;

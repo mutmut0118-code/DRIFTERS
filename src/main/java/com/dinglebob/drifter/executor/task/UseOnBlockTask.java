@@ -35,6 +35,15 @@ public class UseOnBlockTask extends Task {
 	private boolean sneak;
 	private int sneakSettle;
 
+	@org.jetbrains.annotations.Nullable
+	private Direction facing;
+
+	/** Which way what it places should face (a bed's head). */
+	public UseOnBlockTask facing(Direction facing) {
+		this.facing = facing;
+		return this;
+	}
+
 	public UseOnBlockTask(DrifterEntity drifter, BlockPos pos, Direction face, String label) {
 		this(drifter, pos, face, label, false);
 	}
@@ -106,8 +115,15 @@ public class UseOnBlockTask extends Task {
 			return Status.RUNNING;
 		}
 
-		InteractionResult used = FakePlayerBridge.act(this.drifter,
-			fake -> fake.gameMode.useItemOn(fake, this.drifter.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit));
+		InteractionResult used = FakePlayerBridge.act(this.drifter, fake -> {
+			// The way a placed block faces (a bed's head): a player lines that up by where they stand; here it's set for the
+			// click, the aim stays the same.
+			if (this.facing != null) {
+				fake.setYRot(this.facing.toYRot());
+			}
+
+			return fake.gameMode.useItemOn(fake, this.drifter.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit);
+		});
 		if (!used.consumesAction()) {
 			return this.fail("nothing happened");
 		}

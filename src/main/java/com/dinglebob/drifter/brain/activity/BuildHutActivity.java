@@ -520,6 +520,19 @@ public class BuildHutActivity extends Activity {
 			}
 		}
 
+		// The bed along the right wall, head toward the back (it faces the way it's placed).
+		if (this.drifter.getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(level) == null) {
+			BlockPos foot = hut.bedFoot();
+			if (level.getBlockState(foot).canBeReplaced() && level.getBlockState(hut.bedHead()).canBeReplaced() && !this.failed.contains(foot)) {
+				if (!inPosition) {
+					return this.walkInside(hut);
+				}
+
+				this.placing = foot;
+				return this.begin(new PlaceBlockTask(this.drifter, foot, stack -> stack.is(ItemTags.BEDS), "a bed").facing(hut.bedFacing()));
+			}
+		}
+
 		BlockPos torch = hut.torchSpot();
 		if (this.drifter.getInventory().count(stack -> stack.is(Items.TORCH)) > 0 && level.getBlockState(torch).isAir() && !this.failed.contains(torch)) {
 			if (!inPosition) {

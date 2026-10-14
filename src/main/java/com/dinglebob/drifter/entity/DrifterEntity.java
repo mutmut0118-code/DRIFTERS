@@ -414,6 +414,12 @@ public class DrifterEntity extends PathfinderMob {
 		this.setCustomNameVisible(true);
 	}
 
+	/** Asleep in bed it doesn't move, like a player (Player#isImmobile). */
+	@Override
+	protected boolean isImmobile() {
+		return super.isImmobile() || this.isSleeping();
+	}
+
 	@Override
 	public void tick() {
 		super.tick();

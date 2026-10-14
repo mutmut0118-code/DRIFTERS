@@ -40,6 +40,15 @@ public class PlaceBlockTask extends Task {
 	}
 
 	/** Place against this side of the target if that face is in view and reach; any other face otherwise. */
+	@Nullable
+	private Direction facing;
+
+	/** Which way the placed block should face (a bed: toward its head). */
+	public PlaceBlockTask facing(Direction facing) {
+		this.facing = facing;
+		return this;
+	}
+
 	public PlaceBlockTask preferSupport(Direction toSupport) {
 		this.preferred = toSupport;
 		return this;
@@ -59,9 +68,6 @@ public class PlaceBlockTask extends Task {
 	protected void onStart() {
 		if (!this.drifter.level().getBlockState(this.target).canBeReplaced()) {
 			this.fail("that spot is already taken");
-		} else if (new net.minecraft.world.phys.AABB(this.target).intersects(this.drifter.getBoundingBox().deflate(1.0E-3))) {
-			// A block can't go where its own body is (found in testing: hut walls "nothing happened" again and again).
-			this.fail("it's standing in the way");
 		}
 	}
 
@@ -74,6 +80,14 @@ public class PlaceBlockTask extends Task {
 			}
 
 			this.select.stop();
+			// A solid block can't go where its own body is (found in testing: hut walls "nothing happened" again and again);
+			// a torch can, like for a player.
+			if (this.drifter.getMainHandItem().getItem() instanceof net.minecraft.world.item.BlockItem blockItem
+				&& !blockItem.getBlock().defaultBlockState().getCollisionShape(this.drifter.level(), this.target).isEmpty()
+				&& new net.minecraft.world.phys.AABB(this.target).intersects(this.drifter.getBoundingBox().deflate(1.0E-3))) {
+				return this.fail("it's standing in the way");
+			}
+
 			// Grass, a flower or snow in the spot: a player clicks it and the block goes in its place (the grass is in the
 			// way of the face under it anyway; found in testing: hut corners on grassy ground were "unreachable").
 			Direction plantFace = clickableFace(this.drifter, this.drifter.getEyePosition(), this.target);
@@ -88,6 +102,10 @@ public class PlaceBlockTask extends Task {
 
 				BlockPos supportPos = this.target.relative(support[0]);
 				this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+			}
+
+			if (this.facing != null) {
+				this.use.facing(this.facing);
 			}
 		}
 

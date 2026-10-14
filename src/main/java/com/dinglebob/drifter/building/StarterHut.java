@@ -162,7 +162,7 @@ public final class StarterHut {
 		return cells;
 	}
 
-	/** Inside corners for the chest, table and furnace (not the middle, not in front of the door). */
+	/** Inside corners for the chest, table and furnace (not the middle, not in front of the door, not the bed's). */
 	public List<BlockPos> furnitureSpots() {
 		List<BlockPos> spots = new ArrayList<>();
 		Direction left = this.door.getCounterClockWise();
@@ -171,8 +171,35 @@ public final class StarterHut {
 		spots.add(this.center.relative(back).relative(left));
 		spots.add(this.center.relative(back).relative(right));
 		spots.add(this.center.relative(this.door).relative(left));
-		spots.add(this.center.relative(this.door).relative(right));
 		return spots;
+	}
+
+	/** The bed's foot: the corner by the door on the right; it lies along the right wall, head toward the back. */
+	public BlockPos bedFoot() {
+		return this.center.relative(this.door).relative(this.door.getClockWise());
+	}
+
+	public BlockPos bedHead() {
+		return this.bedFoot().relative(this.bedFacing());
+	}
+
+	/** Its bed in the hut: the head's position, or null if there's none. */
+	@org.jetbrains.annotations.Nullable
+	public BlockPos bed(Level level) {
+		for (BlockPos pos : new BlockPos[]{this.bedHead(), this.bedFoot()}) {
+			BlockState state = level.getBlockState(pos);
+			if (state.getBlock() instanceof net.minecraft.world.level.block.BedBlock) {
+				return state.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD
+					? pos : pos.relative(state.getValue(net.minecraft.world.level.block.BedBlock.FACING));
+			}
+		}
+
+		return null;
+	}
+
+	/** The way the bed faces (foot to head). */
+	public Direction bedFacing() {
+		return this.door.getOpposite();
 	}
 
 	/** Where the torch goes: inside, on the back wall at head height. */

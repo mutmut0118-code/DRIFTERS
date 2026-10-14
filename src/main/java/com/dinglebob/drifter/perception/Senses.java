@@ -594,6 +594,11 @@ public class Senses {
 			parts.add("baby");
 		}
 
+		// A sheep's colour (it matters for beds: three of one colour).
+		if (living instanceof net.minecraft.world.entity.animal.Sheep sheep) {
+			parts.add(sheep.isSheared() ? "sheared" : sheep.getColor().getName() + " wool");
+		}
+
 		ItemStack held = living.getMainHandItem();
 		if (!held.isEmpty()) {
 			parts.add("holding " + itemName(held));

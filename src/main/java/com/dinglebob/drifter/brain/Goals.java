@@ -98,7 +98,7 @@ public final class Goals {
 		return switch (action) {
 			case Planner.Gather gather -> new GatherActivity(drifter, gather.label(), gather.blocks(), gather.items(), gather.total(), gather.digDown(),
 				new ItemStack(gather.item()).is(ItemTags.LOGS));
-			case Planner.Hunt hunt -> new HuntActivity(drifter, hunt.prey(), hunt.items(), hunt.total(), hunt.label());
+			case Planner.Hunt hunt -> new HuntActivity(drifter, hunt.prey(), hunt.items(), hunt.total(), hunt.label(), hunt.variant());
 			case Planner.Craft craft -> new CraftActivity(drifter, craft.item(), craft.times());
 			case Planner.Place place -> new PlaceStationActivity(drifter, place.station());
 			case Planner.Smelt smelt -> new SmeltActivity(drifter, smelt.output(), smelt.input(), smelt.inputLabel(), smelt.count(), smelt.fuel(),
@@ -976,7 +976,9 @@ public final class Goals {
 			}
 
 			if (home.hutBuilt) {
-				return com.dinglebob.drifter.building.StarterHut.of(home).shellBuilt(context.drifter().level()) ? 0.0 : 0.45;
+				com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+				boolean bedToPlace = context.drifter().getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(context.drifter().level()) == null;
+				return hut.shellBuilt(context.drifter().level()) && !bedToPlace ? 0.0 : 0.45;
 			}
 
 			return context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD ? 0.1 : 0.55;

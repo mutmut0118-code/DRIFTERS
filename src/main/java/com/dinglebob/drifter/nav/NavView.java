@@ -117,7 +117,9 @@ public final class NavView {
 
 		BlockState state = this.level.getBlockState(pos);
 		FluidState fluid = state.getFluidState();
-		if (fluid.is(FluidTags.LAVA) || state.is(BlockTags.FIRE) || state.is(Blocks.CACTUS) || state.is(Blocks.MAGMA_BLOCK)) {
+		// Pointed dripstone too: landing on a stalagmite hurts a lot (found in testing: it died stepping onto them in a cave).
+		if (fluid.is(FluidTags.LAVA) || state.is(BlockTags.FIRE) || state.is(Blocks.CACTUS) || state.is(Blocks.MAGMA_BLOCK)
+			|| state.is(Blocks.POINTED_DRIPSTONE)) {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 

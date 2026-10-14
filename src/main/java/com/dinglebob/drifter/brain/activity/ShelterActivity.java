@@ -44,7 +44,7 @@ public class ShelterActivity extends Activity {
 	private static final int NIGHT_MAX_STEPS = 48;
 
 	private enum Phase {
-		HUT, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
+		HUT, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
 	}
 
 	/** Night mining: the digger for tonight's tunnel (made fresh after a break; the tunnel itself is kept by the brain). */
@@ -73,6 +73,7 @@ public class ShelterActivity extends Activity {
 			case BOX -> "wall itself in for the night";
 			case SEAL -> "seal the shelter";
 			case HUT -> "go into the hut for the night";
+			case SLEEP -> this.drifter.isSleeping() ? "sleep" : "go to bed";
 			case WAIT -> "wait for morning in the shelter";
 			case MINE -> "mine from the shelter";
 			case RETURN -> "walk back to the shelter shaft";
@@ -96,6 +97,65 @@ public class ShelterActivity extends Activity {
 		} else if (this.hut() != null) {
 			this.phase = Phase.HUT;
 		}
+	}
+
+	/** Ticks asleep before most Drifters get up again (they can't skip the night; section 18 "Sleeping without skipping"). */
+	private static final int NAP_TICKS = 20 * 6;
+	private int slept;
+	private int sleepTries;
+	/** It has had its sleep tonight. */
+	private boolean rested;
+
+	/**
+	 * Section 18: into bed by the player's rules (night or a thunderstorm, no monsters within 8 blocks); a short sleep
+	 * rests it, then careful and homebody types stay in bed till morning and the rest get up. Hurt, it wakes (the game
+	 * does that for any sleeper).
+	 */
+	private Status sleep(Level level) {
+		com.dinglebob.drifter.building.StarterHut hut = this.hut();
+		BlockPos bed = hut == null ? null : hut.bed(level);
+		boolean morning = level.isDay() && !level.isThundering();
+		if (this.drifter.isSleeping()) {
+			boolean stays = this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION) > 0.6
+				|| this.drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.HOMEBODY;
+			if (morning || bed == null || !stays && this.slept >= NAP_TICKS) {
+				this.rested = true;
+				this.drifter.stopSleeping();
+				this.think(morning ? "woke up: morning" : "got up after a rest");
+				this.phase = Phase.WAIT;
+				return Status.RUNNING;
+			}
+
+			this.slept += 20;
+			return this.begin(new WaitTask(this.drifter, "sleep", () -> false, 20));
+		}
+
+		if (bed == null || morning || ++this.sleepTries > 3) {
+			this.phase = Phase.WAIT;
+			return Status.RUNNING;
+		}
+
+		// A player can't rest with monsters about (8 blocks round, 5 up and down).
+		if (!level.getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class,
+			new net.minecraft.world.phys.AABB(bed).inflate(8.0, 5.0, 8.0), net.minecraft.world.entity.Entity::isAlive).isEmpty()) {
+			this.think("can't sleep: monsters nearby");
+			return this.begin(new WaitTask(this.drifter, "the monsters to go", () -> false, 20 * 10));
+		}
+
+		this.drifter.getKeys().releaseAll();
+		this.drifter.startSleeping(bed);
+		this.slept = 0;
+		this.think("going to sleep");
+		return Status.RUNNING;
+	}
+
+	@Override
+	protected void onStop() {
+		if (this.drifter.isSleeping()) {
+			this.drifter.stopSleeping();
+		}
+
+		super.onStop();
 	}
 
 	/** Its finished hut, if it has one in reach for tonight (otherwise it digs in, as before). */
@@ -134,7 +194,7 @@ public class ShelterActivity extends Activity {
 		}
 
 		this.think("in the hut for the night");
-		this.phase = Phase.WAIT;
+		this.phase = hut.bed(level) != null ? Phase.SLEEP : Phase.WAIT;
 		return Status.RUNNING;
 	}
 
@@ -270,7 +330,18 @@ public class ShelterActivity extends Activity {
 					? Tools.BUILDING_BLOCK : ShelterActivity::isCoverBlock;
 				return this.begin(new PlaceBlockTask(this.drifter, cover, block, "a block over its head"));
 			}
+			case SLEEP -> {
+				return this.sleep(level);
+			}
 			case WAIT -> {
+				// In early at dusk: to bed once it's dark enough for one (found in testing: it never tried again).
+				com.dinglebob.drifter.building.StarterHut hut = this.hut();
+				if (!this.rested && hut != null && hut.isInside(this.drifter.blockPosition()) && hut.bed(level) != null && !level.isDay()
+					&& this.sleepTries < 3) {
+					this.phase = Phase.SLEEP;
+					return Status.RUNNING;
+				}
+
 				if (!Schedule.isNight(this.drifter) && Schedule.believedTime(this.drifter) < Schedule.SHELTER_THINKING) {
 					this.phase = Phase.EXIT;
 					this.think("it should be morning: climbing out");
@@ -278,7 +349,7 @@ public class ShelterActivity extends Activity {
 				}
 
 				return this.begin(new WaitTask(this.drifter, "morning", () -> !Schedule.isNight(this.drifter)
-					&& Schedule.believedTime(this.drifter) < Schedule.SHELTER_THINKING, 20 * 60));
+					&& Schedule.believedTime(this.drifter) < Schedule.SHELTER_THINKING, 20 * 15));
 			}
 			case MINE -> {
 				return this.mine(level, feet);

@@ -86,7 +86,8 @@ public final class Planner {
 	}
 
 	/** Hunt animals until it carries {@code total} of the items. */
-	public record Hunt(Item item, Set<EntityType<?>> prey, Predicate<ItemStack> items, int total, String label) implements Action {
+	/** {@code variant}: only animals of this kind (a sheep's wool colour), or null for any. */
+	public record Hunt(Item item, Set<EntityType<?>> prey, Predicate<ItemStack> items, int total, String label, @Nullable String variant) implements Action {
 		@Override
 		public String describe() {
 			return "hunt for " + this.label + " (to " + this.total + ")";
@@ -215,7 +216,7 @@ public final class Planner {
 				}
 
 				if (earlier instanceof Hunt a && action instanceof Hunt b && a.item() == b.item()) {
-					this.actions.set(i, new Hunt(a.item(), a.prey(), a.items(), a.total() + b.total(), a.label()));
+					this.actions.set(i, new Hunt(a.item(), a.prey(), a.items(), a.total() + b.total(), a.label(), a.variant()));
 					return;
 				}
 
@@ -511,9 +512,21 @@ public final class Planner {
 			return null;
 		}
 
+		// Wool of a colour: only sheep of that colour it has seen (a bed needs three of one colour; found as a need in step 4).
+		if (source.variant() != null) {
+			if (!this.world.knowsAnimal(type, source.variant())) {
+				return null;
+			}
+
+			int kills = count;
+			state.addAction(new Hunt(item, Set.of(type), stack -> stack.is(item), this.targetTotal(state, item, count), name(item), source.variant()));
+			state.cost += COST_HUNT_KILL * kills;
+			return state;
+		}
+
 		if (this.world.knowsAnimal(type)) {
 			int kills = (int)Math.ceil(count / DROPS_PER_KILL);
-			state.addAction(new Hunt(item, Set.of(type), stack -> stack.is(item), this.targetTotal(state, item, count), name(item)));
+			state.addAction(new Hunt(item, Set.of(type), stack -> stack.is(item), this.targetTotal(state, item, count), name(item), null));
 			state.cost += COST_HUNT_KILL * kills;
 			return state;
 		}

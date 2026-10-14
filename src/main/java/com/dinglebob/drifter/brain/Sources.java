@@ -47,7 +47,8 @@ public final class Sources {
 	 * mean a mining trip down there rather than wandering the surface. Null for everything else.
 	 */
 	public record Source(String itemId, List<String> blockIds, boolean dropsSelf, @Nullable ResourceLocation tool, @Nullable ResourceLocation mob,
-		Predicate<Item> itemMatcher, List<Predicate<BlockState>> blockMatchers, @Nullable Integer depth, boolean mountain) {
+		Predicate<Item> itemMatcher, List<Predicate<BlockState>> blockMatchers, @Nullable Integer depth, boolean mountain,
+		@Nullable String variant) {
 		public boolean givesItem(Item item) {
 			return this.itemMatcher.test(item);
 		}
@@ -137,7 +138,8 @@ public final class Sources {
 						entry.has("tool") ? ResourceLocation.parse(entry.get("tool").getAsString()) : null,
 						entry.has("mob") ? ResourceLocation.parse(entry.get("mob").getAsString()) : null,
 						itemMatcher(itemId), blocks.stream().map(Sources::blockMatcher).toList(),
-						entry.has("depth") ? entry.get("depth").getAsInt() : null, entry.has("mountain") && entry.get("mountain").getAsBoolean()));
+						entry.has("depth") ? entry.get("depth").getAsInt() : null, entry.has("mountain") && entry.get("mountain").getAsBoolean(),
+						entry.has("color") ? entry.get("color").getAsString() : null));
 				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter sources file {}", file.getKey(), e);

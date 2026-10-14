@@ -326,8 +326,11 @@ public final class TunnelDigger {
 			return name + " that would fall";
 		}
 
-		if (!KnownBlocks.mayTake(level, cell) || com.dinglebob.drifter.nav.NavView.looksBuilt(state)) {
-			// Not through anything that looks built (a dungeon's mossy walls, a mineshaft's planks, someone's tunnel).
+		// Never through what a player placed (tracked). Above ground, nothing that looks built either (a village's houses);
+		// underground that's a mineshaft or a dungeon, which players dig through (found in testing: an old mineshaft by
+		// home turned every staircase away, for days).
+		if (!KnownBlocks.mayTake(level, cell)
+			|| com.dinglebob.drifter.nav.NavView.looksBuilt(state) && !Caver.underground(this.drifter, cell)) {
 			return name + " (someone's build)";
 		}
 

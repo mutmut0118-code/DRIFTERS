@@ -857,7 +857,19 @@ Quick setup (skips the early game): `/drifter spawn Digger`, then give it `minec
 - Handy for long watches: `/drifter thoughts log true` writes every thought into the game log as it happens
   (`/drifter thoughts log false` to stop). `/tick rate 60` makes the game run 3x faster to see a few days quicker.
 
+### Step 4: beds and sleeping (new)
+Set up as for step 3, and have a few sheep of one colour nearby (`/summon sheep ~5 ~ ~5 {Color:0}` three times for
+white).
+- [ ] Once its hut is built and it has seen three sheep of one colour, it hunts those ("hunt for white wool"), crafts a
+      bed of that colour and puts it in the hut along the right-hand wall (looking in through the door), head to the
+      back.
+- [ ] Without sheep around it doesn't go looking for them for days; it gets on with iron and makes the bed later.
+- [ ] At night in the hut it goes to bed ("going to sleep") and you see it lying in the bed. Careful/homebody
+      Drifters stay in bed until morning ("woke up: morning"); others get up after a few seconds ("got up after a
+      rest"). With a monster close by it says "can't sleep: monsters nearby". Hit it: it wakes up.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
+- It doesn't move into village houses yet (next), and doesn't use shears for wool yet.
 - The hut is always 5x5 with a flat roof (bigger houses by personality are step 8); no bed yet (step 4); the crafting
   table it used for the chest may end up as part of the wall.
 - Mining is always a staircase plus a 1x2 branch mine; caving (exploring caves on purpose) and 2x2/3x3 tunnels by
