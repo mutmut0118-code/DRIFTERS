@@ -23,6 +23,7 @@ import net.minecraft.world.phys.Vec3;
 public class CollectSmeltActivity extends Activity {
 	private final FurnaceJob job;
 	private boolean walked;
+	private boolean approached;
 	private boolean took;
 
 	public CollectSmeltActivity(DrifterEntity drifter, FurnaceJob job) {
@@ -71,6 +72,13 @@ public class CollectSmeltActivity extends Activity {
 
 		if (!Reach.canReach(this.drifter, furnace)) {
 			BlockPos spot = this.walked ? null : KnownBlocks.standingSpotFor(this.drifter, furnace, Set.of());
+			if (spot == null && !this.approached && this.drifter.blockPosition().distSqr(furnace) > 4 * 4) {
+				// It doesn't know the ground by the furnace from here (a ravine, a long way off): it heads that way to look,
+				// as the crafting and smelting steps do (found in a user's test: it failed at once, over and over, in a ravine).
+				this.approached = true;
+				return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(furnace), 3.0, "walk back toward the furnace"));
+			}
+
 			if (spot == null) {
 				return this.fail("can't get to the furnace");
 			}
