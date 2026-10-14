@@ -970,12 +970,22 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
+			com.dinglebob.drifter.brain.Home house = context.drifter().getDrifterBrain().home();
+			if (house != null && house.houseBed != null) {
+				// It lives in a village house: no hut.
+				return 0.0;
+			}
+
 			Home home = context.drifter().getDrifterBrain().home();
 			if (home == null || !home.hasChest() || context.stage() < 4 || !home.near(context.drifter(), Home.STORAGE_RANGE)) {
 				return 0.0;
 			}
 
 			if (home.hutBuilt) {
+				if (home.houseBed != null) {
+					return 0.0;
+				}
+
 				com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
 				boolean bedToPlace = context.drifter().getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(context.drifter().level()) == null;
 				return hut.shellBuilt(context.drifter().level()) && !bedToPlace ? 0.0 : 0.45;

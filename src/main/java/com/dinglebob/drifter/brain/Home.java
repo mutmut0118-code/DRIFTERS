@@ -41,6 +41,16 @@ public final class Home {
 	@Nullable
 	public net.minecraft.core.Direction hutDoor;
 	public boolean hutBuilt;
+	/** A village house it moved into instead of building a hut (user's request, session 2): the head of its bed there. */
+	@Nullable
+	public BlockPos houseBed;
+
+	/** Its bed in the village house, if it's still there. */
+	@Nullable
+	public BlockPos houseBed(net.minecraft.world.level.Level level) {
+		return this.houseBed != null && level.getBlockState(this.houseBed).getBlock() instanceof net.minecraft.world.level.block.BedBlock
+			? this.houseBed : null;
+	}
 	/** Its mine (section 10.3): the bottom of the staircase it dug from home, which way it went, and trips made from it. */
 	@Nullable
 	public BlockPos mineBottom;
@@ -161,6 +171,10 @@ public final class Home {
 		}
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
+		if (this.houseBed != null) {
+			tag.put("HouseBed", NbtUtils.writeBlockPos(this.houseBed));
+		}
+
 		if (this.mineBottom != null && this.mineDirection != null) {
 			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
 			tag.putString("MineDirection", this.mineDirection.getName());
@@ -191,6 +205,7 @@ public final class Home {
 		Home home = new Home(center, dimension, tag.getLong("SettledAt"));
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
+		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
 		home.mineTrips = tag.getInt("MineTrips");

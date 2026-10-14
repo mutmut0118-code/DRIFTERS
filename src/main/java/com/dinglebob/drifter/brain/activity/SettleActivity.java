@@ -69,6 +69,63 @@ public class SettleActivity extends Activity {
 	protected Status next() {
 		Level level = this.drifter.level();
 		Home home = this.drifter.getDrifterBrain().home();
+		// A good look round before choosing (found in testing: it settled beside a village before noticing it).
+		if (home == null && !this.lookedRound) {
+			this.lookedRound = true;
+			return this.begin(new com.dinglebob.drifter.executor.task.LookAroundTask(this.drifter));
+		}
+
+		if (home == null) {
+			// A village house with a bed: it moves in instead of building (user's request, session 2). Not Builders, who
+			// want their own place, nor Hermits, who keep away from villages.
+			BlockPos bed = this.villageBed(level);
+			// Into a house it has seen the door of: step inside and look round (a player opens a few doors looking for a bed).
+			if (bed == null && this.lookedRoundVillage && this.housesVisited < MAX_HOUSES && this.movesIn()) {
+				BlockPos inside = this.nextHouse(level);
+				if (inside != null) {
+					this.housesVisited++;
+					this.lookInside = true;
+					this.think("looking inside a house");
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(inside), 0.6, "step into the house"));
+				}
+			}
+
+			if (bed == null && this.lookInside) {
+				this.lookInside = false;
+				return this.begin(new com.dinglebob.drifter.executor.task.LookAroundTask(this.drifter));
+			}
+
+			// A village it has seen but no bed yet: beds are indoors, so it walks round the village (a few legs, to different
+			// parts of it) until it has seen a door or a bed, then looks into the houses.
+			if (bed == null && this.villageLooks < MAX_VILLAGE_LOOKS && this.movesIn() && !this.doorToTry(level)) {
+				java.util.List<com.dinglebob.drifter.memory.MemoryEntry> villages = this.drifter.getMemory().find(com.dinglebob.drifter.memory.MemoryKind.LANDMARK,
+					e -> e.label.equals("village") && e.dimension.equals(level.dimension().location())
+						&& e.pos.distanceTo(this.drifter.position()) <= VILLAGE_BED_RANGE + 32);
+				if (!villages.isEmpty()) {
+					com.dinglebob.drifter.memory.MemoryEntry village = villages.get(0);
+					// A different side of the village each time, out where the houses are (its signs are mostly paths in the
+					// middle; found in testing: it never got near a house door).
+					double angle = Math.toRadians(120.0 * this.villageLooks + this.drifter.getRandom().nextInt(60));
+					Vec3 toward = village.pos.add(Math.cos(angle) * VILLAGE_LOOK_OUT, 0.0, Math.sin(angle) * VILLAGE_LOOK_OUT);
+					this.villageLooks++;
+					this.lookedRoundVillage = true;
+					this.think("a village: looking round the houses for a bed");
+					return this.begin(new ExploreActivity(this.drifter, "looking round the village", toward,
+						drifter -> this.villageBed(drifter.level()) != null || this.doorToTry(drifter.level())));
+				}
+			}
+
+			if (bed != null) {
+				BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, bed, java.util.Set.of());
+				if (spot != null) {
+					home = new Home(spot, level.dimension().location(), this.now());
+					home.houseBed = bed;
+					this.drifter.getDrifterBrain().setHome(home);
+					this.think("moving into the village house with the bed at " + bed.toShortString());
+				}
+			}
+		}
+
 		if (home == null) {
 			// Picky at first; after a couple of looks around it takes bumpier ground.
 			boolean picky = this.drifter.getDrifterBrain().timesExplored(SITE_SEARCH) < PICKY_LEGS;
@@ -124,7 +181,12 @@ public class SettleActivity extends Activity {
 			// Any free floor right next to it will do, but not where the hut goes: its walls, door, or the middle (found in
 			// testing: a chest in the middle of the hut, and jumping off it to put the roof on opened the chest instead).
 			java.util.Set<BlockPos> notHere = new java.util.HashSet<>(this.tried);
-			com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+			com.dinglebob.drifter.building.StarterHut hut = home.houseBed != null ? null : com.dinglebob.drifter.building.StarterHut.of(home);
+			for (BlockPos cell : hut == null ? java.util.List.<BlockPos>of() : java.util.List.of(home.center)) {
+				notHere.add(cell);
+			}
+
+			if (hut != null) {
 			java.util.List<BlockPos> corners = hut.furnitureSpots();
 			for (BlockPos cell : hut.inside()) {
 				if (!corners.contains(cell)) {
@@ -134,6 +196,7 @@ public class SettleActivity extends Activity {
 
 			notHere.addAll(hut.wallLayer(0));
 			notHere.add(hut.doorPos());
+			}
 			spot = KnownBlocks.placementSpotNear(this.drifter, notHere).orElse(null);
 		}
 
@@ -168,8 +231,98 @@ public class SettleActivity extends Activity {
 	 * Inside the hut-to-be: its corners (the hut is built around the chest). Failing that, a free spot a little off the
 	 * home's middle with a sturdy floor.
 	 */
+	/** How far it looks for a village bed to move in with. */
+	private static final double VILLAGE_BED_RANGE = 64.0;
+
+	private boolean lookedRoundVillage;
+	private static final int MAX_VILLAGE_LOOKS = 3;
+	/** How far out from the middle of a village it looks for houses. */
+	private static final double VILLAGE_LOOK_OUT = 24.0;
+	private int villageLooks;
+
+	/** It has seen a house door it hasn't looked into yet. */
+	private boolean doorToTry(Level level) {
+		return this.drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.STRUCTURE, level.dimension().location(),
+			this.drifter.position(), VILLAGE_BED_RANGE, e -> e.label.equals("door") && !this.doorsTried.contains(e.blockPos())) != null;
+	}
+	private static final int MAX_HOUSES = 4;
+	private int housesVisited;
+	private boolean lookInside;
+	private final java.util.Set<BlockPos> doorsTried = new java.util.HashSet<>();
+
+	/** The inside of the nearest house whose door it has seen and hasn't looked into: the side of the door under a roof. */
+	@Nullable
+	private BlockPos nextHouse(Level level) {
+		var dimension = level.dimension().location();
+		com.dinglebob.drifter.memory.MemoryEntry door = this.drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.STRUCTURE,
+			dimension, this.drifter.position(), VILLAGE_BED_RANGE, e -> e.label.equals("door") && !this.doorsTried.contains(e.blockPos()));
+		if (door == null) {
+			this.think("no house door it has seen to look into");
+			return null;
+		}
+
+		BlockPos pos = door.blockPos();
+		this.doorsTried.add(pos);
+		// The top half seen: the door's bottom is the one below.
+		net.minecraft.world.level.block.state.BlockState doorState = level.getBlockState(pos);
+		if (doorState.getBlock() instanceof net.minecraft.world.level.block.DoorBlock
+			&& doorState.getValue(net.minecraft.world.level.block.DoorBlock.HALF) == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER) {
+			pos = pos.below();
+			this.doorsTried.add(pos);
+		}
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			BlockPos in = pos.relative(side);
+			if (!level.canSeeSky(in) && KnownBlocks.isStandable(level, in)) {
+				return in;
+			}
+		}
+
+		this.think("couldn't tell which side of the door at " + pos.toShortString() + " is inside");
+		return null;
+	}
+	private boolean lookedRound;
+
+	/** Moves into a village house rather than building: not Builders (their own place), Hermits or Nomads. */
+	private boolean movesIn() {
+		var archetype = this.drifter.getPersonality().archetype();
+		return archetype != com.dinglebob.drifter.personality.Archetype.BUILDER && archetype != com.dinglebob.drifter.personality.Archetype.HERMIT
+			&& archetype != com.dinglebob.drifter.personality.Archetype.NOMAD;
+	}
+
+	/** The head of a bed it has seen under a roof (a house), not too far, or null. */
+	@Nullable
+	private BlockPos villageBed(Level level) {
+		if (!this.movesIn()) {
+			return null;
+		}
+
+		var dimension = level.dimension().location();
+		for (com.dinglebob.drifter.memory.MemoryEntry entry : this.drifter.getMemory().find(com.dinglebob.drifter.memory.MemoryKind.STATION,
+			e -> e.dimension.equals(dimension) && e.label.endsWith("_bed") && e.pos.distanceTo(this.drifter.position()) <= VILLAGE_BED_RANGE)) {
+			BlockPos pos = entry.blockPos();
+			net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+			if (!(state.getBlock() instanceof net.minecraft.world.level.block.BedBlock)) {
+				continue;
+			}
+
+			BlockPos head = state.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD
+				? pos : pos.relative(state.getValue(net.minecraft.world.level.block.BedBlock.FACING));
+			// Under a roof: a house, not a bed someone left in a field.
+			if (!level.canSeeSky(head.above())) {
+				return head.immutable();
+			}
+		}
+
+		return null;
+	}
+
 	@Nullable
 	private BlockPos chestSpot(Level level, Home home) {
+		// In a village house: a free spot by the bed (the hut's corners don't apply).
+		if (home.houseBed != null) {
+			return null;
+		}
+
 		if (home.hutDoor == null) {
 			home.hutDoor = com.dinglebob.drifter.building.StarterHut.chooseDoor(level, home.center);
 		}

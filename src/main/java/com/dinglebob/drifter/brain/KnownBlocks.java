@@ -173,6 +173,8 @@ public final class KnownBlocks {
 			if (excluded.contains(pos)
 				|| !level.getBlockState(pos).canBeReplaced()
 				|| !level.getFluidState(pos).isEmpty()
+				// Room above it (a chest under a block won't open, found in testing indoors).
+				|| !level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty()
 				|| !level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)
 				|| new AABB(pos).intersects(body)
 				|| Reach.aimPoint(drifter, below, Direction.UP).isEmpty()

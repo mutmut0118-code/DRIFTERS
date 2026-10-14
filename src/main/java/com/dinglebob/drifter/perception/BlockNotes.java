@@ -30,7 +30,9 @@ public final class BlockNotes {
 	/** Blocks that (in a natural world) only villages have: the bell and villager workstations. */
 	public static boolean isVillageBlock(BlockState state) {
 		return state.is(Blocks.BELL) || state.is(Blocks.LECTERN) || state.is(Blocks.COMPOSTER) || state.is(Blocks.FLETCHING_TABLE)
-			|| state.is(Blocks.CARTOGRAPHY_TABLE) || state.is(Blocks.LOOM) || state.is(Blocks.GRINDSTONE) || state.is(Blocks.STONECUTTER);
+			|| state.is(Blocks.CARTOGRAPHY_TABLE) || state.is(Blocks.LOOM) || state.is(Blocks.GRINDSTONE) || state.is(Blocks.STONECUTTER)
+			// What shows from outside: paths and hay bales (found in testing: it walked past a village without noticing).
+			|| state.is(Blocks.DIRT_PATH) || state.is(Blocks.HAY_BLOCK);
 	}
 
 	/** The ground itself (not trees, plants, water or buildings): what a hill or a mountain is made of. */
@@ -73,8 +75,17 @@ public final class BlockNotes {
 
 		if (state.is(Blocks.SPAWNER) || state.is(Blocks.NETHER_PORTAL) || state.is(Blocks.END_PORTAL_FRAME)) {
 			return new Note(MemoryKind.STRUCTURE, id, 0.9F);
-		} else if (state.is(Blocks.BOOKSHELF) || state.is(Blocks.MOSSY_COBBLESTONE)) {
+		} else if (state.is(Blocks.BOOKSHELF)) {
 			return new Note(MemoryKind.STRUCTURE, id, 0.5F);
+		} else if (state.is(Blocks.MOSSY_COBBLESTONE)) {
+			// Low: taiga villages stand on it and it filled the memory, pushing out the doors (found in testing); a dungeon
+			// shows itself by its spawner.
+			return new Note(MemoryKind.STRUCTURE, id, 0.2F);
+		}
+
+		// Doors (either half; seen at head height mostly): houses to look into for a bed (village move-in, session 2).
+		if (state.is(BlockTags.WOODEN_DOORS)) {
+			return new Note(MemoryKind.STRUCTURE, "door", 0.45F);
 		}
 
 		if (state.is(BlockTags.LOGS)) {

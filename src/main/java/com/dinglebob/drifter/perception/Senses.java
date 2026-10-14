@@ -549,6 +549,10 @@ public class Senses {
 			if (!awareness.identified) {
 				awareness.identified = true;
 				this.think("detected " + describe(entity) + " " + this.direction(entity.position()));
+				// Villagers mean a village (what a player goes by).
+				if (entity instanceof net.minecraft.world.entity.npc.Villager) {
+					this.rememberLandmark("village", entity.blockPosition(), 0.8F, entity.distanceTo(this.drifter));
+				}
 			}
 
 			this.rememberEntity(entity);
@@ -971,6 +975,12 @@ public class Senses {
 					this.think(shortLabel(entry.label) + " at " + pos.toShortString() + " has changed");
 				}
 			} else if (hit.getType() == HitResult.Type.MISS && eye.distanceTo(entry.pos) <= this.blockSightRange(pos)) {
+				// A thin block (a door, a torch) the line through its middle can miss: still there, nothing learned.
+				BlockNotes.Note still = BlockNotes.classify(this.level().getBlockState(pos));
+				if (still != null && still.label().equals(entry.label)) {
+					continue;
+				}
+
 				this.memory.forget(entry);
 				this.think(shortLabel(entry.label) + " at " + pos.toShortString() + " is gone");
 			}

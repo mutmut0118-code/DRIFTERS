@@ -44,7 +44,7 @@ public class ShelterActivity extends Activity {
 	private static final int NIGHT_MAX_STEPS = 48;
 
 	private enum Phase {
-		HUT, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
+		HUT, HOUSE, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
 	}
 
 	/** Night mining: the digger for tonight's tunnel (made fresh after a break; the tunnel itself is kept by the brain). */
@@ -74,6 +74,7 @@ public class ShelterActivity extends Activity {
 			case SEAL -> "seal the shelter";
 			case HUT -> "go into the hut for the night";
 			case SLEEP -> this.drifter.isSleeping() ? "sleep" : "go to bed";
+			case HOUSE -> "go into the house for the night";
 			case WAIT -> "wait for morning in the shelter";
 			case MINE -> "mine from the shelter";
 			case RETURN -> "walk back to the shelter shaft";
@@ -96,8 +97,30 @@ public class ShelterActivity extends Activity {
 			this.phase = Phase.WAIT;
 		} else if (this.hut() != null) {
 			this.phase = Phase.HUT;
+		} else if (this.houseBed() != null) {
+			this.phase = Phase.HOUSE;
 		}
 	}
+
+	/** Its bed in the village house it moved into, if it's near enough to go there tonight. */
+	@Nullable
+	private BlockPos houseBed() {
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		if (home == null || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()) {
+			return null;
+		}
+
+		return home.houseBed(this.drifter.level());
+	}
+
+	/** Its bed tonight: in the hut, or in the village house. */
+	@Nullable
+	private BlockPos homeBed(Level level) {
+		com.dinglebob.drifter.building.StarterHut hut = this.hut();
+		return hut != null ? hut.bed(level) : this.houseBed();
+	}
+
+	private int houseTries;
 
 	/** Ticks asleep before most Drifters get up again (they can't skip the night; section 18 "Sleeping without skipping"). */
 	private static final int NAP_TICKS = 20 * 6;
@@ -112,8 +135,7 @@ public class ShelterActivity extends Activity {
 	 * does that for any sleeper).
 	 */
 	private Status sleep(Level level) {
-		com.dinglebob.drifter.building.StarterHut hut = this.hut();
-		BlockPos bed = hut == null ? null : hut.bed(level);
+		BlockPos bed = this.homeBed(level);
 		boolean morning = level.isDay() && !level.isThundering();
 		if (this.drifter.isSleeping()) {
 			boolean stays = this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION) > 0.6
@@ -333,10 +355,26 @@ public class ShelterActivity extends Activity {
 			case SLEEP -> {
 				return this.sleep(level);
 			}
+			case HOUSE -> {
+				BlockPos bed = this.houseBed();
+				com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+				if (bed == null || home == null || ++this.houseTries > 4) {
+					this.phase = Phase.DIG;
+					return Status.RUNNING;
+				}
+
+				if (feet.distSqr(home.center) > 2 * 2) {
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 0.5, "go into the house"));
+				}
+
+				this.think("in the house for the night");
+				this.phase = Phase.SLEEP;
+				return Status.RUNNING;
+			}
 			case WAIT -> {
 				// In early at dusk: to bed once it's dark enough for one (found in testing: it never tried again).
-				com.dinglebob.drifter.building.StarterHut hut = this.hut();
-				if (!this.rested && hut != null && hut.isInside(this.drifter.blockPosition()) && hut.bed(level) != null && !level.isDay()
+				BlockPos bedNow = this.homeBed(level);
+				if (!this.rested && bedNow != null && bedNow.distSqr(this.drifter.blockPosition()) <= 3 * 3 && !level.isDay()
 					&& this.sleepTries < 3) {
 					this.phase = Phase.SLEEP;
 					return Status.RUNNING;

@@ -683,8 +683,22 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   for villages; player-placed blocks are always protected).
 - **Results (5 game days each, the user's seed, 8 runs):** beds crafted in about half (white, blue), sleeping seen;
   iron pickaxe in 6 of 8; 1 death (drowned on the way up a flooded staircase).
-- **Next:** village houses (move into a house with a bed instead of building a hut, don't strip it); the flooded
-  staircase drowning; the occasional hut pillar failure at one site.
+- **Village houses (user's request; written and smoke-tested in a taiga village on the user's seed):** it recognises a
+  village from outside (paths, hay bales, villagers, job blocks), looks round it (up to 3 walks to different sides) and
+  into houses whose doors it has seen (doors are now noticed), and if it finds a bed under a roof it moves in: home is
+  beside that bed, its chest goes next to it, no hut is built, and at night it goes into the house and sleeps in that
+  bed. Builders, Hermits and Nomads don't move in. Test: in one run it found a house, moved in ("moving into the village
+  house with the bed at 686, 75, -152") and slept there; in others it didn't see a door and built a hut next to the
+  village as before. It never breaks village buildings (above ground, built blocks are off limits).
+- **Fixes found on the way:** thin blocks (doors, torches) seen past when re-checked were forgotten as "gone"; mossy
+  cobblestone (taiga village foundations) filled the structure memory and pushed out doors (its importance is now low;
+  the "noticed mossy cobblestone" spam is gone too); a chest is never put where a block above stops it opening; it
+  looks round before choosing where to settle.
+- **User-reported bugs (session 2, fixed):** snow layers (pillaring, placing and digging go through snow and grass like a
+  player's clicks); a tree where the hut goes is cut down first; ore veins are finished (it steps closer) and the drops
+  picked up; strip miners take a quick look into caves their tunnel opens instead of plugging and turning away.
+- **Known:** drowning still happens now and then (water it can't climb out of at night, a flooded staircase); in some
+  villages it doesn't find a door and builds a hut beside the village.
 
 ### User requests for step 3 (session 2), status
 - **Caving first** (done, see above; user: "it should fully explore caves, go deep in them; it has the tools to defend itself, a higher

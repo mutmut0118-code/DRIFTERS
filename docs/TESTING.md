@@ -868,8 +868,16 @@ white).
       Drifters stay in bed until morning ("woke up: morning"); others get up after a few seconds ("got up after a
       rest"). With a monster close by it says "can't sleep: monsters nearby". Hit it: it wakes up.
 
+- [ ] **Village (new):** spawn a Casual Drifter in a village (`/drifter personality reroll casual`): it says "a
+      village: looking round the houses for a bed", walks around, steps into houses ("looking inside a house"), and if
+      it finds a bed it moves in ("moving into the village house ..."): chest by the bed, no hut, sleeps there at night.
+      It never breaks the houses. (It doesn't always spot a door; then it builds a hut nearby.)
+- [ ] **Your bug reports (re-test):** in snow it pillars, places and digs normally; next to a tree it cuts the tree down
+      before building the hut; it finishes ore veins and picks up the ore that drops; a strip miner steps into a cave its
+      tunnel opens and looks around before carrying on.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
-- It doesn't move into village houses yet (next), and doesn't use shears for wool yet.
+- It doesn't use shears for wool yet.
 - The hut is always 5x5 with a flat roof (bigger houses by personality are step 8); no bed yet (step 4); the crafting
   table it used for the chest may end up as part of the wall.
 - Mining is always a staircase plus a 1x2 branch mine; caving (exploring caves on purpose) and 2x2/3x3 tunnels by
