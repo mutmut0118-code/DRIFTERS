@@ -125,8 +125,11 @@ public final class KnownWorld {
 
 	/** The same test the scan uses: a seen block it could go and take (exposed, not anyone's, not blacklisted). */
 	private static boolean takeable(Level level, BlockPos pos, BlockState state, Blacklist blacklist, long now) {
+		// (Ore under water is left alone, as gathering does; found in testing: the planner counted underwater coal that the
+		// gathering then refused, 47 times over.)
 		return !state.isAir() && state.getFluidState().isEmpty() && state.getDestroySpeed(level, pos) >= 0.0F && exposed(level, pos)
-			&& KnownBlocks.mayTake(level, pos) && !blacklist.contains(pos, now);
+			&& KnownBlocks.mayTake(level, pos) && !blacklist.contains(pos, now)
+			&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(state) && KnownBlocks.underWater(level, pos));
 	}
 
 	/** Has it seen a block matching this that it could go and take, by the same rules the planner uses? */

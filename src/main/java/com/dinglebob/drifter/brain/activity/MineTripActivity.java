@@ -273,6 +273,7 @@ public class MineTripActivity extends Activity {
 
 	private boolean rememberedTried;
 	private boolean kitChecked;
+	private int torchTries;
 	/** The height this trip's staircase heads for (the ore's depth, or higher up in a mountain). */
 	private int targetY = Integer.MIN_VALUE;
 	/** This trip carries on down an old staircase. */
@@ -452,7 +453,8 @@ public class MineTripActivity extends Activity {
 				if (plan.feasible() && plan.next() != null && !plan.needsExploring()
 					&& noTrip(plan)) {
 					this.think("making torches before going down");
-					this.torchesChecked = false;
+					// (Twice at most: a step that keeps failing doesn't fail the whole trip.)
+					this.torchesChecked = ++this.torchTries >= 2;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
 				}
 			}
