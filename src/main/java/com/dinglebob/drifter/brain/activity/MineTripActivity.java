@@ -195,8 +195,9 @@ public class MineTripActivity extends Activity {
 	private static final double STRIP_MINER = 0.65;
 	/** How far from home it looks for a cave it has seen. */
 	private static final int CAVE_SEARCH = 48;
-	/** Torches it wants before going caving. */
+	/** Torches it wants before going caving, and before a strip-mining trip. */
 	private static final int CAVE_TORCHES = 16;
+	private static final int STRIP_TORCHES = 12;
 
 	/** In the cave: ore it spots first, then the next place to explore; when the cave runs out, back to digging. */
 	private Status cave() {
@@ -218,7 +219,9 @@ public class MineTripActivity extends Activity {
 		// The cave's done: the rest the usual way (stairs and a branch mine), or home if that's enough for one trip.
 		this.caver = null;
 		this.cavingDone = this.cavesEntered >= MAX_CAVES || this.tunnel == null;
-		this.phase = this.have() > 0 ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
+		// Home only with enough (found in testing: two raw iron from an earlier trip sent it home after every cave, and it
+		// walked up and down its stairs all day); otherwise on with the dig.
+		this.phase = this.have() >= this.total ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
 		this.why = "explored the cave";
 		if (this.phase == Phase.HOME) {
 			this.think("heading back up: explored the cave");
@@ -263,6 +266,8 @@ public class MineTripActivity extends Activity {
 
 	private boolean rememberedTried;
 	private boolean kitChecked;
+	/** Food level at or under which it doesn't set off without food. */
+	private static final int HUNGRY_TO_GO = 10;
 	/** Trips to below this height take a crafting table and sticks along. */
 	private static final int KIT_DEPTH = 8;
 	private static final int KIT_STICKS = 4;
@@ -357,6 +362,11 @@ public class MineTripActivity extends Activity {
 	}
 
 	private Status start() {
+		// Not down the mine hungry with nothing to eat: it would only turn back (found in testing: nine trips in a row).
+		if (this.drifter.getFoodData().getFoodLevel() <= HUNGRY_TO_GO && Food.choose(this.drifter) == null) {
+			return this.fail("too hungry to go mining, with nothing to eat");
+		}
+
 		// Section 10.17 "Spares: keeps a spare pickaxe": with only one, half worn, it makes another before going down.
 		if (!this.spareChecked) {
 			this.spareChecked = true;
@@ -408,20 +418,24 @@ public class MineTripActivity extends Activity {
 
 		// Cavers go to a cave they've seen near home (an opening in a hillside, a ravine, one a tunnel broke into), with
 		// torches to light the way (the user's request: caving finds more iron than strip mining, and teaches it the land).
-		if (this.caves() && !this.cavingDone) {
-			if (!this.torchesChecked) {
-				this.torchesChecked = true;
-				int torches = this.drifter.getInventory().count(stack -> stack.is(Items.TORCH));
-				if (torches < CAVE_TORCHES) {
-					com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
-						com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.TORCH, CAVE_TORCHES);
-					if (plan.feasible() && plan.next() != null) {
-						this.think("making torches before going caving");
-						this.torchesChecked = false;
-						return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
-					}
+		// Torches before going down (cavers light their way; strip miners put one every 8 blocks; found in testing: a strip
+		// miner came back "out of torches" after one trip and never made more).
+		if (!this.torchesChecked) {
+			this.torchesChecked = true;
+			int wanted = this.caves() ? CAVE_TORCHES : STRIP_TORCHES;
+			int torches = this.drifter.getInventory().count(stack -> stack.is(Items.TORCH));
+			if (torches < wanted) {
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.TORCH, wanted);
+				if (plan.feasible() && plan.next() != null && !plan.needsExploring()) {
+					this.think("making torches before going down");
+					this.torchesChecked = false;
+					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
 				}
 			}
+		}
+
+		if (this.caves() && !this.cavingDone) {
 
 			Home caveHome = this.drifter.getDrifterBrain().home();
 			BlockPos from = caveHome != null && caveHome.near(this.drifter, Home.STORAGE_RANGE) ? caveHome.center : this.drifter.blockPosition();
