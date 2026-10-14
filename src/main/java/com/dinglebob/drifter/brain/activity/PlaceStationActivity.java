@@ -76,6 +76,15 @@ public class PlaceStationActivity extends Activity {
 			return Status.SUCCESS;
 		}
 
+		// Never the middle of its hut or house: it pillars up there to roof it (a table there broke the roof every day).
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		if (home != null) {
+			this.tried.add(home.center);
+			if (home.houseCenter != null) {
+				this.tried.add(home.houseCenter);
+			}
+		}
+
 		Optional<BlockPos> spot = KnownBlocks.placementSpotNear(this.drifter, this.tried);
 		if (spot.isEmpty()) {
 			// Up on a pillar (it built one to reach something): down first, digging out its own blocks (found in testing:
