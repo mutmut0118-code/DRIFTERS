@@ -596,9 +596,14 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
     hole in the floor gets a block (once), otherwise it turns.
   - A walled-in crafting table far from home was chosen over and over ("can't find a spot by the crafting table");
     after walking over and still finding no way to it, it forgets that station and makes a new one.
+- **Night flip-flop (seen on the user's world copy, fixed):** late and away from home with mobs about, it switched
+  between "get away" and "shelter" every second until it was killed (it ran off, then walked home past the mobs, then
+  ran off again). Now, in the evening, running from mobs means running home if home is away from them; if they're
+  between it and home, home counts as cut off until morning and it digs in or walls in wherever it gets clear. Tested
+  on a flat world at night with 4 zombies and a skeleton: behind it, "running home" then "in the hut for the night";
+  between it and home, "the mobs are between it and home", then (after two skeleton interruptions) sealed in.
 - **Known, next (seen on the user's world copy):** going back down its old mine, the pathfinder kept finding blocks
-  where it expected open space and it lost most of a day; it came up late, 41 blocks from home, and then switched
-  between "get away" and "shelter" every second with mobs about until it was killed. Caving (user's request, see the
+  where it expected open space and it lost most of a day. Caving (user's request, see the
   user notes below) replaces most staircase mining.
 - **Known:** each failed staircase leaves a hole by the hut; in very cave-riddled ground trips still sometimes come back
   empty (it tries another side next time).

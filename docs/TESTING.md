@@ -836,8 +836,10 @@ Quick setup (skips the early game): `/drifter spawn Digger`, then give it `minec
       over and over. The middle of the roof is never left open.
 - [ ] (Re-test after fix) Night mining doesn't walk it off into a cave: a hole in the tunnel floor gets a block, or it
       turns.
-- Known, being fixed next: going back down an old mine it can get lost for a long time, and if that makes it late it
-  can dither between running from mobs and heading home at night.
+- [ ] (Re-test after fix) At night, away from home, with mobs about (`/time set 14000`, then `/summon zombie` a few):
+      with the mobs on the far side it runs home ("running home") and shuts itself in the hut; with the mobs between it
+      and home it says "the mobs are between it and home" and digs in where it gets clear, instead of dithering.
+- Known: going back down an old mine it can get lost for a long time (caving, next, replaces most of those trips).
 - Handy for long watches: `/drifter thoughts log true` writes every thought into the game log as it happens
   (`/drifter thoughts log false` to stop). `/tick rate 60` makes the game run 3x faster to see a few days quicker.
 

@@ -1,5 +1,6 @@
 package com.dinglebob.drifter.brain.activity;
 
+import com.dinglebob.drifter.brain.Schedule;
 import com.dinglebob.drifter.brain.Threats;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.task.NavigateTask;
@@ -17,7 +18,8 @@ import net.minecraft.world.phys.Vec3;
  * out of their reach and waits there (section 13, "Defensive tools"). At night the shelter goal digs it in once it's
  * clear. If something keeps hitting it from close by, the assessment calls that "cornered" and the fight goal takes
  * over.
- * TODO(milestone 8): retreat toward home or light, block itself in.
+ * In the evening it runs home if home is away from the mobs, and otherwise gives up on home for the night.
+ * TODO(milestone 8): retreat toward light, block itself in.
  */
 public class FleeActivity extends Activity {
 	/** Far enough: the threats are this far away. */
@@ -29,7 +31,11 @@ public class FleeActivity extends Activity {
 	private static final double SWARM_RANGE = 6.0;
 	private static final int PILLAR_HEIGHT = 3;
 
+	/** Home counts as "the other way" from the mobs unless it's this close to straight toward them (a cosine). */
+	private static final double HOME_BEHIND_MOBS = -0.3;
+
 	private int legs;
+	private boolean ranHome;
 	private boolean pillared;
 	private double pillarStartY;
 
@@ -79,6 +85,37 @@ public class FleeActivity extends Activity {
 			this.think("swarmed: pillaring up out of reach");
 			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.drifter.blockPosition().above(PILLAR_HEIGHT)), 0.6,
 				"pillar up out of reach"));
+		}
+
+		// In the evening with home close: run home if home is away from the mobs (running away and heading home are then
+		// the same thing); if they're between it and home, home is cut off for tonight and it shelters wherever it gets
+		// clear (found in testing: it ran off, walked back toward home past the mobs, ran off again, until it died).
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		long time = Schedule.believedTime(this.drifter);
+		boolean evening = time >= Schedule.shelterThinking(this.drifter) && time < Schedule.NIGHT_END;
+		if (evening && home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && !this.drifter.getDrifterBrain().homeCutOff()) {
+			Vec3 here = this.drifter.position();
+			Vec3 toHome = new Vec3(home.center.getX() + 0.5 - here.x, 0.0, home.center.getZ() + 0.5 - here.z);
+			Vec3 centre = Vec3.ZERO;
+			for (LivingEntity hostile : assessment.hostiles()) {
+				centre = centre.add(hostile.position());
+			}
+
+			centre = assessment.hostiles().isEmpty() ? here : centre.scale(1.0 / assessment.hostiles().size());
+			Vec3 away = new Vec3(here.x - centre.x, 0.0, here.z - centre.z);
+			boolean homeClear = toHome.lengthSqr() < 1.0E-4 || away.lengthSqr() < 1.0E-4
+				|| toHome.normalize().dot(away.normalize()) > HOME_BEHIND_MOBS;
+			if (homeClear && !this.ranHome) {
+				this.ranHome = true;
+				this.legs++;
+				this.think("running home");
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.0, "run home", NavigateTask.Pace.TRAVEL));
+			}
+
+			if (!homeClear) {
+				this.drifter.getDrifterBrain().cutOffFromHome();
+				this.think("the mobs are between it and home: sheltering where it gets clear");
+			}
 		}
 
 		// Turn and run, now: no stopping to plan a route (user's note from testing).

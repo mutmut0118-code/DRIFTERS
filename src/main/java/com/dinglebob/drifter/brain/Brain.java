@@ -65,6 +65,20 @@ public class Brain {
 	private long nightStyleDay = Long.MIN_VALUE;
 	@Nullable
 	private com.dinglebob.drifter.brain.mining.Tunnel nightTunnel;
+	/** Game time until which home counts as cut off by mobs (it fled from them on the way): it shelters where it is. */
+	private long homeCutOffUntil;
+
+	/** Mobs stood between it and home tonight: it doesn't try to walk back through them until morning. */
+	public void cutOffFromHome() {
+		long now = this.drifter.level().getGameTime();
+		long time = Schedule.believedTime(this.drifter);
+		long untilMorning = time < Schedule.NIGHT_END ? Schedule.NIGHT_END - time : 24000 - time + Schedule.NIGHT_END;
+		this.homeCutOffUntil = now + Math.max(20L * 60, untilMorning);
+	}
+
+	public boolean homeCutOff() {
+		return this.drifter.level().getGameTime() < this.homeCutOffUntil;
+	}
 
 	/**
 	 * How it spends tonight: chosen when it first thinks about shelter each day (late afternoon), then kept for the

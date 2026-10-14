@@ -102,7 +102,7 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private com.dinglebob.drifter.building.StarterHut hut() {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE)) {
+		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()) {
 			return null;
 		}
 
@@ -192,7 +192,8 @@ public class ShelterActivity extends Activity {
 				com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
 				if (!this.wentHome && this.top == null) {
 					this.wentHome = true;
-					if (home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4) {
+					if (home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4
+						&& !this.drifter.getDrifterBrain().homeCutOff()) {
 						this.think("heading home for the night");
 						return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.5, "go home for the night"));
 					}
