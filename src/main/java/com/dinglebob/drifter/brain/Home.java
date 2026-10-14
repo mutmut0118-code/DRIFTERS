@@ -41,6 +41,13 @@ public final class Home {
 	@Nullable
 	public net.minecraft.core.Direction hutDoor;
 	public boolean hutBuilt;
+	/** Its animal pen (section 9 stage 6): the middle, at the level it stands on; when it last bred animals there. */
+	@Nullable
+	public BlockPos pen;
+	public long penBredAt;
+	/** Its wheat farm (section 9 stage 6): the middle, at the level it stands on (the water is just below). */
+	@Nullable
+	public BlockPos farm;
 	/** A village house it moved into instead of building a hut (user's request, session 2): the head of its bed there. */
 	@Nullable
 	public BlockPos houseBed;
@@ -175,6 +182,16 @@ public final class Home {
 			tag.put("HouseBed", NbtUtils.writeBlockPos(this.houseBed));
 		}
 
+		if (this.farm != null) {
+			tag.put("Farm", NbtUtils.writeBlockPos(this.farm));
+		}
+
+		if (this.pen != null) {
+			tag.put("Pen", NbtUtils.writeBlockPos(this.pen));
+		}
+
+		tag.putLong("PenBredAt", this.penBredAt);
+
 		if (this.mineBottom != null && this.mineDirection != null) {
 			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
 			tag.putString("MineDirection", this.mineDirection.getName());
@@ -206,6 +223,9 @@ public final class Home {
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
+		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
+		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);
+		home.penBredAt = tag.getLong("PenBredAt");
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
 		home.mineTrips = tag.getInt("MineTrips");

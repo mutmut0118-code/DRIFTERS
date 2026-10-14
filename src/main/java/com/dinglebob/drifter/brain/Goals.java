@@ -636,6 +636,104 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * The wheat farm (section 9 stage 6 "Settlement"; milestone 8 step 5): once it's settled and has a bucket (for the
+	 * water in the middle), it makes one near home and comes back to harvest and replant.
+	 */
+	public static final class Farm extends Goal {
+		@Override
+		public String id() {
+			return "farm";
+		}
+
+		@Override
+		public String name(Context context) {
+			com.dinglebob.drifter.brain.Home home = context.drifter().getDrifterBrain().home();
+			return home != null && home.farm != null ? "tend the farm" : "make a farm";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			com.dinglebob.drifter.brain.Home home = context.drifter().getDrifterBrain().home();
+			if (home == null || !home.hasChest() || !home.near(context.drifter(), Schedule.GO_HOME_RANGE)
+				|| !Strategist.has(context.drifter(), stack -> stack.is(net.minecraft.world.item.Items.BUCKET) || stack.is(net.minecraft.world.item.Items.WATER_BUCKET))
+				|| context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD) {
+				return 0.0;
+			}
+
+			return com.dinglebob.drifter.brain.activity.FarmActivity.workToDo(context.drifter(), home) ? 0.5 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.FarmActivity(context.drifter());
+		}
+	}
+
+	/**
+	 * The animal pen (section 9 stage 6 "Settlement"; milestone 8 step 5): once it has a farm (wheat), a fenced pen near
+	 * home, two animals of a kind led in, and breeding every few minutes while there's room.
+	 */
+	public static final class Pen extends Goal {
+		@Override
+		public String id() {
+			return "pen";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "look after the animal pen";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			com.dinglebob.drifter.brain.Home home = context.drifter().getDrifterBrain().home();
+			if (home == null || home.farm == null || !home.near(context.drifter(), Schedule.GO_HOME_RANGE)
+				|| context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD
+				|| context.drifter().getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.WHEAT)
+					|| stack.is(net.minecraft.world.item.Items.WHEAT_SEEDS)) < 2) {
+				return 0.0;
+			}
+
+			return com.dinglebob.drifter.brain.activity.PenActivity.workToDo(context.drifter(), home) ? 0.42 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.PenActivity(context.drifter());
+		}
+	}
+
 	/** Out of the water after running out of air twice in a minute (found in testing: it drowned going back under). */
 	public static final class GetOutOfWater extends Goal {
 		@Override
@@ -1066,7 +1164,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new GetOutOfWater(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }

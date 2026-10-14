@@ -10,6 +10,7 @@
 		{ "item": "minecraft:raw_iron", "block": ["minecraft:iron_ore", "minecraft:deepslate_iron_ore"], "tool": "minecraft:stone_pickaxe", "depth": 16, "mountain": true },
 		{ "item": "minecraft:raw_copper", "block": ["minecraft:copper_ore", "minecraft:deepslate_copper_ore"], "tool": "minecraft:stone_pickaxe", "depth": 48 },
 		{ "item": "minecraft:flint", "block": ["minecraft:gravel"] },
+		{ "item": "minecraft:wheat_seeds", "block": ["minecraft:short_grass", "minecraft:tall_grass", "minecraft:fern", "minecraft:large_fern"] },
 		{ "item": "minecraft:beef", "mob": "minecraft:cow" },
 		{ "item": "minecraft:leather", "mob": "minecraft:cow" },
 		{ "item": "minecraft:porkchop", "mob": "minecraft:pig" },

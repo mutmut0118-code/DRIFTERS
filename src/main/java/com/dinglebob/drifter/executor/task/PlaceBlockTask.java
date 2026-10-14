@@ -43,6 +43,10 @@ public class PlaceBlockTask extends Task {
 	@Nullable
 	private Direction facing;
 
+	public BlockPos target() {
+		return this.target;
+	}
+
 	/** Which way the placed block should face (a bed: toward its head). */
 	public PlaceBlockTask facing(Direction facing) {
 		this.facing = facing;

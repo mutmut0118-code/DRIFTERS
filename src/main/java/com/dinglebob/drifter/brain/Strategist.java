@@ -119,7 +119,7 @@ public final class Strategist {
 	}
 
 	/** Carried, worn, or stored in its chests at home (section 9: stage counts home storage). */
-	private static boolean has(DrifterEntity drifter, Predicate<ItemStack> filter) {
+	public static boolean has(DrifterEntity drifter, Predicate<ItemStack> filter) {
 		DrifterInventory inventory = drifter.getInventory();
 		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
 			if (filter.test(inventory.getItem(slot))) {
