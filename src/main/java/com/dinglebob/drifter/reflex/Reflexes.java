@@ -910,12 +910,14 @@ public class Reflexes {
 
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
-			return drifter.isInPowderSnow && drifter.getTicksFrozen() > 20;
+			// (isInPowderSnow is cleared at the start of every tick and only set again while moving, so at this point in the
+			// tick it's last tick's value that tells: found in testing, the reflex never fired and it froze anyway.)
+			return (drifter.isInPowderSnow || drifter.wasInPowderSnow) && drifter.getTicksFrozen() > 20;
 		}
 
 		@Override
 		protected int maxTicks() {
-			return 120;
+			return 200;
 		}
 
 		@Override
@@ -923,8 +925,9 @@ public class Reflexes {
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
 			this.out = null;
+			this.climb = null;
 			double best = Double.MAX_VALUE;
-			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-6, -2, -6), feet.offset(6, 2, 6))) {
+			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-6, -2, -6), feet.offset(6, 5, 6))) {
 				if (solid(level, pos.below()) && !level.getBlockState(pos.below()).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
 					&& !solid(level, pos) && !solid(level, pos.above()) && !isPowder(level, pos) && !isPowder(level, pos.above())
 					&& level.getFluidState(pos).isEmpty() && pos.distSqr(feet) < best) {
@@ -936,12 +939,40 @@ public class Reflexes {
 
 		@Override
 		protected boolean act(DrifterEntity drifter, int tick) {
-			if (!drifter.isInPowderSnow || this.out == null) {
+			if (!drifter.isInPowderSnow && !drifter.wasInPowderSnow || this.out == null) {
 				return false;
 			}
 
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
+			// Firm ground above it (sunk into a deep pocket): clear the powder snow over its head and pillar up, as a player
+			// climbs out of a hole.
+			if (this.out.getY() > feet.getY() && Tools.buildingBlockCount(drifter) > 0) {
+				if (tick % POWDER_BREAK_TICKS == 0) {
+					for (BlockPos cell : List.of(feet.above(2), feet.above(), feet)) {
+						if (isPowder(level, cell)) {
+							FakePlayerBridge.act(drifter, fake -> fake.gameMode.destroyBlock(cell));
+							drifter.swing(InteractionHand.MAIN_HAND);
+							break;
+						}
+					}
+				}
+
+				if (this.climb == null && !isPowder(level, feet) && !isPowder(level, feet.above())) {
+					this.climb = new com.dinglebob.drifter.executor.task.PillarUpTask(drifter, Math.min(4, this.out.getY() - feet.getY()));
+				}
+
+				if (this.climb != null) {
+					if (this.climb.tick() != Task.Status.RUNNING) {
+						this.climb = null;
+					}
+
+					return true;
+				}
+
+				return true;
+			}
+
 			Direction toward = Direction.getNearest(this.out.getX() - feet.getX(), 0, this.out.getZ() - feet.getZ());
 			// Powder snow in the way (or what it's sunk in): break it, then keep moving. By hand that takes a player about 8
 			// ticks a block (hardness 0.25), so one every 8 ticks.
@@ -958,6 +989,16 @@ public class Reflexes {
 		}
 
 		private static final int POWDER_BREAK_TICKS = 8;
+		@Nullable
+		private Task climb;
+
+		@Override
+		protected void stop(DrifterEntity drifter) {
+			if (this.climb != null) {
+				this.climb.stop();
+				this.climb = null;
+			}
+		}
 
 		private static boolean isPowder(Level level, BlockPos pos) {
 			return level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW);
