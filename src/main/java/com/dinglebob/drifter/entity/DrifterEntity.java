@@ -137,6 +137,10 @@ public class DrifterEntity extends PathfinderMob {
 		long now = this.level().getGameTime();
 		if (now - this.outOfAirAt > 60) {
 			this.airScares.addLast(now);
+			// Debug: with thoughts going to the log, a near-drowning traces itself (to see what went wrong in long tests).
+			if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0) {
+				this.traceTicks = 200;
+			}
 		}
 
 		this.outOfAirAt = now;
@@ -173,12 +177,37 @@ public class DrifterEntity extends PathfinderMob {
 
 	/** Ticks left of the debug trace (/drifter trace): one log line per tick. */
 	private int traceTicks;
+	/** Debug: how many trace lines the black box keeps. */
+	private static final int BLACK_BOX_TICKS = 200;
+	private final java.util.ArrayDeque<String> blackBox = new java.util.ArrayDeque<>();
 	/** Spots where pillaring up failed (head hit something), until a game time: the pathfinder plans around them. */
 	private final java.util.Map<BlockPos, Long> failedPillars = new java.util.HashMap<>();
 
 	/** Remembers that pillaring up from here didn't work, for a few minutes (a player who bumps their head goes another way). */
 	public void pillarFailedAt(BlockPos feet) {
 		this.failedPillars.put(feet.immutable(), this.level().getGameTime() + 20L * 60 * 5);
+	}
+
+	/** Blocks it couldn't bridge out to (couldn't get to the edge), until a game time: the pathfinder plans around them. */
+	private final java.util.Map<BlockPos, Long> failedBridges = new java.util.HashMap<>();
+
+	/** Remembers that bridging out to this block didn't work, for a few minutes (found in testing: it re-planned the same bridge all evening). */
+	public void bridgeFailedAt(BlockPos to) {
+		this.failedBridges.put(to.immutable(), this.level().getGameTime() + 20L * 60 * 5);
+	}
+
+	public boolean bridgeFailedRecently(BlockPos to) {
+		Long until = this.failedBridges.get(to);
+		if (until == null) {
+			return false;
+		}
+
+		if (until < this.level().getGameTime()) {
+			this.failedBridges.remove(to);
+			return false;
+		}
+
+		return true;
 	}
 
 	public boolean pillarFailedRecently(BlockPos feet) {
@@ -482,15 +511,24 @@ public class DrifterEntity extends PathfinderMob {
 		// TODO(milestone 8): deliberate sprint-swimming on long swims (section 10.10).
 		com.dinglebob.drifter.motor.Steering.noSprintInWater(this);
 		this.applyMovementKeys();
-		if (this.traceTicks > 0) {
-			this.traceTicks--;
+		if (this.traceTicks > 0 || com.dinglebob.drifter.memory.ThoughtLog.echo) {
 			com.dinglebob.drifter.executor.Task leaf = this.tasks.current() == null ? null : this.tasks.current().leaf();
-			com.dinglebob.drifter.Drifter.LOGGER.info(String.format(java.util.Locale.ROOT,
+			String line = String.format(java.util.Locale.ROOT,
 				"[trace %s] t%d pos %.2f %.2f %.2f vy %.3f %s%s%s%s%s pose %s pitch %.0f keys %s step %s", this.getName().getString(), this.tickCount,
 				this.getX(), this.getY(), this.getZ(), this.getDeltaMovement().y, this.onGround() ? "G" : "-", this.isInWater() ? "W" : "-",
 				this.isUnderWater() ? "U" : "-", this.isSwimming() ? "S" : "-", this.isSprinting() ? "R" : "-", this.getPose(), this.getXRot(),
 				this.keys.describe(), leaf instanceof com.dinglebob.drifter.executor.task.NavigateTask nav ? nav.debugStep()
-					: leaf == null ? "none" : leaf.describe()));
+					: leaf == null ? "none" : leaf.describe());
+			if (this.traceTicks > 0) {
+				this.traceTicks--;
+				com.dinglebob.drifter.Drifter.LOGGER.info(line);
+			} else {
+				// Debug black box: with thoughts going to the log, the last few seconds are kept and written out if it dies.
+				this.blackBox.addLast(line);
+				if (this.blackBox.size() > BLACK_BOX_TICKS) {
+					this.blackBox.removeFirst();
+				}
+			}
 		}
 
 		if (this.keysReleaseTimer > 0 && --this.keysReleaseTimer == 0) {
@@ -923,6 +961,152 @@ public class DrifterEntity extends PathfinderMob {
 		for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, reach)) {
 			this.tryPickUp(item);
 		}
+
+		if (this.takeXpDelay > 0) {
+			this.takeXpDelay--;
+		}
+
+		for (net.minecraft.world.entity.ExperienceOrb orb : this.level().getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class, reach)) {
+			this.touchOrb(orb);
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Experience (section 10.13): the player's own rules and numbers
+	// ---------------------------------------------------------------------------------------------
+
+	private int experienceLevel;
+	private float experienceProgress;
+	private int totalExperience;
+	private int enchantmentSeed;
+	private int takeXpDelay;
+	private int lastLevelUpTime;
+
+	public int experienceLevel() {
+		return this.experienceLevel;
+	}
+
+	public float experienceProgress() {
+		return this.experienceProgress;
+	}
+
+	public int totalExperience() {
+		return this.totalExperience;
+	}
+
+	public int enchantmentSeed() {
+		return this.enchantmentSeed;
+	}
+
+	/** Copies the levels back from the player-hands helper after an interaction (enchanting spends them). */
+	public void setExperience(int level, float progress, int total, int seed) {
+		this.experienceLevel = level;
+		this.experienceProgress = progress;
+		this.totalExperience = total;
+		this.enchantmentSeed = seed;
+	}
+
+	/**
+	 * ExperienceOrb#playerTouch for a Drifter: one orb every 2 ticks, and Mending repairs damaged gear with it first.
+	 * Orbs fly only to players, so it walks over them (as with items).
+	 */
+	private void touchOrb(net.minecraft.world.entity.ExperienceOrb orb) {
+		if (orb.isRemoved() || this.takeXpDelay > 0 || !(this.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return;
+		}
+
+		this.takeXpDelay = 2;
+		this.take(orb, 1);
+		int left = this.repairWithXp(level, orb.getValue());
+		if (left > 0) {
+			this.giveExperiencePoints(left);
+		}
+
+		com.dinglebob.drifter.mixin.ExperienceOrbAccessor counted = (com.dinglebob.drifter.mixin.ExperienceOrbAccessor)orb;
+		counted.drifter$setCount(counted.drifter$getCount() - 1);
+		if (counted.drifter$getCount() <= 0) {
+			orb.discard();
+		}
+	}
+
+	/** ExperienceOrb#repairPlayerItems: Mending gear soaks up the experience first. */
+	private int repairWithXp(net.minecraft.server.level.ServerLevel level, int amount) {
+		var mending = EnchantmentHelper.getRandomItemWith(EnchantmentEffectComponents.REPAIR_WITH_XP, this, ItemStack::isDamaged);
+		if (mending.isEmpty()) {
+			return amount;
+		}
+
+		ItemStack stack = mending.get().itemStack();
+		int repairable = EnchantmentHelper.modifyDurabilityToRepairFromXp(level, stack, amount);
+		int repaired = Math.min(repairable, stack.getDamageValue());
+		stack.setDamageValue(stack.getDamageValue() - repaired);
+		if (repaired > 0) {
+			int left = amount - repaired * amount / repairable;
+			if (left > 0) {
+				return this.repairWithXp(level, left);
+			}
+		}
+
+		return 0;
+	}
+
+	/** Player#giveExperiencePoints. */
+	public void giveExperiencePoints(int points) {
+		this.experienceProgress += (float)points / this.xpNeededForNextLevel();
+		this.totalExperience = Mth.clamp(this.totalExperience + points, 0, Integer.MAX_VALUE);
+		while (this.experienceProgress < 0.0F) {
+			float f = this.experienceProgress * this.xpNeededForNextLevel();
+			if (this.experienceLevel > 0) {
+				this.giveExperienceLevels(-1);
+				this.experienceProgress = 1.0F + f / this.xpNeededForNextLevel();
+			} else {
+				this.giveExperienceLevels(-1);
+				this.experienceProgress = 0.0F;
+			}
+		}
+
+		while (this.experienceProgress >= 1.0F) {
+			this.experienceProgress = (this.experienceProgress - 1.0F) * this.xpNeededForNextLevel();
+			this.giveExperienceLevels(1);
+			this.experienceProgress = this.experienceProgress / this.xpNeededForNextLevel();
+		}
+	}
+
+	/** Player#giveExperienceLevels, with the level-up chime every 5 levels. */
+	public void giveExperienceLevels(int levels) {
+		this.experienceLevel += levels;
+		if (this.experienceLevel < 0) {
+			this.experienceLevel = 0;
+			this.experienceProgress = 0.0F;
+			this.totalExperience = 0;
+		}
+
+		if (levels > 0 && this.experienceLevel % 5 == 0 && this.lastLevelUpTime < this.tickCount - 100) {
+			float volume = this.experienceLevel > 30 ? 1.0F : this.experienceLevel / 30.0F;
+			this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP,
+				this.getSoundSource(), volume * 0.75F, 1.0F);
+			this.lastLevelUpTime = this.tickCount;
+		}
+	}
+
+	/** Player#getXpNeededForNextLevel. */
+	public int xpNeededForNextLevel() {
+		if (this.experienceLevel >= 30) {
+			return 112 + (this.experienceLevel - 30) * 9;
+		}
+
+		return this.experienceLevel >= 15 ? 37 + (this.experienceLevel - 15) * 5 : 7 + this.experienceLevel * 2;
+	}
+
+	/** Like a player, it always drops some of its experience when it dies (Player#getBaseExperienceReward). */
+	@Override
+	public boolean isAlwaysExperienceDropper() {
+		return true;
+	}
+
+	@Override
+	protected int getBaseExperienceReward() {
+		return Math.min(this.experienceLevel * 7, 100);
 	}
 
 	/** ItemEntity#playerTouch, for a Drifter. TODO(milestone 7+): pickup filter and junk list (section 10.18). */
@@ -1019,6 +1203,12 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 	public void die(DamageSource source) {
 		this.tasks.cancel("died");
+		if (!this.blackBox.isEmpty()) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[black box] last {} ticks before death:", this.blackBox.size());
+			this.blackBox.forEach(com.dinglebob.drifter.Drifter.LOGGER::info);
+			this.blackBox.clear();
+		}
+
 		super.die(source);
 	}
 
@@ -1131,6 +1321,10 @@ public class DrifterEntity extends PathfinderMob {
 		tag.put("DrifterBrain", this.brain.save());
 		tag.put("DrifterPersonality", this.personality.save());
 		tag.putBoolean("DrifterNamed", this.named);
+		tag.putFloat("XpP", this.experienceProgress);
+		tag.putInt("XpLevel", this.experienceLevel);
+		tag.putInt("XpTotal", this.totalExperience);
+		tag.putInt("XpSeed", this.enchantmentSeed);
 	}
 
 	@Override
@@ -1140,6 +1334,14 @@ public class DrifterEntity extends PathfinderMob {
 		this.inventory.load(this.registryAccess(), tag.getList("DrifterInventory", Tag.TAG_COMPOUND));
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
 		this.foodData.readAdditionalSaveData(tag);
+		this.experienceProgress = tag.getFloat("XpP");
+		this.experienceLevel = tag.getInt("XpLevel");
+		this.totalExperience = tag.getInt("XpTotal");
+		this.enchantmentSeed = tag.getInt("XpSeed");
+		if (this.enchantmentSeed == 0) {
+			this.enchantmentSeed = this.random.nextInt();
+		}
+
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {
 			this.brain.load(tag.getCompound("DrifterBrain"));
 		}

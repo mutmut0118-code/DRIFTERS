@@ -434,7 +434,9 @@ public class NavigateTask extends Task {
 		}
 
 		PathStep step = this.index < this.path.size() ? this.path.get(this.index) : null;
-		if (step != null && step.type() == MoveType.SWIM_DOWN) {
+		// A dive only while it has plenty of air: low on air it comes up whatever the plan (found in testing: stalled on a
+		// dive with no keys pressed until it ran out).
+		if (step != null && step.type() == MoveType.SWIM_DOWN && this.drifter.getAirSupply() > this.drifter.getMaxAirSupply() * 0.7) {
 			return;
 		}
 
@@ -1363,6 +1365,7 @@ public class NavigateTask extends Task {
 		if (++this.creep > BRIDGE_CREEP_TICKS) {
 			// Say how far out it got, to tell "never reached the edge" from "reached it but couldn't see the side".
 			double out = this.drifter.getEyePosition().subtract(Vec3.atCenterOf(support)).dot(Vec3.atLowerCornerOf(face.getNormal())) - 0.5;
+			this.drifter.bridgeFailedAt(step.to());
 			this.replan(String.format(Locale.ROOT, "couldn't reach the edge to bridge (eye %.2f past the edge, %s)", out,
 				this.drifter.onGround() ? "on the ground" : "in the air"));
 			return Status.RUNNING;

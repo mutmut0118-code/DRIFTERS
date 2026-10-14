@@ -42,6 +42,8 @@ public class ContainerTask extends Task {
 	private final Predicate<ItemStack> filter;
 	private final String label;
 	private final int amount;
+	/** The vanilla furnace result slot. */
+	private static final int FURNACE_RESULT = 2;
 	/** Container slots allowed for this transfer (a furnace's input or fuel slot), or null for any. */
 	@Nullable
 	private final int[] slots;
@@ -244,6 +246,14 @@ public class ContainerTask extends Task {
 			if (taken > 0) {
 				stack.shrink(taken);
 				this.container.setChanged();
+				// FurnaceResultSlot#checkTakeAchievements: taking a furnace's output pays out the experience stored up in it.
+				if (slot == FURNACE_RESULT && this.container instanceof net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) {
+					com.dinglebob.drifter.hands.FakePlayerBridge.act(this.drifter, fake -> {
+						furnace.awardUsedRecipesAndPopExperience(fake);
+						return null;
+					});
+				}
+
 				return taken;
 			}
 		}

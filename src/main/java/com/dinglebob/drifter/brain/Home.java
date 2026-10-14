@@ -48,6 +48,17 @@ public final class Home {
 	/** Its wheat farm (section 9 stage 6): the middle, at the level it stands on (the water is just below). */
 	@Nullable
 	public BlockPos farm;
+	/** Its enchanting table (section 10.13; milestone 8 step 7), outside the hut with room round it for bookshelves. */
+	@Nullable
+	public BlockPos enchantingTable;
+
+	/** Its enchanting table, if it's still there. */
+	@Nullable
+	public BlockPos enchantingTable(net.minecraft.world.level.Level level) {
+		return this.enchantingTable != null && level.getBlockState(this.enchantingTable).is(net.minecraft.world.level.block.Blocks.ENCHANTING_TABLE)
+			? this.enchantingTable : null;
+	}
+
 	/** A village house it moved into instead of building a hut (user's request, session 2): the head of its bed there. */
 	@Nullable
 	public BlockPos houseBed;
@@ -111,6 +122,11 @@ public final class Home {
 	}
 
 	/** What it believes is stored, all chests together. */
+	/** What it last saw in this chest (empty if it never looked). */
+	public Map<Item, Integer> contents(BlockPos chest) {
+		return this.chests.getOrDefault(chest, Map.of());
+	}
+
 	public Map<Item, Integer> stored() {
 		Map<Item, Integer> total = new HashMap<>();
 		this.chests.values().forEach(contents -> contents.forEach((item, count) -> total.merge(item, count, Integer::sum)));
@@ -191,6 +207,9 @@ public final class Home {
 		}
 
 		tag.putLong("PenBredAt", this.penBredAt);
+		if (this.enchantingTable != null) {
+			tag.put("EnchantingTable", NbtUtils.writeBlockPos(this.enchantingTable));
+		}
 
 		if (this.mineBottom != null && this.mineDirection != null) {
 			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
@@ -226,6 +245,7 @@ public final class Home {
 		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
 		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);
 		home.penBredAt = tag.getLong("PenBredAt");
+		home.enchantingTable = NbtUtils.readBlockPos(tag, "EnchantingTable").orElse(null);
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
 		home.mineTrips = tag.getInt("MineTrips");

@@ -72,7 +72,7 @@ public final class Planner {
 	// Actions
 	// ---------------------------------------------------------------------------------------------
 
-	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch, Mine {
+	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch, Mine, MakeObsidian {
 		String describe();
 	}
 
@@ -129,6 +129,14 @@ public final class Planner {
 		@Override
 		public String describe() {
 			return "go mining for " + this.label + " (to " + this.total + ", around Y " + this.depth + ")";
+		}
+	}
+
+	/** Obsidian from lava and water with two buckets (section 9 stage 8), until it carries {@code total}. */
+	public record MakeObsidian(int total) implements Action {
+		@Override
+		public String describe() {
+			return "make obsidian with lava and water (to " + this.total + ")";
 		}
 	}
 
@@ -230,6 +238,11 @@ public final class Planner {
 				}
 
 				if (earlier instanceof Collect a && action instanceof Collect b && a.job() == b.job()) {
+					return;
+				}
+
+				if (earlier instanceof MakeObsidian a && action instanceof MakeObsidian b) {
+					this.actions.set(i, new MakeObsidian(a.total() + b.total()));
 					return;
 				}
 
@@ -399,6 +412,10 @@ public final class Planner {
 				best = cheaper(best, this.craft(state.copy(), recipe.value(), item, count, depth));
 			}
 
+			if (item == Items.OBSIDIAN) {
+				best = cheaper(best, this.makeObsidian(state.copy(), count, depth));
+			}
+
 			for (RecipeHolder<? extends AbstractCookingRecipe> recipe : smelting(this.level).getOrDefault(item, List.of())) {
 				best = cheaper(best, this.smelt(state.copy(), recipe.value(), item, count, depth));
 			}
@@ -482,6 +499,64 @@ public final class Planner {
 			drifter -> KnownWorld.anyTakeable(drifter, source::matchesBlock)));
 		state.cost += COST_EXPLORE + COST_GATHER_EACH * count;
 		return state;
+	}
+
+	/** Seconds-ish per block of obsidian made with buckets: scoop, pour, wait, mine (9.4 s with a diamond pickaxe). */
+	private static final double COST_OBSIDIAN_EACH = 30.0;
+
+	/**
+	 * Obsidian with buckets: a diamond pickaxe to mine it, two buckets (lava and water), and lava it knows of. Without
+	 * known lava it explores for some (lava shows up in caves and deep mines).
+	 */
+	@Nullable
+	private State makeObsidian(State state, int count, int depth) {
+		BlockState obsidian = net.minecraft.world.level.block.Blocks.OBSIDIAN.defaultBlockState();
+		if (!this.carriesToolFor(state, obsidian)) {
+			State withTool = this.obtainItem(state, Items.DIAMOND_PICKAXE, 1, depth + 1);
+			if (withTool == null) {
+				return null;
+			}
+
+			withTool.add(Items.DIAMOND_PICKAXE, 1);
+			state = withTool;
+		}
+
+		int buckets = state.count(Items.BUCKET) + state.count(Items.WATER_BUCKET) + state.count(Items.LAVA_BUCKET);
+		if (buckets < 2) {
+			State withBuckets = this.obtainItem(state, Items.BUCKET, 2 - buckets, depth + 1);
+			if (withBuckets == null) {
+				return null;
+			}
+
+			withBuckets.add(Items.BUCKET, 2 - buckets);
+			state = withBuckets;
+		}
+
+		if (!knowsLava(this.drifter)) {
+			state.addAction(new Explore("looking for lava", null, Planner::knowsLava));
+			state.cost += COST_EXPLORE;
+		}
+
+		state.addAction(new MakeObsidian(this.targetTotalObsidian(state, count)));
+		state.cost += COST_GATHER_TRIP + COST_OBSIDIAN_EACH * count;
+		return state;
+	}
+
+	private int targetTotalObsidian(State state, int more) {
+		for (Action action : state.actions) {
+			if (action instanceof MakeObsidian) {
+				return more;
+			}
+		}
+
+		return Math.max(0, this.realInventory.getOrDefault(Items.OBSIDIAN, 0) - state.count(Items.OBSIDIAN)) + more;
+	}
+
+	/** It remembers a lava source within a long walk. */
+	public static boolean knowsLava(DrifterEntity drifter) {
+		var dimension = drifter.level().dimension().location();
+		return drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.DANGER, dimension, drifter.position(), 96.0,
+			e -> e.label.equals("lava") && drifter.level().getFluidState(e.blockPos()).isSource()) != null;
 	}
 
 	@Nullable

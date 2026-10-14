@@ -47,6 +47,10 @@ public class StoreActivity extends Activity {
 	}
 
 	private boolean unreachable;
+	private boolean sortedPass;
+	private final java.util.Set<BlockPos> sortedTried = new java.util.HashSet<>();
+	@org.jetbrains.annotations.Nullable
+	private java.util.Set<net.minecraft.world.item.Item> onlyMatching;
 
 	@Override
 	protected void stepDone(Task step, Status status) {
@@ -59,8 +63,12 @@ public class StoreActivity extends Activity {
 				this.unreachable = true;
 			}
 
-			// Done with this chest either way (full, or it took everything): the next pass picks another if needed.
-			this.tried.add(this.chest);
+			// Done with this chest either way (full, or it took everything): the next pass picks another if needed. After a
+			// like-with-like top-up it can still take leftovers later.
+			if (this.onlyMatching == null || status != Status.SUCCESS) {
+				this.tried.add(this.chest);
+			}
+
 			this.chest = null;
 			this.walked = false;
 		}
@@ -83,7 +91,31 @@ public class StoreActivity extends Activity {
 			return Status.SUCCESS;
 		}
 
+		// Like with like (section 9 stage 6 "organized chests"): first each chest gets more of what it already holds; then
+		// the rest goes wherever there's room.
+		if (this.chest == null && !this.sortedPass && home.chests().size() > 1) {
+			for (BlockPos pos : home.chests()) {
+				if (this.sortedTried.contains(pos)) {
+					continue;
+				}
+
+				java.util.Map<net.minecraft.world.item.Item, Integer> holds = home.contents(pos);
+				boolean match = deposit.keySet().stream().anyMatch(slot -> holds.containsKey(this.drifter.getInventory().getItem(slot).getItem()));
+				this.sortedTried.add(pos);
+				if (match) {
+					this.chest = pos;
+					this.onlyMatching = holds.keySet();
+					break;
+				}
+			}
+
+			if (this.chest == null) {
+				this.sortedPass = true;
+			}
+		}
+
 		if (this.chest == null) {
+			this.onlyMatching = null;
 			this.chest = home.chests().stream().filter(pos -> !this.tried.contains(pos)).findFirst().orElse(null);
 			if (this.chest == null) {
 				if (this.unreachable) {
@@ -109,7 +141,12 @@ public class StoreActivity extends Activity {
 		}
 
 		Map<ItemStack, Integer> amounts = new IdentityHashMap<>();
-		deposit.forEach((slot, count) -> amounts.put(this.drifter.getInventory().getItem(slot), count));
+		deposit.forEach((slot, count) -> {
+			ItemStack stack = this.drifter.getInventory().getItem(slot);
+			if (this.onlyMatching == null || this.onlyMatching.contains(stack.getItem())) {
+				amounts.put(stack, count);
+			}
+		});
 		return this.begin(ContainerTask.deposit(this.drifter, this.chest, amounts, "what it doesn't need on it"));
 	}
 }

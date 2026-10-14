@@ -213,8 +213,9 @@ public final class BrainCommands {
 		java.util.List<String> lines = new java.util.ArrayList<>();
 		int stage = Strategist.stage(drifter);
 		Strategist.Target target = Strategist.nextTarget(drifter);
-		lines.add(String.format(Locale.ROOT, "%s: brain %s, stage %d (%s), next target: %s", DrifterCommands.label(drifter),
-			brain.isEnabled() ? "on" : "off", stage, Strategist.stageName(stage), target == null ? "none" : target.label()));
+		lines.add(String.format(Locale.ROOT, "%s: brain %s, stage %d (%s), next target: %s, level %d", DrifterCommands.label(drifter),
+			brain.isEnabled() ? "on" : "off", stage, Strategist.stageName(stage), target == null ? "none" : target.label(),
+			drifter.experienceLevel()));
 		Goals.Context context = brain.lastContext();
 		if (brain.isEnabled() && brain.currentGoal() != null && context != null) {
 			Activity activity = brain.activity();

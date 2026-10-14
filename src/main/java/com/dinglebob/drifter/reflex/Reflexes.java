@@ -393,6 +393,20 @@ public class Reflexes {
 				return true;
 			}
 
+			// Blocked above: along a way through the water to the nearest air (found in testing: heading straight for the
+			// nearest air, a wall in between held it there until it drowned).
+			BlockPos next = wayToAir(level, head);
+			if (next != null) {
+				if (next.getY() > head.getY()) {
+					drifter.getCamera().lookAt(drifter.getYRot(), -70.0F, CameraModel.TurnSpeed.COMBAT);
+					Steering.pressToward(drifter, Vec3.atCenterOf(next));
+				} else {
+					runTo(drifter, Vec3.atCenterOf(next), true);
+				}
+
+				return true;
+			}
+
 			// Blocked above: toward the nearest air it can get its head into (found in testing: "open water" counted too, so
 			// under a ceiling it swam from one drowned spot to the next and died).
 			BlockPos open = null;
@@ -419,6 +433,58 @@ public class Reflexes {
 
 			return true;
 		}
+	}
+
+	/** How far (in blocks swum) the drowning reflex looks for a way up to air. */
+	private static final int AIR_SEARCH_STEPS = 12;
+
+	/**
+	 * The next block for its head on the shortest swim from {@code head} to air (a breadth-first search through the
+	 * water around it, with room for its body below its head on sideways moves), or null if none is close.
+	 */
+	@Nullable
+	private static BlockPos wayToAir(Level level, BlockPos head) {
+		java.util.Map<BlockPos, BlockPos> cameFrom = new java.util.HashMap<>();
+		java.util.ArrayDeque<BlockPos> open = new java.util.ArrayDeque<>();
+		java.util.Map<BlockPos, Integer> steps = new java.util.HashMap<>();
+		cameFrom.put(head, head);
+		steps.put(head, 0);
+		open.add(head);
+		while (!open.isEmpty()) {
+			BlockPos cell = open.poll();
+			if (!cell.equals(head) && level.getFluidState(cell).isEmpty() && !solid(level, cell)) {
+				// Back along the way to the first block after where its head is now.
+				BlockPos step = cell;
+				while (!cameFrom.get(step).equals(head)) {
+					step = cameFrom.get(step);
+				}
+
+				return step;
+			}
+
+			int taken = steps.get(cell);
+			if (taken >= AIR_SEARCH_STEPS) {
+				continue;
+			}
+
+			for (Direction direction : Direction.values()) {
+				BlockPos to = cell.relative(direction);
+				if (cameFrom.containsKey(to) || solid(level, to) || !level.getFluidState(to).isEmpty() && !level.getFluidState(to).is(FluidTags.WATER)) {
+					continue;
+				}
+
+				// Sideways, its body needs the block under its head too (unless it's swimming flat, which this doesn't try).
+				if (direction.getAxis().isHorizontal() && solid(level, to.below())) {
+					continue;
+				}
+
+				cameFrom.put(to, cell);
+				steps.put(to, taken + 1);
+				open.add(to);
+			}
+		}
+
+		return null;
 	}
 
 	/** On fire (not in lava) with water close by: run into it. */

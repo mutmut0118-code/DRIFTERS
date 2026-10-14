@@ -10,10 +10,13 @@ import org.jetbrains.annotations.Nullable;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.Task;
 
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 
 /**
- * Walks over to dropped items nearby so the normal pickup collects them (players walk over their drops too).
+ * Walks over to dropped items and experience orbs nearby so the normal pickup collects them (players walk over their
+ * drops too; orbs only fly to players, so it walks over those as well).
  * Uses the pathfinder, and skips items it can't find a way to.
  * TODO: only items it has seen (its ITEM memories) once the brain chooses what to collect.
  */
@@ -26,7 +29,7 @@ public class CollectItemsTask extends Task {
 	private final double radius;
 	private final Set<Integer> skipped = new HashSet<>();
 	@Nullable
-	private ItemEntity current;
+	private Entity current;
 	@Nullable
 	private NavigateTask walk;
 
@@ -49,9 +52,10 @@ public class CollectItemsTask extends Task {
 	protected Status onTick() {
 		if (this.current == null || this.current.isRemoved()) {
 			this.stopWalk();
-			Optional<ItemEntity> next = this.drifter.level()
-				.getEntitiesOfClass(ItemEntity.class, this.drifter.getBoundingBox().inflate(this.radius),
-					item -> !this.skipped.contains(item.getId()) && item.getY() - this.drifter.getY() <= MAX_CLIMB)
+			Optional<Entity> next = this.drifter.level()
+				.getEntitiesOfClass(Entity.class, this.drifter.getBoundingBox().inflate(this.radius),
+					item -> (item instanceof ItemEntity || item instanceof ExperienceOrb) && !this.skipped.contains(item.getId())
+						&& item.getY() - this.drifter.getY() <= MAX_CLIMB)
 				.stream()
 				.min(Comparator.comparingDouble(this.drifter::distanceToSqr));
 			if (next.isEmpty()) {
@@ -69,7 +73,7 @@ public class CollectItemsTask extends Task {
 		} else if (walking == Status.SUCCESS && !this.current.isRemoved()) {
 			this.walk.stop();
 			// Arrived but not picked up yet (pickup delay, or inventory full): wait a moment, then give up on it.
-			if (this.current.hasPickUpDelay()) {
+			if (this.current instanceof ItemEntity item && item.hasPickUpDelay() || this.current instanceof ExperienceOrb) {
 				return Status.RUNNING;
 			}
 

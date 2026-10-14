@@ -101,6 +101,16 @@ public final class DrifterCommands {
 				.then(Commands.argument("count", IntegerArgumentType.integer(1, 64 * DrifterInventory.MAIN_SIZE))
 					.executes(ctx -> give(ctx, IntegerArgumentType.getInteger(ctx, "count"))))));
 
+		// Debug: experience levels (vanilla /xp only works on players).
+		root.then(Commands.literal("xp")
+			.then(Commands.argument("levels", IntegerArgumentType.integer(0, 100))
+				.executes(ctx -> {
+					DrifterEntity drifter = nearest(ctx.getSource());
+					drifter.giveExperienceLevels(IntegerArgumentType.getInteger(ctx, "levels"));
+					ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " is now level " + drifter.experienceLevel()), true);
+					return drifter.experienceLevel();
+				})));
+
 		// Every Drifter at once (vanilla /give and @a only pick real players).
 		root.then(Commands.literal("giveall")
 			.then(Commands.argument("item", ItemArgument.item(buildContext))

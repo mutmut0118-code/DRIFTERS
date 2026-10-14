@@ -6,11 +6,13 @@
 		"AbstractArrowAccessor",
 		"BlockItemMixin",
 		"EntitySoundMixin",
+		"ExperienceOrbAccessor",
 		"ExplosionMixin",
 		"ItemEntityAccessor",
 		"LivingEntityAccessor",
 		"MobAccessor",
 		"NearestAttackableTargetGoalAccessor",
+		"PlayerAccessor",
 		"TargetGoalAccessor"
 	],
 	"injectors": {

@@ -1,0 +1,9 @@
+{
+	"_comment": "Deep ores for the diamond and enchanting stages (DESIGN.md section 9 stages 7 and 8, section 10.3 target depths). Diamonds: the depth is just above the lava level (Y -54 and below, caves are full of lava), where players branch mine without breaking into lava lakes; still deep enough for good diamond odds.",
+	"sources": [
+		{ "item": "minecraft:diamond", "block": ["minecraft:diamond_ore", "minecraft:deepslate_diamond_ore"], "tool": "minecraft:iron_pickaxe", "depth": -51 },
+		{ "item": "minecraft:lapis_lazuli", "block": ["minecraft:lapis_ore", "minecraft:deepslate_lapis_ore"], "tool": "minecraft:stone_pickaxe", "depth": 0 },
+		{ "item": "minecraft:raw_gold", "block": ["minecraft:gold_ore", "minecraft:deepslate_gold_ore"], "tool": "minecraft:iron_pickaxe", "depth": -16 },
+		{ "item": "minecraft:redstone", "block": ["minecraft:redstone_ore", "minecraft:deepslate_redstone_ore"], "tool": "minecraft:iron_pickaxe", "depth": -51 }
+	]
+}

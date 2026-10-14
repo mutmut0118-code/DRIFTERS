@@ -64,6 +64,11 @@ public final class FakePlayerBridge {
 		fake.setShiftKeyDown(drifter.isShiftKeyDown());
 		fake.setPose(drifter.getPose());
 		fake.getFoodData().setExhaustion(0.0F);
+		// Its own experience (the enchanting table spends levels, a furnace's output gives points).
+		fake.experienceLevel = drifter.experienceLevel();
+		fake.experienceProgress = drifter.experienceProgress();
+		fake.totalExperience = drifter.totalExperience();
+		((com.dinglebob.drifter.mixin.PlayerAccessor)fake).drifter$setEnchantmentSeed(drifter.enchantmentSeed());
 
 		Inventory inventory = fake.getInventory();
 		DrifterInventory own = drifter.getInventory();
@@ -91,6 +96,8 @@ public final class FakePlayerBridge {
 		}
 
 		own.setItem(DrifterInventory.OFFHAND_SLOT, inventory.offhand.get(0));
+
+		drifter.setExperience(fake.experienceLevel, fake.experienceProgress, fake.totalExperience, fake.getEnchantmentSeed());
 
 		// Exhaustion the action cost the "player" (0.005 per block broken, for example) is the Drifter's.
 		drifter.causeFoodExhaustion(fake.getFoodData().getExhaustionLevel());

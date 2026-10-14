@@ -108,6 +108,7 @@ public final class Goals {
 			case Planner.Mine mine -> new com.dinglebob.drifter.brain.activity.MineTripActivity(drifter, mine.item(), mine.label(), mine.blocks(), mine.total(),
 				mine.depth(), mine.mountain());
 			case Planner.Fetch fetch -> new com.dinglebob.drifter.brain.activity.FetchActivity(drifter, fetch.chest(), fetch.item(), fetch.count());
+			case Planner.MakeObsidian obsidian -> new com.dinglebob.drifter.brain.activity.ObsidianActivity(drifter, obsidian.total());
 		};
 	}
 
@@ -734,6 +735,65 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Enchanting (section 10.13; milestone 8 step 7): set up the enchanting table near home once it has one, then enchant
+	 * its best gear when it has lapis and the levels its bookshelves make worth waiting for.
+	 */
+	public static final class Enchant extends Goal {
+		@Override
+		public String id() {
+			return "enchant";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "enchant its gear";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.near(drifter, Schedule.GO_HOME_RANGE)) {
+				return 0.0;
+			}
+
+			net.minecraft.core.BlockPos table = home.enchantingTable(drifter.level());
+			if (table == null) {
+				return drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.ENCHANTING_TABLE)) > 0 ? 0.45 : 0.0;
+			}
+
+			if (com.dinglebob.drifter.brain.activity.EnchantActivity.nextToEnchant(drifter) == null
+				|| drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.LAPIS_LAZULI)) == 0) {
+				return 0.0;
+			}
+
+			int wanted = com.dinglebob.drifter.brain.activity.EnchantActivity.levelsWanted(
+				com.dinglebob.drifter.brain.activity.EnchantActivity.bookshelves(drifter.level(), table));
+			return drifter.experienceLevel() >= wanted ? 0.45 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.2);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.EnchantActivity(context.drifter());
+		}
+	}
+
 	/** Out of the water after running out of air twice in a minute (found in testing: it drowned going back under). */
 	public static final class GetOutOfWater extends Goal {
 		@Override
@@ -1164,7 +1224,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }

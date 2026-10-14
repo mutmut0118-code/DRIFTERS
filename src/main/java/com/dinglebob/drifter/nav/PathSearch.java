@@ -45,9 +45,11 @@ public class PathSearch {
 	public static final double STEP_DOWN_EXTRA = 0.1;
 	public static final double SWIM = 0.5;
 	/** Extra for swimming with its head under water (air risk, section 12): it keeps to the surface. */
-	public static final double SWIM_UNDER = 0.5;
+	/** Extra for each move with its head under water: a player swims across the top, not along the bottom (found in
+	 * testing: routes along lake floors, and near-drownings on the way). */
+	public static final double SWIM_UNDER = 3.0;
 	/** Most moves in a row under water on a planned route (about a third of a held breath's swim). */
-	public static final int MAX_UNDERWATER = 10;
+	public static final int MAX_UNDERWATER = 6;
 	public static final double CLIMB_UP = 0.45;
 	public static final double CLIMB_DOWN = 0.35;
 	public static final double BRIDGE = 1.4;
@@ -336,7 +338,7 @@ public class PathSearch {
 
 		if (this.view.isWater(f) || inWater && !this.view.standable(f.below())) {
 			if (this.view.isWater(f) || this.view.isWater(f.below())) {
-				this.add(node, f, MoveType.SWIM, SWIM + (this.view.isWater(f.above()) ? SWIM_UNDER : 0.0) + c.cost, c, 0);
+				this.add(node, f, MoveType.SWIM, SWIM + (this.headUnder(f) ? SWIM_UNDER : 0.0) + c.cost, c, 0);
 			}
 
 			return;
@@ -353,7 +355,7 @@ public class PathSearch {
 
 		NavView.Kind below = this.view.cell(f.below()).kind();
 		boolean placeable = below == NavView.Kind.OPEN || below == NavView.Kind.WATER;
-		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable) {
+		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.drifter.bridgeFailedRecently(f)) {
 			double cost = BRIDGE + c.cost + BLOCK_RESOURCE * this.thrift * 2.0;
 			this.add(node, f, MoveType.BRIDGE, cost, c, 1);
 		}
@@ -431,7 +433,8 @@ public class PathSearch {
 			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t)))) {
 				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
 				double cost = WALK + STEP_DOWN_EXTRA * k + c.cost + damage * FALL_DAMAGE_COST * this.caution * 2.0;
-				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN, cost, c, 0);
+				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN,
+					cost + (intoWater && this.headUnder(t) ? SWIM_UNDER : 0.0), c, 0);
 				return;
 			}
 
@@ -470,7 +473,7 @@ public class PathSearch {
 			}
 
 			if (this.view.isWater(n.below())) {
-				this.add(node, n.below(), MoveType.SWIM_DOWN, SWIM, new Clearance(), 0);
+				this.add(node, n.below(), MoveType.SWIM_DOWN, SWIM + (this.headUnder(n.below()) ? SWIM_UNDER : 0.0), new Clearance(), 0);
 			}
 
 			return;
@@ -530,6 +533,16 @@ public class PathSearch {
 		return false;
 	}
 
+	/**
+	 * Its head would be under water standing in {@code feet}: water at head height, or water at its feet with the block
+	 * above unseen (found in testing: unseen blocks over a flooded tunnel counted as air, so the underwater limit never
+	 * started counting and it drowned under the ceiling).
+	 */
+	private boolean headUnder(BlockPos feet) {
+		return this.view.isWater(feet.above())
+			|| this.view.isWater(feet) && this.view.cell(feet.above()).kind() == NavView.Kind.UNKNOWN;
+	}
+
 	private void add(Node from, BlockPos to, MoveType move, double cost, Clearance clearance, int blocks) {
 		if (!this.inWindow(to)) {
 			return;
@@ -554,7 +567,7 @@ public class PathSearch {
 
 		// A held breath lasts about 15 s: no route with a longer swim under water than that, with a margin (found in
 		// testing: it drowned under a ceiling at night).
-		int underwater = this.view.isWater(to.above()) ? from.underwater + 1 : 0;
+		int underwater = this.headUnder(to) ? from.underwater + 1 : 0;
 		if (underwater > this.maxUnderwater) {
 			return;
 		}

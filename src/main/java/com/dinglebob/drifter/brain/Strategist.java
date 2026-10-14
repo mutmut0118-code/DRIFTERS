@@ -78,6 +78,55 @@ public final class Strategist {
 		new Target("shears", List.of(Items.SHEARS), 1, drifter -> has(drifter, stack -> stack.is(Items.SHEARS))),
 		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))));
 
+	/** Diamond-age armor: worn or owned, diamond or better. */
+	private static Predicate<DrifterEntity> diamondArmor(Item diamond, Item netherite) {
+		return drifter -> has(drifter, stack -> stack.is(diamond) || stack.is(netherite));
+	}
+
+	/**
+	 * Stage 7 targets (section 9 "Within-stage priorities: Diamond"): pickaxe first (it mines obsidian), then sword, then
+	 * chestplate, leggings, helmet, boots, spread over many trips (24 diamonds for the armor).
+	 */
+	public static final List<Target> DIAMOND_TARGETS = List.of(
+		new Target("a diamond pickaxe", List.of(Items.DIAMOND_PICKAXE), 1,
+			drifter -> has(drifter, stack -> stack.is(Items.DIAMOND_PICKAXE) || stack.is(Items.NETHERITE_PICKAXE))),
+		new Target("a diamond sword", List.of(Items.DIAMOND_SWORD), 1,
+			drifter -> has(drifter, stack -> stack.is(Items.DIAMOND_SWORD) || stack.is(Items.NETHERITE_SWORD))),
+		new Target("a diamond chestplate", List.of(Items.DIAMOND_CHESTPLATE), 1, diamondArmor(Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
+		new Target("diamond leggings", List.of(Items.DIAMOND_LEGGINGS), 1, diamondArmor(Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
+		new Target("a diamond helmet", List.of(Items.DIAMOND_HELMET), 1, diamondArmor(Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
+		new Target("diamond boots", List.of(Items.DIAMOND_BOOTS), 1, diamondArmor(Items.DIAMOND_BOOTS, Items.NETHERITE_BOOTS)));
+
+	/**
+	 * Stage 8 targets (section 9: enchanting): the enchanting table (4 obsidian, 2 diamonds, a book), and lapis to
+	 * enchant with while it has gear to enchant.
+	 */
+	public static final List<Target> ENCHANTING_TARGETS = List.of(
+		new Target("an enchanting table", List.of(Items.ENCHANTING_TABLE), 1, drifter -> has(drifter, stack -> stack.is(Items.ENCHANTING_TABLE))
+			|| drifter.getDrifterBrain().home() != null && drifter.getDrifterBrain().home().enchantingTable(drifter.level()) != null),
+		new Target("some lapis", List.of(Items.LAPIS_LAZULI), 6, drifter -> has(drifter, stack -> stack.is(Items.LAPIS_LAZULI))
+			|| com.dinglebob.drifter.brain.activity.EnchantActivity.nextToEnchant(drifter) == null));
+
+	/**
+	 * Iron then diamond targets, in the order it works on them. Miners jump to diamonds fast (section 9 "Pacing by
+	 * archetype"): the diamond pickaxe and sword come right after the iron pickaxe, bucket and shield, before the armor.
+	 */
+	private static List<Target> laterTargets(DrifterEntity drifter) {
+		List<Target> order = new java.util.ArrayList<>(IRON_TARGETS);
+		if (drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.MINER) {
+			order.addAll(3, DIAMOND_TARGETS.subList(0, 2));
+		} else {
+			order.addAll(DIAMOND_TARGETS.subList(0, 2));
+		}
+
+		// The enchanting table after the diamond pickaxe and sword, before the diamond armor (section 9: "some archetypes
+		// make an enchanting table before any armor"; it makes the most of the diamonds it has).
+		order.addAll(ENCHANTING_TARGETS);
+		order.addAll(DIAMOND_TARGETS.subList(2, DIAMOND_TARGETS.size()));
+
+		return order;
+	}
+
 	private Strategist() {
 	}
 
@@ -180,7 +229,7 @@ public final class Strategist {
 				}
 			}
 
-			for (Target target : IRON_TARGETS) {
+			for (Target target : laterTargets(drifter)) {
 				if (!target.satisfied().test(drifter) && workable.test(target)) {
 					return target;
 				}
@@ -197,6 +246,7 @@ public final class Strategist {
 	public static int stage(DrifterEntity drifter) {
 		if (EARLY_TARGETS.get(1).satisfied().test(drifter) && EARLY_TARGETS.get(4).satisfied().test(drifter)) {
 			// Stage 4, settling: a home with a chest. Stage 5, iron: an iron pickaxe, a bucket, a shield and 2+ armor pieces.
+			// Stages 6 and 7 below.
 			Home home = drifter.getDrifterBrain().home();
 			if (home == null || !home.hasChest()) {
 				return 3;
@@ -209,7 +259,18 @@ public final class Strategist {
 
 			boolean iron = IRON_TARGETS.get(0).satisfied().test(drifter) && IRON_TARGETS.get(1).satisfied().test(drifter)
 				&& IRON_TARGETS.get(2).satisfied().test(drifter) && armor >= 2;
-			return iron ? 5 : 4;
+			if (!iron) {
+				return 4;
+			}
+
+			// Stage 7, diamond: a diamond pickaxe and sword (whether or not the settlement is done: miners skip ahead).
+			if (DIAMOND_TARGETS.get(0).satisfied().test(drifter) && DIAMOND_TARGETS.get(1).satisfied().test(drifter)) {
+				// Stage 8, enchanting: enchanted gear.
+				return has(drifter, ItemStack::isEnchanted) ? 8 : 7;
+			}
+
+			// Stage 6, settlement: a farm, a pen and full iron armor.
+			return armor == 4 && home.farm != null && home.pen != null ? 6 : 5;
 		}
 
 		if (EARLY_TARGETS.get(0).satisfied().test(drifter)) {
@@ -226,7 +287,10 @@ public final class Strategist {
 			case 2 -> "stone";
 			case 3 -> "first night";
 			case 4 -> "settling";
-			default -> "iron";
+			case 5 -> "iron";
+			case 6 -> "settlement";
+			case 7 -> "diamond";
+			default -> "enchanting";
 		};
 	}
 }
