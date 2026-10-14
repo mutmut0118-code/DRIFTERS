@@ -1332,8 +1332,15 @@ public final class Goals {
 			}
 
 			com.dinglebob.drifter.building.StarterHut house = home.house();
+			if (house == null && drifter.level().getGameTime() - home.houseSiteFailedAt < 20L * 60 * 10) {
+				// No spot for it last time it looked: it gets to know the land round home first.
+				return 0.0;
+			}
+
 			if (!home.houseBuilt || house == null) {
-				return builder ? 0.52 : drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.HOMEBODY ? 0.46 : 0.38;
+				// Section 9: the house is stage 5-6 work; once the settlement's in (farm, pen, armor) it matters as much as gear.
+				double base = builder ? 0.55 : drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.HOMEBODY ? 0.5 : 0.44;
+				return context.stage() >= 6 ? base + 0.08 : base;
 			}
 
 			net.minecraft.world.level.Level level = drifter.level();

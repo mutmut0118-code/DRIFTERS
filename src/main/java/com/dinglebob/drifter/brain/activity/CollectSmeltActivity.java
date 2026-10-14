@@ -79,6 +79,36 @@ public class CollectSmeltActivity extends Activity {
 			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk back to the furnace"));
 		}
 
+		// A look inside first (found in testing: a job whose furnace had nothing to take pulled it back 37 times).
+		Container container = Containers.get(this.drifter.level(), furnace);
+		if (container != null && container.getItem(SmeltActivity.FURNACE_RESULT).isEmpty()) {
+			int left = container.getItem(SmeltActivity.FURNACE_INPUT).getCount();
+			var state = this.drifter.level().getBlockState(furnace);
+			boolean burning = state.hasProperty(net.minecraft.world.level.block.AbstractFurnaceBlock.LIT)
+				&& state.getValue(net.minecraft.world.level.block.AbstractFurnaceBlock.LIT);
+			if (left == 0) {
+				this.drifter.getDrifterBrain().removeFurnaceJob(this.job);
+				this.think("nothing in the furnace any more");
+				return Status.SUCCESS;
+			}
+
+			if (!burning && container.getItem(SmeltActivity.FURNACE_FUEL).isEmpty()) {
+				// Out of fuel with things still in: it takes them back (the planner smelts them again with fuel).
+				this.think("the furnace ran out of fuel: taking the rest back");
+				this.took = true;
+				return this.begin(new ContainerTask(this.drifter, furnace, ContainerTask.Mode.TAKE, stack -> true, "what's left", Integer.MAX_VALUE,
+					new int[]{SmeltActivity.FURNACE_INPUT}));
+			}
+
+			this.job.readyAt = this.now() + (long)left * SmeltActivity.ticksPerItem(this.drifter.level(), furnace) + 20;
+			return Status.SUCCESS;
+		}
+
+		if (com.dinglebob.drifter.brain.Storage.freeSlots(this.drifter) == 0) {
+			this.job.readyAt = this.now() + 20 * 60;
+			return this.fail("no room for what's done");
+		}
+
 		return this.begin(new ContainerTask(this.drifter, furnace, ContainerTask.Mode.TAKE, stack -> true, "what's done", Integer.MAX_VALUE,
 			new int[]{SmeltActivity.FURNACE_RESULT}));
 	}

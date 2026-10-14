@@ -112,7 +112,7 @@ public class Reflexes {
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
 		this.reflexes = List.of(new InLava(), new Drowning(), new OnFire(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
-			new IncomingProjectile(), new Suffocating(), new FallingBlockAbove(), new InCobweb(), new Contact());
+			new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact());
 	}
 
 	@Nullable
@@ -891,6 +891,76 @@ public class Reflexes {
 		@Override
 		protected int maxTicks() {
 			return 60;
+		}
+	}
+
+	/**
+	 * Sunk in powder snow and freezing: toward the nearest firm ground, breaking the powder snow in the way at feet and head
+	 * height (it breaks at a touch), as a player digs their way out sideways (found in testing: it jumped on the spot until
+	 * it froze to death).
+	 */
+	private static final class Freezing extends Reflex {
+		@Nullable
+		private BlockPos out;
+
+		@Override
+		public String name() {
+			return "freezing in powder snow: getting out";
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			return drifter.isInPowderSnow && drifter.getTicksFrozen() > 20;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 120;
+		}
+
+		@Override
+		protected void start(DrifterEntity drifter) {
+			Level level = drifter.level();
+			BlockPos feet = drifter.blockPosition();
+			this.out = null;
+			double best = Double.MAX_VALUE;
+			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-6, -2, -6), feet.offset(6, 2, 6))) {
+				if (solid(level, pos.below()) && !level.getBlockState(pos.below()).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW)
+					&& !solid(level, pos) && !solid(level, pos.above()) && !isPowder(level, pos) && !isPowder(level, pos.above())
+					&& level.getFluidState(pos).isEmpty() && pos.distSqr(feet) < best) {
+					best = pos.distSqr(feet);
+					this.out = pos.immutable();
+				}
+			}
+		}
+
+		@Override
+		protected boolean act(DrifterEntity drifter, int tick) {
+			if (!drifter.isInPowderSnow || this.out == null) {
+				return false;
+			}
+
+			Level level = drifter.level();
+			BlockPos feet = drifter.blockPosition();
+			Direction toward = Direction.getNearest(this.out.getX() - feet.getX(), 0, this.out.getZ() - feet.getZ());
+			// Powder snow in the way (or what it's sunk in): break it, then keep moving. By hand that takes a player about 8
+			// ticks a block (hardness 0.25), so one every 8 ticks.
+			for (BlockPos cell : tick % POWDER_BREAK_TICKS != 0 ? List.<BlockPos>of() : List.of(feet.above(), feet.relative(toward).above(), feet.relative(toward))) {
+				if (isPowder(level, cell)) {
+					FakePlayerBridge.act(drifter, fake -> fake.gameMode.destroyBlock(cell));
+					drifter.swing(InteractionHand.MAIN_HAND);
+					break;
+				}
+			}
+
+			runTo(drifter, Vec3.atBottomCenterOf(this.out), true);
+			return true;
+		}
+
+		private static final int POWDER_BREAK_TICKS = 8;
+
+		private static boolean isPowder(Level level, BlockPos pos) {
+			return level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.POWDER_SNOW);
 		}
 	}
 

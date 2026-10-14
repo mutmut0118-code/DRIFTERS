@@ -131,6 +131,11 @@ public final class NavView {
 			return new Cell(Kind.CLIMB, 0.0F, false, false);
 		}
 
+		// Powder snow: never into it without leather boots (found in testing: it sank in and froze to death).
+		if (state.is(Blocks.POWDER_SNOW) && !this.drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS)) {
+			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
+		}
+
 		if (state.is(Blocks.COBWEB) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.SWEET_BERRY_BUSH) || state.is(Blocks.WITHER_ROSE)) {
 			return new Cell(Kind.AVOID, 0.0F, false, false);
 		}

@@ -81,6 +81,7 @@ public class BuildHouseActivity extends BuildHutActivity {
 		if (home.houseCenter == null) {
 			BlockPos site = site(this.drifter, home);
 			if (site == null) {
+				home.houseSiteFailedAt = level.getGameTime();
 				return null;
 			}
 
@@ -281,14 +282,34 @@ public class BuildHouseActivity extends BuildHutActivity {
 	}
 
 	private static boolean clear(DrifterEntity drifter, Level level, Home home, BlockPos spot) {
+		// Ground near the floor's height nearly everywhere (it fills dips and digs out bumps as it builds, as for the hut;
+		// found in testing: a perfectly flat 9x9 is rare on hilly ground, and it never found a spot), all of it seen.
+		if (!KnownBlocks.isStandable(level, spot)) {
+			return false;
+		}
+
 		int reach = HALF + 1;
+		int good = 0;
+		int cells = 0;
 		for (int dx = -reach; dx <= reach; dx++) {
 			for (int dz = -reach; dz <= reach; dz++) {
+				cells++;
 				BlockPos cell = spot.offset(dx, 0, dz);
-				if (!KnownBlocks.isStandable(level, cell) || !drifter.getSenses().terrain().isKnown(cell.below())) {
+				if (!drifter.getSenses().terrain().isKnown(cell.below()) && !drifter.getSenses().terrain().isKnown(cell)) {
 					return false;
 				}
+
+				for (int dy : new int[]{0, 1, -1, 2}) {
+					if (KnownBlocks.isStandable(level, cell.above(dy)) && level.getFluidState(cell.above(dy).below()).isEmpty()) {
+						good++;
+						break;
+					}
+				}
 			}
+		}
+
+		if (good < cells * 0.85) {
+			return false;
 		}
 
 		return !overlaps(spot, home.center, StarterHut.HALF + 1) && (home.farm == null || !overlaps(spot, home.farm, FarmActivity.RADIUS + 1))

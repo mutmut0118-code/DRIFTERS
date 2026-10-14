@@ -61,6 +61,9 @@ public final class Home {
 	public String houseStyle = "";
 	public boolean houseBuilt;
 
+	/** When it last looked for a spot for its house and found none (not saved): it looks again later. */
+	public long houseSiteFailedAt = Long.MIN_VALUE / 2;
+
 	/** When placing a bed last failed (not saved): the hut and house goals leave it for a while instead of retrying. */
 	public long bedFailedAt = Long.MIN_VALUE / 2;
 
