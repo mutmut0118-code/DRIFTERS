@@ -28,6 +28,9 @@ public class CollectItemsTask extends Task {
 
 	private final double radius;
 	private final Set<Integer> skipped = new HashSet<>();
+	/** The item it's stepping right onto (one in a hole below its feet). */
+	private int closer = -1;
+	private int orbTicks;
 	@Nullable
 	private Entity current;
 	@Nullable
@@ -73,7 +76,21 @@ public class CollectItemsTask extends Task {
 		} else if (walking == Status.SUCCESS && !this.current.isRemoved()) {
 			this.walk.stop();
 			// Arrived but not picked up yet (pickup delay, or inventory full): wait a moment, then give up on it.
-			if (this.current instanceof ItemEntity item && item.hasPickUpDelay() || this.current instanceof ExperienceOrb) {
+			if (this.current instanceof ItemEntity item && item.hasPickUpDelay()) {
+				return Status.RUNNING;
+			}
+
+			// Orbs go one every 2 ticks: a moment for a merged one to go in.
+			if (this.current instanceof ExperienceOrb && this.drifter.getBoundingBox().inflate(1.0, 0.5, 1.0).intersects(this.current.getBoundingBox())
+				&& ++this.orbTicks < 40) {
+				return Status.RUNNING;
+			}
+
+			// In a hole below its feet (an obsidian mould, a dip): the pickup reaches only half a block down, so it steps
+			// right onto it, once (found in testing: it "arrived" at the edge and left the obsidian lying in the hole).
+			if (this.current.getY() < this.drifter.getY() - 0.4 && this.closer != this.current.getId()) {
+				this.closer = this.current.getId();
+				this.walk = new NavigateTask(this.drifter, this.current.position(), 0.25, "step down to a dropped item");
 				return Status.RUNNING;
 			}
 

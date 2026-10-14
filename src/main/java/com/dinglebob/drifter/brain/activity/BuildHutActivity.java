@@ -45,13 +45,15 @@ public class BuildHutActivity extends Activity {
 	private static final List<Item> MATERIALS = List.of(Items.COBBLESTONE, Items.COBBLED_DEEPSLATE, Items.DIRT);
 	/** A few spare for the pillar and mistakes. */
 	private static final int SPARE = 4;
+	/** Wall layers it builds standing on the floor (the tops of the second are just above its eyes). */
+	private static final int FLOOR_LAYERS = 2;
 
 	/** Cells it couldn't place, and how many times; it gives a cell a second try from somewhere else. */
 	private final java.util.Map<BlockPos, Integer> misses = new java.util.HashMap<>();
 	/** Cells it has given up on for this visit (two misses, or a dig it already tried). */
-	private final Set<BlockPos> failed = new HashSet<>();
+	protected final Set<BlockPos> failed = new HashSet<>();
 	@Nullable
-	private BlockPos placing;
+	protected BlockPos placing;
 	/** Missed once in this pass: skipped until the next pass of the same list. */
 	private final Set<BlockPos> retryLater = new HashSet<>();
 	private boolean started;
@@ -86,7 +88,14 @@ public class BuildHutActivity extends Activity {
 				this.drifter.getSenses().placedBlock(this.placing);
 			} else if (this.misses.merge(this.placing, 1, Integer::sum) >= 2) {
 				this.failed.add(this.placing);
-				this.think("couldn't place a block of the hut at " + this.placing.toShortString() + ": " + step.failureReason());
+				if (((PlaceBlockTask)step).describe().contains("bed")) {
+					Home home = this.drifter.getDrifterBrain().home();
+					if (home != null) {
+						home.bedFailedAt = this.drifter.level().getGameTime();
+					}
+				}
+
+				this.think("couldn't place a block of the " + this.what() + " at " + this.placing.toShortString() + ": " + step.failureReason());
 			} else {
 				// One more try later, from wherever it stands then.
 				this.retryLater.add(this.placing);
@@ -104,18 +113,17 @@ public class BuildHutActivity extends Activity {
 			return this.fail("has no home");
 		}
 
-		if (home.hutDoor == null) {
-			home.hutDoor = StarterHut.chooseDoor(level, home.center);
-			this.think("building a hut at home, door on the " + home.hutDoor.getName() + " side");
+		StarterHut hut = this.prepare(level, home);
+		if (hut == null) {
+			return this.fail("has nowhere to build");
 		}
 
-		StarterHut hut = StarterHut.of(home);
 		BlockPos feet = this.drifter.blockPosition();
 		int floorY = hut.center.getY();
 
 		// Blocks: patient ones gather the lot first, impatient ones start with what they have.
 		int missing = hut.missingBlocks(level);
-		int carried = this.drifter.getInventory().count(Tools.BUILDING_BLOCK);
+		int carried = this.carriedMaterial();
 		boolean patient = this.drifter.getPersonality().get(Trait.PATIENCE) >= 0.5;
 		if (missing > 0 && (carried == 0 || !this.started && patient && carried < missing + SPARE)) {
 			if (feet.getY() > floorY && hut.isInside(feet.below())) {
@@ -123,14 +131,14 @@ public class BuildHutActivity extends Activity {
 			}
 
 			int have = 0;
-			for (Item item : MATERIALS) {
+			for (Item item : this.materialItems()) {
 				int count = this.drifter.getInventory().count(stack -> stack.is(item));
 				have += count;
 			}
 
-			Planner.Plan plan = Planner.plan(this.drifter, KnownWorld.scan(this.drifter), MATERIALS, have + missing + SPARE - carried);
+			Planner.Plan plan = Planner.plan(this.drifter, KnownWorld.scan(this.drifter), this.materialItems(), have + missing + SPARE - carried);
 			if (!plan.feasible() || plan.next() == null) {
-				return this.fail("can't work out where to get blocks for the hut");
+				return this.fail("can't work out where to get blocks for the " + this.what());
 			}
 
 			return this.begin(Goals.activityFor(this.drifter, plan.next()));
@@ -142,7 +150,7 @@ public class BuildHutActivity extends Activity {
 		if (this.treeToClear == null) {
 			this.treeToClear = this.treeInTheWay(level, hut);
 			if (!this.treeToClear.isEmpty()) {
-				this.think("cutting down the tree where the hut goes");
+				this.think("cutting down the tree where the " + this.what() + " goes");
 			}
 		}
 
@@ -186,13 +194,21 @@ public class BuildHutActivity extends Activity {
 
 		boolean onFloor = feet.getY() == floorY;
 		boolean inside = hut.isInside(feet);
-		boolean onPillar = feet.getY() == floorY + StarterHut.PILLAR && feet.getX() == hut.center.getX() && feet.getZ() == hut.center.getZ();
+		boolean onPillar = feet.getY() == floorY + hut.pillar() && feet.getX() == hut.center.getX() && feet.getZ() == hut.center.getZ();
 		List<BlockPos> roof = hut.roof();
 		List<BlockPos> roofButMiddle = roof.subList(0, roof.size() - 1);
+		// Wall layers above the second (a house's third): their blocks go on the tops of the layer below, which is above its
+		// eyes on the floor, so they go in from the pillar with the roof, before it.
+		List<BlockPos> upper = new java.util.ArrayList<>();
+		for (int dy = FLOOR_LAYERS; dy < hut.wallHeight; dy++) {
+			upper.addAll(hut.wallLayer(dy));
+		}
+
+		upper.addAll(roofButMiddle);
 
 		// Roof work left from the pillar: anything not placed yet, or (while up there) a miss it may still fix from there.
-		boolean roofToDo = !this.roofPassDone && (this.anyMissing(level, roofButMiddle)
-			|| onPillar && roofButMiddle.stream().anyMatch(cell -> !StarterHut.filled(level, cell) && !this.failed.contains(cell)));
+		boolean roofToDo = !this.roofPassDone && (this.anyMissing(level, upper)
+			|| onPillar && upper.stream().anyMatch(cell -> !StarterHut.filled(level, cell) && !this.failed.contains(cell)));
 
 		// Off the pillar (digging it out) unless it's still putting the roof on.
 		if (feet.getY() > floorY && hut.isInside(feet.below()) && !(onPillar && roofToDo)) {
@@ -212,7 +228,7 @@ public class BuildHutActivity extends Activity {
 			return low;
 		}
 
-		for (int dy = 0; dy < StarterHut.WALL_HEIGHT; dy++) {
+		for (int dy = 0; dy < Math.min(FLOOR_LAYERS, hut.wallHeight); dy++) {
 			Status ring = this.placeFirstMissing(level, hut.wallLayer(dy), onFloor, false);
 			if (ring != null) {
 				return ring;
@@ -229,7 +245,7 @@ public class BuildHutActivity extends Activity {
 				}
 
 				// Its own roof block over the middle in the way (closed too soon on an earlier visit): out with it.
-				BlockPos middleRoof = hut.center.above(StarterHut.ROOF_LAYER);
+				BlockPos middleRoof = hut.center.above(hut.wallHeight);
 				if (StarterHut.filled(level, middleRoof) && this.reach(middleRoof)) {
 					return this.begin(this.dig(middleRoof));
 				}
@@ -244,7 +260,7 @@ public class BuildHutActivity extends Activity {
 					return this.fail("can't get up to put the roof on");
 				}
 
-				return this.begin(new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, StarterHut.PILLAR));
+				return this.begin(new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, hut.pillar()));
 			}
 
 			// An outer roof block it can't see the wall top for, because an inner roof block is already in the way (an
@@ -252,7 +268,7 @@ public class BuildHutActivity extends Activity {
 			for (BlockPos outer : roofButMiddle) {
 				boolean missed = this.retryLater.contains(outer) || this.failed.contains(outer);
 				if (!missed || StarterHut.filled(level, outer) || Math.max(Math.abs(outer.getX() - hut.center.getX()),
-					Math.abs(outer.getZ() - hut.center.getZ())) < StarterHut.HALF) {
+					Math.abs(outer.getZ() - hut.center.getZ())) < hut.half) {
 					continue;
 				}
 
@@ -278,7 +294,7 @@ public class BuildHutActivity extends Activity {
 				}
 			}
 
-			Status top = this.placeFirstMissing(level, roofButMiddle, true, true);
+			Status top = this.placeFirstMissing(level, upper, true, true);
 			if (top != null) {
 				return top;
 			}
@@ -290,12 +306,12 @@ public class BuildHutActivity extends Activity {
 		// couldn't pillar up again for the blocks it had missed).
 		this.retryLater.clear();
 		// Roof blocks it missed from the pillar: from the floor, against the ones already up (walking to a better spot if needed).
-		Status missedRoof = this.placeFirstMissing(level, roofButMiddle, onFloor && inside, false);
+		Status missedRoof = this.placeFirstMissing(level, upper, onFloor && inside, false);
 		if (missedRoof != null) {
 			return missedRoof;
 		}
 
-		if (!this.allFilled(level, roofButMiddle) || !this.allFilled(level, hut.floor())) {
+		if (!this.allFilled(level, upper) || !this.allFilled(level, hut.floor())) {
 			// Not leaving a hole over its head: the middle roof block goes back in before it gives up for now.
 			if (!this.middleTried) {
 				this.middleTried = true;
@@ -305,12 +321,12 @@ public class BuildHutActivity extends Activity {
 				}
 			}
 
-			return this.fail("couldn't place every block of the hut yet");
+			return this.fail("couldn't place every block of the " + this.what() + " yet");
 		}
 
-		for (int dy = 0; dy < StarterHut.WALL_HEIGHT; dy++) {
+		for (int dy = 0; dy < hut.wallHeight; dy++) {
 			if (!this.allFilled(level, hut.wallLayer(dy))) {
-				return this.fail("couldn't place every block of the hut yet");
+				return this.fail("couldn't place every block of the " + this.what() + " yet");
 			}
 		}
 
@@ -348,12 +364,11 @@ public class BuildHutActivity extends Activity {
 		}
 
 		if (hut.shellBuilt(level)) {
-			home.hutBuilt = true;
-			this.think("finished the hut");
+			this.finished(home);
 			return Status.SUCCESS;
 		}
 
-		return this.fail("couldn't finish the hut");
+		return this.fail("couldn't finish the " + this.what());
 	}
 
 	/**
@@ -375,7 +390,7 @@ public class BuildHutActivity extends Activity {
 	private List<BlockPos> treeInTheWay(Level level, StarterHut hut) {
 		com.dinglebob.drifter.brain.TreeLogs trees = new com.dinglebob.drifter.brain.TreeLogs(level);
 		java.util.Set<BlockPos> cells = new java.util.HashSet<>(hut.inside());
-		for (int dy = 0; dy < StarterHut.WALL_HEIGHT; dy++) {
+		for (int dy = 0; dy < hut.wallHeight; dy++) {
 			cells.addAll(hut.wallLayer(dy));
 		}
 
@@ -430,7 +445,7 @@ public class BuildHutActivity extends Activity {
 
 	private Status placeFirstMissing(Level level, List<BlockPos> cells, boolean inPosition, boolean fixedSpot) {
 		Home home = this.drifter.getDrifterBrain().home();
-		StarterHut hut = StarterHut.of(home);
+		StarterHut hut = this.blueprint(home);
 		for (BlockPos cell : cells) {
 			if (StarterHut.filled(level, cell) || this.failed.contains(cell)) {
 				continue;
@@ -444,7 +459,7 @@ public class BuildHutActivity extends Activity {
 				BlockPos spot = this.placementSpot(level, cell);
 				if (spot == null) {
 					this.failed.add(cell);
-					this.think("couldn't find anywhere to place a block of the hut at " + cell.toShortString() + " from");
+					this.think("couldn't find anywhere to place a block of the " + this.what() + " at " + cell.toShortString() + " from");
 					continue;
 				}
 
@@ -458,20 +473,20 @@ public class BuildHutActivity extends Activity {
 
 				this.retryLater.remove(cell);
 				this.placing = cell;
-				return this.begin(new PlaceBlockTask(this.drifter, cell, this.material(), "a block of the hut"));
+				return this.begin(new PlaceBlockTask(this.drifter, cell, this.materialFor(cell, hut), "a block of the " + this.what()));
 			}
 
 			if (!inPosition) {
 				return this.walkInside(hut);
 			}
 
-			if (this.drifter.getInventory().count(Tools.BUILDING_BLOCK) == 0) {
+			if (this.drifter.getInventory().count(this.materialFor(cell, hut)) == 0) {
 				// Out of blocks: the next pass goes for more.
 				return Status.RUNNING;
 			}
 
 			this.placing = cell;
-			return this.begin(new PlaceBlockTask(this.drifter, cell, this.material(), "a block of the hut"));
+			return this.begin(new PlaceBlockTask(this.drifter, cell, this.materialFor(cell, hut), "a block of the " + this.what()));
 		}
 
 		return null;
@@ -525,6 +540,50 @@ public class BuildHutActivity extends Activity {
 		return cells.stream().anyMatch(cell -> !StarterHut.filled(level, cell) && !this.failed.contains(cell) && !this.retryLater.contains(cell));
 	}
 
+	// ---------------------------------------------------------------------------------------------
+	// What it builds: the hut here; a house overrides these (BuildHouseActivity)
+	// ---------------------------------------------------------------------------------------------
+
+	/** Works out the blueprint (choosing the door side the first time), or null if there's nowhere to build. */
+	@Nullable
+	protected StarterHut prepare(Level level, Home home) {
+		if (home.hutDoor == null) {
+			home.hutDoor = StarterHut.chooseDoor(level, home.center);
+			this.think("building a hut at home, door on the " + home.hutDoor.getName() + " side");
+		}
+
+		return this.blueprint(home);
+	}
+
+	protected StarterHut blueprint(Home home) {
+		return StarterHut.of(home);
+	}
+
+	/** What the planner gathers when it's short of blocks. */
+	protected List<Item> materialItems() {
+		return MATERIALS;
+	}
+
+	/** Blocks it carries that it can build with. */
+	protected int carriedMaterial() {
+		return this.drifter.getInventory().count(Tools.BUILDING_BLOCK);
+	}
+
+	/** The block for this cell. */
+	protected Predicate<ItemStack> materialFor(BlockPos cell, StarterHut hut) {
+		return this.material();
+	}
+
+	protected void finished(Home home) {
+		home.hutBuilt = true;
+		this.think("finished the hut");
+	}
+
+	/** "hut" or "house", for its thoughts. */
+	protected String what() {
+		return "hut";
+	}
+
 	/** Stone if it has it, then planks, then whatever (dirt): the patchy look of a real first house. */
 	private Predicate<ItemStack> material() {
 		Predicate<ItemStack> stone = stack -> Tools.BUILDING_BLOCK.test(stack) && !stack.is(ItemTags.PLANKS) && !stack.is(Items.DIRT)
@@ -537,15 +596,41 @@ public class BuildHutActivity extends Activity {
 		return this.drifter.getInventory().count(planks) > 0 ? planks : Tools.BUILDING_BLOCK;
 	}
 
-	private Status walkInside(StarterHut hut) {
-		if (++this.pillarTries > 6) {
-			return this.fail("can't get inside the hut");
+	/**
+	 * Standing where the bed goes (its body would be in the way): over to another free spot inside first (found in
+	 * testing: "it's standing in the way", again and again).
+	 */
+	@Nullable
+	protected Status stepAside(StarterHut hut, StarterHut.BedSpot bed) {
+		BlockPos head = bed.foot().relative(bed.facing());
+		net.minecraft.world.phys.AABB body = this.drifter.getBoundingBox();
+		if (!body.intersects(new net.minecraft.world.phys.AABB(bed.foot())) && !body.intersects(new net.minecraft.world.phys.AABB(head))) {
+			return null;
 		}
 
-		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(hut.center), 0.3, "step inside the hut"));
+		Level level = this.drifter.level();
+		for (BlockPos cell : hut.inside()) {
+			if (cell.getY() == hut.center.getY() && !cell.equals(bed.foot()) && !cell.equals(head) && StarterHut.free(level, cell)
+				&& StarterHut.free(level, cell.above()) && !cell.closerThan(bed.foot(), 1.5) && !cell.closerThan(head, 1.5)
+				&& ++this.asides <= 3) {
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(cell), 0.2, "step out of the bed's way"));
+			}
+		}
+
+		return null;
 	}
 
-	private boolean reach(BlockPos cell) {
+	private int asides;
+
+	protected Status walkInside(StarterHut hut) {
+		if (++this.pillarTries > 6) {
+			return this.fail("can't get inside the " + this.what());
+		}
+
+		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(hut.center), 0.3, "step inside the " + this.what()));
+	}
+
+	protected boolean reach(BlockPos cell) {
 		return com.dinglebob.drifter.hands.Reach.canReach(this.drifter, cell);
 	}
 
@@ -565,7 +650,7 @@ public class BuildHutActivity extends Activity {
 	}
 
 	@Nullable
-	private Status furnish(Level level, StarterHut hut, boolean inPosition) {
+	protected Status furnish(Level level, StarterHut hut, boolean inPosition) {
 		for (Item station : List.of(Items.CRAFTING_TABLE, Items.FURNACE)) {
 			if (this.drifter.getInventory().count(stack -> stack.is(station)) == 0 || this.hasInside(level, hut, station)) {
 				continue;
@@ -585,16 +670,20 @@ public class BuildHutActivity extends Activity {
 		}
 
 		// The bed along the right wall, head toward the back (it faces the way it's placed).
-		if (this.drifter.getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(level) == null) {
-			BlockPos foot = hut.bedFoot();
-			if (level.getBlockState(foot).canBeReplaced() && level.getBlockState(hut.bedHead()).canBeReplaced() && !this.failed.contains(foot)) {
-				if (!inPosition) {
-					return this.walkInside(hut);
-				}
-
-				this.placing = foot;
-				return this.begin(new PlaceBlockTask(this.drifter, foot, stack -> stack.is(ItemTags.BEDS), "a bed").facing(hut.bedFacing()));
+		StarterHut.BedSpot bed = hut.bed(level) == null && this.drifter.getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0
+			? hut.bedSpot(level) : null;
+		if (bed != null && !this.failed.contains(bed.foot())) {
+			if (!inPosition) {
+				return this.walkInside(hut);
 			}
+
+			Status aside = this.stepAside(hut, bed);
+			if (aside != null) {
+				return aside;
+			}
+
+			this.placing = bed.foot();
+			return this.begin(new PlaceBlockTask(this.drifter, bed.foot(), stack -> stack.is(ItemTags.BEDS), "a bed").facing(bed.facing()));
 		}
 
 		BlockPos torch = hut.torchSpot();

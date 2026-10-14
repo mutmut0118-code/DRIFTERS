@@ -164,6 +164,10 @@ public final class Strategist {
 			return true;
 		}
 
+		if (home != null && home.house() != null && home.house().bed(drifter.level()) != null) {
+			return true;
+		}
+
 		return has(drifter, stack -> stack.is(ItemTags.BEDS));
 	}
 

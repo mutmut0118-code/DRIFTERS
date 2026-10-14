@@ -443,11 +443,9 @@ public class DrifterEntity extends PathfinderMob {
 		this.setCustomNameVisible(true);
 	}
 
-	/** Asleep in bed it doesn't move, like a player (Player#isImmobile). */
-	@Override
-	protected boolean isImmobile() {
-		return super.isImmobile() || this.isSleeping();
-	}
+	// Asleep in bed it doesn't move, like a player: its keys are let go (applyMovementKeys). Not through isImmobile, as
+	// Player does: for a mob that also stops the AI step, and its brain never woke it up (found in testing: it slept for
+	// three days).
 
 	@Override
 	public void tick() {
@@ -559,6 +557,10 @@ public class DrifterEntity extends PathfinderMob {
 	// ---------------------------------------------------------------------------------------------
 
 	private void applyMovementKeys() {
+		if (this.isSleeping()) {
+			this.keys.releaseAll();
+		}
+
 		boolean sneakKey = this.keys.isDown(VirtualKeys.Key.SNEAK);
 		this.setShiftKeyDown(sneakKey);
 		this.crouching = !this.isSwimming()

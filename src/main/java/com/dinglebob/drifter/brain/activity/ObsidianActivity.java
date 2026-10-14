@@ -53,15 +53,24 @@ public class ObsidianActivity extends Activity {
 	@Nullable
 	private BlockPos waterOn;
 	private final Set<BlockPos> badLava = new HashSet<>();
+	private final Set<BlockPos> badWater = new HashSet<>();
+	@Nullable
+	private BlockPos waterTarget;
 	@Nullable
 	private BlockPos lavaTarget;
 	private int casts;
+	/** Looks for obsidian left lying (an interrupted visit). */
+	private int leftovers;
+	private static final double LEFTOVER_RANGE = 10.0;
 	private int waits;
 	private int walks;
 	/** Waits of half a second for the water to reach the lava. */
 	private static final int MAX_WAITS = 6;
 	/** Walks to get into position before it gives up on a spot. */
 	private static final int MAX_WALKS = 4;
+	/** Walks toward something it wants to reach (water, the obsidian) before it gives up. */
+	private static final int MAX_APPROACHES = 8;
+	private int approaches;
 
 	public ObsidianActivity(DrifterEntity drifter, int total) {
 		super(drifter);
@@ -87,6 +96,18 @@ public class ObsidianActivity extends Activity {
 	}
 
 	@Override
+	protected void stepDone(Task step, Status status) {
+		// Water it couldn't scoop from where it stood (something in the way): another source next time.
+		if (status == Status.FAILURE && step.describe().equals("fill the bucket") && this.waterTarget != null) {
+			this.badWater.add(this.waterTarget);
+		}
+
+		if (status == Status.FAILURE) {
+			this.think("couldn't " + step.describe() + ": " + step.failureReason());
+		}
+	}
+
+	@Override
 	protected Status next() {
 		Level level = this.drifter.level();
 		if (this.have() >= this.total) {
@@ -95,6 +116,12 @@ public class ObsidianActivity extends Activity {
 
 		if (!this.canMineObsidian()) {
 			return this.fail("needs a diamond pickaxe to mine obsidian");
+		}
+
+		// Obsidian it mined but didn't pick up (it was called away): that first.
+		if (this.leftovers++ < 2 && !level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+			this.drifter.getBoundingBox().inflate(LEFTOVER_RANGE), item -> item.getItem().is(Items.OBSIDIAN)).isEmpty()) {
+			return this.begin(new CollectItemsTask(this.drifter, LEFTOVER_RANGE));
 		}
 
 		// Water poured and the lava still lava: the water takes a moment to run over it (5 ticks a block).
@@ -117,6 +144,7 @@ public class ObsidianActivity extends Activity {
 		// A block of obsidian in the hole: mine it, and pick it up from the bottom of the hole.
 		if (this.mold != null && level.getBlockState(this.mold).is(Blocks.OBSIDIAN)) {
 			BlockPos block = this.mold;
+			this.think("the lava turned to obsidian: mining it");
 			return this.reachThen(block, () -> new SequenceTask(this.drifter, "mine the obsidian", List.of(this.dig(block),
 				new CollectItemsTask(this.drifter, 3.0))));
 		}
@@ -149,7 +177,8 @@ public class ObsidianActivity extends Activity {
 	}
 
 	private Status fillWater(Level level) {
-		BlockPos source = FarmActivity.nearestWater(this.drifter, 64);
+		BlockPos source = FarmActivity.nearestWater(this.drifter, 64, this.badWater);
+		this.waterTarget = source;
 		if (source == null) {
 			return this.fail("knows no water to fill a bucket at");
 		}
@@ -189,7 +218,6 @@ public class ObsidianActivity extends Activity {
 
 		this.think("scooping up lava");
 		this.walks = 0;
-		this.badLava.add(lava);
 		this.lavaTarget = null;
 		return this.begin(new SequenceTask(this.drifter, "scoop up lava", List.of(
 			new SelectItemTask(this.drifter, stack -> stack.is(Items.BUCKET), "a bucket"),
@@ -342,9 +370,25 @@ public class ObsidianActivity extends Activity {
 		return entry == null ? null : entry.blockPos();
 	}
 
+	/**
+	 * A liquid's surface in reach with a clear line to it (Reach#canReach aims at a block's shape, and liquids have
+	 * none).
+	 */
+	private boolean canScoop(BlockPos pos) {
+		Vec3 eye = this.drifter.getEyePosition();
+		Vec3 surface = Vec3.atCenterOf(pos).add(0.0, 0.4, 0.0);
+		if (eye.distanceTo(surface) > this.drifter.blockInteractionRange() - 0.3) {
+			return false;
+		}
+
+		var hit = this.drifter.level().clip(new net.minecraft.world.level.ClipContext(eye, surface, net.minecraft.world.level.ClipContext.Block.OUTLINE,
+			net.minecraft.world.level.ClipContext.Fluid.NONE, this.drifter));
+		return hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS || hit.getBlockPos().equals(pos);
+	}
+
 	/** In reach of the lava, with no lava right beside its body. */
 	private boolean nearButNotBeside(BlockPos lava) {
-		if (this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(lava)) > this.drifter.blockInteractionRange() - 0.5) {
+		if (!this.canScoop(lava)) {
 			return false;
 		}
 
@@ -388,13 +432,20 @@ public class ObsidianActivity extends Activity {
 
 	/** In reach: the step. Otherwise walk to where it can reach it. */
 	private Status reachThen(BlockPos pos, java.util.function.Supplier<Task> step) {
-		if (Reach.canReach(this.drifter, pos) || this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(pos)) <= this.drifter.blockInteractionRange() - 0.5) {
+		boolean liquid = !this.drifter.level().getFluidState(pos).isEmpty();
+		if (liquid ? this.canScoop(pos) : Reach.canReach(this.drifter, pos)) {
+			this.approaches = 0;
 			return this.begin(step.get());
+		}
+
+		if (++this.approaches > MAX_APPROACHES) {
+			return this.fail("can't get to " + pos.toShortString());
 		}
 
 		BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, pos, Set.of());
 		if (spot == null) {
-			return this.fail("can't find a place to stand by " + pos.toShortString());
+			// It doesn't know the ground round it yet: over there first, then it'll see where to stand (as for the farm's water).
+			return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(pos), 3.0, "walk over"));
 		}
 
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk over"));

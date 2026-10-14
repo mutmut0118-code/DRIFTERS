@@ -219,6 +219,15 @@ public final class Storage {
 		} else if (stack.is(Items.ENCHANTING_TABLE)) {
 			// Kept until it's set up near home (milestone 8 step 7).
 			return "enchanting table";
+		} else if (stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE)) {
+			// For the house's windows.
+			return "glass";
+		} else if (stack.is(Items.WHEAT_SEEDS)) {
+			// The farm's seeds (found in testing: they went in the chest and the farm stood empty).
+			return "seeds";
+		} else if (stack.is(Items.WHEAT)) {
+			// For leading and breeding the pen's animals (and bread).
+			return "wheat";
 		} else if (stack.is(Items.LAPIS_LAZULI)) {
 			// What it enchants with: on it, for when it has the levels.
 			return "lapis";
@@ -250,6 +259,9 @@ public final class Storage {
 			case "bucket" -> 2;
 			case "table", "furnace", "bed", "enchanting table" -> 1;
 			case "lapis" -> 64;
+			case "seeds" -> 32;
+			case "glass" -> 16;
+			case "wheat" -> 16;
 			case "torch" -> KEEP_TORCHES;
 			case "food" -> KEEP_FOOD;
 			case "building" -> KEEP_BUILDING_BLOCKS;

@@ -191,7 +191,10 @@ public class EnchantActivity extends Activity {
 	}
 
 	private Status reachThen(BlockPos pos, java.util.function.Supplier<Task> step) {
-		if (Reach.canReach(this.drifter, pos)) {
+		// An empty spot (where the table goes) counts as in reach when it's close enough: the placing finds a face to click.
+		boolean empty = this.drifter.level().getBlockState(pos).canBeReplaced();
+		if (empty ? this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(pos)) <= this.drifter.blockInteractionRange() - 0.5
+			: Reach.canReach(this.drifter, pos)) {
 			return this.begin(step.get());
 		}
 
@@ -201,7 +204,8 @@ public class EnchantActivity extends Activity {
 
 		BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, pos, Set.of());
 		if (spot == null) {
-			return this.fail("can't find a place to stand by " + pos.toShortString());
+			// An empty spot (where the table goes): just next to it.
+			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(pos), 2.0, "walk over to where the enchanting table goes"));
 		}
 
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk over to the enchanting table"));

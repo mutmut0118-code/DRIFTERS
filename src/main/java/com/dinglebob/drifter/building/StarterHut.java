@@ -35,10 +35,46 @@ public final class StarterHut {
 
 	public final BlockPos center;
 	public final Direction door;
+	/** Half the outer size (2 for the 5x5 hut, 3 for a 7x7 house) and the wall height (the roof sits on that layer). */
+	public final int half;
+	public final int wallHeight;
+	/** Leaves window gaps in the walls (houses). */
+	public final boolean windows;
 
 	public StarterHut(BlockPos center, Direction door) {
+		this(center, door, HALF, WALL_HEIGHT, false);
+	}
+
+	public StarterHut(BlockPos center, Direction door, int half, int wallHeight, boolean windows) {
 		this.center = center.immutable();
 		this.door = door;
+		this.half = half;
+		this.wallHeight = wallHeight;
+		this.windows = windows;
+	}
+
+	/** How high it pillars in the middle to put the roof on (its eyes just over the wall tops). */
+	public int pillar() {
+		return this.wallHeight - 1;
+	}
+
+	/**
+	 * Window gaps: the middle of each wall except the door's, at eye height (houses only). Glass goes in if it has some;
+	 * otherwise they stay open, like a newbie's "hole for a window".
+	 */
+	public List<BlockPos> windowCells() {
+		List<BlockPos> cells = new ArrayList<>();
+		if (!this.windows) {
+			return cells;
+		}
+
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			if (side != this.door) {
+				cells.add(this.center.relative(side, this.half).above());
+			}
+		}
+
+		return cells;
 	}
 
 	public static StarterHut of(Home home) {
@@ -47,11 +83,16 @@ public final class StarterHut {
 
 	/** The door side: the one with the most standable ground just outside it (it has to walk in and out). */
 	public static Direction chooseDoor(Level level, BlockPos center) {
+		return chooseDoor(level, center, HALF);
+	}
+
+	/** The door side for a box of this half-size. */
+	public static Direction chooseDoor(Level level, BlockPos center, int half) {
 		Direction best = Direction.SOUTH;
 		int bestScore = -1;
 		for (Direction side : Direction.Plane.HORIZONTAL) {
 			int score = 0;
-			for (int out = HALF + 1; out <= HALF + 3; out++) {
+			for (int out = half + 1; out <= half + 3; out++) {
 				if (KnownBlocks.isStandable(level, center.relative(side, out))) {
 					score++;
 				}
@@ -68,7 +109,7 @@ public final class StarterHut {
 
 	/** The door's lower block (the upper one is above it). */
 	public BlockPos doorPos() {
-		return this.center.relative(this.door, HALF);
+		return this.center.relative(this.door, this.half);
 	}
 
 	public boolean isDoorColumn(BlockPos pos) {
@@ -78,15 +119,15 @@ public final class StarterHut {
 
 	/** Inside the walls (3x3), any height from the floor up to just under the roof. */
 	public boolean isInside(BlockPos pos) {
-		return Math.abs(pos.getX() - this.center.getX()) < HALF && Math.abs(pos.getZ() - this.center.getZ()) < HALF
-			&& pos.getY() >= this.center.getY() && pos.getY() < this.center.getY() + ROOF_LAYER;
+		return Math.abs(pos.getX() - this.center.getX()) < this.half && Math.abs(pos.getZ() - this.center.getZ()) < this.half
+			&& pos.getY() >= this.center.getY() && pos.getY() < this.center.getY() + this.wallHeight;
 	}
 
 	/** The floor under the whole footprint (5x5, one below the home's feet level). */
 	public List<BlockPos> floor() {
 		List<BlockPos> cells = new ArrayList<>();
-		for (int dx = -HALF; dx <= HALF; dx++) {
-			for (int dz = -HALF; dz <= HALF; dz++) {
+		for (int dx = -this.half; dx <= this.half; dx++) {
+			for (int dz = -this.half; dz <= this.half; dz++) {
 				cells.add(this.center.offset(dx, -1, dz));
 			}
 		}
@@ -97,9 +138,9 @@ public final class StarterHut {
 	/** The 3x3 inside, at feet level up to under the roof: has to be clear to walk and stand in. */
 	public List<BlockPos> inside() {
 		List<BlockPos> cells = new ArrayList<>();
-		for (int dy = 0; dy < ROOF_LAYER; dy++) {
-			for (int dx = -HALF + 1; dx <= HALF - 1; dx++) {
-				for (int dz = -HALF + 1; dz <= HALF - 1; dz++) {
+		for (int dy = 0; dy < this.wallHeight; dy++) {
+			for (int dx = -this.half + 1; dx <= this.half - 1; dx++) {
+				for (int dz = -this.half + 1; dz <= this.half - 1; dz++) {
 					cells.add(this.center.offset(dx, dy, dz));
 				}
 			}
@@ -111,14 +152,14 @@ public final class StarterHut {
 	/** One ring of wall at this height (corners first, as players build them), leaving the door gap. */
 	public List<BlockPos> wallLayer(int dy) {
 		List<BlockPos> cells = new ArrayList<>();
-		for (int dx = -HALF; dx <= HALF; dx++) {
-			for (int dz = -HALF; dz <= HALF; dz++) {
-				if (Math.abs(dx) != HALF && Math.abs(dz) != HALF) {
+		for (int dx = -this.half; dx <= this.half; dx++) {
+			for (int dz = -this.half; dz <= this.half; dz++) {
+				if (Math.abs(dx) != this.half && Math.abs(dz) != this.half) {
 					continue;
 				}
 
 				BlockPos cell = this.center.offset(dx, dy, dz);
-				if (!this.isDoorColumn(cell)) {
+				if (!this.isDoorColumn(cell) && !this.windowCells().contains(cell)) {
 					cells.add(cell);
 				}
 			}
@@ -130,7 +171,7 @@ public final class StarterHut {
 	}
 
 	private boolean isCorner(BlockPos cell) {
-		return Math.abs(cell.getX() - this.center.getX()) == HALF && Math.abs(cell.getZ() - this.center.getZ()) == HALF;
+		return Math.abs(cell.getX() - this.center.getX()) == this.half && Math.abs(cell.getZ() - this.center.getZ()) == this.half;
 	}
 
 	private boolean aboveDoor(BlockPos cell) {
@@ -144,12 +185,12 @@ public final class StarterHut {
 	 */
 	public List<BlockPos> roof() {
 		List<BlockPos> cells = new ArrayList<>();
-		for (int ring = HALF; ring >= 1; ring--) {
+		for (int ring = this.half; ring >= 1; ring--) {
 			List<BlockPos> layer = new ArrayList<>();
 			for (int dx = -ring; dx <= ring; dx++) {
 				for (int dz = -ring; dz <= ring; dz++) {
 					if (Math.max(Math.abs(dx), Math.abs(dz)) == ring) {
-						layer.add(this.center.offset(dx, ROOF_LAYER, dz));
+						layer.add(this.center.offset(dx, this.wallHeight, dz));
 					}
 				}
 			}
@@ -158,7 +199,7 @@ public final class StarterHut {
 			cells.addAll(layer);
 		}
 
-		cells.add(this.center.above(ROOF_LAYER));
+		cells.add(this.center.above(this.wallHeight));
 		return cells;
 	}
 
@@ -168,15 +209,16 @@ public final class StarterHut {
 		Direction left = this.door.getCounterClockWise();
 		Direction right = this.door.getClockWise();
 		Direction back = this.door.getOpposite();
-		spots.add(this.center.relative(back).relative(left));
-		spots.add(this.center.relative(back).relative(right));
-		spots.add(this.center.relative(this.door).relative(left));
+		int in = this.half - 1;
+		spots.add(this.center.relative(back, in).relative(left, in));
+		spots.add(this.center.relative(back, in).relative(right, in));
+		spots.add(this.center.relative(this.door, in).relative(left, in));
 		return spots;
 	}
 
 	/** The bed's foot: the corner by the door on the right; it lies along the right wall, head toward the back. */
 	public BlockPos bedFoot() {
-		return this.center.relative(this.door).relative(this.door.getClockWise());
+		return this.center.relative(this.door, this.half - 1).relative(this.door.getClockWise(), this.half - 1);
 	}
 
 	public BlockPos bedHead() {
@@ -186,7 +228,14 @@ public final class StarterHut {
 	/** Its bed in the hut: the head's position, or null if there's none. */
 	@org.jetbrains.annotations.Nullable
 	public BlockPos bed(Level level) {
-		for (BlockPos pos : new BlockPos[]{this.bedHead(), this.bedFoot()}) {
+		List<BlockPos> spots = new ArrayList<>(List.of(this.bedHead(), this.bedFoot()));
+		for (int dx = -this.half + 1; dx <= this.half - 1; dx++) {
+			for (int dz = -this.half + 1; dz <= this.half - 1; dz++) {
+				spots.add(this.center.offset(dx, 0, dz));
+			}
+		}
+
+		for (BlockPos pos : spots) {
 			BlockState state = level.getBlockState(pos);
 			if (state.getBlock() instanceof net.minecraft.world.level.block.BedBlock) {
 				return state.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD
@@ -197,6 +246,42 @@ public final class StarterHut {
 		return null;
 	}
 
+	/** Where a bed goes: its foot, and the way it faces (foot to head). */
+	public record BedSpot(BlockPos foot, Direction facing) {
+	}
+
+	/**
+	 * Where it can put a bed now: along the right wall as usual, or (that corner taken, say by a chest it put down before
+	 * building) any two free floor cells inside, never the middle (it pillars there) nor just inside the door. Null if
+	 * there's no room.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public BedSpot bedSpot(Level level) {
+		if (free(level, this.bedFoot()) && free(level, this.bedHead())) {
+			return new BedSpot(this.bedFoot(), this.bedFacing());
+		}
+
+		BlockPos byDoor = this.center.relative(this.door, this.half - 1);
+		for (int dx = -this.half + 1; dx <= this.half - 1; dx++) {
+			for (int dz = -this.half + 1; dz <= this.half - 1; dz++) {
+				BlockPos foot = this.center.offset(dx, 0, dz);
+				for (Direction facing : Direction.Plane.HORIZONTAL) {
+					BlockPos head = foot.relative(facing);
+					if (this.isInside(head) && !foot.equals(this.center) && !head.equals(this.center) && !foot.equals(byDoor)
+						&& !head.equals(byDoor) && free(level, foot) && free(level, head)) {
+						return new BedSpot(foot, facing);
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static boolean free(Level level, BlockPos pos) {
+		return level.getBlockState(pos).canBeReplaced() && level.getFluidState(pos).isEmpty();
+	}
+
 	/** The way the bed faces (foot to head). */
 	public Direction bedFacing() {
 		return this.door.getOpposite();
@@ -204,7 +289,7 @@ public final class StarterHut {
 
 	/** Where the torch goes: inside, on the back wall at head height. */
 	public BlockPos torchSpot() {
-		return this.center.relative(this.door.getOpposite()).above();
+		return this.center.relative(this.door.getOpposite(), this.half - 1).above();
 	}
 
 	/** Is this cell filled with something solid already (a wall block, or one of its chests standing in for one)? */
@@ -221,7 +306,7 @@ public final class StarterHut {
 			}
 		}
 
-		for (int dy = 0; dy < WALL_HEIGHT; dy++) {
+		for (int dy = 0; dy < this.wallHeight; dy++) {
 			for (BlockPos cell : this.wallLayer(dy)) {
 				if (!filled(level, cell)) {
 					return false;
@@ -245,7 +330,7 @@ public final class StarterHut {
 			missing += filled(level, cell) ? 0 : 1;
 		}
 
-		for (int dy = 0; dy < WALL_HEIGHT; dy++) {
+		for (int dy = 0; dy < this.wallHeight; dy++) {
 			for (BlockPos cell : this.wallLayer(dy)) {
 				missing += filled(level, cell) ? 0 : 1;
 			}

@@ -188,6 +188,12 @@ public class ShelterActivity extends Activity {
 			return null;
 		}
 
+		// Its house once it's up (milestone 8 step 8): the same routine, door shut, into bed.
+		com.dinglebob.drifter.building.StarterHut house = home.houseBuilt ? home.house() : null;
+		if (house != null && house.shellBuilt(this.drifter.level())) {
+			return house;
+		}
+
 		com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
 		return hut.shellBuilt(this.drifter.level()) ? hut : null;
 	}

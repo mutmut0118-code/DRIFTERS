@@ -174,6 +174,16 @@ public abstract class Activity extends Task {
 		}
 
 		int slot = Tools.bestToolSlot(drifter, state, drifter.level(), pos);
+		// Plain rock with a stone pickaxe along: that one, keeping the better pickaxe for ore that needs it (found in
+		// testing: a staircase down to the diamonds wore out its iron pickaxe before it got there). Section 10.3: thrifty
+		// players don't use their good pickaxe on plain stone; only the most efficient don't care.
+		int cheap = drifter.getInventory().findSlot(stack -> stack.is(net.minecraft.world.item.Items.STONE_PICKAXE), 0,
+			com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE);
+		if (cheap >= 0 && state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+			&& drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.EFFICIENCY) < 0.8) {
+			slot = cheap;
+		}
+
 		if (slot >= 0) {
 			ItemStack tool = drifter.getInventory().getItem(slot);
 			steps.add(new SelectItemTask(drifter, stack -> stack == tool, tool.getHoverName().getString()));

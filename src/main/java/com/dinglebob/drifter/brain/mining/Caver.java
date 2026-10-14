@@ -401,9 +401,7 @@ public final class Caver {
 		}
 
 		com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
-		int hut = com.dinglebob.drifter.building.StarterHut.HALF + 1;
-		return home == null || Math.abs(pos.getX() - home.center.getX()) > hut || Math.abs(pos.getZ() - home.center.getZ()) > hut
-			|| Math.abs(pos.getY() - home.center.getY()) > 4;
+		return home == null || !home.inOwnBuilding(pos, 1);
 	}
 
 	/** A solid block (not leaves) over its head, for a spot to count as in a cave (found in testing: "a cave" under a tree; with 3 blocks of cover required, shallow caves had no spots at all). */

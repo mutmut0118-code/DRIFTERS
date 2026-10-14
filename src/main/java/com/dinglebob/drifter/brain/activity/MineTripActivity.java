@@ -262,6 +262,10 @@ public class MineTripActivity extends Activity {
 	}
 
 	private boolean rememberedTried;
+	private boolean kitChecked;
+	/** Trips to below this height take a crafting table and sticks along. */
+	private static final int KIT_DEPTH = 8;
+	private static final int KIT_STICKS = 4;
 	private boolean spareChecked;
 
 	/** Too late in the day to start a trip (it would turn round at once). */
@@ -367,6 +371,26 @@ public class MineTripActivity extends Activity {
 				if (plan.feasible() && plan.next() != null) {
 					this.think("making a spare pickaxe before going down");
 					this.spareChecked = false;
+					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
+				}
+			}
+		}
+
+		// Deep trips: a crafting table and sticks along, so a pickaxe that wears out down there can be replaced with one made
+		// from the rock it mines (found in testing: 150 blocks from home at Y -46, its last pickaxe broke and it was stuck).
+		if (!this.kitChecked && this.depth < KIT_DEPTH) {
+			this.kitChecked = true;
+			for (var need : java.util.List.of(java.util.Map.entry(Items.CRAFTING_TABLE, 1), java.util.Map.entry(Items.STICK, KIT_STICKS))) {
+				int carried = this.drifter.getInventory().count(stack -> stack.is(need.getKey()));
+				if (carried >= need.getValue()) {
+					continue;
+				}
+
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), need.getKey(), need.getValue());
+				if (plan.feasible() && plan.next() != null && !plan.needsExploring()) {
+					this.think("taking " + (need.getKey() == Items.STICK ? "sticks" : "a crafting table") + " along, to make a pickaxe down there if one breaks");
+					this.kitChecked = false;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
 				}
 			}

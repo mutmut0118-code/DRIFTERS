@@ -183,6 +183,13 @@ public class FarmActivity extends Activity {
 		BlockPos empty = this.first(level, home.farm, (pos, state) -> state.is(Blocks.FARMLAND) && level.getBlockState(pos.above()).isAir());
 		if (empty != null) {
 			if (this.drifter.getInventory().count(stack -> stack.is(Items.WHEAT_SEEDS)) == 0) {
+				// Seeds from grass it knows of; with none about it doesn't go off looking (found in testing: it explored
+				// for seeds until it was lost). The harvest gives more.
+				if (!seedsAround(this.drifter)) {
+					this.think("no seeds left and no grass about: the rest of the farm can wait");
+					return Status.SUCCESS;
+				}
+
 				return this.planFor(Items.WHEAT_SEEDS, SEED_BATCH, "seeds");
 			}
 
@@ -393,6 +400,12 @@ public class FarmActivity extends Activity {
 	/** The nearest water source block it has seen, or null. */
 	@Nullable
 	public static BlockPos nearestWater(DrifterEntity drifter, int radius) {
+		return nearestWater(drifter, radius, Set.of());
+	}
+
+	/** The nearest water source block it has seen, not one of {@code skip}, or null. */
+	@Nullable
+	public static BlockPos nearestWater(DrifterEntity drifter, int radius, Set<BlockPos> skip) {
 		Level level = drifter.level();
 		BlockPos feet = drifter.blockPosition();
 		BlockPos[] best = {null};
@@ -400,7 +413,7 @@ public class FarmActivity extends Activity {
 		drifter.getSenses().terrain().forEachKnown(feet, radius, pos -> {
 			// Plain water with air over it: water with seagrass or kelp in it can't be scooped up with a bucket, nor water
 			// under another block of water (found in testing: "filling its bucket" again and again).
-			if (isWaterSource(level, pos) && level.getBlockState(pos).is(Blocks.WATER) && level.getBlockState(pos.above()).isAir()) {
+			if (isWaterSource(level, pos) && level.getBlockState(pos).is(Blocks.WATER) && level.getBlockState(pos.above()).isAir() && !skip.contains(pos)) {
 				double distance = pos.distSqr(feet);
 				if (distance < bestDistance[0]) {
 					bestDistance[0] = distance;
@@ -472,18 +485,27 @@ public class FarmActivity extends Activity {
 			return true;
 		}
 
+		boolean seeds = seedsAround(drifter);
+
 		for (BlockPos soil : cells(home.farm)) {
 			BlockState crop = level.getBlockState(soil.above());
 			if (crop.getBlock() instanceof CropBlock wheat && wheat.isMaxAge(crop)) {
 				return true;
 			}
 
-			if (canTill(level, soil) || level.getBlockState(soil).is(Blocks.FARMLAND) && crop.isAir()) {
+			if ((canTill(level, soil) || level.getBlockState(soil).is(Blocks.FARMLAND) && crop.isAir()) && seeds) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/** Seeds on it, or grass it knows of nearby to get some from. */
+	public static boolean seedsAround(DrifterEntity drifter) {
+		return drifter.getInventory().count(stack -> stack.is(Items.WHEAT_SEEDS)) > 0
+			|| KnownWorld.anyTakeable(drifter, state -> state.is(Blocks.SHORT_GRASS) || state.is(Blocks.TALL_GRASS) || state.is(Blocks.FERN)
+				|| state.is(Blocks.LARGE_FERN));
 	}
 
 	static boolean isLeaves(BlockState state) {

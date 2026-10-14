@@ -349,6 +349,11 @@ public final class TunnelDigger {
 		}
 
 		String name = state.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT);
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		if (home != null && home.inOwnBuilding(cell, 0)) {
+			return name + " (its own house)";
+		}
+
 		if (state.getBlock() instanceof FallingBlock) {
 			return name + " that would fall";
 		}
@@ -371,13 +376,8 @@ public final class TunnelDigger {
 	/** A staircase step that way has nothing bad in it, and it doesn't head into its hut. */
 	private boolean clearWay(BlockPos feet, Direction direction) {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home != null && home.hutBuilt) {
-			BlockPos toward = feet.relative(direction, 2);
-			int reach = com.dinglebob.drifter.building.StarterHut.HALF + 1;
-			if (Math.abs(toward.getX() - home.center.getX()) <= reach && Math.abs(toward.getZ() - home.center.getZ()) <= reach
-				&& Math.abs(toward.getY() - home.center.getY()) <= 4) {
-				return false;
-			}
+		if (home != null && home.inOwnBuilding(feet.relative(direction, 2), 1)) {
+			return false;
 		}
 
 		Level level = this.drifter.level();

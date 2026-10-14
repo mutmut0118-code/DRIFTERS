@@ -48,6 +48,53 @@ public final class Home {
 	/** Its wheat farm (section 9 stage 6): the middle, at the level it stands on (the water is just below). */
 	@Nullable
 	public BlockPos farm;
+	/**
+	 * Its house (section 11 shelter tier 4; milestone 8 step 8), built near the hut once it's settled: the middle at floor
+	 * level, the door side, its half-size and wall height, its style (wood, stone or mixed), and whether it's finished.
+	 */
+	@Nullable
+	public BlockPos houseCenter;
+	@Nullable
+	public net.minecraft.core.Direction houseDoor;
+	public int houseHalf;
+	public int houseWall;
+	public String houseStyle = "";
+	public boolean houseBuilt;
+
+	/** When placing a bed last failed (not saved): the hut and house goals leave it for a while instead of retrying. */
+	public long bedFailedAt = Long.MIN_VALUE / 2;
+
+	/** It tried to place its bed lately and couldn't. */
+	public boolean bedFailedRecently(long now) {
+		return now - this.bedFailedAt < 20L * 60 * 5;
+	}
+
+	/** Inside or part of its hut or its house (walls, roof, floor, with {@code margin} blocks round them). */
+	public boolean inOwnBuilding(BlockPos pos, int margin) {
+		if (this.hutBuilt || this.hutDoor != null) {
+			int half = com.dinglebob.drifter.building.StarterHut.HALF + margin;
+			if (Math.abs(pos.getX() - this.center.getX()) <= half && Math.abs(pos.getZ() - this.center.getZ()) <= half
+				&& pos.getY() >= this.center.getY() - 1 && pos.getY() <= this.center.getY() + com.dinglebob.drifter.building.StarterHut.ROOF_LAYER) {
+				return true;
+			}
+		}
+
+		if (this.houseCenter != null) {
+			int half = this.houseHalf + margin;
+			return Math.abs(pos.getX() - this.houseCenter.getX()) <= half && Math.abs(pos.getZ() - this.houseCenter.getZ()) <= half
+				&& pos.getY() >= this.houseCenter.getY() - 1 && pos.getY() <= this.houseCenter.getY() + this.houseWall;
+		}
+
+		return false;
+	}
+
+	/** The house's blueprint, or null if it hasn't picked a spot. */
+	@Nullable
+	public com.dinglebob.drifter.building.StarterHut house() {
+		return this.houseCenter == null || this.houseDoor == null ? null
+			: new com.dinglebob.drifter.building.StarterHut(this.houseCenter, this.houseDoor, this.houseHalf, this.houseWall, true);
+	}
+
 	/** Its enchanting table (section 10.13; milestone 8 step 7), outside the hut with room round it for bookshelves. */
 	@Nullable
 	public BlockPos enchantingTable;
@@ -211,6 +258,15 @@ public final class Home {
 			tag.put("EnchantingTable", NbtUtils.writeBlockPos(this.enchantingTable));
 		}
 
+		if (this.houseCenter != null && this.houseDoor != null) {
+			tag.put("HouseCenter", NbtUtils.writeBlockPos(this.houseCenter));
+			tag.putString("HouseDoor", this.houseDoor.getName());
+			tag.putInt("HouseHalf", this.houseHalf);
+			tag.putInt("HouseWall", this.houseWall);
+			tag.putString("HouseStyle", this.houseStyle);
+			tag.putBoolean("HouseBuilt", this.houseBuilt);
+		}
+
 		if (this.mineBottom != null && this.mineDirection != null) {
 			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
 			tag.putString("MineDirection", this.mineDirection.getName());
@@ -246,6 +302,12 @@ public final class Home {
 		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);
 		home.penBredAt = tag.getLong("PenBredAt");
 		home.enchantingTable = NbtUtils.readBlockPos(tag, "EnchantingTable").orElse(null);
+		home.houseCenter = NbtUtils.readBlockPos(tag, "HouseCenter").orElse(null);
+		home.houseDoor = net.minecraft.core.Direction.byName(tag.getString("HouseDoor"));
+		home.houseHalf = tag.getInt("HouseHalf");
+		home.houseWall = tag.getInt("HouseWall");
+		home.houseStyle = tag.getString("HouseStyle");
+		home.houseBuilt = tag.getBoolean("HouseBuilt");
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
 		home.mineTrips = tag.getInt("MineTrips");

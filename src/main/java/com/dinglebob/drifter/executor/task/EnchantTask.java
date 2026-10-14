@@ -111,8 +111,9 @@ public class EnchantTask extends Task {
 			}
 
 			String said;
+			int cost = button >= 0 ? menu.costs[button] : 0;
 			if (button >= 0 && menu.clickMenuButton(fake, button)) {
-				said = "enchanted its " + this.label + " for " + (button + 1) + " levels (offer cost " + menu.costs[button] + ")";
+				said = "enchanted its " + this.label + " (a level " + cost + " offer, " + (button + 1) + " levels and lapis spent)";
 			} else {
 				said = "";
 			}

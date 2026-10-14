@@ -35,7 +35,8 @@ public final class BrainCommands {
 				.then(Commands.argument("goal", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "hut", "store", "progress", "explore", "idle"}, builder))
 					.executes(BrainCommands::force))));
-		root.then(Commands.literal("hut").executes(BrainCommands::showHut));
+		root.then(Commands.literal("hut").executes(ctx -> showHut(ctx, false)));
+		root.then(Commands.literal("house").executes(ctx -> showHut(ctx, true)));
 		root.then(Commands.literal("home")
 			.executes(BrainCommands::showHome)
 			.then(Commands.literal("here").executes(ctx -> {
@@ -57,20 +58,25 @@ public final class BrainCommands {
 	 * The hut as a little map, one layer per line from the floor up (debug): # wall or solid, . air, D door, C chest,
 	 * T table, F furnace, i torch, @ the Drifter.
 	 */
-	private static int showHut(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+	private static int showHut(CommandContext<CommandSourceStack> ctx, boolean house) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 		com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
 		if (home == null) {
 			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("No home yet")).create();
 		}
 
-		com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+		com.dinglebob.drifter.building.StarterHut hut = house ? home.house() : com.dinglebob.drifter.building.StarterHut.of(home);
+		if (hut == null) {
+			throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("No house yet")).create();
+		}
+
 		net.minecraft.world.level.Level level = drifter.level();
 		java.util.List<String> lines = new java.util.ArrayList<>();
-		lines.add(String.format(Locale.ROOT, "%s's hut at %s, door %s, %s, %d blocks missing", DrifterCommands.label(drifter),
-			hut.center.toShortString(), hut.door.getName(), home.hutBuilt ? "finished" : "not finished", hut.missingBlocks(level)));
-		int half = com.dinglebob.drifter.building.StarterHut.HALF;
-		for (int dy = -1; dy <= com.dinglebob.drifter.building.StarterHut.ROOF_LAYER; dy++) {
+		lines.add(String.format(Locale.ROOT, "%s's %s at %s, door %s, %s, %d blocks missing", DrifterCommands.label(drifter),
+			house ? home.houseStyle + " house" : "hut", hut.center.toShortString(), hut.door.getName(),
+			(house ? home.houseBuilt : home.hutBuilt) ? "finished" : "not finished", hut.missingBlocks(level)));
+		int half = hut.half;
+		for (int dy = -1; dy <= hut.wallHeight; dy++) {
 			StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "y%+d:", dy));
 			for (int dz = -half; dz <= half; dz++) {
 				line.append(' ');
@@ -88,6 +94,12 @@ public final class BrainCommands {
 						c = 'T';
 					} else if (state.is(net.minecraft.world.level.block.Blocks.FURNACE)) {
 						c = 'F';
+					} else if (state.getBlock() instanceof net.minecraft.world.level.block.BedBlock) {
+						c = 'B';
+					} else if (state.is(net.minecraft.tags.BlockTags.LOGS)) {
+						c = 'L';
+					} else if (state.is(net.minecraft.world.level.block.Blocks.GLASS) || state.is(net.minecraft.world.level.block.Blocks.GLASS_PANE)) {
+						c = 'G';
 					} else if (state.is(net.minecraft.world.level.block.Blocks.TORCH) || state.is(net.minecraft.world.level.block.Blocks.WALL_TORCH)) {
 						c = 'i';
 					} else if (com.dinglebob.drifter.building.StarterHut.filled(level, pos)) {
@@ -136,7 +148,11 @@ public final class BrainCommands {
 			+ (home.mineBottom == null ? "" : String.format(Locale.ROOT, "; mine down to %s, %d trip%s", home.mineBottom.toShortString(),
 				home.mineTrips, home.mineTrips == 1 ? "" : "s"))
 			+ farmSummary(drifter, home) + penSummary(drifter, home)
-			+ (home.houseBed == null ? "" : "; lives in a village house (bed at " + home.houseBed.toShortString() + ")");
+			+ (home.houseBed == null ? "" : "; lives in a village house (bed at " + home.houseBed.toShortString() + ")")
+			+ (home.house() == null ? "" : String.format(Locale.ROOT, "; %s house at %s (%s, %d blocks missing)", home.houseStyle,
+				home.houseCenter.toShortString(), home.houseBuilt ? "finished" : "building", home.house().missingBlocks(drifter.level())))
+			+ (home.enchantingTable(drifter.level()) == null ? "" : String.format(Locale.ROOT, "; enchanting table at %s (%d bookshelves)",
+				home.enchantingTable.toShortString(), com.dinglebob.drifter.brain.activity.EnchantActivity.bookshelves(drifter.level(), home.enchantingTable)));
 	}
 
 	private static String farmSummary(DrifterEntity drifter, com.dinglebob.drifter.brain.Home home) {

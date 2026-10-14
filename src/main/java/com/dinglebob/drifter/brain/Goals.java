@@ -1140,12 +1140,15 @@ public final class Goals {
 			}
 
 			if (home.hutBuilt) {
-				if (home.houseBed != null) {
+				// Living in a village house, or its own house is up: the hut is left as it is.
+				if (home.houseBed != null || home.houseBuilt) {
 					return 0.0;
 				}
 
 				com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
-				boolean bedToPlace = context.drifter().getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(context.drifter().level()) == null;
+				// (Only if there's somewhere for it: found in testing, a bed it had no room for brought it back every tick.)
+				boolean bedToPlace = context.drifter().getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(context.drifter().level()) == null
+					&& hut.bedSpot(context.drifter().level()) != null && !home.bedFailedRecently(context.drifter().level().getGameTime());
 				return hut.shellBuilt(context.drifter().level()) && !bedToPlace ? 0.0 : 0.45;
 			}
 
@@ -1170,6 +1173,74 @@ public final class Goals {
 		@Override
 		public Activity start(Context context) {
 			return new com.dinglebob.drifter.brain.activity.BuildHutActivity(context.drifter());
+		}
+	}
+
+	/**
+	 * The house (section 11 shelter tier 4, "stage 5 to 6"; milestone 8 step 8): once the iron age is under way (Builders
+	 * as soon as they're settled), a 7x7 house in its archetype's style near the hut; then it moves its bed in. Nomads,
+	 * Hermits and Speedrunners don't build one, nor does a Drifter living in a village house.
+	 */
+	public static final class House extends Goal {
+		@Override
+		public String id() {
+			return "house";
+		}
+
+		@Override
+		public String name(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			return home != null && home.houseBuilt ? "work on the house" : "build a house";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.hutBuilt || home.houseBed != null || !home.near(drifter, Home.STORAGE_RANGE)
+				|| !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter)) {
+				return 0.0;
+			}
+
+			boolean builder = drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.BUILDER;
+			if (context.stage() < (builder ? 4 : 5)) {
+				return 0.0;
+			}
+
+			com.dinglebob.drifter.building.StarterHut house = home.house();
+			if (!home.houseBuilt || house == null) {
+				return builder ? 0.52 : drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.HOMEBODY ? 0.46 : 0.38;
+			}
+
+			net.minecraft.world.level.Level level = drifter.level();
+			if (!house.shellBuilt(level)) {
+				return 0.45;
+			}
+
+			// The bed to move in (carried, or still in the hut), with room for it.
+			boolean bedToMove = house.bed(level) == null && house.bedSpot(level) != null && !home.bedFailedRecently(level.getGameTime())
+				&& (drifter.getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 || com.dinglebob.drifter.building.StarterHut.of(home).bed(level) != null);
+			return bedToMove ? 0.45 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.BuildHouseActivity(context.drifter());
 		}
 	}
 
@@ -1224,7 +1295,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }
