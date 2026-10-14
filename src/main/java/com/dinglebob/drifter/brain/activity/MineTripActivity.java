@@ -590,7 +590,8 @@ public class MineTripActivity extends Activity {
 		this.why = t.done ? "the tunnel's done" : "dug what it planned";
 		// Its old staircase going nowhere (water, openings it can't plug): it gives that one up, and the next trip digs a new
 		// way down from another side of home (found in testing: 22 trips down the same blocked stairs and back).
-		if (this.continuedStairs && t.done && t.steps < STUCK_STAIRS) {
+		// (Whatever stopped it: a cave it couldn't get back from counts too; found in testing, 14 trips down the same stairs.)
+		if (this.continuedStairs && t.steps < STUCK_STAIRS) {
 			Home home = this.drifter.getDrifterBrain().home();
 			if (home != null) {
 				home.mineBottom = null;
