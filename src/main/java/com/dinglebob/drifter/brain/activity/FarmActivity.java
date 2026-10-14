@@ -301,6 +301,11 @@ public class FarmActivity extends Activity {
 					return this.begin(new ExploreActivity(this.drifter, "looking for water", null, d -> nearestWater(d, 48) != null));
 				}
 
+				com.dinglebob.drifter.brain.Home farmHome = this.drifter.getDrifterBrain().home();
+				if (farmHome != null) {
+					farmHome.farmFailedAt = level.getGameTime();
+				}
+
 				return this.fail("knows no water to fill its bucket at");
 			}
 

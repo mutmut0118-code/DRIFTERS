@@ -270,16 +270,16 @@ public final class Strategist {
 				armor += IRON_TARGETS.get(i).satisfied().test(drifter) ? 1 : 0;
 			}
 
+			// Stage 7, diamond: a diamond pickaxe and sword, whatever else it has (Miners go for diamonds before iron armor).
+			if (DIAMOND_TARGETS.get(0).satisfied().test(drifter) && DIAMOND_TARGETS.get(1).satisfied().test(drifter)) {
+				// Stage 8, enchanting: enchanted gear.
+				return has(drifter, ItemStack::isEnchanted) ? 8 : 7;
+			}
+
 			boolean iron = IRON_TARGETS.get(0).satisfied().test(drifter) && IRON_TARGETS.get(1).satisfied().test(drifter)
 				&& IRON_TARGETS.get(2).satisfied().test(drifter) && armor >= 2;
 			if (!iron) {
 				return 4;
-			}
-
-			// Stage 7, diamond: a diamond pickaxe and sword (whether or not the settlement is done: miners skip ahead).
-			if (DIAMOND_TARGETS.get(0).satisfied().test(drifter) && DIAMOND_TARGETS.get(1).satisfied().test(drifter)) {
-				// Stage 8, enchanting: enchanted gear.
-				return has(drifter, ItemStack::isEnchanted) ? 8 : 7;
 			}
 
 			// Stage 6, settlement: a farm, a pen and full iron armor.
