@@ -67,6 +67,9 @@ public class Brain {
 	private com.dinglebob.drifter.brain.mining.Tunnel nightTunnel;
 	/** Structure loot it has dealt with (chests and spawners by position, chest minecarts by id), so it doesn't go back. */
 	public final java.util.Set<net.minecraft.core.BlockPos> looted = new java.util.HashSet<>();
+	/** A crafting table it put down away from home (tidy Drifters pick it back up), or null. Not saved. */
+	@org.jetbrains.annotations.Nullable
+	public net.minecraft.core.BlockPos strayTable;
 	public final java.util.Set<java.util.UUID> lootedCarts = new java.util.HashSet<>();
 
 	/** Game time until which home counts as cut off by mobs (it fled from them on the way): it shelters where it is. */

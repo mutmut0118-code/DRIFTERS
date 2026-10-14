@@ -466,6 +466,7 @@ public class NavigateTask extends Task {
 		}
 
 		if (this.replans > MAX_REPLANS) {
+			this.drifter.autoTrace();
 			return this.fail("stuck: replanned too often (last: " + this.lastReplanReason + ")");
 		}
 
@@ -622,8 +623,25 @@ public class NavigateTask extends Task {
 			}
 		}
 
+		// A door it opened, now behind it: shut it again if that's its habit (section 17 habits: always, at night, never).
+		if (this.openedDoor != null) {
+			BlockPos opened = this.openedDoor;
+			boolean past = this.drifter.position().distanceTo(Vec3.atBottomCenterOf(opened)) > 1.6
+				&& !this.drifter.getBoundingBox().intersects(new net.minecraft.world.phys.AABB(opened).inflate(0.1));
+			if (past) {
+				this.openedDoor = null;
+				BlockState state = this.level().getBlockState(opened);
+				if (this.closesDoors() && state.hasProperty(BlockStateProperties.OPEN) && state.getValue(BlockStateProperties.OPEN)
+					&& !this.pathGoesThrough(opened) && com.dinglebob.drifter.hands.Reach.canReach(this.drifter, opened)) {
+					this.startSub(UseOnBlockTask.useBlock(this.drifter, opened, this.faceToward(opened), "close the door at " + opened.toShortString()));
+					return Status.RUNNING;
+				}
+			}
+		}
+
 		BlockPos door = this.closedDoor(step);
 		if (door != null) {
+			this.openedDoor = door.immutable();
 			this.startSub(UseOnBlockTask.useBlock(this.drifter, door, this.faceToward(door), "open the door at " + door.toShortString()));
 			return Status.RUNNING;
 		}
@@ -1019,6 +1037,30 @@ public class NavigateTask extends Task {
 		return new SequenceTask(this.drifter, "dig " + this.blockName(cell), List.of(
 			new SelectItemTask(this.drifter, stack -> stack == tool, tool.getHoverName().getString()),
 			new MineTask(this.drifter, cell)));
+	}
+
+	/** A door it opened on this walk (to close behind it). */
+	@Nullable
+	private BlockPos openedDoor;
+
+	/** Its door habit: always, only at night, or never. */
+	private boolean closesDoors() {
+		var etiquette = this.drifter.getPersonality().habits().doors;
+		return etiquette == com.dinglebob.drifter.personality.Habits.DoorEtiquette.ALWAYS_CLOSES
+			|| etiquette == com.dinglebob.drifter.personality.Habits.DoorEtiquette.CLOSES_AT_NIGHT
+				&& com.dinglebob.drifter.brain.Schedule.isNight(this.drifter);
+	}
+
+	/** The rest of the path goes back through this cell (or the one above). */
+	private boolean pathGoesThrough(BlockPos pos) {
+		for (int i = this.index; i < this.path.size(); i++) {
+			BlockPos to = this.path.get(i).to();
+			if (to.equals(pos) || to.above().equals(pos)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Nullable

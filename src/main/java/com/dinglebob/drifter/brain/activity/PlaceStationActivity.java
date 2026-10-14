@@ -42,6 +42,12 @@ public class PlaceStationActivity extends Activity {
 			this.placed = true;
 			// It placed it itself, so it knows it's there (stations memory).
 			this.drifter.getSenses().placedBlock(this.placing);
+			// A crafting table put down away from home: tidy Drifters pick it back up when they're done (habit).
+			com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+			if (this.item == net.minecraft.world.item.Items.CRAFTING_TABLE
+				&& (home == null || !home.near(this.drifter, com.dinglebob.drifter.brain.Home.STORAGE_RANGE))) {
+				this.drifter.getDrifterBrain().strayTable = this.placing.immutable();
+			}
 		}
 	}
 

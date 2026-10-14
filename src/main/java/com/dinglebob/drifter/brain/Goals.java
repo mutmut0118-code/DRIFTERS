@@ -763,6 +763,12 @@ public final class Goals {
 				return drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.ENCHANTING_TABLE)) > 0 ? 0.45 : 0.0;
 			}
 
+			// A bookshelf to put up round the table.
+			if (drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.BOOKSHELF)) > 0
+				&& com.dinglebob.drifter.brain.activity.EnchantActivity.nextShelfSpot(drifter.level(), table, home) != null) {
+				return 0.45;
+			}
+
 			if (com.dinglebob.drifter.brain.activity.EnchantActivity.nextToEnchant(drifter) == null
 				|| drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.LAPIS_LAZULI)) == 0) {
 				return 0.0;
@@ -791,6 +797,124 @@ public final class Goals {
 		@Override
 		public Activity start(Context context) {
 			return new com.dinglebob.drifter.brain.activity.EnchantActivity(context.drifter());
+		}
+	}
+
+	/**
+	 * Tidy habit (section 17, "picks up crafting tables"): a crafting table it put down away from home comes back with it
+	 * once it's done crafting there, instead of being left littered around.
+	 */
+	public static final class PickUpTable extends Goal {
+		@Override
+		public String id() {
+			return "tidy";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "pick its crafting table back up";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			net.minecraft.core.BlockPos table = drifter.getDrifterBrain().strayTable;
+			if (table == null || !drifter.getPersonality().habits().picksUpTables) {
+				return 0.0;
+			}
+
+			if (!drifter.level().getBlockState(table).is(net.minecraft.world.level.block.Blocks.CRAFTING_TABLE)
+				|| table.distToCenterSqr(drifter.position()) > 12 * 12) {
+				// Gone, or left behind: it's not going back for it.
+				drifter.getDrifterBrain().strayTable = null;
+				return 0.0;
+			}
+
+			return 0.36;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return 0.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 5;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			DrifterEntity drifter = context.drifter();
+			net.minecraft.core.BlockPos table = drifter.getDrifterBrain().strayTable;
+			drifter.getDrifterBrain().strayTable = null;
+			return new com.dinglebob.drifter.brain.activity.PickUpBlockActivity(drifter, table, "its crafting table");
+		}
+	}
+
+	/**
+	 * Light up the base (section 10.15; tier 5 compound): spare torches go on the ground round home where it's dark, in
+	 * the daytime, once it's settled in the iron age.
+	 */
+	public static final class LightBase extends Goal {
+		@Override
+		public String id() {
+			return "light";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "light up the base";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.hutBuilt || context.stage() < 5 || !home.near(drifter, Home.STORAGE_RANGE)
+				|| Schedule.isNight(drifter)
+				|| drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.TORCH))
+					<= com.dinglebob.drifter.brain.activity.LightBaseActivity.KEEP_TORCHES + 4) {
+				return 0.0;
+			}
+
+			long now = drifter.level().getGameTime();
+			if (now < this.checkAfter) {
+				return this.dark ? 0.32 : 0.0;
+			}
+
+			this.checkAfter = now + 20 * 30;
+			this.dark = com.dinglebob.drifter.brain.activity.LightBaseActivity.darkSpot(drifter, home, java.util.Set.of()) != null;
+			return this.dark ? 0.32 : 0.0;
+		}
+
+		private long checkAfter;
+		private boolean dark;
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 15;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			this.checkAfter = 0;
+			return new com.dinglebob.drifter.brain.activity.LightBaseActivity(context.drifter());
 		}
 	}
 
@@ -1295,7 +1419,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }

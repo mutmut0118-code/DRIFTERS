@@ -376,6 +376,19 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** Holds keys for a number of ticks, then releases them all. Ticks of -1 hold until changed. */
+	/** Debug: with thoughts going to the log, traces the next 10 s after something went wrong (stuck, out of air). */
+	public void autoTrace() {
+		if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0 && this.autoTraces++ < MAX_AUTO_TRACES) {
+			// The run-up too: the black box has the last few seconds.
+			com.dinglebob.drifter.Drifter.LOGGER.info("[auto trace] the last {} ticks:", Math.min(60, this.blackBox.size()));
+			this.blackBox.stream().skip(Math.max(0, this.blackBox.size() - 60)).forEach(com.dinglebob.drifter.Drifter.LOGGER::info);
+			this.traceTicks = 200;
+		}
+	}
+
+	private int autoTraces;
+	private static final int MAX_AUTO_TRACES = 6;
+
 	/** Logs a line per tick for this many ticks (debug: /drifter trace). */
 	public void trace(int ticks) {
 		this.traceTicks = ticks;
@@ -478,11 +491,59 @@ public class DrifterEntity extends PathfinderMob {
 			this.inventory.tick();
 		}
 
+		// LocalPlayer#aiStep: a player overlapping blocks is nudged toward the nearest open side (found in testing: spawned on
+		// a block corner inside a tree, it dug at one block at a time and suffocated).
+		if (!this.level().isClientSide && !this.noPhysics) {
+			double reach = this.getBbWidth() * 0.35;
+			this.moveTowardsClosestSpace(this.getX() - reach, this.getZ() + reach);
+			this.moveTowardsClosestSpace(this.getX() - reach, this.getZ() - reach);
+			this.moveTowardsClosestSpace(this.getX() + reach, this.getZ() - reach);
+			this.moveTowardsClosestSpace(this.getX() + reach, this.getZ() + reach);
+		}
+
 		super.aiStep();
 
 		if (!this.level().isClientSide && this.isAlive()) {
 			this.pickUpNearbyItems();
 		}
+	}
+
+	/** LocalPlayer#moveTowardsClosestSpace. */
+	private void moveTowardsClosestSpace(double x, double z) {
+		BlockPos pos = BlockPos.containing(x, this.getY(), z);
+		if (!this.suffocatesAt(pos)) {
+			return;
+		}
+
+		double inX = x - pos.getX();
+		double inZ = z - pos.getZ();
+		net.minecraft.core.Direction best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (net.minecraft.core.Direction side : new net.minecraft.core.Direction[]{net.minecraft.core.Direction.WEST, net.minecraft.core.Direction.EAST,
+			net.minecraft.core.Direction.NORTH, net.minecraft.core.Direction.SOUTH}) {
+			double along = side.getAxis().choose(inX, 0.0, inZ);
+			double distance = side.getAxisDirection() == net.minecraft.core.Direction.AxisDirection.POSITIVE ? 1.0 - along : along;
+			if (distance < bestDistance && !this.suffocatesAt(pos.relative(side))) {
+				bestDistance = distance;
+				best = side;
+			}
+		}
+
+		if (best != null) {
+			Vec3 motion = this.getDeltaMovement();
+			if (best.getAxis() == net.minecraft.core.Direction.Axis.X) {
+				this.setDeltaMovement(0.1 * best.getStepX(), motion.y, motion.z);
+			} else {
+				this.setDeltaMovement(motion.x, motion.y, 0.1 * best.getStepZ());
+			}
+		}
+	}
+
+	/** LocalPlayer#suffocatesAt. */
+	private boolean suffocatesAt(BlockPos pos) {
+		AABB box = this.getBoundingBox();
+		AABB column = new AABB(pos.getX(), box.minY, pos.getZ(), pos.getX() + 1.0, box.maxY, pos.getZ() + 1.0).deflate(1.0E-7);
+		return this.level().collidesWithSuffocatingBlock(this, column);
 	}
 
 	/** Runs inside Mob#serverAiStep, before the (idle) vanilla controls. This is where the motor drives the body. */

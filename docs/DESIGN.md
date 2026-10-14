@@ -602,7 +602,9 @@ Mining methods, chosen by stage, target and personality:
   breaks into a cave turns into caving. Strip miners plug caves and branch mine, but still go for ore they see.
 - **Water drops:** water stops all fall damage from any height. Brave Drifters plan drops of up to 32 blocks into water
   they can see; careful ones keep to about 8.
-- **Target depths (1.18+ ore distribution):** coal high in mountains and hills, copper in the middle heights, iron in a band around the low teens and again high in mountains, lapis around Y 0, gold around Y -16, redstone and diamonds near the bottom of the world, diamonds best around Y -58.
+- **Target depths (1.18+ ore distribution):** coal high in mountains and hills, copper in the middle heights, iron in a band around the low teens and again high in mountains, lapis around Y 0, gold around Y -16, redstone and diamonds near the bottom of the world, diamonds best around Y -58. **Decision (session 2):** it branch
+  mines for diamonds around Y -51, just above the lava level (below Y -54 caves are full of lava, so a tunnel there
+  breaks into lava lakes); the odds are still good there.
 - **Tunnel shape is a habit:** 1x2 (most), 2x2 (comfort-lovers) or 3x3 (Builders). Branch spacing is a habit too.
 - **Veins:** always finishes a visible ore vein before moving on.
 - **Falling blocks:** after breaking a block under gravel or sand, steps back and waits; when suffocating, digs itself out.
@@ -612,7 +614,9 @@ Mining methods, chosen by stage, target and personality:
 - **Torch placement:** whenever the area ahead gets dark, always on its favorite side (habit fingerprint). Some Drifters use the classic "torches on the right going in" rule so the way out is on the left.
 - **Torches as way markers** (user's rule): like players, it uses torches in caves, tunnels and at night to keep track of where it is and how to get back: always on the same side going in, so on the way out they're on the other side, and a line of torches leads home.
 - **Inventory full:** throws junk per its policy (section 10.18) or heads home. Cautious Drifters go home early when carrying diamonds.
-- **Tools:** uses Fortune on coal, lapis, redstone and diamonds; Silk Touch on glass, ice, ender chests. Thrifty Drifters avoid using a diamond pickaxe on plain stone.
+- **Tools:** uses Fortune on coal, lapis, redstone and diamonds; Silk Touch on glass, ice, ender chests. Thrifty Drifters avoid using a diamond pickaxe on plain stone. **In practice (session 2):** with a stone pickaxe along,
+  it uses that on plain rock and keeps the better one for ore (only very efficient Drifters don't bother); deep trips
+  take a crafting table and sticks so a broken pickaxe can be replaced from the rock it mines.
 
 ### 10.4 Smelting
 
@@ -700,7 +704,12 @@ Mining methods, chosen by stage, target and personality:
 
 ### 10.13 Enchanting, anvils and repair
 
-- **Setup:** enchanting table with bookshelves around it at a one-block gap, up to 15.
+- **Setup:** enchanting table with bookshelves around it at a one-block gap, up to 15. The table goes near home on flat
+  ground with room round it for the bookshelves.
+- **Obsidian (session 2):** the bucket method, two buckets: scoop lava from a pool, pour it into a one-block hole dug in
+  solid ground away from the lava, pour water beside it, scoop the water back, mine the obsidian (it drops safely into the
+  hole). Never water straight onto a lava pool (the obsidian would sit on lava and its drop would burn).
+- **XP pickup:** orbs only fly to real players, so it walks over them like dropped items.
 - **Choices:** takes the strongest offer it can afford, with tool-specific priorities: pickaxe (Efficiency, Fortune, Unbreaking), sword (Sharpness, Looting), armor (Protection), bow (Power).
 - **XP:** gains it from mining ore, killing mobs and smelting; Efficient Drifters plan an XP trip before enchanting.
 - **Anvil:** combines books, repairs favorite items, and renames them. Naming its sword is a signature mannerism, using its personal name list.
@@ -752,7 +761,7 @@ The Drifter builds the way players build: an emergency hole on night one, a dirt
 | 1. Panic shelter | Night falls far from home with nothing prepared | Pillars 10 to 20 blocks up and waits on top, or digs 2 down and covers the hole | Seconds |
 | 2. Hillside dig-in | Night 1 near a hill | 1x2 entrance into stone, a 3x3 room, sealed with a block or a door | 30 to 60 s |
 | 3. Starter hut | Days 1 to 3 | 5x5 or 7x7 box of whatever it has (dirt, cobblestone, planks), flat roof, door, bed, chest, table, furnace, torches | A few minutes |
-| 4. House | Stage 5 to 6 | An archetype blueprint in its palette | One to several days of work |
+| 4. House | Stage 5 to 6 | An archetype blueprint in its palette (first version, session 2: a 7x7 box, walls 3 high with windows, flat roof, wood with log posts or stone or mixed by archetype; it moves its bed in) | One to several days of work |
 | 5. Compound | Stage 6 onward | House plus farms, pens, storage, portal room, walls, paths, a signature feature | Grows forever |
 
 ### Site selection

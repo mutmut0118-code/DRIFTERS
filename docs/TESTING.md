@@ -767,9 +767,13 @@ Use `/drifter night` to see tonight's plan, or force one with `/drifter night hu
 
 ## Milestone 8: Progression and building
 
-**Status:** steps 1 to 3 of 9 (home and storage, starter hut, iron age) written and smoke-tested on a test server,
-not played yet. The goal of the
-whole milestone: left alone for 10 days, a Drifter reaches diamonds and builds a base you'd recognize.
+**Status:** steps 1 to 8 of 9 written and tested on a test server (sped-up runs and set-up scenes), not played
+yet. The goal of the whole milestone: left alone for 10 days, a Drifter reaches diamonds and builds a base you'd
+recognize.
+
+**Fastest way to see everything:** spawn one, give it the iron-age kit below, and let it play a few days with
+`/tick rate 60` (3x speed). `/drifter brain` shows its stage, next target and level; `/drifter home` shows its home,
+farm, pen, house and enchanting table.
 
 ### Step 1: home and storage
 Quick setup: `/drifter spawn Homey`, then `/drifter give minecraft:stone_pickaxe`, `/drifter give minecraft:furnace`,
@@ -876,13 +880,74 @@ white).
       before building the hut; it finishes ore veins and picks up the ore that drops; a strip miner steps into a cave its
       tunnel opens and looks around before carrying on.
 
+### Step 5: farm, pen and tidy chests (new)
+Set up as for step 3, plus `/drifter give minecraft:bucket` (the farm needs one) and `/drifter give minecraft:wheat_seeds 16`.
+- [ ] Once it has a bucket it starts a **wheat farm** near home ("starting a wheat farm at ..."): a 9x9 patch, the
+      middle dug out and filled with water from its bucket, the rest tilled with a hoe and planted. Later it harvests
+      ripe wheat and replants. `/drifter home` shows "farm at ...: N farmland, N planted, N ripe, water yes".
+- [ ] With wheat or seeds on it, it builds a small **fenced pen** with a gate, leads two animals of a kind in (they
+      follow it while it holds wheat), feeds them so they breed, and shuts the gate.
+- [ ] Putting things away, it puts each thing into the chest that already has that kind in it.
+- [ ] (Re-test after fix) In water under a ceiling (a flooded cave) it finds its way to air instead of pushing against
+      a wall; it doesn't plan long swims under water.
+- [ ] (Re-test after fix) **Sleeping:** in bed at night, it gets up in the morning (a bug kept it in bed for days).
+
+### Step 6: diamonds (new)
+**Iron-age kit** (skips days of play): `/drifter spawn Digger`, `/drifter personality reroll miner`, then
+`/drifter give` each of: `minecraft:iron_pickaxe`, `minecraft:stone_pickaxe`, `minecraft:iron_sword`,
+`minecraft:bucket`, `minecraft:shield`, `minecraft:iron_chestplate`, `minecraft:iron_leggings`, `minecraft:iron_helmet`,
+`minecraft:iron_boots`, `minecraft:shears`, `minecraft:flint_and_steel`, `minecraft:white_bed`, `minecraft:furnace`,
+`minecraft:crafting_table`, `minecraft:chest`, `minecraft:oak_planks 32`, `minecraft:cobblestone 100`,
+`minecraft:torch 32`, `minecraft:cooked_beef 16`, `minecraft:coal 16`.
+- [ ] `/drifter brain` says "next target: a diamond pickaxe". It goes down its staircase (or digs one) toward about
+      Y -51 ("digging down toward Y -51 for diamond"), branch mines there and goes for diamond ore it spots.
+- [ ] Digging plain stone and deepslate it uses its **stone pickaxe** and saves the iron one for ore. Before a deep trip
+      it takes a crafting table and sticks along ("taking sticks along, to make a pickaxe down there if one breaks").
+- [ ] With 3 diamonds it comes home and crafts a **diamond pickaxe**, then works toward a sword. Stage 7 "diamond" in
+      `/drifter brain` once it has both.
+
+### Step 7: enchanting (new)
+Quick check of the enchanting itself: with the kit above, also give `minecraft:diamond_pickaxe`,
+`minecraft:diamond_sword`, `minecraft:enchanting_table` and `minecraft:lapis_lazuli 9`, then `/drifter xp 30`.
+- [ ] It sets the table down near home on flat ground ("set up its enchanting table at ..."), walks up to it, pauses
+      as if reading the offers, and enchants its pickaxe, then its sword ("enchanted its diamond pickaxe (a level 8
+      offer...): Efficiency I, Unbreaking I"). Levels and lapis go down. Stage 8 "enchanting".
+- [ ] **Obsidian:** instead of the table, give it `minecraft:diamond 2`, `minecraft:book` and a second
+      `minecraft:bucket`, and make a small lava pool nearby (`/fill ~5 ~-1 ~5 ~7 ~-1 ~7 minecraft:lava`) with water
+      somewhere close. It fills a bucket with water, scoops up lava (standing back from it), digs a one-block hole,
+      pours the lava in and water next to it, scoops the water back, mines the obsidian and picks it up. Four times,
+      then it crafts the enchanting table.
+- [ ] **Bookshelves:** give it `minecraft:bookshelf 6` while it has a table: it puts them in a ring two blocks out
+      from the table (a gap left to walk in). `/drifter home` shows "enchanting table at ... (N bookshelves)".
+- [ ] Experience: it picks up experience orbs it walks over (mining coal, killing mobs, taking smelted iron out of the
+      furnace); `/drifter brain` shows "level N".
+
+### Step 8: houses (new)
+Use a **Builder** (`/drifter personality reroll builder`) with the step 3 setup, plus `minecraft:oak_planks 192`,
+`minecraft:oak_log 32`, `minecraft:glass_pane 8` and a bed. (Other Drifters build theirs once they reach the iron age;
+Miners build in stone; Nomads, Hermits and Speedrunners don't build one.)
+- [ ] After the hut, "building a wood house at ..., door on the ... side": a 7x7 house 9-16 blocks from the hut,
+      walls 3 high with log corner posts, a window in the middle of three walls (glass panes in them), a flat roof
+      put on from a two-block pillar in the middle (it climbs down after), and a door facing the hut.
+- [ ] When it's finished it goes to the hut, breaks the bed, carries it over and puts it in the house ("moving its bed
+      from the hut into the house"). At night it goes into the house, shuts the door and sleeps there.
+- [ ] `/drifter house` shows the house layer by layer (L logs, G glass, B bed, # blocks, D door).
+- [ ] Its mines and caving never dig into the hut or the house.
+- [ ] **Lighting:** with plenty of torches (`/drifter give minecraft:torch 64`), in the daytime it walks round home and
+      puts torches on the ground where it's dark ("light up the base"). A tidy one (Builder, Homebody) puts them on a
+      neat grid.
+- [ ] **Habits:** walking through a door it opened, some Drifters shut it behind them (always, or only at night);
+      tidy ones pick their crafting table back up after crafting away from home. `/drifter personality` lists its
+      habits (doors, tables).
+- [ ] (Re-test after fix) `/drifter spawn` near trees: it never ends up stuck inside a block.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
+- No anvil yet; bookshelves come slowly (each needs 3 books: sugar cane and leather).
+- Houses are one style of box with a flat roof (pitched roofs, porches and bigger compounds come later).
 - It doesn't use shears for wool yet.
-- The hut is always 5x5 with a flat roof (bigger houses by personality are step 8); no bed yet (step 4); the crafting
-  table it used for the chest may end up as part of the wall.
-- Mining is always a staircase plus a 1x2 branch mine; caving (exploring caves on purpose) and 2x2/3x3 tunnels by
-  mining style come later.
-- It doesn't sort or label chests yet.
+- The crafting table it used for the chest may end up as part of the hut's wall.
+- Tunnels are always 1x2 (2x2 and 3x3 by mining style come later).
+- It puts like with like in its chests but doesn't label them yet.
 
 ### Known gaps for milestone 7 (don't report these as bugs)
 - No beds or sleeping yet; no "joined the game" chat lines yet.

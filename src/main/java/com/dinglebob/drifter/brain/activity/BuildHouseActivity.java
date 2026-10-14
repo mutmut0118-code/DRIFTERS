@@ -105,8 +105,34 @@ public class BuildHouseActivity extends BuildHutActivity {
 		return home == null || home.houseStyle.isEmpty() ? styleFor(this.drifter) : home.houseStyle;
 	}
 
+	/** Its favorite wood or stone (habit fingerprint, section 11 "Palette"), as an item, or null. */
+	@Nullable
+	private Item favorite() {
+		var habits = this.drifter.getPersonality().habits();
+		String id = switch (this.style()) {
+			case WOOD -> habits.favoriteWood + "_planks";
+			case STONE -> habits.favoriteStone;
+			default -> null;
+		};
+		if (id == null) {
+			return null;
+		}
+
+		Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.withDefaultNamespace(id));
+		return item == Items.AIR ? null : item;
+	}
+
 	@Override
 	protected List<Item> materialItems() {
+		Item favorite = this.favorite();
+		if (favorite != null && WOOD.equals(this.style())) {
+			// Its favorite wood first (the planner takes the first of equals), the rest if that's what's about.
+			List<Item> planks = new java.util.ArrayList<>(PLANKS);
+			planks.remove(favorite);
+			planks.add(0, favorite);
+			return planks;
+		}
+
 		return switch (this.style()) {
 			case WOOD -> PLANKS;
 			case STONE -> STONES;
@@ -137,6 +163,12 @@ public class BuildHouseActivity extends BuildHutActivity {
 		Predicate<ItemStack> logs = stack -> stack.is(ItemTags.LOGS);
 		if (corner && WOOD.equals(this.style()) && this.drifter.getInventory().count(logs) > 0) {
 			return logs;
+		}
+
+		// Its favorite block while it has some; a mix once it runs out (the patchy look of real builds).
+		Item favorite = this.favorite();
+		if (favorite != null && this.drifter.getInventory().count(stack -> stack.is(favorite)) > 0) {
+			return stack -> stack.is(favorite);
 		}
 
 		return this.wallBlock();

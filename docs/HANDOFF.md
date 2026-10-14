@@ -1,5 +1,17 @@
 # Session 2 (local) update
 
+- **Milestone 8 (2026-10-14):** steps 1-8 have code (home, hut, iron age with caving and looting, beds and village
+  houses, farm and pen, diamonds, enchanting with obsidian and XP, houses by archetype). The user gave full permission
+  to finish the milestone unattended ("i wanna be able to wake up and see mile 8 done"). Step 9 (the 10-day run) is
+  what's left. Details in `docs/PROGRESS.md` "Milestone 8".
+- **Testing tricks that work:** `sprint <ticks>` lines in `tools/smoke.py` scripts (5 game days in ~2 minutes); run
+  regression batches in a copy of the project (a test server recompiles from source, so editing during a run leaks in;
+  copy without `.git`, `build`, `.gradle/9.5.0`, `.gradle/configuration-cache`, `.gradle/loom-cache/launch.cfg`, lock
+  files); random seeds per run; `/drifter thoughts log true` plus the death black box (last 10 s of movement written to
+  the log on death) explain every death. Stop leftover servers by PID.
+- **Lessons:** for a mob, `isImmobile()` also stops the AI step (a sleeping Drifter never woke); `Reach.canReach` can't
+  aim at liquids (use a clip to the surface); placement on an empty cell needs a distance check, not `canReach`.
+
 - **Milestone 7 started**: personality (`personality/*`), mood, the tic layer (`mannerism/Mannerisms`, body-part claims
   via `Task.freeParts`, camera glance override), all milestone 7 trait TODOs wired in, and night behaviour by
   personality (`Schedule.NightStyle`: stays in / hunts / digs in then mines, `NightTunnel`, `Goals.NightHunt`).

@@ -219,6 +219,9 @@ public final class Storage {
 		} else if (stack.is(Items.ENCHANTING_TABLE)) {
 			// Kept until it's set up near home (milestone 8 step 7).
 			return "enchanting table";
+		} else if (stack.is(Items.BOOKSHELF)) {
+			// For the ring round its enchanting table.
+			return "bookshelf";
 		} else if (stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE)) {
 			// For the house's windows.
 			return "glass";
@@ -261,6 +264,7 @@ public final class Storage {
 			case "lapis" -> 64;
 			case "seeds" -> 32;
 			case "glass" -> 16;
+			case "bookshelf" -> 15;
 			case "wheat" -> 16;
 			case "torch" -> KEEP_TORCHES;
 			case "food" -> KEEP_FOOD;

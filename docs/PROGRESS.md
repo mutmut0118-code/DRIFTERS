@@ -4,7 +4,13 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Current state (session 2, local, 2026-10-13)
+## Current state (session 2, local, 2026-10-14)
+
+- **Milestone 8: all nine steps have code** (user: "you have every right to complete the rest of your steps on your
+  own"). Steps 1-5 are tested on sprinted 5-day runs; steps 6-8 (diamonds, enchanting, houses) are written and
+  passed staged tests on a test server, but none of it has been played by the user yet. Step 9 (the 10-day
+  unattended run) is the last check. See "Milestone 8" below; checks in `docs/TESTING.md`.
+- **Big fix found on the way:** a Drifter that went to bed never woke up (its brain stopped while it slept); fixed.
 
 - **Milestone 7 started** (user's request) while 5 and 6 are still in testing: personality, habits, mood, the
   mannerism (tic) layer, and night behaviour by personality are in. Smoke-tested on a headless dev server (also with
@@ -39,7 +45,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 5 | Brain and day one | In progress: in-game testing, fixes going in | Selector, planner, executor, the Stage 1 to 3 loop. Done when: a Fresh Drifter survives its first night unaided on most seeds. |
 | 6 | Combat and reflexes | In progress: first version written (user asked to start it during milestone 5 testing) | Mob targeting, per-mob protocols, reflex catalog; combat-mod test pass. Done when: it survives three nights in a row. |
 | 7 | Mannerisms, personality and mood | Mostly done: the user tested it and moved on to milestone 8 (session 2); leftovers listed below | Done when: people watching a short clip can't reliably tell it from a player. |
-| 8 | Progression and building | In progress: steps 1-3 done (home and storage, starter hut, iron age with caving and looting); step 4 (beds) written and smoke-tested (session 2) | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
+| 8 | Progression and building | In progress: steps 1-8 written (home, hut, iron age with caving and looting, beds, farm and pen, diamonds, enchanting, houses), tested on sprinted runs and staged tests (session 2); step 9 (10-day run) next | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | Not started | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | Not started | Section 19. |
@@ -711,6 +717,95 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   drops or dig down.
 - **Looting:** mineshafts (chest minecarts) and dungeons (spawner, chests) done with caving (cobwebs still just
   avoided); ruined portals, shipwrecks and temples later in milestone 8; villages after milestone 9.
+
+### Step 5: settlement (farm, pen, organised chests; tested on sprinted runs)
+- **Wheat farm** (`brain/activity/FarmActivity`, goal "tend the farm"): once settled with a bucket, a 9x9 plot near home
+  on ground it has seen (it walks out to look if it hasn't), bumps and dips levelled, water in a dug hole in the middle
+  (fills its bucket at water it knows, or goes to where its map says there's water), a hoe from the planner, tilling,
+  seeds from grass, harvesting ripe wheat and replanting. With no seeds and no grass about it waits for the harvest
+  instead of exploring (found in testing: it wandered off looking for seeds). `/drifter home` shows the farm.
+- **Animal pen** (`PenActivity`, goal "look after the animal pen"): once it has a farm and carries wheat or seeds, a 5x5
+  fenced pen with a gate facing home; animals follow it while it holds wheat (`world/AnimalTempting`), it leads two in,
+  feeds them to breed (`UseOnEntityTask`), and shuts the gate. Staged test: a calf was born.
+- **Organised chests:** it puts things into a chest that already has that kind first; a chest it couldn't get to no
+  longer counts as full.
+- **It keeps on it** (`Storage`): seeds (32), wheat (16), lapis (64), glass (16), an enchanting table it hasn't set up,
+  besides the earlier kit (found in testing: the farm stood empty because its seeds went in the chest).
+- **Drowning fixes (all from sprinted runs, using the new death "black box"):** unseen blocks over water now count as
+  underwater when planning a route (a flooded tunnel looked like swimming on the surface, so the "at most 6 blocks under
+  water" limit never kicked in); the out-of-air reflex finds a way through the water to air (it swam straight at the
+  nearest air and stuck against a wall); dives cost more. A bridge it couldn't get to the edge for is avoided for 5
+  minutes (it re-planned the same bridge all evening).
+- **Debug black box:** with `/drifter thoughts log true`, the last 10 seconds of movement are written to the log if it
+  dies, so every death in a test explains itself.
+- **Results after these fixes (5 game days each, 6 random seeds):** 0 deaths in 6 runs (the batch before: 3 in 6),
+  iron pickaxe in 5 of 6, a farm in 5 of 6.
+
+### Step 6: diamonds (written, staged and sprinted runs)
+- **Targets** (`Strategist.DIAMOND_TARGETS`): diamond pickaxe, then sword, then chestplate, leggings, helmet, boots.
+  Miners jump to the diamond pickaxe and sword right after the iron pickaxe, bucket and shield (section 9 pacing);
+  others after their iron armor. Stages: 6 settlement (farm, pen, full iron armor), 7 diamond (diamond pickaxe and
+  sword), 8 enchanting (enchanted gear).
+- **Where:** the sources table has a new file `drifter_sources/deep_ores.json`: diamonds at Y -51 (decision: just above
+  the lava level; below Y -54 caves are full of lava), lapis at Y 0, gold at -16, redstone at -51. Mining trips carry on
+  down the existing staircase from home.
+- **Pickaxes on long digs (found in testing: the iron pickaxe wore out on a staircase down to the diamonds, then the
+  spares, 150 blocks from home):** it uses a stone pickaxe on plain rock when it has one (the iron one is kept for ore
+  that needs it; only very efficient Drifters don't bother), and deep trips take a crafting table and sticks along so a
+  broken pickaxe can be replaced down there.
+- **Sleeping bug (fixed):** sleeping counted as "immobile", which for a mob also stops its brain, so a Drifter that went
+  to bed never got up (one slept for three days in a test).
+- Known: on the sprinted runs so far it saw diamond ore at Y -26 to -50 but hadn't mined any yet when its pickaxes ran
+  out (fixed since; the step 9 run will show it).
+
+### Step 7: enchanting (written, staged tests passed)
+- **Experience:** it has levels like a player (saved): it collects experience orbs it touches (orbs only fly to players,
+  so it walks over them, like items; Mending repairs gear first), ore, mobs and smelting give orbs as for a player
+  (taking a furnace's output pays out its stored experience). `/drifter brain` shows its level.
+- **Obsidian** (`ObsidianActivity`, planner action "make obsidian with lava and water"): with a diamond pickaxe and two
+  buckets, the player's bucket method: fill a bucket with water, scoop up lava from a pool it remembers (standing in
+  reach but never right beside lava), dig a one-block hole in solid ground away from lava, pour the lava in, pour water
+  beside it, scoop the water back up, mine the obsidian and pick it up from the hole. Without lava it knows of, it
+  explores for some. Staged test: 4 obsidian in a row, then the table was crafted.
+- **Enchanting table** (target after the diamond pickaxe and sword, before diamond armor): books from sugar cane and
+  leather (sugar cane is now in the sources table), placed near home on flat ground with room round it for bookshelves
+  (`EnchantActivity.librarySpot`). Then "some lapis".
+- **Enchanting** (`EnchantTask`, goal "enchant its gear"): when it has lapis and the levels its bookshelves make worth
+  waiting for (8 with none, up to 30 with 15), it uses the table's real menu through the player-hands helper and takes
+  the strongest offer it can afford: diamond pickaxe, sword, diamond armor, then iron pickaxe and sword, bow. Staged
+  test: "enchanted its diamond pickaxe: Unbreaking I, Efficiency I", then the sword; stage 8.
+- **Bookshelves:** after the diamond armor, "a bookshelf" one at a time (3 books each), placed in the ring two out
+  from the table with the cell between kept clear, a gap left on the side facing home to walk in (15, the most that
+  count). Offers get better as the ring fills, and it waits for more levels to match.
+- **Not yet:** the anvil (combining books, repairs, naming its sword).
+- **Debug:** `/drifter xp <levels>` gives it levels (vanilla `/xp` only works on players).
+
+### Step 8: houses (written, staged tests passed)
+- **The house** (`BuildHouseActivity`, goal "build a house"): once in the iron age (Builders as soon as they're settled), a
+  7x7 house 9-16 blocks from the hut on flat ground it has seen, clear of the farm, pen and enchanting table. Walls 3 high
+  with window gaps in the middle of each wall but the door's (glass if it has some), flat roof, door facing home.
+  Built the hut's way (`StarterHut` now takes a size and wall height): walls from inside, the third layer and the roof
+  from a two-block pillar in the middle, the middle roof block last from below.
+- **Style by archetype** (section 11): Builders and Homebodies build in wood (planks, log corner posts), Miners, Bandits
+  and PvP Sweats in stone, everyone else in whatever it has (not dirt). Nomads, Hermits and Speedrunners don't build one.
+- **Moving in:** when it's finished it breaks its bed in the hut, carries it over and puts it in the house; at night it
+  goes into the house, shuts the door and sleeps there (the hut is left as it is).
+- Tunnels and caving never dig into its own hut or house.
+- Staged test (flat world, a Builder): finished house with log corners, glass windows, the bed moved in.
+- `/drifter house` prints the house layer by layer (L logs, G glass, B bed); `/drifter home` shows its state.
+- **Lighting the base** (section 10.15, a first piece of tier 5): in the daytime, with torches to spare (it keeps 16),
+  it puts torches on the ground round home (14 blocks out) wherever there's no light, a few per visit; tidy Drifters on
+  a neat 6-block grid, others wherever it's dark.
+- **Habits from milestone 7 now in use:** it closes a door it opened behind it (always, only at night, or never, by its
+  door habit); tidy Drifters pick a crafting table they put down away from home back up; a house uses its favorite
+  wood or stone while it has some (then a mix, the patchy look of real builds).
+- **Not yet:** pitched stair roofs, porches, walls and paths (tier 5), more rooms.
+
+### Step 9: the 10-day run (in progress)
+- Fresh Drifters with nothing, random seeds, 10 game days each (`sprint` lines), a Miner, a Builder and a Casual.
+- **Fixed before it:** `/drifter spawn` from the console put it on the world spawn's block corner, sometimes inside a
+  tree, where it suffocated; it now picks the nearest open spot, and like a player it's nudged out of blocks it
+  overlaps (`LocalPlayer#moveTowardsClosestSpace`). With thoughts logged, a walk that ends "stuck" traces itself.
 
 ## Notes for milestone 9 (from testing)
 

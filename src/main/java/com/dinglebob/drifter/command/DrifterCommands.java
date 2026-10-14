@@ -209,6 +209,25 @@ public final class DrifterCommands {
 		Vec3 pos = source.getPosition();
 		float yaw = source.getRotation().y;
 		drifter.moveTo(pos.x, pos.y, pos.z, yaw, 0.0F);
+		// Not inside blocks: from the console the spot is the world spawn's corner, sometimes in a tree (found in testing:
+		// it suffocated there). The nearest open spot with ground under it, in the middle of a block, as players spawn.
+		if (!level.noCollision(drifter)) {
+			net.minecraft.core.BlockPos start = net.minecraft.core.BlockPos.containing(pos);
+			Vec3 best = null;
+			for (net.minecraft.core.BlockPos spot : net.minecraft.core.BlockPos.withinManhattan(start, 6, 8, 6)) {
+				Vec3 middle = Vec3.atBottomCenterOf(spot);
+				drifter.moveTo(middle.x, middle.y, middle.z, yaw, 0.0F);
+				if (level.noCollision(drifter) && !level.getBlockState(spot.below()).getCollisionShape(level, spot.below()).isEmpty()
+					&& level.getFluidState(spot).isEmpty()) {
+					best = middle;
+					break;
+				}
+			}
+
+			Vec3 at = best != null ? best : pos;
+			drifter.moveTo(at.x, at.y, at.z, yaw, 0.0F);
+		}
+
 		drifter.setYHeadRot(yaw);
 		drifter.setYBodyRot(yaw);
 		drifter.finalizeSpawn(level, level.getCurrentDifficultyAt(drifter.blockPosition()), MobSpawnType.COMMAND, null);

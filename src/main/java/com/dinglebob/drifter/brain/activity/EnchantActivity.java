@@ -94,6 +94,14 @@ public class EnchantActivity extends Activity {
 				"the enchanting table"));
 		}
 
+		// Bookshelves it made: into the ring round the table, one block out with the gap between left clear.
+		if (this.drifter.getInventory().count(stack -> stack.is(Items.BOOKSHELF)) > 0) {
+			BlockPos shelf = nextShelfSpot(level, table, home);
+			if (shelf != null && this.shelfTries++ < 6) {
+				return this.reachThen(shelf, () -> new PlaceBlockTask(this.drifter, shelf, stack -> stack.is(Items.BOOKSHELF), "a bookshelf"));
+			}
+		}
+
 		Item next = nextToEnchant(this.drifter);
 		if (next == null || this.enchanted >= 3 || this.drifter.getInventory().count(stack -> stack.is(Items.LAPIS_LAZULI)) == 0
 			|| this.drifter.experienceLevel() < 1) {
@@ -102,6 +110,33 @@ public class EnchantActivity extends Activity {
 
 		Predicate<ItemStack> unenchanted = stack -> stack.is(next) && !stack.isEnchanted();
 		return this.reachThen(table, () -> new EnchantTask(this.drifter, table, unenchanted, new ItemStack(next).getHoverName().getString().toLowerCase(java.util.Locale.ROOT)));
+	}
+
+	private int shelfTries;
+
+	/** Bookshelves it's going for: the lower ring round the table, all but the gap to walk in (that's 15, the most that count). */
+	public static final int SHELVES = 15;
+
+	/**
+	 * The next free spot in the lower ring round the table (two out, the cell between kept clear), leaving the middle of
+	 * the side facing home open to walk in; null when the ring is full.
+	 */
+	@Nullable
+	public static BlockPos nextShelfSpot(Level level, BlockPos table, Home home) {
+		net.minecraft.core.Direction in = net.minecraft.core.Direction.getNearest(home.center.getX() - table.getX(), 0, home.center.getZ() - table.getZ());
+		BlockPos gap = table.relative(in, 2);
+		for (BlockPos offset : EnchantingTableBlock.BOOKSHELF_OFFSETS) {
+			BlockPos spot = table.offset(offset);
+			if (offset.getY() != 0 || spot.equals(gap)) {
+				continue;
+			}
+
+			if (level.getBlockState(spot).canBeReplaced() && level.getBlockState(table.offset(offset.getX() / 2, 0, offset.getZ() / 2)).isAir()) {
+				return spot;
+			}
+		}
+
+		return null;
 	}
 
 	/** The first item on its list it carries without enchantments, or null. */

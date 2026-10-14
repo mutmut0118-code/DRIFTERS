@@ -107,6 +107,14 @@ public final class Strategist {
 		new Target("some lapis", List.of(Items.LAPIS_LAZULI), 6, drifter -> has(drifter, stack -> stack.is(Items.LAPIS_LAZULI))
 			|| com.dinglebob.drifter.brain.activity.EnchantActivity.nextToEnchant(drifter) == null));
 
+	/** One more bookshelf for the enchanting table: done when it carries one, or the ring is full (or there's no table). */
+	public static final Target BOOKSHELF_TARGET = new Target("a bookshelf", List.of(Items.BOOKSHELF), 1, drifter -> {
+		Home home = drifter.getDrifterBrain().home();
+		net.minecraft.core.BlockPos table = home == null ? null : home.enchantingTable(drifter.level());
+		return table == null || drifter.getInventory().count(stack -> stack.is(Items.BOOKSHELF)) > 0
+			|| com.dinglebob.drifter.brain.activity.EnchantActivity.nextShelfSpot(drifter.level(), table, home) == null;
+	});
+
 	/**
 	 * Iron then diamond targets, in the order it works on them. Miners jump to diamonds fast (section 9 "Pacing by
 	 * archetype"): the diamond pickaxe and sword come right after the iron pickaxe, bucket and shield, before the armor.
@@ -123,7 +131,8 @@ public final class Strategist {
 		// make an enchanting table before any armor"; it makes the most of the diamonds it has).
 		order.addAll(ENCHANTING_TARGETS);
 		order.addAll(DIAMOND_TARGETS.subList(2, DIAMOND_TARGETS.size()));
-
+		// Then bookshelves round the table, one at a time (3 books each: sugar cane and leather), up to 15.
+		order.add(BOOKSHELF_TARGET);
 		return order;
 	}
 
