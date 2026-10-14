@@ -136,6 +136,37 @@ public class BuildHutActivity extends Activity {
 			return this.begin(Goals.activityFor(this.drifter, plan.next()));
 		}
 
+		// A tree where the hut goes: cut it down first, trunk and leaves (found by the user: leaves in the way and it gave up;
+		// in testing a trunk ended up as part of the wall and leaves as roof). Worked out once, before any leaves go (bare
+		// logs don't look like a tree any more).
+		if (this.treeToClear == null) {
+			this.treeToClear = this.treeInTheWay(level, hut);
+			if (!this.treeToClear.isEmpty()) {
+				this.think("cutting down the tree where the hut goes");
+			}
+		}
+
+		for (java.util.Iterator<BlockPos> it = this.treeToClear.iterator(); it.hasNext(); ) {
+			BlockPos cell = it.next();
+			BlockState state = level.getBlockState(cell);
+			if (!(state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS)) || this.failed.contains(cell)) {
+				it.remove();
+				continue;
+			}
+
+			if (this.reach(cell)) {
+				it.remove();
+				return this.begin(this.dig(cell));
+			}
+
+			if (++this.walks > 12) {
+				it.remove();
+				continue;
+			}
+
+			return this.walkNear(cell);
+		}
+
 		// The inside has to be clear (a tree, a hill's bump, last night's shelter cover), checked from the ground.
 		for (BlockPos cell : feet.getY() == floorY ? hut.inside() : List.<BlockPos>of()) {
 			if (StarterHut.filled(level, cell) && !this.failed.contains(cell) && this.clearable(level, cell)) {
@@ -336,6 +367,39 @@ public class BuildHutActivity extends Activity {
 	private boolean roofPassDone;
 	/** Inner roof blocks it has knocked out once already to see past them. */
 	private final java.util.Set<BlockPos> unblocked = new java.util.HashSet<>();
+
+	@Nullable
+	private List<BlockPos> treeToClear;
+
+	/** Leaves and tree logs in the hut's space (walls, roof, inside), plus the rest of each trunk above, lowest first. */
+	private List<BlockPos> treeInTheWay(Level level, StarterHut hut) {
+		com.dinglebob.drifter.brain.TreeLogs trees = new com.dinglebob.drifter.brain.TreeLogs(level);
+		java.util.Set<BlockPos> cells = new java.util.HashSet<>(hut.inside());
+		for (int dy = 0; dy < StarterHut.WALL_HEIGHT; dy++) {
+			cells.addAll(hut.wallLayer(dy));
+		}
+
+		cells.addAll(hut.roof());
+		java.util.Set<BlockPos> found = new java.util.LinkedHashSet<>();
+		for (BlockPos cell : cells) {
+			BlockState state = level.getBlockState(cell);
+			if (!KnownBlocks.mayTake(level, cell)) {
+				continue;
+			}
+
+			if (state.is(BlockTags.LEAVES)) {
+				found.add(cell.immutable());
+			} else if (state.is(BlockTags.LOGS) && trees.check(cell)) {
+				for (BlockPos log = cell; level.getBlockState(log).is(BlockTags.LOGS) && log.getY() <= cell.getY() + 10; log = log.above()) {
+					found.add(log.immutable());
+				}
+			}
+		}
+
+		List<BlockPos> sorted = new java.util.ArrayList<>(found);
+		sorted.sort(java.util.Comparator.comparingInt(BlockPos::getY));
+		return sorted;
+	}
 
 	/** Most blocks it fills under one floor cell. */
 	private static final int FOUNDATION_DEPTH = 3;

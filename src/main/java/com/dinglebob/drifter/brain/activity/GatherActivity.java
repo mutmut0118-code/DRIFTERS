@@ -81,6 +81,25 @@ public class GatherActivity extends Activity {
 		return this.drifter.getInventory().count(this.items);
 	}
 
+	/** Most extra vein blocks it takes after it has what it came for. */
+	private static final int MAX_VEIN_EXTRA = 12;
+	private int veinExtra;
+
+	/** An ore block of the kind it came for that it can reach from here, if it's mining ore. */
+	@Nullable
+	private BlockPos restOfVein() {
+		if (++this.veinExtra > MAX_VEIN_EXTRA) {
+			return null;
+		}
+
+		Level level = this.drifter.level();
+		Vec3 eye = this.drifter.getEyePosition();
+		return KnownBlocks.find(this.drifter, 6, this.blocks, 16).stream()
+			.filter(pos -> com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(level.getBlockState(pos)) && KnownBlocks.mayTake(level, pos)
+				&& pos.distToCenterSqr(eye) <= REACH_CHECK_DISTANCE * REACH_CHECK_DISTANCE && Reach.canReach(this.drifter, pos))
+			.findFirst().orElse(null);
+	}
+
 	@Override
 	protected void stepDone(Task step, Status status) {
 		if (status == Status.FAILURE && step instanceof NavigateTask && this.walkedTo != null) {
@@ -91,13 +110,20 @@ public class GatherActivity extends Activity {
 
 	@Override
 	protected Status next() {
-		if (this.have() >= this.wanted) {
-			return Status.SUCCESS;
-		}
-
 		if (this.collectNext) {
 			this.collectNext = false;
 			return this.begin(new CollectItemsTask(this.drifter, DROP_PICKUP_RADIUS));
+		}
+
+		if (this.have() >= this.wanted) {
+			// Ore: the rest of the vein right here too, like a player (found by the user: half-mined veins left behind).
+			BlockPos rest = this.restOfVein();
+			if (rest != null) {
+				this.collectNext = true;
+				return this.begin(this.dig(rest));
+			}
+
+			return Status.SUCCESS;
 		}
 
 		Level level = this.drifter.level();

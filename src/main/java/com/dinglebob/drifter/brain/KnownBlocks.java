@@ -175,7 +175,8 @@ public final class KnownBlocks {
 				|| !level.getFluidState(pos).isEmpty()
 				|| !level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)
 				|| new AABB(pos).intersects(body)
-				|| Reach.aimPoint(drifter, below, Direction.UP).isEmpty()) {
+				|| Reach.aimPoint(drifter, below, Direction.UP).isEmpty()
+					&& com.dinglebob.drifter.executor.task.PlaceBlockTask.clickableFace(drifter, drifter.getEyePosition(), pos) == null) {
 				continue;
 			}
 

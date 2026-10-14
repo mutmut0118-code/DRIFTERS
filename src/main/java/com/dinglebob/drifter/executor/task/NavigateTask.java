@@ -1451,7 +1451,9 @@ public class NavigateTask extends Task {
 				keys.set(VirtualKeys.Key.JUMP, wet && this.drifter.getY() < from.getY() + 1.0);
 				if (this.drifter.getY() >= from.getY() + 1.0) {
 					BlockHitResult hit = Reach.crosshair(this.drifter);
-					if (hit != null && hit.getBlockPos().equals(from.below()) && hit.getDirection() == Direction.UP) {
+					// The ground's top, or snow or grass in the block it jumped from (clicking it puts the block right there).
+					if (hit != null && (hit.getBlockPos().equals(from.below()) && hit.getDirection() == Direction.UP
+						|| hit.getBlockPos().equals(from) && PlaceBlockTask.isClickableReplaceable(this.level(), from))) {
 						InteractionResult placed = FakePlayerBridge.act(this.drifter,
 							fake -> fake.gameMode.useItemOn(fake, this.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit));
 						if (placed.consumesAction()) {

@@ -106,7 +106,12 @@ public class PillarUpTask extends Task {
 				// Up a block: the crosshair is on the top of the block it jumped from; put one there.
 				if (this.drifter.getY() >= this.jumpFeet + 1.0 && !this.drifter.onGround()) {
 					BlockHitResult hit = Reach.crosshair(this.drifter);
-					if (hit != null && hit.getDirection() == Direction.UP && hit.getBlockPos().getY() == this.jumpFeet - 1) {
+					// The ground's top, or snow or grass in the block it jumped from (clicking those puts the block right
+					// there, which is where it should go; found by the user: pillaring failed on snow).
+					boolean onGround = hit != null && hit.getDirection() == Direction.UP && hit.getBlockPos().getY() == this.jumpFeet - 1;
+					boolean inSnow = hit != null && hit.getBlockPos().getY() == this.jumpFeet
+						&& PlaceBlockTask.isClickableReplaceable(this.drifter.level(), hit.getBlockPos());
+					if (onGround || inSnow) {
 						InteractionResult placed = FakePlayerBridge.act(this.drifter,
 							fake -> fake.gameMode.useItemOn(fake, this.drifter.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit));
 						if (placed.consumesAction()) {

@@ -97,9 +97,9 @@ public final class TunnelDigger {
 		this.lastThought = this.lastThought == null ? thought : this.lastThought + "; " + thought;
 	}
 
-	/** A missed ore (out of view from here) isn't a failure of the job. */
+	/** A missed ore (out of view from here), or a vein it couldn't step over to, isn't a failure of the job. */
 	public boolean countsAsFailure(Task step) {
-		return !this.oreStep;
+		return !this.oreStep && !this.veinWalk && !(step instanceof com.dinglebob.drifter.executor.task.CollectItemsTask);
 	}
 
 	/** The next step, or null when the tunnel is finished ({@link Tunnel#done}) or out of legs. */
@@ -174,15 +174,39 @@ public final class TunnelDigger {
 			return new PlaceBlockTask(this.drifter, cell, block, "a block to close off the opening");
 		}
 
-		// Section 10.3 "Veins: always finishes a visible ore vein before moving on".
+		// Section 10.3 "Veins: always finishes a visible ore vein before moving on". Out of reach, it steps closer (digging
+		// its way if it has to), like a player (found by the user: half-mined veins left behind).
 		while (!this.ores.isEmpty()) {
-			BlockPos ore = this.ores.poll();
-			if (isOre(level.getBlockState(ore)) && this.canMineOre(level, ore)
-				&& this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(ore)) <= this.drifter.blockInteractionRange()) {
+			BlockPos ore = this.ores.peek();
+			if (!isOre(level.getBlockState(ore)) || !this.canMineOre(level, ore) || ore.distSqr(feet) > VEIN_REACH * VEIN_REACH) {
+				this.ores.poll();
+				continue;
+			}
+
+			if (this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(ore)) <= this.drifter.blockInteractionRange()
+				&& com.dinglebob.drifter.hands.Reach.canReach(this.drifter, ore)) {
+				this.ores.poll();
 				this.digging = ore;
 				this.oreStep = true;
 				return Activity.digTask(this.drifter, ore);
 			}
+
+			if (this.veinWalks.merge(ore.immutable(), 1, Integer::sum) > 2) {
+				this.ores.poll();
+				continue;
+			}
+
+			BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, ore, java.util.Set.of());
+			Vec3 to = spot != null ? Vec3.atBottomCenterOf(spot) : Vec3.atCenterOf(ore);
+			this.say("stepping over to finish the vein");
+			this.veinWalk = true;
+			return new NavigateTask(this.drifter, to, spot != null ? 0.5 : 2.5, "step over to the ore");
+		}
+
+		// Vein done: pick up what it dropped (found by the user: raw iron, coal and copper left lying in the tunnels).
+		if (this.uncollected > 0) {
+			this.uncollected = 0;
+			return new com.dinglebob.drifter.executor.task.CollectItemsTask(this.drifter, COLLECT_RADIUS);
 		}
 
 		if (t.done || t.steps >= t.maxSteps) {
@@ -409,6 +433,15 @@ public final class TunnelDigger {
 		return null;
 	}
 
+	/** How far from where it stands it goes on with a vein. */
+	private static final int VEIN_REACH = 6;
+	/** How far it looks for its drops after a vein. */
+	private static final double COLLECT_RADIUS = 6.0;
+	private final Map<BlockPos, Integer> veinWalks = new HashMap<>();
+	/** Ore blocks mined since it last picked up. */
+	private int uncollected;
+	private boolean veinWalk;
+
 	/** Floor holes it has tried to fill (once each). */
 	private final java.util.Set<BlockPos> bridged = new java.util.HashSet<>();
 
@@ -475,6 +508,7 @@ public final class TunnelDigger {
 			t.opened.add(dug);
 			if (this.oreStep) {
 				this.oresMined++;
+				this.uncollected++;
 			}
 
 			for (Direction direction : Direction.values()) {
@@ -534,6 +568,7 @@ public final class TunnelDigger {
 		this.digging = null;
 		this.stepping = null;
 		this.oreStep = false;
+		this.veinWalk = false;
 	}
 
 	private boolean pendingTurn;

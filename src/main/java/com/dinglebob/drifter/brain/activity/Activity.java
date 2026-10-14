@@ -164,14 +164,22 @@ public abstract class Activity extends Task {
 	/** Takes out the best tool it has for the block, then mines it (for helpers that hand tasks to an activity). */
 	public static Task digTask(DrifterEntity drifter, BlockPos pos) {
 		BlockState state = drifter.level().getBlockState(pos);
-		int slot = Tools.bestToolSlot(drifter, state, drifter.level(), pos);
-		if (slot < 0) {
-			return new MineTask(drifter, pos);
+		String label = "dig " + state.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT);
+		java.util.List<Task> steps = new java.util.ArrayList<>();
+		// Snow or grass on top of it, looking down at it: that's what the crosshair hits, so it goes first, like a player
+		// (found by the user: odd behaviour in snowy biomes).
+		BlockPos above = pos.above();
+		if (drifter.getEyeY() > pos.getY() + 1 && com.dinglebob.drifter.executor.task.PlaceBlockTask.isClickableReplaceable(drifter.level(), above)) {
+			steps.add(new MineTask(drifter, above));
 		}
 
-		ItemStack tool = drifter.getInventory().getItem(slot);
-		return new SequenceTask(drifter, "dig " + state.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT), java.util.List.of(
-			new SelectItemTask(drifter, stack -> stack == tool, tool.getHoverName().getString()),
-			new MineTask(drifter, pos)));
+		int slot = Tools.bestToolSlot(drifter, state, drifter.level(), pos);
+		if (slot >= 0) {
+			ItemStack tool = drifter.getInventory().getItem(slot);
+			steps.add(new SelectItemTask(drifter, stack -> stack == tool, tool.getHoverName().getString()));
+		}
+
+		steps.add(new MineTask(drifter, pos));
+		return steps.size() == 1 ? steps.get(0) : new SequenceTask(drifter, label, steps);
 	}
 }

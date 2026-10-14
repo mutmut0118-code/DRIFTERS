@@ -40,6 +40,9 @@ public class HuntActivity extends Activity {
 	private boolean searched;
 	private int kills;
 
+	/** Remembered animals this close to where it looked and found none are forgotten. */
+	private static final double FORGET_RANGE = 16.0;
+
 	/** Only animals of this kind (a sheep's colour), or null. */
 	@org.jetbrains.annotations.Nullable
 	private final String variant;
@@ -101,6 +104,15 @@ public class HuntActivity extends Activity {
 				this.searched = true;
 				this.think("going to where it saw a " + remembered.label.replace("minecraft:", ""));
 				return this.begin(new NavigateTask(this.drifter, remembered.pos, 4.0, "go where it saw animals"));
+			}
+		}
+
+		// Went where it saw them and they're not there (moved off, or the ones it already killed): it forgets them, so it
+		// doesn't keep planning hunts for animals that aren't there (found in testing: "hunt for white wool" over and over).
+		if (this.searched) {
+			for (MemoryEntry gone : this.drifter.getMemory().find(MemoryKind.MOB,
+				entry -> this.isPreyId(entry.label) && entry.pos.distanceTo(this.drifter.position()) < FORGET_RANGE)) {
+				this.drifter.getMemory().forget(gone);
 			}
 		}
 
