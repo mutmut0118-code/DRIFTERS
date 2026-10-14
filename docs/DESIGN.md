@@ -1652,6 +1652,19 @@ When a Drifter's chunk loads again after a gap, it fast-forwards using rates ins
 - **Risk:** a small chance of a simulated death (items lost, respawn at bed) scaled by stage, archetype and Caution.
 - **Position:** placed at home, or at a sensible point on its last route.
 
+### Offline progression
+
+Minecraft's clock stops when a world is fully closed, so by default Drifters only catch up on in-game time that passed
+while the world was running. A config option has three settings:
+
+- **Off:** no catch-up at all.
+- **Game time** (default): catch up on in-game time only, as designed above.
+- **Real time:** on save, store the real-world time; on load, convert the real-world gap into in-game time and run the
+  same catch-up code.
+
+Real-time catch-up has its own cap (default 2 in-game days), separate from the normal catch-up cap. A negative or
+absurdly large gap (for example from a changed system clock) is ignored, so it can't be exploited.
+
 ### Abstract travel
 
 Vanilla entities freeze at the edge of loaded chunks, and Drifters must never force-load chunks. So when a Drifter's destination lies outside the loaded area and no player is nearby, it leaves the world into a "traveling" state in the registry and reappears at its destination (or home) when that area next loads, with travel time accounted for in catch-up.
@@ -1705,6 +1718,7 @@ Defaults should make Drifters interesting but never miserable: rare, readable, n
 | Cosmetic | Tab-list entries | Off |
 | Performance | Detail tier distances | 48 / 128 blocks |
 | Performance | Catch-up cap | 3 in-game days |
+| Performance | Offline progression | Off / Game time / Real time, default Game time, real-time cap 2 in-game days |
 | Performance | Total Drifter budget per tick | 5 ms |
 
 ### Difficulty scaling
@@ -1822,10 +1836,11 @@ Each milestone ends with a test you can actually run.
 7. **Mannerisms, personality and mood.** *Done when* people watching a short clip can't reliably tell it from a player.
 8. **Progression and building.** Stages 4 to 8, shelter tiers 3 to 5, farming, animals. *Done when* an unattended 10-day run reaches diamonds with a recognizable base.
 9. **Disposition and PvP.** Relationships, telegraph rule, hostile and friendly behaviors. *Done when* every event in the section 14 table moves Trust as specified.
-10. **Offscreen and performance.** Detail tiers, catch-up, abstract travel. *Done when* 10 Drifters stay within the per-tick budget.
+10. **Offscreen and performance.** Detail tiers, catch-up, abstract travel, offline progression option. *Done when* 10 Drifters stay within the per-tick budget.
 11. **Nether.** Section 19.
 12. **Groups, modpack factions, camps, config polish.**
 13. **The End** (optional).
+14. **Whim system.** Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md, vanilla first and modded whims behind mod detection. Can start any time after milestone 9.
 
 Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 13. They are tests, not milestones of their own.
 
@@ -1851,3 +1866,7 @@ A 1v1 manhunt (a real player against a Drifter, in the style of the well-known Y
 - Decided: Simply Swords, Simply Bows, Better Combat and Combat Roll first (section 21).
 - Decided: aim for 10, adjusted after profiling.
 - Decided: a 1v1 manhunt is the ultimate test, as an optional test mode only; hunter role first (see "Manhunt test mode").
+
+## 26. Whims
+
+Whims are about 900 random things players do for fun (slime bouncing, silly builds, village rampages, sunsets), plus modded whims for popular RPG mods, used as low-priority goals the selector (section 7) picks when urgent needs are met. They live in their own file, docs/WHIMS.md, so sessions only load them when working on the whim system.

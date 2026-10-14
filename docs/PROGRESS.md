@@ -45,6 +45,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 11 | Nether | Not started | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | Not started | |
 | 13 | The End (optional) | Not started | |
+| 14 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. |
 
 ## Milestone 0: Project setup
 

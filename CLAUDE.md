@@ -10,6 +10,8 @@ This is a long, multi-session project. Follow these rules in every session.
 3. `docs/TESTING.md` — what the user checks in-game.
 4. `docs/HANDOFF.md` — the short version of everything from the first (cloud) session: state, what's waiting on a test, the user's rules and preferences from the chat, notes for milestone 7.
 
+docs/WHIMS.md is reference for the whim system milestone. Don't implement whims until the roadmap reaches it.
+
 ## Version targets
 
 | Thing | Value |
