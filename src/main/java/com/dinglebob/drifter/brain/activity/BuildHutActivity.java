@@ -159,8 +159,12 @@ public class BuildHutActivity extends Activity {
 		List<BlockPos> roof = hut.roof();
 		List<BlockPos> roofButMiddle = roof.subList(0, roof.size() - 1);
 
+		// Roof work left from the pillar: anything not placed yet, or (while up there) a miss it may still fix from there.
+		boolean roofToDo = !this.roofPassDone && (this.anyMissing(level, roofButMiddle)
+			|| onPillar && roofButMiddle.stream().anyMatch(cell -> !StarterHut.filled(level, cell) && !this.failed.contains(cell)));
+
 		// Off the pillar (digging it out) unless it's still putting the roof on.
-		if (feet.getY() > floorY && hut.isInside(feet.below()) && !(onPillar && this.anyMissing(level, roofButMiddle))) {
+		if (feet.getY() > floorY && hut.isInside(feet.below()) && !(onPillar && roofToDo)) {
 			return this.begin(this.dig(feet.below()));
 		}
 
@@ -184,8 +188,10 @@ public class BuildHutActivity extends Activity {
 			}
 		}
 
-		// The roof, from a one-block pillar in the middle: the wall tops are just below its eyes there.
-		if (this.anyMissing(level, roofButMiddle)) {
+		// The roof, from a one-block pillar in the middle: the wall tops are just below its eyes there. Once per visit: what it
+		// can't place from up there it tries from the floor (found by the user in testing: it pillared up, climbed down
+		// breaking the pillar, and pillared up again, over and over, for roof blocks it couldn't reach from either).
+		if (roofToDo) {
 			if (!onPillar) {
 				if (!inside || feet.getX() != hut.center.getX() || feet.getZ() != hut.center.getZ()) {
 					return this.walkInside(hut);
@@ -210,10 +216,43 @@ public class BuildHutActivity extends Activity {
 				return this.begin(new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, StarterHut.PILLAR));
 			}
 
+			// An outer roof block it can't see the wall top for, because an inner roof block is already in the way (an
+			// earlier visit, a repair): a player knocks the inner one out, places the outer one, and puts the inner one back.
+			for (BlockPos outer : roofButMiddle) {
+				boolean missed = this.retryLater.contains(outer) || this.failed.contains(outer);
+				if (!missed || StarterHut.filled(level, outer) || Math.max(Math.abs(outer.getX() - hut.center.getX()),
+					Math.abs(outer.getZ() - hut.center.getZ())) < StarterHut.HALF) {
+					continue;
+				}
+
+				// The roof blocks between its eyes and the wall top under it: the nearest one it can get at first (the diagonal
+				// one can itself be hidden behind the two beside it, so those come out first). They go back in afterwards.
+				List<BlockPos> inners = new java.util.ArrayList<>();
+				// (Roof blocks beside it on the edge too: with both in, a corner's wall top shows only along the exact diagonal.)
+				for (BlockPos inner : roofButMiddle) {
+					if (!inner.equals(outer)) {
+						inners.add(inner);
+					}
+				}
+
+				inners.sort(java.util.Comparator.comparingDouble(inner -> inner.distSqr(outer)));
+				for (BlockPos inner : inners) {
+					if (inner.distSqr(outer) <= 5 && StarterHut.filled(level, inner) && !this.unblocked.contains(inner) && this.reach(inner)) {
+						this.unblocked.add(inner);
+						this.failed.remove(outer);
+						this.misses.remove(outer);
+						this.retryLater.remove(outer);
+						return this.begin(this.dig(inner));
+					}
+				}
+			}
+
 			Status top = this.placeFirstMissing(level, roofButMiddle, true, true);
 			if (top != null) {
 				return top;
 			}
+
+			this.roofPassDone = true;
 		}
 
 		// Back on the floor: the block over its head, once everything else is in (found in testing: closed too soon, it
@@ -226,6 +265,15 @@ public class BuildHutActivity extends Activity {
 		}
 
 		if (!this.allFilled(level, roofButMiddle) || !this.allFilled(level, hut.floor())) {
+			// Not leaving a hole over its head: the middle roof block goes back in before it gives up for now.
+			if (!this.middleTried) {
+				this.middleTried = true;
+				Status middle = this.placeFirstMissing(level, roof.subList(roof.size() - 1, roof.size()), onFloor && inside, true);
+				if (middle != null) {
+					return middle;
+				}
+			}
+
 			return this.fail("couldn't place every block of the hut yet");
 		}
 
@@ -283,6 +331,12 @@ public class BuildHutActivity extends Activity {
 	 * can't move). Null when none are left.
 	 */
 	@Nullable
+	private boolean middleTried;
+	/** It has done what it can from the pillar this visit. */
+	private boolean roofPassDone;
+	/** Inner roof blocks it has knocked out once already to see past them. */
+	private final java.util.Set<BlockPos> unblocked = new java.util.HashSet<>();
+
 	/** Most blocks it fills under one floor cell. */
 	private static final int FOUNDATION_DEPTH = 3;
 

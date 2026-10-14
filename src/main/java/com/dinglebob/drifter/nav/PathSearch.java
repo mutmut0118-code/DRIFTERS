@@ -463,7 +463,7 @@ public class PathSearch {
 			this.add(node, n.below(), MoveType.CLIMB_DOWN, CLIMB_DOWN, new Clearance(), 0);
 		}
 
-		if (onSolidFloor && node.blocksUsed < this.blocksAvailable) {
+		if (onSolidFloor && node.blocksUsed < this.blocksAvailable && !this.drifter.pillarFailedRecently(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
 				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);

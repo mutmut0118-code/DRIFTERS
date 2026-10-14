@@ -245,6 +245,26 @@ public final class TunnelDigger {
 			}
 		}
 
+		// The floor it's about to step onto (found in testing: a level tunnel ran out over a cave and it fell for 13 damage).
+		// A hole it can see the bottom of nearby gets a block put in it, like a player bridging; otherwise not this way.
+		BlockPos floor = nextFeet.below();
+		if (!this.tunnel.opened.contains(floor) && level.getBlockState(floor).getCollisionShape(level, floor).isEmpty()
+			&& this.allOpen(level, cells)) {
+			boolean fluid = !level.getFluidState(floor).isEmpty();
+			if (!fluid && this.bridged.add(floor.immutable()) && this.drifter.getInventory().count(TunnelDigger::isBlock) > 0) {
+				Predicate<ItemStack> block = this.drifter.getInventory().count(Tools.BUILDING_BLOCK) > 0 ? Tools.BUILDING_BLOCK : TunnelDigger::isBlock;
+				this.say("a hole in the floor: filling it");
+				return new PlaceBlockTask(this.drifter, floor, block, "a block over the hole");
+			}
+
+			this.turnReason = fluid ? "water under the floor" : "a drop";
+			if (!leg.stairs()) {
+				this.say("the tunnel ran into " + this.turnReason);
+			}
+
+			return this.turn(feet, leg);
+		}
+
 		for (BlockPos cell : cells) {
 			// Grass and flowers too (they're in the way of clicking the ground behind them).
 			if (!level.getBlockState(cell).getCollisionShape(level, cell).isEmpty()
@@ -310,6 +330,20 @@ public final class TunnelDigger {
 			String why = this.bad(level, cell);
 			if (why != null) {
 				this.turnReason = why;
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** Floor holes it has tried to fill (once each). */
+	private final java.util.Set<BlockPos> bridged = new java.util.HashSet<>();
+
+	/** All these cells are already open (dug, or air): the floor ahead is what it would step onto next. */
+	private boolean allOpen(Level level, BlockPos[] cells) {
+		for (BlockPos cell : cells) {
+			if (!level.getBlockState(cell).getCollisionShape(level, cell).isEmpty()) {
 				return false;
 			}
 		}

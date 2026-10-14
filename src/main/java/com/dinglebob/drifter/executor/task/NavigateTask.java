@@ -159,6 +159,9 @@ public class NavigateTask extends Task {
 	private int pillarTicks;
 	/** Ticks it gives a jump out of water to get high enough before calling it a miss. */
 	private static final int PILLAR_WET_TICKS = 40;
+	/** How far off the middle of the block it may stand to pillar (a player is 0.6 wide, a block 1). */
+	private static final double PILLAR_CENTER = 0.15;
+	private boolean pillarCentered;
 	/** Highest it got above the block it jumped from, for the failure message. */
 	private double pillarPeak;
 
@@ -408,6 +411,7 @@ public class NavigateTask extends Task {
 		this.pillarTries = 0;
 		this.pillarTicks = 0;
 		this.pillarPeak = 0.0;
+		this.pillarCentered = false;
 		this.waitToSee = 0;
 		this.bridgePoseSet = false;
 	}
@@ -1384,6 +1388,15 @@ public class NavigateTask extends Task {
 		VirtualKeys keys = this.keys();
 		switch (this.pillarStage) {
 			case 0 -> {
+				// Into the middle of the block first: standing near an edge, its head is under the block next door and the jump
+				// stops short (found by the user in testing: it jumped 0.2 blocks again and again).
+				Vec3 middle = Vec3.atBottomCenterOf(step.from());
+				if (!this.pillarCentered && (Math.abs(this.drifter.getX() - middle.x) > PILLAR_CENTER || Math.abs(this.drifter.getZ() - middle.z) > PILLAR_CENTER)) {
+					this.pillarCentered = true;
+					this.startSub(new CenterOnBlockTask(this.drifter, middle));
+					return Status.RUNNING;
+				}
+
 				if (!Tools.BUILDING_BLOCK.test(this.drifter.getMainHandItem())) {
 					this.startSub(new SelectItemTask(this.drifter, Tools.BUILDING_BLOCK, "a building block"));
 					return Status.RUNNING;
@@ -1431,6 +1444,8 @@ public class NavigateTask extends Task {
 				if (++this.pillarTicks > (wet ? PILLAR_WET_TICKS : 4) && this.drifter.onGround() && this.drifter.getY() < from.getY() + 0.5) {
 					// Landed without placing: try again.
 					if (++this.pillarTries > 3) {
+						// The next plans go another way (or dig) instead of trying the same spot again.
+						this.drifter.pillarFailedAt(from);
 						BlockHitResult hit = Reach.crosshair(this.drifter);
 						this.replan(String.format(java.util.Locale.ROOT, "couldn't pillar up at %s (jumped %.2f, looking at %s, holding %s)",
 							from.toShortString(), this.pillarPeak, hit == null ? "nothing" : hit.getBlockPos().toShortString() + " " + hit.getDirection().getName(),

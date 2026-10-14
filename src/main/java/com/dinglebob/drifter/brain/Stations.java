@@ -18,6 +18,16 @@ public final class Stations {
 	private Stations() {
 	}
 
+	/** Forgets a station it can't get to (walled in, across water): the planner makes a new one instead. */
+	public static void giveUp(DrifterEntity drifter, Block block, BlockPos pos) {
+		String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+		MemoryEntry entry = drifter.getMemory().nearest(MemoryKind.STATION, drifter.level().dimension().location(),
+			net.minecraft.world.phys.Vec3.atCenterOf(pos), 0.5, e -> e.label.equals(id));
+		if (entry != null) {
+			drifter.getMemory().forget(entry);
+		}
+	}
+
 	/** From this far from home it walks back to the stations there rather than making new ones. */
 	public static final double HOME_RANGE = 64.0;
 

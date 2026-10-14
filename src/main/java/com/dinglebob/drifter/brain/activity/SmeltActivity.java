@@ -140,6 +140,9 @@ public class SmeltActivity extends Activity {
 			}
 
 			if (spot == null) {
+				// Walked over and still no way to it: it gives up on that one (found in testing: it chose a walled-in table
+				// again and again and never made a new one).
+				Stations.giveUp(this.drifter, this.drifter.level().getBlockState(furnace).getBlock(), furnace);
 				return this.fail("can't find a spot by the furnace at " + furnace.toShortString());
 			}
 

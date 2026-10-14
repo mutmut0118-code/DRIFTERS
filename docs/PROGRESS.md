@@ -582,8 +582,38 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   like on land (in water it now holds jump and waits for the rise). Reloading the stuck world with the fix, it walked
   out, pillared one block and climbed its stairs home. Also: when it can't pick a spot by its table or furnace from far
   away (it doesn't remember the ground there well), it walks over and looks first.
+- **From the user's own test (session 2, their log):**
+  - Pillaring off-centre: standing near the edge of a block, its head was under the block next door and every jump
+    stopped at 0.2 blocks; it retried the same spot for minutes (the user worked this out). It now steps to the middle
+    first, and a spot where pillaring failed is avoided by the pathfinder for 5 minutes (it goes another way or digs).
+  - Hut roof loop: it pillared up, climbed down breaking the pillar, and pillared again, for roof blocks it couldn't
+    reach. Causes: blocks on its "retry" list didn't count as roof work, so it left the pillar too early; and from the
+    pillar a roof block behind another one (an earlier visit, a repair) can't be seen. Now: one pillar visit per job;
+    it knocks out the roof block in the way (inner ring, or the edge block beside a corner), places the missing one and
+    puts the other back; the middle block always goes back before it gives up. Tested on a flat world by deleting 6
+    roof blocks of a finished hut: repaired to "finished, 0 missing". On a copy of the user's world: hut finished.
+  - Fall into a cave (13 damage): a tunnel only checked the blocks in front, not the floor it was stepping onto. Now a
+    hole in the floor gets a block (once), otherwise it turns.
+  - A walled-in crafting table far from home was chosen over and over ("can't find a spot by the crafting table");
+    after walking over and still finding no way to it, it forgets that station and makes a new one.
+- **Known, next (seen on the user's world copy):** going back down its old mine, the pathfinder kept finding blocks
+  where it expected open space and it lost most of a day; it came up late, 41 blocks from home, and then switched
+  between "get away" and "shelter" every second with mobs about until it was killed. Caving (user's request, see the
+  user notes below) replaces most staircase mining.
 - **Known:** each failed staircase leaves a hole by the hut; in very cave-riddled ground trips still sometimes come back
   empty (it tries another side next time).
+
+### User requests for step 3 (session 2), next up
+- **Caving first** (user: "it should fully explore caves, go deep in them; it has the tools to defend itself, a higher
+  chance of finding iron than strip mining, and it learns the land"): remembered cave openings, explore toward the
+  deep unexplored parts, torches on its habit side as breadcrumbs, mine visible ore, fight cave mobs, turn back on low
+  health/food/torches/pickaxe or the time; next trip continues. Personality sets how deep and how often; strip miners
+  still strip mine. This changes the mining part of the design; record it in DESIGN.md as the user's decision.
+- **Water drops:** it knows landing in water stops fall damage, but only plans drops of up to 8 blocks and only when it
+  has seen the whole shaft. Plan: brave ones jump any height into water they can see; cautious ones stick to short
+  drops or dig down.
+- **Looting:** mineshafts (cobwebs, cave spider spawner, chest minecarts) and dungeons (spawner, chests) together with
+  caving; ruined portals, shipwrecks and temples later in milestone 8; villages after milestone 9.
 
 ## Notes for milestone 9 (from testing)
 

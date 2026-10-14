@@ -134,6 +134,27 @@ public class DrifterEntity extends PathfinderMob {
 
 	/** Ticks left of the debug trace (/drifter trace): one log line per tick. */
 	private int traceTicks;
+	/** Spots where pillaring up failed (head hit something), until a game time: the pathfinder plans around them. */
+	private final java.util.Map<BlockPos, Long> failedPillars = new java.util.HashMap<>();
+
+	/** Remembers that pillaring up from here didn't work, for a few minutes (a player who bumps their head goes another way). */
+	public void pillarFailedAt(BlockPos feet) {
+		this.failedPillars.put(feet.immutable(), this.level().getGameTime() + 20L * 60 * 5);
+	}
+
+	public boolean pillarFailedRecently(BlockPos feet) {
+		Long until = this.failedPillars.get(feet);
+		if (until == null) {
+			return false;
+		}
+
+		if (until < this.level().getGameTime()) {
+			this.failedPillars.remove(feet);
+			return false;
+		}
+
+		return true;
+	}
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
 	private boolean crouching;
 
