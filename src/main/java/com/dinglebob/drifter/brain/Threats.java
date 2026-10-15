@@ -289,6 +289,14 @@ public final class Threats {
 			main = lastAttacker;
 		}
 
+		// Stuck where it is (wedged in leaves, a corner) while something right there keeps hitting it: running isn't working,
+		// so even a hopeless one fights back, as a player would (found by the user: one died "running away" stuck under leaves
+		// while a zombie hit it for five seconds).
+		if (decision == Decision.FLEE && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5 && stuckInPlace(drifter, now)) {
+			decision = Decision.ENGAGE_CAREFUL;
+			main = lastAttacker;
+		}
+
 		// An archer close by (a skeleton): backing off in the open only gets it shot in the back, so it rushes it unless it's
 		// hopeless (found in a user's test: shot dead switching between fighting and fleeing a skeleton).
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && main != null && isArcher(main) && main.distanceTo(drifter) < ARCHER_RUSH) {
@@ -315,5 +323,25 @@ public final class Threats {
 		}
 
 		return new Assessment(threat, power, decision, main, List.copyOf(hostiles), nearest, recentlyHit);
+	}
+
+	/** Moved less than this in {@link #STUCK_TICKS}: it's stuck where it is. */
+	private static final double STUCK_MOVE = 0.75;
+	private static final int STUCK_TICKS = 40;
+
+	/** Hasn't got anywhere in the last two seconds or so (checked every couple of seconds). */
+	private static boolean stuckInPlace(DrifterEntity drifter, long now) {
+		com.dinglebob.drifter.brain.Brain brain = drifter.getDrifterBrain();
+		if (brain.stuckCheckPos == null || now - brain.stuckCheckAt > STUCK_TICKS * 2) {
+			brain.stuckCheckPos = drifter.position();
+			brain.stuckCheckAt = now;
+			brain.stuckInPlace = false;
+		} else if (now - brain.stuckCheckAt >= STUCK_TICKS) {
+			brain.stuckInPlace = drifter.position().distanceTo(brain.stuckCheckPos) < STUCK_MOVE;
+			brain.stuckCheckPos = drifter.position();
+			brain.stuckCheckAt = now;
+		}
+
+		return brain.stuckInPlace;
 	}
 }

@@ -71,6 +71,11 @@ public class Brain {
 	@org.jetbrains.annotations.Nullable
 	public Threats.Decision lastThreatDecision;
 	public long lastThreatDecisionAt;
+	/** Where it was at the last stuck check, and when (fleeing in place: it fights back instead). */
+	@org.jetbrains.annotations.Nullable
+	public net.minecraft.world.phys.Vec3 stuckCheckPos;
+	public long stuckCheckAt;
+	public boolean stuckInPlace;
 
 	/** A crafting table it put down away from home (tidy Drifters pick it back up), or null. Not saved. */
 	@org.jetbrains.annotations.Nullable
