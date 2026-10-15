@@ -107,6 +107,8 @@ public class MineTripActivity extends Activity {
 	private final int asked;
 
 	private int tosses;
+	/** It already dug its way up once on this trip. */
+	private boolean surfaced;
 	private int spareTries;
 	private int kitTries;
 	private static final int MAX_TOSSES = 30;
@@ -741,7 +743,14 @@ public class MineTripActivity extends Activity {
 				: this.fail("came back without any " + this.label + (this.why == null ? "" : " (" + this.why + ")"));
 		}
 
-		if (this.failures() > 4) {
+		// The way back won't come together (lost in a big cave, its stairs flooded or blocked): a staircase up to the
+		// surface, as a player does when lost, then home from up there (user's question: does it know how to get out?).
+		if (this.failures() > 2 && !this.surfaced && Caver.underground(this.drifter, this.drifter.blockPosition())) {
+			this.surfaced = true;
+			return this.begin(new SurfaceActivity(this.drifter));
+		}
+
+		if (this.failures() > 5) {
 			return this.fail("can't find the way back up");
 		}
 

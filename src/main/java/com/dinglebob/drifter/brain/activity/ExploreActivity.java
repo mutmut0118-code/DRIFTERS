@@ -29,6 +29,7 @@ public class ExploreActivity extends Activity {
 
 	private final String reason;
 	private boolean wentUp;
+	private boolean dugUp;
 	@Nullable
 	private final Vec3 toward;
 	@Nullable
@@ -67,7 +68,8 @@ public class ExploreActivity extends Activity {
 
 	@Override
 	protected int timeoutTicks() {
-		return 20 * 90;
+		// (A staircase up from deep down takes minutes.)
+		return this.dugUp ? 20 * 60 * 9 : 20 * 90;
 	}
 
 	@Override
@@ -83,6 +85,15 @@ public class ExploreActivity extends Activity {
 				return this.begin(new com.dinglebob.drifter.executor.task.NavigateTask(this.drifter, net.minecraft.world.phys.Vec3.atBottomCenterOf(home.center),
 					3.0, "head up to the surface"));
 			}
+		}
+
+		// Still deep underground after that (no way home it could find): a staircase up, never exploring the deep caves
+		// for things that live on the surface (found by the user: "looking for sugar cane" at Y -54, into lava).
+		if (this.phase == 0 && this.wentUp && !this.dugUp && !this.reason.contains("cave") && !this.reason.contains("lava")
+			&& com.dinglebob.drifter.brain.mining.Caver.underground(this.drifter, this.drifter.blockPosition())
+			&& this.drifter.getBlockY() < this.drifter.level().getSeaLevel() - 8) {
+			this.dugUp = true;
+			return this.begin(new SurfaceActivity(this.drifter));
 		}
 
 		return switch (this.phase++) {

@@ -147,6 +147,8 @@ final class HandsCommands {
 				.executes(ctx -> start(ctx, drifter -> new MoveToTask(drifter, Vec3.atBottomCenterOf(BlockPosArgument.getBlockPos(ctx, "pos")), 0.5)))));
 
 		root.then(Commands.literal("collect").executes(ctx -> start(ctx, drifter -> new CollectItemsTask(drifter, 8.0))));
+		// Debug: dig a staircase up to the surface, as it does when lost underground.
+		root.then(Commands.literal("digup").executes(ctx -> start(ctx, com.dinglebob.drifter.brain.activity.SurfaceActivity::new)));
 
 		root.then(Commands.literal("script")
 			.then(Commands.literal("woodtostone")

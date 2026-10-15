@@ -745,6 +745,18 @@ public class NavigateTask extends Task {
 		return this.checkStuck();
 	}
 
+	/** Lava it has seen within this many blocks sideways, from a block below its feet to its head. */
+	private boolean lavaNear(int radius) {
+		BlockPos feet = this.feet();
+		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-radius, -1, -radius), feet.offset(radius, 1, radius))) {
+			if (this.level().getFluidState(pos).is(FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(pos)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** A bridge or pillar step is this one or one of the next two. */
 	private boolean buildStepSoon() {
 		for (int i = this.index; i < Math.min(this.path.size(), this.index + 3); i++) {
@@ -1227,7 +1239,10 @@ public class NavigateTask extends Task {
 			keys.set(VirtualKeys.Key.RIGHT, false);
 		}
 
+		// Never sprinting with lava close by: one slip or a corner cut is fatal (found by the user: imNiftyshield sprinted
+		// across a lava hole in the floor right where it had just been burned).
 		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
+			&& !this.lavaNear(2)
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
 

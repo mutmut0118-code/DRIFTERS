@@ -391,8 +391,16 @@ public class AttackTask extends Task {
 			// Sprint in to close the gap (and, at a creeper, for the knockback hit); it lets go of sprint in the air for crits.
 			boolean sprint = keys.isDown(VirtualKeys.Key.FORWARD) && (horizontal > JUMP_RANGE || this.protocol == Protocol.CREEPER)
 				&& this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
+			// An edge in front (fighting on a bridge or a ledge): it sneaks forward, no sprint, no crit jumps, so it can't walk
+			// off (found by the user: imNiftyshield stepped off its bridge after a zombie into the lava below).
+			boolean edgeAhead = keys.isDown(VirtualKeys.Key.FORWARD) && !this.safeStep(Vec3.directionFromRotation(0.0F, this.drifter.getYRot()));
+			if (edgeAhead) {
+				keys.set(VirtualKeys.Key.SNEAK, true);
+				sprint = false;
+			}
+
 			keys.set(VirtualKeys.Key.SPRINT, sprint);
-			boolean jump = !this.missedCrit && this.wantsCrit && this.canJump() && horizontal <= JUMP_RANGE && ticksToFull <= JUMP_LEAD_TICKS;
+			boolean jump = !edgeAhead && !this.missedCrit && this.wantsCrit && this.canJump() && horizontal <= JUMP_RANGE && ticksToFull <= JUMP_LEAD_TICKS;
 			keys.set(VirtualKeys.Key.JUMP, jump || this.drifter.horizontalCollision);
 			if (jump) {
 				this.critJump = true;

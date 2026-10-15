@@ -822,9 +822,28 @@ public class Reflexes {
 			BlockPos feet = drifter.blockPosition();
 			boolean hasBlocks = Tools.buildingBlockCount(drifter) > 0;
 			this.lava = null;
+			// Its feet and head and every side of them, and the floor round it, diagonals too: a lava hole in the floor
+			// ahead counts (found by the user: it walked into one it hadn't checked for).
+			java.util.List<BlockPos> around = new java.util.ArrayList<>();
 			for (BlockPos body : List.of(feet, feet.above())) {
 				for (Direction direction : Direction.values()) {
-					BlockPos side = body.relative(direction);
+					around.add(body.relative(direction));
+				}
+			}
+
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					if (dx != 0 || dz != 0) {
+						around.add(feet.offset(dx, -1, dz));
+						if (dx != 0 && dz != 0) {
+							around.add(feet.offset(dx, 0, dz));
+						}
+					}
+				}
+			}
+
+			{
+				for (BlockPos side : around) {
 					if (level.getFluidState(side).is(FluidTags.LAVA) && drifter.getSenses().terrain().isKnown(side)) {
 						// Without blocks it only backs off when it's moving toward it: walking along a lava shore is
 						// fine (the pathfinder never steps in), and backing off every time it did made it loop (review).
