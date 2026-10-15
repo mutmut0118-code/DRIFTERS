@@ -220,6 +220,35 @@ public class DrifterEntity extends PathfinderMob {
 		return this.dugCells.contains(pos);
 	}
 
+	/**
+	 * Blocks it put down only to get somewhere (pillars, bridges), the latest couple of thousand (saved): tidy Drifters
+	 * take the ones round home down again (user's request).
+	 */
+	private final java.util.LinkedHashSet<BlockPos> scaffold = new java.util.LinkedHashSet<>();
+	private static final int MAX_SCAFFOLD = 2048;
+
+	public void placedScaffold(BlockPos pos) {
+		this.scaffold.add(pos.immutable());
+		if (this.scaffold.size() > MAX_SCAFFOLD) {
+			var oldest = this.scaffold.iterator();
+			oldest.next();
+			oldest.remove();
+		}
+	}
+
+	public boolean isScaffold(BlockPos pos) {
+		return this.scaffold.contains(pos);
+	}
+
+	public void forgetScaffold(BlockPos pos) {
+		this.scaffold.remove(pos);
+	}
+
+	/** Its scaffold blocks (a copy). */
+	public java.util.List<BlockPos> scaffold() {
+		return java.util.List.copyOf(this.scaffold);
+	}
+
 	/** Where it got burned by lava lately, until a game time: routes keep clear of them and the blocks touching them. */
 	private final java.util.Map<BlockPos, Long> lavaBurns = new java.util.HashMap<>();
 
@@ -1442,6 +1471,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.putInt("XpTotal", this.totalExperience);
 		tag.putInt("XpSeed", this.enchantmentSeed);
 		tag.putLongArray("DugCells", this.dugCells.stream().mapToLong(Long::longValue).toArray());
+		tag.putLongArray("Scaffold", this.scaffold.stream().mapToLong(BlockPos::asLong).toArray());
 	}
 
 	@Override
@@ -1462,6 +1492,11 @@ public class DrifterEntity extends PathfinderMob {
 		this.dugCells.clear();
 		for (long cell : tag.getLongArray("DugCells")) {
 			this.dugCells.add(cell);
+		}
+
+		this.scaffold.clear();
+		for (long cell : tag.getLongArray("Scaffold")) {
+			this.scaffold.add(BlockPos.of(cell));
 		}
 
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {

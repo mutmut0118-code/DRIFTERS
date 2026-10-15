@@ -38,6 +38,14 @@ public class UseOnBlockTask extends Task {
 	@org.jetbrains.annotations.Nullable
 	private Direction facing;
 
+	/** What it places is scaffolding (a bridge block), remembered so it can be taken down later. */
+	private boolean scaffold;
+
+	public UseOnBlockTask scaffold() {
+		this.scaffold = true;
+		return this;
+	}
+
 	/** Which way what it places should face (a bed's head). */
 	public UseOnBlockTask facing(Direction facing) {
 		this.facing = facing;
@@ -130,6 +138,13 @@ public class UseOnBlockTask extends Task {
 
 		if (used.shouldSwing()) {
 			this.drifter.swing(InteractionHand.MAIN_HAND);
+		}
+
+		if (this.scaffold) {
+			BlockPos placed = hit.getBlockPos().relative(hit.getDirection());
+			if (!this.drifter.level().getBlockState(placed).isAir()) {
+				this.drifter.placedScaffold(placed);
+			}
 		}
 
 		return Status.SUCCESS;

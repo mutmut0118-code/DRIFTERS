@@ -124,6 +124,7 @@ public class PillarUpTask extends Task {
 						if (placed.consumesAction()) {
 							this.drifter.swing(InteractionHand.MAIN_HAND);
 							this.drifter.getSenses().placedBlock(hit.getBlockPos().above());
+							this.drifter.placedScaffold(onGround ? hit.getBlockPos().above() : hit.getBlockPos());
 							this.stage = 3;
 							return Status.RUNNING;
 						}

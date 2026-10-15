@@ -94,8 +94,65 @@ public class MineTripActivity extends Activity {
 		this.item = item;
 		this.label = label;
 		this.blocks = blocks;
-		this.total = total;
 		this.depth = depth;
+		// A long trip for anything but coal (user's request): down for a while, a random 2 to 15 minutes, and for iron enough
+		// for everything iron it still wants (the whole armor set), so it comes back up and crafts the lot.
+		this.longTrip = item != Items.COAL;
+		this.tripTicks = this.longTrip ? LONG_TRIP_MIN + drifter.getRandom().nextInt(LONG_TRIP_MAX - LONG_TRIP_MIN + 1) : 0;
+		this.asked = total;
+		this.total = item == Items.RAW_IRON ? Math.max(total, ironStillWanted(drifter)) : total;
+	}
+
+	/** What the plan asked for (less than {@link #total} when it's after iron for the whole set). */
+	private final int asked;
+
+	/** Anything but coal: a long trip of a few minutes underground, well prepared. */
+	private final boolean longTrip;
+	/** How long it means to stay down on a long trip (game ticks). */
+	private final int tripTicks;
+	/** When it first got underground on this trip (game time), or -1. */
+	private long downAt = -1;
+	private boolean saidEnough;
+	/** A long trip lasts 2 to 15 minutes underground (user's numbers). */
+	private static final int LONG_TRIP_MIN = 20 * 60 * 2;
+	private static final int LONG_TRIP_MAX = 20 * 60 * 15;
+
+	/** Iron ingots for everything iron it doesn't have yet (pickaxe, bucket, shield, armor, shears, flint and steel), less the ingots it carries. */
+	private static int ironStillWanted(DrifterEntity drifter) {
+		int[] ingots = {3, 3, 1, 8, 7, 5, 4, 2, 1};
+		java.util.List<com.dinglebob.drifter.brain.Strategist.Target> targets = com.dinglebob.drifter.brain.Strategist.IRON_TARGETS;
+		int wanted = 0;
+		for (int i = 0; i < targets.size() && i < ingots.length; i++) {
+			if (!targets.get(i).satisfied().test(drifter)) {
+				wanted += ingots[i];
+			}
+		}
+
+		return Math.max(0, wanted - drifter.getInventory().count(stack -> stack.is(Items.IRON_INGOT)));
+	}
+
+	/** Got what it came for, and on a long trip has been down long enough too. */
+	private boolean enough() {
+		boolean timeUp = this.downAt >= 0 && this.drifter.level().getGameTime() - this.downAt >= this.tripTicks;
+		// Time's up with what the plan needed: home with that, the rest another trip.
+		if (this.longTrip && timeUp && this.have() >= this.asked) {
+			return true;
+		}
+
+		if (this.have() < this.total) {
+			return false;
+		}
+
+		if (!this.longTrip || timeUp) {
+			return true;
+		}
+
+		if (!this.saidEnough) {
+			this.saidEnough = true;
+			this.think("has the " + this.label + " it came for, but stays down a while for more");
+		}
+
+		return false;
 	}
 
 	@Override
@@ -108,7 +165,7 @@ public class MineTripActivity extends Activity {
 
 	@Override
 	protected int timeoutTicks() {
-		return 20 * 60 * 12;
+		return 20 * 60 * 12 + this.tripTicks;
 	}
 
 	private int have() {
@@ -219,7 +276,7 @@ public class MineTripActivity extends Activity {
 		this.cavingDone = this.cavesEntered >= MAX_CAVES || this.tunnel == null;
 		// Home only with enough (found in testing: two raw iron from an earlier trip sent it home after every cave, and it
 		// walked up and down its stairs all day); otherwise on with the dig.
-		this.phase = this.have() >= this.total ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
+		this.phase = this.enough() ? Phase.HOME : this.tunnel != null ? Phase.DIG : Phase.START;
 		this.why = "explored the cave";
 		if (this.phase == Phase.HOME) {
 			this.think("heading back up: explored the cave");
@@ -252,7 +309,7 @@ public class MineTripActivity extends Activity {
 			case REMEMBERED -> {
 				// Went to the ore it remembered and gathered what it could; anything still missing means a dig (or back to
 				// the tunnel it was digging, for ore it spotted on the way).
-				this.phase = this.have() >= this.total ? Phase.HOME : this.caver != null ? Phase.CAVE : this.tunnel != null ? Phase.DIG : Phase.START;
+				this.phase = this.enough() ? Phase.HOME : this.caver != null ? Phase.CAVE : this.tunnel != null ? Phase.DIG : Phase.START;
 				this.rememberedTried = true;
 				yield Status.RUNNING;
 			}
@@ -273,6 +330,10 @@ public class MineTripActivity extends Activity {
 	private boolean foodChecked;
 	/** Hunger points of food it wants along on a trip. */
 	private static final int TRIP_FOOD = 6;
+	/** Food it packs for a long trip (a few steaks). */
+	private static final int LONG_TRIP_FOOD = 16;
+	/** Blocks it expects to dig per minute down there, for the pickaxes it takes. */
+	private static final int DIGS_PER_MINUTE = 15;
 	private static final java.util.List<net.minecraft.world.item.Item> TRIP_FOODS = java.util.List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP,
 		Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT, Items.BREAD, Items.BEEF, Items.PORKCHOP, Items.MUTTON, Items.RABBIT);
 	/** The height this trip's staircase heads for (the ore's depth, or higher up in a mountain). */
@@ -317,7 +378,11 @@ public class MineTripActivity extends Activity {
 	@Nullable
 	private String reasonToStop() {
 		DrifterEntity d = this.drifter;
-		if (this.have() >= this.total) {
+		if (this.downAt < 0 && Caver.underground(d, d.blockPosition()) && d.blockPosition().getY() < d.level().getSeaLevel()) {
+			this.downAt = d.level().getGameTime();
+		}
+
+		if (this.enough()) {
 			return "got enough " + this.label;
 		}
 
@@ -388,7 +453,7 @@ public class MineTripActivity extends Activity {
 		// exploring (found in testing: 37 trips turned back "hungry with nothing to eat").
 		if (!this.foodChecked) {
 			this.foodChecked = true;
-			if (Food.carriedNutrition(this.drifter) < TRIP_FOOD) {
+			if (Food.carriedNutrition(this.drifter) < (this.longTrip ? LONG_TRIP_FOOD : TRIP_FOOD)) {
 				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), TRIP_FOODS, 3);
 				if (plan.feasible() && plan.next() != null && !plan.needsExploring() && noTrip(plan)) {
@@ -410,7 +475,7 @@ public class MineTripActivity extends Activity {
 			// both wore out just short of the bottom). It estimates the digging and makes more if its pickaxes won't last.
 			Home home = this.drifter.getDrifterBrain().home();
 			int fromY = home != null && home.mineBottom != null ? home.mineBottom.getY() : this.drifter.blockPosition().getY();
-			int needed = Math.max(0, fromY - this.depth) * 3 + BRANCH_DIGS;
+			int needed = Math.max(0, fromY - this.depth) * 3 + BRANCH_DIGS + this.tripTicks / (20 * 60) * DIGS_PER_MINUTE;
 			boolean shortOfUses = pickaxeUsesLeft(this.drifter) < needed && pickaxes(this.drifter) < MAX_PICKAXES;
 			if (shortOfUses || pickaxes(this.drifter) == 1 && wear(bestPickaxe(this.drifter)) > 0.5) {
 				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
@@ -458,7 +523,7 @@ public class MineTripActivity extends Activity {
 		// miner came back "out of torches" after one trip and never made more).
 		if (!this.torchesChecked) {
 			this.torchesChecked = true;
-			int wanted = this.caves() ? CAVE_TORCHES : STRIP_TORCHES;
+			int wanted = (this.caves() ? CAVE_TORCHES : STRIP_TORCHES) * (this.longTrip ? 2 : 1);
 			int torches = this.drifter.getInventory().count(stack -> stack.is(Items.TORCH));
 			if (torches < wanted) {
 				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,

@@ -1439,7 +1439,7 @@ public class NavigateTask extends Task {
 		this.keys().set(VirtualKeys.Key.SNEAK, true);
 		this.keys().set(VirtualKeys.Key.SPRINT, false);
 		if (Reach.aimPoint(this.drifter, support, face).isPresent()) {
-			this.startSub(new UseOnBlockTask(this.drifter, support, face, "bridge toward " + step.to().toShortString()));
+			this.startSub(new UseOnBlockTask(this.drifter, support, face, "bridge toward " + step.to().toShortString()).scaffold());
 			// After placing, take up the bridging pose again (the aim moved the head).
 			this.bridgePoseSet = false;
 			return Status.RUNNING;
@@ -1545,6 +1545,7 @@ public class NavigateTask extends Task {
 						if (placed.consumesAction()) {
 							this.drifter.swing(InteractionHand.MAIN_HAND);
 							this.drifter.getSenses().placedBlock(from);
+							this.drifter.placedScaffold(from);
 							this.pillarStage = 3;
 							return Status.RUNNING;
 						}

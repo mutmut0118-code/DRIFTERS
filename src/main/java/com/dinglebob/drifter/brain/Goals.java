@@ -954,6 +954,67 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Take down the pillars and bridges it left round home (user's request), if it's tidy: in the daytime, now and then.
+	 */
+	public static final class TidyScaffold extends Goal {
+		@Override
+		public String id() {
+			return "scaffold";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "take down its old pillars and bridges";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.hutBuilt || !home.near(drifter, Home.STORAGE_RANGE) || Schedule.isNight(drifter)
+				|| com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.radius(drifter) == 0) {
+				return 0.0;
+			}
+
+			long now = drifter.level().getGameTime();
+			if (now < this.checkAfter) {
+				return this.some ? URGENCY : 0.0;
+			}
+
+			this.checkAfter = now + 20 * 60;
+			this.some = com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.next(drifter, home, java.util.Set.of()) != null;
+			return this.some ? URGENCY : 0.0;
+		}
+
+		private static final double URGENCY = 0.3;
+		private long checkAfter;
+		private boolean some;
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 15;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			// Not straight back to blocks it couldn't get to.
+			this.checkAfter = context.drifter().level().getGameTime() + 20 * 60 * 3;
+			this.some = false;
+			return new com.dinglebob.drifter.brain.activity.TidyScaffoldActivity(context.drifter());
+		}
+	}
+
 	/** Out of the water after running out of air twice in a minute (found in testing: it drowned going back under). */
 	public static final class GetOutOfWater extends Goal {
 		@Override
@@ -1466,7 +1527,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
 	}
 }

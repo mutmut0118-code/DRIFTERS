@@ -152,7 +152,19 @@ public final class BrainCommands {
 			+ (home.house() == null ? "" : String.format(Locale.ROOT, "; %s house at %s (%s, %d blocks missing)", home.houseStyle,
 				home.houseCenter.toShortString(), home.houseBuilt ? "finished" : "building", home.house().missingBlocks(drifter.level())))
 			+ (home.enchantingTable(drifter.level()) == null ? "" : String.format(Locale.ROOT, "; enchanting table at %s (%d bookshelves)",
-				home.enchantingTable.toShortString(), com.dinglebob.drifter.brain.activity.EnchantActivity.bookshelves(drifter.level(), home.enchantingTable)));
+				home.enchantingTable.toShortString(), com.dinglebob.drifter.brain.activity.EnchantActivity.bookshelves(drifter.level(), home.enchantingTable)))
+			+ scaffoldSummary(drifter, home);
+	}
+
+	/** Pillar and bridge blocks it left within 40 blocks of home, and whether it tidies them. */
+	private static String scaffoldSummary(DrifterEntity drifter, com.dinglebob.drifter.brain.Home home) {
+		long near = drifter.scaffold().stream().filter(pos -> home.center.closerThan(pos, 40) && !drifter.level().getBlockState(pos).isAir()).count();
+		if (near == 0) {
+			return "";
+		}
+
+		int radius = com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.radius(drifter);
+		return String.format(Locale.ROOT, "; %d pillar/bridge blocks left nearby (%s)", near, radius == 0 ? "messy: leaves them" : "tidies within " + radius);
 	}
 
 	private static String farmSummary(DrifterEntity drifter, com.dinglebob.drifter.brain.Home home) {
