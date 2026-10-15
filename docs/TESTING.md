@@ -1096,4 +1096,8 @@ and it still runs when it's losing.
 - [ ] **Say its name:** type a Drifter's name in chat (for example "hey MapRiver") within about 32 blocks of it: it stops,
       turns toward you, and if it sees you and doesn't dislike you, nods (maybe answering "?" or "yes?"). Thought: "heard
       <you> say its name".
+- [ ] **Thought logging is on by default now** (no need to type `/drifter thoughts log true`); `/drifter thoughts log false`
+      turns it off and remembers that.
+- [ ] **Rare gifts count:** an enchanted golden apple, a totem, a diamond block and so on are worth the full +30 Trust in
+      one go (before, enchanted golden apples counted as plain food).
 

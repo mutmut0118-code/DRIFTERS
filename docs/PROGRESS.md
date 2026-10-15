@@ -946,6 +946,15 @@ default), the "dropping a peace offering when fleeing" config, pets (no pets yet
 (KILLED_FRIEND counts witnesses for now; groups are milestone 12), "remembered after respawn" for Drifters killed by a
 player (Drifters don't respawn outside the manhunt yet).
 
+## User wishes for later
+
+- **Config screen in Mod Menu** (user, 2026-10-15): the settings in `config/drifter.json` (sight, path range, FOV, chat
+  lines, shared reputation, thought logging) should be editable from an in-game screen through Mod Menu. Plan: an
+  optional client-side screen registered with Mod Menu's entrypoint (any config library only as an optional
+  dependency; ask before adding one). Keep every tunable in `DrifterConfig` so it can show up there.
+- **World simulation round Drifters** (crops, spawning, chunk generation far from players) and **bonemeal**: see the
+  second batch of milestone 8 requests.
+
 ## Notes for milestone 9 (from testing)
 
 - **User expectation (session 2):** punching a PvP Sweat Drifter should turn into a real pursuit. Today any Drifter

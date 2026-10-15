@@ -23,6 +23,7 @@ public class Drifter implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		DrifterConfig.load();
+		com.dinglebob.drifter.memory.ThoughtLog.echo = DrifterConfig.logThoughts();
 		ModEntities.register();
 		PlayerPlacedBlocks.register();
 		DrifterCommands.register();

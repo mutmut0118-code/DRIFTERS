@@ -23,7 +23,26 @@ public final class ItemValues {
 	public static double each(ItemStack stack) {
 		Item item = stack.getItem();
 		double value;
-		if (item == Items.NETHERITE_INGOT || item == Items.NETHERITE_SCRAP) {
+		// The rare treasures first (found by the user: enchanted golden apples counted as plain food, a point each).
+		if (item == Items.NETHER_STAR || item == Items.ELYTRA || item == Items.DRAGON_EGG) {
+			value = 150.0;
+		} else if (item == Items.ENCHANTED_GOLDEN_APPLE) {
+			value = 100.0;
+		} else if (item == Items.TOTEM_OF_UNDYING || item == Items.HEART_OF_THE_SEA || item == Items.TRIDENT) {
+			value = 60.0;
+		} else if (item == Items.NETHERITE_BLOCK) {
+			value = 360.0;
+		} else if (item == Items.EMERALD_BLOCK) {
+			value = 54.0;
+		} else if (item == Items.GOLD_BLOCK || item == Items.RAW_GOLD_BLOCK) {
+			value = 27.0;
+		} else if (item == Items.IRON_BLOCK || item == Items.RAW_IRON_BLOCK) {
+			value = 18.0;
+		} else if (item == Items.ENCHANTED_BOOK) {
+			value = 15.0;
+		} else if (item == Items.BEACON || item == Items.CONDUIT) {
+			value = 200.0;
+		} else if (item == Items.NETHERITE_INGOT || item == Items.NETHERITE_SCRAP) {
 			value = 40.0;
 		} else if (item == Items.DIAMOND || item == Items.DIAMOND_BLOCK) {
 			value = item == Items.DIAMOND_BLOCK ? 90.0 : 10.0;
@@ -33,8 +52,10 @@ public final class ItemValues {
 			value = 3.0;
 		} else if (item == Items.IRON_INGOT || item == Items.RAW_IRON) {
 			value = 2.0;
-		} else if (item == Items.ENDER_PEARL || item == Items.GOLDEN_APPLE) {
+		} else if (item == Items.ENDER_PEARL || item == Items.GOLDEN_APPLE || item == Items.BLAZE_ROD || item == Items.SADDLE) {
 			value = 8.0;
+		} else if (item == Items.EXPERIENCE_BOTTLE || item == Items.NAME_TAG || item == Items.SHULKER_SHELL) {
+			value = 12.0;
 		} else if (item == Items.LAPIS_LAZULI || item == Items.REDSTONE || item == Items.COAL || item == Items.COPPER_INGOT) {
 			value = 0.5;
 		} else if (item instanceof ArmorItem armor) {

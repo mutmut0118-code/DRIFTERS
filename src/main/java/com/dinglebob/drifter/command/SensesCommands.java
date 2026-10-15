@@ -52,6 +52,7 @@ final class SensesCommands {
 			.then(Commands.literal("log").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				boolean on = com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on");
 				com.dinglebob.drifter.memory.ThoughtLog.echo = on;
+				com.dinglebob.drifter.DrifterConfig.setLogThoughts(on);
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter thoughts " + (on ? "now go to the server log (debug)" : "no longer go to the server log")), true);
 				return 1;
 			}))));

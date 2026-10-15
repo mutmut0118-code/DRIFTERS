@@ -50,6 +50,8 @@ public final class DrifterConfig {
 		boolean chatLines = true;
 		/** Players seen together share a little of each other's standing (section 14 "Forgiveness and multiplayer"). */
 		boolean shareReputation = true;
+		/** Every Drifter thought goes to the game log (user's choice, 2026-10-15: on by default). */
+		boolean logThoughts = true;
 	}
 
 	private static Data data = new Data();
@@ -130,6 +132,15 @@ public final class DrifterConfig {
 
 	public static void setChatLines(boolean on) {
 		data.chatLines = on;
+		save();
+	}
+
+	public static boolean logThoughts() {
+		return data.logThoughts;
+	}
+
+	public static void setLogThoughts(boolean on) {
+		data.logThoughts = on;
 		save();
 	}
 
