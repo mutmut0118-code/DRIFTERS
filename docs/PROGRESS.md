@@ -4,7 +4,15 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Current state (session 2, local, 2026-10-15 early morning)
+## Current state (session 2, local, 2026-10-15 morning)
+
+- **Latest 10-day batch (21):** all three (Miner, Builder, Casual) reached stage 7 (diamond pickaxe) with no deaths;
+  farms for all, houses for the Builder and Casual; no loop above 10 repeats. This meets milestone 8's "done when"
+  three runs out of three; it waits on the user's play to be called done.
+- Fixes since batch 17 (from the user's world and batches 18-20): berry bushes, night styles ("carries on through the
+  night" when armed), daylight through windows, underground routes plan unseen cells as rock, desert staircases, the
+  lava rules (no mining next to lava, sneaking past lava holes, backing off without stepping off edges), houses with
+  unreachable corners, pillar shelter as a last resort, structure chest looting (priority), raiding by personality.
 
 - **Milestone 9 (Disposition and PvP): all six steps have code.** The section 14 event table is verified headless
   (every event moves Trust and Fear exactly as specified); the behaviors need the user's play (TESTING "Milestone 9").
