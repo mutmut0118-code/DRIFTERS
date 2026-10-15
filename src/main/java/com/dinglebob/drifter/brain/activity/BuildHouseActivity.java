@@ -35,7 +35,7 @@ public class BuildHouseActivity extends BuildHutActivity {
 	/** A 7x7 house. */
 	public static final int HALF = 3;
 	/** How far from the hut it looks for a flat spot. */
-	private static final int[] DISTANCES = {9, 10, 11, 12, 14, 16};
+	private static final int[] DISTANCES = {9, 10, 11, 12, 14, 16, 18, 20, 24};
 
 	public static final String WOOD = "wood";
 	public static final String STONE = "stone";
@@ -281,6 +281,9 @@ public class BuildHouseActivity extends BuildHutActivity {
 		return null;
 	}
 
+	/** Cells of the 9x9 it may not have seen yet. */
+	private static final int MAX_UNSEEN = 8;
+
 	private static boolean clear(DrifterEntity drifter, Level level, Home home, BlockPos spot) {
 		// Ground near the floor's height nearly everywhere (it fills dips and digs out bumps as it builds, as for the hut;
 		// found in testing: a perfectly flat 9x9 is rare on hilly ground, and it never found a spot), all of it seen.
@@ -288,15 +291,22 @@ public class BuildHouseActivity extends BuildHutActivity {
 			return false;
 		}
 
+		// A few cells it hasn't seen (behind a tree, over a rise) don't rule a spot out: it sees them as it builds (found in
+		// testing: a Builder on hilly ground had "nowhere to build" all ten days).
 		int reach = HALF + 1;
 		int good = 0;
 		int cells = 0;
+		int unseen = 0;
 		for (int dx = -reach; dx <= reach; dx++) {
 			for (int dz = -reach; dz <= reach; dz++) {
 				cells++;
 				BlockPos cell = spot.offset(dx, 0, dz);
 				if (!drifter.getSenses().terrain().isKnown(cell.below()) && !drifter.getSenses().terrain().isKnown(cell)) {
-					return false;
+					if (++unseen > MAX_UNSEEN) {
+						return false;
+					}
+
+					continue;
 				}
 
 				for (int dy : new int[]{0, 1, -1, 2}) {
@@ -308,7 +318,7 @@ public class BuildHouseActivity extends BuildHutActivity {
 			}
 		}
 
-		if (good < cells * 0.85) {
+		if (good < (cells - unseen) * 0.85) {
 			return false;
 		}
 
