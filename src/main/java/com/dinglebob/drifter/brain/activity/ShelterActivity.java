@@ -44,7 +44,7 @@ public class ShelterActivity extends Activity {
 	private static final int NIGHT_MAX_STEPS = 48;
 
 	private enum Phase {
-		HUT, HOUSE, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE
+		HUT, HOUSE, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE, PERCH
 	}
 
 	/** Night mining: the digger for tonight's tunnel (made fresh after a break; the tunnel itself is kept by the brain). */
@@ -76,6 +76,7 @@ public class ShelterActivity extends Activity {
 			case SLEEP -> this.drifter.isSleeping() ? "sleep" : "go to bed";
 			case HOUSE -> "go into the house for the night";
 			case WAIT -> "wait for morning in the shelter";
+			case PERCH -> "wait the night out on a pillar";
 			case MINE -> "mine from the shelter";
 			case RETURN -> "walk back to the shelter shaft";
 			case EXIT, DONE -> "climb out of the shelter";
@@ -379,6 +380,16 @@ public class ShelterActivity extends Activity {
 				this.phase = Phase.SLEEP;
 				return Status.RUNNING;
 			}
+			case PERCH -> {
+				// Up there till morning: still, looking about (it can't do much else).
+				if (!Schedule.isNight(this.drifter)) {
+					this.think("morning: done waiting on the pillar");
+					return Status.SUCCESS;
+				}
+
+				com.dinglebob.drifter.motor.Steering.stopMoving(this.drifter);
+				return Status.RUNNING;
+			}
 			case WAIT -> {
 				// In early at dusk: to bed once it's dark enough for one (found in testing: it never tried again).
 				BlockPos bedNow = this.homeBed(level);
@@ -680,6 +691,14 @@ public class ShelterActivity extends Activity {
 			}
 		}
 
+		// Can't dig in and can't wall in (sand, water all round): up on a pillar for the night, out of reach of most mobs, as
+		// players do (found in testing: it failed to shelter 80 times in a night).
+		if (Tools.buildingBlockCount(this.drifter) >= PERCH_HEIGHT && this.drifter.onGround()) {
+			this.phase = Phase.PERCH;
+			this.think("can't wall itself in here: waiting the night out on a pillar");
+			return this.begin(new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, PERCH_HEIGHT));
+		}
+
 		return this.fail("can't wall itself in here");
 	}
 
@@ -724,6 +743,8 @@ public class ShelterActivity extends Activity {
 
 	private int blockRuns;
 	private boolean roofStepFailed;
+	/** How high it pillars when it can neither dig in nor wall in. */
+	private static final int PERCH_HEIGHT = 3;
 	/** A dig while digging in didn't work: it tries another spot. */
 	private boolean digFailed;
 	private boolean dugDownOne;

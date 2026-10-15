@@ -81,7 +81,16 @@ public final class NavView {
 		this.drifter = drifter;
 		this.level = drifter.level();
 		this.knowledge = drifter.getSenses().terrain();
+		// (Its own position tells it it's underground: rock overhead and no sky.)
+		this.underground = com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
+			&& !drifter.getSenses().time().canSeeSky();
+		this.rockSeconds = Tools.digSeconds(drifter, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), this.level, drifter.blockPosition());
 	}
+
+	/** It's underground right now (unseen cells near its level count as rock). */
+	private final boolean underground;
+	/** How long stone takes it to dig with what it carries. */
+	private final float rockSeconds;
 
 	public Cell cell(BlockPos pos) {
 		return this.cache.computeIfAbsent(pos.asLong(), key -> this.compute(BlockPos.of(key)));
@@ -128,6 +137,13 @@ public final class NavView {
 				if (this.knownLavaAt(pos.relative(side))) {
 					return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 				}
+			}
+
+			// Underground, unseen means rock as far as it can tell (a player down a mine expects stone, not open air): planned
+			// as stone to dig, so a route follows its known tunnels or digs honestly, instead of hoping for air and replanning
+			// at every wall (found in testing: "found stone where it expected open space" fifteen times, then giving up).
+			if (this.underground && pos.getY() <= this.drifter.getBlockY() + 3) {
+				return new Cell(Kind.SOLID, this.rockSeconds, false, false);
 			}
 
 			return new Cell(Kind.UNKNOWN, 0.0F, false, false);
@@ -232,7 +248,8 @@ public final class NavView {
 	/** Something it can stand on top of: a known solid block no taller than a full block, or unknown (assumed). */
 	public boolean standable(BlockPos floor) {
 		Cell cell = this.cell(floor);
-		if (cell.kind() == Kind.UNKNOWN) {
+		// Unseen (or assumed rock underground): assumed fine to stand on, without peeking at what's really there.
+		if (cell.kind() == Kind.UNKNOWN || !this.knowledge.isKnown(floor)) {
 			return true;
 		}
 

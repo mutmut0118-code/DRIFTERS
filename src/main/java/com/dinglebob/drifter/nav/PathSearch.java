@@ -441,7 +441,7 @@ public class PathSearch {
 			// Unseen ground under unseen or solid blocks (digging a stair down) is still assumed, as everywhere else, and so is
 			// a step down a hillside: seen ground right next to it at the lower level (found in testing: without that, it
 			// planned bridges down hills).
-			boolean floorSeen = this.view.cell(t.below()).kind() != NavView.Kind.UNKNOWN;
+			boolean floorSeen = this.view.isKnown(t.below());
 			boolean seenHole = this.view.cell(t).kind() == NavView.Kind.OPEN;
 			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t)))) {
 				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
