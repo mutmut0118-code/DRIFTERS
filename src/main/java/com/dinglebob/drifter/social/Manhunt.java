@@ -70,6 +70,7 @@ public final class Manhunt {
 		runner = player.getUUID();
 		runnerName = player.getGameProfile().getName();
 		goal = winGoal;
+		save(drifter.getServer());
 		prepare(drifter);
 		announce(drifter.getServer(), "Manhunt! " + drifter.getName().getString() + " is hunting " + runnerName + ". "
 			+ runnerName + " wins by " + (winGoal == Goal.NETHER ? "reaching the Nether" : "killing the Ender Dragon") + ".");
@@ -82,6 +83,73 @@ public final class Manhunt {
 
 		hunter = null;
 		runner = null;
+		save(server);
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Saved with the world (user's request: a manhunt survives a restart)
+	// ---------------------------------------------------------------------------------------------
+
+	private static final String DATA_NAME = "drifter_manhunt";
+
+	/** The world's saved manhunt record. */
+	private static final class State extends net.minecraft.world.level.saveddata.SavedData {
+		CompoundTag game = new CompoundTag();
+
+		static State load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+			State state = new State();
+			state.game = tag.getCompound("Game");
+			return state;
+		}
+
+		@Override
+		public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+			tag.put("Game", this.game);
+			return tag;
+		}
+	}
+
+	private static State state(MinecraftServer server) {
+		return server.overworld().getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(State::new, State::load, null), DATA_NAME);
+	}
+
+	/** Writes the current game (or none) into the world's save. */
+	private static void save(@Nullable MinecraftServer server) {
+		if (server == null) {
+			return;
+		}
+
+		State state = state(server);
+		CompoundTag game = new CompoundTag();
+		if (active()) {
+			game.putUUID("Hunter", hunter);
+			game.putUUID("Runner", runner);
+			game.putString("RunnerName", runnerName);
+			game.putString("Goal", goal.name());
+		}
+
+		state.game = game;
+		state.setDirty();
+	}
+
+	/** Picks up a game saved with this world (or clears the last world's). */
+	private static void load(MinecraftServer server) {
+		CompoundTag game = state(server).game;
+		if (game.hasUUID("Hunter") && game.hasUUID("Runner")) {
+			hunter = game.getUUID("Hunter");
+			runner = game.getUUID("Runner");
+			runnerName = game.getString("RunnerName");
+			try {
+				goal = Goal.valueOf(game.getString("Goal"));
+			} catch (IllegalArgumentException unknown) {
+				goal = Goal.NETHER;
+			}
+
+			com.dinglebob.drifter.Drifter.LOGGER.info("Manhunt carried on from the save: {} is still being hunted", runnerName);
+		} else {
+			hunter = null;
+			runner = null;
+		}
 	}
 
 	/** The hunter's standing with the runner for the game, and its tracking compass. */
@@ -124,6 +192,12 @@ public final class Manhunt {
 	}
 
 	public static void register() {
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(Manhunt::load);
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			hunter = null;
+			runner = null;
+		});
+
 		// The hunter dies: it comes back at the world spawn with nothing, like a manhunt hunter.
 		ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {
 			if (!active()) {
@@ -176,6 +250,7 @@ public final class Manhunt {
 		fresh.setHealth(fresh.getMaxHealth());
 		level.addFreshEntity(fresh);
 		hunter = fresh.getUUID();
+		save(server);
 		prepare(fresh);
 		announce(server, fresh.getName().getString() + " respawned and is back on the hunt.");
 	}

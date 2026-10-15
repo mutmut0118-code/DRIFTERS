@@ -1118,4 +1118,6 @@ and it still runs when it's losing.
 - [ ] **Homes away from structures:** a Drifter never settles within 6 blocks of a structure or someone's build (a ruined
       portal's obsidian, netherrack, magma and gold, village houses, cobblestone and planks it didn't place) or lava.
       Spawn one next to a ruined portal: it loots the chest, then settles somewhere clear of it.
+- [ ] **Manhunt survives a restart:** start one, quit to the menu (or close the game), come back: the hunter is still on
+      you (the game is saved with the world; `/drifter manhunt` shows it). A different world has its own (or none).
 
