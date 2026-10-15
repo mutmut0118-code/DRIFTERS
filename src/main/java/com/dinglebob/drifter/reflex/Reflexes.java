@@ -471,13 +471,19 @@ public class Reflexes {
 					this.digUp = null;
 				}
 
-				keys.set(VirtualKeys.Key.JUMP, true);
+				// It lets itself sink and mines standing on the bottom: floating, mining is five times slower again (on top
+				// of the water's own penalty; found in testing, it drowned halfway through one block of stone). It swims
+				// up once the block is gone.
+				keys.set(VirtualKeys.Key.JUMP, this.digUp == null);
 				return true;
 			}
 
 			if (!rock.isAir() && rock.getDestroySpeed(level, ceiling) >= 0.0F && !level.getFluidState(ceiling.above()).is(FluidTags.LAVA)
 				&& !(rock.getBlock() instanceof net.minecraft.world.level.block.FallingBlock)) {
 				this.digUp = dig(drifter, ceiling);
+				// Let go of whatever it was swimming toward (found in testing: still holding forward from the swim, it walked
+				// round in circles under the block and never broke it).
+				com.dinglebob.drifter.motor.Steering.stopMoving(drifter);
 				drifter.getMemory().thoughts().add(level.getGameTime(), "no air to swim to: mining up through the ceiling");
 				return true;
 			}

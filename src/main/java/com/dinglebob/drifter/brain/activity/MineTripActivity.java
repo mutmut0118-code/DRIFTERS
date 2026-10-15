@@ -760,12 +760,20 @@ public class MineTripActivity extends Activity {
 		this.think(thought);
 		return this.begin(new GatherActivity(this.drifter, this.label, this.blocks, stack -> stack.is(this.item), this.total, false, false) {
 			private boolean walked;
+			private boolean collected;
 
 			@Override
 			protected Status next() {
 				if (!this.walked && this.drifter.blockPosition().distSqr(ore) > 6 * 6) {
 					this.walked = true;
 					return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(ore), 4.0, "walk to the " + MineTripActivity.this.label));
+				}
+
+				// The ore's gone (its way there dug through it, or it broke as it got there): the drop is lying about, so it
+				// picks it up (found by the user: a Drifter mined diamonds and walked off without them).
+				if (!this.collected && !MineTripActivity.this.blocks.test(this.drifter.level().getBlockState(ore))) {
+					this.collected = true;
+					return this.begin(new com.dinglebob.drifter.executor.task.CollectItemsTask(this.drifter, 6.0));
 				}
 
 				return super.next();

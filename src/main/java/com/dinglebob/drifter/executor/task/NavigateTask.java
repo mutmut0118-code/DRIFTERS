@@ -1037,9 +1037,16 @@ public class NavigateTask extends Task {
 		}
 
 		ItemStack tool = this.drifter.getInventory().getItem(slot);
-		return new SequenceTask(this.drifter, "dig " + this.blockName(cell), List.of(
+		List<Task> steps = new java.util.ArrayList<>(List.of(
 			new SelectItemTask(this.drifter, stack -> stack == tool, tool.getHoverName().getString()),
 			new MineTask(this.drifter, cell)));
+		// Ore in the way: it picks up what drops, as anyone would (found by the user: diamonds dug through on the way over
+		// and left lying there).
+		if (state.is(net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags.ORES)) {
+			steps.add(new CollectItemsTask(this.drifter, 3.0));
+		}
+
+		return new SequenceTask(this.drifter, "dig " + this.blockName(cell), steps);
 	}
 
 	/** Over a drop, it lets go of the keys this close (horizontally) to the landing block's middle. */
