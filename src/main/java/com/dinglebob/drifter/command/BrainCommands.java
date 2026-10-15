@@ -158,7 +158,7 @@ public final class BrainCommands {
 
 	/** Pillar and bridge blocks it left within 40 blocks of home, and whether it tidies them. */
 	private static String scaffoldSummary(DrifterEntity drifter, com.dinglebob.drifter.brain.Home home) {
-		long near = drifter.scaffold().stream().filter(pos -> home.center.closerThan(pos, 40) && !drifter.level().getBlockState(pos).isAir()).count();
+		long near = drifter.scaffold().stream().filter(pos -> home.center.closerThan(pos, 40) && !drifter.level().getBlockState(pos).isAir() && drifter.level().canSeeSky(pos.above())).count();
 		if (near == 0) {
 			return "";
 		}

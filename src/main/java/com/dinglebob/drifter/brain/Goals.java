@@ -979,15 +979,19 @@ public final class Goals {
 
 			long now = drifter.level().getGameTime();
 			if (now < this.checkAfter) {
-				return this.some ? URGENCY : 0.0;
+				return this.some ? this.urgency : 0.0;
 			}
 
 			this.checkAfter = now + 20 * 60;
 			this.some = com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.next(drifter, home, java.util.Set.of()) != null;
-			return this.some ? URGENCY : 0.0;
+			// Keener the more there is: a few blocks can wait, a forest of pillars gets seen to (found in testing: 164 left
+			// standing, the job always lost to something else).
+			this.urgency = URGENCY + Math.min(0.2, com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.countLeft(drifter, home) / 200.0);
+			return this.some ? this.urgency : 0.0;
 		}
 
 		private static final double URGENCY = 0.3;
+		private double urgency = URGENCY;
 		private long checkAfter;
 		private boolean some;
 

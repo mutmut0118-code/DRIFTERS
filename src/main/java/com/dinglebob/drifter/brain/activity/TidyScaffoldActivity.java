@@ -99,6 +99,23 @@ public class TidyScaffoldActivity extends Activity {
 		return Status.SUCCESS;
 	}
 
+	/** How many of its scaffold blocks are left standing round home (for how keen it is to tidy). */
+	public static int countLeft(DrifterEntity drifter, Home home) {
+		int radius = radius(drifter);
+		if (radius == 0) {
+			return 0;
+		}
+
+		int count = 0;
+		for (BlockPos pos : drifter.scaffold()) {
+			if (home.center.closerThan(pos, radius) && stillScaffold(drifter, home, pos)) {
+				count++;
+			}
+		}
+
+		return count;
+	}
+
 	/** How far round home it tidies (25 to 40 blocks by tidiness), or 0 if it doesn't. */
 	public static int radius(DrifterEntity drifter) {
 		double tidiness = drifter.getPersonality().get(Trait.TIDINESS);
@@ -150,7 +167,8 @@ public class TidyScaffoldActivity extends Activity {
 	/** Still the building block it put there, and not part of something it built since. */
 	private static boolean stillScaffold(DrifterEntity drifter, Home home, BlockPos pos) {
 		BlockState state = drifter.level().getBlockState(pos);
-		return !state.isAir() && com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(state.getBlock().asItem()))
+		// Out in the open only: pillars and bridges down its mines and caves aren't an eyesore (and mostly out of reach).
+		return !state.isAir() && drifter.level().canSeeSky(pos.above()) && com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(state.getBlock().asItem()))
 			&& !home.inOwnBuilding(pos, 1) && drifter.level().getFluidState(pos).isEmpty();
 	}
 }
