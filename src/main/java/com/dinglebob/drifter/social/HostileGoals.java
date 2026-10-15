@@ -33,6 +33,10 @@ public final class HostileGoals {
 		return List.of(new DriveOut(), new Prey(), new Hunt());
 	}
 
+	/** A manhunt hunter's chase: runner in sight, and following the compass. */
+	private static final double MANHUNT_IN_SIGHT = 0.97;
+	private static final double MANHUNT_TRACKING = 0.9;
+
 	/** Urgency for a hostile goal: above work, below fleeing for its life. */
 	private static final double URGENCY = 0.8;
 	/** Health under which it doesn't start a fight with a player. */
@@ -280,13 +284,14 @@ public final class HostileGoals {
 			Player player = drifter.level().getPlayerByUUID(r.player);
 			Awareness awareness = player == null ? null : drifter.getSenses().awarenessOf(player);
 			boolean inSight = awareness != null && awareness.identified && awareness.visibleNow;
-			if (inSight) {
-				return URGENCY;
+			// A manhunt: the hunt comes before everything but staying alive (found by the user: at night it went hunting
+			// mobs instead, the chase scoring 0.31).
+			if (Manhunt.isHunter(drifter)) {
+				return inSight ? MANHUNT_IN_SIGHT : MANHUNT_TRACKING;
 			}
 
-			// A manhunt hunter keeps after the runner, with its compass.
-			if (Manhunt.isHunter(drifter)) {
-				return 0.75;
+			if (inSight) {
+				return URGENCY;
 			}
 
 			// Out of sight: a vengeful one goes looking, where it last saw them or at their base.
@@ -301,7 +306,13 @@ public final class HostileGoals {
 
 		@Override
 		public double risk(Goals.Context context) {
-			return Goals.lateInTheDayRisk(context, 0.4);
+			// (No "too late in the day" for a manhunt: the game doesn't stop at night.)
+			return Manhunt.isHunter(context.drifter()) ? 1.0 : Goals.lateInTheDayRisk(context, 0.4);
+		}
+
+		@Override
+		public boolean urgent(Goals.Context context) {
+			return Manhunt.isHunter(context.drifter());
 		}
 
 		@Override

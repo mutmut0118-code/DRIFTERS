@@ -42,7 +42,9 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 		// A night hunter (section 18: brave ones go out after mobs) only needs shelter once it isn't fit to be out.
 		Schedule.NightStyle style = drifter.getDrifterBrain().nightStyle();
 		boolean hunting = !sealedIn && (style == Schedule.NightStyle.HUNT && Schedule.fitToHunt(drifter)
-			|| style == Schedule.NightStyle.WORK && Schedule.fitToWork(drifter));
+			|| style == Schedule.NightStyle.WORK && Schedule.fitToWork(drifter)
+			// A manhunt hunter keeps going through the night, as human hunters do.
+			|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter) && drifter.getHealth() >= 8.0F);
 		double shelter;
 		long thinking = Schedule.shelterThinking(drifter);
 		long urgent = Schedule.shelterUrgent(drifter);

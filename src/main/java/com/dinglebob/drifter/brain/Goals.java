@@ -1235,7 +1235,8 @@ public final class Goals {
 			boolean evening = context.time() >= Schedule.shelterUrgent(context.drifter()) && context.time() < Schedule.NIGHT_END;
 			// On the surface: deep in a mine the night doesn't matter (user's rule), and a night hunt down there sent it
 			// wandering the flooded caves until it drowned (found in testing).
-			return evening && !context.sealedIn() && context.drifter().getDrifterBrain().nightStyle() == Schedule.NightStyle.HUNT
+			return evening && !context.sealedIn() && !com.dinglebob.drifter.social.Manhunt.isHunter(context.drifter())
+				&& context.drifter().getDrifterBrain().nightStyle() == Schedule.NightStyle.HUNT
 				&& Schedule.fitToHunt(context.drifter())
 				&& !com.dinglebob.drifter.brain.mining.Caver.underground(context.drifter(), context.drifter().blockPosition());
 		}
