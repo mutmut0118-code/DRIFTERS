@@ -1557,6 +1557,7 @@ public final class Goals {
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());
+		goals.addAll(com.dinglebob.drifter.social.FriendlyGoals.all());
 		return List.copyOf(goals);
 	}
 }

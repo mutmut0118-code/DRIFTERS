@@ -90,6 +90,33 @@ public class SocialWatcher {
 		/** Its last warning to them, and whether they ignored it (stayed, came closer). */
 		long warnedAt = Long.MIN_VALUE / 2;
 		boolean warningIgnored;
+		/** "Follow me": crouched twice near it, facing it (then walks off); and where they were then. */
+		long invitedAt = Long.MIN_VALUE / 2;
+		@Nullable
+		Vec3 invitedFrom;
+		/** When it last greeted them. */
+		long greetedAt = Long.MIN_VALUE / 2;
+	}
+
+	/** They asked it to follow (crouched twice near it) in the last few seconds, and where they stood: or null. */
+	@Nullable
+	public Vec3 invitedFrom(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && this.now() - w.invitedAt < 20 * 6 ? w.invitedFrom : null;
+	}
+
+	public void followed(Player player) {
+		this.watch(player).invitedAt = Long.MIN_VALUE / 2;
+	}
+
+	/** It greeted them lately. */
+	public boolean greetedLately(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && this.now() - w.greetedAt < 20 * 60 * 5;
+	}
+
+	public void greeted(Player player) {
+		this.watch(player).greetedAt = this.now();
 	}
 
 	/** Watches someone again only if it hasn't for this long. */
@@ -316,6 +343,12 @@ public class SocialWatcher {
 
 		// Crouching up and down at it, facing it, close by.
 		Vec3 toIt = this.drifter.position().subtract(player.position()).normalize();
+		// Two crouches close by, facing it: "follow me" (section 14), once they walk off.
+		if (w.crouches.size() == 2 && distance < 6.0 && player.getViewVector(1.0F).dot(toIt) > 0.7 && now - w.invitedAt > 20 * 6) {
+			w.invitedAt = now;
+			w.invitedFrom = player.position();
+		}
+
 		if (w.crouches.size() >= CROUCHES && distance < 8.0 && player.getViewVector(1.0F).dot(toIt) > 0.7 && now - w.lastCrouchSpamAt > 20 * 5) {
 			w.crouches.clear();
 			w.lastCrouchSpamAt = now;

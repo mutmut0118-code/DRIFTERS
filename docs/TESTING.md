@@ -1051,3 +1051,13 @@ and it still runs when it's losing.
 - [ ] If it kills you, it picks up what you dropped.
 - [ ] When it's losing, it runs (the usual flee), and comes back another day if the grudge stays.
 
+**Step 5 (new): friendly ones.** Make one like you (`/drifter social set <you> trust 40`, or win it over with gifts).
+- [ ] **Greeting:** when you come within 10 blocks it looks at you and crouches up and down (once every 5 minutes).
+- [ ] **Gifts and barter:** throw it something (Q, facing it). Later it walks over, nods, and throws you back something
+      it doesn't need of about the same worth ("paying <you> back: ..."). Give it a diamond, get back roughly 5 iron.
+- [ ] **Follow me:** stand close, face it, crouch twice, then walk off: it follows you for about 3 minutes ("following
+      <you> for a while"). Needs some Trust (10 and you've been around it a bit, or 25).
+- [ ] **Help:** let a zombie attack you near a friendly Drifter: it comes and fights it ("helping fight the zombie").
+- [ ] **Creeper warning:** a creeper sneaking up behind you: it turns to face the creeper and backs away, so you see
+      where it's looking ("warning <you> about a creeper behind them").
+
