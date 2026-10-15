@@ -84,6 +84,11 @@ public enum Mode {
 			return DEFENSIVE;
 		}
 
+		// A manhunt: toward the runner, vengeful for the whole game (both agreed: no warning first).
+		if (Manhunt.hunting(drifter, player)) {
+			return VENGEFUL;
+		}
+
 		if (social.watcher().watchingSince(player) >= 0) {
 			return WATCHING;
 		}

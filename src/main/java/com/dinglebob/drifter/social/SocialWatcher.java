@@ -303,6 +303,7 @@ public class SocialWatcher {
 				r.knownBase = player.getSleepingPos().orElse(player.blockPosition());
 			}
 
+			this.shareReputation(player, r, now);
 			this.watchBow(player, w, now, distance);
 			this.watchCrouches(player, w, now, distance);
 			this.watchGear(player, r);
@@ -315,6 +316,38 @@ public class SocialWatcher {
 			}
 		}
 	}
+
+	/**
+	 * Section 14 "Forgiveness and multiplayer": players seen together share a little of each other's standing ("you're
+	 * with them, so I don't trust you either", or the other way round). A fifth of the gap, once a day per pair.
+	 */
+	private void shareReputation(Player player, Relationship r, long now) {
+		if (!com.dinglebob.drifter.DrifterConfig.shareReputation()) {
+			return;
+		}
+
+		long day = now / 24000L;
+		for (Player other : this.drifter.level().players()) {
+			if (other == player || !isRealPlayer(other) || other.distanceTo(player) > 6.0 || !this.sees(other)) {
+				continue;
+			}
+
+			Relationship theirs = this.drifter.getSocial().get(other.getUUID());
+			String pair = other.getUUID().toString();
+			if (theirs == null || r.sharedDay.getOrDefault(pair, -1L) == day || Math.abs(theirs.trust - r.trust) < 10.0) {
+				continue;
+			}
+
+			r.sharedDay.put(pair, day);
+			double before = r.trust;
+			r.addTrust((theirs.trust - r.trust) * SHARE);
+			this.drifter.getMemory().thoughts().add(now, String.format(java.util.Locale.ROOT, "%s is with %s: trust %.0f -> %.0f",
+				player.getGameProfile().getName(), other.getGameProfile().getName(), before, r.trust));
+		}
+	}
+
+	/** Share of the gap in standing that rubs off on someone seen with another player. */
+	private static final double SHARE = 0.2;
 
 	/** How often {@link #tick} runs. */
 	public static final int TICK_EVERY = 5;
@@ -490,6 +523,18 @@ public class SocialWatcher {
 			}
 
 			return InteractionResultHolder.pass(held);
+		});
+
+		// Section 18: a Drifter hostile to this player, close by, is "danger nearby" (no sleeping); others aren't.
+		net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents.ALLOW_NEARBY_MONSTERS.register((player, sleepingPos, vanillaResult) -> {
+			if (!isRealPlayer(player)) {
+				return InteractionResult.PASS;
+			}
+
+			AABB around = new AABB(sleepingPos).inflate(8.0, 5.0, 8.0);
+			boolean hostile = player.level().getEntitiesOfClass(DrifterEntity.class, around, DrifterEntity::isAlive).stream()
+				.anyMatch(drifter -> Mode.toward(drifter, player).hostile());
+			return hostile ? InteractionResult.FAIL : InteractionResult.PASS;
 		});
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {

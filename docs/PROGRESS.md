@@ -929,7 +929,15 @@ user's play to be called done). *Done when* every event in the section 14 table 
 4. **Hostile modes** (done, needs a player to test; opener arrows, ambush spots and the duel finesse come with step 6 polish): Territorial, Predatory (Bandit, Opportunist), Vengeful (hunts, goes to their known base), Fleeing;
    stalking, waiting for an opening, opener, duel, disengage, looting.
 5. **Friendly modes** (done, needs a player to test): greeting, gifts, barter, follow me, helping against mobs, warning of danger; non-verbal language.
-6. **Chat lines, multiplayer sharing, sleep blocking** (the mixin), then the manhunt (hunter) test command.
+6. **Chat lines, multiplayer sharing, sleep blocking, manhunt (hunter) test command** (done, needs a player to test).
+   Sleep blocking uses Fabric's `EntitySleepEvents.ALLOW_NEARBY_MONSTERS` (no mixin needed). The manhunt hunter gets a
+   tracking compass that gives only the runner's direction, respawns at world spawn with nothing.
+
+**Not done in milestone 9 (smaller parts of section 14, for later polish):** opener arrows from cover and ambush spots
+(corners in a mine, portal exits, base entrances), ender pearls and pillaring in duels, griefing (config-gated, off by
+default), the "dropping a peace offering when fleeing" config, pets (no pets yet), Drifter-to-Drifter friendships
+(KILLED_FRIEND counts witnesses for now; groups are milestone 12), "remembered after respawn" for Drifters killed by a
+player (Drifters don't respawn outside the manhunt yet).
 
 ## Notes for milestone 9 (from testing)
 

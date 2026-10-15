@@ -53,6 +53,8 @@ public class Relationship {
 	public int crouchSpamsToday;
 	/** Fear already added for their gear (the table's +10 to +30 is a level, not added again each time). */
 	public int gearFear;
+	/** The day it last let another player's standing rub off on this one, per other player (not saved). */
+	public final java.util.Map<String, Long> sharedDay = new java.util.HashMap<>();
 
 	public Relationship(UUID player, String name, double baseline) {
 		this.player = player;

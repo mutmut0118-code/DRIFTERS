@@ -1061,3 +1061,18 @@ and it still runs when it's losing.
 - [ ] **Creeper warning:** a creeper sneaking up behind you: it turns to face the creeper and backs away, so you see
       where it's looking ("warning <you> about a creeper behind them").
 
+**Step 6 (new): chat, sleep, groups of players, manhunt.**
+- [ ] **Chat lines:** now and then a Drifter says something in chat when it greets you ("<name> hi"), thanks you for a
+      gift ("ty"), warns you off ("go away"), gets hit ("bruh"), or wins or loses a fight ("gg"). Each has its own way of
+      saying it; quiet ones (hermits) rarely talk; at most one line every 20 s each. Turn off: `/drifter config chat false`.
+- [ ] **Sleep:** with a Drifter that's hostile to you within 8 blocks, the bed says monsters are nearby; a friendly or
+      neutral one doesn't stop you sleeping.
+- [ ] **Players together:** a Drifter that likes one player and meets another standing with them warms to the second a
+      little ("<p2> is with <p1>: trust ..."); with someone it hates, it trusts them less. Once a day per pair. Turn off:
+      `/drifter config share false`.
+- [ ] **Manhunt (hunter):** spawn a fresh Drifter (`/drifter spawn`, it starts with nothing), stand near it and run
+      `/drifter manhunt start <you>` (or add `dragon` for the full game). Chat announces it. It hunts you from the
+      start, no warning; out of sight it "checks its compass" and heads your way (it only gets your direction). If it
+      dies it respawns at world spawn with nothing and keeps hunting. You win by reaching the Nether (or killing the
+      dragon); it wins by killing you. `/drifter manhunt` shows the game, `/drifter manhunt stop` ends it.
+

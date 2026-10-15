@@ -243,6 +243,11 @@ public final class HostileGoals {
 
 		@Nullable
 		private static Relationship quarry(DrifterEntity drifter) {
+			Player runner = Manhunt.quarry(drifter);
+			if (runner != null) {
+				return drifter.getSocial().getOrMeet(runner.getUUID(), runner.getGameProfile().getName());
+			}
+
 			Relationship best = null;
 			for (Relationship r : drifter.getSocial().all()) {
 				Player player = drifter.level().getPlayerByUUID(r.player);
@@ -279,6 +284,11 @@ public final class HostileGoals {
 				return URGENCY;
 			}
 
+			// A manhunt hunter keeps after the runner, with its compass.
+			if (Manhunt.isHunter(drifter)) {
+				return 0.75;
+			}
+
 			// Out of sight: a vengeful one goes looking, where it last saw them or at their base.
 			boolean vengeful = drifter.getPersonality().get(Trait.VENGEFULNESS) >= 0.6;
 			return vengeful && (r.lastSeenPos != null || r.knownBase != null) ? 0.45 : 0.0;
@@ -310,6 +320,30 @@ public final class HostileGoals {
 					@Override
 					boolean done() {
 						return Mode.toward(this.drifter, this.player) != Mode.VENGEFUL;
+					}
+				};
+			}
+
+			// The tracking compass: the runner's direction, a stretch at a time (it checks it again after each leg).
+			Vec3 compass = Manhunt.compassPoint(drifter, 48.0);
+			if (compass != null) {
+				drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "checks its compass: " + r.name + " is that way");
+				return new Activity(drifter) {
+					private boolean went;
+
+					@Override
+					public String describe() {
+						return "follow the compass to " + r.name;
+					}
+
+					@Override
+					protected Status next() {
+						if (this.went) {
+							return Status.SUCCESS;
+						}
+
+						this.went = true;
+						return this.begin(new NavigateTask(this.drifter, compass, 6.0, "follow the compass", NavigateTask.Pace.TRAVEL));
 					}
 				};
 			}

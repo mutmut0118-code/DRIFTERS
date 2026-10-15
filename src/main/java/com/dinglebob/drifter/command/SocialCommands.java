@@ -52,6 +52,19 @@ public final class SocialCommands {
 					.executes(ctx -> event(ctx, 0.0))
 					.then(Commands.argument("amount", DoubleArgumentType.doubleArg(0, 100))
 						.executes(ctx -> event(ctx, DoubleArgumentType.getDouble(ctx, "amount")))))))
+			.then(Commands.literal("manhunt")
+				.executes(ctx -> {
+					say(ctx, com.dinglebob.drifter.social.Manhunt.status());
+					return 1;
+				})
+				.then(Commands.literal("stop").executes(ctx -> {
+					com.dinglebob.drifter.social.Manhunt.stop(ctx.getSource().getServer(), "stopped by command");
+					return 1;
+				}))
+				.then(Commands.literal("start").then(Commands.argument("runner", net.minecraft.commands.arguments.EntityArgument.player())
+					.executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER))
+					.then(Commands.literal("nether").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER)))
+					.then(Commands.literal("dragon").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.DRAGON))))))
 			.then(Commands.literal("disposition").then(Commands.argument("disposition", StringArgumentType.word())
 				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(Disposition.values()).map(Disposition::id), builder))
 				.executes(SocialCommands::disposition))));
@@ -122,6 +135,14 @@ public final class SocialCommands {
 		double change = drifter.getSocial().record(player.id(), player.name(), event, amount);
 		Relationship r = drifter.getSocial().get(player.id());
 		say(ctx, String.format(Locale.ROOT, "%s (trust %+.0f): %s", event.what, change, summary(r)));
+		return 1;
+	}
+
+	/** Section 25 manhunt test mode, hunter role: the nearest Drifter hunts this player. */
+	private static int manhunt(CommandContext<CommandSourceStack> ctx, com.dinglebob.drifter.social.Manhunt.Goal goal) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		ServerPlayer runner = net.minecraft.commands.arguments.EntityArgument.getPlayer(ctx, "runner");
+		com.dinglebob.drifter.social.Manhunt.start(drifter, runner, goal);
 		return 1;
 	}
 
