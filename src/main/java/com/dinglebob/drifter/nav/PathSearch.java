@@ -86,6 +86,8 @@ public class PathSearch {
 	 * walking round (user's rule). Deeper drops only into water.
 	 */
 	public static final float MAX_DROP_DAMAGE = 2.0F;
+	/** Building blocks routes always leave in its pockets. */
+	public static final int BLOCK_RESERVE = 6;
 	/** Break time (seconds) at or under which a block counts as clearing at a touch, and its small extra cost. */
 	public static final double INSTANT_BREAK = 0.25;
 	public static final double INSTANT_PENALTY = 0.3;
@@ -145,7 +147,9 @@ public class PathSearch {
 		this.start = start.immutable();
 		this.target = target;
 		this.goalRadius = goalRadius;
-		this.blocksAvailable = Tools.buildingBlockCount(drifter);
+		// Never its last few blocks on a route: a long chain of partial routes (exploring far) once spent them all on pillars
+		// and bridges and left it stranded up on them (found by the user: rubydoodle).
+		this.blocksAvailable = Math.max(0, Tools.buildingBlockCount(drifter) - BLOCK_RESERVE);
 		// Section 12 cost model: risk x Caution, resources x Thrift, from its personality (mood included).
 		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
 		this.thrift = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.THRIFT);

@@ -1041,6 +1041,44 @@ public final class Goals {
 		}
 	}
 
+	/** Stuck up on its own pillars and bridges with no blocks left: get down first (found by the user: rubydoodle). */
+	public static final class GetDown extends Goal {
+		@Override
+		public String id() {
+			return "getdown";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "get down off its pillars";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			return com.dinglebob.drifter.brain.activity.GetDownActivity.stuckUp(context.drifter()) ? 0.95 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return true;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 10;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.GetDownActivity(context.drifter());
+		}
+	}
+
 	/**
 	 * Loot a structure's chest it has seen (section 10.11, "Opportunistic jumps": a ruined portal's chest, a shipwreck's, a
 	 * temple's). Greedy and curious ones go at once (user's request: a ruined portal's chest in sight gets looted).
@@ -1619,7 +1657,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());

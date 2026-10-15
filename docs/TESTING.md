@@ -1112,4 +1112,7 @@ and it still runs when it's losing.
       a chest you placed raids it when you're not in sight ("raiding a player's chest at ..."). Other Drifters only raid
       you if they hold a real grudge (hit them a few times) and know your base (they saw you go to bed). Never ender
       chests, never chests right by your bed, never inside spawn protection. Off: `/drifter config raiding false`.
+- [ ] **Stuck up on its own pillars:** a Drifter stranded on top of its own pillars and bridges with (almost) no blocks
+      thinks "stuck up here with no blocks: digging down through its pillar" and digs down a block at a time (walking to
+      a pillar first if it's on a bridge). Routes also keep 6 building blocks in reserve, so this should rarely happen.
 
