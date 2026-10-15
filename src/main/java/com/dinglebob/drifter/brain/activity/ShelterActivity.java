@@ -456,6 +456,11 @@ public class ShelterActivity extends Activity {
 
 	@Override
 	protected boolean countsAsFailure(com.dinglebob.drifter.executor.Task step) {
+		// The roof's step block that couldn't go on: it digs down one instead (below), not a failure.
+		if (this.phase == Phase.BOX && step instanceof PlaceBlockTask place && place.target().getY() == this.drifter.blockPosition().getY() + 2) {
+			return false;
+		}
+
 		return !(step instanceof WaitTask) && (this.digger == null || this.phase != Phase.MINE || this.digger.countsAsFailure(step));
 	}
 
@@ -506,6 +511,11 @@ public class ShelterActivity extends Activity {
 
 	@Override
 	protected void stepDone(com.dinglebob.drifter.executor.Task step, Status status) {
+		if (this.phase == Phase.BOX && step instanceof PlaceBlockTask place && status != Status.SUCCESS
+			&& place.target().getY() == this.drifter.blockPosition().getY() + 2) {
+			this.roofStepFailed = true;
+		}
+
 		if (this.phase == Phase.MINE && this.digger != null) {
 			this.digger.stepDone(step, status);
 			String thought = this.digger.takeThought();
@@ -617,6 +627,20 @@ public class ShelterActivity extends Activity {
 			return Status.RUNNING;
 		}
 
+		// The block on top of a wall for the roof to rest on can't be clicked from inside (its top face is above its eyes;
+		// found in testing: 73 failed nights in one run). A player digs one down instead: then the walls it put up are at
+		// head height and hold the roof. Once, and only into firm ground with no fluid under it.
+		if (this.roofStepFailed && !this.dugDownOne) {
+			BlockPos under = this.drifter.blockPosition().below();
+			Level here = this.drifter.level();
+			if (!here.getBlockState(under).isAir() && here.getFluidState(under).isEmpty() && here.getFluidState(under.below()).isEmpty()
+				&& solidAt(here, under.below()) && here.getBlockState(under).getDestroySpeed(here, under) >= 0) {
+				this.dugDownOne = true;
+				this.think("can't get the roof on from here: digging down one");
+				return this.begin(this.dig(under));
+			}
+		}
+
 		if (this.drifter.getInventory().count(ShelterActivity::isCoverBlock) == 0) {
 			return this.fail("ran out of blocks to wall itself in");
 		}
@@ -688,6 +712,8 @@ public class ShelterActivity extends Activity {
 	}
 
 	private int blockRuns;
+	private boolean roofStepFailed;
+	private boolean dugDownOne;
 
 	/** Ground it can dig up quickly for wall blocks (with or without a pickaxe): dirt and grass, and stone with a pickaxe. */
 	private static boolean isGroundForBlocks(net.minecraft.world.level.block.state.BlockState state) {
