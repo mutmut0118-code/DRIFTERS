@@ -962,7 +962,19 @@ Miners build in stone; Nomads, Hermits and Speedrunners don't build one.)
 - [ ] **Fighting back when stuck:** a badly hurt Drifter running from a zombie that gets wedged (leaves, a corner) and
       keeps getting hit turns round and fights instead of standing there.
 
+### Late fixes (tonight's last builds)
+- [ ] **Baby zombies:** a Drifter attacked by a baby zombie fights it instead of running.
+- [ ] **Fire:** give one a water bucket (`/drifter give minecraft:water_bucket`), set it alight (it walks through fire
+      or touches lava): it pours water at its feet ("on fire: water bucket at its feet") and scoops it back up.
+- [ ] **Waterfalls and streams:** at the top of a waterfall, swimming upstream, it never gets washed over: it thinks
+      "the current's carrying it to a drop: blocking the edge" and puts a block there. Stuck in a stream it keeps
+      getting washed back in, it thinks "the current keeps pushing it back: standing on a block out of it".
+- [ ] **Diamonds:** it never leaves ore it dug through lying on the ground; diamonds right below it get a staircase.
+- [ ] **Sealed underwater:** caught under rock in water with no air, it thinks "no air to swim to: mining up through
+      the ceiling" and survives.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
+- No proper sprint-swimming yet (face-down fast swimming on long swims, section 10.10).
 - Crops only grow, and mobs only spawn, near you (that's how Minecraft works without a player near; simulating the world
   round Drifters is planned as its own milestone later).
 - No anvil yet; bookshelves come slowly (each needs 3 books: sugar cane and leather).

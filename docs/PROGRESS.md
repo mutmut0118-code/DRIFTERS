@@ -845,6 +845,28 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
     near). Big enough to be its own milestone after 9, or part of milestone 10. Recorded here; not in DESIGN.md yet.
   - **Bonemeal** on crops and saplings: with the whims (WHIMS.md) and the farming habits, later.
 
+### Fixes from the user's game and batches 12-14 (2026-10-14, late)
+- **Combat:** a baby zombie (faster than it can run), anything that hits it twice while it backs off, or being stuck in
+  place while fleeing: it turns and fights (four Drifters in the user's world died running from baby zombies).
+- **Fire and lava:** a water bucket at its feet when on fire (staged test: put out after 2 hits); unseen cells beside or
+  under known lava count as lava, open cells beside it cost more; it never eats standing in lava.
+- **Water:** sealed in under a ceiling, it stops swimming for air it can't reach, sinks and mines up standing (staged
+  test: from drowning to full health); a stream carrying it toward a drop of 4+: a block at the edge at once (staged
+  test passed); washed back again and again in a current: it stands on a block out of it and plans again. A pillar it
+  gets carried off is replanned (a fatal fall).
+- **Loops:** "pockets full" trips 120 blocks from home (307 times: full pockets now send it home from up to 512 blocks);
+  junk and cobble past two stacks thrown out down a mine; mining prep steps capped at 3 tries; walling in for the night
+  digs down one when the roof's step block can't go on (73 failed nights); putting things away from far off walks home
+  first, then waits 2 minutes after a failure.
+- **Planning:** lapis is never mined as an ingredient (it went to Y 0 for blue wool for a bed); ore under its feet gets a
+  staircase down beside it (the planner and gathering disagreed: "doesn't know where to find any diamond"); ore dug
+  through on the way is picked up (the user saw diamonds left behind).
+- **Houses:** sites may have a few unseen cells and be up to 24 blocks out (a Builder on hills never found one; re-run on
+  the same seed: house built). No night hunts underground (one drowned in flooded caves on a night hunt).
+- **Batches 12-14:** Casual reached diamonds (stage 7) in batch 12; batch 14's Builder made full iron armor, shield,
+  shears and flint and steel from its long trips (its stage then reads 4 because its iron pickaxe wore out). Deaths
+  found in these batches (lava, a fall from a pillar in a current, a waterfall, a drowning) are fixed above.
+
 ### Step 9: the 10-day run (in progress; latest state 2026-10-14 evening)
 - **Batch 7 (all fixes to then):** all three survived 10 days. Miner: diamond pickaxe and sword (stage 7), a stone house,
   a 52-block farm (this meets the milestone's "done when"). Builder: a finished wooden house, a 37-block farm all
