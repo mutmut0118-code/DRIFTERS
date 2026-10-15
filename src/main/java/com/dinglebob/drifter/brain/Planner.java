@@ -533,6 +533,7 @@ public final class Planner {
 				var block = this.drifter.level().getBlockState(pos);
 				return block.getBlock() instanceof net.minecraft.world.level.block.BedBlock && block.getBlock().asItem() == item
 					&& !this.drifter.level().canSeeSky(pos.above()) && (home == null || !home.inOwnBuilding(pos, 1))
+					&& !this.drifter.getDrifterBrain().blacklist().contains(pos, this.drifter.level().getGameTime())
 					&& (home == null || home.houseBed == null || !home.houseBed.closerThan(pos, 2.0));
 			});
 		if (entry == null) {

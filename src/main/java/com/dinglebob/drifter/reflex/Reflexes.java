@@ -894,6 +894,9 @@ public class Reflexes {
 
 			runTo(drifter, awayFrom(drifter, Vec3.atCenterOf(this.lava), 3.0), false);
 			drifter.getKeys().set(VirtualKeys.Key.SPRINT, false);
+			// Sneaking: backing away blind, it mustn't step off an edge (found in testing: it backed off one lava pool
+			// straight over a ledge into another).
+			drifter.getKeys().set(VirtualKeys.Key.SNEAK, true);
 			return true;
 		}
 
@@ -1394,6 +1397,7 @@ public class Reflexes {
 			}
 
 			Steering.pressToward(drifter, awayFrom(drifter, this.from, 2.0));
+			drifter.getKeys().set(VirtualKeys.Key.SNEAK, true);
 			return true;
 		}
 

@@ -49,6 +49,8 @@ public class PickUpBlockActivity extends Activity {
 
 		BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, this.pos, Set.of());
 		if (spot == null || this.walks++ > 2) {
+			// Not again for a while: the planner skips it (found in testing: a villager's bed it couldn't reach, 105 times).
+			this.drifter.getDrifterBrain().blacklist().add(this.pos, this.drifter.level().getGameTime());
 			return this.fail("can't get to " + this.label);
 		}
 

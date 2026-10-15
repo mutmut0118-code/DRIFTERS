@@ -107,6 +107,38 @@ public class MineTripActivity extends Activity {
 	private final int asked;
 
 	private int tosses;
+
+	/** The nearest spot it has seen, within 48 blocks, with no sand or gravel in the top 3 blocks under it; or null. */
+	@Nullable
+	private BlockPos firmGround() {
+		net.minecraft.world.level.Level level = this.drifter.level();
+		BlockPos feet = this.drifter.blockPosition();
+		BlockPos[] best = {null};
+		double[] bestDistance = {Double.MAX_VALUE};
+		this.drifter.getSenses().terrain().forEachKnown(feet, 48, pos -> {
+			if (!KnownBlocks.isStandable(level, pos) || !level.getFluidState(pos.below()).isEmpty()) {
+				return;
+			}
+
+			for (int down = 1; down <= 3; down++) {
+				BlockPos under = pos.below(down);
+				if (level.getBlockState(under).getBlock() instanceof net.minecraft.world.level.block.FallingBlock || !level.getFluidState(under).isEmpty()) {
+					return;
+				}
+			}
+
+			Home home = this.drifter.getDrifterBrain().home();
+			double distance = pos.distSqr(feet);
+			if ((home == null || !home.inOwnBuilding(pos, 2)) && distance < bestDistance[0]) {
+				bestDistance[0] = distance;
+				best[0] = pos.immutable();
+			}
+		});
+		return best[0];
+	}
+	/** Times a staircase that wouldn't start was started again from where it stands. */
+	private int freshStarts;
+	private static final int MAX_FRESH_STARTS = 3;
 	/** It already dug its way up once on this trip. */
 	private boolean surfaced;
 	private int spareTries;
@@ -693,6 +725,24 @@ public class MineTripActivity extends Activity {
 
 			t.branchMine(bottom, t.direction, MAIN_LENGTH, this.spacing(), BRANCH_LENGTH);
 			this.think("at the bottom (Y " + bottom.getY() + "): branch mining");
+			return Status.RUNNING;
+		}
+
+		// A fresh staircase that couldn't dig a single step (its own buildings, water or a farm on that side of home): it
+		// starts again right where it stands, facing another way, as a player would (found in testing: 56 trips ended
+		// "the tunnel's done" the tick they began).
+		if (!this.continuedStairs && !this.branched && t.steps == 0 && this.freshStarts < MAX_FRESH_STARTS) {
+			this.freshStarts++;
+			Direction way = Direction.from2DDataValue(this.drifter.getDirection().get2DDataValue() + this.freshStarts);
+			// On firm ground: sand or gravel underfoot stops a staircase (falling blocks); in a desert it walks to the nearest
+			// firm ground it has seen first (found in testing: a desert home, every staircase refused, 1650 times).
+			BlockPos firm = this.firmGround();
+			BlockPos here = firm != null ? firm : this.drifter.blockPosition();
+			int targetY = this.targetY != Integer.MIN_VALUE ? this.targetY : this.depth;
+			this.tunnel = new Tunnel(here, way, MAX_STEPS);
+			this.tunnel.legs.add(new Tunnel.Leg(here, way, 400, targetY));
+			this.digger = new TunnelDigger(this.drifter, this.tunnel);
+			this.think("the stairs wouldn't start there: digging down from here instead, heading " + way.getName());
 			return Status.RUNNING;
 		}
 
