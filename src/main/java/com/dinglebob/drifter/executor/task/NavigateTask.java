@@ -1276,6 +1276,15 @@ public class NavigateTask extends Task {
 			keys.set(VirtualKeys.Key.RIGHT, false);
 		}
 
+		// Badly hurt, stepping down: no keys while in the air, so it lands on the step instead of sailing past it over the next
+		// edge (found in the user's game: two step-downs ran together into a 4-block fall that cost its last half-heart).
+		if (step.type() == MoveType.STEP_DOWN && !this.drifter.onGround() && this.drifter.getHealth() <= CAREFUL_HEALTH && !this.urgent) {
+			keys.set(VirtualKeys.Key.FORWARD, false);
+			keys.set(VirtualKeys.Key.BACK, false);
+			keys.set(VirtualKeys.Key.LEFT, false);
+			keys.set(VirtualKeys.Key.RIGHT, false);
+		}
+
 		// Never sprinting with lava close by: one slip or a corner cut is fatal (found by the user: imNiftyshield sprinted
 		// across a lava hole in the floor right where it had just been burned).
 		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
