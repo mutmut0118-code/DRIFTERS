@@ -111,7 +111,7 @@ public class Reflexes {
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
-		this.reflexes = List.of(new InLava(), new Drowning(), new OnFire(), new DouseWithBucket(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
+		this.reflexes = List.of(new InLava(), new Drowning(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
 			new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact());
 	}
 
@@ -635,6 +635,112 @@ public class Reflexes {
 		protected int maxTicks() {
 			return 60;
 		}
+	}
+
+	/**
+	 * A current carrying it toward a drop (a stream running over the edge of a waterfall or into a shaft): a block at the
+	 * edge, at once, as a player would (found in testing: swimming upstream at the top of a waterfall, it was washed over
+	 * and fell 30 blocks).
+	 */
+	private static final class SweptToEdge extends TaskReflex {
+		@Nullable
+		private BlockPos edge;
+
+		@Override
+		public String name() {
+			return "the current's carrying it to a drop: blocking the edge";
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			this.edge = null;
+			if (!drifter.isInWater() || drifter.getInventory().count(Tools.BUILDING_BLOCK) == 0) {
+				return false;
+			}
+
+			Level level = drifter.level();
+			BlockPos feet = drifter.blockPosition();
+			net.minecraft.world.level.material.FluidState water = level.getFluidState(feet);
+			if (!water.is(FluidTags.WATER) || water.isSource()) {
+				return false;
+			}
+
+			Vec3 flow = water.getFlow(level, feet);
+			if (flow.horizontalDistanceSqr() < 0.01) {
+				return false;
+			}
+
+			// The first cell downstream (one or two blocks on) with nothing to stand on for 4 blocks under it: early enough to
+			// react and get a block down before it's carried over (found in testing: at one block it went over mid-placing).
+			Direction downstream = Direction.getNearest(flow.x, 0.0, flow.z);
+			BlockPos next = null;
+			for (int ahead = 1; ahead <= 2 && next == null; ahead++) {
+				BlockPos cell = feet.relative(downstream, ahead);
+				if (solid(level, cell) || !level.getBlockState(cell).canBeReplaced()) {
+					return false;
+				}
+
+				boolean drop = true;
+				for (int down = 1; down <= DROP; down++) {
+					if (solid(level, cell.below(down))) {
+						drop = false;
+						break;
+					}
+				}
+
+				if (drop) {
+					next = cell;
+				}
+			}
+
+			if (next == null) {
+				return false;
+			}
+
+			this.downstream = downstream;
+
+			// Once per edge a minute: if a route really goes that way it isn't stopped over and over.
+			long now = level.getGameTime();
+			if (next.equals(this.lastEdge) && now - this.lastEdgeAt < 20 * 60) {
+				return false;
+			}
+
+			this.edge = next;
+			return true;
+		}
+
+		@Nullable
+		private BlockPos lastEdge;
+		@Nullable
+		private Direction downstream;
+		private long lastEdgeAt;
+
+		@Override
+		protected Task makeTask(DrifterEntity drifter) {
+			this.lastEdge = this.edge;
+			this.lastEdgeAt = drifter.level().getGameTime();
+			com.dinglebob.drifter.motor.Steering.stopMoving(drifter);
+			return new com.dinglebob.drifter.executor.task.PlaceBlockTask(drifter, this.edge, Tools.BUILDING_BLOCK, "a block at the edge");
+		}
+
+		@Override
+		protected boolean act(DrifterEntity drifter, int tick) {
+			boolean going = super.act(drifter, tick);
+			// Swimming against the current meanwhile, so it isn't carried over before the block is down.
+			if (going && this.downstream != null) {
+				Steering.pressToward(drifter, drifter.position().add(Vec3.atLowerCornerOf(this.downstream.getOpposite().getNormal()).scale(3.0)));
+			}
+
+			return going;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 40;
+		}
+
+		/** How far down counts as a drop worth blocking. */
+		private static final int DROP = 4;
 	}
 
 	/** A creeper hissing close by: get clear (sprint away), or shield up if it can't. */

@@ -310,8 +310,39 @@ public class NavigateTask extends Task {
 
 	private void replan(String reason, boolean onTheMove) {
 		this.replans++;
+		// Caught in a current it can't swim out of (a stream pushing it off the ledge it's climbing onto, water pouring down
+		// a shaft): like a player, it puts a block under itself and stands on it out of the flow, then plans again (found in
+		// the user's game: a minute of jumping at a ledge and being washed back).
+		if (this.stuckInCurrent()) {
+			this.currentEscapes++;
+			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "the current keeps pushing it back: standing on a block out of it");
+			this.startSub(new PillarUpTask(this.drifter, 1));
+			this.replanAfterSub = true;
+			return;
+		}
+
 		this.plan(reason, onTheMove);
 	}
+
+	/** In flowing water, re-planning again, with a block to stand on and room over its head. */
+	private boolean stuckInCurrent() {
+		if (this.currentEscapes >= MAX_CURRENT_ESCAPES || this.replans < 2 || !this.drifter.isInWater() || this.sub != null) {
+			return false;
+		}
+
+		BlockPos feet = this.drifter.blockPosition();
+		net.minecraft.world.level.material.FluidState here = this.level().getFluidState(feet);
+		boolean flowing = here.is(FluidTags.WATER) && !here.isSource() || this.level().getFluidState(feet.above()).is(FluidTags.WATER)
+			&& !this.level().getFluidState(feet.above()).isSource();
+		BlockPos overhead = feet.above(2);
+		return flowing && Tools.buildingBlockCount(this.drifter) > 0 && this.level().getBlockState(overhead).getCollisionShape(this.level(), overhead).isEmpty();
+	}
+
+	/** Times per walk it gets out of a current by standing on a block. */
+	private static final int MAX_CURRENT_ESCAPES = 3;
+	private int currentEscapes;
+	/** The sub-task changed where it is: plan afresh when it's done. */
+	private boolean replanAfterSub;
 
 	/**
 	 * Lets go of every key, except sneak while a deep drop is right beside or under it: with sneak released, even the
@@ -553,6 +584,12 @@ public class NavigateTask extends Task {
 		Task finished = this.sub;
 		this.stopSub();
 		this.sinceProgress = 0;
+		if (this.replanAfterSub) {
+			this.replanAfterSub = false;
+			this.plan("out of the current", true);
+			return Status.RUNNING;
+		}
+
 		if (status == Status.FAILURE) {
 			this.replan(finished.describe() + " failed: " + finished.failureReason());
 		}
