@@ -75,6 +75,8 @@ public final class PersonalityCommands {
 		}
 
 		drifter.getPersonality().reroll(drifter.getRandom(), archetype);
+		// A new personality brings its own disposition toward players (rolled again when next needed).
+		drifter.getSocial().setDisposition(null);
 		ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " is now a " + drifter.getPersonality().archetype().displayName()), true);
 		return show(ctx);
 	}

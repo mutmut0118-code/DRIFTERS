@@ -105,6 +105,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.reflex.Reflexes reflexes = new com.dinglebob.drifter.reflex.Reflexes(this);
 	/** Who it is (section 17): archetype, traits, habit fingerprint and mood. Rolled once, saved. */
 	private final com.dinglebob.drifter.personality.Personality personality;
+	/** Its standing with each player it has met, and its disposition (section 14, milestone 9). */
+	private final com.dinglebob.drifter.social.Relationships social = new com.dinglebob.drifter.social.Relationships(this);
 	/** The mannerism layer (section 16): tics on top of whatever it's doing, with the body parts its task leaves free. */
 	private final com.dinglebob.drifter.mannerism.Mannerisms mannerisms = new com.dinglebob.drifter.mannerism.Mannerisms(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
@@ -355,6 +357,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.reflex.Reflexes getReflexes() {
 		return this.reflexes;
+	}
+
+	public com.dinglebob.drifter.social.Relationships getSocial() {
+		return this.social;
 	}
 
 	public com.dinglebob.drifter.personality.Personality getPersonality() {
@@ -635,6 +641,9 @@ public class DrifterEntity extends PathfinderMob {
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		this.senses.tick();
 		this.personality.tick(this);
+		if (this.tickCount % 100 == 0) {
+			this.social.tick();
+		}
 		// Skill moves the head (section 16.1: lower Skill overshoots more); mood can shake it (Panicked).
 		this.camera.setSkill(this.personality.getF(com.dinglebob.drifter.personality.Trait.SKILL));
 		// Reflexes first (section 8, layer 5): while one has the body, the brain, the executor and the tics wait.
@@ -1473,6 +1482,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.put("DrifterMemory", this.memory.save());
 		tag.put("DrifterBrain", this.brain.save());
 		tag.put("DrifterPersonality", this.personality.save());
+		tag.put("DrifterSocial", this.social.save());
 		tag.putBoolean("DrifterNamed", this.named);
 		tag.putFloat("XpP", this.experienceProgress);
 		tag.putInt("XpLevel", this.experienceLevel);
@@ -1513,6 +1523,10 @@ public class DrifterEntity extends PathfinderMob {
 
 		// Drifters saved before milestone 7 have no personality yet: they keep the one rolled at load, which is then saved.
 		this.named = tag.getBoolean("DrifterNamed");
+		if (tag.contains("DrifterSocial", Tag.TAG_COMPOUND)) {
+			this.social.load(tag.getCompound("DrifterSocial"));
+		}
+
 		if (tag.contains("DrifterPersonality", Tag.TAG_COMPOUND)) {
 			this.personality.load(tag.getCompound("DrifterPersonality"));
 		}

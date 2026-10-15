@@ -905,6 +905,31 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   - The test server only kept the area round spawn loaded, so a Drifter that walked off froze (test scripts now keep
     the area round the Drifter loaded, as a player would).
 
+## Milestone 9: Disposition and PvP
+
+**Status:** In progress (started 2026-10-14, late, after milestone 8's code was complete; milestone 8 waits on the
+user's play to be called done). *Done when* every event in the section 14 table moves Trust as specified.
+
+### Plan
+1. **Relationship records** (done): per player Trust, Fear, Familiarity, grudges, debts, strength estimate, known base,
+   last seen; a disposition rolled from the archetype (section 17 table; a very vengeful neutral is a Grudge-holder);
+   the stranger baseline from Sociability (-20 to +20) shifted by disposition; each day Trust drifts back by
+   Forgiveness (5-30% of the way), grudges fade by Vengefulness (severe ones of a vengeful Drifter never do), Fear
+   fades to what their gear earns. All saved. The event table lives in `social/SocialEvent` (exact numbers, daily caps
+   for broken blocks and crouch-spam, ranges for gifts and gear). Debug: `/drifter social`, `social show <player>`,
+   `social set <player> trust|fear|familiarity <n>`, `social event <player> <event> [amount]`,
+   `social disposition <id>`.
+2. **Seeing the events** (next): hits (once and backs off, repeatedly, nearly kills, kills), its blocks broken, chests
+   opened (seen or heard) and valuables taken, farm animals killed, fire or lava near its base, a drawn bow aimed at it,
+   being sneaked up on, gifts, crouch-spam, a mob killed that was attacking it, being saved from death, peaceful time,
+   a friend Drifter killed, better gear. Pets: no pets yet (the event is in the table, nothing triggers it).
+3. **Behavior modes and the telegraph rule:** Watching, Avoiding, Tolerating, Defensive, Warning; no hostility toward a
+   player who never wronged it without a warning first; never hostile on Peaceful.
+4. **Hostile modes:** Territorial, Predatory (Bandit, Opportunist), Vengeful (hunts, goes to their known base), Fleeing;
+   stalking, waiting for an opening, opener, duel, disengage, looting.
+5. **Friendly modes:** greeting, gifts, barter, follow me, helping against mobs, warning of danger; non-verbal language.
+6. **Chat lines, multiplayer sharing, sleep blocking** (the mixin), then the manhunt (hunter) test command.
+
 ## Notes for milestone 9 (from testing)
 
 - **User expectation (session 2):** punching a PvP Sweat Drifter should turn into a real pursuit. Today any Drifter
