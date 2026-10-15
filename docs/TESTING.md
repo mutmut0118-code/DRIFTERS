@@ -1100,4 +1100,7 @@ and it still runs when it's losing.
       turns it off and remembers that.
 - [ ] **Rare gifts count:** an enchanted golden apple, a totem, a diamond block and so on are worth the full +30 Trust in
       one go (before, enchanted golden apples counted as plain food).
+- [ ] **Berry bushes:** Drifters no longer walk through grown berry bushes. They break them on the way (instantly,
+      like a player clearing a path) and cut straight through a patch. Touching one, it stands still (they only prick
+      while you move) and breaks it. Staged test: across a 5-wide patch starting at 2 hearts, it arrived alive.
 

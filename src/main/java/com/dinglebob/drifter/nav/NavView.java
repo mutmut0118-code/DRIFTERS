@@ -154,6 +154,13 @@ public final class NavView {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 
+		// A grown berry bush (the ones that prick) in the way: broken as it goes, instantly, like a player clearing a path,
+		// rather than a slow, painful walk through (found by the user: Drifters kept dying in berry bushes).
+		if (state.is(Blocks.SWEET_BERRY_BUSH) && state.getValue(net.minecraft.world.level.block.SweetBerryBushBlock.AGE) > 0
+			&& !PlayerPlacedBlocks.isPlayerPlaced(this.level, pos)) {
+			return new Cell(Kind.SOLID, BERRY_BUSH_SECONDS, false, false);
+		}
+
 		if (state.is(Blocks.COBWEB) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.SWEET_BERRY_BUSH) || state.is(Blocks.WITHER_ROSE)) {
 			return new Cell(Kind.AVOID, 0.0F, false, false);
 		}
@@ -201,6 +208,9 @@ public final class NavView {
 		boolean built = looksBuilt(state) || state.is(BlockTags.LOGS) && !this.trees.check(pos);
 		return new Cell(Kind.SOLID, dig, falling, liquidBeside, built);
 	}
+
+	/** Breaking a berry bush in the way: instant (hardness 0), plus a moment to aim. */
+	private static final float BERRY_BUSH_SECONDS = 0.2F;
 
 	private boolean knownLavaAt(BlockPos pos) {
 		return this.knowledge.isKnown(pos) && this.level.getFluidState(pos).is(FluidTags.LAVA);

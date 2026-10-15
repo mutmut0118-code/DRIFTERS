@@ -86,6 +86,9 @@ public class PathSearch {
 	 * walking round (user's rule). Deeper drops only into water.
 	 */
 	public static final float MAX_DROP_DAMAGE = 2.0F;
+	/** Break time (seconds) at or under which a block counts as clearing at a touch, and its small extra cost. */
+	public static final double INSTANT_BREAK = 0.25;
+	public static final double INSTANT_PENALTY = 0.3;
 	/** ...and only with at least this much health left afterwards (3 hearts). */
 	public static final float MIN_HEALTH_AFTER_DROP = 6.0F;
 	/** Seconds-equivalent per point of fall damage, before the Caution weight. */
@@ -284,7 +287,10 @@ public class PathSearch {
 						return null;
 					}
 
-					clearance.cost += info.digSeconds() + DIG_PENALTY + DIG_RESOURCE * this.thrift * 2.0;
+					// Something that breaks at a touch (a berry bush) costs next to nothing to clear: a player cuts straight
+					// through a patch rather than skirting its pricking edge (found by the user: Drifters died skirting them).
+					boolean instant = info.digSeconds() <= INSTANT_BREAK;
+					clearance.cost += info.digSeconds() + (instant ? INSTANT_PENALTY : DIG_PENALTY + DIG_RESOURCE * this.thrift * 2.0);
 					if (info.built()) {
 						clearance.cost += BUILT_PENALTY;
 					}

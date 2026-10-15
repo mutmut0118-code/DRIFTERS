@@ -645,10 +645,35 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
+		// Touching a grown berry bush: it stands still (they only prick while you move) and breaks it, then goes on; walking
+		// on through a patch is a prick every few steps at a crawl (found by the user: Drifters kept dying in berry bushes).
+		BlockPos bush = this.berryBushTouching();
+		if (bush != null) {
+			this.startSub(this.digTask(bush));
+			return Status.RUNNING;
+		}
+
 		// Reality check: it only digs what the plan chose to dig. Anything else in the way means the plan was based on
 		// a guess about unseen ground, so it plans again now that it can see it (section 12; found in testing: it used
 		// to dig through whatever it found, including house walls).
 		for (BlockPos cell : this.cellsToClear(step)) {
+			// A berry bush the plan chose to break: it doesn't block a body, but walking through pricks (found by the user:
+			// Drifters kept dying in berry bushes), so it's broken first like a player clearing the way.
+			BlockState inCell = this.level().getBlockState(cell);
+			if (inCell.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH)) {
+				if (step.digs().contains(cell)) {
+					this.startSub(this.digTask(cell));
+					return Status.RUNNING;
+				}
+
+				// A grown one right in front that the plan didn't know about (planned before it saw it): now it has, plan again.
+				if (inCell.getValue(net.minecraft.world.level.block.SweetBerryBushBlock.AGE) > 0) {
+					this.drifter.getSenses().terrain().mark(cell);
+					this.replan("found a berry bush in the way");
+					return Status.RUNNING;
+				}
+			}
+
 			if (!this.isClear(cell)) {
 				if (!step.digs().contains(cell)) {
 					this.replan("found " + this.blockName(cell) + " where it expected open space");
@@ -756,6 +781,20 @@ public class NavigateTask extends Task {
 	public NavigateTask urgent() {
 		this.urgent = true;
 		return this;
+	}
+
+	/** A grown (pricking) berry bush its body overlaps, or null. */
+	@Nullable
+	private BlockPos berryBushTouching() {
+		net.minecraft.world.phys.AABB box = this.drifter.getBoundingBox().deflate(0.01);
+		for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(box.minX, box.minY, box.minZ), BlockPos.containing(box.maxX, box.maxY, box.maxZ))) {
+			BlockState state = this.level().getBlockState(pos);
+			if (state.is(net.minecraft.world.level.block.Blocks.SWEET_BERRY_BUSH) && state.getValue(net.minecraft.world.level.block.SweetBerryBushBlock.AGE) > 0) {
+				return pos.immutable();
+			}
+		}
+
+		return null;
 	}
 
 	/** Lava at its feet's level or in the floor of a block next to it (diagonals too) that it has seen. */

@@ -1349,24 +1349,60 @@ public class Reflexes {
 			return false;
 		}
 
+		/** A berry bush it's standing in: broken where it stands (walking through one only pricks it more). */
+		@Nullable
+		private BlockPos bush;
+		@Nullable
+		private Task breaking;
+
 		@Override
 		protected void start(DrifterEntity drifter) {
 			Reflexes.this.contactUntil = -1;
+			// Sweet berry bushes only hurt while you move through them, and slow you right down: stepping away through a
+			// patch is many more pricks (found by the user: Drifters kept dying in berry bushes). A player punches it out.
+			this.bush = null;
+			BlockPos feet = drifter.blockPosition();
+			for (BlockPos pos : new BlockPos[]{feet, feet.above()}) {
+				if (drifter.level().getBlockState(pos).is(Blocks.SWEET_BERRY_BUSH)) {
+					this.bush = pos.immutable();
+				}
+			}
+
+			this.breaking = this.bush == null ? null : dig(drifter, this.bush);
 		}
 
 		@Override
 		protected int maxTicks() {
-			return 8;
+			return this.breaking != null ? 30 : 8;
 		}
 
 		@Override
 		protected boolean act(DrifterEntity drifter, int tick) {
+			if (this.breaking != null) {
+				Steering.stopMoving(drifter);
+				if (this.breaking.tick() != Task.Status.RUNNING) {
+					this.breaking.stop();
+					this.breaking = null;
+					return false;
+				}
+
+				return true;
+			}
+
 			if (this.from == null) {
 				return false;
 			}
 
 			Steering.pressToward(drifter, awayFrom(drifter, this.from, 2.0));
 			return true;
+		}
+
+		@Override
+		protected void stop(DrifterEntity drifter) {
+			if (this.breaking != null) {
+				this.breaking.stop();
+				this.breaking = null;
+			}
 		}
 	}
 
