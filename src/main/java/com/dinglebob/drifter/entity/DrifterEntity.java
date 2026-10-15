@@ -303,6 +303,25 @@ public class DrifterEntity extends PathfinderMob {
 
 		return true;
 	}
+	/** Open air at least 4 blocks deep right beside where it stands (not water). */
+	private boolean deepDropBeside() {
+		BlockPos feet = this.blockPosition();
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			BlockPos cell = feet.relative(side);
+			boolean drop = true;
+			for (int down = 0; down <= 3 && drop; down++) {
+				BlockPos below = cell.below(down);
+				drop = this.level().getBlockState(below).getCollisionShape(this.level(), below).isEmpty() && this.level().getFluidState(below).isEmpty();
+			}
+
+			if (drop) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** Mirrors LocalPlayer#crouching: true while the sneak key is held (or there is no room to stand). */
 	private boolean crouching;
 
@@ -715,6 +734,14 @@ public class DrifterEntity extends PathfinderMob {
 	private void applyMovementKeys() {
 		if (this.isSleeping()) {
 			this.keys.releaseAll();
+		}
+
+		// A safety net under every task: on the ground at the edge of a deep drop, still drifting with no movement key
+		// held (a task let go of everything), it crouches so the drift can't carry it over, as a player does at a cliff
+		// (found in testing: a walk ended crouched at a 40-block edge, the next task let go of sneak, and it slipped off).
+		if (this.onGround() && !this.keys.isDown(VirtualKeys.Key.SNEAK) && this.keys.forwardImpulse() == 0.0F && this.keys.leftImpulse() == 0.0F
+			&& this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4 && this.deepDropBeside()) {
+			this.keys.set(VirtualKeys.Key.SNEAK, true);
 		}
 
 		boolean sneakKey = this.keys.isDown(VirtualKeys.Key.SNEAK);
