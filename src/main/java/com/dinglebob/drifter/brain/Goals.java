@@ -193,6 +193,11 @@ public final class Goals {
 		public double urgency(Context context) {
 			// Hungry, or hurt and able to heal by eating (natural regeneration needs food 18+), or down to its habit's
 			// eating point (some top up at 17, others let it run down to 12).
+			// Never standing in lava: getting out comes first (found in testing: it stopped to eat in a lava pool and died).
+			if (context.drifter().isInLava()) {
+				return 0.0;
+			}
+
 			int food = context.drifter().getFoodData().getFoodLevel();
 			double hurt = context.needs().health() > 0.05 && food < 18 ? 0.5 : 0.0;
 			double habit = food <= Food.eatThreshold(context.drifter()) ? Food.AT_THRESHOLD_URGENCY : 0.0;

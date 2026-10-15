@@ -118,6 +118,18 @@ public final class NavView {
 				}
 			}
 
+			// Beside or under lava it has seen: lava spreads sideways and down, so it expects more of it (found in testing: a
+			// step down into an unseen cell by a lava flow, and it burned to death).
+			if (this.knownLavaAt(above)) {
+				return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
+			}
+
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				if (this.knownLavaAt(pos.relative(side))) {
+					return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
+				}
+			}
+
 			return new Cell(Kind.UNKNOWN, 0.0F, false, false);
 		}
 
@@ -148,6 +160,19 @@ public final class NavView {
 
 		VoxelShape collision = state.getCollisionShape(this.level, pos);
 		if (collision.isEmpty()) {
+			// Open, but lava right beside it at the same height (or just above): a flow can run into it, and one slip is
+			// fatal. Allowed, at a price, so routes keep a block away where they can.
+			if (!fluid.is(FluidTags.WATER)) {
+				boolean lavaBeside = this.knownLavaAt(pos.above());
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					lavaBeside |= this.knownLavaAt(pos.relative(side));
+				}
+
+				if (lavaBeside) {
+					return new Cell(Kind.AVOID, 0.0F, false, false);
+				}
+			}
+
 			return new Cell(fluid.is(FluidTags.WATER) ? Kind.WATER : Kind.OPEN, 0.0F, false, false);
 		}
 
@@ -175,6 +200,10 @@ public final class NavView {
 		// A log that isn't part of a tree is somebody's build (a village house post, a cabin wall).
 		boolean built = looksBuilt(state) || state.is(BlockTags.LOGS) && !this.trees.check(pos);
 		return new Cell(Kind.SOLID, dig, falling, liquidBeside, built);
+	}
+
+	private boolean knownLavaAt(BlockPos pos) {
+		return this.knowledge.isKnown(pos) && this.level.getFluidState(pos).is(FluidTags.LAVA);
 	}
 
 	/**
