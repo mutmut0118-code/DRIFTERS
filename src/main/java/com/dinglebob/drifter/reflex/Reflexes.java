@@ -388,6 +388,16 @@ public class Reflexes {
 			BlockPos head = BlockPos.containing(drifter.getEyePosition());
 			VirtualKeys keys = drifter.getKeys();
 			keys.set(VirtualKeys.Key.JUMP, true);
+			// Going nowhere for 1.5 s while swimming for air it can't reach (air on the far side of the rock it's under; found
+			// in testing: it pressed toward a pocket right over its head until it drowned): it mines up instead.
+			Vec3 here = drifter.position();
+			this.stuckTicks = this.lastPos != null && this.lastPos.distanceTo(here) < 0.03 ? this.stuckTicks + 1 : 0;
+			this.lastPos = here;
+			boolean swimmingNowhere = this.stuckTicks > STUCK_SWIM_TICKS && solid(level, head.above());
+			if ((swimmingNowhere || this.digUp != null) && this.mineUp(drifter, level, head, keys)) {
+				return true;
+			}
+
 			if (!solid(level, head.above())) {
 				// Straight up: look up and swim.
 				drifter.getCamera().lookAt(drifter.getYRot(), -70.0F, CameraModel.TurnSpeed.COMBAT);
@@ -431,8 +441,29 @@ public class Reflexes {
 				return true;
 			}
 
-			// Sealed in under a ceiling with no way to air it can swim (found in a user's test: it held jump under the rock
-			// until it drowned): it mines up through the ceiling, as a player would, with its best tool for the block.
+			if (this.mineUp(drifter, level, head, keys)) {
+				return true;
+			}
+
+			if (drifter.lastAir() != null && drifter.lastAir().distanceTo(drifter.position()) < 32.0) {
+				// No air in sight (a flooded tunnel): back the way it came, where it was breathing a moment ago.
+				runTo(drifter, drifter.lastAir(), true);
+			}
+
+			return true;
+		}
+
+		private static final int STUCK_SWIM_TICKS = 30;
+		private int stuckTicks;
+		@Nullable
+		private Vec3 lastPos;
+
+		/**
+		 * Sealed in under a ceiling with no way to air it can swim (found in a user's test: it held jump under the rock
+		 * until it drowned): it mines up through the ceiling, as a player would, with its best tool for the block. False if
+		 * the ceiling can't be mined.
+		 */
+		private boolean mineUp(DrifterEntity drifter, Level level, BlockPos head, VirtualKeys keys) {
 			BlockPos ceiling = head.above();
 			net.minecraft.world.level.block.state.BlockState rock = level.getBlockState(ceiling);
 			if (this.digUp != null) {
@@ -451,12 +482,7 @@ public class Reflexes {
 				return true;
 			}
 
-			if (drifter.lastAir() != null && drifter.lastAir().distanceTo(drifter.position()) < 32.0) {
-				// No air in sight (a flooded tunnel): back the way it came, where it was breathing a moment ago.
-				runTo(drifter, drifter.lastAir(), true);
-			}
-
-			return true;
+			return false;
 		}
 
 		@Nullable
@@ -464,6 +490,8 @@ public class Reflexes {
 
 		@Override
 		protected void stop(DrifterEntity drifter) {
+			this.stuckTicks = 0;
+			this.lastPos = null;
 			if (this.digUp != null) {
 				this.digUp.stop();
 				this.digUp = null;
