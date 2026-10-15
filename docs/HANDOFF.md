@@ -50,6 +50,10 @@ that only lived in the conversation.
 
 ## Where things stand
 
+- **Update (session 2, 2026-10-15):** this section describes the end of session 1. Since then milestones 5 to 9 were
+  played and called done, and milestone 10 (offscreen and performance) has all its code; see "Current state" at the
+  top of `docs/PROGRESS.md`. Next is milestone 11 (the Nether).
+
 - **Branch:** all work is on `claude/gifted-archimedes-n6yen5` (pushed). Nothing merged to `main` yet: ask the user
   whether to keep working on this branch or merge it first.
 - **Build:** green (`./gradlew build`). The user tests with the jar from `build/libs/` (the one without `-sources`)

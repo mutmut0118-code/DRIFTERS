@@ -293,6 +293,12 @@ public class NavigateTask extends Task {
 
 		this.planningTicks = 0;
 		this.plannedTarget = this.target.get();
+		// Headed outside the running world with nobody near: it travels there abstractly instead of freezing at the edge
+		// (section 22 abstract travel).
+		BlockPos goal = BlockPos.containing(this.plannedTarget);
+		if (com.dinglebob.drifter.world.DrifterTravel.shouldTravel(this.drifter, goal)) {
+			this.drifter.requestTravel(goal);
+		}
 		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5));
 		this.path = List.of();
 		this.index = 0;
@@ -356,12 +362,24 @@ public class NavigateTask extends Task {
 		}
 	}
 
-	/** Keeps the keys as they are, but at a deep edge it sneaks and doesn't sprint or jump. */
+	/**
+	 * Keeps the keys as they are, but at a deep edge it sneaks, stops walking and doesn't sprint or jump, and in mid-air it
+	 * lets go of the movement keys (found in testing: re-planning half-way down a mountain staircase, it kept pressing
+	 * on through the air past the last ledge and fell 50 blocks).
+	 */
 	private void keepSafe() {
-		if (this.edgeBeside()) {
+		boolean edge = this.edgeBeside();
+		if (edge) {
 			this.keys().set(VirtualKeys.Key.SNEAK, true);
 			this.keys().set(VirtualKeys.Key.SPRINT, false);
 			this.keys().set(VirtualKeys.Key.JUMP, false);
+		}
+
+		if (edge || !this.drifter.onGround() && !this.drifter.isInWater()) {
+			this.keys().set(VirtualKeys.Key.FORWARD, false);
+			this.keys().set(VirtualKeys.Key.BACK, false);
+			this.keys().set(VirtualKeys.Key.LEFT, false);
+			this.keys().set(VirtualKeys.Key.RIGHT, false);
 		}
 	}
 
@@ -540,7 +558,9 @@ public class NavigateTask extends Task {
 	}
 
 	private Status tickPlanning() {
+		long t = System.nanoTime();
 		PathSearch.Status status = this.search.tick(PathBudget.take(this.level()));
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.PATH, System.nanoTime() - t);
 		if (status == PathSearch.Status.RUNNING) {
 			// Thinking on the move only for a moment; a long think happens standing still.
 			if (++this.planningTicks == MAX_PLAN_ON_THE_MOVE_TICKS) {
@@ -758,6 +778,15 @@ public class NavigateTask extends Task {
 				this.keys().set(VirtualKeys.Key.SNEAK, true);
 				this.keys().set(VirtualKeys.Key.SPRINT, false);
 				this.keys().set(VirtualKeys.Key.JUMP, false);
+				// Still in the air from the step before: sneaking does nothing there, so no pressing on toward it either
+				// (found in testing: jogging down a mountain staircase it sailed onto an unseen "step" that was a 60-block drop).
+				if (!this.drifter.onGround() && !this.drifter.isInWater()) {
+					this.keys().set(VirtualKeys.Key.FORWARD, false);
+					this.keys().set(VirtualKeys.Key.BACK, false);
+					this.keys().set(VirtualKeys.Key.LEFT, false);
+					this.keys().set(VirtualKeys.Key.RIGHT, false);
+				}
+
 				return Status.RUNNING;
 			}
 
@@ -773,6 +802,21 @@ public class NavigateTask extends Task {
 
 		this.steer(step);
 		return this.checkStuck();
+	}
+
+	/** Steps ahead checked for a step down onto ground it hasn't seen. */
+	private static final int UNSEEN_LOOKAHEAD = 2;
+
+	/** A step down onto ground it hasn't seen yet in the next few steps: it walks, so it can stop if there's none. */
+	private boolean unseenStepDownAhead() {
+		for (int i = this.index; i < Math.min(this.path.size(), this.index + UNSEEN_LOOKAHEAD + 1); i++) {
+			PathStep ahead = this.path.get(i);
+			if (ahead.type() == MoveType.STEP_DOWN && !this.drifter.getSenses().terrain().isKnown(ahead.to().below())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Running for its life (fleeing): it sprints however hurt it is. */
@@ -1315,12 +1359,29 @@ public class NavigateTask extends Task {
 		// A drop of 2+ blocks: walked off, not sprinted, and no more keys once it's over the landing block (found in testing:
 		// sprinting off a 3-block drop down a hillside carried it past the landing and off the next edge).
 		boolean bigDrop = step.type() == MoveType.STEP_DOWN && step.from().getY() - step.to().getY() >= 2;
-		if (bigDrop && !this.drifter.onGround()
-			&& Vec3.atBottomCenterOf(step.to()).subtract(this.drifter.position()).horizontalDistance() < DROP_LET_GO) {
+		Vec3 landing = Vec3.atBottomCenterOf(step.to());
+		Vec3 toLanding = landing.subtract(this.drifter.position());
+		if (bigDrop && !this.drifter.onGround() && toLanding.horizontalDistance() < DROP_LET_GO) {
 			keys.set(VirtualKeys.Key.FORWARD, false);
 			keys.set(VirtualKeys.Key.BACK, false);
 			keys.set(VirtualKeys.Key.LEFT, false);
 			keys.set(VirtualKeys.Key.RIGHT, false);
+		}
+
+		// Still in a sprint from the walk before, at the top of a big drop: it lets go a moment to drop to a walk first (found
+		// in testing: sprinting down a 2-block step onto a one-block ledge on a mountain carried it past and 68 blocks down).
+		if (bigDrop && this.drifter.onGround() && this.drifter.isSprinting()) {
+			keys.set(VirtualKeys.Key.FORWARD, false);
+			keys.set(VirtualKeys.Key.BACK, false);
+			keys.set(VirtualKeys.Key.LEFT, false);
+			keys.set(VirtualKeys.Key.RIGHT, false);
+		}
+
+		// Sailing past the landing in mid-air: it steers back toward it (the little air control a player has), as a player
+		// pulls back on the keys.
+		if (bigDrop && !this.drifter.onGround() && toLanding.horizontalDistance() >= DROP_LET_GO
+			&& this.drifter.getDeltaMovement().x * toLanding.x + this.drifter.getDeltaMovement().z * toLanding.z < 0.0) {
+			this.pressToward(landing);
 		}
 
 		// Badly hurt, stepping down: no keys while in the air, so it lands on the step instead of sailing past it over the next
@@ -1334,7 +1395,7 @@ public class NavigateTask extends Task {
 
 		// Never sprinting with lava close by: one slip or a corner cut is fatal (found by the user: imNiftyshield sprinted
 		// across a lava hole in the floor right where it had just been burned).
-		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
+		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && !this.unseenStepDownAhead() && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
 			&& !this.lavaNear(2) && (this.drifter.getHealth() > CAREFUL_HEALTH || this.urgent)
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
@@ -1545,6 +1606,7 @@ public class NavigateTask extends Task {
 			// Section 12: no progress for 3 s, jump and strafe sideways, then try again.
 			this.unstick = UNSTICK_FOR;
 			this.keys().releaseAll();
+			this.drifter.steeringToward(null);
 			this.keys().set(this.drifter.getRandom().nextBoolean() ? VirtualKeys.Key.LEFT : VirtualKeys.Key.RIGHT, true);
 			this.keys().set(VirtualKeys.Key.JUMP, true);
 		} else if (this.sinceProgress >= REPLAN_AFTER) {
@@ -1636,16 +1698,7 @@ public class NavigateTask extends Task {
 
 	/** Movement keys toward a point, whichever way it's facing (backward and sideways keys included). */
 	private void pressToward(Vec3 goal) {
-		VirtualKeys keys = this.keys();
-		double dx = goal.x - this.drifter.getX();
-		double dz = goal.z - this.drifter.getZ();
-		boolean move = dx * dx + dz * dz > 0.05 * 0.05;
-		float wantedYaw = (float)(Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
-		float relative = Mth.wrapDegrees(wantedYaw - this.drifter.getYRot());
-		keys.set(VirtualKeys.Key.FORWARD, move && Math.abs(relative) < 67.5F);
-		keys.set(VirtualKeys.Key.BACK, move && Math.abs(relative) > 112.5F);
-		keys.set(VirtualKeys.Key.LEFT, move && relative < -22.5F && relative > -157.5F);
-		keys.set(VirtualKeys.Key.RIGHT, move && relative > 22.5F && relative < 157.5F);
+		com.dinglebob.drifter.motor.Steering.pressToward(this.drifter, goal);
 	}
 
 	/** Pillar up: take out a building block, look straight down, jump, and place it under itself at the top. */

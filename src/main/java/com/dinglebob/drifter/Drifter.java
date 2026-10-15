@@ -30,6 +30,9 @@ public class Drifter implements ModInitializer {
 		DebugOverlayServer.register();
 		Sources.register();
 		Threats.register();
+		com.dinglebob.drifter.world.CatchUp.register();
+		com.dinglebob.drifter.world.DrifterTravel.register();
+		com.dinglebob.drifter.world.OfflineClock.register();
 		com.dinglebob.drifter.identity.Usernames.register();
 		MobTargeting.register();
 		com.dinglebob.drifter.perception.CreatureHearing.register();
@@ -37,6 +40,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.social.SocialWatcher.register();
 		com.dinglebob.drifter.social.Manhunt.register();
 		com.dinglebob.drifter.world.DrifterSimulation.register();
+		com.dinglebob.drifter.debug.DrifterPerf.register();
 		LOGGER.info("Drifter initialized");
 	}
 

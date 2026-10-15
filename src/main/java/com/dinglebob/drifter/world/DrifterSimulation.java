@@ -55,6 +55,10 @@ public final class DrifterSimulation {
 
 	private static final List<Simulated> simulated = new ArrayList<>();
 
+	public static boolean isSimulated(UUID id) {
+		return simulated.stream().anyMatch(s -> s.id().equals(id));
+	}
+
 	public static List<Simulated> simulated() {
 		return List.copyOf(simulated);
 	}

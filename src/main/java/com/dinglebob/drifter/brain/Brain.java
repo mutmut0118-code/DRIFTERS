@@ -211,6 +211,7 @@ public class Brain {
 	private Activity activity;
 	private long goalStarted;
 	private int sinceRescore = RESCORE_TICKS;
+	private boolean phased;
 	private List<Scored> lastScores = List.of();
 	private List<String> lastSteps = List.of();
 	@Nullable
@@ -259,11 +260,14 @@ public class Brain {
 		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks.
 		boolean danger = this.drifter.tickCount % THREAT_CHECK_TICKS == 0 && this.current != null && !"fight".equals(this.current.id())
 			&& !"flee".equals(this.current.id()) && Threats.assess(this.drifter).urgent();
-		if (++this.sinceRescore < RESCORE_TICKS && !finished && this.activity != null && !danger) {
+		if (++this.sinceRescore < this.drifter.tier().rescoreTicks && !finished && this.activity != null && !danger) {
 			return;
 		}
 
-		this.sinceRescore = 0;
+		// The first time, each at its own point in the second, so Drifters loaded together don't all decide on the same tick
+		// (section 22 budget: that made the worst ticks several times the average).
+		this.sinceRescore = this.phased ? 0 : Math.floorMod(this.drifter.getUUID().hashCode(), RESCORE_TICKS);
+		this.phased = true;
 		this.decide();
 	}
 
@@ -272,8 +276,11 @@ public class Brain {
 	}
 
 	private Goals.Context context() {
+		long t = System.nanoTime();
 		int stage = Strategist.stage(this.drifter);
 		KnownWorld world = KnownWorld.scan(this.drifter);
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_WORLD, System.nanoTime() - t);
+		t = System.nanoTime();
 		// While one target waits on a furnace, it works on the next one (multitasking, section 10.4).
 		long now = this.drifter.level().getGameTime();
 		Strategist.Target target = Strategist.nextTarget(this.drifter, candidate -> {
@@ -284,6 +291,7 @@ public class Brain {
 			Planner.Plan plan = Planner.plan(this.drifter, world, candidate.items(), candidate.count());
 			return !(plan.next() instanceof Planner.Collect collect && !collect.job().ready(now));
 		});
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_TARGET, System.nanoTime() - t, () -> this.drifter.getName().getString() + ": " + (target == null ? "no target" : "target " + target.label()));
 		Needs needs = Needs.compute(this.drifter, target != null, stage);
 		return new Goals.Context(this.drifter, world, needs, stage, target, Schedule.believedTime(this.drifter), Threats.assess(this.drifter),
 			Shelter.isSheltered(this.drifter));
@@ -295,7 +303,9 @@ public class Brain {
 		long now = this.drifter.level().getGameTime();
 		List<Scored> scores = new ArrayList<>();
 		for (Goals.Goal goal : this.goals) {
+			long t = System.nanoTime();
 			double base = goal.score(context);
+			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t, () -> this.drifter.getName().getString() + ": goal " + goal.id());
 			if (base > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
 				base *= FAILED_PENALTY;
 			}
@@ -421,6 +431,13 @@ public class Brain {
 		}
 
 		this.think(text.replaceFirst("^\\[[^]]*] ", ""));
+	}
+
+	/** Drops whatever it was doing and decides afresh next tick (after catch-up moved it on). */
+	public void restart(String why) {
+		this.stopActivity(why);
+		this.current = null;
+		this.sinceRescore = Integer.MAX_VALUE / 2;
 	}
 
 	private void stopActivity(String why) {

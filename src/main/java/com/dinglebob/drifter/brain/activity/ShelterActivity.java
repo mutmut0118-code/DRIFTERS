@@ -66,6 +66,35 @@ public class ShelterActivity extends Activity {
 		super(drifter);
 	}
 
+	/**
+	 * The block it's really standing on: its feet's own cell, or, when that has no floor (it's on the edge of the block
+	 * next door, over a step), the neighbouring cell with a floor nearest its middle. Centring over a missing floor never
+	 * works while sneaking (found in a 10-day run: "couldn't step to the middle of the block" 125 times in one night).
+	 */
+	static BlockPos supportingCell(DrifterEntity drifter, BlockPos feet) {
+		var level = drifter.level();
+		if (!level.getBlockState(feet.below()).getCollisionShape(level, feet.below()).isEmpty()) {
+			return feet;
+		}
+
+		BlockPos best = feet;
+		double bestDistance = Double.MAX_VALUE;
+		for (BlockPos cell : BlockPos.betweenClosed(feet.offset(-1, 0, -1), feet.offset(1, 0, 1))) {
+			BlockPos floor = cell.below();
+			if (level.getBlockState(floor).getCollisionShape(level, floor).isEmpty()) {
+				continue;
+			}
+
+			double distance = drifter.position().distanceToSqr(Vec3.atBottomCenterOf(cell));
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				best = cell.immutable();
+			}
+		}
+
+		return best;
+	}
+
 	@Override
 	public String describe() {
 		return switch (this.phase) {
@@ -295,7 +324,7 @@ public class ShelterActivity extends Activity {
 
 				this.offGroundTicks = 0;
 				if (this.top == null) {
-					this.top = feet;
+					this.top = supportingCell(this.drifter, feet);
 					this.think("digging in for the night");
 				}
 

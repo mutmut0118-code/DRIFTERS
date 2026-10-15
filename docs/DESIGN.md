@@ -1668,6 +1668,11 @@ rest still never load chunks.
 | Far | Loaded, no player within about 128 blocks | AI every 5 to 10 ticks, simplest pathing, no cosmetic effects |
 | Unloaded | Chunk unloaded | Nothing ticks; catch-up runs on reload (below) |
 
+As built (milestone 10, from measuring with `/drifter perf`): the body (movement keys, path following, danger checks,
+combat) runs every tick in every tier, since cutting it changes how a Drifter plays; "AI every few ticks" is how often
+it re-thinks its goals (every 1 s Full, 1.5 s Reduced, 2 s Far), and Far casts 4 eye rays a tick instead of 6. Most of
+the cost turned out to be planning and searching, which were made cheaper for every tier instead.
+
 ### Catch-up simulation
 
 When a Drifter's chunk loads again after a gap, it fast-forwards using rates instead of actions:

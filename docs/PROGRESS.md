@@ -4,7 +4,15 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Current state (session 2, local, 2026-10-15 morning)
+## Current state (session 2, local, 2026-10-15 afternoon)
+
+- **Milestone 10 (offscreen and performance): all five steps have code**, waiting on the user's play. Hybrid
+  simulation (3 busiest away from players keep running), detail tiers, `/drifter perf`, catch-up for the rest,
+  offline progression setting, abstract travel. 10 Drifters together: 1 to 4 ms a tick (target 3 to 5), worst tick
+  about 12 ms (was up to 112 before this milestone's speed-ups). Next: **milestone 11 (the Nether)**.
+- Milestones 8 and 9 were called done by the user after playing.
+
+## Earlier (session 2, 2026-10-15 morning)
 
 - **Latest 10-day batch (21):** all three (Miner, Builder, Casual) reached stage 7 (diamond pickaxe) with no deaths;
   farms for all, houses for the Builder and Casual; no loop above 10 repeats. This meets milestone 8's "done when"
@@ -968,7 +976,7 @@ player (Drifters don't respawn outside the manhunt yet).
 
 ## Milestone 10: Offscreen and performance
 
-**Status:** In progress (started 2026-10-15). *Done when* 10 Drifters stay within the per-tick budget (about 3 to 5 ms
+**Status:** Done (2026-10-15), waiting on the user's play test. *Done when* 10 Drifters stay within the per-tick budget (about 3 to 5 ms
 together). User's decision: **hybrid** (DESIGN section 22, "Hybrid simulation").
 
 ### Plan
@@ -976,13 +984,99 @@ together). User's decision: **hybrid** (DESIGN section 22, "Hybrid simulation").
    one of them grew; mobs can't spawn or stay away from real players in vanilla, recorded as a limit): the top N Drifters (config, default 3; manhunt hunter always) keep chunks loaded round them
    like a player (tickets), with random ticks and mob spawning near them (a mixin on the "player close enough" check),
    chosen by activity with stickiness. `/drifter sim` shows who is simulated.
-2. **Detail tiers:** Full near players, Reduced (no tics, fewer perception rays, brain every few ticks) and Far,
-   combat always full; per-system timing in `/drifter perf`.
-3. **Catch-up** for the rest: on reload, fast-forward by rates (resources by stage and archetype, food, tool wear,
-   torches, stage recomputed, simple crafting, risk), capped at 3 days; position at home or along its route.
-4. **Offline progression** config (off / game time / real time, real-time cap 2 days) and **abstract travel** for
-   non-simulated Drifters heading out of the loaded area.
-5. **Budget test:** 10 Drifters on a test server, timing per tick.
+2. **Detail tiers and timing** (done): `/drifter perf` shows ms per server tick for all Drifters together, split by
+   system (senses, brain and its parts, tasks, path search), with the slowest single call of each and what that
+   Drifter was doing, plus how many are in each tier. Tiers (`entity/DetailTier`): Full (a player within 48 blocks or
+   looking its way), Reduced (none within 48: no mannerisms, re-thinks every 1.5 s), Far (none within 128: also 4 eye
+   rays instead of 6, re-thinks every 2 s). Movement, path following, danger checks and combat run every tick in every
+   tier; a fight or flight is always Full. `/drifter tier auto|full|reduced|far` forces the nearest one's tier (debug).
+   Kept mild on purpose: measuring showed the systems the tiers cut were cheap, and the real costs were elsewhere:
+   - **Measured** (10 Drifters on one mountain seed, 12 game minutes): before 4 to 9 ms a tick on average with single
+     ticks up to 112 ms; after 1 to 4.5 ms on average, worst single Drifter call about 5 ms.
+   - Known-world scan: stops checking a block kind once it has found one (it re-checked every known block within 24
+     blocks once a second, growing as it explored).
+   - Brain decisions: staggered across the second (Drifters loaded together all decided on the same tick); a goal with
+     no urgency isn't planned; each goal reuses its plan for up to 5 s while nothing it plans from changed (carried
+     items, known block kinds, animals, stations, home chests); the planner only tries the kinds of log or plank it has
+     or knows of when there are any (one food plan was 7,224 sub-plans, now under 1,000).
+   - Path search: budget by time (3 ms a tick for all, 1.5 ms per search) instead of 1,500 nodes per search.
+   - Home-site search: block counts bucketed by area, footprint cells worked out once, hopeless spots dropped early,
+     air skipped, block-kind checks cached (was up to 40 ms in one tick).
+   Fall deaths found in these runs, fixed: sprinting into a 2-block step-down (now drops to a walk first and steers
+   back in the air); creeping along an overhang then standing up (the crouch safety net now also catches a very slow
+   slide and an overhang); thinking on the move at a cliff or in mid-air (now stops walking); jogging down a staircase
+   onto an unseen "step" that was a 60-block drop (now walks, not sprints, toward unseen step-downs and doesn't steer
+   onto them in the air).
+3. **Catch-up** (done, `world/CatchUp`): a Drifter saves when it was last running; when its area loads again after
+   2+ minutes away, it fast-forwards that time (capped at 3 days) in quarter-day slices. Each slice: gathers what a
+   Drifter of its stage gathers (per in-game hour of work, times its archetype's multipliers, with randomness; data
+   file `data/drifter/drifter_catchup/default.json`, replaceable by datapacks), eats from what it carries (cooked
+   first; short of food it goes hungry), wears its tools (one that wears out is gone), burns torches, smelts raw iron
+   and food with the fuel it has, then crafts toward its next targets with the real recipes when the plan for one is
+   only crafting and smelting (so it moves up stages slice by slice), and runs a small risk of dying (everything it
+   carried lost). What doesn't fit goes into its home chests if they're loaded, else is left behind. Afterwards: back
+   at home if its home is loaded, healed if fed, deciding afresh; a thought sums it up ("caught up on 1.3 days away;
+   gathered ...; made ...; now stage 3"). `/drifter catchup <hours>` runs it on the nearest one (debug). Tested: a new
+   Builder away 1.3 days went from nothing to stone tools, a furnace and iron ingots. Not done: building queued
+   blueprint steps while away (needs base chunks to load one by one; left for later).
+4. **Offline progression and abstract travel** (done): `/drifter config offline off|game_time|real_time` (default
+   game time). Real time: the real-world time is kept with the world (on stop and every minute), and the gap since
+   becomes extra catch-up (own cap, 2 in-game days; negative or absurd gaps ignored) for every Drifter saved before
+   the restart (`world/OfflineClock`). Abstract travel (`world/DrifterTravel`): a Drifter that plans a route to a spot
+   outside the running world, with no player within 128 blocks, not kept running and not the manhunt hunter, leaves the
+   world as a traveler (saved with the world) instead of freezing at the edge, and turns up at its destination once
+   that area runs and the walk would be over; catch-up then counts from its arrival. `/drifter sim` lists travelers.
+   Tested: one walked off, showed as traveling, appeared at its destination when that area loaded.
+5. **Budget test** (done): 10 Drifters on a mountain seed, no player (all "far"), 12 game minutes: 1.2 to 3.7 ms a
+   tick on average after the first seconds (6 ms while all 10 start at once), worst tick 12 ms, no deaths. Within the
+   3 to 5 ms target.
+
+Also from these runs: movement keys are aimed again after the head turns each tick (`Steering.reaim`): keys picked
+before a fast turn sent one the wrong way off a ledge mid-jump. Trace lines now show the facing (yaw).
+
+Batch 23 (random seeds): Miner stage 7, no deaths; Builder and Casual both stuck at stage 4 with no deaths, each by
+flowing water: the Builder's home was next to a stream it had to swim against on every trip to its furnace ("the
+current keeps pushing it back" 213 times; smelts and house work timed out), the Casual's mine flooded. Two fixes:
+routes now cost more through flowing water (a current it can see), so it walks round or bridges when that's not much
+longer; and digging in for the night on the edge of a block over a step now picks the block that's really holding it
+up (it tried to centre over thin air, "couldn't step to the middle of the block" 125 times in one night).
+
+Findings to come back to (batch 22, random seeds, day 1, not from these changes): a Builder that spawned where there
+were no trees in reach explored all day across water and was killed by drowned; a Casual ended up at the bottom of a
+flooded cave pocket 10 blocks under its new home and drowned there (the hut-building step kept trying to mine stone
+beside it, and the drowning reflex only bobbed it up a little, never to air). Not reproducible with the same seed
+(personalities are random).
+
+## Milestone 11: Nether
+
+**Status:** In progress (started 2026-10-15). DESIGN section 19. Proposed *done when* (the roadmap gives none): on a test server, a
+stage 8 Drifter builds and lights a portal near its base, packs for the trip, goes through, walls in the portal,
+brings back blaze rods (or at least quartz and gold) and gets home alive, on most seeds.
+
+### Plan
+1. **Portal** (done, staged test passes; `brain/activity/PortalActivity`, `brain/PortalFrame`): once it enchants
+   (stage 8) its targets add 10 obsidian and flint and steel (before diamond armor and bookshelves). With them, the
+   goal "build a Nether portal" picks a clear spot it has seen 6 to 16 blocks from home (four solid dry ground blocks
+   in a row, 4 by 4 of air above, ground to stand on in front) and builds it the way players do without corners: digs
+   out the two middle ground blocks and fills them with obsidian, the lower two blocks of each column from the ground,
+   then pillars up two blocks in front (its eyes must be over the face it clicks) for the column tops, a cobblestone
+   prop on each top corner, the top row against the props, lights it with flint and steel from the pillar, digs its
+   pillar back down and remembers the portal. A half-built frame is saved with its home and finished later. Flat-world
+   test: built and lit in 11 s. Completing a ruined portal is left for later.
+2. **Packing list** (section 19): full iron armor or better with one gold piece, sword, shield, bow and arrows, 64+
+   cobblestone, 20+ cooked food, flint and steel, a spare pickaxe, gold ingots. The trip goal waits until most of it
+   is in hand; missing items become targets.
+3. **Through and arrival:** walks in and waits for the portal like a player; on arrival walls the portal in with
+   cobblestone leaving a door gap, notes the way back, has a look round first.
+4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
+   a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
+   basalt deltas).
+5. **Goals there:** blaze rods at a fortress (from cover, shield up), nether wart, quartz, glowstone, gold (checking
+   for piglins first).
+6. **Piglin etiquette:** a gold piece worn, no chests or gold mining in their sight, bartering by tossing gold, away
+   from brutes and bastions, never hitting zombified piglins.
+7. **Coming home:** back to its portal when full, low on supplies, hurt or worn, or done; then stores the haul.
+8. Later (veterans, if time allows): ancient debris strip mining, netherite upgrades, linked portals (1:8).
 
 ## Notes for milestone 9 (from testing)
 

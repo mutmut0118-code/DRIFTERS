@@ -303,13 +303,19 @@ public class DrifterEntity extends PathfinderMob {
 
 		return true;
 	}
-	/** Open air at least 4 blocks deep right beside where it stands (not water). */
+	/** Standing on the ground with nothing under the middle of its feet: it's held up by the edge of a block next door
+	 * (found in testing: creeping along a cliff edge, it stopped sneaking there and the last of its drift tipped it over). */
+	private boolean overhanging() {
+		BlockPos under = this.blockPosition().below();
+		return this.level().getBlockState(under).getCollisionShape(this.level(), under).isEmpty();
+	}
+
+	/** Open air at least 4 blocks deep right beside where it stands, or under it when it's over an edge (not water). */
 	private boolean deepDropBeside() {
 		BlockPos feet = this.blockPosition();
-		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
-			BlockPos cell = feet.relative(side);
+		for (BlockPos cell : new BlockPos[] {feet.north(), feet.south(), feet.west(), feet.east(), feet}) {
 			boolean drop = true;
-			for (int down = 0; down <= 3 && drop; down++) {
+			for (int down = cell == feet ? 1 : 0; down <= 3 + (cell == feet ? 1 : 0) && drop; down++) {
 				BlockPos below = cell.below(down);
 				drop = this.level().getBlockState(below).getCollisionShape(this.level(), below).isEmpty() && this.level().getFluidState(below).isEmpty();
 			}
@@ -384,6 +390,54 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.personality.Personality getPersonality() {
 		return this.personality;
+	}
+
+	/** Where its movement keys were pressed toward this tick (Steering), to aim them again after the head turns. */
+	@org.jetbrains.annotations.Nullable
+	private net.minecraft.world.phys.Vec3 steerGoal;
+	private int steerTick = -1;
+
+	/** Null: the keys pressed this tick aren't toward a point (a sideways shuffle), so they're left as they are. */
+	public void steeringToward(@org.jetbrains.annotations.Nullable net.minecraft.world.phys.Vec3 goal) {
+		this.steerGoal = goal;
+		this.steerTick = this.tickCount;
+	}
+
+	/** When it was last running before it was loaded (from its save), or -1: catch-up runs on its first tick. */
+	private long lastActive = -1L;
+
+	/** Arrived from abstract travel: catch-up covers the time from its arrival. */
+	public void setLastActive(long time) {
+		this.lastActive = time;
+	}
+
+	/** Set when a route leads outside the running world with nobody near: it leaves as a traveler at the end of the tick. */
+	@org.jetbrains.annotations.Nullable
+	private BlockPos travelTo;
+
+	public void requestTravel(BlockPos target) {
+		this.travelTo = target.immutable();
+	}
+
+	/** Detail tier (section 22), from the players round it, checked once a second. */
+	private DetailTier tier = DetailTier.FULL;
+	/** Set by `/drifter tier` (debug); null for automatic. */
+	@org.jetbrains.annotations.Nullable
+	private DetailTier forcedTier;
+
+	public DetailTier tier() {
+		return this.tier;
+	}
+
+	public void forceTier(@org.jetbrains.annotations.Nullable DetailTier forced) {
+		this.forcedTier = forced;
+		this.tier = DetailTier.of(this, forced);
+	}
+
+	/** In a fight or running from one: combat stays at full detail in every tier (section 22). */
+	private boolean engaged() {
+		var goal = this.brain.currentGoal();
+		return goal != null && ("fight".equals(goal.id()) || "flee".equals(goal.id()));
 	}
 
 	public com.dinglebob.drifter.mannerism.Mannerisms getMannerisms() {
@@ -656,10 +710,30 @@ public class DrifterEntity extends PathfinderMob {
 	/** Runs inside Mob#serverAiStep, before the (idle) vanilla controls. This is where the motor drives the body. */
 	@Override
 	protected void customServerAiStep() {
+		long started = System.nanoTime();
 		super.customServerAiStep();
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
+		// Back after its area was unloaded a while: it catches up on that time first (section 22; config: offline progression).
+		if (this.lastActive >= 0L) {
+			long gap = this.level().getGameTime() - this.lastActive;
+			long offline = com.dinglebob.drifter.world.OfflineClock.offlineTicksFor(this.lastActive);
+			this.lastActive = -1L;
+			if (com.dinglebob.drifter.DrifterConfig.offlineProgression() != com.dinglebob.drifter.DrifterConfig.OfflineProgression.OFF
+				&& gap + offline >= com.dinglebob.drifter.world.CatchUp.minGapTicks()) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("{} catches up: {}", this.getName().getString(),
+					com.dinglebob.drifter.world.CatchUp.run(this, gap, offline).describe());
+			}
+		}
+
+		if ((this.tickCount + this.getId()) % 20 == 0) {
+			this.tier = this.forcedTier == null && this.engaged() ? DetailTier.FULL : DetailTier.of(this, this.forcedTier);
+		}
+
+		long t = System.nanoTime();
 		this.senses.tick();
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES, System.nanoTime() - t, this::perfLabel);
 		this.personality.tick(this);
+		t = System.nanoTime();
 		if (this.tickCount % 100 == 0) {
 			this.social.tick();
 		}
@@ -667,13 +741,25 @@ public class DrifterEntity extends PathfinderMob {
 		if (this.tickCount % com.dinglebob.drifter.social.SocialWatcher.TICK_EVERY == 0) {
 			this.social.watcher().tick();
 		}
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SOCIAL, System.nanoTime() - t);
 		// Skill moves the head (section 16.1: lower Skill overshoots more); mood can shake it (Panicked).
 		this.camera.setSkill(this.personality.getF(com.dinglebob.drifter.personality.Trait.SKILL));
 		// Reflexes first (section 8, layer 5): while one has the body, the brain, the executor and the tics wait.
 		if (!this.reflexes.tick()) {
+			t = System.nanoTime();
 			this.brain.tick();
+			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN, System.nanoTime() - t, this::perfLabel);
+			t = System.nanoTime();
 			this.tasks.tick();
-			this.mannerisms.tick();
+			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.TASKS, System.nanoTime() - t, this::perfLabel);
+			t = System.nanoTime();
+			// Nobody near enough to see a fidget: no fidgets (section 22 detail tiers).
+			if (this.tier.mannerisms() || this.mannerisms.forcedActive()) {
+				this.mannerisms.tick();
+			} else {
+				this.mannerisms.interrupt("no one near");
+			}
+			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.TICS, System.nanoTime() - t);
 		} else {
 			this.mannerisms.interrupt("reflex");
 		}
@@ -681,15 +767,20 @@ public class DrifterEntity extends PathfinderMob {
 		this.setYRot(look[0]);
 		this.setXRot(look[1]);
 		this.setYHeadRot(look[0]);
+		if (this.steerGoal != null && this.steerTick == this.tickCount) {
+			com.dinglebob.drifter.motor.Steering.reaim(this, this.steerGoal);
+		}
+
 		// TODO(milestone 8): deliberate sprint-swimming on long swims (section 10.10).
 		com.dinglebob.drifter.motor.Steering.noSprintInWater(this);
 		this.applyMovementKeys();
+		t = System.nanoTime();
 		if (this.traceTicks > 0 || com.dinglebob.drifter.memory.ThoughtLog.echo) {
 			com.dinglebob.drifter.executor.Task leaf = this.tasks.current() == null ? null : this.tasks.current().leaf();
 			String line = String.format(java.util.Locale.ROOT,
-				"[trace %s] t%d pos %.2f %.2f %.2f vy %.3f %s%s%s%s%s pose %s pitch %.0f keys %s step %s", this.getName().getString(), this.tickCount,
+				"[trace %s] t%d pos %.2f %.2f %.2f vy %.3f %s%s%s%s%s pose %s yaw %.0f pitch %.0f keys %s step %s", this.getName().getString(), this.tickCount,
 				this.getX(), this.getY(), this.getZ(), this.getDeltaMovement().y, this.onGround() ? "G" : "-", this.isInWater() ? "W" : "-",
-				this.isUnderWater() ? "U" : "-", this.isSwimming() ? "S" : "-", this.isSprinting() ? "R" : "-", this.getPose(), this.getXRot(),
+				this.isUnderWater() ? "U" : "-", this.isSwimming() ? "S" : "-", this.isSprinting() ? "R" : "-", this.getPose(), Mth.wrapDegrees(this.getYRot()), this.getXRot(),
 				this.keys.describe(), leaf instanceof com.dinglebob.drifter.executor.task.NavigateTask nav ? nav.debugStep()
 					: leaf == null ? "none" : leaf.describe());
 			if (this.traceTicks > 0) {
@@ -708,6 +799,19 @@ public class DrifterEntity extends PathfinderMob {
 			this.keys.releaseAll();
 			this.keysReleaseTimer = -1;
 		}
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.TRACE, System.nanoTime() - t);
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.TOTAL, System.nanoTime() - started, this::perfLabel);
+		if (this.travelTo != null && this.isAlive()) {
+			BlockPos to = this.travelTo;
+			this.travelTo = null;
+			com.dinglebob.drifter.world.DrifterTravel.depart(this, to);
+		}
+	}
+
+	/** Who and what, for the slowest-call lines of `/drifter perf`. */
+	private String perfLabel() {
+		var activity = this.brain.activity();
+		return this.getName().getString() + ": " + (activity == null ? "no activity" : activity.describe());
 	}
 
 	/** Player#aiStep: on Peaceful with natural regeneration, players regenerate health and food for free. */
@@ -740,7 +844,7 @@ public class DrifterEntity extends PathfinderMob {
 		// held (a task let go of everything), it crouches so the drift can't carry it over, as a player does at a cliff
 		// (found in testing: a walk ended crouched at a 40-block edge, the next task let go of sneak, and it slipped off).
 		if (this.onGround() && !this.isInWater() && !this.keys.isDown(VirtualKeys.Key.SNEAK) && this.keys.forwardImpulse() == 0.0F && this.keys.leftImpulse() == 0.0F
-			&& this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4 && this.deepDropBeside()) {
+			&& (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6 || this.overhanging()) && this.deepDropBeside()) {
 			this.keys.set(VirtualKeys.Key.SNEAK, true);
 		}
 
@@ -1539,6 +1643,8 @@ public class DrifterEntity extends PathfinderMob {
 		tag.putInt("XpSeed", this.enchantmentSeed);
 		tag.putLongArray("DugCells", this.dugCells.stream().mapToLong(Long::longValue).toArray());
 		tag.putLongArray("Scaffold", this.scaffold.stream().mapToLong(BlockPos::asLong).toArray());
+		// When it was last running, for catch-up when it loads again (section 22).
+		tag.putLong("LastActive", this.level().getGameTime());
 	}
 
 	@Override
@@ -1565,6 +1671,8 @@ public class DrifterEntity extends PathfinderMob {
 		for (long cell : tag.getLongArray("Scaffold")) {
 			this.scaffold.add(BlockPos.of(cell));
 		}
+
+		this.lastActive = tag.contains("LastActive", Tag.TAG_LONG) ? tag.getLong("LastActive") : -1L;
 
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {
 			this.brain.load(tag.getCompound("DrifterBrain"));

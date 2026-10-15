@@ -76,7 +76,9 @@ public final class Goals {
 		}
 
 		public double score(Context context) {
-			return this.urgency(context) * this.feasibility(context) * this.risk(context);
+			// Nothing to want: no need to work out whether it could (planning is the dear part).
+			double urgency = this.urgency(context);
+			return urgency <= 0.0 ? 0.0 : urgency * this.feasibility(context) * this.risk(context);
 		}
 	}
 
@@ -125,8 +127,14 @@ public final class Goals {
 
 	/** A goal that works through a plan, one action at a time, planning again after each. */
 	private abstract static class PlannedGoal extends Goal {
+		/** The last plan is reused this long while nothing it plans from has changed (section 22 budget: planning every route
+		 * from scratch once a second was most of a decision's time). */
+		private static final int PLAN_REUSE_TICKS = 20 * 5;
+
 		private Planner.Plan plan = Planner.INFEASIBLE;
-		private long plannedAt = -1;
+		private long checkedAt = -1;
+		private long plannedAt = Long.MIN_VALUE / 2;
+		private long planKey;
 
 		protected abstract List<Item> items(Context context);
 
@@ -134,13 +142,34 @@ public final class Goals {
 
 		protected Planner.Plan plan(Context context) {
 			long now = context.drifter().level().getGameTime();
-			if (now != this.plannedAt) {
-				this.plannedAt = now;
+			if (now != this.checkedAt) {
+				this.checkedAt = now;
 				List<Item> items = this.items(context);
-				this.plan = items.isEmpty() ? Planner.INFEASIBLE : Planner.plan(context.drifter(), context.world(), items, this.count(context));
+				int count = items.isEmpty() ? 0 : this.count(context);
+				long key = planInputs(context, items, count);
+				if (key != this.planKey || now - this.plannedAt >= PLAN_REUSE_TICKS) {
+					this.planKey = key;
+					this.plannedAt = now;
+					this.plan = items.isEmpty() ? Planner.INFEASIBLE : Planner.plan(context.drifter(), context.world(), items, count);
+				}
 			}
 
 			return this.plan;
+		}
+
+		/** A fingerprint of what a plan comes from: the goal's items, what it carries, what it knows round it, its furnaces. */
+		private static long planInputs(Context context, List<Item> items, int count) {
+			long key = items.hashCode() * 31L + count;
+			var inventory = context.drifter().getInventory();
+			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+				ItemStack stack = inventory.getItem(slot);
+				key = key * 31L + (stack.isEmpty() ? 0 : net.minecraft.core.registries.BuiltInRegistries.ITEM.getId(stack.getItem()) * 100L + stack.getCount());
+			}
+
+			key = key * 31L + context.world().signature();
+			key = key * 31L + context.drifter().getDrifterBrain().furnaceJobs().size();
+			Home home = context.drifter().getDrifterBrain().home();
+			return key * 31L + (home == null ? 0 : home.storedSignature() * 2L + (home.near(context.drifter(), Home.STORAGE_RANGE) ? 1 : 0));
 		}
 
 		@Override
@@ -790,6 +819,57 @@ public final class Goals {
 		@Override
 		public Activity start(Context context) {
 			return new com.dinglebob.drifter.brain.activity.PenActivity(context.drifter());
+		}
+	}
+
+	/**
+	 * Build and light a Nether portal near home (section 19, milestone 11 step 1), once it has the materials.
+	 */
+	public static final class BuildPortal extends Goal {
+		@Override
+		public String id() {
+			return "portal";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "build a Nether portal";
+		}
+
+		/** Near home with the obsidian (counting what's already in the frame), flint and steel and a block or two. */
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.near(drifter, Schedule.GO_HOME_RANGE) || context.stage() < 8 || Strategist.portalLit(drifter)) {
+				return 0.0;
+			}
+
+			boolean materials = Strategist.PORTAL_TARGETS.get(0).satisfied().test(drifter)
+				&& drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.FLINT_AND_STEEL)) > 0
+				&& drifter.getInventory().count(com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK) >= 2;
+			return materials ? 0.5 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.2);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.PortalActivity(context.drifter());
 		}
 	}
 
@@ -1658,7 +1738,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());

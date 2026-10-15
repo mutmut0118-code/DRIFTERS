@@ -164,6 +164,11 @@ public final class Mannerisms {
 		return true;
 	}
 
+	/** A tic started on purpose (a command) is running. */
+	public boolean forcedActive() {
+		return this.active != null && this.forced;
+	}
+
 	public void interrupt(String why) {
 		if (this.active != null) {
 			this.stopActive();

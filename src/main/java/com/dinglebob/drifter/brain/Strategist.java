@@ -107,6 +107,42 @@ public final class Strategist {
 		new Target("some lapis", List.of(Items.LAPIS_LAZULI), 6, drifter -> has(drifter, stack -> stack.is(Items.LAPIS_LAZULI))
 			|| com.dinglebob.drifter.brain.activity.EnchantActivity.nextToEnchant(drifter) == null));
 
+	/**
+	 * Stage 9 targets (section 19, milestone 11): what the portal takes, 10 obsidian and flint and steel (both also on the
+	 * packing list: flint and steel relights a portal a ghast put out). Done once its portal is lit.
+	 */
+	public static final List<Target> PORTAL_TARGETS = List.of(
+		new Target("obsidian for a Nether portal", List.of(Items.OBSIDIAN), com.dinglebob.drifter.brain.activity.PortalActivity.OBSIDIAN,
+			drifter -> portalLit(drifter) || drifter.getInventory().count(stack -> stack.is(Items.OBSIDIAN))
+				>= com.dinglebob.drifter.brain.activity.PortalActivity.OBSIDIAN - portalObsidianPlaced(drifter)),
+		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))));
+
+	/** Its portal by home is built and lit. */
+	public static boolean portalLit(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		return home != null && home.portal != null && home.dimension.equals(drifter.level().dimension().location())
+			&& drifter.level().isLoaded(home.portal.inside()) && home.portal.lit(drifter.level());
+	}
+
+	/** Obsidian already in its half-built frame (so it doesn't fetch all 10 again). */
+	private static int portalObsidianPlaced(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null || home.portal == null || !home.dimension.equals(drifter.level().dimension().location())) {
+			return 0;
+		}
+
+		int placed = 0;
+		for (int along = 0; along <= 3; along++) {
+			for (int up = 0; up <= 4; up++) {
+				if (drifter.level().getBlockState(home.portal.cell(along, up)).is(net.minecraft.world.level.block.Blocks.OBSIDIAN)) {
+					placed++;
+				}
+			}
+		}
+
+		return placed;
+	}
+
 	/** One more bookshelf for the enchanting table: done when it carries one, or the ring is full (or there's no table). */
 	public static final Target BOOKSHELF_TARGET = new Target("a bookshelf", List.of(Items.BOOKSHELF), 1, drifter -> {
 		Home home = drifter.getDrifterBrain().home();
@@ -130,6 +166,11 @@ public final class Strategist {
 		// The enchanting table after the diamond pickaxe and sword, before the diamond armor (section 9: "some archetypes
 		// make an enchanting table before any armor"; it makes the most of the diamonds it has).
 		order.addAll(ENCHANTING_TARGETS);
+		// The Nether once it enchants (stage 8; section 9: "Day 12 onward"), before the slow diamond armor and bookshelves.
+		if (stage(drifter) >= 8) {
+			order.addAll(PORTAL_TARGETS);
+		}
+
 		order.addAll(DIAMOND_TARGETS.subList(2, DIAMOND_TARGETS.size()));
 		// Then bookshelves round the table, one at a time (3 books each: sugar cane and leather), up to 15.
 		order.add(BOOKSHELF_TARGET);

@@ -14,6 +14,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 
+import com.dinglebob.drifter.entity.DetailTier;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.entity.DrifterInventory;
 import com.dinglebob.drifter.entity.SkinPool;
@@ -105,6 +106,50 @@ public final class DrifterCommands {
 		// Finding them (user's request): a list of every loaded Drifter with where it is, each name a click to go there, and a
 		// teleport by name.
 		root.then(Commands.literal("list").executes(DrifterCommands::list));
+		// Timing per system (section 22 budget).
+		root.then(Commands.literal("perf").executes(ctx -> {
+			java.util.Map<DetailTier, Integer> tiers = new java.util.EnumMap<>(DetailTier.class);
+			for (net.minecraft.server.level.ServerLevel level : ctx.getSource().getServer().getAllLevels()) {
+				for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
+					tiers.merge(drifter.tier(), 1, Integer::sum);
+				}
+			}
+
+			String counts = tiers.isEmpty() ? "none loaded" : tiers.entrySet().stream()
+				.map(e -> e.getValue() + " " + e.getKey().name().toLowerCase(java.util.Locale.ROOT)).collect(java.util.stream.Collectors.joining(", "));
+			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts), false);
+			return 1;
+		}));
+		// Run catch-up on the nearest Drifter as if it had been away this many in-game hours (debug, section 25).
+		root.then(Commands.literal("catchup").then(Commands.argument("hours", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 72))
+			.executes(ctx -> {
+				DrifterEntity drifter = nearest(ctx.getSource());
+				int hours = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "hours");
+				var report = com.dinglebob.drifter.world.CatchUp.run(drifter, hours * 1000L);
+				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " " + report.describe()), false);
+				return 1;
+			})));
+		// Force the nearest Drifter's detail tier (debug; "auto" goes back to choosing by distance).
+		root.then(Commands.literal("tier").then(Commands.argument("tier", com.mojang.brigadier.arguments.StringArgumentType.word())
+			.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("auto", "full", "reduced", "far"), builder))
+			.executes(ctx -> {
+				String name = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "tier");
+				DetailTier forced = null;
+				if (!name.equals("auto")) {
+					try {
+						forced = DetailTier.valueOf(name.toUpperCase(java.util.Locale.ROOT));
+					} catch (IllegalArgumentException e) {
+						ctx.getSource().sendFailure(Component.literal("Use auto, full, reduced or far"));
+						return 0;
+					}
+				}
+
+				DrifterEntity drifter = nearest(ctx.getSource());
+				drifter.forceTier(forced);
+				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " detail: " + drifter.tier().name().toLowerCase(java.util.Locale.ROOT)
+					+ (name.equals("auto") ? " (automatic)" : " (forced)")), false);
+				return 1;
+			})));
 		// Who is kept running away from players (section 22 hybrid simulation).
 		root.then(Commands.literal("sim").executes(ctx -> {
 			var list = com.dinglebob.drifter.world.DrifterSimulation.simulated();
@@ -113,6 +158,11 @@ public final class DrifterCommands {
 			for (var s : list) {
 				ctx.getSource().sendSuccess(() -> Component.literal("  " + s.name() + " near " + s.chunk().getMiddleBlockX() + ", "
 					+ s.chunk().getMiddleBlockZ() + " (" + s.level().location().getPath() + ")"), false);
+			}
+
+			// Traveling outside the running world (section 22 abstract travel).
+			for (String line : com.dinglebob.drifter.world.DrifterTravel.describe(ctx.getSource().getServer())) {
+				ctx.getSource().sendSuccess(() -> Component.literal("  Traveling: " + line), false);
 			}
 
 			return list.size();
@@ -151,6 +201,20 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setSimulatedDrifters(IntegerArgumentType.getInteger(ctx, "count"));
 					return showConfig(ctx);
 				})))
+			.then(Commands.literal("offline")
+				.then(Commands.argument("mode", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("off", "game_time", "real_time"), builder))
+					.executes(ctx -> {
+						try {
+							com.dinglebob.drifter.DrifterConfig.setOfflineProgression(com.dinglebob.drifter.DrifterConfig.OfflineProgression.valueOf(
+								com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "mode").toUpperCase(java.util.Locale.ROOT)));
+						} catch (IllegalArgumentException e) {
+							ctx.getSource().sendFailure(Component.literal("Use off, game_time or real_time"));
+							return 0;
+						}
+
+						return showConfig(ctx);
+					})))
 			.then(Commands.literal("raiding")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setRaiding(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -353,7 +417,8 @@ public final class DrifterCommands {
 			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F, com.dinglebob.drifter.DrifterConfig.chatLines() ? "on" : "off",
 			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", raiding players' chests "
 			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off") + ", Drifters kept running away from players "
-			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters()), true);
+			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters() + ", catch-up for time away "
+			+ com.dinglebob.drifter.DrifterConfig.offlineProgression().name().toLowerCase(Locale.ROOT)), true);
 		return 1;
 	}
 

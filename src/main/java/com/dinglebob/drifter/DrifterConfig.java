@@ -56,6 +56,34 @@ public final class DrifterConfig {
 		boolean raiding = true;
 		/** Drifters away from players that keep running as if a player were there (section 22 hybrid; 0 turns it off). */
 		int simulatedDrifters = DEFAULT_SIMULATED;
+		/** Catch-up for time away (section 22 offline progression): "off", "game_time" (default) or "real_time". */
+		String offlineProgression = "game_time";
+		/** Real-time catch-up's own cap, in ticks (default 2 in-game days). */
+		int realTimeCapTicks = DEFAULT_REAL_TIME_CAP;
+	}
+
+	/** Section 22 offline progression. */
+	public enum OfflineProgression {
+		OFF, GAME_TIME, REAL_TIME
+	}
+
+	public static final int DEFAULT_REAL_TIME_CAP = 48000;
+
+	public static OfflineProgression offlineProgression() {
+		try {
+			return OfflineProgression.valueOf(data.offlineProgression.toUpperCase(java.util.Locale.ROOT));
+		} catch (RuntimeException e) {
+			return OfflineProgression.GAME_TIME;
+		}
+	}
+
+	public static void setOfflineProgression(OfflineProgression mode) {
+		data.offlineProgression = mode.name().toLowerCase(java.util.Locale.ROOT);
+		save();
+	}
+
+	public static long realTimeCapTicks() {
+		return Math.max(0, data.realTimeCapTicks);
 	}
 
 	public static final int DEFAULT_SIMULATED = 3;

@@ -1,7 +1,9 @@
 package com.dinglebob.drifter.brain;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
@@ -54,24 +56,32 @@ public final class HomeSite {
 		Level level = drifter.level();
 		TerrainKnowledge terrain = drifter.getSenses().terrain();
 		BlockPos origin = drifter.blockPosition();
-		List<BlockPos> water = new ArrayList<>();
-		List<BlockPos> logs = new ArrayList<>();
-		List<BlockPos> stone = new ArrayList<>();
+		Points water = new Points();
+		Points logs = new Points();
+		Points stone = new Points();
 		List<BlockPos> floors = new ArrayList<>();
 		// Structures and someone's builds (a ruined portal, a village house) and lava: no home on top of them (found by the
 		// user: a Drifter settled right on a ruined portal and its hut walls ran into the portal).
 		List<BlockPos> avoid = new ArrayList<>();
+		// The block-kind checks once per kind of block, not once per block (section 22 budget: this search looked at
+		// 100,000 cells with two dozen checks each, 30 ms in one tick).
+		Map<BlockState, Boolean> avoidKinds = new java.util.IdentityHashMap<>();
 		terrain.forEachKnown(origin, SEARCH_RADIUS, pos -> {
 			if (!level.isLoaded(pos)) {
 				return;
 			}
 
 			BlockState state = level.getBlockState(pos);
-			if (structureOrDanger(level, pos, state)) {
+			// Air it saw across is most of what it knows, and nothing here cares about it.
+			if (state.isAir()) {
+				return;
+			}
+
+			if (avoidKinds.computeIfAbsent(state, kind -> structureOrDanger(kind))) {
 				avoid.add(pos.immutable());
 			}
 
-			if (level.getFluidState(pos).is(FluidTags.WATER)) {
+			if (state.getFluidState().is(FluidTags.WATER)) {
 				water.add(pos.immutable());
 			} else if (state.is(BlockTags.LOGS)) {
 				logs.add(pos.immutable());
@@ -91,25 +101,31 @@ public final class HomeSite {
 		double creativity = drifter.getPersonality().get(Trait.CREATIVITY);
 		double caution = drifter.getPersonality().get(Trait.CAUTION);
 		Site best = null;
+		// Footprints overlap (spots every 2 blocks, 7 wide): each ground cell's answer is worked out once per search.
+		Map<Long, Double> cells = new HashMap<>();
 		for (BlockPos spot : floors) {
-			double flat = flatness(level, terrain, spot);
-			if (flat < minFlatness || tooClose(avoid, spot)) {
+			if (tooClose(avoid, spot)) {
+				continue;
+			}
+
+			double flat = flatness(level, terrain, spot, minFlatness, cells);
+			if (flat < minFlatness) {
 				continue;
 			}
 
 			double score = flat;
 			StringBuilder why = new StringBuilder(String.format(Locale.ROOT, "flat %.0f%%", flat * 100.0));
-			if (nearest(water, spot) <= 16.0) {
+			if (water.within(spot, 16.0)) {
 				score += 0.25;
 				why.append(", water nearby");
 			}
 
-			if (nearest(logs, spot) <= 24.0) {
+			if (logs.within(spot, 24.0)) {
 				score += 0.25;
 				why.append(", trees");
 			}
 
-			if (nearest(stone, spot) <= 24.0) {
+			if (stone.within(spot, 24.0)) {
 				score += 0.15 + 0.15 * caution;
 				why.append(", stone");
 			}
@@ -131,17 +147,31 @@ public final class HomeSite {
 	 * lower counts half (a player would just level it).
 	 */
 	public static double flatness(Level level, TerrainKnowledge terrain, BlockPos spot) {
+		return flatness(level, terrain, spot, 0.0, new HashMap<>());
+	}
+
+	/** As above, giving up (returning less than {@code enough}) as soon as the spot can't reach it. */
+	private static double flatness(Level level, TerrainKnowledge terrain, BlockPos spot, double enough, Map<Long, Double> cells) {
+		int side = HALF_FOOTPRINT * 2 + 1;
+		int total = side * side;
 		double good = 0.0;
-		int total = 0;
+		int left = total;
+		BlockPos.MutableBlockPos cell = new BlockPos.MutableBlockPos();
 		for (int dx = -HALF_FOOTPRINT; dx <= HALF_FOOTPRINT; dx++) {
 			for (int dz = -HALF_FOOTPRINT; dz <= HALF_FOOTPRINT; dz++) {
-				total++;
-				for (int dy : new int[]{0, 1, -1}) {
-					BlockPos cell = spot.offset(dx, dy, dz);
-					if (terrain.isKnown(cell.below()) && KnownBlocks.isStandable(level, cell) && level.getFluidState(cell.below()).isEmpty()) {
-						good += dy == 0 ? 1.0 : 0.5;
-						break;
+				left--;
+				good += cells.computeIfAbsent(BlockPos.asLong(spot.getX() + dx, spot.getY(), spot.getZ() + dz), key -> {
+					for (int dy : new int[]{0, 1, -1}) {
+						cell.set(BlockPos.getX(key), BlockPos.getY(key) + dy, BlockPos.getZ(key));
+						if (terrain.isKnown(cell.below()) && KnownBlocks.isStandable(level, cell) && level.getFluidState(cell.below()).isEmpty()) {
+							return dy == 0 ? 1.0 : 0.5;
+						}
 					}
+
+					return 0.0;
+				});
+				if ((good + left) / total < enough) {
+					return (good + left) / total - 1.0E-9;
 				}
 			}
 		}
@@ -150,8 +180,8 @@ public final class HomeSite {
 	}
 
 	/** A block that belongs to a structure or someone's build, or lava: a home keeps clear of these. */
-	private static boolean structureOrDanger(Level level, BlockPos pos, BlockState state) {
-		return level.getFluidState(pos).is(FluidTags.LAVA) || com.dinglebob.drifter.nav.NavView.looksBuilt(state)
+	private static boolean structureOrDanger(BlockState state) {
+		return state.getFluidState().is(FluidTags.LAVA) || com.dinglebob.drifter.nav.NavView.looksBuilt(state)
 			|| state.is(net.minecraft.world.level.block.Blocks.OBSIDIAN) || state.is(net.minecraft.world.level.block.Blocks.CRYING_OBSIDIAN)
 			|| state.is(net.minecraft.world.level.block.Blocks.NETHERRACK) || state.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
 			|| state.is(net.minecraft.world.level.block.Blocks.GOLD_BLOCK) || state.is(net.minecraft.world.level.block.Blocks.CHEST)
@@ -173,12 +203,40 @@ public final class HomeSite {
 	/** Blocks of clearance round the footprint from structures and lava. */
 	private static final int CLEARANCE = 3;
 
-	private static double nearest(List<BlockPos> positions, BlockPos from) {
-		double best = Double.MAX_VALUE;
-		for (BlockPos pos : positions) {
-			best = Math.min(best, pos.distSqr(from));
+	/**
+	 * Blocks bucketed by 8x8x8 area, so "any within r?" looks only at the areas in range (section 22 budget: measuring every
+	 * candidate spot against every stone block it knew on a mountain took 20 ms in one tick).
+	 */
+	private static final class Points {
+		private static final int SHIFT = 3;
+		private final Map<Long, List<BlockPos>> cells = new HashMap<>();
+
+		void add(BlockPos pos) {
+			this.cells.computeIfAbsent(BlockPos.asLong(pos.getX() >> SHIFT, pos.getY() >> SHIFT, pos.getZ() >> SHIFT), key -> new ArrayList<>()).add(pos);
 		}
 
-		return Math.sqrt(best);
+		boolean within(BlockPos from, double r) {
+			int reach = (int)Math.ceil(r) >> SHIFT;
+			int cx = from.getX() >> SHIFT;
+			int cy = from.getY() >> SHIFT;
+			int cz = from.getZ() >> SHIFT;
+			double rSq = r * r;
+			for (int x = cx - reach - 1; x <= cx + reach + 1; x++) {
+				for (int y = cy - reach - 1; y <= cy + reach + 1; y++) {
+					for (int z = cz - reach - 1; z <= cz + reach + 1; z++) {
+						List<BlockPos> list = this.cells.get(BlockPos.asLong(x, y, z));
+						if (list != null) {
+							for (BlockPos pos : list) {
+								if (pos.distSqr(from) <= rSq) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		}
 	}
 }

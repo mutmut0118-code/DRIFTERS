@@ -681,7 +681,8 @@ public class Senses {
 	/** Sampled, not scanned (section 5): a small budget of rays across the view cone each tick. */
 	private void sampleBlocks() {
 		boolean playerNear = this.tracked.values().stream().anyMatch(a -> a.entity instanceof Player && a.visibleNow);
-		int rays = playerNear ? BLOCK_RAYS_PLAYER_NEAR : BLOCK_RAYS_BASE;
+		// Fewer with no player anywhere near (section 22 detail tiers).
+		int rays = playerNear ? BLOCK_RAYS_PLAYER_NEAR : Math.min(BLOCK_RAYS_BASE, this.drifter.tier().blockRays);
 		Vec3 eye = this.drifter.getEyePosition();
 		for (int i = 0; i < rays; i++) {
 			// A random point on its screen, evenly over the whole picture (as pixels are).

@@ -14,7 +14,26 @@ public final class Steering {
 	private Steering() {
 	}
 
+	/** Presses toward {@code goal}; the keys are aimed again after the head turns this tick ({@link #reaim}). */
 	public static void pressToward(DrifterEntity drifter, Vec3 goal) {
+		drifter.steeringToward(goal);
+		aim(drifter, goal);
+	}
+
+	/**
+	 * After the head has turned this tick: the direction keys still held toward the goal pressed this tick are aimed
+	 * from where it faces now, as a player's fingers follow what they see (found in testing: keys chosen before a fast
+	 * turn sent it the other way off a mountain ledge mid-jump). Keys a task let go of stay up.
+	 */
+	public static void reaim(DrifterEntity drifter, Vec3 goal) {
+		VirtualKeys keys = drifter.getKeys();
+		if (keys.isDown(VirtualKeys.Key.FORWARD) || keys.isDown(VirtualKeys.Key.BACK) || keys.isDown(VirtualKeys.Key.LEFT)
+			|| keys.isDown(VirtualKeys.Key.RIGHT)) {
+			aim(drifter, goal);
+		}
+	}
+
+	private static void aim(DrifterEntity drifter, Vec3 goal) {
 		VirtualKeys keys = drifter.getKeys();
 		double dx = goal.x - drifter.getX();
 		double dz = goal.z - drifter.getZ();

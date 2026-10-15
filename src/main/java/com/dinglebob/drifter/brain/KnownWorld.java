@@ -38,7 +38,7 @@ public final class KnownWorld {
 	public static final double ANIMAL_MEMORY_RANGE = 48.0;
 	public static final double TREE_MEMORY_RANGE = 96.0;
 
-	private final Map<Block, List<BlockPos>> blocks = new HashMap<>();
+	/** One example state of each kind of block it could go and take (the planner only asks which kinds it knows). */
 	private final Map<Block, BlockState> examples = new HashMap<>();
 	private final Set<EntityType<?>> animals = new HashSet<>();
 	/** Kinds of animals seen ("minecraft:sheep/white"), for wool of a colour. */
@@ -66,7 +66,9 @@ public final class KnownWorld {
 			}
 
 			BlockState state = level.getBlockState(pos);
-			if (!takeable(level, pos, state, blacklist, now)) {
+			// A kind it already found one of: the rest don't change the answer (the slow checks below were most of a brain
+			// decision's time, growing as it explored; section 22 budget).
+			if (this.examples.containsKey(state.getBlock()) || !takeable(level, pos, state, blacklist, now)) {
 				return;
 			}
 
@@ -75,8 +77,7 @@ public final class KnownWorld {
 				return;
 			}
 
-			this.blocks.computeIfAbsent(state.getBlock(), block -> new ArrayList<>()).add(pos.immutable());
-			this.examples.putIfAbsent(state.getBlock(), state);
+			this.examples.put(state.getBlock(), state);
 		});
 
 		for (Awareness awareness : drifter.getSenses().tracked()) {
@@ -197,8 +198,14 @@ public final class KnownWorld {
 		return this.variants.contains(BuiltInRegistries.ENTITY_TYPE.getKey(type) + "/" + variant);
 	}
 
+	/** Changes whenever anything a plan could use changes (block kinds, animals, stations, hints). */
+	public long signature() {
+		return java.util.Objects.hash(this.examples.keySet(), this.animals, this.variants, this.tableNear, this.furnaceNear, this.smokerNear,
+			this.treesHint == null, this.stoneHint == null);
+	}
+
 	public int knownBlockTypes() {
-		return this.blocks.size();
+		return this.examples.size();
 	}
 
 	private static boolean exposed(Level level, BlockPos pos) {

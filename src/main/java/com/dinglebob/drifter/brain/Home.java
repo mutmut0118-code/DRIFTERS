@@ -154,6 +154,10 @@ public final class Home {
 			? this.enchantingTable : null;
 	}
 
+	/** Its Nether portal by home (section 19), from the first block it puts down, so a half-built frame is finished later. */
+	@Nullable
+	public PortalFrame portal;
+
 	/** A village house it moved into instead of building a hut (user's request, session 2): the head of its bed there. */
 	@Nullable
 	public BlockPos houseBed;
@@ -228,6 +232,11 @@ public final class Home {
 		return total;
 	}
 
+	/** Changes whenever what it believes its chests hold changes (for reusing plans). */
+	public int storedSignature() {
+		return this.chests.hashCode();
+	}
+
 	public int stored(Item item) {
 		return this.stored().getOrDefault(item, 0);
 	}
@@ -289,6 +298,10 @@ public final class Home {
 		}
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
+		if (this.portal != null) {
+			tag.put("Portal", this.portal.save());
+		}
+
 		if (this.houseBed != null) {
 			tag.put("HouseBed", NbtUtils.writeBlockPos(this.houseBed));
 		}
@@ -345,6 +358,7 @@ public final class Home {
 		Home home = new Home(center, dimension, tag.getLong("SettledAt"));
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
+		home.portal = tag.contains("Portal", net.minecraft.nbt.Tag.TAG_COMPOUND) ? PortalFrame.load(tag.getCompound("Portal")) : null;
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
 		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
 		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);

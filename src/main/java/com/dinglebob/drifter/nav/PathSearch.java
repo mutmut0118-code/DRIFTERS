@@ -48,6 +48,12 @@ public class PathSearch {
 	/** Extra for each move with its head under water: a player swims across the top, not along the bottom (found in
 	 * testing: routes along lake floors, and near-drownings on the way). */
 	public static final double SWIM_UNDER = 3.0;
+	/**
+	 * Extra for each cell of flowing water (a current it can see): swimming against a stream is slow and can wash it back,
+	 * so it walks round or bridges over when that's not much longer, like a player (found in 10-day runs: a home by a
+	 * river and a flooded mine had it fighting the same current for hours).
+	 */
+	public static final double CURRENT = 2.0;
 	/** Most moves in a row under water on a planned route (about a third of a held breath's swim). */
 	public static final int MAX_UNDERWATER = 6;
 	public static final double CLIMB_UP = 0.45;
@@ -207,12 +213,27 @@ public class PathSearch {
 		return Vec3.atBottomCenterOf(pos).distanceTo(this.target) <= this.goalRadius;
 	}
 
-	public Status tick(int budget) {
+	/** Searches on for up to {@code nanos} (at least {@link PathBudget#MIN_NODES} nodes, at most
+	 * {@link PathBudget#MAX_NODES_PER_SEARCH_PER_TICK}). */
+	public Status tick(long nanos) {
 		if (this.status != Status.RUNNING) {
 			return this.status;
 		}
 
-		for (int i = 0; i < budget; i++) {
+		long started = System.nanoTime();
+		try {
+			return this.search(started + nanos);
+		} finally {
+			PathBudget.spent(System.nanoTime() - started);
+		}
+	}
+
+	private Status search(long deadline) {
+		for (int i = 0; i < PathBudget.MAX_NODES_PER_SEARCH_PER_TICK; i++) {
+			if (i >= PathBudget.MIN_NODES && (i & 15) == 0 && System.nanoTime() > deadline) {
+				return Status.RUNNING;
+			}
+
 			Node node = this.open.poll();
 			if (node == null) {
 				return this.finish(this.best, true);
@@ -345,6 +366,10 @@ public class PathSearch {
 		this.tryVertical(node, inWater, onSolidFloor);
 	}
 
+	private double current(BlockPos pos) {
+		return this.view.isWater(pos) && !this.view.isStillWater(pos) ? CURRENT : 0.0;
+	}
+
 	/** Same level: walk, swim, or bridge (place a block under the next step, sneaking). */
 	private void tryLevel(Node node, BlockPos f, boolean inWater, boolean onSolidFloor) {
 		Clearance c = this.clear(true, f, f.above());
@@ -354,7 +379,7 @@ public class PathSearch {
 
 		if (this.view.isWater(f) || inWater && !this.view.standable(f.below())) {
 			if (this.view.isWater(f) || this.view.isWater(f.below())) {
-				this.add(node, f, MoveType.SWIM, SWIM + (this.headUnder(f) ? SWIM_UNDER : 0.0) + c.cost, c, 0);
+				this.add(node, f, MoveType.SWIM, SWIM + this.current(f) + (this.headUnder(f) ? SWIM_UNDER : 0.0) + c.cost, c, 0);
 			}
 
 			return;
@@ -486,11 +511,11 @@ public class PathSearch {
 		if (inWater) {
 			Clearance up = this.clear(false, n.above(), n.above(2));
 			if (up != null) {
-				this.add(node, n.above(), MoveType.SWIM_UP, SWIM + up.cost, up, 0);
+				this.add(node, n.above(), MoveType.SWIM_UP, SWIM + this.current(n.above()) + up.cost, up, 0);
 			}
 
 			if (this.view.isWater(n.below())) {
-				this.add(node, n.below(), MoveType.SWIM_DOWN, SWIM + (this.headUnder(n.below()) ? SWIM_UNDER : 0.0), new Clearance(), 0);
+				this.add(node, n.below(), MoveType.SWIM_DOWN, SWIM + this.current(n.below()) + (this.headUnder(n.below()) ? SWIM_UNDER : 0.0), new Clearance(), 0);
 			}
 
 			return;

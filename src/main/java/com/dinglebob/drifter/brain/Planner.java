@@ -378,14 +378,17 @@ public final class Planner {
 			}
 		}
 
-		// Then the cheapest way to get the rest of one kind.
+		// Then the cheapest way to get the rest of one kind. Of a long list (any log, any planks), only the kinds it has or
+		// knows a way to when there are any: the rest all come down to "go and look", dearer, and trying each made one food
+		// plan 7,000 sub-plans and 13 ms (section 22 budget).
+		boolean anyPromising = candidates.size() > 3 && candidates.stream().anyMatch(item -> this.promising(item, 0));
 		List<Item> options = new ArrayList<>(carried);
 		for (Item item : candidates) {
 			if (options.size() >= MAX_CANDIDATES) {
 				break;
 			}
 
-			if (!options.contains(item)) {
+			if (!options.contains(item) && (!anyPromising || this.promising(item, 0))) {
 				options.add(item);
 			}
 		}
@@ -399,6 +402,48 @@ public final class Planner {
 		}
 
 		return best;
+	}
+
+	private final Map<Item, Boolean> promising = new HashMap<>();
+
+	/**
+	 * It carries some, has some cooking, knows where to gather or hunt it, or can make it from something promising (a few
+	 * steps deep). Only for narrowing long lists of alternatives; the plan itself still works everything out.
+	 */
+	private boolean promising(Item item, int depth) {
+		Boolean known = this.promising.get(item);
+		if (known != null) {
+			return known;
+		}
+
+		if (depth > 3) {
+			return false;
+		}
+
+		this.promising.put(item, false);
+		boolean result = this.realInventory.getOrDefault(item, 0) > 0
+			|| this.drifter.getDrifterBrain().furnaceJobs().stream().anyMatch(job -> job.output == item);
+		for (Sources.Source source : Sources.forItem(item)) {
+			result |= source.isBlock() ? this.world.knowsBlock(state -> source.blockGives(state, item))
+				: source.mobType() != null && this.world.knowsAnimal(source.mobType());
+		}
+
+		for (RecipeHolder<CraftingRecipe> recipe : result ? List.<RecipeHolder<CraftingRecipe>>of() : crafting(this.level).getOrDefault(item, List.of())) {
+			boolean all = true;
+			for (Ingredient ingredient : recipe.value().getIngredients()) {
+				all &= ingredient.isEmpty() || itemsOf(ingredient).stream().anyMatch(input -> this.promising(input, depth + 1));
+			}
+
+			result |= all;
+		}
+
+		for (RecipeHolder<? extends AbstractCookingRecipe> recipe : result ? List.<RecipeHolder<? extends AbstractCookingRecipe>>of()
+			: smelting(this.level).getOrDefault(item, List.of())) {
+			result |= itemsOf(recipe.value().getIngredients().get(0)).stream().anyMatch(input -> this.promising(input, depth + 1));
+		}
+
+		this.promising.put(item, result);
+		return result;
 	}
 
 	/** Gets {@code count} of one item and uses them up (extras made along the way stay in the inventory). */

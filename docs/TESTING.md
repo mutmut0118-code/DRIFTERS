@@ -1134,3 +1134,48 @@ come near (they'll catch up in a later step).
 - [ ] Mobs don't spawn round far-away Drifters (vanilla only spawns and keeps mobs within 128 blocks of a real player).
 - [ ] Closing and reopening the world: the same Drifters carry on (who's kept running is saved with the world).
 
+
+**Step 2: detail and speed (new).** Drifters far from you cut what you couldn't notice anyway (fidgets, a few eye rays,
+re-thinking a bit less often). Several slow spots were made much faster, and four ways to fall off a mountain were fixed.
+- [ ] `/drifter perf` prints how much of each server tick all Drifters together take (the goal is under 3 to 5 ms for
+      10), split by system, with the slowest single moment and what that Drifter was doing, and how many are at each
+      detail level ("Detail: 2 full, 1 reduced"). If the game ever stutters with Drifters around, send me this line.
+- [ ] Stand next to a Drifter: it's "full" and fidgets as before. Walk 50+ blocks away: "reduced". 130+ blocks: "far".
+      Looking at one from far off (with nothing in the way) keeps it "full". `/drifter tier full|reduced|far|auto`
+      forces the nearest one (for testing).
+- [ ] Nothing should look different up close, and far-off Drifters should still get things done.
+- [ ] Mountains: Drifters walking down steep slopes slow to a walk before steps onto ground they haven't seen, and don't
+      slide off ledges when they stop to think. Fewer "fell from a high place" deaths.
+
+**Step 3: catching up (new).** A Drifter that was frozen while you were far away (not one of the 3 kept running)
+fast-forwards the time it missed when you come back near it (up to 3 days): it gathers, eats, wears out tools, crafts
+what it can and moves up stages, and once in a while dies out there.
+- [ ] Easiest check: stand next to a Drifter and type `/drifter catchup 12` (12 in-game hours). Its thought log (and
+      the chat reply) says what it did: "caught up on 0.5 days away; gathered 20 cobblestone, ...; made a stone
+      pickaxe, ...". Its inventory should match.
+- [ ] Real check: `/drifter config simulated 0` (so nobody is kept running), walk or fly 300+ blocks away from a
+      Drifter, wait 5+ minutes there, come back. It should now be at its home (if it has one) with more stuff, and
+      the log line "... catches up: caught up on ... days away". Set `/drifter config simulated 3` again after.
+- [ ] It never gets items from nowhere you'd find odd for its stage: logs before a pickaxe, cobblestone and coal with
+      one, iron with a stone pickaxe, diamonds only with an iron pickaxe.
+
+**Step 4: time while the world is closed, and long walks (new).**
+- [ ] `/drifter config offline off` turns catching up off completely; `game_time` (the default) only counts time the
+      world was running; `real_time` also counts real time the world was closed (up to 2 in-game days), from the next
+      time you open the world. Try `real_time`, close the world for 10+ minutes, open it: the log says "The world was
+      closed for N min" and Drifters catch up when you get near them.
+- [ ] A Drifter between 128 and about 160 blocks from you that heads further out doesn't freeze at the edge of the
+      world you have running: it "sets off" (in the log) and `/drifter sim` lists it as traveling. It turns up at the
+      place it was going once that place is loaded (walk there).
+
+## Milestone 11: Nether (in progress)
+
+**Step 1: the portal (new).** Once a Drifter enchants its gear (stage 8), it collects 10 obsidian and makes flint and
+steel, then builds a Nether portal near its home and lights it. It doesn't go through yet (next steps).
+- [ ] Quick check without waiting for stage 8: stand by a Drifter that has a home, then
+      `/drifter giveall minecraft:obsidian 10`, `/drifter giveall minecraft:flint_and_steel 1`,
+      `/drifter giveall minecraft:cobblestone 16`, and `/drifter brain goal portal`. It picks a clear spot 6 to 16
+      blocks from home, digs two ground blocks out, builds the frame (no corner obsidian; a cobblestone block props each
+      top corner), climbs a two-block pillar to finish the top, lights it, and digs its pillar back down. Its thoughts:
+      "building a Nether portal at ...", then "lit the Nether portal at ...".
+- [ ] It never places a block floating in the air or out of reach, and the portal works for you (walk in).
