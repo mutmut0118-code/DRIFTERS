@@ -1612,6 +1612,9 @@ public class NavigateTask extends Task {
 		Vec3 column = Vec3.atBottomCenterOf(step.from());
 		if ((this.pillarCentered || this.pillarStage > 0) && (Math.abs(this.drifter.getX() - column.x) > PILLAR_DRIFT || Math.abs(this.drifter.getZ() - column.z) > PILLAR_DRIFT
 			|| this.drifter.getY() < column.y - 0.6)) {
+			// And not that spot again for a while: the next plans go another way (found in the user's world: in a current, the
+			// same pillar planned and washed out all night).
+			this.drifter.pillarFailedAt(step.from());
 			this.replan("carried off the spot it was pillaring from", true);
 			return Status.RUNNING;
 		}

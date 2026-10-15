@@ -363,6 +363,11 @@ public class MineTripActivity extends Activity {
 	private static final int KIT_STICKS = 4;
 	private boolean spareChecked;
 
+	/** Too hurt, or too hungry with nothing to eat, to set off (it would turn round at once). */
+	public static boolean unfitToGo(DrifterEntity d) {
+		return d.getHealth() < HURT_TO_GO || d.getFoodData().getFoodLevel() <= HUNGRY_TO_GO && Food.choose(d) == null;
+	}
+
 	/** Too late in the day to start a trip (it would turn round at once). */
 	public static boolean tooLateToGo(DrifterEntity d) {
 		long time = Schedule.believedTime(d);

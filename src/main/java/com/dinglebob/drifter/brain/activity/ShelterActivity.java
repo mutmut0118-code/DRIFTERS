@@ -321,7 +321,8 @@ public class ShelterActivity extends Activity {
 				}
 
 				BlockPos below = depth == 0 ? this.top.below() : feet.below();
-				if (!this.diggable(level, below) || !this.solidFloor(level, below.below())) {
+				if (!this.diggable(level, below) || !this.solidFloor(level, below.below()) || this.digFailed) {
+					this.digFailed = false;
 					return this.tryAnotherSpot(depth);
 				}
 
@@ -456,6 +457,12 @@ public class ShelterActivity extends Activity {
 
 	@Override
 	protected boolean countsAsFailure(com.dinglebob.drifter.executor.Task step) {
+		// A block it couldn't dig while digging in (it can't see it, it's under water): another spot, not a failed night
+		// (found in the user's world: one copper ore it couldn't reach failed its shelter all night long).
+		if (this.phase == Phase.DIG && step.describe().startsWith("dig ")) {
+			return false;
+		}
+
 		// The roof's step block that couldn't go on: it digs down one instead (below), not a failure.
 		if (this.phase == Phase.BOX && step instanceof PlaceBlockTask place && place.target().getY() == this.drifter.blockPosition().getY() + 2) {
 			return false;
@@ -511,6 +518,10 @@ public class ShelterActivity extends Activity {
 
 	@Override
 	protected void stepDone(com.dinglebob.drifter.executor.Task step, Status status) {
+		if (this.phase == Phase.DIG && status != Status.SUCCESS && step.describe().startsWith("dig ")) {
+			this.digFailed = true;
+		}
+
 		if (this.phase == Phase.BOX && step instanceof PlaceBlockTask place && status != Status.SUCCESS
 			&& place.target().getY() == this.drifter.blockPosition().getY() + 2) {
 			this.roofStepFailed = true;
@@ -713,6 +724,8 @@ public class ShelterActivity extends Activity {
 
 	private int blockRuns;
 	private boolean roofStepFailed;
+	/** A dig while digging in didn't work: it tries another spot. */
+	private boolean digFailed;
 	private boolean dugDownOne;
 
 	/** Ground it can dig up quickly for wall blocks (with or without a pickaxe): dirt and grass, and stone with a pickaxe. */

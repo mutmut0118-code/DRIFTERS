@@ -158,6 +158,13 @@ public final class Goals {
 			// Too late in the day to set off on a mining trip (found in testing: it set off, turned round at once, every tick).
 			// Only for setting off: a trip already underground heads home on its own (found in testing: zeroing it then
 			// left it wandering deep in a cave, where it walked into lava).
+			// Nor too hurt or too hungry to go (found in the user's world: a hurt one set off and turned straight back 206 times;
+			// with the trip off the table it eats or rests first).
+			if (plan.next() instanceof Planner.Mine && com.dinglebob.drifter.brain.activity.MineTripActivity.unfitToGo(context.drifter())
+				&& !com.dinglebob.drifter.brain.mining.Caver.underground(context.drifter(), context.drifter().blockPosition())) {
+				return 0.0;
+			}
+
 			if (plan.next() instanceof Planner.Mine && com.dinglebob.drifter.brain.activity.MineTripActivity.tooLateToGo(context.drifter())
 				&& !com.dinglebob.drifter.brain.mining.Caver.underground(context.drifter(), context.drifter().blockPosition())) {
 				return 0.0;
