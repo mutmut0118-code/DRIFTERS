@@ -109,7 +109,7 @@ public class FleeActivity extends Activity {
 				this.ranHome = true;
 				this.legs++;
 				this.think("running home");
-				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.0, "run home", NavigateTask.Pace.TRAVEL));
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.0, "run home", NavigateTask.Pace.TRAVEL).urgent());
 			}
 
 			if (!homeClear) {

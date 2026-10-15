@@ -67,6 +67,34 @@ public final class Home {
 	/** When it last looked for a farm by the water and found nowhere (not saved): it looks again later. */
 	public long farmFailedAt = Long.MIN_VALUE / 2;
 
+	/** The player it last saw (or heard) open one of its chests, and when (not saved): suspected if valuables go missing. */
+	@Nullable
+	public java.util.UUID lastOpenedBy;
+	public String lastOpenedByName = "";
+	public long lastOpenedAt = Long.MIN_VALUE / 2;
+
+	/**
+	 * One of its things (section 14: "its blocks"): its hut, house, chests, farm, pen, enchanting table and shelves. A
+	 * player breaking these is noticed.
+	 */
+	public boolean owns(BlockPos pos) {
+		if (this.inOwnBuilding(pos, 0) || this.chests.containsKey(pos)) {
+			return true;
+		}
+
+		if (this.farm != null && Math.abs(pos.getX() - this.farm.getX()) <= com.dinglebob.drifter.brain.activity.FarmActivity.RADIUS
+			&& Math.abs(pos.getZ() - this.farm.getZ()) <= com.dinglebob.drifter.brain.activity.FarmActivity.RADIUS && Math.abs(pos.getY() - this.farm.getY()) <= 1) {
+			return true;
+		}
+
+		if (this.pen != null && Math.abs(pos.getX() - this.pen.getX()) <= 3 && Math.abs(pos.getZ() - this.pen.getZ()) <= 3
+			&& Math.abs(pos.getY() - this.pen.getY()) <= 2) {
+			return true;
+		}
+
+		return this.enchantingTable != null && this.enchantingTable.closerThan(pos, 3.0);
+	}
+
 	/** When it last couldn't get at its chests to put things away (not saved): it tries again a little later. */
 	public long storeFailedAt = Long.MIN_VALUE / 2;
 

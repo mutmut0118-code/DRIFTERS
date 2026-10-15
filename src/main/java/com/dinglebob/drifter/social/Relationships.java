@@ -37,9 +37,16 @@ public class Relationships {
 	private Disposition disposition;
 	private final Map<UUID, Relationship> byPlayer = new LinkedHashMap<>();
 	private long lastDriftDay = -1;
+	private final SocialWatcher watcher;
 
 	public Relationships(DrifterEntity drifter) {
 		this.drifter = drifter;
+		this.watcher = new SocialWatcher(drifter);
+	}
+
+	/** What notices players' doings (section 14 events). */
+	public SocialWatcher watcher() {
+		return this.watcher;
 	}
 
 	/** Its disposition, rolled from its personality the first time it's needed (and kept). */

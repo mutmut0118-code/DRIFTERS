@@ -644,6 +644,10 @@ public class DrifterEntity extends PathfinderMob {
 		if (this.tickCount % 100 == 0) {
 			this.social.tick();
 		}
+
+		if (this.tickCount % com.dinglebob.drifter.social.SocialWatcher.TICK_EVERY == 0) {
+			this.social.watcher().tick();
+		}
 		// Skill moves the head (section 16.1: lower Skill overshoots more); mood can shake it (Panicked).
 		this.camera.setSkill(this.personality.getF(com.dinglebob.drifter.personality.Trait.SKILL));
 		// Reflexes first (section 8, layer 5): while one has the body, the brain, the executor and the tics wait.
@@ -1283,7 +1287,16 @@ public class DrifterEntity extends PathfinderMob {
 		}
 
 		int count = stack.getCount();
+		ItemStack before = stack.copy();
 		if (this.inventory.add(stack)) {
+			// Thrown to it by a player it can see: a gift (section 14).
+			if (item.getOwner() instanceof net.minecraft.world.entity.player.Player thrower) {
+				ItemStack taken = before.copyWithCount(count - stack.getCount());
+				if (!taken.isEmpty()) {
+					this.social.watcher().pickedUpFrom(thrower, taken);
+				}
+			}
+
 			this.take(item, count);
 			if (stack.isEmpty()) {
 				item.discard();
@@ -1341,6 +1354,11 @@ public class DrifterEntity extends PathfinderMob {
 		super.actuallyHurt(source, amount);
 		if (this.getHealth() < healthBefore) {
 			this.causeFoodExhaustion(source.getFoodExhaustion());
+			// A player's hit (or their arrow): felt, so it always knows who (section 14 events).
+			if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
+				this.social.watcher().hitBy(player, healthBefore - this.getHealth(), this.getHealth());
+			}
+
 			// Hit by a mob while backing off: running isn't working (Threats turns it round to fight).
 			com.dinglebob.drifter.brain.Threats.Decision decision = this.brain.lastThreatDecision;
 			if (source.getEntity() instanceof net.minecraft.world.entity.LivingEntity && (decision == com.dinglebob.drifter.brain.Threats.Decision.FLEE
@@ -1365,6 +1383,10 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 	public void die(DamageSource source) {
 		this.tasks.cancel("died");
+		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
+			this.social.watcher().killedBy(player);
+		}
+
 		if (!this.blackBox.isEmpty()) {
 			com.dinglebob.drifter.Drifter.LOGGER.info("[black box] last {} ticks before death:", this.blackBox.size());
 			this.blackBox.forEach(com.dinglebob.drifter.Drifter.LOGGER::info);

@@ -916,6 +916,14 @@ public class Senses {
 
 	/** It looked inside a chest or barrel: remembers a rough summary of the contents (section 6, "Storage"). */
 	public void sawContents(BlockPos pos, net.minecraft.world.Container container) {
+		this.sawContents(pos, container, false);
+	}
+
+	/**
+	 * {@code opening}: it just opened it, so anything gone since it last closed it was taken by someone else (section
+	 * 14: "detected on its next chest check").
+	 */
+	public void sawContents(BlockPos pos, net.minecraft.world.Container container, boolean opening) {
 		BlockNotes.Note note = BlockNotes.classify(this.level().getBlockState(pos));
 		if (note == null || note.kind() != MemoryKind.STORAGE) {
 			return;
@@ -941,8 +949,34 @@ public class Senses {
 		// One of its own chests at home: it knows exactly what's in it now (for planning, section 9 "home storage").
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
 		if (home != null && home.isChest(pos)) {
+			if (opening) {
+				this.drifter.getSocial().watcher().missingFromChest(pos, missingValuableStacks(home.contents(pos), container));
+			}
+
 			home.record(pos, container);
 		}
+	}
+
+	/** Valuable stacks it remembered in a chest that aren't there now (a partly emptied stack counts). */
+	private static int missingValuableStacks(Map<net.minecraft.world.item.Item, Integer> remembered, net.minecraft.world.Container container) {
+		Map<net.minecraft.world.item.Item, Integer> now = new HashMap<>();
+		for (int slot = 0; slot < container.getContainerSize(); slot++) {
+			ItemStack stack = container.getItem(slot);
+			if (!stack.isEmpty()) {
+				now.merge(stack.getItem(), stack.getCount(), Integer::sum);
+			}
+		}
+
+		int stacks = 0;
+		for (Map.Entry<net.minecraft.world.item.Item, Integer> entry : remembered.entrySet()) {
+			ItemStack sample = new ItemStack(entry.getKey());
+			int lost = entry.getValue() - now.getOrDefault(entry.getKey(), 0);
+			if (lost > 0 && com.dinglebob.drifter.social.ItemValues.valuable(sample)) {
+				stacks += (lost + sample.getMaxStackSize() - 1) / sample.getMaxStackSize();
+			}
+		}
+
+		return stacks;
 	}
 
 	/**

@@ -164,7 +164,7 @@ public class ContainerTask extends Task {
 
 		this.drifter.swing(InteractionHand.MAIN_HAND);
 		this.drifter.getKeys().releaseAll();
-		this.drifter.getSenses().sawContents(this.pos, this.container);
+		this.drifter.getSenses().sawContents(this.pos, this.container, true);
 		Containers.playOpen(this.drifter.level(), this.pos);
 		this.opened = true;
 		this.wait = InventoryPause.roll(this.drifter, InventoryPause.CONTAINER_MIN, InventoryPause.CONTAINER_MAX);

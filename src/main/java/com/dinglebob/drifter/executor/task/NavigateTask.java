@@ -745,6 +745,17 @@ public class NavigateTask extends Task {
 		return this.checkStuck();
 	}
 
+	/** Running for its life (fleeing): it sprints however hurt it is. */
+	private boolean urgent;
+
+	public NavigateTask urgent() {
+		this.urgent = true;
+		return this;
+	}
+
+	/** Health (half-hearts) at or under which it doesn't sprint or hop on a route. */
+	private static final float CAREFUL_HEALTH = 6.0F;
+
 	/** Lava it has seen within this many blocks sideways, from a block below its feet to its head. */
 	private boolean lavaNear(int radius) {
 		BlockPos feet = this.feet();
@@ -1242,7 +1253,7 @@ public class NavigateTask extends Task {
 		// Never sprinting with lava close by: one slip or a corner cut is fatal (found by the user: imNiftyshield sprinted
 		// across a lava hole in the floor right where it had just been burned).
 		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
-			&& !this.lavaNear(2)
+			&& !this.lavaNear(2) && (this.drifter.getHealth() > CAREFUL_HEALTH || this.urgent)
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
 
@@ -1316,7 +1327,9 @@ public class NavigateTask extends Task {
 	 * drop beside the way.
 	 */
 	private boolean clearToHop() {
-		if (this.index + HOP_LOOKAHEAD > this.path.size() || this.cramped(this.feet())) {
+		// Badly hurt, it walks: a hop that overshoots a step is a fall that could finish it (found in testing: home hurt
+		// from a mine, it sprint-jumped down a hillside and died of a 2-damage landing).
+		if (this.index + HOP_LOOKAHEAD > this.path.size() || this.cramped(this.feet()) || this.drifter.getHealth() <= CAREFUL_HEALTH) {
 			return false;
 		}
 
