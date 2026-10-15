@@ -422,6 +422,11 @@ public class NavigateTask extends Task {
 
 	/** A deep drop under it (leaning out over an edge) or right beside it, from where it stands. */
 	private boolean edgeBeside() {
+		// (In water sneaking only sinks it, and at a waterfall's edge pins it in place.)
+		if (this.drifter.isInWater()) {
+			return false;
+		}
+
 		BlockPos here = this.feet();
 		if (this.isDeepDrop(here)) {
 			return true;
@@ -1246,13 +1251,16 @@ public class NavigateTask extends Task {
 		// never carry it over (found in testing: it ran off a ravine edge). Not on a deliberate step down: sneaking
 		// would stop it at the step.
 		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN;
-		boolean nearEdge = !intentionalDrop && this.nearDeepDrop();
+		// Not in water: there sneaking only sinks it, and at a waterfall's edge it pinned it in place for 40 minutes (found in
+		// the user's world: it pressed toward the next water cell, sneaking, and never moved).
+		boolean wet = this.drifter.isInWater();
+		boolean nearEdge = !intentionalDrop && !wet && this.nearDeepDrop();
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
 		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
 		// A lava hole right beside it: it sneaks past, as players do (sneaking never steps off an edge).
 		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma
-			|| !intentionalDrop && this.lavaHoleBeside();
+			|| !intentionalDrop && !wet && this.lavaHoleBeside();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
 		// Lava close by (unless running for its life): the same, to drop out of a sprint it's still in.
 		if ((sneaking || this.lavaNear(2) && !this.urgent) && this.drifter.isSprinting()) {
