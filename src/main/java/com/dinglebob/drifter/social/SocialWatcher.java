@@ -101,6 +101,33 @@ public class SocialWatcher {
 		boolean thanked = true;
 		/** What it's answering: a gift, or a hello (crouch-spam). */
 		String respondTo = "the gift";
+		/** They said its name in chat, when, and where they were. */
+		long calledAt = Long.MIN_VALUE / 2;
+		@Nullable
+		Vec3 calledFrom;
+	}
+
+	/** How far it hears its name said in chat (user's choice: about 32 blocks). */
+	public static final double NAME_RANGE = 32.0;
+
+	/** Someone who said its name in the last few seconds and where they stood, or null. */
+	@Nullable
+	public Map.Entry<Player, Vec3> calledBy() {
+		for (Map.Entry<UUID, Watch> entry : this.watches.entrySet()) {
+			Watch w = entry.getValue();
+			if (w.calledFrom != null && this.now() - w.calledAt < 20 * 4) {
+				Player player = this.drifter.level().getPlayerByUUID(entry.getKey());
+				if (player != null) {
+					return Map.entry(player, w.calledFrom);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public void answeredCall(Player player) {
+		this.watch(player).calledFrom = null;
 	}
 
 	/** What it owes {@link #owedThanks} for ("the gift", "the hello"). */
@@ -577,6 +604,23 @@ public class SocialWatcher {
 			boolean hostile = player.level().getEntitiesOfClass(DrifterEntity.class, around, DrifterEntity::isAlive).stream()
 				.anyMatch(drifter -> Mode.toward(drifter, player).hostile());
 			return hostile ? InteractionResult.FAIL : InteractionResult.PASS;
+		});
+
+		// Its name said in chat nearby (user's choice, 2026-10-15): it hears it and turns to look for whoever said it.
+		net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+			if (!isRealPlayer(sender)) {
+				return;
+			}
+
+			String text = " " + message.signedContent().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_]", " ") + " ";
+			forDriftersNear(sender.level(), sender.blockPosition(), NAME_RANGE, drifter -> {
+				String name = drifter.getName().getString().toLowerCase(java.util.Locale.ROOT);
+				if (!name.isEmpty() && text.contains(" " + name + " ") && drifter.distanceTo(sender) <= NAME_RANGE) {
+					Watch w = drifter.getSocial().watcher().watch(sender);
+					w.calledAt = sender.level().getGameTime();
+					w.calledFrom = sender.getEyePosition();
+				}
+			});
 		});
 
 		ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {

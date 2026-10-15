@@ -23,7 +23,7 @@ public final class ChatLines {
 	}
 
 	public enum Kind {
-		HI, THANKS, GG, STOP, OUCH, NICE
+		HI, THANKS, GG, STOP, OUCH, NICE, HUH
 	}
 
 	/** Lines per kind; a personality picks from its own slice of these. */
@@ -33,7 +33,8 @@ public final class ChatLines {
 		Kind.GG, List.of("gg", "rip", "gg wp", "ggs"),
 		Kind.STOP, List.of("go away", "stop", "back off", "wait", "dont"),
 		Kind.OUCH, List.of("bruh", "?", "hey!", "stop"),
-		Kind.NICE, List.of("nice", "lol", "ok", "nice one"));
+		Kind.NICE, List.of("nice", "lol", "ok", "nice one"),
+		Kind.HUH, List.of("?", "yes?", "hm?", "what", "yo?"));
 
 	/** Least time between two lines from one Drifter. */
 	private static final long PER_DRIFTER = 20 * 20;

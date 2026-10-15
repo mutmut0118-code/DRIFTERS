@@ -1093,4 +1093,7 @@ and it still runs when it's losing.
       (every 5 minutes at most).
 - [ ] **Paying back:** it can now pay you back with common things it has plenty of (logs, planks, cobblestone, coal,
       food), not only true spare items.
+- [ ] **Say its name:** type a Drifter's name in chat (for example "hey MapRiver") within about 32 blocks of it: it stops,
+      turns toward you, and if it sees you and doesn't dislike you, nods (maybe answering "?" or "yes?"). Thought: "heard
+      <you> say its name".
 

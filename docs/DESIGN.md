@@ -1144,6 +1144,10 @@ Only for Vengeful or Bandit Drifters with griefing enabled: breaking into chests
 
 Short, lowercase, canned lines tied to events, never generated text: hi, gg, ty, nice, lol, rip, bruh, go away, stop, wait. Each personality gets its own small vocabulary and a strict rate limit. On by default, with a config toggle to turn them off.
 
+**Its name in chat (user's decision, 2026-10-15):** a player who says a Drifter's name in chat within about 32 blocks gets
+its attention: it hears it, turns toward the voice and looks for them; seeing someone it doesn't dislike, it nods (and
+may answer "?" or "yes?"). Drifters still don't understand anything else players type.
+
 ### Forgiveness and multiplayer
 
 - Trust drifts toward the stranger baseline each day by the Forgiveness rate; grudges above a severity threshold never fade for Vengeful Drifters.

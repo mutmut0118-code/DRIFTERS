@@ -33,7 +33,7 @@ public final class FriendlyGoals {
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new Thank(), new Greet(), new PayBack(), new FollowMe(), new HelpFight(), new WarnOfCreeper());
+		return List.of(new AnswerName(), new Thank(), new Greet(), new PayBack(), new FollowMe(), new HelpFight(), new WarnOfCreeper());
 	}
 
 	private static boolean friendly(Mode mode) {
@@ -56,6 +56,93 @@ public final class FriendlyGoals {
 		}
 
 		return best;
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Its name called
+	// ---------------------------------------------------------------------------------------------
+
+	/**
+	 * Someone said its name in chat nearby (user's choice): it stops, turns toward where the voice came from and looks for
+	 * them; seeing someone it doesn't mind, it nods (and may answer "?").
+	 */
+	public static final class AnswerName extends Goals.Goal {
+		@Override
+		public String id() {
+			return "answername";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "look for whoever said its name";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			return context.drifter().getSocial().watcher().calledBy() != null ? 0.8 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Goals.Context context) {
+			return true;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 2;
+		}
+
+		@Override
+		public Activity start(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			Map.Entry<Player, Vec3> call = drifter.getSocial().watcher().calledBy();
+			if (call == null) {
+				return null;
+			}
+
+			Player player = call.getKey();
+			Vec3 from = call.getValue();
+			drifter.getSocial().watcher().answeredCall(player);
+			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "heard " + player.getGameProfile().getName() + " say its name");
+			return new Activity(drifter) {
+				private int ticks;
+				private boolean answered;
+
+				@Override
+				public String describe() {
+					return "look for " + player.getGameProfile().getName();
+				}
+
+				@Override
+				protected Status next() {
+					if (this.answered) {
+						return Status.SUCCESS;
+					}
+
+					Steering.stopMoving(this.drifter);
+					// Toward the voice first; once it sees them, at them.
+					boolean seen = this.drifter.getSocial().watcher().sees(player);
+					this.drifter.getCamera().lookAt(seen ? player.getEyePosition() : from, CameraModel.TurnSpeed.NORMAL);
+					if (++this.ticks < 25) {
+						return Status.RUNNING;
+					}
+
+					Mode mode = seen ? Mode.toward(this.drifter, player) : Mode.UNAWARE;
+					if (seen && !mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
+						this.answered = true;
+						ChatLines.say(this.drifter, ChatLines.Kind.HUH);
+						return this.begin(new Gesture(this.drifter, player, "nod at " + player.getGameProfile().getName(), Gesture.Kind.NOD));
+					}
+
+					return this.ticks >= 50 ? Status.SUCCESS : Status.RUNNING;
+				}
+			};
+		}
 	}
 
 	// ---------------------------------------------------------------------------------------------
