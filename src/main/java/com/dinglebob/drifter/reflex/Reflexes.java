@@ -111,7 +111,7 @@ public class Reflexes {
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
-		this.reflexes = List.of(new InLava(), new Drowning(), new OnFire(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
+		this.reflexes = List.of(new InLava(), new Drowning(), new OnFire(), new DouseWithBucket(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
 			new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact());
 	}
 
@@ -559,6 +559,47 @@ public class Reflexes {
 
 			runTo(drifter, Vec3.atCenterOf(this.water), false);
 			return true;
+		}
+	}
+
+	/**
+	 * On fire with no water near but a water bucket on it: water at its own feet, then scoop it back up, as players do
+	 * (found by the user: one burned to death for 15 s after touching lava, a water bucket would have put it out).
+	 */
+	private static final class DouseWithBucket extends TaskReflex {
+		@Override
+		public String name() {
+			return "on fire: water bucket at its feet";
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			if (!drifter.isOnFire() || drifter.isInLava() || drifter.isInWater() || !drifter.onGround() || drifter.level().dimensionType().ultraWarm()
+				|| drifter.getInventory().count(stack -> stack.is(Items.WATER_BUCKET)) == 0) {
+				return false;
+			}
+
+			BlockPos feet = drifter.blockPosition();
+			Level level = drifter.level();
+			return level.getBlockState(feet).canBeReplaced() && level.getFluidState(feet).isEmpty()
+				&& level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP);
+		}
+
+		@Override
+		protected Task makeTask(DrifterEntity drifter) {
+			Vec3 floor = Vec3.atBottomCenterOf(drifter.blockPosition()).add(0.0, 0.05, 0.0);
+			return new com.dinglebob.drifter.executor.task.SequenceTask(drifter, "put the fire out with a water bucket", java.util.List.of(
+				new com.dinglebob.drifter.executor.task.SelectItemTask(drifter, stack -> stack.is(Items.WATER_BUCKET), "a water bucket"),
+				new com.dinglebob.drifter.executor.task.LookAtTask(drifter, floor, 6),
+				new com.dinglebob.drifter.executor.task.UseItemTask(drifter),
+				new com.dinglebob.drifter.executor.task.SelectItemTask(drifter, stack -> stack.is(Items.BUCKET), "a bucket"),
+				new com.dinglebob.drifter.executor.task.LookAtTask(drifter, floor, 6),
+				new com.dinglebob.drifter.executor.task.UseItemTask(drifter)));
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 60;
 		}
 	}
 

@@ -292,7 +292,13 @@ public final class Threats {
 		// Stuck where it is (wedged in leaves, a corner) while something right there keeps hitting it: running isn't working,
 		// so even a hopeless one fights back, as a player would (found by the user: one died "running away" stuck under leaves
 		// while a zombie hit it for five seconds).
-		if (decision == Decision.FLEE && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5 && stuckInPlace(drifter, now)) {
+		// Nor when it can't get away: something faster than it can run (a baby zombie: found by the user, four Drifters killed
+		// running from ones that hit them from "below" all the way), or one that has hit it twice while it backed off.
+		// Running only gets it hit in the back; a player turns and fights.
+		boolean backingOff = decision == Decision.FLEE || decision == Decision.RETREAT || decision == Decision.AVOID;
+		if (backingOff && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5
+			&& (stuckInPlace(drifter, now) || cantOutrun(lastAttacker)
+				|| drifter.getDrifterBrain().hitsWhileBackingOff >= 2 && now - drifter.getDrifterBrain().lastHitWhileBackingOff < 100)) {
 			decision = Decision.ENGAGE_CAREFUL;
 			main = lastAttacker;
 		}
@@ -343,5 +349,10 @@ public final class Threats {
 		}
 
 		return brain.stuckInPlace;
+	}
+
+	/** Faster than a sprinting player: no use running from it. */
+	private static boolean cantOutrun(LivingEntity mob) {
+		return mob instanceof net.minecraft.world.entity.monster.Zombie zombie && zombie.isBaby();
 	}
 }

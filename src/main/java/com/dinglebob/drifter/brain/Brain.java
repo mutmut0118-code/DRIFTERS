@@ -76,6 +76,9 @@ public class Brain {
 	public net.minecraft.world.phys.Vec3 stuckCheckPos;
 	public long stuckCheckAt;
 	public boolean stuckInPlace;
+	/** Hits taken from mobs while backing off, within 5 s of each other, and when the last one was. */
+	public int hitsWhileBackingOff;
+	public long lastHitWhileBackingOff;
 
 	/** A crafting table it put down away from home (tidy Drifters pick it back up), or null. Not saved. */
 	@org.jetbrains.annotations.Nullable

@@ -1332,6 +1332,14 @@ public class DrifterEntity extends PathfinderMob {
 		super.actuallyHurt(source, amount);
 		if (this.getHealth() < healthBefore) {
 			this.causeFoodExhaustion(source.getFoodExhaustion());
+			// Hit by a mob while backing off: running isn't working (Threats turns it round to fight).
+			com.dinglebob.drifter.brain.Threats.Decision decision = this.brain.lastThreatDecision;
+			if (source.getEntity() instanceof net.minecraft.world.entity.LivingEntity && (decision == com.dinglebob.drifter.brain.Threats.Decision.FLEE
+				|| decision == com.dinglebob.drifter.brain.Threats.Decision.RETREAT || decision == com.dinglebob.drifter.brain.Threats.Decision.AVOID)) {
+				long now = this.level().getGameTime();
+				this.brain.hitsWhileBackingOff = now - this.brain.lastHitWhileBackingOff > 100 ? 1 : this.brain.hitsWhileBackingOff + 1;
+				this.brain.lastHitWhileBackingOff = now;
+			}
 		}
 	}
 
