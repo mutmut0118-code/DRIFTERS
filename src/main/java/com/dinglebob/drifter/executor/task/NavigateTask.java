@@ -753,6 +753,27 @@ public class NavigateTask extends Task {
 		return this;
 	}
 
+	/** Lava at its feet's level or in the floor of a block next to it (diagonals too) that it has seen. */
+	private boolean lavaHoleBeside() {
+		BlockPos feet = this.feet();
+		for (int dx = -1; dx <= 1; dx++) {
+			for (int dz = -1; dz <= 1; dz++) {
+				if (dx == 0 && dz == 0) {
+					continue;
+				}
+
+				BlockPos side = feet.offset(dx, 0, dz);
+				for (BlockPos cell : new BlockPos[]{side, side.below()}) {
+					if (this.level().getFluidState(cell).is(FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(cell)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 	/** Health (half-hearts) at or under which it doesn't sprint or hop on a route. */
 	private static final float CAREFUL_HEALTH = 6.0F;
 
@@ -874,7 +895,9 @@ public class NavigateTask extends Task {
 
 	/** The furthest step within reach of a clear straight line over flat walking steps, or the current index. */
 	private int smoothTarget(PathStep step) {
-		if (!isFlatWalk(step) || !this.drifter.onGround() && !this.hopping) {
+		// No corner-cutting with lava a block away: right along the rim of a lava hole, a little drift tips it in (found in
+		// testing: a shortcut skirted a hole in the floor and it slid in).
+		if (!isFlatWalk(step) || !this.drifter.onGround() && !this.hopping || this.lavaNear(1)) {
 			return this.index;
 		}
 
@@ -1227,9 +1250,12 @@ public class NavigateTask extends Task {
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
 		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
-		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma;
+		// A lava hole right beside it: it sneaks past, as players do (sneaking never steps off an edge).
+		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma
+			|| !intentionalDrop && this.lavaHoleBeside();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
-		if (sneaking && this.drifter.isSprinting()) {
+		// Lava close by (unless running for its life): the same, to drop out of a sprint it's still in.
+		if ((sneaking || this.lavaNear(2) && !this.urgent) && this.drifter.isSprinting()) {
 			// Sprinting carries on while sneaking (as for a player) until forward input stops: let go of the movement keys
 			// for a moment, as a player does before creeping to an edge (found in testing: it sprint-sneaked to bridge).
 			keys.set(VirtualKeys.Key.FORWARD, false);
@@ -1329,7 +1355,8 @@ public class NavigateTask extends Task {
 	private boolean clearToHop() {
 		// Badly hurt, it walks: a hop that overshoots a step is a fall that could finish it (found in testing: home hurt
 		// from a mine, it sprint-jumped down a hillside and died of a 2-damage landing).
-		if (this.index + HOP_LOOKAHEAD > this.path.size() || this.cramped(this.feet()) || this.drifter.getHealth() <= CAREFUL_HEALTH) {
+		if (this.index + HOP_LOOKAHEAD > this.path.size() || this.cramped(this.feet()) || this.drifter.getHealth() <= CAREFUL_HEALTH
+			|| this.lavaNear(2)) {
 			return false;
 		}
 
