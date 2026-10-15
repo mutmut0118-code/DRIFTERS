@@ -1116,6 +1116,11 @@ It never sees health bars or inventories.
 
 Only for Vengeful or Bandit Drifters with griefing enabled: breaking into chests, stealing valuables, lighting fires, breaking doors. Never touches ender chests, never does anything near a player's bed or spawn point protection radius.
 
+**Raiding chests (user's decision, 2026-10-15): on by default**, still by personality: Bandits raid any player chest they
+find; any other Drifter only the base of a player it holds a real grudge against (Vengeful/Predatory toward them, base
+known). Only when it sees no one near, never an ender chest, never within 5 blocks of a known bed, never inside the
+server's spawn protection. `/drifter config raiding false` turns it off. Fires and breaking doors stay off for now.
+
 ### Friendly behaviors
 
 - Greets with crouch-spam and a look.

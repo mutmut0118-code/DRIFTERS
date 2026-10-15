@@ -134,6 +134,11 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setChatLines(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
 					return showConfig(ctx);
 				})))
+			.then(Commands.literal("raiding")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setRaiding(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
 			.then(Commands.literal("share")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setShareReputation(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -329,7 +334,8 @@ public final class DrifterCommands {
 			com.dinglebob.drifter.DrifterConfig.pathRange(), com.dinglebob.drifter.DrifterConfig.pathNodes(),
 			com.dinglebob.drifter.DrifterConfig.fov(), com.dinglebob.drifter.DrifterConfig.coneHalfYaw() * 2.0F,
 			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F, com.dinglebob.drifter.DrifterConfig.chatLines() ? "on" : "off",
-			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off")), true);
+			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", raiding players' chests "
+			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off")), true);
 		return 1;
 	}
 

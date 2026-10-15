@@ -52,6 +52,8 @@ public final class DrifterConfig {
 		boolean shareReputation = true;
 		/** Every Drifter thought goes to the game log (user's choice, 2026-10-15: on by default). */
 		boolean logThoughts = true;
+		/** Bandits and Drifters with a grudge raid players' chests (section 14 griefing; user's choice: on by default). */
+		boolean raiding = true;
 	}
 
 	private static Data data = new Data();
@@ -132,6 +134,15 @@ public final class DrifterConfig {
 
 	public static void setChatLines(boolean on) {
 		data.chatLines = on;
+		save();
+	}
+
+	public static boolean raiding() {
+		return data.raiding;
+	}
+
+	public static void setRaiding(boolean on) {
+		data.raiding = on;
 		save();
 	}
 

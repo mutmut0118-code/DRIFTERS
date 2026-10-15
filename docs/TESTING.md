@@ -1108,4 +1108,8 @@ and it still runs when it's losing.
       "looting the chest at ..."). It takes everything that isn't junk, once per chest. Chests you or other Drifters
       placed are never touched. Greedy ones go for chests up to 48 blocks away straight away; others go at once for
       chests within 24 blocks and otherwise when they're free.
+- [ ] **Raiding your chests (on by default, by personality):** a Bandit (`/drifter social disposition bandit`) that finds
+      a chest you placed raids it when you're not in sight ("raiding a player's chest at ..."). Other Drifters only raid
+      you if they hold a real grudge (hit them a few times) and know your base (they saw you go to bed). Never ender
+      chests, never chests right by your bed, never inside spawn protection. Off: `/drifter config raiding false`.
 

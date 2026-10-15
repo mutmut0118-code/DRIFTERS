@@ -58,7 +58,16 @@ public class LootChestActivity extends Activity {
 
 		if (Reach.canReach(this.drifter, this.chest)) {
 			brain.looted.add(this.chest);
-			this.think("looting the chest at " + this.chest.toShortString());
+			String victim = com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(this.drifter.level(), this.chest)
+				? raidable(this.drifter, this.chest) : null;
+			if (com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(this.drifter.level(), this.chest) && victim == null) {
+				// Someone turned up (or the grudge passed) on the way: it leaves it.
+				brain.looted.remove(this.chest);
+				return this.fail("not now: someone's about");
+			}
+
+			this.think(victim == null ? "looting the chest at " + this.chest.toShortString()
+				: "raiding " + (victim.equals("a player") ? "a player's" : victim + "'s") + " chest at " + this.chest.toShortString());
 			return this.begin(new ContainerTask(this.drifter, this.chest, ContainerTask.Mode.TAKE,
 				stack -> !com.dinglebob.drifter.brain.Storage.isJunk(this.drifter, stack), "loot", 64 * 27, null));
 		}
@@ -90,10 +99,63 @@ public class LootChestActivity extends Activity {
 			BlockPos pos = e.blockPos();
 			return !e.label.equals(com.dinglebob.drifter.perception.Senses.CHEST_CART) && !brain.looted.contains(pos)
 				&& (home == null || !home.chests().contains(pos))
-				&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(drifter.level(), pos) && !drifterBase(drifter, pos);
+				&& !drifterBase(drifter, pos)
+				&& (!com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(drifter.level(), pos) || raidable(drifter, pos) != null);
 		});
 		return entry == null ? null : entry.blockPos();
 	}
+
+	/**
+	 * A player's chest it would raid (section 14 griefing; user's choice: on by default, by personality): a Bandit raids
+	 * any; others only the base of a player they hold a real grudge against. Never an ender chest, never inside the
+	 * server's spawn protection, never right by a bed, and only when it sees nobody near (it waits for the base to be
+	 * empty). Returns who it's raiding ("a player" for a Bandit's find), or null if it wouldn't.
+	 */
+	@Nullable
+	public static String raidable(DrifterEntity drifter, BlockPos pos) {
+		var level = drifter.level();
+		if (!com.dinglebob.drifter.DrifterConfig.raiding() || level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.ENDER_CHEST)
+			|| level.getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
+			return null;
+		}
+
+		var server = drifter.getServer();
+		BlockPos spawn = level.getSharedSpawnPos();
+		if (server != null && level.dimension() == net.minecraft.world.level.Level.OVERWORLD
+			&& Math.max(Math.abs(pos.getX() - spawn.getX()), Math.abs(pos.getZ() - spawn.getZ())) <= server.getSpawnProtectionRadius()) {
+			return null;
+		}
+
+		// Someone in sight near it: not now.
+		for (var awareness : drifter.getSenses().tracked()) {
+			if (awareness.entity instanceof net.minecraft.world.entity.player.Player player && awareness.identified && awareness.visibleNow
+				&& com.dinglebob.drifter.social.SocialWatcher.isRealPlayer(player) && player.blockPosition().closerThan(pos, 24.0)) {
+				return null;
+			}
+		}
+
+		String victim = null;
+		for (com.dinglebob.drifter.social.Relationship r : drifter.getSocial().all()) {
+			// Never right by their bed (no bed ambushes, no griefing the spot they sleep).
+			if (r.knownBase != null && r.knownBase.closerThan(pos, NEAR_BED)) {
+				return null;
+			}
+
+			if (victim == null && r.knownBase != null && r.knownBase.closerThan(pos, 32.0) && r.wronged
+				&& r.grudgeWeight() >= com.dinglebob.drifter.social.Mode.VENGEFUL_GRUDGE && r.trust < com.dinglebob.drifter.social.Mode.HOSTILE_TRUST) {
+				victim = r.name;
+			}
+		}
+
+		if (victim != null) {
+			return victim;
+		}
+
+		return drifter.getSocial().disposition() == com.dinglebob.drifter.social.Disposition.BANDIT ? "a player" : null;
+	}
+
+	/** How close to a known bed it never touches anything. */
+	private static final double NEAR_BED = 5.0;
 
 	/** Part of another Drifter's base (its chests, or anything round its home): not loot. */
 	private static boolean drifterBase(DrifterEntity self, BlockPos pos) {
