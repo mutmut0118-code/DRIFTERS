@@ -294,7 +294,8 @@ public final class Caver {
 		BlockPos[] best = {null};
 		double[] bestScore = {Double.MAX_VALUE};
 		terrain.forEachKnown(around, radius, pos -> {
-			if (visited.contains(region(pos)) || unreachable.contains(pos) || !terrain.isKnown(pos.below())
+			// Not its own tunnels (user's report: it took its old strip mine for a cave).
+			if (visited.contains(region(pos)) || unreachable.contains(pos) || drifter.dugOut(pos.asLong()) || !terrain.isKnown(pos.below())
 				|| !KnownBlocks.isStandable(level, pos) || !underground(drifter, pos)) {
 				return;
 			}
@@ -364,11 +365,15 @@ public final class Caver {
 	 * into the opening tells a player that much; found in testing: air under overhangs and pockets of a block or two).
 	 */
 	public static boolean isCave(DrifterEntity drifter, BlockPos pos) {
-		return underground(drifter, pos) && openSpaceBehind(drifter.level(), pos) >= MIN_CAVE_SPACE;
+		return underground(drifter, pos) && !drifter.dugOut(pos.asLong()) && openSpaceBehind(drifter, pos) >= MIN_CAVE_SPACE;
 	}
 
-	/** Open (air, not water) blocks joined to this one, nearby, counted up to a little over what makes a cave. */
-	private static int openSpaceBehind(net.minecraft.world.level.Level level, BlockPos start) {
+	/**
+	 * Open (air, not water) blocks joined to this one, nearby, counted up to a little over what makes a cave. Blocks it
+	 * dug out itself don't count: its own tunnel isn't a cave.
+	 */
+	private static int openSpaceBehind(DrifterEntity drifter, BlockPos start) {
+		Level level = drifter.level();
 		java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
 		java.util.Set<BlockPos> seen = new java.util.HashSet<>();
 		queue.add(start);
@@ -377,7 +382,8 @@ public final class Caver {
 			BlockPos pos = queue.poll();
 			for (Direction direction : Direction.values()) {
 				BlockPos next = pos.relative(direction);
-				if (next.distSqr(start) <= 8 * 8 && !seen.contains(next) && level.getBlockState(next).getCollisionShape(level, next).isEmpty()
+				if (next.distSqr(start) <= 8 * 8 && !seen.contains(next) && !drifter.dugOut(next.asLong())
+					&& level.getBlockState(next).getCollisionShape(level, next).isEmpty()
 					&& level.getFluidState(next).isEmpty()) {
 					// Open to the sky: air under an overhang or a slope by the surface, not a cave (found in testing).
 					if (level.canSeeSky(next)) {

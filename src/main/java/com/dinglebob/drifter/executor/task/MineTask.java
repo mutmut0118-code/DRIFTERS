@@ -136,6 +136,7 @@ public class MineTask extends Task {
 		}
 
 		this.drifter.getSenses().minedBlock(this.pos, this.target);
+		this.drifter.dugOut(this.pos);
 
 		if (!afterHolding) {
 			return Status.SUCCESS;

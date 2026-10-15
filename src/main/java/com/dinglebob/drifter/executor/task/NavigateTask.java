@@ -1295,6 +1295,12 @@ public class NavigateTask extends Task {
 				}
 			}
 
+			// Never across farmland: landing from a jump tramples it (user's report).
+			if (this.level().getBlockState(to.below()).is(net.minecraft.world.level.block.Blocks.FARMLAND)
+				|| this.level().getBlockState(from.below()).is(net.minecraft.world.level.block.Blocks.FARMLAND)) {
+				return false;
+			}
+
 			// A sprint-jump can carry it a block or two past where it lands: no deep drop within two blocks ahead along the
 			// way either (found in a user's test: hopping down a hillside it sailed past a step and off a cliff, 28 blocks).
 			int ax = Integer.signum(to.getX() - from.getX());

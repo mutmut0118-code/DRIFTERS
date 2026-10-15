@@ -153,7 +153,7 @@ public class MineTripActivity extends Activity {
 	/** Broke into a cave, or found one right ahead: a caver goes in and explores it (a strip miner plugs it and carries on). */
 	private boolean enterCave() {
 		BlockPos breach = this.digger == null ? null : this.digger.takeCaveBreach();
-		// Strip miners too, for a quick look (found by the user: stopping right before the cave most of the time).
+		// Strip miners too, and as fully as cavers (found by the user: stopping right before the cave most of the time).
 		if (breach == null || this.cavingDone || this.caver != null || this.cavesEntered >= MAX_CAVES) {
 			return false;
 		}
@@ -184,15 +184,11 @@ public class MineTripActivity extends Activity {
 
 	/** Walks to new spots per cave trip: braver ones go further. */
 	private int caveLegs() {
-		if (!this.caves()) {
-			return STRIP_MINER_CAVE_LEGS;
-		}
-
+		// Strip miners too explore a cave their tunnel breaks into, fully (user's request: strip mining and caving combined;
+		// they just don't go looking for caves to start with).
 		return 16 + (int)Math.round((Caver.MAX_LEGS - 16) * this.drifter.getPersonality().get(Trait.BRAVERY));
 	}
 
-	/** A strip miner's quick look into a cave its tunnel opens up. */
-	private static final int STRIP_MINER_CAVE_LEGS = 8;
 	/** Mining style habit at or above this: a strip miner. */
 	private static final double STRIP_MINER = 0.65;
 	/** How far from home it looks for a cave it has seen. */

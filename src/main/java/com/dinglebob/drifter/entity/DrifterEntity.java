@@ -196,6 +196,30 @@ public class DrifterEntity extends PathfinderMob {
 		this.failedBridges.put(to.immutable(), this.level().getGameTime() + 20L * 60 * 5);
 	}
 
+	/**
+	 * Blocks it dug out itself, the latest few thousand (saved): its own tunnels and stairs aren't caves to go and
+	 * explore (user's report: it saw its old strip mine as "a cave" and went back to it).
+	 */
+	private final java.util.LinkedHashSet<Long> dugCells = new java.util.LinkedHashSet<>();
+	/** How many dug blocks it remembers. */
+	private static final int MAX_DUG_CELLS = 8192;
+
+	public void dugOut(BlockPos pos) {
+		long key = pos.asLong();
+		this.dugCells.remove(key);
+		this.dugCells.add(key);
+		if (this.dugCells.size() > MAX_DUG_CELLS) {
+			var oldest = this.dugCells.iterator();
+			oldest.next();
+			oldest.remove();
+		}
+	}
+
+	/** It dug this block out itself (part of its own tunnel, not a cave). */
+	public boolean dugOut(long pos) {
+		return this.dugCells.contains(pos);
+	}
+
 	/** Where it got burned by lava lately, until a game time: routes keep clear of them and the blocks touching them. */
 	private final java.util.Map<BlockPos, Long> lavaBurns = new java.util.HashMap<>();
 
@@ -1417,6 +1441,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.putInt("XpLevel", this.experienceLevel);
 		tag.putInt("XpTotal", this.totalExperience);
 		tag.putInt("XpSeed", this.enchantmentSeed);
+		tag.putLongArray("DugCells", this.dugCells.stream().mapToLong(Long::longValue).toArray());
 	}
 
 	@Override
@@ -1432,6 +1457,11 @@ public class DrifterEntity extends PathfinderMob {
 		this.enchantmentSeed = tag.getInt("XpSeed");
 		if (this.enchantmentSeed == 0) {
 			this.enchantmentSeed = this.random.nextInt();
+		}
+
+		this.dugCells.clear();
+		for (long cell : tag.getLongArray("DugCells")) {
+			this.dugCells.add(cell);
 		}
 
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {

@@ -102,6 +102,15 @@ public final class DrifterCommands {
 					.executes(ctx -> give(ctx, IntegerArgumentType.getInteger(ctx, "count"))))));
 
 		// Debug: experience levels (vanilla /xp only works on players).
+		// Finding them (user's request): a list of every loaded Drifter with where it is, each name a click to go there, and a
+		// teleport by name.
+		root.then(Commands.literal("list").executes(DrifterCommands::list));
+		root.then(Commands.literal("tp")
+			.then(Commands.argument("name", StringArgumentType.word())
+				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(allDrifters(ctx.getSource().getServer()).stream()
+					.map(drifter -> drifter.getName().getString()), builder))
+				.executes(DrifterCommands::teleportTo)));
+
 		root.then(Commands.literal("xp")
 			.then(Commands.argument("levels", IntegerArgumentType.integer(0, 100))
 				.executes(ctx -> {
@@ -325,6 +334,52 @@ public final class DrifterCommands {
 		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT, "Gave %d %s to each of %d Drifters", count,
 			input.getItem().getDescription().getString(), total)), true);
 		return total;
+	}
+
+	/** Every loaded Drifter in every dimension. */
+	private static List<DrifterEntity> allDrifters(net.minecraft.server.MinecraftServer server) {
+		List<DrifterEntity> drifters = new java.util.ArrayList<>();
+		for (ServerLevel level : server.getAllLevels()) {
+			drifters.addAll(level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive));
+		}
+
+		drifters.sort(Comparator.comparing(drifter -> drifter.getName().getString().toLowerCase(Locale.ROOT)));
+		return drifters;
+	}
+
+	private static int list(CommandContext<CommandSourceStack> ctx) {
+		List<DrifterEntity> drifters = allDrifters(ctx.getSource().getServer());
+		if (drifters.isEmpty()) {
+			ctx.getSource().sendSuccess(() -> Component.literal("No Drifters loaded"), false);
+			return 0;
+		}
+
+		for (DrifterEntity drifter : drifters) {
+			String name = drifter.getName().getString();
+			int stage = com.dinglebob.drifter.brain.Strategist.stage(drifter);
+			com.dinglebob.drifter.brain.Brain brain = drifter.getDrifterBrain();
+			String doing = brain.activity() == null ? "idle" : brain.activity().describe();
+			Component line = Component.literal(String.format(Locale.ROOT, "%s at %d %d %d (%s), stage %d, %s", name, drifter.getBlockX(),
+				drifter.getBlockY(), drifter.getBlockZ(), drifter.level().dimension().location().getPath(), stage, doing))
+				.withStyle(style -> style.withColor(net.minecraft.ChatFormatting.AQUA)
+					.withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/drifter tp " + name))
+					.withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT,
+						Component.literal("Click to go to " + name))));
+			ctx.getSource().sendSuccess(() -> line, false);
+		}
+
+		return drifters.size();
+	}
+
+	private static int teleportTo(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		String name = StringArgumentType.getString(ctx, "name");
+		DrifterEntity drifter = allDrifters(ctx.getSource().getServer()).stream()
+			.filter(d -> d.getName().getString().equalsIgnoreCase(name)).findFirst()
+			.orElseThrow(() -> new SimpleCommandExceptionType(Component.literal("No loaded Drifter called " + name)).create());
+		net.minecraft.server.level.ServerPlayer player = ctx.getSource().getPlayerOrException();
+		player.teleportTo((ServerLevel)drifter.level(), drifter.getX(), drifter.getY(), drifter.getZ(), player.getYRot(), player.getXRot());
+		ctx.getSource().sendSuccess(() -> Component.literal("Teleported to " + drifter.getName().getString()), false);
+		return 1;
 	}
 
 	/** Adds up to {@code count}; returns how many fit. */
