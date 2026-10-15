@@ -39,6 +39,20 @@ public final class SocialCommands {
 	}
 
 	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
+		// Section 25 manhunt test mode: /drifter manhunt start <player> [nether|dragon], /drifter manhunt stop.
+		root.then(Commands.literal("manhunt")
+				.executes(ctx -> {
+					say(ctx, com.dinglebob.drifter.social.Manhunt.status());
+					return 1;
+				})
+				.then(Commands.literal("stop").executes(ctx -> {
+					com.dinglebob.drifter.social.Manhunt.stop(ctx.getSource().getServer(), "stopped by command");
+					return 1;
+				}))
+				.then(Commands.literal("start").then(Commands.argument("runner", net.minecraft.commands.arguments.EntityArgument.player())
+					.executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER))
+					.then(Commands.literal("nether").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER)))
+					.then(Commands.literal("dragon").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.DRAGON))))));
 		root.then(Commands.literal("social")
 			.executes(SocialCommands::list)
 			.then(Commands.literal("show").then(Commands.argument("player", StringArgumentType.word()).suggests(SocialCommands::players).executes(SocialCommands::show)))
@@ -52,19 +66,6 @@ public final class SocialCommands {
 					.executes(ctx -> event(ctx, 0.0))
 					.then(Commands.argument("amount", DoubleArgumentType.doubleArg(0, 100))
 						.executes(ctx -> event(ctx, DoubleArgumentType.getDouble(ctx, "amount")))))))
-			.then(Commands.literal("manhunt")
-				.executes(ctx -> {
-					say(ctx, com.dinglebob.drifter.social.Manhunt.status());
-					return 1;
-				})
-				.then(Commands.literal("stop").executes(ctx -> {
-					com.dinglebob.drifter.social.Manhunt.stop(ctx.getSource().getServer(), "stopped by command");
-					return 1;
-				}))
-				.then(Commands.literal("start").then(Commands.argument("runner", net.minecraft.commands.arguments.EntityArgument.player())
-					.executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER))
-					.then(Commands.literal("nether").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER)))
-					.then(Commands.literal("dragon").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.DRAGON))))))
 			.then(Commands.literal("disposition").then(Commands.argument("disposition", StringArgumentType.word())
 				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(Disposition.values()).map(Disposition::id), builder))
 				.executes(SocialCommands::disposition))));

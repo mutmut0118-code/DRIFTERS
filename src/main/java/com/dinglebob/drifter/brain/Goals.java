@@ -94,6 +94,11 @@ public final class Goals {
 			return 1.0;
 		}
 
+		// Carrying on through the night: the hour barely matters.
+		if (context.drifter().getDrifterBrain().nightStyle() == Schedule.NightStyle.WORK && Schedule.fitToWork(context.drifter())) {
+			return Math.max(factor, 0.85);
+		}
+
 		double caution = context.drifter().getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
 		return net.minecraft.util.Mth.clamp(factor + (0.5 - caution) * 0.6, 0.1, 1.0);
 	}

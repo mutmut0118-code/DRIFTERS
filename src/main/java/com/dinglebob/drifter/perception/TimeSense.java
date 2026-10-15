@@ -34,7 +34,12 @@ public class TimeSense {
 		Level level = drifter.level();
 		long actual = level.getDayTime();
 		double before = this.estimate;
-		this.skyVisible = level.dimensionType().hasSkyLight() && seesSky(level, BlockPos.containing(drifter.getEyePosition()));
+		BlockPos eye = BlockPos.containing(drifter.getEyePosition());
+		// The sky straight up, or the daylight coming in through a window or a doorway (a player in a hut can tell day from
+		// night and sees the rain outside; found by the user: after a night slept through, every Drifter stayed in its
+		// hut in broad daylight).
+		this.skyVisible = level.dimensionType().hasSkyLight() && (seesSky(level, eye)
+			|| level.getBrightness(net.minecraft.world.level.LightLayer.SKY, eye) >= OUTSIDE_IN_VIEW);
 		boolean hasClock = level.dimensionType().natural() && drifter.getInventory().count(stack -> stack.is(Items.CLOCK)) > 0;
 		if (this.estimate < 0 || this.skyVisible || hasClock) {
 			this.estimate = actual;
@@ -55,6 +60,12 @@ public class TimeSense {
 
 		return before >= 0 && Math.floorMod((long)before, 24000L) < DUSK && Math.floorMod((long)this.estimate, 24000L) >= DUSK;
 	}
+
+	/**
+	 * Sky light at its eyes from which it can see outside (a window or an open doorway a few blocks off; a sealed room or
+	 * a hole has none).
+	 */
+	private static final int OUTSIDE_IN_VIEW = 8;
 
 	/** Above this many see-through blocks (a glass tower), it stops looking. */
 	private static final int MAX_SEE_THROUGH = 64;

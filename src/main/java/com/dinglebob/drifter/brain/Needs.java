@@ -40,7 +40,9 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 		com.dinglebob.drifter.brain.mining.Tunnel tunnel = drifter.getDrifterBrain().nightTunnel();
 		boolean sealedIn = Shelter.isSheltered(drifter) || tunnel != null && tunnel.contains(drifter.blockPosition());
 		// A night hunter (section 18: brave ones go out after mobs) only needs shelter once it isn't fit to be out.
-		boolean hunting = !sealedIn && drifter.getDrifterBrain().nightStyle() == Schedule.NightStyle.HUNT && Schedule.fitToHunt(drifter);
+		Schedule.NightStyle style = drifter.getDrifterBrain().nightStyle();
+		boolean hunting = !sealedIn && (style == Schedule.NightStyle.HUNT && Schedule.fitToHunt(drifter)
+			|| style == Schedule.NightStyle.WORK && Schedule.fitToWork(drifter));
 		double shelter;
 		long thinking = Schedule.shelterThinking(drifter);
 		long urgent = Schedule.shelterUrgent(drifter);
@@ -58,7 +60,8 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 			// Dawn twilight: stay put until the sun is up.
 			shelter = sealedIn ? 0.9 : 0.0;
 		} else if (time >= thinking) {
-			shelter = Mth.lerp((time - thinking) / (double)Math.max(1L, urgent - thinking), 0.2, 0.7);
+			// Evening: a night hunter or one who carries on through the night doesn't start heading in.
+			shelter = hunting ? 0.1 : Mth.lerp((time - thinking) / (double)Math.max(1L, urgent - thinking), 0.2, 0.7);
 		} else {
 			// Morning: climb out of the night's hole before anything else.
 			shelter = sealedIn ? 0.6 : 0.0;

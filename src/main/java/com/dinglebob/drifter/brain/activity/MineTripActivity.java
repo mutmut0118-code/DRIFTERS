@@ -366,7 +366,12 @@ public class MineTripActivity extends Activity {
 	/** Too late in the day to start a trip (it would turn round at once). */
 	public static boolean tooLateToGo(DrifterEntity d) {
 		long time = Schedule.believedTime(d);
-		return time >= Schedule.shelterThinking(d) - RETURN_MARGIN * 2 && time < Schedule.NIGHT_END;
+		return time >= Schedule.shelterThinking(d) - RETURN_MARGIN * 2 && time < Schedule.NIGHT_END && !carriesOn(d);
+	}
+
+	/** It carries on through the night (armed, by its night style): the hour doesn't send it home. */
+	private static boolean carriesOn(DrifterEntity d) {
+		return d.getDrifterBrain().nightStyle() == Schedule.NightStyle.WORK && Schedule.fitToWork(d);
 	}
 
 	/** Pickaxe uses left on everything it carries. */
@@ -404,7 +409,7 @@ public class MineTripActivity extends Activity {
 
 		// Underground the time doesn't matter (user's rule, session 2): it carries on, and sleeps once it's back up.
 		if (Schedule.believedTime(d) >= Schedule.shelterThinking(d) - RETURN_MARGIN && Schedule.believedTime(d) < Schedule.NIGHT_END
-			&& !com.dinglebob.drifter.brain.mining.Caver.underground(d, d.blockPosition())) {
+			&& !com.dinglebob.drifter.brain.mining.Caver.underground(d, d.blockPosition()) && !carriesOn(d)) {
 			return "it must be getting late";
 		}
 

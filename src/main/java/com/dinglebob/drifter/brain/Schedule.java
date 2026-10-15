@@ -61,13 +61,14 @@ public final class Schedule {
 	 * TODO(milestone 8): sleeping in a bed first; TODO(milestone 9): hostile ones stalking players at night.
 	 */
 	public enum NightStyle {
-		SHELTER, HUNT, MINE;
+		SHELTER, HUNT, MINE, WORK;
 
 		public String describe() {
 			return switch (this) {
 				case SHELTER -> "stays in";
 				case HUNT -> "goes out hunting mobs";
 				case MINE -> "digs in, then mines";
+				case WORK -> "carries on through the night";
 			};
 		}
 	}
@@ -89,6 +90,13 @@ public final class Schedule {
 			return NightStyle.HUNT;
 		}
 
+		// Armed (a stone sword or better, or iron armor) and not too careful: like most players, it just carries on with
+		// what it was doing, fighting what comes (user's request: too many armed Drifters sat out every night).
+		if (calm && p.get(com.dinglebob.drifter.personality.Trait.CAUTION) < WORK_MAX_CAUTION
+			&& p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= WORK_MIN_BRAVERY && fitToWork(drifter)) {
+			return NightStyle.WORK;
+		}
+
 		if (calm && p.habits().miningLean >= MINE_LEAN && p.get(com.dinglebob.drifter.personality.Trait.INDUSTRIOUSNESS) >= MINE_INDUSTRIOUSNESS
 			&& drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PICKAXES)) > 0) {
 			return NightStyle.MINE;
@@ -96,6 +104,34 @@ public final class Schedule {
 
 		return NightStyle.SHELTER;
 	}
+
+	/** Caution under which, and Bravery from which, an armed Drifter carries on at night. */
+	public static final double WORK_MAX_CAUTION = 0.7;
+	public static final double WORK_MIN_BRAVERY = 0.35;
+
+	/**
+	 * Fit to carry on at night: a weapon at least a stone sword (or two pieces of iron-or-better armor), fairly healthy
+	 * and fed. Checked all night; when it stops being true, it goes in.
+	 */
+	public static boolean fitToWork(DrifterEntity drifter) {
+		int weapon = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(drifter);
+		double dps = com.dinglebob.drifter.hands.Combat.weaponStats(drifter, weapon < 0 ? net.minecraft.world.item.ItemStack.EMPTY
+			: drifter.getInventory().getItem(weapon)).perSecond();
+		int armor = 0;
+		for (net.minecraft.world.entity.EquipmentSlot slot : new net.minecraft.world.entity.EquipmentSlot[]{net.minecraft.world.entity.EquipmentSlot.HEAD,
+			net.minecraft.world.entity.EquipmentSlot.CHEST, net.minecraft.world.entity.EquipmentSlot.LEGS, net.minecraft.world.entity.EquipmentSlot.FEET}) {
+			if (drifter.getItemBySlot(slot).getItem() instanceof net.minecraft.world.item.ArmorItem piece
+				&& com.dinglebob.drifter.social.ItemValues.armorTier(piece) >= 3.0) {
+				armor++;
+			}
+		}
+
+		return drifter.getHealth() >= 12.0F && drifter.getFoodData().getFoodLevel() >= 8 && (dps >= WORK_MIN_WEAPON_DPS || armor >= 2)
+			&& !drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.PANICKED);
+	}
+
+	/** A stone sword's damage per second (5 damage at 1.6 a second). */
+	public static final double WORK_MIN_WEAPON_DPS = 7.5;
 
 	/** Fit to be out at night: healthy, fed, armed. Checked all night; when it stops being true, it digs in. */
 	public static boolean fitToHunt(DrifterEntity drifter) {

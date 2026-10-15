@@ -1076,3 +1076,12 @@ and it still runs when it's losing.
       dies it respawns at world spawn with nothing and keeps hunting. You win by reaching the Nether (or killing the
       dragon); it wins by killing you. `/drifter manhunt` shows the game, `/drifter manhunt stop` ends it.
 
+### Night and time fixes (user's report, 2026-10-15)
+- [ ] **Armed Drifters carry on at night:** with a stone sword or better (or two pieces of iron armor), fairly healthy and
+      fed, and not too cautious, a Drifter thinks "tonight it carries on through the night" in the evening and keeps
+      working, exploring and gathering in the dark, fighting what comes. Unarmed, hurt, hungry or cautious ones
+      (Homebodies, Hermits) still go in. `/drifter personality` shows its night style.
+- [ ] **Daylight through windows:** sleep through a night in your bed. Drifters in huts with windows or an open door
+      notice it's morning and come out, instead of waiting in the dark.
+- [ ] **Manhunt command fixed:** it's `/drifter manhunt start <you>` (it was wrongly under `/drifter social manhunt`).
+
