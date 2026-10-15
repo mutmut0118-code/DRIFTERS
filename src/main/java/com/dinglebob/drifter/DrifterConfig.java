@@ -54,6 +54,20 @@ public final class DrifterConfig {
 		boolean logThoughts = true;
 		/** Bandits and Drifters with a grudge raid players' chests (section 14 griefing; user's choice: on by default). */
 		boolean raiding = true;
+		/** Drifters away from players that keep running as if a player were there (section 22 hybrid; 0 turns it off). */
+		int simulatedDrifters = DEFAULT_SIMULATED;
+	}
+
+	public static final int DEFAULT_SIMULATED = 3;
+	public static final int MAX_SIMULATED = 10;
+
+	public static int simulatedDrifters() {
+		return Mth.clamp(data.simulatedDrifters, 0, MAX_SIMULATED);
+	}
+
+	public static void setSimulatedDrifters(int count) {
+		data.simulatedDrifters = Mth.clamp(count, 0, MAX_SIMULATED);
+		save();
 	}
 
 	private static Data data = new Data();

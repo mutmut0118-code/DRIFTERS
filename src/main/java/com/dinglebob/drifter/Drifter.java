@@ -36,6 +36,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.world.AnimalTempting.register();
 		com.dinglebob.drifter.social.SocialWatcher.register();
 		com.dinglebob.drifter.social.Manhunt.register();
+		com.dinglebob.drifter.world.DrifterSimulation.register();
 		LOGGER.info("Drifter initialized");
 	}
 

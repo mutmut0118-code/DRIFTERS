@@ -1121,3 +1121,16 @@ and it still runs when it's losing.
 - [ ] **Manhunt survives a restart:** start one, quit to the menu (or close the game), come back: the hunter is still on
       you (the game is saved with the world; `/drifter manhunt` shows it). A different world has its own (or none).
 
+## Milestone 10: Offscreen and performance (in progress)
+
+**Step 1: hybrid simulation (new).** Away from you, the 3 busiest Drifters keep running as if a player were with them:
+their area stays loaded, they keep playing, and crops round them grow. The others freeze with their chunks until you
+come near (they'll catch up in a later step).
+- [ ] `/drifter sim` lists who is being kept running and where. `/drifter config simulated <0-10>` changes how many
+      (0 turns it off). More means more work for your PC, about like that many extra players standing still.
+- [ ] Walk far away from a Drifter that's out working (or `/drifter tp` to another one): when you come back, it has
+      moved on and done things, not stood frozen.
+- [ ] Its farm grows while it's near it, even when you're far away.
+- [ ] Mobs don't spawn round far-away Drifters (vanilla only spawns and keeps mobs within 128 blocks of a real player).
+- [ ] Closing and reopening the world: the same Drifters carry on (who's kept running is saved with the world).
+

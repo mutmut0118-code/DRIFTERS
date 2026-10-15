@@ -972,7 +972,8 @@ player (Drifters don't respawn outside the manhunt yet).
 together). User's decision: **hybrid** (DESIGN section 22, "Hybrid simulation").
 
 ### Plan
-1. **Hybrid simulation:** the top N Drifters (config, default 3; manhunt hunter always) keep chunks loaded round them
+1. **Hybrid simulation** (done; staged test: 3 of 4 far-apart Drifters kept running with no player anywhere, wheat by
+   one of them grew; mobs can't spawn or stay away from real players in vanilla, recorded as a limit): the top N Drifters (config, default 3; manhunt hunter always) keep chunks loaded round them
    like a player (tickets), with random ticks and mob spawning near them (a mixin on the "player close enough" check),
    chosen by activity with stickiness. `/drifter sim` shows who is simulated.
 2. **Detail tiers:** Full near players, Reduced (no tics, fewer perception rays, brain every few ticks) and Far,

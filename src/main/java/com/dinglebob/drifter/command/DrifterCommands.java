@@ -105,6 +105,18 @@ public final class DrifterCommands {
 		// Finding them (user's request): a list of every loaded Drifter with where it is, each name a click to go there, and a
 		// teleport by name.
 		root.then(Commands.literal("list").executes(DrifterCommands::list));
+		// Who is kept running away from players (section 22 hybrid simulation).
+		root.then(Commands.literal("sim").executes(ctx -> {
+			var list = com.dinglebob.drifter.world.DrifterSimulation.simulated();
+			ctx.getSource().sendSuccess(() -> Component.literal(list.isEmpty() ? "No Drifters are being kept running away from players right now"
+				: "Kept running away from players (" + list.size() + " of " + com.dinglebob.drifter.DrifterConfig.simulatedDrifters() + "):"), false);
+			for (var s : list) {
+				ctx.getSource().sendSuccess(() -> Component.literal("  " + s.name() + " near " + s.chunk().getMiddleBlockX() + ", "
+					+ s.chunk().getMiddleBlockZ() + " (" + s.level().location().getPath() + ")"), false);
+			}
+
+			return list.size();
+		}));
 		root.then(Commands.literal("tp")
 			.then(Commands.argument("name", StringArgumentType.word())
 				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(allDrifters(ctx.getSource().getServer()).stream()
@@ -132,6 +144,11 @@ public final class DrifterCommands {
 			.then(Commands.literal("chat")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setChatLines(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
+			.then(Commands.literal("simulated")
+				.then(Commands.argument("count", IntegerArgumentType.integer(0, com.dinglebob.drifter.DrifterConfig.MAX_SIMULATED)).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setSimulatedDrifters(IntegerArgumentType.getInteger(ctx, "count"));
 					return showConfig(ctx);
 				})))
 			.then(Commands.literal("raiding")
@@ -335,7 +352,8 @@ public final class DrifterCommands {
 			com.dinglebob.drifter.DrifterConfig.fov(), com.dinglebob.drifter.DrifterConfig.coneHalfYaw() * 2.0F,
 			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F, com.dinglebob.drifter.DrifterConfig.chatLines() ? "on" : "off",
 			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", raiding players' chests "
-			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off")), true);
+			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off") + ", Drifters kept running away from players "
+			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters()), true);
 		return 1;
 	}
 
