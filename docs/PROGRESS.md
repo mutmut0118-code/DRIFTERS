@@ -723,7 +723,10 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
   has seen the whole shaft. Plan: brave ones jump any height into water they can see; cautious ones stick to short
   drops or dig down.
 - **Looting:** mineshafts (chest minecarts) and dungeons (spawner, chests) done with caving (cobwebs still just
-  avoided); ruined portals, shipwrecks and temples later in milestone 8; villages after milestone 9.
+  avoided). **Surface structure chests** (user's request, 2026-10-15): any chest it has seen that no player or Drifter
+  placed (ruined portals, shipwrecks, temples, villages) is a priority goal ("loot a chest it saw", urgent when close or
+  greedy); it takes what isn't junk, once. Not yet: each structure's own protocol from section 10.11 (a ruined portal's
+  gold blocks and obsidian, diving into shipwrecks, temple traps).
 
 ### Step 5: settlement (farm, pen, organised chests; tested on sprinted runs)
 - **Wheat farm** (`brain/activity/FarmActivity`, goal "tend the farm"): once settled with a bucket, a 9x9 plot near home

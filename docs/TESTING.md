@@ -1103,4 +1103,9 @@ and it still runs when it's losing.
 - [ ] **Berry bushes:** Drifters no longer walk through grown berry bushes. They break them on the way (instantly,
       like a player clearing a path) and cut straight through a patch. Touching one, it stands still (they only prick
       while you move) and breaks it. Staged test: across a 5-wide patch starting at 2 hearts, it arrived alive.
+- [ ] **Structure chests:** when a Drifter sees a chest belonging to a structure (a ruined portal, a shipwreck, a temple,
+      a village house), it drops what it's doing and goes to loot it ("spotted a chest at ...: going to loot it", then
+      "looting the chest at ..."). It takes everything that isn't junk, once per chest. Chests you or other Drifters
+      placed are never touched. Greedy ones go for chests up to 48 blocks away straight away; others go at once for
+      chests within 24 blocks and otherwise when they're free.
 

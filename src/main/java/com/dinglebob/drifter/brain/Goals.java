@@ -1041,6 +1041,62 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Loot a structure's chest it has seen (section 10.11, "Opportunistic jumps": a ruined portal's chest, a shipwreck's, a
+	 * temple's). Greedy and curious ones go at once (user's request: a ruined portal's chest in sight gets looted).
+	 */
+	public static final class LootChest extends Goal {
+		@Override
+		public String id() {
+			return "loot";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "loot a chest it saw";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (drifter.getHealth() < 10.0F || com.dinglebob.drifter.brain.activity.LootChestActivity.target(drifter) == null) {
+				return 0.0;
+			}
+
+			var p = drifter.getPersonality();
+			return 0.45 + 0.3 * p.get(com.dinglebob.drifter.personality.Trait.GREED) + 0.1 * p.get(com.dinglebob.drifter.personality.Trait.CURIOSITY);
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.5);
+		}
+
+		/** A chest close by, or a greedy Drifter: it goes now, not when it's done with what it's doing (user's request). */
+		@Override
+		public boolean urgent(Context context) {
+			net.minecraft.core.BlockPos chest = com.dinglebob.drifter.brain.activity.LootChestActivity.target(context.drifter());
+			return chest != null && (chest.closerThan(context.drifter().blockPosition(), 24.0)
+				|| context.drifter().getPersonality().get(com.dinglebob.drifter.personality.Trait.GREED) >= 0.6);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 10;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			net.minecraft.core.BlockPos chest = com.dinglebob.drifter.brain.activity.LootChestActivity.target(context.drifter());
+			return chest == null ? null : new com.dinglebob.drifter.brain.activity.LootChestActivity(context.drifter(), chest);
+		}
+	}
+
 	/** Out of the water after running out of air twice in a minute (found in testing: it drowned going back under). */
 	public static final class GetOutOfWater extends Goal {
 		@Override
@@ -1564,7 +1620,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
