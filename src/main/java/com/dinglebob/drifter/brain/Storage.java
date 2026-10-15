@@ -71,6 +71,11 @@ public final class Storage {
 				// One stack of dirt if that's its habit, or while it has no cobblestone to build with.
 				kind = "dirt";
 				limit = keepsDirt || cobble < KEEP_BUILDING_BLOCKS ? KEEP_BUILDING_BLOCKS : 0;
+			} else if (stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE)) {
+				// Two stacks for building and plugging holes; more is dead weight down a mine (found in testing: deep trips
+				// came back "pockets full" of cobbled deepslate without the ore).
+				kind = "cobble";
+				limit = KEEP_BUILDING_BLOCKS * 2;
 			} else if (stack.is(Items.ROTTEN_FLESH) && Food.carriedNutrition(drifter) >= 12) {
 				kind = "flesh";
 				limit = 0;

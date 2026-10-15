@@ -106,6 +106,9 @@ public class MineTripActivity extends Activity {
 	/** What the plan asked for (less than {@link #total} when it's after iron for the whole set). */
 	private final int asked;
 
+	private int tosses;
+	private static final int MAX_TOSSES = 30;
+
 	/** Anything but coal: a long trip of a few minutes underground, well prepared. */
 	private final boolean longTrip;
 	/** How long it means to stay down on a long trip (game ticks). */
@@ -294,6 +297,11 @@ public class MineTripActivity extends Activity {
 
 	@Override
 	protected Status next() {
+		// Nearly full: junk out first (worthless stone, extra cobble), as players do down a mine; full of good stuff, home.
+		if (this.phase != Phase.HOME && Storage.freeSlots(this.drifter) <= 2 && !Storage.junk(this.drifter).isEmpty() && this.tosses++ < MAX_TOSSES) {
+			return this.begin(new com.dinglebob.drifter.executor.task.TossJunkTask(this.drifter));
+		}
+
 		if (this.phase != Phase.HOME) {
 			String stop = this.reasonToStop();
 			if (stop != null) {
