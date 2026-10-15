@@ -454,6 +454,11 @@ public class MineTripActivity extends Activity {
 	}
 
 	private Status start() {
+		// Not with full pockets (and no junk to throw out): it would only turn straight back.
+		if (Storage.freeSlots(this.drifter) <= 2 && Storage.junk(this.drifter).isEmpty()) {
+			return this.fail("pockets too full to go mining");
+		}
+
 		// Not down the mine hungry with nothing to eat: it would only turn back (found in testing: nine trips in a row).
 		if (this.drifter.getFoodData().getFoodLevel() <= HUNGRY_TO_GO && Food.choose(this.drifter) == null) {
 			return this.fail("too hungry to go mining, with nothing to eat");

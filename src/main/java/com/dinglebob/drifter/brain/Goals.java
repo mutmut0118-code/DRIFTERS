@@ -1231,7 +1231,11 @@ public final class Goals {
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			Home home = drifter.getDrifterBrain().home();
-			if (home == null || !home.hasChest() || drifter.getDrifterBrain().storageFull() || !home.near(drifter, Home.STORAGE_RANGE)) {
+			// Full pockets send it home from further out too (found in testing: 120 blocks out, full, it started a mining
+			// trip that ended "pockets full" at once, 307 times).
+			boolean full = Storage.freeSlots(drifter) <= Storage.FULL_FREE_SLOTS;
+			if (home == null || !home.hasChest() || drifter.getDrifterBrain().storageFull()
+				|| !home.near(drifter, full ? FULL_STORE_RANGE : Home.STORAGE_RANGE)) {
 				return 0.0;
 			}
 
@@ -1266,6 +1270,9 @@ public final class Goals {
 		public Activity start(Context context) {
 			return new com.dinglebob.drifter.brain.activity.StoreActivity(context.drifter());
 		}
+
+		/** How far it walks home to empty full pockets. */
+		private static final double FULL_STORE_RANGE = 512.0;
 	}
 
 	/**
