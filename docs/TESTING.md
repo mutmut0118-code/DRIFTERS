@@ -1085,3 +1085,12 @@ and it still runs when it's losing.
       notice it's morning and come out, instead of waiting in the dark.
 - [ ] **Manhunt command fixed:** it's `/drifter manhunt start <you>` (it was wrongly under `/drifter social manhunt`).
 
+### Reactions you can see (user's feedback: "they don't really care about me")
+- [ ] **Gift:** right after you give it something it stops, looks at you, nods and crouches back ("answering <you>'s gift").
+- [ ] **Hello:** crouch up and down while looking at it: it looks at you and crouches back ("answering <you>'s hello"),
+      unless it's hostile to you or avoiding you.
+- [ ] **Friendly ones come over:** once it likes you (Trust 25+), it walks over from up to 24 blocks away to say hi
+      (every 5 minutes at most).
+- [ ] **Paying back:** it can now pay you back with common things it has plenty of (logs, planks, cobblestone, coal,
+      food), not only true spare items.
+

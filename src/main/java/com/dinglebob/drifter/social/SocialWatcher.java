@@ -96,6 +96,37 @@ public class SocialWatcher {
 		Vec3 invitedFrom;
 		/** When it last greeted them. */
 		long greetedAt = Long.MIN_VALUE / 2;
+		/** They just gave it something: it thanks them (once). */
+		long giftAt = Long.MIN_VALUE / 2;
+		boolean thanked = true;
+		/** What it's answering: a gift, or a hello (crouch-spam). */
+		String respondTo = "the gift";
+	}
+
+	/** What it owes {@link #owedThanks} for ("the gift", "the hello"). */
+	public String respondingTo(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w == null ? "the gift" : w.respondTo;
+	}
+
+	/** A player who just gave it something and hasn't been thanked yet (in the last few seconds), or null. */
+	@Nullable
+	public Player owedThanks() {
+		for (Map.Entry<UUID, Watch> entry : this.watches.entrySet()) {
+			Watch w = entry.getValue();
+			if (!w.thanked && this.now() - w.giftAt < 20 * 6) {
+				Player player = this.drifter.level().getPlayerByUUID(entry.getKey());
+				if (player != null && this.sees(player)) {
+					return player;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public void thanked(Player player) {
+		this.watch(player).thanked = true;
 	}
 
 	/** They asked it to follow (crouched twice near it) in the last few seconds, and where they stood: or null. */
@@ -391,6 +422,13 @@ public class SocialWatcher {
 			w.crouches.clear();
 			w.lastCrouchSpamAt = now;
 			this.record(player, SocialEvent.CROUCH_SPAM, 0.0);
+			// Crouch-spam is "hello" (section 14 table): it answers in kind, unless it's against them.
+			Mode mode = Mode.toward(this.drifter, player);
+			if (!mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
+				w.giftAt = now;
+				w.thanked = false;
+				w.respondTo = "the hello";
+			}
 		}
 	}
 
@@ -443,6 +481,10 @@ public class SocialWatcher {
 
 		this.record(player, SocialEvent.GIFT, SocialEvent.GIFT.trust + value);
 		ChatLines.say(this.drifter, ChatLines.Kind.THANKS);
+		Watch w = this.watch(player);
+		w.giftAt = this.now();
+		w.thanked = false;
+		w.respondTo = "the gift";
 	}
 
 	/**

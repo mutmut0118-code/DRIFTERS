@@ -33,7 +33,7 @@ public final class FriendlyGoals {
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new Greet(), new PayBack(), new FollowMe(), new HelpFight(), new WarnOfCreeper());
+		return List.of(new Thank(), new Greet(), new PayBack(), new FollowMe(), new HelpFight(), new WarnOfCreeper());
 	}
 
 	private static boolean friendly(Mode mode) {
@@ -59,11 +59,81 @@ public final class FriendlyGoals {
 	}
 
 	// ---------------------------------------------------------------------------------------------
+	// Thanks
+	// ---------------------------------------------------------------------------------------------
+
+	/** A gift: it stops, looks at them, nods and crouches back (section 14 table: crouch-spam is "thanks"). */
+	public static final class Thank extends Goals.Goal {
+		@Override
+		public String id() {
+			return "thank";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "thank a player for a gift";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			return context.drifter().getSocial().watcher().owedThanks() != null ? 0.85 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Goals.Context context) {
+			return true;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 3;
+		}
+
+		@Override
+		public Activity start(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			Player player = drifter.getSocial().watcher().owedThanks();
+			if (player == null) {
+				return null;
+			}
+
+			String what = drifter.getSocial().watcher().respondingTo(player);
+			drifter.getSocial().watcher().thanked(player);
+			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "answering " + player.getGameProfile().getName() + "'s " + what.substring(4));
+			return new Activity(drifter) {
+				private int step;
+
+				@Override
+				public String describe() {
+					return "thank " + player.getGameProfile().getName();
+				}
+
+				@Override
+				protected Status next() {
+					return switch (this.step++) {
+						case 0 -> this.begin(new Gesture(this.drifter, player, "nod at " + player.getGameProfile().getName(), Gesture.Kind.NOD));
+						case 1 -> this.begin(new Gesture(this.drifter, player, "crouch at " + player.getGameProfile().getName(), Gesture.Kind.CROUCH_SPAM));
+						default -> Status.SUCCESS;
+					};
+				}
+			};
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
 	// Greeting
 	// ---------------------------------------------------------------------------------------------
 
 	/** "Greets with crouch-spam and a look." */
 	public static final class Greet extends Goals.Goal {
+		/** How far off it comes over to greet someone it likes. */
+		private static final double GREET_RANGE = 24.0;
+
 		@Override
 		public String id() {
 			return "greet";
@@ -77,7 +147,8 @@ public final class FriendlyGoals {
 		@Nullable
 		private static Player target(Goals.Context context) {
 			DrifterEntity drifter = context.drifter();
-			return nearest(drifter, 10.0, mode -> friendly(mode)) instanceof Player player && !drifter.getSocial().watcher().greetedLately(player)
+			// "Friendly: approaches, greets": it comes over from a way off (not just when they happen to walk up).
+			return nearest(drifter, GREET_RANGE, mode -> friendly(mode)) instanceof Player player && !drifter.getSocial().watcher().greetedLately(player)
 				? player : null;
 		}
 
@@ -103,9 +174,33 @@ public final class FriendlyGoals {
 				return null;
 			}
 
-			context.drifter().getSocial().watcher().greeted(player);
-			ChatLines.say(context.drifter(), ChatLines.Kind.HI);
-			return new Gesture(context.drifter(), player, "greet " + player.getGameProfile().getName(), Gesture.Kind.CROUCH_SPAM);
+			DrifterEntity drifter = context.drifter();
+			drifter.getSocial().watcher().greeted(player);
+			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "going over to say hi to " + player.getGameProfile().getName());
+			return new Activity(drifter) {
+				private int step;
+
+				@Override
+				public String describe() {
+					return "greet " + player.getGameProfile().getName();
+				}
+
+				@Override
+				protected Status next() {
+					switch (this.step++) {
+						case 0:
+							if (player.distanceTo(this.drifter) > 4.0) {
+								return this.begin(new NavigateTask(this.drifter, player.position(), 3.0, "walk over to " + player.getGameProfile().getName(),
+									NavigateTask.Pace.STROLL));
+							}
+						case 1:
+							ChatLines.say(this.drifter, ChatLines.Kind.HI);
+							return this.begin(new Gesture(this.drifter, player, "greet " + player.getGameProfile().getName(), Gesture.Kind.CROUCH_SPAM));
+						default:
+							return Status.SUCCESS;
+					}
+				}
+			};
 		}
 	}
 
@@ -281,7 +376,22 @@ public final class FriendlyGoals {
 	/** What it would give for {@code worth} points: from what it doesn't need (its surplus), as close in value as it can. */
 	@Nullable
 	static Offer offer(DrifterEntity drifter, int worth) {
-		Map<Integer, Integer> spare = Storage.toDeposit(drifter);
+		Map<Integer, Integer> spare = new java.util.HashMap<>(Storage.toDeposit(drifter));
+		// Plus common things it has plenty of (logs, planks, stone, coal, food): it keeps a working stack and can give the
+		// rest (found by the user: early on it had nothing "spare" and never paid anyone back).
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = drifter.getInventory().getItem(slot);
+			int keep = stack.is(net.minecraft.tags.ItemTags.LOGS) || stack.is(net.minecraft.tags.ItemTags.PLANKS) || stack.is(net.minecraft.world.item.Items.COBBLESTONE)
+				|| stack.is(net.minecraft.world.item.Items.COAL) ? 16 : stack.has(net.minecraft.core.component.DataComponents.FOOD) ? 8 : -1;
+			if (keep >= 0) {
+				int total = drifter.getInventory().count(other -> other.is(stack.getItem()));
+				int extra = Math.min(stack.getCount(), total - keep);
+				if (extra > 0) {
+					spare.merge(slot, extra, Math::max);
+				}
+			}
+		}
+
 		Offer best = null;
 		double bestGap = Double.MAX_VALUE;
 		for (Map.Entry<Integer, Integer> entry : spare.entrySet()) {
