@@ -13,6 +13,12 @@
   miner builder casual` (testbed copy, random seeds, the loaded area follows the Drifter); results print one line per
   run. The user watches their own game; their log is in the Modrinth profile's `logs/latest.log`. Never start a second
   test server while one runs (the scripts now refuse; one run was ruined that way).
+- **Late on 2026-10-14 (user's second batch, all done, see PROGRESS "User requests, second batch"):** own tunnels
+  aren't caves (`DrifterEntity.dugOut`), strip miners explore caves fully, long 2-15 minute mining trips with iron for
+  the whole set, tidy Drifters take down pillar/bridge blocks round home (`DrifterEntity.scaffold`,
+  `TidyScaffoldActivity`), no hops on farmland, `/drifter list` and `/drifter tp <name>`, fight back when stuck while
+  fleeing. The user wants milestone 9 soon ("would love to get to mile 9 by tonight"); world simulation round
+  Drifters (random ticks, spawning, chunk generation) is agreed as a later milestone, bonemeal later with whims.
 - **Lessons:** for a mob, `isImmobile()` also stops the AI step (a sleeping Drifter never woke); `Reach.canReach` can't
   aim at liquids (use a clip to the surface); placement on an empty cell needs a distance check, not `canReach`.
 

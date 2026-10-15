@@ -819,6 +819,32 @@ looking good, we can go to milestone 8" in session 2. Plan, one step at a time, 
 - **Whole trees:** cut the whole tree (the leaves then decay and make room; trunks left floating look wrong). Done: once
   it starts on a tree it takes every log of it, lowest first, pillaring beside the trunk for the high ones.
 
+### User requests, second batch (session 2, 2026-10-14 night): status
+- **Its own strip mines aren't caves.** Done: it remembers the blocks it dug out (the latest 8,192, saved with it);
+  those don't count as cave space, and its own tunnels are never "a cave it saw" to go back to.
+- **Strip mining and caving combined.** Done: a strip miner that breaks into a real cave now explores it as fully as a
+  caver would (it used to take a quick look of 8 spots), then goes back to its tunnel.
+- **Long mining trips, crazy preparation.** Done: every trip except a coal run lasts a random 2 to 15 minutes
+  underground. An iron trip collects iron for everything iron it still needs (pickaxe, bucket, shield, the whole
+  armor set, shears, flint and steel), so it comes back up and crafts the lot. It packs for it: double torches, more
+  food (16 food points), and pickaxes for the extra digging. If its time is up with what the plan needed, it heads
+  back; the rest comes on the next trip. `describe` shows e.g. "go mining for raw iron (4/31)".
+- **Tidying pillars and bridges near home, by personality.** Done: it remembers blocks it put down only to get somewhere
+  (pillars, bridges; the latest 2,048, saved). Tidy Drifters (tidiness 0.4 and up) take them down within 25 to 40
+  blocks of home (tidier means further), top first so nothing is left floating, in the daytime, a few at a time. Messy
+  ones leave them. `/drifter home` shows how many are left nearby.
+- **No hopping on the farm.** Done: no sprint-jumps or hops onto or off farmland (landing tramples it).
+- **Finding Drifters.** Done: `/drifter list` lists every loaded Drifter with where it is and what it's doing (click a
+  name to go there); `/drifter tp <name>` teleports you to it.
+- **notRadish's death** (stuck under leaves running from a zombie, hit for 5 s): a Drifter that's running away but hasn't
+  moved for 2 s while something right there keeps hitting it now fights back. Why it got wedged at that spot isn't
+  known yet (the black box shows it held in mid-air 0.2 above the ground, pressed into a corner).
+- **Later, not this milestone (user agreed):**
+  - **World simulation round Drifters**: crops growing, mobs spawning and chunks generating round a Drifter far from any
+    player, as on a multiplayer server (today the game only does that near players; the farm only grows while you're
+    near). Big enough to be its own milestone after 9, or part of milestone 10. Recorded here; not in DESIGN.md yet.
+  - **Bonemeal** on crops and saplings: with the whims (WHIMS.md) and the farming habits, later.
+
 ### Step 9: the 10-day run (in progress; latest state 2026-10-14 evening)
 - **Batch 7 (all fixes to then):** all three survived 10 days. Miner: diamond pickaxe and sword (stage 7), a stone house,
   a 52-block farm (this meets the milestone's "done when"). Builder: a finished wooden house, a 37-block farm all

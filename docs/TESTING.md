@@ -944,7 +944,27 @@ Miners build in stone; Nomads, Hermits and Speedrunners don't build one.)
       habits (doors, tables).
 - [ ] (Re-test after fix) `/drifter spawn` near trees: it never ends up stuck inside a block.
 
+### Your second batch of requests (new, tonight's build)
+- [ ] **Finding Drifters:** type `/drifter list`. Every loaded Drifter is listed with where it is, its stage and what
+      it's doing. Click a name (or type `/drifter tp <name>`, Tab completes names) and you're teleported to it.
+- [ ] **Long mining trips:** when one goes for iron, the thought says e.g. "go mining for raw iron (0/31)", meaning iron
+      for everything it still needs. It packs first (torches, food, spare pickaxes), then stays down a random 2 to 15
+      minutes. Once it has what it came for it thinks "has the raw iron it came for, but stays down a while for more".
+      Back home it smelts and crafts piece after piece of armor.
+- [ ] **Strip miners explore caves:** a strip miner (`/drifter personality` shows "mining: strip") that breaks into a
+      real cave thinks "broke into a cave: exploring it" and explores it properly before going back to its tunnel.
+- [ ] **Its own tunnels aren't caves:** after a strip-mining trip, the next trip shouldn't think "going caving: a cave
+      it saw at ..." about its own old tunnel (look at the spot it names: it should be a real cave).
+- [ ] **Cleaning up pillars and bridges:** `/drifter home` ends with e.g. "4 pillar/bridge blocks left nearby (tidies
+      within 33)" or "(messy: leaves them)". A tidy one, in the daytime near home, thinks "taking down a pillar or
+      bridge it left by home", then "took down N blocks ...". Messy ones never do.
+- [ ] **Farm:** it never sprint-jumps or hops onto or off the farmland (no trampled patches).
+- [ ] **Fighting back when stuck:** a badly hurt Drifter running from a zombie that gets wedged (leaves, a corner) and
+      keeps getting hit turns round and fights instead of standing there.
+
 ### Known gaps for milestone 8 so far (don't report these as bugs)
+- Crops only grow, and mobs only spawn, near you (that's how Minecraft works without a player near; simulating the world
+  round Drifters is planned as its own milestone later).
 - No anvil yet; bookshelves come slowly (each needs 3 books: sugar cane and leather).
 - Houses are one style of box with a flat roof (pitched roofs, porches and bigger compounds come later).
 - It doesn't use shears for wool yet.
