@@ -58,12 +58,19 @@ public final class HomeSite {
 		List<BlockPos> logs = new ArrayList<>();
 		List<BlockPos> stone = new ArrayList<>();
 		List<BlockPos> floors = new ArrayList<>();
+		// Structures and someone's builds (a ruined portal, a village house) and lava: no home on top of them (found by the
+		// user: a Drifter settled right on a ruined portal and its hut walls ran into the portal).
+		List<BlockPos> avoid = new ArrayList<>();
 		terrain.forEachKnown(origin, SEARCH_RADIUS, pos -> {
 			if (!level.isLoaded(pos)) {
 				return;
 			}
 
 			BlockState state = level.getBlockState(pos);
+			if (structureOrDanger(level, pos, state)) {
+				avoid.add(pos.immutable());
+			}
+
 			if (level.getFluidState(pos).is(FluidTags.WATER)) {
 				water.add(pos.immutable());
 			} else if (state.is(BlockTags.LOGS)) {
@@ -86,7 +93,7 @@ public final class HomeSite {
 		Site best = null;
 		for (BlockPos spot : floors) {
 			double flat = flatness(level, terrain, spot);
-			if (flat < minFlatness) {
+			if (flat < minFlatness || tooClose(avoid, spot)) {
 				continue;
 			}
 
@@ -141,6 +148,30 @@ public final class HomeSite {
 
 		return good / total;
 	}
+
+	/** A block that belongs to a structure or someone's build, or lava: a home keeps clear of these. */
+	private static boolean structureOrDanger(Level level, BlockPos pos, BlockState state) {
+		return level.getFluidState(pos).is(FluidTags.LAVA) || com.dinglebob.drifter.nav.NavView.looksBuilt(state)
+			|| state.is(net.minecraft.world.level.block.Blocks.OBSIDIAN) || state.is(net.minecraft.world.level.block.Blocks.CRYING_OBSIDIAN)
+			|| state.is(net.minecraft.world.level.block.Blocks.NETHERRACK) || state.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
+			|| state.is(net.minecraft.world.level.block.Blocks.GOLD_BLOCK) || state.is(net.minecraft.world.level.block.Blocks.CHEST)
+			|| state.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL);
+	}
+
+	/** Anything to avoid within 6 blocks of the 7x7 footprint (and 4 up or down). */
+	private static boolean tooClose(List<BlockPos> avoid, BlockPos spot) {
+		int reach = HALF_FOOTPRINT + CLEARANCE;
+		for (BlockPos pos : avoid) {
+			if (Math.abs(pos.getX() - spot.getX()) <= reach && Math.abs(pos.getZ() - spot.getZ()) <= reach && Math.abs(pos.getY() - spot.getY()) <= 4) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** Blocks of clearance round the footprint from structures and lava. */
+	private static final int CLEARANCE = 3;
 
 	private static double nearest(List<BlockPos> positions, BlockPos from) {
 		double best = Double.MAX_VALUE;

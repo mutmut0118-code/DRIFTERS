@@ -1115,4 +1115,7 @@ and it still runs when it's losing.
 - [ ] **Stuck up on its own pillars:** a Drifter stranded on top of its own pillars and bridges with (almost) no blocks
       thinks "stuck up here with no blocks: digging down through its pillar" and digs down a block at a time (walking to
       a pillar first if it's on a bridge). Routes also keep 6 building blocks in reserve, so this should rarely happen.
+- [ ] **Homes away from structures:** a Drifter never settles within 6 blocks of a structure or someone's build (a ruined
+      portal's obsidian, netherrack, magma and gold, village houses, cobblestone and planks it didn't place) or lava.
+      Spawn one next to a ruined portal: it loots the chest, then settles somewhere clear of it.
 
