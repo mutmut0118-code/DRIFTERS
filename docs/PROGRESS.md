@@ -926,7 +926,7 @@ user's play to be called done). *Done when* every event in the section 14 table 
    a friend Drifter killed, better gear. Pets: no pets yet (the event is in the table, nothing triggers it).
 3. **Behavior modes and the telegraph rule** (done, needs a player to test): Watching, Avoiding, Tolerating, Defensive, Warning; no hostility toward a
    player who never wronged it without a warning first; never hostile on Peaceful.
-4. **Hostile modes:** Territorial, Predatory (Bandit, Opportunist), Vengeful (hunts, goes to their known base), Fleeing;
+4. **Hostile modes** (done, needs a player to test; opener arrows, ambush spots and the duel finesse come with step 6 polish): Territorial, Predatory (Bandit, Opportunist), Vengeful (hunts, goes to their known base), Fleeing;
    stalking, waiting for an opening, opener, duel, disengage, looting.
 5. **Friendly modes:** greeting, gifts, barter, follow me, helping against mobs, warning of danger; non-verbal language.
 6. **Chat lines, multiplayer sharing, sleep blocking** (the mixin), then the manhunt (hunter) test command.

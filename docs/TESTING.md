@@ -1037,3 +1037,17 @@ fighting back). Every event below writes a thought like "Steve hit it once, then
 - [ ] A Bandit (`disposition bandit`) warns strangers it meets the same way.
 - [ ] On Peaceful difficulty it never warns or turns on anyone.
 
+**Step 4 (new): turning hostile.** Only after the warning rule is satisfied (you wronged it, or ignored its warning),
+and it still runs when it's losing.
+- [ ] **Territorial:** ignore its warning and stay in its base: it attacks; walk out past about 20 blocks from its home
+      and it stops ("drove <you> out of its base").
+- [ ] **Vengeful:** hit a Wary Neutral one two or three times (Trust drops past -25 with a grudge): from then on it
+      attacks you on sight ("it hasn't forgotten what <you> did"). Run off: a vengeful one goes looking where it last
+      saw you, or at your base if it saw you go to bed there.
+- [ ] **Bandit:** a Bandit you've never wronged warns you first; then it stalks you from 24-40 blocks back, sneaking
+      ("stalking <you>, waiting for an opening") and attacks when you're busy fighting mobs, at night alone, or if your
+      gear is much worse than its own. Never while you're in bed.
+- [ ] **Opportunist** (PvP Sweats): neutral, but jumps you at those same openings.
+- [ ] If it kills you, it picks up what you dropped.
+- [ ] When it's losing, it runs (the usual flee), and comes back another day if the grudge stays.
+

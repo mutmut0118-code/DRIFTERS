@@ -84,6 +84,11 @@ public final class Goals {
 	 * The risk factor for starting something late in the day (section 7: "risk lowers the score in proportion to the
 	 * Caution trait"): {@code factor} for a middling Drifter, lower for a cautious one, closer to 1 for a reckless one.
 	 */
+	/** {@link #lateInTheDay} for goals outside this class. */
+	public static double lateInTheDayRisk(Context context, double factor) {
+		return lateInTheDay(context, factor);
+	}
+
 	static double lateInTheDay(Context context, double factor) {
 		if (!(context.time() >= Schedule.shelterThinking(context.drifter()) && context.time() < Schedule.NIGHT_END)) {
 			return 1.0;
@@ -1551,6 +1556,7 @@ public final class Goals {
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
+		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());
 		return List.copyOf(goals);
 	}
 }
