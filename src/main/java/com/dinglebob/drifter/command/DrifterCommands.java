@@ -129,6 +129,16 @@ public final class DrifterCommands {
 
 		root.then(Commands.literal("config")
 			.executes(DrifterCommands::showConfig)
+			.then(Commands.literal("chat")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setChatLines(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
+			.then(Commands.literal("share")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setShareReputation(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
 			.then(Commands.literal("sight")
 				.then(Commands.argument("chunks", IntegerArgumentType.integer(com.dinglebob.drifter.DrifterConfig.MIN_SIGHT_CHUNKS,
 						com.dinglebob.drifter.DrifterConfig.MAX_SIGHT_CHUNKS))
@@ -314,11 +324,12 @@ public final class DrifterCommands {
 
 	private static int showConfig(CommandContext<CommandSourceStack> ctx) {
 		ctx.getSource().sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
-			"Drifter config (config/drifter.json): sight %d chunks (%d blocks in daylight), path range %d blocks (%d search nodes), FOV %d (view cone %.0f x %.0f degrees)",
+			"Drifter config (config/drifter.json): sight %d chunks (%d blocks in daylight), path range %d blocks (%d search nodes), FOV %d (view cone %.0f x %.0f degrees), chat lines %s, shared reputation %s",
 			com.dinglebob.drifter.DrifterConfig.sightChunks(), (int)com.dinglebob.drifter.DrifterConfig.sightRange(),
 			com.dinglebob.drifter.DrifterConfig.pathRange(), com.dinglebob.drifter.DrifterConfig.pathNodes(),
 			com.dinglebob.drifter.DrifterConfig.fov(), com.dinglebob.drifter.DrifterConfig.coneHalfYaw() * 2.0F,
-			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F)), true);
+			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F, com.dinglebob.drifter.DrifterConfig.chatLines() ? "on" : "off",
+			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off")), true);
 		return 1;
 	}
 

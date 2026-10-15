@@ -46,6 +46,10 @@ public final class DrifterConfig {
 		int sightChunks = DEFAULT_SIGHT_CHUNKS;
 		int pathRange = DEFAULT_PATH_RANGE;
 		int fov = DEFAULT_FOV;
+		/** Short canned chat lines (hi, ty, gg...), section 14 "Optional chat lines": on by default. */
+		boolean chatLines = true;
+		/** Players seen together share a little of each other's standing (section 14 "Forgiveness and multiplayer"). */
+		boolean shareReputation = true;
 	}
 
 	private static Data data = new Data();
@@ -117,6 +121,24 @@ public final class DrifterConfig {
 
 	public static void setFov(int degrees) {
 		data.fov = Mth.clamp(degrees, MIN_FOV, MAX_FOV);
+		save();
+	}
+
+	public static boolean chatLines() {
+		return data.chatLines;
+	}
+
+	public static void setChatLines(boolean on) {
+		data.chatLines = on;
+		save();
+	}
+
+	public static boolean shareReputation() {
+		return data.shareReputation;
+	}
+
+	public static void setShareReputation(boolean on) {
+		data.shareReputation = on;
 		save();
 	}
 

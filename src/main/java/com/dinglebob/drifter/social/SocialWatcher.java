@@ -227,6 +227,10 @@ public class SocialWatcher {
 		w.lastHitAt = now;
 		w.peacefulTicks = 0;
 		w.pendingAccident = w.hits == 1;
+		if (w.hits == 1) {
+			ChatLines.say(this.drifter, ChatLines.Kind.OUCH);
+		}
+
 		if (w.hits >= 2 && !w.attackedRecorded) {
 			w.attackedRecorded = true;
 			this.record(player, SocialEvent.ATTACKED, w.damage);
@@ -241,6 +245,7 @@ public class SocialWatcher {
 	/** It died, killed by this player. */
 	public void killedBy(Player player) {
 		if (isRealPlayer(player)) {
+			ChatLines.say(this.drifter, ChatLines.Kind.GG);
 			this.record(player, SocialEvent.KILLED, 0.0);
 		}
 	}
@@ -404,6 +409,7 @@ public class SocialWatcher {
 		}
 
 		this.record(player, SocialEvent.GIFT, SocialEvent.GIFT.trust + value);
+		ChatLines.say(this.drifter, ChatLines.Kind.THANKS);
 	}
 
 	/**
@@ -536,6 +542,7 @@ public class SocialWatcher {
 			|| victim instanceof Mob mob && mob.getTarget() == this.drifter;
 		if (victim instanceof Enemy && attacking) {
 			this.record(player, this.drifter.getHealth() <= SAVED_HEALTH ? SocialEvent.SAVED_IT : SocialEvent.KILLED_ATTACKER, 0.0);
+			ChatLines.say(this.drifter, ChatLines.Kind.THANKS);
 		}
 	}
 

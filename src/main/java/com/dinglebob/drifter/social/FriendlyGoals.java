@@ -104,6 +104,7 @@ public final class FriendlyGoals {
 			}
 
 			context.drifter().getSocial().watcher().greeted(player);
+			ChatLines.say(context.drifter(), ChatLines.Kind.HI);
 			return new Gesture(context.drifter(), player, "greet " + player.getGameProfile().getName(), Gesture.Kind.CROUCH_SPAM);
 		}
 	}

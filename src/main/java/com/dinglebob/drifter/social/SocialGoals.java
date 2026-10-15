@@ -268,6 +268,7 @@ public final class SocialGoals {
 			if (!this.armed) {
 				this.armed = true;
 				this.think("warning " + this.player.getGameProfile().getName() + ": weapon out, staring");
+				ChatLines.say(this.drifter, ChatLines.Kind.STOP);
 				int slot = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(this.drifter);
 				if (slot >= 0) {
 					ItemStack weapon = this.drifter.getInventory().getItem(slot);
