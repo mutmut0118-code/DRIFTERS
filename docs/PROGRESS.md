@@ -919,7 +919,8 @@ user's play to be called done). *Done when* every event in the section 14 table 
    for broken blocks and crouch-spam, ranges for gifts and gear). Debug: `/drifter social`, `social show <player>`,
    `social set <player> trust|fear|familiarity <n>`, `social event <player> <event> [amount]`,
    `social disposition <id>`.
-2. **Seeing the events** (next): hits (once and backs off, repeatedly, nearly kills, kills), its blocks broken, chests
+2. **Seeing the events** (done; the table checked headless with `/drifter social event`, all 19 events move Trust and
+   Fear exactly as specified, caps and ranges too; noticing them in play needs a real player, see TESTING): hits (once and backs off, repeatedly, nearly kills, kills), its blocks broken, chests
    opened (seen or heard) and valuables taken, farm animals killed, fire or lava near its base, a drawn bow aimed at it,
    being sneaked up on, gifts, crouch-spam, a mob killed that was attacking it, being saved from death, peaceful time,
    a friend Drifter killed, better gear. Pets: no pets yet (the event is in the table, nothing triggers it).

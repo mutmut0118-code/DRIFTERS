@@ -19,7 +19,6 @@ import com.dinglebob.drifter.social.SocialEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -42,12 +41,12 @@ public final class SocialCommands {
 	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
 		root.then(Commands.literal("social")
 			.executes(SocialCommands::list)
-			.then(Commands.literal("show").then(Commands.argument("player", EntityArgument.player()).executes(SocialCommands::show)))
-			.then(Commands.literal("set").then(Commands.argument("player", EntityArgument.player())
+			.then(Commands.literal("show").then(Commands.argument("player", StringArgumentType.word()).suggests(SocialCommands::players).executes(SocialCommands::show)))
+			.then(Commands.literal("set").then(Commands.argument("player", StringArgumentType.word()).suggests(SocialCommands::players)
 				.then(Commands.argument("what", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"trust", "fear", "familiarity"}, builder))
 					.then(Commands.argument("value", DoubleArgumentType.doubleArg(-100, 100)).executes(SocialCommands::set)))))
-			.then(Commands.literal("event").then(Commands.argument("player", EntityArgument.player())
+			.then(Commands.literal("event").then(Commands.argument("player", StringArgumentType.word()).suggests(SocialCommands::players)
 				.then(Commands.argument("event", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(SocialEvent.values()).map(SocialEvent::id), builder))
 					.executes(ctx -> event(ctx, 0.0))
@@ -76,10 +75,10 @@ public final class SocialCommands {
 
 	private static int show(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
-		ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
-		Relationship r = drifter.getSocial().get(player.getUUID());
+		Who player = who(ctx);
+		Relationship r = drifter.getSocial().get(player.id());
 		if (r == null) {
-			say(ctx, DrifterCommands.label(drifter) + " hasn't met " + player.getGameProfile().getName());
+			say(ctx, DrifterCommands.label(drifter) + " hasn't met " + player.name());
 			return 0;
 		}
 
@@ -100,8 +99,8 @@ public final class SocialCommands {
 
 	private static int set(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
-		ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
-		Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
+		Who player = who(ctx);
+		Relationship r = drifter.getSocial().getOrMeet(player.id(), player.name());
 		double value = DoubleArgumentType.getDouble(ctx, "value");
 		switch (StringArgumentType.getString(ctx, "what")) {
 			case "trust" -> r.trust = value;
@@ -116,12 +115,12 @@ public final class SocialCommands {
 
 	private static int event(CommandContext<CommandSourceStack> ctx, double amount) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
-		ServerPlayer player = EntityArgument.getPlayer(ctx, "player");
+		Who player = who(ctx);
 		String id = StringArgumentType.getString(ctx, "event");
 		SocialEvent event = Arrays.stream(SocialEvent.values()).filter(e -> e.id().equals(id)).findFirst()
 			.orElseThrow(() -> new SimpleCommandExceptionType(Component.literal("No such event: " + id)).create());
-		double change = drifter.getSocial().record(player.getUUID(), player.getGameProfile().getName(), event, amount);
-		Relationship r = drifter.getSocial().get(player.getUUID());
+		double change = drifter.getSocial().record(player.id(), player.name(), event, amount);
+		Relationship r = drifter.getSocial().get(player.id());
 		say(ctx, String.format(Locale.ROOT, "%s (trust %+.0f): %s", event.what, change, summary(r)));
 		return 1;
 	}
@@ -132,6 +131,22 @@ public final class SocialCommands {
 		drifter.getSocial().setDisposition(disposition);
 		say(ctx, DrifterCommands.label(drifter) + " is now " + disposition.label());
 		return 1;
+	}
+
+	/** A player by name: an online one, or (for tests without players) the id an offline server would give that name. */
+	private record Who(java.util.UUID id, String name) {
+	}
+
+	private static Who who(CommandContext<CommandSourceStack> ctx) {
+		String name = StringArgumentType.getString(ctx, "player");
+		ServerPlayer online = ctx.getSource().getServer().getPlayerList().getPlayerByName(name);
+		return online != null ? new Who(online.getUUID(), online.getGameProfile().getName())
+			: new Who(net.minecraft.core.UUIDUtil.createOfflinePlayerUUID(name), name);
+	}
+
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> players(CommandContext<CommandSourceStack> ctx,
+		com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+		return SharedSuggestionProvider.suggest(ctx.getSource().getOnlinePlayerNames(), builder);
 	}
 
 	private static String summary(Relationship r) {

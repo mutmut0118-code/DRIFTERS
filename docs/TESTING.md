@@ -990,3 +990,35 @@ Miners build in stone; Nomads, Hermits and Speedrunners don't build one.)
   hotbar layout, offhand torch.
 - Some tics from the design aren't in yet (corner peek, edge peek, sprint stutter, door flips, tossing an item).
 - No "finding diamonds" moment yet, no greetings (players come in milestone 9).
+
+## Milestone 9: Disposition and PvP (in progress)
+
+**Status:** steps 1 and 2 of 6: every Drifter now keeps a record of each player (Trust, Fear, Familiarity, grudges,
+gifts it owes) and notices what you do. It doesn't act on it yet (that's step 3: watching, avoiding, warning,
+fighting back). Every event below writes a thought like "Steve hit it once, then backed off: trust -2 -> -12".
+
+**Commands:**
+- `/drifter social`: the nearest Drifter's disposition (pacifist, wary neutral, friendly, territorial, opportunist,
+  bandit, grudge holder), its starting Trust for strangers, and everyone it knows.
+- `/drifter social show <player>`: one player in full (grudges, gifts it owes, your strength next to its own, where
+  it last saw you, your base if it saw you go to bed).
+- `/drifter social set <player> trust <n>` (or `fear`, `familiarity`): set a number.
+- `/drifter social event <player> <event>`: apply any event from the table by hand.
+- `/drifter social disposition <id>`: change its disposition.
+
+**Things to try** (with thought logging on; check `/drifter social` after each):
+- [ ] Hit it once and walk away: "hit it once, then backed off", Trust -10, Fear +5.
+- [ ] Hit it two or three times: "attacked it again and again", Trust -40, a grudge.
+- [ ] Get it down to 2 hearts (it doesn't fight back much yet): "nearly killed it", -60.
+- [ ] Open one of its chests while it's watching (or close by, having just seen you): "opened its chest", -10. Take
+      its iron or diamonds out; the next time it opens that chest: "took things from its chest", -20 per stack.
+- [ ] Break a block of its hut or farm while it sees you: -5 each, at most -50 a day.
+- [ ] Kill an animal in its pen in front of it: -15. Light a fire or pour lava near its home: -40.
+- [ ] Draw a bow and aim at it: -5, Fear +5. Sneak up behind it, crouching: -5.
+- [ ] Throw it something (Q while facing it, close by): "gave it something", +5 to +30 by value (a diamond is worth
+      far more than dirt). `/drifter social show` lists it under what it owes you.
+- [ ] Crouch up and down at it, facing it: +3 (three times a day at most).
+- [ ] Kill a zombie that's attacking it: +20 (+30 if it was nearly dead).
+- [ ] Stand near it for 5 minutes without trouble: +1 and Familiarity +1.
+- [ ] Wear much better armor than it has: Fear +10 to +30, once.
+- [ ] Each day Trust drifts back toward where it started; grudges fade (a vengeful one never forgets the worst).
