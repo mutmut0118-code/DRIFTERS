@@ -107,6 +107,8 @@ public class MineTripActivity extends Activity {
 	private final int asked;
 
 	private int tosses;
+	private int spareTries;
+	private int kitTries;
 	private static final int MAX_TOSSES = 30;
 
 	/** Anything but coal: a long trip of a few minutes underground, well prepared. */
@@ -491,7 +493,9 @@ public class MineTripActivity extends Activity {
 					this.drifter.getInventory().count(stack -> stack.is(Items.STONE_PICKAXE)) + 1);
 				if (plan.feasible() && plan.next() != null && noTrip(plan)) {
 					this.think("making a spare pickaxe before going down");
-					this.spareChecked = false;
+					// (Three tries at most: a prep step that keeps failing doesn't loop; found in testing, every 8 ticks for
+					// minutes when it had nowhere to put a crafting table.)
+					this.spareChecked = ++this.spareTries >= 3;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
 				}
 			}
@@ -511,7 +515,7 @@ public class MineTripActivity extends Activity {
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), need.getKey(), need.getValue());
 				if (plan.feasible() && plan.next() != null && !plan.needsExploring() && noTrip(plan)) {
 					this.think("taking " + (need.getKey() == Items.STICK ? "sticks" : "a crafting table") + " along, to make a pickaxe down there if one breaks");
-					this.kitChecked = false;
+					this.kitChecked = ++this.kitTries >= 3;
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
 				}
 			}
