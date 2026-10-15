@@ -347,8 +347,20 @@ public final class HostileGoals {
 						return "follow the compass to " + r.name;
 					}
 
+					/** The runner in sight: the compass stretch ends at once and the chase begins (found by the user: it kept
+					 * walking its 48 blocks with them in view). */
+					@Override
+					protected boolean rethink() {
+						return player != null && this.ticksRunning() % 5 == 0 && this.drifter.getSocial().watcher().sees(player);
+					}
+
 					@Override
 					protected Status next() {
+						if (this.went && player != null && this.drifter.getSocial().watcher().sees(player)) {
+							this.think("there's " + r.name + "!");
+							return Status.SUCCESS;
+						}
+
 						if (this.went) {
 							return Status.SUCCESS;
 						}

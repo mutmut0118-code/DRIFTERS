@@ -42,7 +42,7 @@ public final class SocialCommands {
 		// Section 25 manhunt test mode: /drifter manhunt start <player> [nether|dragon], /drifter manhunt stop.
 		root.then(Commands.literal("manhunt")
 				.executes(ctx -> {
-					say(ctx, com.dinglebob.drifter.social.Manhunt.status());
+					say(ctx, com.dinglebob.drifter.social.Manhunt.status(ctx.getSource().getServer()));
 					return 1;
 				})
 				.then(Commands.literal("stop").executes(ctx -> {

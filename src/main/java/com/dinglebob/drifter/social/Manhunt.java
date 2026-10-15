@@ -65,11 +65,39 @@ public final class Manhunt {
 		return active() ? "manhunt: " + runnerName + " runs (goal: " + goal.name().toLowerCase(java.util.Locale.ROOT) + "), a Drifter hunts" : "no manhunt running";
 	}
 
+	/** Where the hunter is and how far from the runner (for the person running the test). */
+	public static String status(MinecraftServer server) {
+		if (!active()) {
+			return status();
+		}
+
+		DrifterEntity found = null;
+		for (ServerLevel level : server.getAllLevels()) {
+			if (level.getEntity(hunter) instanceof DrifterEntity drifter) {
+				found = drifter;
+			}
+		}
+
+		ServerPlayer player = server.getPlayerList().getPlayer(runner);
+		if (found == null) {
+			return status() + "; the hunter isn't loaded (too far from anyone)";
+		}
+
+		String where = found.getName().getString() + " is at " + found.blockPosition().toShortString();
+		if (player != null && player.level() == found.level()) {
+			where += String.format(java.util.Locale.ROOT, ", %.0f blocks from %s", player.distanceTo(found), runnerName);
+		}
+
+		return status() + "; " + where;
+	}
+
 	public static void start(DrifterEntity drifter, ServerPlayer player, Goal winGoal) {
 		hunter = drifter.getUUID();
 		runner = player.getUUID();
 		runnerName = player.getGameProfile().getName();
 		goal = winGoal;
+		lastHunterChunk = drifter.chunkPosition();
+		lastHunterLevel = drifter.level().dimension();
 		save(drifter.getServer());
 		prepare(drifter);
 		announce(drifter.getServer(), "Manhunt! " + drifter.getName().getString() + " is hunting " + runnerName + ". "
@@ -83,6 +111,8 @@ public final class Manhunt {
 
 		hunter = null;
 		runner = null;
+		lastHunterChunk = null;
+		lastHunterLevel = null;
 		save(server);
 	}
 
@@ -126,6 +156,10 @@ public final class Manhunt {
 			game.putUUID("Runner", runner);
 			game.putString("RunnerName", runnerName);
 			game.putString("Goal", goal.name());
+			if (lastHunterChunk != null && lastHunterLevel != null) {
+				game.putLong("HunterChunk", lastHunterChunk.toLong());
+				game.putString("HunterLevel", lastHunterLevel.location().toString());
+			}
 		}
 
 		state.game = game;
@@ -143,6 +177,12 @@ public final class Manhunt {
 				goal = Goal.valueOf(game.getString("Goal"));
 			} catch (IllegalArgumentException unknown) {
 				goal = Goal.NETHER;
+			}
+
+			if (game.contains("HunterChunk")) {
+				lastHunterChunk = new net.minecraft.world.level.ChunkPos(game.getLong("HunterChunk"));
+				lastHunterLevel = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+					net.minecraft.resources.ResourceLocation.parse(game.getString("HunterLevel")));
 			}
 
 			com.dinglebob.drifter.Drifter.LOGGER.info("Manhunt carried on from the save: {} is still being hunted", runnerName);
@@ -223,12 +263,51 @@ public final class Manhunt {
 				return;
 			}
 
+			keepHunterLoaded(server);
+
 			ServerPlayer player = server.getPlayerList().getPlayer(runner);
 			if (player != null && goal == Goal.NETHER && player.level().dimension() == Level.NETHER) {
 				stop(server, runnerName + " wins: they reached the Nether!");
 			}
 		});
 	}
+
+	/**
+	 * Keeps the chunks round the hunter loaded and running, like the chunks round a player: otherwise it freezes once the
+	 * runner is far away (Minecraft only runs mobs near players). Its last spot is saved so it comes back after a restart.
+	 */
+	private static void keepHunterLoaded(MinecraftServer server) {
+		for (ServerLevel level : server.getAllLevels()) {
+			if (level.getEntity(hunter) instanceof DrifterEntity drifter) {
+				lastHunterLevel = level.dimension();
+				lastHunterChunk = drifter.chunkPosition();
+				break;
+			}
+		}
+
+		if (lastHunterChunk == null || lastHunterLevel == null) {
+			return;
+		}
+
+		ServerLevel level = server.getLevel(lastHunterLevel);
+		if (level != null) {
+			level.getChunkSource().addRegionTicket(HUNTER_TICKET, lastHunterChunk, TICKET_RADIUS, lastHunterChunk);
+		}
+
+		if (server.getTickCount() % 200 == 0) {
+			save(server);
+		}
+	}
+
+	/** A short-lived ticket renewed every second while the game runs (it lapses on its own once the game ends). */
+	private static final net.minecraft.server.level.TicketType<net.minecraft.world.level.ChunkPos> HUNTER_TICKET =
+		net.minecraft.server.level.TicketType.create("drifter_hunter", java.util.Comparator.comparingLong(net.minecraft.world.level.ChunkPos::toLong), 60);
+	/** Chunks round the hunter kept running (3: its chunk and the ones next to it tick entities, as near a player). */
+	private static final int TICKET_RADIUS = 3;
+	@Nullable
+	private static net.minecraft.world.level.ChunkPos lastHunterChunk;
+	@Nullable
+	private static net.minecraft.resources.ResourceKey<Level> lastHunterLevel;
 
 	/** The same Drifter (memory, personality, standing) back at the world spawn, with an empty inventory. */
 	private static void respawn(MinecraftServer server, CompoundTag saved) {
