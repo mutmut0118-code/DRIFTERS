@@ -1649,6 +1649,16 @@ Decided: the Drifter's names and skins look like real online players, the origin
 
 A Drifter is expensive only when someone can see it. Behavior detail scales down with distance in four tiers, and when its chunk unloads it switches to a cheap catch-up simulation so its life keeps moving while you're away.
 
+### Hybrid simulation (user's decision, 2026-10-15)
+
+Away from players, **a few Drifters really live**: up to a configurable number (default 3; the manhunt hunter always
+counts) keep a small area loaded round them the way a player does, so they move, mine and build for real, crops grow
+and mobs spawn round them (random ticks and natural spawning run near them as near a player), and the land they walk
+into is generated. They're chosen by how much they're doing (out on a trip or a job beats idling at home), with some
+stickiness so they don't swap back and forth. **All other Drifters** use the catch-up simulation below when their area
+loads again. This replaces "Drifters must never force-load chunks" (abstract travel, below) for the simulated few; the
+rest still never load chunks.
+
 ### Detail tiers
 
 | Tier | When | What runs |

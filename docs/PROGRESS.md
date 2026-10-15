@@ -966,6 +966,23 @@ player (Drifters don't respawn outside the manhunt yet).
 - **World simulation round Drifters** (crops, spawning, chunk generation far from players) and **bonemeal**: see the
   second batch of milestone 8 requests.
 
+## Milestone 10: Offscreen and performance
+
+**Status:** In progress (started 2026-10-15). *Done when* 10 Drifters stay within the per-tick budget (about 3 to 5 ms
+together). User's decision: **hybrid** (DESIGN section 22, "Hybrid simulation").
+
+### Plan
+1. **Hybrid simulation:** the top N Drifters (config, default 3; manhunt hunter always) keep chunks loaded round them
+   like a player (tickets), with random ticks and mob spawning near them (a mixin on the "player close enough" check),
+   chosen by activity with stickiness. `/drifter sim` shows who is simulated.
+2. **Detail tiers:** Full near players, Reduced (no tics, fewer perception rays, brain every few ticks) and Far,
+   combat always full; per-system timing in `/drifter perf`.
+3. **Catch-up** for the rest: on reload, fast-forward by rates (resources by stage and archetype, food, tool wear,
+   torches, stage recomputed, simple crafting, risk), capped at 3 days; position at home or along its route.
+4. **Offline progression** config (off / game time / real time, real-time cap 2 days) and **abstract travel** for
+   non-simulated Drifters heading out of the loaded area.
+5. **Budget test:** 10 Drifters on a test server, timing per tick.
+
 ## Notes for milestone 9 (from testing)
 
 - **User expectation (session 2):** punching a PvP Sweat Drifter should turn into a real pursuit. Today any Drifter
