@@ -157,6 +157,8 @@ public class GatherActivity extends Activity {
 			.filter(pos -> !pos.equals(below) && !pos.equals(nextStair) && (this.lowestFirst || !underfoot(pos, feet))
 				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos)
 				&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(level.getBlockState(pos)) && KnownBlocks.underWater(level, pos))
+				// Never a block holding back lava it has seen (found in testing: gathering stone by a lava pool let it in).
+				&& !this.touchesKnownLava(level, pos)
 				&& (!level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) || trees.check(pos)))
 			.limit(MAX_CANDIDATES)
 			.toList();
@@ -367,6 +369,17 @@ public class GatherActivity extends Activity {
 		}
 
 		return best;
+	}
+
+	/** Lava it has seen on any side of this block (or one block further, where a flow would come through). */
+	private boolean touchesKnownLava(Level level, BlockPos pos) {
+		for (BlockPos near : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
+			if (level.getFluidState(near).is(net.minecraft.tags.FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(near)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Below its feet, in its own column or right beside it: digging there just makes a pit to fall into. */

@@ -129,7 +129,19 @@ public final class KnownWorld {
 		// gathering then refused, 47 times over.)
 		return !state.isAir() && state.getFluidState().isEmpty() && state.getDestroySpeed(level, pos) >= 0.0F && exposed(level, pos)
 			&& KnownBlocks.mayTake(level, pos) && !blacklist.contains(pos, now)
-			&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(state) && KnownBlocks.underWater(level, pos));
+			&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(state) && KnownBlocks.underWater(level, pos))
+			// (Nor next to lava, as gathering skips it; the two must agree or the plan loops.)
+			&& !lavaAround(level, pos);
+	}
+
+	private static boolean lavaAround(Level level, BlockPos pos) {
+		for (BlockPos near : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
+			if (level.getFluidState(near).is(net.minecraft.tags.FluidTags.LAVA)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Has it seen a block matching this that it could go and take, by the same rules the planner uses? */

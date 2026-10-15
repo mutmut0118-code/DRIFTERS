@@ -95,6 +95,14 @@ public final class Home {
 		return this.enchantingTable != null && this.enchantingTable.closerThan(pos, 3.0);
 	}
 
+	/** Visits to its hut or house that ended with blocks it couldn't place (not saved), by building ("hut", "house"). */
+	public final java.util.Map<String, Integer> gapVisits = new java.util.HashMap<>();
+
+	/** Blocks of this building ("hut", "house") it lives with missing: 4, or 12 once it has failed to fill them 3 times. */
+	public int allowedGaps(String building) {
+		return this.gapVisits.getOrDefault(building, 0) >= 3 ? 12 : 4;
+	}
+
 	/** When it last couldn't get at its chests to put things away (not saved): it tries again a little later. */
 	public long storeFailedAt = Long.MIN_VALUE / 2;
 

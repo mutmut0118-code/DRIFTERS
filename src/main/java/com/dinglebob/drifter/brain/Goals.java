@@ -1463,7 +1463,7 @@ public final class Goals {
 				// (Only if there's somewhere for it: found in testing, a bed it had no room for brought it back every tick.)
 				boolean bedToPlace = context.drifter().getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(context.drifter().level()) == null
 					&& hut.bedSpot(context.drifter().level()) != null && !home.bedFailedRecently(context.drifter().level().getGameTime());
-				return hut.missingBlocks(context.drifter().level()) <= MAX_LEFT_GAPS && !bedToPlace ? 0.0 : 0.45;
+				return hut.missingBlocks(context.drifter().level()) <= home.allowedGaps("hut") && !bedToPlace ? 0.0 : 0.45;
 			}
 
 			return context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD ? 0.1 : 0.55;
@@ -1535,7 +1535,7 @@ public final class Goals {
 
 			net.minecraft.world.level.Level level = drifter.level();
 			// (A gap or two it couldn't reach when it built it isn't a repair job.)
-			if (house.missingBlocks(level) > MAX_LEFT_GAPS) {
+			if (house.missingBlocks(level) > home.allowedGaps("house")) {
 				return 0.45;
 			}
 
@@ -1567,7 +1567,6 @@ public final class Goals {
 	}
 
 	/** Blocks a finished hut or house can be missing before it's a repair job (gaps it couldn't reach when building). */
-	private static final int MAX_LEFT_GAPS = 4;
 
 	/** Put on better armor or a shield the moment it has one (section 10.17, "Upgrades"). */
 	public static final class Equip extends Goal {

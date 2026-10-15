@@ -324,13 +324,13 @@ public class BuildHutActivity extends Activity {
 			}
 
 			if (!this.acceptableGaps(level, hut)) {
-				return this.fail("couldn't place every block of the " + this.what() + " yet");
+				return this.giveUpForNow();
 			}
 		}
 
 		for (int dy = 0; dy < hut.wallHeight; dy++) {
 			if (!this.allFilled(level, hut.wallLayer(dy)) && !this.acceptableGaps(level, hut)) {
-				return this.fail("couldn't place every block of the " + this.what() + " yet");
+				return this.giveUpForNow();
 			}
 		}
 
@@ -667,9 +667,22 @@ public class BuildHutActivity extends Activity {
 	 * Blocks still missing are only a few it has tried and can't place from anywhere it can stand: the shell counts as done
 	 * as it is (found in testing: two corner blocks of a house on a hillside failed it 39 visits running).
 	 */
+	/** A failed visit with blocks still missing: counted, so after a few it settles for the gaps it can't fill. */
+	private Status giveUpForNow() {
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		if (home != null) {
+			home.gapVisits.merge(this.what(), 1, Integer::sum);
+		}
+
+		return this.fail("couldn't place every block of the " + this.what() + " yet");
+	}
+
 	private boolean acceptableGaps(Level level, StarterHut hut) {
 		int missing = hut.missingBlocks(level);
-		if (missing > MAX_GAPS) {
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		// (Found in testing: six floor blocks of a house over a dip, unreachable from anywhere, failed it 72 visits running.)
+		int allowed = home != null ? home.allowedGaps(this.what()) : MAX_GAPS;
+		if (missing > allowed) {
 			return false;
 		}
 
