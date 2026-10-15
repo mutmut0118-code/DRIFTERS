@@ -1494,8 +1494,19 @@ public class NavigateTask extends Task {
 	}
 
 	/** Pillar up: take out a building block, look straight down, jump, and place it under itself at the top. */
+	/** How far off its pillar's column it can drift before it gives the pillar up. */
+	private static final double PILLAR_DRIFT = 1.2;
+
 	private Status pillar(PathStep step) {
 		VirtualKeys keys = this.keys();
+		// Carried off its column (a water current, a knock-back) or below where it started: this pillar's off (found in
+		// testing: a stream swept it 7 blocks down a cascade while it kept trying to pillar, and it fell to its death).
+		Vec3 column = Vec3.atBottomCenterOf(step.from());
+		if ((this.pillarCentered || this.pillarStage > 0) && (Math.abs(this.drifter.getX() - column.x) > PILLAR_DRIFT || Math.abs(this.drifter.getZ() - column.z) > PILLAR_DRIFT
+			|| this.drifter.getY() < column.y - 0.6)) {
+			this.replan("carried off the spot it was pillaring from", true);
+			return Status.RUNNING;
+		}
 		switch (this.pillarStage) {
 			case 0 -> {
 				// Into the middle of the block first: standing near an edge, its head is under the block next door and the jump
