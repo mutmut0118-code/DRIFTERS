@@ -1022,3 +1022,18 @@ fighting back). Every event below writes a thought like "Steve hit it once, then
 - [ ] Stand near it for 5 minutes without trouble: +1 and Familiarity +1.
 - [ ] Wear much better armor than it has: Fear +10 to +30, once.
 - [ ] Each day Trust drifts back toward where it started; grudges fade (a vengeful one never forgets the worst).
+
+**Step 3 (new): how it treats you.** `/drifter social` now ends each line with its mode toward you ("now tolerating",
+"now warning", ...).
+- [ ] Walk up to a Drifter it hasn't seen for a while: it stops, looks at your face, down at your feet and back up
+      ("noticed <you>: looking them over").
+- [ ] Make it afraid of you (`/drifter social set <you> fear 90` and `trust -40`): it walks away when you come within
+      12 blocks ("keeping away from <you>"). A Pacifist (`/drifter social disposition pacifist`) does this whenever
+      it dislikes you.
+- [ ] **The warning:** make a Territorial one (`/drifter social disposition territorial`) and walk into its base (20
+      blocks round home): it takes out a weapon, faces you and holds still for about 2 seconds ("warning <you>").
+      Step back: it steps back too ("backed off at its warning"). Stay or walk closer: "ignored its warning". (It doesn't
+      attack yet: that's step 4.)
+- [ ] A Bandit (`disposition bandit`) warns strangers it meets the same way.
+- [ ] On Peaceful difficulty it never warns or turns on anyone.
+

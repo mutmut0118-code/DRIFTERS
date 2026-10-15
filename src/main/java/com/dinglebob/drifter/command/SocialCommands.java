@@ -67,7 +67,7 @@ public final class SocialCommands {
 		}
 
 		for (Relationship r : social.all()) {
-			say(ctx, "  " + summary(r));
+			say(ctx, "  " + summary(r) + modeNow(drifter, r));
 		}
 
 		return social.all().size();
@@ -82,7 +82,7 @@ public final class SocialCommands {
 			return 0;
 		}
 
-		say(ctx, summary(r));
+		say(ctx, summary(r) + modeNow(drifter, r));
 		say(ctx, String.format(Locale.ROOT, "  strength estimate %.2f, gear fear %d, wronged it: %s, last seen %s, base %s", r.strength, r.gearFear,
 			r.wronged ? "yes" : "no", r.lastSeenPos == null ? "never" : r.lastSeenPos.toShortString(),
 			r.knownBase == null ? "unknown" : r.knownBase.toShortString()));
@@ -147,6 +147,12 @@ public final class SocialCommands {
 	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> players(CommandContext<CommandSourceStack> ctx,
 		com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
 		return SharedSuggestionProvider.suggest(ctx.getSource().getOnlinePlayerNames(), builder);
+	}
+
+	/** Its mode toward this player now, if they're online and in its world. */
+	private static String modeNow(DrifterEntity drifter, Relationship r) {
+		net.minecraft.world.entity.player.Player player = drifter.level().getPlayerByUUID(r.player);
+		return player == null ? "" : ", now " + com.dinglebob.drifter.social.Mode.toward(drifter, player).id().replace('_', ' ');
 	}
 
 	private static String summary(Relationship r) {

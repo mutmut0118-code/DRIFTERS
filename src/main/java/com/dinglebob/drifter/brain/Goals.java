@@ -1547,7 +1547,10 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		return List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
-			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle());
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
+		// Toward players (milestone 9, section 14).
+		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
+		return List.copyOf(goals);
 	}
 }

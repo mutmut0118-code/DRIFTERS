@@ -84,6 +84,46 @@ public class SocialWatcher {
 		long lastFireAt = Long.MIN_VALUE / 2;
 		boolean wasIdentified;
 		int peacefulTicks;
+		/** When it started watching them on noticing them, and when it last did. */
+		long watchStartAt = Long.MIN_VALUE / 2;
+		long lastWatchedAt = Long.MIN_VALUE / 2;
+		/** Its last warning to them, and whether they ignored it (stayed, came closer). */
+		long warnedAt = Long.MIN_VALUE / 2;
+		boolean warningIgnored;
+	}
+
+	/** Watches someone again only if it hasn't for this long. */
+	private static final int REWATCH_TICKS = 20 * 60 * 2;
+	/** An ignored warning stands this long (then a new one is owed). */
+	private static final int WARNING_STANDS = 20 * 60 * 10;
+	/** After a heeded warning, it doesn't warn the same player again for this long. */
+	private static final int WARNING_COOLDOWN = 20 * 30;
+
+	/** When it started watching this player (just noticed them), or -1 if it isn't. */
+	public long watchingSince(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && this.now() - w.watchStartAt < Mode.WATCH_TICKS ? w.watchStartAt : -1;
+	}
+
+	/** They ignored its warning lately: hostility no longer needs another one. */
+	public boolean warningIgnored(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && w.warningIgnored && this.now() - w.warnedAt < WARNING_STANDS;
+	}
+
+	/** It warned them a moment ago (and they backed off): not again yet. */
+	public boolean warnedLately(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && this.now() - w.warnedAt < WARNING_COOLDOWN;
+	}
+
+	/** It warned them; {@code ignored}: they stayed or came on. */
+	public void warned(Player player, boolean ignored) {
+		Watch w = this.watch(player);
+		w.warnedAt = this.now();
+		w.warningIgnored = ignored;
+		this.drifter.getMemory().thoughts().add(this.now(), player.getGameProfile().getName()
+			+ (ignored ? " ignored its warning" : " backed off at its warning: it backs off too"));
 	}
 
 	public SocialWatcher(DrifterEntity drifter) {
@@ -209,6 +249,12 @@ public class SocialWatcher {
 			if (identified && !w.wasIdentified && distance < 4.0 && player.isShiftKeyDown() && now - w.lastSneakAt > 20 * 60) {
 				w.lastSneakAt = now;
 				this.record(player, SocialEvent.SNUCK_UP, 0.0);
+			}
+
+			// Just noticed them: it stops and looks them over (unless it did a moment ago).
+			if (identified && !w.wasIdentified && now - w.lastWatchedAt > REWATCH_TICKS) {
+				w.watchStartAt = now;
+				w.lastWatchedAt = now;
 			}
 
 			w.wasIdentified = identified;
