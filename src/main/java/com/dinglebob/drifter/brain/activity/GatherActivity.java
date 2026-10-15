@@ -252,6 +252,15 @@ public class GatherActivity extends Activity {
 			return this.stairStep();
 		}
 
+		// What it wants is right under it (it stood over the diamonds it spotted): a staircase down beside it, as a player
+		// digs, rather than straight down into a pit (found in the user's game: "doesn't know where to find any diamond"
+		// with diamonds below its feet, over and over, as the planner counted them and gathering didn't).
+		if (this.stairSteps < MAX_STAIR_STEPS && KnownBlocks.find(this.drifter, 8, this.blocks, 8).stream()
+			.anyMatch(pos -> underfoot(pos, feet) && feet.getY() - pos.getY() <= 8 && !this.blacklist().contains(pos, this.now())
+				&& KnownBlocks.mayTake(level, pos) && !KnownBlocks.underWater(level, pos))) {
+			return this.stairStep();
+		}
+
 		return this.fail("doesn't know where to find any " + this.label);
 	}
 

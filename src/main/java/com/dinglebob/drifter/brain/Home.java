@@ -67,6 +67,9 @@ public final class Home {
 	/** When it last looked for a farm by the water and found nowhere (not saved): it looks again later. */
 	public long farmFailedAt = Long.MIN_VALUE / 2;
 
+	/** When it last couldn't get at its chests to put things away (not saved): it tries again a little later. */
+	public long storeFailedAt = Long.MIN_VALUE / 2;
+
 	/** When it last looked for a spot for its house and found none (not saved): it looks again later. */
 	public long houseSiteFailedAt = Long.MIN_VALUE / 2;
 

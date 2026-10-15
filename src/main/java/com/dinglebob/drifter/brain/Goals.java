@@ -1247,7 +1247,8 @@ public final class Goals {
 			// trip that ended "pockets full" at once, 307 times).
 			boolean full = Storage.freeSlots(drifter) <= Storage.FULL_FREE_SLOTS;
 			if (home == null || !home.hasChest() || drifter.getDrifterBrain().storageFull()
-				|| !home.near(drifter, full ? FULL_STORE_RANGE : Home.STORAGE_RANGE)) {
+				|| !home.near(drifter, full ? FULL_STORE_RANGE : Home.STORAGE_RANGE)
+				|| drifter.level().getGameTime() - home.storeFailedAt < 20 * 120) {
 				return 0.0;
 			}
 

@@ -30,6 +30,7 @@ public class StoreActivity extends Activity {
 	@Nullable
 	private BlockPos chest;
 	private boolean walked;
+	private boolean walkedHome;
 	private boolean stored;
 
 	public StoreActivity(DrifterEntity drifter) {
@@ -119,6 +120,10 @@ public class StoreActivity extends Activity {
 			this.chest = home.chests().stream().filter(pos -> !this.tried.contains(pos)).findFirst().orElse(null);
 			if (this.chest == null) {
 				if (this.unreachable) {
+					if (!this.stored) {
+						home.storeFailedAt = this.drifter.level().getGameTime();
+					}
+
 					return this.stored ? Status.SUCCESS : this.fail("couldn't get at its chest");
 				}
 
@@ -129,6 +134,13 @@ public class StoreActivity extends Activity {
 
 		if (!Reach.canReach(this.drifter, this.chest)) {
 			BlockPos spot = this.walked ? null : KnownBlocks.standingSpotFor(this.drifter, this.chest, Set.of());
+			// From far off (down a mine, out exploring) it can't pick the spot by the chest yet: it heads home first
+			// (found by the user's log: "couldn't get at its chest" two ticks after deciding to go, again and again).
+			if (spot == null && !this.walkedHome && this.chest.distSqr(this.drifter.blockPosition()) > 12 * 12) {
+				this.walkedHome = true;
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.chest), 3.0, "head home to the chest"));
+			}
+
 			if (spot == null) {
 				this.tried.add(this.chest);
 				this.chest = null;
