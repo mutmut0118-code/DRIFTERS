@@ -464,6 +464,12 @@ public final class Planner {
 
 	@Nullable
 	private State gather(State state, Sources.Source source, Item item, int count, int depth) {
+		// Lapis is only dug for its own sake (enchanting), never as an ingredient: no player goes down to Y 0 for blue dye
+		// to make a bed (found in testing: a lapis trip for blue wool, on day 2, before an iron pickaxe).
+		if (item == Items.LAPIS_LAZULI && depth > 1) {
+			return null;
+		}
+
 		Predicate<BlockState> blocks = blockState -> source.blockGives(blockState, item);
 		BlockState example = this.world.exampleOf(blocks);
 		boolean known = example != null;
