@@ -4,7 +4,14 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Current state (session 2, local, 2026-10-14)
+## Current state (session 2, local, 2026-10-15 early morning)
+
+- **Milestone 9 (Disposition and PvP): all six steps have code.** The section 14 event table is verified headless
+  (every event moves Trust and Fear exactly as specified); the behaviors need the user's play (TESTING "Milestone 9").
+- **Milestone 8: code complete**, waiting on the user's play to be called done. Tonight's runs: houses, farms, full iron
+  armor from long trips, diamonds; the deaths found were fixed (lava holes, waterfalls, currents, sealed water, baby
+  zombies, fire).
+
 
 - **Milestone 8: all nine steps have code** (user: "you have every right to complete the rest of your steps on your
   own"). Steps 1-5 are tested on sprinted 5-day runs; steps 6-8 (diamonds, enchanting, houses) are written and

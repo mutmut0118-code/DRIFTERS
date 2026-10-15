@@ -19,6 +19,13 @@
   `TidyScaffoldActivity`), no hops on farmland, `/drifter list` and `/drifter tp <name>`, fight back when stuck while
   fleeing. The user wants milestone 9 soon ("would love to get to mile 9 by tonight"); world simulation round
   Drifters (random ticks, spawning, chunk generation) is agreed as a later milestone, bonemeal later with whims.
+- **Milestone 9 (started 2026-10-14 night, all six steps have code):** package `social/`: `Relationship(s)` (records,
+  daily drift), `SocialEvent` (the section 14 table, exact numbers), `SocialWatcher` (notices events by perception;
+  Fabric events for block breaks, chest use, fire, deaths; sleep blocking), `Mode` (behavior mode per player and the
+  telegraph rule), `SocialGoals` (watch, warn, avoid), `HostileGoals` (territorial, predatory/stalk, vengeful/hunt),
+  `FriendlyGoals` (greet, pay back/barter, follow me, help fight, creeper warning), `ChatLines`, `Manhunt`, `ItemValues`.
+  The acceptance test (every event moves Trust as specified) passes headless with `/drifter social event` (scratchpad
+  `social1.txt`). Everything else needs a real player: see TESTING "Milestone 9".
 - **Lessons:** for a mob, `isImmobile()` also stops the AI step (a sleeping Drifter never woke); `Reach.canReach` can't
   aim at liquids (use a clip to the surface); placement on an empty cell needs a distance check, not `canReach`.
 
