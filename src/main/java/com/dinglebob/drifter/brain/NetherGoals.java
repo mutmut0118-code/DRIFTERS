@@ -21,19 +21,20 @@ public final class NetherGoals {
 	}
 
 	/** In the Nether only these goals run: the rest are overworld jobs (settling, farming, sheltering for the night). */
-	public static final Set<String> IN_THE_NETHER = Set.of("fight", "flee", "eat", "equip", "getdown", "nether_arrive", "nether_return");
+	public static final Set<String> IN_THE_NETHER = Set.of("fight", "flee", "eat", "equip", "getdown", "nether_arrive", "nether_return",
+		"nether_blaze");
 
 	/** Days between trips while there's nothing in particular to fetch there yet. */
 	private static final long DAYS_BETWEEN_LOOKS = 24000L;
-	/** How long it stays on a look-round trip. */
-	private static final long LOOK_ROUND_TICKS = 20 * 30;
+	/** The longest it stays on one trip (a Minecraft day is 20 minutes). */
+	private static final long MAX_STAY_TICKS = 20 * 60 * 12;
 
 	public static boolean inNether(DrifterEntity drifter) {
 		return drifter.level().dimension() == Level.NETHER;
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new GoToNether(), new Arrive(), new Return());
+		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods());
 	}
 
 	/** Through its portal at home, when it's packed, fit, and it's daytime. */
@@ -139,6 +140,47 @@ public final class NetherGoals {
 		}
 	}
 
+	/** What a trip is for (section 19 "Goals there"; step 5): blaze rods from a fortress. */
+	public static final class BlazeRods extends Goals.Goal {
+		@Override
+		public String id() {
+			return "nether_blaze";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "get blaze rods";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
+			if (!inNether(drifter) || trip == null || trip.netherPortal == null || !trip.lookedAround
+				|| com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED) {
+				return 0.0;
+			}
+
+			return 0.6;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 120;
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Goals.Context context) {
+			return new com.dinglebob.drifter.brain.activity.BlazeRodsActivity(context.drifter());
+		}
+	}
+
 	/** Back through the portal it came out of: the trip is done, or it's hurt or hungry. */
 	public static final class Return extends Goals.Goal {
 		@Override
@@ -159,7 +201,9 @@ public final class NetherGoals {
 				return 0.0;
 			}
 
-			boolean done = drifter.level().getGameTime() - trip.arrivedAt >= LOOK_ROUND_TICKS;
+			boolean done = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
+				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
+				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
 			boolean hurt = drifter.getHealth() <= drifter.getMaxHealth() / 2.0F || drifter.getFoodData().getFoodLevel() <= 8;
 			return done || hurt ? 0.9 : 0.0;
 		}

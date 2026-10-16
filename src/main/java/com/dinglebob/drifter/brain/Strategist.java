@@ -349,6 +349,11 @@ public final class Strategist {
 			// Stage 7, diamond: a diamond pickaxe and sword, whatever else it has (Miners go for diamonds before iron armor).
 			if (DIAMOND_TARGETS.get(0).satisfied().test(drifter) && DIAMOND_TARGETS.get(1).satisfied().test(drifter)) {
 				// Stage 8, enchanting: enchanted gear.
+				// Stage 9, the Nether: blaze rods (section 9 table: "Done when: blaze rods").
+				if (has(drifter, stack -> stack.is(Items.BLAZE_ROD))) {
+					return 9;
+				}
+
 				return has(drifter, ItemStack::isEnchanted) ? 8 : 7;
 			}
 
@@ -379,7 +384,8 @@ public final class Strategist {
 			case 5 -> "iron";
 			case 6 -> "settlement";
 			case 7 -> "diamond";
-			default -> "enchanting";
+			case 8 -> "enchanting";
+			default -> "Nether";
 		};
 	}
 }

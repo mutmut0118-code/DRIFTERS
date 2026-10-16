@@ -846,6 +846,12 @@ public class Senses {
 			return this.rememberLandmark("village", pos, 0.8F, distance);
 		}
 
+		// A Nether fortress shows itself by its dark red bricks, from far off (section 19: where the blazes are).
+		if (state.is(net.minecraft.world.level.block.Blocks.NETHER_BRICKS) || state.is(net.minecraft.world.level.block.Blocks.NETHER_BRICK_FENCE)
+			|| state.is(net.minecraft.world.level.block.Blocks.NETHER_BRICK_STAIRS)) {
+			return this.rememberLandmark("fortress", pos, 0.9F, distance);
+		}
+
 		if (distance < LANDMARK_MIN_DISTANCE || !BlockNotes.isNaturalGround(state)) {
 			return false;
 		}

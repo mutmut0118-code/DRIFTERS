@@ -239,6 +239,11 @@ public class Brain {
 	private final Blacklist blacklist = new Blacklist();
 	private final List<Goals.Goal> goals = Goals.all();
 	private final Map<String, Long> failedUntil = new HashMap<>();
+
+	/** This goal failed lately and is in its cool-down. */
+	public boolean failedRecently(String goalId) {
+		return this.failedUntil.getOrDefault(goalId, 0L) > this.drifter.level().getGameTime();
+	}
 	private boolean enabled = true;
 	@Nullable
 	private Goals.Goal current;
