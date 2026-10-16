@@ -84,7 +84,16 @@ public final class SocialCommands {
 			say(ctx, "  " + summary(r) + modeNow(drifter, r));
 		}
 
-		return social.all().size();
+		// Other Drifters it knows (milestone 12).
+		var bonds = drifter.getBonds().all();
+		if (!bonds.isEmpty()) {
+			say(ctx, "  Drifters it knows:");
+			for (Relationship r : bonds) {
+				say(ctx, "    " + summary(r) + " (" + com.dinglebob.drifter.social.DrifterBonds.attitude(r) + ")");
+			}
+		}
+
+		return social.all().size() + bonds.size();
 	}
 
 	private static int show(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

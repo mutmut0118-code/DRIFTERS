@@ -72,7 +72,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 9 | Disposition and PvP | **Done** (2026-10-15): every section 14 event moves Trust as specified (headless table test); gifts, warnings, raids, looting and the manhunt (hunter) played by the user | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
-| 12 | Groups, modpack factions, camps, config polish | Not started | |
+| 12 | Groups, modpack factions, camps, config polish | In progress: step 1 (Drifter to Drifter) | Plan below |
 | 13 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
@@ -1269,6 +1269,19 @@ kills for 6 rods before the damage wins (blazes drop a rod only half the time), 
    from brutes and bastions, never hitting zombified piglins.
 7. **Coming home:** back to its portal when full, low on supplies, hurt or worn, or done; then stores the haul.
 8. Later (veterans, if time allows): ancient debris strip mining, netherite upgrades, linked portals (1:8).
+
+## Milestone 12: Groups, modpack factions, camps, config polish (started 2026-10-16)
+
+Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 config):
+1. **Drifter to Drifter:** relationships with other Drifters (Trust, Fear, Familiarity, as with players): first meeting
+   from both temperaments, time near each other, rivalry over the same area, help in fights, hits.
+2. **Groups:** Trust 50+ both ways forms a group (up to 4): leader (Skill or Familiarity), shared base and chests, shared
+   memory ("told": dangers, resources, player reputations), group reputation, joint activities.
+3. **Team wars:** group names and banners, tension between groups, skirmishes, raids, truces (configurable caps).
+4. **Modpack factions:** undead, illagers and spiders already treat Drifters like players (milestone 6), piglins too
+   (milestone 11); optional Mob Control registration if installed.
+5. **World-gen camps:** an optional small Drifter camp structure (abandoned, or occupied with a Drifter at stage 3 to 5).
+6. **Config polish:** the in-game settings screen through Mod Menu (user's wish), every setting there.
 
 ## Notes for milestone 9 (from testing)
 

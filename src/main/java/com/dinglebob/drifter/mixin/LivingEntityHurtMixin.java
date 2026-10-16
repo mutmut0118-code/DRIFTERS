@@ -21,6 +21,19 @@ public abstract class LivingEntityHurtMixin {
 	@Inject(method = "hurt", at = @At("RETURN"))
 	private void drifter$countAsPlayer(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 		LivingEntity self = (LivingEntity)(Object)this;
+		// Drifter to Drifter (milestone 12): hit by another Drifter, or another Drifter killed what was attacking it.
+		if (cir.getReturnValueZ() && !self.level().isClientSide()) {
+			DrifterEntity attacker = FakePlayerBridge.ownerOf(source.getEntity());
+			if (attacker != null && self instanceof DrifterEntity victim && victim != attacker) {
+				victim.getBonds().onHurtBy(attacker, amount);
+			}
+
+			if (attacker != null && self.isDeadOrDying() && self instanceof net.minecraft.world.entity.Mob mob
+				&& mob.getTarget() instanceof DrifterEntity helped && helped != attacker) {
+				helped.getBonds().onHelped(attacker);
+			}
+		}
+
 		if (!cir.getReturnValueZ() || self.level().isClientSide() || !(source.getEntity() instanceof DrifterEntity drifter) || drifter == self) {
 			return;
 		}

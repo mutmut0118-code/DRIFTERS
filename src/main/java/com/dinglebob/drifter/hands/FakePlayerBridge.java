@@ -39,6 +39,7 @@ public final class FakePlayerBridge {
 		}
 
 		FakePlayer fake = FakePlayer.get(level, profileFor(drifter));
+		OWNERS.put(fake.getUUID(), new java.lang.ref.WeakReference<>(drifter));
 		syncIn(drifter, fake);
 		try {
 			return action.apply(fake);
@@ -50,6 +51,25 @@ public final class FakePlayerBridge {
 	private static GameProfile profileFor(DrifterEntity drifter) {
 		String name = drifter.getName().getString();
 		return new GameProfile(helperId(drifter), VALID_NAME.matcher(name).matches() ? name : "Drifter");
+	}
+
+	/** Helpers back to their Drifters: its sword hits are the helper's, but they're its doing (relationships, kills). */
+	private static final java.util.Map<UUID, java.lang.ref.WeakReference<DrifterEntity>> OWNERS = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** The Drifter behind this entity: itself, or the Drifter whose fake-player helper it is; null for anyone else. */
+	@org.jetbrains.annotations.Nullable
+	public static DrifterEntity ownerOf(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.Entity entity) {
+		if (entity instanceof DrifterEntity drifter) {
+			return drifter;
+		}
+
+		if (!(entity instanceof FakePlayer)) {
+			return null;
+		}
+
+		var ref = OWNERS.get(entity.getUUID());
+		DrifterEntity owner = ref == null ? null : ref.get();
+		return owner != null && owner.isAlive() ? owner : null;
 	}
 
 	/** The UUID of this Drifter's fake player, so its own actions can be told apart (it shouldn't "hear" itself). */

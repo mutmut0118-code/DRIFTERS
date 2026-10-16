@@ -107,6 +107,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.personality.Personality personality;
 	/** Its standing with each player it has met, and its disposition (section 14, milestone 9). */
 	private final com.dinglebob.drifter.social.Relationships social = new com.dinglebob.drifter.social.Relationships(this);
+	/** Its standing with other Drifters (milestone 12). */
+	private final com.dinglebob.drifter.social.DrifterBonds bonds = new com.dinglebob.drifter.social.DrifterBonds(this);
 	/** The mannerism layer (section 16): tics on top of whatever it's doing, with the body parts its task leaves free. */
 	private final com.dinglebob.drifter.mannerism.Mannerisms mannerisms = new com.dinglebob.drifter.mannerism.Mannerisms(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
@@ -382,6 +384,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.reflex.Reflexes getReflexes() {
 		return this.reflexes;
+	}
+
+	public com.dinglebob.drifter.social.DrifterBonds getBonds() {
+		return this.bonds;
 	}
 
 	public com.dinglebob.drifter.social.Relationships getSocial() {
@@ -737,6 +743,7 @@ public class DrifterEntity extends PathfinderMob {
 
 		long t = System.nanoTime();
 		this.senses.tick();
+		this.bonds.tick();
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES, System.nanoTime() - t, this::perfLabel);
 		this.personality.tick(this);
 		t = System.nanoTime();
@@ -1658,6 +1665,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.put("DrifterBrain", this.brain.save());
 		tag.put("DrifterPersonality", this.personality.save());
 		tag.put("DrifterSocial", this.social.save());
+		tag.put("DrifterBonds", this.bonds.save());
 		tag.putBoolean("DrifterNamed", this.named);
 		tag.putFloat("XpP", this.experienceProgress);
 		tag.putInt("XpLevel", this.experienceLevel);
@@ -1704,6 +1712,7 @@ public class DrifterEntity extends PathfinderMob {
 		this.named = tag.getBoolean("DrifterNamed");
 		if (tag.contains("DrifterSocial", Tag.TAG_COMPOUND)) {
 			this.social.load(tag.getCompound("DrifterSocial"));
+			this.bonds.load(tag.getCompound("DrifterBonds"));
 		}
 
 		if (tag.contains("DrifterPersonality", Tag.TAG_COMPOUND)) {
