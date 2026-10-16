@@ -736,6 +736,14 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
+		// Fire on the next step that wasn't there when it planned (a blaze's fireball landed there): it goes round (found in
+		// testing: walking home it stepped through two such fires and burned to death).
+		if (this.level().getBlockState(step.to()).is(net.minecraft.tags.BlockTags.FIRE)
+			|| this.level().getBlockState(step.to().above()).is(net.minecraft.tags.BlockTags.FIRE)) {
+			this.replan("fire on the way at " + step.to().toShortString());
+			return Status.RUNNING;
+		}
+
 		// Touching a grown berry bush: it stands still (they only prick while you move) and breaks it, then goes on; walking
 		// on through a patch is a prick every few steps at a crawl (found by the user: Drifters kept dying in berry bushes).
 		BlockPos bush = this.berryBushTouching();

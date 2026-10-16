@@ -1386,6 +1386,16 @@ public class Reflexes {
 			}
 
 			across = across.normalize().scale(this.left ? 2.0 : -2.0);
+			// Only onto safe ground: the other side if this one isn't, else it stays put (found in testing: a sidestep from a
+			// blaze's fireball put it in lava).
+			if (!Steering.safeStep(drifter, across.normalize()) || !Steering.safeStep(drifter, across.normalize(), 1.9)) {
+				across = across.scale(-1.0);
+				if (!Steering.safeStep(drifter, across.normalize()) || !Steering.safeStep(drifter, across.normalize(), 1.9)) {
+					Steering.stopMoving(drifter);
+					return tick < 8;
+				}
+			}
+
 			Steering.pressToward(drifter, drifter.position().add(across));
 			drifter.getKeys().set(VirtualKeys.Key.SPRINT, false);
 			return tick < 8;
