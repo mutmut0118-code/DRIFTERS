@@ -141,6 +141,11 @@ public final class Strategist {
 		new Target("a bow", List.of(Items.BOW), 1, drifter -> has(drifter, stack -> stack.is(Items.BOW))),
 		new Target("arrows", List.of(Items.ARROW), NETHER_ARROWS, drifter -> drifter.getInventory().count(stack -> stack.is(Items.ARROW)) >= NETHER_ARROWS));
 
+	/** Gold ingots to barter with (step 6). Wanted on the packing list but not waited for: a trip starts without them. */
+	public static final int BARTER_GOLD = 8;
+	public static final Target BARTER_GOLD_TARGET = new Target("gold to barter with piglins", List.of(Items.GOLD_INGOT), BARTER_GOLD,
+		drifter -> drifter.getInventory().count(stack -> stack.is(Items.GOLD_INGOT)) >= BARTER_GOLD);
+
 	/** Everything on the packing list carried (and flint and steel, a sword and a shield). */
 	public static boolean packedForNether(DrifterEntity drifter) {
 		for (Target target : NETHER_PACKING) {
@@ -211,6 +216,7 @@ public final class Strategist {
 			order.addAll(PORTAL_TARGETS);
 			if (portalLit(drifter)) {
 				order.addAll(NETHER_PACKING);
+				order.add(BARTER_GOLD_TARGET);
 			}
 		}
 

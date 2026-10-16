@@ -23,7 +23,8 @@ public final class NetherGoals {
 	/** In the Nether only these goals run: the rest are overworld jobs (settling, farming, sheltering for the night). */
 	/** (Looting too: a fortress's chests are what players go through, found by the user.) */
 	public static final Set<String> IN_THE_NETHER = Set.of("fight", "flee", "eat", "equip", "getdown", "nether_arrive", "nether_return",
-		"nether_blaze", "nether_blocks", "nether_holeup", "loot");
+		"nether_blaze", "nether_blocks", "nether_holeup", "loot", "nether_quartz", "nether_wart",
+		"nether_glowstone", "nether_barter");
 
 	/** Days between trips while there's nothing in particular to fetch there yet. */
 	private static final long DAYS_BETWEEN_LOOKS = 24000L;
@@ -35,7 +36,7 @@ public final class NetherGoals {
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods(), new HoleUp());
+		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods(), new HoleUp(), new Barter());
 	}
 
 	/** Badly hurt in the Nether and it couldn't get home just now: it walls itself in and heals (HoleUpActivity). */
@@ -106,6 +107,58 @@ public final class NetherGoals {
 		@Override
 		public Activity start(Goals.Context context) {
 			return new com.dinglebob.drifter.brain.activity.HoleUpActivity(context.drifter());
+		}
+	}
+
+	/** Bartering (step 6): gold ingots on it, its gold piece on, and a calm piglin in sight. Once in a while, not all trip. */
+	public static final class Barter extends Goals.Goal {
+		/** Game time it last bartered: once every few minutes at most. */
+		private long lastDone = Long.MIN_VALUE / 2;
+		private static final long EVERY = 20 * 60 * 4;
+
+		@Override
+		public String id() {
+			return "nether_barter";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "barter with a piglin";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (!inNether(drifter) || com.dinglebob.drifter.brain.activity.BarterActivity.gold(drifter) == 0
+				|| !net.minecraft.world.entity.monster.piglin.PiglinAi.isWearingGold(drifter)
+				|| drifter.level().getGameTime() - this.lastDone < EVERY || drifter.getDrifterBrain().failedRecently("nether_barter")) {
+				return 0.0;
+			}
+
+			// (Above the blaze hunt it's in the middle of: a chance to barter is taken when it comes up.)
+			return com.dinglebob.drifter.brain.activity.BarterActivity.calmPiglin(drifter) != null ? 0.8 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 70;
+		}
+
+		/** A piglin close by is a passing chance (it wanders off): it may break into what it's doing. */
+		@Override
+		public boolean urgent(Goals.Context context) {
+			return this.urgency(context) > 0.0;
+		}
+
+		@Override
+		public Activity start(Goals.Context context) {
+			this.lastDone = context.drifter().level().getGameTime();
+			return new com.dinglebob.drifter.brain.activity.BarterActivity(context.drifter());
 		}
 	}
 

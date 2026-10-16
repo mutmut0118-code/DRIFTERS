@@ -869,6 +869,73 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Nether goods taken on the way (section 19 "Goals there"): quartz, nether wart (for brewing later) and glowstone, when
+	 * some it has seen is close by and it's short of it. Never a trip of its own: only what's within reach of where it is.
+	 */
+	public static final class NetherGood extends PlannedGoal {
+		/** How close the block must be for it to bother. */
+		private static final int NEAR = 16;
+		private final String id;
+		private final String name;
+		private final Item item;
+		private final net.minecraft.world.level.block.Block block;
+		private final int want;
+
+		public NetherGood(String id, String name, Item item, net.minecraft.world.level.block.Block block, int want) {
+			this.id = id;
+			this.name = name;
+			this.item = item;
+			this.block = block;
+			this.want = want;
+		}
+
+		@Override
+		public String id() {
+			return this.id;
+		}
+
+		@Override
+		public String name(Context context) {
+			return this.name;
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			return List.of(this.item);
+		}
+
+		@Override
+		protected int count(Context context) {
+			return this.want;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (!NetherGoals.inNether(drifter) || drifter.getInventory().count(stack -> stack.is(this.item)) >= this.want) {
+				return 0.0;
+			}
+
+			// (A ripe wart only: an unripe one gives one wart and wastes the plant.)
+			boolean[] near = {false};
+			var level = drifter.level();
+			drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), NEAR, pos -> {
+				if (!near[0] && level.isLoaded(pos)) {
+					var state = level.getBlockState(pos);
+					near[0] = state.is(this.block) && (!state.hasProperty(net.minecraft.world.level.block.NetherWartBlock.AGE)
+						|| state.getValue(net.minecraft.world.level.block.NetherWartBlock.AGE) >= 3);
+				}
+			});
+			return near[0] ? 0.65 : 0.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+	}
+
 	/** Get an item someone asked for (`/drifter get <item> [count]`, debug): planned like any target. */
 	public static final class GetRequested extends PlannedGoal {
 		@Override
@@ -1874,7 +1941,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());

@@ -1248,6 +1248,13 @@ public class DrifterEntity extends PathfinderMob {
 		return this.inventory == null ? List.of() : this.inventory.armorList();
 	}
 
+	/** Mob's version reads its own (empty) armor list: piglins checking for gold (PiglinAi#isWearingGold), thorns and the
+	 * like must see the armor it really wears (found in testing: in golden boots, piglins still came for it). */
+	@Override
+	public Iterable<ItemStack> getArmorAndBodyArmorSlots() {
+		return this.getArmorSlots();
+	}
+
 	@Override
 	public Iterable<ItemStack> getHandSlots() {
 		return List.of(this.getMainHandItem(), this.getOffhandItem());

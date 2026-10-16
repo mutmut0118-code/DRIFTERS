@@ -1,0 +1,8 @@
+{
+	"_comment": "Nether goods (DESIGN.md section 19 'Goals there', milestone 11 step 5): quartz, nether wart and glowstone, taken when they're close by on a trip.",
+	"sources": [
+		{ "item": "minecraft:quartz", "block": ["minecraft:nether_quartz_ore"], "tool": "minecraft:wooden_pickaxe" },
+		{ "item": "minecraft:nether_wart", "block": ["minecraft:nether_wart"] },
+		{ "item": "minecraft:glowstone_dust", "block": ["minecraft:glowstone"] }
+	]
+}
