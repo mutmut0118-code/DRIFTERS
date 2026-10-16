@@ -34,10 +34,12 @@ public final class PlacedPlan {
 	public final int sizeY;
 	public final List<Cell> build;
 	public final List<BlockPos> ground;
+	/** Ground cells the plan has as a dirt path (made with a shovel once the ground's there, as a player makes one). */
+	public final List<BlockPos> paths;
 
 	/** Blocks that are the ground, not something built. */
 	private static final Set<Block> GROUND = Set.of(Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.PODZOL, Blocks.MYCELIUM,
-		Blocks.ROOTED_DIRT, Blocks.MUD, Blocks.SAND, Blocks.RED_SAND, Blocks.GRAVEL);
+		Blocks.ROOTED_DIRT, Blocks.MUD, Blocks.SAND, Blocks.RED_SAND, Blocks.GRAVEL, Blocks.DIRT_PATH, Blocks.FARMLAND);
 
 	public PlacedPlan(HousePlan plan, BlockPos origin, Rotation rotation, HousePalette palette) {
 		this.plan = plan;
@@ -58,12 +60,17 @@ public final class PlacedPlan {
 
 		List<Cell> build = new ArrayList<>();
 		List<BlockPos> ground = new ArrayList<>();
+		List<BlockPos> paths = new ArrayList<>();
 		for (HousePlan.Cell cell : plan.cells) {
 			BlockPos t = StructureTemplate.transform(cell.pos(), net.minecraft.world.level.block.Mirror.NONE, rotation, BlockPos.ZERO);
 			BlockPos world = origin.offset(t.getX() - minX, t.getY(), t.getZ() - minZ);
 			BlockState state = palette.apply(cell.state().rotate(rotation));
 			if (isGround(state)) {
 				ground.add(world);
+				if (state.is(Blocks.DIRT_PATH)) {
+					paths.add(world);
+				}
+
 				continue;
 			}
 
@@ -79,6 +86,7 @@ public final class PlacedPlan {
 			.thenComparingInt(c -> c.pos().getX()).thenComparingInt(c -> c.pos().getZ()));
 		this.build = List.copyOf(build);
 		this.ground = List.copyOf(ground);
+		this.paths = List.copyOf(paths);
 	}
 
 	/** Grass, dirt and the like in a plan: the ground there, never placed as a block (user's rule, 2026-10-16). */

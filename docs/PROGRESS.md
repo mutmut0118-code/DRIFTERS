@@ -1483,6 +1483,14 @@ structure blocks) for the user's own worlds.
   be reached. Used by settling (chests), placing a station at home (also in its own plan house), and the world-gen chest
   of a lived-in village. Debug: `/drifter house layout <bed> <chests>` furnishes a room at once. Already-placed messes
   stay as they are.
+- The user's BuildPaste houses (house1 to house4, saved with `/drifter house save`): all four built on a flat world,
+  every block (house1 120, house2 252, house3 204, house4 469, the tall two-floor one, bed put upstairs). Fixes from
+  them: stripped logs are made the player way (the log goes in, then an axe on it, axis kept); dirt paths count as
+  ground, made with a shovel at the end; a log put down to strip isn't "cleared" again; it keeps 10 building blocks by
+  it while building (it got stranded on a tall roof with none); the house counts as done and it moves in before taking
+  its scaffolding down (two blocks it couldn't reach held a house up forever); no pillars to take scaffolding down.
+  Debug: `/drifter house choose <plan>` (the nearest Drifter's next house), `/drifter house status` lists blocks still
+  missing.
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

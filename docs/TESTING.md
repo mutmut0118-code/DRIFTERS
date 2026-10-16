@@ -1357,5 +1357,9 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
       yet (`/drifter locate village`), or watch a Drifter that moves into a village house. Quick look in any room with a
       bed: `/drifter house layout <bed x y z> 4` puts down 4 chests, a crafting table and a furnace the way a Drifter
       would (it really places them, so use a test world).
+- [ ] **Your four houses:** make a Drifter build a particular one with `/drifter house choose personal:house4` next
+      to it, then `/drifter brain goal planhouse`. Stripped logs: it puts the log in, then strips it with an axe. Dirt
+      paths: it lays the ground, then makes the path with a shovel at the end. `/drifter house status` shows progress and
+      what's still missing.
 - Not yet: the mod's own house designs (log cabin, cottage, farmhouse...). Until then every Drifter that has the stone
   house in its plans builds that one.

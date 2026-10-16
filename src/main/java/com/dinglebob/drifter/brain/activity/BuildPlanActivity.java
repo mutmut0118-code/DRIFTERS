@@ -64,6 +64,8 @@ public class BuildPlanActivity extends Activity {
 	private static final int MAX_DEPTH = 5;
 	/** Highest it pillars up to reach a block (a fall from there doesn't hurt). */
 	private static final int MAX_PILLAR = 3;
+	/** Building blocks it keeps by it while building (for pillars and getting down). */
+	private static final int SPARE_BLOCKS = 10;
 	/** How far above the house's space it takes down the rest of a tree standing in it. */
 	private static final int TREE_ABOVE = 6;
 	/** Walks for one block before it leaves that one out. */
@@ -122,8 +124,18 @@ public class BuildPlanActivity extends Activity {
 		return false;
 	}
 
+	/** Reasons it has already said a walk or pillar went wrong (said once each). */
+	private final Set<String> toldWhy = new HashSet<>();
+
 	@Override
 	protected void stepDone(Task step, Status status) {
+		if (status == Status.FAILURE && !(step instanceof PlaceBlockTask) && step != this.gathering && this.toldWhy.size() < 12) {
+			String why = step.describe() + ": " + step.failureReason();
+			if (this.toldWhy.add(why)) {
+				this.think("couldn't " + why);
+			}
+		}
+
 		if (step instanceof PlaceBlockTask place && this.placing != null) {
 			if (status == Status.SUCCESS) {
 				// Walks count only while nothing gets placed (a big house takes a lot of walking about).
@@ -204,14 +216,41 @@ public class BuildPlanActivity extends Activity {
 			return this.workAt(level, plan, fill, fill.below(), () -> this.place(fill, new PlaceBlockTask(this.drifter, fill, stack -> stack.is(Items.DIRT), "dirt")), "fill the ground");
 		}
 
-		// 3. Build.
+		// 3. Build. With some spare blocks to pillar up and get back down with (found in testing: out of them, it was stuck
+		// on the roof of a tall house with no way down).
 		this.phase = "build";
+		if (com.dinglebob.drifter.hands.Tools.buildingBlockCount(this.drifter) < SPARE_BLOCKS) {
+			return this.gather(Items.DIRT, 32);
+		}
+
 		for (PlacedPlan.Cell cell : plan.build) {
 			BlockPos pos = cell.pos();
 			BlockState have = level.getBlockState(pos);
 			if (cell.state().getBlock() instanceof BedBlock) {
 				// Its own bed goes there, moved in at the end.
 				continue;
+			}
+
+			// A stripped log it hasn't got: the log goes in, then an axe on it (the way a player gets one).
+			BlockState log = unstripped(cell.state());
+			if (log != null && !this.failed.contains(pos) && !Placement.matches(have, cell.state())
+				&& this.drifter.getInventory().count(stack -> stack.is(cell.state().getBlock().asItem())) == 0) {
+				if (Placement.matches(have, log)) {
+					if (this.drifter.getInventory().count(stack -> stack.is(ItemTags.AXES)) == 0) {
+						return this.gather(Items.WOODEN_AXE, 1);
+					}
+
+					return this.useToolOn(level, plan, pos, stack -> stack.is(ItemTags.AXES), "an axe", "strip the " + log.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT));
+				}
+
+				if (have.isAir() || have.canBeReplaced()) {
+					Status logStep = this.placeCell(level, plan, pos, log);
+					if (logStep != null) {
+						return logStep;
+					}
+
+					continue;
+				}
 			}
 
 			if (Placement.matches(have, cell.state()) && !(cell.state().hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
@@ -230,62 +269,25 @@ public class BuildPlanActivity extends Activity {
 				continue;
 			}
 
-			BlockState step = Placement.step(level, pos, cell.state());
-			Item item = step.getBlock().asItem();
-			if (this.drifter.getInventory().count(stack -> stack.is(item)) == 0) {
-				int still = (int)plan.build.stream().filter(c -> c.state().getBlock().asItem() == item && !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
-				return this.gather(item, Math.min(64, still));
+			Status placing = this.placeCell(level, plan, pos, cell.state());
+			if (placing != null) {
+				return placing;
 			}
-
-			List<Placement.Way> ways = Placement.ways(this.drifter, pos, step);
-			if (ways.isEmpty()) {
-				// Nothing to place it against yet (a roof stair before the one it leans on): later.
-				continue;
-			}
-
-			if (Placement.reachable(this.drifter, ways) != null) {
-				return this.place(pos, PlaceBlockTask.exactly(this.drifter, pos, cell.state(), item.getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
-			}
-
-			if (pos.equals(this.walkedFor)) {
-				// It walked over for this one and still can't reach it: leave it till something else is placed.
-				this.walkedFor = null;
-				this.stuck.add(pos);
-				if (this.told.add(pos)) {
-					this.think("walked over but still can't reach " + pos.toShortString() + " (standing at " + this.drifter.blockPosition().toShortString() + ")");
-				}
-				continue;
-			}
-
-			Spot spot = this.spotFor(level, ways, pos, plan);
-			if (spot == null || this.walksFor.merge(pos, 1, Integer::sum) > WALKS_PER_BLOCK) {
-				this.stuck.add(pos);
-				if (spot != null) {
-					this.failed.add(pos);
-				}
-
-				if (this.told.add(pos)) {
-					this.think("can't find anywhere to stand to place " + item.getDescription().getString().toLowerCase(java.util.Locale.ROOT) + " at " + pos.toShortString());
-				}
-				continue;
-			}
-
-			this.walkedFor = pos;
-			return this.goTo(spot, "walk over to build");
 		}
 
-		// Leaves still hanging in the house that haven't withered (a tree's leaves joined to one outside): dug if it can get
-		// at them from the ground.
-		BlockPos leaves = this.leavesLeft(level, plan, want);
-		if (leaves != null) {
-			return this.workAt(level, plan, leaves, () -> this.digAt(leaves), "clear the leaves");
-		}
+		// Its paths: the ground there (dirt or grass by now) made into path with a shovel, if it has one.
+		for (BlockPos path : plan.paths) {
+			BlockState at = level.getBlockState(path);
+			if (this.failed.contains(path) || !(at.is(Blocks.GRASS_BLOCK) || at.is(Blocks.DIRT) || at.is(Blocks.COARSE_DIRT) || at.is(Blocks.PODZOL)
+				|| at.is(Blocks.MYCELIUM) || at.is(Blocks.ROOTED_DIRT)) || !level.getBlockState(path.above()).isAir()) {
+				continue;
+			}
 
-		// 4. Its scaffolding down again, the top first.
-		this.phase = "tidy";
-		BlockPos scaffold = this.scaffoldLeft(level, plan, want);
-		if (scaffold != null) {
-			return this.workAt(level, plan, scaffold, () -> this.digAt(scaffold), "take down its scaffolding");
+			if (this.drifter.getInventory().count(stack -> stack.is(ItemTags.SHOVELS)) == 0) {
+				break;
+			}
+
+			return this.useToolOn(level, plan, path, stack -> stack.is(ItemTags.SHOVELS), "a shovel", "make a path");
 		}
 
 		// Done (bar a few gaps it really can't fill).
@@ -299,7 +301,14 @@ public class BuildPlanActivity extends Activity {
 			this.think("finished building its house" + (missing > 0 ? " (bar " + missing + " blocks it couldn't reach)" : ""));
 		}
 
-		// 5. Moving in: its bed into the house, the hut left as a shed.
+		// Leaves still hanging in the house that haven't withered (a tree's leaves joined to one outside): dug if it can get
+		// at them from the ground.
+		BlockPos leaves = this.leavesLeft(level, plan, want);
+		if (leaves != null) {
+			return this.workAt(level, plan, leaves, () -> this.digAt(leaves), "clear the leaves");
+		}
+
+		// 4. Moving in: its bed into the house, the hut left as a shed.
 		this.phase = "bed";
 		if (home.planBed(level) == null && !this.noBed) {
 			Status bed = this.moveBed(level, home, plan, want);
@@ -308,7 +317,64 @@ public class BuildPlanActivity extends Activity {
 			}
 		}
 
+		// 5. Its scaffolding down again, the top first, what it can get at; anything it can't is left for tidying another day
+		// (found in testing: two blocks high on a tall house it couldn't reach kept it from ever calling the house done).
+		this.phase = "tidy";
+		BlockPos scaffold = this.scaffoldLeft(level, plan, want);
+		if (scaffold != null) {
+			return this.workAt(level, plan, scaffold, () -> this.digAt(scaffold), "take down its scaffolding");
+		}
+
 		return Status.SUCCESS;
+	}
+
+	/** The next step toward placing this block as {@code want} has it, or null to leave it for now. */
+	@Nullable
+	private Status placeCell(Level level, PlacedPlan plan, BlockPos pos, BlockState want) {
+		BlockState step = Placement.step(level, pos, want);
+		Item item = step.getBlock().asItem();
+		if (this.drifter.getInventory().count(stack -> stack.is(item)) == 0) {
+			// As many as are still to go (logs for stripping too).
+			int still = (int)plan.build.stream().filter(c -> (c.state().getBlock().asItem() == item
+				|| unstripped(c.state()) != null && unstripped(c.state()).getBlock().asItem() == item) && !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
+			return this.gather(item, Math.max(1, Math.min(64, still)));
+		}
+
+		List<Placement.Way> ways = Placement.ways(this.drifter, pos, step);
+		if (ways.isEmpty()) {
+			// Nothing to place it against yet (a roof stair before the one it leans on): later.
+			return null;
+		}
+
+		if (Placement.reachable(this.drifter, ways) != null) {
+			return this.place(pos, PlaceBlockTask.exactly(this.drifter, pos, want, item.getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
+		}
+
+		if (pos.equals(this.walkedFor)) {
+			// It walked over for this one and still can't reach it: leave it till something else is placed.
+			this.walkedFor = null;
+			this.stuck.add(pos);
+			if (this.told.add(pos)) {
+				this.think("walked over but still can't reach " + pos.toShortString() + " (standing at " + this.drifter.blockPosition().toShortString() + ")");
+			}
+			return null;
+		}
+
+		Spot spot = this.spotFor(level, ways, pos, plan);
+		if (spot == null || this.walksFor.merge(pos, 1, Integer::sum) > WALKS_PER_BLOCK) {
+			this.stuck.add(pos);
+			if (spot != null) {
+				this.failed.add(pos);
+			}
+
+			if (this.told.add(pos)) {
+				this.think("can't find anywhere to stand to place " + item.getDescription().getString().toLowerCase(java.util.Locale.ROOT) + " at " + pos.toShortString());
+			}
+			return null;
+		}
+
+		this.walkedFor = pos;
+		return this.goTo(spot, "walk over to build");
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -334,7 +400,10 @@ public class BuildPlanActivity extends Activity {
 		HousePlan bestPlan = null;
 		HousePalette bestPalette = null;
 		double bestCost = Double.MAX_VALUE;
-		for (HousePlan plan : HousePlans.cached(server).values()) {
+		// A plan picked for it (debug: /drifter house choose) but no spot yet: that plan only.
+		java.util.Collection<HousePlan> plans = home.planId != null && HousePlans.get(server, home.planId) != null
+			? List.of(HousePlans.get(server, home.planId)) : HousePlans.cached(server).values();
+		for (HousePlan plan : plans) {
 			HousePalette palette = HousePalette.forDrifter(this.drifter, plan);
 			PlanSite.Site site = PlanSite.choose(this.drifter, plan, palette);
 			if (site == null) {
@@ -411,7 +480,9 @@ public class BuildPlanActivity extends Activity {
 				}
 
 				BlockState planned = want.get(pos);
+				// (A log where the plan has it stripped is one it put there to strip: it stays.)
 				if (state.isAir() || planned != null && state.is(planned.getBlock()) || !natural(state) || !KnownBlocks.mayTake(level, pos)
+					|| planned != null && unstripped(planned) != null && state.is(unstripped(planned).getBlock())
 					|| this.drifter.isScaffold(pos) && planned == null) {
 					continue;
 				}
@@ -653,7 +724,65 @@ public class BuildPlanActivity extends Activity {
 	}
 
 	private static boolean solid(Level level, BlockPos pos) {
-		return level.getBlockState(pos).isFaceSturdy(level, pos, Direction.UP) && level.getFluidState(pos).isEmpty();
+		BlockState state = level.getBlockState(pos);
+		return (state.isFaceSturdy(level, pos, Direction.UP) || state.is(Blocks.DIRT_PATH) || state.is(Blocks.FARMLAND)) && level.getFluidState(pos).isEmpty();
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Stripped logs and paths: made the player way
+	// ---------------------------------------------------------------------------------------------
+
+	/** The log a stripped log or wood is made from (an axe on it), keeping its axis; null for anything else. */
+	@Nullable
+	static BlockState unstripped(BlockState state) {
+		net.minecraft.resources.ResourceLocation id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock());
+		if (!id.getPath().startsWith("stripped_")) {
+			return null;
+		}
+
+		net.minecraft.resources.ResourceLocation from = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(id.getNamespace(),
+			id.getPath().substring("stripped_".length()));
+		var block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(from);
+		if (block.isEmpty()) {
+			return null;
+		}
+
+		BlockState log = block.get().defaultBlockState();
+		if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS)
+			&& log.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS)) {
+			log = log.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS,
+				state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS));
+		}
+
+		return log;
+	}
+
+	/** A face of this block it can click from where it stands, or null. */
+	@Nullable
+	private Direction faceInReach(BlockPos pos) {
+		for (Direction face : Direction.values()) {
+			if (Reach.aimPointFrom(this.drifter, this.drifter.getEyePosition(), pos, face).isPresent()) {
+				return face;
+			}
+		}
+
+		return null;
+	}
+
+	/** Right-click a block with a tool (an axe to strip a log, a shovel to make a path), walking over first if need be. */
+	private Status useToolOn(Level level, PlacedPlan plan, BlockPos pos, java.util.function.Predicate<net.minecraft.world.item.ItemStack> tool,
+		String toolName, String what) {
+		Direction face = this.faceInReach(pos);
+		if (face == null) {
+			return this.workAt(level, plan, pos, () -> {
+				this.failed.add(pos);
+				return Status.RUNNING;
+			}, "walk over to " + what);
+		}
+
+		this.digging = pos;
+		return this.begin(new SequenceTask(this.drifter, what, List.of(new com.dinglebob.drifter.executor.task.SelectItemTask(this.drifter, tool, toolName),
+			new com.dinglebob.drifter.executor.task.UseOnBlockTask(this.drifter, pos, face, what))));
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -683,7 +812,9 @@ public class BuildPlanActivity extends Activity {
 
 		// Leaves it can't get at are left to wither once the tree's gone (as a player leaves them).
 		BlockState state = level.getBlockState(pos);
-		int most = state.is(BlockTags.LEAVES) || state.canBeReplaced() ? 0 : MAX_PILLAR;
+		// Nor does it pillar up to take scaffolding down (that's more scaffolding; found in testing: round and round on a
+		// tall house): what it can't get at from the ground is left for tidying up another day.
+		int most = state.is(BlockTags.LEAVES) || state.canBeReplaced() || this.drifter.isScaffold(pos) ? 0 : MAX_PILLAR;
 		Spot spot = this.standFor(level, pos, plan, null, most, eye -> {
 			for (Direction face : Direction.values()) {
 				if (Reach.aimPointFrom(this.drifter, eye, aim, face).isPresent()) {

@@ -43,6 +43,7 @@ public final class HouseCommands {
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
 			.then(Commands.literal("layout").then(Commands.argument("bed", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 				.then(Commands.argument("chests", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 12)).executes(HouseCommands::layout))))
+			.then(Commands.literal("choose").then(plan().executes(HouseCommands::choose)))
 			.then(Commands.literal("save").then(Commands.argument("name", StringArgumentType.word())
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -108,6 +109,11 @@ public final class HouseCommands {
 			home.planId, home.planOrigin.toShortString(), far.toShortString(), home.planRotation.toLowerCase(Locale.ROOT),
 			com.dinglebob.drifter.building.plan.HousePalette.of(home.planWoods, home.planDeepslate).describe(), done, placed.build.size(),
 			home.planDone ? " (finished)" : "", bed != null ? "; lives in it (bed at " + bed.toShortString() + ")" : ""));
+		List<String> missing = placed.build.stream().filter(c -> !com.dinglebob.drifter.hands.Placement.matches(level.getBlockState(c.pos()), c.state()))
+			.limit(8).map(c -> c.state().getBlock().getName().getString().toLowerCase(Locale.ROOT) + " at " + c.pos().toShortString()).toList();
+		if (!missing.isEmpty() && done > placed.build.size() / 2) {
+			say(ctx, "Still missing: " + String.join(", ", missing) + (placed.build.size() - done > 8 ? ", ..." : ""));
+		}
 		return 1;
 	}
 
@@ -183,6 +189,24 @@ public final class HouseCommands {
 		}
 
 		say(ctx, "Layout: " + String.join(", ", placed));
+		return 1;
+	}
+
+	/** Debug: the nearest Drifter's next house will be this plan (it picks a spot for it when it starts building). */
+	private static int choose(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		HousePlan plan = plan(ctx);
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var home = drifter.getDrifterBrain().home();
+		if (home == null) {
+			say(ctx, DrifterCommands.label(drifter) + " has no home");
+			return 0;
+		}
+
+		home.planId = plan.id;
+		home.planOrigin = null;
+		home.planDone = false;
+		home.planBed = null;
+		say(ctx, DrifterCommands.label(drifter) + " will build " + plan.id + " next");
 		return 1;
 	}
 
