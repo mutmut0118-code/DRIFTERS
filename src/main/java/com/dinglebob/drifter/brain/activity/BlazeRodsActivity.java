@@ -121,8 +121,18 @@ public class BlazeRodsActivity extends Activity {
 				return this.begin(new NavigateTask(this.drifter, blaze.pos, 8.0, "walk toward the blazes"));
 			}
 
-			// At the fortress: look round inside it for the spawner.
+			// At the fortress: it walks round the parts of it it has seen, nearest first, so the spawner comes into view, as a
+			// player goes along a fortress's corridors and bridges (found in testing: wandering at random there, it spent ten
+			// minutes 30 blocks from the spawner without seeing it). When it has been to them all, it looks round at random.
 			if (this.drifter.position().distanceTo(fortress.pos) < 12.0) {
+				this.visitedParts.add(this.drifter.blockPosition());
+				MemoryEntry part = this.nextPart();
+				if (part != null && this.partWalks++ < MAX_PART_WALKS) {
+					// On top of it: a fortress's corridors and spawner rooms are up on its deck, not down among the pillars it
+					// stands on (found in testing: it walked about under a fortress, 15 blocks below the spawner, and never saw it).
+					return this.begin(new NavigateTask(this.drifter, part.pos.add(0.0, 1.0, 0.0), 3.0, "walk along the fortress"));
+				}
+
 				return this.begin(new ExploreActivity(this.drifter, "looking for the blaze spawner", null, drifter -> spawner(drifter) != null));
 			}
 
@@ -171,6 +181,34 @@ public class BlazeRodsActivity extends Activity {
 		double z = (inSweep % 2 == 0 ? first : -first) * SEARCH_STEP * (inSweep / 2 + 1);
 		double x = sweep == 0 ? 0.0 : (sweep % 2 == 1 ? 1 : -1) * SEARCH_ACROSS * ((sweep + 1) / 2);
 		return new Vec3(origin.x + x, this.drifter.getY(), origin.z + z);
+	}
+
+	/** Places in the fortress it has stood (a part within {@link #PART_VISITED} of one is done). */
+	private final java.util.List<BlockPos> visitedParts = new java.util.ArrayList<>();
+	private int partWalks;
+	private static final int MAX_PART_WALKS = 24;
+	private static final double PART_VISITED = 10.0;
+	private static final double HEIGHT_WEIGHT = 4.0;
+
+	/** The part of the fortress it has seen and not yet been to that's highest up (the deck, where the rooms are), the nearest
+	 * of those at about the same height. */
+	@Nullable
+	private MemoryEntry nextPart() {
+		var dimension = this.drifter.level().dimension().location();
+		MemoryEntry best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (MemoryEntry entry : this.drifter.getMemory().find(MemoryKind.LANDMARK, e -> e.label.equals("fortress") && e.dimension.equals(dimension))) {
+			boolean visited = this.visitedParts.stream().anyMatch(pos -> net.minecraft.world.phys.Vec3.atCenterOf(pos).distanceTo(entry.pos) < PART_VISITED);
+			double distance = entry.pos.distanceTo(this.drifter.position());
+			// Each block of height counts as four of distance: higher parts first.
+			double rank = distance - entry.pos.y * HEIGHT_WEIGHT;
+			if (!visited && distance < FORTRESS_RANGE && rank < bestDistance) {
+				bestDistance = rank;
+				best = entry;
+			}
+		}
+
+		return best;
 	}
 
 	/** Blaze rods it carries. */
