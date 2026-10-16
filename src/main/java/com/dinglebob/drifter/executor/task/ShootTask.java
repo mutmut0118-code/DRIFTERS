@@ -83,6 +83,27 @@ public class ShootTask extends Task {
 			return this.fail("it came too close for the bow");
 		}
 
+		// A blaze lit up is about to fire its three fireballs (it glows and smokes for three seconds first, then cools for
+		// five): like a player it puts the bow down and holds its shield up until the burst is over, and shoots in between
+		// (found in testing: drawing on blazes, it took every burst, and a fireball seen coming is too late to block).
+		// (And a little after it stops glowing: the glow goes out as the last fireball leaves, still on its way.)
+		long now = this.drifter.level().getGameTime();
+		if (this.drifter.getOffhandItem().is(Items.SHIELD) && this.chargedBlazeInSight()) {
+			this.guardUntil = now + GUARD_AFTER_TICKS;
+		}
+
+		if (this.drifter.getOffhandItem().is(Items.SHIELD) && now < this.guardUntil) {
+			this.guard();
+			return Status.RUNNING;
+		}
+
+		if (this.guarding) {
+			this.guarding = false;
+			if (this.drifter.isUsingItem() && this.drifter.getUsedItemHand() == InteractionHand.OFF_HAND) {
+				this.drifter.stopUsingItem();
+			}
+		}
+
 		// The bow in hand first.
 		if (!this.drifter.getMainHandItem().is(Items.BOW)) {
 			if (this.select == null) {
@@ -126,6 +147,43 @@ public class ShootTask extends Task {
 
 		return Status.RUNNING;
 	}
+
+	private boolean guarding;
+	private long guardUntil;
+	/** Ticks the shield stays up after the blaze stops glowing (its last fireball's flight). */
+	private static final int GUARD_AFTER_TICKS = 25;
+
+	/** A blaze it can see now, near enough to hit it, glowing to fire. */
+	private boolean chargedBlazeInSight() {
+		return this.drifter.getSenses().tracked().stream().anyMatch(a -> a.visibleNow && a.entity instanceof net.minecraft.world.entity.monster.Blaze blaze
+			&& blaze.isAlive() && blaze.isOnFire() && blaze.distanceTo(this.drifter) < GUARD_RANGE);
+	}
+
+	/** Shield up toward the target: the bow goes (main hand first on right-click), the sword comes out, then it blocks. */
+	private void guard() {
+		this.guarding = true;
+		Steering.stopMoving(this.drifter);
+		this.drifter.getCamera().track(this.target.getEyePosition(), CameraModel.TurnSpeed.COMBAT);
+		if (this.drifter.getMainHandItem().getUseAnimation() != net.minecraft.world.item.UseAnim.NONE) {
+			if (this.drifter.isUsingItem() && this.drifter.getUsedItemHand() == InteractionHand.MAIN_HAND) {
+				this.drifter.stopUsingItem();
+			}
+
+			int free = com.dinglebob.drifter.hands.Combat.freeHandSlot(this.drifter);
+			if (free >= 0) {
+				this.drifter.getInventory().requestSelect(free, 1);
+			}
+
+			return;
+		}
+
+		if (!this.drifter.isUsingItem()) {
+			this.drifter.startUsingItem(InteractionHand.OFF_HAND);
+		}
+	}
+
+	/** Blazes further than this can't reach it with a burst worth blocking (their fireballs fly about 48 blocks). */
+	private static final double GUARD_RANGE = 32.0;
 
 	/** Where to point: where it'll be when the arrow arrives, raised for the arrow's fall. */
 	private Vec3 aimPoint() {

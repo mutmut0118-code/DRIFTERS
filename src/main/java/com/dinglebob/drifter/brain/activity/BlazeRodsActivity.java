@@ -28,8 +28,9 @@ public class BlazeRodsActivity extends Activity {
 	public static final int WANTED = 6;
 	/** How far it goes looking for a fortress it has seen. */
 	public static final double FORTRESS_RANGE = 256.0;
-	/** How close to the spawner it waits (blazes spawn round it, within a few blocks). */
-	private static final double SPAWNER_WAIT_DISTANCE = 6.0;
+	/** How close to the spawner it waits: blazes appear within 4 blocks of it, so from here it reaches them with the sword as
+	 * they come, the way players clear a spawner. */
+	private static final double SPAWNER_WAIT_DISTANCE = 4.0;
 	private static final int MAX_WALKS = 6;
 
 	/** Walks toward each kind of place, counted apart (found in testing: walks to the fortress used them all up, so on
@@ -85,7 +86,9 @@ public class BlazeRodsActivity extends Activity {
 					this.think("going to the blaze spawner at " + at.toShortString());
 				}
 
-				return this.begin(new NavigateTask(this.drifter, spot != null ? Vec3.atBottomCenterOf(spot) : Vec3.atCenterOf(at), SPAWNER_WAIT_DISTANCE,
+				// (Close enough by the same measure as the check above: found in testing, "arrived" by the walk's measure but not by
+				// this one, it walked eight times on the spot and gave up.)
+				return this.begin(new NavigateTask(this.drifter, spot != null ? Vec3.atBottomCenterOf(spot) : Vec3.atCenterOf(at), SPAWNER_WAIT_DISTANCE - 1.5,
 					"walk to the blaze spawner"));
 			}
 

@@ -375,6 +375,8 @@ public class Reflexes {
 		@Override
 		protected void start(DrifterEntity drifter) {
 			drifter.burnedByLavaAt(drifter.blockPosition());
+			this.stuck = 0;
+			this.last = drifter.position();
 			this.safe = nearestSafeSpot(drifter, 4);
 			if (this.safe == null) {
 				this.safe = nearestSafeSpot(drifter, 8);
@@ -395,8 +397,69 @@ public class Reflexes {
 				return false;
 			}
 
+			// Not getting anywhere (a pit with walls too high to jump): it pillars out, as a player does, jumping and putting a
+			// block on the pit's floor under its feet (found in a fortress test: it jumped at a 2-block wall until it burned).
+			Vec3 here = drifter.position();
+			this.stuck = here.subtract(this.last).horizontalDistanceSqr() < 0.0004 ? this.stuck + 1 : 0;
+			this.last = here;
+			if (this.stuck > STUCK_TICKS && this.pillarOut(drifter)) {
+				return true;
+			}
+
 			Vec3 point = this.safe != null ? Vec3.atBottomCenterOf(this.safe) : this.escape;
 			runTo(drifter, point, true);
+			return true;
+		}
+
+		private static final int STUCK_TICKS = 12;
+		private int stuck;
+		private Vec3 last = Vec3.ZERO;
+
+		/** One step of pillaring out: a block in hand, look down, hold jump, and place on the floor once high enough. */
+		private boolean pillarOut(DrifterEntity drifter) {
+			if (!Tools.BUILDING_BLOCK.test(drifter.getMainHandItem())) {
+				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.HOTBAR_SIZE; slot++) {
+					if (Tools.BUILDING_BLOCK.test(drifter.getInventory().getItem(slot))) {
+						drifter.getInventory().requestSelect(slot, 1);
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			Level level = drifter.level();
+			BlockPos floor = null;
+			for (int down = 0; down <= 3; down++) {
+				BlockPos pos = drifter.blockPosition().below(down);
+				if (!level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()) {
+					floor = pos;
+					break;
+				}
+			}
+
+			if (floor == null) {
+				return false;
+			}
+
+			VirtualKeys keys = drifter.getKeys();
+			keys.releaseAll();
+			keys.set(VirtualKeys.Key.JUMP, true);
+			drifter.getCamera().lookAt(drifter.getYRot(), 90.0F, CameraModel.TurnSpeed.COMBAT);
+			if (drifter.getY() >= floor.getY() + 2.0 && drifter.getXRot() > 80.0F) {
+				net.minecraft.world.phys.BlockHitResult hit = com.dinglebob.drifter.hands.Reach.crosshair(drifter);
+				if (hit != null && hit.getBlockPos().equals(floor) && hit.getDirection() == Direction.UP) {
+					net.minecraft.world.InteractionResult placed = FakePlayerBridge.act(drifter,
+						fake -> fake.gameMode.useItemOn(fake, level, fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit));
+					if (placed.consumesAction()) {
+						drifter.swing(InteractionHand.MAIN_HAND);
+						drifter.getSenses().placedBlock(floor.above());
+						drifter.placedScaffold(floor.above());
+						this.stuck = 0;
+					}
+				}
+			}
+
 			return true;
 		}
 	}
@@ -1219,6 +1282,22 @@ public class Reflexes {
 			if (drifter.getOffhandItem().is(Items.SHIELD)) {
 				drifter.getCamera().lookAt(this.projectile.position(), CameraModel.TurnSpeed.COMBAT);
 				Steering.stopMoving(drifter);
+				// Right-click uses the main hand first: with a bow (or food) there, the shield can't come up. Like a player it
+				// lets go of the bow and scrolls to the sword, then blocks (found in testing: drawing on a blaze, it took every
+				// fireball with the shield in its other hand).
+				if (drifter.getMainHandItem().getUseAnimation() != net.minecraft.world.item.UseAnim.NONE) {
+					if (drifter.isUsingItem() && drifter.getUsedItemHand() == InteractionHand.MAIN_HAND) {
+						drifter.stopUsingItem();
+					}
+
+					int free = com.dinglebob.drifter.hands.Combat.freeHandSlot(drifter);
+					if (free >= 0) {
+						drifter.getInventory().requestSelect(free, 1);
+					}
+
+					return true;
+				}
+
 				if (!drifter.isUsingItem()) {
 					drifter.startUsingItem(InteractionHand.OFF_HAND);
 				}

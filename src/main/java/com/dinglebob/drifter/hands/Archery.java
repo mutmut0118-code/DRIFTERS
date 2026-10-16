@@ -59,6 +59,9 @@ public final class Archery {
 	 * A bow beats a sword here: a flier, a creeper still a few blocks off, or anything hostile at range. Never animals
 	 * (it hunts those up close, they'd run).
 	 */
+	/** A blaze nearer than this is fought with the sword. */
+	public static final double BLAZE_MELEE_RANGE = 5.0;
+
 	public static boolean shouldShoot(DrifterEntity drifter, LivingEntity target) {
 		if (!ready(drifter) || com.dinglebob.drifter.executor.task.AttackTask.Protocol.of(target)
 			== com.dinglebob.drifter.executor.task.AttackTask.Protocol.PREY) {
@@ -67,6 +70,12 @@ public final class Archery {
 
 		double distance = drifter.distanceTo(target);
 		if (distance > MAX_RANGE) {
+			return false;
+		}
+
+		// A blaze close by gets the sword: it hovers by its spawner, and three hits are quicker than trading shots (how
+		// players clear a spawner; found in testing: it stood by the spawner drawing the bow at blazes within reach).
+		if (target instanceof net.minecraft.world.entity.monster.Blaze && distance < BLAZE_MELEE_RANGE) {
 			return false;
 		}
 

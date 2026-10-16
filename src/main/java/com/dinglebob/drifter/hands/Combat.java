@@ -63,6 +63,23 @@ public final class Combat {
 	 * The inventory slot of its best melee weapon (most damage per second, so a sword beats an axe and anything beats a
 	 * block of planks), or -1 if nothing beats an empty hand.
 	 */
+	/** A hotbar slot to hold while blocking (right-click uses the main hand first): its best weapon if that's on the
+	 * hotbar, else anything with no use of its own, or -1. */
+	public static int freeHandSlot(DrifterEntity drifter) {
+		int weapon = bestWeaponSlot(drifter);
+		if (weapon >= 0 && weapon < com.dinglebob.drifter.entity.DrifterInventory.HOTBAR_SIZE) {
+			return weapon;
+		}
+
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.HOTBAR_SIZE; slot++) {
+			if (drifter.getInventory().getItem(slot).getUseAnimation() == net.minecraft.world.item.UseAnim.NONE) {
+				return slot;
+			}
+		}
+
+		return -1;
+	}
+
 	public static int bestWeaponSlot(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();
 		int best = -1;

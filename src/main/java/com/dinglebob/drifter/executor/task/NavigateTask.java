@@ -1443,7 +1443,10 @@ public class NavigateTask extends Task {
 		// less) and shouldn't when sneaking, bridging, near an edge or almost there.
 		// A drop of 2+ blocks: walked off, not sprinted, and no more keys once it's over the landing block (found in testing:
 		// sprinting off a 3-block drop down a hillside carried it past the landing and off the next edge).
-		boolean bigDrop = step.type() == MoveType.STEP_DOWN && step.from().getY() - step.to().getY() >= 2;
+		// In a lava world every step down is taken that way (found in a Nether fortress: it sprinted down a one-block step, sailed
+		// past the landing and into a lava hole behind it).
+		boolean bigDrop = step.type() == MoveType.STEP_DOWN
+			&& (step.from().getY() - step.to().getY() >= 2 || this.level().dimensionType().ultraWarm());
 		Vec3 landing = Vec3.atBottomCenterOf(step.to());
 		Vec3 toLanding = landing.subtract(this.drifter.position());
 		if (bigDrop && !this.drifter.onGround() && toLanding.horizontalDistance() < DROP_LET_GO) {

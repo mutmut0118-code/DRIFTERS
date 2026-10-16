@@ -1180,6 +1180,19 @@ into lava); routes along the lava sea's shore cost more; on a pillar block it co
 (it landed a little off the middle, never "arrived", and the stuck check strafed it off), and it never does the
 unstick strafe on its own pillar or bridge.
 
+**Blaze fights (2026-10-16, staged tests).** New test scripts put a geared Drifter by a blaze spawner on a nether-brick
+floor (`nblaze*.txt`) and in a real fortress (`nfort.txt`, seed 2024). Found and fixed: `/drifter giveall` only reached
+Drifters in the dimension you were in (it skipped ones in the Nether); a shield in the off hand now halves how much
+shooters (blazes, ghasts, skeletons) count, so a geared Drifter fights a spawner's blazes instead of running; a blaze
+glows for three seconds before its burst, so while one is lit (and a little after) it puts the bow away, takes the
+sword and holds the shield up, and shoots in between (a fireball seen coming is too late to block, and right-click
+uses the bow in the main hand first, so the shield never came up); the "incoming fireball" reflex also switches off the
+bow to block; every step down in the Nether is walked, never sprinted (it sprinted past a step into a lava hole); stuck
+in a lava pit with walls too high to jump, it pillars out (its jumps in lava reach almost two blocks); running away
+checks two blocks ahead for lava. The debug trace now shows what's in hand, whether it's blocking, and the reflex in
+charge. Still open: several blazes at once hit it from the sides (a player fights them in a corridor or kills them as
+they spawn), and the fortress test still ended in a fall and fire. No blaze rods yet.
+
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
    basalt deltas).

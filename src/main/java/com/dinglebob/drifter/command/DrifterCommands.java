@@ -491,8 +491,8 @@ public final class DrifterCommands {
 	private static int giveAll(CommandContext<CommandSourceStack> ctx, int count) throws CommandSyntaxException {
 		var input = ItemArgument.getItem(ctx, "item");
 		int drifters = 0;
-		for (DrifterEntity drifter : ctx.getSource().getLevel().getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class),
-			DrifterEntity::isAlive)) {
+		// Every loaded Drifter in every dimension (found in testing: from the Overworld it skipped the ones in the Nether).
+		for (DrifterEntity drifter : allDrifters(ctx.getSource().getServer())) {
 			giveTo(drifter, input, count);
 			drifters++;
 		}

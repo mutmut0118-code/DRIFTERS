@@ -199,6 +199,14 @@ public final class Threats {
 	private static final double ARCHER_RUSH = 12.0;
 
 	/** A mob that shoots (skeletons, pillagers, anything holding a bow or crossbow). */
+	/** How much a shooter counts against a Drifter with a shield in hand. */
+	public static final double SHIELDED_SHOOTER = 0.5;
+
+	/** It attacks from range with projectiles (arrows, fireballs). */
+	public static boolean shoots(LivingEntity entity) {
+		return isArcher(entity) || entity instanceof net.minecraft.world.entity.monster.Blaze || entity instanceof net.minecraft.world.entity.monster.Ghast;
+	}
+
 	public static boolean isArcher(LivingEntity entity) {
 		return entity instanceof net.minecraft.world.entity.monster.AbstractSkeleton
 			|| entity.getMainHandItem().getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem;
@@ -261,6 +269,12 @@ public final class Threats {
 			}
 
 			double danger = danger(drifter, living);
+			// A shield up stops arrows and fireballs dead, which is how a player takes on blazes and skeletons: shooters count
+			// for less when it has one ready (found in testing: in iron and diamond, a spawner's three or four blazes had it
+			// "outmatched", and it ran from the fortress it came for).
+			if (shoots(living) && drifter.getOffhandItem().is(Items.SHIELD)) {
+				danger *= SHIELDED_SHOOTER;
+			}
 			if (danger <= 0.0) {
 				continue;
 			}

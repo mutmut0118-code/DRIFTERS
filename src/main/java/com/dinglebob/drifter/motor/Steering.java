@@ -51,8 +51,13 @@ public final class Steering {
 	 * footwork and running away, which steer without the pathfinder.
 	 */
 	public static boolean safeStep(DrifterEntity drifter, Vec3 direction) {
+		return safeStep(drifter, direction, 0.9);
+	}
+
+	/** The same check {@code ahead} blocks out (a sprint carries it further than one step before it can turn). */
+	public static boolean safeStep(DrifterEntity drifter, Vec3 direction, double ahead) {
 		Level level = drifter.level();
-		BlockPos cell = BlockPos.containing(drifter.getX() + direction.x * 0.9, drifter.getY() + 0.1, drifter.getZ() + direction.z * 0.9);
+		BlockPos cell = BlockPos.containing(drifter.getX() + direction.x * ahead, drifter.getY() + 0.1, drifter.getZ() + direction.z * ahead);
 		// Powder snow (it has no collision for a check like this one) sinks it without leather boots (found in the user's
 		// game: running from a creeper into powder snow, it sank in and the creeper caught it).
 		boolean boots = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS);

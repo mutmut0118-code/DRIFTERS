@@ -85,6 +85,11 @@ public class AttackTask extends Task {
 				return CREEPER;
 			}
 
+			// Blazes fight from range too (their fireball bursts): shield up while one glows, as for an archer drawing.
+			if (target instanceof net.minecraft.world.entity.monster.Blaze) {
+				return RANGED;
+			}
+
 			// A drowned only shoots with a trident.
 			if (target instanceof RangedAttackMob && !(target instanceof Drowned drowned && !drowned.getMainHandItem().is(Items.TRIDENT))) {
 				return RANGED;
@@ -491,7 +496,9 @@ public class AttackTask extends Task {
 
 	/** An archer drawing its bow, or a mob close enough to swing at it. */
 	private boolean threatening(double distance) {
-		return this.protocol == Protocol.RANGED && this.target.isUsingItem() || distance < 3.0;
+		// (A blaze about to fire glows: Blaze#isOnFire is its "charged" flag, the fire you see on it.)
+		return this.protocol == Protocol.RANGED && (this.target.isUsingItem()
+			|| this.target instanceof net.minecraft.world.entity.monster.Blaze && this.target.isOnFire()) || distance < 3.0;
 	}
 
 	private boolean hasShield() {

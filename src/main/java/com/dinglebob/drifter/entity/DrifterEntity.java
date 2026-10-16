@@ -785,7 +785,12 @@ public class DrifterEntity extends PathfinderMob {
 				this.getX(), this.getY(), this.getZ(), this.getDeltaMovement().y, this.onGround() ? "G" : "-", this.isInWater() ? "W" : "-",
 				this.isUnderWater() ? "U" : "-", this.isSwimming() ? "S" : "-", this.isSprinting() ? "R" : "-", this.getPose(), Mth.wrapDegrees(this.getYRot()), this.getXRot(),
 				this.keys.describe(), leaf instanceof com.dinglebob.drifter.executor.task.NavigateTask nav ? nav.debugStep()
-					: leaf == null ? "none" : leaf.describe());
+					: leaf == null ? "none" : leaf.describe())
+				// What's in hand and in use (a bow drawn, the shield up) and the reflex in charge, for fights.
+				+ String.format(java.util.Locale.ROOT, " hand %s%s%s", net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this.getMainHandItem().getItem()).getPath(),
+					this.isUsingItem() ? " using " + (this.getUsedItemHand() == net.minecraft.world.InteractionHand.OFF_HAND ? "off" : "main") + " " + this.getTicksUsingItem() : "",
+					this.isBlocking() ? " BLOCKING" : "")
+				+ (this.reflexes.describe() == null || this.reflexes.describe().isEmpty() ? "" : " reflex " + this.reflexes.describe());
 			if (this.traceTicks > 0) {
 				this.traceTicks--;
 				com.dinglebob.drifter.Drifter.LOGGER.info(line);

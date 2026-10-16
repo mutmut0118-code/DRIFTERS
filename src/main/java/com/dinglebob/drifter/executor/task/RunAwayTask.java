@@ -95,7 +95,8 @@ public class RunAwayTask extends Task {
 		List<LivingEntity> archers = threats.stream().filter(t -> t instanceof net.minecraft.world.entity.monster.RangedAttackMob).toList();
 		for (int swerve : SWERVES) {
 			Vec3 candidate = away.yRot((float)Math.toRadians(swerve));
-			if (Steering.safeStep(this.drifter, candidate) && !Steering.wallAhead(this.drifter, candidate)) {
+			// Two blocks out too: at a sprint it can't stop or turn within one (found in testing: it ran from a blaze into lava).
+			if (Steering.safeStep(this.drifter, candidate) && Steering.safeStep(this.drifter, candidate, 1.9) && !Steering.wallAhead(this.drifter, candidate)) {
 				if (direction == null) {
 					direction = candidate;
 				}
