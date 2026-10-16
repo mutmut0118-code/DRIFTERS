@@ -33,6 +33,8 @@ public final class NetherTrip {
 	public long startedAt;
 	/** When it got to the Nether (game time), for how long it stays. */
 	public long arrivedAt;
+	/** Times it has had to hole up to heal on this trip (not saved). */
+	public int holeUps;
 
 	public NetherTrip(BlockPos homePortal, long startedAt) {
 		this.homePortal = homePortal.immutable();

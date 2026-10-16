@@ -308,6 +308,8 @@ public class Brain {
 			this.activity = null;
 		}
 
+		this.watchForStall();
+
 		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks.
 		boolean danger = this.drifter.tickCount % THREAT_CHECK_TICKS == 0 && this.current != null && !"fight".equals(this.current.id())
 			&& !"flee".equals(this.current.id()) && Threats.assess(this.drifter).urgent();
@@ -493,6 +495,41 @@ public class Brain {
 		}
 
 		this.think(text.replaceFirst("^\\[[^]]*] ", ""));
+	}
+
+	/** Goals that should get it somewhere: two minutes on one without moving 2 blocks is a stall. */
+	private static final java.util.Set<String> MOVING_GOALS = java.util.Set.of("nether_blaze", "nether_return", "nether_blocks", "explore");
+	private static final int STALL_TICKS = 20 * 120;
+	private net.minecraft.world.phys.Vec3 stallFrom = net.minecraft.world.phys.Vec3.ZERO;
+	private long stallSince;
+
+	/**
+	 * A watchdog for stalls nothing else catches (found in testing: on its way to a fortress, a Drifter stood still for
+	 * five minutes with no failure at all, and it couldn't be made to happen on demand): it writes what it's doing to the
+	 * log with a short trace, and drops that goal for a while so it does something else.
+	 */
+	private void watchForStall() {
+		long now = this.drifter.level().getGameTime();
+		if (this.current == null || !MOVING_GOALS.contains(this.current.id()) || this.drifter.position().distanceTo(this.stallFrom) > 2.0) {
+			this.stallFrom = this.drifter.position();
+			this.stallSince = now;
+			return;
+		}
+
+		if (now - this.stallSince < STALL_TICKS) {
+			return;
+		}
+
+		Task leaf = this.drifter.getTasks().current() == null ? null : this.drifter.getTasks().current().leaf();
+		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} stalled for {} s on {}: {} -> {} at {}", this.drifter.getName().getString(), STALL_TICKS / 20,
+			this.current.id(), this.activity == null ? "no activity" : this.activity.describe(), leaf == null ? "no task" : leaf.describe(),
+			this.drifter.blockPosition().toShortString());
+		this.drifter.autoTrace();
+		this.think("not getting anywhere: trying something else");
+		this.failedUntil.put(this.current.id(), now + FAILED_COOLDOWN_TICKS * 4);
+		this.restart("stalled");
+		this.stallFrom = this.drifter.position();
+		this.stallSince = now;
 	}
 
 	/** Drops whatever it was doing and decides afresh next tick (after catch-up moved it on). */

@@ -49,6 +49,10 @@ public class HoleUpActivity extends Activity {
 
 		if (this.ticksRunning() < 2) {
 			this.think("badly hurt: walling itself in to heal");
+			var trip = this.drifter.getDrifterBrain().netherTrip();
+			if (trip != null) {
+				trip.holeUps++;
+			}
 		}
 
 		// Hungry: it eats (healing needs a full stomach).

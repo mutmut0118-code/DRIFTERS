@@ -10,4 +10,10 @@ import net.minecraft.world.entity.LivingEntity;
 public interface LivingEntityAccessor {
 	@Accessor("attackStrengthTicker")
 	void drifter$setAttackStrengthTicker(int ticks);
+
+	@Accessor("lastHurtByPlayer")
+	void drifter$setLastHurtByPlayer(net.minecraft.world.entity.player.Player player);
+
+	@Accessor("lastHurtByPlayerTime")
+	void drifter$setLastHurtByPlayerTime(int ticks);
 }

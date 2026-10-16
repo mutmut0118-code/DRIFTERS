@@ -1394,7 +1394,10 @@ public final class Goals {
 			// From blazes or a ghast in the Nether, running only gets it shot in the back: it walls itself in where it is, which
 			// stops the fireballs and breaks their sight, and heals (found in testing: running from blazes, it burned).
 			Threats.Assessment threat = context.threat();
+			// (Only when it's hurt: at full health that's done at once and it came straight back here, every tick; found in
+			// the user's game.)
 			if (NetherGoals.inNether(context.drifter()) && threat.main() != null && Threats.shoots(threat.main())
+				&& context.drifter().getHealth() < com.dinglebob.drifter.brain.activity.HoleUpActivity.HEALED
 				&& com.dinglebob.drifter.hands.Tools.buildingBlockCount(context.drifter()) >= 5) {
 				return new com.dinglebob.drifter.brain.activity.HoleUpActivity(context.drifter());
 			}

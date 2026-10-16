@@ -302,7 +302,11 @@ public final class NetherGoals {
 				return 0.0;
 			}
 
-			boolean done = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
+			// Banking what it has: nearly killed twice with a rod or more, or once with three, it goes home with them and comes
+			// back another day, as a careful player does (found in testing: it kept going back with 2 or 3 rods and died with them).
+			int rods = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter);
+			boolean bank = rods >= 1 && trip.holeUps >= 2 || rods >= 3 && trip.holeUps >= 1;
+			boolean done = bank || rods >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
 				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
 			// Hungry only counts with nothing to eat: with food it eats and carries on (found in the user's game: it arrived
