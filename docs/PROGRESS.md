@@ -1288,6 +1288,17 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
 5. **World-gen camps:** an optional small Drifter camp structure (abandoned, or occupied with a Drifter at stage 3 to 5).
 6. **Config polish:** the in-game settings screen through Mod Menu (user's wish), every setting there.
 
+**Done so far (2026-10-16):**
+- Step 1: `social/DrifterBonds` keeps a relationship per Drifter it knows (as with players). Meeting on first sight, trust
+  from both temperaments; time together builds familiarity and trust (homes within 64 blocks: rivals, trust falls);
+  killing what attacked another Drifter +15; a hit -5 per damage and fear. Bitter rivals (trust -60 or less) count as
+  enemies on sight; other Drifters are fought like players (footwork, shield, bow). Tested: two at -80 squared off.
+- Step 2 (first part): friends both ways (trust 50+) form a group (`world/DrifterGroups`, saved with the world, up to 4),
+  named after the leader (more Skill leads); members move into the leader's home (its chests too); within 8 blocks
+  members tell each other about dangers, ores, resources and landmarks ("told" memories); a wrong to one member costs the
+  player half as much trust with the rest; members defend each other (a mob going for a member within 16 blocks counts
+  as coming for them). Tested: two friends teamed up and one moved in. Still to do in step 2: joint mining trips.
+
 ## Notes for milestone 9 (from testing)
 
 - **User expectation (session 2):** punching a PvP Sweat Drifter should turn into a real pursuit. Today any Drifter

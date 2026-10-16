@@ -1225,6 +1225,11 @@ they get close, ghasts, blazes), and switch to the sword up close.
       further off; while a blaze glows (it's about to fire three fireballs) it holds its shield up toward it. Badly hurt
       with blazes or a ghast about, it walls itself in where it stands ("badly hurt: walling itself in to heal"), eats,
       waits until healed ("healed up: going on") and goes back. Each kill shows as "got it (attack the blaze)".
+- [ ] **Drifters and each other (milestone 12, new):** near another Drifter, `/drifter social` lists the Drifters it knows
+      (friend, neutral, rival) and its group. Two that get on well (trust 50+ both ways) team up ("teamed up with X: X's
+      Crew") and one moves in with the other; they stand up for each other in fights. Quick test: stand by one and
+      `/drifter bond <other's name> 60`, then by the other and `/drifter bond <first's name> 60`, and let them meet.
+      `/drifter bond <name> -80` both ways makes bitter rivals: they fight or keep away on sight.
 - [ ] **Explorers come back rich (new):** a Drifter away for days (or one that "set off" long ago), when you get near it,
       catches up on up to 10 days: it settles where it is if it had no home (hut shell and chests), and its chests hold what
       it found (`/drifter catchup 240` on the nearest one to try it). Its catch-up line in chat lists the structures it went
