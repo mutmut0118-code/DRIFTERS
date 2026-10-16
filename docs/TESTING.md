@@ -1351,5 +1351,11 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
          blocks)". Names: one word, letters, numbers and _.
       5. `/drifter houses` lists every plan. They're saved for every world, in `config/drifter/houses`.
       Beds, chests, furnaces, crafting tables, carpets and flower pots in a build are left out: the Drifter brings its own.
+- [ ] **Tidy village houses** (your screenshot): new chests a Drifter puts in a village house go in a row along a wall,
+      and its crafting table and furnace go together along a wall, never in the doorway, leaving a way to the bed and to
+      every chest. Things already put down in a messy spot stay where they are, so check a village you haven't visited
+      yet (`/drifter locate village`), or watch a Drifter that moves into a village house. Quick look in any room with a
+      bed: `/drifter house layout <bed x y z> 4` puts down 4 chests, a crafting table and a furnace the way a Drifter
+      would (it really places them, so use a test world).
 - Not yet: the mod's own house designs (log cabin, cottage, farmhouse...). Until then every Drifter that has the stone
   house in its plans builds that one.

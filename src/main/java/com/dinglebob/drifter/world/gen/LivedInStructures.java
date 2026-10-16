@@ -278,7 +278,8 @@ public final class LivedInStructures {
 			// It lives in the village house, as one that moved in by itself does (no hut of its own).
 			Home home = new Home(stand, level.dimension().location(), level.getGameTime());
 			home.houseBed = bed;
-			BlockPos chest = chestBeside(level, stand);
+			com.dinglebob.drifter.building.Interior room = com.dinglebob.drifter.building.Interior.of(level, bed);
+			BlockPos chest = room != null ? room.spot(com.dinglebob.drifter.building.Interior.Kind.CHEST, java.util.Set.of(stand)) : chestBeside(level, stand);
 			if (chest != null) {
 				level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 3);
 				home.addChest(chest);

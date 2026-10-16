@@ -1476,6 +1476,13 @@ structure blocks) for the user's own worlds.
   through its mod, which needs an account), so the user pastes a build with BuildPaste in a creative world and saves it
   with this. Plans are read unfurnished (user's rule: "it's up for them to place beds"): beds, chests, barrels, work
   blocks, cauldrons, flower pots, carpets and shulker boxes in a build are left out.
+- Village-house furniture (user's report 2026-10-16, screenshot: chests, a table and a furnace all over a village house
+  floor): `building/Interior` finds the room round its bed (floor inside the walls, up to 64 cells) and gives each new
+  chest a spot along a wall in a row from a corner, crafting table and furnace together along another, never in the
+  doorway or (if it can help it) beside the bed, and only where the door, the bed and every chest and station can still
+  be reached. Used by settling (chests), placing a station at home (also in its own plan house), and the world-gen chest
+  of a lived-in village. Debug: `/drifter house layout <bed> <chests>` furnishes a room at once. Already-placed messes
+  stay as they are.
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

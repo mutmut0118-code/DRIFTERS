@@ -52,6 +52,7 @@ public class PlaceStationActivity extends Activity {
 	}
 
 	private int digsDown;
+	private int indoorTries;
 	private static final int MAX_DIG_DOWN = 8;
 
 	/** Standing on a lone column: a building block underfoot with nothing to stand on beside it. */
@@ -82,6 +83,30 @@ public class PlaceStationActivity extends Activity {
 			this.tried.add(home.center);
 			if (home.houseCenter != null) {
 				this.tried.add(home.houseCenter);
+			}
+		}
+
+		// At home in a house it didn't lay out (a village house, its own house from a plan): along a wall with its other
+		// station, out of the way (found by the user: a crafting table in the middle of a village house's floor).
+		BlockPos houseBed = home != null && home.near(this.drifter, 6.0) ? home.houseBed(this.drifter.level()) : null;
+		com.dinglebob.drifter.building.Interior room = houseBed != null ? com.dinglebob.drifter.building.Interior.of(this.drifter.level(), houseBed) : null;
+		if (room != null && this.indoorTries < 3) {
+			java.util.Set<BlockPos> notHere = new HashSet<>(this.tried);
+			notHere.add(this.drifter.blockPosition());
+			BlockPos indoors = room.spot(com.dinglebob.drifter.building.Interior.Kind.STATION, notHere);
+			if (indoors != null) {
+				this.indoorTries++;
+				if (!com.dinglebob.drifter.hands.Reach.canReach(this.drifter, indoors.below())) {
+					BlockPos stand = KnownBlocks.standingSpotFor(this.drifter, indoors, java.util.Set.of(indoors));
+					if (stand != null) {
+						return this.begin(new com.dinglebob.drifter.executor.task.NavigateTask(this.drifter, net.minecraft.world.phys.Vec3.atBottomCenterOf(stand), 0.5,
+							"walk over to put the " + this.label + " down"));
+					}
+				}
+
+				this.placing = indoors;
+				this.tried.add(indoors);
+				return this.begin(new PlaceBlockTask(this.drifter, indoors, stack -> stack.is(this.item), this.label));
 			}
 		}
 

@@ -41,6 +41,8 @@ public final class HouseCommands {
 			.then(Commands.literal("status").executes(HouseCommands::status))
 			.then(Commands.literal("info").then(plan().executes(HouseCommands::info)))
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
+			.then(Commands.literal("layout").then(Commands.argument("bed", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
+				.then(Commands.argument("chests", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 12)).executes(HouseCommands::layout))))
 			.then(Commands.literal("save").then(Commands.argument("name", StringArgumentType.word())
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -143,6 +145,45 @@ public final class HouseCommands {
 		} catch (java.io.IOException e) {
 			throw new SimpleCommandExceptionType(Component.literal("Couldn't save: " + e.getMessage())).create();
 		}
+	}
+
+	/**
+	 * Debug: furnishes the room round a bed the way a Drifter living there would (that many chests, then a crafting table
+	 * and a furnace), placed at once, and says where each went.
+	 */
+	private static int layout(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		var level = ctx.getSource().getLevel();
+		BlockPos bed = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "bed");
+		int chests = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "chests");
+		List<String> placed = new java.util.ArrayList<>();
+		List<net.minecraft.world.level.block.state.BlockState> things = new java.util.ArrayList<>();
+		for (int i = 0; i < chests; i++) {
+			things.add(net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState());
+		}
+
+		things.add(net.minecraft.world.level.block.Blocks.CRAFTING_TABLE.defaultBlockState());
+		things.add(net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+		for (var thing : things) {
+			var room = com.dinglebob.drifter.building.Interior.of(level, bed);
+			if (room == null) {
+				say(ctx, "No walled-in room round " + bed.toShortString());
+				return 0;
+			}
+
+			boolean chest = thing.is(net.minecraft.world.level.block.Blocks.CHEST);
+			BlockPos spot = room.spot(chest ? com.dinglebob.drifter.building.Interior.Kind.CHEST : com.dinglebob.drifter.building.Interior.Kind.STATION,
+				java.util.Set.of());
+			if (spot == null) {
+				placed.add(thing.getBlock().getName().getString() + ": no room");
+				continue;
+			}
+
+			level.setBlock(spot, thing, 3);
+			placed.add(thing.getBlock().getName().getString() + " " + spot.toShortString());
+		}
+
+		say(ctx, "Layout: " + String.join(", ", placed));
+		return 1;
 	}
 
 	/** Most a plan may measure each way (a structure block's limit). */

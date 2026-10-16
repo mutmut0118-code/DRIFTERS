@@ -325,8 +325,17 @@ public class SettleActivity extends Activity {
 
 	@Nullable
 	private BlockPos chestSpot(Level level, Home home) {
-		// In a village house: a free spot by the bed (the hut's corners don't apply).
+		// In a village house: along a wall of the room round its bed, in a row, out of the way (found by the user: chests
+		// all over a village house's floor).
 		if (home.houseBed != null) {
+			com.dinglebob.drifter.building.Interior room = com.dinglebob.drifter.building.Interior.of(level, home.houseBed);
+			if (room != null) {
+				java.util.Set<BlockPos> notHere = new java.util.HashSet<>(this.tried);
+				notHere.addAll(home.badChestSpots);
+				notHere.add(this.drifter.blockPosition());
+				return room.spot(com.dinglebob.drifter.building.Interior.Kind.CHEST, notHere);
+			}
+
 			return null;
 		}
 
