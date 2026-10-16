@@ -55,6 +55,11 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(toggle(left, y, "Raid players' chests", DrifterConfig.raiding(), DrifterConfig::setRaiding));
 		this.addRenderableWidget(toggle(right, y, "Thoughts in the log", DrifterConfig.logThoughts(), DrifterConfig::setLogThoughts));
 		y += ROW;
+		this.addRenderableWidget(toggle(left, y, "World-gen camps", DrifterConfig.worldgenCamps(), DrifterConfig::setWorldgenCamps));
+		this.addRenderableWidget(toggle(right, y, "Old strip mines", DrifterConfig.worldgenMines(), DrifterConfig::setWorldgenMines));
+		y += ROW;
+		this.addRenderableWidget(toggle(left, y, "Torches in caves", DrifterConfig.worldgenCaveTorches(), DrifterConfig::setWorldgenCaveTorches));
+		y += ROW;
 		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
 				case OFF -> "off";
 				case GAME_TIME -> "game time";

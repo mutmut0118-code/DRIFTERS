@@ -65,6 +65,37 @@ public final class DrifterConfig {
 		int playerAggression = DEFAULT_AGGRESSION;
 		/** The same toward each other: 0 never enemies, 100 every Drifter outside its group an enemy on sight. */
 		int drifterAggression = DEFAULT_AGGRESSION;
+		/** A lived-in world (user, 2026-10-16), each on its own: camps, old strip mines, torches in caves. New chunks only. */
+		boolean worldgenCamps = true;
+		boolean worldgenMines = true;
+		boolean worldgenCaveTorches = true;
+	}
+
+	public static boolean worldgenCamps() {
+		return data.worldgenCamps;
+	}
+
+	public static void setWorldgenCamps(boolean on) {
+		data.worldgenCamps = on;
+		save();
+	}
+
+	public static boolean worldgenMines() {
+		return data.worldgenMines;
+	}
+
+	public static void setWorldgenMines(boolean on) {
+		data.worldgenMines = on;
+		save();
+	}
+
+	public static boolean worldgenCaveTorches() {
+		return data.worldgenCaveTorches;
+	}
+
+	public static void setWorldgenCaveTorches(boolean on) {
+		data.worldgenCaveTorches = on;
+		save();
 	}
 
 	public static final int DEFAULT_AGGRESSION = 50;

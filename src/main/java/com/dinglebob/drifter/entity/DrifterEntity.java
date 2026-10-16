@@ -412,6 +412,13 @@ public class DrifterEntity extends PathfinderMob {
 	/** When it was last running before it was loaded (from its save), or -1: catch-up runs on its first tick. */
 	private long lastActive = -1L;
 
+	/** Days of life it has to catch up on that it never lived (a Drifter made with the world in its camp), in ticks. */
+	private long pendingCatchUp;
+
+	public void addPendingCatchUp(long ticks) {
+		this.pendingCatchUp += ticks;
+	}
+
 	/** Arrived from abstract travel: catch-up covers the time from its arrival. */
 	public void setLastActive(long time) {
 		this.lastActive = time;
@@ -726,9 +733,10 @@ public class DrifterEntity extends PathfinderMob {
 		super.customServerAiStep();
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		// Back after its area was unloaded a while: it catches up on that time first (section 22; config: offline progression).
-		if (this.lastActive >= 0L) {
-			long gap = this.level().getGameTime() - this.lastActive;
-			long offline = com.dinglebob.drifter.world.OfflineClock.offlineTicksFor(this.lastActive);
+		if (this.lastActive >= 0L || this.pendingCatchUp > 0L) {
+			long gap = (this.lastActive >= 0L ? this.level().getGameTime() - this.lastActive : 0L) + this.pendingCatchUp;
+			this.pendingCatchUp = 0L;
+			long offline = this.lastActive >= 0L ? com.dinglebob.drifter.world.OfflineClock.offlineTicksFor(this.lastActive) : 0L;
 			this.lastActive = -1L;
 			if (com.dinglebob.drifter.DrifterConfig.offlineProgression() != com.dinglebob.drifter.DrifterConfig.OfflineProgression.OFF
 				&& gap + offline >= com.dinglebob.drifter.world.CatchUp.minGapTicks()) {
@@ -1675,6 +1683,7 @@ public class DrifterEntity extends PathfinderMob {
 		tag.putLongArray("Scaffold", this.scaffold.stream().mapToLong(BlockPos::asLong).toArray());
 		// When it was last running, for catch-up when it loads again (section 22).
 		tag.putLong("LastActive", this.level().getGameTime());
+		tag.putLong("PendingCatchUp", this.pendingCatchUp);
 	}
 
 	@Override
@@ -1703,6 +1712,7 @@ public class DrifterEntity extends PathfinderMob {
 		}
 
 		this.lastActive = tag.contains("LastActive", Tag.TAG_LONG) ? tag.getLong("LastActive") : -1L;
+		this.pendingCatchUp = tag.getLong("PendingCatchUp");
 
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {
 			this.brain.load(tag.getCompound("DrifterBrain"));

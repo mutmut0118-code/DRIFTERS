@@ -1298,6 +1298,15 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
   members tell each other about dangers, ores, resources and landmarks ("told" memories); a wrong to one member costs the
   player half as much trust with the rest; members defend each other (a mob going for a member within 16 blocks counts
   as coming for them). Tested: two friends teamed up and one moved in. Still to do in step 2: joint mining trips.
+- Aggression settings (user, 2026-10-16): toward players and toward each other, 0 to 100 each (0 never hostile, 100
+  hostile on sight, 50 as before: a shift of the trust strangers start at), on the screen and `/drifter config
+  aggression players|drifters <0-100>`.
+- Step 5, a lived-in world (user's ideas): world-gen **camps** (1 in about 100 chunks where there's flat open ground: a
+  hut with a door, a chest of village-house loot, table, furnace, bed and a wheat patch; half still lived in, the Drifter
+  catching up 3 to 6 days when it first loads), **old strip mines** deep down (1 in about 24 chunks, a 1x2 tunnel with
+  branches and torches, never into water or lava) and **torches in caves**. Each has its own switch (screen and
+  drifter.json); rarities in data/drifter/worldgen/placed_feature. Tested on a normal world: 4 camps and 61 strip mines in
+  1,000 chunks. Still to do: Drifter villages (Drifters living in a real village) and Bandit-held pillager outposts.
 - Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
   2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
 
