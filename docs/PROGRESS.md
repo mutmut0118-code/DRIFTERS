@@ -1359,6 +1359,11 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
 - Found along the way: three goals never ran (their risk factor was 0, which zeroes the score: check-chest, pick up the
   crafting table it left, join a trip); settling retried a chest spot it couldn't place on forever (now remembered).
   Debug: `/drifter rob` takes the valuables out of the nearest one's chests (a simulated theft: it goes and checks).
+- `/drifter locate village|outpost` (user's request, 2026-10-16): whether a village or outpost is lived in is now fixed
+  by the world seed and where it starts (not a roll when it loads), so the command searches outward like /locate and
+  finds the nearest lived-in one, with clickable coordinates. Tested on seed 2024: found a village 941 blocks away and an
+  outpost 2,544 away; loading them, Drifters moved into the village and Bandits held the outpost. Also (user): chests go
+  in a row along the hut wall, placed crouching so they stay single.
 - Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
   2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
 

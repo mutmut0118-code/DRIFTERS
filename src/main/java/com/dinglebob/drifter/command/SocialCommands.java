@@ -111,6 +111,41 @@ public final class SocialCommands {
 			ctx.getSource().sendSuccess(() -> Component.literal("took " + count + " valuable items from " + DrifterCommands.label(drifter) + "'s chests"), true);
 			return 1;
 		}));
+		// Where Drifters live in this world: the nearest lived-in village, or Bandit-held pillager outpost (user's request).
+		root.then(Commands.literal("locate").then(Commands.argument("what", StringArgumentType.word())
+			.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"village", "outpost"}, builder))
+			.executes(ctx -> {
+				String what = StringArgumentType.getString(ctx, "what");
+				if (!what.equals("village") && !what.equals("outpost")) {
+					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("village or outpost")).create();
+				}
+
+				var level = ctx.getSource().getServer().overworld();
+				boolean on = what.equals("village") ? com.dinglebob.drifter.DrifterConfig.worldgenVillages() : com.dinglebob.drifter.DrifterConfig.worldgenOutposts();
+				if (!on) {
+					say(ctx, (what.equals("village") ? "Drifter villages" : "Bandit outposts") + " are turned off in the settings");
+					return 0;
+				}
+
+				var from = net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition());
+				var found = com.dinglebob.drifter.world.gen.LivedInStructures.locate(level, what, from, what.equals("village") ? 16 : 24);
+				if (found == null) {
+					say(ctx, "No " + (what.equals("village") ? "Drifter village" : "Bandit outpost") + " within a few thousand blocks");
+					return 0;
+				}
+
+				int x = found.pos().getX();
+				int z = found.pos().getZ();
+				int distance = (int)Math.round(Math.sqrt(Math.pow(x - from.getX(), 2) + Math.pow(z - from.getZ(), 2)));
+				var coords = net.minecraft.network.chat.ComponentUtils.wrapInSquareBrackets(Component.literal(x + ", ~, " + z))
+					.withStyle(style -> style.withColor(net.minecraft.ChatFormatting.GREEN)
+						.withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + x + " ~ " + z))
+						.withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip"))));
+				Component text = Component.literal("The nearest " + (what.equals("village") ? "village with Drifters living in it" : "outpost held by Bandits") + " is at ")
+					.append(coords).append(Component.literal(" (" + distance + " blocks away; they move in when it's first loaded)"));
+				ctx.getSource().sendSuccess(() -> text, false);
+				return 1;
+			})));
 		// Team wars (section 21): every feud between groups, and (debug) the tension between two Drifters' groups set outright.
 		root.then(Commands.literal("wars").executes(ctx -> {
 			var feuds = com.dinglebob.drifter.world.DrifterWars.all();

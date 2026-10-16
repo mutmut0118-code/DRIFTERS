@@ -1290,6 +1290,10 @@ they get close, ghasts, blazes), and switch to the sword up close.
       - Old strip mines deep down (near the bottom of the world) and torches stuck on cave walls.
       - Villages: about 4 in 10 have 2 to 5 Drifters living in the houses (each by a bed, with a chest beside it).
         They're one group, "... of the village". `/locate structure #minecraft:village` to find one.
+      - **Finding them:** `/drifter locate village` or `/drifter locate outpost` gives the nearest one with Drifters (or
+        Bandits) in it; click the green coordinates to fill in a teleport. They move in when the place is first loaded,
+        so it works for places nobody has been to yet (in a world made before this version, already-loaded villages may
+        differ).
       - Pillager outposts: about half are held by 3 Bandit Drifters ("...'s Raiders") living by the tower. No pillagers
         there while they hold it. They don't build huts there. `/locate structure minecraft:pillager_outpost`. Careful:
         Bandits are hostile.

@@ -123,9 +123,7 @@ public final class LivedInStructures {
 			}
 
 			dirty = true;
-			RandomSource random = level.getRandom();
-			boolean chosen = kind.equals("village") ? DrifterConfig.worldgenVillages() && random.nextDouble() < VILLAGE_CHANCE
-				: DrifterConfig.worldgenOutposts() && random.nextDouble() < OUTPOST_CHANCE;
+			boolean chosen = livedIn(level, kind, chunk.getPos());
 			if (chosen) {
 				pending.add(new Pending(kind, level.dimension().location().toString(), start.getBoundingBox()));
 			}
@@ -133,6 +131,102 @@ public final class LivedInStructures {
 			Drifter.LOGGER.debug("[Drifter] world gen: the {} at {} {}", kind, start.getBoundingBox().getCenter().toShortString(),
 				chosen ? "will be lived in" : "stays as it is");
 		}
+	}
+
+	/**
+	 * Whether this village or outpost is (or will be) lived in: fixed by the world seed and where it starts, not a roll when
+	 * it loads, so `/drifter locate` can tell before anyone has been there.
+	 */
+	public static boolean livedIn(ServerLevel level, String kind, net.minecraft.world.level.ChunkPos start) {
+		boolean village = kind.equals("village");
+		if (village ? !DrifterConfig.worldgenVillages() : !DrifterConfig.worldgenOutposts()) {
+			return false;
+		}
+
+		long seed = level.getSeed() ^ (village ? 0x5EEDL : 0x0B57L);
+		RandomSource random = RandomSource.create(seed + start.x * 341873128712L + start.z * 132897987541L);
+		return random.nextDouble() < (village ? VILLAGE_CHANCE : OUTPOST_CHANCE);
+	}
+
+	/** A village or outpost found by {@link #locate}: where, and whether Drifters live there. */
+	public record Found(BlockPos pos, boolean livedIn) {
+	}
+
+	/**
+	 * The nearest lived-in village (or Bandit outpost) from here, searching outward the way /locate does (one candidate
+	 * spot per placement region, nearest rings first); null if none within the search.
+	 */
+	@Nullable
+	public static Found locate(ServerLevel level, String kind, BlockPos from, int maxRegions) {
+		var setKey = kind.equals("village") ? net.minecraft.world.level.levelgen.structure.BuiltinStructureSets.VILLAGES
+			: net.minecraft.world.level.levelgen.structure.BuiltinStructureSets.PILLAGER_OUTPOSTS;
+		var set = level.registryAccess().registryOrThrow(Registries.STRUCTURE_SET).get(setKey);
+		if (set == null || !(set.placement() instanceof net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement placement)) {
+			return null;
+		}
+
+		var state = level.getChunkSource().getGeneratorState();
+		int spacing = placement.spacing();
+		int cx = from.getX() >> 4;
+		int cz = from.getZ() >> 4;
+		int rx0 = Math.floorDiv(cx, spacing);
+		int rz0 = Math.floorDiv(cz, spacing);
+		Found best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (int r = 0; r <= maxRegions; r++) {
+			for (int rx = rx0 - r; rx <= rx0 + r; rx++) {
+				for (int rz = rz0 - r; rz <= rz0 + r; rz++) {
+					if (Math.max(Math.abs(rx - rx0), Math.abs(rz - rz0)) != r) {
+						continue;
+					}
+
+					// (It takes a chunk in the region, not the region's number.)
+					var chunk = placement.getPotentialStructureChunk(state.getLevelSeed(), rx * spacing, rz * spacing);
+					if (!placement.isStructureChunk(state, chunk.x, chunk.z) || !livedIn(level, kind, chunk)) {
+						continue;
+					}
+
+					BlockPos at = present(level, set, placement, chunk);
+					if (at == null) {
+						continue;
+					}
+
+					double distance = at.distSqr(from);
+					if (distance < bestDistance) {
+						bestDistance = distance;
+						best = new Found(at, true);
+					}
+				}
+			}
+
+			// A find in this ring: one more ring could still hold a nearer one (regions are squares), then stop.
+			if (best != null && r > 0 && bestDistance < Math.pow((r + 1) * spacing * 16.0, 2)) {
+				break;
+			}
+		}
+
+		return best;
+	}
+
+	/** One of the set's structures really starts in this chunk (biome and terrain permitting): where its middle is. */
+	@Nullable
+	private static BlockPos present(ServerLevel level, net.minecraft.world.level.levelgen.structure.StructureSet set,
+		net.minecraft.world.level.levelgen.structure.placement.StructurePlacement placement, net.minecraft.world.level.ChunkPos chunk) {
+		for (var entry : set.structures()) {
+			var structure = entry.structure().value();
+			var check = level.structureManager().checkStructurePresence(chunk, structure, placement, false);
+			if (check == net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT) {
+				continue;
+			}
+
+			var access = level.getChunk(chunk.x, chunk.z, net.minecraft.world.level.chunk.status.ChunkStatus.STRUCTURE_STARTS);
+			var start = level.structureManager().getStartForStructure(net.minecraft.core.SectionPos.bottomOf(access), structure, access);
+			if (start != null && start.isValid()) {
+				return start.getBoundingBox().getCenter();
+			}
+		}
+
+		return null;
 	}
 
 	private static void settlePending(MinecraftServer server) {
