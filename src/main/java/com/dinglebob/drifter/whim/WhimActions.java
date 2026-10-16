@@ -1357,7 +1357,7 @@ public final class WhimActions {
 						drifter.getCamera().track(drifter.getEyePosition().add(drifter.getLookAngle().multiply(1, 0, 1).scale(3)).add(0, -1.5, 0),
 							CameraModel.TurnSpeed.NORMAL);
 						// Fumbled, not thrown away: it'll pick it back up (what it throws away on purpose it leaves).
-						drifter.tossForward(stack.split(stack.getCount())).setThrower(null);
+						drifter.tossForward(stack.split(stack.getCount()), false);
 						if (drifter.getRandom().nextBoolean()) {
 							say(drifter, "oops");
 						}

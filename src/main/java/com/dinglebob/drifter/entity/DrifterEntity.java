@@ -1598,9 +1598,20 @@ public class DrifterEntity extends PathfinderMob {
 
 	/** Player#drop(stack, false, true), pressing Q: thrown forward where it looks, with the pickup delay. */
 	public ItemEntity tossForward(ItemStack stack) {
+		return this.tossForward(stack, true);
+	}
+
+	/**
+	 * As {@link #tossForward(ItemStack)}; {@code thrownAway} false for a fumble (not marked as thrown by it, so it picks it
+	 * back up: what it throws away on purpose it never does).
+	 */
+	public ItemEntity tossForward(ItemStack stack, boolean thrownAway) {
 		ItemEntity item = new ItemEntity(this.level(), this.getX(), this.getEyeY() - 0.3F, this.getZ(), stack);
 		item.setPickUpDelay(40);
-		item.setThrower(this);
+		if (thrownAway) {
+			item.setThrower(this);
+		}
+
 		float pitch = this.getXRot() * Mth.DEG_TO_RAD;
 		float yaw = this.getYRot() * Mth.DEG_TO_RAD;
 		float sinPitch = Mth.sin(pitch);
