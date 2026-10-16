@@ -62,10 +62,15 @@ public final class CatchUp {
 	/** The rates file's contents. */
 	private record Rates(int minGapTicks, int capTicks, int sliceTicks, double workShare, double foodPointsPerDay,
 		Map<String, Double> wear, double torchesPerWorkHour, double deathChancePerDay, Map<Integer, Map<String, Double>> stages,
-		Map<String, Map<String, Double>> archetypes, double xpPerWorkHour) {
+		Map<String, Map<String, Double>> archetypes, double xpPerWorkHour, double structureFindsPerDay, List<StructureLoot> structureLoot) {
 	}
 
-	private static volatile Rates rates = new Rates(2400, 240000, 6000, 0.45, 24.0, Map.of(), 0.4, 0.02, Map.of(), Map.of(), 4.0);
+	/** A kind of chest it may come across while away (a vanilla loot table), how often against the others, and from which day
+	 * of its time away (the rarer ones only after it has been out a while). */
+	private record StructureLoot(String table, double weight, double fromDay, String name) {
+	}
+
+	private static volatile Rates rates = new Rates(2400, 240000, 6000, 0.45, 24.0, Map.of(), 0.4, 0.02, Map.of(), Map.of(), 4.0, 0.0, List.of());
 
 	private CatchUp() {
 	}
@@ -101,11 +106,25 @@ public final class CatchUp {
 				rates = new Rates(json.get("min_gap_ticks").getAsInt(), json.get("cap_ticks").getAsInt(), json.get("slice_ticks").getAsInt(),
 					json.get("work_share").getAsDouble(), json.get("food_points_per_day").getAsDouble(), numbers(json.getAsJsonObject("tool_wear_per_work_hour")),
 					json.get("torches_per_work_hour").getAsDouble(), json.get("death_chance_per_day").getAsDouble(), stages, archetypes,
-					json.has("xp_per_work_hour") ? json.get("xp_per_work_hour").getAsDouble() : 4.0);
+					json.has("xp_per_work_hour") ? json.get("xp_per_work_hour").getAsDouble() : 4.0,
+					json.has("structure_finds_per_day") ? json.get("structure_finds_per_day").getAsDouble() : 0.0, structureLoot(json));
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter catch-up file {}", file.getKey(), e);
 			}
 		}
+	}
+
+	private static List<StructureLoot> structureLoot(JsonObject json) {
+		List<StructureLoot> list = new ArrayList<>();
+		if (json.has("structure_loot")) {
+			for (JsonElement element : json.getAsJsonArray("structure_loot")) {
+				JsonObject entry = element.getAsJsonObject();
+				list.add(new StructureLoot(entry.get("table").getAsString(), entry.get("weight").getAsDouble(),
+					entry.has("from_day") ? entry.get("from_day").getAsDouble() : 0.0, entry.get("name").getAsString()));
+			}
+		}
+
+		return list;
 	}
 
 	private static Map<String, Double> numbers(JsonObject object) {
@@ -134,6 +153,10 @@ public final class CatchUp {
 		int built;
 		boolean settled;
 		boolean chest;
+		int chests;
+		final List<String> raided = new ArrayList<>();
+		final Map<Item, Integer> looted = new LinkedHashMap<>();
+		int stored;
 		int xp;
 
 		Report(long ticks) {
@@ -175,7 +198,18 @@ public final class CatchUp {
 			}
 
 			if (this.chest) {
-				line.append("; put a chest in it");
+				line.append(this.chests > 1 ? "; put " + this.chests + " chests in it" : "; put a chest in it");
+			}
+
+			if (!this.raided.isEmpty()) {
+				line.append("; went through the chests of ").append(String.join(", ", this.raided));
+				if (!this.looted.isEmpty()) {
+					line.append(" (").append(list(this.looted)).append(")");
+				}
+			}
+
+			if (this.stored > 0) {
+				line.append("; stored ").append(this.stored).append(" items at home");
 			}
 
 			if (this.xp > 0) {
@@ -225,6 +259,8 @@ public final class CatchUp {
 			torches(drifter, r, stage, workHours, random, report);
 			smelt(drifter, stage, report);
 			craftTowardGoals(drifter, report);
+			craftUseful(drifter, report);
+			findStructure(drifter, r, done / 24000.0, slice, random, report);
 			// A day or more out with no home: it settles where it is (found by the user: Drifters that set off at the start of
 			// the world came back days later with no hut, no chest, and so never into the iron age).
 			if (done >= SETTLE_AFTER_TICKS) {
@@ -233,6 +269,7 @@ public final class CatchUp {
 
 			buildHut(drifter, report);
 			placeChest(drifter, report);
+			store(drifter, report);
 			// Experience from mining and fighting, at a player's pace (found by the user: they all came back at level 0).
 			int xp = (int)Math.round(workHours * r.xpPerWorkHour() * (0.6 + 0.8 * random.nextDouble()));
 			if (xp > 0) {
@@ -465,8 +502,11 @@ public final class CatchUp {
 	private static void craftTowardGoals(DrifterEntity drifter, Report report) {
 		// A target that needs a trip out (a bed's wool, a shelter) is passed over for the ones after it it can make on the spot
 		// (found by the user: stuck behind its first night's targets, it carried 14 iron ingots and never made a tool of them).
+		// (Only targets it works on count toward the limit; passing one over doesn't, or a few passed over used up the slice
+		// and it never replaced a worn-out pickaxe: found in testing.)
 		java.util.Set<String> passed = new java.util.HashSet<>();
-		for (int step = 0; step < MAX_TARGET_STEPS; step++) {
+		int worked = 0;
+		for (int step = 0; step < MAX_TARGET_STEPS * 5 && worked < MAX_TARGET_STEPS; step++) {
 			Strategist.Target target = Strategist.nextTarget(drifter, t -> !passed.contains(t.label()));
 			if (target == null) {
 				return;
@@ -484,6 +524,8 @@ public final class CatchUp {
 				passed.add(target.label());
 				continue;
 			}
+
+			worked++;
 
 			for (Planner.Action action : plan.actions()) {
 				if (action instanceof Planner.Craft craft) {
@@ -519,6 +561,7 @@ public final class CatchUp {
 	}
 
 	private static final long SETTLE_AFTER_TICKS = 24000;
+	private static final int MAX_CHESTS = 4;
 
 	/** Settles where it stands, on firm dry ground, if it has no home (not a nomad: they barely settle anywhere). */
 	private static void settle(DrifterEntity drifter, Report report) {
@@ -538,7 +581,9 @@ public final class CatchUp {
 	private static void placeChest(DrifterEntity drifter, Report report) {
 		Home home = drifter.getDrifterBrain().home();
 		Level level = drifter.level();
-		if (home == null || home.hasChest() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+		// (Another once its chests are nearly full, up to four: ten days of finds didn't fit in one; found in testing.)
+		if (home == null || home.hasChest() && (home.fullness() < 0.9 || home.chests().size() >= MAX_CHESTS)
+			|| !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
 			return;
 		}
 
@@ -562,12 +607,119 @@ public final class CatchUp {
 				level.setBlock(spot, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState(), 3);
 				home.addChest(spot);
 				report.chest = true;
+				report.chests++;
 				return;
 			}
 		}
 
 		if (haveChest) {
 			give(drifter, new ItemStack(Items.CHEST), report);
+		}
+	}
+
+	/**
+	 * What it doesn't need to carry goes in its chests at home, as it would on its trips back (section 22: "added to
+	 * inventory or home chests"; found in testing: ten days of cobblestone, coal and mob drops filled its pockets and what
+	 * it made later fell out). Only into chests that are there and loaded.
+	 */
+	private static void store(DrifterEntity drifter, Report report) {
+		Home home = drifter.getDrifterBrain().home();
+		Level level = drifter.level();
+		if (home == null || !home.hasChest() || !home.dimension.equals(level.dimension().location())) {
+			return;
+		}
+
+		var inventory = drifter.getInventory();
+		for (Map.Entry<Integer, Integer> entry : com.dinglebob.drifter.brain.Storage.toDeposit(drifter).entrySet()) {
+			ItemStack stack = inventory.getItem(entry.getKey());
+			// Materials it crafts its next things from stay on it: catch-up only crafts from its pockets (found in testing: its
+			// iron went in the chest and it never made iron tools or armor).
+			if (isMaterial(stack)) {
+				continue;
+			}
+
+			int count = Math.min(entry.getValue(), stack.getCount());
+			for (BlockPos chest : home.chests()) {
+				if (count <= 0 || !level.isLoaded(chest) || !(level.getBlockEntity(chest) instanceof net.minecraft.world.Container container)) {
+					continue;
+				}
+
+				ItemStack moving = stack.split(count);
+				ItemStack left = net.minecraft.world.level.block.entity.HopperBlockEntity.addItem(null, container, moving, null);
+				report.stored += moving.getCount() - left.getCount();
+				count = left.getCount();
+				if (!left.isEmpty()) {
+					stack.grow(left.getCount());
+				}
+
+				home.record(chest, container);
+			}
+		}
+	}
+
+	private static boolean isMaterial(ItemStack stack) {
+		return stack.is(Items.IRON_INGOT) || stack.is(Items.RAW_IRON) || stack.is(Items.GOLD_INGOT) || stack.is(Items.RAW_GOLD)
+			|| stack.is(Items.DIAMOND) || stack.is(Items.EMERALD) || stack.is(Items.LAPIS_LAZULI) || stack.is(Items.OBSIDIAN)
+			|| stack.is(Items.STRING) || stack.is(Items.LEATHER) || stack.is(Items.FEATHER) || stack.is(Items.FLINT)
+			|| stack.is(Items.STICK) || stack.is(Items.BOOK) || stack.is(Items.PAPER) || stack.is(net.minecraft.tags.ItemTags.PLANKS)
+			|| stack.is(net.minecraft.tags.ItemTags.WOOL);
+	}
+
+	/** Things a player out exploring makes when it can, beyond its targets: a bow once it has string. */
+	private static void craftUseful(DrifterEntity drifter, Report report) {
+		if (count(drifter, Items.BOW) == 0 && count(drifter, Items.STRING) >= 3) {
+			var recipe = com.dinglebob.drifter.hands.Crafting.find(drifter, stack -> stack.is(Items.BOW), true);
+			if (recipe.isPresent()) {
+				ItemStack made = com.dinglebob.drifter.hands.Crafting.craftOnce(drifter, recipe.get().recipe());
+				if (!made.isEmpty()) {
+					report.made.merge(made.getItem(), made.getCount(), Integer::sum);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Out exploring it comes across structures now and then and goes through their chests: rolled from the game's own
+	 * loot tables, more often for explorers, and the rarer ones (temples, buried treasure, a mansion) only once it has been
+	 * out a while (user's request: travelers should come back like players who went out exploring, with loot to show).
+	 */
+	private static void findStructure(DrifterEntity drifter, Rates r, double day, long slice, RandomSource random, Report report) {
+		if (r.structureLoot().isEmpty() || !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return;
+		}
+
+		String archetype = drifter.getPersonality().archetype().name().toLowerCase(Locale.ROOT);
+		double rate = r.structureFindsPerDay() * r.archetypes().getOrDefault(archetype, Map.of()).getOrDefault("structure_finds", 1.0);
+		if (random.nextDouble() >= rate * slice / 24000.0) {
+			return;
+		}
+
+		double total = 0.0;
+		for (StructureLoot loot : r.structureLoot()) {
+			total += loot.fromDay() <= day ? loot.weight() : 0.0;
+		}
+
+		double roll = random.nextDouble() * total;
+		for (StructureLoot loot : r.structureLoot()) {
+			if (loot.fromDay() > day || (roll -= loot.weight()) > 0.0) {
+				continue;
+			}
+
+			var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, ResourceLocation.parse(loot.table()));
+			var table = level.getServer().reloadableRegistries().getLootTable(key);
+			var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+				.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, drifter.position())
+				.create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.CHEST);
+			for (ItemStack stack : table.getRandomItems(params)) {
+				Item item = stack.getItem();
+				int kept = give(drifter, stack, report);
+				if (kept > 0) {
+					report.looted.merge(item, kept, Integer::sum);
+				}
+			}
+
+			report.raided.add(loot.name());
+			return;
 		}
 	}
 

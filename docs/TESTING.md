@@ -1225,6 +1225,10 @@ they get close, ghasts, blazes), and switch to the sword up close.
       further off; while a blaze glows (it's about to fire three fireballs) it holds its shield up toward it. Badly hurt
       with blazes or a ghast about, it walls itself in where it stands ("badly hurt: walling itself in to heal"), eats,
       waits until healed ("healed up: going on") and goes back. Each kill shows as "got it (attack the blaze)".
+- [ ] **Explorers come back rich (new):** a Drifter away for days (or one that "set off" long ago), when you get near it,
+      catches up on up to 10 days: it settles where it is if it had no home (hut shell and chests), and its chests hold what
+      it found (`/drifter catchup 240` on the nearest one to try it). Its catch-up line in chat lists the structures it went
+      through. Go raid its hut.
 - [ ] **Bartering (new):** a Drifter in the Nether wearing its gold piece, with gold ingots (`/drifter give
       minecraft:gold_ingot 6` next to it), near a calm piglin: it walks up, tosses one ingot ("tossing a piglin some gold
       to barter"), waits while the piglin admires it, picks up what it throws back, up to 6 times.

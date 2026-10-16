@@ -1241,6 +1241,14 @@ time. Rods come home now (banked after holing up).
   targets that need a trip are passed over, a homeless Drifter a day in settles where it is (hut shell and a chest, from
   a chest it carries, 8 planks or 2 logs), and experience at 4 a work hour. A 10-day test from nothing: settled, hut,
   chest, full iron armor, shield, diamond sword and pickaxe, stage 7, level 18. `/drifter catchup` now takes up to 240 hours.
+  Then (user's requests): mob loot from night hunts (rotten flesh, bones, string, arrows, spider eyes, gunpowder, ender
+  pearls rarely), animal loot (chicken, porkchop, feathers, leather, wool; meat cooked), a bow once it has string,
+  diamonds a little higher late on, and **structure loot**: now and then (0.6 a day, nomads 2.2x, homebodies 0.4x) it
+  goes through a structure's chests, rolled from the game's own loot tables, the rarer kinds only after enough days out
+  (villages from day 0, dungeons 1, mineshafts and shipwrecks 2, treasure and temples 4 to 6, a mansion 8). What it
+  doesn't need to carry goes in its chests at home (materials stay on it, so it keeps crafting), with another chest when
+  they're nearly full (up to 4). Death risk while away halved (1% a day). Three 10-day tests: huts with 2 to 3 chests of
+  180 to 274 items (a heart of the sea, smithing templates, music discs, saddles, name tags, emeralds), stage 7, level 17.
 - Still open (polish, not blocking milestone 12): fortresses over the lava sea kill about half the Drifters that go
   there; ghast side-walls when bridging; biome preferences.
 Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up
