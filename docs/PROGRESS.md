@@ -1121,6 +1121,15 @@ replanning and dropped into lava (it stops when lava is a step or a short drop a
 random directions and can only see a fortress from fairly close in the dark, so finding one is slow (next: search
 along north-south lines, as fortresses run, Knowledge-gated).
 
+**Nether trip testing (2026-10-15 evening), still in progress.** Fixed so far: never routes through obsidian or a portal
+frame (it broke its own portal home digging out of the room it had walled round it); backs well away from lava that
+keeps flowing at it (it blocked the same lava fall seven times until it ran over it); a failed trip home isn't retried
+instantly (it tried four times a second for minutes); knowledgeable Drifters search for fortresses in north-south
+lines. Seen in tests but not yet solved: lava deaths near lava falls and lava lakes (seed 424242's portal comes out next
+to one), and once a spot it couldn't route out of on a soul sand slope (being looked into with `/drifter cells`).
+Fortresses do get found (seed 2024: spotted one 55 blocks off and headed for it). New debug command: `/drifter cells`
+(how routing sees the blocks round the nearest Drifter).
+
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
    basalt deltas).

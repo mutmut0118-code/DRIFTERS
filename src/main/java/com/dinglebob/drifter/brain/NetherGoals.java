@@ -201,6 +201,12 @@ public final class NetherGoals {
 				return 0.0;
 			}
 
+			// Couldn't get to the portal just now: not again at once (found in testing: it tried four times a second, for
+			// minutes, from a spot it had no route out of); other goals (or getting unstuck) get a turn first.
+			if (drifter.getDrifterBrain().failedRecently("nether_return")) {
+				return 0.0;
+			}
+
 			boolean done = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
 				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
