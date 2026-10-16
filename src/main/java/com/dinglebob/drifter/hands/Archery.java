@@ -77,6 +77,18 @@ public final class Archery {
 	/** Ticks the shield stays up after a blaze stops glowing (the last fireball of its burst is still on its way). */
 	public static final int BLAZE_GUARD_AFTER_TICKS = 25;
 
+	/** A drop or lava within two steps of it, any way round (on a bridge or a ledge). */
+	public static boolean nearDrop(DrifterEntity drifter) {
+		for (int angle = 0; angle < 360; angle += 45) {
+			net.minecraft.world.phys.Vec3 direction = net.minecraft.world.phys.Vec3.directionFromRotation(0.0F, angle);
+			if (!com.dinglebob.drifter.motor.Steering.safeStep(drifter, direction) || !com.dinglebob.drifter.motor.Steering.safeStep(drifter, direction, 2.0)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** A blaze nearer than this is fought with the sword. */
 	public static final double BLAZE_MELEE_RANGE = 5.0;
 
@@ -93,7 +105,9 @@ public final class Archery {
 
 		// A blaze close by gets the sword: it hovers by its spawner, and three hits are quicker than trading shots (how
 		// players clear a spawner; found in testing: it stood by the spawner drawing the bow at blazes within reach).
-		if (target instanceof net.minecraft.world.entity.monster.Blaze && distance < BLAZE_MELEE_RANGE) {
+		// (Not at the edge of a drop, a bridge over the lava sea: a blaze's hit knocks it back, and stepping in to swing it
+		// went over; found in testing on a fortress bridge. There it stays back and uses the bow.)
+		if (target instanceof net.minecraft.world.entity.monster.Blaze && distance < BLAZE_MELEE_RANGE && !nearDrop(drifter)) {
 			return false;
 		}
 
