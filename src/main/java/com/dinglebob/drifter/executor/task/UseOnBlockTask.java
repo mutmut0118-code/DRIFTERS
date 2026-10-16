@@ -41,6 +41,14 @@ public class UseOnBlockTask extends Task {
 	/** What it places is scaffolding (a bridge block), remembered so it can be taken down later. */
 	private boolean scaffold;
 
+	/** Crouches for the click whatever it clicks (a chest placed crouching stays a single chest beside another one). */
+	private boolean forceSneak;
+
+	public UseOnBlockTask sneakPlace() {
+		this.forceSneak = true;
+		return this;
+	}
+
 	public UseOnBlockTask scaffold() {
 		this.scaffold = true;
 		return this;
@@ -95,7 +103,7 @@ public class UseOnBlockTask extends Task {
 		}
 
 		Level level = this.drifter.level();
-		this.sneak = hasOwnUse(level, this.pos, level.getBlockState(this.pos));
+		this.sneak = this.forceSneak || hasOwnUse(level, this.pos, level.getBlockState(this.pos));
 		if (this.sneak) {
 			this.drifter.getKeys().set(VirtualKeys.Key.SNEAK, true);
 			this.sneakSettle = SNEAK_SETTLE_TICKS;

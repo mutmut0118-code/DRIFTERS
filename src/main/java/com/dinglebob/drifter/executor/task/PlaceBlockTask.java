@@ -53,6 +53,14 @@ public class PlaceBlockTask extends Task {
 		return this;
 	}
 
+	/** Placed crouching, as a tidy player lines up chests: a chest next to another stays its own chest. */
+	private boolean single;
+
+	public PlaceBlockTask single() {
+		this.single = true;
+		return this;
+	}
+
 	public PlaceBlockTask preferSupport(Direction toSupport) {
 		this.preferred = toSupport;
 		return this;
@@ -110,6 +118,10 @@ public class PlaceBlockTask extends Task {
 
 			if (this.facing != null) {
 				this.use.facing(this.facing);
+			}
+
+			if (this.single) {
+				this.use.sneakPlace();
 			}
 		}
 

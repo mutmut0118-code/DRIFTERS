@@ -220,7 +220,7 @@ public class SettleActivity extends Activity {
 
 		this.placing = spot;
 		this.tried.add(spot);
-		return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(Items.CHEST), "a chest"));
+		return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(Items.CHEST), "a chest").single());
 	}
 
 	/** Chests side by side join into a double chest; it keeps them apart so each is its own. */
@@ -334,11 +334,13 @@ public class SettleActivity extends Activity {
 			home.hutDoor = com.dinglebob.drifter.building.StarterHut.chooseDoor(level, home.center);
 		}
 
-		for (BlockPos corner : com.dinglebob.drifter.building.StarterHut.of(home).furnitureSpots()) {
-			if (level.getBlockState(corner).canBeReplaced() && level.getFluidState(corner).isEmpty() && !nextToChest(level, corner)
-				&& level.getBlockState(corner.below()).isFaceSturdy(level, corner.below(), Direction.UP) && !corner.equals(this.drifter.blockPosition())
-				&& !this.tried.contains(corner) && !home.badChestSpots.contains(corner)) {
-				return corner;
+		// The hut's chest row: the back corner, then along the left wall, then the right wall's free cells (found by the user:
+		// four chests "all over the place"). Placed crouching, side by side they stay single chests.
+		for (BlockPos spot : com.dinglebob.drifter.building.StarterHut.of(home).chestSpots()) {
+			if (level.getBlockState(spot).canBeReplaced() && level.getFluidState(spot).isEmpty()
+				&& level.getBlockState(spot.below()).isFaceSturdy(level, spot.below(), Direction.UP) && !spot.equals(this.drifter.blockPosition())
+				&& !this.tried.contains(spot) && !home.badChestSpots.contains(spot)) {
+				return spot;
 			}
 		}
 
