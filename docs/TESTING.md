@@ -1184,3 +1184,8 @@ steel, then builds a Nether portal near its home and lights it. It doesn't go th
 - [ ] `/drifter list` shows every Drifter in the world: loaded ones as before, then in grey the ones out of the loaded
       world with where they were last ("last seen at ..., 12 min ago", or "set off from ..." for travelers). Click one
       (or `/drifter tp <name>`, names tab-complete) to go there; it loads in as you arrive and catches up.
+- [ ] **Your own spread test:** `/drifter spawnmany <count> [radius]` spawns that many Drifters (up to 200) on dry ground
+      at random within the radius (default 2000, up to 10000) of where you stand. The game pauses while it generates
+      the land (about 40 s for 100 over 2000 blocks). Then `/drifter perf` shows the cost, `/drifter sim` the 3 kept
+      running, `/drifter list` all of them. Only Drifters near you (and the 3) actually run; the rest wait frozen and
+      catch up when you visit. To remove a test crowd: `/kill @e[type=drifter:drifter]`.

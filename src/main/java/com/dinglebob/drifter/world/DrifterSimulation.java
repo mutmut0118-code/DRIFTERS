@@ -48,6 +48,8 @@ public final class DrifterSimulation {
 	private static final double STICKINESS = 0.5;
 
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_simulated", Comparator.comparingLong(ChunkPos::toLong), 60);
+	/** A spot where Drifters were just spawned by command, kept running a few seconds so the busiest can be picked. */
+	public static final TicketType<ChunkPos> SPAWNED = TicketType.create("drifter_spawned", Comparator.comparingLong(ChunkPos::toLong), 100);
 
 	/** Who is simulated now, and where (dimension and chunk), for the tickets and the random-tick check. */
 	public record Simulated(UUID id, String name, ResourceKey<Level> level, ChunkPos chunk) {

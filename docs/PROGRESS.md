@@ -1039,7 +1039,9 @@ server, a quarter of a tick. Spread across 2000 blocks with no player: they free
 spot and froze (fixed: the ticket moves to where the Drifter is when its area unloads).
 **`/drifter list` and `/drifter tp` reach every Drifter** (user's request; `world/DrifterRegistry`, saved with the
 world): the list shows the loaded ones and, greyed, where the others were last (or set off from), with how long ago;
-clicking one (or `/drifter tp <name>`) takes you there and it loads in.
+clicking one (or `/drifter tp <name>`) takes you there and it loads in. `/drifter spawnmany <count> [radius]` (user's
+request) spawns a crowd spread round you on dry ground; each spot runs for 5 s after spawning so the 3 busiest can be
+picked to keep running (without that they unloaded before the pick and none were kept).
 
 Also from these runs: movement keys are aimed again after the head turns each tick (`Steering.reaim`): keys picked
 before a fast turn sent one the wrong way off a ledge mid-jump. Trace lines now show the facing (yaw).

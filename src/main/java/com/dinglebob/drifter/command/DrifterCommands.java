@@ -68,6 +68,13 @@ public final class DrifterCommands {
 				.then(Commands.literal("wide").executes(ctx -> spawn(ctx, StringArgumentType.getString(ctx, "name"), false)))
 				.then(Commands.literal("slim").executes(ctx -> spawn(ctx, StringArgumentType.getString(ctx, "name"), true)))));
 
+		// Many at once, spread round where you stand (user's request: the 100-Drifter spread test, to try themselves).
+		root.then(Commands.literal("spawnmany")
+			.then(Commands.argument("count", IntegerArgumentType.integer(1, MAX_SPAWN_MANY))
+				.executes(ctx -> spawnMany(ctx, IntegerArgumentType.getInteger(ctx, "count"), DEFAULT_SPREAD))
+				.then(Commands.argument("radius", IntegerArgumentType.integer(0, MAX_SPREAD))
+					.executes(ctx -> spawnMany(ctx, IntegerArgumentType.getInteger(ctx, "count"), IntegerArgumentType.getInteger(ctx, "radius"))))));
+
 		root.then(Commands.literal("keys")
 			.then(Commands.argument("keys", StringArgumentType.word())
 				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(
@@ -353,6 +360,65 @@ public final class DrifterCommands {
 		source.sendSuccess(() -> Component.literal(String.format(Locale.ROOT, "Spawned %s with skin %s (%s arms)",
 			label(drifter), drifter.getSkinTexture(), drifter.hasSlimArms() ? "slim" : "wide")), true);
 		return 1;
+	}
+
+	private static final int MAX_SPAWN_MANY = 200;
+	private static final int DEFAULT_SPREAD = 2000;
+	private static final int MAX_SPREAD = 10000;
+
+	/**
+	 * Spawns {@code count} Drifters at random spots on dry ground within {@code radius} blocks of where the command is run
+	 * (spread evenly over the area). The land there is generated as needed, which takes a moment for big areas.
+	 */
+	private static int spawnMany(CommandContext<CommandSourceStack> ctx, int count, int radius) throws CommandSyntaxException {
+		CommandSourceStack source = ctx.getSource();
+		ServerLevel level = source.getLevel();
+		Vec3 center = source.getPosition();
+		net.minecraft.util.RandomSource random = level.getRandom();
+		long started = System.currentTimeMillis();
+		int spawned = 0;
+		for (int i = 0; i < count; i++) {
+			for (int attempt = 0; attempt < 10; attempt++) {
+				double angle = random.nextDouble() * Math.PI * 2.0;
+				double distance = radius * Math.sqrt(random.nextDouble());
+				int x = (int)Math.floor(center.x + Math.cos(angle) * distance);
+				int z = (int)Math.floor(center.z + Math.sin(angle) * distance);
+				level.getChunk(x >> 4, z >> 4);
+				net.minecraft.core.BlockPos top = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+					new net.minecraft.core.BlockPos(x, 0, z));
+				// Dry ground: not on water or lava, nor on leaves.
+				if (!level.getFluidState(top.below()).isEmpty() || !level.getFluidState(top).isEmpty()
+					|| level.getBlockState(top.below()).getCollisionShape(level, top.below()).isEmpty()) {
+					continue;
+				}
+
+				DrifterEntity drifter = ModEntities.DRIFTER.create(level);
+				if (drifter == null) {
+					throw SPAWN_FAILED.create();
+				}
+
+				float yaw = random.nextFloat() * 360.0F;
+				drifter.moveTo(top.getX() + 0.5, top.getY(), top.getZ() + 0.5, yaw, 0.0F);
+				drifter.setYHeadRot(yaw);
+				drifter.setYBodyRot(yaw);
+				drifter.finalizeSpawn(level, level.getCurrentDifficultyAt(drifter.blockPosition()), MobSpawnType.COMMAND, null);
+				if (level.addFreshEntity(drifter)) {
+					spawned++;
+					// Running for a few seconds, as if someone had just passed: the busiest get picked to keep running.
+					level.getChunkSource().addRegionTicket(com.dinglebob.drifter.world.DrifterSimulation.SPAWNED, drifter.chunkPosition(), 2,
+						drifter.chunkPosition());
+				}
+
+				break;
+			}
+		}
+
+		int total = spawned;
+		long seconds = (System.currentTimeMillis() - started) / 1000L;
+		source.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
+			"Spawned %d Drifters within %d blocks (%d s to load the land). /drifter list shows them all, /drifter perf the cost", total, radius,
+			seconds)), true);
+		return total;
 	}
 
 	private static int keys(CommandContext<CommandSourceStack> ctx, int ticks) throws CommandSyntaxException {
