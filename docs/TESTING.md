@@ -1212,3 +1212,6 @@ they get close, ghasts, blazes), and switch to the sword up close.
 - [ ] `/drifter get minecraft:bow` sends the nearest Drifter off to make one (hunting spiders for string if it has
       none; spiders are around at night and in caves). `/drifter plan minecraft:arrow 32` shows how it would get arrows.
 - [ ] Their arm swings when they place a block now (your report).
+- [ ] **Catch-up builds the hut (new):** a Drifter with a home and blocks, away while you're far off, comes back with its
+      hut's walls and roof up ("built N blocks of its hut" in its catch-up line); it puts the door, bed and torch in
+      when it's about again. It never builds over blocks you placed.

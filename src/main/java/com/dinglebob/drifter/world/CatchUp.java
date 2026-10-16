@@ -130,6 +130,7 @@ public final class CatchUp {
 		int stageBefore;
 		int stageAfter;
 		int lost;
+		int built;
 
 		Report(long ticks) {
 			this.ticks = ticks;
@@ -159,6 +160,10 @@ public final class CatchUp {
 
 			if (!this.broke.isEmpty()) {
 				line.append("; wore out its ").append(String.join(", ", this.broke));
+			}
+
+			if (this.built > 0) {
+				line.append("; built ").append(this.built).append(" blocks of its hut");
 			}
 
 			if (this.lost > 0) {
@@ -204,6 +209,7 @@ public final class CatchUp {
 			torches(drifter, r, stage, workHours, random, report);
 			smelt(drifter, stage, report);
 			craftTowardGoals(drifter, report);
+			buildHut(drifter, report);
 			if (random.nextDouble() < deathChance(drifter, r, stage, slice)) {
 				die(drifter, report);
 			}
@@ -476,6 +482,68 @@ public final class CatchUp {
 				return;
 			}
 		}
+	}
+
+	/**
+	 * Section 22 catch-up "Building": the shell of its starter hut (floor, walls, roof) with the blocks it has, only at
+	 * its own home, only while that's loaded, never where a player put a block or something stands, the door gap left
+	 * open. The rest (door, bed, torch) it does for real next time it's about.
+	 */
+	private static void buildHut(DrifterEntity drifter, Report report) {
+		Home home = drifter.getDrifterBrain().home();
+		Level level = drifter.level();
+		if (home == null || home.hutBuilt || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+			return;
+		}
+
+		com.dinglebob.drifter.building.StarterHut hut = com.dinglebob.drifter.building.StarterHut.of(home);
+		List<BlockPos> cells = new ArrayList<>(hut.floor());
+		for (int dy = 0; dy < hut.wallHeight; dy++) {
+			for (BlockPos cell : hut.wallLayer(dy)) {
+				if (!hut.isDoorColumn(cell)) {
+					cells.add(cell);
+				}
+			}
+		}
+
+		cells.addAll(hut.roof());
+		for (BlockPos cell : cells) {
+			if (!level.isLoaded(cell) || com.dinglebob.drifter.building.StarterHut.filled(level, cell) || !level.getBlockState(cell).canBeReplaced()
+				|| PlayerPlacedBlocks.isPlayerPlaced(level, cell) || !level.getEntities(null, new net.minecraft.world.phys.AABB(cell)).isEmpty()) {
+				continue;
+			}
+
+			ItemStack block = hutBlock(drifter);
+			if (block == null) {
+				return;
+			}
+
+			level.setBlock(cell, ((net.minecraft.world.item.BlockItem)block.getItem()).getBlock().defaultBlockState(), 3);
+			block.shrink(1);
+			report.built++;
+		}
+	}
+
+	/** Stone first, then planks, then any building block (the hut's own rule): a block it carries, or null. */
+	@Nullable
+	private static ItemStack hutBlock(DrifterEntity drifter) {
+		DrifterInventory inventory = drifter.getInventory();
+		for (int pass = 0; pass < 3; pass++) {
+			for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+				ItemStack stack = inventory.getItem(slot);
+				if (stack.isEmpty() || !(stack.getItem() instanceof net.minecraft.world.item.BlockItem) || !com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(stack)) {
+					continue;
+				}
+
+				boolean planks = stack.is(ItemTags.PLANKS);
+				boolean dirt = stack.is(Items.DIRT) || stack.is(Items.COARSE_DIRT);
+				if (pass == 0 && !planks && !dirt || pass == 1 && planks || pass == 2) {
+					return stack;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private static double deathChance(DrifterEntity drifter, Rates r, int stage, long slice) {

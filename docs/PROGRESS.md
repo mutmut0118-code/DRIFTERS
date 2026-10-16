@@ -967,6 +967,8 @@ player (Drifters don't respawn outside the manhunt yet).
 
 ## User wishes for later
 
+- **Different house plans** (user, 2026-10-16): more than the one starter hut and one house; Drifters should build
+  different houses (by personality, archetype, biome or materials). Later (milestone 12 polish or its own step).
 - **Config screen in Mod Menu** (user, 2026-10-15): the settings in `config/drifter.json` (sight, path range, FOV, chat
   lines, shared reputation, thought logging) should be editable from an in-game screen through Mod Menu. Plan: an
   optional client-side screen registered with Mod Menu's entrypoint (any config library only as an optional
@@ -1018,7 +1020,11 @@ together). User's decision: **hybrid** (DESIGN section 22, "Hybrid simulation").
    at home if its home is loaded, healed if fed, deciding afresh; a thought sums it up ("caught up on 1.3 days away;
    gathered ...; made ...; now stage 3"). `/drifter catchup <hours>` runs it on the nearest one (debug). Tested: a new
    Builder away 1.3 days went from nothing to stone tools, a furnace and iron ingots. Not done: building queued
-   blueprint steps while away (needs base chunks to load one by one; left for later).
+   blueprint steps while away (needs base chunks to load one by one; left for later). **Update (2026-10-16, user's
+   request):** catch-up now builds the shell of its starter hut (floor, walls, roof) with the blocks it has, only at its
+   own home while that's loaded, never over a player's block or where something stands, door gap left open; it
+   furnishes it (door, bed, torch) for real next time it's about. Tested: 0.5 days away built 55 blocks, shell
+   complete. The bigger house isn't built during catch-up yet.
 4. **Offline progression and abstract travel** (done): `/drifter config offline off|game_time|real_time` (default
    game time). Real time: the real-world time is kept with the world (on stop and every minute), and the gap since
    becomes extra catch-up (own cap, 2 in-game days; negative or absurd gaps ignored) for every Drifter saved before
