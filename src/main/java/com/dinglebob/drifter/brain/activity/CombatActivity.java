@@ -43,6 +43,8 @@ public class CombatActivity extends Activity {
 	protected void stepDone(Task step, Status status) {
 		if ((step instanceof AttackTask || step instanceof com.dinglebob.drifter.executor.task.ShootTask) && status == Status.SUCCESS) {
 			this.kills++;
+			// (A line per kill: the blaze tests count them against the rods it picks up.)
+			this.think("got it (" + step.describe() + ")");
 		}
 
 		// The bow didn't work out (it came close, out of sight, out of arrows): the sword for this fight.

@@ -99,7 +99,10 @@ public class BlazeRodsActivity extends Activity {
 					"walk to the blaze spawner"));
 			}
 
-			// Near it: wait for blazes (the fight goal takes over when one comes), looking round.
+			// Near it: wait for blazes (the fight goal takes over when one comes), looking round. Being here counts as a walk that
+			// worked: the count is for walks that don't get it here (found in testing: after several fights, holing up and
+			// coming back, it gave up on the spawner it kept reaching).
+			this.spawnerWalks = 0;
 			return this.begin(new WaitTask(this.drifter, "wait for blazes by the spawner", () -> blazeNear(this.drifter), 20 * 15));
 		}
 
