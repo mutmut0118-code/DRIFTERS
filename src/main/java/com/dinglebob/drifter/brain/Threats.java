@@ -150,6 +150,12 @@ public final class Threats {
 	}
 
 	/** Base danger of this entity right now, or 0 if it's no threat (a passive animal, a calm neutral mob). */
+	/** How dangerous one of this kind is once it's after it (its table value, angry): for weighing up a fight in advance. */
+	public static double dangerWhenAngry(net.minecraft.world.entity.EntityType<?> type) {
+		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(type));
+		return (entry == null ? 1.0 : entry.danger()) * 1.3;
+	}
+
 	public static double danger(DrifterEntity drifter, LivingEntity entity) {
 		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
 		boolean after = isAfter(drifter, entity);

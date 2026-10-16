@@ -1487,7 +1487,8 @@ The strategist won't start a first trip until most of this is in hand:
 ### Piglin etiquette
 
 - Always wears a gold armor piece.
-- Never opens chests or mines gold in sight of piglins.
+- Never opens chests or mines gold in sight of piglins, unless it's bold and strong enough to take them all on: then it
+  "goes loud", loots anyway and fights them (user, 2026-10-16).
 - Barters by tossing gold ingots and waiting for the drop.
 - Avoids piglin brutes and stays away from bastions unless a veteran.
 - Never hits a zombified piglin.

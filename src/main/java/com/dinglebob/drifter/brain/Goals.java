@@ -1277,14 +1277,27 @@ public final class Goals {
 
 			// Never with a piglin looking: opening a chest in their sight turns them all on you, gold or not (section 19 piglin
 			// etiquette; found in the user's game: looting a fortress chest, the piglins came for it and knocked it off a ledge).
-			if (drifter.getSenses().tracked().stream().anyMatch(a -> a.entity instanceof net.minecraft.world.entity.monster.piglin.Piglin
-				&& a.entity.isAlive() && a.seenWithin(drifter.level().getGameTime(), 20 * 5) && a.entity.distanceTo(drifter) < 24.0)) {
+			// Unless it's strong and bold enough to take them all on: then it goes loud, loots anyway and fights whoever comes
+			// (user's idea, 2026-10-16), the way a well-geared player sometimes does.
+			long piglins = drifter.getSenses().tracked().stream().filter(a -> a.entity instanceof net.minecraft.world.entity.monster.piglin.Piglin
+				&& a.entity.isAlive() && a.seenWithin(drifter.level().getGameTime(), 20 * 5) && a.entity.distanceTo(drifter) < 24.0).count();
+			if (piglins > 0 && !goesLoud(drifter, piglins)) {
 				return 0.0;
 			}
 
 			var p = drifter.getPersonality();
 			return 0.45 + 0.3 * p.get(com.dinglebob.drifter.personality.Trait.GREED) + 0.1 * p.get(com.dinglebob.drifter.personality.Trait.CURIOSITY);
 		}
+
+		/** Brave enough (Bravery 0.5 or more) and strong enough to win against all of them at once, as Threats judges a fight. */
+		private static boolean goesLoud(DrifterEntity drifter, long piglins) {
+			double danger = piglins * Threats.dangerWhenAngry(net.minecraft.world.entity.EntityType.PIGLIN);
+			return drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= 0.5
+				&& Threats.power(drifter) * Threats.courage(drifter) >= danger * LOUD_MARGIN;
+		}
+
+		/** How many times the piglins' strength it wants before it goes loud. */
+		private static final double LOUD_MARGIN = 2.0;
 
 		@Override
 		public double feasibility(Context context) {
