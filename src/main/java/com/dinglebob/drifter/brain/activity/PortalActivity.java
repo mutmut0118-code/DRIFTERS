@@ -148,7 +148,7 @@ public class PortalActivity extends Activity {
 		}
 
 		this.think("lit the Nether portal at " + f.origin().toShortString());
-		this.drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.STATION, "nether_portal", Vec3.atCenterOf(f.inside()),
+		this.drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.STRUCTURE, "minecraft:nether_portal", Vec3.atCenterOf(f.inside()),
 			level.dimension().location(), level.getGameTime(), com.dinglebob.drifter.memory.MemorySource.SEEN, 1.0F, null);
 		return Status.SUCCESS;
 	}

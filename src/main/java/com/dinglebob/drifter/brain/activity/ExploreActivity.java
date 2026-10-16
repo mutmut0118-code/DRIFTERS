@@ -101,11 +101,27 @@ public class ExploreActivity extends Activity {
 
 		return switch (this.phase++) {
 			case 0 -> this.begin(new LookAroundTask(this.drifter));
-			case 1 -> this.begin(new NavigateTask(this.drifter, this.toward != null ? this.toward : this.pickDirection(),
+			case 1 -> this.begin(new NavigateTask(this.drifter, aboveLavaSea(this.drifter, this.toward != null ? this.toward : this.pickDirection()),
 				this.toward != null ? 4.0 : 6.0, "explore " + this.reason));
 			case 2 -> this.begin(new LookAroundTask(this.drifter));
 			default -> Status.SUCCESS;
 		};
+	}
+
+	/** Blocks above the Nether's lava sea it keeps its exploring (down there every way runs along lava). */
+	private static final int ABOVE_LAVA_SEA = 8;
+
+	/**
+	 * In a dimension with a lava sea (the Nether), a leg's end no lower than a little above it (found in testing: wandering
+	 * at the lava sea's level it got burned and died there).
+	 */
+	static Vec3 aboveLavaSea(DrifterEntity drifter, Vec3 point) {
+		var level = drifter.level();
+		if (!level.dimensionType().ultraWarm()) {
+			return point;
+		}
+
+		return new Vec3(point.x, Math.max(point.y, level.getSeaLevel() + ABOVE_LAVA_SEA), point.z);
 	}
 
 	/** A point 20 to 32 blocks away, preferring a direction whose ground it hasn't explored. */

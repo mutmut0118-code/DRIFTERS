@@ -33,6 +33,7 @@ public class BlazeRodsActivity extends Activity {
 	private static final int MAX_WALKS = 6;
 
 	private int walks;
+	private boolean headingForBlazes;
 
 	public BlazeRodsActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -90,6 +91,19 @@ public class BlazeRodsActivity extends Activity {
 
 		MemoryEntry fortress = fortress(this.drifter);
 		if (fortress != null) {
+			// A blaze seen or heard lately: blazes stay round their spawner, so it goes that way (the fight takes over when
+			// they come at it, and the spawner turns up on the way).
+			MemoryEntry blaze = this.drifter.getMemory().nearest(MemoryKind.MOB, this.drifter.level().dimension().location(), this.drifter.position(),
+				64.0, e -> e.label.equals("minecraft:blaze"));
+			if (blaze != null && this.drifter.position().distanceTo(blaze.pos) > 10.0 && this.walks++ <= MAX_WALKS) {
+				if (!this.headingForBlazes) {
+					this.headingForBlazes = true;
+					this.think("blazes over there: heading that way");
+				}
+
+				return this.begin(new NavigateTask(this.drifter, blaze.pos, 8.0, "walk toward the blazes"));
+			}
+
 			// At the fortress: look round inside it for the spawner.
 			if (this.drifter.position().distanceTo(fortress.pos) < 12.0) {
 				return this.begin(new ExploreActivity(this.drifter, "looking for the blaze spawner", null, drifter -> spawner(drifter) != null));

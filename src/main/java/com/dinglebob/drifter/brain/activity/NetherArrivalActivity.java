@@ -63,7 +63,7 @@ public class NetherArrivalActivity extends Activity {
 			trip.netherPortal = portal;
 			trip.arrivedAt = level.getGameTime();
 			trip.phase = NetherTrip.Phase.THERE;
-			this.drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.STATION, "nether_portal", Vec3.atCenterOf(portal),
+			this.drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.STRUCTURE, "minecraft:nether_portal", Vec3.atCenterOf(portal),
 				level.dimension().location(), level.getGameTime(), com.dinglebob.drifter.memory.MemorySource.SEEN, 1.0F, null);
 			this.think("in the Nether: the portal home is at " + portal.toShortString());
 		}

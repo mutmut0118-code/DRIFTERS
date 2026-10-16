@@ -64,6 +64,9 @@ public class PathSearch {
 	public static final double AVOID = 4.0;
 	/** Unknown cells are assumed passable "at a moderate cost". */
 	public static final double UNKNOWN = 0.4;
+	/** In the Nether any block it hasn't seen may be lava: routes keep to what it has seen where they can. */
+	public static final double UNKNOWN_LAVA_WORLD = 3.0;
+	private final boolean lavaWorld;
 	/**
 	 * Players dig to get somewhere only when it saves real time: every block dug on the way costs this much extra on
 	 * top of the time to break it (found in testing: without it, breaking a window looked cheaper than using the door).
@@ -156,6 +159,7 @@ public class PathSearch {
 		// Never its last few blocks on a route: a long chain of partial routes (exploring far) once spent them all on pillars
 		// and bridges and left it stranded up on them (found by the user: rubydoodle).
 		this.blocksAvailable = Math.max(0, Tools.buildingBlockCount(drifter) - BLOCK_RESERVE);
+		this.lavaWorld = drifter.level().dimensionType().ultraWarm();
 		// Section 12 cost model: risk x Caution, resources x Thrift, from its personality (mood included).
 		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
 		this.thrift = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.THRIFT);
@@ -312,7 +316,7 @@ public class PathSearch {
 				case OPEN, LOW, WATER, CLIMB -> {
 				}
 				case UNKNOWN -> {
-					clearance.cost += UNKNOWN;
+					clearance.cost += this.lavaWorld ? UNKNOWN_LAVA_WORLD : UNKNOWN;
 					clearance.unknown++;
 				}
 				case DOOR -> clearance.cost += DOOR;
@@ -482,7 +486,10 @@ public class PathSearch {
 			// planned bridges down hills).
 			boolean floorSeen = this.view.isKnown(t.below());
 			boolean seenHole = this.view.cell(t).kind() == NavView.Kind.OPEN;
-			if (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t)))) {
+			// (In the Nether, never onto ground or into a space it hasn't seen: either may be lava; found in testing, a step
+			// down a slope onto an unseen block landed it in lava.)
+			boolean seenEnough = !this.lavaWorld || floorSeen && this.view.isKnown(t);
+			if (seenEnough && (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t))))) {
 				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
 				double cost = WALK + STEP_DOWN_EXTRA * k + c.cost + damage * FALL_DAMAGE_COST * this.caution * 2.0;
 				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN,
@@ -545,7 +552,7 @@ public class PathSearch {
 		// Not from water: floating, there's nothing to jump off and the block can't go under its feet (found in testing: in
 		// a pool with high sides it planned pillars from the water and bobbed there; it digs a step into the side instead).
 		if (onSolidFloor && !inWater && !this.view.isWater(n.below()) && node.blocksUsed < this.blocksAvailable
-			&& !this.drifter.pillarFailedRecently(n)) {
+			&& !this.drifter.pillarFailedRecently(n) && !this.view.lavaWithinTwo(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
 				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);

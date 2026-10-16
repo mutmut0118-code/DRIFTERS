@@ -111,7 +111,7 @@ public class Reflexes {
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
-		this.reflexes = List.of(new InLava(), new Drowning(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
+		this.reflexes = List.of(new InLava(), new InFireBlock(), new Drowning(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
 			new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact());
 	}
 
@@ -229,7 +229,8 @@ public class Reflexes {
 		double bestDistance = Double.MAX_VALUE;
 		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-radius, -1, -radius), feet.offset(radius, 2, radius))) {
 			if (solid(level, pos.below()) && !solid(level, pos) && !solid(level, pos.above()) && level.getFluidState(pos).isEmpty()
-				&& level.getFluidState(pos.above()).isEmpty() && !level.getBlockState(pos).is(Blocks.FIRE)
+				&& level.getFluidState(pos.above()).isEmpty() && !level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FIRE)
+				&& !level.getBlockState(pos.above()).is(net.minecraft.tags.BlockTags.FIRE)
 				&& !level.getFluidState(pos.below()).is(FluidTags.LAVA)) {
 				double distance = pos.distToCenterSqr(drifter.position());
 				if (distance < bestDistance) {
@@ -555,6 +556,58 @@ public class Reflexes {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Standing in fire (a burning patch of netherrack, soul fire, a fire a ghast's fireball left): out of it to the nearest
+	 * spot that isn't burning, as a player steps off (found in testing: it stood in a Nether fire, looking down, until it
+	 * died).
+	 */
+	private static final class InFireBlock extends Reflex {
+		@Nullable
+		private BlockPos safe;
+
+		@Override
+		public String name() {
+			return "standing in fire! stepping out";
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			if (drifter.isInLava()) {
+				return false;
+			}
+
+			Level level = drifter.level();
+			for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(drifter.getBoundingBox().minX, drifter.getY(), drifter.getBoundingBox().minZ),
+				BlockPos.containing(drifter.getBoundingBox().maxX, drifter.getY() + 1.0, drifter.getBoundingBox().maxZ))) {
+				if (level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FIRE)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 40;
+		}
+
+		@Override
+		protected void start(DrifterEntity drifter) {
+			this.safe = nearestSafeSpot(drifter, 3);
+		}
+
+		@Override
+		protected boolean act(DrifterEntity drifter, int tick) {
+			if (this.safe == null || tick > 5 && !this.detect(drifter)) {
+				return false;
+			}
+
+			runTo(drifter, Vec3.atBottomCenterOf(this.safe), false);
+			return true;
+		}
 	}
 
 	/** On fire (not in lava) with water close by: run into it. */

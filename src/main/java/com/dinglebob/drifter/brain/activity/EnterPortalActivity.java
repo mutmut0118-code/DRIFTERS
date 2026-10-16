@@ -47,6 +47,13 @@ public class EnterPortalActivity extends Activity {
 	protected Status next() {
 		Level level = this.drifter.level();
 		if (!level.getBlockState(this.inside).is(Blocks.NETHER_PORTAL)) {
+			// Put out (a ghast's fireball does that; section 19 packs flint and steel for it): lit again from the frame's
+			// bottom, if the frame's still there.
+			if (this.relights++ < 3 && level.getBlockState(this.inside).isAir() && level.getBlockState(this.inside.below()).is(Blocks.OBSIDIAN)
+				&& this.drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.FLINT_AND_STEEL)) > 0) {
+				return this.relight(level);
+			}
+
 			return this.fail("the portal at " + this.inside.toShortString() + " isn't lit");
 		}
 
@@ -99,7 +106,35 @@ public class EnterPortalActivity extends Activity {
 			return this.fail("can't get to the portal");
 		}
 
+		// A step away (same level): straight onto it, no route to plan (found in testing: the spot in front of its portal
+		// was marked to be kept off for lava that had flowed there, the planner wouldn't step on it, and it stood one block
+		// short until the lava came back for it).
+		BlockPos at = this.drifter.blockPosition();
+		if (at.getY() == pad.getY() && Math.abs(at.getX() - pad.getX()) + Math.abs(at.getZ() - pad.getZ()) <= 2 && this.drifter.onGround()) {
+			return this.begin(new com.dinglebob.drifter.executor.task.CenterOnBlockTask(this.drifter, Vec3.atBottomCenterOf(pad)));
+		}
+
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(pad), 0.4, "walk to the portal"));
+	}
+
+	private int relights;
+
+	private Status relight(Level level) {
+		if (!com.dinglebob.drifter.hands.Reach.canReach(this.drifter, this.inside.below())) {
+			if (this.walks++ >= MAX_WALKS) {
+				return this.fail("can't get to the portal to light it again");
+			}
+
+			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.inside), 2.5, "walk to the portal"));
+		}
+
+		if (!this.drifter.getMainHandItem().is(net.minecraft.world.item.Items.FLINT_AND_STEEL)) {
+			return this.begin(new com.dinglebob.drifter.executor.task.SelectItemTask(this.drifter,
+				stack -> stack.is(net.minecraft.world.item.Items.FLINT_AND_STEEL), "flint and steel"));
+		}
+
+		this.think("the portal's gone out: lighting it again");
+		return this.begin(new com.dinglebob.drifter.executor.task.UseOnBlockTask(this.drifter, this.inside.below(), Direction.UP, "light the portal again"));
 	}
 
 	/** The bottom portal cell beside this pad. */

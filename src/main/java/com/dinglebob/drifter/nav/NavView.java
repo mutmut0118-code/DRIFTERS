@@ -191,7 +191,7 @@ public final class NavView {
 			if (!fluid.is(FluidTags.WATER)) {
 				boolean lavaBeside = this.knownLavaAt(pos.above());
 				for (Direction side : Direction.Plane.HORIZONTAL) {
-					lavaBeside |= this.knownLavaAt(pos.relative(side));
+					lavaBeside |= this.knownLavaAt(pos.relative(side)) || this.dropIntoLava(pos.relative(side));
 				}
 
 				if (lavaBeside) {
@@ -234,6 +234,40 @@ public final class NavView {
 
 	/** Breaking a berry bush in the way: instant (hardness 0), plus a moment to aim. */
 	private static final float BERRY_BUSH_SECONDS = 0.2F;
+
+	/**
+	 * Open air beside it with lava a short drop below (a lava lake's shore, a ledge over a lava fall): one slip and it's in
+	 * (found in testing: walking a Nether lava lake's shore, a jump knocked it off into the lava).
+	 */
+	private boolean dropIntoLava(BlockPos side) {
+		for (int down = 0; down <= 3; down++) {
+			BlockPos cell = side.below(down);
+			if (this.knownLavaAt(cell)) {
+				return down > 0;
+			}
+
+			if (!this.level.getBlockState(cell).getCollisionShape(this.level, cell).isEmpty()) {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/** Lava it has seen within two blocks across and one below or above: no pillaring there (a jump can tip it in). */
+	public boolean lavaWithinTwo(BlockPos feet) {
+		return this.lavaNear.computeIfAbsent(feet.asLong(), key -> {
+			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-2, -2, -2), feet.offset(2, 1, 2))) {
+				if (this.knownLavaAt(pos)) {
+					return true;
+				}
+			}
+
+			return false;
+		});
+	}
+
+	private final java.util.Map<Long, Boolean> lavaNear = new java.util.HashMap<>();
 
 	private boolean knownLavaAt(BlockPos pos) {
 		return this.knowledge.isKnown(pos) && this.level.getFluidState(pos).is(FluidTags.LAVA);

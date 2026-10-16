@@ -1121,6 +1121,17 @@ replanning and dropped into lava (it stops when lava is a step or a short drop a
 random directions and can only see a fortress from fairly close in the dark, so finding one is slow (next: search
 along north-south lines, as fortresses run, Knowledge-gated).
 
+**Nether survival round 2 (2026-10-15 night):** a three-seed batch of full trips (`nbatch.sh`), run after each fix.
+Fixed: lava-lake shores and drops into lava count as "avoid" for routes, no pillaring with lava within two blocks
+(a jump on a lava lake's shore knocked it in); exploring in the Nether stays 8+ blocks above the lava sea; it steps
+out of fire blocks at once (a reflex; it stood in a Nether fire until it died); in the Nether it never steps down onto,
+or into, a block it hasn't seen, and unseen cells cost routes much more there (it stepped down onto unseen lava); a
+put-out portal home is relit with flint and steel; a blaze it has seen leads it toward the spawner; the portal memory
+label matches what its eyes use (it kept thinking its portal "had changed"); a portal stand spot a step away is
+stepped onto directly (it stood one block short, the spot marked "lava flowed here", until the lava got it). Latest
+batch: 2 of 3 alive (one came home), the third (seed 424242: its portal comes out beside a lava fall) still dies.
+No blaze rods yet: fortresses are found, spawners not.
+
 **Nether trip testing (2026-10-15 evening), still in progress.** Fixed so far: never routes through obsidian or a portal
 frame (it broke its own portal home digging out of the room it had walled round it); backs well away from lava that
 keeps flowing at it (it blocked the same lava fall seven times until it ran over it); a failed trip home isn't retried
