@@ -70,8 +70,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 7 | Mannerisms, personality and mood | Mostly done: the user tested it and moved on to milestone 8 (session 2); leftovers listed below | Done when: people watching a short clip can't reliably tell it from a player. |
 | 8 | Progression and building | **Done** (2026-10-15): 10-day runs reach diamonds with a house and farm (batch 21: three of three, no deaths); played by the user | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | **Done** (2026-10-15): every section 14 event moves Trust as specified (headless table test); gifts, warnings, raids, looting and the manhunt (hunter) played by the user | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
-| 10 | Offscreen and performance | Not started | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
-| 11 | Nether | Not started | Section 19. |
+| 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
+| 11 | Nether | In progress: steps 1 to 3 done (portal, packing, going through), 4 mostly, 5 in testing (fortresses found, spawner reached, no rods yet); 6 and 7 to do | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | Not started | |
 | 13 | The End (optional) | Not started | |
 | 14 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. |
