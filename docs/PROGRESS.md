@@ -1111,6 +1111,16 @@ brings back blaze rods (or at least quartz and gold) and gets home alive, on mos
 - New debug commands: `/drifter plan <item> [count]` (how the nearest Drifter would get it) and
   `/drifter get <item> [count]` (sends it to get it).
 
+**Step 5 first cut (blaze rods; in testing):** far sight notes Nether bricks as a "fortress" landmark; "get blaze
+rods" (in the Nether, after arriving) explores for a fortress, goes to it, looks for its spawner, waits by it (the
+fight goal and the bow handle the blazes), picks up the rods; home with 6, when hurt or hungry, or after 12 minutes.
+Stage 9 ("Nether") once it has blaze rods. First Nether trip tests found and fixed: exploring thought it was
+underground (rock overhead everywhere) and walked to its overworld home's coordinates, then staircased to the
+bedrock roof (no surface-seeking in a roofed dimension; unseen cells there aren't assumed rock); it ran on while
+replanning and dropped into lava (it stops when lava is a step or a short drop away). Still to do: it explores in
+random directions and can only see a fortress from fairly close in the dark, so finding one is slow (next: search
+along north-south lines, as fortresses run, Knowledge-gated).
+
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
    basalt deltas).

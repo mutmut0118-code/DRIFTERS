@@ -77,7 +77,10 @@ public class ExploreActivity extends Activity {
 		// A failed walk still got it somewhere new: it just carries on with the next phase.
 		// Underground (the end of a mining trip): up to the surface first, by way of home; looking for animals or trees in
 		// the caves gets it lost and near lava (found in testing: it walked into lava "looking for animals" at Y 28).
-		if (this.phase == 0 && !this.wentUp && !this.reason.contains("cave") && !this.reason.contains("lava")
+		// (Not in the Nether: rock overhead everywhere there, and no surface to go up to; found in testing: it walked to its
+		// overworld home's coordinates and staircased up to the bedrock roof.)
+		boolean roofed = this.drifter.level().dimensionType().hasCeiling();
+		if (this.phase == 0 && !this.wentUp && !roofed && !this.reason.contains("cave") && !this.reason.contains("lava")
 			&& com.dinglebob.drifter.brain.mining.Caver.underground(this.drifter, this.drifter.blockPosition())) {
 			this.wentUp = true;
 			com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
@@ -89,7 +92,7 @@ public class ExploreActivity extends Activity {
 
 		// Still deep underground after that (no way home it could find): a staircase up, never exploring the deep caves
 		// for things that live on the surface (found by the user: "looking for sugar cane" at Y -54, into lava).
-		if (this.phase == 0 && this.wentUp && !this.dugUp && !this.reason.contains("cave") && !this.reason.contains("lava")
+		if (this.phase == 0 && this.wentUp && !this.dugUp && !roofed && !this.reason.contains("cave") && !this.reason.contains("lava")
 			&& com.dinglebob.drifter.brain.mining.Caver.underground(this.drifter, this.drifter.blockPosition())
 			&& this.drifter.getBlockY() < this.drifter.level().getSeaLevel() - 8) {
 			this.dugUp = true;

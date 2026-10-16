@@ -375,7 +375,9 @@ public class NavigateTask extends Task {
 			this.keys().set(VirtualKeys.Key.JUMP, false);
 		}
 
-		if (edge || !this.drifter.onGround() && !this.drifter.isInWater()) {
+		// Lava close by (the Nether is full of it): no carrying on blind while it thinks (found in testing: it ran on while
+		// replanning, dropped three blocks off a ledge into lava and burned).
+		if (edge || !this.drifter.onGround() && !this.drifter.isInWater() || this.lavaBelowNear()) {
 			this.keys().set(VirtualKeys.Key.FORWARD, false);
 			this.keys().set(VirtualKeys.Key.BACK, false);
 			this.keys().set(VirtualKeys.Key.LEFT, false);
@@ -866,6 +868,18 @@ public class NavigateTask extends Task {
 	private static final float CAREFUL_HEALTH = 6.0F;
 
 	/** Lava it has seen within this many blocks sideways, from a block below its feet to its head. */
+	/** Lava it has seen within 3 blocks across and 4 down (a step or a short drop away). */
+	private boolean lavaBelowNear() {
+		BlockPos feet = this.feet();
+		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-3, -4, -3), feet.offset(3, 0, 3))) {
+			if (this.level().getFluidState(pos).is(FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(pos)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private boolean lavaNear(int radius) {
 		BlockPos feet = this.feet();
 		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-radius, -1, -radius), feet.offset(radius, 1, radius))) {

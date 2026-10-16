@@ -82,8 +82,9 @@ public final class NavView {
 		this.level = drifter.level();
 		this.knowledge = drifter.getSenses().terrain();
 		// (Its own position tells it it's underground: rock overhead and no sky.)
+		// (Not in the Nether: rock overhead everywhere, but what it hasn't seen there is mostly open caverns and lava seas.)
 		this.underground = com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
-			&& !drifter.getSenses().time().canSeeSky();
+			&& !drifter.getSenses().time().canSeeSky() && !this.level.dimensionType().hasCeiling();
 		this.rockSeconds = Tools.digSeconds(drifter, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), this.level, drifter.blockPosition());
 	}
 
