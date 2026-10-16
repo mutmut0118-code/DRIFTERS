@@ -1171,7 +1171,14 @@ over anything further off); a portal build started from higher ground elsewhere 
 instead of failing at once, and portal failures say which block it couldn't reach; a Nether trip once begun is seen
 through (night falling or a player coming to look had pulled it out of its portal twice; it still gives up after 2
 minutes); routes never cut diagonally across the corner of a hole (it fell 19 blocks doing that at a run). Test
-batches now run with mob spawning on (ghasts, piglins, spawners as in a real game).
+batches now run with mob spawning on (ghasts, piglins, spawners as in a real game). With spawning on, the first batch lost 5 of 6
+(blaze fire, lava, a fall); fixed from those: its shield reflex now sees blaze fireballs as soon as they're fired (a
+fireball starts slow and speeds up; it used to be ignored until too late); finding the spawner no longer fails at once
+(walks to the fortress had used up the walk count); a trip home is kept up once begun (it turned back to search when the
+reason to leave wore off); sneaking holds it on ladders and vines as it does a player (a route cut off mid-climb slid it
+into lava); routes along the lava sea's shore cost more; on a pillar block it counts as arrived anywhere on the block
+(it landed a little off the middle, never "arrived", and the stuck check strafed it off), and it never does the
+unstick strafe on its own pillar or bridge.
 
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
