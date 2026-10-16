@@ -136,6 +136,41 @@ public class Brain {
 	@Nullable
 	private Home home;
 
+	/** A Nether trip under way (section 19), or null. Saved: the portal rebuilds the Drifter on the other side. */
+	@Nullable
+	private NetherTrip netherTrip;
+	/** When its last Nether trip ended (game time), 0 if never. */
+	private long lastNetherTrip;
+
+	@Nullable
+	public NetherTrip netherTrip() {
+		return this.netherTrip;
+	}
+
+	public void setNetherTrip(@Nullable NetherTrip trip) {
+		this.netherTrip = trip;
+	}
+
+	public long lastNetherTrip() {
+		return this.lastNetherTrip;
+	}
+
+	/** Back in the overworld from a trip (or a trip that never got through): it's over. */
+	private void endNetherTripIfBack() {
+		if (this.netherTrip == null || NetherGoals.inNether(this.drifter)) {
+			return;
+		}
+
+		long now = this.drifter.level().getGameTime();
+		boolean back = this.netherTrip.phase != NetherTrip.Phase.GOING;
+		boolean gaveUp = this.netherTrip.phase == NetherTrip.Phase.GOING && now - this.netherTrip.startedAt > 20 * 120;
+		if (back || gaveUp) {
+			this.think(back ? "back from the Nether" : "didn't get through the portal");
+			this.netherTrip = null;
+			this.lastNetherTrip = now;
+		}
+	}
+
 	@Nullable
 	public Home home() {
 		return this.home;
@@ -298,13 +333,16 @@ public class Brain {
 	}
 
 	private void decide() {
+		this.endNetherTripIfBack();
 		Goals.Context context = this.context();
 		this.lastContext = context;
 		long now = this.drifter.level().getGameTime();
 		List<Scored> scores = new ArrayList<>();
+		boolean nether = NetherGoals.inNether(this.drifter);
 		for (Goals.Goal goal : this.goals) {
 			long t = System.nanoTime();
-			double base = goal.score(context);
+			// In the Nether, only what makes sense there (no settling, farming or night shelters).
+			double base = nether && !NetherGoals.IN_THE_NETHER.contains(goal.id()) ? 0.0 : goal.score(context);
 			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t, () -> this.drifter.getName().getString() + ": goal " + goal.id());
 			if (base > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
 				base *= FAILED_PENALTY;
@@ -506,6 +544,11 @@ public class Brain {
 			tag.put("Home", this.home.save());
 		}
 
+		if (this.netherTrip != null) {
+			tag.put("NetherTrip", this.netherTrip.save());
+		}
+
+		tag.putLong("LastNetherTrip", this.lastNetherTrip);
 		return tag;
 	}
 
@@ -513,6 +556,8 @@ public class Brain {
 		// Version 1 is the first format.
 		this.enabled = !tag.contains("Enabled") || tag.getBoolean("Enabled");
 		this.home = tag.contains("Home", net.minecraft.nbt.Tag.TAG_COMPOUND) ? Home.load(tag.getCompound("Home")) : null;
+		this.netherTrip = tag.contains("NetherTrip", net.minecraft.nbt.Tag.TAG_COMPOUND) ? NetherTrip.load(tag.getCompound("NetherTrip")) : null;
+		this.lastNetherTrip = tag.getLong("LastNetherTrip");
 		this.furnaceJobs.clear();
 		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
 		for (int i = 0; i < jobs.size(); i++) {

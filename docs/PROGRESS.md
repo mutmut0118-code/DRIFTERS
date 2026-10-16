@@ -1075,11 +1075,21 @@ brings back blaze rods (or at least quartz and gold) and gets home alive, on mos
    prop on each top corner, the top row against the props, lights it with flint and steel from the pillar, digs its
    pillar back down and remembers the portal. A half-built frame is saved with its home and finished later. Flat-world
    test: built and lit in 11 s. Completing a ruined portal is left for later.
-2. **Packing list** (section 19): full iron armor or better with one gold piece, sword, shield, bow and arrows, 64+
-   cobblestone, 20+ cooked food, flint and steel, a spare pickaxe, gold ingots. The trip goal waits until most of it
-   is in hand; missing items become targets.
-3. **Through and arrival:** walks in and waits for the portal like a player; on arrival walls the portal in with
-   cobblestone leaving a door gap, notes the way back, has a look round first.
+2. **Packing list** (done; `Strategist.NETHER_PACKING`, `packedForNether`): once its portal is lit, targets for a gold
+   armor piece (boots or helmet, from mined gold), 64 cobblestone, 20 cooked food and a spare pickaxe; the trip also
+   needs flint and steel, a sword and a shield. Not yet: bow and arrows (no source of string: spiders; a target it
+   can't reach would block every target after it) and gold ingots to barter (step 6).
+3. **Through and arrival** (done, staged test passes; `NetherTrip`, `NetherGoals`, `EnterPortalActivity`,
+   `NetherArrivalActivity`): "go to the Nether" when packed, fit, near home, by day, at most once a day for now. It
+   walks to its portal, steps in and waits a player's 4 s (`NetherPortalBlockMixin`; mobs normally go at once; its
+   portal cooldown after a trip is a player's, 10 ticks). The trip is kept with its brain (the game rebuilds the
+   Drifter on the other side). In the Nether: notes the portal home, walls it in with cobblestone (25 blocks: the
+   exits' ends, a far wall two out with a door gap, a roof), looks round; only fighting, fleeing, eating, gear and the
+   trip goals run there. Home after 30 s for now (or when hurt or hungry): steps out of the portal and waits for the
+   portal to be ready again (you must step out of a portal you came through), back in, home ("back from the
+   Nether"). Paths never go through portals by accident. Found on the way: the game stops ticking every creature in
+   a dimension nobody is in for 15 s, which froze kept-running Drifters there (now a kept-running Drifter counts as
+   someone being there).
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
    basalt deltas).

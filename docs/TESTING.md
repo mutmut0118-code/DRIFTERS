@@ -1189,3 +1189,15 @@ steel, then builds a Nether portal near its home and lights it. It doesn't go th
       the land (about 40 s for 100 over 2000 blocks). Then `/drifter perf` shows the cost, `/drifter sim` the 3 kept
       running, `/drifter list` all of them. Only Drifters near you (and the 3) actually run; the rest wait frozen and
       catch up when you visit. To remove a test crowd: `/kill @e[type=drifter:drifter]`.
+
+**Steps 2-3: packing and going through (new).** With its portal lit, a Drifter gathers a gold armor piece, a stack of
+cobblestone, 20 cooked food and a spare pickaxe, then (by day, fit and fed) goes to the Nether: steps into its portal
+and waits the 4 seconds a player does, walls the portal in on the other side with cobblestone (leaving a door), looks
+round, and for now comes home again after about 30 seconds. (What it does in the Nether comes in the next steps.)
+- [ ] Quick check: a Drifter with a home, give it what the portal step needs plus the packing list:
+      `/drifter giveall minecraft:cobblestone 64`, `/drifter giveall minecraft:cooked_beef 24`,
+      `/drifter giveall minecraft:golden_boots 1`, `/drifter giveall minecraft:iron_sword 1`,
+      `/drifter giveall minecraft:shield 1`, `/drifter giveall minecraft:iron_pickaxe 2`, then `/drifter brain goal portal`
+      and when it's lit `/drifter brain goal nether_go`. Follow it in (or `/drifter tp <name>`): "in the Nether: the
+      portal home is at ...", "walled the portal in", later "back from the Nether".
+- [ ] It never walks into a portal by accident while doing something else.

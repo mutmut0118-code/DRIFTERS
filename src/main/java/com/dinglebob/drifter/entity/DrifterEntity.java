@@ -419,6 +419,12 @@ public class DrifterEntity extends PathfinderMob {
 		this.travelTo = target.immutable();
 	}
 
+	/** After going through a portal, as a player: ready to use one again almost at once (mobs wait 15 s). */
+	@Override
+	public int getDimensionChangingDelay() {
+		return 10;
+	}
+
 	/** Detail tier (section 22), from the players round it, checked once a second. */
 	private DetailTier tier = DetailTier.FULL;
 	/** Set by `/drifter tier` (debug); null for automatic. */

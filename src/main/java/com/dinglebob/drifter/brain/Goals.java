@@ -1744,6 +1744,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.FriendlyGoals.all());
+		// The Nether (milestone 11, section 19).
+		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);
 	}
 }

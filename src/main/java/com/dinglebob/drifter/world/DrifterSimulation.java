@@ -138,6 +138,10 @@ public final class DrifterSimulation {
 			ServerLevel level = server.getLevel(s.level());
 			if (level != null) {
 				level.getChunkSource().addRegionTicket(TICKET, s.chunk(), TICKET_RADIUS, s.chunk());
+				// The game stops ticking every creature in a dimension with no player in it for 15 s, whatever keeps its land
+				// loaded (found in testing: a Drifter that went to the Nether alone stood frozen there). A kept-running Drifter
+				// counts as someone being there.
+				level.resetEmptyTime();
 			}
 		}
 

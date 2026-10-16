@@ -12,6 +12,7 @@
 		"ItemEntityAccessor",
 		"LivingEntityAccessor",
 		"MobAccessor",
+		"NetherPortalBlockMixin",
 		"NearestAttackableTargetGoalAccessor",
 		"PlayerAccessor",
 		"TargetGoalAccessor"

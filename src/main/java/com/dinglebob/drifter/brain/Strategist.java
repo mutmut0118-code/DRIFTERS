@@ -117,6 +117,38 @@ public final class Strategist {
 				>= com.dinglebob.drifter.brain.activity.PortalActivity.OBSIDIAN - portalObsidianPlaced(drifter)),
 		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))));
 
+	public static final int NETHER_BLOCKS = 64;
+	public static final int NETHER_FOOD = 20;
+
+	/**
+	 * The Nether packing list (section 19), what it gets once its portal is lit: a gold armor piece (piglins), a stack of
+	 * cobblestone (ghast-proof building), 20 cooked food and a spare pickaxe. Sword, shield, armor and flint and steel it
+	 * has by then. (Bow and arrows wait for a source of string; gold to barter with comes with the piglin step.)
+	 */
+	public static final List<Target> NETHER_PACKING = List.of(
+		new Target("a gold armor piece for the Nether", List.of(Items.GOLDEN_BOOTS, Items.GOLDEN_HELMET), 1,
+			drifter -> has(drifter, stack -> stack.is(Items.GOLDEN_BOOTS) || stack.is(Items.GOLDEN_HELMET) || stack.is(Items.GOLDEN_CHESTPLATE)
+				|| stack.is(Items.GOLDEN_LEGGINGS))),
+		new Target("cobblestone for the Nether", List.of(Items.COBBLESTONE, Items.COBBLED_DEEPSLATE), NETHER_BLOCKS,
+			drifter -> drifter.getInventory().count(stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE)) >= NETHER_BLOCKS),
+		new Target("food for the Nether", List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT,
+			Items.BREAD), NETHER_FOOD, drifter -> drifter.getInventory().count(stack -> stack.is(Items.COOKED_BEEF) || stack.is(Items.COOKED_PORKCHOP)
+				|| stack.is(Items.COOKED_MUTTON) || stack.is(Items.COOKED_CHICKEN) || stack.is(Items.COOKED_RABBIT) || stack.is(Items.BREAD)) >= NETHER_FOOD),
+		new Target("a spare pickaxe for the Nether", List.of(Items.IRON_PICKAXE, Items.STONE_PICKAXE), 1, drifter -> !needsSparePickaxe(drifter)));
+
+	/** Everything on the packing list carried (and flint and steel, a sword and a shield). */
+	public static boolean packedForNether(DrifterEntity drifter) {
+		for (Target target : NETHER_PACKING) {
+			if (!target.satisfied().test(drifter)) {
+				return false;
+			}
+		}
+
+		return drifter.getInventory().count(stack -> stack.is(Items.FLINT_AND_STEEL)) > 0
+			&& drifter.getInventory().count(stack -> stack.is(ItemTags.SWORDS)) > 0
+			&& has(drifter, stack -> stack.is(Items.SHIELD));
+	}
+
 	/** Its portal by home is built and lit. */
 	public static boolean portalLit(DrifterEntity drifter) {
 		Home home = drifter.getDrifterBrain().home();
@@ -169,6 +201,9 @@ public final class Strategist {
 		// The Nether once it enchants (stage 8; section 9: "Day 12 onward"), before the slow diamond armor and bookshelves.
 		if (stage(drifter) >= 8) {
 			order.addAll(PORTAL_TARGETS);
+			if (portalLit(drifter)) {
+				order.addAll(NETHER_PACKING);
+			}
 		}
 
 		order.addAll(DIAMOND_TARGETS.subList(2, DIAMOND_TARGETS.size()));
