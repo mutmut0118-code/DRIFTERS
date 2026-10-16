@@ -1215,7 +1215,13 @@ Nether food is steak or cooked porkchop only. Also new: arrow kills count as a p
 player's kill; the bow kills had dropped none); piglins go for a Drifter not wearing gold, and its gold piece goes on
 first on a trip; looting in the Nether (fortress chests); digging with no fitting tool uses an empty hand; at a fortress
 it walks the parts it has seen, highest first, to find the spawner; rods are banked (it goes home) after nearly dying
-twice; a stall watchdog logs and breaks any 2-minute stall on a moving goal.
+twice; a stall watchdog logs and breaks any 1-minute stall on a moving goal (fighting, shooting and waiting don't count).
+The stalls it caught were soul sand under the fortress: sneaking there (for lava beside it, or to centre for a pillar)
+left it all but still, now no sneaking on soul sand for those. Near a drop (a fortress bridge), close blazes get the bow
+instead of a step in with the sword (one was knocked off a bridge into the lava sea). With diamond armor, ordinary trips
+are safe (0 of 6 died); the fortress on seed 2024 (over the lava sea, next to the portal) is still deadly about half the
+time. Rods come home now (banked after holing up). Next on step 5: fewer deaths at that fortress (lava under the
+bridges), then steps 6 (bartering) and 7 (storing the haul).
 Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up
 before anything else (fighting included) and stays until healed; it centres on its block first, builds walls bottom-up
 with a block under each one over a drop; fireball dodges only onto safe ground (one dodged into lava); fire that appears
