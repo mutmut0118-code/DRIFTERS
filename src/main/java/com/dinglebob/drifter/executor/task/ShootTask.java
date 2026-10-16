@@ -30,6 +30,8 @@ public class ShootTask extends Task {
 	private static final int QUICK_DRAW_TICKS = 12;
 	/** Out of sight this long: it gives up. */
 	private static final int LOST_TICKS = 20 * 4;
+	/** Out of sight this long with another enemy in sight: it turns to that one. */
+	private static final int SWITCH_TICKS = 20;
 	/** Close enough to the aim point to let go (degrees). */
 	private static final float AIMED_DEGREES = 2.5F;
 
@@ -121,7 +123,11 @@ public class ShootTask extends Task {
 		// Only what it can see (section 1).
 		boolean seen = this.drifter.getSenses().tracked().stream().anyMatch(a -> a.entity == this.target && a.visibleNow);
 		if (!seen) {
-			if (++this.unseen > LOST_TICKS) {
+			// Another one in sight: it switches after a second, as a player does, instead of standing with its bow lowered
+			// waiting for this one (found in testing: four seconds at a time, while the others shot it).
+			boolean another = this.drifter.getSenses().tracked().stream().anyMatch(a -> a.entity != this.target && a.visibleNow
+				&& a.entity instanceof net.minecraft.world.entity.monster.Enemy && a.entity.isAlive());
+			if (++this.unseen > (another ? SWITCH_TICKS : LOST_TICKS)) {
 				this.release(false);
 				return this.fail("lost sight of it");
 			}

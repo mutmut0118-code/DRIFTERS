@@ -304,7 +304,10 @@ public final class NetherGoals {
 			boolean done = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
 				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
-			boolean hurt = drifter.getHealth() <= drifter.getMaxHealth() / 2.0F || drifter.getFoodData().getFoodLevel() <= 8;
+			// Hungry only counts with nothing to eat: with food it eats and carries on (found in the user's game: it arrived
+			// hungry, turned round and went home with steak in its pockets).
+			boolean hurt = drifter.getHealth() <= drifter.getMaxHealth() / 2.0F
+				|| drifter.getFoodData().getFoodLevel() <= 8 && com.dinglebob.drifter.brain.Food.choose(drifter) == null;
 			// Once it has set off home it keeps going (found in testing: the reason to leave wore off on the way, a short
 			// cool-down ending or a little healing, and it turned back to look for blazes until it burned to death).
 			return done || hurt || trip.phase == NetherTrip.Phase.RETURNING ? 0.9 : 0.0;
