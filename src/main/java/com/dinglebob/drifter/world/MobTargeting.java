@@ -36,9 +36,37 @@ public final class MobTargeting {
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
 			if (entity instanceof Mob mob && !(entity instanceof DrifterEntity)) {
 				addDrifterTargets(mob);
+				// Mob Control may rebuild its targets after this (dropping ours): looked at again shortly.
+				if (MobControlCompat.LOADED) {
+					RECHECK.add(new java.util.AbstractMap.SimpleEntry<>(new java.lang.ref.WeakReference<>(mob), level.getGameTime() + 2));
+					RECHECK.add(new java.util.AbstractMap.SimpleEntry<>(new java.lang.ref.WeakReference<>(mob), level.getGameTime() + 40));
+				}
 			}
 		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (RECHECK.isEmpty()) {
+				return;
+			}
+
+			long now = server.overworld().getGameTime();
+			RECHECK.removeIf(entry -> {
+				Mob mob = entry.getKey().get();
+				if (mob == null || mob.isRemoved()) {
+					return true;
+				}
+
+				if (mob.level().getGameTime() < entry.getValue()) {
+					return false;
+				}
+
+				addDrifterTargets(mob);
+				return true;
+			});
+		});
 	}
+
+	/** Mobs to look at again (with Mob Control), and when. */
+	private static final java.util.List<java.util.Map.Entry<java.lang.ref.WeakReference<Mob>, Long>> RECHECK = new ArrayList<>();
 
 	private static void addDrifterTargets(Mob mob) {
 		GoalSelector targetSelector = ((MobAccessor)mob).drifter$getTargetSelector();
@@ -65,6 +93,12 @@ public final class MobTargeting {
 
 			TargetGoalAccessor rules = (TargetGoalAccessor)goal;
 			TargetingConditions conditions = ((NearestAttackableTargetGoalAccessor)goal).drifter$getTargetConditions();
+			// Mob Control's player goal only takes real players: a Drifter counts as one (see MobControlCompat).
+			if (MobControlCompat.governs(mob)) {
+				MobControlCompat.includeDrifters(mob);
+				conditions = TargetingConditions.forCombat().range(mob.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.FOLLOW_RANGE));
+			}
+
 			targetSelector.addGoal(wrapped.getPriority(),
 				new DrifterTargetGoal(mob, rules.drifter$mustSee(), rules.drifter$mustReach(), conditions.copy(), spider));
 		}
