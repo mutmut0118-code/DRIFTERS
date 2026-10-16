@@ -1,0 +1,420 @@
+{
+	"whims": [
+		{
+			"id": "watch_bees",
+			"category": "mobs",
+			"action": "watch_mob",
+			"params": {
+				"mobs": [
+					"minecraft:bee"
+				]
+			},
+			"when": "day",
+			"archetypes": {
+				"homebody": 1.5,
+				"hermit": 1.3
+			},
+			"traits": {
+				"patience": 0.4
+			},
+			"duration": 160,
+			"cooldown": 24000,
+			"thought": "watching the bees at work"
+		},
+		{
+			"id": "watch_a_cat",
+			"category": "mobs",
+			"action": "watch_mob",
+			"params": {
+				"mobs": [
+					"minecraft:cat",
+					"minecraft:ocelot"
+				]
+			},
+			"archetypes": {
+				"homebody": 1.5,
+				"newbie": 1.5
+			},
+			"duration": 120,
+			"cooldown": 24000,
+			"thought": "watching a cat"
+		},
+		{
+			"id": "watch_the_pen",
+			"category": "mobs",
+			"action": "watch_mob",
+			"params": {
+				"mobs": [
+					"minecraft:cow",
+					"minecraft:pig",
+					"minecraft:sheep",
+					"minecraft:chicken"
+				],
+				"range": 10
+			},
+			"stage": 6,
+			"archetypes": {
+				"homebody": 2.0,
+				"helper": 1.3
+			},
+			"traits": {
+				"patience": 0.4
+			},
+			"duration": 160,
+			"cooldown": 24000,
+			"thought": "leaning on the pen, watching its animals"
+		},
+		{
+			"id": "watch_a_creeper_from_afar",
+			"category": "mobs",
+			"action": "watch_mob",
+			"params": {
+				"mobs": [
+					"minecraft:creeper"
+				],
+				"range": 24
+			},
+			"gates": "R",
+			"archetypes": {
+				"newbie": 1.5,
+				"speedrunner": 1.2
+			},
+			"traits": {
+				"caution": -0.5,
+				"curiosity": 0.5
+			},
+			"duration": 60,
+			"cooldown": 48000,
+			"thought": "keeping an eye on a creeper"
+		},
+		{
+			"id": "watch_spiders_climb",
+			"category": "mobs",
+			"action": "watch_mob",
+			"params": {
+				"mobs": [
+					"minecraft:spider"
+				],
+				"range": 16
+			},
+			"when": "day",
+			"archetypes": {
+				"newbie": 1.5
+			},
+			"traits": {
+				"curiosity": 0.5
+			},
+			"duration": 80,
+			"cooldown": 48000,
+			"thought": "watching a spider climb"
+		},
+		{
+			"id": "bunny_hops",
+			"category": "movement",
+			"action": "hop",
+			"params": {
+				"times": 10
+			},
+			"archetypes": {
+				"speedrunner": 2.0,
+				"pvp_sweat": 1.5,
+				"newbie": 1.5,
+				"homebody": 0.5
+			},
+			"traits": {
+				"fidget": 0.6,
+				"skill": 0.3
+			},
+			"moods": {
+				"confident": 1.0,
+				"triumphant": 1.5
+			},
+			"weight": 0.6,
+			"cooldown": 12000,
+			"thought": "bunny hopping about"
+		},
+		{
+			"id": "skinny_dip",
+			"category": "movement",
+			"action": "swim",
+			"params": {
+				"radius": 16
+			},
+			"when": "sunset",
+			"archetypes": {
+				"nomad": 1.5,
+				"hermit": 1.3
+			},
+			"duration": 200,
+			"cooldown": 48000,
+			"thought": "an evening swim"
+		},
+		{
+			"id": "look_round_from_a_pillar",
+			"category": "exploration",
+			"action": "lookout",
+			"params": {
+				"height": 12
+			},
+			"when": "day",
+			"stage": 3,
+			"archetypes": {
+				"nomad": 1.5,
+				"speedrunner": 1.3,
+				"newbie": 1.3
+			},
+			"traits": {
+				"curiosity": 0.6,
+				"caution": -0.4
+			},
+			"gates": "R",
+			"duration": 140,
+			"cooldown": 72000,
+			"thought": "pillaring up high to look for somewhere new"
+		},
+		{
+			"id": "cliff_edge_spin",
+			"category": "micro",
+			"action": "look_around",
+			"params": {
+				"times": 3
+			},
+			"archetypes": {
+				"newbie": 1.5,
+				"nomad": 1.3
+			},
+			"traits": {
+				"fidget": 0.6
+			},
+			"weight": 0.4,
+			"cooldown": 12000,
+			"thought": "spinning round to take it all in"
+		},
+		{
+			"id": "watch_the_waterfall",
+			"category": "exploration",
+			"action": "watch_block",
+			"params": {
+				"blocks": [
+					"minecraft:water"
+				],
+				"radius": 20
+			},
+			"when": "day",
+			"archetypes": {
+				"hermit": 1.5,
+				"builder": 1.2
+			},
+			"traits": {
+				"patience": 0.4
+			},
+			"weight": 0.4,
+			"duration": 120,
+			"cooldown": 48000,
+			"thought": "watching the water"
+		},
+		{
+			"id": "admire_its_house",
+			"category": "builds",
+			"action": "watch_block",
+			"params": {
+				"blocks": [
+					"#minecraft:doors"
+				],
+				"radius": 16
+			},
+			"stage": 5,
+			"archetypes": {
+				"builder": 2.5,
+				"homebody": 1.5
+			},
+			"traits": {
+				"creativity": 0.5
+			},
+			"duration": 100,
+			"cooldown": 48000,
+			"thought": "standing back to admire its house"
+		},
+		{
+			"id": "look_at_the_portal",
+			"category": "exploration",
+			"action": "watch_block",
+			"params": {
+				"blocks": [
+					"minecraft:nether_portal"
+				],
+				"radius": 24
+			},
+			"archetypes": {
+				"newbie": 1.5,
+				"nomad": 1.3
+			},
+			"traits": {
+				"curiosity": 0.5
+			},
+			"duration": 80,
+			"cooldown": 48000,
+			"thought": "staring at the portal"
+		},
+		{
+			"id": "craft_a_bed_decoration",
+			"category": "crafting",
+			"action": "craft",
+			"params": {
+				"items": [
+					"minecraft:painting",
+					"minecraft:item_frame",
+					"minecraft:flower_pot",
+					"minecraft:lantern"
+				]
+			},
+			"stage": 4,
+			"archetypes": {
+				"builder": 2.0,
+				"homebody": 1.5
+			},
+			"traits": {
+				"creativity": 0.6
+			},
+			"cooldown": 48000,
+			"thought": "making something to decorate home with"
+		},
+		{
+			"id": "make_a_spare_bed",
+			"category": "crafting",
+			"action": "craft",
+			"params": {
+				"items": [
+					"minecraft:white_bed",
+					"minecraft:red_bed"
+				]
+			},
+			"stage": 4,
+			"archetypes": {
+				"hoarder": 1.5,
+				"homebody": 1.3
+			},
+			"traits": {
+				"thrift": -0.5
+			},
+			"weight": 0.4,
+			"cooldown": 96000,
+			"thought": "making a spare bed, just in case"
+		},
+		{
+			"id": "stack_of_torches",
+			"category": "crafting",
+			"action": "craft",
+			"params": {
+				"items": [
+					"minecraft:lantern",
+					"minecraft:soul_torch"
+				]
+			},
+			"stage": 4,
+			"archetypes": {
+				"builder": 1.5
+			},
+			"traits": {
+				"creativity": 0.4
+			},
+			"weight": 0.5,
+			"cooldown": 96000,
+			"thought": "making a lantern for the look of it"
+		},
+		{
+			"id": "brag_about_gear",
+			"category": "social",
+			"action": "chat",
+			"gates": "M",
+			"params": {
+				"lines": [
+					"check out my armor",
+					"full iron btw",
+					"look at my sword",
+					"new pickaxe :)"
+				]
+			},
+			"stage": 5,
+			"archetypes": {
+				"pvp_sweat": 2.0,
+				"speedrunner": 1.3,
+				"hermit": 0.2
+			},
+			"moods": {
+				"confident": 1.5
+			},
+			"cooldown": 48000,
+			"thought": "showing off its gear"
+		},
+		{
+			"id": "complain_about_mobs",
+			"category": "social",
+			"action": "chat",
+			"gates": "M",
+			"params": {
+				"lines": [
+					"so many zombies last night",
+					"creepers everywhere",
+					"a skeleton nearly got me",
+					"phantoms are the worst"
+				]
+			},
+			"archetypes": {
+				"casual": 1.3,
+				"newbie": 1.5
+			},
+			"moods": {
+				"anxious": 1.5,
+				"frustrated": 1.5
+			},
+			"cooldown": 48000,
+			"thought": "complaining about the mobs"
+		},
+		{
+			"id": "ask_for_help",
+			"category": "social",
+			"action": "chat",
+			"gates": "M",
+			"params": {
+				"lines": [
+					"anyone have iron?",
+					"need food lol",
+					"how do i make a piston",
+					"where are the diamonds"
+				]
+			},
+			"archetypes": {
+				"newbie": 2.0,
+				"casual": 1.2,
+				"speedrunner": 0.2
+			},
+			"traits": {
+				"knowledge": -0.6
+			},
+			"cooldown": 48000,
+			"thought": "asking around for help"
+		},
+		{
+			"id": "dance_when_alone",
+			"category": "micro",
+			"action": "dance",
+			"params": {
+				"ticks": 40
+			},
+			"archetypes": {
+				"newbie": 1.5,
+				"hermit": 1.2
+			},
+			"traits": {
+				"fidget": 0.8
+			},
+			"moods": {
+				"bored": 2.0
+			},
+			"weight": 0.3,
+			"cooldown": 24000,
+			"thought": "crouch-dancing alone, out of boredom"
+		}
+	]
+}
