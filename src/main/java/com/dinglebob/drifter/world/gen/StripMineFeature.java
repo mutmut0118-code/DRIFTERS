@@ -74,7 +74,7 @@ public class StripMineFeature extends Feature<NoneFeatureConfiguration> {
 		}
 
 		if (dug > 0) {
-			com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] world gen: an old strip mine at {}", start.toShortString());
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] world gen: an old strip mine at {}", start.toShortString());
 		}
 
 		return dug > 0;
