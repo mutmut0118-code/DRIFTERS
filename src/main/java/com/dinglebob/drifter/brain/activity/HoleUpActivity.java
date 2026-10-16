@@ -89,6 +89,14 @@ public class HoleUpActivity extends Activity {
 		BlockPos feet = this.drifter.blockPosition();
 		java.util.List<BlockPos> cells = new java.util.ArrayList<>();
 		for (Direction side : Direction.Plane.HORIZONTAL) {
+			// Over a drop (on a bridge or a ledge) the wall has nothing to stand on: a block under it first, against the side
+			// of the one it stands on (found in testing: on a fortress bridge the foot-level walls never went up, and fireballs
+			// came in from below).
+			BlockPos under = feet.relative(side).below();
+			if (level.getBlockState(under).canBeReplaced()) {
+				cells.add(under);
+			}
+
 			cells.add(feet.relative(side));
 		}
 
