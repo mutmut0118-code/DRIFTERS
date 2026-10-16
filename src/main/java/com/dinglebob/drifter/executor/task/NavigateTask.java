@@ -744,6 +744,13 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
+		// The same for lava that has flowed in since (found in testing: it jumped up into a cell lava had just run into).
+		if (this.level().getFluidState(step.to()).is(FluidTags.LAVA) || this.level().getFluidState(step.to().above()).is(FluidTags.LAVA)) {
+			this.drifter.burnedByLavaAt(step.to());
+			this.replan("lava on the way at " + step.to().toShortString());
+			return Status.RUNNING;
+		}
+
 		// Touching a grown berry bush: it stands still (they only prick while you move) and breaks it, then goes on; walking
 		// on through a patch is a prick every few steps at a crawl (found by the user: Drifters kept dying in berry bushes).
 		BlockPos bush = this.berryBushTouching();
