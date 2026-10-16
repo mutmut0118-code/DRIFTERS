@@ -290,6 +290,10 @@ public final class WhimGoal extends Goals.Goal {
 
 	/** How many it carries of an item id, or of an item tag ("#namespace:tag"). */
 	public static int count(DrifterEntity drifter, String item) {
+		if (item.startsWith("@")) {
+			return drifter.getInventory().count(WhimActions.itemMatcher(item));
+		}
+
 		if (item.startsWith("#")) {
 			TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.parse(item.substring(1)));
 			return drifter.getInventory().count(stack -> stack.is(tag));

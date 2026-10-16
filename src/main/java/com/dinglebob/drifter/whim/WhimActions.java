@@ -84,6 +84,8 @@ public final class WhimActions {
 		ACTIONS.put("eat", new EatThis());
 		ACTIONS.put("oops_drop", new OopsDrop());
 		ACTIONS.put("throw_at", new ThrowAt());
+		ACTIONS.put("use_block", new UseBlock());
+		ACTIONS.put("sit", new Sit());
 	}
 
 	private WhimActions() {
@@ -330,6 +332,11 @@ public final class WhimActions {
 	}
 
 	static Predicate1 itemMatcher(String item) {
+		// Anything that plays in a jukebox (1.21 discs are a component, not a tag).
+		if (item.equals("@jukebox_playable")) {
+			return stack -> stack.has(net.minecraft.core.component.DataComponents.JUKEBOX_PLAYABLE);
+		}
+
 		if (item.startsWith("#")) {
 			var tag = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.parse(item.substring(1)));
 			return stack -> stack.is(tag);
@@ -1410,6 +1417,182 @@ public final class WhimActions {
 			}
 
 			return steps.then(() -> new Gaze(drifter, () -> friend.isAlive() ? friend.getEyePosition() : null, 30, true, "laugh"));
+		}
+	}
+
+	/**
+	 * Right-clicking a block for what it does (params: blocks, ids or "#tags"; item, held while it clicks, if any; times;
+	 * gap, ticks between clicks; radius): ringing a bell, flipping a lever, playing a note block or a record, composting
+	 * seeds, cooking on a campfire, a slice of cake. Never someone's chest or door: blocks with menus it leaves alone.
+	 */
+	static final class UseBlock implements WhimAction {
+		@Nullable
+		static BlockPos find(DrifterEntity drifter, Whim whim) {
+			List<String> ids = whim.params("blocks");
+			for (BlockPos pos : KnownBlocks.find(drifter, whim.param("radius", 16), state -> ids.stream().anyMatch(id -> WatchBlock.matches(state, id)), 6)) {
+				if (KnownBlocks.standingSpotFor(drifter, pos, Set.of()) != null || com.dinglebob.drifter.hands.Reach.canReach(drifter, pos)) {
+					return pos;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			String item = whim.param("item", "");
+			return (item.isEmpty() || WhimGoal.count(drifter, item) > 0) && find(drifter, whim) != null;
+		}
+
+		/** A face of it it can see and reach from where it stands, or null. */
+		@Nullable
+		static Direction face(DrifterEntity drifter, BlockPos pos) {
+			Direction best = null;
+			double bestDistance = Double.MAX_VALUE;
+			BlockState state = drifter.level().getBlockState(pos);
+			for (Direction face : Direction.values()) {
+				// A bell only rings struck on the right sides (BellBlock#isProperHit): along its facing on the floor, across it on
+				// a wall (found in testing: "nothing happened").
+				if (state.getBlock() instanceof net.minecraft.world.level.block.BellBlock) {
+					var attach = state.getValue(net.minecraft.world.level.block.BellBlock.ATTACHMENT);
+					Direction facing = state.getValue(net.minecraft.world.level.block.BellBlock.FACING);
+					boolean proper = face.getAxis() != Direction.Axis.Y && switch (attach) {
+						case FLOOR -> facing.getAxis() == face.getAxis();
+						case SINGLE_WALL, DOUBLE_WALL -> facing.getAxis() != face.getAxis();
+						case CEILING -> true;
+					};
+					if (!proper) {
+						continue;
+					}
+				}
+
+				var point = com.dinglebob.drifter.hands.Reach.aimPoint(drifter, pos, face);
+				if (point.isPresent() && point.get().distanceTo(drifter.getEyePosition()) < bestDistance) {
+					bestDistance = point.get().distanceTo(drifter.getEyePosition());
+					best = face;
+				}
+			}
+
+			return best;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			BlockPos block = find(drifter, whim);
+			if (block == null) {
+				return null;
+			}
+
+			String item = whim.param("item", "");
+			Steps steps = new Steps(drifter, whim.thought(), 20 * 90);
+			steps.then(() -> {
+				if (com.dinglebob.drifter.hands.Reach.canReach(drifter, block)) {
+					return null;
+				}
+
+				BlockPos stand = KnownBlocks.standingSpotFor(drifter, block, Set.of());
+				return stand == null ? null : new NavigateTask(drifter, Vec3.atBottomCenterOf(stand), 0.6, "walk over", NavigateTask.Pace.STROLL);
+			});
+			int gap = whim.param("gap", 10);
+			for (int i = 0; i < whim.param("times", 1); i++) {
+				if (!item.isEmpty()) {
+					steps.then(() -> WhimGoal.count(drifter, item) == 0 ? null : new SelectItemTask(drifter, itemMatcher(item), "it"));
+				}
+
+				steps.then(() -> {
+					Direction face = face(drifter, block);
+					if (face == null || !item.isEmpty() && WhimGoal.count(drifter, item) == 0) {
+						return null;
+					}
+
+					return com.dinglebob.drifter.executor.task.UseOnBlockTask.useBlock(drifter, block, face, whim.thought());
+				});
+				if (gap > 0) {
+					steps.then(() -> new Gaze(drifter, () -> Vec3.atCenterOf(block), gap, false, whim.thought()));
+				}
+			}
+
+			return steps;
+		}
+	}
+
+	/** Sitting in a parked boat or minecart for a while, as a chair (params: ticks). */
+	static final class Sit implements WhimAction {
+		/** An empty boat or minecart it can see close by (its senses follow living things; a seat it just looks for). */
+		@Nullable
+		static Entity seat(DrifterEntity drifter) {
+			var level = drifter.level();
+			for (Entity e : level.getEntities(drifter, drifter.getBoundingBox().inflate(16.0),
+				e -> (e instanceof net.minecraft.world.entity.vehicle.Boat || e instanceof net.minecraft.world.entity.vehicle.Minecart)
+					&& e.isAlive() && e.getPassengers().isEmpty() && !e.isInWater())) {
+				var hit = level.clip(new net.minecraft.world.level.ClipContext(drifter.getEyePosition(), e.getBoundingBox().getCenter(),
+					net.minecraft.world.level.ClipContext.Block.VISUAL, net.minecraft.world.level.ClipContext.Fluid.NONE, drifter));
+				if (hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
+					return e;
+				}
+
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return seat(drifter) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Entity seat = seat(drifter);
+			if (seat == null) {
+				return null;
+			}
+
+			int ticks = whim.param("ticks", 200);
+			return new Steps(drifter, whim.thought(), ticks + 20 * 40)
+				.then(() -> new NavigateTask(drifter, seat.position(), 1.5, "walk over to it", NavigateTask.Pace.STROLL))
+				.then(() -> new Task(drifter) {
+					private int t;
+
+					@Override
+					public String describe() {
+						return "sit for a while";
+					}
+
+					@Override
+					protected int timeoutTicks() {
+						return ticks + 40;
+					}
+
+					@Override
+					protected void onStart() {
+						this.drifter.meansToRide(true);
+						boolean in = seat.isAlive() && seat.distanceTo(this.drifter) <= 3.0 && this.drifter.startRiding(seat);
+						this.drifter.meansToRide(false);
+						if (!in) {
+							this.fail("couldn't get in");
+						}
+					}
+
+					@Override
+					protected Status onTick() {
+						this.drifter.getKeys().releaseAll();
+						if (this.t % 60 == 0) {
+							this.drifter.getCamera().track(this.drifter.getEyePosition().add(this.drifter.getRandom().nextGaussian() * 8, 0.5,
+								this.drifter.getRandom().nextGaussian() * 8), CameraModel.TurnSpeed.IDLE);
+						}
+
+						return ++this.t >= ticks || !this.drifter.isPassenger() ? Status.SUCCESS : Status.RUNNING;
+					}
+
+					@Override
+					protected void onStop() {
+						// Always out again (whatever cut it short: nothing else works from a seat).
+						if (this.drifter.isPassenger()) {
+							this.drifter.stopRiding();
+						}
+					}
+				});
 		}
 	}
 

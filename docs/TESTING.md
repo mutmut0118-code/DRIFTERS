@@ -1311,4 +1311,8 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       flowers, nomads climb up for views and go to see places, newbies hop about and put up silly signs.
 - [ ] Mistakes (newbies most): now and then one drops a stack by mistake, says "oops" and picks it back up, or eats
       a spider eye ("ew") or rotten flesh it didn't need. `/drifter whim oops_dropped_a_stack` to see it.
+- [ ] Blocks: near a bell, lever, note block, jukebox (with a record on it: `/drifter give minecraft:music_disc_cat`),
+      composter, campfire or cake, now and then it uses them (`/drifter whim ring_the_bell`, `play_a_tune`,
+      `play_a_record`, `cook_on_the_campfire`, `slice_of_cake`...). Next to a parked boat, `/drifter whim sit_in_a_boat`.
+      A Drifter that walks into a boat or minecart no longer gets stuck in it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.

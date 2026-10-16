@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | In progress: engine, 25 action types, 90 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, 27 action types, 100 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
 ## Milestone 0: Project setup
@@ -1408,6 +1408,10 @@ Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
   no crashes, no deaths, 14 whims of 9 kinds. Fixed a crash in the oops whim (setThrower(null) throws in 1.21.1).
 - Snowball fight ([M], throw_at action): it throws snowballs at a friend (tested: 4 thrown at a group mate, who took
   no offence). 90 whims, 25 action types.
+- use_block and sit actions, 10 whims (100 now): ringing the village bell, flipping a lever, pressing a button, a
+  trapdoor, a tune on a note block, a record in a jukebox, composting seeds, cooking on a campfire, a slice of cake,
+  sitting in a parked boat. All tested. Found: boats and minecarts scooped up a Drifter that bumped into them (as they do
+  mobs, never players): it now only rides when it means to. Bells ring only struck on the right side (it aims there).
 - Fixed from the 10-day runs: it crouches on magma whenever it's on it, moving or in water too (one worked on underwater
   magma, walking about, until it died).
 

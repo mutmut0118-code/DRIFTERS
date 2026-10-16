@@ -1,0 +1,219 @@
+{
+	"whims": [
+		{
+			"id": "ring_the_bell",
+			"category": "village",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:bell"
+				],
+				"times": 2,
+				"gap": 10,
+				"radius": 24
+			},
+			"archetypes": {
+				"newbie": 2.0,
+				"bandit": 1.5,
+				"hermit": 0.3
+			},
+			"traits": {
+				"fidget": 0.5
+			},
+			"cooldown": 24000,
+			"chat": [
+				"ding ding"
+			],
+			"thought": "ringing the village bell"
+		},
+		{
+			"id": "flip_a_lever",
+			"category": "micro",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:lever"
+				],
+				"times": 4,
+				"gap": 6
+			},
+			"archetypes": {
+				"newbie": 2.0,
+				"builder": 1.2
+			},
+			"traits": {
+				"fidget": 0.8
+			},
+			"cooldown": 12000,
+			"thought": "flipping a lever back and forth"
+		},
+		{
+			"id": "press_a_button",
+			"category": "micro",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"#minecraft:buttons"
+				],
+				"times": 2,
+				"gap": 15
+			},
+			"archetypes": {
+				"newbie": 2.0
+			},
+			"traits": {
+				"fidget": 0.6
+			},
+			"weight": 0.6,
+			"cooldown": 12000,
+			"thought": "pressing a button to see what it does"
+		},
+		{
+			"id": "fiddle_with_a_trapdoor",
+			"category": "micro",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"#minecraft:wooden_trapdoors"
+				],
+				"times": 4,
+				"gap": 5
+			},
+			"archetypes": {
+				"newbie": 1.5
+			},
+			"traits": {
+				"fidget": 0.8
+			},
+			"weight": 0.5,
+			"cooldown": 12000,
+			"thought": "opening and closing a trapdoor"
+		},
+		{
+			"id": "play_a_tune",
+			"category": "music",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:note_block"
+				],
+				"times": 8,
+				"gap": 4
+			},
+			"archetypes": {
+				"builder": 1.5,
+				"newbie": 1.5,
+				"hermit": 1.2
+			},
+			"traits": {
+				"creativity": 0.6
+			},
+			"cooldown": 24000,
+			"thought": "playing a little tune on a note block"
+		},
+		{
+			"id": "play_a_record",
+			"category": "music",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:jukebox"
+				],
+				"item": "@jukebox_playable",
+				"gap": 200
+			},
+			"archetypes": {
+				"builder": 1.5,
+				"homebody": 1.5,
+				"hermit": 1.3
+			},
+			"cooldown": 48000,
+			"thought": "putting a record on"
+		},
+		{
+			"id": "compost_some_seeds",
+			"category": "farms",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:composter"
+				],
+				"item": "minecraft:wheat_seeds",
+				"times": 6,
+				"gap": 4
+			},
+			"archetypes": {
+				"homebody": 2.0,
+				"builder": 1.2
+			},
+			"traits": {
+				"tidiness": 0.5,
+				"thrift": 0.3
+			},
+			"cooldown": 24000,
+			"thought": "putting spare seeds in the composter"
+		},
+		{
+			"id": "cook_on_the_campfire",
+			"category": "food",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:campfire"
+				],
+				"item": "#drifter:campfire_food",
+				"times": 2,
+				"gap": 10
+			},
+			"archetypes": {
+				"nomad": 2.0,
+				"hermit": 1.5,
+				"homebody": 1.2
+			},
+			"cooldown": 24000,
+			"thought": "cooking something on the campfire"
+		},
+		{
+			"id": "slice_of_cake",
+			"category": "food",
+			"action": "use_block",
+			"params": {
+				"blocks": [
+					"minecraft:cake"
+				],
+				"gap": 20
+			},
+			"archetypes": {
+				"newbie": 1.5,
+				"homebody": 1.5
+			},
+			"moods": {
+				"triumphant": 2.0
+			},
+			"cooldown": 24000,
+			"chat": [
+				"cake :)"
+			],
+			"thought": "having a slice of cake"
+		},
+		{
+			"id": "sit_in_a_boat",
+			"category": "movement",
+			"action": "sit",
+			"params": {
+				"ticks": 200
+			},
+			"archetypes": {
+				"hermit": 1.5,
+				"newbie": 1.5,
+				"homebody": 1.2,
+				"speedrunner": 0.3
+			},
+			"traits": {
+				"patience": 0.4
+			},
+			"cooldown": 24000,
+			"thought": "sitting in a parked boat for a bit"
+		}
+	]
+}

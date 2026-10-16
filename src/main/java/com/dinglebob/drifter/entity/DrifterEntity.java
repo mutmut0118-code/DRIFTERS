@@ -1596,6 +1596,26 @@ public class DrifterEntity extends PathfinderMob {
 		}
 	}
 
+	/** It means to get into something (a whim's seat): rides are only ever its choice. */
+	private boolean meansToRide;
+
+	public void meansToRide(boolean yes) {
+		this.meansToRide = yes;
+	}
+
+	/**
+	 * Boats and minecarts pick up any mob that bumps into them, but never a player (found in testing: it walked into a
+	 * parked boat and was stuck in it): only rides it chose, or forced ones (commands, portals).
+	 */
+	@Override
+	public boolean startRiding(net.minecraft.world.entity.Entity vehicle, boolean force) {
+		if (!force && !this.meansToRide) {
+			return false;
+		}
+
+		return super.startRiding(vehicle, force);
+	}
+
 	/** Player#drop(stack, false, true), pressing Q: thrown forward where it looks, with the pickup delay. */
 	public ItemEntity tossForward(ItemStack stack) {
 		return this.tossForward(stack, true);
