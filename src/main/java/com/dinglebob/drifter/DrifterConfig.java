@@ -69,6 +69,27 @@ public final class DrifterConfig {
 		boolean worldgenCamps = true;
 		boolean worldgenMines = true;
 		boolean worldgenCaveTorches = true;
+		/** Drifters living in some villages, Bandit gangs holding some pillager outposts (user, 2026-10-16). */
+		boolean worldgenVillages = true;
+		boolean worldgenOutposts = true;
+	}
+
+	public static boolean worldgenVillages() {
+		return data.worldgenVillages;
+	}
+
+	public static void setWorldgenVillages(boolean on) {
+		data.worldgenVillages = on;
+		save();
+	}
+
+	public static boolean worldgenOutposts() {
+		return data.worldgenOutposts;
+	}
+
+	public static void setWorldgenOutposts(boolean on) {
+		data.worldgenOutposts = on;
+		save();
 	}
 
 	public static boolean worldgenCamps() {

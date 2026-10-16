@@ -34,6 +34,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.world.DrifterRegistry.register();
 		com.dinglebob.drifter.world.DrifterGroups.register();
 		com.dinglebob.drifter.world.gen.DrifterFeatures.register();
+		com.dinglebob.drifter.world.gen.LivedInStructures.register();
 		com.dinglebob.drifter.world.DrifterTravel.register();
 		com.dinglebob.drifter.world.OfflineClock.register();
 		com.dinglebob.drifter.identity.Usernames.register();

@@ -1306,7 +1306,11 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
   catching up 3 to 6 days when it first loads), **old strip mines** deep down (1 in about 24 chunks, a 1x2 tunnel with
   branches and torches, never into water or lava) and **torches in caves**. Each has its own switch (screen and
   drifter.json); rarities in data/drifter/worldgen/placed_feature. Tested on a normal world: 4 camps and 61 strip mines in
-  1,000 chunks. Still to do: Drifter villages (Drifters living in a real village) and Bandit-held pillager outposts.
+  1,000 chunks. **Drifter villages** (4 in 10 villages, when first loaded: 2 to 5 Drifters each take a house bed, a
+  chest beside it, one group "of the village") and **Bandit outposts** (half the pillager outposts: 3 Bandits, "'s
+  Raiders", home on the ground by the tower, no hut; while they hold it the illagers there are removed and none come
+  back) in `world/gen/LivedInStructures` (saved as drifter_lived_in). Homes there are "borrowed" (`Home.borrowed()`):
+  no hut or house of their own, in play or in catch-up. Tested on seed 2024: a desert village got 4, an outpost a gang.
 - Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
   2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
 

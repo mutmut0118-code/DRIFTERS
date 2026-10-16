@@ -116,7 +116,7 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 			this.settle(level, random, center, door, chest);
 		}
 
-		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] world gen: a {} camp at {}", occupied ? "lived-in" : "abandoned", center.toShortString());
+		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] world gen: {} camp at {}", occupied ? "a lived-in" : "an abandoned", center.toShortString());
 
 		return true;
 	}

@@ -1760,8 +1760,8 @@ public final class Goals {
 		@Override
 		public double urgency(Context context) {
 			com.dinglebob.drifter.brain.Home house = context.drifter().getDrifterBrain().home();
-			if (house != null && house.houseBed != null) {
-				// It lives in a village house: no hut.
+			if (house != null && house.borrowed()) {
+				// It lives in a village house or an outpost: no hut.
 				return 0.0;
 			}
 
@@ -1828,7 +1828,7 @@ public final class Goals {
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			Home home = drifter.getDrifterBrain().home();
-			if (home == null || !home.hutBuilt || home.houseBed != null || !home.near(drifter, Home.STORAGE_RANGE)
+			if (home == null || !home.hutBuilt || home.borrowed() || !home.near(drifter, Home.STORAGE_RANGE)
 				|| !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter)) {
 				return 0.0;
 			}

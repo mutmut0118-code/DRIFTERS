@@ -98,6 +98,11 @@ public final class DrifterGroups {
 		return byMember.get(member);
 	}
 
+	@Nullable
+	public static Group byId(UUID id) {
+		return groups.get(id);
+	}
+
 	public static List<Group> all() {
 		return new ArrayList<>(groups.values());
 	}

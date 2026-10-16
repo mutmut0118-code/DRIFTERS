@@ -817,7 +817,7 @@ public final class CatchUp {
 	private static void furnish(DrifterEntity drifter, double day, Report report) {
 		Home home = drifter.getDrifterBrain().home();
 		Level level = drifter.level();
-		if (home == null || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+		if (home == null || home.borrowed() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
 			return;
 		}
 
@@ -932,7 +932,7 @@ public final class CatchUp {
 	private static void buildHut(DrifterEntity drifter, Report report) {
 		Home home = drifter.getDrifterBrain().home();
 		Level level = drifter.level();
-		if (home == null || home.hutBuilt || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+		if (home == null || home.hutBuilt || home.borrowed() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
 			return;
 		}
 

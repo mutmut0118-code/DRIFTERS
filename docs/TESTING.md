@@ -1258,3 +1258,12 @@ they get close, ghasts, blazes), and switch to the sword up close.
 - [ ] **Catch-up builds the hut (new):** a Drifter with a home and blocks, away while you're far off, comes back with its
       hut's walls and roof up ("built N blocks of its hut" in its catch-up line); it puts the door, bed and torch in
       when it's about again. It never builds over blocks you placed.
+- [ ] **A lived-in world (new, needs a NEW world; each part has a switch in the settings screen):**
+      - Camps: now and then a small hut on flat open ground with a door, a chest of loot, table, furnace, bed and a
+        wheat patch. About half still have their Drifter, a few days into its game.
+      - Old strip mines deep down (near the bottom of the world) and torches stuck on cave walls.
+      - Villages: about 4 in 10 have 2 to 5 Drifters living in the houses (each by a bed, with a chest beside it).
+        They're one group, "... of the village". `/locate structure #minecraft:village` to find one.
+      - Pillager outposts: about half are held by 3 Bandit Drifters ("...'s Raiders") living by the tower. No pillagers
+        there while they hold it. They don't build huts there. `/locate structure minecraft:pillager_outpost`. Careful:
+        Bandits are hostile.

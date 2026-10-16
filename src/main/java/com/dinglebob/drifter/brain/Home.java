@@ -161,6 +161,13 @@ public final class Home {
 	/** A village house it moved into instead of building a hut (user's request, session 2): the head of its bed there. */
 	@Nullable
 	public BlockPos houseBed;
+	/** It lives at a pillager outpost its gang took (user's idea, 2026-10-16): no hut or house of its own there. */
+	public boolean outpost;
+
+	/** It lives somewhere it didn't build (a village house, an outpost): it builds no hut or house of its own. */
+	public boolean borrowed() {
+		return this.houseBed != null || this.outpost;
+	}
 
 	/** Its bed in the village house, if it's still there. */
 	@Nullable
@@ -306,6 +313,10 @@ public final class Home {
 			tag.put("HouseBed", NbtUtils.writeBlockPos(this.houseBed));
 		}
 
+		if (this.outpost) {
+			tag.putBoolean("Outpost", true);
+		}
+
 		if (this.farm != null) {
 			tag.put("Farm", NbtUtils.writeBlockPos(this.farm));
 		}
@@ -360,6 +371,7 @@ public final class Home {
 		home.hutBuilt = tag.getBoolean("HutBuilt");
 		home.portal = tag.contains("Portal", net.minecraft.nbt.Tag.TAG_COMPOUND) ? PortalFrame.load(tag.getCompound("Portal")) : null;
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
+		home.outpost = tag.getBoolean("Outpost");
 		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
 		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);
 		home.penBredAt = tag.getLong("PenBredAt");

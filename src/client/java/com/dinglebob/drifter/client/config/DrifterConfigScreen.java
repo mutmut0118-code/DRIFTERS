@@ -19,7 +19,7 @@ import net.minecraft.util.Mth;
  * player they reach the running world; on a server they only change this computer's file (the server's file rules there).
  */
 public class DrifterConfigScreen extends Screen {
-	private static final int ROW = 24;
+	private static final int ROW = 22;
 	private static final int WIDTH = 150;
 	private final Screen parent;
 
@@ -32,7 +32,7 @@ public class DrifterConfigScreen extends Screen {
 	protected void init() {
 		int left = this.width / 2 - WIDTH - 5;
 		int right = this.width / 2 + 5;
-		int y = 40;
+		int y = 34;
 
 		this.addRenderableWidget(new IntSlider(left, y, "How far they see", DrifterConfig.MIN_SIGHT_CHUNKS, DrifterConfig.MAX_SIGHT_CHUNKS,
 			DrifterConfig.sightChunks(), v -> v + " chunks", DrifterConfig::setSightChunks));
@@ -59,6 +59,9 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(toggle(right, y, "Old strip mines", DrifterConfig.worldgenMines(), DrifterConfig::setWorldgenMines));
 		y += ROW;
 		this.addRenderableWidget(toggle(left, y, "Torches in caves", DrifterConfig.worldgenCaveTorches(), DrifterConfig::setWorldgenCaveTorches));
+		this.addRenderableWidget(toggle(right, y, "Drifter villages", DrifterConfig.worldgenVillages(), DrifterConfig::setWorldgenVillages));
+		y += ROW;
+		this.addRenderableWidget(toggle(left, y, "Bandit outposts", DrifterConfig.worldgenOutposts(), DrifterConfig::setWorldgenOutposts));
 		y += ROW;
 		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
 				case OFF -> "off";
@@ -85,9 +88,9 @@ public class DrifterConfigScreen extends Screen {
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		super.render(graphics, mouseX, mouseY, partialTick);
-		graphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
-		graphics.drawCenteredString(this.font, Component.literal("Also: /drifter config. On a server, the server's own file applies."),
-			this.width / 2, this.height - 44, 0xA0A0A0);
+		graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
+		graphics.drawCenteredString(this.font, Component.literal("Also: /drifter config. World-gen settings apply to new chunks."),
+			this.width / 2, 20, 0xA0A0A0);
 	}
 
 	@Override
