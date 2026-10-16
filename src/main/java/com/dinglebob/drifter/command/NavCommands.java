@@ -30,24 +30,8 @@ final class NavCommands {
 		// How the pathfinder sees the cells round the nearest Drifter (debug): kind per cell, by layer.
 		root.then(Commands.literal("cells").executes(ctx -> {
 			com.dinglebob.drifter.entity.DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
-			com.dinglebob.drifter.nav.NavView view = new com.dinglebob.drifter.nav.NavView(drifter);
-			net.minecraft.core.BlockPos feet = drifter.blockPosition();
-			StringBuilder out = new StringBuilder(DrifterCommands.label(drifter) + " at " + String.format(java.util.Locale.ROOT, "%.2f %.2f %.2f",
-				drifter.getX(), drifter.getY(), drifter.getZ()));
-			for (int dy = 2; dy >= -1; dy--) {
-				out.append("\n y").append(feet.getY() + dy).append(":");
-				for (int dz = -1; dz <= 1; dz++) {
-					out.append("\n  ");
-					for (int dx = -1; dx <= 1; dx++) {
-						var pos = feet.offset(dx, dy, dz);
-						var cell = view.cell(pos);
-						out.append(String.format(java.util.Locale.ROOT, "%-7s", cell.kind().name().substring(0, Math.min(6, cell.kind().name().length()))
-							+ (view.standable(pos) ? "+" : "")));
-					}
-				}
-			}
-
-			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(out.toString()), false);
+			String out = DrifterCommands.label(drifter) + " " + com.dinglebob.drifter.nav.NavView.describeAround(drifter, drifter.blockPosition());
+			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(out), false);
 			return 1;
 		}));
 		root.then(Commands.literal("goto")

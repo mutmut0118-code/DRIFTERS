@@ -100,8 +100,11 @@ public class PortalActivity extends Activity {
 
 			if (!this.inReach(step.pos())) {
 				// (Up on its pillar for real, not just in the middle of a jump: found in testing, a jump as it started failed it.)
-				return this.drifter.onGround() && this.drifter.getBlockY() > ground + 1 ? this.fail("can't reach the top of the portal from its pillar")
-					: this.drifter.onGround() ? this.walkTo(f) : Status.RUNNING;
+				// Only up by the frame counts: higher ground somewhere else (a hillside shelter) means walk there first (found in
+				// the user's game: started from its shelter up a hill, it failed at once, every time).
+				boolean byTheFrame = Vec3.atCenterOf(f.inside()).subtract(this.drifter.position()).horizontalDistance() <= 4.0;
+				return this.drifter.onGround() && this.drifter.getBlockY() > ground + 1 && byTheFrame ? this.fail("can't reach the top of the portal from its pillar")
+					: this.drifter.onGround() ? this.walkTo(f, step.pos()) : Status.RUNNING;
 			}
 
 			// The two bottom cells are ground first: dug out, then filled with obsidian.
@@ -170,8 +173,17 @@ public class PortalActivity extends Activity {
 
 	/** To the front of the frame, in the middle, where every cell is in reach. */
 	private Status walkTo(PortalFrame f) {
-		if (this.walks++ >= MAX_WALKS) {
-			return this.fail("can't get to the portal spot");
+		return this.walkTo(f, null);
+	}
+
+	/** {@code unreached}: the cell it needs to get at from there, for the failure message. */
+	private Status walkTo(PortalFrame f, @Nullable BlockPos unreached) {
+		// Already on the spot and still out of reach (a block in the way of the face it needs): walking there again won't
+		// help (found in the user's game: eight "walks" on the spot, then a failure that didn't say why).
+		boolean there = this.drifter.position().distanceTo(Vec3.atBottomCenterOf(this.spot(f))) < 0.8;
+		if (this.walks++ >= MAX_WALKS || there && unreached != null) {
+			return this.fail(unreached != null && there ? "can't reach " + unreached.toShortString() + " from the portal spot"
+				: "can't get to the portal spot " + this.spot(f).toShortString() + (unreached != null ? " (for " + unreached.toShortString() + ")" : ""));
 		}
 
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot(f)), 0.4, "walk to the portal spot"));

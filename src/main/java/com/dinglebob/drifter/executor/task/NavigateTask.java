@@ -245,11 +245,19 @@ public class NavigateTask extends Task {
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dz = -1; dz <= 1; dz++) {
 					BlockPos cell = feet.offset(dx, 0, dz);
-					if ((dx != 0 || dz != 0) && this.hasFloor(cell)) {
+					// The block beside may be a raised one it stands on the top of (soul sand, a slab-high block): then the
+					// node is the cell above it (found in a Nether test: on the edge of soul sand, every route failed at the
+					// start, planned from the air beside it).
+					BlockState beside = this.level().getBlockState(cell);
+					var besideShape = beside.getCollisionShape(this.level(), cell);
+					BlockPos node = !besideShape.isEmpty() && besideShape.max(Direction.Axis.Y) > NavView.LOW_BLOCK_HEIGHT
+						&& Math.abs(cell.getY() + besideShape.max(Direction.Axis.Y) - this.drifter.getY()) < 0.01 ? cell.above()
+						: this.hasFloor(cell) ? cell : null;
+					if ((dx != 0 || dz != 0) && node != null) {
 						double area = overlap(box.minX, box.maxX, cell.getX()) * overlap(box.minZ, box.maxZ, cell.getZ());
 						if (area > bestArea) {
 							bestArea = area;
-							best = cell;
+							best = node;
 						}
 					}
 				}
@@ -299,7 +307,7 @@ public class NavigateTask extends Task {
 		if (com.dinglebob.drifter.world.DrifterTravel.shouldTravel(this.drifter, goal)) {
 			this.drifter.requestTravel(goal);
 		}
-		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5));
+		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5), this.lastBlocks);
 		this.path = List.of();
 		this.index = 0;
 		this.sinceProgress = 0;
@@ -526,6 +534,10 @@ public class NavigateTask extends Task {
 			return this.fail("stuck: replanned too often (last: " + this.lastReplanReason + ")");
 		}
 
+		if (this.lookAround > 0) {
+			return this.tickLookAround();
+		}
+
 		if (this.search == null && this.path.isEmpty()) {
 			this.plan("target moved", true);
 		}
@@ -559,6 +571,27 @@ public class NavigateTask extends Task {
 		return this.followStep(this.path.get(this.index));
 	}
 
+	private static long lastStuckDump;
+	/** A slow look round at the ground below it, before it gives up on a route with no first step. */
+	private static final int LOOK_AROUND_TICKS = 30;
+	private int lookAround;
+	private boolean lookedAround;
+	/** Planning with the blocks it keeps back as well (a way out of a dead end). */
+	private boolean lastBlocks;
+
+	private Status tickLookAround() {
+		this.releaseKeys();
+		int done = LOOK_AROUND_TICKS - this.lookAround--;
+		double angle = Math.PI * 2.0 * done / LOOK_AROUND_TICKS;
+		this.drifter.getCamera().track(this.drifter.position().add(Math.cos(angle) * 2.0, -3.0, Math.sin(angle) * 2.0), CameraModel.TurnSpeed.NORMAL);
+		if (this.lookAround == 0) {
+			this.drifter.getCamera().clearTarget();
+			this.plan("looked down round it", false);
+		}
+
+		return Status.RUNNING;
+	}
+
 	private Status tickPlanning() {
 		long t = System.nanoTime();
 		PathSearch.Status status = this.search.tick(PathBudget.take(this.level()));
@@ -576,6 +609,29 @@ public class NavigateTask extends Task {
 
 		if (status == PathSearch.Status.FAILED) {
 			this.search = null;
+			// No first step at all. Like a player at a dead end, it first looks down round itself (in the Nether a step down
+			// needs ground it has seen: found in testing, it stood for good on a short pillar of its own, the ground below
+			// never looked at), then tries again letting itself use the blocks it keeps back.
+			if (!this.lookedAround) {
+				this.lookedAround = true;
+				this.lookAround = LOOK_AROUND_TICKS;
+				return Status.RUNNING;
+			}
+
+			if (!this.lastBlocks && com.dinglebob.drifter.hands.Tools.buildingBlockCount(this.drifter) > 0) {
+				this.lastBlocks = true;
+				this.plan("no way there without its last blocks", false);
+				return Status.RUNNING;
+			}
+
+			// Still nothing: how the cells round it look, in the log (debug, at most every 30 s; found in testing: a Drifter
+			// stuck where every route failed at the start, which couldn't be reproduced on demand).
+			if (this.level().getGameTime() - lastStuckDump > 20 * 30) {
+				lastStuckDump = this.level().getGameTime();
+				com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} has no route from where it stands {}", this.drifter.getName().getString(),
+					com.dinglebob.drifter.nav.NavView.describeAround(this.drifter, this.feet()));
+			}
+
 			return this.fail("it knows no way there (" + this.lastReplanReason + ")");
 		}
 
@@ -664,6 +720,15 @@ public class NavigateTask extends Task {
 			this.drifter.setDebugPath(this.path, this.index);
 			// (Sneak is left as it is: the next tick's steering decides. Letting go of it here for a tick, at the end of a
 			// bridge, could walk it off.)
+			return Status.RUNNING;
+		}
+
+		// Fell below its route (knocked off, a block gave way): a step that starts two or more blocks above its feet can't be
+		// walked or jumped, so it plans again from where it is (found in a Nether test: it fell into a magma pit and pressed
+		// toward a step four blocks up for five seconds, burning).
+		if (this.drifter.onGround() && step.type() != MoveType.PILLAR && step.type() != MoveType.CLIMB_UP
+			&& step.from().getY() >= this.feet().getY() + 2) {
+			this.replan("fell below its route");
 			return Status.RUNNING;
 		}
 

@@ -89,16 +89,31 @@ public class RunAwayTask extends Task {
 
 		away = away.normalize();
 		Vec3 direction = null;
+		// From an archer (a skeleton, a stray) running straight away across open ground gets it shot in the back (found in the
+		// user's game: three Drifters died that way on a snowy mountain): like a player it heads for cover, a way that puts
+		// a hill, a tree or a wall between them, when there is one within a turn of straight away.
+		List<LivingEntity> archers = threats.stream().filter(t -> t instanceof net.minecraft.world.entity.monster.RangedAttackMob).toList();
 		for (int swerve : SWERVES) {
 			Vec3 candidate = away.yRot((float)Math.toRadians(swerve));
 			if (Steering.safeStep(this.drifter, candidate) && !Steering.wallAhead(this.drifter, candidate)) {
-				direction = candidate;
-				break;
+				if (direction == null) {
+					direction = candidate;
+				}
+
+				if (archers.isEmpty() || Math.abs(swerve) > 90) {
+					break;
+				}
+
+				if (this.hiddenFrom(archers, here.add(candidate.scale(COVER_LOOKAHEAD)))) {
+					direction = candidate;
+					break;
+				}
 			}
 		}
 
 		// Boxed in (or not getting anywhere): let the pathfinder find a way out.
-		this.stuck = here.distanceToSqr(this.lastPos) < 0.01 ? this.stuck + 1 : 0;
+		// Sideways only: sinking in powder snow or hopping on the spot isn't getting anywhere (found in the user's game).
+		this.stuck = new Vec3(here.x - this.lastPos.x, 0.0, here.z - this.lastPos.z).lengthSqr() < 0.01 ? this.stuck + 1 : 0;
 		this.lastPos = here;
 		if (direction == null || this.stuck > STUCK_TICKS) {
 			this.fallback = new NavigateTask(this.drifter, here.add(away.scale(16.0)), 4.0, "find a way out", NavigateTask.Pace.TRAVEL);
@@ -114,6 +129,23 @@ public class RunAwayTask extends Task {
 		// Jump bumps; in water, keep its head above the surface.
 		keys.set(VirtualKeys.Key.JUMP, this.drifter.horizontalCollision && this.drifter.onGround() || this.drifter.isUnderWater());
 		return Status.RUNNING;
+	}
+
+	/** How far ahead it checks for cover from archers. */
+	private static final double COVER_LOOKAHEAD = 4.0;
+
+	/** Out of every archer's line of fire at {@code spot} (blocks between the archer's eyes and its chest there). */
+	private boolean hiddenFrom(List<LivingEntity> archers, Vec3 spot) {
+		Vec3 chest = spot.add(0.0, this.drifter.getBbHeight() * 0.7, 0.0);
+		for (LivingEntity archer : archers) {
+			var hit = this.drifter.level().clip(new net.minecraft.world.level.ClipContext(archer.getEyePosition(), chest,
+				net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, archer));
+			if (hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Override

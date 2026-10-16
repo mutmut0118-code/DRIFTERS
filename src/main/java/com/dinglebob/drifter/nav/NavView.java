@@ -317,6 +317,26 @@ public final class NavView {
 		return false;
 	}
 
+	/** How the pathfinder sees the cells round {@code feet}, layer by layer (debug: `/drifter cells`, stuck routes). */
+	public static String describeAround(DrifterEntity drifter, BlockPos feet) {
+		NavView view = new NavView(drifter);
+		StringBuilder out = new StringBuilder(String.format(java.util.Locale.ROOT, "at %.2f %.2f %.2f, from %s", drifter.getX(), drifter.getY(),
+			drifter.getZ(), feet.toShortString()));
+		for (int dy = 2; dy >= -1; dy--) {
+			out.append('\n').append(" y").append(feet.getY() + dy).append(':');
+			for (int dz = -1; dz <= 1; dz++) {
+				out.append('\n').append("  ");
+				for (int dx = -1; dx <= 1; dx++) {
+					BlockPos pos = feet.offset(dx, dy, dz);
+					String kind = view.cell(pos).kind().name();
+					out.append(String.format(java.util.Locale.ROOT, "%-7s", kind.substring(0, Math.min(6, kind.length())) + (view.standable(pos) ? "+" : "")));
+				}
+			}
+		}
+
+		return out.toString();
+	}
+
 	public boolean isWater(BlockPos pos) {
 		return this.cell(pos).kind() == Kind.WATER;
 	}

@@ -53,9 +53,13 @@ public final class Steering {
 	public static boolean safeStep(DrifterEntity drifter, Vec3 direction) {
 		Level level = drifter.level();
 		BlockPos cell = BlockPos.containing(drifter.getX() + direction.x * 0.9, drifter.getY() + 0.1, drifter.getZ() + direction.z * 0.9);
+		// Powder snow (it has no collision for a check like this one) sinks it without leather boots (found in the user's
+		// game: running from a creeper into powder snow, it sank in and the creeper caught it).
+		boolean boots = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS);
 		for (int down = 0; down <= 3; down++) {
 			BlockPos pos = cell.below(down);
-			if (level.getFluidState(pos).is(FluidTags.LAVA) || level.getBlockState(pos).is(Blocks.FIRE)) {
+			if (level.getFluidState(pos).is(FluidTags.LAVA) || level.getBlockState(pos).is(Blocks.FIRE)
+				|| !boots && down <= 1 && level.getBlockState(pos).is(Blocks.POWDER_SNOW)) {
 				return false;
 			}
 

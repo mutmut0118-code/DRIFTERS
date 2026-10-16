@@ -97,6 +97,17 @@ public class PathSearch {
 	public static final float MAX_DROP_DAMAGE = 2.0F;
 	/** Building blocks routes always leave in its pockets. */
 	public static final int BLOCK_RESERVE = 6;
+	/**
+	 * In a lava world (the Nether) it keeps more: bridges there go out over the lava sea, and one that runs out of blocks
+	 * far from the shore is stranded (found in testing: exploring for a fortress, it bridged out over the lava until it had
+	 * none, and stood there for good).
+	 */
+	public static final int LAVA_WORLD_BLOCK_RESERVE = 16;
+
+	/** Building blocks its routes leave in its pockets where it is now. */
+	public static int reserve(DrifterEntity drifter) {
+		return drifter.level().dimensionType().ultraWarm() ? LAVA_WORLD_BLOCK_RESERVE : BLOCK_RESERVE;
+	}
 	/** Break time (seconds) at or under which a block counts as clearing at a touch, and its small extra cost. */
 	public static final double INSTANT_BREAK = 0.25;
 	public static final double INSTANT_PENALTY = 0.3;
@@ -151,6 +162,11 @@ public class PathSearch {
 	private int expanded;
 
 	public PathSearch(DrifterEntity drifter, BlockPos start, Vec3 target, double goalRadius) {
+		this(drifter, start, target, goalRadius, false);
+	}
+
+	/** {@code lastBlocks}: a way out of a dead end, with the blocks it keeps back too. */
+	public PathSearch(DrifterEntity drifter, BlockPos start, Vec3 target, double goalRadius, boolean lastBlocks) {
 		this.drifter = drifter;
 		this.view = new NavView(drifter);
 		this.start = start.immutable();
@@ -158,7 +174,7 @@ public class PathSearch {
 		this.goalRadius = goalRadius;
 		// Never its last few blocks on a route: a long chain of partial routes (exploring far) once spent them all on pillars
 		// and bridges and left it stranded up on them (found by the user: rubydoodle).
-		this.blocksAvailable = Math.max(0, Tools.buildingBlockCount(drifter) - BLOCK_RESERVE);
+		this.blocksAvailable = Math.max(0, Tools.buildingBlockCount(drifter) - (lastBlocks ? 0 : reserve(drifter)));
 		this.lavaWorld = drifter.level().dimensionType().ultraWarm();
 		// Section 12 cost model: risk x Caution, resources x Thrift, from its personality (mood included).
 		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);

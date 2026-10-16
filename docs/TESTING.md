@@ -1212,6 +1212,18 @@ they get close, ghasts, blazes), and switch to the sword up close.
 - [ ] `/drifter get minecraft:bow` sends the nearest Drifter off to make one (hunting spiders for string if it has
       none; spiders are around at night and in caves). `/drifter plan minecraft:arrow 32` shows how it would get arrows.
 - [ ] Their arm swings when they place a block now (your report).
+- [ ] **Running away (from your world):** a Drifter running from mobs on snowy ground never runs into powder snow (it
+      sank in one while a creeper chased it), and running from a skeleton it swerves behind a hill, tree or wall when
+      one is near instead of running straight across open ground.
+- [ ] **Fortress and blaze rods (new):** spawners now wake for Drifters as they do for you (within 16 blocks), so a
+      Drifter waiting by a fortress's blaze spawner gets blazes to fight (with its bow from range, then the sword). Find a
+      fortress yourself (`/locate structure minecraft:fortress` in the Nether), put a Drifter near its spawner with a
+      bow, arrows, a sword, a shield and food, and `/drifter brain goal nether_blaze`: it waits by the spawner, fights
+      the blazes and picks up their rods ("got 6 blaze rods" when done). Dungeon spawners in caves wake for mining
+      Drifters too.
+- [ ] Standing still on magma blocks it crouches (no burning). A Drifter stuck in one spot in the Nether with no way
+      on now looks down round itself and tries again; if it's still stuck, the game log has a line
+      `[Drifter] <name> has no route from where it stands` with a block grid: send me that part of the log.
 - [ ] **Catch-up builds the hut (new):** a Drifter with a home and blocks, away while you're far off, comes back with its
       hut's walls and roof up ("built N blocks of its hut" in its catch-up line); it puts the door, bed and torch in
       when it's about again. It never builds over blocks you placed.

@@ -851,6 +851,13 @@ public class DrifterEntity extends PathfinderMob {
 			this.keys.set(VirtualKeys.Key.SNEAK, true);
 		}
 
+		// Standing still on a magma block (thinking, waiting, stuck), it crouches, as a player does: magma only burns you
+		// when you don't (found in a Nether test: it stood on magma replanning, a heart at a time, until it died).
+		if (this.onGround() && this.keys.forwardImpulse() == 0.0F && this.keys.leftImpulse() == 0.0F
+			&& this.level().getBlockState(this.getBlockPosBelowThatAffectsMyMovement()).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)) {
+			this.keys.set(VirtualKeys.Key.SNEAK, true);
+		}
+
 		boolean sneakKey = this.keys.isDown(VirtualKeys.Key.SNEAK);
 		this.setShiftKeyDown(sneakKey);
 		this.crouching = !this.isSwimming()

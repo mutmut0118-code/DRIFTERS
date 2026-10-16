@@ -1147,6 +1147,25 @@ to one), and once a spot it couldn't route out of on a soul sand slope (being lo
 Fortresses do get found (seed 2024: spotted one 55 blocks off and headed for it). New debug command: `/drifter cells`
 (how routing sees the blocks round the nearest Drifter).
 
+**Fortress search round 3 (2026-10-16).** A route that fails with no first step now writes the cells round the
+Drifter to the log (`[Drifter] <name> has no route from where it stands`, rate-limited; `/drifter cells` shows the same
+view). That caught the "stuck for good" spots: (1) on the edge of a soul sand block it planned from the air beside it
+(fixed: a raised block beside counts as what it stands on); (2) on top of a short pillar of its own it never stepped
+off, because in the Nether a step down needs ground it has seen, and it had never looked down (fixed: before giving up
+on a route with no first step it looks down round itself for 1.5 s, then tries again letting itself use the blocks it
+keeps back); (3) it bridged out over the lava sea exploring until it had no blocks left (fixed: in the Nether it keeps
+16 blocks back, not 6). Also: it found a blaze spawner and waited by it 10 minutes with no blaze, because a vanilla
+spawner only wakes for a player within 16 blocks: spawners now wake for Drifters too (`BaseSpawnerMixin`; dungeon
+spawners in caves wake for mining Drifters as well, the same danger a player has). It crouches when standing still on
+magma (it burned to death standing on magma while replanning) and replans at once when it ends up 2+ blocks below
+its route. A goal that fails 3 times in a row now rests (15 s, then 30 s, doubling to 4 minutes) instead of being
+picked again every few ticks (on flat test worlds, "gather cobblestone" failed 1,851 times in a row). Fights and
+escapes never rest. From the user's world: running away no longer steps into powder snow (a creeper caught one sunk
+in it), and running from skeletons it heads for cover (a way that puts a block between them) when there's one within
+a turn of straight away (three died shot in the back on a snowy mountain).
+Batch results, six seeds: before these fixes 0 deaths, 2 of 6 home, 96 stuck-route logs; after the stuck fixes 1 death
+(magma, since fixed), 5 of 6 home, 1 stuck-route log, first spawner found.
+
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
    basalt deltas).
@@ -1199,4 +1218,9 @@ Questions for the user. Nothing here has been changed in the design.
     (word plus digits, two words joined...) shown like a player's nameplate; that was left for the spawning milestone.
     **My recommendation:** add the username generator and the always-visible nameplate now, as part of milestone 7
     (small: a name list, a filter, and showing the name like a player's), and leave natural spawning for later.
+11. **Spawners wake for Drifters (milestone 11, 2026-10-16).** Vanilla spawners only spawn while a player is within
+    16 blocks, so a Drifter waiting by a fortress's blaze spawner never got a blaze (section 19 has it get rods there).
+    I made spawners count a Drifter like a player (a small mixin), which matches section 1 ("hostile mobs target it like a
+    player"). Side effect: a dungeon spawner wakes when a Drifter mines nearby, as it would for you. **My
+    recommendation:** keep it. Say if you'd rather have it only for blaze spawners, or behind a config setting.
 4. **Break speed computed on the Drifter (section 3).** The design says to compute mining time through the fake-player helper. I compute it on the Drifter with an exact copy of the player's formula instead, because the helper never ticks, so its Haste, Mining Fatigue and Efficiency would be out of date. The numbers are identical to a player's. No decision needed unless you want it done differently.

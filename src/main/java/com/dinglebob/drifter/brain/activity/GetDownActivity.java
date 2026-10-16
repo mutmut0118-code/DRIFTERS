@@ -104,7 +104,7 @@ public class GetDownActivity extends Activity {
 	public static boolean stuckUp(DrifterEntity drifter) {
 		BlockPos feet = drifter.blockPosition();
 		return drifter.onGround() && drifter.isScaffold(feet.below())
-			&& com.dinglebob.drifter.hands.Tools.buildingBlockCount(drifter) <= com.dinglebob.drifter.nav.PathSearch.BLOCK_RESERVE
+			&& com.dinglebob.drifter.hands.Tools.buildingBlockCount(drifter) <= com.dinglebob.drifter.nav.PathSearch.reserve(drifter)
 			&& heightAboveGround(drifter, feet) >= STUCK_HEIGHT;
 	}
 

@@ -284,6 +284,14 @@ public final class Threats {
 			return NONE;
 		}
 
+		// Something hitting it from right there comes first, before one further off however dangerous (found in the user's
+		// game: aiming its bow at a creeper, it let a zombie hit it from behind five times until it died). A player turns
+		// round to what's hitting them.
+		if (recentlyHit && lastAttacker != null && lastAttacker.isAlive() && main != lastAttacker && hostiles.contains(lastAttacker)
+			&& lastAttacker.distanceTo(drifter) < 3.5 && (main == null || main.distanceTo(drifter) >= 3.5)) {
+			main = lastAttacker;
+		}
+
 		hostiles.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(drifter)));
 		double power = power(drifter);
 		double ratio = power / threat * courage(drifter);

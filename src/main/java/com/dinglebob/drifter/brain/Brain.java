@@ -239,6 +239,12 @@ public class Brain {
 	private final Blacklist blacklist = new Blacklist();
 	private final List<Goals.Goal> goals = Goals.all();
 	private final Map<String, Long> failedUntil = new HashMap<>();
+	/** Failures of a goal in a row (reset when it gets done): each one makes the next cool-down longer. */
+	private final Map<String, Integer> failedInARow = new HashMap<>();
+	/** From this many failures in a row, a goal waits out its cool-down completely instead of only scoring lower. */
+	private static final int FAILURES_BEFORE_REST = 3;
+	/** Longest cool-down, however often it failed (4 minutes). */
+	private static final int MAX_FAILED_COOLDOWN_TICKS = FAILED_COOLDOWN_TICKS * 16;
 
 	/** An item someone asked it to get (`/drifter get`, debug), and how many to end up with; not saved. */
 	@Nullable
@@ -355,7 +361,9 @@ public class Brain {
 			double base = nether && !NetherGoals.IN_THE_NETHER.contains(goal.id()) ? 0.0 : goal.score(context);
 			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t, () -> this.drifter.getName().getString() + ": goal " + goal.id());
 			if (base > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
-				base *= FAILED_PENALTY;
+				// Failing again and again (found in testing: "gather cobblestone" on ground with no stone failed and was picked
+				// again every few ticks, 1,851 times): it leaves it alone for a while. Not fights and escapes: those it keeps at.
+				base *= this.failedInARow.getOrDefault(goal.id(), 0) >= FAILURES_BEFORE_REST && !goal.urgent(context) ? 0.0 : FAILED_PENALTY;
 			}
 
 			double score = base;
@@ -469,8 +477,14 @@ public class Brain {
 
 	private void onActivityMessage(Goals.Goal goal, Component message) {
 		String text = message.getString();
+		if (text.contains("Done:")) {
+			this.failedInARow.remove(goal.id());
+		}
+
 		if (text.contains("Failed:")) {
-			this.failedUntil.put(goal.id(), this.drifter.level().getGameTime() + FAILED_COOLDOWN_TICKS);
+			int inARow = this.failedInARow.merge(goal.id(), 1, Integer::sum);
+			long cooldown = Math.min(MAX_FAILED_COOLDOWN_TICKS, (long)FAILED_COOLDOWN_TICKS << Math.min(4, Math.max(0, inARow - FAILURES_BEFORE_REST + 1)));
+			this.failedUntil.put(goal.id(), this.drifter.level().getGameTime() + cooldown);
 			// Repeated failures wear on it (section 17, Frustrated).
 			this.drifter.getPersonality().feel(com.dinglebob.drifter.personality.Mood.FRUSTRATED, 0.18,
 				"couldn't " + (this.lastContext == null ? goal.id() : goal.name(this.lastContext)));

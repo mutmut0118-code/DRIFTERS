@@ -70,6 +70,14 @@ public class ShootTask extends Task {
 			return this.fail("no arrows left");
 		}
 
+		// Something else is hitting it (a zombie behind it while it aims at a creeper): the bow goes, it turns to that.
+		net.minecraft.world.entity.LivingEntity hitBy = this.drifter.getLastHurtByMob();
+		if (hitBy != null && hitBy != this.target && hitBy.isAlive() && this.drifter.tickCount - this.drifter.getLastHurtByMobTimestamp() < 10
+			&& hitBy.distanceTo(this.drifter) < TOO_CLOSE) {
+			this.release(false);
+			return this.fail("something else is hitting it");
+		}
+
 		if (this.drifter.distanceTo(this.target) < TOO_CLOSE && !Archery.flying(this.target)) {
 			this.release(false);
 			return this.fail("it came too close for the bow");
