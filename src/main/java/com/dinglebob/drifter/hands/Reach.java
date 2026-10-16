@@ -76,6 +76,31 @@ public final class Reach {
 
 	/** Same as {@link #aimPoint(DrifterEntity, BlockPos, Direction)}, but from a hypothetical eye position. */
 	public static Optional<Vec3> aimPointFrom(DrifterEntity drifter, Vec3 eye, BlockPos pos, Direction face) {
+		return aimPointFrom(drifter, eye, pos, face, null);
+	}
+
+	/** A finer grid across a face, centre first, for aiming at one part of it (the upper half of a side, its left side). */
+	private static final double[][] FINE_SAMPLES = fineSamples();
+
+	private static double[][] fineSamples() {
+		java.util.List<double[]> samples = new java.util.ArrayList<>();
+		double[] steps = {0, -0.4, 0.4, -0.8, 0.8};
+		for (double a : steps) {
+			for (double b : steps) {
+				samples.add(new double[] {a, b});
+			}
+		}
+
+		samples.sort(java.util.Comparator.comparingDouble(s -> s[0] * s[0] + s[1] * s[1]));
+		return samples.toArray(new double[0][]);
+	}
+
+	/**
+	 * A point on that face it can see and reach whose spot on the block passes {@code region} (the hit's position within
+	 * the block, 0 to 1 on each axis): where it clicks decides a stair's half or a door's hinge, as for a player.
+	 */
+	public static Optional<Vec3> aimPointFrom(DrifterEntity drifter, Vec3 eye, BlockPos pos, Direction face,
+		@org.jetbrains.annotations.Nullable java.util.function.Predicate<Vec3> region) {
 		AABB box = outline(drifter, pos);
 		Vec3 center = box.getCenter();
 		// Its head inside the block (sand fell on it, a block in its face): the crosshair is on that block whichever way it
@@ -114,12 +139,13 @@ public final class Reach {
 		}
 
 		Vec3 inset = center.add(normal.scale(Math.max(halfDepth - FACE_INSET, 0.0)));
-		for (double[] sample : FACE_SAMPLES) {
+		for (double[] sample : region == null ? FACE_SAMPLES : FINE_SAMPLES) {
 			Vec3 target = inset.add(u.scale(sample[0])).add(v.scale(sample[1]));
 			Vec3 farTarget = eye.add(target.subtract(eye).scale(1.5));
 			BlockHitResult hit = drifter.level().clip(new ClipContext(eye, farTarget, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, drifter));
 			if (hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(pos) && hit.getDirection() == face
-				&& eye.distanceTo(hit.getLocation()) <= drifter.blockInteractionRange()) {
+				&& eye.distanceTo(hit.getLocation()) <= drifter.blockInteractionRange()
+				&& (region == null || region.test(hit.getLocation().subtract(Vec3.atLowerCornerOf(pos))))) {
 				return Optional.of(target);
 			}
 		}

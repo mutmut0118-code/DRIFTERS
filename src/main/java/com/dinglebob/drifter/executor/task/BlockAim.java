@@ -36,15 +36,30 @@ final class BlockAim {
 	private int reaims;
 	private int noViewTicks;
 
+	/** Only this part of the face will do (where a click lands decides a stair's half, a door's hinge), or null. */
+	@Nullable
+	private final java.util.function.Predicate<Vec3> region;
+
 	BlockAim(DrifterEntity drifter, BlockPos pos, @Nullable Direction face, CameraModel.TurnSpeed speed) {
+		this(drifter, pos, face, speed, null);
+	}
+
+	BlockAim(DrifterEntity drifter, BlockPos pos, @Nullable Direction face, CameraModel.TurnSpeed speed, @Nullable java.util.function.Predicate<Vec3> region) {
 		this.drifter = drifter;
 		this.pos = pos;
 		this.face = face;
 		this.speed = speed;
+		this.region = region;
 	}
 
 	boolean crosshairOnTarget() {
-		return this.face == null ? Reach.isLookingAt(this.drifter, this.pos) : Reach.isLookingAt(this.drifter, this.pos, this.face);
+		boolean on = this.face == null ? Reach.isLookingAt(this.drifter, this.pos) : Reach.isLookingAt(this.drifter, this.pos, this.face);
+		if (!on || this.region == null) {
+			return on;
+		}
+
+		var hit = Reach.crosshair(this.drifter);
+		return hit != null && this.region.test(hit.getLocation().subtract(Vec3.atLowerCornerOf(this.pos)));
 	}
 
 	Result tick() {
@@ -61,7 +76,8 @@ final class BlockAim {
 		}
 
 		if (this.point == null) {
-			Optional<Vec3> found = this.face == null ? Reach.aimPoint(this.drifter, this.pos) : Reach.aimPoint(this.drifter, this.pos, this.face);
+			Optional<Vec3> found = this.face == null ? Reach.aimPoint(this.drifter, this.pos)
+				: Reach.aimPointFrom(this.drifter, this.drifter.getEyePosition(), this.pos, this.face, this.region);
 			if (found.isEmpty()) {
 				return ++this.noViewTicks > MAX_NO_VIEW_TICKS ? Result.UNREACHABLE : Result.AIMING;
 			}

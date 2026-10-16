@@ -31,6 +31,21 @@ public class PlaceBlockTask extends Task {
 	@Nullable
 	private Direction preferred;
 
+	/** Exactly this block, facing and all (a house plan's): placed by a click that gives it (see {@link Placement}). */
+	@Nullable
+	private BlockState exact;
+	@Nullable
+	private java.util.List<com.dinglebob.drifter.hands.Placement.Way> ways;
+
+	/** Place exactly this block (its own item, the click that gives its facing, half and hinge). */
+	public static PlaceBlockTask exactly(DrifterEntity drifter, BlockPos target, BlockState want, String label) {
+		BlockState step = com.dinglebob.drifter.hands.Placement.step(drifter.level(), target, want);
+		net.minecraft.world.item.Item item = step.getBlock().asItem();
+		PlaceBlockTask task = new PlaceBlockTask(drifter, target, stack -> stack.is(item), label);
+		task.exact = step;
+		return task;
+	}
+
 	public PlaceBlockTask(DrifterEntity drifter, BlockPos target, Predicate<ItemStack> item, String label) {
 		super(drifter);
 		this.target = target.immutable();
@@ -78,7 +93,9 @@ public class PlaceBlockTask extends Task {
 
 	@Override
 	protected void onStart() {
-		if (!this.drifter.level().getBlockState(this.target).canBeReplaced()) {
+		// (A plan's double slab goes in on top of its first half.)
+		boolean adding = this.exact != null && this.drifter.level().getBlockState(this.target).is(this.exact.getBlock());
+		if (!adding && !this.drifter.level().getBlockState(this.target).canBeReplaced()) {
 			this.fail("that spot is already taken");
 		}
 	}
@@ -100,20 +117,40 @@ public class PlaceBlockTask extends Task {
 				return this.fail("it's standing in the way");
 			}
 
-			// Grass, a flower or snow in the spot: a player clicks it and the block goes in its place (the grass is in the
-			// way of the face under it anyway; found in testing: hut corners on grassy ground were "unreachable").
-			Direction plantFace = clickableFace(this.drifter, this.drifter.getEyePosition(), this.target);
-			if (plantFace != null) {
-				this.use = new UseOnBlockTask(this.drifter, this.target, plantFace, "click the " + this.drifter.level().getBlockState(this.target).getBlock()
-					.getName().getString().toLowerCase(java.util.Locale.ROOT));
-			} else {
-				Direction[] support = this.chooseSupport();
-				if (support == null) {
-					return this.fail("no block face to place against within reach");
+			// A plan's block: a click that gives it the way the plan has it, from where it stands.
+			if (this.exact != null) {
+				if (this.ways == null) {
+					this.ways = com.dinglebob.drifter.hands.Placement.ways(this.drifter, this.target, this.exact);
 				}
 
-				BlockPos supportPos = this.target.relative(support[0]);
-				this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+				com.dinglebob.drifter.hands.Placement.Way way = com.dinglebob.drifter.hands.Placement.reachable(this.drifter, this.ways);
+				if (way == null) {
+					return this.fail(this.ways.isEmpty() ? "no way to place it like that here (nothing to place it against)"
+						: "can't reach a way to place it facing right from here");
+				}
+
+				this.use = new UseOnBlockTask(this.drifter, way.support(), way.face(), "click " + way.support().toShortString())
+					.region(way.region()).yaw(way.yRot()).pitch(way.pitch());
+				if (this.single) {
+					this.use.sneakPlace();
+				}
+			} else {
+				// Grass, a flower or snow in the spot: a player clicks it and the block goes in its place (the grass is in the
+				// way of the face under it anyway; found in testing: hut corners on grassy ground were "unreachable").
+				Direction plantFace = clickableFace(this.drifter, this.drifter.getEyePosition(), this.target);
+				if (plantFace != null) {
+					this.use = new UseOnBlockTask(this.drifter, this.target, plantFace, "click the " + this.drifter.level().getBlockState(this.target).getBlock()
+						.getName().getString().toLowerCase(java.util.Locale.ROOT));
+				} else {
+					Direction[] support = this.chooseSupport();
+					if (support == null) {
+						return this.fail("no block face to place against within reach");
+					}
+
+					BlockPos supportPos = this.target.relative(support[0]);
+					this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+				}
+
 			}
 
 			if (this.facing != null) {
@@ -138,6 +175,10 @@ public class PlaceBlockTask extends Task {
 		BlockState placed = this.drifter.level().getBlockState(this.target);
 		if (placed.canBeReplaced()) {
 			return this.fail("the block didn't end up there");
+		}
+
+		if (this.exact != null && !com.dinglebob.drifter.hands.Placement.matches(placed, this.exact)) {
+			return this.fail("it came out the wrong way round");
 		}
 
 		this.drifter.getSenses().placedBlock(this.target);

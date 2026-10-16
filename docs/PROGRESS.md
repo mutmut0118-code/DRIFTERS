@@ -1442,6 +1442,15 @@ structure blocks) for the user's own worlds.
   build it from), `/drifter house keep <world plan>`, `/drifter house import <name>` (from `config/drifter/imports`),
   `/drifter house paste <plan> [asdrawn]` (debug). Tested: the user's GrabCraft stone house (9 x 12 x 7, 303 blocks)
   imported; its roof climbs to the ridge and its torches hang on the walls; for a Drifter carrying spruce it's all spruce.
+- Step 2, facing (user, 2026-10-16): `hands/Placement` asks the game how to get a block the way a plan has it: for each
+  face it could click (and the block itself, to add to a slab), each quarter of that face, each way it could look (16
+  for signs and banners) and level, up or down, it runs the item's own placement (as a player's click would) and keeps
+  the ones that give the plan's facing, axis, half, hinge, slab type, attachment or rotation; connections settle by
+  themselves. `PlaceBlockTask.exactly(...)` picks one it can reach from where it stands and aims at that part of the face
+  (`Reach`/`BlockAim` regions), then checks it came out right; a double slab is two slabs. Debug:
+  `/drifter placeexact <pos> <block state>`. Tested, all passed: an upside-down stair, a stair, a sideways log, a top
+  slab, a double slab, a door with its hinge on the right, a top trapdoor on a wall, a wall torch, a furnace and a chest
+  facing set ways. Plan rule (user): grass blocks in a plan count as ground; uneven ground under a plan gets dirt.
 
 ## Ideas for more assumptions (for the user to pick from)
 

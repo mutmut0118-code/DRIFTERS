@@ -96,6 +96,13 @@ final class HandsCommands {
 					.executes(ctx -> start(ctx, drifter -> new PlaceBlockTask(drifter, BlockPosArgument.getLoadedBlockPos(ctx, "pos"),
 						ItemPredicateArgument.getItemPredicate(ctx, "item"), argText(ctx, "item")))))));
 
+		// Exactly this block, facing and all, as a house plan has it (debug): the nearest one finds the click that gives it.
+		root.then(Commands.literal("placeexact")
+			.then(Commands.argument("pos", BlockPosArgument.blockPos())
+				.then(Commands.argument("block", net.minecraft.commands.arguments.blocks.BlockStateArgument.block(context))
+					.executes(ctx -> start(ctx, drifter -> PlaceBlockTask.exactly(drifter, BlockPosArgument.getLoadedBlockPos(ctx, "pos"),
+						net.minecraft.commands.arguments.blocks.BlockStateArgument.getBlock(ctx, "block").getState(), argText(ctx, "block")))))));
+
 		root.then(Commands.literal("useon")
 			.then(Commands.argument("pos", BlockPosArgument.blockPos())
 				.executes(ctx -> {

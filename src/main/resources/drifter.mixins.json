@@ -5,6 +5,7 @@
 	"mixins": [
 		"AbstractArrowAccessor",
 		"BaseSpawnerMixin",
+		"BlockItemAccessor",
 		"BlockItemMixin",
 		"BowItemMixin",
 		"ChunkMapMixin",

@@ -29,7 +29,30 @@ public class UseOnBlockTask extends Task {
 	private final BlockPos pos;
 	private final Direction face;
 	private final String label;
-	private final BlockAim aim;
+	private BlockAim aim;
+	/** Its pitch for the click (blocks that face where you look up or down: observers, pistons), or null. */
+	@org.jetbrains.annotations.Nullable
+	private Float pitch;
+
+	/** Only this part of the face (the hit's spot in the block, 0 to 1): where a click lands decides half and hinge. */
+	public UseOnBlockTask region(java.util.function.Predicate<net.minecraft.world.phys.Vec3> region) {
+		this.aim = new BlockAim(this.drifter, this.pos, this.face, CameraModel.TurnSpeed.NORMAL, region);
+		return this;
+	}
+
+	/** Its yaw for the click (a sign's 16 directions; a stair's facing comes from it). */
+	@org.jetbrains.annotations.Nullable
+	private Float yaw;
+
+	public UseOnBlockTask yaw(float yaw) {
+		this.yaw = yaw;
+		return this;
+	}
+
+	public UseOnBlockTask pitch(float pitch) {
+		this.pitch = pitch;
+		return this;
+	}
 	/** Use the block itself (open a door, a gate): never sneaking, or the click would go to the held item instead. */
 	private final boolean useBlock;
 	private boolean sneak;
@@ -136,6 +159,14 @@ public class UseOnBlockTask extends Task {
 			// click, the aim stays the same.
 			if (this.facing != null) {
 				fake.setYRot(this.facing.toYRot());
+			}
+
+			if (this.pitch != null) {
+				fake.setXRot(this.pitch);
+			}
+
+			if (this.yaw != null) {
+				fake.setYRot(this.yaw);
 			}
 
 			return fake.gameMode.useItemOn(fake, this.drifter.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit);
