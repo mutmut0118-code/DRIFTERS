@@ -78,6 +78,8 @@ public final class Home {
 	public boolean lastOpenedSeen;
 	@Nullable
 	public BlockPos lastOpenedChest;
+	/** Spots where putting a chest down failed (not saved): it tries elsewhere next time. */
+	public final java.util.Set<BlockPos> badChestSpots = new java.util.HashSet<>();
 	/** A chest it saw someone open that it means to check, and since when (not saved). */
 	@Nullable
 	public BlockPos checkChest;

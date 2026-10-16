@@ -77,6 +77,40 @@ public final class SocialCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal(label + " now trusts " + name + " " + Math.round(trust)), true);
 				return 1;
 			}))));
+		// Debug: a thief empties the valuables out of the nearest one's home chest (they vanish), and it noticed someone there.
+		root.then(Commands.literal("rob").executes(ctx -> {
+			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+			var home = drifter.getDrifterBrain().home();
+			if (home == null || !home.hasChest()) {
+				throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("It has no chest at home")).create();
+			}
+
+			int taken = 0;
+			net.minecraft.core.BlockPos robbed = null;
+			for (net.minecraft.core.BlockPos chest : home.chests()) {
+				var container = com.dinglebob.drifter.hands.Containers.get(drifter.level(), chest);
+				if (container == null) {
+					continue;
+				}
+
+				for (int slot = 0; slot < container.getContainerSize(); slot++) {
+					if (com.dinglebob.drifter.social.ItemValues.valuable(container.getItem(slot))) {
+						taken += container.getItem(slot).getCount();
+						container.setItem(slot, net.minecraft.world.item.ItemStack.EMPTY);
+						robbed = chest;
+					}
+				}
+			}
+
+			if (robbed != null) {
+				home.checkChest = robbed;
+				home.checkChestSince = drifter.level().getGameTime();
+			}
+
+			int count = taken;
+			ctx.getSource().sendSuccess(() -> Component.literal("took " + count + " valuable items from " + DrifterCommands.label(drifter) + "'s chests"), true);
+			return 1;
+		}));
 		// Debug: the nearest one teams up with the named one at once (friends both ways, one group).
 		root.then(Commands.literal("group").then(Commands.argument("other", StringArgumentType.word()).executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());

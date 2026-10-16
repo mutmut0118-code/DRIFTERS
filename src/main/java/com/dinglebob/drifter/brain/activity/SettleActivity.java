@@ -62,6 +62,12 @@ public class SettleActivity extends Activity {
 			this.think(home.chests().size() == 1 ? "put a chest down at home" : "put down another chest at home");
 		}
 
+		// A spot it couldn't put the chest on: not again (found in testing: a spot by the home's middle it couldn't place
+		// on was tried again by every new attempt, forever).
+		if (step instanceof PlaceBlockTask && status == Status.FAILURE && this.placing != null && home != null) {
+			home.badChestSpots.add(this.placing);
+		}
+
 		this.placing = null;
 	}
 
@@ -181,6 +187,7 @@ public class SettleActivity extends Activity {
 			// Any free floor right next to it will do, but not where the hut goes: its walls, door, or the middle (found in
 			// testing: a chest in the middle of the hut, and jumping off it to put the roof on opened the chest instead).
 			java.util.Set<BlockPos> notHere = new java.util.HashSet<>(this.tried);
+			notHere.addAll(home.badChestSpots);
 			com.dinglebob.drifter.building.StarterHut hut = home.houseBed != null ? null : com.dinglebob.drifter.building.StarterHut.of(home);
 			for (BlockPos cell : hut == null ? java.util.List.<BlockPos>of() : java.util.List.of(home.center)) {
 				notHere.add(cell);
@@ -330,7 +337,7 @@ public class SettleActivity extends Activity {
 		for (BlockPos corner : com.dinglebob.drifter.building.StarterHut.of(home).furnitureSpots()) {
 			if (level.getBlockState(corner).canBeReplaced() && level.getFluidState(corner).isEmpty() && !nextToChest(level, corner)
 				&& level.getBlockState(corner.below()).isFaceSturdy(level, corner.below(), Direction.UP) && !corner.equals(this.drifter.blockPosition())
-				&& !this.tried.contains(corner)) {
+				&& !this.tried.contains(corner) && !home.badChestSpots.contains(corner)) {
 				return corner;
 			}
 		}
@@ -350,7 +357,8 @@ public class SettleActivity extends Activity {
 				if (level.getBlockState(candidate).canBeReplaced() && level.getFluidState(candidate).isEmpty()
 					&& level.getBlockState(candidate.below()).isFaceSturdy(level, candidate.below(), Direction.UP)
 					&& !candidate.equals(this.drifter.blockPosition()) && !candidate.equals(this.drifter.blockPosition().above())
-					&& KnownBlocks.isStandable(level, candidate.relative(direction.getOpposite())) && !nextToChest(level, candidate)) {
+					&& KnownBlocks.isStandable(level, candidate.relative(direction.getOpposite())) && !nextToChest(level, candidate)
+					&& !this.tried.contains(candidate) && !home.badChestSpots.contains(candidate)) {
 					return candidate;
 				}
 			}
