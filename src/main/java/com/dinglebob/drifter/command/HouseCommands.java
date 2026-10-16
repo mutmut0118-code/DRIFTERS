@@ -110,7 +110,8 @@ public final class HouseCommands {
 			com.dinglebob.drifter.building.plan.HousePalette.of(home.planWoods, home.planDeepslate).describe(), done, placed.build.size(),
 			home.planDone ? " (finished)" : "", bed != null ? "; lives in it (bed at " + bed.toShortString() + ")" : ""));
 		List<String> missing = placed.build.stream().filter(c -> !com.dinglebob.drifter.hands.Placement.matches(level.getBlockState(c.pos()), c.state()))
-			.limit(8).map(c -> c.state().getBlock().getName().getString().toLowerCase(Locale.ROOT) + " at " + c.pos().toShortString()).toList();
+			.limit(8).map(c -> c.state().getBlock().getName().getString().toLowerCase(Locale.ROOT) + " at " + c.pos().toShortString()
+				+ (level.getBlockState(c.pos()).isAir() ? "" : " (" + level.getBlockState(c.pos()).getBlock().getName().getString().toLowerCase(Locale.ROOT) + " there)")).toList();
 		if (!missing.isEmpty() && done > placed.build.size() / 2) {
 			say(ctx, "Still missing: " + String.join(", ", missing) + (placed.build.size() - done > 8 ? ", ..." : ""));
 		}

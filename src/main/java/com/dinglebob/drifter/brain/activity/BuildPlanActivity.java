@@ -78,6 +78,7 @@ public class BuildPlanActivity extends Activity {
 	private final Set<BlockPos> told = new HashSet<>();
 	private final Map<BlockPos, Integer> tries = new HashMap<>();
 	private final Map<BlockPos, Integer> walksFor = new HashMap<>();
+	private final Map<BlockPos, Integer> redone = new HashMap<>();
 	@Nullable
 	private PlacedPlan placed;
 	private int walks;
@@ -126,6 +127,8 @@ public class BuildPlanActivity extends Activity {
 
 	/** Reasons it has already said a walk or pillar went wrong (said once each). */
 	private final Set<String> toldWhy = new HashSet<>();
+	/** Why blocks were passed over on this pass (for its thoughts when it can't finish). */
+	private final Map<String, Integer> skips = new java.util.TreeMap<>();
 
 	@Override
 	protected void stepDone(Task step, Status status) {
@@ -201,6 +204,16 @@ public class BuildPlanActivity extends Activity {
 			return this.workAt(level, plan, clear, () -> this.digAt(clear), "clear the spot");
 		}
 
+		// The way out of each door: earth or rock standing there dug out (a door into a hillside).
+		for (BlockPos step : doorsteps(plan, want)) {
+			for (BlockPos p : new BlockPos[] {step.above(), step}) {
+				BlockState there = level.getBlockState(p);
+				if (!this.failed.contains(p) && natural(there) && !there.getCollisionShape(level, p).isEmpty() && KnownBlocks.mayTake(level, p)) {
+					return this.workAt(level, plan, p, () -> this.digAt(p), "clear the way to the door");
+				}
+			}
+		}
+
 		// 2. Fill: holes under the footprint and the plan's ground, with dirt, lowest first.
 		this.phase = "fill";
 		BlockPos fill = this.toFill(level, plan, want, ground);
@@ -219,6 +232,7 @@ public class BuildPlanActivity extends Activity {
 		// 3. Build. With some spare blocks to pillar up and get back down with (found in testing: out of them, it was stuck
 		// on the roof of a tall house with no way down).
 		this.phase = "build";
+		this.skips.clear();
 		if (com.dinglebob.drifter.hands.Tools.buildingBlockCount(this.drifter) < SPARE_BLOCKS) {
 			return this.gather(Items.DIRT, 32);
 		}
@@ -255,18 +269,39 @@ public class BuildPlanActivity extends Activity {
 
 			if (Placement.matches(have, cell.state()) && !(cell.state().hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
 				&& cell.state().getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
-				!= have.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)) || this.failed.contains(pos) || this.stuck.contains(pos)) {
+				!= have.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE))) {
+				continue;
+			}
+
+			if (this.failed.contains(pos) || this.stuck.contains(pos)) {
+				this.skips.merge(this.failed.contains(pos) ? "given up on" : "nowhere to stand", 1, Integer::sum);
 				continue;
 			}
 
 			// Something else there: its own scaffolding or something natural goes; anything else (someone's block) it leaves.
 			if (!have.isAir() && !have.canBeReplaced() && !have.is(cell.state().getBlock())) {
-				if (this.drifter.isScaffold(pos) || KnownBlocks.mayTake(level, pos) && natural(have)) {
+				// (A crafting table it put down there while building comes back up with it.)
+				if (this.drifter.isScaffold(pos) || KnownBlocks.mayTake(level, pos) && (natural(have) || have.is(Blocks.CRAFTING_TABLE))) {
 					return this.workAt(level, plan, pos, () -> this.digAt(pos), "clear the spot");
 				}
 
 				this.failed.add(pos);
+				this.skips.merge("someone's " + have.getBlock().getName().getString().toLowerCase(java.util.Locale.ROOT) + " in the way", 1, Integer::sum);
 				continue;
+			}
+
+			// Its block, but the wrong way round (a log on its side, a stair facing out): out again and redone, twice at most.
+			// (Half of a double slab isn't wrong: the other half goes on it.)
+			boolean halfOfDouble = cell.state().hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
+				&& cell.state().getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
+				== net.minecraft.world.level.block.state.properties.SlabType.DOUBLE;
+			if (have.is(cell.state().getBlock()) && !Placement.matches(have, cell.state()) && !halfOfDouble && KnownBlocks.mayTake(level, pos)) {
+				if (this.redone.merge(pos, 1, Integer::sum) > 2) {
+					this.failed.add(pos);
+					continue;
+				}
+
+				return this.workAt(level, plan, pos, () -> this.digAt(pos), "redo a block put in the wrong way");
 			}
 
 			Status placing = this.placeCell(level, plan, pos, cell.state());
@@ -293,7 +328,8 @@ public class BuildPlanActivity extends Activity {
 		// Done (bar a few gaps it really can't fill).
 		long missing = plan.build.stream().filter(c -> !(c.state().getBlock() instanceof BedBlock) && !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
 		if (missing > MAX_GAPS) {
-			return this.fail("couldn't place " + missing + " blocks of the house yet");
+			return this.fail("couldn't place " + missing + " blocks of the house yet (" + this.skips.entrySet().stream()
+				.map(e -> e.getValue() + " " + e.getKey()).collect(java.util.stream.Collectors.joining(", ")) + ")");
 		}
 
 		if (!home.planDone) {
@@ -343,14 +379,21 @@ public class BuildPlanActivity extends Activity {
 		List<Placement.Way> ways = Placement.ways(this.drifter, pos, step);
 		if (ways.isEmpty()) {
 			// Nothing to place it against yet (a roof stair before the one it leans on): later.
+			this.skips.merge("nothing to place against", 1, Integer::sum);
 			return null;
 		}
 
-		if (Placement.reachable(this.drifter, ways) != null) {
+		// Not while standing in its space (found in testing on a hillside: it put a door in round itself and was stuck in the
+		// doorway for good); for a door, the space of its top half too.
+		net.minecraft.world.phys.AABB body = this.drifter.getBoundingBox();
+		boolean inTheWay = body.intersects(new net.minecraft.world.phys.AABB(pos))
+			|| want.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF)
+				&& body.intersects(new net.minecraft.world.phys.AABB(pos.above()));
+		if (!inTheWay && Placement.reachable(this.drifter, ways) != null) {
 			return this.place(pos, PlaceBlockTask.exactly(this.drifter, pos, want, item.getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
 		}
 
-		if (pos.equals(this.walkedFor)) {
+		if (pos.equals(this.walkedFor) && !inTheWay) {
 			// It walked over for this one and still can't reach it: leave it till something else is placed.
 			this.walkedFor = null;
 			this.stuck.add(pos);
@@ -360,7 +403,7 @@ public class BuildPlanActivity extends Activity {
 			return null;
 		}
 
-		Spot spot = this.spotFor(level, ways, pos, plan);
+		Spot spot = this.spotFor(level, ways, pos, plan, pos.above());
 		if (spot == null || this.walksFor.merge(pos, 1, Integer::sum) > WALKS_PER_BLOCK) {
 			this.stuck.add(pos);
 			if (spot != null) {
@@ -505,8 +548,13 @@ public class BuildPlanActivity extends Activity {
 	@Nullable
 	private BlockPos toFill(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want, Set<BlockPos> ground) {
 		BlockPos lowest = null;
-		for (BlockPos column : plan.footprint()) {
-			// The top of the support: the plan's ground cell if it has one here, otherwise the block under its lowest layer.
+		List<BlockPos> steps = doorsteps(plan, want);
+		List<BlockPos> columns = new java.util.ArrayList<>(plan.footprint());
+		columns.addAll(steps);
+		for (BlockPos column : columns) {
+			boolean doorstep = steps.contains(column);
+			// The top of the support: the plan's ground cell if it has one here, otherwise the block under its lowest layer
+			// (under the doorstep for one outside a door).
 			BlockPos top = ground.contains(column) ? column : column.below();
 			if (this.failed.contains(top) || solid(level, top)) {
 				continue;
@@ -520,6 +568,10 @@ public class BuildPlanActivity extends Activity {
 			}
 
 			if (depth >= MAX_DEPTH) {
+				if (doorstep) {
+					continue;
+				}
+
 				return BlockPos.ZERO;
 			}
 
@@ -712,6 +764,30 @@ public class BuildPlanActivity extends Activity {
 		return null;
 	}
 
+	/**
+	 * Where it steps out of each door (outside the house, or where the plan has nothing): the ground there is levelled to
+	 * the door's sill and the way cleared, so the door can be got to (found in testing on a hillside: a door two blocks
+	 * up from the ground outside, no way in to put its bed down).
+	 */
+	static List<BlockPos> doorsteps(PlacedPlan plan, Map<BlockPos, BlockState> want) {
+		List<BlockPos> steps = new java.util.ArrayList<>();
+		for (PlacedPlan.Cell cell : plan.build) {
+			if (!(cell.state().getBlock() instanceof net.minecraft.world.level.block.DoorBlock)) {
+				continue;
+			}
+
+			Direction facing = cell.state().getValue(net.minecraft.world.level.block.DoorBlock.FACING);
+			for (Direction side : new Direction[] {facing, facing.getOpposite()}) {
+				BlockPos step = cell.pos().relative(side);
+				if (!want.containsKey(step) && !want.containsKey(step.above()) && !plan.contains(step, 0)) {
+					steps.add(step.immutable());
+				}
+			}
+		}
+
+		return steps;
+	}
+
 	/** Logs all the way down from here to {@code to} (one trunk). */
 	private static boolean trunkDown(Level level, BlockPos from, BlockPos to) {
 		for (BlockPos pos = from; pos.getY() >= to.getY(); pos = pos.below()) {
@@ -814,8 +890,42 @@ public class BuildPlanActivity extends Activity {
 		BlockState state = level.getBlockState(pos);
 		// Nor does it pillar up to take scaffolding down (that's more scaffolding; found in testing: round and round on a
 		// tall house): what it can't get at from the ground is left for tidying up another day.
-		int most = state.is(BlockTags.LEAVES) || state.canBeReplaced() || this.drifter.isScaffold(pos) ? 0 : MAX_PILLAR;
-		Spot spot = this.standFor(level, pos, plan, null, most, eye -> {
+		// Leaves where a block of the house goes are another matter: they're in the way, and up it goes for them (found in
+		// testing: a spruce's branches hanging into a wall top, from a tree outside the house that kept them alive).
+		boolean planned = plan.buildMap().containsKey(pos);
+		int most = (state.is(BlockTags.LEAVES) || state.canBeReplaced()) && !planned || this.drifter.isScaffold(pos) ? 0 : MAX_PILLAR;
+		Spot spot = this.standFor(level, pos, plan, null, most, this.canSee(aim));
+		if (spot == null && planned) {
+			// Buried in a tree's leaves (every face of it behind more leaves): the leaves round it first, from outside in, as
+			// a player trims a way in (found in testing: wall blocks inside a spruce's crown "given up on").
+			for (Direction side : new Direction[] {Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.DOWN}) {
+				BlockPos next = pos.relative(side);
+				if (this.failed.contains(next) || !level.getBlockState(next).is(BlockTags.LEAVES) || !KnownBlocks.mayTake(level, next)) {
+					continue;
+				}
+
+				if (Reach.canReach(this.drifter, next)) {
+					return this.digAt(next);
+				}
+
+				Spot outer = this.standFor(level, next, plan, null, MAX_PILLAR, this.canSee(next));
+				if (outer != null && this.walksFor.merge(next, 1, Integer::sum) <= WALKS_PER_BLOCK) {
+					return this.goTo(outer, "trim the leaves in the way");
+				}
+			}
+		}
+
+		if (spot == null || this.walksFor.merge(pos, 1, Integer::sum) > WALKS_PER_BLOCK) {
+			this.failed.add(pos);
+			return Status.RUNNING;
+		}
+
+		return this.goTo(spot, what);
+	}
+
+	/** From this eye position it could click some face of that block. */
+	private java.util.function.Predicate<Vec3> canSee(BlockPos aim) {
+		return eye -> {
 			for (Direction face : Direction.values()) {
 				if (Reach.aimPointFrom(this.drifter, eye, aim, face).isPresent()) {
 					return true;
@@ -823,13 +933,7 @@ public class BuildPlanActivity extends Activity {
 			}
 
 			return false;
-		});
-		if (spot == null || this.walksFor.merge(pos, 1, Integer::sum) > WALKS_PER_BLOCK) {
-			this.failed.add(pos);
-			return Status.RUNNING;
-		}
-
-		return this.goTo(spot, what);
+		};
 	}
 
 	/** Over to a spot, up a pillar of scaffolding there if it's a high one (taken down at the end; the player way). */

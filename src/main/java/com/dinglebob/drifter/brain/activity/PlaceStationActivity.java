@@ -110,6 +110,19 @@ public class PlaceStationActivity extends Activity {
 			}
 		}
 
+		// Not in the space of the house it's building (found in testing: a crafting table put down where a wall went).
+		if (home != null && home.planId != null && home.planOrigin != null && !home.planDone && this.drifter.getServer() != null) {
+			var plan = com.dinglebob.drifter.building.plan.HousePlans.get(this.drifter.getServer(), home.planId);
+			if (plan != null) {
+				var placed = com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home);
+				for (BlockPos near : BlockPos.betweenClosed(this.drifter.blockPosition().offset(-2, -1, -2), this.drifter.blockPosition().offset(2, 1, 2))) {
+					if (placed.contains(near, 1)) {
+						this.tried.add(near.immutable());
+					}
+				}
+			}
+		}
+
 		Optional<BlockPos> spot = KnownBlocks.placementSpotNear(this.drifter, this.tried);
 		if (spot.isEmpty()) {
 			// Up on a pillar (it built one to reach something): down first, digging out its own blocks (found in testing:
