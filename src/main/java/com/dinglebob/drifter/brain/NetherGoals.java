@@ -22,7 +22,7 @@ public final class NetherGoals {
 
 	/** In the Nether only these goals run: the rest are overworld jobs (settling, farming, sheltering for the night). */
 	public static final Set<String> IN_THE_NETHER = Set.of("fight", "flee", "eat", "equip", "getdown", "nether_arrive", "nether_return",
-		"nether_blaze");
+		"nether_blaze", "nether_blocks");
 
 	/** Days between trips while there's nothing in particular to fetch there yet. */
 	private static final long DAYS_BETWEEN_LOOKS = 24000L;

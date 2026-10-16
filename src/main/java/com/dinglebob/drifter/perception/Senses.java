@@ -799,12 +799,20 @@ public class Senses {
 	}
 
 	/** How far it can make out a block whose visible face has this light. Night vision lights everything up. */
+	/** The light level everything has in a dimension with ambient light (the Nether), for how far it sees there. */
+	private static final int AMBIENT_LIGHT = 9;
+
 	private double blockSightRange(BlockPos litFrom) {
 		return this.blockSightRange(litFrom, BLOCK_SIGHT_RANGE);
 	}
 
 	private double blockSightRange(BlockPos litFrom, double fullLightRange) {
 		int light = this.drifter.hasEffect(MobEffects.NIGHT_VISION) ? 15 : this.level().getRawBrightness(litFrom, this.level().getSkyDarken());
+		// A dimension with ambient light (the Nether) is dimly lit everywhere for a player, no sky needed: a fortress shows
+		// from far off there (found in testing: in the "dark" Nether it only saw fortresses from close, and rarely found one).
+		if (this.level().dimensionType().ambientLight() > 0.0F) {
+			light = Math.max(light, AMBIENT_LIGHT);
+		}
 		double range = BLOCK_DARK_RANGE + (fullLightRange - BLOCK_DARK_RANGE) * light / 15.0;
 		BlockPos eyePos = BlockPos.containing(this.drifter.getEyePosition());
 		if (fullLightRange > BLOCK_SIGHT_RANGE && this.level().isRainingAt(eyePos)) {

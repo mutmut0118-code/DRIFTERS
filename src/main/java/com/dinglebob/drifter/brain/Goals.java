@@ -828,6 +828,47 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * In the Nether, low on building blocks (bridges and walls eat them): netherrack, which is everywhere and quick to mine
+	 * (found in testing: it bridged and pillared toward a fortress until it had none left and was stuck up there).
+	 */
+	public static final class NetherBlocks extends PlannedGoal {
+		/** Below this many building blocks it tops up. */
+		public static final int LOW = 24;
+		private static final int TOP_UP = 40;
+
+		@Override
+		public String id() {
+			return "nether_blocks";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "dig netherrack for blocks";
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			return List.of(Items.NETHERRACK);
+		}
+
+		@Override
+		protected int count(Context context) {
+			return context.drifter().getInventory().count(stack -> stack.is(Items.NETHERRACK)) + TOP_UP;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			return NetherGoals.inNether(drifter) && com.dinglebob.drifter.hands.Tools.buildingBlockCount(drifter) < LOW ? 0.7 : 0.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
+		}
+	}
+
 	/** Get an item someone asked for (`/drifter get <item> [count]`, debug): planned like any target. */
 	public static final class GetRequested extends PlannedGoal {
 		@Override
@@ -1791,7 +1832,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
