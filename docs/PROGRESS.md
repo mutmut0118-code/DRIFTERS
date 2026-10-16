@@ -72,7 +72,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 9 | Disposition and PvP | **Done** (2026-10-15): every section 14 event moves Trust as specified (headless table test); gifts, warnings, raids, looting and the manhunt (hunter) played by the user | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
-| 12 | Groups, modpack factions, camps, config polish | In progress: steps 1, 5, 6 done, step 2 mostly; left: joint mining trips, team wars (step 3), Mob Control (step 4) | Plan below |
+| 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
 | 13 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
@@ -1333,6 +1333,32 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
   are 7x7 too. `/drifter hut` shows S for a smoker, X for a blast furnace. Tested: a 7x7 hut built and finished, the
   smoker placed on the back wall, the planner works both out.
 - **Next (user's note):** more house plans to replace the huts later (bigger homes as it settles).
+- **Step 2, joint mining trips (done):** a group mate within 32 blocks setting off (or just down) on a mining trip: a
+  free member goes along ("going mining with Ann (for raw iron)", "Bob is coming mining too"), sociable ones more,
+  healthy, by day, with a pickaxe for iron and torches, once per 10 minutes at most. Two setting off at once for the same
+  ore merge: the one not leading goes along with the other. On a joint trip it goes for the same ore from the same mine
+  (the mate shows it the way down) and does as the mate does (caving or digging); "/drifter list" shows "... with Ann".
+  Tested: joined trips both ways, two mining side by side down the same stairs. Also: moving in with the leader now
+  copies the whole home (hut, door, size, farm, mine; a bare copy made the newcomer build a second hut) and keeps the
+  newcomer's own chests; a Drifter that dies leaves its group (its mates think "X died"). Debug: `/drifter group <name>`.
+- **Step 3, team wars (done):** `world/DrifterWars` (saved as drifter_wars). Tension per pair of groups: a hit +1.5 per
+  damage, a kill +35 (and a loss for that side), a raid's loot +5 a chest, bases within 96 blocks +1 an in-game hour up
+  to 35; six quiet hours and it eases 0.5 an hour. 30+: members fight on sight (skirmishes); 70+: war, and a group whose
+  leader is about, healthy and it's day raids the rival base once every 2 days, if one of them has seen the rivals by
+  their home. A raid: gather at the leader, travel together in 32-block legs, a war cry near the base ("for the
+  crew!"), fight (the usual fight goal: rivals are enemies on sight), loot the chests round the base it has seen, head
+  home. A truce after one side loses 2 (or 3 quiet days at war): tension 10 and 5 days of peace ("made peace with X").
+  Players aren't touched by any of it. The group's leader makes a banner (6 wool and a stick) and stands it by the hut
+  door. Setting: "Group wars and raids" on the screen, `/drifter config wars true|false`. `/drifter wars` lists feuds;
+  debug `/drifter war <name> <name> <tension>`. Tested: tension 85 → a raid gathered, travelled, war cry, fought (one
+  killed on each side), came home; a banner put up by the door.
+- **Step 4, Mob Control (done):** see DESIGN.md section 21 "Hooking in": with Mob Control installed, mobs whose rules
+  attack players attack Drifters too. Tested with the Mob Control jar from the user's own profile: a bare rule
+  (zombies attack "player") ignored Drifters before the fix and killed a passive one after; a rule without "player"
+  leaves them alone; the user's full meridian config spawns Drifters and its zombies go for them.
+- Found along the way: three goals never ran (their risk factor was 0, which zeroes the score: check-chest, pick up the
+  crafting table it left, join a trip); settling retried a chest spot it couldn't place on forever (now remembered).
+  Debug: `/drifter rob` takes the valuables out of the nearest one's chests (a simulated theft: it goes and checks).
 - Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
   2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
 

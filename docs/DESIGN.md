@@ -1615,6 +1615,14 @@ Your 1.21.1 Fabric RPG pack uses Mob Control to make undead, illagers and spider
 | Drifters | Per-relationship (above) | Emergent |
 
 - **Hooking in:** the Drifter mod carries its own faction rules, so Mob Control is not required. If Mob Control is installed, an optional integration can register the Drifter in its faction settings so everything is configured in one place.
+  Found when building it (milestone 12, 2026-10-16): Mob Control (`mobcontrol`, by Ohayden) is a spawn-and-behaviour
+  rules mod, not a faction list. Each `[[mob]]` rule can set `set.attack` and `set.allow-attack` lists, and a mob whose
+  rule has an attack list only targets (and is only allowed to target) the entity types in it, where "player" means the
+  player entity type only. So with it installed, zombies and skeletons ignored Drifters. The integration (detected at
+  runtime, no dependency): for mobs a rule governs, "player" in those lists counts Drifters too (the mod adds
+  `drifter:drifter` to the rule's lists in memory, never to the file, and mirrors the mob's player goal for Drifters).
+  A rule without "player" leaves Drifters alone, as the config says. Mob Control also cancels any mob no `[[mob]]` entry
+  matches (a full config ends with a `name="*"` catch-all, as the user's does).
 - **Faction wars as opportunities:** when undead and illagers fight, Opportunist Drifters may third-party the survivors for loot, while Cautious ones mark the area as dangerous and stay away.
 - **Balance:** faction wars thin out mobs, which makes nights easier for Drifters. Watch for that in playtesting and nudge Drifter caution or mob spawn weights if they get too comfortable.
 

@@ -1258,6 +1258,18 @@ they get close, ghasts, blazes), and switch to the sword up close.
 - [ ] **Catch-up builds the hut (new):** a Drifter with a home and blocks, away while you're far off, comes back with its
       hut's walls and roof up ("built N blocks of its hut" in its catch-up line); it puts the door, bed and torch in
       when it's about again. It never builds over blocks you placed.
+- [ ] **Mining together (new):** two Drifters in a group (`/drifter group <other's name>` next to one teams them up at
+      once). When one sets off mining, the other often goes along: "going mining with ..." in `/drifter thoughts`, and
+      `/drifter list` shows "go mining for raw iron with ...". They go down the same stairs.
+- [ ] **Group wars (new):** groups living close together get prickly; hurting or killing each other's members makes it
+      worse. `/drifter wars` shows each pair: at peace, wary, skirmishing (they fight on sight) or at war (they raid).
+      Quick test: two groups (`/drifter group` twice), let one see the other's home, then `/drifter war <one> <other> 85`.
+      Within a minute the leader rallies the group ("rallying ... for a raid"), they walk over together, one shouts a
+      war cry in chat, they fight whoever's there, loot the chests and walk home. After one side loses two, they make
+      peace for 5 days. You aren't part of it unless you join in. The group leader puts a banner by its hut door.
+      Turn it all off with "Group wars and raids" in the settings screen or `/drifter config wars false`.
+- [ ] **Mob Control packs (new):** in a pack with Mob Control (like your meridian pack), zombies, skeletons and anything
+      whose rule attacks players go for Drifters too. Nothing to set up.
 - [ ] **Stealing (new):** find a Drifter's hut chest (`/drifter hut` next to it shows where; C is a chest).
       - Caught in the act: open its chest while it can see you, take something valuable (iron, gold, diamonds, gear), and
         step away. It walks over to check ("someone was at its chest: checking it"), finds things gone, says something
