@@ -140,7 +140,7 @@ public class ShootTask extends Task {
 		}
 
 		int wanted = this.drifter.distanceTo(this.target) < QUICK_DRAW_RANGE && !Archery.flying(this.target) ? QUICK_DRAW_TICKS : Archery.FULL_DRAW_TICKS;
-		if (this.drifter.getTicksUsingItem() >= wanted && this.aimedAt(aim)) {
+		if (this.drifter.getTicksUsingItem() >= wanted && this.aimedAt(aim, this.drifter.getTicksUsingItem() - wanted)) {
 			this.release(true);
 			this.shots++;
 		}
@@ -202,11 +202,22 @@ public class ShootTask extends Task {
 		return new Vec3(random.nextGaussian(), random.nextGaussian() * 0.6, random.nextGaussian()).scale(radius * 0.5);
 	}
 
-	private boolean aimedAt(Vec3 point) {
+	private boolean aimedAt(Vec3 point, int heldTicks) {
 		Vec3 look = this.drifter.getViewVector(1.0F);
 		Vec3 wanted = point.subtract(this.drifter.getEyePosition()).normalize();
-		return Math.toDegrees(Math.acos(Mth.clamp(look.dot(wanted), -1.0, 1.0))) <= AIMED_DEGREES;
+		// Near enough to land on its body (half its height, as seen from here), or within a little more the longer it has held
+		// the full draw, as a player looses at a target that won't keep still (found in testing: on a bobbing blaze it held the
+		// draw over a second at a time waiting for a perfect aim, and fired 7 arrows in 50 s).
+		double body = Math.toDegrees(Math.atan2(this.target.getBbHeight() * 0.5, Math.max(1.0, this.drifter.distanceTo(this.target))));
+		double allowed = Math.max(AIMED_DEGREES, Math.min(body, MAX_AIMED_DEGREES)) + Math.min(heldTicks * AIM_LOOSEN_PER_TICK, MAX_LOOSEN_DEGREES);
+		return Math.toDegrees(Math.acos(Mth.clamp(look.dot(wanted), -1.0, 1.0))) <= allowed;
 	}
+
+	/** Most a target's size widens the aim it accepts. */
+	private static final double MAX_AIMED_DEGREES = 5.0;
+	/** Each tick past a full draw widens it by this much, up to {@link #MAX_LOOSEN_DEGREES}. */
+	private static final double AIM_LOOSEN_PER_TICK = 0.2;
+	private static final double MAX_LOOSEN_DEGREES = 3.0;
 
 	/** Lets go of the bow: {@code shoot} fires the arrow (BowItemMixin), otherwise it lowers the bow without firing. */
 	private void release(boolean shoot) {
