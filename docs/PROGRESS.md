@@ -1225,7 +1225,7 @@ Questions for the user. Nothing here has been changed in the design.
     (word plus digits, two words joined...) shown like a player's nameplate; that was left for the spawning milestone.
     **My recommendation:** add the username generator and the always-visible nameplate now, as part of milestone 7
     (small: a name list, a filter, and showing the name like a player's), and leave natural spawning for later.
-11. **Spawners wake for Drifters (milestone 11, 2026-10-16).** Vanilla spawners only spawn while a player is within
+11. **(Decided: keep it, user 2026-10-16.) Spawners wake for Drifters (milestone 11).** Vanilla spawners only spawn while a player is within
     16 blocks, so a Drifter waiting by a fortress's blaze spawner never got a blaze (section 19 has it get rods there).
     I made spawners count a Drifter like a player (a small mixin), which matches section 1 ("hostile mobs target it like a
     player"). Side effect: a dungeon spawner wakes when a Drifter mines nearby, as it would for you. **My
