@@ -1425,6 +1425,24 @@ Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
 - Fixed from the 10-day runs: it crouches on magma whenever it's on it, moving or in water too (one worked on underwater
   magma, walking about, until it died).
 
+## House plans (user's decisions, 2026-10-16; see "Decided")
+
+Plan: (1) read plans; (2) place blocks the right way round (stairs, slabs, logs, doors, trapdoors); (3) gather the
+materials for a plan; (4) build it and move in, the hut becoming a storage shed; (5) the mod's own designs (log cabin,
+stone cottage, two-floor farmhouse, A-frame, watchtower, hillside bunker); (6) user imports (GrabCraft, BuildPaste via
+structure blocks) for the user's own worlds.
+
+**Done so far:**
+- Step 1: `building/plan/`: `HousePlan` (every block of a structure file), `HousePlans` (mod/datapack plans in
+  `structure/houses/`, a world's structure-block saves named `drifter_house_<name>`, and personal plans in
+  `config/drifter/houses/*.nbt` for every world), `HousePalette` (the plan's woods by use mapped to the woods the Drifter
+  has and sees most; cobblestone to cobbled deepslate if it has more of that; facings and the rest carried over),
+  `GrabCraftImport` (a GrabCraft page's block data, old ids upgraded with the game's own table; GrabCraft's z runs the
+  other way, its facings don't). Commands: `/drifter houses`, `/drifter house info <plan>` (what the nearest Drifter would
+  build it from), `/drifter house keep <world plan>`, `/drifter house import <name>` (from `config/drifter/imports`),
+  `/drifter house paste <plan> [asdrawn]` (debug). Tested: the user's GrabCraft stone house (9 x 12 x 7, 303 blocks)
+  imported; its roof climbs to the ridge and its torches hang on the walls; for a Drifter carrying spruce it's all spruce.
+
 ## Ideas for more assumptions (for the user to pick from)
 
 Players guess and get things wrong. Candidates in the same spirit as the cave hunch and the theft assumption:
@@ -1458,6 +1476,11 @@ manhunt-only features before then.
 - **Travel pace:** players sprint-jump the whole way about 80% of the time unless they don't need to, shouldn't, or can't. DESIGN.md section 10.9 was updated with this (user's rule).
 - **Better Combat / Combat Roll:** combat-mod test pass in milestone 6; real integration (optional compile-only dependencies) added later as a follow-up (user: "yea add them later, use your recommendation").
 - **Manhunt:** added to DESIGN.md as an optional test mode (section 25), hunter role first, not the centre of the mod (user decision).
+- **House plans (user, 2026-10-16):** option 3, hand-designed plans with variety (not fully generated, not copied
+  websites in the mod); the user can add their own with structure blocks (`drifter_house_<name>`), including builds pasted
+  with the BuildPaste mod or converted from GrabCraft (those stay in the user's own worlds, not in the public mod); the
+  old hut stays as a storage shed. Plans generalize their materials (user's idea): a plan's wood becomes the wood the
+  Drifter has round it (spruce in a taiga, birch in a birch forest), stone likewise, for variety.
 
 ## Design questions
 

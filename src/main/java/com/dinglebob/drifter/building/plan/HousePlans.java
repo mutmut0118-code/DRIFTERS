@@ -1,0 +1,105 @@
+package com.dinglebob.drifter.building.plan;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.dinglebob.drifter.Drifter;
+
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+
+/**
+ * Every house plan a server knows (user's decision, 2026-10-16). Three places:
+ * <ul>
+ *   <li><b>mod</b>: structure files the mod (or a datapack) ships under {@code data/<ns>/structure/houses/};</li>
+ *   <li><b>world</b>: structures saved in this world with a structure block, named {@code drifter_house_<name>};</li>
+ *   <li><b>personal</b>: {@code config/drifter/houses/*.nbt}, for every world on this computer (imports and the user's own
+ *       designs; never part of the mod).</li>
+ * </ul>
+ * Read when asked (a plan saved a moment ago with a structure block is there at once).
+ */
+public final class HousePlans {
+	public static final String WORLD_PREFIX = "drifter_house_";
+
+	private HousePlans() {
+	}
+
+	public static Path personalFolder() {
+		return FabricLoader.getInstance().getConfigDir().resolve("drifter").resolve("houses");
+	}
+
+	/** Every plan, by id ("cabin", "world:drifter_house_tower", "personal:stone_house"). */
+	public static Map<String, HousePlan> all(MinecraftServer server) {
+		Map<String, HousePlan> plans = new LinkedHashMap<>();
+		var manager = server.getStructureManager();
+		var blocks = server.registryAccess().lookupOrThrow(Registries.BLOCK);
+		List<ResourceLocation> ids = manager.listTemplates().toList();
+		for (ResourceLocation id : ids) {
+			boolean shipped = id.getPath().startsWith("houses/");
+			boolean world = id.getPath().startsWith(WORLD_PREFIX);
+			if (!shipped && !world) {
+				continue;
+			}
+
+			manager.get(id).ifPresent(template -> {
+				try {
+					String name = shipped ? id.getPath().substring("houses/".length()) : "world:" + id.getPath();
+					plans.put(name, HousePlan.fromStructure(name, shipped ? "mod" : "world", template.save(new CompoundTag()), blocks));
+				} catch (RuntimeException e) {
+					Drifter.LOGGER.warn("[Drifter] house plan {} couldn't be read: {}", id, e.toString());
+				}
+			});
+		}
+
+		Path folder = personalFolder();
+		if (Files.isDirectory(folder)) {
+			try (Stream<Path> files = Files.list(folder)) {
+				for (Path file : files.filter(f -> f.getFileName().toString().endsWith(".nbt")).toList()) {
+					try {
+						CompoundTag tag = NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap());
+						String name = "personal:" + file.getFileName().toString().replace(".nbt", "");
+						plans.put(name, HousePlan.fromStructure(name, "personal", tag, blocks));
+					} catch (IOException | RuntimeException e) {
+						Drifter.LOGGER.warn("[Drifter] house plan {} couldn't be read: {}", file, e.toString());
+					}
+				}
+			} catch (IOException e) {
+				Drifter.LOGGER.warn("[Drifter] couldn't list {}: {}", folder, e.toString());
+			}
+		}
+
+		return plans;
+	}
+
+	@Nullable
+	public static HousePlan get(MinecraftServer server, String id) {
+		return all(server).get(id);
+	}
+
+	/** Saves a plan's structure tag into the personal folder (an import, or a world plan kept for every world). */
+	public static Path savePersonal(String name, CompoundTag structure) throws IOException {
+		Path folder = personalFolder();
+		Files.createDirectories(folder);
+		Path file = folder.resolve(name.replaceAll("[^a-z0-9_]", "_") + ".nbt");
+		NbtIo.writeCompressed(structure, file);
+		return file;
+	}
+
+	/** Names in use, for suggestions. */
+	public static List<String> names(MinecraftServer server) {
+		return new ArrayList<>(all(server).keySet());
+	}
+}

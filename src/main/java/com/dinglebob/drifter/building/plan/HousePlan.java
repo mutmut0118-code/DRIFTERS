@@ -1,0 +1,106 @@
+package com.dinglebob.drifter.building.plan;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+
+/**
+ * A house plan (user's decision, 2026-10-16: hand-designed plans with variety, and the user's own via structure blocks):
+ * every block of a build as it stands in its structure file, relative to its corner. Where its materials come from (wood
+ * and stone swapped for what the Drifter has round it) is {@link HousePalette}'s job; this is the shape.
+ */
+public final class HousePlan {
+	/** One block of the plan: where (from the plan's corner) and what. */
+	public record Cell(BlockPos pos, BlockState state) {
+	}
+
+	public final String id;
+	/** Where it came from: "mod", "world" (a structure block save) or "personal" (config/drifter/houses). */
+	public final String source;
+	public final Vec3i size;
+	public final List<Cell> cells;
+
+	private HousePlan(String id, String source, Vec3i size, List<Cell> cells) {
+		this.id = id;
+		this.source = source;
+		this.size = size;
+		this.cells = List.copyOf(cells);
+	}
+
+	/**
+	 * From a structure file's tag (what StructureTemplate#save writes): its first palette and its blocks, leaving out air
+	 * and structure voids (the plan leaves those cells as they are).
+	 */
+	public static HousePlan fromStructure(String id, String source, CompoundTag tag, HolderGetter<Block> blocks) {
+		ListTag sizeTag = tag.getList("size", Tag.TAG_INT);
+		Vec3i size = new Vec3i(sizeTag.getInt(0), sizeTag.getInt(1), sizeTag.getInt(2));
+		ListTag paletteTag = tag.contains("palette", Tag.TAG_LIST) ? tag.getList("palette", Tag.TAG_COMPOUND)
+			: tag.getList("palettes", Tag.TAG_LIST).getList(0);
+		List<BlockState> palette = new ArrayList<>();
+		for (int i = 0; i < paletteTag.size(); i++) {
+			palette.add(NbtUtils.readBlockState(blocks, paletteTag.getCompound(i)));
+		}
+
+		List<Cell> cells = new ArrayList<>();
+		ListTag blockList = tag.getList("blocks", Tag.TAG_COMPOUND);
+		for (int i = 0; i < blockList.size(); i++) {
+			CompoundTag block = blockList.getCompound(i);
+			ListTag pos = block.getList("pos", Tag.TAG_INT);
+			int index = block.getInt("state");
+			BlockState state = index >= 0 && index < palette.size() ? palette.get(index) : Blocks.AIR.defaultBlockState();
+			if (state.isAir() || state.is(Blocks.STRUCTURE_VOID) || state.is(Blocks.JIGSAW) || state.is(Blocks.STRUCTURE_BLOCK)) {
+				continue;
+			}
+
+			cells.add(new Cell(new BlockPos(pos.getInt(0), pos.getInt(1), pos.getInt(2)), state));
+		}
+
+		return new HousePlan(id, source, size, cells);
+	}
+
+	/** The items its blocks take, as a player would need them (a door counts once for its two halves). */
+	public Map<Item, Integer> materials(List<Cell> cells) {
+		Map<Item, Integer> needs = new LinkedHashMap<>();
+		for (Cell cell : cells) {
+			BlockState state = cell.state();
+			if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF)
+				&& state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF)
+				== net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER) {
+				continue;
+			}
+
+			if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.BED_PART)
+				&& state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.BED_PART)
+				== net.minecraft.world.level.block.state.properties.BedPart.HEAD) {
+				continue;
+			}
+
+			Item item = state.getBlock().asItem();
+			int count = state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
+				&& state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE)
+				== net.minecraft.world.level.block.state.properties.SlabType.DOUBLE ? 2 : 1;
+			if (item != net.minecraft.world.item.Items.AIR) {
+				needs.merge(item, count, Integer::sum);
+			}
+		}
+
+		return needs;
+	}
+
+	public int blockCount() {
+		return this.cells.size();
+	}
+}

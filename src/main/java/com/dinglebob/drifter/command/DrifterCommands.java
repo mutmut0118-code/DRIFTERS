@@ -297,6 +297,7 @@ public final class DrifterCommands {
 		PersonalityCommands.register(root);
 		SocialCommands.register(root);
 		WhimCommands.register(root);
+		HouseCommands.register(root);
 
 		dispatcher.register(root);
 	}
