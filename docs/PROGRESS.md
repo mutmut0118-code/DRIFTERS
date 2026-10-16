@@ -1298,6 +1298,8 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
   members tell each other about dangers, ores, resources and landmarks ("told" memories); a wrong to one member costs the
   player half as much trust with the rest; members defend each other (a mob going for a member within 16 blocks counts
   as coming for them). Tested: two friends teamed up and one moved in. Still to do in step 2: joint mining trips.
+- Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
+  2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
 
 ## Notes for milestone 9 (from testing)
 

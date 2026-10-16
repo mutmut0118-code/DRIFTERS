@@ -19,6 +19,9 @@
 		],
 		"client": [
 			"com.dinglebob.drifter.client.DrifterClient"
+		],
+		"modmenu": [
+			"com.dinglebob.drifter.client.config.DrifterModMenu"
 		]
 	},
 	"mixins": [

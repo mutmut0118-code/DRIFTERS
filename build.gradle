@@ -9,6 +9,8 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+	// Mod Menu, compile-only: the Drifter settings screen (user's choice, 2026-10-16). Not needed to run.
+	maven { url = "https://maven.terraformersmc.com/releases/" }
 }
 
 loom {
@@ -30,6 +32,9 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Optional: Mod Menu's settings button for Drifter. Compile-only, so Drifter runs with or without it.
+	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {

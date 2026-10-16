@@ -1225,6 +1225,10 @@ they get close, ghasts, blazes), and switch to the sword up close.
       further off; while a blaze glows (it's about to fire three fireballs) it holds its shield up toward it. Badly hurt
       with blazes or a ghast about, it walls itself in where it stands ("badly hurt: walling itself in to heal"), eats,
       waits until healed ("healed up: going on") and goes back. Each kill shows as "got it (attack the blaze)".
+- [ ] **Settings screen (new, needs Mod Menu):** Mods button on the title screen, find Drifter, click its settings icon:
+      sliders for how far they see, how far they plan routes, their field of view and how many are kept running when
+      you're away, and on/off for chat lines, sharing reputation, raiding chests, thoughts in the log, plus the catch-up
+      mode. Changes apply at once and save when you press Done (same as the /drifter config commands).
 - [ ] **Drifters and each other (milestone 12, new):** near another Drifter, `/drifter social` lists the Drifters it knows
       (friend, neutral, rival) and its group. Two that get on well (trust 50+ both ways) team up ("teamed up with X: X's
       Crew") and one moves in with the other; they stand up for each other in fights. Quick test: stand by one and
