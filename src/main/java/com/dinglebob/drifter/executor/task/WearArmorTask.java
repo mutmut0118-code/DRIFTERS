@@ -150,11 +150,28 @@ public class WearArmorTask extends Task {
 	}
 
 	private boolean wearBest(EquipmentSlot slot) {
-		DrifterInventory inventory = this.drifter.getInventory();
+		return wearBest(this.drifter, slot);
+	}
+
+	/** Puts on its best armor in every slot and its shield, all at once (catch-up, which has no time to walk through it:
+	 * found by the user, caught-up Drifters left their armor in the chest and came back in none). */
+	public static void equipAllNow(DrifterEntity drifter) {
+		for (EquipmentSlot slot : ARMOR_SLOTS) {
+			wearBest(drifter, slot);
+		}
+
+		int shield = shieldSlot(drifter);
+		if (shield >= 0) {
+			drifter.getInventory().swap(shield, DrifterInventory.OFFHAND_SLOT);
+		}
+	}
+
+	private static boolean wearBest(DrifterEntity drifter, EquipmentSlot slot) {
+		DrifterInventory inventory = drifter.getInventory();
 		int bestSlot = -1;
-		double bestScore = score(this.drifter, this.drifter.getItemBySlot(slot), slot);
+		double bestScore = score(drifter, drifter.getItemBySlot(slot), slot);
 		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
-			double candidate = score(this.drifter, inventory.getItem(i), slot);
+			double candidate = score(drifter, inventory.getItem(i), slot);
 			if (candidate > bestScore) {
 				bestScore = candidate;
 				bestSlot = i;
@@ -166,9 +183,9 @@ public class WearArmorTask extends Task {
 		}
 
 		ItemStack newPiece = inventory.getItem(bestSlot);
-		ItemStack oldPiece = this.drifter.getItemBySlot(slot);
+		ItemStack oldPiece = drifter.getItemBySlot(slot);
 		inventory.setItem(bestSlot, oldPiece);
-		this.drifter.setItemSlot(slot, newPiece);
+		drifter.setItemSlot(slot, newPiece);
 		return true;
 	}
 

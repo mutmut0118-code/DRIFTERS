@@ -1249,6 +1249,11 @@ time. Rods come home now (banked after holing up).
   doesn't need to carry goes in its chests at home (materials stay on it, so it keeps crafting), with another chest when
   they're nearly full (up to 4). Death risk while away halved (1% a day). Three 10-day tests: huts with 2 to 3 chests of
   180 to 274 items (a heart of the sea, smithing templates, music discs, saddles, name tags, emeralds), stage 7, level 17.
+  More from the user's look round the caught-up huts: armor had gone in the chest (stored as "spare" before it put any on;
+  now it puts on its best armor and shield each slice before storing), a hut built round a tree (it now settles on the
+  nearest spot within 10 blocks where the whole hut fits with no logs, leaves or water), and no doors, no furnace, no bed
+  (it now finishes the hut: an oak door, its crafting table and furnace in the corners, made from planks or cobblestone
+  if needed, and from the second day a bed from wool or string). Extra chests go on free floor cells.
 - Still open (polish, not blocking milestone 12): fortresses over the lava sea kill about half the Drifters that go
   there; ghast side-walls when bridging; biome preferences.
 Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up

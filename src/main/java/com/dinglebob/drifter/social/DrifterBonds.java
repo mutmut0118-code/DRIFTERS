@@ -79,6 +79,110 @@ public class DrifterBonds {
 			r.name = other.getName().getString();
 			r.addFamiliarity(FAMILIARITY_PER_MINUTE * minutes);
 			r.addTrust((this.rivals(other) ? RIVAL_TRUST_PER_MINUTE : TRUST_PER_MINUTE) * minutes);
+			this.maybeGroup(other, r);
+			this.share(other);
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Groups (milestone 12 step 2)
+	// ---------------------------------------------------------------------------------------------
+
+	/** How close two members must be to swap news (section 21 "Shared memory": about 8 blocks). */
+	private static final double SHARE_RANGE = 8.0;
+	/** Once a minute per pair at most. */
+	private static final long SHARE_EVERY = 20 * 60;
+	private final Map<UUID, Long> lastShared = new java.util.HashMap<>();
+
+	/**
+	 * Friends both ways (Trust 50 or more each) team up: a new group of the two, the one with more Skill (or Familiarity)
+	 * leading, or the newcomer joins the other's group if it has room. Members move into the leader's home.
+	 */
+	private void maybeGroup(DrifterEntity other, Relationship mine) {
+		Relationship theirs = other.getBonds().get(this.drifter.getUUID());
+		if (mine.trust < FRIEND || theirs == null || theirs.trust < FRIEND) {
+			return;
+		}
+
+		var groups = com.dinglebob.drifter.world.DrifterGroups.class;
+		var myGroup = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+		var theirGroup = com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID());
+		if (myGroup != null && myGroup == theirGroup) {
+			return;
+		}
+
+		String me = this.drifter.getName().getString();
+		String them = other.getName().getString();
+		if (myGroup == null && theirGroup == null) {
+			boolean iLead = leads(this.drifter, other);
+			DrifterEntity leader = iLead ? this.drifter : other;
+			DrifterEntity follower = iLead ? other : this.drifter;
+			var group = com.dinglebob.drifter.world.DrifterGroups.form(leader.getUUID(), leader.getName().getString(), follower.getUUID(),
+				follower.getName().getString(), groupName(leader));
+			this.think("teamed up with " + them + ": \"" + group.name + "\"");
+			other.getMemory().thoughts().add(other.level().getGameTime(), "teamed up with " + me + ": \"" + group.name + "\"");
+			moveIn(follower, leader);
+		} else if (myGroup == null && !theirGroup.full()) {
+			com.dinglebob.drifter.world.DrifterGroups.join(theirGroup, this.drifter.getUUID(), me);
+			this.think("joined " + them + "'s group \"" + theirGroup.name + "\"");
+			DrifterEntity leader = this.drifter.level() instanceof net.minecraft.server.level.ServerLevel level
+				&& level.getEntity(theirGroup.leader) instanceof DrifterEntity d ? d : other;
+			moveIn(this.drifter, leader);
+		}
+	}
+
+	/** The leader: more Skill, or (about the same) the one the other knows better. */
+	private static boolean leads(DrifterEntity a, DrifterEntity b) {
+		double skillA = a.getPersonality().get(com.dinglebob.drifter.personality.Trait.SKILL);
+		double skillB = b.getPersonality().get(com.dinglebob.drifter.personality.Trait.SKILL);
+		return Math.abs(skillA - skillB) > 0.05 ? skillA > skillB : a.getUUID().compareTo(b.getUUID()) < 0;
+	}
+
+	private static String groupName(DrifterEntity leader) {
+		String[] words = {"Wanderers", "Crew", "Gang", "Squad", "Band", "Clan", "Club", "Team"};
+		return leader.getName().getString() + "'s " + words[leader.getRandom().nextInt(words.length)];
+	}
+
+	/** Shared base (section 21): the member takes the leader's home as its own, chests and all. */
+	private static void moveIn(DrifterEntity member, DrifterEntity leader) {
+		var home = leader.getDrifterBrain().home();
+		if (home == null) {
+			return;
+		}
+
+		var shared = new com.dinglebob.drifter.brain.Home(home.center, home.dimension, member.level().getGameTime());
+		home.chests().forEach(shared::addChest);
+		member.getDrifterBrain().setHome(shared);
+		member.getMemory().thoughts().add(member.level().getGameTime(), "moved in with " + leader.getName().getString());
+	}
+
+	/**
+	 * Members within about 8 blocks swap news (section 21 "Shared memory"): dangers, ore and resources and landmarks the
+	 * other doesn't know, learned as "told" (a little less sure than seeing it).
+	 */
+	private void share(DrifterEntity other) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+		long now = this.drifter.level().getGameTime();
+		if (group == null || group != com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID()) || other.distanceTo(this.drifter) > SHARE_RANGE
+			|| now - this.lastShared.getOrDefault(other.getUUID(), Long.MIN_VALUE / 2) < SHARE_EVERY) {
+			return;
+		}
+
+		this.lastShared.put(other.getUUID(), now);
+		int told = 0;
+		for (var kind : new com.dinglebob.drifter.memory.MemoryKind[] {com.dinglebob.drifter.memory.MemoryKind.DANGER,
+			com.dinglebob.drifter.memory.MemoryKind.ORE, com.dinglebob.drifter.memory.MemoryKind.RESOURCE, com.dinglebob.drifter.memory.MemoryKind.LANDMARK}) {
+			for (var entry : other.getMemory().find(kind, e -> e.source != com.dinglebob.drifter.memory.MemorySource.TOLD)) {
+				var remembered = this.drifter.getMemory().remember(kind, entry.label, entry.pos, entry.dimension, now,
+					com.dinglebob.drifter.memory.MemorySource.TOLD, entry.importance * 0.8F, null);
+				if (remembered.isNew()) {
+					told++;
+				}
+			}
+		}
+
+		if (told > 0) {
+			this.think(other.getName().getString() + " told it about " + told + " places");
 		}
 	}
 

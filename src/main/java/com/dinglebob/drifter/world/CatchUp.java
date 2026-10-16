@@ -154,6 +154,7 @@ public final class CatchUp {
 		boolean settled;
 		boolean chest;
 		int chests;
+		final List<String> furnished = new ArrayList<>();
 		final List<String> raided = new ArrayList<>();
 		final Map<Item, Integer> looted = new LinkedHashMap<>();
 		int stored;
@@ -195,6 +196,10 @@ public final class CatchUp {
 
 			if (this.built > 0) {
 				line.append("; built ").append(this.built).append(" blocks of its hut");
+			}
+
+			if (!this.furnished.isEmpty()) {
+				line.append("; put in ").append(String.join(", ", this.furnished));
 			}
 
 			if (this.chest) {
@@ -268,7 +273,10 @@ public final class CatchUp {
 			}
 
 			buildHut(drifter, report);
+			furnish(drifter, done / 24000.0, report);
 			placeChest(drifter, report);
+			// Its best armor and shield on before anything goes in the chest (or spares and its best both went in).
+			com.dinglebob.drifter.executor.task.WearArmorTask.equipAllNow(drifter);
 			store(drifter, report);
 			// Experience from mining and fighting, at a player's pace (found by the user: they all came back at level 0).
 			int xp = (int)Math.round(workHours * r.xpPerWorkHour() * (0.6 + 0.8 * random.nextDouble()));
@@ -571,9 +579,71 @@ public final class CatchUp {
 			return;
 		}
 
-		BlockPos feet = drifter.blockPosition();
-		drifter.getDrifterBrain().setHome(new Home(feet, level.dimension().location(), level.getGameTime()));
+		// A clear spot near where it stands: nothing in the way of the hut, no tree in it (found by the user: a hut built
+		// round a tree, which it had settled under).
+		BlockPos site = clearSite(drifter);
+		if (site == null) {
+			return;
+		}
+
+		Home home = new Home(site, level.dimension().location(), level.getGameTime());
+		home.hutDoor = com.dinglebob.drifter.building.StarterHut.chooseDoor(level, site);
+		drifter.getDrifterBrain().setHome(home);
 		report.settled = true;
+	}
+
+	private static final int SITE_SEARCH = 10;
+
+	/** The nearest spot within {@link #SITE_SEARCH} where the whole hut fits on open ground: no logs, leaves or water in it. */
+	@Nullable
+	private static BlockPos clearSite(DrifterEntity drifter) {
+		Level level = drifter.level();
+		BlockPos feet = drifter.blockPosition();
+		for (int ring = 0; ring <= SITE_SEARCH; ring += 2) {
+			for (int dx = -ring; dx <= ring; dx += 2) {
+				for (int dz = -ring; dz <= ring; dz += 2) {
+					if (Math.max(Math.abs(dx), Math.abs(dz)) != ring) {
+						continue;
+					}
+
+					BlockPos column = feet.offset(dx, 0, dz);
+					if (!level.isLoaded(column)) {
+						continue;
+					}
+
+					BlockPos spot = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column);
+					if (Math.abs(spot.getY() - feet.getY()) <= 3 && siteClear(level, drifter, spot)) {
+						return spot;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private static boolean siteClear(Level level, DrifterEntity drifter, BlockPos spot) {
+		var hut = com.dinglebob.drifter.building.StarterHut.of(new Home(spot, level.dimension().location(), level.getGameTime()));
+		List<BlockPos> cells = new ArrayList<>(hut.floor());
+		cells.addAll(hut.inside());
+		cells.addAll(hut.roof());
+		for (int dy = 0; dy <= hut.wallHeight; dy++) {
+			cells.addAll(hut.wallLayer(dy));
+		}
+
+		for (BlockPos cell : cells) {
+			if (!level.isLoaded(cell)) {
+				return false;
+			}
+
+			var state = level.getBlockState(cell);
+			if (state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES) || !state.getFluidState().isEmpty()
+				|| com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, cell)) {
+				return false;
+			}
+		}
+
+		return !level.getBlockState(spot.below()).getFluidState().isEmpty() ? false : true;
 	}
 
 	/** A chest in its hut, from one it carries or eight planks, at a furniture spot inside (so it can store, and the iron
@@ -595,7 +665,7 @@ public final class CatchUp {
 			return;
 		}
 
-		for (BlockPos spot : com.dinglebob.drifter.building.StarterHut.of(home).furnitureSpots()) {
+		for (BlockPos spot : chestSpots(home)) {
 			if (level.isLoaded(spot) && level.getBlockState(spot).canBeReplaced() && !level.getBlockState(spot.below()).canBeReplaced()
 				&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, spot)) {
 				if (!haveChest && planks) {
@@ -721,6 +791,125 @@ public final class CatchUp {
 			report.raided.add(loot.name());
 			return;
 		}
+	}
+
+	/** Where chests go: the back corners first; more chests on free floor cells that aren't the middle (it pillars there),
+	 * just inside the door, or the bed's. */
+	private static List<BlockPos> chestSpots(Home home) {
+		var hut = com.dinglebob.drifter.building.StarterHut.of(home);
+		List<BlockPos> spots = new ArrayList<>(hut.furnitureSpots().subList(0, 1));
+		BlockPos byDoor = home.center.relative(hut.door, 1);
+		for (BlockPos cell : hut.inside()) {
+			if (cell.getY() == home.center.getY() && !cell.equals(home.center) && !cell.equals(byDoor) && !cell.equals(hut.bedFoot())
+				&& !cell.equals(hut.bedHead()) && !hut.furnitureSpots().contains(cell)) {
+				spots.add(cell);
+			}
+		}
+
+		return spots;
+	}
+
+	/**
+	 * The hut finished as it would finish it itself, from what it carries: a wooden door in the doorway, its crafting table
+	 * and furnace in the corners, and from about the second day a bed (found by the user: caught-up huts had no doors, no
+	 * furnace though it cooked its food, and no bed). Only at its own loaded home, never over a player's block.
+	 */
+	private static void furnish(DrifterEntity drifter, double day, Report report) {
+		Home home = drifter.getDrifterBrain().home();
+		Level level = drifter.level();
+		if (home == null || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+			return;
+		}
+
+		var hut = com.dinglebob.drifter.building.StarterHut.of(home);
+		// Only once the shell is up (its walls stand on either side of the doorway).
+		if (level.getBlockState(hut.doorPos().relative(hut.door.getClockWise())).canBeReplaced()) {
+			return;
+		}
+
+		BlockPos door = hut.doorPos();
+		if (free(level, door) && free(level, door.above()) && (take(drifter, stack -> stack.is(Items.OAK_DOOR), 1) == 1 || usePlanks(drifter, 6))) {
+			var lower = Blocks.OAK_DOOR.defaultBlockState().setValue(net.minecraft.world.level.block.DoorBlock.FACING, hut.door.getOpposite());
+			level.setBlock(door, lower, 3);
+			level.setBlock(door.above(), lower.setValue(net.minecraft.world.level.block.DoorBlock.HALF,
+				net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER), 3);
+			report.furnished.add("a door");
+		}
+
+		List<BlockPos> corners = hut.furnitureSpots();
+		placeStation(drifter, level, corners.get(1), Blocks.CRAFTING_TABLE, Items.CRAFTING_TABLE, "a crafting table", report,
+			() -> usePlanks(drifter, 4));
+		placeStation(drifter, level, corners.get(2), Blocks.FURNACE, Items.FURNACE, "a furnace", report,
+			() -> take(drifter, stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE), 8) == 8);
+
+		// A bed from the second day: three wool (or the string for it, four each) and three planks.
+		if (day >= 1.5 && hut.bed(level) == null) {
+			var spot = hut.bedSpot(level);
+			int wool = drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.WOOL));
+			int string = count(drifter, Items.STRING);
+			boolean haveBed = take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.BEDS), 1) == 1;
+			boolean canMake = !haveBed && (wool >= 3 || string >= 12) && hasPlanks(drifter, 3);
+			if (spot != null && (haveBed || canMake)) {
+				if (canMake) {
+					int fromWool = Math.min(3, wool);
+					take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.WOOL), fromWool);
+					take(drifter, stack -> stack.is(Items.STRING), (3 - fromWool) * 4);
+					usePlanks(drifter, 3);
+				}
+
+				var foot = Blocks.WHITE_BED.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.FACING, spot.facing());
+				level.setBlock(spot.foot(), foot, 3);
+				level.setBlock(spot.foot().relative(spot.facing()), foot.setValue(net.minecraft.world.level.block.BedBlock.PART,
+					net.minecraft.world.level.block.state.properties.BedPart.HEAD), 3);
+				report.furnished.add("a bed");
+			}
+		}
+
+		if (!free(level, door) && hut.bed(level) != null) {
+			home.hutBuilt = true;
+		}
+	}
+
+	private static void placeStation(DrifterEntity drifter, Level level, BlockPos spot, net.minecraft.world.level.block.Block block, Item item,
+		String name, Report report, java.util.function.BooleanSupplier make) {
+		var hut = com.dinglebob.drifter.building.StarterHut.of(drifter.getDrifterBrain().home());
+		for (BlockPos cell : hut.inside()) {
+			if (level.getBlockState(cell).is(block)) {
+				return;
+			}
+		}
+
+		if (!free(level, spot)) {
+			return;
+		}
+
+		// (It keeps carrying one too if it has two: one for the hut, one on it, as it does.)
+		boolean carried = count(drifter, item) > 0 && take(drifter, stack -> stack.is(item), 1) == 1;
+		if (carried || make.getAsBoolean()) {
+			level.setBlock(spot, block.defaultBlockState(), 3);
+			report.furnished.add(name);
+		}
+	}
+
+	private static boolean free(Level level, BlockPos pos) {
+		return level.isLoaded(pos) && level.getBlockState(pos).canBeReplaced() && !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, pos);
+	}
+
+	private static boolean hasPlanks(DrifterEntity drifter, int count) {
+		return drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PLANKS)) >= count
+			|| drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= (count + 3) / 4;
+	}
+
+	/** Uses this many planks, or the logs that make them (four planks a log). */
+	private static boolean usePlanks(DrifterEntity drifter, int count) {
+		if (drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PLANKS)) >= count) {
+			takePlanks(drifter, count);
+			return true;
+		}
+
+		int logs = (count + 3) / 4;
+		return drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= logs
+			&& take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), logs) == logs;
 	}
 
 	private static void takePlanks(DrifterEntity drifter, int count) {
