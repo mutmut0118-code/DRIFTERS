@@ -1,0 +1,47 @@
+{
+	"whims": [
+		{
+			"id": "happy_dance", "category": "social", "action": "dance", "params": {"ticks": 60},
+			"archetypes": {"newbie": 2.0, "pvp_sweat": 1.5, "speedrunner": 1.3, "hermit": 0.3}, "traits": {"fidget": 0.6},
+			"moods": {"triumphant": 3.0, "confident": 1.0}, "weight": 0.6, "cooldown": 12000,
+			"chat": ["lets gooo", "yesss"], "thought": "doing a little dance"
+		},
+		{
+			"id": "crouch_at_a_friend", "category": "social", "action": "dance", "params": {"ticks": 40}, "gates": "M",
+			"archetypes": {"newbie": 1.5, "helper": 1.5, "casual": 1.2, "hermit": 0.2}, "traits": {"sociability": 0.8},
+			"cooldown": 12000, "thought": "crouching at a friend"
+		},
+		{
+			"id": "give_a_flower", "category": "social", "action": "gift", "gates": "M",
+			"params": {"items": ["#minecraft:small_flowers"]},
+			"archetypes": {"helper": 2.0, "homebody": 1.3, "bandit": 0.2}, "traits": {"sociability": 0.6}, "cooldown": 24000,
+			"thought": "giving a friend a flower"
+		},
+		{
+			"id": "share_some_food", "category": "social", "action": "gift", "gates": "M",
+			"params": {"items": ["minecraft:bread", "minecraft:apple", "minecraft:baked_potato", "minecraft:cooked_beef", "minecraft:cooked_porkchop", "minecraft:cooked_chicken", "minecraft:cooked_mutton"], "keep": 6},
+			"archetypes": {"helper": 2.0, "homebody": 1.3, "bandit": 0.1, "hoarder": 0.3}, "traits": {"sociability": 0.6, "greed": -0.5},
+			"cooldown": 24000, "thought": "sharing some food with a friend"
+		},
+		{
+			"id": "hang_out_with_a_friend", "category": "social", "action": "hang_out", "params": {"rounds": 6}, "gates": "M", "when": "day",
+			"archetypes": {"helper": 1.5, "casual": 1.2, "newbie": 1.3, "hermit": 0.2, "speedrunner": 0.3}, "traits": {"sociability": 0.8},
+			"duration": 400, "cooldown": 24000, "thought": "hanging out with a friend"
+		},
+		{
+			"id": "visit_a_friend", "category": "social", "action": "visit_friend", "params": {"radius": 160}, "when": "day",
+			"archetypes": {"helper": 2.0, "casual": 1.2, "hermit": 0.2}, "traits": {"sociability": 0.8}, "cooldown": 48000,
+			"thought": "dropping by a friend's place"
+		},
+		{
+			"id": "collect_flowers", "category": "collecting", "action": "pick_flower", "params": {"radius": 32, "new_only": true},
+			"archetypes": {"hoarder": 3.0, "homebody": 1.3, "builder": 1.3}, "traits": {"greed": 0.4}, "cooldown": 6000,
+			"thought": "adding a new flower to its collection"
+		},
+		{
+			"id": "rain_from_the_doorway", "category": "weather", "action": "watch_sky", "params": {"what": "rain", "from": "door"}, "when": "rain",
+			"archetypes": {"homebody": 2.0, "hermit": 1.5}, "traits": {"patience": 0.4}, "duration": 300, "cooldown": 24000,
+			"thought": "watching the rain from the doorway"
+		}
+	]
+}

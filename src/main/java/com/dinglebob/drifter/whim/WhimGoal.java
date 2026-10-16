@@ -219,40 +219,51 @@ public final class WhimGoal extends Goals.Goal {
 
 	/** It fits now: off cooldown, the stage, the gates, the time and weather, what it carries, and the action can start. */
 	public static boolean fits(DrifterEntity drifter, Whim whim, @Nullable Goals.Context context) {
+		return whyNot(drifter, whim, context) == null;
+	}
+
+	/** Why it doesn't fit now (for the command), or null if it does. */
+	@Nullable
+	public static String whyNot(DrifterEntity drifter, Whim whim, @Nullable Goals.Context context) {
 		long now = drifter.level().getGameTime();
-		if (now - state(drifter).lastDone(whim.id()) < whim.cooldown() || context != null && context.stage() < whim.stage()) {
-			return false;
+		if (now - state(drifter).lastDone(whim.id()) < whim.cooldown()) {
+			return "done it too recently";
 		}
 
-		// [G]: only a hostile one, and only with griefing on (none of the first whims are).
+		if (context != null && context.stage() < whim.stage()) {
+			return "not far enough along (stage " + whim.stage() + ")";
+		}
+
+		// [G]: only a hostile one, and only with griefing on.
 		if (whim.gates().griefing() && (!com.dinglebob.drifter.DrifterConfig.raiding()
 			|| drifter.getSocial().disposition() != com.dinglebob.drifter.social.Disposition.BANDIT)) {
-			return false;
+			return "not that kind of Drifter";
 		}
 
 		if (whim.gates().multiplayer() && !company(drifter)) {
-			return false;
+			return "nobody about";
 		}
 
 		if (!when(drifter.level(), drifter, whim.when())) {
-			return false;
+			return "not the right time or weather (" + whim.when().name().toLowerCase(java.util.Locale.ROOT) + ")";
 		}
 
 		// What it needs: carried, or (if the whim says how) something it can make quickly from what it has round here.
 		for (Whim.Need need : whim.needs()) {
 			if (count(drifter, need.item()) < need.count() && !WhimPrep.canMake(drifter, whim, need, context == null ? null : context.world())) {
-				return false;
+				return "doesn't have " + need.item() + " (and can't make it)";
 			}
 		}
 
 		WhimAction action = WhimActions.get(whim.action());
-		return action != null && action.possible(drifter, whim);
+		return action != null && action.possible(drifter, whim) ? null : "nothing about to do it with";
 	}
+
 
 	/** A player or another Drifter it can see close by. */
 	static boolean company(DrifterEntity drifter) {
 		for (var awareness : drifter.getSenses().tracked()) {
-			if (awareness.identified && awareness.visibleNow && awareness.entity.distanceTo(drifter) < 24.0
+			if (awareness.identified && awareness.seenWithin(drifter.level().getGameTime(), 20 * 10) && awareness.entity.distanceTo(drifter) < 24.0
 				&& (awareness.entity instanceof Player player && SocialWatcher.isRealPlayer(player) || awareness.entity instanceof DrifterEntity)) {
 				return true;
 			}

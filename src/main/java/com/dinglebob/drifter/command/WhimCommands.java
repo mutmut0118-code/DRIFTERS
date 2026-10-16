@@ -45,9 +45,10 @@ public final class WhimCommands {
 		int shown = 0;
 		for (Whim whim : all) {
 			double weight = WhimGoal.weight(drifter, whim);
-			boolean fits = weight > 0.0 && WhimGoal.fits(drifter, whim, null);
+			String whyNot = weight > 0.0 ? WhimGoal.whyNot(drifter, whim, null) : "never";
+			boolean fits = whyNot == null;
 			long last = state.lastDone(whim.id());
-			say(ctx, String.format(Locale.ROOT, "  %s %s: weight %.2f%s%s", fits ? "+" : "-", whim.id(), weight, fits ? "" : " (not now)",
+			say(ctx, String.format(Locale.ROOT, "  %s %s: weight %.2f%s%s", fits ? "+" : "-", whim.id(), weight, fits ? "" : " (" + whyNot + ")",
 				last > Long.MIN_VALUE / 4 ? ", last " + ((now - last) / 1200) + " min ago" : ""));
 			if (++shown >= 30) {
 				break;
@@ -67,6 +68,12 @@ public final class WhimCommands {
 
 		if (!(drifter.getDrifterBrain().goal("whim") instanceof WhimGoal goal)) {
 			throw new SimpleCommandExceptionType(Component.literal("It has no whim goal")).create();
+		}
+
+		String whyNot = WhimGoal.whyNot(drifter, whim, null);
+		if (whyNot != null) {
+			say(ctx, DrifterCommands.label(drifter) + " can't do that one right now: " + whyNot);
+			return 0;
 		}
 
 		goal.force(whim);

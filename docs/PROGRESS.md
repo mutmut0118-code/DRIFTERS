@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | In progress: engine, 16 action types, 38 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, 22 action types, 55 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
 ## Milestone 0: Project setup
@@ -1387,6 +1387,12 @@ Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
   `/drifter whims`, `/drifter whim <id>`. Saved per Drifter (when it last did each). Tested: forced hop, sign (crafted
   one from planks and a stick and wrote on it), view from the top, sapling; in a natural 2-day run three Drifters did 5
   whims (hops, clouds, a look round, a "hi from Ann" sign).
+- Step 2 (more): 22 action types (added dance, gift, hang out with a friend, visit a friend's home, watch a block,
+  craft something just because, collector flower picking, watching from the doorway); friends count if seen in the last
+  10 s (a friend just behind it was missed). `/drifter whims` and `/drifter whim` say why a whim can't happen now
+  ("nobody about", "not the right time or weather", "doesn't have X (and can't make it)"...). 55 whims. Tested: dance,
+  a poppy and some bread given to a group mate, a bowl made just because, a dirt tower, a sapling planted and watched,
+  the top of the hill.
 
 ## Ideas for more assumptions (for the user to pick from)
 

@@ -75,6 +75,12 @@ public final class WhimActions {
 		ACTIONS.put("chat", new Chat());
 		ACTIONS.put("look_around", new LookRound());
 		ACTIONS.put("peek_chest", new PeekChest());
+		ACTIONS.put("dance", new Dance());
+		ACTIONS.put("gift", new Gift());
+		ACTIONS.put("hang_out", new HangOut());
+		ACTIONS.put("visit_friend", new VisitFriend());
+		ACTIONS.put("watch_block", new WatchBlock());
+		ACTIONS.put("craft", new CraftForFun());
 	}
 
 	private WhimActions() {
@@ -384,17 +390,38 @@ public final class WhimActions {
 	static final class WatchSky implements WhimAction {
 		@Override
 		public boolean possible(DrifterEntity drifter, Whim whim) {
-			return openSky(drifter, 12) != null;
+			return whim.param("from", "outside").equals("door") ? doorway(drifter) != null : openSky(drifter, 12) != null;
+		}
+
+		/** Just inside its hut door, looking out (rain from the doorway). */
+		@Nullable
+		static BlockPos doorway(DrifterEntity drifter) {
+			Home home = homeNear(drifter, 24.0);
+			if (home == null || !home.hutBuilt || home.borrowed()) {
+				return null;
+			}
+
+			var hut = com.dinglebob.drifter.building.StarterHut.of(home);
+			return hut.doorPos().relative(hut.door.getOpposite());
 		}
 
 		@Override
 		public Activity start(DrifterEntity drifter, Whim whim) {
+			String what = whim.param("what", "sun");
+			BlockPos door = whim.param("from", "outside").equals("door") ? doorway(drifter) : null;
+			if (door != null) {
+				var hut = com.dinglebob.drifter.building.StarterHut.of(drifter.getDrifterBrain().home());
+				Vec3 out = Vec3.atCenterOf(hut.doorPos().relative(hut.door, 12)).add(0, 1, 0);
+				return new Steps(drifter, whim.thought(), whim.duration() + 20 * 40)
+					.then(() -> walkTo(drifter, door, "stand in the doorway"))
+					.then(() -> new Gaze(drifter, () -> out, whim.duration(), false, whim.thought()));
+			}
+
 			BlockPos spot = openSky(drifter, 12);
 			if (spot == null) {
 				return null;
 			}
 
-			String what = whim.param("what", "sun");
 			return new Steps(drifter, whim.thought(), whim.duration() + 20 * 40)
 				.then(() -> spot.equals(drifter.blockPosition()) ? null : walkTo(drifter, spot, "step outside"))
 				.then(() -> new Gaze(drifter, () -> skyPoint(drifter, what), whim.duration(), false, whim.thought()));
@@ -634,9 +661,16 @@ public final class WhimActions {
 	/** Picking a flower it sees on the way (params: radius). */
 	static final class PickFlower implements WhimAction {
 		@Nullable
-		static BlockPos flower(DrifterEntity drifter, int radius) {
-			List<BlockPos> found = KnownBlocks.find(drifter, radius, state -> state.is(BlockTags.SMALL_FLOWERS), 8);
+		static BlockPos flower(DrifterEntity drifter, int radius, boolean newOnly) {
+			List<BlockPos> found = KnownBlocks.find(drifter, radius, state -> state.is(BlockTags.SMALL_FLOWERS), 16);
+			Home home = drifter.getDrifterBrain().home();
 			for (BlockPos pos : found) {
+				Item item = drifter.level().getBlockState(pos).getBlock().asItem();
+				// A collector: only a kind it hasn't got yet (on it or in its chests).
+				if (newOnly && (drifter.getInventory().count(stack -> stack.is(item)) > 0 || home != null && home.stored().getOrDefault(item, 0) > 0)) {
+					continue;
+				}
+
 				if (KnownBlocks.mayTake(drifter.level(), pos)) {
 					return pos;
 				}
@@ -647,12 +681,12 @@ public final class WhimActions {
 
 		@Override
 		public boolean possible(DrifterEntity drifter, Whim whim) {
-			return flower(drifter, whim.param("radius", 20)) != null;
+			return flower(drifter, whim.param("radius", 20), whim.param("new_only", false)) != null;
 		}
 
 		@Override
 		public Activity start(DrifterEntity drifter, Whim whim) {
-			BlockPos flower = flower(drifter, whim.param("radius", 20));
+			BlockPos flower = flower(drifter, whim.param("radius", 20), whim.param("new_only", false));
 			if (flower == null) {
 				return null;
 			}
@@ -908,6 +942,299 @@ public final class WhimActions {
 			}
 
 			return steps;
+		}
+	}
+
+	/** A friend close by: a group mate or a Drifter it trusts 50+, or a player it's friendly with; seen now. */
+	@Nullable
+	static Entity friend(DrifterEntity drifter, double range) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		Entity best = null;
+		for (Awareness awareness : drifter.getSenses().tracked()) {
+			Entity e = awareness.entity;
+			// Seen in the last few seconds is enough: it knows they're about (found in testing: "in view right now" missed a
+			// friend standing just behind it).
+			if (!awareness.seenWithin(drifter.level().getGameTime(), 20 * 10) || !awareness.identified || !e.isAlive() || e.distanceTo(drifter) > range) {
+				continue;
+			}
+
+			boolean friendly = false;
+			if (e instanceof DrifterEntity other && other != drifter) {
+				var bond = drifter.getBonds().get(other.getUUID());
+				friendly = group != null && group.members.contains(other.getUUID()) || bond != null && bond.trust >= com.dinglebob.drifter.social.DrifterBonds.FRIEND;
+			} else if (e instanceof net.minecraft.world.entity.player.Player player && com.dinglebob.drifter.social.SocialWatcher.isRealPlayer(player)) {
+				var r = drifter.getSocial().get(player.getUUID());
+				friendly = r != null && r.trust >= com.dinglebob.drifter.social.Mode.FRIENDLY_TRUST;
+			}
+
+			if (friendly && (best == null || e.distanceTo(drifter) < best.distanceTo(drifter))) {
+				best = e;
+			}
+		}
+
+		return best;
+	}
+
+	static String nameOf(Entity entity) {
+		return entity.getName().getString();
+	}
+
+	/** A crouch dance (on its own when it's happy, or at someone; params: ticks). */
+	static final class Dance implements WhimAction {
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return drifter.onGround();
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Entity watcher = Chat.nearestCompany(drifter);
+			int ticks = whim.param("ticks", 60);
+			return new Steps(drifter, whim.thought(), ticks + 40).then(() -> new Task(drifter) {
+				private int t;
+
+				@Override
+				public String describe() {
+					return "dance";
+				}
+
+				@Override
+				protected Status onTick() {
+					VirtualKeys keys = this.drifter.getKeys();
+					keys.releaseAll();
+					keys.set(VirtualKeys.Key.SNEAK, (this.t / 3) % 2 == 0);
+					keys.set(VirtualKeys.Key.JUMP, this.t % 25 == 0 && this.drifter.onGround());
+					if (watcher != null && watcher.isAlive()) {
+						this.drifter.getCamera().track(watcher.getEyePosition(), CameraModel.TurnSpeed.IDLE);
+					}
+
+					return ++this.t >= ticks ? Status.SUCCESS : Status.RUNNING;
+				}
+
+				@Override
+				protected void onStop() {
+					this.drifter.getKeys().releaseAll();
+				}
+			});
+		}
+	}
+
+	/** Giving a friend something it can spare (params: items, keep = how many of it it keeps). */
+	static final class Gift implements WhimAction {
+		@Nullable
+		static Integer spareSlot(DrifterEntity drifter, Whim whim) {
+			int keep = whim.param("keep", 0);
+			for (String item : whim.params("items")) {
+				Predicate1 matcher = itemMatcher(item);
+				if (drifter.getInventory().count(matcher) <= keep) {
+					continue;
+				}
+
+				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+					if (matcher.test(drifter.getInventory().getItem(slot))) {
+						return slot;
+					}
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return friend(drifter, 20.0) != null && spareSlot(drifter, whim) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Entity friend = friend(drifter, 20.0);
+			if (friend == null) {
+				return null;
+			}
+
+			return new Steps(drifter, whim.thought(), 20 * 40)
+				.then(() -> friend.distanceTo(drifter) > 3.0 ? new NavigateTask(drifter, friend.position(), 2.5, "walk over to " + nameOf(friend), NavigateTask.Pace.STROLL) : null)
+				.then(() -> new Gaze(drifter, friend::getEyePosition, 15, false, "look at " + nameOf(friend)))
+				.then(() -> {
+					Integer slot = spareSlot(drifter, whim);
+					if (slot != null && friend.distanceTo(drifter) < 5.0) {
+						ItemStack given = drifter.getInventory().getItem(slot).split(1);
+						String what = given.getHoverName().getString().toLowerCase(Locale.ROOT);
+						boolean food = given.has(net.minecraft.core.component.DataComponents.FOOD);
+						drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "gave " + nameOf(friend) + (food ? " some " : " a ") + what);
+						drifter.tossForward(given);
+					}
+
+					return new Gaze(drifter, friend::getEyePosition, 20, false, "look at " + nameOf(friend));
+				});
+		}
+	}
+
+	/** Walking about with a friend for a while (params: rounds). */
+	static final class HangOut implements WhimAction {
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return friend(drifter, 24.0) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Entity friend = friend(drifter, 24.0);
+			if (friend == null) {
+				return null;
+			}
+
+			Steps steps = new Steps(drifter, "hang out with " + nameOf(friend), whim.duration() + 20 * 60);
+			for (int i = 0; i < whim.param("rounds", 6); i++) {
+				steps.then(() -> !friend.isAlive() ? null : friend.distanceTo(drifter) > 4.0
+					? new NavigateTask(drifter, friend.position(), 3.0, "keep up with " + nameOf(friend), NavigateTask.Pace.STROLL)
+					: new Gaze(drifter, () -> friend.isAlive() ? friend.getEyePosition() : null, 40, false, "chill with " + nameOf(friend)));
+			}
+
+			return steps;
+		}
+	}
+
+	/** Dropping by a friend's home (a Drifter it trusts, whose home it has seen). */
+	static final class VisitFriend implements WhimAction {
+		@Nullable
+		static com.dinglebob.drifter.social.Relationship friendWithHome(DrifterEntity drifter, int radius) {
+			Home home = drifter.getDrifterBrain().home();
+			for (var bond : drifter.getBonds().all()) {
+				if (bond.trust >= com.dinglebob.drifter.social.DrifterBonds.FRIEND && bond.knownBase != null
+					&& bond.knownBase.closerThan(drifter.blockPosition(), radius) && !bond.knownBase.closerThan(drifter.blockPosition(), 24)
+					&& (home == null || !bond.knownBase.closerThan(home.center, 16))) {
+					return bond;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return friendWithHome(drifter, whim.param("radius", 160)) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			var bond = friendWithHome(drifter, whim.param("radius", 160));
+			if (bond == null) {
+				return null;
+			}
+
+			Vec3 at = Vec3.atBottomCenterOf(bond.knownBase);
+			String what = "drop by " + bond.name + "'s place";
+			return new Steps(drifter, what, 20 * 60 * 5)
+				.then(() -> new com.dinglebob.drifter.brain.activity.ExploreActivity(drifter, what, at, d -> d.position().distanceTo(at) < 10.0))
+				.then(() -> new LookAroundTask(drifter))
+				.then(() -> {
+					Entity there = friend(drifter, 16.0);
+					return there == null ? null : new Gaze(drifter, there::getEyePosition, 60, false, "say hi to " + nameOf(there));
+				});
+		}
+	}
+
+	/** Watching a block for a while: crops ripening, a sapling, a fire (params: blocks, ids or "#tags"; radius). */
+	static final class WatchBlock implements WhimAction {
+		@Nullable
+		static BlockPos find(DrifterEntity drifter, Whim whim) {
+			List<String> ids = whim.params("blocks");
+			return KnownBlocks.find(drifter, whim.param("radius", 16), state -> ids.stream().anyMatch(id -> matches(state, id)), 1).stream().findFirst()
+				.orElse(null);
+		}
+
+		static boolean matches(BlockState state, String id) {
+			if (id.startsWith("#")) {
+				return state.is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse(id.substring(1))));
+			}
+
+			return BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(id);
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return find(drifter, whim) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			BlockPos block = find(drifter, whim);
+			if (block == null) {
+				return null;
+			}
+
+			return new Steps(drifter, whim.thought(), whim.duration() + 20 * 40)
+				.then(() -> block.closerThan(drifter.blockPosition(), 5.0) ? null
+					: new NavigateTask(drifter, Vec3.atBottomCenterOf(block), 3.0, "go over", NavigateTask.Pace.STROLL))
+				.then(() -> new Gaze(drifter, () -> Vec3.atCenterOf(block), whim.duration(), false, whim.thought()));
+		}
+	}
+
+	/**
+	 * Making something it doesn't need, just because (docs/WHIMS.md section 27): the first of the whim's items it can make
+	 * quickly from what it has (params: items).
+	 */
+	static final class CraftForFun implements WhimAction {
+		@Nullable
+		static Item pick(DrifterEntity drifter, Whim whim) {
+			var world = com.dinglebob.drifter.brain.KnownWorld.scan(drifter);
+			for (String id : whim.params("items")) {
+				Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
+				if (drifter.getInventory().count(stack -> stack.is(item)) > 0) {
+					continue;
+				}
+
+				var plan = com.dinglebob.drifter.brain.Planner.plan(drifter, world, item, 1);
+				if (plan.feasible() && plan.next() != null && WhimPrep.quick(plan) && plan.actions().size() <= 4) {
+					return item;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return pick(drifter, whim) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Item item = pick(drifter, whim);
+			if (item == null) {
+				return null;
+			}
+
+			String name = item.getDescription().getString().toLowerCase(Locale.ROOT);
+			return new Activity(drifter) {
+				private int steps;
+
+				@Override
+				public String describe() {
+					return "make a " + name + " just because";
+				}
+
+				@Override
+				protected int timeoutTicks() {
+					return 20 * 60 * 3;
+				}
+
+				@Override
+				protected Status next() {
+					if (this.drifter.getInventory().count(stack -> stack.is(item)) > 0) {
+						this.think("made a " + name + " just because");
+						return Status.SUCCESS;
+					}
+
+					var plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter, com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), item, 1);
+					if (++this.steps > 6 || !plan.feasible() || plan.next() == null || !WhimPrep.quick(plan)) {
+						return Status.SUCCESS;
+					}
+
+					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
+				}
+			};
 		}
 	}
 
