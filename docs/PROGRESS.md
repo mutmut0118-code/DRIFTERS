@@ -1210,6 +1210,12 @@ pillars two blocks up out of its way; a route may dig one block down into seen r
 stops to think instead of running on while it plans (it ran off a ledge into the lava sea mid-plan); badly hurt with no
 way home just now, it walls itself in, eats and rests until healed ("hole up to heal", new goal `nether_holeup`).
 Batches of 6 to 7 trips with mob spawning on now lose 0 to 1.
+**User decisions (2026-10-16):** diamond chestplate, leggings and helmet before the Nether (they used to come after it);
+Nether food is steak or cooked porkchop only. Also new: arrow kills count as a player's (blaze rods only drop for a
+player's kill; the bow kills had dropped none); piglins go for a Drifter not wearing gold, and its gold piece goes on
+first on a trip; looting in the Nether (fortress chests); digging with no fitting tool uses an empty hand; at a fortress
+it walks the parts it has seen, highest first, to find the spawner; rods are banked (it goes home) after nearly dying
+twice; a stall watchdog logs and breaks any 2-minute stall on a moving goal.
 Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up
 before anything else (fighting included) and stays until healed; it centres on its block first, builds walls bottom-up
 with a block under each one over a drop; fireball dodges only onto safe ground (one dodged into lava); fire that appears

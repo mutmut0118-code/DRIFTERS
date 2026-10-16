@@ -1440,10 +1440,11 @@ The Nether is the Drifter's big late-game risk, handled as planned expeditions w
 
 The strategist won't start a first trip until most of this is in hand:
 
-- Full iron armor or better, with at least one gold piece (helmet or boots) for piglins.
+- Diamond chestplate, leggings and helmet (user, 2026-10-16: "more diamond than iron"; diamond boots can come later,
+  since the gold piece takes that slot there), with at least one gold piece (helmet or boots) for piglins.
 - Sword, shield, bow and arrows.
 - 64 or more cobblestone (ghast-proof building blocks).
-- 20 or more cooked food.
+- 20 or more steak or cooked porkchop (user, 2026-10-16: the best food for healing between fights).
 - Flint and steel (to relight a portal a ghast extinguished).
 - Spare pickaxe.
 - Gold ingots for bartering.

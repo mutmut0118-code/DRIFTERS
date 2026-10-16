@@ -132,9 +132,10 @@ public final class Strategist {
 				|| stack.is(Items.GOLDEN_LEGGINGS))),
 		new Target("cobblestone for the Nether", List.of(Items.COBBLESTONE, Items.COBBLED_DEEPSLATE), NETHER_BLOCKS,
 			drifter -> drifter.getInventory().count(stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE)) >= NETHER_BLOCKS),
-		new Target("food for the Nether", List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT,
-			Items.BREAD), NETHER_FOOD, drifter -> drifter.getInventory().count(stack -> stack.is(Items.COOKED_BEEF) || stack.is(Items.COOKED_PORKCHOP)
-				|| stack.is(Items.COOKED_MUTTON) || stack.is(Items.COOKED_CHICKEN) || stack.is(Items.COOKED_RABBIT) || stack.is(Items.BREAD)) >= NETHER_FOOD),
+		// Steak (or cooked porkchop, the same): the most food and saturation a bite, for healing between fights (user's request,
+		// 2026-10-16).
+		new Target("steak for the Nether", List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP), NETHER_FOOD,
+			drifter -> drifter.getInventory().count(stack -> stack.is(Items.COOKED_BEEF) || stack.is(Items.COOKED_PORKCHOP)) >= NETHER_FOOD),
 		new Target("a spare pickaxe for the Nether", List.of(Items.IRON_PICKAXE, Items.STONE_PICKAXE), 1, drifter -> !needsSparePickaxe(drifter)),
 		// Bow and arrows (ghasts are out of sword reach, blazes safer from range): string from spiders or cobwebs.
 		new Target("a bow", List.of(Items.BOW), 1, drifter -> has(drifter, stack -> stack.is(Items.BOW))),
@@ -202,7 +203,10 @@ public final class Strategist {
 		// The enchanting table after the diamond pickaxe and sword, before the diamond armor (section 9: "some archetypes
 		// make an enchanting table before any armor"; it makes the most of the diamonds it has).
 		order.addAll(ENCHANTING_TARGETS);
-		// The Nether once it enchants (stage 8; section 9: "Day 12 onward"), before the slow diamond armor and bookshelves.
+		// Diamond chestplate, leggings and helmet before the Nether (user's request, 2026-10-16: blazes and ghasts hit hard,
+		// iron isn't enough there). The boots after: in the Nether its gold piece goes in that slot anyway.
+		order.addAll(DIAMOND_TARGETS.subList(2, 5));
+		// The Nether once it enchants (stage 8; section 9: "Day 12 onward"), before the diamond boots and bookshelves.
 		if (stage(drifter) >= 8) {
 			order.addAll(PORTAL_TARGETS);
 			if (portalLit(drifter)) {
@@ -210,7 +214,7 @@ public final class Strategist {
 			}
 		}
 
-		order.addAll(DIAMOND_TARGETS.subList(2, DIAMOND_TARGETS.size()));
+		order.addAll(DIAMOND_TARGETS.subList(5, DIAMOND_TARGETS.size()));
 		// Then bookshelves round the table, one at a time (3 books each: sugar cane and leather), up to 15.
 		order.add(BOOKSHELF_TARGET);
 		return order;
