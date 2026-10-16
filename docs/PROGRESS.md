@@ -1191,7 +1191,16 @@ bow to block; every step down in the Nether is walked, never sprinted (it sprint
 in a lava pit with walls too high to jump, it pillars out (its jumps in lava reach almost two blocks); running away
 checks two blocks ahead for lava. The debug trace now shows what's in hand, whether it's blocking, and the reflex in
 charge. Still open: several blazes at once hit it from the sides (a player fights them in a corridor or kills them as
-they spawn), and the fortress test still ended in a fall and fire. No blaze rods yet.
+they spawn), and the fortress test still ended in a fall and fire.
+Then, in a closed nether-brick room with a blaze spawner (`nroom*.txt`, like a fortress spawner room): **first blaze
+rod** (1 of 6, then it died). Fixed after that: close blazes get the sword; it waits within 4 blocks of the spawner so
+new blazes appear in reach; blazes are fought on sight during the rod hunt (it stood "waiting for blazes" while one shot
+it); in melee the shield is held through the glow of the blaze it fights (it raised it for a tick or two between swings,
+and a shield only blocks after a quarter second) but it still strikes when a full swing is ready; with a shield and
+above 8 health it stands and fights blazes instead of running (they fly after it and shoot it in the back); running
+away looks for cover from blazes too. A later room run fought for over a minute without a hit. **Next:** its bow is too
+slow on blazes (7 shots in 50 s: it waits for a steady aim on a bobbing target, and re-draws after every guard), so it
+kills too few before the damage piles up; eating between bursts; a real fortress run end to end.
 
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
