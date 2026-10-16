@@ -72,6 +72,17 @@ public final class DrifterConfig {
 		/** Drifters living in some villages, Bandit gangs holding some pillager outposts (user, 2026-10-16). */
 		boolean worldgenVillages = true;
 		boolean worldgenOutposts = true;
+		/** Drifter groups fall into feuds, skirmish and raid each other (section 21 "Drifter team wars"). */
+		boolean drifterWars = true;
+	}
+
+	public static boolean drifterWars() {
+		return data.drifterWars;
+	}
+
+	public static void setDrifterWars(boolean on) {
+		data.drifterWars = on;
+		save();
 	}
 
 	public static boolean worldgenVillages() {

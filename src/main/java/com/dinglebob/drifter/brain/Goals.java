@@ -452,6 +452,71 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * The group's banner (section 21 team wars: "a group gets a name and a banner it hangs at its base, so players can tell
+	 * sides apart"): the leader makes one (six wool of a colour and a stick) and stands it by its hut door.
+	 */
+	public static final class GroupBanner extends PlannedGoal {
+		private static final List<Item> BANNERS = java.util.Arrays.stream(net.minecraft.world.item.DyeColor.values())
+			.map(color -> net.minecraft.world.level.block.BannerBlock.byColor(color).asItem()).toList();
+
+		@Override
+		public String id() {
+			return "banner";
+		}
+
+		@Override
+		public String name(Context context) {
+			return carrying(context.drifter()) ? "put up the group's banner" : "make a banner for the group";
+		}
+
+		private static boolean carrying(DrifterEntity drifter) {
+			return drifter.getInventory().count(stack -> stack.is(ItemTags.BANNERS)) > 0;
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			return BANNERS;
+		}
+
+		@Override
+		protected int count(Context context) {
+			return 1;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			com.dinglebob.drifter.world.DrifterGroups.Group group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			Home home = drifter.getDrifterBrain().home();
+			if (group == null || !group.leader.equals(drifter.getUUID()) || home == null || !home.hutBuilt || home.borrowed() || context.stage() < 4
+				|| !home.near(drifter, Home.STORAGE_RANGE) || Schedule.isNight(drifter)) {
+				return 0.0;
+			}
+
+			if (home.banner != null && drifter.level().isLoaded(home.banner) && drifter.level().getBlockState(home.banner).is(net.minecraft.tags.BlockTags.BANNERS)) {
+				return 0.0;
+			}
+
+			return 0.5;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return carrying(context.drifter()) ? 1.0 : super.feasibility(context);
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			if (carrying(context.drifter())) {
+				return new com.dinglebob.drifter.brain.activity.PlaceBannerActivity(context.drifter());
+			}
+
+			return super.start(context);
+		}
+	}
+
 	/** The strategist's next progression target (sections 8 and 9): wooden pickaxe, stone tools, furnace, torches. */
 	public static final class Progress extends PlannedGoal {
 		@Override
@@ -2118,6 +2183,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.FriendlyGoals.all());
 		// Groups (milestone 12, section 21).
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
+		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
+		goals.add(new GroupBanner());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);

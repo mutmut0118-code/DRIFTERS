@@ -111,6 +111,45 @@ public final class SocialCommands {
 			ctx.getSource().sendSuccess(() -> Component.literal("took " + count + " valuable items from " + DrifterCommands.label(drifter) + "'s chests"), true);
 			return 1;
 		}));
+		// Team wars (section 21): every feud between groups, and (debug) the tension between two Drifters' groups set outright.
+		root.then(Commands.literal("wars").executes(ctx -> {
+			var feuds = com.dinglebob.drifter.world.DrifterWars.all();
+			if (feuds.isEmpty()) {
+				say(ctx, "No feuds between Drifter groups");
+			}
+
+			long now = ctx.getSource().getLevel().getGameTime();
+			for (var feud : feuds) {
+				var raid = com.dinglebob.drifter.world.DrifterWars.raidOf(feud.a);
+				if (raid == null) {
+					raid = com.dinglebob.drifter.world.DrifterWars.raidOf(feud.b);
+				}
+
+				String truce = now < feud.truceUntil ? String.format(Locale.ROOT, ", truce for %d more min", (feud.truceUntil - now) / 1200) : "";
+				String raiding = raid == null ? "" : ", " + com.dinglebob.drifter.world.DrifterWars.name(raid.attackers) + " raiding (" + raid.phase.name().toLowerCase(Locale.ROOT) + ")";
+				say(ctx, String.format(Locale.ROOT, "%s vs %s: %s, tension %d, losses %d / %d%s%s", com.dinglebob.drifter.world.DrifterWars.name(feud.a),
+					com.dinglebob.drifter.world.DrifterWars.name(feud.b), com.dinglebob.drifter.world.DrifterWars.levelName(feud.tension),
+					Math.round(feud.tension), feud.lossesA, feud.lossesB, truce, raiding));
+			}
+
+			return feuds.size();
+		}));
+		root.then(Commands.literal("war").then(Commands.argument("one", StringArgumentType.word()).then(Commands.argument("other", StringArgumentType.word())
+			.then(Commands.argument("tension", DoubleArgumentType.doubleArg(0, 100)).executes(ctx -> {
+				DrifterEntity one = named(ctx, StringArgumentType.getString(ctx, "one"));
+				DrifterEntity other = named(ctx, StringArgumentType.getString(ctx, "other"));
+				var a = com.dinglebob.drifter.world.DrifterGroups.of(one.getUUID());
+				var b = com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID());
+				if (a == null || b == null || a == b) {
+					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Both need to be in groups, and not the same one")).create();
+				}
+
+				double tension = DoubleArgumentType.getDouble(ctx, "tension");
+				com.dinglebob.drifter.world.DrifterWars.setTension(a.id, b.id, tension, one.level().getGameTime());
+				ctx.getSource().sendSuccess(() -> Component.literal(a.name + " vs " + b.name + ": tension " + Math.round(tension) + " ("
+					+ com.dinglebob.drifter.world.DrifterWars.levelName(tension) + ")"), true);
+				return 1;
+			})))));
 		// Debug: the nearest one teams up with the named one at once (friends both ways, one group).
 		root.then(Commands.literal("group").then(Commands.argument("other", StringArgumentType.word()).executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());

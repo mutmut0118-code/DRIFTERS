@@ -169,7 +169,9 @@ public final class Threats {
 			// Drifter outside its group is one on sight (user's setting).
 			int aggression = com.dinglebob.drifter.DrifterConfig.drifterAggression();
 			var bond = drifter.getBonds().get(other.getUUID());
-			if (aggression > 0 && (aggression >= 100 || bond != null && bond.trust <= BITTER_RIVAL)) {
+			// Groups skirmishing or at war: members fight on sight (section 21 team wars).
+			if (aggression > 0 && (aggression >= 100 || bond != null && bond.trust <= BITTER_RIVAL
+				|| com.dinglebob.drifter.world.DrifterWars.hostile(drifter, other))) {
 				return RIVAL_DANGER * (isAfter(drifter, entity) ? 1.3 : 1.0) * (1.0 + entity.getArmorValue() / 20.0);
 			}
 		}

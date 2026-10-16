@@ -169,6 +169,9 @@ public final class Home {
 	/** Its enchanting table (section 10.13; milestone 8 step 7), outside the hut with room round it for bookshelves. */
 	@Nullable
 	public BlockPos enchantingTable;
+	/** Its group's banner, standing by the hut door (section 21 team wars), if it hung one. */
+	@Nullable
+	public BlockPos banner;
 
 	/** Its enchanting table, if it's still there. */
 	@Nullable
@@ -341,6 +344,10 @@ public final class Home {
 			tag.putBoolean("Outpost", true);
 		}
 
+		if (this.banner != null) {
+			tag.put("Banner", NbtUtils.writeBlockPos(this.banner));
+		}
+
 		if (!this.missing.isEmpty()) {
 			CompoundTag missing = new CompoundTag();
 			this.missing.forEach((item, at) -> missing.putLong(BuiltInRegistries.ITEM.getKey(item).toString(), at));
@@ -405,6 +412,7 @@ public final class Home {
 		home.portal = tag.contains("Portal", net.minecraft.nbt.Tag.TAG_COMPOUND) ? PortalFrame.load(tag.getCompound("Portal")) : null;
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
 		home.outpost = tag.getBoolean("Outpost");
+		home.banner = NbtUtils.readBlockPos(tag, "Banner").orElse(null);
 		CompoundTag missing = tag.getCompound("Missing");
 		for (String key : missing.getAllKeys()) {
 			ResourceLocation id = ResourceLocation.tryParse(key);

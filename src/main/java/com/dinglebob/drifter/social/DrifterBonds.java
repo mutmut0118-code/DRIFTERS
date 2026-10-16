@@ -34,6 +34,8 @@ public class DrifterBonds {
 	private static final double HELPED_TRUST = 15.0;
 	private static final double HIT_TRUST_PER_DAMAGE = -5.0;
 	private static final double HIT_FEAR_PER_DAMAGE = 2.0;
+	/** Seen this close to its own home, another Drifter's home is known. */
+	private static final double BASE_SEEN = 32.0;
 	/** Trust at or above which another Drifter is a friend, at or below which a rival. */
 	public static final double FRIEND = 50.0;
 	public static final double RIVAL = -30.0;
@@ -77,6 +79,12 @@ public class DrifterBonds {
 			}
 
 			r.name = other.getName().getString();
+			// Seen by its own home: now it knows where they live (what a raid needs).
+			var theirHome = other.getDrifterBrain().home();
+			if (theirHome != null && theirHome.dimension.equals(other.level().dimension().location()) && theirHome.center.closerThan(other.blockPosition(), BASE_SEEN)) {
+				r.knownBase = theirHome.center;
+			}
+
 			r.addFamiliarity(FAMILIARITY_PER_MINUTE * minutes);
 			r.addTrust((this.rivals(other) ? RIVAL_TRUST_PER_MINUTE : TRUST_PER_MINUTE) * minutes);
 			this.maybeGroup(other, r);
@@ -157,6 +165,18 @@ public class DrifterBonds {
 			return;
 		}
 
+		// Its own chests (if it had set some down) become the group's too (found in testing: a member's old chest was left
+		// out, and after it died its mate looted it like a stranger's).
+		var old = member.getDrifterBrain().home();
+		if (old != null && old.dimension.equals(home.dimension)) {
+			for (var chest : old.chests()) {
+				if (!home.chests().contains(chest)) {
+					home.addChest(chest);
+					shared.addChest(chest);
+				}
+			}
+		}
+
 		member.getDrifterBrain().setHome(shared);
 		member.getMemory().thoughts().add(member.level().getGameTime(), "moved in with " + leader.getName().getString());
 	}
@@ -229,6 +249,7 @@ public class DrifterBonds {
 	}
 
 	public void onHurtBy(DrifterEntity other, float amount) {
+		com.dinglebob.drifter.world.DrifterWars.hurt(other, this.drifter, amount);
 		Relationship r = this.known(other);
 		r.addTrust(HIT_TRUST_PER_DAMAGE * amount);
 		r.addFear(HIT_FEAR_PER_DAMAGE * amount);

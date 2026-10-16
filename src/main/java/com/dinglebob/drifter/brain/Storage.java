@@ -221,6 +221,9 @@ public final class Storage {
 			return "bucket";
 		} else if (stack.is(Items.CRAFTING_TABLE)) {
 			return "table";
+		} else if (stack.is(ItemTags.BANNERS) || stack.is(Items.SMOKER) || stack.is(Items.BLAST_FURNACE)) {
+			// The group's banner, a smoker or blast furnace for the hut: kept until it's put up (it's what it made them for).
+			return "to put up";
 		} else if (stack.is(Items.ENCHANTING_TABLE)) {
 			// Kept until it's set up near home (milestone 8 step 7).
 			return "enchanting table";
@@ -266,6 +269,7 @@ public final class Storage {
 		return switch (category) {
 			case "bucket" -> 2;
 			case "table", "furnace", "bed", "enchanting table" -> 1;
+			case "to put up" -> 3;
 			case "lapis" -> 64;
 			case "seeds" -> 32;
 			case "glass" -> 16;

@@ -32,6 +32,10 @@ public final class DrifterGroups {
 		public UUID leader;
 		public final List<UUID> members = new ArrayList<>();
 		public final Map<UUID, String> names = new HashMap<>();
+		/** Its base (the leader's home) and that home's dimension, as last seen; null until known. */
+		@Nullable
+		public net.minecraft.core.BlockPos base;
+		public String baseDimension = "minecraft:overworld";
 
 		Group(UUID id, String name, UUID leader) {
 			this.id = id;
@@ -57,11 +61,21 @@ public final class DrifterGroups {
 			}
 
 			tag.put("Members", list);
+			if (this.base != null) {
+				tag.putLong("Base", this.base.asLong());
+				tag.putString("BaseDimension", this.baseDimension);
+			}
+
 			return tag;
 		}
 
 		static Group load(CompoundTag tag) {
 			Group group = new Group(tag.getUUID("Id"), tag.getString("Name"), tag.getUUID("Leader"));
+			if (tag.contains("Base")) {
+				group.base = net.minecraft.core.BlockPos.of(tag.getLong("Base"));
+				group.baseDimension = tag.getString("BaseDimension");
+			}
+
 			for (Tag t : tag.getList("Members", Tag.TAG_COMPOUND)) {
 				CompoundTag m = (CompoundTag)t;
 				group.members.add(m.getUUID("Id"));
@@ -91,6 +105,11 @@ public final class DrifterGroups {
 				save(server);
 			}
 		});
+	}
+
+	/** Something about a group changed (its base): saved soon. */
+	public static void changed() {
+		dirty = true;
 	}
 
 	@Nullable

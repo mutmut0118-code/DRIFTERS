@@ -1555,6 +1555,26 @@ public class DrifterEntity extends PathfinderMob {
 			this.social.watcher().killedBy(player);
 		}
 
+		// Killed by another group's member: a loss in their feud (section 21 team wars).
+		DrifterEntity killer = com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity());
+		if (killer != null && killer != this && !this.level().isClientSide()) {
+			com.dinglebob.drifter.world.DrifterWars.killed(killer, this);
+		}
+
+		// Gone for good: out of its group (found in testing: the dead stayed members forever); the others hear of it.
+		if (this.level() instanceof ServerLevel server) {
+			var group = com.dinglebob.drifter.world.DrifterGroups.of(this.getUUID());
+			if (group != null) {
+				String name = this.getName().getString();
+				com.dinglebob.drifter.world.DrifterGroups.leave(this.getUUID());
+				for (java.util.UUID id : group.members) {
+					if (server.getEntity(id) instanceof DrifterEntity mate) {
+						mate.getMemory().thoughts().add(server.getGameTime(), name + " died");
+					}
+				}
+			}
+		}
+
 		if (!this.blackBox.isEmpty()) {
 			com.dinglebob.drifter.Drifter.LOGGER.info("[black box] last {} ticks before death:", this.blackBox.size());
 			this.blackBox.forEach(com.dinglebob.drifter.Drifter.LOGGER::info);

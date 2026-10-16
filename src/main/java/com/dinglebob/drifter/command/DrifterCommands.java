@@ -231,6 +231,11 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setDrifterAggression(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "value"));
 					return showConfig(ctx);
 				}))))
+			.then(Commands.literal("wars")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setDrifterWars(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
 			.then(Commands.literal("raiding")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setRaiding(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -491,7 +496,8 @@ public final class DrifterCommands {
 			com.dinglebob.drifter.DrifterConfig.fov(), com.dinglebob.drifter.DrifterConfig.coneHalfYaw() * 2.0F,
 			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F, com.dinglebob.drifter.DrifterConfig.chatLines() ? "on" : "off",
 			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", raiding players' chests "
-			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off") + ", Drifters kept running away from players "
+			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off") + ", group wars " + (com.dinglebob.drifter.DrifterConfig.drifterWars() ? "on" : "off")
+			+ ", Drifters kept running away from players "
 			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters() + ", catch-up for time away "
 			+ com.dinglebob.drifter.DrifterConfig.offlineProgression().name().toLowerCase(Locale.ROOT) + ", aggression to players "
 			+ com.dinglebob.drifter.DrifterConfig.playerAggression() + "%, to each other " + com.dinglebob.drifter.DrifterConfig.drifterAggression() + "%"), true);

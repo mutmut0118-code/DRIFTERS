@@ -62,6 +62,7 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(toggle(right, y, "Drifter villages", DrifterConfig.worldgenVillages(), DrifterConfig::setWorldgenVillages));
 		y += ROW;
 		this.addRenderableWidget(toggle(left, y, "Bandit outposts", DrifterConfig.worldgenOutposts(), DrifterConfig::setWorldgenOutposts));
+		this.addRenderableWidget(toggle(right, y, "Group wars and raids", DrifterConfig.drifterWars(), DrifterConfig::setDrifterWars));
 		y += ROW;
 		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
 				case OFF -> "off";
