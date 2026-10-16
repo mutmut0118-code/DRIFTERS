@@ -44,7 +44,7 @@ public final class NetherGoals {
 		private static final float HURT = 10.0F;
 		/** With blazes or a ghast about it holes up sooner, while it still has the health to build its walls (found in testing:
 		 * holing up only when nearly dead, the next fireball finished it before the walls were up). */
-		public static final float HURT_UNDER_FIRE = 12.0F;
+		public static final float HURT_UNDER_FIRE = 14.0F;
 
 		@Override
 		public String id() {
