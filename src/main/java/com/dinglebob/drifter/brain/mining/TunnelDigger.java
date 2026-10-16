@@ -592,8 +592,41 @@ public final class TunnelDigger {
 
 	private boolean canMineOre(Level level, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
+		if (plenty(this.drifter, state)) {
+			return false;
+		}
+
 		int slot = Tools.bestToolSlot(this.drifter, state, level, pos);
 		return slot >= 0 && this.drifter.getInventory().getItem(slot).isCorrectToolForDrops(state) && KnownBlocks.mayTake(level, pos);
+	}
+
+	/**
+	 * It has plenty of what this ore gives (on it and in its chests), so it leaves the vein, as players stop bothering with
+	 * copper once they have a stack (found in a 10-day run: 945 raw copper in a miner's chests). Iron, gold, diamonds and
+	 * emeralds it always takes.
+	 */
+	static boolean plenty(DrifterEntity drifter, BlockState state) {
+		net.minecraft.world.item.Item item;
+		int enough;
+		if (state.is(BlockTags.COPPER_ORES)) {
+			item = net.minecraft.world.item.Items.RAW_COPPER;
+			enough = 64;
+		} else if (state.is(BlockTags.COAL_ORES)) {
+			item = net.minecraft.world.item.Items.COAL;
+			enough = 192;
+		} else if (state.is(BlockTags.REDSTONE_ORES)) {
+			item = net.minecraft.world.item.Items.REDSTONE;
+			enough = 64;
+		} else if (state.is(BlockTags.LAPIS_ORES)) {
+			item = net.minecraft.world.item.Items.LAPIS_LAZULI;
+			enough = 64;
+		} else {
+			return false;
+		}
+
+		var home = drifter.getDrifterBrain().home();
+		int have = drifter.getInventory().count(stack -> stack.is(item)) + (home == null ? 0 : home.stored().getOrDefault(item, 0));
+		return have >= enough;
 	}
 
 	public static boolean isOre(BlockState state) {
