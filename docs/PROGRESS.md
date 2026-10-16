@@ -1311,8 +1311,39 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
   Raiders", home on the ground by the tower, no hut; while they hold it the illagers there are removed and none come
   back) in `world/gen/LivedInStructures` (saved as drifter_lived_in). Homes there are "borrowed" (`Home.borrowed()`):
   no hut or house of their own, in play or in catch-up. Tested on seed 2024: a desert village got 4, an outpost a gang.
+- **Theft (user's ideas, 2026-10-16):** it remembers which valuables went missing from its chests (saved, 3 days); a
+  player it sees wearing or holding one of them is taken for the thief, right or wrong ("X has its iron pickaxe: X stole
+  it", -40 trust, grudge 50, a "thief"/"give it back" chat line). When it sees (or hears) someone open one of its chests it
+  goes and checks it once they step away (goal "check its chest"); valuables gone after it watched them is "caught
+  stealing from its chest" (-45, grudge 60): it turns on them. Group mates sharing chests keep each other's records up
+  to date (so one member's trip to the chest isn't blamed on a player). Not testable on the headless server (no real
+  player): in-game.
+- **Hunches (user, 2026-10-16: "their logic needs more assumption, allow them to make mistakes"):** a cave it comes across
+  (within about 24 blocks, by day, healthy, with a pickaxe and 4+ torches), it may go in for a short look on a hunch with no
+  ore seen ("look round a cave, just in case"), the curious more often, once a day at most; afterwards "the hunch paid off:
+  copper ore in the cave" or "nothing much in that cave: a waste of time, oh well". Strip miners sometimes go caving on a
+  trip on a hunch too ("a hunch: might be diamond in that cave ..."). Tested: both seen. More ideas like this are welcome
+  (see "Ideas for more assumptions" below).
+- **Bigger huts, smoker and blast furnace (user, 2026-10-16):** the starter hut is 7x7 (5x5 inside): chests along the left
+  wall, table and furnace in the back and front corners, bed along the right wall, the blast furnace and smoker on the back
+  wall either side of the torch. The size is saved with the home: huts already built (or started) stay 5x5 (they put the
+  smoker and blast furnace in their two free inside cells). After its iron gear it makes a smoker (furnace and 4 logs)
+  and a blast furnace (furnace, 5 iron, 3 smooth stone: cobblestone smelted twice) and puts them in; ore goes in the
+  blast furnace and food in the smoker (twice as fast). Catch-up puts them in from about day 3 and day 4; world-gen camps
+  are 7x7 too. `/drifter hut` shows S for a smoker, X for a blast furnace. Tested: a 7x7 hut built and finished, the
+  smoker placed on the back wall, the planner works both out.
+- **Next (user's note):** more house plans to replace the huts later (bigger homes as it settles).
 - Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
   2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
+
+## Ideas for more assumptions (for the user to pick from)
+
+Players guess and get things wrong. Candidates in the same spirit as the cave hunch and the theft assumption:
+- It hears a zombie behind a wall and assumes it's night-dangerous out there (stays in a little longer).
+- It finds its crop trampled and blames whoever it last saw near the farm.
+- It sees a dark hole and assumes there's a mob spawner or dungeon (goes to look).
+- It digs where it once saw ore even after someone mined it (memory is old: it goes anyway, finds nothing).
+- It assumes a player wearing diamond is dangerous and keeps its distance, even if they're friendly.
 
 ## Notes for milestone 9 (from testing)
 

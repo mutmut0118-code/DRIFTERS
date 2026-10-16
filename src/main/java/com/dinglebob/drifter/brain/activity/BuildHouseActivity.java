@@ -322,7 +322,7 @@ public class BuildHouseActivity extends BuildHutActivity {
 			return false;
 		}
 
-		return !overlaps(spot, home.center, StarterHut.HALF + 1) && (home.farm == null || !overlaps(spot, home.farm, FarmActivity.RADIUS + 1))
+		return !overlaps(spot, home.center, home.hutHalf + 1) && (home.farm == null || !overlaps(spot, home.farm, FarmActivity.RADIUS + 1))
 			&& (home.pen == null || !overlaps(spot, home.pen, 4)) && (home.enchantingTable == null || !overlaps(spot, home.enchantingTable, 3));
 	}
 

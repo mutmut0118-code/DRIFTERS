@@ -41,6 +41,8 @@ public final class Home {
 	@Nullable
 	public net.minecraft.core.Direction hutDoor;
 	public boolean hutBuilt;
+	/** Its hut's half-size: 3 (7x7), or 2 for a hut built before huts got bigger (kept as built). */
+	public int hutHalf = com.dinglebob.drifter.building.StarterHut.HALF;
 	/** Its animal pen (section 9 stage 6): the middle, at the level it stands on; when it last bred animals there. */
 	@Nullable
 	public BlockPos pen;
@@ -72,6 +74,25 @@ public final class Home {
 	public java.util.UUID lastOpenedBy;
 	public String lastOpenedByName = "";
 	public long lastOpenedAt = Long.MIN_VALUE / 2;
+	/** Whether it saw them at it with its own eyes (not only heard the lid), and which chest (not saved). */
+	public boolean lastOpenedSeen;
+	@Nullable
+	public BlockPos lastOpenedChest;
+	/** A chest it saw someone open that it means to check, and since when (not saved). */
+	@Nullable
+	public BlockPos checkChest;
+	public long checkChestSince = Long.MIN_VALUE / 2;
+
+	/**
+	 * Valuable things it found gone from its chests, and when it found out (user's idea, 2026-10-16): anyone it then sees
+	 * wearing or holding one of them is taken for the thief, whether they took it or not. Kept for {@link #MISSING_DAYS}.
+	 */
+	public final Map<Item, Long> missing = new LinkedHashMap<>();
+	public static final int MISSING_DAYS = 3;
+
+	public void forgetOldMissing(long now) {
+		this.missing.values().removeIf(at -> now - at > 24000L * MISSING_DAYS);
+	}
 
 	/**
 	 * One of its things (section 14: "its blocks"): its hut, house, chests, farm, pen, enchanting table and shelves. A
@@ -120,7 +141,7 @@ public final class Home {
 	/** Inside or part of its hut or its house (walls, roof, floor, with {@code margin} blocks round them). */
 	public boolean inOwnBuilding(BlockPos pos, int margin) {
 		if (this.hutBuilt || this.hutDoor != null) {
-			int half = com.dinglebob.drifter.building.StarterHut.HALF + margin;
+			int half = this.hutHalf + margin;
 			if (Math.abs(pos.getX() - this.center.getX()) <= half && Math.abs(pos.getZ() - this.center.getZ()) <= half
 				&& pos.getY() >= this.center.getY() - 1 && pos.getY() <= this.center.getY() + com.dinglebob.drifter.building.StarterHut.ROOF_LAYER) {
 				return true;
@@ -305,6 +326,7 @@ public final class Home {
 		}
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
+		tag.putInt("HutHalf", this.hutHalf);
 		if (this.portal != null) {
 			tag.put("Portal", this.portal.save());
 		}
@@ -315,6 +337,12 @@ public final class Home {
 
 		if (this.outpost) {
 			tag.putBoolean("Outpost", true);
+		}
+
+		if (!this.missing.isEmpty()) {
+			CompoundTag missing = new CompoundTag();
+			this.missing.forEach((item, at) -> missing.putLong(BuiltInRegistries.ITEM.getKey(item).toString(), at));
+			tag.put("Missing", missing);
 		}
 
 		if (this.farm != null) {
@@ -369,9 +397,19 @@ public final class Home {
 		Home home = new Home(center, dimension, tag.getLong("SettledAt"));
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
+		// Saved before huts got bigger: a hut it has started keeps its size; one it hasn't started is the new size.
+		home.hutHalf = tag.contains("HutHalf") ? tag.getInt("HutHalf")
+			: home.hutBuilt || home.hutDoor != null ? com.dinglebob.drifter.building.StarterHut.OLD_HALF : com.dinglebob.drifter.building.StarterHut.HALF;
 		home.portal = tag.contains("Portal", net.minecraft.nbt.Tag.TAG_COMPOUND) ? PortalFrame.load(tag.getCompound("Portal")) : null;
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
 		home.outpost = tag.getBoolean("Outpost");
+		CompoundTag missing = tag.getCompound("Missing");
+		for (String key : missing.getAllKeys()) {
+			ResourceLocation id = ResourceLocation.tryParse(key);
+			if (id != null && BuiltInRegistries.ITEM.containsKey(id)) {
+				home.missing.put(BuiltInRegistries.ITEM.get(id), missing.getLong(key));
+			}
+		}
 		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
 		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);
 		home.penBredAt = tag.getLong("PenBredAt");

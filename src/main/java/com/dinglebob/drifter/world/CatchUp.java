@@ -796,17 +796,7 @@ public final class CatchUp {
 	/** Where chests go: the back corners first; more chests on free floor cells that aren't the middle (it pillars there),
 	 * just inside the door, or the bed's. */
 	private static List<BlockPos> chestSpots(Home home) {
-		var hut = com.dinglebob.drifter.building.StarterHut.of(home);
-		List<BlockPos> spots = new ArrayList<>(hut.furnitureSpots().subList(0, 1));
-		BlockPos byDoor = home.center.relative(hut.door, 1);
-		for (BlockPos cell : hut.inside()) {
-			if (cell.getY() == home.center.getY() && !cell.equals(home.center) && !cell.equals(byDoor) && !cell.equals(hut.bedFoot())
-				&& !cell.equals(hut.bedHead()) && !hut.furnitureSpots().contains(cell)) {
-				spots.add(cell);
-			}
-		}
-
-		return spots;
+		return com.dinglebob.drifter.building.StarterHut.of(home).chestSpots();
 	}
 
 	/**
@@ -841,6 +831,20 @@ public final class CatchUp {
 			() -> usePlanks(drifter, 4));
 		placeStation(drifter, level, corners.get(2), Blocks.FURNACE, Items.FURNACE, "a furnace", report,
 			() -> take(drifter, stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE), 8) == 8);
+		// A smoker from the third day (a furnace and four logs), a blast furnace once it has iron to spare (a furnace, five
+		// ingots and three smooth stone, which is cobblestone smelted twice); user's request, 2026-10-16.
+		List<BlockPos> stations = hut.stationSpots();
+		if (day >= 2.5) {
+			placeStation(drifter, level, stations.get(1), Blocks.SMOKER, Items.SMOKER, "a smoker", report,
+				() -> count(drifter, Items.COBBLESTONE) >= 8 && drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= 4
+					&& take(drifter, stack -> stack.is(Items.COBBLESTONE), 8) == 8 && take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), 4) == 4);
+		}
+
+		if (day >= 4.0) {
+			placeStation(drifter, level, stations.get(0), Blocks.BLAST_FURNACE, Items.BLAST_FURNACE, "a blast furnace", report,
+				() -> count(drifter, Items.COBBLESTONE) >= 11 && count(drifter, Items.IRON_INGOT) >= 5
+					&& take(drifter, stack -> stack.is(Items.COBBLESTONE), 11) == 11 && take(drifter, stack -> stack.is(Items.IRON_INGOT), 5) == 5);
+		}
 
 		// A bed from the second day: three wool (or the string for it, four each) and three planks.
 		if (day >= 1.5 && hut.bed(level) == null) {
@@ -873,7 +877,9 @@ public final class CatchUp {
 	private static void placeStation(DrifterEntity drifter, Level level, BlockPos spot, net.minecraft.world.level.block.Block block, Item item,
 		String name, Report report, java.util.function.BooleanSupplier make) {
 		var hut = com.dinglebob.drifter.building.StarterHut.of(drifter.getDrifterBrain().home());
-		for (BlockPos cell : hut.inside()) {
+		List<BlockPos> cells = new ArrayList<>(hut.inside());
+		cells.addAll(hut.stationSpots());
+		for (BlockPos cell : cells) {
 			if (level.getBlockState(cell).is(block)) {
 				return;
 			}

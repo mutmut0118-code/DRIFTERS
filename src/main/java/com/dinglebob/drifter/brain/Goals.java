@@ -525,6 +525,117 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * A look in a cave it comes across, on a hunch (user's idea, 2026-10-16: players make assumptions and mistakes; "if
+	 * they don't see any ore when they run into a cave, they still go just in case"). Curious ones more; once a day at most;
+	 * only by day, healthy, with a pickaxe and a few torches. It may well be a waste of time.
+	 */
+	public static final class CaveHunch extends Goal {
+		private static final long EVERY = 24000L;
+		private static final int SCAN_EVERY = 20 * 20;
+		private static final int RANGE = 24;
+		private long lastHunch = Long.MIN_VALUE / 2;
+		private long lastScan = Long.MIN_VALUE / 2;
+		@org.jetbrains.annotations.Nullable
+		private net.minecraft.core.BlockPos cave;
+
+		@Override
+		public String id() {
+			return "cavehunch";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "look round a cave, just in case";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			long now = drifter.level().getGameTime();
+			// Under way: it keeps at it (the once-a-day clock starts when it sets off).
+			if (drifter.getDrifterBrain().currentGoal() == this
+				&& drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.CaveHunchActivity activity && !activity.finished()) {
+				return this.score;
+			}
+
+			// Not in the middle of a mining trip (that's caving already), nor from underground.
+			if (drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.MineTripActivity
+				|| com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())) {
+				return 0.0;
+			}
+
+			if (drifter.level().dimension() != net.minecraft.world.level.Level.OVERWORLD || now - this.lastHunch < EVERY || Schedule.isNight(drifter)
+				|| drifter.getHealth() < 16.0F || context.stage() < 2 || drifter.getInventory().count(stack -> stack.is(Items.TORCH)) < 4
+				|| drifter.getInventory().count(stack -> stack.is(ItemTags.PICKAXES)) == 0) {
+				return 0.0;
+			}
+
+			if (now - this.lastScan >= SCAN_EVERY) {
+				this.scan(drifter);
+			}
+
+			if (this.cave == null || !this.cave.closerThan(drifter.blockPosition(), RANGE + 8)) {
+				return 0.0;
+			}
+
+			this.score = 0.45 + 0.4 * drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CURIOSITY);
+			return this.score;
+		}
+
+		private double score;
+
+		/** A cave it has seen round here: the nearest frontier underground with room behind it. */
+		private void scan(DrifterEntity drifter) {
+			this.lastScan = drifter.level().getGameTime();
+			this.cave = null;
+			java.util.Set<net.minecraft.core.BlockPos> notCaves = new java.util.HashSet<>();
+			for (int tries = 0; tries < 3 && this.cave == null; tries++) {
+				net.minecraft.core.BlockPos candidate = com.dinglebob.drifter.brain.mining.Caver.findFrontier(drifter, drifter.blockPosition(), RANGE,
+					drifter.blockPosition().getY() - 16, java.util.Set.of(), notCaves);
+				if (candidate == null) {
+					break;
+				}
+
+				if (com.dinglebob.drifter.brain.mining.Caver.isCave(drifter, candidate)) {
+					this.cave = candidate;
+				} else {
+					notCaves.add(candidate);
+				}
+			}
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.5);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			if (this.cave == null) {
+				this.scan(context.drifter());
+			}
+
+			if (this.cave == null) {
+				return null;
+			}
+
+			this.lastHunch = context.drifter().level().getGameTime();
+			this.score = 0.45 + 0.4 * context.drifter().getPersonality().get(com.dinglebob.drifter.personality.Trait.CURIOSITY);
+			return new com.dinglebob.drifter.brain.activity.CaveHunchActivity(context.drifter(), this.cave);
+		}
+	}
+
 	/** Nothing better to do: stand and look around. */
 	public static final class Idle extends Goal {
 		@Override
@@ -1402,6 +1513,54 @@ public final class Goals {
 		}
 	}
 
+	/**
+	 * Checking a chest of its it saw (or heard) someone open, once they step away (user's idea, 2026-10-16): stolen
+	 * things are found out at once, and the one it watched is caught in the act.
+	 */
+	public static final class CheckChest extends Goal {
+		@Override
+		public String id() {
+			return "checkchest";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "check its chest";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			net.minecraft.core.BlockPos chest = context.drifter().getSocial().watcher().chestToCheck();
+			return chest != null && chest.closerThan(context.drifter().blockPosition(), 48.0) ? 0.9 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return 0.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return true;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 10;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			net.minecraft.core.BlockPos chest = context.drifter().getSocial().watcher().chestToCheck();
+			return chest == null ? null : new com.dinglebob.drifter.brain.activity.CheckChestActivity(context.drifter(), chest);
+		}
+	}
+
 	/** Out of the water after running out of air twice in a minute (found in testing: it drowned going back under). */
 	public static final class GetOutOfWater extends Goal {
 		@Override
@@ -1780,7 +1939,9 @@ public final class Goals {
 				// (Only if there's somewhere for it: found in testing, a bed it had no room for brought it back every tick.)
 				boolean bedToPlace = context.drifter().getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0 && hut.bed(context.drifter().level()) == null
 					&& hut.bedSpot(context.drifter().level()) != null && !home.bedFailedRecently(context.drifter().level().getGameTime());
-				return hut.missingBlocks(context.drifter().level()) <= home.allowedGaps("hut") && !bedToPlace ? 0.0 : 0.45;
+				// A blast furnace or smoker it made for the hut (user's request, 2026-10-16).
+				boolean stationToPlace = hut.stationToPlace(context.drifter().level(), item -> context.drifter().getInventory().count(stack -> stack.is(item)));
+				return hut.missingBlocks(context.drifter().level()) <= home.allowedGaps("hut") && !bedToPlace && !stationToPlace ? 0.0 : 0.45;
 			}
 
 			return context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD ? 0.1 : 0.55;
@@ -1947,8 +2108,8 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
-			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());

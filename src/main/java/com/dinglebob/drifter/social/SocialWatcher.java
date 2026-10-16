@@ -1,7 +1,9 @@
 package com.dinglebob.drifter.social;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TieredItem;
@@ -64,6 +67,13 @@ public class SocialWatcher {
 	private static final double HEARING = 16.0;
 	/** How recently it must have seen a player to pin a sound on them. */
 	private static final int RECENTLY_SEEN = 20 * 10;
+
+	/** Caught in the act: valuables gone when it checks within this long of watching them at the chest. */
+	private static final long RED_HANDED_TICKS = 20 * 60 * 2;
+	/** It goes to check a chest it saw opened within this long (later, it'll find out on its next visit anyway). */
+	private static final long CHECK_WITHIN_TICKS = 20 * 60 * 2;
+	/** How close it must be to make out what someone's wearing and holding. */
+	private static final double GEAR_RANGE = 16.0;
 
 	private final DrifterEntity drifter;
 	private final Map<UUID, Watch> watches = new HashMap<>();
@@ -365,6 +375,7 @@ public class SocialWatcher {
 			this.watchBow(player, w, now, distance);
 			this.watchCrouches(player, w, now, distance);
 			this.watchGear(player, r);
+			this.watchForItsThings(player, distance);
 			if (distance < PEACEFUL_RANGE) {
 				w.peacefulTicks += TICK_EVERY;
 				if (w.peacefulTicks >= PEACEFUL_TICKS) {
@@ -518,14 +529,37 @@ public class SocialWatcher {
 	 * It opened one of its chests and found valuables gone since it last closed it: pinned on the player it last saw
 	 * opening that chest (section 14: "detected on its next chest check").
 	 */
-	public void missingFromChest(BlockPos chest, int valuableStacks) {
+	public void missingFromChest(BlockPos chest, int valuableStacks, List<Item> items) {
 		Home home = this.drifter.getDrifterBrain().home();
-		if (valuableStacks <= 0 || home == null || home.lastOpenedBy == null || this.now() - home.lastOpenedAt > 24000L * 3) {
+		if (valuableStacks <= 0 || home == null) {
+			return;
+		}
+
+		// What's gone, for spotting it on someone later (user's idea, 2026-10-16).
+		long now = this.now();
+		items.forEach(item -> home.missing.put(item, now));
+		this.think(describe(items) + " gone from its chest");
+		if (home.lastOpenedBy == null || now - home.lastOpenedAt > 24000L * Home.MISSING_DAYS) {
 			return;
 		}
 
 		Player player = this.drifter.level().getPlayerByUUID(home.lastOpenedBy);
 		String name = home.lastOpenedByName;
+		// It watched them at this chest and came straight over to look: caught in the act.
+		if (home.lastOpenedSeen && chest.equals(home.lastOpenedChest) && now - home.lastOpenedAt < RED_HANDED_TICKS) {
+			home.lastOpenedSeen = false;
+			this.think("caught " + name + " stealing from its chest");
+			if (player != null) {
+				this.record(player, SocialEvent.CAUGHT_STEALING, 0.0);
+				this.watch(player).warningIgnored = true;
+			} else {
+				this.drifter.getSocial().record(home.lastOpenedBy, name, SocialEvent.CAUGHT_STEALING, 0.0);
+			}
+
+			ChatLines.say(this.drifter, ChatLines.Kind.THIEF);
+			return;
+		}
+
 		for (int i = 0; i < valuableStacks; i++) {
 			if (player != null) {
 				this.record(player, SocialEvent.TOOK_VALUABLES, 0.0);
@@ -533,6 +567,69 @@ public class SocialWatcher {
 				this.drifter.getSocial().record(home.lastOpenedBy, name, SocialEvent.TOOK_VALUABLES, 0.0);
 			}
 		}
+	}
+
+	/**
+	 * Someone it can see wearing or holding something that went missing from its chests: it takes them for the thief,
+	 * whether they took it or not (user's idea, 2026-10-16: "stole it or not, they are gonna assume"). Close enough to
+	 * make out what they have on; once per missing thing.
+	 */
+	private void watchForItsThings(Player player, double distance) {
+		Home home = this.drifter.getDrifterBrain().home();
+		if (home == null || home.missing.isEmpty() || distance > GEAR_RANGE) {
+			return;
+		}
+
+		home.forgetOldMissing(this.now());
+		List<ItemStack> showing = new ArrayList<>();
+		player.getArmorSlots().forEach(showing::add);
+		showing.add(player.getMainHandItem());
+		showing.add(player.getOffhandItem());
+		for (ItemStack stack : showing) {
+			if (!stack.isEmpty() && home.missing.remove(stack.getItem()) != null) {
+				String name = player.getGameProfile().getName();
+				this.think(name + " has its " + stack.getHoverName().getString().toLowerCase(java.util.Locale.ROOT) + ": " + name + " stole it");
+				this.record(player, SocialEvent.HAD_ITS_THINGS, 0.0);
+				this.watch(player).warningIgnored = true;
+				ChatLines.say(this.drifter, ChatLines.Kind.THIEF);
+				return;
+			}
+		}
+	}
+
+	/** A chest of its it saw (or heard) someone open: it goes and checks once they step away (see the CheckChest goal). */
+	@Nullable
+	public BlockPos chestToCheck() {
+		Home home = this.drifter.getDrifterBrain().home();
+		if (home == null || home.checkChest == null) {
+			return null;
+		}
+
+		if (this.now() - home.checkChestSince > CHECK_WITHIN_TICKS || !home.isChest(home.checkChest)) {
+			home.checkChest = null;
+			return null;
+		}
+
+		// Not while they're still standing at it (it waits for them to go: then looks).
+		Player player = home.lastOpenedBy == null ? null : this.drifter.level().getPlayerByUUID(home.lastOpenedBy);
+		if (player != null && player.blockPosition().closerThan(home.checkChest, 3.0) && this.now() - home.checkChestSince < 20 * 30) {
+			return null;
+		}
+
+		return home.checkChest;
+	}
+
+	private static String describe(List<Item> items) {
+		if (items.isEmpty()) {
+			return "things";
+		}
+
+		String first = "its " + items.get(0).getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+		return items.size() == 1 ? first : first + " and " + (items.size() - 1) + " more";
+	}
+
+	private void think(String text) {
+		this.drifter.getMemory().thoughts().add(this.now(), text);
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -572,6 +669,10 @@ public class SocialWatcher {
 					home.lastOpenedBy = player.getUUID();
 					home.lastOpenedByName = player.getGameProfile().getName();
 					home.lastOpenedAt = level.getGameTime();
+					home.lastOpenedSeen = watcher.sees(player);
+					home.lastOpenedChest = pos.immutable();
+					home.checkChest = pos.immutable();
+					home.checkChestSince = level.getGameTime();
 					watcher.record(player, SocialEvent.OPENED_CHEST, 0.0);
 				}
 

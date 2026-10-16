@@ -13,8 +13,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * The starter hut (DESIGN.md section 11, shelter tier 3): a 5x5 box of whatever it has, walls two high (the door's
- * height), a flat 5x5 roof on top, a door, and the chest, table, furnace and a torch inside. The cells are worked out
+ * The starter hut (DESIGN.md section 11, shelter tier 3): a 7x7 box of whatever it has (5x5 inside: room for a row of
+ * chests, the table, furnace, blast furnace, smoker and bed without being packed; user's request, 2026-10-16; huts built
+ * before that stay 5x5), walls two high (the door's height), a flat roof on top, a door, and a torch inside. The cells are worked out
  * from the home's middle and the door side; the builder ({@link com.dinglebob.drifter.brain.activity.BuildHutActivity})
  * fills them in a player's order.
  *
@@ -25,8 +26,10 @@ import net.minecraft.world.level.block.state.BlockState;
  * TODO(milestone 8 later steps): 7x7 for Builders and Homebodies, the habit palette (favorite wood and stone), windows.
  */
 public final class StarterHut {
-	/** Half the outer size: 5x5 outside, 3x3 inside. */
-	public static final int HALF = 2;
+	/** Half the outer size: 7x7 outside, 5x5 inside. */
+	public static final int HALF = 3;
+	/** Huts built before they got bigger: 5x5 outside, 3x3 inside (kept as built). */
+	public static final int OLD_HALF = 2;
 	public static final int WALL_HEIGHT = 2;
 	/** The roof sits on this layer (y offset from the floor level), on top of the walls, over the whole footprint. */
 	public static final int ROOF_LAYER = WALL_HEIGHT;
@@ -78,7 +81,7 @@ public final class StarterHut {
 	}
 
 	public static StarterHut of(Home home) {
-		return new StarterHut(home.center, home.hutDoor == null ? Direction.SOUTH : home.hutDoor);
+		return new StarterHut(home.center, home.hutDoor == null ? Direction.SOUTH : home.hutDoor, home.hutHalf, WALL_HEIGHT, false);
 	}
 
 	/** The door side: the one with the most standable ground just outside it (it has to walk in and out). */
@@ -214,6 +217,73 @@ public final class StarterHut {
 		spots.add(this.center.relative(back, in).relative(right, in));
 		spots.add(this.center.relative(this.door, in).relative(left, in));
 		return spots;
+	}
+
+	/**
+	 * Where the blast furnace and smoker go: the back wall either side of the middle. An old 5x5 hut has only two free
+	 * cells for them (the back middle and the left middle): packed, but it works.
+	 */
+	public List<BlockPos> stationSpots() {
+		Direction back = this.door.getOpposite();
+		if (this.half < HALF) {
+			return List.of(this.center.relative(back, 1), this.center.relative(this.door.getCounterClockWise(), 1));
+		}
+
+		return List.of(this.center.relative(back, this.half - 1).relative(this.door.getCounterClockWise()),
+			this.center.relative(back, this.half - 1).relative(this.door.getClockWise()));
+	}
+
+	/** It has one of these stations to put in the hut, and the hut hasn't one yet. */
+	public boolean stationToPlace(Level level, java.util.function.ToIntFunction<net.minecraft.world.item.Item> carried) {
+		List<net.minecraft.world.item.Item> stations = List.of(net.minecraft.world.item.Items.BLAST_FURNACE, net.minecraft.world.item.Items.SMOKER);
+		for (int i = 0; i < stations.size(); i++) {
+			net.minecraft.world.item.Item station = stations.get(i);
+			if (carried.applyAsInt(station) > 0 && !this.hasStation(level, station) && free(level, this.stationSpots().get(i))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** One of this station is in the hut (anywhere inside, or on its spot). */
+	public boolean hasStation(Level level, net.minecraft.world.item.Item station) {
+		for (BlockPos cell : this.inside()) {
+			if (level.getBlockState(cell).getBlock().asItem() == station) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Where its chests go, first choice first: the back corner, then along the left wall (side by side, as players line
+	 * them up), then the right wall's free cells; never the middle, the doorway, the bed or a station's spot.
+	 */
+	public List<BlockPos> chestSpots() {
+		Direction back = this.door.getOpposite();
+		Direction left = this.door.getCounterClockWise();
+		Direction right = this.door.getClockWise();
+		int in = this.half - 1;
+		List<BlockPos> taken = new ArrayList<>(this.furnitureSpots().subList(1, 3));
+		taken.addAll(this.stationSpots());
+		taken.addAll(List.of(this.bedFoot(), this.bedHead(), this.center, this.center.relative(this.door, in)));
+		List<BlockPos> spots = new ArrayList<>();
+		spots.add(this.furnitureSpots().get(0));
+		for (Direction side : List.of(left, right)) {
+			for (int k = in - 1; k >= -(in - 1); k--) {
+				spots.add(this.center.relative(back, k).relative(side, in));
+			}
+		}
+
+		for (int dx = -in; dx <= in; dx++) {
+			for (int dz = -in; dz <= in; dz++) {
+				spots.add(this.center.offset(dx, 0, dz));
+			}
+		}
+
+		return spots.stream().distinct().filter(spot -> !taken.contains(spot)).toList();
 	}
 
 	/** The bed's foot: the corner by the door on the right; it lies along the right wall, head toward the back. */

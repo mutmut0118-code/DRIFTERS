@@ -76,7 +76,29 @@ public final class Strategist {
 		new Target("an iron helmet", List.of(Items.IRON_HELMET), 1, armor(Items.IRON_HELMET, Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
 		new Target("iron boots", List.of(Items.IRON_BOOTS), 1, armor(Items.IRON_BOOTS, Items.DIAMOND_BOOTS, Items.NETHERITE_BOOTS)),
 		new Target("shears", List.of(Items.SHEARS), 1, drifter -> has(drifter, stack -> stack.is(Items.SHEARS))),
-		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))));
+		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))),
+		// A smoker and a blast furnace for its hut (user's request, 2026-10-16): food and ore twice as fast.
+		new Target("a smoker", List.of(Items.SMOKER), 1, drifter -> stationAtHome(drifter, Items.SMOKER, Blocks.SMOKER)),
+		new Target("a blast furnace", List.of(Items.BLAST_FURNACE), 1, drifter -> stationAtHome(drifter, Items.BLAST_FURNACE, Blocks.BLAST_FURNACE)));
+
+	/**
+	 * It has this station at home, or one on it to put there; or it has no hut of its own to put one in (no home yet, a
+	 * village house, an outpost), so it doesn't want one.
+	 */
+	private static boolean stationAtHome(DrifterEntity drifter, Item item, net.minecraft.world.level.block.Block block) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null || home.borrowed() || !home.hutBuilt) {
+			return true;
+		}
+
+		if (has(drifter, stack -> stack.is(item))) {
+			return true;
+		}
+
+		String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString();
+		return drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.STATION, drifter.level().dimension().location(),
+			net.minecraft.world.phys.Vec3.atCenterOf(home.center), Stations.USE_RANGE, entry -> entry.label.equals(id)) != null;
+	}
 
 	/** Diamond-age armor: worn or owned, diamond or better. */
 	private static Predicate<DrifterEntity> diamondArmor(Item diamond, Item netherite) {

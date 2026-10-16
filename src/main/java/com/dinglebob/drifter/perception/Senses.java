@@ -965,15 +965,33 @@ public class Senses {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
 		if (home != null && home.isChest(pos)) {
 			if (opening) {
-				this.drifter.getSocial().watcher().missingFromChest(pos, missingValuableStacks(home.contents(pos), container));
+				List<net.minecraft.world.item.Item> gone = new java.util.ArrayList<>();
+				int stacks = missingValuableStacks(home.contents(pos), container, gone);
+				this.drifter.getSocial().watcher().missingFromChest(pos, stacks, gone);
+				if (pos.equals(home.checkChest)) {
+					home.checkChest = null;
+				}
 			}
 
 			home.record(pos, container);
+			// Group mates sharing the chest hear what it took or put in (or they'd blame a player for its own trips).
+			com.dinglebob.drifter.world.DrifterGroups.Group group = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+			if (group != null && this.level() instanceof net.minecraft.server.level.ServerLevel server) {
+				for (java.util.UUID member : group.members) {
+					if (server.getEntity(member) instanceof com.dinglebob.drifter.entity.DrifterEntity mate && mate != this.drifter) {
+						com.dinglebob.drifter.brain.Home theirs = mate.getDrifterBrain().home();
+						if (theirs != null && theirs.isChest(pos)) {
+							theirs.record(pos, container);
+						}
+					}
+				}
+			}
 		}
 	}
 
 	/** Valuable stacks it remembered in a chest that aren't there now (a partly emptied stack counts). */
-	private static int missingValuableStacks(Map<net.minecraft.world.item.Item, Integer> remembered, net.minecraft.world.Container container) {
+	private static int missingValuableStacks(Map<net.minecraft.world.item.Item, Integer> remembered, net.minecraft.world.Container container,
+		List<net.minecraft.world.item.Item> gone) {
 		Map<net.minecraft.world.item.Item, Integer> now = new HashMap<>();
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
 			ItemStack stack = container.getItem(slot);
@@ -988,6 +1006,7 @@ public class Senses {
 			int lost = entry.getValue() - now.getOrDefault(entry.getKey(), 0);
 			if (lost > 0 && com.dinglebob.drifter.social.ItemValues.valuable(sample)) {
 				stacks += (lost + sample.getMaxStackSize() - 1) / sample.getMaxStackSize();
+				gone.add(entry.getKey());
 			}
 		}
 

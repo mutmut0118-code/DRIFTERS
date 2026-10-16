@@ -101,6 +101,7 @@ public class MineTripActivity extends Activity {
 		this.tripTicks = this.longTrip ? LONG_TRIP_MIN + drifter.getRandom().nextInt(LONG_TRIP_MAX - LONG_TRIP_MIN + 1) : 0;
 		this.asked = total;
 		this.total = item == Items.RAW_IRON ? Math.max(total, ironStillWanted(drifter)) : total;
+		this.hunch = drifter.getRandom().nextDouble() < 0.1 + 0.4 * drifter.getPersonality().get(Trait.CURIOSITY);
 	}
 
 	/** What the plan asked for (less than {@link #total} when it's after iron for the whole set). */
@@ -158,7 +159,7 @@ public class MineTripActivity extends Activity {
 
 	/** Iron ingots for everything iron it doesn't have yet (pickaxe, bucket, shield, armor, shears, flint and steel), less the ingots it carries. */
 	private static int ironStillWanted(DrifterEntity drifter) {
-		int[] ingots = {3, 3, 1, 8, 7, 5, 4, 2, 1};
+		int[] ingots = {3, 3, 1, 8, 7, 5, 4, 2, 1, 0, 5};
 		java.util.List<com.dinglebob.drifter.brain.Strategist.Target> targets = com.dinglebob.drifter.brain.Strategist.IRON_TARGETS;
 		int wanted = 0;
 		for (int i = 0; i < targets.size() && i < ingots.length; i++) {
@@ -275,8 +276,14 @@ public class MineTripActivity extends Activity {
 
 	/** Goes caving rather than strip mining (its mining style habit: everyone but strip miners). */
 	private boolean caves() {
-		return this.drifter.getPersonality().habits().miningLean < STRIP_MINER;
+		return this.drifter.getPersonality().habits().miningLean < STRIP_MINER || this.hunch;
 	}
+
+	/**
+	 * A strip miner going caving this trip anyway, on a hunch (user's idea, 2026-10-16: players assume and guess): the
+	 * curious more often. Rolled once per trip.
+	 */
+	private final boolean hunch;
 
 	/** Walks to new spots per cave trip: braver ones go further. */
 	private int caveLegs() {
@@ -624,7 +631,9 @@ public class MineTripActivity extends Activity {
 			if (cave != null) {
 				this.caver = new Caver(this.drifter, cave, this.depth, this.caveLegs());
 				this.phase = Phase.CAVE;
-				this.think("going caving: a cave it saw at " + cave.toShortString());
+				this.think(this.drifter.getPersonality().habits().miningLean >= STRIP_MINER
+					? "a hunch: might be " + this.label + " in that cave at " + cave.toShortString() + ", going to look"
+					: "going caving: a cave it saw at " + cave.toShortString());
 				return Status.RUNNING;
 			}
 		}
@@ -664,7 +673,7 @@ public class MineTripActivity extends Activity {
 				Direction door = home.hutDoor != null ? home.hutDoor : Direction.from2DDataValue(this.drifter.getRandom().nextInt(4));
 				Direction side = Direction.from2DDataValue(door.get2DDataValue() + home.mineTrips);
 				home.mineTrips++;
-				entrance = this.ground(home.center.relative(side, StarterHut.HALF + 2));
+				entrance = this.ground(home.center.relative(side, home.hutHalf + 2));
 				way = side;
 			} else {
 				entrance = this.drifter.blockPosition();

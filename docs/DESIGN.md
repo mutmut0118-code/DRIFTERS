@@ -760,7 +760,7 @@ The Drifter builds the way players build: an emergency hole on night one, a dirt
 | --- | --- | --- | --- |
 | 1. Panic shelter | Night falls far from home with nothing prepared | Pillars 10 to 20 blocks up and waits on top, or digs 2 down and covers the hole | Seconds |
 | 2. Hillside dig-in | Night 1 near a hill | 1x2 entrance into stone, a 3x3 room, sealed with a block or a door | 30 to 60 s |
-| 3. Starter hut | Days 1 to 3 | 5x5 or 7x7 box of whatever it has (dirt, cobblestone, planks), flat roof, door, bed, chest, table, furnace, torches | A few minutes |
+| 3. Starter hut | Days 1 to 3 | 7x7 box of whatever it has (dirt, cobblestone, planks), flat roof, door, bed, chests along a wall, table, furnace, torches; a smoker and a blast furnace on the back wall once it has iron (user, 2026-10-16: room for things without being packed; huts built before that stay 5x5) | A few minutes |
 | 4. House | Stage 5 to 6 | An archetype blueprint in its palette (first version, session 2: a 7x7 box, walls 3 high with windows, flat roof, wood with log posts or stone or mixed by archetype; it moves its bed in) | One to several days of work |
 | 5. Compound | Stage 6 onward | House plus farms, pens, storage, portal room, walls, paths, a signature feature | Grows forever |
 
@@ -1057,6 +1057,8 @@ Every Drifter keeps a separate relationship with every player, built from two nu
 | Breaks its blocks | -5 each, up to -50 |  | Detected via the owned-blocks log |
 | Opens its chests | -10 |  | Heard or seen |
 | Takes valuables from its chests | -20 per valuable stack |  | Detected on its next chest check |
+| Caught taking from its chests (it watched them at the chest, then checked it at once and things were gone) | -45 |  | Grudge 60: hostile. After seeing anyone at one of its chests it goes and checks it once they step away (user, 2026-10-16) |
+| Seen wearing or holding something missing from its chests (within 3 days) | -40 |  | Grudge 50: taken for the thief whether they took it or not; an assumption, and sometimes a mistake (user, 2026-10-16) |
 | Kills its farm animals | -15 |  |  |
 | Fire or lava near its base | -40 | +10 |  |
 | Aims a drawn bow at it | -5 | +5 |  |

@@ -64,7 +64,7 @@ public final class BrainCommands {
 			.then(Commands.literal("off").executes(ctx -> toggle(ctx, false)))
 			.then(Commands.literal("goal")
 				.then(Commands.argument("goal", StringArgumentType.word())
-					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "hut", "store", "progress", "explore", "idle"}, builder))
+					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "hut", "store", "progress", "explore", "idle", "cavehunch", "checkchest"}, builder))
 					.executes(BrainCommands::force))));
 		// Ask the nearest one to go and get something (debug): it plans and does it like any target.
 		root.then(Commands.literal("get")
@@ -101,7 +101,7 @@ public final class BrainCommands {
 
 	/**
 	 * The hut as a little map, one layer per line from the floor up (debug): # wall or solid, . air, D door, C chest,
-	 * T table, F furnace, i torch, @ the Drifter.
+	 * T table, F furnace, S smoker, X blast furnace, i torch, @ the Drifter.
 	 */
 	private static int showHut(CommandContext<CommandSourceStack> ctx, boolean house) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
@@ -139,6 +139,10 @@ public final class BrainCommands {
 						c = 'T';
 					} else if (state.is(net.minecraft.world.level.block.Blocks.FURNACE)) {
 						c = 'F';
+					} else if (state.is(net.minecraft.world.level.block.Blocks.SMOKER)) {
+						c = 'S';
+					} else if (state.is(net.minecraft.world.level.block.Blocks.BLAST_FURNACE)) {
+						c = 'X';
 					} else if (state.getBlock() instanceof net.minecraft.world.level.block.BedBlock) {
 						c = 'B';
 					} else if (state.is(net.minecraft.tags.BlockTags.LOGS)) {

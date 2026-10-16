@@ -24,6 +24,10 @@ public enum SocialEvent {
 	OPENED_CHEST(-10, 0, 0, "opened its chest"),
 	/** Took a valuable stack from its chests (-20 each), found on its next chest check. */
 	TOOK_VALUABLES(-20, 0, 30, "took things from its chest"),
+	/** Watched opening its chest, and valuables gone when it checked right after: caught in the act. */
+	CAUGHT_STEALING(-45, 0, 60, "was caught stealing from its chest"),
+	/** Seen wearing or holding something missing from its chests: taken for the thief, right or wrong. */
+	HAD_ITS_THINGS(-40, 0, 50, "turned up with things missing from its chest"),
 	/** Killed one of its farm animals. */
 	KILLED_FARM_ANIMAL(-15, 0, 0, "killed its animals"),
 	/** Fire or lava near its base. */

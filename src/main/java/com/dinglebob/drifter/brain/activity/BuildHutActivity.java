@@ -727,6 +727,26 @@ public class BuildHutActivity extends Activity {
 			}
 		}
 
+		// The blast furnace and smoker on the back wall (user's request, 2026-10-16).
+		List<BlockPos> stationSpots = hut.stationSpots();
+		List<Item> stations = List.of(Items.BLAST_FURNACE, Items.SMOKER);
+		for (int i = 0; i < stations.size(); i++) {
+			Item station = stations.get(i);
+			BlockPos spot = stationSpots.get(i);
+			if (this.drifter.getInventory().count(stack -> stack.is(station)) == 0 || hut.hasStation(level, station)
+				|| !level.getBlockState(spot).canBeReplaced() || this.failed.contains(spot)) {
+				continue;
+			}
+
+			if (!inPosition) {
+				return this.walkInside(hut);
+			}
+
+			this.placing = spot;
+			return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(station),
+				station.getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
+		}
+
 		// The bed along the right wall, head toward the back (it faces the way it's placed).
 		StarterHut.BedSpot bed = hut.bed(level) == null && this.drifter.getInventory().count(stack -> stack.is(ItemTags.BEDS)) > 0
 			? hut.bedSpot(level) : null;

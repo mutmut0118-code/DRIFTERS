@@ -89,6 +89,20 @@ public class SmeltActivity extends Activity {
 		return "smelt " + this.count + " " + this.inputLabel;
 	}
 
+	/** What it's smelting has a blast furnace recipe (raw iron, gold, copper, ores; not sand, logs or cobblestone). */
+	private boolean blastable() {
+		var level = this.drifter.level();
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = this.drifter.getInventory().getItem(slot);
+			if (!stack.isEmpty() && this.input.test(stack)) {
+				return level.getRecipeManager().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.BLASTING,
+					new net.minecraft.world.item.crafting.SingleRecipeInput(stack), level).isPresent();
+			}
+		}
+
+		return false;
+	}
+
 	@Override
 	protected int timeoutTicks() {
 		// The walk back to the furnace at home (up to 64 blocks) plus waiting for its last batch (found in testing: 60 s timed
@@ -125,6 +139,11 @@ public class SmeltActivity extends Activity {
 			furnace = Stations.usable(this.drifter, Blocks.SMOKER);
 		}
 
+		// Ore goes in a blast furnace if it knows one (twice as fast; it only takes ore and metal things).
+		if (furnace == null && this.blastable()) {
+			furnace = Stations.usable(this.drifter, Blocks.BLAST_FURNACE);
+		}
+
 		if (furnace == null) {
 			furnace = Stations.usable(this.drifter, Blocks.FURNACE);
 		}
@@ -135,7 +154,7 @@ public class SmeltActivity extends Activity {
 
 		if (!Reach.canReach(this.drifter, furnace)) {
 			if (this.walked) {
-				Stations.giveUp(this.drifter, Blocks.FURNACE, furnace);
+				Stations.giveUp(this.drifter, this.drifter.level().getBlockState(furnace).getBlock(), furnace);
 				return this.fail("can't get within reach of the furnace");
 			}
 

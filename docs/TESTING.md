@@ -1258,6 +1258,20 @@ they get close, ghasts, blazes), and switch to the sword up close.
 - [ ] **Catch-up builds the hut (new):** a Drifter with a home and blocks, away while you're far off, comes back with its
       hut's walls and roof up ("built N blocks of its hut" in its catch-up line); it puts the door, bed and torch in
       when it's about again. It never builds over blocks you placed.
+- [ ] **Stealing (new):** find a Drifter's hut chest (`/drifter hut` next to it shows where; C is a chest).
+      - Caught in the act: open its chest while it can see you, take something valuable (iron, gold, diamonds, gear), and
+        step away. It walks over to check ("someone was at its chest: checking it"), finds things gone, says something
+        like "thief" and comes for you. `/drifter social` next to it shows the grudge.
+      - Taken for the thief: take something from its chest while it's away (or can't see you). It finds out on its next
+        look ("its iron pickaxe gone from its chest"). Then walk up to it holding or wearing that kind of thing (even one
+        you made yourself): "<you> has its iron pickaxe: <you> stole it" in `/drifter thoughts`, and it turns hostile.
+- [ ] **Hunches (new):** now and then, by day, a Drifter near a cave goes in for a short look without having seen any ore
+      ("look round a cave, just in case"), then thinks "the hunch paid off: ..." or "a waste of time, oh well". Curious
+      ones do it more. To force it next to a Drifter by a cave: `/drifter brain goal cavehunch`.
+- [ ] **Bigger huts (new):** a Drifter that settles now builds a 7x7 hut (5x5 inside): chests along one wall, table,
+      furnace, bed, and later a smoker and blast furnace on the back wall. Huts that were already built stay as they are.
+      `/drifter hut` shows the layout (S smoker, X blast furnace). Quick test: `/drifter give minecraft:smoker` next to a
+      Drifter with a finished hut: it goes and puts it on the back wall.
 - [ ] **A lived-in world (new, needs a NEW world; each part has a switch in the settings screen):**
       - Camps: now and then a small hut on flat open ground with a door, a chest of loot, table, furnace, bed and a
         wheat patch. About half still have their Drifter, a few days into its game.
