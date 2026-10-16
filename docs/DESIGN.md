@@ -1733,6 +1733,7 @@ Defaults should make Drifters interesting but never miserable: rare, readable, n
 | Spawning | Kit weights (Fresh / Traveler / Veteran / Raider) | 70 / 20 / 8 / 2 |
 | Spawning | Archetype weights | As in section 17 |
 | Spawning | World-gen camps | On |
+| Spawning | Lived-in world (user, 2026-10-16): Drifter villages, Bandit-held pillager outposts, old strip mines and torches in caves, each with its own switch and rarity | On |
 | Spawning | Protected radius around world spawn | 128 blocks |
 | Behavior | Can break and place blocks (separate from the mob griefing gamerule) | On |
 | Behavior | Hostile mobs target Drifters like players | On |
@@ -1741,6 +1742,8 @@ Defaults should make Drifters interesting but never miserable: rare, readable, n
 | Behavior | Respawn mode | Limited lives (5), toggleable |
 | Behavior | Max lifespan in days | None |
 | Hostility | Drifters can be hostile to players | On |
+| Hostility | Aggression toward players, 0 to 100 (0 never hostile, 100 hostile on sight; user, 2026-10-16) | 50 |
+| Hostility | Aggression toward each other, 0 to 100 (0 never enemies, 100 every other group's Drifter an enemy) | 50 |
 | Hostility | Bandit archetype | On |
 | Hostility | Max Drifters hunting one player at once | 1 (2 on Hard) |
 | Hostility | Grace period for new players | 1 in-game day |

@@ -44,6 +44,11 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(new IntSlider(right, y, "Kept running when away", 0, DrifterConfig.MAX_SIMULATED, DrifterConfig.simulatedDrifters(),
 			v -> v + (v == 1 ? " Drifter" : " Drifters"), DrifterConfig::setSimulatedDrifters));
 		y += ROW;
+		this.addRenderableWidget(new IntSlider(left, y, "Aggression to players", 0, 100, DrifterConfig.playerAggression(),
+			DrifterConfigScreen::aggressionText, DrifterConfig::setPlayerAggression));
+		this.addRenderableWidget(new IntSlider(right, y, "Aggression to each other", 0, 100, DrifterConfig.drifterAggression(),
+			DrifterConfigScreen::aggressionText, DrifterConfig::setDrifterAggression));
+		y += ROW;
 		this.addRenderableWidget(toggle(left, y, "Chat lines", DrifterConfig.chatLines(), DrifterConfig::setChatLines));
 		this.addRenderableWidget(toggle(right, y, "Share reputation", DrifterConfig.shareReputation(), DrifterConfig::setShareReputation));
 		y += ROW;
@@ -62,6 +67,10 @@ public class DrifterConfigScreen extends Screen {
 
 		this.addRenderableWidget(Button.builder(Component.literal("Done"), button -> this.onClose())
 			.bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
+	}
+
+	private static String aggressionText(int value) {
+		return value <= 0 ? "peaceful" : value >= 100 ? "always hostile" : value == DrifterConfig.DEFAULT_AGGRESSION ? "normal (50%)" : value + "%";
 	}
 
 	private static CycleButton<Boolean> toggle(int x, int y, String label, boolean value, java.util.function.Consumer<Boolean> set) {

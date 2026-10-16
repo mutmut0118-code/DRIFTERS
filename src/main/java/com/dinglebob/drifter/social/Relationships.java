@@ -66,6 +66,12 @@ public class Relationships {
 
 	/** Starting Trust for a player it has never met: Sociability, shifted by its disposition. */
 	public double strangerBaseline() {
+		return Mth.clamp(this.temperBaseline() + com.dinglebob.drifter.DrifterConfig.aggressionShift(com.dinglebob.drifter.DrifterConfig.playerAggression()),
+			-Relationship.MAX_TRUST, Relationship.MAX_TRUST);
+	}
+
+	/** Its own stranger baseline, from its temperament alone (no setting). */
+	public double temperBaseline() {
 		double sociability = this.drifter.getPersonality().get(Trait.SOCIABILITY);
 		return Mth.clamp((sociability - 0.5) * BASELINE_SPREAD + this.disposition().baselineShift, -Relationship.MAX_TRUST, Relationship.MAX_TRUST);
 	}

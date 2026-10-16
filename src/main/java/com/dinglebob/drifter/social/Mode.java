@@ -94,9 +94,16 @@ public enum Mode {
 		}
 
 		Mode wanted = wanted(drifter, player, r);
-		// Section 14: on Peaceful, never hostile.
-		if (wanted.hostile() && drifter.level().getDifficulty() == Difficulty.PEACEFUL) {
+		// Section 14: on Peaceful, never hostile. Nor with aggression toward players set to 0 (user's setting: it still
+		// fights back when hit, above).
+		int aggression = com.dinglebob.drifter.DrifterConfig.playerAggression();
+		if (wanted.hostile() && (drifter.level().getDifficulty() == Difficulty.PEACEFUL || aggression <= 0)) {
 			return TOLERATING;
+		}
+
+		// Aggression at 100: hostile no matter what, no warning first (user's setting).
+		if (aggression >= 100 && drifter.level().getDifficulty() != Difficulty.PEACEFUL) {
+			return PREDATORY;
 		}
 
 		// The telegraph rule: no hostility toward someone who never wronged it, without a warning they ignored.

@@ -188,7 +188,9 @@ public class DrifterBonds {
 
 	/** First meeting: starting Trust from both temperaments (each one's stranger baseline, averaged). */
 	private Relationship meet(DrifterEntity other) {
-		double baseline = (this.drifter.getSocial().strangerBaseline() + other.getSocial().strangerBaseline()) / 2.0;
+		// (Shifted by the aggression-toward-each-other setting, as strangers' trust is for players.)
+		double baseline = (this.drifter.getSocial().temperBaseline() + other.getSocial().temperBaseline()) / 2.0
+			+ com.dinglebob.drifter.DrifterConfig.aggressionShift(com.dinglebob.drifter.DrifterConfig.drifterAggression());
 		Relationship r = new Relationship(other.getUUID(), other.getName().getString(), baseline);
 		this.byDrifter.put(other.getUUID(), r);
 		String first = baseline >= 15 ? "seems friendly" : baseline <= -15 ? "doesn't like the look of them" : "a stranger";
@@ -205,7 +207,7 @@ public class DrifterBonds {
 
 	private Relationship known(DrifterEntity other) {
 		return this.byDrifter.computeIfAbsent(other.getUUID(), id -> new Relationship(id, other.getName().getString(),
-			this.drifter.getSocial().strangerBaseline()));
+			this.drifter.getSocial().temperBaseline()));
 	}
 
 	/** Debug: its trust in that Drifter, set outright. */

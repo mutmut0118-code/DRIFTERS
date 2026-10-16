@@ -165,8 +165,11 @@ public final class Threats {
 				return 0.0;
 			}
 
+			// The aggression-toward-each-other setting: at 0 never enemies (it still fights back when hit, below); at 100 every
+			// Drifter outside its group is one on sight (user's setting).
+			int aggression = com.dinglebob.drifter.DrifterConfig.drifterAggression();
 			var bond = drifter.getBonds().get(other.getUUID());
-			if (bond != null && bond.trust <= BITTER_RIVAL) {
+			if (aggression > 0 && (aggression >= 100 || bond != null && bond.trust <= BITTER_RIVAL)) {
 				return RIVAL_DANGER * (isAfter(drifter, entity) ? 1.3 : 1.0) * (1.0 + entity.getArmorValue() / 20.0);
 			}
 		}

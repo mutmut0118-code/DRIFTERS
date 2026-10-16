@@ -222,6 +222,15 @@ public final class DrifterCommands {
 
 						return showConfig(ctx);
 					})))
+			.then(Commands.literal("aggression")
+				.then(Commands.literal("players").then(Commands.argument("value", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 100)).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setPlayerAggression(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "value"));
+					return showConfig(ctx);
+				})))
+				.then(Commands.literal("drifters").then(Commands.argument("value", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 100)).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setDrifterAggression(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "value"));
+					return showConfig(ctx);
+				}))))
 			.then(Commands.literal("raiding")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setRaiding(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -484,7 +493,8 @@ public final class DrifterCommands {
 			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", raiding players' chests "
 			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off") + ", Drifters kept running away from players "
 			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters() + ", catch-up for time away "
-			+ com.dinglebob.drifter.DrifterConfig.offlineProgression().name().toLowerCase(Locale.ROOT)), true);
+			+ com.dinglebob.drifter.DrifterConfig.offlineProgression().name().toLowerCase(Locale.ROOT) + ", aggression to players "
+			+ com.dinglebob.drifter.DrifterConfig.playerAggression() + "%, to each other " + com.dinglebob.drifter.DrifterConfig.drifterAggression() + "%"), true);
 		return 1;
 	}
 

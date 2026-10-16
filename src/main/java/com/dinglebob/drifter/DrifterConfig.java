@@ -60,6 +60,36 @@ public final class DrifterConfig {
 		String offlineProgression = "game_time";
 		/** Real-time catch-up's own cap, in ticks (default 2 in-game days). */
 		int realTimeCapTicks = DEFAULT_REAL_TIME_CAP;
+		/** How hostile Drifters are toward players, 0 to 100 (user, 2026-10-16): 0 never hostile, 100 hostile on sight, 50 as
+		 * their personalities have it. */
+		int playerAggression = DEFAULT_AGGRESSION;
+		/** The same toward each other: 0 never enemies, 100 every Drifter outside its group an enemy on sight. */
+		int drifterAggression = DEFAULT_AGGRESSION;
+	}
+
+	public static final int DEFAULT_AGGRESSION = 50;
+
+	public static int playerAggression() {
+		return data.playerAggression;
+	}
+
+	public static void setPlayerAggression(int value) {
+		data.playerAggression = Math.max(0, Math.min(100, value));
+		save();
+	}
+
+	public static int drifterAggression() {
+		return data.drifterAggression;
+	}
+
+	public static void setDrifterAggression(int value) {
+		data.drifterAggression = Math.max(0, Math.min(100, value));
+		save();
+	}
+
+	/** Trust a stranger starts with, shifted by an aggression setting: +50 at 0, none at 50, -50 at 100. */
+	public static double aggressionShift(int aggression) {
+		return DEFAULT_AGGRESSION - aggression;
 	}
 
 	/** Section 22 offline progression. */
