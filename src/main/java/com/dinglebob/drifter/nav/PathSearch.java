@@ -103,6 +103,8 @@ public class PathSearch {
 	 * none, and stood there for good).
 	 */
 	public static final int LAVA_WORLD_BLOCK_RESERVE = 16;
+	/** Extra cost of each step at the level of a lava sea (feet at most a block above its surface). */
+	public static final double LAVA_SEA_SHORE = 4.0;
 
 	/** Building blocks its routes leave in its pockets where it is now. */
 	public static int reserve(DrifterEntity drifter) {
@@ -630,6 +632,12 @@ public class PathSearch {
 		}
 
 		double stepCost = cost;
+		// In a lava world, the lava sea's shore (a block or two above it) costs more: one slip there is a swim in lava (found
+		// in a Nether test: a route along the shore, a vine climb cut short, and it slid in).
+		if (this.lavaWorld && to.getY() <= this.drifter.level().getSeaLevel() + 1) {
+			stepCost += LAVA_SEA_SHORE;
+		}
+
 		if (this.memory.isOnTrail(to)) {
 			stepCost *= TRAIL_DISCOUNT;
 		}

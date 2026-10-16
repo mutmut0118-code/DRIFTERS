@@ -32,7 +32,11 @@ public class BlazeRodsActivity extends Activity {
 	private static final double SPAWNER_WAIT_DISTANCE = 6.0;
 	private static final int MAX_WALKS = 6;
 
+	/** Walks toward each kind of place, counted apart (found in testing: walks to the fortress used them all up, so on
+	 * finding the spawner it gave up on it at once). */
 	private int walks;
+	private int spawnerWalks;
+	private int blazeWalks;
 	private boolean headingForBlazes;
 
 	public BlazeRodsActivity(DrifterEntity drifter) {
@@ -52,7 +56,7 @@ public class BlazeRodsActivity extends Activity {
 	@Override
 	protected boolean countsAsFailure(Task step) {
 		// Exploring legs that don't find the fortress, walks cut short: it keeps at it until the timeout.
-		return step instanceof NavigateTask && this.walks > MAX_WALKS;
+		return step instanceof NavigateTask && (this.walks > MAX_WALKS || this.spawnerWalks > MAX_WALKS);
 	}
 
 	@Override
@@ -73,11 +77,11 @@ public class BlazeRodsActivity extends Activity {
 			BlockPos at = spawner.blockPos();
 			if (this.drifter.position().distanceTo(Vec3.atCenterOf(at)) > SPAWNER_WAIT_DISTANCE + 2.0) {
 				BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, at, java.util.Set.of());
-				if (this.walks++ > MAX_WALKS) {
+				if (this.spawnerWalks++ > MAX_WALKS) {
 					return this.fail("can't get near the blaze spawner");
 				}
 
-				if (this.walks == 1) {
+				if (this.spawnerWalks == 1) {
 					this.think("going to the blaze spawner at " + at.toShortString());
 				}
 
@@ -95,7 +99,7 @@ public class BlazeRodsActivity extends Activity {
 			// they come at it, and the spawner turns up on the way).
 			MemoryEntry blaze = this.drifter.getMemory().nearest(MemoryKind.MOB, this.drifter.level().dimension().location(), this.drifter.position(),
 				64.0, e -> e.label.equals("minecraft:blaze"));
-			if (blaze != null && this.drifter.position().distanceTo(blaze.pos) > 10.0 && this.walks++ <= MAX_WALKS) {
+			if (blaze != null && this.drifter.position().distanceTo(blaze.pos) > 10.0 && this.blazeWalks++ <= MAX_WALKS) {
 				if (!this.headingForBlazes) {
 					this.headingForBlazes = true;
 					this.think("blazes over there: heading that way");

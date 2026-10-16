@@ -846,7 +846,7 @@ public class DrifterEntity extends PathfinderMob {
 		// A safety net under every task: on the ground at the edge of a deep drop, still drifting with no movement key
 		// held (a task let go of everything), it crouches so the drift can't carry it over, as a player does at a cliff
 		// (found in testing: a walk ended crouched at a 40-block edge, the next task let go of sneak, and it slipped off).
-		if (this.onGround() && !this.isInWater() && !this.keys.isDown(VirtualKeys.Key.SNEAK) && this.keys.forwardImpulse() == 0.0F && this.keys.leftImpulse() == 0.0F
+		if (this.onGround() && !this.isInWater() && !this.onClimbable() && !this.keys.isDown(VirtualKeys.Key.SNEAK) && this.keys.forwardImpulse() == 0.0F && this.keys.leftImpulse() == 0.0F
 			&& (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6 || this.overhanging()) && this.deepDropBeside()) {
 			this.keys.set(VirtualKeys.Key.SNEAK, true);
 		}

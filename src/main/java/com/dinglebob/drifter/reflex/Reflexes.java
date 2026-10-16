@@ -1149,7 +1149,11 @@ public class Reflexes {
 			flying.sort(Comparator.comparingDouble(p -> p.distanceToSqr(drifter)));
 			AABB body = drifter.getBoundingBox().inflate(HIT_RADIUS - 1.0 + 0.3);
 			for (Projectile candidate : flying) {
-				if (candidate.getDeltaMovement().lengthSqr() < 0.25 || !willHit(candidate, body)) {
+				// (A fireball starts slow and speeds up: a blaze's is barely moving as it leaves the blaze, so only arrows are
+				// skipped when slow; found in testing, blaze fireballs got through until too late to raise the shield.)
+				boolean slow = candidate instanceof AbstractHurtingProjectile ? candidate.getDeltaMovement().lengthSqr() < 1.0E-4
+					: candidate.getDeltaMovement().lengthSqr() < 0.25;
+				if (slow || !willHit(candidate, body)) {
 					continue;
 				}
 
@@ -1182,6 +1186,9 @@ public class Reflexes {
 				position = next;
 				if (arrow) {
 					velocity = velocity.scale(0.99).subtract(0.0, 0.05, 0.0);
+				} else if (projectile instanceof AbstractHurtingProjectile fireball) {
+					// AbstractHurtingProjectile#tick: it speeds up along its flight, with the air's 0.95 drag.
+					velocity = velocity.add(velocity.normalize().scale(fireball.accelerationPower)).scale(0.95);
 				}
 			}
 

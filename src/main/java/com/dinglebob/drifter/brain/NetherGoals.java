@@ -234,7 +234,9 @@ public final class NetherGoals {
 				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
 			boolean hurt = drifter.getHealth() <= drifter.getMaxHealth() / 2.0F || drifter.getFoodData().getFoodLevel() <= 8;
-			return done || hurt ? 0.9 : 0.0;
+			// Once it has set off home it keeps going (found in testing: the reason to leave wore off on the way, a short
+			// cool-down ending or a little healing, and it turned back to look for blazes until it burned to death).
+			return done || hurt || trip.phase == NetherTrip.Phase.RETURNING ? 0.9 : 0.0;
 		}
 
 		@Override

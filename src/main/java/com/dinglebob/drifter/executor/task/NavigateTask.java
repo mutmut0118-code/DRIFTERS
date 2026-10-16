@@ -67,6 +67,8 @@ public class NavigateTask extends Task {
 
 	/** Horizontal distance to a step's target at which the step counts as done. */
 	private static final double ARRIVE = 0.35;
+	/** On top of a block it pillared up: still over that block. */
+	private static final double ARRIVE_PILLAR = 0.7;
 	/** Looser on straight runs, so it doesn't brake at every block (imperfect corner cutting, section 12). */
 	private static final double ARRIVE_STRAIGHT = 0.6;
 	/** Swimming drifts: a point in the water counts as reached this close. */
@@ -998,7 +1000,10 @@ public class NavigateTask extends Task {
 			return true;
 		}
 
-		if (horizontal > (straight ? ARRIVE_STRAIGHT : ARRIVE)) {
+		// Up a pillar: anywhere on the new block's top will do (found in a Nether test: it landed 0.38 off the middle, never
+		// "arrived", and the stuck check strafed it off the pillar).
+		double arrive = step.type() == MoveType.PILLAR ? ARRIVE_PILLAR : straight ? ARRIVE_STRAIGHT : ARRIVE;
+		if (horizontal > arrive) {
 			return false;
 		}
 
@@ -1412,7 +1417,8 @@ public class NavigateTask extends Task {
 		// Sneak on bridges and whenever a deep drop is right beside it (section 12: "sneaks near edges"), so momentum can
 		// never carry it over (found in testing: it ran off a ravine edge). Not on a deliberate step down: sneaking
 		// would stop it at the step.
-		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN;
+		// (Climbing down too: sneaking on a ladder or vines holds it there, as for a player.)
+		boolean intentionalDrop = step.type() == MoveType.STEP_DOWN || step.type() == MoveType.SWIM_DOWN || step.type() == MoveType.CLIMB_DOWN;
 		// Not in water: there sneaking only sinks it, and at a waterfall's edge it pinned it in place for 40 minutes (found in
 		// the user's world: it pressed toward the next water cell, sneaking, and never moved).
 		boolean wet = this.drifter.isInWater();
@@ -1678,7 +1684,8 @@ public class NavigateTask extends Task {
 	}
 
 	private Status checkStuck() {
-		if (++this.sinceProgress == UNSTICK_AFTER && this.nearDeepDrop()) {
+		// (Or up on its own pillar or bridge: every side of it is a drop.)
+		if (++this.sinceProgress == UNSTICK_AFTER && (this.nearDeepDrop() || this.drifter.isScaffold(this.feet().below()))) {
 			// Never jump and strafe blindly next to a drop: plan again instead.
 			this.replan("stuck next to a drop");
 		} else if (this.sinceProgress == UNSTICK_AFTER) {
