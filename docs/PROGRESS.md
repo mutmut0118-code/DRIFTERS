@@ -1470,6 +1470,12 @@ structure blocks) for the user's own worlds.
   the stone house all 267 blocks, scaffolding gone, bed moved, "in the house for the night", "going to sleep". Snowy
   taiga seed 20261016: in spruce, 257 of 267 blocks in about a game day of building, when night came (forced each
   minute; it builds between other jobs, so in a normal game it takes a few days).
+- Imports (user, 2026-10-16): `/drifter house save <name> <corner> <corner>` saves a build standing in the world as a
+  personal plan for every world (no structure block needed), trimmed to what's built (ground and air round it don't
+  count; grass and dirt inside stay as the plan's ground). BuildPaste's website only has pictures (the blocks come
+  through its mod, which needs an account), so the user pastes a build with BuildPaste in a creative world and saves it
+  with this. Plans are read unfurnished (user's rule: "it's up for them to place beds"): beds, chests, barrels, work
+  blocks, cauldrons, flower pots, carpets and shulker boxes in a build are left out.
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

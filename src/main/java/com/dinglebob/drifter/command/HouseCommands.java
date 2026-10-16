@@ -41,6 +41,10 @@ public final class HouseCommands {
 			.then(Commands.literal("status").executes(HouseCommands::status))
 			.then(Commands.literal("info").then(plan().executes(HouseCommands::info)))
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
+			.then(Commands.literal("save").then(Commands.argument("name", StringArgumentType.word())
+				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
+					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
+						.executes(HouseCommands::save)))))
 			.then(Commands.literal("paste").then(plan().executes(ctx -> paste(ctx, false))
 				.then(Commands.literal("asdrawn").executes(ctx -> paste(ctx, true)))))
 			.then(Commands.literal("import").then(Commands.argument("name", StringArgumentType.word())
@@ -135,6 +139,58 @@ public final class HouseCommands {
 			var file = HousePlans.savePersonal(id.substring("world:".length() + HousePlans.WORLD_PREFIX.length()),
 				template.get().save(new net.minecraft.nbt.CompoundTag()));
 			say(ctx, "Kept for every world: " + file);
+			return 1;
+		} catch (java.io.IOException e) {
+			throw new SimpleCommandExceptionType(Component.literal("Couldn't save: " + e.getMessage())).create();
+		}
+	}
+
+	/** Most a plan may measure each way (a structure block's limit). */
+	private static final int MAX_SIZE = 48;
+
+	/**
+	 * Saves the blocks between two corners as a personal plan, for every world (the user's own builds, or one pasted with
+	 * the BuildPaste mod; user's request 2026-10-16), without a structure block.
+	 */
+	private static int save(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		String name = StringArgumentType.getString(ctx, "name").toLowerCase(Locale.ROOT);
+		BlockPos a = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "from");
+		BlockPos b = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "to");
+		BlockPos min = new BlockPos(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()));
+		net.minecraft.core.Vec3i size = new net.minecraft.core.Vec3i(Math.abs(a.getX() - b.getX()) + 1, Math.abs(a.getY() - b.getY()) + 1,
+			Math.abs(a.getZ() - b.getZ()) + 1);
+		if (size.getX() > MAX_SIZE || size.getY() > MAX_SIZE || size.getZ() > MAX_SIZE) {
+			throw new SimpleCommandExceptionType(Component.literal("Too big: at most " + MAX_SIZE + " blocks each way")).create();
+		}
+
+		// Trimmed to what's built in it (a box picked a little big, or reaching into the ground, doesn't make the plan bigger;
+		// grass and dirt inside it stay, as the plan's ground).
+		var level = ctx.getSource().getLevel();
+		BlockPos lo = null;
+		BlockPos hi = null;
+		for (BlockPos pos : BlockPos.betweenClosed(min, min.offset(size.getX() - 1, size.getY() - 1, size.getZ() - 1))) {
+			var state = level.getBlockState(pos);
+			if (!state.isAir() && !com.dinglebob.drifter.building.plan.PlacedPlan.isGround(state) && !state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+				&& !state.is(net.minecraft.world.level.block.Blocks.BEDROCK) && level.getFluidState(pos).isEmpty()
+				&& !state.is(net.minecraft.tags.BlockTags.REPLACEABLE)) {
+				lo = lo == null ? pos.immutable() : new BlockPos(Math.min(lo.getX(), pos.getX()), Math.min(lo.getY(), pos.getY()), Math.min(lo.getZ(), pos.getZ()));
+				hi = hi == null ? pos.immutable() : new BlockPos(Math.max(hi.getX(), pos.getX()), Math.max(hi.getY(), pos.getY()), Math.max(hi.getZ(), pos.getZ()));
+			}
+		}
+
+		if (lo == null) {
+			throw new SimpleCommandExceptionType(Component.literal("There's nothing between those corners")).create();
+		}
+
+		min = lo;
+		size = new net.minecraft.core.Vec3i(hi.getX() - lo.getX() + 1, hi.getY() - lo.getY() + 1, hi.getZ() - lo.getZ() + 1);
+		var template = new net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate();
+		template.fillFromWorld(level, min, size, false, null);
+		try {
+			var file = HousePlans.savePersonal(name, template.save(new net.minecraft.nbt.CompoundTag()));
+			HousePlan plan = HousePlans.get(ctx.getSource().getServer(), "personal:" + name);
+			say(ctx, String.format(Locale.ROOT, "Saved personal:%s (%d x %d x %d, %d blocks once unfurnished) for every world: %s", name,
+				size.getX(), size.getY(), size.getZ(), plan == null ? 0 : plan.blockCount(), file));
 			return 1;
 		} catch (java.io.IOException e) {
 			throw new SimpleCommandExceptionType(Component.literal("Couldn't save: " + e.getMessage())).create();

@@ -1341,5 +1341,15 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
 - [ ] Building takes a while and it does other jobs in between (eating, smelting, mining). It's normal for it to stop
       and come back. Tell me if one stops coming back, or gives up with a message (its thoughts say why, for example
       "nowhere near home it knows is right for a house (...)").
+- [ ] **Adding your BuildPaste houses** (their website only has pictures; the blocks come through the BuildPaste mod):
+      1. Make a creative superflat world in a profile that has the BuildPaste mod and Drifter.
+      2. Paste a build there with BuildPaste (the "Copy" button on its page, then paste in-game the way BuildPaste says).
+      3. Look at one bottom corner of the house and press F3 to read the block coordinates ("Targeted Block"), then the
+         opposite top corner. The box can be bigger than the house: it trims itself to what's built.
+      4. Run `/drifter house save <name> <x1> <y1> <z1> <x2> <y2> <z2>`, for example
+         `/drifter house save spruce_starter 10 -60 10 25 -50 25`. It answers "Saved personal:spruce_starter (size,
+         blocks)". Names: one word, letters, numbers and _.
+      5. `/drifter houses` lists every plan. They're saved for every world, in `config/drifter/houses`.
+      Beds, chests, furnaces, crafting tables, carpets and flower pots in a build are left out: the Drifter brings its own.
 - Not yet: the mod's own house designs (log cabin, cottage, farmhouse...). Until then every Drifter that has the stone
   house in its plans builds that one.
