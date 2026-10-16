@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | In progress: engine, 24 action types, 89 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, 25 action types, 90 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
 ## Milestone 0: Project setup
@@ -1406,6 +1406,8 @@ Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
   pillar to look for somewhere new, spinning round, the water, admiring its house, the portal, home decorations, a spare
   bed, a lantern, showing off gear, complaining about mobs, asking for help, a bored crouch-dance). A 6-Drifter 5-day run:
   no crashes, no deaths, 14 whims of 9 kinds. Fixed a crash in the oops whim (setThrower(null) throws in 1.21.1).
+- Snowball fight ([M], throw_at action): it throws snowballs at a friend (tested: 4 thrown at a group mate, who took
+  no offence). 90 whims, 25 action types.
 - Fixed from the 10-day runs: it crouches on magma whenever it's on it, moving or in water too (one worked on underwater
   magma, walking about, until it died).
 

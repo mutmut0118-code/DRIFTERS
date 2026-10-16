@@ -83,6 +83,7 @@ public final class WhimActions {
 		ACTIONS.put("craft", new CraftForFun());
 		ACTIONS.put("eat", new EatThis());
 		ACTIONS.put("oops_drop", new OopsDrop());
+		ACTIONS.put("throw_at", new ThrowAt());
 	}
 
 	private WhimActions() {
@@ -1368,6 +1369,47 @@ public final class WhimActions {
 						false, "oops");
 				})
 				.then(() -> new CollectItemsTask(drifter, 6.0));
+		}
+	}
+
+	/** Throwing snowballs (or eggs) at a friend for fun (params: items, times). */
+	static final class ThrowAt implements WhimAction {
+		@Nullable
+		static Predicate1 ammo(DrifterEntity drifter, Whim whim) {
+			for (String item : whim.params("items")) {
+				Predicate1 matcher = itemMatcher(item);
+				if (drifter.getInventory().count(matcher) > 0) {
+					return matcher;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return ammo(drifter, whim) != null && friend(drifter, 16.0) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Entity friend = friend(drifter, 16.0);
+			Predicate1 ammo = ammo(drifter, whim);
+			if (friend == null || ammo == null) {
+				return null;
+			}
+
+			Steps steps = new Steps(drifter, "throw snowballs at " + nameOf(friend), 20 * 60);
+			steps.then(() -> friend.distanceTo(drifter) > 10.0 ? new NavigateTask(drifter, friend.position(), 8.0, "get in range", NavigateTask.Pace.STROLL) : null);
+			for (int i = 0; i < whim.param("times", 3); i++) {
+				steps.then(() -> drifter.getInventory().count(ammo) == 0 || !friend.isAlive() ? null : new SelectItemTask(drifter, ammo, "something to throw"));
+				// Aim a little above: they arc.
+				steps.then(() -> !friend.isAlive() ? null : new Gaze(drifter, () -> friend.isAlive() ? friend.getEyePosition().add(0, friend.distanceTo(drifter) * 0.05, 0) : null,
+					10, false, "aim at " + nameOf(friend)));
+				steps.then(() -> drifter.getInventory().count(ammo) == 0 || !friend.isAlive() ? null : new com.dinglebob.drifter.executor.task.UseItemTask(drifter));
+			}
+
+			return steps.then(() -> new Gaze(drifter, () -> friend.isAlive() ? friend.getEyePosition() : null, 30, true, "laugh"));
 		}
 	}
 
