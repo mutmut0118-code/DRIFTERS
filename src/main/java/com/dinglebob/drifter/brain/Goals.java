@@ -1275,6 +1275,13 @@ public final class Goals {
 				return 0.0;
 			}
 
+			// Never with a piglin looking: opening a chest in their sight turns them all on you, gold or not (section 19 piglin
+			// etiquette; found in the user's game: looting a fortress chest, the piglins came for it and knocked it off a ledge).
+			if (drifter.getSenses().tracked().stream().anyMatch(a -> a.entity instanceof net.minecraft.world.entity.monster.piglin.Piglin
+				&& a.entity.isAlive() && a.seenWithin(drifter.level().getGameTime(), 20 * 5) && a.entity.distanceTo(drifter) < 24.0)) {
+				return 0.0;
+			}
+
 			var p = drifter.getPersonality();
 			return 0.45 + 0.3 * p.get(com.dinglebob.drifter.personality.Trait.GREED) + 0.1 * p.get(com.dinglebob.drifter.personality.Trait.CURIOSITY);
 		}
