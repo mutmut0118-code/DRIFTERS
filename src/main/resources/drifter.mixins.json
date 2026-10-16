@@ -16,6 +16,7 @@
 		"LivingEntityClimbMixin",
 		"MobAccessor",
 		"NetherPortalBlockMixin",
+		"PiglinAiMixin",
 		"NearestAttackableTargetGoalAccessor",
 		"PlayerAccessor",
 		"TargetGoalAccessor"

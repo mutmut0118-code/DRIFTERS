@@ -85,15 +85,59 @@ public class WearArmorTask extends Task {
 	public static boolean hasUpgrade(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();
 		for (EquipmentSlot slot : ARMOR_SLOTS) {
-			double worn = score(drifter.getItemBySlot(slot), slot);
+			double worn = score(drifter, drifter.getItemBySlot(slot), slot);
 			for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
-				if (score(inventory.getItem(i), slot) > worn) {
+				if (score(drifter, inventory.getItem(i), slot) > worn) {
 					return true;
 				}
 			}
 		}
 
 		return shieldSlot(drifter) >= 0;
+	}
+
+	private static final double GOLD_IN_THE_NETHER = 1000.0;
+
+	/** In the Nether, or on its way there. */
+	private static boolean goldTime(DrifterEntity drifter) {
+		var trip = drifter.getDrifterBrain().netherTrip();
+		return drifter.level().dimension() == net.minecraft.world.level.Level.NETHER
+			|| trip != null && trip.phase == com.dinglebob.drifter.brain.NetherTrip.Phase.GOING;
+	}
+
+	/** It should be wearing its gold piece now and isn't, and it has one to put on. */
+	public static boolean goldPending(DrifterEntity drifter) {
+		if (!goldTime(drifter) || PiglinAiAccess.wearingGold(drifter)) {
+			return false;
+		}
+
+		DrifterInventory inventory = drifter.getInventory();
+		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
+			if (inventory.getItem(i).getItem() instanceof ArmorItem armor && armor.getMaterial().is(net.minecraft.world.item.ArmorMaterials.GOLD)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** (PiglinAi's own check, so it means exactly what piglins look for.) */
+	private static final class PiglinAiAccess {
+		static boolean wearingGold(DrifterEntity drifter) {
+			return net.minecraft.world.entity.monster.piglin.PiglinAi.isWearingGold(drifter);
+		}
+	}
+
+	/** A gold piece worn in another armor slot. */
+	private static boolean goldElsewhere(DrifterEntity drifter, EquipmentSlot slot) {
+		for (EquipmentSlot other : ARMOR_SLOTS) {
+			if (other != slot && drifter.getItemBySlot(other).getItem() instanceof ArmorItem armor
+				&& armor.getMaterial().is(net.minecraft.world.item.ArmorMaterials.GOLD)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** A shield in the main inventory while the offhand holds no shield, or -1. */
@@ -108,9 +152,9 @@ public class WearArmorTask extends Task {
 	private boolean wearBest(EquipmentSlot slot) {
 		DrifterInventory inventory = this.drifter.getInventory();
 		int bestSlot = -1;
-		double bestScore = score(this.drifter.getItemBySlot(slot), slot);
+		double bestScore = score(this.drifter, this.drifter.getItemBySlot(slot), slot);
 		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
-			double candidate = score(inventory.getItem(i), slot);
+			double candidate = score(this.drifter, inventory.getItem(i), slot);
 			if (candidate > bestScore) {
 				bestScore = candidate;
 				bestSlot = i;
@@ -128,8 +172,14 @@ public class WearArmorTask extends Task {
 		return true;
 	}
 
-	private static double score(ItemStack stack, EquipmentSlot slot) {
+	private static double score(DrifterEntity drifter, ItemStack stack, EquipmentSlot slot) {
 		if (stack.getItem() instanceof ArmorItem armor && armor.getEquipmentSlot() == slot) {
+			// In the Nether one gold piece comes first, the one thing that keeps piglins friendly (section 19 piglin
+			// etiquette; it packs one for the trip): over iron in its slot, unless another slot already has gold.
+			if (armor.getMaterial().is(net.minecraft.world.item.ArmorMaterials.GOLD) && goldTime(drifter) && !goldElsewhere(drifter, slot)) {
+				return GOLD_IN_THE_NETHER + armor.getDefense();
+			}
+
 			return armor.getDefense() * 10.0 + armor.getToughness();
 		}
 

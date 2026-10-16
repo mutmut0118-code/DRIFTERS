@@ -1803,7 +1803,18 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
+			// The gold piece for the Nether goes on before anything else on the trip, before it steps through (found in testing:
+			// it put it on after the piglins had already come for it).
+			if (WearArmorTask.goldPending(context.drifter())) {
+				return 0.97;
+			}
+
 			return WearArmorTask.hasUpgrade(context.drifter()) ? 0.75 : 0.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return WearArmorTask.goldPending(context.drifter());
 		}
 
 		@Override
