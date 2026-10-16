@@ -3,6 +3,7 @@ package com.dinglebob.drifter.brain.activity;
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.KnownBlocks;
+import com.dinglebob.drifter.brain.Threats;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.executor.task.CollectItemsTask;
@@ -71,6 +72,12 @@ public class BlazeRodsActivity extends Activity {
 		if (!this.drifter.level().getEntitiesOfClass(ItemEntity.class, this.drifter.getBoundingBox().inflate(8.0),
 			item -> item.getItem().is(Items.BLAZE_ROD)).isEmpty()) {
 			return this.begin(new CollectItemsTask(this.drifter, 8.0));
+		}
+
+		// A blaze in sight: it takes it on now, as it came for (found in testing: it stood "waiting for blazes" while one
+		// shot at it, and only fought back once it had been hit).
+		if (blazeNear(this.drifter) && Threats.assess(this.drifter).decision().fights()) {
+			return this.begin(new CombatActivity(this.drifter));
 		}
 
 		MemoryEntry spawner = spawner(this.drifter);

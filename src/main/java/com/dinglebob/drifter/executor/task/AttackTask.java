@@ -99,6 +99,10 @@ public class AttackTask extends Task {
 		}
 	}
 
+	/** Blazes glowing this close are worth holding the shield up for. */
+	private static final double BLAZE_GUARD_RANGE = 24.0;
+	private long blazeGuardUntil;
+
 	/** Closer than this (and in sight) it steers by hand instead of pathfinding. */
 	private static final double CLOSE_RANGE = 5.0;
 	/** It stops pressing forward this close, so it doesn't run into the target. */
@@ -340,6 +344,25 @@ public class AttackTask extends Task {
 		// A creeper starting to hiss: get clear first (the reflex layer does the sprint; this keeps it from stepping back in).
 		if (this.protocol == Protocol.CREEPER && this.target instanceof Creeper creeper && creeper.getSwellDir() > 0) {
 			this.backoff = Math.max(this.backoff, CREEPER_BACKOFF_TICKS);
+		}
+
+		// A blaze lit up to fire its burst (and a little after): shield up and held, facing it, no swings (a swing lowers the
+		// shield, and it only blocks once it has been up a quarter second; found in testing: it raised it for a tick or two
+		// between swings and took every burst). It hits in between bursts.
+		long now = this.drifter.level().getGameTime();
+		if (this.hasShield() && com.dinglebob.drifter.hands.Archery.glowing(this.drifter, this.target)) {
+			this.blazeGuardUntil = now + com.dinglebob.drifter.hands.Archery.BLAZE_GUARD_AFTER_TICKS;
+		}
+
+		// (In reach with a full swing ready, it strikes anyway, and the shield goes back up after.)
+		boolean strike = strength >= FULL_STRENGTH && Combat.canHit(this.drifter, this.target);
+		if (this.hasShield() && now < this.blazeGuardUntil && !strike) {
+			Steering.stopMoving(this.drifter);
+			keys.set(VirtualKeys.Key.SPRINT, false);
+			keys.set(VirtualKeys.Key.JUMP, false);
+			this.guardFootwork(at);
+			this.shieldIf(true);
+			return;
 		}
 
 		if (fightingMob && this.backoff > 0) {

@@ -92,7 +92,7 @@ public class RunAwayTask extends Task {
 		// From an archer (a skeleton, a stray) running straight away across open ground gets it shot in the back (found in the
 		// user's game: three Drifters died that way on a snowy mountain): like a player it heads for cover, a way that puts
 		// a hill, a tree or a wall between them, when there is one within a turn of straight away.
-		List<LivingEntity> archers = threats.stream().filter(t -> t instanceof net.minecraft.world.entity.monster.RangedAttackMob).toList();
+		List<LivingEntity> archers = threats.stream().filter(com.dinglebob.drifter.brain.Threats::shoots).toList();
 		for (int swerve : SWERVES) {
 			Vec3 candidate = away.yRot((float)Math.toRadians(swerve));
 			// Two blocks out too: at a sprint it can't stop or turn within one (found in testing: it ran from a blaze into lava).

@@ -59,6 +59,24 @@ public final class Archery {
 	 * A bow beats a sword here: a flier, a creeper still a few blocks off, or anything hostile at range. Never animals
 	 * (it hunts those up close, they'd run).
 	 */
+	/** A blaze it can see now within {@code range}, glowing to fire a burst (Blaze#isOnFire is its "charged" flag, the fire
+	 * on it a player sees). */
+	public static boolean chargedBlazeInSight(DrifterEntity drifter, double range) {
+		return drifter.getSenses().tracked().stream().anyMatch(a -> a.visibleNow && a.entity instanceof net.minecraft.world.entity.monster.Blaze blaze
+			&& blaze.isAlive() && blaze.isOnFire() && blaze.distanceTo(drifter) < range);
+	}
+
+	/** That blaze, seen now, glowing to fire. With several blazes one is nearly always glowing, so it guards against the
+	 * one it's fighting (the incoming-fireball reflex handles the rest; found in testing: guarding against any of them, it
+	 * held its shield up for a minute and never struck). */
+	public static boolean glowing(DrifterEntity drifter, LivingEntity target) {
+		return target instanceof net.minecraft.world.entity.monster.Blaze blaze && blaze.isAlive() && blaze.isOnFire()
+			&& drifter.getSenses().tracked().stream().anyMatch(a -> a.entity == blaze && a.visibleNow);
+	}
+
+	/** Ticks the shield stays up after a blaze stops glowing (the last fireball of its burst is still on its way). */
+	public static final int BLAZE_GUARD_AFTER_TICKS = 25;
+
 	/** A blaze nearer than this is fought with the sword. */
 	public static final double BLAZE_MELEE_RANGE = 5.0;
 

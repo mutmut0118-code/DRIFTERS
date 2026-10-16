@@ -88,8 +88,8 @@ public class ShootTask extends Task {
 		// (found in testing: drawing on blazes, it took every burst, and a fireball seen coming is too late to block).
 		// (And a little after it stops glowing: the glow goes out as the last fireball leaves, still on its way.)
 		long now = this.drifter.level().getGameTime();
-		if (this.drifter.getOffhandItem().is(Items.SHIELD) && this.chargedBlazeInSight()) {
-			this.guardUntil = now + GUARD_AFTER_TICKS;
+		if (this.drifter.getOffhandItem().is(Items.SHIELD) && Archery.glowing(this.drifter, this.target)) {
+			this.guardUntil = now + Archery.BLAZE_GUARD_AFTER_TICKS;
 		}
 
 		if (this.drifter.getOffhandItem().is(Items.SHIELD) && now < this.guardUntil) {
@@ -150,13 +150,10 @@ public class ShootTask extends Task {
 
 	private boolean guarding;
 	private long guardUntil;
-	/** Ticks the shield stays up after the blaze stops glowing (its last fireball's flight). */
-	private static final int GUARD_AFTER_TICKS = 25;
 
 	/** A blaze it can see now, near enough to hit it, glowing to fire. */
 	private boolean chargedBlazeInSight() {
-		return this.drifter.getSenses().tracked().stream().anyMatch(a -> a.visibleNow && a.entity instanceof net.minecraft.world.entity.monster.Blaze blaze
-			&& blaze.isAlive() && blaze.isOnFire() && blaze.distanceTo(this.drifter) < GUARD_RANGE);
+		return Archery.chargedBlazeInSight(this.drifter, GUARD_RANGE);
 	}
 
 	/** Shield up toward the target: the bow goes (main hand first on right-click), the sword comes out, then it blocks. */

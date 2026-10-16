@@ -199,6 +199,9 @@ public final class Threats {
 	private static final double ARCHER_RUSH = 12.0;
 
 	/** A mob that shoots (skeletons, pillagers, anything holding a bow or crossbow). */
+	/** Above this health, with a shield, it stands and fights blazes rather than running from them. */
+	public static final float BLAZE_STAND_HEALTH = 8.0F;
+
 	/** How much a shooter counts against a Drifter with a shield in hand. */
 	public static final double SHIELDED_SHOOTER = 0.5;
 
@@ -339,6 +342,14 @@ public final class Threats {
 		// An archer close by (a skeleton): backing off in the open only gets it shot in the back, so it rushes it unless it's
 		// hopeless (found in a user's test: shot dead switching between fighting and fleeing a skeleton).
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && main != null && isArcher(main) && main.distanceTo(drifter) < ARCHER_RUSH) {
+			decision = Decision.ENGAGE_CAREFUL;
+		}
+
+		// The same for blazes, with a shield to block their bursts: they fly after it and shoot it in the back, so running
+		// only gets it burned (found in testing: a little hurt, it ran from a spawner's blazes and died, shieldless, in a
+		// corner); it stands and fights unless badly hurt.
+		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && main instanceof net.minecraft.world.entity.monster.Blaze
+			&& drifter.getOffhandItem().is(Items.SHIELD) && drifter.getHealth() > BLAZE_STAND_HEALTH) {
 			decision = Decision.ENGAGE_CAREFUL;
 		}
 
