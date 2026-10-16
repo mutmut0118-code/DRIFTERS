@@ -32,7 +32,11 @@ public class CenterOnBlockTask extends Task {
 			return Status.SUCCESS;
 		}
 
-		this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, true);
+		// Not on soul sand: it already slows it to a crawl, and sneaking there it didn't move at all (found in testing: the
+		// shuffle before a pillar on soul sand under a fortress never got anywhere).
+		boolean soulSand = this.drifter.level().getBlockState(this.drifter.getBlockPosBelowThatAffectsMyMovement())
+			.is(net.minecraft.world.level.block.Blocks.SOUL_SAND);
+		this.drifter.getKeys().set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, !soulSand);
 		com.dinglebob.drifter.motor.Steering.pressToward(this.drifter, this.middle);
 		return Status.RUNNING;
 	}

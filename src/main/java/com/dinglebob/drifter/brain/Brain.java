@@ -516,11 +516,18 @@ public class Brain {
 			return;
 		}
 
+		// Standing to fight, shoot or wait (for blazes by a spawner, say) is still, not stuck.
+		Task leaf = this.drifter.getTasks().current() == null ? null : this.drifter.getTasks().current().leaf();
+		if (leaf instanceof com.dinglebob.drifter.executor.task.ShootTask || leaf instanceof com.dinglebob.drifter.executor.task.AttackTask
+			|| leaf instanceof com.dinglebob.drifter.executor.task.WaitTask) {
+			this.stallSince = now;
+			return;
+		}
+
 		if (now - this.stallSince < STALL_TICKS) {
 			return;
 		}
 
-		Task leaf = this.drifter.getTasks().current() == null ? null : this.drifter.getTasks().current().leaf();
 		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} stalled for {} s on {}: {} -> {} at {}", this.drifter.getName().getString(), STALL_TICKS / 20,
 			this.current.id(), this.activity == null ? "no activity" : this.activity.describe(), leaf == null ? "no task" : leaf.describe(),
 			this.drifter.blockPosition().toShortString());
