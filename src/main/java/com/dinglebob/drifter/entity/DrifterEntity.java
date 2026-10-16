@@ -1597,7 +1597,7 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** Player#drop(stack, false, true), pressing Q: thrown forward where it looks, with the pickup delay. */
-	public void tossForward(ItemStack stack) {
+	public ItemEntity tossForward(ItemStack stack) {
 		ItemEntity item = new ItemEntity(this.level(), this.getX(), this.getEyeY() - 0.3F, this.getZ(), stack);
 		item.setPickUpDelay(40);
 		item.setThrower(this);
@@ -1614,6 +1614,7 @@ public class DrifterEntity extends PathfinderMob {
 			cosYaw * cosPitch * 0.3F + Math.sin(spread) * spreadAmount);
 		this.level().addFreshEntity(item);
 		this.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+		return item;
 	}
 
 	/** Player#drop(stack, true, false): from just below the eyes, in a random direction, with the pickup delay. */

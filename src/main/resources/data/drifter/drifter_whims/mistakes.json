@@ -1,0 +1,20 @@
+{
+	"whims": [
+		{
+			"id": "oops_dropped_a_stack", "category": "mistakes", "action": "oops_drop",
+			"params": {"items": ["minecraft:cobblestone", "minecraft:dirt", "minecraft:cobbled_deepslate", "#minecraft:logs", "#minecraft:planks", "minecraft:torch"]},
+			"archetypes": {"newbie": 2.5, "casual": 1.2, "speedrunner": 0.2, "pvp_sweat": 0.2}, "traits": {"skill": -0.8, "efficiency": -0.5},
+			"weight": 0.6, "cooldown": 48000, "thought": "dropped a stack by mistake"
+		},
+		{
+			"id": "eats_a_spider_eye", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:spider_eye"]},
+			"archetypes": {"newbie": 2.5, "casual": 1.0, "speedrunner": 0.1}, "traits": {"knowledge": -1.0}, "weight": 0.5, "cooldown": 96000,
+			"chat": ["ew", "why did i eat that"], "thought": "eating a spider eye (not a good idea)"
+		},
+		{
+			"id": "eats_rotten_flesh", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:rotten_flesh"]},
+			"archetypes": {"newbie": 2.0, "nomad": 1.2, "hoarder": 0.5}, "traits": {"knowledge": -0.8, "thrift": 0.5}, "weight": 0.5,
+			"cooldown": 72000, "thought": "eating rotten flesh it didn't need to"
+		}
+	]
+}

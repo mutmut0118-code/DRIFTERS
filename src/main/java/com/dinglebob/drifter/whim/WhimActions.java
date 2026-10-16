@@ -81,6 +81,8 @@ public final class WhimActions {
 		ACTIONS.put("visit_friend", new VisitFriend());
 		ACTIONS.put("watch_block", new WatchBlock());
 		ACTIONS.put("craft", new CraftForFun());
+		ACTIONS.put("eat", new EatThis());
+		ACTIONS.put("oops_drop", new OopsDrop());
 	}
 
 	private WhimActions() {
@@ -1235,6 +1237,89 @@ public final class WhimActions {
 					return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
 				}
 			};
+		}
+	}
+
+	/** Eating something in particular, wise or not (a spider eye, rotten flesh; params: items). */
+	static final class EatThis implements WhimAction {
+		@Nullable
+		static Predicate1 food(DrifterEntity drifter, Whim whim) {
+			for (String item : whim.params("items")) {
+				Predicate1 matcher = itemMatcher(item);
+				if (drifter.getInventory().count(matcher) > 0) {
+					return matcher;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			return drifter.getFoodData().getFoodLevel() < 20 && food(drifter, whim) != null;
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Predicate1 food = food(drifter, whim);
+			if (food == null) {
+				return null;
+			}
+
+			return new Steps(drifter, whim.thought(), 20 * 20)
+				.then(() -> new SelectItemTask(drifter, food, "it"))
+				.then(() -> new com.dinglebob.drifter.executor.task.UseItemTask(drifter));
+		}
+	}
+
+	/** Dropping a stack by mistake ("oops") and picking it straight back up (params: items it might fumble). */
+	static final class OopsDrop implements WhimAction {
+		@Nullable
+		static Integer slot(DrifterEntity drifter, Whim whim) {
+			for (String item : whim.params("items")) {
+				Predicate1 matcher = itemMatcher(item);
+				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+					if (matcher.test(drifter.getInventory().getItem(slot)) && drifter.getInventory().getItem(slot).getCount() >= 8) {
+						return slot;
+					}
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean possible(DrifterEntity drifter, Whim whim) {
+			// Not by water or a drop, where it would really lose it.
+			return drifter.onGround() && !drifter.isInWater() && slot(drifter, whim) != null
+				&& drifter.level().getBlockState(drifter.blockPosition().below()).isFaceSturdy(drifter.level(), drifter.blockPosition().below(), Direction.UP);
+		}
+
+		@Override
+		public Activity start(DrifterEntity drifter, Whim whim) {
+			Integer slot = slot(drifter, whim);
+			if (slot == null) {
+				return null;
+			}
+
+			return new Steps(drifter, whim.thought(), 20 * 20)
+				.then(() -> {
+					ItemStack stack = drifter.getInventory().getItem(slot);
+					if (!stack.isEmpty()) {
+						drifter.getCamera().track(drifter.getEyePosition().add(drifter.getLookAngle().multiply(1, 0, 1).scale(3)).add(0, -1.5, 0),
+							CameraModel.TurnSpeed.NORMAL);
+						// Fumbled, not thrown away: it'll pick it back up (what it throws away on purpose it leaves).
+						drifter.tossForward(stack.split(stack.getCount())).setThrower(null);
+						if (drifter.getRandom().nextBoolean()) {
+							say(drifter, "oops");
+						}
+					}
+
+					// (A dropped stack can't be picked up for 2 seconds: it looks at it a moment first.)
+					return new Gaze(drifter, () -> drifter.getEyePosition().add(drifter.getLookAngle().multiply(1, 0, 1).scale(2)).add(0, -1.5, 0), 60,
+						false, "oops");
+				})
+				.then(() -> new CollectItemsTask(drifter, 6.0));
 		}
 	}
 

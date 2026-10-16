@@ -1309,4 +1309,6 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       `/drifter give minecraft:wheat 4`, near a cow).
 - [ ] Different Drifters lean different ways: hermits watch the sky, homebodies feed animals and plant saplings and
       flowers, nomads climb up for views and go to see places, newbies hop about and put up silly signs.
+- [ ] Mistakes (newbies most): now and then one drops a stack by mistake, says "oops" and picks it back up, or eats
+      a spider eye ("ew") or rotten flesh it didn't need. `/drifter whim oops_dropped_a_stack` to see it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.
