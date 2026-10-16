@@ -73,8 +73,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | In progress: steps 1 to 3 done (portal, packing, going through), 4 mostly, 5 in testing (fortresses found, spawner reached, no rods yet); 6 and 7 to do | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | Not started | |
-| 13 | The End (optional) | Not started | |
-| 14 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. |
+| 13 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 14 | The End (optional) | Not started | |
 
 ## Milestone 0: Project setup
 
@@ -1201,7 +1201,7 @@ unstick strafe on its own pillar or bridge.
 
 The user's "ultimate test" is a **1v1 manhunt**, now in DESIGN.md section 25 ("Manhunt test mode"). It's **only a test**:
 the mod must not be centred around it. **Hunter role first** (acceptance test after milestone 9), speedrunner role after
-milestone 13. Keep it in mind when building chasing (milestone 4), combat (6) and hostile behaviour (9), but don't add
+milestone 14 (The End). Keep it in mind when building chasing (milestone 4), combat (6) and hostile behaviour (9), but don't add
 manhunt-only features before then.
 
 ## Decided

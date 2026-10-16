@@ -1872,10 +1872,10 @@ Each milestone ends with a test you can actually run.
 10. **Offscreen and performance.** Detail tiers, catch-up, abstract travel, offline progression option. *Done when* 10 Drifters stay within the per-tick budget.
 11. **Nether.** Section 19.
 12. **Groups, modpack factions, camps, config polish.**
-13. **The End** (optional).
-14. **Whim system.** Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md, vanilla first and modded whims behind mod detection. Can start any time after milestone 9.
+13. **Whim system.** Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md, vanilla first and modded whims behind mod detection. Can start any time after milestone 9. Whims that need The End (elytra, shulkers, the void's edge) stay off until milestone 14. (Swapped with The End by the user, 2026-10-16.)
+14. **The End** (optional).
 
-Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 13. They are tests, not milestones of their own.
+Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 14 (The End). They are tests, not milestones of their own.
 
 ### Manhunt test mode
 
