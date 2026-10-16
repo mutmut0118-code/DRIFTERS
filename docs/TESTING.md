@@ -1201,3 +1201,14 @@ round, and for now comes home again after about 30 seconds. (What it does in the
       and when it's lit `/drifter brain goal nether_go`. Follow it in (or `/drifter tp <name>`): "in the Nether: the
       portal home is at ...", "walled the portal in", later "back from the Nether".
 - [ ] It never walks into a portal by accident while doing something else.
+
+**Bows (new).** Drifters make and use bows like players: string from spiders (or cobwebs), arrows from flint, sticks
+and feathers. With a bow and arrows they shoot things coming at them from range (zombies, skeletons, creepers before
+they get close, ghasts, blazes), and switch to the sword up close.
+- [ ] Give a Drifter `/drifter giveall minecraft:bow 1` and `/drifter giveall minecraft:arrow 32`, then summon a zombie
+      15 blocks away at night (or a husk by day): it takes the bow out, draws (you see the draw pose), and shoots. A
+      full draw takes a second. Up close it switches to the sword.
+- [ ] A creeper a few blocks off gets arrows, not a sword hit.
+- [ ] `/drifter get minecraft:bow` sends the nearest Drifter off to make one (hunting spiders for string if it has
+      none; spiders are around at night and in caves). `/drifter plan minecraft:arrow 32` shows how it would get arrows.
+- [ ] Their arm swings when they place a block now (your report).

@@ -136,9 +136,10 @@ public class UseOnBlockTask extends Task {
 			return this.fail("nothing happened");
 		}
 
-		if (used.shouldSwing()) {
-			this.drifter.swing(InteractionHand.MAIN_HAND);
-		}
+		// The arm swings on every click that did something (user's report: "their hand doesn't move while placing blocks").
+		// On the server a placed block reports "consume", not "success": in vanilla the swing is the player's own client's,
+		// which sees "success".
+		this.drifter.swing(InteractionHand.MAIN_HAND);
 
 		if (this.scaffold) {
 			BlockPos placed = hit.getBlockPos().relative(hit.getDirection());

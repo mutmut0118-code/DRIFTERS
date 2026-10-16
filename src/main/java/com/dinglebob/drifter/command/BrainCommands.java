@@ -26,6 +26,37 @@ public final class BrainCommands {
 	private BrainCommands() {
 	}
 
+	private static int get(CommandContext<CommandSourceStack> ctx, int count) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "item"))
+			.orElseThrow(() -> new SimpleCommandExceptionType(Component.literal("No such item")).create());
+		Brain brain = drifter.getDrifterBrain();
+		brain.requested = item;
+		brain.requestedCount = drifter.getInventory().count(stack -> stack.is(item)) + count;
+		boolean started = brain.force("get");
+		ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + (started ? " is off to get " + count + " "
+			+ com.dinglebob.drifter.brain.Planner.name(item) : " knows no way to get " + com.dinglebob.drifter.brain.Planner.name(item) + " yet")), false);
+		return started ? 1 : 0;
+	}
+
+	private static int plan(CommandContext<CommandSourceStack> ctx, int count) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		net.minecraft.resources.ResourceLocation id = net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "item");
+		var item = id == null ? null : net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(id).orElse(null);
+		if (item == null) {
+			throw new SimpleCommandExceptionType(Component.literal("No such item")).create();
+		}
+
+		var plan = com.dinglebob.drifter.brain.Planner.plan(drifter, com.dinglebob.drifter.brain.KnownWorld.scan(drifter), item,
+			drifter.getInventory().count(stack -> stack.is(item)) + count);
+		String steps = plan.actions().stream().map(com.dinglebob.drifter.brain.Planner.Action::describe).collect(java.util.stream.Collectors.joining(" > "));
+		ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + (plan.feasible()
+			? String.format(Locale.ROOT, " plans for %d %s (%.0f s): %s", count, com.dinglebob.drifter.brain.Planner.name(item), plan.cost(),
+				steps.isEmpty() ? "has it already" : steps)
+			: " knows no way to get " + com.dinglebob.drifter.brain.Planner.name(item))), false);
+		return 1;
+	}
+
 	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
 		root.then(Commands.literal("brain")
 			.executes(BrainCommands::status)
@@ -35,6 +66,20 @@ public final class BrainCommands {
 				.then(Commands.argument("goal", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"fight", "flee", "equip", "eat", "food", "cook", "collect", "shelter", "nighthunt", "makeroom", "settle", "hut", "store", "progress", "explore", "idle"}, builder))
 					.executes(BrainCommands::force))));
+		// Ask the nearest one to go and get something (debug): it plans and does it like any target.
+		root.then(Commands.literal("get")
+			.then(Commands.argument("item", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+				.suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(net.minecraft.core.registries.BuiltInRegistries.ITEM.keySet(), builder))
+				.executes(ctx -> get(ctx, 1))
+				.then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 256))
+					.executes(ctx -> get(ctx, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count"))))));
+		// How the nearest one would get an item, step by step (debug).
+		root.then(Commands.literal("plan")
+			.then(Commands.argument("item", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+				.suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(net.minecraft.core.registries.BuiltInRegistries.ITEM.keySet(), builder))
+				.executes(ctx -> plan(ctx, 1))
+				.then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 256))
+					.executes(ctx -> plan(ctx, com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count"))))));
 		root.then(Commands.literal("hut").executes(ctx -> showHut(ctx, false)));
 		root.then(Commands.literal("house").executes(ctx -> showHut(ctx, true)));
 		root.then(Commands.literal("home")

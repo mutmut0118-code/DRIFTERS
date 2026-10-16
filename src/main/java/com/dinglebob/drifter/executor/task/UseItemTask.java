@@ -87,9 +87,8 @@ public class UseItemTask extends Task {
 			return this.fail("nothing happened");
 		}
 
-		if (result.shouldSwing()) {
-			this.drifter.swing(InteractionHand.MAIN_HAND);
-		}
+		// (A use that did something swings the arm; on the server it reports "consume", see UseOnBlockTask.)
+		this.drifter.swing(InteractionHand.MAIN_HAND);
 
 		return Status.SUCCESS;
 	}

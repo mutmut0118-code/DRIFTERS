@@ -119,11 +119,12 @@ public final class Strategist {
 
 	public static final int NETHER_BLOCKS = 64;
 	public static final int NETHER_FOOD = 20;
+	public static final int NETHER_ARROWS = 32;
 
 	/**
 	 * The Nether packing list (section 19), what it gets once its portal is lit: a gold armor piece (piglins), a stack of
-	 * cobblestone (ghast-proof building), 20 cooked food and a spare pickaxe. Sword, shield, armor and flint and steel it
-	 * has by then. (Bow and arrows wait for a source of string; gold to barter with comes with the piglin step.)
+	 * cobblestone (ghast-proof building), 20 cooked food, a spare pickaxe, a bow and arrows. Sword, shield, armor and
+	 * flint and steel it has by then. (Gold to barter with comes with the piglin step.)
 	 */
 	public static final List<Target> NETHER_PACKING = List.of(
 		new Target("a gold armor piece for the Nether", List.of(Items.GOLDEN_BOOTS, Items.GOLDEN_HELMET), 1,
@@ -134,7 +135,10 @@ public final class Strategist {
 		new Target("food for the Nether", List.of(Items.COOKED_BEEF, Items.COOKED_PORKCHOP, Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT,
 			Items.BREAD), NETHER_FOOD, drifter -> drifter.getInventory().count(stack -> stack.is(Items.COOKED_BEEF) || stack.is(Items.COOKED_PORKCHOP)
 				|| stack.is(Items.COOKED_MUTTON) || stack.is(Items.COOKED_CHICKEN) || stack.is(Items.COOKED_RABBIT) || stack.is(Items.BREAD)) >= NETHER_FOOD),
-		new Target("a spare pickaxe for the Nether", List.of(Items.IRON_PICKAXE, Items.STONE_PICKAXE), 1, drifter -> !needsSparePickaxe(drifter)));
+		new Target("a spare pickaxe for the Nether", List.of(Items.IRON_PICKAXE, Items.STONE_PICKAXE), 1, drifter -> !needsSparePickaxe(drifter)),
+		// Bow and arrows (ghasts are out of sword reach, blazes safer from range): string from spiders or cobwebs.
+		new Target("a bow", List.of(Items.BOW), 1, drifter -> has(drifter, stack -> stack.is(Items.BOW))),
+		new Target("arrows", List.of(Items.ARROW), NETHER_ARROWS, drifter -> drifter.getInventory().count(stack -> stack.is(Items.ARROW)) >= NETHER_ARROWS));
 
 	/** Everything on the packing list carried (and flint and steel, a sword and a shield). */
 	public static boolean packedForNether(DrifterEntity drifter) {

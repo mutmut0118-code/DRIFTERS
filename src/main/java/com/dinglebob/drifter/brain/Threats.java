@@ -49,6 +49,14 @@ public final class Threats {
 	public static final String DIRECTORY = "drifter_threats";
 	/** Hostiles farther than this are ignored. */
 	public static final double RANGE = 16.0;
+	/** How far it watches threats with a bow ready. */
+	public static final double BOW_RANGE = 24.0;
+
+	/** Worth an arrow now: it has a bow, the bow beats the sword here, and the thing is coming at it (or flies). */
+	public static boolean worthShooting(DrifterEntity drifter, @org.jetbrains.annotations.Nullable LivingEntity target) {
+		return target != null && com.dinglebob.drifter.hands.Archery.shouldShoot(drifter, target)
+			&& (isAfter(drifter, target) || com.dinglebob.drifter.hands.Archery.flying(target));
+	}
 	/** A hostile within this, or one that hit it in the last 2 s, makes the decision urgent. */
 	public static final double CLOSE = 6.0;
 	public static final int RECENT_HIT_TICKS = 40;
@@ -226,6 +234,8 @@ public final class Threats {
 		LivingEntity lastAttacker = drifter.getLastHurtByMob();
 		boolean recentlyHit = lastAttacker != null && drifter.tickCount - drifter.getLastHurtByMobTimestamp() < RECENT_HIT_TICKS;
 		List<LivingEntity> hostiles = new ArrayList<>();
+		// With a bow it watches further out: something coming can be shot before it arrives.
+		double range = com.dinglebob.drifter.hands.Archery.ready(drifter) ? BOW_RANGE : RANGE;
 		double threat = 0.0;
 		double nearest = Double.MAX_VALUE;
 		LivingEntity main = null;
@@ -245,7 +255,8 @@ public final class Threats {
 
 			double distance = seen || recentlyHit && living == lastAttacker ? living.distanceTo(drifter)
 				: awareness.believedPos(now, 20 * 4).distanceTo(drifter.position());
-			if (distance > RANGE) {
+			// Fliers (a ghast shoots from 60 blocks off) are watched as far as a bow can answer them.
+			if (distance > (com.dinglebob.drifter.hands.Archery.flying(living) && range > RANGE ? com.dinglebob.drifter.hands.Archery.MAX_RANGE : range)) {
 				continue;
 			}
 

@@ -185,6 +185,16 @@ public final class Mannerisms {
 	// ---------------------------------------------------------------------------------------------
 
 	public void tick() {
+		this.tick(false);
+	}
+
+	/**
+	 * {@code reactiveOnly}: no one near enough to see a fidget (section 22 detail tiers), so only the glances that are
+	 * perception, not show: toward a sound or a creature it noticed (found in testing: with every tic off, a busy
+	 * Drifter far from players never turned toward the ghast shooting at it).
+	 */
+	public void tick(boolean reactiveOnly) {
+		this.reactiveOnly = reactiveOnly;
 		long now = this.now();
 		this.trackSignals(now);
 		Set<BodyPart> free = this.freeParts();
@@ -303,9 +313,16 @@ public final class Mannerisms {
 	}
 
 	@Nullable
+	private boolean reactiveOnly;
+
 	private Tic choose(Set<BodyPart> free, long now) {
 		Personality p = this.drifter.getPersonality();
 		boolean walking = this.walking();
+		if (this.reactiveOnly) {
+			return walking && free.contains(BodyPart.HEAD) && this.ready(Kind.GLANCE, now) && this.somethingToLookAt(70.0F) != null
+				&& this.roll(every(20 * 5.5)) ? new Glance() : null;
+		}
+
 		WaitTask wait = this.waiting();
 		boolean head = free.contains(BodyPart.HEAD);
 		boolean hands = free.contains(BodyPart.HANDS);

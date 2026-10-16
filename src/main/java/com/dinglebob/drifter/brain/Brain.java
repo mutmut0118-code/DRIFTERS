@@ -240,6 +240,11 @@ public class Brain {
 	private final List<Goals.Goal> goals = Goals.all();
 	private final Map<String, Long> failedUntil = new HashMap<>();
 
+	/** An item someone asked it to get (`/drifter get`, debug), and how many to end up with; not saved. */
+	@Nullable
+	public net.minecraft.world.item.Item requested;
+	public int requestedCount;
+
 	/** This goal failed lately and is in its cool-down. */
 	public boolean failedRecently(String goalId) {
 		return this.failedUntil.getOrDefault(goalId, 0L) > this.drifter.level().getGameTime();

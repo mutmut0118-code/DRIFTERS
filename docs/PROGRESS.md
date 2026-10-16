@@ -1090,6 +1090,27 @@ brings back blaze rods (or at least quartz and gold) and gets home alive, on mos
    Nether"). Paths never go through portals by accident. Found on the way: the game stops ticking every creature in
    a dimension nobody is in for 15 s, which froze kept-running Drifters there (now a kept-running Drifter counts as
    someone being there).
+**Bows** (user's request: they had fallen through from milestone 6; done as part of milestone 11, staged tests pass):
+- String from spiders (hunted; they're fair game for a hunt now) and cobwebs (a sword cuts them): data file
+  `drifter_sources/early_game.json`. Arrows from flint, sticks and feathers (the planner already had those).
+- A bow and 32 arrows are on the Nether packing list.
+- Shooting like a player (`ShootTask`, `BowItemMixin`): takes the bow out, holds use for a full draw (1 s; 0.6 s when
+  the target is within 10 blocks), aims with its head where the target will be when the arrow arrives and a little
+  high for the drop, lets go once the crosshair is on it. Vanilla's bow only fires for players, so a mixin runs the
+  game's own bow code for a Drifter: same power for the draw time, arrow use (Infinity works), bow wear, enchantments,
+  crit on a full draw. Aim error per shot from Skill, distance and target speed.
+- When: a flier (ghast, blaze, phantom), a creeper 4+ blocks off, or anything hostile 6+ blocks off that's coming at
+  it, with a bow and arrows ready; up close the sword. With a bow it watches hostiles out to 24 blocks (fliers 40),
+  so it can shoot before they arrive. After 3 bow attempts that didn't end a fight it sticks to the sword (except fliers).
+- Tested: a husk killed with 3 arrows before it reached the Drifter, a creeper shot before it got close, a ghast
+  brought down with an arrow; a Drifter told to get string hunted spiders for it.
+- Found on the way: the far detail tier had switched off the glance toward a sound or a creature along with the
+  fidgets, so a busy Drifter with no player near never turned to look at what was shooting at it. Those glances
+  now run in every tier. Also fixed (user's report): the arm didn't swing when placing blocks (on the server a placed
+  block reports "consume", not "success").
+- New debug commands: `/drifter plan <item> [count]` (how the nearest Drifter would get it) and
+  `/drifter get <item> [count]` (sends it to get it).
+
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
    basalt deltas).

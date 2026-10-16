@@ -21,6 +21,9 @@ public class CombatActivity extends Activity {
 
 	private int phase;
 	private int kills;
+	/** Bow shots that didn't end the fight; after a few it sticks to the sword (unless it can't reach the target). */
+	private int bowFailures;
+	private static final int MAX_BOW_FAILURES = 3;
 
 	public CombatActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -38,8 +41,13 @@ public class CombatActivity extends Activity {
 
 	@Override
 	protected void stepDone(Task step, Status status) {
-		if (step instanceof AttackTask && status == Status.SUCCESS) {
+		if ((step instanceof AttackTask || step instanceof com.dinglebob.drifter.executor.task.ShootTask) && status == Status.SUCCESS) {
 			this.kills++;
+		}
+
+		// The bow didn't work out (it came close, out of sight, out of arrows): the sword for this fight.
+		if (step instanceof com.dinglebob.drifter.executor.task.ShootTask && status != Status.SUCCESS) {
+			this.bowFailures++;
 		}
 	}
 
@@ -71,6 +79,13 @@ public class CombatActivity extends Activity {
 			Threats.Assessment assessment = Threats.assess(this.drifter);
 			@Nullable LivingEntity target = assessment.decision().fights() ? assessment.main() : null;
 			if (target != null) {
+				// A bow at range, at fliers and at creepers still a few blocks off (section 13 "Ranged mechanics").
+				String name = target.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+				if (com.dinglebob.drifter.hands.Archery.shouldShoot(this.drifter, target)
+					&& (this.bowFailures < MAX_BOW_FAILURES || com.dinglebob.drifter.hands.Archery.flying(target))) {
+					return this.begin(new com.dinglebob.drifter.executor.task.ShootTask(this.drifter, target, name));
+				}
+
 				return this.begin(new AttackTask(this.drifter, target, target.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
 			}
 

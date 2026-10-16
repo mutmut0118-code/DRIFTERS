@@ -659,6 +659,11 @@ public final class Goals {
 				return 1.25;
 			}
 
+			// Something coming at it that a bow can stop before it arrives (section 13 "Archer: opens with arrows").
+			if (Threats.worthShooting(context.drifter(), threat.main())) {
+				return 1.1;
+			}
+
 			// Out hunting at night (section 18): this is what it came out for.
 			if (NightHunt.hunting(context)) {
 				return 1.0;
@@ -677,7 +682,8 @@ public final class Goals {
 
 		@Override
 		public boolean urgent(Context context) {
-			return context.threat().urgent() && context.threat().decision().fights() && (!context.sealedIn() || context.threat().recentlyHit())
+			return (context.threat().urgent() || Threats.worthShooting(context.drifter(), context.threat().main())) && context.threat().decision().fights()
+				&& (!context.sealedIn() || context.threat().recentlyHit())
 				&& context.threat().main() != null;
 		}
 
@@ -819,6 +825,53 @@ public final class Goals {
 		@Override
 		public Activity start(Context context) {
 			return new com.dinglebob.drifter.brain.activity.PenActivity(context.drifter());
+		}
+	}
+
+	/** Get an item someone asked for (`/drifter get <item> [count]`, debug): planned like any target. */
+	public static final class GetRequested extends PlannedGoal {
+		@Override
+		public String id() {
+			return "get";
+		}
+
+		@Override
+		public String name(Context context) {
+			var item = context.drifter().getDrifterBrain().requested;
+			return item == null ? "get what it was asked for" : "get " + Planner.name(item) + " (asked)";
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			var item = context.drifter().getDrifterBrain().requested;
+			return item == null ? List.of() : List.of(item);
+		}
+
+		@Override
+		protected int count(Context context) {
+			return context.drifter().getDrifterBrain().requestedCount;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			Brain brain = context.drifter().getDrifterBrain();
+			if (brain.requested == null) {
+				return 0.0;
+			}
+
+			net.minecraft.world.item.Item item = brain.requested;
+			if (context.drifter().getInventory().count(stack -> stack.is(item)) >= brain.requestedCount) {
+				context.drifter().getMemory().thoughts().add(context.drifter().level().getGameTime(), "got the " + Planner.name(item) + " it was asked for");
+				brain.requested = null;
+				return 0.0;
+			}
+
+			return 0.7;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
 		}
 	}
 
@@ -1738,7 +1791,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());

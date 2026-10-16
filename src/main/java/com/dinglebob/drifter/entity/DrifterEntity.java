@@ -759,12 +759,9 @@ public class DrifterEntity extends PathfinderMob {
 			this.tasks.tick();
 			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.TASKS, System.nanoTime() - t, this::perfLabel);
 			t = System.nanoTime();
-			// Nobody near enough to see a fidget: no fidgets (section 22 detail tiers).
-			if (this.tier.mannerisms() || this.mannerisms.forcedActive()) {
-				this.mannerisms.tick();
-			} else {
-				this.mannerisms.interrupt("no one near");
-			}
+			// Nobody near enough to see a fidget: no fidgets, only the glances that are its senses at work (section 22 detail
+			// tiers).
+			this.mannerisms.tick(!this.tier.mannerisms() && !this.mannerisms.forcedActive());
 			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.TICS, System.nanoTime() - t);
 		} else {
 			this.mannerisms.interrupt("reflex");

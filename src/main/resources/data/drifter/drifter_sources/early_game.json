@@ -18,6 +18,8 @@
 		{ "item": "minecraft:mutton", "mob": "minecraft:sheep" },
 		{ "item": "minecraft:chicken", "mob": "minecraft:chicken" },
 		{ "item": "minecraft:feather", "mob": "minecraft:chicken" },
+		{ "item": "minecraft:string", "mob": "minecraft:spider" },
+		{ "item": "minecraft:string", "block": ["minecraft:cobweb"], "tool": "minecraft:wooden_sword" },
 		{ "item": "minecraft:rabbit", "mob": "minecraft:rabbit" },
 		{ "item": "minecraft:rabbit_hide", "mob": "minecraft:rabbit" },
 		{ "item": "minecraft:white_wool", "mob": "minecraft:sheep", "color": "white" },
