@@ -1256,7 +1256,8 @@ public final class Goals {
 
 		@Override
 		public double risk(Context context) {
-			return 0.0;
+			// (A factor: 1 is no risk.)
+			return 1.0;
 		}
 
 		@Override
@@ -1541,7 +1542,8 @@ public final class Goals {
 
 		@Override
 		public double risk(Context context) {
-			return 0.0;
+			// (A factor: 1 is no risk.)
+			return 1.0;
 		}
 
 		@Override
@@ -2114,6 +2116,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.FriendlyGoals.all());
+		// Groups (milestone 12, section 21).
+		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);

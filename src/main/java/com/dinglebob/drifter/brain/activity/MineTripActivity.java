@@ -107,6 +107,55 @@ public class MineTripActivity extends Activity {
 	/** What the plan asked for (less than {@link #total} when it's after iron for the whole set). */
 	private final int asked;
 
+	/**
+	 * Going along on a group mate's trip (section 21 "Group activities: joint mining trips"): the same ore, from the same
+	 * mine (the mate shows it the way down), branching off its own way. The two look out for each other as group members do.
+	 */
+	public static MineTripActivity alongside(DrifterEntity drifter, MineTripActivity mates, DrifterEntity mate) {
+		Home mine = drifter.getDrifterBrain().home();
+		Home theirs = mate.getDrifterBrain().home();
+		if (mine != null && theirs != null && mine.center.equals(theirs.center) && theirs.mineBottom != null) {
+			mine.mineBottom = theirs.mineBottom;
+			mine.mineDirection = theirs.mineDirection;
+			mine.mineTrips = Math.max(mine.mineTrips, theirs.mineTrips + 1);
+		}
+
+		MineTripActivity trip = new MineTripActivity(drifter, mates.item, mates.label, mates.blocks, mates.asked, mates.depth, mates.mountain);
+		trip.companion = mate.getName().getString();
+		trip.followsCaving = mates.caves();
+		mates.joinedBy = drifter.getName().getString();
+		return trip;
+	}
+
+	/** The group mate it went along with, or null. */
+	@Nullable
+	private String companion;
+
+	/** Still setting off (not yet down, or only just): a mate can join in. */
+	public boolean settingOff() {
+		return this.phase != Phase.HOME && (this.downAt < 0 || this.drifter.level().getGameTime() - this.downAt < JOIN_WITHIN);
+	}
+
+	/** A mate can still catch up this long after it got underground (it takes the same way down). */
+	private static final long JOIN_WITHIN = 20 * 60;
+
+	public String oreLabel() {
+		return this.label;
+	}
+
+	/** Going along with someone (or someone's going along with it): already a joint trip. */
+	public boolean joint() {
+		return this.companion != null || this.joinedBy != null;
+	}
+
+	/** A group mate who came along on this trip (so it isn't merged into another one), or null. */
+	@Nullable
+	public String joinedBy;
+
+	public boolean sameOre(MineTripActivity other) {
+		return this.item == other.item;
+	}
+
 	private int tosses;
 
 	/** The nearest spot it has seen, within 48 blocks, with no sand or gravel in the top 3 blocks under it; or null. */
@@ -197,10 +246,11 @@ public class MineTripActivity extends Activity {
 
 	@Override
 	public String describe() {
-		return switch (this.phase) {
+		String what = switch (this.phase) {
 			case HOME -> "head back up from mining";
 			default -> "go mining for " + this.label + " (" + this.have() + "/" + this.total + ")";
 		};
+		return this.companion == null ? what : what + " with " + this.companion;
 	}
 
 	@Override
@@ -276,8 +326,18 @@ public class MineTripActivity extends Activity {
 
 	/** Goes caving rather than strip mining (its mining style habit: everyone but strip miners). */
 	private boolean caves() {
+		// Along on a mate's trip: it does as the mate does (found in testing: a caver who went along went off to a cave of
+		// its own while the mate dug their mine).
+		if (this.followsCaving != null) {
+			return this.followsCaving;
+		}
+
 		return this.drifter.getPersonality().habits().miningLean < STRIP_MINER || this.hunch;
 	}
+
+	/** On a joint trip, whether the mate it's with goes caving (null on its own trip). */
+	@Nullable
+	private Boolean followsCaving;
 
 	/**
 	 * A strip miner going caving this trip anyway, on a hunch (user's idea, 2026-10-16: players assume and guess): the

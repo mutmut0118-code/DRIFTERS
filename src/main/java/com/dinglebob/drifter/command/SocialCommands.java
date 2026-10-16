@@ -77,6 +77,16 @@ public final class SocialCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal(label + " now trusts " + name + " " + Math.round(trust)), true);
 				return 1;
 			}))));
+		// Debug: the nearest one teams up with the named one at once (friends both ways, one group).
+		root.then(Commands.literal("group").then(Commands.argument("other", StringArgumentType.word()).executes(ctx -> {
+			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+			DrifterEntity other = named(ctx, StringArgumentType.getString(ctx, "other"));
+			drifter.getBonds().teamUp(other);
+			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			String text = DrifterCommands.label(drifter) + (group == null ? " couldn't team up (the other's group is full?)" : " is in \"" + group.name + "\"");
+			ctx.getSource().sendSuccess(() -> Component.literal(text), true);
+			return 1;
+		})));
 		root.then(Commands.literal("social")
 			.executes(SocialCommands::list)
 			.then(Commands.literal("show").then(Commands.argument("player", StringArgumentType.word()).suggests(SocialCommands::players).executes(SocialCommands::show)))
@@ -124,6 +134,19 @@ public final class SocialCommands {
 		}
 
 		return social.all().size() + bonds.size();
+	}
+
+	/** A loaded Drifter by name. */
+	static DrifterEntity named(CommandContext<CommandSourceStack> ctx, String name) throws CommandSyntaxException {
+		for (var level : ctx.getSource().getServer().getAllLevels()) {
+			for (DrifterEntity d : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
+				if (d.getName().getString().equalsIgnoreCase(name)) {
+					return d;
+				}
+			}
+		}
+
+		throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("No Drifter called " + name)).create();
 	}
 
 	private static int show(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

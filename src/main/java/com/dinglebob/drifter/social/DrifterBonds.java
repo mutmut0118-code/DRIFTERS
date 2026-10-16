@@ -150,8 +150,13 @@ public class DrifterBonds {
 			return;
 		}
 
-		var shared = new com.dinglebob.drifter.brain.Home(home.center, home.dimension, member.level().getGameTime());
-		home.chests().forEach(shared::addChest);
+		// All of it: the hut (built, its door and size), the farm, pen, house, mine and chests (found in review: a bare copy
+		// had no hut, so the newcomer set about building a second one on top of the leader's).
+		var shared = com.dinglebob.drifter.brain.Home.load(home.save());
+		if (shared == null) {
+			return;
+		}
+
 		member.getDrifterBrain().setHome(shared);
 		member.getMemory().thoughts().add(member.level().getGameTime(), "moved in with " + leader.getName().getString());
 	}
@@ -214,6 +219,13 @@ public class DrifterBonds {
 	public void setTrust(DrifterEntity other, double trust) {
 		Relationship r = this.known(other);
 		r.addTrust(trust - r.trust);
+	}
+
+	/** Debug: friends both ways at once, and teamed up (the way they would after enough time together). */
+	public void teamUp(DrifterEntity other) {
+		this.setTrust(other, Math.max(FRIEND + 10.0, this.known(other).trust));
+		other.getBonds().setTrust(this.drifter, Math.max(FRIEND + 10.0, other.getBonds().known(this.drifter).trust));
+		this.maybeGroup(other, this.known(other));
 	}
 
 	public void onHurtBy(DrifterEntity other, float amount) {
