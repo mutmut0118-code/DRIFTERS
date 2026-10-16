@@ -44,7 +44,7 @@ import net.minecraft.world.level.block.Blocks;
 
 /**
  * Catch-up (DESIGN.md section 22): a Drifter that wasn't kept running while its area was unloaded fast-forwards when it
- * loads again, by rates instead of actions. The time away (capped, 3 days by default) is worked through in slices of a
+ * loads again, by rates instead of actions. The time away (capped, 10 days by default) is worked through in slices of a
  * quarter day: it gathers what a Drifter of its stage and archetype gathers in that time (from the data file
  * {@code data/<namespace>/drifter_catchup/}, with randomness), eats, wears its tools down and burns torches, smelts and
  * crafts what its new things allow toward its next goal (so its stage can rise from one slice to the next), and runs a
@@ -62,10 +62,10 @@ public final class CatchUp {
 	/** The rates file's contents. */
 	private record Rates(int minGapTicks, int capTicks, int sliceTicks, double workShare, double foodPointsPerDay,
 		Map<String, Double> wear, double torchesPerWorkHour, double deathChancePerDay, Map<Integer, Map<String, Double>> stages,
-		Map<String, Map<String, Double>> archetypes) {
+		Map<String, Map<String, Double>> archetypes, double xpPerWorkHour) {
 	}
 
-	private static volatile Rates rates = new Rates(2400, 72000, 6000, 0.45, 24.0, Map.of(), 0.4, 0.02, Map.of(), Map.of());
+	private static volatile Rates rates = new Rates(2400, 240000, 6000, 0.45, 24.0, Map.of(), 0.4, 0.02, Map.of(), Map.of(), 4.0);
 
 	private CatchUp() {
 	}
@@ -100,7 +100,8 @@ public final class CatchUp {
 
 				rates = new Rates(json.get("min_gap_ticks").getAsInt(), json.get("cap_ticks").getAsInt(), json.get("slice_ticks").getAsInt(),
 					json.get("work_share").getAsDouble(), json.get("food_points_per_day").getAsDouble(), numbers(json.getAsJsonObject("tool_wear_per_work_hour")),
-					json.get("torches_per_work_hour").getAsDouble(), json.get("death_chance_per_day").getAsDouble(), stages, archetypes);
+					json.get("torches_per_work_hour").getAsDouble(), json.get("death_chance_per_day").getAsDouble(), stages, archetypes,
+					json.has("xp_per_work_hour") ? json.get("xp_per_work_hour").getAsDouble() : 4.0);
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter catch-up file {}", file.getKey(), e);
 			}
@@ -131,6 +132,9 @@ public final class CatchUp {
 		int stageAfter;
 		int lost;
 		int built;
+		boolean settled;
+		boolean chest;
+		int xp;
 
 		Report(long ticks) {
 			this.ticks = ticks;
@@ -162,8 +166,20 @@ public final class CatchUp {
 				line.append("; wore out its ").append(String.join(", ", this.broke));
 			}
 
+			if (this.settled) {
+				line.append("; settled down there");
+			}
+
 			if (this.built > 0) {
 				line.append("; built ").append(this.built).append(" blocks of its hut");
+			}
+
+			if (this.chest) {
+				line.append("; put a chest in it");
+			}
+
+			if (this.xp > 0) {
+				line.append("; earned ").append(this.xp).append(" experience");
 			}
 
 			if (this.lost > 0) {
@@ -209,7 +225,20 @@ public final class CatchUp {
 			torches(drifter, r, stage, workHours, random, report);
 			smelt(drifter, stage, report);
 			craftTowardGoals(drifter, report);
+			// A day or more out with no home: it settles where it is (found by the user: Drifters that set off at the start of
+			// the world came back days later with no hut, no chest, and so never into the iron age).
+			if (done >= SETTLE_AFTER_TICKS) {
+				settle(drifter, report);
+			}
+
 			buildHut(drifter, report);
+			placeChest(drifter, report);
+			// Experience from mining and fighting, at a player's pace (found by the user: they all came back at level 0).
+			int xp = (int)Math.round(workHours * r.xpPerWorkHour() * (0.6 + 0.8 * random.nextDouble()));
+			if (xp > 0) {
+				drifter.giveExperiencePoints(xp);
+				report.xp += xp;
+			}
 			if (random.nextDouble() < deathChance(drifter, r, stage, slice)) {
 				die(drifter, report);
 			}
@@ -434,21 +463,26 @@ public final class CatchUp {
 	 * (no trips out), it does it on the spot, with the real recipes. Then the next target, and so on.
 	 */
 	private static void craftTowardGoals(DrifterEntity drifter, Report report) {
+		// A target that needs a trip out (a bed's wool, a shelter) is passed over for the ones after it it can make on the spot
+		// (found by the user: stuck behind its first night's targets, it carried 14 iron ingots and never made a tool of them).
+		java.util.Set<String> passed = new java.util.HashSet<>();
 		for (int step = 0; step < MAX_TARGET_STEPS; step++) {
-			Strategist.Target target = Strategist.nextTarget(drifter);
+			Strategist.Target target = Strategist.nextTarget(drifter, t -> !passed.contains(t.label()));
 			if (target == null) {
 				return;
 			}
 
 			Planner.Plan plan = Planner.plan(drifter, KnownWorld.scan(drifter), target.items(), target.count());
-			if (!plan.feasible() || plan.actions().isEmpty()) {
-				return;
-			}
-
+			boolean onTheSpot = plan.feasible() && !plan.actions().isEmpty();
 			for (Planner.Action action : plan.actions()) {
 				if (!(action instanceof Planner.Craft) && !(action instanceof Planner.Place) && !(action instanceof Planner.Smelt)) {
-					return;
+					onTheSpot = false;
 				}
+			}
+
+			if (!onTheSpot) {
+				passed.add(target.label());
+				continue;
 			}
 
 			for (Planner.Action action : plan.actions()) {
@@ -479,7 +513,72 @@ public final class CatchUp {
 			}
 
 			if (!target.satisfied().test(drifter)) {
+				passed.add(target.label());
+			}
+		}
+	}
+
+	private static final long SETTLE_AFTER_TICKS = 24000;
+
+	/** Settles where it stands, on firm dry ground, if it has no home (not a nomad: they barely settle anywhere). */
+	private static void settle(DrifterEntity drifter, Report report) {
+		Level level = drifter.level();
+		if (drifter.getDrifterBrain().home() != null || drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD
+			|| level.dimension() != Level.OVERWORLD || drifter.isInWater() || !drifter.onGround()) {
+			return;
+		}
+
+		BlockPos feet = drifter.blockPosition();
+		drifter.getDrifterBrain().setHome(new Home(feet, level.dimension().location(), level.getGameTime()));
+		report.settled = true;
+	}
+
+	/** A chest in its hut, from one it carries or eight planks, at a furniture spot inside (so it can store, and the iron
+	 * age starts: the strategist wants a home with a chest). */
+	private static void placeChest(DrifterEntity drifter, Report report) {
+		Home home = drifter.getDrifterBrain().home();
+		Level level = drifter.level();
+		if (home == null || home.hasChest() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+			return;
+		}
+
+		boolean haveChest = take(drifter, stack -> stack.is(Items.CHEST), 1) == 1;
+		boolean planks = drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PLANKS)) >= 8;
+		// (Or two logs, which make the eight planks: it had used its planks on tools and carried 141 logs.)
+		boolean logs = drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= 2;
+		if (!haveChest && !planks && !logs) {
+			return;
+		}
+
+		for (BlockPos spot : com.dinglebob.drifter.building.StarterHut.of(home).furnitureSpots()) {
+			if (level.isLoaded(spot) && level.getBlockState(spot).canBeReplaced() && !level.getBlockState(spot.below()).canBeReplaced()
+				&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, spot)) {
+				if (!haveChest && planks) {
+					takePlanks(drifter, 8);
+				} else if (!haveChest) {
+					take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), 2);
+				}
+
+				level.setBlock(spot, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState(), 3);
+				home.addChest(spot);
+				report.chest = true;
 				return;
+			}
+		}
+
+		if (haveChest) {
+			give(drifter, new ItemStack(Items.CHEST), report);
+		}
+	}
+
+	private static void takePlanks(DrifterEntity drifter, int count) {
+		var inventory = drifter.getInventory();
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE && count > 0; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.is(net.minecraft.tags.ItemTags.PLANKS)) {
+				int used = Math.min(count, stack.getCount());
+				stack.shrink(used);
+				count -= used;
 			}
 		}
 	}

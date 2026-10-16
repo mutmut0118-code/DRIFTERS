@@ -1,7 +1,8 @@
 {
 	"_comment": "Catch-up rates (DESIGN.md section 22): what a Drifter that wasn't kept running gets done while its area was unloaded, worked out when it loads again. Gains are items per in-game hour of work (1,000 ticks) at each stage, drawn with randomness; archetypes multiply them. '#logs' is the kind of log it carries most (or oak). Datapacks can replace this file (the last one loaded wins).",
 	"min_gap_ticks": 2400,
-	"cap_ticks": 72000,
+	"cap_ticks": 240000,
+	"xp_per_work_hour": 4,
 	"slice_ticks": 6000,
 	"work_share": 0.45,
 	"food_points_per_day": 24,

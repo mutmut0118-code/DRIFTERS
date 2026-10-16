@@ -128,7 +128,7 @@ public final class DrifterCommands {
 			return 1;
 		}));
 		// Run catch-up on the nearest Drifter as if it had been away this many in-game hours (debug, section 25).
-		root.then(Commands.literal("catchup").then(Commands.argument("hours", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 72))
+		root.then(Commands.literal("catchup").then(Commands.argument("hours", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 240))
 			.executes(ctx -> {
 				DrifterEntity drifter = nearest(ctx.getSource());
 				int hours = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "hours");

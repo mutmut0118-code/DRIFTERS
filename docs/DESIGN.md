@@ -1679,10 +1679,14 @@ the cost turned out to be planning and searching, which were made cheaper for ev
 
 When a Drifter's chunk loads again after a gap, it fast-forwards using rates instead of actions:
 
-- **Elapsed time** is capped (for example 3 in-game days) so nothing jumps absurdly.
+- **Elapsed time** is capped (10 in-game days; user, 2026-10-16: catch-up "should be way higher", it was 3) so nothing
+  jumps absurdly.
 - **Resource gain:** per-hour yields by stage and archetype (a Stage 5 Miner gains about so much coal, iron and cobblestone per hour), drawn with randomness and added to inventory or home chests.
 - **Consumption:** food eaten, tool durability spent, torches used.
-- **Progress:** stage recalculated; crafting that its new resources allow is done instantly.
+- **Progress:** stage recalculated; crafting that its new resources allow is done instantly (targets that need a trip out
+  are passed over for later ones it can make on the spot). Experience at a player's pace (user, 2026-10-16).
+- **Settling:** a Drifter with no home a day or more in settles where it is (not nomads), builds its hut's shell and puts
+  a chest in it, so it can store and reach the iron age (user, 2026-10-16: travelers came back with no hut, no armor, level 0).
 - **Building:** queued blueprint steps are applied only inside its own base chunks, only as those chunks load, and only if no player-placed blocks are in the way.
 - **Risk:** a small chance of a simulated death (items lost, respawn at bed) scaled by stage, archetype and Caution.
 - **Position:** placed at home, or at a sensible point on its last route.

@@ -1234,6 +1234,13 @@ time. Rods come home now (banked after holing up).
 - Coming home with the haul (step 7): rods, quartz, wart, glowstone and barter loot have no keep amount, so "put things
   away at home" stores them. Rods stored at home now count toward the 6 (the trip goal and the next trip), and with 6 in
   all it makes no more trips for now.
+- **Catch-up fix (user's report, 2026-10-16):** Drifters that set off at the start of the world came back days later at
+  level 0, no armor, no hut. Causes: catch-up was capped at 3 days; it only crafted toward the very next target, and the
+  first night's (a shelter, a bed) need trips, so it never got to iron tools or armor (14 iron ingots carried); a Drifter
+  that set off never settled, and the iron age waits for a home with a chest; no experience was given. Now: 10 days cap,
+  targets that need a trip are passed over, a homeless Drifter a day in settles where it is (hut shell and a chest, from
+  a chest it carries, 8 planks or 2 logs), and experience at 4 a work hour. A 10-day test from nothing: settled, hut,
+  chest, full iron armor, shield, diamond sword and pickaxe, stage 7, level 18. `/drifter catchup` now takes up to 240 hours.
 - Still open (polish, not blocking milestone 12): fortresses over the lava sea kill about half the Drifters that go
   there; ghast side-walls when bridging; biome preferences.
 Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up
