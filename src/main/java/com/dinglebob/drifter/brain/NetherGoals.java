@@ -27,7 +27,7 @@ public final class NetherGoals {
 	/** Days between trips while there's nothing in particular to fetch there yet. */
 	private static final long DAYS_BETWEEN_LOOKS = 24000L;
 	/** The longest it stays on one trip (a Minecraft day is 20 minutes). */
-	private static final long MAX_STAY_TICKS = 20 * 60 * 12;
+	private static final long MAX_STAY_TICKS = 20 * 60 * 20;
 
 	public static boolean inNether(DrifterEntity drifter) {
 		return drifter.level().dimension() == Level.NETHER;

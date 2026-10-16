@@ -206,7 +206,11 @@ public final class NavView {
 			return new Cell(Kind.LOW, 0.0F, false, false);
 		}
 
-		boolean protectedBlock = this.level.getBlockEntity(pos) != null || PlayerPlacedBlocks.isPlayerPlaced(this.level, pos);
+		// Never through a portal frame (found in testing: a route out of its walled-in portal room went through the obsidian,
+		// and the portal home collapsed), nor obsidian at all (nine seconds a block with a diamond pickaxe; no player tunnels
+		// through it).
+		boolean protectedBlock = this.level.getBlockEntity(pos) != null || PlayerPlacedBlocks.isPlayerPlaced(this.level, pos)
+			|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || this.besidePortal(pos);
 		float dig = protectedBlock ? Float.POSITIVE_INFINITY : Tools.digSeconds(this.drifter, state, this.level, pos);
 		BlockState above = this.level.getBlockState(pos.above());
 		boolean falling = above.getBlock() instanceof FallingBlock;
@@ -267,6 +271,16 @@ public final class NavView {
 
 		VoxelShape shape = this.level.getBlockState(floor).getCollisionShape(this.level, floor);
 		return !shape.isEmpty() && shape.max(Direction.Axis.Y) <= 1.0;
+	}
+
+	private boolean besidePortal(BlockPos pos) {
+		for (Direction direction : Direction.values()) {
+			if (this.level.getBlockState(pos.relative(direction)).is(Blocks.NETHER_PORTAL)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public boolean isWater(BlockPos pos) {

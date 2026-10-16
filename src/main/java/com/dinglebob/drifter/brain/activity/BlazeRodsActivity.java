@@ -110,7 +110,32 @@ public class BlazeRodsActivity extends Activity {
 			this.think("looking for a Nether fortress");
 		}
 
-		return this.begin(new ExploreActivity(this.drifter, "looking for a Nether fortress", null, drifter -> fortress(drifter) != null));
+		return this.begin(new ExploreActivity(this.drifter, SEARCH, this.searchToward(), drifter -> fortress(drifter) != null));
+	}
+
+	private static final String SEARCH = "looking for a Nether fortress";
+	/** Search legs along one line before it moves across and comes back the other way. */
+	private static final int LEGS_PER_LINE = 8;
+	private static final double LEG = 48.0;
+	private static final double LINE_SPACING = 96.0;
+
+	/**
+	 * Where the next search leg heads. One who knows the game (Knowledge) knows fortresses stretch north to south and
+	 * searches in long north-south lines, moving across after a while; others just wander.
+	 */
+	@Nullable
+	private Vec3 searchToward() {
+		if (this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.KNOWLEDGE) < 0.4) {
+			return null;
+		}
+
+		int legs = this.drifter.getDrifterBrain().timesExplored(SEARCH);
+		var trip = this.drifter.getDrifterBrain().netherTrip();
+		int first = trip != null && (trip.startedAt / 20) % 2 == 0 ? 1 : -1;
+		int line = legs / LEGS_PER_LINE;
+		int direction = line % 2 == 0 ? first : -first;
+		double across = legs % LEGS_PER_LINE == 0 && legs > 0 ? LINE_SPACING : 0.0;
+		return this.drifter.position().add(across, 0.0, direction * LEG);
 	}
 
 	/** Blaze rods it carries. */

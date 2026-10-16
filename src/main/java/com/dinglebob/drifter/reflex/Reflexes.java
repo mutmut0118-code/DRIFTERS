@@ -866,9 +866,31 @@ public class Reflexes {
 			return this.lava == null ? null : Vec3.atCenterOf(this.lava);
 		}
 
+		/** Times it blocked lava lately, and since when: lava that keeps coming is flowing from somewhere it can't plug. */
+		private int recent;
+		private long firstAt;
+		private static final int FLOWING_AFTER = 3;
+		private static final long FLOWING_WINDOW = 20 * 20;
+		private static final double FLOWING_BACKOFF = 7.0;
+		private boolean flowing;
+
 		@Override
 		protected void start(DrifterEntity drifter) {
-			this.task = this.lava != null && Tools.buildingBlockCount(drifter) > 0
+			long now = drifter.level().getGameTime();
+			if (now - this.firstAt > FLOWING_WINDOW) {
+				this.firstAt = now;
+				this.recent = 0;
+			}
+
+			// The same lava a third time in 20 s (a lava fall, a flow it can't stop: found in testing in the Nether, it blocked
+			// it seven times until the lava ran over it): no more plugging, it backs well away and keeps routes off the spot.
+			this.flowing = ++this.recent >= FLOWING_AFTER && this.lava != null;
+			if (this.flowing) {
+				drifter.burnedByLavaAt(this.lava);
+				drifter.getMemory().thoughts().add(now, "the lava keeps coming: getting away from it");
+			}
+
+			this.task = !this.flowing && this.lava != null && Tools.buildingBlockCount(drifter) > 0
 				? new PlaceBlockTask(drifter, this.lava, Tools.BUILDING_BLOCK, "a block over the lava") : null;
 		}
 
@@ -887,12 +909,12 @@ public class Reflexes {
 				}
 			}
 
-			// No block (or it couldn't place it): back away from it.
-			if (this.lava == null || tick > 20) {
+			// No block (or it couldn't place it), or lava that keeps coming: back away from it.
+			if (this.lava == null || tick > (this.flowing ? 50 : 20)) {
 				return false;
 			}
 
-			runTo(drifter, awayFrom(drifter, Vec3.atCenterOf(this.lava), 3.0), false);
+			runTo(drifter, awayFrom(drifter, Vec3.atCenterOf(this.lava), this.flowing ? FLOWING_BACKOFF : 3.0), false);
 			drifter.getKeys().set(VirtualKeys.Key.SPRINT, false);
 			// Sneaking: backing away blind, it mustn't step off an edge (found in testing: it backed off one lava pool
 			// straight over a ledge into another).
