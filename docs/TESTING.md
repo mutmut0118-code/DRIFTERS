@@ -1221,6 +1221,12 @@ they get close, ghasts, blazes), and switch to the sword up close.
       bow, arrows, a sword, a shield and food, and `/drifter brain goal nether_blaze`: it waits by the spawner, fights
       the blazes and picks up their rods ("got 6 blaze rods" when done). Dungeon spawners in caves wake for mining
       Drifters too.
+- [ ] **Blazes (new):** at a fortress's spawner a geared Drifter fights blazes with the sword up close and the bow
+      further off; while a blaze glows (it's about to fire three fireballs) it holds its shield up toward it. Badly hurt
+      with blazes or a ghast about, it walls itself in where it stands ("badly hurt: walling itself in to heal"), eats,
+      waits until healed ("healed up: going on") and goes back. Each kill shows as "got it (attack the blaze)".
+- [ ] **Nether walking:** it never sprints down steps in the Nether, stops while it plans its route, steps out of a
+      portal it didn't mean to use ("in the portal by mistake: stepping out"), and goes round fire on its way.
 - [ ] **Bow and close attackers:** while a Drifter aims at something with its bow, hit it (or let a zombie hit it) from
       close by: it puts the bow away and turns on what's hitting it.
 - [ ] **Nether trip sticks:** once a Drifter says "packed and ready: off to the Nether", it goes through even if night

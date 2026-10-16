@@ -1210,6 +1210,14 @@ pillars two blocks up out of its way; a route may dig one block down into seen r
 stops to think instead of running on while it plans (it ran off a ledge into the lava sea mid-plan); badly hurt with no
 way home just now, it walls itself in, eats and rests until healed ("hole up to heal", new goal `nether_holeup`).
 Batches of 6 to 7 trips with mob spawning on now lose 0 to 1.
+Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up
+before anything else (fighting included) and stays until healed; it centres on its block first, builds walls bottom-up
+with a block under each one over a drop; fireball dodges only onto safe ground (one dodged into lava); fire that appears
+on its route makes it replan (it walked home through two fresh fires); each kill is logged ("got it (attack the
+blaze)"); the spawner walk count resets each time it gets there. Results: the spawner room gave 3 kills, 3 rods and it
+survived; **first rods on a real trip** (seed 2024: 2 rods, then it died); ordinary trips are safe (5 of 6 home in the
+last batch, the sixth died at the fortress). All its kills so far are with the sword. Still to do for step 5: enough
+kills for 6 rods before the damage wins (blazes drop a rod only half the time), then steps 6 and 7.
 
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and
