@@ -1922,3 +1922,29 @@ A 1v1 manhunt (a real player against a Drifter, in the style of the well-known Y
 ## 26. Whims
 
 Whims are about 900 random things players do for fun (slime bouncing, silly builds, village rampages, sunsets), plus modded whims for popular RPG mods, used as low-priority goals the selector (section 7) picks when urgent needs are met. They live in their own file, docs/WHIMS.md, so sessions only load them when working on the whim system.
+
+### Whim data format (milestone 13)
+
+Whims are data: `data/<namespace>/drifter_whims/*.json`, each `{"whims": [ ... ]}`, so datapacks can add, change or
+remove them. One whim:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Unique name (`/drifter whim <id>` runs it) |
+| `category` | For grouping (movement, builds, exploration, mobs, micro, social, weather, collecting, crafting) |
+| `action` | Which behaviour: `watch_sky`, `lookout`, `high_point`, `visit`, `watch_mob`, `feed_mob`, `hop`, `swim`, `pick_flower`, `torch_dark`, `plant_sapling`, `sign`, `build`, `chat`, `look_around`, `peek_chest`, `dance`, `gift`, `hang_out`, `visit_friend`, `watch_block`, `craft` |
+| `params` | The action's settings (what to watch, a build's blocks, a sign's lines, gift items...); `"make"` maps a need to an item it may craft for it (quickly: no mining trips or searches); `"requires_mod"` leaves the whim out without that mod |
+| `weight` | Base weight (1) |
+| `archetypes` | Multiplier per archetype (`"hermit": 2.0`) |
+| `traits` | Per trait: how much it scales with it (positive likes it more with the trait, negative less) |
+| `moods` | Per mood: how much likelier while the mood is strong (`"triumphant": 2.0`) |
+| `stage` | Lowest progression stage |
+| `when` | `any`, `day`, `night`, `sunset`, `sunrise`, `rain`, `thunder`, `clear` |
+| `needs` | Items it must carry (`{"item": "minecraft:wheat"}` or a tag `"#minecraft:small_flowers"`, with `count`) |
+| `duration`, `cooldown` | Ticks |
+| `gates` | Letters from docs/WHIMS.md: `G` griefing (hostile ones with griefing on), `M` multiplayer (someone about), `R` risky (cautious ones rarely), `L` later (off) |
+| `chat`, `thought` | Optional chat lines; the thought it logs |
+
+The whim goal scores from boredom (most), triumph, Fidget and Curiosity, less for the industrious, only when calm
+(healthy, fed, no danger, overworld, not deep underground, not out at night unless brave), with a 3 to 6 minute gap
+between whims. Setting: "Whims" (`/drifter config whims`).

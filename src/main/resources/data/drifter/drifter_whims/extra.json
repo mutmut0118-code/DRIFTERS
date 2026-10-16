@@ -1,0 +1,74 @@
+{
+	"whims": [
+		{
+			"id": "lamp_post", "category": "builds", "action": "build",
+			"params": {"blocks": [[0, 0, 0, "minecraft:oak_fence"], [0, 1, 0, "minecraft:oak_fence"], [0, 2, 0, "minecraft:torch"]],
+				"make": {"minecraft:oak_fence": "minecraft:oak_fence"}},
+			"needs": [{"item": "minecraft:oak_fence", "count": 2}, {"item": "minecraft:torch"}], "stage": 4,
+			"archetypes": {"builder": 2.0, "homebody": 1.5}, "traits": {"creativity": 0.5, "tidiness": 0.3}, "cooldown": 72000,
+			"thought": "putting up a lamp post"
+		},
+		{
+			"id": "little_bench", "category": "builds", "action": "build",
+			"params": {"blocks": [[0, 0, 0, "minecraft:oak_stairs"], [1, 0, 0, "minecraft:oak_stairs"]],
+				"make": {"minecraft:oak_stairs": "minecraft:oak_stairs"}},
+			"needs": [{"item": "minecraft:oak_stairs", "count": 2}], "stage": 4,
+			"archetypes": {"builder": 2.0, "homebody": 1.5, "hermit": 1.2}, "traits": {"creativity": 0.5}, "cooldown": 96000,
+			"thought": "making a little bench to sit on"
+		},
+		{
+			"id": "flower_bed", "category": "builds", "action": "build",
+			"params": {"blocks": [[0, 0, 0, "#minecraft:small_flowers"], [1, 0, 0, "#minecraft:small_flowers"], [2, 0, 0, "#minecraft:small_flowers"]]},
+			"needs": [{"item": "#minecraft:small_flowers", "count": 3}], "stage": 4,
+			"archetypes": {"homebody": 2.0, "builder": 1.5, "hoarder": 0.5}, "traits": {"creativity": 0.5}, "cooldown": 72000,
+			"thought": "planting a little flower bed"
+		},
+		{
+			"id": "warning_sign", "category": "builds", "action": "sign",
+			"params": {"lines": ["careful", "dont fall", "watch out", "danger", "creepers around here"],
+				"make": {"#minecraft:signs": "minecraft:oak_sign"}},
+			"needs": [{"item": "#minecraft:signs"}],
+			"archetypes": {"helper": 2.0, "newbie": 1.2}, "traits": {"caution": 0.5}, "moods": {"anxious": 1.5}, "cooldown": 96000,
+			"thought": "putting up a warning sign"
+		},
+		{
+			"id": "give_a_spare_tool", "category": "social", "action": "gift", "gates": "M",
+			"params": {"items": ["#minecraft:pickaxes", "#minecraft:axes", "#minecraft:shovels", "#minecraft:swords"], "keep": 1},
+			"archetypes": {"helper": 2.5, "casual": 1.0, "bandit": 0.1, "hoarder": 0.2}, "traits": {"sociability": 0.6, "greed": -0.6},
+			"cooldown": 48000, "thought": "giving a friend a spare tool"
+		},
+		{
+			"id": "good_morning", "category": "social", "action": "chat", "gates": "M", "when": "sunrise",
+			"params": {"lines": ["gm", "morning", "good morning", "mornin"]},
+			"archetypes": {"helper": 1.5, "casual": 1.2, "hermit": 0.2}, "traits": {"sociability": 0.8}, "cooldown": 20000,
+			"thought": "saying good morning"
+		},
+		{
+			"id": "good_night", "category": "social", "action": "chat", "gates": "M", "when": "sunset",
+			"params": {"lines": ["gn", "night", "going to bed", "night all"]},
+			"archetypes": {"helper": 1.5, "casual": 1.2, "homebody": 1.3, "hermit": 0.2}, "traits": {"sociability": 0.8}, "cooldown": 20000,
+			"thought": "saying good night"
+		},
+		{
+			"id": "tidy_its_chest", "category": "micro", "action": "peek_chest", "stage": 4,
+			"archetypes": {"homebody": 1.5, "builder": 1.3}, "traits": {"tidiness": 0.8}, "cooldown": 24000,
+			"thought": "tidying its chest (again)"
+		},
+		{
+			"id": "watch_zombies_burn", "category": "mobs", "action": "watch_mob", "params": {"mobs": ["minecraft:zombie", "minecraft:skeleton", "minecraft:husk"], "range": 20},
+			"when": "sunrise", "gates": "R",
+			"archetypes": {"pvp_sweat": 1.5, "newbie": 1.5, "speedrunner": 1.2}, "traits": {"bravery": 0.5}, "duration": 120, "cooldown": 24000,
+			"thought": "watching a zombie burn in the morning sun"
+		},
+		{
+			"id": "see_the_village", "category": "exploration", "action": "visit", "params": {"kind": "landmark", "labels": ["village"], "radius": 128},
+			"when": "day", "archetypes": {"newbie": 1.5, "helper": 1.5, "homebody": 1.2, "bandit": 1.3}, "traits": {"curiosity": 0.5, "sociability": 0.3},
+			"duration": 100, "cooldown": 72000, "thought": "going to have a look at the village"
+		},
+		{
+			"id": "climb_a_mountain", "category": "exploration", "action": "visit", "params": {"kind": "landmark", "labels": ["mountain"], "radius": 160},
+			"when": "day", "archetypes": {"nomad": 2.0, "miner": 1.2, "homebody": 0.4}, "traits": {"curiosity": 0.6, "bravery": 0.3},
+			"duration": 100, "cooldown": 96000, "thought": "off to climb the mountain it saw"
+		}
+	]
+}

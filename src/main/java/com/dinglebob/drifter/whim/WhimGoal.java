@@ -143,7 +143,8 @@ public final class WhimGoal extends Goals.Goal {
 		state(drifter).did(whim.id(), now);
 		this.nextGap = GAP + drifter.getRandom().nextInt((int)GAP);
 		this.running = whim;
-		this.runningScore = Math.max(0.3, score);
+		// Once started it sees it through (a few minutes at most): only something that matters more stops it.
+		this.runningScore = Math.max(0.65, score);
 		drifter.getMemory().thoughts().add(now, whim.thought());
 		if (!whim.chat().isEmpty() && drifter.getRandom().nextFloat() < 0.5F) {
 			WhimActions.say(drifter, whim.chat().get(drifter.getRandom().nextInt(whim.chat().size())));
