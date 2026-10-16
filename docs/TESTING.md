@@ -1293,3 +1293,20 @@ they get close, ghasts, blazes), and switch to the sword up close.
       - Pillager outposts: about half are held by 3 Bandit Drifters ("...'s Raiders") living by the tower. No pillagers
         there while they hold it. They don't build huts there. `/locate structure minecraft:pillager_outpost`. Careful:
         Bandits are hostile.
+
+## Milestone 13: Whims (in progress)
+
+Whims are the things Drifters do just for fun when nothing's pressing: watch a sunset, climb up for the view, feed a
+cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do them more; who they are decides which.
+- [ ] Watch a Drifter that has settled in for a while (a day or two): now and then it does something for no reason. Its
+      thoughts show it ("watching the sunset", "climbing up for the view", "feeding an animal on the way past"...),
+      `/drifter list` shows what it's doing, and sometimes it says something in chat ("nice view").
+- [ ] `/drifter whims` next to a Drifter: every whim with how much this one likes it (+ = it could do it right now,
+      - = not now: wrong time, nothing about to do it with, or done recently).
+- [ ] `/drifter whim <name>` makes the nearest one do a whim right now, for example `/drifter whim watch_sunset` (best
+      near sunset), `/drifter whim hop_about`, `/drifter whim was_here_sign` (it makes a sign if it has planks and a
+      stick, and writes on it), `/drifter whim view_from_the_top`, `/drifter whim feed_an_animal` (give it wheat first:
+      `/drifter give minecraft:wheat 4`, near a cow).
+- [ ] Different Drifters lean different ways: hermits watch the sky, homebodies feed animals and plant saplings and
+      flowers, nomads climb up for views and go to see places, newbies hop about and put up silly signs.
+- [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.

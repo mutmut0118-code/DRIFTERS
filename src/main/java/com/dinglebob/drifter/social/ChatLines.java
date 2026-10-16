@@ -50,6 +50,31 @@ public final class ChatLines {
 	private static final Map<String, Long> lastKind = new HashMap<>();
 	private static final java.util.ArrayDeque<Long> recent = new java.util.ArrayDeque<>();
 
+	/** A line of its own (a whim's), under the same rate limits and setting as the canned ones. */
+	public static void sayLine(DrifterEntity drifter, String text) {
+		MinecraftServer server = drifter.getServer();
+		if (!DrifterConfig.chatLines() || server == null) {
+			return;
+		}
+
+		long now = drifter.level().getGameTime();
+		if (now - lastLine.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < PER_DRIFTER) {
+			return;
+		}
+
+		while (!recent.isEmpty() && now - recent.peekFirst() > WINDOW) {
+			recent.pollFirst();
+		}
+
+		if (recent.size() >= SERVER_CAP) {
+			return;
+		}
+
+		lastLine.put(drifter.getUUID(), now);
+		recent.addLast(now);
+		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + text), false);
+	}
+
 	/** It might say something about this (personality and rate limits decide). */
 	public static void say(DrifterEntity drifter, Kind kind) {
 		MinecraftServer server = drifter.getServer();

@@ -1,0 +1,19 @@
+{
+	"whims": [
+		{
+			"id": "view_from_the_top", "category": "exploration", "action": "high_point", "params": {"radius": 40, "rise": 8}, "when": "day",
+			"archetypes": {"nomad": 2.0, "builder": 1.5, "hermit": 1.5, "miner": 0.6}, "traits": {"curiosity": 0.5},
+			"duration": 200, "cooldown": 48000, "chat": ["nice view", "woah", "you can see so far from here"],
+			"thought": "climbing up for the view"
+		},
+		{
+			"id": "visit_a_place", "category": "exploration", "action": "visit", "params": {"kind": "landmark", "radius": 96}, "when": "day",
+			"archetypes": {"nomad": 2.0, "newbie": 1.3, "homebody": 0.5}, "traits": {"curiosity": 0.8}, "duration": 100,
+			"cooldown": 48000, "thought": "going to see a place it spotted"
+		},
+		{
+			"id": "good_look_round", "category": "exploration", "action": "look_around", "params": {"times": 2}, "weight": 0.6,
+			"traits": {"curiosity": 0.4}, "cooldown": 6000, "thought": "having a good look round"
+		}
+	]
+}

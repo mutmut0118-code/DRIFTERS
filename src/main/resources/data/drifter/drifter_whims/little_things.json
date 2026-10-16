@@ -1,0 +1,24 @@
+{
+	"whims": [
+		{
+			"id": "pick_a_flower", "category": "micro", "action": "pick_flower", "params": {"radius": 20},
+			"archetypes": {"homebody": 1.5, "builder": 1.5, "hoarder": 1.5, "newbie": 1.5, "pvp_sweat": 0.3}, "cooldown": 12000,
+			"thought": "picking a flower"
+		},
+		{
+			"id": "light_a_dark_spot", "category": "micro", "action": "torch_dark", "params": {"radius": 10},
+			"archetypes": {"homebody": 1.5, "builder": 1.3}, "traits": {"tidiness": 0.5, "caution": 0.5}, "cooldown": 6000,
+			"thought": "lighting up a dark spot"
+		},
+		{
+			"id": "plant_a_sapling", "category": "micro", "action": "plant_sapling", "params": {"radius": 12},
+			"archetypes": {"homebody": 2.0, "builder": 1.5}, "traits": {"tidiness": 0.5}, "cooldown": 12000,
+			"thought": "planting a sapling"
+		},
+		{
+			"id": "peek_in_chest", "category": "micro", "action": "peek_chest", "stage": 4,
+			"archetypes": {"hoarder": 2.0, "homebody": 1.5}, "traits": {"greed": 0.4}, "cooldown": 12000,
+			"thought": "having a look in its chest"
+		}
+	]
+}

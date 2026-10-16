@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, 16 action types, 38 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
 ## Milestone 0: Project setup
@@ -1361,6 +1361,32 @@ Plan (DESIGN.md section 21, section 4 "Optional world-gen camps", section 23 con
   Debug: `/drifter rob` takes the valuables out of the nearest one's chests (a simulated theft: it goes and checks).
 - Step 6: a settings screen in Mod Menu (Mod Menu is compile-only, from maven.terraformersmc.com; user approved
   2026-10-16): every drifter.json setting, applied at once, saved on Done. Not testable on the headless server: in-game.
+
+## Milestone 13: Whim system (started 2026-10-16)
+
+Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
+1. **Engine:** whim data files (`data/<namespace>/drifter_whims/*.json`, datapack-friendly), the whim goal (bored or
+   triumphant Drifters with nothing urgent pick one, weighted by archetype, traits and mood), gates ([G] griefing, [M]
+   multiplayer, [R] risky, [L] later), cooldowns per whim and a gap between any two, a setting, and commands.
+2. **Action types** (each a small player routine whims fill in): watch the sky, lookout pillar, high point, visit a place,
+   watch or feed an animal, hop (on the spot or on its bed), swim, pick a flower, light a dark spot, plant a sapling, a
+   sign with text, a little build from a pattern, chat, look round, peek in a chest. Later: riding, fishing, music,
+   collections, trophy rooms, pranks ([G]), roleplay.
+3. **Vanilla whims** from docs/WHIMS.md, a category at a time (first set: about 35 across movement, builds, sky and
+   weather, exploration, animals, little things, social).
+4. **Modded whims** behind mod detection (`"requires_mod"` in a whim's params), after the vanilla ones.
+
+**Done so far (2026-10-16):**
+- Steps 1 and 2 (first part): `whim/` package. `Whims` loads `drifter_whims` data (38 whims in 8 files at first); a whim
+  says its action and parameters, base weight, archetype and trait weights, moods that make it likelier, the stage it
+  needs, when it fits (day, night, sunset, sunrise, rain, thunder, clear), what it needs to carry (or can make quickly:
+  `"make"` maps a need to the item it crafts, never with a mining trip or a search), duration, cooldown and gates.
+  `WhimGoal` (a goal like any other) scores from boredom, triumph, Fidget and Curiosity, less for the industrious, and
+  only when it's calm (healthy, fed, no danger, overworld, not deep underground, not out at night unless brave); a 3 to
+  6 minute gap between whims. 16 action types in `WhimActions`. Setting "Whims" (screen, `/drifter config whims`);
+  `/drifter whims`, `/drifter whim <id>`. Saved per Drifter (when it last did each). Tested: forced hop, sign (crafted
+  one from planks and a stick and wrote on it), view from the top, sapling; in a natural 2-day run three Drifters did 5
+  whims (hops, clouds, a look round, a "hi from Ann" sign).
 
 ## Ideas for more assumptions (for the user to pick from)
 

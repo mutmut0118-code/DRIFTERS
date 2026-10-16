@@ -1,0 +1,274 @@
+{
+	"whims": [
+		{
+			"id": "snow_golem",
+			"category": "builds",
+			"action": "build",
+			"params": {
+				"blocks": [
+					[
+						0,
+						0,
+						0,
+						"minecraft:snow_block"
+					],
+					[
+						0,
+						1,
+						0,
+						"minecraft:snow_block"
+					],
+					[
+						0,
+						2,
+						0,
+						"minecraft:carved_pumpkin"
+					]
+				]
+			},
+			"needs": [
+				{
+					"item": "minecraft:snow_block",
+					"count": 2
+				},
+				{
+					"item": "minecraft:carved_pumpkin"
+				}
+			],
+			"archetypes": {
+				"builder": 2.0,
+				"homebody": 1.5,
+				"newbie": 1.5
+			},
+			"traits": {
+				"creativity": 0.5
+			},
+			"cooldown": 72000,
+			"chat": [
+				"made a snowman"
+			],
+			"thought": "building a snow golem"
+		},
+		{
+			"id": "little_monument",
+			"category": "builds",
+			"action": "build",
+			"params": {
+				"blocks": [
+					[
+						0,
+						0,
+						0,
+						"minecraft:cobblestone"
+					],
+					[
+						0,
+						1,
+						0,
+						"minecraft:cobblestone"
+					],
+					[
+						0,
+						2,
+						0,
+						"minecraft:cobblestone"
+					],
+					[
+						0,
+						3,
+						0,
+						"minecraft:torch"
+					]
+				]
+			},
+			"needs": [
+				{
+					"item": "minecraft:cobblestone",
+					"count": 3
+				},
+				{
+					"item": "minecraft:torch"
+				}
+			],
+			"stage": 2,
+			"archetypes": {
+				"builder": 2.0,
+				"newbie": 1.5,
+				"speedrunner": 0.3
+			},
+			"traits": {
+				"creativity": 0.6
+			},
+			"cooldown": 72000,
+			"thought": "putting up a little monument"
+		},
+		{
+			"id": "campfire_spot",
+			"category": "builds",
+			"action": "build",
+			"params": {
+				"blocks": [
+					[
+						0,
+						0,
+						0,
+						"#minecraft:logs"
+					],
+					[
+						1,
+						0,
+						0,
+						"minecraft:campfire"
+					],
+					[
+						2,
+						0,
+						0,
+						"#minecraft:logs"
+					]
+				],
+				"make": {
+					"minecraft:campfire": "minecraft:campfire"
+				}
+			},
+			"needs": [
+				{
+					"item": "minecraft:campfire"
+				},
+				{
+					"item": "#minecraft:logs",
+					"count": 2
+				}
+			],
+			"archetypes": {
+				"nomad": 2.0,
+				"hermit": 1.5,
+				"builder": 1.3
+			},
+			"cooldown": 72000,
+			"thought": "setting up a campfire spot"
+		},
+		{
+			"id": "was_here_sign",
+			"category": "builds",
+			"action": "sign",
+			"params": {
+				"lines": [
+					"{name} was here",
+					"{name} wuz here",
+					"{name}'s spot",
+					"hi from {name}"
+				],
+				"make": {
+					"#minecraft:signs": "minecraft:oak_sign"
+				}
+			},
+			"needs": [
+				{
+					"item": "#minecraft:signs"
+				}
+			],
+			"archetypes": {
+				"newbie": 2.0,
+				"builder": 1.5,
+				"nomad": 1.5
+			},
+			"traits": {
+				"creativity": 0.3
+			},
+			"cooldown": 72000,
+			"thought": "putting up a sign"
+		},
+		{
+			"id": "home_sign",
+			"category": "builds",
+			"action": "sign",
+			"params": {
+				"lines": [
+					"home sweet home",
+					"{name}'s house",
+					"{group}",
+					"welcome"
+				],
+				"make": {
+					"#minecraft:signs": "minecraft:oak_sign"
+				}
+			},
+			"needs": [
+				{
+					"item": "#minecraft:signs"
+				}
+			],
+			"stage": 4,
+			"archetypes": {
+				"homebody": 2.0,
+				"builder": 1.5,
+				"hermit": 0.3
+			},
+			"cooldown": 120000,
+			"thought": "putting a sign up at home"
+		},
+		{
+			"id": "day_count_sign",
+			"category": "builds",
+			"action": "sign",
+			"params": {
+				"lines": [
+					"day {day}",
+					"survived day {day}",
+					"day {day} still alive"
+				],
+				"make": {
+					"#minecraft:signs": "minecraft:oak_sign"
+				}
+			},
+			"needs": [
+				{
+					"item": "#minecraft:signs"
+				}
+			],
+			"archetypes": {
+				"speedrunner": 1.5,
+				"casual": 1.2
+			},
+			"moods": {
+				"triumphant": 1.5
+			},
+			"cooldown": 96000,
+			"thought": "marking the day on a sign"
+		},
+		{
+			"id": "flower_pot_by_door",
+			"category": "builds",
+			"action": "build",
+			"params": {
+				"blocks": [
+					[
+						0,
+						0,
+						0,
+						"minecraft:flower_pot"
+					]
+				],
+				"make": {
+					"minecraft:flower_pot": "minecraft:flower_pot"
+				}
+			},
+			"needs": [
+				{
+					"item": "minecraft:flower_pot"
+				}
+			],
+			"stage": 4,
+			"archetypes": {
+				"homebody": 2.0,
+				"builder": 1.5
+			},
+			"traits": {
+				"creativity": 0.5
+			},
+			"cooldown": 120000,
+			"thought": "putting out a flower pot"
+		}
+	]
+}

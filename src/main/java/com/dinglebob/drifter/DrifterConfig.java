@@ -74,6 +74,17 @@ public final class DrifterConfig {
 		boolean worldgenOutposts = true;
 		/** Drifter groups fall into feuds, skirmish and raid each other (section 21 "Drifter team wars"). */
 		boolean drifterWars = true;
+		/** Whims: the things they do just for fun (milestone 13, docs/WHIMS.md). */
+		boolean whims = true;
+	}
+
+	public static boolean whims() {
+		return data.whims;
+	}
+
+	public static void setWhims(boolean on) {
+		data.whims = on;
+		save();
 	}
 
 	public static boolean drifterWars() {

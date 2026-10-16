@@ -231,6 +231,11 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setDrifterAggression(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "value"));
 					return showConfig(ctx);
 				}))))
+			.then(Commands.literal("whims")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setWhims(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
 			.then(Commands.literal("wars")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setDrifterWars(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -291,6 +296,7 @@ public final class DrifterCommands {
 		BrainCommands.register(root);
 		PersonalityCommands.register(root);
 		SocialCommands.register(root);
+		WhimCommands.register(root);
 
 		dispatcher.register(root);
 	}

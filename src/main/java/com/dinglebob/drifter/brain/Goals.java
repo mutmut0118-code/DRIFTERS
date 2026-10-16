@@ -2185,6 +2185,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
 		goals.add(new GroupBanner());
+		// Whims (milestone 13, docs/WHIMS.md).
+		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);

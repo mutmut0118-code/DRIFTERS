@@ -1,0 +1,21 @@
+{
+	"whims": [
+		{
+			"id": "small_talk", "category": "social", "action": "chat", "gates": "M",
+			"params": {"lines": ["hows it going", "nice day", "anyone got food", "found some iron earlier", "this place is nice", "what are you up to"]},
+			"archetypes": {"helper": 2.0, "casual": 1.2, "hermit": 0.2}, "traits": {"sociability": 0.8}, "cooldown": 12000,
+			"thought": "making small talk"
+		},
+		{
+			"id": "brag", "category": "social", "action": "chat", "gates": "M",
+			"params": {"lines": ["got diamonds btw", "my base is better", "ez", "not even hard"]},
+			"archetypes": {"pvp_sweat": 2.0, "speedrunner": 1.5, "helper": 0.3}, "moods": {"triumphant": 2.0, "confident": 1.0},
+			"cooldown": 24000, "thought": "bragging a bit"
+		},
+		{
+			"id": "say_bored", "category": "social", "action": "chat", "gates": "M",
+			"params": {"lines": ["bored", "nothing to do", "so bored rn"]},
+			"archetypes": {"newbie": 1.5}, "moods": {"bored": 2.0}, "cooldown": 24000, "thought": "saying it's bored"
+		}
+	]
+}

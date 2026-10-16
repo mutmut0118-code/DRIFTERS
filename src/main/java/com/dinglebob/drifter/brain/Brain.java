@@ -597,6 +597,19 @@ public class Brain {
 		return false;
 	}
 
+	/** Its whims: what it did when (milestone 13). */
+	private final com.dinglebob.drifter.whim.WhimState whims = new com.dinglebob.drifter.whim.WhimState();
+
+	public com.dinglebob.drifter.whim.WhimState whims() {
+		return this.whims;
+	}
+
+	/** One of its goals by id, or null. */
+	@Nullable
+	public Goals.Goal goal(String id) {
+		return this.goals.stream().filter(goal -> goal.id().equals(id)).findFirst().orElse(null);
+	}
+
 	public List<String> goalIds() {
 		return this.goals.stream().map(Goals.Goal::id).toList();
 	}
@@ -617,6 +630,7 @@ public class Brain {
 		}
 
 		tag.putLong("LastNetherTrip", this.lastNetherTrip);
+		tag.put("Whims", this.whims.save());
 		return tag;
 	}
 
@@ -626,6 +640,7 @@ public class Brain {
 		this.home = tag.contains("Home", net.minecraft.nbt.Tag.TAG_COMPOUND) ? Home.load(tag.getCompound("Home")) : null;
 		this.netherTrip = tag.contains("NetherTrip", net.minecraft.nbt.Tag.TAG_COMPOUND) ? NetherTrip.load(tag.getCompound("NetherTrip")) : null;
 		this.lastNetherTrip = tag.getLong("LastNetherTrip");
+		this.whims.load(tag.getCompound("Whims"));
 		this.furnaceJobs.clear();
 		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
 		for (int i = 0; i < jobs.size(); i++) {

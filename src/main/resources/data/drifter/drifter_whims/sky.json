@@ -1,0 +1,39 @@
+{
+	"whims": [
+		{
+			"id": "watch_sunset", "category": "exploration", "action": "watch_sky", "params": {"what": "sun"}, "when": "sunset",
+			"archetypes": {"hermit": 2.0, "builder": 1.5, "nomad": 1.5, "speedrunner": 0.3}, "traits": {"curiosity": 0.3, "patience": 0.4},
+			"duration": 400, "cooldown": 24000, "chat": ["sunset :)", "pretty"], "thought": "watching the sunset"
+		},
+		{
+			"id": "watch_sunrise", "category": "exploration", "action": "watch_sky", "params": {"what": "sun"}, "when": "sunrise",
+			"archetypes": {"hermit": 2.0, "homebody": 1.5, "speedrunner": 0.3}, "traits": {"patience": 0.4},
+			"duration": 300, "cooldown": 24000, "thought": "watching the sun come up"
+		},
+		{
+			"id": "watch_moon", "category": "exploration", "action": "watch_sky", "params": {"what": "moon"}, "when": "night", "gates": "R",
+			"archetypes": {"hermit": 2.0, "nomad": 1.3}, "traits": {"patience": 0.4}, "duration": 200, "cooldown": 48000,
+			"thought": "looking at the moon"
+		},
+		{
+			"id": "stargazing", "category": "exploration", "action": "watch_sky", "params": {"what": "stars"}, "when": "night", "gates": "R",
+			"archetypes": {"hermit": 2.0, "builder": 1.2}, "traits": {"patience": 0.5}, "duration": 300, "cooldown": 48000,
+			"thought": "stargazing"
+		},
+		{
+			"id": "watch_clouds", "category": "exploration", "action": "watch_sky", "params": {"what": "clouds"}, "when": "clear", "weight": 0.6,
+			"archetypes": {"newbie": 1.5, "hermit": 1.5}, "moods": {"bored": 1.0}, "duration": 200, "cooldown": 24000,
+			"thought": "watching the clouds go by"
+		},
+		{
+			"id": "watch_rain", "category": "weather", "action": "watch_sky", "params": {"what": "rain"}, "when": "rain",
+			"archetypes": {"homebody": 1.5, "hermit": 1.5}, "traits": {"patience": 0.3}, "duration": 240, "cooldown": 24000,
+			"thought": "watching the rain"
+		},
+		{
+			"id": "watch_storm", "category": "weather", "action": "watch_sky", "params": {"what": "clouds"}, "when": "thunder", "gates": "R",
+			"archetypes": {"hermit": 1.5, "newbie": 1.5}, "duration": 200, "cooldown": 48000, "chat": ["big storm"],
+			"thought": "watching the storm"
+		}
+	]
+}

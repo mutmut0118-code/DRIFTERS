@@ -1,0 +1,81 @@
+package com.dinglebob.drifter.command;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+
+import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.whim.Whim;
+import com.dinglebob.drifter.whim.WhimGoal;
+import com.dinglebob.drifter.whim.Whims;
+
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.Component;
+
+/**
+ * Whim commands (milestone 13): {@code /drifter whims} lists the whims the nearest Drifter would go for now (with how
+ * much, and when it last did each), and {@code /drifter whim <id>} has it do one now (debug).
+ */
+public final class WhimCommands {
+	private WhimCommands() {
+	}
+
+	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
+		root.then(Commands.literal("whims").executes(WhimCommands::list));
+		root.then(Commands.literal("whim").then(Commands.argument("id", StringArgumentType.word())
+			.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Whims.all().stream().map(Whim::id), builder))
+			.executes(WhimCommands::force)));
+	}
+
+	private static int list(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		long now = drifter.level().getGameTime();
+		var state = WhimGoal.state(drifter);
+		List<Whim> all = Whims.all().stream().sorted(Comparator.comparingDouble((Whim w) -> -WhimGoal.weight(drifter, w))).toList();
+		say(ctx, String.format(Locale.ROOT, "%s: %d whims known, %d done so far (%s ago last)", DrifterCommands.label(drifter), all.size(), state.done,
+			state.done == 0 ? "never" : ((now - state.lastAny) / 20) + " s"));
+		int shown = 0;
+		for (Whim whim : all) {
+			double weight = WhimGoal.weight(drifter, whim);
+			boolean fits = weight > 0.0 && WhimGoal.fits(drifter, whim, null);
+			long last = state.lastDone(whim.id());
+			say(ctx, String.format(Locale.ROOT, "  %s %s: weight %.2f%s%s", fits ? "+" : "-", whim.id(), weight, fits ? "" : " (not now)",
+				last > Long.MIN_VALUE / 4 ? ", last " + ((now - last) / 1200) + " min ago" : ""));
+			if (++shown >= 30) {
+				break;
+			}
+		}
+
+		return all.size();
+	}
+
+	private static int force(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		String id = StringArgumentType.getString(ctx, "id");
+		Whim whim = Whims.byId(id);
+		if (whim == null) {
+			throw new SimpleCommandExceptionType(Component.literal("No whim called " + id)).create();
+		}
+
+		if (!(drifter.getDrifterBrain().goal("whim") instanceof WhimGoal goal)) {
+			throw new SimpleCommandExceptionType(Component.literal("It has no whim goal")).create();
+		}
+
+		goal.force(whim);
+		drifter.getDrifterBrain().force("whim");
+		say(ctx, DrifterCommands.label(drifter) + " now does: " + whim.thought());
+		return 1;
+	}
+
+	private static void say(CommandContext<CommandSourceStack> ctx, String text) {
+		ctx.getSource().sendSuccess(() -> Component.literal(text), false);
+	}
+}
