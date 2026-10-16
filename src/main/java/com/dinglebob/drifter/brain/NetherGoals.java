@@ -62,8 +62,11 @@ public final class NetherGoals {
 				return 0.0;
 			}
 
-			// Under fire and getting low: before anything else, fighting included.
-			if (drifter.getHealth() <= HURT_UNDER_FIRE && shootersAbout(drifter)) {
+			// Under fire and getting low: before anything else, fighting included. Once holed up it stays until healed (found
+			// in testing: a little better, it walked back out into the fireballs).
+			boolean holedUp = drifter.getDrifterBrain().currentGoal() instanceof HoleUp
+				&& drifter.getHealth() < com.dinglebob.drifter.brain.activity.HoleUpActivity.HEALED;
+			if (holedUp || drifter.getHealth() <= HURT_UNDER_FIRE && shootersAbout(drifter)) {
 				return 1.35;
 			}
 

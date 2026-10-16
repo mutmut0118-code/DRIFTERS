@@ -57,6 +57,14 @@ public class HoleUpActivity extends Activity {
 			return this.begin(new EatActivity(this.drifter));
 		}
 
+		// In the middle of its block first: standing near an edge its body is partly in the next block, and no wall can go there
+		// (found in testing: the wall on one side never went up, and fireballs came in through the gap).
+		net.minecraft.world.phys.Vec3 middle = net.minecraft.world.phys.Vec3.atBottomCenterOf(this.drifter.blockPosition());
+		if (!this.centered && this.drifter.onGround() && (Math.abs(this.drifter.getX() - middle.x) > 0.15 || Math.abs(this.drifter.getZ() - middle.z) > 0.15)) {
+			this.centered = true;
+			return this.begin(new com.dinglebob.drifter.executor.task.CenterOnBlockTask(this.drifter, middle));
+		}
+
 		BlockPos gap = this.gap();
 		if (gap != null && Tools.buildingBlockCount(this.drifter) > 0) {
 			this.tried.merge(gap, 1, Integer::sum);
@@ -68,6 +76,7 @@ public class HoleUpActivity extends Activity {
 	}
 
 	private boolean ate;
+	private boolean centered;
 	/** Tries per cell: one that failed gets one more go once its neighbours are up (they give it a face to go against). */
 	private final java.util.Map<BlockPos, Integer> tried = new java.util.HashMap<>();
 	private static final int TRIES = 2;
