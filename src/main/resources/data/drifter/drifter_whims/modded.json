@@ -1,0 +1,53 @@
+{
+	"whims": [
+		{
+			"id": "watch_exotic_animals", "category": "modded", "action": "watch_mob",
+			"params": {"requires_mod": "alexsmobs", "range": 20, "mobs": ["alexsmobs:elephant", "alexsmobs:gorilla", "alexsmobs:capuchin_monkey", "alexsmobs:gelada_monkey", "alexsmobs:kangaroo", "alexsmobs:emu", "alexsmobs:gazelle", "alexsmobs:rhinoceros", "alexsmobs:raccoon", "alexsmobs:platypus", "alexsmobs:roadrunner", "alexsmobs:bison", "alexsmobs:moose", "alexsmobs:sugar_glider", "alexsmobs:jerboa", "alexsmobs:anteater", "alexsmobs:maned_wolf", "alexsmobs:seal", "alexsmobs:terrapin", "alexsmobs:mudskipper", "alexsmobs:rain_frog", "alexsmobs:flying_fish", "alexsmobs:orca", "alexsmobs:cachalot_whale", "alexsmobs:banana_slug", "alexsmobs:skunk", "alexsmobs:tasmanian_devil"]},
+			"archetypes": {"nomad": 2.0, "newbie": 1.5, "homebody": 1.3, "speedrunner": 0.3}, "traits": {"curiosity": 0.7}, "duration": 200,
+			"cooldown": 12000, "thought": "stopping to watch an animal it's never seen before"
+		},
+		{
+			"id": "birdwatching", "category": "modded", "action": "watch_mob",
+			"params": {"requires_mod": "alexsmobs", "range": 24, "mobs": ["alexsmobs:crow", "alexsmobs:seagull", "alexsmobs:blue_jay", "alexsmobs:bald_eagle", "alexsmobs:toucan", "alexsmobs:hummingbird", "alexsmobs:sunbird", "alexsmobs:potoo", "alexsmobs:shoebill"]},
+			"when": "day", "archetypes": {"hermit": 2.0, "homebody": 1.3, "nomad": 1.3}, "traits": {"patience": 0.6}, "duration": 200,
+			"cooldown": 24000, "thought": "birdwatching"
+		},
+		{
+			"id": "watch_a_big_predator", "category": "modded", "action": "watch_mob", "gates": "R",
+			"params": {"requires_mod": "alexsmobs", "range": 28, "mobs": ["alexsmobs:grizzly_bear", "alexsmobs:tiger", "alexsmobs:snow_leopard", "alexsmobs:komodo_dragon", "alexsmobs:crocodile", "alexsmobs:caiman", "alexsmobs:anaconda"]},
+			"archetypes": {"pvp_sweat": 1.5, "nomad": 1.3, "newbie": 1.3}, "traits": {"bravery": 0.5, "curiosity": 0.4}, "duration": 80, "cooldown": 24000,
+			"thought": "keeping an eye on a big predator from a distance"
+		},
+		{
+			"id": "feed_a_monkey", "category": "modded", "action": "feed_mob",
+			"params": {"requires_mod": "alexsmobs", "food": {"alexsmobs:capuchin_monkey": "alexsmobs:banana", "alexsmobs:elephant": "alexsmobs:acacia_blossom"}},
+			"archetypes": {"helper": 1.5, "homebody": 1.5, "newbie": 1.5}, "traits": {"sociability": 0.3}, "cooldown": 24000,
+			"thought": "giving a monkey a banana"
+		},
+		{
+			"id": "make_a_knife", "category": "modded", "action": "craft",
+			"params": {"requires_mod": "farmersdelight", "items": ["farmersdelight:flint_knife", "farmersdelight:iron_knife"]},
+			"stage": 2, "archetypes": {"homebody": 2.0, "helper": 1.3, "casual": 1.2}, "traits": {"knowledge": 0.5}, "cooldown": 96000,
+			"thought": "making a knife (crops and animals give more with one)"
+		},
+		{
+			"id": "kitchen_cutting_board", "category": "modded", "action": "build",
+			"params": {"requires_mod": "farmersdelight", "blocks": [[0, 0, 0, "farmersdelight:cutting_board"]],
+				"make": {"farmersdelight:cutting_board": "farmersdelight:cutting_board"}},
+			"needs": [{"item": "farmersdelight:cutting_board"}], "stage": 4,
+			"archetypes": {"homebody": 2.0, "builder": 1.5}, "traits": {"creativity": 0.4}, "cooldown": 120000,
+			"thought": "setting up a cutting board for its kitchen"
+		},
+		{
+			"id": "watch_the_stew", "category": "modded", "action": "watch_block",
+			"params": {"requires_mod": "farmersdelight", "blocks": ["farmersdelight:cooking_pot", "farmersdelight:stove", "farmersdelight:skillet"], "radius": 16},
+			"archetypes": {"homebody": 2.0, "hermit": 1.3}, "traits": {"patience": 0.5}, "duration": 120, "cooldown": 24000,
+			"thought": "watching the stew bubble"
+		},
+		{
+			"id": "slice_of_pie", "category": "modded", "action": "use_block",
+			"params": {"requires_mod": "farmersdelight", "blocks": ["farmersdelight:apple_pie", "farmersdelight:chocolate_pie", "farmersdelight:sweet_berry_cheesecake"], "gap": 20},
+			"archetypes": {"homebody": 1.5, "newbie": 1.5}, "moods": {"triumphant": 2.0}, "cooldown": 24000, "thought": "having a slice of pie"
+		}
+	]
+}

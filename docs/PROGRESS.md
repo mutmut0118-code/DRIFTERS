@@ -1412,6 +1412,11 @@ Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
   trapdoor, a tune on a note block, a record in a jukebox, composting seeds, cooking on a campfire, a slice of cake,
   sitting in a parked boat. All tested. Found: boats and minecarts scooped up a Drifter that bumped into them (as they do
   mobs, never players): it now only rides when it means to. Bells ring only struck on the right side (it aims there).
+- Step 4 started, modded whims (data only, `requires_mod`, left out without the mod: "loaded 100 whims (8 left out)"):
+  Alex's Mobs (watching animals it's never seen, birdwatching, a big predator from afar, a banana for a monkey) and
+  Farmer's Delight (a knife, a cutting board, watching the stew, a slice of pie). IDs taken from the jars in the user's
+  meridian profile. Not tested in play: Farmer's Delight doesn't load in the development server (a remapping error in the
+  dev environment, not Drifter); to check in the meridian pack.
 - Fixed from the 10-day runs: it crouches on magma whenever it's on it, moving or in water too (one worked on underwater
   magma, walking about, until it died).
 
