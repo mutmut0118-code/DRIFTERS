@@ -44,6 +44,19 @@ public final class HousePalette {
 		this.deepslate = deepslate;
 	}
 
+	/** A saved palette (the one it picked when it chose the plan). */
+	public static HousePalette of(Map<String, String> woods, boolean deepslate) {
+		return new HousePalette(Map.copyOf(woods), deepslate);
+	}
+
+	public Map<String, String> woods() {
+		return this.woods;
+	}
+
+	public boolean deepslate() {
+		return this.deepslate;
+	}
+
 	/** As the plan is: nothing swapped. */
 	public static HousePalette asDrawn() {
 		return new HousePalette(Map.of(), false);

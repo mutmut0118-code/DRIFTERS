@@ -38,6 +38,7 @@ public final class HouseCommands {
 	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
 		root.then(Commands.literal("houses").executes(HouseCommands::list));
 		root.then(Commands.literal("house")
+			.then(Commands.literal("status").executes(HouseCommands::status))
 			.then(Commands.literal("info").then(plan().executes(HouseCommands::info)))
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
 			.then(Commands.literal("paste").then(plan().executes(ctx -> paste(ctx, false))
@@ -75,6 +76,33 @@ public final class HouseCommands {
 		}
 
 		return plans.size();
+	}
+
+	/** The nearest Drifter's house from a plan: which, where, how far along. */
+	private static int status(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var home = drifter.getDrifterBrain().home();
+		if (home == null || home.planId == null || home.planOrigin == null) {
+			say(ctx, DrifterCommands.label(drifter) + " hasn't picked a house plan yet");
+			return 0;
+		}
+
+		HousePlan plan = HousePlans.get(ctx.getSource().getServer(), home.planId);
+		if (plan == null) {
+			say(ctx, DrifterCommands.label(drifter) + "'s plan " + home.planId + " is gone");
+			return 0;
+		}
+
+		var placed = com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home);
+		var level = drifter.level();
+		long done = placed.build.stream().filter(c -> com.dinglebob.drifter.hands.Placement.matches(level.getBlockState(c.pos()), c.state())).count();
+		BlockPos far = home.planOrigin.offset(placed.sizeX - 1, placed.sizeY - 1, placed.sizeZ - 1);
+		BlockPos bed = home.planBed(level);
+		say(ctx, String.format(Locale.ROOT, "%s's house: %s from %s to %s, turned %s, in %s; %d of %d blocks placed%s%s", DrifterCommands.label(drifter),
+			home.planId, home.planOrigin.toShortString(), far.toShortString(), home.planRotation.toLowerCase(Locale.ROOT),
+			com.dinglebob.drifter.building.plan.HousePalette.of(home.planWoods, home.planDeepslate).describe(), done, placed.build.size(),
+			home.planDone ? " (finished)" : "", bed != null ? "; lives in it (bed at " + bed.toShortString() + ")" : ""));
+		return 1;
 	}
 
 	private static int info(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

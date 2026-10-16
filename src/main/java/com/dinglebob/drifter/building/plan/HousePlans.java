@@ -86,7 +86,26 @@ public final class HousePlans {
 
 	@Nullable
 	public static HousePlan get(MinecraftServer server, String id) {
-		return all(server).get(id);
+		return cached(server).get(id);
+	}
+
+	private static Map<String, HousePlan> cache = Map.of();
+	private static long cachedAt = Long.MIN_VALUE / 2;
+
+	/** The plans, read again at most once a minute (for the brain, which asks often). */
+	public static Map<String, HousePlan> cached(MinecraftServer server) {
+		long now = System.currentTimeMillis();
+		if (now - cachedAt > 60_000L) {
+			cache = all(server);
+			cachedAt = now;
+		}
+
+		return cache;
+	}
+
+	/** Forget the cache (a plan was just imported or kept). */
+	public static void invalidate() {
+		cachedAt = Long.MIN_VALUE / 2;
 	}
 
 	/** Saves a plan's structure tag into the personal folder (an import, or a world plan kept for every world). */
@@ -95,6 +114,7 @@ public final class HousePlans {
 		Files.createDirectories(folder);
 		Path file = folder.resolve(name.replaceAll("[^a-z0-9_]", "_") + ".nbt");
 		NbtIo.writeCompressed(structure, file);
+		invalidate();
 		return file;
 	}
 

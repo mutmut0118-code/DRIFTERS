@@ -63,6 +63,23 @@ public final class Home {
 	public String houseStyle = "";
 	public boolean houseBuilt;
 
+	/**
+	 * Its house from a plan (house plans, 2026-10-16): which plan, where its corner is (at the level of its lowest layer),
+	 * how it's turned, the woods it's building it in (plan wood → its wood) and deepslate for cobblestone, and whether it's
+	 * finished. Fixed when it picks the plan, so the house doesn't change halfway.
+	 */
+	@Nullable
+	public String planId;
+	@Nullable
+	public BlockPos planOrigin;
+	public String planRotation = "NONE";
+	public final java.util.Map<String, String> planWoods = new java.util.HashMap<>();
+	public boolean planDeepslate;
+	public boolean planDone;
+	/** Its bed in the planned house, once it has moved in. */
+	@Nullable
+	public BlockPos planBed;
+
 	/** When it last looked for a spot for a pen and found none (not saved): it looks again later. */
 	public long penFailedAt = Long.MIN_VALUE / 2;
 
@@ -195,11 +212,18 @@ public final class Home {
 		return this.houseBed != null || this.outpost;
 	}
 
-	/** Its bed in the village house, if it's still there. */
+	/** Its bed in the village house, or in the house it built from a plan, if it's still there. */
 	@Nullable
 	public BlockPos houseBed(net.minecraft.world.level.Level level) {
 		return this.houseBed != null && level.getBlockState(this.houseBed).getBlock() instanceof net.minecraft.world.level.block.BedBlock
-			? this.houseBed : null;
+			? this.houseBed : this.planBed(level);
+	}
+
+	/** Its bed in the house it built from a plan, once it has moved in (the hut is a shed from then on). */
+	@Nullable
+	public BlockPos planBed(net.minecraft.world.level.Level level) {
+		return this.planDone && this.planBed != null && level.getBlockState(this.planBed).getBlock() instanceof net.minecraft.world.level.block.BedBlock
+			? this.planBed : null;
 	}
 	/** Its mine (section 10.3): the bottom of the staircase it dug from home, which way it went, and trips made from it. */
 	@Nullable
@@ -376,6 +400,23 @@ public final class Home {
 			tag.putBoolean("HouseBuilt", this.houseBuilt);
 		}
 
+		if (this.planId != null && this.planOrigin != null) {
+			CompoundTag plan = new CompoundTag();
+			plan.putString("Id", this.planId);
+			plan.put("Origin", NbtUtils.writeBlockPos(this.planOrigin));
+			plan.putString("Rotation", this.planRotation);
+			CompoundTag woods = new CompoundTag();
+			this.planWoods.forEach(woods::putString);
+			plan.put("Woods", woods);
+			plan.putBoolean("Deepslate", this.planDeepslate);
+			plan.putBoolean("Done", this.planDone);
+			if (this.planBed != null) {
+				plan.put("Bed", NbtUtils.writeBlockPos(this.planBed));
+			}
+
+			tag.put("Plan", plan);
+		}
+
 		if (this.mineBottom != null && this.mineDirection != null) {
 			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
 			tag.putString("MineDirection", this.mineDirection.getName());
@@ -430,6 +471,20 @@ public final class Home {
 		home.houseWall = tag.getInt("HouseWall");
 		home.houseStyle = tag.getString("HouseStyle");
 		home.houseBuilt = tag.getBoolean("HouseBuilt");
+		if (tag.contains("Plan", Tag.TAG_COMPOUND)) {
+			CompoundTag plan = tag.getCompound("Plan");
+			home.planId = plan.getString("Id");
+			home.planOrigin = NbtUtils.readBlockPos(plan, "Origin").orElse(null);
+			home.planRotation = plan.getString("Rotation").isEmpty() ? "NONE" : plan.getString("Rotation");
+			CompoundTag woods = plan.getCompound("Woods");
+			for (String key : woods.getAllKeys()) {
+				home.planWoods.put(key, woods.getString(key));
+			}
+
+			home.planDeepslate = plan.getBoolean("Deepslate");
+			home.planDone = plan.getBoolean("Done");
+			home.planBed = NbtUtils.readBlockPos(plan, "Bed").orElse(null);
+		}
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
 		home.mineTrips = tag.getInt("MineTrips");

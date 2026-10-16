@@ -34,16 +34,27 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class Placement {
 	/** One way to place it: click this face of this block, on this spot of it (0 to 1 in the block), looking this way. */
-	public record Way(BlockPos support, Direction face, Vec3 local, Direction yaw, float pitch, int rotation16) {
-		/** The part of the face that gives the same result: the same side of the middle on the face's two axes. */
+	public record Way(BlockPos support, Direction face, Vec3 local, Direction yaw, float pitch, int rotation16, boolean freeX, boolean freeY, boolean freeZ) {
+		/**
+		 * The part of the face that gives the same result: the same side of the middle on the face's axes that matter (where
+		 * the click lands only matters for some blocks; found in testing: a slab on the floor of a one-block hole, whose
+		 * bottom it could only see a sliver of, was "out of reach" for want of one quarter of it).
+		 */
+		@Nullable
 		public Predicate<Vec3> region() {
 			Direction.Axis axis = this.face.getAxis();
+			boolean fx = this.freeX || axis == Direction.Axis.X;
+			boolean fy = this.freeY || axis == Direction.Axis.Y;
+			boolean fz = this.freeZ || axis == Direction.Axis.Z;
+			if (fx && fy && fz) {
+				return null;
+			}
+
 			Vec3 want = this.local;
-			return hit -> (axis == Direction.Axis.X || side(hit.x) == side(want.x)) && (axis == Direction.Axis.Y || side(hit.y) == side(want.y))
-				&& (axis == Direction.Axis.Z || side(hit.z) == side(want.z));
+			return hit -> (fx || side(hit.x) == side(want.x)) && (fy || side(hit.y) == side(want.y)) && (fz || side(hit.z) == side(want.z));
 		}
 
-		private static int side(double v) {
+		static int side(double v) {
 			return v < 0.5 ? 0 : 1;
 		}
 
@@ -128,12 +139,14 @@ public final class Placement {
 				for (int i = 0; i < supports.size(); i++) {
 					BlockPos support = supports.get(i);
 					Direction face = faces.get(i);
-					for (Vec3 local : spots(face)) {
-						for (int yaw = 0; yaw < (rotation16 ? 16 : 4); yaw++) {
-							Direction look = Direction.from2DDataValue(yaw % 4);
-							for (float pitch : PITCHES) {
-								fake.setYRot(rotation16 ? yaw * 22.5F : look.toYRot());
-								fake.setXRot(pitch);
+					for (int yaw = 0; yaw < (rotation16 ? 16 : 4); yaw++) {
+						Direction look = Direction.from2DDataValue(yaw % 4);
+						for (float pitch : PITCHES) {
+							fake.setYRot(rotation16 ? yaw * 22.5F : look.toYRot());
+							fake.setXRot(pitch);
+							// Which quarters of the face give it, looking this way.
+							List<Vec3> good = new ArrayList<>();
+							for (Vec3 local : spots(face)) {
 								BlockHitResult hit = new BlockHitResult(Vec3.atLowerCornerOf(support).add(local), face, support, false);
 								BlockPlaceContext context = new BlockPlaceContext(fake, InteractionHand.MAIN_HAND, stack, hit);
 								if (!context.getClickedPos().equals(pos) || !context.canPlace()) {
@@ -142,10 +155,25 @@ public final class Placement {
 
 								BlockState result = ((BlockItemAccessor)blockItem).drifter$getPlacementState(context);
 								if (result != null && matches(result, want)) {
-									ways.add(new Way(support, face, local, look, pitch, rotation16 ? yaw : -1));
-									break;
+									good.add(local);
 								}
 							}
+
+							if (good.isEmpty()) {
+								continue;
+							}
+
+							// An axis is free if the result doesn't depend on which side of the middle it's clicked.
+							Vec3 first = good.get(0);
+							boolean freeX = good.stream().anyMatch(v -> Way.side(v.x) != Way.side(first.x)) && good.size() >= 2;
+							boolean freeY = good.stream().anyMatch(v -> Way.side(v.y) != Way.side(first.y)) && good.size() >= 2;
+							boolean freeZ = good.stream().anyMatch(v -> Way.side(v.z) != Way.side(first.z)) && good.size() >= 2;
+							if (good.size() == 4) {
+								freeX = freeY = freeZ = true;
+							}
+
+							ways.add(new Way(support, face, first, look, pitch, rotation16 ? yaw : -1, freeX, freeY, freeZ));
+							break;
 						}
 					}
 				}

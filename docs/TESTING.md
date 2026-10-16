@@ -1320,3 +1320,26 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       `play_a_record`, `cook_on_the_campfire`, `slice_of_cake`...). Next to a parked boat, `/drifter whim sit_in_a_boat`.
       A Drifter that walks into a boat or minecart no longer gets stuck in it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.
+
+## House plans (in progress)
+
+Drifters now build a real house from a plan once their hut is up (it takes them a few days of their own time), then
+move their bed in and keep the hut as a shed. Your GrabCraft stone house is already in your personal plans folder
+(`config/drifter/houses/stone_house.nbt` in the DRIFTER TEST profile), so that's the plan they'll use for now.
+- [ ] Quick look without waiting: stand next to a Drifter whose hut is finished and run
+      `/drifter brain goal planhouse`. Its thoughts say "going to build a house (stone_house) at ..., in oak stays"
+      (or "oak → spruce" in a spruce forest: the house takes the wood it has round it).
+- [ ] `/drifter house status` next to it shows where the house goes (both corners), how many blocks are placed, and
+      later "lives in it (bed at ...)". Go and watch it there.
+- [ ] Before building it clears the spot: chops any tree trunk in the way (pillaring up for high logs), digs out earth
+      and rock, and fills dips with dirt so the house sits on level ground, never floating. Leaves it leaves to wither.
+- [ ] It builds bottom up: floor, walls, windows, roof. Stairs, slabs, logs, doors and torches face the way the plan
+      has them. For the roof it pillars up on dirt or cobblestone next to the house, then takes the pillars down after.
+      When it runs out of something (planks, stairs, fences, a door) it goes and makes or gets more, then carries on.
+- [ ] When it's done: "finished building its house", then "moving its bed from the hut into the house" and "moved into
+      its new house". That night it goes into the house and sleeps in that bed. It stops repairing the old hut.
+- [ ] Building takes a while and it does other jobs in between (eating, smelting, mining). It's normal for it to stop
+      and come back. Tell me if one stops coming back, or gives up with a message (its thoughts say why, for example
+      "nowhere near home it knows is right for a house (...)").
+- Not yet: the mod's own house designs (log cabin, cottage, farmhouse...). Until then every Drifter that has the stone
+  house in its plans builds that one.

@@ -143,6 +143,23 @@ public class ShelterActivity extends Activity {
 		return home.houseBed(this.drifter.level());
 	}
 
+	/** A spot to stand beside a bed (by its head or foot), or the bed itself if it's boxed in. */
+	private static BlockPos besideBed(Level level, BlockPos head) {
+		BlockState state = level.getBlockState(head);
+		BlockPos foot = state.hasProperty(net.minecraft.world.level.block.BedBlock.FACING)
+			? head.relative(state.getValue(net.minecraft.world.level.block.BedBlock.FACING).getOpposite()) : head;
+		for (BlockPos part : new BlockPos[] {foot, head}) {
+			for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+				BlockPos by = part.relative(side);
+				if (!by.equals(foot) && !by.equals(head) && com.dinglebob.drifter.brain.KnownBlocks.isStandable(level, by)) {
+					return by;
+				}
+			}
+		}
+
+		return head;
+	}
+
 	/** Its bed tonight: in the hut, or in the village house. */
 	@Nullable
 	private BlockPos homeBed(Level level) {
@@ -214,7 +231,9 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private com.dinglebob.drifter.building.StarterHut hut() {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()) {
+		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()
+			|| home.planBed(this.drifter.level()) != null) {
+			// (Moved into the house it built from a plan: the hut's a shed now; the house routine takes it to bed.)
 			return null;
 		}
 
@@ -401,8 +420,10 @@ public class ShelterActivity extends Activity {
 					return Status.RUNNING;
 				}
 
-				if (feet.distSqr(home.center) > 2 * 2) {
-					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 0.5, "go into the house"));
+				// The village house round its home spot; the house it built, by the bed.
+				BlockPos inside = home.houseBed != null ? home.center : besideBed(level, bed);
+				if (feet.distSqr(inside) > 2 * 2) {
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(inside), 0.5, "go into the house"));
 				}
 
 				this.think("in the house for the night");

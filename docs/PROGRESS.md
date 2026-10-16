@@ -1451,6 +1451,27 @@ structure blocks) for the user's own worlds.
   `/drifter placeexact <pos> <block state>`. Tested, all passed: an upside-down stair, a stair, a sideways log, a top
   slab, a double slab, a door with its hinge on the right, a top trapdoor on a wall, a wall torch, a furnace and a chest
   facing set ways. Plan rule (user): grass blocks in a plan count as ground; uneven ground under a plan gets dirt.
+- Steps 3 and 4, building and moving in (`brain/activity/BuildPlanActivity`, goal `planhouse`, "build a house"): once
+  the hut is up (stage 5, builders keener), it picks a plan, a spot and which way it faces (`building/plan/PlanSite`:
+  ground near home it has seen, at least 65% of the footprint; not water; not more than 4 up or down; out of the way of
+  the hut, farm, pen and table; few trees; door toward home), and its woods (saved on its home). Then:
+  1. **Clear:** tree trunks in the space first (up a pillar for high logs), then earth, rock and sand; leaves are left to
+     wither (any still in the way get dug as it builds), snow and grass are left (blocks go over them).
+  2. **Level** (user's rule: never floating): every hole under the footprint filled with dirt, lowest first.
+  3. **Build:** lowest layer first, solid blocks before what hangs on them, each placed the way the plan has it, from
+     the nearest spot it can reach it from; too high for that, it pillars up (at most 3 blocks, outside the house if it
+     can). It makes or gathers what it runs out of (spruce planks, stairs, fences, doors... the planner). A block it
+     can't get to is left for later and tried again once something else is placed; at most 6 gaps.
+  4. **Tidy:** its scaffolding pillars taken down, top first; leftover leaves inside dug.
+  5. **Move in:** its bed carried over from the hut (dug and picked up) and put down inside, out of the doorway, head
+     against a wall, as far from the door as it can (or where the plan has a bed). From then on it sleeps there
+     (`Home.planBed`) and the hut is a shed: no more hut repairs.
+  `/drifter house status` shows the house's corners, blocks placed, and the bed once it lives there. Tested: flat world,
+  the stone house all 267 blocks, scaffolding gone, bed moved, "in the house for the night", "going to sleep". Snowy
+  taiga seed 20261016: in spruce, 257 of 267 blocks in about a game day of building, when night came (forced each
+  minute; it builds between other jobs, so in a normal game it takes a few days).
+- **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
+  (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)
 

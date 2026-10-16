@@ -1998,7 +1998,7 @@ public final class Goals {
 
 			if (home.hutBuilt) {
 				// Living in a village house, or its own house is up: the hut is left as it is.
-				if (home.houseBed != null || home.houseBuilt) {
+				if (home.houseBed != null || home.houseBuilt || home.planDone) {
 					return 0.0;
 				}
 
@@ -2040,6 +2040,62 @@ public final class Goals {
 	 * as soon as they're settled), a 7x7 house in its archetype's style near the hut; then it moves its bed in. Nomads,
 	 * Hermits and Speedrunners don't build one, nor does a Drifter living in a village house.
 	 */
+	/**
+	 * Its house from a plan (house plans, user's decisions 2026-10-16): when it's settled (hut up) and far enough along, it
+	 * picks a plan and a spot, levels the ground and builds it; the hut stays as its shed.
+	 */
+	public static final class PlanHouse extends Goal {
+		@Override
+		public String id() {
+			return "planhouse";
+		}
+
+		@Override
+		public String name(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			return home != null && home.planId != null ? "work on its house" : "build a house";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || !home.hutBuilt || home.borrowed() || home.planDone || home.houseBuilt || !home.near(drifter, Home.STORAGE_RANGE)
+				|| drifter.getServer() == null || !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter)
+				|| com.dinglebob.drifter.building.plan.HousePlans.cached(drifter.getServer()).isEmpty()) {
+				return 0.0;
+			}
+
+			boolean builder = drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.BUILDER;
+			if (context.stage() < (builder ? 4 : 5)) {
+				return 0.0;
+			}
+
+			double base = builder ? 0.55 : drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.HOMEBODY ? 0.5 : 0.44;
+			return context.stage() >= 6 ? base + 0.08 : base;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.6);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.BuildPlanActivity(context.drifter());
+		}
+	}
+
 	public static final class House extends Goal {
 		@Override
 		public String id() {
@@ -2063,6 +2119,13 @@ public final class Goals {
 
 			boolean builder = drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.BUILDER;
 			if (context.stage() < (builder ? 4 : 5)) {
+				return 0.0;
+			}
+
+			// House plans (2026-10-16): with any plan to build, its house comes from a plan instead (PlanHouse), unless it
+			// already has this kind of house.
+			if (!home.houseBuilt && home.houseCenter == null && drifter.getServer() != null
+				&& !com.dinglebob.drifter.building.plan.HousePlans.cached(drifter.getServer()).isEmpty()) {
 				return 0.0;
 			}
 
@@ -2185,6 +2248,7 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
 		goals.add(new GroupBanner());
+		goals.add(new PlanHouse());
 		// Whims (milestone 13, docs/WHIMS.md).
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
 		// The Nether (milestone 11, section 19).
