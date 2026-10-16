@@ -927,7 +927,13 @@ public final class Goals {
 						|| state.getValue(net.minecraft.world.level.block.NetherWartBlock.AGE) >= 3);
 				}
 			});
-			return near[0] ? 0.65 : 0.0;
+			// (Above the blaze hunt it's in the middle of, and allowed to break into it: it's right there, a minute's work.)
+			return near[0] ? 0.8 : 0.0;
+		}
+
+		@Override
+		public boolean urgent(Context context) {
+			return this.urgency(context) > 0.0;
 		}
 
 		@Override

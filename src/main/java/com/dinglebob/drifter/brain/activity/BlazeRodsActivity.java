@@ -63,8 +63,8 @@ public class BlazeRodsActivity extends Activity {
 
 	@Override
 	protected Status next() {
-		if (rods(this.drifter) >= WANTED) {
-			this.think("got " + rods(this.drifter) + " blaze rods");
+		if (totalRods(this.drifter) >= WANTED) {
+			this.think("got " + totalRods(this.drifter) + " blaze rods");
 			return Status.SUCCESS;
 		}
 
@@ -209,6 +209,13 @@ public class BlazeRodsActivity extends Activity {
 		}
 
 		return best;
+	}
+
+	/** Blaze rods it has in all: carried, and stored in its chests at home (rods it banked on an earlier trip count toward
+	 * the six; found in review: stored rods were forgotten, so every trip started again from none). */
+	public static int totalRods(DrifterEntity drifter) {
+		var home = drifter.getDrifterBrain().home();
+		return rods(drifter) + (home == null ? 0 : home.stored(Items.BLAZE_ROD));
 	}
 
 	/** Blaze rods it carries. */

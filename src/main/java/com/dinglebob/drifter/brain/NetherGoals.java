@@ -196,6 +196,11 @@ public final class NetherGoals {
 				return 0.0;
 			}
 
+			// Six rods in hand or at home: no more trips for now (the End, later, wants more).
+			if (com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED) {
+				return 0.0;
+			}
+
 			return 0.55;
 		}
 
@@ -303,7 +308,7 @@ public final class NetherGoals {
 			DrifterEntity drifter = context.drifter();
 			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
 			if (!inNether(drifter) || trip == null || trip.netherPortal == null || !trip.lookedAround
-				|| com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
+				|| com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
 				// Just failed: not again at once (found in testing: it failed and re-picked it every few ticks).
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze")) {
 				return 0.0;
@@ -359,7 +364,7 @@ public final class NetherGoals {
 			// back another day, as a careful player does (found in testing: it kept going back with 2 or 3 rods and died with them).
 			int rods = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter);
 			boolean bank = rods >= 1 && trip.holeUps >= 2 || rods >= 3 && trip.holeUps >= 1;
-			boolean done = bank || rods >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
+			boolean done = bank || com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
 				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
 			// Hungry only counts with nothing to eat: with food it eats and carries on (found in the user's game: it arrived

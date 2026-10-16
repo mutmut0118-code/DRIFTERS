@@ -71,7 +71,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 8 | Progression and building | **Done** (2026-10-15): 10-day runs reach diamonds with a house and farm (batch 21: three of three, no deaths); played by the user | Stages 4 to 8, shelter tiers 3 to 5, farming, animals. Done when: an unattended 10-day run reaches diamonds with a recognizable base. |
 | 9 | Disposition and PvP | **Done** (2026-10-15): every section 14 event moves Trust as specified (headless table test); gifts, warnings, raids, looting and the manhunt (hunter) played by the user | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
-| 11 | Nether | In progress: steps 1 to 3 done (portal, packing, going through), 4 mostly, 5 in testing (fortresses found, spawner reached, no rods yet); 6 and 7 to do | Section 19. |
+| 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | Not started | |
 | 13 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
@@ -1220,8 +1220,22 @@ The stalls it caught were soul sand under the fortress: sneaking there (for lava
 left it all but still, now no sneaking on soul sand for those. Near a drop (a fortress bridge), close blazes get the bow
 instead of a step in with the sword (one was knocked off a bridge into the lava sea). With diamond armor, ordinary trips
 are safe (0 of 6 died); the fortress on seed 2024 (over the lava sea, next to the portal) is still deadly about half the
-time. Rods come home now (banked after holing up). Next on step 5: fewer deaths at that fortress (lava under the
-bridges), then steps 6 (bartering) and 7 (storing the haul).
+time. Rods come home now (banked after holing up).
+
+**Steps 5 to 7 finished (2026-10-16, user: "do 1 to 3 then mile 12"):**
+- Nether goods: quartz, nether wart (ripe only) and glowstone are taken when some it has seen is within 16 blocks and
+  it's short (16, 8, 16); a passing chance, so they may break into the blaze hunt. Staged test: 2 quartz, 4 glowstone
+  dust, 6 wart, then back to the hunt. Sources in `drifter_sources/nether.json`.
+- Bartering (step 6): wearing gold, with gold ingots and a calm piglin about, it walks up, tosses one ingot, waits out
+  the piglin's admiring and picks up the trade; up to 6 at a time, every few minutes at most. Gold ingots (8) are on the
+  packing list but not waited for. Staged test: 4 ingots for spectral arrows, leather and nether bricks. Found on the
+  way: vanilla's gold check read a Mob's own (empty) armor list, so piglins never saw a Drifter's gold; Drifters now
+  report the armor they wear.
+- Coming home with the haul (step 7): rods, quartz, wart, glowstone and barter loot have no keep amount, so "put things
+  away at home" stores them. Rods stored at home now count toward the 6 (the trip goal and the next trip), and with 6 in
+  all it makes no more trips for now.
+- Still open (polish, not blocking milestone 12): fortresses over the lava sea kill about half the Drifters that go
+  there; ghast side-walls when bridging; biome preferences.
 Then: fleeing blazes or a ghast in the Nether becomes walling in on the spot; at 6 hearts or less under fire it holes up
 before anything else (fighting included) and stays until healed; it centres on its block first, builds walls bottom-up
 with a block under each one over a drop; fireball dodges only onto safe ground (one dodged into lava); fire that appears

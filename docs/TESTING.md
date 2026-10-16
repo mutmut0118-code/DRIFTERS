@@ -1225,6 +1225,14 @@ they get close, ghasts, blazes), and switch to the sword up close.
       further off; while a blaze glows (it's about to fire three fireballs) it holds its shield up toward it. Badly hurt
       with blazes or a ghast about, it walls itself in where it stands ("badly hurt: walling itself in to heal"), eats,
       waits until healed ("healed up: going on") and goes back. Each kill shows as "got it (attack the blaze)".
+- [ ] **Bartering (new):** a Drifter in the Nether wearing its gold piece, with gold ingots (`/drifter give
+      minecraft:gold_ingot 6` next to it), near a calm piglin: it walks up, tosses one ingot ("tossing a piglin some gold
+      to barter"), waits while the piglin admires it, picks up what it throws back, up to 6 times.
+- [ ] **Piglins and gold:** without gold armor piglins attack a Drifter (as they would you); with its gold piece on they
+      don't. It won't open a chest with piglins watching, unless it's brave and strong enough to take them all on.
+- [ ] **Nether goods:** near nether quartz ore, ripe nether wart or glowstone it takes some (up to 16, 8, 16).
+- [ ] **The haul:** back home, "put things away at home" puts rods, quartz, wart and glowstone in its chests; rods at home
+      count toward its six, and with six it stops going.
 - [ ] **Nether walking:** it never sprints down steps in the Nether, stops while it plans its route, steps out of a
       portal it didn't mean to use ("in the portal by mistake: stepping out"), and goes round fire on its way.
 - [ ] **Bow and close attackers:** while a Drifter aims at something with its bow, hit it (or let a zombie hit it) from
