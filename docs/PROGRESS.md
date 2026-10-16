@@ -72,7 +72,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 9 | Disposition and PvP | **Done** (2026-10-15): every section 14 event moves Trust as specified (headless table test); gifts, warnings, raids, looting and the manhunt (hunter) played by the user | Relationships, telegraph rule, hostile and friendly behaviors. Done when: every event in the section 14 table moves Trust as specified. |
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
-| 12 | Groups, modpack factions, camps, config polish | In progress: step 1 (Drifter to Drifter) | Plan below |
+| 12 | Groups, modpack factions, camps, config polish | In progress: steps 1, 5, 6 done, step 2 mostly; left: joint mining trips, team wars (step 3), Mob Control (step 4) | Plan below |
 | 13 | Whim system | Not started | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
