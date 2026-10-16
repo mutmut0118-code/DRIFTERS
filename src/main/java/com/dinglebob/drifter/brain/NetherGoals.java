@@ -157,7 +157,9 @@ public final class NetherGoals {
 			DrifterEntity drifter = context.drifter();
 			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
 			if (!inNether(drifter) || trip == null || trip.netherPortal == null || !trip.lookedAround
-				|| com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED) {
+				|| com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
+				// Just failed: not again at once (found in testing: it failed and re-picked it every few ticks).
+				|| drifter.getDrifterBrain().failedRecently("nether_blaze")) {
 				return 0.0;
 			}
 

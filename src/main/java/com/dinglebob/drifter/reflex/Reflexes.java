@@ -263,6 +263,52 @@ public class Reflexes {
 		return drifter.position().add(away.normalize().scale(distance));
 	}
 
+	/**
+	 * Where to back off to from lava: away from it (straight back first, then turned up to 90 degrees either way), at most
+	 * {@code distance} off, a spot with ground to stand on and no lava or fire on the way there or round it. Null if
+	 * nowhere near is safe (found in testing: backing straight away from one lava flow ran it into another).
+	 */
+	@Nullable
+	private static Vec3 safeRetreat(DrifterEntity drifter, Vec3 from, double distance) {
+		Level level = drifter.level();
+		Vec3 away = new Vec3(drifter.getX() - from.x, 0.0, drifter.getZ() - from.z);
+		if (away.lengthSqr() < 1.0E-4) {
+			away = Vec3.directionFromRotation(0.0F, drifter.getYRot() + 180.0F);
+		}
+
+		away = away.normalize();
+		for (int degrees : new int[] {0, 30, -30, 60, -60, 90, -90}) {
+			double radians = Math.toRadians(degrees);
+			Vec3 direction = new Vec3(away.x * Math.cos(radians) - away.z * Math.sin(radians), 0.0, away.x * Math.sin(radians) + away.z * Math.cos(radians));
+			for (double reach = distance; reach >= 2.0; reach -= 1.0) {
+				if (clearWay(level, drifter.position(), direction, reach)) {
+					return drifter.position().add(direction.scale(reach));
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/** Every half block along the way: ground under it, nothing hot round it. */
+	private static boolean clearWay(Level level, Vec3 start, Vec3 direction, double reach) {
+		for (double t = 0.5; t <= reach; t += 0.5) {
+			BlockPos feet = BlockPos.containing(start.add(direction.scale(t)));
+			if (!solid(level, feet.below()) || solid(level, feet) || solid(level, feet.above())) {
+				return false;
+			}
+
+			for (BlockPos near : BlockPos.betweenClosed(feet.offset(-1, -1, -1), feet.offset(1, 1, 1))) {
+				net.minecraft.world.level.block.state.BlockState state = level.getBlockState(near);
+				if (state.getFluidState().is(FluidTags.LAVA) || state.is(net.minecraft.tags.BlockTags.FIRE)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	/** Takes out its best tool for the block and mines it (a reflex can run a short task). */
 	private static Task dig(DrifterEntity drifter, BlockPos pos) {
 		int slot = Tools.bestToolSlot(drifter, drifter.level().getBlockState(pos), drifter.level(), pos);
@@ -927,8 +973,12 @@ public class Reflexes {
 		private static final double FLOWING_BACKOFF = 7.0;
 		private boolean flowing;
 
+		@Nullable
+		private Vec3 retreat;
+
 		@Override
 		protected void start(DrifterEntity drifter) {
+			this.retreat = null;
 			long now = drifter.level().getGameTime();
 			if (now - this.firstAt > FLOWING_WINDOW) {
 				this.firstAt = now;
@@ -962,12 +1012,22 @@ public class Reflexes {
 				}
 			}
 
-			// No block (or it couldn't place it), or lava that keeps coming: back away from it.
+			// No block (or it couldn't place it), or lava that keeps coming: back away from it, to somewhere safe.
 			if (this.lava == null || tick > (this.flowing ? 50 : 20)) {
 				return false;
 			}
 
-			runTo(drifter, awayFrom(drifter, Vec3.atCenterOf(this.lava), this.flowing ? FLOWING_BACKOFF : 3.0), false);
+			if (this.retreat == null) {
+				this.retreat = safeRetreat(drifter, Vec3.atCenterOf(this.lava), this.flowing ? FLOWING_BACKOFF : 3.0);
+				if (this.retreat == null) {
+					// Nowhere safe to back off to: it stays put (sneaking) rather than run blind.
+					Steering.stopMoving(drifter);
+					drifter.getKeys().set(VirtualKeys.Key.SNEAK, true);
+					return tick < 10;
+				}
+			}
+
+			runTo(drifter, this.retreat, false);
 			drifter.getKeys().set(VirtualKeys.Key.SPRINT, false);
 			// Sneaking: backing away blind, it mustn't step off an edge (found in testing: it backed off one lava pool
 			// straight over a ledge into another).

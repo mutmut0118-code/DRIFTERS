@@ -99,7 +99,9 @@ public class PortalActivity extends Activity {
 			}
 
 			if (!this.inReach(step.pos())) {
-				return this.drifter.getBlockY() > ground + 1 ? this.fail("can't reach the top of the portal from its pillar") : this.walkTo(f);
+				// (Up on its pillar for real, not just in the middle of a jump: found in testing, a jump as it started failed it.)
+				return this.drifter.onGround() && this.drifter.getBlockY() > ground + 1 ? this.fail("can't reach the top of the portal from its pillar")
+					: this.drifter.onGround() ? this.walkTo(f) : Status.RUNNING;
 			}
 
 			// The two bottom cells are ground first: dug out, then filled with obsidian.

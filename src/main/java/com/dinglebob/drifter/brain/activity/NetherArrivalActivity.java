@@ -57,7 +57,14 @@ public class NetherArrivalActivity extends Activity {
 		if (trip.netherPortal == null) {
 			BlockPos portal = portalNear(level, this.drifter.blockPosition());
 			if (portal == null) {
-				return this.fail("can't see the portal it came through");
+				// No portal in sight (it got here some other way, or it's gone): remembers where it is, nothing to wall in. The
+				// way home is then a portal to light or find (found in testing: arrival failed and was retried every tick).
+				trip.netherPortal = this.drifter.blockPosition();
+				trip.arrivedAt = level.getGameTime();
+				trip.phase = NetherTrip.Phase.THERE;
+				trip.walledIn = true;
+				this.think("in the Nether with no portal in sight");
+				return Status.SUCCESS;
 			}
 
 			trip.netherPortal = portal;
