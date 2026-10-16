@@ -499,7 +499,7 @@ public class Brain {
 
 	/** Goals that should get it somewhere: two minutes on one without moving 2 blocks is a stall. */
 	private static final java.util.Set<String> MOVING_GOALS = java.util.Set.of("nether_blaze", "nether_return", "nether_blocks", "explore");
-	private static final int STALL_TICKS = 20 * 120;
+	private static final int STALL_TICKS = 20 * 60;
 	private net.minecraft.world.phys.Vec3 stallFrom = net.minecraft.world.phys.Vec3.ZERO;
 	private long stallSince;
 

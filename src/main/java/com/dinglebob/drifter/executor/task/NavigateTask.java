@@ -1472,8 +1472,11 @@ public class NavigateTask extends Task {
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
 		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
 		// A lava hole right beside it: it sneaks past, as players do (sneaking never steps off an edge).
+		// (Not for lava beside it on soul sand: soul sand already slows it to a crawl, and sneaking on top all but stops it;
+		// found in testing, it stood on the soul sand under a fortress for minutes pressing on, a hundredth of a block a tick.)
+		boolean onSoulSand = this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.SOUL_SAND);
 		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma
-			|| !intentionalDrop && !wet && this.lavaHoleBeside();
+			|| !intentionalDrop && !wet && !onSoulSand && this.lavaHoleBeside();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
 		// Lava close by (unless running for its life): the same, to drop out of a sprint it's still in.
 		if ((sneaking || this.lavaNear(2) && !this.urgent) && this.drifter.isSprinting()) {
