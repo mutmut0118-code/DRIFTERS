@@ -1298,6 +1298,16 @@ public class NavigateTask extends Task {
 		BlockState state = this.level().getBlockState(cell);
 		int slot = Tools.bestToolSlot(this.drifter, state, this.level(), cell);
 		if (slot < 0) {
+			// No tool that helps: it mines with something that takes no wear (an empty hand, a block), not its sword or bow, as
+			// a player would (found by the user: it hacked at a fortress's nether bricks with its sword, then its bow).
+			int bare = bareHandSlot(this.drifter);
+			if (bare >= 0 && bare != this.drifter.getInventory().getSelected()) {
+				this.drifter.getInventory().requestSelect(bare);
+				return new SequenceTask(this.drifter, "dig " + this.blockName(cell), List.of(
+					new WaitTask(this.drifter, "switch to an empty hand", () -> this.drifter.getInventory().getSelected() == bare, 20),
+					new MineTask(this.drifter, cell)));
+			}
+
 			return new MineTask(this.drifter, cell);
 		}
 
@@ -1312,6 +1322,24 @@ public class NavigateTask extends Task {
 		}
 
 		return new SequenceTask(this.drifter, "dig " + this.blockName(cell), steps);
+	}
+
+	/** A hotbar slot that takes no wear from digging: empty first, else anything that isn't a tool, weapon or armor. */
+	private static int bareHandSlot(DrifterEntity drifter) {
+		var inventory = drifter.getInventory();
+		int fallback = -1;
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.HOTBAR_SIZE; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.isEmpty()) {
+				return slot;
+			}
+
+			if (fallback < 0 && !stack.isDamageableItem()) {
+				fallback = slot;
+			}
+		}
+
+		return fallback;
 	}
 
 	/** Over a drop, it lets go of the keys this close (horizontally) to the landing block's middle. */
