@@ -1201,6 +1201,15 @@ above 8 health it stands and fights blazes instead of running (they fly after it
 away looks for cover from blazes too. A later room run fought for over a minute without a hit. **Next:** its bow is too
 slow on blazes (7 shots in 50 s: it waits for a steady aim on a bobbing target, and re-draws after every guard), so it
 kills too few before the damage piles up; eating between bursts; a real fortress run end to end.
+Later the same night: the bow accepts an aim anywhere on the target's body, loosening the longer a full draw is held
+(the room test then got 2 rods); the fortress search sweeps out from the portal both ways, near ground first (it had
+walked one 384-block line south while the fortress was 60 blocks north); a "stray portal" reflex steps it out of a
+portal it didn't mean to use (one went home 8 seconds into its search); with lava spreading in from every side it
+pillars two blocks up out of its way; a route may dig one block down into seen rock even with the floor under it unseen
+(the walker looks before it steps; it was stuck up on the rock over its portal with no other way down); in the Nether it
+stops to think instead of running on while it plans (it ran off a ledge into the lava sea mid-plan); badly hurt with no
+way home just now, it walls itself in, eats and rests until healed ("hole up to heal", new goal `nether_holeup`).
+Batches of 6 to 7 trips with mob spawning on now lose 0 to 1.
 
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and

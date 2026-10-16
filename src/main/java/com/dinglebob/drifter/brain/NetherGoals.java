@@ -22,7 +22,7 @@ public final class NetherGoals {
 
 	/** In the Nether only these goals run: the rest are overworld jobs (settling, farming, sheltering for the night). */
 	public static final Set<String> IN_THE_NETHER = Set.of("fight", "flee", "eat", "equip", "getdown", "nether_arrive", "nether_return",
-		"nether_blaze", "nether_blocks");
+		"nether_blaze", "nether_blocks", "nether_holeup");
 
 	/** Days between trips while there's nothing in particular to fetch there yet. */
 	private static final long DAYS_BETWEEN_LOOKS = 24000L;
@@ -34,7 +34,54 @@ public final class NetherGoals {
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods());
+		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods(), new HoleUp());
+	}
+
+	/** Badly hurt in the Nether and it couldn't get home just now: it walls itself in and heals (HoleUpActivity). */
+	public static final class HoleUp extends Goals.Goal {
+		/** At or below this health. */
+		private static final float HURT = 10.0F;
+
+		@Override
+		public String id() {
+			return "nether_holeup";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "hole up to heal";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (!inNether(drifter) || drifter.getHealth() > HURT || drifter.getDrifterBrain().failedRecently("nether_holeup")) {
+				return 0.0;
+			}
+
+			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
+			return trip == null || trip.netherPortal == null || drifter.getDrifterBrain().failedRecently("nether_return") ? 0.93 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Goals.Context context) {
+			return true;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
+		}
+
+		@Override
+		public Activity start(Goals.Context context) {
+			return new com.dinglebob.drifter.brain.activity.HoleUpActivity(context.drifter());
+		}
 	}
 
 	/** Through its portal at home, when it's packed, fit, and it's daytime. */
