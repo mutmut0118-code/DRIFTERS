@@ -1,0 +1,12 @@
+{
+	"whims": [
+		{
+			"id": "prank_sign", "category": "chaos", "action": "sign", "gates": "G",
+			"params": {"near": "player_base", "radius": 200, "lines": ["{name} was here lol", "nice base", "nice house noob", "watch your back", "this is mine now", "{group} was here"],
+				"make": {"#minecraft:signs": "minecraft:oak_sign"}},
+			"needs": [{"item": "#minecraft:signs"}], "when": "day",
+			"archetypes": {"bandit": 3.0}, "traits": {"aggression": 0.5}, "cooldown": 96000,
+			"thought": "leaving a cheeky sign by a player's base"
+		}
+	]
+}

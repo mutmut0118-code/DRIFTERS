@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | In progress: engine, 24 action types, 69 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, 24 action types, 70 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 
 ## Milestone 0: Project setup
@@ -1399,6 +1399,9 @@ Plan (docs/WHIMS.md "How whims work", DESIGN.md section 26):
   came up 5 to 7 times each and didn't hold back progress.
 - Mistakes (docs/WHIMS.md section 19), for the low-Skill and low-Knowledge ones most: dropping a stack by mistake ("oops",
   then picking it back up), eating a spider eye, eating rotten flesh it didn't need. 24 action types, 69 whims. Tested.
+- First [G] whim: a Bandit (raiding setting on) leaves a cheeky sign by a player's base it knows ("nice base", "watch
+  your back"), never inside spawn protection. Gate checked (others: "not that kind of Drifter"); the full prank needs a
+  real player's base, so it's an in-game test. 70 whims.
 - Fixed from the 10-day runs: it crouches on magma whenever it's on it, moving or in water too (one worked on underwater
   magma, walking about, until it died).
 

@@ -777,20 +777,68 @@ public final class WhimActions {
 	 * {group}, {day}; one picked).
 	 */
 	static final class Sign implements WhimAction {
+		/** A player's base it knows (it saw them sleep there) within range, out of spawn protection: for a prank sign. */
+		@Nullable
+		static BlockPos playerBase(DrifterEntity drifter, int range) {
+			var server = drifter.getServer();
+			BlockPos spawn = drifter.level().getSharedSpawnPos();
+			for (var r : drifter.getSocial().all()) {
+				if (r.knownBase != null && r.knownBase.closerThan(drifter.blockPosition(), range) && (server == null
+					|| Math.max(Math.abs(r.knownBase.getX() - spawn.getX()), Math.abs(r.knownBase.getZ() - spawn.getZ())) > server.getSpawnProtectionRadius() + 8)) {
+					return r.knownBase;
+				}
+			}
+
+			return null;
+		}
+
 		@Override
 		public boolean possible(DrifterEntity drifter, Whim whim) {
+			if (whim.param("near", "here").equals("player_base")) {
+				return playerBase(drifter, whim.param("radius", 200)) != null;
+			}
+
 			return freeGround(drifter, 8, 1, 2) != null;
 		}
 
 		@Override
 		public Activity start(DrifterEntity drifter, Whim whim) {
-			BlockPos spot = freeGround(drifter, 8, 1, 2);
 			List<String> options = whim.params("lines");
-			if (spot == null || options.isEmpty()) {
+			if (options.isEmpty()) {
 				return null;
 			}
 
 			String text = fill(drifter, options.get(drifter.getRandom().nextInt(options.size())));
+			if (whim.param("near", "here").equals("player_base")) {
+				BlockPos base = playerBase(drifter, whim.param("radius", 200));
+				if (base == null) {
+					return null;
+				}
+
+				Vec3 at = Vec3.atBottomCenterOf(base);
+				BlockPos[] spot = {null};
+				return new Steps(drifter, whim.thought(), 20 * 60 * 5)
+					.then(() -> new com.dinglebob.drifter.brain.activity.ExploreActivity(drifter, "sneak over to their base", at, d -> d.position().distanceTo(at) < 10.0))
+					.then(() -> {
+						spot[0] = freeGround(drifter, 8, 1, 2);
+						return spot[0] == null ? null : new NavigateTask(drifter, Vec3.atBottomCenterOf(spot[0]), 2.5, "walk over");
+					})
+					.then(() -> spot[0] == null ? null : new PlaceBlockTask(drifter, spot[0], stack -> stack.is(ItemTags.SIGNS), "a sign"))
+					.then(() -> {
+						if (spot[0] != null && drifter.level().getBlockEntity(spot[0]) instanceof SignBlockEntity) {
+							write(drifter.level(), spot[0], text);
+							drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "left a sign by a player's base: \"" + text + "\"");
+						}
+
+						return null;
+					});
+			}
+
+			BlockPos spot = freeGround(drifter, 8, 1, 2);
+			if (spot == null) {
+				return null;
+			}
+
 			return new Steps(drifter, whim.thought(), 20 * 40)
 				.then(() -> spot.closerThan(drifter.blockPosition(), 3.5) ? null : new NavigateTask(drifter, Vec3.atBottomCenterOf(spot), 2.5, "walk over"))
 				.then(() -> new PlaceBlockTask(drifter, spot, stack -> stack.is(ItemTags.SIGNS), "a sign"))
