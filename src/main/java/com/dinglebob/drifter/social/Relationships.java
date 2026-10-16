@@ -146,7 +146,38 @@ public class Relationships {
 				before, r.trust, fearBefore, r.fear));
 		}
 
+		// Group reputation (section 21): wrong one member and the others think less of you too, by part of it.
+		if (change < 0.0) {
+			this.tellGroup(player, name, change);
+		}
+
 		return change;
+	}
+
+	/** Share of a wrong to one member that the rest of its group takes on. */
+	private static final double GROUP_SHARE = 0.5;
+
+	private void tellGroup(UUID player, String name, double change) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+		if (group == null || !(this.drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return;
+		}
+
+		for (UUID member : group.members) {
+			if (member.equals(this.drifter.getUUID())) {
+				continue;
+			}
+
+			for (var any : level.getServer().getAllLevels()) {
+				if (any.getEntity(member) instanceof com.dinglebob.drifter.entity.DrifterEntity other) {
+					Relationship theirs = other.getSocial().getOrMeet(player, name);
+					double before = theirs.trust;
+					theirs.addTrust(change * GROUP_SHARE);
+					other.getMemory().thoughts().add(level.getGameTime(), String.format(Locale.ROOT, "%s wronged %s, one of its group: trust %.0f -> %.0f",
+						name, this.drifter.getName().getString(), before, theirs.trust));
+				}
+			}
+		}
 	}
 
 	/** Vengefulness at which its severe grudges never fade. */

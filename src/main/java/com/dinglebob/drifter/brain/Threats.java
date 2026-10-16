@@ -157,6 +157,20 @@ public final class Threats {
 	}
 
 	public static double danger(DrifterEntity drifter, LivingEntity entity) {
+		// Another Drifter (milestone 12): never one of its own group; a bitter rival is an enemy on sight (section 21
+		// "Rivalry": rivals may fight); anyone else only once it comes for it, as before.
+		if (entity instanceof DrifterEntity other) {
+			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			if (group != null && group == com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID())) {
+				return 0.0;
+			}
+
+			var bond = drifter.getBonds().get(other.getUUID());
+			if (bond != null && bond.trust <= BITTER_RIVAL) {
+				return RIVAL_DANGER * (isAfter(drifter, entity) ? 1.3 : 1.0) * (1.0 + entity.getArmorValue() / 20.0);
+			}
+		}
+
 		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
 		boolean after = isAfter(drifter, entity);
 		double danger;
@@ -196,8 +210,21 @@ public final class Threats {
 
 	/** It can tell this one is coming for it (it's heading at it, or just hit it). */
 	public static boolean isAfter(DrifterEntity drifter, LivingEntity entity) {
-		return entity instanceof Mob mob && mob.getTarget() == drifter || drifter.getLastHurtByMob() == entity;
+		if (entity instanceof Mob mob && mob.getTarget() == drifter || drifter.getLastHurtByMob() == entity) {
+			return true;
+		}
+
+		// Going for one of its group close by counts too: members stand up for each other (section 21 "defending").
+		if (entity instanceof Mob mob && mob.getTarget() instanceof DrifterEntity target && target != drifter && target.distanceTo(drifter) < DEFEND_RANGE) {
+			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			return group != null && group == com.dinglebob.drifter.world.DrifterGroups.of(target.getUUID());
+		}
+
+		return false;
 	}
+
+	/** How close a group member must be for it to stand up for them. */
+	private static final double DEFEND_RANGE = 16.0;
 
 	/** A switch between fighting and backing off waits this long after the last change. */
 	private static final long COMMIT_TICKS = 60;
@@ -205,6 +232,10 @@ public final class Threats {
 	private static final double ARCHER_RUSH = 12.0;
 
 	/** A mob that shoots (skeletons, pillagers, anything holding a bow or crossbow). */
+	/** Trust in another Drifter at or below which it's an enemy on sight, and how dangerous one counts. */
+	public static final double BITTER_RIVAL = -60.0;
+	private static final double RIVAL_DANGER = 1.5;
+
 	/** Above this health, with a shield, it stands and fights blazes rather than running from them. */
 	public static final float BLAZE_STAND_HEALTH = NetherGoals.HoleUp.HURT_UNDER_FIRE;
 

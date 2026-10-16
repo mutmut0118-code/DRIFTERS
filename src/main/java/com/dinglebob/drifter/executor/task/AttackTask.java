@@ -95,7 +95,9 @@ public class AttackTask extends Task {
 				return RANGED;
 			}
 
-			return target instanceof Enemy || target instanceof Mob mob && mob.isAggressive() ? MELEE : PREY;
+			// (Another Drifter fights back like a player: footwork, shield and bow, not a chase after an animal.)
+			return target instanceof Enemy || target instanceof com.dinglebob.drifter.entity.DrifterEntity || target instanceof Mob mob && mob.isAggressive()
+				? MELEE : PREY;
 		}
 	}
 
