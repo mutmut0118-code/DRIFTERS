@@ -53,6 +53,30 @@ public final class SocialCommands {
 					.executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER))
 					.then(Commands.literal("nether").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.NETHER)))
 					.then(Commands.literal("dragon").executes(ctx -> manhunt(ctx, com.dinglebob.drifter.social.Manhunt.Goal.DRAGON))))));
+		// (Debug, milestone 12: the nearest Drifter's trust in another Drifter, by name; it meets it first if need be.)
+		root.then(Commands.literal("bond").then(Commands.argument("other", StringArgumentType.word())
+			.then(Commands.argument("trust", DoubleArgumentType.doubleArg(-100, 100)).executes(ctx -> {
+				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+				String name = StringArgumentType.getString(ctx, "other");
+				DrifterEntity other = null;
+				for (var level : ctx.getSource().getServer().getAllLevels()) {
+					for (DrifterEntity d : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
+						if (d.getName().getString().equalsIgnoreCase(name)) {
+							other = d;
+						}
+					}
+				}
+
+				if (other == null) {
+					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("No Drifter called " + name)).create();
+				}
+
+				double trust = DoubleArgumentType.getDouble(ctx, "trust");
+				drifter.getBonds().setTrust(other, trust);
+				String label = DrifterCommands.label(drifter);
+				ctx.getSource().sendSuccess(() -> Component.literal(label + " now trusts " + name + " " + Math.round(trust)), true);
+				return 1;
+			}))));
 		root.then(Commands.literal("social")
 			.executes(SocialCommands::list)
 			.then(Commands.literal("show").then(Commands.argument("player", StringArgumentType.word()).suggests(SocialCommands::players).executes(SocialCommands::show)))
@@ -82,6 +106,12 @@ public final class SocialCommands {
 
 		for (Relationship r : social.all()) {
 			say(ctx, "  " + summary(r) + modeNow(drifter, r));
+		}
+
+		// Its group (milestone 12).
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		if (group != null) {
+			say(ctx, "  In \"" + group.name + "\" (led by " + group.names.getOrDefault(group.leader, "?") + "): " + String.join(", ", group.names.values()));
 		}
 
 		// Other Drifters it knows (milestone 12).

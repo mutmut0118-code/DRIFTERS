@@ -208,6 +208,12 @@ public class DrifterBonds {
 			this.drifter.getSocial().strangerBaseline()));
 	}
 
+	/** Debug: its trust in that Drifter, set outright. */
+	public void setTrust(DrifterEntity other, double trust) {
+		Relationship r = this.known(other);
+		r.addTrust(trust - r.trust);
+	}
+
 	public void onHurtBy(DrifterEntity other, float amount) {
 		Relationship r = this.known(other);
 		r.addTrust(HIT_TRUST_PER_DAMAGE * amount);
