@@ -66,6 +66,19 @@ public final class DrifterSimulation {
 	public static void register() {
 		ServerLifecycleEvents.SERVER_STARTED.register(DrifterSimulation::load);
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> simulated.clear());
+		// A kept-running Drifter whose area unloads anyway (teleported far, or fell a long way, between two updates): its
+		// spot moves to where it really is, so the ticket loads it back up there (found in a 100-Drifter test: three were
+		// spread across the world by command and froze where they landed, their tickets left at spawn).
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
+			if (entity instanceof DrifterEntity drifter && entity.getRemovalReason() == net.minecraft.world.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK) {
+				for (int i = 0; i < simulated.size(); i++) {
+					if (simulated.get(i).id().equals(drifter.getUUID())) {
+						simulated.set(i, new Simulated(drifter.getUUID(), drifter.getName().getString(), level.dimension(), drifter.chunkPosition()));
+						level.getChunkSource().addRegionTicket(TICKET, drifter.chunkPosition(), TICKET_RADIUS, drifter.chunkPosition());
+					}
+				}
+			}
+		});
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			if (server.getTickCount() % 20 == 0) {
 				tick(server);

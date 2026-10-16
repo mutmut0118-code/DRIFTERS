@@ -169,8 +169,8 @@ public final class DrifterCommands {
 		}));
 		root.then(Commands.literal("tp")
 			.then(Commands.argument("name", StringArgumentType.word())
-				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(allDrifters(ctx.getSource().getServer()).stream()
-					.map(drifter -> drifter.getName().getString()), builder))
+				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(com.dinglebob.drifter.world.DrifterRegistry.all().stream()
+					.map(com.dinglebob.drifter.world.DrifterRegistry.Known::name).distinct(), builder))
 				.executes(DrifterCommands::teleportTo)));
 
 		root.then(Commands.literal("xp")
@@ -450,9 +450,27 @@ public final class DrifterCommands {
 
 	private static int list(CommandContext<CommandSourceStack> ctx) {
 		List<DrifterEntity> drifters = allDrifters(ctx.getSource().getServer());
-		if (drifters.isEmpty()) {
-			ctx.getSource().sendSuccess(() -> Component.literal("No Drifters loaded"), false);
+		// The ones out of the loaded world too, where they were last (user's request: far-off ones went missing).
+		java.util.Set<java.util.UUID> loaded = new java.util.HashSet<>();
+		drifters.forEach(drifter -> loaded.add(drifter.getUUID()));
+		List<com.dinglebob.drifter.world.DrifterRegistry.Known> away = com.dinglebob.drifter.world.DrifterRegistry.all().stream()
+			.filter(k -> !loaded.contains(k.id())).toList();
+		if (drifters.isEmpty() && away.isEmpty()) {
+			ctx.getSource().sendSuccess(() -> Component.literal("No Drifters in this world"), false);
 			return 0;
+		}
+
+		ctx.getSource().sendSuccess(() -> Component.literal(drifters.size() + " loaded, " + away.size() + " out of the loaded world (click a name to go there)"), false);
+		long now = ctx.getSource().getServer().overworld().getGameTime();
+		for (com.dinglebob.drifter.world.DrifterRegistry.Known k : away) {
+			boolean traveling = com.dinglebob.drifter.world.DrifterTravel.isTraveling(k.id());
+			Component line = Component.literal(String.format(Locale.ROOT, "%s %s %d %d %d (%s), %s", k.name(), traveling ? "set off from" : "last seen at",
+				k.pos().getX(), k.pos().getY(), k.pos().getZ(), k.level().location().getPath(), ago(now - k.seen())))
+				.withStyle(style -> style.withColor(net.minecraft.ChatFormatting.GRAY)
+					.withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/drifter tp " + k.name()))
+					.withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT,
+						Component.literal("Click to go to where " + k.name() + " was last"))));
+			ctx.getSource().sendSuccess(() -> line, false);
 		}
 
 		for (DrifterEntity drifter : drifters) {
@@ -472,12 +490,38 @@ public final class DrifterCommands {
 		return drifters.size();
 	}
 
+	/** "3 min ago", "2 days ago" (game time). */
+	private static String ago(long ticks) {
+		if (ticks < 20 * 60) {
+			return "just now";
+		}
+
+		if (ticks < 24000) {
+			return (ticks / 1200) + " min ago";
+		}
+
+		return String.format(Locale.ROOT, "%.1f days ago", ticks / 24000.0);
+	}
+
 	private static int teleportTo(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		String name = StringArgumentType.getString(ctx, "name");
 		DrifterEntity drifter = allDrifters(ctx.getSource().getServer()).stream()
-			.filter(d -> d.getName().getString().equalsIgnoreCase(name)).findFirst()
-			.orElseThrow(() -> new SimpleCommandExceptionType(Component.literal("No loaded Drifter called " + name)).create());
+			.filter(d -> d.getName().getString().equalsIgnoreCase(name)).findFirst().orElse(null);
 		net.minecraft.server.level.ServerPlayer player = ctx.getSource().getPlayerOrException();
+		if (drifter == null) {
+			// Out of the loaded world: to where it was last; it loads in (and catches up) as the player arrives.
+			var known = com.dinglebob.drifter.world.DrifterRegistry.all().stream().filter(k -> k.name().equalsIgnoreCase(name)).findFirst()
+				.orElseThrow(() -> new SimpleCommandExceptionType(Component.literal("No Drifter called " + name)).create());
+			ServerLevel level = ctx.getSource().getServer().getLevel(known.level());
+			if (level == null) {
+				throw new SimpleCommandExceptionType(Component.literal(name + " is in a dimension that isn't there")).create();
+			}
+
+			player.teleportTo(level, known.pos().getX() + 0.5, known.pos().getY(), known.pos().getZ() + 0.5, player.getYRot(), player.getXRot());
+			ctx.getSource().sendSuccess(() -> Component.literal("Teleported to where " + known.name() + " was last (it loads in as you arrive)"), false);
+			return 1;
+		}
+
 		player.teleportTo((ServerLevel)drifter.level(), drifter.getX(), drifter.getY(), drifter.getZ(), player.getYRot(), player.getXRot());
 		ctx.getSource().sendSuccess(() -> Component.literal("Teleported to " + drifter.getName().getString()), false);
 		return 1;

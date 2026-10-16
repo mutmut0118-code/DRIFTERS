@@ -215,11 +215,21 @@ public class PathSearch {
 
 	/** Searches on for up to {@code nanos} (at least {@link PathBudget#MIN_NODES} nodes, at most
 	 * {@link PathBudget#MAX_NODES_PER_SEARCH_PER_TICK}). */
+	private int skipped;
+
 	public Status tick(long nanos) {
 		if (this.status != Status.RUNNING) {
 			return this.status;
 		}
 
+		// The tick's search time is used up: it waits its turn, and only after being skipped for a while takes its few
+		// nodes anyway, so the last Drifter in line never starves but a crowd doesn't blow the budget (found in a
+		// 100-Drifter test: everyone's few nodes a tick came to 20 ms).
+		if (nanos <= 0L && this.skipped++ < PathBudget.MAX_SKIPPED_TICKS) {
+			return this.status;
+		}
+
+		this.skipped = 0;
 		long started = System.nanoTime();
 		try {
 			return this.search(started + nanos);

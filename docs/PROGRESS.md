@@ -1031,6 +1031,16 @@ together). User's decision: **hybrid** (DESIGN section 22, "Hybrid simulation").
    tick on average after the first seconds (6 ms while all 10 start at once), worst tick 12 ms, no deaths. Within the
    3 to 5 ms target.
 
+**100-Drifter test (user's request, 2026-10-15 evening):** 100 Drifters packed into one loaded area: first 30 ms a tick
+for the Drifters (path search took 21 of it: the "every search gets a few nodes" guard added up across 100 searches);
+fixed (a search that misses out waits up to a second for its turn), now about 10 ms for 100 and 13 ms for the whole
+server, a quarter of a tick. Spread across 2000 blocks with no player: they freeze or travel off, as designed (only the
+3 kept running stay active); found that kept-running ones teleported far between updates kept their ticket at the old
+spot and froze (fixed: the ticket moves to where the Drifter is when its area unloads).
+**`/drifter list` and `/drifter tp` reach every Drifter** (user's request; `world/DrifterRegistry`, saved with the
+world): the list shows the loaded ones and, greyed, where the others were last (or set off from), with how long ago;
+clicking one (or `/drifter tp <name>`) takes you there and it loads in.
+
 Also from these runs: movement keys are aimed again after the head turns each tick (`Steering.reaim`): keys picked
 before a fast turn sent one the wrong way off a ledge mid-jump. Trace lines now show the facing (yaw).
 

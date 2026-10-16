@@ -13,8 +13,10 @@ public final class PathBudget {
 	public static final long MAX_NANOS_PER_SEARCH = 1_500_000L;
 	/** Nodes per search per tick, whatever the clock says (the old cap). */
 	public static final int MAX_NODES_PER_SEARCH_PER_TICK = 1500;
-	/** Even with the tick's time used up, every search gets this many nodes, so the last Drifter in line never starves. */
+	/** A search skipped for {@link #MAX_SKIPPED_TICKS} ticks gets this many nodes anyway, so the last in line never starves. */
 	public static final int MIN_NODES = 40;
+	/** Ticks a search may be skipped for lack of time before it takes its {@link #MIN_NODES} anyway. */
+	public static final int MAX_SKIPPED_TICKS = 20;
 
 	private static long stampTick = -1;
 	private static long used;

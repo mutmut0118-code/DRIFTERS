@@ -1179,3 +1179,8 @@ steel, then builds a Nether portal near its home and lights it. It doesn't go th
       top corner), climbs a two-block pillar to finish the top, lights it, and digs its pillar back down. Its thoughts:
       "building a Nether portal at ...", then "lit the Nether portal at ...".
 - [ ] It never places a block floating in the air or out of reach, and the portal works for you (walk in).
+
+**Finding far-off Drifters (new).**
+- [ ] `/drifter list` shows every Drifter in the world: loaded ones as before, then in grey the ones out of the loaded
+      world with where they were last ("last seen at ..., 12 min ago", or "set off from ..." for travelers). Click one
+      (or `/drifter tp <name>`, names tab-complete) to go there; it loads in as you arrive and catches up.
