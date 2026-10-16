@@ -58,7 +58,8 @@ public class HoleUpActivity extends Activity {
 		}
 
 		BlockPos gap = this.gap();
-		if (gap != null && Tools.buildingBlockCount(this.drifter) > 0 && this.tried.add(gap)) {
+		if (gap != null && Tools.buildingBlockCount(this.drifter) > 0) {
+			this.tried.merge(gap, 1, Integer::sum);
 			return this.begin(new PlaceBlockTask(this.drifter, gap, Tools.BUILDING_BLOCK, "a wall to rest behind"));
 		}
 
@@ -67,25 +68,28 @@ public class HoleUpActivity extends Activity {
 	}
 
 	private boolean ate;
-	private final java.util.Set<BlockPos> tried = new java.util.HashSet<>();
+	/** Tries per cell: one that failed gets one more go once its neighbours are up (they give it a face to go against). */
+	private final java.util.Map<BlockPos, Integer> tried = new java.util.HashMap<>();
+	private static final int TRIES = 2;
 
-	/** An open cell round its feet and head (the head row first: that's where fireballs come in), or over its head. */
+	/** An open cell round its feet, then its head, then over its head: each row rests on the one before (found in testing:
+	 * head-high blocks first had nothing to go against, and fireballs came in through the gaps). */
 	@org.jetbrains.annotations.Nullable
 	private BlockPos gap() {
 		Level level = this.drifter.level();
 		BlockPos feet = this.drifter.blockPosition();
 		java.util.List<BlockPos> cells = new java.util.ArrayList<>();
 		for (Direction side : Direction.Plane.HORIZONTAL) {
-			cells.add(feet.relative(side).above());
+			cells.add(feet.relative(side));
 		}
 
 		for (Direction side : Direction.Plane.HORIZONTAL) {
-			cells.add(feet.relative(side));
+			cells.add(feet.relative(side).above());
 		}
 
 		cells.add(feet.above(2));
 		for (BlockPos cell : cells) {
-			if (level.getBlockState(cell).canBeReplaced() && !this.tried.contains(cell)) {
+			if (level.getBlockState(cell).canBeReplaced() && this.tried.getOrDefault(cell, 0) < TRIES) {
 				return cell.immutable();
 			}
 		}

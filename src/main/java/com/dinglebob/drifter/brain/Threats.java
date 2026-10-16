@@ -200,7 +200,7 @@ public final class Threats {
 
 	/** A mob that shoots (skeletons, pillagers, anything holding a bow or crossbow). */
 	/** Above this health, with a shield, it stands and fights blazes rather than running from them. */
-	public static final float BLAZE_STAND_HEALTH = 8.0F;
+	public static final float BLAZE_STAND_HEALTH = NetherGoals.HoleUp.HURT_UNDER_FIRE;
 
 	/** How much a shooter counts against a Drifter with a shield in hand. */
 	public static final double SHIELDED_SHOOTER = 0.5;

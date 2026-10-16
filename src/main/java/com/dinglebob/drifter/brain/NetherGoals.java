@@ -41,6 +41,9 @@ public final class NetherGoals {
 	public static final class HoleUp extends Goals.Goal {
 		/** At or below this health. */
 		private static final float HURT = 10.0F;
+		/** With blazes or a ghast about it holes up sooner, while it still has the health to build its walls (found in testing:
+		 * holing up only when nearly dead, the next fireball finished it before the walls were up). */
+		public static final float HURT_UNDER_FIRE = 12.0F;
 
 		@Override
 		public String id() {
@@ -55,12 +58,30 @@ public final class NetherGoals {
 		@Override
 		public double urgency(Goals.Context context) {
 			DrifterEntity drifter = context.drifter();
-			if (!inNether(drifter) || drifter.getHealth() > HURT || drifter.getDrifterBrain().failedRecently("nether_holeup")) {
+			if (!inNether(drifter) || drifter.getDrifterBrain().failedRecently("nether_holeup")) {
 				return 0.0;
 			}
 
+			// Under fire and getting low: before anything else, fighting included.
+			if (drifter.getHealth() <= HURT_UNDER_FIRE && shootersAbout(drifter)) {
+				return 1.35;
+			}
+
+			if (drifter.getHealth() > HURT) {
+				return 0.0;
+			}
+
+			// No way home just now, or shooters about (it heals before it walks home through their fire).
 			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
-			return trip == null || trip.netherPortal == null || drifter.getDrifterBrain().failedRecently("nether_return") ? 0.93 : 0.0;
+			boolean noWayHome = trip == null || trip.netherPortal == null || drifter.getDrifterBrain().failedRecently("nether_return");
+			return noWayHome ? 0.93 : 0.0;
+		}
+
+		/** A blaze or ghast seen near here in the last half minute. */
+		private static boolean shootersAbout(DrifterEntity drifter) {
+			long now = drifter.level().getGameTime();
+			return drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.MOB, drifter.level().dimension().location(), drifter.position(), 32.0,
+				e -> (e.label.equals("minecraft:blaze") || e.label.equals("minecraft:ghast")) && now - e.confirmedAt < 20 * 30) != null;
 		}
 
 		@Override
