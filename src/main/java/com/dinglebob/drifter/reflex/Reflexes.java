@@ -111,7 +111,7 @@ public class Reflexes {
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
-		this.reflexes = List.of(new InLava(), new InFireBlock(), new Drowning(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
+		this.reflexes = List.of(new InLava(), new InFireBlock(), new StrayPortal(), new Drowning(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
 			new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact());
 	}
 
@@ -231,7 +231,7 @@ public class Reflexes {
 			if (solid(level, pos.below()) && !solid(level, pos) && !solid(level, pos.above()) && level.getFluidState(pos).isEmpty()
 				&& level.getFluidState(pos.above()).isEmpty() && !level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FIRE)
 				&& !level.getBlockState(pos.above()).is(net.minecraft.tags.BlockTags.FIRE)
-				&& !level.getFluidState(pos.below()).is(FluidTags.LAVA)) {
+				&& !level.getFluidState(pos.below()).is(FluidTags.LAVA) && !inPortal(level, pos) && !inPortal(level, pos.above())) {
 				double distance = pos.distToCenterSqr(drifter.position());
 				if (distance < bestDistance) {
 					bestDistance = distance;
@@ -241,6 +241,10 @@ public class Reflexes {
 		}
 
 		return best;
+	}
+
+	private static boolean inPortal(Level level, BlockPos pos) {
+		return level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL);
 	}
 
 	/** Run (sprinting) toward a point, jumping out of whatever it's in. */
@@ -672,6 +676,62 @@ public class Reflexes {
 	 * spot that isn't burning, as a player steps off (found in testing: it stood in a Nether fire, looking down, until it
 	 * died).
 	 */
+	/**
+	 * In a nether portal it didn't mean to go through (standing there working out its next route, or drifting into it):
+	 * it steps out before the portal takes it, as a player would (found in testing: four seconds after it set off to look
+	 * for a fortress it was back in the Overworld, its trip over).
+	 */
+	private static final class StrayPortal extends Reflex {
+		@Nullable
+		private BlockPos safe;
+
+		@Override
+		public String name() {
+			return "in the portal by mistake: stepping out";
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			if (drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.EnterPortalActivity) {
+				return false;
+			}
+
+			return touchingPortal(drifter);
+		}
+
+		private static boolean touchingPortal(DrifterEntity drifter) {
+			Level level = drifter.level();
+			var box = drifter.getBoundingBox().deflate(1.0E-7);
+			for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(box.minX, box.minY, box.minZ), BlockPos.containing(box.maxX, box.maxY, box.maxZ))) {
+				if (inPortal(level, pos)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 40;
+		}
+
+		@Override
+		protected void start(DrifterEntity drifter) {
+			this.safe = nearestSafeSpot(drifter, 3);
+		}
+
+		@Override
+		protected boolean act(DrifterEntity drifter, int tick) {
+			if (this.safe == null || !touchingPortal(drifter) && drifter.onGround()) {
+				return false;
+			}
+
+			runTo(drifter, Vec3.atBottomCenterOf(this.safe), false);
+			return true;
+		}
+	}
+
 	private static final class InFireBlock extends Reflex {
 		@Nullable
 		private BlockPos safe;

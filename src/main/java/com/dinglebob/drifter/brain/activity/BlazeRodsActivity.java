@@ -142,14 +142,16 @@ public class BlazeRodsActivity extends Activity {
 	}
 
 	private static final String SEARCH = "looking for a Nether fortress";
-	/** Search legs along one line before it moves across and comes back the other way. */
-	private static final int LEGS_PER_LINE = 8;
-	private static final double LEG = 48.0;
-	private static final double LINE_SPACING = 96.0;
+	/** How far the first pair of search legs reaches from the portal, north and south; each pair after reaches this much further. */
+	private static final double SEARCH_STEP = 64.0;
+	/** After two pairs, the sweep moves this far east or west of the portal and goes again. */
+	private static final double SEARCH_ACROSS = 80.0;
 
 	/**
 	 * Where the next search leg heads. One who knows the game (Knowledge) knows fortresses stretch north to south and
-	 * searches in long north-south lines, moving across after a while; others just wander.
+	 * sweeps out from its portal: north, then south, then further each way, then over to the side and the same again, so
+	 * the ground near the portal is covered first (found in testing: walking one 384-block line, it spent a whole trip
+	 * going south while the fortress was 60 blocks north of its portal). Others just wander.
 	 */
 	@Nullable
 	private Vec3 searchToward() {
@@ -157,13 +159,15 @@ public class BlazeRodsActivity extends Activity {
 			return null;
 		}
 
-		int legs = this.drifter.getDrifterBrain().timesExplored(SEARCH);
 		var trip = this.drifter.getDrifterBrain().netherTrip();
+		Vec3 origin = trip != null && trip.netherPortal != null ? Vec3.atBottomCenterOf(trip.netherPortal) : this.drifter.position();
+		int legs = this.drifter.getDrifterBrain().timesExplored(SEARCH);
 		int first = trip != null && (trip.startedAt / 20) % 2 == 0 ? 1 : -1;
-		int line = legs / LEGS_PER_LINE;
-		int direction = line % 2 == 0 ? first : -first;
-		double across = legs % LEGS_PER_LINE == 0 && legs > 0 ? LINE_SPACING : 0.0;
-		return this.drifter.position().add(across, 0.0, direction * LEG);
+		int sweep = legs / 4;
+		int inSweep = legs % 4;
+		double z = (inSweep % 2 == 0 ? first : -first) * SEARCH_STEP * (inSweep / 2 + 1);
+		double x = sweep == 0 ? 0.0 : (sweep % 2 == 1 ? 1 : -1) * SEARCH_ACROSS * ((sweep + 1) / 2);
+		return new Vec3(origin.x + x, this.drifter.getY(), origin.z + z);
 	}
 
 	/** Blaze rods it carries. */
