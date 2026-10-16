@@ -1088,6 +1088,12 @@ public class Reflexes {
 			return this.lava == null ? null : Vec3.atCenterOf(this.lava);
 		}
 
+		/** (Long enough to pillar two blocks up out of spreading lava.) */
+		@Override
+		protected int maxTicks() {
+			return 100;
+		}
+
 		/** Times it blocked lava lately, and since when: lava that keeps coming is flowing from somewhere it can't plug. */
 		private int recent;
 		private long firstAt;
@@ -1118,6 +1124,13 @@ public class Reflexes {
 
 			this.task = !this.flowing && this.lava != null && Tools.buildingBlockCount(drifter) > 0
 				? new PlaceBlockTask(drifter, this.lava, Tools.BUILDING_BLOCK, "a block over the lava") : null;
+			// Still coming after it backed off (lava spreading over the floor all round): it stands up out of its way, two
+			// blocks up, where flowing lava can't reach, and lets it settle, as a player does (found in testing: it backed off
+			// and came back a dozen times in 20 s with lava on every side, until it burned).
+			if (this.flowing && this.recent >= FLOWING_AFTER + 2 && Tools.buildingBlockCount(drifter) >= 2 && drifter.onGround()) {
+				drifter.getMemory().thoughts().add(now, "lava all round: standing up out of its way");
+				this.task = new com.dinglebob.drifter.executor.task.PillarUpTask(drifter, 2);
+			}
 		}
 
 		@Override

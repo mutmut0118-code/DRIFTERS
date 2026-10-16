@@ -506,7 +506,11 @@ public class PathSearch {
 			boolean seenHole = this.view.cell(t).kind() == NavView.Kind.OPEN;
 			// (In the Nether, never onto ground or into a space it hasn't seen: either may be lava; found in testing, a step
 			// down a slope onto an unseen block landed it in lava.)
-			boolean seenEnough = !this.lavaWorld || floorSeen && this.view.isKnown(t);
+			// Digging a stair down through rock it has seen is the exception: once that block is out it sees what's under it
+			// before it steps in (the walker looks and replans if there's no floor), as a player digs down (found in testing:
+			// up on the rock over its portal with no blocks to build down, it had no way at all to get down).
+			boolean stairDig = k == 1 && this.view.isKnown(t) && this.view.cell(t).kind() == NavView.Kind.SOLID;
+			boolean seenEnough = !this.lavaWorld || floorSeen && this.view.isKnown(t) || stairDig;
 			if (seenEnough && (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t))))) {
 				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
 				double cost = WALK + STEP_DOWN_EXTRA * k + c.cost + damage * FALL_DAMAGE_COST * this.caution * 2.0;

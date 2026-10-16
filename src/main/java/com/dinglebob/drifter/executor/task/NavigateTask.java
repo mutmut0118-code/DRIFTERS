@@ -295,7 +295,9 @@ public class NavigateTask extends Task {
 	 */
 	private void plan(String reason, boolean onTheMove) {
 		this.stopSub();
-		if (onTheMove) {
+		// In a lava world it stops to think: running on while it plans carried it off a ledge (found in testing: it kept
+		// sprinting along an edge while it worked out a bridge, and ran off into the lava sea).
+		if (onTheMove && !this.level().dimensionType().ultraWarm()) {
 			this.keepSafe();
 		} else {
 			this.releaseKeys();
@@ -600,7 +602,7 @@ public class NavigateTask extends Task {
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.PATH, System.nanoTime() - t);
 		if (status == PathSearch.Status.RUNNING) {
 			// Thinking on the move only for a moment; a long think happens standing still.
-			if (++this.planningTicks == MAX_PLAN_ON_THE_MOVE_TICKS) {
+			if (++this.planningTicks == MAX_PLAN_ON_THE_MOVE_TICKS || this.level().dimensionType().ultraWarm()) {
 				this.releaseKeys();
 			} else {
 				this.keepSafe();
