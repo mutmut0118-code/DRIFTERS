@@ -1165,6 +1165,13 @@ in it), and running from skeletons it heads for cover (a way that puts a block b
 a turn of straight away (three died shot in the back on a snowy mountain).
 Batch results, six seeds: before these fixes 0 deaths, 2 of 6 home, 96 stuck-route logs; after the stuck fixes 1 death
 (magma, since fixed), 5 of 6 home, 1 stuck-route log, first spawner found.
+Later the same night, from the user's game and a replay: aiming its bow, it drops it and turns on anything hitting it
+from close by (a zombie killed one from behind while it aimed at a creeper; the one hitting it is now its main target
+over anything further off); a portal build started from higher ground elsewhere (its hillside shelter) walks over
+instead of failing at once, and portal failures say which block it couldn't reach; a Nether trip once begun is seen
+through (night falling or a player coming to look had pulled it out of its portal twice; it still gives up after 2
+minutes); routes never cut diagonally across the corner of a hole (it fell 19 blocks doing that at a run). Test
+batches now run with mob spawning on (ghasts, piglins, spawners as in a real game).
 
 4. **Getting about:** lava seas bridged sneaking (side walls with ghasts about), no water clutch there (Knowledge:
    a Newbie tries once), soul sand, magma and fire handled, biome preferences (warped forest over soul sand valley and

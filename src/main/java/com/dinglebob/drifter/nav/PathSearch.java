@@ -533,6 +533,12 @@ public class PathSearch {
 				continue;
 			}
 
+			// Its body sweeps over both corners: floor under them too, or it walks round (found in a Nether test: a diagonal
+			// cut across the corner of a hole at a run, and it fell 19 blocks).
+			if (!this.view.standable(sideX.below()) || !this.view.standable(sideZ.below())) {
+				continue;
+			}
+
 			this.add(node, t, MoveType.DIAGONAL, DIAGONAL + c.cost, c, 0);
 		}
 	}

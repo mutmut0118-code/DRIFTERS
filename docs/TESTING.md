@@ -1221,6 +1221,10 @@ they get close, ghasts, blazes), and switch to the sword up close.
       bow, arrows, a sword, a shield and food, and `/drifter brain goal nether_blaze`: it waits by the spawner, fights
       the blazes and picks up their rods ("got 6 blaze rods" when done). Dungeon spawners in caves wake for mining
       Drifters too.
+- [ ] **Bow and close attackers:** while a Drifter aims at something with its bow, hit it (or let a zombie hit it) from
+      close by: it puts the bow away and turns on what's hitting it.
+- [ ] **Nether trip sticks:** once a Drifter says "packed and ready: off to the Nether", it goes through even if night
+      falls or you walk up to it (before, both pulled it back out of the portal).
 - [ ] Standing still on magma blocks it crouches (no burning). A Drifter stuck in one spot in the Nether with no way
       on now looks down round itself and tries again; if it's still stuck, the game log has a line
       `[Drifter] <name> has no route from where it stands` with a block grid: send me that part of the log.

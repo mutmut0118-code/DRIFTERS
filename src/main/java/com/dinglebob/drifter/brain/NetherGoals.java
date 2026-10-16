@@ -54,6 +54,13 @@ public final class NetherGoals {
 			DrifterEntity drifter = context.drifter();
 			Brain brain = drifter.getDrifterBrain();
 			Home home = brain.home();
+			// On its way already (the trip begun, not through yet): it sees it through, night falling or someone coming to
+			// look at it (found in the user's game: it stepped into its portal, then walked off to put things away at dusk,
+			// and the next time to look the player over). The trip ends on its own if it doesn't get through in 2 minutes.
+			if (underway(drifter) && drifter.getHealth() >= drifter.getMaxHealth() / 2.0F) {
+				return 0.95;
+			}
+
 			if (inNether(drifter) || home == null || home.portal == null || !home.near(drifter, Schedule.GO_HOME_RANGE) || !Strategist.portalLit(drifter)
 				|| !Strategist.packedForNether(drifter) || drifter.getHealth() < drifter.getMaxHealth() - 4.0F
 				|| drifter.getFoodData().getFoodLevel() < 14 || context.time() >= Schedule.shelterThinking(drifter) - 2000) {
@@ -73,6 +80,17 @@ public final class NetherGoals {
 		}
 
 		@Override
+		public boolean urgent(Goals.Context context) {
+			return underway(context.drifter());
+		}
+
+		/** The trip has begun and it isn't through the portal yet. */
+		private static boolean underway(DrifterEntity drifter) {
+			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
+			return trip != null && trip.phase == NetherTrip.Phase.GOING && !inNether(drifter);
+		}
+
+		@Override
 		public int minCommitTicks() {
 			return 20 * 60;
 		}
@@ -86,9 +104,12 @@ public final class NetherGoals {
 				return null;
 			}
 
-			NetherTrip trip = new NetherTrip(home.portal.inside(), drifter.level().getGameTime());
-			drifter.getDrifterBrain().setNetherTrip(trip);
-			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "packed and ready: off to the Nether");
+			// Picked up again on the way (after a fight, say): the same trip, so its 2 minutes to get through still count.
+			if (!underway(drifter)) {
+				drifter.getDrifterBrain().setNetherTrip(new NetherTrip(home.portal.inside(), drifter.level().getGameTime()));
+				drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "packed and ready: off to the Nether");
+			}
+
 			return new EnterPortalActivity(drifter, home.portal.inside(), "to the Nether");
 		}
 	}
