@@ -31,7 +31,8 @@ import net.minecraft.world.level.block.state.properties.SlabType;
  * walls of a style's materials (log corner posts and posts along the walls, a stone base row, a log beam at the top,
  * different infill upstairs), windows spaced along the walls (some two tall, some with sills), a door in the front (in
  * the middle or a little off), sometimes a porch (a slab deck, posts, a slab roof) and a chimney, and a roof: a gable
- * either way round, a hip (sloping on all four sides), a shed slope, or flat with a parapet; a loft under a gable; and sometimes a wing out of the back (an L-shaped house), its
+ * either way round, a hip (sloping on all four sides), a shed slope, or flat with a parapet; a loft under a gable; a
+ * corner tower; and sometimes a wing out of the back (an L-shaped house), its
  * own roof running into the main one. Eaves sit level with the top of the wall (beside it, never
  * hanging in the air: what the hand-made designs taught). Each plan picks its materials once from the style's options.
  * The front is the low-z side; the plan is turned to suit its site when it's placed, like any other. Each plan is checked
@@ -198,6 +199,13 @@ public final class PlanGenerator {
 			&& style.chance("loft", 0.0, random)) {
 			loft(cells, m, width, depth, top, roof.equals("gable"), chimney);
 			features.add("loft");
+		}
+
+		// A tower at the front corner (drawn last too; not over a loft, nor beside a porch, whose roof it would cut).
+		if (!roof.equals("shed") && width >= 7 && depth >= 6 && !features.contains("loft") && !features.contains("porch")
+			&& style.chance("tower", 0.0, random)) {
+			tower(cells, m, width, depth, top);
+			features.add("tower");
 		}
 
 		return normalize(id, cells);
@@ -476,6 +484,44 @@ public final class PlanGenerator {
 				cells.remove(outside);
 			}
 		}
+	}
+
+	/** A corner tower's outer size. */
+	private static final int TOWER = 4;
+
+	/**
+	 * A square tower at the front left corner: the house's walls there carried on up past the top of its roof (the roof
+	 * over that corner taken out, the tower's walls closing it off), windows near the top on the two outer faces, and a
+	 * little hip (pyramid) roof. Inside it's open down into the room below, a tall space like a lantern.
+	 */
+	private static void tower(Map<BlockPos, BlockState> cells, Materials m, int width, int depth, int top) {
+		// Up to a block over the house's highest point (not counting the chimney).
+		int highest = top;
+		for (BlockPos pos : cells.keySet()) {
+			if (cells.get(pos).getBlock() != m.chimney() || pos.getY() <= top) {
+				highest = Math.max(highest, pos.getY());
+			}
+		}
+
+		int towerTop = highest + 1;
+		cells.keySet().removeIf(pos -> pos.getX() <= TOWER - 1 && pos.getZ() <= TOWER - 1 && (pos.getY() > top
+			|| pos.getY() == top && (pos.getX() < 0 || pos.getZ() < 0)));
+		for (int y = top + 1; y <= towerTop; y++) {
+			for (int x = 0; x < TOWER; x++) {
+				for (int z = 0; z < TOWER; z++) {
+					if (x == 0 || x == TOWER - 1 || z == 0 || z == TOWER - 1) {
+						cells.put(new BlockPos(x, y, z), wall(m, 1, x, z, y - top, TOWER, TOWER, towerTop - top));
+					}
+				}
+			}
+		}
+
+		for (int along = 1; along <= 2; along++) {
+			window(cells, m, new BlockPos(0, towerTop - 1, along), Direction.WEST, false);
+			window(cells, m, new BlockPos(along, towerTop - 1, 0), Direction.NORTH, false);
+		}
+
+		hip(cells, m, TOWER, TOWER, towerTop);
 	}
 
 	/** Which gable ends get an attic window. */

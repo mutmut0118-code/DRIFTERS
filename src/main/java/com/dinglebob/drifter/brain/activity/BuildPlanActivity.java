@@ -1058,7 +1058,17 @@ public class BuildPlanActivity extends Activity {
 		if (wood != null) {
 			home.houseWoodsShort.add(wood);
 			String instead = null;
-			for (String other : com.dinglebob.drifter.building.plan.HousePalette.woodsAround(this.drifter)) {
+			// What it has and sees close by first, then any tree it knows of (as far as its search for trees reaches; found in
+			// a 10-day run: in a dark oak wood, nothing in 48 blocks but the oak it couldn't get, so it never switched).
+			List<String> candidates = new java.util.ArrayList<>(com.dinglebob.drifter.building.plan.HousePalette.woodsAround(this.drifter));
+			for (String kind : com.dinglebob.drifter.building.plan.HousePalette.WOODS) {
+				if (!candidates.contains(kind) && com.dinglebob.drifter.brain.KnownWorld.anyTakeable(this.drifter, state -> state.is(BlockTags.LOGS)
+					&& kind.equals(com.dinglebob.drifter.building.plan.HousePalette.woodOf(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath())))) {
+					candidates.add(kind);
+				}
+			}
+
+			for (String other : candidates) {
 				if (!home.houseWoodsShort.contains(other)) {
 					instead = other;
 					break;

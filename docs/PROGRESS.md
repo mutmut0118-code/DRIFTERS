@@ -1726,6 +1726,12 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **10-day runs, round 3 (2026-10-17):** one Drifter spent 7 days at the foot of a little waterfall, washed back
+  every time it swam up the flow ("the current keeps pushing it back" 688 times): its escape put one block under it,
+  which left its feet in the water. Now it stands up on as many as it takes to get its feet out (up to 3); from the saved
+  spot it got out in about 4 minutes. Another chose your house2 (oak) in a dark oak wood and never switched wood: the
+  switch only looked at woods within 48 blocks; it now also takes any tree it knows of (the same reach and tree test as
+  its search for trees). And gathering never digs a staircase down after logs ("digging down to find oak log").
 - **Down off its scaffolding:** up a pillar of its own and needing to be somewhere else, the house builder digs out
   the block under its feet, a block at a time (only onto more pillar or solid ground), as a player gets down; before, it
   relied on the pathfinder, which won't drop more than 3, and stood on 4-high pillars with "no way there".

@@ -258,7 +258,10 @@ public class GatherActivity extends Activity {
 		// digs, rather than straight down into a pit (found in the user's game: "doesn't know where to find any diamond"
 		// with diamonds below its feet, over and over, as the planner counted them and gathering didn't).
 		if (this.stairSteps < MAX_STAIR_STEPS && KnownBlocks.find(this.drifter, 8, this.blocks, 8).stream()
+			// (Never for wood: trees grow in the open; a tree down a slope isn't under it. Found in a 10-day run: "digging down to
+			// find oak log".)
 			.anyMatch(pos -> underfoot(pos, feet) && feet.getY() - pos.getY() <= 8 && !this.blacklist().contains(pos, this.now())
+				&& !level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS)
 				&& KnownBlocks.mayTake(level, pos) && !KnownBlocks.underWater(level, pos))) {
 			return this.stairStep();
 		}

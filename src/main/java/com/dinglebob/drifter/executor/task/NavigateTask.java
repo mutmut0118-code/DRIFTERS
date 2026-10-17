@@ -335,7 +335,16 @@ public class NavigateTask extends Task {
 		if (this.stuckInCurrent()) {
 			this.currentEscapes++;
 			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "the current keeps pushing it back: standing on a block out of it");
-			this.startSub(new PillarUpTask(this.drifter, 1));
+			// High enough that its feet are out of the water (found in testing: at the foot of a little waterfall one block
+			// left it in the flow, and it stood there washed back for seven days).
+			BlockPos feet = this.drifter.blockPosition();
+			int height = 1;
+			while (height < 3 && this.level().getFluidState(feet.above(height)).is(FluidTags.WATER)
+				&& this.level().getBlockState(feet.above(height + 2)).getCollisionShape(this.level(), feet.above(height + 2)).isEmpty()) {
+				height++;
+			}
+
+			this.startSub(new PillarUpTask(this.drifter, Math.min(height, Tools.buildingBlockCount(this.drifter))));
 			this.replanAfterSub = true;
 			return;
 		}
