@@ -373,6 +373,10 @@ public class GatherActivity extends Activity {
 
 	/** Lava it has seen on any side of this block (or one block further, where a flow would come through). */
 	private boolean touchesKnownLava(Level level, BlockPos pos) {
+		if (!com.dinglebob.drifter.perception.TerrainKnowledge.lavaPossible(level, pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
+			return false;
+		}
+
 		for (BlockPos near : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
 			if (level.getFluidState(near).is(net.minecraft.tags.FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(near)) {
 				return true;

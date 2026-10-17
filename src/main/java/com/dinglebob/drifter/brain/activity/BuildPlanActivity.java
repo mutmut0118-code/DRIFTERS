@@ -727,7 +727,8 @@ public class BuildPlanActivity extends Activity {
 
 					BlockPos behind = head.relative(facing);
 					boolean againstWall = want.containsKey(behind) && !want.get(behind).getCollisionShape(level, behind).isEmpty();
-					double score = Math.sqrt(toDoor) + (againstWall ? 4.0 : 0.0);
+					// (The ground floor rather than up a ladder.)
+					double score = Math.sqrt(toDoor) + (againstWall ? 4.0 : 0.0) - (foot.getY() - plan.origin.getY()) * 0.5;
 					if (score > bestScore) {
 						bestScore = score;
 						best = new BedSpot(foot.immutable(), facing);
@@ -739,10 +740,23 @@ public class BuildPlanActivity extends Activity {
 		return best;
 	}
 
-	/** Room for half a bed here: empty in the plan and the world (and above it), on a floor, walled in all round. */
+	/**
+	 * Room for half a bed here: empty in the plan and the world (and above it), on a floor, walled in all round, and with
+	 * a roof over it (found in testing: a bed put out on a watchtower's open top deck, the railing counting as walls).
+	 */
 	private boolean roomForBed(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want, BlockPos pos) {
 		if (!plan.contains(pos, 0) || want.containsKey(pos) || want.containsKey(pos.above()) || !level.getBlockState(pos).isAir()
 			|| !level.getBlockState(pos.above()).isAir() || !level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)) {
+			return false;
+		}
+
+		boolean roof = false;
+		for (int up = 2; up < plan.sizeY && !roof; up++) {
+			BlockState over = want.get(pos.above(up));
+			roof = over != null && !over.getCollisionShape(level, pos.above(up)).isEmpty();
+		}
+
+		if (!roof) {
 			return false;
 		}
 

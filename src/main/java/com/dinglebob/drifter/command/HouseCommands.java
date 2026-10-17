@@ -111,7 +111,9 @@ public final class HouseCommands {
 			home.planDone ? " (finished)" : "", bed != null ? "; lives in it (bed at " + bed.toShortString() + ")" : ""));
 		List<String> missing = placed.build.stream().filter(c -> !com.dinglebob.drifter.hands.Placement.matches(level.getBlockState(c.pos()), c.state()))
 			.limit(8).map(c -> c.state().getBlock().getName().getString().toLowerCase(Locale.ROOT) + " at " + c.pos().toShortString()
-				+ (level.getBlockState(c.pos()).isAir() ? "" : " (" + level.getBlockState(c.pos()).getBlock().getName().getString().toLowerCase(Locale.ROOT) + " there)")).toList();
+				+ (level.getBlockState(c.pos()).isAir() ? "" : " (" + level.getBlockState(c.pos()).getBlock().getName().getString().toLowerCase(Locale.ROOT) + " there)")
+				+ (com.dinglebob.drifter.hands.Placement.ways(drifter, c.pos(), com.dinglebob.drifter.hands.Placement.step(level, c.pos(), c.state())).isEmpty()
+					? " (no way to place it: " + whyNoWay(level, c.pos()) + ")" : "")).toList();
 		if (!missing.isEmpty() && done > placed.build.size() / 2) {
 			say(ctx, "Still missing: " + String.join(", ", missing) + (placed.build.size() - done > 8 ? ", ..." : ""));
 		}
@@ -209,6 +211,22 @@ public final class HouseCommands {
 		home.planBed = null;
 		say(ctx, DrifterCommands.label(drifter) + " will build " + plan.id + " next");
 		return 1;
+	}
+
+	/** Debug: what's round a cell that has no way to be placed (its neighbours, and anything standing in it). */
+	private static String whyNoWay(net.minecraft.world.level.Level level, BlockPos pos) {
+		List<String> parts = new java.util.ArrayList<>();
+		for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+			var state = level.getBlockState(pos.relative(d));
+			parts.add(d.getName().charAt(0) + "=" + (state.isAir() ? "air" : state.getBlock().getName().getString().toLowerCase(Locale.ROOT)));
+		}
+
+		var inside = level.getEntities((net.minecraft.world.entity.Entity)null, new net.minecraft.world.phys.AABB(pos));
+		if (!inside.isEmpty()) {
+			parts.add("entity " + inside.get(0).getName().getString());
+		}
+
+		return String.join(" ", parts);
 	}
 
 	/** Most a plan may measure each way (a structure block's limit). */

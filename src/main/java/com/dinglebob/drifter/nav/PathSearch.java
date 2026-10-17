@@ -302,8 +302,16 @@ public class PathSearch {
 		return Math.max(0, Mth.ceil((blocks - safe) * drifter.getAttributeValue(Attributes.FALL_DAMAGE_MULTIPLIER)));
 	}
 
+	/**
+	 * Straight-line distance at walking pace: what every plain move costs (walks are costed at walking pace; it was the
+	 * sprint pace, a quarter under, and the search looked at far more cells than it needed to; performance, 2026-10-17).
+	 * Only its own trails cost less, and a route along one is a fine route anyway.
+	 */
 	private double heuristic(BlockPos pos) {
-		return Math.max(0.0, Vec3.atBottomCenterOf(pos).distanceTo(this.target) - this.goalRadius) * SPRINT;
+		double dx = pos.getX() + 0.5 - this.target.x;
+		double dy = pos.getY() - this.target.y;
+		double dz = pos.getZ() + 0.5 - this.target.z;
+		return Math.max(0.0, Math.sqrt(dx * dx + dy * dy + dz * dz) - this.goalRadius) * WALK;
 	}
 
 	private boolean isGoal(BlockPos pos) {
@@ -374,6 +382,7 @@ public class PathSearch {
 	}
 
 	private Status finish(Node end, boolean partial) {
+		PathBudget.finished(this.expanded);
 		if (end == null || end.parent == null) {
 			this.status = Status.FAILED;
 			return this.status;

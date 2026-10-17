@@ -955,6 +955,10 @@ public class NavigateTask extends Task {
 	/** Lava it has seen within 3 blocks across and 4 down (a step or a short drop away). */
 	private boolean lavaBelowNear() {
 		BlockPos feet = this.feet();
+		if (!com.dinglebob.drifter.perception.TerrainKnowledge.lavaPossible(this.level(), feet.offset(-3, -4, -3), feet.offset(3, 0, 3))) {
+			return false;
+		}
+
 		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-3, -4, -3), feet.offset(3, 0, 3))) {
 			if (this.level().getFluidState(pos).is(FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(pos)) {
 				return true;
@@ -966,6 +970,10 @@ public class NavigateTask extends Task {
 
 	private boolean lavaNear(int radius) {
 		BlockPos feet = this.feet();
+		if (!com.dinglebob.drifter.perception.TerrainKnowledge.lavaPossible(this.level(), feet.offset(-radius, -1, -radius), feet.offset(radius, 1, radius))) {
+			return false;
+		}
+
 		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-radius, -1, -radius), feet.offset(radius, 1, radius))) {
 			if (this.level().getFluidState(pos).is(FluidTags.LAVA) && this.drifter.getSenses().terrain().isKnown(pos)) {
 				return true;

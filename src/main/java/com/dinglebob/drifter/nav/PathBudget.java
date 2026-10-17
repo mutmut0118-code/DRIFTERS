@@ -68,11 +68,23 @@ public final class PathBudget {
 		totalNodes += nodes;
 	}
 
+	private static long searches;
+	private static long searchNodes;
+
+	/** A search finished, after looking at this many cells. */
+	public static void finished(int nodes) {
+		searches++;
+		searchNodes += nodes;
+	}
+
 	/** "N nodes/ms" since the last call, then starts counting again. */
 	public static String speedReport() {
-		String report = totalNanos == 0 ? "no searches" : String.format(java.util.Locale.ROOT, "%.0f nodes/ms (%d nodes)", totalNodes / (totalNanos / 1e6), totalNodes);
+		String report = totalNanos == 0 ? "no searches" : String.format(java.util.Locale.ROOT, "%.0f nodes/ms (%d nodes), %d searches, %.0f nodes each",
+			totalNodes / (totalNanos / 1e6), totalNodes, searches, searches == 0 ? 0.0 : (double)searchNodes / searches);
 		totalNanos = 0;
 		totalNodes = 0;
+		searches = 0;
+		searchNodes = 0;
 		return report;
 	}
 }

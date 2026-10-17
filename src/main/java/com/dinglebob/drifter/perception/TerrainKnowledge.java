@@ -318,6 +318,28 @@ public class TerrainKnowledge {
 		return null;
 	}
 
+	private static final java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> LAVA =
+		state -> state.getFluidState().is(net.minecraft.tags.FluidTags.LAVA);
+
+	/**
+	 * There could be lava somewhere in this box (false: certainly none, from the sections' own palettes, without looking at
+	 * a single block). Box loops looking for lava ask this first (performance, 2026-10-17).
+	 */
+	public static boolean lavaPossible(net.minecraft.world.level.Level level, BlockPos min, BlockPos max) {
+		SectionFilter palette = SectionFilter.palette(level, LAVA);
+		for (int sx = min.getX() >> 4; sx <= max.getX() >> 4; sx++) {
+			for (int sy = min.getY() >> 4; sy <= max.getY() >> 4; sy++) {
+				for (int sz = min.getZ() >> 4; sz <= max.getZ() >> 4; sz++) {
+					if (palette.mayHave(sx, sy, sz)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 	/** Whether a section (by section coordinates) can have what a scan looks for. */
 	@FunctionalInterface
 	public interface SectionFilter {

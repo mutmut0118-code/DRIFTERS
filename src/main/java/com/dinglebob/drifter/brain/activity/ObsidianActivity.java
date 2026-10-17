@@ -343,6 +343,10 @@ public class ObsidianActivity extends Activity {
 	}
 
 	private static boolean lavaNear(Level level, BlockPos pos, int radius) {
+		if (!com.dinglebob.drifter.perception.TerrainKnowledge.lavaPossible(level, pos.offset(-radius, -1, -radius), pos.offset(radius, 2, radius))) {
+			return false;
+		}
+
 		for (BlockPos near : BlockPos.betweenClosed(pos.offset(-radius, -1, -radius), pos.offset(radius, 2, radius))) {
 			if (level.getFluidState(near).is(FluidTags.LAVA)) {
 				return true;
