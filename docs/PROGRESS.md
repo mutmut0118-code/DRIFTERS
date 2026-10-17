@@ -1726,6 +1726,9 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **Down off its scaffolding:** up a pillar of its own and needing to be somewhere else, the house builder digs out
+  the block under its feet, a block at a time (only onto more pillar or solid ground), as a player gets down; before, it
+  relied on the pathfinder, which won't drop more than 3, and stood on 4-high pillars with "no way there".
 - **Lofts:** a one-storey gable house 7 or more across (no wing) can have a loft: a floor at the wall top over one end
   along the ridge (where the headroom is), a ladder up the back wall through a hole in it (that bit of wall kept solid
   for the ladder), lit by the attic window. 14 of a world's 300. A Drifter built one (229 blocks) and moved in.

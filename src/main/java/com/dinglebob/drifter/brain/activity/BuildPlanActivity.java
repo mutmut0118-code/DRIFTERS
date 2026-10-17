@@ -925,6 +925,29 @@ public class BuildPlanActivity extends Activity {
 		return this.begin(this.dig(pos));
 	}
 
+	/**
+	 * Up its own pillar and off somewhere else: down first, digging out the block under its feet, a block at a time, as a
+	 * player gets down (the pathfinder won't drop more than three; found in testing: stood on a four-high pillar, "no way
+	 * there" again and again). Only onto more of its pillar or solid ground (not off a bridge into a drop). Null if it isn't
+	 * up one, or the spot is on this same pillar.
+	 */
+	@Nullable
+	private Status offPillar(BlockPos to) {
+		BlockPos feet = this.drifter.blockPosition();
+		BlockPos under = feet.below();
+		if (!this.drifter.onGround() || !this.drifter.isScaffold(under) || to.getX() == feet.getX() && to.getZ() == feet.getZ()) {
+			return null;
+		}
+
+		Level level = this.drifter.level();
+		BlockPos landing = under.below();
+		if (!this.drifter.isScaffold(landing) && !level.getBlockState(landing).isFaceSturdy(level, landing, Direction.UP)) {
+			return null;
+		}
+
+		return this.digAt(under);
+	}
+
 	/** Do this at that block, walking over (or up a pillar) first if it's out of reach; left out if it can't get to it. */
 	private Status workAt(Level level, PlacedPlan plan, BlockPos pos, java.util.function.Supplier<Status> work, String what) {
 		return this.workAt(level, plan, pos, pos, work, what);
@@ -992,6 +1015,11 @@ public class BuildPlanActivity extends Activity {
 			return this.walkTo(spot.feet(), what);
 		}
 
+		Status down = this.offPillar(spot.feet());
+		if (down != null) {
+			return down;
+		}
+
 		if (++this.walks > MAX_WALKS) {
 			return this.fail("walked about too much; another go later");
 		}
@@ -1002,6 +1030,11 @@ public class BuildPlanActivity extends Activity {
 	}
 
 	private Status walkTo(BlockPos spot, String what) {
+		Status down = this.offPillar(spot);
+		if (down != null) {
+			return down;
+		}
+
 		if (++this.walks > MAX_WALKS) {
 			return this.fail("walked about too much; another go later");
 		}
