@@ -39,6 +39,8 @@ public final class HouseCommands {
 		root.then(Commands.literal("houses").executes(HouseCommands::list));
 		root.then(Commands.literal("house")
 			.then(Commands.literal("status").executes(HouseCommands::status))
+			// Debug: the house as a map, layer by layer.
+			.then(Commands.literal("map").executes(HouseCommands::map))
 			.then(Commands.literal("info").then(plan().executes(HouseCommands::info)))
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
 			.then(Commands.literal("layout").then(Commands.argument("bed", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -180,6 +182,55 @@ public final class HouseCommands {
 		if (!missing.isEmpty() && done > placed.build.size() / 2) {
 			say(ctx, "Still missing: " + String.join(", ", missing) + (placed.build.size() - done > 8 ? ", ..." : ""));
 		}
+		return 1;
+	}
+
+	/**
+	 * The nearest Drifter's house, one layer per line from two under its floor up (debug): # placed as planned, . still to
+	 * place, X something else where a block goes, G ground in place, o a hole in its ground, @ the Drifter, - nothing
+	 * planned (open), = nothing planned but a solid block there.
+	 */
+	private static int map(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var home = drifter.getDrifterBrain().home();
+		HousePlan plan = home == null || home.planId == null || home.planOrigin == null ? null : HousePlans.get(ctx.getSource().getServer(), home.planId);
+		if (plan == null) {
+			say(ctx, DrifterCommands.label(drifter) + " has no house plan with a spot");
+			return 0;
+		}
+
+		var placed = com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home);
+		var level = drifter.level();
+		java.util.Map<BlockPos, net.minecraft.world.level.block.state.BlockState> want = placed.buildMap();
+		java.util.Set<BlockPos> ground = new java.util.HashSet<>(placed.ground);
+		BlockPos feet = drifter.blockPosition();
+		say(ctx, DrifterCommands.label(drifter) + "'s house " + home.planId + " at " + home.planOrigin.toShortString() + " (rows along x, north to south)");
+		for (int y = -2; y < placed.sizeY; y++) {
+			StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "y%+d:", y));
+			for (int z = 0; z < placed.sizeZ; z++) {
+				line.append(' ');
+				for (int x = 0; x < placed.sizeX; x++) {
+					BlockPos pos = home.planOrigin.offset(x, y, z);
+					var there = level.getBlockState(pos);
+					var planned = want.get(pos);
+					char c;
+					if (pos.equals(feet)) {
+						c = '@';
+					} else if (planned != null) {
+						c = com.dinglebob.drifter.hands.Placement.matches(there, planned) ? '#' : there.isAir() || there.canBeReplaced() ? '.' : 'X';
+					} else if (ground.contains(pos)) {
+						c = there.isAir() || there.canBeReplaced() ? 'o' : 'G';
+					} else {
+						c = there.isAir() || there.canBeReplaced() ? '-' : '=';
+					}
+
+					line.append(c);
+				}
+			}
+
+			say(ctx, line.toString());
+		}
+
 		return 1;
 	}
 

@@ -1474,9 +1474,9 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
 
 ## Generated house plans (new, milestone 15)
 
-The mod now makes 300 house plans per world from 8 styles (timber cottage, stone cottage, log cabin, farmhouse,
-longhouse, tower house, shed hut, stonemason), with porches, chimneys, one or two floors, gable, hip, shed or flat
-roofs, and some L- or T-shaped (a wing out of the back with its own roof). Drifters pick among them along with the
+The mod now makes 300 house plans per world from 9 styles (timber cottage, stone cottage, log cabin, farmhouse,
+longhouse, tower house, shed hut, stonemason, A-frame cabin), with porches, chimneys, attic windows, one or two floors,
+gable, hip, shed or flat roofs, and some L- or T-shaped (a wing out of the back with its own roof). Drifters pick among them along with the
 hand-made ones and yours.
 - [ ] See a row of them: in a creative test world, stand on flat ground and run `/drifter house showcase 12`. It
       really places them, so use a test world. The chat line says what each one has (for example "farmhouse_96 at 128
@@ -1490,5 +1490,7 @@ hand-made ones and yours.
       (before, most built the watchtower). Over a few Drifters you should see different houses, many of them generated.
 - [ ] Make a Drifter build one: next to a Drifter with a finished hut, `/drifter house choose gen:timber_cottage` (or
       `gen:log_cabin`, `gen:farmhouse`, `gen:longhouse`, `gen:tower_house`, `gen:shed_hut`, `gen:stone_cottage`,
-      `gen:stonemason`), then `/drifter brain goal planhouse`. `/drifter house status` shows its progress.
+      `gen:stonemason`, `gen:a_frame_cabin`), then `/drifter brain goal planhouse`. `/drifter house status` shows its progress.
+- [ ] A Drifter building in a wood clears the leaves inside its house's space first (the trees round about keep them
+      alive), then builds. `/drifter house map` next to it draws its house layer by layer if one seems stuck.
 - [ ] How many plans: "House designs" on the "Spawning..." settings page (or `/drifter config spawn house_designs 300`).

@@ -7,3 +7,4 @@ roofs {"gable": w, "gable_z": w, "hip": w, "shed": w, "flat": w}, stair, slab, g
 porch (chance), porch_floor, porch_post, chimney (chance), chimney_block, door_off_center (chance),
 wing (chance of an L: a one-storey wing out of the back, only behind a "gable" roof), wing_depth [min,max].
 A material may be a list of block ids to pick from (each plan picks one); "none" in a list means none (for base and frame).
+Roofs 7 or more across get an attic window in each gable end; walls under 3 high get no porch.

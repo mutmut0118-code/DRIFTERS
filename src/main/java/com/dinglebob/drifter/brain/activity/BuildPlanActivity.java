@@ -506,6 +506,12 @@ public class BuildPlanActivity extends Activity {
 	// Levelling
 	// ---------------------------------------------------------------------------------------------
 
+	/** Leaves that will wither by themselves (no log near enough any more). */
+	private static boolean withers(BlockState state) {
+		return state.hasProperty(net.minecraft.world.level.block.LeavesBlock.DISTANCE) && !state.getValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT)
+			&& state.getValue(net.minecraft.world.level.block.LeavesBlock.DISTANCE) >= net.minecraft.world.level.block.LeavesBlock.DECAY_DISTANCE;
+	}
+
 	/** Earth, rock, plants and trees: the land, not something someone built. */
 	public static boolean natural(BlockState state) {
 		return state.is(BlockTags.DIRT) || state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)
@@ -553,7 +559,11 @@ public class BuildPlanActivity extends Activity {
 					continue;
 				}
 
-				if (state.is(BlockTags.LOGS) != logs || state.is(BlockTags.LEAVES) || state.canBeReplaced()) {
+				// Leaves inside the house's space that won't wither (another tree keeps them alive) go too: they're in the way of
+				// where it stands and what it places (found on a hillside in a spruce wood: the inside full of them, floor
+				// blocks boxed in, "nowhere to stand" 159 times).
+				boolean leaves = state.is(BlockTags.LEAVES);
+				if (state.is(BlockTags.LOGS) != logs || leaves && (dy >= plan.sizeY || withers(state)) || !leaves && state.canBeReplaced()) {
 					continue;
 				}
 

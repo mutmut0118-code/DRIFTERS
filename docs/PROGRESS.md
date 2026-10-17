@@ -1726,6 +1726,17 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **A-frame cabins** (a ninth style, `a_frame_cabin`): one-block walls under a steep roof that runs nearly to the
+  ground, ridge front to back, the door and windows in the gable ends. A Drifter built one start to finish (217 blocks).
+- **Attic windows:** a window in the middle of each gable end on roofs 7 or more across. The gable ends now fill round
+  anything already there (an A-frame's door reaches up into its gable). No porch on walls under three high (its roof
+  would be at head height).
+- **Natural ground (staged, materials given):** a two-storey farmhouse with a wing on a forested hillside. It stuck at
+  131 of 462: the house's inside was full of spruce leaves from the trees round it (they never wither while another tree
+  keeps them), boxing in floor blocks and taking every spot to stand ("nowhere to stand" 159 times). Clearing now digs
+  leaves inside the house's space that won't wither (leaves that will, it still leaves). After that: finished, 462 of
+  462, moved in, inside two days (most of the first spent clearing the wood and levelling). Debug `/drifter house map`
+  draws the house layer by layer (# placed, . to place, X something else there, = an unplanned solid block).
 - **T-shaped houses too:** the wing can sit in the middle of the back instead of one side (a third of wings).
 - **The builder makes do (found in 10-day runs: "needs 9 glass pane" 79 times, "needs 64 oak planks" 87 times; the
   houses never finished).** Trips for one material with nothing of the house placed in between are counted (and visits

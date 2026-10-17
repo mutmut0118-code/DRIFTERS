@@ -164,14 +164,15 @@ public final class PlanGenerator {
 
 		int top = (floors - 1) * (height + 1) + height;
 		switch (roof) {
-			case "gable_z" -> gable(cells, m, width, depth, top, false);
+			case "gable_z" -> gable(cells, m, width, depth, top, false, BOTH_ENDS);
 			case "shed" -> shed(cells, m, width, depth, top);
 			case "hip" -> hip(cells, m, width, depth, top);
 			case "flat" -> flat(cells, m, width, depth, top);
-			default -> gable(cells, m, width, depth, top, true);
+			default -> gable(cells, m, width, depth, top, true, BOTH_ENDS);
 		}
 
-		if (style.chance("porch", 0.25, random)) {
+		// (No porch on walls under three high: its roof would be at head height.)
+		if (style.chance("porch", 0.25, random) && height >= 3) {
 			porch(cells, m, width, doorX, height);
 			features.add("porch");
 		}
@@ -234,9 +235,10 @@ public final class PlanGenerator {
 	/**
 	 * A gable roof, its ridge along x (or z): rows of stairs climbing in from both sides, the first beside the top of the
 	 * wall, a slab ridge where they meet on an odd width; the triangles at the two ends filled in (they also hold the rows
-	 * up while it's built).
+	 * up while it's built), round anything already there (the top of a door), with a window in the middle of the attic on
+	 * a wide enough roof (at these ends: {@link #BOTH_ENDS} or only the {@link #FAR_END}).
 	 */
-	private static void gable(Map<BlockPos, BlockState> cells, Materials m, int width, int depth, int top, boolean ridgeAlongX) {
+	private static void gable(Map<BlockPos, BlockState> cells, Materials m, int width, int depth, int top, boolean ridgeAlongX, int windowEnds) {
 		int span = ridgeAlongX ? depth : width;
 		int length = ridgeAlongX ? width : depth;
 		int low = -OVERHANG;
@@ -254,9 +256,13 @@ public final class PlanGenerator {
 			}
 
 			if (k >= 1) {
+				int middle = (span - 1) / 2;
+				boolean attic = k == 2 && span >= ATTIC_SPAN;
 				for (int s = low + 1; s < high; s++) {
-					put(cells, ridgeAlongX, 0, y, s, m.gableFill().defaultBlockState());
-					put(cells, ridgeAlongX, length - 1, y, s, m.gableFill().defaultBlockState());
+					BlockState near = attic && s == middle && (windowEnds & NEAR_END) != 0 ? m.window().defaultBlockState() : m.gableFill().defaultBlockState();
+					BlockState far = attic && s == middle && (windowEnds & FAR_END) != 0 ? m.window().defaultBlockState() : m.gableFill().defaultBlockState();
+					putIfFree(cells, ridgeAlongX, 0, y, s, near);
+					putIfFree(cells, ridgeAlongX, length - 1, y, s, far);
 				}
 			}
 		}
@@ -344,7 +350,7 @@ public final class PlanGenerator {
 		}
 
 		Map<BlockPos, BlockState> roof = new HashMap<>();
-		gable(roof, m, w, d + 1, height, false);
+		gable(roof, m, w, d + 1, height, false, FAR_END);
 		for (Map.Entry<BlockPos, BlockState> entry : roof.entrySet()) {
 			BlockPos pos = entry.getKey().offset(x0, 0, shared);
 			// Over the main house: only what shows above its roof's back slope.
@@ -411,6 +417,17 @@ public final class PlanGenerator {
 				return;
 			}
 		}
+	}
+
+	/** Which gable ends get an attic window. */
+	private static final int NEAR_END = 1;
+	private static final int FAR_END = 2;
+	private static final int BOTH_ENDS = NEAR_END | FAR_END;
+	/** Narrowest roof (across the ridge) with an attic window in its gable ends. */
+	private static final int ATTIC_SPAN = 7;
+
+	private static void putIfFree(Map<BlockPos, BlockState> cells, boolean ridgeAlongX, int along, int y, int across, BlockState state) {
+		cells.putIfAbsent(ridgeAlongX ? new BlockPos(along, y, across) : new BlockPos(across, y, along), state);
 	}
 
 	/** Places at (along, y, across) for a ridge along x, or the same turned for one along z. */
