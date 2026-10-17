@@ -1726,6 +1726,12 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **10-day runs, round 4:** a Drifter lived at 4 health for days with no food and food too low to heal (natural
+  regeneration needs 18), building its house; three berry-bush pricks killed it. "Get food" only looked at how much food
+  it carried: hurt, under 18 and nothing to eat now puts food first (0.5 + 0.4 x the health need, over building). And
+  making do counted trips "with nothing placed in between", which also counted trips that brought the oak back when it
+  was the placing that was stuck (so it gave up on oak wrongly): now only trips that bring back none of the material nor
+  anything it's made from count.
 - **Corner towers:** a one-storey house 7+ wide and 6+ deep (no loft, no porch) can have a square tower at its front
   corner, its walls carried up a block past the top of the roof (the roof over that corner taken out), windows near the
   top, a little pyramid roof; open inside down to the room. 9 of a world's 300. A Drifter built one (277 blocks) and
@@ -1761,8 +1767,8 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   draws the house layer by layer (# placed, . to place, X something else there, = an unplanned solid block).
 - **T-shaped houses too:** the wing can sit in the middle of the back instead of one side (a third of wings).
 - **The builder makes do (found in 10-day runs: "needs 9 glass pane" 79 times, "needs 64 oak planks" 87 times; the
-  houses never finished).** Trips for one material with nothing of the house placed in between are counted (and visits
-  where it can't work out a way at all); after 8 (3), out of a wood it builds the rest of the house in another wood it
+  houses never finished).** Trips for one material that bring back none of it (nor anything it's made from) are counted
+  (and visits where it can't work out a way at all); after 8 (3), out of a wood it builds the rest of the house in another wood it
   can get (a block of the same kind in another wood counts as placed, so nothing is torn down), out of glass it leaves
   the windows open (those don't count against the house being done). Walls and roof it never does without: it keeps
   trying, visit by visit. Tested on flat ground with 20 oak logs, no sand and no trees: windows left open, the rest in

@@ -178,7 +178,21 @@ public class BuildPlanActivity extends Activity {
 				this.couldntGet = step.describe();
 			}
 
+			// A trip that brought back nothing on the way to the material (none of it, nor what it's made from) counts
+			// toward making do without it; one that brought something back starts the count again.
+			Home home = this.drifter.getDrifterBrain().home();
+			if (home != null && this.gatheringFor != null) {
+				boolean more = this.gatheringBefore.entrySet().stream()
+					.anyMatch(entry -> this.drifter.getInventory().count(stack -> stack.is(entry.getKey())) > entry.getValue());
+				if (more) {
+					home.houseTrips.remove(this.gatheringFor);
+				} else {
+					home.houseTrips.merge(this.gatheringFor, 1, Integer::sum);
+				}
+			}
+
 			this.gathering = null;
+			this.gatheringFor = null;
 		}
 	}
 
@@ -1046,7 +1060,7 @@ public class BuildPlanActivity extends Activity {
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.3, what));
 	}
 
-	/** Trips for one material with nothing of the house placed in between before it makes do without it. */
+	/** Trips for one material that bring none of it back (nor what it's made from) before it makes do without it. */
 	private static final int SHORT_TRIPS = 8;
 
 	/**
@@ -1115,14 +1129,10 @@ public class BuildPlanActivity extends Activity {
 		}
 
 		Home home = this.drifter.getDrifterBrain().home();
-		if (home != null) {
-			home.houseTrips.merge(item, 1, Integer::sum);
-		}
-
 		Planner.Plan plan = Planner.plan(this.drifter, KnownWorld.scan(this.drifter), item, Math.max(1, count));
 		if (!plan.feasible() || plan.next() == null) {
 			// (No way it knows of, visit after visit: it makes do, as above.)
-			if (home != null && home.houseTrips.getOrDefault(item, 0) >= 3) {
+			if (home != null && home.houseTrips.merge(item, 1, Integer::sum) >= 3) {
 				return this.makeDo(home, item);
 			}
 
@@ -1131,8 +1141,32 @@ public class BuildPlanActivity extends Activity {
 
 		this.think("needs " + count + " " + item.getDescription().getString().toLowerCase(java.util.Locale.ROOT) + " for its house");
 		this.gathering = Goals.activityFor(this.drifter, plan.next());
+		this.gatheringFor = item;
+		this.gatheringBefore.clear();
+		this.gatheringBefore.put(item, this.drifter.getInventory().count(stack -> stack.is(item)));
+		for (Planner.Action action : plan.actions()) {
+			Item step = switch (action) {
+				case Planner.Gather gather -> gather.item();
+				case Planner.Craft craft -> craft.item();
+				case Planner.Smelt smelt -> smelt.output();
+				case Planner.Hunt hunt -> hunt.item();
+				case Planner.Mine mine -> mine.item();
+				case Planner.Fetch fetch -> fetch.item();
+				default -> null;
+			};
+
+			if (step != null) {
+				this.gatheringBefore.put(step, this.drifter.getInventory().count(stack -> stack.is(step)));
+			}
+		}
+
 		return this.begin(this.gathering);
 	}
+
+	/** What the current trip is for, and how many of it and what it's made from it carried when it set off. */
+	@Nullable
+	private Item gatheringFor;
+	private final Map<Item, Integer> gatheringBefore = new java.util.HashMap<>();
 
 	/** Where to stand to place a block: on the ground there, or {@code height} blocks up a pillar from it. */
 	private record Spot(BlockPos feet, int height) {

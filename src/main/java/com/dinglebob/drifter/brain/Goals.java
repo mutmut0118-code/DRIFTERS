@@ -321,6 +321,14 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
+			// Hurt with nothing to eat, and food too low to heal (natural regeneration needs 18): food before building, as a
+			// player would (found in a 10-day run: hurt for four days, no food, building its house; three berry-bush pricks
+			// killed it).
+			double health = context.needs().health();
+			if (health > 0.2 && context.drifter().getFoodData().getFoodLevel() < 18 && Food.choose(context.drifter()) == null) {
+				return Math.max(context.needs().foodSupply(), 0.5 + 0.4 * health);
+			}
+
 			return context.needs().foodSupply();
 		}
 
