@@ -1476,13 +1476,16 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
 
 The mod now makes 300 house plans per world from 8 styles (timber cottage, stone cottage, log cabin, farmhouse,
 longhouse, tower house, shed hut, stonemason), with porches, chimneys, one or two floors, gable, hip, shed or flat
-roofs, and some L-shaped (a wing out of the back with its own roof). Drifters pick among them along with the
+roofs, and some L- or T-shaped (a wing out of the back with its own roof). Drifters pick among them along with the
 hand-made ones and yours.
 - [ ] See a row of them: in a creative test world, stand on flat ground and run `/drifter house showcase 12`. It
       really places them, so use a test world. The chat line says what each one has (for example "farmhouse_96 at 128
       [gable, two floors, wing]"); walk round the back to see the wings. Tell me any style you don't like and I'll drop
       or change it.
 - [ ] `/drifter houses` lists every plan (the generated ones start with `gen:`).
+- [ ] A Drifter that can't get glass (no sand it knows of) leaves its house's windows open for now ("leaving its
+      house's windows open" in its thoughts) instead of trying forever; one that runs out of a wood finishes the house in
+      another ("building the rest of its house in spruce"), so a house can come out in two woods.
 - [ ] Drifters' houses vary now: each picks any house that fits a good spot near home, not always the smallest one
       (before, most built the watchtower). Over a few Drifters you should see different houses, many of them generated.
 - [ ] Make a Drifter build one: next to a Drifter with a finished hut, `/drifter house choose gen:timber_cottage` (or

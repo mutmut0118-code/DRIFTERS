@@ -177,6 +177,7 @@ public final class KnownWorld {
 		Level level = drifter.level();
 		long now = level.getGameTime();
 		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
+		TreeLogs treeCheck = new TreeLogs(level);
 		return drifter.getSenses().terrain().anyKnown(drifter.blockPosition(), RADIUS,
 			com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level, filter), pos -> {
 				if (!level.isLoaded(pos)) {
@@ -184,7 +185,10 @@ public final class KnownWorld {
 				}
 
 				BlockState state = level.getBlockState(pos);
-				return filter.test(state) && takeable(level, pos, state, blacklist, now);
+				// (Wood only from trees, as the scan counts it: found in a 10-day run, its own hut's log corner posts ended
+				// every "looking for trees" at once, and the planner sent it looking again, for days.)
+				return filter.test(state) && takeable(level, pos, state, blacklist, now)
+					&& !(state.is(net.minecraft.tags.BlockTags.LOGS) && !treeCheck.check(pos));
 			}) != null;
 	}
 

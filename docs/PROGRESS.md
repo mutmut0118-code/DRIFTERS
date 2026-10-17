@@ -1679,6 +1679,14 @@ structure blocks) for the user's own worlds.
   bed, the torch or a window before placing it (from the far side of the room they're out of reach). And a block whose
   standing spot it can't get to waits for another visit instead of failing the whole hut (a floor over a dip failed a
   7x7 hut for days). Tested on flat ground: 9x9 two high and three high, both finished with nothing missing, door in.
+- **"Looking for trees" loop fixed (2026-10-17, 10-day run).** Exploring for wood stopped as soon as it saw any log it
+  could take, but the planner only counts logs that belong to a tree (a house's log posts aren't one): its own hut's log
+  corner posts ended every search at once and the planner sent it looking again, every 100 ticks for 8 minutes a
+  visit, 14 visits running (a hut never finished: no wood for the door). The stop check now uses the same tree test.
+- **Open (seen in 10-day runs, rare):** a Drifter stuck at the bottom of its own mine for days, every walk home "no
+  progress for 8 s" (69 times in one run; not seen again in six more). With thoughts going to the log, a stuck walk now
+  turns on a 20 s trace by itself, to catch it next time. Another drowned digging a staircase up into water on its way
+  back from mining.
 - **Next:** milestone 15 (below). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
@@ -1718,6 +1726,14 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **T-shaped houses too:** the wing can sit in the middle of the back instead of one side (a third of wings).
+- **The builder makes do (found in 10-day runs: "needs 9 glass pane" 79 times, "needs 64 oak planks" 87 times; the
+  houses never finished).** Trips for one material with nothing of the house placed in between are counted (and visits
+  where it can't work out a way at all); after 8 (3), out of a wood it builds the rest of the house in another wood it
+  can get (a block of the same kind in another wood counts as placed, so nothing is torn down), out of glass it leaves
+  the windows open (those don't count against the house being done). Walls and roof it never does without: it keeps
+  trying, visit by visit. Tested on flat ground with 20 oak logs, no sand and no trees: windows left open, the rest in
+  spruce, finished (220 of 222), moved in.
 - **Seen:** the showcase in the client (porches, chimneys, longhouses, towers, wings, hip roofs). Drifters built
   generated plans start to finish on flat ground and moved their beds in: a timber cottage (193 blocks), a two-storey
   farmhouse with a wing (450), a stone cottage with a hip roof (223).
