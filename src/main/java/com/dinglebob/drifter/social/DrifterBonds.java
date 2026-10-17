@@ -79,6 +79,8 @@ public class DrifterBonds {
 			}
 
 			r.name = other.getName().getString();
+			r.lastSeenAt = other.level().getGameTime();
+			r.lastSeenPos = other.blockPosition().immutable();
 			// Seen by its own home: now it knows where they live (what a raid needs).
 			var theirHome = other.getDrifterBrain().home();
 			if (theirHome != null && theirHome.dimension.equals(other.level().dimension().location()) && theirHome.center.closerThan(other.blockPosition(), BASE_SEEN)) {

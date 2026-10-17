@@ -132,7 +132,8 @@ public final class HostileGoals {
 
 			// An Opportunist only moves when there's an opening; a Bandit stalks until there is one.
 			boolean bandit = context.drifter().getSocial().disposition() == Disposition.BANDIT;
-			return opening(context.drifter(), player) ? URGENCY : bandit ? 0.5 : 0.0;
+			// An outpost gang's Bandit doesn't wait for an opening (user's decision 2026-10-17: hostile on sight).
+			return opening(context.drifter(), player) || BanditGoals.griefer(context.drifter()) ? URGENCY : bandit ? 0.5 : 0.0;
 		}
 
 		@Override
@@ -148,7 +149,7 @@ public final class HostileGoals {
 				return null;
 			}
 
-			if (opening(drifter, player)) {
+			if (opening(drifter, player) || BanditGoals.griefer(drifter)) {
 				drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "an opening: going after " + player.getGameProfile().getName());
 				return new Fight(drifter, player, "go after " + player.getGameProfile().getName()) {
 					@Override

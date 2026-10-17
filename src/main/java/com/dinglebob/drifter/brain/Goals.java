@@ -2247,6 +2247,7 @@ public final class Goals {
 		// Groups (milestone 12, section 21).
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
+		goals.addAll(com.dinglebob.drifter.social.BanditGoals.all());
 		goals.add(new GroupBanner());
 		goals.add(new PlanHouse());
 		// Whims (milestone 13, docs/WHIMS.md).

@@ -1321,6 +1321,20 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       A Drifter that walks into a boat or minecart no longer gets stuck in it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.
 
+## Outpost Bandits grief (new)
+
+Bandit gangs at pillager outposts now attack you and other Drifters on sight, and about once a day raid a base they
+know: they break the doors, empty the chests, set fires, smash torches, crops, glass and walls, then go home. Use a test
+world: this really wrecks things.
+- [ ] Quick test anywhere: `/drifter banditgang` puts a gang where you stand. Walk 40+ blocks away, build a little
+      wooden hut with a chest and a door, stand in it and run `/drifter banditmark`. Within a minute or two they come:
+      a war cry in chat, then doors, chest, fire, blocks. Their thoughts: "rounding up the gang", "at ...'s base: wreck it!",
+      "setting fire to ...", "back from raiding ...".
+- [ ] Never: your ender chest, anything within 5 blocks of your bed, the spawn protection area.
+- [ ] They find bases on their own by seeing them (your builds, where they saw you sleep, other Drifters' homes); when
+      they know none they go scouting round the outpost.
+- [ ] Off switch: "Outpost Bandits grief" in the settings screen, or `/drifter config banditgriefing false`.
+
 ## House plans (in progress)
 
 Drifters now build a real house from a plan once their hut is up (it takes them a few days of their own time), then

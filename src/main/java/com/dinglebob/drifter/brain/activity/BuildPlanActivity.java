@@ -495,7 +495,7 @@ public class BuildPlanActivity extends Activity {
 	// ---------------------------------------------------------------------------------------------
 
 	/** Earth, rock, plants and trees: the land, not something someone built. */
-	static boolean natural(BlockState state) {
+	public static boolean natural(BlockState state) {
 		return state.is(BlockTags.DIRT) || state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)
 			|| state.is(BlockTags.SAND) || state.is(Blocks.GRAVEL) || state.is(BlockTags.REPLACEABLE_BY_TREES) || state.is(BlockTags.FLOWERS)
 			|| state.is(BlockTags.SAPLINGS) || state.is(Blocks.SNOW) || state.is(Blocks.CLAY) || state.is(BlockTags.COAL_ORES)

@@ -1505,6 +1505,14 @@ structure blocks) for the user's own worlds.
   by weight first and checked against the world one at a time, at most 12 checks and 1.5 ms a pick; a whim's block list
   is turned into one quick test once (reading "#minecraft:wooden_trapdoors" again for every known block took up to 7 ms).
   `/drifter whims` shows the slowest checks. Test: one Drifter in a forest, peak 1.5 ms.
+- Outpost Bandits grief (user's decision 2026-10-17, DESIGN.md section 14 "Griefing"): `social/BanditGoals` (goal
+  `griefraid`): hostile on sight to players (Prey doesn't wait for an opening) and to non-gang Drifters (Threats); finds
+  bases it sees (scout: player-placed block clusters it has seen, a Drifter seen at its home, beds it saw players use),
+  scouts toward where it last saw someone when it knows none; a gang raid about once a day: gather, travel, war cry,
+  4 minutes of wrecking (doors, chests, fire beside wooden walls, torches, crops, glass, stations, walls; at most 3 fires
+  and 14 blocks each), back home. Setting "Outpost Bandits grief" / `/drifter config banditgriefing`. Debug:
+  `/drifter banditgang` (a gang here), `/drifter banditmark` (the nearest gang knows of a base here, raid due now).
+  Tested: a gang raided a Drifter's hut 50 blocks away: looted its chest, broke 26 blocks, lit two fires.
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

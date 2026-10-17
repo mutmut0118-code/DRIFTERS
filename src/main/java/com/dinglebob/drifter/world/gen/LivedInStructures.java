@@ -293,6 +293,27 @@ public final class LivedInStructures {
 		Drifter.LOGGER.info("[Drifter] world gen: {} Drifters moved into the village at {}", residents.size(), box.getCenter().toShortString());
 	}
 
+	/** Debug: a Bandit gang living here as if it held an outpost (for testing their raids without finding one). */
+	public static int gangAt(ServerLevel level, BlockPos middle) {
+		List<DrifterEntity> gang = new ArrayList<>();
+		for (int i = 0; i < BANDITS; i++) {
+			BlockPos spot = groundNear(level, middle, level.getRandom(), 0, 3);
+			DrifterEntity drifter = create(level, spot != null ? spot : middle, Disposition.BANDIT, 3 + level.getRandom().nextInt(4));
+			if (drifter == null) {
+				continue;
+			}
+
+			Home home = new Home(middle, level.dimension().location(), level.getGameTime());
+			home.outpost = true;
+			drifter.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.FLINT_AND_STEEL));
+			drifter.getDrifterBrain().setHome(home);
+			gang.add(drifter);
+		}
+
+		group(gang, "'s Raiders");
+		return gang.size();
+	}
+
 	/** A gang of Bandits holds the outpost: they live by its tower, and while they do no new pillagers turn up there. */
 	private static void outpost(ServerLevel level, BoundingBox box) {
 		RandomSource random = level.getRandom();
@@ -312,6 +333,8 @@ public final class LivedInStructures {
 
 			Home home = new Home(middle, level.dimension().location(), level.getGameTime());
 			home.outpost = true;
+			// Its starting kit has what it raids with (fire for the woodwork).
+			drifter.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.FLINT_AND_STEEL));
 			drifter.getDrifterBrain().setHome(home);
 			gang.add(drifter);
 		}

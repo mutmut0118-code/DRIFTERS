@@ -1118,6 +1118,14 @@ It never sees health bars or inventories.
 
 Only for Vengeful or Bandit Drifters with griefing enabled: breaking into chests, stealing valuables, lighting fires, breaking doors. Never touches ender chests, never does anything near a player's bed or spawn point protection radius.
 
+**Outpost Bandits (user's decision, 2026-10-17): "automatically hostile, as griefer as possible", to players and to
+other Drifters; a setting ("Outpost Bandits grief"), on by default.** A gang holding a pillager outpost attacks players
+and non-gang Drifters on sight (no waiting for an opening, no first-contact telegraph beyond the raid's war cry), finds
+bases by seeing them (a cluster of player-placed blocks, a player going to bed, another Drifter at its home; it scouts
+round the outpost, toward where it last saw people), and about once a game day raids one as a gang: breaks the doors,
+empties the chests, sets fires (flint and steel in its starting kit), smashes torches, crops, glass, stations and
+walls, then goes home. Still never: ender chests, anything within 5 blocks of a bed, the server's spawn protection.
+
 **Raiding chests (user's decision, 2026-10-15): on by default**, still by personality: Bandits raid any player chest they
 find; any other Drifter only the base of a player it holds a real grudge against (Vengeful/Predatory toward them, base
 known). Only when it sees no one near, never an ender chest, never within 5 blocks of a known bed, never inside the

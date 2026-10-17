@@ -112,6 +112,34 @@ public final class SocialCommands {
 			return 1;
 		}));
 		// Where Drifters live in this world: the nearest lived-in village, or Bandit-held pillager outpost (user's request).
+		// Debug: a Bandit gang that lives here as if it held an outpost (raids, griefing).
+		root.then(Commands.literal("banditgang").executes(ctx -> {
+			int n = com.dinglebob.drifter.world.gen.LivedInStructures.gangAt(ctx.getSource().getLevel(), net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()));
+			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(n + " Bandits now hold this spot (careful: they're hostile)"), true);
+			return n;
+		}));
+		// Debug: the nearest Bandit gang learns of a base right here (and may raid it soon).
+		root.then(Commands.literal("banditmark").executes(ctx -> {
+			DrifterEntity bandit = null;
+			double best = Double.MAX_VALUE;
+			for (DrifterEntity d : ctx.getSource().getLevel().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition())).inflate(400.0))) {
+				double dist = d.distanceToSqr(ctx.getSource().getPosition());
+				if (com.dinglebob.drifter.social.BanditGoals.griefer(d) && dist < best) {
+					best = dist;
+					bandit = d;
+				}
+			}
+
+			if (bandit == null) {
+				ctx.getSource().sendFailure(net.minecraft.network.chat.Component.literal("No outpost Bandit within 400 blocks"));
+				return 0;
+			}
+
+			com.dinglebob.drifter.social.BanditGoals.debugMark(bandit, net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()));
+			String name = bandit.getName().getString();
+			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(name + "'s gang now knows of a base here and will raid it soon"), true);
+			return 1;
+		}));
 		root.then(Commands.literal("locate").then(Commands.argument("what", StringArgumentType.word())
 			.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"village", "outpost"}, builder))
 			.executes(ctx -> {

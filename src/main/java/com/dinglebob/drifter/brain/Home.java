@@ -97,6 +97,8 @@ public final class Home {
 	public BlockPos lastOpenedChest;
 	/** Spots where putting a chest down failed (not saved): it tries elsewhere next time. */
 	public final java.util.Set<BlockPos> badChestSpots = new java.util.HashSet<>();
+	/** Bases an outpost Bandit gang has found to raid (user's decision 2026-10-17; social/BanditGoals). */
+	public final java.util.List<BlockPos> marks = new java.util.ArrayList<>();
 	/** A chest it saw someone open that it means to check, and since when (not saved). */
 	@Nullable
 	public BlockPos checkChest;
@@ -366,6 +368,7 @@ public final class Home {
 
 		if (this.outpost) {
 			tag.putBoolean("Outpost", true);
+			tag.putLongArray("Marks", this.marks.stream().mapToLong(BlockPos::asLong).toArray());
 		}
 
 		if (this.banner != null) {
@@ -453,6 +456,9 @@ public final class Home {
 		home.portal = tag.contains("Portal", net.minecraft.nbt.Tag.TAG_COMPOUND) ? PortalFrame.load(tag.getCompound("Portal")) : null;
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
 		home.outpost = tag.getBoolean("Outpost");
+		for (long mark : tag.getLongArray("Marks")) {
+			home.marks.add(BlockPos.of(mark));
+		}
 		home.banner = NbtUtils.readBlockPos(tag, "Banner").orElse(null);
 		CompoundTag missing = tag.getCompound("Missing");
 		for (String key : missing.getAllKeys()) {

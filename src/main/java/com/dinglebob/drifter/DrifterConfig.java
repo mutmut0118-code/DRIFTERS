@@ -76,6 +76,17 @@ public final class DrifterConfig {
 		boolean drifterWars = true;
 		/** Whims: the things they do just for fun (milestone 13, docs/WHIMS.md). */
 		boolean whims = true;
+		/** Outpost Bandits attack on sight and grief bases: doors, chests, fire, blocks (user's decision, 2026-10-17). */
+		boolean banditGriefing = true;
+	}
+
+	public static boolean banditGriefing() {
+		return data.banditGriefing;
+	}
+
+	public static void setBanditGriefing(boolean on) {
+		data.banditGriefing = on;
+		save();
 	}
 
 	public static boolean whims() {
