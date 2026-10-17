@@ -62,8 +62,8 @@ public class BuildPlanActivity extends Activity {
 	private static final int MAX_GAPS = 6;
 	private static final int MAX_WALKS = 60;
 	private static final int MAX_DEPTH = 5;
-	/** Highest it pillars up to reach a block (a fall from there doesn't hurt). */
-	private static final int MAX_PILLAR = 3;
+	/** Highest it pillars up to reach a block (a fall from there costs half a heart at most; a tall house's eaves need it). */
+	private static final int MAX_PILLAR = 4;
 	/** Building blocks it keeps by it while building (for pillars and getting down). */
 	private static final int SPARE_BLOCKS = 10;
 	/** How far above the house's space it takes down the rest of a tree standing in it. */

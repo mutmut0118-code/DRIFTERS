@@ -1525,7 +1525,15 @@ structure blocks) for the user's own worlds.
   looking at the same scene. Whims: drawn by weight then checked, 1.5 ms a pick. Reflexes: slow hazards checked every
   few ticks. Spread: periodic work offset by each Drifter's id. Player-placed lookups: a hash set per chunk. `/drifter
   perf` shows path search speed.
-- **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
+- Step 5, the mod's own designs (`data/drifter/structure/houses/`, made with build commands and saved with
+  `/drifter house save`; my own designs, unfurnished, oak and cobblestone swapped for the Drifter's materials): log
+  cabin (245 blocks), stone cottage (296), two-floor farmhouse with a ladder (545), A-frame (145), watchtower (172).
+  Built by a Drifter on a flat world: cabin, cottage, A-frame and watchtower all the way, moved in; the farmhouse got
+  to 363 and stopped only for cobblestone it couldn't fetch from its hut chest (open: "can't get to its chest" in the
+  hut). Lessons: a roof's lowest row of stairs must touch the wall top (level with it), not hang diagonally above it
+  (nothing to place it against in survival); beds need a roof over them and go on the lowest floor (one went out on
+  the watchtower's top deck); pillars up to 4 blocks for tall eaves.
+- **Next:** more designs (a hillside bunker was planned), and the open items above. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)

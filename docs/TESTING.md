@@ -1375,5 +1375,7 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
       to it, then `/drifter brain goal planhouse`. Stripped logs: it puts the log in, then strips it with an axe. Dirt
       paths: it lays the ground, then makes the path with a shovel at the end. `/drifter house status` shows progress and
       what's still missing.
-- Not yet: the mod's own house designs (log cabin, cottage, farmhouse...). Until then every Drifter that has the stone
-  house in its plans builds that one.
+- [ ] **The mod's own houses** (new): log cabin, stone cottage, two-floor farmhouse, A-frame, watchtower. A Drifter
+      picks one of these or one of yours (the best spot wins, with some chance for variety). To see a particular one:
+      `/drifter house choose log_cabin` (or `stone_cottage`, `farmhouse`, `a_frame`, `watchtower`), then
+      `/drifter brain goal planhouse`. They come out in the wood it has round it.
