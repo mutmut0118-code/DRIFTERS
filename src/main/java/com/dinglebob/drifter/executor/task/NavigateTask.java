@@ -474,6 +474,8 @@ public class NavigateTask extends Task {
 	}
 
 	private void resetStepState() {
+		this.parkourBackingUp = false;
+		this.parkourCharging = false;
 		this.creep = 0;
 		this.pillarStage = 0;
 		this.pillarTries = 0;
@@ -831,6 +833,17 @@ public class NavigateTask extends Task {
 			return this.pillar(step);
 		}
 
+		// A gap jump that came down short (or off the side): it remembers not to try that one again for a while, and plans
+		// again from where it landed.
+		// (Below both ends: the gap has no floor, so that's down in it. Not the run-up: backing up stays at the take-off height.)
+		if (step.type() == MoveType.PARKOUR && this.drifter.onGround()
+			&& this.feet().getY() < Math.min(step.from().getY(), step.to().getY())) {
+			this.drifter.bridgeFailedAt(step.to());
+			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "missed the jump to " + step.to().toShortString());
+			this.replan("missed the jump", true);
+			return Status.RUNNING;
+		}
+
 		if (this.needsFloor(step) && !this.hasFloor(step.to())) {
 			if (step.type() == MoveType.BRIDGE) {
 				// Look down into the gap first, like a player at an edge. If it's only one block deep, step down instead.
@@ -1011,6 +1024,11 @@ public class NavigateTask extends Task {
 			}
 		}
 
+		// A gap jump: landed on the far side (anywhere on the landing block).
+		if (step.type() == MoveType.PARKOUR) {
+			return this.drifter.onGround() && this.feet().equals(step.to());
+		}
+
 		boolean straight = this.index + 1 < this.path.size() && this.flowsInto(step, this.path.get(this.index + 1));
 		// Swimming: it floats with its feet most of a block under the water's top and drifts, so a point in the water
 		// counts as reached when it's close (or past it on a straight line) at about that height (found in testing: it
@@ -1161,7 +1179,17 @@ public class NavigateTask extends Task {
 			return sameDirection(a, b);
 		}
 
+		// Into a gap jump: straight on, so it takes off at full speed (the jump was planned with that run-up).
+		if (b.type() == MoveType.PARKOUR) {
+			return a.type() != MoveType.STEP_DOWN && heading(a) == heading(b);
+		}
+
 		return this.gentleTurn(a, b);
+	}
+
+	/** Which way a step goes (on the level), as one number for comparing. */
+	private static int heading(PathStep step) {
+		return Integer.signum(step.to().getX() - step.from().getX()) * 3 + Integer.signum(step.to().getZ() - step.from().getZ());
 	}
 
 	private static boolean sameDirection(PathStep a, PathStep b) {
@@ -1184,7 +1212,7 @@ public class NavigateTask extends Task {
 
 	private boolean onFoot(PathStep step) {
 		return switch (step.type()) {
-			case WALK, DIAGONAL, JUMP_UP -> true;
+			case WALK, DIAGONAL, JUMP_UP, PARKOUR -> true;
 			case STEP_DOWN -> !this.level().getFluidState(step.to()).is(FluidTags.WATER);
 			default -> false;
 		};
@@ -1408,7 +1436,7 @@ public class NavigateTask extends Task {
 
 	private boolean needsFloor(PathStep step) {
 		return switch (step.type()) {
-			case WALK, DIAGONAL, JUMP_UP, STEP_DOWN, BRIDGE -> !this.level().getFluidState(step.to()).is(FluidTags.WATER);
+			case WALK, DIAGONAL, JUMP_UP, STEP_DOWN, BRIDGE, PARKOUR -> !this.level().getFluidState(step.to()).is(FluidTags.WATER);
 			default -> false;
 		};
 	}
@@ -1425,6 +1453,11 @@ public class NavigateTask extends Task {
 	// ---------------------------------------------------------------------------------------------
 
 	private void steer(PathStep step) {
+		if (step.type() == MoveType.PARKOUR) {
+			this.parkourSteer(step);
+			return;
+		}
+
 		Vec3 here = this.drifter.position();
 		Vec3 goal = Vec3.atBottomCenterOf(step.to());
 		// Already past this point (still dropping down to it, or in mid-jump): carry on toward the next one instead of
@@ -1476,7 +1509,14 @@ public class NavigateTask extends Task {
 		// Not in water: there sneaking only sinks it, and at a waterfall's edge it pinned it in place for 40 minutes (found in
 		// the user's world: it pressed toward the next water cell, sneaking, and never moved).
 		boolean wet = this.drifter.isInWater();
-		boolean nearEdge = !intentionalDrop && !wet && this.nearDeepDrop();
+		// Running up to a gap jump: no sneaking at the edge (it would stop there), it sprints, and it already looks across.
+		PathStep next = this.index + 1 < this.path.size() ? this.path.get(this.index + 1) : null;
+		boolean runUp = next != null && next.type() == MoveType.PARKOUR && heading(step) == heading(next);
+		if (runUp) {
+			this.drifter.getCamera().track(Vec3.atBottomCenterOf(next.to()).add(0.0, 1.2, 0.0), CameraModel.TurnSpeed.NORMAL);
+		}
+
+		boolean nearEdge = !intentionalDrop && !wet && !runUp && this.nearDeepDrop();
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
 		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
@@ -1543,6 +1583,10 @@ public class NavigateTask extends Task {
 		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && !this.unseenStepDownAhead() && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
 			&& !this.lavaNear(2) && (this.drifter.getHealth() > CAREFUL_HEALTH || this.urgent)
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
+		if (runUp && keys.isDown(VirtualKeys.Key.FORWARD) && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL) {
+			sprint = true;
+		}
+
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
 
 		boolean jump = switch (step.type()) {
@@ -1582,6 +1626,67 @@ public class NavigateTask extends Task {
 		}
 
 		keys.set(VirtualKeys.Key.JUMP, jump);
+	}
+
+	/** How far before the edge's limit it jumps: the take-off it can't step past (its middle 0.3 over the edge). */
+	private static final double TAKEOFF_LIMIT = 0.78;
+
+	/**
+	 * A gap jump (parkour): run straight at the gap facing across, sprinting if it can, no sneaking; jump on the last tick
+	 * it's still on the take-off block (its middle about to pass 0.3 over the edge, where it would start to fall), and keep
+	 * pressing on through the air, steering for the landing, as a player does.
+	 */
+	/** Backing up for a run at a gap jump (it stood still at the edge): until it's this far back from the take-off's middle. */
+	private boolean parkourBackingUp;
+	private boolean parkourCharging;
+	private static final double RUN_UP_BACK = 1.4;
+
+	private void parkourSteer(PathStep step) {
+		VirtualKeys keys = this.keys();
+		Vec3 from = Vec3.atBottomCenterOf(step.from());
+		Vec3 landing = Vec3.atBottomCenterOf(step.to());
+		int dx = Integer.signum(step.to().getX() - step.from().getX());
+		int dz = Integer.signum(step.to().getZ() - step.from().getZ());
+		Vec3 here = this.drifter.position();
+		double along = (here.x - from.x) * dx + (here.z - from.z) * dz;
+		double side = (here.x - from.x) * dz - (here.z - from.z) * dx;
+		Vec3 motion = this.drifter.getDeltaMovement();
+		double speedAlong = motion.x * dx + motion.z * dz;
+		boolean onTakeoff = this.drifter.onGround() && this.feet().getY() == step.from().getY() && along < 1.0;
+		// Facing straight across (the sprint jump's push goes the way it faces), at a point well past the landing.
+		this.drifter.getCamera().track(landing.add(dx * 3.0, 1.2, dz * 3.0), CameraModel.TurnSpeed.NORMAL);
+		// On the ground, run along the jump's line (back onto it if it's off to the side); in the air, for the landing.
+		// Standing at the edge with no speed: back up two blocks first for a run at it, as a player does (the jump was
+		// planned with a run-up).
+		if (onTakeoff && !this.parkourCharging && speedAlong < 0.12 && along > -RUN_UP_BACK) {
+			this.parkourBackingUp = true;
+		}
+
+		if (this.parkourBackingUp) {
+			if (along <= -RUN_UP_BACK || !this.drifter.onGround()) {
+				this.parkourBackingUp = false;
+				this.parkourCharging = true;
+			} else {
+				this.pressToward(new Vec3(from.x - dx * (RUN_UP_BACK + 0.5), here.y, from.z - dz * (RUN_UP_BACK + 0.5)));
+				keys.set(VirtualKeys.Key.SNEAK, false);
+				keys.set(VirtualKeys.Key.SPRINT, false);
+				keys.set(VirtualKeys.Key.JUMP, false);
+				return;
+			}
+		}
+
+		if (speedAlong >= 0.12) {
+			this.parkourCharging = true;
+		}
+
+		// (A point ahead on the line itself: steering for it pulls it back onto the line as it goes.)
+		Vec3 aim = onTakeoff ? new Vec3(from.x + dx * (along + 1.5), here.y, from.z + dz * (along + 1.5)) : landing;
+
+		this.pressToward(aim);
+		keys.set(VirtualKeys.Key.SNEAK, false);
+		keys.set(VirtualKeys.Key.SPRINT, keys.isDown(VirtualKeys.Key.FORWARD) && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL);
+		// Lined up and at the edge: jump now (next tick it would be past it). Never from off to the side.
+		keys.set(VirtualKeys.Key.JUMP, onTakeoff && Math.abs(side) <= 0.3 && along + Math.max(speedAlong, 0.05) >= TAKEOFF_LIMIT);
 	}
 
 	/**

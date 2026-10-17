@@ -26,7 +26,8 @@ import net.minecraft.world.phys.Vec3;
  * Costs are seconds of player time, plus risk x Caution, plus resources spent x Thrift. Runs a limited number of
  * nodes per tick ({@link PathBudget}) inside a window around the start; a target outside the window gets a partial
  * path toward it and the follower plans again from there (rolling replanning).
- * TODO(milestone 10+): long-range planning over mental-map tiles; parkour jumps; boats and horses.
+ * Parkour: jumps across gaps a player could make (JumpPhysics), only over ground it has seen, never over lava.
+ * TODO(milestone 10+): long-range planning over mental-map tiles; boats and horses.
  */
 public class PathSearch {
 	public enum Status {
@@ -42,6 +43,15 @@ public class PathSearch {
 	public static final double SPRINT = 1.0 / 5.612;
 	public static final double DIAGONAL = WALK * Math.sqrt(2.0);
 	public static final double JUMP_EXTRA = 0.3;
+	/** On top of a gap jump's time: a little over walking round when that's about as quick (a player doesn't jump for fun). */
+	public static final double PARKOUR_EXTRA = 0.6;
+	/** Risk of a gap jump over a drop that would hurt, before the Caution weight (plus a little per block of depth). */
+	public static final double PARKOUR_DEEP_RISK = 3.0;
+	/**
+	 * How much farther it needs to carry than the gap's width minus its body: its take-off point varies by up to a tick's
+	 * run (it jumps at the edge, somewhere within the last 0.3 of a block), so it plans for the worst of those.
+	 */
+	public static final double PARKOUR_TAKEOFF_LOSS = 0.45;
 	public static final double STEP_DOWN_EXTRA = 0.1;
 	public static final double SWIM = 0.5;
 	/** Extra for swimming with its head under water (air risk, section 12): it keeps to the surface. */
@@ -213,6 +223,11 @@ public class PathSearch {
 	private final int blocksAvailable;
 	private final double caution;
 	private final double thrift;
+	/** For gap jumps: its skill (the widest jump and the margin it wants), whether it can sprint, its speed, Jump Boost. */
+	private final double skill;
+	private final boolean canSprint;
+	private final double walkSpeed;
+	private final int jumpBoost;
 	private final List<Vec3> dangers;
 	private final DrifterMemory memory;
 	/** Deepest drop onto ground it takes, from the player's own fall-damage attributes and its health. */
@@ -255,6 +270,14 @@ public class PathSearch {
 		// Section 12 cost model: risk x Caution, resources x Thrift, from its personality (mood included).
 		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
 		this.thrift = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.THRIFT);
+		this.skill = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.SKILL);
+		// Sprinting needs food over 6, as for a player.
+		this.canSprint = drifter.getFoodData().getFoodLevel() > net.minecraft.world.food.FoodConstants.SPRINT_LEVEL;
+		// Its walking speed (the attribute counts a sprint in while it sprints: that comes back out).
+		double speed = drifter.getAttributeValue(Attributes.MOVEMENT_SPEED);
+		this.walkSpeed = drifter.isSprinting() ? speed / 1.3 : speed;
+		var boost = drifter.getEffect(net.minecraft.world.effect.MobEffects.JUMP);
+		this.jumpBoost = boost == null ? 0 : boost.getAmplifier() + 1;
 		this.memory = drifter.getMemory();
 		int maxDrop = SAFE_DROP;
 		while (maxDrop < WATER_DROP && fallDamage(drifter, maxDrop + 1) <= MAX_DROP_DAMAGE
@@ -484,6 +507,7 @@ public class PathSearch {
 			this.tryLevel(node, f, inWater, onSolidFloor);
 			this.tryJumpUp(node, f, onSolidFloor);
 			this.tryDown(node, f);
+			this.tryParkour(node, d, onSolidFloor);
 		}
 
 		this.tryDiagonals(node);
@@ -615,6 +639,149 @@ public class PathSearch {
 				return;
 			}
 		}
+	}
+
+	/** Two blocks of seen floor behind it, with room to stand, to back up onto and run from. */
+	private boolean roomToRunUp(BlockPos n, Direction d) {
+		for (int i = 1; i <= 2; i++) {
+			BlockPos back = n.relative(d.getOpposite(), i);
+			if (!this.openSeen(back) || !this.openSeen(back.above()) || !this.view.isKnown(back.below()) || !this.view.standable(back.below())) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** Open and seen (a jump's way has to be: it won't leap into what it hasn't looked at). */
+	private boolean openSeen(BlockPos pos) {
+		return this.view.isKnown(pos) && this.view.cell(pos).kind() == NavView.Kind.OPEN;
+	}
+
+	/**
+	 * A jump across a gap (user's request, 2026-10-17: parkour), straight ahead: 1 to 3 blocks of gap (3 only for the
+	 * skilled), landing on the same level, a block up or up to three down, if the jump carries that far by the player's own
+	 * physics (JumpPhysics, with its run-up and sprint) with room to spare. Everything on the way is seen: the take-off
+	 * ground, the gap and the arc over it, the landing. Never over lava; over a drop that would hurt only with more room,
+	 * at a cost Caution weighs. Not from a planned bridge or pillar, nor from water.
+	 */
+	private void tryParkour(Node node, Direction d, boolean onSolidFloor) {
+		BlockPos n = node.pos;
+		if (!onSolidFloor || node.move == MoveType.BRIDGE || node.move == MoveType.PILLAR || this.view.isWater(n)
+			|| this.view.cell(n.below()).kind() != NavView.Kind.SOLID || !this.view.isKnown(n.below())) {
+			return;
+		}
+
+		// Only where the next block has no floor (anything else is a walk or a step).
+		BlockPos first = n.relative(d);
+		if (this.view.standable(first.below()) || !this.openSeen(first.below()) || !this.openSeen(n.above(2))) {
+			return;
+		}
+
+		// Straight on from a walk the same way, or room to back up two blocks for a run at it (as a player does at an edge):
+		// it takes off at full speed.
+		boolean runUp = node.parent != null && (node.move == MoveType.WALK || node.move == MoveType.PARKOUR) && node.parent.pos.relative(d).equals(n)
+			|| this.roomToRunUp(n, d);
+		int maxGap = this.skill >= 0.35 ? 3 : 2;
+		double margin = 0.15 + 0.25 * (1.0 - this.skill);
+		for (int g = 1; g <= maxGap; g++) {
+			BlockPos gap = n.relative(d, g);
+			// The gap itself: open (feet, head and the top of the jump), and no floor (that would end the gap a block sooner).
+			if (!this.openSeen(gap) || !this.openSeen(gap.above()) || !this.openSeen(gap.above(2)) || this.view.standable(gap.below())) {
+				return;
+			}
+
+			BlockPos column = n.relative(d, g + 1);
+			for (int dy = 1; dy >= -3; dy--) {
+				BlockPos t = column.above(dy);
+				if (!this.view.isKnown(t.below()) || this.view.cell(t.below()).kind() != NavView.Kind.SOLID || !this.view.standable(t.below())) {
+					continue;
+				}
+
+				// (Not one it missed a moment ago.)
+				if (this.drifter.bridgeFailedRecently(t)) {
+					break;
+				}
+
+				// The landing and the arc coming down onto it: open from its feet there up to the top of the jump.
+				boolean arc = true;
+				for (int k = dy; k <= Math.max(2, dy + 2); k++) {
+					arc &= this.openSeen(column.above(k));
+				}
+
+				if (!arc) {
+					break;
+				}
+
+				double need = g - 0.6 + PARKOUR_TAKEOFF_LOSS;
+				int depth = this.gapDepth(n, d, g);
+				if (depth < 0) {
+					return;
+				}
+
+				boolean deep = depth > this.maxDrop;
+				double reach = JumpPhysics.reach(this.walkSpeed, this.canSprint, runUp, dy, this.jumpBoost);
+				if (reach < need + margin + (deep ? 0.3 : 0.0)) {
+					break;
+				}
+
+				double risk = deep ? (PARKOUR_DEEP_RISK + 0.2 * Math.min(depth, 30)) * this.caution * 2.0 : 0.0;
+				double cost = (g + 1) * (this.canSprint ? SPRINT : WALK) + JUMP_EXTRA + PARKOUR_EXTRA + risk;
+				this.add(node, t, MoveType.PARKOUR, cost, new Clearance(), 0);
+				break;
+			}
+		}
+	}
+
+	/** A gap whose bottom it hasn't seen counts as this deep. */
+	private static final int UNSEEN_GAP_DEPTH = 24;
+
+	/**
+	 * How far down it would fall missing this jump: blocks to the floor under the gap (0 for water), as deep as
+	 * UNSEEN_GAP_DEPTH where it hasn't seen the bottom, or -1 if it's lava (or an unseen bottom in the Nether).
+	 */
+	private int gapDepth(BlockPos takeoff, Direction d, int gap) {
+		int deepest = 0;
+		for (int i = 1; i <= gap; i++) {
+			BlockPos column = takeoff.relative(d, i);
+			int depth = -1;
+			for (int k = 1; k <= 40; k++) {
+				BlockPos cell = column.below(k);
+				// A bottom it hasn't seen: a deep fall as far as it knows (players jump gaps without seeing the bottom). Not
+				// in the Nether, where an unseen bottom may be lava.
+				if (!this.view.isKnown(cell)) {
+					if (this.lavaWorld) {
+						return -1;
+					}
+
+					depth = UNSEEN_GAP_DEPTH;
+					break;
+				}
+
+				NavView.Kind kind = this.view.cell(cell).kind();
+				if (kind == NavView.Kind.WATER) {
+					depth = 0;
+					break;
+				}
+
+				if (kind == NavView.Kind.BANNED) {
+					return -1;
+				}
+
+				if (kind != NavView.Kind.OPEN) {
+					depth = k - 1;
+					break;
+				}
+			}
+
+			if (depth < 0) {
+				return -1;
+			}
+
+			deepest = Math.max(deepest, depth);
+		}
+
+		return deepest;
 	}
 
 	/** Diagonal steps on the same level: no digging, no cutting through wall corners. */
