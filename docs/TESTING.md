@@ -1324,8 +1324,8 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
 ## Better Combat and Combat Roll (new)
 
 Your DRIFTER TEST profile has both. Make a flat test world, then:
-`/drifter spawn Fighter`, `/drifter give simplyswords:iron_claymore` (while looking at it, or use
-`/execute at @e[name=Fighter,limit=1] run drifter give simplyswords:iron_claymore`), then `/summon husk ~5 ~ ~` twice.
+`/drifter spawn Fighter`, then `/execute at @e[name=Fighter,limit=1] run drifter give simplyswords:iron_claymore`,
+then `/summon husk ~5 ~ ~` twice.
 - [ ] It swings the claymore with **Better Combat's swing animation** (a big two-handed slash, not the plain arm swing),
       and a swing can hit both husks at once.
 - [ ] With Fresh Animations / FA+Player on, the swing still shows (the arms aren't stuck in the idle animation), and
