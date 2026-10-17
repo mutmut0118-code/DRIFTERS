@@ -274,6 +274,11 @@ public final class CatchUp {
 
 			buildHut(drifter, report);
 			furnish(drifter, done / 24000.0, report);
+			// Far enough along: its house, if it has what it takes (user's request, 2026-10-17).
+			String house = CatchUpHouse.build(drifter, Strategist.stage(drifter));
+			if (house != null) {
+				report.furnished.add(house);
+			}
 			placeChest(drifter, report);
 			// Its best armor and shield on before anything goes in the chest (or spares and its best both went in).
 			com.dinglebob.drifter.executor.task.WearArmorTask.equipAllNow(drifter);
@@ -869,7 +874,28 @@ public final class CatchUp {
 			}
 		}
 
-		if (!free(level, door) && hut.bed(level) != null) {
+		// A torch on the back wall inside, as it puts one up itself.
+		BlockPos torch = hut.torchSpot();
+		if (free(level, torch) && take(drifter, stack -> stack.is(Items.TORCH), 1) == 1) {
+			level.setBlock(torch, Blocks.WALL_TORCH.defaultBlockState().setValue(net.minecraft.world.level.block.WallTorchBlock.FACING, hut.door), 3);
+			report.furnished.add("a torch");
+		}
+
+		// Glass in the windows: glass it has, or sand it smelted (user's rule: huts have glass windows).
+		for (BlockPos window : hut.windowCells()) {
+			if (!free(level, window)) {
+				continue;
+			}
+
+			if (CatchUpHouse.takeFromAll(drifter, stack -> stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE), 1)
+				|| CatchUpHouse.takeFromAll(drifter, stack -> stack.is(Items.SAND) || stack.is(Items.RED_SAND), 1)) {
+				level.setBlock(window, Blocks.GLASS.defaultBlockState(), 3);
+				report.furnished.add("glass in a window");
+			}
+		}
+
+		// Done only when it all stands (found in testing: a door and a bed made a hut with 55 blocks missing "finished").
+		if (!free(level, door) && hut.bed(level) != null && hut.missingBlocks(level) <= home.allowedGaps("hut")) {
 			home.hutBuilt = true;
 		}
 	}
@@ -903,7 +929,29 @@ public final class CatchUp {
 
 	private static boolean hasPlanks(DrifterEntity drifter, int count) {
 		return drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PLANKS)) >= count
-			|| drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= (count + 3) / 4;
+			|| drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= (count + 3) / 4
+			|| chestLogs(drifter) >= (count + 3) / 4;
+	}
+
+	/** Logs in its chests at home (it goes to them for what it needs, as it does live). */
+	private static int chestLogs(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null) {
+			return 0;
+		}
+
+		int logs = 0;
+		for (BlockPos pos : home.chests()) {
+			if (drifter.level().isLoaded(pos) && drifter.level().getBlockEntity(pos) instanceof net.minecraft.world.Container chest) {
+				for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+					if (chest.getItem(slot).is(net.minecraft.tags.ItemTags.LOGS)) {
+						logs += chest.getItem(slot).getCount();
+					}
+				}
+			}
+		}
+
+		return logs;
 	}
 
 	/** Uses this many planks, or the logs that make them (four planks a log). */
@@ -914,8 +962,7 @@ public final class CatchUp {
 		}
 
 		int logs = (count + 3) / 4;
-		return drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS)) >= logs
-			&& take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), logs) == logs;
+		return CatchUpHouse.takeFromAll(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), logs);
 	}
 
 	private static void takePlanks(DrifterEntity drifter, int count) {
@@ -953,13 +1000,33 @@ public final class CatchUp {
 		}
 
 		cells.addAll(hut.roof());
+		// Trees and plants where the hut goes, and inside it, cleared first (as it chops them itself; found in testing: a
+		// spruce standing in a hut's walls left it full of gaps).
+		List<BlockPos> clear = new ArrayList<>(cells);
+		clear.addAll(hut.inside());
+		// (The doorway too: a tree's leaves hanging in it kept the door out.)
+		clear.add(hut.doorPos());
+		clear.add(hut.doorPos().above());
+		for (BlockPos cell : clear) {
+			var state = level.getBlockState(cell);
+			if (level.isLoaded(cell) && !state.isAir() && (state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+				|| state.canBeReplaced() && state.getFluidState().isEmpty()) && com.dinglebob.drifter.brain.KnownBlocks.mayTake(level, cell)
+				&& !PlayerPlacedBlocks.isPlayerPlaced(level, cell)) {
+				level.setBlock(cell, Blocks.AIR.defaultBlockState(), 3);
+			}
+		}
+
 		for (BlockPos cell : cells) {
 			if (!level.isLoaded(cell) || com.dinglebob.drifter.building.StarterHut.filled(level, cell) || !level.getBlockState(cell).canBeReplaced()
 				|| PlayerPlacedBlocks.isPlayerPlaced(level, cell) || !level.getEntities(null, new net.minecraft.world.phys.AABB(cell)).isEmpty()) {
 				continue;
 			}
 
-			ItemStack block = hutBlock(drifter);
+			ItemStack block = styledBlock(drifter, home, hut, cell);
+			if (block == null) {
+				block = hutBlock(drifter);
+			}
+
 			if (block == null) {
 				return;
 			}
@@ -968,6 +1035,35 @@ public final class CatchUp {
 			block.shrink(1);
 			report.built++;
 		}
+	}
+
+	/** The block its hut's look wants here (its stone or wooden floor, a log corner post), if it carries one; else null. */
+	@Nullable
+	private static ItemStack styledBlock(DrifterEntity drifter, Home home, com.dinglebob.drifter.building.StarterHut hut, BlockPos cell) {
+		java.util.function.Predicate<ItemStack> wanted = null;
+		if (cell.getY() == hut.center.getY() - 1) {
+			if (home.hutFloor.equals("stone")) {
+				wanted = stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE);
+			} else if (home.hutFloor.equals("wood")) {
+				wanted = stack -> stack.is(ItemTags.PLANKS);
+			}
+		} else if (home.hutLogCorners && hut.isCornerPost(cell)) {
+			wanted = stack -> stack.is(ItemTags.LOGS);
+		}
+
+		if (wanted == null) {
+			return null;
+		}
+
+		DrifterInventory inventory = drifter.getInventory();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (!stack.isEmpty() && stack.getItem() instanceof net.minecraft.world.item.BlockItem && wanted.test(stack)) {
+				return stack;
+			}
+		}
+
+		return null;
 	}
 
 	/** Stone first, then planks, then any building block (the hut's own rule): a block it carries, or null. */

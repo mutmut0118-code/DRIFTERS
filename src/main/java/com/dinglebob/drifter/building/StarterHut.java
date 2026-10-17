@@ -72,8 +72,17 @@ public final class StarterHut {
 		}
 
 		for (Direction side : Direction.Plane.HORIZONTAL) {
-			if (side != this.door) {
-				cells.add(this.center.relative(side, this.half).above());
+			if (side == this.door) {
+				continue;
+			}
+
+			BlockPos middle = this.center.relative(side, this.half).above();
+			if (this.half >= 4) {
+				// A big hut: two windows a wall, either side of the middle.
+				cells.add(middle.relative(side.getClockWise(), 2));
+				cells.add(middle.relative(side.getCounterClockWise(), 2));
+			} else {
+				cells.add(middle);
 			}
 		}
 
@@ -81,7 +90,7 @@ public final class StarterHut {
 	}
 
 	public static StarterHut of(Home home) {
-		return new StarterHut(home.center, home.hutDoor == null ? Direction.SOUTH : home.hutDoor, home.hutHalf, WALL_HEIGHT, false);
+		return new StarterHut(home.center, home.hutDoor == null ? Direction.SOUTH : home.hutDoor, home.hutHalf, home.hutWallHeight, home.hutWindows);
 	}
 
 	/** The door side: the one with the most standable ground just outside it (it has to walk in and out). */
@@ -171,6 +180,11 @@ public final class StarterHut {
 		// Corners first; above the door last (it has nothing under it, so it goes against its neighbours).
 		cells.sort(Comparator.comparingInt((BlockPos cell) -> this.isCorner(cell) ? 0 : this.aboveDoor(cell) ? 2 : 1));
 		return cells;
+	}
+
+	/** A corner post cell (walls only). */
+	public boolean isCornerPost(BlockPos cell) {
+		return this.isCorner(cell) && cell.getY() >= this.center.getY() && cell.getY() < this.center.getY() + this.wallHeight;
 	}
 
 	private boolean isCorner(BlockPos cell) {

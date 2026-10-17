@@ -56,12 +56,15 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		WorldGenLevel level = context.level();
 		RandomSource random = context.random();
 		Direction door = Direction.Plane.HORIZONTAL.getRandomDirection(random);
+		// Its look (user's request, 2026-10-17: huts that vary): size, height, floor, corner posts, glass windows.
+		Home style = new Home(BlockPos.ZERO, Level.OVERWORLD.location(), 0L);
+		style.pickHutStyle(new java.util.Random(random.nextLong()));
 		// A few spots round where it was placed: the first with room for the camp (on hilly land, flat spots are scarce).
 		BlockPos center = null;
 		StarterHut hut = null;
 		for (int attempt = 0; attempt < SITE_TRIES && center == null; attempt++) {
 			BlockPos spot = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, context.origin().offset(random.nextInt(9) - 4, 0, random.nextInt(9) - 4));
-			StarterHut candidate = new StarterHut(spot, door);
+			StarterHut candidate = new StarterHut(spot, door, style.hutHalf, style.hutWallHeight, style.hutWindows);
 			if (siteOk(level, candidate, spot)) {
 				center = spot;
 				hut = candidate;
@@ -73,8 +76,9 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		}
 
 		BlockState wall = Blocks.OAK_PLANKS.defaultBlockState();
+		BlockState floor = style.hutFloor.equals("wood") ? Blocks.OAK_PLANKS.defaultBlockState() : Blocks.COBBLESTONE.defaultBlockState();
 		for (BlockPos cell : hut.floor()) {
-			level.setBlock(cell, Blocks.COBBLESTONE.defaultBlockState(), 2);
+			level.setBlock(cell, floor, 2);
 		}
 
 		for (BlockPos cell : hut.inside()) {
@@ -83,8 +87,12 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 
 		for (int dy = 0; dy <= hut.wallHeight; dy++) {
 			for (BlockPos cell : hut.wallLayer(dy)) {
-				level.setBlock(cell, wall, 2);
+				level.setBlock(cell, style.hutLogCorners && hut.isCornerPost(cell) ? Blocks.OAK_LOG.defaultBlockState() : wall, 2);
 			}
+		}
+
+		for (BlockPos cell : hut.windowCells()) {
+			level.setBlock(cell, Blocks.GLASS.defaultBlockState(), 2);
 		}
 
 		for (BlockPos cell : hut.roof()) {
@@ -110,10 +118,25 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 			level.setBlock(bedHead, foot.setValue(BedBlock.PART, BedPart.HEAD), 2);
 		}
 
-		this.farm(level, random, doorPos.relative(door, 3));
+		// The farm to one side or behind (never in front of the door), its size like a Drifter's own: 5x5 to 9x9 round water.
+		Direction farmSide = switch (random.nextInt(3)) {
+			case 0 -> door.getClockWise();
+			case 1 -> door.getCounterClockWise();
+			default -> door.getOpposite();
+		};
+		// (World generation can only write a chunk or so out from where it's placing: up to 7x7 here.)
+		int farmRadius = 2 + random.nextInt(2);
+		BlockPos farmMiddle = center.relative(farmSide, hut.half + 1 + farmRadius);
+		boolean farmed = this.farm(level, random, farmMiddle, farmRadius);
+		// A torch on the back wall inside.
+		BlockPos torch = hut.torchSpot();
+		if (level.getBlockState(torch).isAir()) {
+			level.setBlock(torch, Blocks.WALL_TORCH.defaultBlockState().setValue(net.minecraft.world.level.block.WallTorchBlock.FACING, door), 2);
+		}
+
 		boolean occupied = random.nextDouble() < OCCUPIED_CHANCE;
 		if (occupied) {
-			this.settle(level, random, center, door, chest);
+			this.settle(level, random, center, door, chest, style, farmed ? level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, farmMiddle) : null, farmRadius);
 		}
 
 		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] world gen: {} camp at {}", occupied ? "a lived-in" : "an abandoned", center.toShortString());
@@ -123,8 +146,8 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 
 	/** Flat (within a block), dry, open ground with no trees or buildings where the hut and its farm go. */
 	private static boolean siteOk(WorldGenLevel level, StarterHut hut, BlockPos center) {
-		for (int dx = -3; dx <= 3; dx++) {
-			for (int dz = -3; dz <= 3; dz++) {
+		for (int dx = -hut.half; dx <= hut.half; dx++) {
+			for (int dz = -hut.half; dz <= hut.half; dz++) {
 				BlockPos column = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, center.offset(dx, 0, dz));
 				if (Math.abs(column.getY() - center.getY()) > 2) {
 					return false;
@@ -148,33 +171,36 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		return true;
 	}
 
-	/** A 3x3 wheat patch round a water block, if the ground there takes it. */
-	private void farm(WorldGenLevel level, RandomSource random, BlockPos middle) {
+	/**
+	 * A wheat patch round a water block (the radius its Drifter keeps it at), on the ground cells there that take it (a
+	 * patch on uneven ground is patchy, as a real one is). False if the middle isn't ground.
+	 */
+	private boolean farm(WorldGenLevel level, RandomSource random, BlockPos middle, int radius) {
 		BlockPos ground = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, middle).below();
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dz = -1; dz <= 1; dz++) {
-				BlockPos cell = ground.offset(dx, 0, dz);
-				BlockState state = level.getBlockState(cell);
-				if (!state.is(Blocks.GRASS_BLOCK) && !state.is(Blocks.DIRT)) {
-					return;
-				}
-			}
+		BlockState centre = level.getBlockState(ground);
+		if (!centre.is(Blocks.GRASS_BLOCK) && !centre.is(Blocks.DIRT)) {
+			return false;
 		}
 
 		level.setBlock(ground, Blocks.WATER.defaultBlockState(), 2);
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dz = -1; dz <= 1; dz++) {
-				if (dx != 0 || dz != 0) {
-					BlockPos cell = ground.offset(dx, 0, dz);
+		for (int dx = -radius; dx <= radius; dx++) {
+			for (int dz = -radius; dz <= radius; dz++) {
+				BlockPos cell = ground.offset(dx, 0, dz);
+				BlockState state = level.getBlockState(cell);
+				if ((dx != 0 || dz != 0) && (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT)) && level.getBlockState(cell.above()).canBeReplaced()) {
+					level.setBlock(cell.above(), Blocks.AIR.defaultBlockState(), 2);
 					level.setBlock(cell, Blocks.FARMLAND.defaultBlockState(), 2);
 					level.setBlock(cell.above(), Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, random.nextInt(8)), 2);
 				}
 			}
 		}
+
+		return true;
 	}
 
 	/** Its Drifter, at home: it catches up on a few days of its life there when it first loads (section 22). */
-	private void settle(WorldGenLevel level, RandomSource random, BlockPos center, Direction door, BlockPos chest) {
+	private void settle(WorldGenLevel level, RandomSource random, BlockPos center, Direction door, BlockPos chest, Home style,
+		@org.jetbrains.annotations.Nullable BlockPos farm, int farmRadius) {
 		Level server = level.getLevel();
 		DrifterEntity drifter = ModEntities.DRIFTER.create(server);
 		if (drifter == null) {
@@ -186,6 +212,15 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		Home home = new Home(center, server.dimension().location(), 0L);
 		home.hutDoor = door;
 		home.hutBuilt = true;
+		home.hutHalf = style.hutHalf;
+		home.hutWallHeight = style.hutWallHeight;
+		home.hutWindows = style.hutWindows;
+		home.hutLogCorners = style.hutLogCorners;
+		home.hutFloor = style.hutFloor;
+		if (farm != null) {
+			home.farm = farm;
+			home.farmRadius = farmRadius;
+		}
 		home.addChest(chest);
 		drifter.getDrifterBrain().setHome(home);
 		drifter.addPendingCatchUp(24000L * (MIN_DAYS + random.nextInt(MAX_DAYS - MIN_DAYS + 1)));

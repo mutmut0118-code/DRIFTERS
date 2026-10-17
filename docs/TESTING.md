@@ -1321,6 +1321,17 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       A Drifter that walks into a boat or minecart no longer gets stuck in it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.
 
+## Huts, farms and houses while you're away (new)
+
+- [ ] New huts vary: 7x7 or 9x9, 2 or 3 blocks high, cobblestone or wooden floor, some with log corner posts, all with
+      window gaps that get glass once it has some (it smelts sand for it). Huts built before stay as they are.
+- [ ] Farms are to the side of or behind the hut, never in front of the door, with water in the middle, and different
+      sizes (5x5 to 9x9).
+- [ ] A Drifter you left for a few days, far enough along, comes back with its house built (if it had the logs,
+      cobblestone and sand), its bed moved in. Older Drifter camps found in new land can have a house beside the hut too.
+      Quick check: `/drifter catchup 120` next to a Drifter that has a hut, then `/drifter house status`.
+
+
 ## Outpost Bandits grief (new)
 
 Bandit gangs at pillager outposts now attack you and other Drifters on sight, and about once a day raid a base they

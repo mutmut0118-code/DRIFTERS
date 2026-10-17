@@ -51,6 +51,15 @@ public final class PlanSite {
 	/** The best spot for this plan round its home, or null if there's none it knows. */
 	@Nullable
 	public static Site choose(DrifterEntity drifter, HousePlan plan, HousePalette palette) {
+		return choose(drifter, plan, palette, false);
+	}
+
+	/**
+	 * {@code lived}: catch-up, where it lived round its home for days (the ground there counts as seen, though its eyes'
+	 * memory of this visit is fresh).
+	 */
+	@Nullable
+	public static Site choose(DrifterEntity drifter, HousePlan plan, HousePalette palette, boolean lived) {
 		Home home = drifter.getDrifterBrain().home();
 		if (home == null) {
 			return null;
@@ -70,7 +79,7 @@ public final class PlanSite {
 					int cx = home.center.getX() + (int)Math.round(Math.cos(angle) * (ring + Math.max(shape.sizeX, shape.sizeZ) / 2.0));
 					int cz = home.center.getZ() + (int)Math.round(Math.sin(angle) * (ring + Math.max(shape.sizeX, shape.sizeZ) / 2.0));
 					BlockPos corner = new BlockPos(cx - shape.sizeX / 2, 0, cz - shape.sizeZ / 2);
-					Site site = score(drifter, level, home, shape, corner, rotation, groundAtBottom, door);
+					Site site = score(drifter, level, home, shape, corner, rotation, groundAtBottom, door, lived);
 					if (site != null && (best == null || site.cost() < best.cost())) {
 						best = site;
 					}
@@ -97,7 +106,7 @@ public final class PlanSite {
 
 	@Nullable
 	private static Site score(DrifterEntity drifter, Level level, Home home, PlacedPlan shape, BlockPos corner, Rotation rotation,
-		boolean groundAtBottom, BlockPos door) {
+		boolean groundAtBottom, BlockPos door, boolean lived) {
 		List<Integer> heights = new ArrayList<>();
 		int trees = 0;
 		int unknown = 0;
@@ -130,7 +139,7 @@ public final class PlanSite {
 
 				// Ground it hasn't seen (under trees, behind a rise) it guesses is like the rest, as a player sizing up a spot
 				// does; only if it has seen too little of it does it look elsewhere.
-				if (!seenDownTo(drifter, column.atY(level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, column).getY() - 1), top)) {
+				if (!lived && !seenDownTo(drifter, column.atY(level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, column).getY() - 1), top)) {
 					unknown++;
 					continue;
 				}

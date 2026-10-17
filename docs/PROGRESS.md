@@ -1533,6 +1533,19 @@ structure blocks) for the user's own worlds.
   hut). Lessons: a roof's lowest row of stairs must touch the wall top (level with it), not hang diagonally above it
   (nothing to place it against in survival); beds need a roof over them and go on the lowest floor (one went out on
   the watchtower's top deck); pillars up to 4 blocks for tall eaves.
+- Huts vary (user, 2026-10-17): each new home picks a look once (`Home.pickHutStyle`, seeded by where it is): 7x7 or
+  9x9, walls 2 or 3 high, a cobblestone or wooden floor, log corner posts or not, glass windows (two a wall on the big
+  ones; glass it has, or a little smelted from sand; open until then). Huts built before keep their plain look. Live
+  building, catch-up and world-gen camps all use it; camps get glass and a torch inside.
+- Farms (user, 2026-10-17): never in front of the hut door (to the sides or behind), and each home's farm is its own
+  size round the water, 5x5 to 9x9 (camps 5x5 or 7x7, a world-gen limit); farms made before stay 9x9.
+- Catch-up builds the house (`world/CatchUpHouse`, user 2026-10-17): far enough along (the plan-house goal's rule), it
+  picks a plan and a spot (the ground round home counts as seen), and only if it has the raw materials in its pockets
+  and chests (logs, cobblestone, sand; worked out from the plan's blocks) uses them up and puts the house up: cleared,
+  levelled, every block as the plan has it, its bed moved in from the hut. Older world-gen camps come with one this way.
+  Catch-up huts: trees and leaves in the hut's space and doorway cleared first; "finished" only when all its blocks
+  stand; doors and glass from what's in its chests too. Tested on the snowy seed: a 7x7 hut with log corners, glass,
+  a torch and a door, then an A-frame with its bed moved in.
 - **Next:** more designs (a hillside bunker was planned), and the open items above. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

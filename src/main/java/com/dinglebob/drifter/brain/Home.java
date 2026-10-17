@@ -41,8 +41,40 @@ public final class Home {
 	@Nullable
 	public net.minecraft.core.Direction hutDoor;
 	public boolean hutBuilt;
-	/** Its hut's half-size: 3 (7x7), or 2 for a hut built before huts got bigger (kept as built). */
+	/** Its hut's half-size: 3 (7x7) or 4 (9x9), or 2 for a hut built before huts got bigger (kept as built). */
 	public int hutHalf = com.dinglebob.drifter.building.StarterHut.HALF;
+	/**
+	 * Its hut's look (user's request, 2026-10-17: huts that vary in size and look, cobblestone or wooden floors, log
+	 * corners, glass windows): picked once for a new home; a hut built before keeps the plain look it was built with.
+	 */
+	public int hutWallHeight = com.dinglebob.drifter.building.StarterHut.WALL_HEIGHT;
+	public boolean hutWindows;
+	public boolean hutLogCorners;
+	/** "stone", "wood", or "any" (whatever it has, the old way). */
+	public String hutFloor = "any";
+	/**
+	 * Its farm's size round the water (user's request, 2026-10-17: farms that vary like a real Drifter's): 2 to 4 (5x5 to
+	 * 9x9); 4 for a farm made before farms varied.
+	 */
+	public int farmRadius = com.dinglebob.drifter.brain.activity.FarmActivity.RADIUS;
+
+	/** A look for a hut not yet started: 7x7 most often, sometimes 9x9; 2 or 3 high; stone or wood floor; log corners or not; windows. */
+	public void pickHutStyle(java.util.Random random) {
+		this.hutHalf = random.nextFloat() < 0.3F ? 4 : 3;
+		this.hutWallHeight = random.nextFloat() < 0.4F ? 3 : 2;
+		this.hutWindows = true;
+		this.hutLogCorners = random.nextBoolean();
+		this.hutFloor = random.nextBoolean() ? "stone" : "wood";
+		this.farmRadius = 2 + random.nextInt(3);
+	}
+
+	/** The plain look of the first huts (what a hut built before the variety keeps). */
+	public void plainHutStyle() {
+		this.hutWallHeight = com.dinglebob.drifter.building.StarterHut.WALL_HEIGHT;
+		this.hutWindows = false;
+		this.hutLogCorners = false;
+		this.hutFloor = "any";
+	}
 	/** Its animal pen (section 9 stage 6): the middle, at the level it stands on; when it last bred animals there. */
 	@Nullable
 	public BlockPos pen;
@@ -164,7 +196,7 @@ public final class Home {
 		if (this.hutBuilt || this.hutDoor != null) {
 			int half = this.hutHalf + margin;
 			if (Math.abs(pos.getX() - this.center.getX()) <= half && Math.abs(pos.getZ() - this.center.getZ()) <= half
-				&& pos.getY() >= this.center.getY() - 1 && pos.getY() <= this.center.getY() + com.dinglebob.drifter.building.StarterHut.ROOF_LAYER) {
+				&& pos.getY() >= this.center.getY() - 1 && pos.getY() <= this.center.getY() + this.hutWallHeight) {
 				return true;
 			}
 		}
@@ -241,6 +273,8 @@ public final class Home {
 		this.center = center.immutable();
 		this.dimension = dimension;
 		this.settledAt = settledAt;
+		// (Seeded by where it is: the same home always gets the same look.)
+		this.pickHutStyle(new java.util.Random(center.asLong() * 31L + 17L));
 	}
 
 	public List<BlockPos> chests() {
@@ -358,6 +392,12 @@ public final class Home {
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
 		tag.putInt("HutHalf", this.hutHalf);
+		CompoundTag style = new CompoundTag();
+		style.putInt("WallHeight", this.hutWallHeight);
+		style.putBoolean("Windows", this.hutWindows);
+		style.putBoolean("LogCorners", this.hutLogCorners);
+		style.putString("Floor", this.hutFloor);
+		tag.put("HutStyle", style);
 		if (this.portal != null) {
 			tag.put("Portal", this.portal.save());
 		}
@@ -383,6 +423,7 @@ public final class Home {
 
 		if (this.farm != null) {
 			tag.put("Farm", NbtUtils.writeBlockPos(this.farm));
+			tag.putInt("FarmRadius", this.farmRadius);
 		}
 
 		if (this.pen != null) {
@@ -451,8 +492,18 @@ public final class Home {
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
 		// Saved before huts got bigger: a hut it has started keeps its size; one it hasn't started is the new size.
-		home.hutHalf = tag.contains("HutHalf") ? tag.getInt("HutHalf")
-			: home.hutBuilt || home.hutDoor != null ? com.dinglebob.drifter.building.StarterHut.OLD_HALF : com.dinglebob.drifter.building.StarterHut.HALF;
+		if (tag.contains("HutStyle", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+			CompoundTag style = tag.getCompound("HutStyle");
+			home.hutHalf = tag.getInt("HutHalf");
+			home.hutWallHeight = style.getInt("WallHeight");
+			home.hutWindows = style.getBoolean("Windows");
+			home.hutLogCorners = style.getBoolean("LogCorners");
+			home.hutFloor = style.getString("Floor");
+		} else if (home.hutBuilt || home.hutDoor != null) {
+			// Saved before huts varied: a hut it has started keeps its size and plain look.
+			home.hutHalf = tag.contains("HutHalf") ? tag.getInt("HutHalf") : com.dinglebob.drifter.building.StarterHut.OLD_HALF;
+			home.plainHutStyle();
+		}
 		home.portal = tag.contains("Portal", net.minecraft.nbt.Tag.TAG_COMPOUND) ? PortalFrame.load(tag.getCompound("Portal")) : null;
 		home.houseBed = NbtUtils.readBlockPos(tag, "HouseBed").orElse(null);
 		home.outpost = tag.getBoolean("Outpost");
@@ -468,6 +519,10 @@ public final class Home {
 			}
 		}
 		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
+		if (home.farm != null) {
+			// (A farm made before farms varied is the full 9x9.)
+			home.farmRadius = tag.contains("FarmRadius") ? tag.getInt("FarmRadius") : com.dinglebob.drifter.brain.activity.FarmActivity.RADIUS;
+		}
 		home.pen = NbtUtils.readBlockPos(tag, "Pen").orElse(null);
 		home.penBredAt = tag.getLong("PenBredAt");
 		home.enchantingTable = NbtUtils.readBlockPos(tag, "EnchantingTable").orElse(null);

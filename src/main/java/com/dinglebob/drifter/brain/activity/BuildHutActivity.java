@@ -586,9 +586,31 @@ public class BuildHutActivity extends Activity {
 		return this.drifter.getInventory().count(Tools.BUILDING_BLOCK);
 	}
 
-	/** The block for this cell. */
+	/**
+	 * The block for this cell: its hut's look (a stone or wooden floor, log corner posts) when it has the blocks for it,
+	 * otherwise whatever it has (stone, planks, then anything).
+	 */
 	protected Predicate<ItemStack> materialFor(BlockPos cell, StarterHut hut) {
+		Home home = this.drifter.getDrifterBrain().home();
+		if (home != null) {
+			Predicate<ItemStack> wanted = null;
+			if (cell.getY() == hut.center.getY() - 1) {
+				wanted = home.hutFloor.equals("stone") ? stone() : home.hutFloor.equals("wood") ? stack -> stack.is(ItemTags.PLANKS) : null;
+			} else if (home.hutLogCorners && hut.isCornerPost(cell)) {
+				wanted = stack -> stack.is(ItemTags.LOGS);
+			}
+
+			if (wanted != null && this.drifter.getInventory().count(wanted) > 0) {
+				return wanted;
+			}
+		}
+
 		return this.material();
+	}
+
+	private static Predicate<ItemStack> stone() {
+		return stack -> Tools.BUILDING_BLOCK.test(stack) && !stack.is(ItemTags.PLANKS) && !stack.is(Items.DIRT) && !stack.is(Items.COARSE_DIRT)
+			&& !stack.is(ItemTags.LOGS);
 	}
 
 	protected void finished(Home home) {
@@ -603,8 +625,7 @@ public class BuildHutActivity extends Activity {
 
 	/** Stone if it has it, then planks, then whatever (dirt): the patchy look of a real first house. */
 	private Predicate<ItemStack> material() {
-		Predicate<ItemStack> stone = stack -> Tools.BUILDING_BLOCK.test(stack) && !stack.is(ItemTags.PLANKS) && !stack.is(Items.DIRT)
-			&& !stack.is(Items.COARSE_DIRT);
+		Predicate<ItemStack> stone = stone();
 		if (this.drifter.getInventory().count(stone) > 0) {
 			return stone;
 		}
@@ -774,8 +795,39 @@ public class BuildHutActivity extends Activity {
 			return this.begin(new PlaceBlockTask(this.drifter, torch, stack -> stack.is(Items.TORCH), "a torch").preferSupport(hut.door.getOpposite()));
 		}
 
+		// Glass in its windows (user's rule: huts have glass windows): what it has, or a little smelted from sand it can get.
+		Predicate<ItemStack> glass = stack -> stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE);
+		int open = 0;
+		for (BlockPos window : hut.windowCells()) {
+			if (!level.getBlockState(window).isAir() || this.failed.contains(window)) {
+				continue;
+			}
+
+			open++;
+			if (this.drifter.getInventory().count(glass) > 0) {
+				if (!inPosition) {
+					return this.walkInside(hut);
+				}
+
+				this.placing = window;
+				return this.begin(new PlaceBlockTask(this.drifter, window, glass, "glass in the window"));
+			}
+		}
+
+		if (open > 0 && !this.glassTried) {
+			this.glassTried = true;
+			var plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter, com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.GLASS, open);
+			if (plan.feasible() && plan.next() != null) {
+				this.think("making glass for the hut's windows");
+				return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
+			}
+		}
+
 		return null;
 	}
+
+	/** It has gone for glass for the windows this visit already. */
+	private boolean glassTried;
 
 	private boolean hasInside(Level level, StarterHut hut, Item station) {
 		for (BlockPos spot : hut.furnitureSpots()) {

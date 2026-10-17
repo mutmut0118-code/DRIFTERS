@@ -603,8 +603,8 @@ public class BuildPlanActivity extends Activity {
 	// Moving in
 	// ---------------------------------------------------------------------------------------------
 
-	private record BedSpot(BlockPos foot, Direction facing) {
-		BlockPos head() {
+	public record BedSpot(BlockPos foot, Direction facing) {
+		public BlockPos head() {
 			return this.foot.relative(this.facing);
 		}
 	}
@@ -620,7 +620,7 @@ public class BuildPlanActivity extends Activity {
 	@Nullable
 	private Status moveBed(Level level, Home home, PlacedPlan plan, Map<BlockPos, BlockState> want) {
 		if (this.bedSpot == null) {
-			this.bedSpot = this.bedSpot(level, plan, want);
+			this.bedSpot = bedSpot(level, plan, want);
 			if (this.bedSpot == null) {
 				this.noBed = true;
 				this.think("no room for its bed in the house; it keeps sleeping in the hut");
@@ -696,7 +696,7 @@ public class BuildPlanActivity extends Activity {
 	 * head against a wall, as far from the door as it can.
 	 */
 	@Nullable
-	private BedSpot bedSpot(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want) {
+	public static BedSpot bedSpot(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want) {
 		for (PlacedPlan.Cell cell : plan.build) {
 			if (cell.state().getBlock() instanceof BedBlock) {
 				return new BedSpot(cell.pos(), cell.state().getValue(BedBlock.FACING));
@@ -710,13 +710,13 @@ public class BuildPlanActivity extends Activity {
 		for (BlockPos column : plan.footprint()) {
 			for (int dy = 0; dy < plan.sizeY - 1; dy++) {
 				BlockPos foot = column.above(dy);
-				if (!this.roomForBed(level, plan, want, foot)) {
+				if (!roomForBed(level, plan, want, foot)) {
 					continue;
 				}
 
 				for (Direction facing : Direction.Plane.HORIZONTAL) {
 					BlockPos head = foot.relative(facing);
-					if (!this.roomForBed(level, plan, want, head)) {
+					if (!roomForBed(level, plan, want, head)) {
 						continue;
 					}
 
@@ -744,7 +744,7 @@ public class BuildPlanActivity extends Activity {
 	 * Room for half a bed here: empty in the plan and the world (and above it), on a floor, walled in all round, and with
 	 * a roof over it (found in testing: a bed put out on a watchtower's open top deck, the railing counting as walls).
 	 */
-	private boolean roomForBed(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want, BlockPos pos) {
+	private static boolean roomForBed(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want, BlockPos pos) {
 		if (!plan.contains(pos, 0) || want.containsKey(pos) || want.containsKey(pos.above()) || !level.getBlockState(pos).isAir()
 			|| !level.getBlockState(pos.above()).isAir() || !level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)) {
 			return false;
@@ -797,7 +797,7 @@ public class BuildPlanActivity extends Activity {
 	 * the door's sill and the way cleared, so the door can be got to (found in testing on a hillside: a door two blocks
 	 * up from the ground outside, no way in to put its bed down).
 	 */
-	static List<BlockPos> doorsteps(PlacedPlan plan, Map<BlockPos, BlockState> want) {
+	public static List<BlockPos> doorsteps(PlacedPlan plan, Map<BlockPos, BlockState> want) {
 		List<BlockPos> steps = new java.util.ArrayList<>();
 		for (PlacedPlan.Cell cell : plan.build) {
 			if (!(cell.state().getBlock() instanceof net.minecraft.world.level.block.DoorBlock)) {

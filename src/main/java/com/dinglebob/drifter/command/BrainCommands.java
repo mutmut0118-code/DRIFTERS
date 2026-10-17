@@ -225,7 +225,7 @@ public final class BrainCommands {
 		int farmland = 0;
 		int planted = 0;
 		int ripe = 0;
-		for (net.minecraft.core.BlockPos soil : com.dinglebob.drifter.brain.activity.FarmActivity.cells(home.farm)) {
+		for (net.minecraft.core.BlockPos soil : com.dinglebob.drifter.brain.activity.FarmActivity.cells(home.farm, home.farmRadius)) {
 			if (level.getBlockState(soil).is(net.minecraft.world.level.block.Blocks.FARMLAND)) {
 				farmland++;
 			}

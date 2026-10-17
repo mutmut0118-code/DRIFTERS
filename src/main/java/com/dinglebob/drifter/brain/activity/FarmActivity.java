@@ -220,7 +220,8 @@ public class FarmActivity extends Activity {
 	private BlockPos first(Level level, BlockPos farm, CellTest test) {
 		BlockPos best = null;
 		double bestDistance = Double.MAX_VALUE;
-		for (BlockPos cell : cells(farm)) {
+		Home home = this.drifter.getDrifterBrain().home();
+		for (BlockPos cell : cells(farm, home == null ? RADIUS : home.farmRadius)) {
 			BlockPos soil = cell;
 			BlockPos crop = cell.above();
 			BlockPos pos = test.test(soil, level.getBlockState(soil)) ? soil : test.test(crop, level.getBlockState(crop)) ? crop : null;
@@ -238,12 +239,17 @@ public class FarmActivity extends Activity {
 		return best;
 	}
 
-	/** The soil cells of the plot (the middle is the water). */
+	/** The soil cells of a full-size plot (the middle is the water). */
 	public static List<BlockPos> cells(BlockPos farm) {
+		return cells(farm, RADIUS);
+	}
+
+	/** The soil cells of a plot this far out from the water (its home's farm size). */
+	public static List<BlockPos> cells(BlockPos farm, int radius) {
 		List<BlockPos> cells = new ArrayList<>();
 		BlockPos soilMiddle = farm.below();
-		for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-			for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+		for (int dx = -radius; dx <= radius; dx++) {
+			for (int dz = -radius; dz <= radius; dz++) {
 				if (dx != 0 || dz != 0) {
 					cells.add(soilMiddle.offset(dx, 0, dz));
 				}
@@ -458,7 +464,11 @@ public class FarmActivity extends Activity {
 					// testing).
 					int seen = 0;
 					int score = 0;
-					for (BlockPos soil : cells(middle)) {
+					if (inFrontOfDoor(home, middle)) {
+						continue;
+					}
+
+					for (BlockPos soil : cells(middle, home.farmRadius)) {
 						if (drifter.getSenses().terrain().isKnown(soil) || drifter.getSenses().terrain().isKnown(soil.above())) {
 							seen++;
 						}
@@ -472,7 +482,7 @@ public class FarmActivity extends Activity {
 						continue;
 					}
 
-					if (canTill(level, middle.below()) && score > bestScore) {
+					if (canTill(level, middle.below()) && score > bestScore && score >= minGood(home)) {
 						bestScore = score;
 						best = middle.immutable();
 					}
@@ -485,7 +495,29 @@ public class FarmActivity extends Activity {
 		}
 
 		lastBestScore = bestScore;
-		return bestScore >= MIN_GOOD ? best : null;
+		return bestScore >= minGood(home) ? best : null;
+	}
+
+	/** Enough good ground for its farm's size (a quarter of it). */
+	private static int minGood(Home home) {
+		int side = 2 * home.farmRadius + 1;
+		return Math.max(4, Math.min(MIN_GOOD, (side * side - 1) / 4));
+	}
+
+	/**
+	 * In front of its hut's door (user's report, 2026-10-17: a farm right outside the door, walked over on the way in and
+	 * out): to the sides or behind instead.
+	 */
+	private static boolean inFrontOfDoor(Home home, BlockPos middle) {
+		if (home.hutDoor == null) {
+			return false;
+		}
+
+		int dx = middle.getX() - home.center.getX();
+		int dz = middle.getZ() - home.center.getZ();
+		int along = dx * home.hutDoor.getStepX() + dz * home.hutDoor.getStepZ();
+		int across = Math.abs(dx * home.hutDoor.getStepZ() - dz * home.hutDoor.getStepX());
+		return along > 0 && across <= along + home.farmRadius;
 	}
 
 	/**
@@ -505,13 +537,13 @@ public class FarmActivity extends Activity {
 		});
 
 		for (BlockPos water : sources) {
-			if (home.inOwnBuilding(water, 2)) {
+			if (home.inOwnBuilding(water, 2) || inFrontOfDoor(home, water.above())) {
 				continue;
 			}
 
 			BlockPos middle = water.above();
 			int score = 0;
-			for (BlockPos soil : cells(middle)) {
+			for (BlockPos soil : cells(middle, home.farmRadius)) {
 				if (canTill(level, soil) && level.canSeeSky(soil.above(2))) {
 					score++;
 				}
@@ -524,7 +556,7 @@ public class FarmActivity extends Activity {
 		}
 
 		lastBestScore = bestScore;
-		return bestScore >= MIN_GOOD ? best : null;
+		return bestScore >= minGood(home) ? best : null;
 	}
 
 	/** How far from home it looks for water to farm by. */
@@ -543,7 +575,7 @@ public class FarmActivity extends Activity {
 
 		boolean seeds = seedsAround(drifter);
 
-		for (BlockPos soil : cells(home.farm)) {
+		for (BlockPos soil : cells(home.farm, home.farmRadius)) {
 			BlockState crop = level.getBlockState(soil.above());
 			if (crop.getBlock() instanceof CropBlock wheat && wheat.isMaxAge(crop)) {
 				return true;
