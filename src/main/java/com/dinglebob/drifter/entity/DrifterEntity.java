@@ -457,6 +457,29 @@ public class DrifterEntity extends PathfinderMob {
 		return this.metOnItsWay;
 	}
 
+	/** Delving an underground structure (user's request, 2026-10-17): until when, and where it went in. */
+	private long delveUntil;
+	@org.jetbrains.annotations.Nullable
+	private BlockPos delveFrom;
+
+	public boolean delving() {
+		return this.delveFrom != null && this.level().getGameTime() < this.delveUntil;
+	}
+
+	@org.jetbrains.annotations.Nullable
+	public BlockPos delveFrom() {
+		return this.delveFrom;
+	}
+
+	public void startDelving(BlockPos from, long until) {
+		this.delveFrom = from.immutable();
+		this.delveUntil = until;
+	}
+
+	public void stopDelving() {
+		this.delveUntil = 0L;
+	}
+
 	public void addPendingCatchUp(long ticks) {
 		this.pendingCatchUp += ticks;
 	}
@@ -590,6 +613,43 @@ public class DrifterEntity extends PathfinderMob {
 	/** Client side: the way its current roll goes (degrees, as an entity's yaw). */
 	public float rollYaw() {
 		return this.rollYaw;
+	}
+
+	/** Its favorite weapon family (picked from its personality; see Weapons), and the weapon data version it was picked from. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.brain.Weapons.Family favoriteWeapon;
+	private int favoriteWeaponVersion = -1;
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.brain.Weapons.Family favoriteWeapon(int version) {
+		return this.favoriteWeaponVersion == version ? this.favoriteWeapon : null;
+	}
+
+	public void setFavoriteWeapon(com.dinglebob.drifter.brain.Weapons.Family family, int version) {
+		this.favoriteWeapon = family;
+		this.favoriteWeaponVersion = version;
+	}
+
+	/** A unique weapon ability's wind-up (ticks so far; 0 none), the tick it was last wound up, and when to try again. */
+	private int abilityHold;
+	private long abilityHeldAt;
+	private long abilityReadyAt;
+
+	public int abilityHold() {
+		return this.level().getGameTime() - this.abilityHeldAt > 2 ? 0 : this.abilityHold;
+	}
+
+	public void setAbilityHold(int ticks) {
+		this.abilityHold = ticks;
+		this.abilityHeldAt = this.level().getGameTime();
+	}
+
+	public long abilityReadyAt() {
+		return this.abilityReadyAt;
+	}
+
+	public void setAbilityReadyAt(long tick) {
+		this.abilityReadyAt = tick;
 	}
 
 	/** When it can roll again (Combat Roll's cooldown). */
@@ -1898,6 +1958,13 @@ public class DrifterEntity extends PathfinderMob {
 		// When it was last running, for catch-up when it loads again (section 22).
 		tag.putLong("LastActive", this.level().getGameTime());
 		tag.putLong("PendingCatchUp", this.pendingCatchUp);
+		if (this.delveFrom != null && this.delveUntil > 0L) {
+			CompoundTag delve = new CompoundTag();
+			delve.putLong("From", this.delveFrom.asLong());
+			delve.putLong("Until", this.delveUntil);
+			tag.put("Delve", delve);
+		}
+
 		if (this.passingThrough) {
 			CompoundTag pass = new CompoundTag();
 			pass.putFloat("Heading", this.passHeading);
@@ -1934,6 +2001,12 @@ public class DrifterEntity extends PathfinderMob {
 
 		this.lastActive = tag.contains("LastActive", Tag.TAG_LONG) ? tag.getLong("LastActive") : -1L;
 		this.pendingCatchUp = tag.getLong("PendingCatchUp");
+		if (tag.contains("Delve", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+			CompoundTag delve = tag.getCompound("Delve");
+			this.delveFrom = BlockPos.of(delve.getLong("From"));
+			this.delveUntil = delve.getLong("Until");
+		}
+
 		if (tag.contains("PassingThrough", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
 			CompoundTag pass = tag.getCompound("PassingThrough");
 			this.passingThrough = true;

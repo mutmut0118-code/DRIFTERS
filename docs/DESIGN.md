@@ -1644,6 +1644,7 @@ An RPG pack likely adds weapons, armor and items the Drifter's tables don't know
 - **Ordinary modded weapons:** judged by their damage, attack speed and any reach attribute, and the attack cooldown is computed from the weapon's own attack speed. No per-item data needed.
 - **Weapons with special abilities** (right-click or on-hit effects): need a small per-item data entry saying when to trigger the ability, for example "when 2 or more enemies are within 4 blocks." Until an entry exists, the Drifter just uses them as plain melee weapons.
 - **Loot-only unique weapons:** handled like any other found loot, and they make a Drifter's drops more exciting.
+- **Built (2026-10-17):** weapon families in data files (`drifter_weapons/*.json`: an item per tier, the tiers it makes them at, which personality traits like them); each Drifter has a favorite family and makes it at those tiers instead of the plain sword (user's choice: favorite type by personality, about one in four keep vanilla swords). Unique weapons have per-item ability entries (when: a crowd, a target at range, hurt, any fight; a wind-up for charged ones), used through Simply Swords' own mob ability API.
 
 ### Combat mod compatibility
 

@@ -225,7 +225,7 @@ public class PenActivity extends Activity {
 		// Food away first, so nothing follows it out.
 		if (this.drifter.getMainHandItem().is(Items.WHEAT) || this.drifter.getMainHandItem().is(Items.WHEAT_SEEDS)
 			|| this.drifter.getMainHandItem().is(Items.CARROT)) {
-			return this.begin(new SelectItemTask(this.drifter, stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.PICKAXES), "something else"));
+			return this.begin(new SelectItemTask(this.drifter, stack -> com.dinglebob.drifter.brain.Weapons.isWeapon(stack) || stack.is(ItemTags.PICKAXES), "something else"));
 		}
 
 		Direction out = Direction.getNearest(gate.getX() - pen.getX(), 0, gate.getZ() - pen.getZ());

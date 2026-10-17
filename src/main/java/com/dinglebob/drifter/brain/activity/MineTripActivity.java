@@ -210,6 +210,12 @@ public class MineTripActivity extends Activity {
 			}
 		}
 
+		// Its favorite iron weapon too, if it makes one (a Simply Swords longsword: two ingots).
+		com.dinglebob.drifter.brain.Strategist.Target weapon = com.dinglebob.drifter.brain.Weapons.target(drifter, com.dinglebob.drifter.brain.Weapons.Tier.IRON);
+		if (weapon != null && !weapon.satisfied().test(drifter)) {
+			wanted += com.dinglebob.drifter.brain.Weapons.ironCost(drifter.level(), weapon.items().get(0));
+		}
+
 		return Math.max(0, wanted - drifter.getInventory().count(stack -> stack.is(Items.IRON_INGOT)));
 	}
 

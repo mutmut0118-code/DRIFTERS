@@ -80,6 +80,36 @@ final class HandsCommands {
 						com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length"),
 						com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "targetY")))))));
 
+		// Its favorite weapon family, what it would make at iron and diamond, and how much it likes each family (Weapons).
+		root.then(Commands.literal("weapon").executes(ctx -> {
+			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+			var favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
+			StringBuilder text = new StringBuilder(DrifterCommands.label(drifter) + "'s favorite weapon: " + favorite.name() + " (" + favorite.id() + ")");
+			for (var tier : List.of(com.dinglebob.drifter.brain.Weapons.Tier.IRON, com.dinglebob.drifter.brain.Weapons.Tier.DIAMOND)) {
+				var target = com.dinglebob.drifter.brain.Weapons.target(drifter, tier);
+				text.append("\n  at ").append(tier.id()).append(": ").append(target == null ? "nothing (it skips this tier)"
+					: target.label() + (target.satisfied().test(drifter) ? " (has one this good)" : ""));
+			}
+
+			int held = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(drifter);
+			if (held >= 0) {
+				ItemStack best = drifter.getInventory().getItem(held);
+				var tier = com.dinglebob.drifter.brain.Weapons.tier(drifter, best);
+				var stats = com.dinglebob.drifter.hands.Combat.weaponStats(drifter, best);
+				text.append(String.format(java.util.Locale.ROOT, "\n  best weapon on it: %s (%s tier, %.1f damage x %.2f a second)", best.getHoverName().getString(),
+					tier == null ? "?" : tier.id(), stats.damage(), stats.speed()));
+			}
+
+			text.append("\n  likes:");
+			com.dinglebob.drifter.brain.Weapons.families().stream()
+				.filter(family -> family.share() == null)
+				.sorted(java.util.Comparator.comparingDouble(family -> -com.dinglebob.drifter.brain.Weapons.liking(drifter, family)))
+				.forEach(family -> text.append(String.format(java.util.Locale.ROOT, " %s %.2f", family.name(),
+					com.dinglebob.drifter.brain.Weapons.liking(drifter, family))));
+			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text.toString()), false);
+			return 1;
+		}));
+
 		root.then(Commands.literal("mine")
 			.then(Commands.argument("pos", BlockPosArgument.blockPos())
 				.executes(ctx -> start(ctx, drifter -> new MineTask(drifter, BlockPosArgument.getLoadedBlockPos(ctx, "pos"))))));

@@ -1337,6 +1337,30 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] If anything looks wrong: the game log (`logs/latest.log` in the profile folder) has a line starting
       `[Drifter] Drifters play Better Combat's swing animations` or a warning saying what didn't match. Send me that line.
 
+## Simply Swords weapons (new)
+
+- [ ] Stand near any Drifter and type `/drifter weapon`. It says its favorite kind of weapon (longsword, claymore,
+      katana..., or plain sword for about one in four), what it will make at iron and diamond, and how much it likes
+      each kind. Different Drifters should have different favorites; a reckless one leans to big two-handed weapons, a
+      careful one to one-handed ones (it keeps its shield with Better Combat).
+- [ ] Watch a Drifter that has got to iron (iron pickaxe, bucket, shield): it crafts its favorite at iron (an iron
+      longsword, an iron claymore...) and fights with it. Later, at diamond, the diamond one.
+- [ ] Give one a unique: `/execute at @e[type=drifter:drifter,limit=1,sort=nearest] run drifter give simplyswords:harbinger`
+      (or `emberblade`, `icewhisper`, `tempest`...), then `/summon husk ~5 ~ ~` three times. With two or more enemies
+      close it uses the weapon's ability (Harbinger: a dark battle standard). `/drifter thoughts` says "used ...'s
+      ability". Note: Simply Swords 1.70 uniques start as a weaker "Dormant Relic" form and awaken as you use them; a
+      given one starts dormant for a Drifter too.
+- [ ] Drifters you meet that lived a while sometimes carry a unique from a chest they found.
+
+## Mineshaft delvers (new)
+
+- [ ] In a new world, explore a few mineshafts. In about one in three, you come on a Drifter at a chest minecart,
+      looting it: iron to diamond armor, a good weapon (a Simply Swords one), a bow. Most aren't friendly: it may come
+      for you, size you up, or warn you off. It goes on through the tunnels looting the other carts.
+- [ ] To meet one right away: stand next to a chest minecart (or anywhere underground) and type
+      `/drifter wanderer delver`. It says what kind it is.
+- [ ] Switch them off: "Mineshaft delvers" in the settings screen.
+
 ## A fresh world (new; explore new land to see it)
 
 - [ ] Drifters you find living somewhere have lived about a day at most: first tools, maybe a little iron, not more.

@@ -1580,7 +1580,42 @@ structure blocks) for the user's own worlds.
     rolls away from skeleton arrows in one fight.
   - Not yet: rolling out of a creeper's blast or to close distance (DESIGN section 21); extra roll charges from Combat
     Roll's enchantments.
-- **Next:** a data-driven way to get modded weapons (Simply Swords first). Open: on a slope, a few blocks get "walked over but still can't reach"
+- **Modded weapons, data-driven (new, 2026-10-17; user's choices: favorite type by personality, uniques found in loot
+  and their abilities used, netherite later).**
+  - Weapon files `data/<namespace>/drifter_weapons/*.json` (`brain/Weapons`): weapon families (one kind of weapon, an
+    item per tier), which tiers it makes them at, which personality traits like them, two-handed or not; a file can
+    need a mod (`requires`). `vanilla.json` (swords: stone and diamond, a fixed quarter of Drifters) and
+    `simplyswords.json` (its 15 types at iron and diamond; its uniques and runic weapons).
+  - Each Drifter has a favorite family from its personality (same every time, seeded by its id; `/drifter weapon`
+    shows it and how much it likes each). With Better Combat, careful Drifters lean away from two-handed ones.
+  - Progression: the stone sword target is "any weapon stone-tier or better"; at iron it makes its favorite right after
+    the shield (if its family is made at iron: Simply Swords ones are, vanilla swords aren't, as before); the diamond
+    sword target is its favorite at diamond. The game's own recipes; if a recipe is missing it makes the vanilla
+    sword. Mining trips count the favorite's iron. In a fight its favorite kind goes a little ahead of an equal weapon.
+  - Any melee weapon counts as a weapon now (our tag `drifter:melee_weapons`: swords plus the common `c:swords` and
+    melee-weapon tags; Simply Swords' aren't in `minecraft:swords`), for the Nether packing list, storage, tool wear.
+    A modded weapon with no entry counts as the best vanilla sword its damage per second matches.
+  - Unique abilities (`hands/UniqueAbility`): 34 uniques have an entry saying when (a crowd, a target at range, hurt, any
+    fight; a wind-up for charged ones). Used through Simply Swords' own API for a mob using a weapon ability, so the
+    Drifter itself uses it (heals, buffs and dashes happen to it) and Simply Swords keeps the cooldown. Left without
+    on purpose: the thrown ones, the dashes and blinks, ones needing charges built while held, Soulpyre, the Devourer
+    (listed in the file's comment). Tested: Harbinger and Emberblade abilities fired in fights.
+  - Uniques reach Drifters through loot: Simply Swords adds them to the game's loot tables, which chests and catch-up
+    loot roll.
+  - Gaps: Simply Swords 1.70's awakening (a unique starts as a weaker form and levels up) runs in the player's own
+    tick, which a Drifter doesn't have; its hits go through its stand-in player, which may level it, not checked.
+    Netherite upgrades (smithing) later, with netherite in general. The left-out abilities could be looked at again
+    now that the mob API exists (dashes should work through it; thrown ones still risk losing the weapon).
+- **Mineshaft delvers (new, 2026-10-17; user: "run into a drifter looting a chest", "more hostile than friendly",
+  "full iron to full diamond, along with a simply sword weapon, a bow").** `world/gen/Delvers`: about a third of
+  mineshafts (fixed by the seed) have one. The first time one of its unlooted chest minecarts loads with no player within
+  24 blocks, a Drifter is beside it: iron to diamond armor (it rolls its share of diamond pieces; some enchanted), its
+  favorite weapon at iron or diamond (a Simply Swords one if installed), a bow and arrows, a shield unless its weapon is
+  two-handed, a pickaxe, torches, steak, cobblestone, a water bucket. Bandit, Miner, Hermit or PvP-sweat archetype;
+  Bandit (45%), opportunist (30%) or territorial (25%). `DelveActivity` (goal "delve", urgency 0.75): a caving trip
+  through the tunnels from there, looting every chest minecart it sees, for a day or so, then it's an ordinary Drifter.
+  Setting "Mineshaft delvers"; debug `/drifter wanderer delver`. TODO (whims milestone): ancient cities.
+- **Next:** test the weapons in-game; more weapon mods are a data file each (Simply Bows needs aiming changes). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)

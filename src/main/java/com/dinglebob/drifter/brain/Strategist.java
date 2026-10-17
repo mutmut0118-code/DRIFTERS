@@ -30,8 +30,8 @@ public final class Strategist {
 		new Target("a wooden pickaxe", List.of(Items.WOODEN_PICKAXE), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES))),
 		new Target("a stone pickaxe", List.of(Items.STONE_PICKAXE), 1,
 			drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.IRON_ORE.defaultBlockState()))),
-		new Target("a stone sword", List.of(Items.STONE_SWORD), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.SWORDS)
-			&& !stack.is(Items.WOODEN_SWORD) && !stack.is(Items.GOLDEN_SWORD))),
+		// A stone sword, or any weapon at least that good (a modded one counts for what it's worth: Weapons.tier).
+		new Target("a stone sword", List.of(Items.STONE_SWORD), 1, drifter -> Weapons.hasTier(drifter, Weapons.Tier.STONE)),
 		new Target("a stone axe", List.of(Items.STONE_AXE), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.AXES)
 			&& !stack.is(Items.WOODEN_AXE) && !stack.is(Items.GOLDEN_AXE))),
 		new Target("a furnace", List.of(Items.FURNACE), 1,
@@ -112,8 +112,8 @@ public final class Strategist {
 	public static final List<Target> DIAMOND_TARGETS = List.of(
 		new Target("a diamond pickaxe", List.of(Items.DIAMOND_PICKAXE), 1,
 			drifter -> has(drifter, stack -> stack.is(Items.DIAMOND_PICKAXE) || stack.is(Items.NETHERITE_PICKAXE))),
-		new Target("a diamond sword", List.of(Items.DIAMOND_SWORD), 1,
-			drifter -> has(drifter, stack -> stack.is(Items.DIAMOND_SWORD) || stack.is(Items.NETHERITE_SWORD))),
+		// (Its favorite diamond weapon in its place in the order: laterTargets; any diamond-tier weapon will do.)
+		new Target("a diamond sword", List.of(Items.DIAMOND_SWORD), 1, drifter -> Weapons.hasTier(drifter, Weapons.Tier.DIAMOND)),
 		new Target("a diamond chestplate", List.of(Items.DIAMOND_CHESTPLATE), 1, diamondArmor(Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
 		new Target("diamond leggings", List.of(Items.DIAMOND_LEGGINGS), 1, diamondArmor(Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
 		new Target("a diamond helmet", List.of(Items.DIAMOND_HELMET), 1, diamondArmor(Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
@@ -177,7 +177,7 @@ public final class Strategist {
 		}
 
 		return drifter.getInventory().count(stack -> stack.is(Items.FLINT_AND_STEEL)) > 0
-			&& drifter.getInventory().count(stack -> stack.is(ItemTags.SWORDS)) > 0
+			&& drifter.getInventory().count(Weapons::isWeapon) > 0
 			&& has(drifter, stack -> stack.is(Items.SHIELD));
 	}
 
@@ -221,10 +221,23 @@ public final class Strategist {
 	 */
 	private static List<Target> laterTargets(DrifterEntity drifter) {
 		List<Target> order = new java.util.ArrayList<>(IRON_TARGETS);
+		// Its favorite weapon (Weapons: a Simply Swords longsword, a claymore...) at iron, right after the shield, if its
+		// family is made at iron (vanilla swords skip iron, as most players do: stone, then diamond).
+		Target ironWeapon = Weapons.target(drifter, Weapons.Tier.IRON);
+		if (ironWeapon != null) {
+			order.add(3, ironWeapon);
+		}
+
+		List<Target> diamond = new java.util.ArrayList<>(DIAMOND_TARGETS.subList(0, 2));
+		Target diamondWeapon = Weapons.target(drifter, Weapons.Tier.DIAMOND);
+		if (diamondWeapon != null) {
+			diamond.set(1, diamondWeapon);
+		}
+
 		if (drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.MINER) {
-			order.addAll(3, DIAMOND_TARGETS.subList(0, 2));
+			order.addAll(ironWeapon != null ? 4 : 3, diamond);
 		} else {
-			order.addAll(DIAMOND_TARGETS.subList(0, 2));
+			order.addAll(diamond);
 		}
 
 		// The enchanting table after the diamond pickaxe and sword, before the diamond armor (section 9: "some archetypes

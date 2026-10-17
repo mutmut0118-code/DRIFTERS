@@ -240,6 +240,13 @@ public class AttackTask extends Task {
 		}
 
 		double distance = this.drifter.getEyePosition().distanceTo(this.target.getBoundingBox().getCenter());
+		// A unique weapon's ability (Simply Swords; its data entry says when), right-clicked as a player would. While it
+		// holds a charge it stands and aims.
+		if (visible && com.dinglebob.drifter.hands.UniqueAbility.tick(this.drifter, this.target, distance)) {
+			this.aim();
+			Steering.stopMoving(this.drifter);
+			return Status.RUNNING;
+		}
 		// Up close it steers by hand; a wall in the way it can't jump (a 2-block step on a hill) means the pathfinder
 		// finds the way round for a couple of seconds (found in testing: it died jumping at such a step mid-fight).
 		Vec3 toTarget = new Vec3(this.target.getX() - this.drifter.getX(), 0.0, this.target.getZ() - this.drifter.getZ());

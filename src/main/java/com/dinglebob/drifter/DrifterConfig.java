@@ -74,6 +74,8 @@ public final class DrifterConfig {
 		boolean worldgenOutposts = true;
 		/** Lone Drifters out in the world with no home: fresh, setting off on day one, or passing through (user, 2026-10-17). */
 		boolean worldgenWanderers = true;
+		/** Well-armed Drifters delving some mineshafts, looting their chests; mostly unfriendly (user, 2026-10-17). */
+		boolean worldgenDelvers = true;
 		/** Drifter groups fall into feuds, skirmish and raid each other (section 21 "Drifter team wars"). */
 		boolean drifterWars = true;
 		/** Whims: the things they do just for fun (milestone 13, docs/WHIMS.md). */
@@ -124,6 +126,15 @@ public final class DrifterConfig {
 
 	public static void setWorldgenWanderers(boolean on) {
 		data.worldgenWanderers = on;
+		save();
+	}
+
+	public static boolean worldgenDelvers() {
+		return data.worldgenDelvers;
+	}
+
+	public static void setWorldgenDelvers(boolean on) {
+		data.worldgenDelvers = on;
 		save();
 	}
 

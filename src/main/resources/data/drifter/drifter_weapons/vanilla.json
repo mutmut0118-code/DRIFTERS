@@ -1,0 +1,19 @@
+{
+	"_comment": "Weapon families (DESIGN.md section 21). A family is one kind of weapon with an item per tier (wood, gold, stone, iron, diamond, netherite). Each Drifter has a favorite family and makes it at the tiers in craft_at (with the game's own recipes; if the recipe is missing it makes the vanilla sword instead). 'share': this family takes that share of Drifters before the others are weighed (vanilla swords: about one in four stick with them when weapon mods add other families). 'weight' and 'likes' (personality traits, -1 to 1: how much a high trait pulls toward it) weigh the rest. 'two_handed': with Better Combat installed it means no shield, so careful Drifters lean away. 'requires': a mod id; the file is skipped without it. Datapacks can add files; a family with the same id replaces this one.",
+	"families": [
+		{
+			"id": "minecraft:sword",
+			"name": "sword",
+			"share": 0.25,
+			"tiers": {
+				"wood": "minecraft:wooden_sword",
+				"gold": "minecraft:golden_sword",
+				"stone": "minecraft:stone_sword",
+				"iron": "minecraft:iron_sword",
+				"diamond": "minecraft:diamond_sword",
+				"netherite": "minecraft:netherite_sword"
+			},
+			"craft_at": ["stone", "diamond"]
+		}
+	]
+}

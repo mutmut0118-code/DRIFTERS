@@ -1,0 +1,714 @@
+{
+	"_comment": "Simply Swords (optional: skipped unless it's installed). Its 15 weapon types, made at iron and diamond (its crafting-table recipes; netherite needs the smithing table, not yet). Two-handed: Better Combat's two-handed types. Uniques and runic weapons are loot only; they count as diamond weapons (unique_tier) unless an entry says otherwise. 'ability': when it right-clicks the weapon in a fight (hands/UniqueAbility): when 'crowd' (count enemies within range), 'target' (what it fights is min to max blocks off, in sight), 'hurt' (health at or below that fraction), 'fight' (target within max); 'hold' = ticks held for a charged ability. No ability on purpose: the thrown ones (Frostfall, Livyatan, Wickpiercer, Wraithfang: they return to the thrower, and the thrower would be the Drifter's stand-in player), the dashes, blinks and rides (Storm's Edge, Whisperwind, Stars Edge, Thunderbrand, Dreadwhisper, Shadowsting, Soulstealer, Soulstalker, Gloampiercer: they would move the stand-in, not the Drifter), the ones that spend charges built up while held (Dreadtide, Bloodwake, Ionbound Stormscale, Molten Edge), Soulpyre (it reshapes the ground) and The Devourer (a parry). Those it swings as plain weapons; their on-hit effects still work.",
+	"requires": "simplyswords",
+	"unique_tier": "diamond",
+	"families": [
+		{
+			"id": "simplyswords:longsword",
+			"name": "longsword",
+			"two_handed": false,
+			"weight": 1.4,
+			"likes": {
+				"caution": 0.3,
+				"patience": 0.2
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_longsword",
+				"gold": "simplyswords:gold_longsword",
+				"diamond": "simplyswords:diamond_longsword",
+				"netherite": "simplyswords:netherite_longsword"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:twinblade",
+			"name": "twinblade",
+			"two_handed": true,
+			"weight": 0.8,
+			"likes": {
+				"skill": 0.6,
+				"aggression": 0.4,
+				"fidget": 0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_twinblade",
+				"gold": "simplyswords:gold_twinblade",
+				"diamond": "simplyswords:diamond_twinblade",
+				"netherite": "simplyswords:netherite_twinblade"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:rapier",
+			"name": "rapier",
+			"two_handed": false,
+			"weight": 0.9,
+			"likes": {
+				"skill": 0.8,
+				"caution": 0.3,
+				"aggression": -0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_rapier",
+				"gold": "simplyswords:gold_rapier",
+				"diamond": "simplyswords:diamond_rapier",
+				"netherite": "simplyswords:netherite_rapier"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:katana",
+			"name": "katana",
+			"two_handed": true,
+			"weight": 1.0,
+			"likes": {
+				"skill": 0.7,
+				"patience": 0.3,
+				"efficiency": 0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_katana",
+				"gold": "simplyswords:gold_katana",
+				"diamond": "simplyswords:diamond_katana",
+				"netherite": "simplyswords:netherite_katana"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:sai",
+			"name": "sai",
+			"two_handed": false,
+			"weight": 0.7,
+			"likes": {
+				"skill": 0.5,
+				"fidget": 0.5,
+				"aggression": 0.2
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_sai",
+				"gold": "simplyswords:gold_sai",
+				"diamond": "simplyswords:diamond_sai",
+				"netherite": "simplyswords:netherite_sai"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:spear",
+			"name": "spear",
+			"two_handed": false,
+			"weight": 0.9,
+			"likes": {
+				"caution": 0.6,
+				"patience": 0.3,
+				"bravery": -0.2
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_spear",
+				"gold": "simplyswords:gold_spear",
+				"diamond": "simplyswords:diamond_spear",
+				"netherite": "simplyswords:netherite_spear"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:glaive",
+			"name": "glaive",
+			"two_handed": false,
+			"weight": 0.8,
+			"likes": {
+				"caution": 0.4,
+				"patience": 0.4
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_glaive",
+				"gold": "simplyswords:gold_glaive",
+				"diamond": "simplyswords:diamond_glaive",
+				"netherite": "simplyswords:netherite_glaive"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:cutlass",
+			"name": "cutlass",
+			"two_handed": false,
+			"weight": 0.9,
+			"likes": {
+				"greed": 0.7,
+				"curiosity": 0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_cutlass",
+				"gold": "simplyswords:gold_cutlass",
+				"diamond": "simplyswords:diamond_cutlass",
+				"netherite": "simplyswords:netherite_cutlass"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:claymore",
+			"name": "claymore",
+			"two_handed": true,
+			"weight": 1.1,
+			"likes": {
+				"bravery": 0.6,
+				"aggression": 0.5
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_claymore",
+				"gold": "simplyswords:gold_claymore",
+				"diamond": "simplyswords:diamond_claymore",
+				"netherite": "simplyswords:netherite_claymore"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:greataxe",
+			"name": "greataxe",
+			"two_handed": true,
+			"weight": 1.0,
+			"likes": {
+				"aggression": 0.8,
+				"tidiness": -0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_greataxe",
+				"gold": "simplyswords:gold_greataxe",
+				"diamond": "simplyswords:diamond_greataxe",
+				"netherite": "simplyswords:netherite_greataxe"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:greathammer",
+			"name": "greathammer",
+			"two_handed": true,
+			"weight": 0.9,
+			"likes": {
+				"aggression": 0.6,
+				"patience": 0.4,
+				"efficiency": -0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_greathammer",
+				"gold": "simplyswords:gold_greathammer",
+				"diamond": "simplyswords:diamond_greathammer",
+				"netherite": "simplyswords:netherite_greathammer"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:chakram",
+			"name": "chakram",
+			"two_handed": false,
+			"weight": 0.6,
+			"likes": {
+				"curiosity": 0.5,
+				"skill": 0.4,
+				"fidget": 0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_chakram",
+				"gold": "simplyswords:gold_chakram",
+				"diamond": "simplyswords:diamond_chakram",
+				"netherite": "simplyswords:netherite_chakram"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:scythe",
+			"name": "scythe",
+			"two_handed": false,
+			"weight": 0.7,
+			"likes": {
+				"vengefulness": 0.7,
+				"sociability": -0.4
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_scythe",
+				"gold": "simplyswords:gold_scythe",
+				"diamond": "simplyswords:diamond_scythe",
+				"netherite": "simplyswords:netherite_scythe"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:halberd",
+			"name": "halberd",
+			"two_handed": true,
+			"weight": 0.8,
+			"likes": {
+				"bravery": 0.4,
+				"caution": 0.3,
+				"patience": 0.3
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_halberd",
+				"gold": "simplyswords:gold_halberd",
+				"diamond": "simplyswords:diamond_halberd",
+				"netherite": "simplyswords:netherite_halberd"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		},
+		{
+			"id": "simplyswords:warglaive",
+			"name": "warglaive",
+			"two_handed": false,
+			"weight": 0.7,
+			"likes": {
+				"aggression": 0.5,
+				"skill": 0.5
+			},
+			"tiers": {
+				"iron": "simplyswords:iron_warglaive",
+				"gold": "simplyswords:gold_warglaive",
+				"diamond": "simplyswords:diamond_warglaive",
+				"netherite": "simplyswords:netherite_warglaive"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		}
+	],
+	"uniques": [
+		{
+			"item": "simplyswords:arcanethyst",
+			"ability": {
+				"when": "crowd",
+				"range": 5,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:awakened_lichblade",
+			"ability": {
+				"when": "target",
+				"min": 3,
+				"max": 16,
+				"hold": 20
+			}
+		},
+		{
+			"item": "simplyswords:bloodwake"
+		},
+		{
+			"item": "simplyswords:bramblethorn",
+			"ability": {
+				"when": "target",
+				"min": 2,
+				"max": 8
+			}
+		},
+		{
+			"item": "simplyswords:brimstone_claymore",
+			"ability": {
+				"when": "target",
+				"min": 2,
+				"max": 10
+			}
+		},
+		{
+			"item": "simplyswords:caelestis",
+			"ability": {
+				"when": "crowd",
+				"range": 8,
+				"count": 3
+			}
+		},
+		{
+			"item": "simplyswords:chompolotl",
+			"ability": {
+				"when": "fight",
+				"max": 6
+			}
+		},
+		{
+			"item": "simplyswords:dawnquiver",
+			"ability": {
+				"when": "target",
+				"min": 6,
+				"max": 32,
+				"hold": 20
+			}
+		},
+		{
+			"item": "simplyswords:decaying_relic"
+		},
+		{
+			"item": "simplyswords:dormant_relic"
+		},
+		{
+			"item": "simplyswords:dreadtide"
+		},
+		{
+			"item": "simplyswords:dreadwhisper"
+		},
+		{
+			"item": "simplyswords:emberblade",
+			"ability": {
+				"when": "target",
+				"min": 3,
+				"max": 20,
+				"hold": 30
+			}
+		},
+		{
+			"item": "simplyswords:emberlash",
+			"ability": {
+				"when": "hurt",
+				"health": 0.5,
+				"max": 8
+			}
+		},
+		{
+			"item": "simplyswords:enigma",
+			"ability": {
+				"when": "fight",
+				"max": 8
+			}
+		},
+		{
+			"item": "simplyswords:flamewind",
+			"ability": {
+				"when": "target",
+				"min": 0,
+				"max": 10
+			}
+		},
+		{
+			"item": "simplyswords:frostfall"
+		},
+		{
+			"item": "simplyswords:gloampiercer"
+		},
+		{
+			"item": "simplyswords:harbinger",
+			"ability": {
+				"when": "crowd",
+				"range": 6,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:hearthflame",
+			"ability": {
+				"when": "crowd",
+				"range": 6,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:hiveheart",
+			"ability": {
+				"when": "fight",
+				"max": 6
+			}
+		},
+		{
+			"item": "simplyswords:icewhisper",
+			"ability": {
+				"when": "crowd",
+				"range": 5,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:ionbound_stormscale"
+		},
+		{
+			"item": "simplyswords:livyatan"
+		},
+		{
+			"item": "simplyswords:magiblade",
+			"ability": {
+				"when": "fight",
+				"max": 6,
+				"hold": 20
+			}
+		},
+		{
+			"item": "simplyswords:magic_estoc"
+		},
+		{
+			"item": "simplyswords:magiscythe",
+			"ability": {
+				"when": "crowd",
+				"range": 5,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:magispear",
+			"ability": {
+				"when": "target",
+				"min": 4,
+				"max": 16
+			}
+		},
+		{
+			"item": "simplyswords:mjolnir",
+			"ability": {
+				"when": "crowd",
+				"range": 8,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:molten_edge"
+		},
+		{
+			"item": "simplyswords:ribboncleaver",
+			"ability": {
+				"when": "fight",
+				"max": 4
+			}
+		},
+		{
+			"item": "simplyswords:riftmane",
+			"ability": {
+				"when": "target",
+				"min": 2,
+				"max": 12
+			}
+		},
+		{
+			"item": "simplyswords:righteous_relic",
+			"ability": {
+				"when": "fight",
+				"max": 6
+			}
+		},
+		{
+			"item": "simplyswords:shadowsting"
+		},
+		{
+			"item": "simplyswords:slumbering_lichblade",
+			"ability": {
+				"when": "target",
+				"min": 3,
+				"max": 16,
+				"hold": 20
+			}
+		},
+		{
+			"item": "simplyswords:soulkeeper",
+			"ability": {
+				"when": "crowd",
+				"range": 4,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:soulpyre"
+		},
+		{
+			"item": "simplyswords:soulrender",
+			"ability": {
+				"when": "crowd",
+				"range": 6,
+				"count": 1
+			}
+		},
+		{
+			"item": "simplyswords:soulstalker"
+		},
+		{
+			"item": "simplyswords:soulstealer"
+		},
+		{
+			"item": "simplyswords:stars_edge"
+		},
+		{
+			"item": "simplyswords:stormbringer",
+			"ability": {
+				"when": "fight",
+				"max": 3,
+				"hold": 10
+			}
+		},
+		{
+			"item": "simplyswords:storms_edge"
+		},
+		{
+			"item": "simplyswords:stormscale",
+			"ability": {
+				"when": "target",
+				"min": 2,
+				"max": 16
+			}
+		},
+		{
+			"item": "simplyswords:sunfire",
+			"ability": {
+				"when": "crowd",
+				"range": 6,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:tainted_relic",
+			"ability": {
+				"when": "fight",
+				"max": 6
+			}
+		},
+		{
+			"item": "simplyswords:tempest",
+			"ability": {
+				"when": "crowd",
+				"range": 5,
+				"count": 2
+			}
+		},
+		{
+			"item": "simplyswords:the_devourer"
+		},
+		{
+			"item": "simplyswords:thunderbrand"
+		},
+		{
+			"item": "simplyswords:toxic_longsword"
+		},
+		{
+			"item": "simplyswords:twilight"
+		},
+		{
+			"item": "simplyswords:twisted_blade",
+			"ability": {
+				"when": "fight",
+				"max": 3
+			}
+		},
+		{
+			"item": "simplyswords:waking_lichblade",
+			"ability": {
+				"when": "target",
+				"min": 3,
+				"max": 16,
+				"hold": 20
+			}
+		},
+		{
+			"item": "simplyswords:watcher_claymore"
+		},
+		{
+			"item": "simplyswords:watching_warglaive"
+		},
+		{
+			"item": "simplyswords:waxweaver",
+			"ability": {
+				"when": "target",
+				"min": 0,
+				"max": 8
+			}
+		},
+		{
+			"item": "simplyswords:whisperwind"
+		},
+		{
+			"item": "simplyswords:wickpiercer"
+		},
+		{
+			"item": "simplyswords:wraithfang"
+		},
+		{
+			"item": "simplyswords:wraithmaw",
+			"ability": {
+				"when": "target",
+				"min": 3,
+				"max": 16
+			}
+		},
+		{
+			"item": "simplyswords:runic_longsword"
+		},
+		{
+			"item": "simplyswords:runic_twinblade"
+		},
+		{
+			"item": "simplyswords:runic_rapier"
+		},
+		{
+			"item": "simplyswords:runic_katana"
+		},
+		{
+			"item": "simplyswords:runic_sai"
+		},
+		{
+			"item": "simplyswords:runic_spear"
+		},
+		{
+			"item": "simplyswords:runic_glaive"
+		},
+		{
+			"item": "simplyswords:runic_cutlass"
+		},
+		{
+			"item": "simplyswords:runic_claymore"
+		},
+		{
+			"item": "simplyswords:runic_greataxe"
+		},
+		{
+			"item": "simplyswords:runic_greathammer"
+		},
+		{
+			"item": "simplyswords:runic_chakram"
+		},
+		{
+			"item": "simplyswords:runic_scythe"
+		},
+		{
+			"item": "simplyswords:runic_halberd"
+		},
+		{
+			"item": "simplyswords:runic_warglaive"
+		},
+		{
+			"item": "simplyswords:sword_on_a_stick",
+			"tier": "stone"
+		}
+	]
+}

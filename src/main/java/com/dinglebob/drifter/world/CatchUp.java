@@ -418,7 +418,7 @@ public final class CatchUp {
 	/** Its tools wear as they would in that much work; one that wears out is gone. */
 	private static void wear(DrifterEntity drifter, Rates r, int stage, double workHours, Report report) {
 		Map<String, net.minecraft.tags.TagKey<Item>> kinds = Map.of("pickaxe", ItemTags.PICKAXES, "axe", ItemTags.AXES, "shovel", ItemTags.SHOVELS,
-			"sword", ItemTags.SWORDS);
+			"sword", com.dinglebob.drifter.brain.Weapons.MELEE);
 		for (Map.Entry<String, net.minecraft.tags.TagKey<Item>> kind : kinds.entrySet()) {
 			int damage = (int)Math.round(r.wear().getOrDefault(kind.getKey(), 0.0) * workHours);
 			ItemStack tool = best(drifter, kind.getValue());

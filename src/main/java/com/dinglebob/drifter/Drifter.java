@@ -29,6 +29,7 @@ public class Drifter implements ModInitializer {
 		DrifterCommands.register();
 		DebugOverlayServer.register();
 		Sources.register();
+		com.dinglebob.drifter.brain.Weapons.register();
 		Threats.register();
 		com.dinglebob.drifter.world.CatchUp.register();
 		com.dinglebob.drifter.world.DrifterRegistry.register();
@@ -37,6 +38,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.whim.Whims.register();
 		com.dinglebob.drifter.world.gen.DrifterFeatures.register();
 		com.dinglebob.drifter.world.gen.LivedInStructures.register();
+		com.dinglebob.drifter.world.gen.Delvers.register();
 		com.dinglebob.drifter.world.DrifterTravel.register();
 		// House plans read once at start-up, so world generation (which can't read files itself) has them.
 		// (Before the world loads: the spawn area is generated during start-up.)

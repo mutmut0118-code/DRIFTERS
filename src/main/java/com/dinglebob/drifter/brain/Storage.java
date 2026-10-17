@@ -186,7 +186,7 @@ public final class Storage {
 			return "axe";
 		} else if (stack.is(ItemTags.SHOVELS)) {
 			return "shovel";
-		} else if (stack.is(ItemTags.SWORDS)) {
+		} else if (Weapons.isWeapon(stack)) {
 			return "sword";
 		} else if (stack.is(ItemTags.HOES)) {
 			return "hoe";

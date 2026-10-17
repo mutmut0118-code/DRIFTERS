@@ -80,10 +80,14 @@ public final class Combat {
 		return -1;
 	}
 
+	/** How much more it likes its favorite kind of weapon than an equally good other one. */
+	private static final double FAVORITE_BONUS = 1.1;
+
 	public static int bestWeaponSlot(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();
 		int best = -1;
 		double bestScore = weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01;
+		com.dinglebob.drifter.brain.Weapons.Family favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
 			if (stack.isEmpty()) {
@@ -91,6 +95,10 @@ public final class Combat {
 			}
 
 			double score = weaponStats(drifter, stack).perSecond();
+			// Its favorite kind of weapon a little ahead of an equal one (a player sticks with the weapon they like).
+			if (com.dinglebob.drifter.brain.Weapons.family(stack) == favorite) {
+				score *= FAVORITE_BONUS;
+			}
 			if (score > bestScore) {
 				bestScore = score;
 				best = slot;

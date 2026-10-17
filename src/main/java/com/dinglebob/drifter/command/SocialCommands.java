@@ -115,9 +115,19 @@ public final class SocialCommands {
 		// Debug: a Bandit gang that lives here as if it held an outpost (raids, griefing).
 		// Debug: a lone wanderer here (fresh, day one, or passing through), as world generation makes them.
 		root.then(Commands.literal("wanderer").then(Commands.argument("kind", StringArgumentType.word())
-			.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("fresh", "dayone", "passing"), builder))
+			.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("fresh", "dayone", "passing", "delver"), builder))
 			.executes(ctx -> {
 				String kind = StringArgumentType.getString(ctx, "kind");
+				if (kind.equals("delver")) {
+					// Debug: a mineshaft delver here, as if it were looting the nearest chest minecart.
+					var level = ctx.getSource().getLevel();
+					var delver = com.dinglebob.drifter.world.gen.Delvers.spawn(level, net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()),
+						level.getRandom());
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(delver == null ? "couldn't"
+						: "spawned a delver, " + delver.getSocial().disposition().label() + " (careful: most aren't friendly)"), true);
+					return delver == null ? 0 : 1;
+				}
+
 				int which = kind.equals("fresh") ? 0 : kind.equals("dayone") ? 1 : 2;
 				String made = com.dinglebob.drifter.world.gen.WandererFeature.spawn(ctx.getSource().getLevel(),
 					net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()), ctx.getSource().getLevel().getRandom(), which);
