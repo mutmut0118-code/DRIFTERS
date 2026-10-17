@@ -1732,6 +1732,9 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   making do counted trips "with nothing placed in between", which also counted trips that brought the oak back when it
   was the placing that was stuck (so it gave up on oak wrongly): now only trips that bring back none of the material nor
   anything it's made from count.
+- **Eleven styles now:** barn house (long, a gable front, often a loft) and manor (wide, two storeys, often a wing and
+  a porch) added as data files. A world's 300: 148 gable, 85 gable the other way, 32 hip, 22 shed, 13 flat; 94
+  two-storey, 43 with a wing (35 L, 8 T), 25 lofts, 8 towers, 81 porches, 107 chimneys; none thrown away.
 - **Corner towers:** a one-storey house 7+ wide and 6+ deep (no loft, no porch) can have a square tower at its front
   corner, its walls carried up a block past the top of the roof (the roof over that corner taken out), windows near the
   top, a little pyramid roof; open inside down to the room. 9 of a world's 300. A Drifter built one (277 blocks) and
