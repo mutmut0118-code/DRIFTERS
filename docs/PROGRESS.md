@@ -1651,7 +1651,21 @@ structure blocks) for the user's own worlds.
     look, answer kept 10 s). Catch-ups now one every 5 ticks. A server test of travelling into new land with the user's
     settings (wanderers 30 per 1000 chunks, delvers 81%, cap 30) never fell behind; the Drifters' main cost there is
     pathfinding, under its 2 ms budget.
-- **Next:** milestone 15 (house plans by the hundred), after the user's test of this round. Open: on a slope, a few blocks get "walked over but still can't reach"
+- **Pathfinding upgrade, step 1: parkour (new, 2026-10-17; user: "lets upgrade pathfinding, starting with parkour jumps,
+  and building off of that").** New move PARKOUR (`PathSearch.tryParkour`, `tryParkourAngled`), checked against the
+  player's own jump physics (`nav/JumpPhysics`: a tick-by-tick run of LivingEntity#travel and #jumpFromGround; a sprint
+  jump with a run-up carries 3.68 blocks on the level, jump height 1.252 as in the game). Straight or at any angle, 1 to 3
+  block gaps, landing level, a block up or up to three down; everything on the way seen; never over lava (or over an
+  unseen bottom in the Nether); full-height normal-grip footing; headroom for jumps up; the gentlest jump that carries
+  (`JumpPhysics.Mode`: hop, walking run, sprint hop, sprinting run) and none that would sail past a one-block landing.
+  The walker (`NavigateTask.parkourSteer`): runs straight at it, backs up for a run if standing at the edge, creeps to the
+  edge for a hop, jumps on the last tick at the edge, holds on through the air; a miss (landing below both ends) is
+  remembered and it plans again. Tested on built courses (1, 2 and 3 block gaps; up and down; diagonal and corner jumps;
+  a lava trench it walks round): all crossed, no misses. Natural terrain: misses went from 8 to 36 per 10-day run on the
+  first version; the hop/run/sprint choice, footing and headroom checks came out of that: 2 and 2 on the next pair of
+  10-day runs (91 jumps in the builder's). Open: a builder died to a cactus hunting a rabbit at low health (not a jump).
+- **Next:** pathfinding step 2 (ideas: jumping onto and off ladders and vines, sprint-jump chains along ridges, jumps in a
+  chase), then milestone 15 (house plans by the hundred). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)

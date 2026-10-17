@@ -841,6 +841,8 @@ Vanilla mob pathfinding can only walk, jump and swim; a survival player also dig
 | Step down 1 to 3 | Landing is safe | Small |
 | Drop 4+ | Water or another soft landing below, or acceptable fall damage | Fall damage counts as risk |
 | Parkour jump | Gap up to about 3 to 4 blocks with sprint-jump | Risk scaled by Skill |
+
+Built (2026-10-17, user: "lets upgrade pathfinding, starting with parkour jumps"): jumps straight or at any angle (diagonals, corners, knight's moves) over 1 to 3 block gaps (up to about 4.3 blocks out), landing level, a block up or up to three down, only if a tick-by-tick run of the player's own jump physics (`nav/JumpPhysics`) carries that far with a margin (wider for the less skilled; 3-block gaps only for Skill 0.35+), over seen ground only, never over lava; a miss over a drop that would hurt costs risk x Caution and needs more room. It takes the gentlest jump that makes it (a hop from the edge at a walk, a walking run-up, a sprint), backing up for a run-up if it's standing at the edge, and never one that would sail past a one-block landing.
 | Swim | Water | Slow, plus air risk |
 | Climb | Ladder, vine, scaffolding | Slow |
 | Door / gate | Openable | Small; Tidy closes it behind |
