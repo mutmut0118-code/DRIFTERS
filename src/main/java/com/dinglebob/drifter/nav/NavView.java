@@ -403,6 +403,24 @@ public final class NavView {
 			&& block.getSpeedFactor() == 1.0F && block.getJumpFactor() == 1.0F;
 	}
 
+	/**
+	 * Something to stop against behind this climbable block, going this way: a ladder attached on that side (a ladder always
+	 * hangs on a solid block, seen or not), vines hanging on that face, or a solid block it has seen there.
+	 */
+	public boolean wallBehindClimb(BlockPos climb, Direction going) {
+		BlockState state = this.state(climb);
+		if (state.getBlock() instanceof net.minecraft.world.level.block.LadderBlock) {
+			return state.getValue(net.minecraft.world.level.block.LadderBlock.FACING).getOpposite() == going;
+		}
+
+		if (state.getBlock() instanceof net.minecraft.world.level.block.VineBlock) {
+			var face = net.minecraft.world.level.block.VineBlock.PROPERTY_BY_DIRECTION.get(going);
+			return face != null && state.getValue(face);
+		}
+
+		return this.knowledge.isKnown(climb.relative(going)) && this.cell(climb.relative(going)).kind() == Kind.SOLID;
+	}
+
 	private boolean besidePortal(BlockPos pos) {
 		for (Direction direction : Direction.values()) {
 			if (this.state(pos.relative(direction)).is(Blocks.NETHER_PORTAL)) {

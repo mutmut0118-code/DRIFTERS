@@ -1664,8 +1664,12 @@ structure blocks) for the user's own worlds.
   a lava trench it walks round): all crossed, no misses. Natural terrain: misses went from 8 to 36 per 10-day run on the
   first version; the hop/run/sprint choice, footing and headroom checks came out of that: 2 and 2 on the next pair of
   10-day runs (91 jumps in the builder's). Open: a builder died to a cactus hunting a rabbit at low health (not a jump).
-- **Next:** pathfinding step 2 (ideas: jumping onto and off ladders and vines, sprint-jump chains along ridges, jumps in a
-  chase), then milestone 15 (house plans by the hundred). Open: on a slope, a few blocks get "walked over but still can't reach"
+- **Pathfinding step 2: jumps onto ladders and vines (new, 2026-10-17).** A gap jump may end by catching a ladder or vines
+  across the gap (`PathSearch.tryCatchClimb`): its middle carried into the climbable block while its feet are still that
+  high, something behind to stop against (a ladder's own wall, the face vines hang on, or a seen block: `NavView
+  .wallBehindClimb`), then it climbs on as planned. Tested: a 2-gap jump onto a ladder up a wall, and onto vines; seen in
+  the client too (caught mid-jump, climbed, out on top).
+- **Next:** milestone 15 (house plans by the hundred; user, 2026-10-17: "then move on to the house plans milestone"). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)

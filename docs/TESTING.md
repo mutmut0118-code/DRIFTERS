@@ -1357,6 +1357,7 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] Watch a Drifter cross rough ground: where there's a gap it can jump (1 to 3 blocks, a block up or a few down), it
       jumps instead of bridging or walking far round. It never jumps over lava. Short gaps it hops from the edge at a walk;
       wide ones it sprints at (backing up first for a run if it was standing at the edge).
+- [ ] It jumps across a gap onto a ladder or vines on a wall and climbs up (when that's the way).
 - [ ] A test course: `/fill ~2 ~-1 ~-1 ~4 ~-1 ~1 air` in front of a Drifter on high ground (or build two platforms with a
       gap), then `/drifter goto <x> <y> <z>` to the far side. `/drifter debug` shows its path; jumps are orange.
 

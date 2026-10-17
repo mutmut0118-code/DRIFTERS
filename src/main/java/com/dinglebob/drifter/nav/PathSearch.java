@@ -871,6 +871,52 @@ public class PathSearch {
 		return true;
 	}
 
+	/**
+	 * A jump across a gap onto a ladder or vines (user's request, 2026-10-17: "ladders and vines jumps"): a player catches
+	 * a climbable block the moment its body is in it, and holding toward it climbs. So the jump must carry its middle into
+	 * the climbable block (0.5 past the gap, less the lean over the take-off edge, plus the timing) while its feet are
+	 * still at that height or above. There must be a wall behind it to stop against (a ladder's or vines' own wall), the
+	 * cells it comes in through open or climbable, and somewhere to go on it (more of it above, or open air at the top to
+	 * climb out). Returns whether it added the jump.
+	 */
+	private boolean tryCatchClimb(Node node, BlockPos n, BlockPos t, int gap, int dy, double ux, double uz, boolean runUp, double margin) {
+		if (this.drifter.bridgeFailedRecently(t)) {
+			return false;
+		}
+
+		if (!this.view.wallBehindClimb(t, Direction.getNearest(ux, 0.0, uz))) {
+			return false;
+		}
+
+		// Its body comes in at head height too: that cell open or climbable.
+		NavView.Kind head = this.view.cell(t.above()).kind();
+		if (head != NavView.Kind.OPEN && head != NavView.Kind.CLIMB) {
+			return false;
+		}
+
+		if (dy > 0 && !this.headroomUp(n, t)) {
+			return false;
+		}
+
+		int depth = this.gapDepth(n, Direction.getNearest(ux, 0.0, uz), gap);
+		if (depth < 0) {
+			return false;
+		}
+
+		boolean deep = depth > this.maxDrop;
+		double needed = gap + 0.5 - 0.8 + PARKOUR_TAKEOFF_LOSS + margin + (deep ? 0.3 : 0.0);
+		JumpPhysics.Mode mode = JumpPhysics.choose(this.walkSpeed, this.canSprint, runUp, dy, this.jumpBoost, needed, Double.MAX_VALUE);
+		if (mode == null) {
+			return false;
+		}
+
+		double risk = deep ? (PARKOUR_DEEP_RISK + 0.2 * Math.min(depth, 30)) * this.caution * 2.0 : 0.0;
+		double cost = (gap + 1) * (mode.sprint ? SPRINT : WALK) + JUMP_EXTRA + PARKOUR_EXTRA + CLIMB_UP + risk;
+		this.pendingJump = mode;
+		this.add(node, t, MoveType.PARKOUR, cost, new Clearance(), 0);
+		return true;
+	}
+
 	/** How the gap jump being added is taken (set just before adding it). */
 	@Nullable
 	private JumpPhysics.Mode pendingJump;
@@ -940,6 +986,15 @@ public class PathSearch {
 			BlockPos column = n.relative(d, g + 1);
 			for (int dy = 1; dy >= -3; dy--) {
 				BlockPos t = column.above(dy);
+				// A ladder or vines across the gap: it grabs on in mid-air (the highest part it reaches).
+				if (this.view.cell(t).kind() == NavView.Kind.CLIMB && this.view.isKnown(t)) {
+					if (this.tryCatchClimb(node, n, t, g, dy, ux, uz, runUp, margin)) {
+						break;
+					}
+
+					continue;
+				}
+
 				if (!this.view.jumpFooting(t.below())) {
 					continue;
 				}

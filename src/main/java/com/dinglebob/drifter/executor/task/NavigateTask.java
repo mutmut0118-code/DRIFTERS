@@ -1025,8 +1025,14 @@ public class NavigateTask extends Task {
 			}
 		}
 
-		// A gap jump: landed on the far side (anywhere on the landing block).
+		// A gap jump: landed on the far side (anywhere on the landing block), or caught the ladder or vines it jumped for
+		// (holding on within a block of the planned height).
 		if (step.type() == MoveType.PARKOUR) {
+			if (this.level().getBlockState(step.to()).is(BlockTags.CLIMBABLE)) {
+				return this.drifter.onClimbable() && this.feet().getX() == step.to().getX() && this.feet().getZ() == step.to().getZ()
+					&& Math.abs(this.feet().getY() - step.to().getY()) <= 1;
+			}
+
 			return this.drifter.onGround() && this.feet().equals(step.to());
 		}
 
@@ -1437,7 +1443,9 @@ public class NavigateTask extends Task {
 
 	private boolean needsFloor(PathStep step) {
 		return switch (step.type()) {
-			case WALK, DIAGONAL, JUMP_UP, STEP_DOWN, BRIDGE, PARKOUR -> !this.level().getFluidState(step.to()).is(FluidTags.WATER);
+			case WALK, DIAGONAL, JUMP_UP, STEP_DOWN, BRIDGE -> !this.level().getFluidState(step.to()).is(FluidTags.WATER);
+			// (A jump onto a ladder or vines catches hold: no floor under it.)
+			case PARKOUR -> !this.level().getFluidState(step.to()).is(FluidTags.WATER) && !this.level().getBlockState(step.to()).is(BlockTags.CLIMBABLE);
 			default -> false;
 		};
 	}
