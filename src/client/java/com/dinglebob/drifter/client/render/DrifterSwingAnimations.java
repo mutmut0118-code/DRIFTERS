@@ -43,6 +43,21 @@ public final class DrifterSwingAnimations {
 	private static boolean ready;
 	private static boolean failed;
 	private static boolean emfReady;
+	/**
+	 * EMF Compat Core (with its Better Combat bridge): the way players' Better Combat swings reach an EMF model (Fresh
+	 * Animations, FA+Player). A Drifter's swing goes the same way: the arm poses handed to its pose manager each frame,
+	 * which blends them into the EMF model (its own arm parts included), instead of pausing EMF's animations.
+	 */
+	private static boolean emfCompat;
+	private static Method clearPoses;
+	private static Method savePoses;
+	private static Constructor<?> poseSnapshot;
+	private static Constructor<?> poseSnapshotFlag;
+	private static Method markAttackActive;
+	private static Method tickCooldown;
+	private static Method bodyFollow;
+	private static Method attackLegs;
+	private static final String EMF_SOURCE = "better_combat";
 
 	private static Method getAnimation;
 	private static Class<?> keyframeAnimation;
@@ -155,6 +170,31 @@ public final class DrifterSwingAnimations {
 			return false;
 		}
 
+		if (FabricLoader.getInstance().isModLoaded("emf_compat_core")) {
+			try {
+				Class<?> manager = Class.forName("strm.emfcompat.core.PoseManager");
+				Class<?> snapshot = Class.forName("strm.emfcompat.core.PoseSnapshot");
+				clearPoses = manager.getMethod("clearPoses", java.util.UUID.class, String.class);
+				savePoses = manager.getMethod("savePoses", java.util.UUID.class, String.class, snapshot, snapshot, Map.class, org.joml.Vector3f.class);
+				poseSnapshot = snapshot.getConstructor(ModelPart.class);
+				poseSnapshotFlag = snapshot.getConstructor(ModelPart.class, boolean.class);
+				if (FabricLoader.getInstance().isModLoaded("emf_compat_better_combat")) {
+					Class<?> pause = Class.forName("strm.emfcompat.bettercombat.compat.AttackPauseOverride");
+					markAttackActive = pause.getMethod("markAttackActive", java.util.UUID.class);
+					tickCooldown = pause.getMethod("tickCooldown", java.util.UUID.class);
+					Class<?> client = Class.forName("strm.emfcompat.bettercombat.EMFCompatBetterCombatClient");
+					bodyFollow = client.getMethod("isBodyFollow");
+					attackLegs = client.getMethod("isAttackLegs");
+				}
+
+				emfCompat = true;
+				Drifter.LOGGER.info("[Drifter] EMF Compat found: Drifters' swings go through it, as players' do");
+			} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+				emfCompat = false;
+				Drifter.LOGGER.warn("[Drifter] EMF Compat didn't match ({}); swings pause EMF's own arm animations instead", e.toString());
+			}
+		}
+
 		if (FabricLoader.getInstance().isModLoaded("entity_model_features")) {
 			try {
 				Class<?> emf = Class.forName("traben.entity_model_features.EMFAnimationApi");
@@ -185,7 +225,7 @@ public final class DrifterSwingAnimations {
 	/** After the model's own pose (setupAnim): the swing animation on top, if one is playing. */
 	private static int applied;
 
-	public static void apply(PlayerModel<DrifterEntity> model, DrifterEntity drifter, float ageInTicks) {
+	public static void apply(PlayerModel<DrifterEntity> model, DrifterEntity drifter, float ageInTicks, float walking) {
 		if (TRACE && applied++ % 200 == 0) {
 			Drifter.LOGGER.info("[Drifter test] apply called ({} times)", applied);
 		}
@@ -254,7 +294,9 @@ public final class DrifterSwingAnimations {
 				Drifter.LOGGER.info("[Drifter test] swing frame: right arm xRot {} -> {}, yRot {}, body yRot {}", before, model.rightArm.xRot,
 					model.rightArm.yRot, model.body.yRot);
 			}
-			if (emfReady && !state.emfPaused) {
+			if (emfCompat) {
+				handToEmfCompat(model, drifter, walking);
+			} else if (emfReady && !state.emfPaused) {
 				Object emfEntity = emfEntityOf.invoke(null, drifter);
 				if (emfEntity != null) {
 					emfPause.invoke(null, emfEntity, new ModelPart[] {model.body, model.jacket, model.rightArm, model.leftArm, model.rightSleeve,
@@ -337,8 +379,37 @@ public final class DrifterSwingAnimations {
 		}
 	}
 
+	/**
+	 * This frame's swing pose to EMF Compat, the way its Better Combat bridge does for a player (PlayerModelMixin): its
+	 * attack marked active (EMF's own arm animation steps aside), both arms, the legs when it's standing still, and the
+	 * body's turn when the bridge's "body follows arms" is on.
+	 */
+	private static void handToEmfCompat(PlayerModel<DrifterEntity> model, DrifterEntity drifter, float walking) throws ReflectiveOperationException {
+		java.util.UUID id = drifter.getUUID();
+		clearPoses.invoke(null, id, EMF_SOURCE);
+		if (markAttackActive != null) {
+			tickCooldown.invoke(null, id);
+			markAttackActive.invoke(null, id);
+		}
+
+		org.joml.Vector3f body = bodyFollow == null || (boolean)bodyFollow.invoke(null)
+			? new org.joml.Vector3f(model.body.xRot, model.body.yRot, model.body.zRot) : null;
+		Map<String, Object> legs = null;
+		if ((attackLegs == null || (boolean)attackLegs.invoke(null)) && walking < 0.15F) {
+			legs = new java.util.HashMap<>();
+			legs.put("left_leg", poseSnapshotFlag.newInstance(model.leftLeg, true));
+			legs.put("right_leg", poseSnapshotFlag.newInstance(model.rightLeg, true));
+		}
+
+		savePoses.invoke(null, id, EMF_SOURCE, poseSnapshot.newInstance(model.leftArm), poseSnapshot.newInstance(model.rightArm), legs, body);
+	}
+
 	private static void stop(State state, DrifterEntity drifter) throws ReflectiveOperationException {
 		state.applier = null;
+		if (emfCompat) {
+			clearPoses.invoke(null, drifter.getUUID(), EMF_SOURCE);
+		}
+
 		if (state.emfPaused) {
 			state.emfPaused = false;
 			Object emfEntity = emfEntityOf.invoke(null, drifter);

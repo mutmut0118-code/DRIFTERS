@@ -64,7 +64,7 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		@Override
 		public void setupAnim(DrifterEntity drifter, float limbSwing, float limbSwingAmount, float ageInTicks, float headYaw, float headPitch) {
 			super.setupAnim(drifter, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch);
-			DrifterSwingAnimations.apply(this, drifter, ageInTicks);
+			DrifterSwingAnimations.apply(this, drifter, ageInTicks, limbSwingAmount);
 		}
 	}
 
