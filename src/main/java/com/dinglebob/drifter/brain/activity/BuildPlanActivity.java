@@ -219,7 +219,18 @@ public class BuildPlanActivity extends Activity {
 		BlockPos fill = this.toFill(level, plan, want, ground);
 		if (fill != null) {
 			if (fill.equals(BlockPos.ZERO)) {
-				return this.fail("the ground there drops away too far to level");
+				// Ground it hadn't seen when it picked the spot turns out to fall away (a hidden gully): before any of the
+				// house is up it looks for another spot (it has seen this one now); after, it fills deeper.
+				long up = plan.build.stream().filter(c -> Placement.matches(level.getBlockState(c.pos()), c.state())).count();
+				if (up == 0) {
+					home.planOrigin = null;
+					this.placed = null;
+					this.think("the ground there drops away too far to level: looking for another spot for the house");
+					return Status.RUNNING;
+				}
+
+				this.deepFill = true;
+				return Status.RUNNING;
 			}
 
 			if (this.drifter.getInventory().count(stack -> stack.is(Items.DIRT)) == 0) {
@@ -562,13 +573,14 @@ public class BuildPlanActivity extends Activity {
 
 			BlockPos hole = top;
 			int depth = 0;
-			while (!solid(level, hole.below()) && depth < MAX_DEPTH) {
+			int limit = this.deepFill ? MAX_DEPTH * 3 : MAX_DEPTH;
+			while (!solid(level, hole.below()) && depth < limit) {
 				hole = hole.below();
 				depth++;
 			}
 
-			if (depth >= MAX_DEPTH) {
-				if (doorstep) {
+			if (depth >= limit) {
+				if (doorstep || this.deepFill) {
 					continue;
 				}
 
@@ -598,6 +610,8 @@ public class BuildPlanActivity extends Activity {
 	}
 
 	private boolean noBed;
+	/** The house is started and a hole under it goes deep: filled all the same. */
+	private boolean deepFill;
 	private boolean bedFetched;
 	@Nullable
 	private BedSpot bedSpot;

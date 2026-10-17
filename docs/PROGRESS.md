@@ -1491,6 +1491,16 @@ structure blocks) for the user's own worlds.
   its scaffolding down (two blocks it couldn't reach held a house up forever); no pillars to take scaffolding down.
   Debug: `/drifter house choose <plan>` (the nearest Drifter's next house), `/drifter house status` lists blocks still
   missing.
+- Hill tests of the user's houses (snowy taiga seed 20261016, seed 12345 mountains): house1 and house3 built in full
+  and moved into, several times, in two worlds (house3 once in dark oak); house2 and house4 not yet seen finished on a
+  hill (house2 got to 240 of 252 before the fixes below; house4 to 429 of 469; in later runs the test Drifter settled by
+  a lake where house4 doesn't fit, and one got stuck in the water by its chest: a pathing problem, not the house's).
+  Fixes from them: it steps out of a block's space before placing it (it built a door round itself and was stuck in the
+  doorway); a doorstep outside each door is levelled and cleared (doors two blocks up a slope); leaves where a block
+  goes are dug, pillaring if need be, outer leaves first when they're buried in a crown; its own crafting table in the
+  way is picked up, and no tables go down in a house being built; blocks put in the wrong way round are redone; a spot
+  whose unseen ground turns out to drop away more than 5 blocks is given up for another (before building) or filled
+  deeper (after). Open: settling by a lake at water level, then stuck in the water next to its chest ("no route").
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

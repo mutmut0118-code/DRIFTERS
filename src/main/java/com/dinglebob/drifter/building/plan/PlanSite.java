@@ -28,7 +28,7 @@ public final class PlanSite {
 	private static final int MAX_STEP = 4;
 	/** Most of a footprint it may not have seen the ground of. */
 	private static final double MAX_UNSEEN = 0.35;
-	private static final int[] RINGS = {6, 9, 12, 15, 18, 22, 26, 30};
+	private static final int[] RINGS = {6, 9, 12, 15, 18, 22, 26, 30, 36, 42};
 	private static final int ANGLES = 16;
 
 	private PlanSite() {
