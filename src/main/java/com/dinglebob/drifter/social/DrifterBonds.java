@@ -62,7 +62,7 @@ public class DrifterBonds {
 	}
 
 	public void tick() {
-		if (this.drifter.tickCount % TICK_EVERY != 0) {
+		if ((this.drifter.tickCount + this.drifter.getId()) % TICK_EVERY != 0) {
 			return;
 		}
 

@@ -54,7 +54,31 @@ public final class PlayerPlacedBlocks {
 			return false;
 		}
 
-		List<Long> placed = level.getChunkAt(pos).getAttached(PLACED);
-		return placed != null && placed.contains(pos.asLong());
+		LevelChunk chunk = level.getChunkAt(pos);
+		List<Long> placed = chunk.getAttached(PLACED);
+		if (placed == null || placed.isEmpty()) {
+			return false;
+		}
+
+		// A hash set of the chunk's list, made once per version of the list (the list is replaced on every change): looking
+		// through a big base's thousands of entries for every block the pathfinder weighed was slow. Performance 2026-10-17.
+		Lookup lookup = LOOKUPS.get(chunk);
+		if (lookup == null || lookup.source != placed) {
+			it.unimi.dsi.fastutil.longs.LongOpenHashSet set = new it.unimi.dsi.fastutil.longs.LongOpenHashSet(placed.size());
+			for (Long key : placed) {
+				set.add(key.longValue());
+			}
+
+			lookup = new Lookup(placed, set);
+			LOOKUPS.put(chunk, lookup);
+		}
+
+		return lookup.set.contains(pos.asLong());
 	}
+
+	private record Lookup(List<Long> source, it.unimi.dsi.fastutil.longs.LongOpenHashSet set) {
+	}
+
+	/** Per loaded chunk (forgotten with the chunk). */
+	private static final java.util.Map<LevelChunk, Lookup> LOOKUPS = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
 }

@@ -73,10 +73,11 @@ public final class NavView {
 	private final DrifterEntity drifter;
 	private final Level level;
 	private final TerrainKnowledge knowledge;
-	private final Map<Long, Cell> cache = new HashMap<>();
+	private final LocalGrid<Cell> cache;
 	private final com.dinglebob.drifter.brain.TreeLogs trees;
 
 	public NavView(DrifterEntity drifter) {
+		this.cache = new LocalGrid<>(drifter.blockPosition(), com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
 		this.trees = new com.dinglebob.drifter.brain.TreeLogs(drifter.level());
 		this.drifter = drifter;
 		this.level = drifter.level();
@@ -88,13 +89,44 @@ public final class NavView {
 		this.rockSeconds = Tools.digSeconds(drifter, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), this.level, drifter.blockPosition());
 	}
 
+	/**
+	 * A block as it is now, read straight from the chunk it's in (kept from the last read: the search reads blocks in runs
+	 * close together), skipping the server's chunk lookup each time (performance, 2026-10-17).
+	 */
+	private BlockState state(BlockPos pos) {
+		int cx = pos.getX() >> 4;
+		int cz = pos.getZ() >> 4;
+		long key = net.minecraft.world.level.ChunkPos.asLong(cx, cz);
+		long now = this.level.getGameTime();
+		// (Looked up again each tick: a chunk unloaded and loaded again is a new object.)
+		if (key != this.lastChunkKey || now != this.lastChunkTick) {
+			this.lastChunk = this.level.getChunkSource().getChunkNow(cx, cz);
+			this.lastChunkKey = key;
+			this.lastChunkTick = now;
+		}
+
+		return this.lastChunk == null ? Blocks.VOID_AIR.defaultBlockState() : this.lastChunk.getBlockState(pos);
+	}
+
+	private long lastChunkKey = Long.MIN_VALUE;
+	private long lastChunkTick = Long.MIN_VALUE;
+	@org.jetbrains.annotations.Nullable
+	private net.minecraft.world.level.chunk.LevelChunk lastChunk;
+
 	/** It's underground right now (unseen cells near its level count as rock). */
 	private final boolean underground;
 	/** How long stone takes it to dig with what it carries. */
 	private final float rockSeconds;
 
 	public Cell cell(BlockPos pos) {
-		return this.cache.computeIfAbsent(pos.asLong(), key -> this.compute(BlockPos.of(key)));
+		Cell cell = this.cache.get(pos);
+		if (cell == null) {
+			BlockPos at = pos.immutable();
+			cell = this.compute(at);
+			this.cache.put(at, cell);
+		}
+
+		return cell;
 	}
 
 	public boolean isKnown(BlockPos pos) {
@@ -116,14 +148,14 @@ public final class NavView {
 			// Under water it has seen, it expects more water, not ground (its sight stops at the surface; found in
 			// testing: it planned to walk across a pond on "unseen ground" just under the surface, and couldn't get out).
 			BlockPos above = pos.above();
-			if (this.knowledge.isKnown(above) && this.level.getFluidState(above).is(FluidTags.WATER)) {
+			if (this.knowledge.isKnown(above) && this.state(above).getFluidState().is(FluidTags.WATER)) {
 				return new Cell(Kind.WATER, 0.0F, false, false);
 			}
 
 			// Beside water it has seen, at the same height: water is level, so it expects more of it (the banks it can see).
 			for (Direction side : Direction.Plane.HORIZONTAL) {
 				BlockPos next = pos.relative(side);
-				if (this.knowledge.isKnown(next) && this.level.getFluidState(next).is(FluidTags.WATER) && this.level.getFluidState(next).isSource()) {
+				if (this.knowledge.isKnown(next) && this.state(next).getFluidState().is(FluidTags.WATER) && this.state(next).getFluidState().isSource()) {
 					return new Cell(Kind.WATER, 0.0F, false, false);
 				}
 			}
@@ -150,7 +182,7 @@ public final class NavView {
 			return new Cell(Kind.UNKNOWN, 0.0F, false, false);
 		}
 
-		BlockState state = this.level.getBlockState(pos);
+		BlockState state = this.state(pos);
 		FluidState fluid = state.getFluidState();
 		// Pointed dripstone too: landing on a stalagmite hurts a lot (found in testing: it died stepping onto them in a cave).
 		if (fluid.is(FluidTags.LAVA) || state.is(BlockTags.FIRE) || state.is(Blocks.CACTUS) || state.is(Blocks.MAGMA_BLOCK)
@@ -211,13 +243,13 @@ public final class NavView {
 		// through it).
 		boolean protectedBlock = this.level.getBlockEntity(pos) != null || PlayerPlacedBlocks.isPlayerPlaced(this.level, pos)
 			|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || this.besidePortal(pos);
-		float dig = protectedBlock ? Float.POSITIVE_INFINITY : Tools.digSeconds(this.drifter, state, this.level, pos);
-		BlockState above = this.level.getBlockState(pos.above());
+		float dig = protectedBlock ? Float.POSITIVE_INFINITY : this.digSeconds(state, pos);
+		BlockState above = this.state(pos.above());
 		boolean falling = above.getBlock() instanceof FallingBlock;
 		boolean liquidBeside = false;
 		for (Direction direction : Direction.values()) {
 			if (direction != Direction.DOWN) {
-				FluidState neighbor = this.level.getFluidState(pos.relative(direction));
+				FluidState neighbor = this.state(pos.relative(direction)).getFluidState();
 				if (neighbor.is(FluidTags.LAVA) && this.knowledge.isKnown(pos.relative(direction))) {
 					// Digging this would open into known lava: never.
 					dig = Float.POSITIVE_INFINITY;
@@ -230,6 +262,19 @@ public final class NavView {
 		// A log that isn't part of a tree is somebody's build (a village house post, a cabin wall).
 		boolean built = looksBuilt(state) || state.is(BlockTags.LOGS) && !this.trees.check(pos);
 		return new Cell(Kind.SOLID, dig, falling, liquidBeside, built);
+	}
+
+	/** Dig time by block kind, worked out once a search (it goes through its tools each time; performance 2026-10-17). */
+	private final it.unimi.dsi.fastutil.objects.Reference2FloatOpenHashMap<BlockState> digTimes = new it.unimi.dsi.fastutil.objects.Reference2FloatOpenHashMap<>();
+
+	private float digSeconds(BlockState state, BlockPos pos) {
+		if (this.digTimes.containsKey(state)) {
+			return this.digTimes.getFloat(state);
+		}
+
+		float seconds = Tools.digSeconds(this.drifter, state, this.level, pos);
+		this.digTimes.put(state, seconds);
+		return seconds;
 	}
 
 	/** Breaking a berry bush in the way: instant (hardness 0), plus a moment to aim. */
@@ -246,7 +291,7 @@ public final class NavView {
 				return down > 0;
 			}
 
-			if (!this.level.getBlockState(cell).getCollisionShape(this.level, cell).isEmpty()) {
+			if (!this.state(cell).getCollisionShape(this.level, cell).isEmpty()) {
 				return false;
 			}
 		}
@@ -256,21 +301,54 @@ public final class NavView {
 
 	/** Lava it has seen within two blocks across and one below or above: no pillaring there (a jump can tip it in). */
 	public boolean lavaWithinTwo(BlockPos feet) {
-		return this.lavaNear.computeIfAbsent(feet.asLong(), key -> {
-			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-2, -2, -2), feet.offset(2, 1, 2))) {
-				if (this.knownLavaAt(pos)) {
-					return true;
-				}
-			}
+		long key = feet.asLong();
+		byte known = this.lavaNear.get(key);
+		if (known != 0) {
+			return known > 0;
+		}
 
-			return false;
-		});
+		boolean lava = false;
+		for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-2, -2, -2), feet.offset(2, 1, 2))) {
+			if (this.knownLavaAt(pos)) {
+				lava = true;
+				break;
+			}
+		}
+
+		this.lavaNear.put(key, (byte)(lava ? 1 : -1));
+		return lava;
 	}
 
-	private final java.util.Map<Long, Boolean> lavaNear = new java.util.HashMap<>();
+	private final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap lavaNear = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
 
 	private boolean knownLavaAt(BlockPos pos) {
-		return this.knowledge.isKnown(pos) && this.level.getFluidState(pos).is(FluidTags.LAVA);
+		return this.lavaSection(pos) && this.knowledge.isKnown(pos) && this.state(pos).getFluidState().is(FluidTags.LAVA);
+	}
+
+	/** Each section's "can it have lava at all?" from its palette (most can't: the check is then free). */
+	private final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap lavaSections = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
+	private long lastLavaKey = Long.MIN_VALUE;
+	private boolean lastLava;
+	private static final java.util.function.Predicate<BlockState> LAVA = state -> state.getFluidState().is(FluidTags.LAVA);
+
+	private boolean lavaSection(BlockPos pos) {
+		int sx = pos.getX() >> 4;
+		int sy = pos.getY() >> 4;
+		int sz = pos.getZ() >> 4;
+		long key = net.minecraft.core.SectionPos.asLong(sx, sy, sz);
+		if (key == this.lastLavaKey) {
+			return this.lastLava;
+		}
+
+		byte known = this.lavaSections.get(key);
+		if (known == 0) {
+			known = (byte)(com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(this.level, LAVA).mayHave(sx, sy, sz) ? 1 : -1);
+			this.lavaSections.put(key, known);
+		}
+
+		this.lastLavaKey = key;
+		this.lastLava = known > 0;
+		return this.lastLava;
 	}
 
 	/**
@@ -303,13 +381,13 @@ public final class NavView {
 			return cell.kind() == Kind.CLIMB;
 		}
 
-		VoxelShape shape = this.level.getBlockState(floor).getCollisionShape(this.level, floor);
+		VoxelShape shape = this.state(floor).getCollisionShape(this.level, floor);
 		return !shape.isEmpty() && shape.max(Direction.Axis.Y) <= 1.0;
 	}
 
 	private boolean besidePortal(BlockPos pos) {
 		for (Direction direction : Direction.values()) {
-			if (this.level.getBlockState(pos.relative(direction)).is(Blocks.NETHER_PORTAL)) {
+			if (this.state(pos.relative(direction)).is(Blocks.NETHER_PORTAL)) {
 				return true;
 			}
 		}
@@ -343,6 +421,6 @@ public final class NavView {
 
 	/** Water you can float in (a source block), not water running past. */
 	public boolean isStillWater(BlockPos pos) {
-		return this.isWater(pos) && this.level.getFluidState(pos).isSource();
+		return this.isWater(pos) && this.state(pos).getFluidState().isSource();
 	}
 }

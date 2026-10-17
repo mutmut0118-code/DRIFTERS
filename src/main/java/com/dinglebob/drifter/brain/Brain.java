@@ -311,7 +311,7 @@ public class Brain {
 		this.watchForStall();
 
 		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks.
-		boolean danger = this.drifter.tickCount % THREAT_CHECK_TICKS == 0 && this.current != null && !"fight".equals(this.current.id())
+		boolean danger = (this.drifter.tickCount + this.drifter.getId()) % THREAT_CHECK_TICKS == 0 && this.current != null && !"fight".equals(this.current.id())
 			&& !"flee".equals(this.current.id()) && Threats.assess(this.drifter).urgent();
 		if (++this.sinceRescore < this.drifter.tier().rescoreTicks && !finished && this.activity != null && !danger) {
 			return;

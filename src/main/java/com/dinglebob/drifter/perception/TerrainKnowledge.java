@@ -28,12 +28,27 @@ public class TerrainKnowledge {
 		return Math.max(MAX_SECTIONS, across * across * 6);
 	}
 
-	private final Map<Long, BitSet> sections = new LinkedHashMap<>(64, 0.75F, true) {
-		@Override
-		protected boolean removeEldestEntry(Map.Entry<Long, BitSet> eldest) {
-			return this.size() > maxSections();
+	/**
+	 * Sections by key, oldest-touched first (performance, 2026-10-17: a boxed-Long map was a third of the server
+	 * thread's time in a 30-Drifter profile, with all the pathfinder's lookups going through it).
+	 */
+	private final it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<BitSet> sections = new it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<>();
+	/** The section looked up last (lookups come in runs in one place). */
+	private long lastKey = Long.MIN_VALUE;
+	@org.jetbrains.annotations.Nullable
+	private BitSet lastBits;
+
+	@org.jetbrains.annotations.Nullable
+	private BitSet section(long key) {
+		if (key == this.lastKey) {
+			return this.lastBits;
 		}
-	};
+
+		BitSet bits = this.sections.get(key);
+		this.lastKey = key;
+		this.lastBits = bits;
+		return bits;
+	}
 
 	private static int index(int x, int y, int z) {
 		return (x & 15) << 8 | (y & 15) << 4 | z & 15;
@@ -41,7 +56,22 @@ public class TerrainKnowledge {
 
 	public void mark(int x, int y, int z) {
 		long key = SectionPos.asLong(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(y), SectionPos.blockToSectionCoord(z));
-		this.sections.computeIfAbsent(key, k -> new BitSet(4096)).set(index(x, y, z));
+		BitSet bits = this.section(key);
+		if (bits == null) {
+			bits = new BitSet(4096);
+			this.sections.putAndMoveToLast(key, bits);
+			while (this.sections.size() > maxSections()) {
+				this.sections.removeFirst();
+			}
+
+			this.lastKey = key;
+			this.lastBits = bits;
+		} else if (this.sections.lastLongKey() != key) {
+			// Touched: to the back of the line for forgetting.
+			this.sections.getAndMoveToLast(key);
+		}
+
+		bits.set(index(x, y, z));
 	}
 
 	public void mark(BlockPos pos) {
@@ -51,7 +81,7 @@ public class TerrainKnowledge {
 	public boolean isKnown(BlockPos pos) {
 		long key = SectionPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getY()),
 			SectionPos.blockToSectionCoord(pos.getZ()));
-		BitSet bits = this.sections.get(key);
+		BitSet bits = this.section(key);
 		return bits != null && bits.get(index(pos.getX(), pos.getY(), pos.getZ()));
 	}
 
@@ -108,6 +138,15 @@ public class TerrainKnowledge {
 	 * is reused between calls: copy it with {@code immutable()} to keep it.
 	 */
 	public void forEachKnown(BlockPos center, int radius, java.util.function.Consumer<BlockPos.MutableBlockPos> action) {
+		this.forEachKnown(center, radius, null, action);
+	}
+
+	/**
+	 * The same, skipping whole sections {@code sections} turns down (by section coordinates): a scan for something rare
+	 * asks the chunk's palette first whether a section can have it at all (performance, 2026-10-17).
+	 */
+	public void forEachKnown(BlockPos center, int radius, @org.jetbrains.annotations.Nullable SectionFilter sections,
+		java.util.function.Consumer<BlockPos.MutableBlockPos> action) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 		int minSx = SectionPos.blockToSectionCoord(center.getX() - radius);
 		int maxSx = SectionPos.blockToSectionCoord(center.getX() + radius);
@@ -118,9 +157,8 @@ public class TerrainKnowledge {
 		for (int sx = minSx; sx <= maxSx; sx++) {
 			for (int sy = minSy; sy <= maxSy; sy++) {
 				for (int sz = minSz; sz <= maxSz; sz++) {
-					// Plain get without touching the access order isn't available on LinkedHashMap; a scan touching order is harmless.
 					BitSet bits = this.sections.get(SectionPos.asLong(sx, sy, sz));
-					if (bits == null) {
+					if (bits == null || sections != null && !sections.mayHave(sx, sy, sz)) {
 						continue;
 					}
 
@@ -137,7 +175,176 @@ public class TerrainKnowledge {
 		}
 	}
 
+	/**
+	 * The highest known block within {@code radius} that passes {@code test}, or null: searched from the top down, a layer
+	 * at a time, stopping at the first layer that has one (a "highest point" search used to test every block it knew in a
+	 * 64-block radius; 200 ms in one tick). Performance, 2026-10-17.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public BlockPos highestKnown(BlockPos center, int radius, java.util.function.Predicate<BlockPos> test) {
+		int minSx = SectionPos.blockToSectionCoord(center.getX() - radius);
+		int maxSx = SectionPos.blockToSectionCoord(center.getX() + radius);
+		int minSy = SectionPos.blockToSectionCoord(center.getY() - radius);
+		int maxSy = SectionPos.blockToSectionCoord(center.getY() + radius);
+		int minSz = SectionPos.blockToSectionCoord(center.getZ() - radius);
+		int maxSz = SectionPos.blockToSectionCoord(center.getZ() + radius);
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		for (int sy = maxSy; sy >= minSy; sy--) {
+			for (int ly = 15; ly >= 0; ly--) {
+				int y = (sy << 4) + ly;
+				if (Math.abs(y - center.getY()) > radius) {
+					continue;
+				}
+
+				for (int sx = minSx; sx <= maxSx; sx++) {
+					for (int sz = minSz; sz <= maxSz; sz++) {
+						BitSet bits = this.sections.get(SectionPos.asLong(sx, sy, sz));
+						if (bits == null) {
+							continue;
+						}
+
+						for (int lx = 0; lx < 16; lx++) {
+							for (int lz = 0; lz < 16; lz++) {
+								if (!bits.get(lx << 8 | ly << 4 | lz)) {
+									continue;
+								}
+
+								int x = (sx << 4) + lx;
+								int z = (sz << 4) + lz;
+								if (Math.abs(x - center.getX()) <= radius && Math.abs(z - center.getZ()) <= radius && test.test(pos.set(x, y, z))) {
+									return pos.immutable();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * The known block nearest {@code center} (within {@code radius}, the same box as forEachKnown) that passes
+	 * {@code test}, or null. Sections are searched nearest first and the search stops once no section left could hold
+	 * anything nearer: a "nearest spot" scan used to test every block it knew. Performance, 2026-10-17.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public BlockPos nearestKnown(BlockPos center, int radius, @org.jetbrains.annotations.Nullable SectionFilter sections,
+		java.util.function.Predicate<BlockPos> test) {
+		int cx = center.getX();
+		int cy = center.getY();
+		int cz = center.getZ();
+		java.util.List<long[]> order = new java.util.ArrayList<>();
+		for (int sx = SectionPos.blockToSectionCoord(cx - radius); sx <= SectionPos.blockToSectionCoord(cx + radius); sx++) {
+			for (int sy = SectionPos.blockToSectionCoord(cy - radius); sy <= SectionPos.blockToSectionCoord(cy + radius); sy++) {
+				for (int sz = SectionPos.blockToSectionCoord(cz - radius); sz <= SectionPos.blockToSectionCoord(cz + radius); sz++) {
+					long key = SectionPos.asLong(sx, sy, sz);
+					if (!this.sections.containsKey(key)) {
+						continue;
+					}
+
+					// Squared distance from the center to the nearest point of this section.
+					long dx = Math.max(0, Math.max((sx << 4) - cx, cx - ((sx << 4) + 15)));
+					long dy = Math.max(0, Math.max((sy << 4) - cy, cy - ((sy << 4) + 15)));
+					long dz = Math.max(0, Math.max((sz << 4) - cz, cz - ((sz << 4) + 15)));
+					order.add(new long[] {dx * dx + dy * dy + dz * dz, key, sx, sy, sz});
+				}
+			}
+		}
+
+		order.sort(java.util.Comparator.comparingLong(entry -> entry[0]));
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		BlockPos best = null;
+		long bestDistance = Long.MAX_VALUE;
+		for (long[] entry : order) {
+			if (entry[0] >= bestDistance) {
+				break;
+			}
+
+			int sx = (int)entry[2];
+			int sy = (int)entry[3];
+			int sz = (int)entry[4];
+			if (sections != null && !sections.mayHave(sx, sy, sz)) {
+				continue;
+			}
+
+			BitSet bits = this.sections.get(entry[1]);
+			for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1)) {
+				int x = (sx << 4) + (i >> 8 & 15);
+				int y = (sy << 4) + (i >> 4 & 15);
+				int z = (sz << 4) + (i & 15);
+				if (Math.abs(x - cx) > radius || Math.abs(y - cy) > radius || Math.abs(z - cz) > radius) {
+					continue;
+				}
+
+				long d = (long)(x - cx) * (x - cx) + (long)(y - cy) * (y - cy) + (long)(z - cz) * (z - cz);
+				if (d < bestDistance && test.test(pos.set(x, y, z))) {
+					bestDistance = d;
+					best = pos.immutable();
+				}
+			}
+		}
+
+		return best;
+	}
+
+	/** Some known block within {@code radius} that passes {@code test} (the first found, in no particular order), or null. */
+	@org.jetbrains.annotations.Nullable
+	public BlockPos anyKnown(BlockPos center, int radius, @org.jetbrains.annotations.Nullable SectionFilter sections,
+		java.util.function.Predicate<BlockPos> test) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		for (int sx = SectionPos.blockToSectionCoord(center.getX() - radius); sx <= SectionPos.blockToSectionCoord(center.getX() + radius); sx++) {
+			for (int sy = SectionPos.blockToSectionCoord(center.getY() - radius); sy <= SectionPos.blockToSectionCoord(center.getY() + radius); sy++) {
+				for (int sz = SectionPos.blockToSectionCoord(center.getZ() - radius); sz <= SectionPos.blockToSectionCoord(center.getZ() + radius); sz++) {
+					BitSet bits = this.sections.get(SectionPos.asLong(sx, sy, sz));
+					if (bits == null || sections != null && !sections.mayHave(sx, sy, sz)) {
+						continue;
+					}
+
+					for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1)) {
+						int x = (sx << 4) + (i >> 8 & 15);
+						int y = (sy << 4) + (i >> 4 & 15);
+						int z = (sz << 4) + (i & 15);
+						if (Math.abs(x - center.getX()) <= radius && Math.abs(y - center.getY()) <= radius && Math.abs(z - center.getZ()) <= radius
+							&& test.test(pos.set(x, y, z))) {
+							return pos.immutable();
+						}
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/** Whether a section (by section coordinates) can have what a scan looks for. */
+	@FunctionalInterface
+	public interface SectionFilter {
+		boolean mayHave(int sx, int sy, int sz);
+
+		/** From the level's own palettes: false only if the section certainly has no block matching {@code test}. */
+		static SectionFilter palette(net.minecraft.world.level.Level level, java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> test) {
+			return (sx, sy, sz) -> {
+				if (!level.hasChunk(sx, sz)) {
+					return false;
+				}
+
+				int index = level.getSectionIndexFromSectionY(sy);
+				var chunk = level.getChunk(sx, sz);
+				if (index < 0 || index >= chunk.getSections().length) {
+					return false;
+				}
+
+				var section = chunk.getSection(index);
+				return !section.hasOnlyAir() && section.getStates().maybeHas(test);
+			};
+		}
+	}
+
 	public void clear() {
 		this.sections.clear();
+		this.lastKey = Long.MIN_VALUE;
+		this.lastBits = null;
 	}
 }

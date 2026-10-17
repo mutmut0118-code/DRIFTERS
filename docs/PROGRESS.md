@@ -1513,6 +1513,18 @@ structure blocks) for the user's own worlds.
   and 14 blocks each), back home. Setting "Outpost Bandits grief" / `/drifter config banditgriefing`. Debug:
   `/drifter banditgang` (a gang here), `/drifter banditmark` (the nearest gang knows of a base here, raid due now).
   Tested: a gang raided a Drifter's hut 50 blocks away: looted its chest, broke 26 blocks, lit two fires.
+- Optimization pass (user: "rockstar games level of optimizing", 2026-10-17), measured with Java Flight Recorder and a
+  stress test (30 Drifters at full detail, seed 20261016): server 6.4 -> 3.6 ms a tick, Drifters' own share 5.3 -> 2.6
+  ms, worst moment 35+ -> 7-11 ms, path search 240 -> 370 nodes/ms. What changed:
+  pathfinder: per-search block data in plain 3D arrays round the start (`nav/LocalGrid`, no hashing), a lean binary
+  heap, settled moves skipped before costing, dig lists only when digging, dig time per block kind, block reads straight
+  from the chunk, "lava here?" answered from each section's palette, deep-drop answers kept; its time budget 3 -> 2 ms a
+  tick, with 0.7 ms kept for Drifters near a player. Terrain memory: fastutil map plus a last-section shortcut.
+  Scans of what it has seen: sections skipped by palette, nearest-first and stop-at-first searches, the highest point
+  from the height map (was 200-300 ms). Eyes: the game's block walk with air skipped and the chunk kept, fewer rays while
+  looking at the same scene. Whims: drawn by weight then checked, 1.5 ms a pick. Reflexes: slow hazards checked every
+  few ticks. Spread: periodic work offset by each Drifter's id. Player-placed lookups: a hash set per chunk. `/drifter
+  perf` shows path search speed.
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 

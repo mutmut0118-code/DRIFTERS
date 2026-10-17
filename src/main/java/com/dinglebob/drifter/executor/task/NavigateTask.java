@@ -598,7 +598,7 @@ public class NavigateTask extends Task {
 
 	private Status tickPlanning() {
 		long t = System.nanoTime();
-		PathSearch.Status status = this.search.tick(PathBudget.take(this.level()));
+		PathSearch.Status status = this.search.tick(PathBudget.take(this.level(), this.drifter.tier()));
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.PATH, System.nanoTime() - t);
 		if (status == PathSearch.Status.RUNNING) {
 			// Thinking on the move only for a moment; a long think happens standing still.

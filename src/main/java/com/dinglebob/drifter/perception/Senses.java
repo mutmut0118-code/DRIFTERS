@@ -194,6 +194,8 @@ public class Senses {
 		this.drifter = drifter;
 		this.memory = memory;
 		this.hearing = new Hearing(drifter, this);
+		// Each Drifter's periodic looks fall on its own ticks (spread over the 20-tick cycle by its id).
+		this.ticks = Math.floorMod(drifter.getId(), 20);
 	}
 
 	public Hearing hearing() {
@@ -344,7 +346,7 @@ public class Senses {
 
 	private boolean lineOfSight(Vec3 from, Vec3 to) {
 		this.sightLines++;
-		return this.level().clip(new ClipContext(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, this.drifter)).getType() == HitResult.Type.MISS;
+		return this.clip(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE).getType() == HitResult.Type.MISS;
 	}
 
 	/** How far it can see this entity right now: light at the target, weather, water and effects. */
@@ -679,8 +681,35 @@ public class Senses {
 	// ---------------------------------------------------------------------------------------------
 
 	/** Sampled, not scanned (section 5): a small budget of rays across the view cone each tick. */
+	/** Where it looked from last tick, and for how long it's been looking at the same scene. */
+	private Vec3 lastEye = Vec3.ZERO;
+	private float lastYaw;
+	private float lastPitch;
+	private int stillTicks;
+
 	private void sampleBlocks() {
-		boolean playerNear = this.tracked.values().stream().anyMatch(a -> a.entity instanceof Player && a.visibleNow);
+		// Looking at the same scene (standing still, head still: at the furnace, waiting, working one block): its eyes
+		// take in less that's new each moment, so the rays thin out (every other tick, then every fourth). The moment it
+		// moves or turns, full rate again. Performance, 2026-10-17.
+		Vec3 eyeNow = this.drifter.getEyePosition();
+		boolean still = eyeNow.distanceToSqr(this.lastEye) < 0.0025 && Math.abs(Mth.wrapDegrees(this.drifter.getYHeadRot() - this.lastYaw)) < 2.0F
+			&& Math.abs(this.drifter.getXRot() - this.lastPitch) < 2.0F;
+		this.lastEye = eyeNow;
+		this.lastYaw = this.drifter.getYHeadRot();
+		this.lastPitch = this.drifter.getXRot();
+		this.stillTicks = still ? this.stillTicks + 1 : 0;
+		if (this.stillTicks > 0 && this.ticks % (this.stillTicks > 40 ? 4 : 2) != 0) {
+			return;
+		}
+
+		boolean playerNear = false;
+		for (Awareness awareness : this.tracked.values()) {
+			if (awareness.entity instanceof Player && awareness.visibleNow) {
+				playerNear = true;
+				break;
+			}
+		}
+
 		// Fewer with no player anywhere near (section 22 detail tiers).
 		int rays = playerNear ? BLOCK_RAYS_PLAYER_NEAR : Math.min(BLOCK_RAYS_BASE, this.drifter.tier().blockRays);
 		Vec3 eye = this.drifter.getEyePosition();
@@ -759,7 +788,7 @@ public class Senses {
 		Vec3 direction = to.subtract(from).normalize();
 		BlockHitResult hit = null;
 		for (int i = 0; i <= MAX_SEE_THROUGH; i++) {
-			hit = this.level().clip(new ClipContext(start, to, ClipContext.Block.OUTLINE, fluids, this.drifter));
+			hit = this.clip(start, to, ClipContext.Block.OUTLINE, fluids);
 			if (hit.getType() != HitResult.Type.BLOCK || !isSeeThrough(this.level(), hit.getBlockPos())) {
 				return hit;
 			}
@@ -772,6 +801,61 @@ public class Senses {
 
 		// Ran out of see-through blocks to pass (or reached the end): nothing solid in the way.
 		return BlockHitResult.miss(to, Direction.getNearest(direction.x, direction.y, direction.z), BlockPos.containing(to));
+	}
+
+	/**
+	 * Level#clip, block for block the same (the game's own block walk, the same shapes and fluids, the nearer of the two),
+	 * but reading blocks straight from the chunk it's in and passing over air at once: almost every block an eye ray
+	 * crosses is air, and the general version looked each one's chunk up again. Never loads a chunk (one that isn't
+	 * loaded counts as empty). Performance, 2026-10-17.
+	 */
+	private BlockHitResult clip(Vec3 from, Vec3 to, ClipContext.Block blocks, ClipContext.Fluid fluids) {
+		Level level = this.level();
+		net.minecraft.world.phys.shapes.CollisionContext context = net.minecraft.world.phys.shapes.CollisionContext.of(this.drifter);
+		return net.minecraft.world.level.BlockGetter.traverseBlocks(from, to, this, (self, pos) -> {
+			BlockState state = self.cachedState(pos);
+			if (state.isAir()) {
+				return null;
+			}
+
+			net.minecraft.world.phys.shapes.VoxelShape shape = blocks.get(state, level, pos, context);
+			BlockHitResult blockHit = shape.isEmpty() ? null : level.clipWithInteractionOverride(from, to, pos, shape, state);
+			net.minecraft.world.level.material.FluidState fluid = state.getFluidState();
+			BlockHitResult fluidHit = fluid.isEmpty() || !fluids.canPick(fluid) ? null : fluid.getShape(level, pos).clip(from, to, pos);
+			if (blockHit == null) {
+				return fluidHit;
+			}
+
+			if (fluidHit == null) {
+				return blockHit;
+			}
+
+			return from.distanceToSqr(blockHit.getLocation()) <= from.distanceToSqr(fluidHit.getLocation()) ? blockHit : fluidHit;
+		}, self -> {
+			Vec3 back = from.subtract(to);
+			return BlockHitResult.miss(to, Direction.getNearest(back.x, back.y, back.z), BlockPos.containing(to));
+		});
+	}
+
+	private long clipChunkKey = Long.MIN_VALUE;
+	private long clipChunkTick = Long.MIN_VALUE;
+	@Nullable
+	private net.minecraft.world.level.chunk.LevelChunk clipChunk;
+
+	/** A block as it is now, from the chunk it's in (kept from the last read); air if that chunk isn't loaded. */
+	private BlockState cachedState(BlockPos pos) {
+		int cx = pos.getX() >> 4;
+		int cz = pos.getZ() >> 4;
+		long key = net.minecraft.world.level.ChunkPos.asLong(cx, cz);
+		long now = this.level().getGameTime();
+		// (Looked up again each tick: a chunk unloaded and loaded again is a new object.)
+		if (key != this.clipChunkKey || now != this.clipChunkTick) {
+			this.clipChunk = this.level().getChunkSource().getChunkNow(cx, cz);
+			this.clipChunkKey = key;
+			this.clipChunkTick = now;
+		}
+
+		return this.clipChunk == null ? net.minecraft.world.level.block.Blocks.VOID_AIR.defaultBlockState() : this.clipChunk.getBlockState(pos);
 	}
 
 	private static boolean isSeeThrough(Level level, BlockPos pos) {

@@ -124,7 +124,9 @@ public final class DrifterCommands {
 
 			String counts = tiers.isEmpty() ? "none loaded" : tiers.entrySet().stream()
 				.map(e -> e.getValue() + " " + e.getKey().name().toLowerCase(java.util.Locale.ROOT)).collect(java.util.stream.Collectors.joining(", "));
-			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts), false);
+			String speed = com.dinglebob.drifter.nav.PathBudget.speedReport();
+			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts
+				+ "\nPath search speed: " + speed), false);
 			return 1;
 		}));
 		// Run catch-up on the nearest Drifter as if it had been away this many in-game hours (debug, section 25).

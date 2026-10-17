@@ -673,7 +673,7 @@ public class DrifterEntity extends PathfinderMob {
 
 		// LocalPlayer#aiStep: a player overlapping blocks is nudged toward the nearest open side (found in testing: spawned on
 		// a block corner inside a tree, it dug at one block at a time and suffocated).
-		if (!this.level().isClientSide && !this.noPhysics) {
+		if (!this.level().isClientSide && !this.noPhysics && this.overlapsSuffocating()) {
 			double reach = this.getBbWidth() * 0.35;
 			this.moveTowardsClosestSpace(this.getX() - reach, this.getZ() + reach);
 			this.moveTowardsClosestSpace(this.getX() - reach, this.getZ() - reach);
@@ -686,6 +686,28 @@ public class DrifterEntity extends PathfinderMob {
 		if (!this.level().isClientSide && this.isAlive()) {
 			this.pickUpNearbyItems();
 		}
+	}
+
+	/**
+	 * Any block its body overlaps could suffocate it (a quick look at the few blocks round it first: almost always it
+	 * stands in the open, and the full collision checks were a measurable cost every tick; performance, 2026-10-17).
+	 */
+	private boolean overlapsSuffocating() {
+		AABB box = this.getBoundingBox();
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		for (int x = net.minecraft.util.Mth.floor(box.minX); x <= net.minecraft.util.Mth.floor(box.maxX); x++) {
+			for (int y = net.minecraft.util.Mth.floor(box.minY); y <= net.minecraft.util.Mth.floor(box.maxY); y++) {
+				for (int z = net.minecraft.util.Mth.floor(box.minZ); z <= net.minecraft.util.Mth.floor(box.maxZ); z++) {
+					pos.set(x, y, z);
+					var state = this.level().getBlockState(pos);
+					if (!state.isAir() && state.isSuffocating(this.level(), pos)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/** LocalPlayer#moveTowardsClosestSpace. */
@@ -755,11 +777,13 @@ public class DrifterEntity extends PathfinderMob {
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES, System.nanoTime() - t, this::perfLabel);
 		this.personality.tick(this);
 		t = System.nanoTime();
-		if (this.tickCount % 100 == 0) {
+		// (Offset by its id: Drifters that turn up together, a camp or a village loading, don't all do this on the same
+		// tick; performance, 2026-10-17.)
+		if ((this.tickCount + this.getId()) % 100 == 0) {
 			this.social.tick();
 		}
 
-		if (this.tickCount % com.dinglebob.drifter.social.SocialWatcher.TICK_EVERY == 0) {
+		if ((this.tickCount + this.getId()) % com.dinglebob.drifter.social.SocialWatcher.TICK_EVERY == 0) {
 			this.social.watcher().tick();
 		}
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SOCIAL, System.nanoTime() - t);
@@ -1286,16 +1310,23 @@ public class DrifterEntity extends PathfinderMob {
 			reach = this.getBoundingBox().inflate(1.0, 0.5, 1.0);
 		}
 
-		for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, reach)) {
-			this.tryPickUp(item);
+		// One look for both (as Player#aiStep does): items first, then orbs.
+		List<net.minecraft.world.entity.Entity> near = this.level().getEntities(this, reach,
+			entity -> entity instanceof ItemEntity || entity instanceof net.minecraft.world.entity.ExperienceOrb);
+		for (net.minecraft.world.entity.Entity entity : near) {
+			if (entity instanceof ItemEntity item) {
+				this.tryPickUp(item);
+			}
 		}
 
 		if (this.takeXpDelay > 0) {
 			this.takeXpDelay--;
 		}
 
-		for (net.minecraft.world.entity.ExperienceOrb orb : this.level().getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class, reach)) {
-			this.touchOrb(orb);
+		for (net.minecraft.world.entity.Entity entity : near) {
+			if (entity instanceof net.minecraft.world.entity.ExperienceOrb orb && !orb.isRemoved()) {
+				this.touchOrb(orb);
+			}
 		}
 	}
 

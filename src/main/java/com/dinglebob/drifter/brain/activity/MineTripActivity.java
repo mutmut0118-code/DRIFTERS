@@ -163,28 +163,21 @@ public class MineTripActivity extends Activity {
 	private BlockPos firmGround() {
 		net.minecraft.world.level.Level level = this.drifter.level();
 		BlockPos feet = this.drifter.blockPosition();
-		BlockPos[] best = {null};
-		double[] bestDistance = {Double.MAX_VALUE};
-		this.drifter.getSenses().terrain().forEachKnown(feet, 48, pos -> {
+		Home home = this.drifter.getDrifterBrain().home();
+		return this.drifter.getSenses().terrain().nearestKnown(feet, 48, null, pos -> {
 			if (!KnownBlocks.isStandable(level, pos) || !level.getFluidState(pos.below()).isEmpty()) {
-				return;
+				return false;
 			}
 
 			for (int down = 1; down <= 3; down++) {
 				BlockPos under = pos.below(down);
 				if (level.getBlockState(under).getBlock() instanceof net.minecraft.world.level.block.FallingBlock || !level.getFluidState(under).isEmpty()) {
-					return;
+					return false;
 				}
 			}
 
-			Home home = this.drifter.getDrifterBrain().home();
-			double distance = pos.distSqr(feet);
-			if ((home == null || !home.inOwnBuilding(pos, 2)) && distance < bestDistance[0]) {
-				bestDistance[0] = distance;
-				best[0] = pos.immutable();
-			}
+			return home == null || !home.inOwnBuilding(pos, 2);
 		});
-		return best[0];
 	}
 	/** Times a staircase that wouldn't start was started again from where it stands. */
 	private int freshStarts;

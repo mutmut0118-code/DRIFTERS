@@ -60,7 +60,11 @@ public final class KnownWorld {
 		long now = level.getGameTime();
 		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
 		TreeLogs treeCheck = new TreeLogs(level);
-		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, pos -> {
+		// Sections whose palette has nothing it hasn't already found an example of are skipped whole (performance: stone and
+		// air everywhere, once it has an example of stone, cost nothing more to scan).
+		var unseenKinds = com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level,
+			state -> !state.isAir() && !this.examples.containsKey(state.getBlock()) && state.getFluidState().isEmpty());
+		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, unseenKinds, pos -> {
 			if (!level.isLoaded(pos)) {
 				return;
 			}
@@ -150,14 +154,15 @@ public final class KnownWorld {
 		Level level = drifter.level();
 		long now = level.getGameTime();
 		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
-		boolean[] found = {false};
-		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, pos -> {
-			if (!found[0] && level.isLoaded(pos)) {
+		return drifter.getSenses().terrain().anyKnown(drifter.blockPosition(), RADIUS,
+			com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level, filter), pos -> {
+				if (!level.isLoaded(pos)) {
+					return false;
+				}
+
 				BlockState state = level.getBlockState(pos);
-				found[0] = filter.test(state) && takeable(level, pos, state, blacklist, now);
-			}
-		});
-		return found[0];
+				return filter.test(state) && takeable(level, pos, state, blacklist, now);
+			}) != null;
 	}
 
 	/** An adult animal it can see or saw in the last half minute. */

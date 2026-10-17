@@ -118,6 +118,69 @@ public class PathSearch {
 	/** Seconds-equivalent per point of fall damage, before the Caution weight. */
 	public static final double FALL_DAMAGE_COST = 1.5;
 
+	/** The open list: a binary heap on f, without a comparator object or boxing (a hot spot in the profile). */
+	private static final class NodeHeap {
+		private Node[] heap = new Node[1024];
+		private int size;
+
+		void add(Node node) {
+			if (this.size == this.heap.length) {
+				this.heap = java.util.Arrays.copyOf(this.heap, this.size * 2);
+			}
+
+			int i = this.size++;
+			double f = node.f;
+			while (i > 0) {
+				int parent = (i - 1) >>> 1;
+				Node p = this.heap[parent];
+				if (p.f <= f) {
+					break;
+				}
+
+				this.heap[i] = p;
+				i = parent;
+			}
+
+			this.heap[i] = node;
+		}
+
+		@Nullable
+		Node poll() {
+			if (this.size == 0) {
+				return null;
+			}
+
+			Node top = this.heap[0];
+			Node last = this.heap[--this.size];
+			this.heap[this.size] = null;
+			if (this.size > 0) {
+				int i = 0;
+				double f = last.f;
+				int half = this.size >>> 1;
+				while (i < half) {
+					int child = 2 * i + 1;
+					Node c = this.heap[child];
+					int right = child + 1;
+					if (right < this.size && this.heap[right].f < c.f) {
+						child = right;
+						c = this.heap[child];
+					}
+
+					if (f <= c.f) {
+						break;
+					}
+
+					this.heap[i] = c;
+					i = child;
+				}
+
+				this.heap[i] = last;
+			}
+
+			return top;
+		}
+	}
+
 	private static final class Node {
 		final BlockPos pos;
 		double g;
@@ -155,8 +218,12 @@ public class PathSearch {
 	private final boolean startUnderwater;
 	/** Highest drop into water it plans (its bravery). */
 	private final int waterDrop;
-	private final PriorityQueue<Node> open = new PriorityQueue<>((a, b) -> Double.compare(a.f, b.f));
-	private final Map<Long, Node> nodes = new HashMap<>();
+	private final NodeHeap open = new NodeHeap();
+	private final LocalGrid<Node> nodes;
+	/** Each cell's "beside a deep drop" answer (asked for every move into it). */
+	private final LocalGrid<Boolean> deepDrop;
+	@Nullable
+	private Node startNode;
 	private Node best;
 	private double bestH = Double.MAX_VALUE;
 	private Status status = Status.RUNNING;
@@ -172,6 +239,8 @@ public class PathSearch {
 		this.drifter = drifter;
 		this.view = new NavView(drifter);
 		this.start = start.immutable();
+		this.nodes = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
+		this.deepDrop = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
 		this.target = target;
 		this.goalRadius = goalRadius;
 		// Never its last few blocks on a route: a long chain of partial routes (exploring far) once spent them all on pillars
@@ -203,7 +272,8 @@ public class PathSearch {
 			&& entry.pos.distanceTo(Vec3.atCenterOf(start)) <= com.dinglebob.drifter.DrifterConfig.pathRange() + DANGER_RADIUS).stream().map(entry -> entry.pos).toList();
 		Node first = new Node(this.start);
 		first.f = this.heuristic(this.start);
-		this.nodes.put(this.start.asLong(), first);
+		this.nodes.put(this.start, first);
+		this.startNode = first;
 		this.open.add(first);
 		this.best = first;
 		this.bestH = first.f;
@@ -253,10 +323,12 @@ public class PathSearch {
 
 		this.skipped = 0;
 		long started = System.nanoTime();
+		int before = this.expanded;
 		try {
 			return this.search(started + nanos);
 		} finally {
 			PathBudget.spent(System.nanoTime() - started);
+			PathBudget.expanded(this.expanded - before);
 		}
 	}
 
@@ -320,7 +392,9 @@ public class PathSearch {
 	/** Running total while checking cells for a move. Cost -1 means impossible. */
 	private static final class Clearance {
 		double cost;
-		final List<BlockPos> digs = new ArrayList<>();
+		/** Made only when a move digs (most don't; a list per move tried was a measurable cost). */
+		@Nullable
+		List<BlockPos> digs;
 		int unknown;
 	}
 
@@ -358,6 +432,10 @@ public class PathSearch {
 
 					if (info.liquidBeside()) {
 						clearance.cost += LIQUID_BESIDE_DIG * this.caution * 2.0;
+					}
+
+					if (clearance.digs == null) {
+						clearance.digs = new ArrayList<>(2);
 					}
 
 					clearance.digs.add(cell.immutable());
@@ -604,6 +682,17 @@ public class PathSearch {
 
 	/** True if a seen drop of 4+ blocks is right beside this spot. */
 	private boolean besideDeepDrop(BlockPos feet) {
+		Boolean known = this.deepDrop.get(feet);
+		if (known != null) {
+			return known;
+		}
+
+		boolean drop = this.besideDeepDropUncached(feet);
+		this.deepDrop.put(feet.immutable(), drop);
+		return drop;
+	}
+
+	private boolean besideDeepDropUncached(BlockPos feet) {
 		for (Direction d : Direction.Plane.HORIZONTAL) {
 			BlockPos side = feet.relative(d);
 			boolean deep = true;
@@ -635,6 +724,12 @@ public class PathSearch {
 			return;
 		}
 
+		// Settled already (the commonest case): nothing to work out (performance, 2026-10-17).
+		Node node = this.nodes.get(to);
+		if (node != null && (node.closed || node == this.startNode || node.parent != null && from.g + cost * TRAIL_DISCOUNT >= node.g)) {
+			return;
+		}
+
 		double stepCost = cost;
 		// In a lava world, the lava sea's shore (a block or two above it) costs more: one slip there is a swim in lava (found
 		// in a Nether test: a route along the shore, a vine climb cut short, and it slid in).
@@ -646,11 +741,13 @@ public class PathSearch {
 			stepCost *= TRAIL_DISCOUNT;
 		}
 
-		Vec3 center = Vec3.atBottomCenterOf(to);
-		for (Vec3 danger : this.dangers) {
-			if (danger.distanceTo(center) <= DANGER_RADIUS) {
-				stepCost += DANGER_NEAR * this.caution * 2.0;
-				break;
+		if (!this.dangers.isEmpty()) {
+			Vec3 center = Vec3.atBottomCenterOf(to);
+			for (Vec3 danger : this.dangers) {
+				if (danger.distanceTo(center) <= DANGER_RADIUS) {
+					stepCost += DANGER_NEAR * this.caution * 2.0;
+					break;
+				}
 			}
 		}
 
@@ -672,8 +769,12 @@ public class PathSearch {
 		}
 
 		double g = from.g + stepCost;
-		Node node = this.nodes.computeIfAbsent(to.asLong(), key -> new Node(to.immutable()));
-		if (node.closed || node.parent != null && g >= node.g || node == this.nodes.get(this.start.asLong())) {
+		if (node == null) {
+			node = new Node(to.immutable());
+			this.nodes.put(node.pos, node);
+		}
+
+		if (node.closed || node.parent != null && g >= node.g || node == this.startNode) {
 			return;
 		}
 
@@ -682,7 +783,7 @@ public class PathSearch {
 		node.parent = from;
 		node.underwater = underwater;
 		node.move = move;
-		node.digs = clearance.digs.isEmpty() ? List.of() : List.copyOf(clearance.digs);
+		node.digs = clearance.digs == null ? List.of() : List.copyOf(clearance.digs);
 		node.unknown = clearance.unknown;
 		node.blocksUsed = from.blocksUsed + blocks;
 		this.open.add(node);

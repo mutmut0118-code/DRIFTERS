@@ -74,6 +74,14 @@ public class Reflexes {
 		/** Is the hazard here right now? (May remember details for {@link #act}.) */
 		protected abstract boolean detect(DrifterEntity drifter);
 
+		/**
+		 * Ticks between checks: 1 for what needs it every tick (lava, a fall, an arrow); more for slow hazards (a fuse, a
+		 * falling block, cold), which a player notices within a moment too. Performance, 2026-10-17.
+		 */
+		protected int checkEvery() {
+			return 1;
+		}
+
 		/** Where the hazard is, to tell whether it's behind it; null if it's all around (in lava). */
 		@Nullable
 		protected Vec3 where(DrifterEntity drifter) {
@@ -141,7 +149,8 @@ public class Reflexes {
 		}
 
 		for (Reflex reflex : this.reflexes) {
-			if (now < reflex.readyAt || !reflex.detect(this.drifter)) {
+			int every = reflex.checkEvery();
+			if (now < reflex.readyAt || every > 1 && (now + this.drifter.getId()) % every != 0 && this.pending != reflex || !reflex.detect(this.drifter)) {
 				continue;
 			}
 
@@ -682,6 +691,11 @@ public class Reflexes {
 	 * for a fortress it was back in the Overworld, its trip over).
 	 */
 	private static final class StrayPortal extends Reflex {
+		@Override
+		protected int checkEvery() {
+			return 10;
+		}
+
 		@Nullable
 		private BlockPos safe;
 
@@ -967,6 +981,11 @@ public class Reflexes {
 
 	/** A creeper hissing close by: get clear (sprint away), or shield up if it can't. */
 	private static final class CreeperFuse extends Reflex {
+		@Override
+		protected int checkEvery() {
+			return 2;
+		}
+
 		private static final double DANGER_RANGE = 6.0;
 		private static final double CLEAR_RANGE = 7.0;
 		@Nullable
@@ -1443,6 +1462,11 @@ public class Reflexes {
 	 * it froze to death).
 	 */
 	private static final class Freezing extends Reflex {
+		@Override
+		protected int checkEvery() {
+			return 5;
+		}
+
 		@Nullable
 		private BlockPos out;
 
@@ -1550,6 +1574,11 @@ public class Reflexes {
 
 	/** Sand or gravel falling onto it: step out of the column. */
 	private static final class FallingBlockAbove extends Reflex {
+		@Override
+		protected int checkEvery() {
+			return 2;
+		}
+
 		@Nullable
 		private BlockPos escape;
 
@@ -1716,6 +1745,11 @@ public class Reflexes {
 
 	/** Lit TNT seen close by: run more than 8 blocks away. */
 	private static final class LitTnt extends Reflex {
+		@Override
+		protected int checkEvery() {
+			return 4;
+		}
+
 		private static final double DANGER_RANGE = 8.0;
 		@Nullable
 		private PrimedTnt tnt;

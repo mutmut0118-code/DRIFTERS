@@ -39,7 +39,7 @@ public final class KnownBlocks {
 		TerrainKnowledge terrain = drifter.getSenses().terrain();
 		Vec3 from = drifter.position();
 		List<BlockPos> found = new ArrayList<>();
-		terrain.forEachKnown(drifter.blockPosition(), radius, pos -> {
+		terrain.forEachKnown(drifter.blockPosition(), radius, TerrainKnowledge.SectionFilter.palette(level, filter), pos -> {
 			if (level.isLoaded(pos) && filter.test(level.getBlockState(pos))) {
 				found.add(pos.immutable());
 			}
@@ -91,19 +91,9 @@ public final class KnownBlocks {
 	public static BlockPos nearestStandable(DrifterEntity drifter, int radius) {
 		Level level = drifter.level();
 		Vec3 from = drifter.position();
-		BlockPos[] best = {null};
-		double[] bestDistance = {Double.MAX_VALUE};
-		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
-			BlockPos above = pos.above();
-			if (level.isLoaded(pos) && isStandable(level, above) && level.getFluidState(pos).isEmpty()) {
-				double distance = above.distToCenterSqr(from);
-				if (distance < bestDistance[0]) {
-					bestDistance[0] = distance;
-					best[0] = above.immutable();
-				}
-			}
-		});
-		return best[0];
+		BlockPos ground = drifter.getSenses().terrain().nearestKnown(BlockPos.containing(from).below(), radius, null,
+			pos -> level.isLoaded(pos) && isStandable(level, pos.above()) && level.getFluidState(pos).isEmpty());
+		return ground == null ? null : ground.above();
 	}
 
 	/**

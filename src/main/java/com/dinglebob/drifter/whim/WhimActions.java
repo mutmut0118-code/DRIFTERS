@@ -296,18 +296,8 @@ public final class WhimActions {
 			return drifter.blockPosition();
 		}
 
-		BlockPos[] best = {null};
-		double[] bestDistance = {Double.MAX_VALUE};
-		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
-			if (KnownBlocks.isStandable(level, pos) && level.canSeeSky(pos.above())) {
-				double d = pos.distSqr(drifter.blockPosition());
-				if (d < bestDistance[0]) {
-					bestDistance[0] = d;
-					best[0] = pos.immutable();
-				}
-			}
-		});
-		return best[0];
+		return drifter.getSenses().terrain().nearestKnown(drifter.blockPosition(), radius, null,
+			pos -> KnownBlocks.isStandable(level, pos) && level.canSeeSky(pos.above()));
 	}
 
 	/** An animal (or any mob) of these types it can see close by, nearest first. */
@@ -479,14 +469,28 @@ public final class WhimActions {
 
 		@Nullable
 		static BlockPos top(DrifterEntity drifter, int radius) {
+			// Column by column: the top of each (the game's height map) if it has seen that spot (only seen ground counts),
+			// the highest of those. One lookup a column (searching all it knew, sky included, took up to 300 ms).
 			Level level = drifter.level();
-			BlockPos[] best = {null};
-			drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
-				if ((best[0] == null || pos.getY() > best[0].getY()) && KnownBlocks.isStandable(level, pos) && level.canSeeSky(pos.above())) {
-					best[0] = pos.immutable();
+			var terrain = drifter.getSenses().terrain();
+			BlockPos feet = drifter.blockPosition();
+			BlockPos best = null;
+			BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+			for (int x = feet.getX() - radius; x <= feet.getX() + radius; x++) {
+				for (int z = feet.getZ() - radius; z <= feet.getZ() + radius; z++) {
+					if (!level.hasChunk(x >> 4, z >> 4)) {
+						continue;
+					}
+
+					int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z);
+					if ((best == null || y > best.getY()) && Math.abs(y - feet.getY()) <= radius && terrain.isKnown(pos.set(x, y - 1, z))
+						&& KnownBlocks.isStandable(level, pos.set(x, y, z))) {
+						best = pos.immutable();
+					}
 				}
-			});
-			return best[0];
+			}
+
+			return best;
 		}
 
 		@Override
@@ -714,15 +718,10 @@ public final class WhimActions {
 		@Nullable
 		static BlockPos dark(DrifterEntity drifter, int radius) {
 			Level level = drifter.level();
-			BlockPos[] best = {null};
-			drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
-				if (best[0] == null && KnownBlocks.isStandable(level, pos) && level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos) < 4
+			return drifter.getSenses().terrain().anyKnown(drifter.blockPosition(), radius, null,
+				pos -> KnownBlocks.isStandable(level, pos) && level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos) < 4
 					&& level.getBrightness(net.minecraft.world.level.LightLayer.SKY, pos) < 8
-					&& level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP) && pos.distSqr(drifter.blockPosition()) > 4) {
-					best[0] = pos.immutable();
-				}
-			});
-			return best[0];
+					&& level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP) && pos.distSqr(drifter.blockPosition()) > 4);
 		}
 
 		@Override

@@ -39,7 +39,8 @@ public class DrifterMemory {
 	private final MentalMap map = new MentalMap();
 	private final ThoughtLog thoughts = new ThoughtLog();
 	/** Blocks it has walked (its own roads, section 6 "Mental map"): the pathfinder prefers them. Oldest dropped first. */
-	private final java.util.LinkedHashSet<Long> trail = new java.util.LinkedHashSet<>();
+	/** Its trail, oldest first (no boxing: the pathfinder asks about it for every step it weighs; performance 2026-10-17). */
+	private final it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet trail = new it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet();
 	public static final int MAX_TRAIL = 4096;
 	/** The in-game day (by its own time sense) of the last consolidation. */
 	private long lastConsolidatedDay = -1;
@@ -53,11 +54,9 @@ public class DrifterMemory {
 	}
 
 	public void walked(BlockPos feet) {
-		long key = feet.asLong();
-		this.trail.remove(key);
-		this.trail.add(key);
+		this.trail.addAndMoveToLast(feet.asLong());
 		if (this.trail.size() > MAX_TRAIL) {
-			this.trail.remove(this.trail.iterator().next());
+			this.trail.removeFirstLong();
 		}
 	}
 
@@ -223,7 +222,7 @@ public class DrifterMemory {
 		tag.put("Entries", entries);
 		tag.putLong("LastConsolidatedDay", this.lastConsolidatedDay);
 		tag.put("Map", this.map.save());
-		tag.putLongArray("Trail", this.trail.stream().mapToLong(Long::longValue).toArray());
+		tag.putLongArray("Trail", this.trail.toLongArray());
 		return tag;
 	}
 

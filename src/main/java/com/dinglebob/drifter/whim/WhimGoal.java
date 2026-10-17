@@ -198,7 +198,14 @@ public final class WhimGoal extends Goals.Goal {
 			}
 
 			Whim whim = candidates.get(index);
-			if (fits(drifter, whim, context)) {
+			long checkStart = System.nanoTime();
+			boolean fits = fits(drifter, whim, context);
+			long took = System.nanoTime() - checkStart;
+			if (took > 5_000_000L) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] slow whim check: {} took {} ms", whim.id(), String.format(java.util.Locale.ROOT, "%.1f", took / 1e6));
+			}
+
+			if (fits) {
 				return whim;
 			}
 
