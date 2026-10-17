@@ -297,6 +297,15 @@ public final class PlanGenerator {
 			cells.remove(new BlockPos(x, top, depth));
 		}
 
+		// (The eave's corner past the side wall, left on its own by that, would float: found by PlanCheck.)
+		if (x0 - 1 == 0) {
+			cells.remove(new BlockPos(-1, top, depth));
+		}
+
+		if (x1 + 1 == width - 1) {
+			cells.remove(new BlockPos(width, top, depth));
+		}
+
 		for (int x = x0; x <= x1; x++) {
 			for (int z = depth; z <= back; z++) {
 				cells.put(new BlockPos(x, 0, z), m.floor().defaultBlockState());
