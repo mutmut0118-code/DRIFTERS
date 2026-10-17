@@ -32,6 +32,12 @@ public final class PlacedPlan {
 	public final int sizeX;
 	public final int sizeZ;
 	public final int sizeY;
+
+	/** Everything the house takes up (for recording it as built). */
+	public net.minecraft.world.level.levelgen.structure.BoundingBox box() {
+		return new net.minecraft.world.level.levelgen.structure.BoundingBox(this.origin.getX(), this.origin.getY(), this.origin.getZ(),
+			this.origin.getX() + this.sizeX - 1, this.origin.getY() + this.sizeY - 1, this.origin.getZ() + this.sizeZ - 1);
+	}
 	public final List<Cell> build;
 	public final List<BlockPos> ground;
 	/** Ground cells the plan has as a dirt path (made with a shovel once the ground's there, as a player makes one). */

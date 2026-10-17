@@ -57,7 +57,7 @@ public final class KnownBlocks {
 	 * game to mine for resources.
 	 */
 	public static boolean mayTake(Level level, BlockPos pos) {
-		if (PlayerPlacedBlocks.isPlayerPlaced(level, pos) || level.getBlockEntity(pos) != null) {
+		if (PlayerPlacedBlocks.isBuilt(level, pos) || level.getBlockEntity(pos) != null) {
 			return false;
 		}
 

@@ -1997,8 +1997,8 @@ public final class Goals {
 			}
 
 			if (home.hutBuilt) {
-				// Living in a village house, or its own house is up: the hut is left as it is.
-				if (home.houseBed != null || home.houseBuilt || home.planDone) {
+				// Living in a village house, or its own house is up: the hut is left as it is. Or it was just at it.
+				if (home.houseBed != null || home.houseBuilt || home.planDone || context.drifter().level().getGameTime() < home.hutRestUntil) {
 					return 0.0;
 				}
 

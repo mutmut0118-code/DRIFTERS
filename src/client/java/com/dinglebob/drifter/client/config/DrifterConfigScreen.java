@@ -20,7 +20,7 @@ import net.minecraft.util.Mth;
  */
 public class DrifterConfigScreen extends Screen {
 	private static final int ROW = 22;
-	private static final int WIDTH = 150;
+	static final int WIDTH = 150;
 	private final Screen parent;
 
 	public DrifterConfigScreen(Screen parent) {
@@ -70,6 +70,8 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(toggle(left, y, "Wandering Drifters", DrifterConfig.worldgenWanderers(), DrifterConfig::setWorldgenWanderers));
 		this.addRenderableWidget(toggle(right, y, "Mineshaft delvers", DrifterConfig.worldgenDelvers(), DrifterConfig::setWorldgenDelvers));
 		y += ROW;
+		this.addRenderableWidget(toggle(left, y, "Bandits kill on sight", DrifterConfig.banditsKillOnSight(), DrifterConfig::setBanditsKillOnSight));
+		y += ROW;
 		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
 				case OFF -> "off";
 				case GAME_TIME -> "game time";
@@ -80,6 +82,9 @@ public class DrifterConfigScreen extends Screen {
 			.create(left, y, WIDTH * 2 + 10, 20, Component.literal("Catch-up while the world was closed"),
 				(button, mode) -> DrifterConfig.setOfflineProgression(mode)));
 
+		// How common each kind of new Drifter is, and the most loaded at once: their own page.
+		this.addRenderableWidget(Button.builder(Component.literal("Spawning..."), button -> this.minecraft.setScreen(new DrifterSpawnScreen(this)))
+			.bounds(this.width / 2 - 100, this.height - 52, 200, 20).build());
 		this.addRenderableWidget(Button.builder(Component.literal("Done"), button -> this.onClose())
 			.bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
 	}
@@ -109,7 +114,7 @@ public class DrifterConfigScreen extends Screen {
 	}
 
 	/** A slider over whole numbers, showing its label and value, setting the value as it moves. */
-	private static final class IntSlider extends AbstractSliderButton {
+	static final class IntSlider extends AbstractSliderButton {
 		private final String label;
 		private final int min;
 		private final int max;

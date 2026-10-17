@@ -120,6 +120,18 @@ public final class StarterHut {
 	}
 
 	/** The door's lower block (the upper one is above it). */
+	/** Everything the hut takes up, floor to roof (for recording it as built). */
+	public net.minecraft.world.level.levelgen.structure.BoundingBox box() {
+		java.util.List<BlockPos> cells = new java.util.ArrayList<>(this.floor());
+		cells.addAll(this.roof());
+		for (int dy = 0; dy <= this.wallHeight; dy++) {
+			cells.addAll(this.wallLayer(dy));
+		}
+
+		return net.minecraft.world.level.levelgen.structure.BoundingBox.encapsulatingPositions(cells)
+			.orElse(new net.minecraft.world.level.levelgen.structure.BoundingBox(this.center));
+	}
+
 	public BlockPos doorPos() {
 		return this.center.relative(this.door, this.half);
 	}
@@ -373,7 +385,24 @@ public final class StarterHut {
 
 	/** Where the torch goes: inside, on the back wall at head height. */
 	public BlockPos torchSpot() {
-		return this.center.relative(this.door.getOpposite(), this.half - 1).above();
+		// On solid back wall, not a window (user, 2026-10-17: "torches are on glass"): the middle if it's wall, else along it.
+		Direction back = this.door.getOpposite();
+		List<BlockPos> windows = this.windowCells();
+		BlockPos middle = this.center.relative(back, this.half - 1);
+		for (int along : new int[] {0, 1, -1, 2, -2}) {
+			if (Math.abs(along) > this.half - 1) {
+				continue;
+			}
+
+			for (int up = 1; up < Math.max(2, this.wallHeight); up++) {
+				BlockPos spot = middle.relative(back.getClockWise(), along).above(up);
+				if (!windows.contains(spot.relative(back))) {
+					return spot;
+				}
+			}
+		}
+
+		return middle.above();
 	}
 
 	/** Is this cell filled with something solid already (a wall block, or one of its chests standing in for one)? */

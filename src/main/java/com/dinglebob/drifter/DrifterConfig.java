@@ -76,12 +76,26 @@ public final class DrifterConfig {
 		boolean worldgenWanderers = true;
 		/** Well-armed Drifters delving some mineshafts, looting their chests; mostly unfriendly (user, 2026-10-17). */
 		boolean worldgenDelvers = true;
+		/** How common each kind of new Drifter is, and the most loaded at once (user, 2026-10-17: "make all the spawn
+		 * chances configurable"; "10 to 60 drifters in a few minutes"). Keyed by {@link Spawn#id}. */
+		java.util.Map<String, Integer> spawn = new java.util.LinkedHashMap<>();
 		/** Drifter groups fall into feuds, skirmish and raid each other (section 21 "Drifter team wars"). */
 		boolean drifterWars = true;
 		/** Whims: the things they do just for fun (milestone 13, docs/WHIMS.md). */
 		boolean whims = true;
 		/** Outpost Bandits attack on sight and grief bases: doors, chests, fire, blocks (user's decision, 2026-10-17). */
 		boolean banditGriefing = true;
+		/** Bandits kill anything outside their group on sight: players, Drifters, villagers, golems, pets (user, 2026-10-17). */
+		boolean banditsKillOnSight = true;
+	}
+
+	public static boolean banditsKillOnSight() {
+		return data.banditsKillOnSight;
+	}
+
+	public static void setBanditsKillOnSight(boolean on) {
+		data.banditsKillOnSight = on;
+		save();
 	}
 
 	public static boolean banditGriefing() {
@@ -126,6 +140,67 @@ public final class DrifterConfig {
 
 	public static void setWorldgenWanderers(boolean on) {
 		data.worldgenWanderers = on;
+		save();
+	}
+
+	/**
+	 * Spawn settings (user's request, 2026-10-17): how often each source makes Drifters, and a cap on how many are loaded
+	 * at once (world generation makes no more past it; a camp is left empty instead).
+	 */
+	public enum Spawn {
+		MAX_DRIFTERS("max_drifters", "Most Drifters loaded", 0, 200, 24, v -> v == 0 ? "no new ones" : v + " Drifters"),
+		CAMPS("camps", "Camps", 0, 100, 12, v -> v + "% of spots"),
+		CAMPS_LIVED_IN("camps_lived_in", "Camps lived in", 0, 100, 85, v -> v + "%"),
+		CAMP_HOUSES("camp_houses", "Camps with a house", 0, 100, 80, v -> v + "%"),
+		WANDERERS("wanderers", "Wanderers", 0, 50, 4, v -> v + " per 1000 chunks"),
+		VILLAGES("villages", "Villages lived in", 0, 100, 30, v -> v + "%"),
+		OUTPOSTS("outposts", "Outposts held by Bandits", 0, 100, 50, v -> v + "%"),
+		DELVERS("delvers", "Mineshafts with a delver", 0, 100, 25, v -> v + "%");
+
+		public final String id;
+		public final String label;
+		public final int min;
+		public final int max;
+		public final int fallback;
+		public final java.util.function.IntFunction<String> text;
+
+		Spawn(String id, String label, int min, int max, int fallback, java.util.function.IntFunction<String> text) {
+			this.id = id;
+			this.label = label;
+			this.min = min;
+			this.max = max;
+			this.fallback = fallback;
+			this.text = text;
+		}
+
+		public static Spawn byId(String id) {
+			for (Spawn spawn : values()) {
+				if (spawn.id.equals(id)) {
+					return spawn;
+				}
+			}
+
+			return null;
+		}
+	}
+
+	public static int spawn(Spawn setting) {
+		java.util.Map<String, Integer> map = data.spawn;
+		Integer value = map == null ? null : map.get(setting.id);
+		return value == null ? setting.fallback : Mth.clamp(value, setting.min, setting.max);
+	}
+
+	/** As a chance from 0 to 1 (the percentage settings). */
+	public static double spawnChance(Spawn setting) {
+		return spawn(setting) / 100.0;
+	}
+
+	public static void setSpawn(Spawn setting, int value) {
+		if (data.spawn == null) {
+			data.spawn = new java.util.LinkedHashMap<>();
+		}
+
+		data.spawn.put(setting.id, Mth.clamp(value, setting.min, setting.max));
 		save();
 	}
 

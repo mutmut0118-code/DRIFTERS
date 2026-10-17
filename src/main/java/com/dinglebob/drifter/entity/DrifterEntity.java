@@ -652,6 +652,9 @@ public class DrifterEntity extends PathfinderMob {
 		this.abilityReadyAt = tick;
 	}
 
+	/** The server tick a Drifter last caught up in (catch-ups take turns). */
+	private static long catchUpTick = Long.MIN_VALUE;
+
 	/** When it can roll again (Combat Roll's cooldown). */
 	private long rollReadyAt;
 
@@ -942,17 +945,44 @@ public class DrifterEntity extends PathfinderMob {
 	protected void customServerAiStep() {
 		long started = System.nanoTime();
 		super.customServerAiStep();
+		// Its home recorded as built, once (huts from before that was recorded: so it uses the door, not the wall).
+		if ((this.tickCount + this.getId()) % 200 == 0) {
+			com.dinglebob.drifter.brain.Home home = this.brain.home();
+			if (home != null && !home.borrowed() && !home.builtRecorded && (home.hutBuilt || home.planDone) && this.level().isLoaded(home.center)) {
+				home.builtRecorded = true;
+				if (home.hutBuilt) {
+					com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(this.level(), com.dinglebob.drifter.building.StarterHut.of(home).box());
+				}
+
+				var plan = home.planDone && home.planId != null ? com.dinglebob.drifter.building.plan.HousePlans.get(this.getServer(), home.planId) : null;
+				if (plan != null && home.planOrigin != null) {
+					com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(this.level(),
+						com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home).box());
+				}
+			}
+		}
+
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		// Back after its area was unloaded a while: it catches up on that time first (section 22; config: offline progression).
 		if (this.lastActive >= 0L || this.pendingCatchUp > 0L) {
+			// Catch-ups take turns, one a server tick (a burst of new ones loading at once was a lag spike: user, 2026-10-17,
+			// "10 to 60 drifters ... making everything slow down"). It waits its turn standing still.
+			long tick = this.level().getGameTime();
+			if (catchUpTick == tick) {
+				return;
+			}
+
+			catchUpTick = tick;
 			long gap = (this.lastActive >= 0L ? this.level().getGameTime() - this.lastActive : 0L) + this.pendingCatchUp;
 			this.pendingCatchUp = 0L;
 			long offline = this.lastActive >= 0L ? com.dinglebob.drifter.world.OfflineClock.offlineTicksFor(this.lastActive) : 0L;
 			this.lastActive = -1L;
 			if (com.dinglebob.drifter.DrifterConfig.offlineProgression() != com.dinglebob.drifter.DrifterConfig.OfflineProgression.OFF
 				&& gap + offline >= com.dinglebob.drifter.world.CatchUp.minGapTicks()) {
-				com.dinglebob.drifter.Drifter.LOGGER.info("{} catches up: {}", this.getName().getString(),
-					com.dinglebob.drifter.world.CatchUp.run(this, gap, offline).describe());
+				long before = System.nanoTime();
+				String what = com.dinglebob.drifter.world.CatchUp.run(this, gap, offline).describe();
+				com.dinglebob.drifter.Drifter.LOGGER.info("{} catches up ({} ms): {}", this.getName().getString(),
+					String.format(java.util.Locale.ROOT, "%.1f", (System.nanoTime() - before) / 1.0E6), what);
 			}
 		}
 

@@ -679,7 +679,7 @@ public final class CatchUp {
 					take(drifter, stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), 2);
 				}
 
-				level.setBlock(spot, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState(), 3);
+				com.dinglebob.drifter.building.Furnish.chest(level, spot, 3);
 				home.addChest(spot);
 				report.chest = true;
 				report.chests++;
@@ -897,6 +897,8 @@ public final class CatchUp {
 		// Done only when it all stands (found in testing: a door and a bed made a hut with 55 blocks missing "finished").
 		if (!free(level, door) && hut.bed(level) != null && hut.missingBlocks(level) <= home.allowedGaps("hut")) {
 			home.hutBuilt = true;
+			PlayerPlacedBlocks.recordBuiltBox(level, hut.box());
+			home.builtRecorded = true;
 		}
 	}
 
@@ -918,7 +920,7 @@ public final class CatchUp {
 		// (It keeps carrying one too if it has two: one for the hut, one on it, as it does.)
 		boolean carried = count(drifter, item) > 0 && take(drifter, stack -> stack.is(item), 1) == 1;
 		if (carried || make.getAsBoolean()) {
-			level.setBlock(spot, block.defaultBlockState(), 3);
+			com.dinglebob.drifter.building.Furnish.station(level, spot, block.defaultBlockState(), 3);
 			report.furnished.add(name);
 		}
 	}

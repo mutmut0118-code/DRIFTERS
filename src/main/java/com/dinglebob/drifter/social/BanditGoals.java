@@ -64,7 +64,170 @@ public final class BanditGoals {
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new GriefRaid());
+		return List.of(new GriefRaid(), new Rampage());
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Kill on sight (user, 2026-10-17: "can they be on sight kill anything that isnt their group? im talking worse than
+	// pillagers"; a setting, on by default; overrides the telegraph-first rule for Bandits)
+	// ---------------------------------------------------------------------------------------------
+
+	/** A Bandit that kills on sight (the setting is on). */
+	public static boolean ruthless(DrifterEntity drifter) {
+		return DrifterConfig.banditsKillOnSight() && drifter.getSocial().disposition() == Disposition.BANDIT;
+	}
+
+	/** How far off it goes for something it sees. */
+	private static final double RAMPAGE_RANGE = 32.0;
+
+	/**
+	 * Fair game for a ruthless Bandit: a player (not creative or spectating), a Drifter outside its group, villagers and
+	 * wandering traders, golems, and other people's tamed animals. Not its own group, not wild animals, not other hostiles
+	 * (those it fights as anyone does when they come at it).
+	 */
+	public static boolean prey(DrifterEntity drifter, net.minecraft.world.entity.Entity entity) {
+		if (!(entity instanceof net.minecraft.world.entity.LivingEntity living) || !living.isAlive() || living == drifter) {
+			return false;
+		}
+
+		if (living instanceof net.minecraft.world.entity.player.Player player) {
+			return SocialWatcher.isRealPlayer(player) && !player.isCreative() && !player.isSpectator();
+		}
+
+		var mine = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		if (living instanceof DrifterEntity other) {
+			return mine == null || com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID()) != mine;
+		}
+
+		if (living instanceof net.minecraft.world.entity.npc.AbstractVillager || living instanceof net.minecraft.world.entity.animal.AbstractGolem) {
+			return true;
+		}
+
+		if (living instanceof net.minecraft.world.entity.TamableAnimal pet && pet.isTame()) {
+			java.util.UUID owner = pet.getOwnerUUID();
+			return owner != null && !owner.equals(drifter.getUUID()) && (mine == null || com.dinglebob.drifter.world.DrifterGroups.of(owner) != mine);
+		}
+
+		return false;
+	}
+
+	/** The nearest prey it can see now, players first; null if none. */
+	@Nullable
+	static net.minecraft.world.entity.LivingEntity preyInSight(DrifterEntity drifter) {
+		net.minecraft.world.entity.LivingEntity best = null;
+		double bestScore = Double.MAX_VALUE;
+		for (var awareness : drifter.getSenses().tracked()) {
+			if (!awareness.visibleNow || !prey(drifter, awareness.entity)) {
+				continue;
+			}
+
+			double distance = awareness.entity.distanceTo(drifter);
+			if (distance > RAMPAGE_RANGE) {
+				continue;
+			}
+
+			// Players first, then the closest.
+			double score = distance - (awareness.entity instanceof net.minecraft.world.entity.player.Player ? 16.0 : 0.0);
+			if (score < bestScore) {
+				bestScore = score;
+				best = (net.minecraft.world.entity.LivingEntity)awareness.entity;
+			}
+		}
+
+		return best;
+	}
+
+	/** Kill on sight: under the fights it's already in and running away, over everything else. */
+	public static final class Rampage extends Goals.Goal {
+		@Override
+		public String id() {
+			return "rampage";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "kill on sight";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (!ruthless(drifter) || drifter.getHealth() < drifter.getMaxHealth() * 0.35F) {
+				return 0.0;
+			}
+
+			return preyInSight(drifter) != null ? 1.0 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public com.dinglebob.drifter.brain.activity.Activity start(Goals.Context context) {
+			net.minecraft.world.entity.LivingEntity target = preyInSight(context.drifter());
+			return target == null ? null : new RampageFight(context.drifter(), target);
+		}
+	}
+
+	/** At it until it's dead, gone, or it's too hurt to go on; then the drops. */
+	private static final class RampageFight extends com.dinglebob.drifter.brain.activity.Activity {
+		private final net.minecraft.world.entity.LivingEntity target;
+		private final String label;
+		private boolean looted;
+
+		RampageFight(DrifterEntity drifter, net.minecraft.world.entity.LivingEntity target) {
+			super(drifter);
+			this.target = target;
+			this.label = target instanceof net.minecraft.world.entity.player.Player player ? player.getGameProfile().getName()
+				: target.getName().getString();
+			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "kill on sight: going for " + this.label);
+		}
+
+		@Override
+		public String describe() {
+			return "kill " + this.label;
+		}
+
+		@Override
+		protected int timeoutTicks() {
+			return 20 * 60 * 2;
+		}
+
+		@Override
+		public boolean atCheckpoint() {
+			return true;
+		}
+
+		@Override
+		protected boolean countsAsFailure(com.dinglebob.drifter.executor.Task step) {
+			return false;
+		}
+
+		@Override
+		protected com.dinglebob.drifter.brain.activity.Activity.Status next() {
+			if (!this.target.isAlive() || this.target.isRemoved()) {
+				if (!this.looted) {
+					this.looted = true;
+					this.think("killed " + this.label + ": taking what it dropped");
+					return this.begin(new com.dinglebob.drifter.executor.task.CollectItemsTask(this.drifter, 8.0));
+				}
+
+				return com.dinglebob.drifter.brain.activity.Activity.Status.SUCCESS;
+			}
+
+			if (this.target.distanceTo(this.drifter) > RAMPAGE_RANGE * 2.0 || this.drifter.getHealth() < this.drifter.getMaxHealth() * 0.35F) {
+				return com.dinglebob.drifter.brain.activity.Activity.Status.SUCCESS;
+			}
+
+			return this.begin(new com.dinglebob.drifter.executor.task.AttackTask(this.drifter, this.target, this.label));
+		}
 	}
 
 	/** An outpost Bandit with griefing on. */

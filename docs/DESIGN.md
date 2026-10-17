@@ -1795,7 +1795,7 @@ The telegraph rule applies on every difficulty.
 
 ### Anti-frustration rules
 
-- Telegraph before first hostility (section 14).
+- Telegraph before first hostility (section 14). Exception (user's decision, 2026-10-17): Bandits kill on sight, players, Drifters outside their group, villagers, golems and pets included, behind the setting "Bandits kill on sight" (on by default).
 - No bed ambushes or spawn camping; a cooldown after killing a player.
 - Ender chests are never touched.
 - No griefing, chest theft, or harming players' pets and villagers unless enabled.

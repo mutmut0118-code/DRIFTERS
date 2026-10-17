@@ -36,11 +36,7 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * "lived" there. Only on flat, dry, open ground with no trees in the way.
  */
 public class CampFeature extends Feature<NoneFeatureConfiguration> {
-	/** Most camps are lived in (user, 2026-10-17: too many abandoned huts). */
-	private static final double OCCUPIED_CHANCE = 0.85;
 	private static final int SITE_TRIES = 6;
-	/** A built house rather than a hut, this often (user: "more houses than huts"). */
-	private static final double HOUSE_CHANCE = 0.8;
 	private static final ResourceKey<net.minecraft.world.level.storage.loot.LootTable> LOOT = ResourceKey.create(Registries.LOOT_TABLE,
 		ResourceLocation.withDefaultNamespace("chests/village/village_plains_house"));
 
@@ -54,7 +50,12 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 			return false;
 		}
 
-		if (context.random().nextDouble() < HOUSE_CHANCE && this.house(context)) {
+		// How common camps are: a setting (user, 2026-10-17), rolled for each spot a camp could go.
+		if (context.random().nextDouble() >= DrifterConfig.spawnChance(com.dinglebob.drifter.DrifterConfig.Spawn.CAMPS)) {
+			return false;
+		}
+
+		if (context.random().nextDouble() < DrifterConfig.spawnChance(com.dinglebob.drifter.DrifterConfig.Spawn.CAMP_HOUSES) && this.house(context)) {
 			return true;
 		}
 
@@ -111,10 +112,10 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 
 		var corners = hut.furnitureSpots();
 		BlockPos chest = corners.get(0);
-		level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 2);
+		com.dinglebob.drifter.building.Furnish.chest(level, chest, 2);
 		net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(level, random, chest, LOOT);
-		level.setBlock(corners.get(1), Blocks.CRAFTING_TABLE.defaultBlockState(), 2);
-		level.setBlock(corners.get(2), Blocks.FURNACE.defaultBlockState(), 2);
+		com.dinglebob.drifter.building.Furnish.station(level, corners.get(1), Blocks.CRAFTING_TABLE.defaultBlockState(), 2);
+		com.dinglebob.drifter.building.Furnish.station(level, corners.get(2), Blocks.FURNACE.defaultBlockState(), 2);
 		BlockState foot = Blocks.WHITE_BED.defaultBlockState().setValue(BedBlock.FACING, hut.door.getOpposite());
 		BlockPos bedFoot = hut.bedFoot();
 		BlockPos bedHead = bedFoot.relative(hut.door.getOpposite());
@@ -139,7 +140,11 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 			level.setBlock(torch, Blocks.WALL_TORCH.defaultBlockState().setValue(net.minecraft.world.level.block.WallTorchBlock.FACING, door), 2);
 		}
 
-		boolean occupied = random.nextDouble() < OCCUPIED_CHANCE;
+		// A Drifter's build: nobody digs through it for a route or takes its blocks.
+		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, hut.box());
+		// Lived in (a setting), if there's room for one more Drifter (the cap; otherwise it's left empty).
+		boolean occupied = random.nextDouble() < DrifterConfig.spawnChance(com.dinglebob.drifter.DrifterConfig.Spawn.CAMPS_LIVED_IN)
+			&& com.dinglebob.drifter.world.DrifterCensus.roomFor(center, 1);
 		if (occupied) {
 			this.settle(level, random, center, door, chest, style, farmed ? level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, farmMiddle) : null, farmRadius);
 		}
@@ -286,6 +291,7 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 			level.setBlock(path, Blocks.DIRT_PATH.defaultBlockState(), 2);
 		}
 
+		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, placed.box());
 		// The bed, then its chest, crafting table and furnace along the walls (the way a Drifter sets out a room).
 		var bed = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, want);
 		if (bed == null) {
@@ -300,19 +306,20 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		if (room != null) {
 			chest = room.spot(com.dinglebob.drifter.building.Interior.Kind.CHEST, java.util.Set.of());
 			if (chest != null) {
-				level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 2);
+				com.dinglebob.drifter.building.Furnish.chest(level, chest, 2);
 			}
 
 			for (BlockState station : new BlockState[] {Blocks.CRAFTING_TABLE.defaultBlockState(), Blocks.FURNACE.defaultBlockState()}) {
 				room = com.dinglebob.drifter.building.Interior.of(level, bed.head());
 				BlockPos spot = room == null ? null : room.spot(com.dinglebob.drifter.building.Interior.Kind.STATION, java.util.Set.of());
 				if (spot != null) {
-					level.setBlock(spot, station, 2);
+					com.dinglebob.drifter.building.Furnish.station(level, spot, station, 2);
 				}
 			}
 		}
 
-		boolean occupied = random.nextDouble() < OCCUPIED_CHANCE;
+		boolean occupied = random.nextDouble() < DrifterConfig.spawnChance(com.dinglebob.drifter.DrifterConfig.Spawn.CAMPS_LIVED_IN)
+			&& com.dinglebob.drifter.world.DrifterCensus.roomFor(origin, 1);
 		if (!occupied && chest != null) {
 			net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(level, random, chest, LOOT);
 		}

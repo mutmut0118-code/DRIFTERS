@@ -46,9 +46,18 @@ public class WandererFeature extends Feature<NoneFeatureConfiguration> {
 
 		WorldGenLevel level = context.level();
 		RandomSource random = context.random();
+		// How common: a setting, per 1000 chunks (user, 2026-10-17).
+		if (random.nextInt(1000) >= DrifterConfig.spawn(DrifterConfig.Spawn.WANDERERS)) {
+			return false;
+		}
+
 		BlockPos feet = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, context.origin());
 		BlockState ground = level.getBlockState(feet.below());
 		if (!ground.isSolid() || !ground.getFluidState().isEmpty() || !level.getBlockState(feet).isAir() || !level.getBlockState(feet.above()).isAir()) {
+			return false;
+		}
+
+		if (!com.dinglebob.drifter.world.DrifterCensus.roomFor(feet, 1)) {
 			return false;
 		}
 

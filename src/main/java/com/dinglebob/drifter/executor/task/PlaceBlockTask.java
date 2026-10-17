@@ -211,6 +211,12 @@ public class PlaceBlockTask extends Task {
 		return best;
 	}
 
+	private static boolean isTorch(net.minecraft.world.item.ItemStack stack) {
+		return stack.is(net.minecraft.world.item.Items.TORCH) || stack.is(net.minecraft.world.item.Items.SOUL_TORCH)
+			|| stack.is(net.minecraft.world.item.Items.REDSTONE_TORCH) || stack.is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
+				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("c", "torches")));
+	}
+
 	/** {direction from target to the support block, face of the support block to click}, or null. */
 	@Nullable
 	private Direction[] chooseSupport() {
@@ -221,6 +227,11 @@ public class PlaceBlockTask extends Task {
 			BlockPos supportPos = this.target.relative(toSupport);
 			BlockState support = this.drifter.level().getBlockState(supportPos);
 			if (support.isAir() || support.canBeReplaced()) {
+				continue;
+			}
+
+			// Never a torch on glass (user, 2026-10-17: it looks wrong on a window).
+			if (support.is(net.minecraft.tags.BlockTags.IMPERMEABLE) && isTorch(this.drifter.getMainHandItem())) {
 				continue;
 			}
 

@@ -14,7 +14,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** Records blocks placed by real players (not fake players, so not Drifters) for {@link PlayerPlacedBlocks}. */
+/**
+ * Records blocks placed by real players for {@link PlayerPlacedBlocks}. (Not every block a Drifter places: its tunnel plugs
+ * and stairs it must be free to dig again; its finished hut or house is recorded whole instead.)
+ */
 @Mixin(BlockItem.class)
 public abstract class BlockItemMixin {
 	@Inject(method = "placeBlock", at = @At("RETURN"))

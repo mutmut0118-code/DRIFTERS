@@ -48,8 +48,6 @@ import net.minecraft.world.level.saveddata.SavedData;
  * is alive. Decided once per structure, when its start chunk first loads; done when the whole structure is loaded.
  */
 public final class LivedInStructures {
-	private static final double VILLAGE_CHANCE = 0.4;
-	private static final double OUTPOST_CHANCE = 0.5;
 	private static final int CHECK_TICKS = 100;
 	private static final int MIN_VILLAGERS = 2;
 	private static final int MAX_VILLAGERS = 4;
@@ -145,7 +143,7 @@ public final class LivedInStructures {
 
 		long seed = level.getSeed() ^ (village ? 0x5EEDL : 0x0B57L);
 		RandomSource random = RandomSource.create(seed + start.x * 341873128712L + start.z * 132897987541L);
-		return random.nextDouble() < (village ? VILLAGE_CHANCE : OUTPOST_CHANCE);
+		return random.nextDouble() < DrifterConfig.spawnChance(village ? DrifterConfig.Spawn.VILLAGES : DrifterConfig.Spawn.OUTPOSTS);
 	}
 
 	/** A village or outpost found by {@link #locate}: where, and whether Drifters live there. */
@@ -262,6 +260,10 @@ public final class LivedInStructures {
 
 		java.util.Collections.shuffle(beds, new java.util.Random(random.nextLong()));
 		int count = Math.min(beds.size(), MIN_VILLAGERS + random.nextInt(MAX_VILLAGERS - MIN_VILLAGERS + 1));
+		// Fewer (or none) if that would go past the most Drifters loaded at once.
+		while (count > 0 && !com.dinglebob.drifter.world.DrifterCensus.roomFor(box.getCenter(), count)) {
+			count--;
+		}
 		List<DrifterEntity> residents = new ArrayList<>();
 		for (int i = 0; i < count; i++) {
 			BlockPos bed = beds.get(i);
@@ -281,7 +283,7 @@ public final class LivedInStructures {
 			com.dinglebob.drifter.building.Interior room = com.dinglebob.drifter.building.Interior.of(level, bed);
 			BlockPos chest = room != null ? room.spot(com.dinglebob.drifter.building.Interior.Kind.CHEST, java.util.Set.of(stand)) : chestBeside(level, stand);
 			if (chest != null) {
-				level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 3);
+				com.dinglebob.drifter.building.Furnish.chest(level, chest, 3);
 				home.addChest(chest);
 			}
 
@@ -320,6 +322,11 @@ public final class LivedInStructures {
 		// On the ground by the tower (found in testing: the middle of the box is the tower, and they stood on its roof).
 		BlockPos middle = groundNear(level, box.getCenter(), random);
 		if (middle == null) {
+			return;
+		}
+
+		// No gang if it would go past the most Drifters loaded at once (the pillagers keep it then).
+		if (!com.dinglebob.drifter.world.DrifterCensus.roomFor(middle, BANDITS)) {
 			return;
 		}
 

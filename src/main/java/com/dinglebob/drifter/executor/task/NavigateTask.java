@@ -1288,7 +1288,8 @@ public class NavigateTask extends Task {
 	private boolean canDig(BlockPos pos) {
 		BlockState state = this.level().getBlockState(pos);
 		if (state.getDestroySpeed(this.level(), pos) < 0.0F || this.level().getBlockEntity(pos) != null
-			|| PlayerPlacedBlocks.isPlayerPlaced(this.level(), pos) || state.getFluidState().is(FluidTags.LAVA)) {
+			|| PlayerPlacedBlocks.isPlayerPlaced(this.level(), pos) || state.getFluidState().is(FluidTags.LAVA)
+			|| PlayerPlacedBlocks.isDrifterBuilt(this.level(), pos) && !this.drifter.isScaffold(pos)) {
 			return false;
 		}
 

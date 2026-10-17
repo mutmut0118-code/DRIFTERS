@@ -241,7 +241,9 @@ public final class NavView {
 		// Never through a portal frame (found in testing: a route out of its walled-in portal room went through the obsidian,
 		// and the portal home collapsed), nor obsidian at all (nine seconds a block with a diamond pickaxe; no player tunnels
 		// through it).
+		// Nor through what Drifters built (its own walls: it uses the door; user, 2026-10-17), its own scaffolding aside.
 		boolean protectedBlock = this.level.getBlockEntity(pos) != null || PlayerPlacedBlocks.isPlayerPlaced(this.level, pos)
+			|| PlayerPlacedBlocks.isDrifterBuilt(this.level, pos) && !this.drifter.isScaffold(pos)
 			|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || this.besidePortal(pos);
 		float dig = protectedBlock ? Float.POSITIVE_INFINITY : this.digSeconds(state, pos);
 		BlockState above = this.state(pos.above());

@@ -292,7 +292,8 @@ public class BuildPlanActivity extends Activity {
 			// Something else there: its own scaffolding or something natural goes; anything else (someone's block) it leaves.
 			if (!have.isAir() && !have.canBeReplaced() && !have.is(cell.state().getBlock())) {
 				// (A crafting table it put down there while building comes back up with it.)
-				if (this.drifter.isScaffold(pos) || KnownBlocks.mayTake(level, pos) && (natural(have) || have.is(Blocks.CRAFTING_TABLE))) {
+				if (this.drifter.isScaffold(pos) || KnownBlocks.mayTake(level, pos) && natural(have)
+					|| have.is(Blocks.CRAFTING_TABLE) && !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, pos)) {
 					return this.workAt(level, plan, pos, () -> this.digAt(pos), "clear the spot");
 				}
 
@@ -345,6 +346,8 @@ public class BuildPlanActivity extends Activity {
 
 		if (!home.planDone) {
 			home.planDone = true;
+			// Its build now: it uses the door, not the wall (user, 2026-10-17).
+			com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, plan.box());
 			this.think("finished building its house" + (missing > 0 ? " (bar " + missing + " blocks it couldn't reach)" : ""));
 		}
 

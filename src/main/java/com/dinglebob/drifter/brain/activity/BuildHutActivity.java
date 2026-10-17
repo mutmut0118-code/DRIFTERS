@@ -615,6 +615,11 @@ public class BuildHutActivity extends Activity {
 
 	protected void finished(Home home) {
 		home.hutBuilt = true;
+		// Its build now: it uses the door, not the wall (user, 2026-10-17).
+		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(this.drifter.level(), StarterHut.of(home).box());
+		home.builtRecorded = true;
+		// Back to it in a minute at the soonest (found in testing: a station it couldn't place brought it back every 3 ticks).
+		home.hutRestUntil = this.drifter.level().getGameTime() + 1200L;
 		this.think("finished the hut");
 	}
 

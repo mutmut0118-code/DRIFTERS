@@ -75,6 +75,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
 | 13 | Whim system | In progress: engine, 27 action types, 100 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
+| 15 | House plans by the hundred | Not started (user, 2026-10-17: "lets make whole milestone dedicated to generating houseplans, im talking hundreds") | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
 
 ## Milestone 0: Project setup
 
@@ -1615,7 +1616,36 @@ structure blocks) for the user's own worlds.
   Bandit (45%), opportunist (30%) or territorial (25%). `DelveActivity` (goal "delve", urgency 0.75): a caving trip
   through the tunnels from there, looting every chest minecart it sees, for a day or so, then it's an ordinary Drifter.
   Setting "Mineshaft delvers"; debug `/drifter wanderer delver`. TODO (whims milestone): ancient cities.
-- **Next:** test the weapons in-game; more weapon mods are a data file each (Simply Bows needs aiming changes). Open: on a slope, a few blocks get "walked over but still can't reach"
+- **The user's round of 2026-10-17 (evening):**
+  - Too many Drifters ("10 to 60 in a few minutes"): a cap, "Most Drifters loaded" (default 24; `world/DrifterCensus`
+    counts loaded ones, safe from world-generation threads); past it world generation makes none (a camp is left
+    empty), and a lone new one isn't put where three are within 64 blocks. Defaults lowered a little. Measured: 60
+    Drifters at full detail cost 6.3 to 6.9 ms of a 50 ms tick (peaks 16.5); catch-ups (20 to 50 ms each, the first up to
+    135) now take turns, one a server tick. 2048 new chunks made 10 Drifters at the new defaults; with the cap at 5 it
+    stopped at 5.
+  - Every spawn chance is a setting (`DrifterConfig.Spawn`; settings screen "Spawning..." page; `/drifter config spawn
+    <name> <value>`): most loaded, camps, camps lived in, camps with a house, wanderers per 1000 chunks, villages lived
+    in, outposts held, mineshafts with a delver. The camp and wanderer placed features now roll every chunk and the
+    chance is in code.
+  - Better Combat swing animations really play now (the animation library's varargs layer constructor leaves its
+    modifiers unlinked, so each swing ended on its first frame). Found with a scripted client test: `DevClientTest`
+    (env DRIFTER_CLIENT_TEST: commands, camera, screenshots; dev only).
+  - Drifters no longer dig their own (or anyone's) finished hut or house for a route or for blocks: finished homes are
+    recorded as Drifter-built (`PlayerPlacedBlocks.BUILT`: world-gen camps, catch-up huts and houses, huts and plan houses
+    finished in-game, and existing homes once on load); the pathfinder and gathering leave those blocks alone, so it uses
+    the door. (Every placed block at first: that blocked its own tunnel plugs; narrowed to finished homes.)
+  - A hut it just finished rests a minute before it's picked again (a station it couldn't place looped it every 3 ticks).
+  - Chests and stations put down directly (world generation, catch-up, village houses) face the room with their back to
+    the wall (`building/Furnish`), and a chest beside a single one facing the same way joins it into a double chest; a
+    room's chest spot prefers the one that makes a double chest. Hut torches go on solid back wall, never a window, and
+    no torch is ever put on glass.
+  - Bandits kill on sight (user: "on sight kill anything that isnt their group ... worse than pillagers"; setting "Bandits
+    kill on sight", on by default; overrides the telegraph-first rule for Bandits): goal "rampage" (`BanditGoals`,
+    urgency 1.0: under fighting mobs and fleeing): the nearest prey it sees, players first: players, Drifters outside its
+    group, villagers and wandering traders, golems, other people's tamed pets; fights to the death, takes the drops;
+    breaks off under a third of its health. Its eyes go to prey, not its gang mates. Tested: a gang killed a lone
+    Drifter, a villager and a wandering trader, went for an iron golem twice and ran from it; left a cow alone.
+- **Next:** milestone 15 (house plans by the hundred), after the user's test of this round. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)

@@ -135,9 +135,12 @@ public final class Interior {
 				continue;
 			}
 
+			// A chest beside a single chest along the same wall makes a double chest (user, 2026-10-17: "double chests dont
+			// work"): that spot first.
+			double pairs = kind == Kind.CHEST && this.pairsWithChest(pos) ? 6.0 : 0.0;
 			double fromDoor = this.doorInside.stream().mapToDouble(d -> Math.sqrt(d.distSqr(pos))).min().orElse(3.0);
 			// Not right by the bed if it can help it (the way into bed).
-			double score = (walls >= 2 ? 3.0 : 0.0) + same * 2.5 - other * 1.0 + fromDoor * 0.3 - (this.bedSide.contains(pos) ? 4.0 : 0.0);
+			double score = pairs + (walls >= 2 ? 3.0 : 0.0) + same * 2.5 - other * 1.0 + fromDoor * 0.3 - (this.bedSide.contains(pos) ? 4.0 : 0.0);
 			if (score > bestScore) {
 				bestScore = score;
 				best = pos.immutable();
@@ -145,6 +148,27 @@ public final class Interior {
 		}
 
 		return best;
+	}
+
+	/**
+	 * A chest here would join a single chest beside it: the neighbor faces the way a chest here would (into the room) and
+	 * sits to its side, not in front or behind.
+	 */
+	private boolean pairsWithChest(BlockPos pos) {
+		if (!(this.level instanceof net.minecraft.world.level.LevelAccessor accessor)) {
+			return false;
+		}
+
+		Direction facing = Furnish.facing(accessor, pos);
+		for (Direction side : new Direction[] {facing.getClockWise(), facing.getCounterClockWise()}) {
+			BlockState there = this.level.getBlockState(pos.relative(side));
+			if (there.is(net.minecraft.world.level.block.Blocks.CHEST) && there.getValue(net.minecraft.world.level.block.ChestBlock.FACING) == facing
+				&& there.getValue(net.minecraft.world.level.block.ChestBlock.TYPE) == net.minecraft.world.level.block.state.properties.ChestType.SINGLE) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** In the doorway, or the step in from it. */

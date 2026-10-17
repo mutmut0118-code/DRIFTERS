@@ -56,8 +56,6 @@ public final class Delvers {
 	private Delvers() {
 	}
 
-	/** Mineshafts with a delver in them. */
-	private static final double CHANCE = 0.35;
 	/** It isn't put there in sight of a player (they'd see it appear). */
 	private static final double NOT_NEAR_PLAYER = 24.0;
 	/** It delves this long at most (a day or so) before it's an ordinary Drifter. */
@@ -113,7 +111,8 @@ public final class Delvers {
 
 		decided.add(key);
 		RandomSource fixed = RandomSource.create(level.getSeed() ^ start.getChunkPos().toLong() ^ 0xDE17E5L);
-		if (fixed.nextDouble() >= CHANCE) {
+		if (fixed.nextDouble() >= DrifterConfig.spawnChance(DrifterConfig.Spawn.DELVERS)
+			|| !com.dinglebob.drifter.world.DrifterCensus.roomFor(cart.blockPosition(), 1)) {
 			return;
 		}
 

@@ -481,6 +481,13 @@ public class Senses {
 			}
 
 			double salience = entity instanceof Player ? 3.0 : entity instanceof Enemy ? 2.0 : 1.0;
+			// A Bandit that kills on sight keeps its eyes on its prey, not its own gang (found in testing: its mates took up
+			// its attention and it never noticed the villagers).
+			if (com.dinglebob.drifter.social.BanditGoals.ruthless(this.drifter)) {
+				salience = com.dinglebob.drifter.social.BanditGoals.prey(this.drifter, entity) ? Math.max(salience, 3.0)
+					: entity instanceof com.dinglebob.drifter.entity.DrifterEntity ? 0.5 : salience;
+			}
+
 			salience *= (1.0 + (current == null ? 0.0 : current.value)) / (1.0 + entity.distanceTo(this.drifter) / 16.0);
 			ranked.add(Map.entry(entity, salience));
 		}

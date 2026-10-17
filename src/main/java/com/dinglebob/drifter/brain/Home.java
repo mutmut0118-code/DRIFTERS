@@ -108,6 +108,10 @@ public final class Home {
 	public final java.util.Map<String, String> planWoods = new java.util.HashMap<>();
 	public boolean planDeepslate;
 	public boolean planDone;
+	/** Its hut (and house) are recorded as Drifter-built (homes from before that was recorded get it once). */
+	public boolean builtRecorded;
+	/** It just finished (or gave up on) its hut: not back to it before this (not saved). */
+	public long hutRestUntil;
 	/** Its bed in the planned house, once it has moved in. */
 	@Nullable
 	public BlockPos planBed;
@@ -391,6 +395,7 @@ public final class Home {
 		}
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
+		tag.putBoolean("BuiltRecorded", this.builtRecorded);
 		tag.putInt("HutHalf", this.hutHalf);
 		CompoundTag style = new CompoundTag();
 		style.putInt("WallHeight", this.hutWallHeight);
@@ -491,6 +496,7 @@ public final class Home {
 		Home home = new Home(center, dimension, tag.getLong("SettledAt"));
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
+		home.builtRecorded = tag.getBoolean("BuiltRecorded");
 		// Saved before huts got bigger: a hut it has started keeps its size; one it hasn't started is the new size.
 		if (tag.contains("HutStyle", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
 			CompoundTag style = tag.getCompound("HutStyle");

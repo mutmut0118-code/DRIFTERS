@@ -200,6 +200,22 @@ public final class DrifterCommands {
 
 		root.then(Commands.literal("config")
 			.executes(DrifterCommands::showConfig)
+			// How common each kind of new Drifter is, and the most loaded at once (user, 2026-10-17).
+			.then(Commands.literal("spawn")
+				.executes(DrifterCommands::showSpawn)
+				.then(Commands.argument("setting", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+						java.util.Arrays.stream(com.dinglebob.drifter.DrifterConfig.Spawn.values()).map(s -> s.id), builder))
+					.then(Commands.argument("value", IntegerArgumentType.integer(0, 1000)).executes(ctx -> {
+						var setting = com.dinglebob.drifter.DrifterConfig.Spawn.byId(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "setting"));
+						if (setting == null) {
+							ctx.getSource().sendFailure(Component.literal("No such spawn setting"));
+							return 0;
+						}
+
+						com.dinglebob.drifter.DrifterConfig.setSpawn(setting, IntegerArgumentType.getInteger(ctx, "value"));
+						return showSpawn(ctx);
+					}))))
 			.then(Commands.literal("chat")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setChatLines(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -499,6 +515,16 @@ public final class DrifterCommands {
 		int slot = IntegerArgumentType.getInteger(ctx, "slot");
 		drifter.getInventory().requestSelect(slot);
 		ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " switches to hotbar slot " + slot), false);
+		return 1;
+	}
+
+	private static int showSpawn(CommandContext<CommandSourceStack> ctx) {
+		StringBuilder text = new StringBuilder("Drifter spawning (" + com.dinglebob.drifter.world.DrifterCensus.count() + " loaded now):");
+		for (var setting : com.dinglebob.drifter.DrifterConfig.Spawn.values()) {
+			text.append("\n  ").append(setting.id).append(": ").append(setting.text.apply(com.dinglebob.drifter.DrifterConfig.spawn(setting)));
+		}
+
+		ctx.getSource().sendSuccess(() -> Component.literal(text.toString()), false);
 		return 1;
 	}
 

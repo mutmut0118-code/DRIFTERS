@@ -186,6 +186,7 @@ public final class CatchUpHouse {
 		}
 
 		home.planDone = true;
+		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, placed.box());
 		// Its bed moved in from the hut (the hut's a shed from now on).
 		String moved = moveBed(level, home, placed, want);
 		return "built its house (" + plan.id.replace("personal:", "").replace("world:", "") + ", " + placedBlocks + " blocks)" + moved;

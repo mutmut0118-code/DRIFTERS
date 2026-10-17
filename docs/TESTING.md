@@ -1352,6 +1352,22 @@ then `/summon husk ~5 ~ ~` twice.
       given one starts dormant for a Drifter too.
 - [ ] Drifters you meet that lived a while sometimes carry a unique from a chest they found.
 
+## This round's fixes (new)
+
+- [ ] Fly or run into new land for a few minutes: Drifters should stay well under about 24 loaded (`/drifter config spawn`
+      shows how many are loaded now and every setting). The game shouldn't lag the way it did.
+- [ ] Settings screen (Mod Menu > Drifter) > "Spawning...": sliders for the most Drifters loaded and how common camps,
+      lived-in camps, houses, wanderers, Drifter villages, Bandit outposts and mineshaft delvers are. New chunks only.
+      Or by command, for example `/drifter config spawn max_drifters 15`, `/drifter config spawn camps 5`.
+- [ ] Better Combat: a Drifter with a claymore (or any Better Combat weapon) now swings with Better Combat's animation
+      (slashes, stabs, slams), with Fresh Animations / FA+Player on too.
+- [ ] A Drifter at home that needs blocks or wants to get somewhere goes out through the door, not through its wall.
+- [ ] Bandits kill on sight: `/drifter banditgang` (a gang of 3 right there), then stand back and watch. They go for you,
+      any Drifter not in their gang, villagers, wandering traders, iron golems (they run if it beats them) and tamed pets,
+      no warning. Turn it off: "Bandits kill on sight" in the settings screen.
+- [ ] New huts and houses: chests face into the room, two chests side by side make a double chest, and the hut torch is
+      on the wall, not a window.
+
 ## Mineshaft delvers (new)
 
 - [ ] In a new world, explore a few mineshafts. In about one in three, you come on a Drifter at a chest minecart,
