@@ -144,6 +144,10 @@ public class BuildPlanActivity extends Activity {
 				// Walks count only while nothing gets placed (a big house takes a lot of walking about).
 				this.stuck.clear();
 				this.walks = 0;
+				Home home = this.drifter.getDrifterBrain().home();
+				if (home != null) {
+					home.houseTrips.clear();
+				}
 			} else {
 				int n = this.tries.merge(this.placing, 1, Integer::sum);
 				if (n >= 3) {
@@ -338,7 +342,9 @@ public class BuildPlanActivity extends Activity {
 		}
 
 		// Done (bar a few gaps it really can't fill).
-		long missing = plan.build.stream().filter(c -> !(c.state().getBlock() instanceof BedBlock) && !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
+		// (Blocks of a material it gave up on aren't missing: a window left open, as a player leaves a hole for one.)
+		long missing = plan.build.stream().filter(c -> !(c.state().getBlock() instanceof BedBlock) && !home.houseGivenUp.contains(c.state().getBlock().asItem())
+			&& !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
 		if (missing > MAX_GAPS) {
 			return this.fail("couldn't place " + missing + " blocks of the house yet (" + this.skips.entrySet().stream()
 				.map(e -> e.getValue() + " " + e.getKey()).collect(java.util.stream.Collectors.joining(", ")) + ")");
@@ -384,6 +390,16 @@ public class BuildPlanActivity extends Activity {
 		BlockState step = Placement.step(level, pos, want);
 		Item item = step.getBlock().asItem();
 		if (this.drifter.getInventory().count(stack -> stack.is(item)) == 0) {
+			Home home = this.drifter.getDrifterBrain().home();
+			if (home != null && home.houseGivenUp.contains(item)) {
+				this.skips.merge("no " + item.getDescription().getString().toLowerCase(java.util.Locale.ROOT), 1, Integer::sum);
+				return null;
+			}
+
+			if (home != null && home.houseTrips.getOrDefault(item, 0) >= SHORT_TRIPS) {
+				return this.makeDo(home, item);
+			}
+
 			// As many as are still to go (logs for stripping too).
 			int still = (int)plan.build.stream().filter(c -> (c.state().getBlock().asItem() == item
 				|| unstripped(c.state()) != null && unstripped(c.state()).getBlock().asItem() == item) && !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
@@ -983,14 +999,76 @@ public class BuildPlanActivity extends Activity {
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.3, what));
 	}
 
+	/** Trips for one material with nothing of the house placed in between before it makes do without it. */
+	private static final int SHORT_TRIPS = 8;
+
+	/**
+	 * It keeps going for a material and coming back with none it can use (found in 10-day runs: "needs 9 glass pane" 79
+	 * times, "needs 64 oak planks" 87 times, the house never finished). As a player does: out of a wood, the rest of the
+	 * house goes up in another it can get (the blocks already in stay; they count); glass it does without (a window left
+	 * open), and those blocks don't count against the house being done. Anything else it keeps trying for, visit by visit.
+	 */
+	private Status makeDo(Home home, Item item) {
+		home.houseTrips.remove(item);
+		String name = item.getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+		String wood = com.dinglebob.drifter.building.plan.HousePalette.woodOf(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath());
+		if (wood != null) {
+			home.houseWoodsShort.add(wood);
+			String instead = null;
+			for (String other : com.dinglebob.drifter.building.plan.HousePalette.woodsAround(this.drifter)) {
+				if (!home.houseWoodsShort.contains(other)) {
+					instead = other;
+					break;
+				}
+			}
+
+			if (instead != null) {
+				for (Map.Entry<String, String> entry : home.planWoods.entrySet()) {
+					if (entry.getValue().equals(wood)) {
+						entry.setValue(instead);
+					}
+				}
+
+				this.placed = null;
+				this.think("can't get any more " + wood.replace('_', ' ') + " wood: building the rest of its house in " + instead.replace('_', ' '));
+				return Status.RUNNING;
+			}
+		}
+
+		// Windows it can leave open; the walls and roof it can't do without: another go later.
+		if (!windowGlass(item)) {
+			return this.fail("can't get any " + name + " for its house; another go later");
+		}
+
+		home.houseGivenUp.add(item);
+		this.think("can't get any " + name + ": leaving its house's windows open for now");
+		return Status.RUNNING;
+	}
+
+	/** Glass or panes (a window: a house stands without it). */
+	private static boolean windowGlass(Item item) {
+		String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath();
+		return path.equals("glass") || path.equals("glass_pane") || path.endsWith("_stained_glass") || path.endsWith("_stained_glass_pane");
+	}
+
 	/** More of a material: made or gathered the way the planner works it out (no long trips just for a house block). */
 	private Status gather(Item item, int count) {
 		if (++this.gathers > 12) {
 			return this.fail("went for materials too many times; another go later");
 		}
 
+		Home home = this.drifter.getDrifterBrain().home();
+		if (home != null) {
+			home.houseTrips.merge(item, 1, Integer::sum);
+		}
+
 		Planner.Plan plan = Planner.plan(this.drifter, KnownWorld.scan(this.drifter), item, Math.max(1, count));
 		if (!plan.feasible() || plan.next() == null) {
+			// (No way it knows of, visit after visit: it makes do, as above.)
+			if (home != null && home.houseTrips.getOrDefault(item, 0) >= 3) {
+				return this.makeDo(home, item);
+			}
+
 			return this.fail("can't work out how to get " + item.getDescription().getString().toLowerCase(java.util.Locale.ROOT) + " for its house");
 		}
 

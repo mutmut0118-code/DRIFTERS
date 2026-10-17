@@ -90,7 +90,8 @@ public final class Placement {
 
 	/** It already stands there as the plan has it (as far as its look goes). */
 	public static boolean matches(BlockState have, BlockState want) {
-		if (have.getBlock() != want.getBlock()) {
+		// (The same block in another wood counts: oak stairs where the plan now has spruce, after it ran out of oak.)
+		if (have.getBlock() != want.getBlock() && !sameButWood(have, want)) {
 			return false;
 		}
 
@@ -101,6 +102,20 @@ public final class Placement {
 		}
 
 		return true;
+	}
+
+	/** The same kind of block in two woods (oak and spruce stairs; not a log and a stripped log). */
+	private static boolean sameButWood(BlockState have, BlockState want) {
+		String a = woodShape(have);
+		return a != null && a.equals(woodShape(want));
+	}
+
+	/** A wood block's id with the wood left out ("stripped_*_log"), or null if it isn't one. */
+	@Nullable
+	private static String woodShape(BlockState state) {
+		String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+		String wood = com.dinglebob.drifter.building.plan.HousePalette.woodOf(path);
+		return wood == null ? null : path.replaceFirst("^(stripped_)?" + wood + "_", "$1*_");
 	}
 
 	/** Every way to get {@code want} at {@code pos} with what's round it now; best first (clicking the block below first). */

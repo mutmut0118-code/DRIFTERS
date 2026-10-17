@@ -184,8 +184,9 @@ public final class PlanGenerator {
 
 		// (Drawn last, so a plan without a wing comes out as it did before wings.)
 		if (roof.equals("gable") && style.chance("wing", 0.0, random)) {
-			if (wing(cells, m, style, random, width, depth, height, top, floors == 2 ? ladderX : -1, spacing, chimney)) {
-				features.add("wing");
+			String shape = wing(cells, m, style, random, width, depth, height, top, floors == 2 ? ladderX : -1, spacing, chimney);
+			if (shape != null) {
+				features.add(shape + " wing");
 			}
 		}
 
@@ -262,12 +263,13 @@ public final class PlanGenerator {
 	}
 
 	/**
-	 * A one-storey wing out of the back on one side (an L): its own floor, walls and windows, a doorway through the back
+	 * A one-storey wing out of the back, on one side (an L) or in the middle (a T): its own floor, walls and windows, a doorway through the back
 	 * wall into it, and a gable roof with its ridge front to back whose slopes run on up the main roof's back slope until
 	 * they meet it (cells under the main roof's surface are left out, so the two roofs join with no gap). Only behind a
 	 * gable whose ridge runs along the front. Never over the chimney or the ladder.
 	 */
-	private static boolean wing(Map<BlockPos, BlockState> cells, Materials m, HouseStyle style, RandomSource random, int width, int depth, int height,
+	@Nullable
+	private static String wing(Map<BlockPos, BlockState> cells, Materials m, HouseStyle style, RandomSource random, int width, int depth, int height,
 		int top, int ladderX, int spacing, boolean chimney) {
 		int widest = Math.min(width - 2, depth + 1);
 		if (chimney) {
@@ -275,13 +277,15 @@ public final class PlanGenerator {
 		}
 
 		if (widest < 5) {
-			return false;
+			return null;
 		}
 
 		int w = 5 + random.nextInt(widest - 4);
 		int d = style.between("wing_depth", 3, 5, random);
-		boolean left = chimney || random.nextBoolean();
-		int x0 = left ? 0 : width - w;
+		// Left, right or (a T) the middle; on the left when the chimney is on the right.
+		int where = chimney ? 0 : random.nextInt(3);
+		boolean left = where == 0;
+		int x0 = where == 0 ? 0 : where == 1 ? width - w : (width - w) / 2;
 		int x1 = x0 + w - 1;
 		int shared = depth - 1;
 		int back = shared + d;
@@ -312,7 +316,7 @@ public final class PlanGenerator {
 		// The way through, in the middle of the shared wall (not where the ladder hangs on it).
 		int through = (x0 + x1) / 2;
 		if (through == ladderX) {
-			through += left ? 1 : -1;
+			through += left || where == 2 && through < width / 2 ? 1 : -1;
 		}
 
 		cells.remove(new BlockPos(through, 1, shared));
@@ -342,7 +346,7 @@ public final class PlanGenerator {
 			cells.put(pos, entry.getValue());
 		}
 
-		return true;
+		return where == 2 ? "T" : "L";
 	}
 
 	/**

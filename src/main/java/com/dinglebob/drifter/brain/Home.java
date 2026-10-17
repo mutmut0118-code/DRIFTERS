@@ -106,6 +106,13 @@ public final class Home {
 	public BlockPos planOrigin;
 	public String planRotation = "NONE";
 	public final java.util.Map<String, String> planWoods = new java.util.HashMap<>();
+	/**
+	 * Trips for a house material with nothing of the house placed since, by item; materials it has given up on for its
+	 * house; woods it couldn't get any more of. Not saved: after a restart it tries again.
+	 */
+	public final java.util.Map<net.minecraft.world.item.Item, Integer> houseTrips = new java.util.HashMap<>();
+	public final java.util.Set<net.minecraft.world.item.Item> houseGivenUp = new java.util.HashSet<>();
+	public final java.util.Set<String> houseWoodsShort = new java.util.HashSet<>();
 	public boolean planDeepslate;
 	public boolean planDone;
 	/** Its hut (and house) are recorded as Drifter-built (homes from before that was recorded get it once). */

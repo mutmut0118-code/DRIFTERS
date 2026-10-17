@@ -106,7 +106,7 @@ public final class HousePalette {
 	}
 
 	/** Woods it has (on it and stored at home) and sees round it, the most first. */
-	static List<String> woodsAround(DrifterEntity drifter) {
+	public static List<String> woodsAround(DrifterEntity drifter) {
 		Map<String, Integer> score = new LinkedHashMap<>();
 		var inventory = drifter.getInventory();
 		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
@@ -144,7 +144,7 @@ public final class HousePalette {
 
 	/** Which overworld wood an id belongs to ("spruce_stairs" → spruce), or null. */
 	@Nullable
-	static String woodOf(String path) {
+	public static String woodOf(String path) {
 		String p = path.startsWith("stripped_") ? path.substring("stripped_".length()) : path;
 		for (String wood : WOODS) {
 			if (!p.startsWith(wood + "_")) {
