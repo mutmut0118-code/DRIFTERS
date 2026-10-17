@@ -1475,7 +1475,7 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
 ## Generated house plans (new, milestone 15)
 
 The mod now makes 300 house plans per world from 9 styles (timber cottage, stone cottage, log cabin, farmhouse,
-longhouse, tower house, shed hut, stonemason, A-frame cabin), with porches, chimneys, attic windows, lofts, one or two floors,
+longhouse, tower house, shed hut, stonemason, A-frame cabin), with porches, chimneys, attic windows, lofts, corner towers, one or two floors,
 gable, hip, shed or flat roofs, and some L- or T-shaped (a wing out of the back with its own roof). Drifters pick among them along with the
 hand-made ones and yours.
 - [ ] See a row of them: in a creative test world, stand on flat ground and run `/drifter house showcase 12`. It

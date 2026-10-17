@@ -1726,6 +1726,12 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **Corner towers:** a one-storey house 7+ wide and 6+ deep (no loft, no porch) can have a square tower at its front
+  corner, its walls carried up a block past the top of the roof (the roof over that corner taken out), windows near the
+  top, a little pyramid roof; open inside down to the room. 9 of a world's 300. A Drifter built one (277 blocks) and
+  moved in. On two-storey houses the tower's roof was 14 up, out of reach from any pillar: not on those.
+- **Pillars up to 7 (was 4):** the house builder looked for a standing spot only 4 to 8 below a block, so a two-storey
+  house's eaves, 9 up, had none ("nowhere to stand" 288 times). It uses the lowest pillar that reaches.
 - **10-day runs, round 3 (2026-10-17):** one Drifter spent 7 days at the foot of a little waterfall, washed back
   every time it swam up the flow ("the current keeps pushing it back" 688 times): its escape put one block under it,
   which left its feet in the water. Now it stands up on as many as it takes to get its feet out (up to 3); from the saved

@@ -201,8 +201,9 @@ public final class PlanGenerator {
 			features.add("loft");
 		}
 
-		// A tower at the front corner (drawn last too; not over a loft, nor beside a porch, whose roof it would cut).
-		if (!roof.equals("shed") && width >= 7 && depth >= 6 && !features.contains("loft") && !features.contains("porch")
+		// A tower at the front corner (drawn last too; not over a loft, nor beside a porch, whose roof it would cut; on one
+		// storey only: on two its roof is fourteen up, out of reach from any pillar, found in testing).
+		if (!roof.equals("shed") && floors == 1 && width >= 7 && depth >= 6 && !features.contains("loft") && !features.contains("porch")
 			&& style.chance("tower", 0.0, random)) {
 			tower(cells, m, width, depth, top);
 			features.add("tower");
