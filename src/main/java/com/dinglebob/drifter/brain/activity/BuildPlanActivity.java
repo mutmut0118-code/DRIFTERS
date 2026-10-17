@@ -459,7 +459,7 @@ public class BuildPlanActivity extends Activity {
 		double bestCost = Double.MAX_VALUE;
 		// A plan picked for it (debug: /drifter house choose) but no spot yet: that plan only.
 		java.util.Collection<HousePlan> plans = home.planId != null && HousePlans.get(server, home.planId) != null
-			? List.of(HousePlans.get(server, home.planId)) : HousePlans.cached(server).values();
+			? List.of(HousePlans.get(server, home.planId)) : HousePlans.choicesFor(server, this.drifter);
 		for (HousePlan plan : plans) {
 			HousePalette palette = HousePalette.forDrifter(this.drifter, plan);
 			PlanSite.Site site = PlanSite.choose(this.drifter, plan, palette);

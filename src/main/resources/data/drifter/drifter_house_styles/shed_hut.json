@@ -1,0 +1,5 @@
+{ "weight": 1.5, "width": [5, 6], "depth": [5, 6], "two_floors": 0.0, "wall_height": [3, 3],
+  "floor": "minecraft:oak_planks", "frame": "minecraft:oak_log", "posts_every": 0, "beam": false,
+  "infill": "minecraft:oak_planks", "window": "minecraft:glass_pane", "window_spacing": 2, "tall_windows": 0.0,
+  "roofs": { "shed": 3, "gable": 1 }, "stair": "minecraft:oak_stairs", "slab": "minecraft:spruce_slab", "gable_fill": "minecraft:oak_planks",
+  "door": "minecraft:oak_door" }

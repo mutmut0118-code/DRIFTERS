@@ -1,0 +1,165 @@
+package com.dinglebob.drifter.building.plan.gen;
+
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import com.dinglebob.drifter.Drifter;
+import com.dinglebob.drifter.DrifterConfig;
+import com.dinglebob.drifter.building.plan.HousePlan;
+import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.personality.Trait;
+
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.RandomSource;
+
+/**
+ * The world's generated house plans (milestone 15): as many as the setting says (default 300), made from the house styles
+ * once per world (seeded by the world seed, so a world keeps its plans), each checked by PlanCheck. And which of them a
+ * Drifter considers: a handful that suit it (a creative or industrious one leans to bigger houses, a thrifty one to
+ * smaller), so choosing a house stays quick with hundreds of plans.
+ */
+public final class GeneratedPlans {
+	private GeneratedPlans() {
+	}
+
+	public static final String DIRECTORY = "drifter_house_styles";
+	public static final String PREFIX = "gen:";
+	/** Generated plans a Drifter weighs when it picks a house (besides every hand-made one). */
+	private static final int SHORTLIST = 6;
+	private static final int TRIES = 8;
+
+	private static volatile Map<String, HouseStyle> styles = Map.of();
+	private static volatile int stylesVersion;
+	private static Map<String, HousePlan> plans = Map.of();
+	private static List<HousePlan> bySize = List.of();
+	private static long madeFor = Long.MIN_VALUE;
+	private static int madeCount = -1;
+	private static int madeVersion = -1;
+
+	public static void register() {
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+			@Override
+			public ResourceLocation getFabricId() {
+				return Drifter.id("house_styles");
+			}
+
+			@Override
+			public void onResourceManagerReload(ResourceManager manager) {
+				load(manager);
+			}
+		});
+	}
+
+	private static void load(ResourceManager manager) {
+		// Sorted by name: the order styles are drawn in must be the same every time the game starts, or a world's plans (and a
+		// Drifter's half-built house) would change between sessions.
+		Map<String, HouseStyle> loaded = new java.util.TreeMap<>();
+		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
+			try (Reader reader = file.getValue().openAsReader()) {
+				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+				String path = file.getKey().getPath();
+				String id = path.substring(path.lastIndexOf('/') + 1, path.length() - ".json".length());
+				loaded.put(id, HouseStyle.parse(id, json));
+			} catch (Exception e) {
+				Drifter.LOGGER.error("Couldn't read Drifter house style {}", file.getKey(), e);
+			}
+		}
+
+		styles = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(loaded));
+		stylesVersion++;
+		Drifter.LOGGER.info("Loaded {} Drifter house styles", loaded.size());
+	}
+
+	/** This world's generated plans, by id (made the first time they're asked for, and again if the setting changes). */
+	public static synchronized Map<String, HousePlan> all(MinecraftServer server) {
+		long seed = server.getWorldData().worldGenOptions().seed();
+		int count = DrifterConfig.spawn(DrifterConfig.Spawn.HOUSE_DESIGNS);
+		if (seed == madeFor && count == madeCount && stylesVersion == madeVersion) {
+			return plans;
+		}
+
+		long started = System.nanoTime();
+		Map<String, HousePlan> made = new LinkedHashMap<>();
+		Map<String, Integer> rejected = new LinkedHashMap<>();
+		List<HouseStyle> all = new ArrayList<>(styles.values());
+		double total = all.stream().mapToDouble(HouseStyle::weight).sum();
+		for (int i = 0; i < count && !all.isEmpty(); i++) {
+			RandomSource random = RandomSource.create(seed * 31L + i * 0x9E3779B97F4A7C15L);
+			HouseStyle style = all.get(all.size() - 1);
+			double at = random.nextDouble() * total;
+			for (HouseStyle candidate : all) {
+				at -= candidate.weight();
+				if (at <= 0.0) {
+					style = candidate;
+					break;
+				}
+			}
+
+			String id = PREFIX + style.id() + "_" + i;
+			for (int attempt = 0; attempt < TRIES; attempt++) {
+				HousePlan plan = PlanGenerator.generate(id, style, random);
+				String problem = plan == null ? "no plan" : PlanCheck.problem(plan);
+				if (problem == null) {
+					made.put(id, plan);
+					break;
+				}
+
+				rejected.merge(problem.replaceAll("[0-9]+ ", ""), 1, Integer::sum);
+			}
+		}
+
+		plans = java.util.Collections.unmodifiableMap(made);
+		List<HousePlan> sorted = new ArrayList<>(made.values());
+		sorted.sort(Comparator.comparingInt(HousePlan::blockCount));
+		bySize = List.copyOf(sorted);
+		madeFor = seed;
+		madeCount = count;
+		madeVersion = stylesVersion;
+		Drifter.LOGGER.info("[Drifter] made {} house plans from {} styles in {} ms (drafts thrown away: {})", made.size(), all.size(),
+			(System.nanoTime() - started) / 1_000_000, rejected);
+		return plans;
+	}
+
+	/**
+	 * The generated plans this Drifter weighs: a few round the size it likes (seeded by who it is, so it doesn't change its
+	 * mind each time it looks), from smallest (thrifty) to biggest (creative, industrious, or a Builder).
+	 */
+	public static List<HousePlan> shortlist(MinecraftServer server, DrifterEntity drifter) {
+		all(server);
+		List<HousePlan> sized = bySize;
+		if (sized.isEmpty()) {
+			return List.of();
+		}
+
+		var personality = drifter.getPersonality();
+		double taste = 0.35 + 0.35 * personality.get(Trait.CREATIVITY) + 0.2 * personality.get(Trait.INDUSTRIOUSNESS) - 0.35 * personality.get(Trait.THRIFT)
+			+ (personality.archetype() == com.dinglebob.drifter.personality.Archetype.BUILDER ? 0.2 : 0.0);
+		taste = Math.max(0.0, Math.min(1.0, taste));
+		int middle = (int)Math.round(taste * (sized.size() - 1));
+		int spread = Math.max(SHORTLIST * 2, sized.size() / 6);
+		RandomSource random = RandomSource.create(drifter.getUUID().getLeastSignificantBits() ^ sized.size());
+		List<HousePlan> picks = new ArrayList<>();
+		for (int i = 0; i < SHORTLIST * 4 && picks.size() < SHORTLIST; i++) {
+			int index = Math.max(0, Math.min(sized.size() - 1, middle - spread / 2 + random.nextInt(spread + 1)));
+			HousePlan plan = sized.get(index);
+			if (!picks.contains(plan)) {
+				picks.add(plan);
+			}
+		}
+
+		return picks;
+	}
+}

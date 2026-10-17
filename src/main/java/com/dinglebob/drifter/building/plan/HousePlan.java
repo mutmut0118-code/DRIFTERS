@@ -40,6 +40,47 @@ public final class HousePlan {
 		this.cells = List.copyOf(cells);
 	}
 
+	/** A plan the generator made (milestone 15): already unfurnished, cells from its corner. */
+	public static HousePlan generated(String id, Vec3i size, List<Cell> cells) {
+		return new HousePlan(id, "generated", size, cells);
+	}
+
+	/** The plan as a structure file's tag (for pictures of generated plans: `/drifter house export`). */
+	public CompoundTag toStructure() {
+		CompoundTag tag = new CompoundTag();
+		ListTag sizeTag = new ListTag();
+		sizeTag.add(net.minecraft.nbt.IntTag.valueOf(this.size.getX()));
+		sizeTag.add(net.minecraft.nbt.IntTag.valueOf(this.size.getY()));
+		sizeTag.add(net.minecraft.nbt.IntTag.valueOf(this.size.getZ()));
+		tag.put("size", sizeTag);
+		List<BlockState> palette = new ArrayList<>();
+		ListTag blocks = new ListTag();
+		for (Cell cell : this.cells) {
+			int index = palette.indexOf(cell.state());
+			if (index < 0) {
+				index = palette.size();
+				palette.add(cell.state());
+			}
+
+			CompoundTag block = new CompoundTag();
+			ListTag pos = new ListTag();
+			pos.add(net.minecraft.nbt.IntTag.valueOf(cell.pos().getX()));
+			pos.add(net.minecraft.nbt.IntTag.valueOf(cell.pos().getY()));
+			pos.add(net.minecraft.nbt.IntTag.valueOf(cell.pos().getZ()));
+			block.put("pos", pos);
+			block.putInt("state", index);
+			blocks.add(block);
+		}
+
+		ListTag paletteTag = new ListTag();
+		palette.forEach(state -> paletteTag.add(NbtUtils.writeBlockState(state)));
+		tag.put("palette", paletteTag);
+		tag.put("blocks", blocks);
+		tag.put("entities", new ListTag());
+		tag.putInt("DataVersion", net.minecraft.SharedConstants.getCurrentVersion().getDataVersion().getVersion());
+		return tag;
+	}
+
 	/**
 	 * From a structure file's tag (what StructureTemplate#save writes): its first palette and its blocks, leaving out air
 	 * and structure voids (the plan leaves those cells as they are).

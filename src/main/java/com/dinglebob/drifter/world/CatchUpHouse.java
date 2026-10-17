@@ -81,7 +81,7 @@ public final class CatchUpHouse {
 
 		if (placed == null) {
 			double best = Double.MAX_VALUE;
-			for (HousePlan candidate : HousePlans.cached(server).values()) {
+			for (HousePlan candidate : HousePlans.choicesFor(server, drifter)) {
 				HousePalette palette = HousePalette.forDrifter(drifter, candidate);
 				PlanSite.Site site = PlanSite.choose(drifter, candidate, palette, true);
 				if (site == null) {

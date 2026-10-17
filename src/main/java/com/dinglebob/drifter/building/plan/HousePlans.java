@@ -64,6 +64,9 @@ public final class HousePlans {
 			});
 		}
 
+		// The world's generated plans (milestone 15).
+		plans.putAll(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.all(server));
+
 		Path folder = personalFolder();
 		if (Files.isDirectory(folder)) {
 			try (Stream<Path> files = Files.list(folder)) {
@@ -124,6 +127,22 @@ public final class HousePlans {
 		NbtIo.writeCompressed(structure, file);
 		invalidate();
 		return file;
+	}
+
+	/**
+	 * The plans a Drifter weighs when it picks a house: every hand-made one (the mod's, the world's, personal ones) and a
+	 * shortlist of generated ones that suit it.
+	 */
+	public static List<HousePlan> choicesFor(MinecraftServer server, com.dinglebob.drifter.entity.DrifterEntity drifter) {
+		List<HousePlan> choices = new ArrayList<>();
+		for (HousePlan plan : cached(server).values()) {
+			if (!plan.source.equals("generated")) {
+				choices.add(plan);
+			}
+		}
+
+		choices.addAll(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.shortlist(server, drifter));
+		return choices;
 	}
 
 	/** Names in use, for suggestions. */

@@ -155,7 +155,9 @@ public final class DrifterConfig {
 		WANDERERS("wanderers", "Wanderers", 0, 50, 4, v -> v + " per 1000 chunks"),
 		VILLAGES("villages", "Villages lived in", 0, 100, 30, v -> v + "%"),
 		OUTPOSTS("outposts", "Outposts held by Bandits", 0, 100, 50, v -> v + "%"),
-		DELVERS("delvers", "Mineshafts with a delver", 0, 100, 25, v -> v + "%");
+		DELVERS("delvers", "Mineshafts with a delver", 0, 100, 25, v -> v + "%"),
+		/** Generated house plans in a world (milestone 15), besides the hand-made ones. */
+		HOUSE_DESIGNS("house_designs", "Generated house designs", 0, 1000, 300, v -> v == 0 ? "hand-made only" : v + " designs");
 
 		public final String id;
 		public final String label;

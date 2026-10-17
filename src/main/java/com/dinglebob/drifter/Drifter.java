@@ -30,6 +30,7 @@ public class Drifter implements ModInitializer {
 		DebugOverlayServer.register();
 		Sources.register();
 		com.dinglebob.drifter.brain.Weapons.register();
+		com.dinglebob.drifter.building.plan.gen.GeneratedPlans.register();
 		Threats.register();
 		com.dinglebob.drifter.world.CatchUp.register();
 		com.dinglebob.drifter.world.DrifterRegistry.register();

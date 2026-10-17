@@ -48,11 +48,67 @@ public final class HouseCommands {
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 						.executes(HouseCommands::save)))))
+			// A row of generated plans, spread over the styles, built as drawn from here along +x (to look them over in-game).
+			.then(Commands.literal("showcase").then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 64))
+				.executes(HouseCommands::showcase)))
+			// Debug (milestone 15): a sample of the generated plans, spread over the styles, as structure files for pictures.
+			.then(Commands.literal("export").then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 1000))
+				.executes(HouseCommands::export)))
 			.then(Commands.literal("paste").then(plan().executes(ctx -> paste(ctx, false))
 				.then(Commands.literal("asdrawn").executes(ctx -> paste(ctx, true)))))
 			.then(Commands.literal("import").then(Commands.argument("name", StringArgumentType.word())
 				.executes(ctx -> importGrabCraft(ctx, true))
 				.then(Commands.literal("noflip").executes(ctx -> importGrabCraft(ctx, false))))));
+	}
+
+	private static int showcase(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+		int count = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count");
+		var plans = new java.util.ArrayList<>(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.all(ctx.getSource().getServer()).values());
+		if (plans.isEmpty()) {
+			ctx.getSource().sendFailure(Component.literal("No generated house plans (the setting is 0, or no styles)"));
+			return 0;
+		}
+
+		var level = ctx.getSource().getLevel();
+		BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+		int step = Math.max(1, plans.size() / count);
+		StringBuilder names = new StringBuilder();
+		int x = 0;
+		for (int i = 0, made = 0; i < plans.size() && made < count; i += step, made++) {
+			HousePlan plan = plans.get(i);
+			for (HousePlan.Cell cell : plan.cells) {
+				level.setBlock(at.offset(x, 0, 0).offset(cell.pos()), cell.state(), 2);
+			}
+
+			names.append(made == 0 ? "" : ", ").append(plan.id.substring(4));
+			x += Math.max(16, plan.size.getX() + 3);
+		}
+
+		ctx.getSource().sendSuccess(() -> Component.literal("Built " + names), false);
+		return 1;
+	}
+
+	private static int export(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx) {
+		int count = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count");
+		var plans = new java.util.ArrayList<>(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.all(ctx.getSource().getServer()).values());
+		java.nio.file.Path folder = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("drifter").resolve("house_exports");
+		int written = 0;
+		try {
+			java.nio.file.Files.createDirectories(folder);
+			int step = Math.max(1, plans.size() / Math.max(1, count));
+			for (int i = 0; i < plans.size() && written < count; i += step) {
+				HousePlan plan = plans.get(i);
+				net.minecraft.nbt.NbtIo.writeCompressed(plan.toStructure(), folder.resolve(plan.id.replace(':', '_') + ".nbt"));
+				written++;
+			}
+		} catch (java.io.IOException e) {
+			ctx.getSource().sendFailure(Component.literal("Couldn't write: " + e.getMessage()));
+			return 0;
+		}
+
+		int total = written;
+		ctx.getSource().sendSuccess(() -> Component.literal("Wrote " + total + " of " + plans.size() + " generated plans to " + folder), false);
+		return total;
 	}
 
 	private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> plan() {
@@ -63,6 +119,12 @@ public final class HouseCommands {
 	private static HousePlan plan(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		String id = StringArgumentType.getString(ctx, "plan").replace(" asdrawn", "");
 		HousePlan plan = HousePlans.get(ctx.getSource().getServer(), id);
+		// "gen:<style>": the first generated plan of that style (their numbers depend on the world).
+		if (plan == null && id.startsWith("gen:")) {
+			plan = com.dinglebob.drifter.building.plan.gen.GeneratedPlans.all(ctx.getSource().getServer()).values().stream()
+				.filter(p -> p.id.startsWith(id + "_")).findFirst().orElse(null);
+		}
+
 		if (plan == null) {
 			throw new SimpleCommandExceptionType(Component.literal("No house plan called " + id + " (see /drifter houses)")).create();
 		}
