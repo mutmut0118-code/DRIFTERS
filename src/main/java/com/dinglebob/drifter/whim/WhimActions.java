@@ -467,30 +467,89 @@ public final class WhimActions {
 			return top != null && top.getY() >= drifter.getBlockY() + whim.param("rise", 8);
 		}
 
+		/** A finished search, kept a while (the whim check and the start ask the same question). */
+		private record Found(int drifter, int radius, long tick, BlockPos from, @Nullable BlockPos top) {
+		}
+
+		private static final java.util.Map<Integer, Found> FOUND = new java.util.concurrent.ConcurrentHashMap<>();
+		private static final long KEEP_TICKS = 600L;
+		/** Coarse grid first (a hilltop is wider than this), then every column round the best few. */
+		private static final int COARSE = 4;
+
 		@Nullable
 		static BlockPos top(DrifterEntity drifter, int radius) {
-			// Column by column: the top of each (the game's height map) if it has seen that spot (only seen ground counts),
-			// the highest of those. One lookup a column (searching all it knew, sky included, took up to 300 ms).
-			Level level = drifter.level();
-			var terrain = drifter.getSenses().terrain();
-			BlockPos feet = drifter.blockPosition();
-			BlockPos best = null;
-			BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-			for (int x = feet.getX() - radius; x <= feet.getX() + radius; x++) {
-				for (int z = feet.getZ() - radius; z <= feet.getZ() + radius; z++) {
-					if (!level.hasChunk(x >> 4, z >> 4)) {
-						continue;
-					}
+			long now = drifter.level().getGameTime();
+			Found found = FOUND.get(drifter.getId());
+			if (found != null && found.radius() == radius && now - found.tick() < KEEP_TICKS && found.from().distManhattan(drifter.blockPosition()) < 8) {
+				return found.top();
+			}
 
-					int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z);
-					if ((best == null || y > best.getY()) && Math.abs(y - feet.getY()) <= radius && terrain.isKnown(pos.set(x, y - 1, z))
-						&& KnownBlocks.isStandable(level, pos.set(x, y, z))) {
-						best = pos.immutable();
+			BlockPos top = search(drifter, radius);
+			FOUND.put(drifter.getId(), new Found(drifter.getId(), radius, now, drifter.blockPosition(), top));
+			if (FOUND.size() > 512) {
+				FOUND.clear();
+			}
+
+			return top;
+		}
+
+		/**
+		 * Column by column: the top of each (the game's height map) if it has seen that spot (only seen ground counts), the
+		 * highest of those. A coarse grid, then every column round the three highest (found in the user's log: a full scan of
+		 * a 96-block radius took 237 ms).
+		 */
+		@Nullable
+		private static BlockPos search(DrifterEntity drifter, int radius) {
+			Level level = drifter.level();
+			BlockPos feet = drifter.blockPosition();
+			java.util.List<BlockPos> best = new java.util.ArrayList<>();
+			for (int x = feet.getX() - radius; x <= feet.getX() + radius; x += COARSE) {
+				for (int z = feet.getZ() - radius; z <= feet.getZ() + radius; z += COARSE) {
+					BlockPos column = column(drifter, level, feet, radius, x, z);
+					if (column != null) {
+						best.add(column);
+						best.sort((a, b) -> Integer.compare(b.getY(), a.getY()));
+						if (best.size() > 3) {
+							best.remove(3);
+						}
 					}
 				}
 			}
 
-			return best;
+			BlockPos top = null;
+			for (BlockPos around : best) {
+				for (int x = around.getX() - COARSE; x <= around.getX() + COARSE; x++) {
+					for (int z = around.getZ() - COARSE; z <= around.getZ() + COARSE; z++) {
+						if (Math.abs(x - feet.getX()) > radius || Math.abs(z - feet.getZ()) > radius) {
+							continue;
+						}
+
+						BlockPos column = column(drifter, level, feet, radius, x, z);
+						if (column != null && (top == null || column.getY() > top.getY())) {
+							top = column;
+						}
+					}
+				}
+			}
+
+			return top;
+		}
+
+		/** The top of this column if it has seen it and could stand there; null otherwise. */
+		@Nullable
+		private static BlockPos column(DrifterEntity drifter, Level level, BlockPos feet, int radius, int x, int z) {
+			if (!level.hasChunk(x >> 4, z >> 4)) {
+				return null;
+			}
+
+			int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z);
+			BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, y - 1, z);
+			if (Math.abs(y - feet.getY()) > radius || !drifter.getSenses().terrain().isKnown(pos)) {
+				return null;
+			}
+
+			pos.set(x, y, z);
+			return KnownBlocks.isStandable(level, pos) ? pos.immutable() : null;
 		}
 
 		@Override
@@ -1271,22 +1330,56 @@ public final class WhimActions {
 	 * quickly from what it has (params: items).
 	 */
 	static final class CraftForFun implements WhimAction {
+		/** A recent answer per Drifter (the whim check and the start ask the same question; each try is a planner run). */
+		private record Picked(String whim, long tick, @Nullable Item item) {
+		}
+
+		private static final java.util.Map<Integer, Picked> PICKED = new java.util.concurrent.ConcurrentHashMap<>();
+		private static final long KEEP_TICKS = 200L;
+		/** Items tried per look (a few at random, not the whole list: found in the user's log, up to 30 ms a check). */
+		private static final int TRIES = 3;
+
 		@Nullable
 		static Item pick(DrifterEntity drifter, Whim whim) {
-			var world = com.dinglebob.drifter.brain.KnownWorld.scan(drifter);
-			for (String id : whim.params("items")) {
+			long now = drifter.level().getGameTime();
+			Picked picked = PICKED.get(drifter.getId());
+			if (picked != null && picked.whim().equals(whim.id()) && now - picked.tick() < KEEP_TICKS
+				&& (picked.item() == null || drifter.getInventory().count(stack -> stack.is(picked.item())) == 0)) {
+				return picked.item();
+			}
+
+			java.util.List<String> ids = new java.util.ArrayList<>(whim.params("items"));
+			java.util.Collections.shuffle(ids, new java.util.Random(drifter.getRandom().nextLong()));
+			Item found = null;
+			com.dinglebob.drifter.brain.KnownWorld world = null;
+			int tried = 0;
+			for (String id : ids) {
 				Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
 				if (drifter.getInventory().count(stack -> stack.is(item)) > 0) {
 					continue;
 				}
 
+				if (tried++ >= TRIES) {
+					break;
+				}
+
+				if (world == null) {
+					world = com.dinglebob.drifter.brain.KnownWorld.scan(drifter);
+				}
+
 				var plan = com.dinglebob.drifter.brain.Planner.plan(drifter, world, item, 1);
 				if (plan.feasible() && plan.next() != null && WhimPrep.quick(plan) && plan.actions().size() <= 4) {
-					return item;
+					found = item;
+					break;
 				}
 			}
 
-			return null;
+			PICKED.put(drifter.getId(), new Picked(whim.id(), now, found));
+			if (PICKED.size() > 512) {
+				PICKED.clear();
+			}
+
+			return found;
 		}
 
 		@Override

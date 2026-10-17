@@ -653,7 +653,9 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** The server tick a Drifter last caught up in (catch-ups take turns). */
-	private static long catchUpTick = Long.MIN_VALUE;
+	private static long catchUpTick = Long.MIN_VALUE / 2;
+	/** Ticks between two Drifters' catch-ups (each can take 20 to 100 ms: spread out, a new area's Drifters don't freeze it). */
+	private static final long CATCH_UP_SPACING = 5L;
 
 	/** When it can roll again (Combat Roll's cooldown). */
 	private long rollReadyAt;
@@ -965,10 +967,10 @@ public class DrifterEntity extends PathfinderMob {
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		// Back after its area was unloaded a while: it catches up on that time first (section 22; config: offline progression).
 		if (this.lastActive >= 0L || this.pendingCatchUp > 0L) {
-			// Catch-ups take turns, one a server tick (a burst of new ones loading at once was a lag spike: user, 2026-10-17,
+			// Catch-ups take turns, one every few server ticks (a burst of new ones loading at once was a lag spike: user, 2026-10-17,
 			// "10 to 60 drifters ... making everything slow down"). It waits its turn standing still.
 			long tick = this.level().getGameTime();
-			if (catchUpTick == tick) {
+			if (tick - catchUpTick < CATCH_UP_SPACING && tick >= catchUpTick) {
 				return;
 			}
 

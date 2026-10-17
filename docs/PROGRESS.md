@@ -1645,6 +1645,12 @@ structure blocks) for the user's own worlds.
     group, villagers and wandering traders, golems, other people's tamed pets; fights to the death, takes the drops;
     breaks off under a third of its health. Its eyes go to prey, not its gang mates. Tested: a gang killed a lone
     Drifter, a villager and a wandering trader, went for an iron golem twice and ran from it; left a cow alone.
+  - The user's log after that (freezes): the 8.4 s one was the Quicksave mod's automatic backup; a 3.2 s one right after a
+    teleport (a whole new area generated, plus its Drifters' catch-ups); slow whim checks: tallest_mountain 237 ms (now a
+    coarse grid then a fine look round the best spots, answer kept 30 s) and craft_something up to 30 ms (now 3 items a
+    look, answer kept 10 s). Catch-ups now one every 5 ticks. A server test of travelling into new land with the user's
+    settings (wanderers 30 per 1000 chunks, delvers 81%, cap 30) never fell behind; the Drifters' main cost there is
+    pathfinding, under its 2 ms budget.
 - **Next:** milestone 15 (house plans by the hundred), after the user's test of this round. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
