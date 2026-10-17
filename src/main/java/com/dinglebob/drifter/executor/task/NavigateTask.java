@@ -15,6 +15,7 @@ import com.dinglebob.drifter.hands.Tools;
 import com.dinglebob.drifter.memory.MemoryKind;
 import com.dinglebob.drifter.motor.CameraModel;
 import com.dinglebob.drifter.motor.VirtualKeys;
+import com.dinglebob.drifter.nav.JumpPhysics;
 import com.dinglebob.drifter.nav.MoveType;
 import com.dinglebob.drifter.nav.NavView;
 import com.dinglebob.drifter.nav.PathBudget;
@@ -1583,8 +1584,8 @@ public class NavigateTask extends Task {
 		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && !this.unseenStepDownAhead() && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
 			&& !this.lavaNear(2) && (this.drifter.getHealth() > CAREFUL_HEALTH || this.urgent)
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
-		if (runUp && keys.isDown(VirtualKeys.Key.FORWARD) && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL) {
-			sprint = true;
+		if (runUp && next.jump() != null) {
+			sprint = next.jump().sprint && keys.isDown(VirtualKeys.Key.FORWARD) && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		}
 
 		keys.set(VirtualKeys.Key.SPRINT, sprint);
@@ -1645,21 +1646,41 @@ public class NavigateTask extends Task {
 		VirtualKeys keys = this.keys();
 		Vec3 from = Vec3.atBottomCenterOf(step.from());
 		Vec3 landing = Vec3.atBottomCenterOf(step.to());
-		int dx = Integer.signum(step.to().getX() - step.from().getX());
-		int dz = Integer.signum(step.to().getZ() - step.from().getZ());
+		// The jump's line (straight along an axis, or at an angle) as a unit direction.
+		double lx = step.to().getX() - step.from().getX();
+		double lz = step.to().getZ() - step.from().getZ();
+		double length = Math.max(1.0E-6, Math.sqrt(lx * lx + lz * lz));
+		double ux = lx / length;
+		double uz = lz / length;
+		// How far along the line its middle can get before it drops off the take-off block (0.3 of its body over the edge;
+		// farther toward a corner).
+		double lean = TAKEOFF_LIMIT / Math.max(Math.abs(ux), Math.abs(uz));
 		Vec3 here = this.drifter.position();
-		double along = (here.x - from.x) * dx + (here.z - from.z) * dz;
-		double side = (here.x - from.x) * dz - (here.z - from.z) * dx;
+		double along = (here.x - from.x) * ux + (here.z - from.z) * uz;
+		double side = (here.x - from.x) * uz - (here.z - from.z) * ux;
 		Vec3 motion = this.drifter.getDeltaMovement();
-		double speedAlong = motion.x * dx + motion.z * dz;
-		boolean onTakeoff = this.drifter.onGround() && this.feet().getY() == step.from().getY() && along < 1.0;
+		double speedAlong = motion.x * ux + motion.z * uz;
+		boolean onTakeoff = this.drifter.onGround() && this.feet().getY() == step.from().getY() && along < lean + 0.2;
+		JumpPhysics.Mode mode = step.jump() != null ? step.jump() : JumpPhysics.Mode.SPRINT_RUN;
+		boolean sprint = mode.sprint && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		// Facing straight across (the sprint jump's push goes the way it faces), at a point well past the landing.
-		this.drifter.getCamera().track(landing.add(dx * 3.0, 1.2, dz * 3.0), CameraModel.TurnSpeed.NORMAL);
-		// On the ground, run along the jump's line (back onto it if it's off to the side); in the air, for the landing.
+		this.drifter.getCamera().track(landing.add(ux * 3.0, 1.2, uz * 3.0), CameraModel.TurnSpeed.NORMAL);
 		// Standing at the edge with no speed: back up two blocks first for a run at it, as a player does (the jump was
 		// planned with a run-up).
-		if (onTakeoff && !this.parkourCharging && speedAlong < 0.12 && along > -RUN_UP_BACK) {
+		if (mode.runUp && onTakeoff && !this.parkourCharging && speedAlong < 0.12 && along > -RUN_UP_BACK) {
 			this.parkourBackingUp = true;
+		}
+
+		// A hop at a walk: creep to the edge sneaking (it can't fall off), stop there, then jump from a stand.
+		if (mode == JumpPhysics.Mode.WALK_HOP && onTakeoff) {
+			Vec3 aim = new Vec3(from.x + ux * (along + 1.5), here.y, from.z + uz * (along + 1.5));
+			this.pressToward(aim);
+			keys.set(VirtualKeys.Key.SPRINT, false);
+			boolean atEdge = along >= lean - 0.12;
+			boolean still = Math.abs(speedAlong) < 0.03;
+			keys.set(VirtualKeys.Key.SNEAK, !(atEdge && still));
+			keys.set(VirtualKeys.Key.JUMP, atEdge && still && Math.abs(side) <= 0.3);
+			return;
 		}
 
 		if (this.parkourBackingUp) {
@@ -1667,7 +1688,7 @@ public class NavigateTask extends Task {
 				this.parkourBackingUp = false;
 				this.parkourCharging = true;
 			} else {
-				this.pressToward(new Vec3(from.x - dx * (RUN_UP_BACK + 0.5), here.y, from.z - dz * (RUN_UP_BACK + 0.5)));
+				this.pressToward(new Vec3(from.x - ux * (RUN_UP_BACK + 0.5), here.y, from.z - uz * (RUN_UP_BACK + 0.5)));
 				keys.set(VirtualKeys.Key.SNEAK, false);
 				keys.set(VirtualKeys.Key.SPRINT, false);
 				keys.set(VirtualKeys.Key.JUMP, false);
@@ -1679,14 +1700,14 @@ public class NavigateTask extends Task {
 			this.parkourCharging = true;
 		}
 
-		// (A point ahead on the line itself: steering for it pulls it back onto the line as it goes.)
-		Vec3 aim = onTakeoff ? new Vec3(from.x + dx * (along + 1.5), here.y, from.z + dz * (along + 1.5)) : landing;
-
+		// On the ground, run along the jump's line (a point ahead on the line itself: steering for it pulls it back onto the
+		// line as it goes); in the air, for the landing.
+		Vec3 aim = onTakeoff ? new Vec3(from.x + ux * (along + 1.5), here.y, from.z + uz * (along + 1.5)) : landing;
 		this.pressToward(aim);
 		keys.set(VirtualKeys.Key.SNEAK, false);
-		keys.set(VirtualKeys.Key.SPRINT, keys.isDown(VirtualKeys.Key.FORWARD) && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL);
+		keys.set(VirtualKeys.Key.SPRINT, sprint && keys.isDown(VirtualKeys.Key.FORWARD));
 		// Lined up and at the edge: jump now (next tick it would be past it). Never from off to the side.
-		keys.set(VirtualKeys.Key.JUMP, onTakeoff && Math.abs(side) <= 0.3 && along + Math.max(speedAlong, 0.05) >= TAKEOFF_LIMIT);
+		keys.set(VirtualKeys.Key.JUMP, onTakeoff && Math.abs(side) <= 0.3 && along + Math.max(speedAlong, 0.05) >= lean);
 	}
 
 	/**

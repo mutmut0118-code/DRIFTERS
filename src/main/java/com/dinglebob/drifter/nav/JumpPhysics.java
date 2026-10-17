@@ -31,6 +31,43 @@ public final class JumpPhysics {
 	private record Key(int speed, boolean sprint, boolean runUp, int dy, int boost) {
 	}
 
+	/**
+	 * How it takes a jump, gentlest first: a hop from the edge at a walk (it creeps to the edge, stops, jumps), a walking
+	 * run-up, a sprint jump from close to the edge, a sprinting run-up. It takes the first that carries far enough
+	 * (a player doesn't sprint at a one-block gap: that sails past the landing).
+	 */
+	public enum Mode {
+		WALK_HOP(false, false), WALK_RUN(false, true), SPRINT_HOP(true, false), SPRINT_RUN(true, true);
+
+		public final boolean sprint;
+		public final boolean runUp;
+
+		Mode(boolean sprint, boolean runUp) {
+			this.sprint = sprint;
+			this.runUp = runUp;
+		}
+	}
+
+	/**
+	 * The gentlest way to carry at least {@code need} but at most {@code most} (past that it would sail over the landing),
+	 * or null if none does. {@code canSprint}: food over 6; {@code canRunUp}: room for a run (or already running at it).
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static Mode choose(double speed, boolean canSprint, boolean canRunUp, int dy, int boost, double need, double most) {
+		for (Mode mode : Mode.values()) {
+			if (mode.sprint && !canSprint || mode.runUp && !canRunUp) {
+				continue;
+			}
+
+			double reach = reach(speed, mode.sprint, mode.runUp, dy, boost);
+			if (reach >= need) {
+				return reach <= most ? mode : null;
+			}
+		}
+
+		return null;
+	}
+
 	private static final Map<Key, Double> REACH = new ConcurrentHashMap<>();
 
 	/**

@@ -206,6 +206,9 @@ public class PathSearch {
 		boolean closed;
 		/** What the cell itself adds to any move into it (lava shore, trail, danger, edge), worked out once. */
 		boolean costed;
+		/** For a gap jump: how it takes it. */
+		@Nullable
+		JumpPhysics.Mode jump;
 		double shoreAdd;
 		double trailFactor = 1.0;
 		double extraAdd;
@@ -413,7 +416,7 @@ public class PathSearch {
 
 		List<PathStep> steps = new ArrayList<>();
 		for (Node node = end; node.parent != null; node = node.parent) {
-			steps.add(new PathStep(node.move, node.parent.pos, node.pos, node.digs, node.unknown));
+			steps.add(new PathStep(node.move, node.parent.pos, node.pos, node.digs, node.unknown, node.jump));
 		}
 
 		Collections.reverse(steps);
@@ -511,6 +514,7 @@ public class PathSearch {
 		}
 
 		this.tryDiagonals(node);
+		this.tryParkourAngled(node, onSolidFloor);
 		this.tryVertical(node, inWater, onSolidFloor);
 	}
 
@@ -641,6 +645,220 @@ public class PathSearch {
 		}
 	}
 
+	/** Landing offsets for jumps that aren't straight along an axis (diagonals, corners, knight's moves), up to 4 out. */
+	private static final int[][] ANGLED = angledOffsets();
+
+	private static int[][] angledOffsets() {
+		List<int[]> offsets = new ArrayList<>();
+		for (int x = -4; x <= 4; x++) {
+			for (int z = -4; z <= 4; z++) {
+				double distance = Math.sqrt(x * x + z * z);
+				if (x != 0 && z != 0 && distance <= 4.3) {
+					offsets.add(new int[] {x, z});
+				}
+			}
+		}
+
+		return offsets.toArray(new int[0][]);
+	}
+
+	/**
+	 * A jump at an angle (diagonals, round a corner, a knight's move): the same rules as a straight one, for any landing up
+	 * to about 4 blocks out. Its body (0.6 wide) sweeps a corridor from the take-off to the landing at feet, head and the
+	 * top of the jump: all of it open and seen, and somewhere along it no floor (else it would just walk). How far it has
+	 * to carry: the distance less what its body can lean out over each edge along that line (0.8 of a block over the axis
+	 * it leaves the block by, so more on a diagonal), plus the take-off timing.
+	 */
+	private void tryParkourAngled(Node node, boolean onSolidFloor) {
+		BlockPos n = node.pos;
+		if (!onSolidFloor || node.move == MoveType.BRIDGE || node.move == MoveType.PILLAR || this.view.isWater(n)
+			|| !this.view.jumpFooting(n.below()) || !this.openSeen(n.above(2))) {
+			return;
+		}
+
+		// Only from an edge: a neighbour (of the eight) with no floor. Anywhere else a jump starts over ground it can walk
+		// (and the jump, if any, starts from the edge further on): this keeps the search quick on open ground.
+		boolean edge = false;
+		for (int x = -1; x <= 1 && !edge; x++) {
+			for (int z = -1; z <= 1 && !edge; z++) {
+				edge = (x != 0 || z != 0) && !this.view.standable(n.offset(x, -1, z));
+			}
+		}
+
+		if (!edge) {
+			return;
+		}
+
+		double margin = 0.15 + 0.25 * (1.0 - this.skill);
+		double maxDistance = this.skill >= 0.35 ? 4.3 : 3.3;
+		for (int[] offset : ANGLED) {
+			double distance = Math.sqrt(offset[0] * offset[0] + offset[1] * offset[1]);
+			if (distance > maxDistance) {
+				continue;
+			}
+
+			double ux = offset[0] / distance;
+			double uz = offset[1] / distance;
+			double lean = 0.8 / Math.max(Math.abs(ux), Math.abs(uz));
+			double need = distance - 2.0 * lean + PARKOUR_TAKEOFF_LOSS;
+			// (A corner a body can't lean past isn't a jump: walking covers anything nearer.)
+			if (need <= 0.2) {
+				continue;
+			}
+
+			for (int dy = 1; dy >= -3; dy--) {
+				BlockPos t = n.offset(offset[0], dy, offset[1]);
+				if (!this.view.jumpFooting(t.below()) || !this.openSeen(t) || !this.openSeen(t.above())) {
+					continue;
+				}
+
+				if (dy > 0 && !this.headroomUp(n, t)) {
+					break;
+				}
+
+				if (this.drifter.bridgeFailedRecently(t)) {
+					break;
+				}
+
+				// Floor all along its middle line: a walk, not a jump.
+				if (this.floorAlong(n, ux, uz, distance)) {
+					break;
+				}
+
+				int depth = this.corridor(n, t, ux, uz, distance, dy);
+				if (depth == Integer.MIN_VALUE) {
+					break;
+				}
+
+				if (depth < 0) {
+					break;
+				}
+
+				boolean deep = depth > this.maxDrop;
+				boolean runUp = this.roomToRunUp(n, ux, uz);
+				double needed = need + margin + (deep ? 0.3 : 0.0);
+				JumpPhysics.Mode mode = JumpPhysics.choose(this.walkSpeed, this.canSprint, runUp, dy, this.jumpBoost, needed,
+					this.stopsPast(t, ux, uz) ? Double.MAX_VALUE : needed + OVERSHOOT);
+				if (mode == null) {
+					break;
+				}
+
+				double risk = deep ? (PARKOUR_DEEP_RISK + 0.2 * Math.min(depth, 30)) * this.caution * 2.0 : 0.0;
+				double cost = distance * (mode.sprint ? SPRINT : WALK) + JUMP_EXTRA + PARKOUR_EXTRA + risk;
+				this.pendingJump = mode;
+				this.add(node, t, MoveType.PARKOUR, cost, new Clearance(), 0);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * The corridor a jump at an angle sweeps, checked: every cell its body (0.3 either side of its middle) passes through at
+	 * feet, head and the top of the jump is open and seen, and at least one has no floor. Returns how deep a fall a miss
+	 * would be (as gapDepth), -1 if there's no gap at all or it's over lava, or MIN_VALUE if the way is blocked.
+	 */
+	private int corridor(BlockPos n, BlockPos t, double ux, double uz, double distance, int dy) {
+		java.util.Set<Long> columns = new java.util.HashSet<>();
+		double x0 = n.getX() + 0.5;
+		double z0 = n.getZ() + 0.5;
+		for (double s = 0.0; s <= distance + 1.0E-6; s += 0.25) {
+			double cx = x0 + ux * s;
+			double cz = z0 + uz * s;
+			for (double ox : new double[] {-0.3, 0.3}) {
+				for (double oz : new double[] {-0.3, 0.3}) {
+					columns.add(net.minecraft.world.level.ChunkPos.asLong(Mth.floor(cx + ox), Mth.floor(cz + oz)));
+				}
+			}
+		}
+
+		boolean gap = false;
+		int deepest = 0;
+		int low = Math.min(0, dy);
+		int high = Math.max(2, dy + 2);
+		for (long key : columns) {
+			int x = net.minecraft.world.level.ChunkPos.getX(key);
+			int z = net.minecraft.world.level.ChunkPos.getZ(key);
+			boolean takeoff = x == n.getX() && z == n.getZ();
+			boolean landing = x == t.getX() && z == t.getZ();
+			for (int y = low; y <= high; y++) {
+				BlockPos cell = new BlockPos(x, n.getY() + y, z);
+				// (The take-off column only from its feet up; the landing column only from its feet there up.)
+				if (takeoff && y < 0 || landing && cell.getY() < t.getY()) {
+					continue;
+				}
+
+				if (!this.openSeen(cell)) {
+					return Integer.MIN_VALUE;
+				}
+			}
+
+			if (takeoff || landing) {
+				continue;
+			}
+
+			BlockPos floor = new BlockPos(x, n.getY() - 1, z);
+			if (!this.view.standable(floor)) {
+				gap = true;
+				int depth = this.columnDepth(new BlockPos(x, n.getY(), z));
+				if (depth < 0) {
+					return -1;
+				}
+
+				deepest = Math.max(deepest, depth);
+			}
+		}
+
+		return gap ? deepest : -1;
+	}
+
+	/** Floor under every point of the straight line from the take-off's middle to the landing's (no gap on the way). */
+	private boolean floorAlong(BlockPos n, double ux, double uz, double distance) {
+		for (double s = 0.5; s < distance; s += 0.5) {
+			if (!this.view.standable(BlockPos.containing(n.getX() + 0.5 + ux * s, n.getY() - 1, n.getZ() + 0.5 + uz * s))) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** Blocks to the floor under this cell (0 for water), UNSEEN_GAP_DEPTH where unseen, -1 for lava (or unseen in the Nether). */
+	private int columnDepth(BlockPos column) {
+		for (int k = 1; k <= 40; k++) {
+			BlockPos cell = column.below(k);
+			if (!this.view.isKnown(cell)) {
+				return this.lavaWorld ? -1 : UNSEEN_GAP_DEPTH;
+			}
+
+			NavView.Kind kind = this.view.cell(cell).kind();
+			if (kind == NavView.Kind.WATER) {
+				return 0;
+			}
+
+			if (kind == NavView.Kind.BANNED) {
+				return -1;
+			}
+
+			if (kind != NavView.Kind.OPEN) {
+				return k - 1;
+			}
+		}
+
+		return UNSEEN_GAP_DEPTH;
+	}
+
+	/** Room to back up for a run along this line: floor and headroom one and two blocks back. */
+	private boolean roomToRunUp(BlockPos n, double ux, double uz) {
+		for (int i = 1; i <= 2; i++) {
+			BlockPos back = BlockPos.containing(n.getX() + 0.5 - ux * i, n.getY(), n.getZ() + 0.5 - uz * i);
+			if (!this.openSeen(back) || !this.openSeen(back.above()) || !this.view.isKnown(back.below()) || !this.view.standable(back.below())) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	/** Two blocks of seen floor behind it, with room to stand, to back up onto and run from. */
 	private boolean roomToRunUp(BlockPos n, Direction d) {
 		for (int i = 1; i <= 2; i++) {
@@ -651,6 +869,32 @@ public class PathSearch {
 		}
 
 		return true;
+	}
+
+	/** How the gap jump being added is taken (set just before adding it). */
+	@Nullable
+	private JumpPhysics.Mode pendingJump;
+
+	/**
+	 * Something past the landing that stops it (more floor at that level, or a wall): without it, a jump that would carry
+	 * well past the landing block sails off the far side, so it must be one that carries only just far enough.
+	 */
+	private boolean stopsPast(BlockPos t, double ux, double uz) {
+		BlockPos beyond = BlockPos.containing(t.getX() + 0.5 + ux, t.getY(), t.getZ() + 0.5 + uz);
+		NavView.Kind wall = this.view.cell(beyond).kind();
+		NavView.Kind head = this.view.cell(beyond.above()).kind();
+		return this.view.isKnown(beyond.below()) && this.view.standable(beyond.below()) && this.view.cell(beyond.below()).kind() == NavView.Kind.SOLID
+			|| wall == NavView.Kind.SOLID || head == NavView.Kind.SOLID;
+	}
+
+	/** Most a jump may carry beyond what it needs, with nothing past the landing to stop it (just past the landing block). */
+	private static final double OVERSHOOT = 1.1;
+
+	/** Room over the take-off and the landing for the top of a jump up (its head goes about 3 blocks up): nothing solid seen there. */
+	private boolean headroomUp(BlockPos n, BlockPos t) {
+		NavView.Kind over = this.view.cell(n.above(3)).kind();
+		NavView.Kind overLanding = this.view.cell(t.above(2)).kind();
+		return over != NavView.Kind.SOLID && over != NavView.Kind.BANNED && overLanding != NavView.Kind.SOLID && overLanding != NavView.Kind.BANNED;
 	}
 
 	/** Open and seen (a jump's way has to be: it won't leap into what it hasn't looked at). */
@@ -668,7 +912,7 @@ public class PathSearch {
 	private void tryParkour(Node node, Direction d, boolean onSolidFloor) {
 		BlockPos n = node.pos;
 		if (!onSolidFloor || node.move == MoveType.BRIDGE || node.move == MoveType.PILLAR || this.view.isWater(n)
-			|| this.view.cell(n.below()).kind() != NavView.Kind.SOLID || !this.view.isKnown(n.below())) {
+			|| !this.view.jumpFooting(n.below())) {
 			return;
 		}
 
@@ -684,6 +928,8 @@ public class PathSearch {
 			|| this.roomToRunUp(n, d);
 		int maxGap = this.skill >= 0.35 ? 3 : 2;
 		double margin = 0.15 + 0.25 * (1.0 - this.skill);
+		double ux = d.getStepX();
+		double uz = d.getStepZ();
 		for (int g = 1; g <= maxGap; g++) {
 			BlockPos gap = n.relative(d, g);
 			// The gap itself: open (feet, head and the top of the jump), and no floor (that would end the gap a block sooner).
@@ -694,8 +940,12 @@ public class PathSearch {
 			BlockPos column = n.relative(d, g + 1);
 			for (int dy = 1; dy >= -3; dy--) {
 				BlockPos t = column.above(dy);
-				if (!this.view.isKnown(t.below()) || this.view.cell(t.below()).kind() != NavView.Kind.SOLID || !this.view.standable(t.below())) {
+				if (!this.view.jumpFooting(t.below())) {
 					continue;
+				}
+
+				if (dy > 0 && !this.headroomUp(n, t)) {
+					break;
 				}
 
 				// (Not one it missed a moment ago.)
@@ -720,13 +970,16 @@ public class PathSearch {
 				}
 
 				boolean deep = depth > this.maxDrop;
-				double reach = JumpPhysics.reach(this.walkSpeed, this.canSprint, runUp, dy, this.jumpBoost);
-				if (reach < need + margin + (deep ? 0.3 : 0.0)) {
+				double needed = need + margin + (deep ? 0.3 : 0.0);
+				JumpPhysics.Mode mode = JumpPhysics.choose(this.walkSpeed, this.canSprint, runUp, dy, this.jumpBoost, needed,
+					this.stopsPast(t, ux, uz) ? Double.MAX_VALUE : needed + OVERSHOOT);
+				if (mode == null) {
 					break;
 				}
 
 				double risk = deep ? (PARKOUR_DEEP_RISK + 0.2 * Math.min(depth, 30)) * this.caution * 2.0 : 0.0;
-				double cost = (g + 1) * (this.canSprint ? SPRINT : WALK) + JUMP_EXTRA + PARKOUR_EXTRA + risk;
+				double cost = (g + 1) * (mode.sprint ? SPRINT : WALK) + JUMP_EXTRA + PARKOUR_EXTRA + risk;
+				this.pendingJump = mode;
 				this.add(node, t, MoveType.PARKOUR, cost, new Clearance(), 0);
 				break;
 			}
@@ -970,6 +1223,7 @@ public class PathSearch {
 		node.parent = from;
 		node.underwater = underwater;
 		node.move = move;
+		node.jump = move == MoveType.PARKOUR ? this.pendingJump : null;
 		node.digs = clearance.digs == null ? List.of() : List.copyOf(clearance.digs);
 		node.unknown = clearance.unknown;
 		node.blocksUsed = from.blocksUsed + blocks;

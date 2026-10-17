@@ -201,7 +201,7 @@ public final class DebugOverlayRenderer {
 		lines.addVertex(pose, (float)to.x, (float)to.y, (float)to.z).setColor(r, g, b, a).setNormal(pose, (float)normal.x, (float)normal.y, (float)normal.z);
 	}
 
-	/** Path colours by move: walking white, up/down light blue, bridge blue, pillar cyan, climb green, swim aqua. */
+	/** Path colours by move: walking white, up/down light blue, bridge blue, pillar cyan, climb green, swim aqua, jumps orange. */
 	private static int moveColor(int ordinal) {
 		MoveType type = MoveType.values()[Mth.clamp(ordinal, 0, MoveType.values().length - 1)];
 		return switch (type) {
@@ -210,6 +210,7 @@ public final class DebugOverlayRenderer {
 			case JUMP_UP, STEP_DOWN -> 0xFF99CCFF;
 			case CLIMB_UP, CLIMB_DOWN -> 0xFF66FF66;
 			case SWIM, SWIM_UP, SWIM_DOWN -> 0xFF33CCCC;
+			case PARKOUR -> 0xFFFF9933;
 			default -> 0xFFFFFFFF;
 		};
 	}

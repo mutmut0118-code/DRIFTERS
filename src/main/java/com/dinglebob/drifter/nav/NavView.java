@@ -387,6 +387,22 @@ public final class NavView {
 		return !shape.isEmpty() && shape.max(Direction.Axis.Y) <= 1.0;
 	}
 
+	/**
+	 * Good footing to jump from or land on: a full-height block it has seen with ordinary grip (not ice, slime, honey or
+	 * soul sand, which change how a jump goes), so the jump goes as the physics says.
+	 */
+	public boolean jumpFooting(BlockPos floor) {
+		if (!this.knowledge.isKnown(floor) || this.cell(floor).kind() != Kind.SOLID) {
+			return false;
+		}
+
+		BlockState state = this.state(floor);
+		VoxelShape shape = state.getCollisionShape(this.level, floor);
+		var block = state.getBlock();
+		return !shape.isEmpty() && shape.max(Direction.Axis.Y) >= 0.9 && shape.max(Direction.Axis.Y) <= 1.0 && block.getFriction() == 0.6F
+			&& block.getSpeedFactor() == 1.0F && block.getJumpFactor() == 1.0F;
+	}
+
 	private boolean besidePortal(BlockPos pos) {
 		for (Direction direction : Direction.values()) {
 			if (this.state(pos.relative(direction)).is(Blocks.NETHER_PORTAL)) {
