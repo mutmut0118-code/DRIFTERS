@@ -150,6 +150,8 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		float swimAmount = drifter.getSwimAmount(partialTick);
 		float viewPitch = drifter.getViewXRot(partialTick);
 		super.setupRotations(drifter, poseStack, bob, bodyYaw, partialTick, scale);
+		// A Better Combat swing's whole-body movement (the twist into a slash, the lean into a stab).
+		DrifterSwingAnimations.applyBody(drifter, poseStack, partialTick);
 		// A roll (Combat Roll's dodge): a forward somersault the way it rolls, round the middle of its body.
 		float roll = drifter.rollProgress(partialTick);
 		if (roll >= 0.0F) {

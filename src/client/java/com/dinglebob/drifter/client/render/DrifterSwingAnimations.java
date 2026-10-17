@@ -67,6 +67,19 @@ public final class DrifterSwingAnimations {
 	private static Method applierActive;
 	private static Method setTickDelta;
 	private static Method updatePart;
+	/** The whole body's turn, lean and lift in a swing (the library does this for players in their renderer). */
+	private static Method get3DTransform;
+	private static Object scaleType;
+	private static Object positionType;
+	private static Object rotationType;
+	private static Constructor<?> vec3f;
+	private static Object vec3fZero;
+	private static Method vecX;
+	private static Method vecY;
+	private static Method vecZ;
+	/** The model's own handle on the running animation: with bendy-lib installed it draws the elbow and knee bends from it. */
+	private static Method getEmoteSupplier;
+	private static Method supplierSet;
 	private static Method emfEntityOf;
 	private static Method emfPause;
 	private static Method emfResume;
@@ -115,6 +128,25 @@ public final class DrifterSwingAnimations {
 			applierActive = applier.getMethod("isActive");
 			setTickDelta = applier.getMethod("setTickDelta", float.class);
 			updatePart = applier.getMethod("updatePart", String.class, ModelPart.class);
+			Class<?> transform = Class.forName(api + "api.TransformType");
+			Class<?> vec = Class.forName(api + "core.util.Vec3f");
+			get3DTransform = applier.getMethod("get3DTransform", String.class, transform, vec);
+			scaleType = transform.getField("SCALE").get(null);
+			positionType = transform.getField("POSITION").get(null);
+			rotationType = transform.getField("ROTATION").get(null);
+			vec3f = vec.getConstructor(float.class, float.class, float.class);
+			vec3fZero = vec.getField("ZERO").get(null);
+			vecX = vec.getMethod("getX");
+			vecY = vec.getMethod("getY");
+			vecZ = vec.getMethod("getZ");
+			try {
+				getEmoteSupplier = Class.forName(api + "impl.IMutableModel").getMethod("getEmoteSupplier");
+				supplierSet = Class.forName(api + "core.util.SetableSupplier").getMethod("set", Object.class);
+			} catch (ReflectiveOperationException e) {
+				// No bends then (an older or newer library): the rest still works.
+				getEmoteSupplier = null;
+			}
+
 			ready = true;
 			failed = false;
 			Drifter.LOGGER.info("[Drifter] Drifters play Better Combat's swing animations");
@@ -213,6 +245,11 @@ public final class DrifterSwingAnimations {
 			model.leftSleeve.copyFrom(model.leftArm);
 			model.rightPants.copyFrom(model.rightLeg);
 			model.leftPants.copyFrom(model.leftLeg);
+			// The model draws the bends (elbows, knees, the waist) from the running animation, as for a player.
+			if (getEmoteSupplier != null && getEmoteSupplier.getDeclaringClass().isInstance(model)) {
+				supplierSet.invoke(getEmoteSupplier.invoke(model), state.applier);
+			}
+
 			if (TRACE && traced++ % 10 == 0) {
 				Drifter.LOGGER.info("[Drifter test] swing frame: right arm xRot {} -> {}, yRot {}, body yRot {}", before, model.rightArm.xRot,
 					model.rightArm.yRot, model.body.yRot);
@@ -230,6 +267,43 @@ public final class DrifterSwingAnimations {
 			failed = true;
 			Drifter.LOGGER.warn("[Drifter] Swing animation failed ({}); Drifters show the vanilla swing from now on", e.toString());
 		}
+	}
+
+	/**
+	 * In the renderer's rotations (before the model is drawn): the swing's whole-body movement, the twist into a slash and
+	 * the lean into a stab or slam, as the library does for a player (PlayerRenderer's setupRotations: scale, then a move,
+	 * then turns round a point 0.7 up).
+	 */
+	public static void applyBody(DrifterEntity drifter, com.mojang.blaze3d.vertex.PoseStack poseStack, float partialTick) {
+		if (!ready) {
+			return;
+		}
+
+		State state = STATES.get(drifter);
+		if (state == null || state.applier == null) {
+			return;
+		}
+
+		try {
+			setTickDelta.invoke(state.applier, partialTick);
+			Object scale = get3DTransform.invoke(state.applier, "body", scaleType, vec3f.newInstance(1.0F, 1.0F, 1.0F));
+			poseStack.scale(f(vecX, scale), f(vecY, scale), f(vecZ, scale));
+			Object position = get3DTransform.invoke(state.applier, "body", positionType, vec3fZero);
+			poseStack.translate(f(vecX, position), f(vecY, position) + 0.7, f(vecZ, position));
+			Object rotation = get3DTransform.invoke(state.applier, "body", rotationType, vec3fZero);
+			poseStack.mulPose(com.mojang.math.Axis.ZP.rotation(f(vecZ, rotation)));
+			poseStack.mulPose(com.mojang.math.Axis.YP.rotation(f(vecY, rotation)));
+			poseStack.mulPose(com.mojang.math.Axis.XP.rotation(f(vecX, rotation)));
+			poseStack.translate(0.0, -0.7, 0.0);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			ready = false;
+			failed = true;
+			Drifter.LOGGER.warn("[Drifter] Swing body movement failed ({}); Drifters show the vanilla swing from now on", e.toString());
+		}
+	}
+
+	private static float f(Method getter, Object vec) throws ReflectiveOperationException {
+		return ((Number)getter.invoke(vec)).floatValue();
 	}
 
 	private static void start(State state, String data, DrifterEntity drifter) throws ReflectiveOperationException {
