@@ -34,7 +34,8 @@
 	"sill": "minecraft:spruce_stairs",
 	"roofs": {
 		"gable": 3,
-		"gable_z": 2
+		"gable_z": 2,
+		"hip": 1
 	},
 	"stair": "minecraft:spruce_stairs",
 	"slab": "minecraft:spruce_slab",
@@ -42,5 +43,10 @@
 	"door": "minecraft:spruce_door",
 	"porch": 0.35,
 	"chimney": 0.3,
-	"door_off_center": 0.4
+	"door_off_center": 0.4,
+	"wing": 0.5,
+	"wing_depth": [
+		3,
+		5
+	]
 }

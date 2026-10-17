@@ -37,5 +37,10 @@
 	"gable_fill": "minecraft:oak_planks",
 	"door": "minecraft:spruce_door",
 	"porch": 0.5,
-	"chimney": 0.5
+	"chimney": 0.5,
+	"wing": 0.4,
+	"wing_depth": [
+		3,
+		5
+	]
 }

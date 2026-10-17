@@ -31,7 +31,8 @@ import net.minecraft.world.level.block.state.properties.SlabType;
  * walls of a style's materials (log corner posts and posts along the walls, a stone base row, a log beam at the top,
  * different infill upstairs), windows spaced along the walls (some two tall, some with sills), a door in the front (in
  * the middle or a little off), sometimes a porch (a slab deck, posts, a slab roof) and a chimney, and a roof: a gable
- * either way round, a shed slope, or flat with a parapet. Eaves sit level with the top of the wall (beside it, never
+ * either way round, a hip (sloping on all four sides), a shed slope, or flat with a parapet; and sometimes a wing out of the back (an L-shaped house), its
+ * own roof running into the main one. Eaves sit level with the top of the wall (beside it, never
  * hanging in the air: what the hand-made designs taught). Each plan picks its materials once from the style's options.
  * The front is the low-z side; the plan is turned to suit its site when it's placed, like any other. Each plan is checked
  * (PlanCheck) before it's used.
@@ -39,6 +40,9 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 public final class PlanGenerator {
 	private PlanGenerator() {
 	}
+
+	/** What the last plan made has (its roof, a wing, a porch...), for the tally and the showcase (debug). */
+	static List<String> lastFeatures = List.of();
 
 	/** Eaves stick out this far past the walls. */
 	private static final int OVERHANG = 1;
@@ -66,6 +70,8 @@ public final class PlanGenerator {
 	@Nullable
 	public static HousePlan generate(String id, HouseStyle style, RandomSource random) {
 		Materials m = materials(style, random);
+		List<String> features = new ArrayList<>();
+		lastFeatures = features;
 		int width = style.between("width", 5, 9, random);
 		int depth = style.between("depth", 5, 8, random);
 		int height = style.between("wall_height", 3, 4, random);
@@ -74,6 +80,11 @@ public final class PlanGenerator {
 		// A shed roof climbs half a block a block: on a deep house it gets too tall.
 		if (roof.equals("shed") && depth > 7) {
 			roof = "gable";
+		}
+
+		features.add(roof);
+		if (floors == 2) {
+			features.add("two floors");
 		}
 
 		boolean tall = height >= 4 && style.chance("tall_windows", 0.3, random);
@@ -155,16 +166,27 @@ public final class PlanGenerator {
 		switch (roof) {
 			case "gable_z" -> gable(cells, m, width, depth, top, false);
 			case "shed" -> shed(cells, m, width, depth, top);
+			case "hip" -> hip(cells, m, width, depth, top);
 			case "flat" -> flat(cells, m, width, depth, top);
 			default -> gable(cells, m, width, depth, top, true);
 		}
 
 		if (style.chance("porch", 0.25, random)) {
 			porch(cells, m, width, doorX, height);
+			features.add("porch");
 		}
 
-		if (style.chance("chimney", 0.25, random)) {
+		boolean chimney = style.chance("chimney", 0.25, random);
+		if (chimney) {
 			chimney(cells, m, width - 2, depth - 1);
+			features.add("chimney");
+		}
+
+		// (Drawn last, so a plan without a wing comes out as it did before wings.)
+		if (roof.equals("gable") && style.chance("wing", 0.0, random)) {
+			if (wing(cells, m, style, random, width, depth, height, top, floors == 2 ? ladderX : -1, spacing, chimney)) {
+				features.add("wing");
+			}
 		}
 
 		return normalize(id, cells);
@@ -239,6 +261,145 @@ public final class PlanGenerator {
 		}
 	}
 
+	/**
+	 * A one-storey wing out of the back on one side (an L): its own floor, walls and windows, a doorway through the back
+	 * wall into it, and a gable roof with its ridge front to back whose slopes run on up the main roof's back slope until
+	 * they meet it (cells under the main roof's surface are left out, so the two roofs join with no gap). Only behind a
+	 * gable whose ridge runs along the front. Never over the chimney or the ladder.
+	 */
+	private static boolean wing(Map<BlockPos, BlockState> cells, Materials m, HouseStyle style, RandomSource random, int width, int depth, int height,
+		int top, int ladderX, int spacing, boolean chimney) {
+		int widest = Math.min(width - 2, depth + 1);
+		if (chimney) {
+			widest = Math.min(widest, width - 3);
+		}
+
+		if (widest < 5) {
+			return false;
+		}
+
+		int w = 5 + random.nextInt(widest - 4);
+		int d = style.between("wing_depth", 3, 5, random);
+		boolean left = chimney || random.nextBoolean();
+		int x0 = left ? 0 : width - w;
+		int x1 = x0 + w - 1;
+		int shared = depth - 1;
+		int back = shared + d;
+
+		// Clear its room (a window sill outside the back wall, the back eave over it) and the eave along where it joins.
+		cells.keySet().removeIf(pos -> pos.getX() > x0 && pos.getX() < x1 && pos.getZ() >= depth && pos.getZ() < back && pos.getY() >= 1
+			&& pos.getY() <= height);
+		for (int x = x0 - 1; x <= x1 + 1; x++) {
+			cells.remove(new BlockPos(x, top, depth));
+		}
+
+		for (int x = x0; x <= x1; x++) {
+			for (int z = depth; z <= back; z++) {
+				cells.put(new BlockPos(x, 0, z), m.floor().defaultBlockState());
+			}
+		}
+
+		for (int y = 1; y <= height; y++) {
+			for (int x = x0; x <= x1; x++) {
+				for (int z = shared; z <= back; z++) {
+					if (x == x0 || x == x1 || z == shared || z == back) {
+						cells.put(new BlockPos(x, y, z), wall(m, 0, x - x0, z - shared, y, w, d + 1, height));
+					}
+				}
+			}
+		}
+
+		// The way through, in the middle of the shared wall (not where the ladder hangs on it).
+		int through = (x0 + x1) / 2;
+		if (through == ladderX) {
+			through += left ? 1 : -1;
+		}
+
+		cells.remove(new BlockPos(through, 1, shared));
+		cells.remove(new BlockPos(through, 2, shared));
+		for (int z = depth; z < back; z++) {
+			if ((z - depth) % spacing == spacing / 2) {
+				window(cells, m, new BlockPos(x0, 2, z), Direction.WEST, false);
+				window(cells, m, new BlockPos(x1, 2, z), Direction.EAST, false);
+			}
+		}
+
+		for (int x = x0 + 1; x < x1; x++) {
+			if ((x - x0 - 1) % spacing == spacing / 2) {
+				window(cells, m, new BlockPos(x, 2, back), Direction.SOUTH, false);
+			}
+		}
+
+		Map<BlockPos, BlockState> roof = new HashMap<>();
+		gable(roof, m, w, d + 1, height, false);
+		for (Map.Entry<BlockPos, BlockState> entry : roof.entrySet()) {
+			BlockPos pos = entry.getKey().offset(x0, 0, shared);
+			// Over the main house: only what shows above its roof's back slope.
+			if (pos.getZ() < depth && pos.getY() <= top + Math.min(pos.getZ() + 1, depth - pos.getZ())) {
+				continue;
+			}
+
+			cells.put(pos, entry.getValue());
+		}
+
+		return true;
+	}
+
+	/**
+	 * A hip roof: rings of stairs climbing in from all four sides (the first beside the top of the wall), a slab ridge
+	 * along the long way where the short sides meet. Each ring from the third up has a ring of the gable-end block under
+	 * it, inside the one below, to rest on (stairs climbing in only touch the ring below at an edge: nothing to place
+	 * them against, and PlanCheck would call them floating).
+	 */
+	private static void hip(Map<BlockPos, BlockState> cells, Materials m, int width, int depth, int top) {
+		BlockState backing = m.gableFill().defaultBlockState();
+		for (int k = 0; ; k++) {
+			int ax = -OVERHANG + k;
+			int bx = width - 1 + OVERHANG - k;
+			int az = -OVERHANG + k;
+			int bz = depth - 1 + OVERHANG - k;
+			if (ax > bx || az > bz) {
+				return;
+			}
+
+			int y = top + k;
+			List<BlockPos> ring = new ArrayList<>();
+			if (ax == bx || az == bz) {
+				// The ridge.
+				for (int x = ax; x <= bx; x++) {
+					for (int z = az; z <= bz; z++) {
+						cells.put(new BlockPos(x, y, z), m.slab().defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM));
+						ring.add(new BlockPos(x, y, z));
+					}
+				}
+			} else {
+				for (int x = ax; x <= bx; x++) {
+					cells.put(new BlockPos(x, y, az), stair(m.stair(), Direction.SOUTH));
+					cells.put(new BlockPos(x, y, bz), stair(m.stair(), Direction.NORTH));
+					ring.add(new BlockPos(x, y, az));
+					ring.add(new BlockPos(x, y, bz));
+				}
+
+				for (int z = az + 1; z < bz; z++) {
+					cells.put(new BlockPos(ax, y, z), stair(m.stair(), Direction.EAST));
+					cells.put(new BlockPos(bx, y, z), stair(m.stair(), Direction.WEST));
+					ring.add(new BlockPos(ax, y, z));
+					ring.add(new BlockPos(bx, y, z));
+				}
+			}
+
+			if (k >= 2) {
+				for (BlockPos pos : ring) {
+					cells.put(pos.below(), backing);
+				}
+			}
+
+			if (ax == bx || az == bz) {
+				return;
+			}
+		}
+	}
+
 	/** Places at (along, y, across) for a ridge along x, or the same turned for one along z. */
 	private static void put(Map<BlockPos, BlockState> cells, boolean ridgeAlongX, int along, int y, int across, BlockState state) {
 		cells.put(ridgeAlongX ? new BlockPos(along, y, across) : new BlockPos(across, y, along), state);
@@ -254,6 +415,12 @@ public final class PlanGenerator {
 			// The eave beside the wall top, then over the wall and climbing.
 			int y = k == 0 ? top : top + 1 + (k - 1) / 2;
 			SlabType type = k == 0 || (k - 1) % 2 == 0 ? SlabType.BOTTOM : SlabType.TOP;
+			// (No overhang at the back where the slope steps up there: past the walls nothing holds that row, it would only
+			// touch the one before at an edge. Found by PlanCheck.)
+			if (z == depth && type == SlabType.BOTTOM) {
+				continue;
+			}
+
 			for (int x = -OVERHANG; x < width + OVERHANG; x++) {
 				cells.put(new BlockPos(x, y, z), m.slab().defaultBlockState().setValue(SlabBlock.TYPE, type));
 			}

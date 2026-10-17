@@ -1693,8 +1693,13 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   existing palette swap). Eight to start: timber cottage, stone cottage, log cabin, farmhouse, longhouse, tower house,
   shed hut, stonemason.
 - **The generator** (`building/plan/gen/PlanGenerator`): one or two storeys (a ladder up), framed walls (log corners and
-  beams), a base row, windows (with sills), a door (centred or off-centre), gable (either way), shed or flat roofs with
-  eaves level with the wall top, a porch (slab deck, posts, slab roof), a chimney up through the roof.
+  beams), a base row, windows (with sills), a door (centred or off-centre), gable (either way), hip, shed or flat roofs
+  with eaves level with the wall top, a porch (slab deck, posts, slab roof), a chimney up through the roof, and an L: a
+  one-storey wing out of the back (behind a gable whose ridge runs along the front), a doorway through, its own gable
+  roof running up the main roof's back slope until it meets it (cells under the main roof left out, so they join with no
+  gap). Hip roofs rest each ring of stairs on a ring of planks inside the one below (stairs climbing in only touch at an
+  edge: nothing to place against). Shed roofs drop the back overhang where the slope would step up there (it floated:
+  PlanCheck threw away 13 drafts for it; none now).
 - **Every plan is checked** (`PlanCheck`) before it's used: a door, nothing floating (each block reaches the ground
   face to face, so a player could place it), and a roofed spot for the bed on the lowest floor (the same test the
   builder uses). Drafts that fail are thrown away and redrawn.
@@ -1704,12 +1709,14 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   industrious and Builder Drifters lean to bigger houses, thrifty ones to smaller; seeded by who it is, so it doesn't
   change its mind.
 - **Debug:** `/drifter house showcase <count>` puts a row of them down next to you (a test world: it really places
-  them); `/drifter house export <count>` saves them as structure files; `/drifter house choose gen:<style>` makes the
-  nearest Drifter pick one of that style.
-- **Seen:** the showcase in the client (porches, chimneys, longhouses, towers).
-- **To do:** a Drifter building a generated plan start to finish in a 10-day run (staged test next); more shapes from
-  the plan (L and T footprints, a tower wing, hip and A-frame roofs, lofts); pictures of a sample for the user to veto
-  styles.
+  them) and names each with where it went and what it has; `/drifter house export <count>` saves them as structure
+  files; `/drifter house choose gen:<style>` (or a plan's id, `gen:farmhouse_96`) makes the nearest Drifter pick it. The
+  server log line when plans are made counts what they have: in the first test world 151 gable, 73 gable the other way,
+  27 hip, 30 shed, 19 flat; 101 two-storey, 93 porches, 96 chimneys, 37 wings.
+- **Seen:** the showcase in the client (porches, chimneys, longhouses, towers, wings, hip roofs). A Drifter built a
+  generated timber cottage start to finish on flat ground (193 of 193 blocks, then moved its bed in).
+- **To do:** a Drifter building a winged house start to finish (running); more shapes (a T, a tower wing, A-frame
+  roofs, lofts); a 10-day run where a Drifter picks a generated plan on its own.
 
 ## Ideas for more assumptions (for the user to pick from)
 

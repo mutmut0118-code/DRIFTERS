@@ -80,7 +80,8 @@ public final class HouseCommands {
 				level.setBlock(at.offset(x, 0, 0).offset(cell.pos()), cell.state(), 2);
 			}
 
-			names.append(made == 0 ? "" : ", ").append(plan.id.substring(4));
+			names.append(made == 0 ? "" : ", ").append(plan.id.substring(4)).append(" at ").append(at.getX() + x).append(" ")
+				.append(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.features(plan.id));
 			x += Math.max(16, plan.size.getX() + 3);
 		}
 

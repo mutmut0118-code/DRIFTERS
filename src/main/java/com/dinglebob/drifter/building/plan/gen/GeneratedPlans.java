@@ -44,6 +44,8 @@ public final class GeneratedPlans {
 	private static volatile Map<String, HouseStyle> styles = Map.of();
 	private static volatile int stylesVersion;
 	private static Map<String, HousePlan> plans = Map.of();
+	/** What each generated plan has (its roof, a wing, a porch...), for the showcase (debug). */
+	private static Map<String, List<String>> features = Map.of();
 	private static List<HousePlan> bySize = List.of();
 	private static long madeFor = Long.MIN_VALUE;
 	private static int madeCount = -1;
@@ -94,6 +96,8 @@ public final class GeneratedPlans {
 		long started = System.nanoTime();
 		Map<String, HousePlan> made = new LinkedHashMap<>();
 		Map<String, Integer> rejected = new LinkedHashMap<>();
+		Map<String, List<String>> madeFeatures = new LinkedHashMap<>();
+		Map<String, Integer> tally = new java.util.TreeMap<>();
 		List<HouseStyle> all = new ArrayList<>(styles.values());
 		double total = all.stream().mapToDouble(HouseStyle::weight).sum();
 		for (int i = 0; i < count && !all.isEmpty(); i++) {
@@ -114,23 +118,34 @@ public final class GeneratedPlans {
 				String problem = plan == null ? "no plan" : PlanCheck.problem(plan);
 				if (problem == null) {
 					made.put(id, plan);
+					madeFeatures.put(id, PlanGenerator.lastFeatures);
+					PlanGenerator.lastFeatures.forEach(feature -> tally.merge(feature, 1, Integer::sum));
 					break;
 				}
 
-				rejected.merge(problem.replaceAll("[0-9]+ ", ""), 1, Integer::sum);
+				String kind = problem.replaceAll(" [(].*", "").replaceAll("[0-9]+ ", "");
+				if (rejected.merge(kind, 1, Integer::sum) <= 3) {
+					Drifter.LOGGER.info("[Drifter] house plan draft {} thrown away: {}", id, problem);
+				}
 			}
 		}
 
 		plans = java.util.Collections.unmodifiableMap(made);
+		features = madeFeatures;
 		List<HousePlan> sorted = new ArrayList<>(made.values());
 		sorted.sort(Comparator.comparingInt(HousePlan::blockCount));
 		bySize = List.copyOf(sorted);
 		madeFor = seed;
 		madeCount = count;
 		madeVersion = stylesVersion;
-		Drifter.LOGGER.info("[Drifter] made {} house plans from {} styles in {} ms (drafts thrown away: {})", made.size(), all.size(),
-			(System.nanoTime() - started) / 1_000_000, rejected);
+		Drifter.LOGGER.info("[Drifter] made {} house plans from {} styles in {} ms (drafts thrown away: {}; {})", made.size(), all.size(),
+			(System.nanoTime() - started) / 1_000_000, rejected, tally);
 		return plans;
+	}
+
+	/** What this generated plan has (its roof, a wing, a porch...), empty if it isn't one. */
+	public static List<String> features(String id) {
+		return features.getOrDefault(id, List.of());
 	}
 
 	/**

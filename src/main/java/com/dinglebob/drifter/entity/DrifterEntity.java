@@ -768,6 +768,13 @@ public class DrifterEntity extends PathfinderMob {
 		this.traceTicks = ticks;
 	}
 
+	/** Debug: trace for a while unless it already is (used when its thoughts go to the log and it gets stuck). */
+	public void traceIfIdle(int ticks) {
+		if (this.traceTicks <= 0) {
+			this.traceTicks = ticks;
+		}
+	}
+
 	public void holdKeys(List<VirtualKeys.Key> pressed, int ticks) {
 		this.keys.setOnly(pressed);
 		this.keysReleaseTimer = ticks;

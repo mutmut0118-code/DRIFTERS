@@ -30,7 +30,8 @@
 	"roofs": {
 		"gable": 2,
 		"gable_z": 2,
-		"flat": 0.5
+		"flat": 0.5,
+		"hip": 1.5
 	},
 	"stair": "minecraft:spruce_stairs",
 	"slab": "minecraft:spruce_slab",
@@ -38,5 +39,10 @@
 	"parapet": "minecraft:cobblestone_wall",
 	"door": "minecraft:spruce_door",
 	"porch": 0.25,
-	"chimney": 0.4
+	"chimney": 0.4,
+	"wing": 0.5,
+	"wing_depth": [
+		3,
+		5
+	]
 }

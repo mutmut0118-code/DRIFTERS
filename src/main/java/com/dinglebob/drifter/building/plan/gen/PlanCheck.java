@@ -67,7 +67,9 @@ public final class PlanCheck {
 		}
 
 		if (reached.size() < cells.size()) {
-			return (cells.size() - reached.size()) + " floating blocks";
+			BlockPos example = cells.keySet().stream().filter(pos -> !reached.contains(pos)).findFirst().orElse(BlockPos.ZERO);
+			return (cells.size() - reached.size()) + " floating blocks (" + cells.get(example).getBlock().getName().getString() + " at "
+				+ example.toShortString() + " of " + plan.size.toShortString() + ")";
 		}
 
 		PlacedPlan placed = new PlacedPlan(plan, BlockPos.ZERO, Rotation.NONE, HousePalette.asDrawn());

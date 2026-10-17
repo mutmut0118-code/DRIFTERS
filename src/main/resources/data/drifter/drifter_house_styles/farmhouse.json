@@ -32,7 +32,8 @@
 	"sill": "minecraft:oak_stairs",
 	"roofs": {
 		"gable": 3,
-		"gable_z": 1
+		"gable_z": 1,
+		"hip": 0.7
 	},
 	"stair": "minecraft:oak_stairs",
 	"slab": "minecraft:oak_slab",
@@ -40,5 +41,10 @@
 	"door": "minecraft:oak_door",
 	"upper_floor": "minecraft:spruce_planks",
 	"porch": 0.5,
-	"chimney": 0.35
+	"chimney": 0.35,
+	"wing": 0.65,
+	"wing_depth": [
+		3,
+		5
+	]
 }

@@ -1896,6 +1896,11 @@ public class NavigateTask extends Task {
 				this.drifter.bridgeFailedAt(this.path.get(this.index).to());
 			}
 
+			// (Debug, thoughts in the log: trace the next while, to see what holds it up.)
+			if (com.dinglebob.drifter.memory.ThoughtLog.echo) {
+				this.drifter.traceIfIdle(20 * 20);
+			}
+
 			this.replan("no progress for " + REPLAN_AFTER / 20 + " s");
 		}
 
