@@ -1360,9 +1360,12 @@ public class Reflexes {
 			return 15;
 		}
 
+		private boolean rolled;
+
 		@Override
 		protected void start(DrifterEntity drifter) {
 			this.left = drifter.getRandom().nextBoolean();
+			this.rolled = false;
 		}
 
 		@Override
@@ -1413,6 +1416,11 @@ public class Reflexes {
 					Steering.stopMoving(drifter);
 					return tick < 8;
 				}
+			}
+
+			// With Combat Roll: a roll across its line instead, if it has one ready (a player's dodge).
+			if (!this.rolled && com.dinglebob.drifter.compat.CombatRollCompat.roll(drifter, across)) {
+				this.rolled = true;
 			}
 
 			Steering.pressToward(drifter, drifter.position().add(across));

@@ -135,10 +135,16 @@ public final class Combat {
 		}
 	}
 
+	/** Its attack reach: the player's, or with Better Combat installed, the reach of the weapon in its hand. */
+	public static double reach(DrifterEntity drifter) {
+		double base = drifter.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+		return com.dinglebob.drifter.compat.BetterCombatCompat.range(drifter.getMainHandItem(), base);
+	}
+
 	/** Is this entity under its crosshair, within reach, with no block in the way? */
 	public static boolean canHit(DrifterEntity drifter, Entity target) {
 		Vec3 eye = drifter.getEyePosition();
-		double range = drifter.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+		double range = reach(drifter);
 		Vec3 end = eye.add(drifter.getViewVector(1.0F).scale(range));
 		AABB box = target.getBoundingBox().inflate(target.getPickRadius());
 		Optional<Vec3> hit = box.contains(eye) ? Optional.of(eye) : box.clip(eye, end);
@@ -148,6 +154,44 @@ public final class Combat {
 
 		return drifter.level().clip(new ClipContext(eye, hit.get(), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, drifter)).getType()
 			== HitResult.Type.MISS;
+	}
+
+	/**
+	 * Other hostiles inside this Better Combat swing (its reach, and its arc: wide for a horizontal sweep, narrow for an
+	 * overhead or a thrust), in clear sight.
+	 */
+	private static List<Entity> alsoInArc(DrifterEntity drifter, Entity target, com.dinglebob.drifter.compat.BetterCombatCompat.Swing swing) {
+		double range = reach(drifter);
+		Vec3 eye = drifter.getEyePosition();
+		Vec3 look = drifter.getViewVector(1.0F);
+		double half = switch (swing.hitbox()) {
+			case "HORIZONTAL_PLANE" -> Math.max(15.0, swing.angle() / 2.0);
+			case "VERTICAL_PLANE" -> 15.0;
+			default -> 10.0;
+		};
+		List<Entity> hits = new ArrayList<>();
+		for (Entity other : drifter.level().getEntities(drifter, drifter.getBoundingBox().inflate(range + 1.0), Entity::isAlive)) {
+			if (other == target || !(other instanceof net.minecraft.world.entity.LivingEntity)
+				|| !(other instanceof net.minecraft.world.entity.monster.Enemy || other instanceof Mob mob && mob.getTarget() == drifter)) {
+				continue;
+			}
+
+			Vec3 to = other.getBoundingBox().getCenter().subtract(eye);
+			Vec3 closest = other.getBoundingBox().getCenter();
+			if (eye.distanceTo(closest) > range + other.getBbWidth() / 2.0) {
+				continue;
+			}
+
+			double angle = Math.toDegrees(Math.acos(Math.max(-1.0, Math.min(1.0, to.normalize().dot(look)))));
+			if (angle > half || drifter.level().clip(new ClipContext(eye, closest, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, drifter))
+				.getType() != HitResult.Type.MISS) {
+				continue;
+			}
+
+			hits.add(other);
+		}
+
+		return hits;
 	}
 
 	/** Swings at the target as a player would. Returns false if it isn't under the crosshair in reach. */
@@ -175,9 +219,34 @@ public final class Combat {
 			fake.setSprinting(wasSprinting);
 			fake.fallDistance = drifter.fallDistance;
 			drifter.setOwnSwing(true);
+			// Better Combat: this swing is the next attack of the weapon's combo (its own damage, arc and sound).
+			com.dinglebob.drifter.compat.BetterCombatCompat.Swing swing = com.dinglebob.drifter.compat.BetterCombatCompat.swing(fake,
+				drifter.comboFor(sinceAttack));
 			try {
 				fake.attack(target);
+				if (swing != null) {
+					// Its swing animation on watching clients (Better Combat's own, for this attack of the combo).
+					drifter.showSwing(swing.animation(), attackDelay(drifter), drifter.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT);
+					com.dinglebob.drifter.compat.BetterCombatCompat.playSwingSound((net.minecraft.server.level.ServerLevel)drifter.level(), drifter, swing);
+					// Everything else in the swing's arc it would hit too, as Better Combat hits for a player (hostiles only:
+					// it doesn't clip a friend or an animal on the way past).
+					List<Entity> others = alsoInArc(drifter, target, swing);
+					for (Entity other : others) {
+						((LivingEntityAccessor)fake).drifter$setAttackStrengthTicker(sinceAttack);
+						fake.attack(other);
+						redirectAnger(drifter, other);
+					}
+
+					if (!others.isEmpty()) {
+						drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "caught " + (others.size() + 1) + " in one swing");
+					}
+				}
 			} finally {
+				if (swing != null) {
+					com.dinglebob.drifter.compat.BetterCombatCompat.clearCombo(fake);
+					drifter.nextCombo();
+				}
+
 				drifter.setOwnSwing(false);
 				for (int i = 0; i < touched.size(); i++) {
 					touched.get(i).removeModifier(added.get(i).id());

@@ -41,6 +41,9 @@ public class Drifter implements ModInitializer {
 		// House plans read once at start-up, so world generation (which can't read files itself) has them.
 		// (Before the world loads: the spawn area is generated during start-up.)
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+			// Optional combat mods: say at start whether they're found and match.
+			com.dinglebob.drifter.compat.BetterCombatCompat.active();
+			com.dinglebob.drifter.compat.CombatRollCompat.active();
 			try {
 				com.dinglebob.drifter.building.plan.HousePlans.invalidate();
 				com.dinglebob.drifter.building.plan.HousePlans.cached(server);

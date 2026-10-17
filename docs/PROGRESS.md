@@ -1561,8 +1561,26 @@ structure blocks) for the user's own worlds.
   camps well ahead of huts.
   Catch-up's structure loot is now from places it explored (mineshaft, ruined portal, dungeon, shipwreck, trial
   chambers, temples, buried treasure, a mansion late on), added to what it carries; no village chests.
-- **Next:** Better Combat and Combat Roll compat (user, next), then a data-driven way to get modded weapons (Simply
-  Swords first). Open: on a slope, a few blocks get "walked over but still can't reach"
+- **Better Combat and Combat Roll compat (new, 2026-10-17).** Both optional, read through reflection (no build
+  dependencies; each switches itself off if the mod's code doesn't match, and says so in the log at server start).
+  - Better Combat (`compat/BetterCombatCompat`): the held weapon's reach (`Combat.reach`, fight spacing scaled to it in
+    `AttackTask`), its combo (Better Combat's own choice of attack, combo count set on the stand-in player so Better
+    Combat applies the combo damage and turns vanilla sweeping off), the swing's arc hits other hostiles in reach as a
+    player's would, the weapon's swing sound; two-handed weapons mean no shield. Tested: "caught 2 in one swing".
+  - Swing animations (`client/render/DrifterSwingAnimations`): Better Combat's animation library only animates real
+    players, so the Drifter's model plays the same animation files itself through that library (speed fitted to the
+    swing, mirrored for left-handers). With EMF, EMF's own animations on the arms and body pause for the swing (EMF's
+    API, as the EMF Better Combat bridge does for players). Not checked on screen yet. No elbow bends (that part of
+    the library is player-only).
+  - Combat Roll (`compat/CombatRollCompat`): it rolls as a player does, with Combat Roll's own server settings
+    (distance, invulnerable ticks, cooldown, hunger cost, food needed, on the ground only unless allowed): across an
+    arrow or fireball's line when it has no shield up, and now and then back out of reach after a melee hit (the
+    skilled more often), onto safe ground only. One roll, then the cooldown (a player's default: one charge). Its own
+    roll animation: a forward somersault the way it rolls, tucked in (Combat Roll's own is player-only). Tested: 3
+    rolls away from skeleton arrows in one fight.
+  - Not yet: rolling out of a creeper's blast or to close distance (DESIGN section 21); extra roll charges from Combat
+    Roll's enchantments.
+- **Next:** a data-driven way to get modded weapons (Simply Swords first). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)
@@ -1615,7 +1633,7 @@ Questions for the user. Nothing here has been changed in the design.
 5. **Pathfinding reads the real terrain for blocks it has seen (sections 1, 8, 12).** Section 8 says pathfinding is one of the few systems allowed to touch the live world. To keep it fair anyway, it only reads blocks the Drifter has actually seen (or touched, or revealed by mining); everything else is treated as unknown, exactly as section 12 describes. One small leak remains: if a block it saw changes while it's not looking, the pathfinder sees the new state. I think that's fine (it replans as soon as it gets there anyway). No decision needed unless you want it stricter.
 7. **Night-one shelter is tier 1 (section 11).** For milestone 5 the Drifter digs three blocks straight down and covers the hole (the tier 1 "digs down and covers the hole" option) rather than the tier 2 hillside room, because it works on any ground and is the most reliable way to survive night one before combat exists (milestone 6). The worked example in section 24 has it dig a 3x3 hillside room on day 1; that can follow in milestone 8 (or sooner if you prefer). No decision needed unless you want the hillside room now.
 8. **The planner's data file location.** Section 8 says acquisition rules live in data files. They're in `data/<namespace>/drifter_sources/*.json` (a datapack can add more). Recipes come from the game. No decision needed.
-9. **Better Combat and Combat Roll (section 21, milestone 6 "combat-mod test pass").** What already works without any special code: modded weapons (Simply Swords and the like) are judged by their real attack damage and speed, and its reach comes from the reach attribute, so they're picked up and used correctly. What section 21 asks beyond that: reading Better Combat's per-weapon ranges and combos, and giving the Drifter the same dodge roll as Combat Roll. Doing that properly means compiling against those mods (as optional, "compile only" dependencies, never required at runtime), which adds their download sites to the build. **My recommendation:** for this milestone, just run the combat-mod test pass to check nothing breaks with them installed (the Drifter's hits go through vanilla's player attack, which those mods leave working), and add the real Better Combat / Combat Roll integration as a follow-up once you say it's OK to add those optional build dependencies. **Decided (user: "yea add them later, use your recommendation"):** test pass now; the optional compile-only integration comes later as a follow-up.
+9. **Better Combat and Combat Roll (section 21, milestone 6 "combat-mod test pass").** What already works without any special code: modded weapons (Simply Swords and the like) are judged by their real attack damage and speed, and its reach comes from the reach attribute, so they're picked up and used correctly. What section 21 asks beyond that: reading Better Combat's per-weapon ranges and combos, and giving the Drifter the same dodge roll as Combat Roll. Doing that properly means compiling against those mods (as optional, "compile only" dependencies, never required at runtime), which adds their download sites to the build. **My recommendation:** for this milestone, just run the combat-mod test pass to check nothing breaks with them installed (the Drifter's hits go through vanilla's player attack, which those mods leave working), and add the real Better Combat / Combat Roll integration as a follow-up once you say it's OK to add those optional build dependencies. **Decided (user: "yea add them later, use your recommendation"):** test pass now; the optional compile-only integration comes later as a follow-up. **Done (2026-10-17, user: "we are adding better combat and combat roll compat"):** through reflection instead, so no build dependencies were needed (see "Current state").
 10. **(Decided: add them now, user: "use your recommendations".) Usernames and nameplates (section 4, "Identity").** Milestone 7's test is "people watching a clip can't tell it
     from a player", and every player has a name over their head. Section 4 asks for generated player-like usernames
     (word plus digits, two words joined...) shown like a player's nameplate; that was left for the spawning milestone.

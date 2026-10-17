@@ -1657,7 +1657,7 @@ All of these are soft dependencies: detected when present, never required.
 | Combat Roll | A dodge roll with limited charges and a recharge | Gets the same roll with the same charges and recharge a player has, used as a reflex: out of creeper blasts, away from heavy swings, or to close distance |
 
 - **Fairness:** the Drifter never gets more range, rolls or combo speed than a player with the same gear and enchantments.
-- **Animations:** Better Combat animates players with its own animation system. Check early whether that can drive the Drifter's player model; if not, fall back to the vanilla swing while keeping Better Combat's hit timing.
+- **Animations:** Better Combat animates players with its own animation system. Check early whether that can drive the Drifter's player model; if not, fall back to the vanilla swing while keeping Better Combat's hit timing. (Built: the library's own player hook is for real players only, so the Drifter's model runs Better Combat's animation files through the library itself, pausing EMF's animations on the arms and body for the swing; Combat Roll's roll animation is player-only too, so the Drifter has its own somersault.)
 - **Damage and hits:** prefer calling the mods' own attack logic for the Drifter if they allow non-player entities, rather than copying it, so balance stays in sync with updates.
 - **Testing:** add a combat-mod test pass to milestone 6.
 

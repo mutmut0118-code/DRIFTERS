@@ -76,6 +76,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	private static final EntityDataAccessor<String> DATA_SKIN_TEXTURE = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.STRING);
 	private static final EntityDataAccessor<Boolean> DATA_SLIM_ARMS = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.BOOLEAN);
+	/** Its last roll, for the roll animation: (count << 17) | (duration ticks << 9) | direction in degrees. */
+	private static final EntityDataAccessor<Integer> DATA_ROLL = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.INT);
+	/** Its last Better Combat swing, for the swing animation: "count;animation;ticks;mirrored" ("" for none yet). */
+	private static final EntityDataAccessor<String> DATA_SWING = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.STRING);
 
 	/** The player's pose sizes. Player keeps its map private, so this mirrors it using Player's public constants. */
 	private static final Map<Pose, EntityDimensions> POSES = ImmutableMap.<Pose, EntityDimensions>builder()
@@ -360,6 +364,8 @@ public class DrifterEntity extends PathfinderMob {
 		super.defineSynchedData(builder);
 		builder.define(DATA_SKIN_TEXTURE, SkinPool.FALLBACK.texture().toString());
 		builder.define(DATA_SLIM_ARMS, SkinPool.FALLBACK.slim());
+		builder.define(DATA_ROLL, 0);
+		builder.define(DATA_SWING, "");
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -529,6 +535,93 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** Ticks since its last swing at an entity (the player attack cooldown, Player#attackStrengthTicker). */
+	/** Client side: the tick its current roll started, its direction and length (for the animation). */
+	private int rollStartAge = Integer.MIN_VALUE / 2;
+	private float rollYaw;
+	private int rollTicks = 1;
+
+	/** Server side: tells clients it just swung with this Better Combat animation, lasting this long. */
+	public void showSwing(String animation, float ticks, boolean mirrored) {
+		String last = this.entityData.get(DATA_SWING);
+		int count = 0;
+		int split = last.indexOf(';');
+		if (split > 0) {
+			try {
+				count = Integer.parseInt(last.substring(0, split));
+			} catch (NumberFormatException e) {
+				count = 0;
+			}
+		}
+
+		this.entityData.set(DATA_SWING, (count + 1) % 100000 + ";" + animation + ";" + Math.max(1, Math.round(ticks)) + ";" + mirrored);
+	}
+
+	/** Its last Better Combat swing (see DATA_SWING). */
+	public String swingData() {
+		return this.entityData.get(DATA_SWING);
+	}
+
+	/** Server side: tells clients it just rolled this way, for this many ticks. */
+	public void showRoll(float yaw, int ticks) {
+		int count = (this.entityData.get(DATA_ROLL) >>> 17) + 1;
+		int degrees = Math.floorMod(Math.round(yaw), 360);
+		this.entityData.set(DATA_ROLL, (count & 0x3FFF) << 17 | Math.max(1, Math.min(255, ticks)) << 9 | degrees);
+	}
+
+	@Override
+	public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+		super.onSyncedDataUpdated(key);
+		if (DATA_ROLL.equals(key) && this.level().isClientSide) {
+			int roll = this.entityData.get(DATA_ROLL);
+			if (roll != 0) {
+				this.rollStartAge = this.tickCount;
+				this.rollTicks = Math.max(1, roll >>> 9 & 0xFF);
+				this.rollYaw = roll & 0x1FF;
+			}
+		}
+	}
+
+	/** Client side: how far through a roll it is (0 to 1), or -1 if it isn't rolling. */
+	public float rollProgress(float partialTick) {
+		float progress = (this.tickCount - this.rollStartAge + partialTick) / this.rollTicks;
+		return progress >= 0.0F && progress < 1.0F ? progress : -1.0F;
+	}
+
+	/** Client side: the way its current roll goes (degrees, as an entity's yaw). */
+	public float rollYaw() {
+		return this.rollYaw;
+	}
+
+	/** When it can roll again (Combat Roll's cooldown). */
+	private long rollReadyAt;
+
+	public long rollReadyAt() {
+		return this.rollReadyAt;
+	}
+
+	public void setRollReadyAt(long tick) {
+		this.rollReadyAt = tick;
+	}
+
+	/** Its place in a Better Combat weapon's combo (back to the first attack after a pause, as for a player). */
+	private int combo;
+
+	/** The combo step for a swing this many ticks after its last one (a long enough pause starts the combo again). */
+	public int comboFor(int ticksSinceAttack) {
+		if (ticksSinceAttack > COMBO_RESET_TICKS) {
+			this.combo = 0;
+		}
+
+		return this.combo;
+	}
+
+	public void nextCombo() {
+		this.combo++;
+	}
+
+	/** A pause this long between swings starts the combo over. */
+	private static final int COMBO_RESET_TICKS = 40;
+
 	public int ticksSinceAttack() {
 		return (int)Math.min(Integer.MAX_VALUE, this.level().getGameTime() - this.lastAttackTime);
 	}

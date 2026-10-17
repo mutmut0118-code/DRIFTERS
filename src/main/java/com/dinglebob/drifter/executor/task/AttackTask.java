@@ -374,7 +374,7 @@ public class AttackTask extends Task {
 
 		if (--this.strafeTicks <= 0) {
 			this.strafeLeft = this.drifter.getRandom().nextBoolean();
-			this.strafeTicks = this.protocol == Protocol.RANGED && distance > HOVER_MAX
+			this.strafeTicks = this.protocol == Protocol.RANGED && distance > this.scaled(HOVER_MAX)
 				? Mth.nextInt(this.drifter.getRandom(), ZIGZAG_MIN_TICKS, ZIGZAG_MAX_TICKS)
 				: Mth.nextInt(this.drifter.getRandom(), STRAFE_MIN_TICKS, STRAFE_MAX_TICKS);
 		}
@@ -383,9 +383,9 @@ public class AttackTask extends Task {
 		boolean stepIn = !fightingMob || strength >= STEP_IN_STRENGTH || this.style == Style.BRAWLER;
 		if (!stepIn) {
 			// Waiting for the cooldown: hover at the edge of reach, circling.
-			if (distance < HOVER_MIN) {
+			if (distance < this.scaled(HOVER_MIN)) {
 				this.stepBack(at);
-			} else if (distance > HOVER_MAX) {
+			} else if (distance > this.scaled(HOVER_MAX)) {
 				Steering.pressToward(this.drifter, at);
 			} else {
 				Steering.stopMoving(this.drifter);
@@ -401,9 +401,9 @@ public class AttackTask extends Task {
 		}
 
 		this.lowerShield();
-		if (distance > STOP_RANGE) {
+		if (distance > this.scaled(STOP_RANGE)) {
 			Steering.pressToward(this.drifter, at);
-			if (this.protocol == Protocol.RANGED && distance > HOVER_MAX) {
+			if (this.protocol == Protocol.RANGED && distance > this.scaled(HOVER_MAX)) {
 				// Zigzag in toward an archer.
 				this.strafe(keys);
 			}
@@ -419,7 +419,7 @@ public class AttackTask extends Task {
 			}
 
 			// Sprint in to close the gap (and, at a creeper, for the knockback hit); it lets go of sprint in the air for crits.
-			boolean sprint = keys.isDown(VirtualKeys.Key.FORWARD) && (horizontal > JUMP_RANGE || this.protocol == Protocol.CREEPER)
+			boolean sprint = keys.isDown(VirtualKeys.Key.FORWARD) && (horizontal > this.scaled(JUMP_RANGE) || this.protocol == Protocol.CREEPER)
 				&& this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 			// An edge in front (fighting on a bridge or a ledge): it sneaks forward, no sprint, no crit jumps, so it can't walk
 			// off (found by the user: imNiftyshield stepped off its bridge after a zombie into the lava below).
@@ -430,7 +430,7 @@ public class AttackTask extends Task {
 			}
 
 			keys.set(VirtualKeys.Key.SPRINT, sprint);
-			boolean jump = !edgeAhead && !this.missedCrit && this.wantsCrit && this.canJump() && horizontal <= JUMP_RANGE && ticksToFull <= JUMP_LEAD_TICKS;
+			boolean jump = !edgeAhead && !this.missedCrit && this.wantsCrit && this.canJump() && horizontal <= this.scaled(JUMP_RANGE) && ticksToFull <= JUMP_LEAD_TICKS;
 			keys.set(VirtualKeys.Key.JUMP, jump || this.drifter.horizontalCollision);
 			if (jump) {
 				this.critJump = true;
@@ -459,6 +459,9 @@ public class AttackTask extends Task {
 		}
 	}
 
+	/** It has thought about rolling back for this back-off already. */
+	private boolean rollTried;
+
 	/** After a hit: step back out of reach while the cooldown refills (shield up), strafing; far back from a creeper. */
 	private void backOff(double distance) {
 		VirtualKeys keys = this.drifter.getKeys();
@@ -468,6 +471,18 @@ public class AttackTask extends Task {
 		}
 
 		Vec3 at = this.target.position();
+		// With Combat Roll, now and then it rolls back out of reach after a hit instead of stepping (the skilled more
+		// often), onto safe ground only.
+		Vec3 away = this.drifter.position().subtract(at);
+		if (!this.rollTried && com.dinglebob.drifter.compat.CombatRollCompat.canRoll(this.drifter) && away.horizontalDistanceSqr() > 1.0E-4) {
+			this.rollTried = true;
+			Vec3 back = new Vec3(away.x, 0.0, away.z).normalize();
+			double skill = this.drifter.getPersonality().getF(com.dinglebob.drifter.personality.Trait.SKILL);
+			if (this.drifter.getRandom().nextDouble() < 0.25 + 0.5 * skill && Steering.safeStep(this.drifter, back) && Steering.safeStep(this.drifter, back, 1.9)) {
+				com.dinglebob.drifter.compat.CombatRollCompat.roll(this.drifter, back);
+			}
+		}
+
 		this.stepBack(at);
 		this.strafe(keys);
 		this.guardFootwork(at);
@@ -526,8 +541,17 @@ public class AttackTask extends Task {
 			|| this.target instanceof net.minecraft.world.entity.monster.Blaze && this.target.isOnFire()) || distance < 3.0;
 	}
 
+	/**
+	 * A spacing distance for the weapon in its hand: the player-reach distances scaled to its reach (a Better Combat
+	 * spear or claymore lets it stand further off; a dagger brings it in close).
+	 */
+	private double scaled(double distance) {
+		return distance * com.dinglebob.drifter.hands.Combat.reach(this.drifter) / 3.0;
+	}
+
 	private boolean hasShield() {
-		return this.drifter.canUseShield();
+		// (Not with a two-handed Better Combat weapon out: both hands are on it.)
+		return this.drifter.canUseShield() && !com.dinglebob.drifter.compat.BetterCombatCompat.twoHanded(this.drifter.getMainHandItem());
 	}
 
 	private void shieldIf(boolean raise) {
@@ -572,6 +596,7 @@ public class AttackTask extends Task {
 					: this.style == Style.BRAWLER ? 0
 					: BACKOFF_TICKS + this.drifter.getRandom().nextInt(4) + (this.style == Style.TURTLE ? 4 : 0);
 				this.strafeLeft = this.drifter.getRandom().nextBoolean();
+				this.rollTried = false;
 			}
 		}
 	}

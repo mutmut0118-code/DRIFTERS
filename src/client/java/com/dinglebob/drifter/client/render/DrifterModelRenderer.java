@@ -40,7 +40,7 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 	private static final float PLAYER_SCALE = 0.9375F;
 
 	public DrifterModelRenderer(EntityRendererProvider.Context context, boolean slim) {
-		super(context, new PlayerModel<>(context.bakeLayer(slim ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), slim), 0.5F);
+		super(context, new SwingingModel(context.bakeLayer(slim ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), slim), 0.5F);
 		this.addLayer(new HumanoidArmorLayer<>(
 			this,
 			new HumanoidArmorModel<>(context.bakeLayer(slim ? ModelLayers.PLAYER_SLIM_INNER_ARMOR : ModelLayers.PLAYER_INNER_ARMOR)),
@@ -55,9 +55,22 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		this.addLayer(new BeeStingerLayer<>(this));
 	}
 
+	/** The vanilla player model (same layers, so EMF and resource packs still see a player model), plus Better Combat swings. */
+	private static final class SwingingModel extends PlayerModel<DrifterEntity> {
+		SwingingModel(net.minecraft.client.model.geom.ModelPart root, boolean slim) {
+			super(root, slim);
+		}
+
+		@Override
+		public void setupAnim(DrifterEntity drifter, float limbSwing, float limbSwingAmount, float ageInTicks, float headYaw, float headPitch) {
+			super.setupAnim(drifter, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch);
+			DrifterSwingAnimations.apply(this, drifter, ageInTicks);
+		}
+	}
+
 	@Override
 	public void render(DrifterEntity drifter, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light) {
-		this.setModelProperties(drifter);
+		this.setModelProperties(drifter, partialTick);
 		super.render(drifter, yaw, partialTick, poseStack, buffers, light);
 	}
 
@@ -76,11 +89,12 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		poseStack.scale(PLAYER_SCALE, PLAYER_SCALE, PLAYER_SCALE);
 	}
 
-	private void setModelProperties(DrifterEntity drifter) {
+	private void setModelProperties(DrifterEntity drifter, float partialTick) {
 		PlayerModel<DrifterEntity> model = this.getModel();
 		// All skin overlay layers on; Drifters have no skin-customization settings (yet).
 		model.setAllVisible(true);
-		model.crouching = drifter.isCrouching();
+		// Tucked in through a roll.
+		model.crouching = drifter.isCrouching() || drifter.rollProgress(partialTick) >= 0.0F;
 		HumanoidModel.ArmPose mainPose = getArmPose(drifter, InteractionHand.MAIN_HAND);
 		HumanoidModel.ArmPose offPose = getArmPose(drifter, InteractionHand.OFF_HAND);
 		if (mainPose.isTwoHanded()) {
@@ -136,6 +150,18 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		float swimAmount = drifter.getSwimAmount(partialTick);
 		float viewPitch = drifter.getViewXRot(partialTick);
 		super.setupRotations(drifter, poseStack, bob, bodyYaw, partialTick, scale);
+		// A roll (Combat Roll's dodge): a forward somersault the way it rolls, round the middle of its body.
+		float roll = drifter.rollProgress(partialTick);
+		if (roll >= 0.0F) {
+			float turn = Mth.wrapDegrees(drifter.rollYaw() - bodyYaw);
+			float eased = roll * roll * (3.0F - 2.0F * roll);
+			poseStack.translate(0.0F, 0.6F, 0.0F);
+			poseStack.mulPose(Axis.YP.rotationDegrees(-turn));
+			poseStack.mulPose(Axis.XP.rotationDegrees(-360.0F * eased));
+			poseStack.mulPose(Axis.YP.rotationDegrees(turn));
+			poseStack.translate(0.0F, -0.6F, 0.0F);
+		}
+
 		if (swimAmount > 0.0F && !drifter.isFallFlying()) {
 			float target = drifter.isInWater() ? -90.0F - viewPitch : -90.0F;
 			poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(swimAmount, 0.0F, target)));

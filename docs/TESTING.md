@@ -643,8 +643,8 @@ within a second or two: "put on better gear").
 ### 5. Combat-mod test pass (optional, when you have time)
 - [ ] With **Simply Swords** installed: give it one of those swords (`/drifter give simplyswords:...`). It should pick
       it as its weapon if it does more damage per second than what it has, and fight with it normally.
-- [ ] With **Better Combat** installed: it still fights normally (vanilla-style swings for now); nothing crashes.
-- [ ] With **Combat Roll** installed: nothing breaks (it doesn't roll yet; see design question 9 in PROGRESS.md).
+- [ ] With **Better Combat** installed: see "Better Combat and Combat Roll" near the end.
+- [ ] With **Combat Roll** installed: see "Better Combat and Combat Roll" near the end.
 
 ### Known gaps for milestone 6 (don't report these as bugs)
 - No bows or crossbows yet; it always fights in melee.
@@ -1320,6 +1320,22 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       `play_a_record`, `cook_on_the_campfire`, `slice_of_cake`...). Next to a parked boat, `/drifter whim sit_in_a_boat`.
       A Drifter that walks into a boat or minecart no longer gets stuck in it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.
+
+## Better Combat and Combat Roll (new)
+
+Your DRIFTER TEST profile has both. Make a flat test world, then:
+`/drifter spawn Fighter`, `/drifter give simplyswords:iron_claymore` (while looking at it, or use
+`/execute at @e[name=Fighter,limit=1] run drifter give simplyswords:iron_claymore`), then `/summon husk ~5 ~ ~` twice.
+- [ ] It swings the claymore with **Better Combat's swing animation** (a big two-handed slash, not the plain arm swing),
+      and a swing can hit both husks at once.
+- [ ] With Fresh Animations / FA+Player on, the swing still shows (the arms aren't stuck in the idle animation), and
+      the Drifter goes back to its normal Fresh Animations movement after the swing.
+- [ ] Take the shield away (it uses a shield for arrows when it has one) and `/summon skeleton ~10 ~ ~`. When an arrow
+      comes at it, now and then it **rolls** sideways out of the way: a quick forward somersault, the roll sound. It
+      rolls about once every few seconds at most, like you.
+- [ ] Now and then after hitting a husk it rolls back out of reach instead of stepping back.
+- [ ] If anything looks wrong: the game log (`logs/latest.log` in the profile folder) has a line starting
+      `[Drifter] Drifters play Better Combat's swing animations` or a warning saying what didn't match. Send me that line.
 
 ## A fresh world (new; explore new land to see it)
 
