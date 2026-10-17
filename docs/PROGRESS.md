@@ -1726,6 +1726,13 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **Lofts:** a one-storey gable house 7 or more across (no wing) can have a loft: a floor at the wall top over one end
+  along the ridge (where the headroom is), a ladder up the back wall through a hole in it (that bit of wall kept solid
+  for the ladder), lit by the attic window. 14 of a world's 300. A Drifter built one (229 blocks) and moved in.
+- **Unattended 10-day runs:** on seed 31337421 a Drifter picked a generated timber cottage on its own, ran out of birch
+  and finished it in dark oak, left the windows open (no sand), finished on day 5 (326 of 332, bar windows and one block
+  it couldn't reach). The other run's Drifter froze when my test script kept the land loaded round a different Drifter
+  (fixed in the script: it follows the test Drifter by name now).
 - **A-frame cabins** (a ninth style, `a_frame_cabin`): one-block walls under a steep roof that runs nearly to the
   ground, ridge front to back, the door and windows in the gable ends. A Drifter built one start to finish (217 blocks).
 - **Attic windows:** a window in the middle of each gable end on roofs 7 or more across. The gable ends now fill round

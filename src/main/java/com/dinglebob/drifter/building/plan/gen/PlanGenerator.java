@@ -31,7 +31,7 @@ import net.minecraft.world.level.block.state.properties.SlabType;
  * walls of a style's materials (log corner posts and posts along the walls, a stone base row, a log beam at the top,
  * different infill upstairs), windows spaced along the walls (some two tall, some with sills), a door in the front (in
  * the middle or a little off), sometimes a porch (a slab deck, posts, a slab roof) and a chimney, and a roof: a gable
- * either way round, a hip (sloping on all four sides), a shed slope, or flat with a parapet; and sometimes a wing out of the back (an L-shaped house), its
+ * either way round, a hip (sloping on all four sides), a shed slope, or flat with a parapet; a loft under a gable; and sometimes a wing out of the back (an L-shaped house), its
  * own roof running into the main one. Eaves sit level with the top of the wall (beside it, never
  * hanging in the air: what the hand-made designs taught). Each plan picks its materials once from the style's options.
  * The front is the low-z side; the plan is turned to suit its site when it's placed, like any other. Each plan is checked
@@ -189,6 +189,15 @@ public final class PlanGenerator {
 			if (shape != null) {
 				features.add(shape + " wing");
 			}
+		}
+
+		// A loft under a gable roof with room for one (drawn after the wing, for the same reason; not with a wing).
+		boolean gabled = roof.equals("gable") || roof.equals("gable_z");
+		int span = roof.equals("gable") ? depth : width;
+		if (gabled && floors == 1 && height >= 3 && span >= ATTIC_SPAN && features.stream().noneMatch(f -> f.endsWith("wing"))
+			&& style.chance("loft", 0.0, random)) {
+			loft(cells, m, width, depth, top, roof.equals("gable"), chimney);
+			features.add("loft");
 		}
 
 		return normalize(id, cells);
@@ -415,6 +424,56 @@ public final class PlanGenerator {
 
 			if (ax == bx || az == bz) {
 				return;
+			}
+		}
+	}
+
+	/**
+	 * A loft: a floor at the top of the walls over one end of the room (along the ridge, where there's headroom: one side
+	 * end under a ridge along x, the back under one along z), its edge cells resting on the roof and gable round it, and
+	 * a ladder up the back wall inside through a hole in it (the back wall there kept solid for the ladder to hang on; on
+	 * the side away from the chimney). The attic window in the gable end lights it.
+	 */
+	private static void loft(Map<BlockPos, BlockState> cells, Materials m, int width, int depth, int top, boolean ridgeAlongX, boolean chimney) {
+		int ladderX = chimney ? 1 : width - 2;
+		int x0 = 1;
+		int x1 = width - 2;
+		int z0 = 1;
+		if (ridgeAlongX) {
+			int length = Math.max(2, (width - 2) / 2);
+			if (ladderX == 1) {
+				x1 = length;
+			} else {
+				x0 = width - 1 - length;
+			}
+		} else {
+			z0 = depth - 1 - Math.max(2, (depth - 2) / 2);
+		}
+
+		for (int x = x0; x <= x1; x++) {
+			for (int z = z0; z <= depth - 2; z++) {
+				if (!(x == ladderX && z == depth - 2)) {
+					cells.put(new BlockPos(x, top + 1, z), m.upperFloor().defaultBlockState());
+				}
+			}
+		}
+
+		for (int y = 1; y <= top + 1; y++) {
+			BlockPos wall = new BlockPos(ladderX, y, depth - 1);
+			BlockState there = cells.get(wall);
+			// (Up the wall; the top rung hangs on the back roof row, whose high side is solid.)
+			if (y <= top && there != null && !there.isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, wall)) {
+				cells.put(wall, m.infill().defaultBlockState());
+			}
+
+			cells.put(new BlockPos(ladderX, y, depth - 2), Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.NORTH));
+		}
+
+		// (A sill under a window it just walled up would be left hanging.)
+		for (int y = 1; y <= top; y++) {
+			BlockPos outside = new BlockPos(ladderX, y, depth);
+			if (cells.get(outside) != null && cells.get(outside).getBlock() instanceof StairBlock) {
+				cells.remove(outside);
 			}
 		}
 	}
