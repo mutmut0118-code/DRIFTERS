@@ -2,6 +2,7 @@ package com.dinglebob.drifter.command;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -42,6 +43,14 @@ public final class WhimCommands {
 		List<Whim> all = Whims.all().stream().sorted(Comparator.comparingDouble((Whim w) -> -WhimGoal.weight(drifter, w))).toList();
 		say(ctx, String.format(Locale.ROOT, "%s: %d whims known, %d done so far (%s ago last)", DrifterCommands.label(drifter), all.size(), state.done,
 			state.done == 0 ? "never" : ((now - state.lastAny) / 20) + " s"));
+		// How long each one's check against the world takes (performance; the slowest few).
+		List<String> slow = all.stream().map(w -> {
+			long t = System.nanoTime();
+			WhimGoal.whyNot(drifter, w, null);
+			return Map.entry(w.id(), System.nanoTime() - t);
+		}).sorted((x, y) -> Long.compare(y.getValue(), x.getValue())).limit(5)
+			.map(e -> String.format(Locale.ROOT, "%s %.2f ms", e.getKey(), e.getValue() / 1e6)).toList();
+		say(ctx, "Slowest checks: " + String.join(", ", slow));
 		int shown = 0;
 		for (Whim whim : all) {
 			double weight = WhimGoal.weight(drifter, whim);

@@ -161,36 +161,53 @@ public final class WhimGoal extends Goals.Goal {
 	// Choosing
 	// ---------------------------------------------------------------------------------------------
 
-	/** A weighted pick among the whims that fit now (null if none). */
+	/** Most whims it checks against the world in one pick (the rest wait for the next). */
+	private static final int MAX_CHECKS = 12;
+	/** Most time one pick may take (found by the user's /drifter perf: 30 ms in one tick, checking all 100 against the world). */
+	private static final long MAX_PICK_NANOS = 1_500_000L;
+
+	/**
+	 * A weighted pick among the whims that fit now (null if none found this time). Drawn by weight first and only then
+	 * checked against the world, one at a time (the checks look round for blocks and animals; doing them for every whim
+	 * each time was a lag spike), within a small time budget.
+	 */
 	@Nullable
 	static Whim pick(DrifterEntity drifter, Goals.Context context) {
-		List<Whim> fits = new ArrayList<>();
+		List<Whim> candidates = new ArrayList<>();
 		List<Double> weights = new ArrayList<>();
 		double total = 0.0;
 		for (Whim whim : Whims.all()) {
 			double weight = weight(drifter, whim);
-			if (weight <= 0.0 || !fits(drifter, whim, context)) {
-				continue;
-			}
-
-			fits.add(whim);
-			weights.add(weight);
-			total += weight;
-		}
-
-		if (fits.isEmpty()) {
-			return null;
-		}
-
-		double roll = drifter.getRandom().nextDouble() * total;
-		for (int i = 0; i < fits.size(); i++) {
-			roll -= weights.get(i);
-			if (roll <= 0.0) {
-				return fits.get(i);
+			if (weight > 0.0) {
+				candidates.add(whim);
+				weights.add(weight);
+				total += weight;
 			}
 		}
 
-		return fits.get(fits.size() - 1);
+		long start = System.nanoTime();
+		for (int checks = 0; checks < MAX_CHECKS && !candidates.isEmpty() && System.nanoTime() - start < MAX_PICK_NANOS; checks++) {
+			double roll = drifter.getRandom().nextDouble() * total;
+			int index = candidates.size() - 1;
+			for (int i = 0; i < candidates.size(); i++) {
+				roll -= weights.get(i);
+				if (roll <= 0.0) {
+					index = i;
+					break;
+				}
+			}
+
+			Whim whim = candidates.get(index);
+			if (fits(drifter, whim, context)) {
+				return whim;
+			}
+
+			total -= weights.get(index);
+			candidates.remove(index);
+			weights.remove(index);
+		}
+
+		return null;
 	}
 
 	/** How much this Drifter goes for this whim: base weight, archetype, traits and mood. 0: never. */

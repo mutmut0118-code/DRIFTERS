@@ -1198,8 +1198,46 @@ public final class WhimActions {
 		@Nullable
 		static BlockPos find(DrifterEntity drifter, Whim whim) {
 			List<String> ids = whim.params("blocks");
-			return KnownBlocks.find(drifter, whim.param("radius", 16), state -> ids.stream().anyMatch(id -> matches(state, id)), 1).stream().findFirst()
+			return KnownBlocks.find(drifter, whim.param("radius", 16), matcher(ids), 1).stream().findFirst()
 				.orElse(null);
+		}
+
+		private static final java.util.Map<List<String>, java.util.function.Predicate<BlockState>> MATCHERS = new java.util.concurrent.ConcurrentHashMap<>();
+
+		/**
+		 * A whim's block list ("minecraft:bell", "#minecraft:wooden_trapdoors") as one quick test, made once (found by the
+		 * user's /drifter perf: reading the names again for every block it knew round it took up to 7 ms a check).
+		 */
+		static java.util.function.Predicate<BlockState> matcher(List<String> ids) {
+			return MATCHERS.computeIfAbsent(List.copyOf(ids), list -> {
+				java.util.Set<net.minecraft.world.level.block.Block> blocks = new java.util.HashSet<>();
+				List<net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block>> tags = new java.util.ArrayList<>();
+				for (String id : list) {
+					if (id.startsWith("#")) {
+						tags.add(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse(id.substring(1))));
+					} else {
+						BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(id)).ifPresent(blocks::add);
+					}
+				}
+
+				return state -> {
+					if (state.isAir()) {
+						return false;
+					}
+
+					if (blocks.contains(state.getBlock())) {
+						return true;
+					}
+
+					for (var tag : tags) {
+						if (state.is(tag)) {
+							return true;
+						}
+					}
+
+					return false;
+				};
+			});
 		}
 
 		static boolean matches(BlockState state, String id) {
@@ -1429,7 +1467,7 @@ public final class WhimActions {
 		@Nullable
 		static BlockPos find(DrifterEntity drifter, Whim whim) {
 			List<String> ids = whim.params("blocks");
-			for (BlockPos pos : KnownBlocks.find(drifter, whim.param("radius", 16), state -> ids.stream().anyMatch(id -> WatchBlock.matches(state, id)), 6)) {
+			for (BlockPos pos : KnownBlocks.find(drifter, whim.param("radius", 16), WatchBlock.matcher(ids), 6)) {
 				if (KnownBlocks.standingSpotFor(drifter, pos, Set.of()) != null || com.dinglebob.drifter.hands.Reach.canReach(drifter, pos)) {
 					return pos;
 				}

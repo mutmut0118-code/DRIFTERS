@@ -1501,6 +1501,10 @@ structure blocks) for the user's own worlds.
   way is picked up, and no tables go down in a house being built; blocks put in the wrong way round are redone; a spot
   whose unseen ground turns out to drop away more than 5 blocks is given up for another (before building) or filled
   deeper (after). Open: settling by a lake at water level, then stuck in the water next to its chest ("no route").
+- Performance (user's /drifter perf, 2026-10-17: peak 35 ms, 30 of it one Drifter picking a whim): whims are now drawn
+  by weight first and checked against the world one at a time, at most 12 checks and 1.5 ms a pick; a whim's block list
+  is turned into one quick test once (reading "#minecraft:wooden_trapdoors" again for every known block took up to 7 ms).
+  `/drifter whims` shows the slowest checks. Test: one Drifter in a forest, peak 1.5 ms.
 - **Next:** step 5, the mod's own designs. Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
