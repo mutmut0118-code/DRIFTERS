@@ -12,5 +12,6 @@ public class DrifterClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		EntityRendererRegistry.register(ModEntities.DRIFTER, DrifterRenderer::new);
 		DebugOverlayRenderer.register();
+		com.dinglebob.drifter.client.debug.DevClientTest.register();
 	}
 }

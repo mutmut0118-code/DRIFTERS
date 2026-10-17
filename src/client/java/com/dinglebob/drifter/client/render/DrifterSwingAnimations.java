@@ -1,6 +1,5 @@
 package com.dinglebob.drifter.client.render;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,6 +37,9 @@ public final class DrifterSwingAnimations {
 	}
 
 	private static final Map<DrifterEntity, State> STATES = new WeakHashMap<>();
+	/** Test runs only (DevClientTest): what the swing animations do, in the log. */
+	private static final boolean TRACE = System.getenv("DRIFTER_CLIENT_TEST") != null;
+	private static int traced;
 	private static boolean ready;
 	private static boolean failed;
 	private static boolean emfReady;
@@ -56,7 +58,8 @@ public final class DrifterSwingAnimations {
 	private static Constructor<?> speedModifier;
 	private static Constructor<?> mirrorModifier;
 	private static Constructor<?> modifierLayer;
-	private static Class<?> abstractModifier;
+	private static Method addModifier;
+	private static Method setAnimation;
 	private static Constructor<?> animationStack;
 	private static Method addAnimLayer;
 	private static Constructor<?> animationApplier;
@@ -96,8 +99,13 @@ public final class DrifterSwingAnimations {
 			speedModifier = Class.forName(api + "api.layered.modifier.SpeedModifier").getConstructor(float.class);
 			mirrorModifier = Class.forName(api + "api.layered.modifier.MirrorModifier").getConstructor(boolean.class);
 			Class<?> animation = Class.forName(api + "api.layered.IAnimation");
-			abstractModifier = Class.forName(api + "api.layered.modifier.AbstractModifier");
-			modifierLayer = Class.forName(api + "api.layered.ModifierLayer").getConstructor(animation, Array.newInstance(abstractModifier, 0).getClass());
+			Class<?> abstractModifier = Class.forName(api + "api.layered.modifier.AbstractModifier");
+			// The empty layer, then each modifier, then the animation: that way the library links them (its varargs
+			// constructor doesn't, and an unlinked modifier says it's done: found in a client test, every swing ended at once).
+			Class<?> layer = Class.forName(api + "api.layered.ModifierLayer");
+			modifierLayer = layer.getConstructor();
+			addModifier = layer.getMethod("addModifier", abstractModifier, int.class);
+			setAnimation = layer.getMethod("setAnimation", animation);
 			Class<?> stack = Class.forName(api + "api.layered.AnimationStack");
 			animationStack = stack.getConstructor();
 			addAnimLayer = stack.getMethod("addAnimLayer", int.class, animation);
@@ -143,7 +151,13 @@ public final class DrifterSwingAnimations {
 	}
 
 	/** After the model's own pose (setupAnim): the swing animation on top, if one is playing. */
+	private static int applied;
+
 	public static void apply(PlayerModel<DrifterEntity> model, DrifterEntity drifter, float ageInTicks) {
+		if (TRACE && applied++ % 200 == 0) {
+			Drifter.LOGGER.info("[Drifter test] apply called ({} times)", applied);
+		}
+
 		if (!active()) {
 			return;
 		}
@@ -157,6 +171,10 @@ public final class DrifterSwingAnimations {
 		try {
 			String data = drifter.swingData();
 			if (!data.equals(state.seen)) {
+				if (TRACE) {
+					Drifter.LOGGER.info("[Drifter test] swing data {}", data);
+				}
+
 				state.seen = data;
 				start(state, data, drifter);
 			}
@@ -172,11 +190,16 @@ public final class DrifterSwingAnimations {
 
 			state.lastTick = drifter.tickCount;
 			if (!(boolean)applierActive.invoke(state.applier)) {
+				if (TRACE) {
+					Drifter.LOGGER.info("[Drifter test] swing animation ended");
+				}
+
 				stop(state, drifter);
 				return;
 			}
 
 			setTickDelta.invoke(state.applier, ageInTicks - drifter.tickCount);
+			float before = model.rightArm.xRot;
 			updatePart.invoke(state.applier, "head", model.head);
 			updatePart.invoke(state.applier, "torso", model.body);
 			updatePart.invoke(state.applier, "rightArm", model.rightArm);
@@ -190,6 +213,10 @@ public final class DrifterSwingAnimations {
 			model.leftSleeve.copyFrom(model.leftArm);
 			model.rightPants.copyFrom(model.rightLeg);
 			model.leftPants.copyFrom(model.leftLeg);
+			if (TRACE && traced++ % 10 == 0) {
+				Drifter.LOGGER.info("[Drifter test] swing frame: right arm xRot {} -> {}, yRot {}, body yRot {}", before, model.rightArm.xRot,
+					model.rightArm.yRot, model.body.yRot);
+			}
 			if (emfReady && !state.emfPaused) {
 				Object emfEntity = emfEntityOf.invoke(null, drifter);
 				if (emfEntity != null) {
@@ -223,14 +250,17 @@ public final class DrifterSwingAnimations {
 		Object animation = build.invoke(builder);
 		int ticks = Math.max(1, Integer.parseInt(parts[2]));
 		float speed = Math.max(0.2F, endTick.getInt(animation) / (float)ticks);
-		Object modifiers = Array.newInstance(abstractModifier, 2);
-		Array.set(modifiers, 0, speedModifier.newInstance(speed));
-		Array.set(modifiers, 1, mirrorModifier.newInstance(Boolean.parseBoolean(parts[3])));
-		Object layer = modifierLayer.newInstance(keyframePlayer.newInstance(animation, 0), modifiers);
+		Object layer = modifierLayer.newInstance();
+		addModifier.invoke(layer, speedModifier.newInstance(speed), 0);
+		addModifier.invoke(layer, mirrorModifier.newInstance(Boolean.parseBoolean(parts[3])), 1);
+		setAnimation.invoke(layer, keyframePlayer.newInstance(animation, 0));
 		Object stack = animationStack.newInstance();
 		addAnimLayer.invoke(stack, 1000, layer);
 		state.applier = animationApplier.newInstance(stack);
 		state.lastTick = drifter.tickCount;
+		if (TRACE) {
+			Drifter.LOGGER.info("[Drifter test] swing animation {} ({} ticks, speed {}, mirrored {})", parts[1], ticks, speed, parts[3]);
+		}
 	}
 
 	private static void stop(State state, DrifterEntity drifter) throws ReflectiveOperationException {
