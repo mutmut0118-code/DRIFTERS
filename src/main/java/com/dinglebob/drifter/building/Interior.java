@@ -29,18 +29,18 @@ public final class Interior {
 	/** Bigger than this and it isn't a room (the fill got out through a gap). */
 	private static final int MAX_ROOM = 64;
 
-	private final Level level;
+	private final net.minecraft.world.level.BlockGetter level;
 	private final Set<BlockPos> room = new HashSet<>();
 	private final Set<BlockPos> doorInside = new HashSet<>();
 	private final Set<BlockPos> bedSide = new HashSet<>();
 
-	private Interior(Level level) {
+	private Interior(net.minecraft.world.level.BlockGetter level) {
 		this.level = level;
 	}
 
 	/** The room round this bed (either half), or null if it isn't walled in. */
 	@Nullable
-	public static Interior of(Level level, BlockPos bed) {
+	public static Interior of(net.minecraft.world.level.BlockGetter level, BlockPos bed) {
 		BlockState state = level.getBlockState(bed);
 		if (!(state.getBlock() instanceof BedBlock)) {
 			return null;

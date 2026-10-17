@@ -1321,6 +1321,16 @@ cow, pick a flower, bounce on their bed, put up a "was here" sign. Bored ones do
       A Drifter that walks into a boat or minecart no longer gets stuck in it.
 - [ ] Turn them off with "Whims (things for fun)" in the settings screen, or `/drifter config whims false`.
 
+## A fresh world (new; explore new land to see it)
+
+- [ ] Drifters you find living somewhere have lived about a day at most: first tools, maybe a little iron, not more.
+- [ ] Camps are rarer and spread out, mostly with a built house (one of the house plans, in the wood that grows there)
+      rather than a hut; few are abandoned.
+- [ ] Now and then a lone Drifter: one with nothing at all, one partway through its first day with no home yet, or
+      (rarely) one in full iron walking somewhere far. Meet that one, let it walk off, and it's gone for good. To see
+      them at once: `/drifter wanderer fresh`, `/drifter wanderer dayone`, `/drifter wanderer passing`.
+- [ ] Switch lone Drifters off: "Wandering Drifters" in the settings screen.
+
 ## Huts, farms and houses while you're away (new)
 
 - [ ] New huts vary: 7x7 or 9x9, 2 or 3 blocks high, cobblestone or wooden floor, some with log corner posts, all with

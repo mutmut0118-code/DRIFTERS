@@ -696,7 +696,7 @@ public class BuildPlanActivity extends Activity {
 	 * head against a wall, as far from the door as it can.
 	 */
 	@Nullable
-	public static BedSpot bedSpot(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want) {
+	public static BedSpot bedSpot(net.minecraft.world.level.BlockGetter level, PlacedPlan plan, Map<BlockPos, BlockState> want) {
 		for (PlacedPlan.Cell cell : plan.build) {
 			if (cell.state().getBlock() instanceof BedBlock) {
 				return new BedSpot(cell.pos(), cell.state().getValue(BedBlock.FACING));
@@ -744,7 +744,7 @@ public class BuildPlanActivity extends Activity {
 	 * Room for half a bed here: empty in the plan and the world (and above it), on a floor, walled in all round, and with
 	 * a roof over it (found in testing: a bed put out on a watchtower's open top deck, the railing counting as walls).
 	 */
-	private static boolean roomForBed(Level level, PlacedPlan plan, Map<BlockPos, BlockState> want, BlockPos pos) {
+	private static boolean roomForBed(net.minecraft.world.level.BlockGetter level, PlacedPlan plan, Map<BlockPos, BlockState> want, BlockPos pos) {
 		if (!plan.contains(pos, 0) || want.containsKey(pos) || want.containsKey(pos.above()) || !level.getBlockState(pos).isAir()
 			|| !level.getBlockState(pos.above()).isAir() || !level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)) {
 			return false;

@@ -1546,7 +1546,23 @@ structure blocks) for the user's own worlds.
   Catch-up huts: trees and leaves in the hut's space and doorway cleared first; "finished" only when all its blocks
   stand; doors and glass from what's in its chests too. Tested on the snowy seed: a 7x7 hut with log corners, glass,
   a torch and a door, then an A-frame with its bed moved in.
-- **Next:** more designs (a hillside bunker was planned), and the open items above. Open: on a slope, a few blocks get "walked over but still can't reach"
+- A fresh world feels at most a day lived (user, 2026-10-17): Drifters already living somewhere when the land generates
+  (camps, villages, outposts) have lived a few hours to a day (`LivedInStructures.livedTicks`), not days; outpost
+  Bandits get a raider kit (stone sword, bow and arrows, leather tunic and cap, bread) so a day-one gang is still a gang.
+  Camps: rarer, spaced on a 7x7-chunk grid (one possible camp a region, kept off its edges: 2+ chunks apart, mostly ~100
+  blocks), 85% lived in, and 80% a built house (one of the plans, in the wood growing there, up to four plans tried for
+  the ground and what world generation can reach) with its Drifter living in it like a village house (bed, chest,
+  table and furnace along the walls); otherwise a hut. Drifters picking a home keep 32 blocks from other Drifters'
+  homes they know (not their own group's).
+  Wanderers (`world/gen/WandererFeature`, setting "Wandering Drifters"): about one a 160 chunks where the ground's dry:
+  fresh (nothing), setting off (a few hours to most of a day lived, no home yet), or passing through (full iron, a
+  sword and shield, walking one way: `PassThroughActivity`; once a player has met it and it's 96 blocks off, it's gone
+  for good). Debug: `/drifter wanderer fresh|dayone|passing`. Tested, 960x960 on two seeds: 9 to 13 wanderers, house
+  camps well ahead of huts.
+  Catch-up's structure loot is now from places it explored (mineshaft, ruined portal, dungeon, shipwreck, trial
+  chambers, temples, buried treasure, a mansion late on), added to what it carries; no village chests.
+- **Next:** Better Combat and Combat Roll compat (user, next), then a data-driven way to get modded weapons (Simply
+  Swords first). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
 
 ## Ideas for more assumptions (for the user to pick from)

@@ -22,6 +22,7 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 public final class DrifterFeatures {
 	public static final Feature<NoneFeatureConfiguration> CAMP = register("camp", new CampFeature(NoneFeatureConfiguration.CODEC));
 	public static final Feature<NoneFeatureConfiguration> STRIP_MINE = register("strip_mine", new StripMineFeature(NoneFeatureConfiguration.CODEC));
+	public static final Feature<NoneFeatureConfiguration> WANDERER = register("wanderer", new WandererFeature(NoneFeatureConfiguration.CODEC));
 	public static final Feature<NoneFeatureConfiguration> CAVE_TORCHES = register("cave_torches", new CaveTorchFeature(NoneFeatureConfiguration.CODEC));
 
 	private DrifterFeatures() {
@@ -33,6 +34,7 @@ public final class DrifterFeatures {
 
 	public static void register() {
 		add("camp", GenerationStep.Decoration.SURFACE_STRUCTURES);
+		add("wanderer", GenerationStep.Decoration.TOP_LAYER_MODIFICATION);
 		add("strip_mine", GenerationStep.Decoration.UNDERGROUND_STRUCTURES);
 		add("cave_torches", GenerationStep.Decoration.UNDERGROUND_DECORATION);
 	}

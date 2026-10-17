@@ -66,6 +66,16 @@ public final class HousePalette {
 	 * This Drifter's palette for this plan: the plan's woods by how much it uses them, matched to the woods it has (logs and
 	 * planks on it and in its chests) and sees round home, most first; deepslate for cobblestone if it has more of that.
 	 */
+	/** Every wood of the plan as this one (world-gen houses: the wood that grows round them). */
+	public static HousePalette forWood(HousePlan plan, String wood) {
+		Map<String, String> map = new HashMap<>();
+		for (String planWood : woodsByUse(plan)) {
+			map.put(planWood, wood);
+		}
+
+		return new HousePalette(map, false);
+	}
+
 	public static HousePalette forDrifter(DrifterEntity drifter, HousePlan plan) {
 		List<String> planWoods = woodsByUse(plan);
 		List<String> theirs = woodsAround(drifter);

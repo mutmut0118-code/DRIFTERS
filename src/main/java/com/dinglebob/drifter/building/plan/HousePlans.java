@@ -90,6 +90,13 @@ public final class HousePlans {
 	}
 
 	private static Map<String, HousePlan> cache = Map.of();
+	/** The plans as last read, safe to read from world-generation threads (they never touch the files themselves). */
+	private static volatile Map<String, HousePlan> snapshot = Map.of();
+
+	/** The plans as last read (world generation's view; empty until the server has read them once). */
+	public static Map<String, HousePlan> snapshot() {
+		return snapshot;
+	}
 	private static long cachedAt = Long.MIN_VALUE / 2;
 
 	/** The plans, read again at most once a minute (for the brain, which asks often). */
@@ -97,6 +104,7 @@ public final class HousePlans {
 		long now = System.currentTimeMillis();
 		if (now - cachedAt > 60_000L) {
 			cache = all(server);
+			snapshot = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(cache));
 			cachedAt = now;
 		}
 

@@ -104,7 +104,7 @@ public final class HomeSite {
 		// Footprints overlap (spots every 2 blocks, 7 wide): each ground cell's answer is worked out once per search.
 		Map<Long, Double> cells = new HashMap<>();
 		for (BlockPos spot : floors) {
-			if (tooClose(avoid, spot)) {
+			if (tooClose(avoid, spot) || nearOthersHome(drifter, spot)) {
 				continue;
 			}
 
@@ -186,6 +186,23 @@ public final class HomeSite {
 			|| state.is(net.minecraft.world.level.block.Blocks.NETHERRACK) || state.is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK)
 			|| state.is(net.minecraft.world.level.block.Blocks.GOLD_BLOCK) || state.is(net.minecraft.world.level.block.Blocks.CHEST)
 			|| state.is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL);
+	}
+
+	/** Least distance from another Drifter's home it knows of (user's request, 2026-10-17: homes spaced out). */
+	private static final double HOME_SPACING = 32.0;
+
+	/** Too close to the home of a Drifter it knows (it saw it there): it settles a little further off. */
+	private static boolean nearOthersHome(DrifterEntity drifter, BlockPos spot) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		for (var bond : drifter.getBonds().all()) {
+			// (Its own group's members may live close: they settled together.)
+			if (bond.knownBase != null && bond.knownBase.closerThan(spot, HOME_SPACING)
+				&& (group == null || com.dinglebob.drifter.world.DrifterGroups.of(bond.player) != group)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Anything to avoid within 6 blocks of the 7x7 footprint (and 4 up or down). */

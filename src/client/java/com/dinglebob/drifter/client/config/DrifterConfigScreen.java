@@ -67,6 +67,8 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(toggle(left, y, "Whims (things for fun)", DrifterConfig.whims(), DrifterConfig::setWhims));
 		this.addRenderableWidget(toggle(right, y, "Outpost Bandits grief", DrifterConfig.banditGriefing(), DrifterConfig::setBanditGriefing));
 		y += ROW;
+		this.addRenderableWidget(toggle(left, y, "Wandering Drifters", DrifterConfig.worldgenWanderers(), DrifterConfig::setWorldgenWanderers));
+		y += ROW;
 		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
 				case OFF -> "off";
 				case GAME_TIME -> "game time";

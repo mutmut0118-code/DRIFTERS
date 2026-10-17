@@ -38,6 +38,16 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.world.gen.DrifterFeatures.register();
 		com.dinglebob.drifter.world.gen.LivedInStructures.register();
 		com.dinglebob.drifter.world.DrifterTravel.register();
+		// House plans read once at start-up, so world generation (which can't read files itself) has them.
+		// (Before the world loads: the spawn area is generated during start-up.)
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+			try {
+				com.dinglebob.drifter.building.plan.HousePlans.invalidate();
+				com.dinglebob.drifter.building.plan.HousePlans.cached(server);
+			} catch (RuntimeException e) {
+				LOGGER.warn("[Drifter] couldn't read house plans at start-up: {}", e.toString());
+			}
+		});
 		com.dinglebob.drifter.world.OfflineClock.register();
 		com.dinglebob.drifter.identity.Usernames.register();
 		MobTargeting.register();

@@ -113,6 +113,17 @@ public final class SocialCommands {
 		}));
 		// Where Drifters live in this world: the nearest lived-in village, or Bandit-held pillager outpost (user's request).
 		// Debug: a Bandit gang that lives here as if it held an outpost (raids, griefing).
+		// Debug: a lone wanderer here (fresh, day one, or passing through), as world generation makes them.
+		root.then(Commands.literal("wanderer").then(Commands.argument("kind", StringArgumentType.word())
+			.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("fresh", "dayone", "passing"), builder))
+			.executes(ctx -> {
+				String kind = StringArgumentType.getString(ctx, "kind");
+				int which = kind.equals("fresh") ? 0 : kind.equals("dayone") ? 1 : 2;
+				String made = com.dinglebob.drifter.world.gen.WandererFeature.spawn(ctx.getSource().getLevel(),
+					net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()), ctx.getSource().getLevel().getRandom(), which);
+				ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(made == null ? "couldn't" : "spawned " + made + " wanderer"), true);
+				return made == null ? 0 : 1;
+			})));
 		root.then(Commands.literal("banditgang").executes(ctx -> {
 			int n = com.dinglebob.drifter.world.gen.LivedInStructures.gangAt(ctx.getSource().getLevel(), net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()));
 			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(n + " Bandits now hold this spot (careful: they're hostile)"), true);

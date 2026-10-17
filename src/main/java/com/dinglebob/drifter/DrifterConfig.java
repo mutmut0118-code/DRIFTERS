@@ -72,6 +72,8 @@ public final class DrifterConfig {
 		/** Drifters living in some villages, Bandit gangs holding some pillager outposts (user, 2026-10-16). */
 		boolean worldgenVillages = true;
 		boolean worldgenOutposts = true;
+		/** Lone Drifters out in the world with no home: fresh, setting off on day one, or passing through (user, 2026-10-17). */
+		boolean worldgenWanderers = true;
 		/** Drifter groups fall into feuds, skirmish and raid each other (section 21 "Drifter team wars"). */
 		boolean drifterWars = true;
 		/** Whims: the things they do just for fun (milestone 13, docs/WHIMS.md). */
@@ -113,6 +115,15 @@ public final class DrifterConfig {
 
 	public static void setWorldgenVillages(boolean on) {
 		data.worldgenVillages = on;
+		save();
+	}
+
+	public static boolean worldgenWanderers() {
+		return data.worldgenWanderers;
+	}
+
+	public static void setWorldgenWanderers(boolean on) {
+		data.worldgenWanderers = on;
 		save();
 	}
 

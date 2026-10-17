@@ -36,10 +36,11 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
  * "lived" there. Only on flat, dry, open ground with no trees in the way.
  */
 public class CampFeature extends Feature<NoneFeatureConfiguration> {
-	private static final double OCCUPIED_CHANCE = 0.5;
+	/** Most camps are lived in (user, 2026-10-17: too many abandoned huts). */
+	private static final double OCCUPIED_CHANCE = 0.85;
 	private static final int SITE_TRIES = 6;
-	private static final int MIN_DAYS = 3;
-	private static final int MAX_DAYS = 6;
+	/** A built house rather than a hut, this often (user: "more houses than huts"). */
+	private static final double HOUSE_CHANCE = 0.8;
 	private static final ResourceKey<net.minecraft.world.level.storage.loot.LootTable> LOOT = ResourceKey.create(Registries.LOOT_TABLE,
 		ResourceLocation.withDefaultNamespace("chests/village/village_plains_house"));
 
@@ -49,8 +50,12 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 
 	@Override
 	public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
-		if (!DrifterConfig.worldgenCamps()) {
+		if (!DrifterConfig.worldgenCamps() || !campChunk(context.level(), new net.minecraft.world.level.ChunkPos(context.origin()))) {
 			return false;
+		}
+
+		if (context.random().nextDouble() < HOUSE_CHANCE && this.house(context)) {
+			return true;
 		}
 
 		WorldGenLevel level = context.level();
@@ -144,6 +149,233 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		return true;
 	}
 
+	/** Chunks a region of camps spans each way. */
+	private static final int REGION = 7;
+
+	/**
+	 * Camps are spaced out (user's request, 2026-10-17): the world is cut into 7x7-chunk regions and only one chunk in each,
+	 * picked from the world seed and kept off the region's edges, can have one; two camps are then always 2 chunks apart
+	 * at least, and most much further.
+	 */
+	static boolean campChunk(WorldGenLevel level, net.minecraft.world.level.ChunkPos chunk) {
+		int rx = Math.floorDiv(chunk.x, REGION);
+		int rz = Math.floorDiv(chunk.z, REGION);
+		long hash = level.getSeed() ^ (rx * 341873128712L + rz * 132897987541L) ^ 0x5DEECE66DL;
+		hash = hash * 6364136223846793005L + 1442695040888963407L;
+		int inner = REGION - 2;
+		int ox = 1 + (int)Math.floorMod(hash >>> 33, (long)inner);
+		int oz = 1 + (int)Math.floorMod(hash >>> 13, (long)inner);
+		return chunk.x == rx * REGION + ox && chunk.z == rz * REGION + oz;
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// A house camp: one of the house plans, built in the wood that grows there, its Drifter living in it
+	// ---------------------------------------------------------------------------------------------
+
+	private boolean house(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+		java.util.List<com.dinglebob.drifter.building.plan.HousePlan> plans = new java.util.ArrayList<>(
+			com.dinglebob.drifter.building.plan.HousePlans.snapshot().values());
+		java.util.Collections.shuffle(plans, new java.util.Random(context.random().nextLong()));
+		// A few plans in turn: a big one may not fit the ground there (or what world generation can reach) where a small one does.
+		for (int i = 0; i < Math.min(4, plans.size()); i++) {
+			if (this.house(context, plans.get(i))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean house(FeaturePlaceContext<NoneFeatureConfiguration> context, com.dinglebob.drifter.building.plan.HousePlan plan) {
+		WorldGenLevel level = context.level();
+		RandomSource random = context.random();
+		var rotation = net.minecraft.world.level.block.Rotation.getRandom(random);
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, woodNear(level, context.origin()));
+		var shape = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, BlockPos.ZERO, rotation, palette);
+		// Inside what world generation may write: the chunk it's placing in and one chunk round it.
+		net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(context.origin());
+		int minX = chunk.getMinBlockX() - 15;
+		int maxX = chunk.getMinBlockX() + 30 - shape.sizeX;
+		int minZ = chunk.getMinBlockZ() - 15;
+		int maxZ = chunk.getMinBlockZ() + 30 - shape.sizeZ;
+		if (maxX < minX || maxZ < minZ) {
+			return false;
+		}
+
+		int cx = Math.max(minX, Math.min(maxX, context.origin().getX() - shape.sizeX / 2));
+		int cz = Math.max(minZ, Math.min(maxZ, context.origin().getZ() - shape.sizeZ / 2));
+		// Fairly flat, dry, clear ground (within 3 blocks up or down).
+		java.util.List<Integer> heights = new java.util.ArrayList<>();
+		for (int dx = 0; dx < shape.sizeX; dx++) {
+			for (int dz = 0; dz < shape.sizeZ; dz++) {
+				// The ground under any trees (they're cleared: whoever built it cut them down).
+				BlockPos top = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(cx + dx, 0, cz + dz));
+				while (top.getY() > level.getMinBuildHeight() && level.getBlockState(top.below()).is(net.minecraft.tags.BlockTags.LOGS)) {
+					top = top.below();
+				}
+
+				BlockState ground = level.getBlockState(top.below());
+				if (!ground.getFluidState().isEmpty() || !level.getFluidState(top).isEmpty()) {
+					return false;
+				}
+
+				heights.add(top.getY());
+			}
+		}
+
+		java.util.Collections.sort(heights);
+		if (heights.get(heights.size() - 1) - heights.get(0) > 5) {
+			return false;
+		}
+
+		int surface = heights.get(heights.size() / 2);
+		boolean groundAtBottom = plan.cells.stream().anyMatch(c -> c.pos().getY() == 0 && com.dinglebob.drifter.building.plan.PlacedPlan.isGround(c.state()));
+		BlockPos origin = new BlockPos(cx, groundAtBottom ? surface - 1 : surface, cz);
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, palette);
+		java.util.Map<BlockPos, BlockState> want = placed.buildMap();
+		java.util.Set<BlockPos> ground = new java.util.HashSet<>(placed.ground);
+		// Levelled: its space cleared (and a little above), what's under it filled with dirt.
+		for (int dx = 0; dx < placed.sizeX; dx++) {
+			for (int dz = 0; dz < placed.sizeZ; dz++) {
+				int floorY = groundAtBottom ? origin.getY() : origin.getY() - 1;
+				for (int y = floorY + 1; y <= origin.getY() + placed.sizeY + 2; y++) {
+					level.setBlock(new BlockPos(cx + dx, y, cz + dz), Blocks.AIR.defaultBlockState(), 2);
+				}
+
+				// The rest of any tree over it.
+				for (int y = origin.getY() + placed.sizeY + 3; y <= origin.getY() + placed.sizeY + 16; y++) {
+					BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
+					BlockState state = level.getBlockState(pos);
+					if (state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)) {
+						level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+					}
+				}
+
+				for (int y = floorY; y >= floorY - 6; y--) {
+					BlockPos pos = new BlockPos(cx + dx, y, cz + dz);
+					BlockState at = level.getBlockState(pos);
+					if (at.isSolid() && at.getFluidState().isEmpty() && y < floorY) {
+						break;
+					}
+
+					level.setBlock(pos, y == floorY ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.DIRT.defaultBlockState(), 2);
+				}
+			}
+		}
+
+		for (BlockPos cell : ground) {
+			if (!level.getBlockState(cell).isSolid()) {
+				level.setBlock(cell, Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+			}
+		}
+
+		for (var cell : placed.build) {
+			BlockState state = cell.state();
+			if (state.getBlock() instanceof BedBlock) {
+				continue;
+			}
+
+			level.setBlock(cell.pos(), state, 2);
+			if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+				level.setBlock(cell.pos().above(), state.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF,
+					DoubleBlockHalf.UPPER), 2);
+			}
+		}
+
+		for (BlockPos path : placed.paths) {
+			level.setBlock(path, Blocks.DIRT_PATH.defaultBlockState(), 2);
+		}
+
+		// The bed, then its chest, crafting table and furnace along the walls (the way a Drifter sets out a room).
+		var bed = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, want);
+		if (bed == null) {
+			return true;
+		}
+
+		BlockState foot = Blocks.WHITE_BED.defaultBlockState().setValue(BedBlock.FACING, bed.facing());
+		level.setBlock(bed.foot(), foot, 2);
+		level.setBlock(bed.head(), foot.setValue(BedBlock.PART, BedPart.HEAD), 2);
+		var room = com.dinglebob.drifter.building.Interior.of(level, bed.head());
+		BlockPos chest = null;
+		if (room != null) {
+			chest = room.spot(com.dinglebob.drifter.building.Interior.Kind.CHEST, java.util.Set.of());
+			if (chest != null) {
+				level.setBlock(chest, Blocks.CHEST.defaultBlockState(), 2);
+			}
+
+			for (BlockState station : new BlockState[] {Blocks.CRAFTING_TABLE.defaultBlockState(), Blocks.FURNACE.defaultBlockState()}) {
+				room = com.dinglebob.drifter.building.Interior.of(level, bed.head());
+				BlockPos spot = room == null ? null : room.spot(com.dinglebob.drifter.building.Interior.Kind.STATION, java.util.Set.of());
+				if (spot != null) {
+					level.setBlock(spot, station, 2);
+				}
+			}
+		}
+
+		boolean occupied = random.nextDouble() < OCCUPIED_CHANCE;
+		if (!occupied && chest != null) {
+			net.minecraft.world.RandomizableContainer.setBlockEntityLootTable(level, random, chest, LOOT);
+		}
+
+		if (occupied) {
+			BlockPos stand = null;
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				for (BlockPos part : new BlockPos[] {bed.foot(), bed.head()}) {
+					BlockPos by = part.relative(side);
+					if (stand == null && level.getBlockState(by).isAir() && level.getBlockState(by.above()).isAir() && level.getBlockState(by.below()).isSolid()) {
+						stand = by;
+					}
+				}
+			}
+
+			if (stand != null) {
+				Level server = level.getLevel();
+				DrifterEntity drifter = ModEntities.DRIFTER.create(server);
+				if (drifter != null) {
+					drifter.moveTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+					drifter.finalizeSpawn(level, level.getCurrentDifficultyAt(stand), MobSpawnType.STRUCTURE, null);
+					// It lives in the house as one living in a village house does (its own bed, its chests along the walls).
+					Home home = new Home(stand, server.dimension().location(), 0L);
+					home.houseBed = bed.head();
+					if (chest != null) {
+						home.addChest(chest);
+					}
+
+					drifter.getDrifterBrain().setHome(home);
+					drifter.addPendingCatchUp(LivedInStructures.livedTicks(random));
+					level.addFreshEntity(drifter);
+				}
+			}
+		}
+
+		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] world gen: {} house camp ({}) at {}", occupied ? "a lived-in" : "an abandoned", plan.id,
+			origin.toShortString());
+		return true;
+	}
+
+	/** The wood that grows here: the commonest log near the surface round it (oak if none). */
+	private static String woodNear(WorldGenLevel level, BlockPos origin) {
+		java.util.Map<String, Integer> count = new java.util.HashMap<>();
+		for (int dx = -12; dx <= 12; dx += 2) {
+			for (int dz = -12; dz <= 12; dz += 2) {
+				BlockPos top = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, origin.offset(dx, 0, dz));
+				for (int dy = 0; dy < 8; dy++) {
+					BlockState state = level.getBlockState(top.below(dy));
+					if (state.is(net.minecraft.tags.BlockTags.LOGS)) {
+						String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+						for (String wood : com.dinglebob.drifter.building.plan.HousePalette.WOODS) {
+							if (path.startsWith(wood + "_")) {
+								count.merge(wood, 1, Integer::sum);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return count.entrySet().stream().max(java.util.Map.Entry.comparingByValue()).map(java.util.Map.Entry::getKey).orElse("oak");
+	}
+
 	/** Flat (within a block), dry, open ground with no trees or buildings where the hut and its farm go. */
 	private static boolean siteOk(WorldGenLevel level, StarterHut hut, BlockPos center) {
 		for (int dx = -hut.half; dx <= hut.half; dx++) {
@@ -223,7 +455,7 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		}
 		home.addChest(chest);
 		drifter.getDrifterBrain().setHome(home);
-		drifter.addPendingCatchUp(24000L * (MIN_DAYS + random.nextInt(MAX_DAYS - MIN_DAYS + 1)));
+		drifter.addPendingCatchUp(LivedInStructures.livedTicks(random));
 		level.addFreshEntity(drifter);
 	}
 }

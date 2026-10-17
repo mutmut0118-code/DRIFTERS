@@ -270,7 +270,7 @@ public final class LivedInStructures {
 				continue;
 			}
 
-			DrifterEntity drifter = create(level, stand, null, 2 + random.nextInt(4));
+			DrifterEntity drifter = create(level, stand, null, livedTicks(random));
 			if (drifter == null) {
 				continue;
 			}
@@ -298,7 +298,7 @@ public final class LivedInStructures {
 		List<DrifterEntity> gang = new ArrayList<>();
 		for (int i = 0; i < BANDITS; i++) {
 			BlockPos spot = groundNear(level, middle, level.getRandom(), 0, 3);
-			DrifterEntity drifter = create(level, spot != null ? spot : middle, Disposition.BANDIT, 3 + level.getRandom().nextInt(4));
+			DrifterEntity drifter = create(level, spot != null ? spot : middle, Disposition.BANDIT, livedTicks(level.getRandom()));
 			if (drifter == null) {
 				continue;
 			}
@@ -326,7 +326,7 @@ public final class LivedInStructures {
 		List<DrifterEntity> gang = new ArrayList<>();
 		for (int i = 0; i < BANDITS; i++) {
 			BlockPos spot = groundNear(level, middle, random, 0, 3);
-			DrifterEntity drifter = create(level, spot != null ? spot : middle, Disposition.BANDIT, 3 + random.nextInt(4));
+			DrifterEntity drifter = create(level, spot != null ? spot : middle, Disposition.BANDIT, livedTicks(random));
 			if (drifter == null) {
 				continue;
 			}
@@ -349,8 +349,16 @@ public final class LivedInStructures {
 		Drifter.LOGGER.info("[Drifter] world gen: a Bandit gang holds the pillager outpost at {}", box.getCenter().toShortString());
 	}
 
+	/**
+	 * How long it has lived there when you find it: a new world feels at most a day lived (user's request, 2026-10-17),
+	 * so somewhere from a few hours to a day.
+	 */
+	public static long livedTicks(RandomSource random) {
+		return 6000L + random.nextInt(18001);
+	}
+
 	@Nullable
-	private static DrifterEntity create(ServerLevel level, BlockPos at, @Nullable Disposition disposition, int days) {
+	private static DrifterEntity create(ServerLevel level, BlockPos at, @Nullable Disposition disposition, long lived) {
 		DrifterEntity drifter = ModEntities.DRIFTER.create(level);
 		if (drifter == null) {
 			return null;
@@ -362,7 +370,18 @@ public final class LivedInStructures {
 			drifter.getSocial().setDisposition(disposition);
 		}
 
-		drifter.addPendingCatchUp(24000L * days);
+		drifter.addPendingCatchUp(lived);
+		if (disposition == Disposition.BANDIT) {
+			// A raider's kit (its starting kit: a day's living alone wouldn't arm a gang that holds a tower).
+			var inventory = drifter.getInventory();
+			inventory.add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STONE_SWORD));
+			inventory.add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BOW));
+			inventory.add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW, 24));
+			inventory.add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.LEATHER_CHESTPLATE));
+			inventory.add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.LEATHER_HELMET));
+			inventory.add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BREAD, 8));
+		}
+
 		return level.addFreshEntity(drifter) ? drifter : null;
 	}
 

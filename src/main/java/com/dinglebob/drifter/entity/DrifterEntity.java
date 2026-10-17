@@ -415,6 +415,42 @@ public class DrifterEntity extends PathfinderMob {
 	/** Days of life it has to catch up on that it never lived (a Drifter made with the world in its camp), in ticks. */
 	private long pendingCatchUp;
 
+	/** Passing through (user's request, 2026-10-17): which way it's headed, since when, and whether a player has met it. */
+	private boolean passingThrough;
+	private float passHeading;
+	private long passingSince;
+	private boolean metOnItsWay;
+
+	public boolean passingThrough() {
+		return this.passingThrough;
+	}
+
+	public void startPassingThrough(float heading, long now) {
+		this.passingThrough = true;
+		this.passHeading = heading;
+		this.passingSince = now;
+	}
+
+	public float passHeading() {
+		return this.passHeading;
+	}
+
+	public void turnPassHeading(float by) {
+		this.passHeading += by;
+	}
+
+	public long passingSince() {
+		return this.passingSince;
+	}
+
+	public void markMetOnItsWay() {
+		this.metOnItsWay = true;
+	}
+
+	public boolean wasMetOnItsWay() {
+		return this.metOnItsWay;
+	}
+
 	public void addPendingCatchUp(long ticks) {
 		this.pendingCatchUp += ticks;
 	}
@@ -1769,6 +1805,13 @@ public class DrifterEntity extends PathfinderMob {
 		// When it was last running, for catch-up when it loads again (section 22).
 		tag.putLong("LastActive", this.level().getGameTime());
 		tag.putLong("PendingCatchUp", this.pendingCatchUp);
+		if (this.passingThrough) {
+			CompoundTag pass = new CompoundTag();
+			pass.putFloat("Heading", this.passHeading);
+			pass.putLong("Since", this.passingSince);
+			pass.putBoolean("Met", this.metOnItsWay);
+			tag.put("PassingThrough", pass);
+		}
 	}
 
 	@Override
@@ -1798,6 +1841,13 @@ public class DrifterEntity extends PathfinderMob {
 
 		this.lastActive = tag.contains("LastActive", Tag.TAG_LONG) ? tag.getLong("LastActive") : -1L;
 		this.pendingCatchUp = tag.getLong("PendingCatchUp");
+		if (tag.contains("PassingThrough", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+			CompoundTag pass = tag.getCompound("PassingThrough");
+			this.passingThrough = true;
+			this.passHeading = pass.getFloat("Heading");
+			this.passingSince = pass.getLong("Since");
+			this.metOnItsWay = pass.getBoolean("Met");
+		}
 
 		if (tag.contains("DrifterBrain", Tag.TAG_COMPOUND)) {
 			this.brain.load(tag.getCompound("DrifterBrain"));
