@@ -35,7 +35,7 @@ import net.minecraft.world.phys.Vec3;
  * Building the starter hut (DESIGN.md section 11, tier 3, "Build order"): clear the inside, fill holes in the floor,
  * walls ring by ring standing inside (corners first), up a two-block pillar in the middle for the top two rings and the
  * roof, back down (digging the pillar out), the last roof block over its head, the door, then the chest, table, furnace
- * and a torch inside.
+ * and a torch inside. A big (9x9) hut's corners are out of reach from the middle, so it pillars up in each quarter too.
  *
  * <p>Every step is worked out from what's there now, so it can stop (to eat, for the night) and pick up where it left off.
  * Patient Drifters gather all the blocks first; impatient ones build until they run out and go for more (section 11
@@ -59,6 +59,11 @@ public class BuildHutActivity extends Activity {
 	/** Missed once in this pass: skipped until the next pass of the same list. */
 	private final Set<BlockPos> retryLater = new HashSet<>();
 	private boolean started;
+	/** The walk to a spot to place a missed block from, and that block. */
+	@Nullable
+	private NavigateTask seekTask;
+	@Nullable
+	private BlockPos seeking;
 	private int pillarTries;
 	private int walks;
 
@@ -78,12 +83,25 @@ public class BuildHutActivity extends Activity {
 
 	@Override
 	protected boolean countsAsFailure(Task step) {
-		// A block it couldn't place from here is tried again from somewhere else; it gives up only when nothing is left.
-		return !(step instanceof PlaceBlockTask);
+		// A block it couldn't place from here is tried again from somewhere else; it gives up only when nothing is left. No
+		// way to the spot to place one from: that block waits for another visit, the rest go on (found in testing: a floor
+		// over a dip failed the whole hut, visit after visit, for days).
+		return !(step instanceof PlaceBlockTask) && step != this.seekTask;
 	}
 
 	@Override
 	protected void stepDone(Task step, Status status) {
+		if (step == this.seekTask) {
+			if (status != Status.SUCCESS && this.seeking != null) {
+				this.failed.add(this.seeking);
+				this.think("can't get to where it could place the block at " + this.seeking.toShortString() + " from (" + step.failureReason()
+					+ "): leaving it for now");
+			}
+
+			this.seekTask = null;
+			this.seeking = null;
+		}
+
 		if (step instanceof PlaceBlockTask && this.placing != null) {
 			if (status == Status.SUCCESS) {
 				this.started = true;
@@ -196,7 +214,6 @@ public class BuildHutActivity extends Activity {
 
 		boolean onFloor = feet.getY() == floorY;
 		boolean inside = hut.isInside(feet);
-		boolean onPillar = feet.getY() == floorY + hut.pillar() && feet.getX() == hut.center.getX() && feet.getZ() == hut.center.getZ();
 		List<BlockPos> roof = hut.roof();
 		List<BlockPos> roofButMiddle = roof.subList(0, roof.size() - 1);
 		// Wall layers above the second (a house's third): their blocks go on the tops of the layer below, which is above its
@@ -208,9 +225,15 @@ public class BuildHutActivity extends Activity {
 
 		upper.addAll(roofButMiddle);
 
+		// Where it pillars up (the middle, or one spot a quarter in a big hut), and the next one with work left this visit.
+		List<BlockPos> spots = this.pillarSpots(level, hut);
+		this.spotCount = spots.size();
+		BlockPos spot = this.roofPassDone ? null : this.nextSpot(level, hut, spots, upper);
+		boolean onPillar = spot != null && feet.getY() == floorY + hut.pillar() && feet.getX() == spot.getX() && feet.getZ() == spot.getZ();
+		List<BlockPos> fromHere = spot == null ? List.of() : this.cellsFor(spot, spots, upper, hut);
+
 		// Roof work left from the pillar: anything not placed yet, or (while up there) a miss it may still fix from there.
-		boolean roofToDo = !this.roofPassDone && (this.anyMissing(level, upper)
-			|| onPillar && upper.stream().anyMatch(cell -> !StarterHut.filled(level, cell) && !this.failed.contains(cell)));
+		boolean roofToDo = spot != null;
 
 		// Off the pillar (digging it out) unless it's still putting the roof on.
 		if (feet.getY() > floorY && hut.isInside(feet.below()) && !(onPillar && roofToDo)) {
@@ -242,23 +265,23 @@ public class BuildHutActivity extends Activity {
 		// breaking the pillar, and pillared up again, over and over, for roof blocks it couldn't reach from either).
 		if (roofToDo) {
 			if (!onPillar) {
-				if (!inside || feet.getX() != hut.center.getX() || feet.getZ() != hut.center.getZ()) {
-					return this.walkInside(hut);
+				if (!inside || feet.getY() != floorY || feet.getX() != spot.getX() || feet.getZ() != spot.getZ()) {
+					return this.walkInside(hut, spot);
 				}
 
-				// Its own roof block over the middle in the way (closed too soon on an earlier visit): out with it.
-				BlockPos middleRoof = hut.center.above(hut.wallHeight);
+				// Its own roof block over the spot in the way (closed too soon on an earlier visit): out with it.
+				BlockPos middleRoof = spot.above(hut.wallHeight);
 				if (StarterHut.filled(level, middleRoof) && this.reach(middleRoof)) {
 					return this.begin(this.dig(middleRoof));
 				}
 
 				// Dead centre first: off-centre, the pillar goes up in the wrong place and its body blocks the roof next to it.
-				Vec3 middle = Vec3.atBottomCenterOf(hut.center);
+				Vec3 middle = Vec3.atBottomCenterOf(spot);
 				if (Math.abs(this.drifter.getX() - middle.x) > 0.15 || Math.abs(this.drifter.getZ() - middle.z) > 0.15) {
 					return this.begin(new com.dinglebob.drifter.executor.task.CenterOnBlockTask(this.drifter, middle));
 				}
 
-				if (++this.pillarTries > 4) {
+				if (++this.pillarTries > 4 + 3 * (spots.size() - 1)) {
 					return this.fail("can't get up to put the roof on");
 				}
 
@@ -267,7 +290,11 @@ public class BuildHutActivity extends Activity {
 
 			// An outer roof block it can't see the wall top for, because an inner roof block is already in the way (an
 			// earlier visit, a repair): a player knocks the inner one out, places the outer one, and puts the inner one back.
-			for (BlockPos outer : roofButMiddle) {
+			for (BlockPos outer : fromHere) {
+				if (!roofButMiddle.contains(outer)) {
+					continue;
+				}
+
 				boolean missed = this.retryLater.contains(outer) || this.failed.contains(outer);
 				if (!missed || StarterHut.filled(level, outer) || Math.max(Math.abs(outer.getX() - hut.center.getX()),
 					Math.abs(outer.getZ() - hut.center.getZ())) < hut.half) {
@@ -296,17 +323,48 @@ public class BuildHutActivity extends Activity {
 				}
 			}
 
-			Status top = this.placeFirstMissing(level, upper, true, true);
+			Status top = this.placeFirstMissing(level, fromHere, true, true);
 			if (top != null) {
 				return top;
 			}
 
+			// Done from this pillar: down, and over to the next one (a big hut), or the rest from the floor.
+			this.spotsDone.add(spot);
+			if (this.nextSpot(level, hut, spots, upper) != null) {
+				return Status.RUNNING;
+			}
+
 			this.roofPassDone = true;
+			// (Down off the pillar first, next time round, before it walks anywhere.)
+			if (spots.size() > 1) {
+				return Status.RUNNING;
+			}
 		}
 
 		// Back on the floor: the block over its head, once everything else is in (found in testing: closed too soon, it
 		// couldn't pillar up again for the blocks it had missed).
 		this.retryLater.clear();
+		// A big hut's roof blocks over its pillar spots (over its head up there): from the floor right under each, as the
+		// middle one goes in.
+		for (BlockPos pillarSpot : spots.size() > 1 ? spots : List.<BlockPos>of()) {
+			BlockPos over = pillarSpot.above(hut.wallHeight);
+			// (The middle one goes in last, as in a small hut.)
+			if (pillarSpot.equals(hut.center) || StarterHut.filled(level, over) || this.failed.contains(over) || this.misses.containsKey(over)) {
+				continue;
+			}
+
+			if (!onFloor || !inside || feet.getX() != pillarSpot.getX() || feet.getZ() != pillarSpot.getZ()) {
+				return this.walkInside(hut, pillarSpot);
+			}
+
+			if (this.drifter.getInventory().count(this.materialFor(over, hut)) == 0) {
+				return Status.RUNNING;
+			}
+
+			this.placing = over;
+			return this.begin(new PlaceBlockTask(this.drifter, over, this.materialFor(over, hut), "a block of the " + this.what()));
+		}
+
 		// Roof blocks it missed from the pillar: from the floor, against the ones already up (walking to a better spot if needed).
 		Status missedRoof = this.placeFirstMissing(level, upper, onFloor && inside, false);
 		if (missedRoof != null) {
@@ -356,6 +414,11 @@ public class BuildHutActivity extends Activity {
 					return this.walkInside(hut);
 				}
 
+				Status closer = this.closer(hut, door);
+				if (closer != null) {
+					return closer;
+				}
+
 				this.placing = door;
 				return this.begin(new PlaceBlockTask(this.drifter, door, stack -> stack.is(ItemTags.WOODEN_DOORS), "a door"));
 			}
@@ -390,6 +453,107 @@ public class BuildHutActivity extends Activity {
 	private boolean middleTried;
 	/** It has done what it can from the pillar this visit. */
 	private boolean roofPassDone;
+	/** Pillar spots it has done what it can from this visit (a big hut has five). */
+	private final Set<BlockPos> spotsDone = new HashSet<>();
+	/** How many pillar spots this hut has (walking in counts for more tries when there are several). */
+	private int spotCount = 1;
+
+	/**
+	 * Where it pillars up for the roof: the middle of a 5x5 or 7x7 hut (every roof block is within reach from there). In a
+	 * 9x9 one the corners are 5.7 blocks off, out of a player's reach (found in testing: big huts never got their roofs), so
+	 * the middle does the cross through it (the door side's middle too: from off to one side there is no face to click
+	 * for the block over the doorway) and one spot in each quarter does the rest of it: two blocks in from the middle each
+	 * way, or beside that if a chest or table stands there.
+	 */
+	private List<BlockPos> pillarSpots(Level level, StarterHut hut) {
+		if (hut.half < 4) {
+			return List.of(hut.center);
+		}
+
+		List<BlockPos> spots = new java.util.ArrayList<>();
+		spots.add(hut.center);
+		for (int sx : new int[] {-1, 1}) {
+			for (int sz : new int[] {-1, 1}) {
+				BlockPos pick = hut.center.offset(sx * 2, 0, sz * 2);
+				for (int[] at : new int[][] {{2, 2}, {3, 3}, {3, 2}, {2, 3}}) {
+					BlockPos candidate = hut.center.offset(sx * at[0], 0, sz * at[1]);
+					if (this.pillarRoom(level, candidate, hut)) {
+						pick = candidate;
+						break;
+					}
+				}
+
+				spots.add(pick);
+			}
+		}
+
+		return spots;
+	}
+
+	/** Room to pillar up here: nothing in the way but its own pillar. */
+	private boolean pillarRoom(Level level, BlockPos spot, StarterHut hut) {
+		BlockPos feet = this.drifter.blockPosition();
+		boolean ownPillar = feet.getX() == spot.getX() && feet.getZ() == spot.getZ() && feet.getY() > spot.getY();
+		for (int dy = 0; dy <= hut.pillar(); dy++) {
+			BlockPos cell = spot.above(dy);
+			if (!StarterHut.free(level, cell) && !(ownPillar && cell.getY() < feet.getY())) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * The cells it places from this pillar spot. In a big hut: from the middle, the cross through it (a block or less off
+	 * either middle line); from a quarter's spot, the rest of that quarter. Each block then has a block already placed
+	 * further out (or a wall top) on the side facing away from where it stands, to click. None right over a quarter's
+	 * spot: that's over its head up there, so it goes in from the floor afterwards, like the middle one.
+	 */
+	private List<BlockPos> cellsFor(BlockPos spot, List<BlockPos> spots, List<BlockPos> upper, StarterHut hut) {
+		if (spots.size() == 1) {
+			return upper;
+		}
+
+		boolean middle = spot.equals(hut.center);
+		int sx = Integer.signum(spot.getX() - hut.center.getX());
+		int sz = Integer.signum(spot.getZ() - hut.center.getZ());
+		List<BlockPos> cells = new java.util.ArrayList<>();
+		for (BlockPos cell : upper) {
+			int dx = cell.getX() - hut.center.getX();
+			int dz = cell.getZ() - hut.center.getZ();
+			boolean cross = Math.abs(dx) <= 1 || Math.abs(dz) <= 1;
+			boolean overSpot = spots.stream().anyMatch(other -> other.getX() == cell.getX() && other.getZ() == cell.getZ());
+			if (overSpot) {
+				continue;
+			}
+
+			if (middle ? cross : !cross && Integer.signum(dx) == sx && Integer.signum(dz) == sz) {
+				cells.add(cell);
+			}
+		}
+
+		return cells;
+	}
+
+	/** The first pillar spot with roof work left this visit (a miss counts while it's up there), or null. */
+	@Nullable
+	private BlockPos nextSpot(Level level, StarterHut hut, List<BlockPos> spots, List<BlockPos> upper) {
+		BlockPos feet = this.drifter.blockPosition();
+		for (BlockPos spot : spots) {
+			if (this.spotsDone.contains(spot)) {
+				continue;
+			}
+
+			List<BlockPos> cells = this.cellsFor(spot, spots, upper, hut);
+			boolean up = feet.getY() == spot.getY() + hut.pillar() && feet.getX() == spot.getX() && feet.getZ() == spot.getZ();
+			if (this.anyMissing(level, cells) || up && cells.stream().anyMatch(cell -> !StarterHut.filled(level, cell) && !this.failed.contains(cell))) {
+				return spot;
+			}
+		}
+
+		return null;
+	}
 	/** Inner roof blocks it has knocked out once already to see past them. */
 	private final java.util.Set<BlockPos> unblocked = new java.util.HashSet<>();
 
@@ -485,7 +649,9 @@ public class BuildHutActivity extends Activity {
 						return this.fail("walked around too much");
 					}
 
-					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.3, "move to see where the block goes"));
+					this.seeking = cell;
+					this.seekTask = new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.3, "move to see where the block goes");
+					return this.begin(this.seekTask);
 				}
 
 				this.retryLater.remove(cell);
@@ -666,12 +832,36 @@ public class BuildHutActivity extends Activity {
 	private int asides;
 
 	protected Status walkInside(StarterHut hut) {
-		if (++this.pillarTries > 6) {
+		return this.walkInside(hut, hut.center);
+	}
+
+	/** Inside, to this spot (the middle, or a big hut's pillar spot). */
+	protected Status walkInside(StarterHut hut, BlockPos spot) {
+		if (++this.pillarTries > 6 + 3 * (this.spotCount - 1)) {
 			return this.fail("can't get inside the " + this.what());
 		}
 
-		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(hut.center), 0.3, "step inside the " + this.what()));
+		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.3, "step inside the " + this.what()));
 	}
+
+	/**
+	 * In a big (9x9) hut, being inside isn't enough: the far wall is out of reach. Over toward the spot first (a floor cell
+	 * inside, two in from the wall), when it's more than a few blocks off. Null when it's close enough.
+	 */
+	@Nullable
+	protected Status closer(StarterHut hut, BlockPos target) {
+		if (hut.half < 4 || this.drifter.getEyePosition().distanceTo(Vec3.atCenterOf(target)) <= NEAR_ENOUGH) {
+			return null;
+		}
+
+		int reachIn = hut.half - 2;
+		int dx = Math.max(-reachIn, Math.min(reachIn, target.getX() - hut.center.getX()));
+		int dz = Math.max(-reachIn, Math.min(reachIn, target.getZ() - hut.center.getZ()));
+		return this.walkInside(hut, hut.center.offset(dx, 0, dz));
+	}
+
+	/** How far (eyes to the block) it places things in a big hut from where it stands. */
+	private static final double NEAR_ENOUGH = 3.5;
 
 	protected boolean reach(BlockPos cell) {
 		return com.dinglebob.drifter.hands.Reach.canReach(this.drifter, cell);
@@ -746,6 +936,11 @@ public class BuildHutActivity extends Activity {
 						return this.walkInside(hut);
 					}
 
+					Status closer = this.closer(hut, spot);
+					if (closer != null) {
+						return closer;
+					}
+
 					this.placing = spot;
 					return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(station),
 						station.getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
@@ -768,6 +963,11 @@ public class BuildHutActivity extends Activity {
 				return this.walkInside(hut);
 			}
 
+			Status closer = this.closer(hut, spot);
+			if (closer != null) {
+				return closer;
+			}
+
 			this.placing = spot;
 			return this.begin(new PlaceBlockTask(this.drifter, spot, stack -> stack.is(station),
 				station.getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
@@ -779,6 +979,11 @@ public class BuildHutActivity extends Activity {
 		if (bed != null && !this.failed.contains(bed.foot())) {
 			if (!inPosition) {
 				return this.walkInside(hut);
+			}
+
+			Status closer = this.closer(hut, bed.foot());
+			if (closer != null) {
+				return closer;
 			}
 
 			Status aside = this.stepAside(hut, bed);
@@ -794,6 +999,11 @@ public class BuildHutActivity extends Activity {
 		if (this.drifter.getInventory().count(stack -> stack.is(Items.TORCH)) > 0 && level.getBlockState(torch).isAir() && !this.failed.contains(torch)) {
 			if (!inPosition) {
 				return this.walkInside(hut);
+			}
+
+			Status closer = this.closer(hut, torch);
+			if (closer != null) {
+				return closer;
 			}
 
 			this.placing = torch;
@@ -812,6 +1022,11 @@ public class BuildHutActivity extends Activity {
 			if (this.drifter.getInventory().count(glass) > 0) {
 				if (!inPosition) {
 					return this.walkInside(hut);
+				}
+
+				Status closer = this.closer(hut, window);
+				if (closer != null) {
+					return closer;
 				}
 
 				this.placing = window;

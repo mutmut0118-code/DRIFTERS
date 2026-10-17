@@ -229,6 +229,8 @@ public class PathSearch {
 	/** For gap jumps: its skill (the widest jump and the margin it wants), whether it can sprint, its speed, Jump Boost. */
 	private final double skill;
 	private final boolean canSprint;
+	/** Gap jumps on (the setting). */
+	private final boolean parkour;
 	private final double walkSpeed;
 	private final int jumpBoost;
 	private final List<Vec3> dangers;
@@ -274,6 +276,7 @@ public class PathSearch {
 		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
 		this.thrift = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.THRIFT);
 		this.skill = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.SKILL);
+		this.parkour = com.dinglebob.drifter.DrifterConfig.parkour();
 		// Sprinting needs food over 6, as for a player.
 		this.canSprint = drifter.getFoodData().getFoodLevel() > net.minecraft.world.food.FoodConstants.SPRINT_LEVEL;
 		// Its walking speed (the attribute counts a sprint in while it sprints: that comes back out).
@@ -510,11 +513,15 @@ public class PathSearch {
 			this.tryLevel(node, f, inWater, onSolidFloor);
 			this.tryJumpUp(node, f, onSolidFloor);
 			this.tryDown(node, f);
-			this.tryParkour(node, d, onSolidFloor);
+			if (this.parkour) {
+				this.tryParkour(node, d, onSolidFloor);
+			}
 		}
 
 		this.tryDiagonals(node);
-		this.tryParkourAngled(node, onSolidFloor);
+		if (this.parkour) {
+			this.tryParkourAngled(node, onSolidFloor);
+		}
 		this.tryVertical(node, inWater, onSolidFloor);
 	}
 

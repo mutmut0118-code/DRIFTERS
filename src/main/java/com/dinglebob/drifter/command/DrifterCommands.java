@@ -200,6 +200,12 @@ public final class DrifterCommands {
 
 		root.then(Commands.literal("config")
 			.executes(DrifterCommands::showConfig)
+			// Gap jumps on or off (to compare, or if they cause trouble).
+			.then(Commands.literal("parkour").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setParkour(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Parkour jumps " + (com.dinglebob.drifter.DrifterConfig.parkour() ? "on" : "off")), true);
+				return 1;
+			})))
 			// How common each kind of new Drifter is, and the most loaded at once (user, 2026-10-17).
 			.then(Commands.literal("spawn")
 				.executes(DrifterCommands::showSpawn)

@@ -1361,6 +1361,9 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] A test course: `/fill ~2 ~-1 ~-1 ~4 ~-1 ~1 air` in front of a Drifter on high ground (or build two platforms with a
       gap), then `/drifter goto <x> <y> <z>` to the far side. `/drifter debug` shows its path; jumps are orange.
 
+- [ ] Switch: "Parkour jumps" in the settings screen (or `/drifter config parkour false`) turns gap jumps off, if you
+      ever want to compare.
+
 ## This round's fixes (new)
 
 - [ ] Fly or run into new land for a few minutes: Drifters should stay well under about 24 loaded (`/drifter config spawn`
@@ -1398,6 +1401,9 @@ then `/summon husk ~5 ~ ~` twice.
 
 ## Huts, farms and houses while you're away (new)
 
+- [ ] **Big huts get finished now** (they never did before): a Drifter with a 9x9 hut pillars up five times, in the
+      middle and once near each corner, puts the roof on in pieces, digs each pillar out, then the door. Watch one being
+      built: `/drifter hut` next to it draws its hut layer by layer ("finished, 0 blocks missing" when done).
 - [ ] New huts vary: 7x7 or 9x9, 2 or 3 blocks high, cobblestone or wooden floor, some with log corner posts, all with
       window gaps that get glass once it has some (it smelts sand for it). Huts built before stay as they are.
 - [ ] Farms are to the side of or behind the hut, never in front of the door, with water in the middle, and different
@@ -1465,3 +1471,16 @@ move their bed in and keep the hut as a shed. Your GrabCraft stone house is alre
       picks one of these or one of yours (the best spot wins, with some chance for variety). To see a particular one:
       `/drifter house choose log_cabin` (or `stone_cottage`, `farmhouse`, `a_frame`, `watchtower`), then
       `/drifter brain goal planhouse`. They come out in the wood it has round it.
+
+## Generated house plans (new, milestone 15)
+
+The mod now makes 300 house plans per world from 8 styles (timber cottage, stone cottage, log cabin, farmhouse,
+longhouse, tower house, shed hut, stonemason), with porches, chimneys, one or two floors and different roofs. Drifters
+pick among them along with the hand-made ones and yours.
+- [ ] See a row of them: in a creative test world, stand on flat ground and run `/drifter house showcase 12`. It
+      really places them, so use a test world. Tell me any style you don't like and I'll drop or change it.
+- [ ] `/drifter houses` lists every plan (the generated ones start with `gen:`).
+- [ ] Make a Drifter build one: next to a Drifter with a finished hut, `/drifter house choose gen:timber_cottage` (or
+      `gen:log_cabin`, `gen:farmhouse`, `gen:longhouse`, `gen:tower_house`, `gen:shed_hut`, `gen:stone_cottage`,
+      `gen:stonemason`), then `/drifter brain goal planhouse`. `/drifter house status` shows its progress.
+- [ ] How many plans: "House designs" on the "Spawning..." settings page (or `/drifter config spawn house_designs 300`).

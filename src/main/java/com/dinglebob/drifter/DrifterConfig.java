@@ -87,6 +87,17 @@ public final class DrifterConfig {
 		boolean banditGriefing = true;
 		/** Bandits kill anything outside their group on sight: players, Drifters, villagers, golems, pets (user, 2026-10-17). */
 		boolean banditsKillOnSight = true;
+		/** Gap jumps in pathfinding (user, 2026-10-17: parkour). */
+		boolean parkour = true;
+	}
+
+	public static boolean parkour() {
+		return data.parkour;
+	}
+
+	public static void setParkour(boolean on) {
+		data.parkour = on;
+		save();
 	}
 
 	public static boolean banditsKillOnSight() {

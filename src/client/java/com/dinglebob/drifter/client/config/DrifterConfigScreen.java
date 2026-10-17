@@ -71,6 +71,7 @@ public class DrifterConfigScreen extends Screen {
 		this.addRenderableWidget(toggle(right, y, "Mineshaft delvers", DrifterConfig.worldgenDelvers(), DrifterConfig::setWorldgenDelvers));
 		y += ROW;
 		this.addRenderableWidget(toggle(left, y, "Bandits kill on sight", DrifterConfig.banditsKillOnSight(), DrifterConfig::setBanditsKillOnSight));
+		this.addRenderableWidget(toggle(right, y, "Parkour jumps", DrifterConfig.parkour(), DrifterConfig::setParkour));
 		y += ROW;
 		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
 				case OFF -> "off";

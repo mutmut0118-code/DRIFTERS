@@ -75,7 +75,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
 | 13 | Whim system | In progress: engine, 27 action types, 100 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
-| 15 | House plans by the hundred | Not started (user, 2026-10-17: "lets make whole milestone dedicated to generating houseplans, im talking hundreds") | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
+| 15 | House plans by the hundred | **In progress** (2026-10-17): generator v2 from 8 data-file styles, 300 checked plans per world; see "Milestone 15" below | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
 
 ## Milestone 0: Project setup
 
@@ -1669,8 +1669,47 @@ structure blocks) for the user's own worlds.
   high, something behind to stop against (a ladder's own wall, the face vines hang on, or a seen block: `NavView
   .wallBehindClimb`), then it climbs on as planned. Tested: a 2-gap jump onto a ladder up a wall, and onto vines; seen in
   the client too (caught mid-jump, climbed, out on top).
-- **Next:** milestone 15 (house plans by the hundred; user, 2026-10-17: "then move on to the house plans milestone"). Open: on a slope, a few blocks get "walked over but still can't reach"
+- **Big huts fixed (2026-10-17, found in 10-day runs).** Huts that had rolled 9x9 (three in ten since huts vary) never
+  got finished: the roof went on from one pillar in the middle, and a 9x9 roof's corners are 5.7 blocks from there, out
+  of player reach. Every failing run of the last few was a 9x9 hut (parkour was suspected first; switching it off made
+  no difference: `/drifter config parkour false`, and a "Parkour jumps" toggle in the settings screen, kept as a switch).
+  Now a 9x9 hut has five pillar spots: the middle does the cross through it (and the block over the doorway, which has
+  nothing to click from off to one side), one spot two in from each corner does that quarter, and the block over each
+  quarter's spot goes in from the floor under it after. In a big hut it also walks over near the door, a table spot, the
+  bed, the torch or a window before placing it (from the far side of the room they're out of reach). And a block whose
+  standing spot it can't get to waits for another visit instead of failing the whole hut (a floor over a dip failed a
+  7x7 hut for days). Tested on flat ground: 9x9 two high and three high, both finished with nothing missing, door in.
+- **Next:** milestone 15 (below). Open: on a slope, a few blocks get "walked over but still can't reach"
   (it arrives a little off the spot); they get done later from somewhere else.
+
+## Milestone 15: House plans by the hundred (started 2026-10-17)
+
+User: "lets make whole milestone dedicated to generating houseplans, im talking hundreds".
+
+- **Styles are data files** (`data/drifter/drifter_house_styles/*.json`, read on every reload, `_README.txt` beside
+  them): size ranges, storeys, roof kinds and weights, and materials as one block or a list to pick from per plan
+  ("none" allowed), chances for a porch, a chimney, an off-centre door, window sills, a base row, beams. Oak and spruce
+  stand for its main and second wood and cobblestone for its stone, so a plan comes out in what grows round it (the
+  existing palette swap). Eight to start: timber cottage, stone cottage, log cabin, farmhouse, longhouse, tower house,
+  shed hut, stonemason.
+- **The generator** (`building/plan/gen/PlanGenerator`): one or two storeys (a ladder up), framed walls (log corners and
+  beams), a base row, windows (with sills), a door (centred or off-centre), gable (either way), shed or flat roofs with
+  eaves level with the wall top, a porch (slab deck, posts, slab roof), a chimney up through the roof.
+- **Every plan is checked** (`PlanCheck`) before it's used: a door, nothing floating (each block reaches the ground
+  face to face, so a player could place it), and a roofed spot for the bed on the lowest floor (the same test the
+  builder uses). Drafts that fail are thrown away and redrawn.
+- **300 per world** (setting "House designs", `/drifter config spawn house_designs`), made once, seeded by the world
+  seed, styles in name order, so a world keeps its plans between sessions (a half-built house stays the same plan).
+- **Each Drifter weighs a shortlist** of 6 of them (as well as the hand-made and personal plans): creative,
+  industrious and Builder Drifters lean to bigger houses, thrifty ones to smaller; seeded by who it is, so it doesn't
+  change its mind.
+- **Debug:** `/drifter house showcase <count>` puts a row of them down next to you (a test world: it really places
+  them); `/drifter house export <count>` saves them as structure files; `/drifter house choose gen:<style>` makes the
+  nearest Drifter pick one of that style.
+- **Seen:** the showcase in the client (porches, chimneys, longhouses, towers).
+- **To do:** a Drifter building a generated plan start to finish in a 10-day run (staged test next); more shapes from
+  the plan (L and T footprints, a tower wing, hip and A-frame roofs, lofts); pictures of a sample for the user to veto
+  styles.
 
 ## Ideas for more assumptions (for the user to pick from)
 
