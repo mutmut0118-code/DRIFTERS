@@ -194,6 +194,11 @@ public class PathSearch {
 		/** Moves in a row with its head under water up to here (a held breath). */
 		int underwater;
 		boolean closed;
+		/** What the cell itself adds to any move into it (lava shore, trail, danger, edge), worked out once. */
+		boolean costed;
+		double shoreAdd;
+		double trailFactor = 1.0;
+		double extraAdd;
 
 		Node(BlockPos pos) {
 			this.pos = pos;
@@ -730,30 +735,41 @@ public class PathSearch {
 			return;
 		}
 
-		double stepCost = cost;
-		// In a lava world, the lava sea's shore (a block or two above it) costs more: one slip there is a swim in lava (found
-		// in a Nether test: a route along the shore, a vine climb cut short, and it slid in).
-		if (this.lavaWorld && to.getY() <= this.drifter.level().getSeaLevel() + 1) {
-			stepCost += LAVA_SEA_SHORE;
+		if (node == null) {
+			node = new Node(to.immutable());
+			this.nodes.put(node.pos, node);
 		}
 
-		if (this.memory.isOnTrail(to)) {
-			stepCost *= TRAIL_DISCOUNT;
-		}
+		// The cell's own part of the cost, once per search (performance, 2026-10-17: the trail and edge checks ran again for
+		// every way into a cell).
+		if (!node.costed) {
+			node.costed = true;
+			// In a lava world, the lava sea's shore (a block or two above it) costs more: one slip there is a swim in lava
+			// (found in a Nether test: a route along the shore, a vine climb cut short, and it slid in).
+			if (this.lavaWorld && to.getY() <= this.drifter.level().getSeaLevel() + 1) {
+				node.shoreAdd = LAVA_SEA_SHORE;
+			}
 
-		if (!this.dangers.isEmpty()) {
-			Vec3 center = Vec3.atBottomCenterOf(to);
-			for (Vec3 danger : this.dangers) {
-				if (danger.distanceTo(center) <= DANGER_RADIUS) {
-					stepCost += DANGER_NEAR * this.caution * 2.0;
-					break;
+			if (this.memory.isOnTrail(to)) {
+				node.trailFactor = TRAIL_DISCOUNT;
+			}
+
+			if (!this.dangers.isEmpty()) {
+				Vec3 center = Vec3.atBottomCenterOf(to);
+				for (Vec3 danger : this.dangers) {
+					if (danger.distanceTo(center) <= DANGER_RADIUS) {
+						node.extraAdd += DANGER_NEAR * this.caution * 2.0;
+						break;
+					}
 				}
+			}
+
+			if (this.besideDeepDrop(to)) {
+				node.extraAdd += EDGE_RISK * this.caution * 2.0;
 			}
 		}
 
-		if (this.besideDeepDrop(to)) {
-			stepCost += EDGE_RISK * this.caution * 2.0;
-		}
+		double stepCost = (cost + node.shoreAdd) * node.trailFactor + node.extraAdd;
 
 		// A held breath lasts about 15 s: no route with a longer swim under water than that, with a margin (found in
 		// testing: it drowned under a ceiling at night).
@@ -769,11 +785,6 @@ public class PathSearch {
 		}
 
 		double g = from.g + stepCost;
-		if (node == null) {
-			node = new Node(to.immutable());
-			this.nodes.put(node.pos, node);
-		}
-
 		if (node.closed || node.parent != null && g >= node.g || node == this.startNode) {
 			return;
 		}

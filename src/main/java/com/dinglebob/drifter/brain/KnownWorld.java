@@ -139,7 +139,30 @@ public final class KnownWorld {
 			&& !lavaAround(level, pos);
 	}
 
+	private static final java.util.function.Predicate<BlockState> LAVA = state -> state.getFluidState().is(net.minecraft.tags.FluidTags.LAVA);
+
 	private static boolean lavaAround(Level level, BlockPos pos) {
+		// Most places can't have lava anywhere near: the sections' palettes say so at once (performance, 2026-10-17).
+		var palette = com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level, LAVA);
+		int sx0 = (pos.getX() - 1) >> 4;
+		int sx1 = (pos.getX() + 1) >> 4;
+		int sy0 = (pos.getY() - 1) >> 4;
+		int sy1 = (pos.getY() + 1) >> 4;
+		int sz0 = (pos.getZ() - 1) >> 4;
+		int sz1 = (pos.getZ() + 1) >> 4;
+		boolean maybe = false;
+		for (int sx = sx0; sx <= sx1 && !maybe; sx++) {
+			for (int sy = sy0; sy <= sy1 && !maybe; sy++) {
+				for (int sz = sz0; sz <= sz1 && !maybe; sz++) {
+					maybe = palette.mayHave(sx, sy, sz);
+				}
+			}
+		}
+
+		if (!maybe) {
+			return false;
+		}
+
 		for (BlockPos near : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
 			if (level.getFluidState(near).is(net.minecraft.tags.FluidTags.LAVA)) {
 				return true;
