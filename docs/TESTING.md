@@ -1483,6 +1483,8 @@ hand-made ones and yours.
       [gable, two floors, wing]"); walk round the back to see the wings. Tell me any style you don't like and I'll drop
       or change it.
 - [ ] `/drifter houses` lists every plan (the generated ones start with `gen:`).
+- [ ] Drifters' houses vary now: each picks any house that fits a good spot near home, not always the smallest one
+      (before, most built the watchtower). Over a few Drifters you should see different houses, many of them generated.
 - [ ] Make a Drifter build one: next to a Drifter with a finished hut, `/drifter house choose gen:timber_cottage` (or
       `gen:log_cabin`, `gen:farmhouse`, `gen:longhouse`, `gen:tower_house`, `gen:shed_hut`, `gen:stone_cottage`,
       `gen:stonemason`), then `/drifter brain goal planhouse`. `/drifter house status` shows its progress.

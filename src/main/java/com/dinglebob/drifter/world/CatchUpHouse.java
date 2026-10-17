@@ -69,7 +69,7 @@ public final class CatchUpHouse {
 			return null;
 		}
 
-		// The plan and spot: its own if it had picked one; otherwise the best spot for any plan (some chance for variety).
+		// The plan and spot: its own if it had picked one; otherwise one with a good spot (PlanSite.pick).
 		HousePlan plan = null;
 		PlacedPlan placed = null;
 		if (home.planId != null && home.planOrigin != null) {
@@ -80,25 +80,24 @@ public final class CatchUpHouse {
 		}
 
 		if (placed == null) {
-			double best = Double.MAX_VALUE;
+			java.util.List<PlanSite.Choice> choices = new java.util.ArrayList<>();
 			for (HousePlan candidate : HousePlans.choicesFor(server, drifter)) {
 				HousePalette palette = HousePalette.forDrifter(drifter, candidate);
 				PlanSite.Site site = PlanSite.choose(drifter, candidate, palette, true);
-				if (site == null) {
-					continue;
+				if (site != null) {
+					choices.add(new PlanSite.Choice(candidate, site, palette));
 				}
+			}
 
-				double cost = site.cost() + drifter.getRandom().nextDouble() * 20.0;
-				if (cost < best) {
-					best = cost;
-					plan = candidate;
-					home.planId = candidate.id;
-					home.planOrigin = site.origin();
-					home.planRotation = site.rotation().name();
-					home.planWoods.clear();
-					home.planWoods.putAll(palette.woods());
-					home.planDeepslate = palette.deepslate();
-				}
+			PlanSite.Choice choice = PlanSite.pick(choices, drifter.getRandom());
+			if (choice != null) {
+				plan = choice.plan();
+				home.planId = plan.id;
+				home.planOrigin = choice.site().origin();
+				home.planRotation = choice.site().rotation().name();
+				home.planWoods.clear();
+				home.planWoods.putAll(choice.palette().woods());
+				home.planDeepslate = choice.palette().deepslate();
 			}
 
 			if (plan == null) {

@@ -1713,10 +1713,16 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   files; `/drifter house choose gen:<style>` (or a plan's id, `gen:farmhouse_96`) makes the nearest Drifter pick it. The
   server log line when plans are made counts what they have: in the first test world 151 gable, 73 gable the other way,
   27 hip, 30 shed, 19 flat; 101 two-storey, 93 porches, 96 chimneys, 37 wings.
-- **Seen:** the showcase in the client (porches, chimneys, longhouses, towers, wings, hip roofs). A Drifter built a
-  generated timber cottage start to finish on flat ground (193 of 193 blocks, then moved its bed in).
-- **To do:** a Drifter building a winged house start to finish (running); more shapes (a T, a tower wing, A-frame
-  roofs, lofts); a 10-day run where a Drifter picks a generated plan on its own.
+- **Which house it builds** (`PlanSite.pick`, used by the builder and by catch-up): any plan whose best spot is about
+  as good as the best plan's (its cost per column of footprint within 0.5), at random, as a player picks a house they
+  like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
+  the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
+  houses, 6 of them generated.
+- **Seen:** the showcase in the client (porches, chimneys, longhouses, towers, wings, hip roofs). Drifters built
+  generated plans start to finish on flat ground and moved their beds in: a timber cottage (193 blocks), a two-storey
+  farmhouse with a wing (450), a stone cottage with a hip roof (223).
+- **To do:** more shapes (a T, a tower wing, A-frame roofs, lofts); a 10-day run where a Drifter picks and builds a
+  generated plan on its own on natural ground.
 
 ## Ideas for more assumptions (for the user to pick from)
 

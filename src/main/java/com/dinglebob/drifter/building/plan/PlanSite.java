@@ -25,6 +25,29 @@ public final class PlanSite {
 	public record Site(BlockPos origin, Rotation rotation, double cost) {
 	}
 
+	/** A plan it could build, with its best spot and the woods it would use. */
+	public record Choice(HousePlan plan, Site site, HousePalette palette) {
+		/** How well the spot suits the plan: its cost per column of the footprint (a big house isn't marked down for its size). */
+		double fit() {
+			return this.site.cost() / Math.max(1, this.plan.size.getX() * this.plan.size.getZ());
+		}
+	}
+
+	/** A plan whose spot suits it worse than the best one's by more than this (per column) is out of the running. */
+	private static final double FIT_SLACK = 0.5;
+
+	/**
+	 * Which house it builds: as a player picks a house they like and then a spot for it, any plan whose spot is about as
+	 * good as the best one's, chosen at random (found in testing: picking the cheapest spot outright, the smallest
+	 * footprints always won, so with hundreds of plans it built the same two towers). Null if there's none.
+	 */
+	@Nullable
+	public static Choice pick(List<Choice> choices, net.minecraft.util.RandomSource random) {
+		double best = choices.stream().mapToDouble(Choice::fit).min().orElse(Double.MAX_VALUE);
+		List<Choice> good = choices.stream().filter(choice -> choice.fit() <= best + FIT_SLACK).toList();
+		return good.isEmpty() ? null : good.get(random.nextInt(good.size()));
+	}
+
 	private static final int MAX_STEP = 4;
 	/** Most of a footprint it may not have seen the ground of. */
 	private static final double MAX_UNSEEN = 0.35;

@@ -452,34 +452,27 @@ public class BuildPlanActivity extends Activity {
 			return null;
 		}
 
-		// The plans it could build, best spot for each; the one with the best spot (a little chance for variety).
-		PlanSite.Site bestSite = null;
-		HousePlan bestPlan = null;
-		HousePalette bestPalette = null;
-		double bestCost = Double.MAX_VALUE;
+		// The plans it could build, best spot for each; one of those with a spot about as good as the best (PlanSite.pick).
+		List<PlanSite.Choice> choices = new java.util.ArrayList<>();
 		// A plan picked for it (debug: /drifter house choose) but no spot yet: that plan only.
 		java.util.Collection<HousePlan> plans = home.planId != null && HousePlans.get(server, home.planId) != null
 			? List.of(HousePlans.get(server, home.planId)) : HousePlans.choicesFor(server, this.drifter);
 		for (HousePlan plan : plans) {
 			HousePalette palette = HousePalette.forDrifter(this.drifter, plan);
 			PlanSite.Site site = PlanSite.choose(this.drifter, plan, palette);
-			if (site == null) {
-				continue;
-			}
-
-			double cost = site.cost() + this.drifter.getRandom().nextDouble() * 20.0;
-			if (cost < bestCost) {
-				bestCost = cost;
-				bestSite = site;
-				bestPlan = plan;
-				bestPalette = palette;
+			if (site != null) {
+				choices.add(new PlanSite.Choice(plan, site, palette));
 			}
 		}
 
-		if (bestPlan == null) {
+		PlanSite.Choice choice = PlanSite.pick(choices, this.drifter.getRandom());
+		if (choice == null) {
 			return this.fail("nowhere near home it knows is right for a house (" + PlanSite.lastRejections() + ")");
 		}
 
+		HousePlan bestPlan = choice.plan();
+		PlanSite.Site bestSite = choice.site();
+		HousePalette bestPalette = choice.palette();
 		home.planId = bestPlan.id;
 		home.planOrigin = bestSite.origin();
 		home.planRotation = bestSite.rotation().name();
