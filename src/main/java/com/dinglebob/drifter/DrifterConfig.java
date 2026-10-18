@@ -89,6 +89,17 @@ public final class DrifterConfig {
 		boolean banditsKillOnSight = true;
 		/** Gap jumps in pathfinding (user, 2026-10-17: parkour). */
 		boolean parkour = true;
+		/** A Drifter that dies becomes a ragdoll (and a lootable corpse) when Sable Player Ragdoll is installed (user, 2026-10-17). */
+		boolean ragdolls = true;
+	}
+
+	public static boolean ragdolls() {
+		return data.ragdolls;
+	}
+
+	public static void setRagdolls(boolean on) {
+		data.ragdolls = on;
+		save();
 	}
 
 	public static boolean parkour() {

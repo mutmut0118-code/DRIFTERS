@@ -1755,6 +1755,16 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
     ladder stood by the side wall, where the roof slope came down right over its hole. It now goes up the middle of the
     loft end's gable wall, under the ridge. And PlanCheck turns down any plan with a ladder whose top hasn't two free
     blocks over it (none of the 300 now).
+- **Ragdolls (user, 2026-10-17: "can we make drifters have player ragdoll aswell?"; Sable, Sable Player Ragdoll and
+  Ragdoll Corpse, the last two the user's ports, sources in ../ports):** `compat/RagdollCompat`, all reflection. A
+  Drifter that dies becomes a player ragdoll (`RagdollAPI.spawnPlayerless`) in its own skin (Drifters wear the game's
+  default skins, which a skinless profile gets by its UUID: a UUID next to its own that the game maps to its skin), its
+  armor and held items on it, flung by the killing blow (at most 3 m/s: launched at 8 it came out one stiff piece); its
+  body goes at once. With Ragdoll Corpse and a player within 48 blocks, it's a corpse holding its things (the corpse
+  mod's own storage, opened like a player's; it stays till emptied); otherwise its things drop and the ragdoll goes in
+  time. The mod's own mob ragdoll on a player kill is cancelled for Drifters (two would fall). Setting "Ragdolls on
+  death". Tested in the client: killed by a command and by a player, it fell as a ragdoll in its skin with its helmet,
+  chestplate and sword; nothing dropped beside the corpse.
 - **10-day runs, round 4:** a Drifter lived at 4 health for days with no food and food too low to heal (natural
   regeneration needs 18), building its house; three berry-bush pricks killed it. "Get food" only looked at how much food
   it carried: hurt, under 18 and nothing to eat now puts food first (0.5 + 0.4 x the health need, over building). And

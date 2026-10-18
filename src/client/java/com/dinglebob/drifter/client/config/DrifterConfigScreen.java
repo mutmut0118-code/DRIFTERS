@@ -80,8 +80,10 @@ public class DrifterConfigScreen extends Screen {
 			}))
 			.withValues(DrifterConfig.OfflineProgression.values())
 			.withInitialValue(DrifterConfig.offlineProgression())
-			.create(left, y, WIDTH * 2 + 10, 20, Component.literal("Catch-up while the world was closed"),
+			.create(left, y, WIDTH, 20, Component.literal("Catch-up while closed"),
 				(button, mode) -> DrifterConfig.setOfflineProgression(mode)));
+		// (Sable Player Ragdoll; Ragdoll Corpse for corpses.)
+		this.addRenderableWidget(toggle(right, y, "Ragdolls on death", DrifterConfig.ragdolls(), DrifterConfig::setRagdolls));
 
 		// How common each kind of new Drifter is, and the most loaded at once: their own page.
 		this.addRenderableWidget(Button.builder(Component.literal("Spawning..."), button -> this.minecraft.setScreen(new DrifterSpawnScreen(this)))

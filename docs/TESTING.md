@@ -1508,3 +1508,12 @@ hand-made ones and yours.
       Drifter took the wood for the house from there. Huts too, a tree or two.
 - [ ] A Drifter you find living in a camp or house wears armor that fits how far along it is and doesn't match: early
       ones a leather cap and gold boots and the like, later ones iron with odd pieces, diamond later still.
+
+## Ragdolls (new; with Sable Player Ragdoll and Ragdoll Corpse)
+
+- [ ] Kill a Drifter: it falls as a ragdoll in its own skin, wearing its armor and holding its weapon, knocked the way
+      you hit it. Its body doesn't do the normal death fall.
+- [ ] Right-click the corpse (Ragdoll Corpse): its things are inside, like a player's corpse. Shift-click takes all.
+      It stays till you empty it.
+- [ ] A Drifter that dies with no player near leaves a ragdoll that goes after a while, and its things on the ground.
+- [ ] Switch off: "Ragdolls on death" in the settings screen (bottom row, beside "Catch-up while closed").

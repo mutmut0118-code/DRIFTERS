@@ -1885,17 +1885,44 @@ public class DrifterEntity extends PathfinderMob {
 			this.blackBox.clear();
 		}
 
+		// A ragdoll where it falls, with Sable Player Ragdoll (and a corpse with its things, with Ragdoll Corpse).
+		if (!this.isRemoved() && !this.dead && this.ragdoll == null) {
+			this.ragdoll = com.dinglebob.drifter.compat.RagdollCompat.onDeath(this, source);
+		}
+
 		super.die(source);
 	}
+
+	/** Its ragdoll, once it has died and become one (Sable Player Ragdoll). */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.compat.RagdollCompat.Ragdoll ragdoll;
 
 	@Override
 	protected void dropEquipment() {
 		super.dropEquipment();
+		java.util.List<ItemStack> things = new java.util.ArrayList<>();
 		for (ItemStack stack : this.inventory.removeAll()) {
 			if (!EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
-				this.dropScattered(stack);
+				things.add(stack);
 			}
 		}
+
+		if (this.ragdoll != null) {
+			things = com.dinglebob.drifter.compat.RagdollCompat.fillCorpse(this, this.ragdoll, things);
+		}
+
+		things.forEach(this::dropScattered);
+	}
+
+	/** Become a ragdoll: the body goes at once (the ragdoll is what falls). */
+	@Override
+	protected void tickDeath() {
+		if (this.ragdoll != null && !this.level().isClientSide()) {
+			this.remove(RemovalReason.KILLED);
+			return;
+		}
+
+		super.tickDeath();
 	}
 
 	/** It means to get into something (a whim's seat): rides are only ever its choice. */
