@@ -440,47 +440,55 @@ public final class PlanGenerator {
 	/**
 	 * A loft: a floor at the top of the walls over one end of the room (along the ridge, where there's headroom: one side
 	 * end under a ridge along x, the back under one along z), its edge cells resting on the roof and gable round it, and
-	 * a ladder up the back wall inside through a hole in it (the back wall there kept solid for the ladder to hang on; on
-	 * the side away from the chimney). The attic window in the gable end lights it.
+	 * a ladder up the middle of that end's gable wall, under the ridge, through a hole in the loft floor (found by the
+	 * user: by the side wall the roof came down right over the hole, "it's at a solid ceiling"). The wall behind the
+	 * ladder is kept solid for it to hang on; the end away from the chimney. The attic window in the gable end lights it.
 	 */
 	private static void loft(Map<BlockPos, BlockState> cells, Materials m, int width, int depth, int top, boolean ridgeAlongX, boolean chimney) {
-		int ladderX = chimney ? 1 : width - 2;
 		int x0 = 1;
 		int x1 = width - 2;
 		int z0 = 1;
+		BlockPos ladder;
+		Direction facing;
 		if (ridgeAlongX) {
+			boolean right = !chimney;
 			int length = Math.max(2, (width - 2) / 2);
-			if (ladderX == 1) {
-				x1 = length;
-			} else {
+			if (right) {
 				x0 = width - 1 - length;
+			} else {
+				x1 = length;
 			}
+
+			ladder = new BlockPos(right ? width - 2 : 1, 0, (depth - 1) / 2);
+			facing = right ? Direction.WEST : Direction.EAST;
 		} else {
 			z0 = depth - 1 - Math.max(2, (depth - 2) / 2);
+			ladder = new BlockPos((width - 1) / 2, 0, depth - 2);
+			facing = Direction.NORTH;
 		}
 
 		for (int x = x0; x <= x1; x++) {
 			for (int z = z0; z <= depth - 2; z++) {
-				if (!(x == ladderX && z == depth - 2)) {
+				if (!(x == ladder.getX() && z == ladder.getZ())) {
 					cells.put(new BlockPos(x, top + 1, z), m.upperFloor().defaultBlockState());
 				}
 			}
 		}
 
+		Direction out = facing.getOpposite();
 		for (int y = 1; y <= top + 1; y++) {
-			BlockPos wall = new BlockPos(ladderX, y, depth - 1);
+			BlockPos wall = ladder.above(y).relative(out);
 			BlockState there = cells.get(wall);
-			// (Up the wall; the top rung hangs on the back roof row, whose high side is solid.)
-			if (y <= top && there != null && !there.isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, wall)) {
-				cells.put(wall, m.infill().defaultBlockState());
+			if (there == null || !there.isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, wall)) {
+				cells.put(wall, y <= top ? m.infill().defaultBlockState() : m.gableFill().defaultBlockState());
 			}
 
-			cells.put(new BlockPos(ladderX, y, depth - 2), Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.NORTH));
+			cells.put(ladder.above(y), Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, facing));
 		}
 
 		// (A sill under a window it just walled up would be left hanging.)
 		for (int y = 1; y <= top; y++) {
-			BlockPos outside = new BlockPos(ladderX, y, depth);
+			BlockPos outside = ladder.above(y).relative(out, 2);
 			if (cells.get(outside) != null && cells.get(outside).getBlock() instanceof StairBlock) {
 				cells.remove(outside);
 			}

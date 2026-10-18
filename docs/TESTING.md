@@ -1502,6 +1502,8 @@ hand-made ones and yours.
 
 - [ ] Windows in every house are glass blocks now, not panes, and no torch hangs on a window.
 - [ ] Crafting tables, furnaces and chests are never put in front of a ladder.
+- [ ] A loft's ladder goes up the middle of the end wall, under the peak of the roof, and you can climb off at the top
+      into the loft (it used to end under the roof slope). New houses only.
 - [ ] Find a camp with a house in a wood (new chunks): the trees round it are cut down (some stumps left), as if its
       Drifter took the wood for the house from there. Huts too, a tree or two.
 - [ ] A Drifter you find living in a camp or house wears armor that fits how far along it is and doesn't match: early

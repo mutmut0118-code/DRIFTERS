@@ -1751,8 +1751,10 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
     96 blocks; it delves till it has been through the place and doesn't settle. Bandit delvers (45 %) kill on sight.
     Tested in the client: walked into a mineshaft, two came (24 and 46 blocks off, unseen); flew off, gone. Debug: `/drifter
     locate mineshaft` puts you in the nearest one's middle room.
-  - Open: the user's "the ladder leads nowhere" (asked what they meant: the room upstairs is bare, or the ladder ends
-    at a ceiling).
+  - "The ladder leads nowhere" (user: "its at a solid ceiling because the roof doesnt allow it away thru"): a loft's
+    ladder stood by the side wall, where the roof slope came down right over its hole. It now goes up the middle of the
+    loft end's gable wall, under the ridge. And PlanCheck turns down any plan with a ladder whose top hasn't two free
+    blocks over it (none of the 300 now).
 - **10-day runs, round 4:** a Drifter lived at 4 health for days with no food and food too low to heal (natural
   regeneration needs 18), building its house; three berry-bush pricks killed it. "Get food" only looked at how much food
   it carried: hurt, under 18 and nothing to eat now puts food first (0.5 + 0.4 x the health need, over building). And

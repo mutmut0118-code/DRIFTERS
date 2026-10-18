@@ -72,6 +72,22 @@ public final class PlanCheck {
 				+ example.toShortString() + " of " + plan.size.toShortString() + ")";
 		}
 
+		// Every ladder leads somewhere: room to climb off at its top (found by the user: a loft's ladder up under the roof,
+		// "it's at a solid ceiling").
+		for (Map.Entry<BlockPos, BlockState> cell : cells.entrySet()) {
+			if (!(cell.getValue().getBlock() instanceof net.minecraft.world.level.block.LadderBlock)
+				|| cells.get(cell.getKey().above()) != null && cells.get(cell.getKey().above()).getBlock() instanceof net.minecraft.world.level.block.LadderBlock) {
+				continue;
+			}
+
+			for (int up = 1; up <= 2; up++) {
+				BlockState above = cells.get(cell.getKey().above(up));
+				if (above != null && !above.isAir()) {
+					return "a ladder up into a ceiling";
+				}
+			}
+		}
+
 		PlacedPlan placed = new PlacedPlan(plan, BlockPos.ZERO, Rotation.NONE, HousePalette.asDrawn());
 		Map<BlockPos, BlockState> want = placed.buildMap();
 		if (BuildPlanActivity.bedSpot(new PlanWorld(want), placed, want) == null) {
