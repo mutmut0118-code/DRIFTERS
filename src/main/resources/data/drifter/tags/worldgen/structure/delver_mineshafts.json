@@ -1,0 +1,7 @@
+{
+  "values": [
+    "#minecraft:mineshaft",
+    {"id": "#hopo:mineshaftsstructure", "required": false},
+    {"id": "#hopo:mineshaftsbiomesstructure", "required": false}
+  ]
+}

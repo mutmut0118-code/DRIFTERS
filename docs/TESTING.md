@@ -1521,6 +1521,12 @@ Test in survival: like mobs, hostile Drifters ignore you in creative.
       knows is there: a squid splashing or a zombie shuffling). A Bandit or delver keeps at it 10 to 16 minutes and only
       breaks off when nearly dead; any Drifter you hit and ran from, 2 to 5 minutes. Seeing or hearing you again starts
       the clock over.
+- [ ] In a fair fight a Bandit or delver stands and fights you; it only backs off when it's losing, and then it stays
+      near, eats and heals ("catching its breath before it goes after you again") and comes back, rather than running
+      off and straight back every few seconds.
+- [ ] With Hopo's Better Mineshaft: delvers now turn up in Hopo's mineshafts too (at a chest or barrel in a room, out
+      of your sight, 16 to 48 blocks off). `/drifter locate mineshaft` takes you to the nearest mineshaft a delver would
+      come to (vanilla or Hopo).
 - [ ] Switch to spectator or creative mid-chase and back: it can't see you meanwhile, but the hunt is still on when you
       come back (it used to end it).
 - [ ] Its thoughts (`drifter thoughts`): "lost sight of you: going after them", "heard something over there: you?", "you

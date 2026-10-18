@@ -1729,6 +1729,12 @@ public final class Goals {
 				return new com.dinglebob.drifter.brain.activity.HoleUpActivity(context.drifter());
 			}
 
+			// Backing off the one it's hunting: it heals before it goes after them again (no running straight back into it).
+			com.dinglebob.drifter.brain.Pursuit pursuit = context.drifter().getDrifterBrain().pursuit();
+			if (pursuit != null && threat.main() == pursuit.target) {
+				pursuit.backedOff(context.drifter(), context.drifter().level().getGameTime());
+			}
+
 			return new FleeActivity(context.drifter());
 		}
 	}

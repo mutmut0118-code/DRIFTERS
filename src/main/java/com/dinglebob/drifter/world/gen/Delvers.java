@@ -23,7 +23,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.EnchantmentTags;
-import net.minecraft.tags.StructureTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobSpawnType;
@@ -59,6 +58,13 @@ public final class Delvers {
 	/** A mineshaft rolls again after this long (a later visit can meet another). */
 	private static final long REVISIT = 24000L * 3;
 
+	/**
+	 * The mineshafts delvers come to: vanilla's, and Hopo's Better Mineshaft's when it's there (user, 2026-10-17; tag
+	 * drifter:delver_mineshafts, a datapack can add more).
+	 */
+	public static final net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> MINESHAFTS = net.minecraft.tags.TagKey.create(
+		Registries.STRUCTURE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Drifter.MOD_ID, "delver_mineshafts"));
+
 	/** Mineshafts decided ("x,z" of their start chunk) and when, saved with the world. */
 	private static final java.util.Map<String, Long> decided = new java.util.HashMap<>();
 
@@ -80,18 +86,42 @@ public final class Delvers {
 		});
 	}
 
-	/** Round this player: an unlooted chest minecart of a mineshaft not decided lately, out of their sight, for a delver. */
+	/**
+	 * Round this player: an unlooted chest minecart, or chest or barrel (Hopo's mineshafts keep theirs in rooms), of a
+	 * mineshaft not decided lately, out of their sight, for a delver.
+	 */
 	private static void look(ServerLevel level, net.minecraft.server.level.ServerPlayer player) {
 		long now = level.getGameTime();
-		List<MinecartChest> carts = level.getEntitiesOfClass(MinecartChest.class, player.getBoundingBox().inflate(FARTHEST, 24.0, FARTHEST),
-			cart -> cart.getLootTable() != null && !cart.isRemoved());
-		for (MinecartChest cart : carts) {
-			double distance = cart.distanceTo(player);
-			if (distance < CLOSEST || distance > FARTHEST || seen(level, player, cart)) {
+		List<BlockPos> loot = new java.util.ArrayList<>();
+		for (MinecartChest cart : level.getEntitiesOfClass(MinecartChest.class, player.getBoundingBox().inflate(FARTHEST, 24.0, FARTHEST),
+			cart -> cart.getLootTable() != null && !cart.isRemoved())) {
+			loot.add(cart.blockPosition());
+		}
+
+		int reach = (int)Math.ceil(FARTHEST / 16.0);
+		for (int cx = -reach; cx <= reach; cx++) {
+			for (int cz = -reach; cz <= reach; cz++) {
+				var chunk = level.getChunkSource().getChunkNow(player.chunkPosition().x + cx, player.chunkPosition().z + cz);
+				if (chunk == null) {
+					continue;
+				}
+
+				for (var entity : chunk.getBlockEntities().values()) {
+					if (entity instanceof net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity container
+						&& container.getLootTable() != null && Math.abs(entity.getBlockPos().getY() - player.getBlockY()) <= 24) {
+						loot.add(entity.getBlockPos());
+					}
+				}
+			}
+		}
+
+		for (BlockPos spot : loot) {
+			double distance = Math.sqrt(spot.distToCenterSqr(player.position()));
+			if (distance < CLOSEST || distance > FARTHEST || seen(level, player, spot)) {
 				continue;
 			}
 
-			var start = level.structureManager().getStructureWithPieceAt(cart.blockPosition(), StructureTags.MINESHAFT);
+			var start = level.structureManager().getStructureWithPieceAt(spot, MINESHAFTS);
 			if (!start.isValid()) {
 				continue;
 			}
@@ -106,25 +136,26 @@ public final class Delvers {
 			decided.put(key, now);
 			RandomSource roll = at == null ? RandomSource.create(level.getSeed() ^ start.getChunkPos().toLong() ^ 0xDE17E5L) : level.getRandom();
 			if (roll.nextDouble() >= DrifterConfig.spawnChance(DrifterConfig.Spawn.DELVERS)
-				|| !com.dinglebob.drifter.world.DrifterCensus.roomFor(cart.blockPosition(), 1)) {
+				|| !com.dinglebob.drifter.world.DrifterCensus.roomFor(spot, 1)) {
 				return;
 			}
 
-			DrifterEntity delver = spawn(level, cart.blockPosition(), level.getRandom());
+			DrifterEntity delver = spawn(level, spot, level.getRandom());
 			if (delver != null) {
 				Drifter.LOGGER.info("[Drifter] {} ({}) is delving the mineshaft at {}, {} blocks from {}", delver.getName().getString(),
-					delver.getSocial().disposition().label(), cart.blockPosition().toShortString(), (int)distance, player.getName().getString());
+					delver.getSocial().disposition().label(), spot.toShortString(), (int)distance, player.getName().getString());
 			}
 
 			return;
 		}
 	}
 
-	/** The player can see the cart from where they are (nothing solid between their eyes and it). */
-	private static boolean seen(ServerLevel level, net.minecraft.server.level.ServerPlayer player, MinecartChest cart) {
-		var hit = level.clip(new net.minecraft.world.level.ClipContext(player.getEyePosition(), cart.position().add(0.0, 0.5, 0.0),
+	/** The player can see the spot from where they are (nothing solid between their eyes and it; a chest itself doesn't count). */
+	private static boolean seen(ServerLevel level, net.minecraft.server.level.ServerPlayer player, BlockPos spot) {
+		var hit = level.clip(new net.minecraft.world.level.ClipContext(player.getEyePosition(), net.minecraft.world.phys.Vec3.atCenterOf(spot).add(0.0, 0.5, 0.0),
 			net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, player));
-		return hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+		return hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS || hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
+			&& ((net.minecraft.world.phys.BlockHitResult)hit).getBlockPos().equals(spot);
 	}
 
 	/** A delver beside this spot (a chest minecart), geared up, delving from here; null if there's no room. */

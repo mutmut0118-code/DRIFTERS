@@ -409,13 +409,16 @@ public final class SocialCommands {
 		ctx.getSource().sendSuccess(() -> Component.literal(text), false);
 	}
 
-	/** Debug: the player who ran it to the middle room of the nearest mineshaft (to meet a delver: walk into the tunnels). */
+	/**
+	 * Debug: whoever ran it (a player, or any entity with "execute as") to the first room of the nearest mineshaft a delver
+	 * would come to (vanilla's or Hopo's), on its floor (to meet a delver: walk into the tunnels).
+	 */
 	private static int mineshaft(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx)
 		throws com.mojang.brigadier.exceptions.CommandSyntaxException {
-		var player = ctx.getSource().getPlayerOrException();
+		var player = ctx.getSource().getEntityOrException();
 		var level = ctx.getSource().getServer().overworld();
 		var from = player.blockPosition();
-		var found = level.findNearestMapStructure(net.minecraft.tags.StructureTags.MINESHAFT, from, 32, false);
+		var found = level.findNearestMapStructure(com.dinglebob.drifter.world.gen.Delvers.MINESHAFTS, from, 64, false);
 		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] nearest mineshaft to {}: {}", from.toShortString(), found);
 		if (found == null) {
 			say(ctx, "No mineshaft found near here");
@@ -424,20 +427,37 @@ public final class SocialCommands {
 
 		var structures = level.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.STRUCTURE);
 		var chunk = level.getChunk(found.getX() >> 4, found.getZ() >> 4);
-		for (var key : java.util.List.of(net.minecraft.world.level.levelgen.structure.BuiltinStructures.MINESHAFT,
-			net.minecraft.world.level.levelgen.structure.BuiltinStructures.MINESHAFT_MESA)) {
-			var structure = structures.get(key);
-			var start = structure == null ? null : level.structureManager().getStartForStructure(net.minecraft.core.SectionPos.of(found), structure, chunk);
+		for (var holder : structures.getTagOrEmpty(com.dinglebob.drifter.world.gen.Delvers.MINESHAFTS)) {
+			var structure = holder.value();
+			var start = level.structureManager().getStartForStructure(net.minecraft.core.SectionPos.of(found), structure, chunk);
 			if (start == null || !start.isValid() || start.getPieces().isEmpty()) {
 				continue;
 			}
 
-			var room = start.getPieces().get(0).getBoundingBox();
-			var center = room.getCenter();
-			player.teleportTo(level, center.getX() + 0.5, room.minY() + 1, center.getZ() + 0.5, player.getYRot(), player.getXRot());
-			com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} to the mineshaft room at {}", player.getName().getString(), center.toShortString());
-			say(ctx, "In the mineshaft at " + center.getX() + ", " + (room.minY() + 1) + ", " + center.getZ());
-			return 1;
+			// The floor of a room, as near its middle as there is one (a jigsaw room's middle can be a pit or a wall).
+			for (var piece : start.getPieces()) {
+				var room = piece.getBoundingBox();
+				var center = room.getCenter();
+				net.minecraft.core.BlockPos best = null;
+				for (var pos : net.minecraft.core.BlockPos.betweenClosed(room.minX(), room.minY() + 1, room.minZ(), room.maxX(), room.maxY() - 1, room.maxZ())) {
+					if (level.getBlockState(pos).getCollisionShape(level, pos).isEmpty() && level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty()
+						&& level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), net.minecraft.core.Direction.UP) && level.getFluidState(pos).isEmpty()
+						&& (best == null || pos.distSqr(center) < best.distSqr(center))) {
+						best = pos.immutable();
+					}
+				}
+
+				if (best == null) {
+					continue;
+				}
+
+				var stand = best;
+				String name = structures.getKey(structure).toString();
+				player.teleportTo(level, stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, java.util.Set.of(), player.getYRot(), player.getXRot());
+				com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} to the mineshaft ({}) room at {}", player.getName().getString(), name, stand.toShortString());
+				say(ctx, "In the mineshaft (" + name + ") at " + stand.getX() + ", " + stand.getY() + ", " + stand.getZ());
+				return 1;
+			}
 		}
 
 		say(ctx, "Found a mineshaft near " + found.toShortString() + " but couldn't get into it");

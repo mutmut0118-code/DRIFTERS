@@ -1774,6 +1774,18 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   - Tested (a Bandit and a Drifter "runner" in a pillar arena): kill on sight at once; the runner hidden in a stone box
     40 blocks off, the Bandit searched round there for the whole 7 minutes of the run (it was still at it), never wandering
     off. Note: Bandits, like mobs, leave creative players alone.
+- **Chases in Hopo's mineshafts (user, 2026-10-18: "test a delver chase, specifically with Hopo's Mineshafts mod"):**
+  - Hopo's Better Mineshaft is a datapack mod (jigsaw mineshafts with rooms, chains as climbable, mob rooms). Its
+    mineshafts aren't in the vanilla mineshaft tag, so delvers never came to them: new structure tag
+    `drifter:delver_mineshafts` (vanilla's, Hopo's two tags as optional), and delvers start at loot chests and barrels
+    as well as chest minecarts (Hopo keeps its loot in rooms). `drifter locate mineshaft` uses the tag, works on any
+    entity (`execute as`), and puts it on a room's floor.
+  - Tested in a Hopo dark oak mineshaft (seed 97709457, testbed with the Hopo jar): a Bandit in iron and diamond after a
+    Drifter runner (weakened, so it ran). Found and fixed: it ran from an even fight with its quarry and straight back
+    every few seconds (a relentless chaser now fights its quarry when the odds are even, backs off only when losing);
+    after backing off it went off to settle somewhere 30 blocks up a staircase (now it stays, eats and heals, then goes
+    on: "catching its breath"); running away it clipped lava with its side in a narrow tunnel and burned to death
+    (`Steering.safeStep` checks its whole width). After: it kept within 1 to 7 blocks of the runner for 5 minutes.
 - **More relentless chases (user's playtest, 2026-10-17: "it needs to be more relentless"):** the log showed a delver in a
   cave running after every glow squid and zombie villager sound as if it were the player, and the chase ending when the
   player went spectator. Now: a sound right by another creature it saw or heard in the last 5 s is put down to that; a

@@ -32,6 +32,9 @@ public final class Pursuit {
 	@Nullable
 	private Vec3 cluePos;
 	private long clueAt = Long.MIN_VALUE / 2;
+	/** When it last backed off them (losing the fight), and how hurt it was then. */
+	private long backedOffAt = Long.MIN_VALUE / 2;
+	private float backedOffHealth;
 	/** Spots it has looked in (and when), so it doesn't search the same corner twice. */
 	private final List<Vec3> searched = new ArrayList<>();
 
@@ -85,6 +88,23 @@ public final class Pursuit {
 	/** A player in creative or spectator: out of its reach and sight, like mobs treat them. */
 	public boolean untouchable() {
 		return this.target instanceof Player player && (player.isCreative() || player.isSpectator());
+	}
+
+	/** After backing off them it heals up to this share of its health (or this long passes) before it goes after them again. */
+	private static final float HEALED = 0.75F;
+	private static final long HEAL_AT_MOST = 20 * 90;
+
+	/** It backed off them, losing: the hunt waits on its healing (and lasts the longer for it). */
+	public void backedOff(DrifterEntity drifter, long now) {
+		this.backedOffAt = now;
+		this.backedOffHealth = drifter.getHealth();
+		this.until = Math.max(this.until, now + HEAL_AT_MOST + HEARD_RENEWS);
+	}
+
+	/** Healing after backing off them: not yet back to it (health up past three quarters and what it was, or a minute and a half). */
+	public boolean healing(DrifterEntity drifter, long now) {
+		return now - this.backedOffAt < HEAL_AT_MOST
+			&& (drifter.getHealth() < drifter.getMaxHealth() * HEALED || drifter.getHealth() <= this.backedOffHealth);
 	}
 
 	/** It sees them now (and they're not out of reach in creative or spectator). */

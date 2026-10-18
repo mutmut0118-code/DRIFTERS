@@ -2,6 +2,9 @@ package com.dinglebob.drifter.brain.activity;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
+import com.dinglebob.drifter.brain.Food;
 import com.dinglebob.drifter.brain.Goals;
 import com.dinglebob.drifter.brain.KnownBlocks;
 import com.dinglebob.drifter.brain.Pursuit;
@@ -10,9 +13,13 @@ import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.executor.task.AttackTask;
 import com.dinglebob.drifter.executor.task.LookAroundTask;
 import com.dinglebob.drifter.executor.task.NavigateTask;
+import com.dinglebob.drifter.executor.task.SelectItemTask;
+import com.dinglebob.drifter.executor.task.SequenceTask;
+import com.dinglebob.drifter.executor.task.UseItemTask;
 import com.dinglebob.drifter.perception.Awareness;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
@@ -49,6 +56,7 @@ public class PursuitActivity extends Activity {
 	private boolean arrived;
 	private int searches;
 	private boolean told;
+	private boolean toldHealing;
 
 	public PursuitActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -126,6 +134,26 @@ public class PursuitActivity extends Activity {
 			return this.begin(new AttackTask(this.drifter, pursuit.target, pursuit.name));
 		}
 
+		// It backed off them, losing: it stays about, eats if it can and gets its health back, then goes on (it used to
+		// wander off to settle somewhere meanwhile: found in testing in a Hopo mineshaft, 30 blocks off up a staircase).
+		if (pursuit.healing(this.drifter, now)) {
+			if (!this.toldHealing) {
+				this.toldHealing = true;
+				this.think("catching its breath before it goes after " + pursuit.name + " again");
+			}
+
+			ItemStack food = this.drifter.getFoodData().getFoodLevel() < 20 ? Food.choose(this.drifter) : null;
+			if (food != null) {
+				ItemStack chosen = food;
+				return this.begin(new SequenceTask(this.drifter, "eat " + chosen.getHoverName().getString().toLowerCase(java.util.Locale.ROOT), List.of(
+					new SelectItemTask(this.drifter, stack -> stack == chosen, chosen.getHoverName().getString()),
+					new UseItemTask(this.drifter))));
+			}
+
+			return this.begin(new LookAroundTask(this.drifter, 2, 20));
+		}
+
+		this.toldHealing = false;
 		if (!this.told) {
 			this.told = true;
 			this.think("lost sight of " + pursuit.name + ": going after them");
@@ -285,6 +313,11 @@ public class PursuitActivity extends Activity {
 			boolean relentless = Pursuit.relentless(drifter);
 			if (drifter.getHealth() < drifter.getMaxHealth() * (relentless ? 0.2F : 0.35F)) {
 				return 0.0;
+			}
+
+			// Healing after backing off them: still on it (it waits about, not off on something else), but not pressing.
+			if (pursuit.healing(drifter, drifter.level().getGameTime())) {
+				return relentless ? 0.9 : 0.8;
 			}
 
 			return relentless ? 0.97 : 0.88;

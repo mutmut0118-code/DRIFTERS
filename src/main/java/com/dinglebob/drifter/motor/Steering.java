@@ -61,6 +61,20 @@ public final class Steering {
 		// Powder snow (it has no collision for a check like this one) sinks it without leather boots (found in the user's
 		// game: running from a creeper into powder snow, it sank in and the creeper caught it).
 		boolean boots = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS);
+		// Its whole width, not just its middle: running along a lava edge in a narrow tunnel its side clipped the lava
+		// (found in testing in a Hopo mineshaft: it burned to death running away).
+		double half = drifter.getBbWidth() / 2.0;
+		for (double dx : new double[] {-half, half}) {
+			for (double dz : new double[] {-half, half}) {
+				BlockPos side = BlockPos.containing(drifter.getX() + direction.x * ahead + dx, drifter.getY() + 0.1, drifter.getZ() + direction.z * ahead + dz);
+				for (int down = 0; down <= 1; down++) {
+					if (level.getFluidState(side.below(down)).is(FluidTags.LAVA) || level.getBlockState(side.below(down)).is(Blocks.FIRE)) {
+						return false;
+					}
+				}
+			}
+		}
+
 		for (int down = 0; down <= 3; down++) {
 			BlockPos pos = cell.below(down);
 			if (level.getFluidState(pos).is(FluidTags.LAVA) || level.getBlockState(pos).is(Blocks.FIRE)

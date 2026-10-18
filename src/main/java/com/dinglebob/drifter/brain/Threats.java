@@ -362,6 +362,14 @@ public final class Threats {
 			decision = Decision.AVOID;
 		}
 
+		// One out to kill (a Bandit, a delver, a manhunt hunter) doesn't back off its quarry in an even fight: it only goes
+		// when it's losing (found in testing in a Hopo mineshaft: it ran from an even match every few seconds and straight
+		// back, over and over).
+		com.dinglebob.drifter.brain.Pursuit pursuit = drifter.getDrifterBrain().pursuit();
+		if (decision == Decision.AVOID && main != null && pursuit != null && main == pursuit.target && com.dinglebob.drifter.brain.Pursuit.relentless(drifter)) {
+			decision = Decision.ENGAGE_CAREFUL;
+		}
+
 		// Cornered: something close just hit it and it isn't hopeless: fight back.
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5) {
 			decision = Decision.ENGAGE_CAREFUL;
