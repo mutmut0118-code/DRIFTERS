@@ -1517,8 +1517,12 @@ Test in survival: like mobs, hostile Drifters ignore you in creative.
 - [ ] `/drifter wanderer delver` near you: it comes for you at once (every delver kills on sight now).
 - [ ] Run and break line of sight (round a hill, into trees, a tunnel): it goes where it last saw you, then on the way
       you were going, then searches the spots round there it can't see into, a quick glance at each, without standing
-      about. Footsteps, digging or a door it hears near where you could be draw it there. A Bandit or delver keeps at it
-      6 to 9 minutes; any Drifter you hit and ran from, a few minutes. Seeing or hearing you again starts the clock over.
+      about. Footsteps, digging or a door it hears near where you could be draw it there (not ones right by a mob it
+      knows is there: a squid splashing or a zombie shuffling). A Bandit or delver keeps at it 10 to 16 minutes and only
+      breaks off when nearly dead; any Drifter you hit and ran from, 2 to 5 minutes. Seeing or hearing you again starts
+      the clock over.
+- [ ] Switch to spectator or creative mid-chase and back: it can't see you meanwhile, but the hunt is still on when you
+      come back (it used to end it).
 - [ ] Its thoughts (`drifter thoughts`): "lost sight of you: going after them", "heard something over there: you?", "you
       were heading that way", "searching round about for you", and in the end "gave up looking for you".
 - [ ] Sneaking is quiet: it can't hear sneaking footsteps, so creeping off is how to shake it.

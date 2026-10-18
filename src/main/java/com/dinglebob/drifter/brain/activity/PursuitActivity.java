@@ -38,10 +38,14 @@ public class PursuitActivity extends Activity {
 	private static final double SEARCH_FAR = 20.0;
 	/** Spots within this of one it searched don't count again. */
 	private static final double SEARCHED_WITHIN = 6.0;
+	/** A new sound this near the last it went after is the same lead: it carries on, no turning. */
+	private static final double SAME_LEAD = 4.0;
 
 	private boolean wentToLastSeen;
 	private boolean followedOn;
 	private long clueTaken = Long.MIN_VALUE;
+	@Nullable
+	private Vec3 clueGoal;
 	private boolean arrived;
 	private int searches;
 	private boolean told;
@@ -89,13 +93,17 @@ public class PursuitActivity extends Activity {
 		}
 
 		long now = this.drifter.level().getGameTime();
-		boolean newClue = pursuit.observe(this.drifter, now, Pursuit.persistence(this.drifter)) && pursuit.clueAt() > this.clueTaken;
+		boolean newClue = pursuit.observe(this.drifter, now, Pursuit.persistence(this.drifter)) && pursuit.clueAt() > this.clueTaken
+			&& !this.sameLead(pursuit.cluePos());
 		return this.sees(pursuit) && !(this.current() instanceof AttackTask) || newClue;
 	}
 
 	private boolean sees(Pursuit pursuit) {
-		Awareness awareness = this.drifter.getSenses().awarenessOf(pursuit.target);
-		return awareness != null && awareness.visibleNow;
+		return pursuit.seen(this.drifter);
+	}
+
+	private boolean sameLead(@Nullable Vec3 clue) {
+		return clue != null && this.clueGoal != null && clue.distanceTo(this.clueGoal) < SAME_LEAD && this.current() instanceof NavigateTask;
 	}
 
 	@Override
@@ -107,13 +115,7 @@ public class PursuitActivity extends Activity {
 		}
 
 		if (!pursuit.active(this.drifter, now)) {
-			if (!pursuit.target.isAlive()) {
-				this.think(pursuit.name + " is dead");
-			} else if (now >= pursuit.until()) {
-				this.think("gave up looking for " + pursuit.name);
-			}
-
-			this.drifter.getDrifterBrain().endPursuit();
+			this.over(pursuit, now);
 			return Status.SUCCESS;
 		}
 
@@ -133,7 +135,11 @@ public class PursuitActivity extends Activity {
 		Vec3 clue = pursuit.cluePos();
 		if (clue != null && pursuit.clueAt() > this.clueTaken && pursuit.clueAt() > pursuit.seenAt()) {
 			this.clueTaken = pursuit.clueAt();
-			this.think("heard something over there: " + pursuit.name + "?");
+			if (this.clueGoal == null || clue.distanceTo(this.clueGoal) >= SAME_LEAD) {
+				this.think("heard something over there: " + pursuit.name + "?");
+			}
+
+			this.clueGoal = clue;
 			return this.go(clue, "check the sound");
 		}
 
@@ -165,6 +171,28 @@ public class PursuitActivity extends Activity {
 		Vec3 anchor = clue != null && pursuit.clueAt() > pursuit.seenAt() ? clue : pursuit.believed(now);
 		Vec3 spot = this.searchSpot(pursuit, anchor);
 		return this.go(spot, "search for " + pursuit.name);
+	}
+
+	/** The chase is over (time's up, or they're dead): it says so and lets it go. */
+	private void over(Pursuit pursuit, long now) {
+		if (!pursuit.target.isAlive()) {
+			this.think(pursuit.name + " is dead");
+		} else if (now >= pursuit.until()) {
+			this.think("gave up looking for " + pursuit.name);
+		}
+
+		this.drifter.getDrifterBrain().endPursuit();
+	}
+
+	/** Stopped for something else: if that's because the chase ran out, it's over (else it picks up again after). */
+	@Override
+	protected void onStop() {
+		super.onStop();
+		Pursuit pursuit = this.pursuit();
+		long now = this.drifter.level().getGameTime();
+		if (pursuit != null && !pursuit.active(this.drifter, now)) {
+			this.over(pursuit, now);
+		}
 	}
 
 	private Status go(Vec3 where, String what) {
@@ -249,12 +277,16 @@ public class PursuitActivity extends Activity {
 		public double urgency(Goals.Context context) {
 			DrifterEntity drifter = context.drifter();
 			Pursuit pursuit = drifter.getDrifterBrain().pursuit();
-			if (pursuit == null || !pursuit.active(drifter, drifter.level().getGameTime()) || drifter.getHealth() < drifter.getMaxHealth() * 0.35F) {
+			if (pursuit == null || !pursuit.active(drifter, drifter.level().getGameTime())) {
 				return 0.0;
 			}
 
-			boolean relentless = com.dinglebob.drifter.social.BanditGoals.ruthless(drifter) || drifter.isDelver()
-				|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter);
+			// Too hurt to go on: the relentless only when nearly dead.
+			boolean relentless = Pursuit.relentless(drifter);
+			if (drifter.getHealth() < drifter.getMaxHealth() * (relentless ? 0.2F : 0.35F)) {
+				return 0.0;
+			}
+
 			return relentless ? 0.97 : 0.88;
 		}
 

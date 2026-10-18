@@ -1774,6 +1774,13 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   - Tested (a Bandit and a Drifter "runner" in a pillar arena): kill on sight at once; the runner hidden in a stone box
     40 blocks off, the Bandit searched round there for the whole 7 minutes of the run (it was still at it), never wandering
     off. Note: Bandits, like mobs, leave creative players alone.
+- **More relentless chases (user's playtest, 2026-10-17: "it needs to be more relentless"):** the log showed a delver in a
+  cave running after every glow squid and zombie villager sound as if it were the player, and the chase ending when the
+  player went spectator. Now: a sound right by another creature it saw or heard in the last 5 s is put down to that; a
+  new sound within 4 blocks of the one it's already going to doesn't turn it; creative or spectator hides the player
+  but doesn't end the hunt; Bandits, delvers and hunters keep at it 10 to 16 minutes (others 2 to 5) and only stop for
+  their life under 20% health (others 35%); "gave up looking for ..." is said even when another goal takes over as the
+  time runs out. Tested: a Bandit after a runner hidden in a stone box searched round there 13.5 minutes, then gave up.
 - **Space between camps (a setting; user, 2026-10-17):** camps already came one per 7x7-chunk region (a chunk picked
   from the seed, a chunk off the region's edges); the region's size is now "Space between camps" (48 to 1024 blocks,
   default 112 = as before), the margin a quarter of it, so camps are about that far apart and never closer than half.

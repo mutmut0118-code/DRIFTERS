@@ -43,6 +43,10 @@ public final class Pursuit {
 	private static final double CLUE_SLACK = 6.0;
 	/** A sound renews the chase by this much at least. */
 	private static final long HEARD_RENEWS = 20 * 60;
+	/** A sound this near something else it knows is about (a glow squid, a zombie) it puts down to that, not them. */
+	private static final double EXPLAINED_WITHIN = 5.0;
+	/** ...if it saw or heard that one within this many ticks. */
+	private static final long EXPLAINED_TICKS = 20 * 5;
 
 	Pursuit(LivingEntity target, long now, long lasts) {
 		this.target = target;
@@ -52,19 +56,41 @@ public final class Pursuit {
 		this.until = now + lasts;
 	}
 
-	/** How long (ticks) it keeps after someone out of sight: minutes, more for the ruthless and the vengeful. */
+	/** Bandits, delvers and manhunt hunters: they keep at it far longer, and keener (user, 2026-10-17: "more relentless"). */
+	public static boolean relentless(DrifterEntity drifter) {
+		return com.dinglebob.drifter.social.BanditGoals.ruthless(drifter) || drifter.isDelver()
+			|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter);
+	}
+
+	/**
+	 * How long (ticks) it keeps after someone out of sight: minutes, more for the ruthless and the vengeful (the relentless
+	 * 10 to 16, anyone else 2 to 5).
+	 */
 	public static long persistence(DrifterEntity drifter) {
 		var personality = drifter.getPersonality();
-		boolean relentless = com.dinglebob.drifter.social.BanditGoals.ruthless(drifter) || drifter.isDelver()
-			|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter);
-		double minutes = (relentless ? 6.0 : 1.5) + (relentless ? 2.0 : 1.5) * personality.get(Trait.VENGEFULNESS)
-			+ personality.get(Trait.AGGRESSION) + 0.5 * personality.get(Trait.PATIENCE);
+		boolean relentless = relentless(drifter);
+		double minutes = (relentless ? 10.0 : 2.0) + (relentless ? 3.0 : 1.5) * personality.get(Trait.VENGEFULNESS)
+			+ (relentless ? 2.0 : 1.0) * personality.get(Trait.AGGRESSION) + (relentless ? 1.0 : 0.5) * personality.get(Trait.PATIENCE);
 		return (long)(minutes * 1200);
 	}
 
+	/**
+	 * Gone till the time runs out or they die. A player in creative or spectator doesn't end it: it can't see or touch them
+	 * then (as mobs leave them be) and keeps searching from what it knew, so they come back to a hunt still on.
+	 */
 	public boolean active(DrifterEntity drifter, long now) {
-		return now < this.until && this.target.isAlive() && !this.target.isRemoved() && this.target.level() == drifter.level()
-			&& !(this.target instanceof Player player && (player.isCreative() || player.isSpectator()));
+		return now < this.until && this.target.isAlive() && !this.target.isRemoved() && this.target.level() == drifter.level();
+	}
+
+	/** A player in creative or spectator: out of its reach and sight, like mobs treat them. */
+	public boolean untouchable() {
+		return this.target instanceof Player player && (player.isCreative() || player.isSpectator());
+	}
+
+	/** It sees them now (and they're not out of reach in creative or spectator). */
+	public boolean seen(DrifterEntity drifter) {
+		Awareness awareness = drifter.getSenses().awarenessOf(this.target);
+		return awareness != null && awareness.visibleNow && !this.untouchable();
 	}
 
 	/** It sees them now: where, and which way they're going (renews the chase). */
@@ -83,7 +109,7 @@ public final class Pursuit {
 	 */
 	public boolean observe(DrifterEntity drifter, long now, long lasts) {
 		Awareness awareness = drifter.getSenses().awarenessOf(this.target);
-		if (awareness != null && awareness.visibleNow) {
+		if (this.seen(drifter)) {
 			this.sighted(now, lasts);
 			return false;
 		}
@@ -104,12 +130,30 @@ public final class Pursuit {
 			// Where they could have got to since they were last seen or heard.
 			Vec3 from = this.cluePos != null && this.clueAt > this.seenAt ? this.cluePos : this.seenPos;
 			double reach = CLUE_SLACK + RUN_SPEED * (sound.time() - since);
-			if (sound.roughPos().distanceTo(from) <= reach && (best == null || sound.time() > best.time())) {
+			if (sound.roughPos().distanceTo(from) <= reach && (best == null || sound.time() > best.time()) && !this.explained(drifter, sound, now)) {
 				best = sound;
 			}
 		}
 
 		return best != null && this.clue(best.roughPos(), best.time(), now);
+	}
+
+	/**
+	 * A sound from right by something else it knows is there (a glow squid splashing, a zombie shuffling: seen or heard just
+	 * now): that, not them, as a player would put it down to (the playtest: a delver in a cave ran after every squid).
+	 */
+	private boolean explained(DrifterEntity drifter, HeardSound sound, long now) {
+		for (Awareness other : drifter.getSenses().tracked()) {
+			if (other.entity == this.target || !(other.seenWithin(now, EXPLAINED_TICKS) || other.heardWithin(now, EXPLAINED_TICKS))) {
+				continue;
+			}
+
+			if (other.believedPos(now, EXPLAINED_TICKS).distanceTo(sound.roughPos()) <= EXPLAINED_WITHIN) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean clue(Vec3 where, long when, long now) {
