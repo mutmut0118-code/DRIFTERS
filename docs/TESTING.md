@@ -1515,5 +1515,6 @@ hand-made ones and yours.
       you hit it. Its body doesn't do the normal death fall.
 - [ ] Right-click the corpse (Ragdoll Corpse): its things are inside, like a player's corpse. Shift-click takes all.
       It stays till you empty it.
-- [ ] A Drifter that dies with no player near leaves a ragdoll that goes after a while, and its things on the ground.
+- [ ] Every Drifter death leaves a corpse, even with no one near (Drifters killing each other, mobs, falls): you can
+      come across them out in the world and loot them.
 - [ ] Switch off: "Ragdolls on death" in the settings screen (bottom row, beside "Catch-up while closed").

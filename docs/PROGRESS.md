@@ -1760,9 +1760,9 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   Drifter that dies becomes a player ragdoll (`RagdollAPI.spawnPlayerless`) in its own skin (Drifters wear the game's
   default skins, which a skinless profile gets by its UUID: a UUID next to its own that the game maps to its skin), its
   armor and held items on it, flung by the killing blow (at most 3 m/s: launched at 8 it came out one stiff piece); its
-  body goes at once. With Ragdoll Corpse and a player within 48 blocks, it's a corpse holding its things (the corpse
-  mod's own storage, opened like a player's; it stays till emptied); otherwise its things drop and the ragdoll goes in
-  time. The mod's own mob ragdoll on a player kill is cancelled for Drifters (two would fall). Setting "Ragdolls on
+  body goes at once. With Ragdoll Corpse, every death leaves a corpse holding its things (user: "make every death leave a
+  corpse"; the corpse mod's own storage, opened like a player's; it stays till emptied); without it, its things drop and
+  the ragdoll goes in time. The mod's own mob ragdoll on a player kill is cancelled for Drifters (two would fall). Setting "Ragdolls on
   death". Tested in the client: killed by a command and by a player, it fell as a ragdoll in its skin with its helmet,
   chestplate and sword; nothing dropped beside the corpse.
 - **10-day runs, round 4:** a Drifter lived at 4 health for days with no food and food too low to heal (natural

@@ -26,9 +26,9 @@ import net.minecraft.world.phys.Vec3;
  * Sable Player Ragdoll and Ragdoll Corpse (optional; user, 2026-10-17: "can we make drifters have player ragdoll
  * aswell?"). A Drifter that dies becomes a player ragdoll, in its own skin (a profile whose UUID lands on its default
  * skin, as the game picks a skinless player's), wearing its armor and holding what it held, flung the way the killing
- * blow sent it; its body goes at once. With Ragdoll Corpse too, and a player near enough to have seen it fall, the
- * ragdoll is a corpse holding its things (opened like a player's corpse, there till it's emptied); otherwise its things
- * drop as before and the ragdoll goes in time. All through reflection: neither mod is needed.
+ * blow sent it; its body goes at once. With Ragdoll Corpse too, the ragdoll is a corpse holding its things (opened like a
+ * player's corpse, there till it's emptied); without it, its things drop as before and the ragdoll goes in time. All
+ * through reflection: neither mod is needed.
  */
 public final class RagdollCompat {
 	private RagdollCompat() {
@@ -36,9 +36,6 @@ public final class RagdollCompat {
 
 	/** Fastest it's flung, metres a second. */
 	private static final double MOST_FLING = 3.0;
-
-	/** How near a player must be for a dead Drifter to leave a corpse rather than a ragdoll that goes. */
-	private static final double CORPSE_WITNESS = 48.0;
 
 	private static boolean looked;
 	@Nullable
@@ -142,7 +139,8 @@ public final class RagdollCompat {
 			return null;
 		}
 
-		boolean corpse = registerSession != null && level.getNearestPlayer(drifter, CORPSE_WITNESS) != null;
+		// Every death leaves a corpse, seen or not (user, 2026-10-17: "make every death leave a corpse").
+		boolean corpse = registerSession != null;
 		try {
 			// (Its motion in blocks a tick; the ragdoll takes metres a second.)
 			Vec3 fling = drifter.getDeltaMovement().scale(20.0);
