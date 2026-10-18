@@ -162,9 +162,13 @@ public final class SocialCommands {
 			return 1;
 		}));
 		root.then(Commands.literal("locate").then(Commands.argument("what", StringArgumentType.word())
-			.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"village", "outpost"}, builder))
+			.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"village", "outpost", "mineshaft"}, builder))
 			.executes(ctx -> {
 				String what = StringArgumentType.getString(ctx, "what");
+				if (what.equals("mineshaft")) {
+					return mineshaft(ctx);
+				}
+
 				if (!what.equals("village") && !what.equals("outpost")) {
 					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("village or outpost")).create();
 				}
@@ -403,5 +407,40 @@ public final class SocialCommands {
 
 	private static void say(CommandContext<CommandSourceStack> ctx, String text) {
 		ctx.getSource().sendSuccess(() -> Component.literal(text), false);
+	}
+
+	/** Debug: the player who ran it to the middle room of the nearest mineshaft (to meet a delver: walk into the tunnels). */
+	private static int mineshaft(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx)
+		throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		var player = ctx.getSource().getPlayerOrException();
+		var level = ctx.getSource().getServer().overworld();
+		var from = player.blockPosition();
+		var found = level.findNearestMapStructure(net.minecraft.tags.StructureTags.MINESHAFT, from, 32, false);
+		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] nearest mineshaft to {}: {}", from.toShortString(), found);
+		if (found == null) {
+			say(ctx, "No mineshaft found near here");
+			return 0;
+		}
+
+		var structures = level.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.STRUCTURE);
+		var chunk = level.getChunk(found.getX() >> 4, found.getZ() >> 4);
+		for (var key : java.util.List.of(net.minecraft.world.level.levelgen.structure.BuiltinStructures.MINESHAFT,
+			net.minecraft.world.level.levelgen.structure.BuiltinStructures.MINESHAFT_MESA)) {
+			var structure = structures.get(key);
+			var start = structure == null ? null : level.structureManager().getStartForStructure(net.minecraft.core.SectionPos.of(found), structure, chunk);
+			if (start == null || !start.isValid() || start.getPieces().isEmpty()) {
+				continue;
+			}
+
+			var room = start.getPieces().get(0).getBoundingBox();
+			var center = room.getCenter();
+			player.teleportTo(level, center.getX() + 0.5, room.minY() + 1, center.getZ() + 0.5, player.getYRot(), player.getXRot());
+			com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} to the mineshaft room at {}", player.getName().getString(), center.toShortString());
+			say(ctx, "In the mineshaft at " + center.getX() + ", " + (room.minY() + 1) + ", " + center.getZ());
+			return 1;
+		}
+
+		say(ctx, "Found a mineshaft near " + found.toShortString() + " but couldn't get into it");
+		return 0;
 	}
 }

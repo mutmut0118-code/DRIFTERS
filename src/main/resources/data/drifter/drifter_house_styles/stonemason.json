@@ -22,7 +22,7 @@
 	"upper_infill": "minecraft:oak_planks",
 	"window": [
 		"minecraft:glass",
-		"minecraft:glass_pane"
+		"minecraft:glass"
 	],
 	"window_spacing": 2,
 	"tall_windows": 0.5,

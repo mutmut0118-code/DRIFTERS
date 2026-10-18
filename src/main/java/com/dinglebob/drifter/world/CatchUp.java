@@ -254,6 +254,8 @@ public final class CatchUp {
 		Report report = new Report(total);
 		report.stageBefore = Strategist.stage(drifter);
 		RandomSource random = drifter.getRandom();
+		// (Wearing next to nothing as it set off: it picks armor up along the way, see the end.)
+		boolean bare = CatchUpArmor.worn(drifter) <= 1;
 		for (long done = 0; done < total && !report.died; done += r.sliceTicks()) {
 			long slice = Math.min(r.sliceTicks(), total - done);
 			int stage = Strategist.stage(drifter);
@@ -295,6 +297,14 @@ public final class CatchUp {
 		}
 
 		report.stageAfter = Strategist.stage(drifter);
+		if (bare && !report.died) {
+			for (Item piece : CatchUpArmor.find(drifter, total / 24000.0, report.stageAfter, random)) {
+				report.looted.merge(piece, 1, Integer::sum);
+			}
+
+			com.dinglebob.drifter.executor.task.WearArmorTask.equipAllNow(drifter);
+		}
+
 		// Healed by the time that passed, as a fed player would be.
 		if (drifter.getFoodData().getFoodLevel() > 6) {
 			drifter.setHealth(drifter.getMaxHealth());
@@ -887,7 +897,7 @@ public final class CatchUp {
 				continue;
 			}
 
-			if (CatchUpHouse.takeFromAll(drifter, stack -> stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE), 1)
+			if (CatchUpHouse.takeFromAll(drifter, stack -> stack.is(Items.GLASS), 1)
 				|| CatchUpHouse.takeFromAll(drifter, stack -> stack.is(Items.SAND) || stack.is(Items.RED_SAND), 1)) {
 				level.setBlock(window, Blocks.GLASS.defaultBlockState(), 3);
 				report.furnished.add("glass in a window");
@@ -899,6 +909,9 @@ public final class CatchUp {
 			home.hutBuilt = true;
 			PlayerPlacedBlocks.recordBuiltBox(level, hut.box());
 			home.builtRecorded = true;
+			// The trees its wood came from, gone (user, 2026-10-17).
+			com.dinglebob.drifter.world.gen.Felling.fell(level, hut.box(), com.dinglebob.drifter.world.gen.Felling.logsIn(
+				com.dinglebob.drifter.world.gen.Felling.blocksIn(level, hut.box())), drifter.getRandom());
 		}
 	}
 

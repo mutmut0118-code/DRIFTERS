@@ -1011,7 +1011,8 @@ public class BuildHutActivity extends Activity {
 		}
 
 		// Glass in its windows (user's rule: huts have glass windows): what it has, or a little smelted from sand it can get.
-		Predicate<ItemStack> glass = stack -> stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE);
+		// (Glass blocks, not panes: a lone pane in a one-block window is a thin post; user, 2026-10-17.)
+		Predicate<ItemStack> glass = stack -> stack.is(Items.GLASS);
 		int open = 0;
 		for (BlockPos window : hut.windowCells()) {
 			if (!level.getBlockState(window).isAir() || this.failed.contains(window)) {

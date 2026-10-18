@@ -231,7 +231,8 @@ public class PlaceBlockTask extends Task {
 			}
 
 			// Never a torch on glass (user, 2026-10-17: it looks wrong on a window).
-			if (support.is(net.minecraft.tags.BlockTags.IMPERMEABLE) && isTorch(this.drifter.getMainHandItem())) {
+			if ((support.is(net.minecraft.tags.BlockTags.IMPERMEABLE) || support.getBlock() instanceof net.minecraft.world.level.block.IronBarsBlock)
+				&& isTorch(this.drifter.getMainHandItem())) {
 				continue;
 			}
 

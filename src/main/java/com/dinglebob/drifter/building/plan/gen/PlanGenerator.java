@@ -59,7 +59,7 @@ public final class PlanGenerator {
 		Block infill = style.material("infill", Blocks.OAK_PLANKS, random);
 		return new Materials(style.material("floor", Blocks.OAK_PLANKS, random), style.material("base", null, random),
 			style.material("frame", null, random), style.between("posts_every", 0, 0, random), style.chance("beam", 0.0, random), infill,
-			style.material("upper_infill", infill, random), style.material("window", Blocks.GLASS_PANE, random), style.material("sill", null, random),
+			style.material("upper_infill", infill, random), style.material("window", Blocks.GLASS, random), style.material("sill", null, random),
 			style.material("stair", Blocks.SPRUCE_STAIRS, random), style.material("slab", Blocks.SPRUCE_SLAB, random),
 			style.material("gable_fill", Blocks.OAK_PLANKS, random), style.material("parapet", null, random),
 			style.material("door", Blocks.OAK_DOOR, random), style.material("upper_floor", Blocks.OAK_PLANKS, random),

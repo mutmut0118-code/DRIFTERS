@@ -173,7 +173,11 @@ public final class HousePalette {
 		String path = id.getPath();
 		String swapped = path;
 		String wood = woodOf(path);
-		if (wood != null && this.woods.containsKey(wood) && !this.woods.get(wood).equals(wood)) {
+		// Glass panes go in as glass blocks (user, 2026-10-17: "none of the panes connect to the wall": a lone pane in a
+		// one-block window is a thin post).
+		if (path.endsWith("glass_pane")) {
+			swapped = path.substring(0, path.length() - "_pane".length());
+		} else if (wood != null && this.woods.containsKey(wood) && !this.woods.get(wood).equals(wood)) {
 			String to = this.woods.get(wood);
 			swapped = path.startsWith("stripped_") ? "stripped_" + to + path.substring(("stripped_" + wood).length()) : to + path.substring(wood.length());
 		} else if (this.deepslate && path.startsWith("cobblestone")) {

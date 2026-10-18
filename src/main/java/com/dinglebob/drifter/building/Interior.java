@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * and a furnace "all over the place" in one, each put down wherever was free next to it at the time). The room is the
  * floor round its bed, inside the walls; its chests go in a row along a wall from a corner, its crafting table and
  * furnace together along another, never in the doorway, and always leaving a way from the door to the bed and to every
- * chest and station.
+ * chest and station. The foot of a ladder stays clear (found by the user: a crafting table and furnace right in front of
+ * one).
  */
 public final class Interior {
 	public enum Kind {
@@ -33,6 +34,8 @@ public final class Interior {
 	private final Set<BlockPos> room = new HashSet<>();
 	private final Set<BlockPos> doorInside = new HashSet<>();
 	private final Set<BlockPos> bedSide = new HashSet<>();
+	/** Ladders (and other climbables) at floor level round the room. */
+	private final Set<BlockPos> ladders = new HashSet<>();
 
 	private Interior(net.minecraft.world.level.BlockGetter level) {
 		this.level = level;
@@ -68,6 +71,11 @@ public final class Interior {
 				BlockPos next = pos.relative(side);
 				if (level.getBlockState(next).getBlock() instanceof DoorBlock) {
 					interior.doorInside.add(pos);
+					continue;
+				}
+
+				if (level.getBlockState(next).is(net.minecraft.tags.BlockTags.CLIMBABLE)) {
+					interior.ladders.add(next.immutable());
 					continue;
 				}
 
@@ -112,7 +120,7 @@ public final class Interior {
 		BlockPos best = null;
 		double bestScore = -Double.MAX_VALUE;
 		for (BlockPos pos : this.room) {
-			if (excluded.contains(pos) || !this.open(pos) || this.byDoor(pos)
+			if (excluded.contains(pos) || !this.open(pos) || this.byDoor(pos) || this.byLadder(pos)
 				|| !this.level.getBlockState(pos.above()).getCollisionShape(this.level, pos.above()).isEmpty()) {
 				continue;
 			}
@@ -182,6 +190,17 @@ public final class Interior {
 		return false;
 	}
 
+	/** Beside the foot of a ladder (where you step on and off it). */
+	private boolean byLadder(BlockPos pos) {
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			if (this.ladders.contains(pos.relative(side))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** With something put down here, it can still walk from the door to the bed and to everything in the room. */
 	private boolean stillWalkable(BlockPos taken) {
 		Set<BlockPos> reached = new HashSet<>();
@@ -205,6 +224,18 @@ public final class Interior {
 
 		if (this.bedSide.stream().noneMatch(reached::contains)) {
 			return false;
+		}
+
+		// And to every ladder.
+		for (BlockPos ladder : this.ladders) {
+			boolean way = false;
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				way |= reached.contains(ladder.relative(side));
+			}
+
+			if (!way) {
+				return false;
+			}
 		}
 
 		// Every chest, station and bed (and the new one) still has free floor beside it to use it from.

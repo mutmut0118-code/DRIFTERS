@@ -25,7 +25,7 @@
 		"minecraft:oak_log",
 		"minecraft:spruce_log"
 	],
-	"window": "minecraft:glass_pane",
+	"window": "minecraft:glass",
 	"window_spacing": 3,
 	"tall_windows": 0.0,
 	"roofs": {

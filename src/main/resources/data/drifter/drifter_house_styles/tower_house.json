@@ -21,7 +21,7 @@
 		"minecraft:cobblestone",
 		"minecraft:stone_bricks"
 	],
-	"window": "minecraft:glass_pane",
+	"window": "minecraft:glass",
 	"window_spacing": 2,
 	"tall_windows": 0.5,
 	"roofs": {

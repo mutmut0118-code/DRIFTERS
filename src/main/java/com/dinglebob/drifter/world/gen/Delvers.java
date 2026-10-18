@@ -1,11 +1,7 @@
 package com.dinglebob.drifter.world.gen;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -17,15 +13,12 @@ import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.registry.ModEntities;
 import com.dinglebob.drifter.social.Disposition;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -39,88 +32,99 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
 /**
  * Delvers (user's request, 2026-10-17: "wandering drifters specifically designed for underground structures? more hostile
  * than friendly? i would love to be in a mineshaft, and run into a drifter looting a chest ... stacked too, full iron to
- * full diamond, along with a simply sword weapon, a bow"). Some mineshafts (fixed by the world seed) have one: the first
- * time one of its unlooted chest minecarts loads, a Drifter is there beside it, come down to loot the place, in iron to
- * diamond armor with its favorite weapon, a bow, a pickaxe and torches. Mostly not friendly: a Bandit, an opportunist or
- * territorial. It loots the cart and works its way through the tunnels (DelveActivity), then lives as any Drifter does.
- * Its kit is its starting kit (the design's "came from its starting kit"); everything after it gathers.
+ * full diamond, along with a simply sword weapon, a bow"). An encounter (user, 2026-10-17: "it should spawn when im close
+ * to a mineshaft (like i encounter one in a cave)", and despawn: "its more than a mob than a drifter"): while a player is
+ * near a mineshaft, some (rolled once a visit; the first roll fixed by the world seed) have one at an unlooted chest
+ * minecart 16 to 48 blocks off, out of the player's sight, come down to loot the place, in iron to diamond armor with its
+ * favorite weapon, a bow, a pickaxe and torches. Mostly not friendly: a Bandit (kills on sight), an opportunist or
+ * territorial. It loots the cart and works its way through the tunnels (DelveActivity). It's never saved with the world
+ * and goes when no player is near (DrifterEntity#isDelver). Its kit is its starting kit (the design's "came from its
+ * starting kit").
  * TODO(milestone 13, whims): ancient cities the same way.
  */
 public final class Delvers {
 	private Delvers() {
 	}
 
-	/** It isn't put there in sight of a player (they'd see it appear). */
-	private static final double NOT_NEAR_PLAYER = 24.0;
-	/** It delves this long at most (a day or so) before it's an ordinary Drifter. */
-	private static final long DELVE_MIN = 24000L;
-	private static final long DELVE_EXTRA = 12000L;
+	/** Where it's put: a cart this far from the player at least (it'd be seen appearing), and at most. */
+	private static final double CLOSEST = 16.0;
+	private static final double FARTHEST = 48.0;
+	/** How often it looks round each player for a mineshaft (ticks). */
+	private static final int LOOK_EVERY = 40;
+	/** A mineshaft rolls again after this long (a later visit can meet another). */
+	private static final long REVISIT = 24000L * 3;
 
-	private record Pending(ServerLevel level, UUID cart) {
-	}
-
-	private static final List<Pending> pending = new ArrayList<>();
-	/** Mineshafts already decided ("x,z" of their start chunk), saved with the world. */
-	private static final Set<String> decided = new HashSet<>();
+	/** Mineshafts decided ("x,z" of their start chunk) and when, saved with the world. */
+	private static final java.util.Map<String, Long> decided = new java.util.HashMap<>();
 
 	public static void register() {
 		ServerLifecycleEvents.SERVER_STARTED.register(Delvers::load);
 		ServerLifecycleEvents.SERVER_STOPPING.register(Delvers::save);
-		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
-			pending.clear();
-			decided.clear();
-		});
-		// A cart is noted as it loads and dealt with at the end of the tick (not while its chunk is still loading).
-		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-			if (entity instanceof MinecartChest cart && level.dimension() == Level.OVERWORLD && cart.getLootTable() != null
-				&& DrifterConfig.worldgenDelvers()) {
-				pending.add(new Pending(level, cart.getUUID()));
-			}
-		});
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> decided.clear());
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
-			if (pending.isEmpty()) {
+			if (server.getTickCount() % LOOK_EVERY != 0 || !DrifterConfig.worldgenDelvers()) {
 				return;
 			}
 
-			List<Pending> now = new ArrayList<>(pending);
-			pending.clear();
-			for (Pending p : now) {
-				if (p.level().getEntity(p.cart()) instanceof MinecartChest cart && !cart.isRemoved()) {
-					consider(p.level(), cart);
+			ServerLevel level = server.overworld();
+			for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+				if (!player.isSpectator() && com.dinglebob.drifter.social.SocialWatcher.isRealPlayer(player)) {
+					look(level, player);
 				}
 			}
 		});
 	}
 
-	private static void consider(ServerLevel level, MinecartChest cart) {
-		var start = level.structureManager().getStructureWithPieceAt(cart.blockPosition(), StructureTags.MINESHAFT);
-		if (!start.isValid()) {
+	/** Round this player: an unlooted chest minecart of a mineshaft not decided lately, out of their sight, for a delver. */
+	private static void look(ServerLevel level, net.minecraft.server.level.ServerPlayer player) {
+		long now = level.getGameTime();
+		List<MinecartChest> carts = level.getEntitiesOfClass(MinecartChest.class, player.getBoundingBox().inflate(FARTHEST, 24.0, FARTHEST),
+			cart -> cart.getLootTable() != null && !cart.isRemoved());
+		for (MinecartChest cart : carts) {
+			double distance = cart.distanceTo(player);
+			if (distance < CLOSEST || distance > FARTHEST || seen(level, player, cart)) {
+				continue;
+			}
+
+			var start = level.structureManager().getStructureWithPieceAt(cart.blockPosition(), StructureTags.MINESHAFT);
+			if (!start.isValid()) {
+				continue;
+			}
+
+			String key = start.getChunkPos().x + "," + start.getChunkPos().z;
+			Long at = decided.get(key);
+			if (at != null && now - at < REVISIT) {
+				continue;
+			}
+
+			// The first visit's roll is fixed by the world seed; later ones aren't.
+			decided.put(key, now);
+			RandomSource roll = at == null ? RandomSource.create(level.getSeed() ^ start.getChunkPos().toLong() ^ 0xDE17E5L) : level.getRandom();
+			if (roll.nextDouble() >= DrifterConfig.spawnChance(DrifterConfig.Spawn.DELVERS)
+				|| !com.dinglebob.drifter.world.DrifterCensus.roomFor(cart.blockPosition(), 1)) {
+				return;
+			}
+
+			DrifterEntity delver = spawn(level, cart.blockPosition(), level.getRandom());
+			if (delver != null) {
+				Drifter.LOGGER.info("[Drifter] {} ({}) is delving the mineshaft at {}, {} blocks from {}", delver.getName().getString(),
+					delver.getSocial().disposition().label(), cart.blockPosition().toShortString(), (int)distance, player.getName().getString());
+			}
+
 			return;
 		}
+	}
 
-		String key = start.getChunkPos().x + "," + start.getChunkPos().z;
-		if (decided.contains(key) || level.getNearestPlayer(cart, NOT_NEAR_PLAYER) != null) {
-			return;
-		}
-
-		decided.add(key);
-		RandomSource fixed = RandomSource.create(level.getSeed() ^ start.getChunkPos().toLong() ^ 0xDE17E5L);
-		if (fixed.nextDouble() >= DrifterConfig.spawnChance(DrifterConfig.Spawn.DELVERS)
-			|| !com.dinglebob.drifter.world.DrifterCensus.roomFor(cart.blockPosition(), 1)) {
-			return;
-		}
-
-		DrifterEntity delver = spawn(level, cart.blockPosition(), level.getRandom());
-		if (delver != null) {
-			Drifter.LOGGER.info("[Drifter] world gen: {} ({}) is delving the mineshaft at {}", delver.getName().getString(),
-				delver.getSocial().disposition().label(), cart.blockPosition().toShortString());
-		}
+	/** The player can see the cart from where they are (nothing solid between their eyes and it). */
+	private static boolean seen(ServerLevel level, net.minecraft.server.level.ServerPlayer player, MinecartChest cart) {
+		var hit = level.clip(new net.minecraft.world.level.ClipContext(player.getEyePosition(), cart.position().add(0.0, 0.5, 0.0),
+			net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, player));
+		return hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
 	}
 
 	/** A delver beside this spot (a chest minecart), geared up, delving from here; null if there's no room. */
@@ -145,7 +149,8 @@ public final class Delvers {
 		double mood = random.nextDouble();
 		drifter.getSocial().setDisposition(mood < 0.45 ? Disposition.BANDIT : mood < 0.75 ? Disposition.OPPORTUNIST : Disposition.TERRITORIAL);
 		kit(level, drifter, random);
-		drifter.startDelving(stand, level.getGameTime() + DELVE_MIN + random.nextInt((int)DELVE_EXTRA));
+		// (Delving till it has been through the place; it doesn't settle down after.)
+		drifter.startDelving(stand, Long.MAX_VALUE);
 		return level.addFreshEntity(drifter) ? drifter : null;
 	}
 
@@ -248,17 +253,28 @@ public final class Delvers {
 
 	private static void load(MinecraftServer server) {
 		decided.clear();
-		for (Tag t : state(server).data.getList("Decided", Tag.TAG_STRING)) {
-			decided.add(t.getAsString());
+		CompoundTag data = state(server).data;
+		if (data.getInt("Version") < 2) {
+			// (Version 1: decided once for good. They roll again on a later visit now.)
+			for (Tag t : data.getList("Decided", Tag.TAG_STRING)) {
+				decided.put(t.getAsString(), 0L);
+			}
+
+			return;
+		}
+
+		CompoundTag times = data.getCompound("Decided");
+		for (String key : times.getAllKeys()) {
+			decided.put(key, times.getLong(key));
 		}
 	}
 
 	private static void save(MinecraftServer server) {
 		CompoundTag tag = new CompoundTag();
-		tag.putInt("Version", 1);
-		ListTag list = new ListTag();
-		decided.forEach(key -> list.add(StringTag.valueOf(key)));
-		tag.put("Decided", list);
+		tag.putInt("Version", 2);
+		CompoundTag times = new CompoundTag();
+		decided.forEach(times::putLong);
+		tag.put("Decided", times);
 		State state = state(server);
 		state.data = tag;
 		state.setDirty();

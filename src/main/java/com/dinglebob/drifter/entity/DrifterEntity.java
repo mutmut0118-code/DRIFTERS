@@ -474,6 +474,44 @@ public class DrifterEntity extends PathfinderMob {
 	public void startDelving(BlockPos from, long until) {
 		this.delveFrom = from.immutable();
 		this.delveUntil = until;
+		this.delver = true;
+	}
+
+	/**
+	 * A mineshaft delver (user, 2026-10-17: "mineshaft delvers should [despawn] ... its more than a mob than a drifter"): an
+	 * encounter, not a resident. Never saved with the world (gone when its area unloads), and gone half a minute after no
+	 * player is within 96 blocks.
+	 */
+	private boolean delver;
+	private int aloneSeconds;
+	private static final double DELVER_STAYS = 96.0;
+	private static final int DELVER_ALONE_SECONDS = 30;
+
+	public boolean isDelver() {
+		return this.delver;
+	}
+
+	@Override
+	public boolean shouldBeSaved() {
+		return !this.delver && super.shouldBeSaved();
+	}
+
+	private void delverDespawn() {
+		if (!this.delver || this.tickCount % 20 != 0) {
+			return;
+		}
+
+		boolean near = false;
+		for (net.minecraft.world.entity.player.Player player : this.level().players()) {
+			near |= !player.isSpectator() && com.dinglebob.drifter.social.SocialWatcher.isRealPlayer(player)
+				&& player.distanceToSqr(this) < DELVER_STAYS * DELVER_STAYS;
+		}
+
+		this.aloneSeconds = near ? 0 : this.aloneSeconds + 1;
+		if (this.aloneSeconds >= DELVER_ALONE_SECONDS) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} (a delver) went off into the dark", this.getName().getString());
+			this.discard();
+		}
 	}
 
 	public void stopDelving() {
@@ -954,6 +992,11 @@ public class DrifterEntity extends PathfinderMob {
 	protected void customServerAiStep() {
 		long started = System.nanoTime();
 		super.customServerAiStep();
+		this.delverDespawn();
+		if (this.isRemoved()) {
+			return;
+		}
+
 		// Its home recorded as built, once (huts from before that was recorded: so it uses the door, not the wall).
 		if ((this.tickCount + this.getId()) % 200 == 0) {
 			com.dinglebob.drifter.brain.Home home = this.brain.home();

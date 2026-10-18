@@ -190,7 +190,8 @@ public class BuildHouseActivity extends BuildHutActivity {
 	@Override
 	@Nullable
 	protected Status furnish(Level level, StarterHut house, boolean inPosition) {
-		Predicate<ItemStack> glass = stack -> stack.is(Items.GLASS) || stack.is(Items.GLASS_PANE);
+		// (Glass blocks, not panes: a lone pane in a one-block window is a thin post; user, 2026-10-17.)
+		Predicate<ItemStack> glass = stack -> stack.is(Items.GLASS);
 		for (BlockPos window : house.windowCells()) {
 			if (this.drifter.getInventory().count(glass) > 0 && level.getBlockState(window).isAir() && !this.failed.contains(window)) {
 				if (!inPosition) {

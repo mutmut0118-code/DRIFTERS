@@ -26,7 +26,7 @@
 		"minecraft:spruce_planks",
 		"minecraft:oak_planks"
 	],
-	"window": "minecraft:glass_pane",
+	"window": "minecraft:glass",
 	"window_spacing": 2,
 	"tall_windows": 0.4,
 	"sill": "minecraft:oak_stairs",

@@ -18,7 +18,7 @@
 		"minecraft:cobblestone",
 		"minecraft:oak_planks"
 	],
-	"window": "minecraft:glass_pane",
+	"window": "minecraft:glass",
 	"roofs": {
 		"gable_z": 1
 	},
