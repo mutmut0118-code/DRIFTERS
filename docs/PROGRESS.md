@@ -1726,6 +1726,33 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   like and then a spot. Before, the cheapest spot won outright, so the smallest footprints always won (10-day runs built
   the watchtower four times out of five). Tested: one Drifter choosing ten times on flat ground picked 8 different
   houses, 6 of them generated.
+- **The user's round of 2026-10-17 (night):**
+  - Glass blocks, not panes, in every house (a lone pane in a one-block window is a thin post; "none of the panes
+    connect to the wall"): the palette turns any pane in a plan into glass (generated, the mod's and personal plans),
+    the styles say glass, huts and the old houses take glass only. And no torch is ever put on a pane.
+  - Furniture never at the foot of a ladder (the user's screenshots: a crafting table and furnace in front of one):
+    `Interior` (every room furnishing: world generation, villages, Drifters furnishing their own) keeps the floor beside a
+    ladder clear and a way to it open.
+  - Trees felled round world-generated and caught-up huts and houses (user: "giving the illusion that they use the
+    resources around the area"): about the logs the build took (planks a quarter, stairs three eighths), nearest trees
+    first, trunk and leaves (not another tree's crown), a stump left now and then, snow off the felled crowns
+    (`world/gen/Felling`). Seen: a house camp in a snowy spruce wood sits in a clearing with stumps.
+  - Armor on Drifters that start with a lived-in kit (user: "matching with whatever tier they're on ... very mix matchy
+    ... armor from actual early game loot tables"): at the end of a catch-up, one that wore at most one piece finds a few
+    (1 + 1.5 a day, at most 6): early, leather it made (a quarter dyed), gold from a real ruined-portal chest roll (often
+    enchanted), chainmail off a mob; iron age, iron (made, or a real village armorer roll) with chain and gold about;
+    diamond age, diamond (some enchanted) and iron. Worn 10 to 60 %; it wears the best piece per slot
+    (`world/CatchUpArmor`). Seen: golden boots and leggings; leather cap, chainmail chestplate, leather pants, golden
+    boots; leather cap, tunic and boots with chainmail leggings.
+  - Delvers are an encounter now (user: "should spawn when im close to a mineshaft (like i encounter one in a cave)",
+    "mineshaft delvers should [despawn] ... its more than a mob than a drifter"): every 2 s round each player, an
+    unlooted chest minecart of a mineshaft 16 to 48 blocks off and out of their sight gets one (the mineshaft's first
+    roll fixed by the seed; rolls again after 3 days); never saved with the world, and gone 30 s after no player is within
+    96 blocks; it delves till it has been through the place and doesn't settle. Bandit delvers (45 %) kill on sight.
+    Tested in the client: walked into a mineshaft, two came (24 and 46 blocks off, unseen); flew off, gone. Debug: `/drifter
+    locate mineshaft` puts you in the nearest one's middle room.
+  - Open: the user's "the ladder leads nowhere" (asked what they meant: the room upstairs is bare, or the ladder ends
+    at a ceiling).
 - **10-day runs, round 4:** a Drifter lived at 4 health for days with no food and food too low to heal (natural
   regeneration needs 18), building its house; three berry-bush pricks killed it. "Get food" only looked at how much food
   it carried: hurt, under 18 and nothing to eat now puts food first (0.5 + 0.4 x the health need, over building). And

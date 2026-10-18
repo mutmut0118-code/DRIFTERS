@@ -1382,11 +1382,14 @@ then `/summon husk ~5 ~ ~` twice.
 
 ## Mineshaft delvers (new)
 
-- [ ] In a new world, explore a few mineshafts. In about one in three, you come on a Drifter at a chest minecart,
-      looting it: iron to diamond armor, a good weapon (a Simply Swords one), a bow. Most aren't friendly: it may come
-      for you, size you up, or warn you off. It goes on through the tunnels looting the other carts.
-- [ ] To meet one right away: stand next to a chest minecart (or anywhere underground) and type
-      `/drifter wanderer delver`. It says what kind it is.
+- [ ] Go into a mineshaft (in a cave, or `/drifter locate mineshaft` puts you in the nearest one's middle room). In
+      about one in four, a Drifter turns up at a chest minecart further along the tunnels, out of your sight, looting it:
+      iron to diamond armor, a good weapon (a Simply Swords one), a bow. Bandits attack you on sight; others size you up
+      or warn you off. It goes on through the tunnels looting the other carts.
+- [ ] Leave (100 blocks or so) and it's gone half a minute later, like a mob; it isn't saved with the world. Come back
+      a few days later and you may meet another.
+- [ ] To meet one right away: stand anywhere underground and type `/drifter wanderer delver`. Or set "Mineshaft
+      delvers" to 100% on the "Spawning..." settings page and walk into a mineshaft.
 - [ ] Switch them off: "Mineshaft delvers" in the settings screen.
 
 ## A fresh world (new; explore new land to see it)
@@ -1494,3 +1497,12 @@ hand-made ones and yours.
 - [ ] A Drifter building in a wood clears the leaves inside its house's space first (the trees round about keep them
       alive), then builds. `/drifter house map` next to it draws its house layer by layer if one seems stuck.
 - [ ] How many plans: "House designs" on the "Spawning..." settings page (or `/drifter config spawn house_designs 300`).
+
+## House details (new, from your screenshots)
+
+- [ ] Windows in every house are glass blocks now, not panes, and no torch hangs on a window.
+- [ ] Crafting tables, furnaces and chests are never put in front of a ladder.
+- [ ] Find a camp with a house in a wood (new chunks): the trees round it are cut down (some stumps left), as if its
+      Drifter took the wood for the house from there. Huts too, a tree or two.
+- [ ] A Drifter you find living in a camp or house wears armor that fits how far along it is and doesn't match: early
+      ones a leather cap and gold boots and the like, later ones iron with odd pieces, diamond later still.
