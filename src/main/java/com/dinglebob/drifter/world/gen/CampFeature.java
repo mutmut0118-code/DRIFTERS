@@ -155,23 +155,23 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		return true;
 	}
 
-	/** Chunks a region of camps spans each way. */
-	private static final int REGION = 7;
-
 	/**
-	 * Camps are spaced out (user's request, 2026-10-17): the world is cut into 7x7-chunk regions and only one chunk in each,
-	 * picked from the world seed and kept off the region's edges, can have one; two camps are then always 2 chunks apart
-	 * at least, and most much further.
+	 * Camps are spread out the way the game spreads villages: the world is cut into square regions the size of the "Space
+	 * between camps" setting (112 blocks, 7 chunks, by default; user, 2026-10-17), and only one chunk of each, picked from
+	 * the world seed and kept a quarter of a region off its edges, can have one. Two camps are then about that far apart,
+	 * and never closer than half of it (2 chunks at the least).
 	 */
 	static boolean campChunk(WorldGenLevel level, net.minecraft.world.level.ChunkPos chunk) {
-		int rx = Math.floorDiv(chunk.x, REGION);
-		int rz = Math.floorDiv(chunk.z, REGION);
+		int region = Math.max(3, Math.round(DrifterConfig.spawn(DrifterConfig.Spawn.CAMP_SPACING) / 16.0F));
+		int rx = Math.floorDiv(chunk.x, region);
+		int rz = Math.floorDiv(chunk.z, region);
 		long hash = level.getSeed() ^ (rx * 341873128712L + rz * 132897987541L) ^ 0x5DEECE66DL;
 		hash = hash * 6364136223846793005L + 1442695040888963407L;
-		int inner = REGION - 2;
-		int ox = 1 + (int)Math.floorMod(hash >>> 33, (long)inner);
-		int oz = 1 + (int)Math.floorMod(hash >>> 13, (long)inner);
-		return chunk.x == rx * REGION + ox && chunk.z == rz * REGION + oz;
+		int margin = Math.max(1, region / 4);
+		int inner = region - 2 * margin;
+		int ox = margin + (int)Math.floorMod(hash >>> 33, (long)inner);
+		int oz = margin + (int)Math.floorMod(hash >>> 13, (long)inner);
+		return chunk.x == rx * region + ox && chunk.z == rz * region + oz;
 	}
 
 	// ---------------------------------------------------------------------------------------------

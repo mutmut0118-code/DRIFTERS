@@ -1368,6 +1368,8 @@ then `/summon husk ~5 ~ ~` twice.
 
 - [ ] Fly or run into new land for a few minutes: Drifters should stay well under about 24 loaded (`/drifter config spawn`
       shows how many are loaded now and every setting). The game shouldn't lag the way it did.
+- [ ] "Space between camps" on the "Spawning..." page (default 112 blocks): camps (huts and houses) come about that
+      far apart, never closer than half of it. New chunks only. Or `/drifter config spawn camp_spacing 200`.
 - [ ] Settings screen (Mod Menu > Drifter) > "Spawning...": sliders for the most Drifters loaded and how common camps,
       lived-in camps, houses, wanderers, Drifter villages, Bandit outposts and mineshaft delvers are. New chunks only.
       Or by command, for example `/drifter config spawn max_drifters 15`, `/drifter config spawn camps 5`.

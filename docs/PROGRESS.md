@@ -1755,6 +1755,10 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
     ladder stood by the side wall, where the roof slope came down right over its hole. It now goes up the middle of the
     loft end's gable wall, under the ridge. And PlanCheck turns down any plan with a ladder whose top hasn't two free
     blocks over it (none of the 300 now).
+- **Space between camps (a setting; user, 2026-10-17):** camps already came one per 7x7-chunk region (a chunk picked
+  from the seed, a chunk off the region's edges); the region's size is now "Space between camps" (48 to 1024 blocks,
+  default 112 = as before), the margin a quarter of it, so camps are about that far apart and never closer than half.
+  Tested on one 16x16-chunk area at 100% camps: 48 blocks gave 28 camps, 112 gave 5, 256 none.
 - **Ragdolls (user, 2026-10-17: "can we make drifters have player ragdoll aswell?"; Sable, Sable Player Ragdoll and
   Ragdoll Corpse, the last two the user's ports, sources in ../ports):** `compat/RagdollCompat`, all reflection. A
   Drifter that dies becomes a player ragdoll (`RagdollAPI.spawnPlayerless`) in its own skin (Drifters wear the game's

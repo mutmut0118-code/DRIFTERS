@@ -172,6 +172,8 @@ public final class DrifterConfig {
 	public enum Spawn {
 		MAX_DRIFTERS("max_drifters", "Most Drifters loaded", 0, 200, 24, v -> v == 0 ? "no new ones" : v + " Drifters"),
 		CAMPS("camps", "Camps", 0, 100, 12, v -> v + "% of spots"),
+		/** About this far apart, camps (one spot per square this size; user, 2026-10-17). */
+		CAMP_SPACING("camp_spacing", "Space between camps", 48, 1024, 112, v -> v + " blocks"),
 		CAMPS_LIVED_IN("camps_lived_in", "Camps lived in", 0, 100, 85, v -> v + "%"),
 		CAMP_HOUSES("camp_houses", "Camps with a house", 0, 100, 80, v -> v + "%"),
 		WANDERERS("wanderers", "Wanderers", 0, 50, 4, v -> v + " per 1000 chunks"),
