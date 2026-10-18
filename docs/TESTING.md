@@ -1517,4 +1517,7 @@ hand-made ones and yours.
       It stays till you empty it.
 - [ ] Every Drifter death leaves a corpse, even with no one near (Drifters killing each other, mobs, falls): you can
       come across them out in the world and loot them.
+- [ ] A Drifter's corpse lasts 3 in-game days (the "Drifter corpses last" slider on the "Spawning..." settings page; 0
+      keeps them forever). After that it's gone the next time you're near, and whatever was still in it lies on the
+      ground. Players' corpses follow Ragdoll Corpse's own setting, as before.
 - [ ] Switch off: "Ragdolls on death" in the settings screen (bottom row, beside "Catch-up while closed").

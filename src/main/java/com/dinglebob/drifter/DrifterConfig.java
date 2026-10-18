@@ -179,7 +179,9 @@ public final class DrifterConfig {
 		OUTPOSTS("outposts", "Outposts held by Bandits", 0, 100, 50, v -> v + "%"),
 		DELVERS("delvers", "Mineshafts with a delver", 0, 100, 25, v -> v + "%"),
 		/** Generated house plans in a world (milestone 15), besides the hand-made ones. */
-		HOUSE_DESIGNS("house_designs", "Generated house designs", 0, 1000, 300, v -> v == 0 ? "hand-made only" : v + " designs");
+		HOUSE_DESIGNS("house_designs", "Generated house designs", 0, 1000, 300, v -> v == 0 ? "hand-made only" : v + " designs"),
+		/** How long a dead Drifter's corpse lasts (Ragdoll Corpse; user, 2026-10-17: "a time limit for corpses after a few days"). */
+		CORPSE_DAYS("corpse_days", "Drifter corpses last", 0, 30, 3, v -> v == 0 ? "forever" : v + (v == 1 ? " day" : " days"));
 
 		public final String id;
 		public final String label;

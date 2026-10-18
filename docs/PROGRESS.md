@@ -1761,7 +1761,10 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
   default skins, which a skinless profile gets by its UUID: a UUID next to its own that the game maps to its skin), its
   armor and held items on it, flung by the killing blow (at most 3 m/s: launched at 8 it came out one stiff piece); its
   body goes at once. With Ragdoll Corpse, every death leaves a corpse holding its things (user: "make every death leave a
-  corpse"; the corpse mod's own storage, opened like a player's; it stays till emptied); without it, its things drop and
+  corpse"; the corpse mod's own storage, opened like a player's), which lasts till it's emptied or for "Drifter corpses
+  last" (3 days by default, a setting on the Spawning page; 0 forever): then, the next time its place is loaded, it goes
+  the corpse mod's way (what's left in it drops). Tested: a day on (sprinted), the corpse was gone and its things lay
+  there; without it, its things drop and
   the ragdoll goes in time. The mod's own mob ragdoll on a player kill is cancelled for Drifters (two would fall). Setting "Ragdolls on
   death". Tested in the client: killed by a command and by a player, it fell as a ragdoll in its skin with its helmet,
   chestplate and sword; nothing dropped beside the corpse.
