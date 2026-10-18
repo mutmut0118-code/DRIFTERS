@@ -234,6 +234,11 @@ public class AttackTask extends Task {
 
 		Awareness awareness = this.drifter.getSenses().awarenessOf(this.target);
 		boolean visible = awareness != null && awareness.visibleNow;
+		// A player or Drifter it's fighting: it keeps after them when they get out of sight (the pursuit goal).
+		if (visible && (this.target instanceof net.minecraft.world.entity.player.Player || this.target instanceof com.dinglebob.drifter.entity.DrifterEntity)) {
+			this.drifter.getDrifterBrain().pursue(this.drifter, this.target, this.drifter.level().getGameTime());
+		}
+
 		this.unseenTicks = visible ? 0 : this.unseenTicks + 1;
 		if (this.unseenTicks > LOST_TICKS) {
 			return this.fail("lost sight of it");

@@ -1511,6 +1511,18 @@ hand-made ones and yours.
 - [ ] A Drifter you find living in a camp or house wears armor that fits how far along it is and doesn't match: early
       ones a leather cap and gold boots and the like, later ones iron with odd pieces, diamond later still.
 
+## Chases (new)
+
+Test in survival: like mobs, hostile Drifters ignore you in creative.
+- [ ] `/drifter wanderer delver` near you: it comes for you at once (every delver kills on sight now).
+- [ ] Run and break line of sight (round a hill, into trees, a tunnel): it goes where it last saw you, then on the way
+      you were going, then searches the spots round there it can't see into, a quick glance at each, without standing
+      about. Footsteps, digging or a door it hears near where you could be draw it there. A Bandit or delver keeps at it
+      6 to 9 minutes; any Drifter you hit and ran from, a few minutes. Seeing or hearing you again starts the clock over.
+- [ ] Its thoughts (`drifter thoughts`): "lost sight of you: going after them", "heard something over there: you?", "you
+      were heading that way", "searching round about for you", and in the end "gave up looking for you".
+- [ ] Sneaking is quiet: it can't hear sneaking footsteps, so creeping off is how to shake it.
+
 ## Ragdolls (new; with Sable Player Ragdoll and Ragdoll Corpse)
 
 - [ ] Kill a Drifter: it falls as a ragdoll in its own skin, wearing its armor and holding its weapon, knocked the way

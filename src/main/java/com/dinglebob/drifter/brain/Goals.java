@@ -2259,6 +2259,7 @@ public final class Goals {
 		goals.add(new GroupBanner());
 		goals.add(new com.dinglebob.drifter.brain.activity.PassThroughActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.DelveActivity.Goal());
+		goals.add(new com.dinglebob.drifter.brain.activity.PursuitActivity.Goal());
 		goals.add(new PlanHouse());
 		// Whims (milestone 13, docs/WHIMS.md).
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());

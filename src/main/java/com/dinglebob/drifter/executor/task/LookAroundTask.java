@@ -11,12 +11,21 @@ import com.dinglebob.drifter.motor.CameraModel;
 public class LookAroundTask extends Task {
 	private static final int PAUSE_TICKS = 14;
 	private static final int TURNS = 4;
+	private final int turns;
+	private final int pauseTicks;
 	private int turn;
 	private int pause;
 	private float startYaw;
 
 	public LookAroundTask(DrifterEntity drifter) {
+		this(drifter, TURNS, PAUSE_TICKS);
+	}
+
+	/** A quicker one (a glance round a corner while searching for someone): fewer turns, shorter pauses. */
+	public LookAroundTask(DrifterEntity drifter, int turns, int pauseTicks) {
 		super(drifter);
+		this.turns = turns;
+		this.pauseTicks = pauseTicks;
 	}
 
 	@Override
@@ -48,14 +57,15 @@ public class LookAroundTask extends Task {
 			return Status.RUNNING;
 		}
 
-		if (this.turn >= TURNS) {
+		if (this.turn >= this.turns) {
 			return Status.SUCCESS;
 		}
 
 		this.turn++;
 		float pitch = this.turn % 2 == 0 ? 15.0F : 5.0F;
-		this.drifter.getCamera().lookAt(this.startYaw + 90.0F * this.turn, pitch, CameraModel.TurnSpeed.IDLE);
-		this.pause = PAUSE_TICKS;
+		this.drifter.getCamera().lookAt(this.startYaw + 360.0F / this.turns * this.turn, pitch,
+			this.turns < TURNS ? CameraModel.TurnSpeed.NORMAL : CameraModel.TurnSpeed.IDLE);
+		this.pause = this.pauseTicks;
 		return Status.RUNNING;
 	}
 }

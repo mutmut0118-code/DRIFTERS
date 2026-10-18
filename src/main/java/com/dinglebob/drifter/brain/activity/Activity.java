@@ -27,6 +27,12 @@ public abstract class Activity extends Task {
 
 	@Nullable
 	private Task child;
+
+	/** The step it's on, or null between steps. */
+	@org.jetbrains.annotations.Nullable
+	protected Task current() {
+		return this.child;
+	}
 	private int failures;
 	@Nullable
 	private String lastFailure;

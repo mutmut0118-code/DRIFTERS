@@ -1755,6 +1755,25 @@ User: "lets make whole milestone dedicated to generating houseplans, im talking 
     ladder stood by the side wall, where the roof slope came down right over its hole. It now goes up the middle of the
     loft end's gable wall, under the ridge. And PlanCheck turns down any plan with a ladder whose top hasn't two free
     blocks over it (none of the 300 now).
+- **Pursuit (user, 2026-10-17: "its really easy for it to lose me ... the chase lasts more than 5 minutes because it
+  keeps trying to look for me"; "sometimes it pauses, and just looks around"):**
+  - `brain/Pursuit`: who it's after and what it knows of where they went, from sight and sound only: where it last saw
+    them and which way they were going, and sounds since (footsteps, digging, a door) from about where they could have
+    got to, taken for theirs. Started by any fight with a player or Drifter (AttackTask, while in sight); lasts minutes
+    (a Bandit, delver or manhunt hunter 6 to 9.5, anyone else 1.5 to 4.5, by vengefulness, aggression and patience),
+    renewed by each sighting or sound.
+  - `brain/activity/PursuitActivity` (goal "pursue", 0.88; 0.97 and urgent for the relentless): in sight it fights; out of
+    sight: the newest sound, then where it last saw them, then 16 blocks on the way they were going, then spots round
+    there it can't see into, ahead of them first and wider as it goes, a quick glance at each (3 turns, a third of a
+    second each) and on. Ends with "gave up looking for ..." or their death.
+  - No pause after losing them: the fight activity doesn't end with its look round and picking up while a chase is on.
+  - Chasing out of sight goes to where it last saw them, not where they really are (NavigateTask.follow used the live
+    position for the 6 s before giving up).
+  - Kill on sight is urgent now (drops what it's doing): a Bandit that saw someone mid-walk kept walking (no point to
+    stop at) and the user's delver "doesnt try to kill me on sight". And every delver is a Bandit (kills on sight).
+  - Tested (a Bandit and a Drifter "runner" in a pillar arena): kill on sight at once; the runner hidden in a stone box
+    40 blocks off, the Bandit searched round there for the whole 7 minutes of the run (it was still at it), never wandering
+    off. Note: Bandits, like mobs, leave creative players alone.
 - **Space between camps (a setting; user, 2026-10-17):** camps already came one per 7x7-chunk region (a chunk picked
   from the seed, a chunk off the region's edges); the region's size is now "Space between camps" (48 to 1024 blocks,
   default 112 = as before), the margin a quarter of it, so camps are about that far apart and never closer than half.

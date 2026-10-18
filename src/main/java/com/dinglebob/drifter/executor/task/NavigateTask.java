@@ -189,8 +189,16 @@ public class NavigateTask extends Task {
 
 	/** Follows an entity, keeping within {@code radius}, until cancelled. */
 	public static NavigateTask follow(DrifterEntity drifter, Entity entity, double radius) {
-		return new NavigateTask(drifter, () -> entity.position().add(entity.getDeltaMovement().scale(CHASE_PREDICT_TICKS)), radius,
-			"follow " + entity.getName().getString(), true, entity, Pace.TRAVEL);
+		// Where it is while in sight; out of sight, where it was last seen (it doesn't know more: knowledge only through
+		// perception, section 1).
+		return new NavigateTask(drifter, () -> {
+			var awareness = drifter.getSenses().awarenessOf(entity);
+			if (awareness != null && !awareness.visibleNow && awareness.lastSeenPos != null) {
+				return awareness.lastSeenPos;
+			}
+
+			return entity.position().add(entity.getDeltaMovement().scale(CHASE_PREDICT_TICKS));
+		}, radius, "follow " + entity.getName().getString(), true, entity, Pace.TRAVEL);
 	}
 
 	@Override

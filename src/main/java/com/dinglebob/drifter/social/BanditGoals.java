@@ -159,6 +159,15 @@ public final class BanditGoals {
 			return preyInSight(drifter) != null ? 1.0 : 0.0;
 		}
 
+		/**
+		 * On sight means at once: it drops whatever it's doing (found in testing: a Bandit that saw someone mid-walk kept
+		 * walking, as the walk had no point to stop at, and they were gone; the user's delver "doesnt try to kill me on sight").
+		 */
+		@Override
+		public boolean urgent(Goals.Context context) {
+			return this.urgency(context) > 0.0;
+		}
+
 		@Override
 		public double feasibility(Goals.Context context) {
 			return 1.0;

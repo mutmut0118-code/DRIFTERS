@@ -91,6 +91,13 @@ public class CombatActivity extends Activity {
 				return this.begin(new AttackTask(this.drifter, target, target.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
 			}
 
+			// Someone it's after got away out of sight: no looking round and picking up, the chase goes on (the pursue goal;
+			// user, 2026-10-17: "sometimes it pauses, and just looks around").
+			var pursuit = this.drifter.getDrifterBrain().pursuit();
+			if (pursuit != null && pursuit.active(this.drifter, this.drifter.level().getGameTime())) {
+				return Status.SUCCESS;
+			}
+
 			this.phase = 1;
 			if (this.kills > 0) {
 				this.think("the fight is over");

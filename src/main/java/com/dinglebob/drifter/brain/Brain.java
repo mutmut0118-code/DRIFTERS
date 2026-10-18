@@ -176,6 +176,29 @@ public class Brain {
 		return this.home;
 	}
 
+	/** Who it's chasing and what it knows of where they went (user, 2026-10-17); null if no one. */
+	@Nullable
+	private Pursuit pursuit;
+
+	@Nullable
+	public Pursuit pursuit() {
+		return this.pursuit;
+	}
+
+	/** It's fighting this one and sees them now: the chase starts, or goes on (renewed). */
+	public void pursue(com.dinglebob.drifter.entity.DrifterEntity drifter, net.minecraft.world.entity.LivingEntity target, long now) {
+		long lasts = Pursuit.persistence(drifter);
+		if (this.pursuit == null || this.pursuit.target != target) {
+			this.pursuit = new Pursuit(target, now, lasts);
+		}
+
+		this.pursuit.sighted(now, lasts);
+	}
+
+	public void endPursuit() {
+		this.pursuit = null;
+	}
+
 	public void setHome(@Nullable Home home) {
 		this.home = home;
 	}

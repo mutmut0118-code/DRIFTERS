@@ -146,8 +146,8 @@ public final class Delvers {
 		double kind = random.nextDouble();
 		drifter.getPersonality().reroll(random, kind < 0.35 ? Archetype.BANDIT : kind < 0.65 ? Archetype.MINER : kind < 0.85 ? Archetype.HERMIT
 			: Archetype.PVP_SWEAT);
-		double mood = random.nextDouble();
-		drifter.getSocial().setDisposition(mood < 0.45 ? Disposition.BANDIT : mood < 0.75 ? Disposition.OPPORTUNIST : Disposition.TERRITORIAL);
+		// Every one kills on sight (user, 2026-10-17: "when i spawn a delver, it doesnt try to kill me on sight (it should)").
+		drifter.getSocial().setDisposition(Disposition.BANDIT);
 		kit(level, drifter, random);
 		// (Delving till it has been through the place; it doesn't settle down after.)
 		drifter.startDelving(stand, Long.MAX_VALUE);
