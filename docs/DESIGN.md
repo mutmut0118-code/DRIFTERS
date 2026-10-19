@@ -1915,6 +1915,14 @@ Each milestone ends with a test you can actually run.
     each ai working properly"). Path searches and near eye rays on helper threads over a shared frozen copy of the world;
     crowd-aware perception; cheaper decisions; catch-up spread over ticks. *Done when* 1000 Drifters across a world and
     300 round a player run at a steady 20 TPS, and a 150v150 battle (`/drifter battle 150`) stays playable.
+17. **Fixes** (user, 2026-10-19): Combat Roll (rolling out of a creeper's blast), getting around on rough ground, Better
+    Combat animations that don't show on Drifters.
+18. **Player skills** (user, 2026-10-19): villager trading, fishing, horses, boats, potions (brewing), netherite (ancient
+    debris and smithing), each the way a player does it and under section 1's rules.
+19. **Mod compat and modded whims** (user, 2026-10-19): Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard
+    Villagers, Bountiful, all optional (detected at runtime), and modded whims for them.
+20. **Whims offscreen and wrong guesses** (user, 2026-10-19): a proposal for simulating or catching up whims away from
+    players, then more of the wrong-guess assumptions (the cave hunch, the theft assumption).
 
 Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 14 (The End). They are tests, not milestones of their own.
 
