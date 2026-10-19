@@ -656,8 +656,11 @@ public class DrifterEntity extends PathfinderMob {
 	private float rollYaw;
 	private int rollTicks = 1;
 
-	/** Server side: tells clients it just swung with this Better Combat animation, lasting this long. */
-	public void showSwing(String animation, float ticks, boolean mirrored) {
+	/**
+	 * Server side: tells clients it just swung with this Better Combat animation, lasting this long, with a weapon this
+	 * long (for the trail) that reaches the top of its swing after {@code upswingTicks}.
+	 */
+	public void showSwing(String animation, float ticks, boolean mirrored, float range, int upswingTicks) {
 		String last = this.entityData.get(DATA_SWING);
 		int count = 0;
 		int split = last.indexOf(';');
@@ -669,12 +672,23 @@ public class DrifterEntity extends PathfinderMob {
 			}
 		}
 
-		this.entityData.set(DATA_SWING, (count + 1) % 100000 + ";" + animation + ";" + Math.max(1, Math.round(ticks)) + ";" + mirrored);
+		this.entityData.set(DATA_SWING, (count + 1) % 100000 + ";" + animation + ";" + Math.max(1, Math.round(ticks)) + ";" + mirrored + ";"
+			+ String.format(java.util.Locale.ROOT, "%.2f", range) + ";" + Math.max(0, upswingTicks));
 	}
 
 	/** Its last Better Combat swing (see DATA_SWING). */
 	public String swingData() {
 		return this.entityData.get(DATA_SWING);
+	}
+
+	/** How many rolls clients have been told of (a new number: a new roll). */
+	public int rollCount() {
+		return this.entityData.get(DATA_ROLL) >>> 17;
+	}
+
+	/** Client side: the last roll's length in ticks. */
+	public int rollTicks() {
+		return this.rollTicks;
 	}
 
 	/** Server side: tells clients it just rolled this way, for this many ticks. */
@@ -750,15 +764,27 @@ public class DrifterEntity extends PathfinderMob {
 	/** Ticks between two Drifters' catch-ups (each can take 20 to 100 ms: spread out, a new area's Drifters don't freeze it). */
 	private static final long CATCH_UP_SPACING = 5L;
 
-	/** When it can roll again (Combat Roll's cooldown). */
-	private long rollReadyAt;
+	/** Combat Roll: rolls ready (-1: not counted yet, all of them), the next one's recharge so far, and when that was worked out. */
+	private int rollCharges = -1;
+	private float rollProgress;
+	private long rollUpdatedAt;
 
-	public long rollReadyAt() {
-		return this.rollReadyAt;
+	public int rollCharges() {
+		return this.rollCharges;
 	}
 
-	public void setRollReadyAt(long tick) {
-		this.rollReadyAt = tick;
+	public float rollProgress() {
+		return this.rollProgress;
+	}
+
+	public long rollUpdatedAt() {
+		return this.rollUpdatedAt;
+	}
+
+	public void setRollState(int charges, float progress, long at) {
+		this.rollCharges = charges;
+		this.rollProgress = progress;
+		this.rollUpdatedAt = at;
 	}
 
 	/** Its place in a Better Combat weapon's combo (back to the first attack after a pause, as for a player). */

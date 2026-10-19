@@ -234,7 +234,8 @@ public final class Combat {
 				fake.attack(target);
 				if (swing != null) {
 					// Its swing animation on watching clients (Better Combat's own, for this attack of the combo).
-					drifter.showSwing(swing.animation(), attackDelay(drifter), drifter.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT);
+					drifter.showSwing(swing.animation(), attackDelay(drifter), drifter.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT,
+						(float)reach(drifter), Math.round(attackDelay(drifter) * (float)swing.upswing()));
 					com.dinglebob.drifter.compat.BetterCombatCompat.playSwingSound((net.minecraft.server.level.ServerLevel)drifter.level(), drifter, swing);
 					// Everything else in the swing's arc it would hit too, as Better Combat hits for a player (hostiles only:
 					// it doesn't clip a friend or an animal on the way past).

@@ -93,8 +93,8 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		PlayerModel<DrifterEntity> model = this.getModel();
 		// All skin overlay layers on; Drifters have no skin-customization settings (yet).
 		model.setAllVisible(true);
-		// Tucked in through a roll.
-		model.crouching = drifter.isCrouching() || drifter.rollProgress(partialTick) >= 0.0F;
+		// Tucked in through a roll (its own somersault; Combat Roll's animation does its own tucking).
+		model.crouching = drifter.isCrouching() || drifter.rollProgress(partialTick) >= 0.0F && !DrifterSwingAnimations.playsRolls();
 		HumanoidModel.ArmPose mainPose = getArmPose(drifter, InteractionHand.MAIN_HAND);
 		HumanoidModel.ArmPose offPose = getArmPose(drifter, InteractionHand.OFF_HAND);
 		if (mainPose.isTwoHanded()) {
@@ -150,10 +150,12 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		float swimAmount = drifter.getSwimAmount(partialTick);
 		float viewPitch = drifter.getViewXRot(partialTick);
 		super.setupRotations(drifter, poseStack, bob, bodyYaw, partialTick, scale);
-		// A Better Combat swing's whole-body movement (the twist into a slash, the lean into a stab).
-		DrifterSwingAnimations.applyBody(drifter, poseStack, partialTick);
-		// A roll (Combat Roll's dodge): a forward somersault the way it rolls, round the middle of its body.
-		float roll = drifter.rollProgress(partialTick);
+		// A Better Combat swing's whole-body movement (the twist into a slash, the lean into a stab), and Combat Roll's roll
+		// turned the way it rolls.
+		DrifterSwingAnimations.applyBody(drifter, poseStack, partialTick, bodyYaw);
+		// A roll (Combat Roll's dodge) without Combat Roll's own animation to play: a forward somersault the way it rolls,
+		// round the middle of its body.
+		float roll = DrifterSwingAnimations.playsRolls() ? -1.0F : drifter.rollProgress(partialTick);
 		if (roll >= 0.0F) {
 			float turn = Mth.wrapDegrees(drifter.rollYaw() - bodyYaw);
 			float eased = roll * roll * (3.0F - 2.0F * roll);

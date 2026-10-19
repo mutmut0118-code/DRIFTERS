@@ -233,17 +233,29 @@ public final class Battle {
 	}
 
 	/**
-	 * A soldier's kit: iron armour, a shield, a sword (or an axe), and a bow with a few arrows for when it can't get
-	 * through to the enemy; an archer has a quiverful.
+	 * A soldier's kit: iron armour, its favourite kind of weapon at iron (a sword or an axe without one), a shield unless
+	 * that weapon is two-handed, and a bow with a few arrows for when it can't get through to the enemy; an archer has a
+	 * quiverful.
 	 */
 	private static void kit(DrifterEntity drifter, net.minecraft.util.RandomSource random, boolean archer) {
 		drifter.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
 		drifter.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
 		drifter.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
 		drifter.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
-		drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+		// Its favourite kind of weapon at iron (with Simply Swords: longswords, katanas, halberds...; a two-handed one means no
+		// shield), else an iron sword or axe.
+		var family = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
+		net.minecraft.world.item.Item weapon = family.at(com.dinglebob.drifter.brain.Weapons.Tier.IRON);
+		if (weapon == null) {
+			weapon = random.nextInt(4) == 0 ? Items.IRON_AXE : Items.IRON_SWORD;
+		}
+
+		if (!family.twoHanded() || weapon == Items.IRON_SWORD || weapon == Items.IRON_AXE) {
+			drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+		}
+
 		var inventory = drifter.getInventory();
-		inventory.add(new ItemStack(random.nextInt(4) == 0 ? Items.IRON_AXE : Items.IRON_SWORD));
+		inventory.add(new ItemStack(weapon));
 		inventory.add(new ItemStack(Items.BOW));
 		inventory.add(new ItemStack(Items.ARROW, archer ? 64 : 16));
 

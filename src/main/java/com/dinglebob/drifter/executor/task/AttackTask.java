@@ -272,6 +272,26 @@ public class AttackTask extends Task {
 		}
 
 		boolean steerByHand = this.noPathTicks > 0 && distance <= NO_PATH_FIGHT;
+		// With Combat Roll: rolling in on something shooting at it (a skeleton, an archer), as players close the gap, now
+		// and then (the skilled more often), straight at it over safe open ground.
+		if (visible && this.backoff == 0 && distance >= ROLL_IN_MIN && distance <= ROLL_IN_MAX && !this.rollInTried && shoots(this.target)) {
+			this.rollInTried = true;
+			Vec3 toward = new Vec3(this.target.getX() - this.drifter.getX(), 0.0, this.target.getZ() - this.drifter.getZ());
+			double skill = this.drifter.getPersonality().getF(com.dinglebob.drifter.personality.Trait.SKILL);
+			if (toward.lengthSqr() > 1.0E-4 && this.drifter.getRandom().nextDouble() < 0.2 + 0.6 * skill
+				&& com.dinglebob.drifter.compat.CombatRollCompat.canRoll(this.drifter)) {
+				toward = toward.normalize();
+				if (Steering.safeStep(this.drifter, toward) && Steering.safeStep(this.drifter, toward, 1.9) && Steering.safeStep(this.drifter, toward, 3.0)
+					&& !Steering.wallAhead(this.drifter, toward)) {
+					com.dinglebob.drifter.compat.CombatRollCompat.roll(this.drifter, toward);
+				}
+			}
+		}
+
+		if (distance > ROLL_IN_MAX + 2.0) {
+			this.rollInTried = false;
+		}
+
 		if ((distance > CLOSE_RANGE || !visible && !inReach || this.pathTicks > 0) && this.backoff == 0 && !steerByHand) {
 			this.lowerShield();
 			if (this.closeMode || this.follow == null) {
@@ -473,6 +493,15 @@ public class AttackTask extends Task {
 
 	/** It has thought about rolling back for this back-off already. */
 	private boolean rollTried;
+	/** It has thought about rolling in on this approach already (again once it's well back out). */
+	private boolean rollInTried;
+	private static final double ROLL_IN_MIN = 4.5;
+	private static final double ROLL_IN_MAX = 9.0;
+
+	/** It shoots: a skeleton, a pillager, or someone with a bow or crossbow out. */
+	private static boolean shoots(LivingEntity target) {
+		return Protocol.of(target) == Protocol.RANGED || target.getMainHandItem().getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem;
+	}
 
 	/** After a hit: step back out of reach while the cooldown refills (shield up), strafing; far back from a creeper. */
 	private void backOff(double distance) {

@@ -36,6 +36,17 @@ public final class CombatRollCompat {
 	private static Field duration;
 	private static Method setInvulnerable;
 	private static double baseDistance = 3.0;
+	/**
+	 * Combat Roll's attributes (count, recharge, distance; its enchantments Multi-Roll, Acrobat and Longfooted work through
+	 * them). It adds them to the player's attributes, which a Drifter's are, so a Drifter has them and its armour's
+	 * enchantments count, as for a player.
+	 */
+	@org.jetbrains.annotations.Nullable
+	private static net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> countAttribute;
+	@org.jetbrains.annotations.Nullable
+	private static net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> rechargeAttribute;
+	@org.jetbrains.annotations.Nullable
+	private static net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> distanceAttribute;
 	/** Ground friction slows a roll's push: the push that carries it about this far. */
 	private static final double PUSH_PER_BLOCK = 0.45;
 
@@ -61,8 +72,12 @@ public final class CombatRollCompat {
 			airborne = settings.getField("allow_rolling_while_airborn");
 			duration = settings.getField("roll_duration");
 			setInvulnerable = Class.forName("net.combat_roll.api.RollInvulnerable").getMethod("setRollInvulnerableTicks", int.class);
-			Object distance = Class.forName("net.combat_roll.api.CombatRoll$Attributes").getField("DISTANCE").get(null);
+			Class<?> attributes = Class.forName("net.combat_roll.api.CombatRoll$Attributes");
+			Object distance = attributes.getField("DISTANCE").get(null);
 			baseDistance = distance.getClass().getField("baseValue").getDouble(distance);
+			distanceAttribute = holder(distance);
+			rechargeAttribute = holder(attributes.getField("RECHARGE").get(null));
+			countAttribute = holder(attributes.getField("COUNT").get(null));
 			ready = configField.get(null) != null;
 			if (ready) {
 				Drifter.LOGGER.info("[Drifter] Combat Roll found: Drifters roll out of the way as players do");
@@ -88,14 +103,67 @@ public final class CombatRollCompat {
 		return configField.get(null);
 	}
 
-	/** It could roll right now (off cooldown, fed enough, on the ground unless the server allows otherwise). */
+	@SuppressWarnings("unchecked")
+	@org.jetbrains.annotations.Nullable
+	private static net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> holder(Object entry) throws ReflectiveOperationException {
+		Object holder = entry.getClass().getField("entry").get(entry);
+		return holder instanceof net.minecraft.core.Holder<?> h ? (net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute>)h : null;
+	}
+
+	/** One of its Combat Roll attributes (with what its gear's enchantments add), or {@code fallback} if it hasn't got it. */
+	private static double attribute(DrifterEntity drifter, @org.jetbrains.annotations.Nullable net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> holder,
+		double fallback) {
+		return holder != null && drifter.getAttributes().hasAttribute(holder) ? drifter.getAttributeValue(holder) : fallback;
+	}
+
+	/**
+	 * Its rolls ready now, as Combat Roll keeps them for a player (RollManager): up to its count, each used one coming back
+	 * after the cooldown, sooner with more recharge (Acrobat). A Drifter starts with all of them.
+	 */
+	public static int rollsReady(DrifterEntity drifter) {
+		if (!active()) {
+			return 0;
+		}
+
+		try {
+			long now = drifter.level().getGameTime();
+			int max = Math.max(0, (int)attribute(drifter, countAttribute, 1.0));
+			float perTick = (float)(attribute(drifter, rechargeAttribute, 20.0) / 20.0);
+			int length = Math.max(1, Math.round(cooldownSeconds.getFloat(config()) * 20.0F));
+			int charges = drifter.rollCharges();
+			float progress = drifter.rollProgress();
+			if (charges < 0) {
+				charges = max;
+				progress = 0.0F;
+			} else if (charges < max) {
+				progress += Math.max(0L, now - drifter.rollUpdatedAt()) * perTick;
+				while (progress >= length && charges < max) {
+					charges++;
+					progress -= length;
+				}
+			}
+
+			if (charges >= max) {
+				charges = max;
+				progress = 0.0F;
+			}
+
+			drifter.setRollState(charges, progress, now);
+			return charges;
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			fail(e);
+			return 0;
+		}
+	}
+
+	/** It could roll right now (a roll ready, fed enough, on the ground unless the server allows otherwise). */
 	public static boolean canRoll(DrifterEntity drifter) {
 		if (!active()) {
 			return false;
 		}
 
 		try {
-			return drifter.level().getGameTime() >= drifter.rollReadyAt() && (drifter.onGround() || airborne.getBoolean(config()))
+			return rollsReady(drifter) > 0 && (drifter.onGround() || airborne.getBoolean(config()))
 				&& drifter.getFoodData().getFoodLevel() >= foodRequired.getFloat(config()) && !drifter.isInWater() && !drifter.isPassenger();
 		} catch (ReflectiveOperationException | RuntimeException e) {
 			fail(e);
@@ -111,7 +179,7 @@ public final class CombatRollCompat {
 		}
 
 		try {
-			double distance = baseDistance + extraDistance.getFloat(config());
+			double distance = attribute(drifter, distanceAttribute, baseDistance) + extraDistance.getFloat(config());
 			Vec3 push = flat.normalize().scale(distance * PUSH_PER_BLOCK / 2.0);
 			drifter.setDeltaMovement(push.x, Math.max(0.0, drifter.getDeltaMovement().y), push.z);
 			drifter.hurtMarked = true;
@@ -119,7 +187,7 @@ public final class CombatRollCompat {
 			drifter.showRoll((float)Math.toDegrees(Math.atan2(-flat.x, flat.z)), duration.getInt(config()));
 			setInvulnerable.invoke(drifter, invulnerableTicks.getInt(config()));
 			drifter.getFoodData().addExhaustion(exhaustion.getFloat(config()));
-			drifter.setRollReadyAt(drifter.level().getGameTime() + Math.round(cooldownSeconds.getFloat(config()) * 20.0F));
+			drifter.setRollState(rollsReady(drifter) - 1, drifter.rollProgress(), drifter.level().getGameTime());
 			var sound = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.fromNamespaceAndPath("combat_roll", "roll"));
 			if (sound != null) {
 				drifter.level().playSound(null, drifter.getX(), drifter.getY(), drifter.getZ(), sound, SoundSource.PLAYERS, 1.0F, 1.0F);

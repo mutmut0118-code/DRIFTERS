@@ -988,8 +988,12 @@ public class Reflexes {
 
 		private static final double DANGER_RANGE = 6.0;
 		private static final double CLEAR_RANGE = 7.0;
+		/** Closer than this to a hissing creeper, it rolls clear if it can. */
+		private static final double ROLL_RANGE = 4.5;
 		@Nullable
 		private Creeper creeper;
+		/** It has rolled from this creeper's hiss. */
+		private boolean rolled;
 
 		@Override
 		public String name() {
@@ -998,6 +1002,7 @@ public class Reflexes {
 
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
+			Creeper before = this.creeper;
 			this.creeper = null;
 			for (Awareness awareness : drifter.getSenses().tracked()) {
 				if (awareness.entity instanceof Creeper creeper && creeper.isAlive() && creeper.distanceTo(drifter) < DANGER_RANGE
@@ -1005,6 +1010,11 @@ public class Reflexes {
 					// It sees it swelling, or hears the hiss when it's close.
 					&& (awareness.visibleNow || creeper.distanceTo(drifter) < 4.0)) {
 					this.creeper = creeper;
+					// A new hiss (or another creeper): a roll may come again.
+					if (creeper != before) {
+						this.rolled = false;
+					}
+
 					return true;
 				}
 			}
@@ -1029,6 +1039,23 @@ public class Reflexes {
 			}
 
 			boolean cornered = this.creeper.getSwelling(1.0F) > 0.7F && this.creeper.distanceTo(drifter) < 3.0;
+			// With Combat Roll: a roll out of the blast, as a player does when a creeper hisses right by them (onto safe ground,
+			// straight away from it, or to one side of that).
+			if (!this.rolled && this.creeper.distanceTo(drifter) < ROLL_RANGE && com.dinglebob.drifter.compat.CombatRollCompat.canRoll(drifter)) {
+				Vec3 away = drifter.position().subtract(this.creeper.position()).multiply(1.0, 0.0, 1.0);
+				if (away.lengthSqr() > 1.0E-4) {
+					away = away.normalize();
+					for (double turn : new double[] {0.0, 0.6, -0.6, 1.2, -1.2}) {
+						Vec3 direction = away.yRot((float)turn);
+						if (Steering.safeStep(drifter, direction) && Steering.safeStep(drifter, direction, 1.9) && Steering.safeStep(drifter, direction, 3.0)
+							&& !Steering.wallAhead(drifter, direction) && com.dinglebob.drifter.compat.CombatRollCompat.roll(drifter, direction)) {
+							this.rolled = true;
+							break;
+						}
+					}
+				}
+			}
+
 			if (cornered && drifter.getOffhandItem().is(Items.SHIELD)) {
 				// Can't get clear in time: face it, shield up.
 				drifter.getCamera().lookAt(this.creeper, CameraModel.TurnSpeed.COMBAT);
