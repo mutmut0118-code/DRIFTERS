@@ -1944,8 +1944,11 @@ the world) work well then we a good". Measured on the user's PC (16 threads) wit
 - `/drifter tier <full|reduced|far|auto> all`; `/drifter catchup <hours> all`; `/drifter spawnmany` up to 1000;
   `/drifter config paththreads <-1..16>`.
 - `/drifter battle <per side> [gap]` and `/drifter battle stop`: two armed armies of Drifters (iron armor, sword or axe and
-  shield, a bow for a quarter, food) lined up facing each other; they kill the other side on sight (as Bandits) and march
-  on it out of sight; never their own side. Not saved (a test).
+  shield, a bow and 16 arrows each, food; the back quarter of each side are archers with 64 arrows) lined up facing each
+  other on natural ground (not on roofs); they kill the other side on sight (as Bandits) and march on it out of sight
+  (or, at its old line, toward the sound of fighting); never their own side. Not saved (a test). `/drifter perf` adds a
+  battle line: standing per side, on roofs, bows drawn, arrows into friends, and how many hardly moved since the last
+  report with what they're at.
 - Smoke tests: `jfr <seconds> <file> [settings]` lines profile the server (Java Flight Recorder; tools/fine.jfc), and
   `tools/jfrtop.py` reads the profile (`--within`, `--callers`, `--prefix`). The dev client test script (DRIFTER_CLIENT_TEST)
   has `fps <ticks>` and `jfr <seconds> <file>`. Note: vanilla `/forceload` takes at most 256 chunks a command (bigger areas
@@ -1981,6 +1984,33 @@ the world) work well then we a good". Measured on the user's PC (16 threads) wit
    every fourth tick away from players); posture checks once a tick, blocks only; reflexes look through a short list of
    projectiles, TNT and falling blocks kept as they come and go (`world/RareEntities`); the fake-player helper's id and
    profile are worked out once; "any wood I know of?" reads sections directly; the registry's save list is made at save.
+   Self-started debug traces (a Drifter stuck or nearly drowned, with thoughts in the log, logs a line a tick for 10 s)
+   start at most once every 5 s server-wide: with 1000 Drifters they wrote 100,000 lines in two minutes, up to 15 ms of
+   every tick and 300 ms spikes.
+8. **Third pass** (user agreed 2026-10-19): Drifters far from every player (Far tier) look and think every other tick, never
+   in a fight (their bodies, reflexes and tasks still run every tick; setting "Far ones think half as often" on the
+   Performance page). Hearing through one shared list of the tick's sounds (`perception/SoundHub`, a ServerLevel#gameEvent
+   mixin) instead of a vibration listener per Drifter (the game handed every step of a crowd to every listener near it).
+   The fake-player helper is kept per Drifter, and never loads advancements (a 216 to 275 ms spike on the first swing).
+   Whim checks that don't fit are remembered for a while; soldiers get no whims; the high-point search reads chunks
+   directly.
+9. **Battles, the AI** (user, watching: "alot of people were still standing still, and then a bunch of them pillared",
+   then "there are still some people standing in the back / if it isnt possible for them to move, can they be like
+   archers?"):
+   - **A bug: a quarter of the soldiers never made a decision.** First decisions wait for each Drifter's own point in the
+     second (so 300 made by one command don't all decide in one tick), but a far Drifter thinks every other tick, and for
+     half of them that tick never came. Now counted from its first tick. This affected every far Drifter, not only
+     soldiers: the earlier "1000 at Far" number was flattered by idle ones (remeasured below).
+   - Attention: who matters (players, hostiles, its prey, the enemy side) gets the proper looks first, the rest nearest
+     first (in an army the nearest two dozen were all its own side). Ally support: each friend within 10 blocks adds half
+     its strength to its own when it sizes up a fight (it fled at "threat 17 vs power 5.9" in the middle of its army).
+   - No pillaring up against Drifters or players (they dig or shoot it down); only against mob swarms.
+   - Archers: every soldier has a bow; the back quarter are archers and shoot whenever they can see their target beyond
+     sword range; the rest take out the bow when they can't get through (hardly moved and no nearer in 2 s, or no way
+     there), and after 8 s try the sword again. No arrow is loosed with a friend in its path: the arrow's flight is traced
+     tick by tick (speed, drag and drop as the game has them) out past the target, with the friends where they'll be at
+     their pace and a little room to spare; blocked, it holds the draw and steps aside, and after 5 s goes back to the sword
+     for a while. Friendly arrows in a 50v50: 34, then 18, then 0 to 2.
 
 ### Results (server tick, 50 ms is the limit for 20 TPS)
 
@@ -1988,18 +2018,21 @@ the world) work well then we a good". Measured on the user's PC (16 threads) wit
 | --- | --- | --- |
 | 300 Drifters round a real player (dev client, radius 100) | ~30 ms, worst 1% 52 ms | 21 to 22 ms, worst 1% 33 to 36 ms; 290 FPS |
 | 150v150 battle, the clash | 56 ms, worst 1% 109 ms, one 574 ms tick | 34 ms, worst 1% 75 ms; then 17 to 29 ms |
-| 1000 loaded within 210 blocks, nobody near (Far) | ~100 ms | 70 to 76 ms |
-| 1000 loaded within 210 blocks, all at Full detail | ~105 ms | ~90 ms |
+| 1000 loaded within 210 blocks, nobody near (Far) | ~100 ms | 58 ms, worst 1% 82 ms (half-rate thinking; 515 moving at once) |
+| 1000 loaded within 210 blocks, all at Full detail | ~105 ms | ~95 ms |
 | 60 Drifters catching up 3 days at once | ticks of 100 to 370 ms | most ticks under 10 ms |
+| 50v50 in a village, dev client (real player watching) | | 5 to 12 ms; 86 to 172 FPS; nobody idle, ~10 to 19 bows drawn, 1 friendly arrow |
 
 1000 Drifters across a world (most in unloaded chunks, catching up when you come) is cheap. 300 round a player is a
-steady 20 TPS. 1000 all loaded in one 400-block area is about 13 TPS, and a 500v500 battle would be well over the limit.
+steady 20 TPS. 1000 all loaded in one 400-block area is about 17 TPS, and a 500v500 battle would be well over the limit.
+
+Client FPS in big battles: with EMF and Fresh Animations, the animated player models are most of the frame. EMF's
+settings "retainDetailOnLowFps" and "retainDetailOnLargerMobs" set to off gave about 40% more FPS in a 150v150.
 
 ### Next steps / design questions
 
-- **Question for the user (design):** to reach 1000 all loaded at 20 TPS, unwatched Drifters (no player within 128 blocks)
-  would have to think and look less often: their AI every other tick (their bodies still move every tick), which
-  DESIGN.md section 22 allows for the Far tier ("AI every 5 to 10 ticks") but milestone 10 decided against (it changes how
-  a Drifter plays: slower mining, coarser steering). Recommendation: try it for the Far tier only, never in a fight.
+- Done (user agreed 2026-10-19): Far Drifters think every other tick, never in a fight (setting on the Performance page).
+- Next test (user, 2026-10-19): 50 Drifters doing all kinds of whims in a village, to see every action and what it costs.
+  Each test in fresh ground far from the last (the user: things overlap).
 - Sight lines for awareness on the helper threads too (the next biggest piece in battles).
 - The planner itself (crafting chains for food and progress) is the biggest part of a decision.
