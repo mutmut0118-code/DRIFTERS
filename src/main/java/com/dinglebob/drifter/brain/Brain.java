@@ -768,6 +768,13 @@ public class Brain {
 		return this.whims;
 	}
 
+	/** The villagers' trades it has seen (milestone 18, section 10.12). */
+	private final com.dinglebob.drifter.trade.TradeBook trades = new com.dinglebob.drifter.trade.TradeBook();
+
+	public com.dinglebob.drifter.trade.TradeBook trades() {
+		return this.trades;
+	}
+
 	/** One of its goals by id, or null. */
 	@Nullable
 	public Goals.Goal goal(String id) {
@@ -795,6 +802,7 @@ public class Brain {
 
 		tag.putLong("LastNetherTrip", this.lastNetherTrip);
 		tag.put("Whims", this.whims.save());
+		tag.put("Trades", this.trades.save());
 		return tag;
 	}
 
@@ -805,6 +813,7 @@ public class Brain {
 		this.netherTrip = tag.contains("NetherTrip", net.minecraft.nbt.Tag.TAG_COMPOUND) ? NetherTrip.load(tag.getCompound("NetherTrip")) : null;
 		this.lastNetherTrip = tag.getLong("LastNetherTrip");
 		this.whims.load(tag.getCompound("Whims"));
+		this.trades.load(tag.getCompound("Trades"));
 		this.furnaceJobs.clear();
 		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
 		for (int i = 0; i < jobs.size(); i++) {

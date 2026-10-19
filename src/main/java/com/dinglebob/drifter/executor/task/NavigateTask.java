@@ -580,6 +580,10 @@ public class NavigateTask extends Task {
 			return this.fail("stuck: replanned too often (last: " + this.lastReplanReason + ")");
 		}
 
+		if (this.edgeLook > 0) {
+			return this.tickEdgeLook();
+		}
+
 		if (this.lookAround > 0) {
 			return this.tickLookAround();
 		}
@@ -641,6 +645,39 @@ public class NavigateTask extends Task {
 	private boolean lookedAround;
 	/** Planning with the blocks it keeps back as well (a way out of a dead end). */
 	private boolean lastBlocks;
+
+	/** Looking over an edge: ticks left, which way the drop is, why it will plan again after, and where it last did this. */
+	private int edgeLook;
+	private Vec3 edgeDirection = Vec3.ZERO;
+	private String edgeReason = "";
+	@Nullable
+	private BlockPos lastEdgeLook;
+	private static final int EDGE_LOOK_TICKS = 12;
+	/** Only once its guesses have been wrong this many times without getting nearer (an ordinary hill isn't worth a stop). */
+	private static final int LOOK_OVER_AFTER = 3;
+	/** How far down (an edge) or up (a slope) it looks while it looks something over. */
+	private double edgeRise;
+	private static final double EDGE_LOOK_DROP = -6.0;
+	private static final double SLOPE_LOOK_RISE = 2.0;
+	/** Once per stretch of edge (further along it, again). */
+	private static final double EDGE_LOOK_SPACING = 4.0;
+
+	/** Standing still (sneaking at an edge), it sweeps its gaze across the drop or the slope: one side to the other, near to far. */
+	private Status tickEdgeLook() {
+		this.releaseKeys();
+		this.keys().set(VirtualKeys.Key.SNEAK, true);
+		int done = EDGE_LOOK_TICKS - this.edgeLook--;
+		double t = done / (double)EDGE_LOOK_TICKS;
+		Vec3 aim = this.edgeDirection.yRot((float)Math.toRadians(-70.0 + 140.0 * t)).scale(2.0 + 5.0 * t);
+		this.drifter.getCamera().track(this.drifter.getEyePosition().add(aim.x, this.edgeRise, aim.z), CameraModel.TurnSpeed.NORMAL);
+		if (this.edgeLook == 0) {
+			this.drifter.getCamera().clearTarget();
+			this.keys().set(VirtualKeys.Key.SNEAK, false);
+			this.replan(this.edgeReason, true);
+		}
+
+		return Status.RUNNING;
+	}
 
 	private Status tickLookAround() {
 		this.releaseKeys();
@@ -738,11 +775,21 @@ public class NavigateTask extends Task {
 		}
 
 		if (status == Status.FAILURE) {
+			// A dig on the way it couldn't do: the next route goes another way.
+			if (this.digging != null) {
+				this.drifter.digFailedAt(this.digging);
+			}
+
 			this.replan(finished.describe() + " failed: " + finished.failureReason());
 		}
 
+		this.digging = null;
 		return Status.RUNNING;
 	}
+
+	/** The block the running sub-task digs for the route, if it's a dig. */
+	@Nullable
+	private BlockPos digging;
 
 	private void startSub(Task task) {
 		this.keys().set(VirtualKeys.Key.FORWARD, false);
@@ -842,6 +889,18 @@ public class NavigateTask extends Task {
 
 			if (!this.isClear(cell)) {
 				if (!step.digs().contains(cell)) {
+					// A slope or a tree it didn't know was there: it looks it over first, across and up, before planning again
+					// (found on Tectonic's peaks: routes guessed through hidden rock and spruce, one block at a time).
+					if (this.replans >= LOOK_OVER_AFTER && (this.lastEdgeLook == null || !this.lastEdgeLook.closerThan(this.feet(), EDGE_LOOK_SPACING))) {
+						this.lastEdgeLook = this.feet().immutable();
+						this.edgeLook = EDGE_LOOK_TICKS;
+						this.edgeRise = SLOPE_LOOK_RISE;
+						Vec3 toward = Vec3.atCenterOf(cell).subtract(this.drifter.position()).multiply(1.0, 0.0, 1.0);
+						this.edgeDirection = toward.lengthSqr() < 1.0E-4 ? this.drifter.getLookAngle().multiply(1.0, 0.0, 1.0).normalize() : toward.normalize();
+						this.edgeReason = "found " + this.blockName(cell) + " where it expected open space";
+						return Status.RUNNING;
+					}
+
 					this.replan("found " + this.blockName(cell) + " where it expected open space");
 					return Status.RUNNING;
 				}
@@ -852,6 +911,7 @@ public class NavigateTask extends Task {
 				}
 
 				this.startSub(this.digTask(cell));
+				this.digging = cell.immutable();
 				return Status.RUNNING;
 			}
 		}
@@ -944,6 +1004,19 @@ public class NavigateTask extends Task {
 					this.keys().set(VirtualKeys.Key.RIGHT, false);
 				}
 
+				return Status.RUNNING;
+			}
+
+			// At an edge it didn't know was there: it stops and looks over it, across the drop from side to side, before
+			// planning again, as a player peers over a cliff (found in a walking test on Tectonic's peaks: it found the
+			// drops one guessed step at a time, fifteen times over along the same cliff, and gave up).
+			if (this.replans >= LOOK_OVER_AFTER && (this.lastEdgeLook == null || !this.lastEdgeLook.closerThan(this.feet(), EDGE_LOOK_SPACING))) {
+				this.lastEdgeLook = this.feet().immutable();
+				this.edgeLook = EDGE_LOOK_TICKS;
+				Vec3 toward = Vec3.atBottomCenterOf(step.to()).subtract(this.drifter.position()).multiply(1.0, 0.0, 1.0);
+				this.edgeDirection = toward.lengthSqr() < 1.0E-4 ? this.drifter.getLookAngle().multiply(1.0, 0.0, 1.0).normalize() : toward.normalize();
+				this.edgeReason = "no ground where it expected it at " + step.to().below().toShortString();
+				this.edgeRise = EDGE_LOOK_DROP;
 				return Status.RUNNING;
 			}
 

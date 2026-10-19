@@ -260,6 +260,8 @@ public class PathSearch {
 	 * another thread (milestone 16): bridges and pillars that failed lately, its trails, its fall-damage attributes.
 	 */
 	private final java.util.Set<BlockPos> failedBridges;
+	/** Blocks a route had it dig lately that it couldn't: not planned as digs again for a while. */
+	private final java.util.Set<BlockPos> failedDigs;
 	private final java.util.Set<BlockPos> failedPillars;
 	private final it.unimi.dsi.fastutil.longs.LongOpenHashSet trails;
 	private final double safeFall;
@@ -296,6 +298,7 @@ public class PathSearch {
 
 		this.near = drifter.tier() == com.dinglebob.drifter.entity.DetailTier.FULL;
 		this.failedBridges = drifter.recentFailedBridges();
+		this.failedDigs = drifter.recentFailedDigs();
 		this.failedPillars = drifter.recentFailedPillars();
 		this.trails = drifter.getMemory().trailCopy();
 		this.safeFall = drifter.getAttributeValue(Attributes.SAFE_FALL_DISTANCE);
@@ -543,7 +546,7 @@ public class PathSearch {
 				case DOOR -> clearance.cost += DOOR;
 				case AVOID -> clearance.cost += AVOID * this.caution * 2.0;
 				case SOLID -> {
-					if (!mayDig || !info.diggable()) {
+					if (!mayDig || !info.diggable() || this.failedDigs.contains(cell)) {
 						return null;
 					}
 

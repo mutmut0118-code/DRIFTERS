@@ -2312,6 +2312,8 @@ public final class Goals {
 		goals.add(new PlanHouse());
 		// Whims (milestone 13, docs/WHIMS.md).
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
+		// Trading with villagers (milestone 18, section 10.12).
+		goals.add(new com.dinglebob.drifter.trade.TradeGoal());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);

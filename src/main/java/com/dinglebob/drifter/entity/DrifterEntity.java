@@ -224,6 +224,28 @@ public class DrifterEntity extends PathfinderMob {
 		this.failedBridges.put(to.immutable(), this.level().getGameTime() + 20L * 60 * 5);
 	}
 
+	/** Blocks a route had it dig that it couldn't (couldn't see or reach them from where it stood), until a game time. */
+	private final java.util.Map<BlockPos, Long> failedDigs = new java.util.HashMap<>();
+
+	/**
+	 * Remembers that digging this block on the way didn't work, for two minutes: routes go another way (found in a walking
+	 * test on Tectonic's jagged peaks: the same snow block planned and failed fifteen times over, then it gave up).
+	 */
+	public void digFailedAt(BlockPos cell) {
+		this.failedDigs.put(cell.immutable(), this.level().getGameTime() + 20L * 60 * 2);
+	}
+
+	/** Route digs that failed lately (not to be planned again for a while), a copy. */
+	public java.util.Set<BlockPos> recentFailedDigs() {
+		if (this.failedDigs.isEmpty()) {
+			return java.util.Set.of();
+		}
+
+		long now = this.level().getGameTime();
+		this.failedDigs.values().removeIf(until -> until < now);
+		return java.util.Set.copyOf(this.failedDigs.keySet());
+	}
+
 	/**
 	 * Blocks it dug out itself, the latest few thousand (saved): its own tunnels and stairs aren't caves to go and
 	 * explore (user's report: it saw its old strip mine as "a cave" and went back to it).
