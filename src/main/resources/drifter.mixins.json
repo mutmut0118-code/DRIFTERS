@@ -12,6 +12,8 @@
 		"EntitySoundMixin",
 		"ExperienceOrbAccessor",
 		"ExplosionMixin",
+		"FishingHookAccessor",
+		"FishingHookMixin",
 		"ItemEntityAccessor",
 		"LivingEntityAccessor",
 		"LivingEntityClimbMixin",

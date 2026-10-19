@@ -2314,6 +2314,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
 		// Trading with villagers (milestone 18, section 10.12).
 		goals.add(new com.dinglebob.drifter.trade.TradeGoal());
+		// Fishing (milestone 18, section 10.5).
+		goals.add(new com.dinglebob.drifter.skills.FishGoal());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);
