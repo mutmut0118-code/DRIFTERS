@@ -146,7 +146,7 @@ public class DrifterEntity extends PathfinderMob {
 		if (now - this.outOfAirAt > 60) {
 			this.airScares.addLast(now);
 			// Debug: with thoughts going to the log, a near-drowning traces itself (to see what went wrong in long tests).
-			if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0) {
+			if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0 && autoTraceAllowed(now)) {
 				this.traceTicks = 200;
 			}
 		}
@@ -844,7 +844,7 @@ public class DrifterEntity extends PathfinderMob {
 	/** Debug: with thoughts going to the log, traces the next 10 s after something went wrong (stuck, out of air). */
 	public void autoTrace() {
 		long now = this.level().getGameTime();
-		if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0 && now - this.lastAutoTrace >= AUTO_TRACE_GAP) {
+		if (com.dinglebob.drifter.memory.ThoughtLog.echo && this.traceTicks <= 0 && now - this.lastAutoTrace >= AUTO_TRACE_GAP && autoTraceAllowed(now)) {
 			this.lastAutoTrace = now;
 			// The run-up too: the black box has the last few seconds.
 			com.dinglebob.drifter.Drifter.LOGGER.info("[auto trace] the last {} ticks:", Math.min(60, this.blackBox.size()));
@@ -865,9 +865,25 @@ public class DrifterEntity extends PathfinderMob {
 
 	/** Debug: trace for a while unless it already is (used when its thoughts go to the log and it gets stuck). */
 	public void traceIfIdle(int ticks) {
-		if (this.traceTicks <= 0) {
+		if (this.traceTicks <= 0 && autoTraceAllowed(this.level().getGameTime())) {
 			this.traceTicks = ticks;
 		}
+	}
+
+	/** The next game time any Drifter may start tracing itself (server-wide). */
+	private static long nextAutoTrace = Long.MIN_VALUE;
+	/** Least time between two Drifters starting a trace of their own (5 s): with a thousand Drifters and thoughts in the
+	 * log, self-started traces wrote 100,000 lines in two minutes, a line a tick each, up to 15 ms of every tick
+	 * (milestone 16). `/drifter trace` isn't held back. */
+	private static final long AUTO_TRACE_SPACING = 20 * 5;
+
+	private static boolean autoTraceAllowed(long now) {
+		if (now < nextAutoTrace && now > nextAutoTrace - AUTO_TRACE_SPACING * 2) {
+			return false;
+		}
+
+		nextAutoTrace = now + AUTO_TRACE_SPACING;
+		return true;
 	}
 
 	public void holdKeys(List<VirtualKeys.Key> pressed, int ticks) {
@@ -2186,6 +2202,14 @@ protected void customServerAiStep() {
 	@Override
 	public void addAdditionalSaveData(CompoundTag tag) {
 		super.addAdditionalSaveData(tag);
+		// On a client nothing of its mind is there to save, and texture mods (ETF) read every entity's data every frame to
+		// test their rules: just what a client knows (milestone 16: a battle's soldiers were saved in full every frame).
+		if (this.level().isClientSide()) {
+			tag.putString("Skin", this.getSkinTexture().toString());
+			tag.putBoolean("SlimArms", this.hasSlimArms());
+			return;
+		}
+
 		tag.putInt("DrifterSaveVersion", SAVE_VERSION);
 		tag.put("DrifterInventory", this.inventory.save(this.registryAccess()));
 		tag.putInt("SelectedItemSlot", this.inventory.getSelected());

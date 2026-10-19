@@ -89,6 +89,73 @@ public final class Archery {
 		return false;
 	}
 
+	/**
+	 * A friend (its battle side, its group) where the arrow would fly if it let go now: the arrow's path traced tick by
+	 * tick from its eyes (AbstractArrow: it leaves a little under the eyes at {@code power} times 3 blocks a tick, slows by
+	 * 1% and falls 0.05 faster each tick, and hits anyone within 0.3 of its line), out to {@code distance} and a little past
+	 * (a miss flies on into whoever stands behind), each friend where it will be by then at the pace it's going, with a
+	 * little room to spare. The friends round it and its target are in plain view. A player in a crowd doesn't shoot
+	 * through the friend in front either (found in a 50v50: the soldiers at the back, given bows, put 34 arrows into their
+	 * own side).
+	 */
+	public static boolean friendInTheWay(DrifterEntity drifter, net.minecraft.world.phys.Vec3 look, float power, double distance) {
+		net.minecraft.world.phys.Vec3 eye = drifter.getEyePosition();
+		java.util.List<net.minecraft.world.phys.Vec3> path = new java.util.ArrayList<>(24);
+		net.minecraft.world.phys.Vec3 pos = eye.subtract(0.0, 0.1, 0.0);
+		net.minecraft.world.phys.Vec3 velocity = look.scale(power * ARROW_SPEED);
+		path.add(pos);
+		double minX = pos.x, minY = pos.y, minZ = pos.z, maxX = pos.x, maxY = pos.y, maxZ = pos.z;
+		for (int tick = 0; tick < 40 && pos.distanceTo(eye) < distance + PAST_TARGET; tick++) {
+			pos = pos.add(velocity);
+			velocity = velocity.scale(ARROW_INERTIA).subtract(0.0, ARROW_GRAVITY, 0.0);
+			path.add(pos);
+			minX = Math.min(minX, pos.x);
+			minY = Math.min(minY, pos.y);
+			minZ = Math.min(minZ, pos.z);
+			maxX = Math.max(maxX, pos.x);
+			maxY = Math.max(maxY, pos.y);
+			maxZ = Math.max(maxZ, pos.z);
+		}
+
+		var friends = drifter.level().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(minX, minY, minZ, maxX, maxY, maxZ).inflate(3.0),
+			other -> other != drifter && other.isAlive() && friends(drifter, other));
+		for (DrifterEntity friend : friends) {
+			net.minecraft.world.phys.Vec3 pace = friend.getDeltaMovement().multiply(1.0, 0.0, 1.0);
+			for (int tick = 0; tick + 1 < path.size(); tick++) {
+				// More room the farther out (the arrow spreads a little, and a friend in a fight doesn't keep its pace), and a
+				// friend the arrow would start inside of counts too (ProjectileUtil: it hits at once).
+				net.minecraft.world.phys.Vec3 from = path.get(tick);
+				var box = friend.getBoundingBox().move(pace.scale(tick + 1)).inflate(ARROW_HIT_MARGIN + FRIEND_ROOM + FRIEND_ROOM_PER_BLOCK * from.distanceTo(eye));
+				if (box.contains(from) || box.clip(from, path.get(tick + 1)).isPresent()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/** How far past its target it makes sure the arrow wouldn't hit a friend. */
+	public static final double PAST_TARGET = 6.0;
+	/** Room it leaves round a friend beyond where an arrow would just touch it. */
+	public static final double FRIEND_ROOM = 0.3;
+	public static final double FRIEND_ROOM_PER_BLOCK = 0.015;
+
+	/** On its side: the same battle side or the same group. */
+	public static boolean friends(DrifterEntity drifter, DrifterEntity other) {
+		if (com.dinglebob.drifter.world.Battle.inBattle(drifter)) {
+			return com.dinglebob.drifter.world.Battle.allies(drifter, other);
+		}
+
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		return group != null && group == com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID());
+	}
+
+	/** An arrow keeps this much of its speed each tick in air (AbstractArrow). */
+	public static final double ARROW_INERTIA = 0.99;
+	/** How near its line an arrow hits someone (ProjectileUtil's margin). */
+	public static final double ARROW_HIT_MARGIN = 0.3;
+
 	/** A blaze nearer than this is fought with the sword. */
 	public static final double BLAZE_MELEE_RANGE = 5.0;
 

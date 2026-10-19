@@ -289,6 +289,8 @@ public class Brain {
 	private long goalStarted;
 	private int sinceRescore = RESCORE_TICKS;
 	private boolean phased;
+	/** The tick (its own count) of its first decision, or -1 before its first brain tick. */
+	private int firstDecisionAt = -1;
 	private List<Scored> lastScores = List.of();
 	private List<String> lastSteps = List.of();
 	@Nullable
@@ -344,9 +346,17 @@ public class Brain {
 		}
 
 		// Its very first decision too waits for its own point in the second: 300 soldiers made by one command all decided on
-		// their first tick together, half a second in one tick (milestone 16).
-		if (!this.phased && this.activity == null && !danger && Math.floorMod(this.drifter.tickCount + this.drifter.getUUID().hashCode(), RESCORE_TICKS) != 0) {
-			return;
+		// their first tick together, half a second in one tick (milestone 16). Counted from its first tick here, not one exact
+		// tick of every second: a Drifter far from players thinks every other tick, and for half of them that tick never came
+		// (found in a 50v50 in a village: a quarter of the soldiers stood the whole battle with no goal at all).
+		if (!this.phased && this.activity == null && !danger) {
+			if (this.firstDecisionAt < 0) {
+				this.firstDecisionAt = this.drifter.tickCount + Math.floorMod(this.drifter.getUUID().hashCode(), RESCORE_TICKS);
+			}
+
+			if (this.drifter.tickCount < this.firstDecisionAt) {
+				return;
+			}
 		}
 
 		// The first time, each at its own point in the second, so Drifters loaded together don't all decide on the same tick

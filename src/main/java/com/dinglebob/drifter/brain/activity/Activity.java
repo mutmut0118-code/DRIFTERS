@@ -33,6 +33,11 @@ public abstract class Activity extends Task {
 	protected Task current() {
 		return this.child;
 	}
+
+	/** The step it's on, in words (for reports), or "between steps". */
+	public String stepName() {
+		return this.child == null ? "between steps" : this.child.describe();
+	}
 	private int failures;
 	@Nullable
 	private String lastFailure;

@@ -362,7 +362,7 @@ public final class Threats {
 		}
 
 		hostiles.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(drifter)));
-		double power = power(drifter);
+		double power = power(drifter) * (1.0 + ALLY_SUPPORT * Math.min(MAX_ALLIES, drifter.getSenses().alliesNear()));
 		double ratio = power / threat * courage(drifter);
 		Decision decision = ratio > 2.0 ? Decision.ENGAGE : ratio >= 1.2 ? Decision.ENGAGE_CAREFUL : ratio >= 0.8 ? Decision.AVOID
 			: ratio >= 0.5 ? Decision.RETREAT : Decision.FLEE;
@@ -434,6 +434,14 @@ public final class Threats {
 
 		return new Assessment(threat, power, decision, main, List.copyOf(hostiles), nearest, recentlyHit);
 	}
+
+	/**
+	 * Friends at its side add to what it can take on, as they do for a player (found in a 150v150 battle: each soldier
+	 * weighed the whole enemy army it could see against itself alone, and ran): another Drifter of its side in a battle or of
+	 * its group, seen lately and close.
+	 */
+	private static final double ALLY_SUPPORT = 0.5;
+	private static final int MAX_ALLIES = 6;
 
 	/** Moved less than this in {@link #STUCK_TICKS}: it's stuck where it is. */
 	private static final double STUCK_MOVE = 0.75;

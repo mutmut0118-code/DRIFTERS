@@ -75,7 +75,10 @@ public class FleeActivity extends Activity {
 
 		int melee = 0;
 		for (LivingEntity hostile : assessment.hostiles()) {
-			if (AttackTask.Protocol.of(hostile) == AttackTask.Protocol.MELEE && hostile.distanceTo(this.drifter) <= SWARM_RANGE) {
+			// (Mobs only: another Drifter or a player builds up after it, digs it out or shoots it off; found in the user's look
+			// at a 150v150 battle: "a bunch of them pillared".)
+			if (AttackTask.Protocol.of(hostile) == AttackTask.Protocol.MELEE && hostile.distanceTo(this.drifter) <= SWARM_RANGE
+				&& !(hostile instanceof com.dinglebob.drifter.entity.DrifterEntity) && !(hostile instanceof net.minecraft.world.entity.player.Player)) {
 				melee++;
 			}
 		}
@@ -121,7 +124,8 @@ public class FleeActivity extends Activity {
 		// Turn and run, now: no stopping to plan a route (user's note from testing).
 		this.legs++;
 		this.think("running away from the " + (assessment.main() == null ? "mobs"
-			: assessment.main().getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
+			: assessment.main().getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)) + " (" + assessment.describe()
+			+ ", health " + Math.round(this.drifter.getHealth()) + ")");
 		return this.begin(new RunAwayTask(this.drifter, () -> Threats.assess(this.drifter).hostiles(), SAFE_DISTANCE, 20 * 8));
 	}
 }

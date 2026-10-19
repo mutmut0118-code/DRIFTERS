@@ -113,6 +113,13 @@ public class Senses {
 	public static final double CROWD_CLOSE = 8.0;
 	/** In a crowd as of the last re-rank. */
 	private boolean crowded;
+	/** Friends within {@link #ALLY_RANGE} as of the last re-rank (its battle side or group). */
+	private int alliesNear;
+	public static final double ALLY_RANGE = 10.0;
+
+	public int alliesNear() {
+		return this.alliesNear;
+	}
 	public static final int FAR_UPDATE_EVERY = 3;
 	public static final double RAIN_FACTOR = 0.75;
 	public static final double THUNDER_FACTOR = 0.6;
@@ -566,19 +573,37 @@ public class Senses {
 		// Nearest first, so the far-sight budget goes to the closest of the far ones. Each distance and index packed in one
 		// number (a positive float's bits sort as the float does) and sorted plain (milestone 16: sorting was most of the
 		// re-rank's time in a crowd).
+		// Who matters goes to the front of the line for a proper look (players, hostiles, its prey, what it's watching), the
+		// rest nearest first: in an army the nearest two dozen were all its own side, and it never noticed the enemy a little
+		// farther off (found in the user's look at a 150v150 battle: "alot of people were still standing still").
 		double[] distances = new double[candidates.size()];
 		long[] order = new long[candidates.size()];
+		boolean ruthless = com.dinglebob.drifter.social.BanditGoals.ruthless(this.drifter);
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+		boolean battle = com.dinglebob.drifter.world.Battle.inBattle(this.drifter);
+		int allies = 0;
 		for (int i = 0; i < distances.length; i++) {
-			distances[i] = candidates.get(i).distanceToSqr(this.drifter);
-			order[i] = (long)Float.floatToRawIntBits((float)distances[i]) << 32 | i;
+			Entity entity = candidates.get(i);
+			distances[i] = entity.distanceToSqr(this.drifter);
+			// Friends at its side (its battle side, its group): it knows they're there without looking (Threats).
+			if ((battle || group != null) && distances[i] <= ALLY_RANGE * ALLY_RANGE && entity instanceof com.dinglebob.drifter.entity.DrifterEntity other
+				&& (battle ? com.dinglebob.drifter.world.Battle.allies(this.drifter, other) : com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID()) == group)) {
+				allies++;
+			}
+
+			boolean matters = entity instanceof Player || entity instanceof Enemy || this.tracked.containsKey(entity.getId())
+				|| ruthless && com.dinglebob.drifter.social.BanditGoals.prey(this.drifter, entity)
+				|| entity instanceof com.dinglebob.drifter.entity.DrifterEntity other && com.dinglebob.drifter.world.Battle.enemies(this.drifter, other);
+			order[i] = (matters ? 0L : 1L << 62) | (long)Float.floatToRawIntBits((float)distances[i]) << 30 | i;
 		}
 
+		this.alliesNear = allies;
 		java.util.Arrays.sort(order);
 		List<Map.Entry<Entity, Double>> ranked = new ArrayList<>();
 		int farChecks = 0;
 		int nearChecks = 0;
 		for (long packed : order) {
-			int i = (int)packed;
+			int i = (int)(packed & ((1L << 30) - 1));
 			Entity entity = candidates.get(i);
 			Awareness current = this.tracked.get(entity.getId());
 			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold) || entity instanceof Player;

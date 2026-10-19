@@ -137,6 +137,16 @@ public class ShootTask extends Task {
 
 		this.unseen = 0;
 		Steering.stopMoving(this.drifter);
+		// A friend in the line of fire: it holds the draw and steps aside for a clear shot (slowly, as with a bow drawn).
+		if (this.blockedTicks > 0) {
+			if (this.blockedTicks > MAX_BLOCKED_TICKS) {
+				this.release(false);
+				return this.fail("friends in the way");
+			}
+
+			this.sidestep();
+		}
+
 		Vec3 aim = this.aimPoint().add(this.error);
 		this.drifter.getCamera().track(aim, CameraModel.TurnSpeed.COMBAT);
 		if (!this.drifter.isUsingItem()) {
@@ -147,11 +157,43 @@ public class ShootTask extends Task {
 
 		int wanted = this.drifter.distanceTo(this.target) < QUICK_DRAW_RANGE && !Archery.flying(this.target) ? QUICK_DRAW_TICKS : Archery.FULL_DRAW_TICKS;
 		if (this.drifter.getTicksUsingItem() >= wanted && this.aimedAt(aim, this.drifter.getTicksUsingItem() - wanted)) {
-			this.release(true);
-			this.shots++;
+			if (Archery.friendInTheWay(this.drifter, this.drifter.getViewVector(1.0F), net.minecraft.world.item.BowItem.getPowerForTime(this.drifter.getTicksUsingItem()),
+				this.drifter.distanceTo(this.target))) {
+				this.blockedTicks++;
+			} else {
+				this.blockedTicks = 0;
+				this.release(true);
+				this.shots++;
+			}
 		}
 
 		return Status.RUNNING;
+	}
+
+	/** Ticks in a row a friend has stood in its line of fire with the bow drawn. */
+	private int blockedTicks;
+	/** This long with no clear shot: it gives up the bow for now. */
+	private static final int MAX_BLOCKED_TICKS = 20 * 5;
+	/** Steps one way this long before trying the other. */
+	private static final int SIDESTEP_TICKS = 30;
+	private boolean sidestepLeft;
+	private int sidestepFor;
+
+	/** A step to one side, safe ground only; the other way after a while or on bumping into something. */
+	private void sidestep() {
+		Vec3 side = Vec3.directionFromRotation(0.0F, this.drifter.getYRot() + (this.sidestepLeft ? -90.0F : 90.0F));
+		if (--this.sidestepFor <= 0 || this.drifter.horizontalCollision || !Steering.safeStep(this.drifter, side)) {
+			this.sidestepLeft = this.sidestepFor > 0 ? !this.sidestepLeft : this.drifter.getRandom().nextBoolean();
+			this.sidestepFor = SIDESTEP_TICKS;
+			side = Vec3.directionFromRotation(0.0F, this.drifter.getYRot() + (this.sidestepLeft ? -90.0F : 90.0F));
+			if (!Steering.safeStep(this.drifter, side)) {
+				return;
+			}
+		}
+
+		var keys = this.drifter.getKeys();
+		keys.set(com.dinglebob.drifter.motor.VirtualKeys.Key.LEFT, this.sidestepLeft);
+		keys.set(com.dinglebob.drifter.motor.VirtualKeys.Key.RIGHT, !this.sidestepLeft);
 	}
 
 	private boolean guarding;

@@ -203,9 +203,23 @@ public final class BanditGoals {
 		private final String label;
 		private boolean looted;
 
+		/** A soldier at the back with more arrows: it shoots whenever it has a clear sight of the target. */
+		private final boolean archer;
+		/** The melee approach went nowhere (the crowd in front, no way through): the bow, if it has one. */
+		private boolean stalled;
+		/** Where it stood and how far off the target was at the last stall check. */
+		@Nullable
+		private net.minecraft.world.phys.Vec3 stallPos;
+		private double stallDistance;
+		private int stallCheckAt;
+		/** No bow before this (game time): it had no clear shot, or something closer is on it. */
+		private long meleeUntil;
+		private long shootingSince;
+
 		RampageFight(DrifterEntity drifter, net.minecraft.world.entity.LivingEntity target) {
 			super(drifter);
 			this.target = target;
+			this.archer = com.dinglebob.drifter.world.Battle.archer(drifter);
 			this.label = target instanceof net.minecraft.world.entity.player.Player player ? player.getGameProfile().getName()
 				: target.getName().getString();
 			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "kill on sight: going for " + this.label);
@@ -247,8 +261,81 @@ public final class BanditGoals {
 				return com.dinglebob.drifter.brain.activity.Activity.Status.SUCCESS;
 			}
 
+			long now = this.drifter.level().getGameTime();
+			if ((this.archer || this.stalled) && this.canShoot(now)) {
+				this.think(this.archer ? "shooting at " + this.label : "can't get through to " + this.label + ": the bow");
+				this.stalled = false;
+				this.shootingSince = now;
+				return this.begin(new com.dinglebob.drifter.executor.task.ShootTask(this.drifter, this.target, this.label));
+			}
+
+			this.stalled = false;
+			this.stallPos = null;
+			this.stallCheckAt = this.drifter.tickCount + STALL_CHECK_TICKS;
 			return this.begin(new com.dinglebob.drifter.executor.task.AttackTask(this.drifter, this.target, this.label));
 		}
+
+		/** A bow, arrows, the target in sight beyond sword range and within bow range, and no reason not to just now. */
+		private boolean canShoot(long now) {
+			if (now < this.meleeUntil || !com.dinglebob.drifter.hands.Archery.ready(this.drifter)) {
+				return false;
+			}
+
+			double distance = this.target.distanceTo(this.drifter);
+			if (distance <= com.dinglebob.drifter.hands.Archery.MELEE_RANGE || distance > com.dinglebob.drifter.hands.Archery.MAX_RANGE) {
+				return false;
+			}
+
+			var awareness = this.drifter.getSenses().awarenessOf(this.target);
+			return awareness != null && awareness.visibleNow;
+		}
+
+		@Override
+		protected boolean rethink() {
+			Task step = this.current();
+			long now = this.drifter.level().getGameTime();
+			if (step instanceof com.dinglebob.drifter.executor.task.AttackTask) {
+				// Every two seconds: did it get anywhere? Hardly moved and no nearer, out of sword reach: it's stuck behind the
+				// others (or has no way round), and a bow does better than pushing (the user, on a 50v50: "if it isnt possible
+				// for them to move, can they be like archers?").
+				if (this.drifter.tickCount >= this.stallCheckAt) {
+					double distance = this.target.distanceTo(this.drifter);
+					if (this.stallPos != null && distance > com.dinglebob.drifter.hands.Archery.MELEE_RANGE && distance > this.stallDistance - STALL_PROGRESS
+						&& this.drifter.position().distanceTo(this.stallPos) < STALL_PROGRESS) {
+						this.stalled = true;
+					}
+
+					this.stallPos = this.drifter.position();
+					this.stallDistance = distance;
+					this.stallCheckAt = this.drifter.tickCount + STALL_CHECK_TICKS;
+				}
+
+				return (this.archer || this.stalled) && this.canShoot(now);
+			}
+
+			// Not an archer: after a spell with the bow, another go at reaching it with the sword.
+			return step instanceof com.dinglebob.drifter.executor.task.ShootTask && !this.archer && now - this.shootingSince > SHOOT_SPELL_TICKS;
+		}
+
+		@Override
+		protected void stepDone(Task step, com.dinglebob.drifter.brain.activity.Activity.Status status) {
+			if (status != com.dinglebob.drifter.brain.activity.Activity.Status.FAILURE) {
+				return;
+			}
+
+			if (step instanceof com.dinglebob.drifter.executor.task.AttackTask) {
+				// No way to it (or lost it): the bow, if it can see it.
+				this.stalled = true;
+			} else if (step instanceof com.dinglebob.drifter.executor.task.ShootTask) {
+				// No clear shot, or something up close: the sword for a while.
+				this.meleeUntil = this.drifter.level().getGameTime() + ("friends in the way".equals(step.failureReason()) ? NO_CLEAR_SHOT_TICKS : 40L);
+			}
+		}
+
+		private static final int STALL_CHECK_TICKS = 40;
+		private static final double STALL_PROGRESS = 1.5;
+		private static final long SHOOT_SPELL_TICKS = 20L * 8;
+		private static final long NO_CLEAR_SHOT_TICKS = 20L * 4;
 	}
 
 	/** An outpost Bandit with griefing on. */
