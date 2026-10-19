@@ -57,34 +57,58 @@ public final class PathBudget {
 	/** What a search took (counted against the tick's budget). */
 	public static void spent(long nanos) {
 		used += nanos;
-		totalNanos += nanos;
+		totalNanos.add(nanos);
 	}
 
-	/** Nodes expanded and time spent searching since the last report (for `/drifter perf`: how fast it searches). */
-	private static long totalNanos;
-	private static long totalNodes;
+	/**
+	 * Nodes expanded and time spent searching since the last report (for `/drifter perf`: how fast it searches). Counted
+	 * from path threads too (milestone 16), so these add up safely from any thread.
+	 */
+	private static final java.util.concurrent.atomic.LongAdder totalNanos = new java.util.concurrent.atomic.LongAdder();
+	private static final java.util.concurrent.atomic.LongAdder totalNodes = new java.util.concurrent.atomic.LongAdder();
+	private static final java.util.concurrent.atomic.LongAdder workerNanos = new java.util.concurrent.atomic.LongAdder();
+	private static final java.util.concurrent.atomic.LongAdder copyNanos = new java.util.concurrent.atomic.LongAdder();
 
 	public static void expanded(int nodes) {
-		totalNodes += nodes;
+		totalNodes.add(nodes);
 	}
 
-	private static long searches;
-	private static long searchNodes;
+	/** A search on a path thread took this long, over this many cells. */
+	public static void workerSpent(long nanos, int nodes) {
+		totalNanos.add(nanos);
+		workerNanos.add(nanos);
+		totalNodes.add(nodes);
+	}
+
+	/** Copying the world and its knowledge for a search took this long (server thread). */
+	public static void copied(long nanos) {
+		copyNanos.add(nanos);
+	}
+
+	private static final java.util.concurrent.atomic.LongAdder searches = new java.util.concurrent.atomic.LongAdder();
+	private static final java.util.concurrent.atomic.LongAdder searchNodes = new java.util.concurrent.atomic.LongAdder();
 
 	/** A search finished, after looking at this many cells. */
 	public static void finished(int nodes) {
-		searches++;
-		searchNodes += nodes;
+		searches.increment();
+		searchNodes.add(nodes);
 	}
 
 	/** "N nodes/ms" since the last call, then starts counting again. */
 	public static String speedReport() {
-		String report = totalNanos == 0 ? "no searches" : String.format(java.util.Locale.ROOT, "%.0f nodes/ms (%d nodes), %d searches, %.0f nodes each",
-			totalNodes / (totalNanos / 1e6), totalNodes, searches, searches == 0 ? 0.0 : (double)searchNodes / searches);
-		totalNanos = 0;
-		totalNodes = 0;
-		searches = 0;
-		searchNodes = 0;
+		long nanos = totalNanos.sumThenReset();
+		long nodes = totalNodes.sumThenReset();
+		long count = searches.sumThenReset();
+		long counted = searchNodes.sumThenReset();
+		long worker = workerNanos.sumThenReset();
+		long copy = copyNanos.sumThenReset();
+		String report = nanos == 0 ? "no searches" : String.format(java.util.Locale.ROOT, "%.0f nodes/ms (%d nodes), %d searches, %.0f nodes each",
+			nodes / (nanos / 1e6), nodes, count, count == 0 ? 0.0 : (double)counted / count);
+		if (worker > 0 || copy > 0) {
+			report += String.format(java.util.Locale.ROOT, "; on path threads %.0f ms (%d waiting), copying for them %.1f ms on the server thread",
+				worker / 1e6, PathWorkers.waiting(), copy / 1e6);
+		}
+
 		return report;
 	}
 }

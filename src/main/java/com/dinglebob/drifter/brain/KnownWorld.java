@@ -39,7 +39,7 @@ public final class KnownWorld {
 	public static final double TREE_MEMORY_RANGE = 96.0;
 
 	/** One example state of each kind of block it could go and take (the planner only asks which kinds it knows). */
-	private final Map<Block, BlockState> examples = new HashMap<>();
+	private final Map<Block, BlockState> examples = new it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap<>();
 	private final Set<EntityType<?>> animals = new HashSet<>();
 	/** Kinds of animals seen ("minecraft:sheep/white"), for wool of a colour. */
 	private final Set<String> variants = new HashSet<>();
@@ -58,21 +58,19 @@ public final class KnownWorld {
 	private KnownWorld(DrifterEntity drifter) {
 		Level level = drifter.level();
 		long now = level.getGameTime();
+		this.scannedAt = now;
+		this.scannedFrom = drifter.blockPosition().immutable();
 		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
 		TreeLogs treeCheck = new TreeLogs(level);
 		// Sections whose palette has nothing it hasn't already found an example of are skipped whole (performance: stone and
 		// air everywhere, once it has an example of stone, cost nothing more to scan).
 		var unseenKinds = com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level,
 			state -> !state.isAir() && !this.examples.containsKey(state.getBlock()) && state.getFluidState().isEmpty());
-		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), RADIUS, unseenKinds, pos -> {
-			if (!level.isLoaded(pos)) {
-				return;
-			}
-
-			BlockState state = level.getBlockState(pos);
-			// A kind it already found one of: the rest don't change the answer (the slow checks below were most of a brain
-			// decision's time, growing as it explored; section 22 budget).
-			if (this.examples.containsKey(state.getBlock()) || !takeable(level, pos, state, blacklist, now)) {
+		// Air, and a kind it already found one of, skipped first: the rest don't change the answer (the slow checks below were
+		// most of a brain decision's time, growing as it explored; section 22 budget).
+		drifter.getSenses().terrain().forEachKnownState(level, drifter.blockPosition(), RADIUS, unseenKinds,
+			state -> state.isAir() || this.examples.containsKey(state.getBlock()), (pos, state) -> {
+			if (!takeable(level, pos, state, blacklist, now)) {
 				return;
 			}
 
@@ -124,9 +122,25 @@ public final class KnownWorld {
 		this.stoneHint = stone == null ? null : stone.pos;
 	}
 
+	/**
+	 * What it knows round it now. One scan a tick per Drifter however many ask (a decision and the activity it starts, a
+	 * plan for a hut's materials: each scanned again; milestone 16).
+	 */
 	public static KnownWorld scan(DrifterEntity drifter) {
-		return new KnownWorld(drifter);
+		long now = drifter.level().getGameTime();
+		KnownWorld cached = drifter.getDrifterBrain().knownWorldCache;
+		if (cached != null && cached.scannedAt == now && cached.scannedFrom.equals(drifter.blockPosition())) {
+			return cached;
+		}
+
+		KnownWorld world = new KnownWorld(drifter);
+		drifter.getDrifterBrain().knownWorldCache = world;
+		return world;
 	}
+
+	/** When and where it was taken (for the one-a-tick cache). */
+	private long scannedAt;
+	private BlockPos scannedFrom = BlockPos.ZERO;
 
 	/** The same test the scan uses: a seen block it could go and take (exposed, not anyone's, not blacklisted). */
 	private static boolean takeable(Level level, BlockPos pos, BlockState state, Blacklist blacklist, long now) {

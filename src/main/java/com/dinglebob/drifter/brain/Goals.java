@@ -2262,6 +2262,7 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.BanditGoals.all());
+		goals.addAll(com.dinglebob.drifter.world.Battle.goals());
 		goals.add(new GroupBanner());
 		goals.add(new com.dinglebob.drifter.brain.activity.PassThroughActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.DelveActivity.Goal());

@@ -251,9 +251,26 @@ public class PathSearch {
 	private Node startNode;
 	private Node best;
 	private double bestH = Double.MAX_VALUE;
-	private Status status = Status.RUNNING;
-	private List<PathStep> result = List.of();
+	/** (Volatile: a search on a path thread sets it, and the Drifter's tick reads it; the result is set first.) */
+	private volatile Status status = Status.RUNNING;
+	private volatile List<PathStep> result = List.of();
 	private int expanded;
+	/**
+	 * What it reads of the Drifter while searching, taken at the start (server thread), so the search itself can run on
+	 * another thread (milestone 16): bridges and pillars that failed lately, its trails, its fall-damage attributes.
+	 */
+	private final java.util.Set<BlockPos> failedBridges;
+	private final java.util.Set<BlockPos> failedPillars;
+	private final it.unimi.dsi.fastutil.longs.LongOpenHashSet trails;
+	private final double safeFall;
+	private final double fallMultiplier;
+	private final int seaLevel;
+	/** Runs on a path thread ({@link PathWorkers}): reads only the world copy and copies of what it knows. */
+	private final boolean async;
+	private boolean submitted;
+	private volatile boolean cancelled;
+	/** The Drifter is near a player (its search goes first). */
+	private final boolean near;
 
 	public PathSearch(DrifterEntity drifter, BlockPos start, Vec3 target, double goalRadius) {
 		this(drifter, start, target, goalRadius, false);
@@ -262,8 +279,28 @@ public class PathSearch {
 	/** {@code lastBlocks}: a way out of a dead end, with the blocks it keeps back too. */
 	public PathSearch(DrifterEntity drifter, BlockPos start, Vec3 target, double goalRadius, boolean lastBlocks) {
 		this.drifter = drifter;
-		this.view = new NavView(drifter);
 		this.start = start.immutable();
+		// On a path thread: the world round it copied first (most of it already is), and what it knows round here.
+		this.async = PathWorkers.enabled() && drifter.level() instanceof net.minecraft.server.level.ServerLevel;
+		if (this.async) {
+			int reach = com.dinglebob.drifter.DrifterConfig.pathRange() + 8;
+			var level = (net.minecraft.server.level.ServerLevel)drifter.level();
+			long copyStarted = System.nanoTime();
+			WorldCopy.ensure(level, this.start.getX() - reach, this.start.getY() - reach, this.start.getZ() - reach, this.start.getX() + reach,
+				this.start.getY() + reach, this.start.getZ() + reach);
+			this.view = new NavView(drifter, WorldCopy.view(level), drifter.getSenses().terrain().copyAround(this.start, reach));
+			PathBudget.copied(System.nanoTime() - copyStarted);
+		} else {
+			this.view = new NavView(drifter);
+		}
+
+		this.near = drifter.tier() == com.dinglebob.drifter.entity.DetailTier.FULL;
+		this.failedBridges = drifter.recentFailedBridges();
+		this.failedPillars = drifter.recentFailedPillars();
+		this.trails = drifter.getMemory().trailCopy();
+		this.safeFall = drifter.getAttributeValue(Attributes.SAFE_FALL_DISTANCE);
+		this.fallMultiplier = drifter.getAttributeValue(Attributes.FALL_DAMAGE_MULTIPLIER);
+		this.seaLevel = drifter.level().getSeaLevel();
 		this.nodes = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
 		this.deepDrop = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
 		this.target = target;
@@ -325,6 +362,11 @@ public class PathSearch {
 		return this.expanded;
 	}
 
+	/** {@link #fallDamage(DrifterEntity, int)} with the attributes it had at the start. */
+	private int fallDamage(int blocks) {
+		return Math.max(0, Mth.ceil((blocks - this.safeFall) * this.fallMultiplier));
+	}
+
 	/** LivingEntity#calculateFallDamage for a drop of {@code blocks}, with the player's own attributes. */
 	public static int fallDamage(DrifterEntity drifter, int blocks) {
 		double safe = drifter.getAttributeValue(Attributes.SAFE_FALL_DISTANCE);
@@ -356,6 +398,16 @@ public class PathSearch {
 			return this.status;
 		}
 
+		// On a path thread: handed over the first time, then it's done when it's done (the Drifter waits a tick or two).
+		if (this.async) {
+			if (!this.submitted) {
+				this.submitted = true;
+				PathWorkers.submit(this::runToEnd, this.near ? 0 : 1);
+			}
+
+			return this.status;
+		}
+
 		// The tick's search time is used up: it waits its turn, and only after being skipped for a while takes its few
 		// nodes anyway, so the last Drifter in line never starves but a crowd doesn't blow the budget (found in a
 		// 100-Drifter test: everyone's few nodes a tick came to 20 ms).
@@ -372,6 +424,39 @@ public class PathSearch {
 			PathBudget.spent(System.nanoTime() - started);
 			PathBudget.expanded(this.expanded - before);
 		}
+	}
+
+	/** The whole search at once (on a path thread), unless it's been given up on. */
+	private void runToEnd() {
+		long started = System.nanoTime();
+		int before = this.expanded;
+		try {
+			while (this.status == Status.RUNNING) {
+				if (this.cancelled) {
+					this.status = Status.FAILED;
+					return;
+				}
+
+				this.search(Long.MAX_VALUE);
+			}
+		} catch (RuntimeException e) {
+			// A world copy is only ever a copy: a surprise in one fails this search, not the game.
+			if (System.currentTimeMillis() - lastFailureLog > 30_000L) {
+				lastFailureLog = System.currentTimeMillis();
+				com.dinglebob.drifter.Drifter.LOGGER.warn("[Drifter] a path search failed", e);
+			}
+
+			this.status = Status.FAILED;
+		} finally {
+			PathBudget.workerSpent(System.nanoTime() - started, this.expanded - before);
+		}
+	}
+
+	private static volatile long lastFailureLog;
+
+	/** No longer wanted (the Drifter went on to something else): a search on a path thread stops. */
+	public void cancel() {
+		this.cancelled = true;
 	}
 
 	private Status search(long deadline) {
@@ -414,7 +499,7 @@ public class PathSearch {
 		PathBudget.finished(this.expanded);
 		if (end == null || end.parent == null) {
 			this.status = Status.FAILED;
-			return this.status;
+			return Status.FAILED;
 		}
 
 		List<PathStep> steps = new ArrayList<>();
@@ -424,8 +509,9 @@ public class PathSearch {
 
 		Collections.reverse(steps);
 		this.result = steps;
-		this.status = partial ? Status.PARTIAL : Status.FOUND;
-		return this.status;
+		Status done = partial ? Status.PARTIAL : Status.FOUND;
+		this.status = done;
+		return done;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -555,7 +641,7 @@ public class PathSearch {
 
 		NavView.Kind below = this.view.cell(f.below()).kind();
 		boolean placeable = below == NavView.Kind.OPEN || below == NavView.Kind.WATER;
-		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.drifter.bridgeFailedRecently(f)) {
+		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.failedBridges.contains(f)) {
 			double cost = BRIDGE + c.cost + BLOCK_RESOURCE * this.thrift * 2.0;
 			this.add(node, f, MoveType.BRIDGE, cost, c, 1);
 		}
@@ -581,7 +667,7 @@ public class PathSearch {
 
 		BlockPos t = f.above();
 		// (Not a jump that failed it a moment ago; the same memory as bridges.)
-		Clearance c = this.drifter.bridgeFailedRecently(t) ? null : this.clear(true, node.pos.above(2), t, t.above());
+		Clearance c = this.failedBridges.contains(t) ? null : this.clear(true, node.pos.above(2), t, t.above());
 		if (c != null) {
 			this.add(node, t, MoveType.JUMP_UP, WALK + JUMP_EXTRA + c.cost, c, 0);
 		}
@@ -639,7 +725,7 @@ public class PathSearch {
 			boolean stairDig = k == 1 && this.view.isKnown(t) && this.view.cell(t).kind() == NavView.Kind.SOLID;
 			boolean seenEnough = !this.lavaWorld || floorSeen && this.view.isKnown(t) || stairDig;
 			if (seenEnough && (intoWater || this.view.standable(t.below()) && (floorSeen || k == 1 && (!seenHole || this.groundBeside(t))))) {
-				double damage = intoWater ? 0.0 : fallDamage(this.drifter, k);
+				double damage = intoWater ? 0.0 : this.fallDamage(k);
 				double cost = WALK + STEP_DOWN_EXTRA * k + c.cost + damage * FALL_DAMAGE_COST * this.caution * 2.0;
 				this.add(node, t, intoWater ? MoveType.SWIM_DOWN : MoveType.STEP_DOWN,
 					cost + (intoWater && this.headUnder(t) ? SWIM_UNDER : 0.0), c, 0);
@@ -723,7 +809,7 @@ public class PathSearch {
 					break;
 				}
 
-				if (this.drifter.bridgeFailedRecently(t)) {
+				if (this.failedBridges.contains(t)) {
 					break;
 				}
 
@@ -887,7 +973,7 @@ public class PathSearch {
 	 * climb out). Returns whether it added the jump.
 	 */
 	private boolean tryCatchClimb(Node node, BlockPos n, BlockPos t, int gap, int dy, double ux, double uz, boolean runUp, double margin) {
-		if (this.drifter.bridgeFailedRecently(t)) {
+		if (this.failedBridges.contains(t)) {
 			return false;
 		}
 
@@ -1011,7 +1097,7 @@ public class PathSearch {
 				}
 
 				// (Not one it missed a moment ago.)
-				if (this.drifter.bridgeFailedRecently(t)) {
+				if (this.failedBridges.contains(t)) {
 					break;
 				}
 
@@ -1154,7 +1240,7 @@ public class PathSearch {
 		// Not from water: floating, there's nothing to jump off and the block can't go under its feet (found in testing: in
 		// a pool with high sides it planned pillars from the water and bobbed there; it digs a step into the side instead).
 		if (onSolidFloor && !inWater && !this.view.isWater(n.below()) && node.blocksUsed < this.blocksAvailable
-			&& !this.drifter.pillarFailedRecently(n) && !this.view.lavaWithinTwo(n)) {
+			&& !this.failedPillars.contains(n) && !this.view.lavaWithinTwo(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
 				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);
@@ -1237,11 +1323,11 @@ public class PathSearch {
 			node.costed = true;
 			// In a lava world, the lava sea's shore (a block or two above it) costs more: one slip there is a swim in lava
 			// (found in a Nether test: a route along the shore, a vine climb cut short, and it slid in).
-			if (this.lavaWorld && to.getY() <= this.drifter.level().getSeaLevel() + 1) {
+			if (this.lavaWorld && to.getY() <= this.seaLevel + 1) {
 				node.shoreAdd = LAVA_SEA_SHORE;
 			}
 
-			if (this.memory.isOnTrail(to)) {
+			if (this.trails.contains(to.asLong())) {
 				node.trailFactor = TRAIL_DISCOUNT;
 			}
 
@@ -1271,7 +1357,7 @@ public class PathSearch {
 
 		// Underground (no open sky over the water), never a move with its head under, unless it's under already and getting
 		// out: a flooded cave passage can go on further than it can see (found in testing: the main cause of death left).
-		if (underwater > 0 && !this.startUnderwater && !this.drifter.level().canSeeSky(to.above())) {
+		if (underwater > 0 && !this.startUnderwater && !this.view.world().openAbove(to.above())) {
 			return;
 		}
 

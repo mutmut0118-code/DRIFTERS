@@ -74,7 +74,14 @@ public final class BanditGoals {
 
 	/** A Bandit that kills on sight (the setting is on). */
 	public static boolean ruthless(DrifterEntity drifter) {
-		return DrifterConfig.banditsKillOnSight() && drifter.getSocial().disposition() == Disposition.BANDIT;
+		// (A soldier in a battle too: it kills the other side on sight.)
+		return DrifterConfig.banditsKillOnSight() && drifter.getSocial().disposition() == Disposition.BANDIT
+			|| com.dinglebob.drifter.world.Battle.inBattle(drifter);
+	}
+
+	/** Prey of its in sight now (within reach of a rampage). */
+	public static boolean preyVisible(DrifterEntity drifter) {
+		return preyInSight(drifter) != null;
 	}
 
 	/** How far off it goes for something it sees. */
@@ -88,6 +95,11 @@ public final class BanditGoals {
 	public static boolean prey(DrifterEntity drifter, net.minecraft.world.entity.Entity entity) {
 		if (!(entity instanceof net.minecraft.world.entity.LivingEntity living) || !living.isAlive() || living == drifter) {
 			return false;
+		}
+
+		// A soldier: the other side, and nobody else.
+		if (com.dinglebob.drifter.world.Battle.inBattle(drifter)) {
+			return living instanceof DrifterEntity other && com.dinglebob.drifter.world.Battle.enemies(drifter, other);
 		}
 
 		if (living instanceof net.minecraft.world.entity.player.Player player) {

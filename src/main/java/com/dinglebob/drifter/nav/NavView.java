@@ -6,7 +6,6 @@ import java.util.Map;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.hands.Tools;
 import com.dinglebob.drifter.perception.TerrainKnowledge;
-import com.dinglebob.drifter.world.PlayerPlacedBlocks;
 
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 
@@ -14,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.FenceGateBlock;
@@ -70,48 +68,65 @@ public final class NavView {
 		}
 	}
 
-	private final DrifterEntity drifter;
-	private final Level level;
-	private final TerrainKnowledge knowledge;
+	private final NavWorld world;
+	private final com.dinglebob.drifter.perception.KnownTerrain knowledge;
 	private final LocalGrid<Cell> cache;
 	private final com.dinglebob.drifter.brain.TreeLogs trees;
+	/**
+	 * What it reads of the Drifter itself, taken when the view is made (on the server thread), so a search on another
+	 * thread never touches the Drifter (milestone 16): where it stands, where it got burned lately, its scaffolding, its
+	 * boots, its tools for dig times and whether it's on the ground.
+	 */
+	private final BlockPos feet;
+	private final java.util.List<BlockPos> lavaBurns;
+	private final java.util.Set<BlockPos> scaffold;
+	private final boolean leatherBoots;
+	private final java.util.List<net.minecraft.world.item.ItemStack> tools;
+	private final boolean onGround;
 
+	/** On the live world and what it knows now (server thread only). */
 	public NavView(DrifterEntity drifter) {
+		this(drifter, NavWorld.live(drifter.level()), drifter.getSenses().terrain());
+	}
+
+	/** On {@code world} (the live world, or {@link WorldCopy}) and {@code knowledge} (live, or a copy). Made on the server thread. */
+	public NavView(DrifterEntity drifter, NavWorld world, com.dinglebob.drifter.perception.KnownTerrain knowledge) {
 		this.cache = new LocalGrid<>(drifter.blockPosition(), com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
-		this.trees = new com.dinglebob.drifter.brain.TreeLogs(drifter.level());
-		this.drifter = drifter;
-		this.level = drifter.level();
-		this.knowledge = drifter.getSenses().terrain();
+		this.world = world;
+		this.trees = new com.dinglebob.drifter.brain.TreeLogs(world);
+		this.knowledge = knowledge;
+		this.feet = drifter.blockPosition().immutable();
+		this.lavaBurns = drifter.recentLavaBurns();
+		this.scaffold = new java.util.HashSet<>(drifter.scaffold());
+		this.leatherBoots = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS);
+		this.tools = Tools.toolsOf(drifter);
+		this.onGround = drifter.onGround();
 		// (Its own position tells it it's underground: rock overhead and no sky.)
 		// (Not in the Nether: rock overhead everywhere, but what it hasn't seen there is mostly open caverns and lava seas.)
 		this.underground = com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
-			&& !drifter.getSenses().time().canSeeSky() && !this.level.dimensionType().hasCeiling();
-		this.rockSeconds = Tools.digSeconds(drifter, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), this.level, drifter.blockPosition());
+			&& !drifter.getSenses().time().canSeeSky() && !drifter.level().dimensionType().hasCeiling();
+		this.rockSeconds = Tools.digSeconds(this.tools, this.onGround, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), world, this.feet);
 	}
 
-	/**
-	 * A block as it is now, read straight from the chunk it's in (kept from the last read: the search reads blocks in runs
-	 * close together), skipping the server's chunk lookup each time (performance, 2026-10-17).
-	 */
+	/** The world it reads. */
+	public NavWorld world() {
+		return this.world;
+	}
+
 	private BlockState state(BlockPos pos) {
-		int cx = pos.getX() >> 4;
-		int cz = pos.getZ() >> 4;
-		long key = net.minecraft.world.level.ChunkPos.asLong(cx, cz);
-		long now = this.level.getGameTime();
-		// (Looked up again each tick: a chunk unloaded and loaded again is a new object.)
-		if (key != this.lastChunkKey || now != this.lastChunkTick) {
-			this.lastChunk = this.level.getChunkSource().getChunkNow(cx, cz);
-			this.lastChunkKey = key;
-			this.lastChunkTick = now;
+		return this.world.getBlockState(pos);
+	}
+
+	/** Near where it just got into lava (within a block or so). */
+	private boolean nearRecentLava(BlockPos pos) {
+		for (BlockPos burn : this.lavaBurns) {
+			if (burn.distSqr(pos) <= 2) {
+				return true;
+			}
 		}
 
-		return this.lastChunk == null ? Blocks.VOID_AIR.defaultBlockState() : this.lastChunk.getBlockState(pos);
+		return false;
 	}
-
-	private long lastChunkKey = Long.MIN_VALUE;
-	private long lastChunkTick = Long.MIN_VALUE;
-	@org.jetbrains.annotations.Nullable
-	private net.minecraft.world.level.chunk.LevelChunk lastChunk;
 
 	/** It's underground right now (unseen cells near its level count as rock). */
 	private final boolean underground;
@@ -134,13 +149,13 @@ public final class NavView {
 	}
 
 	private Cell compute(BlockPos pos) {
-		if (!this.level.isLoaded(pos) || this.level.isOutsideBuildHeight(pos)) {
+		if (!this.world.loaded(pos) || this.world.isOutsideBuildHeight(pos)) {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 
 		// Near where it just got into lava: kept clear for a while (it walked straight back in and burned to death).
 		// (Never the blocks right round where it stands, so it can always walk out.)
-		if (this.drifter.nearRecentLava(pos) && pos.distSqr(this.drifter.blockPosition()) > 2) {
+		if (this.nearRecentLava(pos) && pos.distSqr(this.feet) > 2) {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 
@@ -175,7 +190,7 @@ public final class NavView {
 			// Underground, unseen means rock as far as it can tell (a player down a mine expects stone, not open air): planned
 			// as stone to dig, so a route follows its known tunnels or digs honestly, instead of hoping for air and replanning
 			// at every wall (found in testing: "found stone where it expected open space" fifteen times, then giving up).
-			if (this.underground && pos.getY() <= this.drifter.getBlockY() + 3) {
+			if (this.underground && pos.getY() <= this.feet.getY() + 3) {
 				return new Cell(Kind.SOLID, this.rockSeconds, false, false);
 			}
 
@@ -201,14 +216,14 @@ public final class NavView {
 		}
 
 		// Powder snow: never into it without leather boots (found in testing: it sank in and froze to death).
-		if (state.is(Blocks.POWDER_SNOW) && !this.drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS)) {
+		if (state.is(Blocks.POWDER_SNOW) && !this.leatherBoots) {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 
 		// A grown berry bush (the ones that prick) in the way: broken as it goes, instantly, like a player clearing a path,
 		// rather than a slow, painful walk through (found by the user: Drifters kept dying in berry bushes).
 		if (state.is(Blocks.SWEET_BERRY_BUSH) && state.getValue(net.minecraft.world.level.block.SweetBerryBushBlock.AGE) > 0
-			&& !PlayerPlacedBlocks.isPlayerPlaced(this.level, pos)) {
+			&& !this.world.playerPlaced(pos)) {
 			return new Cell(Kind.SOLID, BERRY_BUSH_SECONDS, false, false);
 		}
 
@@ -216,7 +231,7 @@ public final class NavView {
 			return new Cell(Kind.AVOID, 0.0F, false, false);
 		}
 
-		VoxelShape collision = state.getCollisionShape(this.level, pos);
+		VoxelShape collision = state.getCollisionShape(this.world, pos);
 		if (collision.isEmpty()) {
 			// Open, but lava right beside it at the same height (or just above): a flow can run into it, and one slip is
 			// fatal. Allowed, at a price, so routes keep a block away where they can.
@@ -242,8 +257,8 @@ public final class NavView {
 		// and the portal home collapsed), nor obsidian at all (nine seconds a block with a diamond pickaxe; no player tunnels
 		// through it).
 		// Nor through what Drifters built (its own walls: it uses the door; user, 2026-10-17), its own scaffolding aside.
-		boolean protectedBlock = this.level.getBlockEntity(pos) != null || PlayerPlacedBlocks.isPlayerPlaced(this.level, pos)
-			|| PlayerPlacedBlocks.isDrifterBuilt(this.level, pos) && !this.drifter.isScaffold(pos)
+		boolean protectedBlock = this.world.hasBlockEntityAt(pos) || this.world.playerPlaced(pos)
+			|| this.world.drifterBuilt(pos) && !this.scaffold.contains(pos)
 			|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || this.besidePortal(pos);
 		float dig = protectedBlock ? Float.POSITIVE_INFINITY : this.digSeconds(state, pos);
 		BlockState above = this.state(pos.above());
@@ -274,7 +289,7 @@ public final class NavView {
 			return this.digTimes.getFloat(state);
 		}
 
-		float seconds = Tools.digSeconds(this.drifter, state, this.level, pos);
+		float seconds = Tools.digSeconds(this.tools, this.onGround, state, this.world, pos);
 		this.digTimes.put(state, seconds);
 		return seconds;
 	}
@@ -293,7 +308,7 @@ public final class NavView {
 				return down > 0;
 			}
 
-			if (!this.state(cell).getCollisionShape(this.level, cell).isEmpty()) {
+			if (!this.state(cell).getCollisionShape(this.world, cell).isEmpty()) {
 				return false;
 			}
 		}
@@ -344,7 +359,7 @@ public final class NavView {
 
 		byte known = this.lavaSections.get(key);
 		if (known == 0) {
-			known = (byte)(com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(this.level, LAVA).mayHave(sx, sy, sz) ? 1 : -1);
+			known = (byte)(this.world.sectionMayHave(sx, sy, sz, LAVA) ? 1 : -1);
 			this.lavaSections.put(key, known);
 		}
 
@@ -383,7 +398,7 @@ public final class NavView {
 			return cell.kind() == Kind.CLIMB;
 		}
 
-		VoxelShape shape = this.state(floor).getCollisionShape(this.level, floor);
+		VoxelShape shape = this.state(floor).getCollisionShape(this.world, floor);
 		return !shape.isEmpty() && shape.max(Direction.Axis.Y) <= 1.0;
 	}
 
@@ -397,7 +412,7 @@ public final class NavView {
 		}
 
 		BlockState state = this.state(floor);
-		VoxelShape shape = state.getCollisionShape(this.level, floor);
+		VoxelShape shape = state.getCollisionShape(this.world, floor);
 		var block = state.getBlock();
 		return !shape.isEmpty() && shape.max(Direction.Axis.Y) >= 0.9 && shape.max(Direction.Axis.Y) <= 1.0 && block.getFriction() == 0.6F
 			&& block.getSpeedFactor() == 1.0F && block.getJumpFactor() == 1.0F;

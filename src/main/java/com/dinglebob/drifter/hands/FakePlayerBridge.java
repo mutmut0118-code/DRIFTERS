@@ -50,7 +50,14 @@ public final class FakePlayerBridge {
 
 	private static GameProfile profileFor(DrifterEntity drifter) {
 		String name = drifter.getName().getString();
-		return new GameProfile(helperId(drifter), VALID_NAME.matcher(name).matches() ? name : "Drifter");
+		GameProfile known = drifter.helperProfile;
+		if (known != null && known.getName().equals(VALID_NAME.matcher(name).matches() ? name : "Drifter")) {
+			return known;
+		}
+
+		GameProfile profile = new GameProfile(helperId(drifter), VALID_NAME.matcher(name).matches() ? name : "Drifter");
+		drifter.helperProfile = profile;
+		return profile;
 	}
 
 	/** Helpers back to their Drifters: its sword hits are the helper's, but they're its doing (relationships, kills). */
@@ -74,7 +81,16 @@ public final class FakePlayerBridge {
 
 	/** The UUID of this Drifter's fake player, so its own actions can be told apart (it shouldn't "hear" itself). */
 	public static UUID helperId(DrifterEntity drifter) {
-		return UUID.nameUUIDFromBytes(("drifter-hands:" + drifter.getUUID()).getBytes(StandardCharsets.UTF_8));
+		// (Worked out once: it's a hash, and asked for on every attack and every sound; milestone 16.)
+		UUID known = drifter.helperId;
+		// (Again if its own id changed: loaded from a save.)
+		if (known == null || drifter.helperIdFor != drifter.getUUID()) {
+			known = UUID.nameUUIDFromBytes(("drifter-hands:" + drifter.getUUID()).getBytes(StandardCharsets.UTF_8));
+			drifter.helperId = known;
+			drifter.helperIdFor = drifter.getUUID();
+		}
+
+		return known;
 	}
 
 	private static void syncIn(DrifterEntity drifter, FakePlayer fake) {

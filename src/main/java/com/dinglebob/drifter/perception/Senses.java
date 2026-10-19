@@ -99,6 +99,18 @@ public class Senses {
 	 */
 	public static final double DETAIL_RANGE = 32.0;
 	public static final int FAR_CHECKS_PER_RANK = 16;
+	/**
+	 * Close by, it looks properly at this many of the nearest each time it re-ranks (the rest wait their turn; those it's
+	 * already watching are always looked at). In a crowd, a player can't take everyone in at once either (milestone 16: a
+	 * 300-Drifter battle had each looking at every one of them, twice, every half second).
+	 */
+	public static final int NEAR_CHECKS_PER_RANK = 24;
+	/** This many within {@link #DETAIL_RANGE}: a crowd. It keeps its eyes on those near it and doesn't scan the distance. */
+	public static final int CROWD = 40;
+	/** In a crowd, those within this are watched every update, the rest every other. */
+	public static final double CROWD_CLOSE = 8.0;
+	/** In a crowd as of the last re-rank. */
+	private boolean crowded;
 	public static final int FAR_UPDATE_EVERY = 3;
 	public static final double RAIN_FACTOR = 0.75;
 	public static final double THUNDER_FACTOR = 0.6;
@@ -130,6 +142,8 @@ public class Senses {
 	// ----- Seeing blocks (section 5) -----
 	public static final int BLOCK_RAYS_BASE = 6;
 	public static final int BLOCK_RAYS_PLAYER_NEAR = 12;
+	/** In a fight (tunnel vision). */
+	public static final int BLOCK_RAYS_FIGHTING = 2;
 	public static final double BLOCK_SIGHT_RANGE = 48.0;
 	public static final double BLOCK_DARK_RANGE = 8.0;
 	/**
@@ -255,15 +269,21 @@ public class Senses {
 			this.consolidate("dusk");
 		}
 
+		long t = System.nanoTime();
 		if (this.ticks % RANK_INTERVAL == 0) {
 			this.rankAttention();
 		}
 
+		long t2 = System.nanoTime();
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES_RANK, t2 - t);
 		if (this.ticks % AWARENESS_INTERVAL == 0) {
 			this.updateAwareness();
 		}
 
+		long t3 = System.nanoTime();
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES_AWARE, t3 - t2);
 		this.sampleBlocks();
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES_RAYS, System.nanoTime() - t3);
 		if (this.ticks % 5 == 0) {
 			// Swimming, it can tell the water and the banks right around it (found in testing: in a dark pond the water a
 			// block or two away counted as unseen ground, and it planned walks across the surface).
@@ -349,33 +369,67 @@ public class Senses {
 		return this.clip(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE).getType() == HitResult.Type.MISS;
 	}
 
+	private long ownSightTick = Long.MIN_VALUE;
+	private double ownWeather = 1.0;
+	private double ownCap = Double.MAX_VALUE;
+	private boolean ownNightVision;
+
+	/**
+	 * Eye to eye with another creature: the same line seen from either end, so worked out once a tick for the pair (in a
+	 * battle each soldier looks at the ones looking at it; milestone 16).
+	 */
+	private boolean eyeLine(Entity other) {
+		long now = this.now();
+		if (now != pairTick) {
+			pairTick = now;
+			pairSight.clear();
+		}
+
+		int a = Math.min(this.drifter.getId(), other.getId());
+		int b = Math.max(this.drifter.getId(), other.getId());
+		long key = (long)a << 32 | b & 0xFFFFFFFFL;
+		byte known = pairSight.get(key);
+		if (known != 0) {
+			return known > 0;
+		}
+
+		boolean seen = this.lineOfSight(this.drifter.getEyePosition(), other.getEyePosition());
+		// (Only between Drifters, whose eyes each look from: another creature looks from its own eyes, the same line.)
+		pairSight.put(key, (byte)(seen ? 1 : -1));
+		return seen;
+	}
+
+	private static long pairTick = Long.MIN_VALUE;
+	private static final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap pairSight = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
+
 	/** How far it can see this entity right now: light at the target, weather, water and effects. */
 	private double sightRange(Entity target) {
 		Level level = this.level();
-		int light = level.getRawBrightness(BlockPos.containing(target.getEyePosition()), level.getSkyDarken());
-		if (target.isOnFire() || target.isCurrentlyGlowing() || holdsLight(target) || this.drifter.hasEffect(MobEffects.NIGHT_VISION)) {
-			light = 15;
+		// Its own side of it (rain where it stands, water, effects) is the same for everything it looks at this tick.
+		long now = level.getGameTime();
+		if (now != this.ownSightTick) {
+			this.ownSightTick = now;
+			BlockPos eyePos = BlockPos.containing(this.drifter.getEyePosition());
+			this.ownWeather = level.isThundering() && level.isRainingAt(eyePos) ? THUNDER_FACTOR : level.isRainingAt(eyePos) ? RAIN_FACTOR : 1.0;
+			double cap = Double.MAX_VALUE;
+			if (this.drifter.isEyeInFluid(FluidTags.WATER)) {
+				cap = UNDERWATER_RANGE;
+			}
+
+			if (this.drifter.hasEffect(MobEffects.BLINDNESS)) {
+				cap = Math.min(cap, BLINDNESS_RANGE);
+			} else if (this.drifter.hasEffect(MobEffects.DARKNESS)) {
+				cap = Math.min(cap, DARKNESS_EFFECT_RANGE);
+			}
+
+			this.ownCap = cap;
+			this.ownNightVision = this.drifter.hasEffect(MobEffects.NIGHT_VISION);
 		}
 
-		double range = DARK_RANGE + (com.dinglebob.drifter.DrifterConfig.sightRange() - DARK_RANGE) * light / 15.0;
-		BlockPos eyePos = BlockPos.containing(this.drifter.getEyePosition());
-		if (level.isThundering() && level.isRainingAt(eyePos)) {
-			range *= THUNDER_FACTOR;
-		} else if (level.isRainingAt(eyePos)) {
-			range *= RAIN_FACTOR;
-		}
-
-		if (this.drifter.isEyeInFluid(FluidTags.WATER)) {
-			range = Math.min(range, UNDERWATER_RANGE);
-		}
-
-		if (this.drifter.hasEffect(MobEffects.BLINDNESS)) {
-			range = Math.min(range, BLINDNESS_RANGE);
-		} else if (this.drifter.hasEffect(MobEffects.DARKNESS)) {
-			range = Math.min(range, DARKNESS_EFFECT_RANGE);
-		}
-
-		return range;
+		int light = this.ownNightVision || target.isOnFire() || target.isCurrentlyGlowing() || holdsLight(target) ? 15
+			: level.getRawBrightness(BlockPos.containing(target.getEyePosition()), level.getSkyDarken());
+		double range = (DARK_RANGE + (com.dinglebob.drifter.DrifterConfig.sightRange() - DARK_RANGE) * light / 15.0) * this.ownWeather;
+		return Math.min(range, this.ownCap);
 	}
 
 	private static boolean holdsLight(Entity entity) {
@@ -411,8 +465,9 @@ public class Senses {
 			// Far away: one sight line to its middle.
 			visibility = this.lineOfSight(eye, target.getBoundingBox().getCenter()) ? 0.8F : 0.0F;
 		} else {
-			// A ray to the head and one to the feet: either counts, both count more.
-			boolean headSeen = this.lineOfSight(eye, head);
+			// A ray to the head and one to the feet: either counts, both count more. (Head to head with another Drifter: the
+			// line it looks at us along, shared.)
+			boolean headSeen = target instanceof com.dinglebob.drifter.entity.DrifterEntity ? this.eyeLine(target) : this.lineOfSight(eye, head);
 			boolean feetSeen = this.lineOfSight(eye, target.position().add(0.0, 0.1, 0.0));
 			visibility = headSeen && feetSeen ? 1.0F : headSeen || feetSeen ? 0.6F : 0.0F;
 		}
@@ -451,19 +506,60 @@ public class Senses {
 	/** Attention budget (section 5): re-rank what's worth tracking in detail. Players and forced ones always stay. */
 	private void rankAttention() {
 		long now = this.now();
-		AABB area = this.drifter.getBoundingBox().inflate(com.dinglebob.drifter.DrifterConfig.sightRange(), VERTICAL_RANGE, com.dinglebob.drifter.DrifterConfig.sightRange());
-		List<Entity> candidates = this.level().getEntities(this.drifter, area,
-			entity -> entity instanceof LivingEntity && entity.isAlive() && !entity.isSpectator());
-		// Nearest first, so the far-sight budget goes to the closest of the far ones.
-		candidates.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(this.drifter)));
+		java.util.function.Predicate<Entity> living = entity -> entity instanceof LivingEntity && entity.isAlive() && !entity.isSpectator();
+		// Close by first: in a crowd it keeps its eyes on those (and on whoever it's watching, and players), and doesn't scan
+		// the distance at all.
+		List<Entity> candidates = this.level().getEntities(this.drifter, this.drifter.getBoundingBox().inflate(DETAIL_RANGE, DETAIL_RANGE, DETAIL_RANGE), living);
+		this.crowded = candidates.size() >= CROWD;
+		if (!this.crowded) {
+			AABB area = this.drifter.getBoundingBox().inflate(com.dinglebob.drifter.DrifterConfig.sightRange(), VERTICAL_RANGE, com.dinglebob.drifter.DrifterConfig.sightRange());
+			candidates = this.level().getEntities(this.drifter, area, living);
+		} else {
+			java.util.Set<Entity> near = new java.util.HashSet<>(candidates);
+			for (Awareness awareness : this.tracked.values()) {
+				if (!near.contains(awareness.entity) && living.test(awareness.entity) && awareness.entity.level() == this.level()) {
+					candidates.add(awareness.entity);
+				}
+			}
+
+			for (Player player : this.level().players()) {
+				if (!near.contains(player) && living.test(player) && player.distanceToSqr(this.drifter) <= com.dinglebob.drifter.DrifterConfig.sightRange()
+					* com.dinglebob.drifter.DrifterConfig.sightRange()) {
+					candidates.add(player);
+				}
+			}
+		}
+
+		// Nearest first, so the far-sight budget goes to the closest of the far ones. Each distance and index packed in one
+		// number (a positive float's bits sort as the float does) and sorted plain (milestone 16: sorting was most of the
+		// re-rank's time in a crowd).
+		double[] distances = new double[candidates.size()];
+		long[] order = new long[candidates.size()];
+		for (int i = 0; i < distances.length; i++) {
+			distances[i] = candidates.get(i).distanceToSqr(this.drifter);
+			order[i] = (long)Float.floatToRawIntBits((float)distances[i]) << 32 | i;
+		}
+
+		java.util.Arrays.sort(order);
 		List<Map.Entry<Entity, Double>> ranked = new ArrayList<>();
 		int farChecks = 0;
-		for (Entity entity : candidates) {
+		int nearChecks = 0;
+		for (long packed : order) {
+			int i = (int)packed;
+			Entity entity = candidates.get(i);
 			Awareness current = this.tracked.get(entity.getId());
-			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold);
-			boolean far = entity.distanceToSqr(this.drifter) > DETAIL_RANGE * DETAIL_RANGE;
+			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold) || entity instanceof Player;
+			boolean far = distances[i] > DETAIL_RANGE * DETAIL_RANGE;
 			if (far && !keep && farChecks >= FAR_CHECKS_PER_RANK) {
 				continue;
+			}
+
+			if (!far && !keep && nearChecks >= NEAR_CHECKS_PER_RANK) {
+				continue;
+			}
+
+			if (!far && !keep) {
+				nearChecks++;
 			}
 
 			int raysBefore = this.sightLines;
@@ -520,13 +616,16 @@ public class Senses {
 				awareness.forcedTicks -= AWARENESS_INTERVAL;
 			}
 
-			// Far ones are re-checked every third update (and gain three updates' worth): cheaper, hardly different.
-			boolean far = !entity.isRemoved() && entity.distanceToSqr(this.drifter) > DETAIL_RANGE * DETAIL_RANGE;
-			if (far && Math.floorMod(update + entity.getId(), FAR_UPDATE_EVERY) != 0) {
+			// Far ones are re-checked every third update (and gain three updates' worth): cheaper, hardly different. In a crowd,
+			// all but the closest every other update (milestone 16: a battle).
+			double distanceSqr = entity.isRemoved() ? 0.0 : entity.distanceToSqr(this.drifter);
+			boolean far = distanceSqr > DETAIL_RANGE * DETAIL_RANGE;
+			int every = far ? FAR_UPDATE_EVERY : this.crowded && distanceSqr > CROWD_CLOSE * CROWD_CLOSE ? 2 : 1;
+			if (every > 1 && Math.floorMod(update + entity.getId(), every) != 0) {
 				continue;
 			}
 
-			int ticks = AWARENESS_INTERVAL * (far ? FAR_UPDATE_EVERY : 1);
+			int ticks = AWARENESS_INTERVAL * every;
 			Sighting sighting = entity.isRemoved() ? Sighting.NOT_SEEN : this.look(entity);
 			float stealth = stealthFactor(entity);
 			awareness.visibleNow = sighting.seen() && stealth > 0.0F;
@@ -717,8 +816,11 @@ public class Senses {
 			}
 		}
 
-		// Fewer with no player anywhere near (section 22 detail tiers).
-		int rays = playerNear ? BLOCK_RAYS_PLAYER_NEAR : Math.min(BLOCK_RAYS_BASE, this.drifter.tier().blockRays);
+		// Fewer with no player anywhere near (section 22 detail tiers). In a fight, tunnel vision: its eyes are on the fight,
+		// not the scenery (milestone 16: a battle's block rays were a tenth of the server's time; a player in a fight doesn't
+		// take in the landscape either). The fighters themselves it watches as closely as ever (awareness).
+		boolean fighting = this.drifter.inCombat();
+		int rays = fighting ? BLOCK_RAYS_FIGHTING : playerNear ? BLOCK_RAYS_PLAYER_NEAR : Math.min(BLOCK_RAYS_BASE, this.drifter.tier().blockRays);
 		Vec3 eye = this.drifter.getEyePosition();
 		for (int i = 0; i < rays; i++) {
 			// A random point on its screen, evenly over the whole picture (as pixels are).
@@ -727,15 +829,21 @@ public class Senses {
 			this.castBlockRay(eye, screenDirection(this.drifter.getYHeadRot(), this.drifter.getXRot(), sx, sy), BLOCK_SIGHT_RANGE);
 		}
 
+		long farStarted = System.nanoTime();
 		// Far sight: near the horizon, where mountains, villages and cliffs show up. Only the part of the horizon band
 		// that's inside its view (looking at its feet, it doesn't see the skyline).
 		float low = Math.max(-FAR_PITCH_UP, this.drifter.getXRot() - coneHalfPitch());
 		float high = Math.min(FAR_PITCH_DOWN, this.drifter.getXRot() + coneHalfPitch());
-		for (int i = 0; i < FAR_RAYS && low < high; i++) {
+		// (In a fight or a crowd, one far ray every other tick: its eyes are on what's round it, and a crowd hides the
+		// horizon anyway. Far rays are long: they were over a third of a battle's ray time.)
+		int farRays = fighting || this.crowded ? (this.ticks % 2 == 0 ? 1 : 0) : FAR_RAYS;
+		for (int i = 0; i < farRays && low < high; i++) {
 			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfYaw();
 			float pitch = Mth.lerp(this.drifter.getRandom().nextFloat(), low, high);
 			this.castBlockRay(eye, Vec3.directionFromRotation(pitch, yaw), com.dinglebob.drifter.DrifterConfig.sightRange());
 		}
+
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES_FAR, System.nanoTime() - farStarted);
 	}
 
 	private void castBlockRay(Vec3 eye, Vec3 direction, double maxRange) {

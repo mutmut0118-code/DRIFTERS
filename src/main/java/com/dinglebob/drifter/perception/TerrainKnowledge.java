@@ -18,7 +18,48 @@ import net.minecraft.world.phys.Vec3;
  * passable at a moderate cost" (section 12), so it can't plan through a cave or around lava it never saw.
  * Not saved: it fills again within seconds of looking around.
  */
-public class TerrainKnowledge {
+public class TerrainKnowledge implements KnownTerrain {
+	/**
+	 * A frozen copy of what it knows within {@code radius} (a cube) of {@code center}, for a path search on another thread
+	 * (milestone 16): the sections' bits copied, so its eyes can go on marking the live ones.
+	 */
+	public KnownTerrain copyAround(BlockPos center, int radius) {
+		int minSx = SectionPos.blockToSectionCoord(center.getX() - radius);
+		int maxSx = SectionPos.blockToSectionCoord(center.getX() + radius);
+		int minSy = SectionPos.blockToSectionCoord(center.getY() - radius);
+		int maxSy = SectionPos.blockToSectionCoord(center.getY() + radius);
+		int minSz = SectionPos.blockToSectionCoord(center.getZ() - radius);
+		int maxSz = SectionPos.blockToSectionCoord(center.getZ() + radius);
+		it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<BitSet> copy = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
+		for (var entry : this.sections.long2ObjectEntrySet()) {
+			long key = entry.getLongKey();
+			int sx = SectionPos.x(key);
+			int sy = SectionPos.y(key);
+			int sz = SectionPos.z(key);
+			if (sx >= minSx && sx <= maxSx && sy >= minSy && sy <= maxSy && sz >= minSz && sz <= maxSz) {
+				copy.put(key, (BitSet)entry.getValue().clone());
+			}
+		}
+
+		return new KnownTerrain() {
+			private long lastKey = Long.MIN_VALUE;
+			@org.jetbrains.annotations.Nullable
+			private BitSet lastBits;
+
+			@Override
+			public boolean isKnown(BlockPos pos) {
+				long key = SectionPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getY()),
+					SectionPos.blockToSectionCoord(pos.getZ()));
+				if (key != this.lastKey) {
+					this.lastKey = key;
+					this.lastBits = copy.get(key);
+				}
+
+				return this.lastBits != null && this.lastBits.get(index(pos.getX(), pos.getY(), pos.getZ()));
+			}
+		};
+	}
+
 	/** Chunk sections (16x16x16) remembered at once; the least recently touched are forgotten first. */
 	public static final int MAX_SECTIONS = 512;
 
@@ -78,6 +119,7 @@ public class TerrainKnowledge {
 		this.mark(pos.getX(), pos.getY(), pos.getZ());
 	}
 
+	@Override
 	public boolean isKnown(BlockPos pos) {
 		long key = SectionPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getY()),
 			SectionPos.blockToSectionCoord(pos.getZ()));
@@ -168,6 +210,69 @@ public class TerrainKnowledge {
 						int z = (sz << 4) + (i & 15);
 						if (Math.abs(x - center.getX()) <= radius && Math.abs(y - center.getY()) <= radius && Math.abs(z - center.getZ()) <= radius) {
 							action.accept(pos.set(x, y, z));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/** A known block and what's there now (read straight from its chunk section). */
+	@FunctionalInterface
+	public interface KnownState {
+		void accept(BlockPos.MutableBlockPos pos, net.minecraft.world.level.block.state.BlockState state);
+	}
+
+	/**
+	 * As {@link #forEachKnown(BlockPos, int, SectionFilter, java.util.function.Consumer)}, with the block that's there now,
+	 * read from each chunk section directly instead of through the level for every block (milestone 16: the level lookup
+	 * per block was most of a brain decision's time), skipping {@code skip} states (air, kinds already found) before
+	 * anything else. Only loaded chunks.
+	 */
+	public void forEachKnownState(net.minecraft.world.level.Level level, BlockPos center, int radius, @org.jetbrains.annotations.Nullable SectionFilter sections,
+		java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> skip, KnownState action) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		int minSx = SectionPos.blockToSectionCoord(center.getX() - radius);
+		int maxSx = SectionPos.blockToSectionCoord(center.getX() + radius);
+		int minSy = SectionPos.blockToSectionCoord(center.getY() - radius);
+		int maxSy = SectionPos.blockToSectionCoord(center.getY() + radius);
+		int minSz = SectionPos.blockToSectionCoord(center.getZ() - radius);
+		int maxSz = SectionPos.blockToSectionCoord(center.getZ() + radius);
+		for (int sx = minSx; sx <= maxSx; sx++) {
+			for (int sz = minSz; sz <= maxSz; sz++) {
+				net.minecraft.world.level.chunk.LevelChunk chunk = null;
+				boolean looked = false;
+				for (int sy = minSy; sy <= maxSy; sy++) {
+					BitSet bits = this.sections.get(SectionPos.asLong(sx, sy, sz));
+					if (bits == null || sections != null && !sections.mayHave(sx, sy, sz)) {
+						continue;
+					}
+
+					if (!looked) {
+						looked = true;
+						chunk = level.getChunkSource().getChunkNow(sx, sz);
+					}
+
+					int index = level.getSectionIndexFromSectionY(sy);
+					if (chunk == null || index < 0 || index >= chunk.getSections().length) {
+						continue;
+					}
+
+					var states = chunk.getSection(index).getStates();
+					for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1)) {
+						int lx = i >> 8 & 15;
+						int ly = i >> 4 & 15;
+						int lz = i & 15;
+						var state = states.get(lx, ly, lz);
+						if (skip.test(state)) {
+							continue;
+						}
+
+						int x = (sx << 4) + lx;
+						int y = (sy << 4) + ly;
+						int z = (sz << 4) + lz;
+						if (Math.abs(x - center.getX()) <= radius && Math.abs(y - center.getY()) <= radius && Math.abs(z - center.getZ()) <= radius) {
+							action.accept(pos.set(x, y, z), state);
 						}
 					}
 				}

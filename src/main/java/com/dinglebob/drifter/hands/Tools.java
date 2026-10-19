@@ -24,6 +24,10 @@ public final class Tools {
 
 	/** Break progress per tick if this stack were in hand (the player formula, minus held-only enchantment bonuses). */
 	public static float destroyProgressWith(DrifterEntity drifter, ItemStack stack, BlockState state, BlockGetter level, BlockPos pos) {
+		return destroyProgress(drifter.onGround(), stack, state, level, pos);
+	}
+
+	private static float destroyProgress(boolean onGround, ItemStack stack, BlockState state, BlockGetter level, BlockPos pos) {
 		float hardness = state.getDestroySpeed(level, pos);
 		if (hardness < 0.0F) {
 			return 0.0F;
@@ -31,7 +35,7 @@ public final class Tools {
 
 		float speed = stack.getDestroySpeed(state);
 		boolean correct = !state.requiresCorrectToolForDrops() || stack.isCorrectToolForDrops(state);
-		if (!drifter.onGround()) {
+		if (!onGround) {
 			speed /= 5.0F;
 		}
 
@@ -57,6 +61,40 @@ public final class Tools {
 		}
 
 		return bestSlot;
+	}
+
+	/**
+	 * Copies of the tools it carries (main inventory, no blocks), for working out dig times away from the Drifter (a path
+	 * search on another thread; milestone 16).
+	 */
+	public static java.util.List<ItemStack> toolsOf(DrifterEntity drifter) {
+		DrifterInventory inventory = drifter.getInventory();
+		java.util.List<ItemStack> tools = new java.util.ArrayList<>();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (!stack.isEmpty() && !(stack.getItem() instanceof BlockItem)) {
+				tools.add(stack.copy());
+			}
+		}
+
+		return tools;
+	}
+
+	/** As {@link #digSeconds(DrifterEntity, BlockState, BlockGetter, BlockPos)}, with these tools ({@link #toolsOf}). */
+	public static float digSeconds(java.util.List<ItemStack> tools, boolean onGround, BlockState state, BlockGetter level, BlockPos pos) {
+		float best = destroyProgress(onGround, ItemStack.EMPTY, state, level, pos);
+		for (ItemStack tool : tools) {
+			float progress = destroyProgress(onGround, tool, state, level, pos);
+			if (progress > best * 1.01F) {
+				best = progress;
+			}
+		}
+
+		if (best <= 0.0F) {
+			return Float.POSITIVE_INFINITY;
+		}
+
+		return best >= 1.0F ? 0.05F : (float)Math.ceil(1.0F / best) / 20.0F + BREAK_DELAY_SECONDS;
 	}
 
 	/** Seconds to break this block with the best tool it carries, or infinity if it can't. */

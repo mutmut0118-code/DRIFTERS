@@ -15,6 +15,7 @@
 		"ItemEntityAccessor",
 		"LivingEntityAccessor",
 		"LivingEntityClimbMixin",
+		"LevelChunkMixin",
 		"LivingEntityHurtMixin",
 		"MobAccessor",
 		"NetherPortalBlockMixin",

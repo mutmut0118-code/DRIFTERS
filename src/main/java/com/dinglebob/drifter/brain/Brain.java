@@ -179,6 +179,9 @@ public class Brain {
 	/** Who it's chasing and what it knows of where they went (user, 2026-10-17); null if no one. */
 	@Nullable
 	private Pursuit pursuit;
+	/** The last scan of what it knows round it (KnownWorld#scan: one a tick). */
+	@org.jetbrains.annotations.Nullable
+	KnownWorld knownWorldCache;
 
 	@Nullable
 	public Pursuit pursuit() {
@@ -340,6 +343,12 @@ public class Brain {
 			return;
 		}
 
+		// Its very first decision too waits for its own point in the second: 300 soldiers made by one command all decided on
+		// their first tick together, half a second in one tick (milestone 16).
+		if (!this.phased && this.activity == null && !danger && Math.floorMod(this.drifter.tickCount + this.drifter.getUUID().hashCode(), RESCORE_TICKS) != 0) {
+			return;
+		}
+
 		// The first time, each at its own point in the second, so Drifters loaded together don't all decide on the same tick
 		// (section 22 budget: that made the worst ticks several times the average).
 		this.sinceRescore = this.phased ? 0 : Math.floorMod(this.drifter.getUUID().hashCode(), RESCORE_TICKS);
@@ -380,7 +389,27 @@ public class Brain {
 		long now = this.drifter.level().getGameTime();
 		List<Scored> scores = new ArrayList<>();
 		boolean nether = NetherGoals.inNether(this.drifter);
-		for (Goals.Goal goal : this.goals) {
+		// Survival first (milestone 16): fights, running, kill on sight, chases, air. When one of those must happen now and
+		// comes out on top by a clear margin over anything else ever scores, nothing else could change the choice (an urgent
+		// best is taken as it is), so the rest aren't scored at all (in a battle every soldier worked out crafting plans and
+		// whims every second; the first decisions of 300 soldiers took half a second in one tick).
+		boolean survivalDecided = false;
+		for (Goals.Goal goal : this.orderedGoals()) {
+			if (survivalDecided && !FIRST_GOALS.contains(goal.id()) && goal != this.current) {
+				continue;
+			}
+
+			if (!survivalDecided && !FIRST_GOALS.contains(goal.id()) && !scores.isEmpty()) {
+				Scored top = scores.stream().max(Comparator.comparingDouble(Scored::score)).orElse(null);
+				if (top != null && top.urgent() && top.base() > 0.0
+					&& (top.score() >= DECIDED_SCORE || top.goal() == this.current && top.score() >= DECIDED_CONTINUING)) {
+					survivalDecided = true;
+					if (goal != this.current) {
+						continue;
+					}
+				}
+			}
+
 			long t = System.nanoTime();
 			// In the Nether, only what makes sense there (no settling, farming or night shelters).
 			double base = nether && !NetherGoals.IN_THE_NETHER.contains(goal.id()) ? 0.0 : goal.score(context);
@@ -445,6 +474,31 @@ public class Brain {
 		if (chosen != null) {
 			this.start(chosen, scores, context, now);
 		}
+	}
+
+	/** Goals that can't wait (scored first). */
+	private static final java.util.Set<String> FIRST_GOALS = java.util.Set.of("fight", "flee", "rampage", "pursue", "outofwater");
+	/** An urgent survival goal this high: no other goal scores near it (the most any other reaches in testing is about 1.1). */
+	private static final double DECIDED_SCORE = 1.15;
+	/** ...or the one it's already on, still on top this high (keeping at a kill-on-sight or a chase). */
+	private static final double DECIDED_CONTINUING = 0.95;
+	@Nullable
+	private List<Goals.Goal> ordered;
+
+	/** Its goals, survival first. */
+	private List<Goals.Goal> orderedGoals() {
+		if (this.ordered == null || this.ordered.size() != this.goals.size()) {
+			List<Goals.Goal> first = new ArrayList<>();
+			List<Goals.Goal> rest = new ArrayList<>();
+			for (Goals.Goal goal : this.goals) {
+				(FIRST_GOALS.contains(goal.id()) ? first : rest).add(goal);
+			}
+
+			first.addAll(rest);
+			this.ordered = first;
+		}
+
+		return this.ordered;
 	}
 
 	@Nullable

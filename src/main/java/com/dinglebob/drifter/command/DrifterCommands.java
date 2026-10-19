@@ -75,6 +75,18 @@ public final class DrifterCommands {
 				.then(Commands.argument("radius", IntegerArgumentType.integer(0, MAX_SPREAD))
 					.executes(ctx -> spawnMany(ctx, IntegerArgumentType.getInteger(ctx, "count"), IntegerArgumentType.getInteger(ctx, "radius"))))));
 
+		// A pitched battle of two armies for testing (milestone 16: "a 500v500 (or 150v150) war"), and ending it.
+		root.then(Commands.literal("battle")
+			.then(Commands.literal("stop").executes(ctx -> {
+				int count = com.dinglebob.drifter.world.Battle.stop();
+				ctx.getSource().sendSuccess(() -> Component.literal("The battle is over (" + count + " soldiers stand down)"), true);
+				return count;
+			}))
+			.then(Commands.argument("perSide", IntegerArgumentType.integer(1, MAX_SPAWN_MANY / 2))
+				.executes(ctx -> battle(ctx, IntegerArgumentType.getInteger(ctx, "perSide"), 24))
+				.then(Commands.argument("gap", IntegerArgumentType.integer(4, 200))
+					.executes(ctx -> battle(ctx, IntegerArgumentType.getInteger(ctx, "perSide"), IntegerArgumentType.getInteger(ctx, "gap"))))));
+
 		root.then(Commands.literal("keys")
 			.then(Commands.argument("keys", StringArgumentType.word())
 				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(
@@ -116,17 +128,28 @@ public final class DrifterCommands {
 		// Timing per system (section 22 budget).
 		root.then(Commands.literal("perf").executes(ctx -> {
 			java.util.Map<DetailTier, Integer> tiers = new java.util.EnumMap<>(DetailTier.class);
+			int all = 0;
+			int moving = 0;
 			for (net.minecraft.server.level.ServerLevel level : ctx.getSource().getServer().getAllLevels()) {
 				for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
 					tiers.merge(drifter.tier(), 1, Integer::sum);
+					all++;
+					if (drifter.getDeltaMovement().horizontalDistanceSqr() > 0.0025) {
+						moving++;
+					}
 				}
 			}
+
+			String activity = String.format(java.util.Locale.ROOT, "%d of %d moving right now; %s", moving, all,
+				com.dinglebob.drifter.executor.task.NavigateTask.waitingReport());
 
 			String counts = tiers.isEmpty() ? "none loaded" : tiers.entrySet().stream()
 				.map(e -> e.getValue() + " " + e.getKey().name().toLowerCase(java.util.Locale.ROOT)).collect(java.util.stream.Collectors.joining(", "));
 			String speed = com.dinglebob.drifter.nav.PathBudget.speedReport();
+			String battle = com.dinglebob.drifter.world.Battle.report(ctx.getSource().getServer());
 			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts
-				+ "\nPath search speed: " + speed), false);
+				+ "\nPath search speed: " + speed + "\nWorld copy for path threads (" + com.dinglebob.drifter.nav.PathWorkers.threads() + "): "
+				+ com.dinglebob.drifter.nav.WorldCopy.report() + "\nActivity: " + activity + (battle == null ? "" : "\nBattle: " + battle)), false);
 			return 1;
 		}));
 		// Run catch-up on the nearest Drifter as if it had been away this many in-game hours (debug, section 25).
@@ -158,7 +181,23 @@ public final class DrifterCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " detail: " + drifter.tier().name().toLowerCase(java.util.Locale.ROOT)
 					+ (name.equals("auto") ? " (automatic)" : " (forced)")), false);
 				return 1;
-			})));
+			})
+			// Every loaded Drifter (debug, for measuring: "full" is as if a player stood by each one).
+			.then(Commands.literal("all").executes(ctx -> {
+				String name = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "tier");
+				DetailTier forced = name.equals("auto") ? null : DetailTier.valueOf(name.toUpperCase(java.util.Locale.ROOT));
+				int count = 0;
+				for (net.minecraft.server.level.ServerLevel level : ctx.getSource().getServer().getAllLevels()) {
+					for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
+						drifter.forceTier(forced);
+						count++;
+					}
+				}
+
+				int all = count;
+				ctx.getSource().sendSuccess(() -> Component.literal(all + " Drifters detail: " + name), false);
+				return all;
+			}))));
 		// Who is kept running away from players (section 22 hybrid simulation).
 		root.then(Commands.literal("sim").executes(ctx -> {
 			var list = com.dinglebob.drifter.world.DrifterSimulation.simulated();
@@ -287,6 +326,13 @@ public final class DrifterCommands {
 						com.dinglebob.drifter.DrifterConfig.setSightChunks(IntegerArgumentType.getInteger(ctx, "chunks"));
 						return showConfig(ctx);
 					})))
+			// Threads for path searches (milestone 16): -1 automatic, 0 on the server thread as before.
+			.then(Commands.literal("paththreads")
+				.then(Commands.argument("threads", IntegerArgumentType.integer(-1, com.dinglebob.drifter.DrifterConfig.MAX_PATH_THREADS))
+					.executes(ctx -> {
+						com.dinglebob.drifter.DrifterConfig.setPathThreads(IntegerArgumentType.getInteger(ctx, "threads"));
+						return showConfig(ctx);
+					})))
 			.then(Commands.literal("path")
 				.then(Commands.argument("blocks", IntegerArgumentType.integer(com.dinglebob.drifter.DrifterConfig.MIN_PATH_RANGE,
 						com.dinglebob.drifter.DrifterConfig.MAX_PATH_RANGE))
@@ -412,7 +458,7 @@ public final class DrifterCommands {
 		return 1;
 	}
 
-	private static final int MAX_SPAWN_MANY = 200;
+	private static final int MAX_SPAWN_MANY = 1000;
 	private static final int DEFAULT_SPREAD = 2000;
 	private static final int MAX_SPREAD = 10000;
 
@@ -420,6 +466,15 @@ public final class DrifterCommands {
 	 * Spawns {@code count} Drifters at random spots on dry ground within {@code radius} blocks of where the command is run
 	 * (spread evenly over the area). The land there is generated as needed, which takes a moment for big areas.
 	 */
+	private static int battle(CommandContext<CommandSourceStack> ctx, int perSide, int gap) {
+		long started = System.currentTimeMillis();
+		int spawned = com.dinglebob.drifter.world.Battle.start(ctx.getSource().getLevel(), ctx.getSource().getPosition(), perSide, gap);
+		long took = System.currentTimeMillis() - started;
+		ctx.getSource().sendSuccess(() -> Component.literal("Battle: " + spawned + " soldiers, two armies " + gap + " blocks apart (" + took
+			+ " ms). /drifter battle stop ends it"), true);
+		return spawned;
+	}
+
 	private static int spawnMany(CommandContext<CommandSourceStack> ctx, int count, int radius) throws CommandSyntaxException {
 		CommandSourceStack source = ctx.getSource();
 		ServerLevel level = source.getLevel();

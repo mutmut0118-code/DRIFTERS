@@ -20,7 +20,11 @@ public final class DrifterPerf {
 		/** Parts of a brain decision: the known-world scan, choosing the next target (planning), scoring the goals. */
 		BRAIN_WORLD, BRAIN_TARGET, BRAIN_SCORE,
 		/** Path searches (part of tasks). */
-		PATH
+		PATH,
+		/** Parts of the senses: re-ranking attention, updating awareness, the eye rays at blocks (milestone 16). */
+		SENSES_RANK, SENSES_AWARE, SENSES_RAYS, SENSES_FAR,
+		/** Its bonds with other Drifters (counted in the senses too). */
+		BONDS
 	}
 
 	private static final int WINDOW_TICKS = 100;

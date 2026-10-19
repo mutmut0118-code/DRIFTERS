@@ -187,7 +187,27 @@ public class DrifterEntity extends PathfinderMob {
 	private int traceTicks;
 	/** Debug: how many trace lines the black box keeps. */
 	private static final int BLACK_BOX_TICKS = 200;
-	private final java.util.ArrayDeque<String> blackBox = new java.util.ArrayDeque<>();
+	private final java.util.ArrayDeque<TraceFrame> blackBox = new java.util.ArrayDeque<>();
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.executor.Task blackBoxLeaf;
+	private int blackBoxStepAt;
+	private String blackBoxStep = "none";
+	/** Black boxes written out lately (deaths in a battle come by the hundred: at most one every few seconds). */
+	private static long lastBlackBoxDump = Long.MIN_VALUE / 2;
+
+	/** One tick of the black box, raw (formatted only when written out). {@code use}: ticks using an item, negative in the off hand. */
+	private record TraceFrame(int tick, double x, double y, double z, double vy, int flags, Pose pose, float yaw, float pitch, int keys, String step,
+		net.minecraft.world.item.Item hand, int use, String reflex) {
+		String format(String name) {
+			return String.format(java.util.Locale.ROOT, "[trace %s] t%d pos %.2f %.2f %.2f vy %.3f %s%s%s%s%s pose %s yaw %.0f pitch %.0f keys %s step %s hand %s%s%s%s",
+				name, this.tick, this.x, this.y, this.z, this.vy, (this.flags & 1) != 0 ? "G" : "-", (this.flags & 2) != 0 ? "W" : "-",
+				(this.flags & 4) != 0 ? "U" : "-", (this.flags & 8) != 0 ? "S" : "-", (this.flags & 16) != 0 ? "R" : "-", this.pose, this.yaw, this.pitch,
+				com.dinglebob.drifter.motor.VirtualKeys.describe(this.keys), this.step,
+				net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(this.hand).getPath(),
+				this.use == 0 ? "" : " using " + (this.use < 0 ? "off" : "main") + " " + (Math.abs(this.use) - 1), (this.flags & 32) != 0 ? " BLOCKING" : "",
+				this.reflex == null || this.reflex.isEmpty() ? "" : " reflex " + this.reflex);
+		}
+	}
 	/** Spots where pillaring up failed (head hit something), until a game time: the pathfinder plans around them. */
 	private final java.util.Map<BlockPos, Long> failedPillars = new java.util.HashMap<>();
 
@@ -266,6 +286,30 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** At or right beside (diagonals too) a spot where it got into lava lately. */
+	/** Where it got into lava lately (still to be kept clear of), a copy. */
+	public java.util.List<BlockPos> recentLavaBurns() {
+		if (this.lavaBurns.isEmpty()) {
+			return java.util.List.of();
+		}
+
+		long now = this.level().getGameTime();
+		this.lavaBurns.values().removeIf(until -> until < now);
+		return java.util.List.copyOf(this.lavaBurns.keySet());
+	}
+
+	/** Bridges and pillars that failed lately (not to be planned again for a while), copies. */
+	public java.util.Set<BlockPos> recentFailedBridges() {
+		long now = this.level().getGameTime();
+		this.failedBridges.values().removeIf(until -> until < now);
+		return java.util.Set.copyOf(this.failedBridges.keySet());
+	}
+
+	public java.util.Set<BlockPos> recentFailedPillars() {
+		long now = this.level().getGameTime();
+		this.failedPillars.values().removeIf(until -> until < now);
+		return java.util.Set.copyOf(this.failedPillars.keySet());
+	}
+
 	public boolean nearRecentLava(BlockPos pos) {
 		if (this.lavaBurns.isEmpty()) {
 			return false;
@@ -557,6 +601,17 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/** In a fight or running from one: combat stays at full detail in every tier (section 22). */
+	/** In a fight of any kind: fighting, running, killing on sight, chasing (for its eyes' tunnel vision; milestone 16). */
+	public boolean inCombat() {
+		var goal = this.brain.currentGoal();
+		if (goal == null) {
+			return false;
+		}
+
+		String id = goal.id();
+		return "fight".equals(id) || "flee".equals(id) || "rampage".equals(id) || "pursue".equals(id);
+	}
+
 	private boolean engaged() {
 		var goal = this.brain.currentGoal();
 		return goal != null && ("fight".equals(goal.id()) || "flee".equals(goal.id()));
@@ -792,7 +847,8 @@ public class DrifterEntity extends PathfinderMob {
 			this.lastAutoTrace = now;
 			// The run-up too: the black box has the last few seconds.
 			com.dinglebob.drifter.Drifter.LOGGER.info("[auto trace] the last {} ticks:", Math.min(60, this.blackBox.size()));
-			this.blackBox.stream().skip(Math.max(0, this.blackBox.size() - 60)).forEach(com.dinglebob.drifter.Drifter.LOGGER::info);
+			String name = this.getName().getString();
+			this.blackBox.stream().skip(Math.max(0, this.blackBox.size() - 60)).forEach(frame -> com.dinglebob.drifter.Drifter.LOGGER.info(frame.format(name)));
 			this.traceTicks = 200;
 		}
 	}
@@ -1044,7 +1100,9 @@ public class DrifterEntity extends PathfinderMob {
 
 		long t = System.nanoTime();
 		this.senses.tick();
+		long bondsStarted = System.nanoTime();
 		this.bonds.tick();
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BONDS, System.nanoTime() - bondsStarted);
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES, System.nanoTime() - t, this::perfLabel);
 		this.personality.tick(this);
 		t = System.nanoTime();
@@ -1088,7 +1146,27 @@ public class DrifterEntity extends PathfinderMob {
 		com.dinglebob.drifter.motor.Steering.noSprintInWater(this);
 		this.applyMovementKeys();
 		t = System.nanoTime();
-		if (this.traceTicks > 0 || com.dinglebob.drifter.memory.ThoughtLog.echo) {
+		if (this.traceTicks <= 0 && com.dinglebob.drifter.memory.ThoughtLog.echo) {
+			// Debug black box: with thoughts going to the log, the last few seconds are kept (raw: written out only if it
+			// dies, and the step's description only when the step changes; formatting a line every tick for every Drifter was
+			// a twentieth of a battle's time; milestone 16).
+			com.dinglebob.drifter.executor.Task leaf = this.tasks.current() == null ? null : this.tasks.current().leaf();
+			if (leaf != this.blackBoxLeaf || this.tickCount - this.blackBoxStepAt >= 20) {
+				this.blackBoxLeaf = leaf;
+				this.blackBoxStepAt = this.tickCount;
+				this.blackBoxStep = leaf instanceof com.dinglebob.drifter.executor.task.NavigateTask nav ? nav.debugStep() : leaf == null ? "none" : leaf.describe();
+			}
+
+			int flags = (this.onGround() ? 1 : 0) | (this.isInWater() ? 2 : 0) | (this.isUnderWater() ? 4 : 0) | (this.isSwimming() ? 8 : 0)
+				| (this.isSprinting() ? 16 : 0) | (this.isBlocking() ? 32 : 0);
+			this.blackBox.addLast(new TraceFrame(this.tickCount, this.getX(), this.getY(), this.getZ(), this.getDeltaMovement().y, flags, this.getPose(),
+				Mth.wrapDegrees(this.getYRot()), this.getXRot(), this.keys.bits(), this.blackBoxStep, this.getMainHandItem().getItem(),
+				this.isUsingItem() ? (this.getUsedItemHand() == net.minecraft.world.InteractionHand.OFF_HAND ? -1 : 1) * (1 + this.getTicksUsingItem()) : 0,
+				this.reflexes.describe()));
+			if (this.blackBox.size() > BLACK_BOX_TICKS) {
+				this.blackBox.removeFirst();
+			}
+		} else if (this.traceTicks > 0) {
 			com.dinglebob.drifter.executor.Task leaf = this.tasks.current() == null ? null : this.tasks.current().leaf();
 			String line = String.format(java.util.Locale.ROOT,
 				"[trace %s] t%d pos %.2f %.2f %.2f vy %.3f %s%s%s%s%s pose %s yaw %.0f pitch %.0f keys %s step %s", this.getName().getString(), this.tickCount,
@@ -1101,16 +1179,8 @@ public class DrifterEntity extends PathfinderMob {
 					this.isUsingItem() ? " using " + (this.getUsedItemHand() == net.minecraft.world.InteractionHand.OFF_HAND ? "off" : "main") + " " + this.getTicksUsingItem() : "",
 					this.isBlocking() ? " BLOCKING" : "")
 				+ (this.reflexes.describe() == null || this.reflexes.describe().isEmpty() ? "" : " reflex " + this.reflexes.describe());
-			if (this.traceTicks > 0) {
-				this.traceTicks--;
-				com.dinglebob.drifter.Drifter.LOGGER.info(line);
-			} else {
-				// Debug black box: with thoughts going to the log, the last few seconds are kept and written out if it dies.
-				this.blackBox.addLast(line);
-				if (this.blackBox.size() > BLACK_BOX_TICKS) {
-					this.blackBox.removeFirst();
-				}
-			}
+			this.traceTicks--;
+			com.dinglebob.drifter.Drifter.LOGGER.info(line);
 		}
 
 		if (this.keysReleaseTimer > 0 && --this.keysReleaseTimer == 0) {
@@ -1408,8 +1478,36 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	private boolean canPlayerFitWithinBlocksAndEntitiesWhen(Pose pose) {
-		return this.level().noCollision(this, this.getDimensions(pose).makeBoundingBox(this.position()).deflate(1.0E-7));
+		// Standing room is room for every lower pose too (each box is the standing one's width from the same feet, no
+		// taller): one check a tick where it stands (milestone 16: these checks, four or five a tick, were a twentieth of a
+		// battle's time).
+		Vec3 here = this.position();
+		if (!here.equals(this.fitCheckedAt) || this.tickCount != this.fitCheckedTick) {
+			this.fitCheckedAt = here;
+			this.fitCheckedTick = this.tickCount;
+			this.standingFits = this.level().noCollision(this, this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
+		}
+
+		if (this.standingFits && this.getDimensions(pose).height() <= this.getDimensions(Pose.STANDING).height()
+			&& this.getDimensions(pose).width() <= this.getDimensions(Pose.STANDING).width()) {
+			return true;
+		}
+
+		return this.level().noCollision(this, this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
 	}
+
+	/** Its fake-player helper's id and profile, worked out once (FakePlayerBridge). */
+	@org.jetbrains.annotations.Nullable
+	public java.util.UUID helperId;
+	@org.jetbrains.annotations.Nullable
+	public java.util.UUID helperIdFor;
+	@org.jetbrains.annotations.Nullable
+	public com.mojang.authlib.GameProfile helperProfile;
+
+	@org.jetbrains.annotations.Nullable
+	private Vec3 fitCheckedAt;
+	private boolean standingFits;
+	private int fitCheckedTick = -1;
 
 	/**
 	 * Player body rotation (LivingEntity#tickHeadTurn), replacing the mob BodyRotationControl: the body eases
@@ -1879,11 +1977,17 @@ public class DrifterEntity extends PathfinderMob {
 			}
 		}
 
-		if (!this.blackBox.isEmpty()) {
+		// (Not for a death in a fight with a Drifter or a player: that's no mystery, and a battle has them by the hundred.)
+		boolean killed = source.getEntity() instanceof DrifterEntity || source.getEntity() instanceof net.minecraft.world.entity.player.Player;
+		long nowMillis = System.currentTimeMillis();
+		if (!this.blackBox.isEmpty() && !killed && nowMillis - lastBlackBoxDump > 3000L) {
+			lastBlackBoxDump = nowMillis;
 			com.dinglebob.drifter.Drifter.LOGGER.info("[black box] last {} ticks before death:", this.blackBox.size());
-			this.blackBox.forEach(com.dinglebob.drifter.Drifter.LOGGER::info);
-			this.blackBox.clear();
+			String name = this.getName().getString();
+			this.blackBox.forEach(frame -> com.dinglebob.drifter.Drifter.LOGGER.info(frame.format(name)));
 		}
+
+		this.blackBox.clear();
 
 		// A ragdoll where it falls, with Sable Player Ragdoll (and a corpse with its things, with Ragdoll Corpse).
 		if (!this.isRemoved() && !this.dead && this.ragdoll == null) {

@@ -33,13 +33,44 @@ public class ThoughtLog {
 		}
 
 		this.thoughts.addLast(new Thought(time, text));
-		if (echo) {
+		if (echo && echoAllowed()) {
 			com.dinglebob.drifter.Drifter.LOGGER.info("[thought {} @{}] {}", this.owner.get(), time, text);
 		}
 
 		while (this.thoughts.size() > CAPACITY) {
 			this.thoughts.removeFirst();
 		}
+	}
+
+	/**
+	 * At most this many thoughts a second go to the log, from all Drifters together; the rest stay in each one's own
+	 * thoughts (`/drifter thoughts`) and a line says how many were left out. Writing every thought of a 300-Drifter battle
+	 * to the log was a twentieth of the server's time (milestone 16).
+	 */
+	public static final int ECHO_PER_SECOND = 200;
+	private static long echoSecond;
+	private static int echoed;
+	private static int skipped;
+
+	private static boolean echoAllowed() {
+		long second = System.currentTimeMillis() / 1000L;
+		if (second != echoSecond) {
+			if (skipped > 0) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} more thoughts that second not logged (busy; see /drifter thoughts)", skipped);
+			}
+
+			echoSecond = second;
+			echoed = 0;
+			skipped = 0;
+		}
+
+		if (echoed < ECHO_PER_SECOND) {
+			echoed++;
+			return true;
+		}
+
+		skipped++;
+		return false;
 	}
 
 	/** The newest thoughts, oldest first. */

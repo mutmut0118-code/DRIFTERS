@@ -54,6 +54,7 @@ public final class PlayerPlacedBlocks {
 		List<Long> updated = new ArrayList<>(current);
 		updated.add(key);
 		chunk.setAttached(PLACED, updated);
+		com.dinglebob.drifter.nav.WorldCopy.changed(level, pos);
 	}
 
 	/** A Drifter built this block (one place). */
@@ -69,6 +70,9 @@ public final class PlayerPlacedBlocks {
 			List<Long> updated = new ArrayList<>(current);
 			updated.add(key);
 			chunk.setAttached(BUILT, updated);
+			if (level instanceof Level real) {
+				com.dinglebob.drifter.nav.WorldCopy.changed(real, pos);
+			}
 		}
 	}
 
@@ -92,6 +96,16 @@ public final class PlayerPlacedBlocks {
 			java.util.LinkedHashSet<Long> merged = new java.util.LinkedHashSet<>(current);
 			entry.getValue().forEach(merged::add);
 			chunk.setAttached(BUILT, new ArrayList<>(merged));
+		}
+
+		if (level instanceof Level real) {
+			for (int sy = box.minY() >> 4; sy <= box.maxY() >> 4; sy++) {
+				for (int sx = box.minX() >> 4; sx <= box.maxX() >> 4; sx++) {
+					for (int sz = box.minZ() >> 4; sz <= box.maxZ() >> 4; sz++) {
+						com.dinglebob.drifter.nav.WorldCopy.changed(real, new BlockPos(sx << 4, sy << 4, sz << 4));
+					}
+				}
+			}
 		}
 	}
 

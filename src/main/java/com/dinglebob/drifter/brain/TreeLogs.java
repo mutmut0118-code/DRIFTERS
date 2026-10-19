@@ -23,12 +23,17 @@ public final class TreeLogs {
 	/** Logs it follows from one log looking for leaves (a big jungle or dark oak tree has fewer reachable this way). */
 	private static final int MAX_LOGS = 64;
 
-	private final Level level;
+	private final com.dinglebob.drifter.nav.NavWorld level;
 	/** Answers for whole connected groups of logs, so a scan over a forest checks each tree once. */
 	private final Map<BlockPos, Boolean> known = new HashMap<>();
 
 	public TreeLogs(Level level) {
-		this.level = level;
+		this(com.dinglebob.drifter.nav.NavWorld.live(level));
+	}
+
+	/** On the live world or the pathfinder's copy of it (a search on another thread). */
+	public TreeLogs(com.dinglebob.drifter.nav.NavWorld world) {
+		this.level = world;
 	}
 
 	/** One-off check (no memo). */
@@ -62,7 +67,7 @@ public final class TreeLogs {
 
 			// Branches can step diagonally (acacia, big oaks): follow logs in the 3x3x3 around this one.
 			for (BlockPos next : BlockPos.betweenClosed(log.offset(-1, -1, -1), log.offset(1, 1, 1))) {
-				if (!group.contains(next) && this.level.isLoaded(next) && this.level.getBlockState(next).is(BlockTags.LOGS)) {
+				if (!group.contains(next) && this.level.loaded(next) && this.level.getBlockState(next).is(BlockTags.LOGS)) {
 					BlockPos copy = next.immutable();
 					group.add(copy);
 					open.add(copy);

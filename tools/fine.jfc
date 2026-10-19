@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Java Flight Recorder setting for tools/jfrtop.py: only CPU samples, every millisecond (the default profile samples
+     every 10 to 20 ms, too few to see a Drifter's tick in). -->
+<configuration version="2.0" label="Drifter fine" description="Execution samples every 1 ms" provider="Drifter">
+  <event name="jdk.ExecutionSample">
+    <setting name="enabled">true</setting>
+    <setting name="period">1 ms</setting>
+  </event>
+</configuration>

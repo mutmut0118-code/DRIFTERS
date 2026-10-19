@@ -95,13 +95,39 @@ public class VirtualKeys {
 	}
 
 	public String describe() {
+		return describe(this.bits());
+	}
+
+	/** The keys down, one bit each (by Key order): cheap to keep, described later. */
+	public int bits() {
+		int bits = 0;
+		for (int i = 0; i < this.down.length; i++) {
+			if (this.down[i]) {
+				bits |= 1 << i;
+			}
+		}
+
+		return bits;
+	}
+
+	private static final String[] DESCRIBED = new String[1 << Key.values().length];
+
+	/** "forward+sprint" for these {@link #bits()} ("none" for none). */
+	public static String describe(int bits) {
+		String known = DESCRIBED[bits];
+		if (known != null) {
+			return known;
+		}
+
 		List<String> names = new ArrayList<>();
 		for (Key key : Key.values()) {
-			if (this.isDown(key)) {
+			if ((bits & 1 << key.ordinal()) != 0) {
 				names.add(key.id());
 			}
 		}
 
-		return names.isEmpty() ? "none" : String.join("+", names);
+		String text = names.isEmpty() ? "none" : String.join("+", names);
+		DESCRIBED[bits] = text;
+		return text;
 	}
 }

@@ -320,6 +320,10 @@ public class NavigateTask extends Task {
 		if (com.dinglebob.drifter.world.DrifterTravel.shouldTravel(this.drifter, goal)) {
 			this.drifter.requestTravel(goal);
 		}
+		if (this.search != null) {
+			this.search.cancel();
+		}
+
 		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5), this.lastBlocks);
 		this.path = List.of();
 		this.index = 0;
@@ -545,6 +549,10 @@ public class NavigateTask extends Task {
 			}
 
 			this.path = List.of();
+			if (this.search != null) {
+				this.search.cancel();
+			}
+
 			this.search = null;
 			return Status.RUNNING;
 		}
@@ -592,7 +600,24 @@ public class NavigateTask extends Task {
 			return Status.RUNNING;
 		}
 
+		walkingTicks++;
 		return this.followStep(this.path.get(this.index));
+	}
+
+	/**
+	 * Drifter-ticks spent going somewhere: following a route, and waiting for one (for `/drifter perf`: how much of the
+	 * time a crowd stands about waiting for its routes; milestone 16).
+	 */
+	private static long walkingTicks;
+	private static long waitingTicks;
+
+	/** The share of travel time spent waiting for a route since the last call, as a percentage, and starts again. */
+	public static String waitingReport() {
+		long all = walkingTicks + waitingTicks;
+		String report = all == 0 ? "nobody travelling" : String.format(java.util.Locale.ROOT, "%.0f%% of travel time waiting for a route", 100.0 * waitingTicks / all);
+		walkingTicks = 0;
+		waitingTicks = 0;
+		return report;
 	}
 
 	private static long lastStuckDump;
@@ -621,6 +646,7 @@ public class NavigateTask extends Task {
 		PathSearch.Status status = this.search.tick(PathBudget.take(this.level(), this.drifter.tier()));
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.PATH, System.nanoTime() - t);
 		if (status == PathSearch.Status.RUNNING) {
+			waitingTicks++;
 			// Thinking on the move only for a moment; a long think happens standing still.
 			if (++this.planningTicks == MAX_PLAN_ON_THE_MOVE_TICKS || this.level().dimensionType().ultraWarm()) {
 				this.releaseKeys();
@@ -2102,6 +2128,10 @@ public class NavigateTask extends Task {
 
 	@Override
 	protected void onStop() {
+		if (this.search != null) {
+			this.search.cancel();
+		}
+
 		this.stopSub();
 		this.releaseKeys();
 		this.drifter.getCamera().clearTarget();

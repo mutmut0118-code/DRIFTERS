@@ -60,6 +60,11 @@ public class DrifterMemory {
 		}
 	}
 
+	/** Its trails, a copy (for a path search on another thread). */
+	public it.unimi.dsi.fastutil.longs.LongOpenHashSet trailCopy() {
+		return new it.unimi.dsi.fastutil.longs.LongOpenHashSet(this.trail);
+	}
+
 	public boolean isOnTrail(BlockPos feet) {
 		return this.trail.contains(feet.asLong());
 	}

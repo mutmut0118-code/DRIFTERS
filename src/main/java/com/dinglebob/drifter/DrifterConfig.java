@@ -91,6 +91,20 @@ public final class DrifterConfig {
 		boolean parkour = true;
 		/** A Drifter that dies becomes a ragdoll (and a lootable corpse) when Sable Player Ragdoll is installed (user, 2026-10-17). */
 		boolean ragdolls = true;
+		/** Threads for path searches (milestone 16): -1 automatic, 0 on the server thread as before. */
+		int pathThreads = -1;
+	}
+
+	public static final int MAX_PATH_THREADS = 16;
+
+	/** Threads for path searches: -1 automatic (a quarter of the machine's, 1 to 6), 0 none (on the server thread). */
+	public static int pathThreads() {
+		return data.pathThreads;
+	}
+
+	public static void setPathThreads(int threads) {
+		data.pathThreads = Mth.clamp(threads, -1, MAX_PATH_THREADS);
+		save();
 	}
 
 	public static boolean ragdolls() {

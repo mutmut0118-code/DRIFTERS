@@ -160,6 +160,15 @@ public final class Threats {
 		// Another Drifter (milestone 12): never one of its own group; a bitter rival is an enemy on sight (section 21
 		// "Rivalry": rivals may fight); anyone else only once it comes for it, as before.
 		if (entity instanceof DrifterEntity other) {
+			// A battle: its own side never, the other side on sight.
+			if (com.dinglebob.drifter.world.Battle.allies(drifter, other)) {
+				return 0.0;
+			}
+
+			if (com.dinglebob.drifter.world.Battle.enemies(drifter, other)) {
+				return RIVAL_DANGER * (isAfter(drifter, entity) ? 1.3 : 1.0) * (1.0 + entity.getArmorValue() / 20.0);
+			}
+
 			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
 			if (group != null && group == com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID())) {
 				return 0.0;
