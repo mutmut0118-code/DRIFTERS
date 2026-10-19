@@ -71,12 +71,6 @@
 						0,
 						2,
 						0,
-						"minecraft:cobblestone"
-					],
-					[
-						0,
-						3,
-						0,
 						"minecraft:torch"
 					]
 				]
@@ -84,7 +78,7 @@
 			"needs": [
 				{
 					"item": "minecraft:cobblestone",
-					"count": 3
+					"count": 2
 				},
 				{
 					"item": "minecraft:torch"

@@ -133,11 +133,57 @@ public class UseOnBlockTask extends Task {
 		}
 	}
 
+	/**
+	 * The face is above its eyes from where it stands (the top of a block two high: a snow golem's pumpkin, a post's
+	 * torch): it looks where the face will be seen from the top of a jump, jumps, and clicks when the crosshair lands on
+	 * it in the air, as a player does. Null: an ordinary click.
+	 */
+	@org.jetbrains.annotations.Nullable
+	private net.minecraft.world.phys.Vec3 jumpPoint;
+	private int jumps;
+	private boolean airborne;
+	/** Jumps it tries before giving up. */
+	private static final int MAX_JUMPS = 4;
+
+	public UseOnBlockTask jumpFor(net.minecraft.world.phys.Vec3 point) {
+		this.jumpPoint = point;
+		return this;
+	}
+
+	private Status jumpTick() {
+		VirtualKeys keys = this.drifter.getKeys();
+		this.drifter.getCamera().lookAt(this.jumpPoint, CameraModel.TurnSpeed.NORMAL);
+		if (!this.drifter.onGround()) {
+			this.airborne = true;
+			keys.set(VirtualKeys.Key.JUMP, false);
+			BlockHitResult hit = Reach.crosshair(this.drifter);
+			if (hit != null && hit.getBlockPos().equals(this.pos) && hit.getDirection() == this.face) {
+				return this.click(hit);
+			}
+
+			return Status.RUNNING;
+		}
+
+		if (this.airborne) {
+			this.airborne = false;
+			if (++this.jumps >= MAX_JUMPS) {
+				return this.fail("couldn't get the click in, jumping");
+			}
+		}
+
+		keys.set(VirtualKeys.Key.JUMP, this.drifter.getCamera().isSettled());
+		return Status.RUNNING;
+	}
+
 	@Override
 	protected Status onTick() {
 		if (this.sneakSettle > 0) {
 			this.sneakSettle--;
 			return Status.RUNNING;
+		}
+
+		if (this.jumpPoint != null) {
+			return this.jumpTick();
 		}
 
 		BlockAim.Result result = this.aim.tick();
@@ -154,6 +200,10 @@ public class UseOnBlockTask extends Task {
 			return Status.RUNNING;
 		}
 
+		return this.click(hit);
+	}
+
+	private Status click(BlockHitResult hit) {
 		InteractionResult used = FakePlayerBridge.act(this.drifter, fake -> {
 			// The way a placed block faces (a bed's head): a player lines that up by where they stand; here it's set for the
 			// click, the aim stays the same.
@@ -194,6 +244,10 @@ public class UseOnBlockTask extends Task {
 	protected void onStop() {
 		if (this.sneak) {
 			this.drifter.getKeys().set(VirtualKeys.Key.SNEAK, false);
+		}
+
+		if (this.jumpPoint != null) {
+			this.drifter.getKeys().set(VirtualKeys.Key.JUMP, false);
 		}
 	}
 

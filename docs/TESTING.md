@@ -1406,6 +1406,19 @@ The goal: 1000 Drifters across a world and 300 round you at a smooth 20 TPS, and
       is the old way, all on the server thread).
 - [ ] Anything that looks worse than before: Drifters standing about, not noticing you, odd routes. They now see the
       world a tick (50 ms) late, plan on a copy of the world, and Drifters far from every player see a little less.
+- [ ] **Whim test** (a test command): put down a village a little way off (`/place structure minecraft:village_plains`),
+      stand in it and type `/drifter whimtest 50`. 50 Drifters in iron with tools, food and a few blocks appear round
+      you; after 5 seconds each one starts a different whim that suits the spot (signs, a snow golem, a lamp post, a
+      bench, flowers, a campfire, a dirt tower, ringing the bell, watching villagers or the clouds, dancing, chatting...).
+      Watch them at it. `/drifter perf` has a "Whim test" line (how many are at it, done, failed); `/drifter whimtest
+      report` lists each one's whim and how it went, with anything that went wrong on the way. `/drifter whimtest stop`
+      ends the test (they go on with life). `/drifter whimtest 20 16 builds` does only the build whims (any whim names or
+      kinds after the radius).
+- [ ] Things fixed by that test that you might notice in normal play: builds are made from a spot beside them (not
+      standing on them), the top of a two-high build (a snow golem's pumpkin, a lamp post's torch) is placed with a
+      jump as players do, a snow golem counts as built when it comes to life, flowers only go where they can grow,
+      pillar whims (lookout pillars, the dirt tower) dig back down their own pillar afterwards instead of bridging off
+      it, pillaring works on dirt paths, and a Drifter no longer makes a second crafting table right after placing one.
 
 ## Mineshaft delvers (new)
 

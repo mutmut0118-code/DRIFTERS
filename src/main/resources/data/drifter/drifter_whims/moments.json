@@ -42,8 +42,8 @@
 			"moods": {"bored": 1.5}, "stage": 2, "cooldown": 24000, "thought": "making something just because"
 		},
 		{
-			"id": "dirt_tower", "category": "builds", "action": "build",
-			"params": {"blocks": [[0, 0, 0, "minecraft:dirt"], [0, 1, 0, "minecraft:dirt"], [0, 2, 0, "minecraft:dirt"], [0, 3, 0, "minecraft:dirt"]]},
+			"id": "dirt_tower", "category": "builds", "action": "lookout",
+			"params": {"height": 4, "block": "minecraft:dirt"},
 			"needs": [{"item": "minecraft:dirt", "count": 4}],
 			"archetypes": {"newbie": 2.5, "builder": 0.3, "speedrunner": 0.3}, "moods": {"bored": 1.5}, "cooldown": 96000,
 			"thought": "stacking up a little dirt tower for no reason"

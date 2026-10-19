@@ -35,9 +35,19 @@ public class PillarUpTask extends Task {
 	private SelectItemTask select;
 
 	public PillarUpTask(DrifterEntity drifter, int height) {
+		this(drifter, height, Tools.BUILDING_BLOCK, "a building block");
+	}
+
+	/** Pillars with one kind of block ({@code block}, called {@code label}): a dirt tower of dirt. */
+	public PillarUpTask(DrifterEntity drifter, int height, java.util.function.Predicate<net.minecraft.world.item.ItemStack> block, String label) {
 		super(drifter);
 		this.height = height;
+		this.block = block;
+		this.blockLabel = label;
 	}
+
+	private final java.util.function.Predicate<net.minecraft.world.item.ItemStack> block;
+	private final String blockLabel;
 
 	@Override
 	public String describe() {
@@ -51,7 +61,7 @@ public class PillarUpTask extends Task {
 
 	@Override
 	protected void onStart() {
-		this.startY = this.drifter.blockPosition().getY();
+		this.startY = standingCell(this.drifter);
 		if (!this.drifter.onGround()) {
 			this.fail("not standing on anything");
 		}
@@ -68,9 +78,9 @@ public class PillarUpTask extends Task {
 
 		switch (this.stage) {
 			case 0 -> {
-				if (!Tools.BUILDING_BLOCK.test(this.drifter.getMainHandItem())) {
+				if (!this.block.test(this.drifter.getMainHandItem())) {
 					if (this.select == null) {
-						this.select = new SelectItemTask(this.drifter, Tools.BUILDING_BLOCK, "a building block");
+						this.select = new SelectItemTask(this.drifter, this.block, this.blockLabel);
 					}
 
 					Status status = this.select.tick();
@@ -101,7 +111,9 @@ public class PillarUpTask extends Task {
 					this.sneak = UseOnBlockTask.hasOwnUse(this.drifter.level(), feet.below(), this.drifter.level().getBlockState(feet.below()));
 					keys.set(VirtualKeys.Key.SNEAK, this.sneak);
 					keys.set(VirtualKeys.Key.JUMP, true);
-					this.jumpFeet = feet.getY();
+					// The cell over what it stands on (on a path or farmland, a little under a block, that's its own cell's top;
+					// found in a whim test in a village: "couldn't get a block under itself" on every path).
+					this.jumpFeet = standingCell(this.drifter);
 					this.stage = 2;
 					this.ticks = 0;
 				}
@@ -153,6 +165,19 @@ public class PillarUpTask extends Task {
 		}
 
 		return Status.RUNNING;
+	}
+
+	/**
+	 * The cell just over the block it stands on: its feet's cell, unless it stands on a block a little under a full one
+	 * (then the next); standing in snow, the snow's cell (a click on snow puts the block there).
+	 */
+	private static int standingCell(DrifterEntity drifter) {
+		BlockPos feet = drifter.blockPosition();
+		if (PlaceBlockTask.isClickableReplaceable(drifter.level(), feet)) {
+			return feet.getY();
+		}
+
+		return net.minecraft.util.Mth.floor(drifter.getY() - 1.0E-3) + 1;
 	}
 
 	@Override

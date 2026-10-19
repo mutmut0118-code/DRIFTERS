@@ -1276,6 +1276,7 @@ public class Senses {
 		this.memory.remember(MemoryKind.MINED, BuiltInRegistries.BLOCK.getKey(was.getBlock()).toString(), Vec3.atCenterOf(broken), this.dimension(),
 			this.now(), MemorySource.SEEN, 0.2F, null);
 		this.revealAround(broken);
+		this.drifter.getDrifterBrain().forgetKnownWorld();
 	}
 
 	public void revealAround(BlockPos broken) {
@@ -1291,6 +1292,7 @@ public class Senses {
 	/** It placed this block itself, so it knows it's there (the start of the owned-blocks log, section 6). */
 	public void placedBlock(BlockPos pos) {
 		this.rememberBlock(pos, this.level().getBlockState(pos), MemorySource.SEEN);
+		this.drifter.getDrifterBrain().forgetKnownWorld();
 	}
 
 	/** It looked inside a chest or barrel: remembers a rough summary of the contents (section 6, "Storage"). */

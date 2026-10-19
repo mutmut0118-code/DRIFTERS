@@ -2022,6 +2022,7 @@ the world) work well then we a good". Measured on the user's PC (16 threads) wit
 | 1000 loaded within 210 blocks, all at Full detail | ~105 ms | ~95 ms |
 | 60 Drifters catching up 3 days at once | ticks of 100 to 370 ms | most ticks under 10 ms |
 | 50v50 in a village, dev client (real player watching) | | 5 to 12 ms; 86 to 172 FPS; nobody idle, ~10 to 19 bows drawn, 1 friendly arrow |
+| 50 Drifters each on a different whim in a village, dev client (fresh world) | | 7 to 10 ms, worst 1% 15 to 30 ms; 164 to 211 FPS; 45 different whims, 46 of 50 without a hitch |
 
 1000 Drifters across a world (most in unloaded chunks, catching up when you come) is cheap. 300 round a player is a
 steady 20 TPS. 1000 all loaded in one 400-block area is about 17 TPS, and a 500v500 battle would be well over the limit.
@@ -2032,7 +2033,25 @@ settings "retainDetailOnLowFps" and "retainDetailOnLargerMobs" set to off gave a
 ### Next steps / design questions
 
 - Done (user agreed 2026-10-19): Far Drifters think every other tick, never in a fight (setting on the Performance page).
-- Next test (user, 2026-10-19): 50 Drifters doing all kinds of whims in a village, to see every action and what it costs.
-  Each test in fresh ground far from the last (the user: things overlap).
+- Done: the whim test (user, 2026-10-19: "place 50 drifters (geared or whatever) doing various whims in a village ... a
+  test to see all the different actions and how that would perform"). `/drifter whimtest <count> [radius] [whims or
+  kinds]` (`world/WhimTest`): Drifters with a kit round you, each given a different whim that fits where it stands
+  after 5 s of looking about (and what that whim needs, a test kit), and a report of how each went, including the
+  "couldn't ..." thoughts on the way (a whim that hits a snag ends as done, by design). The task runner now keeps how its
+  last task ended. Client tests now run in a fresh copy of a newly made seed-4242 world each time (the old `drifter_test`
+  world is superflat at height -60, which Drifters take for deep underground; the user: things overlap).
+  Fixed by it (trouble on the way went from 14 of 50 to 4, and those are walking on rough ground):
+  - Builds stand beside the build (a long one from its long side), level or a step up, never on it; not where another
+    Drifter it can see is standing; only where each block can stay (flowers on grass, not a path).
+  - Jump-placing: a face above its eyes from the ground but in view from the top of a jump (a snow golem's pumpkin, a
+    lamp post's torch) is clicked in the air, as players do (`UseOnBlockTask.jumpFor`).
+  - A pumpkin that finishes a golem counts as placed (the blocks become the golem).
+  - The little monument is two cobblestone and a torch (three and a torch can't be topped from the ground, even
+    jumping); the dirt tower is a 4-high dirt pillar it climbs, as players do (lookout action with a block).
+  - Pillar whims dig back down their own pillar afterwards (left on top, the next walk bridged off through the air).
+  - Pillaring on a dirt path (a little under a full block) works.
+  - A regression from the first pass: a Drifter nobody watches reused its scan of what it knows for 5 s, so right after
+    placing its crafting table it still "knew" of none and crafted and placed another, again and again (85 tables in
+    a test, now 18). Its own placing or mining now drops the held scan.
 - Sight lines for awareness on the helper threads too (the next biggest piece in battles).
 - The planner itself (crafting chains for food and progress) is the biggest part of a decision.

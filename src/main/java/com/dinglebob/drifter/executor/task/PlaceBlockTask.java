@@ -142,13 +142,22 @@ public class PlaceBlockTask extends Task {
 					this.use = new UseOnBlockTask(this.drifter, this.target, plantFace, "click the " + this.drifter.level().getBlockState(this.target).getBlock()
 						.getName().getString().toLowerCase(java.util.Locale.ROOT));
 				} else {
-					Direction[] support = this.chooseSupport();
-					if (support == null) {
-						return this.fail("no block face to place against within reach");
-					}
+					Direction[] support = this.chooseSupport(this.drifter.getEyePosition());
+					if (support != null) {
+						BlockPos supportPos = this.target.relative(support[0]);
+						this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+					} else {
+						// Only from the top of a jump (the top of a block two high is above its eyes): a jump and a click in the air.
+						Vec3 jumpEye = this.drifter.getEyePosition().add(0.0, JUMP_EYE_RISE, 0.0);
+						Direction[] jumped = this.chooseSupport(jumpEye);
+						if (jumped == null) {
+							return this.fail("no block face to place against within reach");
+						}
 
-					BlockPos supportPos = this.target.relative(support[0]);
-					this.use = new UseOnBlockTask(this.drifter, supportPos, support[1], "click " + supportPos.toShortString());
+						BlockPos supportPos = this.target.relative(jumped[0]);
+						Vec3 point = Reach.aimPointFrom(this.drifter, jumpEye, supportPos, jumped[1]).orElse(Vec3.atCenterOf(supportPos));
+						this.use = new UseOnBlockTask(this.drifter, supportPos, jumped[1], "jump and click " + supportPos.toShortString()).jumpFor(point);
+					}
 				}
 
 			}
@@ -174,7 +183,10 @@ public class PlaceBlockTask extends Task {
 
 		BlockState placed = this.drifter.level().getBlockState(this.target);
 		if (placed.canBeReplaced()) {
-			return this.fail("the block didn't end up there");
+			// A pumpkin that finished a snow or iron golem: the blocks became the golem (it's there now, in their place).
+			boolean golem = !this.drifter.level().getEntitiesOfClass(net.minecraft.world.entity.animal.AbstractGolem.class,
+				new net.minecraft.world.phys.AABB(this.target).inflate(1.0, 3.0, 1.0)).isEmpty();
+			return golem ? Status.SUCCESS : this.fail("the block didn't end up there");
 		}
 
 		if (this.exact != null && !com.dinglebob.drifter.hands.Placement.matches(placed, this.exact)) {
@@ -219,8 +231,10 @@ public class PlaceBlockTask extends Task {
 
 	/** {direction from target to the support block, face of the support block to click}, or null. */
 	@Nullable
-	private Direction[] chooseSupport() {
-		Vec3 eye = this.drifter.getEyePosition();
+	/** How far its eyes rise near the top of a jump (the top is about 1.25; a little under, so it's there a few ticks). */
+	private static final double JUMP_EYE_RISE = 1.1;
+
+	private Direction[] chooseSupport(Vec3 eye) {
 		Direction[] best = null;
 		double bestDistance = Double.MAX_VALUE;
 		for (Direction toSupport : Direction.values()) {
@@ -237,7 +251,7 @@ public class PlaceBlockTask extends Task {
 			}
 
 			Direction face = toSupport.getOpposite();
-			Optional<Vec3> point = Reach.aimPoint(this.drifter, supportPos, face);
+			Optional<Vec3> point = Reach.aimPointFrom(this.drifter, eye, supportPos, face);
 			if (point.isPresent() && toSupport == this.preferred) {
 				return new Direction[]{toSupport, face};
 			}

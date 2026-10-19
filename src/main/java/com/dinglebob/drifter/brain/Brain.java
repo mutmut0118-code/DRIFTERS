@@ -183,6 +183,15 @@ public class Brain {
 	@org.jetbrains.annotations.Nullable
 	KnownWorld knownWorldCache;
 
+	/**
+	 * What it knows round it changed by its own hand (it placed or broke a block): the next decision scans afresh, not the
+	 * scan held for a few seconds (found in a test of 50 Drifters' whims: having placed its crafting table, the held scan
+	 * still had none, so it made another and placed that too, again and again).
+	 */
+	public void forgetKnownWorld() {
+		this.knownWorldCache = null;
+	}
+
 	@Nullable
 	public Pursuit pursuit() {
 		return this.pursuit;

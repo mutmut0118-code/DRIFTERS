@@ -87,6 +87,28 @@ public final class DrifterCommands {
 				.then(Commands.argument("gap", IntegerArgumentType.integer(4, 200))
 					.executes(ctx -> battle(ctx, IntegerArgumentType.getInteger(ctx, "perSide"), IntegerArgumentType.getInteger(ctx, "gap"))))));
 
+		// Drifters each on a different whim round you (milestone 16 test: every kind of action at once), its report, its end.
+		root.then(Commands.literal("whimtest")
+			.then(Commands.literal("stop").executes(ctx -> {
+				int count = com.dinglebob.drifter.world.WhimTest.stop();
+				ctx.getSource().sendSuccess(() -> Component.literal("Whim test over (" + count + " Drifters go on with life)"), true);
+				return count;
+			}))
+			.then(Commands.literal("report").executes(ctx -> {
+				List<String> lines = com.dinglebob.drifter.world.WhimTest.details(ctx.getSource().getServer());
+				String summary = com.dinglebob.drifter.world.WhimTest.report();
+				ctx.getSource().sendSuccess(() -> Component.literal((summary == null ? "No whim test on" : "Whim test: " + summary)
+					+ (lines.isEmpty() ? "" : "\n" + String.join("\n", lines))), false);
+				return lines.size();
+			}))
+			.then(Commands.argument("count", IntegerArgumentType.integer(1, 200))
+				.executes(ctx -> whimTest(ctx, IntegerArgumentType.getInteger(ctx, "count"), 24, ""))
+				.then(Commands.argument("radius", IntegerArgumentType.integer(2, 200))
+					.executes(ctx -> whimTest(ctx, IntegerArgumentType.getInteger(ctx, "count"), IntegerArgumentType.getInteger(ctx, "radius"), ""))
+					.then(Commands.argument("only", StringArgumentType.greedyString())
+						.executes(ctx -> whimTest(ctx, IntegerArgumentType.getInteger(ctx, "count"), IntegerArgumentType.getInteger(ctx, "radius"),
+							StringArgumentType.getString(ctx, "only")))))));
+
 		root.then(Commands.literal("keys")
 			.then(Commands.argument("keys", StringArgumentType.word())
 				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(
@@ -158,9 +180,11 @@ public final class DrifterCommands {
 				.map(e -> e.getValue() + " " + e.getKey().name().toLowerCase(java.util.Locale.ROOT)).collect(java.util.stream.Collectors.joining(", "));
 			String speed = com.dinglebob.drifter.nav.PathBudget.speedReport();
 			String battle = com.dinglebob.drifter.world.Battle.report(ctx.getSource().getServer());
+			String whims = com.dinglebob.drifter.world.WhimTest.report();
 			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts
 				+ "\nPath search speed: " + speed + "\nWorld copy for path threads (" + com.dinglebob.drifter.nav.PathWorkers.threads() + "): "
-				+ com.dinglebob.drifter.nav.WorldCopy.report() + "\nActivity: " + activity + (battle == null ? "" : "\nBattle: " + battle)), false);
+				+ com.dinglebob.drifter.nav.WorldCopy.report() + "\nActivity: " + activity + (battle == null ? "" : "\nBattle: " + battle)
+				+ (whims == null ? "" : "\nWhim test: " + whims)), false);
 			return 1;
 		}));
 		// Run catch-up on the nearest Drifter as if it had been away this many in-game hours (debug, section 25).
@@ -506,6 +530,15 @@ public final class DrifterCommands {
 		long took = System.currentTimeMillis() - started;
 		ctx.getSource().sendSuccess(() -> Component.literal("Battle: " + spawned + " soldiers, two armies " + gap + " blocks apart (" + took
 			+ " ms). /drifter battle stop ends it"), true);
+		return spawned;
+	}
+
+	private static int whimTest(CommandContext<CommandSourceStack> ctx, int count, int radius, String only) {
+		long started = System.currentTimeMillis();
+		int spawned = com.dinglebob.drifter.world.WhimTest.start(ctx.getSource().getLevel(), ctx.getSource().getPosition(), count, radius, only);
+		long took = System.currentTimeMillis() - started;
+		ctx.getSource().sendSuccess(() -> Component.literal("Whim test: " + spawned + " Drifters within " + radius + " blocks (" + took
+			+ " ms); each gets a whim in 5 s. /drifter whimtest report shows how each goes, /drifter whimtest stop ends it"), true);
 		return spawned;
 	}
 

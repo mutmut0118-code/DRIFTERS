@@ -38,8 +38,28 @@ public class TaskRunner {
 		Task task = this.current;
 		this.current = null;
 		task.stop();
+		this.ended(task, "stopped: " + why);
 		this.report("Stopped " + task.describe() + " (" + why + ")");
 		return true;
+	}
+
+	/** The last top-level task that ended, and how ("done", "failed: why" or "stopped: why"; for test reports). */
+	@Nullable
+	private Task lastEnded;
+	private String lastOutcome = "";
+
+	private void ended(Task task, String outcome) {
+		this.lastEnded = task;
+		this.lastOutcome = outcome;
+	}
+
+	@Nullable
+	public Task lastEnded() {
+		return this.lastEnded;
+	}
+
+	public String lastOutcome() {
+		return this.lastOutcome;
 	}
 
 	@Nullable
@@ -61,8 +81,10 @@ public class TaskRunner {
 		this.current = null;
 		task.stop();
 		if (status == Task.Status.SUCCESS) {
+			this.ended(task, "done");
 			this.report("Done: " + task.describe());
 		} else {
+			this.ended(task, "failed: " + task.failureReason());
 			this.report("Failed: " + task.describe() + " (" + task.failureReason() + ")");
 		}
 	}

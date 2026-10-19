@@ -346,16 +346,46 @@ public final class WhimActions {
 		return home != null && home.near(drifter, range) ? home : null;
 	}
 
+	/** How far from someone else a whim's build goes. */
+	private static final double BUILD_ROOM = 3.0;
+
 	/** A free, flat bit of ground it knows near here (not in its buildings, not right on its home's middle). */
 	@Nullable
 	static BlockPos freeGround(DrifterEntity drifter, int radius, int width, int height) {
+		return freeGround(drifter, radius, width, height, pos -> true);
+	}
+
+	/** As above, where {@code fits} also holds (what it puts there can stay there). */
+	@Nullable
+	static BlockPos freeGround(DrifterEntity drifter, int radius, int width, int height, java.util.function.Predicate<BlockPos> fits) {
 		Level level = drifter.level();
 		Home home = drifter.getDrifterBrain().home();
 		BlockPos[] best = {null};
 		double[] bestScore = {Double.MAX_VALUE};
+		// Not right where someone else it can see is standing (another Drifter putting up its own thing there; found in a
+		// test of 50 Drifters' whims: two built into each other).
+		List<Vec3> others = new ArrayList<>();
+		for (Awareness awareness : drifter.getSenses().tracked()) {
+			if (awareness.entity != drifter && awareness.seenWithin(drifter.level().getGameTime(), 20 * 5)
+				&& (awareness.entity instanceof DrifterEntity || awareness.entity instanceof net.minecraft.world.entity.player.Player)
+				&& awareness.entity.distanceTo(drifter) < radius + 4) {
+				others.add(awareness.entity.position());
+			}
+		}
+
 		drifter.getSenses().terrain().forEachKnown(drifter.blockPosition(), radius, pos -> {
 			if (!KnownBlocks.isStandable(level, pos) || !level.getFluidState(pos.below()).isEmpty() || home != null && home.inOwnBuilding(pos, 2)
 				|| com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, pos.below())) {
+				return;
+			}
+
+			for (Vec3 other : others) {
+				if (other.distanceToSqr(Vec3.atBottomCenterOf(pos)) < BUILD_ROOM * BUILD_ROOM) {
+					return;
+				}
+			}
+
+			if (!fits.test(pos)) {
 				return;
 			}
 
@@ -433,7 +463,9 @@ public final class WhimActions {
 		@Override
 		public boolean possible(DrifterEntity drifter, Whim whim) {
 			int height = whim.param("height", 6);
-			if (!drifter.onGround() || com.dinglebob.drifter.hands.Tools.buildingBlockCount(drifter) < height + 2 || homeNear(drifter, 6.0) != null) {
+			String block = whim.params().has("block") ? whim.params().get("block").getAsString() : null;
+			int blocks = block == null ? com.dinglebob.drifter.hands.Tools.buildingBlockCount(drifter) : drifter.getInventory().count(itemMatcher(block)::test);
+			if (!drifter.onGround() || blocks < (block == null ? height + 2 : height) || homeNear(drifter, 6.0) != null) {
 				return false;
 			}
 
@@ -450,12 +482,93 @@ public final class WhimActions {
 		@Override
 		public Activity start(DrifterEntity drifter, Whim whim) {
 			int height = whim.param("height", 6);
-			return new Steps(drifter, whim.thought(), 20 * 90)
-				.then(() -> new PillarUpTask(drifter, height))
+			// A pillar of one block (a dirt tower is dirt) or any building block.
+			String block = whim.params().has("block") ? whim.params().get("block").getAsString() : null;
+			int[] ground = {drifter.getBlockY()};
+			return new Steps(drifter, whim.thought(), 20 * 90 + 20 * 3 * height)
+				.then(() -> {
+					ground[0] = drifter.getBlockY();
+					return block == null ? new PillarUpTask(drifter, height) : new PillarUpTask(drifter, height, itemMatcher(block)::test, block);
+				})
 				.then(() -> new LookAroundTask(drifter))
 				.then(() -> new Gaze(drifter, () -> drifter.getEyePosition().add(drifter.getLookAngle().multiply(1, 0, 1).scale(40).add(0, -4, 0)),
 					whim.duration(), false, whim.thought()))
-				.then(() -> new LookAroundTask(drifter));
+				.then(() -> new LookAroundTask(drifter))
+				// Back down the way it came, as a player does: its own blocks dug out from under it one by one (found in a whim
+				// test: left on top, its next walk went out over the air on bridges).
+				.then(() -> new DigDownPillar(drifter, ground[0]));
+		}
+	}
+
+	/** Digs down the pillar it stands on, its own blocks only, to {@code groundY}. */
+	static final class DigDownPillar extends Task {
+		private final int groundY;
+		@Nullable
+		private Task dig;
+		@Nullable
+		private BlockPos digging;
+
+		DigDownPillar(DrifterEntity drifter, int groundY) {
+			super(drifter);
+			this.groundY = groundY;
+		}
+
+		@Override
+		public String describe() {
+			return "dig back down its pillar";
+		}
+
+		/** Six seconds a block, from the height it started at. */
+		private int timeout = -1;
+
+		@Override
+		protected int timeoutTicks() {
+			if (this.timeout < 0) {
+				this.timeout = 20 * 6 * Math.max(1, this.drifter.getBlockY() - this.groundY + 1);
+			}
+
+			return this.timeout;
+		}
+
+		@Override
+		protected Status onTick() {
+			if (this.dig != null) {
+				Status status = this.dig.tick();
+				if (status == Status.RUNNING) {
+					return Status.RUNNING;
+				}
+
+				this.dig.stop();
+				this.dig = null;
+				if (status == Status.FAILURE) {
+					return this.fail("couldn't dig down");
+				}
+
+				this.drifter.forgetScaffold(this.digging);
+				return Status.RUNNING;
+			}
+
+			// Falling onto the next block down.
+			if (!this.drifter.onGround()) {
+				return Status.RUNNING;
+			}
+
+			BlockPos below = BlockPos.containing(this.drifter.getX(), this.drifter.getY() - 0.2, this.drifter.getZ());
+			if (this.drifter.getBlockY() <= this.groundY || !this.drifter.isScaffold(below)) {
+				return Status.SUCCESS;
+			}
+
+			com.dinglebob.drifter.motor.Steering.stopMoving(this.drifter);
+			this.digging = below.immutable();
+			this.dig = Activity.digTask(this.drifter, below);
+			return Status.RUNNING;
+		}
+
+		@Override
+		protected void onStop() {
+			if (this.dig != null) {
+				this.dig.stop();
+			}
 		}
 	}
 
@@ -982,13 +1095,74 @@ public final class WhimActions {
 		static BlockPos site(DrifterEntity drifter, List<Cell> cells) {
 			int width = cells.stream().mapToInt(Cell::dx).max().orElse(0) + 1;
 			int height = cells.stream().mapToInt(Cell::dy).max().orElse(0) + 1;
-			return freeGround(drifter, 12, width, height + 1);
+			// Each block on the ground can stay there (a flower on grass or dirt, not on a village path).
+			Level level = drifter.level();
+			return freeGround(drifter, 12, width, height + 1, pos -> cells.stream().allMatch(cell -> cell.dy() != 0
+				|| survives(level, cell.item(), pos.offset(cell.dx(), 0, cell.dz()))));
+		}
+
+		/** The block that item places would stay at {@code pos} (true for what it can't tell). */
+		static boolean survives(Level level, String item, BlockPos pos) {
+			net.minecraft.world.item.Item found = null;
+			if (item.startsWith("#")) {
+				var tag = net.minecraft.core.registries.BuiltInRegistries.ITEM.getTag(net.minecraft.tags.TagKey.create(
+					net.minecraft.core.registries.Registries.ITEM, net.minecraft.resources.ResourceLocation.parse(item.substring(1))));
+				if (tag.isPresent() && tag.get().size() > 0) {
+					found = tag.get().get(0).value();
+				}
+			} else if (!item.startsWith("@")) {
+				found = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(net.minecraft.resources.ResourceLocation.tryParse(item)).orElse(null);
+			}
+
+			return !(found instanceof net.minecraft.world.item.BlockItem blockItem) || blockItem.getBlock().defaultBlockState().canSurvive(level, pos);
 		}
 
 		@Override
 		public boolean possible(DrifterEntity drifter, Whim whim) {
 			List<Cell> cells = cells(whim);
 			return !cells.isEmpty() && site(drifter, cells) != null;
+		}
+
+		/**
+		 * A spot to stand while it builds: standable ground beside the build (two blocks off its side, level with it or a
+		 * block off), clear of every block it will place, nearest to where it is now; null if there's none.
+		 */
+		@Nullable
+		static BlockPos standBeside(DrifterEntity drifter, BlockPos site, List<Cell> cells) {
+			Level level = drifter.level();
+			int width = cells.stream().mapToInt(Cell::dx).max().orElse(0) + 1;
+			int depth = cells.stream().mapToInt(Cell::dz).max().orElse(0) + 1;
+			BlockPos best = null;
+			double bestDistance = Double.MAX_VALUE;
+			for (int dx = -2; dx <= width + 1; dx++) {
+				for (int dz = -2; dz <= depth + 1; dz++) {
+					boolean beside = dx == -2 || dx == width + 1 || dz == -2 || dz == depth + 1;
+					if (!beside || (dx < 0 || dx >= width) && (dz < 0 || dz >= depth)) {
+						continue;
+					}
+
+					// Level with it, or a step up; a step down only if nothing else (from below, even a jump can't see the top of a
+					// block two high).
+					for (int dy : new int[] {0, 1, -1}) {
+						BlockPos pos = site.offset(dx, dy, dz);
+						if (!KnownBlocks.isStandable(level, pos) || !level.getFluidState(pos.below()).isEmpty()) {
+							continue;
+						}
+
+						// From a long side (from the end of a row the first block hides the next one's spot), else the nearest.
+						boolean end = width > depth && (dx < 0 || dx >= width) || depth > width && (dz < 0 || dz >= depth);
+						double distance = pos.distSqr(drifter.blockPosition()) + (end ? 1000.0 : 0.0) + (dy < 0 ? 400.0 : 0.0);
+						if (distance < bestDistance) {
+							bestDistance = distance;
+							best = pos.immutable();
+						}
+
+						break;
+					}
+				}
+			}
+
+			return best;
 		}
 
 		@Override
@@ -1000,8 +1174,12 @@ public final class WhimActions {
 			}
 
 			Steps steps = new Steps(drifter, whim.thought(), 20 * 90);
-			steps.then(() -> site.closerThan(drifter.blockPosition(), 3.0) ? null
-				: new NavigateTask(drifter, Vec3.atBottomCenterOf(site.relative(Direction.SOUTH, 2)), 1.5, "walk over"));
+			// Somewhere beside it to stand (not on it, near enough to reach every block), as a player steps back to build.
+			BlockPos stand = standBeside(drifter, site, cells);
+			steps.then(() -> stand == null ? (site.closerThan(drifter.blockPosition(), 3.0) ? null
+					: new NavigateTask(drifter, Vec3.atBottomCenterOf(site.relative(Direction.SOUTH, 2)), 1.5, "walk over"))
+				: drifter.position().distanceTo(Vec3.atBottomCenterOf(stand)) < 0.8 ? null
+				: new NavigateTask(drifter, Vec3.atBottomCenterOf(stand), 0.6, "step over to build"));
 			for (Cell cell : cells) {
 				BlockPos pos = site.offset(cell.dx(), cell.dy(), cell.dz());
 				Predicate1 item = itemMatcher(cell.item());
