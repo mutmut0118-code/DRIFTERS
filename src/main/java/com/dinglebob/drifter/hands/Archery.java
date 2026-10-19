@@ -102,7 +102,9 @@ public final class Archery {
 		net.minecraft.world.phys.Vec3 eye = drifter.getEyePosition();
 		java.util.List<net.minecraft.world.phys.Vec3> path = new java.util.ArrayList<>(24);
 		net.minecraft.world.phys.Vec3 pos = eye.subtract(0.0, 0.1, 0.0);
-		net.minecraft.world.phys.Vec3 velocity = look.scale(power * ARROW_SPEED);
+		// (The game adds the shooter's own movement to the arrow: stepping aside as it lets go carries the arrow with it.)
+		net.minecraft.world.phys.Vec3 moving = drifter.getDeltaMovement();
+		net.minecraft.world.phys.Vec3 velocity = look.scale(power * ARROW_SPEED).add(moving.x, drifter.onGround() ? 0.0 : moving.y, moving.z);
 		path.add(pos);
 		double minX = pos.x, minY = pos.y, minZ = pos.z, maxX = pos.x, maxY = pos.y, maxZ = pos.z;
 		for (int tick = 0; tick < 40 && pos.distanceTo(eye) < distance + PAST_TARGET; tick++) {

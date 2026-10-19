@@ -2018,14 +2018,14 @@ the world) work well then we a good". Measured on the user's PC (16 threads) wit
 | --- | --- | --- |
 | 300 Drifters round a real player (dev client, radius 100) | ~30 ms, worst 1% 52 ms | 21 to 22 ms, worst 1% 33 to 36 ms; 290 FPS |
 | 150v150 battle, the clash | 56 ms, worst 1% 109 ms, one 574 ms tick | 34 ms, worst 1% 75 ms; then 17 to 29 ms |
-| 1000 loaded within 210 blocks, nobody near (Far) | ~100 ms | 58 ms, worst 1% 82 ms (half-rate thinking; 515 moving at once) |
+| 1000 loaded within 210 blocks, nobody near (Far) | ~100 ms | 58 to 64 ms, worst 1% 82 to 90 ms (half-rate thinking; 515 moving at once) |
 | 1000 loaded within 210 blocks, all at Full detail | ~105 ms | ~95 ms |
 | 60 Drifters catching up 3 days at once | ticks of 100 to 370 ms | most ticks under 10 ms |
 | 50v50 in a village, dev client (real player watching) | | 5 to 12 ms; 86 to 172 FPS; nobody idle, ~10 to 19 bows drawn, 1 friendly arrow |
 | 50 Drifters each on a different whim in a village, dev client (fresh world) | | 7 to 10 ms, worst 1% 15 to 30 ms; 164 to 211 FPS; 45 different whims, 46 of 50 without a hitch |
 
 1000 Drifters across a world (most in unloaded chunks, catching up when you come) is cheap. 300 round a player is a
-steady 20 TPS. 1000 all loaded in one 400-block area is about 17 TPS, and a 500v500 battle would be well over the limit.
+steady 20 TPS. 1000 all loaded in one 400-block area is about 16 to 17 TPS, and a 500v500 battle would be well over the limit.
 
 Client FPS in big battles: with EMF and Fresh Animations, the animated player models are most of the frame. EMF's
 settings "retainDetailOnLowFps" and "retainDetailOnLargerMobs" set to off gave about 40% more FPS in a 150v150.
