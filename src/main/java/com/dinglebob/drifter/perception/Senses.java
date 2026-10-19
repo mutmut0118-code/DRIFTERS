@@ -107,6 +107,8 @@ public class Senses {
 	public static final int NEAR_CHECKS_PER_RANK = 24;
 	/** This many within {@link #DETAIL_RANGE}: a crowd. It keeps its eyes on those near it and doesn't scan the distance. */
 	public static final int CROWD = 40;
+	/** Where it looks next when there's no crowd round it (before the whole of its sight). */
+	public static final double MIDDLE_RANGE = 64.0;
 	/** In a crowd, those within this are watched every update, the rest every other. */
 	public static final double CROWD_CLOSE = 8.0;
 	/** In a crowd as of the last re-rank. */
@@ -270,13 +272,16 @@ public class Senses {
 		}
 
 		long t = System.nanoTime();
-		if (this.ticks % RANK_INTERVAL == 0) {
+		// Far from every player, a little slower (section 22 tiers; milestone 16): nobody's there to see it.
+		int slow = this.drifter.tier().senseSlowdown;
+		if (this.ticks % (RANK_INTERVAL * slow) == 0) {
 			this.rankAttention();
 		}
 
 		long t2 = System.nanoTime();
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES_RANK, t2 - t);
-		if (this.ticks % AWARENESS_INTERVAL == 0) {
+		this.awarenessEvery = AWARENESS_INTERVAL * slow;
+		if (this.ticks % this.awarenessEvery == 0) {
 			this.updateAwareness();
 		}
 
@@ -512,8 +517,32 @@ public class Senses {
 		List<Entity> candidates = this.level().getEntities(this.drifter, this.drifter.getBoundingBox().inflate(DETAIL_RANGE, DETAIL_RANGE, DETAIL_RANGE), living);
 		this.crowded = candidates.size() >= CROWD;
 		if (!this.crowded) {
-			AABB area = this.drifter.getBoundingBox().inflate(com.dinglebob.drifter.DrifterConfig.sightRange(), VERTICAL_RANGE, com.dinglebob.drifter.DrifterConfig.sightRange());
-			candidates = this.level().getEntities(this.drifter, area, living);
+			// Farther out it only ever looks at the nearest few of the far ones (FAR_CHECKS_PER_RANK, nearest first), so it asks a
+			// middling distance first and the whole of its sight only if that hasn't enough (the same ones either way; in a
+			// world thick with Drifters, all of them within sight was hundreds; milestone 16). Those it's watching and players
+			// are always in.
+			AABB middle = this.drifter.getBoundingBox().inflate(MIDDLE_RANGE, VERTICAL_RANGE, MIDDLE_RANGE);
+			List<Entity> nearer = this.level().getEntities(this.drifter, middle, living);
+			if (nearer.size() - candidates.size() >= FAR_CHECKS_PER_RANK) {
+				candidates = nearer;
+				java.util.Set<Entity> in = new java.util.HashSet<>(candidates);
+				for (Awareness awareness : this.tracked.values()) {
+					if (!in.contains(awareness.entity) && living.test(awareness.entity) && awareness.entity.level() == this.level()) {
+						candidates.add(awareness.entity);
+					}
+				}
+
+				for (Player player : this.level().players()) {
+					if (!in.contains(player) && living.test(player) && player.distanceToSqr(this.drifter) <= com.dinglebob.drifter.DrifterConfig.sightRange()
+						* com.dinglebob.drifter.DrifterConfig.sightRange()) {
+						candidates.add(player);
+					}
+				}
+			} else {
+				AABB area = this.drifter.getBoundingBox().inflate(com.dinglebob.drifter.DrifterConfig.sightRange(), VERTICAL_RANGE,
+					com.dinglebob.drifter.DrifterConfig.sightRange());
+				candidates = this.level().getEntities(this.drifter, area, living);
+			}
 		} else {
 			java.util.Set<Entity> near = new java.util.HashSet<>(candidates);
 			for (Awareness awareness : this.tracked.values()) {
@@ -607,13 +636,16 @@ public class Senses {
 		this.noticeChestCarts();
 	}
 
+	/** Ticks between awareness updates now (by its detail tier). */
+	private int awarenessEvery = AWARENESS_INTERVAL;
+
 	private void updateAwareness() {
 		long now = this.now();
-		int update = this.ticks / AWARENESS_INTERVAL;
+		int update = this.ticks / this.awarenessEvery;
 		for (Awareness awareness : this.tracked.values()) {
 			Entity entity = awareness.entity;
 			if (awareness.forcedTicks > 0) {
-				awareness.forcedTicks -= AWARENESS_INTERVAL;
+				awareness.forcedTicks -= this.awarenessEvery;
 			}
 
 			// Far ones are re-checked every third update (and gain three updates' worth): cheaper, hardly different. In a crowd,
@@ -625,7 +657,7 @@ public class Senses {
 				continue;
 			}
 
-			int ticks = AWARENESS_INTERVAL * every;
+			int ticks = this.awarenessEvery * every;
 			Sighting sighting = entity.isRemoved() ? Sighting.NOT_SEEN : this.look(entity);
 			float stealth = stealthFactor(entity);
 			awareness.visibleNow = sighting.seen() && stealth > 0.0F;
@@ -822,11 +854,54 @@ public class Senses {
 		boolean fighting = this.drifter.inCombat();
 		int rays = fighting ? BLOCK_RAYS_FIGHTING : playerNear ? BLOCK_RAYS_PLAYER_NEAR : Math.min(BLOCK_RAYS_BASE, this.drifter.tier().blockRays);
 		Vec3 eye = this.drifter.getEyePosition();
-		for (int i = 0; i < rays; i++) {
-			// A random point on its screen, evenly over the whole picture (as pixels are).
-			float sx = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
-			float sy = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
-			this.castBlockRay(eye, screenDirection(this.drifter.getYHeadRot(), this.drifter.getXRot(), sx, sy), BLOCK_SIGHT_RANGE);
+		// Last tick's rays, traced on the path threads: taken in now (milestone 16). Until they're back it casts no new ones.
+		boolean async = com.dinglebob.drifter.nav.PathWorkers.enabled() && this.level() instanceof net.minecraft.server.level.ServerLevel;
+		if (this.pendingRays != null) {
+			if (this.pendingRays.done) {
+				SightWork.Batch batch = this.pendingRays;
+				this.pendingRays = null;
+				for (int i = 0; i < batch.hits.length; i++) {
+					this.afterRay(batch.eye, batch.directions[i], batch.ranges[i], batch.hits[i]);
+				}
+			} else {
+				rays = 0;
+			}
+		}
+
+		if (async && rays > 0) {
+			this.ensureSight(eye);
+			Vec3[] directions = new Vec3[rays];
+			Vec3[] ends = new Vec3[rays];
+			double[] ranges = new double[rays];
+			int queued = 0;
+			for (int i = 0; i < rays; i++) {
+				// A random point on its screen, evenly over the whole picture (as pixels are).
+				float sx = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
+				float sy = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
+				Vec3 direction = screenDirection(this.drifter.getYHeadRot(), this.drifter.getXRot(), sx, sy);
+				double reach = this.loadedReach(eye, direction, BLOCK_SIGHT_RANGE);
+				if (reach <= 1.0) {
+					continue;
+				}
+
+				directions[queued] = direction;
+				ends[queued] = eye.add(direction.scale(reach));
+				ranges[queued] = BLOCK_SIGHT_RANGE;
+				queued++;
+			}
+
+			if (queued > 0) {
+				this.pendingRays = new SightWork.Batch(eye, java.util.Arrays.copyOf(directions, queued), java.util.Arrays.copyOf(ends, queued),
+					java.util.Arrays.copyOf(ranges, queued), com.dinglebob.drifter.nav.WorldCopy.view((net.minecraft.server.level.ServerLevel)this.level()));
+				SightWork.queue(this.pendingRays);
+			}
+		} else {
+			for (int i = 0; i < rays; i++) {
+				// A random point on its screen, evenly over the whole picture (as pixels are).
+				float sx = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
+				float sy = this.drifter.getRandom().nextFloat() * 2.0F - 1.0F;
+				this.castBlockRay(eye, screenDirection(this.drifter.getYHeadRot(), this.drifter.getXRot(), sx, sy), BLOCK_SIGHT_RANGE);
+			}
 		}
 
 		long farStarted = System.nanoTime();
@@ -836,7 +911,8 @@ public class Senses {
 		float high = Math.min(FAR_PITCH_DOWN, this.drifter.getXRot() + coneHalfPitch());
 		// (In a fight or a crowd, one far ray every other tick: its eyes are on what's round it, and a crowd hides the
 		// horizon anyway. Far rays are long: they were over a third of a battle's ray time.)
-		int farRays = fighting || this.crowded ? (this.ticks % 2 == 0 ? 1 : 0) : FAR_RAYS;
+		int farRays = fighting || this.crowded ? (this.ticks % 2 == 0 ? 1 : 0)
+			: this.drifter.tier().senseSlowdown > 1 ? (this.ticks % (2 * this.drifter.tier().senseSlowdown) == 0 ? FAR_RAYS : 0) : FAR_RAYS;
 		for (int i = 0; i < farRays && low < high; i++) {
 			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfYaw();
 			float pitch = Mth.lerp(this.drifter.getRandom().nextFloat(), low, high);
@@ -844,6 +920,28 @@ public class Senses {
 		}
 
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SENSES_FAR, System.nanoTime() - farStarted);
+	}
+
+	/** Rays traced on the path threads, waiting to be taken in (one batch at a time). */
+	@Nullable
+	private SightWork.Batch pendingRays;
+	/** Where the world copy round its eyes was last made sure of, and when. */
+	private long sightEnsuredChunk = Long.MIN_VALUE;
+	private long sightEnsuredAt = Long.MIN_VALUE;
+
+	/** The path threads' copy of the world covers its near sight (checked when it changes chunk, or every couple of seconds). */
+	private void ensureSight(Vec3 eye) {
+		long chunk = net.minecraft.core.SectionPos.asLong(Mth.floor(eye.x) >> 4, Mth.floor(eye.y) >> 4, Mth.floor(eye.z) >> 4);
+		long now = this.now();
+		if (chunk == this.sightEnsuredChunk && now - this.sightEnsuredAt < 40) {
+			return;
+		}
+
+		this.sightEnsuredChunk = chunk;
+		this.sightEnsuredAt = now;
+		int reach = (int)BLOCK_SIGHT_RANGE + 2;
+		com.dinglebob.drifter.nav.WorldCopy.ensure((net.minecraft.server.level.ServerLevel)this.level(), Mth.floor(eye.x) - reach, Mth.floor(eye.y) - reach,
+			Mth.floor(eye.z) - reach, Mth.floor(eye.x) + reach, Mth.floor(eye.y) + reach, Mth.floor(eye.z) + reach);
 	}
 
 	private void castBlockRay(Vec3 eye, Vec3 direction, double maxRange) {
@@ -854,7 +952,11 @@ public class Senses {
 		}
 
 		Vec3 end = eye.add(direction.scale(reach));
-		BlockHitResult hit = this.clipThroughGlass(eye, end, ClipContext.Fluid.ANY);
+		this.afterRay(eye, direction, maxRange, this.clipThroughGlass(eye, end, ClipContext.Fluid.ANY));
+	}
+
+	/** What a ray hit, taken in: how far it could see by the light, its block knowledge, what it notices. */
+	private void afterRay(Vec3 eye, Vec3 direction, double maxRange, BlockHitResult hit) {
 		boolean blockHit = hit.getType() == HitResult.Type.BLOCK;
 		double distance = eye.distanceTo(hit.getLocation());
 		double range = blockHit ? this.blockSightRange(hit.getBlockPos().relative(hit.getDirection()), maxRange) : 0.0;
@@ -880,15 +982,25 @@ public class Senses {
 
 	/** How far along this direction the chunks are loaded (checked every 8 blocks), up to {@code range}. */
 	private double loadedReach(Vec3 from, Vec3 direction, double range) {
+		// (Each chunk asked once, straight from the chunk cache: the general check went through the chunk loader's futures,
+		// and asked again every 8 blocks of the same chunk; milestone 16.)
+		long lastKey = Long.MIN_VALUE;
 		for (double along = 0.0; along < range; along += 8.0) {
-			Vec3 point = from.add(direction.scale(along));
-			if (!this.level().hasChunk(Mth.floor(point.x) >> 4, Mth.floor(point.z) >> 4)) {
-				return Math.max(0.0, along - 8.0);
+			int cx = Mth.floor(from.x + direction.x * along) >> 4;
+			int cz = Mth.floor(from.z + direction.z * along) >> 4;
+			long key = net.minecraft.world.level.ChunkPos.asLong(cx, cz);
+			if (key != lastKey) {
+				lastKey = key;
+				if (com.dinglebob.drifter.world.TickChunks.get(this.level(), cx, cz) == null) {
+					return Math.max(0.0, along - 8.0);
+				}
 			}
 		}
 
-		Vec3 end = from.add(direction.scale(range));
-		return this.level().hasChunk(Mth.floor(end.x) >> 4, Mth.floor(end.z) >> 4) ? range : Math.max(0.0, range - 8.0);
+		int cx = Mth.floor(from.x + direction.x * range) >> 4;
+		int cz = Mth.floor(from.z + direction.z * range) >> 4;
+		return net.minecraft.world.level.ChunkPos.asLong(cx, cz) == lastKey || com.dinglebob.drifter.world.TickChunks.get(this.level(), cx, cz) != null ? range
+			: Math.max(0.0, range - 8.0);
 	}
 
 	/** Most blocks a ray can pass looking through glass, glass panes and other see-through blocks. */
@@ -957,7 +1069,10 @@ public class Senses {
 	@Nullable
 	private net.minecraft.world.level.chunk.LevelChunk clipChunk;
 
-	/** A block as it is now, from the chunk it's in (kept from the last read); air if that chunk isn't loaded. */
+	/**
+	 * A block as it is now, from the chunk section it's in (kept from the last read; a section that's all air answers at
+	 * once: most of what a ray crosses; milestone 16); air if that chunk isn't loaded.
+	 */
 	private BlockState cachedState(BlockPos pos) {
 		int cx = pos.getX() >> 4;
 		int cz = pos.getZ() >> 4;
@@ -965,13 +1080,34 @@ public class Senses {
 		long now = this.level().getGameTime();
 		// (Looked up again each tick: a chunk unloaded and loaded again is a new object.)
 		if (key != this.clipChunkKey || now != this.clipChunkTick) {
-			this.clipChunk = this.level().getChunkSource().getChunkNow(cx, cz);
+			this.clipChunk = com.dinglebob.drifter.world.TickChunks.get(this.level(), cx, cz);
 			this.clipChunkKey = key;
 			this.clipChunkTick = now;
+			this.clipSectionY = Integer.MIN_VALUE;
 		}
 
-		return this.clipChunk == null ? net.minecraft.world.level.block.Blocks.VOID_AIR.defaultBlockState() : this.clipChunk.getBlockState(pos);
+		if (this.clipChunk == null) {
+			return net.minecraft.world.level.block.Blocks.VOID_AIR.defaultBlockState();
+		}
+
+		int sy = pos.getY() >> 4;
+		if (sy != this.clipSectionY) {
+			this.clipSectionY = sy;
+			int index = this.clipChunk.getSectionIndexFromSectionY(sy);
+			this.clipSection = index < 0 || index >= this.clipChunk.getSections().length ? null : this.clipChunk.getSection(index);
+		}
+
+		if (this.clipSection == null) {
+			return net.minecraft.world.level.block.Blocks.VOID_AIR.defaultBlockState();
+		}
+
+		return this.clipSection.hasOnlyAir() ? net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()
+			: this.clipSection.getBlockState(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15);
 	}
+
+	private int clipSectionY = Integer.MIN_VALUE;
+	@Nullable
+	private net.minecraft.world.level.chunk.LevelChunkSection clipSection;
 
 	private static boolean isSeeThrough(Level level, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
@@ -981,7 +1117,7 @@ public class Senses {
 	}
 
 	/** Where a ray entering this block at {@code point} leaves it again, nudged just past the edge. */
-	private static Vec3 exitPoint(Vec3 point, Vec3 direction, BlockPos block) {
+	static Vec3 exitPoint(Vec3 point, Vec3 direction, BlockPos block) {
 		double exit = Double.MAX_VALUE;
 		double[] p = {point.x, point.y, point.z};
 		double[] d = {direction.x, direction.y, direction.z};

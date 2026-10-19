@@ -91,6 +91,22 @@ public class TerrainKnowledge implements KnownTerrain {
 		return bits;
 	}
 
+	/** The last few sections moved to the back of the line (a small ring). */
+	private final long[] touched = {Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE};
+	private int touchedNext;
+
+	private boolean touchedLately(long key) {
+		for (long known : this.touched) {
+			if (known == key) {
+				return true;
+			}
+		}
+
+		this.touched[this.touchedNext] = key;
+		this.touchedNext = (this.touchedNext + 1) & 7;
+		return false;
+	}
+
 	private static int index(int x, int y, int z) {
 		return (x & 15) << 8 | (y & 15) << 4 | z & 15;
 	}
@@ -107,8 +123,9 @@ public class TerrainKnowledge implements KnownTerrain {
 
 			this.lastKey = key;
 			this.lastBits = bits;
-		} else if (this.sections.lastLongKey() != key) {
-			// Touched: to the back of the line for forgetting.
+		} else if (this.sections.lastLongKey() != key && !this.touchedLately(key)) {
+			// Touched: to the back of the line for forgetting (not again for the few touched just now: its eyes go over the
+			// same few sections tick after tick, and moving them every time was a good part of an eye ray's cost; milestone 16).
 			this.sections.getAndMoveToLast(key);
 		}
 
@@ -145,8 +162,20 @@ public class TerrainKnowledge implements KnownTerrain {
 		double tMaxX = stepX == 0 ? Double.MAX_VALUE : tDeltaX * (stepX > 0 ? x + 1 - from.x : from.x - x);
 		double tMaxY = stepY == 0 ? Double.MAX_VALUE : tDeltaY * (stepY > 0 ? y + 1 - from.y : from.y - y);
 		double tMaxZ = stepZ == 0 ? Double.MAX_VALUE : tDeltaZ * (stepZ > 0 ? z + 1 - from.z : from.z - z);
+		// (The section's bits held while the walk stays in it, and touched for forgetting once a section: marking each block
+		// through the general route, most of them already known, was a fifth of an eye ray's time; milestone 16.)
+		long sectionKey = Long.MIN_VALUE;
+		BitSet bits = null;
 		for (int guard = 0; guard < 256; guard++) {
-			this.mark(x, y, z);
+			long key = SectionPos.asLong(x >> 4, y >> 4, z >> 4);
+			if (key != sectionKey) {
+				sectionKey = key;
+				this.mark(x, y, z);
+				bits = this.section(key);
+			} else {
+				bits.set(index(x, y, z));
+			}
+
 			if (x == endX && y == endY && z == endZ) {
 				return;
 			}
@@ -250,7 +279,7 @@ public class TerrainKnowledge implements KnownTerrain {
 
 					if (!looked) {
 						looked = true;
-						chunk = level.getChunkSource().getChunkNow(sx, sz);
+						chunk = com.dinglebob.drifter.world.TickChunks.get(level, sx, sz);
 					}
 
 					int index = level.getSectionIndexFromSectionY(sy);
@@ -278,6 +307,72 @@ public class TerrainKnowledge implements KnownTerrain {
 				}
 			}
 		}
+	}
+
+	/** A known block and what's there now: true to stop there. */
+	@FunctionalInterface
+	public interface KnownStateTest {
+		boolean test(BlockPos.MutableBlockPos pos, net.minecraft.world.level.block.state.BlockState state);
+	}
+
+	/**
+	 * Some known block within {@code radius} whose state passes {@code wanted} (cheap, asked first) and then {@code test},
+	 * or null: read from each chunk section directly (milestone 16: "is there any wood I know of?" asked once a second by
+	 * every Drifter exploring, through the level for every block, was most of a thousand Drifters' task time).
+	 */
+	@org.jetbrains.annotations.Nullable
+	public BlockPos anyKnownState(net.minecraft.world.level.Level level, BlockPos center, int radius, @org.jetbrains.annotations.Nullable SectionFilter sections,
+		java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> wanted, KnownStateTest test) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		int minSx = SectionPos.blockToSectionCoord(center.getX() - radius);
+		int maxSx = SectionPos.blockToSectionCoord(center.getX() + radius);
+		int minSy = SectionPos.blockToSectionCoord(center.getY() - radius);
+		int maxSy = SectionPos.blockToSectionCoord(center.getY() + radius);
+		int minSz = SectionPos.blockToSectionCoord(center.getZ() - radius);
+		int maxSz = SectionPos.blockToSectionCoord(center.getZ() + radius);
+		for (int sx = minSx; sx <= maxSx; sx++) {
+			for (int sz = minSz; sz <= maxSz; sz++) {
+				net.minecraft.world.level.chunk.LevelChunk chunk = null;
+				boolean looked = false;
+				for (int sy = minSy; sy <= maxSy; sy++) {
+					BitSet bits = this.sections.get(SectionPos.asLong(sx, sy, sz));
+					if (bits == null || sections != null && !sections.mayHave(sx, sy, sz)) {
+						continue;
+					}
+
+					if (!looked) {
+						looked = true;
+						chunk = com.dinglebob.drifter.world.TickChunks.get(level, sx, sz);
+					}
+
+					int index = level.getSectionIndexFromSectionY(sy);
+					if (chunk == null || index < 0 || index >= chunk.getSections().length) {
+						continue;
+					}
+
+					var states = chunk.getSection(index).getStates();
+					for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1)) {
+						int lx = i >> 8 & 15;
+						int ly = i >> 4 & 15;
+						int lz = i & 15;
+						var state = states.get(lx, ly, lz);
+						if (!wanted.test(state)) {
+							continue;
+						}
+
+						int x = (sx << 4) + lx;
+						int y = (sy << 4) + ly;
+						int z = (sz << 4) + lz;
+						if (Math.abs(x - center.getX()) <= radius && Math.abs(y - center.getY()) <= radius && Math.abs(z - center.getZ()) <= radius
+							&& test.test(pos.set(x, y, z), state)) {
+							return pos.immutable();
+						}
+					}
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -453,12 +548,13 @@ public class TerrainKnowledge implements KnownTerrain {
 		/** From the level's own palettes: false only if the section certainly has no block matching {@code test}. */
 		static SectionFilter palette(net.minecraft.world.level.Level level, java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> test) {
 			return (sx, sy, sz) -> {
-				if (!level.hasChunk(sx, sz)) {
+				// (The tick's shared chunk table: the general lookup was a good part of every scan; milestone 16.)
+				var chunk = com.dinglebob.drifter.world.TickChunks.get(level, sx, sz);
+				if (chunk == null) {
 					return false;
 				}
 
 				int index = level.getSectionIndexFromSectionY(sy);
-				var chunk = level.getChunk(sx, sz);
 				if (index < 0 || index >= chunk.getSections().length) {
 					return false;
 				}

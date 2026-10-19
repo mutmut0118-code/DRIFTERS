@@ -65,7 +65,7 @@ public interface NavWorld extends BlockGetter {
 			long now = this.level.getGameTime();
 			// (Looked up again each tick: a chunk unloaded and loaded again is a new object.)
 			if (key != this.lastChunkKey || now != this.lastChunkTick) {
-				this.lastChunk = this.level.getChunkSource().getChunkNow(cx, cz);
+				this.lastChunk = com.dinglebob.drifter.world.TickChunks.get(this.level, cx, cz);
 				this.lastChunkKey = key;
 				this.lastChunkTick = now;
 			}

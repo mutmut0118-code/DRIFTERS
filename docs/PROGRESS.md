@@ -75,6 +75,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
 | 13 | Whim system | In progress: engine, 27 action types, 100 vanilla whims | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
+| 16 | Scale | **In progress** (2026-10-19): helper threads for paths and eyes, crowd perception, cheaper decisions, spread-out catch-up; see "Milestone 16" below | 1000 Drifters across a world and 300 round a player at a steady 20 TPS; a 150v150 battle playable (user, 2026-10-18). |
 | 15 | House plans by the hundred | **In progress** (2026-10-17): generator v2 from 8 data-file styles, 300 checked plans per world; see "Milestone 15" below | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
 
 ## Milestone 0: Project setup
@@ -1928,3 +1929,77 @@ Questions for the user. Nothing here has been changed in the design.
     player"). Side effect: a dungeon spawner wakes when a Drifter mines nearby, as it would for you. **My
     recommendation:** keep it. Say if you'd rather have it only for blaze spawners, or behind a config setting.
 4. **Break speed computed on the Drifter (section 3).** The design says to compute mining time through the fake-player helper. I compute it on the Drifter with an exact copy of the player's formula instead, because the helper never ticks, so its Haste, Mining Fatigue and Efficiency would be out of date. The numbers are identical to a player's. No decision needed unless you want it done differently.
+
+## Milestone 16: Scale (started 2026-10-18)
+
+The user's goals: "can we put 1000 drifters in a world while keeping the TPS low and the server very smooth? Right now
+even more than 30 drifters affect the world and makes it a bit laggy ... if a 1000 isnt possible lets aim for 300", and
+"a 500v500 (or 150v150) war and it runs very smoothly with each ai working properly ... as long as 1000 drifters (across
+the world) work well then we a good". Measured on the user's PC (16 threads) with headless servers and the dev client.
+
+### Tools (for measuring)
+
+- `/drifter perf`: now also the share of travel time spent waiting for a route, how many loaded Drifters really run
+  (and how many are in chunks not ticking entities), the world copy's size, path-thread time and the battle's count.
+- `/drifter tier <full|reduced|far|auto> all`; `/drifter catchup <hours> all`; `/drifter spawnmany` up to 1000;
+  `/drifter config paththreads <-1..16>`.
+- `/drifter battle <per side> [gap]` and `/drifter battle stop`: two armed armies of Drifters (iron armor, sword or axe and
+  shield, a bow for a quarter, food) lined up facing each other; they kill the other side on sight (as Bandits) and march
+  on it out of sight; never their own side. Not saved (a test).
+- Smoke tests: `jfr <seconds> <file> [settings]` lines profile the server (Java Flight Recorder; tools/fine.jfc), and
+  `tools/jfrtop.py` reads the profile (`--within`, `--callers`, `--prefix`). The dev client test script (DRIFTER_CLIENT_TEST)
+  has `fps <ticks>` and `jfr <seconds> <file>`. Note: vanilla `/forceload` takes at most 256 chunks a command (bigger areas
+  silently fail: four tiles of 15x15), and the console runs at world spawn (use `~` coordinates).
+
+### What was slow, and what was done
+
+1. **Path searches: a shared 2 ms a tick** for all Drifters. With 300 they waited 90 to 95% of their travel time for a
+   route ("most of them stood around", the user, watching). Now searches run on helper threads (a quarter of the
+   machine's, 1 to 6; setting "Helper threads" on the new Performance page, 0 = the old way) over `nav/WorldCopy`, a
+   frozen copy of chunk sections shared by everyone, refreshed when a block changes (LevelChunk mixin; changes in a
+   search's box are copied at once before it starts), with a frozen copy of what the Drifter knows (`copyAround`) and
+   copies of what it reads of itself (tools, scaffolding, failed bridges, trails). After: 4 to 10% of travel time
+   waiting, 10x the searches done.
+2. **Crowds**: each Drifter looked properly at everyone within 160 blocks every half second (thousands of sight lines in
+   a battle). Now: nearest 24 close up, a crowd (40+ within 32 blocks) keeps to those near, a middling ring before the
+   whole of its sight, sight lines between two Drifters shared within a tick, the farther ones in a crowd every other
+   update, one sort of packed numbers.
+3. **Hearing**: every footstep reached every Drifter in earshot. Now repeats from the same creature within half a second
+   are one sound, at most 6 sounds a tick get through, wool is looked for in the sections' palettes before any ray.
+4. **Decisions**: the knowledge scan read every remembered block through the level (now straight from each section,
+   air and kinds already found skipped first, once a tick, and reused a few seconds by unwatched Drifters); goals scored
+   survival first and then by branch and bound (urgency first, planning only while a goal could still make the top
+   three); the raw-meat fallback plan is cached now; unwatched Drifters keep plans while what they carry is the same.
+   First decisions of a crowd spawned together are spread over a second (300 soldiers made one 574 ms tick).
+5. **Eyes**: near eye rays traced on the helper threads (`perception/SightWork`; it takes in what they hit next tick);
+   the "seen" marks and the mental map made cheap (the mental map scanned all 4,096 tiles on every ray once full); a
+   shared table of the tick's chunks (`world/TickChunks`) for rays, scans and route views; tunnel vision in a fight (2
+   rays); far sight less in a fight or a crowd; tier rates as in DESIGN.md section 22.
+6. **Catch-up** ran whole in one tick (up to a quarter of a second each; a hitch flying into a village): now a few slices a
+   tick in a shared 3 ms, in phases; the house site search works each ground column out once (it was 85%).
+7. **Small ones**: thoughts to the log capped at 200 a second (a battle's chatter); the black box records raw numbers (and
+   every fourth tick away from players); posture checks once a tick, blocks only; reflexes look through a short list of
+   projectiles, TNT and falling blocks kept as they come and go (`world/RareEntities`); the fake-player helper's id and
+   profile are worked out once; "any wood I know of?" reads sections directly; the registry's save list is made at save.
+
+### Results (server tick, 50 ms is the limit for 20 TPS)
+
+| Test | Before | Now |
+| --- | --- | --- |
+| 300 Drifters round a real player (dev client, radius 100) | ~30 ms, worst 1% 52 ms | 21 to 22 ms, worst 1% 33 to 36 ms; 290 FPS |
+| 150v150 battle, the clash | 56 ms, worst 1% 109 ms, one 574 ms tick | 34 ms, worst 1% 75 ms; then 17 to 29 ms |
+| 1000 loaded within 210 blocks, nobody near (Far) | ~100 ms | 70 to 76 ms |
+| 1000 loaded within 210 blocks, all at Full detail | ~105 ms | ~90 ms |
+| 60 Drifters catching up 3 days at once | ticks of 100 to 370 ms | most ticks under 10 ms |
+
+1000 Drifters across a world (most in unloaded chunks, catching up when you come) is cheap. 300 round a player is a
+steady 20 TPS. 1000 all loaded in one 400-block area is about 13 TPS, and a 500v500 battle would be well over the limit.
+
+### Next steps / design questions
+
+- **Question for the user (design):** to reach 1000 all loaded at 20 TPS, unwatched Drifters (no player within 128 blocks)
+  would have to think and look less often: their AI every other tick (their bodies still move every tick), which
+  DESIGN.md section 22 allows for the Far tier ("AI every 5 to 10 ticks") but milestone 10 decided against (it changes how
+  a Drifter plays: slower mining, coarser steering). Recommendation: try it for the Far tier only, never in a fight.
+- Sight lines for awareness on the helper threads too (the next biggest piece in battles).
+- The planner itself (crafting chains for food and progress) is the biggest part of a decision.

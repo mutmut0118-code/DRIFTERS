@@ -249,38 +249,135 @@ public final class CatchUp {
 	 * progression "real time", already capped by its own cap).
 	 */
 	public static Report run(DrifterEntity drifter, long ticks, long offlineTicks) {
+		Job job = start(drifter, ticks, offlineTicks);
+		step(job, Long.MAX_VALUE);
+		return job.report;
+	}
+
+	/**
+	 * A catch-up done a few slices at a time (milestone 16: one took up to a quarter of a second in a single tick, and a
+	 * Drifter loading with a long gap was a hitch). {@link #step} runs slices until its deadline.
+	 */
+	public static final class Job {
+		final DrifterEntity drifter;
+		final Rates r;
+		final long total;
+		public final Report report;
+		final RandomSource random;
+		final boolean bare;
+		long done;
+		/** Where it is in the slice (the slice's work is done in phases, the tick's time checked between them). */
+		int phase;
+		/** Time spent on it so far, its longest tick, and the ticks it took (for the log). */
+		public long nanos;
+		public long longest;
+		public int steps;
+
+		Job(DrifterEntity drifter, Rates r, long total, Report report, RandomSource random, boolean bare) {
+			this.drifter = drifter;
+			this.r = r;
+			this.total = total;
+			this.report = report;
+			this.random = random;
+			this.bare = bare;
+		}
+	}
+
+	public static Job start(DrifterEntity drifter, long ticks, long offlineTicks) {
 		Rates r = rates;
 		long total = Math.min(ticks, r.capTicks()) + Math.max(0L, offlineTicks);
 		Report report = new Report(total);
 		report.stageBefore = Strategist.stage(drifter);
-		RandomSource random = drifter.getRandom();
 		// (Wearing next to nothing as it set off: it picks armor up along the way, see the end.)
-		boolean bare = CatchUpArmor.worn(drifter) <= 1;
-		for (long done = 0; done < total && !report.died; done += r.sliceTicks()) {
+		return new Job(drifter, r, total, report, drifter.getRandom(), CatchUpArmor.worn(drifter) <= 1);
+	}
+
+	/** Shared between all catch-ups going on: this much of each server tick. */
+	public static final long BUDGET_NANOS_PER_TICK = 3_000_000L;
+	private static long budgetTick = Long.MIN_VALUE;
+	private static long budgetUsed;
+
+	/** What's left of this tick's catch-up time (0: wait for the next tick). */
+	public static long budgetLeft(long gameTime) {
+		if (gameTime != budgetTick) {
+			budgetTick = gameTime;
+			budgetUsed = 0L;
+		}
+
+		return Math.max(0L, BUDGET_NANOS_PER_TICK - budgetUsed);
+	}
+
+	/** Slices until {@code deadline} (System.nanoTime; at least one); true when it's all done, the ending too. */
+	public static boolean step(Job job, long deadline) {
+		long started = System.nanoTime();
+		try {
+			return stepSlices(job, deadline);
+		} finally {
+			long spent = System.nanoTime() - started;
+			job.nanos += spent;
+			job.longest = Math.max(job.longest, spent);
+			job.steps++;
+			budgetUsed += spent;
+		}
+	}
+
+	private static boolean stepSlices(Job job, long deadline) {
+		DrifterEntity drifter = job.drifter;
+		Rates r = job.r;
+		long total = job.total;
+		Report report = job.report;
+		RandomSource random = job.random;
+		boolean bare = job.bare;
+		boolean first = true;
+		while (job.done < total && !report.died) {
+			// (At least one phase each step; the tick's time is checked between phases, so no single tick takes a whole slice.)
+			if (!first && System.nanoTime() > deadline) {
+				return false;
+			}
+
+			first = false;
+			long done = job.done;
 			long slice = Math.min(r.sliceTicks(), total - done);
 			int stage = Strategist.stage(drifter);
 			double workHours = slice / 1000.0 * r.workShare();
-			gather(drifter, r, stage, workHours, random, report);
-			eat(drifter, r.foodPointsPerDay() * slice / 24000.0, report);
-			wear(drifter, r, stage, workHours, report);
-			torches(drifter, r, stage, workHours, random, report);
-			smelt(drifter, stage, report);
-			craftTowardGoals(drifter, report);
-			craftUseful(drifter, report);
-			findStructure(drifter, r, done / 24000.0, slice, random, report);
-			// A day or more out with no home: it settles where it is (found by the user: Drifters that set off at the start of
-			// the world came back days later with no hut, no chest, and so never into the iron age).
-			if (done >= SETTLE_AFTER_TICKS) {
-				settle(drifter, report);
+			switch (job.phase++) {
+				case 0 -> {
+					gather(drifter, r, stage, workHours, random, report);
+					eat(drifter, r.foodPointsPerDay() * slice / 24000.0, report);
+					wear(drifter, r, stage, workHours, report);
+					torches(drifter, r, stage, workHours, random, report);
+					smelt(drifter, stage, report);
+					continue;
+				}
+				case 1 -> {
+					craftTowardGoals(drifter, report);
+					continue;
+				}
+				case 2 -> {
+					craftUseful(drifter, report);
+					findStructure(drifter, r, done / 24000.0, slice, random, report);
+					// A day or more out with no home: it settles where it is (found by the user: Drifters that set off at the start
+					// of the world came back days later with no hut, no chest, and so never into the iron age).
+					if (done >= SETTLE_AFTER_TICKS) {
+						settle(drifter, report);
+					}
+
+					buildHut(drifter, report);
+					furnish(drifter, done / 24000.0, report);
+					continue;
+				}
+				case 3 -> {
+					// Far enough along: its house, if it has what it takes (user's request, 2026-10-17).
+					String house = CatchUpHouse.build(drifter, Strategist.stage(drifter));
+					if (house != null) {
+						report.furnished.add(house);
+					}
+
+					continue;
+				}
+				default -> job.phase = 0;
 			}
 
-			buildHut(drifter, report);
-			furnish(drifter, done / 24000.0, report);
-			// Far enough along: its house, if it has what it takes (user's request, 2026-10-17).
-			String house = CatchUpHouse.build(drifter, Strategist.stage(drifter));
-			if (house != null) {
-				report.furnished.add(house);
-			}
 			placeChest(drifter, report);
 			// Its best armor and shield on before anything goes in the chest (or spares and its best both went in).
 			com.dinglebob.drifter.executor.task.WearArmorTask.equipAllNow(drifter);
@@ -294,10 +391,21 @@ public final class CatchUp {
 			if (random.nextDouble() < deathChance(drifter, r, stage, slice)) {
 				die(drifter, report);
 			}
+
+			job.done += r.sliceTicks();
 		}
 
 		report.stageAfter = Strategist.stage(drifter);
-		if (bare && !report.died) {
+		finish(job);
+		return true;
+	}
+
+	private static void finish(Job job) {
+		DrifterEntity drifter = job.drifter;
+		Report report = job.report;
+		RandomSource random = job.random;
+		long total = job.total;
+		if (job.bare && !report.died) {
 			for (Item piece : CatchUpArmor.find(drifter, total / 24000.0, report.stageAfter, random)) {
 				report.looted.merge(piece, 1, Integer::sum);
 			}
@@ -313,7 +421,6 @@ public final class CatchUp {
 		goHome(drifter);
 		drifter.getDrifterBrain().restart("caught up");
 		drifter.getMemory().thoughts().add(drifter.level().getGameTime(), report.describe());
-		return report;
 	}
 
 	// ---------------------------------------------------------------------------------------------

@@ -130,6 +130,8 @@ public final class DrifterCommands {
 			java.util.Map<DetailTier, Integer> tiers = new java.util.EnumMap<>(DetailTier.class);
 			int all = 0;
 			int moving = 0;
+			int running = 0;
+			int notTicking = 0;
 			for (net.minecraft.server.level.ServerLevel level : ctx.getSource().getServer().getAllLevels()) {
 				for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
 					tiers.merge(drifter.tier(), 1, Integer::sum);
@@ -137,10 +139,19 @@ public final class DrifterCommands {
 					if (drifter.getDeltaMovement().horizontalDistanceSqr() > 0.0025) {
 						moving++;
 					}
+
+					if (level.getGameTime() - drifter.lastAiTick <= 20) {
+						running++;
+					}
+
+					if (!level.isPositionEntityTicking(drifter.blockPosition())) {
+						notTicking++;
+					}
 				}
 			}
 
-			String activity = String.format(java.util.Locale.ROOT, "%d of %d moving right now; %s", moving, all,
+			String activity = String.format(java.util.Locale.ROOT, "%d of %d running (%d in chunks not ticking entities), %d moving right now; %s", running, all,
+				notTicking, moving,
 				com.dinglebob.drifter.executor.task.NavigateTask.waitingReport());
 
 			String counts = tiers.isEmpty() ? "none loaded" : tiers.entrySet().stream()
@@ -160,7 +171,23 @@ public final class DrifterCommands {
 				var report = com.dinglebob.drifter.world.CatchUp.run(drifter, hours * 1000L);
 				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " " + report.describe()), false);
 				return 1;
-			})));
+			})
+			// Every loaded Drifter catches up as if back after that long, the way they do when their land loads (a few
+			// slices a tick each; debug, milestone 16).
+			.then(Commands.literal("all").executes(ctx -> {
+				int hours = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "hours");
+				int count = 0;
+				for (net.minecraft.server.level.ServerLevel level : ctx.getSource().getServer().getAllLevels()) {
+					for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
+						drifter.addPendingCatchUp(hours * 1000L);
+						count++;
+					}
+				}
+
+				int all = count;
+				ctx.getSource().sendSuccess(() -> Component.literal(all + " Drifters will catch up on " + hours + " hours"), false);
+				return all;
+			}))));
 		// Force the nearest Drifter's detail tier (debug; "auto" goes back to choosing by distance).
 		root.then(Commands.literal("tier").then(Commands.argument("tier", com.mojang.brigadier.arguments.StringArgumentType.word())
 			.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("auto", "full", "reduced", "far"), builder))

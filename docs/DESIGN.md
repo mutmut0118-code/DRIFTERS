@@ -1693,8 +1693,13 @@ rest still never load chunks.
 
 As built (milestone 10, from measuring with `/drifter perf`): the body (movement keys, path following, danger checks,
 combat) runs every tick in every tier, since cutting it changes how a Drifter plays; "AI every few ticks" is how often
-it re-thinks its goals (every 1 s Full, 1.5 s Reduced, 2 s Far), and Far casts 4 eye rays a tick instead of 6. Most of
-the cost turned out to be planning and searching, which were made cheaper for every tier instead.
+it re-thinks its goals (every 1 s Full, 1.5 s Reduced, 2 s Far). Most of the cost turned out to be planning and
+searching, which were made cheaper for every tier instead.
+
+As built (milestone 16): eye rays a tick 6 Full (12 with a player in view), 4 Reduced, 1 Far; Far also re-ranks its
+attention every second instead of every half second, updates what it's watching every fourth tick instead of every
+second, and casts far sight every fourth tick; a fight always puts a Drifter at Full. Away from players its knowledge
+scan and plans are reused for a few seconds while it stays about where it was.
 
 ### Catch-up simulation
 
@@ -1904,6 +1909,12 @@ Each milestone ends with a test you can actually run.
 12. **Groups, modpack factions, camps, config polish.**
 13. **Whim system.** Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md, vanilla first and modded whims behind mod detection. Can start any time after milestone 9. Whims that need The End (elytra, shulkers, the void's edge) stay off until milestone 14. (Swapped with The End by the user, 2026-10-16.)
 14. **The End** (optional).
+15. **House plans by the hundred** (user, 2026-10-17; see PROGRESS.md).
+16. **Scale** (user, 2026-10-18: "can we put 1000 drifters in a world while keeping the TPS low and the server very
+    smooth? ... if a 1000 isnt possible lets aim for 300"; and "a 500v500 (or 150v150) war and it runs very smoothly with
+    each ai working properly"). Path searches and near eye rays on helper threads over a shared frozen copy of the world;
+    crowd-aware perception; cheaper decisions; catch-up spread over ticks. *Done when* 1000 Drifters across a world and
+    300 round a player run at a steady 20 TPS, and a 150v150 battle (`/drifter battle 150`) stays playable.
 
 Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 14 (The End). They are tests, not milestones of their own.
 

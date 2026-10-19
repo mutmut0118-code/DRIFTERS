@@ -122,7 +122,10 @@ public final class WorldCopy {
 				copy.columns.remove(chunk.getPos().toLong());
 			}
 		});
-		ServerLifecycleEvents.SERVER_STOPPED.register(server -> levels.clear());
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			levels.clear();
+			com.dinglebob.drifter.world.TickChunks.clear();
+		});
 	}
 
 	/** A block in this level changed (or its placed/built marks did): its section is copied again at the end of the tick. */

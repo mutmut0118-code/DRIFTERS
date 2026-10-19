@@ -1298,7 +1298,7 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			this.projectile = null;
 			Vec3 eye = drifter.getEyePosition();
-			List<Projectile> flying = drifter.level().getEntitiesOfClass(Projectile.class, new AABB(eye, eye).inflate(RANGE),
+			List<Projectile> flying = com.dinglebob.drifter.world.RareEntities.near(drifter.level(), Projectile.class, new AABB(eye, eye).inflate(RANGE),
 				p -> (p instanceof AbstractArrow arrow && !((AbstractArrowAccessor)arrow).drifter$isInGround() || p instanceof AbstractHurtingProjectile)
 					&& p.getOwner() != drifter);
 			flying.sort(Comparator.comparingDouble(p -> p.distanceToSqr(drifter)));
@@ -1598,7 +1598,7 @@ public class Reflexes {
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
 			AABB column = drifter.getBoundingBox().expandTowards(0.0, 6.0, 0.0);
-			return !drifter.level().getEntitiesOfClass(FallingBlockEntity.class, column, block -> block.getY() > drifter.getEyeY()).isEmpty();
+			return !com.dinglebob.drifter.world.RareEntities.near(drifter.level(), FallingBlockEntity.class, column, block -> block.getY() > drifter.getEyeY()).isEmpty();
 		}
 
 		@Override
@@ -1770,7 +1770,7 @@ public class Reflexes {
 		@Override
 		protected boolean detect(DrifterEntity drifter) {
 			Vec3 eye = drifter.getEyePosition();
-			this.tnt = drifter.level().getEntitiesOfClass(PrimedTnt.class, drifter.getBoundingBox().inflate(DANGER_RANGE),
+			this.tnt = com.dinglebob.drifter.world.RareEntities.near(drifter.level(), PrimedTnt.class, drifter.getBoundingBox().inflate(DANGER_RANGE),
 				primed -> drifter.level().clip(new ClipContext(eye, primed.position().add(0.0, 0.5, 0.0), ClipContext.Block.COLLIDER,
 					ClipContext.Fluid.NONE, drifter)).getType() == HitResult.Type.MISS).stream().findFirst().orElse(null);
 			return this.tnt != null;

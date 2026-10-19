@@ -133,10 +133,22 @@ public final class KnownWorld {
 			return cached;
 		}
 
+		// Nobody close enough to watch it: the scan holds for a few seconds while it stays about where it was (what it knows
+		// of round it barely changes in that time; milestone 16, a thousand Drifters).
+		if (cached != null && drifter.tier() != com.dinglebob.drifter.entity.DetailTier.FULL && now - cached.scannedAt < UNWATCHED_REUSE_TICKS
+			&& now >= cached.scannedAt && cached.scannedFrom.closerThan(drifter.blockPosition(), UNWATCHED_REUSE_DISTANCE)) {
+			return cached;
+		}
+
 		KnownWorld world = new KnownWorld(drifter);
 		drifter.getDrifterBrain().knownWorldCache = world;
 		return world;
 	}
+
+	/** How long a scan holds for a Drifter nobody's watching (staying put). */
+	private static final long UNWATCHED_REUSE_TICKS = 100;
+	/** ...within this of where it was taken (a third of the scan's reach). */
+	private static final double UNWATCHED_REUSE_DISTANCE = 8.0;
 
 	/** When and where it was taken (for the one-a-tick cache). */
 	private long scannedAt;
@@ -192,18 +204,11 @@ public final class KnownWorld {
 		long now = level.getGameTime();
 		Blacklist blacklist = drifter.getDrifterBrain().blacklist();
 		TreeLogs treeCheck = new TreeLogs(level);
-		return drifter.getSenses().terrain().anyKnown(drifter.blockPosition(), RADIUS,
-			com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level, filter), pos -> {
-				if (!level.isLoaded(pos)) {
-					return false;
-				}
-
-				BlockState state = level.getBlockState(pos);
+		return drifter.getSenses().terrain().anyKnownState(level, drifter.blockPosition(), RADIUS,
+			com.dinglebob.drifter.perception.TerrainKnowledge.SectionFilter.palette(level, filter), filter, (pos, state) ->
 				// (Wood only from trees, as the scan counts it: found in a 10-day run, its own hut's log corner posts ended
 				// every "looking for trees" at once, and the planner sent it looking again, for days.)
-				return filter.test(state) && takeable(level, pos, state, blacklist, now)
-					&& !(state.is(net.minecraft.tags.BlockTags.LOGS) && !treeCheck.check(pos));
-			}) != null;
+				takeable(level, pos, state, blacklist, now) && !(state.is(net.minecraft.tags.BlockTags.LOGS) && !treeCheck.check(pos))) != null;
 	}
 
 	/** An adult animal it can see or saw in the last half minute. */

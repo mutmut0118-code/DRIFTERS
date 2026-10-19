@@ -1045,7 +1045,8 @@ public class DrifterEntity extends PathfinderMob {
 
 	/** Runs inside Mob#serverAiStep, before the (idle) vanilla controls. This is where the motor drives the body. */
 	@Override
-	protected void customServerAiStep() {
+protected void customServerAiStep() {
+		this.lastAiTick = this.level().getGameTime();
 		long started = System.nanoTime();
 		super.customServerAiStep();
 		this.delverDespawn();
@@ -1073,25 +1074,35 @@ public class DrifterEntity extends PathfinderMob {
 		// Perception first (it writes memory), then the executor acts, then the motor moves the body.
 		// Back after its area was unloaded a while: it catches up on that time first (section 22; config: offline progression).
 		if (this.lastActive >= 0L || this.pendingCatchUp > 0L) {
-			// Catch-ups take turns, one every few server ticks (a burst of new ones loading at once was a lag spike: user, 2026-10-17,
-			// "10 to 60 drifters ... making everything slow down"). It waits its turn standing still.
-			long tick = this.level().getGameTime();
-			if (tick - catchUpTick < CATCH_UP_SPACING && tick >= catchUpTick) {
-				return;
-			}
-
-			catchUpTick = tick;
 			long gap = (this.lastActive >= 0L ? this.level().getGameTime() - this.lastActive : 0L) + this.pendingCatchUp;
 			this.pendingCatchUp = 0L;
 			long offline = this.lastActive >= 0L ? com.dinglebob.drifter.world.OfflineClock.offlineTicksFor(this.lastActive) : 0L;
 			this.lastActive = -1L;
 			if (com.dinglebob.drifter.DrifterConfig.offlineProgression() != com.dinglebob.drifter.DrifterConfig.OfflineProgression.OFF
 				&& gap + offline >= com.dinglebob.drifter.world.CatchUp.minGapTicks()) {
-				long before = System.nanoTime();
-				String what = com.dinglebob.drifter.world.CatchUp.run(this, gap, offline).describe();
-				com.dinglebob.drifter.Drifter.LOGGER.info("{} catches up ({} ms): {}", this.getName().getString(),
-					String.format(java.util.Locale.ROOT, "%.1f", (System.nanoTime() - before) / 1.0E6), what);
+				this.catchUpJob = com.dinglebob.drifter.world.CatchUp.start(this, gap, offline);
 			}
+		}
+
+		// Catching up: a few slices a tick, in a share of the tick all catch-ups split (milestone 16: one used to run whole in
+		// one tick, up to a quarter of a second; a burst of them loading at once was a lag spike: user, 2026-10-17, "10 to 60
+		// drifters ... making everything slow down"). It waits standing still till it's done, a second or two.
+		if (this.catchUpJob != null) {
+			long left = com.dinglebob.drifter.world.CatchUp.budgetLeft(this.level().getGameTime());
+			if (left <= 0L && this.catchUpWaited++ < 40) {
+				return;
+			}
+
+			this.catchUpWaited = 0;
+			if (!com.dinglebob.drifter.world.CatchUp.step(this.catchUpJob, System.nanoTime() + left)) {
+				return;
+			}
+
+			var job = this.catchUpJob;
+			this.catchUpJob = null;
+			com.dinglebob.drifter.Drifter.LOGGER.info("{} catches up ({} ms over {} ticks, at most {} ms in one): {}", this.getName().getString(),
+				String.format(java.util.Locale.ROOT, "%.1f", job.nanos / 1.0E6), job.steps, String.format(java.util.Locale.ROOT, "%.1f", job.longest / 1.0E6),
+				job.report.describe());
 		}
 
 		if ((this.tickCount + this.getId()) % 20 == 0) {
@@ -1146,7 +1157,8 @@ public class DrifterEntity extends PathfinderMob {
 		com.dinglebob.drifter.motor.Steering.noSprintInWater(this);
 		this.applyMovementKeys();
 		t = System.nanoTime();
-		if (this.traceTicks <= 0 && com.dinglebob.drifter.memory.ThoughtLog.echo) {
+		// (Every tick near a player; every fourth with nobody near, still plenty to see how it died.)
+		if (this.traceTicks <= 0 && com.dinglebob.drifter.memory.ThoughtLog.echo && (this.tier == DetailTier.FULL || this.tickCount % 4 == 0)) {
 			// Debug black box: with thoughts going to the log, the last few seconds are kept (raw: written out only if it
 			// dies, and the step's description only when the step changes; formatting a line every tick for every Drifter was
 			// a twentieth of a battle's time; milestone 16).
@@ -1485,7 +1497,8 @@ public class DrifterEntity extends PathfinderMob {
 		if (!here.equals(this.fitCheckedAt) || this.tickCount != this.fitCheckedTick) {
 			this.fitCheckedAt = here;
 			this.fitCheckedTick = this.tickCount;
-			this.standingFits = this.level().noCollision(this, this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
+			// (Blocks only: whether a boat or a shulker box would let it stand up isn't worth an entity search a tick.)
+			this.standingFits = this.level().noBlockCollision(this, this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
 		}
 
 		if (this.standingFits && this.getDimensions(pose).height() <= this.getDimensions(Pose.STANDING).height()
@@ -1493,7 +1506,7 @@ public class DrifterEntity extends PathfinderMob {
 			return true;
 		}
 
-		return this.level().noCollision(this, this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
+		return this.level().noBlockCollision(this, this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
 	}
 
 	/** Its fake-player helper's id and profile, worked out once (FakePlayerBridge). */
@@ -1503,6 +1516,14 @@ public class DrifterEntity extends PathfinderMob {
 	public java.util.UUID helperIdFor;
 	@org.jetbrains.annotations.Nullable
 	public com.mojang.authlib.GameProfile helperProfile;
+
+	/** When its AI last ran (for `/drifter perf`: how many of the loaded are really running). */
+	public long lastAiTick = Long.MIN_VALUE;
+
+	/** A catch-up under way (CatchUp.Job), done a few slices a tick. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.world.CatchUp.Job catchUpJob;
+	private int catchUpWaited;
 
 	@org.jetbrains.annotations.Nullable
 	private Vec3 fitCheckedAt;

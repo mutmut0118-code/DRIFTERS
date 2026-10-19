@@ -114,8 +114,16 @@ public final class DrifterRegistry {
 			return state;
 		}
 
+		/** Built here, when the world is actually saved, not every time something changed (milestone 16: 1000 Drifters). */
+		boolean fresh;
+
 		@Override
 		public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+			if (this.fresh) {
+				this.list = listOf();
+				this.fresh = false;
+			}
+
 			tag.put("Drifters", this.list);
 			return tag;
 		}
@@ -126,6 +134,13 @@ public final class DrifterRegistry {
 	}
 
 	private static void save(MinecraftServer server) {
+		State state = state(server);
+		state.fresh = true;
+		state.setDirty();
+		dirty = false;
+	}
+
+	private static ListTag listOf() {
 		ListTag list = new ListTag();
 		for (Known k : known.values()) {
 			CompoundTag tag = new CompoundTag();
@@ -137,10 +152,7 @@ public final class DrifterRegistry {
 			list.add(tag);
 		}
 
-		State state = state(server);
-		state.list = list;
-		state.setDirty();
-		dirty = false;
+		return list;
 	}
 
 	private static void load(MinecraftServer server) {

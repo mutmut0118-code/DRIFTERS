@@ -394,6 +394,7 @@ public class Brain {
 		// best is taken as it is), so the rest aren't scored at all (in a battle every soldier worked out crafting plans and
 		// whims every second; the first decisions of 300 soldiers took half a second in one tick).
 		boolean survivalDecided = false;
+		List<Goals.Goal> rest = new ArrayList<>();
 		for (Goals.Goal goal : this.orderedGoals()) {
 			if (survivalDecided && !FIRST_GOALS.contains(goal.id()) && goal != this.current) {
 				continue;
@@ -410,26 +411,47 @@ public class Brain {
 				}
 			}
 
+			if (FIRST_GOALS.contains(goal.id())) {
+				scores.add(this.scoreOne(goal, context, now, nether, Double.NaN));
+			} else {
+				rest.add(goal);
+			}
+		}
+
+		// The rest by branch and bound (milestone 16: scoring every goal of every Drifter was a decision's dearest part, with
+		// a thousand of them). Each one's urgency first (how much it would like to: cheap), then, the most wanted first,
+		// whether it can and at what risk (the planning: dear) only while it could still make the top three. Feasibility and
+		// risk are at most 1, so its urgency, plus the jitter and (for the one it's on) the commitment bonus, is the most it
+		// could score. The one it's on is always scored in full (switching away from it weighs its score).
+		double[] urgencies = new double[rest.size()];
+		Integer[] order = new Integer[rest.size()];
+		for (int i = 0; i < urgencies.length; i++) {
+			Goals.Goal goal = rest.get(i);
 			long t = System.nanoTime();
-			// In the Nether, only what makes sense there (no settling, farming or night shelters).
-			double base = nether && !NetherGoals.IN_THE_NETHER.contains(goal.id()) ? 0.0 : goal.score(context);
-			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t, () -> this.drifter.getName().getString() + ": goal " + goal.id());
-			if (base > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
-				// Failing again and again (found in testing: "gather cobblestone" on ground with no stone failed and was picked
-				// again every few ticks, 1,851 times): it leaves it alone for a while. Not fights and escapes: those it keeps at.
-				base *= this.failedInARow.getOrDefault(goal.id(), 0) >= FAILURES_BEFORE_REST && !goal.urgent(context) ? 0.0 : FAILED_PENALTY;
+			urgencies[i] = nether && !NetherGoals.IN_THE_NETHER.contains(goal.id()) ? 0.0 : goal.urgency(context);
+			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t,
+				() -> this.drifter.getName().getString() + ": urgency of " + goal.id());
+			order[i] = i;
+		}
+
+		java.util.Arrays.sort(order, (a, b) -> Double.compare(urgencies[b], urgencies[a]));
+		double[] top3 = {-1.0, -1.0, -1.0};
+		for (Scored scored : scores) {
+			keepTop3(top3, scored.score());
+		}
+
+		for (Integer i : order) {
+			Goals.Goal goal = rest.get(i);
+			double urgency = urgencies[i];
+			double bound = urgency <= 0.0 ? 0.0 : urgency + JITTER + (goal == this.current ? COMMITMENT_BONUS : 0.0);
+			if (goal != this.current && (urgency <= 0.0 || bound < top3[2])) {
+				scores.add(new Scored(goal, goal.name(context), 0.0, false, 0.0));
+				continue;
 			}
 
-			double score = base;
-			if (goal == this.current && base > 0.0) {
-				score += COMMITMENT_BONUS;
-			}
-
-			if (base > 0.0) {
-				score += (this.drifter.getRandom().nextDouble() * 2.0 - 1.0) * JITTER;
-			}
-
-			scores.add(new Scored(goal, goal.name(context), Math.max(0.0, score), goal.urgent(context), base));
+			Scored scored = this.scoreOne(goal, context, now, nether, urgency);
+			keepTop3(top3, scored.score());
+			scores.add(scored);
 		}
 
 		scores.sort(Comparator.comparingDouble(Scored::score).reversed());
@@ -473,6 +495,52 @@ public class Brain {
 
 		if (chosen != null) {
 			this.start(chosen, scores, context, now);
+		}
+	}
+
+	/** One goal's score now ({@code urgency} if already worked out, else NaN). */
+	private Scored scoreOne(Goals.Goal goal, Goals.Context context, long now, boolean nether, double urgency) {
+		long t = System.nanoTime();
+		// In the Nether, only what makes sense there (no settling, farming or night shelters).
+		double base;
+		if (nether && !NetherGoals.IN_THE_NETHER.contains(goal.id())) {
+			base = 0.0;
+		} else if (Double.isNaN(urgency)) {
+			base = goal.score(context);
+		} else {
+			base = urgency <= 0.0 ? 0.0 : urgency * goal.feasibility(context) * goal.risk(context);
+		}
+
+		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t, () -> this.drifter.getName().getString() + ": goal " + goal.id());
+		if (base > 0.0 && this.failedUntil.getOrDefault(goal.id(), 0L) > now) {
+			// Failing again and again (found in testing: "gather cobblestone" on ground with no stone failed and was picked
+			// again every few ticks, 1,851 times): it leaves it alone for a while. Not fights and escapes: those it keeps at.
+			base *= this.failedInARow.getOrDefault(goal.id(), 0) >= FAILURES_BEFORE_REST && !goal.urgent(context) ? 0.0 : FAILED_PENALTY;
+		}
+
+		double score = base;
+		if (goal == this.current && base > 0.0) {
+			score += COMMITMENT_BONUS;
+		}
+
+		if (base > 0.0) {
+			score += (this.drifter.getRandom().nextDouble() * 2.0 - 1.0) * JITTER;
+		}
+
+		return new Scored(goal, goal.name(context), Math.max(0.0, score), goal.urgent(context), base);
+	}
+
+	/** Keeps the three highest scores, highest first. */
+	private static void keepTop3(double[] top3, double score) {
+		if (score > top3[0]) {
+			top3[2] = top3[1];
+			top3[1] = top3[0];
+			top3[0] = score;
+		} else if (score > top3[1]) {
+			top3[2] = top3[1];
+			top3[1] = score;
+		} else if (score > top3[2]) {
+			top3[2] = score;
 		}
 	}
 

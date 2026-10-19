@@ -135,6 +135,7 @@ public final class Goals {
 		private long checkedAt = -1;
 		private long plannedAt = Long.MIN_VALUE / 2;
 		private long planKey;
+		private long planLoose;
 
 		protected abstract List<Item> items(Context context);
 
@@ -147,8 +148,14 @@ public final class Goals {
 				List<Item> items = this.items(context);
 				int count = items.isEmpty() ? 0 : this.count(context);
 				long key = planInputs(context, items, count);
-				if (key != this.planKey || now - this.plannedAt >= PLAN_REUSE_TICKS) {
+				// Nobody near to watch it: what it knows round it shifting as it walks (one more kind of flower in sight) doesn't
+				// call for a new plan; what it carries or has at home changing does (milestone 16).
+				long loose = carriedInputs(context, items, count);
+				boolean unwatched = context.drifter().tier() != com.dinglebob.drifter.entity.DetailTier.FULL;
+				boolean stillGood = now - this.plannedAt < reuseTicks(context) && (key == this.planKey || unwatched && loose == this.planLoose);
+				if (!stillGood) {
 					this.planKey = key;
+					this.planLoose = loose;
 					this.plannedAt = now;
 					this.plan = items.isEmpty() ? Planner.INFEASIBLE : Planner.plan(context.drifter(), context.world(), items, count);
 				}
@@ -157,8 +164,30 @@ public final class Goals {
 			return this.plan;
 		}
 
+		/**
+		 * How long a plan holds with nothing it comes from changed: longer for one nobody's watching (milestone 16: planning
+		 * was most of a decision's time with a thousand Drifters; what it carries and knows is in the key either way).
+		 */
+		static long reuseTicks(Context context) {
+			return context.drifter().tier() == com.dinglebob.drifter.entity.DetailTier.FULL ? PLAN_REUSE_TICKS : PLAN_REUSE_TICKS * 3;
+		}
+
+		/** {@link #planInputs} without what it knows round it. */
+		static long carriedInputs(Context context, List<Item> items, int count) {
+			long key = items.hashCode() * 31L + count;
+			var inventory = context.drifter().getInventory();
+			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+				ItemStack stack = inventory.getItem(slot);
+				key = key * 31L + (stack.isEmpty() ? 0 : net.minecraft.core.registries.BuiltInRegistries.ITEM.getId(stack.getItem()) * 100L + stack.getCount());
+			}
+
+			key = key * 31L + context.drifter().getDrifterBrain().furnaceJobs().size();
+			Home home = context.drifter().getDrifterBrain().home();
+			return key * 31L + (home == null ? 0 : home.storedSignature() * 2L + (home.near(context.drifter(), Home.STORAGE_RANGE) ? 1 : 0));
+		}
+
 		/** A fingerprint of what a plan comes from: the goal's items, what it carries, what it knows round it, its furnaces. */
-		private static long planInputs(Context context, List<Item> items, int count) {
+		static long planInputs(Context context, List<Item> items, int count) {
 			long key = items.hashCode() * 31L + count;
 			var inventory = context.drifter().getInventory();
 			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
@@ -315,9 +344,22 @@ public final class Goals {
 				return cooked;
 			}
 
-			Planner.Plan raw = Planner.plan(context.drifter(), context.world(), RAW, 2);
-			return raw.feasible() ? raw : cooked;
+			// (Kept like the cooked one: worked out afresh at every decision, it was the dearest part of deciding.)
+			long now = context.drifter().level().getGameTime();
+			long key = planInputs(context, RAW, 2);
+			if (this.rawPlan == null || key != this.rawKey || now - this.rawAt >= reuseTicks(context)) {
+				this.rawKey = key;
+				this.rawAt = now;
+				this.rawPlan = Planner.plan(context.drifter(), context.world(), RAW, 2);
+			}
+
+			return this.rawPlan.feasible() ? this.rawPlan : cooked;
 		}
+
+		@Nullable
+		private Planner.Plan rawPlan;
+		private long rawKey;
+		private long rawAt = Long.MIN_VALUE / 2;
 
 		@Override
 		public double urgency(Context context) {

@@ -87,7 +87,10 @@ public class DrifterConfigScreen extends Screen {
 
 		// How common each kind of new Drifter is, and the most loaded at once: their own page.
 		this.addRenderableWidget(Button.builder(Component.literal("Spawning..."), button -> this.minecraft.setScreen(new DrifterSpawnScreen(this)))
-			.bounds(this.width / 2 - 100, this.height - 52, 200, 20).build());
+			.bounds(this.width / 2 - 100, this.height - 52, 98, 20).build());
+		// Helper threads (milestone 16): their own page.
+		this.addRenderableWidget(Button.builder(Component.literal("Performance..."), button -> this.minecraft.setScreen(new DrifterPerformanceScreen(this)))
+			.bounds(this.width / 2 + 2, this.height - 52, 98, 20).build());
 		this.addRenderableWidget(Button.builder(Component.literal("Done"), button -> this.onClose())
 			.bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
 	}

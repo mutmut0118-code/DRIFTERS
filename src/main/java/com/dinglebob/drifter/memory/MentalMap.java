@@ -36,17 +36,24 @@ public class MentalMap {
 		}
 	}
 
-	private final Map<Long, Tile> tiles = new LinkedHashMap<>();
+	/**
+	 * Oldest seen first (each one seen moves to the back), so the one to forget is always the first (milestone 16: once full,
+	 * finding the oldest went through all 4,096 for every block an eye ray hit).
+	 */
+	private final it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<Tile> tiles = new it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap<>();
 
 	public Tile explore(ChunkPos chunk, long now) {
-		Tile tile = this.tiles.computeIfAbsent(chunk.toLong(), key -> new Tile());
-		tile.lastSeen = now;
-		if (this.tiles.size() > MAX_TILES) {
-			this.tiles.entrySet().stream()
-				.min(Comparator.comparingLong(entry -> entry.getValue().lastSeen))
-				.ifPresent(oldest -> this.tiles.remove(oldest.getKey()));
+		long key = chunk.toLong();
+		Tile tile = this.tiles.getAndMoveToLast(key);
+		if (tile == null) {
+			tile = new Tile();
+			this.tiles.putAndMoveToLast(key, tile);
+			while (this.tiles.size() > MAX_TILES) {
+				this.tiles.removeFirst();
+			}
 		}
 
+		tile.lastSeen = now;
 		return tile;
 	}
 

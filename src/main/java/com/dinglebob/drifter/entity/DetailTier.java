@@ -13,11 +13,18 @@ import net.minecraft.world.phys.Vec3;
  */
 public enum DetailTier {
 	/** A player within {@link #FULL_RANGE} blocks, or one looking its way: everything. */
-	FULL(6, 20),
-	/** No player within {@link #FULL_RANGE}: no mannerisms, re-thinks every 1.5 s. */
-	REDUCED(6, 30),
-	/** No player within {@link #REDUCED_RANGE}: fewer eye rays too, re-thinks every 2 s. */
-	FAR(4, 40);
+	FULL(6, 20, 1),
+	/**
+	 * No player within {@link #FULL_RANGE}: no mannerisms, fewer eye rays, re-thinks every 1.5 s. (Milestone 16, a thousand
+	 * Drifters: 4 rays, was 6.)
+	 */
+	REDUCED(4, 30, 1),
+	/**
+	 * No player within {@link #REDUCED_RANGE}: fewer eye rays still (1, was 4), far sight every fourth tick, re-ranks what
+	 * it's watching every second and updates it every fourth tick, re-thinks every 2 s. Nobody's there to see the difference;
+	 * a fight puts it back to full.
+	 */
+	FAR(1, 40, 2);
 
 	public static final double FULL_RANGE = 48.0;
 	public static final double REDUCED_RANGE = 128.0;
@@ -28,10 +35,13 @@ public enum DetailTier {
 	public final int blockRays;
 	/** Ticks between re-scoring its goals (danger is still checked every 5). */
 	public final int rescoreTicks;
+	/** How much slower than full detail it re-ranks and updates what it's watching, and casts far sight. */
+	public final int senseSlowdown;
 
-	DetailTier(int blockRays, int rescoreTicks) {
+	DetailTier(int blockRays, int rescoreTicks, int senseSlowdown) {
 		this.blockRays = blockRays;
 		this.rescoreTicks = rescoreTicks;
+		this.senseSlowdown = senseSlowdown;
 	}
 
 	public boolean mannerisms() {

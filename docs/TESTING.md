@@ -1382,6 +1382,23 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] New huts and houses: chests face into the room, two chests side by side make a double chest, and the hut torch is
       on the wall, not a window.
 
+## Milestone 16: lots of Drifters (new)
+
+The goal: 1000 Drifters across a world and 300 round you at a smooth 20 TPS, and big battles. Nothing to switch on.
+- [ ] `/drifter spawnmany 300 100` round you (in creative, so they leave you be). The game stays smooth; `/drifter perf`
+      shows the server's time a tick (under 50 ms is 20 TPS) and "Activity": most should be moving about, very little
+      time "waiting for a route" (it was 90%: "most of them stood around").
+- [ ] `/drifter battle 150` (two armies of 150 facing each other, 24 blocks apart, in iron with swords, shields and some
+      bows): they fight the other side, never their own, chase and march on the enemy; the first clash is the heaviest
+      moment; `/drifter perf` shows how many stand on each side. `/drifter battle stop` ends it (they go on with life).
+      Try 50, then 150; 500 a side will be slow.
+- [ ] Flying fast over the world with Drifters in it (camps, villages): no freezes when their land loads (catch-up is
+      spread over a second or two; they stand still till it's done).
+- [ ] Settings (Mod Menu): a new "Performance..." page with "Helper threads" (automatic: a quarter of your PC's; "off"
+      is the old way, all on the server thread).
+- [ ] Anything that looks worse than before: Drifters standing about, not noticing you, odd routes. They now see the
+      world a tick (50 ms) late, plan on a copy of the world, and Drifters far from every player see a little less.
+
 ## Mineshaft delvers (new)
 
 - [ ] Go into a mineshaft (in a cave, or `/drifter locate mineshaft` puts you in the nearest one's middle room). In
