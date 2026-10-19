@@ -87,6 +87,25 @@ public final class DrifterCommands {
 				.then(Commands.argument("gap", IntegerArgumentType.integer(4, 200))
 					.executes(ctx -> battle(ctx, IntegerArgumentType.getInteger(ctx, "perSide"), IntegerArgumentType.getInteger(ctx, "gap"))))));
 
+		// Drifters each sent to a spot some way off over the ground round you (milestone 17 test: getting about on rough
+		// ground), its report, its end.
+		root.then(Commands.literal("navtest")
+			.then(Commands.literal("stop").executes(ctx -> {
+				int count = com.dinglebob.drifter.world.NavTest.stop();
+				ctx.getSource().sendSuccess(() -> Component.literal("Walking test over (" + count + " Drifters)"), true);
+				return count;
+			}))
+			.then(Commands.argument("count", IntegerArgumentType.integer(1, 200))
+				.then(Commands.argument("radius", IntegerArgumentType.integer(1, 200))
+					.then(Commands.argument("distance", IntegerArgumentType.integer(4, 300))
+						.executes(ctx -> {
+							int count = com.dinglebob.drifter.world.NavTest.start(ctx.getSource().getLevel(), ctx.getSource().getPosition(),
+								IntegerArgumentType.getInteger(ctx, "count"), IntegerArgumentType.getInteger(ctx, "radius"),
+								IntegerArgumentType.getInteger(ctx, "distance"));
+							ctx.getSource().sendSuccess(() -> Component.literal("Walking test: " + count + " Drifters, off in 4 s; /drifter perf shows how it goes"), true);
+							return count;
+						})))));
+
 		// Drifters each on a different whim round you (milestone 16 test: every kind of action at once), its report, its end.
 		root.then(Commands.literal("whimtest")
 			.then(Commands.literal("stop").executes(ctx -> {
@@ -181,10 +200,11 @@ public final class DrifterCommands {
 			String speed = com.dinglebob.drifter.nav.PathBudget.speedReport();
 			String battle = com.dinglebob.drifter.world.Battle.report(ctx.getSource().getServer());
 			String whims = com.dinglebob.drifter.world.WhimTest.report();
+			String walks = com.dinglebob.drifter.world.NavTest.report();
 			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts
 				+ "\nPath search speed: " + speed + "\nWorld copy for path threads (" + com.dinglebob.drifter.nav.PathWorkers.threads() + "): "
 				+ com.dinglebob.drifter.nav.WorldCopy.report() + "\nActivity: " + activity + (battle == null ? "" : "\nBattle: " + battle)
-				+ (whims == null ? "" : "\nWhim test: " + whims)), false);
+				+ (whims == null ? "" : "\nWhim test: " + whims) + (walks == null ? "" : "\nWalking test: " + walks)), false);
 			return 1;
 		}));
 		// Run catch-up on the nearest Drifter as if it had been away this many in-game hours (debug, section 25).

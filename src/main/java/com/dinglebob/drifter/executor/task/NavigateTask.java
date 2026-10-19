@@ -98,6 +98,8 @@ public class NavigateTask extends Task {
 	private static final int UNSTICK_FOR = 10;
 	private static final int REPLAN_AFTER = 160;
 	private static final int MAX_REPLANS = 15;
+	/** Getting this much nearer than at any replan before starts the count of replans again. */
+	private static final double REPLAN_PROGRESS = 3.0;
 	private static final int ROLLING_REPLAN_TICKS = 100;
 	private static final int CHASE_REPATH_TICKS = 10;
 	private static final double CHASE_REPATH_DISTANCE = 2.0;
@@ -148,6 +150,8 @@ public class NavigateTask extends Task {
 	private int sinceProgress;
 	private int sinceReplan;
 	private int replans;
+	/** The nearest it had been to the target at a replan that counted as progress. */
+	private double closestAtReplan = Double.MAX_VALUE;
 	private int unstick;
 	private int waitToSee;
 	private int planningTicks;
@@ -340,6 +344,16 @@ public class NavigateTask extends Task {
 	}
 
 	private void replan(String reason, boolean onTheMove) {
+		// Replanning because it learned something on the way (a drop where it guessed ground) isn't being stuck: only
+		// replans that don't bring it any nearer count toward giving up. Nearer than it has ever been, by a margin, and it
+		// starts counting again (found in a walking test on hilly ground: 29 of 40 gave up within ten seconds, each having
+		// found fifteen hidden drops on the way while still closing in).
+		double distance = this.drifter.position().distanceTo(this.target.get());
+		if (distance < this.closestAtReplan - REPLAN_PROGRESS) {
+			this.closestAtReplan = distance;
+			this.replans = 0;
+		}
+
 		this.replans++;
 		// Caught in a current it can't swim out of (a stream pushing it off the ledge it's climbing onto, water pouring down
 		// a shaft): like a player, it puts a block under itself and stands on it out of the flow, then plans again (found in
