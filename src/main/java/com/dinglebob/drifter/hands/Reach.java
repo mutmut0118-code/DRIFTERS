@@ -54,6 +54,13 @@ public final class Reach {
 	/** A point to aim at so the crosshair lands on this block, through any face the Drifter can see and reach. */
 	public static Optional<Vec3> aimPoint(DrifterEntity drifter, BlockPos pos) {
 		Vec3 eye = drifter.getEyePosition();
+		// Its head inside the block (sand fell on it, it got pushed into a wall): the crosshair is on that block whichever way
+		// it looks, as for a player (the game's ray starts inside it). Found in a test: it suffocated in stone, "can't see or
+		// reach it" over and over, because no face of a block can be seen from inside it.
+		if (BlockPos.containing(eye).equals(pos)) {
+			return Optional.of(eye.add(drifter.getLookAngle()));
+		}
+
 		return Stream.of(Direction.values())
 			.map(face -> aimPoint(drifter, pos, face))
 			.flatMap(Optional::stream)
