@@ -524,9 +524,63 @@ public class NavigateTask extends Task {
 
 	@Override
 	protected Status onTick() {
+		// A long way, with its saddled horse close by: it rides most of the way and walks the last bit in (DESIGN.md section
+		// 10.9, milestone 18).
+		if (!this.rideChecked) {
+			this.rideChecked = true;
+			this.ride = this.rideFor();
+		}
+
+		if (this.ride != null) {
+			Status riding = this.ride.tick();
+			if (riding == Status.RUNNING) {
+				return Status.RUNNING;
+			}
+
+			this.ride.stop();
+			this.ride = null;
+			this.path = List.of();
+			if (this.search != null) {
+				this.search.cancel();
+				this.search = null;
+			}
+		}
+
 		Status status = this.tickSteps();
 		this.stayAfloat();
 		return status;
+	}
+
+	/** Riding first, if this is a long trip and its own saddled horse is right here. */
+	@Nullable
+	private RideTask ride;
+	private boolean rideChecked;
+	/** A trip at least this far (blocks, across) is worth riding. */
+	private static final double RIDE_FROM = 80.0;
+	/** Off the horse this far from the place, to walk in. */
+	private static final double RIDE_OFF_AT = 16.0;
+	/** Its horse within this. */
+	private static final double HORSE_NEAR = 16.0;
+
+	@Nullable
+	private RideTask rideFor() {
+		if (this.follow || this.drifter.isPassenger() || this.level().dimension() != net.minecraft.world.level.Level.OVERWORLD) {
+			return null;
+		}
+
+		Vec3 target = this.target.get();
+		double dx = target.x - this.drifter.getX();
+		double dz = target.z - this.drifter.getZ();
+		if (dx * dx + dz * dz < RIDE_FROM * RIDE_FROM) {
+			return null;
+		}
+
+		net.minecraft.world.entity.animal.horse.AbstractHorse horse = com.dinglebob.drifter.skills.HorseGoal.ownHorse(this.drifter);
+		if (horse == null || !horse.isSaddled() || horse.isVehicle() || horse.distanceTo(this.drifter) > HORSE_NEAR) {
+			return null;
+		}
+
+		return new RideTask(this.drifter, horse, target, RIDE_OFF_AT);
 	}
 
 	/**
@@ -2215,6 +2269,11 @@ public class NavigateTask extends Task {
 
 	@Override
 	protected void onStop() {
+		if (this.ride != null) {
+			this.ride.stop();
+			this.ride = null;
+		}
+
 		if (this.search != null) {
 			this.search.cancel();
 		}

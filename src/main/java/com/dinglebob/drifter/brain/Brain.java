@@ -13,6 +13,7 @@ import com.dinglebob.drifter.brain.activity.Activity;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.Task;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 
@@ -768,6 +769,27 @@ public class Brain {
 		return this.whims;
 	}
 
+	/** Its horse (tamed to it) and where it last left it (milestone 18, section 10.7). */
+	@Nullable
+	private java.util.UUID horse;
+	@Nullable
+	private BlockPos horseAt;
+
+	@Nullable
+	public java.util.UUID horse() {
+		return this.horse;
+	}
+
+	@Nullable
+	public BlockPos horseAt() {
+		return this.horseAt;
+	}
+
+	public void setHorse(@Nullable java.util.UUID horse, @Nullable BlockPos at) {
+		this.horse = horse;
+		this.horseAt = at == null ? null : at.immutable();
+	}
+
 	/** The villagers' trades it has seen (milestone 18, section 10.12). */
 	private final com.dinglebob.drifter.trade.TradeBook trades = new com.dinglebob.drifter.trade.TradeBook();
 
@@ -803,6 +825,12 @@ public class Brain {
 		tag.putLong("LastNetherTrip", this.lastNetherTrip);
 		tag.put("Whims", this.whims.save());
 		tag.put("Trades", this.trades.save());
+		if (this.horse != null) {
+			tag.putUUID("Horse", this.horse);
+			if (this.horseAt != null) {
+				tag.putLong("HorseAt", this.horseAt.asLong());
+			}
+		}
 		return tag;
 	}
 
@@ -814,6 +842,8 @@ public class Brain {
 		this.lastNetherTrip = tag.getLong("LastNetherTrip");
 		this.whims.load(tag.getCompound("Whims"));
 		this.trades.load(tag.getCompound("Trades"));
+		this.horse = tag.hasUUID("Horse") ? tag.getUUID("Horse") : null;
+		this.horseAt = tag.contains("HorseAt") ? BlockPos.of(tag.getLong("HorseAt")) : null;
 		this.furnaceJobs.clear();
 		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
 		for (int i = 0; i < jobs.size(); i++) {

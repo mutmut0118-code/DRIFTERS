@@ -703,6 +703,37 @@ public class DrifterEntity extends PathfinderMob {
 		return this.entityData.get(DATA_SWING);
 	}
 
+	/**
+	 * It steers only a saddled horse (or a boat), as a player does: on a horse being broken in, the horse goes its own way
+	 * (and bucks; a mob steering it would switch its movement off, so it would never buck or come round).
+	 */
+	@Override
+	public boolean canControlVehicle() {
+		net.minecraft.world.entity.Entity vehicle = this.getVehicle();
+		return vehicle instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse ? horse.isSaddled()
+			: vehicle instanceof net.minecraft.world.entity.vehicle.Boat;
+	}
+
+	/** The tick it last meant to stay on what it's riding (a ride, breaking in a horse). */
+	private int rideIntentAt = Integer.MIN_VALUE / 2;
+
+	/** Called every tick by whatever has it riding on purpose. */
+	public void keepRiding() {
+		this.rideIntentAt = this.tickCount;
+	}
+
+	/** Riding a horse with nothing using the ride any more (another goal took over): it gets off. */
+	private void dismountIfIdle() {
+		if (this.getVehicle() instanceof net.minecraft.world.entity.animal.horse.AbstractHorse && this.tickCount - this.rideIntentAt > 20) {
+			this.stopRiding();
+		}
+	}
+
+	/** Its jump key is down (riding, it makes its horse jump). */
+	public boolean isJumpingNow() {
+		return this.jumping;
+	}
+
 	/** How many rolls clients have been told of (a new number: a new roll). */
 	public int rollCount() {
 		return this.entityData.get(DATA_ROLL) >>> 17;
@@ -1111,6 +1142,7 @@ public class DrifterEntity extends PathfinderMob {
 	/** Runs inside Mob#serverAiStep, before the (idle) vanilla controls. This is where the motor drives the body. */
 	@Override
 protected void customServerAiStep() {
+		this.dismountIfIdle();
 		this.lastAiTick = this.level().getGameTime();
 		long started = System.nanoTime();
 		super.customServerAiStep();
@@ -2146,7 +2178,12 @@ protected void customServerAiStep() {
 			return false;
 		}
 
-		return super.startRiding(vehicle, force);
+		boolean on = super.startRiding(vehicle, force);
+		if (on) {
+			this.keepRiding();
+		}
+
+		return on;
 	}
 
 	/** Player#drop(stack, false, true), pressing Q: thrown forward where it looks, with the pickup delay. */
