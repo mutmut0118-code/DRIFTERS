@@ -20,6 +20,8 @@
 		"MobAccessor",
 		"NetherPortalBlockMixin",
 		"PiglinAiMixin",
+		"PlayerAdvancementsMixin",
+		"ServerLevelGameEventMixin",
 		"NearestAttackableTargetGoalAccessor",
 		"PlayerAccessor",
 		"TargetGoalAccessor"

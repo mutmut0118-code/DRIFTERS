@@ -831,12 +831,13 @@ public class DrifterEntity extends PathfinderMob {
 		}
 	}
 
-	/** Registers its ears with the game's vibration system, like the Allay and the Warden do. */
+	/**
+	 * Its ears used to be registered with the game's vibration system, like the Allay's and the Warden's; now it listens
+	 * through SoundHub, where each sound is put down once for all Drifters (milestone 16: the game handing every step of a
+	 * crowd to every listener near it was a tenth of a battle's time).
+	 */
 	@Override
 	public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerLevel> registrar) {
-		if (this.level() instanceof ServerLevel serverLevel && this.hearingListener != null) {
-			registrar.accept(this.hearingListener, serverLevel);
-		}
 	}
 
 	/** Holds keys for a number of ticks, then releases them all. Ticks of -1 hold until changed. */
@@ -1109,8 +1110,16 @@ protected void customServerAiStep() {
 			this.tier = this.forcedTier == null && this.engaged() ? DetailTier.FULL : DetailTier.of(this, this.forcedTier);
 		}
 
+		// Far from every player (and not in a fight): it looks about and thinks every other tick, as DESIGN.md section 22's
+		// Far tier has it; its reflexes, what it's doing and its body still run every tick, so nothing it does is slower
+		// (milestone 16: a thousand Drifters; user, 2026-10-19, after the recommendation).
+		boolean thinks = this.tier != DetailTier.FAR || !com.dinglebob.drifter.DrifterConfig.farHalfRate() || this.inCombat()
+			|| ((this.tickCount + this.getId()) & 1) == 0;
 		long t = System.nanoTime();
-		this.senses.tick();
+		if (thinks) {
+			this.senses.tick();
+		}
+
 		long bondsStarted = System.nanoTime();
 		this.bonds.tick();
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BONDS, System.nanoTime() - bondsStarted);
@@ -1132,7 +1141,10 @@ protected void customServerAiStep() {
 		// Reflexes first (section 8, layer 5): while one has the body, the brain, the executor and the tics wait.
 		if (!this.reflexes.tick()) {
 			t = System.nanoTime();
-			this.brain.tick();
+			if (thinks) {
+				this.brain.tick();
+			}
+
 			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN, System.nanoTime() - t, this::perfLabel);
 			t = System.nanoTime();
 			this.tasks.tick();
@@ -1516,6 +1528,9 @@ protected void customServerAiStep() {
 	public java.util.UUID helperIdFor;
 	@org.jetbrains.annotations.Nullable
 	public com.mojang.authlib.GameProfile helperProfile;
+	/** Its fake-player helper itself, kept while it lives (not saved). */
+	@org.jetbrains.annotations.Nullable
+	public net.fabricmc.fabric.api.entity.FakePlayer helperPlayer;
 
 	/** When its AI last ran (for `/drifter perf`: how many of the loaded are really running). */
 	public long lastAiTick = Long.MIN_VALUE;

@@ -61,14 +61,42 @@ public class Hearing implements GameEventListener {
 
 	@Override
 	public boolean handleGameEvent(ServerLevel level, Holder<GameEvent> event, GameEvent.Context context, Vec3 pos) {
-		Entity maker = context.sourceEntity();
+		HeardSound.Kind kind = kindOf(event);
+		if (kind == null || context.sourceEntity() != null && context.sourceEntity().isSteppingCarefully() && event.is(GameEventTags.IGNORE_VIBRATIONS_SNEAKING)) {
+			return false;
+		}
+
+		return this.hear(level, kind, pos, context.sourceEntity());
+	}
+
+	/** The newest sound in SoundHub it has taken in (-1: not listening yet). */
+	private long heardUpTo = -1L;
+
+	/**
+	 * Takes in the sounds round its ears since it last listened (SoundHub: the game's vibrations, put down once for all
+	 * Drifters; milestone 16). Called with its senses.
+	 */
+	void listen(ServerLevel level) {
+		long latest = SoundHub.latest(level);
+		if (this.heardUpTo >= 0L) {
+			SoundHub.near(level, this.drifter.getEyePosition(), LISTEN_RADIUS, this.heardUpTo, sound -> this.hear(level, sound.kind(), sound.pos(), sound.maker()));
+		}
+
+		this.heardUpTo = latest;
+	}
+
+	/** One sound reaching it: what it makes of it (sneaking already let go). */
+	private boolean hear(ServerLevel level, HeardSound.Kind kind, Vec3 pos, @Nullable Entity maker) {
 		if (maker == this.drifter || !this.drifter.isAlive()) {
 			return false;
 		}
 
-		HeardSound.Kind kind = kindOf(event);
-		if (kind == null) {
-			return false;
+		// The footsteps of someone it's watching right now tell it nothing it can't see.
+		if (maker != null && kind == HeardSound.Kind.MOVEMENT) {
+			Awareness watched = this.senses.awarenessOf(maker);
+			if (watched != null && watched.visibleNow) {
+				return false;
+			}
 		}
 
 		// What its fake-player helper does on its behalf (breaking, placing) isn't news either.
@@ -85,10 +113,6 @@ public class Hearing implements GameEventListener {
 		}
 
 		if (this.heardThisTick >= HEARD_PER_TICK && kind != HeardSound.Kind.FUSE) {
-			return false;
-		}
-
-		if (maker != null && maker.isSteppingCarefully() && event.is(GameEventTags.IGNORE_VIBRATIONS_SNEAKING)) {
 			return false;
 		}
 
@@ -125,7 +149,7 @@ public class Hearing implements GameEventListener {
 	private static final java.util.Map<GameEvent, java.util.Optional<HeardSound.Kind>> KINDS = new java.util.concurrent.ConcurrentHashMap<>();
 
 	@Nullable
-	private static HeardSound.Kind kindOf(Holder<GameEvent> event) {
+	static HeardSound.Kind kindOf(Holder<GameEvent> event) {
 		return KINDS.computeIfAbsent(event.value(), value -> java.util.Optional.ofNullable(classify(event))).orElse(null);
 	}
 

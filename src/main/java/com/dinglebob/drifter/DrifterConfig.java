@@ -93,6 +93,17 @@ public final class DrifterConfig {
 		boolean ragdolls = true;
 		/** Threads for path searches (milestone 16): -1 automatic, 0 on the server thread as before. */
 		int pathThreads = -1;
+		/** Drifters far from every player look about and think every other tick (milestone 16). */
+		boolean farHalfRate = true;
+	}
+
+	public static boolean farHalfRate() {
+		return data.farHalfRate;
+	}
+
+	public static void setFarHalfRate(boolean on) {
+		data.farHalfRate = on;
+		save();
 	}
 
 	public static final int MAX_PATH_THREADS = 16;

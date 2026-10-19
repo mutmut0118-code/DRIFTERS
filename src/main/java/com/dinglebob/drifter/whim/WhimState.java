@@ -12,6 +12,8 @@ import net.minecraft.nbt.CompoundTag;
 public final class WhimState {
 	private final Map<String, Long> lastDone = new HashMap<>();
 	public long lastAny = Long.MIN_VALUE / 2;
+	/** Whims checked lately that didn't fit, and when (not checked again for a while; milestone 16). Not saved. */
+	public final it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap<String> unfitAt = new it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap<>();
 	public int done;
 
 	public long lastDone(String id) {

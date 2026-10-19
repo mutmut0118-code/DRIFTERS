@@ -538,11 +538,14 @@ public final class WhimActions {
 		/** The top of this column if it has seen it and could stand there; null otherwise. */
 		@Nullable
 		private static BlockPos column(DrifterEntity drifter, Level level, BlockPos feet, int radius, int x, int z) {
-			if (!level.hasChunk(x >> 4, z >> 4)) {
+			// (Straight from the tick's chunk table: two general lookups a column made a search of a big radius take a
+			// tenth of a second, or half a second; milestone 16.)
+			var chunk = com.dinglebob.drifter.world.TickChunks.get(level, x >> 4, z >> 4);
+			if (chunk == null) {
 				return null;
 			}
 
-			int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z);
+			int y = chunk.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15) + 1;
 			BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, y - 1, z);
 			if (Math.abs(y - feet.getY()) > radius || !drifter.getSenses().terrain().isKnown(pos)) {
 				return null;

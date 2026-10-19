@@ -271,6 +271,10 @@ public class Senses {
 			this.consolidate("dusk");
 		}
 
+		if (this.level() instanceof net.minecraft.server.level.ServerLevel server) {
+			this.hearing.listen(server);
+		}
+
 		long t = System.nanoTime();
 		// Far from every player, a little slower (section 22 tiers; milestone 16): nobody's there to see it.
 		int slow = this.drifter.tier().senseSlowdown;

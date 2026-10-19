@@ -38,8 +38,17 @@ public final class FakePlayerBridge {
 			throw new IllegalStateException("Drifter interactions only run on the server");
 		}
 
-		FakePlayer fake = FakePlayer.get(level, profileFor(drifter));
-		OWNERS.put(fake.getUUID(), new java.lang.ref.WeakReference<>(drifter));
+		// Its own helper, kept (milestone 16: looked up through Fabric's weakly kept map every time, and the first time made
+		// as a whole player; see PlayerAdvancementsMixin).
+		GameProfile profile = profileFor(drifter);
+		FakePlayer fake = drifter.helperPlayer;
+		if (fake == null || fake.level() != level || fake.getGameProfile() != profile) {
+			HELPERS.add(profile.getId());
+			fake = FakePlayer.get(level, profile);
+			drifter.helperPlayer = fake;
+			OWNERS.put(fake.getUUID(), new java.lang.ref.WeakReference<>(drifter));
+		}
+
 		syncIn(drifter, fake);
 		try {
 			return action.apply(fake);
@@ -58,6 +67,13 @@ public final class FakePlayerBridge {
 		GameProfile profile = new GameProfile(helperId(drifter), VALID_NAME.matcher(name).matches() ? name : "Drifter");
 		drifter.helperProfile = profile;
 		return profile;
+	}
+
+	/** Every helper's id (they have no advancements: PlayerAdvancementsMixin). */
+	private static final java.util.Set<UUID> HELPERS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+	public static boolean isHelper(UUID id) {
+		return HELPERS.contains(id);
 	}
 
 	/** Helpers back to their Drifters: its sword hits are the helper's, but they're its doing (relationships, kills). */

@@ -85,7 +85,8 @@ public final class WhimGoal extends Goals.Goal {
 
 	/** Nothing pressing: not hurt, hungry, in danger, in the Nether or deep underground, and not out at night unless brave. */
 	private static boolean calm(DrifterEntity drifter, Goals.Context context) {
-		if (drifter.getHealth() < 14.0F || drifter.getFoodData().getFoodLevel() < 10 || context.threat().urgent()
+		// (Not a soldier in a battle: it's on its way to war.)
+		if (com.dinglebob.drifter.world.Battle.inBattle(drifter) || drifter.getHealth() < 14.0F || drifter.getFoodData().getFoodLevel() < 10 || context.threat().urgent()
 			|| drifter.level().dimension() != Level.OVERWORLD || drifter.getDrifterBrain().netherTrip() != null) {
 			return false;
 		}
@@ -161,6 +162,8 @@ public final class WhimGoal extends Goals.Goal {
 	// Choosing
 	// ---------------------------------------------------------------------------------------------
 
+	/** A whim that didn't fit isn't checked again for this long (ticks). */
+	private static final long UNFIT_RECHECK = 20L * 30;
 	/** Most whims it checks against the world in one pick (the rest wait for the next). */
 	private static final int MAX_CHECKS = 12;
 	/** Most time one pick may take (found by the user's /drifter perf: 30 ms in one tick, checking all 100 against the world). */
@@ -176,7 +179,16 @@ public final class WhimGoal extends Goals.Goal {
 		List<Whim> candidates = new ArrayList<>();
 		List<Double> weights = new ArrayList<>();
 		double total = 0.0;
+		long now = drifter.level().getGameTime();
+		WhimState state = state(drifter);
 		for (Whim whim : Whims.all()) {
+			// One that didn't fit a little while ago isn't checked again yet (some checks plan a craft or look round a wide
+			// area: a tenth of a second, again and again; milestone 16).
+			long unfit = state.unfitAt.getOrDefault(whim.id(), Long.MIN_VALUE / 2);
+			if (now - unfit < UNFIT_RECHECK && now >= unfit) {
+				continue;
+			}
+
 			double weight = weight(drifter, whim);
 			if (weight > 0.0) {
 				candidates.add(whim);
@@ -206,9 +218,11 @@ public final class WhimGoal extends Goals.Goal {
 			}
 
 			if (fits) {
+				state.unfitAt.removeLong(whim.id());
 				return whim;
 			}
 
+			state.unfitAt.put(whim.id(), now);
 			total -= weights.get(index);
 			candidates.remove(index);
 			weights.remove(index);

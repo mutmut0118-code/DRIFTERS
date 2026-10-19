@@ -272,6 +272,13 @@ public final class DrifterCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal("Parkour jumps " + (com.dinglebob.drifter.DrifterConfig.parkour() ? "on" : "off")), true);
 				return 1;
 			})))
+			// Far from every player, looking about and thinking every other tick (milestone 16).
+			.then(Commands.literal("farhalfrate").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setFarHalfRate(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Far-away Drifters think every other tick: "
+					+ (com.dinglebob.drifter.DrifterConfig.farHalfRate() ? "on" : "off")), true);
+				return 1;
+			})))
 			// How common each kind of new Drifter is, and the most loaded at once (user, 2026-10-17).
 			.then(Commands.literal("spawn")
 				.executes(DrifterCommands::showSpawn)
