@@ -80,7 +80,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **Done in code** (2026-10-19), waiting on the user's play test | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
 | 18 | Player skills | **Done in code** (2026-10-19): trading, fishing, horses, boats, potions, netherite; waiting on the user's play test | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
 | 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
-| 21 | Encounters and bounties | Planned (user, 2026-10-20: "save all of this for a mile, we will do this soon") | Random events with temporary Drifters (GTA-style), bounty hunters and wanted Drifters, Bountiful compat (Drifters doing bounties). The brainstorm and the suggested first batch: docs/ENCOUNTERS.md. |
+| 21 | Encounters and bounties | **In progress** (2026-10-20): the encounter system and the first batch (bounty hunters, wanted posters with rewards, injured travellers, thieves, travelling merchants, ambushes) done in code and tested in the client; Bountiful next (planned by the user, 2026-10-20: "save all of this for a mile, we will do this soon") | Random events with temporary Drifters (GTA-style), bounty hunters and wanted Drifters, Bountiful compat (Drifters doing bounties). The brainstorm and the suggested first batch: docs/ENCOUNTERS.md. |
 | 20 | Whims offscreen, then wrong guesses | **Done in code** (2026-10-20): whims offscreen (the user's pick A + small B + C + E), an easier way to add whims (steps whims, load checks, docs/WHIMS_HOWTO.md), four new wrong guesses; waiting on the user's play test | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 | 22 | Civilization (an addon mod) | Planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
 
@@ -2435,4 +2435,23 @@ usually i have internet but itll be fine if there isnt any, its just like minecr
   and stay with a player who renames. `/drifter skin <name or UUID>`. With no internet nothing is marked "no skin": it
   waits and tries again. Tested: 20 new Drifters, 20 with a real skin; a 2-entry list (Notch's UUID, jeb_) gave each to
   exactly one Drifter.
+
+## Milestone 21: Encounters and bounties (started 2026-10-20)
+
+The user: "work on milestone 21" (2026-10-20, after the plan in docs/ENCOUNTERS.md). No events picked from the list yet:
+the suggested first batch was built. Everything is in docs/ENCOUNTERS.md ("Built"); in short:
+- `encounter/Encounters`: the director (one at a time per player, about every 1.5 days by default, fitting the moment),
+  saved per player (next time, Drifters killed, the price on their head, the poster they hold; version 1).
+- `encounter/Encounter`: temporary Drifters (never saved, not listed, gone once out of sight after), its own goal for
+  each part (`EncounterGoal`, urgent while its part wants doing), a step list that ends rather than fails on time.
+- Six kinds: bounty hunters (from a grudge or three Drifter kills), wanted posters (a map to a real Drifter, the reward
+  by courier), injured travellers, thieves, travelling merchants (the game's trading screen, real stock), ambushes.
+- Hooks elsewhere: no warning first toward the player an encounter came for (`Mode`), relentless chases (`Pursuit`),
+  members of one encounter on one side (`BanditGoals.prey`, `Threats`, `Archery`), a right-click goes to the encounter
+  (`DrifterEntity.mobInteract`), `DrifterRegistry` skips temporary Drifters. A witness who was chasing the Drifter a
+  player killed counts it as its attacker killed, not a friend (`SocialWatcher`).
+- Settings page "Encounters..." and `/drifter config encounters|encounterdays|encounter`; `/drifter encounter ...`.
+- Found and fixed in client tests: a "follow" step never ends (walking up to someone is now a one-off walk); a step list
+  timing out counted as a failure and marked the part down; the traveller dug in for the night instead of running; two
+  ambush bandits killed each other; bandits who heard someone didn't go and look.
 

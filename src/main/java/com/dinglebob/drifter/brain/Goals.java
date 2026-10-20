@@ -2305,6 +2305,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.BanditGoals.all());
 		goals.addAll(com.dinglebob.drifter.world.Battle.goals());
+		// Its part in an encounter (milestone 21, docs/ENCOUNTERS.md).
+		goals.add(new com.dinglebob.drifter.encounter.EncounterGoal());
 		goals.add(new GroupBanner());
 		goals.add(new com.dinglebob.drifter.brain.activity.PassThroughActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.DelveActivity.Goal());

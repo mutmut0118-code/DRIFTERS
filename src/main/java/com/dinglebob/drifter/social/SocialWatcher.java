@@ -756,9 +756,12 @@ public class SocialWatcher {
 			return;
 		}
 
-		// A Drifter: the news reaches the ones who saw it (friendships come with groups; a witness counts for now).
+		// A Drifter: the news reaches the ones who saw it (friendships come with groups; a witness counts for now). Unless it
+		// was the one it was after (a thief it was chasing, found in an encounter test: the owner took the thief's death
+		// for a friend's): then the player stopped its attacker.
 		if (victim instanceof DrifterEntity) {
-			this.record(player, SocialEvent.KILLED_FRIEND, 0.0);
+			var pursuit = this.drifter.getDrifterBrain().pursuit();
+			this.record(player, pursuit != null && pursuit.target == victim ? SocialEvent.KILLED_ATTACKER : SocialEvent.KILLED_FRIEND, 0.0);
 			return;
 		}
 

@@ -83,6 +83,11 @@ public final class DrifterRegistry {
 	}
 
 	private static void remember(DrifterEntity drifter) {
+		// (A delver or an encounter's Drifter is met once: never listed.)
+		if (drifter.isTemporary()) {
+			return;
+		}
+
 		known.put(drifter.getUUID(), new Known(drifter.getUUID(), drifter.getName().getString(), drifter.level().dimension(), drifter.blockPosition(),
 			drifter.level().getGameTime()));
 		dirty = true;

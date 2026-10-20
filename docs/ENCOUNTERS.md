@@ -8,8 +8,9 @@ base, or going somewhere, and suddenly a group of armed bounty hunters are here 
 And: "an 'Encounter' system, where random events happen with temporary drifters you will never see again (think of it
 as like the random event system in the GTA franchise)."
 
-Saved for a milestone of its own: "save all of this for a mile, we will do this soon". Nothing is built yet. The list
-below is the brainstorm; the user picks what goes in.
+Saved for a milestone of its own: "save all of this for a mile, we will do this soon". Then (2026-10-20) "work on
+milestone 21": with no pick from the list yet, the suggested first batch was built (below, "Built"). The rest of the
+list is still the brainstorm to pick from.
 
 ## How an encounter works
 
@@ -83,3 +84,51 @@ below is the brainstorm; the user picks what goes in.
 
 Bounty hunters, wanted Drifter, injured traveller, stop thief, travelling merchant, and ambush: danger, helping and
 trading, which tests the whole system.
+
+## Built (first batch, 2026-10-20)
+
+Code: `encounter/` (`Encounters` the director, `Encounter` the base, one class per kind). How it works:
+- **The director** looks at each player every 10 s. One encounter at a time per player, about one every 1.5 in-game
+  days by default (each between half and one and a half of that), only for players on the surface in the Overworld in
+  survival or adventure, and only kinds that fit the moment. Nothing fits: it tries again in two minutes.
+- **The Drifters** are made for the part: a kit that fits it (and, for fighters, how well armed the player is:
+  leather and stone, iron and chain, or iron and diamond), traits that fit (a vengeful hunter, a timid traveller). They
+  appear on open ground no player can see, 22 to 80 blocks off, and walk in. Never saved; over, they walk off and are
+  gone once nobody can see them (or nobody's near). Not in `/drifter list`. Same rules as any Drifter: they see and hear
+  for themselves, and fighting, fleeing and eating still come first. The members of one encounter are on the same side
+  (bandits of one ambush don't fight each other); a thief and the one it robbed aren't.
+- **Bounty hunters:** a Drifter with a heavy grudge against a player (40+, it was wronged) or the friends of three or
+  more Drifters they killed put a price on their head (half a chance each day it holds). A day to two and a half later
+  three to five armed hunters come, told only what word got round: the newest sighting any Drifter has of the player (a
+  day old at most), or their base. They search there, and on sight go after them with no warning, relentless
+  ("Player! someone you crossed wants a word. Well, wants you dead."). Over when the player dies, they all die, or ten
+  minutes pass. The price is spent either way.
+- **Wanted poster:** a messenger brings a map: a real Drifter 150 to 1200 blocks off (a Bandit first), its home marked
+  if it has one (else where it was last seen), "WANTED: name", its crime and the reward (3 to 8 diamonds, more for far
+  or dangerous) written on it. Bring it down within a week and a courier comes with the reward ("Heard you brought down
+  ... As promised.").
+- **Injured traveller:** a hurt Drifter (4 hearts) running from two or three zombies (in caps, so daylight doesn't end
+  it), shouting for help. It runs away from them (and so toward the player, who's on the other side); once it has seen
+  the player it runs to them. Saved, it thanks them and hands over the best thing in its pack (emeralds, gold, a golden
+  apple, a diamond). Nobody comes in half a minute after it's safe: it goes on alone. More likely at night.
+- **Thief:** a thief sprints past with gold, emeralds and maybe a diamond; the owner chases it, shouting "stop,
+  thief!". Stop the thief and the owner picks its things up and gives the player half. Let it go and both are gone.
+  The owner counts the player killing the thief as killing its attacker (trust up), not a friend. Daytime.
+- **Travelling merchant:** walks up ("hello there! I've a few rare things, if you've got emeralds. Have a look.");
+  right-click it for the game's own trading screen: 3 to 5 of diamonds, golden apples, ender pearls, name tags,
+  saddles, spyglasses, nautilus shells, blaze rods, slime balls, glow ink, an enchanted book, a music disc, bottles o'
+  enchanting, priced in emeralds. Sold goods leave its pack, the emeralds go in. Stays three minutes, or until the
+  player walks off. Daytime.
+- **Ambush:** a player travelling (20+ blocks in 10 s), 100+ blocks from their bed and the world spawn: two to four
+  bandits lie in wait, crouched, 55 blocks ahead on their way, watching the road. A noise or a glimpse near them and they
+  go to look; on sight, close or after a hit, they spring it, no warning ("now! get them!"). Nobody came by in four
+  minutes: they go. Not at night.
+- **Settings:** Settings > Encounters... (on or off, how often, each kind), or `/drifter config encounters true|false`,
+  `/drifter config encounterdays <days>`, `/drifter config encounter <kind> true|false`.
+- **Commands (testing):** `/drifter encounter` (what's going on, what's due, prices and posters), `/drifter encounter
+  start <kind>`, `stop`, `bounty` (a price on your head now), `now` (the next one due now), `talk` (as a right-click on
+  the nearest of your encounter's Drifters), `hit <part>` (strikes one down as if you had).
+- **Tested** in the game client: each kind started, ran and ended as above (the merchant's trading screen opened with
+  its wares; the poster's map came with the red X and the reward paid in diamonds; the hunters found and chased the
+  player; the ambush sprang on a player walking past).
+- **Not yet:** the rest of the list above; Bountiful (Drifters doing the board's bounties).

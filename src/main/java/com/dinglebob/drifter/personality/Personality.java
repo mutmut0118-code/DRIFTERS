@@ -63,6 +63,11 @@ public final class Personality {
 		this.mood.force(Mood.CALM);
 	}
 
+	/** Sets one trait outright (an encounter's Drifter made for its part: a vengeful bounty hunter, a timid traveller). */
+	public void set(Trait trait, double value) {
+		this.traits.put(trait, net.minecraft.util.Mth.clamp(value, 0.0, 1.0));
+	}
+
 	public Archetype archetype() {
 		return this.archetype;
 	}

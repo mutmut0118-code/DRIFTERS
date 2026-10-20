@@ -594,7 +594,45 @@ public class DrifterEntity extends PathfinderMob {
 
 	@Override
 	public boolean shouldBeSaved() {
-		return !this.delver && super.shouldBeSaved();
+		return !this.isTemporary() && super.shouldBeSaved();
+	}
+
+	// ----- Encounters (milestone 21) -----
+
+	/** Its part in an encounter (a Drifter you meet once and never again), or null. Not saved: it never outlives the world. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.encounter.Encounter encounter;
+	private String encounterRole = "";
+
+	public void joinEncounter(com.dinglebob.drifter.encounter.Encounter encounter, String role) {
+		this.encounter = encounter;
+		this.encounterRole = role;
+	}
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.encounter.Encounter encounter() {
+		return this.encounter;
+	}
+
+	public String encounterRole() {
+		return this.encounterRole;
+	}
+
+	/** A delver or an encounter's: never saved, gone when its part is over. */
+	public boolean isTemporary() {
+		return this.delver || this.encounter != null;
+	}
+
+	@Override
+	protected net.minecraft.world.InteractionResult mobInteract(net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
+		if (this.encounter != null && hand == net.minecraft.world.InteractionHand.MAIN_HAND) {
+			net.minecraft.world.InteractionResult result = this.encounter.interact(this, player);
+			if (result != net.minecraft.world.InteractionResult.PASS) {
+				return result;
+			}
+		}
+
+		return super.mobInteract(player, hand);
 	}
 
 	private void delverDespawn() {

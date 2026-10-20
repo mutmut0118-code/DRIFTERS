@@ -108,6 +108,11 @@ public final class BanditGoals {
 
 		var mine = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
 		if (living instanceof DrifterEntity other) {
+			// (The rest of its encounter's band are with it.)
+			if (com.dinglebob.drifter.encounter.Encounter.together(drifter, other)) {
+				return false;
+			}
+
 			return mine == null || com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID()) != mine;
 		}
 

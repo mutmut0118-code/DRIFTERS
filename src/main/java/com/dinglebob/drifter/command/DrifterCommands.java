@@ -412,6 +412,35 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setWhims(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
 					return showConfig(ctx);
 				})))
+			// Encounters (milestone 21): all on or off, how often, each kind.
+			.then(Commands.literal("encounters")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setEncounters(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					ctx.getSource().sendSuccess(() -> Component.literal("Encounters " + (com.dinglebob.drifter.DrifterConfig.encounters() ? "on" : "off")), true);
+					return 1;
+				})))
+			.then(Commands.literal("encounterdays")
+				.then(Commands.argument("days", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(
+					com.dinglebob.drifter.DrifterConfig.MIN_ENCOUNTER_DAYS, com.dinglebob.drifter.DrifterConfig.MAX_ENCOUNTER_DAYS)).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setEncounterDays(com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "days"));
+					ctx.getSource().sendSuccess(() -> Component.literal("About one encounter every " + com.dinglebob.drifter.DrifterConfig.encounterDays()
+						+ " in-game days"), true);
+					return 1;
+				})))
+			.then(Commands.literal("encounter")
+				.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(EncounterCommands.KINDS, builder))
+					.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+						String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
+						if (!EncounterCommands.KINDS.contains(kind)) {
+							throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("No encounter called " + kind)).create();
+						}
+
+						boolean on = com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on");
+						com.dinglebob.drifter.DrifterConfig.setEncounterOff(kind, !on);
+						ctx.getSource().sendSuccess(() -> Component.literal("Encounter " + kind + " " + (on ? "on" : "off")), true);
+						return 1;
+					}))))
 			.then(Commands.literal("wars")
 				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setDrifterWars(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -485,6 +514,7 @@ public final class DrifterCommands {
 		PersonalityCommands.register(root);
 		SocialCommands.register(root);
 		WhimCommands.register(root);
+		EncounterCommands.register(root);
 		HouseCommands.register(root);
 
 		dispatcher.register(root);

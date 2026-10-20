@@ -145,6 +145,10 @@ public final class Archery {
 
 	/** On its side: the same battle side or the same group. */
 	public static boolean friends(DrifterEntity drifter, DrifterEntity other) {
+		if (com.dinglebob.drifter.encounter.Encounter.together(drifter, other)) {
+			return true;
+		}
+
 		if (com.dinglebob.drifter.world.Battle.inBattle(drifter)) {
 			return com.dinglebob.drifter.world.Battle.allies(drifter, other);
 		}

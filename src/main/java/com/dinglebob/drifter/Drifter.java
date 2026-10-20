@@ -36,6 +36,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.compat.RagdollCompat.register();
 		com.dinglebob.drifter.entity.RealSkins.register();
 		com.dinglebob.drifter.world.DrifterRegistry.register();
+		com.dinglebob.drifter.encounter.Encounters.register();
 		com.dinglebob.drifter.world.DrifterCensus.register();
 		com.dinglebob.drifter.world.DrifterGroups.register();
 		com.dinglebob.drifter.world.DrifterWars.register();

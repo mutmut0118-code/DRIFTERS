@@ -89,6 +89,13 @@ public enum Mode {
 			return VENGEFUL;
 		}
 
+		// An encounter that came for them (bounty hunters, an ambush): no warning first, that's the point of it. Still never
+		// on Peaceful or with aggression to players at 0.
+		if (drifter.encounter() != null && drifter.encounter().hostileTo(drifter, player) && drifter.level().getDifficulty() != Difficulty.PEACEFUL
+			&& com.dinglebob.drifter.DrifterConfig.playerAggression() > 0) {
+			return VENGEFUL;
+		}
+
 		if (social.watcher().watchingSince(player) >= 0) {
 			return WATCHING;
 		}

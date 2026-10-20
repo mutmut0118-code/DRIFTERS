@@ -1404,6 +1404,25 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] **Getting around**: on hills and mountains Drifters should get stuck less again (they guess the height of ground
       they haven't seen from the ground nearby). `/drifter navtest 20 16 40` as before.
 
+## Milestone 21: encounters (new)
+
+Random events with Drifters you meet once. They come on their own about every day and a half of game time (in
+survival, on the surface). To try each now: `/drifter encounter start <kind>` (`merchant`, `thief`, `injured_traveller`,
+`ambush`, `wanted`, `bounty_hunters`); `/drifter encounter` shows what's going on.
+- [ ] **Travelling merchant**: someone walks up and says hello; right-click them: a trading screen with a few rare things
+      for emeralds. Buy something: it comes out of their pack.
+- [ ] **Thief**: someone runs past with the owner shouting "stop, thief!". Hit the thief till it drops: the owner picks
+      its things up and gives you a share.
+- [ ] **Injured traveller** (best at night): "help! anyone! zombies!" in chat. Find them and kill the zombies: they
+      thank you and give you something.
+- [ ] **Ambush** (when you're travelling away from home): bandits jump you on the road ("now! get them!").
+- [ ] **Wanted poster**: someone brings you a map, "WANTED: <name>", with a red X and the reward. Bring that Drifter
+      down: a courier comes with the diamonds.
+- [ ] **Bounty hunters**: anger a Drifter badly (or kill a few), and a day or two later armed hunters come looking for you
+      where you were last seen. To try it at once: `/drifter encounter start bounty_hunters` (a Drifter must have seen you
+      recently).
+- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off, and sets how often.
+
 ## Milestone 20: whims offscreen and new whims (new)
 
 - [ ] **While away**: build a base near a Drifter's home (or find one with a hut), then go more than 200 blocks away

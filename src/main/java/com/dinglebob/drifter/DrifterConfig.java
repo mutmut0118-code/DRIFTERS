@@ -97,6 +97,52 @@ public final class DrifterConfig {
 		boolean farHalfRate = true;
 		/** Real player skins, downloaded like a multiplayer server's (user, 2026-10-20); off: the game's default skins. */
 		boolean realSkins = true;
+		/** Encounters (milestone 21, user 2026-10-20): random events with Drifters you meet once and never again. */
+		boolean encounters = true;
+		/** About one every this many in-game days per player. */
+		double encounterDays = DEFAULT_ENCOUNTER_DAYS;
+		/** Kinds switched off, by id (bounty_hunters, wanted, injured_traveller, thief, merchant, ambush). */
+		java.util.List<String> encountersOff = new java.util.ArrayList<>();
+	}
+
+	public static final double DEFAULT_ENCOUNTER_DAYS = 1.5;
+	public static final double MIN_ENCOUNTER_DAYS = 0.25;
+	public static final double MAX_ENCOUNTER_DAYS = 10.0;
+
+	public static boolean encounters() {
+		return data.encounters;
+	}
+
+	public static void setEncounters(boolean on) {
+		data.encounters = on;
+		save();
+	}
+
+	public static double encounterDays() {
+		return data.encounterDays <= 0.0 ? DEFAULT_ENCOUNTER_DAYS : data.encounterDays;
+	}
+
+	public static void setEncounterDays(double days) {
+		data.encounterDays = Math.max(MIN_ENCOUNTER_DAYS, Math.min(MAX_ENCOUNTER_DAYS, days));
+		save();
+	}
+
+	/** This kind of encounter is switched off. */
+	public static boolean encounterOff(String id) {
+		return data.encountersOff != null && data.encountersOff.contains(id);
+	}
+
+	public static void setEncounterOff(String id, boolean off) {
+		if (data.encountersOff == null) {
+			data.encountersOff = new java.util.ArrayList<>();
+		}
+
+		data.encountersOff.remove(id);
+		if (off) {
+			data.encountersOff.add(id);
+		}
+
+		save();
 	}
 
 	public static boolean realSkins() {

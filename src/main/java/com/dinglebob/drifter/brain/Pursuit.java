@@ -62,7 +62,7 @@ public final class Pursuit {
 	/** Bandits, delvers and manhunt hunters: they keep at it far longer, and keener (user, 2026-10-17: "more relentless"). */
 	public static boolean relentless(DrifterEntity drifter) {
 		return com.dinglebob.drifter.social.BanditGoals.ruthless(drifter) || drifter.isDelver()
-			|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter);
+			|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter) || drifter.encounter() != null && drifter.encounter().relentless(drifter);
 	}
 
 	/**

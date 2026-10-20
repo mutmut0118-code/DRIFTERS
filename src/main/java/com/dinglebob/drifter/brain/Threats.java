@@ -161,7 +161,7 @@ public final class Threats {
 		// "Rivalry": rivals may fight); anyone else only once it comes for it, as before.
 		if (entity instanceof DrifterEntity other) {
 			// A battle: its own side never, the other side on sight.
-			if (com.dinglebob.drifter.world.Battle.allies(drifter, other)) {
+			if (com.dinglebob.drifter.world.Battle.allies(drifter, other) || com.dinglebob.drifter.encounter.Encounter.together(drifter, other)) {
 				return 0.0;
 			}
 

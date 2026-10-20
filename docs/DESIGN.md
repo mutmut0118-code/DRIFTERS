@@ -1935,7 +1935,8 @@ Each milestone ends with a test you can actually run.
 21. **Encounters and bounties** (user, 2026-10-20; docs/ENCOUNTERS.md): random events with temporary Drifters you never
     see again, like the GTA random events (bounty hunters after you, a wanted Drifter with a map to its house, ambushes,
     people needing help, merchants...), and Bountiful compat (Drifters doing bounties; bounties on Drifters). The user
-    picks the events from the list.
+    picks the events from the list. First batch built (2026-10-20): bounty hunters, wanted posters, injured travellers,
+    thieves, travelling merchants, ambushes (docs/ENCOUNTERS.md "Built").
 22. **Civilization, as an addon mod** (user, 2026-10-20; docs/CIVILIZATION.md): towns, money and trade, leaders and laws,
     nations and wars, culture, a chronicle and a "one island" mode, inspired by the "1000 players simulate civilization"
     videos. Its own mod that needs Drifter (user's call: "its really big i think it should be like an addon mod"), with
