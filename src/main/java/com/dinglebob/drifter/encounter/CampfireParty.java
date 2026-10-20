@@ -200,18 +200,6 @@ final class CampfireParty extends Encounter {
 		return script;
 	}
 
-	/** Over to somewhere it can put a block down at {@code cell} from (the ground under it in reach and in sight); null if it's there. */
-	@Nullable
-	private static Task toPlace(DrifterEntity drifter, BlockPos cell) {
-		if (com.dinglebob.drifter.hands.Reach.canReach(drifter, cell.below())) {
-			return null;
-		}
-
-		BlockPos stand = com.dinglebob.drifter.brain.KnownBlocks.standingSpotFor(drifter, cell.below(), java.util.Set.of(cell));
-		return stand != null ? new NavigateTask(drifter, Vec3.atBottomCenterOf(stand), 0.6, "to the party spot", NavigateTask.Pace.STROLL)
-			: new NavigateTask(drifter, Vec3.atBottomCenterOf(cell), 2.0, "to the party spot", NavigateTask.Pace.STROLL);
-	}
-
 	/** A dance round the fire: crouching up and down, now and then a hop, turned to the fire. */
 	private static final class Dance extends Task {
 		private final Vec3 fire;

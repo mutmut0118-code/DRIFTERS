@@ -56,7 +56,19 @@ public final class Encounters {
 		FEUD("feud", "a feud"),
 		PARTY("campfire_party", "a campfire party"),
 		MOURNER("mourner", "a mourner"),
-		REVENGE("revenge", "a revenge squad");
+		REVENGE("revenge", "a revenge squad"),
+		SCOUT("scout", "a bounty hunters' scout"),
+		BURGLAR("burglar", "a thief in your base"),
+		SNIPER("sniper", "a sniper"),
+		RAID("village_raid", "a village raid"),
+		MINER("trapped_miner", "a trapped miner"),
+		ESCORT("escort", "an escort"),
+		HOSTAGE("hostage", "a hostage"),
+		LOST_DOG("lost_dog", "a lost dog"),
+		RACE("race", "a race"),
+		HORDE("horde", "chased by a horde"),
+		CONVOY("convoy", "a convoy"),
+		BUILDERS("builders", "builders");
 
 		public final String id;
 		public final String label;
@@ -79,7 +91,7 @@ public final class Encounters {
 
 		/** The kinds the dice pick (the rest come from what happened: a bounty, a kill). */
 		public boolean random() {
-			return this != BOUNTY_HUNTERS && this != REWARD && this != REVENGE;
+			return this != BOUNTY_HUNTERS && this != REWARD && this != REVENGE && this != SCOUT;
 		}
 	}
 
@@ -185,18 +197,43 @@ public final class Encounters {
 		}
 	}
 
-	/** A price on a player's head (milestone 21, the user's "bounty hunters are looking for me"). */
-	record Bounty(String issuer, String reason, long dueAt) {
+	/**
+	 * A price on a player's head (milestone 21, the user's "bounty hunters are looking for me"): who put it up, why, when
+	 * the hunters come; when their scout comes to look first (-1: it has, or none comes), where the scout saw them (the
+	 * hunters start there; null: what word got round) and how many fewer hunters come (their scout never came back).
+	 */
+	record Bounty(String issuer, String reason, long dueAt, long scoutAt, @Nullable BlockPos lead, int fewer) {
+		/** A new price on their head: the hunters at {@code dueAt}, their scout about halfway to then. */
+		static Bounty posted(String issuer, String reason, long now, long dueAt) {
+			return new Bounty(issuer, reason, dueAt, now + (dueAt - now) / 2, null, 0);
+		}
+
+		Bounty due(long dueAt) {
+			return new Bounty(this.issuer, this.reason, dueAt, this.scoutAt, this.lead, this.fewer);
+		}
+
+		/** The scout has been: what came of it. */
+		Bounty scouted(long dueAt, @Nullable BlockPos lead, int fewer) {
+			return new Bounty(this.issuer, this.reason, dueAt, -1, lead, fewer);
+		}
+
 		CompoundTag save() {
 			CompoundTag tag = new CompoundTag();
 			tag.putString("Issuer", this.issuer);
 			tag.putString("Reason", this.reason);
 			tag.putLong("DueAt", this.dueAt);
+			tag.putLong("ScoutAt", this.scoutAt);
+			if (this.lead != null) {
+				tag.putLong("Lead", this.lead.asLong());
+			}
+
+			tag.putInt("Fewer", this.fewer);
 			return tag;
 		}
 
 		static Bounty load(CompoundTag tag) {
-			return new Bounty(tag.getString("Issuer"), tag.getString("Reason"), tag.getLong("DueAt"));
+			return new Bounty(tag.getString("Issuer"), tag.getString("Reason"), tag.getLong("DueAt"), tag.contains("ScoutAt") ? tag.getLong("ScoutAt") : -1,
+				tag.contains("Lead") ? BlockPos.of(tag.getLong("Lead")) : null, tag.getInt("Fewer"));
 		}
 	}
 
@@ -251,7 +288,7 @@ public final class Encounters {
 		ServerLifecycleEvents.SERVER_STARTED.register(Encounters::load);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			for (Encounter encounter : active.values()) {
-				encounter.members().forEach(DrifterEntity::discard);
+				encounter.discardAll();
 			}
 
 			active.clear();
@@ -269,7 +306,7 @@ public final class Encounters {
 						return !encounter.tick();
 					} catch (RuntimeException e) {
 						Drifter.LOGGER.error("[Drifter] encounter {} broke: ending it", encounter.kind.label, e);
-						encounter.members().forEach(DrifterEntity::discard);
+						encounter.discardAll();
 						return true;
 					}
 				});
@@ -314,6 +351,13 @@ public final class Encounters {
 				}
 			}
 		});
+		// What they say in chat (a race's "go", an escort's "follow me").
+		net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+			Encounter encounter = active.get(sender.getUUID());
+			if (encounter != null && !encounter.isOver()) {
+				encounter.chat(sender, " " + message.signedContent().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", " ").trim() + " ");
+			}
+		});
 	}
 
 	/**
@@ -336,7 +380,7 @@ public final class Encounters {
 		var random = killer.getRandom();
 		boolean murder = killing == Encounter.Killing.MURDER;
 		if (murder && state.bounty == null && enabled(Kind.BOUNTY_HUNTERS)) {
-			state.bounty = new Bounty("the friends of " + name, "killing " + name + " after they gave up", now + BOUNTY_DELAY_MIN + random.nextInt((int)BOUNTY_DELAY_SPREAD));
+			state.bounty = Bounty.posted("the friends of " + name, "killing " + name + " after they gave up", now, now + BOUNTY_DELAY_MIN + random.nextInt((int)BOUNTY_DELAY_SPREAD));
 			state.drifterKills = 0;
 			Drifter.LOGGER.info("[Drifter] {} killed {} after it gave up: a price on their head", killer.getGameProfile().getName(), name);
 		} else {
@@ -397,27 +441,40 @@ public final class Encounters {
 			changed();
 		}
 
-		if (!outdoors(player)) {
+		// (Indoors, only a thief in their base: everything else happens out under the sky.)
+		boolean outside = outdoors(player);
+		if (!outside && now < state.nextAt) {
 			return;
 		}
 
-		// What happened comes first: the reward for a wanted one they brought down, then hunters for the price on their head.
-		if (state.wanted != null && state.wanted.claimed && enabled(Kind.WANTED)) {
+		// What happened comes first: the reward for a wanted one they brought down, then hunters for the price on their head
+		// (and before them their scout), then friends come for revenge.
+		if (outside && state.wanted != null && state.wanted.claimed && enabled(Kind.WANTED)) {
 			start(player, Kind.REWARD);
 			return;
 		}
 
-		if (state.bounty != null && now >= state.bounty.dueAt() && enabled(Kind.BOUNTY_HUNTERS)) {
+		if (outside && state.bounty != null && now >= state.bounty.dueAt() && enabled(Kind.BOUNTY_HUNTERS)) {
 			if (start(player, Kind.BOUNTY_HUNTERS) == null) {
 				// Nobody knows where they are (no Drifter has seen them): the hunters wait for word.
-				state.bounty = new Bounty(state.bounty.issuer(), state.bounty.reason(), now + RETRY_TICKS * 5);
+				state.bounty = state.bounty.due(now + RETRY_TICKS * 5);
 				changed();
 			}
 
 			return;
 		}
 
-		if (state.revenge != null && now >= state.revenge.dueAt() && enabled(Kind.REVENGE)) {
+		if (outside && state.bounty != null && state.bounty.scoutAt() >= 0 && now >= state.bounty.scoutAt() && enabled(Kind.SCOUT)) {
+			if (start(player, Kind.SCOUT) == null) {
+				// No word where to look, or nowhere out of sight to come from: no scout this time.
+				state.bounty = state.bounty.scouted(state.bounty.dueAt(), state.bounty.lead(), state.bounty.fewer());
+				changed();
+			}
+
+			return;
+		}
+
+		if (outside && state.revenge != null && now >= state.revenge.dueAt() && enabled(Kind.REVENGE)) {
 			if (now - state.revenge.since() > REVENGE_GIVES_UP) {
 				Drifter.LOGGER.info("[Drifter] {}'s friends gave up looking for {}", state.revenge.victim(), player.getGameProfile().getName());
 				state.revenge = null;
@@ -438,7 +495,7 @@ public final class Encounters {
 		List<Double> weights = new ArrayList<>();
 		double total = 0.0;
 		for (Kind kind : Kind.values()) {
-			double weight = kind.random() && enabled(kind) ? weight(player, kind, state) : 0.0;
+			double weight = kind.random() && enabled(kind) && (outside || kind == Kind.BURGLAR) ? weight(player, kind, state) : 0.0;
 			if (weight > 0.0) {
 				kinds.add(kind);
 				weights.add(weight);
@@ -493,8 +550,33 @@ public final class Encounters {
 			// An evening party under a dry sky.
 			case PARTY -> time >= 13000L && time < 18000L && !player.level().isRaining() ? 0.8 : 0.0;
 			case MOURNER -> time < 13000L ? 0.5 : 0.0;
+			// At home, but not right by their chests.
+			case BURGLAR -> nearHome(player, 12.0, 64.0) ? 0.6 : 0.0;
+			// Working in one place (not on the move) in the daytime.
+			case SNIPER -> day && !moving(player) && heading.getOrDefault(player.getUUID(), Vec3.ZERO).length() < 8.0 ? 0.4 : 0.0;
+			case RAID -> villagersNear(player) >= 3 ? 1.5 : 0.0;
+			case MINER, LOST_DOG, BUILDERS -> day ? 0.5 : 0.0;
+			case ESCORT, HOSTAGE, RACE, CONVOY -> day ? 0.45 : 0.0;
+			case HORDE -> night ? 0.8 : 0.3;
 			default -> 0.0;
 		};
+	}
+
+	/** Their bed is between {@code min} and {@code max} blocks off (a base of theirs). */
+	static boolean nearHome(ServerPlayer player, double min, double max) {
+		BlockPos bed = player.getRespawnPosition();
+		if (bed == null || player.getRespawnDimension() != Level.OVERWORLD || player.level().dimension() != Level.OVERWORLD) {
+			return false;
+		}
+
+		double distance = Math.sqrt(bed.distSqr(player.blockPosition()));
+		return distance >= min && distance <= max;
+	}
+
+	/** Villagers about them (in a village). */
+	static int villagersNear(ServerPlayer player) {
+		return player.level().getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, player.getBoundingBox().inflate(40.0, 16.0, 40.0),
+			net.minecraft.world.entity.LivingEntity::isAlive).size();
 	}
 
 	/** Starts one of these for them now, if it can (debug commands too); the encounter, or null. */
@@ -507,7 +589,7 @@ public final class Encounters {
 			}
 
 			// (The last one's leavers are still walking off: they go now.)
-			old.members().forEach(DrifterEntity::discard);
+			old.discardAll();
 			active.remove(player.getUUID());
 		}
 
@@ -549,6 +631,18 @@ public final class Encounters {
 			case PARTY -> CampfireParty.start(player);
 			case MOURNER -> Mourner.start(player);
 			case REVENGE -> RevengeSquad.start(player, state(player.getUUID()));
+			case SCOUT -> Scout.start(player, state(player.getUUID()));
+			case BURGLAR -> Burglar.start(player);
+			case SNIPER -> Sniper.start(player);
+			case RAID -> VillageRaid.start(player);
+			case MINER -> TrappedMiner.start(player);
+			case ESCORT -> Escort.start(player);
+			case HOSTAGE -> Hostage.start(player);
+			case LOST_DOG -> LostDog.start(player);
+			case RACE -> Race.start(player);
+			case HORDE -> Horde.start(player);
+			case CONVOY -> Convoy.start(player);
+			case BUILDERS -> Builders.start(player);
 		};
 	}
 
@@ -615,7 +709,7 @@ public final class Encounters {
 			return;
 		}
 
-		state.bounty = new Bounty(issuer, reason, now + BOUNTY_DELAY_MIN + player.getRandom().nextInt((int)BOUNTY_DELAY_SPREAD));
+		state.bounty = Bounty.posted(issuer, reason, now, now + BOUNTY_DELAY_MIN + player.getRandom().nextInt((int)BOUNTY_DELAY_SPREAD));
 		state.drifterKills = 0;
 		changed();
 		Drifter.LOGGER.info("[Drifter] {} put a price on {}'s head ({})", issuer, player.getGameProfile().getName(), reason);
@@ -623,7 +717,20 @@ public final class Encounters {
 
 	/** A price on their head now (debug: `/drifter encounter bounty`). */
 	public static void postBountyNow(ServerPlayer player) {
-		state(player.getUUID()).bounty = new Bounty("someone you crossed", "a debug command", player.level().getGameTime());
+		state(player.getUUID()).bounty = new Bounty("someone you crossed", "a debug command", player.level().getGameTime(), -1, null, 0);
+		changed();
+	}
+
+	/** A price on their head with the hunters a day off and their scout due now (debug: `/drifter encounter start scout`). */
+	public static void postBountyForScout(ServerPlayer player) {
+		long now = player.level().getGameTime();
+		PlayerState state = state(player.getUUID());
+		if (state.bounty == null) {
+			state.bounty = Bounty.posted("someone you crossed", "a debug command", now, now + 24000L);
+		}
+
+		// (As if word had got round where they are: the scout has somewhere to look.)
+		state.bounty = new Bounty(state.bounty.issuer(), state.bounty.reason(), state.bounty.dueAt(), now, player.blockPosition(), state.bounty.fewer());
 		changed();
 	}
 

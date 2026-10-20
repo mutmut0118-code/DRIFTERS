@@ -41,7 +41,8 @@ final class BountyHunters extends Encounter {
 
 	@Nullable
 	static Encounter start(ServerPlayer player, Encounters.PlayerState state) {
-		Vec3 lead = whereabouts(player);
+		// Their scout's report if it came back with one, else what word got round.
+		Vec3 lead = state.bounty != null && state.bounty.lead() != null ? Vec3.atBottomCenterOf(state.bounty.lead()) : whereabouts(player);
 		if (lead == null) {
 			return null;
 		}
@@ -56,7 +57,8 @@ final class BountyHunters extends Encounter {
 		String issuer = state.bounty == null ? "someone" : state.bounty.issuer();
 		BountyHunters hunters = new BountyHunters(player, issuer, lead);
 		int tier = EncounterSpawner.gearTier(player);
-		int count = 3 + Math.min(2, tier);
+		// (One fewer if their scout never came back.)
+		int count = Math.max(1, 3 + Math.min(2, tier) - (state.bounty == null ? 0 : state.bounty.fewer()));
 		for (int i = 0; i < count; i++) {
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + random.nextInt(7) - 3, spot.getZ() + random.nextInt(7) - 3);
 			boolean archer = i == count - 1;

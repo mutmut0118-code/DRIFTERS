@@ -1433,8 +1433,24 @@ survival, on the surface). To try each now: `/drifter encounter start <kind>` (`
 - [ ] **Revenge squad**: after a murder (or now and then after killing a Drifter that didn't attack you), a quarter of
       a day to a day later two or three armed Drifters come looking: "Player! you killed <name>. they were our
       friend." To bring the one on its way now: `/drifter encounter start revenge`. Killing them costs you nothing.
-- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off (now with Revenge squads), and sets
-      how often.
+- [ ] **The rest of the list** (`/drifter encounter start <kind>`; most need daytime and open ground):
+      - `horde`: someone runs past shouting "RUN!" with zombies behind them.
+      - `lost_dog`: someone asks about their dog and gives you a lead; find him (his name's over his head) and bring him
+        back to them.
+      - `race`: someone names a hilltop with its coordinates; type `go` in chat, then race them up it.
+      - `builders`: a crew puts up a little roofed waystation near you, then leaves.
+      - `convoy`: riders on horses ride past and call out where they're going (open country only).
+      - `sniper`: someone shoots arrows at you from higher ground; get close and they draw a sword.
+      - `trapped_miner`: someone types "I'm stuck down here at x y z"; dig down to them.
+      - `hostage`: someone types where bandits are holding them (look for the tall smoke); beat the guards.
+      - `village_raid` (stand in a village): raiders attack the villagers; bring two down and the rest run.
+      - `escort` (a village 120 to 600 blocks away): someone asks you to walk them there; type `yes`, keep up.
+      - `burglar` (set your bed or spawn point first, put some diamonds in a chest next to it, walk 20 or 30 blocks
+        off): someone sneaks in and robs the chest. Catch them!
+      - `scout`: puts a price on your head; someone watches you from a distance with a spyglass. Kill them before they
+        get away and the hunters come a day later and short one man; their "Orders" note says who sent them.
+- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off (26 switches now, four a row), and
+      sets how often.
 - [ ] **Bountiful**: a Drifter near a bounty board (villages have them) now and then walks over and reads it. With spare
       things a bounty asks for, it takes it and turns it in for the reward; `/drifter thoughts` says what it took, or what
       the board wanted. To try: put a board near a Drifter, give it a stack of something common (`/drifter give flint 64`),

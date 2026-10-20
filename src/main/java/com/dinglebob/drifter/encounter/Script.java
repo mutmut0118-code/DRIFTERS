@@ -25,6 +25,14 @@ final class Script extends Activity {
 		this.timeout = timeout;
 	}
 
+	/** It ends early once this holds (a captive freed, the off called: what it was waiting for has come). */
+	private java.util.function.BooleanSupplier until = () -> false;
+
+	Script until(java.util.function.BooleanSupplier until) {
+		this.until = until;
+		return this;
+	}
+
 	Script then(Supplier<Task> step) {
 		this.steps.add(step);
 		return this;
@@ -47,7 +55,7 @@ final class Script extends Activity {
 	/** Its time is up: it simply ends (re-planned at once if its part still wants doing), not a failure. */
 	@Override
 	protected boolean finishedEarly() {
-		return this.ticksRunning() >= this.timeout;
+		return this.ticksRunning() >= this.timeout || this.until.getAsBoolean();
 	}
 
 	@Override

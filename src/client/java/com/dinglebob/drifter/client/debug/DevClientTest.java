@@ -85,6 +85,11 @@ public final class DevClientTest {
 				MinecraftServer server = mc.getSingleplayerServer();
 				String command = line.substring(4);
 				server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command));
+			} else if (line.startsWith("chat ")) {
+				// Said in chat as the player (an encounter's "yes" or "go").
+				if (mc.player != null) {
+					mc.player.connection.sendChat(line.substring(5));
+				}
 			} else if (line.startsWith("shot ")) {
 				String name = line.substring(5).trim() + ".png";
 				Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), message -> Drifter.LOGGER.info("[Drifter test] {}", message.getString()));

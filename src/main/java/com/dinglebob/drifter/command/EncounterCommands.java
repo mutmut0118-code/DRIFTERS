@@ -25,13 +25,7 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public final class EncounterCommands {
 	/** Every kind's id (for the config command too). */
-	public static final List<String> KINDS = Arrays.stream(Encounters.Kind.values()).filter(Encounters.Kind::random).map(kind -> kind.id)
-		.collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
-
-	static {
-		KINDS.add(0, Encounters.Kind.BOUNTY_HUNTERS.id);
-		KINDS.add(Encounters.Kind.REVENGE.id);
-	}
+	public static final List<String> KINDS = Arrays.stream(Encounters.Kind.values()).filter(kind -> kind != Encounters.Kind.REWARD).map(kind -> kind.id).toList();
 
 	private EncounterCommands() {
 	}
@@ -148,12 +142,25 @@ public final class EncounterCommands {
 
 		if (kind == Encounters.Kind.BOUNTY_HUNTERS) {
 			Encounters.postBountyNow(player);
+		} else if (kind == Encounters.Kind.SCOUT) {
+			Encounters.postBountyForScout(player);
 		}
 
 		Encounter encounter = Encounters.start(player, kind);
 		if (encounter == null) {
 			say(ctx, "Couldn't start " + kind.label + " here (one going on already, nowhere out of sight to come from, or nothing it needs"
-				+ (kind == Encounters.Kind.BOUNTY_HUNTERS ? ": no Drifter has seen where you are" : kind == Encounters.Kind.WANTED ? ": no Drifter 150 to 1200 blocks off" : "")
+				+ switch (kind) {
+					case BOUNTY_HUNTERS, SCOUT -> ": no Drifter has seen where you are";
+					case WANTED -> ": no Drifter 150 to 1200 blocks off";
+					case BURGLAR -> ": your bed isn't near, or no chest of yours by it has anything worth taking";
+					case SNIPER -> ": no higher ground in sight of you";
+					case RAID -> ": you're not in a village";
+					case MINER -> ": no solid rock under here";
+					case ESCORT -> ": no village 120 to 600 blocks off";
+					case RACE -> ": no hill near enough";
+					case BUILDERS -> ": no flat open ground near";
+					default -> "";
+				}
 				+ ")");
 			return 0;
 		}

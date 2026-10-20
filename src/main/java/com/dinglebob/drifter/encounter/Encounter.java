@@ -94,7 +94,7 @@ public abstract class Encounter {
 			return true;
 		}
 
-		// Over: each one heads off and is gone once nobody can see it (or nobody's near).
+		// Over: each one heads off and is gone once nobody can see it (or nobody's near); its animals with it.
 		long leaving = this.now() - this.overAt;
 		this.members.removeIf(drifter -> {
 			if (unseen(drifter) || leaving > LEAVE_AT_MOST) {
@@ -104,22 +104,53 @@ public abstract class Encounter {
 
 			return false;
 		});
-		return !this.members.isEmpty();
+		this.props.removeIf(prop -> {
+			if (prop.isRemoved() || !prop.isAlive() || !this.stillTheirs(prop)) {
+				// (Not theirs any more: a horse whose rider fell, a dog someone kept. It stays in the world.)
+				return true;
+			}
+
+			if (unseen(prop) || leaving > LEAVE_AT_MOST) {
+				prop.discard();
+				return true;
+			}
+
+			return false;
+		});
+		return !this.members.isEmpty() || !this.props.isEmpty();
+	}
+
+	/** Everyone and everything in it gone at once (the server stopping, a new one starting, a kind that broke). */
+	void discardAll() {
+		this.members.forEach(DrifterEntity::discard);
+		this.props.forEach(prop -> {
+			if (this.stillTheirs(prop)) {
+				prop.discard();
+			}
+		});
 	}
 
 	/** Nobody near, or nobody who could see it. */
-	private static boolean unseen(DrifterEntity drifter) {
-		for (Player player : drifter.level().players()) {
+	private static boolean unseen(Entity entity) {
+		for (Player player : entity.level().players()) {
 			if (player.isSpectator()) {
 				continue;
 			}
 
-			double distance = player.distanceTo(drifter);
-			if (distance < GONE_BEYOND || distance < SEEN_WITHIN && player.hasLineOfSight(drifter)) {
+			double distance = player.distanceTo(entity);
+			if (distance < GONE_BEYOND || distance < SEEN_WITHIN && player.hasLineOfSight(entity)) {
 				return false;
 			}
 		}
 
+		return true;
+	}
+
+	/** Animals and things that came with it (horses, a dog): gone with it at the end, while they're still its. */
+	protected final List<Entity> props = new ArrayList<>();
+
+	/** This one still goes with them (a horse a member rides, a dog one of them has): yes unless a kind says. */
+	protected boolean stillTheirs(Entity prop) {
 		return true;
 	}
 
@@ -185,6 +216,21 @@ public abstract class Encounter {
 
 	/** Its player was hurt (as each blow lands). */
 	protected void playerHurt(ServerPlayer player, net.minecraft.world.damagesource.DamageSource source) {
+	}
+
+	/** Its player said something in chat (lower case, letters and digits only, a space either side of each word). */
+	protected void chat(ServerPlayer player, String words) {
+	}
+
+	/** They said one of these words (in {@link #chat}'s form). */
+	protected static boolean saidAny(String words, String... any) {
+		for (String word : any) {
+			if (words.contains(" " + word + " ")) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** It's over: everyone in it heads off. */
@@ -288,6 +334,98 @@ public abstract class Encounter {
 		}
 
 		return script;
+	}
+
+	/**
+	 * Over to somewhere it can put a block down at {@code cell} from (the ground under it in reach and in sight); null if
+	 * it's there already. (A block going on the ground; see {@link #toBuild} for one in the air.)
+	 */
+	@Nullable
+	protected static com.dinglebob.drifter.executor.Task toPlace(DrifterEntity drifter, net.minecraft.core.BlockPos cell) {
+		if (com.dinglebob.drifter.hands.Reach.canReach(drifter, cell.below())) {
+			return null;
+		}
+
+		net.minecraft.core.BlockPos stand = com.dinglebob.drifter.brain.KnownBlocks.standingSpotFor(drifter, cell.below(), java.util.Set.of(cell));
+		return stand != null ? new com.dinglebob.drifter.executor.task.NavigateTask(drifter, Vec3.atBottomCenterOf(stand), 0.6, "to where it puts it",
+				com.dinglebob.drifter.executor.task.NavigateTask.Pace.STROLL)
+			: new com.dinglebob.drifter.executor.task.NavigateTask(drifter, Vec3.atBottomCenterOf(cell), 2.0, "to where it puts it",
+				com.dinglebob.drifter.executor.task.NavigateTask.Pace.STROLL);
+	}
+
+	/**
+	 * Over to a spot to stand while putting a block at {@code cell} (anywhere in the air, beside what's there): standing
+	 * ground nearest it, its eyes within reach of the block, not in any of {@code keepClear} (the build); null if it can
+	 * reach it from here (or there's no such spot: it tries from where it is).
+	 */
+	@Nullable
+	protected static com.dinglebob.drifter.executor.Task toBuild(DrifterEntity drifter, net.minecraft.core.BlockPos cell, java.util.Set<net.minecraft.core.BlockPos> keepClear) {
+		boolean clearHere = !keepClear.contains(drifter.blockPosition()) && !keepClear.contains(drifter.blockPosition().above());
+		if (clearHere && !cell.equals(drifter.blockPosition()) && !cell.equals(drifter.blockPosition().above()) && placeableFrom(drifter, drifter.getEyePosition(), cell)) {
+			return null;
+		}
+
+		// Spots near enough, nearest it first; the first one it could place it from (a face it can see and reach, as the
+		// placing itself checks: found in testing, "in reach" alone sent it to spots with every face hidden).
+		net.minecraft.world.level.Level level = drifter.level();
+		Vec3 center = Vec3.atCenterOf(cell);
+		double reach = drifter.blockInteractionRange();
+		List<net.minecraft.core.BlockPos> spots = new ArrayList<>();
+		for (int dx = -3; dx <= 3; dx++) {
+			for (int dz = -3; dz <= 3; dz++) {
+				for (int dy = -4; dy <= 1; dy++) {
+					net.minecraft.core.BlockPos pos = cell.offset(dx, dy, dz);
+					if (keepClear.contains(pos) || keepClear.contains(pos.above()) || pos.equals(cell) || pos.above().equals(cell)
+						|| Vec3.atBottomCenterOf(pos).add(0.0, drifter.getEyeHeight(), 0.0).distanceTo(center) > reach + 0.5
+						|| !com.dinglebob.drifter.brain.KnownBlocks.isStandable(level, pos)) {
+						continue;
+					}
+
+					spots.add(pos.immutable());
+				}
+			}
+		}
+
+		spots.sort(java.util.Comparator.comparingDouble(pos -> pos.distSqr(drifter.blockPosition())));
+		for (net.minecraft.core.BlockPos pos : spots) {
+			if (placeableFrom(drifter, Vec3.atBottomCenterOf(pos).add(0.0, drifter.getEyeHeight(), 0.0), cell)) {
+				return new com.dinglebob.drifter.executor.task.NavigateTask(drifter, Vec3.atBottomCenterOf(pos), 0.4, "step over to build",
+					com.dinglebob.drifter.executor.task.NavigateTask.Pace.STROLL);
+			}
+		}
+
+		return null;
+	}
+
+	/** From an eye there it could put a block at {@code cell}: a face of something solid beside it in sight and reach. */
+	protected static boolean placeableFrom(DrifterEntity drifter, Vec3 eye, net.minecraft.core.BlockPos cell) {
+		net.minecraft.world.level.Level level = drifter.level();
+		for (net.minecraft.core.Direction toSupport : net.minecraft.core.Direction.values()) {
+			net.minecraft.core.BlockPos support = cell.relative(toSupport);
+			net.minecraft.world.level.block.state.BlockState state = level.getBlockState(support);
+			if (state.isAir() || state.canBeReplaced()) {
+				continue;
+			}
+
+			if (com.dinglebob.drifter.hands.Reach.aimPointFrom(drifter, eye, support, toSupport.getOpposite()).isPresent()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** Its coordinates, rounded, as a player would read them off and type them (x, y, z). */
+	protected static String coords(net.minecraft.core.BlockPos pos) {
+		return pos.getX() + " " + pos.getY() + " " + pos.getZ();
+	}
+
+	/** Which way {@code to} lies from {@code from}, as a compass word ("north-east"). */
+	protected static String direction(Vec3 from, Vec3 to) {
+		double angle = Math.toDegrees(Math.atan2(to.z - from.z, to.x - from.x));
+		// East is 0, south 90 (z grows southward).
+		String[] names = {"east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"};
+		return names[Math.floorMod((int)Math.round(angle / 45.0), 8)];
 	}
 
 	/** Items this player threw down within {@code radius} of it (what they're giving it, as a player gives: drops it). */

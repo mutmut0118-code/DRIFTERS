@@ -2460,6 +2460,12 @@ the suggested first batch was built. Everything is in docs/ENCOUNTERS.md ("Built
   (Fabric's after-damage event); revenge squads (`RevengeSquad`, the 14th kind: a murder always, other kills of Drifters
   that weren't after the player one time in four; saved per player as `Revenge`). Tested in the client (docs/ENCOUNTERS.md
   "Built: killing encounter Drifters, and revenge squads").
+- **The rest of the list** (the user: "then after that do the rest of the encounters"): the scout (turning the tables on
+  bounty hunters), a thief in your base, sniper, village raid, trapped miner, escort, hostage, lost dog, race, chased
+  by a horde, convoy, builders. 26 kinds in all; tested in the client (docs/ENCOUNTERS.md "Built: the rest of the
+  list"). Shared: `Encounter.props` (horses, a dog: gone with it), `Script.until` (a step ends when what it waited for
+  happens), `toBuild`/`placeableFrom` (a spot to place a block from: a face it can see and reach), chat answers
+  (`Encounter.chat`), `Hold` (stay put, look somewhere). The client test harness takes `chat <text>`.
 - **Bountiful** (`compat/BountifulCompat`, `compat/BountyGoal`): Drifters read a board they've seen, take a bounty they
   can fill from what they can spare and turn it in at the board (Bountiful's own code pays them). Tested headless with a
   known bounty (4 flint for 2 emeralds: done). Kill bounties left; gathering for a bounty not yet.

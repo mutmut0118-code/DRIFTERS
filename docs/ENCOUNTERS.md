@@ -183,6 +183,57 @@ plus its gear). Now (`Encounter.killing`, `Encounters.killed`, `RevengeSquad`), 
 - `/drifter encounter` shows a squad on its way; `/drifter encounter start revenge` brings the one on its way now (or,
   with none, a squad for a made-up friend).
 
+## Built: the rest of the list (2026-10-20)
+
+The user: "then after that do the rest of the encounters". Every kind on the list is built now (26 in all). New:
+- **Turning the tables / the scout (3):** with a price on the player's head, about halfway to the hunters' day one of
+  them comes ahead: creeps to where word has it the player is, crouches somewhere with a view, spyglass in hand, watches
+  for a couple of minutes and slips away. Bring it down: the hunters come a day later, one fewer, and its "Orders" (a
+  note in its pack) say who wants the player dead and on what day they come. Let it go: the hunters come within a
+  quarter of a day, straight to where it saw the player. Comes only from a bounty (`/drifter encounter start scout` puts
+  one up for testing).
+- **A thief in your base (6):** the player near their bed (12 to 64 blocks) with something worth taking in a chest or
+  barrel by it: someone walks over, creeps in (crouched, no name showing), looks round, opens a chest and takes up to 24
+  things worth stealing (diamonds, emeralds, ingots, ender pearls, enchanted things), and creeps off. Seen close, or hit:
+  it runs. Killing it is no crime, and what it took drops. Can happen indoors (the only kind that can).
+- **Sniper (8):** the player working in one place, in the daytime: an archer takes the highest ground 24 to 36 blocks off
+  with a clear line to them and shoots from there, standing (crouched, the crest of its hill hid them). Out of sight
+  20 s: it moves to a spot with a view of where it last saw them (three times at most). Come within 12 blocks (or hit it from close, or it runs out of arrows): sword out.
+- **Village raid (9):** in a village (3+ villagers about): three to five raiders as well armed as the player come in and
+  go for villagers, and for the player if they're close or hit one. Half of them down and the rest fall back ("fall
+  back!"); if the player brought one down, Hero of the Village, as after a raid.
+- **Trapped miner (11):** a Drifter shut in a pocket of rock 7 to 11 blocks under the ground nearby (its tunnel caved
+  in, its pickaxe broke) types where it is in chat ("I'm stuck down here at x y z"), every 45 s, and knocks on the rock.
+  Dig to it (any wall of its pocket broken, or stand by it) and it thanks the player and hands over what it mined (raw
+  iron, gold, sometimes diamonds). The pocket is carved when it starts (the one thing set up beforehand).
+- **Escort (13):** a traveller asks the player to walk it to the village 120 to 600 blocks off ("say yes"), offering 6+
+  emeralds. It leads (it knows the way), waits when they fall 20 blocks behind, goes on alone if they're 80+ off for a
+  minute. Half the time two bandits come out on the road partway, going for the traveller. Paid on arrival.
+- **Hostage (14):** bandits' camp 60 to 90 blocks off, a signal fire (hay under a campfire: smoke seen from far) and a
+  captive kneeling by it, typing where it is now and then. The guards go for anyone within 22 blocks. All of them down:
+  the captive thanks the player with what it hid from them.
+- **Lost dog (15):** someone asks if the player has seen their dog (named, red collar, ran off that way) and hands them
+  a lead. The dog's 50 to 85 blocks off, wandering. Bring him within 6 blocks of the owner: thanks and a gift, and they go.
+- **Race (19):** "race you to the top of that hill (x y z)! N emeralds says I beat you. say go". A hill 50 to 100 blocks
+  off, 6+ higher. "3... 2... 1... go!" First within 3 blocks of the top wins; the racer pays if it loses.
+- **Chased by a horde (20):** someone running flat out with five to seven zombies (in caps) on their heels shouts "RUN!"
+  and goes right past the player; once past, each zombie goes for whoever's nearer.
+- **Convoy (24):** three or four riders on saddled horses ride past side by side 6 to 10 blocks off, the one in front
+  calling a greeting and where they're bound, and ride on out of sight. Only where the way is open, dry country (in
+  thick forest the horses got nowhere, under trees the riders rode their heads into the leaves, and at a lake shore they
+  stopped): 3 in 4 of the road clear four blocks up, no water on it. A rider getting nowhere for 15 s rides round
+  another open way. Rarer than most for that.
+- **Builders (26):** a crew of two or three puts up a waystation on flat open ground near the player (four log posts, a
+  plank roof, a crafting table and a torch under it), each block from a spot it can see a face to place against, as
+  players build. It stays.
+- Tested in the game client: each started, ran and ended as above (the escort walked 240 blocks to a village and paid
+  10 emeralds; the burglar took the diamonds and gold and left the bread; the miner, dug out, handed over its ore; the
+  hostage's guards attacked and, beaten, the captive paid up; the raiders fell back with the player's Hero of the
+  Village; the builders' waystation went up in under half a minute; the scout watched through its spyglass and left).
+- How they're answered: chat for "yes" and "go" (a player's own words), hits as before. Shared bits: things that came
+  with an encounter (horses, a dog) go with it at the end unless they're not its any more (a horse whose rider fell);
+  an encounter step can end the moment what it waited for happens. Settings: the page now has 26 switches, four a row.
+
 ## Built: Drifters doing Bountiful bounties (2026-10-20)
 
 `compat/BountifulCompat` and `compat/BountyGoal`, only with Bountiful installed (it loads in the development setup too).
