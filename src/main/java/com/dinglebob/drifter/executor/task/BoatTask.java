@@ -179,9 +179,24 @@ public class BoatTask extends Task {
 	private Vec3 placePoint() {
 		Level level = this.drifter.level();
 		Vec3 center = Vec3.atBottomCenterOf(this.launch);
-		Vec3 out = new Vec3(center.x - this.drifter.getX(), 0.0, center.z - this.drifter.getZ());
-		out = out.lengthSqr() < 1.0E-4 ? Vec3.ZERO : out.normalize();
+		// Out across the water the way it's going (away from the bank it set off from); or, failing that, away from itself.
+		Vec3 aim = this.aim();
+		Vec3 out = new Vec3(aim.x - center.x, 0.0, aim.z - center.z);
+		Vec3 away = new Vec3(center.x - this.drifter.getX(), 0.0, center.z - this.drifter.getZ());
 		double reach = this.drifter.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) - 0.3;
+		for (Vec3 way : new Vec3[] {out, away}) {
+			Vec3 point = this.placePoint(center, way.lengthSqr() < 1.0E-4 ? Vec3.ZERO : way.normalize(), reach);
+			if (point != null) {
+				return point;
+			}
+		}
+
+		return null;
+	}
+
+	@Nullable
+	private Vec3 placePoint(Vec3 center, Vec3 out, double reach) {
+		Level level = this.drifter.level();
 		for (double along : new double[] {0.6, 1.1, 1.6, 0.2, 2.1}) {
 			Vec3 at = center.add(out.scale(along));
 			BlockPos cell = BlockPos.containing(at.x, this.launch.getY(), at.z);
