@@ -237,9 +237,20 @@ public abstract class Encounter {
 				com.dinglebob.drifter.executor.task.NavigateTask.Pace.TRAVEL);
 	}
 
-	/** A line in chat (the chat-lines setting and its limits apply). */
+	/** Items this player threw down within {@code radius} of it (what they're giving it, as a player gives: drops it). */
+	protected static List<net.minecraft.world.entity.item.ItemEntity> thrownBy(DrifterEntity drifter, Player player, double radius) {
+		return drifter.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, drifter.getBoundingBox().inflate(radius),
+			item -> item.isAlive() && item.getOwner() == player);
+	}
+
+	/** How many it carries of what these test for. */
+	protected static int carried(DrifterEntity drifter, java.util.function.Predicate<net.minecraft.world.item.ItemStack> test) {
+		return drifter.getInventory().count(test);
+	}
+
+	/** A line in chat, talking to someone (the chat-lines setting applies; the chatter limits don't). */
 	protected static void say(DrifterEntity drifter, String line) {
-		com.dinglebob.drifter.social.ChatLines.sayLine(drifter, line);
+		com.dinglebob.drifter.social.ChatLines.speak(drifter, line);
 	}
 
 	protected static void think(DrifterEntity drifter, String thought) {

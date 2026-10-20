@@ -128,6 +128,11 @@ public final class WhimActions {
 		return ACTIONS.keySet();
 	}
 
+	/** Writes on a sign that stands there (as a player types it in the sign screen; up to four short lines). */
+	public static void writeSign(Level level, BlockPos pos, String text) {
+		Sign.write(level, pos, text);
+	}
+
 	/** A line in chat (the chat-lines setting and its rate limits apply). */
 	public static void say(DrifterEntity drifter, String line) {
 		com.dinglebob.drifter.social.ChatLines.sayLine(drifter, line);

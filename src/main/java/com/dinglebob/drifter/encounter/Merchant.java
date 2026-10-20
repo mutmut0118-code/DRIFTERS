@@ -54,6 +54,28 @@ final class Merchant extends Encounter {
 		PRICES.put(Items.ENCHANTED_BOOK, new int[] {10, 1});
 		PRICES.put(Items.MUSIC_DISC_CAT, new int[] {5, 1});
 		PRICES.put(Items.EXPERIENCE_BOTTLE, new int[] {3, 4});
+		// A buried treasure map (some merchants carry one: docs/ENCOUNTERS.md 22).
+		PRICES.put(Items.FILLED_MAP, new int[] {8, 1});
+	}
+
+	/** How often a merchant has a treasure map, and how far round it looks for the treasure (chunks). */
+	private static final float TREASURE_MAP_CHANCE = 0.4F;
+	private static final int TREASURE_SEARCH = 32;
+
+	/** A buried treasure map from here (the game's own kind, a cartographer's), or null if no treasure is near. */
+	@Nullable
+	static ItemStack treasureMap(ServerLevel level, BlockPos from) {
+		BlockPos treasure = level.findNearestMapStructure(net.minecraft.tags.StructureTags.ON_TREASURE_MAPS, from, TREASURE_SEARCH, true);
+		if (treasure == null) {
+			return null;
+		}
+
+		ItemStack map = net.minecraft.world.item.MapItem.create(level, treasure.getX(), treasure.getZ(), (byte)1, true, true);
+		net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, map);
+		net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(map, treasure, "+",
+			net.minecraft.world.level.saveddata.maps.MapDecorationTypes.RED_X);
+		map.set(net.minecraft.core.component.DataComponents.ITEM_NAME, net.minecraft.network.chat.Component.translatable("filled_map.buried_treasure"));
+		return map;
 	}
 
 	/** How long it hangs about once it has said hello (ticks), and how far off you can walk before it goes. */
@@ -92,6 +114,13 @@ final class Merchant extends Encounter {
 						level.registryAccess(), Optional.empty())
 					: new ItemStack(item, PRICES.get(item)[1] * bundles);
 				drifter.getInventory().add(stack);
+			}
+
+			if (random.nextFloat() < TREASURE_MAP_CHANCE) {
+				ItemStack map = treasureMap(level, spot);
+				if (map != null) {
+					drifter.getInventory().add(map);
+				}
 			}
 
 			drifter.getInventory().add(new ItemStack(Items.EMERALD, 4 + random.nextInt(8)));
@@ -214,15 +243,21 @@ final class Merchant extends Encounter {
 		void refresh() {
 			MerchantOffers offers = new MerchantOffers();
 			DrifterInventory inventory = this.drifter.getInventory();
+			// (The same thing in several slots, two saddles say, is one offer.)
+			List<ItemStack> kinds = new ArrayList<>();
 			for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 				ItemStack stack = inventory.getItem(slot);
-				int[] price = stack.isEmpty() ? null : PRICES.get(stack.getItem());
-				if (price == null || stack.getCount() < price[1]) {
-					continue;
+				if (!stack.isEmpty() && PRICES.containsKey(stack.getItem()) && kinds.stream().noneMatch(k -> ItemStack.isSameItemSameComponents(k, stack))) {
+					kinds.add(stack);
 				}
+			}
 
-				ItemStack sold = stack.copyWithCount(price[1]);
-				offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, price[0]), Optional.empty(), sold, 0, stack.getCount() / price[1], 0, 0.0F));
+			for (ItemStack kind : kinds) {
+				int[] price = PRICES.get(kind.getItem());
+				int have = inventory.count(s -> ItemStack.isSameItemSameComponents(s, kind));
+				if (have >= price[1]) {
+					offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, price[0]), Optional.empty(), kind.copyWithCount(price[1]), 0, have / price[1], 0, 0.0F));
+				}
 			}
 
 			this.offers = offers;

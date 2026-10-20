@@ -2451,6 +2451,9 @@ the suggested first batch was built. Everything is in docs/ENCOUNTERS.md ("Built
   (`DrifterEntity.mobInteract`), `DrifterRegistry` skips temporary Drifters. A witness who was chasing the Drifter a
   player killed counts it as its attacker killed, not a friend (`SocialWatcher`).
 - Settings page "Encounters..." and `/drifter config encounters|encounterdays|encounter`; `/drifter encounter ...`.
+- **Second batch** (the user: "yea pick some more events"): the watcher, duel challenges, muggings, hungry travellers,
+  feuds, campfire parties, mourners, and treasure maps from some merchants; all tested in the client. Thirteen kinds in
+  all (docs/ENCOUNTERS.md "Built (second batch)").
 - **Bountiful** (`compat/BountifulCompat`, `compat/BountyGoal`): Drifters read a board they've seen, take a bounty they
   can fill from what they can spare and turn it in at the board (Bountiful's own code pays them). Tested headless with a
   known bounty (4 flint for 2 emeralds: done). Kill bounties left; gathering for a bounty not yet.

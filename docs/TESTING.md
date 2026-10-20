@@ -1421,6 +1421,11 @@ survival, on the surface). To try each now: `/drifter encounter start <kind>` (`
 - [ ] **Bounty hunters**: anger a Drifter badly (or kill a few), and a day or two later armed hunters come looking for you
       where you were last seen. To try it at once: `/drifter encounter start bounty_hunters` (a Drifter must have seen you
       recently).
+- [ ] **More kinds** (`/drifter encounter start <kind>`): `watcher` (at night in open country: a still figure far off,
+      gone when you get close), `duel` (hit them to accept; win and they pay diamonds), `mugging` (throw them the
+      emeralds, or fight), `hungry_traveller` (throw them food: they thank you with something), `feud` (help one of the
+      two), `campfire_party` (evening: a campfire, cake, dancing and fireworks), `mourner` (a grave by the road). Some
+      merchants sell a buried treasure map.
 - [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off, and sets how often.
 - [ ] **Bountiful**: a Drifter near a bounty board (villages have them) now and then walks over and reads it. With spare
       things a bounty asks for, it takes it and turns it in for the reward; `/drifter thoughts` says what it took, or what

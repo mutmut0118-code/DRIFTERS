@@ -17,7 +17,11 @@ public final class DrifterEncounterScreen extends Screen {
 	/** Each kind's id and name here. */
 	private static final String[][] KINDS = {
 		{"bounty_hunters", "Bounty hunters"}, {"wanted", "Wanted posters"}, {"injured_traveller", "Injured travellers"},
-		{"thief", "Thieves"}, {"merchant", "Travelling merchants"}, {"ambush", "Ambushes"}};
+		{"thief", "Thieves"}, {"merchant", "Merchants"}, {"ambush", "Ambushes"}, {"watcher", "The watcher"}, {"duel", "Duels"},
+		{"mugging", "Muggings"}, {"hungry_traveller", "Hungry travellers"}, {"feud", "Feuds"}, {"campfire_party", "Campfire parties"},
+		{"mourner", "Mourners"}};
+	/** Each kind's switch: three a row. */
+	private static final int KIND_WIDTH = 124;
 
 	private final Screen parent;
 
@@ -36,11 +40,12 @@ public final class DrifterEncounterScreen extends Screen {
 		this.addRenderableWidget(new DrifterConfigScreen.IntSlider(right, y, "About one every", 1, 40, (int)Math.round(DrifterConfig.encounterDays() * 4.0),
 			v -> (v % 4 == 0 ? String.valueOf(v / 4) : String.valueOf(v / 4.0)) + (v == 4 ? " day" : " days"), v -> DrifterConfig.setEncounterDays(v / 4.0)));
 		y += ROW + 8;
+		int x0 = this.width / 2 - (KIND_WIDTH * 3 + 8) / 2;
 		for (int i = 0; i < KINDS.length; i++) {
 			String id = KINDS[i][0];
-			this.addRenderableWidget(DrifterConfigScreen.toggle(i % 2 == 0 ? left : right, y, KINDS[i][1], !DrifterConfig.encounterOff(id),
-				on -> DrifterConfig.setEncounterOff(id, !on)));
-			if (i % 2 == 1) {
+			this.addRenderableWidget(net.minecraft.client.gui.components.CycleButton.onOffBuilder(!DrifterConfig.encounterOff(id))
+				.create(x0 + (i % 3) * (KIND_WIDTH + 4), y, KIND_WIDTH, 20, Component.literal(KINDS[i][1]), (button, on) -> DrifterConfig.setEncounterOff(id, !on)));
+			if (i % 3 == 2) {
 				y += ROW;
 			}
 		}

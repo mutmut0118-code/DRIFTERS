@@ -50,6 +50,21 @@ public final class ChatLines {
 	private static final Map<String, Long> lastKind = new HashMap<>();
 	private static final java.util.ArrayDeque<Long> recent = new java.util.ArrayDeque<>();
 
+	/**
+	 * Talking to someone (an encounter's lines: a demand, an offer, an answer): the chat setting applies, the rate limits
+	 * don't (found in a test: "let's go!" after the duel challenge came too soon after it and was never said). Its other
+	 * chatter waits after it.
+	 */
+	public static void speak(DrifterEntity drifter, String text) {
+		MinecraftServer server = drifter.getServer();
+		if (!DrifterConfig.chatLines() || server == null) {
+			return;
+		}
+
+		lastLine.put(drifter.getUUID(), drifter.level().getGameTime());
+		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + text), false);
+	}
+
 	/** A line of its own (a whim's), under the same rate limits and setting as the canned ones. */
 	public static void sayLine(DrifterEntity drifter, String text) {
 		MinecraftServer server = drifter.getServer();

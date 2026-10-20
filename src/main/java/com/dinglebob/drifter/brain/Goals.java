@@ -478,6 +478,12 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
+			// (An encounter's Drifter is out for its part: a party, a watcher in the night. Its own fights and flight still
+			// keep it alive; found in a test: the party's host dug in for the night before lighting the fire.)
+			if (context.drifter().encounter() != null) {
+				return 0.0;
+			}
+
 			return context.needs().shelter();
 		}
 
@@ -1813,7 +1819,7 @@ public final class Goals {
 
 		@Override
 		public double urgency(Context context) {
-			if (!hunting(context)) {
+			if (!hunting(context) || context.drifter().encounter() != null) {
 				this.anchor = null;
 				return 0.0;
 			}

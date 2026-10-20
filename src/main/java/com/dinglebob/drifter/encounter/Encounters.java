@@ -48,7 +48,14 @@ public final class Encounters {
 		INJURED("injured_traveller", "an injured traveller"),
 		THIEF("thief", "a thief"),
 		MERCHANT("merchant", "a travelling merchant"),
-		AMBUSH("ambush", "an ambush");
+		AMBUSH("ambush", "an ambush"),
+		WATCHER("watcher", "the watcher"),
+		DUEL("duel", "a duel challenge"),
+		MUGGING("mugging", "a mugging"),
+		HUNGRY("hungry_traveller", "a hungry traveller"),
+		FEUD("feud", "a feud"),
+		PARTY("campfire_party", "a campfire party"),
+		MOURNER("mourner", "a mourner");
 
 		public final String id;
 		public final String label;
@@ -370,6 +377,15 @@ public final class Encounters {
 			// Mostly at night (it's the monsters it's running from).
 			case INJURED -> night ? 1.6 : 0.6;
 			case WANTED -> state.wanted == null && WantedPoster.target(player) != null ? 0.8 : 0.0;
+			// A figure at the edge of sight, at night: rare.
+			case WATCHER -> night ? 0.4 : 0.0;
+			// Someone armed: a challenge.
+			case DUEL -> day && EncounterSpawner.gearTier(player) + (armed(player) ? 1 : 0) >= 1 ? 0.6 : 0.0;
+			case MUGGING -> awayFromHome(player) && !night ? 0.7 : 0.0;
+			case HUNGRY, FEUD -> day ? 0.7 : 0.0;
+			// An evening party under a dry sky.
+			case PARTY -> time >= 13000L && time < 18000L && !player.level().isRaining() ? 0.8 : 0.0;
+			case MOURNER -> time < 13000L ? 0.5 : 0.0;
 			default -> 0.0;
 		};
 	}
@@ -418,11 +434,23 @@ public final class Encounters {
 			// (Started by command standing still: ahead is the way they're looking.)
 			case AMBUSH -> Ambush.start(player, heading.getOrDefault(player.getUUID(), Vec3.ZERO).lengthSqr() >= 1.0 ? heading.get(player.getUUID())
 				: player.getLookAngle().multiply(1.0, 0.0, 1.0).scale(20.0));
+			case WATCHER -> Watcher.start(player);
+			case DUEL -> Duel.start(player);
+			case MUGGING -> Mugging.start(player);
+			case HUNGRY -> HungryTraveller.start(player);
+			case FEUD -> Feud.start(player);
+			case PARTY -> CampfireParty.start(player);
+			case MOURNER -> Mourner.start(player);
 		};
 	}
 
 	public static boolean enabled(Kind kind) {
 		return !DrifterConfig.encounterOff(kind == Kind.REWARD ? Kind.WANTED.id : kind.id);
+	}
+
+	/** Holding a weapon (a sword, an axe, anything that hits harder than a fist). */
+	private static boolean armed(ServerPlayer player) {
+		return player.getMainHandItem().is(net.minecraft.tags.ItemTags.SWORDS) || player.getMainHandItem().is(net.minecraft.tags.ItemTags.AXES);
 	}
 
 	/** Under the open sky or close to it (the encounters happen on the surface). */

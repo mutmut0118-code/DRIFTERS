@@ -86,6 +86,13 @@ final class EncounterSpawner {
 		return top;
 	}
 
+	/** As {@link #ground}, and bare: nothing growing in the cell (a block put there goes straight onto the ground). */
+	@Nullable
+	static BlockPos bareGround(ServerLevel level, int x, int z) {
+		BlockPos top = ground(level, x, z);
+		return top != null && level.getBlockState(top).isAir() ? top : null;
+	}
+
 	/** No player could see someone standing here (out of range, or something solid in between). */
 	static boolean hidden(ServerLevel level, BlockPos spot) {
 		Vec3 head = Vec3.atBottomCenterOf(spot).add(0.0, 1.6, 0.0);

@@ -133,6 +133,34 @@ Code: `encounter/` (`Encounters` the director, `Encounter` the base, one class p
   player; the ambush sprang on a player walking past).
 - **Not yet:** the rest of the list above.
 
+## Built (second batch, 2026-10-20)
+
+The user: "yea pick some more events". Picked for variety (danger, odd, friendly), each tested in the game client:
+- **The watcher (27):** at night, a still figure with no name over its head at the edge of sight (35 to 70 blocks, open
+  ground the player can see), looking their way. Come within 32 blocks and it walks off and is gone. Needs open
+  country (in thick forest it can't find a spot, and another encounter comes instead).
+- **Duel challenge (18):** a PvP sweat as well armed as the player walks up: "1v1? N diamonds says I win. hit me if
+  you're in." Hit it to accept. A fight to a few hearts: at three hearts it gives up and pays its diamonds ("fair's
+  fair. good fight."); the player down to four and it stops ("keep your stuff, it was for fun"). No answer in 30 s:
+  "coward."
+- **Mugging (5):** away from home, an armed Drifter blocks the way: "N emeralds (or gold, or diamonds), or your life.
+  throw it here." Throw it that much (a diamond counts three) and it goes; walk off or hit it and it attacks.
+- **Lost and hungry (12):** a starving traveller asks for food; throw it some, it eats, and gives something from its
+  pack ("bless you. here, for your kindness.").
+- **Feud (17):** two Drifters fighting ("you burned my house down!"). Hit one and the other, if it wins, thanks you with
+  something; or just watch.
+- **Campfire party (23):** of an evening, three or four Drifters set up a campfire and a cake on bare ground, dance,
+  cheer and set off fireworks, and call the player over. After four minutes, "goodnight, everyone!"; the campfire and
+  cake stay.
+- **Mourner (25):** someone puts up a grave by the road (a sign, "Here lies <name>. Gone too soon.", and a poppy) and
+  kneels there; come close and it talks about them. The grave stays.
+- **Treasure maps (22):** some travelling merchants (2 in 5) also sell a buried treasure map, the game's own kind,
+  pointing at a real buried treasure, for 8 emeralds.
+- Along the way: encounter lines are said even when they come quickly (the chatter limit doesn't apply to an
+  encounter talking to you; the chat setting still does); encounter Drifters never dig in for the night or go hunting
+  at night (they're out for their part); a merchant's same goods are one offer; `/drifter encounter throw <item>` and
+  `hit <part> [amount]` for testing.
+
 ## Built: Drifters doing Bountiful bounties (2026-10-20)
 
 `compat/BountifulCompat` and `compat/BountyGoal`, only with Bountiful installed (it loads in the development setup too).
