@@ -1,0 +1,259 @@
+{
+	"whims": [
+		{
+			"id": "smell_a_flower", "category": "micro", "action": "steps", "when": "day",
+			"params": {
+				"find": {"flower": {"type": "block", "ids": ["#minecraft:small_flowers"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "flower", "near": 1.5},
+					{"do": "crouch", "ticks": 15},
+					{"do": "look_at", "target": "flower", "ticks": 50},
+					{"do": "say", "lines": ["mm, nice"], "chance": 0.2}
+				]
+			},
+			"archetypes": {"homebody": 1.5, "newbie": 1.3, "speedrunner": 0.3}, "traits": {"patience": 0.4}, "cooldown": 12000, "offscreen": "show",
+			"thought": "stopping to smell a flower"
+		},
+		{
+			"id": "scratch_a_cat", "category": "animals", "action": "steps",
+			"params": {
+				"find": {"pet": {"type": "mob", "ids": ["minecraft:cat", "minecraft:ocelot"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "pet", "near": 1.5},
+					{"do": "crouch", "ticks": 40},
+					{"do": "look_at", "target": "pet", "ticks": 60},
+					{"do": "think", "text": "gave the cat a scratch behind the ears"}
+				]
+			},
+			"traits": {"sociability": 0.3, "patience": 0.3}, "cooldown": 12000, "offscreen": "show",
+			"thought": "giving a cat a scratch"
+		},
+		{
+			"id": "pat_a_dog", "category": "animals", "action": "steps",
+			"params": {
+				"find": {"dog": {"type": "mob", "ids": ["minecraft:wolf"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "dog", "near": 1.5},
+					{"do": "crouch", "ticks": 30},
+					{"do": "look_at", "target": "dog", "ticks": 50, "hops": true},
+					{"do": "say", "lines": ["good dog", "who's a good boy"], "chance": 0.3}
+				]
+			},
+			"traits": {"sociability": 0.4}, "cooldown": 12000, "offscreen": "show",
+			"thought": "patting a dog"
+		},
+		{
+			"id": "coin_in_the_water", "category": "micro", "action": "steps", "when": "day",
+			"params": {
+				"find": {"water": {"type": "block", "ids": ["minecraft:water"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "water", "near": 2.5},
+					{"do": "look_at", "target": "water", "ticks": 20},
+					{"do": "drop", "item": "minecraft:gold_nugget", "count": 1},
+					{"do": "look_at", "target": "water", "ticks": 40},
+					{"do": "think", "text": "tossed a gold nugget in the water for luck"}
+				]
+			},
+			"needs": [{"item": "minecraft:gold_nugget", "count": 2}],
+			"traits": {"greed": -0.5, "curiosity": 0.3}, "cooldown": 48000, "offscreen": "real",
+			"thought": "tossing a coin in the water for luck"
+		},
+		{
+			"id": "stare_at_its_reflection", "category": "micro", "action": "steps", "when": "day",
+			"params": {
+				"find": {"water": {"type": "block", "ids": ["minecraft:water"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "water", "near": 1.5},
+					{"do": "look_at", "at": "down", "ticks": 100},
+					{"do": "say", "lines": ["looking good", "huh."], "chance": 0.25}
+				]
+			},
+			"traits": {"patience": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "staring at its reflection in the water"
+		},
+		{
+			"id": "stand_in_the_rain", "category": "weather", "action": "steps", "when": "rain",
+			"params": {
+				"find": {"open": {"type": "sky", "radius": 10}},
+				"steps": [
+					{"do": "walk_to", "target": "open", "near": 0.8},
+					{"do": "look_at", "at": "up", "ticks": 60},
+					{"do": "wait", "ticks": 200},
+					{"do": "look_around"}
+				]
+			},
+			"moods": {"bored": 0.5}, "traits": {"caution": -0.4}, "cooldown": 24000, "offscreen": "show",
+			"thought": "standing in the rain, just because"
+		},
+		{
+			"id": "lean_on_the_fence", "category": "micro", "action": "steps",
+			"params": {
+				"find": {"fence": {"type": "block", "ids": ["#minecraft:wooden_fences"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "fence", "near": 1.2},
+					{"do": "look_at", "at": "ahead", "ticks": 200},
+					{"do": "look_around"}
+				]
+			},
+			"archetypes": {"homebody": 1.5}, "traits": {"patience": 0.5}, "cooldown": 12000, "offscreen": "show",
+			"thought": "leaning on the fence, watching the world go by"
+		},
+		{
+			"id": "knock_on_a_door", "category": "village", "action": "steps", "when": "day",
+			"params": {
+				"find": {"door": {"type": "block", "ids": ["#minecraft:wooden_doors"], "radius": 20}},
+				"steps": [
+					{"do": "walk_to", "target": "door", "near": 1.5},
+					{"do": "look_at", "target": "door", "ticks": 10},
+					{"do": "swing", "times": 3},
+					{"do": "say", "lines": ["knock knock", "anyone home?"], "chance": 0.4},
+					{"do": "wait", "ticks": 60},
+					{"do": "look_around"}
+				]
+			},
+			"traits": {"sociability": 0.5, "curiosity": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "knocking on a door to see who's in"
+		},
+		{
+			"id": "smoke_signal", "category": "builds", "action": "build",
+			"params": {
+				"blocks": [[0, 0, 0, "minecraft:hay_block"], [0, 1, 0, "minecraft:campfire"]],
+				"make": {"minecraft:campfire": "minecraft:campfire"}
+			},
+			"needs": [{"item": "minecraft:hay_block"}, {"item": "minecraft:campfire"}],
+			"archetypes": {"nomad": 1.5, "hermit": 1.5, "builder": 1.2}, "traits": {"creativity": 0.4}, "cooldown": 72000,
+			"thought": "lighting a smoke signal"
+		},
+		{
+			"id": "bone_meal_the_grass", "category": "micro", "action": "use_block", "when": "day",
+			"params": {"blocks": ["minecraft:grass_block"], "item": "minecraft:bone_meal", "times": 2, "gap": 15, "radius": 12},
+			"needs": [{"item": "minecraft:bone_meal", "count": 4}],
+			"archetypes": {"homebody": 1.5, "builder": 1.3}, "traits": {"creativity": 0.4}, "cooldown": 24000,
+			"thought": "bone mealing the grass for flowers"
+		},
+		{
+			"id": "open_a_gate", "category": "blocks", "action": "use_block",
+			"params": {"blocks": ["#minecraft:fence_gates"], "times": 2, "gap": 12, "radius": 12},
+			"traits": {"fidget": 0.8}, "cooldown": 12000, "offscreen": "show",
+			"thought": "opening and closing a gate for no reason"
+		},
+		{
+			"id": "step_on_a_pressure_plate", "category": "blocks", "action": "steps",
+			"params": {
+				"find": {"plate": {"type": "block", "ids": ["#minecraft:pressure_plates"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "plate", "near": 0.3},
+					{"do": "jump", "times": 2},
+					{"do": "look_around"}
+				]
+			},
+			"traits": {"curiosity": 0.6, "fidget": 0.4}, "cooldown": 12000, "offscreen": "show",
+			"thought": "stepping on a pressure plate to see what it does"
+		},
+		{
+			"id": "read_at_the_lectern", "category": "blocks", "action": "steps",
+			"params": {
+				"find": {"lectern": {"type": "block", "ids": ["minecraft:lectern"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "lectern", "near": 1.5},
+					{"do": "look_at", "target": "lectern", "ticks": 140},
+					{"do": "think", "text": "read a few pages at the lectern"}
+				]
+			},
+			"traits": {"curiosity": 0.5, "knowledge": 0.5}, "cooldown": 24000, "offscreen": "show",
+			"thought": "reading at a lectern"
+		},
+		{
+			"id": "hum_to_itself", "category": "micro", "action": "steps",
+			"params": {
+				"steps": [
+					{"do": "say", "lines": ["hm hm hmm", "la la la", "dum de dum"]},
+					{"do": "look_around"},
+					{"do": "jump", "times": 1, "chance": 0.5}
+				]
+			},
+			"moods": {"bored": 0.5, "triumphant": 0.5}, "traits": {"fidget": 0.4, "sociability": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "humming to itself"
+		},
+		{
+			"id": "sunset_with_a_friend", "category": "social", "action": "steps", "when": "sunset", "gates": "M",
+			"params": {
+				"find": {"friend": {"type": "friend", "radius": 20}},
+				"steps": [
+					{"do": "walk_to", "target": "friend", "near": 2},
+					{"do": "say", "to": "friend", "lines": ["look at that", "nice sunset, huh"], "chance": 0.5},
+					{"do": "look_at", "at": "sun", "ticks": 240}
+				]
+			},
+			"traits": {"sociability": 1.0}, "cooldown": 24000, "offscreen": "show",
+			"thought": "watching the sunset with a friend"
+		},
+		{
+			"id": "admire_a_diamond", "category": "micro", "action": "steps",
+			"params": {
+				"steps": [
+					{"do": "hold", "item": "minecraft:diamond"},
+					{"do": "look_at", "at": "down", "ticks": 60},
+					{"do": "say", "lines": ["shiny", "beautiful"], "chance": 0.3}
+				]
+			},
+			"needs": [{"item": "minecraft:diamond"}],
+			"archetypes": {"hoarder": 2.0, "miner": 1.5}, "traits": {"greed": 1.0}, "cooldown": 24000, "offscreen": "show",
+			"thought": "turning a diamond over in its hands"
+		},
+		{
+			"id": "count_its_emeralds", "category": "micro", "action": "steps",
+			"params": {
+				"steps": [
+					{"do": "hold", "item": "minecraft:emerald"},
+					{"do": "look_at", "at": "down", "ticks": 80},
+					{"do": "think", "text": "counted its emeralds again"}
+				]
+			},
+			"needs": [{"item": "minecraft:emerald", "count": 5}],
+			"archetypes": {"hoarder": 2.0}, "traits": {"greed": 1.0}, "cooldown": 24000, "offscreen": "show",
+			"thought": "counting its emeralds"
+		},
+		{
+			"id": "nod_to_the_golem", "category": "village", "action": "steps",
+			"params": {
+				"find": {"golem": {"type": "mob", "ids": ["minecraft:iron_golem"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "golem", "near": 4},
+					{"do": "look_at", "target": "golem", "ticks": 30},
+					{"do": "crouch", "ticks": 8},
+					{"do": "say", "lines": ["evening, big guy", "keep up the good work"], "chance": 0.3}
+				]
+			},
+			"traits": {"sociability": 0.4}, "cooldown": 24000, "offscreen": "show",
+			"thought": "nodding to the iron golem"
+		},
+		{
+			"id": "polish_its_shield", "category": "modded", "action": "steps",
+			"params": {
+				"requires_mod": "spartanshields",
+				"steps": [
+					{"do": "hold", "item": "@modded_shield"},
+					{"do": "look_at", "at": "down", "ticks": 40},
+					{"do": "swing", "times": 3},
+					{"do": "think", "text": "gave its shield a polish"}
+				]
+			},
+			"needs": [{"item": "@modded_shield"}],
+			"archetypes": {"pvp_sweat": 1.5, "builder": 1.2}, "traits": {"tidiness": 0.8}, "cooldown": 24000, "offscreen": "show",
+			"thought": "polishing its shield"
+		},
+		{
+			"id": "watch_the_lava_flow", "category": "nature", "action": "steps",
+			"params": {
+				"find": {"lava": {"type": "block", "ids": ["minecraft:lava"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "lava", "near": 5},
+					{"do": "look_at", "target": "lava", "ticks": 120}
+				]
+			},
+			"traits": {"curiosity": 0.4, "caution": -0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "watching the lava glow"
+		}
+	]
+}

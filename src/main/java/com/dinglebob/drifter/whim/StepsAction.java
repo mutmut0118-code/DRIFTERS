@@ -73,7 +73,11 @@ final class StepsAction implements WhimAction {
 		}
 	}
 
-	record Target(String name, Kind kind, List<String> ids, int radius, boolean optional) {
+	/** {@code reach}: a step uses it (it must be within a player's reach of somewhere to stand); one it only walks to or looks at needn't be (water, a pressure plate). */
+	record Target(String name, Kind kind, List<String> ids, int radius, boolean optional, boolean reach) {
+		Target withReach() {
+			return new Target(this.name, this.kind, this.ids, this.radius, this.optional, true);
+		}
 	}
 
 	/** One step; the fields a verb doesn't use keep their defaults. */
@@ -177,7 +181,7 @@ final class StepsAction implements WhimAction {
 				}
 
 				targets.put(name, new Target(name, kind, List.copyOf(ids), json.has("radius") ? json.get("radius").getAsInt() : kind.radius,
-					json.has("optional") && json.get("optional").getAsBoolean()));
+					json.has("optional") && json.get("optional").getAsBoolean(), false));
 			}
 		}
 
@@ -222,6 +226,10 @@ final class StepsAction implements WhimAction {
 
 			if (verb.equals("use") && (kind == Kind.HOME || kind == Kind.SKY || kind == Kind.GROUND)) {
 				throw new IllegalArgumentException(where + ": a " + kind.name().toLowerCase(Locale.ROOT) + " target is a spot, nothing to use");
+			}
+
+			if (verb.equals("use") && target != null) {
+				targets.put(target, targets.get(target).withReach());
 			}
 
 			if (verb.equals("place") && kind != Kind.GROUND && kind != Kind.SKY && kind != Kind.BLOCK) {
@@ -335,7 +343,7 @@ final class StepsAction implements WhimAction {
 		return switch (target.kind()) {
 			case BLOCK -> {
 				for (BlockPos pos : KnownBlocks.find(drifter, target.radius(), WhimActions.WatchBlock.matcher(target.ids()), 6)) {
-					if (Reach.canReach(drifter, pos) || KnownBlocks.standingSpotFor(drifter, pos, Set.of()) != null) {
+					if (!target.reach() || Reach.canReach(drifter, pos) || KnownBlocks.standingSpotFor(drifter, pos, Set.of()) != null) {
 						yield new Found(pos, null);
 					}
 				}

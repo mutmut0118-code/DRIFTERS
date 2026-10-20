@@ -2458,3 +2458,14 @@ the suggested first batch was built. Everything is in docs/ENCOUNTERS.md ("Built
   timing out counted as a failure and marked the part down; the traveller dug in for the night instead of running; two
   ambush bandits killed each other; bandits who heard someone didn't go and look.
 
+## More whims (2026-10-20)
+
+The user: "then add more whims". Twenty new ones in `drifter_whims/everyday.json`, most written as steps whims (the new
+system): smelling a flower, giving a cat a scratch, patting a dog, a gold nugget tossed in the water for luck, staring at
+its reflection, standing in the rain, leaning on a fence, knocking on a door, a smoke signal (a hay bale under a
+campfire, a little build), bone mealing grass for flowers, opening and closing a gate, stepping on a pressure plate,
+reading at a lectern, humming to itself, watching the sunset with a friend, turning a diamond over in its hands,
+counting its emeralds, nodding to an iron golem, polishing its shield (Spartan Shields), watching lava glow. 141 whims in
+all. Tested by forcing each in a little set-up: done as written (the coin really leaves its pack). Steps whims: a block
+target only has to be in reach if a step uses it (water and pressure plates can't be aimed at).
+

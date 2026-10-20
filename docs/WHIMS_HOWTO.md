@@ -134,7 +134,7 @@ Each gets a name you choose (`"fire"` above) and a `type`:
 
 | Type | What it finds | Settings |
 | --- | --- | --- |
-| `block` | A block it has seen and can get to. | `ids` (needed): block ids or tags. `radius` (16). |
+| `block` | A block it has seen (one a `use` step clicks must also be within reach of somewhere to stand; one it only walks to or looks at, like water, needn't be). | `ids` (needed): block ids or tags. `radius` (16). |
 | `mob` | An animal or mob it can see. | `ids` (needed): mob ids. `radius` (16). |
 | `friend` | A friend it can see: a group mate, a Drifter it trusts, a player it likes. | `radius` (20) |
 | `company` | Anyone it can see: a player or another Drifter. | `radius` (16) |
@@ -170,8 +170,9 @@ Each step is `{"do": "<step>", ...settings}`. Any step can have `"chance": 0.5` 
 
 Items it holds, uses, places, eats or drops must be carried (or listed in `needs`), or the whim doesn't come up.
 
-The examples in the mod are in `drifter_whims/steps.json`: warming its hands by a fire, waving to a friend, checking on
-the crops, a morning stretch.
+The examples in the mod are in `drifter_whims/steps.json` (warming its hands by a fire, waving to a friend, checking on
+the crops, a morning stretch) and `drifter_whims/everyday.json` (twenty more: smelling a flower, scratching a cat, a coin
+in the water, standing in the rain, knocking on a door, counting its emeralds...).
 
 ## Offscreen
 

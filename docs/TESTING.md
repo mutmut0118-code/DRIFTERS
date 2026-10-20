@@ -1447,6 +1447,9 @@ survival, on the surface). To try each now: `/drifter encounter start <kind>` (`
       shield. Early on (with Spartan Shields) they make a crude wooden shield right after their first pickaxe, then a
       stone braced one. `/drifter thoughts` at dusk: "tonight it carries on through the night", or "tonight it stays in
       (too careful to be out after dark)" and the like.
+- [ ] **New whims** (twenty more, 2026-10-20): now and then a Drifter stops to smell a flower, scratches a cat, tosses a
+      gold nugget in a pond, stands in the rain, knocks on a door, counts its emeralds, hums to itself. `/drifter whims`
+      lists them all; `/drifter whim <id>` makes one happen.
 - [ ] **Writing your own whims** (optional): see `docs/WHIMS_HOWTO.md`. Mistakes show in `logs/latest.log` as lines
       starting `[Drifter] whim`.
 
