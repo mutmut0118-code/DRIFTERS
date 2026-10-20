@@ -2312,7 +2312,11 @@ all of this, please keep the optimization in mind".
   the world), the lines matching what's there (its chest, bed, hut; no cats or portals); show whims settled the tick
   they started; 60 Drifters catching up 3 days at once: 45.1 ms each on average with whims, 44.3 without (about 2%,
   within noise); live, no slow whim checks from the new whims and no measurable difference against the previous
-  version (runs vary more than that).
+  version (runs vary more than that). In the game client (three homes, 10 days each): a sapling, a sign, little
+  monuments; the first try put a monument and a sapling right against the hut wall (the hut counts as built only once
+  finished, and catch-up puts its shell up first), so traces now keep clear of the hut's and house's plans: 2 blocks
+  (3 for saplings), checked again on 8 homes. Each trace is logged with where it went ("Bea left something at home
+  while away (little_monument): at ...").
 
 ### An easier way to add whims (done, 2026-10-20)
 

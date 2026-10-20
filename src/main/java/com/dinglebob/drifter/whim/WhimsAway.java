@@ -303,17 +303,24 @@ public final class WhimsAway {
 			return false;
 		}
 
-		return switch (whim.action()) {
-			case "torch_dark" -> torch(drifter, home);
-			case "plant_sapling" -> sapling(drifter, home, random);
-			case "sign" -> sign(drifter, whim, home, random);
-			case "build" -> build(drifter, whim, home);
+		BlockPos[] at = new BlockPos[1];
+		boolean left = switch (whim.action()) {
+			case "torch_dark" -> torch(drifter, home, at);
+			case "plant_sapling" -> sapling(drifter, home, at);
+			case "sign" -> sign(drifter, whim, home, random, at);
+			case "build" -> build(drifter, whim, home, at);
 			default -> false;
 		};
+		if (left) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] {} left something at home while away ({}): at {}, its home's middle {}",
+				drifter.getName().getString(), whim.id(), at[0].toShortString(), home.center.toShortString());
+		}
+
+		return left;
 	}
 
 	/** A torch in a dark corner at home (inside its hut is fine): with more than four torches on it, as live. */
-	private static boolean torch(DrifterEntity drifter, Home home) {
+	private static boolean torch(DrifterEntity drifter, Home home, BlockPos[] at) {
 		Level level = drifter.level();
 		if (drifter.getInventory().count(stack -> stack.is(Items.TORCH)) <= 4) {
 			return false;
@@ -321,11 +328,12 @@ public final class WhimsAway {
 
 		BlockPos spot = nearest(home, TRACE_RADIUS, 0, pos -> room(level, pos) && level.getBrightness(LightLayer.BLOCK, pos) < 4
 			&& level.getBrightness(LightLayer.SKY, pos) < 8 && Blocks.TORCH.defaultBlockState().canSurvive(level, pos));
+		at[0] = spot;
 		return spot != null && place(drifter, spot, Blocks.TORCH.defaultBlockState(), stack -> stack.is(Items.TORCH));
 	}
 
 	/** A sapling it carries, planted on grass or dirt under the sky near home (not in its buildings, as live). */
-	private static boolean sapling(DrifterEntity drifter, Home home, RandomSource random) {
+	private static boolean sapling(DrifterEntity drifter, Home home, BlockPos[] at) {
 		Level level = drifter.level();
 		ItemStack sapling = find(drifter, stack -> stack.is(ItemTags.SAPLINGS) && stack.getItem() instanceof BlockItem);
 		if (sapling == null) {
@@ -333,13 +341,14 @@ public final class WhimsAway {
 		}
 
 		BlockState state = ((BlockItem)sapling.getItem()).getBlock().defaultBlockState();
-		BlockPos spot = nearest(home, TRACE_RADIUS + 2, 6, pos -> room(level, pos) && !home.inOwnBuilding(pos, 3) && level.canSeeSky(pos)
+		BlockPos spot = nearest(home, TRACE_RADIUS + 2, 6, pos -> room(level, pos) && !nearBuilding(home, pos, 3) && level.canSeeSky(pos)
 			&& (level.getBlockState(pos.below()).is(Blocks.GRASS_BLOCK) || level.getBlockState(pos.below()).is(Blocks.DIRT)) && state.canSurvive(level, pos));
+		at[0] = spot;
 		return spot != null && place(drifter, spot, state, stack -> stack.getItem() == sapling.getItem());
 	}
 
 	/** A sign with one of the whim's lines on it, on free ground near home, facing home. */
-	private static boolean sign(DrifterEntity drifter, Whim whim, Home home, RandomSource random) {
+	private static boolean sign(DrifterEntity drifter, Whim whim, Home home, RandomSource random, BlockPos[] at) {
 		Level level = drifter.level();
 		List<String> lines = whim.params("lines");
 		ItemStack sign = find(drifter, stack -> stack.is(ItemTags.SIGNS) && stack.getItem() instanceof BlockItem item
@@ -362,11 +371,12 @@ public final class WhimsAway {
 		}
 
 		WhimActions.Sign.write(level, spot, WhimActions.Sign.fill(drifter, lines.get(random.nextInt(lines.size()))));
+		at[0] = spot;
 		return true;
 	}
 
 	/** A whim's little build on free ground near home, from blocks it carries (all of them, or it doesn't start). */
-	private static boolean build(DrifterEntity drifter, Whim whim, Home home) {
+	private static boolean build(DrifterEntity drifter, Whim whim, Home home, BlockPos[] where) {
 		Level level = drifter.level();
 		List<WhimActions.Build.Cell> cells = WhimActions.Build.cells(whim);
 		if (cells.isEmpty()) {
@@ -408,6 +418,7 @@ public final class WhimsAway {
 			place(drifter, at, ((BlockItem)stack.getItem()).getBlock().defaultBlockState(), s -> s == stack);
 		}
 
+		where[0] = site;
 		return true;
 	}
 
@@ -421,7 +432,20 @@ public final class WhimsAway {
 	private static boolean ground(Level level, Home home, BlockPos pos, int margin) {
 		BlockPos below = pos.below();
 		return room(level, pos) && level.getBlockState(pos.above()).canBeReplaced() && level.getBlockState(below).isFaceSturdy(level, below, Direction.UP)
-			&& !PlayerPlacedBlocks.isPlayerPlaced(level, below) && !home.inOwnBuilding(pos, margin);
+			&& !PlayerPlacedBlocks.isPlayerPlaced(level, below) && !nearBuilding(home, pos, margin);
+	}
+
+	/**
+	 * In or within {@code margin} of its hut or house, finished or not: their plans (found in the game: during catch-up the
+	 * hut's shell goes up before it counts as built, and a monument and a sapling went right against its wall).
+	 */
+	private static boolean nearBuilding(Home home, BlockPos pos, int margin) {
+		if (home.inOwnBuilding(pos, margin) || com.dinglebob.drifter.building.StarterHut.of(home).box().inflatedBy(margin).isInside(pos)) {
+			return true;
+		}
+
+		var house = home.house();
+		return house != null && house.box().inflatedBy(margin).isInside(pos);
 	}
 
 	/** The spot nearest home's middle (at least {@code min} off it) that passes the test, or null. */
