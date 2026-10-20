@@ -450,6 +450,24 @@ public class ShelterActivity extends Activity {
 				}
 
 				if (!Schedule.isNight(this.drifter) && Schedule.believedTime(this.drifter) < Schedule.SHELTER_THINKING) {
+					// A guess (milestone 20, "wrong guesses"): something hostile it heard out there in the night and never saw,
+					// it takes to be still about, and it stays in a little longer (the zombie may well have burned up at sunrise).
+					long now = level.getGameTime();
+					if (!this.spookChecked) {
+						this.spookChecked = true;
+						String heard = this.heardInTheNight(now);
+						if (heard != null) {
+							double caution = this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
+							this.spookedUntil = now + 20L * (20 + Math.round(70.0 * caution));
+							this.think("heard " + heard + " out there in the night: staying in a little longer, just in case");
+						}
+					}
+
+					if (now < this.spookedUntil) {
+						return this.begin(new WaitTask(this.drifter, "it to be safe out there", () -> this.drifter.level().getGameTime() >= this.spookedUntil,
+							(int)(this.spookedUntil - now) + 20));
+					}
+
 					this.phase = Phase.EXIT;
 					this.think("it should be morning: climbing out");
 					return Status.RUNNING;
@@ -809,5 +827,32 @@ public class ShelterActivity extends Activity {
 		return Tools.BUILDING_BLOCK.test(stack) || stack.getItem() instanceof BlockItem block
 			&& block.getBlock().defaultBlockState().isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
 			&& !(block.getBlock() instanceof FallingBlock);
+	}
+
+	/** It took a sound in the night for a monster still about outside (milestone 20). */
+	private boolean spookChecked;
+	private long spookedUntil = Long.MIN_VALUE / 2;
+	/** How long before dawn a heard monster still counts. */
+	private static final long SPOOK_HEARD_WITHIN = 20L * 60 * 3;
+
+	/** A monster it heard (not saw) close by in the last few minutes of the night, as "a zombie", or null. */
+	@org.jetbrains.annotations.Nullable
+	private String heardInTheNight(long now) {
+		var dimension = this.drifter.level().dimension().location();
+		var heard = this.drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.MOB, dimension, this.drifter.position(), 24.0,
+			entry -> entry.source == com.dinglebob.drifter.memory.MemorySource.HEARD && now - entry.confirmedAt <= SPOOK_HEARD_WITHIN && monster(entry.label));
+		if (heard == null) {
+			return null;
+		}
+
+		var type = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(net.minecraft.resources.ResourceLocation.parse(heard.label));
+		String name = type.getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+		return ("aeiou".indexOf(name.isEmpty() ? 'x' : name.charAt(0)) >= 0 ? "an " : "a ") + name;
+	}
+
+	private static boolean monster(String label) {
+		var id = net.minecraft.resources.ResourceLocation.tryParse(label);
+		return id != null && net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.containsKey(id)
+			&& net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(id).getCategory() == net.minecraft.world.entity.MobCategory.MONSTER;
 	}
 }

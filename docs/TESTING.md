@@ -1382,6 +1382,20 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] New huts and houses: chests face into the room, two chests side by side make a double chest, and the hut torch is
       on the wall, not a window.
 
+## Milestone 20: wrong guesses (new)
+
+`/drifter thoughts` shows these.
+- [ ] **Night noises**: a Drifter sealed in for the night with a zombie groaning outside stays in a little after sunrise
+      ("heard a zombie out there in the night: staying in a little longer, just in case").
+- [ ] **Trampled crops**: jump on a Drifter's farmland (or let animals onto it) where it can see you, then leave. Next
+      time it works the farm it blames you (or the cow it saw there): "... plots trampled: it must have been <you>", and
+      it likes you a little less.
+- [ ] **Getting around**: on hills and mountains Drifters should get stuck less again (they guess the height of ground
+      they haven't seen from the ground nearby). `/drifter navtest 20 16 40` as before.
+
+Also please read `docs/OFFSCREEN_WHIMS.md` (ways for whims to happen while you're away) and answer the three questions at
+the end.
+
 ## Milestone 19: mod compat (new)
 
 **Bountiful needs the Kambrik mod**: it isn't in your DRIFTER TEST profile, so the game won't start with Bountiful

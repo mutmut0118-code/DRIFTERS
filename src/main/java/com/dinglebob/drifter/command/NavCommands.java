@@ -34,6 +34,10 @@ final class NavCommands {
 			ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(out), false);
 			return 1;
 		}));
+		// The unseen-ground guess on or off (debug, for comparing routes; milestone 20).
+		root.then(Commands.literal("groundguess")
+			.then(Commands.literal("on").executes(ctx -> groundGuess(ctx, true)))
+			.then(Commands.literal("off").executes(ctx -> groundGuess(ctx, false))));
 		root.then(Commands.literal("goto")
 			.then(Commands.literal("me").executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -60,6 +64,12 @@ final class NavCommands {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				return start(ctx, drifter -> NavigateTask.follow(drifter, player, NEAR_PLAYER + 1.0));
 			})));
+	}
+
+	private static int groundGuess(CommandContext<CommandSourceStack> ctx, boolean on) {
+		com.dinglebob.drifter.nav.NavView.GUESS_GROUND = on;
+		ctx.getSource().sendSuccess(() -> Component.literal("Guessing unseen ground from the ground seen round about: " + (on ? "on" : "off")), true);
+		return 1;
 	}
 
 	private static int gotoPos(CommandContext<CommandSourceStack> ctx, NavigateTask.Pace pace) throws CommandSyntaxException {

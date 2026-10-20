@@ -49,7 +49,9 @@ public enum SocialEvent {
 	/** Killed a Drifter it was friends with: the news spreads within its group. */
 	KILLED_FRIEND(-30, 20, 30, "killed a friend of it"),
 	/** Wears much better gear than it: Fear +10 to +30, no change in Trust. */
-	BETTER_GEAR(0, 10, 0, "wears much better gear");
+	BETTER_GEAR(0, 10, 0, "wears much better gear"),
+	/** Its farm found trampled, and this was the last one it saw on it (milestone 20, a guess: maybe they didn't). */
+	TRAMPLED_CROPS(-8, 0, 10, "trampled its crops (it thinks)");
 
 	/** Trust change (for ranged events, the low end). */
 	public final int trust;

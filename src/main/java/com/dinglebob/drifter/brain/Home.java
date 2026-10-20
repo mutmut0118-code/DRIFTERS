@@ -126,6 +126,14 @@ public final class Home {
 	/** When it last looked for a spot for a pen and found none (not saved): it looks again later. */
 	public long penFailedAt = Long.MIN_VALUE / 2;
 
+	/** Farmland it left on its farm last time it worked it (-1: not yet looked), for spotting trampling (milestone 20). */
+	public int farmlandSeen = -1;
+	/** The last one it saw standing on its farm (not saved): who it blames for trampling. */
+	public java.util.UUID farmVisitor;
+	public String farmVisitorName = "";
+	public String farmVisitorKind = "";
+	public boolean farmVisitorPerson;
+	public long farmVisitorAt = Long.MIN_VALUE / 2;
 	/** When it last looked for a farm by the water and found nowhere (not saved): it looks again later. */
 	public long farmFailedAt = Long.MIN_VALUE / 2;
 
@@ -436,6 +444,7 @@ public final class Home {
 		if (this.farm != null) {
 			tag.put("Farm", NbtUtils.writeBlockPos(this.farm));
 			tag.putInt("FarmRadius", this.farmRadius);
+			tag.putInt("FarmlandSeen", this.farmlandSeen);
 		}
 
 		if (this.pen != null) {
@@ -532,6 +541,7 @@ public final class Home {
 			}
 		}
 		home.farm = NbtUtils.readBlockPos(tag, "Farm").orElse(null);
+		home.farmlandSeen = tag.contains("FarmlandSeen") ? tag.getInt("FarmlandSeen") : -1;
 		if (home.farm != null) {
 			// (A farm made before farms varied is the full 9x9.)
 			home.farmRadius = tag.contains("FarmRadius") ? tag.getInt("FarmRadius") : com.dinglebob.drifter.brain.activity.FarmActivity.RADIUS;

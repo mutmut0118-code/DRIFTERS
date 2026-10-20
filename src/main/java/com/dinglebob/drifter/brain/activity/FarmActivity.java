@@ -55,6 +55,7 @@ public class FarmActivity extends Activity {
 	private static final int MAX_STEPS = 120;
 
 	private int steps;
+	private boolean checked;
 	private int walksToWater;
 	private int looks;
 	/** Debug: the best plot score the last search found. */
@@ -128,6 +129,12 @@ public class FarmActivity extends Activity {
 
 			home.farm = plot;
 			this.think("starting a wheat farm at " + plot.toShortString());
+		}
+
+		// Back at its farm: farmland gone since last time, someone trampled it (and it knows who, it thinks).
+		if (!this.checked) {
+			this.checked = true;
+			com.dinglebob.drifter.brain.Hunches.checkFarm(this.drifter);
 		}
 
 		if (++this.steps > MAX_STEPS) {
@@ -598,5 +605,12 @@ public class FarmActivity extends Activity {
 
 	static boolean isLeaves(BlockState state) {
 		return state.is(BlockTags.LEAVES);
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		// What it leaves is what it expects to find next time.
+		com.dinglebob.drifter.brain.Hunches.leaveFarm(this.drifter);
 	}
 }

@@ -80,7 +80,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **Done in code** (2026-10-19), waiting on the user's play test | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
 | 18 | Player skills | **Done in code** (2026-10-19): trading, fishing, horses, boats, potions, netherite; waiting on the user's play test | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
 | 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
-| 20 | Whims offscreen, then wrong guesses | Not started | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
+| 20 | Whims offscreen, then wrong guesses | **In progress** (2026-10-19): the offscreen proposal is written (docs/OFFSCREEN_WHIMS.md, waiting on the user's pick); four new guesses done | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 
 ## Milestone 0: Project setup
 
@@ -2278,3 +2278,39 @@ Bountiful until it's added.
 - Whim: reading the bounty board.
 - Later, if the user wants it: taking and turning in bounties (the board's screen can't open for its helper player, so
   it would be done through the mod's own code).
+
+## Milestone 20: Whims offscreen, then wrong guesses (started 2026-10-19)
+
+### Whims offscreen: a proposal (waiting on the user)
+
+`docs/OFFSCREEN_WHIMS.md`: where whims stand offscreen today (catch-up does none), five ways to do it (memory only;
+memory plus real traces at its own home; settling show-only whims at once for unwatched Drifters; a leisure budget; a
+"while you were away" line), and a recommendation (A + B + C + E, traces capped at 2 per catch-up, a per-whim
+"offscreen" field). Three questions for the user at the end. Nothing built until the user picks.
+
+### Wrong guesses (done)
+
+The user (2026-10-16): "their logic needs more assumption, allow them to make mistakes". Before: the cave hunch and the
+theft assumption. New (from the "Ideas for more assumptions" list, and the unseen-ground note from milestone 17):
+- **Noises in the night** (`ShelterActivity`): at dawn, if it heard a monster close by in the last minutes of the night
+  and never saw it, it takes it to be still out there and stays in a little longer (20 to 90 seconds by Caution:
+  "heard a zombie out there in the night: staying in a little longer, just in case"), though the zombie may well have
+  burned up at sunrise.
+- **Who trampled the crops** (`brain/Hunches`): it notices who it sees standing on its farm (a person counts over an
+  animal for a couple of minutes), and when it next works the farm and finds farmland gone back to dirt, it blames the
+  last one it saw there, right or wrong ("48 of its farm's plots trampled: it must have been the pig it saw there"); a
+  player it blames loses a little trust (new event `TRAMPLED_CROPS`: trust -8, a small grudge 10). It may well have
+  trampled them itself. Tested: the plots trampled by a command, a pig standing on the farm got the blame.
+- **Ore gone** (`Senses`): ore it remembered and finds gone: "someone must have mined it" (a creeper, a cave-in or its
+  own earlier trip are just as likely).
+- **Unseen ground** (`nav/NavView`): before, a cell it hadn't seen counted as both air and ground at any height, so
+  routes floated straight over valleys and through hills and fell apart when it saw the real ground. Now it guesses an
+  unseen column's ground from the nearest ground it has seen round about (within 3 columns, the nearest ring's average),
+  as a player reads a hillside: more than 2 below that is earth (dug like rock), more than 2 above it is air with nothing
+  to stand on, and only the band in between stays unsure. Nothing seen near: as before; not in the Nether.
+  `/drifter groundguess on|off` (debug) compares. Walking test (40 Drifters each, 50 blocks): vanilla 2 seeds, 74 of 80
+  off, 74 and 78 of 80 on; Tectonic (seed 4242, three areas) 98 of 120 off, 105 and 109 on (the frozen peaks the most:
+  26 to 33 off, 32 to 35 on). Route searches about 5% slower (each column's seen ground cached per search).
+- Already there: a player in much better gear raises its fear (`BETTER_GEAR`), and enough fear keeps it away.
+- Not done from the list: a dark hole taken for a dungeon (close to the cave hunch).
+

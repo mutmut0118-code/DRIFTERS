@@ -105,6 +105,7 @@ public final class NavView {
 		// (Not in the Nether: rock overhead everywhere, but what it hasn't seen there is mostly open caverns and lava seas.)
 		this.underground = com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
 			&& !drifter.getSenses().time().canSeeSky() && !drifter.level().dimensionType().hasCeiling();
+		this.lavaWorld = drifter.level().dimensionType().ultraWarm();
 		this.rockSeconds = Tools.digSeconds(this.tools, this.onGround, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), world, this.feet);
 	}
 
@@ -130,6 +131,97 @@ public final class NavView {
 
 	/** It's underground right now (unseen cells near its level count as rock). */
 	private final boolean underground;
+	/** In the Nether: what it hasn't seen there is caverns and lava seas, no ground to guess from. */
+	private final boolean lavaWorld;
+
+	/** The unseen-ground guess (milestone 20); off: unseen is both open and solid at any height, as before. */
+	public static boolean GUESS_GROUND = true;
+	/** How far round an unseen column it looks for ground it has seen. */
+	private static final int GUESS_RADIUS = 3;
+	/** Unsure within this many blocks of the guessed ground; past it, earth below and air above. */
+	private static final int GUESS_SLACK = 2;
+	/** How far up and down from its feet it looks for that ground. */
+	private static final int GUESS_SPAN = 20;
+	private static final int NO_GUESS = Integer.MIN_VALUE;
+	/** Guessed ground per column (x, z), worked out once a view. */
+	private final it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap guesses = new it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap();
+
+	/**
+	 * The ground it guesses an unseen column has: the top of the nearest ground it has seen (a solid block, or water, with
+	 * what's over it seen and open), from the nearest ring of columns round it that has any (the average of those);
+	 * {@link #NO_GUESS} with nothing seen within {@link #GUESS_RADIUS}.
+	 */
+	private int guessedGround(int x, int z) {
+		long key = net.minecraft.world.level.ChunkPos.asLong(x, z);
+		if (this.guesses.containsKey(key)) {
+			return this.guesses.get(key);
+		}
+
+		int guess = NO_GUESS;
+		BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+		for (int ring = 0; ring <= GUESS_RADIUS && guess == NO_GUESS; ring++) {
+			int total = 0;
+			int found = 0;
+			for (int dx = -ring; dx <= ring; dx++) {
+				for (int dz = -ring; dz <= ring; dz++) {
+					if (Math.max(Math.abs(dx), Math.abs(dz)) != ring) {
+						continue;
+					}
+
+					int top = this.seenGround(at, x + dx, z + dz);
+					if (top != NO_GUESS) {
+						total += top;
+						found++;
+					}
+				}
+			}
+
+			if (found > 0) {
+				guess = Math.round(total / (float)found);
+			}
+		}
+
+		this.guesses.put(key, guess);
+		return guess;
+	}
+
+	/** Seen ground per column, worked out once a view (each column is asked by up to two dozen neighbours). */
+	private final it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap seenTops = new it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap();
+
+	/** The top of the ground it has seen in this column, near its own height, or {@link #NO_GUESS}. */
+	private int seenGround(BlockPos.MutableBlockPos at, int x, int z) {
+		long key = net.minecraft.world.level.ChunkPos.asLong(x, z);
+		if (this.seenTops.containsKey(key)) {
+			return this.seenTops.get(key);
+		}
+
+		int seen = this.scanSeenGround(at, x, z);
+		this.seenTops.put(key, seen);
+		return seen;
+	}
+
+	private int scanSeenGround(BlockPos.MutableBlockPos at, int x, int z) {
+		int top = this.feet.getY() + GUESS_SPAN;
+		int bottom = this.feet.getY() - GUESS_SPAN;
+		boolean openAbove = false;
+		for (int y = top; y >= bottom; y--) {
+			at.set(x, y, z);
+			if (!this.knowledge.isKnown(at)) {
+				openAbove = false;
+				continue;
+			}
+
+			BlockState state = this.state(at);
+			boolean ground = !state.getCollisionShape(this.world, at).isEmpty() || !state.getFluidState().isEmpty();
+			if (ground && openAbove && !state.is(net.minecraft.tags.BlockTags.LEAVES)) {
+				return y;
+			}
+
+			openAbove = !ground;
+		}
+
+		return NO_GUESS;
+	}
 	/** How long stone takes it to dig with what it carries. */
 	private final float rockSeconds;
 
@@ -192,6 +284,23 @@ public final class NavView {
 			// at every wall (found in testing: "found stone where it expected open space" fifteen times, then giving up).
 			if (this.underground && pos.getY() <= this.feet.getY() + 3) {
 				return new Cell(Kind.SOLID, this.rockSeconds, false, false);
+			}
+
+			// Above ground: a guess at where the ground is (milestone 20, "wrong guesses"), from the nearest ground it has seen
+			// round about, as a player reads a hillside it can't see all of: well under that, earth; well over it, air.
+			// (Before, unseen was both at any height: routes floated straight over valleys and through hills, and every one
+			// came apart when it saw the real ground.) Near the guess it stays unsure; with nothing seen near, as before.
+			if (GUESS_GROUND && !this.lavaWorld) {
+				int ground = this.guessedGround(pos.getX(), pos.getZ());
+				if (ground != NO_GUESS) {
+					if (pos.getY() <= ground - GUESS_SLACK) {
+						return new Cell(Kind.SOLID, this.rockSeconds, false, false);
+					}
+
+					if (pos.getY() > ground + GUESS_SLACK) {
+						return new Cell(Kind.OPEN, 0.0F, false, false);
+					}
+				}
 			}
 
 			return new Cell(Kind.UNKNOWN, 0.0F, false, false);
@@ -384,9 +493,10 @@ public final class NavView {
 	/** Something it can stand on top of: a known solid block no taller than a full block, or unknown (assumed). */
 	public boolean standable(BlockPos floor) {
 		Cell cell = this.cell(floor);
-		// Unseen (or assumed rock underground): assumed fine to stand on, without peeking at what's really there.
+		// Unseen (or assumed rock underground): assumed fine to stand on, without peeking at what's really there. Unless it
+		// guesses that's air (well above the ground it has seen round about).
 		if (cell.kind() == Kind.UNKNOWN || !this.knowledge.isKnown(floor)) {
-			return true;
+			return cell.kind() != Kind.OPEN;
 		}
 
 		if (cell.kind() == Kind.LOW) {

@@ -1416,7 +1416,10 @@ public class Senses {
 				}
 
 				this.memory.forget(entry);
-				this.think(shortLabel(entry.label) + " at " + pos.toShortString() + " is gone");
+				// Ore it remembered, now gone (it didn't mine it: it would have forgotten it then): a guess at why (milestone
+				// 20; a creeper, a cave-in, or itself on another trip are just as likely).
+				this.think(shortLabel(entry.label) + " at " + pos.toShortString() + " is gone"
+					+ (entry.kind == MemoryKind.ORE ? ": someone must have mined it" : ""));
 			}
 		}
 	}

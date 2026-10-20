@@ -1243,6 +1243,11 @@ protected void customServerAiStep() {
 		if ((this.tickCount + this.getId()) % com.dinglebob.drifter.social.SocialWatcher.TICK_EVERY == 0) {
 			this.social.watcher().tick();
 		}
+
+		// Who's on its farm (for its guess about who tramples it; milestone 20): it notices, whatever it's doing.
+		if ((this.tickCount + this.getId()) % 40 == 0) {
+			com.dinglebob.drifter.brain.Hunches.noteFarmVisitors(this);
+		}
 		com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.SOCIAL, System.nanoTime() - t);
 		// Skill moves the head (section 16.1: lower Skill overshoots more); mood can shake it (Panicked).
 		this.camera.setSkill(this.personality.getF(com.dinglebob.drifter.personality.Trait.SKILL));
