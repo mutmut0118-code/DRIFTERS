@@ -2,7 +2,10 @@
 
 The user (2026-10-19): "think: what are some ways we can simulate/catch up with these whims in a offscreen sense?"
 
-This is a proposal to pick from. Nothing here is built yet.
+**Decided and built (2026-10-20).** The user picked A + B (kept small) + C + E: "a + b + c + e, with a small b / the while
+you were away should only be in thoughts log / and aslong as C doesnt change the performance of the mod, itll be fine".
+What was built, and the field's final values (`show`, `trace`, `real`, `skip` rather than the "memory" named below), are
+in docs/PROGRESS.md (milestone 20) and docs/WHIMS_HOWTO.md ("Offscreen"). The proposal as written follows.
 
 ## Where whims stand today
 

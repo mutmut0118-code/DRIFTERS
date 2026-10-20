@@ -1,0 +1,60 @@
+{
+	"whims": [
+		{
+			"id": "warm_hands_by_the_fire", "category": "micro", "action": "steps", "when": "night",
+			"comment": "A steps whim (docs/WHIMS_HOWTO.md): find a campfire it has seen, walk over, crouch by it a while.",
+			"params": {
+				"find": {"fire": {"type": "block", "ids": ["#minecraft:campfires"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "fire", "near": 2},
+					{"do": "crouch", "ticks": 30},
+					{"do": "look_at", "target": "fire", "ticks": 120},
+					{"do": "say", "lines": ["ahh, that's better", "nice and warm"], "chance": 0.3}
+				]
+			},
+			"archetypes": {"homebody": 1.5, "nomad": 1.3}, "traits": {"patience": 0.4}, "cooldown": 12000, "offscreen": "show",
+			"thought": "warming its hands by the fire"
+		},
+		{
+			"id": "wave_to_a_friend", "category": "social", "action": "steps", "gates": "M",
+			"params": {
+				"find": {"friend": {"type": "friend", "radius": 16}},
+				"steps": [
+					{"do": "look_at", "target": "friend", "ticks": 15},
+					{"do": "swing", "times": 3},
+					{"do": "say", "to": "friend", "lines": ["hey!", "o/", "hiya"], "chance": 0.5},
+					{"do": "look_at", "target": "friend", "ticks": 30}
+				]
+			},
+			"traits": {"sociability": 1.0}, "cooldown": 6000, "offscreen": "show",
+			"thought": "waving to a friend"
+		},
+		{
+			"id": "check_on_the_crops", "category": "micro", "action": "steps", "when": "day",
+			"params": {
+				"find": {"crop": {"type": "block", "ids": ["minecraft:wheat", "minecraft:carrots", "minecraft:potatoes", "minecraft:beetroots"], "radius": 24}},
+				"steps": [
+					{"do": "walk_to", "target": "crop", "near": 2},
+					{"do": "crouch", "ticks": 20},
+					{"do": "look_at", "target": "crop", "ticks": 60},
+					{"do": "think", "text": "the crops are coming along"}
+				]
+			},
+			"archetypes": {"homebody": 2.0, "builder": 1.2}, "traits": {"patience": 0.5, "tidiness": 0.3}, "cooldown": 12000, "offscreen": "show",
+			"thought": "checking on the crops"
+		},
+		{
+			"id": "morning_stretch", "category": "micro", "action": "steps", "when": "sunrise",
+			"params": {
+				"steps": [
+					{"do": "look_at", "at": "up", "ticks": 30},
+					{"do": "jump", "times": 1},
+					{"do": "look_at", "at": "sun", "ticks": 40},
+					{"do": "look_around"}
+				]
+			},
+			"traits": {"fidget": 0.5}, "cooldown": 24000, "offscreen": "show",
+			"thought": "stretching in the morning sun"
+		}
+	]
+}

@@ -213,7 +213,8 @@ public final class DrifterCommands {
 				DrifterEntity drifter = nearest(ctx.getSource());
 				int hours = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "hours");
 				var report = com.dinglebob.drifter.world.CatchUp.run(drifter, hours * 1000L);
-				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " " + report.describe()), false);
+				String fun = report.whims.describe();
+				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " " + report.describe() + (fun == null ? "" : "\n" + fun)), false);
 				return 1;
 			})
 			// Every loaded Drifter catches up as if back after that long, the way they do when their land loads (a few

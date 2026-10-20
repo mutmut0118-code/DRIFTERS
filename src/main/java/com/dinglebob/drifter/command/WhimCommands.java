@@ -41,8 +41,8 @@ public final class WhimCommands {
 		long now = drifter.level().getGameTime();
 		var state = WhimGoal.state(drifter);
 		List<Whim> all = Whims.all().stream().sorted(Comparator.comparingDouble((Whim w) -> -WhimGoal.weight(drifter, w))).toList();
-		say(ctx, String.format(Locale.ROOT, "%s: %d whims known, %d done so far (%s ago last)", DrifterCommands.label(drifter), all.size(), state.done,
-			state.done == 0 ? "never" : ((now - state.lastAny) / 20) + " s"));
+		say(ctx, String.format(Locale.ROOT, "%s: %d whims known, %d done so far (%s ago last); %d settled at once with nobody near (all Drifters, since the start)",
+			DrifterCommands.label(drifter), all.size(), state.done, state.done == 0 ? "never" : ((now - state.lastAny) / 20) + " s", WhimGoal.settled));
 		// How long each one's check against the world takes (performance; the slowest few).
 		List<String> slow = all.stream().map(w -> {
 			long t = System.nanoTime();

@@ -16,4 +16,12 @@ public interface WhimAction {
 	/** The activity that does it, or null if it can't after all. */
 	@Nullable
 	Activity start(DrifterEntity drifter, Whim whim);
+
+	/**
+	 * Its own checks of a whim's params as the whim loads, beyond the ones every whim gets ({@link WhimCheck}): small
+	 * mistakes go in {@code warnings}; one that leaves the whim unable to work throws an IllegalArgumentException saying
+	 * what it is.
+	 */
+	default void check(Whim whim, java.util.List<String> warnings) {
+	}
 }

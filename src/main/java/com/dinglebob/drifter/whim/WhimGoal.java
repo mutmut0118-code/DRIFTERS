@@ -43,6 +43,13 @@ public final class WhimGoal extends Goals.Goal {
 	@Nullable
 	private Whim running;
 	private double runningScore;
+	/** The next start is a debug command's: done for real, whoever is about. */
+	private boolean forced;
+
+	/** How much of its boredom a whim takes away (done, settled at once, or while it was away). */
+	public static final double BORED_RELIEF = 0.3;
+	/** Whims settled at once since the server started (nobody near to see them; for /drifter whims). */
+	public static long settled;
 
 	@Override
 	public String id() {
@@ -130,14 +137,26 @@ public final class WhimGoal extends Goals.Goal {
 	@Nullable
 	public Activity begin(DrifterEntity drifter, Whim whim, double score) {
 		WhimAction action = WhimActions.get(whim.action());
+		boolean forced = this.forced;
+		this.forced = false;
 		if (action == null) {
 			return null;
 		}
 
-		boolean missing = whim.needs().stream().anyMatch(need -> count(drifter, need.item()) < need.count());
-		Activity activity = missing ? new WhimPrep.MakeThen(drifter, whim, action) : action.start(drifter, whim);
-		if (activity == null) {
-			return null;
+		// Only for show, and nobody within 128 blocks to see it (Far tier): settled at once, the thought, the mood and the
+		// cooldown without the walk over and the standing about (milestone 20, the user's pick C). The time goes to real
+		// work, and nothing is looked for or walked to. Someone comes near: it's Full tier again, and whims play out.
+		boolean settle = !forced && whim.offscreen() == Whim.Offscreen.SHOW && drifter.tier() == com.dinglebob.drifter.entity.DetailTier.FAR;
+		Activity activity;
+		if (settle) {
+			activity = new Settled(drifter, whim.thought());
+			settled++;
+		} else {
+			boolean missing = whim.needs().stream().anyMatch(need -> count(drifter, need.item()) < need.count());
+			activity = missing ? new WhimPrep.MakeThen(drifter, whim, action) : action.start(drifter, whim);
+			if (activity == null) {
+				return null;
+			}
 		}
 
 		long now = drifter.level().getGameTime();
@@ -147,11 +166,37 @@ public final class WhimGoal extends Goals.Goal {
 		// Once started it sees it through (a few minutes at most): only something that matters more stops it.
 		this.runningScore = Math.max(0.65, score);
 		drifter.getMemory().thoughts().add(now, whim.thought());
-		if (!whim.chat().isEmpty() && drifter.getRandom().nextFloat() < 0.5F) {
+		drifter.getPersonality().mood().ease(Mood.BORED, BORED_RELIEF);
+		if (!settle && !whim.chat().isEmpty() && drifter.getRandom().nextFloat() < 0.5F) {
 			WhimActions.say(drifter, whim.chat().get(drifter.getRandom().nextInt(whim.chat().size())));
 		}
 
 		return activity;
+	}
+
+	/** A whim settled at once: over the tick it starts. */
+	static final class Settled extends Activity {
+		private final String what;
+
+		Settled(DrifterEntity drifter, String what) {
+			super(drifter);
+			this.what = what;
+		}
+
+		@Override
+		public String describe() {
+			return this.what;
+		}
+
+		@Override
+		protected int timeoutTicks() {
+			return 20;
+		}
+
+		@Override
+		protected Status next() {
+			return Status.SUCCESS;
+		}
 	}
 
 	public static WhimState state(DrifterEntity drifter) {
@@ -181,11 +226,13 @@ public final class WhimGoal extends Goals.Goal {
 		double total = 0.0;
 		long now = drifter.level().getGameTime();
 		WhimState state = state(drifter);
+		// (With nobody near, the whims that are only for someone to see aren't picked.)
+		boolean far = drifter.tier() == com.dinglebob.drifter.entity.DetailTier.FAR;
 		for (Whim whim : Whims.all()) {
 			// One that didn't fit a little while ago isn't checked again yet (some checks plan a craft or look round a wide
 			// area: a tenth of a second, again and again; milestone 16).
 			long unfit = state.unfitAt.getOrDefault(whim.id(), Long.MIN_VALUE / 2);
-			if (now - unfit < UNFIT_RECHECK && now >= unfit) {
+			if (now - unfit < UNFIT_RECHECK && now >= unfit || far && whim.offscreen() == Whim.Offscreen.SKIP) {
 				continue;
 			}
 
@@ -345,5 +392,6 @@ public final class WhimGoal extends Goals.Goal {
 	public void force(Whim whim) {
 		this.picked = whim;
 		this.pickedAt = Long.MAX_VALUE / 2;
+		this.forced = true;
 	}
 }

@@ -159,6 +159,8 @@ public final class CatchUp {
 		final Map<Item, Integer> looted = new LinkedHashMap<>();
 		int stored;
 		int xp;
+		/** What it did for fun (milestone 20: its own line in its thoughts). */
+		public final com.dinglebob.drifter.whim.WhimsAway.Record whims = new com.dinglebob.drifter.whim.WhimsAway.Record();
 
 		Report(long ticks) {
 			this.ticks = ticks;
@@ -375,6 +377,13 @@ public final class CatchUp {
 
 					continue;
 				}
+				case 4 -> {
+					// Its free time: whims, as it would have had them (milestone 20). The slice's game time and time of day.
+					Level level = drifter.level();
+					long ago = total - done;
+					com.dinglebob.drifter.whim.WhimsAway.slice(drifter, level.getGameTime() - ago, level.getDayTime() - ago, slice, stage, random, report.whims);
+					continue;
+				}
 				default -> job.phase = 0;
 			}
 
@@ -421,6 +430,11 @@ public final class CatchUp {
 		goHome(drifter);
 		drifter.getDrifterBrain().restart("caught up");
 		drifter.getMemory().thoughts().add(drifter.level().getGameTime(), report.describe());
+		// What it did for fun, a line of its own (thoughts only: user, 2026-10-20).
+		String fun = report.whims.describe();
+		if (fun != null) {
+			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), fun);
+		}
 	}
 
 	// ---------------------------------------------------------------------------------------------

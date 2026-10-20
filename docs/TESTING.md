@@ -1404,8 +1404,21 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] **Getting around**: on hills and mountains Drifters should get stuck less again (they guess the height of ground
       they haven't seen from the ground nearby). `/drifter navtest 20 16 40` as before.
 
-Also please read `docs/OFFSCREEN_WHIMS.md` (ways for whims to happen while you're away) and answer the three questions at
-the end.
+## Milestone 20: whims offscreen and new whims (new)
+
+- [ ] **While away**: build a base near a Drifter's home (or find one with a hut), then go more than 200 blocks away
+      for a couple of in-game days and come back. `/drifter thoughts` near it: a line "while away, for fun: ..."
+      listing things that fit its home (its chest, its bed, the clouds...). Now and then something new by its home: a
+      little monument, a snow golem, a sign facing its hut, a sapling, a torch inside. Never more than 2 per trip.
+      Quick version: stand next to it and type `/drifter catchup 72` (3 days).
+- [ ] **Nobody near**: nothing to see by design. `/drifter whims` (near any Drifter) says how many whims were "settled at
+      once with nobody near". It should go up while you're far from Drifters.
+- [ ] **New whims**: `/drifter whim warm_hands_by_the_fire` at night near a campfire it has seen (it walks over,
+      crouches, looks at the fire); `/drifter whim wave_to_a_friend` near you if it likes you, or near its group mate;
+      `/drifter whim check_on_the_crops` near a farm; `/drifter whim morning_stretch` at sunrise.
+- [ ] **Campfires**: Drifters no longer walk over lit campfires.
+- [ ] **Writing your own whims** (optional): see `docs/WHIMS_HOWTO.md`. Mistakes show in `logs/latest.log` as lines
+      starting `[Drifter] whim`.
 
 ## Milestone 19: mod compat (new)
 

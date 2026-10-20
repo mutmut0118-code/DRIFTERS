@@ -56,36 +56,50 @@ import net.minecraft.world.phys.Vec3;
  * items), so whims follow the same rules as everything else.
  */
 public final class WhimActions {
-	private static final Map<String, WhimAction> ACTIONS = new HashMap<>();
+	/** One action type: what does it, what it does offscreen unless a whim says otherwise, and the params it reads. */
+	record Entry(WhimAction action, Whim.Offscreen offscreen, Set<String> params) {
+	}
+
+	private static final Map<String, Entry> ACTIONS = new java.util.LinkedHashMap<>();
 
 	static {
-		ACTIONS.put("watch_sky", new WatchSky());
-		ACTIONS.put("lookout", new Lookout());
-		ACTIONS.put("high_point", new HighPoint());
-		ACTIONS.put("visit", new Visit());
-		ACTIONS.put("watch_mob", new WatchMob());
-		ACTIONS.put("feed_mob", new FeedMob());
-		ACTIONS.put("hop", new Hop());
-		ACTIONS.put("swim", new Swim());
-		ACTIONS.put("pick_flower", new PickFlower());
-		ACTIONS.put("torch_dark", new TorchDark());
-		ACTIONS.put("plant_sapling", new PlantSapling());
-		ACTIONS.put("sign", new Sign());
-		ACTIONS.put("build", new Build());
-		ACTIONS.put("chat", new Chat());
-		ACTIONS.put("look_around", new LookRound());
-		ACTIONS.put("peek_chest", new PeekChest());
-		ACTIONS.put("dance", new Dance());
-		ACTIONS.put("gift", new Gift());
-		ACTIONS.put("hang_out", new HangOut());
-		ACTIONS.put("visit_friend", new VisitFriend());
-		ACTIONS.put("watch_block", new WatchBlock());
-		ACTIONS.put("craft", new CraftForFun());
-		ACTIONS.put("eat", new EatThis());
-		ACTIONS.put("oops_drop", new OopsDrop());
-		ACTIONS.put("throw_at", new ThrowAt());
-		ACTIONS.put("use_block", new UseBlock());
-		ACTIONS.put("sit", new Sit());
+		// Every action type, once: its name in the data files, the code, what it does offscreen by default (docs/OFFSCREEN_WHIMS.md)
+		// and every param it reads (the load checks catch a misspelt one). docs/WHIMS_HOWTO.md describes each.
+		register("watch_sky", new WatchSky(), Whim.Offscreen.SHOW, "what", "from");
+		register("lookout", new Lookout(), Whim.Offscreen.SHOW, "height", "block");
+		register("high_point", new HighPoint(), Whim.Offscreen.SHOW, "radius", "rise");
+		register("visit", new Visit(), Whim.Offscreen.SHOW, "kind", "radius", "labels");
+		register("watch_mob", new WatchMob(), Whim.Offscreen.SHOW, "mobs", "range");
+		register("feed_mob", new FeedMob(), Whim.Offscreen.REAL, "food");
+		register("hop", new Hop(), Whim.Offscreen.SHOW, "on", "times");
+		register("swim", new Swim(), Whim.Offscreen.SHOW, "radius");
+		register("pick_flower", new PickFlower(), Whim.Offscreen.REAL, "radius", "new_only");
+		register("torch_dark", new TorchDark(), Whim.Offscreen.TRACE, "radius");
+		register("plant_sapling", new PlantSapling(), Whim.Offscreen.TRACE, "radius");
+		register("sign", new Sign(), Whim.Offscreen.TRACE, "near", "radius", "lines");
+		register("build", new Build(), Whim.Offscreen.TRACE, "blocks");
+		register("chat", new Chat(), Whim.Offscreen.SHOW, "lines");
+		register("look_around", new LookRound(), Whim.Offscreen.SHOW, "times");
+		register("peek_chest", new PeekChest(), Whim.Offscreen.SHOW);
+		register("dance", new Dance(), Whim.Offscreen.SHOW, "ticks");
+		register("gift", new Gift(), Whim.Offscreen.REAL, "items", "keep");
+		register("hang_out", new HangOut(), Whim.Offscreen.SHOW, "rounds");
+		register("visit_friend", new VisitFriend(), Whim.Offscreen.REAL, "radius");
+		register("watch_block", new WatchBlock(), Whim.Offscreen.SHOW, "blocks", "radius");
+		register("craft", new CraftForFun(), Whim.Offscreen.REAL, "items");
+		register("eat", new EatThis(), Whim.Offscreen.REAL, "items");
+		register("oops_drop", new OopsDrop(), Whim.Offscreen.SHOW, "items");
+		register("throw_at", new ThrowAt(), Whim.Offscreen.REAL, "items", "times");
+		register("use_block", new UseBlock(), Whim.Offscreen.REAL, "blocks", "item", "times", "gap", "radius");
+		register("sit", new Sit(), Whim.Offscreen.SHOW, "ticks");
+		register("steps", new StepsAction(), Whim.Offscreen.REAL, "find", "steps");
+	}
+
+	/** Params any whim may have, whatever its action. */
+	static final Set<String> COMMON_PARAMS = Set.of("requires_mod", "make");
+
+	private static void register(String name, WhimAction action, Whim.Offscreen offscreen, String... params) {
+		ACTIONS.put(name, new Entry(action, offscreen, Set.of(params)));
 	}
 
 	private WhimActions() {
@@ -93,7 +107,21 @@ public final class WhimActions {
 
 	@Nullable
 	public static WhimAction get(String name) {
-		return ACTIONS.get(name);
+		Entry entry = ACTIONS.get(name);
+		return entry == null ? null : entry.action();
+	}
+
+	/** What a whim of this action does offscreen unless it says otherwise (an unknown action: nothing). */
+	public static Whim.Offscreen offscreen(String name) {
+		Entry entry = ACTIONS.get(name);
+		return entry == null ? Whim.Offscreen.SKIP : entry.offscreen();
+	}
+
+	/** The params this action reads (null for an unknown action). */
+	@Nullable
+	static Set<String> params(String name) {
+		Entry entry = ACTIONS.get(name);
+		return entry == null ? null : entry.params();
 	}
 
 	public static Set<String> names() {

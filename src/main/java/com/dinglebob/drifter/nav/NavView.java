@@ -311,6 +311,8 @@ public final class NavView {
 		// Pointed dripstone too: landing on a stalagmite hurts a lot (found in testing: it died stepping onto them in a cave).
 		if (fluid.is(FluidTags.LAVA) || state.is(BlockTags.FIRE) || state.is(Blocks.CACTUS) || state.is(Blocks.MAGMA_BLOCK)
 			|| state.is(Blocks.POINTED_DRIPSTONE)
+			// A lit campfire burns whoever steps on it (found in a whim test: walked over one while exploring).
+			|| state.is(BlockTags.CAMPFIRES) && state.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)
 			// Never through a portal by accident: going through one is a decision (EnterPortalActivity steps in by hand).
 			|| state.is(Blocks.NETHER_PORTAL) || state.is(Blocks.END_PORTAL)) {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);

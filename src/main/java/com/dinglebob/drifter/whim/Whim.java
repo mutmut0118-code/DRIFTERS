@@ -23,7 +23,26 @@ import com.dinglebob.drifter.personality.Trait;
  */
 public record Whim(String id, String category, String action, JsonObject params, double weight, Map<Archetype, Double> archetypes,
 	Map<Trait, Double> traits, Map<Mood, Double> moods, int stage, When when, List<Need> needs, int duration, int cooldown, Gates gates,
-	List<String> chat, String thought) {
+	List<String> chat, String thought, Offscreen offscreen) {
+
+	/** Every field a whim may have (anything else is a typo: the load checks say so). */
+	public static final java.util.Set<String> FIELDS = java.util.Set.of("id", "category", "action", "params", "weight", "archetypes", "traits",
+		"moods", "stage", "when", "needs", "duration", "cooldown", "gates", "chat", "thought", "offscreen", "comment");
+
+	/**
+	 * What it does when nobody is about (milestone 20, docs/OFFSCREEN_WHIMS.md; the user's pick: A + B + C + E). Each action
+	 * has its own default ({@link WhimActions}); a whim can say otherwise.
+	 */
+	public enum Offscreen {
+		/** Only for show: with nobody near, settled at once (the thought, the mood, the cooldown); while away, remembered. */
+		SHOW,
+		/** Leaves something behind: done for real when loaded; while away, remembered, and now and then left at home. */
+		TRACE,
+		/** Uses up or changes something (food, a gift, a craft): done for real when loaded; while away, not done. */
+		REAL,
+		/** Only with someone about to see it: not done with nobody near, nor while away. */
+		SKIP
+	}
 
 	/** When it fits: the time of day or the weather (it looks at the sky, which it can see). */
 	public enum When {
@@ -41,26 +60,31 @@ public record Whim(String id, String category, String action, JsonObject params,
 	public record Gates(boolean griefing, boolean multiplayer, boolean risky, boolean later) {
 	}
 
+	/** Reads one whim; a mistake that leaves it unusable throws, with a message that says what it is. */
 	public static Whim parse(JsonObject json) {
+		if (!json.has("id") || !json.has("action")) {
+			throw new IllegalArgumentException("every whim needs an \"id\" and an \"action\"");
+		}
+
 		String id = json.get("id").getAsString();
 		Map<Archetype, Double> archetypes = new EnumMap<>(Archetype.class);
 		if (json.has("archetypes")) {
 			for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("archetypes").entrySet()) {
-				archetypes.put(Archetype.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), entry.getValue().getAsDouble());
+				archetypes.put(named(Archetype.class, entry.getKey(), "archetype"), entry.getValue().getAsDouble());
 			}
 		}
 
 		Map<Trait, Double> traits = new EnumMap<>(Trait.class);
 		if (json.has("traits")) {
 			for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("traits").entrySet()) {
-				traits.put(Trait.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), entry.getValue().getAsDouble());
+				traits.put(named(Trait.class, entry.getKey(), "trait"), entry.getValue().getAsDouble());
 			}
 		}
 
 		Map<Mood, Double> moods = new EnumMap<>(Mood.class);
 		if (json.has("moods")) {
 			for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("moods").entrySet()) {
-				moods.put(Mood.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), entry.getValue().getAsDouble());
+				moods.put(named(Mood.class, entry.getKey(), "mood"), entry.getValue().getAsDouble());
 			}
 		}
 
@@ -78,13 +102,30 @@ public record Whim(String id, String category, String action, JsonObject params,
 			json.getAsJsonArray("chat").forEach(line -> chat.add(line.getAsString()));
 		}
 
-		return new Whim(id, string(json, "category", "misc"), json.get("action").getAsString(),
+		String action = json.get("action").getAsString();
+		return new Whim(id, string(json, "category", "misc"), action,
 			json.has("params") ? json.getAsJsonObject("params") : new JsonObject(), json.has("weight") ? json.get("weight").getAsDouble() : 1.0,
 			archetypes, traits, moods, json.has("stage") ? json.get("stage").getAsInt() : 0,
-			When.valueOf(string(json, "when", "any").toUpperCase(Locale.ROOT)), List.copyOf(needs),
+			named(When.class, string(json, "when", "any"), "\"when\""), List.copyOf(needs),
 			json.has("duration") ? json.get("duration").getAsInt() : 20 * 20, json.has("cooldown") ? json.get("cooldown").getAsInt() : 24000,
 			new Gates(gates.contains("G"), gates.contains("M"), gates.contains("R"), gates.contains("L")), List.copyOf(chat),
-			string(json, "thought", "felt like " + id.replace('_', ' ')));
+			string(json, "thought", "felt like " + id.replace('_', ' ')),
+			json.has("offscreen") ? named(Offscreen.class, json.get("offscreen").getAsString(), "\"offscreen\"") : WhimActions.offscreen(action));
+	}
+
+	/** One of an enum's names, any case; a wrong one throws, saying which it is close to and what there is. */
+	static <E extends Enum<E>> E named(Class<E> type, String name, String what) {
+		try {
+			return Enum.valueOf(type, name.toUpperCase(Locale.ROOT));
+		} catch (IllegalArgumentException e) {
+			List<String> names = new ArrayList<>();
+			for (E value : type.getEnumConstants()) {
+				names.add(value.name().toLowerCase(Locale.ROOT));
+			}
+
+			throw new IllegalArgumentException("no " + what + " called \"" + name + "\"" + WhimCheck.didYouMean(name.toLowerCase(Locale.ROOT), names)
+				+ " (there are: " + String.join(", ", names) + ")");
+		}
 	}
 
 	private static String string(JsonObject json, String key, String fallback) {

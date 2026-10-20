@@ -81,7 +81,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 18 | Player skills | **Done in code** (2026-10-19): trading, fishing, horses, boats, potions, netherite; waiting on the user's play test | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
 | 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 21 | Encounters and bounties | Planned (user, 2026-10-20: "save all of this for a mile, we will do this soon") | Random events with temporary Drifters (GTA-style), bounty hunters and wanted Drifters, Bountiful compat (Drifters doing bounties). The brainstorm and the suggested first batch: docs/ENCOUNTERS.md. |
-| 20 | Whims offscreen, then wrong guesses | **In progress** (2026-10-19): the offscreen proposal is written (docs/OFFSCREEN_WHIMS.md, waiting on the user's pick); four new guesses done | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
+| 20 | Whims offscreen, then wrong guesses | **Done in code** (2026-10-20): whims offscreen (the user's pick A + small B + C + E), an easier way to add whims (steps whims, load checks, docs/WHIMS_HOWTO.md), four new wrong guesses; waiting on the user's play test | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 
 ## Milestone 0: Project setup
 
@@ -2282,12 +2282,58 @@ Bountiful until it's added.
 
 ## Milestone 20: Whims offscreen, then wrong guesses (started 2026-10-19)
 
-### Whims offscreen: a proposal (waiting on the user)
+### Whims offscreen (done, 2026-10-20)
 
-`docs/OFFSCREEN_WHIMS.md`: where whims stand offscreen today (catch-up does none), five ways to do it (memory only;
-memory plus real traces at its own home; settling show-only whims at once for unwatched Drifters; a leisure budget; a
-"while you were away" line), and a recommendation (A + B + C + E, traces capped at 2 per catch-up, a per-whim
-"offscreen" field). Three questions for the user at the end. Nothing built until the user picks.
+`docs/OFFSCREEN_WHIMS.md` was the proposal. The user picked: "a + b + c + e, with a small b / the while you were away
+should only be in thoughts log / and aslong as C doesnt change the performance of the mod, itll be fine / while doing
+all of this, please keep the optimization in mind".
+
+- **Each whim has an `offscreen` value** (its action's default, or its own): `show` (only for show), `trace` (leaves
+  something), `real` (uses things up or needs someone), `skip` (only with someone about). Defaults per action in
+  `WhimActions` (the registry); the table is in docs/WHIMS_HOWTO.md.
+- **C, nobody near** (`WhimGoal.begin`): a `show` whim started by a Drifter with no player within 128 blocks (Far tier)
+  is settled at once: the thought, the mood, the cooldown, no walking over and standing there (a `Settled` activity
+  that ends the tick it starts; no chat line, nobody to hear). `skip` whims aren't picked then. A debug `/drifter whim`
+  still plays it out. `/drifter whims` shows how many were settled. Every whim now eases boredom (30%) as it starts,
+  live, settled or away.
+- **A + small B, while away** (`whim/WhimsAway`, a new catch-up phase): about 2 whims a day of free time (more for the
+  fidgety, fewer for the industrious), picked by the same weights as live (archetype, traits, mood), the stage, the
+  slice's time of day (rain whims wait for real rain), cooldowns, what it carries; no `M`/`G` whims, nothing needing
+  company or a seat. Each eases boredom and starts its cooldown. A whim that needs something about (a cat to watch, a
+  campfire, water, a hill) counts only if there is one round its home (its eyes' knowledge isn't kept while unloaded,
+  so it looks at its home's surroundings, once per whim per catch-up, skipping chunk sections that can't have it).
+  `trace` whims count only if they really leave their trace: at its own loaded home, two at most per catch-up, from
+  items it carries, on free ground near home (never on a player's blocks, nothing floating), marked as Drifter-built:
+  a little build, a sign facing home with one of its lines, a sapling on grass, a torch in a dark corner (its hut
+  counts). So the log never claims a tower that isn't there.
+- **E**: one line in its thoughts at the end, nowhere else: "while away, for fun: watching the clouds go by twice,
+  bouncing on its bed, putting up a little monument (left by home)". (`/drifter catchup <hours>` prints it too.)
+- Tested (headless): 10 days' catch-up at a home in a flat world, two monuments left by home (their torches found in
+  the world), the lines matching what's there (its chest, bed, hut; no cats or portals); show whims settled the tick
+  they started; 60 Drifters catching up 3 days at once: 45.1 ms each on average with whims, 44.3 without (about 2%,
+  within noise); live, no slow whim checks from the new whims and no measurable difference against the previous
+  version (runs vary more than that).
+
+### An easier way to add whims (done, 2026-10-20)
+
+The user: "how many whims are there? and can you make a system where its more easier to add new whims in the future?"
+(121 whims in the mod's files now, 108 load in a game without the optional mods.)
+- **Steps whims** (`whim/StepsAction`, action `steps`): a whim written out in its data file from building blocks.
+  `find` names its targets (block, mob, friend, company, home, bed, chest, sky, ground; optional ones allowed), then
+  `steps` in order: walk_to, look_at, use, hold, place, wait, say, think, jump, swing, look_around, eat, drop, pick_up,
+  crouch, each with a `chance` if wanted. Read once per whim and kept. Four examples (`drifter_whims/steps.json`): warm
+  its hands by a campfire (night), wave to a friend, check on the crops, a morning stretch. Tested: each forced and
+  done.
+- **Load checks** (`whim/WhimCheck`, `Whims.load`): unknown fields and params (per action: the registry lists each
+  action's params), wrong archetype, trait, mood, `when` and `offscreen` names, item, block and mob ids the game hasn't
+  got, badly written ids and tags, unknown `@` matchers, gate letters, build cells, every steps target and verb. Each
+  warning names the whim and file, with a guess ("did you mean ..."); only a whim that can't work is left out. The last
+  line counts the warnings. Tested with a file of 13 broken whims: every mistake caught and named; none of the mod's
+  own whims warns.
+- **docs/WHIMS_HOWTO.md**: every field, every action with its params and offscreen default, the steps targets and
+  verbs, the offscreen values, how to check a whim.
+- Adding a new action type in code is one line in the `WhimActions` registry (name, code, offscreen default, params).
+- Also fixed: paths now treat a lit campfire as no-go (a Drifter walked over one exploring and got burned).
 
 ### Wrong guesses (done)
 

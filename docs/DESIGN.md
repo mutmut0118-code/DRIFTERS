@@ -1922,7 +1922,11 @@ Each milestone ends with a test you can actually run.
 19. **Mod compat and modded whims** (user, 2026-10-19): Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard
     Villagers, Bountiful, all optional (detected at runtime), and modded whims for them.
 20. **Whims offscreen and wrong guesses** (user, 2026-10-19): a proposal for simulating or catching up whims away from
-    players, then more of the wrong-guess assumptions (the cave hunch, the theft assumption).
+    players, then more of the wrong-guess assumptions (the cave hunch, the theft assumption). Decided (user,
+    2026-10-20, docs/OFFSCREEN_WHIMS.md options A + a small B + C + E): with no player near, show-only whims are settled
+    at once; while unloaded, catch-up gives it a few whims a day as memories, and at most two real traces at its own
+    loaded home; what it did is one line in its thoughts, never chat. Each whim has an `offscreen` value
+    (docs/WHIMS_HOWTO.md). Also asked for: an easier way to add whims (steps whims, load checks, the how-to page).
 21. **Encounters and bounties** (user, 2026-10-20; docs/ENCOUNTERS.md): random events with temporary Drifters you never
     see again, like the GTA random events (bounty hunters after you, a wanted Drifter with a map to its house, ambushes,
     people needing help, merchants...), and Bountiful compat (Drifters doing bounties; bounties on Drifters). The user
