@@ -25,18 +25,41 @@ public final class Strategist {
 	public record Target(String label, List<Item> items, int count, Predicate<DrifterEntity> satisfied) {
 	}
 
+	/** The stage checks read these two by name (stage 2 from the wooden pickaxe, stage 3 from stone tools and a furnace). */
+	private static final Target WOODEN_PICKAXE = new Target("a wooden pickaxe", List.of(Items.WOODEN_PICKAXE), 1,
+		drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES)));
+	private static final Target STONE_PICKAXE = new Target("a stone pickaxe", List.of(Items.STONE_PICKAXE), 1,
+		drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.IRON_ORE.defaultBlockState())));
+	private static final Target FURNACE = new Target("a furnace", List.of(Items.FURNACE), 1,
+		drifter -> has(drifter, stack -> stack.is(Items.FURNACE)) || Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null
+			|| furnaceAtHome(drifter));
+
+	/** Dusk is near (from an hour or so before it starts thinking about shelter, all night). */
+	private static boolean nearDusk(DrifterEntity drifter) {
+		long time = Schedule.believedTime(drifter);
+		return time >= Schedule.shelterThinking(drifter) - 1500L || Schedule.isNight(time);
+	}
+
 	/** Stage 1 to 3 targets, in order (section 9: wooden pickaxe; stone tools and a furnace; torches). */
 	public static final List<Target> EARLY_TARGETS = List.of(
-		new Target("a wooden pickaxe", List.of(Items.WOODEN_PICKAXE), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES))),
-		new Target("a stone pickaxe", List.of(Items.STONE_PICKAXE), 1,
-			drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.IRON_ORE.defaultBlockState()))),
+		WOODEN_PICKAXE,
+		// No weapon yet and dusk coming (no stone found in time): a wooden sword, as a player makes one (two planks and a
+		// stick). With a shield that's enough to stay out (Schedule.fitToWork). Not wanted before then.
+		new Target("a sword before dark", List.of(Items.WOODEN_SWORD), 1, drifter -> !nearDusk(drifter) || Weapons.hasTier(drifter, Weapons.Tier.WOOD)),
+		// A cheap shield, if a mod makes one without iron (Spartan Shields: a crude wooden shield, four planks and a stick).
+		// A sword and a shield see it through the night (user, 2026-10-20: "a sword and shield is enough for the average
+		// drifter to survive the night and still collect resources"). Without such a mod: the game's shield, at iron.
+		new Target("a shield", com.dinglebob.drifter.hands.Shields.CRUDE_SHIELD, 1,
+			drifter -> com.dinglebob.drifter.hands.Shields.CRUDE_SHIELD.isEmpty() || com.dinglebob.drifter.hands.Shields.has(drifter)),
+		STONE_PICKAXE,
 		// A stone sword, or any weapon at least that good (a modded one counts for what it's worth: Weapons.tier).
 		new Target("a stone sword", List.of(Items.STONE_SWORD), 1, drifter -> Weapons.hasTier(drifter, Weapons.Tier.STONE)),
+		// Its crude shield braced with stone (four cobblestone more; Spartan Shields).
+		new Target("a stone braced shield", com.dinglebob.drifter.hands.Shields.STONE_SHIELD, 1,
+			drifter -> com.dinglebob.drifter.hands.Shields.STONE_SHIELD.isEmpty() || com.dinglebob.drifter.hands.Shields.hasBetterThanCrude(drifter)),
 		new Target("a stone axe", List.of(Items.STONE_AXE), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.AXES)
 			&& !stack.is(Items.WOODEN_AXE) && !stack.is(Items.GOLDEN_AXE))),
-		new Target("a furnace", List.of(Items.FURNACE), 1,
-			drifter -> has(drifter, stack -> stack.is(Items.FURNACE)) || Stations.nearest(drifter, Blocks.FURNACE, Stations.USE_RANGE) != null
-				|| furnaceAtHome(drifter)),
+		FURNACE,
 		new Target("some cobblestone", List.of(Items.COBBLESTONE, Items.COBBLED_DEEPSLATE), 16,
 			drifter -> drifter.getInventory().count(stack -> stack.is(ItemTags.STONE_TOOL_MATERIALS)) >= 16),
 		new Target("torches", List.of(Items.TORCH), 8, drifter -> drifter.getInventory().count(stack -> stack.is(Items.TORCH)) >= 8),
@@ -73,7 +96,8 @@ public final class Strategist {
 			drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()))),
 		new Target("a bucket", List.of(Items.BUCKET), 1,
 			drifter -> has(drifter, stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || stack.is(Items.LAVA_BUCKET))),
-		new Target("a shield", List.of(Items.SHIELD), 1, drifter -> has(drifter, com.dinglebob.drifter.hands.Shields::isShield)),
+		// (As good as the game's own: a crude or stone braced one from early on doesn't count.)
+		new Target("a shield", List.of(Items.SHIELD), 1, com.dinglebob.drifter.hands.Shields::hasIronAge),
 		new Target("an iron chestplate", List.of(Items.IRON_CHESTPLATE), 1, armor(Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
 		new Target("iron leggings", List.of(Items.IRON_LEGGINGS), 1, armor(Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
 		new Target("an iron helmet", List.of(Items.IRON_HELMET), 1, armor(Items.IRON_HELMET, Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
@@ -418,7 +442,7 @@ public final class Strategist {
 	 * tools and a furnace).
 	 */
 	public static int stage(DrifterEntity drifter) {
-		if (EARLY_TARGETS.get(1).satisfied().test(drifter) && EARLY_TARGETS.get(4).satisfied().test(drifter)) {
+		if (STONE_PICKAXE.satisfied().test(drifter) && FURNACE.satisfied().test(drifter)) {
 			// Stage 4, settling: a home with a chest. Stage 5, iron: an iron pickaxe, a bucket, a shield and 2+ armor pieces.
 			// Stages 6 and 7 below.
 			Home home = drifter.getDrifterBrain().home();
@@ -452,7 +476,7 @@ public final class Strategist {
 			return armor == 4 && home.farm != null && home.pen != null ? 6 : 5;
 		}
 
-		if (EARLY_TARGETS.get(0).satisfied().test(drifter)) {
+		if (WOODEN_PICKAXE.satisfied().test(drifter)) {
 			return 2;
 		}
 

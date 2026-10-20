@@ -90,10 +90,12 @@ public final class Schedule {
 			return NightStyle.HUNT;
 		}
 
-		// Armed (a stone sword or better, or iron armor) and not too careful: like most players, it just carries on with
-		// what it was doing, fighting what comes (user's request: too many armed Drifters sat out every night).
-		if (calm && p.get(com.dinglebob.drifter.personality.Trait.CAUTION) < WORK_MAX_CAUTION
-			&& p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= WORK_MIN_BRAVERY && fitToWork(drifter)) {
+		// Armed (a stone sword or better, a sword and a shield, or iron armor) and not too careful: like most players, it just
+		// carries on with what it was doing, fighting what comes (user's request: too many armed Drifters sat out every
+		// night; and 2026-10-20, "a sword and shield is enough for the average drifter"). A shield steadies the careful.
+		boolean shield = com.dinglebob.drifter.hands.Shields.has(drifter);
+		if (calm && p.get(com.dinglebob.drifter.personality.Trait.CAUTION) < (shield ? WORK_MAX_CAUTION_SHIELD : WORK_MAX_CAUTION)
+			&& p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= (shield ? WORK_MIN_BRAVERY_SHIELD : WORK_MIN_BRAVERY) && fitToWork(drifter)) {
 			return NightStyle.WORK;
 		}
 
@@ -105,9 +107,38 @@ public final class Schedule {
 		return NightStyle.SHELTER;
 	}
 
-	/** Caution under which, and Bravery from which, an armed Drifter carries on at night. */
+	/** Caution under which, and Bravery from which, an armed Drifter carries on at night; with a shield too. */
 	public static final double WORK_MAX_CAUTION = 0.7;
 	public static final double WORK_MIN_BRAVERY = 0.35;
+	public static final double WORK_MAX_CAUTION_SHIELD = 0.8;
+	public static final double WORK_MIN_BRAVERY_SHIELD = 0.25;
+
+	/** Why it stays in tonight (for its thought), when it does: the first thing that keeps it in. */
+	public static String shelterReason(DrifterEntity drifter) {
+		com.dinglebob.drifter.personality.Personality p = drifter.getPersonality();
+		boolean shield = com.dinglebob.drifter.hands.Shields.has(drifter);
+		if (p.is(com.dinglebob.drifter.personality.Mood.ANXIOUS) || p.is(com.dinglebob.drifter.personality.Mood.PANICKED)) {
+			return "too shaken to be out after dark";
+		}
+
+		if (p.get(com.dinglebob.drifter.personality.Trait.CAUTION) >= (shield ? WORK_MAX_CAUTION_SHIELD : WORK_MAX_CAUTION)) {
+			return "too careful to be out after dark";
+		}
+
+		if (p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) < (shield ? WORK_MIN_BRAVERY_SHIELD : WORK_MIN_BRAVERY)) {
+			return "not brave enough to be out after dark";
+		}
+
+		if (drifter.getHealth() < 12.0F) {
+			return "too hurt";
+		}
+
+		if (drifter.getFoodData().getFoodLevel() < 8) {
+			return "too hungry";
+		}
+
+		return "nothing good enough to fight with yet (a stone sword, or a sword and a shield)";
+	}
 
 	/**
 	 * Fit to carry on at night: a weapon at least a stone sword (or two pieces of iron-or-better armor), fairly healthy
@@ -126,12 +157,15 @@ public final class Schedule {
 			}
 		}
 
-		return drifter.getHealth() >= 12.0F && drifter.getFoodData().getFoodLevel() >= 8 && (dps >= WORK_MIN_WEAPON_DPS || armor >= 2)
+		boolean armed = dps >= WORK_MIN_WEAPON_DPS || dps >= WORK_MIN_WEAPON_DPS_SHIELD && com.dinglebob.drifter.hands.Shields.has(drifter) || armor >= 2;
+		return drifter.getHealth() >= 12.0F && drifter.getFoodData().getFoodLevel() >= 8 && armed
 			&& !drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.PANICKED);
 	}
 
 	/** A stone sword's damage per second (5 damage at 1.6 a second). */
 	public static final double WORK_MIN_WEAPON_DPS = 7.5;
+	/** With a shield: a wooden sword is enough (4 damage at 1.6 a second). */
+	public static final double WORK_MIN_WEAPON_DPS_SHIELD = 6.0;
 
 	/** Fit to be out at night: healthy, fed, armed. Checked all night; when it stops being true, it digs in. */
 	public static boolean fitToHunt(DrifterEntity drifter) {

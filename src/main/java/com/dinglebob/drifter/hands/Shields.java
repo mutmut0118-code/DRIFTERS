@@ -27,6 +27,54 @@ public final class Shields {
 		return left + (stack.isEnchanted() ? 200.0 : 0.0);
 	}
 
+	/** It has a shield: held in its off hand or carried. */
+	public static boolean has(DrifterEntity drifter) {
+		return isShield(drifter.getOffhandItem()) || bestSlot(drifter) >= 0;
+	}
+
+	/**
+	 * Shields made without iron, if a mod adds them (Spartan Shields): a crude wooden shield (four planks and a stick), and
+	 * a stone braced one (that and four cobblestone). Each list is empty without the mod; looked up when asked (mods add
+	 * their items after this may first be read).
+	 */
+	public static final java.util.List<net.minecraft.world.item.Item> CRUDE_SHIELD = modItems("spartanshields:wooden_basic_shield");
+	public static final java.util.List<net.minecraft.world.item.Item> STONE_SHIELD = modItems("spartanshields:stone_basic_shield");
+
+	private static java.util.List<net.minecraft.world.item.Item> modItems(String... ids) {
+		return new java.util.AbstractList<>() {
+			private java.util.List<net.minecraft.world.item.Item> found() {
+				java.util.List<net.minecraft.world.item.Item> items = new java.util.ArrayList<>();
+				for (String id : ids) {
+					net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(net.minecraft.resources.ResourceLocation.parse(id)).ifPresent(items::add);
+				}
+
+				return items;
+			}
+
+			@Override
+			public net.minecraft.world.item.Item get(int index) {
+				return this.found().get(index);
+			}
+
+			@Override
+			public int size() {
+				return this.found().size();
+			}
+		};
+	}
+
+	/** A shield past the crude wooden one (stone braced, the game's own, any metal one). */
+	public static boolean hasBetterThanCrude(DrifterEntity drifter) {
+		java.util.List<net.minecraft.world.item.Item> crude = CRUDE_SHIELD;
+		return com.dinglebob.drifter.brain.Strategist.has(drifter, stack -> isShield(stack) && !crude.contains(stack.getItem()));
+	}
+
+	/** A shield at least as strong as the game's own (iron age: it lasts as long or longer). */
+	public static boolean hasIronAge(DrifterEntity drifter) {
+		int vanilla = Items.SHIELD.getDefaultInstance().getMaxDamage();
+		return com.dinglebob.drifter.brain.Strategist.has(drifter, stack -> isShield(stack) && stack.getMaxDamage() >= vanilla);
+	}
+
 	/** Its best shield in the main inventory, or -1. */
 	public static int bestSlot(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();

@@ -1417,6 +1417,10 @@ then `/summon husk ~5 ~ ~` twice.
       crouches, looks at the fire); `/drifter whim wave_to_a_friend` near you if it likes you, or near its group mate;
       `/drifter whim check_on_the_crops` near a farm; `/drifter whim morning_stretch` at sunrise.
 - [ ] **Campfires**: Drifters no longer walk over lit campfires.
+- [ ] **Nights**: more Drifters keep working through the night (mining, gathering, fighting what comes) with a sword and a
+      shield. Early on (with Spartan Shields) they make a crude wooden shield right after their first pickaxe, then a
+      stone braced one. `/drifter thoughts` at dusk: "tonight it carries on through the night", or "tonight it stays in
+      (too careful to be out after dark)" and the like.
 - [ ] **Writing your own whims** (optional): see `docs/WHIMS_HOWTO.md`. Mistakes show in `logs/latest.log` as lines
       starting `[Drifter] whim`.
 

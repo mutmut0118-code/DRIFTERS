@@ -113,7 +113,8 @@ public class Brain {
 			this.nightStyleDay = day;
 			this.nightStyle = Schedule.chooseNightStyle(this.drifter);
 			this.nightTunnel = null;
-			this.think("tonight it " + this.nightStyle.describe());
+			this.think("tonight it " + this.nightStyle.describe()
+				+ (this.nightStyle == Schedule.NightStyle.SHELTER ? " (" + Schedule.shelterReason(this.drifter) + ")" : ""));
 		}
 
 		return this.nightStyleDay == day || Schedule.isNight(time) ? this.nightStyle : Schedule.NightStyle.SHELTER;

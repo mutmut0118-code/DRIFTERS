@@ -1425,6 +1425,11 @@ Players can't sleep with monsters nearby. Whether a Drifter counts as one should
 - **Brave or confident Drifters** go out to fight mobs for bones, string, gunpowder, ender pearls and XP.
 - **Hostile Drifters** prefer night for stalking players.
 - **Cautious ones** never leave the base after dusk.
+- **Armed ones carry on** (user, 2026-10-20: "a sword and shield is enough for the average drifter to survive the night
+  and still collect resources"): a stone sword, or any sword and a shield, or iron armor, and it keeps working through
+  the night unless it's careful, fearful, shaken, hurt or hungry. A shield steadies the more careful ones. With a mod
+  that has cheap shields (Spartan Shields), a crude wooden shield is an early goal; with none in hand at dusk it makes a
+  wooden sword.
 - **Strip-mining types** (user's note) dig in and then mine from the shelter, since time doesn't matter underground; with a bed, they sleep first.
 - **Mining style differs per Drifter** (user's note, see section 10.3): some lean on strip and branch mining, others on caving and exploring the surface.
 

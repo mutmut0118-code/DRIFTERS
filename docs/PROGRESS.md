@@ -2319,6 +2319,24 @@ all of this, please keep the optimization in mind".
   (3 for saplings), checked again on 8 homes. Each trace is logged with where it went ("Bea left something at home
   while away (little_monument): at ...").
 
+### Fewer Drifters hiding at night; cheap shields (done, 2026-10-20)
+
+The user: "i think too many drifters hide in the night, especially since their ai is advanced enough to where a sword
+is enough ... drifters can craft a wooden/stone shield now [Spartan Shields], so a shield can be early game and cheap.
+a sword and shield is enough for the average drifter to survive the night and still collect resources".
+- Carrying on at night (`Schedule.fitToWork`): a stone sword (as before), **or any sword and a shield**, or two iron
+  armor pieces. With a shield, more careful and less brave ones carry on too (caution under 0.8 instead of 0.7, bravery
+  from 0.25 instead of 0.35).
+- Early goals (`Strategist`, Spartan Shields installed): a crude wooden shield (four planks and a stick) right after the
+  wooden pickaxe, a stone braced shield after the stone sword; and with no weapon at all as dusk nears, a wooden sword.
+  The iron-age shield goal now wants one as strong as the game's own (a crude one doesn't stop the upgrade). Without
+  Spartan Shields nothing changes but the wooden sword before dark. (The stage checks now read their goals by name.)
+- "tonight it stays in" now says why in the thoughts: too shaken, too careful, not brave enough, too hurt, too hungry,
+  or nothing good enough to fight with yet.
+- Tested (40 Drifters, 3 nights, Spartan Shields installed): the first night, 3 of 24 stayed in (12%), before 7 of 22
+  (32%); 12 carried on, 5 hunted, 4 dug in to mine. Crude wooden shields made in the first minute or two, stone braced
+  ones soon after; one made a wooden sword at dusk. Those still staying in: too careful (personality) or too hungry.
+
 ### An easier way to add whims (done, 2026-10-20)
 
 The user: "how many whims are there? and can you make a system where its more easier to add new whims in the future?"
