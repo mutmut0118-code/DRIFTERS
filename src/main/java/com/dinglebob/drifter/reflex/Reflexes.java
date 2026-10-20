@@ -119,8 +119,8 @@ public class Reflexes {
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
-		this.reflexes = List.of(new InLava(), new InFireBlock(), new StrayPortal(), new Drowning(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
-			new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact());
+		this.reflexes = List.of(new InLava(), new InFireBlock(), new StrayPortal(), new Drowning(), new DrinkFireResistance(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
+			new DrinkHealing(), new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact(), new DrinkForTheJob());
 	}
 
 	@Nullable
@@ -362,6 +362,187 @@ public class Reflexes {
 	// ---------------------------------------------------------------------------------------------
 	// The catalog (section 15)
 	// ---------------------------------------------------------------------------------------------
+
+	/** On fire (out of the lava, or still in it) with a fire resistance potion: it drinks it (section 15, "Standing in lava"). */
+	private static final class DrinkFireResistance extends TaskReflex {
+		@Override
+		public String name() {
+			return "on fire: drinking fire resistance";
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			return (drifter.isOnFire() || drifter.isInLava()) && !drifter.isUsingItem()
+				&& !com.dinglebob.drifter.skills.Potions.feels(drifter, com.dinglebob.drifter.skills.Potions.Kind.FIRE_RESISTANCE)
+				&& com.dinglebob.drifter.skills.Potions.count(drifter, com.dinglebob.drifter.skills.Potions.Kind.FIRE_RESISTANCE) > 0;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 60;
+		}
+
+		@Override
+		protected Task makeTask(DrifterEntity drifter) {
+			return com.dinglebob.drifter.skills.Potions.use(drifter, com.dinglebob.drifter.skills.Potions.Kind.FIRE_RESISTANCE);
+		}
+	}
+
+	/** Badly hurt in a fight, with a healing potion: it drinks it, or throws a splash one at its feet (section 15 "Critical health"). */
+	private static final class DrinkHealing extends TaskReflex {
+		/** At or under this share of its health. */
+		private static final float HURT = 0.35F;
+
+		@Override
+		public String name() {
+			return "badly hurt: a healing potion";
+		}
+
+		@Override
+		protected int checkEvery() {
+			return 2;
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			return drifter.getHealth() <= drifter.getMaxHealth() * HURT && !drifter.isUsingItem()
+				&& drifter.tickCount - drifter.getLastHurtByMobTimestamp() < 20 * 10
+				&& com.dinglebob.drifter.skills.Potions.count(drifter, com.dinglebob.drifter.skills.Potions.Kind.HEALING) > 0;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 60;
+		}
+
+		@Override
+		protected Task makeTask(DrifterEntity drifter) {
+			return com.dinglebob.drifter.skills.Potions.use(drifter, com.dinglebob.drifter.skills.Potions.Kind.HEALING);
+		}
+	}
+
+	/**
+	 * A potion for what it's doing, as a player drinks one before the hard part (section 10.14): strength at the start of a
+	 * hard fight (another Drifter or a player, a blaze, a wither skeleton, a brute, a ravager...) while the enemy is still a
+	 * few blocks off; night vision deep in a dark cave; fire resistance in the Nether near lava or blazes. Lowest priority:
+	 * any hazard comes first.
+	 */
+	private static final class DrinkForTheJob extends TaskReflex {
+		@Nullable
+		private com.dinglebob.drifter.skills.Potions.Kind kind;
+
+		@Override
+		public String name() {
+			return "a potion for the job";
+		}
+
+		@Override
+		protected int checkEvery() {
+			return 10;
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			this.kind = drifter.isUsingItem() ? null : this.wanted(drifter);
+			return this.kind != null;
+		}
+
+		@Nullable
+		private com.dinglebob.drifter.skills.Potions.Kind wanted(DrifterEntity drifter) {
+			if (this.ready(drifter, com.dinglebob.drifter.skills.Potions.Kind.STRENGTH) && fighting(drifter) && hardFight(drifter)) {
+				return com.dinglebob.drifter.skills.Potions.Kind.STRENGTH;
+			}
+
+			if (this.ready(drifter, com.dinglebob.drifter.skills.Potions.Kind.FIRE_RESISTANCE) && drifter.level().dimensionType().ultraWarm()
+				&& (lavaNear(drifter) || blazeNear(drifter))) {
+				return com.dinglebob.drifter.skills.Potions.Kind.FIRE_RESISTANCE;
+			}
+
+			if (this.ready(drifter, com.dinglebob.drifter.skills.Potions.Kind.NIGHT_VISION) && !drifter.inCombat()
+				&& com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition())
+				&& drifter.level().getMaxLocalRawBrightness(BlockPos.containing(drifter.getEyePosition())) < 4) {
+				return com.dinglebob.drifter.skills.Potions.Kind.NIGHT_VISION;
+			}
+
+			return null;
+		}
+
+		private boolean ready(DrifterEntity drifter, com.dinglebob.drifter.skills.Potions.Kind kind) {
+			return !com.dinglebob.drifter.skills.Potions.feels(drifter, kind) && com.dinglebob.drifter.skills.Potions.count(drifter, kind) > 0;
+		}
+
+		/** Fighting (not running away: strength is for hitting). */
+		private static boolean fighting(DrifterEntity drifter) {
+			var goal = drifter.getDrifterBrain().currentGoal();
+			String id = goal == null ? "" : goal.id();
+			return "fight".equals(id) || "rampage".equals(id) || "pursue".equals(id) || com.dinglebob.drifter.world.Battle.inBattle(drifter);
+		}
+
+		/** A hard enemy close, but not yet on top of it (it has the moment a drink takes). */
+		private static boolean hardFight(DrifterEntity drifter) {
+			boolean hard = com.dinglebob.drifter.world.Battle.inBattle(drifter);
+			double nearest = Double.MAX_VALUE;
+			long now = drifter.level().getGameTime();
+			for (Awareness awareness : drifter.getSenses().tracked()) {
+				if (!(awareness.entity instanceof net.minecraft.world.entity.LivingEntity living) || !living.isAlive() || !awareness.seenWithin(now, 40)) {
+					continue;
+				}
+
+				boolean enemy = living instanceof net.minecraft.world.entity.monster.Enemy
+					|| living instanceof net.minecraft.world.entity.Mob mob && mob.getTarget() == drifter
+					|| drifter.getLastHurtByMob() == living;
+				if (!enemy) {
+					continue;
+				}
+
+				double distance = living.distanceTo(drifter);
+				nearest = Math.min(nearest, distance);
+				if (distance < 16.0 && (living instanceof DrifterEntity || living instanceof net.minecraft.world.entity.player.Player
+					|| living instanceof net.minecraft.world.entity.monster.Blaze || living instanceof net.minecraft.world.entity.monster.WitherSkeleton
+					|| living instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute || living instanceof net.minecraft.world.entity.monster.Ravager
+					|| living instanceof net.minecraft.world.entity.monster.Vindicator || living instanceof net.minecraft.world.entity.monster.Evoker
+					|| living.getMaxHealth() >= 50.0F)) {
+					hard = true;
+				}
+			}
+
+			return hard && nearest >= 4.0;
+		}
+
+		private static boolean lavaNear(DrifterEntity drifter) {
+			Level level = drifter.level();
+			BlockPos feet = drifter.blockPosition();
+			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-3, -2, -3), feet.offset(3, 1, 3))) {
+				if (level.getFluidState(pos).is(FluidTags.LAVA)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private static boolean blazeNear(DrifterEntity drifter) {
+			long now = drifter.level().getGameTime();
+			for (Awareness awareness : drifter.getSenses().tracked()) {
+				if (awareness.entity instanceof net.minecraft.world.entity.monster.Blaze blaze && blaze.isAlive() && awareness.seenWithin(now, 40)
+					&& blaze.distanceTo(drifter) < 20.0) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 60;
+		}
+
+		@Override
+		protected Task makeTask(DrifterEntity drifter) {
+			return this.kind == null ? null : com.dinglebob.drifter.skills.Potions.use(drifter, this.kind);
+		}
+	}
 
 	/** Standing in lava: jump and get to the nearest safe block. */
 	private static final class InLava extends Reflex {

@@ -210,6 +210,36 @@ public final class Strategist {
 		return placed;
 	}
 
+	/** A brewing stand carried or stored, or one by home. */
+	private static boolean brewingStand(DrifterEntity drifter) {
+		if (has(drifter, stack -> stack.is(Items.BREWING_STAND))) {
+			return true;
+		}
+
+		Home home = drifter.getDrifterBrain().home();
+		return home != null && drifter.getMemory().nearest(com.dinglebob.drifter.memory.MemoryKind.STATION, home.dimension,
+			net.minecraft.world.phys.Vec3.atCenterOf(home.center), Stations.USE_RANGE, entry -> entry.label.equals("minecraft:brewing_stand")) != null;
+	}
+
+	public static final Target BREWING_STAND_TARGET = new Target("a brewing stand", List.of(Items.BREWING_STAND), 1, Strategist::brewingStand);
+	/** Bottles to brew in, while there's something it would brew (empty ones come back from the potions it drinks). */
+	public static final Target BOTTLES_TARGET = new Target("glass bottles", List.of(Items.GLASS_BOTTLE), 3,
+		drifter -> !com.dinglebob.drifter.skills.BrewGoal.wantsBottles(drifter));
+
+	/** What brewing takes that it works toward: a stand once it has a blaze rod, then three bottles. */
+	private static List<Target> brewingTargets(DrifterEntity drifter) {
+		if (!com.dinglebob.drifter.skills.BrewGoal.brews(drifter)) {
+			return List.of();
+		}
+
+		boolean stand = brewingStand(drifter);
+		if (stand) {
+			return List.of(BOTTLES_TARGET);
+		}
+
+		return has(drifter, stack -> stack.is(Items.BLAZE_ROD)) ? List.of(BREWING_STAND_TARGET) : List.of();
+	}
+
 	/** One more bookshelf for the enchanting table: done when it carries one, or the ring is full (or there's no table). */
 	public static final Target BOOKSHELF_TARGET = new Target("a bookshelf", List.of(Items.BOOKSHELF), 1, drifter -> {
 		Home home = drifter.getDrifterBrain().home();
@@ -258,6 +288,9 @@ public final class Strategist {
 			}
 		}
 
+		// Brewing once it has blaze rods (section 10.14, Knowledge-gated): the stand, then bottles (the wart comes from the
+		// Nether trips, the rest BrewGoal makes as it goes).
+		order.addAll(brewingTargets(drifter));
 		order.addAll(DIAMOND_TARGETS.subList(5, DIAMOND_TARGETS.size()));
 		// Then bookshelves round the table, one at a time (3 books each: sugar cane and leather), up to 15.
 		order.add(BOOKSHELF_TARGET);

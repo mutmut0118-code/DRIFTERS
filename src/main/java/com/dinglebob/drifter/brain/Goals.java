@@ -2318,6 +2318,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.skills.FishGoal());
 		// Its horse (milestone 18, section 10.7).
 		goals.add(new com.dinglebob.drifter.skills.HorseGoal());
+		// Brewing (milestone 18, section 10.14).
+		goals.add(new com.dinglebob.drifter.skills.BrewGoal());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
 		return List.copyOf(goals);

@@ -72,7 +72,7 @@ public class BoatTask extends Task {
 	private static final double LAND_NEAR = 6.0;
 	/** A bank this close ahead of the boat's middle (blocks): it's there. */
 	private static final double BANK_AHEAD = 2.2;
-	private static final int STUCK_TICKS = 20 * 6;
+	private static final int STUCK_TICKS = 20 * 8;
 	private static final double PROGRESS = 1.5;
 	/** Turning: within this of the way it wants (degrees), it stops pulling round. */
 	private static final float TURN_SLACK = 6.0F;
@@ -291,6 +291,19 @@ public class BoatTask extends Task {
 			this.phase = Phase.LAND;
 			this.ticks = 0;
 			return Status.RUNNING;
+		}
+
+		// Its way on runs into a shore it can't get out on (a wall, a cliff): a bank off to one side will do, the side
+		// nearer the way it's going first.
+		if (nearLanding && !this.openWater(straight)) {
+			for (float turn : new float[] {45.0F, -45.0F, 90.0F, -90.0F}) {
+				if (this.bankAhead(straight + turn)) {
+					this.heading = straight + turn;
+					this.phase = Phase.LAND;
+					this.ticks = 0;
+					return Status.RUNNING;
+				}
+			}
 		}
 
 		if (distance < this.bestDistance - PROGRESS) {

@@ -1764,6 +1764,28 @@ protected void customServerAiStep() {
 		return result;
 	}
 
+	/**
+	 * A potion drunk is used up and leaves its bottle, as for a player (PotionItem#finishUsingItem only uses up a player's:
+	 * a mob would drink the same one for ever).
+	 */
+	@Override
+	protected void completeUsingItem() {
+		ItemStack drinking = this.useItem;
+		boolean potion = !this.level().isClientSide && drinking.is(net.minecraft.world.item.Items.POTION) && this.isUsingItem();
+		net.minecraft.world.InteractionHand hand = this.getUsedItemHand();
+		int before = drinking.getCount();
+		super.completeUsingItem();
+		if (potion && drinking.getCount() == before && this.getItemInHand(hand) == drinking) {
+			drinking.shrink(1);
+			ItemStack bottle = new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE);
+			if (drinking.isEmpty()) {
+				this.setItemInHand(hand, bottle);
+			} else if (!this.inventory.add(bottle)) {
+				this.spawnAtLocation(bottle);
+			}
+		}
+	}
+
 	// ---------------------------------------------------------------------------------------------
 	// Inventory and equipment
 	// ---------------------------------------------------------------------------------------------

@@ -1396,6 +1396,13 @@ Use a fresh world. Commands act on the nearest Drifter.
       horse, gets thrown, gets on again until the horse shows hearts, then saddles it. Then send it far
       (`/drifter goto ~150 ~ ~`): it rides the horse most of the way, steering round things, and gets off near the end to
       walk the rest.
+- [ ] **Potions** (Drifters with Knowledge 0.4 or more: `/drifter personality` shows it; `/drifter personality reroll
+      speedrunner` gives a knowledgeable one): give one a home (`/drifter home here`), a brewing stand, nether wart,
+      blaze rods, glass bottles and an ingredient (`/drifter give brewing_stand`, `nether_wart 3`, `blaze_rod 2`,
+      `glass_bottle 3`, then `melon_slice 2` and `gold_ingot 2` for healing, or `carrot` and gold for night vision), with
+      water close by. `/drifter brain goal brew`: it puts the stand down at home, fills the bottles at the water, and
+      brews (you can open the stand and watch). Then hurt it badly in a fight: it drinks the healing potion (or throws a
+      splash one down if it's skilled and had gunpowder). In a dark cave it drinks night vision.
 - [ ] **Boats**: Drifters now make a boat early on. Give one a boat (`/drifter give oak_boat`) and send it across a lake or
       river (`/drifter goto` to a spot on the far side). At the water's edge it puts the boat on the water, gets in, rows
       across (you should see the paddles going), gets out on the far bank, breaks the boat with a few punches and picks it

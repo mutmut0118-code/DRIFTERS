@@ -78,7 +78,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 16 | Scale | **In progress** (2026-10-19): helper threads for paths and eyes, crowd perception, cheaper decisions, spread-out catch-up; see "Milestone 16" below | 1000 Drifters across a world and 300 round a player at a steady 20 TPS; a 150v150 battle playable (user, 2026-10-18). |
 | 15 | House plans by the hundred | **Done** (user, 2026-10-19): 9 data-file styles, L and T wings, lofts, corner towers, A-frames, 300 checked plans per world; Drifters pick and build them on their own | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
 | 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **Done in code** (2026-10-19), waiting on the user's play test | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
-| 18 | Player skills | **In progress** (2026-10-19): trading, fishing, horses, boats done; potions, netherite next | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
+| 18 | Player skills | **In progress** (2026-10-19): trading, fishing, horses, boats, potions done; netherite next | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
 | 19 | Mod compat and modded whims | Not started | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 20 | Whims offscreen, then wrong guesses | Not started | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 
@@ -2175,10 +2175,30 @@ The user: "after that start on villager trading, fishing, horses, boats, potions
 - Found in testing: its helper player stands where the Drifter is, so the boat item saw its eyes inside the Drifter and
   refused (`BoatItemMixin` leaves the Drifter's own body out of that check).
 - Tested: a 30-block pond in about 4.5 s, boat back in its pack; the walking test by a river and the sea on two seeds,
-  58 of 60 got there, 5 crossed by boat, one crossing given up in a bend (out, boat back, swam).
+  58 of 60 got there, 5 crossed by boat, one crossing given up in a bend (out, boat back, swam). Then: rowing toward a
+  far spot (no landing planned) into a shore it can't climb out on, it takes a bank off to one side: 30 of 30 got there,
+  4 of 4 crossings made. A 3-day run with 6 Drifters: no crashes, no deaths, they crafted their boats.
+
+### Potions (done)
+
+- Knowledge-gated (Knowledge 0.4 and up; section 10.14). Once it has a blaze rod, its progression list gets a brewing
+  stand (a blaze rod and cobblestone), then three glass bottles (sand, glass, bottles: the planner's usual chain) while
+  there's something it would brew. Nether wart comes from its Nether trips (already picked there).
+- `skills/BrewGoal`: at home, with the stand (it sets a carried one down at home), wart, blaze powder and an ingredient,
+  it brews what it's short of, in order: fire resistance (magma cream; once it has a portal) 2, healing (glistering melon
+  slice) 2, strength (blaze powder) 1, night vision (golden carrot) 1 (Miners 2). It makes the ingredient on the way if
+  it can (blaze powder from a rod, gold nuggets from an ingot, the melon slice or carrot, magma cream from slime and
+  powder), fills the bottles at water it knows near the stand (`FillBottlesTask`: the bottle item's own use), then works
+  the stand's own slots: old contents out, three water bottles, blaze powder for fuel, nether wart (awkward potions),
+  the ingredient, and for Skill 0.7 and up gunpowder on healing potions (to throw), waiting by the stand through each
+  20-second brew; potions out. Tested: three splash potions of healing in about 70 seconds.
+- Using them (`skills/Potions`, reflexes): badly hurt in a fight (35% health) it drinks healing, or throws a splash one
+  down at its feet; on fire or in lava, fire resistance; and before the hard part: strength when it's fighting something
+  hard (another Drifter, a player, a blaze, a vindicator, a brute...) still a few blocks off; night vision deep in a dark
+  cave; fire resistance in the Nether near lava or blazes. A potion drunk is used up and leaves its bottle (vanilla only
+  does that for players). Tested: the splash healing at 5 health (to 9), night vision in a closed cave.
 
 ### Next
 
-- Potions: brewing (a brewing stand, blaze powder, nether wart, water bottles), what it brews and when it drinks.
 - Netherite: ancient debris (mining at the right depths in the Nether), smelting scrap, ingots, the smithing table
   (with the upgrade template from a bastion).
