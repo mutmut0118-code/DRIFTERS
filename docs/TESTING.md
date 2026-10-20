@@ -1389,6 +1389,9 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] `/drifter skin` says whose skin the nearest one wears; `/drifter skin <name>` puts that account's skin on it (try
       yours or a friend's); `/drifter skin default` takes it off.
 - [ ] Settings > Spawning > "Real player skins" turns it off (for Drifters that haven't got one yet).
+- [ ] Your own list: open `config/drifter/skins.txt` in the DRIFTER TEST profile folder (it's made the first time you load
+      a world), put names or UUIDs on their own lines (yours, friends'), save, then load the world again. New Drifters
+      wear those first, one Drifter per skin. `/drifter skin <uuid>` works too.
 
 ## Milestone 20: wrong guesses (new)
 

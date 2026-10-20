@@ -2557,6 +2557,10 @@ protected void customServerAiStep() {
 			CompoundTag real = tag.getCompound("RealSkin");
 			this.realSkinName = real.getString("Name");
 			this.entityData.set(DATA_REAL_SKIN, real.getString("Textures"));
+			// (That account is taken: the user's list gives each of its skins to one Drifter at a time.)
+			if (!this.level().isClientSide) {
+				RealSkins.worn(real.getString("Textures"));
+			}
 		} else if (this.realSkinState == REAL_SKIN_WORN) {
 			this.realSkinState = REAL_SKIN_WANTED;
 		}

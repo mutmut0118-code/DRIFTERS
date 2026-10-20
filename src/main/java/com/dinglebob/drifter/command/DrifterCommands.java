@@ -326,8 +326,8 @@ public final class DrifterCommands {
 			.then(Commands.argument("account", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(ctx -> {
 				DrifterEntity drifter = nearest(ctx.getSource());
 				String account = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "account");
-				if (!com.dinglebob.drifter.entity.RealSkins.validName(account)) {
-					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Not a Minecraft name: " + account)).create();
+				if (!com.dinglebob.drifter.entity.RealSkins.valid(account)) {
+					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Not a Minecraft name or UUID: " + account)).create();
 				}
 
 				com.dinglebob.drifter.entity.RealSkins.wear(drifter, account);

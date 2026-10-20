@@ -2343,4 +2343,12 @@ usually i have internet but itll be fine if there isnt any, its just like minecr
 - Tested: 20 new Drifters, 14 with a real skin within 40 seconds; `/drifter skin Notch` works; in the game client the
   skins show (a screenshot of six: five real, one default).
 - Note: a Drifter named like a real account wears that account's skin and name, as a real player would look.
+- **UUIDs and lists (user, 2026-10-20: "yeah do both"):** where a skin comes from, in order: (1) the user's own list,
+  `config/drifter/skins.txt` (made with a note on first run; Minecraft names or UUIDs, one a line), each skin on one
+  Drifter at a time; (2) the account with its own name; (3) four accounts picked at random from a bundled list of 20,000
+  UUIDs (`data/drifter/drifter_skins/players.txt`, sampled at random from the user's list of 6,749,939 public account
+  UUIDs: 660 KB of text, about 350 KB in the jar; datapacks can add more .txt files there). UUIDs skip the name lookup
+  and stay with a player who renames. `/drifter skin <name or UUID>`. With no internet nothing is marked "no skin": it
+  waits and tries again. Tested: 20 new Drifters, 20 with a real skin; a 2-entry list (Notch's UUID, jeb_) gave each to
+  exactly one Drifter.
 
