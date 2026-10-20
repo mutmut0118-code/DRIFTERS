@@ -546,6 +546,27 @@ public class NavigateTask extends Task {
 			}
 		}
 
+		// Across water by boat (the boat finds its own way over; on the far side it plans the rest on foot).
+		if (this.boat != null) {
+			Status rowing = this.boat.tick();
+			if (rowing == Status.RUNNING) {
+				return Status.RUNNING;
+			}
+
+			if (rowing == Status.FAILURE) {
+				this.drifter.boatTrouble();
+				this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "no good by boat: " + this.boat.failureReason());
+			}
+
+			this.boat.stop();
+			this.boat = null;
+			this.path = List.of();
+			if (this.search != null) {
+				this.search.cancel();
+				this.search = null;
+			}
+		}
+
 		Status status = this.tickSteps();
 		this.stayAfloat();
 		return status;
@@ -561,6 +582,106 @@ public class NavigateTask extends Task {
 	private static final double RIDE_OFF_AT = 16.0;
 	/** Its horse within this. */
 	private static final double HORSE_NEAR = 16.0;
+
+	/** A boat crossing under way, and the step it last checked for one. */
+	@Nullable
+	private BoatTask boat;
+	private List<PathStep> boatCheckedPath = List.of();
+	private int boatCheckedIndex = -1;
+	/** Water at least this many steps across on its route (from the bank; swimming already, a longer stretch): by boat. */
+	private static final int BOAT_FROM = 8;
+	private static final int BOAT_FROM_SWIMMING = 12;
+	/** After a crossing went wrong, it swims for a while. */
+	private static final long BOAT_TROUBLE_WAIT = 20L * 60;
+
+	/** Its route goes out across open water here, and it has a boat: by boat, to where the route comes out (DESIGN.md 10.9). */
+	@Nullable
+	private BoatTask boatFor() {
+		if (this.follow || this.drifter.isPassenger() || this.level().dimensionType().ultraWarm() || !BoatTask.hasBoat(this.drifter)
+			|| this.level().getGameTime() - this.drifter.boatTroubleAt() < BOAT_TROUBLE_WAIT) {
+			return null;
+		}
+
+		// The next step goes out onto open water (swimming, or walking on where it took the water for ground it hadn't seen).
+		BlockPos launch = this.waterOf(this.path.get(this.index));
+		if (launch == null) {
+			return null;
+		}
+
+		int end = this.index + 1;
+		while (end < this.path.size() && this.waterOf(this.path.get(end)) != null) {
+			end++;
+		}
+
+		int needed = this.drifter.isInWater() ? BOAT_FROM_SWIMMING : BOAT_FROM;
+		if (end - this.index >= needed) {
+			// Out onto land at the end of the stretch; or past the end of what it has planned (still water), on toward the place.
+			if (end < this.path.size()) {
+				BlockPos landing = this.path.get(end).to();
+				return this.level().getFluidState(landing).is(net.minecraft.tags.FluidTags.WATER) ? null
+					: new BoatTask(this.drifter, launch, landing, this.target.get());
+			}
+
+			return this.partial ? new BoatTask(this.drifter, launch, null, this.target.get()) : null;
+		}
+
+		// Its route only plans a short swim, but that's because it hasn't made out the water's far side (it plans over what
+		// it hasn't seen as if it were ground): the open water it can see ahead the way it's going decides it.
+		BlockPos ahead = this.path.get(Math.min(this.index + 12, this.path.size() - 1)).to();
+		Vec3 toward = ahead.distSqr(launch) < 4.0 ? this.target.get() : Vec3.atBottomCenterOf(ahead);
+		return this.waterInSight(launch, toward) >= needed ? new BoatTask(this.drifter, launch, null, this.target.get()) : null;
+	}
+
+	/**
+	 * How far the open water goes on from here toward there, as far as it can see it: each cell on the line water at the
+	 * top, its surface in sight from its eyes (the end of the water, or anything it can't see past, ends the count).
+	 */
+	private int waterInSight(BlockPos launch, Vec3 toward) {
+		Level level = this.level();
+		Vec3 start = Vec3.atBottomCenterOf(launch);
+		Vec3 direction = new Vec3(toward.x - start.x, 0.0, toward.z - start.z);
+		if (direction.lengthSqr() < 1.0E-4) {
+			return 0;
+		}
+
+		direction = direction.normalize();
+		Vec3 eye = this.drifter.getEyePosition();
+		int count = 0;
+		for (int i = 0; i < 40; i++) {
+			BlockPos cell = BlockPos.containing(start.x + direction.x * i, launch.getY(), start.z + direction.z * i);
+			if (!this.surfaceWater(cell)) {
+				break;
+			}
+
+			Vec3 surface = new Vec3(cell.getX() + 0.5, cell.getY() + 0.8, cell.getZ() + 0.5);
+			var hit = level.clip(new net.minecraft.world.level.ClipContext(eye, surface, net.minecraft.world.level.ClipContext.Block.VISUAL,
+				net.minecraft.world.level.ClipContext.Fluid.ANY, this.drifter));
+			if (hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK && !level.getFluidState(hit.getBlockPos()).is(net.minecraft.tags.FluidTags.WATER)) {
+				break;
+			}
+
+			count++;
+		}
+
+		return count;
+	}
+
+	/** The open water this step goes onto: swimming at the top of it, or walking where it guessed there was ground. */
+	@Nullable
+	private BlockPos waterOf(PathStep step) {
+		return switch (step.type()) {
+			case SWIM, SWIM_DOWN -> this.surfaceWater(step.to()) ? step.to() : null;
+			case WALK, DIAGONAL, STEP_DOWN -> this.surfaceWater(step.to().below()) && !this.surfaceWater(step.to()) ? step.to().below() : null;
+			default -> null;
+		};
+	}
+
+	/** Water a boat floats on: the top of it, open above. */
+	private boolean surfaceWater(BlockPos pos) {
+		Level level = this.level();
+		return level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER) && level.getFluidState(pos.above()).isEmpty()
+			&& level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty();
+	}
 
 	@Nullable
 	private RideTask rideFor() {
@@ -670,6 +791,17 @@ public class NavigateTask extends Task {
 		if (this.sinceReplan >= ROLLING_REPLAN_TICKS && this.unknownAhead() && current != MoveType.BRIDGE && current != MoveType.PILLAR) {
 			this.plan("rolling replan: now it has seen more of the way", true);
 			return Status.RUNNING;
+		}
+
+		if (this.path != this.boatCheckedPath || this.index != this.boatCheckedIndex) {
+			this.boatCheckedPath = this.path;
+			this.boatCheckedIndex = this.index;
+			this.boat = this.boatFor();
+			if (this.boat != null) {
+				this.stopSub();
+				this.releaseKeys();
+				return Status.RUNNING;
+			}
 		}
 
 		walkingTicks++;
@@ -2272,6 +2404,11 @@ public class NavigateTask extends Task {
 		if (this.ride != null) {
 			this.ride.stop();
 			this.ride = null;
+		}
+
+		if (this.boat != null) {
+			this.boat.stop();
+			this.boat = null;
 		}
 
 		if (this.search != null) {

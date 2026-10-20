@@ -41,7 +41,10 @@ public final class Strategist {
 			drifter -> drifter.getInventory().count(stack -> stack.is(ItemTags.STONE_TOOL_MATERIALS)) >= 16),
 		new Target("torches", List.of(Items.TORCH), 8, drifter -> drifter.getInventory().count(stack -> stack.is(Items.TORCH)) >= 8),
 		new Target("a stone shovel", List.of(Items.STONE_SHOVEL), 1, drifter -> has(drifter, stack -> stack.is(ItemTags.SHOVELS)
-			&& !stack.is(Items.WOODEN_SHOVEL) && !stack.is(Items.GOLDEN_SHOVEL))));
+			&& !stack.is(Items.WOODEN_SHOVEL) && !stack.is(Items.GOLDEN_SHOVEL))),
+		// A boat, for any water wider than a few blocks (section 10.9: "carries one from early on"): five planks of one wood.
+		new Target("a boat", List.of(Items.OAK_BOAT, Items.SPRUCE_BOAT, Items.BIRCH_BOAT, Items.JUNGLE_BOAT, Items.ACACIA_BOAT, Items.CHERRY_BOAT,
+			Items.DARK_OAK_BOAT, Items.MANGROVE_BOAT, Items.BAMBOO_RAFT), 1, drifter -> has(drifter, com.dinglebob.drifter.executor.task.BoatTask::isBoat)));
 
 	/** It has a furnace set up at home (it doesn't need another one while it's off mining). */
 	private static boolean furnaceAtHome(DrifterEntity drifter) {

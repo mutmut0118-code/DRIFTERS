@@ -64,6 +64,11 @@ public class PathSearch {
 	 * river and a flooded mine had it fighting the same current for hours).
 	 */
 	public static final double CURRENT = 2.0;
+	/**
+	 * A cell of open water with a boat in its pack (it rows across: a boat goes about four times a swimmer's speed, and
+	 * putting it on the water and picking it up again takes a few seconds; DESIGN.md section 12, "Boat").
+	 */
+	public static final double BOAT = 0.2;
 	/** Most moves in a row under water on a planned route (about a third of a held breath's swim). */
 	public static final int MAX_UNDERWATER = 6;
 	public static final double CLIMB_UP = 0.45;
@@ -77,6 +82,8 @@ public class PathSearch {
 	/** In the Nether any block it hasn't seen may be lava: routes keep to what it has seen where they can. */
 	public static final double UNKNOWN_LAVA_WORLD = 3.0;
 	private final boolean lavaWorld;
+	/** It has a boat to cross open water in. */
+	private final boolean boat;
 	/**
 	 * Players dig to get somewhere only when it saves real time: every block dug on the way costs this much extra on
 	 * top of the time to break it (found in testing: without it, breaking a window looked cheaper than using the door).
@@ -312,6 +319,7 @@ public class PathSearch {
 		// and bridges and left it stranded up on them (found by the user: rubydoodle).
 		this.blocksAvailable = Math.max(0, Tools.buildingBlockCount(drifter) - (lastBlocks ? 0 : reserve(drifter)));
 		this.lavaWorld = drifter.level().dimensionType().ultraWarm();
+		this.boat = !this.lavaWorld && com.dinglebob.drifter.executor.task.BoatTask.hasBoat(drifter);
 		// Section 12 cost model: risk x Caution, resources x Thrift, from its personality (mood included).
 		this.caution = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.CAUTION);
 		this.thrift = drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.THRIFT);
@@ -627,7 +635,8 @@ public class PathSearch {
 
 		if (this.view.isWater(f) || inWater && !this.view.standable(f.below())) {
 			if (this.view.isWater(f) || this.view.isWater(f.below())) {
-				this.add(node, f, MoveType.SWIM, SWIM + this.current(f) + (this.headUnder(f) ? SWIM_UNDER : 0.0) + c.cost, c, 0);
+				boolean rowed = this.boat && this.view.isWater(f) && !this.headUnder(f) && !this.view.isWater(f.above());
+				this.add(node, f, MoveType.SWIM, (rowed ? BOAT : SWIM + this.current(f) + (this.headUnder(f) ? SWIM_UNDER : 0.0)) + c.cost, c, 0);
 			}
 
 			return;

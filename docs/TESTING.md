@@ -1382,6 +1382,40 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] New huts and houses: chests face into the room, two chests side by side make a double chest, and the hut torch is
       on the wall, not a window.
 
+## Milestone 18: player skills (new)
+
+Use a fresh world. Commands act on the nearest Drifter.
+
+- [ ] **Trading**: near a village in the daytime, give a Drifter emeralds (`/drifter give emerald 20`). It walks up to a
+      villager, the villager stops and looks at it, and after a moment it buys something it wants (better armour, a tool,
+      food). It also sells things it has too many of. `/drifter thoughts` shows "off to trade: ..." and what it bought.
+- [ ] **Fishing**: by a pond or lake, at dusk or in the rain, give it a fishing rod (`/drifter give fishing_rod`). It sits
+      on the bank and fishes: you see the line from its hand to the bobber, and when the bobber dips it pulls and the catch
+      flies to it. To make it go now: `/drifter brain goal fish`.
+- [ ] **Horses**: near wild horses, give it a saddle (`/drifter give saddle`) and `/drifter brain goal horse`. It gets on a
+      horse, gets thrown, gets on again until the horse shows hearts, then saddles it. Then send it far
+      (`/drifter goto ~150 ~ ~`): it rides the horse most of the way, steering round things, and gets off near the end to
+      walk the rest.
+- [ ] **Boats**: Drifters now make a boat early on. Give one a boat (`/drifter give oak_boat`) and send it across a lake or
+      river (`/drifter goto` to a spot on the far side). At the water's edge it puts the boat on the water, gets in, rows
+      across (you should see the paddles going), gets out on the far bank, breaks the boat with a few punches and picks it
+      up. Small streams it still swims.
+
+## Milestone 17: fixes (new)
+
+- [ ] **Better Combat holding poses**: give a Drifter a two-handed weapon (a claymore, halberd, greataxe, katana, spear,
+      scythe: `/drifter give simplyswords:iron_claymore`) or watch a `/drifter battle 20`. It holds it the way you do with
+      Better Combat (a greatsword over the shoulder, a halberd low in both hands), not upright in one hand; the blade turns
+      in its hand through a swing; swings leave Better Combat's slash trail; its legs keep walking while it swings on the
+      move.
+- [ ] **Combat Roll**: its roll now plays Combat Roll's own roll animation. Near a hissing creeper it rolls clear of the
+      blast; facing a skeleton it sometimes rolls in to close the distance. Roll enchantments on its armour (Multi-Roll,
+      Acrobat, Longfooted) give it more rolls, faster recharge, longer rolls, as they do for you.
+- [ ] **Getting around**: Drifters should get stuck and give up far less on hills and mountains (with Tectonic too). To
+      measure: stand somewhere hilly and type `/drifter navtest 20 16 40` (20 Drifters, each sent 40 blocks off); after a
+      minute `/drifter perf` has a "Walking test" line with how many got there and why the others didn't.
+      `/drifter navtest stop` ends it. At an edge they didn't know about you may see them stop, crouch and look over it.
+
 ## Milestone 16: lots of Drifters (new)
 
 The goal: 1000 Drifters across a world and 300 round you at a smooth 20 TPS, and big battles. Nothing to switch on.

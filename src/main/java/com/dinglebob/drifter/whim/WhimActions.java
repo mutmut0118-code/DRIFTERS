@@ -1888,6 +1888,7 @@ public final class WhimActions {
 					@Override
 					protected Status onTick() {
 						this.drifter.getKeys().releaseAll();
+						this.drifter.keepRiding();
 						if (this.t % 60 == 0) {
 							this.drifter.getCamera().track(this.drifter.getEyePosition().add(this.drifter.getRandom().nextGaussian() * 8, 0.5,
 								this.drifter.getRandom().nextGaussian() * 8), CameraModel.TurnSpeed.IDLE);

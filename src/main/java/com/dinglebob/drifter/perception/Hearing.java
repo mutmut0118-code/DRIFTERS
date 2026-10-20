@@ -87,7 +87,8 @@ public class Hearing implements GameEventListener {
 
 	/** One sound reaching it: what it makes of it (sneaking already let go). */
 	private boolean hear(ServerLevel level, HeardSound.Kind kind, Vec3 pos, @Nullable Entity maker) {
-		if (maker == this.drifter || !this.drifter.isAlive()) {
+		// Its own sounds, and those of what it's riding (its boat's paddles and splashes, its horse's hooves).
+		if (maker == this.drifter || maker != null && maker == this.drifter.getVehicle() || !this.drifter.isAlive()) {
 			return false;
 		}
 

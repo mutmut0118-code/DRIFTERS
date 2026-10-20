@@ -231,6 +231,17 @@ public class DrifterEntity extends PathfinderMob {
 	 * Remembers that digging this block on the way didn't work, for two minutes: routes go another way (found in a walking
 	 * test on Tectonic's jagged peaks: the same snow block planned and failed fifteen times over, then it gave up).
 	 */
+	/** When a boat crossing last went wrong (NavigateTask leaves the boat in its pack for a minute after). */
+	private long boatTroubleAt = Long.MIN_VALUE / 2;
+
+	public void boatTrouble() {
+		this.boatTroubleAt = this.level().getGameTime();
+	}
+
+	public long boatTroubleAt() {
+		return this.boatTroubleAt;
+	}
+
 	public void digFailedAt(BlockPos cell) {
 		this.failedDigs.put(cell.immutable(), this.level().getGameTime() + 20L * 60 * 2);
 	}
@@ -722,9 +733,10 @@ public class DrifterEntity extends PathfinderMob {
 		this.rideIntentAt = this.tickCount;
 	}
 
-	/** Riding a horse with nothing using the ride any more (another goal took over): it gets off. */
+	/** Riding a horse or a boat with nothing using the ride any more (another goal took over): it gets off. */
 	private void dismountIfIdle() {
-		if (this.getVehicle() instanceof net.minecraft.world.entity.animal.horse.AbstractHorse && this.tickCount - this.rideIntentAt > 20) {
+		if ((this.getVehicle() instanceof net.minecraft.world.entity.animal.horse.AbstractHorse || this.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat)
+			&& this.tickCount - this.rideIntentAt > 20) {
 			this.stopRiding();
 		}
 	}

@@ -77,8 +77,8 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 14 | The End (optional) | Not started | |
 | 16 | Scale | **In progress** (2026-10-19): helper threads for paths and eyes, crowd perception, cheaper decisions, spread-out catch-up; see "Milestone 16" below | 1000 Drifters across a world and 300 round a player at a steady 20 TPS; a 150v150 battle playable (user, 2026-10-18). |
 | 15 | House plans by the hundred | **Done** (user, 2026-10-19): 9 data-file styles, L and T wings, lofts, corner towers, A-frames, 300 checked plans per world; Drifters pick and build them on their own | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
-| 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **In progress** (2026-10-19) | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
-| 18 | Player skills | Not started | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
+| 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **Done in code** (2026-10-19), waiting on the user's play test | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
+| 18 | Player skills | **In progress** (2026-10-19): trading, fishing, horses, boats done; potions, netherite next | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
 | 19 | Mod compat and modded whims | Not started | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 20 | Whims offscreen, then wrong guesses | Not started | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 
@@ -2059,3 +2059,126 @@ settings "retainDetailOnLowFps" and "retainDetailOnLargerMobs" set to off gave a
     a test, now 18). Its own placing or mining now drops the held scan.
 - Sight lines for awareness on the helper threads too (the next biggest piece in battles).
 - The planner itself (crafting chains for food and progress) is the biggest part of a decision.
+
+## Milestone 17: Fixes (started 2026-10-19)
+
+The user: "mark them done and focus on the problems: combat roll, getting around on rough ground, some better combat
+animations dont work". Then "you should run a test with tectonic's terrain".
+
+### Better Combat animations (done)
+
+Found by filming duels in the dev client (same mods and resource packs as the user's game): every swing animation was
+found and played; what players have that Drifters didn't:
+- **Holding poses**: a two-handed weapon (claymore, halberd, heavy axe or hammer, katana, polearm, scythe; bows and
+  crossbows too) was held upright in one hand, the vanilla way. Now `DrifterSwingAnimations` keeps a stack per Drifter as
+  Better Combat does for a player (AbstractClientPlayerEntityMixin): a pose layer per hand for the arms and body and one
+  for the weapon in the hand, the attack on top, with its rules (no poses while swimming, using an item, climbing,
+  gliding or holding a loaded crossbow; the arms-and-body pose not while walking or crouching unless two-handed; the off
+  hand's only when dual wielding; mirrored for left-handers).
+- **The weapon in the hand**: many swings and poses turn the blade in the hand (the "rightItem"/"leftItem" channels):
+  `client/mixin/ItemInHandLayerMixin` applies them to a Drifter's held item, as the library's HeldItemMixin does.
+- **Legs**: they keep walking while it moves, crouches or rides (Better Combat's updateAnimationByCurrentActivity).
+- **Slash trails** (`client/render/DrifterTrails`): the swing's own trail or the one its animation has in Better
+  Combat's trail settings, in the weapon's colours, at the top of the upswing; the server sends the swing's reach and
+  upswing ticks with the animation.
+- **Combat Roll's roll**: its own roll animation (combat_roll:roll, turned the way it rolls) instead of the somersault
+  (kept for when the library isn't there).
+- Battle soldiers carry their favourite kind of weapon (Simply Swords: all fifteen kinds), a shield only with a
+  one-handed one.
+
+### Combat Roll (done)
+
+- Charges, recharge and distance from Combat Roll's own attributes, which it adds to the player's attributes and so a
+  Drifter has: its enchantments (Multi-Roll, Acrobat, Longfooted) on a Drifter's armour count. A Drifter starts with all
+  its rolls; each used one comes back after the cooldown, sooner with more recharge (its RollManager).
+- Rolls out of a hissing creeper's blast (within 4.5 blocks, straight away from it or to one side, safe ground only),
+  once per hiss. Tested: four creepers, four rolls, each blast 7 to 8 blocks behind it.
+- Rolls in on something shooting at it (a skeleton, someone with a bow) 4.5 to 9 blocks off, now and then (the skilled
+  more often), straight at it over safe open ground.
+
+### Getting around on rough ground (in progress)
+
+- `/drifter navtest <count> <radius> <distance>` (`world/NavTest`): Drifters with tools and blocks round you, each sent
+  to its own spot on dry ground that far off, and a report (in `/drifter perf`) of who got there, how fast, and why the
+  others didn't. Note: run it at normal speed; under `/tick sprint` route searches on the helper threads take real time
+  while game ticks fly, so walks look much slower than they are.
+- **Replans that bring it nearer don't count toward giving up.** Every time a route's guess about unseen ground turned out
+  wrong it replanned, and after 15 it gave up, even while closing in. Now getting 3 blocks nearer than ever before starts
+  the count again. Vanilla terrain, 40 Drifters sent 50 blocks on four seeds: 87 of 160 got there before, 155 after.
+- **Failed digs remembered.** A dig on the way it couldn't do (couldn't see or reach the block from where it stood) isn't
+  planned again for two minutes (as failed bridges and pillars already weren't).
+- **Looking things over.** Once its guesses have been wrong a few times running, at an edge it didn't know was there it
+  stops and looks over it, across the drop, and at a hidden slope or tree it looks across and up, before planning again.
+- **Tectonic** (the user's terrain mod; tests stage it with lithostitched): on Tectonic's jagged peaks (100 blocks of
+  height, 25-block climbs on average) 21 of 40 got there within two minutes before; now 30 to 35. Frozen peaks 27 then
+  about 33; windswept hills 37 to 39.
+- A Drifter buried by a falling block can dig out (aiming at the block its head is inside works now: the game's ray
+  starts inside it).
+- Left for milestone 20 (wrong guesses): a better guess for unseen ground (the height of the nearest ground it has seen,
+  as a player reads a hillside) instead of "unseen is both open and solid".
+
+## Milestone 18: Player skills (started 2026-10-19)
+
+The user: "after that start on villager trading, fishing, horses, boats, potions, and netherite". In that order.
+
+### Villager trading (done)
+
+- `trade/TradeGoal`: in the daytime, with nothing pressing, it walks to a villager it knows sells something it wants
+  and can pay for, or (with emeralds or surplus to sell) goes to have a look at the trades of a villager in sight it
+  hasn't checked (the curious and the greedy sooner).
+- `executor/task/TradeTask`: the villager's own right-click (`interactOn` by its helper player: reputation prices, the
+  villager stops and looks at it), a moment reading the offers (remembered in `trade/TradeBook`, saved with it), then
+  each trade as the vanilla trading screen makes it (`Trading.trade`, mirroring `MerchantResultSlot`: the villager's
+  experience, restocks, reputation).
+- What it buys and sells (`data/drifter/drifter_trading/vanilla.json`, a datapack file): better armour, weapons and
+  tools than it has, food when short, a Mending book if it knows enough to use one; it sells its surplus (each good has
+  how many it keeps) first to pay. Tested: bought a chainmail helmet with emeralds from selling.
+
+### Fishing (done)
+
+- `skills/FishGoal`: at dusk, in the rain, bored, or short of food, near open water it knows (5x5 of water at least),
+  it fishes from the bank (the patient more often). It makes a rod first if it has sticks and string.
+- `executor/task/FishTask`: the real rod and bobber cast by its helper player (the bobber's own bite timing, Lure, Luck
+  of the Sea, the fishing loot table); eyes on the bobber, and when it dips, a pull after a reaction time by skill. A
+  cast onto the bank is pulled in and thrown again a little higher.
+- Clients see the bobber's line from the Drifter's hand (`FishingHookMixin` sends the Drifter as the bobber's owner;
+  the client mixin gives the bobber a stand-in player that follows the Drifter). Tested: salmon, cod, a pufferfish and a
+  bowl; the line shows in the client.
+
+### Horses (done)
+
+- `skills/HorseGoal`: with no horse and a wild one in sight (a horse, donkey or mule), it breaks it in as a player does:
+  on, thrown, on again (the vanilla temper odds, `RunAroundLikeCrazyGoalMixin`), giving up after 4 to 12 tries by
+  patience; tamed, it's its own (tamed to its helper player, remembered and saved). With its horse and a saddle, it
+  saddles it.
+- Riding: on trips of 80 blocks or more with its saddled horse within 16, it rides most of the way (`RideTask`: its keys
+  steer the horse as a player's do, `DrifterRiding` mirrors the horse's ridden travel; it steers round walls, water and
+  drops and jumps steps), then gets off 16 blocks short and walks in. It only steers a saddled horse (on an unsaddled
+  one the horse goes its own way and bucks), and it gets off when nothing is using the ride. Tested: thrown three to five
+  times, then tamed, saddled, rode about 100 blocks and walked the last 16.
+
+### Boats (done)
+
+- It makes a boat early (the last of the early targets: five planks of one wood) and keeps it on hand.
+- `NavigateTask`: where its route goes out onto open water at least 8 blocks across (12 if it's already swimming), and
+  it has a boat, it crosses by boat (`executor/task/BoatTask`): out from the bank far enough that the boat doesn't catch
+  on it, the boat down on the water (the boat item's own use), in, rowing (its keys are the paddles, `BoatMixin` runs the
+  boat's own controls on the server for a Drifter), steering round what's in the way; at the far bank (where its route
+  comes out of the water, or the first bank on the way on) out, a few punches to break the boat, the boat picked up, and
+  on on foot. Something wrong on the water (stuck in a narrow bend): out there, boat back, and it swims (no boat for a
+  minute after).
+- How wide the water is it judges from what it can see: its route plans over water it hasn't made out as if it were
+  ground, so the open water in sight the way it's going decides it too.
+- The route planner counts open water as quick going when it has a boat (a fifth of a second a block).
+- A boat it rows doesn't scoop up mobs that bump into it (as a player's doesn't); it doesn't "hear" its own boat or
+  horse. `/drifter navtest` Drifters now carry a boat.
+- Found in testing: its helper player stands where the Drifter is, so the boat item saw its eyes inside the Drifter and
+  refused (`BoatItemMixin` leaves the Drifter's own body out of that check).
+- Tested: a 30-block pond in about 4.5 s, boat back in its pack; the walking test by a river and the sea on two seeds,
+  58 of 60 got there, 5 crossed by boat, one crossing given up in a bend (out, boat back, swam).
+
+### Next
+
+- Potions: brewing (a brewing stand, blaze powder, nether wart, water bottles), what it brews and when it drinks.
+- Netherite: ancient debris (mining at the right depths in the Nether), smelting scrap, ingots, the smithing table
+  (with the upgrade template from a bastion).

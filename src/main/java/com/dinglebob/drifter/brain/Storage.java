@@ -200,6 +200,8 @@ public final class Storage {
 			return "bow";
 		} else if (stack.is(Items.FISHING_ROD)) {
 			return "fishing rod";
+		} else if (com.dinglebob.drifter.executor.task.BoatTask.isBoat(stack)) {
+			return "boat";
 		}
 
 		return null;

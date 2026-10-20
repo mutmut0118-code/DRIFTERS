@@ -118,6 +118,8 @@ public final class NavTest {
 			inventory.add(new ItemStack(Items.COBBLESTONE, 64));
 			inventory.add(new ItemStack(Items.DIRT, 32));
 			inventory.add(new ItemStack(Items.BREAD, 16));
+			// The boat it carries from early on (milestone 18): open water on the way, it rows across.
+			inventory.add(new ItemStack(Items.OAK_BOAT));
 			if (level.addFreshEntity(drifter)) {
 				entries.add(new Entry(drifter.getUUID(), drifter.getName().getString(), from, to));
 			}
