@@ -176,6 +176,12 @@ final class Thief extends Encounter {
 		return false;
 	}
 
+	/** Stopping the thief is the point; the one it robbed is anyone. */
+	@Override
+	public Killing killing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+		return drifter == this.thief ? Killing.NONE : super.killing(drifter, player);
+	}
+
 	@Override
 	public Activity start(DrifterEntity drifter) {
 		if (drifter == this.thief) {

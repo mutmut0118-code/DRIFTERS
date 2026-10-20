@@ -160,6 +160,33 @@ public abstract class Encounter {
 	protected void playerDied() {
 	}
 
+	/**
+	 * How the player killing one of its Drifters counts (the user, 2026-10-20: "what will be the punishment for killing in
+	 * a duel?"). One against them at the time (a bandit, a hunter): self-defence, nothing; anyone else: a kill like any
+	 * Drifter's. Each kind can say otherwise (a thief: it had it coming; a duellist that gave up: murder).
+	 */
+	public Killing killing(DrifterEntity drifter, Player player) {
+		return this.hostileTo(drifter, player) ? Killing.NONE : Killing.KILL;
+	}
+
+	/** What a player's killing one of them counts as. */
+	public enum Killing {
+		/** Self-defence, or it had it coming: nothing. */
+		NONE,
+		/** Like killing any Drifter: towards a price on their head, and now and then its friends come for revenge. */
+		KILL,
+		/** One that had given up: a price on their head at once, and its friends come for revenge. */
+		MURDER
+	}
+
+	/** One of its Drifters was hurt (as each blow lands: the once-a-second update can be a blow too late). */
+	protected void hurt(DrifterEntity drifter, net.minecraft.world.damagesource.DamageSource source) {
+	}
+
+	/** Its player was hurt (as each blow lands). */
+	protected void playerHurt(ServerPlayer player, net.minecraft.world.damagesource.DamageSource source) {
+	}
+
 	/** It's over: everyone in it heads off. */
 	public void end(String why) {
 		if (this.over) {
@@ -235,6 +262,32 @@ public abstract class Encounter {
 		return drifter.position().distanceTo(at) <= radius + 0.5 ? null
 			: new com.dinglebob.drifter.executor.task.NavigateTask(drifter, at, radius, "walk up to " + entity.getName().getString(),
 				com.dinglebob.drifter.executor.task.NavigateTask.Pace.TRAVEL);
+	}
+
+	/**
+	 * Off to where word has it someone is, then round there, one spot then another (it doesn't stand still): a hunt for
+	 * them (bounty hunters, a revenge squad). {@code lead} is read as it goes (where one of them last saw them).
+	 */
+	protected static Script search(DrifterEntity drifter, String what, String name, java.util.function.Supplier<Vec3> lead, double radius) {
+		var random = drifter.getRandom();
+		Script script = new Script(drifter, what, 20 * 60 * 3);
+		if (drifter.position().distanceTo(lead.get()) > 12.0) {
+			script.then(() -> new com.dinglebob.drifter.executor.task.NavigateTask(drifter, lead.get(), 6.0, "head for where " + name + " was seen",
+				com.dinglebob.drifter.executor.task.NavigateTask.Pace.TRAVEL));
+		}
+
+		for (int i = 0; i < 3; i++) {
+			script.then(() -> {
+				double angle = random.nextDouble() * Math.PI * 2.0;
+				double distance = 6.0 + random.nextDouble() * (radius - 6.0);
+				Vec3 spot = lead.get().add(Math.cos(angle) * distance, 0.0, Math.sin(angle) * distance);
+				return new com.dinglebob.drifter.executor.task.NavigateTask(drifter, spot, 4.0, "search for " + name,
+					com.dinglebob.drifter.executor.task.NavigateTask.Pace.TRAVEL);
+			});
+			script.then(() -> new com.dinglebob.drifter.executor.task.LookAroundTask(drifter, 2, 6));
+		}
+
+		return script;
 	}
 
 	/** Items this player threw down within {@code radius} of it (what they're giving it, as a player gives: drops it). */

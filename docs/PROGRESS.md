@@ -2454,6 +2454,12 @@ the suggested first batch was built. Everything is in docs/ENCOUNTERS.md ("Built
 - **Second batch** (the user: "yea pick some more events"): the watcher, duel challenges, muggings, hungry travellers,
   feuds, campfire parties, mourners, and treasure maps from some merchants; all tested in the client. Thirteen kinds in
   all (docs/ENCOUNTERS.md "Built (second batch)").
+- **Killing and revenge** (the user: "what will be the punishment for killing in a duel?", then "do 1 to 3, and the
+  revenge one too"): each kind says how a kill counts (`Encounter.killing`: self-defence nothing, others like any
+  Drifter's, a duellist that gave up murder: a price on their head at once); the duel judges each blow as it lands
+  (Fabric's after-damage event); revenge squads (`RevengeSquad`, the 14th kind: a murder always, other kills of Drifters
+  that weren't after the player one time in four; saved per player as `Revenge`). Tested in the client (docs/ENCOUNTERS.md
+  "Built: killing encounter Drifters, and revenge squads").
 - **Bountiful** (`compat/BountifulCompat`, `compat/BountyGoal`): Drifters read a board they've seen, take a bounty they
   can fill from what they can spare and turn it in at the board (Bountiful's own code pays them). Tested headless with a
   known bounty (4 flint for 2 emeralds: done). Kill bounties left; gathering for a bounty not yet.

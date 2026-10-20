@@ -19,7 +19,7 @@ public final class DrifterEncounterScreen extends Screen {
 		{"bounty_hunters", "Bounty hunters"}, {"wanted", "Wanted posters"}, {"injured_traveller", "Injured travellers"},
 		{"thief", "Thieves"}, {"merchant", "Merchants"}, {"ambush", "Ambushes"}, {"watcher", "The watcher"}, {"duel", "Duels"},
 		{"mugging", "Muggings"}, {"hungry_traveller", "Hungry travellers"}, {"feud", "Feuds"}, {"campfire_party", "Campfire parties"},
-		{"mourner", "Mourners"}};
+		{"mourner", "Mourners"}, {"revenge", "Revenge squads"}};
 	/** Each kind's switch: three a row. */
 	private static final int KIND_WIDTH = 124;
 

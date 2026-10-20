@@ -101,7 +101,7 @@ Code: `encounter/` (`Encounters` the director, `Encounter` the base, one class p
   more Drifters they killed put a price on their head (half a chance each day it holds). A day to two and a half later
   three to five armed hunters come, told only what word got round: the newest sighting any Drifter has of the player (a
   day old at most), or their base. They search there, and on sight go after them with no warning, relentless
-  ("Player! someone you crossed wants a word. Well, wants you dead."). Over when the player dies, they all die, or ten
+  ("Player! there's a price on your head, from <who>. we've come to collect."). Over when the player dies, they all die, or ten
   minutes pass. The price is spent either way.
 - **Wanted poster:** a messenger brings a map: a real Drifter 150 to 1200 blocks off (a Bandit first), its home marked
   if it has one (else where it was last seen), "WANTED: name", its crime and the reward (3 to 8 diamonds, more for far
@@ -160,6 +160,28 @@ The user: "yea pick some more events". Picked for variety (danger, odd, friendly
   encounter talking to you; the chat setting still does); encounter Drifters never dig in for the night or go hunting
   at night (they're out for their part); a merchant's same goods are one offer; `/drifter encounter throw <item>` and
   `hit <part> [amount]` for testing.
+
+## Built: killing encounter Drifters, and revenge squads (2026-10-20)
+
+The user asked "what will be the punishment for killing in a duel?" There was none (and killing paid better: its stake
+plus its gear). Now (`Encounter.killing`, `Encounters.killed`, `RevengeSquad`), tested in the game client:
+- **How a kill counts.** Self-defence or it had it coming (a bandit, a bounty hunter, a mugger, a thief, a revenge
+  squad): nothing. Anyone else from an encounter (a traveller, a merchant, a feud's fighter, a duellist in the fight it
+  asked for): like killing any Drifter, one towards the three that put a price on their head. A duellist that had
+  given up: **murder**, a price on their head at once (the hunters come a day or two later as usual).
+- **The duel** checks for "I give up" (three hearts) and "you lose" (four) as each blow lands, not once a second, so a
+  crit doesn't take it past the check (a big enough blow can still kill it outright). Hit after it gave up, it says
+  "hey! I gave up! it's over!"; from then on killing it is murder.
+- **Revenge squad (7):** a Drifter they killed that didn't have it coming (one of the world's or an encounter's; not
+  one that was after them, nor a wanted one they had the bounty on): one time in four its friends come for them, a
+  quarter of a day to a day later; a murder, always. Two of them (three for a murder, one an archer), armed about as
+  well as the player. They look where word has it the player is (the newest sighting), else where their friend died;
+  only near the player (160 blocks) do they find them; three days of not finding them and they give up. On sight:
+  "Player! you killed <name>. they were our friend." (a murder: "<name> gave up, and you killed them anyway.") and
+  "this is for <name>!", then after them, relentless. Over when the player dies ("that was for <name>."), they all die,
+  or ten minutes pass. One squad at a time (a murder takes the place of a lesser grudge). Settings: "Revenge squads".
+- `/drifter encounter` shows a squad on its way; `/drifter encounter start revenge` brings the one on its way now (or,
+  with none, a squad for a made-up friend).
 
 ## Built: Drifters doing Bountiful bounties (2026-10-20)
 

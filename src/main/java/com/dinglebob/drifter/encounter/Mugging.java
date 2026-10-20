@@ -143,6 +143,12 @@ final class Mugging extends Encounter {
 		return this.refused;
 	}
 
+	/** "Your money or your life": whenever they strike it down, it had it coming. */
+	@Override
+	public Killing killing(DrifterEntity drifter, Player player) {
+		return Killing.NONE;
+	}
+
 	@Override
 	public Activity start(DrifterEntity drifter) {
 		ServerPlayer player = this.player();

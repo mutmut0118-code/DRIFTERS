@@ -10,6 +10,7 @@ import com.dinglebob.drifter.personality.Archetype;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,6 +19,8 @@ import net.minecraft.world.item.Items;
  * A duel challenge (docs/ENCOUNTERS.md 18): a PvP sweat walks up and bets diamonds on a 1v1. Hit it to say yes. It's a
  * fight to a few hearts, not to the death: down to three hearts it gives up and pays its stake; the player down to four
  * and it stops, laughing, and takes nothing. No answer in half a minute (or walking off): "coward", and it goes.
+ * Killed in the fight, it's a kill like any Drifter's; killed after it gave up, it's murder ({@link Encounters}: a price
+ * on their head at once, and its friends come for revenge).
  */
 final class Duel extends Encounter {
 	private static final String CHALLENGER = "challenger";
@@ -35,6 +38,8 @@ final class Duel extends Encounter {
 	private boolean settled;
 	private boolean playerWon;
 	private boolean paid;
+	/** It said it gave up, hit again. */
+	private boolean protested;
 
 	private Duel(ServerPlayer player, int stake) {
 		super(Encounters.Kind.DUEL, player);
@@ -106,14 +111,7 @@ final class Duel extends Encounter {
 		}
 
 		if (!this.settled) {
-			if (challenger.getHealth() <= YIELDS_AT) {
-				this.settle(challenger, true);
-				say(challenger, "alright, alright! you win.");
-			} else if (player.getHealth() <= SPARES_AT) {
-				this.settle(challenger, false);
-				say(challenger, "ha! good fight. keep your stuff, it was for fun.");
-				this.end("the player lost");
-			} else if (sees(challenger, player)) {
+			if (!this.judge(challenger, player) && sees(challenger, player)) {
 				challenger.getDrifterBrain().pursue(challenger, player, this.now());
 			}
 
@@ -123,6 +121,58 @@ final class Duel extends Encounter {
 		if (this.paid || player.distanceTo(challenger) > 48.0) {
 			this.end(this.paid ? "the stake is paid" : "they walked off with nothing");
 		}
+	}
+
+	/** Down to a few hearts, one of them: it's over (true). */
+	private boolean judge(DrifterEntity challenger, ServerPlayer player) {
+		if (!this.accepted || this.settled) {
+			return false;
+		}
+
+		if (challenger.getHealth() <= YIELDS_AT) {
+			this.settle(challenger, true);
+			say(challenger, "alright, alright! you win.");
+			return true;
+		}
+
+		if (player.getHealth() <= SPARES_AT) {
+			this.settle(challenger, false);
+			say(challenger, "ha! good fight. keep your stuff, it was for fun.");
+			this.end("the player lost");
+			return true;
+		}
+
+		return false;
+	}
+
+	// As each blow lands, not a second later (found looking at the code: a crit could take it from above three hearts past
+	// the check and on to dead).
+	@Override
+	protected void hurt(DrifterEntity drifter, DamageSource source) {
+		ServerPlayer player = this.player();
+		if (player == null) {
+			return;
+		}
+
+		if (!this.judge(drifter, player) && this.settled && this.playerWon && source.getEntity() == player && !this.protested) {
+			// Hit after it gave up: it says so (from here on, killing it is murder).
+			this.protested = true;
+			say(drifter, "hey! I gave up! it's over!");
+			think(drifter, this.playerName + " kept hitting it after it gave up");
+		}
+	}
+
+	@Override
+	protected void playerHurt(ServerPlayer player, DamageSource source) {
+		if (this.challenger != null && this.challenger.isAlive()) {
+			this.judge(this.challenger, player);
+		}
+	}
+
+	/** Killed in the fight it asked for: a kill like any; after it gave up: murder. */
+	@Override
+	public Killing killing(DrifterEntity drifter, Player player) {
+		return player.getUUID().equals(this.player) && this.settled && this.playerWon ? Killing.MURDER : Killing.KILL;
 	}
 
 	/** The fight stops: no more chase. */

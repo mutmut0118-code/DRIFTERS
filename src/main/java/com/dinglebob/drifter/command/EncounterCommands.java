@@ -30,6 +30,7 @@ public final class EncounterCommands {
 
 	static {
 		KINDS.add(0, Encounters.Kind.BOUNTY_HUNTERS.id);
+		KINDS.add(Encounters.Kind.REVENGE.id);
 	}
 
 	private EncounterCommands() {

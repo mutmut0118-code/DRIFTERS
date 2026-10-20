@@ -55,7 +55,8 @@ public final class Encounters {
 		HUNGRY("hungry_traveller", "a hungry traveller"),
 		FEUD("feud", "a feud"),
 		PARTY("campfire_party", "a campfire party"),
-		MOURNER("mourner", "a mourner");
+		MOURNER("mourner", "a mourner"),
+		REVENGE("revenge", "a revenge squad");
 
 		public final String id;
 		public final String label;
@@ -78,7 +79,7 @@ public final class Encounters {
 
 		/** The kinds the dice pick (the rest come from what happened: a bounty, a kill). */
 		public boolean random() {
-			return this != BOUNTY_HUNTERS && this != REWARD;
+			return this != BOUNTY_HUNTERS && this != REWARD && this != REVENGE;
 		}
 	}
 
@@ -95,6 +96,13 @@ public final class Encounters {
 	private static final long BOUNTY_DELAY_SPREAD = 36000L;
 	/** A wanted poster's bounty stands this long. */
 	static final long WANTED_LASTS = 24000L * 7;
+	/** A Drifter they killed that didn't have it coming: its friends come for revenge this often (a murder: always). */
+	private static final double REVENGE_CHANCE = 0.25;
+	/** They come this long after (ticks; a quarter of a day to a day). */
+	private static final long REVENGE_DELAY_MIN = 6000L;
+	private static final long REVENGE_DELAY_SPREAD = 18000L;
+	/** Never finding them, they give up this long after they set out. */
+	private static final long REVENGE_GIVES_UP = 24000L * 3;
 
 	/** The encounter going on for each player. */
 	private static final Map<UUID, Encounter> active = new HashMap<>();
@@ -118,6 +126,9 @@ public final class Encounters {
 		/** A wanted poster they hold. */
 		@Nullable
 		Wanted wanted;
+		/** Friends of a Drifter they killed, coming for them. */
+		@Nullable
+		Revenge revenge;
 
 		CompoundTag save() {
 			CompoundTag tag = new CompoundTag();
@@ -131,6 +142,10 @@ public final class Encounters {
 				tag.put("Wanted", this.wanted.save());
 			}
 
+			if (this.revenge != null) {
+				tag.put("Revenge", this.revenge.save());
+			}
+
 			return tag;
 		}
 
@@ -140,7 +155,33 @@ public final class Encounters {
 			state.drifterKills = tag.getInt("DrifterKills");
 			state.bounty = tag.contains("Bounty") ? Bounty.load(tag.getCompound("Bounty")) : null;
 			state.wanted = tag.contains("Wanted") ? Wanted.load(tag.getCompound("Wanted")) : null;
+			state.revenge = tag.contains("Revenge") ? Revenge.load(tag.getCompound("Revenge")) : null;
 			return state;
+		}
+	}
+
+	/**
+	 * Revenge (docs/ENCOUNTERS.md 7, the user's "the revenge one too"): the friends of a Drifter a player killed, coming
+	 * for them. Who it was, where it died (where they start looking if nobody's seen the player since), whether it was
+	 * murder (it had given up: more of them), when they come, and when they set out.
+	 */
+	record Revenge(String victim, BlockPos where, boolean murder, long dueAt, long since) {
+		Revenge later(long dueAt) {
+			return new Revenge(this.victim, this.where, this.murder, dueAt, this.since);
+		}
+
+		CompoundTag save() {
+			CompoundTag tag = new CompoundTag();
+			tag.putString("Victim", this.victim);
+			tag.putLong("Where", this.where.asLong());
+			tag.putBoolean("Murder", this.murder);
+			tag.putLong("DueAt", this.dueAt);
+			tag.putLong("Since", this.since);
+			return tag;
+		}
+
+		static Revenge load(CompoundTag tag) {
+			return new Revenge(tag.getString("Victim"), BlockPos.of(tag.getLong("Where")), tag.getBoolean("Murder"), tag.getLong("DueAt"), tag.getLong("Since"));
 		}
 	}
 
@@ -254,21 +295,74 @@ public final class Encounters {
 				return;
 			}
 
-			if (!(entity instanceof DrifterEntity drifter) || drifter.isTemporary() || !(source.getEntity() instanceof ServerPlayer killer)) {
+			if (entity instanceof DrifterEntity drifter && source.getEntity() instanceof ServerPlayer killer) {
+				killed(drifter, killer);
+			}
+		});
+		// Each blow as it lands (a duel's "I give up" can't wait for the next second).
+		ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
+			if (!entity.isAlive()) {
 				return;
 			}
 
-			PlayerState state = state(killer.getUUID());
-			state.drifterKills++;
-			// The wanted one, brought down by the one who took the bounty: the courier comes with the reward.
-			if (state.wanted != null && state.wanted.target.equals(drifter.getUUID()) && !state.wanted.claimed) {
-				state.wanted.claimed = true;
-				Drifter.LOGGER.info("[Drifter] {} brought down {}, wanted for {}: the reward is on its way", killer.getGameProfile().getName(),
-					state.wanted.name, state.wanted.crime);
+			if (entity instanceof DrifterEntity drifter && drifter.encounter() != null) {
+				drifter.encounter().hurt(drifter, source);
+			} else if (entity instanceof ServerPlayer player) {
+				Encounter encounter = active.get(player.getUUID());
+				if (encounter != null && !encounter.isOver()) {
+					encounter.playerHurt(player, source);
+				}
 			}
-
-			changed();
 		});
+	}
+
+	/**
+	 * A player killed a Drifter (the user, 2026-10-20: "what will be the punishment for killing in a duel?"). One of the
+	 * world's counts towards a price on their head, as does an encounter's that didn't have it coming (a traveller, a
+	 * duellist in the fight it asked for); one that had given up is murder: a price on their head at once. Now and then
+	 * (a murder: always) its friends come for revenge. Self-defence (one that was after them) and a wanted one they took
+	 * the bounty on bring no revenge.
+	 */
+	private static void killed(DrifterEntity drifter, ServerPlayer killer) {
+		Encounter encounter = drifter.encounter();
+		Encounter.Killing killing = encounter != null ? encounter.killing(drifter, killer) : drifter.isTemporary() ? Encounter.Killing.NONE : Encounter.Killing.KILL;
+		if (killing == Encounter.Killing.NONE) {
+			return;
+		}
+
+		PlayerState state = state(killer.getUUID());
+		String name = drifter.getName().getString();
+		long now = killer.level().getGameTime();
+		var random = killer.getRandom();
+		boolean murder = killing == Encounter.Killing.MURDER;
+		if (murder && state.bounty == null && enabled(Kind.BOUNTY_HUNTERS)) {
+			state.bounty = new Bounty("the friends of " + name, "killing " + name + " after they gave up", now + BOUNTY_DELAY_MIN + random.nextInt((int)BOUNTY_DELAY_SPREAD));
+			state.drifterKills = 0;
+			Drifter.LOGGER.info("[Drifter] {} killed {} after it gave up: a price on their head", killer.getGameProfile().getName(), name);
+		} else {
+			state.drifterKills++;
+		}
+
+		// The wanted one, brought down by the one who took the bounty: the courier comes with the reward.
+		boolean wanted = state.wanted != null && state.wanted.target.equals(drifter.getUUID());
+		if (wanted && !state.wanted.claimed) {
+			state.wanted.claimed = true;
+			Drifter.LOGGER.info("[Drifter] {} brought down {}, wanted for {}: the reward is on its way", killer.getGameProfile().getName(),
+				state.wanted.name, state.wanted.crime);
+		}
+
+		var pursuit = drifter.getDrifterBrain().pursuit();
+		boolean wasAfterThem = pursuit != null && pursuit.target == killer
+			|| drifter.getLastHurtMob() == killer && drifter.tickCount - drifter.getLastHurtMobTimestamp() < 20 * 10;
+		boolean revenge = murder || !wanted && !wasAfterThem && random.nextDouble() < REVENGE_CHANCE;
+		// (One squad at a time; a murder takes the place of a lesser grudge.)
+		if (revenge && enabled(Kind.REVENGE) && (state.revenge == null || murder && !state.revenge.murder())) {
+			long delay = REVENGE_DELAY_MIN + random.nextInt((int)REVENGE_DELAY_SPREAD);
+			state.revenge = new Revenge(name, drifter.blockPosition(), murder, now + delay, now);
+			Drifter.LOGGER.info("[Drifter] {}'s friends will come for {} in about {} min", name, killer.getGameProfile().getName(), delay / 1200);
+		}
+
+		changed();
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -320,6 +414,19 @@ public final class Encounters {
 				changed();
 			}
 
+			return;
+		}
+
+		if (state.revenge != null && now >= state.revenge.dueAt() && enabled(Kind.REVENGE)) {
+			if (now - state.revenge.since() > REVENGE_GIVES_UP) {
+				Drifter.LOGGER.info("[Drifter] {}'s friends gave up looking for {}", state.revenge.victim(), player.getGameProfile().getName());
+				state.revenge = null;
+			} else if (start(player, Kind.REVENGE) == null) {
+				// Nobody's seen them near where they're looking: they keep looking.
+				state.revenge = state.revenge.later(now + RETRY_TICKS * 5);
+			}
+
+			changed();
 			return;
 		}
 
@@ -441,6 +548,7 @@ public final class Encounters {
 			case FEUD -> Feud.start(player);
 			case PARTY -> CampfireParty.start(player);
 			case MOURNER -> Mourner.start(player);
+			case REVENGE -> RevengeSquad.start(player, state(player.getUUID()));
 		};
 	}
 
@@ -559,6 +667,11 @@ public final class Encounters {
 
 			if (state.wanted != null) {
 				line.append("; holds the bounty on ").append(state.wanted.name).append(state.wanted.claimed ? " (claimed)" : "");
+			}
+
+			if (state.revenge != null) {
+				line.append("; ").append(state.revenge.victim()).append("'s friends coming for revenge").append(state.revenge.murder() ? " (murder)" : "")
+					.append(" in ").append(Math.max(0, (state.revenge.dueAt() - now) / 1200)).append(" min");
 			}
 
 			line.append("; ").append(state.drifterKills).append(" Drifters killed since the last price on their head");

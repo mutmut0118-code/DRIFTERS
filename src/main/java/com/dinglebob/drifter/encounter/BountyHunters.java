@@ -4,8 +4,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.activity.Activity;
 import com.dinglebob.drifter.entity.DrifterEntity;
-import com.dinglebob.drifter.executor.task.LookAroundTask;
-import com.dinglebob.drifter.executor.task.NavigateTask;
 import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.social.Relationship;
 
@@ -144,7 +142,7 @@ final class BountyHunters extends Encounter {
 				hunter.getDrifterBrain().pursue(hunter, player, this.now());
 				if (!this.announced) {
 					this.announced = true;
-					say(hunter, this.playerName + "! " + this.issuer + " wants a word. Well, wants you dead.");
+					say(hunter, this.playerName + "! there's a price on your head, from " + this.issuer + ". we've come to collect.");
 				}
 
 				this.spotted = true;
@@ -199,25 +197,7 @@ final class BountyHunters extends Encounter {
 
 	@Override
 	public Activity start(DrifterEntity drifter) {
-		Vec3 lead = this.lead;
-		var random = drifter.getRandom();
-		Script script = new Script(drifter, "hunt " + this.playerName, 20 * 60 * 3);
-		if (drifter.position().distanceTo(lead) > 12.0) {
-			script.then(() -> new NavigateTask(drifter, lead, 6.0, "head for where " + this.playerName + " was seen", NavigateTask.Pace.TRAVEL));
-		}
-
-		// Round there, one spot then another (it doesn't stand still).
-		for (int i = 0; i < 3; i++) {
-			script.then(() -> {
-				double angle = random.nextDouble() * Math.PI * 2.0;
-				double distance = 6.0 + random.nextDouble() * (SEARCH_RADIUS - 6.0);
-				Vec3 spot = this.lead.add(Math.cos(angle) * distance, 0.0, Math.sin(angle) * distance);
-				return new NavigateTask(drifter, spot, 4.0, "search for " + this.playerName, NavigateTask.Pace.TRAVEL);
-			});
-			script.then(() -> new LookAroundTask(drifter, 2, 6));
-		}
-
-		return script;
+		return search(drifter, "hunt " + this.playerName, this.playerName, () -> this.lead, SEARCH_RADIUS);
 	}
 
 	@Override

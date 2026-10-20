@@ -1426,7 +1426,15 @@ survival, on the surface). To try each now: `/drifter encounter start <kind>` (`
       emeralds, or fight), `hungry_traveller` (throw them food: they thank you with something), `feud` (help one of the
       two), `campfire_party` (evening: a campfire, cake, dancing and fireworks), `mourner` (a grave by the road). Some
       merchants sell a buried treasure map.
-- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off, and sets how often.
+- [ ] **Killing in a duel**: `/drifter encounter start duel`, hit them to accept, fight. At three hearts they give up
+      ("alright, alright! you win."), even if you hit hard. Hit them again: "hey! I gave up! it's over!". Kill them now
+      and it's murder: `/drifter encounter` says there's a price on your head and their friends are coming for revenge.
+      Killing them during the fight counts as one ordinary Drifter kill.
+- [ ] **Revenge squad**: after a murder (or now and then after killing a Drifter that didn't attack you), a quarter of
+      a day to a day later two or three armed Drifters come looking: "Player! you killed <name>. they were our
+      friend." To bring the one on its way now: `/drifter encounter start revenge`. Killing them costs you nothing.
+- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off (now with Revenge squads), and sets
+      how often.
 - [ ] **Bountiful**: a Drifter near a bounty board (villages have them) now and then walks over and reads it. With spare
       things a bounty asks for, it takes it and turns it in for the reward; `/drifter thoughts` says what it took, or what
       the board wanted. To try: put a board near a Drifter, give it a stack of something common (`/drifter give flint 64`),
