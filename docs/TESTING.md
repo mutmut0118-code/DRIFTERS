@@ -1422,6 +1422,10 @@ survival, on the surface). To try each now: `/drifter encounter start <kind>` (`
       where you were last seen. To try it at once: `/drifter encounter start bounty_hunters` (a Drifter must have seen you
       recently).
 - [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off, and sets how often.
+- [ ] **Bountiful**: a Drifter near a bounty board (villages have them) now and then walks over and reads it. With spare
+      things a bounty asks for, it takes it and turns it in for the reward; `/drifter thoughts` says what it took, or what
+      the board wanted. To try: put a board near a Drifter, give it a stack of something common (`/drifter give flint 64`),
+      wait (or `/drifter brain goal bounty`).
 
 ## Milestone 20: whims offscreen and new whims (new)
 

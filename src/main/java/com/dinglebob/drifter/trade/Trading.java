@@ -106,6 +106,12 @@ public final class Trading {
 		Drifter.LOGGER.info("[Drifter] Trading: {} kinds of goods it sells its surplus of", loaded.size());
 	}
 
+	/** How many of this it keeps before it sells any, or null if it isn't one of the goods it sells. */
+	@Nullable
+	public static Integer keeps(Item item) {
+		return goods.get(item);
+	}
+
 	/** How many of this it could sell (what it has over what it keeps; 0 if it isn't something it sells). */
 	public static int surplus(DrifterEntity drifter, Item item) {
 		Integer keep = goods.get(item);

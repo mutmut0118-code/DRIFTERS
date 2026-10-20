@@ -131,4 +131,22 @@ Code: `encounter/` (`Encounters` the director, `Encounter` the base, one class p
 - **Tested** in the game client: each kind started, ran and ended as above (the merchant's trading screen opened with
   its wares; the poster's map came with the red X and the reward paid in diamonds; the hunters found and chased the
   player; the ambush sprang on a player walking past).
-- **Not yet:** the rest of the list above; Bountiful (Drifters doing the board's bounties).
+- **Not yet:** the rest of the list above.
+
+## Built: Drifters doing Bountiful bounties (2026-10-20)
+
+`compat/BountifulCompat` and `compat/BountyGoal`, only with Bountiful installed (it loads in the development setup too).
+- A board it has seen within 48 blocks, in the daytime with nothing pressing (a little sooner for the greedy and
+  curious): it walks over and reads it, as a player opens it. A bounty asking only for things it can spare (what it
+  sells, over what it keeps, as when it trades; never its gear; 8 of a food, 32 of a building block, 4 of anything else
+  kept) it takes and turns in at once by right-clicking the board with it, as a player does: Bountiful's own code checks
+  and takes the items and pays the reward into its pack. The best-paying one if several.
+- Bounties that ask for kills it leaves (what it kills isn't counted for its helper player). A board it has read it
+  leaves for half a day. Its thoughts say what it took ("took a bounty: 4 flint for 2 emerald", "turned in the bounty")
+  or what the board wanted ("nothing on it it can do now (... they want 2 lectern, 9 book ...)").
+- Taking one marks it taken on the board for that Drifter (the board's own record, as its screen does; by reflection).
+- Tested (headless, Bountiful in the dev mods): a board with a known bounty (4 flint for 2 emeralds): taken and turned
+  in, 64 flint to 60, 8 emeralds to 10. Random boards mostly ask for several things at once (a librarian's books and
+  lecterns, a cleric's nether wart): those wait until it has the lot.
+- Not yet: gathering things for a bounty it can't fill now; bounties on Drifters from the board (the wanted posters
+  above do that part, from our own messenger).
