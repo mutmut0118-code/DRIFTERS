@@ -73,9 +73,13 @@ clearly labeled debug command.
   example script `tools/smoke-night.txt`; for long runs use `sprint <ticks>` lines (`/tick sprint`: as fast as the
   machine goes, ~2,000 ticks/s, 5 game days in ~2 minutes; all Drifter logic is in game ticks; user's idea) with status
   commands between them, and `drifter thoughts log true` (every thought goes to the log)), then copy `build/libs/drifter-<version>.jar` into the Modrinth profile
-  `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`, replacing the old one (that profile also has
-  Sodium, Lithium, FerriteCore, EntityCulling, EMF/ETF and Mod Menu). Stop test servers by their own process ID, never
+  `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`, removing the old `drifter-*.jar` there
+  first (two Drifter jars and the game won't start; that profile also has Sodium, Lithium, FerriteCore, EntityCulling,
+  EMF/ETF and Mod Menu). Stop test servers by their own process ID, never
   by killing every java.exe.
+- **Version numbers** (the user, 2026-10-20: "for building jars can we start adding version numbers?"): `version` in
+  `gradle.properties` is `0.<milestone>.<build>`. Bump the last number before building every jar that goes to the user
+  (installed, or pushed for them to test), and start each milestone at `0.<milestone>.0`. Say the version in the report.
 - **Never replace the jar while Minecraft is running** (found the hard way: the game reads classes from the jar on
   demand, so swapping it mid-game crashed it with "invalid LOC header"). First check `tasklist /FI "IMAGENAME eq javaw.exe"`;
   if the game is open, ask the user to close it (or tell them the new jar is ready in `build/libs`) and copy it after.

@@ -17,10 +17,13 @@ a headless test server first (spawning Drifters and running commands), so crashe
 
 1. Open the repository's **Actions** tab on GitHub and click the newest **build** run for the branch (green tick).
    Every push builds the mod there automatically.
-2. At the bottom, under **Artifacts**, download **Artifacts**. Unzip it and take **`drifter-0.1.0.jar`**
-   (not the one with "sources" in its name).
+2. At the bottom, under **Artifacts**, download **Artifacts**. Unzip it and take **`drifter-<version>.jar`**, for
+   example `drifter-0.21.0.jar` (not the one with "sources" in its name).
 3. In the Modrinth App, open your Fabric 1.21.1 instance (with Fabric API installed), remove the old
-   `drifter-0.1.0.jar` from its `mods` folder, and put the new one in.
+   `drifter-....jar` from its `mods` folder (two Drifter jars at once and the game won't start), and put the new one in.
+
+**Version numbers** (from 2026-10-20): `0.<milestone>.<build>`. The middle number is the roadmap milestone (0.21 is
+milestone 21, encounters); the last goes up by one with every new jar. Mod Menu shows which one you have.
 4. Launch, and make a new **Creative** world with **Allow Commands: ON**, difficulty **Normal**.
    Press F3 for coordinates, and F3+B to show hitboxes.
 
