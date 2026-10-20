@@ -2314,3 +2314,11 @@ theft assumption. New (from the "Ideas for more assumptions" list, and the unsee
 - Already there: a player in much better gear raises its fear (`BETTER_GEAR`), and enough fear keeps it away.
 - Not done from the list: a dark hole taken for a dungeon (close to the cave hunch).
 
+### Found in the final 3-day check (to fix next)
+
+6 Drifters, 3 days on seed 31337421 with everything from this session: no crashes. Two deaths, neither from this
+session's changes: one killed by a bandit Drifter (as designed), and one drowned in its own mining tunnel at Y 12: the
+tunnel broke into an underground water pocket, the plug didn't hold, and the tunnel flooded. The drowning reflex tried
+to mine up (more water above in a water pocket) instead of swimming back along its tunnel to where it last breathed.
+Next: in a flooded tunnel of its own, back out along it first; mine up only when that's too far.
+
