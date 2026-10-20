@@ -78,7 +78,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 16 | Scale | **In progress** (2026-10-19): helper threads for paths and eyes, crowd perception, cheaper decisions, spread-out catch-up; see "Milestone 16" below | 1000 Drifters across a world and 300 round a player at a steady 20 TPS; a 150v150 battle playable (user, 2026-10-18). |
 | 15 | House plans by the hundred | **Done** (user, 2026-10-19): 9 data-file styles, L and T wings, lofts, corner towers, A-frames, 300 checked plans per world; Drifters pick and build them on their own | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
 | 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **Done in code** (2026-10-19), waiting on the user's play test | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
-| 18 | Player skills | **In progress** (2026-10-19): trading, fishing, horses, boats, potions done; netherite next | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
+| 18 | Player skills | **Done in code** (2026-10-19): trading, fishing, horses, boats, potions, netherite; waiting on the user's play test | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
 | 19 | Mod compat and modded whims | Not started | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 20 | Whims offscreen, then wrong guesses | Not started | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 
@@ -2198,7 +2198,32 @@ The user: "after that start on villager trading, fishing, horses, boats, potions
   cave; fire resistance in the Nether near lava or blazes. A potion drunk is used up and leaves its bottle (vanilla only
   does that for players). Tested: the splash healing at 5 health (to 9), night vision in a closed cave.
 
+### Netherite (done)
+
+- Only with an upgrade template (section 19: the first one comes from a bastion's chests, which its chest looting already
+  takes when piglins aren't watching, or a bold one goes loud; netherite is no use without one). With a template and a
+  diamond pickaxe, its Nether trips also go for ancient debris (once a trip, after the blaze rods; trips start again for
+  debris once it has its rods): `DebrisActivity` digs a staircase from near the portal down to about Y 15 and strip
+  mines there (a 40-block tunnel with side tunnels every 4), taking debris a tunnel wall shows (the tunnel digger now
+  counts ancient debris as ore) and going to get debris it spots nearby, until it has enough for its next two upgrades or
+  six minutes are up. The trip home waits for it.
+- At home (`skills/NetheriteGoal`), with a template and four scrap's worth: the planner's usual chain for an ingot (the
+  debris smelted to scrap in its furnace, four scrap and four gold at a crafting table), a second template from the first
+  if it has seven diamonds, a netherrack and more to upgrade, a smithing table (it crafts and sets one down), and the
+  upgrade (`SmithTask`: the table opened, a few clicks' pause, the game's own smithing recipe, enchantments and name kept;
+  worn armour goes back on). Order: the weapon, the pickaxe, the chestplate, then the rest; modded diamond weapons with a
+  netherite smithing recipe count.
+- Debris, scrap, ingots and templates, and brewing things and potions, stay on it when it stores things at home.
+- Fixes found on the way: the tunnel digger turns when a step along its tunnel fails twice (it used to retry the same
+  step until the trip gave up); in the Nether its stair steps go straight onto the block it just dug (its route planner
+  stays off unseen cells by lava it has seen, which down there is every step), hopping off when crouching on magma holds
+  it at the edge.
+- `/drifter debris [count]` (debug): digs for ancient debris from where it stands.
+- Tested: the upgrade at home (2 debris smelted and 2 scrap, 4 gold, a crafted smithing table: "Bitey", a Sharpness III
+  diamond sword, came out a netherite sword, name and enchantment kept); in the Nether, stairs from Y 40 to 13 and a
+  strip mine, lava breaches handled; one run found a debris, another none (rare, as for players).
+
 ### Next
 
-- Netherite: ancient debris (mining at the right depths in the Nether), smelting scrap, ingots, the smithing table
-  (with the upgrade template from a bastion).
+- Milestone 19: mod compat and modded whims (Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard
+  Villagers, Bountiful).

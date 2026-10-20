@@ -66,6 +66,8 @@ public final class TunnelDigger {
 	private int walkFailures;
 	private final ArrayDeque<BlockPos> ores = new ArrayDeque<>();
 	private final Map<BlockPos, Integer> oreTries = new HashMap<>();
+	/** Steps along the tunnel its feet wouldn't take, by the cell. */
+	private final Map<BlockPos, Integer> stepTries = new HashMap<>();
 	private final List<BlockPos> retryOres = new ArrayList<>();
 	private int oresMined;
 	@Nullable
@@ -328,6 +330,13 @@ public final class TunnelDigger {
 		}
 
 		this.stepping = nextFeet;
+		// In the Nether, one step onto ground it has just dug and checked (no lava in it, a floor under it): straight there.
+		// Its route planner keeps clear of unseen cells by lava it has seen, and down there that's every step (found in
+		// testing: a staircase for ancient debris turned and turned until the trip gave up).
+		if (level.dimensionType().ultraWarm()) {
+			return new StepTask(this.drifter, nextFeet);
+		}
+
 		return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(nextFeet), 0.3, leg.stairs() ? "step down the stairs" : "step along the tunnel");
 	}
 
@@ -543,6 +552,19 @@ public final class TunnelDigger {
 			}
 		}
 
+		// A step along the tunnel it can't walk (its feet won't go there: next to lava it has seen, say): twice, and it turns
+		// (found in testing: a Nether staircase stepping toward a lava cave failed the same step until the trip gave up).
+		if (status == Task.Status.FAILURE && (step instanceof com.dinglebob.drifter.executor.task.NavigateTask || step instanceof StepTask)
+			&& this.stepping != null
+			&& !this.oreStep && this.stepTries.merge(this.stepping.immutable(), 1, Integer::sum) >= 2) {
+			if (t.leg != null) {
+				this.say("can't step on that way: turning");
+				this.turn(this.drifter.blockPosition(), t.leg);
+			} else {
+				t.done = true;
+			}
+		}
+
 		// A tunnel block it can't hit (something in the way it can't see past): twice, and it turns (found in testing: it
 		// tried the same stone 114 times from its night shelter).
 		if (!this.oreStep && status == Task.Status.FAILURE && this.digging != null && step.failureReason() != null
@@ -632,7 +654,7 @@ public final class TunnelDigger {
 	public static boolean isOre(BlockState state) {
 		return state.is(BlockTags.COAL_ORES) || state.is(BlockTags.IRON_ORES) || state.is(BlockTags.COPPER_ORES) || state.is(BlockTags.GOLD_ORES)
 			|| state.is(BlockTags.REDSTONE_ORES) || state.is(BlockTags.LAPIS_ORES) || state.is(BlockTags.DIAMOND_ORES)
-			|| state.is(BlockTags.EMERALD_ORES);
+			|| state.is(BlockTags.EMERALD_ORES) || state.is(net.minecraft.world.level.block.Blocks.ANCIENT_DEBRIS);
 	}
 
 	private static boolean solid(Level level, BlockPos pos) {
@@ -644,5 +666,59 @@ public final class TunnelDigger {
 		return Tools.BUILDING_BLOCK.test(stack) || stack.getItem() instanceof BlockItem block
 			&& block.getBlock().defaultBlockState().isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
 			&& !(block.getBlock() instanceof FallingBlock);
+	}
+
+	/** One step onto a block it has just dug out (straight there, no route: it checked the way itself). */
+	static final class StepTask extends Task {
+		private final BlockPos cell;
+		private Vec3 last = Vec3.ZERO;
+		private int stuckTicks;
+
+		StepTask(DrifterEntity drifter, BlockPos cell) {
+			super(drifter);
+			this.cell = cell.immutable();
+		}
+
+		@Override
+		public String describe() {
+			return "step down the stairs to " + this.cell.toShortString();
+		}
+
+		@Override
+		protected int timeoutTicks() {
+			return 50;
+		}
+
+		@Override
+		protected Status onTick() {
+			Vec3 center = Vec3.atBottomCenterOf(this.cell);
+			double dx = center.x - this.drifter.getX();
+			double dz = center.z - this.drifter.getZ();
+			var keys = this.drifter.getKeys();
+			if (this.drifter.blockPosition().equals(this.cell) && this.drifter.onGround() && dx * dx + dz * dz < 0.3 * 0.3) {
+				keys.releaseAll();
+				return Status.SUCCESS;
+			}
+
+			float yaw = (float)(net.minecraft.util.Mth.atan2(dz, dx) * net.minecraft.util.Mth.RAD_TO_DEG) - 90.0F;
+			this.drifter.getCamera().lookAt(yaw, 20.0F, com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+			boolean facing = Math.abs(net.minecraft.util.Mth.wrapDegrees(yaw - this.drifter.getYRot())) < 45.0F;
+			// Slowly over the last bit (sneaking: no running past the step).
+			keys.set(com.dinglebob.drifter.motor.VirtualKeys.Key.FORWARD, facing && dx * dx + dz * dz > 0.05 * 0.05);
+			keys.set(com.dinglebob.drifter.motor.VirtualKeys.Key.SNEAK, dx * dx + dz * dz < 0.6 * 0.6 && this.drifter.blockPosition().getY() == this.cell.getY());
+			// Held at the edge of a step down (crouching on magma keeps it from stepping off): a hop off it instead.
+			boolean stuck = this.drifter.position().distanceToSqr(this.last) < 1.0E-4;
+			this.last = this.drifter.position();
+			this.stuckTicks = stuck ? this.stuckTicks + 1 : 0;
+			boolean hopDown = this.cell.getY() < this.drifter.blockPosition().getY() && this.stuckTicks > 4;
+			keys.set(com.dinglebob.drifter.motor.VirtualKeys.Key.JUMP, this.drifter.onGround()
+				&& (this.drifter.horizontalCollision && this.cell.getY() >= this.drifter.blockPosition().getY() || hopDown));
+			return Status.RUNNING;
+		}
+
+		@Override
+		protected void onStop() {
+			this.drifter.getKeys().releaseAll();
+		}
 	}
 }

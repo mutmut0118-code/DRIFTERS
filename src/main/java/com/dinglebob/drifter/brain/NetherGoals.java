@@ -24,7 +24,7 @@ public final class NetherGoals {
 	/** (Looting too: a fortress's chests are what players go through, found by the user.) */
 	public static final Set<String> IN_THE_NETHER = Set.of("fight", "flee", "eat", "equip", "getdown", "nether_arrive", "nether_return",
 		"nether_blaze", "nether_blocks", "nether_holeup", "loot", "nether_quartz", "nether_wart",
-		"nether_glowstone", "nether_barter");
+		"nether_glowstone", "nether_barter", "nether_debris");
 
 	/** Days between trips while there's nothing in particular to fetch there yet. */
 	private static final long DAYS_BETWEEN_LOOKS = 24000L;
@@ -36,7 +36,7 @@ public final class NetherGoals {
 	}
 
 	public static List<Goals.Goal> all() {
-		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods(), new HoleUp(), new Barter());
+		return List.of(new GoToNether(), new Arrive(), new Return(), new BlazeRods(), new HoleUp(), new Barter(), new Debris());
 	}
 
 	/** Badly hurt in the Nether and it couldn't get home just now: it walls itself in and heals (HoleUpActivity). */
@@ -196,8 +196,9 @@ public final class NetherGoals {
 				return 0.0;
 			}
 
-			// Six rods in hand or at home: no more trips for now (the End, later, wants more).
-			if (com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED) {
+			// Six rods in hand or at home: no more trips for now (the End, later, wants more), unless it's after ancient debris.
+			if (com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
+				&& !wantsDebris(drifter)) {
 				return 0.0;
 			}
 
@@ -291,6 +292,56 @@ public final class NetherGoals {
 		}
 	}
 
+	/** It has a template and a diamond pickaxe, and not the netherite yet for its next upgrades (milestone 18). */
+	static boolean wantsDebris(DrifterEntity drifter) {
+		return com.dinglebob.drifter.skills.Netherite.canDig(drifter) && com.dinglebob.drifter.skills.Netherite.debrisWanted(drifter) > 0;
+	}
+
+	/**
+	 * Ancient debris (section 19 "Goals there"; milestone 18): with an upgrade template, on a trip, after the blaze rods
+	 * (or once it has them), a staircase down to about Y 15 and a strip mine there (DebrisActivity). Once a trip.
+	 */
+	public static final class Debris extends Goals.Goal {
+		@Override
+		public String id() {
+			return "nether_debris";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "dig for ancient debris";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			NetherTrip trip = drifter.getDrifterBrain().netherTrip();
+			if (!inNether(drifter) || trip == null || trip.netherPortal == null || !trip.lookedAround || trip.debrisDug
+				|| drifter.getDrifterBrain().failedRecently("nether_debris") || !wantsDebris(drifter)
+				|| drifter.getHealth() < drifter.getMaxHealth() * 0.75F) {
+				return 0.0;
+			}
+
+			return 0.5;
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 120;
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Goals.Context context) {
+			return new com.dinglebob.drifter.brain.activity.DebrisActivity(context.drifter());
+		}
+	}
+
 	/** What a trip is for (section 19 "Goals there"; step 5): blaze rods from a fortress. */
 	public static final class BlazeRods extends Goals.Goal {
 		@Override
@@ -364,9 +415,11 @@ public final class NetherGoals {
 			// back another day, as a careful player does (found in testing: it kept going back with 2 or 3 rods and died with them).
 			int rods = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.rods(drifter);
 			boolean bank = rods >= 1 && trip.holeUps >= 2 || rods >= 3 && trip.holeUps >= 1;
-			boolean done = bank || com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
-				|| drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS
+			// (The rods done or given up on for now, and the debris dug or not wanted.)
+			boolean rodsDone = com.dinglebob.drifter.brain.activity.BlazeRodsActivity.totalRods(drifter) >= com.dinglebob.drifter.brain.activity.BlazeRodsActivity.WANTED
 				|| drifter.getDrifterBrain().failedRecently("nether_blaze");
+			boolean debrisDone = trip.debrisDug || !wantsDebris(drifter) || drifter.getDrifterBrain().failedRecently("nether_debris");
+			boolean done = bank || rodsDone && debrisDone || drifter.level().getGameTime() - trip.arrivedAt >= MAX_STAY_TICKS;
 			// Hungry only counts with nothing to eat: with food it eats and carries on (found in the user's game: it arrived
 			// hungry, turned round and went home with steak in its pockets).
 			boolean hurt = drifter.getHealth() <= drifter.getMaxHealth() / 2.0F

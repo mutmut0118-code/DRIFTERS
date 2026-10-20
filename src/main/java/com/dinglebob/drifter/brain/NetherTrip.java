@@ -33,6 +33,8 @@ public final class NetherTrip {
 	public long startedAt;
 	/** When it got to the Nether (game time), for how long it stays. */
 	public long arrivedAt;
+	/** It has dug for ancient debris on this trip (milestone 18). */
+	public boolean debrisDug;
 	/** Times it has had to hole up to heal on this trip (not saved). */
 	public int holeUps;
 
@@ -53,6 +55,7 @@ public final class NetherTrip {
 		tag.putBoolean("LookedAround", this.lookedAround);
 		tag.putLong("StartedAt", this.startedAt);
 		tag.putLong("ArrivedAt", this.arrivedAt);
+		tag.putBoolean("DebrisDug", this.debrisDug);
 		return tag;
 	}
 
@@ -68,6 +71,7 @@ public final class NetherTrip {
 		trip.walledIn = tag.getBoolean("WalledIn");
 		trip.lookedAround = tag.getBoolean("LookedAround");
 		trip.arrivedAt = tag.getLong("ArrivedAt");
+		trip.debrisDug = tag.getBoolean("DebrisDug");
 		return trip;
 	}
 }

@@ -1403,6 +1403,12 @@ Use a fresh world. Commands act on the nearest Drifter.
       water close by. `/drifter brain goal brew`: it puts the stand down at home, fills the bottles at the water, and
       brews (you can open the stand and watch). Then hurt it badly in a fight: it drinks the healing potion (or throws a
       splash one down if it's skilled and had gunpowder). In a dark cave it drinks night vision.
+- [ ] **Netherite**: give a Drifter at home an upgrade template, netherite scrap or ancient debris (4 in all), 4 gold
+      ingots and a diamond sword, plus iron and planks for a smithing table, with a furnace and crafting table close by
+      (`/drifter give netherite_upgrade_smithing_template`, `netherite_scrap 4`, `gold_ingot 4`, `diamond_sword`,
+      `iron_ingot 2`, `oak_planks 8`), then `/drifter brain goal netherite`. It crafts the ingot, sets down a smithing
+      table and comes away with a netherite sword (enchantments kept). In the Nether, `/drifter debris` makes it dig down
+      to about Y 15 and strip mine for ancient debris (it's rare: you may need a few tries).
 - [ ] **Boats**: Drifters now make a boat early on. Give one a boat (`/drifter give oak_boat`) and send it across a lake or
       river (`/drifter goto` to a spot on the far side). At the water's edge it puts the boat on the water, gets in, rows
       across (you should see the paddles going), gets out on the far bank, breaks the boat with a few punches and picks it

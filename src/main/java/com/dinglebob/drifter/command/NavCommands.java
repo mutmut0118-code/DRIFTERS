@@ -48,6 +48,13 @@ final class NavCommands {
 				.then(Commands.literal("stroll").executes(ctx -> gotoPos(ctx, NavigateTask.Pace.STROLL)))
 				.then(Commands.literal("sneak").executes(ctx -> gotoPos(ctx, NavigateTask.Pace.SNEAK)))));
 
+		// Digging for ancient debris from where it stands (debug; milestone 18): stairs to about Y 15, then a strip mine.
+		root.then(Commands.literal("debris")
+			.executes(ctx -> start(ctx, drifter -> new com.dinglebob.drifter.brain.activity.DebrisActivity(drifter, 4)))
+			.then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 64))
+				.executes(ctx -> start(ctx, drifter -> new com.dinglebob.drifter.brain.activity.DebrisActivity(drifter,
+					com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count"))))));
+
 		root.then(Commands.literal("follow")
 			.then(Commands.literal("me").executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();

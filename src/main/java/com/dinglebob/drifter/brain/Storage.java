@@ -249,6 +249,14 @@ public final class Storage {
 			return "furnace";
 		} else if (stack.is(Items.TORCH)) {
 			return "torch";
+		} else if (stack.is(Items.ANCIENT_DEBRIS) || stack.is(Items.NETHERITE_SCRAP) || stack.is(Items.NETHERITE_INGOT)
+			|| stack.is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)) {
+			// Its netherite on the way to an upgrade (milestone 18): with it, for the smithing table.
+			return "netherite";
+		} else if (com.dinglebob.drifter.skills.Potions.isAnyPotion(stack) || stack.is(Items.GLASS_BOTTLE) || stack.is(Items.NETHER_WART)
+			|| stack.is(Items.BLAZE_POWDER) || stack.is(Items.MAGMA_CREAM) || stack.is(Items.GLISTERING_MELON_SLICE) || stack.is(Items.GOLDEN_CARROT)) {
+			// Potions and what it brews with (milestone 18).
+			return "brewing";
 		} else if (Food.of(stack) != null && !Food.isBad(stack)) {
 			return "food";
 		} else if (Tools.BUILDING_BLOCK.test(stack)) {
@@ -273,6 +281,8 @@ public final class Storage {
 			case "table", "furnace", "bed", "enchanting table" -> 1;
 			case "to put up" -> 3;
 			case "lapis" -> 64;
+			case "netherite" -> 64;
+			case "brewing" -> 32;
 			case "seeds" -> 32;
 			case "glass" -> 16;
 			case "bookshelf" -> 15;
