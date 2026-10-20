@@ -81,6 +81,15 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 
 	@Override
 	public ResourceLocation getTextureLocation(DrifterEntity drifter) {
+		// A real player's skin once it has downloaded; its default skin until then (or with no internet).
+		String real = drifter.getRealSkin();
+		if (!real.isEmpty()) {
+			ResourceLocation downloaded = DrifterSkins.texture(real);
+			if (downloaded != null) {
+				return downloaded;
+			}
+		}
+
 		return drifter.getSkinTexture();
 	}
 

@@ -76,6 +76,8 @@ public class DrifterEntity extends PathfinderMob {
 
 	private static final EntityDataAccessor<String> DATA_SKIN_TEXTURE = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.STRING);
 	private static final EntityDataAccessor<Boolean> DATA_SLIM_ARMS = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.BOOLEAN);
+	/** A real player's skin (Mojang's textures text), or empty: clients download it as they do a player's (RealSkins). */
+	private static final EntityDataAccessor<String> DATA_REAL_SKIN = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.STRING);
 	/** Its last roll, for the roll animation: (count << 17) | (duration ticks << 9) | direction in degrees. */
 	private static final EntityDataAccessor<Integer> DATA_ROLL = SynchedEntityData.defineId(DrifterEntity.class, EntityDataSerializers.INT);
 	/** Its last Better Combat swing, for the swing animation: "count;animation;ticks;mirrored" ("" for none yet). */
@@ -441,6 +443,7 @@ public class DrifterEntity extends PathfinderMob {
 		super.defineSynchedData(builder);
 		builder.define(DATA_SKIN_TEXTURE, SkinPool.FALLBACK.texture().toString());
 		builder.define(DATA_SLIM_ARMS, SkinPool.FALLBACK.slim());
+		builder.define(DATA_REAL_SKIN, "");
 		builder.define(DATA_ROLL, 0);
 		builder.define(DATA_SWING, "");
 	}
@@ -996,6 +999,60 @@ public class DrifterEntity extends PathfinderMob {
 		this.entityData.set(DATA_SLIM_ARMS, skin.slim());
 	}
 
+	// ----- Real player skins (RealSkins; user, 2026-10-20) -----
+
+	/** Not looked up yet (or due another try), has one, or there's none for it. */
+	private static final int REAL_SKIN_WANTED = 0;
+	private static final int REAL_SKIN_WORN = 1;
+	private static final int REAL_SKIN_NONE = 2;
+	private int realSkinState = REAL_SKIN_WANTED;
+	private long realSkinRetryAt;
+	/** The account whose skin it wears. */
+	private String realSkinName = "";
+
+	/** The real skin it wears (Mojang's textures text), or empty. */
+	public String getRealSkin() {
+		return this.entityData.get(DATA_REAL_SKIN);
+	}
+
+	public String realSkinName() {
+		return this.realSkinName;
+	}
+
+	/** A real player's skin on it; its default skin (shown until the picture has downloaded) matches the arms. */
+	public void setRealSkin(RealSkins.Found found) {
+		this.realSkinName = found.name();
+		this.realSkinState = REAL_SKIN_WORN;
+		this.entityData.set(DATA_REAL_SKIN, found.textures());
+		if (this.hasSlimArms() != found.slim()) {
+			this.setSkin(SkinPool.pick(this.random, found.slim()));
+		}
+	}
+
+	/** No account among its names: its default skin for good (a command can still give it one). */
+	public void noRealSkin() {
+		this.realSkinState = REAL_SKIN_NONE;
+	}
+
+	/** No answer (no internet): it tries again then. */
+	public void realSkinRetryAt(long tick) {
+		this.realSkinRetryAt = tick;
+	}
+
+	/** Back to its default skin. */
+	public void clearRealSkin() {
+		this.realSkinName = "";
+		this.realSkinState = REAL_SKIN_NONE;
+		this.entityData.set(DATA_REAL_SKIN, "");
+	}
+
+	/** Now and then: still without a real skin and due a try, it asks for one. */
+	private void wantRealSkin() {
+		if (this.realSkinState == REAL_SKIN_WANTED && this.level().getGameTime() >= this.realSkinRetryAt) {
+			RealSkins.want(this);
+		}
+	}
+
 	public boolean isHurt() {
 		return this.getHealth() > 0.0F && this.getHealth() < this.getMaxHealth();
 	}
@@ -1155,6 +1212,10 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 protected void customServerAiStep() {
 		this.dismountIfIdle();
+		if ((this.tickCount + this.getId()) % 100 == 0) {
+			this.wantRealSkin();
+		}
+
 		this.lastAiTick = this.level().getGameTime();
 		long started = System.nanoTime();
 		super.customServerAiStep();
@@ -2384,6 +2445,14 @@ protected void customServerAiStep() {
 		this.foodData.addAdditionalSaveData(tag);
 		tag.putString("Skin", this.getSkinTexture().toString());
 		tag.putBoolean("SlimArms", this.hasSlimArms());
+		tag.putInt("RealSkinState", this.realSkinState);
+		if (!this.getRealSkin().isEmpty()) {
+			CompoundTag real = new CompoundTag();
+			real.putString("Name", this.realSkinName);
+			real.putString("Textures", this.getRealSkin());
+			tag.put("RealSkin", real);
+		}
+
 		tag.put("DrifterMemory", this.memory.save());
 		tag.put("DrifterBrain", this.brain.save());
 		tag.put("DrifterPersonality", this.personality.save());
@@ -2480,6 +2549,16 @@ protected void customServerAiStep() {
 			if (texture != null) {
 				this.setSkin(new SkinPool.Skin(texture, tag.getBoolean("SlimArms")));
 			}
+		}
+
+		// (A Drifter saved before real skins: not looked up yet.)
+		this.realSkinState = tag.contains("RealSkinState") ? tag.getInt("RealSkinState") : REAL_SKIN_WANTED;
+		if (tag.contains("RealSkin", Tag.TAG_COMPOUND)) {
+			CompoundTag real = tag.getCompound("RealSkin");
+			this.realSkinName = real.getString("Name");
+			this.entityData.set(DATA_REAL_SKIN, real.getString("Textures"));
+		} else if (this.realSkinState == REAL_SKIN_WORN) {
+			this.realSkinState = REAL_SKIN_WANTED;
 		}
 	}
 

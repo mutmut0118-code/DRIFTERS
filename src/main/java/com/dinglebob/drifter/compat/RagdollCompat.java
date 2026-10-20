@@ -350,7 +350,13 @@ public final class RagdollCompat {
 		}
 
 		String name = drifter.getName().getString().replaceAll("[^A-Za-z0-9_]", "");
-		return new GameProfile(id, name.isEmpty() ? "Drifter" : name.substring(0, Math.min(16, name.length())));
+		GameProfile profile = new GameProfile(id, name.isEmpty() ? "Drifter" : name.substring(0, Math.min(16, name.length())));
+		// Its real player skin, if it wears one: the corpse wears it too.
+		if (!drifter.getRealSkin().isEmpty()) {
+			profile.getProperties().put("textures", new com.mojang.authlib.properties.Property("textures", drifter.getRealSkin()));
+		}
+
+		return profile;
 	}
 
 	/** The game's default skins, in its order: these nine slim, then the same nine wide. */

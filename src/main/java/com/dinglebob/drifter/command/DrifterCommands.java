@@ -308,8 +308,42 @@ public final class DrifterCommands {
 				.then(Commands.argument("count", IntegerArgumentType.integer(1, 64 * DrifterInventory.MAIN_SIZE))
 					.executes(ctx -> giveAll(ctx, IntegerArgumentType.getInteger(ctx, "count"))))));
 
+		// Its skin: whose it is; a real account's by name; or back to its default one.
+		root.then(Commands.literal("skin")
+			.executes(ctx -> {
+				DrifterEntity drifter = nearest(ctx.getSource());
+				String real = drifter.getRealSkin().isEmpty() ? "a default skin" : "the skin of " + drifter.realSkinName();
+				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " wears " + real + " (" + (drifter.hasSlimArms() ? "slim" : "wide")
+					+ " arms)"), false);
+				return 1;
+			})
+			.then(Commands.literal("default").executes(ctx -> {
+				DrifterEntity drifter = nearest(ctx.getSource());
+				drifter.clearRealSkin();
+				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " is back in its default skin"), true);
+				return 1;
+			}))
+			.then(Commands.argument("account", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(ctx -> {
+				DrifterEntity drifter = nearest(ctx.getSource());
+				String account = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "account");
+				if (!com.dinglebob.drifter.entity.RealSkins.validName(account)) {
+					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("Not a Minecraft name: " + account)).create();
+				}
+
+				com.dinglebob.drifter.entity.RealSkins.wear(drifter, account);
+				ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " will wear " + account + "'s skin (looking it up)"), true);
+				return 1;
+			})));
+
 		root.then(Commands.literal("config")
 			.executes(DrifterCommands::showConfig)
+			// Real player skins on or off (user, 2026-10-20).
+			.then(Commands.literal("realskins").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setRealSkins(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Real player skins " + (com.dinglebob.drifter.DrifterConfig.realSkins() ? "on" : "off")
+					+ " (for Drifters that haven't got one yet)"), true);
+				return 1;
+			})))
 			// Gap jumps on or off (to compare, or if they cause trouble).
 			.then(Commands.literal("parkour").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setParkour(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));

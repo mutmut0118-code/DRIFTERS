@@ -99,7 +99,7 @@ public class DrifterConfigScreen extends Screen {
 		return value <= 0 ? "peaceful" : value >= 100 ? "always hostile" : value == DrifterConfig.DEFAULT_AGGRESSION ? "normal (50%)" : value + "%";
 	}
 
-	private static CycleButton<Boolean> toggle(int x, int y, String label, boolean value, java.util.function.Consumer<Boolean> set) {
+	static CycleButton<Boolean> toggle(int x, int y, String label, boolean value, java.util.function.Consumer<Boolean> set) {
 		return CycleButton.onOffBuilder(value).create(x, y, WIDTH, 20, Component.literal(label), (button, on) -> set.accept(on));
 	}
 

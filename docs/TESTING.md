@@ -1382,6 +1382,14 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] New huts and houses: chests face into the room, two chests side by side make a double chest, and the hut torch is
       on the wall, not a window.
 
+## Player skins (new)
+
+- [ ] New Drifters wear real players' skins (downloaded like a multiplayer server's; it takes a few seconds, they show a
+      default skin until then). With no internet they keep default skins.
+- [ ] `/drifter skin` says whose skin the nearest one wears; `/drifter skin <name>` puts that account's skin on it (try
+      yours or a friend's); `/drifter skin default` takes it off.
+- [ ] Settings > Spawning > "Real player skins" turns it off (for Drifters that haven't got one yet).
+
 ## Milestone 20: wrong guesses (new)
 
 `/drifter thoughts` shows these.

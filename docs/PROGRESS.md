@@ -2322,3 +2322,25 @@ tunnel broke into an underground water pocket, the plug didn't hold, and the tun
 to mine up (more water above in a water pocket) instead of swimming back along its tunnel to where it last breathed.
 Next: in a flooded tunnel of its own, back out along it first; mine up only when that's too far.
 
+## Player skins (2026-10-20)
+
+The user: "how can we have player skins without taking up the storage of a lot of pngs?" Options given (paint from
+parts; download real ones; resource-pack skins; a packed file); the user picked real downloaded skins: "lets do 2,
+usually i have internet but itll be fine if there isnt any, its just like minecraft multiplayer". DESIGN.md updated.
+
+- `entity/RealSkins`: a Drifter keeps its made-up name; the server asks Mojang for the account with that name (the
+  same lookups a server makes for player heads), and if there is none, for two other names like it (the same ones each
+  time for that Drifter). One new lookup a second at most, two at once, answers remembered for the run and saved with
+  the Drifter, so each is asked once. No answer (no internet, Mojang busy): its default skin, another try in 10 minutes.
+  No account among its names: its default skin for good.
+- Clients get only Mojang's short skin text with the Drifter and download the picture themselves through the game's
+  own skin loader, which caches it on the computer (`client/render/DrifterSkins`), as for a player you meet. Until then
+  the default skin (matched to the real skin's arms: slim or wide).
+- Ragdoll corpses wear the real skin too.
+- Setting: "Real player skins" on the Spawning page of the settings, `/drifter config realskins true|false` (default on).
+- `/drifter skin` (whose skin it wears), `/drifter skin <name>` (that account's skin, e.g. a friend's), `/drifter skin
+  default`.
+- Tested: 20 new Drifters, 14 with a real skin within 40 seconds; `/drifter skin Notch` works; in the game client the
+  skins show (a screenshot of six: five real, one default).
+- Note: a Drifter named like a real account wears that account's skin and name, as a real player would look.
+

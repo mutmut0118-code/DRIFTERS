@@ -35,6 +35,13 @@ public class DrifterSpawnScreen extends Screen {
 			}
 		}
 
+		// How new Drifters look: real players' skins, downloaded like a multiplayer server's (user, 2026-10-20).
+		if (all.length % 2 == 1) {
+			y += ROW;
+		}
+
+		this.addRenderableWidget(DrifterConfigScreen.toggle(left, y + 6, "Real player skins", DrifterConfig.realSkins(), DrifterConfig::setRealSkins));
+
 		this.addRenderableWidget(Button.builder(Component.literal("Done"), button -> this.onClose())
 			.bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
 	}

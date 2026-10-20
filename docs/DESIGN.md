@@ -90,7 +90,7 @@ Every mechanic a player has that a mob lacks needs an owner. "Build" means the D
 ### Rendering
 
 - Biped player model with wide (Steve) and slim (Alex) arm variants.
-- Skin from a bundled pool, optionally weighted by archetype; downloading real skins by username stays off by default.
+- Skin: a real player's, downloaded like a multiplayer server's (user, 2026-10-20: "its just like minecraft multiplayer"): the skin of the real account with its name if there is one, else of one of a couple of names like it; the game's default skins until it has downloaded, and with no internet. A setting turns real skins off.
 - Armor layers, items in both hands, and the full set of use poses: bow draw, crossbow charged, shield raised, eating arm raise, trident wind-up, spyglass.
 - Sneak, swim, crawl, sleep and elytra-glide poses.
 - Optional cape slot for rare "veteran" Drifters.

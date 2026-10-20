@@ -95,6 +95,17 @@ public final class DrifterConfig {
 		int pathThreads = -1;
 		/** Drifters far from every player look about and think every other tick (milestone 16). */
 		boolean farHalfRate = true;
+		/** Real player skins, downloaded like a multiplayer server's (user, 2026-10-20); off: the game's default skins. */
+		boolean realSkins = true;
+	}
+
+	public static boolean realSkins() {
+		return data.realSkins;
+	}
+
+	public static void setRealSkins(boolean on) {
+		data.realSkins = on;
+		save();
 	}
 
 	public static boolean farHalfRate() {
