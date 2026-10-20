@@ -13,7 +13,8 @@ This is a long, multi-session project. Follow these rules in every session.
 docs/WHIMS.md is reference for the whim system milestone. Don't implement whims until the roadmap reaches it.
 docs/ENCOUNTERS.md is the plan for milestone 21 (encounters and bounties); docs/OFFSCREEN_WHIMS.md is the design of
 whims offscreen (the user picked A + small B + C + E; built). docs/WHIMS_HOWTO.md is how to write a whim (every field,
-action, steps verb and offscreen value): keep it up to date when whims change.
+action, steps verb and offscreen value): keep it up to date when whims change. docs/CIVILIZATION.md is the plan for
+milestone 22, civilization as an addon mod (after 21; not started).
 
 ## Version targets
 

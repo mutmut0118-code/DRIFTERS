@@ -1931,6 +1931,10 @@ Each milestone ends with a test you can actually run.
     see again, like the GTA random events (bounty hunters after you, a wanted Drifter with a map to its house, ambushes,
     people needing help, merchants...), and Bountiful compat (Drifters doing bounties; bounties on Drifters). The user
     picks the events from the list.
+22. **Civilization, as an addon mod** (user, 2026-10-20; docs/CIVILIZATION.md): towns, money and trade, leaders and laws,
+    nations and wars, culture, a chronicle and a "one island" mode, inspired by the "1000 players simulate civilization"
+    videos. Its own mod that needs Drifter (user's call: "its really big i think it should be like an addon mod"), with
+    a small Drifter API added first. Several milestones; same fairness rules.
 
 Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 14 (The End). They are tests, not milestones of their own.
 
