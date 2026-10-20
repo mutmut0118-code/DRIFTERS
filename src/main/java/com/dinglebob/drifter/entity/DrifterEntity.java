@@ -332,6 +332,27 @@ public class DrifterEntity extends PathfinderMob {
 		return java.util.List.copyOf(this.lavaBurns.keySet());
 	}
 
+	/**
+	 * A leak it plugged with a block (water pouring down a hole it dug; Reflexes.WaterLeak): its routes don't dig that block
+	 * out again for a while (found in testing: the route up went straight back through it, three floods in a minute).
+	 */
+	public void pluggedLeakAt(BlockPos pos) {
+		this.leakPlugs.put(pos.immutable(), this.level().getGameTime() + 20L * 60 * 10);
+	}
+
+	/** The leaks it plugged lately, a copy. */
+	public java.util.Set<BlockPos> recentLeakPlugs() {
+		if (this.leakPlugs.isEmpty()) {
+			return java.util.Set.of();
+		}
+
+		long now = this.level().getGameTime();
+		this.leakPlugs.values().removeIf(until -> until < now);
+		return java.util.Set.copyOf(this.leakPlugs.keySet());
+	}
+
+	private final java.util.Map<BlockPos, Long> leakPlugs = new java.util.HashMap<>();
+
 	/** Bridges and pillars that failed lately (not to be planned again for a while), copies. */
 	public java.util.Set<BlockPos> recentFailedBridges() {
 		long now = this.level().getGameTime();

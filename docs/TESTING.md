@@ -1417,6 +1417,9 @@ then `/summon husk ~5 ~ ~` twice.
       crouches, looks at the fire); `/drifter whim wave_to_a_friend` near you if it likes you, or near its group mate;
       `/drifter whim check_on_the_crops` near a farm; `/drifter whim morning_stretch` at sunrise.
 - [ ] **Campfires**: Drifters no longer walk over lit campfires.
+- [ ] **Flooded shafts**: Drifters that dig up into a lake or underground water put a block in the hole straight away
+      ("water pouring in from above: plugging the hole") instead of drowning. To see it: dig a 1-wide shaft up under a
+      pond, stand a Drifter in it with some cobblestone, and `/drifter mine <the block under the pond>`.
 - [ ] **Nights**: more Drifters keep working through the night (mining, gathering, fighting what comes) with a sword and a
       shield. Early on (with Spartan Shields) they make a crude wooden shield right after their first pickaxe, then a
       stone braced one. `/drifter thoughts` at dusk: "tonight it carries on through the night", or "tonight it stays in

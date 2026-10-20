@@ -79,6 +79,8 @@ public final class NavView {
 	 */
 	private final BlockPos feet;
 	private final java.util.List<BlockPos> lavaBurns;
+	/** Leaks it plugged lately: never dug out again by a route (water's behind them). */
+	private final java.util.Set<BlockPos> leakPlugs;
 	private final java.util.Set<BlockPos> scaffold;
 	private final boolean leatherBoots;
 	private final java.util.List<net.minecraft.world.item.ItemStack> tools;
@@ -97,6 +99,7 @@ public final class NavView {
 		this.knowledge = knowledge;
 		this.feet = drifter.blockPosition().immutable();
 		this.lavaBurns = drifter.recentLavaBurns();
+		this.leakPlugs = drifter.recentLeakPlugs();
 		this.scaffold = new java.util.HashSet<>(drifter.scaffold());
 		this.leatherBoots = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS);
 		this.tools = Tools.toolsOf(drifter);
@@ -248,6 +251,11 @@ public final class NavView {
 		// Near where it just got into lava: kept clear for a while (it walked straight back in and burned to death).
 		// (Never the blocks right round where it stands, so it can always walk out.)
 		if (this.nearRecentLava(pos) && pos.distSqr(this.feet) > 2) {
+			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
+		}
+
+		// A leak it plugged: water behind it.
+		if (!this.leakPlugs.isEmpty() && this.leakPlugs.contains(pos)) {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 

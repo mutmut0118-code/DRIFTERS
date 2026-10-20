@@ -2319,6 +2319,20 @@ all of this, please keep the optimization in mind".
   (3 for saplings), checked again on 8 homes. Each trace is logged with where it went ("Bea left something at home
   while away (little_monument): at ...").
 
+### Drowning in a flooded shaft (fixed, 2026-10-20)
+
+Found in the final 3-day check and again in two night tests: a Drifter pillaring up a 1x1 shaft on its way home broke
+into the bottom of a lake; the water poured down on it, its own pillar filled the shaft below (no way back), and its
+drowning reflex mined up into the lake ("no air to swim to: mining up through the ceiling") until it drowned.
+- New reflex `WaterLeak` (before the drowning one): water falling into a hole no wider than itself from water above, it
+  finds the top of the hole and puts a block in it at once, while it still has air ("water pouring in from above:
+  plugging the hole"); floated up into the hole, it sinks out of it first. The water under the block drains away.
+  Never over still water (a flooded hole it swims up out of isn't sealed over its head).
+- The plugged block is kept off its routes for 10 minutes (they dug it straight back out: three floods a minute).
+- The drowning reflex no longer takes water over its head for a ceiling to mine.
+- Tested: a shaft under a pool, the ceiling mined: plugged first time, water gone, full air and health. Told to go to
+  the pool's surface from there: plugged twice, then dug out sideways; alive. 40 Drifters, 3 days: no deaths.
+
 ### Fewer Drifters hiding at night; cheap shields (done, 2026-10-20)
 
 The user: "i think too many drifters hide in the night, especially since their ai is advanced enough to where a sword

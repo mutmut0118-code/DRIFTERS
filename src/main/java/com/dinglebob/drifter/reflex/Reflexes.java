@@ -119,7 +119,7 @@ public class Reflexes {
 
 	public Reflexes(DrifterEntity drifter) {
 		this.drifter = drifter;
-		this.reflexes = List.of(new InLava(), new InFireBlock(), new StrayPortal(), new Drowning(), new DrinkFireResistance(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
+		this.reflexes = List.of(new InLava(), new InFireBlock(), new StrayPortal(), new WaterLeak(), new Drowning(), new DrinkFireResistance(), new OnFire(), new DouseWithBucket(), new SweptToEdge(), new CreeperFuse(), new LitTnt(), new LavaInTheWay(), new HeavyFall(),
 			new DrinkHealing(), new IncomingProjectile(), new Suffocating(), new Freezing(), new FallingBlockAbove(), new InCobweb(), new Contact(), new DrinkForTheJob());
 	}
 
@@ -658,6 +658,143 @@ public class Reflexes {
 		}
 	}
 
+	/**
+	 * Water pouring down on it in a hole no wider than itself (it dug up into the bottom of a lake or an underground sea;
+	 * found in testing: pillaring up a shaft on its way home, it broke into a lake, and with its own pillar under it and
+	 * the water pouring in, it drowned mining up into the lake): a block into the leak right away, while it still has air,
+	 * as a player does. The water under the block then drains away, and its route finds another way up. Only water that's
+	 * falling (a still, flooded hole it's swimming up out of it never seals over its head).
+	 */
+	private static final class WaterLeak extends Reflex {
+		/** How far over its head it looks for where the water comes in. */
+		private static final int LOOK_UP = 4;
+
+		@Nullable
+		private BlockPos leak;
+		@Nullable
+		private Task task;
+
+		@Override
+		public String name() {
+			return "water pouring in: plugging the leak";
+		}
+
+		@Override
+		protected int checkEvery() {
+			return 2;
+		}
+
+		@Override
+		protected boolean detect(DrifterEntity drifter) {
+			this.leak = mouth(drifter);
+			return this.leak != null;
+		}
+
+		/**
+		 * Where water pours into the narrow hole it's in from above: the top of the hole (the last cell with rock on three
+		 * sides or more, going up from its head), with water above it and falling water in it. Null if it isn't that.
+		 */
+		@Nullable
+		private static BlockPos mouth(DrifterEntity drifter) {
+			if (!drifter.isInWater() || Tools.buildingBlockCount(drifter) == 0) {
+				return null;
+			}
+
+			Level level = drifter.level();
+			BlockPos.MutableBlockPos cell = BlockPos.containing(drifter.getX(), drifter.getBoundingBox().maxY - 1.0E-4, drifter.getZ()).mutable();
+			BlockPos mouth = null;
+			for (int i = 0; i < LOOK_UP; i++, cell.move(Direction.UP)) {
+				net.minecraft.world.level.material.FluidState water = level.getFluidState(cell);
+				if (!water.is(FluidTags.WATER) || !narrow(level, cell)) {
+					break;
+				}
+
+				mouth = cell.immutable();
+			}
+
+			// Water above the top (where it comes from), and falling water in it (a still, flooded hole it's swimming up out
+			// of is never sealed over its head).
+			if (mouth == null || !level.getFluidState(mouth.above()).is(FluidTags.WATER) || level.getFluidState(mouth).isSource()
+				|| !level.getBlockState(mouth).canBeReplaced()) {
+				return null;
+			}
+
+			return mouth;
+		}
+
+		/** Rock on at least three sides (in open water the sides are water too). */
+		private static boolean narrow(Level level, BlockPos pos) {
+			int walls = 0;
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				walls += solid(level, pos.relative(side)) ? 1 : 0;
+			}
+
+			return walls >= 3;
+		}
+
+		@Override
+		protected Vec3 where(DrifterEntity drifter) {
+			return this.leak == null ? null : Vec3.atCenterOf(this.leak);
+		}
+
+		@Override
+		protected int maxTicks() {
+			return 100;
+		}
+
+		@Override
+		protected void start(DrifterEntity drifter) {
+			this.task = null;
+			if (this.leak != null) {
+				Steering.stopMoving(drifter);
+				drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "water pouring in from above: plugging the hole");
+			}
+		}
+
+		@Override
+		protected boolean act(DrifterEntity drifter, int tick) {
+			if (this.leak == null) {
+				return false;
+			}
+
+			VirtualKeys keys = drifter.getKeys();
+			keys.set(VirtualKeys.Key.JUMP, false);
+			if (this.task == null) {
+				// Floated up into the hole itself: down out of it first (sneaking sinks it), then the block goes in.
+				if (drifter.getBoundingBox().maxY > this.leak.getY() + 1.0E-3) {
+					keys.set(VirtualKeys.Key.SNEAK, true);
+					return tick < 60;
+				}
+
+				keys.set(VirtualKeys.Key.SNEAK, false);
+				this.task = new PlaceBlockTask(drifter, this.leak, Tools.BUILDING_BLOCK, "a block into the leak");
+			}
+
+			Task.Status status = this.task.tick();
+			if (status == Task.Status.RUNNING) {
+				return true;
+			}
+
+			this.task.stop();
+			this.task = null;
+			if (status == Task.Status.SUCCESS) {
+				// Its routes don't dig it out again: the water's behind it (they find another way).
+				drifter.pluggedLeakAt(this.leak);
+			}
+
+			return false;
+		}
+
+		@Override
+		protected void stop(DrifterEntity drifter) {
+			drifter.getKeys().set(VirtualKeys.Key.SNEAK, false);
+			if (this.task != null) {
+				this.task.stop();
+				this.task = null;
+			}
+		}
+	}
+
 	/** Low on air under water: swim up, or toward the nearest air. */
 	/** (Up to 30 s: mining up through a ceiling while floating takes a player about 10 s a block.) */
 	private static final class Drowning extends Reflex {
@@ -782,7 +919,7 @@ public class Reflexes {
 				return true;
 			}
 
-			if (!rock.isAir() && rock.getDestroySpeed(level, ceiling) >= 0.0F && !level.getFluidState(ceiling.above()).is(FluidTags.LAVA)
+			if (!rock.isAir() && rock.getFluidState().isEmpty() && rock.getDestroySpeed(level, ceiling) >= 0.0F && !level.getFluidState(ceiling.above()).is(FluidTags.LAVA)
 				&& !(rock.getBlock() instanceof net.minecraft.world.level.block.FallingBlock)) {
 				this.digUp = dig(drifter, ceiling);
 				// Let go of whatever it was swimming toward (found in testing: still holding forward from the swim, it walked
