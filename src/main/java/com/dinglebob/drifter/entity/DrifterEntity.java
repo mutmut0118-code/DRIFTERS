@@ -881,13 +881,13 @@ public class DrifterEntity extends PathfinderMob {
 
 	/** Can it raise its shield now (holding one in the offhand, not disabled by an axe hit)? */
 	public boolean canUseShield() {
-		return this.getOffhandItem().is(net.minecraft.world.item.Items.SHIELD) && this.level().getGameTime() >= this.shieldDisabledUntil;
+		return com.dinglebob.drifter.hands.Shields.isShield(this.getOffhandItem()) && this.level().getGameTime() >= this.shieldDisabledUntil;
 	}
 
 	/** Player#hurtCurrentlyUsedShield: a blocked hit wears the shield down (and can break it). */
 	@Override
 	public void hurtCurrentlyUsedShield(float damage) {
-		if (this.useItem.is(net.minecraft.world.item.Items.SHIELD) && damage >= 3.0F) {
+		if (com.dinglebob.drifter.hands.Shields.isShield(this.useItem) && damage >= 3.0F) {
 			int wear = 1 + Mth.floor(damage);
 			net.minecraft.world.InteractionHand hand = this.getUsedItemHand();
 			this.useItem.hurtAndBreak(wear, this, getSlotForHand(hand));
@@ -1762,6 +1762,50 @@ protected void customServerAiStep() {
 		}
 
 		return result;
+	}
+
+	/**
+	 * A modded bow with its own way of letting go (Simply Bows' unique bows) is let go by its helper player, as a player
+	 * would: the arrows come out of its own pack (the mod gives any shooter that isn't a player endless arrows), and the
+	 * bow's ability works as it does for a player. Its arrows are then its own (whom they hit, it hit). The vanilla bow
+	 * goes its own way (BowItemMixin).
+	 */
+	@Override
+	public void releaseUsingItem() {
+		ItemStack bow = this.useItem;
+		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isBow(bow) && ownRelease(bow.getItem().getClass())) {
+			int remaining = this.getUseItemRemainingTicks();
+			com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
+				bow.releaseUsing(fake.level(), fake, remaining);
+				return null;
+			});
+			if (this.helperPlayer != null) {
+				for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
+					this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
+					shot.setOwner(this);
+				}
+			}
+
+			this.stopUsingItem();
+			return;
+		}
+
+		super.releaseUsingItem();
+	}
+
+	/** This bow class (or one between it and the vanilla bow) has its own releaseUsing. */
+	private static boolean ownRelease(Class<?> type) {
+		for (Class<?> c = type; c != null && c != net.minecraft.world.item.BowItem.class; c = c.getSuperclass()) {
+			for (java.lang.reflect.Method method : c.getDeclaredMethods()) {
+				Class<?>[] params = method.getParameterTypes();
+				if (method.getReturnType() == void.class && params.length == 4 && params[0] == ItemStack.class && params[1] == Level.class
+					&& params[2] == net.minecraft.world.entity.LivingEntity.class && params[3] == int.class) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**

@@ -81,6 +81,16 @@ final class HandsCommands {
 						com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "targetY")))))));
 
 		// Its favorite weapon family, what it would make at iron and diamond, and how much it likes each family (Weapons).
+		// Shooting at something with its bow (debug; milestone 19: modded bows).
+		root.then(Commands.literal("shoot").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
+			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");
+			if (!(target instanceof net.minecraft.world.entity.LivingEntity living)) {
+				throw new SimpleCommandExceptionType(Component.literal("Not something it can shoot at")).create();
+			}
+
+			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.ShootTask(drifter, living, "shoot at " + living.getName().getString()));
+		})));
+
 		root.then(Commands.literal("weapon").executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 			var favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);

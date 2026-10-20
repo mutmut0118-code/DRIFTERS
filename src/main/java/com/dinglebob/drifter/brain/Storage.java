@@ -190,13 +190,13 @@ public final class Storage {
 			return "sword";
 		} else if (stack.is(ItemTags.HOES)) {
 			return "hoe";
-		} else if (stack.is(Items.SHIELD)) {
+		} else if (com.dinglebob.drifter.hands.Shields.isShield(stack)) {
 			return "shield";
 		} else if (stack.is(Items.SHEARS)) {
 			return "shears";
 		} else if (stack.is(Items.FLINT_AND_STEEL)) {
 			return "flint and steel";
-		} else if (stack.is(Items.BOW)) {
+		} else if (com.dinglebob.drifter.hands.Shields.isBow(stack)) {
 			return "bow";
 		} else if (stack.is(Items.FISHING_ROD)) {
 			return "fishing rod";
@@ -208,6 +208,15 @@ public final class Storage {
 	}
 
 	private static double toolScore(ItemStack stack) {
+		// (Shields by the wear they have left; bows, a modded unique one first.)
+		if (com.dinglebob.drifter.hands.Shields.isShield(stack)) {
+			return com.dinglebob.drifter.hands.Shields.score(stack) / 100.0;
+		}
+
+		if (com.dinglebob.drifter.hands.Shields.isBow(stack)) {
+			return com.dinglebob.drifter.hands.Shields.bowScore(stack);
+		}
+
 		double tier = stack.getItem() instanceof TieredItem tiered ? tiered.getTier().getSpeed() + tiered.getTier().getAttackDamageBonus() : 1.0;
 		double durability = stack.isDamageableItem() ? 1.0 - stack.getDamageValue() / (double)stack.getMaxDamage() : 1.0;
 		return tier + durability * 0.5 + (stack.isEnchanted() ? 3.0 : 0.0);

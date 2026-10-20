@@ -73,7 +73,7 @@ public final class Strategist {
 			drifter -> has(drifter, stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()))),
 		new Target("a bucket", List.of(Items.BUCKET), 1,
 			drifter -> has(drifter, stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || stack.is(Items.LAVA_BUCKET))),
-		new Target("a shield", List.of(Items.SHIELD), 1, drifter -> has(drifter, stack -> stack.is(Items.SHIELD))),
+		new Target("a shield", List.of(Items.SHIELD), 1, drifter -> has(drifter, com.dinglebob.drifter.hands.Shields::isShield)),
 		new Target("an iron chestplate", List.of(Items.IRON_CHESTPLATE), 1, armor(Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
 		new Target("iron leggings", List.of(Items.IRON_LEGGINGS), 1, armor(Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
 		new Target("an iron helmet", List.of(Items.IRON_HELMET), 1, armor(Items.IRON_HELMET, Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
@@ -163,7 +163,7 @@ public final class Strategist {
 			drifter -> drifter.getInventory().count(stack -> stack.is(Items.COOKED_BEEF) || stack.is(Items.COOKED_PORKCHOP)) >= NETHER_FOOD),
 		new Target("a spare pickaxe for the Nether", List.of(Items.IRON_PICKAXE, Items.STONE_PICKAXE), 1, drifter -> !needsSparePickaxe(drifter)),
 		// Bow and arrows (ghasts are out of sword reach, blazes safer from range): string from spiders or cobwebs.
-		new Target("a bow", List.of(Items.BOW), 1, drifter -> has(drifter, stack -> stack.is(Items.BOW))),
+		new Target("a bow", List.of(Items.BOW), 1, drifter -> has(drifter, com.dinglebob.drifter.hands.Shields::isBow)),
 		new Target("arrows", List.of(Items.ARROW), NETHER_ARROWS, drifter -> drifter.getInventory().count(stack -> stack.is(Items.ARROW)) >= NETHER_ARROWS));
 
 	/** Gold ingots to barter with (step 6). Wanted on the packing list but not waited for: a trip starts without them. */
@@ -181,7 +181,7 @@ public final class Strategist {
 
 		return drifter.getInventory().count(stack -> stack.is(Items.FLINT_AND_STEEL)) > 0
 			&& drifter.getInventory().count(Weapons::isWeapon) > 0
-			&& has(drifter, stack -> stack.is(Items.SHIELD));
+			&& has(drifter, com.dinglebob.drifter.hands.Shields::isShield);
 	}
 
 	/** Its portal by home is built and lit. */

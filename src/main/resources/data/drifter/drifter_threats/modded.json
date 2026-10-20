@@ -1,0 +1,6 @@
+{
+	"_comment": "Threats from mods (milestone 19). Entries for mods that aren't installed never match anything. Guard Villagers' guards only count while one is after the Drifter (a bandit raiding the village, or one that hit a guard or a villager): armoured, with a sword or crossbow, about a vindicator.",
+	"threats": {
+		"guardvillagers:guard": { "danger": 2.6, "neutral": true }
+	}
+}

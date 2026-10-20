@@ -1382,6 +1382,23 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] New huts and houses: chests face into the room, two chests side by side make a double chest, and the hut torch is
       on the wall, not a window.
 
+## Milestone 19: mod compat (new)
+
+**Bountiful needs the Kambrik mod**: it isn't in your DRIFTER TEST profile, so the game won't start with Bountiful
+until you add Kambrik (for 1.21.1, version 8.0.0-beta.2 or newer) or take Bountiful out.
+
+- [ ] **Spartan Shields**: give a Drifter a Spartan shield and a vanilla one (`/drifter give
+      spartanshields:diamond_basic_shield`, `/drifter give shield`). It holds the Spartan one (it lasts longer) and blocks
+      with it in fights. Sometimes, with iron and planks, it makes a tower shield or an iron plated shield for itself.
+- [ ] **Simply Bows**: give one a unique bow and arrows (`/drifter give simplybows:bee_bow/bee_bow`,
+      `/drifter give arrow 16`). In fights at range it uses it, the bow's ability goes off as it does for you, and its
+      arrows run down (no endless arrows). `/drifter shoot @e[type=zombie,limit=1,sort=nearest]` makes it shoot now.
+- [ ] **Guard Villagers**: Drifters in a village with guards get on with them; guards don't attack peaceful Drifters. A
+      bandit Drifter raiding a village fights the guards (and they fight it). Sometimes one stops to watch the guards.
+- [ ] **Farmer's Delight**: Drifters eat its foods; some make and use knives; whims: a bowl of stew, hot cocoa at night,
+      a cooking pot over a campfire at home, a cutting board, a slice of pie. Check the game starts and nothing errors.
+- [ ] **Bountiful** (once Kambrik is in): sometimes a Drifter in a village stops to read the bounty board.
+
 ## Milestone 18: player skills (new)
 
 Use a fresh world. Commands act on the nearest Drifter.

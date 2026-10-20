@@ -47,7 +47,7 @@ public final class Archery {
 
 	/** It has a bow and something to shoot. */
 	public static boolean ready(DrifterEntity drifter) {
-		return drifter.getInventory().count(stack -> stack.is(Items.BOW)) > 0 && !ammo(drifter).isEmpty();
+		return drifter.getInventory().count(com.dinglebob.drifter.hands.Shields::isBow) > 0 && !ammo(drifter).isEmpty();
 	}
 
 	/** Out of sword reach for good (flying, or keeps its distance). */

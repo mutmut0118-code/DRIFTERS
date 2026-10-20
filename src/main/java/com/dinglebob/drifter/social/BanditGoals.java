@@ -111,7 +111,9 @@ public final class BanditGoals {
 			return mine == null || com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID()) != mine;
 		}
 
-		if (living instanceof net.minecraft.world.entity.npc.AbstractVillager || living instanceof net.minecraft.world.entity.animal.AbstractGolem) {
+		// (Guard Villagers' guards too: the village's defenders, like its golems.)
+		if (living instanceof net.minecraft.world.entity.npc.AbstractVillager || living instanceof net.minecraft.world.entity.animal.AbstractGolem
+			|| com.dinglebob.drifter.compat.ModCompat.isGuard(living)) {
 			return true;
 		}
 

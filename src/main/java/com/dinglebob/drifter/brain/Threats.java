@@ -286,7 +286,7 @@ public final class Threats {
 		int weaponSlot = Combat.bestWeaponSlot(drifter);
 		double weapon = Combat.weaponStats(drifter, weaponSlot < 0 ? net.minecraft.world.item.ItemStack.EMPTY
 			: drifter.getInventory().getItem(weaponSlot)).perSecond() / 4.0;
-		double shield = drifter.getInventory().count(stack -> stack.is(Items.SHIELD)) > 0 ? 1.3 : 1.0;
+		double shield = drifter.getInventory().count(com.dinglebob.drifter.hands.Shields::isShield) > 0 ? 1.3 : 1.0;
 		double food = Food.carriedNutrition(drifter) >= 6 ? 1.1 : 0.9;
 		return health * armor * Math.max(1.0, weapon) * shield * food;
 	}
@@ -327,7 +327,7 @@ public final class Threats {
 			// A shield up stops arrows and fireballs dead, which is how a player takes on blazes and skeletons: shooters count
 			// for less when it has one ready (found in testing: in iron and diamond, a spawner's three or four blazes had it
 			// "outmatched", and it ran from the fortress it came for).
-			if (shoots(living) && drifter.getOffhandItem().is(Items.SHIELD)) {
+			if (shoots(living) && com.dinglebob.drifter.hands.Shields.isShield(drifter.getOffhandItem())) {
 				danger *= SHIELDED_SHOOTER;
 			}
 			if (danger <= 0.0) {
@@ -409,7 +409,7 @@ public final class Threats {
 		// only gets it burned (found in testing: a little hurt, it ran from a spawner's blazes and died, shieldless, in a
 		// corner); it stands and fights unless badly hurt.
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && main instanceof net.minecraft.world.entity.monster.Blaze
-			&& drifter.getOffhandItem().is(Items.SHIELD) && drifter.getHealth() > BLAZE_STAND_HEALTH) {
+			&& com.dinglebob.drifter.hands.Shields.isShield(drifter.getOffhandItem()) && drifter.getHealth() > BLAZE_STAND_HEALTH) {
 			decision = Decision.ENGAGE_CAREFUL;
 		}
 

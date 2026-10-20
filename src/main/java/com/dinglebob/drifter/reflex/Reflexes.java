@@ -184,7 +184,7 @@ public class Reflexes {
 		done.stop(this.drifter);
 		done.readyAt = now + REFRACTORY_TICKS;
 		this.drifter.getKeys().releaseAll();
-		if (this.drifter.isUsingItem() && this.drifter.getUseItem().is(Items.SHIELD)) {
+		if (this.drifter.isUsingItem() && com.dinglebob.drifter.hands.Shields.isShield(this.drifter.getUseItem())) {
 			this.drifter.stopUsingItem();
 		}
 
@@ -1237,7 +1237,7 @@ public class Reflexes {
 				}
 			}
 
-			if (cornered && drifter.getOffhandItem().is(Items.SHIELD)) {
+			if (cornered && com.dinglebob.drifter.hands.Shields.isShield(drifter.getOffhandItem())) {
 				// Can't get clear in time: face it, shield up.
 				drifter.getCamera().lookAt(this.creeper, CameraModel.TurnSpeed.COMBAT);
 				Steering.stopMoving(drifter);
@@ -1582,7 +1582,7 @@ public class Reflexes {
 				return false;
 			}
 
-			if (drifter.getOffhandItem().is(Items.SHIELD)) {
+			if (com.dinglebob.drifter.hands.Shields.isShield(drifter.getOffhandItem())) {
 				drifter.getCamera().lookAt(this.projectile.position(), CameraModel.TurnSpeed.COMBAT);
 				Steering.stopMoving(drifter);
 				// Right-click uses the main hand first: with a bow (or food) there, the shield can't come up. Like a player it

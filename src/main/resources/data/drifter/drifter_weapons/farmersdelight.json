@@ -1,0 +1,28 @@
+{
+	"_comment": "Farmer's Delight knives (optional: skipped unless it's installed). A kitchen tool first: quick, light blows, so few Drifters favour one (the skilled and the aggressive a little more), but any knife counts as a weapon for what it's worth.",
+	"requires": "farmersdelight",
+	"families": [
+		{
+			"id": "farmersdelight:knife",
+			"name": "knife",
+			"two_handed": false,
+			"weight": 0.25,
+			"likes": {
+				"skill": 0.4,
+				"aggression": 0.3,
+				"caution": -0.2
+			},
+			"tiers": {
+				"stone": "farmersdelight:flint_knife",
+				"iron": "farmersdelight:iron_knife",
+				"gold": "farmersdelight:golden_knife",
+				"diamond": "farmersdelight:diamond_knife",
+				"netherite": "farmersdelight:netherite_knife"
+			},
+			"craft_at": [
+				"iron",
+				"diamond"
+			]
+		}
+	]
+}

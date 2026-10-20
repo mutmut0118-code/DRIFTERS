@@ -606,7 +606,7 @@ public class AttackTask extends Task {
 	}
 
 	private void lowerShield() {
-		if (this.drifter.isUsingItem() && this.drifter.getUseItem().is(Items.SHIELD)) {
+		if (this.drifter.isUsingItem() && com.dinglebob.drifter.hands.Shields.isShield(this.drifter.getUseItem())) {
 			this.drifter.stopUsingItem();
 		}
 	}

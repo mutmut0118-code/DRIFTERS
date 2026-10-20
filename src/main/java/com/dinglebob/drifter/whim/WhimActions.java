@@ -332,11 +332,25 @@ public final class WhimActions {
 			return stack -> stack.is(tag);
 		}
 
+		// A modded bow or shield (Simply Bows, Spartan Shields: their own kinds of the game's bow and shield).
+		if (item.equals("@modded_bow")) {
+			return stack -> com.dinglebob.drifter.hands.Shields.isBow(stack) && stack.getItem().getClass() != net.minecraft.world.item.BowItem.class;
+		}
+
+		if (item.equals("@modded_shield")) {
+			return stack -> com.dinglebob.drifter.hands.Shields.isShield(stack) && stack.getItem().getClass() != net.minecraft.world.item.ShieldItem.class;
+		}
+
 		Item it = BuiltInRegistries.ITEM.get(ResourceLocation.parse(item));
 		return stack -> stack.is(it);
 	}
 
 	interface Predicate1 extends java.util.function.Predicate<ItemStack> {
+	}
+
+	/** "a lantern", "an iron plated shield". */
+	static String article(String name) {
+		return (!name.isEmpty() && "aeiou".indexOf(Character.toLowerCase(name.charAt(0))) >= 0 ? "an " : "a ") + name;
 	}
 
 	/** Home, if it's close (whims at home stay within its base). */
@@ -1519,6 +1533,8 @@ public final class WhimActions {
 		private static final long KEEP_TICKS = 200L;
 		/** Items tried per look (a few at random, not the whole list: found in the user's log, up to 30 ms a check). */
 		private static final int TRIES = 3;
+		/** A quick make only: at most this many steps (a table to put down and two crafts, say: a reinforced shield). */
+		private static final int MAX_STEPS = 5;
 
 		@Nullable
 		static Item pick(DrifterEntity drifter, Whim whim) {
@@ -1549,7 +1565,7 @@ public final class WhimActions {
 				}
 
 				var plan = com.dinglebob.drifter.brain.Planner.plan(drifter, world, item, 1);
-				if (plan.feasible() && plan.next() != null && WhimPrep.quick(plan) && plan.actions().size() <= 4) {
+				if (plan.feasible() && plan.next() != null && WhimPrep.quick(plan) && plan.actions().size() <= MAX_STEPS) {
 					found = item;
 					break;
 				}
@@ -1581,7 +1597,7 @@ public final class WhimActions {
 
 				@Override
 				public String describe() {
-					return "make a " + name + " just because";
+					return "make " + article(name) + " just because";
 				}
 
 				@Override
@@ -1592,7 +1608,7 @@ public final class WhimActions {
 				@Override
 				protected Status next() {
 					if (this.drifter.getInventory().count(stack -> stack.is(item)) > 0) {
-						this.think("made a " + name + " just because");
+						this.think("made " + article(name) + " just because");
 						return Status.SUCCESS;
 					}
 

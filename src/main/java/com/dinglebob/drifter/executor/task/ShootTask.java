@@ -90,11 +90,11 @@ public class ShootTask extends Task {
 		// (found in testing: drawing on blazes, it took every burst, and a fireball seen coming is too late to block).
 		// (And a little after it stops glowing: the glow goes out as the last fireball leaves, still on its way.)
 		long now = this.drifter.level().getGameTime();
-		if (this.drifter.getOffhandItem().is(Items.SHIELD) && Archery.glowing(this.drifter, this.target)) {
+		if (com.dinglebob.drifter.hands.Shields.isShield(this.drifter.getOffhandItem()) && Archery.glowing(this.drifter, this.target)) {
 			this.guardUntil = now + Archery.BLAZE_GUARD_AFTER_TICKS;
 		}
 
-		if (this.drifter.getOffhandItem().is(Items.SHIELD) && now < this.guardUntil) {
+		if (com.dinglebob.drifter.hands.Shields.isShield(this.drifter.getOffhandItem()) && now < this.guardUntil) {
 			this.guard();
 			return Status.RUNNING;
 		}
@@ -107,9 +107,11 @@ public class ShootTask extends Task {
 		}
 
 		// The bow in hand first.
-		if (!this.drifter.getMainHandItem().is(Items.BOW)) {
+		if (!com.dinglebob.drifter.hands.Shields.isBow(this.drifter.getMainHandItem())) {
 			if (this.select == null) {
-				this.select = new SelectItemTask(this.drifter, stack -> stack.is(Items.BOW), "the bow");
+				int best = com.dinglebob.drifter.hands.Shields.bestBowSlot(this.drifter);
+				net.minecraft.world.item.ItemStack bow = best < 0 ? net.minecraft.world.item.ItemStack.EMPTY : this.drifter.getInventory().getItem(best);
+				this.select = new SelectItemTask(this.drifter, stack -> stack == bow || bow.isEmpty() && com.dinglebob.drifter.hands.Shields.isBow(stack), "the bow");
 			}
 
 			Status status = this.select.tick();

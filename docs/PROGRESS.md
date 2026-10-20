@@ -79,7 +79,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 15 | House plans by the hundred | **Done** (user, 2026-10-19): 9 data-file styles, L and T wings, lofts, corner towers, A-frames, 300 checked plans per world; Drifters pick and build them on their own | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
 | 17 | Fixes: Combat Roll, rough ground, Better Combat animations | **Done in code** (2026-10-19), waiting on the user's play test | The user: "focus on the problems: combat roll, getting around on rough ground, some better combat animations dont work". |
 | 18 | Player skills | **Done in code** (2026-10-19): trading, fishing, horses, boats, potions, netherite; waiting on the user's play test | Villager trading, fishing, horses, boats, potions, netherite (user, 2026-10-19, in that order). |
-| 19 | Mod compat and modded whims | Not started | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
+| 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 20 | Whims offscreen, then wrong guesses | Not started | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
 
 ## Milestone 0: Project setup
@@ -2223,7 +2223,58 @@ The user: "after that start on villager trading, fishing, horses, boats, potions
   diamond sword, came out a netherite sword, name and enchantment kept); in the Nether, stairs from Y 40 to 13 and a
   strip mine, lava breaches handled; one run found a debris, another none (rare, as for players).
 
-### Next
+## Milestone 19: Mod compat and modded whims (started 2026-10-19)
 
-- Milestone 19: mod compat and modded whims (Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard
-  Villagers, Bountiful).
+The user: "work on more whims (specifically modded) and mod compat in general, i added farmers delight refabricated,
+simply bows, spartan shields, villager guards, and bountiful". All optional: nothing needs them, and the data files and
+whims for a mod that isn't installed are left out.
+
+### Testing note: three of the five don't load in the development server
+
+Guard Villagers (a method name clash that only exists under the development names), Farmer's Delight Refabricated (a
+remapping error, as before) and Bountiful (it needs Kambrik, which isn't installed) can't run in the development
+setup. Their support is written carefully (by registry id, data files and existing actions) and is on the user's
+checklist. **Bountiful needs the Kambrik mod**, which isn't in the DRIFTER TEST profile: the game won't start with
+Bountiful until it's added.
+
+### Spartan Shields (done, tested)
+
+- Any shield is a shield (Spartan's are the game's own shield underneath): carried, raised, worn down by blocked hits,
+  kept when storing, and the best one goes in its offhand (`hands/Shields`: by the wear it has left; enchanted a little
+  better). Tested: given a vanilla shield and a Diamond Reinforced Shield, it put the diamond one on.
+- Whims: making a big tower shield, making a shield and reinforcing it with iron (the crude wooden shield first: the
+  planner's chain, a crafting table put down if needed), showing off its shield to company. Craft whims may now take 5
+  steps (was 4). Tested: both made and equipped.
+
+### Simply Bows (done, tested)
+
+- Any bow is a bow, and its best one (a unique bow over a plain one, then enchantments) is the one it shoots with.
+- Simply Bows gives any shooter that isn't a player endless arrows. A Drifter shoots a modded bow that has its own way
+  of letting go through its helper player, as a player does: the arrows come out of its own pack, the bow's ability
+  works as for a player, and the arrows are then its own (whom they hit, it hit). Tested: Buzzkill at a zombie, 13 shots,
+  13 arrows used, the bow worn, the kill its own.
+- Whim: showing off its unique bow to company. Unique bows are chest loot: it finds them in the chests it loots.
+- `/drifter shoot <target>` (debug): shoots at something with its best bow.
+
+### Guard Villagers (written, to check in the user's game)
+
+- Guards are the village's defenders: a bandit on the rampage treats them like iron golems. They count as a threat only
+  while one is after the Drifter (`data/drifter/drifter_threats/modded.json`: about a vindicator), so peaceful Drifters
+  and guards leave each other alone (guards go after monsters, raiders, and whoever hurts a villager or a guard).
+- Whim: watching the village guards.
+- Not done: giving a guard gear (the mod only lets a player with Hero of the Village or good standing do that).
+
+### Farmer's Delight Refabricated (written, to check in the user's game)
+
+- Its knives are a weapon family (`drifter_weapons/farmersdelight.json`: light and quick, few favour one); its foods it
+  eats like any food.
+- Whims: a warm bowl of stew, a mug of hot cocoa at night, setting a cooking pot over a campfire (plus the earlier
+  ones: a knife, a cutting board, watching the stew, a slice of pie).
+- Found for later: its cooking pot takes items through Fabric's standard item transfer, so Drifters could cook its
+  meals (ingredients in from the top, a bowl, the meal out the bottom); not done yet.
+
+### Bountiful (written, needs Kambrik)
+
+- Whim: reading the bounty board.
+- Later, if the user wants it: taking and turning in bounties (the board's screen can't open for its helper player, so
+  it would be done through the mod's own code).

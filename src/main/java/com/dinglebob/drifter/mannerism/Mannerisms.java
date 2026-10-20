@@ -840,7 +840,7 @@ public final class Mannerisms {
 
 		@Override
 		void stop() {
-			if (Mannerisms.this.drifter.isUsingItem() && Mannerisms.this.drifter.getUseItem().is(net.minecraft.world.item.Items.SHIELD)) {
+			if (Mannerisms.this.drifter.isUsingItem() && com.dinglebob.drifter.hands.Shields.isShield(Mannerisms.this.drifter.getUseItem())) {
 				Mannerisms.this.drifter.stopUsingItem();
 			}
 		}

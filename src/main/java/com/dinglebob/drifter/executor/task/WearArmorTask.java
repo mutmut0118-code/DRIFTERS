@@ -140,13 +140,15 @@ public class WearArmorTask extends Task {
 		return false;
 	}
 
-	/** A shield in the main inventory while the offhand holds no shield, or -1. */
+	/** Its best shield in the main inventory, if the offhand holds no shield or a worse one, or -1. */
 	private static int shieldSlot(DrifterEntity drifter) {
-		if (drifter.getOffhandItem().is(Items.SHIELD)) {
+		int best = com.dinglebob.drifter.hands.Shields.bestSlot(drifter);
+		ItemStack held = drifter.getOffhandItem();
+		if (best < 0 || com.dinglebob.drifter.hands.Shields.isShield(held) && com.dinglebob.drifter.hands.Shields.score(held) >= com.dinglebob.drifter.hands.Shields.score(drifter.getInventory().getItem(best))) {
 			return -1;
 		}
 
-		return drifter.getInventory().findSlot(stack -> stack.is(Items.SHIELD), 0, DrifterInventory.MAIN_SIZE);
+		return best;
 	}
 
 	private boolean wearBest(EquipmentSlot slot) {

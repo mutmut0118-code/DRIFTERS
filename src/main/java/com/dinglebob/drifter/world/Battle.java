@@ -109,7 +109,7 @@ public final class Battle {
 				if (side != null) {
 					standing[side]++;
 					seenAt.put(drifter.getUUID(), drifter.position());
-					if (drifter.isUsingItem() && drifter.getUseItem().is(Items.BOW)) {
+					if (drifter.isUsingItem() && com.dinglebob.drifter.hands.Shields.isBow(drifter.getUseItem())) {
 						drawing++;
 					}
 
