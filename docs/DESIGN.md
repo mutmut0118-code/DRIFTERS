@@ -1923,6 +1923,10 @@ Each milestone ends with a test you can actually run.
     Villagers, Bountiful, all optional (detected at runtime), and modded whims for them.
 20. **Whims offscreen and wrong guesses** (user, 2026-10-19): a proposal for simulating or catching up whims away from
     players, then more of the wrong-guess assumptions (the cave hunch, the theft assumption).
+21. **Encounters and bounties** (user, 2026-10-20; docs/ENCOUNTERS.md): random events with temporary Drifters you never
+    see again, like the GTA random events (bounty hunters after you, a wanted Drifter with a map to its house, ambushes,
+    people needing help, merchants...), and Bountiful compat (Drifters doing bounties; bounties on Drifters). The user
+    picks the events from the list.
 
 Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 14 (The End). They are tests, not milestones of their own.
 

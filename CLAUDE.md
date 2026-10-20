@@ -11,6 +11,8 @@ This is a long, multi-session project. Follow these rules in every session.
 4. `docs/HANDOFF.md` — the short version of everything from the first (cloud) session: state, what's waiting on a test, the user's rules and preferences from the chat, notes for milestone 7.
 
 docs/WHIMS.md is reference for the whim system milestone. Don't implement whims until the roadmap reaches it.
+docs/ENCOUNTERS.md is the plan for milestone 21 (encounters and bounties); docs/OFFSCREEN_WHIMS.md is the proposal for
+whims offscreen (waiting on the user's pick).
 
 ## Version targets
 
