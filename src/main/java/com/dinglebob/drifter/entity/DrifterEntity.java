@@ -2288,6 +2288,22 @@ protected void customServerAiStep() {
 	@Override
 	public void die(DamageSource source) {
 		this.tasks.cancel("died");
+		// Whether it comes back (section 20, by the setting), and what it's leaving behind worth going back for.
+		boolean comesBack = !this.level().isClientSide() && com.dinglebob.drifter.world.Respawns.comesBack(this, source);
+		int worth = 0;
+		for (int slot = 0; slot < this.inventory.getContainerSize(); slot++) {
+			ItemStack stack = this.inventory.getItem(slot);
+			if (!stack.isEmpty() && !com.dinglebob.drifter.brain.Storage.isJunk(this, stack)) {
+				worth++;
+			}
+		}
+
+		for (EquipmentSlot slot : EquipmentSlot.values()) {
+			if (!this.getItemBySlot(slot).isEmpty()) {
+				worth++;
+			}
+		}
+
 		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
 			this.social.watcher().killedBy(player);
 		}
@@ -2298,12 +2314,16 @@ protected void customServerAiStep() {
 			com.dinglebob.drifter.world.DrifterWars.killed(killer, this);
 		}
 
-		// Gone for good: out of its group (found in testing: the dead stayed members forever); the others hear of it.
+		// Gone for good: out of its group (found in testing: the dead stayed members forever); the others hear of it. (Coming
+		// back: still one of them.)
 		if (this.level() instanceof ServerLevel server) {
 			var group = com.dinglebob.drifter.world.DrifterGroups.of(this.getUUID());
 			if (group != null) {
 				String name = this.getName().getString();
-				com.dinglebob.drifter.world.DrifterGroups.leave(this.getUUID());
+				if (!comesBack) {
+					com.dinglebob.drifter.world.DrifterGroups.leave(this.getUUID());
+				}
+
 				for (java.util.UUID id : group.members) {
 					if (server.getEntity(id) instanceof DrifterEntity mate) {
 						mate.getMemory().thoughts().add(server.getGameTime(), name + " died");
@@ -2329,7 +2349,55 @@ protected void customServerAiStep() {
 			this.ragdoll = com.dinglebob.drifter.compat.RagdollCompat.onDeath(this, source);
 		}
 
+		boolean wasDead = this.dead;
 		super.die(source);
+		if (!wasDead && this.dead && !this.level().isClientSide()) {
+			com.dinglebob.drifter.world.Respawns.died(this, source, comesBack, worth);
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Its deaths (section 20)
+	// ---------------------------------------------------------------------------------------------
+
+	/** Times it has died (limited lives count these). */
+	private int deaths;
+	/** When it last died, the latest few (a bad day: rage-quitting). */
+	private final java.util.ArrayDeque<Long> recentDeaths = new java.util.ArrayDeque<>();
+	/** Where it last died and what it left there (the corpse run), or null once that's done with. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.world.Respawns.Corpse corpse;
+
+	public int deaths() {
+		return this.deaths;
+	}
+
+	/** Deaths in the last {@code span} ticks. */
+	public int deathsWithin(long now, long span) {
+		return (int)this.recentDeaths.stream().filter(at -> now - at <= span).count();
+	}
+
+	/** It died: one more, where, and what it left; a hard lesson and a foul mood (section 20 "After-effects"). */
+	public void recordDeath(long now, com.dinglebob.drifter.world.Respawns.Corpse corpse) {
+		this.deaths++;
+		this.recentDeaths.addLast(now);
+		while (this.recentDeaths.size() > 5) {
+			this.recentDeaths.removeFirst();
+		}
+
+		this.corpse = corpse;
+		this.personality.feel(com.dinglebob.drifter.personality.Mood.FRUSTRATED, 0.7, "died");
+		this.memory.thoughts().add(now, "died at " + corpse.pos().toShortString() + ": " + corpse.cause()
+			+ (corpse.worth() > 0 ? " (" + corpse.worth() + (corpse.worth() == 1 ? " thing" : " things") + " left there)" : ""));
+	}
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.world.Respawns.Corpse corpse() {
+		return this.corpse;
+	}
+
+	public void forgetCorpse() {
+		this.corpse = null;
 	}
 
 	/** Its ragdoll, once it has died and become one (Sable Player Ragdoll). */
@@ -2527,6 +2595,14 @@ protected void customServerAiStep() {
 		// When it was last running, for catch-up when it loads again (section 22).
 		tag.putLong("LastActive", this.level().getGameTime());
 		tag.putLong("PendingCatchUp", this.pendingCatchUp);
+		CompoundTag death = new CompoundTag();
+		death.putInt("Deaths", this.deaths);
+		death.putLongArray("Recent", this.recentDeaths.stream().mapToLong(Long::longValue).toArray());
+		if (this.corpse != null) {
+			death.put("Corpse", this.corpse.save());
+		}
+
+		tag.put("DrifterDeaths", death);
 		if (this.delveFrom != null && this.delveUntil > 0L) {
 			CompoundTag delve = new CompoundTag();
 			delve.putLong("From", this.delveFrom.asLong());
@@ -2570,6 +2646,14 @@ protected void customServerAiStep() {
 
 		this.lastActive = tag.contains("LastActive", Tag.TAG_LONG) ? tag.getLong("LastActive") : -1L;
 		this.pendingCatchUp = tag.getLong("PendingCatchUp");
+		CompoundTag death = tag.getCompound("DrifterDeaths");
+		this.deaths = death.getInt("Deaths");
+		this.recentDeaths.clear();
+		for (long at : death.getLongArray("Recent")) {
+			this.recentDeaths.addLast(at);
+		}
+
+		this.corpse = death.contains("Corpse", Tag.TAG_COMPOUND) ? com.dinglebob.drifter.world.Respawns.Corpse.load(death.getCompound("Corpse")) : null;
 		if (tag.contains("Delve", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
 			CompoundTag delve = tag.getCompound("Delve");
 			this.delveFrom = BlockPos.of(delve.getLong("From"));

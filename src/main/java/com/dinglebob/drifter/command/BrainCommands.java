@@ -91,6 +91,22 @@ public final class BrainCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " now lives here (it still needs a chest)"), true);
 				return 1;
 			}))
+			// Debug: its bed is the one here (a house it lives in): where it comes back after dying (section 20).
+			.then(Commands.literal("bed").then(Commands.argument("pos", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos()).executes(ctx -> {
+				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+				com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
+				net.minecraft.core.BlockPos pos = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "pos");
+				var state = drifter.level().getBlockState(pos);
+				if (home == null || !(state.getBlock() instanceof net.minecraft.world.level.block.BedBlock)) {
+					throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal(home == null ? "No home yet" : "No bed there")).create();
+				}
+
+				// (The head of the bed, as the game keeps a bed's place.)
+				home.houseBed = state.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD
+					? pos : pos.relative(state.getValue(net.minecraft.world.level.block.BedBlock.FACING));
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + "'s bed is at " + home.houseBed.toShortString()), true);
+				return 1;
+			})))
 			.then(Commands.literal("clear").executes(ctx -> {
 				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 				drifter.getDrifterBrain().setHome(null);

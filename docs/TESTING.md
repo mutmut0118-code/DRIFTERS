@@ -1407,6 +1407,20 @@ then `/summon husk ~5 ~ ~` twice.
 - [ ] **Getting around**: on hills and mountains Drifters should get stuck less again (they guess the height of ground
       they haven't seen from the ground nearby). `/drifter navtest 20 16 40` as before.
 
+## Death, respawn and lives (new, 0.21.1)
+
+- [ ] **Settings**: Mod Menu > Drifter > the gear button. It scrolls now; every setting has a tooltip. Under "When a
+      Drifter dies": "On death" (limited lives / back at its bed / gone for good) and "Lives" (default 5).
+- [ ] **Bed respawn**: find a Drifter with a home and a bed (`/drifter home` near it shows its home), kill it
+      (`/damage @e[type=drifter:drifter,limit=1,sort=nearest] 100`). Chat says "<name> died"; 5 to 30 seconds later it's
+      back beside its bed with nothing (`/drifter respawns` shows who's on the way back). Its name, skin and friends are
+      the same. `/kill` removes it for good instead.
+- [ ] **Corpse run**: if it dropped a few good things, it runs back to where it died and picks them up (its thoughts:
+      "going back for its things", "got some of its things back").
+- [ ] **Limited lives**: `/drifter config lives 2`, kill the same Drifter three times: the third time chat says
+      "<name> left the game" and it doesn't come back.
+- [ ] **Permadeath**: "On death: gone for good": it never comes back; its base stays as it was.
+
 ## Milestone 21: encounters (new)
 
 Random events with Drifters you meet once. They come on their own about every day and a half of game time (in

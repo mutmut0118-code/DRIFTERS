@@ -166,6 +166,12 @@ public final class DrifterCommands {
 		// Finding them (user's request): a list of every loaded Drifter with where it is, each name a click to go there, and a
 		// teleport by name.
 		root.then(Commands.literal("list").executes(DrifterCommands::list));
+		// Who's dead and on the way back (section 20).
+		root.then(Commands.literal("respawns").executes(ctx -> {
+			var lines = com.dinglebob.drifter.world.Respawns.report(ctx.getSource().getServer());
+			ctx.getSource().sendSuccess(() -> Component.literal(lines.isEmpty() ? "Nobody on the way back" : String.join("\n", lines)), false);
+			return lines.size();
+		}));
 		// Timing per system (section 22 budget).
 		root.then(Commands.literal("perf").executes(ctx -> {
 			java.util.Map<DetailTier, Integer> tiers = new java.util.EnumMap<>(DetailTier.class);
@@ -384,6 +390,30 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setSimulatedDrifters(IntegerArgumentType.getInteger(ctx, "count"));
 					return showConfig(ctx);
 				})))
+			// What a death means (section 20): bed respawn, limited lives (default), permadeath.
+			.then(Commands.literal("respawn")
+				.then(Commands.argument("mode", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("bed", "lives", "permadeath"), builder))
+					.executes(ctx -> {
+						try {
+							com.dinglebob.drifter.DrifterConfig.setRespawnMode(com.dinglebob.drifter.DrifterConfig.RespawnMode.valueOf(
+								com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "mode").toUpperCase(java.util.Locale.ROOT)));
+						} catch (IllegalArgumentException e) {
+							ctx.getSource().sendFailure(Component.literal("Use bed, lives or permadeath"));
+							return 0;
+						}
+
+						return showConfig(ctx);
+					})))
+			.then(Commands.literal("lives")
+				.then(Commands.argument("count", IntegerArgumentType.integer(1, com.dinglebob.drifter.DrifterConfig.MAX_LIVES)).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setLives(IntegerArgumentType.getInteger(ctx, "count"));
+					return showConfig(ctx);
+				})))
+			.then(Commands.literal("deathmessages").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setDeathMessages(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				return showConfig(ctx);
+			})))
 			.then(Commands.literal("offline")
 				.then(Commands.argument("mode", com.mojang.brigadier.arguments.StringArgumentType.word())
 					.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("off", "game_time", "real_time"), builder))
@@ -753,7 +783,12 @@ public final class DrifterCommands {
 			+ ", Drifters kept running away from players "
 			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters() + ", catch-up for time away "
 			+ com.dinglebob.drifter.DrifterConfig.offlineProgression().name().toLowerCase(Locale.ROOT) + ", aggression to players "
-			+ com.dinglebob.drifter.DrifterConfig.playerAggression() + "%, to each other " + com.dinglebob.drifter.DrifterConfig.drifterAggression() + "%"), true);
+			+ com.dinglebob.drifter.DrifterConfig.playerAggression() + "%, to each other " + com.dinglebob.drifter.DrifterConfig.drifterAggression() + "%"
+			+ ", on death " + switch (com.dinglebob.drifter.DrifterConfig.respawnMode()) {
+				case BED -> "back at its bed";
+				case LIVES -> com.dinglebob.drifter.DrifterConfig.lives() + " lives";
+				case PERMADEATH -> "gone for good";
+			} + ", death messages " + (com.dinglebob.drifter.DrifterConfig.deathMessages() ? "on" : "off")), true);
 		return 1;
 	}
 

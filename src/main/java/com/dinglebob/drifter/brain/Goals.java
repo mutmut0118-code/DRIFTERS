@@ -2324,6 +2324,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.trade.TradeGoal());
 		// Bounty boards (milestone 21, Bountiful, optional).
 		goals.add(new com.dinglebob.drifter.compat.BountyGoal());
+		// Going back for its things after dying (section 20).
+		goals.add(new com.dinglebob.drifter.skills.CorpseRunGoal());
 		// Fishing (milestone 18, section 10.5).
 		goals.add(new com.dinglebob.drifter.skills.FishGoal());
 		// Its horse (milestone 18, section 10.7).

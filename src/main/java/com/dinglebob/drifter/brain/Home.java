@@ -265,6 +265,13 @@ public final class Home {
 		return this.houseBed != null || this.outpost;
 	}
 
+	/** Whichever bed it has now (its house's, else its hut's), if it's still there: where it comes back after dying. */
+	@Nullable
+	public BlockPos bedOrNull(net.minecraft.world.level.Level level) {
+		BlockPos bed = this.houseBed(level);
+		return bed != null ? bed : this.hutBuilt ? com.dinglebob.drifter.building.StarterHut.of(this).bed(level) : null;
+	}
+
 	/** Its bed in the village house, or in the house it built from a plan, if it's still there. */
 	@Nullable
 	public BlockPos houseBed(net.minecraft.world.level.Level level) {

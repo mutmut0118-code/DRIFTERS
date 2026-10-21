@@ -1,157 +1,104 @@
 package com.dinglebob.drifter.client.config;
 
-import java.util.function.IntConsumer;
-import java.util.function.IntFunction;
-
 import com.dinglebob.drifter.DrifterConfig;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractSliderButton;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 
 /**
  * Drifter's settings in-game (user's wish; milestone 12 step 6), opened from Mod Menu: every setting in config/drifter.json,
- * the same ones the /drifter config commands change. Changes apply at once and are saved when the screen closes. In single
- * player they reach the running world; on a server they only change this computer's file (the server's file rules there).
+ * the same ones the /drifter config commands change, in sections, with the spawning, encounter and performance pages a
+ * click away. In single player they reach the running world; on a server they only change this computer's file (the
+ * server's file rules there).
  */
-public class DrifterConfigScreen extends Screen {
-	private static final int ROW = 22;
-	static final int WIDTH = 150;
-	private final Screen parent;
-
+public class DrifterConfigScreen extends DrifterOptionsScreen {
 	public DrifterConfigScreen(Screen parent) {
-		super(Component.literal("Drifter settings"));
-		this.parent = parent;
+		super(parent, "Drifter settings");
 	}
 
 	@Override
-	protected void init() {
-		int left = this.width / 2 - WIDTH - 5;
-		int right = this.width / 2 + 5;
-		int y = 34;
+	protected void addOptions() {
+		this.note("Changes apply at once (also: /drifter config). Hover over a setting to see what it does.");
 
-		this.addRenderableWidget(new IntSlider(left, y, "How far they see", DrifterConfig.MIN_SIGHT_CHUNKS, DrifterConfig.MAX_SIGHT_CHUNKS,
-			DrifterConfig.sightChunks(), v -> v + " chunks", DrifterConfig::setSightChunks));
-		this.addRenderableWidget(new IntSlider(right, y, "How far they plan routes", DrifterConfig.MIN_PATH_RANGE, DrifterConfig.MAX_PATH_RANGE,
-			DrifterConfig.pathRange(), v -> v + " blocks", DrifterConfig::setPathRange));
-		y += ROW;
-		this.addRenderableWidget(new IntSlider(left, y, "Their field of view", DrifterConfig.MIN_FOV, DrifterConfig.MAX_FOV, DrifterConfig.fov(),
-			v -> v + " degrees", DrifterConfig::setFov));
-		this.addRenderableWidget(new IntSlider(right, y, "Kept running when away", 0, DrifterConfig.MAX_SIMULATED, DrifterConfig.simulatedDrifters(),
-			v -> v + (v == 1 ? " Drifter" : " Drifters"), DrifterConfig::setSimulatedDrifters));
-		y += ROW;
-		this.addRenderableWidget(new IntSlider(left, y, "Aggression to players", 0, 100, DrifterConfig.playerAggression(),
-			DrifterConfigScreen::aggressionText, DrifterConfig::setPlayerAggression));
-		this.addRenderableWidget(new IntSlider(right, y, "Aggression to each other", 0, 100, DrifterConfig.drifterAggression(),
-			DrifterConfigScreen::aggressionText, DrifterConfig::setDrifterAggression));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Chat lines", DrifterConfig.chatLines(), DrifterConfig::setChatLines));
-		this.addRenderableWidget(toggle(right, y, "Share reputation", DrifterConfig.shareReputation(), DrifterConfig::setShareReputation));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Raid players' chests", DrifterConfig.raiding(), DrifterConfig::setRaiding));
-		this.addRenderableWidget(toggle(right, y, "Thoughts in the log", DrifterConfig.logThoughts(), DrifterConfig::setLogThoughts));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "World-gen camps", DrifterConfig.worldgenCamps(), DrifterConfig::setWorldgenCamps));
-		this.addRenderableWidget(toggle(right, y, "Old strip mines", DrifterConfig.worldgenMines(), DrifterConfig::setWorldgenMines));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Torches in caves", DrifterConfig.worldgenCaveTorches(), DrifterConfig::setWorldgenCaveTorches));
-		this.addRenderableWidget(toggle(right, y, "Drifter villages", DrifterConfig.worldgenVillages(), DrifterConfig::setWorldgenVillages));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Bandit outposts", DrifterConfig.worldgenOutposts(), DrifterConfig::setWorldgenOutposts));
-		this.addRenderableWidget(toggle(right, y, "Group wars and raids", DrifterConfig.drifterWars(), DrifterConfig::setDrifterWars));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Whims (things for fun)", DrifterConfig.whims(), DrifterConfig::setWhims));
-		this.addRenderableWidget(toggle(right, y, "Outpost Bandits grief", DrifterConfig.banditGriefing(), DrifterConfig::setBanditGriefing));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Wandering Drifters", DrifterConfig.worldgenWanderers(), DrifterConfig::setWorldgenWanderers));
-		this.addRenderableWidget(toggle(right, y, "Mineshaft delvers", DrifterConfig.worldgenDelvers(), DrifterConfig::setWorldgenDelvers));
-		y += ROW;
-		this.addRenderableWidget(toggle(left, y, "Bandits kill on sight", DrifterConfig.banditsKillOnSight(), DrifterConfig::setBanditsKillOnSight));
-		this.addRenderableWidget(toggle(right, y, "Parkour jumps", DrifterConfig.parkour(), DrifterConfig::setParkour));
-		y += ROW;
-		this.addRenderableWidget(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
-				case OFF -> "off";
-				case GAME_TIME -> "game time";
-				case REAL_TIME -> "real time";
-			}))
-			.withValues(DrifterConfig.OfflineProgression.values())
-			.withInitialValue(DrifterConfig.offlineProgression())
-			.create(left, y, WIDTH, 20, Component.literal("Catch-up while closed"),
-				(button, mode) -> DrifterConfig.setOfflineProgression(mode)));
-		// (Sable Player Ragdoll; Ragdoll Corpse for corpses.)
-		this.addRenderableWidget(toggle(right, y, "Ragdolls on death", DrifterConfig.ragdolls(), DrifterConfig::setRagdolls));
+		this.heading("Drifters");
+		this.row(slider("Sight", DrifterConfig.MIN_SIGHT_CHUNKS, DrifterConfig.MAX_SIGHT_CHUNKS, DrifterConfig.sightChunks(),
+				v -> v + " chunks", DrifterConfig::setSightChunks, "How far a Drifter can make things out in daylight (less in the dark, rain and fog)."),
+			slider("Route range", DrifterConfig.MIN_PATH_RANGE, DrifterConfig.MAX_PATH_RANGE, DrifterConfig.pathRange(),
+				v -> v + " blocks", DrifterConfig::setPathRange, "How far one route search reaches. Farther finds better ways round, and costs more."));
+		this.row(slider("Field of view", DrifterConfig.MIN_FOV, DrifterConfig.MAX_FOV, DrifterConfig.fov(), v -> v + "°",
+				DrifterConfig::setFov, "Like your FOV slider: how wide they see."),
+			slider("Kept running", 0, DrifterConfig.MAX_SIMULATED, DrifterConfig.simulatedDrifters(),
+				v -> String.valueOf(v), DrifterConfig::setSimulatedDrifters,
+				"The busiest few far from every player keep living in full; the rest catch up when you come back."));
+		this.row(tip(CycleButton.<DrifterConfig.OfflineProgression>builder(mode -> Component.literal(switch (mode) {
+					case OFF -> "off";
+					case GAME_TIME -> "game time";
+					case REAL_TIME -> "real time";
+				}))
+				.withValues(DrifterConfig.OfflineProgression.values())
+				.withInitialValue(DrifterConfig.offlineProgression())
+				.create(0, 0, WIDTH, 20, Component.literal("While closed"), (button, mode) -> DrifterConfig.setOfflineProgression(mode)),
+				"What they did while the world was closed: nothing, the game time that passed, or the real time (capped at two days)."),
+			toggle("Ragdolls on death", DrifterConfig.ragdolls(), DrifterConfig::setRagdolls,
+				"With Sable Player Ragdoll: a Drifter that dies falls as a ragdoll (and a corpse with its things, with Ragdoll Corpse)."));
+		this.row(toggle("Chat lines", DrifterConfig.chatLines(), DrifterConfig::setChatLines, "Short lines in chat (hi, ty, gg...) and what encounter Drifters say."),
+			toggle("Thoughts in the log", DrifterConfig.logThoughts(), DrifterConfig::setLogThoughts,
+				"Every decision they make goes to the game log, in plain words. For finding out why one did something."));
+		this.row(toggle("Whims (things for fun)", DrifterConfig.whims(), DrifterConfig::setWhims, "Watching sunsets, little builds, snowball fights: what they do when bored."),
+			toggle("Parkour jumps", DrifterConfig.parkour(), DrifterConfig::setParkour, "Jumping gaps on their routes, as players do."));
 
-		// How common each kind of new Drifter is, and the most loaded at once: their own page.
-		this.addRenderableWidget(Button.builder(Component.literal("Spawning..."), button -> this.minecraft.setScreen(new DrifterSpawnScreen(this)))
-			.bounds(this.width / 2 - 151, this.height - 52, 98, 20).build());
-		// Encounters (milestone 21): their own page.
-		this.addRenderableWidget(Button.builder(Component.literal("Encounters..."), button -> this.minecraft.setScreen(new DrifterEncounterScreen(this)))
-			.bounds(this.width / 2 - 49, this.height - 52, 98, 20).build());
-		// Helper threads (milestone 16): their own page.
-		this.addRenderableWidget(Button.builder(Component.literal("Performance..."), button -> this.minecraft.setScreen(new DrifterPerformanceScreen(this)))
-			.bounds(this.width / 2 + 53, this.height - 52, 98, 20).build());
-		this.addRenderableWidget(Button.builder(Component.literal("Done"), button -> this.onClose())
-			.bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
+		this.heading("When a Drifter dies");
+		var lives = slider("Lives", 1, DrifterConfig.MAX_LIVES, DrifterConfig.lives(), v -> String.valueOf(v), DrifterConfig::setLives,
+			"How many times it comes back before it logs off for good.");
+		lives.active = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES;
+		this.row(tip(CycleButton.<DrifterConfig.RespawnMode>builder(mode -> Component.literal(switch (mode) {
+					case BED -> "back at its bed";
+					case LIVES -> "limited lives";
+					case PERMADEATH -> "gone for good";
+				}))
+				.withValues(DrifterConfig.RespawnMode.values())
+				.withInitialValue(DrifterConfig.respawnMode())
+				.create(0, 0, WIDTH, 20, Component.literal("On death"), (button, mode) -> {
+					DrifterConfig.setRespawnMode(mode);
+					lives.active = mode == DrifterConfig.RespawnMode.LIVES;
+				}),
+				"Back at its bed (or its base) with nothing, like a player; the same but only a few times; or never. A Drifter with no base yet is gone either way."),
+			lives);
+		this.row(toggle("Death messages", DrifterConfig.deathMessages(), DrifterConfig::setDeathMessages, "\"<name> was slain by Zombie\" in chat, as for a player."), null);
+
+		this.heading("Toward players and each other");
+		this.row(slider("Hostile to players", 0, 100, DrifterConfig.playerAggression(), DrifterConfigScreen::aggressionText,
+				DrifterConfig::setPlayerAggression, "0: never hostile. 100: hostile on sight. 50: as each one's personality has it."),
+			slider("Hostile to others", 0, 100, DrifterConfig.drifterAggression(), DrifterConfigScreen::aggressionText,
+				DrifterConfig::setDrifterAggression, "The same between Drifters: 100 makes every Drifter outside its group an enemy."));
+		this.row(toggle("Share reputation", DrifterConfig.shareReputation(), DrifterConfig::setShareReputation,
+				"Players seen together share a little of each other's standing."),
+			toggle("Raid players' chests", DrifterConfig.raiding(), DrifterConfig::setRaiding, "Bandits, and Drifters with a real grudge, raid players' chests."));
+		this.row(toggle("Group wars and raids", DrifterConfig.drifterWars(), DrifterConfig::setDrifterWars, "Drifter groups fall into feuds, skirmish and raid each other."),
+			toggle("Bandits kill on sight", DrifterConfig.banditsKillOnSight(), DrifterConfig::setBanditsKillOnSight,
+				"Bandits attack anyone outside their gang on sight: players, Drifters, villagers, pets."));
+		this.row(toggle("Outpost Bandits grief", DrifterConfig.banditGriefing(), DrifterConfig::setBanditGriefing,
+			"Outpost Bandits break doors, take chests and set fires in players' bases."), null);
+
+		this.heading("World generation (new chunks only)");
+		this.row(toggle("World-gen camps", DrifterConfig.worldgenCamps(), DrifterConfig::setWorldgenCamps, "Drifter camps out in the world."),
+			toggle("Old strip mines", DrifterConfig.worldgenMines(), DrifterConfig::setWorldgenMines, "Old strip mines someone dug long ago."));
+		this.row(toggle("Torches in caves", DrifterConfig.worldgenCaveTorches(), DrifterConfig::setWorldgenCaveTorches, "Torches left in caves by someone who came before."),
+			toggle("Drifter villages", DrifterConfig.worldgenVillages(), DrifterConfig::setWorldgenVillages, "Drifters living in some villages."));
+		this.row(toggle("Bandit outposts", DrifterConfig.worldgenOutposts(), DrifterConfig::setWorldgenOutposts, "Bandit gangs holding some pillager outposts."),
+			toggle("Wandering Drifters", DrifterConfig.worldgenWanderers(), DrifterConfig::setWorldgenWanderers,
+				"Lone Drifters with no home yet: just starting out, or passing through."));
+		this.row(toggle("Mineshaft delvers", DrifterConfig.worldgenDelvers(), DrifterConfig::setWorldgenDelvers,
+			"Well-armed Drifters delving some mineshafts, looting their chests. Mostly unfriendly."), null);
+
+		this.heading("More");
+		this.row(this.page("Spawning...", "How common each kind of new Drifter is, the most at once, and their skins.", () -> new DrifterSpawnScreen(this)),
+			this.page("Encounters...", "Random events with Drifters you meet once: how often, and each kind on or off.", () -> new DrifterEncounterScreen(this)));
+		this.row(this.page("Performance...", "Helper threads, and how often far-off Drifters think.", () -> new DrifterPerformanceScreen(this)), null);
 	}
 
 	private static String aggressionText(int value) {
-		return value <= 0 ? "peaceful" : value >= 100 ? "always hostile" : value == DrifterConfig.DEFAULT_AGGRESSION ? "normal (50%)" : value + "%";
-	}
-
-	static CycleButton<Boolean> toggle(int x, int y, String label, boolean value, java.util.function.Consumer<Boolean> set) {
-		return CycleButton.onOffBuilder(value).create(x, y, WIDTH, 20, Component.literal(label), (button, on) -> set.accept(on));
-	}
-
-	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-		super.render(graphics, mouseX, mouseY, partialTick);
-		graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
-		graphics.drawCenteredString(this.font, Component.literal("Also: /drifter config. World-gen settings apply to new chunks."),
-			this.width / 2, 20, 0xA0A0A0);
-	}
-
-	@Override
-	public void onClose() {
-		DrifterConfig.save();
-		if (this.minecraft != null) {
-			this.minecraft.setScreen(this.parent);
-		}
-	}
-
-	/** A slider over whole numbers, showing its label and value, setting the value as it moves. */
-	static final class IntSlider extends AbstractSliderButton {
-		private final String label;
-		private final int min;
-		private final int max;
-		private final IntFunction<String> text;
-		private final IntConsumer set;
-
-		IntSlider(int x, int y, String label, int min, int max, int value, IntFunction<String> text, IntConsumer set) {
-			super(x, y, WIDTH, 20, Component.empty(), (Mth.clamp(value, min, max) - min) / (double)Math.max(1, max - min));
-			this.label = label;
-			this.min = min;
-			this.max = max;
-			this.text = text;
-			this.set = set;
-			this.updateMessage();
-		}
-
-		private int intValue() {
-			return this.min + (int)Math.round(this.value * (this.max - this.min));
-		}
-
-		@Override
-		protected void updateMessage() {
-			this.setMessage(Component.literal(this.label + ": " + this.text.apply(this.intValue())));
-		}
-
-		@Override
-		protected void applyValue() {
-			this.set.accept(this.intValue());
-		}
+		return value <= 0 ? "never" : value >= 100 ? "always" : value == DrifterConfig.DEFAULT_AGGRESSION ? "normal" : value + "%";
 	}
 }

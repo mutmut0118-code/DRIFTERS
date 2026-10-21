@@ -2473,6 +2473,42 @@ the suggested first batch was built. Everything is in docs/ENCOUNTERS.md ("Built
   timing out counted as a failure and marked the part down; the traveller dug in for the night instead of running; two
   ambush bandits killed each other; bandits who heard someone didn't go and look.
 
+## Death, respawn and lives (2026-10-20)
+
+The user: "do the respawn and lives stuff first, make it configurable between the three" (DESIGN.md section 20, never
+built before: a Drifter's death was permanent).
+- `world/Respawns`: the three modes, "On death" in the settings or `/drifter config respawn bed|lives|permadeath`:
+  back at its bed 5 to 30 s later with nothing (bed); the same up to N times, then "<name> left the game" for good
+  (limited lives, the default, 5: `/drifter config lives <n>`); never back (permadeath: its base stays as it was). No
+  bed: near its base's middle. No base yet: gone in every mode (the design's rule). Name, skin, memories, friends,
+  grudges and its group stay; XP, effects and what it carried don't. Waiting entries are saved with the world, and one
+  whose home isn't loaded comes back when it is (nothing is loaded for it). `/drifter respawns` lists who's on the way.
+- Death messages as a player's ("<name> was slain by Zombie"), setting "Death messages" / `/drifter config
+  deathmessages`. A bad day (three deaths in one): the impatient may rage-quit, "left the game" for a day, then "joined
+  the game" again.
+- Not for Drifters met once (encounters, delvers), a manhunt hunter (its own respawn), battle soldiers, or one removed
+  with `/kill` (that's an admin removing it).
+- The corpse run (`skills/CorpseRunGoal`): back with nothing, if what it dropped is worth it (3+ things that aren't junk,
+  not in lava or the void), within 200 blocks, and under five minutes old, it runs back, looks round and picks it up;
+  if a player or Drifter killed it, only the bold go. Frustrated after dying.
+- Debug: `/drifter home bed <pos>` gives the nearest Drifter's home that bed.
+- Tested: limited lives 2 (back twice, then gone for good with "left the game"), permadeath, bed respawn beside the bed
+  ("back at its bed, with nothing (4 of 5 lives left)"), the corpse run in the game client (back at its bed in 10 s,
+  ran back, picked up its sword, cobblestone and bread). On a hill the run back fell into a ravine (route-finding over
+  ground it hadn't seen, not the run itself).
+- Not done from section 20: re-equipping from home storage before the run (its usual goals do that after), a fear
+  lesson about the place, vengeful Drifters coming back armed for a player who killed them.
+
+## Settings screens, rebuilt (2026-10-20)
+
+The user: "upgrade the config menu, some stuff is off the screen and it kind of looks a bit ghetto, i would have to
+adjust my scale to reach some options". All four pages (`client/config`) are now the game's own scrolling options list
+(`DrifterOptionsScreen`, on `OptionsSubScreen`): a title bar, settings two to a row under gold section headings
+(Drifters, When a Drifter dies, Toward players and each other, World generation, More), short labels, a tooltip on every
+setting saying what it does, and Done always on screen; the list scrolls at any GUI scale. The encounters page groups
+its 26 kinds (Bounties, Danger, Someone needs help, Drama, Peaceful and odd) with full names. Test harness: `screen
+<page>`, `scroll <n>`, `gui <scale>` lines.
+
 ## More whims (2026-10-20)
 
 The user: "then add more whims". Twenty new ones in `drifter_whims/everyday.json`, most written as steps whims (the new

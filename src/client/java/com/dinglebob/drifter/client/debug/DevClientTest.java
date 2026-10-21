@@ -85,6 +85,25 @@ public final class DevClientTest {
 				MinecraftServer server = mc.getSingleplayerServer();
 				String command = line.substring(4);
 				server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command));
+			} else if (line.startsWith("screen ")) {
+				// A settings page, as Mod Menu opens it (closing it goes back to the game).
+				mc.setScreen(switch (line.substring(7).trim()) {
+					case "encounters" -> new com.dinglebob.drifter.client.config.DrifterEncounterScreen(null);
+					case "spawning" -> new com.dinglebob.drifter.client.config.DrifterSpawnScreen(null);
+					case "performance" -> new com.dinglebob.drifter.client.config.DrifterPerformanceScreen(null);
+					case "none" -> null;
+					default -> new com.dinglebob.drifter.client.config.DrifterConfigScreen(null);
+				});
+			} else if (line.startsWith("scroll ")) {
+				// The mouse wheel over the middle of the screen (positive: up).
+				if (mc.screen != null) {
+					mc.screen.mouseScrolled(mc.getWindow().getGuiScaledWidth() / 2.0, mc.getWindow().getGuiScaledHeight() / 2.0, 0.0,
+						Double.parseDouble(line.substring(7).trim()));
+				}
+			} else if (line.startsWith("gui ")) {
+				// The GUI scale (0: auto), as in Video Settings.
+				mc.options.guiScale().set(Integer.parseInt(line.substring(4).trim()));
+				mc.resizeDisplay();
 			} else if (line.startsWith("chat ")) {
 				// Said in chat as the player (an encounter's "yes" or "go").
 				if (mc.player != null) {

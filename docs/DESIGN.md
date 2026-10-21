@@ -1538,6 +1538,8 @@ Death works like a player's: everything drops, the Drifter respawns at its bed w
 
 ### Respawn modes (config)
 
+Built 2026-10-20 (`world/Respawns`, `skills/CorpseRunGoal`; PROGRESS.md "Death, respawn and lives").
+
 | Mode | Behavior |
 | --- | --- |
 | Bed respawn | Respawns at its bed after 5 to 30 s; if the bed is gone, near its base center; if it has no base, it's gone |

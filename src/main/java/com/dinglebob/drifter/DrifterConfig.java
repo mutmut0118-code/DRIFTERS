@@ -103,7 +103,17 @@ public final class DrifterConfig {
 		double encounterDays = DEFAULT_ENCOUNTER_DAYS;
 		/** Kinds switched off, by id (bounty_hunters, wanted, injured_traveller, thief, merchant, ambush). */
 		java.util.List<String> encountersOff = new java.util.ArrayList<>();
+		/** What a Drifter's death means (section 20, user 2026-10-20: "make it configurable between the three"): "bed",
+		 * "lives" (default) or "permadeath". */
+		String respawnMode = "lives";
+		/** Limited lives: how many times it comes back (section 20: 5). */
+		int lives = DEFAULT_LIVES;
+		/** "<name> was slain by Zombie" in chat, as for a player (section 20). */
+		boolean deathMessages = true;
 	}
+
+	public static final int DEFAULT_LIVES = 5;
+	public static final int MAX_LIVES = 20;
 
 	public static final double DEFAULT_ENCOUNTER_DAYS = 1.5;
 	public static final double MIN_ENCOUNTER_DAYS = 0.25;
@@ -382,6 +392,47 @@ public final class DrifterConfig {
 	/** Trust a stranger starts with, shifted by an aggression setting: +50 at 0, none at 50, -50 at 100. */
 	public static double aggressionShift(int aggression) {
 		return DEFAULT_AGGRESSION - aggression;
+	}
+
+	/** Section 20: what a Drifter's death means. */
+	public enum RespawnMode {
+		/** Back at its bed (or its base) every time; with no base, it's gone. */
+		BED,
+		/** As BED, a few times ({@link #lives()}); then it logs off for good. */
+		LIVES,
+		/** Never back: its base is left as it was, for anyone to find. */
+		PERMADEATH
+	}
+
+	public static RespawnMode respawnMode() {
+		try {
+			return RespawnMode.valueOf(data.respawnMode.toUpperCase(java.util.Locale.ROOT));
+		} catch (RuntimeException e) {
+			return RespawnMode.LIVES;
+		}
+	}
+
+	public static void setRespawnMode(RespawnMode mode) {
+		data.respawnMode = mode.name().toLowerCase(java.util.Locale.ROOT);
+		save();
+	}
+
+	public static int lives() {
+		return Math.max(1, Math.min(MAX_LIVES, data.lives));
+	}
+
+	public static void setLives(int lives) {
+		data.lives = Math.max(1, Math.min(MAX_LIVES, lives));
+		save();
+	}
+
+	public static boolean deathMessages() {
+		return data.deathMessages;
+	}
+
+	public static void setDeathMessages(boolean on) {
+		data.deathMessages = on;
+		save();
 	}
 
 	/** Section 22 offline progression. */
