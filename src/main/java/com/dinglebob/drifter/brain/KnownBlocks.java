@@ -65,6 +65,16 @@ public final class KnownBlocks {
 		return note == null || note.kind() != MemoryKind.STATION && note.kind() != MemoryKind.STORAGE;
 	}
 
+	/**
+	 * Ore, or stone, with water touching it (the bottom of a lake): not worth diving for (found in testing: it drowned going
+	 * for ore; in a 5-day run four drowned gathering cobblestone off lake beds). Clay and sand it still dives for, as players
+	 * do.
+	 */
+	public static boolean notWorthDiving(Level level, BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+		return (com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(state) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD))
+			&& underWater(level, pos);
+	}
+
 	/** Water touching it (ore at the bottom of a lake): not worth diving for (found in testing: it drowned going for it). */
 	public static boolean underWater(Level level, BlockPos pos) {
 		for (Direction direction : Direction.values()) {

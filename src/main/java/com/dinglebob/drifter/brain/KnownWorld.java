@@ -160,7 +160,7 @@ public final class KnownWorld {
 		// gathering then refused, 47 times over.)
 		return !state.isAir() && state.getFluidState().isEmpty() && state.getDestroySpeed(level, pos) >= 0.0F && exposed(level, pos)
 			&& KnownBlocks.mayTake(level, pos) && !blacklist.contains(pos, now)
-			&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(state) && KnownBlocks.underWater(level, pos))
+			&& !KnownBlocks.notWorthDiving(level, pos, state)
 			// (Nor next to lava, as gathering skips it; the two must agree or the plan loops.)
 			&& !lavaAround(level, pos);
 	}

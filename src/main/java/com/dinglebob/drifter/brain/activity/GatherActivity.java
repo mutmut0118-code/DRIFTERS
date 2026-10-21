@@ -156,7 +156,7 @@ public class GatherActivity extends Activity {
 		List<BlockPos> candidates = this.have() >= this.wanted ? restOfTree : KnownBlocks.find(this.drifter, SEARCH_RADIUS, this.blocks, MAX_CANDIDATES * 4).stream()
 			.filter(pos -> !pos.equals(below) && !pos.equals(nextStair) && (this.lowestFirst || !underfoot(pos, feet))
 				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos)
-				&& !(com.dinglebob.drifter.brain.mining.TunnelDigger.isOre(level.getBlockState(pos)) && KnownBlocks.underWater(level, pos))
+				&& !KnownBlocks.notWorthDiving(level, pos, level.getBlockState(pos))
 				// Never a block holding back lava it has seen (found in testing: gathering stone by a lava pool let it in).
 				&& !this.touchesKnownLava(level, pos)
 				&& (!level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) || trees.check(pos)))
