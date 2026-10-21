@@ -2599,6 +2599,7 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
 - **Crash fixed (from groundwork 1, in 0.22.0 and 0.22.1):** when a Drifter unloaded, the directory checked its bed's
   block, which could load a chunk in the middle of the game unloading chunks: "ConcurrentModificationException in
   DistanceManager", the server (or a single-player world) crashed. Found by the 30-day run in its first minute (50
-  Drifters walking out of the loaded area). The unload snapshot now reads nothing from the world; bed checks skip
-  chunks that aren't loaded.
+  Drifters walking out of the loaded area). The unload snapshot now waits for the end of the tick and reads nothing from
+  the world (its stage and bed as last recorded; working out the stage looks at the world, which crashed the second
+  run); bed checks skip chunks that aren't loaded. Fixed in 0.22.3 (0.22.2 had half of it).
 - Next: a 30-day run.

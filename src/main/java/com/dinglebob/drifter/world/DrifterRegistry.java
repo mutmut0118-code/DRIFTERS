@@ -60,6 +60,11 @@ public final class DrifterRegistry {
 	private static final Map<UUID, DrifterRecord> records = new LinkedHashMap<>();
 	private static boolean dirty;
 	private static int updates;
+	/**
+	 * Drifters unloaded this tick, noted at the end of it: the unload comes in the middle of the game's chunk work, where
+	 * nothing may touch the world (found in a 50-Drifter run: a crash, "ConcurrentModificationException in DistanceManager").
+	 */
+	private static final List<DrifterEntity> unloaded = new ArrayList<>();
 
 	private DrifterRegistry() {
 	}
@@ -70,8 +75,17 @@ public final class DrifterRegistry {
 			update(server, true);
 			save(server);
 		});
-		ServerLifecycleEvents.SERVER_STOPPED.register(server -> records.clear());
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			records.clear();
+			unloaded.clear();
+		});
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!unloaded.isEmpty()) {
+				List<DrifterEntity> now = new ArrayList<>(unloaded);
+				unloaded.clear();
+				now.forEach(drifter -> remember(drifter, true, false));
+			}
+
 			if (server.getTickCount() % UPDATE_TICKS == 0) {
 				update(server, false);
 				if (dirty) {
@@ -94,10 +108,10 @@ public final class DrifterRegistry {
 				// Removed (a command, not travel): gone, kept for the history.
 				setStatus(entity.getUUID(), DrifterRecord.Status.GONE, -1);
 			} else if (reason != Entity.RemovalReason.CHANGED_DIMENSION) {
-				// (Without looking at the world: this runs while the game is unloading chunks, and reading a block in a chunk
-				// that's gone loads it again in the middle of that, which crashed a 50-Drifter test, "ConcurrentModificationException
-				// in DistanceManager".)
-				remember(drifter, true, false);
+				// (At the end of the tick, and without looking at the world: this runs while the game is unloading chunks, and
+				// reading a block in a chunk that's gone loads it again in the middle of that, which crashed a 50-Drifter test,
+				// "ConcurrentModificationException in DistanceManager".)
+				unloaded.add(drifter);
 			}
 		});
 		// Its death: dead and coming back, or gone for good.
@@ -156,7 +170,7 @@ public final class DrifterRegistry {
 
 		return new DrifterRecord(drifter.getUUID(), drifter.getName().getString(), DrifterRecord.Status.ALIVE, drifter.level().dimension(), drifter.blockPosition(),
 			now, old != null ? old.firstSeen() : now, home == null ? null : home.dimension, home == null ? null : home.center, bed, group == null ? null : group.id,
-			com.dinglebob.drifter.brain.Strategist.stage(drifter), drifter.deaths(), drifter.getPersonality().archetype().name().toLowerCase(Locale.ROOT),
+			lookAtWorld ? com.dinglebob.drifter.brain.Strategist.stage(drifter) : old != null ? old.stage() : 0, drifter.deaths(), drifter.getPersonality().archetype().name().toLowerCase(Locale.ROOT),
 			drifter.getSocial().disposition().name().toLowerCase(Locale.ROOT), traits, closest(drifter.getBonds().all()), closest(drifter.getSocial().all()));
 	}
 
