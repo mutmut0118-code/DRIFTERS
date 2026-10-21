@@ -63,7 +63,7 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 					DrifterConfig.setRespawnMode(mode);
 					lives.active = mode == DrifterConfig.RespawnMode.LIVES;
 				}),
-				"Back at its bed (or its base) with nothing, like a player; the same but only a few times; or never. A Drifter with no base yet is gone either way."),
+				"Back at its bed (or its base, or the world spawn if it has none yet) with nothing, like a player; the same but only a few times; or never."),
 			lives);
 		this.row(toggle("Death messages", DrifterConfig.deathMessages(), DrifterConfig::setDeathMessages, "\"<name> was slain by Zombie\" in chat, as for a player."), null);
 

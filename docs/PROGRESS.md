@@ -2480,7 +2480,8 @@ built before: a Drifter's death was permanent).
 - `world/Respawns`: the three modes, "On death" in the settings or `/drifter config respawn bed|lives|permadeath`:
   back at its bed 5 to 30 s later with nothing (bed); the same up to N times, then "<name> left the game" for good
   (limited lives, the default, 5: `/drifter config lives <n>`); never back (permadeath: its base stays as it was). No
-  bed: near its base's middle. No base yet: gone in every mode (the design's rule). Name, skin, memories, friends,
+  bed: near its base's middle. No base yet: at the world spawn within the spawn radius, as a player with no bed (the
+  user, 2026-10-20: "make new drifters without a base respawn too"; it was gone before, the design's first rule). Name, skin, memories, friends,
   grudges and its group stay; XP, effects and what it carried don't. Waiting entries are saved with the world, and one
   whose home isn't loaded comes back when it is (nothing is loaded for it). `/drifter respawns` lists who's on the way.
 - Death messages as a player's ("<name> was slain by Zombie"), setting "Death messages" / `/drifter config

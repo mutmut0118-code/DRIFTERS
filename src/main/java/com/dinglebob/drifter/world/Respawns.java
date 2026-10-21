@@ -40,7 +40,8 @@ import net.minecraft.world.phys.Vec3;
  * logs off for good (limited lives, the default), or never comes back (permadeath). Its name, skin, memories, friends and
  * grudges come back with it; it knows where it died and may go back for its things (the corpse run).
  *
- * <p>No bed: near its base's middle. No base at all: it's gone (a player with no home in the world). Three deaths in a day
+ * <p>No bed: near its base's middle. No base yet: at the world spawn, as a player with no bed (the user, 2026-10-20: "make
+ * new drifters without a base respawn too"). Three deaths in a day
  * and the impatient may rage-quit: they log off for a day, then come back. Not for a Drifter you meet once (an encounter's,
  * a delver), a manhunt hunter (its own respawn), a battle's soldiers, or one removed with /kill.
  */
@@ -124,10 +125,10 @@ public final class Respawns {
 		});
 	}
 
-	/** Does this death have a way back (by the setting, its lives, its home)? Asked as it dies, before anything's dropped. */
+	/** Does this death have a way back (by the setting and its lives)? Asked as it dies, before anything's dropped. */
 	public static boolean comesBack(DrifterEntity drifter, DamageSource source) {
 		if (drifter.isTemporary() || com.dinglebob.drifter.social.Manhunt.isHunter(drifter) || Battle.inBattle(drifter)
-			|| source.is(DamageTypes.GENERIC_KILL) || drifter.getDrifterBrain().home() == null) {
+			|| source.is(DamageTypes.GENERIC_KILL)) {
 			return false;
 		}
 
@@ -165,8 +166,7 @@ public final class Respawns {
 		String cause = message.getString().replace(drifter.getName().getString(), "it").trim();
 		drifter.recordDeath(now, new Corpse(drifter.blockPosition(), level.dimension().location(), now, lost ? 0 : worth, killerId, cause));
 		if (!comesBack) {
-			Home home = drifter.getDrifterBrain().home();
-			boolean outOfLives = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES && home != null && !source.is(DamageTypes.GENERIC_KILL);
+			boolean outOfLives = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES && !source.is(DamageTypes.GENERIC_KILL);
 			if (outOfLives) {
 				// Its last life: it logs off for good, as a player who's had enough.
 				server.getPlayerList().broadcastSystemMessage(Component.translatable("multiplayer.player.left", drifter.getDisplayName())
@@ -187,11 +187,13 @@ public final class Respawns {
 				.withStyle(ChatFormatting.YELLOW), false);
 		}
 
+		// Back home, or (no home yet) at the world spawn.
 		Home home = drifter.getDrifterBrain().home();
 		CompoundTag body = new CompoundTag();
 		drifter.saveWithoutId(body);
-		pending.add(new Pending(drifter.getUUID(), drifter.getName().getString(), body, ResourceKey.create(Registries.DIMENSION, home.dimension),
-			home.center, now + delay, quit));
+		pending.add(new Pending(drifter.getUUID(), drifter.getName().getString(), body,
+			home != null ? ResourceKey.create(Registries.DIMENSION, home.dimension) : Level.OVERWORLD,
+			home != null ? home.center : server.overworld().getSharedSpawnPos(), now + delay, quit));
 		dirty = true;
 		Drifter.LOGGER.info("[Drifter] {} died ({}): back in {} s{}", drifter.getName().getString(), cause, delay / 20, quit ? " (rage-quit)" : "");
 	}
@@ -236,7 +238,7 @@ public final class Respawns {
 
 		fresh.load(body);
 		Home home = fresh.getDrifterBrain().home();
-		Vec3 spot = home == null ? null : spot(level, home);
+		Vec3 spot = home == null ? worldSpawn(level) : spot(level, home);
 		if (spot == null) {
 			Drifter.LOGGER.info("[Drifter] {} has nowhere to come back to: gone", entry.name());
 			return true;
@@ -257,7 +259,8 @@ public final class Respawns {
 
 		int lives = DrifterConfig.lives();
 		String life = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES ? " (" + Math.max(0, lives - fresh.deaths()) + " of " + lives + " lives left)" : "";
-		fresh.getMemory().thoughts().add(level.getGameTime(), "back at " + (home.bedOrNull(level) != null ? "its bed" : "its base") + ", with nothing" + life);
+		fresh.getMemory().thoughts().add(level.getGameTime(), "back at " + (home == null ? "the world spawn" : home.bedOrNull(level) != null ? "its bed" : "its base")
+			+ ", with nothing" + life);
 		if (entry.quit()) {
 			level.getServer().getPlayerList().broadcastSystemMessage(Component.translatable("multiplayer.player.joined", fresh.getDisplayName())
 				.withStyle(ChatFormatting.YELLOW), false);
@@ -265,6 +268,26 @@ public final class Respawns {
 
 		Drifter.LOGGER.info("[Drifter] {} respawned at {}{}", entry.name(), at.toShortString(), life);
 		return true;
+	}
+
+	/**
+	 * Where one with no home comes back: as a player with no bed, somewhere within the spawn radius of the world spawn
+	 * (the spawnRadius game rule), on open ground.
+	 */
+	private static Vec3 worldSpawn(ServerLevel level) {
+		BlockPos spawn = level.getSharedSpawnPos();
+		int radius = Math.max(0, level.getGameRules().getInt(net.minecraft.world.level.GameRules.RULE_SPAWN_RADIUS));
+		var random = level.getRandom();
+		for (int tries = 0; tries < 20; tries++) {
+			int x = spawn.getX() + (radius == 0 ? 0 : random.nextInt(radius * 2 + 1) - radius);
+			int z = spawn.getZ() + (radius == 0 ? 0 : random.nextInt(radius * 2 + 1) - radius);
+			BlockPos top = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
+			if (level.getFluidState(top.below()).isEmpty() && com.dinglebob.drifter.brain.KnownBlocks.isStandable(level, top)) {
+				return Vec3.atBottomCenterOf(top);
+			}
+		}
+
+		return Vec3.atBottomCenterOf(level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawn));
 	}
 
 	/** Where it comes back: beside its bed if it still has one (where a player stands up from it), else near its base's middle. */

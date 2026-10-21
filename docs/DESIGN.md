@@ -1542,7 +1542,7 @@ Built 2026-10-20 (`world/Respawns`, `skills/CorpseRunGoal`; PROGRESS.md "Death, 
 
 | Mode | Behavior |
 | --- | --- |
-| Bed respawn | Respawns at its bed after 5 to 30 s; if the bed is gone, near its base center; if it has no base, it's gone |
+| Bed respawn | Respawns at its bed after 5 to 30 s; if the bed is gone, near its base center; if it has no base yet, at the world spawn like a player with no bed (user, 2026-10-20: "make new drifters without a base respawn too") |
 | Limited lives (default) | Bed respawn up to N times (default 5), then it logs off for good |
 | Permadeath | Never respawns; its base becomes an abandoned, lootable site |
 
