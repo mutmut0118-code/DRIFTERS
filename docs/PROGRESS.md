@@ -2625,7 +2625,8 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   about 4 blocks from the top of the jump) costs up to a heart, and jumps never checked its health the way drops do.
   Now a jump that lands lower must cost no more than a drop may and leave it 3 hearts (`PathSearch.landingSafe`). The
   next 5-day run: no falls, but four drowned gathering cobblestone off lake beds: stone with water touching it is now left
-  alone like ore (`KnownBlocks.notWorthDiving`; clay and sand it still dives for).
+  alone like ore (`KnownBlocks.notWorthDiving`; clay and sand it still dives for). The third 5-day run (30 Drifters):
+  5 deaths, all killed by other Drifters; no falls, no drownings.
 - **Found, not fixed:** in flat test worlds a Drifter sometimes ends up shut in its own hut (walking at the closed door
   without getting through; a direct test with a closed door worked both ways, so the cause is still unknown), and the hut builder often reports "couldn't mine Air ... there is nothing there". To look at.
 - Next: towns (step 3), after the user's review of the town plan.
