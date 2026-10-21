@@ -15,17 +15,15 @@ import com.dinglebob.drifter.registry.ModEntities;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A pitched battle between two armies of Drifters, for testing (milestone 16, the user's "500v500 (or 150v150) war and it
- * runs very smoothly with each ai working properly"; `/drifter battle <per side>`). Each side is armed alike (iron armor,
- * a sword and shield, a bow for some, food) and lined up facing the other. Soldiers kill the other side on sight, as a
+ * A pitched battle between two armies of Drifters (milestone 16, the user's "500v500 (or 150v150) war and it runs very
+ * smoothly with each ai working properly"; `/drifter battle <per side>`; and the warband encounter). Each army has its
+ * colours and a standard of kit, each soldier's pieces its own (SoldierKit: the user, 2026-10-20, "more variety into the
+ * gear"), a captain with the banner, archers at the back; lined up facing the other. Several can be on at once. Soldiers kill the other side on sight, as a
  * Bandit does, never their own; out of sight of the enemy they march on where the enemy army stood. Its own groups and
  * feuds aren't touched: groups are four at most and a battle is far bigger. Not saved (a test): a battle ends with the
  * world, or with `/drifter battle stop`.
@@ -34,16 +32,24 @@ public final class Battle {
 	private Battle() {
 	}
 
-	/** Side (0 or 1) by soldier. */
-	private static final Map<UUID, Integer> sides = new HashMap<>();
-	/** Where each side's army stood: the other side marches on it. */
-	private static final Vec3[] lines = new Vec3[2];
+	/** A soldier's battle, its side (0 or 1), and whether it's one of the archers at the back. */
+	private record Soldier(int battle, int side, boolean archer) {
+	}
+
+	private static final Map<UUID, Soldier> soldiers = new HashMap<>();
+	/** Where each battle's two armies stood (the other side marches on it), by battle. */
+	private static final Map<Integer, Vec3[]> lines = new HashMap<>();
+	private static int nextBattle = 1;
+
+	/** A battle begun: its number, and its soldiers (not yet in the world when a caller adds them itself). */
+	public record Started(int id, List<DrifterEntity> soldiers) {
+	}
 
 	public static void register() {
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> stop());
 		// Arrows that hit their own side, counted for the report (archers aren't to shoot through their friends).
 		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
-			if (!sides.isEmpty() && entity instanceof DrifterEntity hurt && source.getEntity() instanceof DrifterEntity shooter && shooter != hurt
+			if (!soldiers.isEmpty() && entity instanceof DrifterEntity hurt && source.getEntity() instanceof DrifterEntity shooter && shooter != hurt
 				&& source.is(net.minecraft.tags.DamageTypeTags.IS_PROJECTILE) && allies(hurt, shooter)) {
 				friendlyArrows++;
 				var activity = shooter.getDrifterBrain().activity();
@@ -56,41 +62,46 @@ public final class Battle {
 	/** Arrows into their own side since the battle began. */
 	private static int friendlyArrows;
 
-	/** Its side in the battle, or null if it's not in one. */
+	/** Its side in its battle, or null if it's not in one. */
 	@Nullable
 	public static Integer side(DrifterEntity drifter) {
-		return sides.isEmpty() ? null : sides.get(drifter.getUUID());
+		Soldier soldier = soldiers.isEmpty() ? null : soldiers.get(drifter.getUUID());
+		return soldier == null ? null : soldier.side();
+	}
+
+	@Nullable
+	private static Soldier soldier(DrifterEntity drifter) {
+		return soldiers.isEmpty() ? null : soldiers.get(drifter.getUUID());
 	}
 
 	public static boolean inBattle(DrifterEntity drifter) {
 		return side(drifter) != null;
 	}
 
-	/** Both soldiers, on opposite sides. */
+	/** Both soldiers in one battle, on opposite sides. */
 	public static boolean enemies(DrifterEntity one, DrifterEntity other) {
-		Integer a = side(one);
-		Integer b = a == null ? null : side(other);
-		return a != null && b != null && !a.equals(b);
+		Soldier a = soldier(one);
+		Soldier b = a == null ? null : soldier(other);
+		return a != null && b != null && a.battle() == b.battle() && a.side() != b.side();
 	}
-
-	/** The archers (the back ranks), kept with the sides. */
-	private static final java.util.Set<UUID> archers = new java.util.HashSet<>();
 
 	/** One of the archers at the back of its side. */
 	public static boolean archer(DrifterEntity drifter) {
-		return archers.contains(drifter.getUUID()) && side(drifter) != null;
+		Soldier soldier = soldier(drifter);
+		return soldier != null && soldier.archer();
 	}
 
-	/** Both soldiers, on the same side. */
+	/** Both soldiers in one battle, on the same side. */
 	public static boolean allies(DrifterEntity one, DrifterEntity other) {
-		Integer a = side(one);
-		return a != null && a.equals(side(other));
+		Soldier a = soldier(one);
+		Soldier b = a == null ? null : soldier(other);
+		return a != null && b != null && a.battle() == b.battle() && a.side() == b.side();
 	}
 
 	/** "Side A: n standing, side B: m" (for `/drifter perf`), or null with no battle on. */
 	@Nullable
 	public static String report(net.minecraft.server.MinecraftServer server) {
-		if (sides.isEmpty()) {
+		if (soldiers.isEmpty()) {
 			return null;
 		}
 
@@ -147,13 +158,20 @@ public final class Battle {
 	private static final Map<UUID, Vec3> reportedPositions = new HashMap<>();
 	private static long reportedAt = Long.MIN_VALUE / 2;
 
+	/** Every battle over (the command): how many soldiers stood down. */
 	public static int stop() {
-		int count = sides.size();
-		sides.clear();
-		archers.clear();
+		int count = soldiers.size();
+		soldiers.clear();
+		lines.clear();
 		friendlyArrows = 0;
 		reportedPositions.clear();
 		return count;
+	}
+
+	/** This battle over (an encounter's): its soldiers are soldiers no more. */
+	public static void stop(int battle) {
+		soldiers.values().removeIf(soldier -> soldier.battle() == battle);
+		lines.remove(battle);
 	}
 
 	/**
@@ -162,11 +180,25 @@ public final class Battle {
 	 */
 	public static int start(ServerLevel level, Vec3 center, int perSide, int gap) {
 		var random = level.getRandom();
-		int spawned = 0;
+		var quality = SoldierKit.Quality.values()[random.nextInt(SoldierKit.Quality.values().length)];
+		return start(level, center, perSide, gap, SoldierKit.opposed(level, quality, random), null).soldiers().size();
+	}
+
+	/**
+	 * Two armies of {@code perSide} in these colours and kit; {@code beforeAdd} (side) is done to each before it's put in
+	 * the world (an encounter taking them on), or null for plain soldiers.
+	 */
+	public static Started start(ServerLevel level, Vec3 center, int perSide, int gap, SoldierKit.Army[] armies,
+		@Nullable java.util.function.BiConsumer<DrifterEntity, Integer> beforeAdd) {
+		var random = level.getRandom();
+		int battle = nextBattle++;
+		List<DrifterEntity> spawned = new java.util.ArrayList<>();
+		Vec3[] armyLines = new Vec3[2];
+		lines.put(battle, armyLines);
 		int across = Math.max(1, (int)Math.ceil(Math.sqrt(perSide * 2.0)));
 		for (int side = 0; side < 2; side++) {
 			double lineX = center.x + (side == 0 ? -gap / 2.0 : gap / 2.0);
-			lines[side] = new Vec3(lineX, center.y, center.z);
+			armyLines[side] = new Vec3(lineX, center.y, center.z);
 			for (int i = 0; i < perSide; i++) {
 				// Ranks two blocks apart, deeper away from the enemy.
 				int rank = i / across;
@@ -187,23 +219,25 @@ public final class Battle {
 				drifter.setYHeadRot(yaw);
 				drifter.setYBodyRot(yaw);
 				drifter.finalizeSpawn(level, level.getCurrentDifficultyAt(top), MobSpawnType.COMMAND, null);
-				// The back ranks are the archers (as an army draws up), a quarter of each side.
+				// The back ranks are the archers (as an army draws up), a quarter of each side; the captain in the front middle.
 				boolean archer = i >= perSide - perSide / 4;
-				kit(drifter, random, archer);
-				sides.put(drifter.getUUID(), side);
-				if (archer) {
-					archers.add(drifter.getUUID());
+				SoldierKit.Role role = archer ? SoldierKit.Role.ARCHER : i == across / 2 || perSide <= across && i == perSide / 2 ? SoldierKit.Role.CAPTAIN
+					: SoldierKit.Role.INFANTRY;
+				SoldierKit.equip(drifter, level, armies[side], role, random);
+				soldiers.put(drifter.getUUID(), new Soldier(battle, side, archer));
+				if (beforeAdd != null) {
+					beforeAdd.accept(drifter, side);
 				}
+
 				if (level.addFreshEntity(drifter)) {
-					spawned++;
+					spawned.add(drifter);
 				} else {
-					sides.remove(drifter.getUUID());
-					archers.remove(drifter.getUUID());
+					soldiers.remove(drifter.getUUID());
 				}
 			}
 		}
 
-		return spawned;
+		return new Started(battle, spawned);
 	}
 
 	/**
@@ -232,38 +266,6 @@ public final class Battle {
 		return first;
 	}
 
-	/**
-	 * A soldier's kit: iron armour, its favourite kind of weapon at iron (a sword or an axe without one), a shield unless
-	 * that weapon is two-handed, and a bow with a few arrows for when it can't get through to the enemy; an archer has a
-	 * quiverful.
-	 */
-	private static void kit(DrifterEntity drifter, net.minecraft.util.RandomSource random, boolean archer) {
-		drifter.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
-		drifter.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-		drifter.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
-		drifter.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
-		// Its favourite kind of weapon at iron (with Simply Swords: longswords, katanas, halberds...; a two-handed one means no
-		// shield), else an iron sword or axe.
-		var family = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
-		net.minecraft.world.item.Item weapon = family.at(com.dinglebob.drifter.brain.Weapons.Tier.IRON);
-		if (weapon == null) {
-			weapon = random.nextInt(4) == 0 ? Items.IRON_AXE : Items.IRON_SWORD;
-		}
-
-		if (!family.twoHanded() || weapon == Items.IRON_SWORD || weapon == Items.IRON_AXE) {
-			drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-		}
-
-		var inventory = drifter.getInventory();
-		inventory.add(new ItemStack(weapon));
-		inventory.add(new ItemStack(Items.BOW));
-		inventory.add(new ItemStack(Items.ARROW, archer ? 64 : 16));
-
-		inventory.add(new ItemStack(Items.COOKED_BEEF, 16));
-		inventory.add(new ItemStack(Items.IRON_PICKAXE));
-		inventory.add(new ItemStack(Items.COBBLESTONE, 32));
-	}
-
 	/** Its side's goals: marching on the enemy when none is in sight (fighting them is the kill-on-sight goal). */
 	public static List<Goals.Goal> goals() {
 		return List.of(new Advance());
@@ -283,13 +285,14 @@ public final class Battle {
 
 		@Override
 		public double urgency(Goals.Context context) {
-			Integer side = side(context.drifter());
-			if (side == null || lines[1 - side] == null) {
+			Soldier soldier = soldier(context.drifter());
+			Vec3[] armyLines = soldier == null ? null : lines.get(soldier.battle());
+			if (armyLines == null || armyLines[1 - soldier.side()] == null) {
 				return 0.0;
 			}
 
 			// Where the enemy army stood, or (got there and nobody in sight) toward the fighting it hears.
-			return context.drifter().position().distanceTo(lines[1 - side]) >= 6.0 || fighting(context.drifter()) != null ? 0.85 : 0.0;
+			return context.drifter().position().distanceTo(armyLines[1 - soldier.side()]) >= 6.0 || fighting(context.drifter()) != null ? 0.85 : 0.0;
 		}
 
 		/** The newest sound of fighting it heard (a hit, an arrow) in the last few seconds, farther than a few blocks; or null. */
@@ -321,8 +324,13 @@ public final class Battle {
 
 		@Override
 		public Activity start(Goals.Context context) {
-			Integer side = side(context.drifter());
-			Vec3 enemy = lines[1 - (side == null ? 0 : side)];
+			Soldier soldier = soldier(context.drifter());
+			Vec3[] armyLines = soldier == null ? null : lines.get(soldier.battle());
+			if (armyLines == null) {
+				return null;
+			}
+
+			Vec3 enemy = armyLines[1 - soldier.side()];
 			// At their old line already: to the sound of the fighting (as soldiers march to the guns).
 			Vec3 heard = context.drifter().position().distanceTo(enemy) < 6.0 ? fighting(context.drifter()) : null;
 			return new com.dinglebob.drifter.brain.activity.ExploreActivity(context.drifter(), heard != null ? "toward the fighting" : "marching on the enemy",

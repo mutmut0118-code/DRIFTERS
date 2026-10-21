@@ -2530,6 +2530,29 @@ The user: "lets fix the zombie groan problem and figure out how to load skins fa
   Measured, 30 new Drifters at once: with the cache, 28 within 3 s and all within 9 s; from an empty cache, all within
   10 s. In the game client, real skins showed 3 s after 8 Drifters appeared. With no internet, cached skins still serve.
 
+## Varied gear, and warband battles (2026-10-20)
+
+The user: "can we add more variety into the gear? and then make that a random encounter?"
+- `world/SoldierKit`: an army has a colour and a standard (militia: leather and stone; regulars: chainmail and iron;
+  veterans: iron and diamond, some enchanted). Each fighter's armour is picked a piece at a time (now and then a bare head),
+  leather dyed the army's colour, metal trimmed in it (red: redstone trim, blue: lapis...; a pattern per army), shields
+  painted it; the captain wears the army's banner on its head, carries a grade better blade and the war chest
+  (emeralds). Weapons are its favourite kind (modded ones too) at the army's grade; archers go lighter with a quiverful;
+  everyone has a bow and a few arrows, food from a few kinds, a pickaxe and blocks. Everything is worn (a tenth to half
+  its durability gone), so a battlefield isn't a free diamond shop.
+- `/drifter battle` armies use it (two colours, one standard at random); several battles can be on at once now
+  (`Battle` keeps each soldier's battle and side).
+- Armed encounter Drifters use it too (`EncounterSpawner.fighter`, by the player's gear as before); a group (bounty
+  hunters, an ambush, raiders, a revenge squad, hostage guards, escort bandits, a convoy) shares one band's colours.
+- **Warband battles** (`encounter/Warbands`, the 27th kind, "warbands"): 55 to 80 blocks off, two bands of 6 to 10 in
+  their colours fight it out ("for the Orange Band!"). Watch, or join: a side the player hits turns on them; a side
+  breaks at two standing ("fall back!", they run; "victory! the field is ours!"); if the player brought one of the losers
+  down, the winners' captain brings them the war chest (if the captain fell: "take what you like from the field"). Their
+  gear stays where they fell. No crime in it. Eight minutes at most.
+- Tested: a 30v30 headless battle (fought out, one arrow into a friend); close-ups in the client (dyed leather, painted
+  shields, trims, banners on the captains); a warband battle in the client (rallies, a warning to stay out, the player
+  downed one of the Orange Band, the Yellow Band won and thanked them).
+
 ## More whims (2026-10-20)
 
 The user: "then add more whims". Twenty new ones in `drifter_whims/everyday.json`, most written as steps whims (the new

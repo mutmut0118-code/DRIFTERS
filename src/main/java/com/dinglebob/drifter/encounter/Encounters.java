@@ -68,7 +68,8 @@ public final class Encounters {
 		RACE("race", "a race"),
 		HORDE("horde", "chased by a horde"),
 		CONVOY("convoy", "a convoy"),
-		BUILDERS("builders", "builders");
+		BUILDERS("builders", "builders"),
+		WARBANDS("warbands", "a battle between warbands");
 
 		public final String id;
 		public final String label;
@@ -558,6 +559,8 @@ public final class Encounters {
 			case MINER, LOST_DOG, BUILDERS -> day ? 0.5 : 0.0;
 			case ESCORT, HOSTAGE, RACE, CONVOY -> day ? 0.45 : 0.0;
 			case HORDE -> night ? 0.8 : 0.3;
+			// Two bands in their colours, fighting it out some way off.
+			case WARBANDS -> 0.4;
 			default -> 0.0;
 		};
 	}
@@ -643,6 +646,7 @@ public final class Encounters {
 			case HORDE -> Horde.start(player);
 			case CONVOY -> Convoy.start(player);
 			case BUILDERS -> Builders.start(player);
+			case WARBANDS -> Warbands.start(player);
 		};
 	}
 

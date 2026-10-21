@@ -251,3 +251,10 @@ The user: "then after that do the rest of the encounters". Every kind on the lis
   lecterns, a cleric's nether wart): those wait until it has the lot.
 - Not yet: gathering things for a bounty it can't fill now; bounties on Drifters from the board (the wanted posters
   above do that part, from our own messenger).
+
+## Built: warband battles, and varied gear (2026-10-20)
+
+The user: "can we add more variety into the gear? and then make that a random encounter?" Fighters now wear varied kit in
+their band's colours (SoldierKit; PROGRESS.md "Varied gear, and warband battles"), and the 27th kind is a battle between
+two warbands some way off: watch it, or pick a side (hit one side and it turns on you; help the winners and their
+captain brings you the war chest). Setting "Warband battles"; `/drifter encounter start warbands`.

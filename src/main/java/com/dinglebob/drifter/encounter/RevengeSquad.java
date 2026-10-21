@@ -63,12 +63,14 @@ final class RevengeSquad extends Encounter {
 		boolean murder = revenge != null && revenge.murder();
 		RevengeSquad squad = new RevengeSquad(player, victim, murder, lead);
 		int tier = EncounterSpawner.gearTier(player);
+		// One band, in one set of colours.
+		var band = EncounterSpawner.band(level, tier, random);
 		int count = murder ? 3 : 2;
 		for (int i = 0; i < count; i++) {
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + random.nextInt(5) - 2, spot.getZ() + random.nextInt(5) - 2);
 			boolean archer = i == 2;
 			DrifterEntity friend = EncounterSpawner.spawn(level, at == null ? spot : at, i == 0 ? Archetype.PVP_SWEAT : Archetype.CASUAL, drifter -> {
-				EncounterSpawner.fighter(drifter, tier, archer, random);
+				EncounterSpawner.fighter(drifter, band, archer, random);
 				EncounterSpawner.traits(drifter, 0.85, 0.8, 0.2, 1.0);
 				Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
 				r.trust = -80.0;

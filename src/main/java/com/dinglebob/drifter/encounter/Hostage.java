@@ -99,6 +99,8 @@ final class Hostage extends Encounter {
 		think(captive, "taken by bandits, held at their camp by " + fire.toShortString());
 
 		int tier = EncounterSpawner.gearTier(player);
+		// One band, in one set of colours.
+		var band = EncounterSpawner.band(level, tier, random);
 		int count = 2 + random.nextInt(2);
 		for (int i = 0; i < count; i++) {
 			double angle = Math.PI * 2.0 * i / count + 1.0;
@@ -107,7 +109,7 @@ final class Hostage extends Encounter {
 			boolean archer = i == 2;
 			DrifterEntity bandit = EncounterSpawner.spawn(level, at == null ? fire.south(2) : at, Archetype.BANDIT, drifter -> {
 				drifter.getSocial().setDisposition(Disposition.BANDIT);
-				EncounterSpawner.fighter(drifter, tier, archer, random);
+				EncounterSpawner.fighter(drifter, band, archer, random);
 				EncounterSpawner.traits(drifter, 0.8, 0.85, 0.3, 0.5);
 				if (firstOne) {
 					drifter.getInventory().add(new ItemStack(Items.HAY_BLOCK));

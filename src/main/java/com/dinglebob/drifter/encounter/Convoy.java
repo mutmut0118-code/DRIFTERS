@@ -84,13 +84,15 @@ final class Convoy extends Encounter {
 		Convoy convoy = new Convoy(player, far, PLACES.get(random.nextInt(PLACES.size())));
 		int count = 3 + random.nextInt(2);
 		Vec3 abreast = new Vec3(-across.z, 0.0, across.x);
+		// Riding together, in one set of colours.
+		var band = EncounterSpawner.band(level, 1, random);
 		for (int i = 0; i < count; i++) {
 			double offset = (i - (count - 1) / 2.0) * 3.0;
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + (int)Math.round(abreast.x * offset), spot.getZ() + (int)Math.round(abreast.z * offset));
 			at = at == null ? spot : at;
 			Vec3 lane = far.add(abreast.scale(offset));
 			DrifterEntity rider = EncounterSpawner.spawn(level, at, i == 0 ? Archetype.NOMAD : Archetype.CASUAL, drifter -> {
-				EncounterSpawner.fighter(drifter, 1, false, random);
+				EncounterSpawner.fighter(drifter, band, false, random);
 				EncounterSpawner.traits(drifter, 0.6, 0.3, 0.5, 0.4);
 				drifter.getInventory().add(new ItemStack(Items.BREAD, 6));
 			});

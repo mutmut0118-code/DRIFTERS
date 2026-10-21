@@ -66,13 +66,15 @@ final class Ambush extends Encounter {
 
 		Ambush ambush = new Ambush(player, Vec3.atBottomCenterOf(spot));
 		int tier = EncounterSpawner.gearTier(player);
+		// One band, in one set of colours.
+		var band = EncounterSpawner.band(level, tier, random);
 		int count = 2 + random.nextInt(2) + (tier >= 1 ? 1 : 0);
 		for (int i = 0; i < count; i++) {
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + random.nextInt(9) - 4, spot.getZ() + random.nextInt(9) - 4);
 			boolean archer = i == count - 1 && count >= 3;
 			DrifterEntity bandit = EncounterSpawner.spawn(level, at == null || !EncounterSpawner.hidden(level, at) ? spot : at, Archetype.BANDIT, drifter -> {
 				drifter.getSocial().setDisposition(Disposition.BANDIT);
-				EncounterSpawner.fighter(drifter, tier, archer, random);
+				EncounterSpawner.fighter(drifter, band, archer, random);
 				EncounterSpawner.traits(drifter, 0.8, 0.9, 0.2, 0.5);
 				drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName()).trust = -60.0;
 			});

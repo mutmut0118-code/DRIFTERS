@@ -67,13 +67,15 @@ final class VillageRaid extends Encounter {
 
 		VillageRaid raid = new VillageRaid(player, center);
 		int tier = EncounterSpawner.gearTier(player);
+		// One band, in one set of colours.
+		var band = EncounterSpawner.band(level, tier, random);
 		int count = 3 + random.nextInt(2) + (tier >= 1 ? 1 : 0);
 		for (int i = 0; i < count; i++) {
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + random.nextInt(7) - 3, spot.getZ() + random.nextInt(7) - 3);
 			boolean archer = i == count - 1;
 			DrifterEntity raider = EncounterSpawner.spawn(level, at == null ? spot : at, Archetype.BANDIT, drifter -> {
 				drifter.getSocial().setDisposition(Disposition.BANDIT);
-				EncounterSpawner.fighter(drifter, tier, archer, random);
+				EncounterSpawner.fighter(drifter, band, archer, random);
 				EncounterSpawner.traits(drifter, 0.85, 0.9, 0.2, 0.6);
 				drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName()).trust = -50.0;
 			});

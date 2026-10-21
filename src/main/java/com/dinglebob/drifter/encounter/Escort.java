@@ -208,11 +208,12 @@ final class Escort extends Encounter {
 		}
 
 		int tier = EncounterSpawner.gearTier(player);
+		var band = EncounterSpawner.band(level, Math.max(0, tier - 1), random);
 		for (int i = 0; i < 2; i++) {
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + random.nextInt(5) - 2, spot.getZ() + random.nextInt(5) - 2);
 			DrifterEntity bandit = EncounterSpawner.spawn(level, at == null ? spot : at, Archetype.BANDIT, drifter -> {
 				drifter.getSocial().setDisposition(Disposition.BANDIT);
-				EncounterSpawner.fighter(drifter, Math.max(0, tier - 1), false, random);
+				EncounterSpawner.fighter(drifter, band, false, random);
 				EncounterSpawner.traits(drifter, 0.8, 0.9, 0.2, 0.5);
 			});
 			if (bandit != null) {

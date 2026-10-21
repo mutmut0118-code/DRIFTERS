@@ -57,13 +57,15 @@ final class BountyHunters extends Encounter {
 		String issuer = state.bounty == null ? "someone" : state.bounty.issuer();
 		BountyHunters hunters = new BountyHunters(player, issuer, lead);
 		int tier = EncounterSpawner.gearTier(player);
+		// One band, in one set of colours.
+		var band = EncounterSpawner.band(level, tier, random);
 		// (One fewer if their scout never came back.)
 		int count = Math.max(1, 3 + Math.min(2, tier) - (state.bounty == null ? 0 : state.bounty.fewer()));
 		for (int i = 0; i < count; i++) {
 			BlockPos at = EncounterSpawner.ground(level, spot.getX() + random.nextInt(7) - 3, spot.getZ() + random.nextInt(7) - 3);
 			boolean archer = i == count - 1;
 			DrifterEntity hunter = EncounterSpawner.spawn(level, at == null ? spot : at, Archetype.PVP_SWEAT, drifter -> {
-				EncounterSpawner.fighter(drifter, tier, archer, random);
+				EncounterSpawner.fighter(drifter, band, archer, random);
 				EncounterSpawner.traits(drifter, 0.85, 0.85, 0.15, 0.9);
 				// Word of the job: who it's after and where they were seen (no warning owed: they've come for them).
 				Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());

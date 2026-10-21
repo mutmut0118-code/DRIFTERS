@@ -149,39 +149,25 @@ final class EncounterSpawner {
 		return armor >= 16 ? 2 : armor >= 8 ? 1 : 0;
 	}
 
-	/** A fighter's kit for this tier: armor, a weapon, a shield (an archer a bow and arrows), food. */
+	/**
+	 * A fighter's kit for this tier (SoldierKit: pieces picked one by one, its own colours, a weapon of its favourite kind,
+	 * worn from use; an archer a quiverful): a fighter on its own.
+	 */
 	static void fighter(DrifterEntity drifter, int tier, boolean archer, RandomSource random) {
-		var inventory = drifter.getInventory();
-		switch (tier) {
-			case 0 -> {
-				drifter.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
-				drifter.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-				inventory.add(new ItemStack(random.nextInt(3) == 0 ? Items.STONE_AXE : Items.STONE_SWORD));
-			}
-			case 1 -> {
-				drifter.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.CHAINMAIL_HELMET));
-				drifter.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-				drifter.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
-				drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-				inventory.add(new ItemStack(random.nextInt(3) == 0 ? Items.IRON_AXE : Items.IRON_SWORD));
-			}
-			default -> {
-				drifter.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
-				drifter.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-				drifter.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
-				drifter.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
-				drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-				inventory.add(new ItemStack(random.nextInt(4) == 0 ? Items.DIAMOND_AXE : Items.DIAMOND_SWORD));
-			}
-		}
+		fighter(drifter, band((ServerLevel)drifter.level(), tier, random), archer, random);
+	}
 
-		if (archer) {
-			inventory.add(new ItemStack(Items.BOW));
-			inventory.add(new ItemStack(Items.ARROW, 24 + random.nextInt(16)));
-		}
+	/** A fighter in this band's colours. */
+	static void fighter(DrifterEntity drifter, com.dinglebob.drifter.world.SoldierKit.Army band, boolean archer, RandomSource random) {
+		com.dinglebob.drifter.world.SoldierKit.equip(drifter, (ServerLevel)drifter.level(), band, archer ? com.dinglebob.drifter.world.SoldierKit.Role.ARCHER
+			: com.dinglebob.drifter.world.SoldierKit.Role.INFANTRY, random);
+	}
 
-		inventory.add(new ItemStack(Items.BREAD, 4 + random.nextInt(5)));
-		inventory.add(new ItemStack(Items.COBBLESTONE, 16));
+	/** A band's colours and kit, for how well armed the player looks (its members all alike: hunters, a gang, raiders). */
+	static com.dinglebob.drifter.world.SoldierKit.Army band(ServerLevel level, int tier, RandomSource random) {
+		net.minecraft.world.item.DyeColor[] colours = net.minecraft.world.item.DyeColor.values();
+		return com.dinglebob.drifter.world.SoldierKit.army(level, colours[random.nextInt(colours.length)],
+			com.dinglebob.drifter.world.SoldierKit.Quality.forTier(tier), random);
 	}
 
 	/** Its traits for a part: bravery, aggression, caution, vengefulness (each 0 to 1). */

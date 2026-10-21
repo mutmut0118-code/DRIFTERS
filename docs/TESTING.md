@@ -1466,8 +1466,11 @@ survival, on the surface). To try each now: `/drifter encounter start <kind>` (`
         off): someone sneaks in and robs the chest. Catch them!
       - `scout`: puts a price on your head; someone watches you from a distance with a spyglass. Kill them before they
         get away and the hunters come a day later and short one man; their "Orders" note says who sent them.
-- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off (26 switches now, four a row), and
-      sets how often.
+- [ ] **Warband battles** (`/drifter encounter start warbands`): two bands in their colours (dyed leather, painted
+      shields, trimmed armour, a captain with the banner on its head) fight it out some way off. Watch, or hit one side:
+      that side turns on you. Help the winners and their captain brings you emeralds; the fallen's gear lies on the field.
+      `/drifter battle 20` armies wear the same varied kit now.
+- [ ] **Settings**: Settings > Encounters... turns them all or each kind on and off, and sets how often.
 - [ ] **Bountiful**: a Drifter near a bounty board (villages have them) now and then walks over and reads it. With spare
       things a bounty asks for, it takes it and turns it in for the reward; `/drifter thoughts` says what it took, or what
       the board wanted. To try: put a board near a Drifter, give it a stack of something common (`/drifter give flint 64`),
