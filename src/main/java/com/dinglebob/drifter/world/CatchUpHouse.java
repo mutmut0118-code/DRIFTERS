@@ -186,6 +186,7 @@ public final class CatchUpHouse {
 
 		home.planDone = true;
 		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, placed.box());
+		com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(drifter, "house", home.planOrigin);
 		// The trees its wood came from, gone (user, 2026-10-17).
 		com.dinglebob.drifter.world.gen.Felling.fell(level, placed.box(), com.dinglebob.drifter.world.gen.Felling.logsIn(placed.build.stream().map(c -> c.state()).toList()),
 			drifter.getRandom());

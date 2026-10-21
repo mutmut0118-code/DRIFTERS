@@ -83,7 +83,7 @@ public final class TradeGoal extends Goals.Goal {
 				}
 			}
 
-			if (this.plan == null && (Trading.emeralds(drifter) > 0 || hasSurplus(drifter))) {
+			if (this.plan == null && (Trading.hasMoney(drifter) || hasSurplus(drifter))) {
 				this.lookAt = unseenVillager(drifter, now);
 			}
 		}

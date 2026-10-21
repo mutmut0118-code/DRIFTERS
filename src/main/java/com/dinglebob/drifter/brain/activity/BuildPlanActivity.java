@@ -393,6 +393,7 @@ public class BuildPlanActivity extends Activity {
 			// Its build now: it uses the door, not the wall (user, 2026-10-17).
 			com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, plan.box());
 			this.think("finished building its house" + (missing > 0 ? " (bar " + missing + " blocks it couldn't reach)" : ""));
+			com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "house", home.planOrigin);
 		}
 
 		// Leaves still hanging in the house that haven't withered (a tree's leaves joined to one outside): dug if it can get

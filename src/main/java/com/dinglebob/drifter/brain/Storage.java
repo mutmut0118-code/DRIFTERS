@@ -29,6 +29,8 @@ public final class Storage {
 	public static final int KEEP_WOOD = 16;
 	public static final int KEEP_STICKS = 16;
 	public static final int KEEP_COAL = 16;
+	/** Emeralds and coins it keeps on it (the rest goes in the chest). */
+	public static final int KEEP_MONEY = 64;
 	/** Free main-inventory slots it likes to have; fewer than this and storing gets urgent. */
 	public static final int FULL_FREE_SLOTS = 4;
 
@@ -252,6 +254,11 @@ public final class Storage {
 			return "bed";
 		}
 
+		if (stack.is(Items.EMERALD) || com.dinglebob.drifter.trade.Money.isCoin(stack)) {
+			// Money it keeps on it, as a player keeps a purse: for a villager or another Drifter met on the way (milestone 22).
+			return "money";
+		}
+
 		if (stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || stack.is(Items.LAVA_BUCKET)) {
 			return "bucket";
 		} else if (stack.is(Items.CRAFTING_TABLE)) {
@@ -314,6 +321,7 @@ public final class Storage {
 			case "table", "furnace", "bed", "enchanting table" -> 1;
 			case "to put up" -> 3;
 			case "lapis" -> 64;
+			case "money" -> KEEP_MONEY;
 			case "netherite" -> 64;
 			case "brewing" -> 32;
 			case "seeds" -> 32;

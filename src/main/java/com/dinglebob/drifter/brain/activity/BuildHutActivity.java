@@ -787,6 +787,7 @@ public class BuildHutActivity extends Activity {
 		// Back to it in a minute at the soonest (found in testing: a station it couldn't place brought it back every 3 ticks).
 		home.hutRestUntil = this.drifter.level().getGameTime() + 1200L;
 		this.think("finished the hut");
+		com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "hut", home.center);
 	}
 
 	/** "hut" or "house", for its thoughts. */

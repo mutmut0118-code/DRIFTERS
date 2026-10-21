@@ -126,6 +126,23 @@ public final class Trading {
 		return drifter.getInventory().count(stack -> stack.is(Items.EMERALD));
 	}
 
+	/** It has any money: emeralds, or coins (Numismatic Overhaul). */
+	public static boolean hasMoney(DrifterEntity drifter) {
+		return emeralds(drifter) > 0 || Money.coins(drifter) > 0;
+	}
+
+	/** What this offer costs in money (its money parts; null if it costs something other than money and money). */
+	@Nullable
+	private static Money.Price cost(TradeBook.Offer offer) {
+		Money.Price a = Money.price(offer.costA(), offer.countA());
+		Money.Price b = offer.costB().isEmpty() ? null : Money.price(offer.costB(), offer.countB());
+		if (a == null) {
+			return b;
+		}
+
+		return b == null || b.coins() != a.coins() ? a : new Money.Price(a.coins(), a.amount() + b.amount());
+	}
+
 	/** One trade of a visit: which offer, how many times, buying or selling, in words. */
 	public record Step(int offer, int times, boolean buy, String label) {
 	}
@@ -140,11 +157,10 @@ public final class Trading {
 	 */
 	@Nullable
 	public static Plan plan(DrifterEntity drifter, TradeBook.Seen seen) {
-		int emeralds = emeralds(drifter);
 		TradeBook.Offer bestBuy = null;
 		double bestWant = 0.0;
 		for (TradeBook.Offer offer : seen.offers()) {
-			if (offer.outOfStock() || offer.buysForEmeralds() || !offer.costA().equals("minecraft:emerald") && !canPayOther(drifter, offer)) {
+			if (offer.outOfStock() || offer.buysForEmeralds() || !Money.isMoney(offer.costA()) && !canPayOther(drifter, offer) || cost(offer) == null) {
 				continue;
 			}
 
@@ -156,7 +172,9 @@ public final class Trading {
 		}
 
 		List<Step> sells = new ArrayList<>();
-		int fromSelling = 0;
+		// What selling first would bring, in emeralds and in coins (bronze).
+		long fromSellingEmeralds = 0;
+		long fromSellingCoins = 0;
 		for (TradeBook.Offer offer : seen.offers()) {
 			if (offer.outOfStock() || !offer.buysForEmeralds() || !offer.costB().isEmpty()) {
 				continue;
@@ -164,22 +182,29 @@ public final class Trading {
 
 			Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(offer.costA()));
 			int times = offer.countA() <= 0 ? 0 : surplus(drifter, item) / offer.countA();
-			if (times > 0) {
+			Money.Price pays = Money.price(offer.result(), offer.resultCount());
+			if (times > 0 && pays != null) {
 				times = Math.min(times, MAX_SELLS);
-				sells.add(new Step(offer.index(), times, false, "sell " + offer.countA() * times + " " + name(offer.costA()) + " for " + offer.resultCount() * times
-					+ " emeralds"));
-				fromSelling += offer.resultCount() * times;
+				Money.Price all = new Money.Price(pays.coins(), pays.amount() * times);
+				sells.add(new Step(offer.index(), times, false, "sell " + offer.countA() * times + " " + name(offer.costA()) + " for " + all.describe()));
+				if (pays.coins()) {
+					fromSellingCoins += all.amount();
+				} else {
+					fromSellingEmeralds += all.amount();
+				}
 			}
 		}
 
 		if (bestBuy != null) {
-			int price = (bestBuy.costA().equals("minecraft:emerald") ? bestBuy.countA() : 0) + (bestBuy.costB().equals("minecraft:emerald") ? bestBuy.countB() : 0);
-			String label = "buy " + (bestBuy.resultCount() > 1 ? bestBuy.resultCount() + " " : "") + name(bestBuy.result()) + " for " + price + " emeralds";
-			if (price <= emeralds) {
+			Money.Price price = cost(bestBuy);
+			long have = Money.carried(drifter, price.coins());
+			long fromSelling = price.coins() ? fromSellingCoins : fromSellingEmeralds;
+			String label = "buy " + (bestBuy.resultCount() > 1 ? bestBuy.resultCount() + " " : "") + name(bestBuy.result()) + " for " + price.describe();
+			if (price.amount() <= have) {
 				return new Plan(seen.villager(), seen.where(), List.of(new Step(bestBuy.index(), 1, true, label)), bestWant, label);
 			}
 
-			if (price <= emeralds + fromSelling) {
+			if (price.amount() <= have + fromSelling) {
 				List<Step> steps = new ArrayList<>(sells);
 				steps.add(new Step(bestBuy.index(), 1, true, label));
 				return new Plan(seen.villager(), seen.where(), List.copyOf(steps), bestWant, label + " (selling first)");
@@ -187,7 +212,7 @@ public final class Trading {
 		}
 
 		if (!sells.isEmpty() && drifter.getPersonality().get(Trait.GREED) >= 0.6) {
-			return new Plan(seen.villager(), seen.where(), List.copyOf(sells), GREEDY_SELL, "sell its surplus for emeralds");
+			return new Plan(seen.villager(), seen.where(), List.copyOf(sells), GREEDY_SELL, "sell its surplus for " + (fromSellingCoins > 0 ? "coins" : "emeralds"));
 		}
 
 		return null;
@@ -199,7 +224,7 @@ public final class Trading {
 	/** An offer costing something other than emeralds (a librarian's book and emeralds): it has the other part. */
 	private static boolean canPayOther(DrifterEntity drifter, TradeBook.Offer offer) {
 		Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(offer.costA()));
-		return item != Items.AIR && drifter.getInventory().count(stack -> stack.is(item)) >= offer.countA() && offer.costB().equals("minecraft:emerald");
+		return item != Items.AIR && drifter.getInventory().count(stack -> stack.is(item)) >= offer.countA() && Money.isMoney(offer.costB());
 	}
 
 	private static String name(String id) {
@@ -317,6 +342,12 @@ public final class Trading {
 		}
 
 		Inventory inventory = fake.getInventory();
+		// Coins of the wrong size: changed first, as a player does with the purse (Numismatic Overhaul).
+		Money.makeChange(inventory, offer.getCostA().getItem(), offer.getCostA().getCount());
+		if (!offer.getCostB().isEmpty()) {
+			Money.makeChange(inventory, offer.getCostB().getItem(), offer.getCostB().getCount());
+		}
+
 		ItemStack payA = gather(inventory, offer.getItemCostA(), offer.getCostA().getCount());
 		ItemStack payB = offer.getItemCostB().map(cost -> gather(inventory, cost, offer.getCostB().getCount())).orElse(ItemStack.EMPTY);
 		if (!offer.satisfiedBy(payA, payB)) {

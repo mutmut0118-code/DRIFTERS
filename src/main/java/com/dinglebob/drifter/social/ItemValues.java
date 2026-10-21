@@ -48,6 +48,9 @@ public final class ItemValues {
 			value = item == Items.DIAMOND_BLOCK ? 90.0 : 10.0;
 		} else if (item == Items.EMERALD) {
 			value = 6.0;
+		} else if (com.dinglebob.drifter.trade.Money.isCoin(stack)) {
+			// Numismatic Overhaul's coins: a bronze about an eighth of a point, silver 12, gold 1200.
+			value = com.dinglebob.drifter.trade.Money.points(stack);
 		} else if (item == Items.GOLD_INGOT || item == Items.RAW_GOLD) {
 			value = 3.0;
 		} else if (item == Items.IRON_INGOT || item == Items.RAW_IRON) {

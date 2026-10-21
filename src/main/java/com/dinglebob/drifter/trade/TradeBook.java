@@ -30,9 +30,9 @@ public final class TradeBook {
 	/** One offer as it saw it: what it costs, what it gives, an enchanted book's enchantments, sold out or not. */
 	public record Offer(int index, String costA, int countA, String costB, int countB, String result, int resultCount, List<String> enchantments,
 		boolean outOfStock) {
-		/** It gives emeralds for something (a villager buying). */
+		/** It gives money for something (a villager buying): emeralds, or with Numismatic Overhaul coins. */
 		public boolean buysForEmeralds() {
-			return this.result.equals("minecraft:emerald");
+			return Money.isMoney(this.result);
 		}
 	}
 

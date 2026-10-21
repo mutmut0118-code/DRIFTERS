@@ -811,8 +811,39 @@ public class Brain {
 		return this.goals.stream().map(Goals.Goal::id).toList();
 	}
 
+	/**
+	 * Where it keeps to (another mod's call, DrifterApi.setRoam: "one island"): it explores no further than this from the
+	 * middle, in this dimension. Null: anywhere.
+	 */
+	@org.jetbrains.annotations.Nullable
+	private BlockPos roamCenter;
+	private int roamRadius;
+	private String roamDimension = "minecraft:overworld";
+
+	public void setRoam(@org.jetbrains.annotations.Nullable BlockPos center, int radius) {
+		this.roamCenter = center == null ? null : center.immutable();
+		this.roamRadius = Math.max(16, radius);
+		this.roamDimension = this.drifter.level().dimension().location().toString();
+	}
+
+	/** The middle of where it keeps to, if it's in that dimension (else null). */
+	@org.jetbrains.annotations.Nullable
+	public BlockPos roamCenter() {
+		return this.roamCenter != null && this.roamDimension.equals(this.drifter.level().dimension().location().toString()) ? this.roamCenter : null;
+	}
+
+	public int roamRadius() {
+		return this.roamRadius;
+	}
+
 	public CompoundTag save() {
 		CompoundTag tag = new CompoundTag();
+		if (this.roamCenter != null) {
+			tag.putLong("RoamCenter", this.roamCenter.asLong());
+			tag.putInt("RoamRadius", this.roamRadius);
+			tag.putString("RoamDimension", this.roamDimension);
+		}
+
 		tag.putInt("Version", SAVE_VERSION);
 		tag.putBoolean("Enabled", this.enabled);
 		net.minecraft.nbt.ListTag jobs = new net.minecraft.nbt.ListTag();
@@ -848,6 +879,9 @@ public class Brain {
 		this.trades.load(tag.getCompound("Trades"));
 		this.horse = tag.hasUUID("Horse") ? tag.getUUID("Horse") : null;
 		this.horseAt = tag.contains("HorseAt") ? BlockPos.of(tag.getLong("HorseAt")) : null;
+		this.roamCenter = tag.contains("RoamCenter") ? BlockPos.of(tag.getLong("RoamCenter")) : null;
+		this.roamRadius = tag.getInt("RoamRadius");
+		this.roamDimension = tag.contains("RoamDimension") ? tag.getString("RoamDimension") : "minecraft:overworld";
 		this.furnaceJobs.clear();
 		net.minecraft.nbt.ListTag jobs = tag.getList("FurnaceJobs", net.minecraft.nbt.Tag.TAG_COMPOUND);
 		for (int i = 0; i < jobs.size(); i++) {

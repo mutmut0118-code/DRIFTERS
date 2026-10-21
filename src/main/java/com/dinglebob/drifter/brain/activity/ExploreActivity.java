@@ -124,8 +124,30 @@ public class ExploreActivity extends Activity {
 		return new Vec3(point.x, Math.max(point.y, level.getSeaLevel() + ABOVE_LAVA_SEA), point.z);
 	}
 
-	/** A point 20 to 32 blocks away, preferring a direction whose ground it hasn't explored. */
+	/** A point 20 to 32 blocks away, preferring a direction whose ground it hasn't explored; within where it keeps to. */
 	private Vec3 pickDirection() {
+		Vec3 point = this.pickDirectionAnywhere();
+		var center = this.drifter.getDrifterBrain().roamCenter();
+		int radius = this.drifter.getDrifterBrain().roamRadius();
+		if (center == null || Math.hypot(point.x - center.getX() - 0.5, point.z - center.getZ() - 0.5) <= radius) {
+			return point;
+		}
+
+		// Past the edge of where it keeps to (an island's shore): back in, a leg toward the middle and a little aside.
+		Vec3 here = this.drifter.position();
+		Vec3 in = new Vec3(center.getX() + 0.5 - here.x, 0.0, center.getZ() + 0.5 - here.z);
+		double length = in.length();
+		if (length < 1.0) {
+			return here;
+		}
+
+		double turn = (this.drifter.getRandom().nextDouble() - 0.5) * Math.PI / 2.0;
+		Vec3 heading = in.scale(1.0 / length).yRot((float)turn);
+		double leg = Math.min(length + radius * 0.5, Mth.nextInt(this.drifter.getRandom(), MIN_LEG, MAX_LEG));
+		return here.add(heading.scale(leg));
+	}
+
+	private Vec3 pickDirectionAnywhere() {
 		Vec3 here = this.drifter.position();
 		// A long search (no trees in a desert): longer legs on one heading, as a player sets off in a straight line, turning
 		// a quarter every few legs in case that way is sea or mountains (found in testing: short random legs in badlands

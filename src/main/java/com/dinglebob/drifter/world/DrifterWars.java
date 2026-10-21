@@ -251,6 +251,7 @@ public final class DrifterWars {
 		if (crossed(before, feud.tension)) {
 			Drifter.LOGGER.info("[Drifter] {} and {}: {} ({}, tension {})", name(feud.a), name(feud.b), levelName(feud.tension), what,
 				Math.round(feud.tension));
+			feudEvent(feud);
 		}
 	}
 
@@ -270,7 +271,13 @@ public final class DrifterWars {
 		dirty = true;
 		if (crossed(before, feud.tension)) {
 			Drifter.LOGGER.info("[Drifter] {} and {}: {} (their bases are too close)", name(feud.a), name(feud.b), levelName(feud.tension));
+			feudEvent(feud);
 		}
+	}
+
+	/** A feud just crossed into skirmishing or war: for other mods (DrifterEvents.FEUD). */
+	private static void feudEvent(Feud feud) {
+		com.dinglebob.drifter.api.DrifterEvents.FEUD.invoker().onFeud(feud.a, feud.b, feud.tension >= WAR ? "went to war" : "came to blows");
 	}
 
 	private static boolean crossed(double before, double after) {
@@ -394,6 +401,7 @@ public final class DrifterWars {
 			|| raid.attackers.equals(feud.b) && raid.defenders.equals(feud.a));
 		dirty = true;
 		Drifter.LOGGER.info("[Drifter] {} and {} made peace ({})", name(feud.a), name(feud.b), why);
+		com.dinglebob.drifter.api.DrifterEvents.FEUD.invoker().onFeud(feud.a, feud.b, "made peace (" + why + ")");
 		for (UUID side : new UUID[] {feud.a, feud.b}) {
 			forMembers(server, side, member -> member.getMemory().thoughts().add(now, "made peace with " + name(feud.other(side)) + " (" + why + ")"));
 		}
@@ -423,6 +431,7 @@ public final class DrifterWars {
 		raids.put(attackers, raid);
 		lastRaid.put(attackers, now);
 		Drifter.LOGGER.info("[Drifter] {} sets off to raid {} at {}", group.name, rival.name, target.toShortString());
+		com.dinglebob.drifter.api.DrifterEvents.FEUD.invoker().onFeud(attackers, defenders, "set off to raid");
 		leader.getMemory().thoughts().add(now, "rallying " + group.name + " for a raid on " + rival.name);
 	}
 

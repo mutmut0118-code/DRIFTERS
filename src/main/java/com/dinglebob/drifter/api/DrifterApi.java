@@ -151,6 +151,49 @@ public final class DrifterApi {
 		DrifterGroups.changed();
 	}
 
+	/**
+	 * A new Drifter standing at {@code feet}, carrying nothing (a fresh start, as a new player), with a personality and a
+	 * skin of its own; named {@code name}, or a username of its own. Null if the world wouldn't take it.
+	 */
+	@Nullable
+	public static DrifterEntity spawn(ServerLevel level, net.minecraft.core.BlockPos feet, @Nullable String name) {
+		DrifterEntity drifter = com.dinglebob.drifter.registry.ModEntities.DRIFTER.create(level);
+		if (drifter == null) {
+			return null;
+		}
+
+		float yaw = level.getRandom().nextFloat() * 360.0F;
+		drifter.moveTo(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5, yaw, 0.0F);
+		drifter.setYHeadRot(yaw);
+		drifter.setYBodyRot(yaw);
+		drifter.finalizeSpawn(level, level.getCurrentDifficultyAt(feet), net.minecraft.world.entity.MobSpawnType.COMMAND, null);
+		if (name != null) {
+			drifter.setCustomName(net.minecraft.network.chat.Component.literal(name));
+			drifter.setCustomNameVisible(true);
+		}
+
+		return level.addFreshEntity(drifter) ? drifter : null;
+	}
+
+	/**
+	 * Keeps it within {@code radius} blocks of {@code center} (in the dimension it's in now) when it explores: "one island".
+	 * Null lets it go anywhere again. Saved with it.
+	 */
+	public static void setRoam(DrifterEntity drifter, @Nullable net.minecraft.core.BlockPos center, int radius) {
+		drifter.getDrifterBrain().setRoam(center, radius);
+	}
+
+	/** A soldier in a battle going on now (`/drifter battle`, warbands): they come and go by the dozen. */
+	public static boolean inBattle(DrifterEntity drifter) {
+		return com.dinglebob.drifter.world.Battle.inBattle(drifter);
+	}
+
+	/** A group by its id (as events give it), or null if it's gone. */
+	@Nullable
+	public static DrifterGroups.Group groupById(UUID id) {
+		return DrifterGroups.byId(id);
+	}
+
 	/** A Drifter you meet once (an encounter's, a delver): never saved, gone when its part is over. */
 	public static boolean temporary(DrifterEntity drifter) {
 		return drifter.isTemporary();

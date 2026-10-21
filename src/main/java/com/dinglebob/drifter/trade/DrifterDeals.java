@@ -246,7 +246,7 @@ public final class DrifterDeals {
 		double bestWant = 0.0;
 		for (Map.Entry<Integer, Integer> entry : Storage.spare(asker).entrySet()) {
 			ItemStack stack = mine.getItem(entry.getKey());
-			if (stack.isEmpty() || ItemStack.isSameItem(stack, goods) || stack.is(Items.EMERALD)) {
+			if (stack.isEmpty() || ItemStack.isSameItem(stack, goods) || stack.is(Items.EMERALD) || Money.isCoin(stack)) {
 				continue;
 			}
 
@@ -265,9 +265,13 @@ public final class DrifterDeals {
 			return best;
 		}
 
-		int emeralds = (int)Math.max(1, Math.round(price / EMERALD_WORTH));
-		return mine.count(stack -> stack.is(Items.EMERALD)) >= emeralds && emeralds * EMERALD_WORTH <= price * OVERPAY + 3.0
-			? new ItemStack(Items.EMERALD, emeralds) : null;
+		// Money: coins (Numismatic Overhaul) or emeralds.
+		ItemStack money = Money.pay(asker, price, OVERPAY);
+		if (money != null && Money.isCoin(money)) {
+			Money.makeChange(asker, money.getItem(), money.getCount());
+		}
+
+		return money;
 	}
 
 	/** How much it wants this for itself (0 to 1): better gear, food when short, iron with no iron pickaxe, torches, coal, wood. */

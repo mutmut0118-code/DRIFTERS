@@ -82,6 +82,23 @@ public final class DrifterEvents {
 		}
 	});
 
+	/** A Drifter finished building something at its home: {@code what} is "hut" or "house" (more to come). */
+	public static final Event<Built> BUILT = EventFactory.createArrayBacked(Built.class, listeners -> (drifter, what, where) -> {
+		for (Built listener : listeners) {
+			listener.onBuilt(drifter, what, where);
+		}
+	});
+
+	/**
+	 * Two groups' feud moved on: {@code what} is "came to blows" (skirmishing), "went to war", "made peace (why)" or "set off to
+	 * raid" ({@code a} raiding {@code b}). Group ids ({@code DrifterApi.group}).
+	 */
+	public static final Event<Feud> FEUD = EventFactory.createArrayBacked(Feud.class, listeners -> (a, b, what) -> {
+		for (Feud listener : listeners) {
+			listener.onFeud(a, b, what);
+		}
+	});
+
 	@FunctionalInterface
 	public interface Died {
 		void onDied(DrifterEntity drifter, DamageSource source, boolean comesBack);
@@ -110,6 +127,16 @@ public final class DrifterEvents {
 	@FunctionalInterface
 	public interface Traded {
 		void onTraded(DrifterEntity asker, DrifterEntity giver, ItemStack paid, ItemStack got);
+	}
+
+	@FunctionalInterface
+	public interface Built {
+		void onBuilt(DrifterEntity drifter, String what, net.minecraft.core.BlockPos where);
+	}
+
+	@FunctionalInterface
+	public interface Feud {
+		void onFeud(UUID a, UUID b, String what);
 	}
 
 	@FunctionalInterface
