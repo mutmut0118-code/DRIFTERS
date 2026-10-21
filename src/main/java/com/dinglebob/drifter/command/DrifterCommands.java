@@ -166,6 +166,26 @@ public final class DrifterCommands {
 		// Finding them (user's request): a list of every loaded Drifter with where it is, each name a click to go there, and a
 		// teleport by name.
 		root.then(Commands.literal("list").executes(DrifterCommands::list));
+		// The world's directory of Drifters (milestone 22 groundwork): everyone it knows of, gone ones too.
+		root.then(Commands.literal("directory").executes(ctx -> {
+			var records = new java.util.ArrayList<>(com.dinglebob.drifter.world.DrifterRegistry.records());
+			long alive = records.stream().filter(r -> r.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE).count();
+			long dead = records.stream().filter(r -> r.status() == com.dinglebob.drifter.api.DrifterRecord.Status.DEAD).count();
+			ctx.getSource().sendSuccess(() -> Component.literal(records.size() + " Drifters known: " + alive + " alive, " + dead + " dead and coming back, "
+				+ (records.size() - alive - dead) + " gone"), false);
+			records.sort(java.util.Comparator.comparing(r -> r.name().toLowerCase(Locale.ROOT)));
+			for (var r : records.subList(0, Math.min(20, records.size()))) {
+				String friend = r.drifterTrust().entrySet().stream().filter(e -> e.getValue() > 0).findFirst()
+					.map(e -> { var f = com.dinglebob.drifter.world.DrifterRegistry.record(e.getKey()); return f == null ? null : f.name() + " " + Math.round(e.getValue()); })
+					.orElse(null);
+				String line = String.format(Locale.ROOT, "%s (%s, %s): %s, stage %d, %d deaths%s%s%s", r.name(), r.status().name().toLowerCase(Locale.ROOT), r.archetype(),
+					r.home() == null ? "no home" : "home " + r.home().toShortString() + (r.bed() != null ? " with a bed" : ""), r.stage(), r.deaths(),
+					r.group() != null ? ", in a group" : "", friend != null ? ", closest: " + friend : "", ", knows " + r.playerTrust().size() + " players");
+				ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+			}
+
+			return records.size();
+		}));
 		// Who's dead and on the way back (section 20).
 		root.then(Commands.literal("respawns").executes(ctx -> {
 			var lines = com.dinglebob.drifter.world.Respawns.report(ctx.getSource().getServer());

@@ -151,5 +151,10 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   respawned, home set, group changed, a player's deed); a few readers and setters. The addon loads, says so in the log,
   and `/drifterciv` shows its version, Drifter's, and how many Drifter deaths it heard of through the API. Tested
   headless: both mods load, a death reached the addon.
-- **Next:** the groundwork in Drifter (above): the world-wide Drifter directory, news that travels, Drifters trading
-  with each other, shared chests and building together, bigger groups, roads, a 30-day run.
+- **Groundwork 1, the directory (done):** `DrifterRegistry` is now the world's directory of Drifters (`DrifterRecord`:
+  status alive / dead and coming back / gone, home and bed, group, stage, deaths, archetype, traits, closest Drifters and
+  players), kept while they're unloaded, gone ones kept for the history; `DrifterApi.directory()`, `/drifter directory`.
+  Tested headless: six Drifters over a day and a half, a death (dead and coming back, its stage and friend kept), back
+  alive after the respawn.
+- **Next:** news that travels, Drifters trading with each other, shared chests and building together, bigger groups,
+  roads, a 30-day run.

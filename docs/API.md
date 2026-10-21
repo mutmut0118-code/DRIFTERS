@@ -28,6 +28,15 @@ with the same version number.
 
 More come with the features that make them (trading, news, crimes seen).
 
+## The world's directory of Drifters
+
+`DrifterApi.directory()` (every Drifter that has lived in the world, gone ones too) and `DrifterApi.record(uuid)`: a
+`DrifterRecord` each, readable while the Drifter is far away and unloaded: name, status (alive, dead and coming back,
+gone), where it was last and when, when it was first seen, its home and bed, group, stage, deaths, archetype,
+disposition, traits, and its trust in its 16 closest Drifters and the 16 players it feels most strongly about. Kept up
+to date while it's loaded (position every 5 s, the rest about once a minute), as it was when it unloaded otherwise.
+`/drifter directory` shows it. For the world's bookkeeping (a town summary), never for one Drifter to know about another.
+
 ## Reading and changing a Drifter
 
 `DrifterApi.loaded(server)`, `home(drifter)`, `setHome(drifter, home)`, `group(uuid)`, `trustInPlayer(drifter, player)`,

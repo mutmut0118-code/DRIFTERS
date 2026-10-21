@@ -64,6 +64,19 @@ public final class DrifterApi {
 		return CATCH_UP;
 	}
 
+	// ----- The world's directory of Drifters -----
+
+	/** Every Drifter that has lived in this world (gone ones too), as the world keeps it: readable while they're unloaded. */
+	public static java.util.Collection<DrifterRecord> directory() {
+		return com.dinglebob.drifter.world.DrifterRegistry.records();
+	}
+
+	/** One Drifter's record, or null if the world never knew it. */
+	@Nullable
+	public static DrifterRecord record(UUID drifter) {
+		return com.dinglebob.drifter.world.DrifterRegistry.record(drifter);
+	}
+
 	// ----- Reading and changing a Drifter -----
 
 	/** Every Drifter loaded now, in every world. */

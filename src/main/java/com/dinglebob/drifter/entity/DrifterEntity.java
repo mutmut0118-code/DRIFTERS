@@ -2354,6 +2354,8 @@ protected void customServerAiStep() {
 		super.die(source);
 		if (!wasDead && this.dead && !this.level().isClientSide()) {
 			com.dinglebob.drifter.world.Respawns.died(this, source, comesBack, worth);
+			// (After its death is counted and remembered.)
+			com.dinglebob.drifter.api.DrifterEvents.DIED.invoker().onDied(this, source, comesBack);
 		}
 	}
 
