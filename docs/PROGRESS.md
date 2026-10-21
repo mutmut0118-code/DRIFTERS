@@ -2510,6 +2510,26 @@ setting saying what it does, and Done always on screen; the list scrolls at any 
 its 26 kinds (Bounties, Danger, Someone needs help, Drama, Peaceful and odd) with full names. Test harness: `screen
 <page>`, `scroll <n>`, `gui <scale>` lines.
 
+## Faster skins; mob sounds checked (2026-10-20)
+
+The user: "lets fix the zombie groan problem and figure out how to load skins faster".
+- **Zombie groans:** not a bug after all. Drifters already hear creatures' own sounds (groans, rattles, hisses) through
+  `CreatureHearing` and the entity sound hook; the "TODO" in `Hearing` saying they didn't was out of date (and the
+  summary given the user was wrong about it). Checked: a zombie that couldn't move, sealed behind stone 15 blocks off,
+  heard 10 times in a minute ("heard a zombie behind, about 15 blocks away"). The note is fixed.
+- **Skins** (`entity/RealSkins`): before, one lookup started a second (two at once), each a chain of Mojang calls, and
+  nothing was kept between runs: 30 new Drifters took a minute (0 after 3 s, 8 after 10 s). Now:
+  - every answer is kept on disk, `config/drifter/cache/skins.json` (a skin a month, "no such account" a week, the
+    newest 3,000), for every world and later runs;
+  - a pool of 40 ready skins from the bundled list is topped up in the background, four fetches at a time;
+  - new Drifters' names are asked about together (twenty a batch, two batches at once; Mojang takes ten names a
+    request); as soon as that's back, the ones with no account take a ready skin; the ones with one get its skin;
+  - a new Drifter asks on its first tick (it used to wait for its 5-second check);
+  - a pause of 30 s only after four empty answers in a row (an account that's gone from the bundled list isn't a busy
+    Mojang: pausing at those held everyone up).
+  Measured, 30 new Drifters at once: with the cache, 28 within 3 s and all within 9 s; from an empty cache, all within
+  10 s. In the game client, real skins showed 3 s after 8 Drifters appeared. With no internet, cached skins still serve.
+
 ## More whims (2026-10-20)
 
 The user: "then add more whims". Twenty new ones in `drifter_whims/everyday.json`, most written as steps whims (the new

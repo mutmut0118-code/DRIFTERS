@@ -1271,7 +1271,8 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 protected void customServerAiStep() {
 		this.dismountIfIdle();
-		if ((this.tickCount + this.getId()) % 100 == 0) {
+		// Straight away when it's new (found in testing: up to 5 s before it even asked), then every 5 s while it has none.
+		if (this.tickCount == 2 || (this.tickCount + this.getId()) % 100 == 0) {
 			this.wantRealSkin();
 		}
 

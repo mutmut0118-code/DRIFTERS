@@ -26,7 +26,8 @@ import net.minecraft.world.phys.Vec3;
  * sounds (the vanilla "ignore vibrations while sneaking" tag), and wool between the sound and the Drifter blocks it,
  * like it does for sculk. Vanilla only delivers these events within 16 blocks; explosions are passed in separately
  * (see {@link #hearExplosion}) so they carry 64.
- * TODO: mob ambient sounds (groans, rattles) don't produce game events; they need a sound hook.
+ * Creatures' own sounds (groans, rattles, hisses) make no game events: {@link CreatureHearing} hears those, through a
+ * hook on entity sounds (checked 2026-10-20: a zombie that couldn't move, sealed behind stone, heard 10 times a minute).
  */
 public class Hearing implements GameEventListener {
 	/** Vanilla delivers game events no farther than this. */
