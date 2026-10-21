@@ -141,9 +141,10 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 1. The addon's name, and the same repository (recommended) or its own? **"same repo, call it Drifter: Civilizations".**
 2. How big should a world's civilization be: a few towns, or dozens? **A few towns ("should be a few towns, but that can
    be tbd down the road"): build for a few, keep the size a setting so it can grow later.**
-3. Should a player be able to become a leader, or only ever a citizen, trader or enemy? **Only a citizen for now ("they
-   should only be a citizen right now").** A player can live in a town and be one of its people, never its leader; leading
-   can come later if wanted.
+3. Should a player be able to become a leader, or only ever a citizen, trader or enemy? **A citizen or an enemy for now
+   ("they should only be a citizen right now", then "they can also be an enemy aswell").** A player can live in a town
+   and be one of its people, or be against a town (raid it, be wanted, be fought), but never lead one; leading can come
+   later if wanted.
 4. Which parts first, if not the suggested order? **The suggested order ("keep doing the suggested order").**
 
 ## Progress
