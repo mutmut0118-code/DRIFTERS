@@ -2619,5 +2619,5 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   house, a load from the hut chest); the whole thing to be checked in game (test runs kept being cut short by other
   things: a hut door that trapped it, flat-world mining).
 - **Found, not fixed:** in flat test worlds a Drifter sometimes ends up shut in its own hut (walking at the closed door
-  without getting through), and the hut builder often reports "couldn't mine Air ... there is nothing there". To look at.
+  without getting through; a direct test with a closed door worked both ways, so the cause is still unknown), and the hut builder often reports "couldn't mine Air ... there is nothing there". To look at.
 - Next: towns (step 3), after the user's review of the town plan.
