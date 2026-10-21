@@ -94,7 +94,10 @@ public final class DrifterRegistry {
 				// Removed (a command, not travel): gone, kept for the history.
 				setStatus(entity.getUUID(), DrifterRecord.Status.GONE, -1);
 			} else if (reason != Entity.RemovalReason.CHANGED_DIMENSION) {
-				remember(drifter, true);
+				// (Without looking at the world: this runs while the game is unloading chunks, and reading a block in a chunk
+				// that's gone loads it again in the middle of that, which crashed a 50-Drifter test, "ConcurrentModificationException
+				// in DistanceManager".)
+				remember(drifter, true, false);
 			}
 		});
 		// Its death: dead and coming back, or gone for good.
@@ -102,7 +105,7 @@ public final class DrifterRegistry {
 			if (!drifter.isTemporary() && !Battle.inBattle(drifter)) {
 				// (Its record as it was before it died: its things are on the ground now.)
 				if (!records.containsKey(drifter.getUUID())) {
-					remember(drifter, true);
+					remember(drifter, true, true);
 				}
 
 				setStatus(drifter.getUUID(), comesBack ? DrifterRecord.Status.DEAD : DrifterRecord.Status.GONE, drifter.deaths());
@@ -114,13 +117,16 @@ public final class DrifterRegistry {
 		updates++;
 		for (ServerLevel level : server.getAllLevels()) {
 			for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
-				remember(drifter, full || Math.floorMod(updates + drifter.getId(), FULL_EVERY) == 0);
+				remember(drifter, full || Math.floorMod(updates + drifter.getId(), FULL_EVERY) == 0, true);
 			}
 		}
 	}
 
-	/** Brings its record up to date: where it is now (cheap), or everything ({@code full}). */
-	private static void remember(DrifterEntity drifter, boolean full) {
+	/**
+	 * Brings its record up to date: where it is now (cheap), or everything ({@code full}). {@code lookAtWorld} false: its bed
+	 * is taken as last recorded (nothing read from the world).
+	 */
+	private static void remember(DrifterEntity drifter, boolean full, boolean lookAtWorld) {
 		// (A delver or an encounter's Drifter is met once: never listed.)
 		if (drifter.isTemporary()) {
 			return;
@@ -131,15 +137,17 @@ public final class DrifterRegistry {
 		if (old != null && !full) {
 			records.put(drifter.getUUID(), old.seenAt(drifter.level().dimension(), drifter.blockPosition(), now));
 		} else {
-			records.put(drifter.getUUID(), snapshot(drifter, old, now));
+			records.put(drifter.getUUID(), snapshot(drifter, old, now, lookAtWorld));
 		}
 
 		dirty = true;
 	}
 
-	private static DrifterRecord snapshot(DrifterEntity drifter, @Nullable DrifterRecord old, long now) {
+	private static DrifterRecord snapshot(DrifterEntity drifter, @Nullable DrifterRecord old, long now, boolean lookAtWorld) {
 		Home home = drifter.getDrifterBrain().home();
-		BlockPos bed = home == null ? null : home.bedOrNull(drifter.level());
+		// (Its bed is checked only where the chunk is loaded: never loads one.)
+		BlockPos bed = home == null ? null : lookAtWorld && drifter.level().isLoaded(home.center) && (home.houseBed == null || drifter.level().isLoaded(home.houseBed))
+			? home.bedOrNull(drifter.level()) : old != null ? old.bed() : null;
 		var group = DrifterGroups.of(drifter.getUUID());
 		Map<String, Double> traits = new LinkedHashMap<>();
 		for (Trait trait : Trait.values()) {
@@ -174,7 +182,7 @@ public final class DrifterRegistry {
 
 	/** Back from the dead: alive again (its full record follows within the minute). */
 	public static void respawned(DrifterEntity drifter) {
-		remember(drifter, true);
+		remember(drifter, true, true);
 	}
 
 	/** Out of the directory altogether (a debug clean-up). */

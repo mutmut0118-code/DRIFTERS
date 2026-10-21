@@ -2596,4 +2596,9 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
 - **Groundwork 5, roads:** `PathSearch.ROAD_DISCOUNT` (0.7) for steps on a known block in `drifter:roads` (data tag:
   dirt paths); `DrifterMemory` counts how often each block is walked (saved, halved daily); `skills/PathGoal` wears a path
   in with a shovel where it has walked 6+ times near home (16 blocks a go, then half a day's rest).
+- **Crash fixed (from groundwork 1, in 0.22.0 and 0.22.1):** when a Drifter unloaded, the directory checked its bed's
+  block, which could load a chunk in the middle of the game unloading chunks: "ConcurrentModificationException in
+  DistanceManager", the server (or a single-player world) crashed. Found by the 30-day run in its first minute (50
+  Drifters walking out of the loaded area). The unload snapshot now reads nothing from the world; bed checks skip
+  chunks that aren't loaded.
 - Next: a 30-day run.
