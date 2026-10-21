@@ -136,12 +136,15 @@ TPS). Not needed first: The End, difficulty scaling, the Knowledge trait.
 **Suggested order:** the two-jar shell and API door; the directory; news and trading; shared chests, building together,
 bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "one island" and the chronicle.
 
-## Questions for the user (when we start)
+## Questions for the user (answered 2026-10-21)
 
-1. The addon's name, and the same repository (recommended) or its own?
-2. How big should a world's civilization be: a few towns, or dozens?
-3. Should a player be able to become a leader, or only ever a citizen, trader or enemy?
-4. Which parts first, if not the suggested order?
+1. The addon's name, and the same repository (recommended) or its own? **"same repo, call it Drifter: Civilizations".**
+2. How big should a world's civilization be: a few towns, or dozens? **A few towns ("should be a few towns, but that can
+   be tbd down the road"): build for a few, keep the size a setting so it can grow later.**
+3. Should a player be able to become a leader, or only ever a citizen, trader or enemy? **Only a citizen for now ("they
+   should only be a citizen right now").** A player can live in a town and be one of its people, never its leader; leading
+   can come later if wanted.
+4. Which parts first, if not the suggested order? **The suggested order ("keep doing the suggested order").**
 
 ## Progress
 
