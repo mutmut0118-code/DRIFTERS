@@ -2058,6 +2058,14 @@ public final class Goals {
 				return 0.0;
 			}
 
+			// A group mate is at it already (milestone 22 groundwork): one builds the hut (found in testing: two at once undid
+			// each other's work, "mine Air: there is nothing there").
+			// (Both started at once: the one that sorts first carries on.)
+			DrifterEntity mate = mateDoing(context.drifter(), com.dinglebob.drifter.brain.activity.BuildHutActivity.class, 32.0);
+			if (mate != null && (context.drifter().getDrifterBrain().currentGoal() != this || mate.getUUID().compareTo(context.drifter().getUUID()) < 0)) {
+				return 0.0;
+			}
+
 			if (home.hutBuilt) {
 				// Living in a village house, or its own house is up: the hut is left as it is. Or it was just at it.
 				if (home.houseBed != null || home.houseBuilt || home.planDone || context.drifter().level().getGameTime() < home.hutRestUntil) {
@@ -2118,10 +2126,18 @@ public final class Goals {
 			return home != null && home.planId != null ? "work on its house" : "build a house";
 		}
 
+		/** A group mate building the base's house this close: it goes and helps (milestone 22 groundwork). */
+		private static final double HELP_RANGE = 32.0;
+
 		@Override
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			Home home = drifter.getDrifterBrain().home();
+			if (home != null && !home.planDone && home.planId != null && home.planOrigin != null && home.near(drifter, Home.STORAGE_RANGE)
+				&& !Schedule.isNight(drifter) && mateBuilding(drifter, home)) {
+				return 0.6;
+			}
+
 			if (home == null || !home.hutBuilt || home.borrowed() || home.planDone || home.houseBuilt || !home.near(drifter, Home.STORAGE_RANGE)
 				|| drifter.getServer() == null || !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter)
 				|| com.dinglebob.drifter.building.plan.HousePlans.cached(drifter.getServer()).isEmpty()) {
@@ -2156,6 +2172,34 @@ public final class Goals {
 		public Activity start(Context context) {
 			return new com.dinglebob.drifter.brain.activity.BuildPlanActivity(context.drifter());
 		}
+
+		/** A group mate close by building this same house right now. */
+		private static boolean mateBuilding(DrifterEntity drifter, Home home) {
+			return mateDoing(drifter, com.dinglebob.drifter.brain.activity.BuildPlanActivity.class, HELP_RANGE) != null;
+		}
+	}
+
+	/**
+	 * A group mate within {@code range} doing this kind of thing right now, at the same home (milestone 22 groundwork:
+	 * group mates working at one base).
+	 */
+	@Nullable
+	public static DrifterEntity mateDoing(DrifterEntity drifter, Class<? extends Activity> kind, double range) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		Home home = drifter.getDrifterBrain().home();
+		if (group == null || home == null || !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return null;
+		}
+
+		for (java.util.UUID id : group.members) {
+			if (!id.equals(drifter.getUUID()) && level.getEntity(id) instanceof DrifterEntity mate && mate.isAlive() && mate.distanceTo(drifter) <= range
+				&& kind.isInstance(mate.getDrifterBrain().activity()) && mate.getDrifterBrain().home() != null
+				&& home.center.equals(mate.getDrifterBrain().home().center)) {
+				return mate;
+			}
+		}
+
+		return null;
 	}
 
 	public static final class House extends Goal {

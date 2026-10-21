@@ -242,6 +242,10 @@ public final class SocialCommands {
 		root.then(Commands.literal("group").then(Commands.argument("other", StringArgumentType.word()).executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 			DrifterEntity other = named(ctx, StringArgumentType.getString(ctx, "other"));
+			if (other == drifter) {
+				throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal("That's " + DrifterCommands.label(drifter) + " itself")).create();
+			}
+
 			drifter.getBonds().teamUp(other);
 			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
 			String text = DrifterCommands.label(drifter) + (group == null ? " couldn't team up (the other's group is full?)" : " is in \"" + group.name + "\"");

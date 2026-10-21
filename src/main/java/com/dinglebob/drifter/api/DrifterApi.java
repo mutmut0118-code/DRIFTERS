@@ -142,6 +142,15 @@ public final class DrifterApi {
 		return drifter.getNews().all();
 	}
 
+	/**
+	 * Most members this group takes (a town is a big group); 0 goes back to the setting ("Group size", four by default).
+	 * Its chests (the base's stockpile) are {@code group.chests}, its base {@code group.base}.
+	 */
+	public static void setGroupLimit(DrifterGroups.Group group, int limit) {
+		group.limit = Math.max(0, limit);
+		DrifterGroups.changed();
+	}
+
 	/** A Drifter you meet once (an encounter's, a delver): never saved, gone when its part is over. */
 	public static boolean temporary(DrifterEntity drifter) {
 		return drifter.isTemporary();

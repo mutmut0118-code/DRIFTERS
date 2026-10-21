@@ -75,6 +75,8 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 		this.row(toggle("Share reputation", DrifterConfig.shareReputation(), DrifterConfig::setShareReputation,
 				"Players seen together share a little of each other's standing."),
 			toggle("Raid players' chests", DrifterConfig.raiding(), DrifterConfig::setRaiding, "Bandits, and Drifters with a real grudge, raid players' chests."));
+		this.row(slider("Group size", 2, DrifterConfig.MAX_GROUP_SIZE, DrifterConfig.groupSize(), v -> "up to " + v, DrifterConfig::setGroupSize,
+			"How many Drifters a group (friends who team up and share a base) can have. Four is the usual."), null);
 		this.row(toggle("Group wars and raids", DrifterConfig.drifterWars(), DrifterConfig::setDrifterWars, "Drifter groups fall into feuds, skirmish and raid each other."),
 			toggle("Bandits kill on sight", DrifterConfig.banditsKillOnSight(), DrifterConfig::setBanditsKillOnSight,
 				"Bandits attack anyone outside their gang on sight: players, Drifters, villagers, pets."));

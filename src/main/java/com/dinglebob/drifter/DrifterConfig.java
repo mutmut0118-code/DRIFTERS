@@ -110,7 +110,12 @@ public final class DrifterConfig {
 		int lives = DEFAULT_LIVES;
 		/** "<name> was slain by Zombie" in chat, as for a player (section 20). */
 		boolean deathMessages = true;
+		/** Most Drifters in a group (section 21: four; milestone 22 groundwork: towns want more). */
+		int groupSize = DEFAULT_GROUP_SIZE;
 	}
+
+	public static final int DEFAULT_GROUP_SIZE = 4;
+	public static final int MAX_GROUP_SIZE = 32;
 
 	public static final int DEFAULT_LIVES = 5;
 	public static final int MAX_LIVES = 20;
@@ -428,6 +433,16 @@ public final class DrifterConfig {
 
 	public static boolean deathMessages() {
 		return data.deathMessages;
+	}
+
+	/** Most Drifters in a group (a group can have its own limit: {@code DrifterGroups.Group#limit}). */
+	public static int groupSize() {
+		return Math.max(2, Math.min(MAX_GROUP_SIZE, data.groupSize));
+	}
+
+	public static void setGroupSize(int size) {
+		data.groupSize = Math.max(2, Math.min(MAX_GROUP_SIZE, size));
+		save();
 	}
 
 	public static void setDeathMessages(boolean on) {

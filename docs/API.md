@@ -56,6 +56,14 @@ to date while it's loaded (position every 5 s, the rest about once a minute), as
 `DrifterDeals.of(drifter)` is the trade it's in the middle of, if any; `DrifterDeals.want(drifter, stack)` how much it
 wants something for itself (0 to 1), what a market would price by.
 
+## Groups (a town's beginnings)
+
+`DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the
+base's chests, the group's stockpile), kept with the world. Members live at the leader's base and share what they know
+of it every few seconds (chests, the house plan, the farm, pen...), build one house together (each takes different
+blocks) and only one builds the hut. `DrifterApi.setGroupLimit(group, n)`: how many it takes (0: the "Group size"
+setting, four by default, up to 32).
+
 ## The addon's own data on a Drifter
 
 Fabric's data attachments (`AttachmentRegistry.createPersistent(...)` with a codec, then `drifter.setAttached(...)`):

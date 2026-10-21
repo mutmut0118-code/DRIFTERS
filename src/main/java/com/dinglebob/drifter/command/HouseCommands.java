@@ -46,6 +46,9 @@ public final class HouseCommands {
 			.then(Commands.literal("layout").then(Commands.argument("bed", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 				.then(Commands.argument("chests", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 12)).executes(HouseCommands::layout))))
 			.then(Commands.literal("choose").then(plan().executes(HouseCommands::choose)))
+			// Debug: where the house it's chosen goes (its corner), not turned, in its woods: for testing a build at once.
+			.then(Commands.literal("site").then(Commands.argument("corner", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
+				.executes(HouseCommands::site)))
 			.then(Commands.literal("save").then(Commands.argument("name", StringArgumentType.word())
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -324,6 +327,27 @@ public final class HouseCommands {
 		home.planDone = false;
 		home.planBed = null;
 		say(ctx, DrifterCommands.label(drifter) + " will build " + plan.id + " next");
+		return 1;
+	}
+
+	private static int site(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var home = drifter.getDrifterBrain().home();
+		HousePlan plan = home == null || home.planId == null ? null : HousePlans.get(ctx.getSource().getServer(), home.planId);
+		if (plan == null) {
+			say(ctx, DrifterCommands.label(drifter) + " has no house plan chosen (/drifter house choose <plan> first)");
+			return 0;
+		}
+
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forDrifter(drifter, plan);
+		home.planOrigin = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "corner");
+		home.planRotation = "NONE";
+		home.planWoods.clear();
+		home.planWoods.putAll(palette.woods());
+		home.planDeepslate = palette.deepslate();
+		home.planDone = false;
+		home.planBed = null;
+		say(ctx, DrifterCommands.label(drifter) + " will build " + plan.id + " from " + home.planOrigin.toShortString() + ", in " + palette.describe());
 		return 1;
 	}
 

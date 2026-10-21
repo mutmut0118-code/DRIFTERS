@@ -315,6 +315,87 @@ public final class Home {
 		this.chests.putIfAbsent(pos.immutable(), new HashMap<>());
 	}
 
+	/**
+	 * Group mates living at the same base (milestone 22 groundwork, "shared things"): what {@code from} knows of the base
+	 * that this doesn't, shared. Its chests (where they are; what's in one each learns by looking in), the house plan (the
+	 * leader's, so they build one house, not one each; otherwise whoever has picked one), the hut and house finished, the
+	 * farm, pen, enchanting table and banner. Not its bed. A chest only if it's still there ({@code chestThere}: one broken
+	 * would otherwise come back from a mate who hasn't been by since). True if anything changed.
+	 */
+	public boolean shareFrom(Home from, boolean fromLeader, java.util.function.Predicate<BlockPos> chestThere) {
+		if (from == this || !from.center.equals(this.center) || !from.dimension.equals(this.dimension)) {
+			return false;
+		}
+
+		boolean changed = false;
+		for (BlockPos chest : from.chests.keySet()) {
+			if (!this.chests.containsKey(chest) && chestThere.test(chest)) {
+				this.chests.put(chest, new HashMap<>());
+				changed = true;
+			}
+		}
+
+		boolean samePlan = java.util.Objects.equals(from.planId, this.planId) && java.util.Objects.equals(from.planOrigin, this.planOrigin);
+		if (from.planId != null && from.planOrigin != null && !samePlan && (this.planId == null || this.planOrigin == null || fromLeader && !this.planDone)) {
+			this.planId = from.planId;
+			this.planOrigin = from.planOrigin;
+			this.planRotation = from.planRotation;
+			this.planWoods.clear();
+			this.planWoods.putAll(from.planWoods);
+			this.planDeepslate = from.planDeepslate;
+			this.planDone = from.planDone;
+			changed = true;
+		} else if (samePlan && from.planDone && !this.planDone) {
+			this.planDone = true;
+			changed = true;
+		}
+
+		if (from.hutBuilt && !this.hutBuilt) {
+			this.hutBuilt = true;
+			this.hutDoor = from.hutDoor;
+			changed = true;
+		} else if (this.hutDoor == null && from.hutDoor != null) {
+			this.hutDoor = from.hutDoor;
+			changed = true;
+		}
+
+		if (this.houseCenter == null && from.houseCenter != null) {
+			this.houseCenter = from.houseCenter;
+			this.houseDoor = from.houseDoor;
+			this.houseHalf = from.houseHalf;
+			this.houseWall = from.houseWall;
+			this.houseStyle = from.houseStyle;
+			this.houseBuilt = from.houseBuilt;
+			changed = true;
+		} else if (from.houseBuilt && !this.houseBuilt && java.util.Objects.equals(from.houseCenter, this.houseCenter)) {
+			this.houseBuilt = true;
+			changed = true;
+		}
+
+		if (this.farm == null && from.farm != null) {
+			this.farm = from.farm;
+			this.farmRadius = from.farmRadius;
+			changed = true;
+		}
+
+		if (this.pen == null && from.pen != null) {
+			this.pen = from.pen;
+			changed = true;
+		}
+
+		if (this.enchantingTable == null && from.enchantingTable != null) {
+			this.enchantingTable = from.enchantingTable;
+			changed = true;
+		}
+
+		if (this.banner == null && from.banner != null) {
+			this.banner = from.banner;
+			changed = true;
+		}
+
+		return changed;
+	}
+
 	public void removeChest(BlockPos pos) {
 		this.chests.remove(pos);
 	}

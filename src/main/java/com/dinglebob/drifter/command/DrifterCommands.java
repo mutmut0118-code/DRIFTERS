@@ -430,6 +430,11 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setLives(IntegerArgumentType.getInteger(ctx, "count"));
 					return showConfig(ctx);
 				})))
+			.then(Commands.literal("groupsize")
+				.then(Commands.argument("size", IntegerArgumentType.integer(2, com.dinglebob.drifter.DrifterConfig.MAX_GROUP_SIZE)).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setGroupSize(IntegerArgumentType.getInteger(ctx, "size"));
+					return showConfig(ctx);
+				})))
 			.then(Commands.literal("deathmessages").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setDeathMessages(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
 				return showConfig(ctx);
@@ -808,7 +813,8 @@ public final class DrifterCommands {
 				case BED -> "back at its bed";
 				case LIVES -> com.dinglebob.drifter.DrifterConfig.lives() + " lives";
 				case PERMADEATH -> "gone for good";
-			} + ", death messages " + (com.dinglebob.drifter.DrifterConfig.deathMessages() ? "on" : "off")), true);
+			} + ", death messages " + (com.dinglebob.drifter.DrifterConfig.deathMessages() ? "on" : "off")
+			+ ", groups of up to " + com.dinglebob.drifter.DrifterConfig.groupSize()), true);
 		return 1;
 	}
 

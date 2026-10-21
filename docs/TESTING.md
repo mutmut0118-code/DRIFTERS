@@ -1447,6 +1447,19 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
 - [ ] Nobody else can pick up the thrown items (try to grab them: you can't).
 - [ ] `/drifterciv` counts "trades between Drifters".
 
+## Groups share their base and build together (new, 0.22.2)
+
+- [ ] **Settings**: Mod Menu > Drifter > the gear button > "Toward players and each other" > "Group size" (2 to 32,
+      default 4). `/drifter config groupsize 8` does the same.
+- [ ] **One house, built together**: find a group (or make one: spawn two Drifters, stand next to one,
+      `/drifter group <other's name>`) whose leader has a home with a hut. Stand next to the leader:
+      `/drifter house choose a_frame`, `/drifter house site <x y z>` (a flat spot near home, its corner), then
+      `/drifter brain goal planhouse`. The other member walks over and helps: both place blocks of the same house at once,
+      without breaking each other's. `/drifter house status` next to either shows the same house and the count going up.
+- [ ] **Shared chests**: a chest one member puts down at the base, the others use too (`/drifter home` next to each
+      lists the same chests after a few seconds).
+- [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
+
 ## Death, respawn and lives (new, 0.21.1)
 
 - [ ] **Settings**: Mod Menu > Drifter > the gear button. It scrolls now; every setting has a tooltip. Under "When a

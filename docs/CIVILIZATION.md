@@ -179,4 +179,15 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   gift). With a player near: "got any iron ingots to spare? I'll give you 8 bread", "deal". `trade/DrifterDeals`,
   `DrifterEvents.TRADED`, `/drifter barter` (debug: ask now). Tested headless: goods for goods (5 iron for 8 bread),
   an emerald for a stone sword, a friend's gift of 8 logs (owed after), and two Drifters trading on their own.
-- **Next:** shared chests and building together, bigger groups, roads, a 30-day run.
+- **Groundwork 4, shared things and bigger groups (done):** group members at the leader's base share what they know of
+  it every 5 seconds (`Home.shareFrom`: chests, the leader's house plan, hut and house finished, farm, pen, enchanting
+  table, banner; a chest only if it's still there; not beds); a member with no home moves in. The group keeps its
+  base's chests (`Group.chests`, saved). Building one plan together: a builder claims the block it's working on for 10
+  seconds and the others take the next (`BuildPlanActivity` claims); a member helps when a mate close by is building the
+  house (whatever its own stage); it waits for the last blocks a mate is placing rather than calling the house done.
+  Only one member builds the hut at a time (found in testing: two at once undid each other's work). Group size is a
+  setting (2 to 32, default 4) and a group can have its own limit (`DrifterApi.setGroupLimit`). Debug: `/drifter house
+  site <corner>`, `/drifter config groupsize <n>`. Tested headless: a member got the leader's plan and spot; the leader
+  started it, the member came to help, both built at once (101 of 145 blocks in three minutes, no block undone); the
+  pair went mining together.
+- **Next:** roads, a 30-day run.

@@ -75,6 +75,16 @@ public class BuildPlanActivity extends Activity {
 	/** Walks for one block before it leaves that one out. */
 	private static final int WALKS_PER_BLOCK = 4;
 
+	/**
+	 * Blocks a builder is seeing to (group mates building one house, milestone 22 groundwork): the others leave them to it
+	 * and take the next, as players building together do. Each lasts a few seconds, renewed while it works on it.
+	 */
+	private static final Map<BlockPos, Claim> CLAIMS = new HashMap<>();
+	private static final long CLAIM_TICKS = 200;
+
+	private record Claim(java.util.UUID who, long until) {
+	}
+
 	private final Set<BlockPos> failed = new HashSet<>();
 	/** Cells it found no spot for this time round; tried again once something new is placed (it may stand on that). */
 	private final Set<BlockPos> stuck = new HashSet<>();
@@ -311,6 +321,10 @@ public class BuildPlanActivity extends Activity {
 				continue;
 			}
 
+			if (this.takenByMate(pos)) {
+				continue;
+			}
+
 			// Something else there: its own scaffolding or something natural goes; anything else (someone's block) it leaves.
 			if (!have.isAir() && !have.canBeReplaced() && !have.is(cell.state().getBlock())) {
 				// (A crafting table it put down there while building comes back up with it.)
@@ -361,8 +375,14 @@ public class BuildPlanActivity extends Activity {
 
 		// Done (bar a few gaps it really can't fill).
 		// (Blocks of a material it gave up on aren't missing: a window left open, as a player leaves a hole for one.)
+		// (Blocks a group mate is placing right now aren't missing: it waits for them.)
+		long mates = plan.build.stream().filter(c -> !Placement.matches(level.getBlockState(c.pos()), c.state()) && this.takenByMate(c.pos())).count();
 		long missing = plan.build.stream().filter(c -> !(c.state().getBlock() instanceof BedBlock) && !home.houseGivenUp.contains(c.state().getBlock().asItem())
-			&& !Placement.matches(level.getBlockState(c.pos()), c.state())).count();
+			&& !Placement.matches(level.getBlockState(c.pos()), c.state()) && !this.takenByMate(c.pos())).count();
+		if (mates > 0 && missing <= MAX_GAPS) {
+			return this.begin(new com.dinglebob.drifter.executor.task.WaitTask(this.drifter, "watch the others finish the house", () -> false, 40));
+		}
+
 		if (missing > MAX_GAPS) {
 			return this.fail("couldn't place " + missing + " blocks of the house yet (" + this.skips.entrySet().stream()
 				.map(e -> e.getValue() + " " + e.getKey()).collect(java.util.stream.Collectors.joining(", ")) + ")");
@@ -559,7 +579,7 @@ public class BuildPlanActivity extends Activity {
 		for (int dy = plan.sizeY + TREE_ABOVE; dy >= 0; dy--) {
 			for (BlockPos column : plan.footprint()) {
 				BlockPos pos = column.above(dy);
-				if (this.failed.contains(pos) || ground.contains(pos)) {
+				if (this.failed.contains(pos) || ground.contains(pos) || this.takenByMate(pos)) {
 					continue;
 				}
 
@@ -627,7 +647,7 @@ public class BuildPlanActivity extends Activity {
 				return BlockPos.ZERO;
 			}
 
-			if (this.failed.contains(hole)) {
+			if (this.failed.contains(hole) || this.takenByMate(hole)) {
 				continue;
 			}
 
@@ -971,8 +991,24 @@ public class BuildPlanActivity extends Activity {
 		return this.workAt(level, plan, pos, pos, work, what);
 	}
 
+	/** Another builder (a group mate on the same house) is seeing to this block. */
+	private boolean takenByMate(BlockPos pos) {
+		Claim claim = CLAIMS.get(pos);
+		return claim != null && !claim.who().equals(this.drifter.getUUID()) && claim.until() > this.now();
+	}
+
+	private void claim(BlockPos pos) {
+		long now = this.now();
+		if (CLAIMS.size() > 512) {
+			CLAIMS.values().removeIf(claim -> claim.until() <= now);
+		}
+
+		CLAIMS.put(pos.immutable(), new Claim(this.drifter.getUUID(), now + CLAIM_TICKS));
+	}
+
 	/** The same, reaching {@code aim} (the block under a hole it fills, rather than the empty hole). */
 	private Status workAt(Level level, PlacedPlan plan, BlockPos pos, BlockPos aim, java.util.function.Supplier<Status> work, String what) {
+		this.claim(pos);
 		if (Reach.canReach(this.drifter, aim)) {
 			return work.get();
 		}

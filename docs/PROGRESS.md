@@ -82,7 +82,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 21 | Encounters and bounties | **Done in code** (2026-10-20): all 26 kinds on the list (docs/ENCOUNTERS.md), the killing rules and revenge squads, Drifters doing Bountiful item bounties; tested in the client, waiting on the user's play test | Random events with temporary Drifters (GTA-style), bounty hunters and wanted Drifters, Bountiful compat (Drifters doing bounties). The brainstorm and the suggested first batch: docs/ENCOUNTERS.md. |
 | 20 | Whims offscreen, then wrong guesses | **Done in code** (2026-10-20): whims offscreen (the user's pick A + small B + C + E), an easier way to add whims (steps whims, load checks, docs/WHIMS_HOWTO.md), four new wrong guesses; waiting on the user's play test | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
-| 22 | Civilization (an addon mod) | **In progress** (2026-10-21): step 1 done (Drifter: Civilizations as a second jar in this project, Drifter's API, docs/API.md); groundwork in Drifter (docs/CIVILIZATION.md): the directory, news that travels and trading between Drifters done, next shared chests and building together. Was: planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
+| 22 | Civilization (an addon mod) | **In progress** (2026-10-21): step 1 done (Drifter: Civilizations as a second jar in this project, Drifter's API, docs/API.md); groundwork in Drifter (docs/CIVILIZATION.md): the directory, news that travels, trading between Drifters, and shared bases and bigger groups done, next roads. Was: planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
 
 ## Milestone 0: Project setup
 
@@ -2588,4 +2588,9 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   other wants or emeralds, a friend's small gift owed back; both walk up and toss their side over (the real items,
   targeted at the other), then pick them up. `Storage.spare` (what it can give away; paying a player back uses it too),
   `Trading.want(drifter, stack)`. `/drifter barter`, `DrifterEvents.TRADED`.
-- Next: shared chests and building together, bigger groups, roads, a 30-day run.
+- **Groundwork 4, shared things and bigger groups:** `Home.shareFrom` and `DrifterGroups` share a base among the members
+  every 5 s (chests, the plan, hut and house finished, farm, pen...); `Group.chests` and `Group.limit` (saved);
+  `BuildPlanActivity` claims (builders on one house take different blocks), helping a mate who's building, one hut builder
+  at a time (`Goals.mateDoing`); the "Group size" setting (config screen, `/drifter config groupsize`);
+  `DrifterApi.setGroupLimit`; debug `/drifter house site <corner>`.
+- Next: roads, a 30-day run.
