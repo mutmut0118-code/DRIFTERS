@@ -61,6 +61,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		DrifterEvents.TRADED.register((asker, giver, paid, got) -> trades++);
 		Chronicle.register();
 		Island.register();
+		Towns.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -83,6 +84,27 @@ public final class DrifterCivilizations implements ModInitializer {
 						ctx.getSource().sendSuccess(() -> Component.literal("Each morning, the day before in chat: " + (on ? "on" : "off")), true);
 						return 1;
 					}))))
+			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
+			.then(Commands.literal("town")
+				.executes(DrifterCivilizations::town)
+				.then(Commands.literal("spawn").requires(source -> source.hasPermission(2))
+					.executes(ctx -> spawnTown(ctx, TownBuilder.DEFAULT_HOUSEHOLDS, null))
+					.then(Commands.argument("households", IntegerArgumentType.integer(2, TownBuilder.MAX_HOUSEHOLDS))
+						.executes(ctx -> spawnTown(ctx, IntegerArgumentType.getInteger(ctx, "households"), null))
+						.then(Commands.argument("name", com.mojang.brigadier.arguments.StringArgumentType.word())
+							.executes(ctx -> spawnTown(ctx, IntegerArgumentType.getInteger(ctx, "households"),
+								com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name")))))))
+			.then(Commands.literal("towns").executes(ctx -> {
+				var towns = Towns.all();
+				ctx.getSource().sendSuccess(() -> Component.literal(towns.isEmpty() ? "No towns yet (/drifterciv town spawn makes one, for testing)"
+					: towns.size() + (towns.size() == 1 ? " town:" : " towns:")), false);
+				for (Town town : towns) {
+					ctx.getSource().sendSuccess(() -> Component.literal("  " + town.name + " at " + town.center.getX() + ", " + town.center.getZ() + ", "
+						+ town.plots.size() + " households, founded day " + town.foundedDay + (town.spawned ? " (made ready)" : "")), false);
+				}
+
+				return towns.size();
+			}))
 			// "One island" mode.
 			.then(Commands.literal("island")
 				.executes(ctx -> {
@@ -102,6 +124,60 @@ public final class DrifterCivilizations implements ModInitializer {
 					return stopped ? 1 : 0;
 				})))));
 		LOGGER.info("Drifter: Civilizations {} loaded, on Drifter {} (API {})", version(), DrifterApi.version(), DrifterApi.API_VERSION);
+	}
+
+	private static int spawnTown(CommandContext<CommandSourceStack> ctx, int households, @Nullable String name) {
+		CommandSourceStack source = ctx.getSource();
+		long started = System.currentTimeMillis();
+		TownBuilder.Result result = TownBuilder.spawn(source.getLevel(), BlockPos.containing(source.getPosition()), households, name);
+		long seconds = (System.currentTimeMillis() - started) / 1000L;
+		if (result.town() == null) {
+			source.sendFailure(Component.literal(result.message()));
+			return 0;
+		}
+
+		source.sendSuccess(() -> Component.literal("Made the town of " + result.message() + " (" + seconds + " s). /drifterciv town tells about it"), true);
+		return result.town().plots.size();
+	}
+
+	/** The nearest town: its name, when it was founded, its people, its store. */
+	private static int town(CommandContext<CommandSourceStack> ctx) {
+		CommandSourceStack source = ctx.getSource();
+		Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+		if (town == null) {
+			source.sendSuccess(() -> Component.literal("No town here yet (/drifterciv town spawn makes one, for testing)"), false);
+			return 0;
+		}
+
+		int alive = 0;
+		List<String> people = new java.util.ArrayList<>();
+		for (Town.Plot plot : town.plots) {
+			var record = plot.owner == null ? null : DrifterApi.record(plot.owner);
+			if (record != null) {
+				people.add(record.name() + (record.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE ? "" : " (" + record.status().name().toLowerCase(java.util.Locale.ROOT) + ")"));
+				if (record.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE) {
+					alive++;
+				}
+			}
+		}
+
+		int stocked = 0;
+		for (BlockPos chest : town.store) {
+			if (source.getLevel().getBlockEntity(chest) instanceof net.minecraft.world.Container container) {
+				for (int slot = 0; slot < container.getContainerSize(); slot++) {
+					stocked += container.getItem(slot).isEmpty() ? 0 : 1;
+				}
+			}
+		}
+
+		int alivePeople = alive;
+		int stacks = stocked;
+		long age = Chronicle.day(source.getServer()) - town.foundedDay;
+		source.sendSuccess(() -> Component.literal(town.name + (town.spawned ? " (made ready, for testing)" : "") + ": founded day " + town.foundedDay
+			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " households, " + alivePeople + " people alive; the store has "
+			+ stacks + " stacks in " + town.store.size() + " chests"), false);
+		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
+		return alivePeople;
 	}
 
 	@Nullable

@@ -1460,6 +1460,19 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## A ready-made town (new, 0.22.6)
+
+- [ ] **Make one**: in a world (creative is easiest), stand on fairly open land and type `/drifterciv town spawn 8`
+      (8 households; 2 to 12; add a name: `/drifterciv town spawn 6 Oakvale`). The ground round you is levelled and a
+      town appears: a stone plaza with a roofed well, a bell, a lectern (the town's book: its name, its people) and lamp
+      posts; dirt roads; a different house for each household with its door to the road; a stone store with chests; two
+      wheat fields; a pen with cows, sheep and chickens. A Drifter comes out of each house.
+- [ ] `/drifterciv town` (near it): its name, households, how many alive, how full the store is. `/drifterciv towns` lists
+      every town.
+- [ ] **They live there**: over a day or two they sleep in their own houses, farm the fields, put things in the store,
+      trade with each other. `/drifter social` next to one shows they're all in one group named after the town.
+- [ ] They build no huts.
+
 ## The chronicle and "one island" (new, 0.22.4)
 
 - [ ] **Start an island**: in a new world (creative is fine), stand in the middle of some land (an island if you find one)

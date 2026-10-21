@@ -59,6 +59,8 @@ public final class Chronicle {
 	private static int news;
 	private static long today = -1;
 	private static boolean summary = true;
+	/** While a town is being made at once (testing): its people's homes and joining aren't news, the founding is. */
+	static boolean quiet;
 	private static boolean dirty;
 
 	public static void register() {
@@ -123,10 +125,12 @@ public final class Chronicle {
 			boolean known = groupNames.containsKey(groupId);
 			groupNames.put(groupId, group.name);
 			// (A new group comes in two calls, its leader then the other: told once, on the second.)
+			// (Names as the group has them: a new Drifter isn't in the world's directory yet.)
 			if (!known && group.members.size() == 2) {
-				add(server, "group", name(group.members.get(0)) + " and " + name(group.members.get(1)) + " teamed up as " + group.name);
+				add(server, "group", group.names.getOrDefault(group.members.get(0), name(group.members.get(0))) + " and "
+					+ group.names.getOrDefault(group.members.get(1), name(group.members.get(1))) + " teamed up as " + group.name);
 			} else if (known && group.members.size() > 2) {
-				add(server, "group", name(member) + " joined " + group.name + " (" + group.members.size() + " now)");
+				add(server, "group", group.names.getOrDefault(member, name(member)) + " joined " + group.name + " (" + group.members.size() + " now)");
 			} else if (!known) {
 				groupNames.remove(groupId);
 			}
@@ -176,7 +180,7 @@ public final class Chronicle {
 	}
 
 	public static void add(@Nullable MinecraftServer server, String kind, String text) {
-		if (server == null) {
+		if (server == null || quiet && !kind.equals("town")) {
 			return;
 		}
 

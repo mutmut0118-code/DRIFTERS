@@ -344,7 +344,7 @@ public class SettleActivity extends Activity {
 		}
 
 		// Moved into its house and the hut's gone: the house.
-		if (home.hutTakenDown) {
+		if (home.hutTakenDown || home.noHut) {
 			BlockPos inHouse = MoveInActivity.chestSpot(level, home, this.drifter.getServer());
 			if (inHouse != null && !this.tried.contains(inHouse) && !home.badChestSpots.contains(inHouse)) {
 				return inHouse;

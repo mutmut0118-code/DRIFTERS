@@ -224,6 +224,22 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   them rather than putting it all in the chest. Not tested in the dev server (the mod won't load there: "Unfixable
   conflicts" when the dev setup renames the game's code); to be checked in the game. The money step (step 4) builds on
   it: market stalls with its shop blocks, wages and taxes in coins.
-- **Towns (step 3): waiting on the user's review** of the town plan (houses only, no huts; the example layout and the
-  questions are on the review page).
-- **Next:** towns, once the plan is agreed.
+- **The town plan agreed (2026-10-21, the user: "go with your recommendations on all of them"):** lone Drifters keep
+  huts, town members don't (houses only, each from a different plan); a village feel (plots two blocks apart, doors to
+  the road); towns at least 300 blocks apart; before the first house, they sleep out or dig in, then share the first
+  house; with the addon, neighbours who help each other grow friendly faster, and three or more friendly neighbours found
+  a town. The review page: https://claude.ai/artifact/4P66EgvghR66neP6wgiSr8
+- **Step 3a, a town made ready, for testing (done):** the user: "can there be an option that a town can spawn? with
+  everything already established, primarily for testing". `/drifterciv town spawn [households] [name]` (2 to 12, default
+  6; op): the ground levelled (112 by 96 blocks), two roads crossing at a stone plaza with a roofed well, a bell, a notice
+  board (a lectern with the town's book) and lamp posts; a stone store with eight chests and some stock; two wheat fields
+  and a pen of cows, sheep and chickens; a house from the plans for each household (each a different plan as far as they
+  go, in a different wood, its door turned to the road, a path to it), and a Drifter moved into each (its home, its bed,
+  a chest of its own, the store's chests its too, the farm and pen, stone tools and bread; no hut), all friends, one
+  group named after the town. `/drifterciv town` tells about the nearest one, `/drifterciv towns` lists them; saved with
+  the world. Drifter's API grew for it: `housePlans`, `doorSides`, `placeHouse`, `settleIn`, `setNoHut`, `formGroup`,
+  `setTrustInDrifter`. In the plain mod: group mates are never rivals (they share a base, or a town). Tested: headless
+  (8 households, a day on: all alive, the store filling up, trading) and in the client (screenshots: the plaza, the
+  houses on their roads, the farm and pen).
+- **Next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
+  its own house.

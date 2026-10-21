@@ -2098,7 +2098,8 @@ public final class Goals {
 		@Override
 		public double urgency(Context context) {
 			com.dinglebob.drifter.brain.Home house = context.drifter().getDrifterBrain().home();
-			if (house != null && house.borrowed()) {
+			if (house != null && (house.borrowed() || house.noHut)) {
+				// It lives in a village house or an outpost, or it's one of a town's (a house of its own, no hut).
 				// It lives in a village house or an outpost: no hut.
 				return 0.0;
 			}
@@ -2188,7 +2189,7 @@ public final class Goals {
 				return 0.6;
 			}
 
-			if (home == null || !home.hutBuilt || home.borrowed() || home.planDone || home.houseBuilt || !home.near(drifter, Home.STORAGE_RANGE)
+			if (home == null || !home.hutBuilt && !home.noHut || home.borrowed() || home.planDone || home.houseBuilt || !home.near(drifter, Home.STORAGE_RANGE)
 				|| drifter.getServer() == null || !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter)
 				|| com.dinglebob.drifter.building.plan.HousePlans.cached(drifter.getServer()).isEmpty()) {
 				return 0.0;

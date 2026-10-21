@@ -230,8 +230,16 @@ public class DrifterBonds {
 		return r;
 	}
 
-	/** Both settled within {@link #RIVAL_HOMES} of each other: the same trees, ore and ground. */
+	/**
+	 * Both settled within {@link #RIVAL_HOMES} of each other: the same trees, ore and ground. Not group mates (they share
+	 * them: a base, or a town).
+	 */
 	private boolean rivals(DrifterEntity other) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+		if (group != null && group == com.dinglebob.drifter.world.DrifterGroups.of(other.getUUID())) {
+			return false;
+		}
+
 		var mine = this.drifter.getDrifterBrain().home();
 		var theirs = other.getDrifterBrain().home();
 		return mine != null && theirs != null && mine.dimension.equals(theirs.dimension) && mine.center.closerThan(theirs.center, RIVAL_HOMES);

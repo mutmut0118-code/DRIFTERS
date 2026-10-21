@@ -194,6 +194,147 @@ public final class DrifterApi {
 		return DrifterGroups.byId(id);
 	}
 
+	// ---------------------------------------------------------------------------------------------
+	// Houses and towns (milestone 22)
+	// ---------------------------------------------------------------------------------------------
+
+	/**
+	 * A house plan: its id and size before it's turned (x wide, y high, z deep); {@code groundLayer}: its lowest layer is the
+	 * ground (grass, a path), so its corner goes at the ground's own level, not on top of it.
+	 */
+	public record HousePlanInfo(String id, int sizeX, int sizeY, int sizeZ, boolean groundLayer) {
+	}
+
+	/** Every house plan there is (the mod's, generated ones, the player's saved ones). */
+	public static List<HousePlanInfo> housePlans(MinecraftServer server) {
+		List<HousePlanInfo> plans = new ArrayList<>();
+		com.dinglebob.drifter.building.plan.HousePlans.cached(server).values()
+			.forEach(plan -> plans.add(new HousePlanInfo(plan.id, plan.size.getX(), plan.size.getY(), plan.size.getZ(), plan.cells.stream()
+				.anyMatch(cell -> cell.pos().getY() == 0 && com.dinglebob.drifter.building.plan.PlacedPlan.isGround(cell.state())))));
+		return plans;
+	}
+
+	/** The sides of its box a plan's doors are on once turned this way (to put its front to a road). */
+	public static java.util.Set<net.minecraft.core.Direction> doorSides(MinecraftServer server, String planId, net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, planId);
+		if (plan == null) {
+			return java.util.Set.of();
+		}
+
+		return com.dinglebob.drifter.building.plan.HousePlacer.doorSides(new com.dinglebob.drifter.building.plan.PlacedPlan(plan, net.minecraft.core.BlockPos.ZERO,
+			rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn()));
+	}
+
+	/** A house as put up: its plan, corner, turn and wood, the box it fills, and its front door's lower half. */
+	public record PlacedHouse(String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation, String wood,
+		net.minecraft.world.level.levelgen.structure.BoundingBox box, @Nullable net.minecraft.core.BlockPos door) {
+	}
+
+	/**
+	 * (A town made at once, for testing; not how Drifters build: they go block by block.) The house from this plan, its
+	 * corner at {@code origin}, turned and in {@code wood} ("oak", "spruce"...), put up all at once; null if there's no such
+	 * plan. {@code front}: the door wanted on that side (for the door's place; the turn is the caller's).
+	 */
+	@Nullable
+	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
+		String wood, @Nullable net.minecraft.core.Direction front) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, wood);
+		var placed = com.dinglebob.drifter.building.plan.HousePlacer.place(level, plan, origin, rotation, palette);
+		return new PlacedHouse(planId, origin.immutable(), rotation, wood, placed.box(), com.dinglebob.drifter.building.plan.HousePlacer.door(placed, front));
+	}
+
+	/**
+	 * It lives in this house from now on: its home is the house (counted as built and lived in; a bed put in if it has none,
+	 * and a chest), it builds no hut, and {@code shared} chests (a town's store) are its too. Returns its new home.
+	 */
+	public static Home settleIn(DrifterEntity drifter, PlacedHouse house, List<net.minecraft.core.BlockPos> shared) {
+		ServerLevel level = (ServerLevel)drifter.level();
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), house.planId());
+		var palette = plan == null ? com.dinglebob.drifter.building.plan.HousePalette.asDrawn()
+			: com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood());
+		var box = house.box();
+		// (Its middle at floor level: a block up from a plan whose lowest layer is its ground.)
+		boolean groundLayer = plan != null && plan.cells.stream()
+			.anyMatch(cell -> cell.pos().getY() == 0 && com.dinglebob.drifter.building.plan.PlacedPlan.isGround(cell.state()));
+		Home home = new Home(new net.minecraft.core.BlockPos((box.minX() + box.maxX()) / 2, house.origin().getY() + (groundLayer ? 1 : 0),
+			(box.minZ() + box.maxZ()) / 2), level.dimension().location(), level.getGameTime());
+		home.noHut = true;
+		home.builtRecorded = true;
+		home.planId = house.planId();
+		home.planOrigin = house.origin();
+		home.planRotation = house.rotation().name();
+		home.planWoods.clear();
+		home.planWoods.putAll(palette.woods());
+		home.planDeepslate = palette.deepslate();
+		home.planDone = true;
+		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, box);
+		if (plan != null) {
+			var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, house.origin(), house.rotation(), palette);
+			net.minecraft.core.BlockPos bed = com.dinglebob.drifter.building.plan.HousePlacer.bedIn(level, placed);
+			if (bed == null) {
+				var spot = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, placed.buildMap());
+				if (spot != null) {
+					bed = spot.foot().relative(spot.facing());
+					level.setBlock(spot.foot(), net.minecraft.world.level.block.Blocks.WHITE_BED.defaultBlockState()
+						.setValue(net.minecraft.world.level.block.BedBlock.FACING, spot.facing())
+						.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT), 3);
+					level.setBlock(bed, net.minecraft.world.level.block.Blocks.WHITE_BED.defaultBlockState()
+						.setValue(net.minecraft.world.level.block.BedBlock.FACING, spot.facing())
+						.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD), 3);
+				}
+			}
+
+			home.planBed = bed;
+		}
+
+		shared.forEach(home::addChest);
+		drifter.getDrifterBrain().setHome(home);
+		// A chest of its own in the house.
+		net.minecraft.core.BlockPos chest = com.dinglebob.drifter.brain.activity.MoveInActivity.chestSpot(level, home, level.getServer());
+		if (chest != null) {
+			level.setBlock(chest, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState(), 3);
+			home.addChest(chest);
+		}
+
+		return home;
+	}
+
+	/** It builds no hut of its own (a town's people live in houses); it still builds a house. */
+	public static void setNoHut(DrifterEntity drifter, boolean noHut) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null) {
+			home.noHut = noHut;
+		}
+	}
+
+	/** A group of these Drifters, the first leading, named {@code name}; null if fewer than two. */
+	@Nullable
+	public static DrifterGroups.Group formGroup(List<DrifterEntity> members, String name) {
+		if (members.size() < 2) {
+			return null;
+		}
+
+		DrifterEntity leader = members.get(0);
+		DrifterGroups.Group group = DrifterGroups.form(leader.getUUID(), leader.getName().getString(), members.get(1).getUUID(),
+			members.get(1).getName().getString(), name);
+		group.limit = Math.max(group.limit, members.size());
+		for (DrifterEntity member : members.subList(2, members.size())) {
+			DrifterGroups.join(group, member.getUUID(), member.getName().getString());
+		}
+
+		return group;
+	}
+
+	/** Its trust in another Drifter, set (they know each other from then on). */
+	public static void setTrustInDrifter(DrifterEntity drifter, DrifterEntity other, double trust) {
+		drifter.getBonds().setTrust(other, trust);
+	}
+
 	/** A Drifter you meet once (an encounter's, a delver): never saved, gone when its part is over. */
 	public static boolean temporary(DrifterEntity drifter) {
 		return drifter.isTemporary();

@@ -65,6 +65,15 @@ personality and skin of its own. `DrifterApi.setRoam(drifter, center, radius)`: 
 the middle ("one island"; null lets it go anywhere again; saved with it). `DrifterApi.inBattle(drifter)`: a soldier in a
 battle going on now. `DrifterApi.groupById(id)`: a group by its id, as events give it.
 
+## Houses and towns
+
+`DrifterApi.housePlans(server)`: every house plan (id, size, whether its lowest layer is its own ground).
+`DrifterApi.doorSides(server, plan, rotation)`: the sides its doors are on once turned (to put its front to a road).
+`DrifterApi.placeHouse(level, plan, corner, rotation, wood, front)`: (testing) the house put up at once.
+`DrifterApi.settleIn(drifter, house, sharedChests)`: it lives there from now on (home, bed, a chest of its own, no hut).
+`DrifterApi.setNoHut(drifter, true)`: it builds no hut (a town's people live in houses). `DrifterApi.formGroup(drifters,
+name)` and `DrifterApi.setTrustInDrifter(drifter, other, trust)`.
+
 ## Groups (a town's beginnings)
 
 `DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the

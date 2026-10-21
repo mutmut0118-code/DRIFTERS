@@ -2629,4 +2629,9 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   5 deaths, all killed by other Drifters; no falls, no drownings.
 - **Found, not fixed:** in flat test worlds a Drifter sometimes ends up shut in its own hut (walking at the closed door
   without getting through; a direct test with a closed door worked both ways, so the cause is still unknown), and the hut builder often reports "couldn't mine Air ... there is nothing there". To look at.
-- Next: towns (step 3), after the user's review of the town plan.
+- **The town plan agreed** (the user: "go with your recommendations on all of them"; docs/CIVILIZATION.md).
+- **Step 3a, a town made ready for testing:** `drifterciv/Town`, `Towns` (saved, `drifter_civ_towns`), `TownBuilder`
+  (`/drifterciv town spawn [households] [name]`), `/drifterciv town`, `/drifterciv towns`; Drifter: `HousePlacer` (a plan
+  put up at once, turned), `Home.noHut`, API calls for houses and groups; group mates are never rivals. Chronicle: names
+  from the group (a new Drifter isn't in the directory yet); a town made at once is one line, not one per person.
+- Next: towns founded by their people (step 3b).

@@ -43,6 +43,8 @@ public final class Home {
 	public boolean hutBuilt;
 	/** It moved into its house and took the hut down (the user, 2026-10-21): its chests are in the house now. */
 	public boolean hutTakenDown;
+	/** It builds no hut: it lives in a house of its own (a town's people, milestone 22; DrifterApi.setNoHut). */
+	public boolean noHut;
 	/** Its hut's half-size: 3 (7x7) or 4 (9x9), or 2 for a hut built before huts got bigger (kept as built). */
 	public int hutHalf = com.dinglebob.drifter.building.StarterHut.HALF;
 	/**
@@ -506,6 +508,7 @@ public final class Home {
 
 		tag.putBoolean("HutBuilt", this.hutBuilt);
 		tag.putBoolean("HutTakenDown", this.hutTakenDown);
+		tag.putBoolean("NoHut", this.noHut);
 		tag.putBoolean("BuiltRecorded", this.builtRecorded);
 		tag.putInt("HutHalf", this.hutHalf);
 		CompoundTag style = new CompoundTag();
@@ -609,6 +612,7 @@ public final class Home {
 		home.hutDoor = net.minecraft.core.Direction.byName(tag.getString("HutDoor"));
 		home.hutBuilt = tag.getBoolean("HutBuilt");
 		home.hutTakenDown = tag.getBoolean("HutTakenDown");
+		home.noHut = tag.getBoolean("NoHut");
 		home.builtRecorded = tag.getBoolean("BuiltRecorded");
 		// Saved before huts got bigger: a hut it has started keeps its size; one it hasn't started is the new size.
 		if (tag.contains("HutStyle", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
