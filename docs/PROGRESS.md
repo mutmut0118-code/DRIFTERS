@@ -82,7 +82,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 21 | Encounters and bounties | **Done in code** (2026-10-20): all 26 kinds on the list (docs/ENCOUNTERS.md), the killing rules and revenge squads, Drifters doing Bountiful item bounties; tested in the client, waiting on the user's play test | Random events with temporary Drifters (GTA-style), bounty hunters and wanted Drifters, Bountiful compat (Drifters doing bounties). The brainstorm and the suggested first batch: docs/ENCOUNTERS.md. |
 | 20 | Whims offscreen, then wrong guesses | **Done in code** (2026-10-20): whims offscreen (the user's pick A + small B + C + E), an easier way to add whims (steps whims, load checks, docs/WHIMS_HOWTO.md), four new wrong guesses; waiting on the user's play test | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
-| 22 | Civilization (an addon mod) | **In progress** (2026-10-21): step 1 done (Drifter: Civilizations as a second jar in this project, Drifter's API, docs/API.md); next the groundwork in Drifter (docs/CIVILIZATION.md). Was: planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
+| 22 | Civilization (an addon mod) | **In progress** (2026-10-21): step 1 done (Drifter: Civilizations as a second jar in this project, Drifter's API, docs/API.md); groundwork in Drifter (docs/CIVILIZATION.md): the directory and news that travels done, next trading between Drifters. Was: planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
 
 ## Milestone 0: Project setup
 
@@ -2564,3 +2564,23 @@ counting its emeralds, nodding to an iron golem, polishing its shield (Spartan S
 all. Tested by forcing each in a little set-up: done as written (the coin really leaves its pack). Steps whims: a block
 target only has to be in reach if a step uses it (water and pressure plates can't be aimed at).
 
+
+## Milestone 22: Civilization, groundwork in Drifter (started 2026-10-21)
+
+The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in docs/CIVILIZATION.md, "Groundwork").
+- **Step 1, two jars and the API:** Drifter: Civilizations is a second mod in this project (`src/civ`, its own jar,
+  asking for exactly the same Drifter); Drifter's API, `com.dinglebob.drifter.api` (docs/API.md).
+- **Groundwork 1, the directory:** `DrifterRegistry` keeps a `DrifterRecord` for every Drifter that has lived in the
+  world (alive, dead and coming back, gone), readable while it's far away and unloaded; `/drifter directory`.
+- **Groundwork 2, news that travels:** `social/News`, `social/NewsBook` (a Drifter's news, up to 32, saved with it).
+  News starts as a player's deed that moved a Drifter's trust by 15 or more, a death seen (who did it, if a player or a
+  Drifter), or another mod's (`DrifterApi.tell`). Two Drifters in sight within 8 blocks that don't dislike each other
+  (trust above -15): once a minute at most, by sociability, the teller passes on its newest three the other hasn't heard.
+  Believed by trust in the teller (a stranger: half), x0.7 a telling, five tellings and two game days at most. A player's
+  deed moves the listener's trust in them by about a third of what it did to the one it happened to (x1.6 for a friend);
+  a death saddens a friend (grieving) and lowers trust in a player killer. Now and then out loud with a player within 16
+  blocks: "did you hear? <player> attacked <name> again and again". `/drifter news`, `/drifter news tell <text>` (debug),
+  `DrifterEvents.HEARD_NEWS`, `DrifterApi.news()`; API version 2. Group members still swap places (danger, ore) as before.
+- **Fixed on the way:** Drifter death messages always said "<name> died" (the game forgets the fight as it dies, and the
+  message was read after); now read before ("<name> was slain by Steve", "hit the ground too hard").
+- Next: Drifters trading with each other, shared chests and building together, bigger groups, roads, a 30-day run.

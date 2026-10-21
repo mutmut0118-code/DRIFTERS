@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.Home;
 import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.social.News;
 import com.dinglebob.drifter.social.SocialEvent;
 
 import net.fabricmc.fabric.api.event.Event;
@@ -59,6 +60,17 @@ public final class DrifterEvents {
 		}
 	});
 
+	/**
+	 * A Drifter heard news it hadn't heard (and took it to heart: a player's deed moved its trust in them, a friend's death
+	 * saddened it). {@code from}: the Drifter that told it (null: put there by a mod). Another mod's news ({@code Kind.CUSTOM})
+	 * is that mod's to act on here.
+	 */
+	public static final Event<HeardNews> HEARD_NEWS = EventFactory.createArrayBacked(HeardNews.class, listeners -> (drifter, news, from) -> {
+		for (HeardNews listener : listeners) {
+			listener.onHeardNews(drifter, news, from);
+		}
+	});
+
 	@FunctionalInterface
 	public interface Died {
 		void onDied(DrifterEntity drifter, DamageSource source, boolean comesBack);
@@ -82,5 +94,10 @@ public final class DrifterEvents {
 	@FunctionalInterface
 	public interface PlayerDeed {
 		void onPlayerDeed(DrifterEntity drifter, Player player, SocialEvent deed, double trustAfter);
+	}
+
+	@FunctionalInterface
+	public interface HeardNews {
+		void onHeardNews(DrifterEntity drifter, News news, @Nullable DrifterEntity from);
 	}
 }

@@ -91,6 +91,10 @@ public class DrifterBonds {
 			r.addTrust((this.rivals(other) ? RIVAL_TRUST_PER_MINUTE : TRUST_PER_MINUTE) * minutes);
 			this.maybeGroup(other, r);
 			this.share(other);
+			// Close enough to talk: news passes on (milestone 22 groundwork, "news that travels").
+			if (other.distanceTo(this.drifter) <= SHARE_RANGE) {
+				this.drifter.getNews().meet(other, r);
+			}
 		}
 	}
 

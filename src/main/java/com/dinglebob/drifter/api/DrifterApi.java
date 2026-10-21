@@ -10,8 +10,11 @@ import org.jetbrains.annotations.Nullable;
 import com.dinglebob.drifter.brain.Goals;
 import com.dinglebob.drifter.brain.Home;
 import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.social.News;
+import com.dinglebob.drifter.social.NewsBook;
 import com.dinglebob.drifter.world.DrifterGroups;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.entity.EntityTypeTest;
@@ -23,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 1;
+	public static final int API_VERSION = 2;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -121,6 +124,22 @@ public final class DrifterApi {
 	/** A thought in its log (what `/drifter thoughts` shows), as if it thought it now. */
 	public static void think(DrifterEntity drifter, String thought) {
 		drifter.getMemory().thoughts().add(drifter.level().getGameTime(), thought);
+	}
+
+	/**
+	 * News for {@code drifter} to carry and pass on to the Drifters it meets (it saw it, or it was its own doing: tell it
+	 * only what it could know). {@code key} is the same for the same happening, so it's heard once however many tell it;
+	 * {@code about} is who or what it's about (or null), {@code what} the rest in words ("about what": "Ann was chosen
+	 * mayor of Oakvale"); it's worth telling for {@code lasts} game ticks, five tellings on at most. Whoever hears it fires
+	 * {@link DrifterEvents#HEARD_NEWS}; {@code data} rides along for the listener.
+	 */
+	public static void tell(DrifterEntity drifter, String key, @Nullable UUID about, String aboutName, String what, long lasts, CompoundTag data) {
+		drifter.getNews().saw(NewsBook.custom(key, about, aboutName, what, lasts, data, drifter.level().getGameTime()));
+	}
+
+	/** The news it carries (what it saw, and what it was told, with how many tellings on). */
+	public static List<News> news(DrifterEntity drifter) {
+		return drifter.getNews().all();
 	}
 
 	/** A Drifter you meet once (an encounter's, a delver): never saved, gone when its part is over. */

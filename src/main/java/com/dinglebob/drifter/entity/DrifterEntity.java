@@ -115,6 +115,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.social.Relationships social = new com.dinglebob.drifter.social.Relationships(this);
 	/** Its standing with other Drifters (milestone 12). */
 	private final com.dinglebob.drifter.social.DrifterBonds bonds = new com.dinglebob.drifter.social.DrifterBonds(this);
+	/** The news it carries and passes on (milestone 22 groundwork). */
+	private final com.dinglebob.drifter.social.NewsBook news = new com.dinglebob.drifter.social.NewsBook(this);
 	/** The mannerism layer (section 16): tics on top of whatever it's doing, with the body parts its task leaves free. */
 	private final com.dinglebob.drifter.mannerism.Mannerisms mannerisms = new com.dinglebob.drifter.mannerism.Mannerisms(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
@@ -495,6 +497,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.social.DrifterBonds getBonds() {
 		return this.bonds;
+	}
+
+	public com.dinglebob.drifter.social.NewsBook getNews() {
+		return this.news;
 	}
 
 	public com.dinglebob.drifter.social.Relationships getSocial() {
@@ -2351,9 +2357,11 @@ protected void customServerAiStep() {
 		}
 
 		boolean wasDead = this.dead;
+		// (Read before dying: the game forgets the fight as it dies, and the message comes out "it died".)
+		net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
 		super.die(source);
 		if (!wasDead && this.dead && !this.level().isClientSide()) {
-			com.dinglebob.drifter.world.Respawns.died(this, source, comesBack, worth);
+			com.dinglebob.drifter.world.Respawns.died(this, source, deathMessage, comesBack, worth);
 			// (After its death is counted and remembered.)
 			com.dinglebob.drifter.api.DrifterEvents.DIED.invoker().onDied(this, source, comesBack);
 		}
@@ -2588,6 +2596,7 @@ protected void customServerAiStep() {
 		tag.put("DrifterPersonality", this.personality.save());
 		tag.put("DrifterSocial", this.social.save());
 		tag.put("DrifterBonds", this.bonds.save());
+		tag.put("DrifterNews", this.news.save());
 		tag.putBoolean("DrifterNamed", this.named);
 		tag.putFloat("XpP", this.experienceProgress);
 		tag.putInt("XpLevel", this.experienceLevel);
@@ -2680,6 +2689,7 @@ protected void customServerAiStep() {
 		if (tag.contains("DrifterSocial", Tag.TAG_COMPOUND)) {
 			this.social.load(tag.getCompound("DrifterSocial"));
 			this.bonds.load(tag.getCompound("DrifterBonds"));
+			this.news.load(tag.getCompound("DrifterNews"));
 		}
 
 		if (tag.contains("DrifterPersonality", Tag.TAG_COMPOUND)) {

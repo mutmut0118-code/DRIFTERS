@@ -25,8 +25,19 @@ with the same version number.
 | `HOME_SET (drifter, home or null)` | Its home was set, moved or forgotten. |
 | `GROUP_CHANGED (member UUID, group id or null)` | It joined a group, or left one (or the group ended). |
 | `PLAYER_DEED (drifter, player, deed, trustAfter)` | A player did something it noticed and took to heart (the `SocialEvent` table, DESIGN.md section 14). |
+| `HEARD_NEWS (drifter, news, from or null)` | It heard news it hadn't heard, from another Drifter (or put there by a mod), and took it to heart already. |
 
-More come with the features that make them (trading, news, crimes seen).
+More come with the features that make them (trading, crimes seen).
+
+## News
+
+Drifters pass news on to the Drifters they meet and get on with (milestone 22 groundwork; docs/CIVILIZATION.md):
+a player's big deeds, deaths they saw, and anything a mod gives them. `DrifterApi.tell(drifter, key, about, aboutName,
+what, lasts, data)` gives one Drifter news to carry (only what it could know: it saw it, or did it); the same `key`
+means the same happening, heard once however many tell it. A `News` has its kind (`PLAYER_DEED`, `DEATH`, `CUSTOM`),
+who it's about, what happened in words, when, how many tellings on (`hops`, at most five), how long it's worth telling
+(`lasts`, game ticks), and a `data` tag for the mod that made it. `DrifterApi.news(drifter)` reads what one carries.
+Each listener fires `HEARD_NEWS`; a mod acts on its own `CUSTOM` news there.
 
 ## The world's directory of Drifters
 
@@ -40,7 +51,7 @@ to date while it's loaded (position every 5 s, the rest about once a minute), as
 ## Reading and changing a Drifter
 
 `DrifterApi.loaded(server)`, `home(drifter)`, `setHome(drifter, home)`, `group(uuid)`, `trustInPlayer(drifter, player)`,
-`trustInDrifter(drifter, other)`, `think(drifter, text)`, `temporary(drifter)`.
+`trustInDrifter(drifter, other)`, `think(drifter, text)`, `temporary(drifter)`, `tell(...)` and `news(drifter)` (above).
 
 ## The addon's own data on a Drifter
 

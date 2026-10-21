@@ -225,6 +225,9 @@ public class SocialWatcher {
 		this.drifter = drifter;
 	}
 
+	/** A player's deed that moves its trust this much is news it passes on. */
+	private static final double NEWSWORTHY = 15.0;
+
 	private Watch watch(Player player) {
 		return this.watches.computeIfAbsent(player.getUUID(), id -> new Watch());
 	}
@@ -238,9 +241,17 @@ public class SocialWatcher {
 			this.watch(player).peacefulTicks = 0;
 		}
 
+		var known = this.drifter.getSocial().get(player.getUUID());
+		double before = known == null ? 0.0 : known.trust;
 		double result = this.drifter.getSocial().record(player.getUUID(), player.getGameProfile().getName(), event, amount);
 		var r = this.drifter.getSocial().get(player.getUUID());
-		com.dinglebob.drifter.api.DrifterEvents.PLAYER_DEED.invoker().onPlayerDeed(this.drifter, player, event, r == null ? 0.0 : r.trust);
+		double after = r == null ? 0.0 : r.trust;
+		// Big enough to talk about: news it passes on (a friend's death travels as the death itself).
+		if (Math.abs(after - before) >= NEWSWORTHY && event != SocialEvent.KILLED_FRIEND) {
+			this.drifter.getNews().saw(NewsBook.deed(this.drifter, player, event, after - before));
+		}
+
+		com.dinglebob.drifter.api.DrifterEvents.PLAYER_DEED.invoker().onPlayerDeed(this.drifter, player, event, after);
 		return result;
 	}
 

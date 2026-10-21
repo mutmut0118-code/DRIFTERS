@@ -1413,8 +1413,24 @@ then `/summon husk ~5 ~ ~` twice.
 From 0.22.0 there are two jars: `drifter-0.22.0.jar` and `drifter_civilizations-0.22.0.jar` (the addon; it needs the
 Drifter jar with the same number). Put both in `mods` (and take the old ones out).
 - [ ] The game starts with both. Mod Menu lists "Drifter: Civilizations".
-- [ ] `/drifterciv` says "Drifter: Civilizations 0.22.0 on Drifter 0.22.0 (API 1)". Nothing else to see yet.
+- [ ] `/drifterciv` says "Drifter: Civilizations <version> on Drifter <the same version> (API 2)". Nothing else to see yet.
 - [ ] Without the addon jar, Drifter works as before.
+
+## News travels between Drifters (new, 0.22.1)
+
+Drifters now tell each other what they've seen. Stand near a Drifter and type `/drifter news` to see what it knows.
+- [ ] **Spreading**: put two or three Drifters near each other (`/drifter spawn alpha`, `/drifter spawn beta`, a few
+      blocks apart). Type `/drifter news tell the old mine collapsed` next to alpha. Wait a minute or two near them:
+      `/drifter news` next to beta shows "the old mine collapsed (told, ...)". `/drifter thoughts` on beta: "heard that
+      ... (from alpha)".
+- [ ] **Your reputation**: hit one of them a few times (not to death). Its friends that weren't watching hear about it
+      when they meet it: their thoughts say "heard that <you> attacked <name> again and again (from <name>): trust 2 -> -5".
+      Sometimes it's said out loud in chat: "did you hear? <you> attacked <name> again and again".
+- [ ] **Deaths**: kill a Drifter where others can see. They carry "<name> was slain by <you>" and pass it on; a Drifter
+      that wasn't there likes you a little less once it's heard. A friend of the dead one is sad (grieving).
+- [ ] **Death messages**: chat now says how a Drifter died ("<name> was slain by <you>", "hit the ground too hard"),
+      not just "<name> died".
+- [ ] `/drifterciv` counts "news passed between Drifters".
 
 ## Death, respawn and lives (new, 0.21.1)
 

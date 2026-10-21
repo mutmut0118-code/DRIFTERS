@@ -24,14 +24,18 @@ public final class DrifterCivilizations implements ModInitializer {
 
 	/** Drifter deaths heard of through the API this run (the door working end to end). */
 	private static int deathsHeard;
+	/** News Drifters passed on to each other this run. */
+	private static int newsTold;
 
 	@Override
 	public void onInitialize() {
 		DrifterEvents.DIED.register((drifter, source, comesBack) -> deathsHeard++);
+		DrifterEvents.HEARD_NEWS.register((drifter, news, from) -> newsTold++);
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
-					+ " (API " + DrifterApi.API_VERSION + "). Nothing to see yet: the towns come next. Drifter deaths heard of this run: " + deathsHeard), false);
+					+ " (API " + DrifterApi.API_VERSION + "). Nothing to see yet: the towns come next. Drifter deaths heard of this run: " + deathsHeard
+					+ ", news passed between Drifters: " + newsTold), false);
 				return 1;
 			})));
 		LOGGER.info("Drifter: Civilizations {} loaded, on Drifter {} (API {})", version(), DrifterApi.version(), DrifterApi.API_VERSION);

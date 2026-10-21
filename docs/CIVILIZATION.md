@@ -97,7 +97,7 @@ Dozens of towns can exist; only the ones being watched cost much.
 6. Nations and diplomacy.
 7. Culture, then the far-away town summaries tuned for big worlds.
 
-## Groundwork in Drifter first (proposed 2026-10-21, waiting on the user)
+## Groundwork in Drifter first (proposed 2026-10-21; the user: "go ahead")
 
 The user: "think real hard about what should we work on/add before we start the civilization milestone; want this
 process to be as easy as possible while also updating the og mod, so the addon mod isnt incompatible".
@@ -156,5 +156,17 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   players), kept while they're unloaded, gone ones kept for the history; `DrifterApi.directory()`, `/drifter directory`.
   Tested headless: six Drifters over a day and a half, a death (dead and coming back, its stage and friend kept), back
   alive after the respawn.
-- **Next:** news that travels, Drifters trading with each other, shared chests and building together, bigger groups,
-  roads, a 30-day run.
+- **Groundwork 2, news that travels (done):** each Drifter carries up to 32 pieces of news (`NewsBook`): a player's
+  deed that moved its trust by 15 or more, a death it saw (and who did it, if a player or a Drifter), or another mod's
+  (`DrifterApi.tell`). Meeting a Drifter it doesn't dislike (trust above -15, within 8 blocks, in sight), once a minute
+  at most and more often the more sociable it is, it passes on the newest three the other hasn't heard. The listener
+  believes it by its trust in the teller (a stranger: half), less with each telling (x0.7), five tellings and two days
+  at most: a player's deed moves its trust in that player by about a third of that (more if it happened to a friend); a
+  death saddens a friend, and a player killer is trusted less. With a real player within 16 blocks it now and then says
+  it out loud ("did you hear? Steve attacked Bob again and again"). `DrifterEvents.HEARD_NEWS`, `DrifterApi.news()`,
+  `/drifter news` (and `/drifter news tell <text>`, debug). API version 2. Also fixed: Drifter death messages said only
+  "X died" (the fight was forgotten before the message was read). Tested: headless, news told to one of three Drifters
+  reached the other two in two tellings; in the client, a player's attack on one Drifter reached the others (trust down
+  a little each, said out loud), and a Drifter that came later heard it and the death from them.
+- **Next:** Drifters trading with each other, shared chests and building together, bigger groups, roads, a 30-day
+  run.

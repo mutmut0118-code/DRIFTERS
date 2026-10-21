@@ -57,6 +57,31 @@ final class SensesCommands {
 				return 1;
 			}))));
 		root.then(Commands.literal("senses").executes(SensesCommands::senses));
+		// The news it carries (milestone 22 groundwork), and (debug) news for it to pass on, as another mod would give it.
+		root.then(Commands.literal("news").executes(SensesCommands::news)
+			.then(Commands.literal("tell").then(Commands.argument("text", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
+				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+				String what = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "text");
+				com.dinglebob.drifter.api.DrifterApi.tell(drifter, "debug:" + what.toLowerCase(Locale.ROOT), null, "", what,
+					com.dinglebob.drifter.social.NewsBook.DEFAULT_LASTS, new net.minecraft.nbt.CompoundTag());
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " will pass on: " + what), true);
+				return 1;
+			}))));
+	}
+
+	private static int news(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		long now = drifter.level().getGameTime();
+		var news = drifter.getNews().all();
+		StringBuilder text = new StringBuilder(DrifterCommands.label(drifter) + " carries " + news.size() + " pieces of news:");
+		for (var n : news) {
+			text.append(String.format(Locale.ROOT, "\n  %s%s (%s, %ds ago%s)", n.aboutName().isEmpty() ? "" : n.aboutName() + " ", n.what(),
+				n.hops() == 0 ? "saw it" : n.hops() == 1 ? "told" : "told, " + n.hops() + " tellings on", (now - n.since()) / 20, n.stale(now) ? ", old news" : ""));
+		}
+
+		String message = text.toString();
+		ctx.getSource().sendSuccess(() -> Component.literal(message), false);
+		return news.size();
 	}
 
 	private static int debug(CommandContext<CommandSourceStack> ctx, boolean on) throws CommandSyntaxException {

@@ -143,13 +143,12 @@ public final class Respawns {
 	 * It has died (its things already dropped): the death message, what it remembers of it, and, if it comes back, its
 	 * saved self put by until it's due.
 	 */
-	public static void died(DrifterEntity drifter, DamageSource source, boolean comesBack, int worth) {
+	public static void died(DrifterEntity drifter, DamageSource source, Component message, boolean comesBack, int worth) {
 		if (!(drifter.level() instanceof ServerLevel level)) {
 			return;
 		}
 
 		MinecraftServer server = level.getServer();
-		Component message = drifter.getCombatTracker().getDeathMessage();
 		if (DrifterConfig.deathMessages() && !Battle.inBattle(drifter)) {
 			server.getPlayerList().broadcastSystemMessage(message, false);
 		}
@@ -166,6 +165,8 @@ public final class Respawns {
 		UUID killerId = killer instanceof net.minecraft.world.entity.player.Player || killer instanceof DrifterEntity ? killer.getUUID() : null;
 		String cause = message.getString().replace(drifter.getName().getString(), "it").trim();
 		drifter.recordDeath(now, new Corpse(drifter.blockPosition(), level.dimension().location(), now, lost ? 0 : worth, killerId, cause));
+		// The Drifters who saw it carry the news (milestone 22 groundwork).
+		com.dinglebob.drifter.social.NewsBook.sawDie(drifter, message.getString(), source);
 		if (!comesBack) {
 			boolean outOfLives = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES && !source.is(DamageTypes.GENERIC_KILL);
 			if (outOfLives) {
