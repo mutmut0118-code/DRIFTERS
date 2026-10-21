@@ -203,7 +203,11 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 - **Groundwork 6, a 30-day run (done):** 50 Drifters on seed 777 for 30 game days, headless. It found a crash (from
   groundwork 1: a Drifter unloading had its bed read, loading a chunk mid-unload; fixed in 0.22.3). The first runs also
   showed the test itself was wrong (`/forceload` takes at most 256 chunks a go: nothing had been kept loaded); with the
-  land kept loaded, 50 to 56 Drifters stayed active all month at about 2 ms a server tick.
+  land kept loaded (768 blocks square), 30 game days ran with no crash, the Drifters costing 0.5 to 2 ms a server tick;
+  more and more of them walked out of the loaded land and stopped (56 loaded on day 1, 18 by day 30). 40 deaths: 15
+  falls, 15 killed (8 by one Drifter), drownings and the rest. **No group formed in 30 days** (nor on a 4-day island):
+  friends need trust 50 both ways, which takes about 100 minutes in sight of each other, and Drifters whose homes are
+  close become rivals instead. Towns grow from groups, so this needs a decision before towns (on the review page).
 - **Step 2, the chronicle and "one island" (done, in the addon):** the chronicle writes the world's history as it
   happens (deaths and how, homes made, groups formed, joined and left, huts and houses finished, feuds and wars, a
   player's big deeds, each day's trades and news), saved with the world; `/drifterciv chronicle` (the latest),

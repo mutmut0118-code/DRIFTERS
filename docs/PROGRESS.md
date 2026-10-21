@@ -2602,8 +2602,10 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   Drifters walking out of the loaded area). The unload snapshot now waits for the end of the tick and reads nothing from
   the world (its stage and bed as last recorded; working out the stage looks at the world, which crashed the second
   run); bed checks skip chunks that aren't loaded. Fixed in 0.22.3 (0.22.2 had half of it).
-- **Groundwork 6, the 30-day run:** done (see docs/CIVILIZATION.md "Progress"): no crash after the fix, 50 to 56
-  Drifters active all month at about 2 ms a server tick. Test scripts: `forceload` takes 256 chunks at most per command.
+- **Groundwork 6, the 30-day run:** done (see docs/CIVILIZATION.md "Progress"): no crash after the fix, 0.5 to 2 ms a
+  server tick; Drifters drift out of the loaded land over the month; 40 deaths (15 falls); no group formed in 30 days
+  (close neighbours become rivals; friendship takes ~100 minutes in sight): a question for the user before towns. Test
+  scripts: `forceload` takes 256 chunks at most per command.
 - **Step 2, the chronicle and "one island"** (in the addon: `drifterciv/Chronicle`, `drifterciv/Island`), and Drifter's
   API: `spawn`, `setRoam` (Brain roam centre and radius, saved; `ExploreActivity.pickDirection` keeps inside),
   `BUILT` (hut and house finished, in play and in catch-up), `FEUD` (DrifterWars), `inBattle`, `groupById`.
