@@ -90,10 +90,22 @@ public final class PlanGenerator {
 
 		boolean tall = height >= 4 && style.chance("tall_windows", 0.3, random);
 		boolean sills = m.sill() != null && random.nextBoolean();
+		if (tall) {
+			features.add("tall windows");
+		}
+
+		if (sills) {
+			features.add("sills");
+		}
+
 		int spacing = Math.max(2, style.between("window_spacing", 2, 2, random) + (random.nextInt(3) == 0 ? 1 : 0));
 		Map<BlockPos, BlockState> cells = new HashMap<>();
 		int doorX = width / 2 + (style.chance("door_off_center", 0.3, random) ? (random.nextBoolean() ? 1 : -1) : 0);
 		doorX = Math.max(1, Math.min(width - 2, doorX));
+		if (doorX != width / 2) {
+			features.add("off-centre door");
+		}
+
 		int ladderX = doorX == 1 ? width - 2 : 1;
 
 		// Floors: the ground floor, and the deck between storeys (with a hole for the ladder).

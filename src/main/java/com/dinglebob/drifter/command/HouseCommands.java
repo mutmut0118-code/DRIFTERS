@@ -55,6 +55,14 @@ public final class HouseCommands {
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 						.executes(HouseCommands::save)))))
+			// Debug: every part of a generated house on its own, a house of each style, the hand-made plans, in the generator's
+			// own materials, with signs (to look over and edit by hand; the user, 2026-10-21).
+			.then(Commands.literal("parts").executes(ctx -> {
+				String result = com.dinglebob.drifter.building.plan.gen.PartsExhibit.build(ctx.getSource().getLevel(),
+					BlockPos.containing(ctx.getSource().getPosition()));
+				say(ctx, "House parts: " + result);
+				return 1;
+			}))
 			// A row of generated plans, spread over the styles, built as drawn from here along +x (to look them over in-game).
 			.then(Commands.literal("showcase").then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 64))
 				.executes(HouseCommands::showcase)))

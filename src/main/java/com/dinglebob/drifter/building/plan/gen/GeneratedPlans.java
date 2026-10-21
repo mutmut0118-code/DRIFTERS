@@ -86,6 +86,11 @@ public final class GeneratedPlans {
 	}
 
 	/** This world's generated plans, by id (made the first time they're asked for, and again if the setting changes). */
+	/** The house styles, by id (debug: the parts exhibit). */
+	public static Map<String, HouseStyle> styles() {
+		return styles;
+	}
+
 	public static synchronized Map<String, HousePlan> all(MinecraftServer server) {
 		long seed = server.getWorldData().worldGenOptions().seed();
 		int count = DrifterConfig.spawn(DrifterConfig.Spawn.HOUSE_DESIGNS);

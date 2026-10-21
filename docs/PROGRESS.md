@@ -2634,4 +2634,16 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   (`/drifterciv town spawn [households] [name]`), `/drifterciv town`, `/drifterciv towns`; Drifter: `HousePlacer` (a plan
   put up at once, turned), `Home.noHut`, API calls for houses and groups; group mates are never rivals. Chronicle: names
   from the group (a new Drifter isn't in the directory yet); a town made at once is one line, not one per person.
+- **The house parts world (the user, 2026-10-21: "a flat world creative ... containing all of the parts that build a
+  house, but defaulted to oak ... i want to edit some of the stuff by hand, and then you can take the world back and
+  update the generated house parts"):** `/drifter house parts` (debug, `building/plan/gen/PartsExhibit`) lays out each part
+  of a generated house on its own on the same small oak house (18: walls/door/windows, five roofs, base row, frame, beam,
+  two floors, sills, tall windows, porch, chimney, off-centre door, loft, corner tower, wing, attic windows), a house of
+  each of the 11 styles, and the hand-made plans, in the generator's own materials (oak main wood, spruce second wood,
+  cobblestone stone), signs by each; what's where (and the style each part was drawn from) goes to
+  `drifter_house_parts.json` in the world folder. The world "Drifter House Parts" (flat, creative, cheats, peaceful,
+  always day) is in the DRIFTER TEST saves. When the user has edited it: read it back (load it, save each exhibit's box
+  with `/drifter house save`, compare with the original drawing) and change the styles (data) or the generator (code)
+  to match; edited hand-made plans replace their .nbt files. The generator now also lists sills, tall windows and an
+  off-centre door among a plan's features (no change to the plans it makes).
 - Next: towns founded by their people (step 3b).
