@@ -82,7 +82,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 19 | Mod compat and modded whims | **In progress** (2026-10-19): Spartan Shields and Simply Bows tested; Guard Villagers, Farmer's Delight and Bountiful written, to check in the user's game | Farmer's Delight Refabricated, Simply Bows, Spartan Shields, Guard Villagers, Bountiful; more modded whims (user, 2026-10-19). |
 | 21 | Encounters and bounties | **Done in code** (2026-10-20): all 26 kinds on the list (docs/ENCOUNTERS.md), the killing rules and revenge squads, Drifters doing Bountiful item bounties; tested in the client, waiting on the user's play test | Random events with temporary Drifters (GTA-style), bounty hunters and wanted Drifters, Bountiful compat (Drifters doing bounties). The brainstorm and the suggested first batch: docs/ENCOUNTERS.md. |
 | 20 | Whims offscreen, then wrong guesses | **Done in code** (2026-10-20): whims offscreen (the user's pick A + small B + C + E), an easier way to add whims (steps whims, load checks, docs/WHIMS_HOWTO.md), four new wrong guesses; waiting on the user's play test | First think through ways to simulate or catch up whims offscreen (a proposal for the user); then expand the wrong-guesses system (the cave hunch, the theft assumption) (user, 2026-10-19). |
-| 22 | Civilization (an addon mod) | **In progress** (2026-10-21): step 1 done (Drifter: Civilizations as a second jar in this project, Drifter's API, docs/API.md); groundwork in Drifter (docs/CIVILIZATION.md): the directory, news that travels, trading between Drifters, shared bases and bigger groups, and roads done, next a 30-day run. Was: planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
+| 22 | Civilization (an addon mod) | **In progress** (2026-10-21): step 1 done (Drifter: Civilizations as a second jar in this project, Drifter's API, docs/API.md); groundwork in Drifter (docs/CIVILIZATION.md): the directory, news that travels, trading between Drifters, shared bases and bigger groups, roads and the 30-day run done; step 2 (the chronicle and "one island") done; towns next, after the user's review of the town plan. Was: planned (user, 2026-10-20: "save it as a mile after 21, in fact its really big i think it should be like an addon mod") | Towns, money and trade, leaders and laws, nations and wars, culture, a chronicle, a "one island" mode, inspired by the "1000 players simulate civilization" videos; its own mod needing Drifter, with a small Drifter API first. The plan and suggested order: docs/CIVILIZATION.md. Several milestones. |
 
 ## Milestone 0: Project setup
 
@@ -2602,4 +2602,22 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   Drifters walking out of the loaded area). The unload snapshot now waits for the end of the tick and reads nothing from
   the world (its stage and bed as last recorded; working out the stage looks at the world, which crashed the second
   run); bed checks skip chunks that aren't loaded. Fixed in 0.22.3 (0.22.2 had half of it).
-- Next: a 30-day run.
+- **Groundwork 6, the 30-day run:** done (see docs/CIVILIZATION.md "Progress"): no crash after the fix, 50 to 56
+  Drifters active all month at about 2 ms a server tick. Test scripts: `forceload` takes 256 chunks at most per command.
+- **Step 2, the chronicle and "one island"** (in the addon: `drifterciv/Chronicle`, `drifterciv/Island`), and Drifter's
+  API: `spawn`, `setRoam` (Brain roam centre and radius, saved; `ExploreActivity.pickDirection` keeps inside),
+  `BUILT` (hut and house finished, in play and in catch-up), `FEUD` (DrifterWars), `inBattle`, `groupById`.
+- **Numismatic Overhaul (optional):** `trade/Money` (coins by item id, no build dependency), `Trading` plans in coins,
+  `Money.makeChange` before paying, `DrifterDeals` pays in coins, `ItemValues` coin worth, `Storage` keeps up to 64 money
+  on it. Untested in the dev server (the mod doesn't load there); in-game check in TESTING.
+- **Moving out of the hut (the user, 2026-10-21, for the plain mod: "make sure their hut is mined when they make their
+  house and they can just move their stuff to the house"):** `brain/activity/MoveInActivity` and the `movein` goal:
+  once it sleeps in its new house, it puts a chest in the house for each hut chest, carries the hut chests' things over a
+  load at a time (keeping its free slots), breaks the empty hut chests, takes the hut down roof first (the floor stays),
+  picks up what came off it (`Home.hutTakenDown`, saved, shared with group mates); new chests go in the house after that.
+  Debug: `/drifter house done` (the house at its site counts as built and lived in). Tested in parts (the chest into the
+  house, a load from the hut chest); the whole thing to be checked in game (test runs kept being cut short by other
+  things: a hut door that trapped it, flat-world mining).
+- **Found, not fixed:** in flat test worlds a Drifter sometimes ends up shut in its own hut (walking at the closed door
+  without getting through), and the hut builder often reports "couldn't mine Air ... there is nothing there". To look at.
+- Next: towns (step 3), after the user's review of the town plan.

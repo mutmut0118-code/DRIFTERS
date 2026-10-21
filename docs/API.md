@@ -27,6 +27,8 @@ with the same version number.
 | `PLAYER_DEED (drifter, player, deed, trustAfter)` | A player did something it noticed and took to heart (the `SocialEvent` table, DESIGN.md section 14). |
 | `HEARD_NEWS (drifter, news, from or null)` | It heard news it hadn't heard, from another Drifter (or put there by a mod), and took it to heart already. |
 | `TRADED (asker, giver, paid, got)` | Two Drifters traded: the asker gave `paid` (empty: a gift) for `got`; both have what they were given. |
+| `BUILT (drifter, what, where)` | It finished building something at home: `"hut"` or `"house"`. |
+| `FEUD (groupA, groupB, what)` | Two groups' feud moved on: `"came to blows"`, `"went to war"`, `"made peace (why)"`, or `"set off to raid"` (A raiding B). |
 
 More come with the features that make them (crimes seen).
 
@@ -55,6 +57,13 @@ to date while it's loaded (position every 5 s, the rest about once a minute), as
 `trustInDrifter(drifter, other)`, `think(drifter, text)`, `temporary(drifter)`, `tell(...)` and `news(drifter)` (above).
 `DrifterDeals.of(drifter)` is the trade it's in the middle of, if any; `DrifterDeals.want(drifter, stack)` how much it
 wants something for itself (0 to 1), what a market would price by.
+
+## Making Drifters, and keeping them in one place
+
+`DrifterApi.spawn(level, feet, name or null)`: a new Drifter standing there, carrying nothing (a fresh start), with a
+personality and skin of its own. `DrifterApi.setRoam(drifter, center, radius)`: it explores no further than that from
+the middle ("one island"; null lets it go anywhere again; saved with it). `DrifterApi.inBattle(drifter)`: a soldier in a
+battle going on now. `DrifterApi.groupById(id)`: a group by its id, as events give it.
 
 ## Groups (a town's beginnings)
 

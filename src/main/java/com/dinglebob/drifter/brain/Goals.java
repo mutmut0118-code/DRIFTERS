@@ -1906,6 +1906,56 @@ public final class Goals {
 	 * urgent-ish when its inventory is nearly full, worth a detour when it's near home with a load, and on the way in at
 	 * the end of the day.
 	 */
+	/**
+	 * Moving out of the hut into the house it built (the user, 2026-10-21): once it sleeps in the house, its chests come
+	 * over and the hut comes down ({@link com.dinglebob.drifter.brain.activity.MoveInActivity}). In the daytime, unhurried.
+	 */
+	public static final class MoveIn extends Goal {
+		private long failedAt = Long.MIN_VALUE / 2;
+
+		@Override
+		public String id() {
+			return "movein";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "move its things into the house";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || home.borrowed() || !home.hutBuilt || home.hutTakenDown || Schedule.isNight(drifter) || context.threat().urgent()
+				|| !home.near(drifter, Home.STORAGE_RANGE) || drifter.level().getGameTime() - this.failedAt < 20L * 60 * 5) {
+				return 0.0;
+			}
+
+			// Living in the house now: its bed is there.
+			boolean movedIn = home.planDone && home.planBed(drifter.level()) != null
+				|| home.houseBuilt && home.house() != null && home.house().bed(drifter.level()) != null;
+			// (A one-off chore done straight away, as a player would; once begun, seen through.)
+			return !movedIn ? 0.0 : drifter.getDrifterBrain().currentGoal() == this ? 0.75 : 0.62;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			this.failedAt = context.drifter().level().getGameTime();
+			return new com.dinglebob.drifter.brain.activity.MoveInActivity(context.drifter());
+		}
+	}
+
 	public static final class Store extends Goal {
 		@Override
 		public String id() {
@@ -2345,7 +2395,7 @@ public final class Goals {
 
 	public static List<Goal> all() {
 		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
-			new MakeRoom(), new Settle(), new BuildHut(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
+			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());

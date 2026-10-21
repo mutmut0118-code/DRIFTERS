@@ -343,6 +343,14 @@ public class SettleActivity extends Activity {
 			home.hutDoor = com.dinglebob.drifter.building.StarterHut.chooseDoor(level, home.center);
 		}
 
+		// Moved into its house and the hut's gone: the house.
+		if (home.hutTakenDown) {
+			BlockPos inHouse = MoveInActivity.chestSpot(level, home, this.drifter.getServer());
+			if (inHouse != null && !this.tried.contains(inHouse) && !home.badChestSpots.contains(inHouse)) {
+				return inHouse;
+			}
+		}
+
 		// The hut's chest row: the back corner, then along the left wall, then the right wall's free cells (found by the user:
 		// four chests "all over the place"). Placed crouching, side by side they stay single chests.
 		for (BlockPos spot : com.dinglebob.drifter.building.StarterHut.of(home).chestSpots()) {

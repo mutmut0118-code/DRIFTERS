@@ -1460,6 +1460,40 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## The chronicle and "one island" (new, 0.22.4)
+
+- [ ] **Start an island**: in a new world (creative is fine), stand in the middle of some land (an island if you find one)
+      and type `/drifterciv island start 30 48` (30 Drifters within 48 blocks; the plain `/drifterciv island start` is 50
+      within 64). They appear around you with nothing. `/drifterciv island` shows how many are alive, have a home, are in
+      groups, and which day it is.
+- [ ] **Fast forward**: `/tick sprint 24000` runs a day. Each morning chat tells what happened the day before ("Day 2:",
+      deaths and how, homes made, groups formed, huts finished, how many trades and pieces of news).
+- [ ] **Read the history**: `/drifterciv chronicle` (the latest 15 lines), `/drifterciv chronicle day 3`, and
+      `/drifterciv chronicle book` gives you a written book of it all. `/drifterciv chronicle summary false` turns the
+      morning chat off.
+- [ ] **They stay on the island**: they don't go exploring past its edge (a few may still settle a little way out). Fly
+      away: the island keeps living while you're gone (its land stays loaded). `/drifterciv island stop` ends that.
+
+## Numismatic Overhaul coins (new, 0.22.4; you have the mod in DRIFTER TEST)
+
+- [ ] **Selling to villagers**: give a Drifter near a village 64 wheat (`/drifter give minecraft:wheat 64` next to it) and
+      no food. It goes to a farmer, sells wheat for bronze coins, and buys bread with them (`/drifter thoughts`: "sell 45
+      wheat for 120 bronze", "buy 5 bread for 90 bronze"). `/drifter inventory` shows coins.
+- [ ] **Change**: give it a silver coin and nothing else to pay with; when it buys something priced in bronze it changes
+      the silver for bronze first (its coins add up to the same).
+- [ ] **Paying another Drifter**: two Drifters near each other, one with coins and nothing else to offer:
+      `/drifter barter` next to it: it pays in coins.
+- [ ] Drifters keep their money on them (up to 64 coins or emeralds), not in the chest.
+
+## Moving out of the hut (new, 0.22.4, the plain mod)
+
+- [ ] When a Drifter has finished its house and sleeps there, it moves out of the hut: a chest goes into the house, it
+      carries the hut chests' things over, breaks the old chests, and takes the hut down (roof first; the floor stays).
+      Its thoughts: "took the old hut down and moved its things into the house". Quick way to see it: next to a Drifter
+      with a hut, `/drifter house choose a_frame`, stand a few blocks from the hut and type
+      `/drifter house paste a_frame` then `/drifter house site <the same spot>`, put a bed inside, then
+      `/drifter house done`. Within a minute or so it starts. Tell me if it gets stuck (and where).
+
 ## Paths and roads (new, 0.22.2)
 
 - [ ] **Worn paths**: after a few days, look round a Drifter's home: dirt paths where it walks most (to its farm, its

@@ -172,7 +172,7 @@ public final class Island {
 		}
 
 		long day = Chronicle.day(server) - startedDay + 1;
-		lines.add(String.format(java.util.Locale.ROOT, "The island (%s), round %d, %d %s: day %d", active ? "going" : "left to itself",
+		lines.add(String.format(java.util.Locale.ROOT, "The island (%s), near %d, %d, %d blocks each way: day %d", active ? "going" : "left to itself",
 			center.getX(), center.getZ(), radius, day));
 		lines.add(String.format(java.util.Locale.ROOT, "%d of %d alive, %d dead and coming back, %d gone for good; %d with a home, %d groups",
 			alive, islanders.size(), dead, gone, homes, groups.size()));

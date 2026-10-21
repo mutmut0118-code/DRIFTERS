@@ -200,4 +200,26 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   home, it now and then wears a path in with its shovel (16 blocks a go, half a day between; builders and homebodies
   most), as players do; a path once begun is walked the more, and grows. Not on its farm or in its buildings.
   `skills/PathGoal`, `DrifterMemory` wear. Tested headless: walked a route 8 times, then wore 16 blocks of path along it.
-- **Next:** a 30-day run.
+- **Groundwork 6, a 30-day run (done):** 50 Drifters on seed 777 for 30 game days, headless. It found a crash (from
+  groundwork 1: a Drifter unloading had its bed read, loading a chunk mid-unload; fixed in 0.22.3). The first runs also
+  showed the test itself was wrong (`/forceload` takes at most 256 chunks a go: nothing had been kept loaded); with the
+  land kept loaded, 50 to 56 Drifters stayed active all month at about 2 ms a server tick.
+- **Step 2, the chronicle and "one island" (done, in the addon):** the chronicle writes the world's history as it
+  happens (deaths and how, homes made, groups formed, joined and left, huts and houses finished, feuds and wars, a
+  player's big deeds, each day's trades and news), saved with the world; `/drifterciv chronicle` (the latest),
+  `/drifterciv chronicle day <n>`, `/drifterciv chronicle book` (a written book of it all), and each morning the day before
+  is told in chat (`/drifterciv chronicle summary on|off`). `/drifterciv island start [count] [size]` drops that many new
+  Drifters with nothing round where it's run (default 50 within 64 blocks), keeps them exploring within it, and keeps
+  its land loaded wherever the player goes; `/drifterciv island` tells how it's going; `/drifterciv island stop` lets the
+  land go. Drifter's API grew for it: `spawn`, `setRoam`, `BUILT`, `FEUD`, `inBattle`, `groupById`. Tested headless: 20
+  Drifters on an island, 4 days, homes, huts, a killer among them, news counted each day.
+- **Numismatic Overhaul (the user: "incorporate numismatic overhaul"; optional, found at runtime):** with it, villagers
+  price everything in coins, so Drifters plan villager trades in coins (bronze 1, silver 100, gold 10,000), change
+  coins of one size for another as a player does with the purse, pay each other in coins, and value coins (a bronze is
+  worth about an eighth of a point, an emerald 6). Drifters now keep up to 64 pieces of money (emeralds or coins) on
+  them rather than putting it all in the chest. Not tested in the dev server (the mod won't load there: "Unfixable
+  conflicts" when the dev setup renames the game's code); to be checked in the game. The money step (step 4) builds on
+  it: market stalls with its shop blocks, wages and taxes in coins.
+- **Towns (step 3): waiting on the user's review** of the town plan (houses only, no huts; the example layout and the
+  questions are on the review page).
+- **Next:** towns, once the plan is agreed.

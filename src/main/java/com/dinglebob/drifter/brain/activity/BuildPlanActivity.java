@@ -801,6 +801,11 @@ public class BuildPlanActivity extends Activity {
 		return best;
 	}
 
+	/** Room inside the house here (as for half a bed): a chest's place too ({@link MoveInActivity}). */
+	static boolean roomInside(net.minecraft.world.level.BlockGetter level, PlacedPlan plan, Map<BlockPos, BlockState> want, BlockPos pos) {
+		return roomForBed(level, plan, want, pos);
+	}
+
 	/**
 	 * Room for half a bed here: empty in the plan and the world (and above it), on a floor, walled in all round, and with
 	 * a roof over it (found in testing: a bed put out on a watchtower's open top deck, the railing counting as walls).

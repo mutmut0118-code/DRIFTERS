@@ -49,6 +49,8 @@ public final class HouseCommands {
 			// Debug: where the house it's chosen goes (its corner), not turned, in its woods: for testing a build at once.
 			.then(Commands.literal("site").then(Commands.argument("corner", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 				.executes(HouseCommands::site)))
+			// Debug: the house at its site counts as built and lived in (its bed is the one inside), e.g. after a paste.
+			.then(Commands.literal("done").executes(HouseCommands::done))
 			.then(Commands.literal("save").then(Commands.argument("name", StringArgumentType.word())
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -348,6 +350,34 @@ public final class HouseCommands {
 		home.planDone = false;
 		home.planBed = null;
 		say(ctx, DrifterCommands.label(drifter) + " will build " + plan.id + " from " + home.planOrigin.toShortString() + ", in " + palette.describe());
+		return 1;
+	}
+
+	private static int done(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var home = drifter.getDrifterBrain().home();
+		HousePlan plan = home == null || home.planId == null || home.planOrigin == null ? null : HousePlans.get(ctx.getSource().getServer(), home.planId);
+		if (plan == null) {
+			say(ctx, DrifterCommands.label(drifter) + " has no house at a site (/drifter house choose, then /drifter house site)");
+			return 0;
+		}
+
+		var placed = com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home);
+		var level = drifter.level();
+		home.planDone = true;
+		home.planBed = null;
+		for (BlockPos pos : BlockPos.betweenClosed(placed.box().minX(), placed.box().minY(), placed.box().minZ(), placed.box().maxX(), placed.box().maxY(),
+			placed.box().maxZ())) {
+			var state = level.getBlockState(pos);
+			if (state.getBlock() instanceof net.minecraft.world.level.block.BedBlock
+				&& state.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD) {
+				home.planBed = pos.immutable();
+				break;
+			}
+		}
+
+		BlockPos bed = home.planBed;
+		say(ctx, DrifterCommands.label(drifter) + "'s house counts as built" + (bed != null ? ", its bed at " + bed.toShortString() : " (no bed inside)"));
 		return 1;
 	}
 
