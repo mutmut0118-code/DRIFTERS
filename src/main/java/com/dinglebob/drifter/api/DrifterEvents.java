@@ -13,6 +13,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * What happens to Drifters, for other mods to listen to (docs/API.md; milestone 22's addon). The same kind of events
@@ -71,6 +72,16 @@ public final class DrifterEvents {
 		}
 	});
 
+	/**
+	 * Two Drifters traded (milestone 22 groundwork): {@code asker} gave {@code paid} (empty: it was a gift) to {@code giver}
+	 * for {@code got}. Both have what they were given.
+	 */
+	public static final Event<Traded> TRADED = EventFactory.createArrayBacked(Traded.class, listeners -> (asker, giver, paid, got) -> {
+		for (Traded listener : listeners) {
+			listener.onTraded(asker, giver, paid, got);
+		}
+	});
+
 	@FunctionalInterface
 	public interface Died {
 		void onDied(DrifterEntity drifter, DamageSource source, boolean comesBack);
@@ -94,6 +105,11 @@ public final class DrifterEvents {
 	@FunctionalInterface
 	public interface PlayerDeed {
 		void onPlayerDeed(DrifterEntity drifter, Player player, SocialEvent deed, double trustAfter);
+	}
+
+	@FunctionalInterface
+	public interface Traded {
+		void onTraded(DrifterEntity asker, DrifterEntity giver, ItemStack paid, ItemStack got);
 	}
 
 	@FunctionalInterface

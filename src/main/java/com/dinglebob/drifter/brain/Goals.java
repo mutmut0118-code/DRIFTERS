@@ -2322,6 +2322,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
 		// Trading with villagers (milestone 18, section 10.12).
 		goals.add(new com.dinglebob.drifter.trade.TradeGoal());
+		// Trading with other Drifters (milestone 22 groundwork).
+		goals.add(new com.dinglebob.drifter.trade.DrifterDeals.Goal());
 		// Bounty boards (milestone 21, Bountiful, optional).
 		goals.add(new com.dinglebob.drifter.compat.BountyGoal());
 		// Going back for its things after dying (section 20).

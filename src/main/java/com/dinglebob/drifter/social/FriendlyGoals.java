@@ -463,22 +463,7 @@ public final class FriendlyGoals {
 	/** What it would give for {@code worth} points: from what it doesn't need (its surplus), as close in value as it can. */
 	@Nullable
 	static Offer offer(DrifterEntity drifter, int worth) {
-		Map<Integer, Integer> spare = new java.util.HashMap<>(Storage.toDeposit(drifter));
-		// Plus common things it has plenty of (logs, planks, stone, coal, food): it keeps a working stack and can give the
-		// rest (found by the user: early on it had nothing "spare" and never paid anyone back).
-		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
-			ItemStack stack = drifter.getInventory().getItem(slot);
-			int keep = stack.is(net.minecraft.tags.ItemTags.LOGS) || stack.is(net.minecraft.tags.ItemTags.PLANKS) || stack.is(net.minecraft.world.item.Items.COBBLESTONE)
-				|| stack.is(net.minecraft.world.item.Items.COAL) ? 16 : stack.has(net.minecraft.core.component.DataComponents.FOOD) ? 8 : -1;
-			if (keep >= 0) {
-				int total = drifter.getInventory().count(other -> other.is(stack.getItem()));
-				int extra = Math.min(stack.getCount(), total - keep);
-				if (extra > 0) {
-					spare.merge(slot, extra, Math::max);
-				}
-			}
-		}
-
+		Map<Integer, Integer> spare = Storage.spare(drifter);
 		Offer best = null;
 		double bestGap = Double.MAX_VALUE;
 		for (Map.Entry<Integer, Integer> entry : spare.entrySet()) {

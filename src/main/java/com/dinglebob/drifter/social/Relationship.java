@@ -55,6 +55,8 @@ public class Relationship {
 	public int gearFear;
 	/** The day it last let another player's standing rub off on this one, per other player (not saved). */
 	public final java.util.Map<String, Long> sharedDay = new java.util.HashMap<>();
+	/** (A Drifter:) when it last asked them for something to trade (not saved). */
+	public long tradeAskedAt = Long.MIN_VALUE / 2;
 
 	public Relationship(UUID player, String name, double baseline) {
 		this.player = player;

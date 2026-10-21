@@ -26,8 +26,9 @@ with the same version number.
 | `GROUP_CHANGED (member UUID, group id or null)` | It joined a group, or left one (or the group ended). |
 | `PLAYER_DEED (drifter, player, deed, trustAfter)` | A player did something it noticed and took to heart (the `SocialEvent` table, DESIGN.md section 14). |
 | `HEARD_NEWS (drifter, news, from or null)` | It heard news it hadn't heard, from another Drifter (or put there by a mod), and took it to heart already. |
+| `TRADED (asker, giver, paid, got)` | Two Drifters traded: the asker gave `paid` (empty: a gift) for `got`; both have what they were given. |
 
-More come with the features that make them (trading, crimes seen).
+More come with the features that make them (crimes seen).
 
 ## News
 
@@ -52,6 +53,8 @@ to date while it's loaded (position every 5 s, the rest about once a minute), as
 
 `DrifterApi.loaded(server)`, `home(drifter)`, `setHome(drifter, home)`, `group(uuid)`, `trustInPlayer(drifter, player)`,
 `trustInDrifter(drifter, other)`, `think(drifter, text)`, `temporary(drifter)`, `tell(...)` and `news(drifter)` (above).
+`DrifterDeals.of(drifter)` is the trade it's in the middle of, if any; `DrifterDeals.want(drifter, stack)` how much it
+wants something for itself (0 to 1), what a market would price by.
 
 ## The addon's own data on a Drifter
 

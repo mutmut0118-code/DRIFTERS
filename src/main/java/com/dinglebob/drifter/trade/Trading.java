@@ -65,7 +65,7 @@ public final class Trading {
 	private static final double WANT_FOOD = 0.5;
 	private static final double WANT_MENDING = 0.35;
 	/** Fewer food items than this: it would buy some. */
-	private static final int FOOD_SHORT = 8;
+	public static final int FOOD_SHORT = 8;
 	/** A greedy one sells its surplus for emeralds even with nothing to buy. */
 	private static final double GREEDY_SELL = 0.25;
 
@@ -213,15 +213,20 @@ public final class Trading {
 			return 0.0;
 		}
 
-		ItemStack stack = new ItemStack(item, offer.resultCount());
-		if (item instanceof ArmorItem armor) {
-			return armorScore(stack) > bestArmor(drifter, armor.getEquipmentSlot()) ? WANT_ARMOR : 0.0;
-		}
-
 		if (item == Items.ENCHANTED_BOOK) {
 			boolean mending = offer.enchantments().contains("minecraft:mending");
 			return mending && drifter.getPersonality().get(Trait.KNOWLEDGE) >= 0.7 && drifter.getInventory().count(s -> s.is(Items.ENCHANTED_BOOK)) == 0
 				? WANT_MENDING : 0.0;
+		}
+
+		return want(drifter, new ItemStack(item, offer.resultCount()));
+	}
+
+	/** How much it wants this (0: not at all): better armour, a better weapon or tool, food when it's short. */
+	public static double want(DrifterEntity drifter, ItemStack stack) {
+		Item item = stack.getItem();
+		if (item instanceof ArmorItem armor) {
+			return armorScore(stack) > bestArmor(drifter, armor.getEquipmentSlot()) ? WANT_ARMOR : 0.0;
 		}
 
 		if (item instanceof DiggerItem && !(item instanceof AxeItem && com.dinglebob.drifter.brain.Weapons.isWeapon(stack))) {

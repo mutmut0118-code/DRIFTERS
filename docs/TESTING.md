@@ -1432,6 +1432,21 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       not just "<name> died".
 - [ ] `/drifterciv` counts "news passed between Drifters".
 
+## Drifters trade with each other (new, 0.22.1)
+
+- [ ] **Watch a trade**: spawn two Drifters near each other (`/drifter spawn alpha`, `/drifter spawn beta`). Give one
+      something the other needs: stand next to beta, `/drifter give minecraft:bread 20`; stand next to alpha,
+      `/drifter give minecraft:iron_ingot 8`. Then next to alpha: `/drifter barter` (makes it ask now; on their own they
+      ask now and then when they meet). Both walk up to each other, look down and toss items over; each picks up what it
+      was given. Chat (with you close): "got any bread to spare? I'll give you 5 iron ingot", "deal".
+      `/drifter inventory` next to each shows the swap; `/drifter thoughts`: "traded 5 iron ingot to beta for 8 bread".
+- [ ] **Emeralds**: give alpha a few emeralds and beta a stone sword plus an iron sword; `/drifter barter` next to
+      alpha: it buys the stone sword for an emerald.
+- [ ] **A friend's gift**: `/drifter bond beta 60` next to alpha and `/drifter bond alpha 60` next to beta; give beta 40
+      oak logs; `/drifter barter` next to alpha: beta just gives it 8 logs ("a gift"), and next time alpha pays it back.
+- [ ] Nobody else can pick up the thrown items (try to grab them: you can't).
+- [ ] `/drifterciv` counts "trades between Drifters".
+
 ## Death, respawn and lives (new, 0.21.1)
 
 - [ ] **Settings**: Mod Menu > Drifter > the gear button. It scrolls now; every setting has a tooltip. Under "When a

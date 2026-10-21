@@ -57,6 +57,35 @@ final class SensesCommands {
 				return 1;
 			}))));
 		root.then(Commands.literal("senses").executes(SensesCommands::senses));
+		// Debug: it asks the nearest Drifter it knows for something to trade, now (milestone 22 groundwork).
+		root.then(Commands.literal("barter").executes(ctx -> {
+			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+			var deal = com.dinglebob.drifter.trade.DrifterDeals.of(drifter);
+			if (deal != null) {
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + " is trading already: " + deal.asker.getName().getString()
+					+ " gives " + deal.describe()), false);
+				return 0;
+			}
+
+			DrifterEntity other = null;
+			for (DrifterEntity d : drifter.level().getEntitiesOfClass(DrifterEntity.class, drifter.getBoundingBox().inflate(16.0), d -> d != drifter && d.isAlive())) {
+				if (drifter.getBonds().get(d.getUUID()) != null && d.getBonds().get(drifter.getUUID()) != null
+					&& (other == null || d.distanceTo(drifter) < other.distanceTo(drifter))) {
+					other = d;
+				}
+			}
+
+			if (other == null) {
+				ctx.getSource().sendFailure(Component.literal(DrifterCommands.label(drifter) + " knows no Drifter within 16 blocks"));
+				return 0;
+			}
+
+			var made = com.dinglebob.drifter.trade.DrifterDeals.ask(drifter, other, other.getBonds().get(drifter.getUUID()));
+			String name = other.getName().getString();
+			ctx.getSource().sendSuccess(() -> Component.literal(made == null ? DrifterCommands.label(drifter) + " found nothing to trade with " + name
+				: DrifterCommands.label(drifter) + " asks " + name + ": " + made.describe()), false);
+			return made == null ? 0 : 1;
+		}));
 		// The news it carries (milestone 22 groundwork), and (debug) news for it to pass on, as another mod would give it.
 		root.then(Commands.literal("news").executes(SensesCommands::news)
 			.then(Commands.literal("tell").then(Commands.argument("text", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {

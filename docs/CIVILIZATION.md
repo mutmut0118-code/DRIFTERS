@@ -168,5 +168,15 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   "X died" (the fight was forgotten before the message was read). Tested: headless, news told to one of three Drifters
   reached the other two in two tellings; in the client, a player's attack on one Drifter reached the others (trust down
   a little each, said out loud), and a Drifter that came later heard it and the death from them.
-- **Next:** Drifters trading with each other, shared chests and building together, bigger groups, roads, a 30-day
-  run.
+- **Groundwork 3, Drifters trading with each other (done):** two Drifters that meet and don't dislike each other: now
+  and then (once in five minutes a pair) one asks the other for what it needs most that the other can spare (better
+  gear, food when short, iron with no iron pickaxe, torches, coal, wood; "spare" is what it would put away anyway, or
+  the plenty of common things), and offers about the worth (`ItemValues`) from what it can spare that the other wants,
+  or emeralds. A greedy one asks up to a third more, a friend or group mate a quarter less; a friend gives a little thing
+  (worth 16 or less) for nothing and is owed for it, which comes off the next price. Agreed, both drop what they're doing
+  (not in a fight), walk up to each other, look down and toss their side over (real items, only the other can pick them
+  up), and pick up what they were given; a minute to meet, 30 seconds to swap, or it's off. Trust +3 each (+6 for a
+  gift). With a player near: "got any iron ingots to spare? I'll give you 8 bread", "deal". `trade/DrifterDeals`,
+  `DrifterEvents.TRADED`, `/drifter barter` (debug: ask now). Tested headless: goods for goods (5 iron for 8 bread),
+  an emerald for a stone sword, a friend's gift of 8 logs (owed after), and two Drifters trading on their own.
+- **Next:** shared chests and building together, bigger groups, roads, a 30-day run.

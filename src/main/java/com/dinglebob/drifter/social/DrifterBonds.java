@@ -94,6 +94,7 @@ public class DrifterBonds {
 			// Close enough to talk: news passes on (milestone 22 groundwork, "news that travels").
 			if (other.distanceTo(this.drifter) <= SHARE_RANGE) {
 				this.drifter.getNews().meet(other, r);
+				com.dinglebob.drifter.trade.DrifterDeals.meet(this.drifter, other, r);
 			}
 		}
 	}

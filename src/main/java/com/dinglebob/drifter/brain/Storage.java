@@ -163,6 +163,30 @@ public final class Storage {
 		return deposit;
 	}
 
+	/**
+	 * What it could give away (slot -> how many): what it would put away anyway, and of the common things it has plenty
+	 * of (logs, planks, cobblestone, coal, food) all but a working stack (found by the user: early on it had nothing
+	 * "spare" and never paid anyone back). What it pays a player back from, and trades with other Drifters.
+	 */
+	public static Map<Integer, Integer> spare(DrifterEntity drifter) {
+		Map<Integer, Integer> spare = new HashMap<>(toDeposit(drifter));
+		DrifterInventory inventory = drifter.getInventory();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			int keep = stack.is(ItemTags.LOGS) || stack.is(ItemTags.PLANKS) || stack.is(Items.COBBLESTONE) || stack.is(Items.COAL) ? 16
+				: stack.has(net.minecraft.core.component.DataComponents.FOOD) ? 8 : -1;
+			if (keep >= 0) {
+				int total = inventory.count(other -> other.is(stack.getItem()));
+				int extra = Math.min(stack.getCount(), total - keep);
+				if (extra > 0) {
+					spare.merge(slot, extra, Math::max);
+				}
+			}
+		}
+
+		return spare;
+	}
+
 	/** How many items it would put away right now. */
 	public static int depositCount(DrifterEntity drifter) {
 		return toDeposit(drifter).values().stream().mapToInt(Integer::intValue).sum();
