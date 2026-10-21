@@ -1,11 +1,12 @@
-# Civilization (milestone 22, planned): an addon mod
+# Civilization (milestone 22): an addon mod, Drifter: Civilizations
 
 The user (2026-10-20): "is it possible to simulate a civilization as in depth as we can? taking inspiration from those
 minecraft '200 player' '1000 player' '300 player' 'one island' civilization videos". Then: "save it as a mile after 21,
 in fact its really big i think it should be like an addon mod".
 
-Nothing is built yet. This is the plan to start from once milestone 21 (encounters and bounties) is done. It will be
-split into several smaller milestones.
+Started 2026-10-21 (the user: "same repo, call it Drifter: Civilizations, go ahead"): the name is **Drifter:
+Civilizations** (mod id `drifter_civ`), in this same repository. Step 1 is done (the two-jar build, the API, the empty
+addon; see "Progress" at the end). It will be split into several smaller steps.
 
 ## An addon mod
 
@@ -141,3 +142,14 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 2. How big should a world's civilization be: a few towns, or dozens?
 3. Should a player be able to become a leader, or only ever a citizen, trader or enemy?
 4. Which parts first, if not the suggested order?
+
+## Progress
+
+- **Step 1, the shell and the door (done, 0.22.0):** the addon is a second mod in this project (`src/civ`,
+  `src/civClient`), built with Drifter into its own jar, `drifter_civilizations-<v>.jar`, asking for exactly the same
+  Drifter. Drifter's API (`com.dinglebob.drifter.api`, docs/API.md): register goals and catch-up steps; events (died,
+  respawned, home set, group changed, a player's deed); a few readers and setters. The addon loads, says so in the log,
+  and `/drifterciv` shows its version, Drifter's, and how many Drifter deaths it heard of through the API. Tested
+  headless: both mods load, a death reached the addon.
+- **Next:** the groundwork in Drifter (above): the world-wide Drifter directory, news that travels, Drifters trading
+  with each other, shared chests and building together, bigger groups, roads, a 30-day run.

@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "drifter_civ",
+	"version": "${version}",
+	"name": "Drifter: Civilizations",
+	"description": "An addon for Drifter: towns, money and trade, leaders and laws, nations and wars, and a chronicle of it all, built by Drifters playing by player rules.",
+	"authors": [
+		"dinglebob"
+	],
+	"contact": {
+		"sources": "https://github.com/mutmut0118-code/DRIFTERS"
+	},
+	"license": "All-Rights-Reserved",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.dinglebob.drifterciv.DrifterCivilizations"
+		],
+		"client": [
+			"com.dinglebob.drifterciv.client.DrifterCivilizationsClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*",
+		"drifter": "${version}"
+	}
+}

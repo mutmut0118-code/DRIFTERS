@@ -17,8 +17,9 @@ a headless test server first (spawning Drifters and running commands), so crashe
 
 1. Open the repository's **Actions** tab on GitHub and click the newest **build** run for the branch (green tick).
    Every push builds the mod there automatically.
-2. At the bottom, under **Artifacts**, download **Artifacts**. Unzip it and take **`drifter-<version>.jar`**, for
-   example `drifter-0.21.0.jar` (not the one with "sources" in its name).
+2. At the bottom, under **Artifacts**, download **Artifacts**. Unzip it and take **`drifter-<version>.jar`** and
+   **`drifter_civilizations-<version>.jar`**, for example `drifter-0.22.0.jar` (not the ones with "sources" in their
+   names).
 3. In the Modrinth App, open your Fabric 1.21.1 instance (with Fabric API installed), remove the old
    `drifter-....jar` from its `mods` folder (two Drifter jars at once and the game won't start), and put the new one in.
 
@@ -1406,6 +1407,14 @@ then `/summon husk ~5 ~ ~` twice.
       it likes you a little less.
 - [ ] **Getting around**: on hills and mountains Drifters should get stuck less again (they guess the height of ground
       they haven't seen from the ground nearby). `/drifter navtest 20 16 40` as before.
+
+## Drifter: Civilizations, the empty addon (new, 0.22.0)
+
+From 0.22.0 there are two jars: `drifter-0.22.0.jar` and `drifter_civilizations-0.22.0.jar` (the addon; it needs the
+Drifter jar with the same number). Put both in `mods` (and take the old ones out).
+- [ ] The game starts with both. Mod Menu lists "Drifter: Civilizations".
+- [ ] `/drifterciv` says "Drifter: Civilizations 0.22.0 on Drifter 0.22.0 (API 1)". Nothing else to see yet.
+- [ ] Without the addon jar, Drifter works as before.
 
 ## Death, respawn and lives (new, 0.21.1)
 

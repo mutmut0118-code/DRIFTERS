@@ -384,6 +384,15 @@ public final class CatchUp {
 					com.dinglebob.drifter.whim.WhimsAway.slice(drifter, level.getGameTime() - ago, level.getDayTime() - ago, slice, stage, random, report.whims);
 					continue;
 				}
+				case 5 -> {
+					// Other mods' steps (docs/API.md).
+					long from = drifter.level().getGameTime() - (total - done);
+					for (com.dinglebob.drifter.api.CatchUpStep step : com.dinglebob.drifter.api.DrifterApi.catchUpSteps()) {
+						step.slice(drifter, from, slice, random);
+					}
+
+					continue;
+				}
 				default -> job.phase = 0;
 			}
 

@@ -215,6 +215,9 @@ public class Brain {
 
 	public void setHome(@Nullable Home home) {
 		this.home = home;
+		if (!this.drifter.level().isClientSide()) {
+			com.dinglebob.drifter.api.DrifterEvents.HOME_SET.invoker().onHomeSet(this.drifter, home);
+		}
 	}
 
 	/** Its chests were all full last time it tried to put things away: it wants another chest. */

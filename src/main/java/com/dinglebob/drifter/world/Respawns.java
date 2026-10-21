@@ -154,6 +154,8 @@ public final class Respawns {
 			server.getPlayerList().broadcastSystemMessage(message, false);
 		}
 
+		com.dinglebob.drifter.api.DrifterEvents.DIED.invoker().onDied(drifter, source, comesBack);
+
 		if (drifter.isTemporary() || com.dinglebob.drifter.social.Manhunt.isHunter(drifter) || Battle.inBattle(drifter)) {
 			return;
 		}
@@ -256,6 +258,8 @@ public final class Respawns {
 		if (!level.addFreshEntity(fresh)) {
 			return false;
 		}
+
+		com.dinglebob.drifter.api.DrifterEvents.RESPAWNED.invoker().onRespawned(fresh);
 
 		int lives = DrifterConfig.lives();
 		String life = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES ? " (" + Math.max(0, lives - fresh.deaths()) + " of " + lives + " lives left)" : "";

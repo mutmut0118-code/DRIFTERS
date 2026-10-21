@@ -2336,6 +2336,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.skills.NetheriteGoal());
 		// The Nether (milestone 11, section 19).
 		goals.addAll(NetherGoals.all());
+		// Other mods' goals (docs/API.md: Drifter: Civilizations).
+		goals.addAll(com.dinglebob.drifter.api.DrifterApi.goals());
 		return List.copyOf(goals);
 	}
 }

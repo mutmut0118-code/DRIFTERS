@@ -238,7 +238,10 @@ public class SocialWatcher {
 			this.watch(player).peacefulTicks = 0;
 		}
 
-		return this.drifter.getSocial().record(player.getUUID(), player.getGameProfile().getName(), event, amount);
+		double result = this.drifter.getSocial().record(player.getUUID(), player.getGameProfile().getName(), event, amount);
+		var r = this.drifter.getSocial().get(player.getUUID());
+		com.dinglebob.drifter.api.DrifterEvents.PLAYER_DEED.invoker().onPlayerDeed(this.drifter, player, event, r == null ? 0.0 : r.trust);
+		return result;
 	}
 
 	/** A real player (never the helper it uses for its own hands, or another mod's fake player). */

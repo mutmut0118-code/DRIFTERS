@@ -143,6 +143,7 @@ public final class DrifterGroups {
 		group.names.put(member, name);
 		byMember.put(member, group);
 		dirty = true;
+		com.dinglebob.drifter.api.DrifterEvents.GROUP_CHANGED.invoker().onGroupChanged(member, group.id);
 	}
 
 	/** It leaves (or died for good): the group goes on without it, or ends when one is left. */
@@ -154,6 +155,7 @@ public final class DrifterGroups {
 
 		group.members.remove(member);
 		group.names.remove(member);
+		java.util.List<UUID> leftAlone = group.members.size() < 2 ? java.util.List.copyOf(group.members) : java.util.List.of();
 		if (group.members.size() < 2) {
 			group.members.forEach(byMember::remove);
 			groups.remove(group.id);
@@ -162,6 +164,9 @@ public final class DrifterGroups {
 		}
 
 		dirty = true;
+		com.dinglebob.drifter.api.DrifterEvents.GROUP_CHANGED.invoker().onGroupChanged(member, null);
+		// (The last one left: the group's gone, so it's out of one too.)
+		leftAlone.forEach(last -> com.dinglebob.drifter.api.DrifterEvents.GROUP_CHANGED.invoker().onGroupChanged(last, null));
 	}
 
 	// ---------------------------------------------------------------------------------------------

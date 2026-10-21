@@ -15,11 +15,41 @@ repositories {
 
 loom {
 	splitEnvironmentSourceSets()
+}
 
+// Drifter: Civilizations (milestone 22, docs/CIVILIZATION.md): an addon mod in this same project (the user, 2026-10-21:
+// "same repo, call it Drifter: Civilizations"). Its own source sets and its own jar; it builds against Drifter, so a
+// change to Drifter that would break it fails this build at once. The game launches here (runClient, runServer) load
+// both mods, so every test runs them together.
+sourceSets {
+	civ {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath
+	}
+	civClient {
+		compileClasspath += sourceSets.civ.compileClasspath + sourceSets.civ.output + sourceSets.client.compileClasspath + sourceSets.client.output
+		runtimeClasspath += sourceSets.civ.runtimeClasspath + sourceSets.client.runtimeClasspath
+	}
+}
+
+loom {
 	mods {
 		"drifter" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
+		}
+		"drifter_civ" {
+			sourceSet sourceSets.civ
+			sourceSet sourceSets.civClient
+		}
+	}
+
+	runs {
+		client {
+			source sourceSets.civClient
+		}
+		server {
+			source sourceSets.civ
 		}
 	}
 }
@@ -44,6 +74,34 @@ processResources {
 	filesMatching("fabric.mod.json") {
 		expand "version": version
 	}
+}
+
+processCivResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+// The addon's jar, next to Drifter's (same version: the addon asks for exactly this Drifter).
+def civJar = tasks.register("civJar", Jar) {
+	from sourceSets.civ.output
+	from sourceSets.civClient.output
+	archiveBaseName = "drifter_civilizations"
+	archiveClassifier = "dev"
+	destinationDirectory = layout.buildDirectory.dir("devlibs")
+}
+
+def remapCivJar = tasks.register("remapCivJar", net.fabricmc.loom.task.RemapJarTask) {
+	inputFile = civJar.flatMap { it.archiveFile }
+	archiveBaseName = "drifter_civilizations"
+	classpath.from(sourceSets.main.output, sourceSets.client.output)
+}
+
+tasks.named("build") {
+	dependsOn remapCivJar
 }
 
 tasks.withType(JavaCompile).configureEach {

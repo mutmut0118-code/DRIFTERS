@@ -10,6 +10,16 @@ This is a long, multi-session project. Follow these rules in every session.
 3. `docs/TESTING.md` — what the user checks in-game.
 4. `docs/HANDOFF.md` — the short version of everything from the first (cloud) session: state, what's waiting on a test, the user's rules and preferences from the chat, notes for milestone 7.
 
+docs/API.md is the door other mods use into Drifter (the addon below).
+
+**Two mods, one project (milestone 22, the user 2026-10-21: "same repo, call it Drifter: Civilizations"):** Drifter
+(`src/main`, `src/client`, mod id `drifter`) and its addon Drifter: Civilizations (`src/civ`, `src/civClient`, mod id
+`drifter_civ`, package `com.dinglebob.drifterciv`). One build makes both jars (`drifter-<v>.jar`,
+`drifter_civilizations-<v>.jar`) with the same version; the addon asks for exactly that Drifter. The addon uses Drifter
+only through `com.dinglebob.drifter.api` (docs/API.md); when it needs more, grow the API in the same change, and never
+let a Drifter change break the addon's build. `runClient`/`runServer` load both, so every test runs them together.
+Install both jars (and remove both old ones).
+
 docs/WHIMS.md is reference for the whim system milestone. Don't implement whims until the roadmap reaches it.
 docs/ENCOUNTERS.md is the plan for milestone 21 (encounters and bounties); docs/OFFSCREEN_WHIMS.md is the design of
 whims offscreen (the user picked A + small B + C + E; built). docs/WHIMS_HOWTO.md is how to write a whim (every field,
@@ -73,8 +83,8 @@ clearly labeled debug command.
   example script `tools/smoke-night.txt`; for long runs use `sprint <ticks>` lines (`/tick sprint`: as fast as the
   machine goes, ~2,000 ticks/s, 5 game days in ~2 minutes; all Drifter logic is in game ticks; user's idea) with status
   commands between them, and `drifter thoughts log true` (every thought goes to the log)), then copy `build/libs/drifter-<version>.jar` into the Modrinth profile
-  `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`, removing the old `drifter-*.jar` there
-  first (two Drifter jars and the game won't start; that profile also has Sodium, Lithium, FerriteCore, EntityCulling,
+  `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods`, removing the old `drifter-*.jar` and
+  `drifter_civilizations-*.jar` there first, then copying both new jars (two Drifter jars and the game won't start; that profile also has Sodium, Lithium, FerriteCore, EntityCulling,
   EMF/ETF and Mod Menu). Stop test servers by their own process ID, never
   by killing every java.exe.
 - **Version numbers** (the user, 2026-10-20: "for building jars can we start adding version numbers?"): `version` in
