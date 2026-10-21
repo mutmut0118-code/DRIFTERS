@@ -102,6 +102,13 @@ public class PathSearch {
 	public static final double DIG_RESOURCE = 0.05;
 	/** Known roads (its own trails) cost less (section 12, "Discounts"). */
 	public static final double TRAIL_DISCOUNT = 0.8;
+	/**
+	 * Paths and roads it has seen (the block tag {@code drifter:roads}: dirt paths; more from data packs and addons) cost
+	 * less again: it keeps to them as players keep to a road (milestone 22 groundwork).
+	 */
+	public static final double ROAD_DISCOUNT = 0.7;
+	public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> ROADS = net.minecraft.tags.TagKey.create(
+		net.minecraft.core.registries.Registries.BLOCK, com.dinglebob.drifter.Drifter.id("roads"));
 	/** Drops deeper than this count as a deep edge (edge risk, sneaking). */
 	public static final int SAFE_DROP = 3;
 	public static final int WATER_DROP = 8;
@@ -1341,6 +1348,10 @@ public class PathSearch {
 
 			if (this.trails.contains(to.asLong())) {
 				node.trailFactor = TRAIL_DISCOUNT;
+			}
+
+			if (this.view.isKnown(to.below()) && this.view.world().getBlockState(to.below()).is(ROADS)) {
+				node.trailFactor = Math.min(node.trailFactor, ROAD_DISCOUNT);
 			}
 
 			if (!this.dangers.isEmpty()) {

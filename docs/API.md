@@ -64,6 +64,13 @@ of it every few seconds (chests, the house plan, the farm, pen...), build one ho
 blocks) and only one builds the hut. `DrifterApi.setGroupLimit(group, n)`: how many it takes (0: the "Group size"
 setting, four by default, up to 32).
 
+## Roads
+
+Drifters keep to paths they've seen: blocks in the tag `drifter:roads` (dirt paths) cost less to walk on in their
+routes. An addon that lays roads of other blocks (gravel, stone bricks) adds them to that tag (a data pack file
+`data/drifter/tags/block/roads.json` with `"replace": false`). Drifters wear dirt paths in themselves where they walk often
+near home.
+
 ## The addon's own data on a Drifter
 
 Fabric's data attachments (`AttachmentRegistry.createPersistent(...)` with a codec, then `drifter.setAttached(...)`):

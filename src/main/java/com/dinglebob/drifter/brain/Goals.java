@@ -2372,6 +2372,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.compat.BountyGoal());
 		// Going back for its things after dying (section 20).
 		goals.add(new com.dinglebob.drifter.skills.CorpseRunGoal());
+		// Wearing paths in near home (milestone 22 groundwork, roads).
+		goals.add(new com.dinglebob.drifter.skills.PathGoal());
 		// Fishing (milestone 18, section 10.5).
 		goals.add(new com.dinglebob.drifter.skills.FishGoal());
 		// Its horse (milestone 18, section 10.7).

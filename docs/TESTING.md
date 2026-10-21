@@ -1460,6 +1460,14 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Paths and roads (new, 0.22.2)
+
+- [ ] **Worn paths**: after a few days, look round a Drifter's home: dirt paths where it walks most (to its farm, its
+      mine, the woods). It makes them with a shovel, a stretch at a time ("wore a path in near home (16 blocks)" in
+      `/drifter thoughts`).
+- [ ] **Keeping to paths**: make a dirt path (shovel on grass) that bends round somewhere a Drifter goes; it walks along
+      your path rather than straight across, if the path isn't much longer.
+
 ## Death, respawn and lives (new, 0.21.1)
 
 - [ ] **Settings**: Mod Menu > Drifter > the gear button. It scrolls now; every setting has a tooltip. Under "When a

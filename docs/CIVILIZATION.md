@@ -190,4 +190,10 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   site <corner>`, `/drifter config groupsize <n>`. Tested headless: a member got the leader's plan and spot; the leader
   started it, the member came to help, both built at once (101 of 145 blocks in three minutes, no block undone); the
   pair went mining together.
-- **Next:** roads, a 30-day run.
+- **Groundwork 5, roads (done):** routes keep to paths and roads it has seen (the block tag `drifter:roads`, dirt paths
+  by default, more from a data pack or the addon: a step on one costs 0.7 of a plain one; its own trails stay at 0.8).
+  It counts how often it walks each block (halved every day); where it has walked six times or more within 48 blocks of
+  home, it now and then wears a path in with its shovel (16 blocks a go, half a day between; builders and homebodies
+  most), as players do; a path once begun is walked the more, and grows. Not on its farm or in its buildings.
+  `skills/PathGoal`, `DrifterMemory` wear. Tested headless: walked a route 8 times, then wore 16 blocks of path along it.
+- **Next:** a 30-day run.

@@ -42,6 +42,12 @@ public class DrifterMemory {
 	/** Its trail, oldest first (no boxing: the pathfinder asks about it for every step it weighs; performance 2026-10-17). */
 	private final it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet trail = new it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet();
 	public static final int MAX_TRAIL = 4096;
+	/**
+	 * How often it has walked each block lately (feet), halved every day (milestone 22 groundwork, roads): where it walks
+	 * day after day it wears a path in ({@code skills.PathGoal}).
+	 */
+	private final it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap wear = new it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap();
+	public static final int MAX_WEAR = 4096;
 	/** The in-game day (by its own time sense) of the last consolidation. */
 	private long lastConsolidatedDay = -1;
 
@@ -58,6 +64,34 @@ public class DrifterMemory {
 		if (this.trail.size() > MAX_TRAIL) {
 			this.trail.removeFirstLong();
 		}
+
+		this.wear.addTo(feet.asLong(), 1);
+		if (this.wear.size() > MAX_WEAR) {
+			// The blocks walked once go first (then twice...): what's left is where it keeps going.
+			for (int once = 1; this.wear.size() > MAX_WEAR * 3 / 4 && once < 8; once++) {
+				int most = once;
+				this.wear.values().removeIf(count -> count <= most);
+			}
+		}
+	}
+
+	/** How often it has walked this block lately. */
+	public int wear(BlockPos feet) {
+		return this.wear.get(feet.asLong());
+	}
+
+	/** Each block it has walked at least {@code times} times lately (feet). */
+	public void forEachWorn(int times, java.util.function.LongConsumer action) {
+		for (var entry : this.wear.long2IntEntrySet()) {
+			if (entry.getIntValue() >= times) {
+				action.accept(entry.getLongKey());
+			}
+		}
+	}
+
+	/** Made into a path: counted afresh. */
+	public void forgetWear(BlockPos feet) {
+		this.wear.remove(feet.asLong());
 	}
 
 	/** Its trails, a copy (for a path search on another thread). */
@@ -200,6 +234,12 @@ public class DrifterMemory {
 		}
 
 		this.lastConsolidatedDay = believedDay;
+		// Wear fades: halved each day.
+		for (var entry : this.wear.long2IntEntrySet()) {
+			entry.setValue(entry.getIntValue() / 2);
+		}
+
+		this.wear.values().removeIf(count -> count <= 0);
 		int promoted = 0;
 		List<MemoryEntry> toPromote = new ArrayList<>();
 		for (MemoryEntry entry : this.shortTerm.values()) {
@@ -228,6 +268,8 @@ public class DrifterMemory {
 		tag.putLong("LastConsolidatedDay", this.lastConsolidatedDay);
 		tag.put("Map", this.map.save());
 		tag.putLongArray("Trail", this.trail.toLongArray());
+		tag.putLongArray("WearAt", this.wear.keySet().toLongArray());
+		tag.putIntArray("Wear", this.wear.values().toIntArray());
 		return tag;
 	}
 
@@ -249,6 +291,13 @@ public class DrifterMemory {
 		for (long key : tag.getLongArray("Trail")) {
 			this.trail.add(key);
 		}
+
+		this.wear.clear();
+		long[] wearAt = tag.getLongArray("WearAt");
+		int[] wear = tag.getIntArray("Wear");
+		for (int i = 0; i < Math.min(wearAt.length, wear.length); i++) {
+			this.wear.put(wearAt[i], wear[i]);
+		}
 	}
 
 	/** Wipes everything (debug command). */
@@ -257,6 +306,7 @@ public class DrifterMemory {
 		this.longTerm.clear();
 		this.map.clear();
 		this.trail.clear();
+		this.wear.clear();
 		this.lastConsolidatedDay = -1;
 	}
 }
