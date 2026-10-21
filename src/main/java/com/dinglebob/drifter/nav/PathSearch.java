@@ -280,6 +280,8 @@ public class PathSearch {
 	private final it.unimi.dsi.fastutil.longs.LongOpenHashSet trails;
 	private final double safeFall;
 	private final double fallMultiplier;
+	/** Its health when the search began (a jump that lands lower costs some). */
+	private final float health;
 	private final int seaLevel;
 	/** Runs on a path thread ({@link PathWorkers}): reads only the world copy and copies of what it knows. */
 	private final boolean async;
@@ -317,6 +319,7 @@ public class PathSearch {
 		this.trails = drifter.getMemory().trailCopy();
 		this.safeFall = drifter.getAttributeValue(Attributes.SAFE_FALL_DISTANCE);
 		this.fallMultiplier = drifter.getAttributeValue(Attributes.FALL_DAMAGE_MULTIPLIER);
+		this.health = drifter.getHealth();
 		this.seaLevel = drifter.level().getSeaLevel();
 		this.nodes = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
 		this.deepDrop = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
@@ -378,6 +381,12 @@ public class PathSearch {
 
 	public int expanded() {
 		return this.expanded;
+	}
+
+	/** A jump landing {@code down} blocks lower: the fall from its top costs no more than a drop may, and leaves it health. */
+	private boolean landingSafe(int down) {
+		int damage = this.fallDamage(down + 2);
+		return damage <= MAX_DROP_DAMAGE && (damage == 0 || this.health - damage >= MIN_HEALTH_AFTER_DROP);
 	}
 
 	/** {@link #fallDamage(DrifterEntity, int)} with the attributes it had at the start. */
@@ -824,6 +833,12 @@ public class PathSearch {
 					continue;
 				}
 
+				// Landing lower, it falls from the top of the jump (about a block and a quarter up): only if that costs what a
+				// drop may (found in a 5-day run: hurt already, it took a jump three blocks down and died of the landing).
+				if (dy < 0 && !this.landingSafe(-dy)) {
+					break;
+				}
+
 				if (dy > 0 && !this.headroomUp(n, t)) {
 					break;
 				}
@@ -1105,6 +1120,11 @@ public class PathSearch {
 					}
 
 					continue;
+				}
+
+				// (Landing lower costs what a drop may at most: as for an angled jump.)
+				if (dy < 0 && !this.landingSafe(-dy)) {
+					break;
 				}
 
 				if (!this.view.jumpFooting(t.below())) {
