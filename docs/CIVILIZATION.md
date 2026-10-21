@@ -96,6 +96,45 @@ Dozens of towns can exist; only the ones being watched cost much.
 6. Nations and diplomacy.
 7. Culture, then the far-away town summaries tuned for big worlds.
 
+## Groundwork in Drifter first (proposed 2026-10-21, waiting on the user)
+
+The user: "think real hard about what should we work on/add before we start the civilization milestone; want this
+process to be as easy as possible while also updating the og mod, so the addon mod isnt incompatible".
+
+**Keeping them compatible (do first, small):**
+1. Two jars, one project: the addon as a second Gradle project here now, an empty shell that loads. Every build compiles
+   both, so a Drifter change that would break the addon fails the build at once and is fixed in the same change.
+2. Versions in step: both jars carry the same version; the addon's fabric.mod.json asks for Drifter's same minor version
+   ("drifter": "~0.22.0"), so a mismatched pair says so plainly instead of crashing.
+3. A small official API (`com.dinglebob.drifter.api`), the addon's only door into Drifter: register goals and catch-up
+   steps; Fabric-style events (died, respawned, killed, robbed, traded, joined or left a group, settled a home, saw a
+   crime); read and change a Drifter's home, group, trust, memory, inventory and thoughts. The addon keeps its own data
+   on Drifters with Fabric data attachments (Drifter's save format untouched). Inside Drifter, anything can move; the door
+   stays put.
+4. The headless smoke test loads both jars and runs a day, every time.
+
+**Drifter features civilization stands on (each worth having in Drifter alone):**
+1. A world-wide Drifter directory (DESIGN.md section 20's world-level registry, never built): who exists, their home,
+   group, closest relationships, alive or gone, a few stats, kept while they're unloaded far away. Today most of a Drifter
+   lives in its own save and can't be read unless it's loaded; towns of far-off Drifters need this.
+2. News that travels: today group members within 8 blocks swap news; make it any two Drifters who meet and get on (who
+   killed whom, dangers, a player's deeds, later prices and wars), believed by trust. Elections, crime reports and
+   diplomacy all run on it; alone, reputations spread the way they would.
+3. Drifters trading with each other (items for items or emeralds; today: gifts, and trading with villagers only). Money
+   and markets need it.
+4. Shared things: chests that belong to a group, and building one plan together (claims, a shared stockpile; the
+   builders encounter is a tiny version). Town stores, walls, halls and roads need it; alone, a group's base is truly
+   shared.
+5. Bigger groups (four at most today) or a membership that a town of 10 to 30 can use.
+6. Roads: the pathfinder preferring known paths (an old TODO), and paths worn between places walked often.
+
+**Steadying first:** a 30-day run with 50 Drifters (memory, save sizes, loops) since civilizations run for weeks; a round
+on getting about rough ground (falls into ravines). Scale is already enough for "one island" (300 round a player at 20
+TPS). Not needed first: The End, difficulty scaling, the Knowledge trait.
+
+**Suggested order:** the two-jar shell and API door; the directory; news and trading; shared chests, building together,
+bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "one island" and the chronicle.
+
 ## Questions for the user (when we start)
 
 1. The addon's name, and the same repository (recommended) or its own?
