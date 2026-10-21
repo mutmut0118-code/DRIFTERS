@@ -103,8 +103,12 @@ public final class HomeSite {
 		Site best = null;
 		// Footprints overlap (spots every 2 blocks, 7 wide): each ground cell's answer is worked out once per search.
 		Map<Long, Double> cells = new HashMap<>();
+		// Where it keeps to (another mod's: "one island"): no home past the edge.
+		BlockPos roam = drifter.getDrifterBrain().roamCenter();
+		int roamRadius = drifter.getDrifterBrain().roamRadius();
 		for (BlockPos spot : floors) {
-			if (tooClose(avoid, spot) || nearOthersHome(drifter, spot)) {
+			if (tooClose(avoid, spot) || nearOthersHome(drifter, spot)
+				|| roam != null && Math.hypot(spot.getX() - roam.getX(), spot.getZ() - roam.getZ()) > roamRadius) {
 				continue;
 			}
 
