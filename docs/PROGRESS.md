@@ -2646,4 +2646,30 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   with `/drifter house save`, compare with the original drawing) and change the styles (data) or the generator (code)
   to match; edited hand-made plans replace their .nbt files. The generator now also lists sills, tall windows and an
   off-centre door among a plan's features (no change to the plans it makes).
+- **The houses revamped (0.22.7; the user, 2026-10-22: "they need to be a bit bigger, especially for a town... lets
+  revamp all the house plans using references from my edits but more from this guidebook"; their "Minecraft Base
+  Building Guidebook").** A new generator, `building/plan/gen/HouseGenerator` (ids `house:<style>_<n>`), and twelve new
+  styles (`data/drifter/drifter_house_styles`, see its `_README.txt`): sizes from the pillar formula (13x9 to 21x16, a
+  long rectangle; squares get a hip roof); a stone foundation with a stair plinth; log posts and beams on the frame line
+  with the wall a block behind (the posts carried through inside); upper storeys jettied (flush on the frame line, a
+  block past the wall below); storeys four high; windows centred in each bay, the same on every storey (sills, lintels
+  in some styles); the door centred (a double door in a 4-wide bay; at a third on an even count; in place of the middle
+  post on a gable end), framed in logs, set back, a three-wide stair step, a light, a little roof over it when no eave
+  is; a 45 or steep gable or a hip roof on a row of the roof's full block on the top beam, a block of overhang, a ridge
+  cap, the rake trimmed underneath, the gable a lighter block with a window; tie beams inside at the posts; a vaulted
+  ceiling on wide roofs; stairs up (not ladders); wings (L or T, 50-70% wide, ridge two lower), corner towers, two rooms
+  in long houses; torches inside at the posts at floor+2 (as the user moved them). No chimneys (the user removed both in
+  their edits), porches, flat or shed roofs. The user's edits to the five hand-made plans (torches, windows, the stone
+  cottage's chimney out) replace their files. Old worlds: plans from the first generator (`gen:` ids) are still made
+  when a half-built house asks for one (`drifter_house_styles_legacy`, `PlanGenerator`). HousePalette: the frame and
+  roof wood is the one the Drifter knows that stands out most against its main wood (towns: a set partner for each
+  wood). Towns (addon): only the bigger houses (15 to 25 across), the town 144 by 128.
+- **Found and fixed while testing the bigger houses:** a builder that ran out of one wood and switched to another took
+  its own frame for a tree and chopped it out (the "clear the spot" step now counts the same block in another wood as
+  built); a house may be left with 2% of its blocks out of reach (was 6 blocks), so a big house still counts as built.
+  Tested (a Drifter building, deep flat world): a one-storey cottage (833 blocks) finished in about three game days of
+  steady work (bar 16 blocks of ridge cap out of reach), the Drifter moved in; a two-storey hip-roofed house (1198 blocks) reached 1016 in nine days, its roof
+  slow (out of reach but by pillars). Found: plans are only checked for blocks touching; a block a builder can't place
+  against anything (an upside-down stair on a beam) stopped a hip roof outright until the row on the beam became full
+  blocks.
 - Next: towns founded by their people (step 3b).

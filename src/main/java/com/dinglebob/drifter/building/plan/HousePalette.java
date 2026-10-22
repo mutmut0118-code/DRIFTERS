@@ -32,6 +32,12 @@ import net.minecraft.world.level.block.state.properties.Property;
 public final class HousePalette {
 	/** Overworld woods, in the order players usually have them. */
 	public static final List<String> WOODS = List.of("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry");
+	/** How dark each wood's planks are (1 light to 7 dark): a frame should stand out from its wall (guidebook: "pair dark with light"). */
+	private static final Map<String, Integer> DARKNESS = Map.of("birch", 1, "cherry", 2, "oak", 3, "jungle", 4, "acacia", 4, "mangrove", 5,
+		"spruce", 6, "dark_oak", 7);
+	/** A second wood that stands out against each (when it can be any). */
+	private static final Map<String, String> PARTNER = Map.of("oak", "spruce", "birch", "spruce", "spruce", "oak", "dark_oak", "oak",
+		"jungle", "dark_oak", "acacia", "dark_oak", "mangrove", "dark_oak", "cherry", "dark_oak");
 	/** Parts of a wood family, as their ids end (the stripped ones start with "stripped_"). */
 	private static final List<String> PARTS = List.of("_log", "_wood", "_planks", "_stairs", "_slab", "_fence_gate", "_fence", "_door",
 		"_trapdoor", "_button", "_pressure_plate", "_wall_hanging_sign", "_hanging_sign", "_wall_sign", "_sign");
@@ -66,11 +72,12 @@ public final class HousePalette {
 	 * This Drifter's palette for this plan: the plan's woods by how much it uses them, matched to the woods it has (logs and
 	 * planks on it and in its chests) and sees round home, most first; deepslate for cobblestone if it has more of that.
 	 */
-	/** Every wood of the plan as this one (world-gen houses: the wood that grows round them). */
+	/** The plan's main wood as this one, its other woods one that stands out against it (world-gen houses: the wood that grows round them). */
 	public static HousePalette forWood(HousePlan plan, String wood) {
 		Map<String, String> map = new HashMap<>();
-		for (String planWood : woodsByUse(plan)) {
-			map.put(planWood, wood);
+		List<String> planWoods = woodsByUse(plan);
+		for (int i = 0; i < planWoods.size(); i++) {
+			map.put(planWoods.get(i), i == 0 ? wood : PARTNER.getOrDefault(wood, wood));
 		}
 
 		return new HousePalette(map, false);
@@ -85,9 +92,30 @@ public final class HousePalette {
 			map.put(planWoods.get(i), to);
 		}
 
+		// The second wood (the frame, the roof) the one it knows that stands out most against the first, of its three most
+		// at hand (two woods alike, oak and jungle say, make a flat wall). One wood only: the house is all that wood.
+		if (planWoods.size() >= 2 && theirs.size() >= 2) {
+			String main = theirs.get(0);
+			String best = theirs.get(1);
+			for (String candidate : theirs.subList(1, Math.min(3, theirs.size()))) {
+				if (contrast(main, candidate) > contrast(main, best)) {
+					best = candidate;
+				}
+			}
+
+			map.put(planWoods.get(1), best);
+			if (planWoods.size() >= 3 && map.get(planWoods.get(2)).equals(best)) {
+				map.put(planWoods.get(2), theirs.get(1).equals(best) ? theirs.get(Math.min(2, theirs.size() - 1)) : theirs.get(1));
+			}
+		}
+
 		int cobble = count(drifter, net.minecraft.world.item.Items.COBBLESTONE);
 		int deep = count(drifter, net.minecraft.world.item.Items.COBBLED_DEEPSLATE);
 		return new HousePalette(map, deep > cobble);
+	}
+
+	private static int contrast(String a, String b) {
+		return Math.abs(DARKNESS.getOrDefault(a, 4) - DARKNESS.getOrDefault(b, 4));
 	}
 
 	/** The plan's woods, the most used first. */

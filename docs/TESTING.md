@@ -1460,12 +1460,28 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## The new houses (new, 0.22.7)
+
+- [ ] **Look at them**: open the world **Drifter House Parts 2** (in the DRIFTER TEST profile; flat, creative, always day).
+      Three rows, a sign in front of each house: (1) each part on the same plain house (walls, door, windows, the roofs,
+      two and three storeys with stairs, the door in the gable, a double door, a door at a third, sills and lintels, tall
+      and wide windows, a tower, an L and a T wing, two rooms, a vaulted roof, lanterns, a log ridge and floor border);
+      (2) a house of each of the 12 styles; (3) the five hand-made plans with your edits. All in oak and spruce (the
+      Drifter's own woods replace them). Edit anything you like and send the world back, as last time.
+- [ ] **A Drifter builds one**: next to a Drifter with a home, `/drifter house choose house:cottage` (or any style:
+      `house:farmhouse`, `house:manor`...), then `/drifter house site <x y z>` (a flat spot near its home: the corner) and
+      `/drifter brain goal planhouse`. `/drifter house status` shows the count going up. A one-storey house takes it about
+      three days of work; a two-storey one more than a week (the roof is slow). It needs plenty of wood (several stacks
+      of logs).
+- [ ] Old worlds: a Drifter that had started a house before this version keeps building the same house.
+
 ## A ready-made town (new, 0.22.6)
 
 - [ ] **Make one**: in a world (creative is easiest), stand on fairly open land and type `/drifterciv town spawn 8`
       (8 households; 2 to 12; add a name: `/drifterciv town spawn 6 Oakvale`). The ground round you is levelled and a
       town appears: a stone plaza with a roofed well, a bell, a lectern (the town's book: its name, its people) and lamp
-      posts; dirt roads; a different house for each household with its door to the road; a stone store with chests; two
+      posts; dirt roads; a different house for each household with its door to the road (the bigger houses of 0.22.7;
+      the town is 144 by 128 blocks); a stone store with chests; two
       wheat fields; a pen with cows, sheep and chickens. A Drifter comes out of each house.
 - [ ] `/drifterciv town` (near it): its name, households, how many alive, how full the store is. `/drifterciv towns` lists
       every town.

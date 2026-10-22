@@ -1,0 +1,54 @@
+{
+	"weight": 3,
+	"width": [
+		5,
+		9
+	],
+	"depth": [
+		5,
+		7
+	],
+	"two_floors": 0.35,
+	"wall_height": [
+		3,
+		4
+	],
+	"floor": "minecraft:oak_planks",
+	"base": [
+		"minecraft:cobblestone",
+		"none"
+	],
+	"frame": "minecraft:spruce_log",
+	"posts_every": [
+		2,
+		3
+	],
+	"beam": true,
+	"infill": [
+		"minecraft:oak_planks",
+		"minecraft:spruce_planks"
+	],
+	"window": "minecraft:glass",
+	"window_spacing": 2,
+	"tall_windows": 0.3,
+	"sill": "minecraft:spruce_stairs",
+	"roofs": {
+		"gable": 3,
+		"gable_z": 2,
+		"hip": 1
+	},
+	"stair": "minecraft:spruce_stairs",
+	"slab": "minecraft:spruce_slab",
+	"gable_fill": "minecraft:oak_planks",
+	"door": "minecraft:spruce_door",
+	"porch": 0.35,
+	"chimney": 0.3,
+	"door_off_center": 0.4,
+	"wing": 0.5,
+	"wing_depth": [
+		3,
+		5
+	],
+	"loft": 0.4,
+	"tower": 0.35
+}

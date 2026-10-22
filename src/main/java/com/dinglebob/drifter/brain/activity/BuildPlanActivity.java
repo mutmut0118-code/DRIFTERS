@@ -59,7 +59,9 @@ import net.minecraft.world.phys.Vec3;
  * Blocks it can't place from anywhere it can stand it leaves for now; a few gaps don't stop it finishing.
  */
 public class BuildPlanActivity extends Activity {
+	/** Gaps it may leave in a house (blocks it really can't get to), at least, and as a share of a big one's blocks. */
 	private static final int MAX_GAPS = 6;
+	private static final double MAX_GAP_SHARE = 0.02;
 	private static final int MAX_WALKS = 60;
 	private static final int MAX_DEPTH = 5;
 	/**
@@ -379,11 +381,13 @@ public class BuildPlanActivity extends Activity {
 		long mates = plan.build.stream().filter(c -> !Placement.matches(level.getBlockState(c.pos()), c.state()) && this.takenByMate(c.pos())).count();
 		long missing = plan.build.stream().filter(c -> !(c.state().getBlock() instanceof BedBlock) && !home.houseGivenUp.contains(c.state().getBlock().asItem())
 			&& !Placement.matches(level.getBlockState(c.pos()), c.state()) && !this.takenByMate(c.pos())).count();
-		if (mates > 0 && missing <= MAX_GAPS) {
+		// (A big house has more out-of-the-way edges: the guidebook houses of 0.22.7 run to a thousand blocks.)
+		long gaps = Math.max(MAX_GAPS, Math.round(plan.build.size() * MAX_GAP_SHARE));
+		if (mates > 0 && missing <= gaps) {
 			return this.begin(new com.dinglebob.drifter.executor.task.WaitTask(this.drifter, "watch the others finish the house", () -> false, 40));
 		}
 
-		if (missing > MAX_GAPS) {
+		if (missing > gaps) {
 			return this.fail("couldn't place " + missing + " blocks of the house yet (" + this.skips.entrySet().stream()
 				.map(e -> e.getValue() + " " + e.getKey()).collect(java.util.stream.Collectors.joining(", ")) + ")");
 		}
@@ -591,8 +595,10 @@ public class BuildPlanActivity extends Activity {
 				}
 
 				BlockState planned = want.get(pos);
-				// (A log where the plan has it stripped is one it put there to strip: it stays.)
-				if (state.isAir() || planned != null && state.is(planned.getBlock()) || !natural(state) || !KnownBlocks.mayTake(level, pos)
+				// (A log where the plan has it stripped is one it put there to strip: it stays. So does one in the wood it ran out
+				// of, where the rest of the house is now another: found in testing, it chopped its own frame out as a tree.)
+				if (state.isAir() || planned != null && (state.is(planned.getBlock()) || Placement.matches(state, planned)) || !natural(state)
+					|| !KnownBlocks.mayTake(level, pos)
 					|| planned != null && unstripped(planned) != null && state.is(unstripped(planned).getBlock())
 					|| this.drifter.isScaffold(pos) && planned == null) {
 					continue;

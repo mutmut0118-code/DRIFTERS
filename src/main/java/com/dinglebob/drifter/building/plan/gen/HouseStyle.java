@@ -101,6 +101,27 @@ public final class HouseStyle {
 		return location != null && BuiltInRegistries.BLOCK.containsKey(location) ? BuiltInRegistries.BLOCK.get(location) : null;
 	}
 
+	/** One of the style's footprints ({@code [[width, depth], ...]}: width along the front), or the fallback. */
+	public int[] size(String key, int[] fallback, RandomSource random) {
+		if (!this.json.has(key) || !this.json.get(key).isJsonArray() || this.json.getAsJsonArray(key).isEmpty()) {
+			return fallback;
+		}
+
+		JsonElement pick = this.json.getAsJsonArray(key).get(random.nextInt(this.json.getAsJsonArray(key).size()));
+		return new int[] {pick.getAsJsonArray().get(0).getAsInt(), pick.getAsJsonArray().get(1).getAsInt()};
+	}
+
+	/** Whole numbers to choose from ({@code [3, 4]}), in order (the first that fits wins). */
+	public List<Integer> numbers(String key, List<Integer> fallback) {
+		if (!this.json.has(key) || !this.json.get(key).isJsonArray()) {
+			return fallback;
+		}
+
+		List<Integer> out = new ArrayList<>();
+		this.json.getAsJsonArray(key).forEach(element -> out.add(element.getAsInt()));
+		return out;
+	}
+
 	/** Roof types and their weights (gable, gable_z, shed, flat). */
 	public Map<String, Double> roofs() {
 		Map<String, Double> roofs = new LinkedHashMap<>();

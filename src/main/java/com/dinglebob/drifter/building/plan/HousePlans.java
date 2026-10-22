@@ -89,7 +89,13 @@ public final class HousePlans {
 
 	@Nullable
 	public static HousePlan get(MinecraftServer server, String id) {
-		return cached(server).get(id);
+		HousePlan plan = cached(server).get(id);
+		// (A house begun from one of the first generator's plans keeps it.)
+		if (plan == null && id.startsWith(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.LEGACY_PREFIX)) {
+			plan = com.dinglebob.drifter.building.plan.gen.GeneratedPlans.legacy(server, id);
+		}
+
+		return plan;
 	}
 
 	private static Map<String, HousePlan> cache = Map.of();

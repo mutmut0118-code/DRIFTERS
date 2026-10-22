@@ -95,7 +95,7 @@ public final class HouseCommands {
 				level.setBlock(at.offset(x, 0, 0).offset(cell.pos()), cell.state(), 2);
 			}
 
-			names.append(made == 0 ? "" : ", ").append(plan.id.substring(4)).append(" at ").append(at.getX() + x).append(" ")
+			names.append(made == 0 ? "" : ", ").append(plan.id.substring(plan.id.indexOf(':') + 1)).append(" at ").append(at.getX() + x).append(" ")
 				.append(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.features(plan.id));
 			x += Math.max(16, plan.size.getX() + 3);
 		}
@@ -135,8 +135,8 @@ public final class HouseCommands {
 	private static HousePlan plan(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		String id = StringArgumentType.getString(ctx, "plan").replace(" asdrawn", "");
 		HousePlan plan = HousePlans.get(ctx.getSource().getServer(), id);
-		// "gen:<style>": the first generated plan of that style (their numbers depend on the world).
-		if (plan == null && id.startsWith("gen:")) {
+		// "house:<style>": the first generated plan of that style (their numbers depend on the world).
+		if (plan == null && id.startsWith(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.PREFIX)) {
 			plan = com.dinglebob.drifter.building.plan.gen.GeneratedPlans.all(ctx.getSource().getServer()).values().stream()
 				.filter(p -> p.id.startsWith(id + "_")).findFirst().orElse(null);
 		}

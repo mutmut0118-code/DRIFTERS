@@ -36,12 +36,21 @@ public final class GeneratedPlans {
 	}
 
 	public static final String DIRECTORY = "drifter_house_styles";
-	public static final String PREFIX = "gen:";
+	/** The first generator's styles (before 0.22.7), kept so a house begun from one of its plans keeps its plan. */
+	public static final String LEGACY_DIRECTORY = "drifter_house_styles_legacy";
+	public static final String PREFIX = "house:";
+	/** The first generator's plans ("gen:cottage_12"): made only when one is asked for by name. */
+	public static final String LEGACY_PREFIX = "gen:";
 	/** Generated plans a Drifter weighs when it picks a house (besides every hand-made one). */
 	private static final int SHORTLIST = 6;
 	private static final int TRIES = 8;
 
 	private static volatile Map<String, HouseStyle> styles = Map.of();
+	private static volatile Map<String, HouseStyle> legacyStyles = Map.of();
+	private static Map<String, HousePlan> legacyPlans = Map.of();
+	private static long legacyFor = Long.MIN_VALUE;
+	private static int legacyCount = -1;
+	private static int legacyVersion = -1;
 	private static volatile int stylesVersion;
 	private static Map<String, HousePlan> plans = Map.of();
 	/** What each generated plan has (its roof, a wing, a porch...), for the showcase (debug). */
@@ -66,10 +75,17 @@ public final class GeneratedPlans {
 	}
 
 	private static void load(ResourceManager manager) {
+		styles = read(manager, DIRECTORY);
+		legacyStyles = read(manager, LEGACY_DIRECTORY);
+		stylesVersion++;
+		Drifter.LOGGER.info("Loaded {} Drifter house styles ({} old ones)", styles.size(), legacyStyles.size());
+	}
+
+	private static Map<String, HouseStyle> read(ResourceManager manager, String directory) {
 		// Sorted by name: the order styles are drawn in must be the same every time the game starts, or a world's plans (and a
 		// Drifter's half-built house) would change between sessions.
 		Map<String, HouseStyle> loaded = new java.util.TreeMap<>();
-		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
+		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(directory, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 				String path = file.getKey().getPath();
@@ -80,30 +96,35 @@ public final class GeneratedPlans {
 			}
 		}
 
-		styles = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(loaded));
-		stylesVersion++;
-		Drifter.LOGGER.info("Loaded {} Drifter house styles", loaded.size());
+		return java.util.Collections.unmodifiableMap(new LinkedHashMap<>(loaded));
 	}
 
-	/** This world's generated plans, by id (made the first time they're asked for, and again if the setting changes). */
-	/** The house styles, by id (debug: the parts exhibit). */
-	public static Map<String, HouseStyle> styles() {
-		return styles;
-	}
-
-	public static synchronized Map<String, HousePlan> all(MinecraftServer server) {
+	/** A plan the first generator made for this world (a house begun before 0.22.7), or null. */
+	@org.jetbrains.annotations.Nullable
+	public static synchronized HousePlan legacy(MinecraftServer server, String id) {
 		long seed = server.getWorldData().worldGenOptions().seed();
 		int count = DrifterConfig.spawn(DrifterConfig.Spawn.HOUSE_DESIGNS);
-		if (seed == madeFor && count == madeCount && stylesVersion == madeVersion) {
-			return plans;
+		if (seed != legacyFor || count != legacyCount || stylesVersion != legacyVersion) {
+			legacyPlans = make(seed, count, legacyStyles, LEGACY_PREFIX, true).plans();
+			legacyFor = seed;
+			legacyCount = count;
+			legacyVersion = stylesVersion;
 		}
 
+		return legacyPlans.get(id);
+	}
+
+	private record Made(Map<String, HousePlan> plans, Map<String, List<String>> features) {
+	}
+
+	/** {@code count} plans from these styles, seeded by the world (the same every time). */
+	private static Made make(long seed, int count, Map<String, HouseStyle> from, String prefix, boolean legacy) {
 		long started = System.nanoTime();
 		Map<String, HousePlan> made = new LinkedHashMap<>();
 		Map<String, Integer> rejected = new LinkedHashMap<>();
 		Map<String, List<String>> madeFeatures = new LinkedHashMap<>();
 		Map<String, Integer> tally = new java.util.TreeMap<>();
-		List<HouseStyle> all = new ArrayList<>(styles.values());
+		List<HouseStyle> all = new ArrayList<>(from.values());
 		double total = all.stream().mapToDouble(HouseStyle::weight).sum();
 		for (int i = 0; i < count && !all.isEmpty(); i++) {
 			RandomSource random = RandomSource.create(seed * 31L + i * 0x9E3779B97F4A7C15L);
@@ -117,14 +138,15 @@ public final class GeneratedPlans {
 				}
 			}
 
-			String id = PREFIX + style.id() + "_" + i;
+			String id = prefix + style.id() + "_" + i;
 			for (int attempt = 0; attempt < TRIES; attempt++) {
-				HousePlan plan = PlanGenerator.generate(id, style, random);
+				HousePlan plan = legacy ? PlanGenerator.generate(id, style, random) : HouseGenerator.generate(id, style, random);
+				List<String> planFeatures = legacy ? PlanGenerator.lastFeatures : HouseGenerator.lastFeatures;
 				String problem = plan == null ? "no plan" : PlanCheck.problem(plan);
 				if (problem == null) {
 					made.put(id, plan);
-					madeFeatures.put(id, PlanGenerator.lastFeatures);
-					PlanGenerator.lastFeatures.forEach(feature -> tally.merge(feature, 1, Integer::sum));
+					madeFeatures.put(id, planFeatures);
+					planFeatures.forEach(feature -> tally.merge(feature, 1, Integer::sum));
 					break;
 				}
 
@@ -135,16 +157,33 @@ public final class GeneratedPlans {
 			}
 		}
 
-		plans = java.util.Collections.unmodifiableMap(made);
-		features = madeFeatures;
-		List<HousePlan> sorted = new ArrayList<>(made.values());
+		Drifter.LOGGER.info("[Drifter] made {} {}house plans from {} styles in {} ms (drafts thrown away: {}; {})", made.size(), legacy ? "old " : "",
+			all.size(), (System.nanoTime() - started) / 1_000_000, rejected, tally);
+		return new Made(java.util.Collections.unmodifiableMap(made), madeFeatures);
+	}
+
+	/** The house styles, by id (debug: the parts exhibit). */
+	public static Map<String, HouseStyle> styles() {
+		return styles;
+	}
+
+	/** This world's generated plans, by id (made the first time they're asked for, and again if the setting changes). */
+	public static synchronized Map<String, HousePlan> all(MinecraftServer server) {
+		long seed = server.getWorldData().worldGenOptions().seed();
+		int count = DrifterConfig.spawn(DrifterConfig.Spawn.HOUSE_DESIGNS);
+		if (seed == madeFor && count == madeCount && stylesVersion == madeVersion) {
+			return plans;
+		}
+
+		Made made = make(seed, count, styles, PREFIX, false);
+		plans = made.plans();
+		features = made.features();
+		List<HousePlan> sorted = new ArrayList<>(made.plans().values());
 		sorted.sort(Comparator.comparingInt(HousePlan::blockCount));
 		bySize = List.copyOf(sorted);
 		madeFor = seed;
 		madeCount = count;
 		madeVersion = stylesVersion;
-		Drifter.LOGGER.info("[Drifter] made {} house plans from {} styles in {} ms (drafts thrown away: {}; {})", made.size(), all.size(),
-			(System.nanoTime() - started) / 1_000_000, rejected, tally);
 		return plans;
 	}
 

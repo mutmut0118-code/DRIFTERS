@@ -54,9 +54,12 @@ public final class TownBuilder {
 
 	public static final int DEFAULT_HOUSEHOLDS = 6;
 	public static final int MAX_HOUSEHOLDS = 12;
-	/** Half the town's size each way (blocks) from the plaza's middle. */
-	private static final int HALF_X = 56;
-	private static final int HALF_Z = 48;
+	/** Half the town's size each way (blocks) from the plaza's middle (room for twelve of the bigger houses of 0.22.7). */
+	private static final int HALF_X = 72;
+	private static final int HALF_Z = 64;
+	/** A town's houses: the bigger ones (the user, 2026-10-22: "they need to be a bit bigger, especially for a town"). */
+	private static final int SMALLEST_HOUSE = 15;
+	private static final int BIGGEST_HOUSE = 25;
 	private static final int PLAZA = 10;
 	/** Air cleared above the town's ground (trees, a hill). */
 	private static final int CLEAR_ABOVE = 30;
@@ -231,7 +234,8 @@ public final class TownBuilder {
 
 		// 5. The houses: each from a different plan (as far as they go), its front to the road.
 		List<DrifterApi.HousePlanInfo> plans = new ArrayList<>(DrifterApi.housePlans(server).stream()
-			.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) <= 14 && Math.min(plan.sizeX(), plan.sizeZ()) <= 13 && plan.sizeY() <= 16).toList());
+			.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) >= SMALLEST_HOUSE && Math.max(plan.sizeX(), plan.sizeZ()) <= BIGGEST_HOUSE
+				&& plan.sizeY() <= 24).toList());
 		if (plans.isEmpty()) {
 			return new Result(null, "No house plans to build with (see /drifter houses)");
 		}

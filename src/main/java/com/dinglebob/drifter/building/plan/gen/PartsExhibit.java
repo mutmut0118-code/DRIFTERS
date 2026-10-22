@@ -31,13 +31,15 @@ import net.minecraft.world.level.storage.LevelResource;
 /**
  * The house parts laid out to look at and edit by hand (the user, 2026-10-21: "a flat world creative ... containing all of
  * the parts that build a house, but defaulted to oak so it can translate to other plans; i want to edit some of the stuff
- * by hand, and then you can take the world back and update the generated house parts"). `/drifter house parts` (debug):
+ * by hand, and then you can take the world back and update the generated house parts"; again for the guidebook revamp,
+ * 2026-10-22: "send a new world of the new revamped houses"). `/drifter house parts` (debug):
  * <ol>
- *   <li>each part of a generated house on its own, on the same small house (walls, door, windows; each roof; base row,
- *       frame, beam, upper floor; sills, tall windows; porch, chimney, an off-centre door, loft, corner tower, wing, attic
- *       windows);</li>
+ *   <li>each part of a generated house on its own, on the same plain house (13 by 9: walls in depth, door, windows, a
+ *       gable; then each roof, two and three storeys with their stairs, the door in the gable, a double door, an
+ *       off-centre door, sills and lintels, tall and wide windows, a tower, an L and a T wing, two rooms,
+ *       a vaulted roof, lanterns, a log ridge, a floor border);</li>
  *   <li>a house of each style;</li>
- *   <li>the hand-made plans.</li>
+ *   <li>the hand-made plans (the mod's and the world's).</li>
  * </ol>
  * In the generator's own materials: oak for a Drifter's main wood, spruce for its second, cobblestone for its stone (what
  * HousePalette swaps for the Drifter's own). A sign by each. What's where (and how each was made) is written to
@@ -48,34 +50,45 @@ public final class PartsExhibit {
 	}
 
 	/** Rows this far apart (blocks, north to south); houses along a row at least this far apart. */
-	private static final int ROW = 32;
+	private static final int ROW = 40;
 	private static final int GAP = 6;
 
 	private record Part(String label, String detail, JsonObject style, @Nullable String feature) {
 	}
 
-	/** The plain house every part sits on: 7 by 6, oak, glass, an oak door, a gable roof, nothing else. */
+	/** The plain house every part sits on: 13 by 9 (three bays of three by two), one storey, a gable, nothing else. */
 	private static JsonObject plain() {
 		JsonObject s = new JsonObject();
-		s.addProperty("width", 7);
-		s.addProperty("depth", 6);
-		s.addProperty("wall_height", 3);
-		s.addProperty("two_floors", 0);
+		s.add("gaps", numbers(3));
+		s.add("long_bays", numbers(3));
+		s.add("short_bays", numbers(2));
+		s.add("floors", numbers(1, 1));
+		s.addProperty("foundation", "minecraft:cobblestone");
+		s.addProperty("plinth", "minecraft:cobblestone_stairs");
 		s.addProperty("floor", "minecraft:oak_planks");
+		s.addProperty("frame", "minecraft:spruce_log");
 		s.addProperty("infill", "minecraft:oak_planks");
 		s.addProperty("window", "minecraft:glass");
-		s.addProperty("window_spacing", 2);
-		s.addProperty("tall_windows", 0);
 		s.addProperty("stair", "minecraft:spruce_stairs");
 		s.addProperty("slab", "minecraft:spruce_slab");
-		s.addProperty("gable_fill", "minecraft:oak_planks");
-		s.addProperty("door", "minecraft:oak_door");
-		for (String none : new String[] {"porch", "chimney", "door_off_center", "wing", "loft", "tower"}) {
+		s.addProperty("door", "minecraft:spruce_door");
+		s.addProperty("chimney_block", "minecraft:cobblestone");
+		for (String none : new String[] {"gable_front", "lintels", "ridge_log", "lanterns", "tall_windows", "wide_windows", "vaulted", "chimney", "wing",
+			"tower", "partition"}) {
 			s.addProperty(none, 0);
 		}
 
 		roofs(s, "gable");
 		return s;
+	}
+
+	private static JsonArray numbers(int... values) {
+		JsonArray array = new JsonArray();
+		for (int value : values) {
+			array.add(value);
+		}
+
+		return array;
 	}
 
 	private static void roofs(JsonObject s, String roof) {
@@ -96,10 +109,7 @@ public final class PartsExhibit {
 			} else if (value instanceof Boolean b) {
 				s.addProperty(key, b);
 			} else if (value instanceof int[] range) {
-				JsonArray array = new JsonArray();
-				array.add(range[0]);
-				array.add(range[1]);
-				s.add(key, array);
+				s.add(key, numbers(range));
 			} else {
 				s.addProperty(key, (String)value);
 			}
@@ -111,31 +121,33 @@ public final class PartsExhibit {
 	private static List<Part> parts() {
 		return List.of(
 			new Part("Walls, door,", "windows, gable", with(), "gable"),
-			new Part("Roof: gable", "along z", with("roof", "gable_z"), "gable_z"),
+			new Part("Roof: steep", "2 up, 1 across", with("roof", "steep"), "steep"),
 			new Part("Roof: hip", "", with("roof", "hip"), "hip"),
-			new Part("Roof: shed", "", with("roof", "shed"), "shed"),
-			new Part("Roof: flat", "with parapet", with("roof", "flat", "parapet", "minecraft:cobblestone_wall"), "flat"),
-			new Part("Base row", "bottom of walls", with("base", "minecraft:cobblestone"), null),
-			new Part("Frame", "posts every 2", with("frame", "minecraft:spruce_log", "posts_every", 2), null),
-			new Part("Beam", "log on wall tops", with("frame", "minecraft:spruce_log", "beam", true), null),
-			new Part("Two floors", "upper infill", with("two_floors", 1, "upper_infill", "minecraft:spruce_planks"), "two floors"),
-			new Part("Window sills", "", with("sill", "minecraft:spruce_stairs"), "sills"),
-			new Part("Tall windows", "walls 4 high", with("wall_height", 4, "tall_windows", 1), "tall windows"),
-			new Part("Porch", "", with("porch", 1, "porch_floor", "minecraft:spruce_slab", "porch_post", "minecraft:oak_fence"), "porch"),
-			new Part("Chimney", "", with("chimney", 1, "chimney_block", "minecraft:cobblestone"), "chimney"),
-			new Part("Door", "off centre", with("door_off_center", 1), "off-centre door"),
-			new Part("Loft", "gable 7+ deep", with("depth", 7, "loft", 1), "loft"),
+			new Part("Hip: square", "9 x 9", with("long_bays", new int[] {2}), "hip"),
+			new Part("Two storeys", "and stairs", with("floors", new int[] {2, 2}), "2 floors"),
+			new Part("Three storeys", "9 x 9", with("long_bays", new int[] {2}, "floors", new int[] {3, 3}), "3 floors"),
+			new Part("Door in", "the gable end", with("gable_front", 1), "door in the gable"),
+			new Part("Double door", "4-wide bays", with("gaps", new int[] {4}), "double door"),
+			new Part("Door at 1/3", "4 bays", with("long_bays", new int[] {4}), "off-centre door"),
+			new Part("Sills and", "lintels", with("sill", "minecraft:spruce_stairs", "lintels", 1), "sills"),
+			new Part("Tall windows", "", with("tall_windows", 1), "tall windows"),
+			new Part("Wide windows", "5-wide bays", with("gaps", new int[] {5}, "wide_windows", 1), null),
 			new Part("Corner tower", "", with("tower", 1), "tower"),
-			new Part("Wing (L)", "", with("wing", 1, "wing_depth", new int[] {4, 4}), "wing"),
-			new Part("Attic windows", "gable 7+ across", with("depth", 8), "gable"));
+			new Part("Wing (L)", "21 x 13", with("long_bays", new int[] {5}, "short_bays", new int[] {3}, "wing", 1, "wing_t", 0), "L wing"),
+			new Part("Wing (T)", "21 x 13", with("long_bays", new int[] {5}, "short_bays", new int[] {3}, "wing", 1, "wing_t", 1), "T wing"),
+			new Part("Two rooms", "17 long", with("long_bays", new int[] {4}, "partition", 1), "two rooms"),
+			new Part("Vaulted roof", "2 thick", with("vaulted", 1), "vaulted"),
+			new Part("Lanterns", "", with("lanterns", 1), "lanterns"),
+			new Part("Log ridge,", "floor border", with("ridge_log", 1, "floor_border", "minecraft:spruce_planks"), null));
 	}
 
 	/** A plan from this style with this feature (draws again until it has it), or null. */
 	@Nullable
 	private static HousePlan draw(String id, HouseStyle style, @Nullable String feature) {
 		for (long seed = 1; seed <= 400; seed++) {
-			HousePlan plan = PlanGenerator.generate(id, style, RandomSource.create(seed * 7919L));
-			if (plan != null && (feature == null || PlanGenerator.lastFeatures.stream().anyMatch(f -> f.equals(feature) || f.endsWith(feature)))) {
+			HousePlan plan = HouseGenerator.generate(id, style, RandomSource.create(seed * 7919L));
+			if (plan != null && PlanCheck.problem(plan) == null
+				&& (feature == null || HouseGenerator.lastFeatures.stream().anyMatch(f -> f.equals(feature) || f.endsWith(feature)))) {
 				return plan;
 			}
 		}
@@ -176,7 +188,7 @@ public final class PartsExhibit {
 		x = 0;
 		z += ROW;
 		for (HousePlan plan : HousePlans.all(level.getServer()).values()) {
-			if (plan.id.startsWith(GeneratedPlans.PREFIX) || plan.source.equals("generated")) {
+			if (plan.source.equals("generated") || plan.source.equals("personal")) {
 				continue;
 			}
 
@@ -233,6 +245,6 @@ public final class PartsExhibit {
 		}
 
 		map.add(entry);
-		return Math.max(16, plan.size.getX() + GAP);
+		return Math.max(20, plan.size.getX() + GAP);
 	}
 }

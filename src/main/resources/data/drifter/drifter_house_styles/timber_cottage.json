@@ -1,54 +1,36 @@
 {
-	"weight": 3,
-	"width": [
-		5,
-		9
+	"foundation": "minecraft:cobblestone",
+	"plinth": "minecraft:cobblestone_stairs",
+	"floor": "minecraft:oak_planks",
+	"frame": "minecraft:spruce_log",
+	"infill": "minecraft:oak_planks",
+	"stair": "minecraft:spruce_stairs",
+	"slab": "minecraft:spruce_slab",
+	"door": "minecraft:spruce_door",
+	"window": "minecraft:glass",
+	"weight": 2,
+	"gaps": [
+		3
 	],
-	"depth": [
-		5,
-		7
-	],
-	"two_floors": 0.35,
-	"wall_height": [
+	"long_bays": [
 		3,
 		4
 	],
-	"floor": "minecraft:oak_planks",
-	"base": [
-		"minecraft:cobblestone",
-		"none"
-	],
-	"frame": "minecraft:spruce_log",
-	"posts_every": [
+	"short_bays": [
 		2,
 		3
 	],
-	"beam": true,
-	"infill": [
-		"minecraft:oak_planks",
-		"minecraft:spruce_planks"
+	"floors": [
+		2,
+		2
 	],
-	"window": "minecraft:glass",
-	"window_spacing": 2,
-	"tall_windows": 0.3,
-	"sill": "minecraft:spruce_stairs",
 	"roofs": {
 		"gable": 3,
-		"gable_z": 2,
-		"hip": 1
+		"steep": 1
 	},
-	"stair": "minecraft:spruce_stairs",
-	"slab": "minecraft:spruce_slab",
-	"gable_fill": "minecraft:oak_planks",
-	"door": "minecraft:spruce_door",
-	"porch": 0.35,
-	"chimney": 0.3,
-	"door_off_center": 0.4,
-	"wing": 0.5,
-	"wing_depth": [
-		3,
-		5
-	],
-	"loft": 0.4,
-	"tower": 0.35
+	"lintels": 0.6,
+	"sill": "minecraft:spruce_stairs",
+	"gable_front": 0.4,
+	"tall_windows": 0.3,
+	"partition": 0.4
 }

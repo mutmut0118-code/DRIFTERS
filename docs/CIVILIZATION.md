@@ -241,5 +241,8 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   `setTrustInDrifter`. In the plain mod: group mates are never rivals (they share a base, or a town). Tested: headless
   (8 households, a day on: all alive, the store filling up, trading) and in the client (screenshots: the plaza, the
   houses on their roads, the farm and pen).
+- **Bigger houses (0.22.7):** the user: "they need to be a bit bigger, especially for a town". Drifter's house plans
+  were remade by the user's base-building guidebook (13x9 to 21x16, timber frames, jettied upper storeys, wings,
+  towers); a town uses only the bigger ones (15 to 25 across) and is 144 by 128 blocks.
 - **Next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.
