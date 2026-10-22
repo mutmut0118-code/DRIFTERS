@@ -83,6 +83,16 @@ public final class TownFounding {
 			}
 		});
 		DrifterEvents.BUILT.register((drifter, what, where) -> {
+			if (what.equals("town:" + Market.STALL) && where != null) {
+				for (Town town : Towns.all()) {
+					if (!town.stallBuilt && town.stallPlot != null && town.stallPlot.origin.equals(where)) {
+						Market.stallBuilt(drifter.getServer(), town);
+					}
+				}
+
+				return;
+			}
+
 			if (what.equals("town:" + STORE) && where != null) {
 				for (Town town : Towns.all()) {
 					if (!town.storeBuilt && town.storePlot != null && town.storePlot.origin.equals(where)) {
@@ -239,6 +249,7 @@ public final class TownFounding {
 		}
 
 		changed |= store(server, town, group);
+		changed |= Market.stall(server, town, group);
 
 		if (changed) {
 			Towns.save(server);
@@ -290,7 +301,7 @@ public final class TownFounding {
 
 			DrifterApi.HousePlanInfo store = new DrifterApi.HousePlanInfo(DrifterApi.storePlan(base.id()), base.sizeX(), base.sizeY(), base.sizeZ(),
 				base.groundLayer());
-			Town.Plot plot = findPlot(server, town, leader, List.of(store));
+			Town.Plot plot = findPlot(server, town, leader, List.of(store), false);
 			if (plot == null) {
 				return false;
 			}
@@ -400,7 +411,7 @@ public final class TownFounding {
 			return null;
 		}
 
-		Town.Plot plot = findPlot(server, town, drifter, liked(town, drifter));
+		Town.Plot plot = findPlot(server, town, drifter, liked(town, drifter), false);
 		if (plot == null) {
 			lookedAt.put(drifter.getUUID(), now);
 			if (now - toldAt.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) > TELL_AGAIN) {
@@ -415,7 +426,7 @@ public final class TownFounding {
 	}
 
 	@Nullable
-	private static Town.Plot findPlot(MinecraftServer server, Town town, DrifterEntity drifter, List<DrifterApi.HousePlanInfo> liked) {
+	static Town.Plot findPlot(MinecraftServer server, Town town, DrifterEntity drifter, List<DrifterApi.HousePlanInfo> liked, boolean doorAway) {
 		if (liked.isEmpty()) {
 			return null;
 		}
@@ -423,7 +434,7 @@ public final class TownFounding {
 		int cx = town.center.getX();
 		int cz = town.center.getZ();
 		List<DrifterApi.HousePlanInfo> tried = liked.subList(0, Math.min(PLANS_TRIED, liked.size()));
-		return search(server, town, drifter, tried, cx, cz);
+		return search(server, town, drifter, tried, cx, cz, doorAway);
 	}
 
 	/** The town-sized plans it likes, in the order it would try them. */
@@ -444,7 +455,8 @@ public final class TownFounding {
 	}
 
 	@Nullable
-	private static Town.Plot search(MinecraftServer server, Town town, DrifterEntity drifter, List<DrifterApi.HousePlanInfo> tried, int cx, int cz) {
+	private static Town.Plot search(MinecraftServer server, Town town, DrifterEntity drifter, List<DrifterApi.HousePlanInfo> tried, int cx, int cz,
+		boolean doorAway) {
 		// (Worked out once per plan: its turns, and what it takes to judge a spot for it.)
 		java.util.Map<String, Rotation> turns = new java.util.HashMap<>();
 		java.util.Map<String, java.util.function.BiFunction<BlockPos, Rotation, BlockPos>> finders = new java.util.HashMap<>();
@@ -452,7 +464,7 @@ public final class TownFounding {
 			for (Side side : SIDES) {
 				for (DrifterApi.HousePlanInfo plan : tried) {
 					String key = plan.id() + "|" + side.front();
-					Rotation rotation = turns.containsKey(key) ? turns.get(key) : turnFor(server, plan.id(), side.front());
+					Rotation rotation = turns.containsKey(key) ? turns.get(key) : turnFor(server, plan.id(), doorAway ? side.front().getOpposite() : side.front());
 					turns.put(key, rotation);
 					if (rotation == null) {
 						continue;
@@ -518,6 +530,10 @@ public final class TownFounding {
 			taken.add(town.storePlot);
 		}
 
+		if (town.stallPlot != null) {
+			taken.add(town.stallPlot);
+		}
+
 		for (Town.Plot plot : taken) {
 			if (x <= plot.origin.getX() + plot.sizeX - 1 + GAP && x + sx - 1 >= plot.origin.getX() - GAP && z <= plot.origin.getZ() + plot.sizeZ - 1 + GAP
 				&& z + sz - 1 >= plot.origin.getZ() - GAP) {
@@ -541,7 +557,7 @@ public final class TownFounding {
 	}
 
 	@Nullable
-	private static DrifterEntity loaded(MinecraftServer server, UUID id) {
+	static DrifterEntity loaded(MinecraftServer server, UUID id) {
 		for (ServerLevel level : server.getAllLevels()) {
 			if (level.getEntity(id) instanceof DrifterEntity drifter && drifter.isAlive()) {
 				return drifter;

@@ -195,6 +195,26 @@ public final class Money {
 		return carried(drifter, false) >= emeralds && emeralds * 6.0 <= points * overpay + 3.0 ? new ItemStack(Items.EMERALD, emeralds) : null;
 	}
 
+	/**
+	 * About {@code points} worth of money as one stack, for a price (a shop's): coins with Numismatic Overhaul (the size that
+	 * keeps the count to 64 or less), else emeralds (one at least).
+	 */
+	public static ItemStack priceStack(double points) {
+		look();
+		if (COINS && bronze != null) {
+			long bronzeWorth = Math.max(1, Math.round(points / BRONZE_POINTS));
+			Item coin = bronzeWorth <= 64 || silver == null ? bronze : bronzeWorth <= 64 * SILVER || gold == null ? silver : gold;
+			return new ItemStack(coin, (int)Math.max(1, Math.min(64, Math.round(bronzeWorth / (double)coinValue(coin)))));
+		}
+
+		return new ItemStack(Items.EMERALD, (int)Math.max(1, Math.min(64, Math.round(points / 6.0))));
+	}
+
+	/** What a stack of money is worth in {@code ItemValues} points (0 if it isn't money). */
+	public static double worth(ItemStack money) {
+		return money.is(Items.EMERALD) ? 6.0 * money.getCount() : coinValue(money.getItem()) * BRONZE_POINTS * money.getCount();
+	}
+
 	/** Changes its own coins (in its pockets) so it has {@code count} of {@code coin}, if they're worth enough. */
 	public static void makeChange(DrifterEntity drifter, Item coin, int count) {
 		long each = coinValue(coin);

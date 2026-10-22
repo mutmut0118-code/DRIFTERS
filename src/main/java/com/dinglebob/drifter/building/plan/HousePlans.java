@@ -89,6 +89,10 @@ public final class HousePlans {
 
 	@Nullable
 	public static HousePlan get(MinecraftServer server, String id) {
+		if (id.equals(STALL)) {
+			return STALL_PLAN;
+		}
+
 		// A town's store: a house plan with chests along its inside walls (made from the house plan when asked).
 		if (id.startsWith(STORE_PREFIX)) {
 			HousePlan base = get(server, id.substring(STORE_PREFIX.length()));
@@ -102,6 +106,55 @@ public final class HousePlans {
 		}
 
 		return plan;
+	}
+
+	/**
+	 * A town's market stall (milestone 22 step 4): 5 by 4, a plank counter along the front (customers stand
+	 * before it), a plank floor behind it where the keeper stands ({@link #STALL_STAND}), fence posts at the corners, a slab
+	 * roof, a plank back wall with a door (the stall's back to its door: it's turned with its door away from the road).
+	 */
+	public static final String STALL = "town:stall";
+	public static final net.minecraft.core.BlockPos STALL_STAND = new net.minecraft.core.BlockPos(2, 1, 2);
+	private static final HousePlan STALL_PLAN = stall();
+
+	private static HousePlan stall() {
+		List<HousePlan.Cell> cells = new ArrayList<>();
+		var planks = net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState();
+		var fence = net.minecraft.world.level.block.Blocks.OAK_FENCE.defaultBlockState();
+		var slab = net.minecraft.world.level.block.Blocks.OAK_SLAB.defaultBlockState();
+		// (A plank counter: barrels are containers, and Drifters passing by went to loot them.)
+		var counter = net.minecraft.world.level.block.Blocks.SPRUCE_PLANKS.defaultBlockState();
+		var door = net.minecraft.world.level.block.Blocks.OAK_DOOR.defaultBlockState()
+			.setValue(net.minecraft.world.level.block.DoorBlock.FACING, net.minecraft.core.Direction.NORTH)
+			.setValue(net.minecraft.world.level.block.DoorBlock.HINGE, net.minecraft.world.level.block.state.properties.DoorHingeSide.LEFT);
+		for (int x = 0; x <= 4; x++) {
+			for (int z = 1; z <= 3; z++) {
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 0, z), planks));
+			}
+
+			for (int z = 0; z <= 3; z++) {
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 3, z), slab));
+			}
+		}
+
+		for (int x = 1; x <= 3; x++) {
+			cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 1, 1), counter));
+		}
+
+		for (int y = 1; y <= 2; y++) {
+			for (int x : new int[] {0, 4}) {
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, y, 1), fence));
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, y, 3), planks));
+			}
+
+			for (int x = 1; x <= 3; x++) {
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, y, 3), x == 2
+					? door.setValue(net.minecraft.world.level.block.DoorBlock.HALF, y == 1 ? net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER
+						: net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER) : planks));
+			}
+		}
+
+		return HousePlan.generated(STALL, new net.minecraft.core.Vec3i(5, 4, 4), cells);
 	}
 
 	/** A town's store (milestone 22 step 3c): "store:" and the house plan it's made from. */

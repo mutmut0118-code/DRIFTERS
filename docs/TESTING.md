@@ -1460,6 +1460,22 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## The market (new, 0.22.11)
+
+- [ ] **Quick look**: `/drifterciv town spawn 6` (a made-ready town now has a market stall on its plaza) and
+      `/time set 1000` (morning). `/drifterciv town` says who keeps the stall. In the morning the keeper goes to the store,
+      takes things the town has plenty of, and stands behind the stall's counter till mid-afternoon.
+- [ ] **Trade**: right-click the keeper (anywhere, not only at the stall): the villager trading screen, with what it has
+      to sell (for emeralds, or Numismatic Overhaul coins if you have that mod) and what it buys from you (what the town is
+      short of: bread, wheat, iron, coal, logs, cobblestone, wool, leather, torches), paid with money it really has. Buy
+      something: it's gone from its pockets. Sell it something: it has it now, and less money. `/drifterciv shop` opens
+      the screen from anywhere near the town (debug).
+- [ ] **Prices move**: `/drifterciv prices` lists today's offers. Sell it lots of one thing and that thing gets cheaper
+      (the town has plenty); things the town has none of are dearer.
+- [ ] **A town founded by its people** builds its stall once its store is up (the chronicle says so), then the greediest,
+      most sociable of them keeps it.
+- [ ] **With Numismatic Overhaul**: prices in bronze, silver and gold coins instead of emeralds.
+
 ## The town's store (new, 0.22.9)
 
 - [ ] In a town founded by its people (see below), once half the households have their houses up (two at least), the

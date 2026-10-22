@@ -187,9 +187,21 @@ public final class TownBuilder {
 		}
 
 		// 3. The store: a stone house of chests by the north road, with some stock in, at the height of its own ground.
-		int storeBase = median(level, cx + 4, cz - 28, cx + 12, cz - 20);
-		even(level, cx + 4, cz - 28, cx + 12, cz - 20, storeBase, 8);
-		List<BlockPos> store = store(level, new BlockPos(cx + 4, storeBase + 1, cz - 28), cx);
+		// (Where the ground suits it along the road, as a house; a flat apron round it to the road, so its door opens onto level
+		// ground: found in testing, on a hillside its door opened onto a bank of earth and nobody could get at the chests.)
+		int storeZ = cz - 28;
+		Integer storeBase = null;
+		for (int z = cz - 28; z <= cz - 14 && storeBase == null; z++) {
+			storeBase = siteBase(level, cx + 4, z, cx + 12, z + 8);
+			storeZ = storeBase != null ? z : storeZ;
+		}
+
+		if (storeBase == null) {
+			storeBase = median(level, cx + 4, storeZ, cx + 12, storeZ + 8);
+		}
+
+		even(level, cx + 2, storeZ - 1, cx + 13, storeZ + 9, storeBase, 8);
+		List<BlockPos> store = store(level, new BlockPos(cx + 4, storeBase + 1, storeZ), cx);
 
 		// 4. The shared farm (two fields, east of the south road) and the pen (west of it).
 		List<BlockPos> fields = new ArrayList<>();
@@ -274,7 +286,8 @@ public final class TownBuilder {
 
 						// Its own ground: the footprint filled and cleared to it, the house on it (a plan whose lowest layer is its own
 						// ground goes a block down, its ground in place of the land's).
-						even(level, corner.getX(), corner.getZ(), corner.getX() + sx - 1, corner.getZ() + sz - 1, base, plan.sizeY() + 2);
+						// (A block round it too: its door step onto level ground.)
+						even(level, corner.getX() - 1, corner.getZ() - 1, corner.getX() + sx, corner.getZ() + sz, base, plan.sizeY() + 2);
 						BlockPos origin = corner.atY(plan.groundLayer() ? base : base + 1);
 						house = DrifterApi.placeHouse(level, plan.id(), origin, rotation, WOODS[random.nextInt(WOODS.length)], side.front);
 						if (house != null) {
@@ -294,6 +307,10 @@ public final class TownBuilder {
 				}
 			}
 		}
+
+		// A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4).
+		BlockPos stallAt = new BlockPos(cx + 4, y0, cz + 4);
+		DrifterApi.placeHouse(level, DrifterApi.stallPlan(), stallAt, Rotation.NONE, "oak", Direction.SOUTH);
 
 		// 6. Its people: one moved into each house, friends with the rest, one group.
 		List<DrifterEntity> people = new ArrayList<>();
@@ -337,7 +354,20 @@ public final class TownBuilder {
 		town.fields.addAll(fields);
 		town.well = well;
 		town.pen = pen;
+		town.stallPlot = new Town.Plot(stallAt, 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
+		town.stallBuilt = true;
 		Towns.add(server, town);
+		if (group != null) {
+			Market.keeper(server, town, group);
+			// (Made ready: they stocked the store themselves, and the keeper has a little money to buy with.)
+			for (DrifterEntity one : people) {
+				store.forEach(chest -> DrifterApi.rememberChest(one, chest));
+				if (one.getUUID().equals(town.keeper)) {
+					one.getInventory().add(new ItemStack(Items.EMERALD, 8));
+				}
+			}
+		}
+
 		noticeBoard(level, board, town, people);
 		Chronicle.add(server, "town", name + " was founded with " + people.size() + " households (made ready, for testing)");
 		return new Result(town, name + ": " + people.size() + " households, the plaza at " + cx + ", " + y0 + ", " + cz + warning);

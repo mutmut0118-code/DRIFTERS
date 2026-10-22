@@ -44,6 +44,9 @@ public class CheckChestActivity extends Activity {
 		}
 	}
 
+	/** It has walked over toward the chest to see round it. */
+	private boolean approached;
+
 	@Override
 	protected Status next() {
 		if (this.done) {
@@ -53,6 +56,13 @@ public class CheckChestActivity extends Activity {
 		if (!Reach.canReach(this.drifter, this.chest)) {
 			BlockPos spot = this.walked ? null : KnownBlocks.standingSpotFor(this.drifter, this.chest, Set.of());
 			if (spot == null) {
+				// From across town it hasn't seen the floor by the chest yet (found in testing: a town's store it had never been
+				// in, "can't get to its chest" from 40 blocks off): over there first, then it sees where to stand.
+				if (!this.approached && this.drifter.position().distanceTo(Vec3.atCenterOf(this.chest)) > 4.0) {
+					this.approached = true;
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.chest), 3.0, "go over to the chest"));
+				}
+
 				return this.fail("can't get to its chest");
 			}
 

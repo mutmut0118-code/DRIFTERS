@@ -95,6 +95,28 @@ public final class DrifterCivilizations implements ModInitializer {
 						.then(Commands.argument("name", com.mojang.brigadier.arguments.StringArgumentType.word())
 							.executes(ctx -> spawnTown(ctx, IntegerArgumentType.getInteger(ctx, "households"),
 								com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name")))))))
+			.then(Commands.literal("shop").executes(ctx -> {
+				// (Debug: the nearest town's keeper's trading screen, as if right-clicked.)
+				var player = ctx.getSource().getPlayerOrException();
+				Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+				var keeper = town == null || town.keeper == null ? null : TownFounding.loaded(ctx.getSource().getServer(), town.keeper);
+				if (keeper == null || !DrifterApi.openShop(keeper, player)) {
+					ctx.getSource().sendFailure(Component.literal("No market stall open here (or nothing on offer)"));
+					return 0;
+				}
+
+				return 1;
+			}))
+			.then(Commands.literal("prices").executes(ctx -> {
+				Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+				if (town == null) {
+					ctx.getSource().sendFailure(Component.literal("No town here yet"));
+					return 0;
+				}
+
+				Market.prices(ctx.getSource().getServer(), town).forEach(line -> ctx.getSource().sendSuccess(() -> Component.literal(line), false));
+				return 1;
+			}))
 			.then(Commands.literal("towns").executes(ctx -> {
 				var towns = Towns.all();
 				ctx.getSource().sendSuccess(() -> Component.literal(towns.isEmpty() ? "No towns yet (/drifterciv town spawn makes one, for testing)"
@@ -193,6 +215,10 @@ public final class DrifterCivilizations implements ModInitializer {
 			String store = town.storeBuilt ? "built (" + town.store.size() + " chests)"
 				: town.storePlot == null ? "not begun (once half the households have their houses)" : "being built at " + town.storePlot.origin.toShortString();
 			source.sendSuccess(() -> Component.literal("  Store: " + store), false);
+			String stall = town.stallBuilt ? "built" + (town.keeper != null ? ", kept by " + group.names.getOrDefault(town.keeper, "?") : "")
+				+ (town.trades > 0 ? " (" + town.trades + " trades)" : "") : town.stallPlot == null ? "not begun (after the store)"
+				: "being built at " + town.stallPlot.origin.toShortString();
+			source.sendSuccess(() -> Component.literal("  Market stall: " + stall + " (/drifterciv prices)"), false);
 		}
 
 		return alivePeople;

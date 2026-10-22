@@ -86,6 +86,11 @@ Town builds (API 3, 0.22.9): `DrifterApi.townBuild(builders, plan, origin, rotat
 the first one's woods), each by day when near it, alongside its own house; `DrifterEvents.BUILT` says `"town:" + label`
 when it's up. `joinTownBuild`, `townBuildOf`, `endTownBuild`. `DrifterApi.storePlan(housePlan)`: that house with chests
 along its inside walls; `DrifterApi.chestsIn(server, plan, origin, rotation)`: where its chests stand once built.
+Shops (API 3, 0.22.11): `DrifterApi.setShop(drifter, shopKeeper)`: right-clicked, it opens the villager trading screen
+with what `ShopKeeper.offers` gives (each `ShopOffer`: what the player pays, what they get, how many times); every trade
+moves the real things in and out of its pockets. `ShopKeeper.stand` (where it keeps shop by day) and `stock` (what it
+takes from its home's chests to sell). `DrifterApi.stallPlan()`, `stallStand(...)`, `worth(stack)`, `money(points)`,
+`moneyWorth(stack)`, `coins()`, `trait(drifter, name)`, `openShop(drifter, player)`, `rememberChest(drifter, chest)`.
 `DrifterApi.addChests(drifter, chests)`, `DrifterApi.addTrustInDrifter(drifter, other, delta)`, `DrifterApi.groups()`,
 and `DrifterApi.setNeighbourly(true)`: neighbours who get along don't turn into rivals over the same ground (only those
 already at odds); off in the plain mod.

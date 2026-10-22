@@ -629,6 +629,19 @@ public class DrifterEntity extends PathfinderMob {
 		return this.delver || this.encounter != null;
 	}
 
+	/** Its shop (a town's market stall, milestone 22 step 4: DrifterApi.setShop), or null. Not saved: the addon sets it. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.api.ShopKeeper shop;
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.api.ShopKeeper getShop() {
+		return this.shop;
+	}
+
+	public void setShop(@org.jetbrains.annotations.Nullable com.dinglebob.drifter.api.ShopKeeper shop) {
+		this.shop = shop;
+	}
+
 	@Override
 	protected net.minecraft.world.InteractionResult mobInteract(net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
 		if (this.encounter != null && hand == net.minecraft.world.InteractionHand.MAIN_HAND) {
@@ -636,6 +649,19 @@ public class DrifterEntity extends PathfinderMob {
 			if (result != net.minecraft.world.InteractionResult.PASS) {
 				return result;
 			}
+		}
+
+		// A shopkeeper: the trading screen (not while it's fighting them).
+		if (this.shop != null && hand == net.minecraft.world.InteractionHand.MAIN_HAND && !player.isSecondaryUseActive() && this.getTarget() != player) {
+			if (this.level().isClientSide()) {
+				return net.minecraft.world.InteractionResult.SUCCESS;
+			}
+
+			if (!com.dinglebob.drifter.trade.DrifterMerchant.open(this, this.shop, player)) {
+				player.sendSystemMessage(com.dinglebob.drifter.trade.DrifterMerchant.nothing(this));
+			}
+
+			return net.minecraft.world.InteractionResult.CONSUME;
 		}
 
 		return super.mobInteract(player, hand);

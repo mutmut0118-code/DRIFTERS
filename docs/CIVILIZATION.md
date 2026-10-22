@@ -250,5 +250,9 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 - **Step 3c, the town's store (done, 0.22.9):** built by its people together once half the households have houses; its
   chests everyone's. Drifter grew "town builds" for it (something a group builds that isn't a house of theirs), for the
   well, hall, stalls and walls to come.
+- **Step 4a, the market (done, 0.22.11):** a stall each town's people build once the store is up, kept by the most
+  trader-like of them by day; players trade with the keeper on the villager screen (emeralds, or Numismatic Overhaul
+  coins), every trade real; prices from supply and demand. Next in step 4: Drifters buying at the stall with money of
+  their own (wages for town work), trade runs between towns, a player running a stall.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

@@ -553,6 +553,75 @@ public final class DrifterApi {
 			.stream().filter(cell -> cell.state().getBlock() instanceof net.minecraft.world.level.block.ChestBlock).map(cell -> cell.pos().immutable()).toList();
 	}
 
+	/**
+	 * It keeps a shop (a town's market stall): right-clicked, it opens the trading screen with what {@code shop} offers,
+	 * every trade moving real things; by day it stocks up from its home's chests and stands at {@code shop.stand}. Null: no
+	 * shop. Not saved (set it again when the world loads, or each check).
+	 */
+	public static void setShop(DrifterEntity drifter, @Nullable ShopKeeper shop) {
+		drifter.setShop(shop);
+	}
+
+	/** The plan of a town's market stall (a counter, the keeper behind it; its door at the back). */
+	public static String stallPlan() {
+		return com.dinglebob.drifter.building.plan.HousePlans.STALL;
+	}
+
+	/** Where a stall's keeper stands (behind its counter), the stall built at {@code origin} turned so. */
+	public static net.minecraft.core.BlockPos stallStand(MinecraftServer server, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, com.dinglebob.drifter.building.plan.HousePlans.STALL);
+		return new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn())
+			.toWorld(com.dinglebob.drifter.building.plan.HousePlans.STALL_STAND);
+	}
+
+	/**
+	 * (A town made at once, for testing: its people stocked its store themselves.) It knows what's in this chest now, as if
+	 * it had just looked in.
+	 */
+	public static void rememberChest(DrifterEntity drifter, net.minecraft.core.BlockPos chest) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null && drifter.level().getBlockEntity(chest) instanceof net.minecraft.world.Container container) {
+			home.addChest(chest);
+			home.record(chest, container);
+		}
+	}
+
+	/** Its shop's trading screen for this player now, as if right-clicked (debug). False if it has none, or nothing on offer. */
+	public static boolean openShop(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+		return drifter.getShop() != null && com.dinglebob.drifter.trade.DrifterMerchant.open(drifter, drifter.getShop(), player);
+	}
+
+	/** One of its personality traits (0 to 1), by name ("greed", "sociability", ...; 0.5 if there's no such trait). */
+	public static double trait(DrifterEntity drifter, String name) {
+		for (com.dinglebob.drifter.personality.Trait trait : com.dinglebob.drifter.personality.Trait.values()) {
+			if (trait.id().equals(name)) {
+				return drifter.getPersonality().get(trait);
+			}
+		}
+
+		return 0.5;
+	}
+
+	/** What one of these is worth to a Drifter, in points (an emerald is 6): what it trades by. */
+	public static double worth(net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.social.ItemValues.each(stack);
+	}
+
+	/** About this many points of money as one stack: Numismatic Overhaul coins when that mod is here, else emeralds. */
+	public static net.minecraft.world.item.ItemStack money(double points) {
+		return com.dinglebob.drifter.trade.Money.priceStack(points);
+	}
+
+	/** What a stack of money is worth in points (0: not money). */
+	public static double moneyWorth(net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.trade.Money.worth(stack);
+	}
+
+	/** Prices are in Numismatic Overhaul coins (that mod is here), not emeralds. */
+	public static boolean coins() {
+		return com.dinglebob.drifter.trade.Money.COINS;
+	}
+
 	/** These chests are its too (a town's store, its group's). */
 	public static void addChests(DrifterEntity drifter, List<net.minecraft.core.BlockPos> chests) {
 		Home home = drifter.getDrifterBrain().home();

@@ -2724,5 +2724,27 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   store and each field at their own height, the pen's fence over the ground, lamps and the Drifters on it. Towns founded
   by their people already built that way (each plot on ground the Drifter has seen, the house at its middle height, only
   its footprint touched). Tested in the client on seed 777 (hills, forest, a lake): five of eight households found ground.
+- **Step 4a, the market (0.22.11; the user: "then after that do 4"):** Drifter: shops (`api/ShopKeeper`,
+  `DrifterApi.setShop`): a Drifter with one, right-clicked, opens the villager trading screen (`trade/DrifterMerchant`)
+  with what its shop offers; each trade moves the real things (the goods out of its pockets, the payment in; offers only
+  as many times as it has the goods or the money). `trade/StallGoal`: in its open hours (morning to mid-afternoon by its
+  own sense of time) it takes what it means to sell from its home's chests (the town's store) and stands at its stall.
+  A stall plan (`town:stall`: a plank counter, the keeper behind it, a slab roof on fence posts, a door at the back),
+  `DrifterApi.stallPlan`, `stallStand`, `worth`, `money` (emeralds, or Numismatic Overhaul coins when it's here),
+  `moneyWorth`, `coins`, `trait`, `rememberChest`, `openShop`. The addon (`Market`): once the store is up the town's
+  people build a stall (its counter to the road), and the most trader-like of them (greed and sociability) keeps it;
+  it sells up to four kinds the store has plenty of and buys, with money it has, what the town is short of (food, iron,
+  coal, logs, stone, wool, leather, torches); prices from supply and demand (an item's worth, up to 1.6 times when the
+  town has none, down to half when it has plenty; a player selling gets 0.8 of it). The made-ready town gets a stall on
+  its plaza, its people know their store, the keeper has 8 emeralds. `/drifterciv prices`, `/drifterciv shop` (debug:
+  the keeper's screen as if right-clicked), `/drifterciv town` shows the stall.
+- **Found and fixed while testing it:** a Drifter fetching from (or checking) a chest it had never been near gave up at
+  once ("can't get to its chest": it knew no floor round it); it walks over to look first now. On a hillside the
+  made-ready town's store door opened onto a bank of earth: the store now goes where the ground suits it along the road,
+  with a flat apron to the road, and each house has a block of level ground round it. Drifters went to "loot" the stall's
+  barrel counter: it's planks now.
+  Tested: in the client, the trading screen with the keeper's offers (bread for emeralds; wheat, iron, logs, wool,
+  leather bought); headless, a made-ready town's keeper took 64 logs from the store and sold them; a town founded by its
+  people built its store (day 4) and stall (day 4) and its keeper sold cobblestone and steak.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

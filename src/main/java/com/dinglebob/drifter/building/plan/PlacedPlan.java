@@ -88,11 +88,22 @@ public final class PlacedPlan {
 			build.add(new Cell(world, state));
 		}
 
+		this.shiftX = minX;
+		this.shiftZ = minZ;
 		build.sort(Comparator.comparingInt((Cell c) -> c.pos().getY()).thenComparingInt(c -> hangs(c.state()) ? 1 : 0)
 			.thenComparingInt(c -> c.pos().getX()).thenComparingInt(c -> c.pos().getZ()));
 		this.build = List.copyOf(build);
 		this.ground = List.copyOf(ground);
 		this.paths = List.copyOf(paths);
+	}
+
+	private final int shiftX;
+	private final int shiftZ;
+
+	/** Where a cell of the plan (as drawn) stands in the world, turned and placed as this one is. */
+	public BlockPos toWorld(BlockPos local) {
+		BlockPos t = StructureTemplate.transform(local, net.minecraft.world.level.block.Mirror.NONE, this.rotation, BlockPos.ZERO);
+		return this.origin.offset(t.getX() - this.shiftX, t.getY(), t.getZ() - this.shiftZ);
 	}
 
 	/** Grass, dirt and the like in a plan: the ground there, never placed as a block (user's rule, 2026-10-16). */

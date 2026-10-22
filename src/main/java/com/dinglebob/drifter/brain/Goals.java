@@ -2492,6 +2492,8 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.brain.activity.PursuitActivity.Goal());
 		goals.add(new PlanHouse());
 		goals.add(new TownBuild());
+		// A shop (a town's market stall: on with Drifter: Civilizations).
+		goals.add(new com.dinglebob.drifter.trade.StallGoal());
 		// Whims (milestone 13, docs/WHIMS.md).
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
 		// Trading with villagers (milestone 18, section 10.12).

@@ -88,6 +88,13 @@ public final class Town {
 	@Nullable
 	public Plot storePlot;
 	public boolean storeBuilt;
+	/** Its market stall (step 4), whether it's up, who keeps it, and trades made there with players. */
+	@Nullable
+	public Plot stallPlot;
+	public boolean stallBuilt;
+	@Nullable
+	public UUID keeper;
+	public int trades;
 
 	public Town(UUID id, String name, @Nullable UUID group, String dimension, BlockPos center, long foundedDay, boolean spawned) {
 		this.id = id;
@@ -129,6 +136,16 @@ public final class Town {
 		}
 
 		tag.putBoolean("StoreBuilt", this.storeBuilt);
+		if (this.stallPlot != null) {
+			tag.put("StallPlot", this.stallPlot.save());
+		}
+
+		tag.putBoolean("StallBuilt", this.stallBuilt);
+		if (this.keeper != null) {
+			tag.putUUID("Keeper", this.keeper);
+		}
+
+		tag.putInt("Trades", this.trades);
 		return tag;
 	}
 
@@ -151,6 +168,10 @@ public final class Town {
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
 		town.storePlot = tag.contains("StorePlot") ? Plot.load(tag.getCompound("StorePlot")) : null;
 		town.storeBuilt = tag.getBoolean("StoreBuilt") || town.spawned;
+		town.stallPlot = tag.contains("StallPlot") ? Plot.load(tag.getCompound("StallPlot")) : null;
+		town.stallBuilt = tag.getBoolean("StallBuilt");
+		town.keeper = tag.hasUUID("Keeper") ? tag.getUUID("Keeper") : null;
+		town.trades = tag.getInt("Trades");
 		return town;
 	}
 }
