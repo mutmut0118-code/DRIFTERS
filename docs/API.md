@@ -74,6 +74,18 @@ battle going on now. `DrifterApi.groupById(id)`: a group by its id, as events gi
 `DrifterApi.setNoHut(drifter, true)`: it builds no hut (a town's people live in houses). `DrifterApi.formGroup(drifters,
 name)` and `DrifterApi.setTrustInDrifter(drifter, other, trust)`.
 
+Towns founded by their people (API 3):
+`DrifterApi.housePlansFor(drifter)`: the plans it would weigh for a house of its own (to its taste).
+`DrifterApi.siteFor(drifter, plan, corner, rotation)`: where the house's corner goes (its height found) if the ground
+there as that Drifter knows it suits a house (seen, not too steep, no water, clear of its own things); null if not. A
+plot along a road is checked with this: a Drifter only builds where it has seen the ground.
+`DrifterApi.buildHouseAt(drifter, plan, origin, rotation)`: its home's house from now on (group mates living at the same
+home build it with it). `DrifterApi.homeAtHouse(drifter, plan, origin, rotation, chests)`: a home of its own there (it
+moves out of a group's base; no hut, no bed until the house is up; its old home's chests and farm still its).
+`DrifterApi.addChests(drifter, chests)`, `DrifterApi.addTrustInDrifter(drifter, other, delta)`, `DrifterApi.groups()`,
+and `DrifterApi.setNeighbourly(true)`: neighbours who get along don't turn into rivals over the same ground (only those
+already at odds); off in the plain mod.
+
 ## Groups (a town's beginnings)
 
 `DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the

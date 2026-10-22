@@ -39,6 +39,22 @@ public class DrifterBonds {
 	/** Trust at or above which another Drifter is a friend, at or below which a rival. */
 	public static final double FRIEND = 50.0;
 	public static final double RIVAL = -30.0;
+	/**
+	 * Neighbours who get along aren't rivals, only those already at odds (Drifter: Civilizations turns this on: "neighbours
+	 * who help each other grow friendly"; DrifterApi.setNeighbourly). Off in the plain mod.
+	 */
+	public static volatile boolean neighbourly;
+	/** With {@link #neighbourly}: at odds (only then rivals, and not visited): trust this low (strangers start a little wary). */
+	public static final double AT_ODDS = -15.0;
+	/** With {@link #neighbourly}: trust grows this many times faster while they're close enough to talk. */
+	private static final double TALKING = 16.0;
+	/** A visitor and its host greeting each other: trust each way. */
+	private static final double GREETING = 5.0;
+	/** When it last went to visit a neighbour, whom, and till when (NeighbourGoals; not saved). */
+	public long lastVisit = Long.MIN_VALUE / 2;
+	@Nullable
+	public UUID visiting;
+	public long visitEnds;
 
 	private final DrifterEntity drifter;
 	private final Map<UUID, Relationship> byDrifter = new LinkedHashMap<>();
@@ -88,7 +104,8 @@ public class DrifterBonds {
 			}
 
 			r.addFamiliarity(FAMILIARITY_PER_MINUTE * minutes);
-			r.addTrust((this.rivals(other) ? RIVAL_TRUST_PER_MINUTE : TRUST_PER_MINUTE) * minutes);
+			boolean talking = neighbourly && other.distanceTo(this.drifter) <= SHARE_RANGE;
+			r.addTrust((this.rivals(other) ? RIVAL_TRUST_PER_MINUTE : TRUST_PER_MINUTE * (talking ? TALKING : 1.0)) * minutes);
 			this.maybeGroup(other, r);
 			this.share(other);
 			// Close enough to talk: news passes on (milestone 22 groundwork, "news that travels").
@@ -240,6 +257,13 @@ public class DrifterBonds {
 			return false;
 		}
 
+		if (neighbourly) {
+			Relationship r = this.byDrifter.get(other.getUUID());
+			if (r == null || r.trust > AT_ODDS) {
+				return false;
+			}
+		}
+
 		var mine = this.drifter.getDrifterBrain().home();
 		var theirs = other.getDrifterBrain().home();
 		return mine != null && theirs != null && mine.dimension.equals(theirs.dimension) && mine.center.closerThan(theirs.center, RIVAL_HOMES);
@@ -261,6 +285,18 @@ public class DrifterBonds {
 		this.setTrust(other, Math.max(FRIEND + 10.0, this.known(other).trust));
 		other.getBonds().setTrust(this.drifter, Math.max(FRIEND + 10.0, other.getBonds().known(this.drifter).trust));
 		this.maybeGroup(other, this.known(other));
+	}
+
+	/** A neighbour came to visit (or it went to visit them) and they met: a little warmer both ways. */
+	public void greeted(DrifterEntity other) {
+		Relationship mine = this.known(other);
+		mine.addTrust(GREETING);
+		mine.addFamiliarity(1.0);
+		Relationship theirs = other.getBonds().known(this.drifter);
+		theirs.addTrust(GREETING);
+		theirs.addFamiliarity(1.0);
+		this.think("visited " + other.getName().getString() + ": trust " + Math.round(mine.trust));
+		other.getMemory().thoughts().add(other.level().getGameTime(), this.drifter.getName().getString() + " came to visit: trust " + Math.round(theirs.trust));
 	}
 
 	public void onHurtBy(DrifterEntity other, float amount) {

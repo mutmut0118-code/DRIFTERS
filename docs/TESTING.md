@@ -1460,6 +1460,26 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Towns founded by their people (new, 0.22.8)
+
+- [ ] **The quick way** (in a creative world with the addon; flat is fine): `/drifter spawn Ann`, then a few blocks away
+      `/drifter spawn Bob` and `/drifter spawn Cy`. Stand by each and type `/drifter home here` (they settle where they
+      stand). Stand next to Ann and type `/drifter group Bob`, then `/drifter group Cy` (friends at once, one group).
+      Within about ten seconds the chat log and `/drifterciv chronicle` say "Ann, Bob and Cy founded the town of ...".
+- [ ] `/drifterciv town` (near them): the town, and a line for each household: the leader "building" the first house,
+      the others "building the first house". They all work on the one house (a plot along a road from Ann's home, its
+      door to the road). Give them wood to speed it up: next to each, `/drifter give spruce_log 128` and
+      `/drifter give oak_log 128`.
+- [ ] When the first house is up (a few days of play), the chronicle says so, and Bob and Cy each "took a plot": a
+      different house each, along a road, its door to the road. `/drifter house status` next to one shows its own house
+      and the count going up. At night, until their houses are up, they dig in.
+- [ ] **The real way**: `/drifterciv island start 12 40` (12 Drifters near you with nothing). With the addon, neighbours
+      visit each other ("went over to visit ...", "... came to visit" in `/drifter thoughts`), become friends and team
+      up; a group of three founds a town by itself (in a test: the first team on day 4, a town on day 5).
+      `/drifter social` next to one shows its trust in the others and whether it knows their homes.
+- [ ] **Houses found their own spot on flat land** now (before, a Drifter on a flat world never picked a house spot) and
+      stand a block above the ground, on their stone foundation.
+
 ## The new houses (new, 0.22.7)
 
 - [ ] **Look at them**: open the world **Drifter House Parts 2** (in the DRIFTER TEST profile; flat, creative, always day).

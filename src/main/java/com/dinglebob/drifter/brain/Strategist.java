@@ -418,8 +418,9 @@ public final class Strategist {
 
 			// A bed for the hut (section 9 stage 3/4; step 4 of milestone 8): three wool of one colour and three planks.
 			// Only once it has seen sheep of a colour it can use: a player without sheep around gets on with other things
-			// (found in testing: it wandered for five days looking for sheep and never went for iron).
-			if (home != null && home.hutBuilt && !hasBed(drifter)) {
+			// (found in testing: it wandered for five days looking for sheep and never went for iron). A town's household
+			// (no hut) wants one for its house too.
+			if (home != null && (home.hutBuilt || home.noHut) && !hasBed(drifter)) {
 				Target bed = new Target("a bed", BEDS, 1, Strategist::hasBed);
 				Planner.Plan plan = Planner.plan(drifter, KnownWorld.scan(drifter), BEDS, 1);
 				if (plan.feasible() && !(plan.next() instanceof Planner.Explore) && workable.test(bed)) {

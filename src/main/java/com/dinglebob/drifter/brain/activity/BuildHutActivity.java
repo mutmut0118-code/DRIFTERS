@@ -780,6 +780,8 @@ public class BuildHutActivity extends Activity {
 	}
 
 	protected void finished(Home home) {
+		// (Only the first time: a repair finished isn't news; found in testing, "finished its hut" ten times in a day.)
+		boolean first = !home.hutBuilt;
 		home.hutBuilt = true;
 		// Its build now: it uses the door, not the wall (user, 2026-10-17).
 		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(this.drifter.level(), StarterHut.of(home).box());
@@ -787,7 +789,9 @@ public class BuildHutActivity extends Activity {
 		// Back to it in a minute at the soonest (found in testing: a station it couldn't place brought it back every 3 ticks).
 		home.hutRestUntil = this.drifter.level().getGameTime() + 1200L;
 		this.think("finished the hut");
-		com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "hut", home.center);
+		if (first) {
+			com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "hut", home.center);
+		}
 	}
 
 	/** "hut" or "house", for its thoughts. */

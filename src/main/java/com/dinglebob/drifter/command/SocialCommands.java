@@ -294,7 +294,9 @@ public final class SocialCommands {
 		if (!bonds.isEmpty()) {
 			say(ctx, "  Drifters it knows:");
 			for (Relationship r : bonds) {
-				say(ctx, "    " + summary(r) + " (" + com.dinglebob.drifter.social.DrifterBonds.attitude(r) + ")");
+				long ago = (drifter.level().getGameTime() - r.lastSeenAt) / 1200L;
+				say(ctx, "    " + summary(r) + " (" + com.dinglebob.drifter.social.DrifterBonds.attitude(r) + ")" + (r.knownBase != null ? ", knows its home" : "")
+					+ (r.lastSeenAt > 0 ? ", seen " + ago + " min ago" : ""));
 			}
 		}
 

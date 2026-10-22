@@ -29,6 +29,8 @@ public final class Town {
 		public final Direction front;
 		@Nullable
 		public UUID owner;
+		/** Its house is up (a town founded by its people builds them a block at a time). */
+		public boolean built;
 
 		public Plot(BlockPos origin, int sizeX, int sizeZ, String planId, Rotation rotation, Direction front, @Nullable UUID owner) {
 			this.origin = origin.immutable();
@@ -52,13 +54,17 @@ public final class Town {
 				tag.putUUID("Owner", this.owner);
 			}
 
+			tag.putBoolean("Built", this.built);
 			return tag;
 		}
 
 		static Plot load(CompoundTag tag) {
 			Direction front = Direction.byName(tag.getString("Front"));
-			return new Plot(BlockPos.of(tag.getLong("Origin")), tag.getInt("SizeX"), tag.getInt("SizeZ"), tag.getString("Plan"),
+			Plot plot = new Plot(BlockPos.of(tag.getLong("Origin")), tag.getInt("SizeX"), tag.getInt("SizeZ"), tag.getString("Plan"),
 				Rotation.valueOf(tag.getString("Rotation")), front == null ? Direction.SOUTH : front, tag.hasUUID("Owner") ? tag.getUUID("Owner") : null);
+			// (Before 0.22.8 only made-ready towns had plots, every house up.)
+			plot.built = !tag.contains("Built") || tag.getBoolean("Built");
+			return plot;
 		}
 	}
 

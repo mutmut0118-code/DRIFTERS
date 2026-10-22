@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 2;
+	public static final int API_VERSION = 3;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -333,6 +333,159 @@ public final class DrifterApi {
 	/** Its trust in another Drifter, set (they know each other from then on). */
 	public static void setTrustInDrifter(DrifterEntity drifter, DrifterEntity other, double trust) {
 		drifter.getBonds().setTrust(other, trust);
+	}
+
+	/** Its trust in another Drifter moved by {@code delta} (they know each other from then on). */
+	public static void addTrustInDrifter(DrifterEntity drifter, DrifterEntity other, double delta) {
+		drifter.getBonds().setTrust(other, trustInDrifter(drifter, other.getUUID()) + delta);
+	}
+
+	/**
+	 * Neighbours who get along don't turn into rivals over the same trees and ground (only those already at odds do); off
+	 * in the plain mod. For a mod whose Drifters settle together (towns).
+	 */
+	public static void setNeighbourly(boolean neighbourly) {
+		com.dinglebob.drifter.social.DrifterBonds.neighbourly = neighbourly;
+	}
+
+	/** Every group there is. */
+	public static List<DrifterGroups.Group> groups() {
+		return DrifterGroups.all();
+	}
+
+	/** The house plans it would weigh for a house of its own (every hand-made one, and generated ones to its taste). */
+	public static List<HousePlanInfo> housePlansFor(DrifterEntity drifter) {
+		List<HousePlanInfo> plans = new ArrayList<>();
+		if (drifter.getServer() == null) {
+			return plans;
+		}
+
+		com.dinglebob.drifter.building.plan.HousePlans.choicesFor(drifter.getServer(), drifter)
+			.forEach(plan -> plans.add(new HousePlanInfo(plan.id, plan.size.getX(), plan.size.getY(), plan.size.getZ(), plan.cells.stream()
+				.anyMatch(cell -> cell.pos().getY() == 0 && com.dinglebob.drifter.building.plan.PlacedPlan.isGround(cell.state())))));
+		return plans;
+	}
+
+	/**
+	 * Where this plan's corner goes with its corner column at {@code corner} (x and z; y is found), turned so, if the ground
+	 * there as this Drifter knows it suits a house (it has seen it; not too steep, no water, clear of its own things). Null
+	 * if it doesn't, or it doesn't know enough of it.
+	 */
+	@Nullable
+	public static net.minecraft.core.BlockPos siteFor(DrifterEntity drifter, String planId, net.minecraft.core.BlockPos corner,
+		net.minecraft.world.level.block.Rotation rotation) {
+		var plan = drifter.getServer() == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var site = com.dinglebob.drifter.building.plan.PlanSite.at(drifter, plan, com.dinglebob.drifter.building.plan.HousePalette.forDrifter(drifter, plan),
+			corner.getX(), corner.getZ(), rotation);
+		return site == null ? null : site.origin();
+	}
+
+	/**
+	 * {@link #siteFor} for many spots in a row with one plan (a town looking along its roads for a plot): what it takes to
+	 * work out is worked out once. The function gives null where the ground doesn't suit.
+	 */
+	public static java.util.function.BiFunction<net.minecraft.core.BlockPos, net.minecraft.world.level.block.Rotation, net.minecraft.core.BlockPos> siteFinder(
+		DrifterEntity drifter, String planId) {
+		var plan = drifter.getServer() == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), planId);
+		if (plan == null) {
+			return (corner, rotation) -> null;
+		}
+
+		var finder = com.dinglebob.drifter.building.plan.PlanSite.finder(drifter, plan, com.dinglebob.drifter.building.plan.HousePalette.forDrifter(drifter, plan));
+		return (corner, rotation) -> {
+			var site = finder.apply(corner, rotation);
+			return site == null ? null : site.origin();
+		};
+	}
+
+	/** A spot for a house: its corner and turn. */
+	public record HouseSite(net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+	}
+
+	/** The best spot for this plan round its home that it knows of (as it picks one for a house of its own), or null. */
+	@Nullable
+	public static HouseSite siteNear(DrifterEntity drifter, String planId) {
+		var plan = drifter.getServer() == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var site = com.dinglebob.drifter.building.plan.PlanSite.choose(drifter, plan, com.dinglebob.drifter.building.plan.HousePalette.forDrifter(drifter, plan));
+		return site == null ? null : new HouseSite(site.origin(), site.rotation());
+	}
+
+	/** Why the last spots looked at for a house were turned down, the most common first ("too steep 40, water 12"). */
+	public static String siteRejections() {
+		return com.dinglebob.drifter.building.plan.PlanSite.lastRejections();
+	}
+
+	/**
+	 * It builds this house here, as its home's house (in the woods it has), as a player picks a plan and a spot; group mates
+	 * living at the same home build it with it. Its corner {@code origin} as {@link #siteFor} gives it.
+	 */
+	public static void buildHouseAt(DrifterEntity drifter, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+		Home home = drifter.getDrifterBrain().home();
+		var plan = drifter.getServer() == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), planId);
+		if (home == null || plan == null) {
+			return;
+		}
+
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forDrifter(drifter, plan);
+		home.planId = planId;
+		home.planOrigin = origin.immutable();
+		home.planRotation = rotation.name();
+		home.planWoods.clear();
+		home.planWoods.putAll(palette.woods());
+		home.planDeepslate = palette.deepslate();
+		home.planDone = false;
+		home.planBed = null;
+	}
+
+	/**
+	 * A home of its own at the house it's to build there (it moves out of its old home: a group's base): no hut, the house
+	 * to build (as {@link #buildHouseAt}), its old home's farm and pen, and its old home's chests and {@code chests} kept as
+	 * its own too. Until the house is up it has no bed (it sleeps out or digs in). Returns the new home.
+	 */
+	@Nullable
+	public static Home homeAtHouse(DrifterEntity drifter, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
+		List<net.minecraft.core.BlockPos> chests) {
+		var plan = drifter.getServer() == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forDrifter(drifter, plan);
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, palette);
+		var box = placed.box();
+		boolean groundLayer = plan.cells.stream()
+			.anyMatch(cell -> cell.pos().getY() == 0 && com.dinglebob.drifter.building.plan.PlacedPlan.isGround(cell.state()));
+		Home old = drifter.getDrifterBrain().home();
+		Home home = new Home(new net.minecraft.core.BlockPos((box.minX() + box.maxX()) / 2, origin.getY() + (groundLayer ? 1 : 0), (box.minZ() + box.maxZ()) / 2),
+			drifter.level().dimension().location(), drifter.level().getGameTime());
+		home.noHut = true;
+		if (old != null && old.dimension.equals(home.dimension)) {
+			home.farm = old.farm;
+			home.farmRadius = old.farmRadius;
+			home.pen = old.pen;
+			old.chests().forEach(home::addChest);
+		}
+
+		chests.forEach(home::addChest);
+		drifter.getDrifterBrain().setHome(home);
+		buildHouseAt(drifter, planId, origin, rotation);
+		return home;
+	}
+
+	/** These chests are its too (a town's store, its group's). */
+	public static void addChests(DrifterEntity drifter, List<net.minecraft.core.BlockPos> chests) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null) {
+			chests.forEach(home::addChest);
+		}
 	}
 
 	/** A Drifter you meet once (an encounter's, a delver): never saved, gone when its part is over. */

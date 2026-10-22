@@ -62,6 +62,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Chronicle.register();
 		Island.register();
 		Towns.register();
+		TownFounding.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -177,6 +178,20 @@ public final class DrifterCivilizations implements ModInitializer {
 			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " households, " + alivePeople + " people alive; the store has "
 			+ stacks + " stacks in " + town.store.size() + " chests"), false);
 		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
+		// A town founded by its people: who has a plot, whose house is up.
+		var group = town.spawned || town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group != null) {
+			List<String> households = new java.util.ArrayList<>();
+			for (java.util.UUID member : group.members) {
+				Town.Plot plot = town.plots.stream().filter(p -> member.equals(p.owner)).findFirst().orElse(null);
+				String state = plot == null ? (town.plots.isEmpty() || !town.plots.get(0).built ? "building the first house" : "no plot yet")
+					: (plot.built ? "house built" : "building") + " (" + plot.planId + " at " + plot.origin.toShortString() + ")";
+				households.add(group.names.getOrDefault(member, "?") + (member.equals(group.leader) ? " (leader)" : "") + ": " + state);
+			}
+
+			source.sendSuccess(() -> Component.literal("  Households: " + String.join("; ", households)), false);
+		}
+
 		return alivePeople;
 	}
 

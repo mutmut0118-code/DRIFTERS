@@ -2189,14 +2189,16 @@ public final class Goals {
 				return 0.6;
 			}
 
+			// (A town's household: its house is its only home, given a plot; it builds whatever it's like, at any stage.)
+			boolean townHouse = home != null && home.noHut && home.planId != null && home.planOrigin != null;
 			if (home == null || !home.hutBuilt && !home.noHut || home.borrowed() || home.planDone || home.houseBuilt || !home.near(drifter, Home.STORAGE_RANGE)
-				|| drifter.getServer() == null || !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter)
+				|| drifter.getServer() == null || !com.dinglebob.drifter.brain.activity.BuildHouseActivity.buildsHouses(drifter) && !townHouse
 				|| com.dinglebob.drifter.building.plan.HousePlans.cached(drifter.getServer()).isEmpty()) {
 				return 0.0;
 			}
 
 			boolean builder = drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.BUILDER;
-			if (context.stage() < (builder ? 4 : 5)) {
+			if (context.stage() < (builder ? 4 : 5) && !townHouse) {
 				return 0.0;
 			}
 
@@ -2401,6 +2403,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.FriendlyGoals.all());
+		// Neighbours visiting (on with Drifter: Civilizations).
+		goals.addAll(com.dinglebob.drifter.social.NeighbourGoals.all());
 		// Groups (milestone 12, section 21).
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());

@@ -177,9 +177,12 @@ public class BuildHouseActivity extends BuildHutActivity {
 
 	@Override
 	protected void finished(Home home) {
+		boolean first = !home.houseBuilt;
 		home.houseBuilt = true;
 		this.think("finished the house");
-		com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "house", home.houseCenter != null ? home.houseCenter : home.center);
+		if (first) {
+			com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "house", home.houseCenter != null ? home.houseCenter : home.center);
+		}
 	}
 
 	@Override

@@ -244,5 +244,8 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 - **Bigger houses (0.22.7):** the user: "they need to be a bit bigger, especially for a town". Drifter's house plans
   were remade by the user's base-building guidebook (13x9 to 21x16, timber frames, jettied upper storeys, wings,
   towers); a town uses only the bigger ones (15 to 25 across) and is 144 by 128 blocks.
-- **Next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
+- **Step 3b, towns founded by their people (done, 0.22.8):** neighbours who get along don't become rivals, trades and
+  news make friends faster; a group of three or more founds a town round its leader's home; the first house (the
+  leader's) built by them all; then a plot each along the roads, a house each, newcomers too. Details in PROGRESS.md.
+- **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

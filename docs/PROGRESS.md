@@ -2672,4 +2672,38 @@ The user: "same repo, call it Drifter: Civilizations, go ahead" (the plan in doc
   slow (out of reach but by pillars). Found: plans are only checked for blocks touching; a block a builder can't place
   against anything (an upside-down stair on a beam) stopped a hip roof outright until the row on the beam became full
   blocks.
-- Next: towns founded by their people (step 3b).
+- **Step 3b, towns founded by their people (0.22.8):** `drifterciv/TownFounding`. With the addon (Drifter:
+  `DrifterBonds.neighbourly`, `social/NeighbourGoals`, off in the plain mod): neighbours visit (one it just saw close by,
+  or whose home it knows: it walks there, looks round, goes along with them a few minutes; as often as a quarter of a day
+  to two thirds of one by sociability), greet (5 trust each way), and while close enough to talk trust grows 16 times
+  faster (8 a minute); only those clearly at odds (trust -15 or less) are rivals over the same ground, and groups that get
+  along don't feud for living close; a trade adds 6 trust each way and news passed on 2. Friends team up into groups as
+  before; a group of three or more, 300 blocks
+  from any town, founds one round its leader's home (the plaza there, two roads crossing it; the group named after it,
+  twelve at most; no more huts; a chronicle line, and news of it to pass on). The first house is the leader's, the
+  smallest plan it likes, on the nearest plot along a road whose ground it has seen (else the best spot it knows near the
+  plaza), built by them all (they live at the
+  leader's home, so they share its plan). Once it's up, each of the others takes the next plot (a plan to its taste,
+  different from its neighbours' if it can, its door to the road) and a home of its own there, and builds its house
+  (no bed till then: it digs in; the group's chests still its). Newcomers to the group get the next plot.
+  `/drifterciv town` lists each household's state. Drifter API 3: `housePlansFor`, `siteFor`, `siteFinder`,
+  `buildHouseAt`, `homeAtHouse`, `addChests`, `addTrustInDrifter`, `groups`, `setNeighbourly`. Drifter: a town household
+  (no hut, a plot to build) works on its house at any stage and with any personality, and wants a bed though it has no
+  hut.
+- **Found and fixed while testing it:** the house site search read the ground a block too low and took the dirt under the
+  grass for "the ground it has seen" (which it never sees), so on flat land a Drifter never found anywhere to build a
+  house, and elsewhere its house sat a block low (only where the surface had been dug was any ground "seen"); a builder
+  left torches and a mate's scaffolding where its floor went ("someone's torch in the way"); a builder given a new house
+  while finishing the old one called the new one finished at once; lanterns it can't get it now goes without (like
+  windows); a Drifter tidying scaffolding, or a builder redoing a block, dug out a block it stood on over a drop and fell
+  (now never one under any part of its feet); a hut or house repaired was "finished" again in the chronicle each time.
+  `/drifter social` now says whether it knows another Drifter's home and when it last saw them.
+Tested (headless): three Drifters teamed up at once (debug) on deep flat ground: the town founded at once, the first
+  house (a cottage) up on day 3 by the three of them, then a plot each, their own houses started (that ground has no
+  trees: wood ran out). Twelve Drifters with nothing on seed 777, nothing forced, 16 days: a team on day 4, a town
+  (Copperridge) on day 5, two newcomers on days 10 and 11, the first house up on day 13 and a plot each for the other
+  four; again after the last fixes: a town (Willowdale) on day 7 that grew to seven households by day 16, its first house
+  still going up (gathering birch; hilly ground). Falls still kill a Drifter now and then in long runs (jumps, parkour,
+  pillars): to look at.
+- Next: step 4, money and markets (Numismatic Overhaul coins when it's there), or the town's shared buildings (store,
+  well, farm) built block by block; to ask the user.

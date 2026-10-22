@@ -150,7 +150,7 @@ public class TidyScaffoldActivity extends Activity {
 				continue;
 			}
 
-			if (pos.equals(feet.below()) || drifter.isScaffold(pos.above()) && stillScaffold(drifter, home, pos.above())) {
+			if (pos.equals(feet.below()) || underFeet(drifter, pos) || drifter.isScaffold(pos.above()) && stillScaffold(drifter, home, pos.above())) {
 				continue;
 			}
 
@@ -162,6 +162,16 @@ public class TidyScaffoldActivity extends Activity {
 		}
 
 		return best;
+	}
+
+	/**
+	 * A block it's standing on, any part of it (found in a 16-day run: on the edge of one block and the next over a drop, it
+	 * dug the next one out from under its own toes and fell).
+	 */
+	private static boolean underFeet(DrifterEntity drifter, BlockPos pos) {
+		net.minecraft.world.phys.AABB box = drifter.getBoundingBox();
+		return pos.getY() + 1 <= box.minY + 0.05 && pos.getY() + 1 >= box.minY - 0.6 && box.minX < pos.getX() + 1 && box.maxX > pos.getX()
+			&& box.minZ < pos.getZ() + 1 && box.maxZ > pos.getZ();
 	}
 
 	/** Still the building block it put there, and not part of something it built since. */

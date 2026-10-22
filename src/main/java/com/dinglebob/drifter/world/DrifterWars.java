@@ -255,6 +255,38 @@ public final class DrifterWars {
 		}
 	}
 
+	/**
+	 * Two groups whose members get along (with neighbours on, DrifterBonds.neighbourly: found in testing, a town and the pair
+	 * next door came to blows only for living close): their loaded members' trust in each other, on average, isn't at odds.
+	 * Groups that don't know each other yet get along. Fights and raids still make tension.
+	 */
+	private static boolean getAlong(MinecraftServer server, DrifterGroups.Group a, DrifterGroups.Group b) {
+		double total = 0.0;
+		int pairs = 0;
+		for (UUID id : a.members) {
+			DrifterEntity member = null;
+			for (ServerLevel level : server.getAllLevels()) {
+				if (level.getEntity(id) instanceof DrifterEntity drifter) {
+					member = drifter;
+				}
+			}
+
+			if (member == null) {
+				continue;
+			}
+
+			for (UUID other : b.members) {
+				var r = member.getBonds().get(other);
+				if (r != null) {
+					total += r.trust;
+					pairs++;
+				}
+			}
+		}
+
+		return pairs == 0 || total / pairs > com.dinglebob.drifter.social.DrifterBonds.AT_ODDS;
+	}
+
 	/** Bases close enough to fight over the same trees and ore: a little tension, up to {@link #TERRITORY_CAP}. */
 	private static void territory(UUID a, UUID b, long now) {
 		if (!DrifterConfig.drifterWars()) {
@@ -342,7 +374,8 @@ public final class DrifterWars {
 				for (int j = i + 1; j < groups.size(); j++) {
 					DrifterGroups.Group a = groups.get(i);
 					DrifterGroups.Group b = groups.get(j);
-					if (a.base != null && b.base != null && a.baseDimension.equals(b.baseDimension) && a.base.closerThan(b.base, TERRITORY)) {
+					if (a.base != null && b.base != null && a.baseDimension.equals(b.baseDimension) && a.base.closerThan(b.base, TERRITORY)
+						&& !(com.dinglebob.drifter.social.DrifterBonds.neighbourly && getAlong(server, a, b))) {
 						territory(a.id, b.id, now);
 					}
 				}

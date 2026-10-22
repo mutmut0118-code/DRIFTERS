@@ -58,8 +58,8 @@ public final class TownBuilder {
 	private static final int HALF_X = 72;
 	private static final int HALF_Z = 64;
 	/** A town's houses: the bigger ones (the user, 2026-10-22: "they need to be a bit bigger, especially for a town"). */
-	private static final int SMALLEST_HOUSE = 15;
-	private static final int BIGGEST_HOUSE = 25;
+	static final int SMALLEST_HOUSE = 15;
+	static final int BIGGEST_HOUSE = 25;
 	private static final int PLAZA = 10;
 	/** Air cleared above the town's ground (trees, a hill). */
 	private static final int CLEAR_ABOVE = 30;
@@ -272,7 +272,9 @@ public final class TownBuilder {
 					if (house != null) {
 						planIndex = (planIndex + tries + 1) % plans.size();
 						side.cursor += side.step * ((side.eastWest ? sx : sz) + 2);
-						plots.add(new Town.Plot(origin, sx, sz, plan.id(), rotation, side.front, null));
+						Town.Plot made = new Town.Plot(origin, sx, sz, plan.id(), rotation, side.front, null);
+						made.built = true;
+						plots.add(made);
 						houses.add(house);
 						path(level, house.door(), side.front, cx, cz, y0);
 					}

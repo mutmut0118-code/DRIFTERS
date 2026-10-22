@@ -115,6 +115,39 @@ public final class PlanSite {
 	}
 
 	/**
+	 * The spot for this plan with its corner column at {@code x, z}, turned so, if the ground there as it knows it suits
+	 * (seen, not too steep, no water, clear of its own things): a town's plot along a road. Null if it doesn't.
+	 */
+	@Nullable
+	public static Site at(DrifterEntity drifter, HousePlan plan, HousePalette palette, int x, int z, Rotation rotation) {
+		return finder(drifter, plan, palette).apply(new BlockPos(x, 0, z), rotation);
+	}
+
+	/**
+	 * {@link #at} for many spots in a row (a town looking along its roads for a plot): the plan's shape in each turn worked
+	 * out once.
+	 */
+	public static java.util.function.BiFunction<BlockPos, Rotation, Site> finder(DrifterEntity drifter, HousePlan plan, HousePalette palette) {
+		boolean groundAtBottom = plan.cells.stream().anyMatch(c -> c.pos().getY() == 0 && PlacedPlan.isGround(c.state()));
+		java.util.Map<Rotation, PlacedPlan> shapes = new java.util.EnumMap<>(Rotation.class);
+		java.util.Map<Rotation, BlockPos> doors = new java.util.EnumMap<>(Rotation.class);
+		return (corner, rotation) -> {
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null) {
+				return null;
+			}
+
+			PlacedPlan shape = shapes.computeIfAbsent(rotation, turn -> new PlacedPlan(plan, BlockPos.ZERO, turn, palette));
+			BlockPos door = doors.computeIfAbsent(rotation, turn -> shape.build.stream().filter(c -> c.state().getBlock() instanceof net.minecraft.world.level.block.DoorBlock)
+				.map(PlacedPlan.Cell::pos).findFirst().orElse(new BlockPos(shape.sizeX / 2, 0, shape.sizeZ / 2)));
+			REJECTED.clear();
+			return score(Columns.of(drifter, home, false), home, shape, new BlockPos(corner.getX(), 0, corner.getZ()), rotation, groundAtBottom, door);
+		};
+	}
+
+	/**
+	 * (From the air over the top block: an eye ray that stops on the ground marks the cell its hit point is in, which for the
+	 * top face of the ground is the one above.)
 	 * It has seen this column's ground, or what lies on it (snow, grass, flowers, the leaves of a tree over it: found in
 	 * testing, a snowy taiga's ground was all "unseen" because it had only ever seen the snow on it).
 	 */
@@ -221,8 +254,10 @@ public final class PlanSite {
 				return UNLOADED;
 			}
 
-			// The ground under any tree: down past logs, leaves and plants.
-			int y = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) - 1;
+			// The ground under any tree: down past logs, leaves and plants. (getHeight is the top block itself; found in testing,
+			// 0.22.8: a block below it, every house sat a block low and the ground it "had seen" was the dirt under the grass,
+			// so on flat land it never found anywhere to build.)
+			int y = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
 			BlockPos.MutableBlockPos top = new BlockPos.MutableBlockPos(x, y, z);
 			boolean tree = false;
 			while (top.getY() > this.level.getMinBuildHeight()) {
@@ -238,7 +273,7 @@ public final class PlanSite {
 			// Ground it hasn't seen (under trees, behind a rise) it guesses is like the rest, as a player sizing up a spot
 			// does; only if it has seen too little of it does it look elsewhere.
 			BlockPos ground = top.immutable();
-			if (!this.lived && !seenDownTo(this.drifter, column.atY(chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15) - 1), ground)) {
+			if (!this.lived && !seenDownTo(this.drifter, column.atY(chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15) + 1), ground)) {
 				return UNSEEN;
 			}
 

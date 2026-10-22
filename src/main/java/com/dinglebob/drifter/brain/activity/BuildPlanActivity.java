@@ -220,6 +220,12 @@ public class BuildPlanActivity extends Activity {
 			return this.fail("couldn't " + this.couldntGet + "; another go later");
 		}
 
+		// Its house changed under it (a town gave it a plot of its own while it was finishing the first house): that one now
+		// (found in testing: the old house, done, was taken for the new one and the new one called finished at once).
+		if (this.placed != null && (!java.util.Objects.equals(home.planId, this.placed.plan.id) || !java.util.Objects.equals(home.planOrigin, this.placed.origin))) {
+			return this.fail("its house changed; on with the new one");
+		}
+
 		if (this.placed == null) {
 			Status chosen = this.choose(home);
 			if (chosen != null) {
@@ -329,9 +335,12 @@ public class BuildPlanActivity extends Activity {
 
 			// Something else there: its own scaffolding or something natural goes; anything else (someone's block) it leaves.
 			if (!have.isAir() && !have.canBeReplaced() && !have.is(cell.state().getBlock())) {
-				// (A crafting table it put down there while building comes back up with it.)
-				if (this.drifter.isScaffold(pos) || KnownBlocks.mayTake(level, pos) && natural(have)
-					|| have.is(Blocks.CRAFTING_TABLE) && !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, pos)) {
+				// (A crafting table it put down there while building comes back up with it. So do a group mate's scaffolding and a
+				// torch no player put there, its own or a mate's light for the night: found in testing, three building a town's
+				// first house left torches and a mate's blocks where its floor went, "someone's torch in the way".)
+				boolean ours = !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(level, pos);
+				if (this.drifter.isScaffold(pos) || KnownBlocks.mayTake(level, pos) && natural(have) || have.is(Blocks.CRAFTING_TABLE) && ours
+					|| (have.is(Blocks.TORCH) || have.is(Blocks.WALL_TORCH)) && ours || this.mateScaffold(pos)) {
 					return this.workAt(level, plan, pos, () -> this.digAt(pos), "clear the spot");
 				}
 
@@ -1003,6 +1012,15 @@ public class BuildPlanActivity extends Activity {
 		return this.workAt(level, plan, pos, pos, work, what);
 	}
 
+	/** A block under some of its feet with two or more blocks of air under that: dug out, it falls three or more. */
+	private boolean holdsItUp(Level level, BlockPos pos) {
+		net.minecraft.world.phys.AABB box = this.drifter.getBoundingBox();
+		boolean under = pos.getY() + 1 <= box.minY + 0.05 && pos.getY() + 1 >= box.minY - 0.6 && box.minX < pos.getX() + 1 && box.maxX > pos.getX()
+			&& box.minZ < pos.getZ() + 1 && box.maxZ > pos.getZ();
+		return under && level.getBlockState(pos.below()).getCollisionShape(level, pos.below()).isEmpty()
+			&& level.getBlockState(pos.below(2)).getCollisionShape(level, pos.below(2)).isEmpty();
+	}
+
 	/** Another builder (a group mate on the same house) is seeing to this block. */
 	private boolean takenByMate(BlockPos pos) {
 		Claim claim = CLAIMS.get(pos);
@@ -1021,6 +1039,13 @@ public class BuildPlanActivity extends Activity {
 	/** The same, reaching {@code aim} (the block under a hole it fills, rather than the empty hole). */
 	private Status workAt(Level level, PlacedPlan plan, BlockPos pos, BlockPos aim, java.util.function.Supplier<Status> work, String what) {
 		this.claim(pos);
+		// Not a block it's standing on with a drop under it (found in a 16-day run: up on a house, it dug out a log it
+		// stood on to put it back the right way, and fell to its death): left till it's standing somewhere else.
+		if (holdsItUp(level, pos)) {
+			this.stuck.add(pos);
+			return Status.RUNNING;
+		}
+
 		if (Reach.canReach(this.drifter, aim)) {
 			return work.get();
 		}
@@ -1154,7 +1179,14 @@ public class BuildPlanActivity extends Activity {
 			}
 		}
 
-		// Windows it can leave open; the walls and roof it can't do without: another go later.
+		// Windows it can leave open, lanterns go without (a house stands without them; the 0.22.7 houses hang them from
+		// the beams, and a lantern takes iron); the walls and roof it can't do without: another go later.
+		if (lantern(item)) {
+			home.houseGivenUp.add(item);
+			this.think("can't get any " + name + ": doing without them for now");
+			return Status.RUNNING;
+		}
+
 		if (!windowGlass(item)) {
 			return this.fail("can't get any " + name + " for its house; another go later");
 		}
@@ -1162,6 +1194,26 @@ public class BuildPlanActivity extends Activity {
 		home.houseGivenUp.add(item);
 		this.think("can't get any " + name + ": leaving its house's windows open for now");
 		return Status.RUNNING;
+	}
+
+	private static boolean lantern(Item item) {
+		return item == Items.LANTERN || item == Items.SOUL_LANTERN;
+	}
+
+	/** Scaffolding a group mate building this same house put up (theirs to take down, but in the way of a block here). */
+	private boolean mateScaffold(BlockPos pos) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+		if (group == null || !(this.drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return false;
+		}
+
+		for (java.util.UUID id : group.members) {
+			if (!id.equals(this.drifter.getUUID()) && level.getEntity(id) instanceof DrifterEntity mate && mate.isScaffold(pos)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Glass or panes (a window: a house stands without it). */
