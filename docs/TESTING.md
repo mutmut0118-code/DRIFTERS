@@ -1506,6 +1506,9 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
 
 ## A ready-made town (new, 0.22.6)
 
+- [ ] **On the land** (0.22.10): the town follows the hills like a village: no huge flat square, only the plaza level,
+      roads over the ground, each house at its own height. On rough land fewer households than asked may fit (it says
+      how many).
 - [ ] **Make one**: in a world (creative is easiest), stand on fairly open land and type `/drifterciv town spawn 8`
       (8 households; 2 to 12; add a name: `/drifterciv town spawn 6 Oakvale`). The ground round you is levelled and a
       town appears: a stone plaza with a roofed well, a bell, a lectern (the town's book: its name, its people) and lamp

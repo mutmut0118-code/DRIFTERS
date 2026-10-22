@@ -42,7 +42,10 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * A town made at once, everything already there (the user, 2026-10-21: "can there be an option that a town can spawn?
- * with everything already established, primarily for testing"): `/drifterciv town spawn`. The ground levelled, two roads
+ * with everything already established, primarily for testing"): `/drifterciv town spawn`. On the land as it is, like a
+ * Minecraft village (the user, 2026-10-22: "lets make it go on top of the land"): only the plaza evened out; roads of dirt
+ * path over the ground (planks over water); each house where the ground suits it (not too steep, no water), at its own
+ * height, only its footprint filled and cleared; fields evened each to its own height, the pen's fence over the ground. Two roads
  * crossing at a plaza with a well, a bell and a notice board, a store of chests with some stock, two fields and a pen of
  * animals, and a house from the plans for each household, each different, its door to the road; a Drifter moved into
  * each, friends with the rest, one group named after the town. Laid out as on the town plan the user agreed. A debug
@@ -61,8 +64,12 @@ public final class TownBuilder {
 	static final int SMALLEST_HOUSE = 15;
 	static final int BIGGEST_HOUSE = 25;
 	private static final int PLAZA = 10;
-	/** Air cleared above the town's ground (trees, a hill). */
-	private static final int CLEAR_ABOVE = 30;
+	/** Air cleared above the plaza (trees). */
+	private static final int CLEAR_ABOVE = 12;
+	/** Most a house's ground may rise and fall across its footprint (as a Drifter's own house site). */
+	private static final int MOST_STEP = 5;
+	/** Along the road to the next spot when one doesn't suit a house. */
+	private static final int SKIP = 4;
 	private static final String[] WOODS = {"oak", "spruce", "birch", "dark_oak", "acacia", "cherry"};
 
 	public record Result(@Nullable Town town, String message) {
@@ -112,36 +119,20 @@ public final class TownBuilder {
 	private static Result build(ServerLevel level, MinecraftServer server, RandomSource random, String dimension, String warning, int cx, int cz, int y0,
 		int households, String name) {
 
-		// 1. The ground levelled.
-		for (int x = cx - HALF_X; x <= cx + HALF_X; x++) {
-			for (int z = cz - HALF_Z; z <= cz + HALF_Z; z++) {
-				for (int y = y0; y <= y0 + CLEAR_ABOVE; y++) {
-					set(level, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
-				}
+		// 1. The plaza evened out, at its ground's middle height (only it: the rest stays as the land is).
+		y0 = median(level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
+		even(level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA, y0 - 1, CLEAR_ABOVE);
 
-				set(level, new BlockPos(x, y0 - 1, z), Blocks.GRASS_BLOCK.defaultBlockState());
-				for (int y = y0 - 2; y >= y0 - 8; y--) {
-					BlockPos pos = new BlockPos(x, y, z);
-					BlockState state = level.getBlockState(pos);
-					if (!state.isAir() && state.getFluidState().isEmpty() && !state.canBeReplaced()) {
-						break;
-					}
-
-					set(level, pos, Blocks.DIRT.defaultBlockState());
-				}
-			}
-		}
-
-		// 2. Roads, the plaza, the well, lamps.
+		// 2. Roads over the ground, the plaza, the well, lamps.
 		for (int x = cx - HALF_X + 2; x <= cx + HALF_X - 2; x++) {
 			for (int z = cz - 1; z <= cz + 1; z++) {
-				set(level, new BlockPos(x, y0 - 1, z), Blocks.DIRT_PATH.defaultBlockState());
+				road(level, x, z);
 			}
 		}
 
 		for (int z = cz - HALF_Z + 2; z <= cz + HALF_Z - 2; z++) {
 			for (int x = cx - 1; x <= cx + 1; x++) {
-				set(level, new BlockPos(x, y0 - 1, z), Blocks.DIRT_PATH.defaultBlockState());
+				road(level, x, z);
 			}
 		}
 
@@ -186,22 +177,26 @@ public final class TownBuilder {
 		}
 
 		for (int d = 22; d < HALF_X - 2; d += 14) {
-			lamp(level, new BlockPos(cx + d, y0, cz + 2));
-			lamp(level, new BlockPos(cx - d, y0, cz - 2));
+			lamp(level, onGround(level, cx + d, cz + 2));
+			lamp(level, onGround(level, cx - d, cz - 2));
 		}
 
 		for (int d = 22; d < HALF_Z - 2; d += 14) {
-			lamp(level, new BlockPos(cx + 2, y0, cz - d));
-			lamp(level, new BlockPos(cx - 2, y0, cz + d));
+			lamp(level, onGround(level, cx + 2, cz - d));
+			lamp(level, onGround(level, cx - 2, cz + d));
 		}
 
-		// 3. The store: a stone house of chests by the north road, with some stock in.
-		List<BlockPos> store = store(level, new BlockPos(cx + 4, y0, cz - 28), cx);
+		// 3. The store: a stone house of chests by the north road, with some stock in, at the height of its own ground.
+		int storeBase = median(level, cx + 4, cz - 28, cx + 12, cz - 20);
+		even(level, cx + 4, cz - 28, cx + 12, cz - 20, storeBase, 8);
+		List<BlockPos> store = store(level, new BlockPos(cx + 4, storeBase + 1, cz - 28), cx);
 
 		// 4. The shared farm (two fields, east of the south road) and the pen (west of it).
 		List<BlockPos> fields = new ArrayList<>();
 		for (int fz : new int[] {cz + 12, cz + 23}) {
-			BlockPos field = new BlockPos(cx + 7, y0 - 1, fz + 4);
+			int fieldBase = median(level, cx + 3, fz, cx + 11, fz + 8);
+			even(level, cx + 3, fz, cx + 11, fz + 8, fieldBase, 4);
+			BlockPos field = new BlockPos(cx + 7, fieldBase, fz + 4);
 			fields.add(field.above());
 			for (int dx = -4; dx <= 4; dx++) {
 				for (int dz = -4; dz <= 4; dz++) {
@@ -217,11 +212,12 @@ public final class TownBuilder {
 			}
 		}
 
-		BlockPos pen = new BlockPos(cx - 8, y0, cz + 17);
+		BlockPos pen = onGround(level, cx - 8, cz + 17);
 		for (int dx = -5; dx <= 5; dx++) {
 			for (int dz = -5; dz <= 5; dz++) {
 				if (Math.abs(dx) == 5 || Math.abs(dz) == 5) {
-					place(level, pen.offset(dx, 0, dz), dx == 5 && dz == 0
+					// (The fence over the ground, as a village's.)
+					place(level, onGround(level, pen.getX() + dx, pen.getZ() + dz), dx == 5 && dz == 0
 						? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.EAST)
 						: Blocks.OAK_FENCE.defaultBlockState());
 				}
@@ -252,31 +248,48 @@ public final class TownBuilder {
 			DrifterApi.PlacedHouse house = null;
 			for (int s = 0; s < sides.size() && house == null; s++) {
 				Side side = sides.get((i + s) % sides.size());
-				for (int tries = 0; tries < plans.size() && house == null; tries++) {
-					DrifterApi.HousePlanInfo plan = plans.get((planIndex + tries) % plans.size());
-					Rotation rotation = turnFor(server, plan.id(), side.front);
-					if (rotation == null) {
-						continue;
+				// Along this side till a spot suits one of the plans (the ground not too steep, no water), or the side's full.
+				boolean full = false;
+				while (house == null && !full) {
+					for (int tries = 0; tries < plans.size() && house == null; tries++) {
+						DrifterApi.HousePlanInfo plan = plans.get((planIndex + tries) % plans.size());
+						Rotation rotation = turnFor(server, plan.id(), side.front);
+						if (rotation == null) {
+							continue;
+						}
+
+						boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+						int sx = turned ? plan.sizeZ() : plan.sizeX();
+						int sz = turned ? plan.sizeX() : plan.sizeZ();
+						BlockPos corner = originFor(side, cx, cz, 0, sx, sz);
+						if (corner == null) {
+							full = true;
+							break;
+						}
+
+						Integer base = siteBase(level, corner.getX(), corner.getZ(), corner.getX() + sx - 1, corner.getZ() + sz - 1);
+						if (base == null) {
+							continue;
+						}
+
+						// Its own ground: the footprint filled and cleared to it, the house on it (a plan whose lowest layer is its own
+						// ground goes a block down, its ground in place of the land's).
+						even(level, corner.getX(), corner.getZ(), corner.getX() + sx - 1, corner.getZ() + sz - 1, base, plan.sizeY() + 2);
+						BlockPos origin = corner.atY(plan.groundLayer() ? base : base + 1);
+						house = DrifterApi.placeHouse(level, plan.id(), origin, rotation, WOODS[random.nextInt(WOODS.length)], side.front);
+						if (house != null) {
+							planIndex = (planIndex + tries + 1) % plans.size();
+							side.cursor += side.step * ((side.eastWest ? sx : sz) + 2);
+							Town.Plot made = new Town.Plot(origin, sx, sz, plan.id(), rotation, side.front, null);
+							made.built = true;
+							plots.add(made);
+							houses.add(house);
+							path(level, house.door(), side.front, cx, cz, y0);
+						}
 					}
 
-					boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
-					int sx = turned ? plan.sizeZ() : plan.sizeX();
-					int sz = turned ? plan.sizeX() : plan.sizeZ();
-					// (A plan whose lowest layer is its own ground goes a block down, its ground in place of the town's.)
-					BlockPos origin = originFor(side, cx, cz, plan.groundLayer() ? y0 - 1 : y0, sx, sz);
-					if (origin == null) {
-						break;
-					}
-
-					house = DrifterApi.placeHouse(level, plan.id(), origin, rotation, WOODS[random.nextInt(WOODS.length)], side.front);
-					if (house != null) {
-						planIndex = (planIndex + tries + 1) % plans.size();
-						side.cursor += side.step * ((side.eastWest ? sx : sz) + 2);
-						Town.Plot made = new Town.Plot(origin, sx, sz, plan.id(), rotation, side.front, null);
-						made.built = true;
-						plots.add(made);
-						houses.add(house);
-						path(level, house.door(), side.front, cx, cz, y0);
+					if (house == null && !full) {
+						side.cursor += side.step * SKIP;
 					}
 				}
 			}
@@ -288,7 +301,7 @@ public final class TownBuilder {
 			DrifterApi.PlacedHouse house = houses.get(i);
 			Town.Plot plot = plots.get(i);
 			BlockPos door = house.door() != null ? house.door() : plot.origin;
-			BlockPos stand = new BlockPos(door.getX(), y0, door.getZ()).relative(plot.front, 2);
+			BlockPos stand = onGround(level, door.getX() + plot.front.getStepX() * 2, door.getZ() + plot.front.getStepZ() * 2);
 			DrifterEntity drifter = DrifterApi.spawn(level, stand, null);
 			if (drifter == null) {
 				continue;
@@ -370,14 +383,15 @@ public final class TownBuilder {
 			return;
 		}
 
-		BlockPos step = new BlockPos(door.getX(), y0 - 1, door.getZ()).relative(front);
+		BlockPos step = door.relative(front, 2);
 		for (int i = 0; i < 8; i++) {
 			if (front.getAxis() == Direction.Axis.Z ? Math.abs(step.getZ() - cz) <= 1 : Math.abs(step.getX() - cx) <= 1) {
 				break;
 			}
 
-			if (level.getBlockState(step).is(Blocks.GRASS_BLOCK) || level.getBlockState(step).is(Blocks.DIRT)) {
-				set(level, step, Blocks.DIRT_PATH.defaultBlockState());
+			BlockPos top = new BlockPos(step.getX(), ground(level, step.getX(), step.getZ()), step.getZ());
+			if (level.getBlockState(top).is(Blocks.GRASS_BLOCK) || level.getBlockState(top).is(Blocks.DIRT)) {
+				set(level, top, Blocks.DIRT_PATH.defaultBlockState());
 			}
 
 			step = step.relative(front);
@@ -410,7 +424,10 @@ public final class TownBuilder {
 		place(level, o.offset(1, 2, 2), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, Direction.EAST));
 		place(level, o.offset(7, 2, 6), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, Direction.WEST));
 		for (int x = door.getX() - 1; x >= cx + 2; x--) {
-			set(level, new BlockPos(x, y0 - 1, door.getZ()), Blocks.DIRT_PATH.defaultBlockState());
+			BlockPos top = new BlockPos(x, ground(level, x, door.getZ()), door.getZ());
+			if (level.getBlockState(top).is(Blocks.GRASS_BLOCK) || level.getBlockState(top).is(Blocks.DIRT)) {
+				set(level, top, Blocks.DIRT_PATH.defaultBlockState());
+			}
 		}
 
 		List<BlockPos> chests = new ArrayList<>();
@@ -461,6 +478,110 @@ public final class TownBuilder {
 		place(level, pos, Blocks.LECTERN.defaultBlockState().setValue(LecternBlock.FACING, Direction.SOUTH).setValue(LecternBlock.HAS_BOOK, true));
 		if (level.getBlockEntity(pos) instanceof LecternBlockEntity lectern) {
 			lectern.setBook(book);
+		}
+	}
+
+	/**
+	 * The top of the ground at x, z: the highest block that isn't air, a plant, a log or leaves (the ground under a tree), or
+	 * the top of water there.
+	 */
+	private static int ground(ServerLevel level, int x, int z) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
+		while (pos.getY() > level.getMinBuildHeight()) {
+			BlockState state = level.getBlockState(pos);
+			if (!state.getFluidState().isEmpty() || !(state.isAir() || state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS)
+				|| state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+				break;
+			}
+
+			pos.move(0, -1, 0);
+		}
+
+		return pos.getY();
+	}
+
+	private static boolean wet(ServerLevel level, int x, int z) {
+		return !level.getFluidState(new BlockPos(x, ground(level, x, z), z)).isEmpty();
+	}
+
+	/** The block over the ground at x, z (where something stands on it). */
+	private static BlockPos onGround(ServerLevel level, int x, int z) {
+		return new BlockPos(x, ground(level, x, z) + 1, z);
+	}
+
+	/** The ground's middle height over this area. */
+	private static int median(ServerLevel level, int x0, int z0, int x1, int z1) {
+		List<Integer> heights = new ArrayList<>();
+		for (int x = x0; x <= x1; x++) {
+			for (int z = z0; z <= z1; z++) {
+				heights.add(ground(level, x, z));
+			}
+		}
+
+		heights.sort(Integer::compare);
+		return heights.get(heights.size() / 2);
+	}
+
+	/** The ground height a house over this area sits at, or null if it doesn't suit one (water, or too steep). */
+	@Nullable
+	private static Integer siteBase(ServerLevel level, int x0, int z0, int x1, int z1) {
+		List<Integer> heights = new ArrayList<>();
+		for (int x = x0; x <= x1; x++) {
+			for (int z = z0; z <= z1; z++) {
+				if (wet(level, x, z)) {
+					return null;
+				}
+
+				heights.add(ground(level, x, z));
+			}
+		}
+
+		heights.sort(Integer::compare);
+		return heights.get(heights.size() - 1) - heights.get(0) > MOST_STEP ? null : heights.get(heights.size() / 2);
+	}
+
+	/**
+	 * This area's ground at {@code base}: dirt filled up to it (grass on top), anything higher cut down to it, and
+	 * {@code clear} blocks above it cleared (trees, plants); the land round it left as it is.
+	 */
+	private static void even(ServerLevel level, int x0, int z0, int x1, int z1, int base, int clear) {
+		for (int x = x0; x <= x1; x++) {
+			for (int z = z0; z <= z1; z++) {
+				int top = ground(level, x, z);
+				for (int y = Math.min(top, base) + 1; y <= base; y++) {
+					set(level, new BlockPos(x, y, z), y == base ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.DIRT.defaultBlockState());
+				}
+
+				for (int y = base + 1; y <= Math.max(top, base) + clear; y++) {
+					set(level, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
+				}
+
+				// (Water in it: filled in.)
+				if (!level.getFluidState(new BlockPos(x, base, z)).isEmpty()) {
+					set(level, new BlockPos(x, base, z), Blocks.GRASS_BLOCK.defaultBlockState());
+				}
+			}
+		}
+	}
+
+	/** One block of road: dirt path on the ground (planks over water), what grows on it cleared. */
+	private static void road(ServerLevel level, int x, int z) {
+		int top = ground(level, x, z);
+		BlockPos pos = new BlockPos(x, top, z);
+		if (!level.getFluidState(pos).isEmpty()) {
+			set(level, pos, Blocks.OAK_PLANKS.defaultBlockState());
+		} else {
+			BlockState state = level.getBlockState(pos);
+			set(level, pos, state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(Blocks.PODZOL) || state.is(Blocks.COARSE_DIRT)
+				|| state.is(Blocks.MYCELIUM) ? Blocks.DIRT_PATH.defaultBlockState() : state);
+		}
+
+		for (int y = top + 1; y <= top + 4; y++) {
+			BlockPos above = new BlockPos(x, y, z);
+			BlockState state = level.getBlockState(above);
+			if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+				set(level, above, Blocks.AIR.defaultBlockState());
+			}
 		}
 	}
 

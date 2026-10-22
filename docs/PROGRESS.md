@@ -2716,5 +2716,13 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   plaza); when it's up its chests are everyone's (`town.store`); newcomers and those away join in, in the same woods.
   `/drifterciv town` shows the store. Tested (headless, deep flat, three founders, houses marked built by command to
   skip ahead): the store begun on day 1, finished on day 4 by the three of them, all eight chests standing.
+- **The made-ready town sits on the land (0.22.10; the user: "do towns level the ground to make a huge flat land? ... lets
+  make it go on top of the land, like a minecraft village"):** `/drifterciv town spawn` no longer flattens 144 by 128
+  blocks: only the plaza is evened (at its ground's middle height); roads are dirt path over the ground (planks over water,
+  what grows on them cleared); each house goes where its footprint's ground rises and falls 5 or less with no water, at
+  that ground's middle height, only its footprint filled and cleared (a spot that doesn't suit: on along the road); the
+  store and each field at their own height, the pen's fence over the ground, lamps and the Drifters on it. Towns founded
+  by their people already built that way (each plot on ground the Drifter has seen, the house at its middle height, only
+  its footprint touched). Tested in the client on seed 777 (hills, forest, a lake): five of eight households found ground.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.
