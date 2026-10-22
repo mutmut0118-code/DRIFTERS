@@ -1460,6 +1460,15 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## The town's store (new, 0.22.9)
+
+- [ ] In a town founded by its people (see below), once half the households have their houses up (two at least), the
+      chronicle says "The people of ... began building its store". They build it together near the plaza, each between
+      bits of its own house: a house with eight chests along the inside walls (they craft the chests themselves).
+      `/drifterciv town` shows "Store: being built at ..." then "built (8 chests)".
+- [ ] When it's up, the chronicle says so, and each of them uses its chests: things one puts in, the others can take.
+- [ ] To skip ahead: next to a Drifter whose house is half built, `/drifter house done` marks it built.
+
 ## Towns founded by their people (new, 0.22.8)
 
 - [ ] **The quick way** (in a creative world with the addon; flat is fine): `/drifter spawn Ann`, then a few blocks away

@@ -59,6 +59,9 @@ public final class TownFounding {
 	private static final int GAP = 2;
 	/** Plans tried at each spot along the roads. */
 	private static final int PLANS_TRIED = 4;
+	/** The town build's name for the store. */
+	private static final String STORE = "store";
+
 	/** How long a town's news is worth telling (game ticks: five days). */
 	private static final long NEWS_LASTS = 24000L * 5;
 	/** A Drifter that found no plot looks again after this (game ticks). */
@@ -80,6 +83,16 @@ public final class TownFounding {
 			}
 		});
 		DrifterEvents.BUILT.register((drifter, what, where) -> {
+			if (what.equals("town:" + STORE) && where != null) {
+				for (Town town : Towns.all()) {
+					if (!town.storeBuilt && town.storePlot != null && town.storePlot.origin.equals(where)) {
+						storeBuilt(drifter.getServer(), town);
+					}
+				}
+
+				return;
+			}
+
 			if (!what.equals("house") || where == null) {
 				return;
 			}
@@ -225,9 +238,117 @@ public final class TownFounding {
 			}
 		}
 
+		changed |= store(server, town, group);
+
 		if (changed) {
 			Towns.save(server);
 		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// The store (step 3c)
+	// ---------------------------------------------------------------------------------------------
+
+	/**
+	 * The town's store, built by them all once half its households have their houses (two at least): a house of chests (the
+	 * smallest one-storey plan there is, chests along its inside walls) on the nearest free plot to the plaza. Each of them
+	 * works on it alongside its own house, every chest made and placed by one of them. When it's up its chests are
+	 * everyone's (what one puts in, the others can take). True if anything changed.
+	 */
+	private static boolean store(MinecraftServer server, Town town, DrifterGroups.Group group) {
+		long built = town.plots.stream().filter(plot -> plot.built).count();
+		if (town.storeBuilt) {
+			// (Those away when it was finished too: on with their own houses, the store's chests theirs.)
+			for (UUID id : group.members) {
+				DrifterEntity member = loaded(server, id);
+				if (member != null) {
+					var build = DrifterApi.townBuildOf(member);
+					if (build != null && build.label.equals(STORE)) {
+						DrifterApi.endTownBuild(member);
+					}
+
+					DrifterApi.addChests(member, town.store);
+				}
+			}
+
+			return false;
+		}
+
+		boolean changed = false;
+		if (town.storePlot == null) {
+			DrifterEntity leader = loaded(server, group.leader);
+			if (leader == null || built < 2 || built * 2 < town.plots.size()) {
+				return false;
+			}
+
+			DrifterApi.HousePlanInfo base = DrifterApi.housePlans(server).stream()
+				.filter(plan -> plan.id().startsWith("house:") && plan.sizeY() <= 12 && Math.max(plan.sizeX(), plan.sizeZ()) >= TownBuilder.SMALLEST_HOUSE)
+				.min(Comparator.comparingInt(plan -> plan.sizeX() * plan.sizeY() * plan.sizeZ())).orElse(null);
+			if (base == null) {
+				return false;
+			}
+
+			DrifterApi.HousePlanInfo store = new DrifterApi.HousePlanInfo(DrifterApi.storePlan(base.id()), base.sizeX(), base.sizeY(), base.sizeZ(),
+				base.groundLayer());
+			Town.Plot plot = findPlot(server, town, leader, List.of(store));
+			if (plot == null) {
+				return false;
+			}
+
+			plot.owner = null;
+			town.storePlot = plot;
+			List<DrifterEntity> builders = new ArrayList<>();
+			for (UUID id : group.members) {
+				DrifterEntity member = loaded(server, id);
+				if (member != null && member != leader) {
+					builders.add(member);
+				}
+			}
+
+			builders.add(0, leader);
+			DrifterApi.townBuild(builders, plot.planId, plot.origin, plot.rotation, STORE);
+			builders.forEach(builder -> DrifterApi.think(builder, "is to help build the store of " + town.name));
+			Chronicle.add(server, "town", "The people of " + town.name + " began building its store");
+			changed = true;
+		}
+
+		// Those not here when it was begun (or newcomers since) join in, in the same woods.
+		Home.Build any = null;
+		for (UUID id : group.members) {
+			DrifterEntity member = loaded(server, id);
+			var build = member == null ? null : DrifterApi.townBuildOf(member);
+			if (build != null && build.label.equals(STORE)) {
+				any = build;
+			}
+		}
+
+		if (any != null) {
+			for (UUID id : group.members) {
+				DrifterEntity member = loaded(server, id);
+				if (member != null && DrifterApi.townBuildOf(member) == null) {
+					DrifterApi.joinTownBuild(member, any.planId, any.origin, Rotation.valueOf(any.rotation), STORE, any.woods, any.deepslate);
+				}
+			}
+		}
+
+		return changed;
+	}
+
+	private static void storeBuilt(@Nullable MinecraftServer server, Town town) {
+		if (server == null || town.storePlot == null) {
+			return;
+		}
+
+		town.storeBuilt = true;
+		town.store.clear();
+		town.store.addAll(DrifterApi.chestsIn(server, town.storePlot.planId, town.storePlot.origin, town.storePlot.rotation));
+		Chronicle.add(server, "town", "The store of " + town.name + " was finished (" + town.store.size() + " chests)");
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group != null) {
+			store(server, town, group);
+		}
+
+		Towns.save(server);
 	}
 
 	private static void built(@Nullable MinecraftServer server, Town town, Town.Plot plot) {
@@ -279,7 +400,7 @@ public final class TownFounding {
 			return null;
 		}
 
-		Town.Plot plot = findPlot(server, town, drifter);
+		Town.Plot plot = findPlot(server, town, drifter, liked(town, drifter));
 		if (plot == null) {
 			lookedAt.put(drifter.getUUID(), now);
 			if (now - toldAt.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) > TELL_AGAIN) {
@@ -294,7 +415,19 @@ public final class TownFounding {
 	}
 
 	@Nullable
-	private static Town.Plot findPlot(MinecraftServer server, Town town, DrifterEntity drifter) {
+	private static Town.Plot findPlot(MinecraftServer server, Town town, DrifterEntity drifter, List<DrifterApi.HousePlanInfo> liked) {
+		if (liked.isEmpty()) {
+			return null;
+		}
+
+		int cx = town.center.getX();
+		int cz = town.center.getZ();
+		List<DrifterApi.HousePlanInfo> tried = liked.subList(0, Math.min(PLANS_TRIED, liked.size()));
+		return search(server, town, drifter, tried, cx, cz);
+	}
+
+	/** The town-sized plans it likes, in the order it would try them. */
+	private static List<DrifterApi.HousePlanInfo> liked(Town town, DrifterEntity drifter) {
 		List<DrifterApi.HousePlanInfo> liked = new ArrayList<>(DrifterApi.housePlansFor(drifter).stream()
 			.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) >= TownBuilder.SMALLEST_HOUSE && Math.max(plan.sizeX(), plan.sizeZ()) <= TownBuilder.BIGGEST_HOUSE
 				&& plan.sizeY() <= 24)
@@ -306,13 +439,12 @@ public final class TownFounding {
 		} else {
 			liked.sort(Comparator.comparingInt(plan -> town.plots.stream().anyMatch(plot -> plot.planId.equals(plan.id())) ? 1 : 0));
 		}
-		if (liked.isEmpty()) {
-			return null;
-		}
 
-		int cx = town.center.getX();
-		int cz = town.center.getZ();
-		List<DrifterApi.HousePlanInfo> tried = liked.subList(0, Math.min(PLANS_TRIED, liked.size()));
+		return liked;
+	}
+
+	@Nullable
+	private static Town.Plot search(MinecraftServer server, Town town, DrifterEntity drifter, List<DrifterApi.HousePlanInfo> tried, int cx, int cz) {
 		// (Worked out once per plan: its turns, and what it takes to judge a spot for it.)
 		java.util.Map<String, Rotation> turns = new java.util.HashMap<>();
 		java.util.Map<String, java.util.function.BiFunction<BlockPos, Rotation, BlockPos>> finders = new java.util.HashMap<>();
@@ -381,7 +513,12 @@ public final class TownFounding {
 			return true;
 		}
 
-		for (Town.Plot plot : town.plots) {
+		List<Town.Plot> taken = new ArrayList<>(town.plots);
+		if (town.storePlot != null) {
+			taken.add(town.storePlot);
+		}
+
+		for (Town.Plot plot : taken) {
 			if (x <= plot.origin.getX() + plot.sizeX - 1 + GAP && x + sx - 1 >= plot.origin.getX() - GAP && z <= plot.origin.getZ() + plot.sizeZ - 1 + GAP
 				&& z + sz - 1 >= plot.origin.getZ() - GAP) {
 				return true;

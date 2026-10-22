@@ -2705,5 +2705,16 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   four; again after the last fixes: a town (Willowdale) on day 7 that grew to seven households by day 16, its first house
   still going up (gathering birch; hilly ground). Falls still kill a Drifter now and then in long runs (jumps, parkour,
   pillars): to look at.
-- Next: step 4, money and markets (Numismatic Overhaul coins when it's there), or the town's shared buildings (store,
-  well, farm) built block by block; to ask the user.
+- **Step 3c, the town's store (0.22.9; the user: "do whatever you think should go next"):** Drifter: town builds, something
+  a group builds together that isn't a house of theirs (`Home.project`, saved; the `TownBuild` goal, as keen as on its own
+  house; `BuildPlanActivity` in project mode: no site to choose, nothing to move into, `BUILT` "town:<label>" when done;
+  builders share the work by the same claims as mates on one house; one wood palette for all). Store plans
+  (`store:<house plan>`): the house with up to eight chests along its inside walls (on the floor, against a wall, facing
+  in, clear of doors, torches and stairs, never side by side), made from the plan when asked. API: `storePlan`,
+  `townBuild`, `joinTownBuild`, `townBuildOf`, `endTownBuild`, `chestsIn`. The addon: once half a town's households have
+  their houses (two at least), its people build its store (the smallest one-storey plan, the nearest free plot to the
+  plaza); when it's up its chests are everyone's (`town.store`); newcomers and those away join in, in the same woods.
+  `/drifterciv town` shows the store. Tested (headless, deep flat, three founders, houses marked built by command to
+  skip ahead): the store begun on day 1, finished on day 4 by the three of them, all eight chests standing.
+- Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
+  money and markets.

@@ -127,6 +127,54 @@ public final class Home {
 	@Nullable
 	public BlockPos planBed;
 
+	/**
+	 * Something it builds with others that isn't its house (a town's store, milestone 22 step 3c; DrifterApi.townBuild): a
+	 * plan, where and how it's turned, the woods (the same for everyone building it), a name for it ("store"), and whether
+	 * it's done. Null when there's none.
+	 */
+	public static final class Build {
+		public String planId = "";
+		public BlockPos origin = BlockPos.ZERO;
+		public String rotation = "NONE";
+		public final java.util.Map<String, String> woods = new java.util.HashMap<>();
+		public boolean deepslate;
+		public String label = "";
+		public boolean done;
+
+		CompoundTag save() {
+			CompoundTag tag = new CompoundTag();
+			tag.putString("Id", this.planId);
+			tag.put("Origin", NbtUtils.writeBlockPos(this.origin));
+			tag.putString("Rotation", this.rotation);
+			CompoundTag woods = new CompoundTag();
+			this.woods.forEach(woods::putString);
+			tag.put("Woods", woods);
+			tag.putBoolean("Deepslate", this.deepslate);
+			tag.putString("Label", this.label);
+			tag.putBoolean("Done", this.done);
+			return tag;
+		}
+
+		static Build load(CompoundTag tag) {
+			Build build = new Build();
+			build.planId = tag.getString("Id");
+			build.origin = NbtUtils.readBlockPos(tag, "Origin").orElse(BlockPos.ZERO);
+			build.rotation = tag.getString("Rotation").isEmpty() ? "NONE" : tag.getString("Rotation");
+			CompoundTag woods = tag.getCompound("Woods");
+			for (String key : woods.getAllKeys()) {
+				build.woods.put(key, woods.getString(key));
+			}
+
+			build.deepslate = tag.getBoolean("Deepslate");
+			build.label = tag.getString("Label");
+			build.done = tag.getBoolean("Done");
+			return build;
+		}
+	}
+
+	@Nullable
+	public Build project;
+
 	/** When it last looked for a spot for a pen and found none (not saved): it looks again later. */
 	public long penFailedAt = Long.MIN_VALUE / 2;
 
@@ -581,6 +629,10 @@ public final class Home {
 			tag.put("Plan", plan);
 		}
 
+		if (this.project != null) {
+			tag.put("Project", this.project.save());
+		}
+
 		if (this.mineBottom != null && this.mineDirection != null) {
 			tag.put("MineBottom", NbtUtils.writeBlockPos(this.mineBottom));
 			tag.putString("MineDirection", this.mineDirection.getName());
@@ -669,6 +721,10 @@ public final class Home {
 			home.planDeepslate = plan.getBoolean("Deepslate");
 			home.planDone = plan.getBoolean("Done");
 			home.planBed = NbtUtils.readBlockPos(plan, "Bed").orElse(null);
+		}
+
+		if (tag.contains("Project", Tag.TAG_COMPOUND)) {
+			home.project = Build.load(tag.getCompound("Project"));
 		}
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));

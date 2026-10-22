@@ -480,6 +480,79 @@ public final class DrifterApi {
 		return home;
 	}
 
+	/** The plan for a town's store made from this house plan: the house with chests along its inside walls. */
+	public static String storePlan(String housePlanId) {
+		return com.dinglebob.drifter.building.plan.HousePlans.STORE_PREFIX + housePlanId;
+	}
+
+	/**
+	 * Something these Drifters build together that isn't a house of theirs (a town's store): the plan at {@code origin}
+	 * turned so, in the first one's woods (the same for all), called {@code label} ("store"). Each works on it by day when
+	 * near it (alongside its own house); placing every block itself, from what it has or gathers. When it's done
+	 * {@link DrifterEvents#BUILT} says {@code "town:" + label}, with the origin.
+	 */
+	public static void townBuild(List<DrifterEntity> builders, String planId, net.minecraft.core.BlockPos origin,
+		net.minecraft.world.level.block.Rotation rotation, String label) {
+		if (builders.isEmpty() || builders.get(0).getServer() == null) {
+			return;
+		}
+
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(builders.get(0).getServer(), planId);
+		if (plan == null) {
+			return;
+		}
+
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forDrifter(builders.get(0), plan);
+		for (DrifterEntity builder : builders) {
+			joinTownBuild(builder, planId, origin, rotation, label, palette.woods(), palette.deepslate());
+		}
+	}
+
+	/** One more on a town build already under way (the woods as the others have them). */
+	public static void joinTownBuild(DrifterEntity builder, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
+		String label, java.util.Map<String, String> woods, boolean deepslate) {
+		Home home = builder.getDrifterBrain().home();
+		if (home == null) {
+			return;
+		}
+
+		Home.Build build = new Home.Build();
+		build.planId = planId;
+		build.origin = origin.immutable();
+		build.rotation = rotation.name();
+		build.woods.putAll(woods);
+		build.deepslate = deepslate;
+		build.label = label;
+		home.project = build;
+	}
+
+	/** Its town build (null if none): plan, origin, turn, woods, label, done. */
+	@Nullable
+	public static Home.Build townBuildOf(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		return home == null ? null : home.project;
+	}
+
+	/** It stops working on its town build (done, or called off). */
+	public static void endTownBuild(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null) {
+			home.project = null;
+		}
+	}
+
+	/** Where the chests of this plan stand once built at {@code origin}, turned so. */
+	public static List<net.minecraft.core.BlockPos> chestsIn(MinecraftServer server, String planId, net.minecraft.core.BlockPos origin,
+		net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, planId);
+		if (plan == null) {
+			return List.of();
+		}
+
+		return new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn()).build
+			.stream().filter(cell -> cell.state().getBlock() instanceof net.minecraft.world.level.block.ChestBlock).map(cell -> cell.pos().immutable()).toList();
+	}
+
 	/** These chests are its too (a town's store, its group's). */
 	public static void addChests(DrifterEntity drifter, List<net.minecraft.core.BlockPos> chests) {
 		Home home = drifter.getDrifterBrain().home();

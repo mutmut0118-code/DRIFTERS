@@ -190,6 +190,9 @@ public final class DrifterCivilizations implements ModInitializer {
 			}
 
 			source.sendSuccess(() -> Component.literal("  Households: " + String.join("; ", households)), false);
+			String store = town.storeBuilt ? "built (" + town.store.size() + " chests)"
+				: town.storePlot == null ? "not begun (once half the households have their houses)" : "being built at " + town.storePlot.origin.toShortString();
+			source.sendSuccess(() -> Component.literal("  Store: " + store), false);
 		}
 
 		return alivePeople;

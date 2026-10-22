@@ -84,6 +84,10 @@ public final class Town {
 	public BlockPos well;
 	@Nullable
 	public BlockPos pen;
+	/** Where its people are building (or built) its store (step 3c), and whether it's up. */
+	@Nullable
+	public Plot storePlot;
+	public boolean storeBuilt;
 
 	public Town(UUID id, String name, @Nullable UUID group, String dimension, BlockPos center, long foundedDay, boolean spawned) {
 		this.id = id;
@@ -120,6 +124,11 @@ public final class Town {
 			tag.putLong("Pen", this.pen.asLong());
 		}
 
+		if (this.storePlot != null) {
+			tag.put("StorePlot", this.storePlot.save());
+		}
+
+		tag.putBoolean("StoreBuilt", this.storeBuilt);
 		return tag;
 	}
 
@@ -140,6 +149,8 @@ public final class Town {
 
 		town.well = tag.contains("Well") ? BlockPos.of(tag.getLong("Well")) : null;
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
+		town.storePlot = tag.contains("StorePlot") ? Plot.load(tag.getCompound("StorePlot")) : null;
+		town.storeBuilt = tag.getBoolean("StoreBuilt") || town.spawned;
 		return town;
 	}
 }

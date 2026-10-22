@@ -89,6 +89,12 @@ public final class HousePlans {
 
 	@Nullable
 	public static HousePlan get(MinecraftServer server, String id) {
+		// A town's store: a house plan with chests along its inside walls (made from the house plan when asked).
+		if (id.startsWith(STORE_PREFIX)) {
+			HousePlan base = get(server, id.substring(STORE_PREFIX.length()));
+			return base == null ? null : STORES.computeIfAbsent(id, key -> withChests(base, key, STORE_CHESTS));
+		}
+
 		HousePlan plan = cached(server).get(id);
 		// (A house begun from one of the first generator's plans keeps it.)
 		if (plan == null && id.startsWith(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.LEGACY_PREFIX)) {
@@ -96,6 +102,55 @@ public final class HousePlans {
 		}
 
 		return plan;
+	}
+
+	/** A town's store (milestone 22 step 3c): "store:" and the house plan it's made from. */
+	public static final String STORE_PREFIX = "store:";
+	private static final int STORE_CHESTS = 8;
+	private static final Map<String, HousePlan> STORES = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/**
+	 * The plan with up to {@code count} chests along the inside of its walls: on the floor, against a wall, facing into the
+	 * room with room in front to open them, clear of doors, torches and stairs, none side by side (two would join into a
+	 * double chest).
+	 */
+	public static HousePlan withChests(HousePlan plan, String id, int count) {
+		Map<net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState> cells = new java.util.HashMap<>();
+		plan.cells.forEach(cell -> cells.put(cell.pos(), cell.state()));
+		List<net.minecraft.core.BlockPos> doors = cells.entrySet().stream()
+			.filter(e -> e.getValue().getBlock() instanceof net.minecraft.world.level.block.DoorBlock).map(Map.Entry::getKey).toList();
+		List<HousePlan.Cell> chests = new ArrayList<>();
+		List<HousePlan.Cell> sorted = new ArrayList<>(plan.cells);
+		sorted.sort(java.util.Comparator.comparingInt((HousePlan.Cell c) -> c.pos().getZ()).thenComparingInt(c -> c.pos().getX()));
+		for (HousePlan.Cell floor : sorted) {
+			if (chests.size() >= count || floor.pos().getY() != 0 || !solid(floor.state())) {
+				continue;
+			}
+
+			net.minecraft.core.BlockPos at = floor.pos().above();
+			if (cells.containsKey(at) || cells.containsKey(at.above()) || doors.stream().anyMatch(door -> door.distManhattan(at) <= 3)
+				|| chests.stream().anyMatch(chest -> Math.abs(chest.pos().getX() - at.getX()) <= 1 && Math.abs(chest.pos().getZ() - at.getZ()) <= 1)) {
+				continue;
+			}
+
+			for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+				var wall = cells.get(at.relative(side));
+				var front = at.relative(side.getOpposite());
+				if (wall != null && solid(wall) && !cells.containsKey(front) && !cells.containsKey(front.above()) && cells.containsKey(front.below())) {
+					chests.add(new HousePlan.Cell(at, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState()
+						.setValue(net.minecraft.world.level.block.ChestBlock.FACING, side.getOpposite())));
+					break;
+				}
+			}
+		}
+
+		List<HousePlan.Cell> all = new ArrayList<>(plan.cells);
+		all.addAll(chests);
+		return HousePlan.generated(id, plan.size, all);
+	}
+
+	private static boolean solid(net.minecraft.world.level.block.state.BlockState state) {
+		return state.isCollisionShapeFullBlock(net.minecraft.world.level.EmptyBlockGetter.INSTANCE, net.minecraft.core.BlockPos.ZERO);
 	}
 
 	private static Map<String, HousePlan> cache = Map.of();

@@ -82,6 +82,10 @@ plot along a road is checked with this: a Drifter only builds where it has seen 
 `DrifterApi.buildHouseAt(drifter, plan, origin, rotation)`: its home's house from now on (group mates living at the same
 home build it with it). `DrifterApi.homeAtHouse(drifter, plan, origin, rotation, chests)`: a home of its own there (it
 moves out of a group's base; no hut, no bed until the house is up; its old home's chests and farm still its).
+Town builds (API 3, 0.22.9): `DrifterApi.townBuild(builders, plan, origin, rotation, label)`: they build it together (in
+the first one's woods), each by day when near it, alongside its own house; `DrifterEvents.BUILT` says `"town:" + label`
+when it's up. `joinTownBuild`, `townBuildOf`, `endTownBuild`. `DrifterApi.storePlan(housePlan)`: that house with chests
+along its inside walls; `DrifterApi.chestsIn(server, plan, origin, rotation)`: where its chests stand once built.
 `DrifterApi.addChests(drifter, chests)`, `DrifterApi.addTrustInDrifter(drifter, other, delta)`, `DrifterApi.groups()`,
 and `DrifterApi.setNeighbourly(true)`: neighbours who get along don't turn into rivals over the same ground (only those
 already at odds); off in the plain mod.

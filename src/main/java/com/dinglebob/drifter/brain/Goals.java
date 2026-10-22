@@ -2165,6 +2165,80 @@ public final class Goals {
 	 * Its house from a plan (house plans, user's decisions 2026-10-16): when it's settled (hut up) and far enough along, it
 	 * picks a plan and a spot, levels the ground and builds it; the hut stays as its shed.
 	 */
+	/**
+	 * Something it builds with others that isn't its house (a town's store; milestone 22 step 3c, Home.project, set by
+	 * Drifter: Civilizations): by day, near it, alongside whoever else is at it. As keen as on its own house (both about
+	 * 0.5), a little keener with a mate at it already.
+	 */
+	public static final class TownBuild extends Goal {
+		/** Farthest from the build it goes to work on it. */
+		private static final double RANGE = 128.0;
+
+		@Override
+		public String id() {
+			return "townbuild";
+		}
+
+		@Override
+		public String name(Context context) {
+			Home home = context.drifter().getDrifterBrain().home();
+			return "work on the town's " + (home == null || home.project == null ? "build" : home.project.label);
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (home == null || home.project == null || home.project.done || Schedule.isNight(drifter)
+				|| !drifter.blockPosition().closerThan(home.project.origin, RANGE) || drifter.getServer() == null
+				|| com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), home.project.planId) == null) {
+				return 0.0;
+			}
+
+			// (Someone at it now: it goes and helps, as with a group's house.)
+			return mateOnIt(drifter, home.project) ? 0.58 : 0.5;
+		}
+
+		/** A group mate within 48 blocks working on this same build now. */
+		private static boolean mateOnIt(DrifterEntity drifter, Home.Build build) {
+			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			if (group == null || !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+				return false;
+			}
+
+			for (java.util.UUID id : group.members) {
+				if (!id.equals(drifter.getUUID()) && level.getEntity(id) instanceof DrifterEntity mate && mate.isAlive() && mate.distanceTo(drifter) <= 48.0
+					&& mate.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.BuildPlanActivity
+					&& mate.getDrifterBrain().home() != null && mate.getDrifterBrain().home().project != null
+					&& mate.getDrifterBrain().home().project.origin.equals(build.origin)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.6);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 60;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			return new com.dinglebob.drifter.brain.activity.BuildPlanActivity(context.drifter(), true);
+		}
+	}
+
 	public static final class PlanHouse extends Goal {
 		@Override
 		public String id() {
@@ -2417,6 +2491,7 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.brain.activity.DelveActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.PursuitActivity.Goal());
 		goals.add(new PlanHouse());
+		goals.add(new TownBuild());
 		// Whims (milestone 13, docs/WHIMS.md).
 		goals.add(new com.dinglebob.drifter.whim.WhimGoal());
 		// Trading with villagers (milestone 18, section 10.12).

@@ -247,5 +247,8 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 - **Step 3b, towns founded by their people (done, 0.22.8):** neighbours who get along don't become rivals, trades and
   news make friends faster; a group of three or more founds a town round its leader's home; the first house (the
   leader's) built by them all; then a plot each along the roads, a house each, newcomers too. Details in PROGRESS.md.
+- **Step 3c, the town's store (done, 0.22.9):** built by its people together once half the households have houses; its
+  chests everyone's. Drifter grew "town builds" for it (something a group builds that isn't a house of theirs), for the
+  well, hall, stalls and walls to come.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

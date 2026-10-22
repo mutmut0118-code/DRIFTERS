@@ -112,14 +112,23 @@ public class BuildPlanActivity extends Activity {
 	@Nullable
 	private String couldntGet;
 
+	/** A town build (Home.project: something it builds with others that isn't its house), not its house. */
+	private final boolean project;
+
 	public BuildPlanActivity(DrifterEntity drifter) {
+		this(drifter, false);
+	}
+
+	public BuildPlanActivity(DrifterEntity drifter, boolean project) {
 		super(drifter);
+		this.project = project;
 	}
 
 	@Override
 	public String describe() {
 		Home home = this.drifter.getDrifterBrain().home();
-		String plan = home == null || home.planId == null ? "its house" : "its house (" + home.planId.replace("personal:", "").replace("world:", "") + ")";
+		String plan = this.project ? "the town's " + (home == null || home.project == null ? "build" : home.project.label)
+			: home == null || home.planId == null ? "its house" : "its house (" + home.planId.replace("personal:", "").replace("world:", "") + ")";
 		return switch (this.phase) {
 			case "clear" -> "clear the ground for " + plan;
 			case "fill" -> "level the ground for " + plan;
@@ -222,7 +231,9 @@ public class BuildPlanActivity extends Activity {
 
 		// Its house changed under it (a town gave it a plot of its own while it was finishing the first house): that one now
 		// (found in testing: the old house, done, was taken for the new one and the new one called finished at once).
-		if (this.placed != null && (!java.util.Objects.equals(home.planId, this.placed.plan.id) || !java.util.Objects.equals(home.planOrigin, this.placed.origin))) {
+		String wantId = this.project ? (home.project == null ? null : home.project.planId) : home.planId;
+		BlockPos wantOrigin = this.project ? (home.project == null ? null : home.project.origin) : home.planOrigin;
+		if (this.placed != null && (!java.util.Objects.equals(wantId, this.placed.plan.id) || !java.util.Objects.equals(wantOrigin, this.placed.origin))) {
 			return this.fail("its house changed; on with the new one");
 		}
 
@@ -262,7 +273,7 @@ public class BuildPlanActivity extends Activity {
 				// Ground it hadn't seen when it picked the spot turns out to fall away (a hidden gully): before any of the
 				// house is up it looks for another spot (it has seen this one now); after, it fills deeper.
 				long up = plan.build.stream().filter(c -> Placement.matches(level.getBlockState(c.pos()), c.state())).count();
-				if (up == 0) {
+				if (up == 0 && !this.project) {
 					home.planOrigin = null;
 					this.placed = null;
 					this.think("the ground there drops away too far to level: looking for another spot for the house");
@@ -401,6 +412,23 @@ public class BuildPlanActivity extends Activity {
 				.map(e -> e.getValue() + " " + e.getKey()).collect(java.util.stream.Collectors.joining(", ")) + ")");
 		}
 
+		if (this.project) {
+			// A town build: done (once), and nothing to move into.
+			if (home.project != null && !home.project.done) {
+				home.project.done = true;
+				com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, plan.box());
+				this.think("finished building the town's " + home.project.label + (missing > 0 ? " (bar " + missing + " blocks it couldn't reach)" : ""));
+				com.dinglebob.drifter.api.DrifterEvents.BUILT.invoker().onBuilt(this.drifter, "town:" + home.project.label, home.project.origin);
+			}
+
+			BlockPos left = this.scaffoldLeft(level, plan, want);
+			if (left != null) {
+				return this.workAt(level, plan, left, () -> this.digAt(left), "take down its scaffolding");
+			}
+
+			return Status.SUCCESS;
+		}
+
 		if (!home.planDone) {
 			home.planDone = true;
 			// Its build now: it uses the door, not the wall (user, 2026-10-17).
@@ -509,6 +537,17 @@ public class BuildPlanActivity extends Activity {
 	@Nullable
 	private Status choose(Home home) {
 		var server = this.drifter.getServer();
+		if (this.project) {
+			HousePlan plan = home.project == null ? null : HousePlans.get(server, home.project.planId);
+			if (plan == null) {
+				return this.fail("no town build to work on");
+			}
+
+			this.placed = new PlacedPlan(plan, home.project.origin, net.minecraft.world.level.block.Rotation.valueOf(home.project.rotation),
+				com.dinglebob.drifter.building.plan.HousePalette.of(home.project.woods, home.project.deepslate));
+			return null;
+		}
+
 		if (home.planId != null && home.planOrigin != null) {
 			HousePlan plan = HousePlans.get(server, home.planId);
 			if (plan == null) {
@@ -1167,7 +1206,7 @@ public class BuildPlanActivity extends Activity {
 			}
 
 			if (instead != null) {
-				for (Map.Entry<String, String> entry : home.planWoods.entrySet()) {
+				for (Map.Entry<String, String> entry : (this.project && home.project != null ? home.project.woods : home.planWoods).entrySet()) {
 					if (entry.getValue().equals(wood)) {
 						entry.setValue(instead);
 					}

@@ -136,7 +136,8 @@ public final class Chronicle {
 			}
 		});
 		DrifterEvents.BUILT.register((drifter, what, where) -> {
-			if (counts(drifter)) {
+			// (A town's buildings have lines of their own: TownFounding.)
+			if (counts(drifter) && !what.startsWith("town:")) {
 				add(drifter.getServer(), "built", name(drifter) + " finished " + (what.equals("hut") ? "its hut" : "building its " + what));
 			}
 		});
