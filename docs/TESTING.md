@@ -1469,6 +1469,8 @@ The full list of lines and answers is in docs/CHAT_LINES.md.
 - [ ] Different personalities talk differently: newbies "hiii!!", PvP sweats "1v1?", "L", "gg ez", helpers "need anything?".
 - [ ] Encounters: an escort or race takes yes or no however you say it ("yeah sure", "lead the way", "na", "hell no",
       "Absolutely not."); "idk" or "maybe" and it asks again.
+- [ ] Call a Drifter by a part of its name ("grumpy" for xXGrumpybakerXx, 4 letters or more): it turns to look for you
+      and may answer. Capitals and punctuation don't matter ("Grumpy?").
 - [ ] `/drifter lines meaning <anything>` says what a message means to a Drifter; `/drifter lines say hi` (or any kind
       in the doc) makes the nearest Drifter say one.
 

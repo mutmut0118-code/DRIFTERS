@@ -35,7 +35,7 @@ A friendly Drifter that likes you walks over and greets you (crouching at you).
 
 #### `huh`
 
-You say its name in chat within 32 blocks: it turns to look for you, nods, and may answer.
+You say its name in chat (or a part of it, 4 letters or more) within 32 blocks: it turns to look for you, nods, and may answer.
 
 - **everyone:** ? · yes? · hm? · what · yo? · ya? · wsp · huh · mhm? · whats up · you called? · me?
 - **newbie:** yes?? · what what · me?? hi · huh??
@@ -945,7 +945,7 @@ A message means whichever of these it has the longest phrase of: "no problem" is
 | --- | --- |
 | An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |
 | A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |
-| A Drifter's name (within 32 blocks) | It turns to look for you and may answer (huh) |
+| A Drifter's name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |
 | Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |
 
 Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, right-click a merchant or a stall keeper.

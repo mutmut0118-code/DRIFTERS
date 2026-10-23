@@ -2828,5 +2828,9 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   docs/CHAT_LINES.md is generated from the data: `python tools/gen_chat_doc.py .` after changing lines.
   Tested: 66 answers from "na" to "Absolutely not." all read right; in the client, hi, gn, a death and three advancements
   answered. Not seen live: an escort or race answer (no village or hill near the test spots), the "ty" reply (rate limit).
+- **A part of a name calls a Drifter (0.22.17; the user: "yeah add that"):** a part of its name 4 letters or longer
+  in chat ("grumpy" or "baker" for xXGrumpybakerXx, "onyx" for golden_onyx_3), not an everyday word ("over", "just"...),
+  calls it as the whole name does (`SocialWatcher.called`). Tested in the client: all three called it, "just look over
+  there" called nobody.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.
