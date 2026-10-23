@@ -56,7 +56,10 @@ public final class HousePlacer {
 			level.setBlock(hanging.get(i), hangingStates.get(i), Block.UPDATE_CLIENTS);
 		}
 
-		return new PlacedPlan(plan, origin, rotation, palette);
+		PlacedPlan placed = new PlacedPlan(plan, origin, rotation, palette);
+		// (The trees it cut through: no trunks or leaves left hanging.)
+		com.dinglebob.drifter.world.gen.Felling.tidy(level, placed.box(), placed.box());
+		return placed;
 	}
 
 	/** The sides of its box its doors are on, turned this way (a house's front). */

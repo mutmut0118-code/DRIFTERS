@@ -1043,6 +1043,7 @@ public final class CatchUp {
 			// The trees its wood came from, gone (user, 2026-10-17).
 			com.dinglebob.drifter.world.gen.Felling.fell(level, hut.box(), com.dinglebob.drifter.world.gen.Felling.logsIn(
 				com.dinglebob.drifter.world.gen.Felling.blocksIn(level, hut.box())), drifter.getRandom());
+			com.dinglebob.drifter.world.gen.Felling.tidy(level, hut.box(), hut.box());
 		}
 	}
 
@@ -1162,6 +1163,8 @@ public final class CatchUp {
 			}
 		}
 
+		// (No trunks or leaves left hanging where it cut through trees.)
+		com.dinglebob.drifter.world.gen.Felling.tidy(level, hut.box(), hut.box());
 		for (BlockPos cell : cells) {
 			if (!level.isLoaded(cell) || com.dinglebob.drifter.building.StarterHut.filled(level, cell) || !level.getBlockState(cell).canBeReplaced()
 				|| PlayerPlacedBlocks.isPlayerPlaced(level, cell) || !level.getEntities(null, new net.minecraft.world.phys.AABB(cell)).isEmpty()) {

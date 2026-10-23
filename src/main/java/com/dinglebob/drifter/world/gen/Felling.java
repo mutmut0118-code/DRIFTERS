@@ -3,9 +3,13 @@ package com.dinglebob.drifter.world.gen;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.building.plan.HousePalette;
 
@@ -144,6 +148,170 @@ public final class Felling {
 		}
 
 		return taken;
+	}
+
+	/** How far round a build loose bits of trees are looked for. */
+	private static final int TIDY_REACH = 8;
+	/** Leaves stay while a tree's log is this many steps away through leaves (the game's own leaf distance: 7 rots). */
+	private static final int LEAF_HOLD = 6;
+	/** A piece of trunk bigger than this is left alone (not a tree's). */
+	private static final int MOST_PIECE = 512;
+
+	/**
+	 * Loose bits of trees round something put up all at once (a hut or house caught up, a camp, a town made ready): pieces
+	 * of trunk left in the air where the build cut through a tree, and leaves with no tree's log near enough to hold them.
+	 * A player clearing for a build takes the tree whole; and the game's own leaf rot never comes for these (blocks set
+	 * at once don't tell their neighbours), so they'd hang there for good (user, 2026-10-22: "there are floating leaves
+	 * everywhere"). {@code built}: the build itself (its logs hold no leaves, and a trunk resting on it is loose), or null
+	 * for an area with no one build in it (a town's ground, roads and fields).
+	 */
+	public static void tidy(LevelAccessor level, BoundingBox area, @Nullable BoundingBox built) {
+		BoundingBox near = new BoundingBox(area.minX() - TIDY_REACH, area.minY() - 2, area.minZ() - TIDY_REACH, area.maxX() + TIDY_REACH,
+			area.maxY() + TIDY_REACH + 4, area.maxZ() + TIDY_REACH);
+		int hold = LEAF_HOLD + 1;
+		BoundingBox scan = new BoundingBox(near.minX() - hold, near.minY() - hold, near.minZ() - hold, near.maxX() + hold, near.maxY() + hold,
+			near.maxZ() + hold);
+
+		// 1. Pieces of trunk in the air: not standing on the ground, with a tree's leaves on them (or cut off by the build).
+		Set<BlockPos> felled = new HashSet<>();
+		Set<BlockPos> looked = new HashSet<>();
+		for (BlockPos pos : BlockPos.betweenClosed(near.minX(), near.minY(), near.minZ(), near.maxX(), near.maxY(), near.maxZ())) {
+			if (built != null && built.isInside(pos) || looked.contains(pos) || !readable(level, pos) || !level.getBlockState(pos).is(BlockTags.LOGS)) {
+				continue;
+			}
+
+			Set<BlockPos> piece = piece(level, pos.immutable(), built, looked);
+			if (piece != null && loose(level, piece, built)) {
+				for (BlockPos log : piece) {
+					level.setBlock(log, Blocks.AIR.defaultBlockState(), 2);
+					felled.add(log);
+				}
+			}
+		}
+
+		// 2. Leaves: those a tree's log holds (within LEAF_HOLD steps through leaves) stay, the rest go.
+		Map<BlockPos, Integer> held = new HashMap<>();
+		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+		for (BlockPos pos : BlockPos.betweenClosed(scan.minX(), scan.minY(), scan.minZ(), scan.maxX(), scan.maxY(), scan.maxZ())) {
+			if ((built == null || !built.isInside(pos)) && readable(level, pos) && level.getBlockState(pos).is(BlockTags.LOGS)) {
+				BlockPos log = pos.immutable();
+				held.put(log, 0);
+				queue.add(log);
+			}
+		}
+
+		while (!queue.isEmpty()) {
+			BlockPos pos = queue.poll();
+			int step = held.get(pos);
+			if (step >= LEAF_HOLD) {
+				continue;
+			}
+
+			for (Direction side : Direction.values()) {
+				BlockPos next = pos.relative(side);
+				if (!held.containsKey(next) && scan.isInside(next) && readable(level, next) && grown(level.getBlockState(next))) {
+					held.put(next, step + 1);
+					queue.add(next);
+				}
+			}
+		}
+
+		for (BlockPos pos : BlockPos.betweenClosed(near.minX(), near.minY(), near.minZ(), near.maxX(), near.maxY(), near.maxZ())) {
+			// (Only where it could see every log that might hold it.)
+			if (!held.containsKey(pos) && readable(level, pos) && grown(level.getBlockState(pos)) && readable(level, pos.offset(-hold, 0, -hold))
+				&& readable(level, pos.offset(hold, 0, -hold)) && readable(level, pos.offset(-hold, 0, hold)) && readable(level, pos.offset(hold, 0, hold))) {
+				BlockPos leaf = pos.immutable();
+				level.setBlock(leaf, Blocks.AIR.defaultBlockState(), 2);
+				felled.add(leaf);
+			}
+		}
+
+		// (Snow that lay on them would be left in the air.)
+		for (BlockPos pos : felled) {
+			if (readable(level, pos.above()) && level.getBlockState(pos.above()).is(Blocks.SNOW) && level.getBlockState(pos).isAir()) {
+				level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), 2);
+			}
+		}
+	}
+
+	/** Leaves a tree grew (not placed ones). */
+	private static boolean grown(BlockState state) {
+		return state.is(BlockTags.LEAVES) && !(state.hasProperty(LeavesBlock.PERSISTENT) && state.getValue(LeavesBlock.PERSISTENT));
+	}
+
+	/** The logs joined to this one (diagonals too), outside the build; null if it can't tell (too big, or runs off what's loaded). */
+	@Nullable
+	private static Set<BlockPos> piece(LevelAccessor level, BlockPos start, @Nullable BoundingBox built, Set<BlockPos> looked) {
+		Set<BlockPos> found = new HashSet<>();
+		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+		found.add(start);
+		queue.add(start);
+		boolean sure = true;
+		while (!queue.isEmpty()) {
+			BlockPos pos = queue.poll();
+			for (BlockPos next : BlockPos.betweenClosed(pos.offset(-1, -1, -1), pos.offset(1, 1, 1))) {
+				if (found.contains(next) || built != null && built.isInside(next)) {
+					continue;
+				}
+
+				if (!readable(level, next)) {
+					sure = false;
+					continue;
+				}
+
+				if (level.getBlockState(next).is(BlockTags.LOGS)) {
+					BlockPos fixed = next.immutable();
+					found.add(fixed);
+					if (found.size() > MOST_PIECE) {
+						looked.addAll(found);
+						return null;
+					}
+
+					queue.add(fixed);
+				}
+			}
+		}
+
+		looked.addAll(found);
+		return sure ? found : null;
+	}
+
+	/** A piece of trunk left in the air by a build: nothing under it but air, leaves or the build, and part of a tree. */
+	private static boolean loose(LevelAccessor level, Set<BlockPos> piece, @Nullable BoundingBox built) {
+		boolean tree = false;
+		for (BlockPos log : piece) {
+			BlockPos below = log.below();
+			// (Next to what it can't see: it can't tell.)
+			for (Direction side : Direction.values()) {
+				if (!readable(level, log.relative(side))) {
+					return false;
+				}
+			}
+
+			if (!piece.contains(below) && (built == null || !built.isInside(below))) {
+				BlockState under = level.getBlockState(below);
+				if (!under.isAir() && !under.is(BlockTags.LEAVES) && !under.canBeReplaced()) {
+					return false;
+				}
+			}
+
+			// (Someone's build: never.)
+			if (level instanceof net.minecraft.world.level.Level real && com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(real, log)) {
+				return false;
+			}
+
+			for (Direction side : Direction.values()) {
+				BlockPos next = log.relative(side);
+				tree |= built != null && built.isInside(next) || grown(level.getBlockState(next));
+			}
+		}
+
+		return tree;
+	}
+
+	/** World generation may read and write only round the chunk it's working on; a level, only what's loaded. */
+	private static boolean readable(LevelAccessor level, BlockPos pos) {
+		return pos.getY() >= level.getMinBuildHeight() && pos.getY() < level.getMaxBuildHeight() && writable(level, pos);
 	}
 
 	/** Blocks matching from a start, through neighbors (diagonals too when {@code reach} is 1), up to a count. */

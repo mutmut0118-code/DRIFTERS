@@ -2746,5 +2746,13 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   Tested: in the client, the trading screen with the keeper's offers (bread for emeralds; wheat, iron, logs, wool,
   leather bought); headless, a made-ready town's keeper took 64 logs from the store and sold them; a town founded by its
   people built its store (day 4) and stall (day 4) and its keeper sold cobblestone and steak.
+- **Fixes from the user's test of 0.22.11 (0.22.12):** the made-ready town put each Drifter two blocks out from its
+  door, still under the roof's overhang, so they started on the eaves: now out past the house's whole box, on the
+  ground. Floating leaves (and trunk pieces) wherever something was put up at once (catch-up huts and houses, camps, the
+  made-ready town): the build cut through trees, and blocks set at once never tell the leaves round them to rot. New
+  `Felling.tidy(level, area, built)` after each of those (and `DrifterApi.tidyTrees` for the town's ground, roads and
+  fields): trunk pieces with nothing under them but air, leaves or the build go, and every grown leaf no tree's log holds
+  within 6 steps through leaves (the game's own leaf distance) goes. Tested on seed 777's birch forest: 332 loose leaves
+  and 8 of 8 Drifters off the ground before, 0 and 0 after.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

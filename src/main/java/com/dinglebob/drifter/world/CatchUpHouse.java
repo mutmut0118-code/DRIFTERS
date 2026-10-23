@@ -190,6 +190,8 @@ public final class CatchUpHouse {
 		// The trees its wood came from, gone (user, 2026-10-17).
 		com.dinglebob.drifter.world.gen.Felling.fell(level, placed.box(), com.dinglebob.drifter.world.gen.Felling.logsIn(placed.build.stream().map(c -> c.state()).toList()),
 			drifter.getRandom());
+		// (No trunks or leaves left hanging where it cut through trees.)
+		com.dinglebob.drifter.world.gen.Felling.tidy(level, placed.box(), placed.box());
 		// Its bed moved in from the hut (the hut's a shed from now on).
 		String moved = moveBed(level, home, placed, want);
 		return "built its house (" + plan.id.replace("personal:", "").replace("world:", "") + ", " + placedBlocks + " blocks)" + moved;

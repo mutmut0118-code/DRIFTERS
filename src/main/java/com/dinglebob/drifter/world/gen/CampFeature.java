@@ -143,6 +143,7 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		// A Drifter's build: nobody digs through it for a route or takes its blocks. The trees its wood came from, gone.
 		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, hut.box());
 		Felling.fell(level, hut.box(), Felling.logsIn(Felling.blocksIn(level, hut.box())), random);
+		Felling.tidy(level, hut.box(), hut.box());
 		// Lived in (a setting), if there's room for one more Drifter (the cap; otherwise it's left empty).
 		boolean occupied = random.nextDouble() < DrifterConfig.spawnChance(com.dinglebob.drifter.DrifterConfig.Spawn.CAMPS_LIVED_IN)
 			&& com.dinglebob.drifter.world.DrifterCensus.roomFor(center, 1);
@@ -295,6 +296,7 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, placed.box());
 		// The trees its wood came from, gone (user, 2026-10-17).
 		Felling.fell(level, placed.box(), Felling.logsIn(placed.build.stream().map(c -> c.state()).toList()), random);
+		Felling.tidy(level, placed.box(), placed.box());
 		// The bed, then its chest, crafting table and furnace along the walls (the way a Drifter sets out a room).
 		var bed = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, want);
 		if (bed == null) {

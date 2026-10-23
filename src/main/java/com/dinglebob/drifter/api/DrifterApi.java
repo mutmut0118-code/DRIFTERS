@@ -231,6 +231,14 @@ public final class DrifterApi {
 	}
 
 	/**
+	 * Loose bits of trees in this area after something was put up at once (ground evened, roads, fields): trunks left in
+	 * the air and leaves no tree's log holds, gone. ({@link #placeHouse} does this round each house itself.)
+	 */
+	public static void tidyTrees(ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox area) {
+		com.dinglebob.drifter.world.gen.Felling.tidy(level, area, null);
+	}
+
+	/**
 	 * (A town made at once, for testing; not how Drifters build: they go block by block.) The house from this plan, its
 	 * corner at {@code origin}, turned and in {@code wood} ("oak", "spruce"...), put up all at once; null if there's no such
 	 * plan. {@code front}: the door wanted on that side (for the door's place; the turn is the caller's).

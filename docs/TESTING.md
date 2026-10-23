@@ -1460,6 +1460,12 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Fixes in 0.22.12
+
+- [ ] `/drifterciv town spawn 8` in a forest: every Drifter starts on the ground in front of its house (not on a roof),
+      and no leaves or bits of trunk hang in the air round the houses, roads and fields.
+- [ ] Huts and houses Drifters built while you were away (catch-up), and new camps: no floating leaves round them.
+
 ## The market (new, 0.22.11)
 
 - [ ] **Quick look**: `/drifterciv town spawn 6` (a made-ready town now has a market stall on its plaza) and

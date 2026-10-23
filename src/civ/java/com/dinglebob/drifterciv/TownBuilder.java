@@ -311,14 +311,16 @@ public final class TownBuilder {
 		// A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4).
 		BlockPos stallAt = new BlockPos(cx + 4, y0, cz + 4);
 		DrifterApi.placeHouse(level, DrifterApi.stallPlan(), stallAt, Rotation.NONE, "oak", Direction.SOUTH);
+		// The trees the town cut through (its ground, roads and fields): no trunks or leaves left hanging (user, 2026-10-22).
+		DrifterApi.tidyTrees(level, new net.minecraft.world.level.levelgen.structure.BoundingBox(cx - HALF_X, y0 - 16, cz - HALF_Z, cx + HALF_X,
+			y0 + 32, cz + HALF_Z));
 
 		// 6. Its people: one moved into each house, friends with the rest, one group.
 		List<DrifterEntity> people = new ArrayList<>();
 		for (int i = 0; i < houses.size(); i++) {
 			DrifterApi.PlacedHouse house = houses.get(i);
 			Town.Plot plot = plots.get(i);
-			BlockPos door = house.door() != null ? house.door() : plot.origin;
-			BlockPos stand = onGround(level, door.getX() + plot.front.getStepX() * 2, door.getZ() + plot.front.getStepZ() * 2);
+			BlockPos stand = doorstep(level, house, plot);
 			DrifterEntity drifter = DrifterApi.spawn(level, stand, null);
 			if (drifter == null) {
 				continue;
@@ -426,6 +428,21 @@ public final class TownBuilder {
 
 			step = step.relative(front);
 		}
+	}
+
+	/**
+	 * Where its owner first stands: out from its door past the house's eaves, on the ground (user, 2026-10-22: two blocks
+	 * out from the door was still under the roof's overhang, and they started on the roof).
+	 */
+	private static BlockPos doorstep(ServerLevel level, DrifterApi.PlacedHouse house, Town.Plot plot) {
+		BlockPos step = house.door() != null ? house.door() : plot.origin;
+		var box = house.box();
+		while (box.isInside(new BlockPos(step.getX(), box.minY(), step.getZ()))) {
+			step = step.relative(plot.front);
+		}
+
+		step = step.relative(plot.front);
+		return onGround(level, step.getX(), step.getZ());
 	}
 
 	/** The store: 9 by 9, cobblestone walls, a plank roof, its door to the north-south road (west), chests round the walls. */
