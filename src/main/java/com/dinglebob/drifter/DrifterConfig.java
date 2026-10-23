@@ -48,6 +48,8 @@ public final class DrifterConfig {
 		int fov = DEFAULT_FOV;
 		/** Short canned chat lines (hi, ty, gg...), section 14 "Optional chat lines": on by default. */
 		boolean chatLines = true;
+		/** How far off players see what a Drifter says (user, 2026-10-23: "only players nearby"). */
+		int chatRange = DEFAULT_CHAT_RANGE;
 		/** Players seen together share a little of each other's standing (section 14 "Forgiveness and multiplayer"). */
 		boolean shareReputation = true;
 		/** Every Drifter thought goes to the game log (user's choice, 2026-10-15: on by default). */
@@ -555,6 +557,20 @@ public final class DrifterConfig {
 
 	public static void setFov(int degrees) {
 		data.fov = Mth.clamp(degrees, MIN_FOV, MAX_FOV);
+		save();
+	}
+
+	public static final int DEFAULT_CHAT_RANGE = 48;
+	public static final int MIN_CHAT_RANGE = 16;
+	public static final int MAX_CHAT_RANGE = 256;
+
+	/** How far off players see what a Drifter says in chat (blocks). */
+	public static int chatRange() {
+		return Mth.clamp(data.chatRange <= 0 ? DEFAULT_CHAT_RANGE : data.chatRange, MIN_CHAT_RANGE, MAX_CHAT_RANGE);
+	}
+
+	public static void setChatRange(int blocks) {
+		data.chatRange = Mth.clamp(blocks, MIN_CHAT_RANGE, MAX_CHAT_RANGE);
 		save();
 	}
 

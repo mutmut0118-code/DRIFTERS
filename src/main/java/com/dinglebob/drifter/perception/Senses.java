@@ -1246,6 +1246,10 @@ public class Senses {
 		DrifterMemory.Remembered remembered = this.memory.remember(MemoryKind.LANDMARK, label, Vec3.atCenterOf(pos), this.dimension(), this.now(),
 			MemorySource.SEEN, importance, null);
 		if (remembered.isNew()) {
+			if (!label.equals("mountain")) {
+				com.dinglebob.drifter.social.talk.Diary.saw(this.drifter, label);
+			}
+
 			this.think(String.format(Locale.ROOT, "spotted a %s %s, about %d blocks away", label, this.direction(Vec3.atCenterOf(pos)),
 				(int)Math.round(distance)));
 		}

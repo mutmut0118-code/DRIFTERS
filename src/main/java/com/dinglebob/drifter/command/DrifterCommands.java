@@ -92,6 +92,24 @@ public final class DrifterCommands {
 				com.dinglebob.drifter.social.ChatLines.speak(drifter, line);
 				return 1;
 			}))));
+		// Conversations between Drifters (the dynamic chat): the nearest two talk now (on this topic, or one that suits them).
+		root.then(Commands.literal("talk")
+			.executes(ctx -> talk(ctx, null))
+			.then(Commands.argument("topic", StringArgumentType.word())
+				.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+					com.dinglebob.drifter.social.talk.Topics.all().stream().map(com.dinglebob.drifter.social.talk.Topics.Topic::id), builder))
+				.executes(ctx -> talk(ctx, StringArgumentType.getString(ctx, "topic")))));
+		root.then(Commands.literal("diary").executes(ctx -> {
+			DrifterEntity drifter = nearest(ctx.getSource());
+			long now = drifter.level().getGameTime();
+			ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + "'s diary:"), false);
+			for (var entry : drifter.getDiary().all()) {
+				ctx.getSource().sendSuccess(() -> Component.literal("  " + entry.kind.name().toLowerCase(java.util.Locale.ROOT) + ": " + entry.what + " x" + entry.count
+					+ " (" + (now - entry.time) / 20 + " s ago)"), false);
+			}
+
+			return 1;
+		}));
 		root.then(Commands.literal("spawnmany")
 			.then(Commands.argument("count", IntegerArgumentType.integer(1, MAX_SPAWN_MANY))
 				.executes(ctx -> spawnMany(ctx, IntegerArgumentType.getInteger(ctx, "count"), DEFAULT_SPREAD))
@@ -613,6 +631,25 @@ public final class DrifterCommands {
 		}
 
 		throw new SimpleCommandExceptionType(Component.literal("Unknown speed '" + id + "' (idle, normal or combat)")).create();
+	}
+
+	private static int talk(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, @org.jetbrains.annotations.Nullable String topic) throws CommandSyntaxException {
+		DrifterEntity a = nearest(ctx.getSource());
+		DrifterEntity b = a.level().getEntitiesOfClass(DrifterEntity.class, a.getBoundingBox().inflate(16.0), other -> other != a && other.isAlive()).stream()
+			.min(java.util.Comparator.comparingDouble(other -> other.distanceToSqr(a))).orElse(null);
+		if (b == null) {
+			ctx.getSource().sendFailure(Component.literal("No other Drifter within 16 blocks of " + label(a)));
+			return 0;
+		}
+
+		var talk = com.dinglebob.drifter.social.talk.Conversations.start(a, b, topic, a.level().getGameTime());
+		if (talk == null) {
+			ctx.getSource().sendFailure(Component.literal("No topic suits " + label(a) + " and " + label(b) + " right now"));
+			return 0;
+		}
+
+		ctx.getSource().sendSuccess(() -> Component.literal(label(a) + " and " + label(b) + " talk: " + talk.topic.id()), false);
+		return 1;
 	}
 
 	static DrifterEntity nearest(CommandSourceStack source) throws CommandSyntaxException {

@@ -34,8 +34,10 @@ public final class ChatReplies {
 
 	/** How far from a player Drifters answer their chat, or their leaving. */
 	private static final double HEARS = 64.0;
-	/** How far off Drifters react to a death or an advancement in chat (they read chat, as players do). */
-	private static final double READS = 160.0;
+	/** How far off Drifters react to a death or an advancement: as far as they're heard (only players nearby see it). */
+	private static double reads() {
+		return DrifterConfig.chatRange();
+	}
 	/** Most Drifters answering one thing. */
 	private static final int MOST = 2;
 
@@ -91,12 +93,12 @@ public final class ChatReplies {
 
 			if (victim instanceof ServerPlayer player && SocialWatcher.isRealPlayer(player)) {
 				// Its own kill says its own "gg"; the rest react to the death message.
-				List<DrifterEntity> readers = near(level, player, READS, false).stream()
+				List<DrifterEntity> readers = near(level, player, reads(), false).stream()
 					.filter(drifter -> source.getEntity() != drifter && com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity()) != drifter).toList();
 				answer(level, player, readers, silly(source) ? "rip_funny" : "rip", MOST, 30, player.getGameProfile().getName());
 			} else if (victim instanceof DrifterEntity dead && !dead.isTemporary()) {
 				String who = dead.getName().getString();
-				for (DrifterEntity reader : near(level, dead, READS, false)) {
+				for (DrifterEntity reader : near(level, dead, reads(), false)) {
 					if (reader == dead) {
 						continue;
 					}
@@ -116,7 +118,7 @@ public final class ChatReplies {
 	/** A player made an advancement that shows in chat: one or two Drifters about say gg (PlayerAdvancementsMixin). */
 	public static void advancement(ServerPlayer player) {
 		if (SocialWatcher.isRealPlayer(player)) {
-			answer(player.serverLevel(), player, near(player.serverLevel(), player, READS, false), "congrats", MOST, 30, player.getGameProfile().getName());
+			answer(player.serverLevel(), player, near(player.serverLevel(), player, reads(), false), "congrats", MOST, 30, player.getGameProfile().getName());
 		}
 	}
 

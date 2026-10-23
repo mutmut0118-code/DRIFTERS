@@ -2832,5 +2832,32 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   in chat ("grumpy" or "baker" for xXGrumpybakerXx, "onyx" for golden_onyx_3), not an everyday word ("over", "just"...),
   calls it as the whole name does (`SocialWatcher.called`). Tested in the client: all three called it, "just look over
   there" called nobody.
-- Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
+- **Dynamic chat, phase 1: Drifters talk with each other (0.22.18; the user: "greatly expand small talk conversations
+  between drifters aswell as player interaction / how can we make this the most dynamic chat system"; they picked: only
+  players nearby hear chat, requests from players trust-gated (phase 2), built in phases with a test between).**
+  - Who hears: every Drifter line now goes only to players within "Chat heard within" (config screen, Drifters section;
+    48 blocks, 16 to 256) in the same dimension, plus the player an encounter is with; the server log gets all of it.
+  - A diary (`social/talk/Diary`, saved): ore it mined (counted per kind), mobs it killed, close calls (5 health or
+    less), its deaths, what it built, who it traded with, places it found. `/drifter diary`.
+  - What each has to say (`social/talk/Facts`): words for the lines (`{a.ore}`, `{b.death}`, `{a.armor}`, `{a.town}`,
+    `{a.news_who}`...) and flags for the topics (found_ore, died_lately, friends, rivals, has_news, rain, night...),
+    only from what it knows.
+  - Topics (`social/talk/Topics`, data `data/drifter/drifter_talk/`, 41 topics, 1153 lines): ore and rare finds,
+    death stories, close calls, mob hunts, builds, gear, trades, places, hunger, hurt, what are you doing, homeless,
+    hut to house; how are you, morning, evening, night, rain, thunder, nice day, news, warning about a player, praising
+    one, town, group, catching up, rivals needling, strangers meeting, bored, plans, complaints, bragging, seven jokes.
+    Each in the personality voices; a question carries its own answers ("where's your base?" "over the hill"); effects
+    (news passed on, trust, rivalry).
+  - `social/talk/Conversations` and `ConverseGoal`: two idle Drifters near a player (one talk per player's earshot)
+    walk up, face each other and take turns, typing time by line length; one talk at a time each; gaps per Drifter
+    (chattier ones talk more) and per pair. One of them has to stop what it's doing (the converse goal, "someone's
+    waiting" as a deal, wins in its brain within 10 s), else nothing is said; the other can answer while it works (players
+    type while they build) if it stays within 16 blocks. Both off doing something else for 5 s ends it. At night hunting
+    mobs comes first. The weather and the night come up only when both are under the open sky.
+    `/drifter talk [topic]` starts one between the nearest two.
+  - docs/CHAT_LINES.md section 6 lists every topic (generated).
+- Next in the chat: phase 2 (players: wyd, coords, follow me, trades, team up, help, compliments and insults,
+  trust-gated, a Drifter remembers what you said), phase 3 (Drifters start talks with you, several join in, town gm
+  rounds), phase 4 (typos, split messages, a chattiness setting). Then the well, the plaza, then step 4.
+- Before that: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

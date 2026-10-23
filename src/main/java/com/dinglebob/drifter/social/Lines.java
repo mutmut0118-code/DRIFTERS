@@ -113,8 +113,51 @@ public final class Lines {
 	/** A line for this, in its voice, words filled in ({@code vars}: name, value, name, value...); null if there are none. */
 	@Nullable
 	public static String pick(DrifterEntity drifter, String key, Object... vars) {
-		List<String> pool = fillable(pool(drifter, key), vars);
-		return pool.isEmpty() ? null : fill(drifter, pool.get(drifter.getRandom().nextInt(pool.size())), vars);
+		return pickFrom(drifter, lines.get(key), vars);
+	}
+
+	/** A line from these voices (a conversation's turn), in its voice, not one it said lately if it has others. */
+	@Nullable
+	public static String pickFrom(DrifterEntity drifter, @Nullable Map<String, List<String>> voices, Object... vars) {
+		String line = template(drifter, voices, vars);
+		return line == null ? null : fill(drifter, line, vars);
+	}
+
+	/** The line it picks from these voices, its words not yet filled in (null if none suits); see {@link #filled}. */
+	@Nullable
+	public static String template(DrifterEntity drifter, @Nullable Map<String, List<String>> voices, Object... vars) {
+		List<String> pool = fillable(pool(drifter, voices), vars);
+		if (pool.isEmpty()) {
+			return null;
+		}
+
+		List<String> fresh = pool.stream().filter(line -> !said(drifter, line)).toList();
+		List<String> from = fresh.isEmpty() ? pool : fresh;
+		String line = from.get(drifter.getRandom().nextInt(from.size()));
+		remember(drifter, line);
+		return line;
+	}
+
+	/** A line from {@link #template} with its words filled in. */
+	public static String filled(DrifterEntity drifter, String line, Object... vars) {
+		return fill(drifter, line, vars);
+	}
+
+	/** Lines each Drifter said lately (it doesn't say the same thing over and over; not saved). */
+	private static final Map<java.util.UUID, java.util.ArrayDeque<String>> lately = new HashMap<>();
+	private static final int LATELY = 24;
+
+	private static boolean said(DrifterEntity drifter, String line) {
+		java.util.ArrayDeque<String> mine = lately.get(drifter.getUUID());
+		return mine != null && mine.contains(line);
+	}
+
+	private static void remember(DrifterEntity drifter, String line) {
+		java.util.ArrayDeque<String> mine = lately.computeIfAbsent(drifter.getUUID(), id -> new java.util.ArrayDeque<>());
+		mine.addLast(line);
+		while (mine.size() > LATELY) {
+			mine.removeFirst();
+		}
 	}
 
 	/**
@@ -138,7 +181,10 @@ public final class Lines {
 
 	/** The lines it picks from this time: its personality's own, mostly, or everyone's. */
 	private static List<String> pool(DrifterEntity drifter, String key) {
-		Map<String, List<String>> voices = lines.get(key);
+		return pool(drifter, lines.get(key));
+	}
+
+	private static List<String> pool(DrifterEntity drifter, @Nullable Map<String, List<String>> voices) {
 		if (voices == null) {
 			return List.of();
 		}
@@ -152,7 +198,7 @@ public final class Lines {
 		return any.isEmpty() && own != null ? own : any;
 	}
 
-	private static final java.util.regex.Pattern WORD = java.util.regex.Pattern.compile("\\{([a-z_]+)}");
+	private static final java.util.regex.Pattern WORD = java.util.regex.Pattern.compile("\\{([a-z_.]+)}");
 
 	/** The lines whose every word in braces it has (a line asking for {player} with no player to name isn't said). */
 	private static List<String> fillable(List<String> pool, Object... vars) {

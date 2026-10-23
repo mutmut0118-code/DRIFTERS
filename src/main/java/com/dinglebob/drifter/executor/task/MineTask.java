@@ -136,6 +136,7 @@ public class MineTask extends Task {
 		}
 
 		this.drifter.getSenses().minedBlock(this.pos, this.target);
+		com.dinglebob.drifter.social.talk.Diary.mined(this.drifter, this.target);
 		this.drifter.dugOut(this.pos);
 		this.drifter.forgetScaffold(this.pos);
 

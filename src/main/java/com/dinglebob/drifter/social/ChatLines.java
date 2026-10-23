@@ -55,13 +55,45 @@ public final class ChatLines {
 		}
 
 		lastLine.put(drifter.getUUID(), drifter.level().getGameTime());
-		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + text), false);
+		send(drifter, text);
+	}
+
+	/**
+	 * Its line, to the players near enough to hear it (user, 2026-10-23: only players nearby see what Drifters say), and to
+	 * the player an encounter of its is with, wherever they are (it's talking to them: a call for help carries).
+	 */
+	public static void send(DrifterEntity drifter, String text) {
+		Component line = Component.literal("<" + drifter.getName().getString() + "> " + text);
+		double range = DrifterConfig.chatRange();
+		java.util.UUID audience = drifter.encounter() != null ? drifter.encounter().player : null;
+		for (net.minecraft.server.level.ServerPlayer player : drifter.getServer().getPlayerList().getPlayers()) {
+			if (player.getUUID().equals(audience) || player.level() == drifter.level() && player.distanceTo(drifter) <= range) {
+				player.sendSystemMessage(line);
+			}
+		}
+
+		// (The server's log has it too, as it has players' chat.)
+		drifter.getServer().sendSystemMessage(line);
+	}
+
+	/**
+	 * A line in a conversation with another Drifter ({@code talk.Conversations}): the setting applies; the conversation sets
+	 * its own pace, so the rate limits don't (its other chatter waits after it).
+	 */
+	public static void converse(DrifterEntity drifter, String text) {
+		if (!DrifterConfig.chatLines() || drifter.getServer() == null) {
+			return;
+		}
+
+		lastLine.put(drifter.getUUID(), drifter.level().getGameTime());
+		send(drifter, text);
 	}
 
 	/** A line of its own (a whim's), under the same rate limits and setting as the canned ones. */
 	public static void sayLine(DrifterEntity drifter, @org.jetbrains.annotations.Nullable String text) {
 		MinecraftServer server = drifter.getServer();
-		if (!DrifterConfig.chatLines() || server == null || text == null) {
+		// (In a conversation it keeps to it.)
+		if (!DrifterConfig.chatLines() || server == null || text == null || com.dinglebob.drifter.social.talk.Conversations.of(drifter) != null) {
 			return;
 		}
 
@@ -80,13 +112,13 @@ public final class ChatLines {
 
 		lastLine.put(drifter.getUUID(), now);
 		recent.addLast(now);
-		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + text), false);
+		send(drifter, text);
 	}
 
 	/** It might say something about this (personality and rate limits decide); {@code vars}: words for the line (player...). */
 	public static void say(DrifterEntity drifter, Kind kind, Object... vars) {
 		MinecraftServer server = drifter.getServer();
-		if (!DrifterConfig.chatLines() || server == null) {
+		if (!DrifterConfig.chatLines() || server == null || com.dinglebob.drifter.social.talk.Conversations.of(drifter) != null) {
 			return;
 		}
 
@@ -119,6 +151,6 @@ public final class ChatLines {
 		lastLine.put(drifter.getUUID(), now);
 		lastKind.put(kindKey, now);
 		recent.addLast(now);
-		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + line), false);
+		send(drifter, line);
 	}
 }

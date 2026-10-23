@@ -1460,6 +1460,24 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Drifters talk with each other (new, 0.22.18)
+
+The topics and their lines are in docs/CHAT_LINES.md, section 6.
+- [ ] Chat only reaches you near the Drifter: Mod Menu > Drifter > gear button > Drifters > "Chat heard within"
+      (48 blocks; 16 to 256). Walk away from a Drifter that's talking: past that you don't see its lines.
+- [ ] Stand near two Drifters with nothing pressing (daytime, fed, no mobs). Within a few minutes they walk up to each
+      other, face each other and chat: "hows it going Bob", "good hbu", "same". A question gets an answer that fits
+      ("where's your base?", "over the hill").
+- [ ] What they say depends on what they did: after one mined diamonds ("found 3 diamonds today"), died ("died to a
+      creeper lol"), killed a lot of zombies, built a house, traded, or found a village. `/drifter diary` next to one
+      shows what it has to talk about.
+- [ ] Friends, rivals and strangers talk differently (`/drifter bond <name> 60` makes friends, `-60` rivals). The
+      weather and the time come up (rain, a thunderstorm, morning, night).
+- [ ] Personalities sound different: a hermit is short ("hm."), a newbie excited ("hi!!"), a bandit eyes your gear.
+- [ ] `/drifter talk` makes the nearest two talk now; `/drifter talk joke_skeleton` (any topic id from the doc) picks it.
+- [ ] They don't talk over each other: one conversation per spot, and not every few seconds.
+- [ ] One busy building may keep building and answer while it works; nobody talks about the rain in a cave.
+
 ## Chat (new, 0.22.16)
 
 The full list of lines and answers is in docs/CHAT_LINES.md.

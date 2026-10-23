@@ -150,6 +150,9 @@ doc += ['# Every chat line a Drifter says', '',
         '## How it picks and how often it talks', '',
         '- **Its voice.** A Drifter of a personality with lines of its own (newbie, builder, PvP sweat, bandit...) uses them about two times in three; '
         'otherwise everyone\'s.',
+        '- **Who hears it.** Only players near the Drifter (48 blocks, set by "Chat heard within" on the config screen), plus the player an '
+        'encounter is with; the server log gets everything.',
+        '- **Not twice in a row.** Each remembers its last couple dozen lines and picks a different one while it can.',
         '- **Habits.** For the canned reactions (section 1) it has a habit: the same Drifter greets the same way most of the time, now and then another line.',
         '- **Rate limits.** Each Drifter says one line in 20 seconds at most (the same kind once a minute), and all of them together four in 10 seconds. '
         'Quiet ones (low sociability) mostly don\'t bother. Encounter lines (section 5) are always said: it\'s talking to you.',
@@ -185,12 +188,69 @@ for short, title in ENC.items():
     for key in [k for k in lines if k.startswith('encounter.' + short + '.')]:
         doc += block(key, ENC_WHEN.get(key[len('encounter.'):], ''))
 
-doc += ['## 6. Not chat, but close', '',
+TALK = os.path.join(ROOT, 'src/main/resources/data/drifter/drifter_talk')
+topics = []
+for path in sorted(glob.glob(TALK + '/*.json')):
+    topics += json.load(open(path, encoding='utf-8'))['topics']
+
+
+def said(lines):
+    out = []
+    if isinstance(lines, list):
+        lines = {'any': lines}
+    for voice, items in lines.items():
+        parts = []
+        for item in items:
+            if isinstance(item, dict):
+                parts.append(esc(item['line']) + ' *(answered: ' + ' / '.join(esc(a) for a in item['then']) + ')*')
+            else:
+                parts.append(esc(item))
+        out.append(('**' + VOICE.get(voice, voice) + ':** ' if voice != 'any' else '') + ' · '.join(parts))
+    return out
+
+
+talk_lines = 0
+for topic in topics:
+    for turn in topic['turns']:
+        for source in turn.get('options', [turn]):
+            lines = source['lines']
+            for items in (lines.values() if isinstance(lines, dict) else [lines]):
+                for item in items:
+                    talk_lines += 1 + (len(item['then']) if isinstance(item, dict) else 0)
+
+doc += ['## 6. Conversations between Drifters', '',
+        'Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation '
+        '(%d topics, %d lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. '
+        '**a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, '
+        'a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, '
+        'news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. '
+        'Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.' % (len(topics), talk_lines), '']
+for topic in topics:
+    needs = ', '.join(topic.get('needs', [])) or 'any time'
+    doc += ['#### ' + topic['id'].replace('_', ' '), '', '*Needs:* ' + needs + ('  ·  *Effects:* ' + ', '.join(topic['effects']) if topic.get('effects') else ''), '']
+    for i, turn in enumerate(topic['turns']):
+        head = '%d. **%s**' % (i + 1, turn['by'])
+        if turn.get('chance', 1) < 1:
+            head += ' (%d%%)' % round(turn['chance'] * 100)
+        if turn.get('if'):
+            head += ' if ' + ', '.join(turn['if'])
+        if 'options' in turn:
+            doc.append(head + ':')
+            for option in turn['options']:
+                cond = ', '.join(option.get('if', [])) or 'otherwise'
+                for line in said(option['lines']):
+                    doc.append('   - *' + cond + ':* ' + line)
+        else:
+            for j, line in enumerate(said(turn['lines'])):
+                doc.append((head + ': ' if j == 0 else '   - ') + line)
+    doc.append('')
+
+doc += ['## 7. Not chat, but close', '',
         '- **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod\'s announcements.',
         '- **Thoughts:** what a Drifter thinks (`/drifter thoughts`) never goes to chat.',
         '- **The chronicle:** Drifter: Civilizations\'s morning news ("Day 4: ...") is the mod reporting.', '']
 
-doc += ['## 7. What you can say to them', '',
+doc += ['## 8. What you can say to them', '',
         'A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, '
         '"yeah no" a no. Capitals, punctuation and stretched letters don\'t matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped '
         '("im" is "i\'m"). The words can be anywhere in the message.', '',
@@ -212,4 +272,4 @@ doc += ['## Where they live', '',
         '`social/ChatReplies.java` (the rituals), `encounter/*.java`.', '']
 
 open(os.path.join(ROOT, 'docs/CHAT_LINES.md'), 'w', encoding='utf-8', newline='\n').write('\n'.join(doc))
-print(total, whim_total, answer_total)
+print(total, whim_total, answer_total, len(topics), talk_lines)

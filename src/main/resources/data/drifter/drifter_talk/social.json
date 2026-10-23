@@ -1,0 +1,1717 @@
+{
+  "comment": "Drifter-to-Drifter small talk: how they are, the day, the news, players, their town, friends and rivals. See doings.json's comment for the conditions and words.",
+  "topics": [
+    {
+      "id": "how_are_you",
+      "weight": 4,
+      "needs": [
+        "!rivals"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "hows it going {b}",
+              "hey {b}, you good?",
+              "yo {b} how you doing",
+              "sup {b}",
+              "hows your day",
+              "o/ {b}, hows things"
+            ],
+            "newbie": [
+              "hi {b}!! how are you",
+              "heyyy {b}"
+            ],
+            "hermit": [
+              "{b}.",
+              "hm. {b}. you alright"
+            ],
+            "helper": [
+              "hey {b}! how are you doing?",
+              "{b}! all good?"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:mood_bored"
+              ],
+              "lines": [
+                "bored out of my mind",
+                "bored tbh",
+                "nothing to do lol",
+                "so bored",
+                "eh. bored"
+              ]
+            },
+            {
+              "if": [
+                "b:mood_frustrated"
+              ],
+              "lines": [
+                "rough day",
+                "dont ask",
+                "everything keeps going wrong",
+                "ngl not great",
+                "im about to crash out"
+              ]
+            },
+            {
+              "if": [
+                "b:mood_triumphant"
+              ],
+              "lines": [
+                "great actually!!",
+                "W day",
+                "best day ever",
+                "cant complain, lets go"
+              ]
+            },
+            {
+              "if": [
+                "b:mood_confident"
+              ],
+              "lines": [
+                "good, feeling good",
+                "never better",
+                "pretty good ngl",
+                "locked in"
+              ]
+            },
+            {
+              "if": [
+                "b:mood_anxious"
+              ],
+              "lines": [
+                "kinda on edge",
+                "jumpy, too many mobs",
+                "a bit nervous ngl",
+                "could be better"
+              ]
+            },
+            {
+              "if": [
+                "b:mood_grieving"
+              ],
+              "lines": [
+                "not great",
+                "lost someone",
+                "...been better",
+                "rough week"
+              ]
+            },
+            {
+              "if": [
+                "b:mood_angry"
+              ],
+              "lines": [
+                "annoyed",
+                "dont even",
+                "someone messed with my stuff",
+                "mad tbh"
+              ]
+            },
+            {
+              "lines": {
+                "any": [
+                  {
+                    "line": "good hbu",
+                    "then": [
+                      "good",
+                      "same",
+                      "alright"
+                    ]
+                  },
+                  {
+                    "line": "pretty good, you?",
+                    "then": [
+                      "same",
+                      "good",
+                      "cant complain"
+                    ]
+                  },
+                  "not bad",
+                  {
+                    "line": "chilling, you?",
+                    "then": [
+                      "same",
+                      "same lol",
+                      "working"
+                    ]
+                  },
+                  "all good",
+                  "cant complain",
+                  {
+                    "line": "decent, wbu",
+                    "then": [
+                      "not bad",
+                      "same",
+                      "alright"
+                    ]
+                  }
+                ],
+                "hermit": [
+                  "fine",
+                  "alive",
+                  "ok"
+                ],
+                "newbie": [
+                  "good!! you?",
+                  "great!!"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "options": [
+            {
+              "if": [
+                "a:mood_bored"
+              ],
+              "lines": [
+                "same, so bored",
+                "bored too",
+                "nothing to do here either"
+              ]
+            },
+            {
+              "if": [
+                "a:mood_triumphant"
+              ],
+              "lines": [
+                "having a great day",
+                "W day for me",
+                "good, really good"
+              ]
+            },
+            {
+              "if": [
+                "a:mood_frustrated"
+              ],
+              "lines": [
+                "rough one here too",
+                "not great tbh",
+                "dont ask lol"
+              ]
+            },
+            {
+              "lines": [
+                "good",
+                "same old",
+                "not bad",
+                "alright",
+                "chilling",
+                "cant complain",
+                "decent"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.4,
+          "lines": [
+            "nice",
+            "cool",
+            "W",
+            "ok cya around",
+            "o/",
+            "good to hear"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "morning",
+      "weight": 4,
+      "needs": [
+        "morning"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "gm",
+            "morning",
+            "gm {b}",
+            "mornin",
+            "good morning",
+            "gm o/"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": {
+            "any": [
+              "gm",
+              "morning",
+              "gm o/",
+              "mornin",
+              {
+                "line": "gm, sleep well?",
+                "then": [
+                  "yeah",
+                  "nope, zombies",
+                  "like a log",
+                  "phantoms tho"
+                ]
+              },
+              "morning {a}"
+            ],
+            "hermit": [
+              "mm",
+              "gm"
+            ],
+            "newbie": [
+              "good morninggg",
+              "GM!!"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "chance": 0.7,
+          "lines": [
+            "phantoms kept me up",
+            "slept fine",
+            "zombies were banging on my door all night",
+            "barely slept",
+            "slept like a log",
+            "skipped the night, nice"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.5,
+          "lines": [
+            "same",
+            "phantoms are the worst",
+            "nice",
+            "rip",
+            "gotta sleep more",
+            "ugh zombies"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "evening",
+      "weight": 3,
+      "needs": [
+        "evening",
+        "outside"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "getting dark",
+            "sun's going down",
+            "night soon",
+            "almost night",
+            "its getting late"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "yeah, heading home",
+            "gonna sleep soon",
+            "time to light some torches",
+            "mobs soon",
+            "already?",
+            "night shift time"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "watch out for creepers",
+            "stay safe",
+            "gn when you go",
+            "same, going to bed",
+            "dont get blown up"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.4,
+          "lines": [
+            "you too",
+            "gn",
+            "will do",
+            "o7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "night_out",
+      "weight": 2,
+      "needs": [
+        "night",
+        "outside"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "why are we outside at night lol",
+            "its so dark",
+            "mobs everywhere",
+            "did you hear that",
+            "zombies all over"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "good point",
+            "lets go in",
+            "i heard a creeper",
+            "stay close",
+            "just dont look at endermen"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "yeah lets go",
+            "spooky",
+            "night is the worst",
+            "should have slept"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rain",
+      "weight": 3,
+      "needs": [
+        "rain",
+        "outside"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "this rain tho",
+            "rain again",
+            "its pouring",
+            "ugh rain",
+            "nice weather huh"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "good for the crops at least",
+            "great fishing weather",
+            "the mobs dont burn tho",
+            "i like rain ngl",
+            "stay dry"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "true",
+            "fair",
+            "still annoying",
+            "might go fishing actually"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "thunder",
+      "weight": 4,
+      "needs": [
+        "thunder",
+        "outside"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "thunderstorm!",
+            "did you see that lightning",
+            "huge storm",
+            "charged creeper weather lol",
+            "stay inside"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "dont stand near trees",
+            "mobs everywhere in this",
+            "i love storms",
+            "scary",
+            "lightning almost hit me"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "lets wait it out",
+            "careful",
+            "same",
+            "lol"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nice_day",
+      "weight": 2,
+      "needs": [
+        "clear",
+        "day",
+        "outside"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "nice day",
+            "good weather today",
+            "perfect day for building",
+            "sun's out",
+            "beautiful day"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "for real",
+            "good mining weather lol",
+            "yeah no mobs",
+            "nice",
+            "perfect"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.4,
+          "lines": [
+            "gonna get stuff done",
+            "might go exploring",
+            "yeah"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "news",
+      "weight": 5,
+      "needs": [
+        "a:has_news"
+      ],
+      "effects": [
+        "news"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "did you hear? {a.news_who} {a.news_what}",
+              "yo, {a.news_who} {a.news_what}",
+              "apparently {a.news_who} {a.news_what}",
+              "heard {a.news_who} {a.news_what}",
+              "so {a.news_who} {a.news_what}. crazy"
+            ],
+            "homebody": [
+              "did you hear what happened? {a.news_who} {a.news_what}",
+              "{b}, {a.news_who} {a.news_what}. scary"
+            ],
+            "newbie": [
+              "omg did you hear?? {a.news_who} {a.news_what}"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "lines": [
+            "no way",
+            "wait what",
+            "fr?",
+            "dang",
+            "really?",
+            "huh",
+            "wow",
+            "thats crazy",
+            "who told you",
+            "rip"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "yeah",
+            "for real",
+            "thats what i heard",
+            "crazy right",
+            "word gets around"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.4,
+          "lines": [
+            "wild",
+            "gotta be careful",
+            "noted",
+            "glad it wasnt me"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "warn_player",
+      "weight": 4,
+      "needs": [
+        "a:dislikes_a_player"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "watch out for {a.disliked_player}",
+              "dont trust {a.disliked_player}",
+              "{a.disliked_player} is bad news",
+              "stay away from {a.disliked_player}",
+              "if you see {a.disliked_player}, dont let them near your chests"
+            ],
+            "hoarder": [
+              "{a.disliked_player} better stay away from my chests",
+              "{a.disliked_player}. thief. remember the name"
+            ],
+            "pvp_sweat": [
+              "{a.disliked_player}? ill handle them",
+              "if {a.disliked_player} shows up, call me"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:dislikes_a_player"
+              ],
+              "lines": [
+                "same, {b.disliked_player} too",
+                "agreed. and {b.disliked_player}",
+                "yeah, i dont trust {b.disliked_player} either"
+              ]
+            },
+            {
+              "lines": [
+                {
+                  "line": "why?",
+                  "then": [
+                    "took stuff from my chest",
+                    "hit me for no reason",
+                    "just trust me",
+                    "they're trouble"
+                  ]
+                },
+                {
+                  "line": "what did they do",
+                  "then": [
+                    "robbed me",
+                    "attacked me",
+                    "broke my stuff",
+                    "long story"
+                  ]
+                },
+                "noted",
+                {
+                  "line": "really?",
+                  "then": [
+                    "yeah",
+                    "dead serious",
+                    "trust me"
+                  ]
+                },
+                "ok, will do"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.7,
+          "lines": [
+            "took stuff from my chest",
+            "hit me for no reason",
+            "just a feeling",
+            "they're trouble",
+            "dont ask"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.5,
+          "lines": [
+            "noted",
+            "thanks for the heads up",
+            "ill keep an eye out",
+            "wow ok"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "praise_player",
+      "weight": 3,
+      "needs": [
+        "a:likes_a_player"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.liked_player} is cool",
+            "{a.liked_player} helped me out earlier",
+            "if you see {a.liked_player}, say hi from me",
+            "{a.liked_player}'s alright",
+            "{a.liked_player} is a real one"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:likes_a_player"
+              ],
+              "lines": [
+                "yeah, so is {b.liked_player}",
+                "agreed. {b.liked_player} too"
+              ]
+            },
+            {
+              "if": [
+                "b:dislikes_a_player"
+              ],
+              "lines": [
+                "better than {b.disliked_player} at least",
+                "i'll take your word for it"
+              ]
+            },
+            {
+              "lines": [
+                "good to know",
+                "nice",
+                "never met them",
+                "cool",
+                "ill say hi"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_talk",
+      "weight": 4,
+      "needs": [
+        "a:in_town",
+        "groupmates"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.town} is coming along",
+            "{a.town}'s getting big",
+            "love what we did with {a.town}",
+            "the store could use more cobble",
+            "anyone checked the market today?",
+            "need more houses in {a.town}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "for real",
+            "proud of this place",
+            "ill drop some cobble off",
+            "more people moving in soon",
+            "we need a well",
+            "the roads look nice",
+            "agreed"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "W town",
+            "best town around",
+            "we should build a wall",
+            "maybe a farm expansion",
+            "lets keep going"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.4,
+          "lines": [
+            "{a.town} forever",
+            "o7",
+            "lets go",
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "group_pride",
+      "weight": 2,
+      "needs": [
+        "groupmates",
+        "!a:in_town"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.group} is the best crew",
+            "glad we teamed up",
+            "the crew's doing good",
+            "we should find more people"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "facts",
+            "agreed",
+            "o7",
+            "W crew",
+            "we should start a town"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.4,
+          "lines": [
+            "a town...",
+            "maybe someday",
+            "lets go",
+            "o7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "catch_up",
+      "weight": 3,
+      "needs": [
+        "friends"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "good to see you {b}",
+            "{b}! been a while",
+            "missed you around",
+            "{b} o/ long time"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "you too!",
+            "hey!! been busy",
+            "o/ {a}!",
+            "same, whats new"
+          ]
+        },
+        {
+          "by": "a",
+          "options": [
+            {
+              "if": [
+                "a:found_ore"
+              ],
+              "lines": [
+                "found {a.ore_count} {a.ore} the other day",
+                "been mining, got some {a.ore}"
+              ]
+            },
+            {
+              "if": [
+                "a:built_lately"
+              ],
+              "lines": [
+                "finished my {a.built}",
+                "been building, come see the {a.built}"
+              ]
+            },
+            {
+              "if": [
+                "a:died_lately"
+              ],
+              "lines": [
+                "i {a.death} lol",
+                "died again. {a.death}"
+              ]
+            },
+            {
+              "lines": [
+                "not much",
+                "same old",
+                "just surviving",
+                "farming mostly",
+                "nothing new"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.7,
+          "lines": [
+            "nice",
+            "we should hang out more",
+            "lets go mining sometime",
+            "ill visit soon",
+            "o7 friend"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rivals_needle",
+      "weight": 4,
+      "needs": [
+        "rivals"
+      ],
+      "effects": [
+        "rivalry"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "oh. its you",
+              "{b}.",
+              "what do you want",
+              "you again",
+              "look who it is"
+            ],
+            "pvp_sweat": [
+              "{b}. still bad?",
+              "1v1 me {b}",
+              "you still alive?"
+            ],
+            "bandit": [
+              "nice stuff you got, {b}",
+              "careful {b}"
+            ],
+            "hoarder": [
+              "stay away from my chests {b}"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "lines": [
+            "nothing from you",
+            "relax",
+            "whatever",
+            "ok",
+            "same to you",
+            "bye",
+            "funny"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "options": [
+            {
+              "if": [
+                "a:armor_diamond",
+                "!b:armor_diamond"
+              ],
+              "lines": [
+                "nice armor. oh wait",
+                "{a.armor} beats whatever that is"
+              ]
+            },
+            {
+              "lines": [
+                "thought so",
+                "stay over there",
+                "L",
+                "ok",
+                "dont touch my stuff",
+                "go away"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.5,
+          "lines": [
+            "whatever",
+            "cringe",
+            "ok buddy",
+            "not worth it",
+            "..."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "strangers_meet",
+      "weight": 4,
+      "needs": [
+        "strangers"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "hey, havent seen you around",
+              "o/ hi, im {a}",
+              "hey, new around here?",
+              "hi stranger",
+              "hey there"
+            ],
+            "hermit": [
+              "...who are you",
+              "hm. new face"
+            ],
+            "newbie": [
+              "hi!! im {a}!",
+              "are you new too?"
+            ],
+            "bandit": [
+              "well hello there",
+              "nice gear, stranger"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "lines": {
+            "any": [
+              "hey, im {b}",
+              "o/ {b}",
+              "hi, {b}",
+              "just passing through",
+              "hey hey",
+              "{b}. nice to meet you"
+            ],
+            "hermit": [
+              "{b}",
+              "just leave me be"
+            ],
+            "newbie": [
+              "hi im {b}!! nice to meet you"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "chance": 0.8,
+          "options": [
+            {
+              "if": [
+                "a:has_house"
+              ],
+              "lines": [
+                {
+                  "line": "i live just over there",
+                  "then": [
+                    "cool",
+                    "ill drop by",
+                    "nice spot"
+                  ]
+                },
+                {
+                  "line": "my base is nearby",
+                  "then": [
+                    "nice",
+                    "neighbours then",
+                    "cool"
+                  ]
+                },
+                {
+                  "line": "drop by sometime",
+                  "then": [
+                    "will do",
+                    "maybe",
+                    "sure"
+                  ]
+                }
+              ]
+            },
+            {
+              "if": [
+                "a:in_town"
+              ],
+              "lines": [
+                {
+                  "line": "im from {a.town}",
+                  "then": [
+                    "nice town",
+                    "heard of it",
+                    "cool"
+                  ]
+                },
+                {
+                  "line": "welcome to {a.town}",
+                  "then": [
+                    "ty",
+                    "nice town",
+                    "thanks!"
+                  ]
+                }
+              ]
+            },
+            {
+              "lines": [
+                {
+                  "line": "where's your base?",
+                  "then": [
+                    "around",
+                    "over the hill",
+                    "far away",
+                    "dont have one yet",
+                    "not telling lol",
+                    "by the river"
+                  ]
+                },
+                {
+                  "line": "where you from?",
+                  "then": [
+                    "far away",
+                    "up north",
+                    "around",
+                    "dont ask lol",
+                    "everywhere tbh"
+                  ]
+                },
+                {
+                  "line": "staying long?",
+                  "then": [
+                    "maybe",
+                    "just passing through",
+                    "depends",
+                    "might settle here",
+                    "we'll see"
+                  ]
+                },
+                {
+                  "line": "nice to meet you",
+                  "then": [
+                    "you too",
+                    "likewise",
+                    "o7",
+                    "same"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bored",
+      "weight": 3,
+      "needs": [
+        "a:mood_bored"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "im so bored",
+            "bored",
+            "nothing to do",
+            "chat is this real. bored",
+            "someone entertain me"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "go mining",
+            "build something",
+            "go explore",
+            "lets go fight mobs",
+            "same tbh",
+            "start a farm"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "eh",
+            "maybe",
+            "good idea",
+            "too lazy",
+            "fine"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plans",
+      "weight": 3,
+      "needs": [
+        "day"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "going mining later, wanna come?",
+            "thinking of exploring tomorrow",
+            "gonna build a farm, need help?",
+            "wanna go to the nether sometime?",
+            "lets go raid a dungeon"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "im down",
+                "bet",
+                "sure!",
+                "lets go",
+                "count me in"
+              ]
+            },
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "no thanks",
+                "pass",
+                "with you? no",
+                "nah"
+              ]
+            },
+            {
+              "lines": [
+                "maybe",
+                "depends",
+                "sure why not",
+                "busy tbh",
+                "let me know"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "cool",
+            "ok",
+            "ill let you know",
+            "W",
+            "aight"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "complaints",
+      "weight": 3,
+      "needs": [],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "a creeper blew up my wall",
+            "enderman took a block from my house",
+            "skeletons are so annoying",
+            "my crops arent growing",
+            "lost my pickaxe in lava",
+            "a zombie broke my door",
+            "spiders on my roof again",
+            "phantoms should be illegal"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "same",
+            "ugh",
+            "rip",
+            "classic",
+            "use stone next time",
+            "light more torches",
+            "lol",
+            "the worst"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "right?",
+            "every time",
+            "minecraft moment",
+            "never again"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "brag_vs",
+      "weight": 2,
+      "needs": [
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "my base is better than yours",
+              "bet i have more dias",
+              "i could beat you in a 1v1",
+              "my farm is bigger"
+            ],
+            "pvp_sweat": [
+              "1v1 me",
+              "im better than you and you know it"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "lol sure",
+                "keep dreaming",
+                "in your dreams",
+                "ok buddy",
+                "prove it"
+              ]
+            },
+            {
+              "lines": [
+                "cap",
+                "doubt it",
+                "no",
+                "ok",
+                "whatever"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "watch me",
+            "facts",
+            "you'll see",
+            "lol"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_road",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "why did the creeper cross the road",
+            "why did the creeper cross the road lol"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "to get to the other ssssside",
+            "to get to the other sssside"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_food",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "whats a creepers favorite food",
+            "guess a creepers favorite food"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "ssssspaghetti",
+            "sssspaghetti"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_worse",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "you know whats worse than a creeper",
+            "whats worse than one creeper"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "two creepers",
+            "a charged one"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_skeleton",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "why do skeletons never fight each other",
+            "why dont skeletons fight"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "they dont have the guts",
+            "no guts lol"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_enderman",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "why was the enderman upset",
+            "whats an endermans favorite game"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "someone looked at it wrong",
+            "hide and seek, but with your blocks"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_jockey",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "what do you call a chicken with a baby zombie on it",
+            "what rides a chicken"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "CHICKEN JOCKEY",
+            "chicken jockey."
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joke_ghast",
+      "weight": 0.3,
+      "needs": [
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "why do ghasts cry so much",
+            "whats a ghasts favorite music"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "why",
+            "what",
+            "tell me",
+            "...what",
+            "oh no",
+            "idk what"
+          ]
+        },
+        {
+          "by": "a",
+          "lines": [
+            "they had a rough nether",
+            "soul music"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "lmao",
+            "...",
+            "terrible",
+            "im leaving",
+            "that was awful",
+            "lol",
+            "-1000 aura",
+            "boo",
+            "ok that was good",
+            "why are you like this"
+          ]
+        }
+      ]
+    }
+  ]
+}

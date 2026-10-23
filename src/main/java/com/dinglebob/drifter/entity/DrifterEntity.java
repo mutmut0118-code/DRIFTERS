@@ -103,6 +103,8 @@ public class DrifterEntity extends PathfinderMob {
 
 	private final DrifterInventory inventory = new DrifterInventory(this);
 	private final DrifterFoodData foodData = new DrifterFoodData();
+	/** What it has done lately worth talking about (its conversations; saved). */
+	private final com.dinglebob.drifter.social.talk.Diary diary = new com.dinglebob.drifter.social.talk.Diary();
 	private final VirtualKeys keys = new VirtualKeys();
 	private final CameraModel camera;
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
@@ -477,6 +479,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public DrifterInventory getInventory() {
 		return this.inventory;
+	}
+
+	public com.dinglebob.drifter.social.talk.Diary getDiary() {
+		return this.diary;
 	}
 
 	public DrifterFoodData getFoodData() {
@@ -2334,6 +2340,10 @@ protected void customServerAiStep() {
 	@Override
 	public void die(DamageSource source) {
 		this.tasks.cancel("died");
+		if (!this.level().isClientSide()) {
+			com.dinglebob.drifter.social.talk.Diary.died(this, this.getCombatTracker().getDeathMessage().getString());
+		}
+
 		// Whether it comes back (section 20, by the setting), and what it's leaving behind worth going back for.
 		boolean comesBack = !this.level().isClientSide() && com.dinglebob.drifter.world.Respawns.comesBack(this, source);
 		int worth = 0;
@@ -2618,6 +2628,7 @@ protected void customServerAiStep() {
 
 		tag.putInt("DrifterSaveVersion", SAVE_VERSION);
 		tag.put("DrifterInventory", this.inventory.save(this.registryAccess()));
+		tag.put("Diary", this.diary.save());
 		tag.putInt("SelectedItemSlot", this.inventory.getSelected());
 		this.foodData.addAdditionalSaveData(tag);
 		tag.putString("Skin", this.getSkinTexture().toString());
@@ -2677,6 +2688,7 @@ protected void customServerAiStep() {
 		this.inventory.load(this.registryAccess(), tag.getList("DrifterInventory", Tag.TAG_COMPOUND));
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
 		this.foodData.readAdditionalSaveData(tag);
+		this.diary.load(tag.getCompound("Diary"));
 		this.experienceProgress = tag.getFloat("XpP");
 		this.experienceLevel = tag.getInt("XpLevel");
 		this.totalExperience = tag.getInt("XpTotal");

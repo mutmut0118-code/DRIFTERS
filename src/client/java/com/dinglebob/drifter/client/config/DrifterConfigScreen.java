@@ -45,6 +45,8 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 		this.row(toggle("Chat lines", DrifterConfig.chatLines(), DrifterConfig::setChatLines, "Short lines in chat (hi, ty, gg...) and what encounter Drifters say."),
 			toggle("Thoughts in the log", DrifterConfig.logThoughts(), DrifterConfig::setLogThoughts,
 				"Every decision they make goes to the game log, in plain words. For finding out why one did something."));
+		this.row(slider("Chat heard within", DrifterConfig.MIN_CHAT_RANGE, DrifterConfig.MAX_CHAT_RANGE, DrifterConfig.chatRange(), v -> v + " blocks",
+			DrifterConfig::setChatRange, "How far off you see what a Drifter says in chat (their talk with each other, hellos, rips...)."), null);
 		this.row(toggle("Whims (things for fun)", DrifterConfig.whims(), DrifterConfig::setWhims, "Watching sunsets, little builds, snowball fights: what they do when bored."),
 			toggle("Parkour jumps", DrifterConfig.parkour(), DrifterConfig::setParkour, "Jumping gaps on their routes, as players do."));
 

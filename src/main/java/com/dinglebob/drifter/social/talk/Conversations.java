@@ -1,0 +1,378 @@
+package com.dinglebob.drifter.social.talk;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.dinglebob.drifter.DrifterConfig;
+import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.personality.Mood;
+import com.dinglebob.drifter.personality.Trait;
+import com.dinglebob.drifter.social.ChatLines;
+import com.dinglebob.drifter.social.Lines;
+import com.dinglebob.drifter.social.News;
+
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+
+/**
+ * Drifters talking with each other (the dynamic chat, phase 1; user, 2026-10-23: "lets greatly expand small talk
+ * conversations between drifters"): two of them near each other with nothing pressing, a player near enough to overhear,
+ * now and then strike up a conversation on a topic one of them has something to say about (what it found, how it died,
+ * the night's mobs, the town, a player, the news...). They face each other and take turns, a moment between each as it's
+ * typed and read; what one says shapes the other's answer ({@link Topics}). Only players near enough see it (the chat
+ * range). Talking builds familiarity; friends grow closer, rivals needle each other; news passes on.
+ */
+public final class Conversations {
+	private Conversations() {
+	}
+
+	/** How close two must be to strike up a conversation, and how far apart before it ends. */
+	private static final double START = 6.0;
+	private static final double ENDS = 16.0;
+	/** How often it looks for two to start talking (ticks). */
+	private static final int LOOK_EVERY = 40;
+	/** Least time between one Drifter's conversations, for the chattiest and the quietest (ticks). */
+	private static final long CHATTY_GAP = 20 * 60;
+	private static final long QUIET_GAP = 20 * 60 * 6;
+	/** Least time before the same two talk again (ticks). */
+	private static final long PAIR_GAP = 20 * 60 * 4;
+	/**
+	 * How long one of them has to stop what it's doing and turn to talk (else both were busy: no talk), and how long both
+	 * can be off doing something else before the talk's over (ticks). The other can answer while it works, as players type
+	 * while they build.
+	 */
+	private static final long JOIN_WITHIN = 20 * 10;
+	private static final long AWAY_AT_MOST = 20 * 5;
+
+	/** A conversation going on. */
+	public static final class Talk {
+		public final DrifterEntity a;
+		public final DrifterEntity b;
+		public final Topics.Topic topic;
+		final Facts aFacts;
+		final Facts bFacts;
+		final Set<String> world;
+		int turn;
+		long nextAt;
+		/** The answers the last line wants, and who said it (the other answers with these next). */
+		@Nullable
+		List<String> answers;
+		@Nullable
+		DrifterEntity asker;
+		final long started;
+		/** One of them has turned to talk (it starts when one has), and when one last was. */
+		boolean joined;
+		long together;
+
+		Talk(DrifterEntity a, DrifterEntity b, Topics.Topic topic, long now) {
+			this.a = a;
+			this.b = b;
+			this.topic = topic;
+			this.aFacts = Facts.of(a, b);
+			this.bFacts = Facts.of(b, a);
+			this.world = Facts.world(a, b);
+			this.started = now;
+			this.together = now;
+			this.nextAt = now + 10 + a.getRandom().nextInt(20);
+		}
+
+		public DrifterEntity partnerOf(DrifterEntity drifter) {
+			return drifter == this.a ? this.b : this.a;
+		}
+	}
+
+	private static final List<Talk> talks = new ArrayList<>();
+	private static final Map<UUID, Long> lastTalk = new HashMap<>();
+	private static final Map<String, Long> lastPair = new HashMap<>();
+	private static final Map<String, String> lastTopic = new HashMap<>();
+
+	public static void register() {
+		ServerTickEvents.END_SERVER_TICK.register(Conversations::tick);
+	}
+
+	/** The conversation it's in, or null. */
+	@Nullable
+	public static Talk of(DrifterEntity drifter) {
+		for (Talk talk : talks) {
+			if (talk.a == drifter || talk.b == drifter) {
+				return talk;
+			}
+		}
+
+		return null;
+	}
+
+	private static void tick(MinecraftServer server) {
+		long now = server.overworld().getGameTime();
+		for (Iterator<Talk> it = talks.iterator(); it.hasNext();) {
+			Talk talk = it.next();
+			if (!going(talk)) {
+				it.remove();
+				continue;
+			}
+
+			// One stops what it's doing to talk, or there's no talk (both too busy: nothing said); and if both go off to do
+			// something else for a while, it's over.
+			if (conversing(talk.a) || conversing(talk.b)) {
+				if (!talk.joined) {
+					talk.joined = true;
+					talk.nextAt = Math.max(talk.nextAt, now + 10);
+				}
+
+				talk.together = now;
+			} else if (talk.joined ? now - talk.together > AWAY_AT_MOST : now - talk.started > JOIN_WITHIN) {
+				if (talk.joined) {
+					end(talk, now);
+				}
+
+				it.remove();
+				continue;
+			}
+
+			if (talk.joined && now >= talk.nextAt && !step(talk, now)) {
+				end(talk, now);
+				it.remove();
+			}
+		}
+
+		if (now % LOOK_EVERY == 0 && DrifterConfig.chatLines()) {
+			for (ServerLevel level : server.getAllLevels()) {
+				for (ServerPlayer player : level.players()) {
+					lookForTalk(level, player, now);
+				}
+			}
+		}
+	}
+
+	/** Two near this player who'd talk, if any, start (one conversation within earshot of a player at a time). */
+	private static void lookForTalk(ServerLevel level, ServerPlayer player, long now) {
+		double range = DrifterConfig.chatRange();
+		if (talks.stream().anyMatch(talk -> talk.a.level() == level && talk.a.distanceTo(player) <= range)) {
+			return;
+		}
+
+		List<DrifterEntity> near = level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(range), Conversations::free);
+		for (DrifterEntity a : near) {
+			if (now - lastTalk.getOrDefault(a.getUUID(), Long.MIN_VALUE / 2) < gap(a)) {
+				continue;
+			}
+
+			for (DrifterEntity b : near) {
+				if (b == a || a.distanceTo(b) > START || now - lastTalk.getOrDefault(b.getUUID(), Long.MIN_VALUE / 2) < gap(b)
+					|| now - lastPair.getOrDefault(pair(a, b), Long.MIN_VALUE / 2) < PAIR_GAP || !a.hasLineOfSight(b)) {
+					continue;
+				}
+
+				double chance = 0.12 * (sociability(a) + sociability(b));
+				if (a.getRandom().nextDouble() < chance && start(a, b, null, now) != null) {
+					return;
+				}
+			}
+		}
+	}
+
+	/** Start a conversation between these two on this topic (or one that suits them); the talk, or null if none suits. */
+	@Nullable
+	public static Talk start(DrifterEntity a, DrifterEntity b, @Nullable String topicId, long now) {
+		// (One conversation at a time each.)
+		if (of(a) != null || of(b) != null) {
+			return null;
+		}
+
+		Facts aFacts = Facts.of(a, b);
+		Facts bFacts = Facts.of(b, a);
+		Set<String> world = Facts.world(a, b);
+		Topics.Topic topic = topicId != null ? Topics.byId(topicId) : pick(a, b, aFacts, bFacts, world);
+		if (topic == null) {
+			return null;
+		}
+
+		Talk talk = new Talk(a, b, topic, now);
+		talks.add(talk);
+		lastTalk.put(a.getUUID(), now);
+		lastTalk.put(b.getUUID(), now);
+		lastPair.put(pair(a, b), now);
+		lastTopic.put(pair(a, b), topic.id());
+		a.getMemory().thoughts().add(now, "started talking with " + b.getName().getString() + " (" + topic.id().replace('_', ' ') + ")");
+		a.getDrifterBrain().poke();
+		b.getDrifterBrain().poke();
+		return talk;
+	}
+
+	/** A topic that suits these two now (weighted; not the one they talked about last). */
+	@Nullable
+	private static Topics.Topic pick(DrifterEntity a, DrifterEntity b, Facts aFacts, Facts bFacts, Set<String> world) {
+		List<Topics.Topic> fitting = new ArrayList<>();
+		double total = 0.0;
+		String last = lastTopic.get(pair(a, b));
+		for (Topics.Topic topic : Topics.all()) {
+			if (!topic.id().equals(last) && Topics.holds(topic.needs(), aFacts, bFacts, world)) {
+				fitting.add(topic);
+				total += topic.weight();
+			}
+		}
+
+		double roll = a.getRandom().nextDouble() * total;
+		for (Topics.Topic topic : fitting) {
+			roll -= topic.weight();
+			if (roll <= 0.0) {
+				return topic;
+			}
+		}
+
+		return fitting.isEmpty() ? null : fitting.get(fitting.size() - 1);
+	}
+
+	/** The next turn said (turns that don't come up skipped); false when there are no more. */
+	private static boolean step(Talk talk, long now) {
+		while (talk.turn < talk.topic.turns().size()) {
+			Topics.Turn turn = talk.topic.turns().get(talk.turn++);
+			DrifterEntity speaker = turn.by().equals("b") ? talk.b : talk.a;
+			// A question's own answers, by the other one, whatever this turn would have said.
+			if (talk.answers != null && speaker != talk.asker) {
+				List<String> answers = talk.answers;
+				talk.answers = null;
+				String answer = Lines.pickFrom(speaker, Map.of("any", answers), vars(talk));
+				if (answer != null) {
+					say(talk, speaker, answer, now);
+					return true;
+				}
+			}
+
+			if (talk.a.getRandom().nextDouble() > turn.chance() || !Topics.holds(turn.conditions(), talk.aFacts, talk.bFacts, talk.world)) {
+				continue;
+			}
+
+			Topics.Option option = null;
+			for (Topics.Option candidate : turn.options()) {
+				if (Topics.holds(candidate.conditions(), talk.aFacts, talk.bFacts, talk.world)) {
+					option = candidate;
+					break;
+				}
+			}
+
+			if (option == null) {
+				continue;
+			}
+
+			String template = Lines.template(speaker, option.lines(), vars(talk));
+			if (template == null) {
+				continue;
+			}
+
+			List<String> answers = option.then().get(template);
+			talk.answers = answers;
+			talk.asker = answers != null ? speaker : null;
+			say(talk, speaker, Lines.filled(speaker, template, vars(talk)), now);
+			return true;
+		}
+
+		// (A last question still gets its answer.)
+		if (talk.answers != null) {
+			DrifterEntity other = talk.partnerOf(talk.asker);
+			String answer = Lines.pickFrom(other, Map.of("any", talk.answers), vars(talk));
+			talk.answers = null;
+			if (answer != null) {
+				say(talk, other, answer, now);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static void say(Talk talk, DrifterEntity speaker, String line, long now) {
+		ChatLines.converse(speaker, line);
+		// Reading it and typing the answer: longer lines take longer.
+		talk.nextAt = now + Math.min(140, 30 + line.length() * 2) + speaker.getRandom().nextInt(20);
+	}
+
+	/** Its words for the lines: each one's facts as a.* and b.*, and their names as {a} and {b}. */
+	private static Object[] vars(Talk talk) {
+		List<Object> vars = new ArrayList<>();
+		vars.add("a");
+		vars.add(talk.a.getName().getString());
+		vars.add("b");
+		vars.add(talk.b.getName().getString());
+		talk.aFacts.words.forEach((key, value) -> {
+			vars.add("a." + key);
+			vars.add(value);
+		});
+		talk.bFacts.words.forEach((key, value) -> {
+			vars.add("b." + key);
+			vars.add(value);
+		});
+		return vars.toArray();
+	}
+
+	/** Done talking: what it did (news passed on, closer or further apart). */
+	private static void end(Talk talk, long now) {
+		for (String effect : talk.topic.effects()) {
+			switch (effect) {
+				case "news" -> {
+					for (News news : talk.a.getNews().all()) {
+						if (!news.stale(now) && !talk.b.getNews().knows(news.key()) && String.valueOf(talk.aFacts.words.get("news_who")).equals(news.aboutName())) {
+							talk.b.getNews().hear(news, talk.a);
+							break;
+						}
+					}
+				}
+				case "trust" -> {
+					com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, 2.0);
+					com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, 2.0);
+				}
+				case "rivalry" -> {
+					com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, -2.0);
+					com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, -2.0);
+				}
+				default -> {
+				}
+			}
+		}
+	}
+
+	/** It's doing the talking (the converse goal), not something else. */
+	private static boolean conversing(DrifterEntity drifter) {
+		var goal = drifter.getDrifterBrain().currentGoal();
+		return goal != null && goal.id().equals("converse");
+	}
+
+	/** Still going: both alive, near each other, not fighting or in trouble. */
+	private static boolean going(Talk talk) {
+		return talk.a.isAlive() && talk.b.isAlive() && talk.a.level() == talk.b.level() && talk.a.distanceTo(talk.b) <= ENDS && !trouble(talk.a)
+			&& !trouble(talk.b);
+	}
+
+	/** Free to talk: nothing pressing (not fighting, fleeing, hurt, in an encounter, asleep). */
+	private static boolean free(DrifterEntity drifter) {
+		return drifter.isAlive() && !drifter.isTemporary() && drifter.encounter() == null && !trouble(drifter) && !drifter.isSleeping() && of(drifter) == null
+			&& drifter.getHealth() > drifter.getMaxHealth() * 0.5F && drifter.onGround();
+	}
+
+	private static boolean trouble(DrifterEntity drifter) {
+		Mood mood = drifter.getPersonality().mood().current();
+		return drifter.inCombat() || mood == Mood.PANICKED || drifter.isInLava() || drifter.isOnFire();
+	}
+
+	private static double sociability(DrifterEntity drifter) {
+		return drifter.getPersonality().get(Trait.SOCIABILITY);
+	}
+
+	/** Least time between its conversations: the chattier, the sooner. */
+	private static long gap(DrifterEntity drifter) {
+		return (long)(QUIET_GAP - (QUIET_GAP - CHATTY_GAP) * sociability(drifter));
+	}
+
+	private static String pair(DrifterEntity a, DrifterEntity b) {
+		return a.getUUID().compareTo(b.getUUID()) < 0 ? a.getUUID() + ":" + b.getUUID() : b.getUUID() + ":" + a.getUUID();
+	}
+}

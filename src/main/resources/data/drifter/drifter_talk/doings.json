@@ -1,0 +1,1361 @@
+{
+  "comment": "Drifter-to-Drifter conversations about what they've done (the dynamic chat). a brings it up, b answers. Conditions: a:flag / b:flag (their facts), friends / rivals / strangers / acquainted / groupmates (how a sees b), morning / day / evening / night / rain / thunder / clear; ! in front for not. Words: {a} {b} their names; {a.ore} {a.ore_count} {a.death} {a.close_call} {a.mob} {a.mob_count} {a.kills} {a.built} {a.traded_with} {a.place} {a.doing} {a.armor} {a.held} {a.diamonds} {a.group} {a.town} {a.news_who} {a.news_what} {a.liked_player} {a.disliked_player} {a.day}, and the same for b. See docs/CHAT_LINES.md.",
+  "topics": [
+    {
+      "id": "found_ore",
+      "weight": 4,
+      "needs": [
+        "a:found_ore",
+        "!a:found_rare"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "found {a.ore_count} {a.ore} today",
+              "got {a.ore_count} {a.ore} earlier",
+              "mined {a.ore_count} {a.ore} btw",
+              "{a.ore_count} {a.ore} today, not bad",
+              "hit a little {a.ore} vein, {a.ore_count} of it",
+              "yo {b}, found {a.ore_count} {a.ore}"
+            ],
+            "miner": [
+              "{a.ore_count} {a.ore} today. the mine provides",
+              "branch mining paid off, {a.ore_count} {a.ore}",
+              "{a.ore_count} {a.ore}, still hunting dias tho"
+            ],
+            "newbie": [
+              "i found {a.ore}!! {a.ore_count} of them!!",
+              "look i got {a.ore_count} {a.ore}",
+              "is {a.ore} good? i got {a.ore_count}"
+            ],
+            "hoarder": [
+              "{a.ore_count} more {a.ore} for the chests",
+              "added {a.ore_count} {a.ore} to the pile"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:found_ore"
+              ],
+              "lines": [
+                "nice, i got {b.ore_count} {b.ore}",
+                "same, {b.ore_count} {b.ore} here",
+                "W, i only got {b.ore_count} {b.ore}",
+                "ooh. i found {b.ore_count} {b.ore} myself"
+              ]
+            },
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "cool story",
+                "and?",
+                "thats it?",
+                "ok",
+                "i had more yesterday"
+              ]
+            },
+            {
+              "lines": {
+                "any": [
+                  "nice",
+                  "W",
+                  "ooh nice",
+                  "lets go",
+                  {
+                    "line": "where at",
+                    "then": [
+                      "deep down",
+                      "near my base",
+                      "in a cave",
+                      "y 16",
+                      "not telling lol"
+                    ]
+                  },
+                  {
+                    "line": "jealous ngl",
+                    "then": [
+                      "lol",
+                      "you'll find some",
+                      "keep mining"
+                    ]
+                  },
+                  "nice, im still on stone tools lol",
+                  "gg"
+                ],
+                "newbie": [
+                  "woah cool!!",
+                  "how do you find it"
+                ],
+                "helper": [
+                  "nice!! proud of you",
+                  "W, need help smelting it?"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "deep down, branch mining",
+            "found it in a cave",
+            "right under my base lol",
+            "y 16 is the spot",
+            "took forever tho",
+            "almost died for it lol",
+            "creeper nearly got me down there"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.5,
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "save me some?",
+                "we should mine together sometime",
+                "gonna go look too",
+                "nice, share the spot?"
+              ]
+            },
+            {
+              "lines": [
+                "nice",
+                "gl with it",
+                "W",
+                "ok"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.4,
+          "if": [
+            "friends"
+          ],
+          "lines": [
+            "sure",
+            "ill show you later",
+            "deal",
+            "maybe lol",
+            "for you? ofc"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "found_rare",
+      "weight": 6,
+      "needs": [
+        "a:found_rare"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "{b} I FOUND {a.ore}",
+              "found {a.ore_count} {a.ore} today!!",
+              "guess who got {a.ore}",
+              "{a.ore}. {a.ore_count} of them. lets gooo",
+              "W day, {a.ore_count} {a.ore}"
+            ],
+            "miner": [
+              "finally. {a.ore_count} {a.ore}",
+              "the grind paid off. {a.ore}",
+              "{a.ore_count} {a.ore}, told you it was down there"
+            ],
+            "newbie": [
+              "OMG I FOUND {a.ore}",
+              "{b} {b} i found {a.ore}!!!",
+              "is this real?? {a.ore}!!"
+            ],
+            "pvp_sweat": [
+              "{a.ore_count} {a.ore}. new gear incoming",
+              "{a.ore}. youre all cooked"
+            ],
+            "hermit": [
+              "found some {a.ore}",
+              "{a.ore}. dont tell anyone"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "lucky",
+                "ok and",
+                "probably got lucky",
+                "cool. i dont care",
+                "bet you cant even use them"
+              ]
+            },
+            {
+              "if": [
+                "b:found_rare"
+              ],
+              "lines": [
+                "no way, me too!",
+                "same!! {b.ore_count} {b.ore}",
+                "twins lol, i got {b.ore} too"
+              ]
+            },
+            {
+              "lines": {
+                "any": [
+                  "NO WAY",
+                  "W",
+                  "lets gooo",
+                  "huge",
+                  {
+                    "line": "where??",
+                    "then": [
+                      "deep down",
+                      "not telling",
+                      "in a cave",
+                      "y -58",
+                      "secret lol"
+                    ]
+                  },
+                  "GG",
+                  "jealous fr",
+                  {
+                    "line": "wait fr?",
+                    "then": [
+                      "fr",
+                      "dead serious",
+                      "look"
+                    ]
+                  },
+                  {
+                    "line": "nice!! what you making",
+                    "then": [
+                      "pickaxe first",
+                      "armor",
+                      "dunno yet",
+                      "enchanting table"
+                    ]
+                  }
+                ],
+                "helper": [
+                  "thats amazing!!",
+                  "so happy for you"
+                ],
+                "hoarder": [
+                  "...where exactly",
+                  "any spare?",
+                  "id put those somewhere safe"
+                ],
+                "newbie": [
+                  "woahhh",
+                  "can i see??"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.7,
+          "options": [
+            {
+              "if": [
+                "a:found_ore"
+              ],
+              "lines": [
+                "pickaxe first",
+                "gonna make a pick",
+                "armor time",
+                "saving them",
+                "enchanting table maybe",
+                "not telling where lol"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.5,
+          "lines": [
+            "smart",
+            "W choice",
+            "nice",
+            "dont lose them",
+            "careful with creepers lol"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "died_story",
+      "weight": 5,
+      "needs": [
+        "a:died_lately"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "i {a.death} lol",
+              "so i {a.death}",
+              "{b} i {a.death}. again",
+              "rip me, {a.death}",
+              "worst day. i {a.death}",
+              "cant believe i {a.death}"
+            ],
+            "newbie": [
+              "i died!! i {a.death}",
+              "{b} i {a.death} :("
+            ],
+            "pvp_sweat": [
+              "i {a.death}. lag",
+              "{a.death}. not my fault",
+              "dont laugh. i {a.death}"
+            ],
+            "hermit": [
+              "{a.death}",
+              "died. {a.death}"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "lmao",
+                "skill issue",
+                "L",
+                "classic",
+                "deserved"
+              ]
+            },
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "nooo rip",
+                {
+                  "line": "rip! you ok?",
+                  "then": [
+                    "yeah im fine",
+                    "barely lol",
+                    "my pride isnt"
+                  ]
+                },
+                {
+                  "line": "oh no, what happened",
+                  "then": [
+                    "dont even ask",
+                    "it was dumb",
+                    "mobs",
+                    "i got careless"
+                  ]
+                },
+                {
+                  "line": "rip, did you get your stuff back?",
+                  "then": [
+                    "yeah",
+                    "nope, despawned",
+                    "working on it",
+                    "most of it"
+                  ]
+                },
+                "o7"
+              ]
+            },
+            {
+              "lines": {
+                "any": [
+                  "rip",
+                  "F",
+                  "unlucky",
+                  "oof",
+                  {
+                    "line": "lmao how",
+                    "then": [
+                      "dont ask",
+                      "it was dumb",
+                      "skill issue tbh"
+                    ]
+                  },
+                  "rip lol",
+                  "happens to the best of us"
+                ],
+                "helper": [
+                  "oh no, need help getting your stuff?",
+                  "rip!! want me to come?"
+                ],
+                "pvp_sweat": [
+                  "L",
+                  "skill issue"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.8,
+          "lines": [
+            "lost everything",
+            "got my stuff back at least",
+            "lost my good pickaxe",
+            "had a full inventory too",
+            "all my iron, gone",
+            "despawned before i got back",
+            "it was so dumb"
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.6,
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "ill give you some stuff",
+                "want some iron?",
+                "ill help you get back on your feet",
+                "we'll get it back"
+              ]
+            },
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "sucks to be you",
+                "should have been careful"
+              ]
+            },
+            {
+              "lines": [
+                "rip",
+                "that sucks",
+                "unlucky",
+                "happens",
+                "next time"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.4,
+          "if": [
+            "friends"
+          ],
+          "lines": [
+            "ty",
+            "ur the best",
+            "appreciate it",
+            "ty fr"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "close_call",
+      "weight": 4,
+      "needs": [
+        "a:close_call"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "{a.close_call} almost got me earlier",
+              "nearly died to {a.close_call}",
+              "half a heart left after {a.close_call}",
+              "{a.close_call} had me on one heart",
+              "so close. {a.close_call} almost did it"
+            ],
+            "homebody": [
+              "i almost died to {a.close_call}, im staying home",
+              "{a.close_call} scared me so bad"
+            ],
+            "pvp_sweat": [
+              "{a.close_call} almost clutched me",
+              "one heart vs {a.close_call}, still won"
+            ],
+            "newbie": [
+              "{a.close_call} almost killed me!!",
+              "i was on half a heart because of {a.close_call}"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:close_call"
+              ],
+              "lines": [
+                "same, {b.close_call} nearly got me",
+                "lol same, {b.close_call} for me",
+                "{b.close_call} almost got me too"
+              ]
+            },
+            {
+              "lines": {
+                "any": [
+                  "yikes",
+                  "close one",
+                  "glad you made it",
+                  "careful out there",
+                  "jeez",
+                  "thats scary",
+                  "ur still here tho"
+                ],
+                "pvp_sweat": [
+                  "skill issue",
+                  "should have won that easy"
+                ],
+                "helper": [
+                  "eat something, heal up",
+                  "need food?"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "ate a whole stack of bread after",
+            "never again",
+            "im fine now",
+            "took a nap after that",
+            "gonna make better armor"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mob_hunter",
+      "weight": 3,
+      "needs": [
+        "a:killed_many"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "killed {a.kills} mobs today",
+              "{a.mob_count} {a.mob}s down",
+              "cleared out {a.mob_count} {a.mob}s earlier",
+              "the {a.mob}s kept coming, got {a.kills}"
+            ],
+            "pvp_sweat": [
+              "{a.kills} kills today. ez",
+              "farmed {a.kills} mobs. warmup"
+            ],
+            "homebody": [
+              "had to fight {a.kills} mobs to get home",
+              "so many {a.mob}s, i got {a.kills}"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "lines": {
+            "any": [
+              "nice",
+              "beast",
+              "W",
+              "save some for me lol",
+              {
+                "line": "how many arrows did that take",
+                "then": [
+                  "too many",
+                  "used a sword mostly",
+                  "all of them"
+                ]
+              },
+              "xp farm era"
+            ],
+            "newbie": [
+              "woah thats so many",
+              "teach me how"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "the xp tho",
+            "got a bunch of string at least",
+            "bones everywhere",
+            "rotten flesh, so much rotten flesh"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "built_something",
+      "weight": 4,
+      "needs": [
+        "a:built_lately"
+      ],
+      "effects": [
+        "trust"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "finished my {a.built}",
+              "{a.built} is done",
+              "built a {a.built}, come see",
+              "finally done with the {a.built}",
+              "my {a.built} is finished, took forever"
+            ],
+            "builder": [
+              "{a.built} is done. pretty proud of this one",
+              "finished the {a.built}. the roof was a pain",
+              "come see the {a.built}, i did the gables myself"
+            ],
+            "newbie": [
+              "i built a {a.built}!!",
+              "my {a.built} is done!! come see"
+            ],
+            "hermit": [
+              "{a.built}'s done. dont visit"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "mine's better",
+                "looks mid",
+                "ok",
+                "the roof is crooked",
+                "saw it. meh"
+              ]
+            },
+            {
+              "lines": {
+                "any": [
+                  "nice!!",
+                  "W build",
+                  "looks clean",
+                  "ngl thats clean",
+                  "ill come see",
+                  "congrats",
+                  "gg",
+                  "nice, need help with the inside?"
+                ],
+                "builder": [
+                  "love the frame",
+                  "nice proportions",
+                  "clean build fr"
+                ],
+                "helper": [
+                  "looks amazing!!",
+                  "proud of you"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "ty",
+            "ty!!",
+            "still need to furnish it",
+            "need more glass",
+            "took so many logs",
+            "next one's gonna be bigger"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gear_show",
+      "weight": 3,
+      "needs": [
+        "!a:armor_none",
+        "!a:armor_leather"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "got full {a.armor} now",
+              "check out the {a.armor} armor",
+              "{a.armor} armor, finally",
+              "upgraded to {a.armor}",
+              "new {a.armor} set btw"
+            ],
+            "pvp_sweat": [
+              "{a.armor} armor. 1v1?",
+              "full {a.armor}. try me",
+              "{a.armor} set. you're cooked"
+            ],
+            "newbie": [
+              "look at my armor!!",
+              "i have {a.armor} armor now!!"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:armor_diamond",
+                "!a:armor_diamond",
+                "!a:armor_netherite"
+              ],
+              "lines": [
+                "cute. i have diamond",
+                "{a.armor}? im in diamond lol",
+                "nice, diamond is next"
+              ]
+            },
+            {
+              "if": [
+                "b:armor_none"
+              ],
+              "lines": [
+                "im still in nothing lol",
+                "jealous, no armor here",
+                "i have no armor, carry me"
+              ]
+            },
+            {
+              "lines": [
+                "nice",
+                "W",
+                "looking good",
+                "drip",
+                "solid",
+                "clean",
+                {
+                  "line": "nice, enchanted?",
+                  "then": [
+                    "not yet",
+                    "prot 2",
+                    "working on it",
+                    "nope"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.4,
+          "lines": [
+            "no enchants yet",
+            "need prot 4",
+            "working on it",
+            "next stop diamond",
+            "ty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diamonds_stash",
+      "weight": 2,
+      "needs": [
+        "a:has_diamonds"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "got {a.diamonds} dias on me",
+              "sitting on {a.diamonds} dias",
+              "{a.diamonds} diamonds, what should i make"
+            ],
+            "hoarder": [
+              "{a.diamonds} dias. not sharing",
+              "keeping my {a.diamonds} dias safe",
+              "{a.diamonds} diamonds and counting"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "pickaxe first, always",
+                "enchanting table!",
+                "sword, trust",
+                "share one? jk"
+              ]
+            },
+            {
+              "lines": [
+                "pickaxe",
+                "dont lose them",
+                "nice",
+                "jealous",
+                "careful, people will want those"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "pickaxe it is",
+            "maybe armor",
+            "saving for an enchanting table",
+            "decisions decisions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "traded",
+      "weight": 2,
+      "needs": [
+        "a:traded_lately"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "traded with {a.traded_with} earlier",
+            "{a.traded_with} hooked me up today",
+            "did a trade with {a.traded_with}",
+            "got some stuff off {a.traded_with}"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "hope they ripped you off",
+                "ok"
+              ]
+            },
+            {
+              "lines": [
+                "nice",
+                {
+                  "line": "W trade?",
+                  "then": [
+                    "W",
+                    "yeah",
+                    "eh"
+                  ]
+                },
+                {
+                  "line": "they fair?",
+                  "then": [
+                    "yeah fair",
+                    "pretty fair",
+                    "kinda overpaid lol"
+                  ]
+                },
+                {
+                  "line": "good deal?",
+                  "then": [
+                    "W trade",
+                    "decent",
+                    "meh"
+                  ]
+                },
+                "{a.traded_with} is alright"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "fair enough",
+            "W trade",
+            "kinda overpaid lol",
+            "they were cool",
+            "ill trade with them again"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "saw_place",
+      "weight": 3,
+      "needs": [
+        "a:saw_place"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "found a {a.place} out there",
+              "saw a {a.place} earlier",
+              "theres a {a.place} not far from here",
+              "{b}, found a {a.place}"
+            ],
+            "nomad": [
+              "passed a {a.place} on the road",
+              "found a {a.place}, worth the walk",
+              "the {a.place} out there is huge"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                {
+                  "line": "coords?",
+                  "then": [
+                    "later",
+                    "dont remember",
+                    "ill show you",
+                    "somewhere north"
+                  ]
+                },
+                "drop coords",
+                "wanna go check it out?",
+                "take me next time"
+              ]
+            },
+            {
+              "lines": [
+                "nice",
+                {
+                  "line": "far?",
+                  "then": [
+                    "pretty far",
+                    "not that far",
+                    "a bit of a walk"
+                  ]
+                },
+                {
+                  "line": "which way",
+                  "then": [
+                    "that way",
+                    "north i think",
+                    "past the river",
+                    "follow the road"
+                  ]
+                },
+                {
+                  "line": "any loot?",
+                  "then": [
+                    "didnt go in",
+                    "maybe",
+                    "some chests",
+                    "got scared lol"
+                  ]
+                },
+                "cool"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.7,
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "ill show you",
+                "later, i'll take you",
+                "its not far",
+                "follow me sometime"
+              ]
+            },
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "not telling",
+                "find it yourself"
+              ]
+            },
+            {
+              "lines": [
+                "pretty far",
+                "dunno, somewhere out there",
+                "didnt go in",
+                "got lost getting back lol"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hungry",
+      "weight": 3,
+      "needs": [
+        "a:hungry"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "so hungry rn",
+              "anyone got food",
+              "starving",
+              "out of food lol",
+              "need food pls"
+            ],
+            "newbie": [
+              "im so hungry :(",
+              "can i have food pls"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "here, take some",
+                "i got bread",
+                "come by the farm",
+                "have some of mine"
+              ]
+            },
+            {
+              "if": [
+                "rivals"
+              ],
+              "lines": [
+                "not my problem",
+                "go farm",
+                "skill issue"
+              ]
+            },
+            {
+              "lines": [
+                "farm some wheat",
+                "kill a cow",
+                "theres cows out east",
+                "i barely have any myself",
+                "try the farm"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "options": [
+            {
+              "if": [
+                "friends"
+              ],
+              "lines": [
+                "ty ty",
+                "ur a lifesaver",
+                "ill pay you back"
+              ]
+            },
+            {
+              "lines": [
+                "guess ill go hunt",
+                "ok",
+                "fine",
+                "brb, cows"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hurt",
+      "weight": 2,
+      "needs": [
+        "a:hurt"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "on like 3 hearts",
+            "barely alive rn",
+            "need to heal",
+            "ow",
+            "dont hit me, im one shot"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "eat something",
+            "go rest",
+            {
+              "line": "what happened",
+              "then": [
+                "mobs",
+                "fell off something lol",
+                "creeper",
+                "dont ask"
+              ]
+            },
+            {
+              "line": "you good?",
+              "then": [
+                "ill live",
+                "barely",
+                "yeah, need food"
+              ]
+            },
+            "stay inside for a bit"
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "ill be fine",
+            "mobs",
+            "fell off something lol",
+            "yeah ill eat"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "what_doing",
+      "weight": 3,
+      "needs": [],
+      "turns": [
+        {
+          "by": "b",
+          "lines": [
+            "wyd",
+            "what you up to",
+            {
+              "line": "busy?",
+              "then": [
+                "kinda",
+                "not really",
+                "a bit",
+                "never too busy for you"
+              ]
+            },
+            "whatcha doing",
+            "what are you doing {a}"
+          ]
+        },
+        {
+          "by": "a",
+          "options": [
+            {
+              "if": [
+                "a:found_ore"
+              ],
+              "lines": [
+                "was about to {a.doing}",
+                "just got back from mining",
+                "gonna {a.doing}"
+              ]
+            },
+            {
+              "lines": [
+                "was about to {a.doing}",
+                "gonna {a.doing}",
+                "nothing much",
+                "just vibing",
+                "chilling",
+                "trying to {a.doing}"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "b",
+          "chance": 0.6,
+          "lines": [
+            "nice",
+            "cool",
+            "same tbh",
+            "gl",
+            "fun",
+            "sounds boring lol"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "homeless",
+      "weight": 2,
+      "needs": [
+        "a:no_home"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "still dont have a base",
+            "need to find a spot for a base",
+            "homeless rn lol",
+            "anyone know a good spot to settle"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "friends",
+                "b:has_house"
+              ],
+              "lines": [
+                "you can stay at mine",
+                "build near me",
+                "theres room by my house"
+              ]
+            },
+            {
+              "lines": [
+                "plains are nice",
+                "find a river",
+                "near a village maybe",
+                "just dig into a hill",
+                "spawn is fine"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "ty",
+            "might do that",
+            "good idea",
+            "maybe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hut_to_house",
+      "weight": 1,
+      "needs": [
+        "a:has_hut",
+        "!a:in_town"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "thinking of building a real house",
+            "my hut is so small",
+            "need an upgrade from the hut",
+            "gonna build a proper house soon"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": {
+            "any": [
+              "do it",
+              "you should",
+              {
+                "line": "need logs?",
+                "then": [
+                  "yeah lots",
+                  "i got some",
+                  "always"
+                ]
+              },
+              "stone house, fire proof",
+              "two floors"
+            ],
+            "builder": [
+              "timber frame, trust me",
+              "use a stone base, it looks better",
+              "do a gable roof"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "gonna need so many logs",
+            "yeah",
+            "ty",
+            "maybe tomorrow"
+          ]
+        }
+      ]
+    }
+  ]
+}
