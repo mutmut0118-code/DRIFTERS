@@ -453,6 +453,25 @@ public final class DrifterCommands {
 					com.dinglebob.drifter.DrifterConfig.setChatLines(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
 					return showConfig(ctx);
 				})))
+			.then(Commands.literal("chattiness")
+				.then(Commands.argument("level", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(java.util.List.of("quiet", "normal", "lively"), builder))
+					.executes(ctx -> {
+						try {
+							com.dinglebob.drifter.DrifterConfig.setChattiness(com.dinglebob.drifter.DrifterConfig.Chattiness.valueOf(
+								com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "level").toUpperCase(java.util.Locale.ROOT)));
+						} catch (IllegalArgumentException e) {
+							ctx.getSource().sendFailure(Component.literal("Use quiet, normal or lively"));
+							return 0;
+						}
+
+						return showConfig(ctx);
+					})))
+			.then(Commands.literal("typing")
+				.then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+					com.dinglebob.drifter.DrifterConfig.setTyping(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+					return showConfig(ctx);
+				})))
 			.then(Commands.literal("simulated")
 				.then(Commands.argument("count", IntegerArgumentType.integer(0, com.dinglebob.drifter.DrifterConfig.MAX_SIMULATED)).executes(ctx -> {
 					com.dinglebob.drifter.DrifterConfig.setSimulatedDrifters(IntegerArgumentType.getInteger(ctx, "count"));
@@ -884,7 +903,9 @@ public final class DrifterCommands {
 			com.dinglebob.drifter.DrifterConfig.pathRange(), com.dinglebob.drifter.DrifterConfig.pathNodes(),
 			com.dinglebob.drifter.DrifterConfig.fov(), com.dinglebob.drifter.DrifterConfig.coneHalfYaw() * 2.0F,
 			com.dinglebob.drifter.DrifterConfig.coneHalfPitch() * 2.0F, com.dinglebob.drifter.DrifterConfig.chatLines() ? "on" : "off",
-			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", raiding players' chests "
+			com.dinglebob.drifter.DrifterConfig.shareReputation() ? "on" : "off") + ", chattiness "
+			+ com.dinglebob.drifter.DrifterConfig.chattiness().name().toLowerCase(Locale.ROOT) + ", typos and split messages "
+			+ (com.dinglebob.drifter.DrifterConfig.typing() ? "on" : "off") + ", raiding players' chests "
 			+ (com.dinglebob.drifter.DrifterConfig.raiding() ? "on" : "off") + ", outpost Bandits griefing " + (com.dinglebob.drifter.DrifterConfig.banditGriefing() ? "on" : "off") + ", group wars " + (com.dinglebob.drifter.DrifterConfig.drifterWars() ? "on" : "off")
 			+ ", Drifters kept running away from players "
 			+ com.dinglebob.drifter.DrifterConfig.simulatedDrifters() + ", catch-up for time away "

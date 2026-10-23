@@ -63,6 +63,12 @@ public final class ChatLines {
 	 * the player an encounter of its is with, wherever they are (it's talking to them: a call for help carries).
 	 */
 	public static void send(DrifterEntity drifter, String text) {
+		// (Typed as players type: maybe a typo, maybe in two parts; see Typing.)
+		Typing.type(drifter, text);
+	}
+
+	/** One message of it, out now. */
+	static void deliver(DrifterEntity drifter, String text) {
 		Component line = Component.literal("<" + drifter.getName().getString() + "> " + text);
 		double range = DrifterConfig.chatRange();
 		java.util.UUID audience = drifter.encounter() != null ? drifter.encounter().player : null;
@@ -99,7 +105,7 @@ public final class ChatLines {
 		}
 
 		long now = drifter.level().getGameTime();
-		if (now - lastLine.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < PER_DRIFTER) {
+		if (now - lastLine.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_DRIFTER)) {
 			return;
 		}
 
@@ -125,8 +131,8 @@ public final class ChatLines {
 
 		long now = drifter.level().getGameTime();
 		String kindKey = drifter.getUUID() + ":" + kind;
-		if (now - lastLine.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < PER_DRIFTER
-			|| now - lastKind.getOrDefault(kindKey, Long.MIN_VALUE / 2) < PER_KIND) {
+		if (now - lastLine.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_DRIFTER)
+			|| now - lastKind.getOrDefault(kindKey, Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_KIND)) {
 			return;
 		}
 
@@ -140,7 +146,7 @@ public final class ChatLines {
 
 		// Quiet ones mostly don't bother (a hermit almost never), chatty ones usually do.
 		double sociability = drifter.getPersonality().get(Trait.SOCIABILITY);
-		if (drifter.getRandom().nextDouble() > 0.15 + 0.8 * sociability) {
+		if (drifter.getRandom().nextDouble() > DrifterConfig.chatty(0.15 + 0.8 * sociability)) {
 			return;
 		}
 

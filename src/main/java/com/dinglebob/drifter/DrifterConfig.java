@@ -50,6 +50,10 @@ public final class DrifterConfig {
 		boolean chatLines = true;
 		/** How far off players see what a Drifter says (user, 2026-10-23: "only players nearby"). */
 		int chatRange = DEFAULT_CHAT_RANGE;
+		/** How much they chat on their own (chat phase 4): quiet, normal, lively. */
+		String chattiness = "normal";
+		/** Typos (sometimes fixed with a "*word"), and longer lines sent in two (chat phase 4). */
+		boolean typing = true;
 		/** Players seen together share a little of each other's standing (section 14 "Forgiveness and multiplayer"). */
 		boolean shareReputation = true;
 		/** Every Drifter thought goes to the game log (user's choice, 2026-10-15: on by default). */
@@ -576,6 +580,54 @@ public final class DrifterConfig {
 
 	public static boolean chatLines() {
 		return data.chatLines;
+	}
+
+	/**
+	 * How much Drifters chat on their own (chat phase 4; user, 2026-10-23): talks with each other and with players, the
+	 * canned reactions, rounds, bystanders. Answers to what a player asks them, and encounters, are always said.
+	 */
+	public enum Chattiness {
+		QUIET(0.4), NORMAL(1.0), LIVELY(2.0);
+
+		/** Chances multiply by this, gaps divide by it. */
+		public final double factor;
+
+		Chattiness(double factor) {
+			this.factor = factor;
+		}
+	}
+
+	public static Chattiness chattiness() {
+		try {
+			return Chattiness.valueOf(data.chattiness.toUpperCase(java.util.Locale.ROOT));
+		} catch (RuntimeException e) {
+			return Chattiness.NORMAL;
+		}
+	}
+
+	public static void setChattiness(Chattiness chattiness) {
+		data.chattiness = chattiness.name().toLowerCase(java.util.Locale.ROOT);
+		save();
+	}
+
+	/** A chance, scaled by how chatty they're set to be (at most 1). */
+	public static double chatty(double chance) {
+		return Math.min(1.0, chance * chattiness().factor);
+	}
+
+	/** A least time between lines, scaled by how chatty they're set to be. */
+	public static long chattyGap(long ticks) {
+		return (long)(ticks / chattiness().factor);
+	}
+
+	/** Typos and two-part messages. */
+	public static boolean typing() {
+		return data.typing;
+	}
+
+	public static void setTyping(boolean on) {
+		data.typing = on;
+		save();
 	}
 
 	public static void setChatLines(boolean on) {

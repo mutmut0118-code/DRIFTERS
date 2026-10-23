@@ -10,7 +10,9 @@ In the lines, `{player}` is your name, `{name}` the Drifter's own, `{who}` anoth
 
 - **Its voice.** A Drifter of a personality with lines of its own (newbie, builder, PvP sweat, bandit...) uses them about two times in three; otherwise everyone's.
 - **Who hears it.** Only players near the Drifter (48 blocks, set by "Chat heard within" on the config screen), plus the player an encounter is with; the server log gets everything.
-- **Not twice in a row.** Each remembers its last couple dozen lines and picks a different one while it can.
+- **Not twice in a row.** Each remembers its last couple dozen lines and picks a different one while it can, and not a line anyone near said in the last half minute (one "gm", then "morning").
+- **Chattiness** (config screen, or `/drifter config chattiness quiet|normal|lively`): how much they chat on their own. Quiet is less than half as much, lively twice as much: their talks with each other and with you, the canned reactions, the rounds, bystanders. Answers to what you ask them, and encounters, are always said.
+- **Typing like players** ("Typos and split messages", or `/drifter config typing true|false`): now and then a typo (letters swapped, dropped, doubled, the key next to it), the tidy often fixing it with "*word" a moment later; a longer line with a comma (or a question midway) sometimes sent in two, as a joke and its punchline. Newbies slip most, builders and hermits least; never in names or numbers.
 - **Habits.** For the canned reactions (section 1) it has a habit: the same Drifter greets the same way most of the time, now and then another line.
 - **Rate limits.** Each Drifter says one line in 20 seconds at most (the same kind once a minute), and all of them together four in 10 seconds. Quiet ones (low sociability) mostly don't bother. Encounter lines (section 5) are always said: it's talking to you.
 - **Try them.** `/drifter lines say <key>` makes the nearest Drifter say a line of that kind (with made-up names for the blanks); `/drifter lines meaning <text>` says what a message would mean to a Drifter.

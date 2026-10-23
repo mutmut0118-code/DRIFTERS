@@ -125,7 +125,7 @@ public final class PlayerChats {
 	// ---------------------------------------------------------------------------------------------
 
 	private static void lookForOpening(ServerLevel level, ServerPlayer player, long now) {
-		if (now - lastPlayer.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2) < PER_PLAYER
+		if (now - lastPlayer.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_PLAYER)
 			|| openings.stream().anyMatch(opening -> opening.player == player)
 			|| com.dinglebob.drifter.encounter.Encounters.active(player.getUUID()) != null) {
 			return;
@@ -138,12 +138,12 @@ public final class PlayerChats {
 			Mode mode = Mode.toward(drifter, player);
 			if (mode.hostile() || mode == Mode.WARNING || mode == Mode.AVOIDING || mode == Mode.FLEEING
 				|| now - lastDrifter.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < gap(drifter)
-				|| now - lastPair.getOrDefault(drifter.getUUID() + ":" + player.getUUID(), Long.MIN_VALUE / 2) < PER_PAIR) {
+				|| now - lastPair.getOrDefault(drifter.getUUID() + ":" + player.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_PAIR)) {
 				continue;
 			}
 
 			double sociability = drifter.getPersonality().get(Trait.SOCIABILITY);
-			if (drifter.getRandom().nextDouble() < 0.06 + 0.12 * sociability && start(drifter, player, null, now) != null) {
+			if (drifter.getRandom().nextDouble() < DrifterConfig.chatty(0.06 + 0.12 * sociability) && start(drifter, player, null, now) != null) {
 				return;
 			}
 		}
@@ -251,7 +251,7 @@ public final class PlayerChats {
 	}
 
 	private static long gap(DrifterEntity drifter) {
-		return (long)(QUIET_GAP - (QUIET_GAP - CHATTY_GAP) * drifter.getPersonality().get(Trait.SOCIABILITY));
+		return DrifterConfig.chattyGap((long)(QUIET_GAP - (QUIET_GAP - CHATTY_GAP) * drifter.getPersonality().get(Trait.SOCIABILITY)));
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -302,7 +302,7 @@ public final class PlayerChats {
 
 			// The chatty mostly join in, the quiet sometimes (the first always: someone starts it).
 			double sociability = drifter.getPersonality().get(Trait.SOCIABILITY);
-			if (said > 0 && drifter.getRandom().nextDouble() > 0.3 + 0.6 * sociability) {
+			if (said > 0 && drifter.getRandom().nextDouble() > DrifterConfig.chatty(0.3 + 0.6 * sociability)) {
 				continue;
 			}
 
@@ -338,7 +338,7 @@ public final class PlayerChats {
 		}
 
 		DrifterEntity bystander = by.get(speaker.getRandom().nextInt(by.size()));
-		if (bystander.getRandom().nextDouble() > 0.2 + 0.5 * bystander.getPersonality().get(Trait.SOCIABILITY)) {
+		if (bystander.getRandom().nextDouble() > DrifterConfig.chatty(0.2 + 0.5 * bystander.getPersonality().get(Trait.SOCIABILITY))) {
 			return;
 		}
 

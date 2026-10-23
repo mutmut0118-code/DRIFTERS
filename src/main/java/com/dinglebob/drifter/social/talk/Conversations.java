@@ -138,11 +138,11 @@ public final class Conversations {
 
 			for (DrifterEntity b : near) {
 				if (b == a || a.distanceTo(b) > START || now - lastTalk.getOrDefault(b.getUUID(), Long.MIN_VALUE / 2) < gap(b)
-					|| now - lastPair.getOrDefault(pair(a, b), Long.MIN_VALUE / 2) < PAIR_GAP || !a.hasLineOfSight(b)) {
+					|| now - lastPair.getOrDefault(pair(a, b), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PAIR_GAP) || !a.hasLineOfSight(b)) {
 					continue;
 				}
 
-				double chance = 0.12 * (sociability(a) + sociability(b));
+				double chance = DrifterConfig.chatty(0.12 * (sociability(a) + sociability(b)));
 				if (a.getRandom().nextDouble() < chance && start(a, b, null, now) != null) {
 					return;
 				}
@@ -339,7 +339,7 @@ public final class Conversations {
 
 	/** Least time between its conversations: the chattier, the sooner. */
 	private static long gap(DrifterEntity drifter) {
-		return (long)(QUIET_GAP - (QUIET_GAP - CHATTY_GAP) * sociability(drifter));
+		return DrifterConfig.chattyGap((long)(QUIET_GAP - (QUIET_GAP - CHATTY_GAP) * sociability(drifter)));
 	}
 
 	private static String pair(DrifterEntity a, DrifterEntity b) {

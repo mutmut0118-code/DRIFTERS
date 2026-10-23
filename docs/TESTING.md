@@ -1460,6 +1460,16 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Typing like players, chattiness (new, 0.22.22)
+
+- [ ] Watch Drifter chat for a while: now and then a typo ("comnig"), often followed by "*coming"; a longer line
+      sometimes comes in two ("why do ghasts cry?" then "fire in their eyes"). Names and coords are never misspelled.
+- [ ] Mod Menu > Drifter > gear button > Drifters > "Chattiness": quiet, normal, lively (or `/drifter config
+      chattiness lively`). Lively: they talk to each other and to you a lot more; quiet: much less. They still answer
+      when you ask them something.
+- [ ] "Typos and split messages" off (or `/drifter config typing false`): every line clean and in one piece.
+- [ ] In a gm round, two Drifters don't say the exact same line one after the other.
+
 ## Drifters talk to you, join in, keep running jokes (new, 0.22.21)
 
 All of it is in docs/CHAT_LINES.md section 7. For testing, `/drifter social set <your name> trust 40` and `... familiarity

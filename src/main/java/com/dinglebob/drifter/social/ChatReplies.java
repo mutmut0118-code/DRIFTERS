@@ -167,7 +167,7 @@ public final class ChatReplies {
 
 	/** How likely it is to bother answering at all: the chatty mostly do, the quiet rarely. */
 	private static double chattiness(DrifterEntity drifter) {
-		return 0.15 + 0.8 * drifter.getPersonality().get(Trait.SOCIABILITY);
+		return DrifterConfig.chatty(0.15 + 0.8 * drifter.getPersonality().get(Trait.SOCIABILITY));
 	}
 
 	/** Up to {@code most} of these answer, each by its chattiness, after a moment's typing. */

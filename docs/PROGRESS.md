@@ -2920,5 +2920,17 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     "you're hurt! want some food?", "yes pls", "catch" and threw 2 bread; a fall death became "skydiver is back" and
     Annie and Bobby's "Tester jumped off a mountain lmao" / "legendary"; Drifters started their own talks between.
     Found and fixed: a bystander's "lol" before the joke it laughed at.
-- Next: chat phase 4 (typos, split messages, a chattiness setting). Then the well, the plaza (lamps, a notice board),
-  then step 4, money and markets.
+- **Chat phase 4: typing like players, chattiness (0.22.22; the user: "start phase 4").**
+  - `social/Typing`: every Drifter line goes through it (`ChatLines.send` -> `Typing.type` -> `ChatLines.deliver`). A
+    typo (swap, drop, double, the QWERTY neighbour) in a word of 4+ letters only, never a name or a number; chance
+    3% to 11% by skill, newbies +6%, casual and speedrunners +3%, builders and hermits -2%; fixed with "*word" by
+    tidiness (25% to 75%). A line of 16+ characters with ", " (or "? " / "! " midway) goes in two 35% of the time,
+    the second part after its typing time. Config "Typos and split messages" (`typing`, on).
+  - Chattiness (config screen cycle, `/drifter config chattiness`): quiet 0.4, normal 1, lively 2; chances times it,
+    gaps divided by it: canned reactions and whim lines (`ChatLines`), the rituals (`ChatReplies`), talks between
+    Drifters, talks with players, rounds, bystanders. Answers and encounters always.
+  - `Lines`: not a line anyone said in the last 30 s if another will do.
+  - Tested on a test server, 48 lines from a newbie and a builder: "comnig" "*coming", "only got enouhg for me"
+    "*enough", "why do ghasts cry?" / "fire in their eyes", "nothing!" / "any ideas?"; the config line shows both.
+- Next: the chat phases are done (1 to 5). Then the well, the plaza (lamps, a notice board), then step 4, money and
+  markets.

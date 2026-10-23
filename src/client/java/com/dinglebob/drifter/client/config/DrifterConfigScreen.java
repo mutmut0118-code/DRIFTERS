@@ -46,7 +46,18 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 			toggle("Thoughts in the log", DrifterConfig.logThoughts(), DrifterConfig::setLogThoughts,
 				"Every decision they make goes to the game log, in plain words. For finding out why one did something."));
 		this.row(slider("Chat heard within", DrifterConfig.MIN_CHAT_RANGE, DrifterConfig.MAX_CHAT_RANGE, DrifterConfig.chatRange(), v -> v + " blocks",
-			DrifterConfig::setChatRange, "How far off you see what a Drifter says in chat (their talk with each other, hellos, rips...)."), null);
+			DrifterConfig::setChatRange, "How far off you see what a Drifter says in chat (their talk with each other, hellos, rips...)."),
+			tip(CycleButton.<DrifterConfig.Chattiness>builder(level -> Component.literal(switch (level) {
+					case QUIET -> "quiet";
+					case NORMAL -> "normal";
+					case LIVELY -> "lively";
+				}))
+				.withValues(DrifterConfig.Chattiness.values())
+				.withInitialValue(DrifterConfig.chattiness())
+				.create(0, 0, WIDTH, 20, Component.literal("Chattiness"), (button, level) -> DrifterConfig.setChattiness(level)),
+				"How much they chat on their own: with each other, to you, the gm rounds. They always answer when you ask them something."));
+		this.row(toggle("Typos and split messages", DrifterConfig.typing(), DrifterConfig::setTyping,
+			"They type like players: now and then a typo (sometimes fixed with *word), a longer line sent in two."), null);
 		this.row(toggle("Whims (things for fun)", DrifterConfig.whims(), DrifterConfig::setWhims, "Watching sunsets, little builds, snowball fights: what they do when bored."),
 			toggle("Parkour jumps", DrifterConfig.parkour(), DrifterConfig::setParkour, "Jumping gaps on their routes, as players do."));
 

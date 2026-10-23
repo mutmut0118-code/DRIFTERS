@@ -136,10 +136,18 @@ public final class Lines {
 			return null;
 		}
 
-		List<String> fresh = pool.stream().filter(line -> !said(drifter, line)).toList();
-		List<String> from = fresh.isEmpty() ? pool : fresh;
+		// Not what it said lately, nor what anyone just said (two Drifters' "gm gm" in a row: one says "morning").
+		long now = drifter.level().getGameTime();
+		List<String> mine = pool.stream().filter(line -> !said(drifter, line)).toList();
+		List<String> fresh = mine.stream().filter(line -> now - justSaid.getOrDefault(line, Long.MIN_VALUE / 2) > JUST).toList();
+		List<String> from = !fresh.isEmpty() ? fresh : !mine.isEmpty() ? mine : pool;
 		String line = from.get(drifter.getRandom().nextInt(from.size()));
 		remember(drifter, line);
+		justSaid.put(line, now);
+		if (justSaid.size() > 256) {
+			justSaid.values().removeIf(at -> now - at > JUST);
+		}
+
 		return line;
 	}
 
@@ -151,6 +159,9 @@ public final class Lines {
 	/** Lines each Drifter said lately (it doesn't say the same thing over and over; not saved). */
 	private static final Map<java.util.UUID, java.util.ArrayDeque<String>> lately = new HashMap<>();
 	private static final int LATELY = 24;
+	/** Lines anyone said in the last half minute, and when. */
+	private static final Map<String, Long> justSaid = new HashMap<>();
+	private static final long JUST = 20L * 30;
 
 	private static boolean said(DrifterEntity drifter, String line) {
 		java.util.ArrayDeque<String> mine = lately.get(drifter.getUUID());
