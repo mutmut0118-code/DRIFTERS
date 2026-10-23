@@ -2850,26 +2850,28 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     (news passed on, trust, rivalry).
   - `social/talk/Conversations` and `ConverseGoal`: two idle Drifters near a player (one talk per player's earshot)
     walk up, face each other and take turns, typing time by line length; one talk at a time each; gaps per Drifter
-    (chattier ones talk more) and per pair. One of them has to stop what it's doing (the converse goal, "someone's
-    waiting" as a deal, wins in its brain within 10 s), else nothing is said; the other can answer while it works (players
-    type while they build) if it stays within 16 blocks. Both off doing something else for 5 s ends it. At night hunting
-    mobs comes first. The weather and the night come up only when both are under the open sky.
+    (chattier ones talk more) and per pair. One busy with something types as it works (players chat while they
+    build: a Drifter's job only gives way at a checkpoint, and gathering 3 logs has none till the end); one that's free
+    (the converse goal, "someone's waiting" as a deal, wins at its next checkpoint) walks over and faces the other.
+    16 blocks apart ends it. The weather and the night come up only when both are under the open sky.
     `/drifter talk [topic]` starts one between the nearest two.
   - docs/CHAT_LINES.md section 6 lists every topic (generated).
 - Next in the chat: phase 2 (players: wyd, coords, follow me, trades, team up, help, compliments and insults,
   trust-gated, a Drifter remembers what you said), phase 3 (Drifters start talks with you, several join in, town gm
-  rounds), phase 4 (typos, split messages, a chattiness setting), phase 5 (the user, 2026-10-23: "chat head and chat
-  bubbles support (both are mods found in drifter test)"). Then the well, the plaza, then step 4.
-- **Phase 5 plan: Chat Heads and Talk Bubbles** (both client-only, in the DRIFTER TEST profile: `chat_heads` 0.15.7 by
-  dzwdz, `talkbubbles` 1.0.8 by Globox_Z; optional, detected at runtime, never required).
-  - Neither sees Drifters now: Chat Heads finds a message's sender in the player list (tab list `PlayerInfo`, by name
-    or UUID) and draws its skin; Talk Bubbles reads the sender's name from the message, finds that client player and
-    draws the bubble in the player renderer. A Drifter is neither in the tab list nor drawn by the player renderer.
-  - Plan: with each Drifter line, the server sends the players who hear it (the same chat range) a small packet: which
-    Drifter (entity id), and the text. Client side (`src/client`): the Drifter renderer draws a bubble over it with
-    Talk Bubbles' own `RenderBubble.renderBubble` (its look and its config) when that mod is loaded; for Chat Heads, an
-    optional mixin (applied only if `chat_heads` is loaded) gives the message the Drifter's skin as its head
-    (`ChatHeads.detectPlayer` / `HeadData`). Without the mods, nothing changes (maybe our own simple bubble, ask).
-  - Check with Chat Patches (also in the profile) that heads still line up.
+  rounds), phase 4 (typos, split messages, a chattiness setting); phase 5 (Chat Heads, Talk Bubbles) done first. Then the well, the plaza, then step 4.
+- **Chat phase 5: Chat Heads and Talk Bubbles (0.22.19; the user: "chat head and chat bubbles support (both are mods
+  found in drifter test)", "yeah do phase 5 next").** Both optional (found at runtime; nothing changes without them).
+  - Neither saw Drifters: Chat Heads looks for a message's sender among the players (tab list), Talk Bubbles finds the
+    named player and draws in the player renderer.
+  - With each Drifter line the server sends the players who hear it `DrifterSaidPayload` (entity id and text) just
+    before the line (`ChatLines.send`, the shop's "nothing to sell" too).
+  - Client (`client/chat/DrifterSpeech`): the bubble over the Drifter is drawn by Talk Bubbles' own
+    `RenderBubble.renderBubble` (by reflection), wrapped to its `maxChatWidth`, kept for its `chatTime` (its settings
+    screen applies). Chat Heads: `mixin/compat/ChatHeadsMixin` (`@Pseudo`, `require = 0`) answers `detectPlayer` for a
+    message that is the line just announced with a `PlayerInfo` wearing the Drifter's current skin.
+  - Conversations: a talk no longer waits for both to stop; one busy types as it works (see phase 1).
+  - Tested in the client with Chat Heads 0.15.7, Talk Bubbles 1.0.8 and Chat Patches 8.0.0: bubbles over Ann and Bob
+    as they talked, their own faces next to their lines (Chat Patches' timestamps in front, lined up as a player's).
+    `run/mods` keeps Chat Heads and Talk Bubbles for client tests.
 - Before that: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

@@ -63,6 +63,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.identity.Usernames.register();
 		com.dinglebob.drifter.social.Lines.register();
 		com.dinglebob.drifter.social.ChatReplies.register();
+		com.dinglebob.drifter.social.DrifterSaidPayload.register();
 		com.dinglebob.drifter.social.talk.Diary.register();
 		com.dinglebob.drifter.social.talk.Topics.register();
 		com.dinglebob.drifter.social.talk.Conversations.register();

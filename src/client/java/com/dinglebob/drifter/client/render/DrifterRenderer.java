@@ -33,6 +33,8 @@ public class DrifterRenderer extends EntityRenderer<DrifterEntity> {
 	@Override
 	public void render(DrifterEntity drifter, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light) {
 		this.pick(drifter).render(drifter, yaw, partialTick, poseStack, buffers, light);
+		// What it just said, in a bubble over it (with Talk Bubbles).
+		com.dinglebob.drifter.client.chat.DrifterSpeech.render(drifter, poseStack, buffers, light, this.entityRenderDispatcher, this.getFont());
 	}
 
 	@Override

@@ -4,7 +4,8 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"FishingHookClientMixin",
-		"ItemInHandLayerMixin"
+		"ItemInHandLayerMixin",
+		"compat.ChatHeadsMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

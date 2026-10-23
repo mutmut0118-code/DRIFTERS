@@ -1460,6 +1460,16 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Chat Heads and Talk Bubbles (new, 0.22.19)
+
+Both mods are in DRIFTER TEST; Drifter works the same without them.
+- [ ] Near two Drifters, `/drifter talk`: a bubble over each as it speaks, like a player's (Talk Bubbles), gone after
+      a few seconds. Its settings (Mod Menu > Talk Bubbles: time, width, colors) apply to Drifters too.
+- [ ] Each Drifter line in chat has that Drifter's face next to it (Chat Heads), its own skin, lined up like players'
+      lines (with Chat Patches' timestamps).
+- [ ] Your own messages and other players' still get their own heads and bubbles (never a Drifter's).
+- [ ] A shopkeeper with nothing to sell (right-click it): its line gets a bubble and a head too.
+
 ## Drifters talk with each other (new, 0.22.18)
 
 The topics and their lines are in docs/CHAT_LINES.md, section 6.
@@ -1476,7 +1486,7 @@ The topics and their lines are in docs/CHAT_LINES.md, section 6.
 - [ ] Personalities sound different: a hermit is short ("hm."), a newbie excited ("hi!!"), a bandit eyes your gear.
 - [ ] `/drifter talk` makes the nearest two talk now; `/drifter talk joke_skeleton` (any topic id from the doc) picks it.
 - [ ] They don't talk over each other: one conversation per spot, and not every few seconds.
-- [ ] One busy building may keep building and answer while it works; nobody talks about the rain in a cave.
+- [ ] One busy (gathering, building) keeps working and chats as it goes; nobody talks about the rain in a cave.
 
 ## Chat (new, 0.22.16)
 

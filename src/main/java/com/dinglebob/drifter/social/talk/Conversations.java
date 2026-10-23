@@ -45,13 +45,6 @@ public final class Conversations {
 	private static final long QUIET_GAP = 20 * 60 * 6;
 	/** Least time before the same two talk again (ticks). */
 	private static final long PAIR_GAP = 20 * 60 * 4;
-	/**
-	 * How long one of them has to stop what it's doing and turn to talk (else both were busy: no talk), and how long both
-	 * can be off doing something else before the talk's over (ticks). The other can answer while it works, as players type
-	 * while they build.
-	 */
-	private static final long JOIN_WITHIN = 20 * 10;
-	private static final long AWAY_AT_MOST = 20 * 5;
 
 	/** A conversation going on. */
 	public static final class Talk {
@@ -68,10 +61,6 @@ public final class Conversations {
 		List<String> answers;
 		@Nullable
 		DrifterEntity asker;
-		final long started;
-		/** One of them has turned to talk (it starts when one has), and when one last was. */
-		boolean joined;
-		long together;
 
 		Talk(DrifterEntity a, DrifterEntity b, Topics.Topic topic, long now) {
 			this.a = a;
@@ -80,8 +69,6 @@ public final class Conversations {
 			this.aFacts = Facts.of(a, b);
 			this.bFacts = Facts.of(b, a);
 			this.world = Facts.world(a, b);
-			this.started = now;
-			this.together = now;
 			this.nextAt = now + 10 + a.getRandom().nextInt(20);
 		}
 
@@ -120,25 +107,8 @@ public final class Conversations {
 				continue;
 			}
 
-			// One stops what it's doing to talk, or there's no talk (both too busy: nothing said); and if both go off to do
-			// something else for a while, it's over.
-			if (conversing(talk.a) || conversing(talk.b)) {
-				if (!talk.joined) {
-					talk.joined = true;
-					talk.nextAt = Math.max(talk.nextAt, now + 10);
-				}
-
-				talk.together = now;
-			} else if (talk.joined ? now - talk.together > AWAY_AT_MOST : now - talk.started > JOIN_WITHIN) {
-				if (talk.joined) {
-					end(talk, now);
-				}
-
-				it.remove();
-				continue;
-			}
-
-			if (talk.joined && now >= talk.nextAt && !step(talk, now)) {
+			// (One busy with something types as it works, as players do; one that's free walks over and faces the other.)
+			if (now >= talk.nextAt && !step(talk, now)) {
 				end(talk, now);
 				it.remove();
 			}
@@ -338,12 +308,6 @@ public final class Conversations {
 				}
 			}
 		}
-	}
-
-	/** It's doing the talking (the converse goal), not something else. */
-	private static boolean conversing(DrifterEntity drifter) {
-		var goal = drifter.getDrifterBrain().currentGoal();
-		return goal != null && goal.id().equals("converse");
 	}
 
 	/** Still going: both alive, near each other, not fighting or in trouble. */

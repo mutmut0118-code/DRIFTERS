@@ -677,7 +677,13 @@ public class DrifterEntity extends PathfinderMob {
 			}
 
 			if (!com.dinglebob.drifter.trade.DrifterMerchant.open(this, this.shop, player)) {
-				player.sendSystemMessage(com.dinglebob.drifter.trade.DrifterMerchant.nothing(this));
+				net.minecraft.network.chat.Component line = com.dinglebob.drifter.trade.DrifterMerchant.nothing(this);
+				if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+					// ("<name> " off the front: the bubble has the line only.)
+					com.dinglebob.drifter.social.DrifterSaidPayload.send(serverPlayer, this, line.getString().substring(this.getName().getString().length() + 3));
+				}
+
+				player.sendSystemMessage(line);
 			}
 
 			return net.minecraft.world.InteractionResult.CONSUME;

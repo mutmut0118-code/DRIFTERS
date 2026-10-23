@@ -68,6 +68,7 @@ public final class ChatLines {
 		java.util.UUID audience = drifter.encounter() != null ? drifter.encounter().player : null;
 		for (net.minecraft.server.level.ServerPlayer player : drifter.getServer().getPlayerList().getPlayers()) {
 			if (player.getUUID().equals(audience) || player.level() == drifter.level() && player.distanceTo(drifter) <= range) {
+				DrifterSaidPayload.send(player, drifter, text);
 				player.sendSystemMessage(line);
 			}
 		}
