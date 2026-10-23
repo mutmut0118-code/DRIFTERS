@@ -150,6 +150,112 @@ public final class Felling {
 		return taken;
 	}
 
+	/**
+	 * The tree this log or grown leaf is part of, felled whole: its trunk and its crown (the leaves another tree holds
+	 * stay), as a player clears a tree that's in the way of a build instead of cutting it off at the edge (user,
+	 * 2026-10-23: "trees are always half cutoff"). A leaf held by more than one tree fells each in turn. Logs of a build
+	 * (someone's, or not standing on the ground with leaves on them) are left alone. True if anything was felled.
+	 */
+	public static boolean fellTree(LevelAccessor level, BlockPos pos) {
+		boolean any = false;
+		for (int tries = 0; tries < 3; tries++) {
+			BlockState state = level.getBlockState(pos);
+			BlockPos log = state.is(BlockTags.LOGS) ? pos : grown(state) ? holdingLog(level, pos) : null;
+			if (log == null) {
+				return any;
+			}
+
+			Set<BlockPos> trunk = connected(level, log.immutable(), s -> s.is(BlockTags.LOGS), 160, 1);
+			if (!aTree(level, trunk)) {
+				return any;
+			}
+
+			Set<BlockPos> leaves = leavesOf(level, trunk);
+			for (BlockPos gone : trunk) {
+				level.setBlock(gone, Blocks.AIR.defaultBlockState(), 2);
+				// (The dirt a tree keeps under its trunk grassed over, as the ground round it: found by the user, a line of bare
+				// squares across a town's grass where a row of birches stood.)
+				BlockPos under = gone.below();
+				if (!trunk.contains(under) && level.getBlockState(under).is(Blocks.DIRT) && writable(level, under)) {
+					level.setBlock(under, Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+				}
+			}
+
+			for (BlockPos gone : leaves) {
+				if (writable(level, gone)) {
+					level.setBlock(gone, Blocks.AIR.defaultBlockState(), 2);
+				}
+			}
+
+			for (Set<BlockPos> felled : List.of(trunk, leaves)) {
+				for (BlockPos gone : felled) {
+					if (writable(level, gone.above()) && level.getBlockState(gone.above()).is(Blocks.SNOW) && level.getBlockState(gone).isAir()) {
+						level.setBlock(gone.above(), Blocks.AIR.defaultBlockState(), 2);
+					}
+				}
+			}
+
+			any = true;
+			// (A leaf that was the tree's own is gone now; one another tree held too is still there: that tree next.)
+			if (state.is(BlockTags.LOGS)) {
+				return true;
+			}
+		}
+
+		return any;
+	}
+
+	/** The nearest log holding this leaf (within the game's leaf distance, through leaves), or null. */
+	@Nullable
+	private static BlockPos holdingLog(LevelAccessor level, BlockPos leaf) {
+		Map<BlockPos, Integer> steps = new HashMap<>();
+		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+		steps.put(leaf.immutable(), 0);
+		queue.add(leaf.immutable());
+		while (!queue.isEmpty()) {
+			BlockPos pos = queue.poll();
+			int step = steps.get(pos);
+			for (Direction side : Direction.values()) {
+				BlockPos next = pos.relative(side);
+				if (steps.containsKey(next) || !readable(level, next)) {
+					continue;
+				}
+
+				BlockState state = level.getBlockState(next);
+				if (state.is(BlockTags.LOGS)) {
+					return next;
+				}
+
+				if (step + 1 < LEAF_HOLD && grown(state)) {
+					steps.put(next, step + 1);
+					queue.add(next);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/** A tree's trunk: no one's build, standing on the ground, with grown leaves on it. */
+	private static boolean aTree(LevelAccessor level, Set<BlockPos> trunk) {
+		boolean grounded = false;
+		boolean leafy = false;
+		for (BlockPos log : trunk) {
+			if (!writable(level, log) || level instanceof net.minecraft.world.level.Level real && com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(real, log)) {
+				return false;
+			}
+
+			BlockState under = level.getBlockState(log.below());
+			grounded |= !trunk.contains(log.below()) && (under.is(BlockTags.DIRT) || under.is(Blocks.SAND) || under.is(Blocks.GRAVEL)
+				|| under.is(Blocks.MANGROVE_ROOTS) || under.is(Blocks.MUDDY_MANGROVE_ROOTS) || under.is(Blocks.SNOW_BLOCK));
+			for (Direction side : Direction.values()) {
+				leafy |= grown(level.getBlockState(log.relative(side)));
+			}
+		}
+
+		return grounded && leafy;
+	}
+
 	/** How far round a build loose bits of trees are looked for. */
 	private static final int TIDY_REACH = 8;
 	/** Leaves stay while a tree's log is this many steps away through leaves (the game's own leaf distance: 7 rots). */

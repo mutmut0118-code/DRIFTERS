@@ -183,9 +183,22 @@ public class MoveInActivity extends Activity {
 				return this.begin(Goals.activityFor(this.drifter, plan.next()));
 			}
 
-			BlockPos spot = chestSpot(level, home, this.drifter.getServer());
+			// Its house's layout first (a player's furnishing: the storage wall, then the rest), placed from in front so it faces
+			// the room (a chest faces whoever puts it down; found by the user: chests facing the corner "look backwards").
+			com.dinglebob.drifter.building.Furnishing.Spot laid = laidOut(level, home, this.drifter.getServer(), Blocks.CHEST);
+			BlockPos spot = laid != null ? laid.pos() : chestSpot(level, home, this.drifter.getServer());
 			if (spot == null) {
 				return this.fail("no room for a chest in the house");
+			}
+
+			if (laid != null && !this.drifter.blockPosition().equals(spot.relative(laid.facing()))) {
+				BlockPos front = spot.relative(laid.facing());
+				if (this.walks.merge(front, 1, Integer::sum) > 4) {
+					home.badChestSpots.add(spot);
+					return this.fail("couldn't get in front of " + spot.toShortString() + " to put a chest there; another go later");
+				}
+
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(front), 0.4, "take a chest into the house", NavigateTask.Pace.STROLL));
 			}
 
 			if (!Reach.canReach(this.drifter, spot.below()) || this.drifter.blockPosition().equals(spot)) {
@@ -339,6 +352,24 @@ public class MoveInActivity extends Activity {
 	 * Where a chest goes in its house: in the house it built from a plan, a free floor cell inside, against a wall, away from
 	 * the door and its bed (the ground floor first); in a house of the older kind, its chest corner. Null if none.
 	 */
+	@Nullable
+	public static com.dinglebob.drifter.building.Furnishing.Spot laidOut(Level level, Home home, @Nullable net.minecraft.server.MinecraftServer server,
+		net.minecraft.world.level.block.Block block) {
+		if (server == null || home.planId == null || home.planOrigin == null || !home.planDone) {
+			return null;
+		}
+
+		HousePlan plan = HousePlans.get(server, home.planId);
+		if (plan == null) {
+			return null;
+		}
+
+		com.dinglebob.drifter.building.Furnishing.Spot spot = com.dinglebob.drifter.building.Furnishing.next(level, PlacedPlan.of(plan, home), home.planBed,
+			block, false);
+		return spot == null || home.badChestSpots.contains(spot.pos()) ? null : spot;
+	}
+
+	/** The next free place in its house's furnished layout for this (the user's furnishing guidebook), or null. */
 	@Nullable
 	public static BlockPos chestSpot(Level level, Home home, @Nullable net.minecraft.server.MinecraftServer server) {
 		if (home.houseBuilt && home.house() != null) {

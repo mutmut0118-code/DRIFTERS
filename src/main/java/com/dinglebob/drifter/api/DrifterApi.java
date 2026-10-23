@@ -280,6 +280,7 @@ public final class DrifterApi {
 		home.planWoods.putAll(palette.woods());
 		home.planDeepslate = palette.deepslate();
 		home.planDone = true;
+		home.setPlanBox(box);
 		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuiltBox(level, box);
 		if (plan != null) {
 			var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, house.origin(), house.rotation(), palette);
@@ -302,14 +303,54 @@ public final class DrifterApi {
 
 		shared.forEach(home::addChest);
 		drifter.getDrifterBrain().setHome(home);
-		// A chest of its own in the house.
-		net.minecraft.core.BlockPos chest = com.dinglebob.drifter.brain.activity.MoveInActivity.chestSpot(level, home, level.getServer());
-		if (chest != null) {
-			level.setBlock(chest, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState(), 3);
-			home.addChest(chest);
+		// Its house furnished as a player furnishes a base (the user's furnishing guidebook, 2026-10-23): a storage wall with
+		// the crafting table in it, furnace and smoker with the fuel chest, a dump chest by the door, a bedside chest. It
+		// lived there: it knows them, and the inside of its house (found in testing: never having seen in, it couldn't find
+		// the stairs to its own chest, and pillared).
+		if (plan != null) {
+			var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, house.origin(), house.rotation(), palette);
+			long now = level.getGameTime();
+			for (var spot : com.dinglebob.drifter.building.Furnishing.furnish(level, placed, home.planBed, net.minecraft.world.level.block.Block.UPDATE_ALL)) {
+				var state = level.getBlockState(spot.pos());
+				if (spot.use().chest()) {
+					// (A double chest once: its two halves are one container.)
+					if (state.is(net.minecraft.world.level.block.Blocks.CHEST) && state.getValue(net.minecraft.world.level.block.ChestBlock.TYPE)
+						!= net.minecraft.world.level.block.state.properties.ChestType.RIGHT) {
+						home.addChest(spot.pos());
+					}
+				} else {
+					drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.STATION, net.minecraft.core.registries.BuiltInRegistries.BLOCK
+						.getKey(state.getBlock()).toString(), net.minecraft.world.phys.Vec3.atCenterOf(spot.pos()), level.dimension().location(), now,
+						com.dinglebob.drifter.memory.MemorySource.SEEN, 0.7F, null);
+				}
+			}
+
+			knowsBox(drifter, box.inflatedBy(3));
 		}
 
 		return home;
+	}
+
+	/** (A town made at once, for testing.) It knows every block in this box, as if it had looked all over it. */
+	public static void knowsBox(DrifterEntity drifter, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+		var terrain = drifter.getSenses().terrain();
+		for (net.minecraft.core.BlockPos pos : net.minecraft.core.BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+			terrain.mark(pos);
+		}
+	}
+
+	/** The tree this log or grown leaf belongs to felled whole, trunk and crown (clearing for a build). True if one was. */
+	public static boolean fellTree(ServerLevel level, net.minecraft.core.BlockPos pos) {
+		return com.dinglebob.drifter.world.gen.Felling.fellTree(level, pos);
+	}
+
+	/**
+	 * (A town made at once, for testing.) Gear of the middle to late game, as a Drifter well on in its life has: iron armor
+	 * with some diamond, its favorite weapon at that tier, a shield, a bow and arrows, iron tools (user, 2026-10-23: "all of
+	 * the players should be like mid-late game, above tier 2, that way drifters can defend themselves").
+	 */
+	public static void equipSettled(DrifterEntity drifter, net.minecraft.util.RandomSource random) {
+		com.dinglebob.drifter.world.gen.Delvers.settledKit(drifter, random);
 	}
 
 	/** It builds no hut of its own (a town's people live in houses); it still builds a house. */
@@ -451,6 +492,7 @@ public final class DrifterApi {
 		home.planDeepslate = palette.deepslate();
 		home.planDone = false;
 		home.planBed = null;
+		home.setPlanBox(com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home).box());
 	}
 
 	/**

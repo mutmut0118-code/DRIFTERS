@@ -275,6 +275,7 @@ public class BuildPlanActivity extends Activity {
 				long up = plan.build.stream().filter(c -> Placement.matches(level.getBlockState(c.pos()), c.state())).count();
 				if (up == 0 && !this.project) {
 					home.planOrigin = null;
+					home.setPlanBox(null);
 					this.placed = null;
 					this.think("the ground there drops away too far to level: looking for another spot for the house");
 					return Status.RUNNING;
@@ -588,6 +589,7 @@ public class BuildPlanActivity extends Activity {
 		home.planDeepslate = bestPalette.deepslate();
 		home.planDone = false;
 		this.placed = PlacedPlan.of(bestPlan, home);
+		home.setPlanBox(this.placed.box());
 		this.think("going to build a house (" + bestPlan.id.replace("personal:", "").replace("world:", "") + ") at " + bestSite.origin().toShortString()
 			+ ", in " + bestPalette.describe());
 		return Status.RUNNING;

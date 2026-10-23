@@ -2754,5 +2754,36 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   fields): trunk pieces with nothing under them but air, leaves or the build go, and every grown leaf no tree's log holds
   within 6 steps through leaves (the game's own leaf distance) goes. Tested on seed 777's birch forest: 332 loose leaves
   and 8 of 8 Drifters off the ground before, 0 and 0 after.
+- **The user's town bug list of 2026-10-23 (0.22.13; step 4 on hold till it's done, the user: "dont move on to step 4
+  yet"):**
+  - Trees "always half cutoff": clearing for a build now fells each tree in the way whole, trunk and crown
+    (`Felling.fellTree`, `DrifterApi.fellTree`; the town's ground, roads, plaza, fields, catch-up huts and houses), the
+    dirt under its trunk grassed over.
+  - Chests facing the corner: houses are furnished by `building/Furnishing`, from the user's furnishing guidebook: a
+    storage wall (double chests two high, the crafting table set in it), the furnace and smoker with the fuel chest, a
+    dump chest inside the front door, a bedside chest; each facing the floor it's used from, its back to a wall, never in a
+    doorway or at the foot of stairs, always leaving a way to everything. The made-ready town furnishes every house at
+    once (its people know their things: chests, stations, the inside of their house, the store, the plaza); Drifters
+    moving chests into their house or putting a station down at home use the same layout, standing in front of the spot
+    so it faces the room.
+  - A dark town and mobs killing its people: the made-ready town works out the block light over its ground and inside
+    its houses (`TownLights`, as the game spreads it) and puts lamp posts outdoors (not on roads or fields) and torches
+    indoors wherever a monster could spawn at light 0 (the town's own ground only, not the woods round it).
+  - Pen fences on hills: at a step the lower post goes up to the next one's height, so they join.
+  - Mining into houses and pillaring inside them: a Drifter living in a house from a plan started its mine staircase a
+    hut's few blocks from home's middle, inside the house (now outside its walls; `Home.planBox`, saved, and
+    `inOwnBuilding` counts the plan house), and made-ready townsfolk had never seen inside their houses (now they know
+    them). Tested: no digging at house floors, "can't get to its chest" 29 -> 0 in two days.
+  - "Way more spaced out and dynamic like a village": the made-ready town is laid out first (four roads out from the
+    plaza, side roads off them, more where the land's broken; roads stop at water wider than 5 blocks), then the houses go
+    along the roads nearest the plaza first, 6 to 12 blocks apart (fire), 2 to 5 back from the road; each on its own
+    ground (up to 7 blocks of slope), a cobblestone foundation wall where the land falls away, the land round it eased up
+    to it over 3 blocks; grass buried under fill or a house turned to dirt. Towns founded by their people keep 6 blocks
+    between plots too (was 2).
+  - The made-ready town's people are mid-to-late game (iron armor with some diamond, their weapon, shield, bow, iron
+    tools; `DrifterApi.equipSettled`), their houses stocked (stone, wood, iron, coal, food).
+  - Noted for later house plans: more stone (wooden towns burn).
+  Tested: birch forest (seed 777 at 0, 0) and a hilly coast (352, 32): 8 of 8 and 8-9 of 10 houses, everyone alive after
+  two days, 0 loose leaves, ~70 lamp posts.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

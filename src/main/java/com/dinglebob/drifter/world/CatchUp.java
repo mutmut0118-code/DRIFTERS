@@ -1159,6 +1159,12 @@ public final class CatchUp {
 			if (level.isLoaded(cell) && !state.isAir() && (state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
 				|| state.canBeReplaced() && state.getFluidState().isEmpty()) && com.dinglebob.drifter.brain.KnownBlocks.mayTake(level, cell)
 				&& !PlayerPlacedBlocks.isPlayerPlaced(level, cell)) {
+				// (A tree in the way comes down whole, not cut off at the hut's edge: user, 2026-10-23.)
+				if ((state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES))
+					&& com.dinglebob.drifter.world.gen.Felling.fellTree(level, cell)) {
+					continue;
+				}
+
 				level.setBlock(cell, Blocks.AIR.defaultBlockState(), 3);
 			}
 		}

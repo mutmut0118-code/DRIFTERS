@@ -49,6 +49,13 @@ public final class HousePlacer {
 				hangingStates.add(state);
 			} else {
 				level.setBlock(world, state, Block.UPDATE_CLIENTS);
+				// (Grass with the house on it is earth: user, 2026-10-23, "grass blocks not turning into dirt when there is a house
+				// on top of it".)
+				BlockState under = level.getBlockState(world.below());
+				if (!state.isAir() && (under.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK) || under.is(net.minecraft.world.level.block.Blocks.PODZOL)
+					|| under.is(net.minecraft.world.level.block.Blocks.MYCELIUM))) {
+					level.setBlock(world.below(), net.minecraft.world.level.block.Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
 			}
 		}
 

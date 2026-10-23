@@ -264,6 +264,14 @@ public final class Home {
 
 	/** Inside or part of its hut or its house (walls, roof, floor, with {@code margin} blocks round them). */
 	public boolean inOwnBuilding(BlockPos pos, int margin) {
+		// Its house from a plan (found in testing: a town house's mine started inside it, its stairs a hut's few blocks from
+		// the middle).
+		if (this.planOrigin != null && this.planBox != null && pos.getX() >= this.planBox[0] - margin && pos.getX() <= this.planBox[3] + margin
+			&& pos.getZ() >= this.planBox[2] - margin && pos.getZ() <= this.planBox[5] + margin && pos.getY() >= this.planBox[1] - 1
+			&& pos.getY() <= this.planBox[4] + margin) {
+			return true;
+		}
+
 		if (this.hutBuilt || this.hutDoor != null) {
 			int half = this.hutHalf + margin;
 			if (Math.abs(pos.getX() - this.center.getX()) <= half && Math.abs(pos.getZ() - this.center.getZ()) <= half
@@ -279,6 +287,22 @@ public final class Home {
 		}
 
 		return false;
+	}
+
+	/** The box its house from a plan takes (min x, y, z, max x, y, z), once it has picked the spot; null if not. */
+	@Nullable
+	public int[] planBox;
+
+	public void setPlanBox(@Nullable net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+		this.planBox = box == null ? null : new int[] {box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()};
+	}
+
+	/** Its house from a plan's box, or null. */
+	@Nullable
+	public net.minecraft.world.level.levelgen.structure.BoundingBox planBox() {
+		return this.planOrigin == null || this.planBox == null ? null
+			: new net.minecraft.world.level.levelgen.structure.BoundingBox(this.planBox[0], this.planBox[1], this.planBox[2], this.planBox[3],
+				this.planBox[4], this.planBox[5]);
 	}
 
 	/** The house's blueprint, or null if it hasn't picked a spot. */
@@ -391,6 +415,7 @@ public final class Home {
 		if (from.planId != null && from.planOrigin != null && !samePlan && (this.planId == null || this.planOrigin == null || fromLeader && !this.planDone)) {
 			this.planId = from.planId;
 			this.planOrigin = from.planOrigin;
+			this.planBox = from.planBox;
 			this.planRotation = from.planRotation;
 			this.planWoods.clear();
 			this.planWoods.putAll(from.planWoods);
@@ -622,6 +647,10 @@ public final class Home {
 			plan.put("Woods", woods);
 			plan.putBoolean("Deepslate", this.planDeepslate);
 			plan.putBoolean("Done", this.planDone);
+			if (this.planBox != null) {
+				plan.putIntArray("Box", this.planBox);
+			}
+
 			if (this.planBed != null) {
 				plan.put("Bed", NbtUtils.writeBlockPos(this.planBed));
 			}
@@ -713,6 +742,7 @@ public final class Home {
 			home.planId = plan.getString("Id");
 			home.planOrigin = NbtUtils.readBlockPos(plan, "Origin").orElse(null);
 			home.planRotation = plan.getString("Rotation").isEmpty() ? "NONE" : plan.getString("Rotation");
+			home.planBox = plan.getIntArray("Box").length == 6 ? plan.getIntArray("Box") : null;
 			CompoundTag woods = plan.getCompound("Woods");
 			for (String key : woods.getAllKeys()) {
 				home.planWoods.put(key, woods.getString(key));

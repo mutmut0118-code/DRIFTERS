@@ -234,6 +234,19 @@ public final class Delvers {
 		inventory.add(new ItemStack(Items.WATER_BUCKET));
 	}
 
+	/**
+	 * A delver's gear for a Drifter settled in a town made ready (for testing): armor, weapon, shield, bow and pickaxe as a
+	 * delver's, and the iron tools of a working life (axe, shovel, hoe).
+	 */
+	public static void settledKit(DrifterEntity drifter, RandomSource random) {
+		kit((ServerLevel)drifter.level(), drifter, random);
+		var inventory = drifter.getInventory();
+		inventory.add(new ItemStack(Items.IRON_AXE));
+		inventory.add(new ItemStack(Items.IRON_SHOVEL));
+		inventory.add(new ItemStack(Items.IRON_HOE));
+		inventory.add(new ItemStack(Items.BREAD, 8));
+	}
+
 	/** An enchanting-table enchantment at level 8 to 25, as a player of its gear would have. */
 	private static void enchant(ServerLevel level, ItemStack stack, RandomSource random) {
 		Optional<? extends net.minecraft.core.HolderSet<net.minecraft.world.item.enchantment.Enchantment>> table = level.registryAccess()

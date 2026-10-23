@@ -53,10 +53,13 @@ public final class TownFounding {
 	private static final double NEWS_TRUST = 2.0;
 	/** Plots start this far from the plaza's middle (its edge, and a block), and go out along the roads this far at most. */
 	private static final int PLAZA = 12;
-	private static final int FARTHEST = 72;
-	/** A road's middle to the nearest plot edge, and the gap between plots. */
+	private static final int FARTHEST = 96;
+	/**
+	 * A road's middle to the nearest plot edge, and the gap between plots (user, 2026-10-23: "every house is way too close
+	 * to eachother"; wooden houses close together all burn when one catches fire).
+	 */
 	private static final int ROAD = 4;
-	private static final int GAP = 2;
+	private static final int GAP = 6;
 	/** Plans tried at each spot along the roads. */
 	private static final int PLANS_TRIED = 4;
 	/** The town build's name for the store. */

@@ -21,7 +21,11 @@ public final class Furnish {
 
 	/** A chest here, facing into the room, joined to a single chest beside it if they line up. */
 	public static void chest(LevelAccessor level, BlockPos pos, int flags) {
-		Direction facing = facing(level, pos);
+		chest(level, pos, facing(level, pos), flags);
+	}
+
+	/** A chest here facing this way, joined to a single chest beside it facing the same way. */
+	public static void chest(LevelAccessor level, BlockPos pos, Direction facing, int flags) {
 		BlockState chest = Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facing);
 		// Vanilla: a partner on the clockwise side makes this the left half, on the other side the right half.
 		for (boolean clockwise : new boolean[] {true, false}) {

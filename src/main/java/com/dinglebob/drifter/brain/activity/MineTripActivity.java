@@ -179,6 +179,19 @@ public class MineTripActivity extends Activity {
 			return home == null || !home.inOwnBuilding(pos, 2);
 		});
 	}
+	/** Its house from a plan's box (worked out once for a home saved before it was kept), or null. */
+	@org.jetbrains.annotations.Nullable
+	private net.minecraft.world.level.levelgen.structure.BoundingBox planHouse(Home home) {
+		if (home.planOrigin != null && home.planBox == null && home.planId != null && this.drifter.getServer() != null) {
+			var plan = com.dinglebob.drifter.building.plan.HousePlans.get(this.drifter.getServer(), home.planId);
+			if (plan != null) {
+				home.setPlanBox(com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home).box());
+			}
+		}
+
+		return home.planBox();
+	}
+
 	/** Times a staircase that wouldn't start was started again from where it stands. */
 	private int freshStarts;
 	private static final int MAX_FRESH_STARTS = 3;
@@ -733,6 +746,15 @@ public class MineTripActivity extends Activity {
 				Direction side = Direction.from2DDataValue(door.get2DDataValue() + home.mineTrips);
 				home.mineTrips++;
 				entrance = this.ground(home.center.relative(side, home.hutHalf + 2));
+				// Living in a house from a plan: out past its walls (found in testing: a town house's stairs started a hut's few
+				// blocks from its middle, inside it, and dug at its floor).
+				var house = this.planHouse(home);
+				if (house != null) {
+					BlockPos middle = new BlockPos((house.minX() + house.maxX()) / 2, home.center.getY(), (house.minZ() + house.maxZ()) / 2);
+					int out = (side.getAxis() == Direction.Axis.X ? house.getXSpan() : house.getZSpan()) / 2 + 3;
+					entrance = this.ground(middle.relative(side, out));
+				}
+
 				way = side;
 			} else {
 				entrance = this.drifter.blockPosition();
@@ -806,6 +828,13 @@ public class MineTripActivity extends Activity {
 			// firm ground it has seen first (found in testing: a desert home, every staircase refused, 1650 times).
 			BlockPos firm = this.firmGround();
 			BlockPos here = firm != null ? firm : this.drifter.blockPosition();
+			// (Never down through its own house's floor.)
+			Home own = this.drifter.getDrifterBrain().home();
+			if (firm == null && own != null && own.inOwnBuilding(here, 1)) {
+				this.why = "nowhere to start its stairs outside its house";
+				return Status.FAILURE;
+			}
+
 			int targetY = this.targetY != Integer.MIN_VALUE ? this.targetY : this.depth;
 			this.tunnel = new Tunnel(here, way, MAX_STEPS);
 			this.tunnel.legs.add(new Tunnel.Leg(here, way, 400, targetY));

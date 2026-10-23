@@ -86,6 +86,24 @@ public class PlaceStationActivity extends Activity {
 			}
 		}
 
+		// At home in its house from a plan: the place its layout has for this (the work wall, the crafting table in the storage
+		// wall), put down from in front so it faces the room (a player's furnishing guidebook, the user's).
+		if (home != null && home.near(this.drifter, 12.0) && this.indoorTries < 3) {
+			var laid = MoveInActivity.laidOut(this.drifter.level(), home, this.drifter.getServer(), net.minecraft.world.level.block.Block.byItem(this.item));
+			if (laid != null && !this.tried.contains(laid.pos())) {
+				BlockPos front = laid.pos().relative(laid.facing());
+				if (!this.drifter.blockPosition().equals(front)) {
+					this.indoorTries++;
+					return this.begin(new com.dinglebob.drifter.executor.task.NavigateTask(this.drifter, net.minecraft.world.phys.Vec3.atBottomCenterOf(front), 0.4,
+						"walk over to put the " + this.label + " down"));
+				}
+
+				this.placing = laid.pos();
+				this.tried.add(laid.pos());
+				return this.begin(new PlaceBlockTask(this.drifter, laid.pos(), stack -> stack.is(this.item), this.label));
+			}
+		}
+
 		// At home in a house it didn't lay out (a village house, its own house from a plan): along a wall with its other
 		// station, out of the way (found by the user: a crafting table in the middle of a village house's floor).
 		BlockPos houseBed = home != null && home.near(this.drifter, 6.0) ? home.houseBed(this.drifter.level()) : null;

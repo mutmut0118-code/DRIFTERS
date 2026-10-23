@@ -1460,6 +1460,26 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## The town bug list (new, 0.22.13)
+
+Make a town in a forest on hills: `/drifterciv town spawn 8` (it takes 10 to 30 seconds).
+- [ ] **Trees**: no half trees anywhere (crowns sliced flat against walls or over the road): a tree in the way is gone
+      whole, the ones beside it whole. No bare dirt squares where trees stood.
+- [ ] **Layout**: like a village: four roads from the plaza and side lanes, houses spread along them with open ground
+      between (6 or more blocks), set back from the road. Roads stop at a lake or the sea (a stream gets a plank bridge).
+- [ ] **Foundations**: on a slope, a house sits on a stone foundation where the land falls away, and the land round it
+      slopes up to it over a few blocks (no cliff cut straight down, no wall of dirt). No grass block under another
+      block or under a house.
+- [ ] **Furnished houses**: inside each, a wall of chests (double chests, two high) with the crafting table among them,
+      a furnace and a smoker with a chest at the end, a chest just inside the door, a chest beside the bed's head. Every
+      chest faces into the room. The chests have stuff in (stone, wood, iron, coal, food).
+- [ ] **Lit**: at night (`/time set 18000`, any brightness setting) lamps light the whole town; no monsters spawn in it.
+      `/gamerule doMobSpawning true` and wait a night: nobody in town dies to mobs spawning among the houses.
+- [ ] **Pen on a hill**: the fence joins up at every step.
+- [ ] **Gear**: the townsfolk wear iron (some diamond) armor and carry a sword or their weapon, a shield, a bow.
+- [ ] **No digging into houses**: over a few days nobody digs a staircase through a house floor, and you find no dirt
+      pillars inside the houses.
+
 ## Fixes in 0.22.12
 
 - [ ] `/drifterciv town spawn 8` in a forest: every Drifter starts on the ground in front of its house (not on a roof),

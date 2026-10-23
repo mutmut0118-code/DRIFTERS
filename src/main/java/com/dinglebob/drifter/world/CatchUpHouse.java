@@ -98,6 +98,7 @@ public final class CatchUpHouse {
 				home.planWoods.clear();
 				home.planWoods.putAll(choice.palette().woods());
 				home.planDeepslate = choice.palette().deepslate();
+				home.setPlanBox(PlacedPlan.of(plan, home).box());
 			}
 
 			if (plan == null) {
@@ -138,6 +139,11 @@ public final class CatchUpHouse {
 				}
 
 				if (BuildPlanActivity.natural(state) && KnownBlocks.mayTake(level, pos) && (dy <= placed.sizeY || state.is(BlockTags.LOGS))) {
+					// (A tree in the way comes down whole, not cut off at the house's edge: user, 2026-10-23.)
+					if ((state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)) && com.dinglebob.drifter.world.gen.Felling.fellTree(level, pos)) {
+						continue;
+					}
+
 					level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
 				}
 			}
