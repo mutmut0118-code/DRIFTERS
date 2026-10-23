@@ -135,7 +135,7 @@ public final class FriendlyGoals {
 					Mode mode = seen ? Mode.toward(this.drifter, player) : Mode.UNAWARE;
 					if (seen && !mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
 						this.answered = true;
-						ChatLines.say(this.drifter, ChatLines.Kind.HUH);
+						ChatLines.say(this.drifter, ChatLines.Kind.HUH, "player", player.getGameProfile().getName());
 						return this.begin(new Gesture(this.drifter, player, "nod at " + player.getGameProfile().getName(), Gesture.Kind.NOD));
 					}
 
@@ -281,7 +281,7 @@ public final class FriendlyGoals {
 									NavigateTask.Pace.STROLL));
 							}
 						case 1:
-							ChatLines.say(this.drifter, ChatLines.Kind.HI);
+							ChatLines.say(this.drifter, ChatLines.Kind.HI, "player", player.getGameProfile().getName());
 							return this.begin(new Gesture(this.drifter, player, "greet " + player.getGameProfile().getName(), Gesture.Kind.CROUCH_SPAM));
 						default:
 							return Status.SUCCESS;

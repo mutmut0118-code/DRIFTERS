@@ -37,7 +37,6 @@ import net.minecraft.world.phys.Vec3;
 final class Warbands extends Encounter {
 	/** A side breaks with this many or fewer still standing. */
 	private static final int BREAKS_AT = 2;
-	private static final List<String> RALLY = List.of("for %s!", "hold the line!", "%s, with me!", "charge!", "stand fast, %s!");
 
 	private final SoldierKit.Army[] armies;
 	private final String[] names = new String[2];
@@ -161,7 +160,7 @@ final class Warbands extends Encounter {
 			for (int side = 0; side < 2; side++) {
 				DrifterEntity captain = this.captain(side);
 				if (captain != null) {
-					say(captain, String.format(Locale.ROOT, RALLY.get(captain.getRandom().nextInt(RALLY.size())), this.names[side]));
+					say(captain, line(captain, "war.rally", "army", this.names[side]));
 				}
 			}
 		}
@@ -175,7 +174,7 @@ final class Warbands extends Encounter {
 					this.turned[side] = true;
 					DrifterEntity captain = this.captain(side);
 					if (captain != null) {
-						say(captain, "you'll regret picking a side, " + this.playerName + "!");
+						say(captain, line(captain, "war.regret", "player", this.playerName));
 					}
 				}
 
@@ -185,7 +184,7 @@ final class Warbands extends Encounter {
 
 				if (!this.warned && side != null && sees(soldier, player) && soldier.distanceTo(player) < 24.0 && !this.turned[side]) {
 					this.warned = true;
-					say(soldier, "stay out of this, stranger!");
+					say(soldier, line(soldier, "war.stay_out"));
 				}
 			}
 		}
@@ -222,12 +221,12 @@ final class Warbands extends Encounter {
 		Battle.stop(this.battle);
 		DrifterEntity captain = this.captain(side);
 		if (captain != null) {
-			say(captain, "victory! the field is ours!");
+			say(captain, line(captain, "war.victory"));
 		}
 
 		DrifterEntity loser = this.captain(1 - side);
 		if (loser != null) {
-			say(loser, "fall back! fall back!");
+			say(loser, line(loser, "war.retreat"));
 		}
 
 		for (DrifterEntity soldier : this.members) {
@@ -328,7 +327,7 @@ final class Warbands extends Encounter {
 					}
 				}
 
-				say(drifter, any ? "you fought well, friend. the war chest is yours." : "you fought well, friend. take what you like from the field.");
+				say(drifter, line(drifter, any ? "war.thanks_chest" : "war.thanks_field"));
 				think(drifter, this.playerName + " fought for " + this.names[this.winner]);
 				this.paid = true;
 			});

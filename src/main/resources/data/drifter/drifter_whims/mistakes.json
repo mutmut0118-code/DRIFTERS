@@ -9,7 +9,7 @@
 		{
 			"id": "eats_a_spider_eye", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:spider_eye"]},
 			"archetypes": {"newbie": 2.5, "casual": 1.0, "speedrunner": 0.1}, "traits": {"knowledge": -1.0}, "weight": 0.5, "cooldown": 96000,
-			"chat": ["ew", "why did i eat that"], "thought": "eating a spider eye (not a good idea)"
+			"chat": ["ew", "why did i eat that", "that was a mistake", "blegh", "poison. great", "note to self: dont eat that"], "thought": "eating a spider eye (not a good idea)"
 		},
 		{
 			"id": "eats_rotten_flesh", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:rotten_flesh"]},

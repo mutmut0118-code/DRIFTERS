@@ -1,0 +1,73 @@
+{
+  "comment": "What players say that Drifters understand (docs/CHAT_LINES.md section 7). A message means the intent whose phrase found in it is longest ('no problem' is a yes though it has 'no' in it; 'hell no' a no). Capitals, punctuation and stretched letters don't matter ('NOOOO.' is 'no'). Apostrophes are dropped (im = i'm).",
+  "answers": {
+    "yes": [
+      "yes", "yeah", "yea", "ye", "yep", "yup", "ya", "yah", "yas", "yus", "yuh", "yurr", "yerr", "yh", "y",
+      "ok", "okay", "okey", "okie", "oki", "okie dokie", "okey dokey", "k", "kk", "mkay", "mk", "okk",
+      "sure", "sure thing", "surely", "sure why not", "why not", "sure sure", "yeah sure", "sure man", "sure bro",
+      "of course", "ofc", "course", "obviously", "duh", "naturally",
+      "absolutely", "absolutely yes", "definitely", "def", "defo", "for sure", "fs", "for real yes", "totally", "certainly", "indeed",
+      "bet", "bet bet", "ight bet", "say less", "say no more", "lets go", "lets gooo", "lets do it", "lets do this", "lets roll", "lets",
+      "im down", "down", "im in", "count me in", "sign me up", "im game", "game", "im so down",
+      "deal", "its a deal", "you got a deal", "you have a deal", "deal deal",
+      "alright", "aight", "ight", "alr", "all right", "allright", "fine", "fine by me", "fine ok", "ok fine",
+      "sounds good", "sounds great", "sounds fun", "sounds like a plan", "sgtm", "cool", "cool cool", "nice", "perfect",
+      "go for it", "i guess", "i suppose", "guess so", "suppose so", "i think so", "why not lol",
+      "aye", "aye aye", "yessir", "yes sir", "yes maam", "roger", "roger that", "copy", "copy that", "affirmative", "10 4",
+      "you bet", "u bet", "you know it", "mhm", "uh huh", "mm hm", "yesyes", "yes yes", "yep yep", "ye ye", "ya ya",
+      "hell yeah", "heck yeah", "hell yes", "heck yes", "fuck yeah", "oh yeah", "oh yes", "yes please", "yes pls", "ye pls", "please",
+      "lead the way", "follow me", "come on", "come with me", "lets move", "i got you", "i gotchu", "got you", "ill help", "i ll help", "ill do it", "ill go", "on it", "i can do that", "can do",
+      "gladly", "happy to", "with pleasure", "no problem", "no prob", "np", "no worries", "no biggie", "why the heck not",
+      "accept", "accepted", "i accept", "agreed", "agree", "i agree", "yeah ok", "ok sure", "ok ok", "okay okay", "ok lets go", "alright lets go",
+      "true", "facts", "w", "big w", "absolutely lets go", "lock in", "lets lock in", "you're on", "youre on", "ur on", "it's on", "its on", "bring it", "bring it on"
+    ],
+    "no": [
+      "no", "nah", "na", "naw", "nope", "nop", "nay", "noo", "nu", "nuh", "nuh uh", "naur", "nada", "nein", "non non",
+      "no thanks", "no thank you", "no ty", "no thx", "nty", "nah ty", "nah thanks", "no but thanks", "no but ty", "thanks but no", "ty but no",
+      "nah im good", "im good", "im ok", "im okay", "im fine", "all good", "its fine", "thats ok", "thats okay", "im alright",
+      "not really", "not now", "not today", "not right now", "maybe later", "later", "another time", "some other time", "next time", "not this time",
+      "pass", "ill pass", "i pass", "hard pass", "gonna pass", "imma pass", "ill skip", "skip", "i ll pass", "i will pass",
+      "no way", "no chance", "not a chance", "fat chance", "no shot", "aint no way", "in your dreams", "dream on", "keep dreaming",
+      "never", "never ever", "not ever", "not in a million years", "over my dead body", "when pigs fly",
+      "absolutely not", "definitely not", "def not", "certainly not", "of course not", "obviously not", "hell no", "heck no", "hell nah", "heck nah", "fuck no", "god no", "lord no", "oh no", "oh hell no",
+      "nah fam", "nah bro", "nah man", "nah dude", "no bro", "no man", "no dude", "nope nope", "no no", "nonono", "nah nah",
+      "negative", "decline", "declined", "i decline", "denied", "rejected", "i refuse", "refuse", "no sir", "no maam", "no can do", "cant do",
+      "cant", "i cant", "can t", "busy", "im busy", "too busy", "kinda busy", "got stuff to do", "no time", "dont have time", "gtg", "gotta go",
+      "not interested", "no interest", "not for me", "not my thing", "not feeling it", "dont feel like it", "rather not", "id rather not", "i would rather not", "prefer not",
+      "dont want to", "dont wanna", "i dont want to", "i dont wanna", "no want", "nah dont want to",
+      "leave me alone", "go away", "get lost", "buzz off", "shoo", "scram", "beat it", "back off",
+      "no deal", "no dice", "not happening", "aint happening", "thats a no", "thats gonna be a no", "big no", "hard no", "strong no", "no from me",
+      "no lol", "lol no", "nah lol", "lmao no", "ew no", "eww no", "yeah no", "yea no", "ye no",
+      "im out", "count me out", "deal me out", "not with you", "find someone else", "ask someone else",
+      "sorry no", "sorry cant", "no sorry", "sorry nah", "unfortunately not", "unfortunately no", "afraid not", "im afraid not", "sadly no",
+      "i dont think so", "dont think so", "i think not", "i dont think thats a good idea", "bad idea", "nope not doing that", "not doing that", "absolutely not happening"
+    ],
+    "ready": [
+      "go", "go go", "go go go", "gogogo", "gogo", "ready", "im ready", "ready go", "ready set go", "set go", "on your marks", "on your mark",
+      "lets race", "race", "race you", "start", "start it", "begin", "3 2 1", "321", "countdown", "count it down", "now", "ok go", "alright go",
+      "send it", "lets go", "lets gooo", "bring it", "bring it on", "youre on", "ur on", "its on", "lets do it", "say when", "whenever youre ready", "im set", "set", "hit it"
+    ],
+    "unsure": [
+      "maybe", "idk", "i dont know", "dunno", "not sure", "im not sure", "hmm", "hm", "let me think", "lemme think", "depends", "it depends", "eh",
+      "kinda", "sort of", "sorta", "possibly", "perhaps", "we will see", "well see", "i guess not sure", "what", "huh", "wdym", "what do you mean", "how much",
+      "how far", "is it safe", "why", "why me"
+    ],
+    "greeting": [
+      "hi", "hii", "hey", "heyo", "heya", "hello", "hullo", "helo", "yo", "yoo", "sup", "wsg", "wsp", "wassup", "whats up", "what up", "wazzup", "howdy", "hiya", "ayo", "ayy",
+      "o", "o/", "good morning", "gm", "morning", "mornin", "good afternoon", "good evening", "evening", "hey all", "hi all", "hey everyone", "hi everyone", "hello everyone",
+      "greetings", "hey guys", "hi guys", "yo guys", "hey yall", "im back", "back", "im here"
+    ],
+    "night": [
+      "gn", "gnn", "good night", "goodnight", "night", "nite", "nighty night", "night all", "gn all", "gn everyone", "night everyone", "nn", "gnight", "going to bed", "off to bed",
+      "bedtime", "time to sleep", "sleep well", "sweet dreams", "logging off for the night", "heading to bed", "going to sleep", "zzz"
+    ],
+    "thanks": [
+      "ty", "tyy", "thx", "thanks", "thank you", "thank u", "tysm", "tyvm", "ty so much", "thanks so much", "thanks a lot", "much appreciated", "appreciate it", "appreciate you",
+      "cheers", "ta", "merci", "gracias", "danke", "ty o7", "thank you so much", "tyty", "ty ty", "thanks man", "thanks bro", "ty bro", "you rock", "ur the best", "youre the best", "legend"
+    ],
+    "bye": [
+      "bye", "byee", "bye bye", "bb", "cya", "see ya", "see you", "see you later", "see ya later", "later", "laters", "l8r", "take care", "o7", "peace", "peace out", "im out", "gtg",
+      "got to go", "gotta go", "have to go", "heading out", "logging off", "logging", "brb", "afk", "farewell", "goodbye", "good bye", "catch you later", "ttyl"
+    ]
+  }
+}

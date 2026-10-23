@@ -1,0 +1,299 @@
+{
+  "comment": "What Drifters say in encounters (milestone 21; docs/ENCOUNTERS.md), to the player: always said (no rate limit). Words in braces are filled in: {player}, {way} (north...), {far} (blocks), {coords} (x y z), and the ones each line names.",
+  "lines": {
+    "encounter.unsure": {
+      "any": ["is that a yes or a no", "so... yes?", "yes or no lol", "ill take that as a maybe. yes?", "uh, is that a yes?", "need a yes or a no {player}"]
+    },
+
+    "encounter.hungry.ask": {
+      "any": ["excuse me, {player}... I haven't eaten in days. could you spare some food?", "hey {player}, sorry to bother you... got any food? im starving", "pls {player}, anything to eat? havent eaten in days", "{player}... could you spare some food? even bread", "hey, any food? im so hungry i could eat a raw potato"],
+      "newbie": ["{player} can i have food pls im starving", "pls food :(", "hiii do u have food im so hungry"]
+    },
+    "encounter.hungry.thanks": {
+      "any": ["bless you. here, for your kindness.", "ty ty, here, take this", "you saved me fr, here", "omg ty. take this, its all i have", "thank you!! here, for you"]
+    },
+    "encounter.hungry.giveup": {
+      "any": ["never mind... thanks anyway.", "ok... nvm", "its fine. ill find something", "nvm, ty anyway"]
+    },
+
+    "encounter.injured.help_unseen": {
+      "any": ["help! anyone! zombies!", "HELP", "somebody help!! zombies!", "anyone?? zombies on me", "HELP ME pls"]
+    },
+    "encounter.injured.help": {
+      "any": ["help! please, help me!", "zombies! {player}, help!", "{player} HELP", "pls help {player} im low", "{player}!! zombies!! help", "im on 2 hearts help"]
+    },
+    "encounter.injured.thanks": {
+      "any": ["thank you... I'd be dead without you. Here, take this.", "ty ty ty. i was cooked. here", "you saved me {player}. take this", "omg ty, i was on half a heart. here", "W {player}. take this, you earned it"]
+    },
+
+    "encounter.lostdog.ask": {
+      "any": ["excuse me... have you seen my dog? {dog}, red collar. he ran off {way} a while ago and won't come back. here, take this lead, in case you find him.", "hey {player}, have you seen a dog? {dog}, red collar. ran off {way}. here, take a lead in case", "{player} pls, my dog {dog} ran off {way}... red collar. heres a lead if you find him"]
+    },
+    "encounter.lostdog.call": {
+      "any": ["{dog}! here, boy! {dog}!", "{dog}!! come here!", "{dog}? where are you boy", "HERE {dog}!", "{dog}!! treats!"]
+    },
+    "encounter.lostdog.found": {
+      "any": ["{dog}! there you are! oh, you silly dog.", "{dog}!!! there you are", "{dog}!! good boy, dont run off like that", "omg {dog}!!"]
+    },
+    "encounter.lostdog.thanks": {
+      "any": ["thank you so much. here, it's not much, but take it.", "ty {player}!! here, take this", "you found him!! here, its yours", "W human. take this"]
+    },
+    "encounter.lostdog.dead": {
+      "any": ["...no. {dog}? no...", "{dog}... no...", "no no no. {dog}...", "not {dog}..."]
+    },
+
+    "encounter.escort.ask": {
+      "any": ["excuse me, {player}! I'm going to the village {way} of here, about {far} blocks. the roads aren't safe... would you walk with me? {pay} emeralds when we get there. (say yes)", "hey {player}, heading to the village {way} of here, ~{far} blocks. walk with me? {pay} emeralds when we get there (say yes)", "{player}! could you escort me to the village {way}? its about {far} blocks, roads are sketchy. {pay} emeralds in it for you (say yes)"]
+    },
+    "encounter.escort.yes": {
+      "any": ["great! stay close, and keep your eyes open.", "ty!! stay close", "W. lets go, stay near me", "perfect. eyes open, mobs are everywhere", "lets go. ill follow you"]
+    },
+    "encounter.escort.no": {
+      "any": ["oh... alright. I'll take my chances.", "oh ok. ill go alone then", "fair. cya", "ok... wish me luck", "nw, ill manage"]
+    },
+    "encounter.escort.noanswer": {
+      "any": ["never mind, then.", "nvm then", "ok... guess not", "ill go alone i guess"]
+    },
+    "encounter.escort.bandit": {
+      "any": ["well, well. a traveller with a bodyguard.", "look at this, brought a bodyguard", "cute, a bodyguard", "pay up, both of you"]
+    },
+    "encounter.escort.waitup": {
+      "any": ["wait up! don't leave me out here.", "wait for me!", "slow down pls", "{player} wait up", "dont leave me!!"]
+    },
+    "encounter.escort.alone": {
+      "any": ["fine, I'll go on alone.", "guess im on my own", "ok bye then", "thanks for nothing"]
+    },
+    "encounter.escort.arrived": {
+      "any": ["we made it! thank you, really. as promised.", "we made it!! ty, here you go", "W, we're here. as promised", "made it. ty {player}, heres your emeralds"]
+    },
+
+    "encounter.miner.call1": {
+      "any": ["help! the tunnel caved in and my pickaxe broke. I'm stuck down here at {coords}", "HELP. cave-in, pick broke, stuck at {coords}", "anyone?? stuck underground at {coords}, pick broke"]
+    },
+    "encounter.miner.call2": {
+      "any": ["anyone? still stuck at {coords}. about {depth} blocks down", "still stuck at {coords}, ~{depth} blocks down", "pls someone, {coords}, {depth} down"]
+    },
+    "encounter.miner.call3": {
+      "any": ["please... {coords}. I can hear something up there", "{coords}... anyone?", "still here. {coords}. pls"]
+    },
+    "encounter.miner.freed": {
+      "any": ["light! someone's there! oh, thank goodness.", "LIGHT. omg ty", "you found me!! ty", "finally, air"]
+    },
+    "encounter.miner.thanks": {
+      "any": ["I owe you one. here, take what I dug up.", "i owe you. take what i mined", "ty fr. heres my haul", "you saved me, take the ores"]
+    },
+
+    "encounter.hostage.call1": {
+      "any": ["help! bandits have got me, at their camp at {coords}! please!", "HELP. bandits got me, camp at {coords}", "anyone, bandits took me. {coords}"]
+    },
+    "encounter.hostage.call2": {
+      "any": ["anyone out there? {coords}. there's {n} of them...", "still here at {coords}, {n} of them", "pls... {coords}. {n} bandits"]
+    },
+    "encounter.hostage.seen": {
+      "any": ["{player}! over here! help me!", "{player}!! here!! help", "OVER HERE {player}", "{player} pls get me out"]
+    },
+    "encounter.hostage.bandit": {
+      "any": ["we've got company!", "someones here!", "INCOMING", "we got a visitor", "inc!!"]
+    },
+    "encounter.hostage.freed": {
+      "any": ["they're gone? they're gone! oh, thank you!", "theyre gone!! ty ty", "omg youre a legend", "free!! ty"]
+    },
+    "encounter.hostage.thanks": {
+      "any": ["I hid these from them. they're yours.", "hid these from them, theyre yours", "here, kept these hidden. for you", "take these, you earned them"]
+    },
+
+    "encounter.horde.run": {
+      "any": ["RUN! there's loads of them!", "zombies! run, {player}, RUN!", "RUNNN", "RUN THEYRE BEHIND ME", "horde!! run!!", "{player} RUN"]
+    },
+
+    "encounter.duel.ask": {
+      "any": ["{player}! you look like you can handle yourself. 1v1? {stake} diamonds says I win. hit me if you're in.", "1v1 {player}? {stake} dias says i win. hit me if youre in", "yo {player}, duel? {stake} dias on it. hit me to start"],
+      "pvp_sweat": ["1v1 me {player}. {stake} dias. hit me if you're not scared", "{player} 1v1? {stake} dias, first to fold loses. hit me", "nice gear {player}. 1v1 for {stake} dias? hit me"]
+    },
+    "encounter.duel.accept": {
+      "any": ["let's go!", "LETS GO", "bet. lets go", "its on", "lock in", "gl"],
+      "pvp_sweat": ["you'll regret that", "lets go", "ok its on", "gl, youll need it"]
+    },
+    "encounter.duel.coward": {
+      "any": ["coward.", "scared?", "L", "figured", "ok coward"]
+    },
+    "encounter.duel.yield": {
+      "any": ["alright, alright! you win.", "ok ok gg you win", "i yield!! gg", "stop stop, gg", "gg you got me"]
+    },
+    "encounter.duel.paid": {
+      "any": ["fair's fair. good fight.", "gg wp. heres your dias", "ggs. as promised", "fair. take the dias"]
+    },
+    "encounter.duel.spare": {
+      "any": ["ha! good fight. keep your stuff, it was for fun.", "gg, keep your stuff", "gg wp, it was just for fun", "ggs, no hard feelings"],
+      "pvp_sweat": ["gg ez. keep your stuff", "too easy. keep it", "gg, practice more"]
+    },
+    "encounter.duel.after_yield": {
+      "any": ["hey! I gave up! it's over!", "i SAID gg!!", "its over!! stop", "dude i yielded", "STOP i gave up"]
+    },
+
+    "encounter.race.ask": {
+      "any": ["hey {player}, race you! first one to the top of that hill {way} of here ({coords}) wins. {bet} emeralds says I beat you. say go when you're ready!", "race {player}? top of the hill {way} of here ({coords}). {bet} emeralds. say go!", "{player}, race to that hill {way} ({coords})? {bet} emeralds on it. say go when ready"],
+      "speedrunner": ["race? hill {way}, {coords}. {bet} emeralds. say go", "{player} race me to {coords} ({way}). {bet} emeralds. say go"]
+    },
+    "encounter.race.no": {
+      "any": ["suit yourself.", "ok fair", "your loss", "chicken", "boring"]
+    },
+    "encounter.race.noanswer": {
+      "any": ["chicken.", "ok, chicken", "guess not", "scared lol"]
+    },
+    "encounter.race.count": {
+      "any": ["{count}...", "{count}", "{count}!"]
+    },
+    "encounter.race.go": {
+      "any": ["go!", "GO", "GOOO", "go go go"]
+    },
+    "encounter.race.player_won": {
+      "any": ["no way! you win. fair and square.", "no way. gg you win", "ok you're fast. gg", "how?? gg"]
+    },
+    "encounter.race.paid": {
+      "any": ["a bet's a bet. you're quick!", "bets a bet, here", "ggs, take the emeralds", "fair. heres your emeralds"]
+    },
+    "encounter.race.won": {
+      "any": ["ha! I win! better luck next time, {player}.", "W. gg {player}", "ez. better luck next time", "first! gg {player}"],
+      "speedrunner": ["ez", "too slow {player}", "gg, work on your routing"]
+    },
+
+    "encounter.merchant.hello": {
+      "any": ["hello there! I've a few rare things, if you've got emeralds. Have a look.", "hey! got some rare stuff, emeralds only. have a look", "wts rare stuff, emeralds only. take a look", "o/ traveller, got rare goods if you've got emeralds"]
+    },
+    "encounter.merchant.soldout": {
+      "any": ["sold out, I'm afraid.", "sold out sorry", "nothing left, ty for shopping", "all gone"]
+    },
+    "encounter.merchant.bye": {
+      "any": ["safe travels, {player}.", "o7 {player}", "cya {player}, safe travels", "take care o/"]
+    },
+
+    "encounter.party.invite": {
+      "any": ["hey, {player}! come join us!", "{player}! come hang", "yo {player} come party", "{player} theres cake, come join!"]
+    },
+    "encounter.party.cheer": {
+      "any": ["woo!", "best night ever", "ha! nice one", "who brought the cake?", "another one!", "lets gooo", "W night", "cake time", "this is the best", "fireworks!!", "WOOO"]
+    },
+    "encounter.party.end": {
+      "any": ["goodnight, everyone!", "gn all!", "gn o/", "that was fun, gn", "night everyone"]
+    },
+
+    "encounter.mugging.demand": {
+      "any": ["stop right there, {player}. {demand} emeralds (or gold, or diamonds), or your life. throw it here.", "{player}. {demand} emeralds, or gold, or dias. throw it here or else", "hold up {player}. {demand} emeralds (or gold, or dias). throw it here. now"]
+    },
+    "encounter.mugging.paid": {
+      "any": ["pleasure doing business. move along.", "smart. move along", "good choice. bye", "nice doing business"]
+    },
+    "encounter.mugging.refused": {
+      "any": ["your choice.", "wrong answer", "ok then", "bad call"]
+    },
+
+    "encounter.ambush.spring": {
+      "any": ["now! get them!", "your money or your life, {player}!", "NOW", "get them!!", "surprise", "nobody move"]
+    },
+
+    "encounter.burglar.caught": {
+      "any": ["uh oh.", "oh no", "uhh", "this isnt what it looks like", "bye"]
+    },
+
+    "encounter.thief.shout": {
+      "any": ["stop, thief!", "somebody stop {thief}!", "STOP {thief}", "THIEF", "{thief} stole my stuff!! stop them", "get back here {thief}"]
+    },
+    "encounter.thief.thanks": {
+      "any": ["you stopped them! here, a share for your trouble.", "you got them!! here, a share", "W. heres a cut", "ty {player}, take half"]
+    },
+
+    "encounter.bounty.found": {
+      "any": ["{player}! there's a price on your head, from {who}. we've come to collect.", "{player}. {who} put a bounty on you. nothing personal", "there you are {player}. {who} wants you gone"]
+    },
+    "encounter.bounty.done": {
+      "any": ["job's done", "bounty claimed", "gg, just business", "thats that"]
+    },
+
+    "encounter.revenge.found": {
+      "any": ["{player}! you killed {victim}. they were our friend.", "{player}. you killed {victim}", "remember {victim}, {player}? we do"]
+    },
+    "encounter.revenge.found_murder": {
+      "any": ["{player}! {victim} gave up, and you killed them anyway.", "{victim} SURRENDERED {player}", "{victim} gave up and you still did it"]
+    },
+    "encounter.revenge.join": {
+      "any": ["this is for {victim}!", "for {victim}!!", "{victim} o7", "for {victim}"]
+    },
+    "encounter.revenge.done": {
+      "any": ["that was for {victim}.", "rest easy {victim}", "for {victim}. o7", "done. {victim} can rest"]
+    },
+
+    "encounter.raid.attack": {
+      "any": ["take everything!", "burn it down!", "loot it all!", "go go go", "grab what you can!", "leave nothing!"]
+    },
+    "encounter.raid.retreat": {
+      "any": ["fall back! fall back!", "RETREAT", "pull out!", "fall back!!"]
+    },
+
+    "encounter.feud.shout": {
+      "any": ["you'll pay for what you did to my farm!", "that was MY diamond!", "liar! cheat!", "you burned my house down!", "come on then!", "I'll teach you!", "you griefed my base!", "give back my elytra!", "you killed my cat!!", "1v1 me then!", "you stole from me!"]
+    },
+    "encounter.feud.thanks": {
+      "any": ["thanks for the help. here, you earned it.", "ty for the backup, here", "W assist. take this", "appreciate it, heres something"]
+    },
+
+    "encounter.war.rally": {
+      "any": ["for {army}!", "hold the line!", "{army}, with me!", "charge!", "stand fast, {army}!", "{army}! lock in!", "together {army}!"]
+    },
+    "encounter.war.regret": {
+      "any": ["you'll regret picking a side, {player}!", "wrong side {player}", "big mistake {player}"]
+    },
+    "encounter.war.stay_out": {
+      "any": ["stay out of this, stranger!", "not your fight!", "back off stranger", "this isnt about you"]
+    },
+    "encounter.war.victory": {
+      "any": ["victory! the field is ours!", "WE WON", "victory!!", "gg, the field is ours"]
+    },
+    "encounter.war.retreat": {
+      "any": ["fall back! fall back!", "RETREAT", "pull back!!", "gg, fall back"]
+    },
+    "encounter.war.thanks_chest": {
+      "any": ["you fought well, friend. the war chest is yours.", "gg friend, the war chest is yours", "ggs. take the war chest, you earned it"]
+    },
+    "encounter.war.thanks_field": {
+      "any": ["you fought well, friend. take what you like from the field.", "gg, take what you want from the field", "W fight. loot the field"]
+    },
+
+    "encounter.wanted.poster": {
+      "any": ["Wanted: {target}, for {crime}. {reward} diamonds to whoever brings them down.", "wanted: {target}, for {crime}. {reward} dias to whoever gets them", "theres a bounty on {target}, for {crime}. {reward} dias"]
+    },
+    "encounter.wanted.map_home": {
+      "any": ["Here, this map shows where they live.", "heres a map to their base", "map to where they live, here"]
+    },
+    "encounter.wanted.map_seen": {
+      "any": ["Here, this map shows where they were last seen.", "map to where they were last seen", "last seen here, take the map"]
+    },
+    "encounter.wanted.reward": {
+      "any": ["Heard you brought down {target}. As promised.", "heard you got {target}. as promised", "{target} is down? W. here you go"]
+    },
+
+    "encounter.convoy.hello_morning": {
+      "any": ["morning, stranger! bound for {place}, {way} of here. safe travels!", "o/ morning! heading to {place}, {way}. safe travels"]
+    },
+    "encounter.convoy.hello": {
+      "any": ["good day, stranger! bound for {place}, {way} of here. safe travels!", "o7 stranger, heading to {place} ({way}). safe travels", "hey! off to {place}, {way} of here. stay safe"]
+    },
+
+    "encounter.mourner.1": {
+      "any": ["{friend} was a good friend...", "{friend} was the best...", "rip {friend}..."]
+    },
+    "encounter.mourner.2": {
+      "any": ["creepers. never saw it coming.", "creeper got them. didnt even hear it", "one creeper. thats all it took"]
+    },
+    "encounter.mourner.3": {
+      "any": ["did you know them? ...no. no one really did.", "you didnt know them huh. nobody did", "...o7 {friend}"]
+    },
+
+    "encounter.builders.hello": {
+      "any": ["hello! putting up a waystation for travellers. you're welcome to it.", "o/ building a waystation for travellers, feel free to use it", "hey! making a rest stop here, all welcome"]
+    },
+    "encounter.builders.done": {
+      "any": ["there. that'll keep the rain off.", "done! all yours", "finished o/ enjoy", "there we go"]
+    }
+  }
+}

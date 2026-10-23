@@ -69,6 +69,29 @@ public final class DrifterCommands {
 				.then(Commands.literal("slim").executes(ctx -> spawn(ctx, StringArgumentType.getString(ctx, "name"), true)))));
 
 		// Many at once, spread round where you stand (user's request: the 100-Drifter spread test, to try themselves).
+		// The chat lines (docs/CHAT_LINES.md): what a message would mean to a Drifter, and a line of a kind from the nearest.
+		root.then(Commands.literal("lines")
+			.then(Commands.literal("meaning").then(Commands.argument("text", StringArgumentType.greedyString()).executes(ctx -> {
+				String text = StringArgumentType.getString(ctx, "text");
+				String meaning = com.dinglebob.drifter.social.Lines.answer(text, "no", "yes", "ready", "unsure", "night", "bye", "thanks", "greeting");
+				ctx.getSource().sendSuccess(() -> Component.literal("\"" + text + "\" means: " + (meaning == null ? "nothing a Drifter understands" : meaning)), false);
+				return 1;
+			})))
+			.then(Commands.literal("say").then(Commands.argument("key", StringArgumentType.word()).executes(ctx -> {
+				DrifterEntity drifter = nearest(ctx.getSource());
+				String key = StringArgumentType.getString(ctx, "key");
+				String line = com.dinglebob.drifter.social.Lines.pick(drifter, key, "player", ctx.getSource().getTextName(), "who", "Bob", "what", "fell from a high place",
+					"things", "torches", "payment", "2 emeralds", "goods", "8 torches", "dog", "Rex", "way", "north", "far", 120, "pay", 5, "coords", "120 64 -40", "depth", 20,
+					"n", 3, "stake", 3, "bet", 4, "count", 3, "demand", 5, "thief", "Bob", "victim", "Bob", "army", "the Reds", "target", "Bob", "crime", "murder",
+					"reward", 5, "place", "Oakvale", "friend", "Bob");
+				if (line == null) {
+					ctx.getSource().sendFailure(Component.literal("No lines for " + key + " (see docs/CHAT_LINES.md)"));
+					return 0;
+				}
+
+				com.dinglebob.drifter.social.ChatLines.speak(drifter, line);
+				return 1;
+			}))));
 		root.then(Commands.literal("spawnmany")
 			.then(Commands.argument("count", IntegerArgumentType.integer(1, MAX_SPAWN_MANY))
 				.executes(ctx -> spawnMany(ctx, IntegerArgumentType.getInteger(ctx, "count"), DEFAULT_SPREAD))

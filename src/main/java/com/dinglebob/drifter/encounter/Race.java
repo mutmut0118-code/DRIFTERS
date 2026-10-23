@@ -100,12 +100,20 @@ final class Race extends Encounter {
 
 	@Override
 	protected void chat(ServerPlayer player, String words) {
-		if (this.askedAt >= 0 && !this.ready && saidAny(words, "go", "ready", "yes", "ok", "okay", "sure", "deal", "lets", "yeah")) {
+		if (this.askedAt < 0 || this.ready) {
+			return;
+		}
+
+		// Go, or yes, however they put it; no ("nah", "Absolutely not."); not sure: it asks again.
+		String answer = com.dinglebob.drifter.social.Lines.answer(words, "no", "ready", "yes", "unsure");
+		if ("ready".equals(answer) || "yes".equals(answer)) {
 			this.ready = true;
 			this.countdown = 3;
-		} else if (this.askedAt >= 0 && !this.ready && saidAny(words, "no", "nope", "nah")) {
-			say(this.racer, "suit yourself.");
+		} else if ("no".equals(answer)) {
+			say(this.racer, line(this.racer, "race.no", "player", this.playerName));
 			this.end("they said no");
+		} else if ("unsure".equals(answer)) {
+			say(this.racer, line(this.racer, "unsure", "player", this.playerName));
 		}
 	}
 
@@ -119,14 +127,14 @@ final class Race extends Encounter {
 		}
 
 		if (this.askedAt >= 0 && !this.ready && this.now() - this.askedAt > 20L * 60) {
-			say(racer, "chicken.");
+			say(racer, line(racer, "race.noanswer"));
 			this.end("no answer");
 			return;
 		}
 
 		// 3, 2, 1, go!
 		if (this.countdown > 0) {
-			say(racer, this.countdown + "...");
+			say(racer, line(racer, "race.count", "count", this.countdown));
 			this.countdown--;
 			return;
 		}
@@ -134,7 +142,7 @@ final class Race extends Encounter {
 		if (this.countdown == 0) {
 			this.countdown = -1;
 			this.racing = true;
-			say(racer, "go!");
+			say(racer, line(racer, "race.go"));
 			racer.getDrifterBrain().poke();
 			return;
 		}
@@ -143,11 +151,11 @@ final class Race extends Encounter {
 			if (this.atTop(player)) {
 				this.playerWon = true;
 				this.finishedAt = this.now();
-				say(racer, "no way! you win. fair and square.");
+				say(racer, line(racer, "race.player_won", "player", this.playerName));
 			} else if (this.atTop(racer)) {
 				this.playerWon = false;
 				this.finishedAt = this.now();
-				say(racer, "ha! I win! better luck next time, " + this.playerName + ".");
+				say(racer, line(racer, "race.won", "player", this.playerName));
 				think(racer, "beat " + this.playerName + " up the hill");
 			}
 
@@ -189,8 +197,7 @@ final class Race extends Encounter {
 				.then(() -> new LookAtTask(drifter, Vec3.atCenterOf(this.top), 20))
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
-						say(drifter, "hey " + this.playerName + ", race you! first one to the top of that hill " + way + " of here (" + coords(this.top) + ") wins. "
-							+ this.bet + " emeralds says I beat you. say go when you're ready!");
+						say(drifter, line(drifter, "race.ask", "player", this.playerName, "way", way, "coords", coords(this.top), "bet", this.bet));
 						this.askedAt = this.now();
 					}
 				});
@@ -218,7 +225,7 @@ final class Race extends Encounter {
 						}
 					}
 
-					say(drifter, "a bet's a bet. you're quick!");
+					say(drifter, line(drifter, "race.paid", "player", this.playerName));
 					think(drifter, "lost a race to " + this.playerName);
 					this.paid = true;
 				});

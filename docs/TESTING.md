@@ -1460,6 +1460,18 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Chat (new, 0.22.16)
+
+The full list of lines and answers is in docs/CHAT_LINES.md.
+- [ ] Near a few Drifters, type "hi" (or "yo", "o/", "hello everyone"): one or two answer. "gn", "cya", "ty" too.
+- [ ] Die (a fall or lava): someone says "rip", "classic", "lmao"... Get an advancement: "gg", "W", "congrats".
+- [ ] Rejoin the world near Drifters you know: "wb". A new player: "welcome".
+- [ ] Different personalities talk differently: newbies "hiii!!", PvP sweats "1v1?", "L", "gg ez", helpers "need anything?".
+- [ ] Encounters: an escort or race takes yes or no however you say it ("yeah sure", "lead the way", "na", "hell no",
+      "Absolutely not."); "idk" or "maybe" and it asks again.
+- [ ] `/drifter lines meaning <anything>` says what a message means to a Drifter; `/drifter lines say hi` (or any kind
+      in the doc) makes the nearest Drifter say one.
+
 ## Plaza, fields and shared houses (new, 0.22.15)
 
 - [ ] `/drifterciv town spawn 8` on a hill: the plaza is smaller (15 by 15) and sits on the land, a stone edge on the low

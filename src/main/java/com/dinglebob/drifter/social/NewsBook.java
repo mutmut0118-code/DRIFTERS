@@ -177,7 +177,8 @@ public final class NewsBook {
 			theirs.hear(news, this.drifter);
 			told++;
 			if (news.kind() != News.Kind.CUSTOM && news.hops() <= 1 && this.drifter.getRandom().nextInt(3) == 0 && playerNear(other)) {
-				ChatLines.sayLine(this.drifter, "did you hear? " + news.aboutName() + " " + news.what());
+				ChatLines.sayLine(this.drifter, Lines.pick(this.drifter, news.kind() == News.Kind.DEATH ? "news.death" : "news.deed", "who", news.aboutName(),
+					"what", news.what()));
 			}
 		}
 

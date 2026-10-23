@@ -152,7 +152,7 @@ final class Hostage extends Encounter {
 		this.bandits.removeIf(bandit -> !bandit.isAlive() || bandit.isRemoved());
 		if (!this.freed && this.bandits.isEmpty()) {
 			this.freed = true;
-			say(captive, "they're gone? they're gone! oh, thank you!");
+			say(captive, line(captive, "hostage.freed"));
 			think(captive, "freed");
 		}
 
@@ -171,13 +171,13 @@ final class Hostage extends Encounter {
 		// Calling for help now and then, as a player would type it.
 		if (this.now() - this.lastCall > CALLS_EVERY && this.calls < 8 && !sees(captive, player)) {
 			this.lastCall = this.now();
-			say(captive, this.calls++ % 2 == 0 ? "help! bandits have got me, at their camp at " + coords(captive.blockPosition()) + "! please!"
-				: "anyone out there? " + coords(captive.blockPosition()) + ". there's " + this.bandits.size() + " of them...");
+			say(captive, line(captive, this.calls++ % 2 == 0 ? "hostage.call1" : "hostage.call2", "coords", coords(captive.blockPosition()), "n",
+				this.bandits.size()));
 		}
 
 		if (sees(captive, player) && !this.alarmed && !this.calledOver) {
 			this.calledOver = true;
-			say(captive, this.playerName + "! over here! help me!");
+			say(captive, line(captive, "hostage.seen", "player", this.playerName));
 		}
 
 		// The guards: anyone close (or who hit one of them).
@@ -186,7 +186,7 @@ final class Hostage extends Encounter {
 			if (sees(bandit, player) && (hit || player.position().distanceTo(this.camp) < GUARD || this.alarmed)) {
 				if (!this.alarmed) {
 					this.alarmed = true;
-					say(bandit, "we've got company!");
+					say(bandit, line(bandit, "hostage.bandit"));
 				}
 
 				bandit.getDrifterBrain().pursue(bandit, player, this.now());
@@ -237,7 +237,7 @@ final class Hostage extends Encounter {
 					.then(() -> walkUpTo(drifter, player, 2.5))
 					.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 					.now(() -> {
-						say(drifter, "I hid these from them. they're yours.");
+						say(drifter, line(drifter, "hostage.thanks"));
 						for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 							ItemStack stack = drifter.getInventory().getItem(slot);
 							if (!stack.isEmpty()) {

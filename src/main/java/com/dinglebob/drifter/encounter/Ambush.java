@@ -110,7 +110,7 @@ final class Ambush extends Encounter {
 			if (sees(bandit, player) && (bandit.distanceTo(player) < SPRING || this.sprung) || hit) {
 				if (!this.sprung) {
 					this.sprung = true;
-					say(bandit, bandit.getRandom().nextBoolean() ? "now! get them!" : "your money or your life, " + this.playerName + "!");
+					say(bandit, line(bandit, "ambush.spring", "player", this.playerName));
 				}
 
 				this.lead = player.position();

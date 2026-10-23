@@ -3,7 +3,7 @@
 		{
 			"id": "view_from_the_top", "category": "exploration", "action": "high_point", "params": {"radius": 40, "rise": 8}, "when": "day",
 			"archetypes": {"nomad": 2.0, "builder": 1.5, "hermit": 1.5, "miner": 0.6}, "traits": {"curiosity": 0.5},
-			"duration": 200, "cooldown": 48000, "chat": ["nice view", "woah", "you can see so far from here"],
+			"duration": 200, "cooldown": 48000, "chat": ["nice view", "woah", "you can see so far from here", "the view up here tho", "worth the climb", "is that a village over there", "peak", "ngl this view is crazy"],
 			"thought": "climbing up for the view"
 		},
 		{

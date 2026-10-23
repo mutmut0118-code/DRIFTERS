@@ -1,42 +1,35 @@
 package com.dinglebob.drifter.social;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import com.dinglebob.drifter.DrifterConfig;
 import com.dinglebob.drifter.entity.DrifterEntity;
-import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.personality.Trait;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 
 /**
- * Optional chat lines (DESIGN.md section 14): short, lowercase, canned lines tied to events, never generated text. Each
- * personality has its own small vocabulary and a strict rate limit; quiet ones (low Sociability) rarely speak. On by
- * default, `/drifter config chat false` turns them off.
+ * Optional chat lines (DESIGN.md section 14): short, lowercase, canned lines tied to events, never generated text, from
+ * the chat data ({@link Lines}: each personality its own voice). A strict rate limit; quiet ones (low Sociability) rarely
+ * speak. On by default, `/drifter config chat false` turns them off.
  */
 public final class ChatLines {
 	private ChatLines() {
 	}
 
+	/** The canned lines' kinds, each a key in the chat data ({@link Lines}). */
 	public enum Kind {
-		HI, THANKS, GG, STOP, OUCH, NICE, HUH, THIEF, WAR_CRY
-	}
+		HI("hi"), THANKS("thanks"), GG_WON("gg_won"), GG_LOST("gg_lost"), STOP("stop"), OUCH("ouch"), HUH("huh"), THIEF("thief"), WAR_CRY("war_cry");
 
-	/** Lines per kind; a personality picks from its own slice of these. */
-	private static final Map<Kind, List<String>> LINES = Map.of(
-		Kind.HI, List.of("hi", "hey", "hello", "yo", "o/", "sup"),
-		Kind.THANKS, List.of("ty", "thx", "thanks", "tysm", "ty!"),
-		Kind.GG, List.of("gg", "rip", "gg wp", "ggs"),
-		Kind.STOP, List.of("go away", "stop", "back off", "wait", "dont"),
-		Kind.OUCH, List.of("bruh", "?", "hey!", "stop"),
-		Kind.NICE, List.of("nice", "lol", "ok", "nice one"),
-		Kind.HUH, List.of("?", "yes?", "hm?", "what", "yo?"),
-		Kind.THIEF, List.of("thief", "hey thats mine", "give it back", "my stuff??", "bro stole my stuff", "thats MY gear"),
-		Kind.WAR_CRY, List.of("CHARGE", "get them", "raid time", "for the crew!", "lets go", "attack!!"));
+		public final String key;
+
+		Kind(String key) {
+			this.key = key;
+		}
+	}
 
 	/** Least time between two lines from one Drifter. */
 	private static final long PER_DRIFTER = 20 * 20;
@@ -55,9 +48,9 @@ public final class ChatLines {
 	 * don't (found in a test: "let's go!" after the duel challenge came too soon after it and was never said). Its other
 	 * chatter waits after it.
 	 */
-	public static void speak(DrifterEntity drifter, String text) {
+	public static void speak(DrifterEntity drifter, @org.jetbrains.annotations.Nullable String text) {
 		MinecraftServer server = drifter.getServer();
-		if (!DrifterConfig.chatLines() || server == null) {
+		if (!DrifterConfig.chatLines() || server == null || text == null) {
 			return;
 		}
 
@@ -66,9 +59,9 @@ public final class ChatLines {
 	}
 
 	/** A line of its own (a whim's), under the same rate limits and setting as the canned ones. */
-	public static void sayLine(DrifterEntity drifter, String text) {
+	public static void sayLine(DrifterEntity drifter, @org.jetbrains.annotations.Nullable String text) {
 		MinecraftServer server = drifter.getServer();
-		if (!DrifterConfig.chatLines() || server == null) {
+		if (!DrifterConfig.chatLines() || server == null || text == null) {
 			return;
 		}
 
@@ -90,8 +83,8 @@ public final class ChatLines {
 		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + text), false);
 	}
 
-	/** It might say something about this (personality and rate limits decide). */
-	public static void say(DrifterEntity drifter, Kind kind) {
+	/** It might say something about this (personality and rate limits decide); {@code vars}: words for the line (player...). */
+	public static void say(DrifterEntity drifter, Kind kind, Object... vars) {
 		MinecraftServer server = drifter.getServer();
 		if (!DrifterConfig.chatLines() || server == null) {
 			return;
@@ -118,25 +111,14 @@ public final class ChatLines {
 			return;
 		}
 
+		String line = Lines.habit(drifter, kind.key, vars);
+		if (line == null) {
+			return;
+		}
+
 		lastLine.put(drifter.getUUID(), now);
 		lastKind.put(kindKey, now);
 		recent.addLast(now);
-		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + line(drifter, kind)), false);
-	}
-
-	/**
-	 * Its own way of saying it: a fixed pick from its personality (the same Drifter always greets the same way, as
-	 * players do), varied a little.
-	 */
-	private static String line(DrifterEntity drifter, Kind kind) {
-		List<String> lines = LINES.get(kind);
-		long seed = drifter.getUUID().getLeastSignificantBits() ^ kind.ordinal() * 31L;
-		int habit = (int)Math.floorMod(seed, lines.size());
-		// Now and then another of the lines (a quarter of the time); PvP sweats always "gg".
-		if (kind == Kind.GG && drifter.getPersonality().archetype() == Archetype.PVP_SWEAT) {
-			return "gg";
-		}
-
-		return drifter.getRandom().nextFloat() < 0.25F ? lines.get(drifter.getRandom().nextInt(lines.size())) : lines.get(habit);
+		server.getPlayerList().broadcastSystemMessage(Component.literal("<" + drifter.getName().getString() + "> " + line), false);
 	}
 }

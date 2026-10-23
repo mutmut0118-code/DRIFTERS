@@ -44,9 +44,7 @@
 				"creativity": 0.5
 			},
 			"cooldown": 72000,
-			"chat": [
-				"made a snowman"
-			],
+			"chat": ["made a snowman", "built a snow golem", "meet frosty", "he lives", "snow buddy acquired", "look at my snowman"],
 			"thought": "building a snow golem"
 		},
 		{

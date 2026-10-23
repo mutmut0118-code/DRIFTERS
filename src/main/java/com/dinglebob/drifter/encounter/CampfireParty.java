@@ -33,7 +33,6 @@ final class CampfireParty extends Encounter {
 	private static final String HOST = "host";
 	private static final String GUEST = "guest";
 	private static final long LASTS = 20L * 60 * 4;
-	private static final List<String> CHEERS = List.of("woo!", "best night ever", "ha! nice one", "who brought the cake?", "another one!");
 
 	private final BlockPos fire;
 	private final BlockPos cake;
@@ -129,18 +128,18 @@ final class CampfireParty extends Encounter {
 		for (DrifterEntity drifter : this.members) {
 			if (player != null && !this.invited && sees(drifter, player) && drifter.distanceTo(player) < 40.0) {
 				this.invited = true;
-				say(drifter, "hey, " + this.playerName + "! come join us!");
+				say(drifter, line(drifter, "party.invite", "player", this.playerName));
 			}
 		}
 
 		if (this.now() - this.lastCheer > 20 * 25) {
 			this.lastCheer = this.now();
 			DrifterEntity cheering = this.members.get(this.level.getRandom().nextInt(this.members.size()));
-			say(cheering, CHEERS.get(this.level.getRandom().nextInt(CHEERS.size())));
+			say(cheering, line(cheering, "party.cheer"));
 		}
 
 		if (this.now() - this.startedAt > LASTS) {
-			say(this.members.get(0), "goodnight, everyone!");
+			say(this.members.get(0), line(this.members.get(0), "party.end"));
 			this.end("the party's over");
 		}
 	}

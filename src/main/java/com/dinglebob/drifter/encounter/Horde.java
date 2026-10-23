@@ -123,7 +123,7 @@ final class Horde extends Encounter {
 
 		if (!this.shouted && sees(runner, player)) {
 			this.shouted = true;
-			say(runner, runner.getRandom().nextBoolean() ? "RUN! there's loads of them!" : "zombies! run, " + this.playerName + ", RUN!");
+			say(runner, line(runner, "horde.run", "player", this.playerName));
 		}
 
 		// Gone past them: each zombie goes for whoever's nearer now (the player, as often as not).

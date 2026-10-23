@@ -175,17 +175,13 @@ final class TrappedMiner extends Encounter {
 			}
 
 			if (this.free) {
-				say(miner, "light! someone's there! oh, thank goodness.");
+				say(miner, line(miner, "miner.freed"));
 				think(miner, "dug out");
 			} else if (this.now() - this.lastCall > CALLS_EVERY && this.calls < 12) {
 				this.lastCall = this.now();
 				BlockPos at = miner.blockPosition();
-				say(miner, switch (this.calls++ % 3) {
-					case 0 -> "help! the tunnel caved in and my pickaxe broke. I'm stuck down here at " + coords(at);
-					case 1 -> "anyone? still stuck at " + coords(at) + ". about " + (this.level.getHeight(Heightmap.Types.WORLD_SURFACE, at.getX(), at.getZ()) - at.getY())
-						+ " blocks down";
-					default -> "please... " + coords(at) + ". I can hear something up there";
-				});
+				say(miner, line(miner, "miner.call" + (this.calls++ % 3 + 1), "coords", coords(at), "depth",
+					this.level.getHeight(Heightmap.Types.WORLD_SURFACE, at.getX(), at.getZ()) - at.getY()));
 			}
 
 			return;
@@ -219,7 +215,7 @@ final class TrappedMiner extends Encounter {
 				.then(() -> walkUpTo(drifter, player, 2.5))
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
-					say(drifter, "I owe you one. here, take what I dug up.");
+					say(drifter, line(drifter, "miner.thanks"));
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
 						if (stack.is(Items.DIAMOND) || stack.is(Items.RAW_GOLD) || stack.is(Items.RAW_IRON)) {

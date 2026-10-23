@@ -126,14 +126,14 @@ final class LostDog extends Encounter {
 		}
 
 		if (dog == null || !dog.isAlive()) {
-			say(owner, "...no. " + this.name + "? no...");
+			say(owner, line(owner, "lostdog.dead", "dog", this.name));
 			this.end("the dog is dead");
 			return;
 		}
 
 		if (!this.found && dog.distanceTo(owner) < REUNITED) {
 			this.found = true;
-			say(owner, this.name + "! there you are! oh, you silly dog.");
+			say(owner, line(owner, "lostdog.found", "dog", this.name));
 			// Its own lead on him now (the player's, if he came on one).
 			dog.setLeashedTo(owner, true);
 			think(owner, this.name + " is back");
@@ -153,7 +153,7 @@ final class LostDog extends Encounter {
 
 		if (this.askedAt >= 0 && this.now() - this.lastCall > CALLS_EVERY) {
 			this.lastCall = this.now();
-			say(owner, this.name + "! here, boy! " + this.name + "!");
+			say(owner, line(owner, "lostdog.call", "dog", this.name));
 		}
 	}
 
@@ -187,8 +187,7 @@ final class LostDog extends Encounter {
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
-						say(drifter, "excuse me... have you seen my dog? " + this.name + ", red collar. he ran off " + way
-							+ " a while ago and won't come back. here, take this lead, in case you find him.");
+						say(drifter, line(drifter, "lostdog.ask", "player", this.playerName, "dog", this.name, "way", way));
 						for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 							ItemStack stack = drifter.getInventory().getItem(slot);
 							if (stack.is(Items.LEAD)) {
@@ -208,7 +207,7 @@ final class LostDog extends Encounter {
 				.then(() -> walkUpTo(drifter, player, 2.5))
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
-					say(drifter, "thank you so much. here, it's not much, but take it.");
+					say(drifter, line(drifter, "lostdog.thanks", "player", this.playerName));
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
 						if (!stack.isEmpty() && !stack.is(Items.BONE)) {

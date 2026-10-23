@@ -195,8 +195,8 @@ final class WantedPoster extends Encounter {
 					return;
 				}
 
-				say(drifter, "Wanted: " + target.name() + ", for " + target.crime() + ". " + target.reward() + " diamonds to whoever brings them down.");
-				say(drifter, target.home() ? "Here, this map shows where they live." : "Here, this map shows where they were last seen.");
+				say(drifter, line(drifter, "wanted.poster", "target", target.name(), "crime", target.crime(), "reward", target.reward()));
+				say(drifter, line(drifter, target.home() ? "wanted.map_home" : "wanted.map_seen"));
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 					ItemStack stack = drifter.getInventory().getItem(slot);
 					if (stack.is(Items.FILLED_MAP)) {

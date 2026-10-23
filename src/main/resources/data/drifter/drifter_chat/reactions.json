@@ -1,0 +1,891 @@
+{
+  "comment": "What Drifters say about things that happen (docs/CHAT_LINES.md). Lowercase, no final period, as players type (the user's chat guidebooks). Each key: 'any' (everyone) and personality voices (casual, newbie, builder, miner, homebody, speedrunner, nomad, hoarder, hermit, pvp_sweat, bandit, helper), which a Drifter of that kind mostly picks from. {player} is the player's name, {name} the Drifter's own.",
+  "lines": {
+    "hi": {
+      "any": [
+        "hi",
+        "hey",
+        "hello",
+        "yo",
+        "o/",
+        "sup",
+        "heyo",
+        "hiya",
+        "yo {player}",
+        "hey {player}",
+        "o/ {player}",
+        "hi there",
+        "ayo",
+        "wsg"
+      ],
+      "casual": [
+        "yo",
+        "sup",
+        "hey hey",
+        "yo whats up",
+        "heyy",
+        "o/",
+        "wassup {player}"
+      ],
+      "newbie": [
+        "hiii",
+        "hello!!",
+        "hi {player}!!",
+        "hey can we be friends",
+        "hi im new here",
+        "hello :)",
+        "yoo hi",
+        "omg hi"
+      ],
+      "builder": [
+        "o/",
+        "hey {player} o/",
+        "hello! nice to see someone",
+        "heya, come see the build later",
+        "o/ hi"
+      ],
+      "miner": [
+        "yo",
+        "hey",
+        "o/",
+        "sup, just got back from mining",
+        "hey, found any dias?"
+      ],
+      "homebody": [
+        "hi! :)",
+        "hello, welcome",
+        "hiya {player}",
+        "oh hi! good to see you",
+        "o/ hello"
+      ],
+      "speedrunner": [
+        "yo",
+        "hi",
+        "o/",
+        "hey gtg soon tho",
+        "sup"
+      ],
+      "nomad": [
+        "o7 traveller",
+        "hey stranger",
+        "o/ where you headed",
+        "well met",
+        "hey, long road?"
+      ],
+      "hoarder": [
+        "hi. dont touch my chests",
+        "hey",
+        "oh. hi",
+        "hello {player}... what do you want"
+      ],
+      "hermit": [
+        "hm",
+        "...hi",
+        "oh",
+        "o/"
+      ],
+      "pvp_sweat": [
+        "yo",
+        "sup",
+        "hey 1v1 later?",
+        "o/ nice gear",
+        "yo {player}"
+      ],
+      "bandit": [
+        "well hello there",
+        "hey {player}",
+        "nice stuff you got there",
+        "hey friend"
+      ],
+      "helper": [
+        "hey!! need anything?",
+        "hi {player}! o/",
+        "hello! welcome welcome",
+        "hey! you good?",
+        "o/ hi friend"
+      ]
+    },
+    "huh": {
+      "any": [
+        "?",
+        "yes?",
+        "hm?",
+        "what",
+        "yo?",
+        "ya?",
+        "wsp",
+        "huh",
+        "mhm?",
+        "whats up",
+        "you called?",
+        "me?"
+      ],
+      "newbie": [
+        "yes??",
+        "what what",
+        "me?? hi",
+        "huh??"
+      ],
+      "homebody": [
+        "yes? :)",
+        "hm? what is it",
+        "oh, yes?"
+      ],
+      "hermit": [
+        "what",
+        "...?",
+        "hm"
+      ],
+      "pvp_sweat": [
+        "what",
+        "?",
+        "1v1?"
+      ],
+      "bandit": [
+        "what do you want",
+        "yeah?"
+      ],
+      "helper": [
+        "yes! need something?",
+        "hey whats up?",
+        "here! what is it?"
+      ]
+    },
+    "thanks": {
+      "any": [
+        "ty",
+        "thx",
+        "thanks",
+        "tysm",
+        "ty!",
+        "ty ty",
+        "thank you",
+        "tyvm",
+        "oh ty",
+        "appreciate it",
+        "ty o7",
+        "ty fr"
+      ],
+      "newbie": [
+        "omg thank you!!",
+        "tysm!!!",
+        "thanks!! :D",
+        "wait for me?? ty"
+      ],
+      "homebody": [
+        "oh thank you!",
+        "thats so kind, ty",
+        "ty, really"
+      ],
+      "hermit": [
+        "...ty",
+        "thanks"
+      ],
+      "pvp_sweat": [
+        "ty",
+        "w",
+        "ty bro"
+      ],
+      "bandit": [
+        "heh, thanks",
+        "ill take it"
+      ],
+      "hoarder": [
+        "mine now. ty",
+        "ooh ty",
+        "ty, going in the chest"
+      ],
+      "helper": [
+        "ahh ty!! you didnt have to",
+        "thank you so much!",
+        "ty! ill pay it back"
+      ]
+    },
+    "gg_won": {
+      "any": [
+        "gg",
+        "ggs",
+        "gg wp",
+        "rip",
+        "gg go next",
+        "sorry lol",
+        "gg {player}"
+      ],
+      "pvp_sweat": [
+        "gg",
+        "ez",
+        "L",
+        "gg ez",
+        "skill issue",
+        "get good",
+        "too easy",
+        "sit"
+      ],
+      "bandit": [
+        "should have paid",
+        "gg, ill take that",
+        "nothing personal",
+        "thanks for the loot"
+      ],
+      "homebody": [
+        "sorry!! you came at me",
+        "oh no, sorry",
+        "i didnt want that"
+      ],
+      "helper": [
+        "oh no, sorry {player}",
+        "gg, want your stuff back?",
+        "sorry!! that got out of hand"
+      ],
+      "newbie": [
+        "i won??",
+        "omg gg",
+        "wait i actually won"
+      ]
+    },
+    "gg_lost": {
+      "any": [
+        "gg",
+        "rip",
+        "gg wp",
+        "ggs",
+        "rip me",
+        "oof",
+        "ow",
+        "really?",
+        "wow ok",
+        "unlucky"
+      ],
+      "pvp_sweat": [
+        "gg",
+        "lag",
+        "nice ping",
+        "rematch",
+        "1v1 again",
+        "ok that was lucky"
+      ],
+      "bandit": [
+        "you got lucky",
+        "this isnt over",
+        "my crew will hear about this"
+      ],
+      "homebody": [
+        "why",
+        "i didnt do anything",
+        "that was mean"
+      ],
+      "newbie": [
+        "noooo",
+        "my stuff!!",
+        "why did you do that"
+      ],
+      "hermit": [
+        "...",
+        "figures"
+      ],
+      "helper": [
+        "ow... why",
+        "i was trying to help"
+      ]
+    },
+    "stop": {
+      "any": [
+        "go away",
+        "stop",
+        "back off",
+        "wait",
+        "dont",
+        "leave me alone",
+        "dont come closer",
+        "personal space pls",
+        "bro back up",
+        "nope, stay there"
+      ],
+      "homebody": [
+        "please go away",
+        "stay away from my house",
+        "im not looking for trouble"
+      ],
+      "hermit": [
+        "leave",
+        "go",
+        "away",
+        "not today"
+      ],
+      "hoarder": [
+        "get away from my stuff",
+        "dont even think about it",
+        "these are MY chests"
+      ],
+      "newbie": [
+        "stop it!!",
+        "go awayyy",
+        "dont hurt me pls"
+      ],
+      "pvp_sweat": [
+        "dont",
+        "you want this?",
+        "try it"
+      ],
+      "helper": [
+        "hey, easy",
+        "lets not do this",
+        "can we not?"
+      ]
+    },
+    "ouch": {
+      "any": [
+        "bruh",
+        "?",
+        "hey!",
+        "stop",
+        "ow",
+        "what was that for",
+        "?????",
+        "excuse me",
+        "oi",
+        "dude",
+        "rude"
+      ],
+      "pvp_sweat": [
+        "oh you want to fight?",
+        "bad idea",
+        "?",
+        "1v1 then"
+      ],
+      "bandit": [
+        "big mistake",
+        "you just picked the wrong one"
+      ],
+      "homebody": [
+        "ow! why?",
+        "please dont",
+        "that hurt"
+      ],
+      "newbie": [
+        "ow!!",
+        "why did you hit me",
+        "hey!! no hitting"
+      ],
+      "hermit": [
+        "...",
+        "dont"
+      ],
+      "helper": [
+        "ow, accident?",
+        "hey, careful!"
+      ]
+    },
+    "thief": {
+      "any": [
+        "thief",
+        "hey thats mine",
+        "give it back",
+        "my stuff??",
+        "bro stole my stuff",
+        "thats MY gear",
+        "WHO TOOK MY STUFF",
+        "put it back",
+        "are you serious",
+        "who raided my chest"
+      ],
+      "hoarder": [
+        "THIEF",
+        "THATS MINE",
+        "my chest!! my stuff!!",
+        "you will pay for that",
+        "i counted everything"
+      ],
+      "homebody": [
+        "my things... why",
+        "please give it back",
+        "i trusted you"
+      ],
+      "newbie": [
+        "hey thats mine!!",
+        "give it back!!!",
+        "not cool"
+      ],
+      "bandit": [
+        "stealing from a thief? bold",
+        "you dont steal from me"
+      ],
+      "pvp_sweat": [
+        "youre dead",
+        "give it back or fight"
+      ]
+    },
+    "war_cry": {
+      "any": [
+        "CHARGE",
+        "get them",
+        "raid time",
+        "for the crew!",
+        "lets go",
+        "attack!!",
+        "LETS GOOO",
+        "GET IN THERE",
+        "go go go",
+        "now!",
+        "hit the base"
+      ],
+      "bandit": [
+        "take everything",
+        "leave nothing",
+        "nobody walks away",
+        "loot it all"
+      ],
+      "pvp_sweat": [
+        "ez raid",
+        "lock in",
+        "theyre cooked",
+        "go go go"
+      ],
+      "nomad": [
+        "for the road!",
+        "onward!"
+      ],
+      "helper": [
+        "stay together!",
+        "watch each others backs!"
+      ]
+    },
+    "greet_back": {
+      "any": [
+        "o/",
+        "\\o",
+        "hi",
+        "hey",
+        "yo",
+        "hiya",
+        "heyo",
+        "hey {player}",
+        "o/ {player}",
+        "sup",
+        "hello",
+        "yo yo",
+        "hey hey"
+      ],
+      "casual": [
+        "yo",
+        "sup {player}",
+        "ayo"
+      ],
+      "newbie": [
+        "hiii {player}!!",
+        "hello!!",
+        "HI"
+      ],
+      "builder": [
+        "o/ morning",
+        "hey {player} o/",
+        "heya"
+      ],
+      "homebody": [
+        "hi {player}! :)",
+        "hello hello",
+        "oh hi!"
+      ],
+      "nomad": [
+        "o7",
+        "o/ traveller"
+      ],
+      "hermit": [
+        "o/",
+        "hm. hi"
+      ],
+      "helper": [
+        "hey!! o/",
+        "hi {player}! need anything?",
+        "o/ welcome"
+      ],
+      "pvp_sweat": [
+        "yo",
+        "sup"
+      ]
+    },
+    "welcome_back": {
+      "any": [
+        "wb",
+        "wb {player}",
+        "o/",
+        "welcome back",
+        "wb o/",
+        "hey wb",
+        "oh hey wb",
+        "{player}! wb"
+      ],
+      "newbie": [
+        "WB!!",
+        "yay {player} is back"
+      ],
+      "homebody": [
+        "welcome back! :)",
+        "wb, missed you"
+      ],
+      "hermit": [
+        "wb"
+      ],
+      "helper": [
+        "wb!! o/",
+        "welcome back {player}!"
+      ]
+    },
+    "welcome_new": {
+      "any": [
+        "welcome!",
+        "o/ welcome",
+        "hi new person",
+        "welcome {player} o/",
+        "hey, welcome",
+        "new face! hi"
+      ],
+      "helper": [
+        "welcome!! need help getting started?",
+        "hi {player}! ask if you need anything",
+        "welcome o/ spawn is safe-ish"
+      ],
+      "newbie": [
+        "hi are you new too??",
+        "welcome!! im new too"
+      ],
+      "bandit": [
+        "fresh meat",
+        "welcome... heh"
+      ],
+      "hermit": [
+        "hm. new one"
+      ]
+    },
+    "bye_back": {
+      "any": [
+        "cya",
+        "o7",
+        "bye",
+        "cya {player}",
+        "later",
+        "o/",
+        "take care",
+        "see ya",
+        "bye o/"
+      ],
+      "helper": [
+        "bye {player}! come back soon",
+        "cya! o/"
+      ],
+      "nomad": [
+        "o7 safe travels"
+      ],
+      "hermit": [
+        "bye"
+      ]
+    },
+    "night_back": {
+      "any": [
+        "gn",
+        "gn {player}",
+        "night",
+        "nn",
+        "gn o/",
+        "night night",
+        "sleep well",
+        "gn o7",
+        "gnight"
+      ],
+      "homebody": [
+        "good night {player} :)",
+        "sleep well!"
+      ],
+      "newbie": [
+        "gnnn",
+        "night night!!"
+      ],
+      "pvp_sweat": [
+        "gn",
+        "gn, 1v1 tomorrow"
+      ],
+      "hermit": [
+        "gn"
+      ],
+      "helper": [
+        "gn! sleep well o/"
+      ]
+    },
+    "you_welcome": {
+      "any": [
+        "np",
+        "no problem",
+        "np o/",
+        "anytime",
+        "np np",
+        "all good",
+        "sure thing",
+        "dw about it",
+        "yw",
+        "ofc"
+      ],
+      "helper": [
+        "anytime!!",
+        "np, happy to help",
+        "of course! :)"
+      ],
+      "hoarder": [
+        "dont get used to it",
+        "np. you owe me"
+      ],
+      "hermit": [
+        "mhm",
+        "np"
+      ],
+      "pvp_sweat": [
+        "np",
+        "ez"
+      ],
+      "newbie": [
+        "yw!!",
+        "np :D"
+      ]
+    },
+    "rip": {
+      "any": [
+        "rip",
+        "F",
+        "unlucky",
+        "rip {player}",
+        "oof",
+        "rip bro",
+        "rip your stuff",
+        "o7",
+        "unlucky {player}",
+        "rip, want help getting your stuff?",
+        "f in chat"
+      ],
+      "helper": [
+        "oh no, need help getting your stuff back?",
+        "rip! want me to come with?",
+        "unlucky, ill help you get your stuff"
+      ],
+      "pvp_sweat": [
+        "L",
+        "skill issue",
+        "rip lol",
+        "unlucky",
+        "get good"
+      ],
+      "bandit": [
+        "free loot somewhere",
+        "rip... wheres the stuff"
+      ],
+      "homebody": [
+        "oh no! are you ok?",
+        "rip, careful out there"
+      ],
+      "hermit": [
+        "rip"
+      ],
+      "newbie": [
+        "noooo rip",
+        "rip!!"
+      ]
+    },
+    "rip_funny": {
+      "any": [
+        "lmao",
+        "rip lol",
+        "lmaooo",
+        "bro",
+        "im dead",
+        "how",
+        "rip lmao",
+        "nice one",
+        "skill issue",
+        "classic",
+        "unlucky lmao",
+        "{player} im crying"
+      ],
+      "helper": [
+        "lmao rip, need help?",
+        "oh no lmao"
+      ],
+      "homebody": [
+        "oh dear",
+        "rip, be careful!"
+      ],
+      "hermit": [
+        "heh"
+      ],
+      "pvp_sweat": [
+        "L",
+        "skill issue",
+        "how do you even do that"
+      ]
+    },
+    "rip_drifter": {
+      "any": [
+        "rip {who}",
+        "rip",
+        "F",
+        "o7 {who}",
+        "rip {who} o7",
+        "nooo {who}",
+        "unlucky {who}"
+      ],
+      "pvp_sweat": [
+        "rip",
+        "unlucky"
+      ],
+      "bandit": [
+        "one less to share with",
+        "rip i guess"
+      ],
+      "hermit": [
+        "rip"
+      ]
+    },
+    "congrats": {
+      "any": [
+        "gg",
+        "W",
+        "gz",
+        "congrats",
+        "gg {player}",
+        "nice",
+        "W {player}",
+        "lets go",
+        "ggs",
+        "nice one",
+        "congrats o/"
+      ],
+      "newbie": [
+        "woah gg!!",
+        "W!!",
+        "how did you do that"
+      ],
+      "helper": [
+        "congrats!! :D",
+        "huge W {player}"
+      ],
+      "pvp_sweat": [
+        "gg",
+        "ok W"
+      ],
+      "hermit": [
+        "gz"
+      ],
+      "hoarder": [
+        "nice. what did you get"
+      ]
+    },
+    "shop.nothing": {
+      "any": [
+        "nothing to sell right now, come back later",
+        "sold out rn, try tomorrow",
+        "shop's empty atm, come back later",
+        "nothing left today sorry",
+        "out of stock, check back later"
+      ]
+    },
+    "news.deed": {
+      "any": [
+        "did you hear? {who} {what}",
+        "yo did u hear, {who} {what}",
+        "apparently {who} {what}",
+        "heard {who} {what}",
+        "psa: {who} {what}",
+        "ngl heard {who} {what}",
+        "word is {who} {what}",
+        "so {who} {what}. just saying"
+      ]
+    },
+    "news.death": {
+      "any": [
+        "did you hear? {who} {what}",
+        "rip {who}. {who} {what}",
+        "heard {who} {what}",
+        "{who} {what}. rip",
+        "apparently {who} {what}",
+        "o7 {who}, {what}"
+      ]
+    },
+    "trade.ask": {
+      "any": [
+        "got any {things} to spare?",
+        "anyone got spare {things}?",
+        "need {things} pls",
+        "u got {things}?",
+        "can i have some {things}",
+        "spare {things}?"
+      ]
+    },
+    "trade.ask_pay": {
+      "any": [
+        "got any {things} to spare? ill give you {payment}",
+        "wtb {things}, paying {payment}",
+        "{things} for {payment}?",
+        "trade you {payment} for {things}",
+        "need {things}, have {payment}"
+      ]
+    },
+    "trade.give_free": {
+      "any": [
+        "sure, have {goods}",
+        "here, {goods}",
+        "ofc, take {goods}",
+        "np, have {goods}",
+        "yeah have {goods}"
+      ]
+    },
+    "trade.agree": {
+      "any": [
+        "deal",
+        "bet",
+        "ok deal",
+        "sure",
+        "W trade",
+        "ight",
+        "sounds good",
+        "deal o/"
+      ]
+    },
+    "trade.handover_gift": {
+      "any": [
+        "here you go",
+        "there ya go",
+        "np",
+        "all yours",
+        "enjoy"
+      ]
+    },
+    "trade.handover_paid": {
+      "any": [
+        "pleasure doing business",
+        "ty for the trade",
+        "W trade",
+        "good doing business",
+        "ggs on the trade"
+      ]
+    },
+    "bye_night": {
+      "any": [
+        "gn",
+        "gn {player}",
+        "night",
+        "gn o7",
+        "sleep well",
+        "gn all",
+        "gnn {player}"
+      ]
+    },
+    "rip_friend": {
+      "any": [
+        "NOOO {who}",
+        "rip {who}... o7",
+        "not {who}",
+        "{who} no",
+        "rest easy {who}",
+        "why {who}",
+        "o7 {who}, we wont forget"
+      ]
+    }
+  }
+}

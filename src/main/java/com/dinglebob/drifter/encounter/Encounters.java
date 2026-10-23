@@ -356,7 +356,7 @@ public final class Encounters {
 		net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
 			Encounter encounter = active.get(sender.getUUID());
 			if (encounter != null && !encounter.isOver()) {
-				encounter.chat(sender, " " + message.signedContent().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", " ").trim() + " ");
+				encounter.chat(sender, message.signedContent());
 			}
 		});
 	}

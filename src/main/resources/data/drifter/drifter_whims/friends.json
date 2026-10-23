@@ -22,10 +22,7 @@
 			},
 			"weight": 0.6,
 			"cooldown": 12000,
-			"chat": [
-				"lets gooo",
-				"yesss"
-			],
+			"chat": ["lets gooo", "yesss", "LETS GOOO", "W", "hype", "we up", "woo!"],
 			"thought": "doing a little dance"
 		},
 		{
@@ -205,11 +202,7 @@
 				"bored": 1.5
 			},
 			"cooldown": 12000,
-			"chat": [
-				"snowball fight!",
-				"get rekt",
-				"incoming"
-			],
+			"chat": ["snowball fight!", "get rekt", "incoming", "SNOWBALL FIGHT", "heads up", "catch", "you started this"],
 			"thought": "starting a snowball fight"
 		}
 	]

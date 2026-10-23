@@ -94,7 +94,7 @@ final class Mugging extends Encounter {
 		if (!this.refused) {
 			if (value(mugger) >= this.demand) {
 				this.paidUp = true;
-				say(mugger, "pleasure doing business. move along.");
+				say(mugger, line(mugger, "mugging.paid"));
 				this.end("they paid");
 				return;
 			}
@@ -102,7 +102,7 @@ final class Mugging extends Encounter {
 			boolean hit = mugger.getLastHurtByMob() == player && mugger.tickCount - mugger.getLastHurtByMobTimestamp() < 40;
 			if (hit || this.now() - this.askedAt > WAITS || player.distanceTo(mugger) > 16.0) {
 				this.refused = true;
-				say(mugger, "your choice.");
+				say(mugger, line(mugger, "mugging.refused"));
 			}
 
 			return;
@@ -162,7 +162,7 @@ final class Mugging extends Encounter {
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
-						say(drifter, "stop right there, " + this.playerName + ". " + this.demand + " emeralds (or gold, or diamonds), or your life. throw it here.");
+						say(drifter, line(drifter, "mugging.demand", "player", this.playerName, "demand", this.demand));
 						this.askedAt = this.now();
 					}
 				});

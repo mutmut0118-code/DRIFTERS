@@ -21,9 +21,7 @@
 				"fidget": 0.5
 			},
 			"cooldown": 24000,
-			"chat": [
-				"ding ding"
-			],
+			"chat": ["ding ding", "DING", "bell go brr", "ding dong", "dinner time?", "ding ding ding"],
 			"thought": "ringing the village bell"
 		},
 		{
@@ -191,9 +189,7 @@
 				"triumphant": 2.0
 			},
 			"cooldown": 24000,
-			"chat": [
-				"cake :)"
-			],
+			"chat": ["cake :)", "cake time", "free cake", "mm cake", "one slice wont hurt", "cake W"],
 			"thought": "having a slice of cake"
 		},
 		{

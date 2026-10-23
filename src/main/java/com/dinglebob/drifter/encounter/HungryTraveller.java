@@ -81,7 +81,7 @@ final class HungryTraveller extends Encounter {
 			this.end("fed, and thanked them");
 		} else if (this.askedAt >= 0 && !hasFood(traveller) && traveller.getFoodData().getFoodLevel() < FED
 			&& (this.now() - this.askedAt > WAITS || player.distanceTo(traveller) > 32.0)) {
-			say(traveller, "never mind... thanks anyway.");
+			say(traveller, line(traveller, "hungry.giveup"));
 			this.end("nobody fed it");
 		}
 	}
@@ -119,7 +119,7 @@ final class HungryTraveller extends Encounter {
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
-						say(drifter, "excuse me, " + this.playerName + "... I haven't eaten in days. could you spare some food?");
+						say(drifter, line(drifter, "hungry.ask", "player", this.playerName));
 						this.askedAt = this.now();
 					}
 				});
@@ -130,7 +130,7 @@ final class HungryTraveller extends Encounter {
 				.then(() -> walkUpTo(drifter, player, 2.5))
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
-					say(drifter, "bless you. here, for your kindness.");
+					say(drifter, line(drifter, "hungry.thanks", "player", this.playerName));
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
 						if (!stack.isEmpty() && !stack.has(DataComponents.FOOD)) {

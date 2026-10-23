@@ -118,7 +118,7 @@ final class Thief extends Encounter {
 				this.owner.getDrifterBrain().pursue(this.owner, this.thief, this.now());
 				if (this.now() - this.lastShout > 20 * 5) {
 					this.lastShout = this.now();
-					say(this.owner, this.owner.getRandom().nextBoolean() ? "stop, thief!" : "somebody stop " + this.thief.getName().getString() + "!");
+					say(this.owner, line(this.owner, "thief.shout", "thief", this.thief.getName().getString()));
 				}
 			}
 
@@ -209,7 +209,7 @@ final class Thief extends Encounter {
 			.then(() -> player != null && player.distanceTo(drifter) < 5.0 ? new LookAtTask(drifter, player.getEyePosition(), 10) : null)
 			.now(() -> {
 				if (player != null && player.distanceTo(drifter) < 5.0) {
-					say(drifter, "you stopped them! here, a share for your trouble.");
+					say(drifter, line(drifter, "thief.thanks", "player", this.playerName));
 					// Half of what it got back (gold and emeralds), from its own hands.
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);

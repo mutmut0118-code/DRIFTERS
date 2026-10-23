@@ -444,7 +444,7 @@ public final class HostileGoals {
 				if (!this.looted) {
 					this.looted = true;
 					this.think("took down " + this.player.getGameProfile().getName() + ": picking up what they dropped");
-					ChatLines.say(this.drifter, ChatLines.Kind.GG);
+					ChatLines.say(this.drifter, ChatLines.Kind.GG_WON, "player", this.player.getGameProfile().getName());
 					return this.begin(new CollectItemsTask(this.drifter, 8.0));
 				}
 

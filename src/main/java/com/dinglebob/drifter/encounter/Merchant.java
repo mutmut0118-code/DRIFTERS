@@ -154,7 +154,7 @@ final class Merchant extends Encounter {
 
 		boolean trading = this.trades != null && this.trades.customer != null;
 		if (!trading && this.greetedAt >= 0 && (player == null || player.distanceTo(merchant) > WALKED_OFF || this.now() - this.greetedAt > STAYS)) {
-			say(merchant, "safe travels, " + this.playerName + ".");
+			say(merchant, line(merchant, "merchant.bye", "player", this.playerName));
 			this.end("the merchant moved on");
 		}
 	}
@@ -184,7 +184,7 @@ final class Merchant extends Encounter {
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
 						this.greetedAt = this.now();
-						say(drifter, "hello there! I've a few rare things, if you've got emeralds. Have a look.");
+						say(drifter, line(drifter, "merchant.hello", "player", this.playerName));
 					}
 				});
 			return script;
@@ -215,7 +215,7 @@ final class Merchant extends Encounter {
 
 		this.trades.refresh();
 		if (this.trades.getOffers().isEmpty()) {
-			say(drifter, "sold out, I'm afraid.");
+			say(drifter, line(drifter, "merchant.soldout"));
 			return InteractionResult.CONSUME;
 		}
 

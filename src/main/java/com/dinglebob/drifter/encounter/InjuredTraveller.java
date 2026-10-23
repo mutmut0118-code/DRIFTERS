@@ -138,7 +138,7 @@ final class InjuredTraveller extends Encounter {
 		if (!this.safe && this.now() - this.lastPlea > 20 * 6) {
 			this.lastPlea = this.now();
 			boolean seen = player != null && knowsWhere(traveller, player);
-			say(traveller, !seen ? "help! anyone! zombies!" : traveller.getRandom().nextBoolean() ? "help! please, help me!" : "zombies! " + this.playerName + ", help!");
+			say(traveller, line(traveller, !seen ? "injured.help_unseen" : "injured.help", "player", this.playerName));
 		}
 
 		// (Safe, and nobody came for half a minute: it goes on alone. Someone it saw, gone far off: the same.)
@@ -204,7 +204,7 @@ final class InjuredTraveller extends Encounter {
 			.then(() -> walkUpTo(drifter, player, 2.5))
 			.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 			.now(() -> {
-				say(drifter, "thank you... I'd be dead without you. Here, take this.");
+				say(drifter, line(drifter, "injured.thanks", "player", this.playerName));
 				// From its own pack: the best thing it carries.
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 					ItemStack stack = drifter.getInventory().getItem(slot);

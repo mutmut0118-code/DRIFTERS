@@ -3,7 +3,7 @@
 		{
 			"id": "watch_sunset", "category": "exploration", "action": "watch_sky", "params": {"what": "sun"}, "when": "sunset",
 			"archetypes": {"hermit": 2.0, "builder": 1.5, "nomad": 1.5, "speedrunner": 0.3}, "traits": {"curiosity": 0.3, "patience": 0.4},
-			"duration": 400, "cooldown": 24000, "chat": ["sunset :)", "pretty"], "thought": "watching the sunset"
+			"duration": 400, "cooldown": 24000, "chat": ["sunset :)", "pretty", "look at that sunset", "golden hour", "nice sky tonight", "mobs soon tho"], "thought": "watching the sunset"
 		},
 		{
 			"id": "watch_sunrise", "category": "exploration", "action": "watch_sky", "params": {"what": "sun"}, "when": "sunrise",
@@ -32,7 +32,7 @@
 		},
 		{
 			"id": "watch_storm", "category": "weather", "action": "watch_sky", "params": {"what": "clouds"}, "when": "thunder", "gates": "R",
-			"archetypes": {"hermit": 1.5, "newbie": 1.5}, "duration": 200, "cooldown": 48000, "chat": ["big storm"],
+			"archetypes": {"hermit": 1.5, "newbie": 1.5}, "duration": 200, "cooldown": 48000, "chat": ["big storm", "thunder!!", "charged creeper weather", "stay inside lol", "look at that lightning", "storms are cool ngl"],
 			"thought": "watching the storm"
 		}
 	]

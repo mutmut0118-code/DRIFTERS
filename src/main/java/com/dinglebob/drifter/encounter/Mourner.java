@@ -104,11 +104,7 @@ final class Mourner extends Encounter {
 		if (player != null && this.dug && (player.distanceTo(mourner) < 8.0 && knowsWhere(mourner, player) || player.distanceTo(mourner) < 4.0)
 			&& this.spoke < 3 && this.now() - this.spokeAt > 20 * 12) {
 			this.spokeAt = this.now();
-			say(mourner, switch (this.spoke++) {
-				case 0 -> this.friend + " was a good friend...";
-				case 1 -> "creepers. never saw it coming.";
-				default -> "did you know them? ...no. no one really did.";
-			});
+			say(mourner, line(mourner, "mourner." + Math.min(3, ++this.spoke), "friend", this.friend));
 		}
 
 		if (this.dug && this.now() - this.readyAt > STAYS) {

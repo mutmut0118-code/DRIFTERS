@@ -33,7 +33,7 @@
 		{
 			"id": "tallest_mountain", "category": "exploration", "action": "high_point", "params": {"radius": 64, "rise": 20},
 			"archetypes": {"nomad": 2.0, "speedrunner": 0.5, "homebody": 0.4}, "traits": {"curiosity": 0.7, "bravery": 0.3}, "when": "day",
-			"duration": 240, "cooldown": 72000, "chat": ["made it to the top"], "thought": "climbing the tallest mountain in sight"
+			"duration": 240, "cooldown": 72000, "chat": ["made it to the top", "top of the world", "summit reached", "W climb", "king of the hill", "worth it"], "thought": "climbing the tallest mountain in sight"
 		},
 		{
 			"id": "craft_something", "category": "crafting", "action": "craft",

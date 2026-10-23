@@ -8,7 +8,7 @@
 					{"do": "walk_to", "target": "flower", "near": 1.5},
 					{"do": "crouch", "ticks": 15},
 					{"do": "look_at", "target": "flower", "ticks": 50},
-					{"do": "say", "lines": ["mm, nice"], "chance": 0.2}
+					{"do": "say", "lines": ["mm, nice", "smells nice", "flowers :)", "pretty", "cute flower"], "chance": 0.2}
 				]
 			},
 			"archetypes": {"homebody": 1.5, "newbie": 1.3, "speedrunner": 0.3}, "traits": {"patience": 0.4}, "cooldown": 12000, "offscreen": "show",
@@ -36,7 +36,7 @@
 					{"do": "walk_to", "target": "dog", "near": 1.5},
 					{"do": "crouch", "ticks": 30},
 					{"do": "look_at", "target": "dog", "ticks": 50, "hops": true},
-					{"do": "say", "lines": ["good dog", "who's a good boy"], "chance": 0.3}
+					{"do": "say", "lines": ["good dog", "who's a good boy", "good boy", "doggo!!", "pets the dog", "best boy"], "chance": 0.3}
 				]
 			},
 			"traits": {"sociability": 0.4}, "cooldown": 12000, "offscreen": "show",
@@ -65,7 +65,7 @@
 				"steps": [
 					{"do": "walk_to", "target": "water", "near": 1.5},
 					{"do": "look_at", "at": "down", "ticks": 100},
-					{"do": "say", "lines": ["looking good", "huh."], "chance": 0.25}
+					{"do": "say", "lines": ["looking good", "huh.", "is that me", "ngl i look good", "need a haircut", "the drip"], "chance": 0.25}
 				]
 			},
 			"traits": {"patience": 0.3}, "cooldown": 24000, "offscreen": "show",
@@ -106,7 +106,7 @@
 					{"do": "walk_to", "target": "door", "near": 1.5},
 					{"do": "look_at", "target": "door", "ticks": 10},
 					{"do": "swing", "times": 3},
-					{"do": "say", "lines": ["knock knock", "anyone home?"], "chance": 0.4},
+					{"do": "say", "lines": ["knock knock", "anyone home?", "hellooo?", "anyone in?", "room service", "open up"], "chance": 0.4},
 					{"do": "wait", "ticks": 60},
 					{"do": "look_around"}
 				]
@@ -167,7 +167,7 @@
 			"id": "hum_to_itself", "category": "micro", "action": "steps",
 			"params": {
 				"steps": [
-					{"do": "say", "lines": ["hm hm hmm", "la la la", "dum de dum"]},
+					{"do": "say", "lines": ["hm hm hmm", "la la la", "dum de dum", "doo doo doo", "mm mm mmm", "la di da", "hmm hm hmm hm"]},
 					{"do": "look_around"},
 					{"do": "jump", "times": 1, "chance": 0.5}
 				]
@@ -181,7 +181,7 @@
 				"find": {"friend": {"type": "friend", "radius": 20}},
 				"steps": [
 					{"do": "walk_to", "target": "friend", "near": 2},
-					{"do": "say", "to": "friend", "lines": ["look at that", "nice sunset, huh"], "chance": 0.5},
+					{"do": "say", "to": "friend", "lines": ["look at that", "nice sunset, huh", "pretty sky tonight", "golden hour o/", "we should do this more", "nice view with you here"], "chance": 0.5},
 					{"do": "look_at", "at": "sun", "ticks": 240}
 				]
 			},
@@ -194,7 +194,7 @@
 				"steps": [
 					{"do": "hold", "item": "minecraft:diamond"},
 					{"do": "look_at", "at": "down", "ticks": 60},
-					{"do": "say", "lines": ["shiny", "beautiful"], "chance": 0.3}
+					{"do": "say", "lines": ["shiny", "beautiful", "dias :)", "look at it sparkle", "one day ill have a full set", "precious"], "chance": 0.3}
 				]
 			},
 			"needs": [{"item": "minecraft:diamond"}],
@@ -222,7 +222,7 @@
 					{"do": "walk_to", "target": "golem", "near": 4},
 					{"do": "look_at", "target": "golem", "ticks": 30},
 					{"do": "crouch", "ticks": 8},
-					{"do": "say", "lines": ["evening, big guy", "keep up the good work"], "chance": 0.3}
+					{"do": "say", "lines": ["evening, big guy", "keep up the good work", "o7 golem", "stay strong big man", "thanks for the protection", "hey iron man"], "chance": 0.3}
 				]
 			},
 			"traits": {"sociability": 0.4}, "cooldown": 24000, "offscreen": "show",

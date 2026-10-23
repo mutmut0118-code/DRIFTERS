@@ -438,12 +438,7 @@
 			"gates": "M",
 			"params": {
 				"requires_mod": "simplybows",
-				"lines": [
-					"found a unique bow",
-					"this bow is something else",
-					"look at this bow",
-					"wait till you see what this bow does"
-				]
+				"lines": ["found a unique bow", "this bow is something else", "look at this bow", "wait till you see what this bow does", "this bow is op", "bow diff", "new bow, who dis"]
 			},
 			"needs": [
 				{
@@ -467,11 +462,7 @@
 			"gates": "M",
 			"params": {
 				"requires_mod": "spartanshields",
-				"lines": [
-					"new shield",
-					"this shield takes a beating",
-					"reinforced, finally"
-				]
+				"lines": ["new shield", "this shield takes a beating", "reinforced, finally", "cant touch this", "shield up", "blocked lol"]
 			},
 			"needs": [
 				{

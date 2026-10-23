@@ -107,7 +107,7 @@ final class VillageRaid extends Encounter {
 		// Half of them down (or all): the rest fall back.
 		if (this.members.size() * 2 <= this.raiders.size()) {
 			if (!this.members.isEmpty()) {
-				say(this.members.get(0), "fall back! fall back!");
+				say(this.members.get(0), line(this.members.get(0), "raid.retreat"));
 			}
 
 			boolean helped = this.downedByPlayer > 0 && player != null && player.position().distanceTo(this.village) < 80.0;
@@ -140,7 +140,7 @@ final class VillageRaid extends Encounter {
 			if (nearest != null) {
 				if (!this.shouted) {
 					this.shouted = true;
-					say(raider, raider.getRandom().nextBoolean() ? "take everything!" : "burn it down!");
+					say(raider, line(raider, "raid.attack"));
 				}
 
 				var pursuit = raider.getDrifterBrain().pursuit();

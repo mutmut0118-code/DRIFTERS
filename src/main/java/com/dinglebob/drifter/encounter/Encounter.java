@@ -218,19 +218,8 @@ public abstract class Encounter {
 	protected void playerHurt(ServerPlayer player, net.minecraft.world.damagesource.DamageSource source) {
 	}
 
-	/** Its player said something in chat (lower case, letters and digits only, a space either side of each word). */
+	/** Its player said something in chat (as typed: {@code Lines.answer} reads what it means). */
 	protected void chat(ServerPlayer player, String words) {
-	}
-
-	/** They said one of these words (in {@link #chat}'s form). */
-	protected static boolean saidAny(String words, String... any) {
-		for (String word : any) {
-			if (words.contains(" " + word + " ")) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	/** It's over: everyone in it heads off. */
@@ -440,7 +429,16 @@ public abstract class Encounter {
 	}
 
 	/** A line in chat, talking to someone (the chat-lines setting applies; the chatter limits don't). */
-	protected static void say(DrifterEntity drifter, String line) {
+	/**
+	 * One of its lines for this moment ({@code encounter.<key>} in the chat data: docs/CHAT_LINES.md), in its voice, words
+	 * filled in ({@code vars}: name, value...); null if there's none.
+	 */
+	@org.jetbrains.annotations.Nullable
+	protected static String line(DrifterEntity drifter, String key, Object... vars) {
+		return com.dinglebob.drifter.social.Lines.pick(drifter, "encounter." + key, vars);
+	}
+
+	protected static void say(DrifterEntity drifter, @org.jetbrains.annotations.Nullable String line) {
 		com.dinglebob.drifter.social.ChatLines.speak(drifter, line);
 	}
 

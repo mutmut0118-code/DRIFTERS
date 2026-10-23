@@ -4,7 +4,7 @@
 			"id": "hop_about", "category": "movement", "action": "hop", "params": {"times": 5},
 			"archetypes": {"newbie": 2.0, "speedrunner": 1.5, "homebody": 0.6}, "traits": {"fidget": 0.8},
 			"moods": {"bored": 1.0, "triumphant": 2.0}, "cooldown": 6000,
-			"chat": ["wheee", ":)"], "thought": "hopping about for no reason"
+			"chat": ["wheee", ":)", "boing", "hop hop", "bunny hopping", "cant stop wont stop"], "thought": "hopping about for no reason"
 		},
 		{
 			"id": "bounce_on_bed", "category": "movement", "action": "hop", "params": {"on": "bed", "times": 4},
@@ -14,7 +14,7 @@
 		{
 			"id": "go_for_a_swim", "category": "movement", "action": "swim", "params": {"radius": 24}, "when": "day",
 			"archetypes": {"nomad": 1.5, "newbie": 1.5, "miner": 0.6}, "moods": {"bored": 1.0}, "duration": 300,
-			"cooldown": 24000, "chat": ["water's nice"], "thought": "going for a swim"
+			"cooldown": 24000, "chat": ["water's nice", "swim time", "come in, waters warm", "cannonball", "just keep swimming"], "thought": "going for a swim"
 		},
 		{
 			"id": "lookout_pillar", "category": "movement", "action": "lookout", "params": {"height": 8}, "when": "day", "stage": 2,

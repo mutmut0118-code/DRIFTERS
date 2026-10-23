@@ -2812,5 +2812,21 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     there), a chest by it, the house's chests and stations shared (`DrifterApi.settleInToo`). In a founded town, a member
     without a house moves into a spare room of a finished one before it takes a plot of its own (it brings or makes its own
     bed). `Town.Plot.residents` and `room`, saved; `/drifterciv town` shows who has a room where.
+- **Chat revamp (0.22.16; the user, with their guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text
+  Chat": "revamp/expand all the chat lines, including the response lines... expand it to the hundreds").** Every line is
+  in data now (`data/drifter/drifter_chat/`: `reactions.json`, `encounters.json`, `answers.json`; `social/Lines.java` loads
+  them, a datapack can add more): 946 lines in 118 kinds plus 242 in whims, written as players type (lowercase, no final
+  period, clipped words, rituals), each personality archetype with a voice of its own (a Drifter mostly uses its own).
+  The canned reactions keep a habit per Drifter; "gg" split into gg_won (it killed you) and gg_lost (you killed it).
+  Answers: 569 phrases in intents (yes, no, ready, unsure, greeting, night, bye, thanks); a message means the intent of
+  the longest phrase found ("no problem" yes, "hell no" no, "yeah no" no), stretched letters and punctuation don't matter
+  ("NOOOO." no, "Absolutely not." no, "na" no); an unclear answer ("idk", "maybe") gets asked again. New rituals
+  (`social/ChatReplies.java`): Drifters near you answer your "hi" ("o/"), "gn", "cya" and "ty" ("np"), say "wb" (or
+  "welcome") when you join and "cya" or "gn" when you leave, "rip" at a player's death message ("lmao", "classic" for a
+  silly one: fall, lava, drowning...), "rip" or "o7" for a Drifter (always for a friend), "gg" or "W" for an advancement
+  (`PlayerAdvancementsMixin`). `/drifter lines meaning <text>` and `/drifter lines say <key>` to try them.
+  docs/CHAT_LINES.md is generated from the data: `python tools/gen_chat_doc.py .` after changing lines.
+  Tested: 66 answers from "na" to "Absolutely not." all read right; in the client, hi, gn, a death and three advancements
+  answered. Not seen live: an escort or race answer (no village or hill near the test spots), the "ty" reply (rate limit).
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

@@ -9,7 +9,7 @@
 					{"do": "walk_to", "target": "fire", "near": 2},
 					{"do": "crouch", "ticks": 30},
 					{"do": "look_at", "target": "fire", "ticks": 120},
-					{"do": "say", "lines": ["ahh, that's better", "nice and warm"], "chance": 0.3}
+					{"do": "say", "lines": ["ahh, that's better", "nice and warm", "cozy", "warm finally", "campfire vibes", "dont let it go out"], "chance": 0.3}
 				]
 			},
 			"archetypes": {"homebody": 1.5, "nomad": 1.3}, "traits": {"patience": 0.4}, "cooldown": 12000, "offscreen": "show",
@@ -22,7 +22,7 @@
 				"steps": [
 					{"do": "look_at", "target": "friend", "ticks": 15},
 					{"do": "swing", "times": 3},
-					{"do": "say", "to": "friend", "lines": ["hey!", "o/", "hiya"], "chance": 0.5},
+					{"do": "say", "to": "friend", "lines": ["hey!", "o/", "hiya", "yo!", "o/ hey", "heyy", "sup!"], "chance": 0.5},
 					{"do": "look_at", "target": "friend", "ticks": 30}
 				]
 			},

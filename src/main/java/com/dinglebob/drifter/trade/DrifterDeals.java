@@ -231,8 +231,10 @@ public final class DrifterDeals {
 		think(other, asker.getName().getString() + " asked for " + describe(goods) + (pay.isEmpty() ? (owed > 0 ? ": paying back what it owes" : ": a gift")
 			: " for " + describe(pay) + ": agreed"));
 		if (playerNear(asker)) {
-			ChatLines.sayLine(asker, "got any " + plural(goods) + " to spare?" + (pay.isEmpty() ? "" : " I'll give you " + describe(pay)));
-			ChatLines.sayLine(other, pay.isEmpty() ? "sure, have " + describe(goods) : "deal");
+			ChatLines.sayLine(asker, pay.isEmpty() ? com.dinglebob.drifter.social.Lines.pick(asker, "trade.ask", "things", plural(goods))
+				: com.dinglebob.drifter.social.Lines.pick(asker, "trade.ask_pay", "things", plural(goods), "payment", describe(pay)));
+			ChatLines.sayLine(other, pay.isEmpty() ? com.dinglebob.drifter.social.Lines.pick(other, "trade.give_free", "goods", describe(goods))
+				: com.dinglebob.drifter.social.Lines.pick(other, "trade.agree"));
 		}
 
 		return deal;
@@ -554,7 +556,7 @@ public final class DrifterDeals {
 				}
 
 				if (!asker && playerNear(me)) {
-					ChatLines.sayLine(me, deal.gift() ? "here you go" : "pleasure doing business");
+					ChatLines.sayLine(me, com.dinglebob.drifter.social.Lines.pick(me, deal.gift() ? "trade.handover_gift" : "trade.handover_paid"));
 				}
 
 				return Status.RUNNING;

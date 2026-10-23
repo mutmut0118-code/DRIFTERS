@@ -111,7 +111,7 @@ final class WantedReward extends Encounter {
 					return;
 				}
 
-				say(drifter, "Heard you brought down " + this.wanted.name + ". As promised.");
+				say(drifter, line(drifter, "wanted.reward", "target", this.wanted.name));
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 					ItemStack stack = drifter.getInventory().getItem(slot);
 					if (!stack.isEmpty() && !stack.is(Items.IRON_SWORD) && !stack.is(Items.BREAD)) {

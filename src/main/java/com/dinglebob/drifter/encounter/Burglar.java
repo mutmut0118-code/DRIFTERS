@@ -165,7 +165,7 @@ final class Burglar extends Encounter {
 			this.leaving = true;
 			think(thief, "caught at it: running");
 			if (this.took) {
-				say(thief, "uh oh.");
+				say(thief, line(thief, "burglar.caught"));
 			}
 		}
 

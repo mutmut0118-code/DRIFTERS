@@ -146,7 +146,7 @@ final class BountyHunters extends Encounter {
 				hunter.getDrifterBrain().pursue(hunter, player, this.now());
 				if (!this.announced) {
 					this.announced = true;
-					say(hunter, this.playerName + "! there's a price on your head, from " + this.issuer + ". we've come to collect.");
+					say(hunter, line(hunter, "bounty.found", "player", this.playerName, "who", this.issuer));
 				}
 
 				this.spotted = true;
@@ -157,7 +157,7 @@ final class BountyHunters extends Encounter {
 	@Override
 	protected void playerDied() {
 		for (DrifterEntity hunter : this.members) {
-			say(hunter, "job's done");
+			say(hunter, line(hunter, "bounty.done"));
 			break;
 		}
 

@@ -20,8 +20,6 @@ import net.minecraft.world.item.ItemStack;
  */
 final class Feud extends Encounter {
 	private static final String FIGHTER = "fighter";
-	private static final List<String> SHOUTS = List.of("you'll pay for what you did to my farm!", "that was MY diamond!", "liar! cheat!",
-		"you burned my house down!", "come on then!", "I'll teach you!");
 
 	@Nullable
 	private DrifterEntity one;
@@ -111,7 +109,7 @@ final class Feud extends Encounter {
 		if (oneUp && otherUp) {
 			if (!this.shouted && sees(one, other)) {
 				this.shouted = true;
-				say(one, SHOUTS.get(one.getRandom().nextInt(SHOUTS.size())));
+				say(one, line(one, "feud.shout"));
 			}
 
 			if (sees(one, other)) {
@@ -162,7 +160,7 @@ final class Feud extends Encounter {
 			.then(() -> walkUpTo(drifter, player, 2.5))
 			.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 			.now(() -> {
-				say(drifter, "thanks for the help. here, you earned it.");
+				say(drifter, line(drifter, "feud.thanks"));
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 					ItemStack stack = drifter.getInventory().getItem(slot);
 					if (!stack.isEmpty() && (stack.is(net.minecraft.world.item.Items.EMERALD) || stack.is(net.minecraft.world.item.Items.GOLD_INGOT)

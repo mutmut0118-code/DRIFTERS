@@ -39,13 +39,13 @@
 		},
 		{
 			"id": "good_morning", "category": "social", "action": "chat", "gates": "M", "when": "sunrise",
-			"params": {"lines": ["gm", "morning", "good morning", "mornin"]},
+			"params": {"lines": ["gm", "morning", "good morning", "mornin", "gm all", "gm o/", "morning everyone", "rise and grind", "gm chat", "another day another dollar"]},
 			"archetypes": {"helper": 1.5, "casual": 1.2, "hermit": 0.2}, "traits": {"sociability": 0.8}, "cooldown": 20000,
 			"thought": "saying good morning"
 		},
 		{
 			"id": "good_night", "category": "social", "action": "chat", "gates": "M", "when": "sunset",
-			"params": {"lines": ["gn", "night", "going to bed", "night all"]},
+			"params": {"lines": ["gn", "night", "going to bed", "night all", "gn all", "gn o/", "sleep pls", "bed", "everyone sleep pls", "skip the night?", "zzz", "nn"]},
 			"archetypes": {"helper": 1.5, "casual": 1.2, "homebody": 1.3, "hermit": 0.2}, "traits": {"sociability": 0.8}, "cooldown": 20000,
 			"thought": "saying good night"
 		},

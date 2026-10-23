@@ -119,11 +119,10 @@ final class RevengeSquad extends Encounter {
 			friend.getDrifterBrain().pursue(friend, player, this.now());
 			if (!this.spotted) {
 				this.spotted = true;
-				say(friend, this.murder ? this.playerName + "! " + this.victim + " gave up, and you killed them anyway."
-					: this.playerName + "! you killed " + this.victim + ". they were our friend.");
+				say(friend, line(friend, this.murder ? "revenge.found_murder" : "revenge.found", "player", this.playerName, "victim", this.victim));
 				for (DrifterEntity other : this.members) {
 					if (other != friend) {
-						say(other, "this is for " + this.victim + "!");
+						say(other, line(other, "revenge.join", "victim", this.victim));
 						break;
 					}
 				}
@@ -134,7 +133,7 @@ final class RevengeSquad extends Encounter {
 	@Override
 	protected void playerDied() {
 		if (!this.members.isEmpty()) {
-			say(this.members.get(0), "that was for " + this.victim + ".");
+			say(this.members.get(0), line(this.members.get(0), "revenge.done", "victim", this.victim));
 		}
 
 		this.end("the player is dead");

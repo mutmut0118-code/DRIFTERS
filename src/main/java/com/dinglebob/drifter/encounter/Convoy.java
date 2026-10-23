@@ -193,8 +193,8 @@ final class Convoy extends Encounter {
 			for (DrifterEntity rider : this.members) {
 				if (sees(rider, player) && rider.distanceTo(player) < 32.0) {
 					this.greeted = true;
-					String hello = this.level.getDayTime() % 24000L < 6000L ? "morning" : "good day";
-					say(rider, hello + ", stranger! bound for " + this.place + ", " + direction(rider.position(), this.far) + " of here. safe travels!");
+					say(rider, line(rider, this.level.getDayTime() % 24000L < 6000L ? "convoy.hello_morning" : "convoy.hello", "place", this.place, "way",
+						direction(rider.position(), this.far)));
 					break;
 				}
 			}

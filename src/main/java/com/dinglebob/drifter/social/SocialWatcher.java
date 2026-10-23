@@ -310,7 +310,7 @@ public class SocialWatcher {
 		w.peacefulTicks = 0;
 		w.pendingAccident = w.hits == 1;
 		if (w.hits == 1) {
-			ChatLines.say(this.drifter, ChatLines.Kind.OUCH);
+			ChatLines.say(this.drifter, ChatLines.Kind.OUCH, "player", player.getGameProfile().getName());
 		}
 
 		if (w.hits >= 2 && !w.attackedRecorded) {
@@ -327,7 +327,7 @@ public class SocialWatcher {
 	/** It died, killed by this player. */
 	public void killedBy(Player player) {
 		if (isRealPlayer(player)) {
-			ChatLines.say(this.drifter, ChatLines.Kind.GG);
+			ChatLines.say(this.drifter, ChatLines.Kind.GG_LOST, "player", player.getGameProfile().getName());
 			this.record(player, SocialEvent.KILLED, 0.0);
 		}
 	}
@@ -532,7 +532,7 @@ public class SocialWatcher {
 		}
 
 		this.record(player, SocialEvent.GIFT, SocialEvent.GIFT.trust + value);
-		ChatLines.say(this.drifter, ChatLines.Kind.THANKS);
+		ChatLines.say(this.drifter, ChatLines.Kind.THANKS, "player", player.getGameProfile().getName());
 		Watch w = this.watch(player);
 		w.giftAt = this.now();
 		w.thanked = false;
@@ -570,7 +570,7 @@ public class SocialWatcher {
 				this.drifter.getSocial().record(home.lastOpenedBy, name, SocialEvent.CAUGHT_STEALING, 0.0);
 			}
 
-			ChatLines.say(this.drifter, ChatLines.Kind.THIEF);
+			ChatLines.say(this.drifter, ChatLines.Kind.THIEF, "player", name);
 			return;
 		}
 
@@ -605,7 +605,7 @@ public class SocialWatcher {
 				this.think(name + " has its " + stack.getHoverName().getString().toLowerCase(java.util.Locale.ROOT) + ": " + name + " stole it");
 				this.record(player, SocialEvent.HAD_ITS_THINGS, 0.0);
 				this.watch(player).warningIgnored = true;
-				ChatLines.say(this.drifter, ChatLines.Kind.THIEF);
+				ChatLines.say(this.drifter, ChatLines.Kind.THIEF, "player", name);
 				return;
 			}
 		}
@@ -791,7 +791,7 @@ public class SocialWatcher {
 			|| victim instanceof Mob mob && mob.getTarget() == this.drifter;
 		if (victim instanceof Enemy && attacking) {
 			this.record(player, this.drifter.getHealth() <= SAVED_HEALTH ? SocialEvent.SAVED_IT : SocialEvent.KILLED_ATTACKER, 0.0);
-			ChatLines.say(this.drifter, ChatLines.Kind.THANKS);
+			ChatLines.say(this.drifter, ChatLines.Kind.THANKS, "player", player.getGameProfile().getName());
 		}
 	}
 

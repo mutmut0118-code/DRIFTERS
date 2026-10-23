@@ -101,9 +101,9 @@ final class Duel extends Encounter {
 			boolean hit = challenger.getLastHurtByMob() == player && challenger.tickCount - challenger.getLastHurtByMobTimestamp() < 40;
 			if (hit) {
 				this.accepted = true;
-				say(challenger, "let's go!");
+				say(challenger, line(challenger, "duel.accept"));
 			} else if (this.now() - this.askedAt > ANSWER_WITHIN || player.distanceTo(challenger) > 24.0) {
-				say(challenger, "coward.");
+				say(challenger, line(challenger, "duel.coward"));
 				this.end("no answer");
 			}
 
@@ -131,13 +131,13 @@ final class Duel extends Encounter {
 
 		if (challenger.getHealth() <= YIELDS_AT) {
 			this.settle(challenger, true);
-			say(challenger, "alright, alright! you win.");
+			say(challenger, line(challenger, "duel.yield"));
 			return true;
 		}
 
 		if (player.getHealth() <= SPARES_AT) {
 			this.settle(challenger, false);
-			say(challenger, "ha! good fight. keep your stuff, it was for fun.");
+			say(challenger, line(challenger, "duel.spare"));
 			this.end("the player lost");
 			return true;
 		}
@@ -157,7 +157,7 @@ final class Duel extends Encounter {
 		if (!this.judge(drifter, player) && this.settled && this.playerWon && source.getEntity() == player && !this.protested) {
 			// Hit after it gave up: it says so (from here on, killing it is murder).
 			this.protested = true;
-			say(drifter, "hey! I gave up! it's over!");
+			say(drifter, line(drifter, "duel.after_yield"));
 			think(drifter, this.playerName + " kept hitting it after it gave up");
 		}
 	}
@@ -220,7 +220,7 @@ final class Duel extends Encounter {
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
-						say(drifter, this.playerName + "! you look like you can handle yourself. 1v1? " + this.stake + " diamonds says I win. hit me if you're in.");
+						say(drifter, line(drifter, "duel.ask", "player", this.playerName, "stake", this.stake));
 						this.askedAt = this.now();
 					}
 				});
@@ -238,7 +238,7 @@ final class Duel extends Encounter {
 						}
 					}
 
-					say(drifter, "fair's fair. good fight.");
+					say(drifter, line(drifter, "duel.paid"));
 					this.paid = true;
 				});
 		}

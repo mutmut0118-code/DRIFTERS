@@ -328,12 +328,7 @@
 			"action": "chat",
 			"gates": "M",
 			"params": {
-				"lines": [
-					"check out my armor",
-					"full iron btw",
-					"look at my sword",
-					"new pickaxe :)"
-				]
+				"lines": ["check out my armor", "full iron btw", "look at my sword", "new pickaxe :)", "prot 4 coming soon", "just got eff 5", "look at this drip", "new armor who dis", "finally full iron", "sharp 5 lets go"]
 			},
 			"stage": 5,
 			"archetypes": {
@@ -353,12 +348,7 @@
 			"action": "chat",
 			"gates": "M",
 			"params": {
-				"lines": [
-					"so many zombies last night",
-					"creepers everywhere",
-					"a skeleton nearly got me",
-					"phantoms are the worst"
-				]
+				"lines": ["so many zombies last night", "creepers everywhere", "a skeleton nearly got me", "phantoms are the worst", "who keeps letting creepers near my base", "blew up my wall again", "endermen took my grass block", "drowned with tridents are op", "spiders on my roof again", "sleep pls the phantoms"]
 			},
 			"archetypes": {
 				"casual": 1.3,
@@ -377,12 +367,7 @@
 			"action": "chat",
 			"gates": "M",
 			"params": {
-				"lines": [
-					"anyone have iron?",
-					"need food lol",
-					"how do i make a piston",
-					"where are the diamonds"
-				]
+				"lines": ["anyone have iron?", "need food lol", "how do i make a piston", "where are the diamonds", "anyone got spare string", "tpa? jk", "drop coords to the nearest village", "how do you get to the end", "need obby for a portal", "anyone got a spare bucket", "how deep are dias again", "can someone help me build a farm"]
 			},
 			"archetypes": {
 				"newbie": 2.0,

@@ -191,7 +191,7 @@ final class Builders extends Encounter {
 			for (DrifterEntity builder : this.members) {
 				if (sees(builder, player) && builder.distanceTo(player) < 24.0) {
 					this.greeted = true;
-					say(builder, "hello! putting up a waystation for travellers. you're welcome to it.");
+					say(builder, line(builder, "builders.hello"));
 					break;
 				}
 			}
@@ -200,7 +200,7 @@ final class Builders extends Encounter {
 		if (!this.done && this.left().isEmpty()) {
 			this.done = true;
 			this.doneAt = this.now();
-			say(this.members.get(0), "there. that'll keep the rain off.");
+			say(this.members.get(0), line(this.members.get(0), "builders.done"));
 			for (DrifterEntity builder : this.members) {
 				think(builder, "finished the waystation at " + this.origin.toShortString());
 			}

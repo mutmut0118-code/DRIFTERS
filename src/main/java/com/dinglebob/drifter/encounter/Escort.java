@@ -119,13 +119,21 @@ final class Escort extends Encounter {
 
 	@Override
 	protected void chat(ServerPlayer player, String words) {
-		if (this.askedAt >= 0 && !this.accepted && saidAny(words, "yes", "ok", "okay", "sure", "yeah", "yep", "fine", "go", "deal", "alright")) {
+		if (this.askedAt < 0 || this.accepted) {
+			return;
+		}
+
+		// Yes or no, however they put it ("yeah sure", "lead the way", "nah", "Absolutely not."); not sure: it asks again.
+		String answer = com.dinglebob.drifter.social.Lines.answer(words, "no", "yes", "ready", "unsure");
+		if ("yes".equals(answer) || "ready".equals(answer)) {
 			this.accepted = true;
 			this.traveller.getDrifterBrain().poke();
-			say(this.traveller, "great! stay close, and keep your eyes open.");
-		} else if (this.askedAt >= 0 && !this.accepted && saidAny(words, "no", "nope", "nah")) {
-			say(this.traveller, "oh... alright. I'll take my chances.");
+			say(this.traveller, line(this.traveller, "escort.yes", "player", this.playerName));
+		} else if ("no".equals(answer)) {
+			say(this.traveller, line(this.traveller, "escort.no", "player", this.playerName));
 			this.end("they said no");
+		} else if ("unsure".equals(answer)) {
+			say(this.traveller, line(this.traveller, "unsure", "player", this.playerName));
 		}
 	}
 
@@ -144,7 +152,7 @@ final class Escort extends Encounter {
 		}
 
 		if (this.askedAt >= 0 && !this.accepted && this.now() - this.askedAt > 20L * 60) {
-			say(traveller, "never mind, then.");
+			say(traveller, line(traveller, "escort.noanswer"));
 			this.end("no answer");
 			return;
 		}
@@ -169,7 +177,7 @@ final class Escort extends Encounter {
 			if (this.farSince < 0) {
 				this.farSince = this.now();
 			} else if (this.now() - this.farSince > LEFT_FOR) {
-				say(traveller, "fine, I'll go on alone.");
+				say(traveller, line(traveller, "escort.alone"));
 				this.end("they left it");
 				return;
 			}
@@ -221,7 +229,7 @@ final class Escort extends Encounter {
 				EncounterSpawner.add(level, bandit);
 				think(bandit, "waiting on the road for travellers");
 				if (i == 0) {
-					say(bandit, "well, well. a traveller with a bodyguard.");
+					say(bandit, line(bandit, "escort.bandit"));
 				}
 			}
 		}
@@ -283,8 +291,7 @@ final class Escort extends Encounter {
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
 					if (drifter.distanceTo(player) < 7.0) {
-						say(drifter, "excuse me, " + this.playerName + "! I'm going to the village " + way + " of here, about " + far
-							+ " blocks. the roads aren't safe... would you walk with me? " + this.pay + " emeralds when we get there. (say yes)");
+						say(drifter, line(drifter, "escort.ask", "player", this.playerName, "way", way, "far", far, "pay", this.pay));
 						this.askedAt = this.now();
 					}
 				});
@@ -299,7 +306,7 @@ final class Escort extends Encounter {
 				.then(() -> walkUpTo(drifter, player, 2.5))
 				.then(() -> new LookAtTask(drifter, player.getEyePosition(), 10))
 				.now(() -> {
-					say(drifter, "we made it! thank you, really. as promised.");
+					say(drifter, line(drifter, "escort.arrived", "player", this.playerName));
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
 						if (stack.is(Items.EMERALD)) {
@@ -318,7 +325,7 @@ final class Escort extends Encounter {
 				.now(() -> {
 					if (this.now() - this.waitedAt > 20L * 60) {
 						this.waitedAt = this.now();
-						say(drifter, "wait up! don't leave me out here.");
+						say(drifter, line(drifter, "escort.waitup", "player", this.playerName));
 					}
 				})
 				.then(() -> new Hold(drifter, "wait for " + this.playerName, 20 * 5, false, () -> {

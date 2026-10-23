@@ -167,6 +167,7 @@ public final class DrifterMerchant implements Merchant {
 
 	/** Its name and line for a player who right-clicked with nothing on offer. */
 	public static Component nothing(DrifterEntity keeper) {
-		return Component.literal("<" + keeper.getName().getString() + "> nothing to sell right now, come back later");
+		String line = com.dinglebob.drifter.social.Lines.pick(keeper, "shop.nothing");
+		return Component.literal("<" + keeper.getName().getString() + "> " + (line != null ? line : "nothing to sell right now, come back later"));
 	}
 }
