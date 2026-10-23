@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything a Drifter can say in chat as of 0.22.15, and when it says it. Lines show up as `<name> line`, like a player's
+Everything a Drifter can say in chat as of 0.22.15, and when it says it; and what you can say to them (section 7). Lines show up as `<name> line`, like a player's
 chat. `/drifter config chat false` turns all of them off (on by default).
 
 `{player}` means the player's name, `{name}` the Drifter's own name, `{way}` a direction like "north".
@@ -120,35 +120,107 @@ When a Drifter trades with another and a player is within 16 blocks:
 
 ## 5. Encounters (it's talking to you)
 
-Always said, no rate limits. These are the encounters from milestone 21:
+Always said, no rate limits. These are the encounters from milestone 21, in the order of docs/ENCOUNTERS.md. `{x y z}`
+is a place's coordinates.
+
+**Travellers who need something**
 
 | Encounter | Line | When |
 | --- | --- | --- |
 | Hungry traveller | excuse me, {player}... I haven't eaten in days. could you spare some food? | It walks up to you. |
-| | bless you. here, for your kindness. | You gave it food. |
-| Injured traveller | thank you... I'd be dead without you. Here, take this. | It ran to you, low on health with zombies after it; you killed them and it lived. |
+| | bless you. here, for your kindness. | You threw it food; it gives you something back. |
+| | never mind... thanks anyway. | Nobody fed it. |
+| Injured traveller | help! anyone! zombies! | Running from zombies, low on health, before it sees you. |
+| | help! please, help me! · zombies! {player}, help! | Running from zombies, once it sees you. |
+| | thank you... I'd be dead without you. Here, take this. | You killed the zombies and it lived. |
 | Lost dog | excuse me... have you seen my dog? {dog}, red collar. he ran off {way} a while ago and won't come back. here, take this lead, in case you find him. | It asks you, handing you a lead. |
+| | {dog}! here, boy! {dog}! | Calling for its dog. |
+| | {dog}! there you are! oh, you silly dog. | The dog came back. |
 | | thank you so much. here, it's not much, but take it. | You brought the dog back. |
+| | ...no. {dog}? no... | The dog died. |
 | Escort | excuse me, {player}! I'm going to the village {way} of here, about {far} blocks. the roads aren't safe... would you walk with me? {pay} emeralds when we get there. (say yes) | It asks you to walk it to a village. |
+| | great! stay close, and keep your eyes open. | You said yes (see section 7). |
+| | oh... alright. I'll take my chances. | You said no. |
+| | never mind, then. | You didn't answer within a minute. |
+| | well, well. a traveller with a bodyguard. | A bandit, when bandits jump you on the way. |
 | | wait up! don't leave me out here. | You got too far ahead. |
+| | fine, I'll go on alone. | You left it behind. |
 | | we made it! thank you, really. as promised. | You got there; it pays. |
+| Trapped miner | help! the tunnel caved in and my pickaxe broke. I'm stuck down here at {x y z} | Calling out from underground (the calls take turns)... |
+| | anyone? still stuck at {x y z}. about {depth} blocks down | ...the second call... |
+| | please... {x y z}. I can hear something up there | ...the third. |
+| | light! someone's there! oh, thank goodness. | You dug through to it. |
+| | I owe you one. here, take what I dug up. | It pays you. |
+| Hostage | help! bandits have got me, at their camp at {x y z}! please! · anyone out there? {x y z}. there's {n} of them... | The captive calling out from the bandit camp (the calls take turns). |
+| | {player}! over here! help me! | It sees you. |
+| | we've got company! | A bandit, when you turn up. |
+| | they're gone? they're gone! oh, thank you! | You beat the bandits. |
+| | I hid these from them. they're yours. | It pays you. |
+| Chased by a horde | RUN! there's loads of them! · zombies! run, {player}, RUN! | Someone runs past with a pack of zombies behind them. |
+
+**Challenges and offers**
+
+| Encounter | Line | When |
+| --- | --- | --- |
 | Duel | {player}! you look like you can handle yourself. 1v1? {stake} diamonds says I win. hit me if you're in. | It challenges you. |
+| | let's go! | You hit it: the duel's on. |
+| | coward. | You didn't hit it in time, or walked off. |
+| | alright, alright! you win. | It's low on health and gives up. |
 | | fair's fair. good fight. | You won; it pays the stake. |
+| | ha! good fight. keep your stuff, it was for fun. | You're the one low on health: it stops and lets you off. |
 | | hey! I gave up! it's over! | You kept hitting it after it gave up. |
-| Race | hey {player}, race you! first one to the top of that hill {way} of here ({x y z}) wins. {bet} emeralds says I beat you. say go when you're ready! | It challenges you to a race. |
-| | a bet's a bet. you're quick! | You won; it pays. |
+| Race | hey {player}, race you! first one to the top of that hill {way} of here ({x y z}) wins. {bet} emeralds says I beat you. say go when you're ready! | It challenges you. |
+| | 3... · 2... · 1... · go! | You said go (see section 7): the countdown. |
+| | suit yourself. | You said no. |
+| | chicken. | You didn't answer within a minute. |
+| | no way! you win. fair and square. | You got to the top first. |
+| | a bet's a bet. you're quick! | It pays you. |
+| | ha! I win! better luck next time, {player}. | It got there first. |
 | Travelling merchant | hello there! I've a few rare things, if you've got emeralds. Have a look. | It walks up to you; right-click it to trade. |
 | | sold out, I'm afraid. | It has nothing left. |
-| Mugging | stop right there, {player}. {demand} emeralds (or gold, or diamonds), or your life. throw it here. | A bandit stops you. |
+| | safe travels, {player}. | It moves on. |
 | Campfire party | hey, {player}! come join us! | Evening: Drifters round a campfire call you over. |
-| Feud | thanks for the help. here, you earned it. | You helped one side of a fight between Drifters. |
-| Thief | you stopped them! here, a share for your trouble. | You stopped a thief who robbed a Drifter. |
-| Hostage | I hid these from them. they're yours. | You freed it from its captors. |
-| Trapped miner | I owe you one. here, take what I dug up. | You dug it out. |
+| | woo! · best night ever · ha! nice one · who brought the cake? · another one! | Cheering during the party. |
+| | goodnight, everyone! | The party's over. |
+
+**Danger**
+
+| Encounter | Line | When |
+| --- | --- | --- |
+| Mugging | stop right there, {player}. {demand} emeralds (or gold, or diamonds), or your life. throw it here. | A bandit stops you. |
+| | pleasure doing business. move along. | You threw it enough. |
+| | your choice. | You hit it, walked off or waited too long: it attacks. |
+| Ambush | now! get them! · your money or your life, {player}! | Bandits lying in wait on the road spring the trap. |
+| Burglar | uh oh. | A thief in your base, caught (you hit it, or it saw you near) after it took something. |
+| Thief | stop, thief! · somebody stop {thief}! | A Drifter chasing someone who robbed it. |
+| | you stopped them! here, a share for your trouble. | You stopped the thief; it pays you. |
+| Bounty hunters | {player}! there's a price on your head, from {who}. we've come to collect. | Hunters come for you (a price on your head for killing Drifters). |
+| | job's done | They killed you. |
+| Revenge squad | {player}! you killed {victim}. they were our friend. · {player}! {victim} gave up, and you killed them anyway. | The friends of a Drifter you killed come for you (the second line if it had given up). |
+| | this is for {victim}! | Joining the fight. |
+| | that was for {victim}. | They killed you. |
+| Village raid | take everything! · burn it down! | Raiders reaching the village you're in. |
+| | fall back! fall back! | The raiders lost. |
+
+**Wars, feuds, the wanted and the passing**
+
+| Encounter | Line | When |
+| --- | --- | --- |
+| Feud | you'll pay for what you did to my farm! · that was MY diamond! · liar! cheat! · you burned my house down! · come on then! · I'll teach you! | Two Drifters fighting each other, shouting. |
+| | thanks for the help. here, you earned it. | You helped one side and it won. |
+| Warbands | for {army}! · hold the line! · {army}, with me! · charge! · stand fast, {army}! | Captains rallying their side. |
+| | you'll regret picking a side, {player}! | You attacked one side (its captain). |
+| | stay out of this, stranger! | A soldier, when you get in the middle. |
+| | victory! the field is ours! | One side won. |
+| | fall back! fall back! | The other side lost. |
+| | you fought well, friend. the war chest is yours. · you fought well, friend. take what you like from the field. | You fought for the winners. |
 | Wanted poster | Wanted: {target}, for {crime}. {reward} diamonds to whoever brings them down. | A Drifter tells you about a wanted Drifter... |
 | | Here, this map shows where they live. · Here, this map shows where they were last seen. | ...and hands you a map. |
 | Wanted reward | Heard you brought down {target}. As promised. | You killed the wanted Drifter; it pays. |
-| Warbands | you fought well, friend. the war chest is yours. · you fought well, friend. take what you like from the field. | You helped one side win a war between groups. |
+| Convoy | morning, stranger! bound for {place}, {way} of here. safe travels! (or "good day, stranger!...") | Riders passing through greet you ("morning" before noon). |
+| Mourner | {friend} was a good friend... · creepers. never saw it coming. · did you know them? ...no. no one really did. | Someone at a grave by the road, talking to you (one after the other). |
+| Builders | hello! putting up a waystation for travellers. you're welcome to it. | A building crew turns up near you. |
+| | there. that'll keep the rain off. | They finished it. |
 
 ## 6. Not chat, but close
 
@@ -158,6 +230,23 @@ Always said, no rate limits. These are the encounters from milestone 21:
   Drifter talking.
 - **Thoughts:** what a Drifter is thinking (`/drifter thoughts`) never goes to chat.
 - **The chronicle:** Drifter: Civilizations's morning news ("Day 4: ...") is the mod reporting, not a Drifter talking.
+
+## 7. What you can say to them
+
+Drifters only listen to chat in three places. Everything else in an encounter is done, not said. To accept a duel you
+hit the challenger; to pay a mugger or feed a hungry traveller you throw the items at it (Q); to trade with a merchant or a
+stall keeper you right-click it.
+
+| What you type | Who listens | What happens |
+| --- | --- | --- |
+| **A Drifter's name** (anywhere in your message, any capitals, as a whole word), within 32 blocks | Any Drifter with that name | It stops, turns toward where your voice came from and looks for you. Seeing someone it doesn't mind, it nods and may answer (HUH: "?", "yes?", "hm?", "what", "yo?"). |
+| **yes** · ok · okay · sure · yeah · yep · fine · go · deal · alright | The escort, after it asks | It accepts: "great! stay close, and keep your eyes open." |
+| **no** · nope · nah | The escort, after it asks | "oh... alright. I'll take my chances." and it goes off alone. |
+| **go** · ready · yes · ok · okay · sure · deal · lets · yeah | The racer, after it challenges you | The countdown starts ("3... 2... 1... go!"). |
+| **no** · nope · nah | The racer, after it challenges you | "suit yourself." and it leaves. |
+
+The words can be anywhere in your message ("yeah sure!", "ok lets go"). Capitals and punctuation don't matter. The escort
+and the racer only listen to the player they asked, and each gives up after a minute with no answer.
 
 ## Where they live in the code
 
