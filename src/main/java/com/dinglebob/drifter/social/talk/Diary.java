@@ -28,7 +28,9 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 public final class Diary {
 	public enum Kind {
-		ORE, KILLED, CLOSE_CALL, DIED, BUILT, TRADED, SAW
+		ORE, KILLED, CLOSE_CALL, DIED, BUILT, TRADED, SAW,
+		/** A silly death it saw ("who|how": "Tester|lava"): a running joke among those who were there (chat phase 3). */
+		JOKE
 	}
 
 	/** One thing: what kind, about what ("iron", "zombie", "house"), how many, when (game ticks). */
@@ -48,13 +50,15 @@ public final class Diary {
 
 	/** How long it remembers (game ticks: three days). */
 	private static final long KEEPS = 24000L * 3;
+	/** A running joke lasts a week. */
+	public static final long JOKE_KEEPS = 24000L * 7;
 	private static final int MOST = 40;
 
 	private final List<Entry> entries = new ArrayList<>();
 
 	/** Notes this (the same kind and thing within the day adds to it). */
 	public void add(Kind kind, String what, int count, long now) {
-		this.entries.removeIf(entry -> now - entry.time > KEEPS);
+		this.entries.removeIf(entry -> now - entry.time > (entry.kind == Kind.JOKE ? JOKE_KEEPS : KEEPS));
 		for (Entry entry : this.entries) {
 			if (entry.kind == kind && entry.what.equals(what) && now - entry.time < 24000L) {
 				entry.count += count;
@@ -154,6 +158,16 @@ public final class Diary {
 			asker.getDiary().add(Kind.TRADED, giver.getName().getString(), 1, asker.level().getGameTime());
 			giver.getDiary().add(Kind.TRADED, asker.getName().getString(), 1, giver.level().getGameTime());
 		});
+	}
+
+	/** It saw someone die a silly death ({@code how}: the damage type, "lava", "fall"...): a running joke for a week. */
+	public static void joke(DrifterEntity witness, String who, String how) {
+		witness.getDiary().add(Kind.JOKE, who + "|" + how, 1, witness.level().getGameTime());
+	}
+
+	/** It's in on this joke (saw it too). */
+	public boolean knowsJoke(String joke, long now) {
+		return this.entries.stream().anyMatch(entry -> entry.kind == Kind.JOKE && entry.what.equals(joke) && now - entry.time <= JOKE_KEEPS);
 	}
 
 	/** It broke this block: ore is worth talking about. */

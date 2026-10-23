@@ -101,8 +101,15 @@ public final class ChatReplies {
 				List<DrifterEntity> readers = near(level, player, reads(), false).stream()
 					.filter(drifter -> source.getEntity() != drifter && com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity()) != drifter).toList();
 				answer(level, player, readers, silly(source) ? "rip_funny" : "rip", MOST, 30, player.getGameProfile().getName());
+				if (silly(source)) {
+					joke(near(level, player, 32.0, false), player.getGameProfile().getName(), source);
+				}
 			} else if (victim instanceof DrifterEntity dead && !dead.isTemporary()) {
 				String who = dead.getName().getString();
+				if (silly(source)) {
+					joke(near(level, dead, 32.0, false).stream().filter(drifter -> drifter != dead).toList(), who, source);
+				}
+
 				for (DrifterEntity reader : near(level, dead, reads(), false)) {
 					if (reader == dead) {
 						continue;
@@ -129,9 +136,21 @@ public final class ChatReplies {
 
 	/** A death that's funny rather than sad: lava, a fall, drowning, a cactus, a berry bush, a wall, starving, its own fire. */
 	private static boolean silly(net.minecraft.world.damagesource.DamageSource source) {
-		String type = source.typeHolder().unwrapKey().map(key -> key.location().getPath()).orElse("");
-		return java.util.Set.of("lava", "fall", "drown", "cactus", "sweet_berry_bush", "in_wall", "fly_into_wall", "starve", "hot_floor", "on_fire", "in_fire",
-			"freeze", "stalagmite", "falling_stalactite", "falling_block", "falling_anvil", "cramming").contains(type);
+		return SILLY.contains(type(source));
+	}
+
+	private static String type(net.minecraft.world.damagesource.DamageSource source) {
+		return source.typeHolder().unwrapKey().map(key -> key.location().getPath()).orElse("");
+	}
+
+	private static final java.util.Set<String> SILLY = java.util.Set.of("lava", "fall", "drown", "cactus", "sweet_berry_bush", "in_wall", "fly_into_wall", "starve", "hot_floor", "on_fire", "in_fire",
+			"freeze", "stalagmite", "falling_stalactite", "falling_block", "falling_anvil", "cramming");
+
+	/** Everyone who saw a silly death has a running joke for a week (chat phase 3). */
+	private static void joke(List<DrifterEntity> witnesses, String who, net.minecraft.world.damagesource.DamageSource source) {
+		for (DrifterEntity witness : witnesses) {
+			com.dinglebob.drifter.social.talk.Diary.joke(witness, who, type(source));
+		}
 	}
 
 	/** Drifters near this one (or player), the nearest first; {@code friendly}: only those who don't mind a player. */

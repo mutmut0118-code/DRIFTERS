@@ -49,11 +49,25 @@ public final class Topics {
 	public record Turn(String by, double chance, List<String> conditions, List<Option> options) {
 	}
 
-	/** A topic: its id, how often it comes up, what it needs, its turns, and what it does ("news", "trust", "rivalry"). */
-	public record Topic(String id, double weight, List<String> needs, List<Turn> turns, List<String> effects) {
+	/**
+	 * A topic: its id, how often it comes up, what it needs, its turns, what it does ("news", "trust", "rivalry"), what a
+	 * Drifter standing by might add at the end ({@code chime}, chat phase 3), and (a topic it brings up with a player) the
+	 * question it ends on, if any.
+	 */
+	public record Topic(String id, double weight, List<String> needs, List<Turn> turns, List<String> effects, Map<String, List<String>> chime,
+		@Nullable Question question) {
+	}
+
+	/**
+	 * A question to a player (chat phase 3: "wanna team up?"): what it says to a yes and what it then does ({@code do}:
+	 * "team", "follow", "come", or nothing), and to a no.
+	 */
+	public record Question(Map<String, List<String>> yes, String does, Map<String, List<String>> no) {
 	}
 
 	private static List<Topic> topics = List.of();
+	/** Topics it brings up with a player (a's turns only; the player is b). */
+	private static List<Topic> playerTopics = List.of();
 
 	public static void register() {
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
@@ -73,25 +87,36 @@ public final class Topics {
 		return topics;
 	}
 
+	public static List<Topic> forPlayers() {
+		return playerTopics;
+	}
+
 	@Nullable
 	public static Topic byId(String id) {
 		return topics.stream().filter(topic -> topic.id().equals(id)).findFirst().orElse(null);
 	}
 
+	@Nullable
+	public static Topic playerTopic(String id) {
+		return playerTopics.stream().filter(topic -> topic.id().equals(id)).findFirst().orElse(null);
+	}
+
 	private static void load(ResourceManager manager) {
 		List<Topic> loaded = new ArrayList<>();
+		List<Topic> withPlayers = new ArrayList<>();
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-				for (JsonElement element : json.getAsJsonArray("topics")) {
-					JsonObject topic = element.getAsJsonObject();
-					List<Turn> turns = new ArrayList<>();
-					for (JsonElement turn : topic.getAsJsonArray("turns")) {
-						turns.add(turn(turn.getAsJsonObject()));
+				if (json.has("topics")) {
+					for (JsonElement element : json.getAsJsonArray("topics")) {
+						loaded.add(topic(element.getAsJsonObject()));
 					}
+				}
 
-					loaded.add(new Topic(topic.get("id").getAsString(), topic.has("weight") ? topic.get("weight").getAsDouble() : 1.0, strings(topic, "needs"),
-						turns, strings(topic, "effects")));
+				if (json.has("player_topics")) {
+					for (JsonElement element : json.getAsJsonArray("player_topics")) {
+						withPlayers.add(topic(element.getAsJsonObject()));
+					}
 				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter talk file {}", file.getKey(), e);
@@ -99,6 +124,8 @@ public final class Topics {
 		}
 
 		topics = List.copyOf(loaded);
+		playerTopics = List.copyOf(withPlayers);
+		loaded.addAll(withPlayers);
 		int lines = 0;
 		for (Topic topic : loaded) {
 			for (Turn turn : topic.turns()) {
@@ -108,7 +135,26 @@ public final class Topics {
 			}
 		}
 
-		Drifter.LOGGER.info("Loaded {} Drifter conversation topics ({} lines)", loaded.size(), lines);
+		Drifter.LOGGER.info("Loaded {} Drifter conversation topics, {} to bring up with players ({} lines)", topics.size(), playerTopics.size(), lines);
+	}
+
+	private static Topic topic(JsonObject topic) {
+		List<Turn> turns = new ArrayList<>();
+		for (JsonElement turn : topic.getAsJsonArray("turns")) {
+			turns.add(turn(turn.getAsJsonObject()));
+		}
+
+		Map<String, List<String>> chime = topic.has("chime") ? voices(topic.get("chime"), new HashMap<>()) : Map.of();
+		Question question = null;
+		if (topic.has("question")) {
+			JsonObject q = topic.getAsJsonObject("question");
+			JsonObject yes = q.getAsJsonObject("yes");
+			question = new Question(voices(yes.get("lines"), new HashMap<>()), yes.has("do") ? yes.get("do").getAsString() : "",
+				voices(q.getAsJsonObject("no").get("lines"), new HashMap<>()));
+		}
+
+		return new Topic(topic.get("id").getAsString(), topic.has("weight") ? topic.get("weight").getAsDouble() : 1.0, strings(topic, "needs"), turns,
+			strings(topic, "effects"), chime, question);
 	}
 
 	private static Turn turn(JsonObject json) {

@@ -1172,7 +1172,9 @@ voices, picked by what the Drifter knows: Drifters talk with each other about wh
 town, news and the weather (phase 1); a player can ask a Drifter things in chat, by name or to its face, and it answers
 and does what it agrees to, as far as it trusts them: what it's doing, where it is or lives, places it has seen, follow,
 come, help, team up, can I have, trade, a friendly 1v1 to a heart, compliments and insults (which it remembers)
-(phase 2). Only from its own knowledge (section 1). Chat Heads and Talk Bubbles show its face and a bubble (phase 5).
+(phase 2); it brings things up with players itself, asks them questions they answer in chat, keeps running jokes
+about silly deaths it saw, says gm and gn in rounds, and bystanders chime in (phase 3). Only from its own knowledge
+(section 1). Chat Heads and Talk Bubbles show its face and a bubble (phase 5).
 
 ### Forgiveness and multiplayer
 

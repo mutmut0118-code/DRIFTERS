@@ -1,5 +1,5 @@
 {
-  "comment": "What players say that Drifters understand (docs/CHAT_LINES.md section 7). A message means the intent whose phrase found in it is longest ('no problem' is a yes though it has 'no' in it; 'hell no' a no). Capitals, punctuation and stretched letters don't matter ('NOOOO.' is 'no'). Apostrophes are dropped (im = i'm).",
+  "comment": "What players say that Drifters understand (docs/CHAT_LINES.md section 10). A message means the intent whose phrase found in it is longest ('no problem' is a yes though it has 'no' in it; 'hell no' a no). Capitals, punctuation and stretched letters don't matter ('NOOOO.' is 'no'). Apostrophes are dropped (im = i'm).",
   "answers": {
     "yes": [
       "yes", "yeah", "yea", "ye", "yep", "yup", "ya", "yah", "yas", "yus", "yuh", "yurr", "yerr", "yh", "y",

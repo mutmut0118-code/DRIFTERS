@@ -1460,9 +1460,25 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Drifters talk to you, join in, keep running jokes (new, 0.22.21)
+
+All of it is in docs/CHAT_LINES.md section 7. For testing, `/drifter social set <your name> trust 40` and `... familiarity
+20` next to a Drifter make it your friend; `/drifter talk me <topic>` makes the nearest one bring a topic up now.
+- [ ] Stand near Drifters doing nothing much: now and then one turns to you and says something: hi to a stranger,
+      your name to a friend, "nice armor" (diamond or netherite), "you ok?" when you're hurt, "careful, mobs are out"
+      at night.
+- [ ] Questions: a friend asks "wanna team up for a bit?": say "sure" (or "yeah", "ok", "no thanks"...). Yes: it says
+      "duo time" and follows you when you walk off. Hurt near a friend: "want some food?", "yes": it throws you food.
+- [ ] Running jokes: die a silly death near Drifters (fall off something, swim in lava). For a week they bring it up:
+      to you ("hey its the cliff diver lol", "remember when you swam in lava"), and to each other ("remember when
+      <you> fell off a cliff lol" "never forget"). A Drifter dying silly works the same.
+- [ ] The morning: sleep near a few Drifters who know you; when you're up, two to four say gm one after another.
+      Getting into bed near one: "gn".
+- [ ] Standing by: ask one for a joke with others around: someone may add "lmao" after it; a 1v1 gets "ooh fight".
+
 ## Asking a Drifter things in chat (new, 0.22.20)
 
-Everything you can ask, who it'll do it for, and every answer: docs/CHAT_LINES.md section 7. Talk to a Drifter by
+Everything you can ask, who it'll do it for, and every answer: docs/CHAT_LINES.md section 8. Talk to a Drifter by
 name ("grumpy wyd"), or look at it and type, or type when it's the only one near; after that it knows you're talking
 to it for a minute. `/drifter social show <your name>` next to it shows its trust in you; `/drifter social set <your
 name> trust 40` makes you friends for testing.

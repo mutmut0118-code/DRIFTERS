@@ -2889,7 +2889,7 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     urgent: it said "omw"), stop following.
   - Memory: `Relationship` keeps compliments, insults, the last insult and when (saved); `SocialEvent` COMPLIMENT (+2,
     3 a day) and INSULT (-4, 5 a day). Insulted in the last day and not a friend: "not after you called me a noob".
-  - DESIGN.md section 14 records the decision. docs/CHAT_LINES.md section 7.
+  - DESIGN.md section 14 records the decision. docs/CHAT_LINES.md section 8.
   - Tested in the client: wyd ("gather birch log, wbu"), how are you, name, base ("homeless rn lol"), "can i have
     some bread" (stranger: "no"; trust 40: "here you go", walked over and tossed 3 bread), coords, follow me (followed),
     stop following, a compliment (trust +2), a 1v1 (took it, dropped its job, fought, stopped the blow at 2 hearts:
@@ -2898,5 +2898,27 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     where they are); chat follow lost to a committed job (now urgent); "noob" read back as "that" (normalized "nob");
     a spar accepted from 40 blocks; no fight on Peaceful (it now declines there); a job with no checkpoint kept it from
     the fight (it drops it, as for help); a single crit could take the player from 5 hearts to none (blow stopped).
-- Next: chat phase 3 (Drifters start talks with you, several join in, town gm rounds), then phase 4. Then the well, the
-  plaza (lamps, a notice board), then step 4, money and markets.
+- **Chat phase 3: Drifters talk to you, join in, keep running jokes (0.22.21; the user: "start 3 after").**
+  - `social/talk/PlayerChats`: a Drifter within 8 blocks that sees a player, with nothing pressing and not hostile,
+    now and then brings something up (`drifter_talk/players.json`, 18 topics: hi to a stranger, a friend's name and
+    its news, their gear, their weapon, how hurt they look, night and evening warnings, rain, what it found, its death,
+    news, teasing about a running joke, still mad about an insult, thanks for a gift, bored, hungry). A topic can end on
+    a question (`Topics.Question`: team up, come mining, want food, got food); the player's yes or no in chat
+    (`PlayerTalk`, before requests) gets an answer and the action (team, follow, come, give_food). Gaps: a player
+    every 90 s, a Drifter every 3 to 15 min by sociability, the same pair every 8 min. `/drifter talk me [topic]`.
+  - `Facts.player`: the player as the Drifter sees them (stranger, known, friend, hurt, armor, held, a joke about
+    them, an insult, a gift it owes for, news it has). `Facts.of` takes a null other.
+  - Running jokes: a silly death (the damage types `ChatReplies` calls silly) seen within 32 blocks goes in each
+    witness's diary as `JOKE` ("who|how", a week); `Facts` gives `joke_who`, `joke_what`, `joke_nick` (lines
+    `joke.what.*`, `joke.nick.*`) and `shares_joke` when the other was there too. Topic `running_joke` between Drifters;
+    `tease` with the player it's about.
+  - Rounds: the first time a player is about in the morning (before 2500) near two or more Drifters who know them
+    (familiarity 3, trust 0+), up to four say gm one after another (`round.gm`); getting into bed near one, gn.
+  - Bystanders: after a talk between Drifters (topic `chime` lines) or an answer to a player (`chime.<intent>`), another
+    free Drifter within 10 blocks may add its bit, after the answer.
+  - Tested in the client: a gm round (two of three), Annie "wanna team up for a bit?", "sure!", "duo time"; Bobby
+    "you're hurt! want some food?", "yes pls", "catch" and threw 2 bread; a fall death became "skydiver is back" and
+    Annie and Bobby's "Tester jumped off a mountain lmao" / "legendary"; Drifters started their own talks between.
+    Found and fixed: a bystander's "lol" before the joke it laughed at.
+- Next: chat phase 4 (typos, split messages, a chattiness setting). Then the well, the plaza (lamps, a notice board),
+  then step 4, money and markets.

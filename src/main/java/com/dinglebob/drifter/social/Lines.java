@@ -105,6 +105,11 @@ public final class Lines {
 		Drifter.LOGGER.info("Loaded {} Drifter chat lines ({} kinds) and {} answer phrases", count, newLines.size(), phrases);
 	}
 
+	/** The lines for this, by voice (empty if none). */
+	public static Map<String, List<String>> voices(String key) {
+		return lines.getOrDefault(key, Map.of());
+	}
+
 	/** It has lines for this. */
 	public static boolean has(String key) {
 		return lines.containsKey(key);

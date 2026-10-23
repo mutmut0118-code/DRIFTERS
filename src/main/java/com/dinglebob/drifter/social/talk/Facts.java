@@ -33,8 +33,8 @@ public final class Facts {
 	private Facts() {
 	}
 
-	/** Its facts, talking with {@code other}. */
-	public static Facts of(DrifterEntity me, DrifterEntity other) {
+	/** Its facts, talking with {@code other} (a Drifter; null when it's talking to a player). */
+	public static Facts of(DrifterEntity me, @Nullable DrifterEntity other) {
 		Facts facts = new Facts();
 		long now = me.level().getGameTime();
 		Diary diary = me.getDiary();
@@ -92,6 +92,24 @@ public final class Facts {
 			facts.flags.add("saw_place");
 		}
 
+		// A running joke (a silly death it saw this week): who, what happened, the nickname it earned.
+		Diary.Entry joke = diary.latest(Diary.Kind.JOKE, now, Diary.JOKE_KEEPS);
+		if (joke != null && joke.what.contains("|") && !joke.what.startsWith(me.getName().getString() + "|")) {
+			String who = joke.what.substring(0, joke.what.indexOf('|'));
+			String how = joke.what.substring(joke.what.indexOf('|') + 1);
+			String what = com.dinglebob.drifter.social.Lines.pick(me, "joke.what." + how);
+			String nick = com.dinglebob.drifter.social.Lines.pick(me, "joke.nick." + how);
+			if (what != null && nick != null) {
+				facts.words.put("joke_who", who);
+				facts.words.put("joke_what", what);
+				facts.words.put("joke_nick", nick);
+				facts.flags.add("has_joke");
+				if (other != null && other.getDiary().knowsJoke(joke.what, now)) {
+					facts.flags.add("shares_joke");
+				}
+			}
+		}
+
 		// What it's doing now.
 		var activity = me.getDrifterBrain().activity();
 		if (activity != null) {
@@ -136,7 +154,7 @@ public final class Facts {
 		if (group != null) {
 			facts.words.put("group", group.name);
 			facts.flags.add("in_group");
-			if (group.members.contains(other.getUUID())) {
+			if (other != null && group.members.contains(other.getUUID())) {
 				facts.flags.add("groupmates");
 			}
 		}
@@ -148,6 +166,10 @@ public final class Facts {
 
 		// Its mood.
 		facts.flags.add("mood_" + me.getPersonality().mood().current().id());
+
+		if (other == null) {
+			return facts;
+		}
 
 		// Each other.
 		Relationship bond = me.getBonds().get(other.getUUID());
@@ -196,10 +218,88 @@ public final class Facts {
 	}
 
 	/**
+	 * A player, as this Drifter sees them (chat phase 3: when it starts a talk with them, they're {@code b}): how it feels
+	 * about them, how they look (hurt, their gear, what they hold), a joke about them, whether it has news for them. Only
+	 * what it can see and knows.
+	 */
+	public static Facts player(DrifterEntity me, net.minecraft.world.entity.player.Player player) {
+		Facts facts = new Facts();
+		long now = me.level().getGameTime();
+		String name = player.getGameProfile().getName();
+		Relationship r = me.getSocial().get(player.getUUID());
+		double trust = r == null ? me.getSocial().strangerBaseline() : r.trust;
+		if (r == null || r.familiarity < 3.0) {
+			facts.flags.add("stranger");
+		}
+
+		if (trust >= com.dinglebob.drifter.social.Mode.FRIENDLY_TRUST) {
+			facts.flags.add("friend");
+		} else if (trust >= 10.0) {
+			facts.flags.add("known");
+		}
+
+		if (r != null && !r.debts.isEmpty()) {
+			facts.flags.add("owed");
+		}
+
+		if (r != null && r.lastInsultAt >= 0 && now - r.lastInsultAt < 24000L && !r.lastInsult.isEmpty()) {
+			facts.words.put("insult", r.lastInsult);
+			facts.flags.add("insulted");
+		}
+
+		if (player.getHealth() <= 8.0F) {
+			facts.flags.add("hurt");
+		}
+
+		String armor = armor(player);
+		facts.words.put("armor", armor);
+		facts.flags.add("armor_" + armor);
+		if (armor.equals("diamond") || armor.equals("netherite")) {
+			facts.flags.add("armor_good");
+		}
+
+		ItemStack held = player.getMainHandItem();
+		if (!held.isEmpty()) {
+			facts.words.put("held", held.getHoverName().getString().toLowerCase(Locale.ROOT));
+			facts.flags.add("holding");
+			if (held.is(Items.DIAMOND_SWORD) || held.is(Items.DIAMOND_PICKAXE) || held.is(Items.DIAMOND_AXE) || held.is(Items.NETHERITE_SWORD)
+				|| held.is(Items.NETHERITE_PICKAXE) || held.is(Items.NETHERITE_AXE) || held.is(Items.MACE) || held.is(Items.TRIDENT)) {
+				facts.flags.add("holding_fancy");
+			}
+		}
+
+		// A running joke about them (it was there).
+		for (Diary.Entry entry : me.getDiary().all()) {
+			if (entry.kind == Diary.Kind.JOKE && entry.what.startsWith(name + "|") && now - entry.time <= Diary.JOKE_KEEPS) {
+				String how = entry.what.substring(entry.what.indexOf('|') + 1);
+				String nick = com.dinglebob.drifter.social.Lines.pick(me, "joke.nick." + how);
+				String what = com.dinglebob.drifter.social.Lines.pick(me, "joke.what." + how);
+				if (nick != null && what != null) {
+					facts.words.put("joke_nick", nick);
+					facts.words.put("joke_what", what);
+					facts.flags.add("joked_about");
+				}
+			}
+		}
+
+		// News for them: something it heard about someone else.
+		for (News news : me.getNews().all()) {
+			if (!news.stale(now) && !news.aboutName().equals(name)) {
+				facts.words.put("news_who", news.aboutName());
+				facts.words.put("news_what", news.what());
+				facts.flags.add("has_news");
+				break;
+			}
+		}
+
+		return facts;
+	}
+
+	/**
 	 * The world as anyone sees it: time of day, weather, and whether the two are out under the sky (flags with no a: or b:
 	 * in front; nobody talks about the rain down a mine).
 	 */
-	public static Set<String> world(DrifterEntity someone, DrifterEntity other) {
+	public static Set<String> world(DrifterEntity someone, net.minecraft.world.entity.LivingEntity other) {
 		Set<String> flags = new HashSet<>();
 		if (someone.level().canSeeSky(someone.blockPosition().above()) && other.level().canSeeSky(other.blockPosition().above())) {
 			flags.add("outside");
@@ -232,7 +332,7 @@ public final class Facts {
 	}
 
 	/** Its armor in a word: none, leather, chain, iron, gold, diamond, netherite (the best piece it wears). */
-	private static String armor(DrifterEntity drifter) {
+	private static String armor(net.minecraft.world.entity.LivingEntity drifter) {
 		String best = "none";
 		int rank = 0;
 		for (EquipmentSlot slot : new EquipmentSlot[] {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {

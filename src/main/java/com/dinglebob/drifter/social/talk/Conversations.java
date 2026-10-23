@@ -284,8 +284,14 @@ public final class Conversations {
 		return vars.toArray();
 	}
 
-	/** Done talking: what it did (news passed on, closer or further apart). */
+	/** Free to talk (nothing pressing, not talking already): for a talk of its own with a player too (phase 3). */
+	public static boolean idle(DrifterEntity drifter) {
+		return free(drifter);
+	}
+
+	/** Done talking: what it did (news passed on, closer or further apart); someone standing by may add something. */
 	private static void end(Talk talk, long now) {
+		PlayerChats.chime(talk.a, talk.b, talk.topic.chime(), now, vars(talk));
 		for (String effect : talk.topic.effects()) {
 			switch (effect) {
 				case "news" -> {

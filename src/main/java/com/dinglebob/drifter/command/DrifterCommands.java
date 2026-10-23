@@ -95,6 +95,13 @@ public final class DrifterCommands {
 		// Conversations between Drifters (the dynamic chat): the nearest two talk now (on this topic, or one that suits them).
 		root.then(Commands.literal("talk")
 			.executes(ctx -> talk(ctx, null))
+			// The nearest one brings something up with you (chat phase 3).
+			.then(Commands.literal("me")
+				.executes(ctx -> talkMe(ctx, null))
+				.then(Commands.argument("topic", StringArgumentType.word())
+					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+						com.dinglebob.drifter.social.talk.Topics.forPlayers().stream().map(com.dinglebob.drifter.social.talk.Topics.Topic::id), builder))
+					.executes(ctx -> talkMe(ctx, StringArgumentType.getString(ctx, "topic")))))
 			.then(Commands.argument("topic", StringArgumentType.word())
 				.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
 					com.dinglebob.drifter.social.talk.Topics.all().stream().map(com.dinglebob.drifter.social.talk.Topics.Topic::id), builder))
@@ -649,6 +656,20 @@ public final class DrifterCommands {
 		}
 
 		ctx.getSource().sendSuccess(() -> Component.literal(label(a) + " and " + label(b) + " talk: " + talk.topic.id()), false);
+		return 1;
+	}
+
+	private static int talkMe(com.mojang.brigadier.context.CommandContext<CommandSourceStack> ctx, @org.jetbrains.annotations.Nullable String topic)
+		throws CommandSyntaxException {
+		net.minecraft.server.level.ServerPlayer player = ctx.getSource().getPlayerOrException();
+		DrifterEntity drifter = nearest(ctx.getSource());
+		var started = com.dinglebob.drifter.social.talk.PlayerChats.start(drifter, player, topic, drifter.level().getGameTime());
+		if (started == null) {
+			ctx.getSource().sendFailure(Component.literal("Nothing " + label(drifter) + " would bring up with you right now"));
+			return 0;
+		}
+
+		ctx.getSource().sendSuccess(() -> Component.literal(label(drifter) + " brings up: " + started.id()), false);
 		return 1;
 	}
 

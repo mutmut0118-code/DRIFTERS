@@ -83,10 +83,20 @@ public final class PlayerTalk {
 	private record Reply(DrifterEntity drifter, String text, long at, @Nullable Runnable then) {
 	}
 
+	/** A question a Drifter asked a player (phase 3: "wanna team up?"), waiting for their yes or no. */
+	private record Asked(DrifterEntity drifter, Topics.Question question, Object[] vars, long until) {
+	}
+
+	/** How long a question waits for an answer. */
+	private static final long ANSWER_WITHIN = 20L * 40;
+
 	private static final Map<UUID, Focus> focus = new HashMap<>();
+	private static final Map<UUID, Asked> asked = new HashMap<>();
 	private static final List<Reply> replies = new ArrayList<>();
 	/** When each Drifter last answered a player (so it doesn't also say "?"). */
 	private static final Map<UUID, Long> answeredAt = new HashMap<>();
+	/** When its last answer goes out (a bystander's bit comes after it). */
+	private static final Map<UUID, Long> replyAt = new HashMap<>();
 
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(PlayerTalk::tick);
@@ -105,6 +115,18 @@ public final class PlayerTalk {
 		long now = player.level().getGameTime();
 		Focus focused = focus.get(player.getUUID());
 		String intent = Lines.answer(text, INTENTS);
+		// The answer to what a Drifter just asked them (a yes or a no, and nothing else asked).
+		Asked question = asked.get(player.getUUID());
+		if (question != null && now < question.until() && question.drifter().isAlive() && question.drifter().distanceTo(player) <= SocialWatcher.NAME_RANGE
+			&& (intent == null || intent.equals("compliment") || intent.equals("follow") || intent.equals("team"))) {
+			String yes = Lines.answer(text, "yes", "no", "ready");
+			if (yes != null) {
+				asked.remove(player.getUUID());
+				answered(question, player, !yes.equals("no"), now);
+				return true;
+			}
+		}
+
 		DrifterEntity drifter = addressee(player, text, focused, now);
 		if (drifter == null) {
 			return false;
@@ -127,7 +149,71 @@ public final class PlayerTalk {
 		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
 		drifter.getSocial().watcher().spokenTo(player);
 		answer(drifter, player, intent, text, now);
+		// Someone standing by may add their bit ("lmao", "ooh fight", "me too pls").
+		if (Lines.has("chime." + intent)) {
+			Map<String, List<String>> chime = Lines.voices("chime." + intent);
+			// (After its answer, not before.)
+			long after = replyAt.getOrDefault(drifter.getUUID(), now);
+			PlayerChats.chime(drifter, player, chime, Math.max(now, after) + 10, "player", player.getGameProfile().getName(), "name", drifter.getName().getString());
+		}
+
 		return true;
+	}
+
+	/** It asked them this (phase 3): their next yes or no is the answer. */
+	static void ask(DrifterEntity drifter, ServerPlayer player, Topics.Question question, Object[] vars, long now) {
+		asked.put(player.getUUID(), new Asked(drifter, question, vars, now + ANSWER_WITHIN));
+		focusOn(player, drifter, now);
+	}
+
+	/** They're talking with this one now (it started a talk with them). */
+	static void focusOn(ServerPlayer player, DrifterEntity drifter, long now) {
+		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+		answeredAt.put(drifter.getUUID(), now);
+	}
+
+	/** Their answer to its question: it says what it says to a yes or a no, and does what a yes means. */
+	private static void answered(Asked question, ServerPlayer player, boolean yes, long now) {
+		DrifterEntity drifter = question.drifter();
+		Topics.Question q = question.question();
+		String line = Lines.pickFrom(drifter, yes ? q.yes() : q.no(), question.vars());
+		Runnable then = !yes ? null : switch (q.does()) {
+			case "team" -> () -> drifter.getSocial().watcher().invite(player, INVITE_STANDS, TEAM_FOLLOWS);
+			case "follow" -> () -> drifter.getSocial().watcher().invite(player, INVITE_STANDS, 0);
+			case "come" -> () -> RequestGoal.ask(drifter, RequestGoal.Kind.COME, player, null, 0);
+			case "give_food" -> () -> {
+				Item food = spareFood(drifter);
+				if (food != null) {
+					RequestGoal.ask(drifter, RequestGoal.Kind.GIVE, player, food, 2);
+				}
+			};
+			default -> null;
+		};
+		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+		if (line != null) {
+			answeredAt.put(drifter.getUUID(), now);
+			replies.add(new Reply(drifter, line, now + 15 + Math.min(80, line.length() * 2) + drifter.getRandom().nextInt(15), then));
+		} else if (then != null) {
+			then.run();
+		}
+	}
+
+	/** Food it can spare, or null. */
+	@Nullable
+	private static Item spareFood(DrifterEntity drifter) {
+		for (Map.Entry<Integer, Integer> entry : com.dinglebob.drifter.brain.Storage.spare(drifter).entrySet()) {
+			ItemStack stack = drifter.getInventory().getItem(entry.getKey());
+			if (entry.getValue() > 0 && stack.has(DataComponents.FOOD)) {
+				return stack.getItem();
+			}
+		}
+
+		return null;
+	}
+
+	/** A line of its own said at this time (the rounds, a bystander's bit). */
+	static void sayAt(DrifterEntity drifter, String line, long at) {
+		replies.add(new Reply(drifter, line, at, null));
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -582,6 +668,7 @@ public final class PlayerTalk {
 
 		long at = now + 15 + Math.min(80, line.length() * 2) + drifter.getRandom().nextInt(15);
 		replies.add(new Reply(drifter, line, at, then));
+		replyAt.put(drifter.getUUID(), at);
 	}
 
 	private static void tick(MinecraftServer server) {

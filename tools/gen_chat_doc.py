@@ -56,7 +56,7 @@ ENC_WHEN = {
     'injured.thanks': 'You killed the zombies and it lived.',
     'lostdog.ask': 'It asks you, handing you a lead.', 'lostdog.call': 'Calling for its dog.', 'lostdog.found': 'The dog came back.',
     'lostdog.thanks': 'You brought the dog back.', 'lostdog.dead': 'The dog died.',
-    'escort.ask': 'It asks you to walk it to a village.', 'escort.yes': 'You said yes (section 7).', 'escort.no': 'You said no.',
+    'escort.ask': 'It asks you to walk it to a village.', 'escort.yes': 'You said yes (section 10).', 'escort.no': 'You said no.',
     'escort.noanswer': 'No answer within a minute.', 'escort.bandit': 'A bandit, when bandits jump you on the way.', 'escort.waitup': 'You got too far ahead.',
     'escort.alone': 'You left it behind.', 'escort.arrived': 'You got there; it pays.',
     'miner.call1': 'Calling from underground (first call).', 'miner.call2': 'Second call.', 'miner.call3': 'Third call.', 'miner.freed': 'You dug through to it.',
@@ -190,8 +190,11 @@ for short, title in ENC.items():
 
 TALK = os.path.join(ROOT, 'src/main/resources/data/drifter/drifter_talk')
 topics = []
+player_topics = []
 for path in sorted(glob.glob(TALK + '/*.json')):
-    topics += json.load(open(path, encoding='utf-8'))['topics']
+    data = json.load(open(path, encoding='utf-8'))
+    topics += data.get('topics', [])
+    player_topics += data.get('player_topics', [])
 
 
 def said(lines):
@@ -210,7 +213,7 @@ def said(lines):
 
 
 talk_lines = 0
-for topic in topics:
+for topic in topics + player_topics:
     for turn in topic['turns']:
         for source in turn.get('options', [turn]):
             topic_lines = source['lines']
@@ -225,7 +228,8 @@ doc += ['## 6. Conversations between Drifters', '',
         'a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, '
         'news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. '
         'Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.' % (len(topics), talk_lines), '']
-for topic in topics:
+def render(topic):
+    global doc
     needs = ', '.join(topic.get('needs', [])) or 'any time'
     doc += ['#### ' + topic['id'].replace('_', ' '), '', '*Needs:* ' + needs + ('  ·  *Effects:* ' + ', '.join(topic['effects']) if topic.get('effects') else ''), '']
     for i, turn in enumerate(topic['turns']):
@@ -243,7 +247,38 @@ for topic in topics:
         else:
             for j, line in enumerate(said(turn['lines'])):
                 doc.append((head + ': ' if j == 0 else '   - ') + line)
+    if topic.get('question'):
+        q = topic['question']
+        doc.append('- *You say yes* (' + (q['yes'].get('do') or 'it just answers') + '): ' + ' · '.join(said(q['yes']['lines'])))
+        doc.append('- *You say no:* ' + ' · '.join(said(q['no']['lines'])))
+    if topic.get('chime'):
+        doc.append('- *Someone standing by may add:* ' + ' · '.join(said(topic['chime'])))
     doc.append('')
+
+
+for topic in topics:
+    render(topic)
+
+doc += ['## 7. Drifters talking to you', '',
+        'A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (%d topics in '
+        '`drifter_talk/players.json`; **a** is the Drifter, **b** you): a stranger gets a hi, a friend their name and its news, your gear, '
+        'how hurt you look, the night coming, what it found, a running joke about you, and questions you answer in chat ("wanna team up?": '
+        'a yes however you say it, and it does it). One Drifter at a time with you, every minute and a half at most; each Drifter every 3 to '
+        '15 minutes (the chatty sooner). `/drifter talk me [topic]` makes the nearest one bring something up with you.' % len(player_topics), '',
+        '**Running jokes.** Drifters who see someone (you, or a Drifter) die a silly death (lava, a fall, drowning, a cactus...) have a joke '
+        'for a week: they bring it up with each other ("remember when Tester fell off a cliff lol", and one who was there: "never forget"), '
+        'and with you ("hey its the cliff diver lol"). The words are `joke.what.*` and `joke.nick.*` below.', '',
+        '**Rounds.** The first time you\'re about in the morning near two or more Drifters who know you, a few say gm, one after another '
+        '(`round.gm`); going to bed near them, gn (`round.gn`).', '',
+        '**Standing by.** When a Drifter finishes a talk or answers you, another nearby may add its bit (the *chime* lines of a topic, '
+        'and `chime.<what you asked>` below).', '']
+for topic in player_topics:
+    render(topic)
+for key in sorted(k for k in lines if k.startswith('round.') or k.startswith('chime.')):
+    doc += block(key, 'A round, or a bystander\'s bit.')
+for key in sorted(k for k in lines if k.startswith('joke.')):
+    doc.append('- `' + key + '`: ' + ' · '.join(esc(x) for v in lines[key].values() for x in v))
+doc.append('')
 
 ASKS = [
     ('wyd', 'What it\'s doing (its job right now)', 'anyone it isn\'t hostile to', ['ask.wyd', 'ask.wyd_idle']),
@@ -273,12 +308,12 @@ ASKS = [
     ('joke', 'A joke', 'anyone', ['ask.joke']),
     ('bot', '"are you a bot"', 'anyone', ['ask.bot']),
 ]
-doc += ['## 7. Asking a Drifter something', '',
+doc += ['## 8. Asking a Drifter something', '',
         'Say it to a Drifter: with its name (or a good part of it) in the message, or to the one you\'ve been talking with this last minute, '
         'or the one you\'re looking at (16 blocks), or the only one within 10 blocks. It turns to look at you and answers a moment later, as '
         'it\'s typed. What it tells you and what it does depends on how it feels about you (`/drifter social show <you>`): trust 25 is a '
         'friend. To someone it\'s hostile to it only says to get lost. Only what it knows: its memory, its pockets, its home. The phrases '
-        'are in section 9 (`requests.json`).', '',
+        'are in section 10 (`requests.json`).', '',
         '| You say (intent) | What it does | For whom |', '| --- | --- | --- |']
 for intent, what, who, _ in ASKS:
     doc.append('| ' + intent + ' | ' + what + ' | ' + who + ' |')
@@ -287,12 +322,12 @@ for intent, _, _, keys in ASKS:
     for key in keys:
         doc += block(key, 'Answering **' + intent + '**.')
 
-doc += ['## 8. Not chat, but close', '',
+doc += ['## 9. Not chat, but close', '',
         '- **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod\'s announcements.',
         '- **Thoughts:** what a Drifter thinks (`/drifter thoughts`) never goes to chat.',
         '- **The chronicle:** Drifter: Civilizations\'s morning news ("Day 4: ...") is the mod reporting.', '']
 
-doc += ['## 9. What you can say to them', '',
+doc += ['## 10. What you can say to them', '',
         'A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, '
         '"yeah no" a no. Capitals, punctuation and stretched letters don\'t matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped '
         '("im" is "i\'m"). The words can be anywhere in the message.', '',
@@ -300,7 +335,7 @@ doc += ['## 9. What you can say to them', '',
         '| An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |',
         '| A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |',
         '| A Drifter\'s name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |',
-        '| To a Drifter (section 7) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, '
+        '| To a Drifter (section 8) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, '
         '**help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |',
         '| Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |', '',
         'Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, '
@@ -310,7 +345,7 @@ for intent, phrases in answers.items():
 doc.append('')
 
 doc += ['## Where they live', '',
-        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`); whims\' '
+        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`); whims\' '
         'lines in `drifter_whims/*.json`. This doc is generated from them.',
         '- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), '
         '`social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `encounter/*.java`.', '']

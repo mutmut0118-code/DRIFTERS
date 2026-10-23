@@ -1,0 +1,81 @@
+{
+  "comment": "Chat phase 3: the morning gm round and the bedtime gn round (Drifters who know a player, a few of them one after another), what a Drifter standing by adds when one answers a player (chime.<intent>), and the running jokes' words: what happened (joke.what.<damage type>) and the nickname it earns (joke.nick.<damage type>).",
+  "lines": {
+    "round.gm": {
+      "any": ["gm", "gm {player}", "morning", "mornin", "gm o/", "good morning", "gm gm", "morning {player}", "o/ gm"],
+      "newbie": ["good morning!!", "gm {player}!!"],
+      "hermit": ["mm. morning", "gm."],
+      "homebody": ["morning! sleep well?", "gm {player} :)"],
+      "builder": ["gm, big build day today", "morning o/"],
+      "pvp_sweat": ["gm", "morning. 1v1 later?"],
+      "helper": ["good morning {player}!", "gm! need anything today?"]
+    },
+    "round.gn": {
+      "any": ["gn", "gn {player}", "night", "sleep well", "gn o/", "nn", "gnight"],
+      "newbie": ["gn {player}!!", "good night!!"],
+      "hermit": ["gn.", "finally, quiet"],
+      "homebody": ["sleep tight {player}", "gn :)"],
+      "helper": ["sleep well {player}!", "gn, i'll keep watch"]
+    },
+    "chime.joke": {
+      "any": ["lmao", "old one", "bruh", "lol", "boo", "lmaooo", "i'm stealing that", "terrible. 10/10"]
+    },
+    "chime.insult": {
+      "any": ["oof", "ratio", "rude", "dang", "ooooh", "chill"],
+      "helper": ["be nice"],
+      "pvp_sweat": ["lmao", "ratio"]
+    },
+    "chime.compliment": {
+      "any": ["true", "fr", "facts", "real", "W"]
+    },
+    "chime.duel": {
+      "any": ["ooh fight", "get him {name}", "fight fight fight", "my money's on {name}", "popcorn time", "this'll be good"]
+    },
+    "chime.give": {
+      "any": ["me too pls", "can i have some too?", "generous", "share with me next"]
+    },
+    "chime.team": {
+      "any": ["can i come too?", "trio?", "dont leave me out", "W"]
+    },
+    "chime.help": {
+      "any": ["coming too!", "hold on!", "omw too"]
+    },
+    "chime.bot": {
+      "any": ["we're all bots lol", "beep boop", "aren't we all", "sus"]
+    },
+    "joke.what.lava": {"any": ["swam in lava", "took a lava bath", "fell in lava"]},
+    "joke.what.fall": {"any": ["fell off a cliff", "forgot gravity exists", "jumped off a mountain"]},
+    "joke.what.drown": {"any": ["forgot to breathe", "drowned", "tried to breathe water"]},
+    "joke.what.cactus": {"any": ["hugged a cactus", "lost to a cactus"]},
+    "joke.what.sweet_berry_bush": {"any": ["got killed by a berry bush", "lost to a bush"]},
+    "joke.what.in_wall": {"any": ["suffocated in a wall", "got stuck in a wall"]},
+    "joke.what.fly_into_wall": {"any": ["flew into a wall", "elytra'd into a wall"]},
+    "joke.what.starve": {"any": ["starved", "forgot to eat"]},
+    "joke.what.hot_floor": {"any": ["stood on magma", "danced on magma"]},
+    "joke.what.on_fire": {"any": ["burned to a crisp", "caught fire"]},
+    "joke.what.in_fire": {"any": ["walked into fire", "sat in a campfire"]},
+    "joke.what.freeze": {"any": ["froze in powder snow", "turned into a popsicle"]},
+    "joke.what.stalagmite": {"any": ["fell on a stalagmite", "got skewered by a dripstone"]},
+    "joke.what.falling_stalactite": {"any": ["got bonked by a stalactite"]},
+    "joke.what.falling_block": {"any": ["got crushed by sand", "got buried by gravel"]},
+    "joke.what.falling_anvil": {"any": ["got anvilled", "got hit by an anvil"]},
+    "joke.what.cramming": {"any": ["got squished", "got crammed"]},
+    "joke.nick.lava": {"any": ["the lava swimmer", "lava guy", "hot tub enjoyer"]},
+    "joke.nick.fall": {"any": ["the cliff diver", "skydiver", "gravity's victim"]},
+    "joke.nick.drown": {"any": ["fish", "the swimmer", "the drowned one"]},
+    "joke.nick.cactus": {"any": ["cactus hugger", "the cactus guy"]},
+    "joke.nick.sweet_berry_bush": {"any": ["the berry bush victim", "bush loser"]},
+    "joke.nick.in_wall": {"any": ["wall guy", "the wall enjoyer"]},
+    "joke.nick.fly_into_wall": {"any": ["top gun", "wall pilot"]},
+    "joke.nick.starve": {"any": ["the hungry one", "snack forgetter"]},
+    "joke.nick.hot_floor": {"any": ["magma dancer", "hot feet"]},
+    "joke.nick.on_fire": {"any": ["crispy", "the torch"]},
+    "joke.nick.in_fire": {"any": ["campfire guy", "crispy"]},
+    "joke.nick.freeze": {"any": ["popsicle", "frosty"]},
+    "joke.nick.stalagmite": {"any": ["kebab", "the skewer"]},
+    "joke.nick.falling_stalactite": {"any": ["bonk victim"]},
+    "joke.nick.falling_block": {"any": ["sand castle", "gravel guy"]},
+    "joke.nick.falling_anvil": {"any": ["anvil head", "flat"]},
+    "joke.nick.cramming": {"any": ["squish", "pancake"]}
+  }
+}

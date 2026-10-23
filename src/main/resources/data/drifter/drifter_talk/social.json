@@ -473,6 +473,10 @@
             "lol"
           ]
         }
+      ],
+      "chime": [
+        "stay inside",
+        "charged creeper weather lol"
       ]
     },
     {
@@ -677,6 +681,10 @@
             "wow ok"
           ]
         }
+      ],
+      "chime": [
+        "agreed",
+        "yeah, watch out for them"
       ]
     },
     {
@@ -909,6 +917,10 @@
             "o7 friend"
           ]
         }
+      ],
+      "chime": [
+        "o/",
+        "hey guys"
       ]
     },
     {
@@ -994,6 +1006,10 @@
             "..."
           ]
         }
+      ],
+      "chime": [
+        "ooooh",
+        "fight fight"
       ]
     },
     {
@@ -1417,6 +1433,11 @@
             "why are you like this"
           ]
         }
+      ],
+      "chime": [
+        "lmao",
+        "old one",
+        "bruh"
       ]
     },
     {
@@ -1466,6 +1487,10 @@
             "why are you like this"
           ]
         }
+      ],
+      "chime": [
+        "lol",
+        "boo"
       ]
     },
     {
@@ -1515,6 +1540,9 @@
             "why are you like this"
           ]
         }
+      ],
+      "chime": [
+        "lmao true"
       ]
     },
     {
@@ -1564,6 +1592,10 @@
             "why are you like this"
           ]
         }
+      ],
+      "chime": [
+        "ba dum tss",
+        "lol"
       ]
     },
     {
@@ -1613,6 +1645,9 @@
             "why are you like this"
           ]
         }
+      ],
+      "chime": [
+        "lmao"
       ]
     },
     {
@@ -1662,6 +1697,9 @@
             "why are you like this"
           ]
         }
+      ],
+      "chime": [
+        "lol"
       ]
     },
     {
@@ -1709,6 +1747,77 @@
             "boo",
             "ok that was good",
             "why are you like this"
+          ]
+        }
+      ],
+      "chime": [
+        "oof",
+        "lol"
+      ]
+    },
+    {
+      "id": "running_joke",
+      "weight": 2,
+      "needs": [
+        "a:has_joke",
+        "!strangers"
+      ],
+      "chime": [
+        "LMAO",
+        "never forget",
+        "lol"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "remember when {a.joke_who} {a.joke_what} lol",
+              "{a.joke_who} {a.joke_what} lmao",
+              "still laughing about {a.joke_who}",
+              "{a.joke_nick} lmao"
+            ],
+            "helper": [
+              "poor {a.joke_who}, they {a.joke_what}"
+            ],
+            "hermit": [
+              "{a.joke_who} {a.joke_what}. idiot"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:shares_joke"
+              ],
+              "lines": [
+                "LMAO",
+                "never forget",
+                "i was there, it was tragic",
+                "{a.joke_nick} lol",
+                "legendary"
+              ]
+            },
+            {
+              "lines": [
+                "wait what",
+                "no way",
+                "how??",
+                "they WHAT",
+                "lmao really?"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "classic {a.joke_who}",
+            "we're never letting that go",
+            "{a.joke_nick} forever"
           ]
         }
       ]

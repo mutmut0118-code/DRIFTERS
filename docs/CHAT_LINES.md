@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1400 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1551 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -440,7 +440,7 @@ It asks you to walk it to a village.
 
 #### `encounter.escort.yes`
 
-You said yes (section 7).
+You said yes (section 10).
 
 - **everyone:** great! stay close, and keep your eyes open. · ty!! stay close · W. lets go, stay near me · perfect. eyes open, mobs are everywhere · lets go. ill follow you
 
@@ -935,7 +935,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (41 topics, 1153 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (42 topics, 1291 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -976,6 +976,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 3. **a** (70%):
    - *a:found_ore:* pickaxe first · gonna make a pick · armor time · saving them · enchanting table maybe · not telling where lol
 4. **b** (50%): smart · W choice · nice · dont lose them · careful with creepers lol
+- *Someone standing by may add:* where?? · share pls · no way
 
 #### died story
 
@@ -997,6 +998,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
    - *rivals:* sucks to be you · should have been careful
    - *otherwise:* rip · that sucks · unlucky · happens · next time
 5. **a** (40%) if friends: ty · ur the best · appreciate it · ty fr
+- *Someone standing by may add:* rip · classic
 
 #### close call
 
@@ -1207,6 +1209,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 1. **a**: thunderstorm! · did you see that lightning · huge storm · charged creeper weather lol · stay inside
 2. **b**: dont stand near trees · mobs everywhere in this · i love storms · scary · lightning almost hit me
 3. **a** (50%): lets wait it out · careful · same · lol
+- *Someone standing by may add:* stay inside · charged creeper weather lol
 
 #### nice day
 
@@ -1239,6 +1242,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
    - *otherwise:* why? *(answered: took stuff from my chest / hit me for no reason / just trust me / they're trouble)* · what did they do *(answered: robbed me / attacked me / broke my stuff / long story)* · noted · really? *(answered: yeah / dead serious / trust me)* · ok, will do
 3. **a** (70%): took stuff from my chest · hit me for no reason · just a feeling · they're trouble · dont ask
 4. **b** (50%): noted · thanks for the heads up · ill keep an eye out · wow ok
+- *Someone standing by may add:* agreed · yeah, watch out for them
 
 #### praise player
 
@@ -1279,6 +1283,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
    - *a:died_lately:* i {a.death} lol · died again. {a.death}
    - *otherwise:* not much · same old · just surviving · farming mostly · nothing new
 4. **b** (70%): nice · we should hang out more · lets go mining sometime · ill visit soon · o7 friend
+- *Someone standing by may add:* o/ · hey guys
 
 #### rivals needle
 
@@ -1293,6 +1298,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
    - *a:armor_diamond, !b:armor_diamond:* nice armor. oh wait · {a.armor} beats whatever that is
    - *otherwise:* thought so · stay over there · L · ok · dont touch my stuff · go away
 4. **b** (50%): whatever · cringe · ok buddy · not worth it · ...
+- *Someone standing by may add:* ooooh · fight fight
 
 #### strangers meet
 
@@ -1356,6 +1362,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: to get to the other ssssside · to get to the other sssside
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* lmao · old one · bruh
 
 #### joke food
 
@@ -1365,6 +1372,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: ssssspaghetti · sssspaghetti
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* lol · boo
 
 #### joke worse
 
@@ -1374,6 +1382,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: two creepers · a charged one
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* lmao true
 
 #### joke skeleton
 
@@ -1383,6 +1392,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: they dont have the guts · no guts lol
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* ba dum tss · lol
 
 #### joke enderman
 
@@ -1392,6 +1402,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: someone looked at it wrong · hide and seek, but with your blocks
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* lmao
 
 #### joke jockey
 
@@ -1401,6 +1412,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: CHICKEN JOCKEY · chicken jockey.
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* lol
 
 #### joke ghast
 
@@ -1410,10 +1422,290 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: they had a rough nether · soul music
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
+- *Someone standing by may add:* oof · lol
 
-## 7. Asking a Drifter something
+#### running joke
 
-Say it to a Drifter: with its name (or a good part of it) in the message, or to the one you've been talking with this last minute, or the one you're looking at (16 blocks), or the only one within 10 blocks. It turns to look at you and answers a moment later, as it's typed. What it tells you and what it does depends on how it feels about you (`/drifter social show <you>`): trust 25 is a friend. To someone it's hostile to it only says to get lost. Only what it knows: its memory, its pockets, its home. The phrases are in section 9 (`requests.json`).
+*Needs:* a:has_joke, !strangers
+
+1. **a**: remember when {a.joke_who} {a.joke_what} lol · {a.joke_who} {a.joke_what} lmao · still laughing about {a.joke_who} · {a.joke_nick} lmao
+   - **helper:** poor {a.joke_who}, they {a.joke_what}
+   - **hermit:** {a.joke_who} {a.joke_what}. idiot
+2. **b**:
+   - *b:shares_joke:* LMAO · never forget · i was there, it was tragic · {a.joke_nick} lol · legendary
+   - *otherwise:* wait what · no way · how?? · they WHAT · lmao really?
+3. **a** (50%): classic {a.joke_who} · we're never letting that go · {a.joke_nick} forever
+- *Someone standing by may add:* LMAO · never forget · lol
+
+## 7. Drifters talking to you
+
+A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (18 topics in `drifter_talk/players.json`; **a** is the Drifter, **b** you): a stranger gets a hi, a friend their name and its news, your gear, how hurt you look, the night coming, what it found, a running joke about you, and questions you answer in chat ("wanna team up?": a yes however you say it, and it does it). One Drifter at a time with you, every minute and a half at most; each Drifter every 3 to 15 minutes (the chatty sooner). `/drifter talk me [topic]` makes the nearest one bring something up with you.
+
+**Running jokes.** Drifters who see someone (you, or a Drifter) die a silly death (lava, a fall, drowning, a cactus...) have a joke for a week: they bring it up with each other ("remember when Tester fell off a cliff lol", and one who was there: "never forget"), and with you ("hey its the cliff diver lol"). The words are `joke.what.*` and `joke.nick.*` below.
+
+**Rounds.** The first time you're about in the morning near two or more Drifters who know you, a few say gm, one after another (`round.gm`); going to bed near them, gn (`round.gn`).
+
+**Standing by.** When a Drifter finishes a talk or answers you, another nearby may add its bit (the *chime* lines of a topic, and `chime.<what you asked>` below).
+
+#### hi stranger
+
+*Needs:* b:stranger
+
+1. **a**: hey, new here? · o/ havent seen you before · hi stranger · hey there · oh hi, didnt see you there · yo, who are you
+   - **newbie:** hi!! are you new too? · hello!! im {a}!
+   - **hermit:** ...hm. hi · you lost?
+   - **bandit:** well well. nice gear · lost, traveller?
+   - **helper:** hi! need anything? · welcome! o/
+   - **PvP sweat:** you any good at pvp? · sup
+2. **a** (50%): im {a} btw · {a}, nice to meet you · name's {a}
+
+#### friend hi
+
+*Needs:* b:friend
+
+1. **a**: {b}! o/ · yo {b} · hey {b} · {b} o/ · oh hey {b} · ayy {b}
+   - **newbie:** {b}!! hi!! · HI {b}
+   - **hermit:** {b}. · oh. its you. hi
+   - **helper:** {b}! good to see you!
+2. **a**:
+   - *a:found_rare:* found {a.ore_count} {a.ore} today btw · guess who found {a.ore}
+   - *a:in_town:* {a.town}'s coming along · come see {a.town} sometime
+   - *a:built_lately:* just finished my {a.built} · built a {a.built}, come see
+   - *otherwise:* whatcha up to · wyd · been a while · whats new
+
+#### nice gear
+
+*Needs:* b:armor_good, !b:stranger
+
+1. **a**: nice armor · ooh {b.armor} armor · where'd you get all that {b.armor} · drip · rich much?
+   - **bandit:** nice armor. be a shame if something happened to it
+   - **PvP sweat:** nice gear. still wouldnt save you · {b.armor}? 1v1 me
+- *Someone standing by may add:* fr · jealous · where'd you get that
+
+#### nice weapon
+
+*Needs:* b:holding_fancy
+
+1. **a**: nice {b.held} · ooh a {b.held} · is that a {b.held}?? · where'd you get the {b.held} · {b.held} :o
+
+#### you hurt
+
+*Needs:* b:hurt, !b:stranger
+
+1. **a**: you ok? you look rough · youre low, you good? · yikes, need food? · you're like on 2 hearts lol
+   - **helper:** you're hurt! want some food? · oh no, you ok? need food?
+   - **hermit:** you're bleeding. fix that
+- *You say yes* (give_food): here · catch · here, eat something · take this
+- *You say no:* ok, be careful · suit yourself · ok, stay safe
+
+#### night warning
+
+*Needs:* night, outside, !b:stranger
+
+1. **a**: careful, mobs are out · its dark, watch out · you got a bed? · stay safe out here · dont get blown up lol
+
+#### evening warning
+
+*Needs:* evening, outside
+
+1. **a**: sun's going down · night soon · getting dark, better find shelter · almost night, careful
+
+#### team offer
+
+*Needs:* b:friend, day
+
+1. **a**: wanna team up for a bit? · wanna duo? · wanna come with me for a while? · want some company?
+   - **newbie:** can i come with you?? please · wanna be teammates?
+   - **PvP sweat:** need a bodyguard?
+   - **helper:** want a hand with anything? i can come along
+- *You say yes* (team): lets go! · W, lead the way · duo time · ok, right behind you
+- *You say no:* ok np · maybe later then · all good · ok, cya
+
+#### mining invite
+
+*Needs:* b:friend, day, !a:no_home
+
+1. **a**: going mining soon, wanna come? · wanna go caving? · need iron, wanna come mining?
+- *You say yes* (follow): cool, lead the way and i'll follow · nice, you go first · ok, lets go
+- *You say no:* ok, more ores for me · your loss lol · ok np
+
+#### brag ore
+
+*Needs:* a:found_rare, !b:stranger
+
+1. **a**: {b} look, i found {a.ore_count} {a.ore}!! · guess who found {a.ore} · {a.ore_count} {a.ore} today, not bad right?
+   - **hoarder:** found {a.ore} today. not telling where · {a.ore}. mine.
+   - **newbie:** {b}!! i found {a.ore}!! is that good??
+- *Someone standing by may add:* no way · where?? · share pls · lucky
+
+#### died story
+
+*Needs:* a:died_lately, !b:stranger
+
+1. **a**: i died to {a.death} earlier lol · {a.death} got me today · rip me, {a.death} · dont ask how i died. ({a.death})
+- *Someone standing by may add:* classic · rip · f
+
+#### news
+
+*Needs:* b:has_news, !b:stranger
+
+1. **a**: heads up, {b.news_who} {b.news_what} · did you hear? {b.news_who} {b.news_what} · word is {b.news_who} {b.news_what}
+
+#### tease
+
+*Needs:* b:joked_about
+
+1. **a**: hey its {b.joke_nick} lol · remember when you {b.joke_what} lmao · {b.joke_nick} is back · still thinking about when you {b.joke_what}
+   - **helper:** hope you're ok after you {b.joke_what} lol
+   - **PvP sweat:** {b.joke_nick} lmao · skill issue ({b.joke_what})
+- *Someone standing by may add:* LMAO · never forget · legendary · lol
+
+#### still mad
+
+*Needs:* b:insulted
+
+1. **a**: oh its you. the one who called me {b.insult} · still mad you called me {b.insult} · {b.insult}? really?
+   - **helper:** i forgive you for calling me {b.insult} btw
+   - **hermit:** you again.
+
+#### thanks again
+
+*Needs:* b:owed
+
+1. **a**: thanks again for earlier · i still owe you one · ty for the stuff btw · hey, thanks for the help earlier
+
+#### hungry ask
+
+*Needs:* a:hungry, b:friend
+
+1. **a**: got any food? starving · spare some food? · im so hungry, got anything?
+- *You say yes* (it just answers): ty!! throw it over · W, toss it · thank you!!
+- *You say no:* rip ok · its fine · ok, ill find something
+
+#### rain chat
+
+*Needs:* rain, outside
+
+1. **a**: this rain tho · ugh rain · great weather huh · rain again
+
+#### bored ask
+
+*Needs:* a:mood_bored, !b:stranger
+
+1. **a**: im so bored, wanna do something? · bored. entertain me · {b} im bored, wanna go somewhere?
+- *You say yes* (follow): lets go, lead the way · finally, ok where to · W, i'll follow
+- *You say no:* ugh ok · fine · boring
+
+#### `chime.bot`
+
+A round, or a bystander's bit.
+
+- **everyone:** we're all bots lol · beep boop · aren't we all · sus
+
+#### `chime.compliment`
+
+A round, or a bystander's bit.
+
+- **everyone:** true · fr · facts · real · W
+
+#### `chime.duel`
+
+A round, or a bystander's bit.
+
+- **everyone:** ooh fight · get him {name} · fight fight fight · my money's on {name} · popcorn time · this'll be good
+
+#### `chime.give`
+
+A round, or a bystander's bit.
+
+- **everyone:** me too pls · can i have some too? · generous · share with me next
+
+#### `chime.help`
+
+A round, or a bystander's bit.
+
+- **everyone:** coming too! · hold on! · omw too
+
+#### `chime.insult`
+
+A round, or a bystander's bit.
+
+- **everyone:** oof · ratio · rude · dang · ooooh · chill
+- **helper:** be nice
+- **PvP sweat:** lmao · ratio
+
+#### `chime.joke`
+
+A round, or a bystander's bit.
+
+- **everyone:** lmao · old one · bruh · lol · boo · lmaooo · i'm stealing that · terrible. 10/10
+
+#### `chime.team`
+
+A round, or a bystander's bit.
+
+- **everyone:** can i come too? · trio? · dont leave me out · W
+
+#### `round.gm`
+
+A round, or a bystander's bit.
+
+- **everyone:** gm · gm {player} · morning · mornin · gm o/ · good morning · gm gm · morning {player} · o/ gm
+- **newbie:** good morning!! · gm {player}!!
+- **hermit:** mm. morning · gm.
+- **homebody:** morning! sleep well? · gm {player} :)
+- **builder:** gm, big build day today · morning o/
+- **PvP sweat:** gm · morning. 1v1 later?
+- **helper:** good morning {player}! · gm! need anything today?
+
+#### `round.gn`
+
+A round, or a bystander's bit.
+
+- **everyone:** gn · gn {player} · night · sleep well · gn o/ · nn · gnight
+- **newbie:** gn {player}!! · good night!!
+- **hermit:** gn. · finally, quiet
+- **homebody:** sleep tight {player} · gn :)
+- **helper:** sleep well {player}! · gn, i'll keep watch
+
+- `joke.nick.cactus`: cactus hugger · the cactus guy
+- `joke.nick.cramming`: squish · pancake
+- `joke.nick.drown`: fish · the swimmer · the drowned one
+- `joke.nick.fall`: the cliff diver · skydiver · gravity's victim
+- `joke.nick.falling_anvil`: anvil head · flat
+- `joke.nick.falling_block`: sand castle · gravel guy
+- `joke.nick.falling_stalactite`: bonk victim
+- `joke.nick.fly_into_wall`: top gun · wall pilot
+- `joke.nick.freeze`: popsicle · frosty
+- `joke.nick.hot_floor`: magma dancer · hot feet
+- `joke.nick.in_fire`: campfire guy · crispy
+- `joke.nick.in_wall`: wall guy · the wall enjoyer
+- `joke.nick.lava`: the lava swimmer · lava guy · hot tub enjoyer
+- `joke.nick.on_fire`: crispy · the torch
+- `joke.nick.stalagmite`: kebab · the skewer
+- `joke.nick.starve`: the hungry one · snack forgetter
+- `joke.nick.sweet_berry_bush`: the berry bush victim · bush loser
+- `joke.what.cactus`: hugged a cactus · lost to a cactus
+- `joke.what.cramming`: got squished · got crammed
+- `joke.what.drown`: forgot to breathe · drowned · tried to breathe water
+- `joke.what.fall`: fell off a cliff · forgot gravity exists · jumped off a mountain
+- `joke.what.falling_anvil`: got anvilled · got hit by an anvil
+- `joke.what.falling_block`: got crushed by sand · got buried by gravel
+- `joke.what.falling_stalactite`: got bonked by a stalactite
+- `joke.what.fly_into_wall`: flew into a wall · elytra'd into a wall
+- `joke.what.freeze`: froze in powder snow · turned into a popsicle
+- `joke.what.hot_floor`: stood on magma · danced on magma
+- `joke.what.in_fire`: walked into fire · sat in a campfire
+- `joke.what.in_wall`: suffocated in a wall · got stuck in a wall
+- `joke.what.lava`: swam in lava · took a lava bath · fell in lava
+- `joke.what.on_fire`: burned to a crisp · caught fire
+- `joke.what.stalagmite`: fell on a stalagmite · got skewered by a dripstone
+- `joke.what.starve`: starved · forgot to eat
+- `joke.what.sweet_berry_bush`: got killed by a berry bush · lost to a bush
+
+## 8. Asking a Drifter something
+
+Say it to a Drifter: with its name (or a good part of it) in the message, or to the one you've been talking with this last minute, or the one you're looking at (16 blocks), or the only one within 10 blocks. It turns to look at you and answers a moment later, as it's typed. What it tells you and what it does depends on how it feels about you (`/drifter social show <you>`): trust 25 is a friend. To someone it's hostile to it only says to get lost. Only what it knows: its memory, its pockets, its home. The phrases are in section 10 (`requests.json`).
 
 | You say (intent) | What it does | For whom |
 | --- | --- | --- |
@@ -1830,13 +2122,13 @@ Answering **bot**.
 - **hermit:** does it matter
 - **PvP sweat:** bots dont play this good
 
-## 8. Not chat, but close
+## 9. Not chat, but close
 
 - **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod's announcements.
 - **Thoughts:** what a Drifter thinks (`/drifter thoughts`) never goes to chat.
 - **The chronicle:** Drifter: Civilizations's morning news ("Day 4: ...") is the mod reporting.
 
-## 9. What you can say to them
+## 10. What you can say to them
 
 A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, "yeah no" a no. Capitals, punctuation and stretched letters don't matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped ("im" is "i'm"). The words can be anywhere in the message.
 
@@ -1845,7 +2137,7 @@ A message means whichever of these it has the longest phrase of: "no problem" is
 | An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |
 | A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |
 | A Drifter's name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |
-| To a Drifter (section 7) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, **help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |
+| To a Drifter (section 8) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, **help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |
 | Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |
 
 Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, right-click a merchant or a stall keeper.
@@ -1884,5 +2176,5 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 
 ## Where they live
 
-- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
+- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
 - Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `encounter/*.java`.
