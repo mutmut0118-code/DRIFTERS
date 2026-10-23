@@ -219,6 +219,8 @@ public final class DrifterCivilizations implements ModInitializer {
 				+ (town.trades > 0 ? " (" + town.trades + " trades)" : "") : town.stallPlot == null ? "not begun (after the store)"
 				: "being built at " + town.stallPlot.origin.toShortString();
 			source.sendSuccess(() -> Component.literal("  Market stall: " + stall + " (/drifterciv prices)"), false);
+			source.sendSuccess(() -> Component.literal("  Roads: four from the plaza and " + town.lanes.size() + " side lane" + (town.lanes.size() == 1 ? "" : "s")),
+				false);
 		}
 
 		return alivePeople;

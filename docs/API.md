@@ -86,6 +86,11 @@ Town builds (API 3, 0.22.9): `DrifterApi.townBuild(builders, plan, origin, rotat
 the first one's woods), each by day when near it, alongside its own house; `DrifterEvents.BUILT` says `"town:" + label`
 when it's up. `joinTownBuild`, `townBuildOf`, `endTownBuild`. `DrifterApi.storePlan(housePlan)`: that house with chests
 along its inside walls; `DrifterApi.chestsIn(server, plan, origin, rotation)`: where its chests stand once built.
+Town work (0.22.14): `DrifterApi.setTownWork(drifter, TownWork)` puts a Drifter in on its town's shared work (not saved;
+set it again each check): `TownWork.roads` (columns to make into path, nearest the middle first), `townGround(x, z)`
+(kept lit), `center()`, `radius()`. With it set, the Drifter works on the roads with a shovel by day, lights the town's
+ground (making torches), and eases the ground round its finished house.
+
 Towns made at once (0.22.13): `DrifterApi.settleIn` now furnishes the house (`building/Furnishing`: storage wall with
 the crafting table, furnace and smoker with a fuel chest, dump chest, bedside chest) and its Drifter knows its things and
 the inside of its house; `knowsBox(drifter, box)` (debug: it knows every block in a box), `fellTree(level, pos)` (the tree

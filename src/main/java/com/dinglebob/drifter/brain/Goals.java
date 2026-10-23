@@ -1414,21 +1414,28 @@ public final class Goals {
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			Home home = drifter.getDrifterBrain().home();
-			if (home == null || !home.hutBuilt || context.stage() < 5 || !home.near(drifter, Home.STORAGE_RANGE)
+			// (In a town, its whole town's ground, with torches it makes for it: user, 2026-10-23, "give founded towns the
+			// side lanes, foundations and lighting too".)
+			boolean town = drifter.getTownWork() != null && home != null && home.planDone;
+			if (home == null || !home.hutBuilt && !town || context.stage() < (town ? 3 : 5) || !home.near(drifter, town ? 128.0 : Home.STORAGE_RANGE)
 				|| Schedule.isNight(drifter)
-				|| drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.TORCH))
+				|| !town && drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.TORCH))
 					<= com.dinglebob.drifter.brain.activity.LightBaseActivity.KEEP_TORCHES + 4) {
 				return 0.0;
 			}
 
 			long now = drifter.level().getGameTime();
+			// (A town's dark ground matters more than its chores: monsters spawn there at night and kill its people; more so
+			// as the afternoon goes on.)
+			double urgency = !town ? 0.32 : Schedule.believedTime(drifter) % 24000L >= 7000L ? 0.62 : 0.45;
 			if (now < this.checkAfter) {
-				return this.dark ? 0.32 : 0.0;
+				return this.dark ? urgency : 0.0;
 			}
 
 			this.checkAfter = now + 20 * 30;
-			this.dark = com.dinglebob.drifter.brain.activity.LightBaseActivity.darkSpot(drifter, home, java.util.Set.of()) != null;
-			return this.dark ? 0.32 : 0.0;
+			this.dark = (town ? com.dinglebob.drifter.brain.activity.LightBaseActivity.townDarkSpot(drifter, drifter.getTownWork(), java.util.Set.of())
+				: com.dinglebob.drifter.brain.activity.LightBaseActivity.darkSpot(drifter, home, java.util.Set.of())) != null;
+			return this.dark ? urgency : 0.0;
 		}
 
 		private long checkAfter;
@@ -1453,6 +1460,127 @@ public final class Goals {
 		public Activity start(Context context) {
 			this.checkAfter = 0;
 			return new com.dinglebob.drifter.brain.activity.LightBaseActivity(context.drifter());
+		}
+	}
+
+	/** Work on its town's roads (a town founded by its people): by day, with a shovel, while there's road to make. */
+	public static final class RoadWork extends Goal {
+		private long checkAfter;
+		private boolean work;
+
+		@Override
+		public String id() {
+			return "roads";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "work on the town's roads";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			var town = drifter.getTownWork();
+			if (town == null || Schedule.isNight(drifter) || drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.SHOVELS)) == 0
+				|| drifter.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center())) > town.radius() + 32) {
+				return 0.0;
+			}
+
+			long now = drifter.level().getGameTime();
+			if (now >= this.checkAfter) {
+				this.checkAfter = now + 20 * 45;
+				this.work = com.dinglebob.drifter.brain.activity.RoadWorkActivity.next(drifter, town, java.util.Set.of()) != null;
+			}
+
+			return this.work ? 0.26 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 15;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			this.checkAfter = 0;
+			return new com.dinglebob.drifter.brain.activity.RoadWorkActivity(context.drifter());
+		}
+	}
+
+	/** The ground round its finished town house eased into the land: by day, a few blocks a visit, till it's done. */
+	public static final class EaseGround extends Goal {
+		private long checkAfter;
+		private boolean work;
+		/** Visits so far (it gives up on what it can't do after a few). */
+		private int visits;
+
+		@Override
+		public String id() {
+			return "ease_ground";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "even out the ground round its house";
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			Home home = drifter.getDrifterBrain().home();
+			if (drifter.getTownWork() == null || home == null || !home.planDone || home.groundEased || Schedule.isNight(drifter)
+				|| !home.near(drifter, Home.STORAGE_RANGE)) {
+				return 0.0;
+			}
+
+			long now = drifter.level().getGameTime();
+			if (now >= this.checkAfter) {
+				this.checkAfter = now + 20 * 60;
+				this.work = com.dinglebob.drifter.brain.activity.EaseGroundActivity.next(drifter, home, java.util.Set.of(), true) != null;
+				if (!this.work) {
+					home.groundEased = true;
+				}
+			}
+
+			return this.work ? 0.27 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 15;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			this.checkAfter = 0;
+			Home home = context.drifter().getDrifterBrain().home();
+			if (++this.visits > 10 && home != null) {
+				// (What's left it can't get at, or has nothing to fill with: it leaves it as it is.)
+				home.groundEased = true;
+			}
+
+			return new com.dinglebob.drifter.brain.activity.EaseGroundActivity(context.drifter());
 		}
 	}
 
@@ -2471,7 +2599,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());

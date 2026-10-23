@@ -492,6 +492,7 @@ public final class DrifterApi {
 		home.planDeepslate = palette.deepslate();
 		home.planDone = false;
 		home.planBed = null;
+		home.groundEased = false;
 		home.setPlanBox(com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home).box());
 	}
 
@@ -610,6 +611,14 @@ public final class DrifterApi {
 	 */
 	public static void setShop(DrifterEntity drifter, @Nullable ShopKeeper shop) {
 		drifter.setShop(shop);
+	}
+
+	/**
+	 * It lives in a town and shares its work (a town founded by its people): its roads made into path, its ground kept lit,
+	 * the ground round its house eased into the land, each by its own hands. Null: none. Not saved (set it again each check).
+	 */
+	public static void setTownWork(DrifterEntity drifter, @Nullable TownWork work) {
+		drifter.setTownWork(work);
 	}
 
 	/** The plan of a town's market stall (a counter, the keeper behind it; its door at the back). */

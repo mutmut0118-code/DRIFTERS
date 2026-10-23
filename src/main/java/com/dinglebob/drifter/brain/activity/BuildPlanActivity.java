@@ -285,6 +285,15 @@ public class BuildPlanActivity extends Activity {
 				return Status.RUNNING;
 			}
 
+			// Under the house's edge, where the land falls away and it shows: a stone foundation wall, if it has the stone, rather
+			// than a bank of dirt (user, 2026-10-23: "the foundations of the structures need to blend in").
+			java.util.function.Predicate<net.minecraft.world.item.ItemStack> stone = stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE)
+				|| stack.is(Items.MOSSY_COBBLESTONE);
+			if (edge(plan, fill) && this.drifter.getInventory().count(stone) > 0) {
+				return this.workAt(level, plan, fill, fill.below(), () -> this.place(fill, new PlaceBlockTask(this.drifter, fill, stone, "foundation stone")),
+					"build up the foundation");
+			}
+
 			if (this.drifter.getInventory().count(stack -> stack.is(Items.DIRT)) == 0) {
 				return this.gather(Items.DIRT, 32);
 			}
@@ -583,6 +592,7 @@ public class BuildPlanActivity extends Activity {
 		HousePalette bestPalette = choice.palette();
 		home.planId = bestPlan.id;
 		home.planOrigin = bestSite.origin();
+		home.groundEased = false;
 		home.planRotation = bestSite.rotation().name();
 		home.planWoods.clear();
 		home.planWoods.putAll(bestPalette.woods());
@@ -667,6 +677,26 @@ public class BuildPlanActivity extends Activity {
 		}
 
 		return null;
+	}
+
+	/** On the outer edge of the house's footprint (a hole there shows from outside). */
+	private static boolean edge(PlacedPlan plan, BlockPos pos) {
+		java.util.Set<Long> columns = new java.util.HashSet<>();
+		for (BlockPos column : plan.footprint()) {
+			columns.add(BlockPos.asLong(column.getX(), 0, column.getZ()));
+		}
+
+		if (!columns.contains(BlockPos.asLong(pos.getX(), 0, pos.getZ()))) {
+			return false;
+		}
+
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			if (!columns.contains(BlockPos.asLong(pos.getX() + side.getStepX(), 0, pos.getZ() + side.getStepZ()))) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

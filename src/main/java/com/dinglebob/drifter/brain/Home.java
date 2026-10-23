@@ -289,6 +289,9 @@ public final class Home {
 		return false;
 	}
 
+	/** The ground round its house from a plan eased into the land (a town house; saved). */
+	public boolean groundEased;
+
 	/** The box its house from a plan takes (min x, y, z, max x, y, z), once it has picked the spot; null if not. */
 	@Nullable
 	public int[] planBox;
@@ -651,6 +654,8 @@ public final class Home {
 				plan.putIntArray("Box", this.planBox);
 			}
 
+			plan.putBoolean("Eased", this.groundEased);
+
 			if (this.planBed != null) {
 				plan.put("Bed", NbtUtils.writeBlockPos(this.planBed));
 			}
@@ -743,6 +748,7 @@ public final class Home {
 			home.planOrigin = NbtUtils.readBlockPos(plan, "Origin").orElse(null);
 			home.planRotation = plan.getString("Rotation").isEmpty() ? "NONE" : plan.getString("Rotation");
 			home.planBox = plan.getIntArray("Box").length == 6 ? plan.getIntArray("Box") : null;
+			home.groundEased = plan.getBoolean("Eased");
 			CompoundTag woods = plan.getCompound("Woods");
 			for (String key : woods.getAllKeys()) {
 				home.planWoods.put(key, woods.getString(key));

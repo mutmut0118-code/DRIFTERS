@@ -38,6 +38,7 @@ public class LightBaseActivity extends Activity {
 	private static final int PER_VISIT = 6;
 
 	private final Set<BlockPos> tried = new HashSet<>();
+	private boolean madeTorches;
 	private final java.util.Map<BlockPos, Integer> walks = new java.util.HashMap<>();
 	private int placed;
 	@Nullable
@@ -72,11 +73,23 @@ public class LightBaseActivity extends Activity {
 	@Override
 	protected Status next() {
 		Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || this.placed >= PER_VISIT || this.drifter.getInventory().count(stack -> stack.is(Items.TORCH)) <= KEEP_TORCHES) {
+		var town = this.drifter.getTownWork();
+		int torches = this.drifter.getInventory().count(stack -> stack.is(Items.TORCH));
+		// Lighting its town: torches made for it first, from its own coal and sticks.
+		if (town != null && torches <= KEEP_TORCHES && this.placed < PER_VISIT && !this.madeTorches) {
+			this.madeTorches = true;
+			com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+				com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.TORCH, KEEP_TORCHES + 16);
+			if (plan.feasible() && plan.next() != null) {
+				return this.begin(com.dinglebob.drifter.brain.Goals.activityFor(this.drifter, plan.next()));
+			}
+		}
+
+		if (home == null || this.placed >= PER_VISIT || torches <= KEEP_TORCHES) {
 			return Status.SUCCESS;
 		}
 
-		BlockPos spot = darkSpot(this.drifter, home, this.tried);
+		BlockPos spot = town != null ? townDarkSpot(this.drifter, town, this.tried) : darkSpot(this.drifter, home, this.tried);
 		if (spot == null) {
 			return Status.SUCCESS;
 		}
@@ -128,6 +141,50 @@ public class LightBaseActivity extends Activity {
 
 		BlockPos feet = drifter.blockPosition();
 		return candidates.stream().min(java.util.Comparator.comparingDouble(spot -> spot.distSqr(feet))).orElse(null);
+	}
+
+	/**
+	 * The nearest dark spot on its town's ground (its roads' sides, round its houses), outdoors, that it has seen: on a
+	 * grid for tidy Drifters. Never on a road, a field or a build. Null if the town's all lit.
+	 */
+	@Nullable
+	public static BlockPos townDarkSpot(DrifterEntity drifter, com.dinglebob.drifter.api.TownWork town, Set<BlockPos> skip) {
+		Level level = drifter.level();
+		boolean tidy = drifter.getPersonality().get(Trait.TIDINESS) >= 0.6;
+		int step = tidy ? GRID / 2 : 2;
+		BlockPos middle = town.center();
+		int radius = town.radius();
+		BlockPos feet = drifter.blockPosition();
+		BlockPos best = null;
+		double bestDistance = Double.MAX_VALUE;
+		for (int dx = -radius; dx <= radius; dx += step) {
+			for (int dz = -radius; dz <= radius; dz += step) {
+				int x = middle.getX() + dx;
+				int z = middle.getZ() + dz;
+				if (!town.townGround(x, z) || !level.isLoaded(new BlockPos(x, 0, z))) {
+					continue;
+				}
+
+				BlockPos spot = new BlockPos(x, level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+				double distance = spot.distSqr(feet);
+				if (distance >= bestDistance || skip.contains(spot) || !KnownBlocks.isStandable(level, spot)
+					|| !drifter.getSenses().terrain().isKnown(spot.below()) || level.getBrightness(LightLayer.BLOCK, spot) >= DARK) {
+					continue;
+				}
+
+				net.minecraft.world.level.block.state.BlockState under = level.getBlockState(spot.below());
+				if (under.is(net.minecraft.world.level.block.Blocks.DIRT_PATH) || under.is(net.minecraft.world.level.block.Blocks.FARMLAND)
+					|| !level.getFluidState(spot.below()).isEmpty() || !under.is(net.minecraft.tags.BlockTags.DIRT)
+					&& com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, spot.below())) {
+					continue;
+				}
+
+				best = spot;
+				bestDistance = distance;
+			}
+		}
+
+		return best;
 	}
 
 	private static boolean onFarmOrPen(Home home, BlockPos spot) {

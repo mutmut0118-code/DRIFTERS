@@ -52,8 +52,8 @@ public final class TownFounding {
 	private static final double TRADE_TRUST = 6.0;
 	private static final double NEWS_TRUST = 2.0;
 	/** Plots start this far from the plaza's middle (its edge, and a block), and go out along the roads this far at most. */
-	private static final int PLAZA = 12;
-	private static final int FARTHEST = 96;
+	private static final int PLAZA = TownRoads.PLAZA;
+	private static final int FARTHEST = TownRoads.FARTHEST;
 	/**
 	 * A road's middle to the nearest plot edge, and the gap between plots (user, 2026-10-23: "every house is way too close
 	 * to eachother"; wooden houses close together all burn when one catches fire).
@@ -253,6 +253,9 @@ public final class TownFounding {
 
 		changed |= store(server, town, group);
 		changed |= Market.stall(server, town, group);
+		// Side lanes as it grows, and everyone in on the town's work (its roads, its lights, the ground round their houses).
+		changed |= TownRoads.grow(town);
+		TownRoads.setWork(server, town, group.members);
 
 		if (changed) {
 			Towns.save(server);
@@ -395,12 +398,9 @@ public final class TownFounding {
 			doors.isEmpty() ? Direction.SOUTH : doors.iterator().next(), owner);
 	}
 
-	/** One side of one of the two roads: houses along it face {@code front} (toward the road). */
-	private record Side(Direction front, int along) {
+	/** A place along one side of a road for the next plot: the road, the way out from it, how far along. */
+	private record Spot(TownRoads.Road road, Direction out, int along) {
 	}
-
-	private static final List<Side> SIDES = List.of(new Side(Direction.SOUTH, 1), new Side(Direction.SOUTH, -1), new Side(Direction.NORTH, 1),
-		new Side(Direction.NORTH, -1), new Side(Direction.EAST, 1), new Side(Direction.EAST, -1), new Side(Direction.WEST, 1), new Side(Direction.WEST, -1));
 
 	/**
 	 * The nearest free plot to the plaza along the roads that suits one of the plans it likes (the bigger houses of a
@@ -463,38 +463,47 @@ public final class TownFounding {
 		// (Worked out once per plan: its turns, and what it takes to judge a spot for it.)
 		java.util.Map<String, Rotation> turns = new java.util.HashMap<>();
 		java.util.Map<String, java.util.function.BiFunction<BlockPos, Rotation, BlockPos>> finders = new java.util.HashMap<>();
-		for (int along = PLAZA; along <= FARTHEST; along += 2) {
-			for (Side side : SIDES) {
-				for (DrifterApi.HousePlanInfo plan : tried) {
-					String key = plan.id() + "|" + side.front();
-					Rotation rotation = turns.containsKey(key) ? turns.get(key) : turnFor(server, plan.id(), doorAway ? side.front().getOpposite() : side.front());
-					turns.put(key, rotation);
-					if (rotation == null) {
-						continue;
-					}
+		// Along both sides of every road and lane, the nearest the plaza first.
+		List<TownRoads.Road> roads = TownRoads.roads(town);
+		List<Spot> spots = new ArrayList<>();
+		for (TownRoads.Road road : roads) {
+			for (int along = 0; along < road.length(); along += 2) {
+				spots.add(new Spot(road, road.way().getClockWise(), along));
+				spots.add(new Spot(road, road.way().getCounterClockWise(), along));
+			}
+		}
 
-					boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
-					int sx = turned ? plan.sizeZ() : plan.sizeX();
-					int sz = turned ? plan.sizeX() : plan.sizeZ();
-					// Its near end {@code along} blocks out from the plaza's middle, its front {@code ROAD} from the road's.
-					int x;
-					int z;
-					if (side.front().getAxis() == Direction.Axis.Z) {
-						x = side.along() > 0 ? cx + along : cx - along - sx + 1;
-						z = side.front() == Direction.SOUTH ? cz - ROAD - sz + 1 : cz + ROAD;
-					} else {
-						z = side.along() > 0 ? cz + along : cz - along - sz + 1;
-						x = side.front() == Direction.EAST ? cx - ROAD - sx + 1 : cx + ROAD;
-					}
+		spots.sort(Comparator.comparingDouble(spot -> spot.road().at(spot.along()).distSqr(new BlockPos(cx, 0, cz))));
+		for (Spot spot : spots) {
+			Direction front = spot.out().getOpposite();
+			for (DrifterApi.HousePlanInfo plan : tried) {
+				String key = plan.id() + "|" + front;
+				Rotation rotation = turns.containsKey(key) ? turns.get(key) : turnFor(server, plan.id(), doorAway ? front.getOpposite() : front);
+				turns.put(key, rotation);
+				if (rotation == null) {
+					continue;
+				}
 
-					if (overlaps(town, x, z, sx, sz)) {
-						continue;
-					}
+				boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+				int sx = turned ? plan.sizeZ() : plan.sizeX();
+				int sz = turned ? plan.sizeX() : plan.sizeZ();
+				boolean alongX = spot.road().way().getAxis() == Direction.Axis.X;
+				int along = alongX ? sx : sz;
+				int depth = alongX ? sz : sx;
+				if (spot.along() + along > spot.road().length()) {
+					continue;
+				}
 
-					BlockPos origin = finders.computeIfAbsent(plan.id(), id -> DrifterApi.siteFinder(drifter, id)).apply(new BlockPos(x, 0, z), rotation);
-					if (origin != null) {
-						return new Town.Plot(origin, sx, sz, plan.id(), rotation, side.front(), drifter.getUUID());
-					}
+				// Its front {@code ROAD} from the road's middle, running along it from here.
+				TownRoads.Rect site = TownRoads.Rect.of(spot.road().at(spot.along()).relative(spot.out(), ROAD),
+					spot.road().at(spot.along() + along - 1).relative(spot.out(), ROAD + depth - 1));
+				if (overlaps(town, site.x0(), site.z0(), sx, sz) || roads.stream().anyMatch(road -> road.rect().near(site, 1))) {
+					continue;
+				}
+
+				BlockPos origin = finders.computeIfAbsent(plan.id(), id -> DrifterApi.siteFinder(drifter, id)).apply(new BlockPos(site.x0(), 0, site.z0()), rotation);
+				if (origin != null) {
+					return new Town.Plot(origin, sx, sz, plan.id(), rotation, front, drifter.getUUID());
 				}
 			}
 		}

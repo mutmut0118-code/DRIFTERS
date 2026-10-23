@@ -78,6 +78,8 @@ public final class Town {
 	/** Made at once for testing (`/drifterciv town spawn`), not founded by its people. */
 	public final boolean spawned;
 	public final List<Plot> plots = new ArrayList<>();
+	/** Side lanes off its main roads (a town founded by its people lays them out as it grows). */
+	public final List<TownRoads.Road> lanes = new ArrayList<>();
 	public final List<BlockPos> store = new ArrayList<>();
 	public final List<BlockPos> fields = new ArrayList<>();
 	@Nullable
@@ -118,6 +120,17 @@ public final class Town {
 		tag.putLong("Center", this.center.asLong());
 		tag.putLong("FoundedDay", this.foundedDay);
 		tag.putBoolean("Spawned", this.spawned);
+		ListTag lanes = new ListTag();
+		for (TownRoads.Road lane : this.lanes) {
+			CompoundTag one = new CompoundTag();
+			one.putInt("X", lane.x());
+			one.putInt("Z", lane.z());
+			one.putString("Way", lane.way().getName());
+			one.putInt("Length", lane.length());
+			lanes.add(one);
+		}
+
+		tag.put("Lanes", lanes);
 		ListTag plots = new ListTag();
 		this.plots.forEach(plot -> plots.add(plot.save()));
 		tag.put("Plots", plots);
@@ -168,6 +181,14 @@ public final class Town {
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
 		town.storePlot = tag.contains("StorePlot") ? Plot.load(tag.getCompound("StorePlot")) : null;
 		town.storeBuilt = tag.getBoolean("StoreBuilt") || town.spawned;
+		for (Tag one : tag.getList("Lanes", Tag.TAG_COMPOUND)) {
+			CompoundTag lane = (CompoundTag)one;
+			Direction way = Direction.byName(lane.getString("Way"));
+			if (way != null) {
+				town.lanes.add(new TownRoads.Road(lane.getInt("X"), lane.getInt("Z"), way, lane.getInt("Length")));
+			}
+		}
+
 		town.stallPlot = tag.contains("StallPlot") ? Plot.load(tag.getCompound("StallPlot")) : null;
 		town.stallBuilt = tag.getBoolean("StallBuilt");
 		town.keeper = tag.hasUUID("Keeper") ? tag.getUUID("Keeper") : null;

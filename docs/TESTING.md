@@ -1460,6 +1460,17 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Founded towns: lanes, roads, foundations, lights (new, 0.22.14)
+
+A town its people found takes days. To watch one: spawn 3 to 5 Drifters close together, give them stuff (logs, cobblestone,
+a shovel, torches, coal), make them a group (`/drifter group <name>` on each), and let a few days pass.
+- [ ] `/drifterciv town` says "Roads: four from the plaza and N side lanes": a lane for every three households.
+- [ ] Houses go along the lanes too, 6 or more blocks apart.
+- [ ] By day the townsfolk make the roads into dirt path with their shovels, from the plaza out to the houses.
+- [ ] A house on a slope gets a cobblestone wall under its low side; after it's finished, its owner digs and fills the
+      ground round it so it slopes up to the house (no cliff, no step).
+- [ ] At night the town's roads and the ground round its houses are lit with torches (they make more from coal).
+
 ## The town bug list (new, 0.22.13)
 
 Make a town in a forest on hills: `/drifterciv town spawn 8` (it takes 10 to 30 seconds).

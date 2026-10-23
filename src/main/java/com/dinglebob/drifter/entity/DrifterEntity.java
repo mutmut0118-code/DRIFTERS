@@ -642,6 +642,19 @@ public class DrifterEntity extends PathfinderMob {
 		this.shop = shop;
 	}
 
+	/** Its town's shared work (roads, lights, its house's ground: DrifterApi.setTownWork), or null. Not saved. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.api.TownWork townWork;
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.api.TownWork getTownWork() {
+		return this.townWork;
+	}
+
+	public void setTownWork(@org.jetbrains.annotations.Nullable com.dinglebob.drifter.api.TownWork work) {
+		this.townWork = work;
+	}
+
 	@Override
 	protected net.minecraft.world.InteractionResult mobInteract(net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
 		if (this.encounter != null && hand == net.minecraft.world.InteractionHand.MAIN_HAND) {

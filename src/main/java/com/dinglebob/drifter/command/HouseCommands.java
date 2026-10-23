@@ -357,6 +357,10 @@ public final class HouseCommands {
 		home.planDeepslate = palette.deepslate();
 		home.planDone = false;
 		home.planBed = null;
+		home.groundEased = false;
+		home.setPlanBox(com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home).box());
+		// (Debug: this house now, as a town's people build theirs, no hut first.)
+		home.noHut = true;
 		say(ctx, DrifterCommands.label(drifter) + " will build " + plan.id + " from " + home.planOrigin.toShortString() + ", in " + palette.describe());
 		return 1;
 	}

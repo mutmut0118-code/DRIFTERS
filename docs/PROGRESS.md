@@ -2785,5 +2785,19 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Noted for later house plans: more stone (wooden towns burn).
   Tested: birch forest (seed 777 at 0, 0) and a hilly coast (352, 32): 8 of 8 and 8-9 of 10 houses, everyone alive after
   two days, 0 loose leaves, ~70 lamp posts.
+- **Founded towns get side lanes, foundations and lighting too (0.22.14; the user: "give founded towns the side lanes,
+  foundations and lighting too").** All of it done by the townsfolk, block by block, with what they carry:
+  - Side lanes: `TownRoads` lays out a lane off a main road for every three households (six at most), saved with the
+    town; plots are found along every road and lane, nearest the plaza first, never on a road.
+  - The roads made real: a new goal "work on the town's roads" (`RoadWorkActivity`): by day, with a shovel, the
+    townsfolk cut the grass on the road and right-click the ground into dirt path, from the plaza out, as far as the roads
+    lead to houses (and a little past). Only ground they've seen; water, trees and builds are left.
+  - Foundations: a Drifter filling under its house's edge uses cobblestone (if it has some) instead of dirt, so a house
+    on a slope stands on a stone wall (every Drifter house, not only in towns); then, in a town, "even out the ground round
+    its house" (`EaseGroundActivity`): the ring next to the house dug or filled level with its ground, the next one
+    halfway to the land (`Home.groundEased`, saved).
+  - Lighting: "light up the base" covers the whole town for its people (its roads' sides and round its houses, not on
+    roads or fields), and they make torches for it from their coal and sticks.
+  - API: `TownWork` (roads, town ground, middle, reach) and `DrifterApi.setTownWork`; `/drifterciv town` shows the lanes.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.
