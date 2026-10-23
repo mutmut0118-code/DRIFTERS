@@ -721,7 +721,8 @@ public class SocialWatcher {
 			return hostile ? InteractionResult.FAIL : InteractionResult.PASS;
 		});
 
-		// Its name said in chat nearby (user's choice, 2026-10-15): it hears it and turns to look for whoever said it.
+		// Its name said in chat nearby (user's choice, 2026-10-15), or a good part of it (2026-10-23): it hears it and turns to
+		// look for whoever said it.
 		net.fabricmc.fabric.api.message.v1.ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
 			if (!isRealPlayer(sender)) {
 				return;
@@ -729,8 +730,7 @@ public class SocialWatcher {
 
 			String text = " " + message.signedContent().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_]", " ") + " ";
 			forDriftersNear(sender.level(), sender.blockPosition(), NAME_RANGE, drifter -> {
-				String name = drifter.getName().getString().toLowerCase(java.util.Locale.ROOT);
-				if (!name.isEmpty() && text.contains(" " + name + " ") && drifter.distanceTo(sender) <= NAME_RANGE) {
+				if (called(text, drifter.getName().getString()) && drifter.distanceTo(sender) <= NAME_RANGE) {
 					Watch w = drifter.getSocial().watcher().watch(sender);
 					w.calledAt = sender.level().getGameTime();
 					w.calledFrom = sender.getEyePosition();
@@ -746,6 +746,39 @@ public class SocialWatcher {
 			Player player = (Player)source.getEntity();
 			forDriftersNear(victim.level(), victim.blockPosition(), 48.0, drifter -> drifter.getSocial().watcher().sawDeath(player, victim));
 		});
+	}
+
+	/** The shortest part of a name that calls it ("grumpy" or "baker" for xXGrumpybakerXx). */
+	private static final int NAME_PART = 4;
+	/** Everyday words that are part of many names ("rock", "over"...) but mean nothing by themselves in chat. */
+	private static final java.util.Set<String> EVERYDAY = java.util.Set.of("that", "this", "with", "have", "what", "just", "like", "your", "from", "they",
+		"will", "here", "there", "good", "dont", "know", "want", "going", "come", "some", "them", "then", "been", "were", "when", "make", "time",
+		"back", "need", "about", "really", "yeah", "okay", "lets", "where", "into", "over", "more", "much", "very", "well", "thanks", "hello", "sure",
+		"maybe", "still", "also", "only", "even", "ever", "never", "other", "after", "before", "again", "today", "night", "morning", "home", "base",
+		"stuff", "thing", "things", "anyone", "someone", "everyone", "would", "could", "should", "think", "look", "found", "done", "gonna", "wanna");
+
+	/**
+	 * Its name said in this chat message (lower case, a space either side of each word): the whole of it, or a part of it at
+	 * least {@link #NAME_PART} letters long that isn't an everyday word (user, 2026-10-23: nobody types out
+	 * "xXGrumpybakerXx"; "grumpy" or "baker" will do).
+	 */
+	static boolean called(String text, String name) {
+		String lower = name.toLowerCase(java.util.Locale.ROOT);
+		if (lower.isEmpty()) {
+			return false;
+		}
+
+		if (text.contains(" " + lower + " ")) {
+			return true;
+		}
+
+		for (String word : text.trim().split("[^a-z0-9]+")) {
+			if (word.length() >= NAME_PART && !EVERYDAY.contains(word) && lower.contains(word)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** A player lit a fire or poured lava close to its home, where it could tell. */
