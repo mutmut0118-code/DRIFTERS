@@ -2858,6 +2858,18 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - docs/CHAT_LINES.md section 6 lists every topic (generated).
 - Next in the chat: phase 2 (players: wyd, coords, follow me, trades, team up, help, compliments and insults,
   trust-gated, a Drifter remembers what you said), phase 3 (Drifters start talks with you, several join in, town gm
-  rounds), phase 4 (typos, split messages, a chattiness setting). Then the well, the plaza, then step 4.
+  rounds), phase 4 (typos, split messages, a chattiness setting), phase 5 (the user, 2026-10-23: "chat head and chat
+  bubbles support (both are mods found in drifter test)"). Then the well, the plaza, then step 4.
+- **Phase 5 plan: Chat Heads and Talk Bubbles** (both client-only, in the DRIFTER TEST profile: `chat_heads` 0.15.7 by
+  dzwdz, `talkbubbles` 1.0.8 by Globox_Z; optional, detected at runtime, never required).
+  - Neither sees Drifters now: Chat Heads finds a message's sender in the player list (tab list `PlayerInfo`, by name
+    or UUID) and draws its skin; Talk Bubbles reads the sender's name from the message, finds that client player and
+    draws the bubble in the player renderer. A Drifter is neither in the tab list nor drawn by the player renderer.
+  - Plan: with each Drifter line, the server sends the players who hear it (the same chat range) a small packet: which
+    Drifter (entity id), and the text. Client side (`src/client`): the Drifter renderer draws a bubble over it with
+    Talk Bubbles' own `RenderBubble.renderBubble` (its look and its config) when that mod is loaded; for Chat Heads, an
+    optional mixin (applied only if `chat_heads` is loaded) gives the message the Drifter's skin as its head
+    (`ChatHeads.detectPlayer` / `HeadData`). Without the mods, nothing changes (maybe our own simple bubble, ask).
+  - Check with Chat Patches (also in the profile) that heads still line up.
 - Before that: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.
