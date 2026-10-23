@@ -93,6 +93,21 @@ public final class Furnishing {
 		return null;
 	}
 
+	/** A room big enough to sleep in (a bed and room round it). */
+	private static final int BEDROOM = 10;
+	/** Most households a house takes. */
+	private static final int MOST_HOUSEHOLDS = 4;
+
+	/**
+	 * How many households this house takes (user, 2026-10-23: "for houses with more than one story/room, would be cool if
+	 * more than one drifter lives in the house"): one, and one more for each other room big enough to sleep in, up to four.
+	 */
+	public static int households(BlockGetter level, PlacedPlan placed) {
+		List<Set<BlockPos>> rooms = new Layout(level, placed, null).rooms();
+		long bedrooms = rooms.stream().filter(room -> room.size() >= BEDROOM).count();
+		return (int)Math.max(1, Math.min(MOST_HOUSEHOLDS, bedrooms));
+	}
+
 	/** All of it put in at once (a town made ready; not how a Drifter does it). Returns the layout. */
 	public static List<Spot> furnish(LevelAccessor level, PlacedPlan placed, @Nullable BlockPos bed, int flags) {
 		List<Spot> spots = plan(level, placed, bed);

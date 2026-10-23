@@ -62,7 +62,8 @@ public final class TownBuilder {
 	/** A town's houses: the bigger ones (the user, 2026-10-22: "they need to be a bit bigger, especially for a town"). */
 	static final int SMALLEST_HOUSE = 15;
 	static final int BIGGEST_HOUSE = 25;
-	private static final int PLAZA = 10;
+	/** The plaza's half-width (user, 2026-10-23: "its way too big and it makes a bit of a hole when its on hill"). */
+	private static final int PLAZA = 7;
 	/** Air cleared above the plaza (trees). */
 	private static final int CLEAR_ABOVE = 12;
 	/** Most a house's ground may rise and fall across its footprint (its foundation and the land eased round it make up the rest). */
@@ -87,6 +88,8 @@ public final class TownBuilder {
 	private static final int MOST_SETBACK = 5;
 	/** How far round its houses, roads, fields and the rest the town's ground goes (lit at night). */
 	private static final int TOWN_GROUND = 6;
+	/** Over how many blocks the land round the plaza, the store and the fields eases to their ground (wider: they're bigger). */
+	private static final int WIDE_BLEND = 5;
 	/** Over how many blocks the land round a house eases to its ground. */
 	private static final int BLEND = 3;
 	private static final String[] WOODS = {"oak", "spruce", "birch", "dark_oak", "acacia", "cherry"};
@@ -188,7 +191,7 @@ public final class TownBuilder {
 		// bank of earth), with a flat apron to the road.
 		int storeZ = cz - 28;
 		Integer storeBase = null;
-		for (int z = cz - 28; z <= cz - 14 && storeBase == null; z++) {
+		for (int z = cz - 28; z <= cz - PLAZA - 11 && storeBase == null; z++) {
 			storeBase = siteBase(level, cx + 4, z, cx + 12, z + 8);
 			storeZ = storeBase != null ? z : storeZ;
 		}
@@ -207,19 +210,24 @@ public final class TownBuilder {
 		branches(level, roads, taken, random, 2 + households / 4, cx, cz);
 		List<Rect> roadRects = new ArrayList<>(roads.stream().map(Road::rect).toList());
 
-		// 1. The plaza evened out, at its ground's middle height (only it: the rest stays as the land is).
+		// 1. The plaza at its ground's middle height, a stone edge where the land falls away and the land round it eased up to
+		// it (not dug into a hill as a pit: user, 2026-10-23).
 		y0 = median(level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
-		even(level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA, y0 - 1, CLEAR_ABOVE);
+		foundation(level, plaza, y0 - 1, CLEAR_ABOVE, List.of(), random, WIDE_BLEND, true);
 
-		// 2. The store, at the height of its own ground.
-		even(level, storeRect.x0(), storeRect.z0(), storeRect.x1(), storeRect.z1(), storeBase, 8);
+		// 2. The store, at the height of its own ground, eased in the same way.
+		foundation(level, storeRect, storeBase, 8, List.of(plaza), random, WIDE_BLEND, true);
 		List<BlockPos> store = store(level, new BlockPos(cx + 4, storeBase + 1, storeZ), cx);
 
 		// 3. The shared farm (two fields, east of the south road) and the pen (west of it).
 		List<BlockPos> fields = new ArrayList<>();
 		for (Rect rect : fieldRects) {
 			int fieldBase = median(level, rect.x0(), rect.z0(), rect.x1(), rect.z1());
-			even(level, rect.x0(), rect.z0(), rect.x1(), rect.z1(), fieldBase, 4);
+			// (Eased into the land round it: dug into a slope as a pit, its people climbed out on blocks they put down on the
+			// farmland; found by the user.)
+			List<Rect> keep = new ArrayList<>(List.of(plaza, storeRect));
+			fieldRects.stream().filter(other -> other != rect).forEach(keep::add);
+			foundation(level, rect, fieldBase, 4, keep, random, WIDE_BLEND, false);
 			BlockPos field = new BlockPos((rect.x0() + rect.x1()) / 2, fieldBase, (rect.z0() + rect.z1()) / 2);
 			fields.add(field.above());
 			for (int dx = -4; dx <= 4; dx++) {
@@ -315,7 +323,7 @@ public final class TownBuilder {
 					List<Rect> keep = new ArrayList<>(taken);
 					keep.addAll(houseRects);
 					keep.addAll(roadRects);
-					foundation(level, site, base, plan.sizeY() + 2, keep, random);
+					foundation(level, site, base, plan.sizeY() + 2, keep, random, BLEND, true);
 					BlockPos origin = new BlockPos(site.x0(), plan.groundLayer() ? base : base + 1, site.z0());
 					house = DrifterApi.placeHouse(level, plan.id(), origin, rotation, WOODS[random.nextInt(WOODS.length)], front);
 					if (house != null) {
@@ -384,8 +392,8 @@ public final class TownBuilder {
 			}
 		}
 
-		place(level, new BlockPos(cx + 6, y0, cz - 6), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
-		BlockPos board = new BlockPos(cx - 6, y0, cz - 6);
+		place(level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
+		BlockPos board = new BlockPos(cx - 5, y0, cz - 5);
 		for (int dx : new int[] {-PLAZA, PLAZA}) {
 			for (int dz : new int[] {-PLAZA, PLAZA}) {
 				lamp(level, new BlockPos(cx + dx, y0, cz + dz));
@@ -405,7 +413,7 @@ public final class TownBuilder {
 		}
 
 		// A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4).
-		BlockPos stallAt = new BlockPos(cx + 4, y0, cz + 4);
+		BlockPos stallAt = new BlockPos(cx + 2, y0, cz + 2);
 		DrifterApi.placeHouse(level, DrifterApi.stallPlan(), stallAt, Rotation.NONE, "oak", Direction.SOUTH);
 		// Paths from each door to its road.
 		for (int i = 0; i < houses.size(); i++) {
@@ -468,6 +476,34 @@ public final class TownBuilder {
 			DrifterApi.knowsBox(drifter, storeBox);
 			DrifterApi.knowsBox(drifter, plazaBox);
 			people.add(drifter);
+			// A house with more than one room takes more households: someone in each other room (user, 2026-10-23: "that way
+			// there is more citizens without having more houses").
+			plot.room = DrifterApi.households(level, house.planId(), house.origin(), house.rotation());
+			for (int more = 1; more < plot.room; more++) {
+				DrifterEntity other = DrifterApi.spawn(level, stand, null);
+				if (other == null) {
+					break;
+				}
+
+				Home shared = DrifterApi.settleInToo(other, house, store);
+				if (shared == null) {
+					other.discard();
+					break;
+				}
+
+				shared.farm = home.farm;
+				shared.farmRadius = 4;
+				shared.pen = pen;
+				plot.residents.add(other.getUUID());
+				DrifterApi.equipSettled(other, random);
+				for (BlockPos chest : shared.chests()) {
+					DrifterApi.rememberChest(other, chest);
+				}
+
+				DrifterApi.knowsBox(other, storeBox);
+				DrifterApi.knowsBox(other, plazaBox);
+				people.add(other);
+			}
 		}
 
 		var group = DrifterApi.formGroup(people, name);
@@ -508,8 +544,8 @@ public final class TownBuilder {
 		noLamp.add(plaza);
 		int[] lights = TownLights.light(level, area, houses.stream().map(DrifterApi.PlacedHouse::box).toList(),
 			(x, z) -> all.stream().anyMatch(rect -> rect.away(x, z) <= TOWN_GROUND), (x, z) -> noLamp.stream().anyMatch(rect -> rect.contains(x, z)));
-		Chronicle.add(server, "town", name + " was founded with " + people.size() + " households (made ready, for testing)");
-		return new Result(town, name + ": " + people.size() + " households, the plaza at " + cx + ", " + y0 + ", " + cz + " (" + lights[0]
+		Chronicle.add(server, "town", name + " was founded with " + people.size() + " people in " + houses.size() + " houses (made ready, for testing)");
+		return new Result(town, name + ": " + people.size() + " people in " + houses.size() + " houses, the plaza at " + cx + ", " + y0 + ", " + cz + " (" + lights[0]
 			+ " lamp posts and " + lights[1] + " torches for dark corners)" + warning);
 	}
 
@@ -587,8 +623,9 @@ public final class TownBuilder {
 	 * over {@link #BLEND} blocks instead of a cut straight down or a step straight up (the first ring flat, for its doorstep).
 	 * Trees in the way come down whole first. Ground in {@code keep} (roads, other houses, the store...) isn't touched.
 	 */
-	private static void foundation(ServerLevel level, Rect site, int base, int clear, List<Rect> keep, RandomSource random) {
-		Rect ring = new Rect(site.x0() - BLEND, site.z0() - BLEND, site.x1() + BLEND, site.z1() + BLEND);
+	private static void foundation(ServerLevel level, Rect site, int base, int clear, List<Rect> keep, RandomSource random, int blend,
+		boolean stoneEdge) {
+		Rect ring = new Rect(site.x0() - blend, site.z0() - blend, site.x1() + blend, site.z1() + blend);
 		for (int x = ring.x0(); x <= ring.x1(); x++) {
 			for (int z = ring.z0(); z <= ring.z1(); z++) {
 				int d = site.away(x, z);
@@ -613,8 +650,8 @@ public final class TownBuilder {
 					continue;
 				}
 
-				int h = d == 0 ? base : base + Math.round((g - base) * (float)(d - 1) / BLEND);
-				boolean edge = d == 0 && (x == site.x0() || x == site.x1() || z == site.z0() || z == site.z1());
+				int h = d == 0 ? base : base + Math.round((g - base) * (float)(d - 1) / blend);
+				boolean edge = stoneEdge && d == 0 && (x == site.x0() || x == site.x1() || z == site.z0() || z == site.z1());
 				// Built up: a stone foundation wall at the house's edge, earth elsewhere, grass on top (the old top buried).
 				if (h > g) {
 					buried(level, new BlockPos(x, g, z));
@@ -905,42 +942,6 @@ public final class TownBuilder {
 
 		heights.sort(Integer::compare);
 		return heights.get(heights.size() - 1) - heights.get(0) > MOST_STEP ? null : heights.get(heights.size() / 2);
-	}
-
-	/**
-	 * This area's ground at {@code base}: dirt filled up to it (grass on top), anything higher cut down to it, and
-	 * {@code clear} blocks above it cleared (trees, plants); the land round it left as it is.
-	 */
-	private static void even(ServerLevel level, int x0, int z0, int x1, int z1, int base, int clear) {
-		// (Trees in the way felled whole first: user, 2026-10-23, "trees are always half cutoff".)
-		for (int x = x0; x <= x1; x++) {
-			for (int z = z0; z <= z1; z++) {
-				int top = ground(level, x, z);
-				fellIn(level, x, z, Math.min(top, base) + 1, Math.max(top, base) + clear);
-			}
-		}
-
-		for (int x = x0; x <= x1; x++) {
-			for (int z = z0; z <= z1; z++) {
-				int top = ground(level, x, z);
-				if (top < base) {
-					buried(level, new BlockPos(x, top, z));
-				}
-
-				for (int y = Math.min(top, base) + 1; y <= base; y++) {
-					set(level, new BlockPos(x, y, z), y == base ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.DIRT.defaultBlockState());
-				}
-
-				for (int y = base + 1; y <= Math.max(top, base) + clear; y++) {
-					set(level, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
-				}
-
-				// (Water in it: filled in.)
-				if (!level.getFluidState(new BlockPos(x, base, z)).isEmpty()) {
-					set(level, new BlockPos(x, base, z), Blocks.GRASS_BLOCK.defaultBlockState());
-				}
-			}
-		}
 	}
 
 	/** One block of road: dirt path on the ground (planks over water), what grows on it cleared. */

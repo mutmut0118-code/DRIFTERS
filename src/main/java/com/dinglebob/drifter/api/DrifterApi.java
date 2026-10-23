@@ -331,6 +331,87 @@ public final class DrifterApi {
 		return home;
 	}
 
+	/**
+	 * (A town made at once, for testing.) It lives in this house too, alongside whoever lives there already (a house with
+	 * more than one room takes more than one household; user, 2026-10-23): a bed of its own in a room away from theirs
+	 * (and a chest beside it), the house's chests and stations shared, and {@code shared} chests (a town's store) its too.
+	 * Null if there's no room for its bed.
+	 */
+	@Nullable
+	public static Home settleInToo(DrifterEntity drifter, PlacedHouse house, List<net.minecraft.core.BlockPos> shared) {
+		ServerLevel level = (ServerLevel)drifter.level();
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), house.planId());
+		if (plan == null) {
+			return null;
+		}
+
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood());
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, house.origin(), house.rotation(), palette);
+		var spot = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, placed.buildMap());
+		if (spot == null) {
+			return null;
+		}
+
+		var box = house.box();
+		boolean groundLayer = plan.cells.stream()
+			.anyMatch(cell -> cell.pos().getY() == 0 && com.dinglebob.drifter.building.plan.PlacedPlan.isGround(cell.state()));
+		Home home = new Home(new net.minecraft.core.BlockPos((box.minX() + box.maxX()) / 2, house.origin().getY() + (groundLayer ? 1 : 0),
+			(box.minZ() + box.maxZ()) / 2), level.dimension().location(), level.getGameTime());
+		home.noHut = true;
+		home.builtRecorded = true;
+		home.planId = house.planId();
+		home.planOrigin = house.origin();
+		home.planRotation = house.rotation().name();
+		home.planWoods.clear();
+		home.planWoods.putAll(palette.woods());
+		home.planDeepslate = palette.deepslate();
+		home.planDone = true;
+		home.groundEased = true;
+		home.setPlanBox(box);
+		var bed = net.minecraft.world.level.block.Blocks.WHITE_BED.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.FACING, spot.facing());
+		level.setBlock(spot.foot(), bed.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT), 3);
+		level.setBlock(spot.head(), bed.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD), 3);
+		home.planBed = spot.head();
+		// A chest of its own beside the head of its bed, facing the same way the bed does into the room.
+		for (net.minecraft.core.Direction side : new net.minecraft.core.Direction[] {spot.facing().getClockWise(), spot.facing().getCounterClockWise()}) {
+			net.minecraft.core.BlockPos by = spot.head().relative(side);
+			if (level.getBlockState(by).isAir() && level.getBlockState(by.below()).isFaceSturdy(level, by.below(), net.minecraft.core.Direction.UP)
+				&& placed.contains(by, 0)) {
+				com.dinglebob.drifter.building.Furnish.chest(level, by, spot.facing().getOpposite(), 3);
+				break;
+			}
+		}
+
+		shared.forEach(home::addChest);
+		long now = level.getGameTime();
+		for (net.minecraft.core.BlockPos pos : net.minecraft.core.BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+			var state = level.getBlockState(pos);
+			if (state.is(net.minecraft.world.level.block.Blocks.CHEST) && state.getValue(net.minecraft.world.level.block.ChestBlock.TYPE)
+				!= net.minecraft.world.level.block.state.properties.ChestType.RIGHT) {
+				home.addChest(pos.immutable());
+			} else if (state.is(net.minecraft.world.level.block.Blocks.CRAFTING_TABLE) || state.getBlock() instanceof net.minecraft.world.level.block.AbstractFurnaceBlock) {
+				drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.STATION, net.minecraft.core.registries.BuiltInRegistries.BLOCK
+					.getKey(state.getBlock()).toString(), net.minecraft.world.phys.Vec3.atCenterOf(pos), level.dimension().location(), now,
+					com.dinglebob.drifter.memory.MemorySource.SEEN, 0.7F, null);
+			}
+		}
+
+		drifter.getDrifterBrain().setHome(home);
+		knowsBox(drifter, box.inflatedBy(3));
+		return home;
+	}
+
+	/** How many households this house takes: one, and one more for each other room big enough to sleep in (up to four). */
+	public static int households(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), planId);
+		if (plan == null) {
+			return 1;
+		}
+
+		return com.dinglebob.drifter.building.Furnishing.households(level,
+			new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn()));
+	}
+
 	/** (A town made at once, for testing.) It knows every block in this box, as if it had looked all over it. */
 	public static void knowsBox(DrifterEntity drifter, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
 		var terrain = drifter.getSenses().terrain();

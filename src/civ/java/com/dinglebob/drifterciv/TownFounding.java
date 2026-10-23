@@ -228,6 +228,23 @@ public final class TownFounding {
 					continue;
 				}
 
+				// A spare room in a house that's up first (a house with more than one room takes more than one household; user,
+				// 2026-10-23: "that way there is more citizens without having more houses"): it moves in, its bed in a room
+				// of its own, the house's chests shared.
+				Town.Plot spare = spareRoom(server, town);
+				if (spare != null) {
+					Home shared = DrifterApi.homeAtHouse(member, spare.planId, spare.origin, spare.rotation, base.chests());
+					if (shared != null) {
+						spare.residents.add(id);
+						var owner = spare.owner == null ? null : DrifterApi.record(spare.owner);
+						DrifterApi.think(member, "moved into a room in " + (owner == null ? "a house" : owner.name() + "'s house") + " in " + town.name);
+						Chronicle.add(server, "town", member.getName().getString() + " moved into a room in " + (owner == null ? "a house" : owner.name()
+							+ "'s house") + " in " + town.name);
+						changed = true;
+						continue;
+					}
+				}
+
 				Town.Plot plot = choosePlot(server, town, member);
 				if (plot == null) {
 					continue;
@@ -379,9 +396,42 @@ public final class TownFounding {
 		}
 	}
 
+	/** Its plot: the one it owns, or the one whose house it lives in. */
 	@Nullable
 	private static Town.Plot plotOf(Town town, UUID owner) {
-		return town.plots.stream().filter(plot -> owner.equals(plot.owner)).findFirst().orElse(null);
+		return town.plots.stream().filter(plot -> owner.equals(plot.owner) || plot.residents.contains(owner)).findFirst().orElse(null);
+	}
+
+	/** A house that's up with a room nobody lives in yet (the nearest the plaza first), or null. */
+	@Nullable
+	private static Town.Plot spareRoom(MinecraftServer server, Town town) {
+		ServerLevel level = null;
+		for (ServerLevel one : server.getAllLevels()) {
+			if (one.dimension().location().toString().equals(town.dimension)) {
+				level = one;
+			}
+		}
+
+		if (level == null) {
+			return null;
+		}
+
+		Town.Plot best = null;
+		for (Town.Plot plot : town.plots) {
+			if (!plot.built || plot.owner == null) {
+				continue;
+			}
+
+			if (plot.room == 0 && level.isLoaded(plot.origin)) {
+				plot.room = DrifterApi.households(level, plot.planId, plot.origin, plot.rotation);
+			}
+
+			if (1 + plot.residents.size() < plot.room && (best == null || plot.origin.distSqr(town.center) < best.origin.distSqr(town.center))) {
+				best = plot;
+			}
+		}
+
+		return best;
 	}
 
 	/** A plot record for a house already chosen (its size once turned, the side its door's on). */

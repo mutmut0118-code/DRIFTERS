@@ -1460,6 +1460,16 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Plaza, fields and shared houses (new, 0.22.15)
+
+- [ ] `/drifterciv town spawn 8` on a hill: the plaza is smaller (15 by 15) and sits on the land, a stone edge on the low
+      side and the ground sloping up to it on the high side (no pit). The fields and the store sit on the land the same way.
+- [ ] Nobody leaves blocks on the farmland (they can walk out of the fields).
+- [ ] The town says something like "16 people in 8 houses": bigger houses have a second (or third) household, each with
+      its own bed in another room and a chest beside it.
+- [ ] In a town its people found, someone without a house moves into a spare room ("moved into a room in X's house" in
+      the chronicle) instead of always building a new house.
+
 ## Founded towns: lanes, roads, foundations, lights (new, 0.22.14)
 
 A town its people found takes days. To watch one: spawn 3 to 5 Drifters close together, give them stuff (logs, cobblestone,

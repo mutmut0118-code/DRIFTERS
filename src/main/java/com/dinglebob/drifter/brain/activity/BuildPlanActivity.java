@@ -852,6 +852,16 @@ public class BuildPlanActivity extends Activity {
 
 		List<BlockPos> doors = plan.build.stream().filter(c -> c.state().getBlock() instanceof net.minecraft.world.level.block.DoorBlock)
 			.map(PlacedPlan.Cell::pos).toList();
+		// Beds already in the house (another household's): a room of its own, away from them, if there's one (user,
+		// 2026-10-23: "for houses with more than one story/room, would be cool if more than one drifter lives in the house").
+		List<BlockPos> beds = new java.util.ArrayList<>();
+		var box = plan.box();
+		for (BlockPos pos : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+			if (level.getBlockState(pos).getBlock() instanceof BedBlock) {
+				beds.add(pos.immutable());
+			}
+		}
+
 		BedSpot best = null;
 		double bestScore = -Double.MAX_VALUE;
 		for (BlockPos column : plan.footprint()) {
@@ -875,7 +885,9 @@ public class BuildPlanActivity extends Activity {
 					BlockPos behind = head.relative(facing);
 					boolean againstWall = want.containsKey(behind) && !want.get(behind).getCollisionShape(level, behind).isEmpty();
 					// (The ground floor rather than up a ladder.)
-					double score = Math.sqrt(toDoor) + (againstWall ? 4.0 : 0.0) - (foot.getY() - plan.origin.getY()) * 0.5;
+					double nearBed = beds.stream().mapToDouble(b -> Math.sqrt(b.distSqr(foot))).min().orElse(99.0);
+					double score = Math.sqrt(toDoor) + (againstWall ? 4.0 : 0.0) - (foot.getY() - plan.origin.getY()) * 0.5
+						- (nearBed < 6.0 ? (6.0 - nearBed) * 3.0 : 0.0);
 					if (score > bestScore) {
 						bestScore = score;
 						best = new BedSpot(foot.immutable(), facing);

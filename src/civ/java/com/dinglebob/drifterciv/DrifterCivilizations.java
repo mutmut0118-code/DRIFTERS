@@ -123,7 +123,7 @@ public final class DrifterCivilizations implements ModInitializer {
 					: towns.size() + (towns.size() == 1 ? " town:" : " towns:")), false);
 				for (Town town : towns) {
 					ctx.getSource().sendSuccess(() -> Component.literal("  " + town.name + " at " + town.center.getX() + ", " + town.center.getZ() + ", "
-						+ town.plots.size() + " households, founded day " + town.foundedDay + (town.spawned ? " (made ready)" : "")), false);
+						+ town.plots.size() + " houses, founded day " + town.foundedDay + (town.spawned ? " (made ready)" : "")), false);
 				}
 
 				return towns.size();
@@ -175,11 +175,19 @@ public final class DrifterCivilizations implements ModInitializer {
 		int alive = 0;
 		List<String> people = new java.util.ArrayList<>();
 		for (Town.Plot plot : town.plots) {
-			var record = plot.owner == null ? null : DrifterApi.record(plot.owner);
-			if (record != null) {
-				people.add(record.name() + (record.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE ? "" : " (" + record.status().name().toLowerCase(java.util.Locale.ROOT) + ")"));
-				if (record.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE) {
-					alive++;
+			List<java.util.UUID> living = new java.util.ArrayList<>();
+			if (plot.owner != null) {
+				living.add(plot.owner);
+			}
+
+			living.addAll(plot.residents);
+			for (java.util.UUID one : living) {
+				var record = DrifterApi.record(one);
+				if (record != null) {
+					people.add(record.name() + (record.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE ? "" : " (" + record.status().name().toLowerCase(java.util.Locale.ROOT) + ")"));
+					if (record.status() == com.dinglebob.drifter.api.DrifterRecord.Status.ALIVE) {
+						alive++;
+					}
 				}
 			}
 		}
@@ -197,7 +205,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		int stacks = stocked;
 		long age = Chronicle.day(source.getServer()) - town.foundedDay;
 		source.sendSuccess(() -> Component.literal(town.name + (town.spawned ? " (made ready, for testing)" : "") + ": founded day " + town.foundedDay
-			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " households, " + alivePeople + " people alive; the store has "
+			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " houses, " + alivePeople + " people alive; the store has "
 			+ stacks + " stacks in " + town.store.size() + " chests"), false);
 		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
 		// A town founded by its people: who has a plot, whose house is up.
@@ -206,8 +214,11 @@ public final class DrifterCivilizations implements ModInitializer {
 			List<String> households = new java.util.ArrayList<>();
 			for (java.util.UUID member : group.members) {
 				Town.Plot plot = town.plots.stream().filter(p -> member.equals(p.owner)).findFirst().orElse(null);
-				String state = plot == null ? (town.plots.isEmpty() || !town.plots.get(0).built ? "building the first house" : "no plot yet")
-					: (plot.built ? "house built" : "building") + " (" + plot.planId + " at " + plot.origin.toShortString() + ")";
+				Town.Plot lodging = town.plots.stream().filter(p -> p.residents.contains(member)).findFirst().orElse(null);
+				String state = lodging != null ? "a room in " + group.names.getOrDefault(lodging.owner, "someone") + "'s house"
+					: plot == null ? (town.plots.isEmpty() || !town.plots.get(0).built ? "building the first house" : "no plot yet")
+					: (plot.built ? "house built" : "building") + " (" + plot.planId + " at " + plot.origin.toShortString() + ")"
+						+ (plot.room > 1 ? ", room for " + plot.room + " households" : "");
 				households.add(group.names.getOrDefault(member, "?") + (member.equals(group.leader) ? " (leader)" : "") + ": " + state);
 			}
 

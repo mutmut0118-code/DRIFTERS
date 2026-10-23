@@ -2799,5 +2799,18 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Lighting: "light up the base" covers the whole town for its people (its roads' sides and round its houses, not on
     roads or fields), and they make torches for it from their coal and sticks.
   - API: `TownWork` (roads, town ground, middle, reach) and `DrifterApi.setTownWork`; `/drifterciv town` shows the lanes.
+- **The user's notes of 2026-10-23, second batch (0.22.15):**
+  - The plaza "way too big" and "a hole when its on hill": now 15 by 15 (was 21), at its ground's middle height, a stone
+    edge where the land falls away and the land round it eased to it over 5 blocks (not dug in as a pit). The store and the
+    fields sit on the land the same way (the old `even`, cutting straight down, is gone).
+  - "Drifters tend to pillar on farmland": a field dug flat into a slope left walls too high to step out of, so a Drifter
+    working it put a block down to climb out. Fields are eased into the land now. (A temporary log of every block placed
+    on farmland over two town days caught none.)
+  - More than one household in a house: a house takes one household, and one more for each other room big enough to
+    sleep in, up to four (`Furnishing.households`, `DrifterApi.households`). The made-ready town fills them (16 or 17 people in
+    8 houses), each newcomer's bed in a room away from the others' (`BuildPlanActivity.bedSpot` keeps away from beds already
+    there), a chest by it, the house's chests and stations shared (`DrifterApi.settleInToo`). In a founded town, a member
+    without a house moves into a spare room of a finished one before it takes a plot of its own (it brings or makes its own
+    bed). `Town.Plot.residents` and `room`, saved; `/drifterciv town` shows who has a room where.
 - Next: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
   money and markets.

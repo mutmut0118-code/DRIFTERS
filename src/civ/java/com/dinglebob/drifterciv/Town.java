@@ -31,6 +31,10 @@ public final class Town {
 		public UUID owner;
 		/** Its house is up (a town founded by its people builds them a block at a time). */
 		public boolean built;
+		/** Others who live in its house too, a room each (a house with more than one room takes more than one household). */
+		public final List<UUID> residents = new ArrayList<>();
+		/** How many households its house takes (worked out once it's up; 0 if not yet). */
+		public int room;
 
 		public Plot(BlockPos origin, int sizeX, int sizeZ, String planId, Rotation rotation, Direction front, @Nullable UUID owner) {
 			this.origin = origin.immutable();
@@ -55,6 +59,15 @@ public final class Town {
 			}
 
 			tag.putBoolean("Built", this.built);
+			ListTag residents = new ListTag();
+			for (UUID resident : this.residents) {
+				CompoundTag one = new CompoundTag();
+				one.putUUID("Id", resident);
+				residents.add(one);
+			}
+
+			tag.put("Residents", residents);
+			tag.putInt("Room", this.room);
 			return tag;
 		}
 
@@ -64,6 +77,11 @@ public final class Town {
 				Rotation.valueOf(tag.getString("Rotation")), front == null ? Direction.SOUTH : front, tag.hasUUID("Owner") ? tag.getUUID("Owner") : null);
 			// (Before 0.22.8 only made-ready towns had plots, every house up.)
 			plot.built = !tag.contains("Built") || tag.getBoolean("Built");
+			for (Tag one : tag.getList("Residents", Tag.TAG_COMPOUND)) {
+				plot.residents.add(((CompoundTag)one).getUUID("Id"));
+			}
+
+			plot.room = tag.getInt("Room");
 			return plot;
 		}
 	}
