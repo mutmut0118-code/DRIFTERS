@@ -135,7 +135,11 @@ public final class FriendlyGoals {
 					Mode mode = seen ? Mode.toward(this.drifter, player) : Mode.UNAWARE;
 					if (seen && !mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
 						this.answered = true;
-						ChatLines.say(this.drifter, ChatLines.Kind.HUH, "player", player.getGameProfile().getName());
+						// (Not a "?" when it's answering what they asked.)
+						if (!com.dinglebob.drifter.social.talk.PlayerTalk.answering(this.drifter)) {
+							ChatLines.say(this.drifter, ChatLines.Kind.HUH, "player", player.getGameProfile().getName());
+						}
+
 						return this.begin(new Gesture(this.drifter, player, "nod at " + player.getGameProfile().getName(), Gesture.Kind.NOD));
 					}
 
@@ -523,12 +527,20 @@ public final class FriendlyGoals {
 
 		@Override
 		public double urgency(Goals.Context context) {
-			return target(context) != null ? 0.65 : 0.0;
+			Player player = target(context);
+			// (Asked in chat and it said "omw": it goes, as it said.)
+			return player == null ? 0.0 : context.drifter().getSocial().watcher().askedToFollow(player) ? 0.75 : 0.65;
 		}
 
 		@Override
 		public double feasibility(Goals.Context context) {
 			return 1.0;
+		}
+
+		@Override
+		public boolean urgent(Goals.Context context) {
+			Player player = target(context);
+			return player != null && context.drifter().getSocial().watcher().askedToFollow(player);
 		}
 
 		@Override
@@ -544,6 +556,9 @@ public final class FriendlyGoals {
 				return null;
 			}
 
+			// (For longer when they asked it to team up.)
+			int follows = drifter.getSocial().watcher().followTicks(player, FOLLOW_TICKS);
+			long since = drifter.level().getGameTime();
 			drifter.getSocial().watcher().followed(player);
 			drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "following " + player.getGameProfile().getName() + " for a while");
 			return new Activity(drifter) {
@@ -554,12 +569,13 @@ public final class FriendlyGoals {
 
 				@Override
 				protected int timeoutTicks() {
-					return FOLLOW_TICKS;
+					return follows;
 				}
 
 				@Override
 				protected Status next() {
-					if (!player.isAlive() || player.isRemoved() || this.ticksRunning() >= FOLLOW_TICKS - 20) {
+					if (!player.isAlive() || player.isRemoved() || this.ticksRunning() >= follows - 20
+						|| this.drifter.getSocial().watcher().toldToStopSince(player, since)) {
 						return Status.SUCCESS;
 					}
 

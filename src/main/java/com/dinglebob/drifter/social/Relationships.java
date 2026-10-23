@@ -120,6 +120,15 @@ public class Relationships {
 				}
 			}
 			case GIFT -> trust = Mth.clamp(amount, event.trust, SocialEvent.GIFT_MAX);
+			case COMPLIMENT -> {
+				r.compliments++;
+				trust = r.complimentsToday++ < SocialEvent.COMPLIMENT_DAILY_CAP ? event.trust : 0;
+			}
+			case INSULT -> {
+				r.insults++;
+				r.lastInsultAt = now;
+				trust = r.insultsToday++ < SocialEvent.INSULT_DAILY_CAP ? event.trust : 0;
+			}
 			// Fear scaled by the damage (a heart of damage is 2 points of Fear, up to 30).
 			case ATTACKED -> fear = Mth.clamp(amount * 1.0, 0.0, 30.0);
 			case BETTER_GEAR -> {

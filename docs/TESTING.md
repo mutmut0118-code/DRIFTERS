@@ -1460,6 +1460,27 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Asking a Drifter things in chat (new, 0.22.20)
+
+Everything you can ask, who it'll do it for, and every answer: docs/CHAT_LINES.md section 7. Talk to a Drifter by
+name ("grumpy wyd"), or look at it and type, or type when it's the only one near; after that it knows you're talking
+to it for a minute. `/drifter social show <your name>` next to it shows its trust in you; `/drifter social set <your
+name> trust 40` makes you friends for testing.
+- [ ] "wyd", "how are you", "whats your name", "are you a bot", "tell me a joke": it turns to you and answers in a
+      couple of seconds ("gather birch log, wbu", "good hbu", "hungry lol, got food?").
+- [ ] A stranger asking "coords?" or "where do you live" gets "nice try"; at trust 10 a direction ("north, about 120
+      blocks"); at trust 25 the coords. "seen a village?" / "any diamonds?": only places it has really seen.
+- [ ] "can i have some bread" as a stranger: "no". As a friend: "here you go", it walks over and throws you some
+      (only what it can spare; "3 bread" gets 3). "can i have something": "what do you need?", then just say "logs".
+- [ ] "follow me" as a friend: "omw", and it follows once you walk off; "stop following" stops it. "team up": follows
+      you about 15 minutes and helps against mobs. "come here": walks over. "help!": drops what it's doing and runs.
+- [ ] "1v1?" to a PvP sweat or a bandit (not on Peaceful, within 20 blocks): "bet", and it fights you. Nobody dies: a
+      hit that would take you below a heart doesn't land and it says "gg ez"; the same for it ("gg you win"). Its hits
+      and yours don't make it hate you afterwards. Most others say "nah im good".
+- [ ] "ur the best": "ty", and its trust in you goes up a little. "noob": "cope", trust down; then ask it for
+      something: "after calling me a noob? lol no" (for a day, unless it's your friend).
+- [ ] Your plain "hi", "gn", "ty" still get the usual answers from Drifters around.
+
 ## Chat Heads and Talk Bubbles (new, 0.22.19)
 
 Both mods are in DRIFTER TEST; Drifter works the same without them.

@@ -213,8 +213,8 @@ talk_lines = 0
 for topic in topics:
     for turn in topic['turns']:
         for source in turn.get('options', [turn]):
-            lines = source['lines']
-            for items in (lines.values() if isinstance(lines, dict) else [lines]):
+            topic_lines = source['lines']
+            for items in (topic_lines.values() if isinstance(topic_lines, dict) else [topic_lines]):
                 for item in items:
                     talk_lines += 1 + (len(item['then']) if isinstance(item, dict) else 0)
 
@@ -245,12 +245,54 @@ for topic in topics:
                 doc.append((head + ': ' if j == 0 else '   - ') + line)
     doc.append('')
 
-doc += ['## 7. Not chat, but close', '',
+ASKS = [
+    ('wyd', 'What it\'s doing (its job right now)', 'anyone it isn\'t hostile to', ['ask.wyd', 'ask.wyd_idle']),
+    ('hru', 'How it is: hurt, hungry, or its mood', 'anyone', ['ask.hru_good', 'ask.hru_triumphant', 'ask.hru_hurt', 'ask.hru_hungry', 'ask.hru_bored',
+                                                               'ask.hru_scared', 'ask.hru_angry', 'ask.hru_sad']),
+    ('name', 'Its name', 'anyone', ['ask.name']),
+    ('coords', 'Where it is', 'its coords to a friend (trust 25+), "around" to someone it knows (10+), else no', ['ask.coords_yes', 'ask.coords_vague', 'ask.coords_no']),
+    ('base', 'Where it lives', 'coords to a friend (a helper: to anyone it knows), a direction and distance to someone it knows, else no',
+     ['ask.base_yes', 'ask.base_way', 'ask.base_none', 'ask.base_no']),
+    ('seen_village, seen_diamonds, seen_iron, seen_dungeon, seen_portal, seen_fortress', 'Somewhere it has seen one (its memory only)',
+     'as for its base; a greedy one keeps ore to itself', ['ask.seen_yes', 'ask.seen_way', 'ask.seen_none', 'ask.seen_no']),
+    ('follow', 'It comes along (once you walk off; as crouching twice does)', 'a friend, or someone it knows (10+) and has spent time near',
+     ['ask.follow_yes', 'ask.follow_no']),
+    ('team', 'It comes along for 15 minutes (and helps against mobs, as friends do)', 'a friend', ['ask.team_yes', 'ask.team_no']),
+    ('come', 'It walks over to you', 'as follow', ['ask.come_yes', 'ask.follow_no']),
+    ('stop', 'It stops following', 'anyone', ['ask.stop']),
+    ('help', 'It drops what it\'s doing and runs to you, then sticks around a minute', 'a friend; a helper for anyone it doesn\'t dislike; a brave one it knows',
+     ['ask.help_yes', 'ask.help_no']),
+    ('give', '"can i have 3 bread": it brings it over and tosses it, from what it can spare, about what you\'re worth to it; no item named, it asks what',
+     'a friend, or anyone it owes for a gift', ['ask.give_yes', 'ask.give_back', 'ask.give_need', 'ask.give_none', 'ask.give_no', 'ask.give_much', 'ask.give_what']),
+    ('trade', 'Points you to its shop, or asks what you need (then name the item)', 'anyone', ['ask.trade', 'ask.shop']),
+    ('duel', 'A friendly 1v1: it fights you, nobody goes below a heart; whoever would have lost it says gg', 'a PvP sweat, a bandit or a brave, aggressive one, '
+     'within 20 blocks, not on Peaceful; most others say no', ['ask.duel_yes', 'ask.duel_far', 'ask.duel_no', 'ask.duel_scared', 'ask.duel_won', 'ask.duel_lost']),
+    ('compliment', 'It thanks you, and likes you a little more (3 a day count)', 'anyone', ['ask.compliment']),
+    ('insult', 'It answers back and likes you less (5 a day count); for a day it brings it up when you ask for something', 'anyone',
+     ['ask.insult', 'ask.insult_again', 'ask.refuse_insulted']),
+    ('joke', 'A joke', 'anyone', ['ask.joke']),
+    ('bot', '"are you a bot"', 'anyone', ['ask.bot']),
+]
+doc += ['## 7. Asking a Drifter something', '',
+        'Say it to a Drifter: with its name (or a good part of it) in the message, or to the one you\'ve been talking with this last minute, '
+        'or the one you\'re looking at (16 blocks), or the only one within 10 blocks. It turns to look at you and answers a moment later, as '
+        'it\'s typed. What it tells you and what it does depends on how it feels about you (`/drifter social show <you>`): trust 25 is a '
+        'friend. To someone it\'s hostile to it only says to get lost. Only what it knows: its memory, its pockets, its home. The phrases '
+        'are in section 9 (`requests.json`).', '',
+        '| You say (intent) | What it does | For whom |', '| --- | --- | --- |']
+for intent, what, who, _ in ASKS:
+    doc.append('| ' + intent + ' | ' + what + ' | ' + who + ' |')
+doc.append('')
+for intent, _, _, keys in ASKS:
+    for key in keys:
+        doc += block(key, 'Answering **' + intent + '**.')
+
+doc += ['## 8. Not chat, but close', '',
         '- **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod\'s announcements.',
         '- **Thoughts:** what a Drifter thinks (`/drifter thoughts`) never goes to chat.',
         '- **The chronicle:** Drifter: Civilizations\'s morning news ("Day 4: ...") is the mod reporting.', '']
 
-doc += ['## 8. What you can say to them', '',
+doc += ['## 9. What you can say to them', '',
         'A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, '
         '"yeah no" a no. Capitals, punctuation and stretched letters don\'t matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped '
         '("im" is "i\'m"). The words can be anywhere in the message.', '',
@@ -258,6 +300,8 @@ doc += ['## 8. What you can say to them', '',
         '| An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |',
         '| A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |',
         '| A Drifter\'s name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |',
+        '| To a Drifter (section 7) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, '
+        '**help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |',
         '| Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |', '',
         'Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, '
         'right-click a merchant or a stall keeper.', '']
@@ -266,10 +310,10 @@ for intent, phrases in answers.items():
 doc.append('')
 
 doc += ['## Where they live', '',
-        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`); whims\' '
+        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`); whims\' '
         'lines in `drifter_whims/*.json`. This doc is generated from them.',
         '- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), '
-        '`social/ChatReplies.java` (the rituals), `encounter/*.java`.', '']
+        '`social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `encounter/*.java`.', '']
 
 open(os.path.join(ROOT, 'docs/CHAT_LINES.md'), 'w', encoding='utf-8', newline='\n').write('\n'.join(doc))
 print(total, whim_total, answer_total, len(topics), talk_lines)

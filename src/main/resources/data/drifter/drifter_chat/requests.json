@@ -1,0 +1,267 @@
+{
+  "comment": "Chat phase 2 (user, 2026-10-23): what players can ask a Drifter in chat, and what it answers. 'answers' are the phrases (matched as in answers.json: the longest phrase found wins, case, punctuation and stretched letters don't matter). 'lines' are its replies, by personality voice; {player} is the asker, {name} the Drifter, {doing}, {coords}, {way}, {dist}, {what}, {count}, {item}, {insult} as each reply says. See social/talk/PlayerTalk.java.",
+  "answers": {
+    "wyd": ["wyd", "wud", "what you doing", "what are you doing", "what r u doing", "what are u doing", "whatcha doing", "watcha doing", "what you up to", "what are you up to", "what r u up to", "whats up with you", "what u doing", "what you doin", "what are you doin", "you busy", "are you busy", "u busy", "busy", "what are you working on", "what you working on", "whatcha up to", "up to anything"],
+    "hru": ["how are you", "how r u", "how are u", "hru", "how you doing", "how are you doing", "how u doing", "hows it going", "how is it going", "you good", "u good", "you ok", "u ok", "are you ok", "are you okay", "you okay", "how have you been", "hows life", "hows your day", "how was your day", "you alright", "u alright", "wbu", "hbu"],
+    "name": ["whats your name", "what is your name", "whats ur name", "ur name", "your name", "who are you", "who r u", "who are u", "who is this", "whos this", "who dis", "do i know you", "have we met"],
+    "coords": ["coords", "cords", "ur coords", "your coords", "send coords", "what are your coords", "where are you", "where r u", "where are u", "wya", "where you at", "where u at", "location", "where abouts", "send location", "drop coords"],
+    "base": ["where do you live", "where do u live", "where you live", "where is your base", "wheres your base", "wheres ur base", "where is ur base", "your base", "ur base", "base coords", "where is your house", "wheres your house", "wheres ur house", "where is your home", "wheres your home", "where do you stay", "show me your base", "can i see your base", "where is your town", "wheres your town"],
+    "seen_village": ["village", "villages", "seen a village", "seen any villages", "know a village", "any villages", "any village", "where is a village", "wheres a village", "wheres the village", "where is the village", "village nearby", "villagers", "any villagers"],
+    "seen_diamonds": ["diamonds", "diamond", "dias", "seen diamonds", "seen any diamonds", "where are diamonds", "wheres diamonds", "found diamonds", "found any diamonds", "know where diamonds", "any diamonds"],
+    "seen_iron": ["iron", "seen iron", "seen any iron", "where is iron", "wheres iron", "found iron", "found any iron", "any iron", "iron ore"],
+    "seen_dungeon": ["dungeon", "dungeons", "spawner", "spawners", "mob spawner", "seen a dungeon", "seen a spawner", "any dungeons", "any spawners"],
+    "seen_portal": ["portal", "nether portal", "seen a portal", "any portals", "where is the portal", "wheres the portal", "ruined portal"],
+    "seen_fortress": ["fortress", "nether fortress", "seen a fortress", "where is the fortress", "wheres the fortress", "blazes"],
+    "follow": ["follow me", "follow", "come with me", "come with", "come along", "lets go", "lets go together", "with me", "folow me", "follow pls", "follow me pls", "follow me please", "come on", "cmon", "c mon", "tag along", "you coming", "u coming", "walk with me", "lead the way"],
+    "come": ["come here", "come to me", "over here", "get over here", "c here", "come over", "come over here", "here pls", "to me", "come here pls", "come here please", "where are you go", "come back"],
+    "stop": ["stop following", "stop following me", "stay", "stay here", "wait here", "stay there", "wait there", "go away", "leave me alone", "dont follow me", "stop follow", "quit following me", "go home", "you can go", "u can go", "bye for now", "thats enough", "thanks thats all", "ill go alone", "stop it"],
+    "help": ["help", "help me", "help pls", "help please", "pls help", "plz help", "halp", "save me", "im dying", "i am dying", "need help", "i need help", "someone help", "anyone help", "sos", "mobs", "theyre attacking me", "im being attacked", "backup", "need backup", "assist"],
+    "team": ["team up", "wanna team", "wanna team up", "want to team up", "lets team", "lets team up", "team with me", "be my teammate", "be my team", "join me", "join my team", "duo", "wanna duo", "lets duo", "wanna be friends", "be my friend", "friends", "wanna play together", "play together", "partner", "partners", "be partners", "join my group", "wanna join"],
+    "give": ["can i have", "can i get", "can you give me", "can u give me", "could you give me", "give me", "gimme", "got any", "do you have", "do u have", "you have any", "u have any", "spare", "any spare", "can you spare", "need some", "i need", "lend me", "share", "can you share", "give pls", "pls give", "hand me", "toss me", "throw me", "drop me", "send me", "could i have", "may i have"],
+    "trade": ["trade", "trades", "wanna trade", "want to trade", "lets trade", "trade me", "trading", "can we trade", "you trading", "u trading", "buy", "sell", "selling", "buying", "whats for sale", "what do you sell", "shop", "store"],
+    "duel": ["1v1", "1 v 1", "1vs1", "1v1 me", "duel", "duel me", "fight me", "wanna fight", "wanna 1v1", "wanna duel", "lets fight", "lets 1v1", "lets duel", "pvp", "wanna pvp", "spar", "wanna spar", "lets spar", "square up", "1v1 rn", "come fight", "fight"],
+    "compliment": ["nice", "cool", "ur cool", "youre cool", "you are cool", "u r cool", "nice house", "nice base", "nice build", "nice armor", "nice gear", "nice skin", "nice sword", "nice job", "good job", "well done", "love you", "ily", "i like you", "ur awesome", "youre awesome", "you are awesome", "ur the best", "youre the best", "you are the best", "goat", "ur goated", "goated", "legend", "ur a legend", "based", "pog", "poggers", "W", "big W", "huge W", "ur nice", "youre nice", "ur sweet", "ur funny", "youre funny", "sick", "so cool", "ur so cool", "nice one", "great job", "amazing", "ur pro", "youre pro", "pro", "ur good", "youre good"],
+    "insult": ["noob", "nub", "newb", "n00b", "trash", "ur trash", "youre trash", "you are trash", "ur bad", "youre bad", "you are bad", "u suck", "you suck", "ur stupid", "stupid", "idiot", "dumb", "ur dumb", "dummy", "L", "take the L", "loser", "ur a loser", "bot", "ur a bot", "ratio", "cringe", "ur cringe", "shut up", "stfu", "ez", "too ez", "garbage", "clown", "ur a clown", "skill issue", "hate you", "i hate you", "ugly", "ur ugly", "get good", "git gud", "bozo", "ur mid", "mid", "go away loser", "useless", "ur useless", "annoying", "ur annoying", "weirdo", "freak", "nerd"],
+    "joke": ["tell me a joke", "tell a joke", "joke", "know any jokes", "say something funny", "make me laugh", "got any jokes", "funny"],
+    "bot": ["are you a bot", "r u a bot", "are u a bot", "you a bot", "u a bot", "are you real", "r u real", "are you human", "are you ai", "are you an ai", "is this a bot", "are you a robot", "npc", "are you an npc", "ur an npc"]
+  },
+  "lines": {
+    "ask.wyd": {
+      "any": ["{doing}", "just {doing}", "{doing} rn", "{doing}, wbu", "nm, {doing}", "{doing} lol", "{doing}. you?", "oh just {doing}", "busy {doing}"],
+      "casual": ["{doing} hbu", "chillin, {doing}", "eh {doing}"],
+      "newbie": ["{doing}!! i think im doing it right", "trying to {doing} lol", "{doing}! wbu!"],
+      "builder": ["{doing}, gotta finish the build", "{doing}. planning a build after"],
+      "miner": ["{doing}, then back to the mines", "{doing}. mining after"],
+      "homebody": ["{doing}, then home", "{doing} near home"],
+      "speedrunner": ["{doing}, cant stop", "{doing}. on a timer"],
+      "nomad": ["{doing}, then moving on", "{doing} before i head out"],
+      "hoarder": ["{doing}. why", "{doing}, not sharing"],
+      "hermit": ["{doing}.", "busy.", "..."],
+      "pvp_sweat": ["{doing}. 1v1 after?", "{doing}, wanna fight after"],
+      "bandit": ["{doing}. why do you ask", "mind your business"],
+      "helper": ["{doing}! need anything?", "{doing}, but i can help if you want"]
+    },
+    "ask.wyd_idle": {
+      "any": ["nm", "nothing much", "chilling", "just vibing", "nothing rn", "idk, chilling", "afk ish", "not much, wbu", "standing here lol"],
+      "newbie": ["idk what to do lol", "nothing! any ideas?"],
+      "hermit": ["nothing.", "being left alone. ideally"],
+      "helper": ["nothing, need help with something?"]
+    },
+    "ask.hru_good": {
+      "any": ["good", "good hbu", "pretty good", "not bad", "doing alright", "good, you?", "cant complain", "chilling", "alright", "decent", "great actually"],
+      "newbie": ["good!! this game is fun", "great!! wbu"],
+      "hermit": ["fine.", "fine"],
+      "pvp_sweat": ["cracked as always", "good. undefeated"],
+      "helper": ["good! you?", "doing great, thanks for asking!"]
+    },
+    "ask.hru_triumphant": {
+      "any": ["great!!", "amazing actually", "on top of the world", "never better"]
+    },
+    "ask.hru_hurt": {
+      "any": ["not great, low on hp", "bad, need to heal", "barely alive lol", "on like 3 hearts", "hurt ngl"]
+    },
+    "ask.hru_hungry": {
+      "any": ["hungry", "starving ngl", "need food", "could eat", "hungry lol, got food?"]
+    },
+    "ask.hru_bored": {
+      "any": ["bored", "so bored", "bored lol", "kinda bored ngl", "bored out of my mind"]
+    },
+    "ask.hru_scared": {
+      "any": ["kinda scared ngl", "nervous", "spooked", "not great, something's out there"]
+    },
+    "ask.hru_angry": {
+      "any": ["annoyed", "dont ask", "mad rn", "could be better"]
+    },
+    "ask.hru_sad": {
+      "any": ["not great", "sad ngl", "rough day", "lost a friend"]
+    },
+    "ask.name": {
+      "any": ["{name}", "im {name}", "{name}, you?", "its {name}", "{name}. and you?", "name's {name}", "{name} o/"],
+      "newbie": ["im {name}!! nice to meet you", "{name}! whats yours?"],
+      "hermit": ["{name}.", "why"],
+      "bandit": ["{name}. remember it", "who's asking"],
+      "helper": ["{name}! nice to meet you {player}"]
+    },
+    "ask.coords_yes": {
+      "any": ["{coords}", "im at {coords}", "{coords} why", "{coords}, come by", "around {coords}", "{coords} rn"]
+    },
+    "ask.coords_vague": {
+      "any": ["around", "near you kinda", "not far", "close by", "around here", "you can see me lol"]
+    },
+    "ask.coords_no": {
+      "any": ["why do you want to know", "nice try", "not telling", "why", "nah", "dont think so"],
+      "bandit": ["you first", "nice try lol"],
+      "hermit": ["no.", "nowhere"]
+    },
+    "ask.base_yes": {
+      "any": ["{coords}", "my base is at {coords}", "{coords}, come by sometime", "at {coords}", "{coords}. dont grief it lol", "{coords}, door's open"],
+      "homebody": ["{coords}! come visit :)"],
+      "hoarder": ["{coords}. and dont touch my chests"]
+    },
+    "ask.base_way": {
+      "any": ["{way} of here, about {dist} blocks", "that way, {way}, like {dist} blocks", "{dist} blocks {way}ish", "out {way}, not far"]
+    },
+    "ask.base_none": {
+      "any": ["dont have one yet", "homeless rn lol", "still looking for a spot", "no base yet", "i live out here lol"]
+    },
+    "ask.base_no": {
+      "any": ["not telling a stranger", "nice try lol", "why", "maybe when i know you", "nah", "secret"],
+      "bandit": ["why, wanna rob it?", "nice try"],
+      "hoarder": ["absolutely not", "so you can raid my chests? no"]
+    },
+    "ask.seen_yes": {
+      "any": ["yeah, {what} at {coords}", "one at {coords}", "{coords}", "saw {what} at {coords}", "yeah, around {coords}"]
+    },
+    "ask.seen_way": {
+      "any": ["yeah, {way} of here, like {dist} blocks", "{way}, about {dist} blocks", "saw {what} out {way}", "yeah, {dist} blocks {way}ish"]
+    },
+    "ask.seen_none": {
+      "any": ["havent seen any", "nope", "no idea", "not around here", "nah, havent seen {what}", "wish i knew lol"]
+    },
+    "ask.seen_no": {
+      "any": ["maybe", "find your own lol", "not telling", "maybe i have, maybe i havent", "why would i tell you"],
+      "hoarder": ["mine. find your own"],
+      "miner": ["a miner never tells"]
+    },
+    "ask.follow_yes": {
+      "any": ["omw", "k", "lead the way", "sure", "ok", "coming", "right behind you", "aight", "sure, where to"],
+      "newbie": ["yay ok!!", "ok!! where are we going"],
+      "nomad": ["always down for a trip", "lead on"],
+      "helper": ["of course! lead the way"]
+    },
+    "ask.follow_no": {
+      "any": ["nah", "im busy", "i dont even know you", "why would i", "no thanks", "maybe later", "not rn"],
+      "hermit": ["no.", "leave me alone"],
+      "bandit": ["you first", "not falling for that"],
+      "homebody": ["i'd rather stay near home"]
+    },
+    "ask.come_yes": {
+      "any": ["coming", "omw", "1 sec", "on my way", "ok", "k", "coming coming"]
+    },
+    "ask.stop": {
+      "any": ["ok", "fine", "k", "aight", "ok ill stay", "np", "cya then", "ok o/"],
+      "newbie": ["ok! bye!!"],
+      "hermit": ["finally"]
+    },
+    "ask.help_yes": {
+      "any": ["coming!", "omw!!", "hold on!", "coming, hang in there", "on my way!", "im coming"],
+      "helper": ["coming!! hold on!", "dont die, im coming"],
+      "pvp_sweat": ["move, ill handle it", "omw, watch this"]
+    },
+    "ask.help_no": {
+      "any": ["good luck", "lol no", "youre on your own", "cant rn", "sorry, cant"],
+      "hermit": ["not my problem"],
+      "bandit": ["lol", "what's in it for me"]
+    },
+    "ask.team_yes": {
+      "any": ["sure, lets go", "duo time", "W, lets do it", "sure!", "ok, lead the way", "teammates it is", "lets gooo"],
+      "newbie": ["really?? yes!!", "yes!! i'll follow you"],
+      "pvp_sweat": ["fine, dont slow me down", "ok but i get the kills"],
+      "helper": ["of course!! lets go"]
+    },
+    "ask.team_no": {
+      "any": ["maybe later", "i play solo", "dont know you well enough", "nah", "maybe some other time", "not rn"],
+      "hermit": ["i work alone", "no."],
+      "speedrunner": ["youd slow me down", "solo run, sorry"]
+    },
+    "ask.give_yes": {
+      "any": ["here", "sure, take {count}", "catch", "here you go", "here, {count} {item}", "take these", "sure", "np, here"],
+      "helper": ["of course! here", "here, take {count}!"],
+      "hoarder": ["fine. just {count}", "ugh fine, here"],
+      "newbie": ["here!! hope it helps"]
+    },
+    "ask.give_back": {
+      "any": ["you helped me out, here", "here, i owe you one", "for earlier, take it"]
+    },
+    "ask.give_need": {
+      "any": ["i need mine", "need those sorry", "only got enough for me", "cant spare any", "need them myself"]
+    },
+    "ask.give_none": {
+      "any": ["dont have any", "none, sorry", "fresh out", "i dont have {item}", "nope, none"]
+    },
+    "ask.give_no": {
+      "any": ["no", "get your own", "why would i give you that", "nah", "earn it", "lol no"],
+      "hoarder": ["absolutely not", "mine"],
+      "bandit": ["what's it worth to you"]
+    },
+    "ask.give_much": {
+      "any": ["thats a lot to ask", "i can't give that much away", "too much, sorry", "maybe a few"]
+    },
+    "ask.give_what": {
+      "any": ["what do you need?", "what do you want?", "like what", "need what?", "what are you looking for"]
+    },
+    "ask.trade": {
+      "any": ["what you got?", "what do you need?", "maybe, what for", "i might have stuff", "depends what you want", "sure, whatcha need"]
+    },
+    "ask.shop": {
+      "any": ["check my shop", "right-click me", "see what i got, right-click", "come look at my stuff"]
+    },
+    "ask.duel_yes": {
+      "any": ["bet", "youre on", "lets go", "ok, to 3 hearts", "sure, first to 3 hearts", "alright, square up", "fine, hit me when ready"],
+      "pvp_sweat": ["bet. you're done", "finally, someone with guts", "1v1 me then, go"],
+      "bandit": ["you'll regret that", "bet"],
+      "newbie": ["ok but go easy!!", "uh ok!"]
+    },
+    "ask.duel_no": {
+      "any": ["nah im good", "not now", "no thanks", "i'll pass", "maybe later"],
+      "helper": ["i dont fight friends", "lets not"],
+      "hermit": ["no.", "go away"],
+      "homebody": ["not into fighting"]
+    },
+    "ask.duel_far": {
+      "any": ["come here then", "where are you lol", "come find me first", "get over here then", "bet, come here"],
+      "pvp_sweat": ["come here and say that", "pull up then"]
+    },
+    "ask.duel_scared": {
+      "any": ["no way lol", "with that gear? no", "i'd lose lol", "not a chance"]
+    },
+    "ask.duel_won": {
+      "any": ["gg", "gg ez", "too easy", "gg, close one", "get good lol", "gg wp"],
+      "helper": ["gg! you almost had me"],
+      "newbie": ["i won?? gg!!"]
+    },
+    "ask.duel_lost": {
+      "any": ["gg you win", "ok ok you win", "gg wp", "gg, rematch later", "fine, you win", "gg, you're good"],
+      "pvp_sweat": ["lag", "gg, i wasnt trying", "rematch. now"],
+      "bandit": ["lucky"]
+    },
+    "ask.compliment": {
+      "any": ["ty", "thx :)", "aw ty", "thanks!", "ty ty", "thank you", "you too", "appreciate it", ":)"],
+      "newbie": ["thank you!!", "omg ty!!"],
+      "hermit": ["hm. thanks", "ok"],
+      "pvp_sweat": ["i know", "obviously"],
+      "builder": ["ty! took ages", "thanks, still working on it"],
+      "bandit": ["flattery wont work"]
+    },
+    "ask.insult": {
+      "any": ["ok", "rude", "cope", "whatever", "wow", "k", "and?", "ok buddy", "cool story"],
+      "pvp_sweat": ["1v1 then", "says you", "L yourself", "cope"],
+      "newbie": ["hey :(", "that's mean"],
+      "hermit": ["...", "go away"],
+      "helper": ["that's not nice", "hope your day gets better"],
+      "bandit": ["watch it", "say that again"]
+    },
+    "ask.insult_again": {
+      "any": ["you again with that", "keep talking", "wow, again", "you done?", "ok we get it", "so original"]
+    },
+    "ask.refuse_insulted": {
+      "any": ["not after you called me {insult}", "maybe dont call me {insult} next time", "you called me {insult}. no", "ask nicely next time", "after calling me {insult}? lol no"]
+    },
+    "ask.hostile": {
+      "any": ["get lost", "go away", "dont talk to me", "leave", "back off", "no"],
+      "bandit": ["walk away while you can"],
+      "hermit": ["go."]
+    },
+    "ask.joke": {
+      "any": ["why did the creeper cross the road? to get to the other ssssside", "whats a creepers favorite food? ssssalad", "why dont skeletons fight each other? no guts", "what do you call a chicken with a baby zombie on it? lunch with extra steps", "why did the enderman stare? he was looking for his block", "knock knock. creeper. creeper wh- *boom*", "my sword's like my jokes. dull", "i'd tell you a redstone joke but you wouldnt get the signal", "why do ghasts cry? fire in their eyes"],
+      "hermit": ["no."],
+      "newbie": ["umm... creepers are green? lol"]
+    },
+    "ask.bot": {
+      "any": ["no lol", "beep boop", "im as real as you", "what? no", "are YOU a bot", "lol no", "no im just bad"],
+      "newbie": ["no!! im real!!"],
+      "hermit": ["does it matter"],
+      "pvp_sweat": ["bots dont play this good"]
+    }
+  }
+}

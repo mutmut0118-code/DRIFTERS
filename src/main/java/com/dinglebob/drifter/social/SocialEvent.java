@@ -51,7 +51,11 @@ public enum SocialEvent {
 	/** Wears much better gear than it: Fear +10 to +30, no change in Trust. */
 	BETTER_GEAR(0, 10, 0, "wears much better gear"),
 	/** Its farm found trampled, and this was the last one it saw on it (milestone 20, a guess: maybe they didn't). */
-	TRAMPLED_CROPS(-8, 0, 10, "trampled its crops (it thinks)");
+	TRAMPLED_CROPS(-8, 0, 10, "trampled its crops (it thinks)"),
+	/** Said something nice to it in chat (chat phase 2; a few a day count). */
+	COMPLIMENT(2, 0, 0, "said something nice to it"),
+	/** Insulted it in chat (a few a day count; not a wrong that starts a fight). */
+	INSULT(-4, 0, 0, "insulted it in chat");
 
 	/** Trust change (for ranged events, the low end). */
 	public final int trust;
@@ -77,6 +81,9 @@ public enum SocialEvent {
 	public static final int BROKE_BLOCK_DAILY_CAP = -50;
 	/** Most crouch-spam greetings that count in a day. */
 	public static final int CROUCH_SPAM_DAILY_CAP = 3;
+	/** Most compliments and insults in chat that count in a day. */
+	public static final int COMPLIMENT_DAILY_CAP = 3;
+	public static final int INSULT_DAILY_CAP = 5;
 	/** Gift Trust bounds. */
 	public static final int GIFT_MAX = 30;
 	/** Fear from gear bounds. */

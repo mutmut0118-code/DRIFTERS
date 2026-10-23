@@ -55,6 +55,13 @@ public class Relationship {
 	public int gearFear;
 	/** The day it last let another player's standing rub off on this one, per other player (not saved). */
 	public final java.util.Map<String, Long> sharedDay = new java.util.HashMap<>();
+	/** What they've said to it in chat (chat phase 2): nice things and insults, the last insult and when. */
+	public int compliments;
+	public int insults;
+	public String lastInsult = "";
+	public long lastInsultAt = -1;
+	public int complimentsToday;
+	public int insultsToday;
 	/** (A Drifter:) when it last asked them for something to trade (not saved). */
 	public long tradeAskedAt = Long.MIN_VALUE / 2;
 
@@ -93,6 +100,8 @@ public class Relationship {
 			this.capDay = day;
 			this.brokeBlocksToday = 0;
 			this.crouchSpamsToday = 0;
+			this.complimentsToday = 0;
+			this.insultsToday = 0;
 		}
 	}
 
@@ -118,6 +127,12 @@ public class Relationship {
 		tag.putInt("BrokeBlocksToday", this.brokeBlocksToday);
 		tag.putInt("CrouchSpamsToday", this.crouchSpamsToday);
 		tag.putInt("GearFear", this.gearFear);
+		tag.putInt("Compliments", this.compliments);
+		tag.putInt("Insults", this.insults);
+		tag.putString("LastInsult", this.lastInsult);
+		tag.putLong("LastInsultAt", this.lastInsultAt);
+		tag.putInt("ComplimentsToday", this.complimentsToday);
+		tag.putInt("InsultsToday", this.insultsToday);
 		ListTag grudges = new ListTag();
 		for (Grudge grudge : this.grudges) {
 			CompoundTag g = new CompoundTag();
@@ -155,6 +170,12 @@ public class Relationship {
 		r.brokeBlocksToday = tag.getInt("BrokeBlocksToday");
 		r.crouchSpamsToday = tag.getInt("CrouchSpamsToday");
 		r.gearFear = tag.getInt("GearFear");
+		r.compliments = tag.getInt("Compliments");
+		r.insults = tag.getInt("Insults");
+		r.lastInsult = tag.getString("LastInsult");
+		r.lastInsultAt = tag.contains("LastInsultAt") ? tag.getLong("LastInsultAt") : -1;
+		r.complimentsToday = tag.getInt("ComplimentsToday");
+		r.insultsToday = tag.getInt("InsultsToday");
 		for (Tag t : tag.getList("Grudges", Tag.TAG_COMPOUND)) {
 			CompoundTag g = (CompoundTag)t;
 			SocialEvent event;

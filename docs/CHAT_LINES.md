@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 946 lines in the chat data, 242 in whims, and 569 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1400 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -1411,13 +1411,432 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 3. **a**: they had a rough nether · soul music
 4. **b**: lmao · ... · terrible · im leaving · that was awful · lol · -1000 aura · boo · ok that was good · why are you like this
 
-## 7. Not chat, but close
+## 7. Asking a Drifter something
+
+Say it to a Drifter: with its name (or a good part of it) in the message, or to the one you've been talking with this last minute, or the one you're looking at (16 blocks), or the only one within 10 blocks. It turns to look at you and answers a moment later, as it's typed. What it tells you and what it does depends on how it feels about you (`/drifter social show <you>`): trust 25 is a friend. To someone it's hostile to it only says to get lost. Only what it knows: its memory, its pockets, its home. The phrases are in section 9 (`requests.json`).
+
+| You say (intent) | What it does | For whom |
+| --- | --- | --- |
+| wyd | What it's doing (its job right now) | anyone it isn't hostile to |
+| hru | How it is: hurt, hungry, or its mood | anyone |
+| name | Its name | anyone |
+| coords | Where it is | its coords to a friend (trust 25+), "around" to someone it knows (10+), else no |
+| base | Where it lives | coords to a friend (a helper: to anyone it knows), a direction and distance to someone it knows, else no |
+| seen_village, seen_diamonds, seen_iron, seen_dungeon, seen_portal, seen_fortress | Somewhere it has seen one (its memory only) | as for its base; a greedy one keeps ore to itself |
+| follow | It comes along (once you walk off; as crouching twice does) | a friend, or someone it knows (10+) and has spent time near |
+| team | It comes along for 15 minutes (and helps against mobs, as friends do) | a friend |
+| come | It walks over to you | as follow |
+| stop | It stops following | anyone |
+| help | It drops what it's doing and runs to you, then sticks around a minute | a friend; a helper for anyone it doesn't dislike; a brave one it knows |
+| give | "can i have 3 bread": it brings it over and tosses it, from what it can spare, about what you're worth to it; no item named, it asks what | a friend, or anyone it owes for a gift |
+| trade | Points you to its shop, or asks what you need (then name the item) | anyone |
+| duel | A friendly 1v1: it fights you, nobody goes below a heart; whoever would have lost it says gg | a PvP sweat, a bandit or a brave, aggressive one, within 20 blocks, not on Peaceful; most others say no |
+| compliment | It thanks you, and likes you a little more (3 a day count) | anyone |
+| insult | It answers back and likes you less (5 a day count); for a day it brings it up when you ask for something | anyone |
+| joke | A joke | anyone |
+| bot | "are you a bot" | anyone |
+
+#### `ask.wyd`
+
+Answering **wyd**.
+
+- **everyone:** {doing} · just {doing} · {doing} rn · {doing}, wbu · nm, {doing} · {doing} lol · {doing}. you? · oh just {doing} · busy {doing}
+- **casual:** {doing} hbu · chillin, {doing} · eh {doing}
+- **newbie:** {doing}!! i think im doing it right · trying to {doing} lol · {doing}! wbu!
+- **builder:** {doing}, gotta finish the build · {doing}. planning a build after
+- **miner:** {doing}, then back to the mines · {doing}. mining after
+- **homebody:** {doing}, then home · {doing} near home
+- **speedrunner:** {doing}, cant stop · {doing}. on a timer
+- **nomad:** {doing}, then moving on · {doing} before i head out
+- **hoarder:** {doing}. why · {doing}, not sharing
+- **hermit:** {doing}. · busy. · ...
+- **PvP sweat:** {doing}. 1v1 after? · {doing}, wanna fight after
+- **bandit:** {doing}. why do you ask · mind your business
+- **helper:** {doing}! need anything? · {doing}, but i can help if you want
+
+#### `ask.wyd_idle`
+
+Answering **wyd**.
+
+- **everyone:** nm · nothing much · chilling · just vibing · nothing rn · idk, chilling · afk ish · not much, wbu · standing here lol
+- **newbie:** idk what to do lol · nothing! any ideas?
+- **hermit:** nothing. · being left alone. ideally
+- **helper:** nothing, need help with something?
+
+#### `ask.hru_good`
+
+Answering **hru**.
+
+- **everyone:** good · good hbu · pretty good · not bad · doing alright · good, you? · cant complain · chilling · alright · decent · great actually
+- **newbie:** good!! this game is fun · great!! wbu
+- **hermit:** fine. · fine
+- **PvP sweat:** cracked as always · good. undefeated
+- **helper:** good! you? · doing great, thanks for asking!
+
+#### `ask.hru_triumphant`
+
+Answering **hru**.
+
+- **everyone:** great!! · amazing actually · on top of the world · never better
+
+#### `ask.hru_hurt`
+
+Answering **hru**.
+
+- **everyone:** not great, low on hp · bad, need to heal · barely alive lol · on like 3 hearts · hurt ngl
+
+#### `ask.hru_hungry`
+
+Answering **hru**.
+
+- **everyone:** hungry · starving ngl · need food · could eat · hungry lol, got food?
+
+#### `ask.hru_bored`
+
+Answering **hru**.
+
+- **everyone:** bored · so bored · bored lol · kinda bored ngl · bored out of my mind
+
+#### `ask.hru_scared`
+
+Answering **hru**.
+
+- **everyone:** kinda scared ngl · nervous · spooked · not great, something's out there
+
+#### `ask.hru_angry`
+
+Answering **hru**.
+
+- **everyone:** annoyed · dont ask · mad rn · could be better
+
+#### `ask.hru_sad`
+
+Answering **hru**.
+
+- **everyone:** not great · sad ngl · rough day · lost a friend
+
+#### `ask.name`
+
+Answering **name**.
+
+- **everyone:** {name} · im {name} · {name}, you? · its {name} · {name}. and you? · name's {name} · {name} o/
+- **newbie:** im {name}!! nice to meet you · {name}! whats yours?
+- **hermit:** {name}. · why
+- **bandit:** {name}. remember it · who's asking
+- **helper:** {name}! nice to meet you {player}
+
+#### `ask.coords_yes`
+
+Answering **coords**.
+
+- **everyone:** {coords} · im at {coords} · {coords} why · {coords}, come by · around {coords} · {coords} rn
+
+#### `ask.coords_vague`
+
+Answering **coords**.
+
+- **everyone:** around · near you kinda · not far · close by · around here · you can see me lol
+
+#### `ask.coords_no`
+
+Answering **coords**.
+
+- **everyone:** why do you want to know · nice try · not telling · why · nah · dont think so
+- **bandit:** you first · nice try lol
+- **hermit:** no. · nowhere
+
+#### `ask.base_yes`
+
+Answering **base**.
+
+- **everyone:** {coords} · my base is at {coords} · {coords}, come by sometime · at {coords} · {coords}. dont grief it lol · {coords}, door's open
+- **homebody:** {coords}! come visit :)
+- **hoarder:** {coords}. and dont touch my chests
+
+#### `ask.base_way`
+
+Answering **base**.
+
+- **everyone:** {way} of here, about {dist} blocks · that way, {way}, like {dist} blocks · {dist} blocks {way}ish · out {way}, not far
+
+#### `ask.base_none`
+
+Answering **base**.
+
+- **everyone:** dont have one yet · homeless rn lol · still looking for a spot · no base yet · i live out here lol
+
+#### `ask.base_no`
+
+Answering **base**.
+
+- **everyone:** not telling a stranger · nice try lol · why · maybe when i know you · nah · secret
+- **bandit:** why, wanna rob it? · nice try
+- **hoarder:** absolutely not · so you can raid my chests? no
+
+#### `ask.seen_yes`
+
+Answering **seen_village, seen_diamonds, seen_iron, seen_dungeon, seen_portal, seen_fortress**.
+
+- **everyone:** yeah, {what} at {coords} · one at {coords} · {coords} · saw {what} at {coords} · yeah, around {coords}
+
+#### `ask.seen_way`
+
+Answering **seen_village, seen_diamonds, seen_iron, seen_dungeon, seen_portal, seen_fortress**.
+
+- **everyone:** yeah, {way} of here, like {dist} blocks · {way}, about {dist} blocks · saw {what} out {way} · yeah, {dist} blocks {way}ish
+
+#### `ask.seen_none`
+
+Answering **seen_village, seen_diamonds, seen_iron, seen_dungeon, seen_portal, seen_fortress**.
+
+- **everyone:** havent seen any · nope · no idea · not around here · nah, havent seen {what} · wish i knew lol
+
+#### `ask.seen_no`
+
+Answering **seen_village, seen_diamonds, seen_iron, seen_dungeon, seen_portal, seen_fortress**.
+
+- **everyone:** maybe · find your own lol · not telling · maybe i have, maybe i havent · why would i tell you
+- **hoarder:** mine. find your own
+- **miner:** a miner never tells
+
+#### `ask.follow_yes`
+
+Answering **follow**.
+
+- **everyone:** omw · k · lead the way · sure · ok · coming · right behind you · aight · sure, where to
+- **newbie:** yay ok!! · ok!! where are we going
+- **nomad:** always down for a trip · lead on
+- **helper:** of course! lead the way
+
+#### `ask.follow_no`
+
+Answering **follow**.
+
+- **everyone:** nah · im busy · i dont even know you · why would i · no thanks · maybe later · not rn
+- **hermit:** no. · leave me alone
+- **bandit:** you first · not falling for that
+- **homebody:** i'd rather stay near home
+
+#### `ask.team_yes`
+
+Answering **team**.
+
+- **everyone:** sure, lets go · duo time · W, lets do it · sure! · ok, lead the way · teammates it is · lets gooo
+- **newbie:** really?? yes!! · yes!! i'll follow you
+- **PvP sweat:** fine, dont slow me down · ok but i get the kills
+- **helper:** of course!! lets go
+
+#### `ask.team_no`
+
+Answering **team**.
+
+- **everyone:** maybe later · i play solo · dont know you well enough · nah · maybe some other time · not rn
+- **hermit:** i work alone · no.
+- **speedrunner:** youd slow me down · solo run, sorry
+
+#### `ask.come_yes`
+
+Answering **come**.
+
+- **everyone:** coming · omw · 1 sec · on my way · ok · k · coming coming
+
+#### `ask.follow_no`
+
+Answering **come**.
+
+- **everyone:** nah · im busy · i dont even know you · why would i · no thanks · maybe later · not rn
+- **hermit:** no. · leave me alone
+- **bandit:** you first · not falling for that
+- **homebody:** i'd rather stay near home
+
+#### `ask.stop`
+
+Answering **stop**.
+
+- **everyone:** ok · fine · k · aight · ok ill stay · np · cya then · ok o/
+- **newbie:** ok! bye!!
+- **hermit:** finally
+
+#### `ask.help_yes`
+
+Answering **help**.
+
+- **everyone:** coming! · omw!! · hold on! · coming, hang in there · on my way! · im coming
+- **helper:** coming!! hold on! · dont die, im coming
+- **PvP sweat:** move, ill handle it · omw, watch this
+
+#### `ask.help_no`
+
+Answering **help**.
+
+- **everyone:** good luck · lol no · youre on your own · cant rn · sorry, cant
+- **hermit:** not my problem
+- **bandit:** lol · what's in it for me
+
+#### `ask.give_yes`
+
+Answering **give**.
+
+- **everyone:** here · sure, take {count} · catch · here you go · here, {count} {item} · take these · sure · np, here
+- **helper:** of course! here · here, take {count}!
+- **hoarder:** fine. just {count} · ugh fine, here
+- **newbie:** here!! hope it helps
+
+#### `ask.give_back`
+
+Answering **give**.
+
+- **everyone:** you helped me out, here · here, i owe you one · for earlier, take it
+
+#### `ask.give_need`
+
+Answering **give**.
+
+- **everyone:** i need mine · need those sorry · only got enough for me · cant spare any · need them myself
+
+#### `ask.give_none`
+
+Answering **give**.
+
+- **everyone:** dont have any · none, sorry · fresh out · i dont have {item} · nope, none
+
+#### `ask.give_no`
+
+Answering **give**.
+
+- **everyone:** no · get your own · why would i give you that · nah · earn it · lol no
+- **hoarder:** absolutely not · mine
+- **bandit:** what's it worth to you
+
+#### `ask.give_much`
+
+Answering **give**.
+
+- **everyone:** thats a lot to ask · i can't give that much away · too much, sorry · maybe a few
+
+#### `ask.give_what`
+
+Answering **give**.
+
+- **everyone:** what do you need? · what do you want? · like what · need what? · what are you looking for
+
+#### `ask.trade`
+
+Answering **trade**.
+
+- **everyone:** what you got? · what do you need? · maybe, what for · i might have stuff · depends what you want · sure, whatcha need
+
+#### `ask.shop`
+
+Answering **trade**.
+
+- **everyone:** check my shop · right-click me · see what i got, right-click · come look at my stuff
+
+#### `ask.duel_yes`
+
+Answering **duel**.
+
+- **everyone:** bet · youre on · lets go · ok, to 3 hearts · sure, first to 3 hearts · alright, square up · fine, hit me when ready
+- **PvP sweat:** bet. you're done · finally, someone with guts · 1v1 me then, go
+- **bandit:** you'll regret that · bet
+- **newbie:** ok but go easy!! · uh ok!
+
+#### `ask.duel_far`
+
+Answering **duel**.
+
+- **everyone:** come here then · where are you lol · come find me first · get over here then · bet, come here
+- **PvP sweat:** come here and say that · pull up then
+
+#### `ask.duel_no`
+
+Answering **duel**.
+
+- **everyone:** nah im good · not now · no thanks · i'll pass · maybe later
+- **helper:** i dont fight friends · lets not
+- **hermit:** no. · go away
+- **homebody:** not into fighting
+
+#### `ask.duel_scared`
+
+Answering **duel**.
+
+- **everyone:** no way lol · with that gear? no · i'd lose lol · not a chance
+
+#### `ask.duel_won`
+
+Answering **duel**.
+
+- **everyone:** gg · gg ez · too easy · gg, close one · get good lol · gg wp
+- **helper:** gg! you almost had me
+- **newbie:** i won?? gg!!
+
+#### `ask.duel_lost`
+
+Answering **duel**.
+
+- **everyone:** gg you win · ok ok you win · gg wp · gg, rematch later · fine, you win · gg, you're good
+- **PvP sweat:** lag · gg, i wasnt trying · rematch. now
+- **bandit:** lucky
+
+#### `ask.compliment`
+
+Answering **compliment**.
+
+- **everyone:** ty · thx :) · aw ty · thanks! · ty ty · thank you · you too · appreciate it · :)
+- **newbie:** thank you!! · omg ty!!
+- **hermit:** hm. thanks · ok
+- **PvP sweat:** i know · obviously
+- **builder:** ty! took ages · thanks, still working on it
+- **bandit:** flattery wont work
+
+#### `ask.insult`
+
+Answering **insult**.
+
+- **everyone:** ok · rude · cope · whatever · wow · k · and? · ok buddy · cool story
+- **PvP sweat:** 1v1 then · says you · L yourself · cope
+- **newbie:** hey :( · that's mean
+- **hermit:** ... · go away
+- **helper:** that's not nice · hope your day gets better
+- **bandit:** watch it · say that again
+
+#### `ask.insult_again`
+
+Answering **insult**.
+
+- **everyone:** you again with that · keep talking · wow, again · you done? · ok we get it · so original
+
+#### `ask.refuse_insulted`
+
+Answering **insult**.
+
+- **everyone:** not after you called me {insult} · maybe dont call me {insult} next time · you called me {insult}. no · ask nicely next time · after calling me {insult}? lol no
+
+#### `ask.joke`
+
+Answering **joke**.
+
+- **everyone:** why did the creeper cross the road? to get to the other ssssside · whats a creepers favorite food? ssssalad · why dont skeletons fight each other? no guts · what do you call a chicken with a baby zombie on it? lunch with extra steps · why did the enderman stare? he was looking for his block · knock knock. creeper. creeper wh- *boom* · my sword's like my jokes. dull · i'd tell you a redstone joke but you wouldnt get the signal · why do ghasts cry? fire in their eyes
+- **hermit:** no.
+- **newbie:** umm... creepers are green? lol
+
+#### `ask.bot`
+
+Answering **bot**.
+
+- **everyone:** no lol · beep boop · im as real as you · what? no · are YOU a bot · lol no · no im just bad
+- **newbie:** no!! im real!!
+- **hermit:** does it matter
+- **PvP sweat:** bots dont play this good
+
+## 8. Not chat, but close
 
 - **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod's announcements.
 - **Thoughts:** what a Drifter thinks (`/drifter thoughts`) never goes to chat.
 - **The chronicle:** Drifter: Civilizations's morning news ("Day 4: ...") is the mod reporting.
 
-## 8. What you can say to them
+## 9. What you can say to them
 
 A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, "yeah no" a no. Capitals, punctuation and stretched letters don't matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped ("im" is "i'm"). The words can be anywhere in the message.
 
@@ -1426,6 +1845,7 @@ A message means whichever of these it has the longest phrase of: "no problem" is
 | An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |
 | A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |
 | A Drifter's name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |
+| To a Drifter (section 7) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, **help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |
 | Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |
 
 Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, right-click a merchant or a stall keeper.
@@ -1438,8 +1858,31 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **night** (23): gn · gnn · good night · goodnight · night · nite · nighty night · night all · gn all · gn everyone · night everyone · nn · gnight · going to bed · off to bed · bedtime · time to sleep · sleep well · sweet dreams · logging off for the night · heading to bed · going to sleep · zzz
 - **thanks** (30): ty · tyy · thx · thanks · thank you · thank u · tysm · tyvm · ty so much · thanks so much · thanks a lot · much appreciated · appreciate it · appreciate you · cheers · ta · merci · gracias · danke · ty o7 · thank you so much · tyty · ty ty · thanks man · thanks bro · ty bro · you rock · ur the best · youre the best · legend
 - **bye** (31): bye · byee · bye bye · bb · cya · see ya · see you · see you later · see ya later · later · laters · l8r · take care · o7 · peace · peace out · im out · gtg · got to go · gotta go · have to go · heading out · logging off · logging · brb · afk · farewell · goodbye · good bye · catch you later · ttyl
+- **wyd** (23): wyd · wud · what you doing · what are you doing · what r u doing · what are u doing · whatcha doing · watcha doing · what you up to · what are you up to · what r u up to · whats up with you · what u doing · what you doin · what are you doin · you busy · are you busy · u busy · busy · what are you working on · what you working on · whatcha up to · up to anything
+- **hru** (24): how are you · how r u · how are u · hru · how you doing · how are you doing · how u doing · hows it going · how is it going · you good · u good · you ok · u ok · are you ok · are you okay · you okay · how have you been · hows life · hows your day · how was your day · you alright · u alright · wbu · hbu
+- **name** (13): whats your name · what is your name · whats ur name · ur name · your name · who are you · who r u · who are u · who is this · whos this · who dis · do i know you · have we met
+- **coords** (16): coords · cords · ur coords · your coords · send coords · what are your coords · where are you · where r u · where are u · wya · where you at · where u at · location · where abouts · send location · drop coords
+- **base** (20): where do you live · where do u live · where you live · where is your base · wheres your base · wheres ur base · where is ur base · your base · ur base · base coords · where is your house · wheres your house · wheres ur house · where is your home · wheres your home · where do you stay · show me your base · can i see your base · where is your town · wheres your town
+- **seen_village** (14): village · villages · seen a village · seen any villages · know a village · any villages · any village · where is a village · wheres a village · wheres the village · where is the village · village nearby · villagers · any villagers
+- **seen_diamonds** (11): diamonds · diamond · dias · seen diamonds · seen any diamonds · where are diamonds · wheres diamonds · found diamonds · found any diamonds · know where diamonds · any diamonds
+- **seen_iron** (9): iron · seen iron · seen any iron · where is iron · wheres iron · found iron · found any iron · any iron · iron ore
+- **seen_dungeon** (9): dungeon · dungeons · spawner · spawners · mob spawner · seen a dungeon · seen a spawner · any dungeons · any spawners
+- **seen_portal** (7): portal · nether portal · seen a portal · any portals · where is the portal · wheres the portal · ruined portal
+- **seen_fortress** (6): fortress · nether fortress · seen a fortress · where is the fortress · wheres the fortress · blazes
+- **follow** (20): follow me · follow · come with me · come with · come along · lets go · lets go together · with me · folow me · follow pls · follow me pls · follow me please · come on · cmon · c mon · tag along · you coming · u coming · walk with me · lead the way
+- **come** (13): come here · come to me · over here · get over here · c here · come over · come over here · here pls · to me · come here pls · come here please · where are you go · come back
+- **stop** (20): stop following · stop following me · stay · stay here · wait here · stay there · wait there · go away · leave me alone · dont follow me · stop follow · quit following me · go home · you can go · u can go · bye for now · thats enough · thanks thats all · ill go alone · stop it
+- **help** (21): help · help me · help pls · help please · pls help · plz help · halp · save me · im dying · i am dying · need help · i need help · someone help · anyone help · sos · mobs · theyre attacking me · im being attacked · backup · need backup · assist
+- **team** (24): team up · wanna team · wanna team up · want to team up · lets team · lets team up · team with me · be my teammate · be my team · join me · join my team · duo · wanna duo · lets duo · wanna be friends · be my friend · friends · wanna play together · play together · partner · partners · be partners · join my group · wanna join
+- **give** (29): can i have · can i get · can you give me · can u give me · could you give me · give me · gimme · got any · do you have · do u have · you have any · u have any · spare · any spare · can you spare · need some · i need · lend me · share · can you share · give pls · pls give · hand me · toss me · throw me · drop me · send me · could i have · may i have
+- **trade** (18): trade · trades · wanna trade · want to trade · lets trade · trade me · trading · can we trade · you trading · u trading · buy · sell · selling · buying · whats for sale · what do you sell · shop · store
+- **duel** (22): 1v1 · 1 v 1 · 1vs1 · 1v1 me · duel · duel me · fight me · wanna fight · wanna 1v1 · wanna duel · lets fight · lets 1v1 · lets duel · pvp · wanna pvp · spar · wanna spar · lets spar · square up · 1v1 rn · come fight · fight
+- **compliment** (52): nice · cool · ur cool · youre cool · you are cool · u r cool · nice house · nice base · nice build · nice armor · nice gear · nice skin · nice sword · nice job · good job · well done · love you · ily · i like you · ur awesome · youre awesome · you are awesome · ur the best · youre the best · you are the best · goat · ur goated · goated · legend · ur a legend · based · pog · poggers · W · big W · huge W · ur nice · youre nice · ur sweet · ur funny · youre funny · sick · so cool · ur so cool · nice one · great job · amazing · ur pro · youre pro · pro · ur good · youre good
+- **insult** (53): noob · nub · newb · n00b · trash · ur trash · youre trash · you are trash · ur bad · youre bad · you are bad · u suck · you suck · ur stupid · stupid · idiot · dumb · ur dumb · dummy · L · take the L · loser · ur a loser · bot · ur a bot · ratio · cringe · ur cringe · shut up · stfu · ez · too ez · garbage · clown · ur a clown · skill issue · hate you · i hate you · ugly · ur ugly · get good · git gud · bozo · ur mid · mid · go away loser · useless · ur useless · annoying · ur annoying · weirdo · freak · nerd
+- **joke** (8): tell me a joke · tell a joke · joke · know any jokes · say something funny · make me laugh · got any jokes · funny
+- **bot** (15): are you a bot · r u a bot · are u a bot · you a bot · u a bot · are you real · r u real · are you human · are you ai · are you an ai · is this a bot · are you a robot · npc · are you an npc · ur an npc
 
 ## Where they live
 
-- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
-- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `encounter/*.java`.
+- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
+- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `encounter/*.java`.

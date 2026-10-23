@@ -2873,5 +2873,30 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Tested in the client with Chat Heads 0.15.7, Talk Bubbles 1.0.8 and Chat Patches 8.0.0: bubbles over Ann and Bob
     as they talked, their own faces next to their lines (Chat Patches' timestamps in front, lined up as a player's).
     `run/mods` keeps Chat Heads and Talk Bubbles for client tests.
-- Before that: the well (it needs water poured in: a builder step for water), the plaza (lamps, a notice board), then step 4,
-  money and markets.
+- **Chat phase 2: asking a Drifter things in chat (0.22.20; the user: requests "Yes, trust-gated", "start 3 after").**
+  - `social/talk/PlayerTalk` (called first from `ChatReplies`' chat listener): the intent is the longest phrase found
+    (`drifter_chat/requests.json`, 23 intents, ~450 phrases, ~450 reply lines in voices). Who it's for: named (or a
+    4+ letter part), else the one they talked with this last minute, else the one looked at within 16 blocks, else the
+    only one within 10. It turns to them (`SocialWatcher.spokenTo`, the name-call look) and answers after typing time.
+  - Gates by trust: info (wyd, hru, name, joke, bot) for anyone not hostile; coords to a friend (25), "around" to one it
+    knows (10); base and places seen: coords to a friend, direction and distance to one it knows; follow and come: a
+    friend, or known and familiar (as the crouch invite); team (15 min follow): a friend; help (drops its job, runs over,
+    stays a minute): a friend, a helper, a brave one it knows; give: a friend or one it owes, from `Storage.spare`, worth
+    4 + trust/2 + what it owes, as many as said or a handful; duel: fighters only, within 20 blocks, not Peaceful.
+  - `RequestGoal` (come, help, give: walks over, tosses the items), `Spar` (friendly 1v1: VENGEFUL toward them in
+    `Mode.toward`, the chase; nobody goes below a heart, `ALLOW_DAMAGE` stops the blow and that side loses; hits in a
+    spar aren't wrongs; "gg" either way, +2 trust, +3 familiarity), `FollowMe` takes chat invites (longer for team,
+    urgent: it said "omw"), stop following.
+  - Memory: `Relationship` keeps compliments, insults, the last insult and when (saved); `SocialEvent` COMPLIMENT (+2,
+    3 a day) and INSULT (-4, 5 a day). Insulted in the last day and not a friend: "not after you called me a noob".
+  - DESIGN.md section 14 records the decision. docs/CHAT_LINES.md section 7.
+  - Tested in the client: wyd ("gather birch log, wbu"), how are you, name, base ("homeless rn lol"), "can i have
+    some bread" (stranger: "no"; trust 40: "here you go", walked over and tossed 3 bread), coords, follow me (followed),
+    stop following, a compliment (trust +2), a 1v1 (took it, dropped its job, fought, stopped the blow at 2 hearts:
+    "gg"), "noob" then a request ("after calling me a noob? lol no"), "are you a bot" ("bots dont play this good").
+  - Found and fixed: a request removed when started (it dropped it after 5 s); a follow walk never ends (now walks to
+    where they are); chat follow lost to a committed job (now urgent); "noob" read back as "that" (normalized "nob");
+    a spar accepted from 40 blocks; no fight on Peaceful (it now declines there); a job with no checkpoint kept it from
+    the fight (it drops it, as for help); a single crit could take the player from 5 hearts to none (blow stopped).
+- Next: chat phase 3 (Drifters start talks with you, several join in, town gm rounds), then phase 4. Then the well, the
+  plaza (lamps, a notice board), then step 4, money and markets.

@@ -104,6 +104,14 @@ public class SocialWatcher {
 		long invitedAt = Long.MIN_VALUE / 2;
 		@Nullable
 		Vec3 invitedFrom;
+		/**
+		 * How long the invitation stands (crouching: a few seconds; asked in chat: while they finish typing), and how long it
+		 * follows them for (0: the usual).
+		 */
+		int invitedFor = 20 * 6;
+		int followFor;
+		/** They told it to stop following ("stay here", "go away"), when. */
+		long toldToStopAt = Long.MIN_VALUE / 2;
 		/** When it last greeted them. */
 		long greetedAt = Long.MIN_VALUE / 2;
 		/** They just gave it something: it thanks them (once). */
@@ -170,11 +178,55 @@ public class SocialWatcher {
 	@Nullable
 	public Vec3 invitedFrom(Player player) {
 		Watch w = this.watches.get(player.getUUID());
-		return w != null && this.now() - w.invitedAt < 20 * 6 ? w.invitedFrom : null;
+		return w != null && this.now() - w.invitedAt < w.invitedFor ? w.invitedFrom : null;
+	}
+
+	/**
+	 * They asked it in chat to come along (chat phase 2): as the crouch invitation, standing for {@code forTicks} (it follows
+	 * once they walk off), for {@code followTicks} (0: the usual).
+	 */
+	public void invite(Player player, int forTicks, int followTicks) {
+		Watch w = this.watch(player);
+		w.invitedAt = this.now();
+		w.invitedFrom = player.position();
+		w.invitedFor = forTicks;
+		w.followFor = followTicks;
+	}
+
+	/** The invitation standing now was asked in chat (someone's waiting on an answer they got). */
+	public boolean askedToFollow(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && w.invitedFor > 20 * 6 && this.invitedFrom(player) != null;
+	}
+
+	/** How long it follows them this time ({@code usual} unless they asked for longer). */
+	public int followTicks(Player player, int usual) {
+		Watch w = this.watches.get(player.getUUID());
+		return w == null || w.followFor <= 0 ? usual : w.followFor;
+	}
+
+	/** They told it to stop following. */
+	public void toldToStop(Player player) {
+		this.watch(player).toldToStopAt = this.now();
+	}
+
+	/** They told it to stop since this time. */
+	public boolean toldToStopSince(Player player, long since) {
+		Watch w = this.watches.get(player.getUUID());
+		return w != null && w.toldToStopAt >= since;
+	}
+
+	/** They talked to it in chat (not by name): it turns to look for them, as when its name is called. */
+	public void spokenTo(Player player) {
+		Watch w = this.watch(player);
+		w.calledAt = this.now();
+		w.calledFrom = player.getEyePosition();
 	}
 
 	public void followed(Player player) {
-		this.watch(player).invitedAt = Long.MIN_VALUE / 2;
+		Watch w = this.watch(player);
+		w.invitedAt = Long.MIN_VALUE / 2;
+		w.invitedFor = 20 * 6;
 	}
 
 	/** It greeted them lately. */
@@ -291,7 +343,9 @@ public class SocialWatcher {
 
 	/** A player's hit landed (health after it). Called from the Drifter's damage handling. */
 	public void hitBy(Player player, float amount, float healthAfter) {
-		if (!isRealPlayer(player)) {
+		// (A friendly fight they agreed to in chat: no wrong, no "ouch".)
+		if (!isRealPlayer(player) || com.dinglebob.drifter.social.talk.Spar.on(this.drifter, player)
+			|| com.dinglebob.drifter.social.talk.Spar.calming(this.drifter, player)) {
 			return;
 		}
 
@@ -326,7 +380,7 @@ public class SocialWatcher {
 
 	/** It died, killed by this player. */
 	public void killedBy(Player player) {
-		if (isRealPlayer(player)) {
+		if (isRealPlayer(player) && !com.dinglebob.drifter.social.talk.Spar.on(this.drifter, player)) {
 			ChatLines.say(this.drifter, ChatLines.Kind.GG_LOST, "player", player.getGameProfile().getName());
 			this.record(player, SocialEvent.KILLED, 0.0);
 		}
@@ -762,7 +816,7 @@ public class SocialWatcher {
 	 * least {@link #NAME_PART} letters long that isn't an everyday word (user, 2026-10-23: nobody types out
 	 * "xXGrumpybakerXx"; "grumpy" or "baker" will do).
 	 */
-	static boolean called(String text, String name) {
+	public static boolean called(String text, String name) {
 		String lower = name.toLowerCase(java.util.Locale.ROOT);
 		if (lower.isEmpty()) {
 			return false;

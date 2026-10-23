@@ -1163,7 +1163,16 @@ Short, lowercase, canned lines tied to events, never generated text: hi, gg, ty,
 
 **Its name in chat (user's decision, 2026-10-15):** a player who says a Drifter's name in chat within about 32 blocks gets
 its attention: it hears it, turns toward the voice and looks for them; seeing someone it doesn't dislike, it nods (and
-may answer "?" or "yes?"). Drifters still don't understand anything else players type.
+may answer "?" or "yes?").
+
+**The dynamic chat (user's decisions, 2026-10-23: "greatly expand small talk conversations between drifters aswell as
+player interaction"; chosen: only players nearby see what Drifters say; requests from player chat, trust-gated; built in
+phases with a test between).** Still canned lines from data files, never generated text, but many more, in personality
+voices, picked by what the Drifter knows: Drifters talk with each other about what they did (a diary), their gear, home,
+town, news and the weather (phase 1); a player can ask a Drifter things in chat, by name or to its face, and it answers
+and does what it agrees to, as far as it trusts them: what it's doing, where it is or lives, places it has seen, follow,
+come, help, team up, can I have, trade, a friendly 1v1 to a heart, compliments and insults (which it remembers)
+(phase 2). Only from its own knowledge (section 1). Chat Heads and Talk Bubbles show its face and a bubble (phase 5).
 
 ### Forgiveness and multiplayer
 

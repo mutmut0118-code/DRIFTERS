@@ -79,6 +79,16 @@ public enum Mode {
 
 		Relationships social = drifter.getSocial();
 		Relationship r = social.getOrMeet(player.getUUID(), player.getGameProfile().getName());
+		// A friendly 1v1 they asked for in chat and it took (chat phase 2): it fights them, to a few hearts; just over, their
+		// last swing isn't taken as an attack.
+		if (com.dinglebob.drifter.social.talk.Spar.on(drifter, player)) {
+			return VENGEFUL;
+		}
+
+		if (com.dinglebob.drifter.social.talk.Spar.calming(drifter, player)) {
+			return TOLERATING;
+		}
+
 		// Being hit by them right now: it fights back (and runs if it's losing; the threat assessment decides that).
 		if (drifter.getLastHurtByMob() == player && drifter.tickCount - drifter.getLastHurtByMobTimestamp() < 20 * 5) {
 			return DEFENSIVE;

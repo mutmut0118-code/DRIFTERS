@@ -54,6 +54,11 @@ public final class ChatReplies {
 			}
 
 			String said = message.signedContent();
+			// Said to a Drifter (asked it something, by name or to its face): it answers that (chat phase 2).
+			if (com.dinglebob.drifter.social.talk.PlayerTalk.heard(sender, said)) {
+				return;
+			}
+
 			String intent = Lines.answer(said, "night", "bye", "thanks", "greeting");
 			if (intent == null) {
 				return;
