@@ -242,6 +242,21 @@ final class TownRoads {
 		}
 
 		@Override
+		public int taxOwed(DrifterEntity drifter) {
+			return this.town.taxOwed.getOrDefault(drifter.getUUID(), 0);
+		}
+
+		@Override
+		public void taxPaid(DrifterEntity drifter, int emeralds) {
+			Politics.taxPaid(drifter.getServer(), this.town, drifter, emeralds);
+		}
+
+		@Override
+		public void talk(DrifterEntity drifter, java.util.Map<String, Object> words, java.util.Set<String> flags) {
+			Politics.talk(drifter, this.town, words, flags);
+		}
+
+		@Override
 		public boolean clearOfTrees(int x, int z) {
 			// (A founded town's plaza, once its stall is up: the plaza's next.)
 			return !this.town.spawned && this.town.stallBuilt && plaza(this.town).away(x, z) <= 0;

@@ -1460,6 +1460,17 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## A town's leader, elections, laws (new, 0.22.26)
+
+- [ ] `/drifterciv town` in a town: "Leader: X (since day N); laws: ...; next election day N". The founder leads first.
+- [ ] The day before an election, a few stand ("X, Y and Z stand for leader" in the chronicle); near them you hear the
+      campaign ("vote for me tomorrow!", "who you voting for?"). Election morning: "X was elected/re-elected leader of
+      T (tally)". To see one at once: `/drifterciv town elect` (debug), in the morning.
+- [ ] A new leader brings its own laws (in the chronicle and on the notice board): a greedy one a tax (its people take
+      emeralds to the till, "paid 1 emerald of tax" in their thoughts), a cautious one the farms for citizens only.
+- [ ] They talk about it: the leader, the taxes ("these taxes are robbery"), a new leader ("finally" / "ugh"); a leader
+      welcomes you to its town.
+
 ## A town's money: the till, wages, buying, trade runs (new, 0.22.25)
 
 Quickest on a made-ready town: `/drifterciv town spawn 4` (stand on open land). `/drifterciv town` shows the money line

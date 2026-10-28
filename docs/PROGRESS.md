@@ -3018,4 +3018,26 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Not done / limits: a town far from every player isn't running (its Drifters wait, unless the config's "kept
     running" Drifters include them), so a trader to an unloaded town waits there or comes home; runs aren't saved over a
     restart; the trader doesn't ride yet (it walks, a boat over water as it does anyway).
-- Next: steps 5 and on (leaders and laws), or what the user picks.
+- **Step 5, part 1: leaders, elections, laws, tax (0.22.26; the user: "lets do step 5"; chose: founder then elections,
+  laws no stealing/no killing + tax + farms for citizens only, punishment by guards and fines, exile, bounties (prison
+  later), three parts with a test between).**
+  - `Politics` (addon), `Town.leader` (not the group's leader: its home is the group's base), `leaderSince`,
+    `nextElection`, `candidates`, `lastVotes`, `laws`, `tax`, `taxOwed`, `taxDay` (saved). The founder leads first.
+  - Elections every 5 days: the day before, the leader and up to two of its most ambitious people (0.5 sociability +
+    0.4 greed + 0.4 bravery, 0.75 or more) stand; election morning each loaded member votes for the one it trusts most
+    (a few points of its own leaning at random: all friends alike, it still has a favourite); a candidate for itself;
+    a tie keeps the leader. Unopposed: it stays. Chronicle: "X, Y and Z stand...", "X was elected ... (tally)".
+  - Laws by the leader's personality: no stealing and no killing always; greed 0.45+: a tax of 1 to 4 emeralds a
+    household every 3 days (owed, at most 3 levies; `TownMoneyGoals.Tax` takes it to the till, keener the more it owes;
+    paying makes it a little less fond of the leader); caution 0.55+ or aggression 0.7+: farms for citizens only.
+    Enforcement is part 2.
+  - Talk (`TownWork.talk` -> `Facts`): flags is_leader, likes_leader/dislikes_leader, new_leader, election_soon,
+    candidate, taxed, tax_high, farms_closed; words leader, candidate_a/b, rival, my_vote, tax. Topics campaign,
+    election_chat (who you voting for? -> its real choice), leader_praise, leader_gripe, taxes, new_leader_talk,
+    leader_rounds; to players leader_welcome, campaign_player. The board: "N homes, M ppl / Leader: / name / tax 2,
+    farms ours".
+  - `/drifterciv town` shows the leader, laws, next election, who stands, the last vote; `/drifterciv town elect` (debug).
+  - Tested headless (made-ready towns, seeds 777 and 779): three stood, 12 voted (8 to 1 to 3; a 4-4-4 tie kept the
+    leader); on 779 the town voted its leader out twice (3-4-5, then 4-6-2), each new leader with its own laws (tax 1,
+    then 3, then 3 and farms for citizens), and its people paid their tax into the till.
+- Next: step 5 part 2 (crime and punishment: witnesses, guards, fines, exile, bounties), then part 3 (unrest).

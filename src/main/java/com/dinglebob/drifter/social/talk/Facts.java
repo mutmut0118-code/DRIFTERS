@@ -162,6 +162,8 @@ public final class Facts {
 		if (me.getTownWork() != null && group != null) {
 			facts.words.put("town", group.name);
 			facts.flags.add("in_town");
+			// Its town's affairs (its leader, the election, the laws), as the town tells them.
+			me.getTownWork().talk(me, facts.words, facts.flags);
 		}
 
 		// Its mood.

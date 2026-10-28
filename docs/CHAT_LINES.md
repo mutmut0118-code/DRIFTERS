@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (42 topics, 1291 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (49 topics, 1393 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1439,9 +1439,76 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 3. **a** (50%): classic {a.joke_who} · we're never letting that go · {a.joke_nick} forever
 - *Someone standing by may add:* LMAO · never forget · lol
 
+#### campaign
+
+*Needs:* a:candidate, !b:candidate, !rivals
+
+1. **a**: vote for me tomorrow! · {a} for leader, you know it · i'd make a better leader than {a.rival} · got my vote? i'm standing tomorrow · you'll vote for me right?
+   - **helper:** vote for me and i'll help everyone, promise!
+   - **bandit:** vote for me. it'd be wise · you'll vote right, won't you
+   - **PvP sweat:** vote for me, i'll keep this town safe
+   - **hoarder:** vote for me, lower taxes. probably
+2. **b**:
+   - *!b:likes_leader:* you've got my vote · sure, anything's better than now · maybe. what's in it for me? · we'll see
+   - *otherwise:* {b.leader}'s been fine tho · hmm, i like {b.leader} · i'll think about it · no promises
+3. **a** (60%): think about it · i'll remember who voted for me · ty! · just saying
+
+#### election chat
+
+*Needs:* a:election_soon, b:election_soon, !a:candidate, !b:candidate
+
+1. **a**: who you voting for? *(answered: {b.my_vote} / {b.my_vote} probably / not telling / {b.my_vote}, obviously)* · {a.candidate_a} or {a.candidate_b}? *(answered: {b.my_vote} / tough one / {b.my_vote} i guess / dunno yet)*
+2. **a** (60%): i'm going with {a.my_vote} · {a.my_vote} for me · same · fair enough
+
+#### leader praise
+
+*Needs:* a:likes_leader, !strangers
+
+1. **a**: {a.leader} is doing a good job · gotta say, {a.leader} runs this place well · {a.town}'s in good hands with {a.leader}
+2. **b**:
+   - *b:dislikes_leader:* if you say so · eh · you would say that
+   - *otherwise:* yeah · agreed · for sure
+
+#### leader gripe
+
+*Needs:* a:dislikes_leader, !strangers
+
+1. **a**: {a.leader} is useless · can't wait for the next election · who put {a.leader} in charge anyway · {a.leader} needs to go
+2. **b**:
+   - *b:likes_leader:* hey, {b.leader}'s alright · that's harsh · nah they're fine
+   - *otherwise:* true · fr · shh, they'll hear you · lol same
+
+#### taxes
+
+*Needs:* a:taxed, !a:is_leader
+
+1. **a**:
+   - *a:tax_high:* {a.tax} emeralds tax, really? · these taxes are robbery · {a.leader} and these taxes smh
+   - *otherwise:* tax day again · paid my tax · where do the taxes even go · another emerald for the till
+2. **b**: it pays the wages i guess · ugh tell me about it · at least the roads are nice · same
+
+#### new leader talk
+
+*Needs:* a:new_leader
+
+1. **a**: {a.leader} won! · so {a.leader}'s in charge now · new leader, new rules · did you hear? {a.leader} won the vote
+2. **b**:
+   - *b:likes_leader:* finally · good, they deserve it · W
+   - *b:dislikes_leader:* ugh · this is gonna be rough · great...
+   - *otherwise:* we'll see how it goes · huh · ok
+
+#### leader rounds
+
+*Needs:* a:is_leader, !strangers
+
+1. **a**: how's everything going? · need anything for your house? · the town's doing well, right? · any complaints? (don't say taxes)
+2. **b**:
+   - *b:dislikes_leader:* could be better · since you ask... the taxes · fine
+   - *otherwise:* all good · doing great · no complaints
+
 ## 7. Drifters talking to you
 
-A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (18 topics in `drifter_talk/players.json`; **a** is the Drifter, **b** you): a stranger gets a hi, a friend their name and its news, your gear, how hurt you look, the night coming, what it found, a running joke about you, and questions you answer in chat ("wanna team up?": a yes however you say it, and it does it). One Drifter at a time with you, every minute and a half at most; each Drifter every 3 to 15 minutes (the chatty sooner). `/drifter talk me [topic]` makes the nearest one bring something up with you.
+A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (20 topics in `drifter_talk/players.json`; **a** is the Drifter, **b** you): a stranger gets a hi, a friend their name and its news, your gear, how hurt you look, the night coming, what it found, a running joke about you, and questions you answer in chat ("wanna team up?": a yes however you say it, and it does it). One Drifter at a time with you, every minute and a half at most; each Drifter every 3 to 15 minutes (the chatty sooner). `/drifter talk me [topic]` makes the nearest one bring something up with you.
 
 **Running jokes.** Drifters who see someone (you, or a Drifter) die a silly death (lava, a fall, drowning, a cactus...) have a joke for a week: they bring it up with each other ("remember when Tester fell off a cliff lol", and one who was there: "never forget"), and with you ("hey its the cliff diver lol"). The words are `joke.what.*` and `joke.nick.*` below.
 
@@ -1597,6 +1664,20 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 1. **a**: im so bored, wanna do something? · bored. entertain me · {b} im bored, wanna go somewhere?
 - *You say yes* (follow): lets go, lead the way · finally, ok where to · W, i'll follow
 - *You say no:* ugh ok · fine · boring
+
+#### leader welcome
+
+*Needs:* a:is_leader, b:stranger
+
+1. **a**: welcome to {a.town}, i'm the leader here · hey, new face. i run {a.town} · welcome! i'm {a}, i lead {a.town}
+   - **bandit:** this is my town. behave · {a.town}'s mine. no trouble, got it?
+2. **a** (60%): no stealing, no killing, and we get along · keep your hands off our chests and we're good · enjoy your stay
+
+#### campaign player
+
+*Needs:* a:candidate, !b:stranger
+
+1. **a**: i'm standing for leader tomorrow! · vote for me! well, you can't, but tell everyone · {a} for leader. spread the word · election's tomorrow, wish me luck
 
 #### `chime.bot`
 

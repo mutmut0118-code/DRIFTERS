@@ -62,4 +62,20 @@ public interface TownWork {
 	/** It took this much (points) of its wages out of the till. */
 	default void paid(DrifterEntity drifter, double points) {
 	}
+
+	/** Tax it owes the town (emeralds; step 5: a leader's law), paid into the till. */
+	default int taxOwed(DrifterEntity drifter) {
+		return 0;
+	}
+
+	/** It paid this much tax (emeralds) into the till. */
+	default void taxPaid(DrifterEntity drifter, int emeralds) {
+	}
+
+	/**
+	 * What it knows of its town's affairs to talk about (step 5: its leader, an election coming, the candidates, the laws,
+	 * the tax): words for lines ({@code {a.leader}}...) and flags for topics ({@code election_soon}, {@code candidate}...).
+	 */
+	default void talk(DrifterEntity drifter, java.util.Map<String, Object> words, java.util.Set<String> flags) {
+	}
 }

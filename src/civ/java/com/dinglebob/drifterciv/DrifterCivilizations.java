@@ -88,6 +88,28 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: the nearest town holds its election now (those standing chosen, the vote at once).
+				.then(Commands.literal("elect").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null) {
+						ctx.getSource().sendFailure(Component.literal("No town here"));
+						return 0;
+					}
+
+					var server = ctx.getSource().getServer();
+					town.nextElection = Chronicle.day(server);
+					town.candidates.clear();
+					Politics.check(server, town);
+					long time = server.overworld().getDayTime() % 24000L;
+					if (time < 1000L) {
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " votes at 1000 (morning)"), true);
+					}
+
+					Politics.check(server, town);
+					Towns.save(server);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " held its election (/drifterciv chronicle)"), true);
+					return 1;
+				}))
 				// Debug: the nearest town owes each of its people this many emeralds' worth of wages (to see them collected).
 				.then(Commands.literal("owe").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("emeralds", IntegerArgumentType.integer(1, 10)).executes(ctx -> {
@@ -261,6 +283,17 @@ public final class DrifterCivilizations implements ModInitializer {
 			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " houses, " + alivePeople + " people alive; the store has "
 			+ stacks + " stacks in " + town.store.size() + " chests"), false);
 		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
+		// Its politics (step 5): the leader, the laws, the election.
+		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (politicsGroup != null && town.leader != null) {
+			String leaderName = politicsGroup.names.getOrDefault(town.leader, "?");
+			String standing = town.candidates.size() > 1 ? "; standing: " + String.join(", ", town.candidates.stream()
+				.map(id -> politicsGroup.names.getOrDefault(id, "?")).toList()) : "";
+			String last = town.lastVotes.isEmpty() ? "" : "; last vote: " + String.join(", ", town.lastVotes.entrySet().stream()
+				.map(entry -> entry.getKey() + " " + entry.getValue()).toList());
+			source.sendSuccess(() -> Component.literal("  Leader: " + leaderName + " (since day " + town.leaderSince + "); laws: " + Politics.lawsLong(town)
+				+ "; next election day " + town.nextElection + standing + last), false);
+		}
 		// A town founded by its people: who has a plot, whose house is up.
 		var group = town.spawned || town.group == null ? null : DrifterApi.groupById(town.group);
 		if (group != null) {

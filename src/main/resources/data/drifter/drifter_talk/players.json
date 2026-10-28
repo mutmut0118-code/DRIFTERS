@@ -4,204 +4,633 @@
     {
       "id": "hi_stranger",
       "weight": 3,
-      "needs": ["b:stranger"],
+      "needs": [
+        "b:stranger"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["hey, new here?", "o/ havent seen you before", "hi stranger", "hey there", "oh hi, didnt see you there", "yo, who are you"],
-          "newbie": ["hi!! are you new too?", "hello!! im {a}!"],
-          "hermit": ["...hm. hi", "you lost?"],
-          "bandit": ["well well. nice gear", "lost, traveller?"],
-          "helper": ["hi! need anything?", "welcome! o/"],
-          "pvp_sweat": ["you any good at pvp?", "sup"]
-        }},
-        {"by": "a", "chance": 0.5, "lines": ["im {a} btw", "{a}, nice to meet you", "name's {a}"]}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "hey, new here?",
+              "o/ havent seen you before",
+              "hi stranger",
+              "hey there",
+              "oh hi, didnt see you there",
+              "yo, who are you"
+            ],
+            "newbie": [
+              "hi!! are you new too?",
+              "hello!! im {a}!"
+            ],
+            "hermit": [
+              "...hm. hi",
+              "you lost?"
+            ],
+            "bandit": [
+              "well well. nice gear",
+              "lost, traveller?"
+            ],
+            "helper": [
+              "hi! need anything?",
+              "welcome! o/"
+            ],
+            "pvp_sweat": [
+              "you any good at pvp?",
+              "sup"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "chance": 0.5,
+          "lines": [
+            "im {a} btw",
+            "{a}, nice to meet you",
+            "name's {a}"
+          ]
+        }
       ]
     },
     {
       "id": "friend_hi",
       "weight": 3,
-      "needs": ["b:friend"],
+      "needs": [
+        "b:friend"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["{b}! o/", "yo {b}", "hey {b}", "{b} o/", "oh hey {b}", "ayy {b}"],
-          "newbie": ["{b}!! hi!!", "HI {b}"],
-          "hermit": ["{b}.", "oh. its you. hi"],
-          "helper": ["{b}! good to see you!"]
-        }},
-        {"by": "a", "options": [
-          {"if": ["a:found_rare"], "lines": ["found {a.ore_count} {a.ore} today btw", "guess who found {a.ore}"]},
-          {"if": ["a:in_town"], "lines": ["{a.town}'s coming along", "come see {a.town} sometime"]},
-          {"if": ["a:built_lately"], "lines": ["just finished my {a.built}", "built a {a.built}, come see"]},
-          {"lines": ["whatcha up to", "wyd", "been a while", "whats new"]}
-        ]}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "{b}! o/",
+              "yo {b}",
+              "hey {b}",
+              "{b} o/",
+              "oh hey {b}",
+              "ayy {b}"
+            ],
+            "newbie": [
+              "{b}!! hi!!",
+              "HI {b}"
+            ],
+            "hermit": [
+              "{b}.",
+              "oh. its you. hi"
+            ],
+            "helper": [
+              "{b}! good to see you!"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "options": [
+            {
+              "if": [
+                "a:found_rare"
+              ],
+              "lines": [
+                "found {a.ore_count} {a.ore} today btw",
+                "guess who found {a.ore}"
+              ]
+            },
+            {
+              "if": [
+                "a:in_town"
+              ],
+              "lines": [
+                "{a.town}'s coming along",
+                "come see {a.town} sometime"
+              ]
+            },
+            {
+              "if": [
+                "a:built_lately"
+              ],
+              "lines": [
+                "just finished my {a.built}",
+                "built a {a.built}, come see"
+              ]
+            },
+            {
+              "lines": [
+                "whatcha up to",
+                "wyd",
+                "been a while",
+                "whats new"
+              ]
+            }
+          ]
+        }
       ]
     },
     {
       "id": "nice_gear",
-      "needs": ["b:armor_good", "!b:stranger"],
-      "chime": ["fr", "jealous", "where'd you get that"],
+      "needs": [
+        "b:armor_good",
+        "!b:stranger"
+      ],
+      "chime": [
+        "fr",
+        "jealous",
+        "where'd you get that"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["nice armor", "ooh {b.armor} armor", "where'd you get all that {b.armor}", "drip", "rich much?"],
-          "bandit": ["nice armor. be a shame if something happened to it"],
-          "pvp_sweat": ["nice gear. still wouldnt save you", "{b.armor}? 1v1 me"]
-        }}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "nice armor",
+              "ooh {b.armor} armor",
+              "where'd you get all that {b.armor}",
+              "drip",
+              "rich much?"
+            ],
+            "bandit": [
+              "nice armor. be a shame if something happened to it"
+            ],
+            "pvp_sweat": [
+              "nice gear. still wouldnt save you",
+              "{b.armor}? 1v1 me"
+            ]
+          }
+        }
       ]
     },
     {
       "id": "nice_weapon",
-      "needs": ["b:holding_fancy"],
+      "needs": [
+        "b:holding_fancy"
+      ],
       "turns": [
-        {"by": "a", "lines": ["nice {b.held}", "ooh a {b.held}", "is that a {b.held}??", "where'd you get the {b.held}", "{b.held} :o"]}
+        {
+          "by": "a",
+          "lines": [
+            "nice {b.held}",
+            "ooh a {b.held}",
+            "is that a {b.held}??",
+            "where'd you get the {b.held}",
+            "{b.held} :o"
+          ]
+        }
       ]
     },
     {
       "id": "you_hurt",
       "weight": 3,
-      "needs": ["b:hurt", "!b:stranger"],
+      "needs": [
+        "b:hurt",
+        "!b:stranger"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["you ok? you look rough", "youre low, you good?", "yikes, need food?", "you're like on 2 hearts lol"],
-          "helper": ["you're hurt! want some food?", "oh no, you ok? need food?"],
-          "hermit": ["you're bleeding. fix that"]
-        }}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "you ok? you look rough",
+              "youre low, you good?",
+              "yikes, need food?",
+              "you're like on 2 hearts lol"
+            ],
+            "helper": [
+              "you're hurt! want some food?",
+              "oh no, you ok? need food?"
+            ],
+            "hermit": [
+              "you're bleeding. fix that"
+            ]
+          }
+        }
       ],
       "question": {
-        "yes": {"lines": ["here", "catch", "here, eat something", "take this"], "do": "give_food"},
-        "no": {"lines": ["ok, be careful", "suit yourself", "ok, stay safe"]}
+        "yes": {
+          "lines": [
+            "here",
+            "catch",
+            "here, eat something",
+            "take this"
+          ],
+          "do": "give_food"
+        },
+        "no": {
+          "lines": [
+            "ok, be careful",
+            "suit yourself",
+            "ok, stay safe"
+          ]
+        }
       }
     },
     {
       "id": "night_warning",
       "weight": 2,
-      "needs": ["night", "outside", "!b:stranger"],
+      "needs": [
+        "night",
+        "outside",
+        "!b:stranger"
+      ],
       "turns": [
-        {"by": "a", "lines": ["careful, mobs are out", "its dark, watch out", "you got a bed?", "stay safe out here", "dont get blown up lol"]}
+        {
+          "by": "a",
+          "lines": [
+            "careful, mobs are out",
+            "its dark, watch out",
+            "you got a bed?",
+            "stay safe out here",
+            "dont get blown up lol"
+          ]
+        }
       ]
     },
     {
       "id": "evening_warning",
-      "needs": ["evening", "outside"],
+      "needs": [
+        "evening",
+        "outside"
+      ],
       "turns": [
-        {"by": "a", "lines": ["sun's going down", "night soon", "getting dark, better find shelter", "almost night, careful"]}
+        {
+          "by": "a",
+          "lines": [
+            "sun's going down",
+            "night soon",
+            "getting dark, better find shelter",
+            "almost night, careful"
+          ]
+        }
       ]
     },
     {
       "id": "team_offer",
-      "needs": ["b:friend", "day"],
+      "needs": [
+        "b:friend",
+        "day"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["wanna team up for a bit?", "wanna duo?", "wanna come with me for a while?", "want some company?"],
-          "newbie": ["can i come with you?? please", "wanna be teammates?"],
-          "pvp_sweat": ["need a bodyguard?"],
-          "helper": ["want a hand with anything? i can come along"]
-        }}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "wanna team up for a bit?",
+              "wanna duo?",
+              "wanna come with me for a while?",
+              "want some company?"
+            ],
+            "newbie": [
+              "can i come with you?? please",
+              "wanna be teammates?"
+            ],
+            "pvp_sweat": [
+              "need a bodyguard?"
+            ],
+            "helper": [
+              "want a hand with anything? i can come along"
+            ]
+          }
+        }
       ],
       "question": {
-        "yes": {"lines": ["lets go!", "W, lead the way", "duo time", "ok, right behind you"], "do": "team"},
-        "no": {"lines": ["ok np", "maybe later then", "all good", "ok, cya"]}
+        "yes": {
+          "lines": [
+            "lets go!",
+            "W, lead the way",
+            "duo time",
+            "ok, right behind you"
+          ],
+          "do": "team"
+        },
+        "no": {
+          "lines": [
+            "ok np",
+            "maybe later then",
+            "all good",
+            "ok, cya"
+          ]
+        }
       }
     },
     {
       "id": "mining_invite",
-      "needs": ["b:friend", "day", "!a:no_home"],
+      "needs": [
+        "b:friend",
+        "day",
+        "!a:no_home"
+      ],
       "turns": [
-        {"by": "a", "lines": ["going mining soon, wanna come?", "wanna go caving?", "need iron, wanna come mining?"]}
+        {
+          "by": "a",
+          "lines": [
+            "going mining soon, wanna come?",
+            "wanna go caving?",
+            "need iron, wanna come mining?"
+          ]
+        }
       ],
       "question": {
-        "yes": {"lines": ["cool, lead the way and i'll follow", "nice, you go first", "ok, lets go"], "do": "follow"},
-        "no": {"lines": ["ok, more ores for me", "your loss lol", "ok np"]}
+        "yes": {
+          "lines": [
+            "cool, lead the way and i'll follow",
+            "nice, you go first",
+            "ok, lets go"
+          ],
+          "do": "follow"
+        },
+        "no": {
+          "lines": [
+            "ok, more ores for me",
+            "your loss lol",
+            "ok np"
+          ]
+        }
       }
     },
     {
       "id": "brag_ore",
       "weight": 2,
-      "needs": ["a:found_rare", "!b:stranger"],
-      "chime": ["no way", "where??", "share pls", "lucky"],
+      "needs": [
+        "a:found_rare",
+        "!b:stranger"
+      ],
+      "chime": [
+        "no way",
+        "where??",
+        "share pls",
+        "lucky"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["{b} look, i found {a.ore_count} {a.ore}!!", "guess who found {a.ore}", "{a.ore_count} {a.ore} today, not bad right?"],
-          "hoarder": ["found {a.ore} today. not telling where", "{a.ore}. mine."],
-          "newbie": ["{b}!! i found {a.ore}!! is that good??"]
-        }}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "{b} look, i found {a.ore_count} {a.ore}!!",
+              "guess who found {a.ore}",
+              "{a.ore_count} {a.ore} today, not bad right?"
+            ],
+            "hoarder": [
+              "found {a.ore} today. not telling where",
+              "{a.ore}. mine."
+            ],
+            "newbie": [
+              "{b}!! i found {a.ore}!! is that good??"
+            ]
+          }
+        }
       ]
     },
     {
       "id": "died_story",
-      "needs": ["a:died_lately", "!b:stranger"],
-      "chime": ["classic", "rip", "f"],
+      "needs": [
+        "a:died_lately",
+        "!b:stranger"
+      ],
+      "chime": [
+        "classic",
+        "rip",
+        "f"
+      ],
       "turns": [
-        {"by": "a", "lines": ["i died to {a.death} earlier lol", "{a.death} got me today", "rip me, {a.death}", "dont ask how i died. ({a.death})"]}
+        {
+          "by": "a",
+          "lines": [
+            "i died to {a.death} earlier lol",
+            "{a.death} got me today",
+            "rip me, {a.death}",
+            "dont ask how i died. ({a.death})"
+          ]
+        }
       ]
     },
     {
       "id": "news",
       "weight": 2,
-      "needs": ["b:has_news", "!b:stranger"],
+      "needs": [
+        "b:has_news",
+        "!b:stranger"
+      ],
       "turns": [
-        {"by": "a", "lines": ["heads up, {b.news_who} {b.news_what}", "did you hear? {b.news_who} {b.news_what}", "word is {b.news_who} {b.news_what}"]}
+        {
+          "by": "a",
+          "lines": [
+            "heads up, {b.news_who} {b.news_what}",
+            "did you hear? {b.news_who} {b.news_what}",
+            "word is {b.news_who} {b.news_what}"
+          ]
+        }
       ]
     },
     {
       "id": "tease",
       "weight": 3,
-      "needs": ["b:joked_about"],
-      "chime": ["LMAO", "never forget", "legendary", "lol"],
+      "needs": [
+        "b:joked_about"
+      ],
+      "chime": [
+        "LMAO",
+        "never forget",
+        "legendary",
+        "lol"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["hey its {b.joke_nick} lol", "remember when you {b.joke_what} lmao", "{b.joke_nick} is back", "still thinking about when you {b.joke_what}"],
-          "helper": ["hope you're ok after you {b.joke_what} lol"],
-          "pvp_sweat": ["{b.joke_nick} lmao", "skill issue ({b.joke_what})"]
-        }}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "hey its {b.joke_nick} lol",
+              "remember when you {b.joke_what} lmao",
+              "{b.joke_nick} is back",
+              "still thinking about when you {b.joke_what}"
+            ],
+            "helper": [
+              "hope you're ok after you {b.joke_what} lol"
+            ],
+            "pvp_sweat": [
+              "{b.joke_nick} lmao",
+              "skill issue ({b.joke_what})"
+            ]
+          }
+        }
       ]
     },
     {
       "id": "still_mad",
       "weight": 2,
-      "needs": ["b:insulted"],
+      "needs": [
+        "b:insulted"
+      ],
       "turns": [
-        {"by": "a", "lines": {
-          "any": ["oh its you. the one who called me {b.insult}", "still mad you called me {b.insult}", "{b.insult}? really?"],
-          "helper": ["i forgive you for calling me {b.insult} btw"],
-          "hermit": ["you again."]
-        }}
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "oh its you. the one who called me {b.insult}",
+              "still mad you called me {b.insult}",
+              "{b.insult}? really?"
+            ],
+            "helper": [
+              "i forgive you for calling me {b.insult} btw"
+            ],
+            "hermit": [
+              "you again."
+            ]
+          }
+        }
       ]
     },
     {
       "id": "thanks_again",
-      "needs": ["b:owed"],
+      "needs": [
+        "b:owed"
+      ],
       "turns": [
-        {"by": "a", "lines": ["thanks again for earlier", "i still owe you one", "ty for the stuff btw", "hey, thanks for the help earlier"]}
+        {
+          "by": "a",
+          "lines": [
+            "thanks again for earlier",
+            "i still owe you one",
+            "ty for the stuff btw",
+            "hey, thanks for the help earlier"
+          ]
+        }
       ]
     },
     {
       "id": "hungry_ask",
-      "needs": ["a:hungry", "b:friend"],
+      "needs": [
+        "a:hungry",
+        "b:friend"
+      ],
       "turns": [
-        {"by": "a", "lines": ["got any food? starving", "spare some food?", "im so hungry, got anything?"]}
+        {
+          "by": "a",
+          "lines": [
+            "got any food? starving",
+            "spare some food?",
+            "im so hungry, got anything?"
+          ]
+        }
       ],
       "question": {
-        "yes": {"lines": ["ty!! throw it over", "W, toss it", "thank you!!"], "do": ""},
-        "no": {"lines": ["rip ok", "its fine", "ok, ill find something"]}
+        "yes": {
+          "lines": [
+            "ty!! throw it over",
+            "W, toss it",
+            "thank you!!"
+          ],
+          "do": ""
+        },
+        "no": {
+          "lines": [
+            "rip ok",
+            "its fine",
+            "ok, ill find something"
+          ]
+        }
       }
     },
     {
       "id": "rain_chat",
-      "needs": ["rain", "outside"],
+      "needs": [
+        "rain",
+        "outside"
+      ],
       "turns": [
-        {"by": "a", "lines": ["this rain tho", "ugh rain", "great weather huh", "rain again"]}
+        {
+          "by": "a",
+          "lines": [
+            "this rain tho",
+            "ugh rain",
+            "great weather huh",
+            "rain again"
+          ]
+        }
       ]
     },
     {
       "id": "bored_ask",
-      "needs": ["a:mood_bored", "!b:stranger"],
+      "needs": [
+        "a:mood_bored",
+        "!b:stranger"
+      ],
       "turns": [
-        {"by": "a", "lines": ["im so bored, wanna do something?", "bored. entertain me", "{b} im bored, wanna go somewhere?"]}
+        {
+          "by": "a",
+          "lines": [
+            "im so bored, wanna do something?",
+            "bored. entertain me",
+            "{b} im bored, wanna go somewhere?"
+          ]
+        }
       ],
       "question": {
-        "yes": {"lines": ["lets go, lead the way", "finally, ok where to", "W, i'll follow"], "do": "follow"},
-        "no": {"lines": ["ugh ok", "fine", "boring"]}
+        "yes": {
+          "lines": [
+            "lets go, lead the way",
+            "finally, ok where to",
+            "W, i'll follow"
+          ],
+          "do": "follow"
+        },
+        "no": {
+          "lines": [
+            "ugh ok",
+            "fine",
+            "boring"
+          ]
+        }
       }
+    },
+    {
+      "id": "leader_welcome",
+      "weight": 3,
+      "needs": [
+        "a:is_leader",
+        "b:stranger"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "welcome to {a.town}, i'm the leader here",
+              "hey, new face. i run {a.town}",
+              "welcome! i'm {a}, i lead {a.town}"
+            ],
+            "bandit": [
+              "this is my town. behave",
+              "{a.town}'s mine. no trouble, got it?"
+            ]
+          }
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "no stealing, no killing, and we get along",
+            "keep your hands off our chests and we're good",
+            "enjoy your stay"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "campaign_player",
+      "weight": 2,
+      "needs": [
+        "a:candidate",
+        "!b:stranger"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "i'm standing for leader tomorrow!",
+            "vote for me! well, you can't, but tell everyone",
+            "{a} for leader. spread the word",
+            "election's tomorrow, wish me luck"
+          ]
+        }
+      ]
     }
   ]
 }

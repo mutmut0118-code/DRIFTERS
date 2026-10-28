@@ -392,11 +392,11 @@ final class Plaza {
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
 		int people = group == null ? 0 : group.members.size();
 		long households = town.plots.stream().filter(plot -> plot.built).count();
-		String leader = group == null ? "" : group.names.getOrDefault(group.leader, "");
+		String leader = group == null ? "" : group.names.getOrDefault(town.leader != null ? town.leader : group.leader, "");
 		List<String> news = latest(town);
 		String[][] text = {
 			{"Welcome to", town.name, "est. day " + town.foundedDay, ""},
-			{households + (households == 1 ? " household" : " households"), people + (people == 1 ? " person" : " people"), "leader:", leader},
+			{households + (households == 1 ? " home, " : " homes, ") + people + " ppl", "Leader:", leader, Politics.lawsShort(town)},
 			{"News:", news.size() > 0 ? news.get(0) : "all quiet", news.size() > 1 ? news.get(1) : "", news.size() > 2 ? news.get(2) : ""}};
 		for (int i = 0; i < signs.size() && i < text.length; i++) {
 			if (level.getBlockEntity(signs.get(i)) instanceof SignBlockEntity sign) {

@@ -117,6 +117,76 @@ public final class TownMoneyGoals {
 		}
 	}
 
+	/** Its tax (step 5, a leader's law): it takes what it owes the town to the till, as far as it has the money. */
+	public static final class Tax extends Goals.Goal {
+		private static final long AGAIN = 20L * 60 * 4;
+		private long triedAt = Long.MIN_VALUE / 2;
+
+		@Override
+		public String id() {
+			return "tax";
+		}
+
+		@Override
+		public String name(Goals.Context context) {
+			return "pay its tax";
+		}
+
+		@Override
+		public double urgency(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			TownWork town = drifter.getTownWork();
+			BlockPos till = town == null ? null : town.till();
+			if (till == null || Schedule.isNight(drifter) || context.threat().urgent() || drifter.level().getGameTime() - this.triedAt < AGAIN
+				|| town.taxOwed(drifter) <= 0 || drifter.getInventory().count(stack -> stack.is(Items.EMERALD)) == 0 || !drifter.blockPosition().closerThan(till, 96.0)) {
+				return 0.0;
+			}
+
+			// (A chore it puts off, the greedy more; the more it owes, the less it can.)
+			return Math.min(0.7, 0.4 + 0.08 * town.taxOwed(drifter) - 0.1 * drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.GREED));
+		}
+
+		@Override
+		public double feasibility(Goals.Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+
+		@Override
+		public Activity start(Goals.Context context) {
+			DrifterEntity drifter = context.drifter();
+			TownWork town = drifter.getTownWork();
+			BlockPos till = town == null ? null : town.till();
+			if (till == null) {
+				return null;
+			}
+
+			this.triedAt = drifter.level().getGameTime();
+			int owed = town.taxOwed(drifter);
+			int pays = Math.min(owed, drifter.getInventory().count(stack -> stack.is(Items.EMERALD)));
+			int before = drifter.getInventory().count(stack -> stack.is(Items.EMERALD));
+			return new ChestErrand(drifter, till, ContainerTask.Mode.PUT, stack -> stack.is(Items.EMERALD), "its tax", pays) {
+				@Override
+				protected Status next() {
+					Status status = super.next();
+					if (status != Status.RUNNING) {
+						int paid = before - this.drifter.getInventory().count(stack -> stack.is(Items.EMERALD));
+						if (paid > 0) {
+							town.taxPaid(this.drifter, paid);
+							this.think("paid " + paid + " emerald" + (paid == 1 ? "" : "s") + " of tax into the town's till");
+						}
+					}
+
+					return status;
+				}
+			};
+		}
+	}
+
 	/** The keeper banks its takings: what it has above what it keeps on hand goes into the till, after closing. */
 	public static final class Bank extends Goals.Goal {
 		/** It banks when it has this much more than it keeps on hand (points: two emeralds). */

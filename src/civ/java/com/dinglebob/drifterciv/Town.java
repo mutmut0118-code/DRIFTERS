@@ -133,6 +133,23 @@ public final class Town {
 	/** Its book changed since it was last saved (not saved: the town's check saves it). */
 	boolean booksChanged;
 
+	/**
+	 * Its politics (step 5; the user, 2026-10-28: "Founder, then elections"): its leader (the founder first; not the
+	 * group's leader, whose home is the group's base), since when, the day of its next election and who's standing, how the
+	 * last one went (name -> votes), its laws ({@link Politics}) and its tax (emeralds a household every few days), what each
+	 * owes of it, and the day it was last levied.
+	 */
+	@Nullable
+	public UUID leader;
+	public long leaderSince;
+	public long nextElection = -1;
+	public final List<UUID> candidates = new ArrayList<>();
+	public final java.util.Map<String, Integer> lastVotes = new java.util.LinkedHashMap<>();
+	public final java.util.Set<String> laws = new java.util.LinkedHashSet<>();
+	public int tax;
+	public final java.util.Map<UUID, Integer> taxOwed = new java.util.HashMap<>();
+	public long taxDay = -1;
+
 	/** Its till: the first chest of its store, or null before it has one. */
 	@Nullable
 	public BlockPos till() {
@@ -210,6 +227,31 @@ public final class Town {
 		tag.put("Owed", owed);
 		tag.putDouble("WagesPaid", this.wagesPaid);
 		tag.putInt("DrifterTrades", this.drifterTrades);
+		if (this.leader != null) {
+			tag.putUUID("Leader", this.leader);
+		}
+
+		tag.putLong("LeaderSince", this.leaderSince);
+		tag.putLong("NextElection", this.nextElection);
+		ListTag candidates = new ListTag();
+		for (UUID one : this.candidates) {
+			CompoundTag c = new CompoundTag();
+			c.putUUID("Id", one);
+			candidates.add(c);
+		}
+
+		tag.put("Candidates", candidates);
+		CompoundTag votes = new CompoundTag();
+		this.lastVotes.forEach(votes::putInt);
+		tag.put("LastVotes", votes);
+		ListTag laws = new ListTag();
+		this.laws.forEach(law -> laws.add(net.minecraft.nbt.StringTag.valueOf(law)));
+		tag.put("Laws", laws);
+		tag.putInt("Tax", this.tax);
+		CompoundTag owes = new CompoundTag();
+		this.taxOwed.forEach((id, n) -> owes.putInt(id.toString(), n));
+		tag.put("TaxOwed", owes);
+		tag.putLong("TaxDay", this.taxDay);
 		return tag;
 	}
 
@@ -261,6 +303,33 @@ public final class Town {
 
 		town.wagesPaid = tag.getDouble("WagesPaid");
 		town.drifterTrades = tag.getInt("DrifterTrades");
+		town.leader = tag.hasUUID("Leader") ? tag.getUUID("Leader") : null;
+		town.leaderSince = tag.getLong("LeaderSince");
+		town.nextElection = tag.contains("NextElection") ? tag.getLong("NextElection") : -1;
+		for (Tag one : tag.getList("Candidates", Tag.TAG_COMPOUND)) {
+			town.candidates.add(((CompoundTag)one).getUUID("Id"));
+		}
+
+		CompoundTag votes = tag.getCompound("LastVotes");
+		for (String key : votes.getAllKeys()) {
+			town.lastVotes.put(key, votes.getInt(key));
+		}
+
+		for (Tag one : tag.getList("Laws", Tag.TAG_STRING)) {
+			town.laws.add(one.getAsString());
+		}
+
+		town.tax = tag.getInt("Tax");
+		CompoundTag owes = tag.getCompound("TaxOwed");
+		for (String key : owes.getAllKeys()) {
+			try {
+				town.taxOwed.put(UUID.fromString(key), owes.getInt(key));
+			} catch (IllegalArgumentException ignored) {
+				// (Not an id.)
+			}
+		}
+
+		town.taxDay = tag.contains("TaxDay") ? tag.getLong("TaxDay") : -1;
 		return town;
 	}
 }

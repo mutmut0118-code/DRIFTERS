@@ -1821,6 +1821,333 @@
           ]
         }
       ]
+    },
+    {
+      "id": "campaign",
+      "weight": 4,
+      "needs": [
+        "a:candidate",
+        "!b:candidate",
+        "!rivals"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": [
+              "vote for me tomorrow!",
+              "{a} for leader, you know it",
+              "i'd make a better leader than {a.rival}",
+              "got my vote? i'm standing tomorrow",
+              "you'll vote for me right?"
+            ],
+            "helper": [
+              "vote for me and i'll help everyone, promise!"
+            ],
+            "bandit": [
+              "vote for me. it'd be wise",
+              "you'll vote right, won't you"
+            ],
+            "pvp_sweat": [
+              "vote for me, i'll keep this town safe"
+            ],
+            "hoarder": [
+              "vote for me, lower taxes. probably"
+            ]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "!b:likes_leader"
+              ],
+              "lines": [
+                "you've got my vote",
+                "sure, anything's better than now",
+                "maybe. what's in it for me?",
+                "we'll see"
+              ]
+            },
+            {
+              "lines": [
+                "{b.leader}'s been fine tho",
+                "hmm, i like {b.leader}",
+                "i'll think about it",
+                "no promises"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "think about it",
+            "i'll remember who voted for me",
+            "ty!",
+            "just saying"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "election_chat",
+      "weight": 3,
+      "needs": [
+        "a:election_soon",
+        "b:election_soon",
+        "!a:candidate",
+        "!b:candidate"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "who you voting for?",
+              "then": [
+                "{b.my_vote}",
+                "{b.my_vote} probably",
+                "not telling",
+                "{b.my_vote}, obviously"
+              ]
+            },
+            {
+              "line": "{a.candidate_a} or {a.candidate_b}?",
+              "then": [
+                "{b.my_vote}",
+                "tough one",
+                "{b.my_vote} i guess",
+                "dunno yet"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "a",
+          "chance": 0.6,
+          "lines": [
+            "i'm going with {a.my_vote}",
+            "{a.my_vote} for me",
+            "same",
+            "fair enough"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "leader_praise",
+      "needs": [
+        "a:likes_leader",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.leader} is doing a good job",
+            "gotta say, {a.leader} runs this place well",
+            "{a.town}'s in good hands with {a.leader}"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:dislikes_leader"
+              ],
+              "lines": [
+                "if you say so",
+                "eh",
+                "you would say that"
+              ]
+            },
+            {
+              "lines": [
+                "yeah",
+                "agreed",
+                "for sure"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "leader_gripe",
+      "needs": [
+        "a:dislikes_leader",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.leader} is useless",
+            "can't wait for the next election",
+            "who put {a.leader} in charge anyway",
+            "{a.leader} needs to go"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:likes_leader"
+              ],
+              "lines": [
+                "hey, {b.leader}'s alright",
+                "that's harsh",
+                "nah they're fine"
+              ]
+            },
+            {
+              "lines": [
+                "true",
+                "fr",
+                "shh, they'll hear you",
+                "lol same"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "taxes",
+      "weight": 2,
+      "needs": [
+        "a:taxed",
+        "!a:is_leader"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "options": [
+            {
+              "if": [
+                "a:tax_high"
+              ],
+              "lines": [
+                "{a.tax} emeralds tax, really?",
+                "these taxes are robbery",
+                "{a.leader} and these taxes smh"
+              ]
+            },
+            {
+              "lines": [
+                "tax day again",
+                "paid my tax",
+                "where do the taxes even go",
+                "another emerald for the till"
+              ]
+            }
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "it pays the wages i guess",
+            "ugh tell me about it",
+            "at least the roads are nice",
+            "same"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "new_leader_talk",
+      "weight": 3,
+      "needs": [
+        "a:new_leader"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.leader} won!",
+            "so {a.leader}'s in charge now",
+            "new leader, new rules",
+            "did you hear? {a.leader} won the vote"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:likes_leader"
+              ],
+              "lines": [
+                "finally",
+                "good, they deserve it",
+                "W"
+              ]
+            },
+            {
+              "if": [
+                "b:dislikes_leader"
+              ],
+              "lines": [
+                "ugh",
+                "this is gonna be rough",
+                "great..."
+              ]
+            },
+            {
+              "lines": [
+                "we'll see how it goes",
+                "huh",
+                "ok"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "leader_rounds",
+      "needs": [
+        "a:is_leader",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "how's everything going?",
+            "need anything for your house?",
+            "the town's doing well, right?",
+            "any complaints? (don't say taxes)"
+          ]
+        },
+        {
+          "by": "b",
+          "options": [
+            {
+              "if": [
+                "b:dislikes_leader"
+              ],
+              "lines": [
+                "could be better",
+                "since you ask... the taxes",
+                "fine"
+              ]
+            },
+            {
+              "lines": [
+                "all good",
+                "doing great",
+                "no complaints"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
