@@ -3063,4 +3063,31 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     townsperson switched to driving me out (0.81).
   - Seen: a made-ready town can have a Bandit among its people, who kills players on sight anyway (its disposition;
     not new). Fines can only be paid in emeralds (not Numismatic coins yet).
-- Next: step 5 part 3 (unrest: unpopular leaders, revolts, coups, abdications).
+- **Step 5, part 3: unrest (0.22.28).** `Unrest` (addon): each townsperson's approval of the leader (`Town.approval`,
+  0-100, 60 at first; not trust, which living side by side keeps near 100). A tax levy -3 per emerald; owed 3 emeralds of
+  wages and not paid -2 a day; a day without a tax +1 (to 75); wages paid +1 an emerald; one of its people murdered -5;
+  the tax dropped +15. Elections weigh it too (the leader's votes: trust + approval - 60), and a new leader starts at 70
+  with those who voted for it, 45 with the rest. Once a day (afternoon; 2 days' calm after an upheaval; not with a vote
+  on):
+  - a third unhappy (approval 30 or less): an ambitious (0.75), aggressive (0.6) one at 10 or less may seize power (half a
+    chance a day; a coup: no vote, the old leader stays, those who liked it think little of the new one); else a careful
+    (0.5) or forgiving (0.6) leader drops the tax (once a term);
+  - half unhappy: a humble leader (aggression + greed under 1) steps down (the others vote tomorrow; the keenest stands if
+    nobody's keen); a proud one faces a revolt (no tax till the vote tomorrow morning, the boldest of the unhappy standing
+    against it);
+  - a ruthless one (a Bandit, or aggressive, vengeful, unforgiving) at -10 or less plots; the next time it sees the leader
+    within 24 blocks, armed and well, it turns on it: out of the town (its house no longer its home; the others' trust in it
+    -70 so it can't rejoin), enemies both ways (trust -100), and they fight as enemies do. With Drifters set never to fight
+    each other it just leaves. Self-defence isn't murder any more (`Justice`: killed by the one it attacked, or who was
+    after it).
+  - Talk: `likes_leader`/`dislikes_leader` now by approval; `unrest`, `revolt`, `after_coup`, `after_abdicated`,
+    `after_tax_dropped`, `after_betrayed` (2 days), word `old_leader`; topics unrest_grumble, revolt_talk, coup_talk,
+    abdication_talk, tax_dropped_talk, betrayal_talk; shouts `unrest.*` (reactions.json).
+  - `/drifterciv town` shows "Mood: n of m unhappy with X (approval a)"; debug `/drifterciv town sour <points>`,
+    `/drifterciv town unrest now|plot`.
+  - Tested: headless (three towns soured: an abdication and a new leader voted in, a revolt and the leader voted out 1 to
+    4, a coup; a tax dropped), and in the client (a plotter turned on the leader and lost; found and fixed: it rejoined the
+    town at once, so the leader was "thrown out for killing" it; unarmed, it turned and then didn't fight; it came back to
+    life at its old home and went again; looking at the leader the very moment of the check was rare).
+  - Also fixed: in strangers meeting, "o/ {b}" read as greeting itself ("o/ im {b}").
+- Next: milestone 22 step 6, nations and diplomacy (docs/CIVILIZATION.md), or prison (kept for later, the user).

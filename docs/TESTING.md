@@ -1460,6 +1460,23 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Unrest in towns (new, 0.22.28)
+
+Each townsperson thinks something of its leader; taxes and unpaid wages wear it down, a day without tax and wages paid
+bring it back. `/drifterciv town` shows "Mood: 3 of 8 unhappy with Ann (approval 41)". It takes days of tax to get there,
+so to see it now: `/drifterciv town sour 40` (everyone thinks 40 less of the leader), then `/drifterciv town unrest now`.
+- [ ] A third unhappy: a careful leader drops the tax ("fine, i'm dropping the tax"), or an ambitious, aggressive
+      townsperson seizes power ("{town} is mine now"; the chronicle: "... seized power").
+- [ ] Half unhappy: a humble leader steps down ("i'm done leading ..."; a vote the next morning), a proud one faces a
+      revolt ("down with ...!"; no tax till the vote the next morning, someone stands against it).
+- [ ] People talk about it: grumbling, the revolt, the coup ("did you see what X did to Y??"), the dropped tax.
+- [ ] A murder plot: `/drifterciv town sour 90`, then `/drifterciv town unrest plot` (the one who likes the leader least
+      plots). The next time it sees the leader close with a sword or axe, it shouts ("this is for {town}, ...!") and they
+      fight; it's out of the town for good. If the leader dies, the town votes the next morning. The leader killing it in
+      the fight isn't murder.
+- [ ] Without the debug commands: a town whose leader taxes 2-3 emeralds and nobody stands against it at the elections
+      should get restless after a week or two.
+
 ## Crime and punishment in towns (new, 0.22.27)
 
 `/drifterciv town` shows fines owed and exiles ("Law: ..."). To try without really stealing: `/drifterciv town crime

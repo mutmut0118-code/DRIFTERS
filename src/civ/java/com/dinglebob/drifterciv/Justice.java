@@ -90,8 +90,13 @@ final class Justice {
 				return;
 			}
 
-			// Someone of the town saw it.
+			// (Self-defence isn't murder: it came at them first. Found: a leader killing the one who turned on it.)
 			var killer = playerKiller != null ? playerKiller : drifterKiller;
+			if (com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(killer.getLastHurtByMob()) == dead || dead.getTarget() == killer) {
+				return;
+			}
+
+			// Someone of the town saw it.
 			DrifterEntity witness = null;
 			for (DrifterEntity one : level.getEntitiesOfClass(DrifterEntity.class, dead.getBoundingBox().inflate(WITNESS), d -> d.isAlive() && d != dead && d != killer
 				&& town.group != null && DrifterGroups.of(d.getUUID()) != null && town.group.equals(DrifterGroups.of(d.getUUID()).id))) {
@@ -169,6 +174,17 @@ final class Justice {
 	private static void murder(MinecraftServer server, Town town, DrifterEntity dead, @Nullable ServerPlayer player, @Nullable DrifterEntity drifter,
 		DrifterEntity witness) {
 		String victim = dead.getName().getString();
+		DrifterGroups.Group townGroup = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (townGroup != null) {
+			// (The leader couldn't keep them safe: step 5, part 3.)
+			Unrest.killed(town, townGroup);
+		}
+
+		if (dead.getUUID().equals(town.leader)) {
+			Chronicle.add(server, "law", victim + ", leader of " + town.name + ", was murdered by "
+				+ (player != null ? player.getGameProfile().getName() : drifter != null ? drifter.getName().getString() : "someone"));
+		}
+
 		if (player != null) {
 			Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(player.getGameProfile().getName()));
 			criminal.offences++;
@@ -328,6 +344,11 @@ final class Justice {
 	}
 
 	@Nullable
+	/** It has a sword or an axe. */
+	static boolean armed(DrifterEntity drifter) {
+		return drifter.getInventory().count(stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) > 0;
+	}
+
 	private static Town townOf(DrifterEntity drifter) {
 		DrifterGroups.Group group = DrifterGroups.of(drifter.getUUID());
 		if (group == null) {

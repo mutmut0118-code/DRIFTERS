@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1613 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1643 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (49 topics, 1393 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (55 topics, 1462 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1310,7 +1310,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
    - **hermit:** ...who are you · hm. new face
    - **newbie:** hi!! im {a}! · are you new too?
    - **bandit:** well hello there · nice gear, stranger
-2. **b**: hey, im {b} · o/ {b} · hi, {b} · just passing through · hey hey · {b}. nice to meet you
+2. **b**: hey, im {b} · o/ im {b} · hi, {b} · just passing through · hey hey · {b}. nice to meet you
    - **hermit:** {b} · just leave me be
    - **newbie:** hi im {b}!! nice to meet you
 3. **a** (80%):
@@ -1505,6 +1505,59 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**:
    - *b:dislikes_leader:* could be better · since you ask... the taxes · fine
    - *otherwise:* all good · doing great · no complaints
+
+#### unrest grumble
+
+*Needs:* a:unrest, a:dislikes_leader, !a:is_leader, !strangers
+
+1. **a**: everyone's sick of {a.leader} · people are talking about getting rid of {a.leader} · {a.leader} has to go. everyone says so · if this keeps up there'll be trouble · how much longer do we put up with {a.leader}
+2. **b**:
+   - *b:likes_leader:* you're overreacting · {b.leader}'s doing their best · careful, that's how revolts start
+   - *b:is_leader:* i can hear you, you know · ...noted · we'll see about that
+   - *otherwise:* yeah. something's gotta give · count me in · i'm with you · shh not so loud
+
+#### revolt talk
+
+*Needs:* a:revolt, !strangers
+
+1. **a**: no tax till the vote! · tomorrow {a.leader} is out · the whole town's had it with {a.leader} · vote tomorrow. you know what to do
+2. **b**:
+   - *b:is_leader:* this is mutiny · you'll regret this · they'll vote for me, you'll see
+   - *b:likes_leader:* this is getting out of hand · i'm still voting for {b.leader} · calm down everyone
+   - *otherwise:* about time · finally · can't wait · W
+
+#### coup talk
+
+*Needs:* a:after_coup, !strangers
+
+1. **a**:
+   - *a:is_leader:* i run things now · {a.old_leader} had their chance · things are gonna change around here
+   - *otherwise:* did you see what {a.leader} did to {a.old_leader}?? · {a.leader} just took over. no vote, nothing · so {a.leader}'s in charge now. just like that · poor {a.old_leader}
+2. **b**:
+   - *b:likes_leader:* {b.old_leader} had it coming · good riddance · finally someone with a spine
+   - *b:dislikes_leader:* this isn't right · we never voted for this · keep your voice down
+   - *otherwise:* wild · huh · we'll see how long that lasts
+
+#### abdication talk
+
+*Needs:* a:after_abdicated, !strangers
+
+1. **a**: {a.old_leader} just quit · did you hear? {a.old_leader} stepped down · no leader till the vote, weird · {a.old_leader} gave up being leader
+2. **b**: can't blame them · good call honestly · who's standing? · at least they knew when to go
+
+#### tax dropped talk
+
+*Needs:* a:after_tax_dropped, !a:is_leader, !strangers
+
+1. **a**: no more tax!! · {a.leader} dropped the tax · the tax is gone, we did it · guess complaining works
+2. **b**: W · about time · finally · my emeralds are safe
+
+#### betrayal talk
+
+*Needs:* a:after_betrayed, !strangers
+
+1. **a**: someone attacked {a.leader}! · did you see that?? one of us turned on {a.leader} · i can't believe it. one of our own · watch your back, there's a traitor about
+2. **b**: i knew they hated {b.leader} but wow · scary · they'd better not come back · unbelievable
 
 ## 7. Drifters talking to you
 

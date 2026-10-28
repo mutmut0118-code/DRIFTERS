@@ -169,6 +169,21 @@ public final class Town {
 	/** Players who broke its law, by id. */
 	public final java.util.Map<UUID, Criminal> crimes = new java.util.HashMap<>();
 
+	/**
+	 * Its unrest (step 5, part 3: {@link Unrest}): what each of its people thinks of the leader (0 to 100), the day it last
+	 * checked, the last upheaval (coup, abdicated, revolt, tax_dropped, betrayed) and its day, the leader it was about, in
+	 * revolt (no tax till the vote), the tax dropped this term, and who plots against the leader.
+	 */
+	public final java.util.Map<UUID, Double> approval = new java.util.HashMap<>();
+	public long moodDay = -1;
+	public String upheaval = "";
+	public long upheavalDay = -100;
+	public String oldLeader = "";
+	public boolean revolt;
+	public boolean conceded;
+	@Nullable
+	public UUID plotter;
+
 	/** Its till: the first chest of its store, or null before it has one. */
 	@Nullable
 	public BlockPos till() {
@@ -271,6 +286,19 @@ public final class Town {
 		this.taxOwed.forEach((id, n) -> owes.putInt(id.toString(), n));
 		tag.put("TaxOwed", owes);
 		tag.putLong("TaxDay", this.taxDay);
+		CompoundTag approval = new CompoundTag();
+		this.approval.forEach((id, n) -> approval.putDouble(id.toString(), n));
+		tag.put("Approval", approval);
+		tag.putLong("MoodDay", this.moodDay);
+		tag.putString("Upheaval", this.upheaval);
+		tag.putLong("UpheavalDay", this.upheavalDay);
+		tag.putString("OldLeader", this.oldLeader);
+		tag.putBoolean("Revolt", this.revolt);
+		tag.putBoolean("Conceded", this.conceded);
+		if (this.plotter != null) {
+			tag.putUUID("Plotter", this.plotter);
+		}
+
 		ListTag crimes = new ListTag();
 		this.crimes.forEach((id, c) -> {
 			CompoundTag one = new CompoundTag();
@@ -361,6 +389,21 @@ public final class Town {
 		}
 
 		town.taxDay = tag.contains("TaxDay") ? tag.getLong("TaxDay") : -1;
+		CompoundTag approval = tag.getCompound("Approval");
+		for (String key : approval.getAllKeys()) {
+			try {
+				town.approval.put(UUID.fromString(key), approval.getDouble(key));
+			} catch (IllegalArgumentException ignored) {
+			}
+		}
+
+		town.moodDay = tag.contains("MoodDay") ? tag.getLong("MoodDay") : -1;
+		town.upheaval = tag.getString("Upheaval");
+		town.upheavalDay = tag.contains("UpheavalDay") ? tag.getLong("UpheavalDay") : -100;
+		town.oldLeader = tag.getString("OldLeader");
+		town.revolt = tag.getBoolean("Revolt");
+		town.conceded = tag.getBoolean("Conceded");
+		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;
 		for (Tag t : tag.getList("Crimes", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
 			Criminal c = new Criminal(one.getString("Name"));

@@ -127,6 +127,41 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " held its election (/drifterciv chronicle)"), true);
 					return 1;
 				}))
+				// Debug: the nearest town's people think this much less of its leader (to see unrest come of it).
+				.then(Commands.literal("sour").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("points", IntegerArgumentType.integer(1, 200)).executes(ctx -> {
+						Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+						var group = town == null || town.group == null ? null : DrifterApi.groupById(town.group);
+						if (group == null || town.leader == null) {
+							ctx.getSource().sendFailure(Component.literal("No town (with a leader) here"));
+							return 0;
+						}
+
+						int points = IntegerArgumentType.getInteger(ctx, "points");
+						group.members.stream().filter(id -> !id.equals(town.leader)).forEach(id -> Unrest.change(town, id, -points));
+						Towns.save(ctx.getSource().getServer());
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + Unrest.status(town, group)), true);
+						return 1;
+					})))
+				// Debug: the nearest town's unrest today, at once (now), or one of its people plotting against the leader (plot).
+				.then(Commands.literal("unrest").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("what", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("now", "plot"), builder))
+						.executes(ctx -> {
+							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+							var group = town == null || town.group == null ? null : DrifterApi.groupById(town.group);
+							if (group == null || town.leader == null) {
+								ctx.getSource().sendFailure(Component.literal("No town (with a leader) here"));
+								return 0;
+							}
+
+							var server = ctx.getSource().getServer();
+							String what = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "what");
+							String result = "plot".equals(what) ? Unrest.debugPlot(server, town, group) : Unrest.today(server, town, group, Chronicle.day(server), true);
+							Towns.save(server);
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + ": " + result), true);
+							return 1;
+						})))
 				// Debug: the nearest town owes each of its people this many emeralds' worth of wages (to see them collected).
 				.then(Commands.literal("owe").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("emeralds", IntegerArgumentType.integer(1, 10)).executes(ctx -> {
@@ -321,6 +356,8 @@ public final class DrifterCivilizations implements ModInitializer {
 			if (!wanted.isEmpty()) {
 				source.sendSuccess(() -> Component.literal("  Law: " + String.join("; ", wanted)), false);
 			}
+
+			source.sendSuccess(() -> Component.literal("  " + Unrest.status(town, politicsGroup)), false);
 		}
 		// A town founded by its people: who has a plot, whose house is up.
 		var group = town.spawned || town.group == null ? null : DrifterApi.groupById(town.group);

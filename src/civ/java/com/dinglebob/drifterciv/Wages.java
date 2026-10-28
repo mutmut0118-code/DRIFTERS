@@ -37,6 +37,7 @@ final class Wages {
 		double owed = town.owed.getOrDefault(drifter.getUUID(), 0.0);
 		town.owed.put(drifter.getUUID(), Math.max(0.0, owed - points));
 		town.wagesPaid += points;
+		Unrest.wagesPaid(town, drifter, points);
 		if (server != null) {
 			int emeralds = (int)Math.round(points / 6.0);
 			Chronicle.add(server, "town", drifter.getName().getString() + " was paid " + (emeralds >= 1 ? emeralds + (emeralds == 1 ? " emerald's" : " emeralds'")
