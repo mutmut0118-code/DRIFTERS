@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1643 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1663 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (55 topics, 1462 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (58 topics, 1489 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1558,6 +1558,27 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 1. **a**: someone attacked {a.leader}! · did you see that?? one of us turned on {a.leader} · i can't believe it. one of our own · watch your back, there's a traitor about
 2. **b**: i knew they hated {b.leader} but wow · scary · they'd better not come back · unbelievable
+
+#### crook theft talk
+
+*Needs:* a:crook_theft, !strangers
+
+1. **a**: {a.crook} got caught stealing again · lock your chests. {a.crook}'s at it · did you hear what {a.crook} took? · {a.crook} was in someone's chest again · i don't trust {a.crook} one bit
+2. **b**: of course they did · i'm keeping my stuff on me · why do we even let them stay · one more time and they're out · classic {b.crook}
+
+#### crook fight talk
+
+*Needs:* a:crook_fight, !strangers
+
+1. **a**: {a.crook} started another fight · {a.crook} just went at someone for no reason · did you see {a.crook} swinging at people? · stay away from {a.crook} today
+2. **b**: what is wrong with them · they're gonna hurt someone for real · the guards should do something · ugh. again?
+
+#### crook gone talk
+
+*Needs:* a:crook_thrown_out, !strangers
+
+1. **a**: {a.crook}'s gone. we threw them out · no more {a.crook}! · {a.crook} won't be stealing from us anymore · finally got rid of {a.crook}
+2. **b**: good riddance · about time · they'll be back though. watch the woods · i'm locking my door anyway · W
 
 ## 7. Drifters talking to you
 

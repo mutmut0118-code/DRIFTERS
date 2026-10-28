@@ -149,12 +149,19 @@ public final class Market {
 	static boolean keeper(MinecraftServer server, Town town, DrifterGroups.Group group) {
 		boolean changed = false;
 		DrifterRecord record = town.keeper == null ? null : DrifterApi.record(town.keeper);
-		if (town.keeper == null || !group.members.contains(town.keeper) || record != null && record.status() == DrifterRecord.Status.GONE) {
+		// (Not its crook: the user, 2026-10-28, "the crook is the shopkeeper". One who turned crook gives the stall up.)
+		boolean crook = town.keeper != null && town.crooks.contains(town.keeper);
+		if (town.keeper == null || crook || !group.members.contains(town.keeper) || record != null && record.status() == DrifterRecord.Status.GONE) {
+			DrifterEntity old = crook ? TownFounding.loaded(server, town.keeper) : null;
+			if (old != null) {
+				DrifterApi.setShop(old, null);
+			}
+
 			DrifterEntity best = null;
 			double bestScore = -1.0;
 			for (UUID id : group.members) {
 				DrifterEntity member = TownFounding.loaded(server, id);
-				if (member != null) {
+				if (member != null && !town.crooks.contains(id)) {
 					double score = DrifterApi.trait(member, "greed") + DrifterApi.trait(member, "sociability");
 					if (score > bestScore) {
 						best = member;

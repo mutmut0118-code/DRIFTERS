@@ -1460,6 +1460,30 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Bandits and towns: the town crook (new, 0.22.30)
+
+Bandits don't live in towns ("kinda like a skyrim bandit"). If one does anyway (one from an older world, or made with
+the debug command), it's the town's crook: it doesn't kill anyone on sight there, it steals and picks fights.
+- [ ] Make a ready-made town (`/drifterciv town spawn 6 Testby`) and walk round it in survival: nobody attacks you out of
+      the blue (no Bandits among its people: `/drifter personality` on a few shows no "Bandit").
+- [ ] An older world with a Bandit in a town (like tiny_ranger in Wolfhollow): load it with the new version; within 10
+      seconds it stops killing on sight (it can still go for someone alone at night, like any opportunist).
+- [ ] `/drifterciv town crook` (debug): the nearest townsperson (not the leader, not the stall keeper) becomes the crook
+      and is "up to no good" in a few seconds (the same command again sends it at it again) (its thoughts, F8 or `/drifter thoughts`). It sneaks to the store, the till or a neighbour's chest
+      when nobody is looking and takes the best things there, or goes for a townsperson it doesn't like ("what are you
+      looking at, ...?"); a fight stops at a few hearts, nobody dies of it.
+- [ ] Seen by a townsperson: "THIEF!" / "hey! break it up!", and the chronicle has "X was caught stealing from Y's chest
+      in T (a fine of 3 emeralds)"; it pays the fine at the till (like a tax). Not seen: "nobody saw it" in its thoughts.
+- [ ] Caught the third time (or `/drifterciv town crook out`, debug): "X was thrown out of T for ...: a bandit again".
+      It leaves ("you'll regret this, T"), and once it's well away (160 blocks) it kills on sight again ("no more
+      pretending" in its thoughts); the town's people talk about it ("finally got rid of X"). Being a Bandit again, it
+      can be the target of a wanted poster.
+- [ ] A crook never keeps the market stall, isn't made leader and never stands for election (a leader who turned crook
+      isn't voted in again).
+- [ ] A crook happens about once every half a day to a day of game time; `/tick sprint 24000` speeds that up.
+- [ ] Natural towns: a group with a Bandit in it that founds a town leaves the Bandit out first (the chronicle: "X left
+      Y: a bandit doesn't settle in a town"); a Bandit leading a group never founds one.
+
 ## Unrest in towns (new, 0.22.28)
 
 Each townsperson thinks something of its leader; taxes and unpaid wages wear it down, a day without tax and wages paid

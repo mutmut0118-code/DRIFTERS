@@ -183,6 +183,15 @@ public final class Town {
 	public boolean conceded;
 	@Nullable
 	public UUID plotter;
+	/**
+	 * Its crooks: Bandits living in it (the user, 2026-10-28: "if they are in a town they should be commiting several
+	 * crimes"), who steal and pick fights now and then till it throws them out.
+	 */
+	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
+	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
+	public String lastCrook = "";
+	public String lastCrime = "";
+	public long lastCrimeDay = -100;
 
 	/** Its till: the first chest of its store, or null before it has one. */
 	@Nullable
@@ -299,6 +308,12 @@ public final class Town {
 			tag.putUUID("Plotter", this.plotter);
 		}
 
+		ListTag crooks = new ListTag();
+		this.crooks.forEach(id -> crooks.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
+		tag.put("Crooks", crooks);
+		tag.putString("LastCrook", this.lastCrook);
+		tag.putString("LastCrime", this.lastCrime);
+		tag.putLong("LastCrimeDay", this.lastCrimeDay);
 		ListTag crimes = new ListTag();
 		this.crimes.forEach((id, c) -> {
 			CompoundTag one = new CompoundTag();
@@ -404,6 +419,13 @@ public final class Town {
 		town.revolt = tag.getBoolean("Revolt");
 		town.conceded = tag.getBoolean("Conceded");
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;
+		for (Tag t : tag.getList("Crooks", Tag.TAG_INT_ARRAY)) {
+			town.crooks.add(net.minecraft.nbt.NbtUtils.loadUUID(t));
+		}
+
+		town.lastCrook = tag.getString("LastCrook");
+		town.lastCrime = tag.getString("LastCrime");
+		town.lastCrimeDay = tag.contains("LastCrimeDay") ? tag.getLong("LastCrimeDay") : -100;
 		for (Tag t : tag.getList("Crimes", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
 			Criminal c = new Criminal(one.getString("Name"));

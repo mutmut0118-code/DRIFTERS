@@ -1088,6 +1088,46 @@
       "bandit": [
         "should've watched your back, {leader}"
       ]
+    },
+    "crook.brawl": {
+      "any": [
+        "what are you looking at, {who}?",
+        "you got a problem, {who}?",
+        "{who}. you and me. now",
+        "i've had it with you, {who}",
+        "outside, {who}. now"
+      ],
+      "bandit": [
+        "c'mere {who}",
+        "hold still, {who}"
+      ]
+    },
+    "crime.fight": {
+      "any": [
+        "hey! break it up!",
+        "{player} started it!",
+        "leave {who} alone!",
+        "stop it, {player}!",
+        "{player}'s fighting again!"
+      ],
+      "helper": [
+        "{who}, are you ok?? {player} stop!"
+      ],
+      "hermit": [
+        "...not again"
+      ]
+    },
+    "crook.thrown_out": {
+      "any": [
+        "fine. this town's a dump anyway",
+        "you'll regret this, {town}",
+        "whatever. i'll be back",
+        "your loss",
+        "see you around... when you're not looking"
+      ],
+      "bandit": [
+        "finally. no more pretending"
+      ]
     }
   }
 }

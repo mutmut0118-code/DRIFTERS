@@ -60,6 +60,8 @@ final class Justice {
 	private static final Map<UUID, Map.Entry<UUID, Long>> chasing = new HashMap<>();
 
 	static void register() {
+		// (A town takes no Bandits in: the user, 2026-10-28.)
+		DrifterApi.registerJoinRule(TownFounding::mayJoin);
 		DrifterEvents.PLAYER_DEED.register((drifter, player, deed, trustAfter) -> {
 			Town town = townOf(drifter);
 			if (town == null || !(player instanceof ServerPlayer serverPlayer)) {
@@ -132,6 +134,18 @@ final class Justice {
 				changed = true;
 			}
 		}
+
+		// Thrown-out crooks out of the town: Bandits again.
+		leaving.entrySet().removeIf(entry -> {
+			DrifterEntity gone = TownFounding.loaded(server, entry.getKey());
+			if (gone == null || gone.blockPosition().closerThan(entry.getValue(), WELL_CLEAR)) {
+				return false;
+			}
+
+			DrifterApi.turnBandit(gone);
+			DrifterApi.think(gone, "out of that town for good. no more pretending");
+			return true;
+		});
 
 		// Its guards: its two boldest with a weapon.
 		List<DrifterEntity> fit = new ArrayList<>();
@@ -217,6 +231,208 @@ final class Justice {
 		}
 
 		Towns.save(server);
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Its crooks (a Bandit living in it: the user, 2026-10-28, "if they are in a town they should be commiting several
+	// crimes to really give that bandit feel")
+	// ---------------------------------------------------------------------------------------------
+
+	private static final int FINE_FIGHT = 2;
+	/** What a crook's crime does to the trust of those who saw it (and of the one it wronged). */
+	private static final double SAW_IT = -15.0;
+	/** Thrown out: what its town mates think of it then (so they don't team up with it again). */
+	private static final double THROWN_OUT = -70.0;
+	/**
+	 * Thrown out and on its way (where the town is): a Bandit again once it's out of the town (found in testing: turned
+	 * Bandit on the spot, or after a few minutes still about the town, it killed one of the town's people where it stood).
+	 * Not saved: after a reload it stays as it is.
+	 */
+	private static final Map<UUID, BlockPos> leaving = new HashMap<>();
+	/**
+	 * How far from the town that is (found in testing: a Bandit again just past the town's edge, it set up a farm there and
+	 * killed the town's people who came by; settled nearer, it stays an opportunist).
+	 */
+	private static final double WELL_CLEAR = IN_TOWN * 2;
+
+	/**
+	 * A crook did it ({@code TownWork#crime}): a theft from a chest, or a fight it picked. Only what its people saw counts:
+	 * one of them (not the crook) with it in sight just now, near (for a fight, the one it went for too). Caught: a fine,
+	 * paid into the till like a tax; a third time, it's thrown out of the town, a Bandit again.
+	 */
+	static void byCrook(Town town, DrifterEntity crook, String kind, @Nullable DrifterEntity victim, BlockPos where) {
+		MinecraftServer server = crook.getServer();
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (server == null || group == null || !(crook.level() instanceof ServerLevel level)) {
+			return;
+		}
+
+		long now = level.getGameTime();
+		List<DrifterEntity> saw = new ArrayList<>();
+		for (DrifterEntity one : level.getEntitiesOfClass(DrifterEntity.class, crook.getBoundingBox().inflate(WITNESS),
+			d -> d.isAlive() && d != crook && group.members.contains(d.getUUID()))) {
+			var seen = one.getSenses().awarenessOf(crook);
+			if (one == victim || seen != null && seen.identified && (seen.visibleNow || now - seen.lastSeenTick <= 40L)) {
+				saw.add(one);
+			}
+		}
+
+		String name = crook.getName().getString();
+		String whose = owner(server, town, group, where);
+		String what = kind.equals("fight") ? "picking a fight with " + (victim == null ? "someone" : victim.getName().getString())
+			: "stealing from " + whose;
+		if (saw.isEmpty()) {
+			DrifterApi.think(crook, "nobody saw it");
+			return;
+		}
+
+		Town.Criminal criminal = town.crimes.computeIfAbsent(crook.getUUID(), id -> new Town.Criminal(name));
+		if (now - criminal.lastAt < SAME_CRIME && kind.equals(criminal.crime)) {
+			return;
+		}
+
+		criminal.offences++;
+		criminal.lastAt = now;
+		criminal.crime = kind;
+		DrifterEntity witness = saw.stream().filter(one -> one != victim).findFirst().orElse(saw.get(0));
+		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness,
+			kind.equals("fight") ? "crime.fight" : "crime.theft", "player", name, "who", victim == null ? whose : victim.getName().getString()));
+		for (DrifterEntity one : saw) {
+			DrifterApi.addTrustInDrifter(one, crook, SAW_IT);
+			DrifterApi.think(one, "saw " + name + " " + what);
+		}
+
+		town.lastCrook = name;
+		town.lastCrime = kind;
+		town.lastCrimeDay = Chronicle.day(server);
+		if (criminal.offences >= REPEAT) {
+			throwOut(server, town, group, crook, what + " again (" + criminal.offences + " times)");
+			town.crimes.remove(crook.getUUID());
+		} else {
+			int fine = (kind.equals("fight") ? FINE_FIGHT : FINE_THEFT) + (criminal.offences - 1);
+			// (It owes the till, as a tax: it takes the emeralds there, the ones it stole if that's all it has.)
+			town.taxOwed.merge(crook.getUUID(), fine, Integer::sum);
+			Chronicle.add(server, "law", name + " was caught " + what + " in " + town.name + " (a fine of " + fine + " emeralds)");
+			DrifterApi.think(crook, "caught " + what + ": a fine of " + fine + " emeralds");
+		}
+
+		Towns.save(server);
+	}
+
+	/** Whose chest it was: the town's till, a town mate's (the house it's by), or the town's. */
+	private static String owner(MinecraftServer server, Town town, DrifterGroups.Group group, BlockPos chest) {
+		if (chest.equals(town.till())) {
+			return "the town's till";
+		}
+
+		if (town.store.contains(chest)) {
+			return "the town's store";
+		}
+
+		for (Town.Plot plot : town.plots) {
+			if (plot.owner != null && inPlot(plot, chest)) {
+				return group.names.getOrDefault(plot.owner, "a neighbour") + "'s chest";
+			}
+		}
+
+		return "the town";
+	}
+
+	/** The town's (its store, its till), or in a neighbour's house: not in the crook's own. */
+	static boolean othersChest(Town town, DrifterEntity crook, BlockPos chest) {
+		if (town.store.contains(chest)) {
+			return true;
+		}
+
+		for (Town.Plot plot : town.plots) {
+			if (inPlot(plot, chest)) {
+				return !crook.getUUID().equals(plot.owner) && !plot.residents.contains(crook.getUUID());
+			}
+		}
+
+		return false;
+	}
+
+	private static boolean inPlot(Town.Plot plot, BlockPos pos) {
+		return pos.getX() >= plot.origin.getX() - 1 && pos.getX() <= plot.origin.getX() + plot.sizeX
+			&& pos.getZ() >= plot.origin.getZ() - 1 && pos.getZ() <= plot.origin.getZ() + plot.sizeZ;
+	}
+
+	/** Out of the town for good: no home there, no friends there, and once it's gone, a Bandit again (it kills on sight). */
+	static void throwOut(MinecraftServer server, Town town, DrifterGroups.Group group, DrifterEntity crook, String why) {
+		String name = crook.getName().getString();
+		DrifterGroups.leave(crook.getUUID());
+		town.crooks.remove(crook.getUUID());
+		town.taxOwed.remove(crook.getUUID());
+		town.lastCrime = "thrown_out";
+		DrifterApi.setHome(crook, null);
+		DrifterApi.setTownWork(crook, null);
+		leaving.put(crook.getUUID(), town.center);
+		for (UUID id : group.members) {
+			DrifterEntity member = TownFounding.loaded(server, id);
+			if (member != null) {
+				DrifterApi.addTrustInDrifter(member, crook, THROWN_OUT);
+				DrifterApi.addTrustInDrifter(crook, member, THROWN_OUT);
+			}
+		}
+
+		com.dinglebob.drifter.social.ChatLines.speak(crook, com.dinglebob.drifter.social.Lines.pick(crook, "crook.thrown_out", "town", town.name));
+		DrifterApi.think(crook, "was thrown out of " + town.name + " for " + why);
+		Chronicle.add(server, "law", name + " was thrown out of " + town.name + " for " + why + ": a bandit again");
+	}
+
+	/**
+	 * (Debug: the town crook command.) Its crook goes at it again soon; none (loaded): the nearest of its people (not the
+	 * leader, not the stall's keeper) is a crook now.
+	 */
+	@Nullable
+	static String debugCrook(MinecraftServer server, Town town, BlockPos near) {
+		for (UUID id : town.crooks) {
+			DrifterEntity crook = TownFounding.loaded(server, id);
+			if (crook != null) {
+				DrifterApi.crookSoon(crook);
+				return crook.getName().getString();
+			}
+		}
+
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		DrifterEntity pick = null;
+		if (group != null) {
+			for (UUID id : group.members) {
+				DrifterEntity member = TownFounding.loaded(server, id);
+				if (member != null && !id.equals(town.leader) && !id.equals(group.leader) && !id.equals(town.keeper) && (pick == null || member.distanceToSqr(near.getCenter()) < pick.distanceToSqr(near.getCenter()))) {
+					pick = member;
+				}
+			}
+		}
+
+		if (pick == null) {
+			return null;
+		}
+
+		DrifterApi.turnBandit(pick);
+		town.crooks.add(pick.getUUID());
+		DrifterApi.settleDown(pick);
+		DrifterApi.crookSoon(pick);
+		Towns.save(server);
+		return pick.getName().getString();
+	}
+
+	/** (Debug: the town crook out command.) Its crook thrown out now. */
+	@Nullable
+	static String debugThrowOut(MinecraftServer server, Town town) {
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		for (UUID id : List.copyOf(town.crooks)) {
+			DrifterEntity crook = TownFounding.loaded(server, id);
+			if (crook != null && group != null) {
+				throwOut(server, town, group, crook, "its crimes (debug)");
+				town.crimes.remove(id);
+				Towns.save(server);
+				return crook.getName().getString();
+			}
+		}
+
+		return null;
 	}
 
 	private static void exile(MinecraftServer server, Town town, Town.Criminal criminal, long days, String why) {

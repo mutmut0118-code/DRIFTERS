@@ -127,6 +127,30 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " held its election (/drifterciv chronicle)"), true);
 					return 1;
 				}))
+				// Debug: the nearest of the nearest town's people (not its leader) is its crook now, and steals or picks a fight soon.
+				.then(Commands.literal("crook").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					String name = town == null ? null : Justice.debugCrook(ctx.getSource().getServer(), town, BlockPos.containing(ctx.getSource().getPosition()));
+					if (name == null) {
+						ctx.getSource().sendFailure(Component.literal("No town (with people loaded) here"));
+						return 0;
+					}
+
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + name + " is " + town.name + "'s crook (at it in a few seconds)"), true);
+					return 1;
+				})
+					// Debug: the town throws its crook out now (as if caught the third time).
+					.then(Commands.literal("out").executes(ctx -> {
+						Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+						String name = town == null ? null : Justice.debugThrowOut(ctx.getSource().getServer(), town);
+						if (name == null) {
+							ctx.getSource().sendFailure(Component.literal("No town with a crook (loaded) here"));
+							return 0;
+						}
+
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " threw " + name + " out"), true);
+						return 1;
+					})))
 				// Debug: the nearest town's people think this much less of its leader (to see unrest come of it).
 				.then(Commands.literal("sour").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("points", IntegerArgumentType.integer(1, 200)).executes(ctx -> {
