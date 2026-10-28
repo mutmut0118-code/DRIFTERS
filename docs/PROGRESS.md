@@ -2981,5 +2981,41 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Tested headless, 12 runs of 3 game days on seed 777 while fixing: last run, no tree left on the plaza, the well,
     board and all four lamp posts up, the water in in two trips; in the client, the plaza clear, the board readable,
     the lit well at night.
-- Next: step 4 continues (Drifters buying at the stall with money of their own, wages for town work, trade runs
-  between towns, a player running a stall).
+- **Step 4b: the town's money, buying at the stall, trade runs (0.22.25; the user: "lets do step 4, remove running a stall
+  yourself"; chose: a town treasury fed by the stall's takings, Drifters buy what they're short of, a trader walks).**
+  - The till: a town's store's first chest (`Town.till()`). The keeper keeps 8 emeralds on hand (`ShopKeeper.keepOnHand`)
+    and after closing takes anything 2 emeralds over that to the till (`TownMoneyGoals.Bank`, `ShopKeeper.till`,
+    `ChestErrand`: a trip to a chest to put or take).
+  - Wages: the town's work reports itself (`TownWork.worked`: a road block 0.25 points, a plaza log 0.3, a bucket into
+    the well 3, a block of a town build 0.15; an emerald is 6), owed in the town's book (`Town.owed`, saved, at most 10
+    emeralds behind); one owed an emerald or more goes to the till and takes it (`TownMoneyGoals.Wages`; nothing in the
+    till, nothing paid: "the town's till had nothing for its wages"); `TownWork.owed/till/paid`. Chronicle: "X was paid
+    N emeralds' worth of wages in Town".
+  - Buying (`BuyGoal`): short of food (little on it, peckish), torches, iron (no iron pickaxe) or wood (building its
+    house), with the money, at a stall it knows (its town's, or one it has seen), open, its keeper behind it: it walks up,
+    says so ("bread pls"), and trades across the counter as a player at the screen (`Counter`: its money to the keeper,
+    the goods back; `ShopKeeper.soldTo`). 0.4, 0.62 when hungry.
+  - The stall: food, iron and torches count as plenty from 12/16 (not 32) and come first in its six kinds; the keeper
+    keeps its stall at 0.72 in its open hours and doesn't go on group mining trips then (found: off mining all day).
+  - Trade runs (`TradeRuns` in the addon, `TradeRun`, `TradeRunGoal`): every 3 days in the morning a town with a stall
+    sends its most trader-like person (greed, sociability, some bravery; not the keeper) to the nearest other town with a
+    stall within 1600 blocks, with up to 3 kinds of its plenty (32 each) and the town's purse (6 emeralds from the till);
+    it walks there (night: shelters, then on), waits up to 2 minutes for the keeper, sells what that stall buys, buys what
+    its town is short of (from what stalls buy), walks home, puts the money in the till and the goods away. It remembers
+    what that stall bought and sold, and next time takes those; nothing to sell or buy: no run. Chronicle: set out,
+    traded (what), came back.
+  - Made-ready towns now keep their keeper's shop and their town work after a reload (`TownFounding.tend`; found: the
+    keeper had no shop after the world was loaded again), and have a till.
+  - Town builds 0.58 (0.64 with a mate at it): at 0.5 a store took days. A town's store and stall spots judged by any of
+    its people's knowledge of the ground, the leader's first (found: "ground it hasn't seen" 528, no store for days).
+  - Debug: `/drifterciv town finish` (put up the store or stall being built, at once), `/drifterciv town owe <emeralds>`;
+    `/drifterciv town` shows the money (till, wages owed and paid, sales to Drifters), `/drifterciv prices` what the
+    keeper stocks up on.
+  - Tested headless, made-ready town (seed 777): Nora bought 3 iron ingots for an emerald; the keeper banked 7, then 6
+    emeralds; with wages owed, one found the till empty, then after the keeper banked, silent_acorn took 2 emeralds of
+    wages. Two made-ready towns 400 blocks apart: HollowFern walked from Westby to Eastby (about half a day), traded
+    (sold nothing: both towns made the same, so it then remembers that) and came home.
+  - Not done / limits: a town far from every player isn't running (its Drifters wait, unless the config's "kept
+    running" Drifters include them), so a trader to an unloaded town waits there or comes home; runs aren't saved over a
+    restart; the trader doesn't ride yet (it walks, a boat over water as it does anyway).
+- Next: steps 5 and on (leaders and laws), or what the user picks.

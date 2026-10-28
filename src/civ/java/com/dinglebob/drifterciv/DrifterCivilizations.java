@@ -88,6 +88,45 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: the nearest town owes each of its people this many emeralds' worth of wages (to see them collected).
+				.then(Commands.literal("owe").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("emeralds", IntegerArgumentType.integer(1, 10)).executes(ctx -> {
+						Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+						var group = town == null || town.group == null ? null : DrifterApi.groupById(town.group);
+						if (group == null) {
+							ctx.getSource().sendFailure(Component.literal("No town here"));
+							return 0;
+						}
+
+						int emeralds = IntegerArgumentType.getInteger(ctx, "emeralds");
+						group.members.forEach(id -> town.owed.merge(id, emeralds * 6.0, Double::sum));
+						Towns.save(ctx.getSource().getServer());
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " owes each of its people " + emeralds + " emeralds' worth"), true);
+						return 1;
+					})))
+				// Debug: the nearest founded town's store, then its stall, put up at once where its people were building it (to
+				// test what comes after without waiting days).
+				.then(Commands.literal("finish").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					var server = ctx.getSource().getServer();
+					Town.Plot plot = town == null || town.spawned ? null : !town.storeBuilt ? town.storePlot : !town.stallBuilt ? town.stallPlot : null;
+					if (plot == null) {
+						ctx.getSource().sendFailure(Component.literal("No store or stall being built in a town founded by its people here"));
+						return 0;
+					}
+
+					DrifterApi.placeHouse(ctx.getSource().getLevel(), plot.planId, plot.origin, plot.rotation, "oak", null);
+					if (!town.storeBuilt) {
+						TownFounding.storeBuilt(server, town);
+					} else {
+						Market.stallBuilt(server, town);
+					}
+
+					Towns.save(server);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + "'s " + (town.stallBuilt ? "stall" : "store") + " put up at "
+						+ plot.origin.toShortString()), true);
+					return 1;
+				}))
 				// Debug: the nearest founded town's store and stall count as up (not built), so its plaza comes next.
 				.then(Commands.literal("plaza").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
@@ -255,6 +294,18 @@ public final class DrifterCivilizations implements ModInitializer {
 
 			source.sendSuccess(() -> Component.literal("  Plaza: " + (plaza.isEmpty() ? "nothing yet (after the market stall, and the leader's old hut down)"
 				: String.join("; ", plaza))), false);
+			// Its money: the till, what it owes in wages and has paid, its stall's sales to its people.
+			double inTill = 0.0;
+			if (town.till() != null && source.getLevel().getBlockEntity(town.till()) instanceof net.minecraft.world.Container till) {
+				for (int slot = 0; slot < till.getContainerSize(); slot++) {
+					inTill += DrifterApi.moneyWorth(till.getItem(slot));
+				}
+			}
+
+			double money = inTill;
+			source.sendSuccess(() -> Component.literal("  Money: " + (town.till() == null ? "no till yet (the store's first chest)" : String.format(java.util.Locale.ROOT,
+				"%.1f emeralds' worth in the till at %s", money / 6.0, town.till().toShortString())) + String.format(java.util.Locale.ROOT,
+				"; wages owed %.1f, paid %.1f (emeralds' worth); %d sales to Drifters", Wages.owedAll(town) / 6.0, town.wagesPaid / 6.0, town.drifterTrades)), false);
 		}
 
 		return alivePeople;

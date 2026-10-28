@@ -31,7 +31,7 @@ public final class StallGoal extends Goals.Goal {
 	/** Farthest from its stall it goes to keep it. */
 	private static final double RANGE = 128.0;
 
-	static boolean open(DrifterEntity drifter) {
+	public static boolean open(DrifterEntity drifter) {
 		long time = Schedule.believedTime(drifter) % 24000L;
 		return time >= OPENS && time < CLOSES;
 	}
@@ -51,7 +51,8 @@ public final class StallGoal extends Goals.Goal {
 		DrifterEntity drifter = context.drifter();
 		ShopKeeper shop = drifter.getShop();
 		BlockPos stand = shop == null ? null : shop.stand(drifter);
-		return stand != null && open(drifter) && drifter.blockPosition().closerThan(stand, RANGE) ? 0.56 : 0.0;
+		// (Its job in its open hours: above its own chores, below staying alive and eating.)
+		return stand != null && open(drifter) && drifter.blockPosition().closerThan(stand, RANGE) ? 0.72 : 0.0;
 	}
 
 	@Override

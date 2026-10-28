@@ -707,6 +707,17 @@ public final class DrifterApi {
 		return com.dinglebob.drifter.building.plan.HousePlans.STALL;
 	}
 
+	/** It goes on this trade run to another town (step 4), or (null) it's off it. */
+	public static void setTradeRun(DrifterEntity drifter, @Nullable TradeRun run) {
+		drifter.setTradeRun(run);
+	}
+
+	/** The trade run it's on, or null. */
+	@Nullable
+	public static TradeRun tradeRun(DrifterEntity drifter) {
+		return drifter.getTradeRun();
+	}
+
 	/** The plans of a town's well, notice board and lamp post (milestone 22; built as town builds). */
 	public static String wellPlan() {
 		return com.dinglebob.drifter.building.plan.HousePlans.WELL;

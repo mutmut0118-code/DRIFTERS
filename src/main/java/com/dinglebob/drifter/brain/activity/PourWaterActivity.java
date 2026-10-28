@@ -62,6 +62,10 @@ public class PourWaterActivity extends Activity {
 		if (status == Status.FAILURE && step.describe().equals("pour the water")) {
 			this.missedFrom.add(this.drifter.blockPosition());
 		}
+
+		if (status == Status.SUCCESS && step.describe().equals("pour the water") && this.drifter.getTownWork() != null) {
+			this.drifter.getTownWork().worked(this.drifter, "water", 1);
+		}
 	}
 
 	@Override

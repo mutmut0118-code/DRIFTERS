@@ -257,5 +257,8 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 - **The plaza of a founded town (0.22.23):** after the stall, its people build a well (water fetched in a bucket from
   a lake and poured in), a notice board with the town's name, people, leader and latest news, and lamp posts at the
   plaza's corners.
+- **Step 4b, money (0.22.25):** a town's till (its store's first chest) takes the stall's takings; its people are paid
+  wages from it for the town's work; they buy what they're short of at the stall; a trader walks to the nearest other
+  town every few days to sell its plenty and buy what it's short of. Players running stalls: dropped (the user).
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

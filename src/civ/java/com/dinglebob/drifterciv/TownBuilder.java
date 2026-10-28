@@ -601,8 +601,8 @@ public final class TownBuilder {
 			List.of(new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.DIRT, 32)),
 			List.of(new ItemStack(Items.OAK_LOG, 32), new ItemStack(Items.OAK_PLANKS, 64), new ItemStack(Items.STICK, 32)),
 			List.of(new ItemStack(Items.IRON_INGOT, 18), new ItemStack(Items.RAW_IRON, 12), new ItemStack(Items.GOLD_INGOT, 4), new ItemStack(Items.REDSTONE, 12)),
-			List.of(new ItemStack(Items.COAL, 48), new ItemStack(Items.CHARCOAL, 16)),
-			List.of(new ItemStack(Items.BREAD, 16), new ItemStack(Items.COOKED_BEEF, 12), new ItemStack(Items.WHEAT_SEEDS, 24)));
+			List.of(new ItemStack(Items.COAL, 48), new ItemStack(Items.CHARCOAL, 16), new ItemStack(Items.TORCH, 32)),
+			List.of(new ItemStack(Items.BREAD, 48), new ItemStack(Items.COOKED_BEEF, 24), new ItemStack(Items.WHEAT_SEEDS, 24)));
 		int kind = 0;
 		for (BlockPos chest : home.chests()) {
 			if (!box.isInside(chest) || !(level.getBlockEntity(chest) instanceof ChestBlockEntity entity) || kind >= kinds.size()) {

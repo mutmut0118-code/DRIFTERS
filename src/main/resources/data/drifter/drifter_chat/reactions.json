@@ -886,6 +886,65 @@
         "why {who}",
         "o7 {who}, we wont forget"
       ]
+    },
+    "shop.buy": {
+      "any": [
+        "{what} pls",
+        "can i get some {what}?",
+        "{what}, how much",
+        "need {what}",
+        "one {what} order pls",
+        "{who}, got {what}?"
+      ],
+      "newbie": [
+        "hi!! can i buy {what}?"
+      ],
+      "hermit": [
+        "{what}."
+      ],
+      "bandit": [
+        "{what}. and make it quick"
+      ],
+      "hoarder": [
+        "{what}. how cheap can you go"
+      ]
+    },
+    "shop.sold": {
+      "any": [
+        "here",
+        "ty for buying",
+        "enjoy",
+        "pleasure doing business",
+        "come again",
+        "there you go {who}"
+      ],
+      "hoarder": [
+        "no refunds"
+      ],
+      "helper": [
+        "here you go! come back anytime"
+      ],
+      "pvp_sweat": [
+        "ez money"
+      ]
+    },
+    "shop.trader": {
+      "any": [
+        "came all the way from home to trade",
+        "good doing business, {who}",
+        "pleasure, see you next run",
+        "got some good stuff here",
+        "fair prices in {town}"
+      ],
+      "hoarder": [
+        "could've been cheaper"
+      ],
+      "nomad": [
+        "love a good trade run"
+      ],
+      "bandit": [
+        "you got lucky on that one"
+      ]
     }
   }
 }

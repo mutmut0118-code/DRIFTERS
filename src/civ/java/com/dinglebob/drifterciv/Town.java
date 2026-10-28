@@ -122,6 +122,22 @@ public final class Town {
 	public final List<Plot> plaza = new ArrayList<>();
 	public boolean wellFilled;
 	public long boardDay = -1;
+	/**
+	 * Its money (step 4; the user, 2026-10-28: "Town treasury"): wages it owes each of its people for its work (points: an
+	 * emerald is 6), and what it has paid out all told. The money itself is in its till ({@link #till()}), real items.
+	 */
+	public final java.util.Map<UUID, Double> owed = new java.util.HashMap<>();
+	public double wagesPaid;
+	/** Sales at its stall to its own people (and other towns' traders). */
+	public int drifterTrades;
+	/** Its book changed since it was last saved (not saved: the town's check saves it). */
+	boolean booksChanged;
+
+	/** Its till: the first chest of its store, or null before it has one. */
+	@Nullable
+	public BlockPos till() {
+		return (this.storeBuilt || this.spawned) && !this.store.isEmpty() ? this.store.get(0) : null;
+	}
 
 	public Town(UUID id, String name, @Nullable UUID group, String dimension, BlockPos center, long foundedDay, boolean spawned) {
 		this.id = id;
@@ -189,6 +205,11 @@ public final class Town {
 		tag.put("Plaza", plaza);
 		tag.putBoolean("WellFilled", this.wellFilled);
 		tag.putLong("BoardDay", this.boardDay);
+		CompoundTag owed = new CompoundTag();
+		this.owed.forEach((id, points) -> owed.putDouble(id.toString(), points));
+		tag.put("Owed", owed);
+		tag.putDouble("WagesPaid", this.wagesPaid);
+		tag.putInt("DrifterTrades", this.drifterTrades);
 		return tag;
 	}
 
@@ -229,6 +250,17 @@ public final class Town {
 
 		town.wellFilled = tag.getBoolean("WellFilled");
 		town.boardDay = tag.contains("BoardDay") ? tag.getLong("BoardDay") : -1;
+		CompoundTag owed = tag.getCompound("Owed");
+		for (String key : owed.getAllKeys()) {
+			try {
+				town.owed.put(UUID.fromString(key), owed.getDouble(key));
+			} catch (IllegalArgumentException ignored) {
+				// (Not an id.)
+			}
+		}
+
+		town.wagesPaid = tag.getDouble("WagesPaid");
+		town.drifterTrades = tag.getInt("DrifterTrades");
 		return town;
 	}
 }

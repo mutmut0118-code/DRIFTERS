@@ -125,6 +125,11 @@ public class GatherActivity extends Activity {
 			}
 		}
 
+		// (A tree felled on the town's plaza is the town's work: wages, step 4.)
+		if (status == Status.SUCCESS && this.where != null && this.digging != null && this.drifter.getTownWork() != null) {
+			this.drifter.getTownWork().worked(this.drifter, "trees", 1);
+		}
+
 		this.digging = null;
 		if (status == Status.FAILURE && step instanceof NavigateTask && this.walkedTo != null) {
 			this.blacklist().add(this.walkedTo, this.now());

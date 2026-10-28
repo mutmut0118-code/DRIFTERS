@@ -113,7 +113,7 @@ public final class DrifterMerchant implements Merchant {
 	}
 
 	/** Takes this many of this item out of its pockets (as far as it has them). */
-	private static void take(DrifterInventory inventory, ItemStack what) {
+	static void take(DrifterInventory inventory, ItemStack what) {
 		int left = what.getCount();
 		for (int slot = 0; slot < inventory.getContainerSize() && left > 0; slot++) {
 			ItemStack stack = inventory.getItem(slot);
@@ -126,7 +126,7 @@ public final class DrifterMerchant implements Merchant {
 	}
 
 	/** Into its pockets, or at its feet if they're full. */
-	private static void give(DrifterEntity keeper, ItemStack what) {
+	static void give(DrifterEntity keeper, ItemStack what) {
 		if (what.isEmpty()) {
 			return;
 		}

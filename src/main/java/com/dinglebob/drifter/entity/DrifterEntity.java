@@ -648,6 +648,19 @@ public class DrifterEntity extends PathfinderMob {
 		this.shop = shop;
 	}
 
+	/** A trade run to another town it's on (DrifterApi.setTradeRun), or null. Not saved. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.api.TradeRun tradeRun;
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.api.TradeRun getTradeRun() {
+		return this.tradeRun;
+	}
+
+	public void setTradeRun(@org.jetbrains.annotations.Nullable com.dinglebob.drifter.api.TradeRun run) {
+		this.tradeRun = run;
+	}
+
 	/** Its town's shared work (roads, lights, its house's ground: DrifterApi.setTownWork), or null. Not saved. */
 	@org.jetbrains.annotations.Nullable
 	private com.dinglebob.drifter.api.TownWork townWork;

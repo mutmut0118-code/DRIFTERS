@@ -35,6 +35,21 @@ public interface ShopKeeper {
 	default void traded(DrifterEntity keeper, Player player, ShopOffer offer) {
 	}
 
+	/** It sold {@code times} of this offer to another Drifter at its counter (step 4: Drifters buy with their wages). */
+	default void soldTo(DrifterEntity keeper, DrifterEntity buyer, ShopOffer offer, int times) {
+	}
+
+	/** Where it puts its takings (the town's till, a chest), or null: it keeps them. */
+	@Nullable
+	default BlockPos till(DrifterEntity keeper) {
+		return null;
+	}
+
+	/** How much money it keeps on hand to buy with (emeralds' worth); the rest goes to the till. */
+	default int keepOnHand() {
+		return 8;
+	}
+
 	/**
 	 * One trade: the player gives {@code pay} (and {@code payB}, or empty) for {@code goods}, up to {@code times} times.
 	 */

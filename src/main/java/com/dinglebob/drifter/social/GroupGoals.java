@@ -104,7 +104,8 @@ public final class GroupGoals {
 				return this.mate == null ? 0.0 : 1.0;
 			}
 
-			if (drifter.level().getGameTime() - this.lastJoined < AGAIN_AFTER
+			// (A shopkeeper in its open hours keeps its shop: found in testing, the town's keeper off mining all day.)
+			if (drifter.level().getGameTime() - this.lastJoined < AGAIN_AFTER || drifter.getShop() != null && com.dinglebob.drifter.trade.StallGoal.open(drifter)
 				|| Schedule.isNight(drifter) || drifter.getHealth() < 14.0F || context.stage() < 4
 				|| drifter.getInventory().count(stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.IRON_ORE.defaultBlockState())) == 0
 				|| drifter.getInventory().count(stack -> stack.is(Items.TORCH)) < 4) {

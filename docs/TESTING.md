@@ -1460,6 +1460,25 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## A town's money: the till, wages, buying, trade runs (new, 0.22.25)
+
+Quickest on a made-ready town: `/drifterciv town spawn 4` (stand on open land). `/drifterciv town` shows the money line
+("Money: N emeralds' worth in the till at x y z; wages owed, paid; sales to Drifters"), `/drifterciv prices` the stall.
+- [ ] The keeper stays at its stall in the morning (it no longer wanders off mining). After closing (mid-afternoon), if
+      it has more than about 10 emeralds it walks to the store and puts the extra in the till (the store's first chest).
+- [ ] Buying: a Drifter short of food (hungry, little on it), torches, iron (no iron pickaxe) or wood, with emeralds,
+      walks up to the open stall, says "bread pls" (or the like), and buys it; the keeper says "here". Give one some
+      emeralds (`/drifter give emerald 5` next to it) and make it hungry to see it.
+- [ ] Wages: in a town its people founded, road work, felling the plaza's trees, the well's water and town builds earn
+      wages; once one is owed an emerald it goes to the till and takes it ("was paid ... wages" in the chronicle). An
+      empty till pays nothing. To see it at once: `/drifterciv town owe 2` (debug) in a town with money in its till.
+- [ ] Trade runs: two towns with stalls within about 1600 blocks (two `/drifterciv town spawn` 400 blocks apart, both on
+      land): every few days, in the morning, one of each sets out with goods ("set out from A to trade in B" in the
+      chronicle), walks there (about half a day for 400 blocks), trades at the other stall, and comes home with what it
+      bought and the money (to the till). Both towns need to be loaded (near you) for the trip to happen.
+- [ ] Founded towns get their store and stall built a bit sooner now. To test without waiting: `/drifterciv town
+      finish` (debug) puts up the store, then the stall, being built.
+
 ## A founded town's plaza: trees cleared, well, notice board, lamp posts (new, 0.22.23 and 0.22.24)
 
 For a town its Drifters founded themselves (not `/drifterciv town spawn`, which has its own plaza already). To skip the

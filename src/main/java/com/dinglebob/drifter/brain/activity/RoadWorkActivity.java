@@ -65,6 +65,10 @@ public class RoadWorkActivity extends Activity {
 	protected void stepDone(Task step, Status status) {
 		if (step instanceof SequenceTask && status == Status.SUCCESS) {
 			this.done++;
+			TownWork work = this.drifter.getTownWork();
+			if (work != null) {
+				work.worked(this.drifter, "roads", 1);
+			}
 		}
 	}
 

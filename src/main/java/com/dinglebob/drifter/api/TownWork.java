@@ -39,4 +39,27 @@ public interface TownWork {
 	default boolean clearOfTrees(int x, int z) {
 		return false;
 	}
+
+	/**
+	 * It did some of the town's work (milestone 22 step 4, wages): {@code job} is "roads" (a block made path), "trees" (a log
+	 * of a tree felled on the plaza), "water" (a bucket poured into the well) or "build" (a block of a town build placed);
+	 * {@code units} how many. The town may owe it wages for it.
+	 */
+	default void worked(DrifterEntity drifter, String job, int units) {
+	}
+
+	/** What the town owes it in wages (money points: an emerald is 6). */
+	default double owed(DrifterEntity drifter) {
+		return 0.0;
+	}
+
+	/** Where the town keeps its money (a chest in its store), or null if it has nowhere yet. */
+	@org.jetbrains.annotations.Nullable
+	default BlockPos till() {
+		return null;
+	}
+
+	/** It took this much (points) of its wages out of the till. */
+	default void paid(DrifterEntity drifter, double points) {
+	}
 }

@@ -134,8 +134,27 @@ public final class TownFounding {
 			if (server.getTickCount() % CHECK_TICKS == 0) {
 				found(server);
 				Towns.all().stream().filter(town -> !town.spawned).forEach(town -> grow(server, town));
+				// A town made ready (for testing): its keeper's shop and its people's town work (wages, the till) kept set (found:
+				// after the world was loaded again, the keeper had no shop).
+				Towns.all().stream().filter(town -> town.spawned).forEach(town -> tend(server, town));
+				// Trade runs between towns with stalls (step 4).
+				Towns.all().forEach(town -> TradeRuns.check(server, town));
 			}
 		});
+	}
+
+	private static void tend(MinecraftServer server, Town town) {
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group == null) {
+			return;
+		}
+
+		boolean changed = Market.keeper(server, town, group);
+		TownRoads.setWork(server, town, group.members);
+		if (changed || town.booksChanged) {
+			town.booksChanged = false;
+			Towns.save(server);
+		}
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -288,6 +307,8 @@ public final class TownFounding {
 		// Side lanes as it grows, and everyone in on the town's work (its roads, its lights, the ground round their houses).
 		changed |= TownRoads.grow(town);
 		TownRoads.setWork(server, town, group.members);
+		changed |= town.booksChanged;
+		town.booksChanged = false;
 
 		if (changed) {
 			Towns.save(server);
@@ -339,7 +360,7 @@ public final class TownFounding {
 
 			DrifterApi.HousePlanInfo store = new DrifterApi.HousePlanInfo(DrifterApi.storePlan(base.id()), base.sizeX(), base.sizeY(), base.sizeZ(),
 				base.groundLayer());
-			Town.Plot plot = findPlot(server, town, leader, List.of(store), false);
+			Town.Plot plot = findPlotByAnyone(server, town, group, List.of(store), false);
 			if (plot == null) {
 				return false;
 			}
@@ -383,7 +404,7 @@ public final class TownFounding {
 		return changed;
 	}
 
-	private static void storeBuilt(@Nullable MinecraftServer server, Town town) {
+	static void storeBuilt(@Nullable MinecraftServer server, Town town) {
 		if (server == null || town.storePlot == null) {
 			return;
 		}
@@ -491,6 +512,27 @@ public final class TownFounding {
 		}
 
 		return plot;
+	}
+
+	/**
+	 * A plot for something of the town's (its store, its stall) on ground any of its people has seen, the leader's knowledge
+	 * first (found in testing: a store never begun in days, the leader having seen too little of the ground along the roads,
+	 * "ground it hasn't seen" 528 times).
+	 */
+	@Nullable
+	static Town.Plot findPlotByAnyone(MinecraftServer server, Town town, DrifterGroups.Group group, List<DrifterApi.HousePlanInfo> liked, boolean doorAway) {
+		List<UUID> order = new ArrayList<>(List.of(group.leader));
+		group.members.stream().filter(id -> !id.equals(group.leader)).forEach(order::add);
+		for (UUID id : order) {
+			DrifterEntity member = loaded(server, id);
+			Town.Plot plot = member == null ? null : findPlot(server, town, member, liked, doorAway);
+			if (plot != null) {
+				return plot;
+			}
+
+		}
+
+		return null;
 	}
 
 	@Nullable

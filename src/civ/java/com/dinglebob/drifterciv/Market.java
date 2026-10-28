@@ -42,7 +42,7 @@ public final class Market {
 	static final String STALL = "stall";
 	/** It sells kinds it has at least this many of in the store, this many kinds at most. */
 	private static final int PLENTY = 32;
-	private static final int KINDS = 4;
+	private static final int KINDS = 6;
 	/** It buys what the town has fewer than this of. */
 	private static final int SHORT = 32;
 	/** A player selling it something gets this much of the price it sells for. */
@@ -83,7 +83,7 @@ public final class Market {
 			DrifterApi.HousePlanInfo info = DrifterApi.housePlans(server).stream().filter(plan -> plan.id().equals(DrifterApi.stallPlan())).findFirst()
 				.orElse(new DrifterApi.HousePlanInfo(DrifterApi.stallPlan(), 5, 4, 4, false));
 			// (Its counter to the road: its door, at the back, away from it.)
-			Town.Plot plot = TownFounding.findPlot(server, town, leader, List.of(info), true);
+			Town.Plot plot = TownFounding.findPlotByAnyone(server, town, group, List.of(info), true);
 			if (plot == null) {
 				return false;
 			}
@@ -210,8 +210,10 @@ public final class Market {
 				return stock;
 			}
 
-			home.stored().entrySet().stream().filter(entry -> entry.getValue() >= PLENTY && sellable(entry.getKey()))
-				.sorted(Map.Entry.<Item, Integer>comparingByValue().reversed()).limit(KINDS)
+			// What its people buy first (food, torches, iron: step 4), then what there's most of.
+			home.stored().entrySet().stream().filter(entry -> entry.getValue() >= plenty(entry.getKey()) && sellable(entry.getKey()))
+				.sorted(java.util.Comparator.<Map.Entry<Item, Integer>>comparingInt(entry -> plenty(entry.getKey()) < PLENTY ? 0 : 1)
+					.thenComparing(Map.Entry.<Item, Integer>comparingByValue().reversed())).limit(KINDS)
 				.forEach(entry -> stock.put(entry.getKey(), Math.min(64, entry.getValue() / 2)));
 			return stock;
 		}
@@ -252,6 +254,33 @@ public final class Market {
 		public void traded(DrifterEntity keeper, Player player, ShopOffer offer) {
 			this.town.trades++;
 		}
+
+		@Override
+		public void soldTo(DrifterEntity keeper, DrifterEntity buyer, ShopOffer offer, int times) {
+			this.town.trades++;
+			this.town.drifterTrades++;
+		}
+
+		/** Its takings go to the town's till (step 4: the money its wages are paid from). */
+		@Nullable
+		@Override
+		public BlockPos till(DrifterEntity keeper) {
+			return this.town.till();
+		}
+	}
+
+	/**
+	 * How many the store must have before it sells some: food, iron and torches go sooner (its people buy those with their
+	 * wages, step 4: a town shouldn't need 32 loaves before it sells one).
+	 */
+	private static int plenty(Item item) {
+		ItemStack stack = new ItemStack(item);
+		return stack.has(net.minecraft.core.component.DataComponents.FOOD) || item == Items.IRON_INGOT ? 12 : item == Items.TORCH ? 16 : PLENTY;
+	}
+
+	/** What a stall buys (when its town is short of it), what traders carry between towns. */
+	static List<Item> wanted() {
+		return WANTED;
 	}
 
 	/** Not its tools, weapons or armour, nor money, nor things that are part of its house. */
@@ -303,6 +332,9 @@ public final class Market {
 		}
 
 		lines.add(town.name + "'s stall, kept by " + keeper.getName().getString() + (town.trades > 0 ? " (" + town.trades + " trades so far)" : ""));
+		Map<Item, Integer> stock = shop.stock(keeper);
+		lines.add("  Stocks up on: " + (stock.isEmpty() ? "nothing (the store has nothing it has plenty of)" : String.join(", ", stock.entrySet().stream()
+			.map(entry -> entry.getValue() + " " + new ItemStack(entry.getKey()).getHoverName().getString().toLowerCase(java.util.Locale.ROOT)).toList())));
 		for (ShopKeeper.ShopOffer offer : shop.offers(keeper, null)) {
 			lines.add("  " + describe(offer.goods()) + " for " + describe(offer.pay()) + " (" + offer.times() + " times)");
 		}

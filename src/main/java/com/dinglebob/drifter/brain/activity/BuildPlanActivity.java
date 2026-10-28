@@ -166,6 +166,11 @@ public class BuildPlanActivity extends Activity {
 
 		if (step instanceof PlaceBlockTask place && this.placing != null) {
 			if (status == Status.SUCCESS) {
+				// (A block of a town build is the town's work: wages, step 4.)
+				if (this.project && this.drifter.getTownWork() != null) {
+					this.drifter.getTownWork().worked(this.drifter, "build", 1);
+				}
+
 				// Walks count only while nothing gets placed (a big house takes a lot of walking about).
 				this.stuck.clear();
 				this.walks = 0;

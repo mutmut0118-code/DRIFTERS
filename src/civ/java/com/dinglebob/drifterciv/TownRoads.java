@@ -221,6 +221,27 @@ final class TownRoads {
 		}
 
 		@Override
+		public void worked(DrifterEntity drifter, String job, int units) {
+			Wages.worked(this.town, drifter, job, units);
+		}
+
+		@Override
+		public double owed(DrifterEntity drifter) {
+			return this.town.owed.getOrDefault(drifter.getUUID(), 0.0);
+		}
+
+		@Override
+		@org.jetbrains.annotations.Nullable
+		public BlockPos till() {
+			return this.town.till();
+		}
+
+		@Override
+		public void paid(DrifterEntity drifter, double points) {
+			Wages.paid(drifter.getServer(), this.town, drifter, points);
+		}
+
+		@Override
 		public boolean clearOfTrees(int x, int z) {
 			// (A founded town's plaza, once its stall is up: the plaza's next.)
 			return !this.town.spawned && this.town.stallBuilt && plaza(this.town).away(x, z) <= 0;
