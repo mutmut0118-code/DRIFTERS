@@ -46,8 +46,10 @@ public final class Lines {
 
 	/** Key → voice → lines. */
 	private static Map<String, Map<String, List<String>>> lines = Map.of();
-	/** Intent → phrases (normalized). */
+	/** Intent → phrases (as understood: normalized, slang put plainly; a gapped one's parts joined by {@code *}). */
 	private static Map<String, List<String>> answers = Map.of();
+	/** Slang → what it means, word for word ("u" → "you", "whatchu" → "what you"), both normalized. */
+	private static Map<String, String> slang = Map.of();
 
 	public static void register() {
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
@@ -65,7 +67,8 @@ public final class Lines {
 
 	private static void load(ResourceManager manager) {
 		Map<String, Map<String, List<String>>> newLines = new HashMap<>();
-		Map<String, List<String>> newAnswers = new LinkedHashMap<>();
+		Map<String, List<String>> rawAnswers = new LinkedHashMap<>();
+		Map<String, String> newSlang = new HashMap<>();
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
@@ -84,13 +87,18 @@ public final class Lines {
 
 				if (json.has("answers")) {
 					for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("answers").entrySet()) {
-						List<String> phrases = newAnswers.computeIfAbsent(entry.getKey(), key -> new ArrayList<>());
-						entry.getValue().getAsJsonArray().forEach(phrase -> {
-							String normal = normalize(phrase.getAsString());
-							if (!normal.isBlank()) {
-								phrases.add(normal);
-							}
-						});
+						List<String> phrases = rawAnswers.computeIfAbsent(entry.getKey(), key -> new ArrayList<>());
+						entry.getValue().getAsJsonArray().forEach(phrase -> phrases.add(phrase.getAsString()));
+					}
+				}
+
+				if (json.has("slang")) {
+					for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("slang").entrySet()) {
+						String word = normalize(entry.getKey()).trim();
+						String means = normalize(entry.getValue().getAsString()).trim();
+						if (!word.isEmpty() && !word.contains(" ") && !means.isEmpty()) {
+							newSlang.put(word, means);
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -98,11 +106,25 @@ public final class Lines {
 			}
 		}
 
+		// (The phrases put plainly too, once all the slang is in: "what do u think of" and "whatchu think of" alike.)
+		slang = newSlang;
+		Map<String, List<String>> newAnswers = new LinkedHashMap<>();
+		rawAnswers.forEach((intent, raw) -> {
+			List<String> phrases = new ArrayList<>();
+			for (String phrase : raw) {
+				String plain = plainPhrase(phrase);
+				if (plain != null && !phrases.contains(plain)) {
+					phrases.add(plain);
+				}
+			}
+
+			newAnswers.put(intent, phrases);
+		});
 		lines = newLines;
 		answers = newAnswers;
 		int count = newLines.values().stream().mapToInt(voices -> voices.values().stream().mapToInt(List::size).sum()).sum();
 		int phrases = newAnswers.values().stream().mapToInt(List::size).sum();
-		Drifter.LOGGER.info("Loaded {} Drifter chat lines ({} kinds) and {} answer phrases", count, newLines.size(), phrases);
+		Drifter.LOGGER.info("Loaded {} Drifter chat lines ({} kinds), {} answer phrases and {} slang words", count, newLines.size(), phrases, newSlang.size());
 	}
 
 	/** The lines for this, by voice (empty if none). */
@@ -275,18 +297,114 @@ public final class Lines {
 		return " " + out + " ";
 	}
 
-	/** The longest phrase of this intent found in the message (as matched: lower case, no punctuation), or null. */
-	@Nullable
-	public static String phrase(String text, String intent) {
-		String said = normalize(text);
-		String best = null;
-		for (String phrase : answers.getOrDefault(intent, List.of())) {
-			if ((best == null || phrase.length() > best.length()) && said.contains(phrase)) {
-				best = phrase;
+	/**
+	 * Chat as it's understood: {@link #normalize normalized}, then slang put plainly word by word ("whatchu think bout me" is
+	 * "what you think about me"), from the {@code "slang"} of the chat data. Phrases are understood the same way, so either
+	 * spelling of a phrase matches the other.
+	 */
+	public static String understood(String text) {
+		String normal = normalize(text);
+		if (slang.isEmpty()) {
+			return normal;
+		}
+
+		StringBuilder out = new StringBuilder(" ");
+		for (String word : normal.trim().split(" ")) {
+			if (!word.isEmpty()) {
+				out.append(slang.getOrDefault(word, word)).append(' ');
 			}
 		}
 
-		return best == null ? null : best.trim();
+		return out.toString();
+	}
+
+	/**
+	 * A phrase as it's matched: understood, and a gapped one ({@code "think * of me"}: these words in this order, anything
+	 * between) its parts joined by {@code *}. Null if nothing's left.
+	 */
+	@Nullable
+	private static String plainPhrase(String phrase) {
+		if (!phrase.contains("*")) {
+			String plain = understood(phrase);
+			return plain.isBlank() ? null : plain;
+		}
+
+		List<String> parts = new ArrayList<>();
+		for (String part : phrase.split("\\*")) {
+			String plain = understood(part);
+			if (!plain.isBlank()) {
+				parts.add(plain);
+			}
+		}
+
+		return parts.isEmpty() ? null : String.join("*", parts);
+	}
+
+	/**
+	 * How much of this message the phrase matched (its length; a gapped one's parts', less a little: a phrase said whole is
+	 * the surer match), or -1 if it isn't in it.
+	 */
+	private static int matched(String said, String phrase) {
+		if (phrase.indexOf('*') < 0) {
+			return said.contains(phrase) ? phrase.length() : -1;
+		}
+
+		String[] parts = phrase.split("\\*");
+		int length = 0;
+		for (String part : parts) {
+			length += part.length();
+		}
+
+		// (Each place the first part is, the rest after it, each close behind the last.)
+		for (int start = said.indexOf(parts[0]); start >= 0; start = said.indexOf(parts[0], start + 1)) {
+			if (follows(said, parts, 1, start + parts[0].length() - 1)) {
+				return length - GAPPED_LESS;
+			}
+		}
+
+		return -1;
+	}
+
+	/** The parts from this one on are in the message in order, each within a few words of where the last ended. */
+	private static boolean follows(String said, String[] parts, int i, int from) {
+		if (i == parts.length) {
+			return true;
+		}
+
+		for (int at = said.indexOf(parts[i], from); at >= 0; at = said.indexOf(parts[i], at + 1)) {
+			if (said.substring(from, at + 1).chars().filter(c -> c == ' ').count() - 1 > MOST_GAP_WORDS) {
+				return false;
+			}
+
+			// (The space a part ends on can start the next.)
+			if (follows(said, parts, i + 1, at + parts[i].length() - 1)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** How much shorter a gapped phrase counts than the same words said whole. */
+	private static final int GAPPED_LESS = 2;
+	/** The most words a gapped phrase's gap can be ("think * of me": "think" and "of me" at most this far apart). */
+	private static final int MOST_GAP_WORDS = 2;
+
+	/** The longest phrase of this intent found in the message (as understood: lower case, no punctuation, slang plain), or null. */
+	@Nullable
+	public static String phrase(String text, String intent) {
+		String said = understood(text);
+		String best = null;
+		int bestLength = 0;
+		for (String phrase : answers.getOrDefault(intent, List.of())) {
+			int length = matched(said, phrase);
+			if (length > bestLength) {
+				best = phrase;
+				bestLength = length;
+			}
+		}
+
+		return best == null ? null : best.replace('*', ' ').replaceAll(" +", " ").trim();
 	}
 
 	/**
@@ -296,14 +414,15 @@ public final class Lines {
 	 */
 	@Nullable
 	public static String answer(String text, String... intents) {
-		String said = normalize(text);
+		String said = understood(text);
 		String best = null;
 		int bestLength = 0;
 		for (String intent : intents) {
 			for (String phrase : answers.getOrDefault(intent, List.of())) {
-				if (phrase.length() > bestLength && said.contains(phrase)) {
+				int length = matched(said, phrase);
+				if (length > bestLength) {
 					best = intent;
-					bestLength = phrase.length();
+					bestLength = length;
 				}
 			}
 		}

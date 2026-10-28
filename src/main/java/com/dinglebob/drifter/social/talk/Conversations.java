@@ -2,7 +2,9 @@ package com.dinglebob.drifter.social.talk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,8 +17,10 @@ import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.personality.Mood;
 import com.dinglebob.drifter.personality.Trait;
 import com.dinglebob.drifter.social.ChatLines;
+import com.dinglebob.drifter.social.DrifterBonds;
 import com.dinglebob.drifter.social.Lines;
 import com.dinglebob.drifter.social.News;
+import com.dinglebob.drifter.social.Relationship;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
@@ -30,6 +34,13 @@ import net.minecraft.server.level.ServerPlayer;
  * the night's mobs, the town, a player, the news...). They face each other and take turns, a moment between each as it's
  * typed and read; what one says shapes the other's answer ({@link Topics}). Only players near enough see it (the chat
  * range). Talking builds familiarity; friends grow closer, rivals needle each other; news passes on.
+ *
+ * <p>A conversation can go on from topic to topic (the web; user, 2026-10-28: "a drifter and another have a very long
+ * coversation"): when a topic's done, they go on to one it leads to ({@link Topics.Web}), or now and then change the
+ * subject, for as long as their interest lasts: strangers a topic or two, friends a few, best friends up to ten. Past the
+ * first topic it's a long talk: they go back to what they were doing and keep chatting as they work, as players do, and
+ * a long talk ends with a goodbye. Cut short (a fight, one walking off), they pick it up the next time they meet
+ * ("anyway, about the iron").
  */
 public final class Conversations {
 	private Conversations() {
@@ -45,15 +56,35 @@ public final class Conversations {
 	private static final long QUIET_GAP = 20 * 60 * 6;
 	/** Least time before the same two talk again (ticks). */
 	private static final long PAIR_GAP = 20 * 60 * 4;
+	/** How far apart two in a long talk (chatting as they work) can get before it's cut short. */
+	private static final double WORKING_ENDS = 48.0;
+	/** How long a talk cut short waits to be picked up again (ticks), and how soon the two can pick it up. */
+	private static final long RESUME_WITHIN = 24000L;
+	private static final long RESUME_GAP = 20 * 30;
+	/** The most topics in one conversation, and the longest it goes on (ticks). */
+	private static final int MOST_TOPICS = 10;
+	private static final long MOST_TICKS = 20 * 60 * 5;
+	/** Interest it takes to go on to another topic. */
+	private static final double MIN_INTEREST = 0.5;
+	/** How often they change the subject rather than go on to a linked topic. */
+	private static final double CHANGE_SUBJECT = 0.15;
+	/** How often a linked topic is brought in with "speaking of which", and a change of subject with "anyway". */
+	private static final double SEGUE_LINKED = 0.45;
+	private static final double SEGUE_CHANGE = 0.85;
+	/** How much more a topic a topic names in its "next" is picked than one it only shares a tag with. */
+	private static final double NEXT_WEIGHT = 3.0;
+	/** Trust that makes two best friends (the longest talks). */
+	private static final double BEST_FRIEND = 80.0;
 
 	/** A conversation going on. */
 	public static final class Talk {
-		public final DrifterEntity a;
-		public final DrifterEntity b;
-		public final Topics.Topic topic;
-		final Facts aFacts;
-		final Facts bFacts;
-		final Set<String> world;
+		/** Who brought up the topic going now ({@code a}) and the other: they swap as the talk goes on. */
+		public DrifterEntity a;
+		public DrifterEntity b;
+		public Topics.Topic topic;
+		Facts aFacts;
+		Facts bFacts;
+		Set<String> world;
 		int turn;
 		long nextAt;
 		/** The answers the last line wants, and who said it (the other answers with these next). */
@@ -61,6 +92,21 @@ public final class Conversations {
 		List<String> answers;
 		@Nullable
 		DrifterEntity asker;
+		/** The topics so far (this one last), what the talk's been marked ("disagree"), and what this topic's lines lead on to. */
+		final List<String> done = new ArrayList<>();
+		final Set<String> marks = new HashSet<>();
+		final Set<String> leads = new HashSet<>();
+		/** Interest left (each topic uses some), when it started, lines said. */
+		double interest;
+		final long startedAt;
+		int lines;
+		/** Said before the topic's first line ("speaking of which"), if anything. */
+		@Nullable
+		String segue;
+		/** Saying goodbye: who said it (the other answers, then it's over). */
+		@Nullable
+		DrifterEntity leaving;
+		boolean closed;
 
 		Talk(DrifterEntity a, DrifterEntity b, Topics.Topic topic, long now) {
 			this.a = a;
@@ -68,19 +114,50 @@ public final class Conversations {
 			this.topic = topic;
 			this.aFacts = facts(a, b);
 			this.bFacts = facts(b, a);
-			this.world = Facts.world(a, b);
+			this.world = world(a, b, this.marks);
 			this.nextAt = now + 10 + a.getRandom().nextInt(20);
+			this.startedAt = now;
+			this.done.add(topic.id());
+			this.interest = Math.min(interest(a, b), interest(b, a)) + a.getRandom().nextDouble();
 		}
 
 		public DrifterEntity partnerOf(DrifterEntity drifter) {
 			return drifter == this.a ? this.b : this.a;
 		}
+
+		/** Past its first topic: they go back to what they were doing and chat as they work. */
+		public boolean longTalk() {
+			return this.done.size() > 1;
+		}
+
+		/** The topics talked about so far, in order. */
+		public List<String> topics() {
+			return this.done;
+		}
+
+		public double interestLeft() {
+			return this.interest;
+		}
+
+		/** Debug: this much more interest (a long talk to watch). */
+		public void addInterest(double more) {
+			this.interest += more;
+		}
+	}
+
+	/** What they go on to: a topic, whether the other brings it up, and what's said first ("speaking of which"). */
+	private record Choice(Topics.Topic topic, boolean swap, @Nullable String segue) {
+	}
+
+	/** A talk cut short, to pick up when the two next meet: the topic it was on, and when. */
+	private record Pending(String topic, long at) {
 	}
 
 	private static final List<Talk> talks = new ArrayList<>();
 	private static final Map<UUID, Long> lastTalk = new HashMap<>();
 	private static final Map<String, Long> lastPair = new HashMap<>();
 	private static final Map<String, String> lastTopic = new HashMap<>();
+	private static final Map<String, Pending> pending = new HashMap<>();
 
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(Conversations::tick);
@@ -104,13 +181,14 @@ public final class Conversations {
 			Talk talk = it.next();
 			if (!going(talk)) {
 				it.remove();
+				cut(talk, now);
 				continue;
 			}
 
 			// (One busy with something types as it works, as players do; one that's free walks over and faces the other.)
-			if (now >= talk.nextAt && !step(talk, now)) {
-				end(talk, now);
+			if (now >= talk.nextAt && !carryOn(talk, now)) {
 				it.remove();
+				end(talk, now);
 			}
 		}
 
@@ -132,13 +210,15 @@ public final class Conversations {
 
 		List<DrifterEntity> near = level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(range), Conversations::free);
 		for (DrifterEntity a : near) {
-			if (now - lastTalk.getOrDefault(a.getUUID(), Long.MIN_VALUE / 2) < gap(a)) {
+			if (now - lastTalk.getOrDefault(a.getUUID(), Long.MIN_VALUE / 2) < gap(a) && near.stream().noneMatch(b -> b != a && resumable(a, b, now))) {
 				continue;
 			}
 
 			for (DrifterEntity b : near) {
-				if (b == a || a.distanceTo(b) > START || now - lastTalk.getOrDefault(b.getUUID(), Long.MIN_VALUE / 2) < gap(b)
-					|| now - lastPair.getOrDefault(pair(a, b), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PAIR_GAP) || !a.hasLineOfSight(b)) {
+				// (A talk cut short is picked up sooner.)
+				boolean resume = resumable(a, b, now);
+				if (b == a || a.distanceTo(b) > START || !resume && now - lastTalk.getOrDefault(b.getUUID(), Long.MIN_VALUE / 2) < gap(b)
+					|| now - lastPair.getOrDefault(pair(a, b), Long.MIN_VALUE / 2) < (resume ? RESUME_GAP : DrifterConfig.chattyGap(PAIR_GAP)) || !a.hasLineOfSight(b)) {
 					continue;
 				}
 
@@ -158,6 +238,23 @@ public final class Conversations {
 			return null;
 		}
 
+		// A talk they were having, cut short: they pick it up where it was ("anyway, about the iron").
+		Pending was = topicId == null ? pending.remove(pair(a, b)) : null;
+		if (was != null && now - was.at() <= RESUME_WITHIN && Topics.byId(was.topic()) != null) {
+			Talk talk = new Talk(a, b, Topics.byId(was.topic()), now);
+			Choice next = linked(talk);
+			if (next == null) {
+				next = anyTopic(talk);
+			}
+
+			if (next != null) {
+				String about = talk.topic.web().about();
+				begin(talk, next.topic(), next.swap(), now);
+				talk.segue = Lines.pick(talk.a, "talk.resume", "about", about, "a", talk.a.getName().getString(), "b", talk.b.getName().getString());
+				return started(talk, now);
+			}
+		}
+
 		Facts aFacts = facts(a, b);
 		Facts bFacts = facts(b, a);
 		Set<String> world = Facts.world(a, b);
@@ -166,7 +263,14 @@ public final class Conversations {
 			return null;
 		}
 
-		Talk talk = new Talk(a, b, topic, now);
+		return started(new Talk(a, b, topic, now), now);
+	}
+
+	/** It's on: noted, and both turn to it. */
+	private static Talk started(Talk talk, long now) {
+		DrifterEntity a = talk.a;
+		DrifterEntity b = talk.b;
+		Topics.Topic topic = talk.topic;
 		talks.add(talk);
 		lastTalk.put(a.getUUID(), now);
 		lastTalk.put(b.getUUID(), now);
@@ -185,14 +289,235 @@ public final class Conversations {
 		return facts;
 	}
 
-	/** A topic that suits these two now (weighted; not the one they talked about last). */
+	/** The world as they see it, and what the talk's been marked ({@code t:disagree}). */
+	private static Set<String> world(DrifterEntity a, DrifterEntity b, Set<String> marks) {
+		Set<String> world = Facts.world(a, b);
+		marks.forEach(mark -> world.add("t:" + mark));
+		return world;
+	}
+
+	/**
+	 * How much it'd talk with the other (topics' worth): the chattier, the more; strangers a topic or two, friends a few,
+	 * best friends many; bored, more; angry or frightened, less.
+	 */
+	private static double interest(DrifterEntity me, DrifterEntity other) {
+		double interest = 0.5 + 1.5 * sociability(me);
+		Relationship bond = me.getBonds().get(other.getUUID());
+		// (Trusted as a friend, it knows them, however it came about.)
+		if (bond != null && (bond.familiarity >= 5.0 || bond.trust >= DrifterBonds.FRIEND)) {
+			interest += bond.trust >= BEST_FRIEND ? 6.0 : bond.trust >= DrifterBonds.FRIEND ? 2.5 : bond.trust <= DrifterBonds.RIVAL ? 0.5 : 1.0;
+		}
+
+		Mood mood = me.getPersonality().mood().current();
+		if (mood == Mood.BORED) {
+			interest += 1.0;
+		} else if (mood == Mood.ANGRY || mood == Mood.FRUSTRATED || mood == Mood.ANXIOUS) {
+			interest -= 0.5;
+		}
+
+		return interest;
+	}
+
+	/**
+	 * The next thing said: the topic's next turn; at its end, what it did, then on to another while their interest lasts
+	 * (a long talk ending in a goodbye). False when it's over.
+	 */
+	private static boolean carryOn(Talk talk, long now) {
+		if (talk.leaving != null) {
+			// (The goodbye's answered, and that's it.)
+			DrifterEntity other = talk.partnerOf(talk.leaving);
+			talk.leaving = null;
+			talk.closed = true;
+			String back = Lines.pick(other, "talk.bye_back", "a", other.getName().getString(), "b", talk.partnerOf(other).getName().getString());
+			if (back != null) {
+				say(talk, other, back, now);
+				return true;
+			}
+
+			return false;
+		}
+
+		if (talk.closed) {
+			return false;
+		}
+
+		if (step(talk, now)) {
+			return true;
+		}
+
+		// The topic's done.
+		effects(talk, now);
+		talk.interest -= talk.topic.web().cost();
+		for (int tries = 0; tries < 3 && talk.interest >= MIN_INTEREST && talk.done.size() < MOST_TOPICS && now - talk.startedAt < MOST_TICKS; tries++) {
+			Choice next = talk.a.getRandom().nextDouble() < CHANGE_SUBJECT ? null : linked(talk);
+			if (next == null) {
+				next = anyTopic(talk);
+			}
+
+			if (next == null) {
+				break;
+			}
+
+			begin(talk, next.topic(), next.swap(), now);
+			talk.segue = next.segue() == null ? null : Lines.pick(talk.a, next.segue(), "about", next.topic().web().about());
+			if (step(talk, now)) {
+				talk.a.getMemory().thoughts().add(now, "brought up " + next.topic().id().replace('_', ' ') + " with " + talk.b.getName().getString());
+				return true;
+			}
+		}
+
+		// A long talk ends with a goodbye (from whoever's had enough).
+		if (talk.longTalk() && talk.lines > 2) {
+			DrifterEntity leaving = talk.a.getRandom().nextBoolean() ? talk.a : talk.b;
+			String bye = Lines.pick(leaving, "talk.bye", "a", leaving.getName().getString(), "b", talk.partnerOf(leaving).getName().getString());
+			if (bye != null) {
+				talk.leaving = leaving;
+				say(talk, leaving, bye, now);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** On to this topic (brought up by the other, if swapped): its turns from the top, their facts as they are now. */
+	private static void begin(Talk talk, Topics.Topic topic, boolean swap, long now) {
+		if (swap) {
+			DrifterEntity a = talk.a;
+			talk.a = talk.b;
+			talk.b = a;
+		}
+
+		talk.topic = topic;
+		talk.turn = 0;
+		talk.answers = null;
+		talk.asker = null;
+		talk.leads.clear();
+		talk.aFacts = facts(talk.a, talk.b);
+		talk.bFacts = facts(talk.b, talk.a);
+		talk.world = world(talk.a, talk.b, talk.marks);
+		talk.done.add(topic.id());
+	}
+
+	/**
+	 * A topic the one going now leads on to (its "next" most of all, then any with a tag it leads to, or one its lines led
+	 * to), that suits them, not had yet this talk; either of them can bring it up. Null if none.
+	 */
+	@Nullable
+	private static Choice linked(Talk talk) {
+		Topics.Web web = talk.topic.web();
+		Map<Topics.Topic, Double> links = new LinkedHashMap<>();
+		for (String id : web.next()) {
+			Topics.Topic topic = Topics.byId(id);
+			if (topic != null) {
+				links.merge(topic, NEXT_WEIGHT, Double::sum);
+			}
+		}
+
+		Set<String> leads = new HashSet<>(web.leads());
+		leads.addAll(talk.leads);
+		for (String tag : leads) {
+			for (Topics.Topic topic : Topics.tagged(tag)) {
+				links.merge(topic, 1.0, Double::sum);
+			}
+		}
+
+		return choose(talk, links, "talk.segue.linked", SEGUE_LINKED);
+	}
+
+	/** Any topic that suits them (a change of subject: "anyway"), not one that only follows another. Null if none. */
+	@Nullable
+	private static Choice anyTopic(Talk talk) {
+		Map<Topics.Topic, Double> any = new LinkedHashMap<>();
+		for (Topics.Topic topic : Topics.all()) {
+			if (!topic.web().followUp()) {
+				any.put(topic, 1.0);
+			}
+		}
+
+		return choose(talk, any, "talk.segue.change", SEGUE_CHANGE);
+	}
+
+	/** One of these (weighted by the topic's weight and how strongly it's linked) that suits either of them to bring up. */
+	@Nullable
+	private static Choice choose(Talk talk, Map<Topics.Topic, Double> candidates, String segue, double segueChance) {
+		Facts ab = facts(talk.a, talk.b);
+		Facts ba = facts(talk.b, talk.a);
+		Set<String> world = world(talk.a, talk.b, talk.marks);
+		List<Choice> fitting = new ArrayList<>();
+		List<Double> weights = new ArrayList<>();
+		double total = 0.0;
+		for (Map.Entry<Topics.Topic, Double> candidate : candidates.entrySet()) {
+			Topics.Topic topic = candidate.getKey();
+			if (talk.done.contains(topic.id()) || topic.web().opener()) {
+				continue;
+			}
+
+			// (Either can bring it up; the other a little more often, so it goes back and forth.)
+			boolean byA = Topics.holds(topic.needs(), ab, ba, world);
+			boolean byB = Topics.holds(topic.needs(), ba, ab, world);
+			if (!byA && !byB) {
+				continue;
+			}
+
+			boolean swap = byB && (!byA || talk.a.getRandom().nextDouble() < 0.6);
+			String said = talk.a.getRandom().nextDouble() < segueChance ? segue : null;
+			fitting.add(new Choice(topic, swap, said));
+			double weight = topic.weight() * candidate.getValue();
+			weights.add(weight);
+			total += weight;
+		}
+
+		double roll = talk.a.getRandom().nextDouble() * total;
+		for (int i = 0; i < fitting.size(); i++) {
+			roll -= weights.get(i);
+			if (roll <= 0.0) {
+				return fitting.get(i);
+			}
+		}
+
+		return fitting.isEmpty() ? null : fitting.get(fitting.size() - 1);
+	}
+
+	/** Cut short (a fight, one walking off): it might say so, and they'll pick it up when they next meet. */
+	private static void cut(Talk talk, long now) {
+		if (talk.lines == 0 || talk.closed || talk.leaving != null) {
+			return;
+		}
+
+		if (talk.interest >= MIN_INTEREST) {
+			pending.put(pair(talk.a, talk.b), new Pending(talk.topic.id(), now));
+		}
+
+		// (The one in trouble says so; in a long talk, the one walking off might.)
+		DrifterEntity troubled = trouble(talk.a) ? talk.a : trouble(talk.b) ? talk.b : null;
+		if (troubled != null && troubled.isAlive()) {
+			String line = Lines.pick(troubled, "talk.cut.trouble", "a", troubled.getName().getString(), "b", talk.partnerOf(troubled).getName().getString());
+			if (line != null) {
+				ChatLines.converse(troubled, line);
+			}
+		} else if (talk.longTalk() && talk.a.isAlive() && talk.b.isAlive() && talk.a.getRandom().nextBoolean()) {
+			String line = Lines.pick(talk.a, "talk.cut.away", "a", talk.a.getName().getString(), "b", talk.b.getName().getString());
+			if (line != null) {
+				ChatLines.converse(talk.a, line);
+			}
+		}
+	}
+
+	/** These two have a talk cut short lately, to pick up. */
+	private static boolean resumable(DrifterEntity a, DrifterEntity b, long now) {
+		Pending was = pending.get(pair(a, b));
+		return was != null && now - was.at() <= RESUME_WITHIN;
+	}
+
+	/** A topic that suits these two now (weighted; not the one they talked about last; not one that only follows another). */
 	@Nullable
 	private static Topics.Topic pick(DrifterEntity a, DrifterEntity b, Facts aFacts, Facts bFacts, Set<String> world) {
 		List<Topics.Topic> fitting = new ArrayList<>();
 		double total = 0.0;
 		String last = lastTopic.get(pair(a, b));
 		for (Topics.Topic topic : Topics.all()) {
-			if (!topic.id().equals(last) && Topics.holds(topic.needs(), aFacts, bFacts, world)) {
+			if (!topic.id().equals(last) && !topic.web().followUp() && Topics.holds(topic.needs(), aFacts, bFacts, world)) {
 				fitting.add(topic);
 				total += topic.weight();
 			}
@@ -249,7 +574,20 @@ public final class Conversations {
 			List<String> answers = option.then().get(template);
 			talk.answers = answers;
 			talk.asker = answers != null ? speaker : null;
-			say(talk, speaker, Lines.filled(speaker, template, vars(talk)), now);
+			// (What this line means for the talk: "disagree"; what it leads on to.)
+			talk.marks.addAll(option.marks());
+			talk.leads.addAll(option.leads());
+			if (!option.marks().isEmpty()) {
+				talk.world = world(talk.a, talk.b, talk.marks);
+			}
+
+			String line = Lines.filled(speaker, template, vars(talk));
+			if (talk.segue != null) {
+				line = talk.segue + " " + line;
+				talk.segue = null;
+			}
+
+			say(talk, speaker, line, now);
 			return true;
 		}
 
@@ -269,8 +607,9 @@ public final class Conversations {
 
 	private static void say(Talk talk, DrifterEntity speaker, String line, long now) {
 		ChatLines.converse(speaker, line);
-		// Reading it and typing the answer: longer lines take longer.
-		talk.nextAt = now + Math.min(140, 30 + line.length() * 2) + speaker.getRandom().nextInt(20);
+		talk.lines++;
+		// Reading it and typing the answer: longer lines take longer (as they work, longer still).
+		talk.nextAt = now + Math.min(140, 30 + line.length() * 2) + speaker.getRandom().nextInt(20) + (talk.longTalk() ? 20 + speaker.getRandom().nextInt(40) : 0);
 	}
 
 	/** Its words for the lines: each one's facts as a.* and b.*, and their names as {a} and {b}. */
@@ -296,9 +635,21 @@ public final class Conversations {
 		return free(drifter);
 	}
 
-	/** Done talking: what it did (news passed on, closer or further apart); someone standing by may add something. */
+	/** Done talking: someone standing by may add something (about the last topic). */
 	private static void end(Talk talk, long now) {
 		PlayerChats.chime(talk.a, talk.b, talk.topic.chime(), now, vars(talk));
+	}
+
+	/** A topic done: what it did (news passed on, closer or further apart: a disagreement, further). */
+	private static void effects(Talk talk, long now) {
+		if (talk.marks.remove("disagree")) {
+			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, -1.5);
+			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, -1.5);
+		} else if (talk.marks.remove("agree")) {
+			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, 1.0);
+			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, 1.0);
+		}
+
 		for (String effect : talk.topic.effects()) {
 			switch (effect) {
 				case "news" -> {
@@ -326,10 +677,15 @@ public final class Conversations {
 		}
 	}
 
-	/** Still going: both alive, near each other, not fighting or in trouble. */
+	/** Still going: both alive, near each other (in a long talk, within earshot as they work), not fighting or in trouble. */
 	private static boolean going(Talk talk) {
-		return talk.a.isAlive() && talk.b.isAlive() && talk.a.level() == talk.b.level() && talk.a.distanceTo(talk.b) <= ENDS && !trouble(talk.a)
-			&& !trouble(talk.b);
+		return talk.a.isAlive() && talk.b.isAlive() && talk.a.level() == talk.b.level() && talk.a.distanceTo(talk.b) <= (talk.longTalk() ? WORKING_ENDS : ENDS)
+			&& !trouble(talk.a) && !trouble(talk.b);
+	}
+
+	/** The conversations going on now (for the debug command). */
+	public static List<Talk> all() {
+		return talks;
 	}
 
 	/** Free to talk: nothing pressing (not fighting, fleeing, hurt, in an encounter, asleep). */

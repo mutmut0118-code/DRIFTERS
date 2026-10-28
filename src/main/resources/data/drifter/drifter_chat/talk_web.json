@@ -1,0 +1,63 @@
+{
+  "_comment": "Long conversations between Drifters (the topic web): what's said going from one topic to the next, picking a talk back up, and ending one. A segue goes in front of the next topic's first line ('speaking of which' + 'you got a pickaxe?'). {about} is a word for the topic they were on, {a} and {b} their names.",
+  "lines": {
+    "talk.segue.linked": {
+      "any": ["speaking of which", "oh that reminds me", "btw", "oh also", "oh yeah and", "wait also", "on that note", "that reminds me", "also"],
+      "casual": ["oh btw", "lol that reminds me", "oh and"],
+      "newbie": ["oh oh also", "wait wait", "ooh also"],
+      "speedrunner": ["also", "btw"],
+      "hermit": ["hm. also", "also"],
+      "pvp_sweat": ["also", "anyway"]
+    },
+    "talk.segue.change": {
+      "any": ["anyway", "anyways", "random but", "unrelated but", "ok random question", "changing the subject but", "oh random thing", "anyway uh"],
+      "casual": ["anyway lol", "ok totally random but", "ok anyways"],
+      "newbie": ["random question!", "ooh random question"],
+      "speedrunner": ["anyway"],
+      "hermit": ["...anyway", "hm. anyway"],
+      "builder": ["anyway"],
+      "pvp_sweat": ["whatever. anyway", "anyway"]
+    },
+    "talk.resume": {
+      "any": ["anyway, about the {about}", "so where were we. {about}", "ok back to the {about} thing", "as i was saying", "sorry about that. anyway", "ok where was i", "back. so"],
+      "casual": ["ok im back lol. anyway", "lol ok where were we"],
+      "newbie": ["sorry!! ok where were we", "im back! ok so"],
+      "speedrunner": ["back. continuing"],
+      "hermit": ["...as i was saying"]
+    },
+    "talk.bye": {
+      "any": ["anyway gotta go", "aight im off", "ok back to work", "anyway i should get going", "ok ima head out", "alright cya {b}", "gtg, cya around", "ok im gonna go do stuff", "good talk", "anyway talk later"],
+      "casual": ["ok i gotta go lol", "anyway cya {b}", "aight peace"],
+      "newbie": ["ok bye {b}!!", "this was fun! bye", "i gotta go but this was nice"],
+      "builder": ["ok back to building", "these blocks wont place themselves"],
+      "miner": ["back to the mines", "ok gonna go dig"],
+      "homebody": ["ok im heading home", "gonna go tidy the base"],
+      "speedrunner": ["gtg", "ok moving on", "time's ticking, cya"],
+      "nomad": ["road's calling. cya", "ok im off, safe travels"],
+      "hoarder": ["gotta go sort my chests", "ok back to collecting"],
+      "hermit": ["...ok. bye", "enough talking. bye"],
+      "pvp_sweat": ["k im out", "gg, later"]
+    },
+    "talk.bye_back": {
+      "any": ["cya", "later", "o7", "bye", "cya {b}", "see ya", "take care", "o/", "good talk", "peace"],
+      "casual": ["laterr", "cya lol"],
+      "newbie": ["bye!!", "byeee", "see you!!"],
+      "speedrunner": ["o7"],
+      "hermit": ["bye.", "mhm"],
+      "pvp_sweat": ["later", "gg"]
+    },
+    "talk.cut.trouble": {
+      "any": ["hold up", "brb", "omg hold on", "wait something's here", "one sec", "uh oh", "hold that thought", "gotta deal with this"],
+      "casual": ["hold up lol", "brb something's here"],
+      "newbie": ["AAA hold on", "wait wait help"],
+      "speedrunner": ["sec"],
+      "pvp_sweat": ["hold on, gotta kill this", "one sec, fight"],
+      "hermit": ["...hold on"]
+    },
+    "talk.cut.away": {
+      "any": ["oh im getting far, talk later", "ok out of range lol, later", "gotta keep moving, cya", "talk later {b}", "brb", "ill finish telling you later"],
+      "casual": ["oops wandered off lol, later"],
+      "speedrunner": ["moving on, later"]
+    }
+  }
+}

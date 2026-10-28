@@ -532,11 +532,11 @@ public final class Telling {
 			return true;
 		}
 
-		String said = Lines.normalize(text).trim();
+		String said = Lines.understood(text).trim();
 		String first = said.isEmpty() ? "" : said.split(" ")[0];
 		return switch (first) {
 			case "where", "wheres", "what", "whats", "who", "whos", "how", "hows", "do", "does", "did", "is", "are", "can", "could", "would", "will", "have",
-				"has", "any", "why", "when", "should", "r", "wanna" -> true;
+				"has", "any", "why", "when", "should", "r", "wanna", "want" -> true;
 			default -> false;
 		};
 	}
@@ -787,11 +787,11 @@ public final class Telling {
 	 */
 	private static String asTyped(String text, String matched) {
 		String[] words = text.toLowerCase(Locale.ROOT).replace("'", "").replace("’", "").split("[^a-z0-9]+");
-		String want = Lines.normalize(matched);
+		String want = Lines.understood(matched);
 		for (int length = 1; length <= 4; length++) {
 			for (int i = 0; i + length <= words.length; i++) {
 				String typed = String.join(" ", java.util.Arrays.copyOfRange(words, i, i + length)).trim();
-				if (!typed.isEmpty() && Lines.normalize(typed).equals(want)) {
+				if (!typed.isEmpty() && Lines.understood(typed).equals(want)) {
 					return typed;
 				}
 			}

@@ -10,11 +10,14 @@ import com.dinglebob.drifter.motor.VirtualKeys;
 
 /**
  * In a conversation ({@link Conversations}): it goes up to whoever it's talking with and stands facing them, as players
- * do when they stop to chat, till the conversation's over. Anything pressing (a fight, hunger) comes first.
+ * do when they stop to chat, till the conversation's over. Anything pressing (a fight, hunger) comes first. In a long talk
+ * (past its first topic) it goes back to what it was doing and keeps chatting as it works; with nothing to do, it stays.
  */
 public final class ConverseGoal extends Goals.Goal {
 	/** Close enough to talk, standing. */
 	private static final double CLOSE = 3.5;
+	/** In a long talk: above standing about idle, below any work. */
+	private static final double WORKING = 0.12;
 
 	@Override
 	public String id() {
@@ -30,13 +33,15 @@ public final class ConverseGoal extends Goals.Goal {
 	@Override
 	public double urgency(Goals.Context context) {
 		// (As a deal between two: the other's waiting. A danger comes first.)
-		return Conversations.of(context.drifter()) == null || context.threat().urgent() || context.drifter().inCombat() ? 0.0 : 0.75;
+		Conversations.Talk talk = Conversations.of(context.drifter());
+		return talk == null || context.threat().urgent() || context.drifter().inCombat() ? 0.0 : talk.longTalk() ? WORKING : 0.75;
 	}
 
 	@Override
 	public boolean urgent(Goals.Context context) {
-		// (Someone's waiting: it stops what it's doing at the next checkpoint.)
-		return true;
+		// (Someone's waiting: it stops what it's doing at the next checkpoint. Not in a long talk: it chats as it works.)
+		Conversations.Talk talk = Conversations.of(context.drifter());
+		return talk == null || !talk.longTalk();
 	}
 
 	@Override
@@ -53,6 +58,9 @@ public final class ConverseGoal extends Goals.Goal {
 	public Activity start(Goals.Context context) {
 		DrifterEntity drifter = context.drifter();
 		return new Activity(drifter) {
+			/** Has stood listening a moment (in a long talk, then it's done: anything to do comes first again). */
+			private boolean listened;
+
 			@Override
 			public String describe() {
 				Conversations.Talk talk = Conversations.of(this.drifter);
@@ -72,7 +80,7 @@ public final class ConverseGoal extends Goals.Goal {
 			@Override
 			protected Status next() {
 				Conversations.Talk talk = Conversations.of(this.drifter);
-				if (talk == null) {
+				if (talk == null || talk.longTalk() && this.listened) {
 					return Status.SUCCESS;
 				}
 
@@ -81,6 +89,7 @@ public final class ConverseGoal extends Goals.Goal {
 					return this.begin(new NavigateTask(this.drifter, partner.position(), CLOSE - 1.0, "walk over to " + partner.getName().getString()));
 				}
 
+				this.listened = true;
 				return this.begin(new Face(this.drifter, partner));
 			}
 		};

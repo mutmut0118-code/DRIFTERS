@@ -74,7 +74,10 @@ public final class DrifterCommands {
 			.then(Commands.literal("meaning").then(Commands.argument("text", StringArgumentType.greedyString()).executes(ctx -> {
 				String text = StringArgumentType.getString(ctx, "text");
 				String meaning = com.dinglebob.drifter.social.Lines.answer(text, "no", "yes", "ready", "unsure", "night", "bye", "thanks", "greeting");
-				ctx.getSource().sendSuccess(() -> Component.literal("\"" + text + "\" means: " + (meaning == null ? "nothing a Drifter understands" : meaning)), false);
+				// (And said to a Drifter: what it'd take it as asking or being told; slang put plainly first.)
+				String asked = com.dinglebob.drifter.social.talk.PlayerTalk.meaning(text);
+				ctx.getSource().sendSuccess(() -> Component.literal("\"" + text + "\" means: " + (meaning == null ? "nothing a Drifter understands" : meaning)
+					+ (asked == null ? "" : "; to a Drifter: " + asked) + " (read as \"" + com.dinglebob.drifter.social.Lines.understood(text).trim() + "\")"), false);
 				return 1;
 			})))
 			.then(Commands.literal("say").then(Commands.argument("key", StringArgumentType.word()).executes(ctx -> {
@@ -639,6 +642,8 @@ public final class DrifterCommands {
 		EncounterCommands.register(root);
 		HouseCommands.register(root);
 		HeardCommands.register(root);
+		// (After "talk" above: these add to it.)
+		TalkWebCommands.register(root);
 
 		dispatcher.register(root);
 	}

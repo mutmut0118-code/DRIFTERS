@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 2513 lines in the chat data, 242 in whims, and 2000 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 2643 lines in the chat data, 242 in whims, and 2066 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,11 +937,13 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (54 topics, 1569 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (76 topics, 1860 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
 *Needs:* a:found_ore, !a:found_rare  ·  *Effects:* trust
+
+*About:* mining, ore  ·  *Leads to:* mining, tools, diamonds, trade
 
 1. **a**: found {a.ore_count} {a.ore} today · got {a.ore_count} {a.ore} earlier · mined {a.ore_count} {a.ore} btw · {a.ore_count} {a.ore} today, not bad · hit a little {a.ore} vein, {a.ore_count} of it · yo {b}, found {a.ore_count} {a.ore}
    - **miner:** {a.ore_count} {a.ore} today. the mine provides · branch mining paid off, {a.ore_count} {a.ore} · {a.ore_count} {a.ore}, still hunting dias tho
@@ -963,6 +965,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:found_rare  ·  *Effects:* trust
 
+*About:* mining, diamonds, ore  ·  *Leads to:* gear, mining, enchanting, brag
+
 1. **a**: {b} I FOUND {a.ore} · found {a.ore_count} {a.ore} today!! · guess who got {a.ore} · {a.ore}. {a.ore_count} of them. lets gooo · W day, {a.ore_count} {a.ore}
    - **miner:** finally. {a.ore_count} {a.ore} · the grind paid off. {a.ore} · {a.ore_count} {a.ore}, told you it was down there
    - **newbie:** OMG I FOUND {a.ore} · {b} {b} i found {a.ore}!!! · is this real?? {a.ore}!!
@@ -983,6 +987,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### died story
 
 *Needs:* a:died_lately
+
+*About:* death, danger, mobs  ·  *Leads to:* danger, gear, mobs
 
 1. **a**: i {a.death} lol · so i {a.death} · {b} i {a.death}. again · rip me, {a.death} · worst day. i {a.death} · cant believe i {a.death}
    - **newbie:** i died!! i {a.death} · {b} i {a.death} :(
@@ -1006,6 +1012,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:close_call
 
+*About:* danger, mobs  ·  *Leads to:* death, gear, mobs
+
 1. **a**: {a.close_call} almost got me earlier · nearly died to {a.close_call} · half a heart left after {a.close_call} · {a.close_call} had me on one heart · so close. {a.close_call} almost did it
    - **homebody:** i almost died to {a.close_call}, im staying home · {a.close_call} scared me so bad
    - **PvP sweat:** {a.close_call} almost clutched me · one heart vs {a.close_call}, still won
@@ -1021,6 +1029,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:killed_many
 
+*About:* mobs, fighting  ·  *Leads to:* gear, danger, mobs, brag
+
 1. **a**: killed {a.kills} mobs today · {a.mob_count} {a.mob}s down · cleared out {a.mob_count} {a.mob}s earlier · the {a.mob}s kept coming, got {a.kills}
    - **PvP sweat:** {a.kills} kills today. ez · farmed {a.kills} mobs. warmup
    - **homebody:** had to fight {a.kills} mobs to get home · so many {a.mob}s, i got {a.kills}
@@ -1031,6 +1041,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### built something
 
 *Needs:* a:built_lately  ·  *Effects:* trust
+
+*About:* building, home  ·  *Leads to:* building, home, places
 
 1. **a**: finished my {a.built} · {a.built} is done · built a {a.built}, come see · finally done with the {a.built} · my {a.built} is finished, took forever
    - **builder:** {a.built} is done. pretty proud of this one · finished the {a.built}. the roof was a pain · come see the {a.built}, i did the gables myself
@@ -1047,6 +1059,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* !a:armor_none, !a:armor_leather
 
+*About:* gear, fighting  ·  *Leads to:* mining, mobs, enchanting, brag
+
 1. **a**: got full {a.armor} now · check out the {a.armor} armor · {a.armor} armor, finally · upgraded to {a.armor} · new {a.armor} set btw
    - **PvP sweat:** {a.armor} armor. 1v1? · full {a.armor}. try me · {a.armor} set. you're cooked
    - **newbie:** look at my armor!! · i have {a.armor} armor now!!
@@ -1060,6 +1074,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:has_diamonds
 
+*About:* diamonds, gear  ·  *Leads to:* mining, trade, enchanting
+
 1. **a**: got {a.diamonds} dias on me · sitting on {a.diamonds} dias · {a.diamonds} diamonds, what should i make
    - **hoarder:** {a.diamonds} dias. not sharing · keeping my {a.diamonds} dias safe · {a.diamonds} diamonds and counting
 2. **b**:
@@ -1071,6 +1087,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:traded_lately
 
+*About:* trade, villagers  ·  *Leads to:* trade, places, gear
+
 1. **a**: traded with {a.traded_with} earlier · {a.traded_with} hooked me up today · did a trade with {a.traded_with} · got some stuff off {a.traded_with}
 2. **b**:
    - *rivals:* hope they ripped you off · ok
@@ -1080,6 +1098,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### saw place
 
 *Needs:* a:saw_place
+
+*About:* places, exploring  ·  *Leads to:* exploring, places, plans
 
 1. **a**: found a {a.place} out there · saw a {a.place} earlier · theres a {a.place} not far from here · {b}, found a {a.place}
    - **nomad:** passed a {a.place} on the road · found a {a.place}, worth the walk · the {a.place} out there is huge
@@ -1095,6 +1115,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:hungry
 
+*About:* food, health  ·  *Leads to:* food, farming
+
 1. **a**: so hungry rn · anyone got food · starving · out of food lol · need food pls
    - **newbie:** im so hungry :( · can i have food pls
 2. **b**:
@@ -1109,6 +1131,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:hurt
 
+*About:* health, danger  ·  *Leads to:* danger, mobs, food
+
 1. **a**: on like 3 hearts · barely alive rn · need to heal · ow · dont hit me, im one shot
 2. **b**: eat something · go rest · what happened *(answered: mobs / fell off something lol / creeper / dont ask)* · you good? *(answered: ill live / barely / yeah, need food)* · stay inside for a bit
 3. **a** (50%): ill be fine · mobs · fell off something lol · yeah ill eat
@@ -1116,6 +1140,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### what doing
 
 *Needs:* any time
+
+*About:* doing, plans  ·  *Leads to:* plans, mining, building, farming
 
 1. **b**: wyd · what you up to · busy? *(answered: kinda / not really / a bit / never too busy for you)* · whatcha doing · what are you doing {a}
 2. **a**:
@@ -1127,6 +1153,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:no_home
 
+*About:* home, building  ·  *Leads to:* home, building, places
+
 1. **a**: still dont have a base · need to find a spot for a base · homeless rn lol · anyone know a good spot to settle
 2. **b**:
    - *friends, b:has_house:* you can stay at mine · build near me · theres room by my house
@@ -1137,6 +1165,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:has_hut, !a:in_town
 
+*About:* home, building  ·  *Leads to:* building, home
+
 1. **a**: thinking of building a real house · my hut is so small · need an upgrade from the hut · gonna build a proper house soon
 2. **b**: do it · you should · need logs? *(answered: yeah lots / i got some / always)* · stone house, fire proof · two floors
    - **builder:** timber frame, trust me · use a stone base, it looks better · do a gable roof
@@ -1145,6 +1175,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### heard place
 
 *Needs:* a:heard_place, !rivals  ·  *Effects:* pass_place
+
+*About:* places, players, gossip  ·  *Leads to:* places, exploring, players
 
 1. **a**: {a.heard_from} said theres {a.heard_what} {a.heard_where} · {a.heard_from} told me about {a.heard_what} {a.heard_where} · apparently theres {a.heard_what} {a.heard_where} · yo {b}, heard theres {a.heard_what} {a.heard_where}
    - **hoarder:** dont tell anyone, but {a.heard_what} {a.heard_where}
@@ -1160,6 +1192,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:heard_bad, !rivals, !strangers  ·  *Effects:* pass_word
 
+*About:* players, gossip  ·  *Leads to:* players, gossip, danger
+
 1. **a**: {a.word_from} says {a.heard_about} is trouble · watch out for {a.heard_about}, {a.word_from} said · heard {a.heard_about} is sketchy · {a.word_from} told me not to trust {a.heard_about}
 2. **b**: for real? · noted · {a.heard_about}? wow · figures · ugh · i'll keep an eye out
    - **helper:** hm, maybe its a misunderstanding
@@ -1169,12 +1203,16 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:heard_good, !rivals, !strangers  ·  *Effects:* pass_word
 
+*About:* players, gossip  ·  *Leads to:* players, gossip
+
 1. **a**: {a.word_from} says {a.heard_about} is cool · heard {a.heard_about} is nice · {a.word_from} vouches for {a.heard_about}
 2. **b**: nice · good to know · cool · oh nice · yeah {a.heard_about} seems alright
 
 #### heard player news
 
 *Needs:* a:heard_news
+
+*About:* players, news  ·  *Leads to:* players, news, gossip
 
 1. **a**:
    - *a:heard_news_diamonds:* {a.news_from} found diamonds today · did you hear {a.news_from} got dias · {a.news_from} found dias, lucky
@@ -1191,12 +1229,16 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:heard_plan
 
+*About:* players, plans  ·  *Leads to:* players, plans, exploring
+
 1. **a**: {a.plan_from} went {a.heard_plan} · saw {a.plan_from} earlier, said they were going {a.heard_plan} · {a.plan_from} is off {a.heard_plan}
 2. **b** (70%): nice · gl to them · hope they come back lol · cool · ok
 
 #### how are you
 
 *Needs:* !rivals  ·  *Effects:* trust
+
+*About:* feelings  ·  *Leads to:* feelings, doing, plans  ·  only starts a talk
 
 1. **a**: hows it going {b} · hey {b}, you good? · yo {b} how you doing · sup {b} · hows your day · o/ {b}, hows things
    - **newbie:** hi {b}!! how are you · heyyy {b}
@@ -1224,6 +1266,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* morning
 
+*About:* day, weather  ·  *Leads to:* plans, doing, weather  ·  only starts a talk
+
 1. **a**: gm · morning · gm {b} · mornin · good morning · gm o/
 2. **b**: gm · morning · gm o/ · mornin · gm, sleep well? *(answered: yeah / nope, zombies / like a log / phantoms tho)* · morning {a}
    - **hermit:** mm · gm
@@ -1235,6 +1279,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* evening, outside
 
+*About:* night, weather  ·  *Leads to:* night, plans, home, sleep
+
 1. **a**: getting dark · sun's going down · night soon · almost night · its getting late
 2. **b**: yeah, heading home · gonna sleep soon · time to light some torches · mobs soon · already? · night shift time
 3. **a** (60%): watch out for creepers · stay safe · gn when you go · same, going to bed · dont get blown up
@@ -1244,6 +1290,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* night, outside
 
+*About:* night, danger, mobs  ·  *Leads to:* mobs, danger, home, sleep
+
 1. **a**: why are we outside at night lol · its so dark · mobs everywhere · did you hear that · zombies all over
 2. **b**: good point · lets go in · i heard a creeper · stay close · just dont look at endermen
 3. **a** (50%): yeah lets go · spooky · night is the worst · should have slept
@@ -1252,6 +1300,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* rain, outside
 
+*About:* weather  ·  *Leads to:* weather, home, farming, complaints
+
 1. **a**: this rain tho · rain again · its pouring · ugh rain · nice weather huh
 2. **b**: good for the crops at least · great fishing weather · the mobs dont burn tho · i like rain ngl · stay dry
 3. **a** (50%): true · fair · still annoying · might go fishing actually
@@ -1259,6 +1309,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### thunder
 
 *Needs:* thunder, outside
+
+*About:* weather, danger  ·  *Leads to:* weather, mobs, home
 
 1. **a**: thunderstorm! · did you see that lightning · huge storm · charged creeper weather lol · stay inside
 2. **b**: dont stand near trees · mobs everywhere in this · i love storms · scary · lightning almost hit me
@@ -1269,6 +1321,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* clear, day, outside
 
+*About:* weather, day  ·  *Leads to:* plans, exploring, building
+
 1. **a**: nice day · good weather today · perfect day for building · sun's out · beautiful day
 2. **b**: for real · good mining weather lol · yeah no mobs · nice · perfect
 3. **a** (40%): gonna get stuff done · might go exploring · yeah
@@ -1276,6 +1330,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### news
 
 *Needs:* a:has_news  ·  *Effects:* news
+
+*About:* news, gossip  ·  *Leads to:* news, gossip, players
 
 1. **a**: did you hear? {a.news_who} {a.news_what} · yo, {a.news_who} {a.news_what} · apparently {a.news_who} {a.news_what} · heard {a.news_who} {a.news_what} · so {a.news_who} {a.news_what}. crazy
    - **homebody:** did you hear what happened? {a.news_who} {a.news_what} · {b}, {a.news_who} {a.news_what}. scary
@@ -1287,6 +1343,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### warn player
 
 *Needs:* a:dislikes_a_player
+
+*About:* players, gossip, danger  ·  *Leads to:* players, gossip
 
 1. **a**: watch out for {a.disliked_player} · dont trust {a.disliked_player} · {a.disliked_player} is bad news · stay away from {a.disliked_player} · if you see {a.disliked_player}, dont let them near your chests
    - **hoarder:** {a.disliked_player} better stay away from my chests · {a.disliked_player}. thief. remember the name
@@ -1302,6 +1360,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:likes_a_player
 
+*About:* players, gossip  ·  *Leads to:* players, gossip
+
 1. **a**: {a.liked_player} is cool · {a.liked_player} helped me out earlier · if you see {a.liked_player}, say hi from me · {a.liked_player}'s alright · {a.liked_player} is a real one
 2. **b**:
    - *b:likes_a_player:* yeah, so is {b.liked_player} · agreed. {b.liked_player} too
@@ -1312,6 +1372,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:in_town, groupmates  ·  *Effects:* trust
 
+*About:* town  ·  *Leads to:* town, politics, building
+
 1. **a**: {a.town} is coming along · {a.town}'s getting big · love what we did with {a.town} · the store could use more cobble · anyone checked the market today? · need more houses in {a.town}
 2. **b**: for real · proud of this place · ill drop some cobble off · more people moving in soon · we need a well · the roads look nice · agreed
 3. **a** (60%): W town · best town around · we should build a wall · maybe a farm expansion · lets keep going
@@ -1321,6 +1383,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* groupmates, !a:in_town  ·  *Effects:* trust
 
+*About:* town, friends  ·  *Leads to:* town, friends
+
 1. **a**: {a.group} is the best crew · glad we teamed up · the crew's doing good · we should find more people
 2. **b**: facts · agreed · o7 · W crew · we should start a town
 3. **a** (40%): a town... · maybe someday · lets go · o7
@@ -1328,6 +1392,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### catch up
 
 *Needs:* friends  ·  *Effects:* trust
+
+*About:* friends, feelings  ·  *Leads to:* doing, news, plans, memories  ·  only starts a talk
 
 1. **a**: good to see you {b} · {b}! been a while · missed you around · {b} o/ long time
 2. **b**: you too! · hey!! been busy · o/ {a}! · same, whats new
@@ -1343,6 +1409,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* rivals  ·  *Effects:* rivalry
 
+*About:* rivals  ·  *Leads to:* rivals, brag, argument
+
 1. **a**: oh. its you · {b}. · what do you want · you again · look who it is
    - **PvP sweat:** {b}. still bad? · 1v1 me {b} · you still alive?
    - **bandit:** nice stuff you got, {b} · careful {b}
@@ -1357,6 +1425,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### strangers meet
 
 *Needs:* strangers  ·  *Effects:* trust
+
+*About:* greeting  ·  *Leads to:* doing, plans, places  ·  only starts a talk
 
 1. **a**: hey, havent seen you around · o/ hi, im {a} · hey, new around here? · hi stranger · hey there
    - **hermit:** ...who are you · hm. new face
@@ -1374,6 +1444,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:mood_bored
 
+*About:* boredom, feelings  ·  *Leads to:* jokes, plans, boredom
+
 1. **a**: im so bored · bored · nothing to do · chat is this real. bored · someone entertain me
 2. **b**: go mining · build something · go explore · lets go fight mobs · same tbh · start a farm
 3. **a** (60%): eh · maybe · good idea · too lazy · fine
@@ -1381,6 +1453,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### plans
 
 *Needs:* day  ·  *Effects:* trust
+
+*About:* plans  ·  *Leads to:* plans, mining, building, exploring
 
 1. **a**: going mining later, wanna come? · thinking of exploring tomorrow · gonna build a farm, need help? · wanna go to the nether sometime? · lets go raid a dungeon
 2. **b**:
@@ -1393,6 +1467,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
+*About:* complaints, feelings  ·  *Leads to:* complaints, mobs, weather
+
 1. **a**: a creeper blew up my wall · enderman took a block from my house · skeletons are so annoying · my crops arent growing · lost my pickaxe in lava · a zombie broke my door · spiders on my roof again · phantoms should be illegal
 2. **b**: same · ugh · rip · classic · use stone next time · light more torches · lol · the worst
 3. **a** (50%): right? · every time · minecraft moment · never again
@@ -1400,6 +1476,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### brag vs
 
 *Needs:* !strangers
+
+*About:* brag, gear  ·  *Leads to:* gear, rivals, mining, argument
 
 1. **a**: my base is better than yours · bet i have more dias · i could beat you in a 1v1 · my farm is bigger
    - **PvP sweat:** 1v1 me · im better than you and you know it
@@ -1412,6 +1490,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* !rivals
 
+*About:* jokes  ·  *Leads to:* jokes, boredom  ·  uses 0.5 interest
+
 1. **a**: why did the creeper cross the road · why did the creeper cross the road lol
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: to get to the other ssssside · to get to the other sssside
@@ -1421,6 +1501,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### joke food
 
 *Needs:* !rivals
+
+*About:* jokes, food  ·  *Leads to:* jokes, food  ·  uses 0.5 interest
 
 1. **a**: whats a creepers favorite food · guess a creepers favorite food
 2. **b**: why · what · tell me · ...what · oh no · idk what
@@ -1432,6 +1514,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* !rivals
 
+*About:* jokes  ·  *Leads to:* jokes  ·  uses 0.5 interest
+
 1. **a**: you know whats worse than a creeper · whats worse than one creeper
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: two creepers · a charged one
@@ -1441,6 +1525,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### joke skeleton
 
 *Needs:* !rivals
+
+*About:* jokes, mobs  ·  *Leads to:* jokes, mobs  ·  uses 0.5 interest
 
 1. **a**: why do skeletons never fight each other · why dont skeletons fight
 2. **b**: why · what · tell me · ...what · oh no · idk what
@@ -1452,6 +1538,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* !rivals
 
+*About:* jokes, mobs  ·  *Leads to:* jokes, mobs  ·  uses 0.5 interest
+
 1. **a**: why was the enderman upset · whats an endermans favorite game
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: someone looked at it wrong · hide and seek, but with your blocks
@@ -1461,6 +1549,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### joke jockey
 
 *Needs:* !rivals
+
+*About:* jokes, mobs  ·  *Leads to:* jokes, mobs  ·  uses 0.5 interest
 
 1. **a**: what do you call a chicken with a baby zombie on it · what rides a chicken
 2. **b**: why · what · tell me · ...what · oh no · idk what
@@ -1472,6 +1562,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* !rivals
 
+*About:* jokes, nether  ·  *Leads to:* jokes, nether  ·  uses 0.5 interest
+
 1. **a**: why do ghasts cry so much · whats a ghasts favorite music
 2. **b**: why · what · tell me · ...what · oh no · idk what
 3. **a**: they had a rough nether · soul music
@@ -1481,6 +1573,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### running joke
 
 *Needs:* a:has_joke, !strangers
+
+*About:* jokes, friends  ·  *Leads to:* jokes, memories  ·  uses 0.5 interest
 
 1. **a**: remember when {a.joke_who} {a.joke_what} lol · {a.joke_who} {a.joke_what} lmao · still laughing about {a.joke_who} · {a.joke_nick} lmao
    - **helper:** poor {a.joke_who}, they {a.joke_what}
@@ -1494,6 +1588,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### campaign
 
 *Needs:* a:candidate, !b:candidate, !rivals
+
+*About:* town, politics  ·  *Leads to:* politics, town
 
 1. **a**: vote for me tomorrow! · {a} for leader, you know it · i'd make a better leader than {a.rival} · got my vote? i'm standing tomorrow · you'll vote for me right?
    - **helper:** vote for me and i'll help everyone, promise!
@@ -1509,12 +1605,16 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:election_soon, b:election_soon, !a:candidate, !b:candidate
 
+*About:* town, politics  ·  *Leads to:* politics, town
+
 1. **a**: who you voting for? *(answered: {b.my_vote} / {b.my_vote} probably / not telling / {b.my_vote}, obviously)* · {a.candidate_a} or {a.candidate_b}? *(answered: {b.my_vote} / tough one / {b.my_vote} i guess / dunno yet)*
 2. **a** (60%): i'm going with {a.my_vote} · {a.my_vote} for me · same · fair enough
 
 #### leader praise
 
 *Needs:* a:likes_leader, !strangers
+
+*About:* town, politics  ·  *Leads to:* politics, town
 
 1. **a**: {a.leader} is doing a good job · gotta say, {a.leader} runs this place well · {a.town}'s in good hands with {a.leader}
 2. **b**:
@@ -1525,6 +1625,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:dislikes_leader, !strangers
 
+*About:* town, politics, complaints  ·  *Leads to:* politics, complaints
+
 1. **a**: {a.leader} is useless · can't wait for the next election · who put {a.leader} in charge anyway · {a.leader} needs to go
 2. **b**:
    - *b:likes_leader:* hey, {b.leader}'s alright · that's harsh · nah they're fine
@@ -1534,6 +1636,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:taxed, !a:is_leader
 
+*About:* town, politics, complaints  ·  *Leads to:* politics, complaints, trade
+
 1. **a**:
    - *a:tax_high:* {a.tax} emeralds tax, really? · these taxes are robbery · {a.leader} and these taxes smh
    - *otherwise:* tax day again · paid my tax · where do the taxes even go · another emerald for the till
@@ -1542,6 +1646,8 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 #### new leader talk
 
 *Needs:* a:new_leader
+
+*About:* town, politics  ·  *Leads to:* politics, town
 
 1. **a**: {a.leader} won! · so {a.leader}'s in charge now · new leader, new rules · did you hear? {a.leader} won the vote
 2. **b**:
@@ -1553,10 +1659,326 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:is_leader, !strangers
 
+*About:* town, politics  ·  *Leads to:* politics, town
+
 1. **a**: how's everything going? · need anything for your house? · the town's doing well, right? · any complaints? (don't say taxes)
 2. **b**:
    - *b:dislikes_leader:* could be better · since you ask... the taxes · fine
    - *otherwise:* all good · doing great · no complaints
+
+#### best ore
+
+*Needs:* any time
+
+*About:* mining, ore  ·  *Leads to:* mining, tools, diamonds
+
+1. **a**: whats the best ore to find tbh · fav ore? · if you could only mine one ore forever what would it be · be honest, best ore
+2. **b**: diamonds obv · iron. you can never have enough iron · ancient debris · emeralds, villagers go crazy for them · coal honestly, torches are life · copper (jk)
+3. **a** (40%) *(marks disagree; leads to argument)*: nah youre wrong · hard disagree · thats such a bad take · ...really?
+4. **a** if !t:disagree *(marks agree)*: fair · same tbh · yeah valid · true true
+
+#### tools talk
+
+*Needs:* any time
+
+*About:* tools, mining, gear  ·  *Leads to:* mining, enchanting, gear
+
+1. **a**: hows your pickaxe holding up · my pick is about to break lol · you got a spare pickaxe? · i keep running out of tools
+2. **b**: mine's fine for now · same, need more iron · always carry two picks, trust me · just make a stone one lol · mending would fix that
+3. **a** (60%): true · good idea · ill craft another later · yeah i need mending so bad
+
+#### worst mob
+
+*Needs:* any time
+
+*About:* mobs, danger  ·  *Leads to:* mobs, danger, death, jokes
+
+1. **a**: worst mob in the game? · what mob do you hate the most · be honest whats the worst mob · which mob scares you the most
+2. **b**: creepers. no contest · phantoms are so annoying · baby zombies man · endermen when you look at them by accident · witches. they cheat · skeletons with good bows
+3. **a** (35%) *(marks disagree; leads to argument)*: nah creepers are easy · really? theyre not that bad · skill issue tbh · wrong answer
+4. **a** if !t:disagree *(marks agree)*: agreed · ugh yes · 100% · they ruin everything
+
+#### nether talk
+
+*Needs:* any time
+
+*About:* nether, exploring, danger  ·  *Leads to:* nether, gear, danger, exploring
+
+1. **a**: you been to the nether yet? · nether's scary ngl · thinking about building a portal · anyone found a fortress around here?
+2. **b**: once. almost died · not yet, need better gear · yeah its fine if you bring blocks · ghasts are the worst part · piglins are kinda funny
+3. **a** (60%): bring fire res · dont mine gold near piglins lol · we should go together sometime · ill stay up here thanks
+
+#### end talk
+
+*Needs:* any time
+
+*About:* end, exploring, danger  ·  *Leads to:* end, gear, plans
+
+1. **a**: think anyone's killed the dragon yet? · ever been to the end? · the end looks so weird · elytra would be nice
+2. **b**: no way, too scary · need more eyes of ender first · someday · heard theres cities out there · i dont even know where the stronghold is
+3. **a** (50%): one day · lets prep first · bring a lot of beds. jk dont
+
+#### farming talk
+
+*Needs:* any time
+
+*About:* farming, food  ·  *Leads to:* food, animals, building
+
+1. **a**: you got a farm going? · my wheat is finally growing · farming is so relaxing · need to plant more carrots
+2. **b**: small one · nah i just hunt · potatoes are the best crop · bonemeal is the secret · villagers farm for me lol
+3. **a** (60%): nice · smart · i should do that · same
+
+#### fav food
+
+*Needs:* any time
+
+*About:* food  ·  *Leads to:* food, farming, jokes
+
+1. **a**: best food in the game? · whats your fav food · steak or porkchop · golden carrots are so good
+2. **b**: steak obviously · bread. simple · golden carrots for sure · cooked salmon · pumpkin pie · honestly whatever i have
+3. **a** (35%) *(marks disagree; leads to argument)*: eww · nah · thats wild · cant agree
+4. **a** if !t:disagree *(marks agree)*: valid · good pick · now im hungry · same
+
+#### build style
+
+*Needs:* any time
+
+*About:* building, home  ·  *Leads to:* building, home, places
+
+1. **a**: wood or stone for a base? · whats your build style · you like big houses or small ones · cobble houses are underrated
+2. **b**: stone, it doesnt burn · wood looks way nicer · big. room for chests · small and cozy · dirt hut gang
+3. **a** (35%) *(marks disagree; leads to argument)*: nah · cant relate · thats a choice · hmm hard disagree
+4. **a** if !t:disagree *(marks agree)*: true · same · makes sense · good call
+
+#### night plans
+
+*Needs:* evening
+
+*About:* night, plans, sleep  ·  *Leads to:* home, sleep, mobs
+
+1. **a**: getting dark · gonna sleep soon? · where you spending the night · sun's going down
+2. **b**: gonna head home · ill sleep when i get back · probably just dig in · night mining time · i got a bed on me
+3. **a** (60%): stay safe · same · watch out for creepers · gn early lol
+
+#### sleep talk
+
+*Needs:* any time
+
+*About:* sleep, night, home  ·  *Leads to:* home, night
+
+1. **a**: phantoms are getting bad, i need to sleep · slept through the whole night yesterday · do you even sleep · beds are op
+2. **b**: sleep is for the weak · every night lol · only when theres phantoms · i forget to · same
+3. **a** (50%): lol · fair · go to bed lol
+
+#### villagers talk
+
+*Needs:* any time
+
+*About:* villagers, trade, places  ·  *Leads to:* trade, places, enchanting
+
+1. **a**: villagers are such scammers · you trade with villagers? · found a librarian with mending once · villagers are kinda cute ngl
+2. **b**: their prices are crazy · all the time · only the farmers · hmm hmm · theyre fine i guess
+3. **a** (50%): hmm · lol · true · emeralds dont grow on trees
+
+#### animals talk
+
+*Needs:* any time
+
+*About:* animals, farming  ·  *Leads to:* farming, food, home
+
+1. **a**: thinking of getting a dog · cats or dogs · saw a horse earlier · i want a cow pen
+2. **b**: dogs, they fight for you · cats scare creepers · horses are hard to tame · pens are easy, just fences · i had a dog once. rip
+3. **a** (50%): nice · oh true · rip · maybe ill get one
+
+#### caves vs strip
+
+*Needs:* any time
+
+*About:* mining  ·  *Leads to:* mining, danger, ore
+
+1. **a**: caving or strip mining? · strip mining is so boring · caves are faster for ore · branch mining is the only real way
+2. **b**: caves, way more ore · strip mining, its safer · whatever finds diamonds · caves are scary tho · both depending on mood
+3. **a** (40%) *(marks disagree; leads to argument)*: nah youre crazy · disagree completely · thats how you die lol · hmm no
+4. **a** if !t:disagree *(marks agree)*: fair point · yeah true · agreed
+
+#### exploring far
+
+*Needs:* any time
+
+*About:* exploring, places  ·  *Leads to:* places, plans, nether
+
+1. **a**: whats the farthest youve gone from spawn · i wanna explore more · ever get lost? · found anything cool exploring?
+2. **b**: not that far honestly · a few thousand blocks · got lost once, never again · a desert temple once · i stay close to home
+3. **a** (50%): nice · always bring a compass · we should go exploring together · same
+
+#### enchant talk
+
+*Needs:* any time
+
+*About:* enchanting, gear  ·  *Leads to:* gear, trade, diamonds
+
+1. **a**: you got an enchanting table? · need more lapis · best enchant? · got fortune yet?
+2. **b**: not yet · mending is the best one · efficiency 5 is so good · lapis is everywhere in caves · need more bookshelves
+3. **a** (50%): true · facts · need that · nice
+
+#### players general
+
+*Needs:* any time
+
+*About:* players, gossip  ·  *Leads to:* players, gossip, danger
+
+1. **a**: seen many players around? · players are so random · some players are nice tbh · you trust players?
+2. **b**: a few · some are cool · depends who · not really · had one give me food once
+3. **a** (50%): same · careful with them · yeah · true
+
+#### weather more
+
+*Needs:* rain
+
+*About:* weather, complaints  ·  *Leads to:* weather, home, farming
+
+1. **a**: hope this clears up · rain is good for crops at least · its been raining forever · fishing weather
+2. **b**: same · at least the crops grow · good for fishing · i dont mind it
+
+#### random thought
+
+*Needs:* any time
+
+*About:* jokes, boredom  ·  *Leads to:* jokes, boredom, feelings  ·  uses 0.5 interest
+
+1. **a**: do you think fish sleep · why do zombies burn but not husks · who builds the villages · where do villagers even sleep before they got beds · do creepers have feelings
+2. **b**: ...what · lol · deep · i never thought about that · go to bed
+3. **a** (50%): just wondering · think about it · lol
+
+#### remember when
+
+*Needs:* friends
+
+*About:* memories, friends  ·  *Leads to:* memories, jokes, friends
+
+1. **a**: remember when we first met · good times · we've been around a while huh · remember that time with the creeper
+2. **b**: lol yeah · feels like forever · how could i forget · dont remind me
+3. **a** (60%): good times · glad we met · o7 · lol
+
+#### feelings check
+
+*Needs:* any time
+
+*About:* feelings  ·  *Leads to:* feelings, plans, complaints
+
+1. **a**: you doing ok? · you seem tired · how are you really · everything good?
+2. **b**: yeah all good · kinda tired · could be better · honestly great · eh
+3. **a** (60%): good · hang in there · same · you got this
+
+#### agree to disagree
+
+*Needs:* !rivals
+
+*About:* argument  ·  *Leads to:* jokes, feelings  ·  only follows another  ·  uses 0.5 interest
+
+1. **b**: ok we'll agree to disagree · whatever you say · fine lol · youll see · im still right
+2. **a** (70%): lol · sure · nope · nah im right
+
+#### argue more
+
+*Needs:* rivals
+
+*About:* argument  ·  *Leads to:* rivals, argument  ·  only follows another
+
+1. **b**: you always have the worst takes · classic you · why do i even talk to you · of course you'd say that
+2. **a** *(marks disagree)*: says you · ok and? · cry about it · at least im not you
+
+## 6b. Long conversations (the topic web)
+
+A conversation can go on from topic to topic. Each topic says what it is **about** (tags) and what it **leads to** (tags, and sometimes topics by name). When a topic ends, they go on to one it leads to that suits them (either of them can bring it up, so it goes back and forth), or now and then (15%%) change the subject. A topic is never repeated within one talk; greetings only start a talk; follow-ups (like "agree to disagree") only come after another topic.
+
+- **How long:** each Drifter has interest in the talk: the chattier, the more; strangers a topic or two, acquaintances two or three, friends three to five, best friends (trust 80+) up to ten; bored, more; angry or anxious, less. Each topic uses some (jokes half). At most 10 topics or 5 minutes.
+- **Working while they talk:** past the first topic they go back to what they were doing and keep chatting (a little slower, as they type while working), as long as they stay within 48 blocks. With nothing to do they keep standing together.
+- **Arguments:** a line can **mark** the talk: "disagree" costs both a little trust when the topic ends, "agree" builds it. A disagreement leads on to **argument** topics: friends agree to disagree, rivals keep at it.
+- **Cut short** (a mob, getting hurt, walking off): the one in trouble says "hold up"; the next time the two meet (within a day) they pick it up: "anyway, about the ore".
+- **Try it:** `/drifter talk long [topic]` starts the nearest two on a long talk (plenty of interest, whatever their bond); `/drifter talk status` shows each talk going on, its topics so far and the interest left; `/drifter talk links <topic>` what a topic leads on to.
+- **Writing more:** a new topic only needs `tags` and `leads` to join the web (with none, it is about the words of its id). `links` in `drifter_talk/web.json` place topics written in other files.
+
+**Tags in use** (topics about each): danger (9), jokes (9), town (9), mobs (8), players (8), gossip (7), politics (7), weather (6), feelings (5), gear (5), home (5), mining (5), building (4), complaints (4), exploring (4), food (4), friends (4), night (4), places (4), plans (4), ore (3), argument (2), boredom (2), day (2), diamonds (2), farming (2), fighting (2), health (2), nether (2), news (2), sleep (2), trade (2), villagers (2), animals (1), brag (1), death (1), doing (1), enchanting (1), end (1), greeting (1), memories (1), rivals (1), tools (1)
+
+#### `talk.segue.linked`
+
+Going on to a topic linked to the last one: said in front of its first line (about half the time).
+
+- **everyone:** speaking of which · oh that reminds me · btw · oh also · oh yeah and · wait also · on that note · that reminds me · also
+- **casual:** oh btw · lol that reminds me · oh and
+- **newbie:** oh oh also · wait wait · ooh also
+- **speedrunner:** also · btw
+- **hermit:** hm. also · also
+- **PvP sweat:** also · anyway
+
+#### `talk.segue.change`
+
+Changing the subject (now and then, or when nothing linked suits them): in front of the new topic's first line.
+
+- **everyone:** anyway · anyways · random but · unrelated but · ok random question · changing the subject but · oh random thing · anyway uh
+- **casual:** anyway lol · ok totally random but · ok anyways
+- **newbie:** random question! · ooh random question
+- **speedrunner:** anyway
+- **hermit:** ...anyway · hm. anyway
+- **builder:** anyway
+- **PvP sweat:** whatever. anyway · anyway
+
+#### `talk.resume`
+
+Picking up a talk that was cut short, the next time the two meet (within a day): in front of the first line. {about} is what they were on.
+
+- **everyone:** anyway, about the {about} · so where were we. {about} · ok back to the {about} thing · as i was saying · sorry about that. anyway · ok where was i · back. so
+- **casual:** ok im back lol. anyway · lol ok where were we
+- **newbie:** sorry!! ok where were we · im back! ok so
+- **speedrunner:** back. continuing
+- **hermit:** ...as i was saying
+
+#### `talk.bye`
+
+A long talk ends (their interest is used up): one says goodbye.
+
+- **everyone:** anyway gotta go · aight im off · ok back to work · anyway i should get going · ok ima head out · alright cya {b} · gtg, cya around · ok im gonna go do stuff · good talk · anyway talk later
+- **casual:** ok i gotta go lol · anyway cya {b} · aight peace
+- **newbie:** ok bye {b}!! · this was fun! bye · i gotta go but this was nice
+- **builder:** ok back to building · these blocks wont place themselves
+- **miner:** back to the mines · ok gonna go dig
+- **homebody:** ok im heading home · gonna go tidy the base
+- **speedrunner:** gtg · ok moving on · time's ticking, cya
+- **nomad:** road's calling. cya · ok im off, safe travels
+- **hoarder:** gotta go sort my chests · ok back to collecting
+- **hermit:** ...ok. bye · enough talking. bye
+- **PvP sweat:** k im out · gg, later
+
+#### `talk.bye_back`
+
+The other answers the goodbye.
+
+- **everyone:** cya · later · o7 · bye · cya {b} · see ya · take care · o/ · good talk · peace
+- **casual:** laterr · cya lol
+- **newbie:** bye!! · byeee · see you!!
+- **speedrunner:** o7
+- **hermit:** bye. · mhm
+- **PvP sweat:** later · gg
+
+#### `talk.cut.trouble`
+
+A talk cut short by trouble (a fight, panic, fire): the one in trouble says so.
+
+- **everyone:** hold up · brb · omg hold on · wait something's here · one sec · uh oh · hold that thought · gotta deal with this
+- **casual:** hold up lol · brb something's here
+- **newbie:** AAA hold on · wait wait help
+- **speedrunner:** sec
+- **PvP sweat:** hold on, gotta kill this · one sec, fight
+- **hermit:** ...hold on
+
+#### `talk.cut.away`
+
+A long talk cut short because one walked too far off (48 blocks): sometimes.
+
+- **everyone:** oh im getting far, talk later · ok out of range lol, later · gotta keep moving, cya · talk later {b} · brb · ill finish telling you later
+- **casual:** oops wandered off lol, later
+- **speedrunner:** moving on, later
 
 ## 7. Drifters talking to you
 
@@ -1571,6 +1993,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 #### heard plan
 
 *Needs:* b:plan_due, !b:plan_home
+
+*About:* heard, plan  ·  *Leads to:* heard, plan
 
 1. **a**:
    - *b:plan_mining:* how was mining? find dias? · back from mining? find anything good? · any luck mining? · find any diamonds?
@@ -1596,6 +2020,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:promise_due
 
+*About:* heard, promise  ·  *Leads to:* heard, promise
+
 1. **a**: still waiting on that {b.promise} lol · you said you'd bring {b.promise} · hey, where's my {b.promise}? · didnt you say you'd bring {b.promise}? · {b.promise}? still coming?
    - **hoarder:** {b.promise}. you promised · i havent forgotten about the {b.promise}
    - **bandit:** you owe me {b.promise}. dont forget
@@ -1606,6 +2032,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:promise_broken
 
+*About:* heard, promise, broken  ·  *Leads to:* heard, promise, broken
+
 1. **a**: guess you forgot about the {b.promise} · so much for the {b.promise} huh · {b.promise} never came lol · you never brought the {b.promise} · still no {b.promise}. noted
    - **hoarder:** you never paid. i remember · no {b.promise}. i wont forget
    - **bandit:** you broke your word. bad idea
@@ -1615,6 +2043,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 #### heard news
 
 *Needs:* b:told_news
+
+*About:* heard, news  ·  *Leads to:* heard, news
 
 1. **a**:
    - *b:news_died:* you get your stuff back? · did you get your items back? · find your stuff after you died?
@@ -1635,6 +2065,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:told_like, !b:stranger
 
+*About:* heard, like  ·  *Leads to:* heard, like
+
 1. **a**: still into {b.like}? · you still like {b.like}? · thought of you, saw some {b.like} lol · {b.like} fan still?
    - **newbie:** i tried {b.like} like you said! its cool
    - **hermit:** still {b.like}?
@@ -1645,11 +2077,15 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:told_hate, !b:stranger
 
+*About:* heard, hate  ·  *Leads to:* heard, hate
+
 1. **a**: still hate {b.hate}? · saw some {b.hate} and thought of you lol · {b.hate}, your favorite lol
 
 #### heard base
 
 *Needs:* b:told_base, b:friend
+
+*About:* heard, base  ·  *Leads to:* heard, base
 
 1. **a**: hows the base? · hows your place doing? · still living at {b.base}? · might come visit your base sometime
    - **builder:** hows the base? added anything?
@@ -1660,6 +2096,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* a:heard_place, !b:stranger
 
+*About:* heard, place, tell  ·  *Leads to:* heard, place, tell
+
 1. **a**: btw {a.heard_from} said theres {a.heard_what} {a.heard_where} · {a.heard_from} told me about {a.heard_what} {a.heard_where} · heard theres {a.heard_what} {a.heard_where}, {a.heard_from} said · fyi {a.heard_what} {a.heard_where}, says {a.heard_from}
    - **hoarder:** dont tell anyone but {a.heard_from} found {a.heard_what} {a.heard_where}
    - **helper:** oh! {a.heard_from} said theres {a.heard_what} {a.heard_where}, if you need it
@@ -1668,12 +2106,16 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* a:heard_bad, !b:stranger
 
+*About:* heard, word, tell  ·  *Leads to:* heard, word, tell
+
 1. **a**: careful, {a.word_from} says {a.heard_about} is trouble · {a.word_from} said to watch out for {a.heard_about} · heads up, {a.heard_about} might be sketchy, {a.word_from} said
    - **helper:** be careful around {a.heard_about}, {a.word_from} said they're trouble
 
 #### heard player news
 
 *Needs:* a:heard_news, !b:stranger
+
+*About:* players, news  ·  *Leads to:* players, news, gossip
 
 1. **a**:
    - *a:heard_news_diamonds:* {a.news_from} found diamonds btw · did you hear {a.news_from} found dias
@@ -1686,6 +2128,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:stranger
 
+*About:* hi, stranger  ·  *Leads to:* hi, stranger
+
 1. **a**: hey, new here? · o/ havent seen you before · hi stranger · hey there · oh hi, didnt see you there · yo, who are you
    - **newbie:** hi!! are you new too? · hello!! im {a}!
    - **hermit:** ...hm. hi · you lost?
@@ -1697,6 +2141,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 #### friend hi
 
 *Needs:* b:friend
+
+*About:* friend, hi  ·  *Leads to:* friend, hi
 
 1. **a**: {b}! o/ · yo {b} · hey {b} · {b} o/ · oh hey {b} · ayy {b}
    - **newbie:** {b}!! hi!! · HI {b}
@@ -1712,6 +2158,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:armor_good, !b:stranger
 
+*About:* nice, gear  ·  *Leads to:* nice, gear
+
 1. **a**: nice armor · ooh {b.armor} armor · where'd you get all that {b.armor} · drip · rich much?
    - **bandit:** nice armor. be a shame if something happened to it
    - **PvP sweat:** nice gear. still wouldnt save you · {b.armor}? 1v1 me
@@ -1721,11 +2169,15 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:holding_fancy
 
+*About:* nice, weapon  ·  *Leads to:* nice, weapon
+
 1. **a**: nice {b.held} · ooh a {b.held} · is that a {b.held}?? · where'd you get the {b.held} · {b.held} :o
 
 #### you hurt
 
 *Needs:* b:hurt, !b:stranger
+
+*About:* you, hurt  ·  *Leads to:* you, hurt
 
 1. **a**: you ok? you look rough · youre low, you good? · yikes, need food? · you're like on 2 hearts lol
    - **helper:** you're hurt! want some food? · oh no, you ok? need food?
@@ -1737,17 +2189,23 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* night, outside, !b:stranger
 
+*About:* night, warning  ·  *Leads to:* night, warning
+
 1. **a**: careful, mobs are out · its dark, watch out · you got a bed? · stay safe out here · dont get blown up lol
 
 #### evening warning
 
 *Needs:* evening, outside
 
+*About:* evening, warning  ·  *Leads to:* evening, warning
+
 1. **a**: sun's going down · night soon · getting dark, better find shelter · almost night, careful
 
 #### team offer
 
 *Needs:* b:friend, day
+
+*About:* team, offer  ·  *Leads to:* team, offer
 
 1. **a**: wanna team up for a bit? · wanna duo? · wanna come with me for a while? · want some company?
    - **newbie:** can i come with you?? please · wanna be teammates?
@@ -1760,6 +2218,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:friend, day, !a:no_home
 
+*About:* mining, invite  ·  *Leads to:* mining, invite
+
 1. **a**: going mining soon, wanna come? · wanna go caving? · need iron, wanna come mining?
 - *You say yes* (follow): cool, lead the way and i'll follow · nice, you go first · ok, lets go
 - *You say no:* ok, more ores for me · your loss lol · ok np
@@ -1767,6 +2227,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 #### brag ore
 
 *Needs:* a:found_rare, !b:stranger
+
+*About:* brag, ore  ·  *Leads to:* brag, ore
 
 1. **a**: {b} look, i found {a.ore_count} {a.ore}!! · guess who found {a.ore} · {a.ore_count} {a.ore} today, not bad right?
    - **hoarder:** found {a.ore} today. not telling where · {a.ore}. mine.
@@ -1777,6 +2239,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* a:died_lately, !b:stranger
 
+*About:* death, danger, mobs  ·  *Leads to:* danger, gear, mobs
+
 1. **a**: i died to {a.death} earlier lol · {a.death} got me today · rip me, {a.death} · dont ask how i died. ({a.death})
 - *Someone standing by may add:* classic · rip · f
 
@@ -1784,11 +2248,15 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:has_news, !b:stranger
 
+*About:* news, gossip  ·  *Leads to:* news, gossip, players
+
 1. **a**: heads up, {b.news_who} {b.news_what} · did you hear? {b.news_who} {b.news_what} · word is {b.news_who} {b.news_what}
 
 #### tease
 
 *Needs:* b:joked_about
+
+*About:* tease  ·  *Leads to:* tease
 
 1. **a**: hey its {b.joke_nick} lol · remember when you {b.joke_what} lmao · {b.joke_nick} is back · still thinking about when you {b.joke_what}
    - **helper:** hope you're ok after you {b.joke_what} lol
@@ -1799,6 +2267,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:insulted
 
+*About:* still, mad  ·  *Leads to:* still, mad
+
 1. **a**: oh its you. the one who called me {b.insult} · still mad you called me {b.insult} · {b.insult}? really?
    - **helper:** i forgive you for calling me {b.insult} btw
    - **hermit:** you again.
@@ -1807,11 +2277,15 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* b:owed
 
+*About:* thanks, again  ·  *Leads to:* thanks, again
+
 1. **a**: thanks again for earlier · i still owe you one · ty for the stuff btw · hey, thanks for the help earlier
 
 #### hungry ask
 
 *Needs:* a:hungry, b:friend
+
+*About:* hungry, ask  ·  *Leads to:* hungry, ask
 
 1. **a**: got any food? starving · spare some food? · im so hungry, got anything?
 - *You say yes* (it just answers): ty!! throw it over · W, toss it · thank you!!
@@ -1821,11 +2295,15 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* rain, outside
 
+*About:* rain  ·  *Leads to:* rain
+
 1. **a**: this rain tho · ugh rain · great weather huh · rain again
 
 #### bored ask
 
 *Needs:* a:mood_bored, !b:stranger
+
+*About:* bored, ask  ·  *Leads to:* bored, ask
 
 1. **a**: im so bored, wanna do something? · bored. entertain me · {b} im bored, wanna go somewhere?
 - *You say yes* (follow): lets go, lead the way · finally, ok where to · W, i'll follow
@@ -1835,6 +2313,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 *Needs:* a:is_leader, b:stranger
 
+*About:* leader, welcome  ·  *Leads to:* leader, welcome
+
 1. **a**: welcome to {a.town}, i'm the leader here · hey, new face. i run {a.town} · welcome! i'm {a}, i lead {a.town}
    - **bandit:** this is my town. behave · {a.town}'s mine. no trouble, got it?
 2. **a** (60%): no stealing, no killing, and we get along · keep your hands off our chests and we're good · enjoy your stay
@@ -1842,6 +2322,8 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 #### campaign player
 
 *Needs:* a:candidate, !b:stranger
+
+*About:* campaign, player  ·  *Leads to:* campaign, player
 
 1. **a**: i'm standing for leader tomorrow! · vote for me! well, you can't, but tell everyone · {a} for leader. spread the word · election's tomorrow, wish me luck
 
@@ -3237,6 +3719,8 @@ Where it's going, by its current goal (`going.<goal>`), and the words for places
 
 A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, "yeah no" a no. Capitals, punctuation and stretched letters don't matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped ("im" is "i'm"). The words can be anywhere in the message.
 
+**Slang** is put plainly first, in both what you type and the phrases (238 words, `drifter_chat/slang.json`): "whatchu think bout me" reads as "what you think about me", "who r ur frens" as "who are your friends". **Gapped phrases** (with `*`) match words in that order with up to two words between: "think * of me" matches "what do you even think of me". A gapped match counts a little less than the same words said whole. `/drifter lines meaning <text>` shows what a message would mean.
+
 | Where | What it listens for |
 | --- | --- |
 | An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |
@@ -3256,16 +3740,16 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **night** (23): gn · gnn · good night · goodnight · night · nite · nighty night · night all · gn all · gn everyone · night everyone · nn · gnight · going to bed · off to bed · bedtime · time to sleep · sleep well · sweet dreams · logging off for the night · heading to bed · going to sleep · zzz
 - **thanks** (30): ty · tyy · thx · thanks · thank you · thank u · tysm · tyvm · ty so much · thanks so much · thanks a lot · much appreciated · appreciate it · appreciate you · cheers · ta · merci · gracias · danke · ty o7 · thank you so much · tyty · ty ty · thanks man · thanks bro · ty bro · you rock · ur the best · youre the best · legend
 - **bye** (31): bye · byee · bye bye · bb · cya · see ya · see you · see you later · see ya later · later · laters · l8r · take care · o7 · peace · peace out · im out · gtg · got to go · gotta go · have to go · heading out · logging off · logging · brb · afk · farewell · goodbye · good bye · catch you later · ttyl
-- **me** (18): whats my name · what is my name · do you remember me · remember me · do you know me · you know me · u know me · who am i · know who i am · do you know who i am · you remember me · u remember me · forgot me · did you forget me · whats my nickname · what do you call me · what do u call me · say my name
-- **opinion** (31): what do you think of · what do you think about · what do u think of · what do u think about · what you think of · what you think about · thoughts on · do you like · do u like · you like · how do you feel about · how do u feel about · do you trust · do u trust · you trust · are we friends · are we cool · are we good · we cool · we good · we friends · do you hate · do u hate · you hate · is he nice · is she nice · are they nice · whats your opinion on · opinion on · your opinion of · rate
+- **me** (22): whats my name · what is my name · do you remember me · remember me · do you know me · you know me · u know me · who am i · know who i am · do you know who i am · you remember me · u remember me · forgot me · did you forget me · whats my nickname · what do you call me · what do u call me · say my name · who * am i · what * my name · you * know * who i am · remember * me
+- **opinion** (46): what do you think of · what do you think about · what do u think of · what do u think about · what you think of · what you think about · thoughts on · do you like · do u like · you like · how do you feel about · how do u feel about · do you trust · do u trust · you trust · are we friends · are we cool · are we good · we cool · we good · we friends · do you hate · do u hate · you hate · is he nice · is she nice · are they nice · whats your opinion on · opinion on · your opinion of · rate · think * of me · think * about me · feel * about me · opinion * me · think * of him · think * of her · think * about him · think * about her · think * of them · think * about them · you * hate me · you * trust me · we * friends · we * cool · rate me
 - **where_is** (14): where is · wheres · where s · have you seen · you seen · u seen · seen · know where · where did · whered · where can i find · any sign of · where went · where are they
-- **going** (17): where are you going · where you going · where u going · where r u going · where are u going · where you headed · where are you headed · where u headed · where you off to · where are you off to · where u off to · where to · going somewhere · heading somewhere · where are you heading · where you heading · where u heading
-- **need** (28): what do you need · what do u need · whatcha need · what you need · what u need · need anything · do you need anything · you need anything · u need anything · anything you need · need something · do you need help · do u need help · you need help · u need help · need any help · need a hand · what are you looking for · what you looking for · what u looking for · what are you after · what you after · what do you want · what do u want · whatcha want · can i help · can i help you · how can i help
-- **friends** (17): who are your friends · who r your friends · whos your friend · who is your friend · your friends · ur friends · best friend · bestie · who do you like · who do u like · who do you hang out with · do you have friends · got any friends · any friends · whos your bestie · who are ur friends · whos ur friend
-- **told** (13): what did i tell you · what did i tell u · what did i say · remember what i said · what do you know about me · what do u know about me · what do you remember · what do u remember · do you remember what i said · what have i told you · tell me what you know about me · what do you know of me · what did i say earlier
-- **my_base** (17): wheres my base · where is my base · where do i live · wheres my house · where is my house · wheres my home · where is my home · remember my base · do you know my base · know my base · where i live · know where i live · my base coords · wheres my place · where is my place · wheres my castle · where did i say my base was
-- **forget** (15): forget it · forget that · forget what i said · forget everything · forget about it · forget me · forget all · forget all of it · scratch that · ignore that · ignore what i said · dont remember that · never mind that · forget everything i said · forget everything i told you
-- **likes** (18): what do you like · what do u like · whats your favorite · whats your favourite · whats your fav · whats ur fav · whats ur favorite · favorite thing · fav thing · what are you into · what r u into · what u into · what do you enjoy · any hobbies · whats your hobby · whats ur hobby · what do you do for fun · what do u do for fun
+- **going** (22): where are you going · where you going · where u going · where r u going · where are u going · where you headed · where are you headed · where u headed · where you off to · where are you off to · where u off to · where to · going somewhere · heading somewhere · where are you heading · where you heading · where u heading · where * you * going · where * you * headed · where * you * heading · where * you * off to · where * you * going to
+- **need** (33): what do you need · what do u need · whatcha need · what you need · what u need · need anything · do you need anything · you need anything · u need anything · anything you need · need something · do you need help · do u need help · you need help · u need help · need any help · need a hand · what are you looking for · what you looking for · what u looking for · what are you after · what you after · what do you want · what do u want · whatcha want · can i help · can i help you · how can i help · what * you * need · you * need * anything · need * help with · what * you * want · what * you * looking for
+- **friends** (21): who are your friends · who r your friends · whos your friend · who is your friend · your friends · ur friends · best friend · bestie · who do you like · who do u like · who do you hang out with · do you have friends · got any friends · any friends · whos your bestie · who are ur friends · whos ur friend · who * your * friends · who * your * friend · who * you * hang out with · who * you * like the most
+- **told** (20): what did i tell you · what did i tell u · what did i say · remember what i said · what do you know about me · what do u know about me · what do you remember · what do u remember · do you remember what i said · what have i told you · tell me what you know about me · what do you know of me · what did i say earlier · what * i * tell you · what * i * told you · what * i * say · remember * i * said · remember * i * told · what * you * know * about me · what * you * remember
+- **my_base** (23): wheres my base · where is my base · where do i live · wheres my house · where is my house · wheres my home · where is my home · remember my base · do you know my base · know my base · where i live · know where i live · my base coords · wheres my place · where is my place · wheres my castle · where did i say my base was · where * my base · where * my house · where * my home · where * i * live · remember * my base · know * my base
+- **forget** (17): forget it · forget that · forget what i said · forget everything · forget about it · forget me · forget all · forget all of it · scratch that · ignore that · ignore what i said · dont remember that · never mind that · forget everything i said · forget everything i told you · forget * i * said · forget * i * told you
+- **likes** (23): what do you like · what do u like · whats your favorite · whats your favourite · whats your fav · whats ur fav · whats ur favorite · favorite thing · fav thing · what are you into · what r u into · what u into · what do you enjoy · any hobbies · whats your hobby · whats ur hobby · what do you do for fun · what do u do for fun · what * you like · what do you * like · what * your * favorite · what * you into · what * you enjoy
 - **word_good** (36): is cool · is nice · is chill · is my friend · is a friend · is my buddy · is my bestie · is good · is great · is awesome · is kind · is the best · is legit · is trustworthy · you can trust · u can trust · trust him · trust her · trust them · helped me · saved me · is a good guy · is good people · is goated · is sweet · is funny · is a legend · is a w · is cracked · is pro · is a pro · is helpful · is generous · gave me · is friendly · is safe
 - **word_bad** (50): is a griefer · griefer · griefed · griefed me · is mean · is bad · is evil · is a thief · is a scammer · scammed me · scammer · stole · stole from me · stole my · robbed me · killed me · is toxic · is annoying · is a jerk · is rude · is sus · is shady · is a liar · lied to me · liar · dont trust · do not trust · never trust · cant trust · watch out for · be careful of · be careful around · be careful with · stay away from · keep away from · hates me · attacked me · hit me · is dangerous · is trash · is a bandit · is a pk · is a killer · is a menace · spawn killed me · trapped me · burned my · blew up my · broke my · took my stuff
 - **tell_base** (28): my base · my house · my home · i live · my place · my castle · my town · my village · my bunker · my hut · my cabin · my build · our base · our house · our town · we live · my mansion · my tower · my plot · my starter base · my main base · this is my base · this is my house · welcome to my base · welcome to my house · my camp · my shack · my hideout
@@ -3335,11 +3819,11 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **news_back** (8): im back · back now · just got back · back again · i am back · im home · made it back · im back home
 - **news_tired** (7): im tired · so tired · im sleepy · sleepy · exhausted · im exhausted · im so tired
 - **news_lost** (10): im lost · i got lost · got lost · i am lost · i dont know where i am · dont know where i am · lost my way · cant find my way · cant find my base · cant find my house
-- **wyd** (23): wyd · wud · what you doing · what are you doing · what r u doing · what are u doing · whatcha doing · watcha doing · what you up to · what are you up to · what r u up to · whats up with you · what u doing · what you doin · what are you doin · you busy · are you busy · u busy · busy · what are you working on · what you working on · whatcha up to · up to anything
-- **hru** (24): how are you · how r u · how are u · hru · how you doing · how are you doing · how u doing · hows it going · how is it going · you good · u good · you ok · u ok · are you ok · are you okay · you okay · how have you been · hows life · hows your day · how was your day · you alright · u alright · wbu · hbu
-- **name** (13): whats your name · what is your name · whats ur name · ur name · your name · who are you · who r u · who are u · who is this · whos this · who dis · do i know you · have we met
-- **coords** (16): coords · cords · ur coords · your coords · send coords · what are your coords · where are you · where r u · where are u · wya · where you at · where u at · location · where abouts · send location · drop coords
-- **base** (20): where do you live · where do u live · where you live · where is your base · wheres your base · wheres ur base · where is ur base · your base · ur base · base coords · where is your house · wheres your house · wheres ur house · where is your home · wheres your home · where do you stay · show me your base · can i see your base · where is your town · wheres your town
+- **wyd** (25): wyd · wud · what you doing · what are you doing · what r u doing · what are u doing · whatcha doing · watcha doing · what you up to · what are you up to · what r u up to · whats up with you · what u doing · what you doin · what are you doin · you busy · are you busy · u busy · busy · what are you working on · what you working on · whatcha up to · up to anything · what * you * doing · what * you * up to
+- **hru** (27): how are you · how r u · how are u · hru · how you doing · how are you doing · how u doing · hows it going · how is it going · you good · u good · you ok · u ok · are you ok · are you okay · you okay · how have you been · hows life · hows your day · how was your day · you alright · u alright · wbu · hbu · how * you * doing · how * are * you · how * you * been
+- **name** (15): whats your name · what is your name · whats ur name · ur name · your name · who are you · who r u · who are u · who is this · whos this · who dis · do i know you · have we met · what * your name · who * are you
+- **coords** (19): coords · cords · ur coords · your coords · send coords · what are your coords · where are you · where r u · where are u · wya · where you at · where u at · location · where abouts · send location · drop coords · where * are you · what * your coords · send * coords
+- **base** (23): where do you live · where do u live · where you live · where is your base · wheres your base · wheres ur base · where is ur base · your base · ur base · base coords · where is your house · wheres your house · wheres ur house · where is your home · wheres your home · where do you stay · show me your base · can i see your base · where is your town · wheres your town · where * your base · where * you * live · where * your house
 - **seen_village** (14): village · villages · seen a village · seen any villages · know a village · any villages · any village · where is a village · wheres a village · wheres the village · where is the village · village nearby · villagers · any villagers
 - **seen_diamonds** (11): diamonds · diamond · dias · seen diamonds · seen any diamonds · where are diamonds · wheres diamonds · found diamonds · found any diamonds · know where diamonds · any diamonds
 - **seen_iron** (9): iron · seen iron · seen any iron · where is iron · wheres iron · found iron · found any iron · any iron · iron ore
@@ -3359,7 +3843,9 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **joke** (8): tell me a joke · tell a joke · joke · know any jokes · say something funny · make me laugh · got any jokes · funny
 - **bot** (15): are you a bot · r u a bot · are u a bot · you a bot · u a bot · are you real · r u real · are you human · are you ai · are you an ai · is this a bot · are you a robot · npc · are you an npc · ur an npc
 
+**Slang words:** 2day = today · 2moro = tomorrow · 2morrow = tomorrow · 2nite = tonight · aboot = about · abot = about · abt = about · abut = about · alot = a lot · any1 = anyone · ar = are · atm = right now · b4 = before · bc = because · bcos = because · bcuz = because · becoz = because · becuz = because · bout = about · brb = be right back · bse = base · btw = by the way · buildin = building · chu = you · cnt = cant · comin = coming · cos = because · coz = because · cus = because · cuz = because · da = the · dat = that · def = definitely · deffo = definitely · dem = them · dident = didnt · didint = didnt · dis = this · dno = dont know · dnt = dont · doesent = doesnt · doin = doing · doinn = doing · dosent = doesnt · dun = dont · dunno = dont know · every1 = everyone · fink = think · finna = going to · fr = for real · freind = friend · freinds = friends · fren = friend · frend = friend · frends = friends · frens = friends · frfr = for real · g2g = got to go · gettin = getting · gimme = give me · gimmie = give me · giv = give · givme = give me · gna = going to · goin = going · gona = going to · gonna = going to · gota = got to · gotta = got to · gr8 = great · gtg = got to go · gunna = going to · haf = have · hafta = have to · hav = have · hbu = how about you · headin = heading · hosue = house · hous = house · hru = how are you · hve = have · hw = how · hwo = how · hws = hows · hyd = how you doing · idc = i dont care · idek = i dont even know · idk = i dont know · iirc = if i remember right · ikr = i know right · ily = i love you · ima = im going to · imho = in my opinion · imma = im going to · imo = in my opinion · kinda = kind of · kk = ok · kno = know · knw = know · kow = know · l8er = later · l8r = later · lemme = let me · liek = like · lik = like · lmk = let me know · lookin = looking · lotta = lot of · ltr = later · lub = love · luv = love · lyk = like · makin = making · minin = mining · ngl = not going to lie · nothin = nothing · nun = nothing · nuthin = nothing · nvm = never mind · nvmd = never mind · okay = ok · okey = ok · oki = ok · okie = ok · okk = ok · omw = on my way · outta = out of · peeps = people · pleas = please · plez = please · plis = please · pls = please · plz = please · ppl = people · prob = probably · probs = probably · prolly = probably · pwease = please · r = are · realy = really · rlly = really · rly = really · rn = right now · smth = something · smthn = something · some1 = someone · somethin = something · sorta = sort of · srsly = seriously · sth = something · sum1 = someone · sumthin = something · sup = whats up · talkin = talking · tbh = to be honest · teh = the · teh's = the · thankz = thanks · thanx = thanks · thikn = think · thinkin = thinking · thinkk = think · thnk = think · thnks = thanks · thnx = thanks · tho = though · thru = through · thx = thanks · tmr = tomorrow · tmrow = tomorrow · tmrw = tomorrow · tnx = thanks · tomoz = tomorrow · tonite = tonight · tryin = trying · u = you · ur = your · ure = your · urs = yours · w8 = wait · wachu = what you · waht = what · wana = want to · wanna = want to · wantto = want to · wassup = whats up · wasup = whats up · wat = what · watcha = what you · watchu = what you · wats = whats · watsup = whats up · watz = whats · wazup = whats up · wbu = what about you · wdym = what do you mean · wen = when · wer = where · were's = wheres · wers = wheres · whatcha = what you · whatchu = what you · whatchu're = what you · whatsup = whats up · whatya = what you · whatyou = what you · whatz = whats · wher = where · whr = where · whre = where · whres = wheres · whrs = wheres · wht = what · whta = what · whut = what · wn = when · wot = what · wotcha = what you · wsg = whats good · wsp = whats up · wuchu = what you · wud = what you doing · wut = what · wuts = whats · wuz = whats · wy = why · wyd = what you doing · wym = what you mean · yor = your · youre = your · yu = you · yuo = you
+
 ## Where they live
 
-- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
-- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `social/talk/Telling.java` and `Heard.java` (telling it things; what it remembers), `encounter/*.java`.
+- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`, `slang.json`, `talk_web.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
+- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `social/talk/Topics.java` and `Conversations.java` (topics, the web, long talks), `social/talk/PlayerTalk.java` (asking a Drifter), `social/talk/Telling.java` and `Heard.java` (telling it things; what it remembers), `encounter/*.java`.

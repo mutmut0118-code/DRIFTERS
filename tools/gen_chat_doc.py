@@ -94,8 +94,10 @@ VOICE = {'any': 'everyone', 'casual': 'casual', 'newbie': 'newbie', 'builder': '
 
 lines = {}
 answers = {}
+slang = {}
 for path in sorted(glob.glob(CHAT + '/*.json')):
     data = json.load(open(path, encoding='utf-8'))
+    slang.update(data.get('slang', {}))
     for key, value in data.get('lines', {}).items():
         voices = lines.setdefault(key, {})
         if isinstance(value, list):
@@ -199,10 +201,24 @@ for short, title in ENC.items():
 TALK = os.path.join(ROOT, 'src/main/resources/data/drifter/drifter_talk')
 topics = []
 player_topics = []
+links = {}
 for path in sorted(glob.glob(TALK + '/*.json')):
     data = json.load(open(path, encoding='utf-8'))
     topics += data.get('topics', [])
     player_topics += data.get('player_topics', [])
+    for topic_id, link in data.get('links', {}).items():
+        links.setdefault(topic_id, {}).update(link)
+
+NOT_TAGS = {'a', 'b', 'the', 'and', 'of', 'to', 'with', 'vs', 'talk', 'chat', 'story', 'show', 'lately'}
+
+
+def web(topic):
+    """A topic's place in the web, as the game reads it: its own fields, a link's over them, tags from its id if none."""
+    w = {k: topic[k] for k in ('tags', 'leads', 'next', 'cost', 'about', 'follow_up', 'opener') if k in topic}
+    w.update(links.get(topic['id'], {}))
+    w.setdefault('tags', [t for t in topic['id'].split('_') if t and t not in NOT_TAGS])
+    w.setdefault('leads', w['tags'])
+    return w
 
 
 def said(lines):
@@ -239,13 +255,26 @@ doc += ['## 6. Conversations between Drifters', '',
 def render(topic):
     global doc
     needs = ', '.join(topic.get('needs', [])) or 'any time'
-    doc += ['#### ' + topic['id'].replace('_', ' '), '', '*Needs:* ' + needs + ('  ·  *Effects:* ' + ', '.join(topic['effects']) if topic.get('effects') else ''), '']
+    w = web(topic)
+    place = '*About:* ' + ', '.join(w['tags']) + '  ·  *Leads to:* ' + ', '.join(w['leads'] + w.get('next', []))
+    if w.get('opener'):
+        place += '  ·  only starts a talk'
+    if w.get('follow_up'):
+        place += '  ·  only follows another'
+    if w.get('cost', 1) != 1:
+        place += '  ·  uses %g interest' % w['cost']
+    doc += ['#### ' + topic['id'].replace('_', ' '), '', '*Needs:* ' + needs + ('  ·  *Effects:* ' + ', '.join(topic['effects']) if topic.get('effects') else ''), '',
+            place, '']
     for i, turn in enumerate(topic['turns']):
         head = '%d. **%s**' % (i + 1, turn['by'])
         if turn.get('chance', 1) < 1:
             head += ' (%d%%)' % round(turn['chance'] * 100)
         if turn.get('if'):
             head += ' if ' + ', '.join(turn['if'])
+        if turn.get('mark') or turn.get('leads'):
+            head += ' *(' + '; '.join((['marks ' + ', '.join(turn['mark'])] if turn.get('mark') else [])
+                                      + (['leads to ' + ', '.join(turn['leads'])] if turn.get('leads') else [])) + ')*'
+
         if 'options' in turn:
             doc.append(head + ':')
             for option in turn['options']:
@@ -266,6 +295,42 @@ def render(topic):
 
 for topic in topics:
     render(topic)
+
+TALK_WHEN = {
+    'talk.segue.linked': 'Going on to a topic linked to the last one: said in front of its first line (about half the time).',
+    'talk.segue.change': 'Changing the subject (now and then, or when nothing linked suits them): in front of the new topic\'s first line.',
+    'talk.resume': 'Picking up a talk that was cut short, the next time the two meet (within a day): in front of the first line. {about} is what they were on.',
+    'talk.bye': 'A long talk ends (their interest is used up): one says goodbye.',
+    'talk.bye_back': 'The other answers the goodbye.',
+    'talk.cut.trouble': 'A talk cut short by trouble (a fight, panic, fire): the one in trouble says so.',
+    'talk.cut.away': 'A long talk cut short because one walked too far off (48 blocks): sometimes.',
+}
+tag_count = {}
+for topic in topics:
+    for tag in web(topic)['tags']:
+        tag_count[tag] = tag_count.get(tag, 0) + 1
+doc += ['## 6b. Long conversations (the topic web)', '',
+        'A conversation can go on from topic to topic. Each topic says what it is **about** (tags) and what it **leads to** (tags, and '
+        'sometimes topics by name). When a topic ends, they go on to one it leads to that suits them (either of them can bring it up, so it '
+        'goes back and forth), or now and then (15%%) change the subject. A topic is never repeated within one talk; greetings only start a talk; '
+        'follow-ups (like "agree to disagree") only come after another topic.', '',
+        '- **How long:** each Drifter has interest in the talk: the chattier, the more; strangers a topic or two, acquaintances two or three, '
+        'friends three to five, best friends (trust 80+) up to ten; bored, more; angry or anxious, less. Each topic uses some (jokes half). '
+        'At most 10 topics or 5 minutes.',
+        '- **Working while they talk:** past the first topic they go back to what they were doing and keep chatting (a little slower, as '
+        'they type while working), as long as they stay within 48 blocks. With nothing to do they keep standing together.',
+        '- **Arguments:** a line can **mark** the talk: "disagree" costs both a little trust when the topic ends, "agree" builds it. A '
+        'disagreement leads on to **argument** topics: friends agree to disagree, rivals keep at it.',
+        '- **Cut short** (a mob, getting hurt, walking off): the one in trouble says "hold up"; the next time the two meet (within a day) '
+        'they pick it up: "anyway, about the ore".',
+        '- **Try it:** `/drifter talk long [topic]` starts the nearest two on a long talk (plenty of interest, whatever their bond); '
+        '`/drifter talk status` shows each talk going on, its topics so far and the interest left; `/drifter talk links <topic>` what a '
+        'topic leads on to.',
+        '- **Writing more:** a new topic only needs `tags` and `leads` to join the web (with none, it is about the words of its id). '
+        '`links` in `drifter_talk/web.json` place topics written in other files.', '',
+        '**Tags in use** (topics about each): ' + ', '.join('%s (%d)' % (t, n) for t, n in sorted(tag_count.items(), key=lambda x: (-x[1], x[0]))), '']
+for key in TALK_WHEN:
+    doc += block(key, TALK_WHEN[key])
 
 doc += ['## 7. Drifters talking to you', '',
         'A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (%d topics in '
@@ -399,6 +464,10 @@ doc += ['## 10. What you can say to them', '',
         'A message means whichever of these it has the longest phrase of: "no problem" is a yes though it has "no" in it, "hell no" a no, '
         '"yeah no" a no. Capitals, punctuation and stretched letters don\'t matter ("NOOOO." is no, "yesss" yes); apostrophes are dropped '
         '("im" is "i\'m"). The words can be anywhere in the message.', '',
+        '**Slang** is put plainly first, in both what you type and the phrases (%d words, `drifter_chat/slang.json`): "whatchu think bout me" '
+        'reads as "what you think about me", "who r ur frens" as "who are your friends". **Gapped phrases** (with `*`) match words in that order '
+        'with up to two words between: "think * of me" matches "what do you even think of me". A gapped match counts a little less than the '
+        'same words said whole. `/drifter lines meaning <text>` shows what a message would mean.' % len(slang), '',
         '| Where | What it listens for |', '| --- | --- |',
         '| An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |',
         '| A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |',
@@ -414,12 +483,13 @@ doc += ['## 10. What you can say to them', '',
 for intent, phrases in answers.items():
     doc.append('- **' + intent + '** (%d): ' % len(phrases) + ' · '.join(esc(p) for p in phrases))
 doc.append('')
+doc += ['**Slang words:** ' + ' · '.join(esc(k) + ' = ' + esc(v) for k, v in sorted(slang.items()) if k != v), '']
 
 doc += ['## Where they live', '',
-        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`); whims\' '
+        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`, `slang.json`, `talk_web.json`); whims\' '
         'lines in `drifter_whims/*.json`. This doc is generated from them.',
         '- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), '
-        '`social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `social/talk/Telling.java` and `Heard.java` (telling it things; what it remembers), '
+        '`social/ChatReplies.java` (the rituals), `social/talk/Topics.java` and `Conversations.java` (topics, the web, long talks), `social/talk/PlayerTalk.java` (asking a Drifter), `social/talk/Telling.java` and `Heard.java` (telling it things; what it remembers), '
         '`encounter/*.java`.', '']
 
 open(os.path.join(ROOT, 'docs/CHAT_LINES.md'), 'w', encoding='utf-8', newline='\n').write('\n'.join(doc))

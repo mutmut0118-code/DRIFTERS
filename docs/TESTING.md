@@ -2175,3 +2175,30 @@ docs/CHAT_LINES.md section 8b.
       again).
 - [ ] Questions aren't statements: `is there a village north?` or `do you like cats?` don't get remembered.
 - [ ] Leave and rejoin the world: `/drifter heard` still shows what it was told.
+
+## Side session: slang, and long talks between Drifters (new, 0.22.28-side.2)
+
+**Slang.** Drifters now read slang: `u`, `ur`, `r`, `wat`, `whatchu`, `bout`, `wanna`, `idk`, `rn`, `frens` and about
+230 more (full list at the end of docs/CHAT_LINES.md section 10).
+
+- [ ] Ask a Drifter in slang: `whatchu think of me`, `who r ur frens`, `wat u need`, `where u goin`, `wat did i tell u`,
+      `whats ur name`, `wyd`. Each should get the same answer as the plain version.
+- [ ] `/drifter lines meaning whatchu think bout me fr` shows what it would mean and how it was read ("read as what you
+      think about me for real").
+- [ ] Say something that only looks like a question: `what a day, you know i like cats` is taken as you liking cats,
+      not as asking what it likes.
+
+**Long talks.** Two Drifters now go from topic to topic. Strangers manage a topic or two, friends a few, best friends
+up to ten. Between topics you'll see "speaking of which", "btw" or "anyway". A long talk ends with a goodbye ("anyway
+gotta go", "cya").
+
+- [ ] Watch two Drifters that know each other talk. After the first topic they go back to what they were doing and keep
+      chatting while they work. If they've nothing to do, they stay standing together.
+- [ ] To see one right away: stand near two Drifters and run `/drifter talk long`. Then `/drifter talk status` shows
+      the topics so far (e.g. "worst_mob > random_thought > complaints") and the interest left.
+- [ ] Arguments: on "best ore", "worst mob", "fav food", "build style" or "caves or strip mining", one sometimes
+      disagrees ("nah youre wrong"). Friends then "agree to disagree"; rivals keep at it. Disagreeing costs them a
+      little trust, agreeing builds it.
+- [ ] Cut short: if a mob attacks mid-talk, one says "hold up" or "brb". When they next meet (within a day) they pick
+      it back up with "anyway, about the ...".
+- [ ] `/drifter talk links worst_mob` lists what a topic can lead to.

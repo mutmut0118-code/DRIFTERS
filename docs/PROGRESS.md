@@ -3114,3 +3114,38 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     seen diamonds" with "havent seen diamonds" (hearsay is told to those it knows, as its own finds are).
   - Next on this branch: house plans (the user's second ask). Ideas for chat later: Drifters acting on told places
     (visiting a told village or base) would change behaviour, so it's a design question for the user first.
+- **Slang and long talks (0.22.28-side.2; the user, 2026-10-28: "instead of 'what do you think of me' its like 'whatchu
+  think of me'", and "a network/web system for talks between drifters ... a very long coversation"; chose talk lengths
+  strangers 1-2 topics, friends 3-6, best friends ~10, and working side by side in long talks; talks leading to joint
+  actions later; "the goal is to get the topics in the thousands").**
+  - Slang: `drifter_chat/slang.json` "slang" (word → plain words, ~230: u, ur, r, wat, whatchu, bout, wanna, idk, rn,
+    frens...) applied by `Lines.understood` to what players type and to every answer phrase alike, so every intent
+    gets it for free. Words with two meanings are left out ("ya", "k", "y", "n", "yoo" which squashes to "yo"); checked
+    with an audit script that the slang makes no new clashes between intents. Gapped phrases ("think * of me": in
+    order, at most 2 words between, counting 2 less than a whole phrase) for the asks; `/drifter lines meaning <text>`
+    now shows the ask too and the text as read.
+  - The topic web (`Topics.Web`): tags, leads (tags), next (ids), cost, about, follow_up, opener. `links` in any
+    `drifter_talk` file sets them for topics written elsewhere (`drifter_talk/web.json` links all 55 old topics without
+    touching their files); untagged topics are about the words of their id. Tag index for fast lookup at thousands of
+    topics. An option or turn can `mark` the talk (`t:<mark>` in conditions; "disagree" -1.5 trust each at the topic's
+    end, "agree" +1) and add `leads` (a disagreement leads to "argument" topics: agree_to_disagree for non-rivals,
+    argue_more for rivals).
+  - `Conversations`: interest (0.5 + 1.5 x sociability, +1 acquainted / +2.5 friends / +6 trust 80+ / +0.5 rivals,
+    bored +1, angry/frustrated/anxious -0.5, + random 0-1; each topic uses its cost); on to a linked topic (either can
+    bring it up, the other a bit more often) or 15% a change of subject; segues ("speaking of which", "anyway") from
+    `drifter_chat/talk_web.json`; a long talk ends with talk.bye / talk.bye_back. At most 10 topics / 5 minutes.
+    Long talk (past the first topic): `ConverseGoal` drops to 0.12 and isn't urgent, and its activity hands back after
+    each listen, so they go back to work and chat as they work (lines a little slower), cut beyond 48 blocks (the chat range; 32 cut a talk inside a 27-block test box). Cut short
+    (trouble or distance): talk.cut.trouble / talk.cut.away, and the pair picks it up within a day ("anyway, about the
+    {about}"; resumable pairs can start after 30 s).
+  - 22 new topics in `drifter_talk/web.json` (best ore, tools, worst mob, nether, end, farming, fav food, build style,
+    night plans, sleep, villagers, animals, caves vs strip, exploring, enchanting, players, rain, random thought,
+    remember when, feelings, agree to disagree, argue more).
+  - Debug: `/drifter talk long [topic]`, `/drifter talk status`, `/drifter talk links <topic>`. CHAT_LINES.md section 6b,
+    topic headers show about/leads; section 10 lists the slang.
+  - Tested (dev client): slang asks all understood ("whatchu think of me" → opinion, "who r ur frens" → friends, "wat
+    u need", "where u goin", "wat did i tell u"); strangers chained 2 topics and said bye ("oh btw what mob do you hate
+    the most" ... "anyway cya Cole"); best friends chained worst_mob > random_thought > complaints with 7.3 interest
+    left and went back to exploring while talking.
+  - Next: the user wants topics in the thousands. Content plan: write topics in batches by tag (new files per theme),
+    each with tags/leads; maybe a generator/lint script (unknown tags, dead ends, topics nothing leads to).

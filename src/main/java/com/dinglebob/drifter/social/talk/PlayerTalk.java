@@ -64,6 +64,12 @@ public final class PlayerTalk {
 	/** And what they think of someone else ("bob is a griefer"). */
 	private static final String[] ALL = concat(ASKED, Telling.WORDS);
 
+	/** What this message would be, said to a Drifter (what it asks, or a word about someone), or null (the debug command). */
+	@Nullable
+	public static String meaning(String text) {
+		return Lines.answer(text, ALL);
+	}
+
 	/** How far it hears someone talking to it without its name: looking at it, or the only one this close. */
 	private static final double LOOKED_AT = 16.0;
 	private static final double ONLY_ONE = 10.0;

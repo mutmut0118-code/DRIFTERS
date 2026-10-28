@@ -1,0 +1,336 @@
+{
+  "_comment": "The topic web: what each topic is about (tags) and what it leads on to (leads: tags; next: topic ids it leads to most), so a conversation goes on from topic to topic. 'links' sets these for topics written in other files; new topics below carry their own. opener: only starts a talk (a greeting). follow_up: only comes up after another. cost: how much interest it uses (default 1). Tags in use: greeting, feelings, doing, plans, mining, ore, diamonds, tools, gear, fighting, mobs, danger, death, health, food, farming, animals, building, home, places, exploring, villagers, trade, nether, end, enchanting, weather, night, day, players, gossip, news, town, politics, jokes, boredom, brag, rivals, friends, argument, agreement, memories, complaints, sleep.",
+  "links": {
+    "found_ore": {"tags": ["mining", "ore"], "leads": ["mining", "tools", "diamonds", "trade"], "about": "ore"},
+    "found_rare": {"tags": ["mining", "diamonds", "ore"], "leads": ["gear", "mining", "enchanting", "brag"], "about": "diamonds"},
+    "died_story": {"tags": ["death", "danger", "mobs"], "leads": ["danger", "gear", "mobs"], "about": "dying"},
+    "close_call": {"tags": ["danger", "mobs"], "leads": ["death", "gear", "mobs"], "about": "close call"},
+    "mob_hunter": {"tags": ["mobs", "fighting"], "leads": ["gear", "danger", "mobs", "brag"], "about": "mobs"},
+    "built_something": {"tags": ["building", "home"], "leads": ["building", "home", "places"], "about": "build"},
+    "gear_show": {"tags": ["gear", "fighting"], "leads": ["mining", "mobs", "enchanting", "brag"], "about": "gear"},
+    "diamonds_stash": {"tags": ["diamonds", "gear"], "leads": ["mining", "trade", "enchanting"], "about": "diamonds"},
+    "traded": {"tags": ["trade", "villagers"], "leads": ["trade", "places", "gear"], "about": "trades"},
+    "saw_place": {"tags": ["places", "exploring"], "leads": ["exploring", "places", "plans"], "about": "place"},
+    "hungry": {"tags": ["food", "health"], "leads": ["food", "farming"], "about": "food"},
+    "hurt": {"tags": ["health", "danger"], "leads": ["danger", "mobs", "food"], "about": "that"},
+    "what_doing": {"tags": ["doing", "plans"], "leads": ["plans", "mining", "building", "farming"], "about": "plans"},
+    "homeless": {"tags": ["home", "building"], "leads": ["home", "building", "places"], "about": "base"},
+    "hut_to_house": {"tags": ["home", "building"], "leads": ["building", "home"], "about": "house"},
+    "heard_place": {"tags": ["places", "players", "gossip"], "leads": ["places", "exploring", "players"], "about": "place"},
+    "heard_word_bad": {"tags": ["players", "gossip"], "leads": ["players", "gossip", "danger"], "about": "that guy"},
+    "heard_word_good": {"tags": ["players", "gossip"], "leads": ["players", "gossip"], "about": "them"},
+    "heard_player_news": {"tags": ["players", "news"], "leads": ["players", "news", "gossip"], "about": "news"},
+    "heard_player_plan": {"tags": ["players", "plans"], "leads": ["players", "plans", "exploring"], "about": "plan"},
+    "how_are_you": {"tags": ["feelings"], "leads": ["feelings", "doing", "plans"], "opener": true, "about": "that"},
+    "morning": {"tags": ["day", "weather"], "leads": ["plans", "doing", "weather"], "opener": true, "about": "morning"},
+    "evening": {"tags": ["night", "weather"], "leads": ["night", "plans", "home", "sleep"], "about": "night"},
+    "night_out": {"tags": ["night", "danger", "mobs"], "leads": ["mobs", "danger", "home", "sleep"], "about": "night"},
+    "rain": {"tags": ["weather"], "leads": ["weather", "home", "farming", "complaints"], "about": "weather"},
+    "thunder": {"tags": ["weather", "danger"], "leads": ["weather", "mobs", "home"], "about": "storm"},
+    "nice_day": {"tags": ["weather", "day"], "leads": ["plans", "exploring", "building"], "about": "weather"},
+    "news": {"tags": ["news", "gossip"], "leads": ["news", "gossip", "players"], "about": "news"},
+    "warn_player": {"tags": ["players", "gossip", "danger"], "leads": ["players", "gossip"], "about": "that player"},
+    "praise_player": {"tags": ["players", "gossip"], "leads": ["players", "gossip"], "about": "that player"},
+    "town_talk": {"tags": ["town"], "leads": ["town", "politics", "building"], "about": "town"},
+    "group_pride": {"tags": ["town", "friends"], "leads": ["town", "friends"], "about": "group"},
+    "catch_up": {"tags": ["friends", "feelings"], "leads": ["doing", "news", "plans", "memories"], "opener": true, "about": "that"},
+    "rivals_needle": {"tags": ["rivals"], "leads": ["rivals", "brag", "argument"], "about": "that"},
+    "strangers_meet": {"tags": ["greeting"], "leads": ["doing", "plans", "places"], "opener": true, "about": "that"},
+    "bored": {"tags": ["boredom", "feelings"], "leads": ["jokes", "plans", "boredom"], "about": "boredom"},
+    "plans": {"tags": ["plans"], "leads": ["plans", "mining", "building", "exploring"], "about": "plans"},
+    "complaints": {"tags": ["complaints", "feelings"], "leads": ["complaints", "mobs", "weather"], "about": "that"},
+    "brag_vs": {"tags": ["brag", "gear"], "leads": ["gear", "rivals", "mining", "argument"], "about": "that"},
+    "joke_road": {"tags": ["jokes"], "leads": ["jokes", "boredom"], "cost": 0.5, "about": "joke"},
+    "joke_food": {"tags": ["jokes", "food"], "leads": ["jokes", "food"], "cost": 0.5, "about": "joke"},
+    "joke_worse": {"tags": ["jokes"], "leads": ["jokes"], "cost": 0.5, "about": "joke"},
+    "joke_skeleton": {"tags": ["jokes", "mobs"], "leads": ["jokes", "mobs"], "cost": 0.5, "about": "joke"},
+    "joke_enderman": {"tags": ["jokes", "mobs"], "leads": ["jokes", "mobs"], "cost": 0.5, "about": "joke"},
+    "joke_jockey": {"tags": ["jokes", "mobs"], "leads": ["jokes", "mobs"], "cost": 0.5, "about": "joke"},
+    "joke_ghast": {"tags": ["jokes", "nether"], "leads": ["jokes", "nether"], "cost": 0.5, "about": "joke"},
+    "running_joke": {"tags": ["jokes", "friends"], "leads": ["jokes", "memories"], "cost": 0.5, "about": "joke"},
+    "campaign": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "election"},
+    "election_chat": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "election"},
+    "leader_praise": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "leader"},
+    "leader_gripe": {"tags": ["town", "politics", "complaints"], "leads": ["politics", "complaints"], "about": "leader"},
+    "taxes": {"tags": ["town", "politics", "complaints"], "leads": ["politics", "complaints", "trade"], "about": "taxes"},
+    "new_leader_talk": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "leader"},
+    "leader_rounds": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "town"}
+  },
+  "topics": [
+    {
+      "id": "best_ore",
+      "weight": 2,
+      "tags": ["mining", "ore"],
+      "leads": ["mining", "tools", "diamonds"],
+      "about": "ore",
+      "turns": [
+        {"by": "a", "lines": ["whats the best ore to find tbh", "fav ore?", "if you could only mine one ore forever what would it be", "be honest, best ore"]},
+        {"by": "b", "lines": ["diamonds obv", "iron. you can never have enough iron", "ancient debris", "emeralds, villagers go crazy for them", "coal honestly, torches are life", "copper (jk)"]},
+        {"by": "a", "chance": 0.4, "lines": ["nah youre wrong", "hard disagree", "thats such a bad take", "...really?"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["fair", "same tbh", "yeah valid", "true true"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "tools_talk",
+      "weight": 2,
+      "tags": ["tools", "mining", "gear"],
+      "leads": ["mining", "enchanting", "gear"],
+      "about": "tools",
+      "turns": [
+        {"by": "a", "lines": ["hows your pickaxe holding up", "my pick is about to break lol", "you got a spare pickaxe?", "i keep running out of tools"]},
+        {"by": "b", "lines": ["mine's fine for now", "same, need more iron", "always carry two picks, trust me", "just make a stone one lol", "mending would fix that"]},
+        {"by": "a", "chance": 0.6, "lines": ["true", "good idea", "ill craft another later", "yeah i need mending so bad"]}
+      ]
+    },
+    {
+      "id": "worst_mob",
+      "weight": 2,
+      "tags": ["mobs", "danger"],
+      "leads": ["mobs", "danger", "death", "jokes"],
+      "about": "mobs",
+      "turns": [
+        {"by": "a", "lines": ["worst mob in the game?", "what mob do you hate the most", "be honest whats the worst mob", "which mob scares you the most"]},
+        {"by": "b", "lines": ["creepers. no contest", "phantoms are so annoying", "baby zombies man", "endermen when you look at them by accident", "witches. they cheat", "skeletons with good bows"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah creepers are easy", "really? theyre not that bad", "skill issue tbh", "wrong answer"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["agreed", "ugh yes", "100%", "they ruin everything"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "nether_talk",
+      "weight": 1.5,
+      "tags": ["nether", "exploring", "danger"],
+      "leads": ["nether", "gear", "danger", "exploring"],
+      "about": "nether",
+      "turns": [
+        {"by": "a", "lines": ["you been to the nether yet?", "nether's scary ngl", "thinking about building a portal", "anyone found a fortress around here?"]},
+        {"by": "b", "lines": ["once. almost died", "not yet, need better gear", "yeah its fine if you bring blocks", "ghasts are the worst part", "piglins are kinda funny"]},
+        {"by": "a", "chance": 0.6, "lines": ["bring fire res", "dont mine gold near piglins lol", "we should go together sometime", "ill stay up here thanks"]}
+      ]
+    },
+    {
+      "id": "end_talk",
+      "weight": 0.8,
+      "tags": ["end", "exploring", "danger"],
+      "leads": ["end", "gear", "plans"],
+      "about": "end",
+      "turns": [
+        {"by": "a", "lines": ["think anyone's killed the dragon yet?", "ever been to the end?", "the end looks so weird", "elytra would be nice"]},
+        {"by": "b", "lines": ["no way, too scary", "need more eyes of ender first", "someday", "heard theres cities out there", "i dont even know where the stronghold is"]},
+        {"by": "a", "chance": 0.5, "lines": ["one day", "lets prep first", "bring a lot of beds. jk dont"]}
+      ]
+    },
+    {
+      "id": "farming_talk",
+      "weight": 1.5,
+      "tags": ["farming", "food"],
+      "leads": ["food", "animals", "building"],
+      "about": "farm",
+      "turns": [
+        {"by": "a", "lines": ["you got a farm going?", "my wheat is finally growing", "farming is so relaxing", "need to plant more carrots"]},
+        {"by": "b", "lines": ["small one", "nah i just hunt", "potatoes are the best crop", "bonemeal is the secret", "villagers farm for me lol"]},
+        {"by": "a", "chance": 0.6, "lines": ["nice", "smart", "i should do that", "same"]}
+      ]
+    },
+    {
+      "id": "fav_food",
+      "weight": 1.5,
+      "tags": ["food"],
+      "leads": ["food", "farming", "jokes"],
+      "about": "food",
+      "turns": [
+        {"by": "a", "lines": ["best food in the game?", "whats your fav food", "steak or porkchop", "golden carrots are so good"]},
+        {"by": "b", "lines": ["steak obviously", "bread. simple", "golden carrots for sure", "cooked salmon", "pumpkin pie", "honestly whatever i have"]},
+        {"by": "a", "chance": 0.35, "lines": ["eww", "nah", "thats wild", "cant agree"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["valid", "good pick", "now im hungry", "same"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "build_style",
+      "weight": 1.5,
+      "tags": ["building", "home"],
+      "leads": ["building", "home", "places"],
+      "about": "building",
+      "turns": [
+        {"by": "a", "lines": ["wood or stone for a base?", "whats your build style", "you like big houses or small ones", "cobble houses are underrated"]},
+        {"by": "b", "lines": ["stone, it doesnt burn", "wood looks way nicer", "big. room for chests", "small and cozy", "dirt hut gang"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "cant relate", "thats a choice", "hmm hard disagree"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "same", "makes sense", "good call"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "night_plans",
+      "weight": 1.5,
+      "needs": ["evening"],
+      "tags": ["night", "plans", "sleep"],
+      "leads": ["home", "sleep", "mobs"],
+      "about": "night",
+      "turns": [
+        {"by": "a", "lines": ["getting dark", "gonna sleep soon?", "where you spending the night", "sun's going down"]},
+        {"by": "b", "lines": ["gonna head home", "ill sleep when i get back", "probably just dig in", "night mining time", "i got a bed on me"]},
+        {"by": "a", "chance": 0.6, "lines": ["stay safe", "same", "watch out for creepers", "gn early lol"]}
+      ]
+    },
+    {
+      "id": "sleep_talk",
+      "weight": 1,
+      "tags": ["sleep", "night", "home"],
+      "leads": ["home", "night"],
+      "about": "sleep",
+      "turns": [
+        {"by": "a", "lines": ["phantoms are getting bad, i need to sleep", "slept through the whole night yesterday", "do you even sleep", "beds are op"]},
+        {"by": "b", "lines": ["sleep is for the weak", "every night lol", "only when theres phantoms", "i forget to", "same"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "fair", "go to bed lol"]}
+      ]
+    },
+    {
+      "id": "villagers_talk",
+      "weight": 1.2,
+      "tags": ["villagers", "trade", "places"],
+      "leads": ["trade", "places", "enchanting"],
+      "about": "villagers",
+      "turns": [
+        {"by": "a", "lines": ["villagers are such scammers", "you trade with villagers?", "found a librarian with mending once", "villagers are kinda cute ngl"]},
+        {"by": "b", "lines": ["their prices are crazy", "all the time", "only the farmers", "hmm hmm", "theyre fine i guess"]},
+        {"by": "a", "chance": 0.5, "lines": ["hmm", "lol", "true", "emeralds dont grow on trees"]}
+      ]
+    },
+    {
+      "id": "animals_talk",
+      "weight": 1.2,
+      "tags": ["animals", "farming"],
+      "leads": ["farming", "food", "home"],
+      "about": "animals",
+      "turns": [
+        {"by": "a", "lines": ["thinking of getting a dog", "cats or dogs", "saw a horse earlier", "i want a cow pen"]},
+        {"by": "b", "lines": ["dogs, they fight for you", "cats scare creepers", "horses are hard to tame", "pens are easy, just fences", "i had a dog once. rip"]},
+        {"by": "a", "chance": 0.5, "lines": ["nice", "oh true", "rip", "maybe ill get one"]}
+      ]
+    },
+    {
+      "id": "caves_vs_strip",
+      "weight": 1.5,
+      "tags": ["mining"],
+      "leads": ["mining", "danger", "ore"],
+      "about": "mining",
+      "turns": [
+        {"by": "a", "lines": ["caving or strip mining?", "strip mining is so boring", "caves are faster for ore", "branch mining is the only real way"]},
+        {"by": "b", "lines": ["caves, way more ore", "strip mining, its safer", "whatever finds diamonds", "caves are scary tho", "both depending on mood"]},
+        {"by": "a", "chance": 0.4, "lines": ["nah youre crazy", "disagree completely", "thats how you die lol", "hmm no"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["fair point", "yeah true", "agreed"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "exploring_far",
+      "weight": 1.2,
+      "tags": ["exploring", "places"],
+      "leads": ["places", "plans", "nether"],
+      "about": "exploring",
+      "turns": [
+        {"by": "a", "lines": ["whats the farthest youve gone from spawn", "i wanna explore more", "ever get lost?", "found anything cool exploring?"]},
+        {"by": "b", "lines": ["not that far honestly", "a few thousand blocks", "got lost once, never again", "a desert temple once", "i stay close to home"]},
+        {"by": "a", "chance": 0.5, "lines": ["nice", "always bring a compass", "we should go exploring together", "same"]}
+      ]
+    },
+    {
+      "id": "enchant_talk",
+      "weight": 1,
+      "tags": ["enchanting", "gear"],
+      "leads": ["gear", "trade", "diamonds"],
+      "about": "enchanting",
+      "turns": [
+        {"by": "a", "lines": ["you got an enchanting table?", "need more lapis", "best enchant?", "got fortune yet?"]},
+        {"by": "b", "lines": ["not yet", "mending is the best one", "efficiency 5 is so good", "lapis is everywhere in caves", "need more bookshelves"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "facts", "need that", "nice"]}
+      ]
+    },
+    {
+      "id": "players_general",
+      "weight": 1,
+      "tags": ["players", "gossip"],
+      "leads": ["players", "gossip", "danger"],
+      "about": "players",
+      "turns": [
+        {"by": "a", "lines": ["seen many players around?", "players are so random", "some players are nice tbh", "you trust players?"]},
+        {"by": "b", "lines": ["a few", "some are cool", "depends who", "not really", "had one give me food once"]},
+        {"by": "a", "chance": 0.5, "lines": ["same", "careful with them", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "weather_more",
+      "weight": 1,
+      "needs": ["rain"],
+      "tags": ["weather", "complaints"],
+      "leads": ["weather", "home", "farming"],
+      "about": "rain",
+      "turns": [
+        {"by": "a", "lines": ["hope this clears up", "rain is good for crops at least", "its been raining forever", "fishing weather"]},
+        {"by": "b", "lines": ["same", "at least the crops grow", "good for fishing", "i dont mind it"]}
+      ]
+    },
+    {
+      "id": "random_thought",
+      "weight": 1,
+      "tags": ["jokes", "boredom"],
+      "leads": ["jokes", "boredom", "feelings"],
+      "cost": 0.5,
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["do you think fish sleep", "why do zombies burn but not husks", "who builds the villages", "where do villagers even sleep before they got beds", "do creepers have feelings"]},
+        {"by": "b", "lines": ["...what", "lol", "deep", "i never thought about that", "go to bed"]},
+        {"by": "a", "chance": 0.5, "lines": ["just wondering", "think about it", "lol"]}
+      ]
+    },
+    {
+      "id": "remember_when",
+      "weight": 1.5,
+      "needs": ["friends"],
+      "tags": ["memories", "friends"],
+      "leads": ["memories", "jokes", "friends"],
+      "about": "old times",
+      "turns": [
+        {"by": "a", "lines": ["remember when we first met", "good times", "we've been around a while huh", "remember that time with the creeper"]},
+        {"by": "b", "lines": ["lol yeah", "feels like forever", "how could i forget", "dont remind me"]},
+        {"by": "a", "chance": 0.6, "lines": ["good times", "glad we met", "o7", "lol"]}
+      ]
+    },
+    {
+      "id": "feelings_check",
+      "weight": 1,
+      "tags": ["feelings"],
+      "leads": ["feelings", "plans", "complaints"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["you doing ok?", "you seem tired", "how are you really", "everything good?"]},
+        {"by": "b", "lines": ["yeah all good", "kinda tired", "could be better", "honestly great", "eh"]},
+        {"by": "a", "chance": 0.6, "lines": ["good", "hang in there", "same", "you got this"]}
+      ]
+    },
+    {
+      "id": "agree_to_disagree",
+      "weight": 2,
+      "follow_up": true,
+      "needs": ["!rivals"],
+      "tags": ["argument"],
+      "leads": ["jokes", "feelings"],
+      "cost": 0.5,
+      "about": "that",
+      "turns": [
+        {"by": "b", "lines": ["ok we'll agree to disagree", "whatever you say", "fine lol", "youll see", "im still right"]},
+        {"by": "a", "chance": 0.7, "lines": ["lol", "sure", "nope", "nah im right"]}
+      ]
+    },
+    {
+      "id": "argue_more",
+      "weight": 2,
+      "follow_up": true,
+      "needs": ["rivals"],
+      "tags": ["argument"],
+      "leads": ["rivals", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "b", "lines": ["you always have the worst takes", "classic you", "why do i even talk to you", "of course you'd say that"]},
+        {"by": "a", "lines": ["says you", "ok and?", "cry about it", "at least im not you"], "mark": ["disagree"]}
+      ]
+    }
+  ]
+}
