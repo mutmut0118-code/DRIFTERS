@@ -707,6 +707,38 @@ public final class DrifterApi {
 		return com.dinglebob.drifter.building.plan.HousePlans.STALL;
 	}
 
+	/** The plans of a town's well, notice board and lamp post (milestone 22; built as town builds). */
+	public static String wellPlan() {
+		return com.dinglebob.drifter.building.plan.HousePlans.WELL;
+	}
+
+	public static String boardPlan() {
+		return com.dinglebob.drifter.building.plan.HousePlans.BOARD;
+	}
+
+	public static String lampPlan() {
+		return com.dinglebob.drifter.building.plan.HousePlans.LAMP;
+	}
+
+	/** The cells of a well built at {@code origin}, turned so, that water is poured into (corner to corner of its basin). */
+	public static List<net.minecraft.core.BlockPos> wellWater(MinecraftServer server, net.minecraft.core.BlockPos origin,
+		net.minecraft.world.level.block.Rotation rotation) {
+		return inPlan(server, com.dinglebob.drifter.building.plan.HousePlans.WELL, origin, rotation, com.dinglebob.drifter.building.plan.HousePlans.WELL_WATER);
+	}
+
+	/** The signs of a notice board built at {@code origin}, turned so (left to right as you read them). */
+	public static List<net.minecraft.core.BlockPos> boardSigns(MinecraftServer server, net.minecraft.core.BlockPos origin,
+		net.minecraft.world.level.block.Rotation rotation) {
+		return inPlan(server, com.dinglebob.drifter.building.plan.HousePlans.BOARD, origin, rotation, com.dinglebob.drifter.building.plan.HousePlans.BOARD_SIGNS);
+	}
+
+	private static List<net.minecraft.core.BlockPos> inPlan(MinecraftServer server, String planId, net.minecraft.core.BlockPos origin,
+		net.minecraft.world.level.block.Rotation rotation, List<net.minecraft.core.BlockPos> local) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, planId);
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn());
+		return local.stream().map(pos -> placed.toWorld(pos).immutable()).toList();
+	}
+
 	/** Where a stall's keeper stands (behind its counter), the stall built at {@code origin} turned so. */
 	public static net.minecraft.core.BlockPos stallStand(MinecraftServer server, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
 		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, com.dinglebob.drifter.building.plan.HousePlans.STALL);

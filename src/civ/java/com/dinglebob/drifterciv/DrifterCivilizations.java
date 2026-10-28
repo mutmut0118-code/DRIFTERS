@@ -88,6 +88,20 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: the nearest founded town's store and stall count as up (not built), so its plaza comes next.
+				.then(Commands.literal("plaza").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null || town.spawned) {
+						ctx.getSource().sendFailure(Component.literal("No town founded by its people here"));
+						return 0;
+					}
+
+					town.storeBuilt = true;
+					town.stallBuilt = true;
+					Towns.save(ctx.getSource().getServer());
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + "'s store and stall count as up; its plaza is next"), true);
+					return 1;
+				}))
 				.then(Commands.literal("spawn").requires(source -> source.hasPermission(2))
 					.executes(ctx -> spawnTown(ctx, TownBuilder.DEFAULT_HOUSEHOLDS, null))
 					.then(Commands.argument("households", IntegerArgumentType.integer(2, TownBuilder.MAX_HOUSEHOLDS))
@@ -232,6 +246,15 @@ public final class DrifterCivilizations implements ModInitializer {
 			source.sendSuccess(() -> Component.literal("  Market stall: " + stall + " (/drifterciv prices)"), false);
 			source.sendSuccess(() -> Component.literal("  Roads: four from the plaza and " + town.lanes.size() + " side lane" + (town.lanes.size() == 1 ? "" : "s")),
 				false);
+			List<String> plaza = new java.util.ArrayList<>();
+			for (Town.Plot piece : town.plaza) {
+				String what = piece.planId.equals(DrifterApi.wellPlan()) ? "well" : piece.planId.equals(DrifterApi.boardPlan()) ? "notice board" : "lamp post";
+				plaza.add(what + (piece.sizeX == 0 ? ": no room" : piece.built ? " built at " + piece.origin.toShortString() : " being built at "
+					+ piece.origin.toShortString()) + (what.equals("well") && piece.built ? (town.wellFilled ? ", with water" : ", waiting for water") : ""));
+			}
+
+			source.sendSuccess(() -> Component.literal("  Plaza: " + (plaza.isEmpty() ? "nothing yet (after the market stall, and the leader's old hut down)"
+				: String.join("; ", plaza))), false);
 		}
 
 		return alivePeople;

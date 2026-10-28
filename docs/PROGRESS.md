@@ -2932,5 +2932,33 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - `Lines`: not a line anyone said in the last 30 s if another will do.
   - Tested on a test server, 48 lines from a newbie and a builder: "comnig" "*coming", "only got enouhg for me"
     "*enough", "why do ghasts cry?" / "fire in their eyes", "nothing!" / "any ideas?"; the config line shows both.
-- Next: the chat phases are done (1 to 5). Then the well, the plaza (lamps, a notice board), then step 4, money and
-  markets.
+- **A founded town's plaza (0.22.23; the user: "lets move onto the next thing", then chose: the leader's old hut torn
+  down first, "well with real water", "lamp posts", "notice board"; no bell).**
+  - Drifter: three generated plans (`HousePlans`): `town:well` (4x4: cobblestone floor and rim, the 2x2 basin left
+    open, fence posts, a cobblestone slab roof; `WELL_WATER` the two corner cells to pour into), `town:board` (a plank
+    board on two fence posts, three oak wall signs on its front, `BOARD_SIGNS`, a slab over it), `town:lamp` (a
+    cobblestone foot, two fences, a torch). `DrifterApi.wellPlan/boardPlan/lampPlan/wellWater/boardSigns`.
+  - Water: `TownWork.water(drifter)` (default none) and the goal `TownWater` (0.56; 0.72 once begun or with water in
+    its bucket) -> `PourWaterActivity`: fills its bucket at water it knows (not the cells it fills, not its farm's
+    water hole, not water it couldn't fill at or get to; a remembered wet chunk or a look round if it knows none), walks
+    over and pours onto the basin's floor, one cell at a time; two corner to corner make an endless 2x2.
+  - The addon (`Plaza`): once the stall is up and the leader's hut is down (`MoveInActivity` does that when it moves
+    into its house), the people build the well (the spot nearest the plaza's middle that suits, by the leader's
+    knowledge of the ground), then the board beside it facing it, then a lamp post at each corner (8 out, the nearest
+    spot that suits; a corner with none goes without). Each a town build (`plaza`), all of them on it. The water job
+    goes to the member with a bucket nearest the well. The board's signs: "Welcome to / name / est. day N", "N
+    households / N people / leader: / name", "News: / the town's latest chronicle line"; brought up to date daily.
+    Chronicle: began, finished, "has water", "was put up", "has its lamp posts". `Town.plaza` (plots), `wellFilled`,
+    `boardDay` saved; `/drifterciv town` shows it; `/drifterciv town plaza` (debug: store and stall count as up).
+  - Fixed on the way: a town member who chose a hut door and never built the hut kept its middle "in the way of its
+    things" (`Home.inOwnBuilding`: not a hut taken down, nor one never built); a site was allowed over its chests
+    (`PlanSite` blocks them now; a town's well went round the leader's old chest).
+  - Tested headless (seed 777, four Drifters found a town, store and stall skipped): the well, board and four lamp
+    posts built in three days, every block by them; the water fetched from a lake in two trips (one by Cy, one by Dee;
+    earlier runs found the job losing to other work, trips cut short, a farm's water hole tried, and fixed those). In
+    the client: the well with its water and roof; the signs' text read back ("Welcome to / Copperhollow / est. day 1",
+    "3 households / 4 people / leader: / Bob", "News: / Day 4: The / plaza has its / lamp posts").
+  - Seen, not done: the plaza keeps the trees on it (in a forest a birch hangs over the board); the chronicle had
+    "xXNovaXx finished its hut" seven times on one day (a far Drifter; another bug, to look at).
+- Next: step 4 continues (Drifters buying at the stall with money of their own, wages for town work, trade runs
+  between towns, a player running a stall).

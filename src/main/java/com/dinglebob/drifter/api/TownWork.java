@@ -23,4 +23,12 @@ public interface TownWork {
 
 	/** How far from the middle its ground goes. */
 	int radius();
+
+	/**
+	 * Cells this one is to fill with water (a well's basin; a Drifter with a bucket fetches it from water it knows and pours
+	 * it in), or none. Asked now and then.
+	 */
+	default List<BlockPos> water(DrifterEntity drifter) {
+		return List.of();
+	}
 }

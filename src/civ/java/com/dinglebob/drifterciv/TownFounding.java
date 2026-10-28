@@ -86,6 +86,18 @@ public final class TownFounding {
 			}
 		});
 		DrifterEvents.BUILT.register((drifter, what, where) -> {
+			if (what.equals("town:" + Plaza.LABEL) && where != null) {
+				for (Town town : Towns.all()) {
+					for (Town.Plot plot : town.plaza) {
+						if (!plot.built && plot.origin.equals(where)) {
+							Plaza.built(drifter.getServer(), town, plot);
+						}
+					}
+				}
+
+				return;
+			}
+
 			if (what.equals("town:" + Market.STALL) && where != null) {
 				for (Town town : Towns.all()) {
 					if (!town.stallBuilt && town.stallPlot != null && town.stallPlot.origin.equals(where)) {
@@ -270,6 +282,9 @@ public final class TownFounding {
 
 		changed |= store(server, town, group);
 		changed |= Market.stall(server, town, group);
+		// The plaza: a well, a notice board, lamp posts; the board kept up to date.
+		changed |= Plaza.build(server, town, group);
+		Plaza.board(server, town);
 		// Side lanes as it grows, and everyone in on the town's work (its roads, its lights, the ground round their houses).
 		changed |= TownRoads.grow(town);
 		TownRoads.setWork(server, town, group.members);

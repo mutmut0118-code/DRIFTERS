@@ -272,7 +272,9 @@ public final class Home {
 			return true;
 		}
 
-		if (this.hutBuilt || this.hutDoor != null) {
+		// (A hut taken down is no building of its own any more, nor one a town's member chose a door for and never built: found
+		// in testing, a founded town's plaza "in the way of its things" all round its middle.)
+		if (!this.hutTakenDown && (this.hutBuilt || this.hutDoor != null && !this.noHut)) {
 			int half = this.hutHalf + margin;
 			if (Math.abs(pos.getX() - this.center.getX()) <= half && Math.abs(pos.getZ() - this.center.getZ()) <= half
 				&& pos.getY() >= this.center.getY() - 1 && pos.getY() <= this.center.getY() + this.hutWallHeight) {

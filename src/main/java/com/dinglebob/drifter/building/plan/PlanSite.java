@@ -245,7 +245,9 @@ public final class PlanSite {
 			// Clear of its own things, with a block's margin.
 			if (this.home.inOwnBuilding(column.atY(this.home.center.getY()), 2) || this.home.farm != null && this.home.farm.closerThan(column.atY(this.home.farm.getY()), 6)
 				|| this.home.pen != null && this.home.pen.closerThan(column.atY(this.home.pen.getY()), 7)
-				|| this.home.enchantingTable != null && this.home.enchantingTable.closerThan(column.atY(this.home.enchantingTable.getY()), 4)) {
+				|| this.home.enchantingTable != null && this.home.enchantingTable.closerThan(column.atY(this.home.enchantingTable.getY()), 4)
+				// (Nor over its chests: found in testing, a town's well built round the leader's old chest.)
+				|| this.home.chests().stream().anyMatch(chest -> Math.abs(chest.getX() - x) <= 1 && Math.abs(chest.getZ() - z) <= 1)) {
 				return BLOCKED;
 			}
 

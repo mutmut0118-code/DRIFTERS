@@ -1519,6 +1519,67 @@ public final class Goals {
 	}
 
 	/** The ground round its finished town house eased into the land: by day, a few blocks a visit, till it's done. */
+	/** A town's well wants water (milestone 22; the town says who): it fetches it in its bucket and pours it in. */
+	public static final class TownWater extends Goal {
+		private long failedAt = Long.MIN_VALUE / 2;
+
+		@Override
+		public String id() {
+			return "town_water";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "fill the town's well";
+		}
+
+		private static java.util.List<net.minecraft.core.BlockPos> cells(DrifterEntity drifter) {
+			var town = drifter.getTownWork();
+			return town == null ? java.util.List.of() : town.water(drifter);
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (Schedule.isNight(drifter) || context.threat().urgent() || drifter.level().getGameTime() - this.failedAt < 20L * 60 * 3
+				|| drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.BUCKET) || stack.is(net.minecraft.world.item.Items.WATER_BUCKET)) == 0) {
+				return 0.0;
+			}
+
+			// (A short chore the town's waiting on, once it's the one with the bucket; once begun, or with the water in its bucket,
+			// seen through: found in testing, each trip to a far lake was cut short by some other job.)
+			if (cells(drifter).isEmpty()) {
+				return 0.0;
+			}
+
+			boolean underWay = drifter.getDrifterBrain().currentGoal() == this
+				|| drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.WATER_BUCKET)) > 0;
+			return underWay ? 0.72 : 0.56;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			this.failedAt = context.drifter().level().getGameTime();
+			java.util.List<net.minecraft.core.BlockPos> cells = cells(context.drifter());
+			return cells.isEmpty() ? null : new com.dinglebob.drifter.brain.activity.PourWaterActivity(context.drifter(), cells, "the town's well");
+		}
+	}
+
 	public static final class EaseGround extends Goal {
 		private long checkAfter;
 		private boolean work;
@@ -2599,7 +2660,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());

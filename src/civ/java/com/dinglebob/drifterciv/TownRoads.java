@@ -221,6 +221,11 @@ final class TownRoads {
 		}
 
 		@Override
+		public List<BlockPos> water(DrifterEntity drifter) {
+			return drifter.getServer() == null ? List.of() : Plaza.water(drifter.getServer(), this.town, drifter);
+		}
+
+		@Override
 		public int radius() {
 			this.refresh();
 			return this.radius;

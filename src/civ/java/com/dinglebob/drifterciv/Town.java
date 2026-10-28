@@ -115,6 +115,13 @@ public final class Town {
 	@Nullable
 	public UUID keeper;
 	public int trades;
+	/**
+	 * A founded town's plaza, built piece by piece (the well, the notice board, the lamp posts: {@link Plaza}); whether its
+	 * well has its water; the day its board was last brought up to date.
+	 */
+	public final List<Plot> plaza = new ArrayList<>();
+	public boolean wellFilled;
+	public long boardDay = -1;
 
 	public Town(UUID id, String name, @Nullable UUID group, String dimension, BlockPos center, long foundedDay, boolean spawned) {
 		this.id = id;
@@ -177,6 +184,11 @@ public final class Town {
 		}
 
 		tag.putInt("Trades", this.trades);
+		ListTag plaza = new ListTag();
+		this.plaza.forEach(plot -> plaza.add(plot.save()));
+		tag.put("Plaza", plaza);
+		tag.putBoolean("WellFilled", this.wellFilled);
+		tag.putLong("BoardDay", this.boardDay);
 		return tag;
 	}
 
@@ -211,6 +223,12 @@ public final class Town {
 		town.stallBuilt = tag.getBoolean("StallBuilt");
 		town.keeper = tag.hasUUID("Keeper") ? tag.getUUID("Keeper") : null;
 		town.trades = tag.getInt("Trades");
+		for (Tag one : tag.getList("Plaza", Tag.TAG_COMPOUND)) {
+			town.plaza.add(Plot.load((CompoundTag)one));
+		}
+
+		town.wellFilled = tag.getBoolean("WellFilled");
+		town.boardDay = tag.contains("BoardDay") ? tag.getLong("BoardDay") : -1;
 		return town;
 	}
 }

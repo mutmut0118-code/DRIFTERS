@@ -93,6 +93,18 @@ public final class HousePlans {
 			return STALL_PLAN;
 		}
 
+		if (id.equals(WELL)) {
+			return WELL_PLAN;
+		}
+
+		if (id.equals(BOARD)) {
+			return BOARD_PLAN;
+		}
+
+		if (id.equals(LAMP)) {
+			return LAMP_PLAN;
+		}
+
 		// A town's store: a house plan with chests along its inside walls (made from the house plan when asked).
 		if (id.startsWith(STORE_PREFIX)) {
 			HousePlan base = get(server, id.substring(STORE_PREFIX.length()));
@@ -155,6 +167,85 @@ public final class HousePlans {
 		}
 
 		return HousePlan.generated(STALL, new net.minecraft.core.Vec3i(5, 4, 4), cells);
+	}
+
+	/**
+	 * A town's well (milestone 22; the user, 2026-10-28: "well with real water"): 4 by 4, a cobblestone floor and rim, the
+	 * 2x2 basin in the middle left open for the water someone pours in ({@link #WELL_WATER}: two cells corner to corner, the
+	 * other two fill themselves), fence posts at the corners and a cobblestone slab roof.
+	 */
+	public static final String WELL = "town:well";
+	public static final List<net.minecraft.core.BlockPos> WELL_WATER = List.of(new net.minecraft.core.BlockPos(1, 1, 1), new net.minecraft.core.BlockPos(2, 1, 2));
+	private static final HousePlan WELL_PLAN = well();
+
+	private static HousePlan well() {
+		List<HousePlan.Cell> cells = new ArrayList<>();
+		var stone = net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState();
+		var fence = net.minecraft.world.level.block.Blocks.OAK_FENCE.defaultBlockState();
+		var slab = net.minecraft.world.level.block.Blocks.COBBLESTONE_SLAB.defaultBlockState();
+		for (int x = 0; x <= 3; x++) {
+			for (int z = 0; z <= 3; z++) {
+				boolean rim = x == 0 || x == 3 || z == 0 || z == 3;
+				boolean corner = (x == 0 || x == 3) && (z == 0 || z == 3);
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 0, z), stone));
+				if (rim) {
+					cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 1, z), stone));
+				}
+
+				if (corner) {
+					cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 2, z), fence));
+					cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 3, z), fence));
+				}
+
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 4, z), slab));
+			}
+		}
+
+		return HousePlan.generated(WELL, new net.minecraft.core.Vec3i(4, 5, 4), cells);
+	}
+
+	/**
+	 * A town's notice board (milestone 22): a plank board on two fence posts, three signs on its front (north, before it's
+	 * turned: {@link #BOARD_SIGNS}) that the town keeps up to date, an oak slab over it.
+	 */
+	public static final String BOARD = "town:board";
+	public static final List<net.minecraft.core.BlockPos> BOARD_SIGNS = List.of(new net.minecraft.core.BlockPos(0, 2, 0), new net.minecraft.core.BlockPos(1, 2, 0),
+		new net.minecraft.core.BlockPos(2, 2, 0));
+	private static final HousePlan BOARD_PLAN = board();
+
+	private static HousePlan board() {
+		List<HousePlan.Cell> cells = new ArrayList<>();
+		var planks = net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState();
+		var fence = net.minecraft.world.level.block.Blocks.OAK_FENCE.defaultBlockState();
+		var slab = net.minecraft.world.level.block.Blocks.OAK_SLAB.defaultBlockState();
+		var sign = net.minecraft.world.level.block.Blocks.OAK_WALL_SIGN.defaultBlockState()
+			.setValue(net.minecraft.world.level.block.WallSignBlock.FACING, net.minecraft.core.Direction.NORTH);
+		for (int x = 0; x <= 2; x++) {
+			if (x != 1) {
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 0, 1), fence));
+			}
+
+			cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 1, 1), planks));
+			cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 2, 1), planks));
+			cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 2, 0), sign));
+			cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 3, 0), slab));
+			cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 3, 1), slab));
+		}
+
+		return HousePlan.generated(BOARD, new net.minecraft.core.Vec3i(3, 4, 2), cells);
+	}
+
+	/** A town's lamp post (milestone 22): a cobblestone foot, two fence posts and a torch on top. */
+	public static final String LAMP = "town:lamp";
+	private static final HousePlan LAMP_PLAN = lamp();
+
+	private static HousePlan lamp() {
+		List<HousePlan.Cell> cells = new ArrayList<>();
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(0, 0, 0), net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState()));
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(0, 1, 0), net.minecraft.world.level.block.Blocks.OAK_FENCE.defaultBlockState()));
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(0, 2, 0), net.minecraft.world.level.block.Blocks.OAK_FENCE.defaultBlockState()));
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(0, 3, 0), net.minecraft.world.level.block.Blocks.TORCH.defaultBlockState()));
+		return HousePlan.generated(LAMP, new net.minecraft.core.Vec3i(1, 4, 1), cells);
 	}
 
 	/** A town's store (milestone 22 step 3c): "store:" and the house plan it's made from. */

@@ -254,5 +254,8 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   trader-like of them by day; players trade with the keeper on the villager screen (emeralds, or Numismatic Overhaul
   coins), every trade real; prices from supply and demand. Next in step 4: Drifters buying at the stall with money of
   their own (wages for town work), trade runs between towns, a player running a stall.
+- **The plaza of a founded town (0.22.23):** after the stall, its people build a well (water fetched in a bucket from
+  a lake and poured in), a notice board with the town's name, people, leader and latest news, and lamp posts at the
+  plaza's corners.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.
