@@ -2958,7 +2958,11 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     earlier runs found the job losing to other work, trips cut short, a farm's water hole tried, and fixed those). In
     the client: the well with its water and roof; the signs' text read back ("Welcome to / Copperhollow / est. day 1",
     "3 households / 4 people / leader: / Bob", "News: / Day 4: The / plaza has its / lamp posts").
-  - Seen, not done: the plaza keeps the trees on it (in a forest a birch hangs over the board); the chronicle had
-    "xXNovaXx finished its hut" seven times on one day (a far Drifter; another bug, to look at).
+  - Seen, not done: the plaza keeps the trees on it (in a forest a birch hangs over the board).
+  - Fixed after: the chronicle had "xXNovaXx finished its hut" seven times on one day (13 in the log, all in one catch-up
+    of a Drifter coming back after 4.8 days away). Catch-up's `furnish` runs every slice, and its "the hut is done" step
+    never checked that the hut was done already: each slice after the first set `hutBuilt` again, sent BUILT "hut" again
+    (chronicle and diary) and felled the trees round it again. Now only the first time (`CatchUp.furnish`, as
+    `BuildHutActivity.finished` already did). Checked by reading the log and code; `./gradlew build` passes, not re-run.
 - Next: step 4 continues (Drifters buying at the stall with money of their own, wages for town work, trade runs
   between towns, a player running a stall).

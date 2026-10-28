@@ -1034,8 +1034,9 @@ public final class CatchUp {
 			}
 		}
 
-		// Done only when it all stands (found in testing: a door and a bed made a hut with 55 blocks missing "finished").
-		if (!free(level, door) && hut.bed(level) != null && hut.missingBlocks(level) <= home.allowedGaps("hut")) {
+		// Done only when it all stands (found in testing: a door and a bed made a hut with 55 blocks missing "finished"), and
+		// only the first time: this runs every slice (found in testing: "finished its hut" 13 times in one catch-up).
+		if (!home.hutBuilt && !free(level, door) && hut.bed(level) != null && hut.missingBlocks(level) <= home.allowedGaps("hut")) {
 			home.hutBuilt = true;
 			PlayerPlacedBlocks.recordBuiltBox(level, hut.box());
 			home.builtRecorded = true;
