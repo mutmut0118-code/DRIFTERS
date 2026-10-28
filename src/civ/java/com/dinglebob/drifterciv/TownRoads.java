@@ -257,6 +257,23 @@ final class TownRoads {
 		}
 
 		@Override
+		@org.jetbrains.annotations.Nullable
+		public Arrest arrest(DrifterEntity guard) {
+			return Justice.arrest(this.town, guard);
+		}
+
+		@Override
+		public void arrested(DrifterEntity guard, java.util.UUID player, int paid, boolean refused) {
+			Justice.arrested(this.town, guard, player, paid, refused);
+		}
+
+		@Override
+		@org.jetbrains.annotations.Nullable
+		public String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+			return Justice.standing(this.town, player);
+		}
+
+		@Override
 		public boolean clearOfTrees(int x, int z) {
 			// (A founded town's plaza, once its stall is up: the plaza's next.)
 			return !this.town.spawned && this.town.stallBuilt && plaza(this.town).away(x, z) <= 0;

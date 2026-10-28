@@ -3040,4 +3040,27 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Tested headless (made-ready towns, seeds 777 and 779): three stood, 12 voted (8 to 1 to 3; a 4-4-4 tie kept the
     leader); on 779 the town voted its leader out twice (3-4-5, then 4-6-2), each new leader with its own laws (tax 1,
     then 3, then 3 and farms for citizens), and its people paid their tax into the till.
-- Next: step 5 part 2 (crime and punishment: witnesses, guards, fines, exile, bounties), then part 3 (unrest).
+- **Step 5, part 2: crime and punishment (0.22.27; prison later, the user).**
+  - `Justice` (addon): its people see a player steal (`SocialEvent` CAUGHT_STEALING, TOOK_VALUABLES via
+    `DrifterEvents.PLAYER_DEED`) or, under the farms law and not a citizen (a citizen: a player whose bed is in the town),
+    kill its animals or trample its crops: a fine (3 for a theft, 1 for the farms, +1 each offence after), the witness
+    shouting it ("THIEF!", "those animals are ours!"); the third offence: exile instead. A killing of one of its people
+    seen by another (`AFTER_DEATH`): a player exiled 7 days and a bounty posted (`DrifterApi.postBounty` ->
+    `Encounters.postBountyFor`: the bounty hunters come); one of its own thrown out of the group; an outsider Drifter its
+    people's enemy (trust -50 each). `Town.crimes` (`Criminal`: name, offences, fine, crime, exiledUntil; saved).
+  - Guards (`GuardGoal`, `TownWork.arrest/arrested`): its two boldest with a sword or axe; with none of them within 48
+    blocks of the culprit, any armed townsperson who sees them stands in (found: both off mining). It walks up, tells them
+    ("that's 3 emeralds for stealing. throw them over"), waits a minute for the emeralds (thrown: it picks them up);
+    paid: "fine paid. don't do it again", the money to the till (as a tax it owes); not paid, or they walk off: "then get
+    out of {town}!" and exile 3 days.
+  - Exile (`TownWork.standing` -> `Mode.toward`): in the town (its radius + 8), its people are territorial toward them
+    and drive them out (`HostileGoals.DriveOut`), not past the town; over after its days ("may come back").
+  - No small talk on duty (guard, stall, trade run: `Conversations.free`; found: a guard said "hey there" to the thief).
+  - `/drifterciv town` shows fines owed and exiles; `/drifterciv town crime theft|farms|murder` (debug).
+  - Tested in the client (made-ready towns): a theft, the witness "Tester took stuff from our chest!", a guard dropped
+    its logs, walked up, asked for 3 emeralds, and (not paid) exiled me ("then get out of Lawton!"); paid, "Tester paid
+    the fine: 3 emeralds" and the guard took them to the till; murder: exiled 7 days, a bounty posted; exiled, a
+    townsperson switched to driving me out (0.81).
+  - Seen: a made-ready town can have a Bandit among its people, who kills players on sight anyway (its disposition;
+    not new). Fines can only be paid in emeralds (not Numismatic coins yet).
+- Next: step 5 part 3 (unrest: unpopular leaders, revolts, coups, abdications).

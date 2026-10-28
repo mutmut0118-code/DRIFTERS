@@ -945,6 +945,81 @@
       "bandit": [
         "you got lucky on that one"
       ]
+    },
+    "crime.theft": {
+      "any": [
+        "THIEF!",
+        "hey! {player}'s stealing!",
+        "{player} took stuff from our chest!",
+        "stop, thief!",
+        "guards! {player}'s a thief"
+      ],
+      "helper": [
+        "{player}, that's not yours!"
+      ],
+      "bandit": [
+        "heh. bold"
+      ],
+      "pvp_sweat": [
+        "you're done, {player}"
+      ]
+    },
+    "crime.farms": {
+      "any": [
+        "hey, that's our farm!",
+        "{player}, those animals are ours!",
+        "keep off the fields!",
+        "outsiders don't touch the farms"
+      ]
+    },
+    "crime.murder": {
+      "any": [
+        "{player} killed {who}!!",
+        "MURDERER",
+        "{who}!! no!",
+        "{player} is a murderer!",
+        "get {player}!"
+      ],
+      "helper": [
+        "{who}... no",
+        "how could you, {player}"
+      ],
+      "hermit": [
+        "...{who}."
+      ]
+    },
+    "guard.demand": {
+      "any": [
+        "{player}, you owe {fine} emeralds for {crime}. pay up",
+        "that's {fine} emeralds for {crime}. throw them over",
+        "{crime}? {fine} emeralds, now",
+        "pay {fine} emeralds or leave"
+      ],
+      "pvp_sweat": [
+        "{fine} emeralds. or we do this the hard way"
+      ],
+      "helper": [
+        "sorry, rules are rules: {fine} emeralds for {crime}"
+      ],
+      "bandit": [
+        "{fine} emeralds. don't make me ask twice"
+      ]
+    },
+    "guard.paid": {
+      "any": [
+        "good. behave from now on",
+        "fine paid. don't do it again",
+        "ok, we're square",
+        "thank you. stay out of trouble"
+      ]
+    },
+    "guard.refused": {
+      "any": [
+        "then get out of {town}!",
+        "you're not welcome in {town} anymore",
+        "fine. leave and don't come back",
+        "that's it, you're exiled"
+      ]
     }
   }
 }

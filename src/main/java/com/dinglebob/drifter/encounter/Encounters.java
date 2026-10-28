@@ -719,6 +719,23 @@ public final class Encounters {
 		Drifter.LOGGER.info("[Drifter] {} put a price on {}'s head ({})", issuer, player.getGameProfile().getName(), reason);
 	}
 
+	/**
+	 * A price on their head for this (a town's law broken: step 5 of milestone 22): bounty hunters come for them in a day or
+	 * two, as for any bounty. False if there's one on them already.
+	 */
+	public static boolean postBountyFor(ServerPlayer player, String issuer, String reason) {
+		PlayerState state = state(player.getUUID());
+		if (state.bounty != null || !enabled(Kind.BOUNTY_HUNTERS)) {
+			return false;
+		}
+
+		long now = player.level().getGameTime();
+		state.bounty = Bounty.posted(issuer, reason, now, now + BOUNTY_DELAY_MIN + player.getRandom().nextInt((int)BOUNTY_DELAY_SPREAD));
+		changed();
+		Drifter.LOGGER.info("[Drifter] {} put a price on {}'s head ({})", issuer, player.getGameProfile().getName(), reason);
+		return true;
+	}
+
 	/** A price on their head now (debug: `/drifter encounter bounty`). */
 	public static void postBountyNow(ServerPlayer player) {
 		state(player.getUUID()).bounty = new Bounty("someone you crossed", "a debug command", player.level().getGameTime(), -1, null, 0);

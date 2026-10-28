@@ -89,6 +89,15 @@ public enum Mode {
 			return TOLERATING;
 		}
 
+		// Exiled from its town (step 5 of milestone 22: a law broken, the fine not paid, or a killing): in the town, it drives
+		// them out, as from its own base.
+		var town = drifter.getTownWork();
+		if (town != null && "exiled".equals(town.standing(drifter, player)) && player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center()))
+			<= town.radius() + 8 && drifter.level().getDifficulty() != Difficulty.PEACEFUL && com.dinglebob.drifter.DrifterConfig.playerAggression() > 0) {
+			r.wronged = true;
+			return TERRITORIAL;
+		}
+
 		// Being hit by them right now: it fights back (and runs if it's losing; the threat assessment decides that).
 		if (drifter.getLastHurtByMob() == player && drifter.tickCount - drifter.getLastHurtByMobTimestamp() < 20 * 5) {
 			return DEFENSIVE;

@@ -150,6 +150,25 @@ public final class Town {
 	public final java.util.Map<UUID, Integer> taxOwed = new java.util.HashMap<>();
 	public long taxDay = -1;
 
+	/** Someone who broke its law (step 5, part 2: {@link Justice}): their name, offences, the fine they owe, until when exiled. */
+	public static final class Criminal {
+		public final String name;
+		public int offences;
+		public int fine;
+		public String crime = "";
+		/** The day the exile ends (0: not exiled). */
+		public long exiledUntil;
+		/** When it was last caught (game time; not saved). */
+		long lastAt = Long.MIN_VALUE / 2;
+
+		Criminal(String name) {
+			this.name = name;
+		}
+	}
+
+	/** Players who broke its law, by id. */
+	public final java.util.Map<UUID, Criminal> crimes = new java.util.HashMap<>();
+
 	/** Its till: the first chest of its store, or null before it has one. */
 	@Nullable
 	public BlockPos till() {
@@ -252,6 +271,18 @@ public final class Town {
 		this.taxOwed.forEach((id, n) -> owes.putInt(id.toString(), n));
 		tag.put("TaxOwed", owes);
 		tag.putLong("TaxDay", this.taxDay);
+		ListTag crimes = new ListTag();
+		this.crimes.forEach((id, c) -> {
+			CompoundTag one = new CompoundTag();
+			one.putUUID("Id", id);
+			one.putString("Name", c.name);
+			one.putInt("Offences", c.offences);
+			one.putInt("Fine", c.fine);
+			one.putString("Crime", c.crime);
+			one.putLong("ExiledUntil", c.exiledUntil);
+			crimes.add(one);
+		});
+		tag.put("Crimes", crimes);
 		return tag;
 	}
 
@@ -330,6 +361,15 @@ public final class Town {
 		}
 
 		town.taxDay = tag.contains("TaxDay") ? tag.getLong("TaxDay") : -1;
+		for (Tag t : tag.getList("Crimes", Tag.TAG_COMPOUND)) {
+			CompoundTag one = (CompoundTag)t;
+			Criminal c = new Criminal(one.getString("Name"));
+			c.offences = one.getInt("Offences");
+			c.fine = one.getInt("Fine");
+			c.crime = one.getString("Crime");
+			c.exiledUntil = one.getLong("ExiledUntil");
+			town.crimes.put(one.getUUID("Id"), c);
+		}
 		return town;
 	}
 }

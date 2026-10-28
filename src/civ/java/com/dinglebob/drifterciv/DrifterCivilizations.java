@@ -63,6 +63,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Island.register();
 		Towns.register();
 		TownFounding.register();
+		Justice.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -88,6 +89,22 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: the player running it did this in the nearest town, seen by the nearest of its people (theft, farms, murder).
+				.then(Commands.literal("crime").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "murder"), builder))
+						.executes(ctx -> {
+							var player = ctx.getSource().getPlayerOrException();
+							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), player.blockPosition());
+							String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
+							if (town == null || !Justice.debugCrime(ctx.getSource().getServer(), town, player, kind)) {
+								ctx.getSource().sendFailure(Component.literal("No town (or none of its people) near you, or not a crime: theft, farms, murder"));
+								return 0;
+							}
+
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + kind + " in " + town.name + " by " + player.getGameProfile().getName()), true);
+							return 1;
+						})))
 				// Debug: the nearest town holds its election now (those standing chosen, the vote at once).
 				.then(Commands.literal("elect").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
@@ -293,6 +310,17 @@ public final class DrifterCivilizations implements ModInitializer {
 				.map(entry -> entry.getKey() + " " + entry.getValue()).toList());
 			source.sendSuccess(() -> Component.literal("  Leader: " + leaderName + " (since day " + town.leaderSince + "); laws: " + Politics.lawsLong(town)
 				+ "; next election day " + town.nextElection + standing + last), false);
+			List<String> wanted = new java.util.ArrayList<>();
+			town.crimes.values().forEach(c -> {
+				if (c.exiledUntil > 0) {
+					wanted.add(c.name + " exiled till day " + c.exiledUntil);
+				} else if (c.fine > 0) {
+					wanted.add(c.name + " owes a fine of " + c.fine + " (" + c.crime + ")");
+				}
+			});
+			if (!wanted.isEmpty()) {
+				source.sendSuccess(() -> Component.literal("  Law: " + String.join("; ", wanted)), false);
+			}
 		}
 		// A town founded by its people: who has a plot, whose house is up.
 		var group = town.spawned || town.group == null ? null : DrifterApi.groupById(town.group);

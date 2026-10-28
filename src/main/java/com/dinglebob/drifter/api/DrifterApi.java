@@ -707,6 +707,11 @@ public final class DrifterApi {
 		return com.dinglebob.drifter.building.plan.HousePlans.STALL;
 	}
 
+	/** A price on this player's head, from {@code issuer} for {@code reason} (bounty hunters come); false if there is one. */
+	public static boolean postBounty(net.minecraft.server.level.ServerPlayer player, String issuer, String reason) {
+		return com.dinglebob.drifter.encounter.Encounters.postBountyFor(player, issuer, reason);
+	}
+
 	/** It goes on this trade run to another town (step 4), or (null) it's off it. */
 	public static void setTradeRun(DrifterEntity drifter, @Nullable TradeRun run) {
 		drifter.setTradeRun(run);
