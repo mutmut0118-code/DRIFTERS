@@ -221,6 +221,12 @@ final class TownRoads {
 		}
 
 		@Override
+		public boolean clearOfTrees(int x, int z) {
+			// (A founded town's plaza, once its stall is up: the plaza's next.)
+			return !this.town.spawned && this.town.stallBuilt && plaza(this.town).away(x, z) <= 0;
+		}
+
+		@Override
 		public List<BlockPos> water(DrifterEntity drifter) {
 			return drifter.getServer() == null ? List.of() : Plaza.water(drifter.getServer(), this.town, drifter);
 		}

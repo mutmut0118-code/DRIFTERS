@@ -40,6 +40,39 @@ final class Plaza {
 	private static final int LAMPS_AT = TownRoads.PLAZA - 4;
 	/** How far round a spot it looks for ground that suits. */
 	private static final int LOOK = 4;
+	/** Whose turn it is to fetch the well's water, since when; a turn lasts this long (not saved). */
+	private record Turn(UUID carrier, long since) {
+	}
+
+	private static final java.util.Map<UUID, Turn> turns = new java.util.HashMap<>();
+	private static final long TURN = 20L * 60 * 3;
+
+	/** How far above or below the plaza's middle a piece may stand. */
+	private static final int HEIGHT = 5;
+	/** The longest the plaza waits for its trees to come down before the well goes up anyway (a tree no one can get at). */
+	private static final long CLEARING_AT_MOST = 24000L;
+	/** When each town's plaza started waiting for its trees (not saved: it waits again after a restart, a day at most). */
+	private static final java.util.Map<UUID, Long> clearing = new java.util.HashMap<>();
+
+	/** A tree's log still standing on the plaza (round the plaza's height). */
+	private static boolean treesLeft(MinecraftServer server, Town town) {
+		ServerLevel level = server.overworld();
+		TownRoads.Rect plaza = TownRoads.plaza(town);
+		int y = town.center.getY();
+		for (int x = plaza.x0(); x <= plaza.x1(); x++) {
+			for (int z = plaza.z0(); z <= plaza.z1(); z++) {
+				for (int dy = -4; dy <= 24; dy++) {
+					BlockPos pos = new BlockPos(x, y + dy, z);
+					if (level.isLoaded(pos) && level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS)
+						&& level.getBlockState(pos.below()).is(net.minecraft.tags.BlockTags.DIRT)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
 
 	/** The plaza's next piece, or keeps them building the one under way. True if anything changed. */
 	static boolean build(MinecraftServer server, Town town, DrifterGroups.Group group) {
@@ -83,6 +116,15 @@ final class Plaza {
 			var build = member == null ? null : DrifterApi.townBuildOf(member);
 			if (build != null && build.label.equals(LABEL)) {
 				DrifterApi.endTownBuild(member);
+			}
+		}
+
+		// Its trees down first (its people fell them: the town work's clearOfTrees), a day at most.
+		if (town.plaza.isEmpty() && treesLeft(server, town)) {
+			long now = server.overworld().getGameTime();
+			long since = clearing.computeIfAbsent(town.id, id -> now);
+			if (now - since < CLEARING_AT_MOST) {
+				return false;
 			}
 		}
 
@@ -191,7 +233,8 @@ final class Plaza {
 					}
 
 					BlockPos origin = finder.apply(new BlockPos(x0 + dx, 0, z0 + dz), rotation);
-					if (origin != null) {
+					// (On the plaza's ground, not down a hole in it: found in testing, a lamp post at the bottom of a ravine.)
+					if (origin != null && Math.abs(origin.getY() - town.center.getY()) <= HEIGHT && untouched(server, origin, sx, sz)) {
 						return new Town.Plot(origin, sx, sz, planId, rotation, front, null);
 					}
 				}
@@ -199,6 +242,25 @@ final class Plaza {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Nothing anyone made in its space, from the ground under it to over its roof (found in testing: a well built round the
+	 * leader's old furnace, its floor left with a hole the water ran out of): natural ground, plants and trees only.
+	 */
+	private static boolean untouched(MinecraftServer server, BlockPos origin, int sx, int sz) {
+		ServerLevel level = server.overworld();
+		for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-1, -1, -1), origin.offset(sx, 5, sz))) {
+			var state = level.getBlockState(pos);
+			if (!(state.isAir() || state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LEAVES) || state.is(net.minecraft.tags.BlockTags.LOGS)
+				|| state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.tags.BlockTags.SAND) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+				|| state.is(net.minecraft.world.level.block.Blocks.GRAVEL) || state.is(net.minecraft.world.level.block.Blocks.DIRT_PATH)
+				|| state.is(net.minecraft.world.level.block.Blocks.SNOW_BLOCK) || state.is(net.minecraft.tags.BlockTags.FLOWERS))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/** Over another piece of the plaza (with a block between), or off the plaza. */
@@ -276,17 +338,41 @@ final class Plaza {
 			return List.of();
 		}
 
-		// The one with a bucket nearest the well.
-		DrifterEntity carrier = null;
+		// Those with a bucket, the nearest the well first; each has a turn of a few minutes, then the next (found in testing: the
+		// nearest one couldn't get to the well, again and again, and nobody else was asked).
+		List<DrifterEntity> buckets = new ArrayList<>();
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
-			if (member != null && member.level() == level && member.getInventory().count(stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET)) > 0
-				&& (carrier == null || member.distanceToSqr(well.origin.getCenter()) < carrier.distanceToSqr(well.origin.getCenter()))) {
-				carrier = member;
+			if (member != null && member.level() == level && member.getInventory().count(stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET)) > 0) {
+				buckets.add(member);
 			}
 		}
 
-		return carrier == drifter ? cells.stream().filter(cell -> !level.getFluidState(cell).isSource()).toList() : List.of();
+		if (buckets.isEmpty()) {
+			return List.of();
+		}
+
+		buckets.sort(java.util.Comparator.comparingDouble(member -> member.distanceToSqr(well.origin.getCenter())));
+		long now = level.getGameTime();
+		Turn turn = turns.get(town.id);
+		int at = turn == null ? -1 : buckets.stream().map(DrifterEntity::getUUID).toList().indexOf(turn.carrier());
+		// (Not while it's at it: found in testing, a turn ran out halfway back from the lake. Water in its bucket for its own
+		// farm doesn't count.)
+		if (at >= 0) {
+			var goal = buckets.get(at).getDrifterBrain().currentGoal();
+			if (goal != null && goal.id().equals("town_water")) {
+				turn = new Turn(turn.carrier(), now);
+				turns.put(town.id, turn);
+			}
+		}
+
+		if (at < 0 || now - turn.since() > TURN) {
+			DrifterEntity next = buckets.get(at < 0 ? 0 : (at + 1) % buckets.size());
+			turn = new Turn(next.getUUID(), now);
+			turns.put(town.id, turn);
+		}
+
+		return turn.carrier().equals(drifter.getUUID()) ? cells.stream().filter(cell -> !level.getFluidState(cell).isSource()).toList() : List.of();
 	}
 
 	// ---------------------------------------------------------------------------------------------

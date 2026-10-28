@@ -12,7 +12,6 @@ import com.dinglebob.drifter.executor.task.NavigateTask;
 import com.dinglebob.drifter.executor.task.SelectItemTask;
 import com.dinglebob.drifter.executor.task.SequenceTask;
 import com.dinglebob.drifter.executor.task.UseItemTask;
-import com.dinglebob.drifter.hands.Reach;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Items;
@@ -33,6 +32,10 @@ public class PourWaterActivity extends Activity {
 	/** Water it couldn't fill its bucket at (it tries other water), and the water it's filling at now. */
 	private final Set<BlockPos> dry = new HashSet<>();
 	private BlockPos filling;
+	/** Where it stood when a pour missed (it pours from somewhere else). */
+	private final Set<BlockPos> missedFrom = new HashSet<>();
+	/** Close enough to pour (eye to the cell's floor). */
+	private static final double POUR_REACH = 4.0;
 
 	public PourWaterActivity(DrifterEntity drifter, List<BlockPos> cells, String what) {
 		super(drifter);
@@ -55,6 +58,10 @@ public class PourWaterActivity extends Activity {
 		if (status == Status.FAILURE && step.describe().equals("fill the bucket") && this.filling != null) {
 			this.dry.add(this.filling);
 		}
+
+		if (status == Status.FAILURE && step.describe().equals("pour the water")) {
+			this.missedFrom.add(this.drifter.blockPosition());
+		}
 	}
 
 	@Override
@@ -76,16 +83,21 @@ public class PourWaterActivity extends Activity {
 			return this.fill(level);
 		}
 
-		// Over to it, then pour onto the floor of the cell (the water lands in the cell).
+		// Over to it (close, somewhere it hasn't missed from), then pour onto the floor of the cell: the bucket pours through
+		// water already there, and over a rim it may only see a sliver of the floor past (found in testing: "can't get to the
+		// town's well" for its second corner, the first's water and the rim in the way of a strict look).
 		BlockPos floor = cell.below();
-		if (!Reach.canReach(this.drifter, floor)) {
-			BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, floor, Set.copyOf(this.cells));
-			if (this.walks++ > 4) {
+		Vec3 aim = Vec3.atBottomCenterOf(cell).add(0.0, 0.05, 0.0);
+		if (this.drifter.getEyePosition().distanceTo(aim) > POUR_REACH || this.missedFrom.contains(this.drifter.blockPosition())) {
+			Set<BlockPos> excluded = new HashSet<>(this.cells);
+			excluded.addAll(this.missedFrom);
+			BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, floor, excluded);
+			if (this.walks++ > 6) {
 				return this.fail("can't get to " + this.what);
 			}
 
 			return this.begin(spot != null ? new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk over to " + this.what, NavigateTask.Pace.STROLL)
-				: new NavigateTask(this.drifter, Vec3.atCenterOf(cell), 2.5, "walk over to " + this.what));
+				: new NavigateTask(this.drifter, Vec3.atCenterOf(cell), 2.0, "walk over to " + this.what));
 		}
 
 		this.think("pouring water into " + this.what);

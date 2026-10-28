@@ -1460,17 +1460,19 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
-## A founded town's plaza: well, notice board, lamp posts (new, 0.22.23)
+## A founded town's plaza: trees cleared, well, notice board, lamp posts (new, 0.22.23 and 0.22.24)
 
 For a town its Drifters founded themselves (not `/drifterciv town spawn`, which has its own plaza already). To skip the
 days it takes them to build the store and stall, stand in the town and run `/drifterciv town plaza` (debug: the store
 and stall count as up). `/drifterciv town` shows how the plaza is coming along ("Plaza: well built at ..., with water").
+- [ ] First its people (those with an axe) chop down the trees standing on the plaza, whole trees, so the leaves
+      go too (a day at most before the well goes up anyway).
 - [ ] Once the market stall is up (and the leader has moved into its town house and taken its old hut down), the
       people build a well near the plaza's middle: a cobblestone basin, fence posts, a cobblestone slab roof. Not over
       anyone's chests or farm.
 - [ ] Then one of them with a bucket fetches water from a lake or river and pours it in, twice, corner to corner: the
       well has a 2x2 of water that never runs out (fill a bucket from it: it stays full).
-- [ ] Next a notice board beside the well, facing it: three signs with the town's name, the day it was founded, its
+- [ ] Next a notice board beside the well, facing it: three signs, left to right, with the town's name, the day it was founded, its
       households, people and leader, and its latest news. It changes as the days go by.
 - [ ] Then a lamp post (a fence post with a torch) at each corner of the plaza.
 - [ ] The chronicle (`/drifterciv chronicle`) has each step: "began building a well on the plaza", "The well of X has

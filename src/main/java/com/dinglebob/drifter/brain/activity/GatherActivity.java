@@ -58,6 +58,15 @@ public class GatherActivity extends Activity {
 	private final Set<BlockPos> badSpots = new HashSet<>();
 	/** Blocks it walked over to have a look at (once each) before giving up on them. */
 	private final Set<BlockPos> approached = new HashSet<>();
+	/** Only from here (clearing a town's plaza of its trees), or anywhere (null); with nothing left there, it's done. */
+	@Nullable
+	private Predicate<BlockPos> where;
+
+	/** It takes them only from where this holds (a town's plaza), and is done when there are none left there it knows. */
+	public GatherActivity within(Predicate<BlockPos> where) {
+		this.where = where;
+		return this;
+	}
 
 	public GatherActivity(DrifterEntity drifter, String label, Predicate<BlockState> blocks, Predicate<ItemStack> items, int wanted, boolean digDown,
 		boolean lowestFirst) {
@@ -159,9 +168,14 @@ public class GatherActivity extends Activity {
 				&& !KnownBlocks.notWorthDiving(level, pos, level.getBlockState(pos))
 				// Never a block holding back lava it has seen (found in testing: gathering stone by a lava pool let it in).
 				&& !this.touchesKnownLava(level, pos)
-				&& (!level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) || trees.check(pos)))
+				&& (!level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) || trees.check(pos))
+				&& (this.where == null || this.where.test(pos)))
 			.limit(MAX_CANDIDATES)
 			.toList();
+		// (Clearing a place: none left there it knows of, and its tree finished: done, rather than off to look elsewhere.)
+		if (this.where != null && candidates.isEmpty() && restOfTree.isEmpty() && (this.pillarBase == null || this.drifter.getBlockY() <= this.pillarBase.getY())) {
+			return Status.SUCCESS;
+		}
 
 		if (this.walkedTo != null) {
 			BlockPos arrivedAt = this.walkedTo;

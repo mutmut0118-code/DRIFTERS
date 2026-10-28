@@ -31,4 +31,12 @@ public interface TownWork {
 	default List<BlockPos> water(DrifterEntity drifter) {
 		return List.of();
 	}
+
+	/**
+	 * This column is ground the town wants clear of trees (its plaza): its people fell the ones on it they know of, whole,
+	 * with an axe. False everywhere by default.
+	 */
+	default boolean clearOfTrees(int x, int z) {
+		return false;
+	}
 }

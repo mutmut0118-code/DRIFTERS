@@ -2958,11 +2958,28 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     earlier runs found the job losing to other work, trips cut short, a farm's water hole tried, and fixed those). In
     the client: the well with its water and roof; the signs' text read back ("Welcome to / Copperhollow / est. day 1",
     "3 households / 4 people / leader: / Bob", "News: / Day 4: The / plaza has its / lamp posts").
-  - Seen, not done: the plaza keeps the trees on it (in a forest a birch hangs over the board).
+  - Seen, done next (0.22.24): the plaza kept the trees on it (in a forest a birch hung over the board).
   - Fixed after: the chronicle had "xXNovaXx finished its hut" seven times on one day (13 in the log, all in one catch-up
     of a Drifter coming back after 4.8 days away). Catch-up's `furnish` runs every slice, and its "the hut is done" step
     never checked that the hut was done already: each slice after the first set `hutBuilt` again, sent BUILT "hut" again
     (chronicle and diary) and felled the trees round it again. Now only the first time (`CatchUp.furnish`, as
     `BuildHutActivity.finished` already did). Checked by reading the log and code; `./gradlew build` passes, not re-run.
+- **The plaza's trees cleared first (0.22.24; the user: "yeah clear the trees on the plaza too").**
+  - `TownWork.clearOfTrees(x, z)` (a founded town's plaza once its stall is up) and the goal `ClearTrees` (0.6, an axe,
+    within 40 blocks of the middle, a log it knows on the plaza that's a tree's): `GatherActivity` for logs `within` the
+    plaza (a new filter: only there, and done when there are none it knows, rather than off to look elsewhere), whole
+    trees, top included, so the leaves go.
+  - The well waits for the plaza's trees (trunks on its ground) to come down, a game day at most.
+  - Plaza pieces only on ground nobody built on (`Plaza.untouched`: natural ground, plants, trees from under it to over
+    its roof: found in testing, a well round the leader's old furnace with a hole in its floor), and within 5 of the
+    plaza's height (a lamp post had gone down a ravine).
+  - The well's water: whose turn it is rotates every 3 minutes among those with a bucket, nearest first (the nearest
+    couldn't get to it again and again), not while one is at it; it pours from close by over the rim (4 blocks, eye to
+    the basin's floor) and from somewhere else if a pour misses (the strict look had it "can't get to the town's well"
+    for the second corner).
+  - Board signs left to right as you read them (they were the wrong way round).
+  - Tested headless, 12 runs of 3 game days on seed 777 while fixing: last run, no tree left on the plaza, the well,
+    board and all four lamp posts up, the water in in two trips; in the client, the plaza clear, the board readable,
+    the lit well at night.
 - Next: step 4 continues (Drifters buying at the stall with money of their own, wages for town work, trade runs
   between towns, a player running a stall).

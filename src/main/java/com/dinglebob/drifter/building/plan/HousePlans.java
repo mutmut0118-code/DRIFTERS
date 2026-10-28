@@ -209,8 +209,10 @@ public final class HousePlans {
 	 * turned: {@link #BOARD_SIGNS}) that the town keeps up to date, an oak slab over it.
 	 */
 	public static final String BOARD = "town:board";
-	public static final List<net.minecraft.core.BlockPos> BOARD_SIGNS = List.of(new net.minecraft.core.BlockPos(0, 2, 0), new net.minecraft.core.BlockPos(1, 2, 0),
-		new net.minecraft.core.BlockPos(2, 2, 0));
+	// (Left to right as you read them, facing the board: its front looks north, so from x 2 down to 0. Found in the client: the
+	// news first and "Welcome to" last.)
+	public static final List<net.minecraft.core.BlockPos> BOARD_SIGNS = List.of(new net.minecraft.core.BlockPos(2, 2, 0), new net.minecraft.core.BlockPos(1, 2, 0),
+		new net.minecraft.core.BlockPos(0, 2, 0));
 	private static final HousePlan BOARD_PLAN = board();
 
 	private static HousePlan board() {

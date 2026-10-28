@@ -1519,6 +1519,77 @@ public final class Goals {
 	}
 
 	/** The ground round its finished town house eased into the land: by day, a few blocks a visit, till it's done. */
+	/**
+	 * Trees on ground its town wants clear (its plaza; milestone 22, the user, 2026-10-28: "clear the trees on the plaza
+	 * too"): it fells the ones it knows of there, whole (top included, so the leaves go), with an axe.
+	 */
+	public static final class ClearTrees extends Goal {
+		private long checkAfter;
+		private boolean work;
+
+		@Override
+		public String id() {
+			return "clear_trees";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "clear the trees off the plaza";
+		}
+
+		private static boolean onIt(DrifterEntity drifter, net.minecraft.core.BlockPos pos) {
+			var town = drifter.getTownWork();
+			return town != null && town.clearOfTrees(pos.getX(), pos.getZ());
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			var town = drifter.getTownWork();
+			if (town == null || Schedule.isNight(drifter) || context.threat().urgent() || drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.AXES)) == 0
+				|| drifter.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center())) > 40.0) {
+				return 0.0;
+			}
+
+			long now = drifter.level().getGameTime();
+			if (now >= this.checkAfter) {
+				this.checkAfter = now + 20 * 30;
+				net.minecraft.world.level.Level level = drifter.level();
+				com.dinglebob.drifter.brain.TreeLogs trees = new com.dinglebob.drifter.brain.TreeLogs(level);
+				this.work = KnownBlocks.find(drifter, com.dinglebob.drifter.brain.activity.GatherActivity.SEARCH_RADIUS, state -> state.is(net.minecraft.tags.BlockTags.LOGS), 256)
+					.stream().anyMatch(pos -> onIt(drifter, pos) && KnownBlocks.mayTake(level, pos) && trees.check(pos));
+			}
+
+			// (The town's next build waits on it, as it waits on a build its mates are at: found in testing, at 0.5 the farm and
+			// the torches always came first and three trees were still up days later.)
+			return this.work ? 0.6 : 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return 1.0;
+		}
+
+		@Override
+		public double risk(Context context) {
+			return lateInTheDay(context, 0.3);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 20;
+		}
+
+		@Override
+		public Activity start(Context context) {
+			DrifterEntity drifter = context.drifter();
+			this.checkAfter = 0;
+			int logs = drifter.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.LOGS));
+			return new com.dinglebob.drifter.brain.activity.GatherActivity(drifter, "the plaza's trees", state -> state.is(net.minecraft.tags.BlockTags.LOGS),
+				stack -> stack.is(net.minecraft.tags.ItemTags.LOGS), logs + 24, false, true).within(pos -> onIt(drifter, pos));
+		}
+	}
+
 	/** A town's well wants water (milestone 22; the town says who): it fetches it in its bucket and pours it in. */
 	public static final class TownWater extends Goal {
 		private long failedAt = Long.MIN_VALUE / 2;
@@ -2660,7 +2731,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
