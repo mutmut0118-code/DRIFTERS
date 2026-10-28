@@ -161,10 +161,11 @@
       "leads": ["end", "gear", "plans"],
       "about": "the dragon",
       "turns": [
-        {"by": "a", "lines": ["think we could beat the dragon", "the dragon is the end goal", "you ever fight the ender dragon", "need more beds for the dragon lol"]},
-        {"by": "b", "lines": ["lets do it", "not ready", "beds explode in the end", "need a lot of arrows", "someday"]},
-        {"by": "a", "chance": 0.5, "if": ["friends"], "lines": ["together then", "deal", "we'll go"]},
-        {"by": "a", "chance": 0.5, "if": ["!friends"], "lines": ["maybe", "someday", "ok"]}
+        {"by": "a", "lines": ["think we could beat the dragon", "the dragon is the end goal", "wanna fight the ender dragon someday", "need more beds for the dragon lol"]},
+        {"by": "b", "chance": 0.5, "lines": ["lets do it", "together, someday", "ill bring the arrows", "we could"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["not ready", "beds explode in the end", "too scary", "someday maybe"]},
+        {"by": "a", "chance": 0.7, "if": ["t:agree"], "lines": ["together then", "deal", "we'll go"]},
+        {"by": "a", "chance": 0.5, "if": ["!t:agree"], "lines": ["fair", "someday", "ok"]}
       ]
     },
     {

@@ -73,16 +73,18 @@ public final class Conversations {
 	private static final double SEGUE_CHANGE = 0.85;
 	/** How much more a topic a topic names in its "next" is picked than one it only shares a tag with. */
 	private static final double NEXT_WEIGHT = 3.0;
+	/** How often a topic goes straight on to one it names in its "next" (a story's part two), when one suits them. */
+	private static final double NEXT_FIRST = 0.85;
 	/** Trust that makes two best friends (the longest talks). */
 	private static final double BEST_FRIEND = 80.0;
 	/**
-	 * How often a talk opens on something real (what one of them did or has, the weather, a mood: a topic that needs it)
+	 * How often a talk opens on something real (what one of them did or has, a mood, rain or a storm)
 	 * when there is one, over the everyday topics (best ore, fav food...), which mostly come up as a talk wanders on: with
 	 * hundreds of everyday topics, weight alone would bury the news.
 	 */
 	private static final double GROUNDED_SHARE = 0.7;
-	/** Needs that are only who the two are to each other (not something to talk about). */
-	private static final Set<String> NOT_GROUNDS = Set.of("strangers", "acquainted", "friends", "rivals", "groupmates");
+	/** Weather worth talking about (time of day and a clear sky aren't news). */
+	private static final Set<String> NEWS_WEATHER = Set.of("rain", "thunder");
 
 	/** A conversation going on. */
 	public static final class Talk {
@@ -290,10 +292,14 @@ public final class Conversations {
 		return talk;
 	}
 
-	/** Its facts, talking with the other: what it knows, and what players told it that it could pass on. */
+	/**
+	 * Its facts, talking with the other: what it knows, what players told it that it could pass on, and its kind of player
+	 * ({@code voice_miner}: a miner has topics of its own).
+	 */
 	private static Facts facts(DrifterEntity me, DrifterEntity other) {
 		Facts facts = Facts.of(me, other);
 		Heard.addDrifterFacts(me, other, facts);
+		facts.flags.add("voice_" + me.getPersonality().archetype().name().toLowerCase(java.util.Locale.ROOT));
 		return facts;
 	}
 
@@ -357,7 +363,11 @@ public final class Conversations {
 		effects(talk, now);
 		talk.interest -= talk.topic.web().cost();
 		for (int tries = 0; tries < 3 && talk.interest >= MIN_INTEREST && talk.done.size() < MOST_TOPICS && now - talk.startedAt < MOST_TICKS; tries++) {
-			Choice next = talk.a.getRandom().nextDouble() < CHANGE_SUBJECT ? null : linked(talk);
+			Choice next = tries == 0 && talk.a.getRandom().nextDouble() < NEXT_FIRST ? continued(talk) : null;
+			if (next == null && talk.a.getRandom().nextDouble() >= CHANGE_SUBJECT) {
+				next = linked(talk);
+			}
+
 			if (next == null) {
 				next = anyTopic(talk);
 			}
@@ -405,6 +415,35 @@ public final class Conversations {
 		talk.bFacts = facts(talk.b, talk.a);
 		talk.world = world(talk.a, talk.b, talk.marks);
 		talk.done.add(topic.id());
+	}
+
+	/**
+	 * Straight on to a topic this one names in its "next" (a story's part two), by the same one, with no "speaking of
+	 * which" (the other brings it up only if it isn't a follow-up and only the other can). Null if none suits them.
+	 */
+	@Nullable
+	private static Choice continued(Talk talk) {
+		List<String> next = new ArrayList<>(talk.topic.web().next());
+		java.util.Collections.shuffle(next, new java.util.Random(talk.a.getRandom().nextLong()));
+		Facts ab = facts(talk.a, talk.b);
+		Facts ba = facts(talk.b, talk.a);
+		Set<String> world = world(talk.a, talk.b, talk.marks);
+		for (String id : next) {
+			Topics.Topic topic = Topics.byId(id);
+			if (topic == null || talk.done.contains(id) || topic.web().opener()) {
+				continue;
+			}
+
+			if (Topics.holds(topic.needs(), ab, ba, world)) {
+				return new Choice(topic, false, null);
+			}
+
+			if (!topic.web().followUp() && Topics.holds(topic.needs(), ba, ab, world)) {
+				return new Choice(topic, true, null);
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -537,10 +576,13 @@ public final class Conversations {
 		return weighted(a, real ? grounded : everyday);
 	}
 
-	/** It needs something real to talk about (more than who the two are to each other). */
+	/**
+	 * It needs something real to talk about: something about one of them (not what kind of player it is), or rain or a storm
+	 * (not who the two are to each other, nor the time of day).
+	 */
 	private static boolean grounded(Topics.Topic topic) {
 		for (String need : topic.needs()) {
-			if (!need.startsWith("!") && !NOT_GROUNDS.contains(need)) {
+			if (NEWS_WEATHER.contains(need) || (need.startsWith("a:") || need.startsWith("b:")) && !need.contains(":voice_")) {
 				return true;
 			}
 		}
@@ -674,10 +716,13 @@ public final class Conversations {
 
 	/** A topic done: what it did (news passed on, closer or further apart: a disagreement, further). */
 	private static void effects(Talk talk, long now) {
-		if (talk.marks.remove("disagree")) {
+		// (Both cleared: a topic's marks are its own, so the next topic's "if"s start fresh.)
+		boolean disagreed = talk.marks.remove("disagree");
+		boolean agreed = talk.marks.remove("agree");
+		if (disagreed) {
 			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, -1.5);
 			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, -1.5);
-		} else if (talk.marks.remove("agree")) {
+		} else if (agreed) {
 			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, 1.0);
 			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, 1.0);
 		}

@@ -161,8 +161,10 @@
       "needs": ["!rivals"],
       "turns": [
         {"by": "a", "lines": ["we should build something together", "want to team up some time", "two people mine twice as fast", "we'd make a good team"]},
-        {"by": "b", "lines": ["sure", "maybe", "sounds fun", "i work alone", "lets do it"]},
-        {"by": "a", "chance": 0.5, "lines": ["cool", "fair", "deal", "ok"]}
+        {"by": "b", "chance": 0.6, "lines": ["sure", "sounds fun", "lets do it", "yeah why not"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["maybe", "i work alone", "not right now", "eh"]},
+        {"by": "a", "chance": 0.7, "if": ["t:agree"], "lines": ["cool", "deal", "nice"]},
+        {"by": "a", "chance": 0.5, "if": ["!t:agree"], "lines": ["fair", "ok", "offer stands"]}
       ]
     },
     {

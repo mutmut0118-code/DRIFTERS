@@ -3199,3 +3199,22 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
   - Next batches (ideas): seasons of a Drifter's life (first house, first diamond...), each voice's own topics
     (builder, miner, hermit, speedrunner...), more mood and bond topics, follow-ups that continue a topic ("next"),
     town life topics that read the addon's flags, player stories. Then the house plans.
+- **Topic batches, second round (0.22.28-side.4, side session).** 374 topics now (124 new), 67 tags, about 3,760 lines.
+  - `topics_voices.json` (28): each kind of player's own topics, needing `a:voice_<kind>` (miner, builder, homebody,
+    speedrunner, nomad, hoarder, hermit, pvp_sweat, newbie, casual, helper, bandit) and a few pairs (builder with
+    miner, homebody with nomad, anyone teaching a newbie). Weight 3, so a Drifter's kind shows. The flag is added in
+    `Conversations.facts` (not Facts.java, which the other session owns).
+  - `topics_stories.json` (24): twelve two-part stories. Part one names part two in `next`; `Conversations.continued`
+    goes straight on to it 85% of the time (`NEXT_FIRST`), told by the same one, with no segue. Part two is a
+    `follow_up` tagged only `story_part`, so nothing else leads to it.
+  - `topics_friendship.json` (23): compliments, teasing, advice, asking for help, apologies, trust, first meetings,
+    rivals' truces, groups and towns (base flags only). `topics_daily.json` (20): the day as it goes.
+    `topics_opinions.json` (17): favourites and hot takes. `topics_memories.json` (12): firsts, regrets, close shaves.
+  - Fixed: a reply that depends on the answer (help? team up? the dragon?) used to depend on the bond, giving "sure" /
+    "maybe later then". Now the answer turn is split into a yes turn (marks agree) and a no turn, and the reaction
+    reads the mark. Hot takes work the same way ("endermen are the best mob" / "hard disagree" / "fight me"). A
+    topic's agree and disagree marks are both cleared when it ends (one could leak into the next topic).
+  - "Something real first" (from round one) now counts only things about the two (a:/b: needs, not their kind) and
+    rain or storms, not the time of day, so the new day topics don't crowd out news.
+  - Tested: dev client (miner + newbie in a sealed box): hot take branch right, the miner brought up its own topic,
+    ten topics and a goodbye; a story's part two came straight after part one. Headless smoke: six topics, no errors.

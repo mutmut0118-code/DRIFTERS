@@ -185,10 +185,11 @@
       "leads": ["friends", "plans", "mining"],
       "about": "mining",
       "turns": [
-        {"by": "a", "lines": ["mining alone gets lonely", "you ever mine with someone else", "mining is better with company", "i like mining alone honestly"]},
-        {"by": "b", "lines": ["we should go together", "same", "i like the quiet", "more people more loot", "they steal the ore lol"]},
-        {"by": "a", "chance": 0.6, "if": ["friends"], "lines": ["lets go sometime", "deal", "next time then"]},
-        {"by": "a", "chance": 0.5, "if": ["!friends"], "lines": ["fair", "maybe", "true"]}
+        {"by": "a", "lines": ["mining alone gets lonely", "you ever mine with someone else", "mining is better with company", "wanna mine together sometime"]},
+        {"by": "b", "chance": 0.6, "lines": ["we should go together", "more people more loot", "sure, sometime", "id be down"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["i like the quiet", "they steal the ore lol", "i work alone", "nah"]},
+        {"by": "a", "chance": 0.7, "if": ["t:agree"], "lines": ["lets go sometime", "deal", "next time then"]},
+        {"by": "a", "chance": 0.5, "if": ["!t:agree"], "lines": ["fair", "true", "lol ok"]}
       ]
     },
     {

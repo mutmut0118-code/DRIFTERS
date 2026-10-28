@@ -1,0 +1,218 @@
+{
+  "_comment": "Topics batch: hot takes and favourites, the ones that start arguments. A favourite question: b answers, then a sometimes disagrees ('disagree' marks the talk and leads to argument topics). A hot take: b agrees or not (each marks the talk), and a's reaction follows. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "hot_take_mobs",
+      "tags": ["mobs", "argument"],
+      "leads": ["mobs", "argument"],
+      "about": "mobs",
+      "turns": [
+        {"by": "a", "lines": ["hot take: zombies are the cutest mob", "creepers are just misunderstood", "phantoms are actually fine", "endermen are the best mob"]},
+        {"by": "b", "chance": 0.55, "lines": ["true", "agreed", "facts", "honestly yeah", "finally someone said it"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["nah", "absolutely not", "you're wrong", "lol what", "hard disagree"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["t:disagree"], "lines": ["fight me", "i stand by it", "think about it", "you'll see", "whatever"]},
+        {"by": "a", "chance": 0.6, "if": ["t:agree"], "lines": ["see", "thank you", "lol right", "glad someone gets it"]}
+      ]
+    },
+    {
+      "id": "hot_take_food",
+      "tags": ["food", "argument"],
+      "leads": ["food", "argument"],
+      "about": "food",
+      "turns": [
+        {"by": "a", "lines": ["rotten flesh isnt that bad", "beetroot soup is the best food", "cake is overrated", "suspicious stew is good actually"]},
+        {"by": "b", "chance": 0.55, "lines": ["true actually", "maybe", "fair", "i'll try it"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["gross", "no", "never", "ew"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["t:disagree"], "lines": ["try it", "your loss", "i'm right"]},
+        {"by": "a", "chance": 0.6, "if": ["t:agree"], "lines": ["see", "finally someone gets it", "lol"]}
+      ]
+    },
+    {
+      "id": "hot_take_misc",
+      "tags": ["random", "argument"],
+      "leads": ["random", "argument", "complaints"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["i'd live in the nether honestly", "the end is the prettiest", "night is better, change my mind", "i like the night more", "walking is underrated", "minecarts are the best travel", "glowstone is ugly", "sea lanterns are the prettiest", "groups slow you down", "everything's better with friends", "underrated: hay bales", "honestly composters are underrated", "diamonds are kinda overrated", "elytra is overrated", "villager trading is overrated", "poisonous potatoes, why", "dead bushes, what are they for"]},
+        {"by": "b", "chance": 0.55, "lines": ["true", "agreed", "facts", "honestly yeah", "finally someone said it"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["nah", "absolutely not", "you're wrong", "lol what", "hard disagree"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["t:disagree"], "lines": ["fight me", "i stand by it", "think about it", "you'll see", "whatever"]},
+        {"by": "a", "chance": 0.6, "if": ["t:agree"], "lines": ["see", "thank you", "lol right", "glad someone gets it"]}
+      ]
+    },
+    {
+      "id": "best_block",
+      "tags": ["building", "argument"],
+      "leads": ["building", "decor", "argument"],
+      "about": "blocks",
+      "turns": [
+        {"by": "a", "lines": ["best block in the game?", "whats your fav block", "if you could only build with one block", "the best looking block is"]},
+        {"by": "b", "lines": ["stone bricks", "spruce planks", "deepslate tiles", "glass", "cobblestone, classic", "copper"]},
+        {"by": "a", "chance": 0.35, "lines": ["boring", "nah", "really?"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["good pick", "nice", "solid"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "best_tool",
+      "tags": ["tools", "argument"],
+      "leads": ["tools", "argument", "gear"],
+      "about": "tools",
+      "turns": [
+        {"by": "a", "lines": ["most useful item ever?", "if you could keep one item", "best tool in the game", "whats the one thing you never leave without"]},
+        {"by": "b", "lines": ["pickaxe", "water bucket", "bed", "shield", "torches", "food"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "really?", "hmm no"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "fair", "same"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "best_dimension",
+      "tags": ["nether", "end", "argument"],
+      "leads": ["nether", "end", "argument"],
+      "about": "dimensions",
+      "turns": [
+        {"by": "a", "lines": ["overworld, nether or end?", "best dimension?"]},
+        {"by": "b", "lines": ["overworld obviously", "nether", "end", "none, they all want to kill me", "overworld, it has food"]},
+        {"by": "a", "chance": 0.35, "lines": ["wrong", "no way", "boring"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["fair", "true", "agreed"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "best_animal",
+      "tags": ["animals", "argument"],
+      "leads": ["animals", "pets", "argument"],
+      "about": "animals",
+      "turns": [
+        {"by": "a", "lines": ["best animal?", "cutest mob in the game", "if you could have any pet", "foxes are the best animal"]},
+        {"by": "b", "lines": ["axolotl", "fox", "wolf", "cat", "frog", "panda"]},
+        {"by": "a", "chance": 0.35, "lines": ["nope", "wrong", "really?"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["cute", "good pick", "aww"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "night_or_day",
+      "tags": ["night", "day", "argument"],
+      "leads": ["night", "day", "argument"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["day or night?", "day person or night person"]},
+        {"by": "b", "lines": ["day", "night", "day, no mobs", "night, more xp", "both"]},
+        {"by": "a", "chance": 0.35, "lines": ["wrong", "nah", "boo"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["same", "fair", "true"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "mining_or_building",
+      "tags": ["mining", "building", "argument"],
+      "leads": ["mining", "building", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["mining or building?", "which is more fun, mining or building", "i'd rather mine than build", "building is the whole point"]},
+        {"by": "b", "lines": ["mining", "building", "exploring tbh", "both", "neither, fighting"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "really?", "boring"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "fair", "same"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "peaceful_debate",
+      "tags": ["mobs", "philosophy", "argument"],
+      "leads": ["mobs", "philosophy", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["would the world be better with no mobs", "imagine no creepers", "mobs make it fun honestly", "a world with no monsters would be boring"]},
+        {"by": "b", "lines": ["way better", "boring", "id miss them", "id never die", "no way"]},
+        {"by": "a", "chance": 0.35, "lines": ["disagree", "nah", "hmm no"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "fair point", "right"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "best_season_biome",
+      "tags": ["biomes", "weather", "argument"],
+      "leads": ["biomes", "weather", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["snow or desert?", "would you live in the snow", "hot or cold biomes", "jungle or taiga"]},
+        {"by": "b", "lines": ["snow", "desert", "cold", "hot", "taiga", "jungle"]},
+        {"by": "a", "chance": 0.35, "lines": ["no way", "nah", "you'd freeze lol"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["same", "good pick", "fair"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "boat_or_horse",
+      "tags": ["exploring", "animals", "argument"],
+      "leads": ["exploring", "animals", "argument"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["boat or horse?", "best way to travel"]},
+        {"by": "b", "lines": ["boat", "horse", "walking", "elytra", "minecart lol"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "slow", "no way"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "fair", "same"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "light_source",
+      "tags": ["decor", "argument", "caves"],
+      "leads": ["decor", "caves", "argument"],
+      "about": "lights",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["torches or lanterns?", "best light block"]},
+        {"by": "b", "lines": ["lanterns", "torches", "glowstone", "shroomlights", "sea lanterns"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "ew", "hmm no"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["agreed", "nice", "true"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "solo_or_team",
+      "tags": ["friends", "philosophy", "argument"],
+      "leads": ["friends", "town", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["better alone or in a group?", "solo or team?"]},
+        {"by": "b", "lines": ["team", "solo", "depends", "small group", "alone, always"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "disagree", "really?"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["same", "true", "agreed"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "underrated_thing",
+      "tags": ["random", "argument"],
+      "leads": ["random", "argument", "jokes"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["most underrated thing in the game?", "whats something nobody appreciates"]},
+        {"by": "b", "lines": ["boats", "cauldrons", "fishing", "the shield", "scaffolding", "sleeping"]},
+        {"by": "a", "chance": 0.3, "lines": ["nah thats rated", "no", "meh"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "facts", "yes"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "overrated_thing",
+      "tags": ["random", "argument", "complaints"],
+      "leads": ["random", "argument", "complaints"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["most overrated thing?"]},
+        {"by": "b", "lines": ["netherite", "diamonds", "the end", "beacons", "nothing"]},
+        {"by": "a", "chance": 0.35, "lines": ["nope", "disagree", "how"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "facts", "exactly"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "worst_item",
+      "tags": ["random", "complaints", "argument"],
+      "leads": ["complaints", "argument", "jokes"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["most useless item?", "whats the worst item"]},
+        {"by": "b", "lines": ["poisonous potato", "gold hoe", "dead bush", "rotten flesh", "the debug stick lol"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah its fine", "disagree", "it has a use"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["true", "lol", "agreed"], "mark": ["agree"]}
+      ]
+    }
+  ]
+}

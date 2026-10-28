@@ -312,7 +312,7 @@ for topic in topics:
 doc += ['## 6b. Long conversations (the topic web)', '',
         'A conversation can go on from topic to topic. Each topic says what it is **about** (tags) and what it **leads to** (tags, and '
         'sometimes topics by name). When a topic ends, they go on to one it leads to that suits them (either of them can bring it up, so it '
-        'goes back and forth), or now and then (15%%) change the subject. A topic is never repeated within one talk; greetings only start a talk; '
+        'goes back and forth), or now and then (15%) change the subject. A topic is never repeated within one talk; greetings only start a talk; '
         'follow-ups (like "agree to disagree") only come after another topic.', '',
         '- **How long:** each Drifter has interest in the talk: the chattier, the more; strangers a topic or two, acquaintances two or three, '
         'friends three to five, best friends (trust 80+) up to ten; bored, more; angry or anxious, less. Each topic uses some (jokes half). '
@@ -330,9 +330,13 @@ doc += ['## 6b. Long conversations (the topic web)', '',
         '`links` in `drifter_talk/web.json` place topics written in other files. Themed batches live in `drifter_talk/topics_*.json`; '
         '`python tools/check_talk_web.py .` checks them (unknown tags and conditions, words the game never fills, topics nothing '
         'leads to).',
-        '- **Which topic opens a talk:** when one of them has something real to talk about (a topic that needs a find, a death, the '
-        'weather, a mood...), that comes first 7 times in 10; otherwise an everyday topic (best ore, fav food...). Everyday topics '
-        'mostly come up as a talk wanders on.', '',
+        '- **Which topic opens a talk:** when one of them has something real to talk about (a topic that needs a find, a death, a '
+        'mood, rain or a storm...), that comes first 7 times in 10; otherwise an everyday topic (best ore, fav food...). Everyday '
+        'topics mostly come up as a talk wanders on.',
+        '- **Kinds of player:** `a:voice_miner` (builder, homebody, speedrunner, nomad, hoarder, hermit, pvp_sweat, newbie, casual, '
+        'helper, bandit): a topic only that kind brings up.',
+        '- **Stories in parts:** the `next` of a topic names its part two, which comes straight after (85%), told by the same one, '
+        'with no "speaking of which". Part two is a `follow_up` tagged only `story_part`, so nothing else leads to it.', '',
         '**Tags in use** (topics about each): ' + ', '.join('%s (%d)' % (t, n) for t, n in sorted(tag_count.items(), key=lambda x: (-x[1], x[0]))), '']
 for key in TALK_WHEN:
     doc += block(key, TALK_WHEN[key])

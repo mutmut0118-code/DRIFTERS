@@ -1,0 +1,138 @@
+{
+  "_comment": "Topics batch: milestones and memories: firsts, close shaves, regrets, the old days. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "first_diamond",
+      "tags": ["memories", "diamonds"],
+      "leads": ["diamonds", "mining", "memories"],
+      "about": "the first diamond",
+      "turns": [
+        {"by": "a", "lines": ["remember your first diamond?", "my first diamond i screamed", "first diamond went into a pickaxe obviously", "found my first diamond by accident"]},
+        {"by": "b", "lines": ["i made a sword", "i almost cried", "lost it in lava lol", "cant remember", "best feeling"]},
+        {"by": "a", "chance": 0.5, "lines": ["classic", "lol", "best feeling ever"]}
+      ]
+    },
+    {
+      "id": "first_death",
+      "tags": ["memories", "death"],
+      "leads": ["death", "mobs", "memories"],
+      "about": "the first time",
+      "turns": [
+        {"by": "a", "lines": ["how did you die the first time", "my first death was so dumb", "first time i died i fell off a tree", "remember your first death"]},
+        {"by": "b", "lines": ["a creeper", "fell in lava", "drowned", "zombie at night", "starved lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["classic", "lol", "rip"]}
+      ]
+    },
+    {
+      "id": "first_nether_portal",
+      "tags": ["memories", "nether"],
+      "leads": ["nether", "memories"],
+      "about": "the first portal",
+      "turns": [
+        {"by": "a", "lines": ["first portal i built was the wrong shape", "remember lighting your first portal", "took me forever to get enough obsidian", "made my first portal with a lava bucket trick"]},
+        {"by": "b", "lines": ["lol", "same", "i used diamonds for obsidian", "big moment", "the purple swirl"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "good times", "lol"]}
+      ]
+    },
+    {
+      "id": "best_day_ever",
+      "tags": ["memories", "feelings"],
+      "leads": ["memories", "feelings", "brag"],
+      "about": "that day",
+      "turns": [
+        {"by": "a", "lines": ["whats the best day you've had here", "best day of my life was finding mending", "my best day was finishing my house", "best day? the day i met my best friend"]},
+        {"by": "b", "lines": ["today maybe", "finding diamonds", "killing my first witch", "aww", "dont have one"]},
+        {"by": "a", "chance": 0.5, "lines": ["nice", "aww", "lol"]}
+      ]
+    },
+    {
+      "id": "worst_day_ever",
+      "tags": ["memories", "complaints"],
+      "leads": ["complaints", "death", "memories"],
+      "about": "that day",
+      "turns": [
+        {"by": "a", "lines": ["worst day i ever had, i lost everything", "my worst day was the creeper incident", "whats the worst thing that happened to you", "one day everything went wrong"]},
+        {"by": "b", "lines": ["fell in the void", "house burned down", "lost my dog", "died 5 times in a row", "dont want to talk about it"]},
+        {"by": "a", "chance": 0.5, "lines": ["oof", "rip", "ouch", "fair"]}
+      ]
+    },
+    {
+      "id": "regret",
+      "tags": ["memories", "feelings", "philosophy"],
+      "leads": ["feelings", "philosophy", "memories"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["biggest regret?", "i wish i'd built near water", "should have saved those diamonds", "i regret hitting that golem"]},
+        {"by": "b", "lines": ["building in a swamp", "trusting a villager", "none", "digging straight down", "too many"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "fair", "same"]}
+      ]
+    },
+    {
+      "id": "old_base",
+      "tags": ["memories", "home", "places"],
+      "leads": ["home", "places", "memories"],
+      "about": "the old base",
+      "turns": [
+        {"by": "a", "lines": ["i miss my old base", "went back to my first house the other day", "my old base is still out there somewhere", "should visit my old place"]},
+        {"by": "b", "lines": ["still standing?", "nostalgia", "go back", "mine got blown up", "aww"]},
+        {"by": "a", "chance": 0.5, "lines": ["barely", "maybe", "lol"]}
+      ]
+    },
+    {
+      "id": "how_far_come",
+      "tags": ["memories", "brag", "feelings"],
+      "leads": ["brag", "feelings", "plans"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["look how far we've come", "i started with nothing", "from a dirt hut to this", "from wood tools to iron"]},
+        {"by": "b", "lines": ["proud", "yeah", "still going", "lots more to do", "crazy right"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lets keep going"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "close_shave",
+      "tags": ["memories", "danger"],
+      "leads": ["danger", "death", "memories"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["closest i ever came to dying was half a heart", "nearly drowned once", "a creeper and a skeleton at once, i barely made it", "survived a fall with one heart once"]},
+        {"by": "b", "lines": ["lucky", "yikes", "phew", "me too", "good thing"]},
+        {"by": "a", "chance": 0.5, "lines": ["very", "yeah", "never again"]}
+      ]
+    },
+    {
+      "id": "first_friend",
+      "needs": ["friends"],
+      "tags": ["memories", "friends"],
+      "leads": ["friends", "memories", "feelings"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["you were the first friend i made here", "remember when we met", "we've known each other a while now", "first time i saw you i thought you'd rob me lol"]},
+        {"by": "b", "lines": ["lol", "aww", "i remember", "same", "i almost did lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "glad you didnt", "good times"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "lost_item",
+      "tags": ["memories", "gear", "complaints"],
+      "leads": ["gear", "complaints", "memories"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["i still think about my old sword", "lost my favorite pick in a cave", "had a perfect bow once", "my first iron armor, gone"]},
+        {"by": "b", "lines": ["rip", "f", "let it go", "make a new one", "aw"]},
+        {"by": "a", "chance": 0.5, "lines": ["never", "lol", "maybe"]}
+      ]
+    },
+    {
+      "id": "learned_lesson",
+      "tags": ["memories", "advice"],
+      "leads": ["advice", "danger", "memories"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["learned the hard way: dont trust gravel", "lesson one: never mine without food", "never fight near cliffs", "i learned to always carry blocks"]},
+        {"by": "b", "lines": ["same", "good lesson", "lol", "true", "noted"]},
+        {"by": "a", "chance": 0.5, "lines": ["yep", "lol"]}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "_comment": "Topics batch: stories told in parts. Part one names part two in 'next' (picked first, mostly); part two is a follow_up tagged only story_part, which nothing leads to, so it only ever follows its part one. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "story_creeper_house",
+      "tags": ["stories", "mobs", "home"],
+      "leads": ["mobs", "building"],
+      "next": ["story_creeper_house_2"],
+      "about": "the creeper story",
+      "turns": [
+        {"by": "a", "lines": ["ok so you wont believe what happened at my place", "story time: i came home and heard a hiss", "so i open my door right", "worst way to come home: a creeper in the kitchen"]},
+        {"by": "b", "lines": ["oh no", "go on", "what happened", "dont tell me", "lol"]}
+      ]
+    },
+    {
+      "id": "story_creeper_house_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["building", "mobs", "jokes"],
+      "about": "the creeper story",
+      "turns": [
+        {"by": "a", "lines": ["and it blew up my whole storage wall", "it went off right next to my chests", "half my house just gone", "and my cat just watched lol"]},
+        {"by": "b", "lines": ["nooo", "rip", "thats the worst", "did your stuff survive", "lmao"]},
+        {"by": "a", "chance": 0.6, "lines": ["most of it", "rebuilt it with stone", "never again", "i got a cat now"]}
+      ]
+    },
+    {
+      "id": "story_lost_diamonds",
+      "tags": ["stories", "diamonds", "death"],
+      "leads": ["diamonds", "death"],
+      "next": ["story_lost_diamonds_2"],
+      "about": "the diamonds",
+      "turns": [
+        {"by": "a", "lines": ["i once had 20 diamonds on me", "remind me to tell you about my best mining trip", "best haul i ever had, a whole stack of ores", "so i found this huge diamond vein once"]},
+        {"by": "b", "lines": ["no way", "and?", "jealous", "where", "i sense a but"]}
+      ]
+    },
+    {
+      "id": "story_lost_diamonds_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["death", "danger", "complaints"],
+      "about": "the diamonds",
+      "turns": [
+        {"by": "a", "lines": ["then i fell in lava on the way home", "a skeleton knocked me into a ravine with all of it", "and then a creeper. gone. all of it.", "and i forgot where i died"]},
+        {"by": "b", "lines": ["NO", "pain", "thats cursed", "i'd quit", "f"]},
+        {"by": "a", "chance": 0.6, "lines": ["still not over it", "yeah", "i cried", "never again"]}
+      ]
+    },
+    {
+      "id": "story_night_lost",
+      "tags": ["stories", "night", "exploring"],
+      "leads": ["night", "exploring"],
+      "next": ["story_night_lost_2"],
+      "about": "that night",
+      "turns": [
+        {"by": "a", "lines": ["did i tell you about the night i got lost", "once i wandered too far and night came", "i was out exploring and the sun just set on me", "worst night of my life, listen"]},
+        {"by": "b", "lines": ["no, tell me", "uh oh", "go on", "what happened"]}
+      ]
+    },
+    {
+      "id": "story_night_lost_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["mobs", "home", "night"],
+      "about": "that night",
+      "turns": [
+        {"by": "a", "lines": ["dug into a hill and waited it out in the dark", "zombies everywhere, i just ran till morning", "found a village and hid in a house", "built a dirt tower and sat on it all night"]},
+        {"by": "b", "lines": ["smart", "classic", "lucky", "i would have panicked", "lol the dirt tower"]},
+        {"by": "a", "chance": 0.6, "lines": ["never again without a bed", "lesson learned", "yeah"]}
+      ]
+    },
+    {
+      "id": "story_village_rescue",
+      "tags": ["stories", "villagers", "fighting"],
+      "leads": ["villagers", "fighting"],
+      "next": ["story_village_rescue_2"],
+      "about": "the village",
+      "turns": [
+        {"by": "a", "lines": ["i saved a whole village once", "came across a village at night, zombies everywhere", "you ever see a zombie siege", "this one time at a village"]},
+        {"by": "b", "lines": ["really", "and you helped?", "go on", "what happened"]}
+      ]
+    },
+    {
+      "id": "story_village_rescue_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["villagers", "trade", "brag"],
+      "about": "the village",
+      "turns": [
+        {"by": "a", "lines": ["fought them off till sunrise", "the golem and me, back to back", "only lost one villager", "now they give me discounts lol"]},
+        {"by": "b", "lines": ["hero", "nice", "respect", "the discounts lol", "gg"]},
+        {"by": "a", "chance": 0.5, "lines": ["just doing my part", "lol", "worth it"]}
+      ]
+    },
+    {
+      "id": "story_ghast",
+      "tags": ["stories", "nether", "danger"],
+      "leads": ["nether", "danger"],
+      "next": ["story_ghast_2"],
+      "about": "the ghast",
+      "turns": [
+        {"by": "a", "lines": ["first time i went to the nether, a ghast spotted me", "ok funny nether story", "so i'm on a netherrack bridge right", "i heard a ghast cry and froze"]},
+        {"by": "b", "lines": ["oh no", "lol go on", "and?", "they sound so sad"]}
+      ]
+    },
+    {
+      "id": "story_ghast_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["nether", "jokes", "brag"],
+      "about": "the ghast",
+      "turns": [
+        {"by": "a", "lines": ["swung at the fireball and sent it right back", "it blew up my portal and i was stuck", "i fell into the lava sea", "punched the fireball, killed the ghast first try"]},
+        {"by": "b", "lines": ["no way", "stuck in the nether, nightmare", "rip", "legend", "lucky"]},
+        {"by": "a", "chance": 0.5, "lines": ["still proud", "had to find another portal", "yep"]}
+      ]
+    },
+    {
+      "id": "story_pet",
+      "tags": ["stories", "pets", "animals"],
+      "leads": ["pets", "animals"],
+      "next": ["story_pet_2"],
+      "about": "the dog",
+      "turns": [
+        {"by": "a", "lines": ["i had a dog once, best dog ever", "let me tell you about my wolf", "my old cat was the best", "had a horse called biscuit"]},
+        {"by": "b", "lines": ["aww", "what happened", "tell me", "i love pets"]}
+      ]
+    },
+    {
+      "id": "story_pet_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["feelings", "pets", "memories"],
+      "about": "the dog",
+      "turns": [
+        {"by": "a", "lines": ["followed me everywhere, even into caves", "it saved me from a skeleton once", "it ran off one day and never came back", "still have its collar"]},
+        {"by": "b", "lines": ["aww", "best friend", "sad", "good doggo", "miss it?"]},
+        {"by": "a", "chance": 0.6, "lines": ["every day", "yeah", "good times", "someday ill get another"]}
+      ]
+    },
+    {
+      "id": "story_first_house",
+      "tags": ["stories", "home", "memories"],
+      "leads": ["home", "building"],
+      "next": ["story_first_house_2"],
+      "about": "my first house",
+      "turns": [
+        {"by": "a", "lines": ["my first house was a disaster", "wanna hear about my first ever house", "you should have seen my first base", "my first home, oh boy"]},
+        {"by": "b", "lines": ["lol tell me", "how bad", "mine too", "go on"]}
+      ]
+    },
+    {
+      "id": "story_first_house_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["building", "home", "jokes"],
+      "about": "my first house",
+      "turns": [
+        {"by": "a", "lines": ["it was a dirt box with one torch", "no door, just a hole", "i built it out of wood and it burned down", "the roof was gravel. it fell."]},
+        {"by": "b", "lines": ["lmao", "classic", "the gravel lol", "we all start there", "iconic"]},
+        {"by": "a", "chance": 0.5, "lines": ["i've grown", "lol", "still miss it"]}
+      ]
+    },
+    {
+      "id": "story_witch",
+      "tags": ["stories", "mobs", "potions"],
+      "leads": ["mobs", "potions"],
+      "next": ["story_witch_2"],
+      "about": "the witch",
+      "turns": [
+        {"by": "a", "lines": ["ever fought a witch in a swamp at night", "so there was this witch hut", "i went looking for slimes in a swamp", "a witch story for you"]},
+        {"by": "b", "lines": ["oh no", "go on", "witches are scary", "and?"]}
+      ]
+    },
+    {
+      "id": "story_witch_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["potions", "danger", "jokes"],
+      "about": "the witch",
+      "turns": [
+        {"by": "a", "lines": ["she threw slowness then poison then harming", "i had to drink milk mid fight", "fell in the water and she kept healing", "got her in the end, took her potions"]},
+        {"by": "b", "lines": ["brutal", "lol", "well earned", "nice loot", "never going to a swamp"]},
+        {"by": "a", "chance": 0.5, "lines": ["same", "lol", "worth it"]}
+      ]
+    },
+    {
+      "id": "story_shipwreck",
+      "tags": ["stories", "ocean", "structures"],
+      "leads": ["ocean", "structures"],
+      "next": ["story_shipwreck_2"],
+      "about": "the treasure",
+      "turns": [
+        {"by": "a", "lines": ["found a treasure map in a shipwreck once", "story about buried treasure", "so i found this map", "followed an old map for ages"]},
+        {"by": "b", "lines": ["and?", "treasure!", "go on", "did you find it"]}
+      ]
+    },
+    {
+      "id": "story_shipwreck_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["ocean", "brag", "gear"],
+      "about": "the treasure",
+      "turns": [
+        {"by": "a", "lines": ["dug 30 holes before i found it", "heart of the sea inside!", "the chest was right under a drowned", "got a whole stack of iron and some diamonds"]},
+        {"by": "b", "lines": ["worth it", "nice", "lucky", "lol 30 holes", "jealous"]},
+        {"by": "a", "chance": 0.5, "lines": ["it was", "lol", "yep"]}
+      ]
+    },
+    {
+      "id": "story_end",
+      "tags": ["stories", "end", "fighting"],
+      "leads": ["end", "fighting"],
+      "next": ["story_end_2"],
+      "about": "the end",
+      "turns": [
+        {"by": "a", "lines": ["heard about someone who went to the end", "there's a story about the dragon i heard", "someone told me about the end once", "you know what's in the end?"]},
+        {"by": "b", "lines": ["what", "go on", "tell me", "the dragon"]}
+      ]
+    },
+    {
+      "id": "story_end_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["end", "dreams", "plans"],
+      "about": "the end",
+      "turns": [
+        {"by": "a", "lines": ["an island in the void, black and purple", "endermen everywhere, you can't look anywhere", "towers with crystals on top, and the dragon circling", "they say there are cities past the dragon"]},
+        {"by": "b", "lines": ["scary", "want to go", "someday", "sounds amazing", "no thanks"]},
+        {"by": "a", "chance": 0.5, "lines": ["someday", "we'll go", "yeah"]}
+      ]
+    },
+    {
+      "id": "story_trade_scam",
+      "tags": ["stories", "trade", "villagers"],
+      "leads": ["trade", "villagers"],
+      "next": ["story_trade_scam_2"],
+      "about": "the trade",
+      "turns": [
+        {"by": "a", "lines": ["i got scammed by a villager once", "worst trade of my life", "never trust a cleric", "a villager trade went so wrong"]},
+        {"by": "b", "lines": ["how", "lol", "go on", "classic"]}
+      ]
+    },
+    {
+      "id": "story_trade_scam_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["trade", "jokes", "complaints"],
+      "about": "the trade",
+      "turns": [
+        {"by": "a", "lines": ["paid 30 emeralds for a book of bane of arthropods", "traded all my wheat for one emerald", "he locked the trade right after", "i clicked the wrong trade, got a compass"]},
+        {"by": "b", "lines": ["lmao", "pain", "bane of arthropods lol", "rip", "classic villager"]},
+        {"by": "a", "chance": 0.5, "lines": ["still mad", "never again", "lol"]}
+      ]
+    },
+    {
+      "id": "story_cave_in",
+      "tags": ["stories", "caves", "danger"],
+      "leads": ["caves", "danger"],
+      "next": ["story_cave_in_2"],
+      "about": "the gravel",
+      "turns": [
+        {"by": "a", "lines": ["ever been buried by gravel", "so i'm mining upward right", "gravel almost got me once", "funny cave story"]},
+        {"by": "b", "lines": ["oh no", "go on", "lol", "gravel is evil"]}
+      ]
+    },
+    {
+      "id": "story_cave_in_2",
+      "follow_up": true,
+      "tags": ["story_part"],
+      "leads": ["caves", "mining", "jokes"],
+      "about": "the gravel",
+      "turns": [
+        {"by": "a", "lines": ["the whole ceiling came down on me", "i dug out and it just kept falling", "had to put a torch under it to survive", "suffocated in gravel. very dignified."]},
+        {"by": "b", "lines": ["lmao", "rip", "torch trick, smart", "gravel wins again", "classic"]},
+        {"by": "a", "chance": 0.5, "lines": ["never mine up", "lol", "yep"]}
+      ]
+    }
+  ]
+}

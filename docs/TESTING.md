@@ -2235,3 +2235,21 @@ adventure, gear and everyday life. You'll see them most in long talks between fr
 - [ ] In a long talk, if one wanders off more than about 24 blocks while working, it walks back over to keep
       talking (unless it's busy with something that matters more, like a fight).
 - [ ] `/drifter talk links fav_biome` lists what a topic leads to. Full list of every topic and line: docs/CHAT_LINES.md.
+
+## Side session: topic batch two (new, 0.22.28-side.4)
+
+124 more topics (374 in all): each kind of player's own topics, stories in two parts, friendship, the day as it goes,
+favourites and hot takes, and memories.
+
+- [ ] Kinds of player: a miner says things like "i know every ore by its sound", a builder "a plain wall is a crime", a
+      hermit "quiet is underrated", a newbie "why did the green guy explode". Use `/drifter personality reroll miner`
+      on one of two Drifters, then `/drifter talk long`.
+- [ ] Stories: `/drifter talk long story_creeper_house` (or story_lost_diamonds, story_ghast, story_pet...). The same
+      Drifter should tell part two right after part one ("so i open my door right" ... "it went off right next to my
+      chests"), with no "speaking of which" in between.
+- [ ] Hot takes: `/drifter talk long hot_take_mobs`. If the other agrees, the first says "see" or "thank you"; if it
+      disagrees, "fight me" or "i stand by it". Never "fight me" after "agreed".
+- [ ] Asking for help: "wanna help me fence my farm". A yes gets "thanks!", a no gets "fair". Never "maybe later then"
+      after "sure".
+- [ ] Time of day: in the morning "made it through another night", at night "cant sleep", underground "is it day or
+      night out there".

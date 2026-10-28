@@ -1,0 +1,239 @@
+{
+  "_comment": "Topics batch: the day as it goes: mornings, evenings, routines, chores, weather, the moon. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "morning_routine",
+      "needs": ["morning"],
+      "tags": ["day", "plans"],
+      "leads": ["plans", "food", "farming"],
+      "about": "the morning",
+      "turns": [
+        {"by": "a", "lines": ["first thing every morning i check my farm", "mornings are for chores", "breakfast then mining, every day", "best time to get stuff done"]},
+        {"by": "b", "lines": ["same", "i sleep in lol", "smart", "mornings are rough", "whats for breakfast"]},
+        {"by": "a", "chance": 0.5, "lines": ["bread, always", "lol", "routine is key"]}
+      ]
+    },
+    {
+      "id": "morning_survived",
+      "needs": ["morning"],
+      "tags": ["day", "night", "feelings"],
+      "leads": ["night", "mobs", "feelings"],
+      "about": "last night",
+      "turns": [
+        {"by": "a", "lines": ["made it through another night", "the zombies are burning, love to see it", "sunrise never gets old", "night's over, finally"]},
+        {"by": "b", "lines": ["barely", "watch the skeletons in the shade", "beautiful", "phew", "another day"]},
+        {"by": "a", "chance": 0.5, "lines": ["another day", "yep", "lol"]}
+      ]
+    },
+    {
+      "id": "midday_work",
+      "needs": ["day"],
+      "tags": ["day", "doing", "plans"],
+      "leads": ["plans", "mining", "building"],
+      "about": "the day",
+      "turns": [
+        {"by": "a", "lines": ["day's half gone already", "so much to do before dark", "making the most of the daylight", "never enough day"]},
+        {"by": "b", "lines": ["same", "better hurry", "relax", "days are short", "true"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "back to it", "lol"]}
+      ]
+    },
+    {
+      "id": "evening_wind_down",
+      "needs": ["evening"],
+      "tags": ["night", "home", "feelings"],
+      "leads": ["home", "sleep", "night"],
+      "about": "the evening",
+      "turns": [
+        {"by": "a", "lines": ["time to head back", "good day today", "the sky's turning orange", "wrapping up for the day"]},
+        {"by": "b", "lines": ["same", "stay safe", "yeah", "good day", "see you tomorrow"]},
+        {"by": "a", "chance": 0.5, "lines": ["you too", "yep", "night"]}
+      ]
+    },
+    {
+      "id": "night_awake",
+      "needs": ["night"],
+      "tags": ["night", "sleep", "feelings"],
+      "leads": ["sleep", "night", "dreams"],
+      "about": "the night",
+      "turns": [
+        {"by": "a", "lines": ["cant sleep", "why are we up so late", "the night is so long", "night time is weird"]},
+        {"by": "b", "lines": ["same", "go to bed lol", "nights are fine", "i like the quiet", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "soon", "lol"]}
+      ]
+    },
+    {
+      "id": "full_moon",
+      "needs": ["night", "outside"],
+      "tags": ["sky", "night", "mobs"],
+      "leads": ["sky", "mobs", "night"],
+      "about": "the moon",
+      "turns": [
+        {"by": "a", "lines": ["moon looks full tonight", "they say more slimes come at full moon", "the moon's huge", "the moon looks different every night"]},
+        {"by": "b", "lines": ["pretty", "creepy", "huh", "i never noticed", "nice"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "chores_list",
+      "tags": ["doing", "farming", "complaints"],
+      "leads": ["farming", "storage", "complaints"],
+      "about": "chores",
+      "turns": [
+        {"by": "a", "lines": ["got so many chores", "need to sort my chests, again", "the farm needs harvesting", "always something to fix"]},
+        {"by": "b", "lines": ["same", "do it later", "chores never end", "i'll help", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "thanks", "ugh"]}
+      ]
+    },
+    {
+      "id": "busy_day",
+      "tags": ["doing", "feelings"],
+      "leads": ["plans", "feelings", "boredom"],
+      "about": "the day",
+      "turns": [
+        {"by": "a", "lines": ["been so busy", "no time for anything", "running around all day", "i need a break"]},
+        {"by": "b", "lines": ["take one", "same", "slow down", "doing what", "busy is good"]},
+        {"by": "a", "chance": 0.5, "lines": ["soon", "everything", "yeah"]}
+      ]
+    },
+    {
+      "id": "clear_skies",
+      "needs": ["clear", "outside"],
+      "tags": ["weather", "day"],
+      "leads": ["weather", "plans", "exploring"],
+      "about": "the weather",
+      "turns": [
+        {"by": "a", "lines": ["not a cloud in the sky", "perfect weather", "you can see so far today", "great day to explore"]},
+        {"by": "b", "lines": ["nice", "lets go then", "yep", "enjoy it", "beautiful"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lets", "lol"]}
+      ]
+    },
+    {
+      "id": "rain_plans",
+      "needs": ["rain"],
+      "tags": ["weather", "plans"],
+      "leads": ["fishing", "mining", "home"],
+      "about": "the rain",
+      "turns": [
+        {"by": "a", "lines": ["rain means fishing time", "might as well mine while it rains", "staying inside today", "rain stops me from doing anything"]},
+        {"by": "b", "lines": ["good idea", "mining day", "same", "rain is fine", "boring"]},
+        {"by": "a", "chance": 0.5, "lines": ["yep", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "rain_wet",
+      "needs": ["rain", "outside"],
+      "tags": ["weather", "complaints", "jokes"],
+      "leads": ["weather", "home", "jokes"],
+      "about": "the rain",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["im soaked", "my torches keep going out... wait they dont", "hope the rain stops soon", "rain rain go away"]},
+        {"by": "b", "lines": ["lol", "same", "get under a tree", "its just water", "it'll pass"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "ugh"]}
+      ]
+    },
+    {
+      "id": "storm_inside",
+      "needs": ["thunder"],
+      "tags": ["weather", "home", "mobs"],
+      "leads": ["home", "mobs", "danger"],
+      "about": "the storm",
+      "turns": [
+        {"by": "a", "lines": ["storms mean mobs in the day", "staying in till this passes", "that thunder shook me", "a storm and its getting dark"]},
+        {"by": "b", "lines": ["same", "careful out there", "lightning is scary", "hide", "i love storms"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "weird", "lol"]}
+      ]
+    },
+    {
+      "id": "lunch_break",
+      "tags": ["food", "doing"],
+      "leads": ["food", "farming", "plans"],
+      "about": "food",
+      "turns": [
+        {"by": "a", "lines": ["lunch break", "time to eat something", "stopping for a snack", "eating then back to work"]},
+        {"by": "b", "lines": ["enjoy", "what are you eating", "same", "good idea", "got any extra"]},
+        {"by": "a", "chance": 0.5, "lines": ["bread", "steak", "sure", "lol"]}
+      ]
+    },
+    {
+      "id": "tired_today",
+      "tags": ["feelings", "sleep"],
+      "leads": ["sleep", "feelings", "home"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["so tired", "need a nap", "long day", "can barely keep going"]},
+        {"by": "b", "lines": ["go sleep", "same", "rest up", "almost night", "you work too hard"]},
+        {"by": "a", "chance": 0.5, "lines": ["soon", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "day_count",
+      "tags": ["memories", "day"],
+      "leads": ["memories", "plans", "feelings"],
+      "about": "the days",
+      "turns": [
+        {"by": "a", "lines": ["how many days have we been here", "lost count of the days", "feels like day one was ages ago", "time goes so fast"]},
+        {"by": "b", "lines": ["too many", "no idea", "forever", "it does", "i stopped counting"]},
+        {"by": "a", "chance": 0.5, "lines": ["same", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "weekend_idea",
+      "tags": ["plans", "friends", "jokes"],
+      "leads": ["plans", "friends", "exploring"],
+      "about": "a day off",
+      "turns": [
+        {"by": "a", "lines": ["we should take a day off", "lets do something fun for once", "no mining tomorrow, just fun", "picnic? lol"]},
+        {"by": "b", "lines": ["like what", "sure", "fishing day", "a picnic lol", "id rather mine"]},
+        {"by": "a", "chance": 0.5, "lines": ["anything", "lol", "deal"]}
+      ]
+    },
+    {
+      "id": "wake_up_spot",
+      "tags": ["sleep", "home", "death"],
+      "leads": ["home", "death", "sleep"],
+      "about": "my bed",
+      "turns": [
+        {"by": "a", "lines": ["always set your spawn", "woke up miles from my stuff once", "my bed is my spawn, never moving it", "forgot to set my spawn, walked forever"]},
+        {"by": "b", "lines": ["always", "rookie mistake", "lol", "me too", "beds everywhere"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yep", "never again"]}
+      ]
+    },
+    {
+      "id": "outside_air",
+      "needs": ["outside", "day"],
+      "tags": ["day", "feelings", "biomes"],
+      "leads": ["biomes", "exploring", "feelings"],
+      "about": "out here",
+      "turns": [
+        {"by": "a", "lines": ["feels good to be outside", "fresh air", "love this place", "nice spot here"]},
+        {"by": "b", "lines": ["yeah", "it is", "agreed", "pretty", "mm"]},
+        {"by": "a", "chance": 0.5, "lines": ["yep", "lol", "nice"]}
+      ]
+    },
+    {
+      "id": "underground_time",
+      "needs": ["!outside"],
+      "tags": ["caves", "day", "feelings"],
+      "leads": ["caves", "mining", "night"],
+      "about": "the time",
+      "turns": [
+        {"by": "a", "lines": ["is it day or night out there", "lost track of time down here", "how long have we been underground", "no idea what time it is"]},
+        {"by": "b", "lines": ["no clue", "probably night", "who cares", "lets check later", "day maybe"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "sound_check",
+      "tags": ["random", "mobs", "feelings"],
+      "leads": ["mobs", "caves", "jokes"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["did you hear that", "what was that noise", "something's moving", "shh"]},
+        {"by": "b", "lines": ["no", "probably nothing", "creeper?", "you're paranoid", "i heard it too"]},
+        {"by": "a", "chance": 0.5, "lines": ["hm", "ok", "lets be careful"]}
+      ]
+    }
+  ]
+}

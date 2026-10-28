@@ -1,0 +1,283 @@
+{
+  "_comment": "Topics batch: how the two get on: compliments, teasing, advice, asking for help, apologies, trust, first meetings and old friends. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "compliment_gear",
+      "needs": ["!rivals"],
+      "tags": ["friends", "gear"],
+      "leads": ["gear", "armor", "friends"],
+      "about": "your gear",
+      "turns": [
+        {"by": "a", "lines": ["your armor looks good", "nice sword", "you look ready for anything", "i like your style"]},
+        {"by": "b", "lines": ["thanks", "took a while", "you too", "aw thanks", "it's nothing"]},
+        {"by": "a", "chance": 0.5, "lines": ["for real", "np", "jealous tbh"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "compliment_work",
+      "needs": ["!rivals"],
+      "tags": ["friends", "building", "feelings"],
+      "leads": ["building", "friends", "feelings"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["you work so hard", "you're really good at this game", "i saw your build, its nice", "you're a natural"]},
+        {"by": "b", "lines": ["thanks", "you think so?", "aww", "you're better", "trying my best"]},
+        {"by": "a", "chance": 0.5, "lines": ["for real", "yeah", "keep it up"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "tease_friend",
+      "needs": ["friends"],
+      "tags": ["friends", "jokes"],
+      "leads": ["jokes", "friends", "memories"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["remember when you fell in that hole lol", "you still cant aim a bow", "you got lost again didnt you", "nice dirt hut btw"]},
+        {"by": "b", "lines": ["shut up lol", "rude", "you're one to talk", "that was once!", "lol"]},
+        {"by": "a", "chance": 0.6, "lines": ["love you too", "lol", "just kidding", "still funny"]}
+      ]
+    },
+    {
+      "id": "advice_ask",
+      "needs": ["!strangers"],
+      "tags": ["advice", "friends"],
+      "leads": ["advice", "plans", "mining"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["can i ask you something", "what would you do first, armor or a house", "need your advice", "should i move my base"]},
+        {"by": "b", "lines": ["armor first", "house first", "depends", "sure, what", "go with your gut"]},
+        {"by": "a", "chance": 0.6, "lines": ["thanks", "makes sense", "i'll think about it", "ok"]}
+      ]
+    },
+    {
+      "id": "advice_give",
+      "tags": ["advice", "danger"],
+      "leads": ["advice", "danger", "gear"],
+      "about": "that tip",
+      "turns": [
+        {"by": "a", "lines": ["tip: always carry a bed", "word of advice, dont fight endermen in the rain... wait yes do", "never go mining without food", "always know where your bed is"]},
+        {"by": "b", "lines": ["good tip", "noted", "i know lol", "thanks", "learned that the hard way"]},
+        {"by": "a", "chance": 0.5, "lines": ["np", "we all did", "lol"]}
+      ]
+    },
+    {
+      "id": "advice_life",
+      "needs": ["!strangers"],
+      "tags": ["advice", "philosophy", "feelings"],
+      "leads": ["philosophy", "feelings", "advice"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["dont compare your base to others", "it's ok to take a day off", "take it slow, the world isnt going anywhere", "you dont need to finish everything"]},
+        {"by": "b", "lines": ["wise", "needed that", "true", "easier said than done", "thanks"]},
+        {"by": "a", "chance": 0.5, "lines": ["anytime", "yeah", "remember that"]}
+      ]
+    },
+    {
+      "id": "help_ask",
+      "needs": ["!rivals"],
+      "tags": ["help", "friends"],
+      "leads": ["help", "plans", "building"],
+      "about": "helping",
+      "turns": [
+        {"by": "a", "lines": ["could use some help with my build", "help me clear a cave sometime?", "need someone to watch my back mining", "wanna help me fence my farm"]},
+        {"by": "b", "chance": 0.6, "lines": ["sure", "of course", "yeah ill help", "count me in"], "mark": ["agree"]},
+        {"by": "b", "if": ["!t:agree"], "lines": ["maybe later", "busy rn", "whats in it for me", "not today"]},
+        {"by": "a", "chance": 0.7, "if": ["t:agree"], "lines": ["you're the best", "thanks!", "ill owe you"]},
+        {"by": "a", "chance": 0.5, "if": ["!t:agree"], "lines": ["fair", "ok", "no worries"]}
+      ]
+    },
+    {
+      "id": "help_thanks",
+      "needs": ["friends"],
+      "tags": ["help", "friends", "memories"],
+      "leads": ["friends", "memories", "help"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["thanks for helping me last time", "never thanked you for that", "you really saved me back there", "owe you one"]},
+        {"by": "b", "lines": ["anytime", "dont mention it", "you'd do the same", "you owe me lol", "np"]},
+        {"by": "a", "chance": 0.5, "lines": ["i would", "lol", "still"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "apology",
+      "needs": ["!strangers"],
+      "tags": ["friends", "feelings"],
+      "leads": ["feelings", "friends", "memories"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["hey, sorry about earlier", "i was rude, sorry", "my bad about last time", "didnt mean what i said"]},
+        {"by": "b", "lines": ["its ok", "forgiven", "already forgot", "thanks for saying", "hmm, ok"]},
+        {"by": "a", "chance": 0.5, "lines": ["thanks", "cool", "we good?"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "trust_talk",
+      "needs": ["friends"],
+      "tags": ["friends", "feelings"],
+      "leads": ["friends", "feelings", "plans"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["i trust you, you know that", "you're one of the few i trust", "glad we're on the same side", "i'd let you into my base"]},
+        {"by": "b", "lines": ["same", "means a lot", "aww", "dont make it weird lol", "always"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "always", "good"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "miss_you",
+      "needs": ["friends"],
+      "tags": ["friends", "feelings"],
+      "leads": ["friends", "memories", "plans"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["havent seen you in a while", "where have you been", "missed you around", "long time no see"]},
+        {"by": "b", "lines": ["been busy", "mining mostly", "missed you too", "around", "you too"]},
+        {"by": "a", "chance": 0.5, "lines": ["dont be a stranger", "glad you're back", "lol"]}
+      ]
+    },
+    {
+      "id": "first_meet_where",
+      "needs": ["strangers"],
+      "tags": ["greeting", "places"],
+      "leads": ["places", "home", "plans"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["where you from", "you live around here?", "you new around here", "havent seen you before"]},
+        {"by": "b", "lines": ["not far", "passing through", "just got here", "over the hills", "around"]},
+        {"by": "a", "chance": 0.5, "lines": ["cool", "welcome", "nice", "ok"]}
+      ]
+    },
+    {
+      "id": "first_meet_name",
+      "needs": ["strangers"],
+      "tags": ["greeting", "friends"],
+      "leads": ["doing", "places", "plans"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["i'm {a} by the way", "names {a}", "{a}, nice to meet you", "hey, i'm {a}"]},
+        {"by": "b", "lines": ["{b}", "i'm {b}", "{b}, hi", "nice to meet you, i'm {b}"]},
+        {"by": "a", "chance": 0.5, "lines": ["cool name", "nice", "hi {b}"]}
+      ]
+    },
+    {
+      "id": "stranger_wary",
+      "needs": ["strangers"],
+      "tags": ["greeting", "danger"],
+      "leads": ["danger", "players", "places"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["you're not gonna rob me right", "keep your distance ok", "you friendly?", "careful who you trust out here"]},
+        {"by": "b", "lines": ["relax", "friendly", "no lol", "same to you", "i'm harmless"]},
+        {"by": "a", "chance": 0.5, "lines": ["ok", "good", "lol", "we'll see"]}
+      ]
+    },
+    {
+      "id": "rival_truce",
+      "needs": ["rivals"],
+      "tags": ["rivals", "feelings"],
+      "leads": ["rivals", "feelings", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["can we just stop fighting", "truce?", "this feud is getting old", "maybe we started off wrong"]},
+        {"by": "b", "lines": ["maybe", "no", "fine", "you started it", "...ok"]},
+        {"by": "a", "chance": 0.5, "lines": ["fair", "progress", "whatever then"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "rival_score",
+      "needs": ["rivals"],
+      "tags": ["rivals", "brag"],
+      "leads": ["rivals", "brag", "argument"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["i mined more than you today", "my house is bigger btw", "beat you to the iron", "still ahead of you"]},
+        {"by": "b", "lines": ["sure", "not for long", "who's counting", "you wish", "lol no"]},
+        {"by": "a", "chance": 0.5, "lines": ["me", "watch", "always"], "mark": ["disagree"]}
+      ]
+    },
+    {
+      "id": "groupmates_plan",
+      "needs": ["groupmates"],
+      "tags": ["town", "plans", "friends"],
+      "leads": ["town", "plans", "building"],
+      "about": "the group",
+      "turns": [
+        {"by": "a", "lines": ["we should build something for the group", "the group needs a farm", "lets make our place better", "we need more beds for everyone"]},
+        {"by": "b", "lines": ["agreed", "i'll get wood", "what kind", "good idea", "later"]},
+        {"by": "a", "chance": 0.5, "lines": ["lets do it", "cool", "ok"]}
+      ]
+    },
+    {
+      "id": "groupmates_proud",
+      "needs": ["groupmates"],
+      "tags": ["town", "friends", "feelings"],
+      "leads": ["town", "friends"],
+      "about": "the group",
+      "turns": [
+        {"by": "a", "lines": ["glad im in this group", "we're doing pretty well", "we make a good team", "look how far we've come"]},
+        {"by": "b", "lines": ["same", "yeah we are", "team", "lots more to do", "agreed"]},
+        {"by": "a", "chance": 0.5, "lines": ["yep", "lets keep going"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "town_market",
+      "needs": ["a:in_town", "groupmates"],
+      "tags": ["town", "trade"],
+      "leads": ["trade", "town", "villagers"],
+      "about": "the market",
+      "turns": [
+        {"by": "a", "lines": ["town needs a market", "we should trade more inside town", "someone should run a shop", "selling my extra wheat"]},
+        {"by": "b", "lines": ["i'd buy", "good idea", "too much work", "i'll sell iron", "maybe"]},
+        {"by": "a", "chance": 0.5, "lines": ["deal", "lets see", "ok"]}
+      ]
+    },
+    {
+      "id": "town_newcomer",
+      "needs": ["a:in_town", "groupmates"],
+      "tags": ["town", "gossip"],
+      "leads": ["town", "gossip", "players"],
+      "about": "the new one",
+      "turns": [
+        {"by": "a", "lines": ["seen the new person in town", "town's getting bigger", "more people every week", "i like how busy it gets"]},
+        {"by": "b", "lines": ["yeah", "seem nice", "too crowded", "good for us", "havent met them"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "we'll see", "say hi"]}
+      ]
+    },
+    {
+      "id": "town_walls",
+      "needs": ["a:in_town", "groupmates"],
+      "tags": ["town", "building", "danger"],
+      "leads": ["building", "danger", "town"],
+      "about": "the walls",
+      "turns": [
+        {"by": "a", "lines": ["town needs a wall", "mobs keep getting in", "we should light up the edges", "a guard tower would be nice"]},
+        {"by": "b", "lines": ["agreed", "thats a lot of stone", "i'll help", "a wall would look cool", "too much work"]},
+        {"by": "a", "chance": 0.5, "lines": ["someday", "lets do it", "ok"]}
+      ]
+    },
+    {
+      "id": "solo_life",
+      "needs": ["!a:in_group"],
+      "tags": ["feelings", "home", "friends"],
+      "leads": ["friends", "town", "feelings"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["doing it solo is hard", "sometimes i wish i had a group", "being alone is fine mostly", "no group for me"]},
+        {"by": "b", "lines": ["join one", "solo is freedom", "same", "you'll find people", "groups are drama"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "true", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "friend_promise",
+      "needs": ["friends"],
+      "tags": ["friends", "plans", "help"],
+      "leads": ["plans", "friends", "end"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["promise we'll fight the dragon together", "if i die you better get my stuff", "lets always meet back here", "you've got my back right"]},
+        {"by": "b", "lines": ["promise", "always", "deal", "of course", "obviously"]},
+        {"by": "a", "chance": 0.5, "lines": ["good", "deal", "ok"], "mark": ["agree"]}
+      ]
+    }
+  ]
+}
