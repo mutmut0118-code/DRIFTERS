@@ -1,0 +1,124 @@
+{
+  "_comment": "Topics batch three: small debates. a says something b can agree with or not: b's yes turn has a chance and marks 'agree', the no turn needs !t:agree and marks 'disagree' (trust +1 or -1.5 at the end), and a answers each on the mark. Disagreeing lines stay neutral. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "debate_beds_nether", "tags": ["argument", "nether"], "leads": ["nether", "argument", "jokes"], "about": "beds", "turns": [
+      {"by": "a", "lines": ["beds in the nether are a fair weapon", "bed bombing is a real strategy", "beds are the best explosive in the game"]},
+      {"by": "b", "chance": 0.5, "lines": ["true", "lol yes", "honestly", "can't argue"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["that's cheesy", "nah", "too risky", "i'll use a sword"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["boom", "see", "lol"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["works for me", "fair", "suit yourself"]}
+    ]},
+    {"id": "debate_dirt_house", "tags": ["argument", "building"], "leads": ["building", "argument", "home"], "about": "dirt houses", "turns": [
+      {"by": "a", "lines": ["dirt houses are underrated", "a dirt house is a real house", "there's nothing wrong with a dirt hut"]},
+      {"by": "b", "chance": 0.5, "lines": ["true", "it keeps the mobs out", "respect", "fair"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["nah", "it's ugly", "upgrade please", "lol no"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["dirt gang", "see", "lol"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["it's cozy", "fair", "you'll see"]}
+    ]},
+    {"id": "debate_villagers_people", "tags": ["argument", "villagers"], "leads": ["villagers", "argument", "trade"], "about": "villagers", "turns": [
+      {"by": "a", "lines": ["villagers deserve better", "we treat villagers badly", "villagers are people too"]},
+      {"by": "b", "chance": 0.45, "lines": ["agreed", "true", "yeah", "poor guys"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["they're fine", "nah", "they're for trading", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "someone gets it", "justice for villagers"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["think about it", "fair", "hmm"]}
+    ]},
+    {"id": "debate_night_skip", "tags": ["argument", "sleep"], "leads": ["sleep", "night", "argument"], "about": "sleeping", "turns": [
+      {"by": "a", "lines": ["skipping the night is cheating a little", "real players stay up all night", "sleeping through every night is boring"]},
+      {"by": "b", "chance": 0.4, "lines": ["true", "honestly", "the night is fun", "i stay up too"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["nah", "i like my bed", "phantoms though", "no thanks"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["night gang", "see", "lol"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "lol ok", "sleep then"]}
+    ]},
+    {"id": "debate_iron_first", "tags": ["argument", "mining"], "leads": ["mining", "tools", "argument"], "about": "iron", "turns": [
+      {"by": "a", "lines": ["iron is more important than diamonds", "iron is the real best ore", "you need iron way more than diamonds"]},
+      {"by": "b", "chance": 0.55, "lines": ["true", "agreed", "buckets", "facts"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["nah", "diamonds though", "eh", "i'd take diamonds"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["see", "iron gang", "right"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "you'll see", "we'll agree to disagree"]}
+    ]},
+    {"id": "debate_creative", "tags": ["argument", "philosophy"], "leads": ["philosophy", "building", "argument"], "about": "survival", "turns": [
+      {"by": "a", "lines": ["survival is the only real way to play", "building in survival means more", "anything you build in survival counts double"]},
+      {"by": "b", "chance": 0.55, "lines": ["agreed", "true", "the grind makes it", "yeah"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["eh", "both are fine", "nah", "depends"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "earned, not given", "yeah"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "maybe", "to each their own"]}
+    ]},
+    {"id": "debate_torch_spam", "tags": ["argument", "decor"], "leads": ["decor", "caves", "argument"], "about": "torches", "turns": [
+      {"by": "a", "lines": ["you can never have too many torches", "more torches is always better", "torches everywhere, that's my style"]},
+      {"by": "b", "chance": 0.5, "lines": ["true", "safety first", "agreed", "yep"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["it looks messy", "nah", "lanterns though", "too many"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["see", "no mobs", "light it up"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["safe though", "fair", "eh"]}
+    ]},
+    {"id": "debate_mob_cute", "tags": ["argument", "mobs"], "leads": ["mobs", "argument", "jokes"], "about": "mobs", "turns": [
+      {"by": "a", "lines": ["spiders are cute", "slimes are adorable", "the warden is kind of cute", "baby zombies are cute"]},
+      {"by": "b", "chance": 0.4, "lines": ["kind of", "lol yes", "honestly", "i can see it"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["no", "absolutely not", "lol what", "nope"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["see", "lol", "finally"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fine", "lol", "i stand by it"]}
+    ]},
+    {"id": "debate_food_steak", "tags": ["argument", "food"], "leads": ["food", "argument", "farming"], "about": "food", "turns": [
+      {"by": "a", "lines": ["steak is the best food", "nothing beats cooked porkchop", "golden carrots are the best food"]},
+      {"by": "b", "chance": 0.55, "lines": ["true", "agreed", "yeah", "can't argue"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["bread though", "nah", "eh", "i'd pick something else"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "lol"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "your loss", "ok"]}
+    ]},
+    {"id": "debate_caves_vs_mines", "tags": ["argument", "caves"], "leads": ["caves", "mining", "argument"], "about": "caves", "turns": [
+      {"by": "a", "lines": ["caving is better than strip mining", "exploring caves beats digging tunnels", "strip mining is boring"]},
+      {"by": "b", "chance": 0.5, "lines": ["agreed", "true", "caves are fun", "yeah"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["it's safer though", "nah", "eh", "i like tunnels"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "cave gang"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "safer, sure", "ok"]}
+    ]},
+    {"id": "debate_rain_good", "needs": ["rain"], "tags": ["argument", "weather"], "leads": ["weather", "argument"], "about": "the rain", "turns": [
+      {"by": "a", "lines": ["rain is the best weather", "i love the rain", "rain makes the world prettier"]},
+      {"by": "b", "chance": 0.5, "lines": ["same", "true", "it's cozy", "agreed"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["i'd rather have sun", "nah", "it's wet", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", ":)", "see"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "lol", "ok"]}
+    ]},
+    {"id": "debate_trade_or_mine", "tags": ["argument", "trade"], "leads": ["trade", "mining", "argument"], "about": "trading", "turns": [
+      {"by": "a", "lines": ["trading is easier than mining", "why mine when you can trade", "villagers have everything you need"]},
+      {"by": "b", "chance": 0.45, "lines": ["true", "smart", "agreed", "yeah"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["mining is more fun", "nah", "eh", "i like digging"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "work smart"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "to each their own", "ok"]}
+    ]},
+    {"id": "debate_round_builds", "tags": ["argument", "building"], "leads": ["building", "decor", "argument"], "about": "round builds", "turns": [
+      {"by": "a", "lines": ["round towers look better than square ones", "circles are worth the effort", "square builds are boring"]},
+      {"by": "b", "chance": 0.5, "lines": ["agreed", "true", "yeah", "they do"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["too hard", "nah", "squares are fine", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "circle gang"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "they're hard, sure", "ok"]}
+    ]},
+    {"id": "debate_pets_worth", "tags": ["argument", "pets"], "leads": ["pets", "animals", "argument"], "about": "pets", "turns": [
+      {"by": "a", "lines": ["everyone should have a pet", "a pet makes the game better", "life's better with a dog"]},
+      {"by": "b", "chance": 0.6, "lines": ["agreed", "true", "yes", "so true"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["they always die", "nah", "too much work", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", ":)", "see"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "i get it", "ok"]}
+    ]},
+    {"id": "debate_speed_or_slow", "tags": ["argument", "plans"], "leads": ["plans", "philosophy", "argument"], "about": "pace", "turns": [
+      {"by": "a", "lines": ["taking it slow is the best way to play", "rushing ruins the game", "no need to hurry, ever"]},
+      {"by": "b", "chance": 0.55, "lines": ["agreed", "true", "yeah", "same"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["i like having goals", "nah", "eh", "sometimes"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "chill"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "goals are fine too", "ok"]}
+    ]},
+    {"id": "debate_end_boring", "tags": ["argument", "end"], "leads": ["end", "argument"], "about": "the end", "turns": [
+      {"by": "a", "lines": ["the end is boring", "the end is just endermen and void", "the end isn't worth it"]},
+      {"by": "b", "chance": 0.4, "lines": ["kinda true", "yeah", "agreed", "honestly"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["elytras though", "nah", "end cities are cool", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "lol"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "elytras are nice", "ok"]}
+    ]},
+    {"id": "debate_gravel", "tags": ["argument", "mining", "jokes"], "leads": ["mining", "jokes", "argument"], "about": "gravel", "turns": [
+      {"by": "a", "lines": ["gravel is the worst block", "gravel is useless", "i hate gravel more than creepers"]},
+      {"by": "b", "chance": 0.6, "lines": ["agreed", "true", "facts", "same"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["flint though", "nah", "roads", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "see", "gravel bad"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "flint, sure", "ok"]}
+    ]}
+  ]
+}

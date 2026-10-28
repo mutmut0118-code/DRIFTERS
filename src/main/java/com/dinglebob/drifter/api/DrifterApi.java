@@ -30,6 +30,7 @@ public final class DrifterApi {
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
+	private static final List<java.util.function.BiPredicate<DrifterEntity, DrifterGroups.Group>> JOIN_RULES = new ArrayList<>();
 
 	private DrifterApi() {
 	}
@@ -53,6 +54,19 @@ public final class DrifterApi {
 	/** A step of catch-up (Drifters away from players), run for each slice of time after Drifter's own. */
 	public static void registerCatchUpStep(CatchUpStep step) {
 		CATCH_UP.add(step);
+	}
+
+	/**
+	 * A say in who joins a group of friends: false and this Drifter doesn't join that group (it stays friends). Call at mod
+	 * start.
+	 */
+	public static void registerJoinRule(java.util.function.BiPredicate<DrifterEntity, DrifterGroups.Group> mayJoin) {
+		JOIN_RULES.add(mayJoin);
+	}
+
+	/** (Drifter's own use.) Every join rule lets it join this group. */
+	public static boolean mayJoin(DrifterEntity drifter, DrifterGroups.Group group) {
+		return JOIN_RULES.stream().allMatch(rule -> rule.test(drifter, group));
 	}
 
 	/** (Drifter's own use: the registered goals, made for one Drifter.) */
@@ -90,6 +104,43 @@ public final class DrifterApi {
 		}
 
 		return all;
+	}
+
+	/** A Bandit at heart: born one (its archetype), or one now (how it meets people: an outpost's, an encounter's). */
+	public static boolean bandit(DrifterEntity drifter) {
+		return drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.BANDIT
+			|| drifter.getSocial().disposition() == com.dinglebob.drifter.social.Disposition.BANDIT;
+	}
+
+	/**
+	 * Not a Bandit (a ready-made town's people; the user, 2026-10-28: "bandits shouldnt be in towns"): one born a Bandit
+	 * gets a personality of another kind, and its disposition is rolled again from it.
+	 */
+	public static void notABandit(DrifterEntity drifter) {
+		if (!bandit(drifter)) {
+			return;
+		}
+
+		com.dinglebob.drifter.personality.Archetype other;
+		do {
+			other = com.dinglebob.drifter.personality.Archetype.pick(drifter.getRandom());
+		} while (other == com.dinglebob.drifter.personality.Archetype.BANDIT);
+
+		if (drifter.getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.BANDIT) {
+			drifter.getPersonality().reroll(drifter.getRandom(), other);
+		}
+
+		drifter.getSocial().setDisposition(null);
+	}
+
+	/** A Bandit through and through (one a town threw out): it kills on sight again, by the setting. */
+	public static void turnBandit(DrifterEntity drifter) {
+		drifter.getSocial().setDisposition(com.dinglebob.drifter.social.Disposition.BANDIT);
+	}
+
+	/** (Debug.) A town's crook goes at it in a few seconds. */
+	public static void crookSoon(DrifterEntity drifter) {
+		com.dinglebob.drifter.social.CrookGoal.soon(drifter);
 	}
 
 	/**

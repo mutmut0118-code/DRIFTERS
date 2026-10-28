@@ -72,7 +72,10 @@ battle going on now. `DrifterApi.groupById(id)`: a group by its id, as events gi
 `DrifterApi.placeHouse(level, plan, corner, rotation, wood, front)`: (testing) the house put up at once.
 `DrifterApi.settleIn(drifter, house, sharedChests)`: it lives there from now on (home, bed, a chest of its own, no hut).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
-from now on; 0.22.29). `DrifterApi.setNoHut(drifter, true)`: it builds no hut (a town's people live in houses). `DrifterApi.formGroup(drifters,
+from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of
+another kind), `turnBandit(drifter)`, `registerJoinRule((drifter, group) -> mayJoin)` (0.22.30; checked when friends
+team up), `crookSoon(drifter)` (debug). `TownWork.crook(drifter)`, `othersChest(drifter, chest)`, `crime(drifter, kind,
+victim, where)`: a town's crook and what it did (0.22.30). `DrifterApi.setNoHut(drifter, true)`: it builds no hut (a town's people live in houses). `DrifterApi.formGroup(drifters,
 name)` and `DrifterApi.setTrustInDrifter(drifter, other, trust)`.
 
 Towns founded by their people (API 3):

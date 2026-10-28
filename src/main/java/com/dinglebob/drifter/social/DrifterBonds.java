@@ -154,7 +154,7 @@ public class DrifterBonds {
 			this.think("teamed up with " + them + ": \"" + group.name + "\"");
 			other.getMemory().thoughts().add(other.level().getGameTime(), "teamed up with " + me + ": \"" + group.name + "\"");
 			moveIn(follower, leader);
-		} else if (myGroup == null && !theirGroup.full()) {
+		} else if (myGroup == null && !theirGroup.full() && com.dinglebob.drifter.api.DrifterApi.mayJoin(this.drifter, theirGroup)) {
 			com.dinglebob.drifter.world.DrifterGroups.join(theirGroup, this.drifter.getUUID(), me);
 			this.think("joined " + them + "'s group \"" + theirGroup.name + "\"");
 			DrifterEntity leader = this.drifter.level() instanceof net.minecraft.server.level.ServerLevel level

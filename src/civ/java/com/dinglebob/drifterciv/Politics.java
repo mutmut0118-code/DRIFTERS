@@ -62,7 +62,9 @@ final class Politics {
 		// the town votes tomorrow morning (step 5, part 3).
 		if (town.leader == null || !group.members.contains(town.leader)) {
 			String gone = town.leader == null ? null : name(group, town.leader);
-			town.leader = group.members.contains(group.leader) ? group.leader : group.members.iterator().next();
+			// (Not its crook, if anyone else is there.)
+			town.leader = group.members.contains(group.leader) && !town.crooks.contains(group.leader) ? group.leader
+				: group.members.stream().filter(id -> !town.crooks.contains(id)).findFirst().orElse(group.members.iterator().next());
 			town.leaderSince = day;
 			Unrest.newLeader(town, null, town.leader);
 			if (gone == null) {
@@ -147,14 +149,15 @@ final class Politics {
 	 */
 	static void stand(MinecraftServer server, Town town, DrifterGroups.Group group, boolean leaderStands) {
 		town.candidates.clear();
-		if (leaderStands) {
+		// (Its crook never stands: a leader who turned crook isn't voted in again.)
+		if (leaderStands && !town.crooks.contains(town.leader)) {
 			town.candidates.add(town.leader);
 		}
 
 		List<DrifterEntity> keen = new ArrayList<>();
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
-			if (member != null && !id.equals(town.leader) && ambition(member) >= AMBITION) {
+			if (member != null && !id.equals(town.leader) && !town.crooks.contains(id) && ambition(member) >= AMBITION) {
 				keen.add(member);
 			}
 		}
@@ -162,7 +165,7 @@ final class Politics {
 		keen.sort(Comparator.comparingDouble(Politics::ambition).reversed());
 		keen.stream().limit(2).forEach(member -> town.candidates.add(member.getUUID()));
 		if (town.candidates.isEmpty()) {
-			group.members.stream().filter(id -> !id.equals(town.leader)).map(id -> TownFounding.loaded(server, id)).filter(java.util.Objects::nonNull)
+			group.members.stream().filter(id -> !id.equals(town.leader) && !town.crooks.contains(id)).map(id -> TownFounding.loaded(server, id)).filter(java.util.Objects::nonNull)
 				.max(Comparator.comparingDouble(Politics::ambition)).ifPresent(one -> town.candidates.add(one.getUUID()));
 		}
 
@@ -299,6 +302,12 @@ final class Politics {
 		if (!town.upheaval.isEmpty() && day - town.upheavalDay <= Unrest.TALKED_ABOUT) {
 			flags.add("after_" + town.upheaval);
 			words.put("old_leader", town.oldLeader.isEmpty() ? "the old leader" : town.oldLeader);
+		}
+
+		// (Its crook caught at it lately: step 5.)
+		if (!town.lastCrime.isEmpty() && day - town.lastCrimeDay <= 1 && !town.lastCrook.equals(drifter.getName().getString())) {
+			flags.add("crook_" + town.lastCrime);
+			words.put("crook", town.lastCrook);
 		}
 
 		if (day - town.leaderSince <= 1 && town.leaderSince > town.foundedDay) {

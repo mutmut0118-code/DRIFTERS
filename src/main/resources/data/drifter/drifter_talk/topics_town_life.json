@@ -1,0 +1,134 @@
+{
+  "_comment": "Topics batch three: everyday life in a town (needs a:in_town, so only Drifters living in a Drifter: Civilizations town bring these up; {a.town} is the town's name, {a.leader} its leader). Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "town_morning", "weight": 2, "needs": ["a:in_town", "morning"], "tags": ["town", "day"], "leads": ["town", "day", "plans"], "about": "the town", "turns": [
+      {"by": "a", "lines": ["{a.town} looks nice in the morning", "love waking up in {a.town}", "{a.town} is quiet this early", "morning, neighbor"]},
+      {"by": "b", "lines": ["it really does", "morning", "best part of the day", "yeah, before everyone gets busy"]},
+      {"by": "a", "chance": 0.5, "lines": ["what are you up to today", "gonna be a good day", "time to get to work"]}
+    ]},
+    {"id": "town_neighbors", "needs": ["a:in_town", "!strangers"], "tags": ["town", "gossip"], "leads": ["gossip", "town", "home"], "about": "the neighbors", "turns": [
+      {"by": "a", "lines": ["the neighbors were loud last night", "someone in {a.town} keeps leaving their door open", "my neighbor keeps borrowing my furnace", "i think my neighbor is digging under my house"]},
+      {"by": "b", "lines": ["lol classic", "say something to them", "that's town life", "ugh, annoying", "mine too honestly"]},
+      {"by": "a", "chance": 0.5, "lines": ["i'll let it go", "maybe i will", "it's fine i guess", "yeah"]}
+    ]},
+    {"id": "town_growing", "weight": 2, "needs": ["a:in_town"], "tags": ["town", "building"], "leads": ["building", "town", "plans"], "about": "{a.town}", "turns": [
+      {"by": "a", "lines": ["{a.town} is getting big", "remember when {a.town} was three huts", "there's a new house going up again", "this place grows every day"]},
+      {"by": "b", "lines": ["it really is", "i can barely find my way around now", "soon it'll be a city", "more people, more problems lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["proud of this place", "we need more roads", "and i was here first lol", "it's home"]}
+    ]},
+    {"id": "town_market_day", "needs": ["a:in_town", "day"], "tags": ["town", "trade"], "leads": ["trade", "town", "food"], "about": "the market", "turns": [
+      {"by": "a", "lines": ["the market's busy today", "prices at the market are crazy", "went to the market and bought nothing", "someone's selling iron cheap at the market"]},
+      {"by": "b", "lines": ["really?", "i should go", "the market is always like that", "nice", "lol same"]},
+      {"by": "a", "chance": 0.5, "lines": ["go before it's gone", "yeah", "worth a look", "trust me"]}
+    ]},
+    {"id": "town_job_talk", "needs": ["a:in_town", "!strangers"], "tags": ["town", "doing"], "leads": ["doing", "town", "plans"], "about": "work", "turns": [
+      {"by": "a", "lines": ["what do you do around here?", "do you like your job in {a.town}?", "who gave you that job?", "how's work going?"]},
+      {"by": "b", "lines": ["a bit of everything", "it's fine", "keeps me busy", "honestly, not much lol", "i'd rather be mining"]},
+      {"by": "a", "chance": 0.5, "lines": ["same here", "fair enough", "lol", "someone's got to do it"]}
+    ]},
+    {"id": "town_guard", "needs": ["a:in_town"], "tags": ["town", "danger"], "leads": ["danger", "mobs", "town"], "about": "keeping watch", "turns": [
+      {"by": "a", "lines": ["someone should keep watch at night", "i feel safer inside the town", "the walls won't keep everything out", "i heard zombies at the edge of town"]},
+      {"by": "b", "lines": ["true", "i'll take a shift", "not me, i need sleep", "more torches would help", "scary"]},
+      {"by": "a", "chance": 0.5, "lines": ["we'll figure it out", "stay safe", "yeah", "lights out is the worst"]}
+    ]},
+    {"id": "town_roads", "needs": ["a:in_town"], "tags": ["town", "building"], "leads": ["building", "town", "exploring"], "about": "the roads", "turns": [
+      {"by": "a", "lines": ["the roads here are a mess", "we need a proper road to the river", "who built that road, it goes nowhere", "i love walking the roads at sunset"]},
+      {"by": "b", "lines": ["lol yeah", "agreed", "someone should fix it", "i kind of like it", "roads are hard"]},
+      {"by": "a", "chance": 0.5, "lines": ["maybe i'll do it", "one day", "gravel is cheap", "lol"]}
+    ]},
+    {"id": "town_leader_mood", "needs": ["a:in_town", "!a:is_leader", "!strangers"], "tags": ["town", "politics"], "leads": ["politics", "town", "gossip"], "about": "{a.leader}", "turns": [
+      {"by": "a", "lines": ["have you seen {a.leader} today?", "what do you think {a.leader} is up to?", "is {a.leader} doing a good job?"]},
+      {"by": "b", "lines": ["no idea", "busy as always", "they're doing alright", "don't ask me", "i try not to think about it"]},
+      {"by": "a", "chance": 0.5, "lines": ["fair", "lol", "same", "we'll see"]}
+    ]},
+    {"id": "town_leader_tired", "needs": ["a:is_leader", "!strangers"], "tags": ["town", "politics", "feelings"], "leads": ["feelings", "politics", "town"], "about": "leading", "turns": [
+      {"by": "a", "lines": ["leading {a.town} is harder than it looks", "everyone wants something from me", "i didn't know being leader meant this much work", "some days i want to just go mining"]},
+      {"by": "b", "lines": ["you're doing fine", "that's the job", "want me to help?", "nobody said it'd be easy", "take a break"]},
+      {"by": "a", "chance": 0.5, "lines": ["thanks", "i'll manage", "maybe later", "i needed that"], "mark": ["agree"]}
+    ]},
+    {"id": "town_newcomer_wave", "needs": ["a:in_town", "strangers"], "tags": ["town", "greeting"], "leads": ["town", "places", "home"], "about": "{a.town}", "turns": [
+      {"by": "a", "lines": ["new to {a.town}?", "you just get here?", "haven't seen you around, you new?"]},
+      {"by": "b", "lines": ["just passing", "yeah, kind of", "maybe", "thinking about staying", "just looking"]},
+      {"by": "a", "lines": ["well, welcome", "the market's that way", "it's a good town", "don't steal anything lol"]}
+    ]},
+    {"id": "town_vs_wild", "needs": ["a:in_town"], "tags": ["town", "home", "argument"], "leads": ["home", "exploring", "town"], "about": "town life", "turns": [
+      {"by": "a", "lines": ["town life beats living alone", "i don't miss living out in the wild", "having neighbors is nice"]},
+      {"by": "b", "chance": 0.6, "lines": ["agreed", "it really is", "same", "never going back"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["i miss the quiet sometimes", "eh, it depends", "too many people for me", "not always"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "glad we're here", "lol yeah"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "i get that", "to each their own"]}
+    ]},
+    {"id": "town_name", "needs": ["a:in_town", "!strangers"], "tags": ["town", "jokes"], "leads": ["town", "jokes"], "about": "the name", "turns": [
+      {"by": "a", "lines": ["who even named this place {a.town}", "{a.town}. it's growing on me", "if i named the town it'd be way cooler", "{a.town} sounds like a real place now"]},
+      {"by": "b", "lines": ["lol", "it's fine", "what would you call it", "i like it", "too late now"]},
+      {"by": "a", "chance": 0.5, "lines": ["something with castle in it", "fair", "it's growing on me", "lol"]}
+    ]},
+    {"id": "town_supplies", "needs": ["a:in_town"], "tags": ["town", "storage"], "leads": ["storage", "trade", "town"], "about": "supplies", "turns": [
+      {"by": "a", "lines": ["the town's running low on wood", "we need more food stored up", "someone took all the coal again", "the town chest is empty"]},
+      {"by": "b", "lines": ["i can go get some", "not my problem lol", "again?", "who keeps doing that", "i'll look into it"]},
+      {"by": "a", "chance": 0.5, "lines": ["thanks", "lol", "someone has to", "we'll manage"]}
+    ]},
+    {"id": "town_night_lights", "needs": ["a:in_town", "night"], "tags": ["town", "night"], "leads": ["night", "town", "home"], "about": "the town at night", "turns": [
+      {"by": "a", "lines": ["the torches look nice from here", "the town looks cozy at night", "i like seeing all the windows lit up", "night in town isn't so bad"]},
+      {"by": "b", "lines": ["it really does", "yeah", "makes it feel safe", "almost pretty"]},
+      {"by": "a", "chance": 0.5, "lines": ["home", "better than a dirt hole", "yeah"]}
+    ]},
+    {"id": "town_groupmates_work", "needs": ["a:in_town", "a:groupmates"], "tags": ["town", "friends", "plans"], "leads": ["plans", "town", "building"], "about": "the work", "turns": [
+      {"by": "a", "lines": ["we should finish the wall this week", "let's build something for the town", "the town needs a farm, want to help?", "we make a good team, you know"]},
+      {"by": "b", "lines": ["i'm in", "sure", "after i finish this", "yeah let's", "sounds good"]},
+      {"by": "a", "chance": 0.5, "lines": ["nice", "teamwork", "let's go", "deal"], "mark": ["agree"]}
+    ]},
+    {"id": "town_taxes_grumble", "needs": ["a:in_town", "a:taxed"], "tags": ["town", "complaints", "politics"], "leads": ["politics", "complaints", "trade"], "about": "taxes", "turns": [
+      {"by": "a", "lines": ["just paid my taxes again", "the tax man came by", "there goes some of my iron to the town", "taxes again, already?"]},
+      {"by": "b", "lines": ["ugh", "same", "it goes to the walls at least", "that's the price of living here", "rough"]},
+      {"by": "a", "chance": 0.5, "lines": ["i guess", "still hurts", "lol", "yeah"]}
+    ]},
+    {"id": "town_crook_worry", "needs": ["a:in_town", "!strangers"], "tags": ["town", "danger", "gossip"], "leads": ["gossip", "danger", "storage"], "about": "thieves", "turns": [
+      {"by": "a", "lines": ["do you lock your chests?", "ever had something stolen here?", "you trust everyone in {a.town}?"]},
+      {"by": "b", "lines": ["not really", "once", "mostly", "i keep my stuff on me", "should i?"]},
+      {"by": "a", "chance": 0.5, "lines": ["just be careful", "you never know", "me neither", "i'm paranoid lol"]}
+    ]},
+    {"id": "town_festival", "needs": ["a:in_town"], "tags": ["town", "plans", "jokes"], "leads": ["plans", "town", "food"], "about": "a party", "turns": [
+      {"by": "a", "lines": ["we should have a party in {a.town}", "{a.town} needs a festival", "imagine a big feast in the square", "let's throw a party when the wall is done"]},
+      {"by": "b", "lines": ["i'd come", "with cake", "who's cooking", "lol yes", "fireworks?"]},
+      {"by": "a", "chance": 0.5, "lines": ["i'll bring cake", "everyone's invited", "fireworks for sure", "it'd be fun"]}
+    ]},
+    {"id": "town_left_behind", "needs": ["a:in_town", "!strangers"], "tags": ["town", "memories", "feelings"], "leads": ["memories", "home", "feelings"], "about": "before", "turns": [
+      {"by": "a", "lines": ["sometimes i miss my old place", "before {a.town} i lived in a hole", "do you ever think about before you came here?", "my first base was nothing like this"]},
+      {"by": "b", "lines": ["sometimes", "not really", "my old place was awful lol", "yeah", "this is better"]},
+      {"by": "a", "chance": 0.5, "lines": ["this is better though", "lol", "it was a different time", "funny how things go"]}
+    ]},
+    {"id": "town_rules", "needs": ["a:in_town"], "tags": ["town", "politics", "argument"], "leads": ["politics", "town", "argument"], "about": "the rules", "turns": [
+      {"by": "a", "lines": ["the town needs more rules", "rules are what keep {a.town} going", "no griefing should be rule one"]},
+      {"by": "b", "chance": 0.5, "lines": ["agreed", "yeah", "obviously", "for sure"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["we have enough rules", "nah", "i don't like rules", "eh"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["right", "someone tell {a.leader}", "exactly"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "you'll change your mind", "we'll see"]}
+    ]},
+    {"id": "town_good_spot", "needs": ["a:in_town"], "tags": ["town", "places"], "leads": ["places", "building", "town"], "about": "the spot", "turns": [
+      {"by": "a", "lines": ["they picked a good spot for {a.town}", "the river next to town is nice", "best view in {a.town} is from the hill", "whoever chose this place knew what they were doing"]},
+      {"by": "b", "lines": ["yeah, flat and safe", "the view is great", "true", "could be better", "i like it"]},
+      {"by": "a", "chance": 0.5, "lines": ["lucky us", "yeah", "home"]}
+    ]},
+    {"id": "town_quiet_day", "needs": ["a:in_town", "!night"], "tags": ["town", "day", "boredom"], "leads": ["boredom", "day", "town"], "about": "the day", "turns": [
+      {"by": "a", "lines": ["quiet day in town", "nothing ever happens here", "everyone's out working", "{a.town} is sleepy today"]},
+      {"by": "b", "lines": ["i like quiet", "boring", "enjoy it while it lasts", "yeah"]},
+      {"by": "a", "chance": 0.5, "lines": ["true", "lol", "i guess", "something will come up"]}
+    ]},
+    {"id": "town_visitors", "needs": ["a:in_town", "!strangers"], "tags": ["town", "players"], "leads": ["players", "town", "gossip"], "about": "visitors", "turns": [
+      {"by": "a", "lines": ["did you see the stranger near the gate?", "we get a lot of visitors lately", "a player walked through town earlier", "someone new was poking around the market"]},
+      {"by": "b", "lines": ["no, who?", "i saw them", "probably just passing", "hope they're friendly", "keep an eye on them"]},
+      {"by": "a", "chance": 0.5, "lines": ["no idea", "seemed fine", "i'll watch them", "yeah"]}
+    ]},
+    {"id": "town_build_next", "needs": ["a:in_town", "!strangers"], "tags": ["town", "building", "plans"], "leads": ["building", "plans", "decor"], "about": "the next build", "turns": [
+      {"by": "a", "lines": ["what should {a.town} build next?", "what does this town need most?", "if you could add one thing to {a.town}, what?"]},
+      {"by": "b", "lines": ["a tavern", "a bigger farm", "a library", "a tower to see far", "more walls", "a fountain"]},
+      {"by": "a", "chance": 0.5, "lines": ["good one", "i was thinking the same", "tell {a.leader}", "lol yes"]}
+    ]},
+    {"id": "town_proud", "needs": ["a:in_town", "friends"], "tags": ["town", "friends", "feelings"], "leads": ["feelings", "town", "friends"], "about": "us", "turns": [
+      {"by": "a", "lines": ["glad i ended up in {a.town} with you", "best part of {a.town} is the people", "we built something good here", "never thought i'd have a real home"]},
+      {"by": "b", "lines": ["me too", "same", "aw", "yeah, we did", "it's home now"]},
+      {"by": "a", "chance": 0.5, "lines": ["here's to more", "for real", ":)", "home"], "mark": ["agree"]}
+    ]}
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "_comment": "Topics batch three: more of each kind of player's own topics (a:voice_x: the one who brings it up is that kind; weight 3), and pairs of kinds (a:voice_x with b:voice_y). Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "casual_no_rush", "weight": 3, "needs": ["a:voice_casual"], "tags": ["feelings", "boredom"], "leads": ["boredom", "plans", "random"], "about": "taking it easy", "turns": [
+      {"by": "a", "lines": ["no rush today, just vibing", "i don't really have a plan and that's fine", "honestly i just log on to hang out", "some days i just walk around"]},
+      {"by": "b", "lines": ["same honestly", "must be nice", "i wish i could relax like that", "valid", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["try it sometime", "the game's not going anywhere", "chill is the way", "lol yeah"]}
+    ]},
+    {"id": "casual_side_quest", "weight": 3, "needs": ["a:voice_casual"], "tags": ["random", "exploring"], "leads": ["exploring", "random", "animals"], "about": "the plan", "turns": [
+      {"by": "a", "lines": ["i went out for wood and came back with a horse", "i keep getting distracted by everything", "started mining, ended up fishing", "i forget what i was doing like every five minutes"]},
+      {"by": "b", "lines": ["lol relatable", "classic", "that's how it goes", "same", "how"]},
+      {"by": "a", "chance": 0.5, "lines": ["no regrets", "the game's more fun that way", "lol"]}
+    ]},
+    {"id": "casual_pretty_spot", "weight": 3, "needs": ["a:voice_casual", "outside"], "tags": ["places", "biomes"], "leads": ["places", "biomes", "sky"], "about": "the view", "turns": [
+      {"by": "a", "lines": ["this spot is kinda pretty", "look at those trees", "i could just sit here for a bit", "sometimes i just stop and look around"]},
+      {"by": "b", "lines": ["yeah, it is", "true", "i never notice stuff like that", "nice", "you're right"]},
+      {"by": "a", "chance": 0.5, "lines": ["take a second", "worth it", "lol yeah"]}
+    ]},
+    {"id": "speedrunner_timer", "weight": 3, "needs": ["a:voice_speedrunner"], "tags": ["plans", "end"], "leads": ["end", "nether", "plans"], "about": "the clock", "turns": [
+      {"by": "a", "lines": ["we're wasting daylight", "do you know how many seconds that took", "i could have had blaze rods by now", "move faster, we're burning time"]},
+      {"by": "b", "lines": ["relax", "it's not a race", "lol ok", "sorry", "chill"]},
+      {"by": "a", "chance": 0.5, "lines": ["everything is a race", "sorry, habit", "fine", "lol"]}
+    ]},
+    {"id": "speedrunner_eyes", "weight": 3, "needs": ["a:voice_speedrunner"], "tags": ["end", "structures"], "leads": ["end", "structures", "mobs"], "about": "the stronghold", "turns": [
+      {"by": "a", "lines": ["i need more ender pearls", "how many eyes of ender do you have", "the stronghold can't be far", "i just want to see the end portal"]},
+      {"by": "b", "lines": ["none, sorry", "a couple", "you're obsessed", "why the rush", "good luck"]},
+      {"by": "a", "chance": 0.5, "lines": ["the dragon won't kill itself", "it's the goal", "i'll find them", "lol"]}
+    ]},
+    {"id": "nomad_cant_stay", "weight": 3, "needs": ["a:voice_nomad"], "tags": ["exploring", "feelings"], "leads": ["exploring", "places", "home"], "about": "moving on", "turns": [
+      {"by": "a", "lines": ["i'll probably move on soon", "i can't stay in one place too long", "the horizon keeps calling", "i get restless after a few days"]},
+      {"by": "b", "lines": ["where to next", "i'll miss you", "you always say that", "must be nice", "why not stay"]},
+      {"by": "a", "chance": 0.5, "lines": ["who knows", "wherever the road goes", "i'll come back sometime", "it's just how i am"]}
+    ]},
+    {"id": "nomad_saw_things", "weight": 3, "needs": ["a:voice_nomad"], "tags": ["exploring", "places", "brag"], "leads": ["places", "biomes", "structures"], "about": "the road", "turns": [
+      {"by": "a", "lines": ["i've seen a mountain made of ice", "i walked through a jungle for three days once", "out there there's a desert that never ends", "i once slept on a mushroom island"]},
+      {"by": "b", "lines": ["no way", "cool", "take me next time", "i've never been that far", "jealous"]},
+      {"by": "a", "chance": 0.5, "lines": ["the world is huge", "you should see it", "maybe i will", "it's worth it"]}
+    ]},
+    {"id": "hoarder_cant_toss", "weight": 3, "needs": ["a:voice_hoarder"], "tags": ["storage", "jokes"], "leads": ["storage", "building"], "about": "my stuff", "turns": [
+      {"by": "a", "lines": ["i have a chest just for rotten flesh", "i can't throw anything away", "i might need that dirt someday", "i'm on my fourth storage room"]},
+      {"by": "b", "lines": ["that's a problem", "lol why", "you need help", "relatable", "throw it out"]},
+      {"by": "a", "chance": 0.5, "lines": ["never", "you'll see when you need it", "i'm fine", "lol"]}
+    ]},
+    {"id": "hoarder_sorting", "weight": 3, "needs": ["a:voice_hoarder"], "tags": ["storage", "plans"], "leads": ["storage", "redstone", "crafting"], "about": "sorting", "turns": [
+      {"by": "a", "lines": ["i spent all day sorting chests", "i label every chest now", "my storage has a system, kind of", "i should build a sorting machine"]},
+      {"by": "b", "lines": ["sounds relaxing actually", "nerd lol", "show me sometime", "i just throw stuff in", "nice"]},
+      {"by": "a", "chance": 0.5, "lines": ["it's an art", "anytime", "lol", "one day"]}
+    ]},
+    {"id": "hermit_people", "weight": 3, "needs": ["a:voice_hermit"], "tags": ["feelings", "philosophy"], "leads": ["philosophy", "home", "feelings"], "about": "people", "turns": [
+      {"by": "a", "lines": ["people are tiring", "i'm only talking because it's you", "the quiet is underrated", "i don't usually do this"]},
+      {"by": "b", "lines": ["fair", "i'll take that as a compliment", "i get it", "want me to go?", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["no, it's fine", "you're alright", "mm", "stay a bit"]}
+    ]},
+    {"id": "hermit_hideout", "weight": 3, "needs": ["a:voice_hermit"], "tags": ["home", "places"], "leads": ["home", "caves", "building"], "about": "my place", "turns": [
+      {"by": "a", "lines": ["nobody knows where i live", "my place is hidden for a reason", "i like a home nobody can find", "i built behind a waterfall once"]},
+      {"by": "b", "lines": ["smart", "not even me?", "creepy lol", "cool", "tell me"]},
+      {"by": "a", "chance": 0.5, "lines": ["maybe someday", "no", "it's better that way", "lol"]}
+    ]},
+    {"id": "pvp_duel", "weight": 3, "needs": ["a:voice_pvp_sweat", "!strangers"], "tags": ["fighting", "brag"], "leads": ["fighting", "weapons", "gear"], "about": "a duel", "turns": [
+      {"by": "a", "lines": ["1v1 me sometime", "i bet i could beat you", "my combo game is clean", "you'd last ten seconds"]},
+      {"by": "b", "lines": ["pass", "you're on", "lol no", "bring it", "keep dreaming"]},
+      {"by": "a", "chance": 0.5, "lines": ["scared?", "anytime", "lol", "we'll see"]}
+    ]},
+    {"id": "pvp_crit", "weight": 3, "needs": ["a:voice_pvp_sweat"], "tags": ["fighting", "weapons"], "leads": ["weapons", "fighting", "mobs"], "about": "fighting", "turns": [
+      {"by": "a", "lines": ["always jump before you swing", "time your hits, don't spam", "shields are for people who can't dodge", "strafe, always strafe"]},
+      {"by": "b", "lines": ["noted", "i just click", "whatever works", "thanks coach", "ok"]},
+      {"by": "a", "chance": 0.5, "lines": ["you'll thank me", "practice", "lol"]}
+    ]},
+    {"id": "bandit_easy_marks", "weight": 3, "needs": ["a:voice_bandit"], "tags": ["gossip", "danger"], "leads": ["gossip", "trade", "danger"], "about": "nothing", "turns": [
+      {"by": "a", "lines": ["some people leave their chests wide open", "you'd be surprised what people leave lying around", "that house up the hill has no door", "i'm just saying, nobody's watching"]},
+      {"by": "b", "lines": ["what are you planning", "don't", "uh huh", "i didn't hear that", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["nothing", "just saying", "relax", "lol"]}
+    ]},
+    {"id": "bandit_fair_game", "weight": 3, "needs": ["a:voice_bandit"], "tags": ["philosophy", "argument"], "leads": ["argument", "philosophy"], "about": "fair game", "turns": [
+      {"by": "a", "lines": ["if you leave it out, it's fair game", "finders keepers", "everything belongs to whoever holds it"]},
+      {"by": "b", "chance": 0.3, "lines": ["kind of true", "lol fair", "can't argue with that"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["that's not how it works", "no", "that's stealing", "sketchy"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["see", "you get it", "lol"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["agree to disagree", "whatever", "lol relax"]}
+    ]},
+    {"id": "helper_check_in", "weight": 3, "needs": ["a:voice_helper", "!strangers"], "tags": ["help", "friends"], "leads": ["help", "health", "food"], "about": "you", "turns": [
+      {"by": "a", "lines": ["do you have enough food?", "need anything?", "are you set for the night?", "how's your gear holding up?"]},
+      {"by": "b", "lines": ["i'm good, thanks", "could use some bread", "i'm fine", "you're too nice", "maybe"]},
+      {"by": "a", "chance": 0.5, "lines": ["just ask anytime", "of course", "i've got extra", "good"]}
+    ]},
+    {"id": "helper_built_for", "weight": 3, "needs": ["a:voice_helper"], "tags": ["help", "building"], "leads": ["building", "help", "friends"], "about": "helping", "turns": [
+      {"by": "a", "lines": ["i helped someone build their farm today", "i left some torches by the cave for others", "i like fixing things for people", "i patched up a road someone dug through"]},
+      {"by": "b", "lines": ["that's nice of you", "you're a saint", "why though", "nice", "the world needs more of that"]},
+      {"by": "a", "chance": 0.5, "lines": ["it feels good", "someone has to", "it's nothing", ":)"]}
+    ]},
+    {"id": "newbie_scared", "weight": 3, "needs": ["a:voice_newbie"], "tags": ["mobs", "night", "feelings"], "leads": ["mobs", "night", "advice"], "about": "the night", "turns": [
+      {"by": "a", "lines": ["the noises at night scare me", "i still panic when i hear a creeper", "i don't know how you go in caves", "everything wants to kill me"]},
+      {"by": "b", "lines": ["you get used to it", "same honestly", "stay near torches", "it gets easier", "lol yeah"]},
+      {"by": "a", "chance": 0.5, "lines": ["i hope so", "thanks", "ok", "i'll try"]}
+    ]},
+    {"id": "newbie_proud", "weight": 3, "needs": ["a:voice_newbie"], "tags": ["brag", "crafting"], "leads": ["crafting", "tools", "mining"], "about": "my first", "turns": [
+      {"by": "a", "lines": ["i made my first iron pickaxe!", "i survived a whole night alone!", "i finally figured out the furnace", "i found coal all by myself"]},
+      {"by": "b", "lines": ["nice!", "proud of you", "look at you", "congrats", "now you're getting it"]},
+      {"by": "a", "chance": 0.5, "lines": [":D", "thanks!", "next is diamonds", "i'm learning"]}
+    ]},
+    {"id": "builder_detail", "weight": 3, "needs": ["a:voice_builder"], "tags": ["building", "decor"], "leads": ["decor", "building"], "about": "details", "turns": [
+      {"by": "a", "lines": ["it's all in the details", "trapdoors make everything better", "a flat wall is a crime", "add depth, always add depth"]},
+      {"by": "b", "lines": ["i'll remember that", "my walls are flat lol", "true", "teach me", "ok fancy"]},
+      {"by": "a", "chance": 0.5, "lines": ["it changes everything", "try it", "anytime", "lol"]}
+    ]},
+    {"id": "miner_ore_sense", "weight": 3, "needs": ["a:voice_miner"], "tags": ["mining", "ore"], "leads": ["ore", "caves", "diamonds"], "about": "ore", "turns": [
+      {"by": "a", "lines": ["i can smell diamonds", "there's iron behind this wall, i know it", "y minus fifty-eight, trust me", "lava means diamonds nearby"]},
+      {"by": "b", "lines": ["sure you can", "lol", "prove it", "teach me that", "how"]},
+      {"by": "a", "chance": 0.5, "lines": ["years of practice", "you'll see", "lol", "follow me"]}
+    ]},
+    {"id": "homebody_tea", "weight": 3, "needs": ["a:voice_homebody"], "tags": ["home", "food"], "leads": ["food", "home", "farming"], "about": "home", "turns": [
+      {"by": "a", "lines": ["nothing beats coming home to a warm furnace", "i made soup today", "i rearranged my furniture again", "i spent the whole day at home and loved it"]},
+      {"by": "b", "lines": ["cozy", "sounds nice", "lol homebody", "invite me next time", "jealous"]},
+      {"by": "a", "chance": 0.5, "lines": ["you're always welcome", "it's the best", ":)", "anytime"]}
+    ]},
+    {"id": "kinds_miner_builder_deal", "weight": 3, "needs": ["a:voice_builder", "b:voice_miner"], "tags": ["building", "mining", "trade"], "leads": ["trade", "building", "mining"], "about": "a deal", "turns": [
+      {"by": "a", "lines": ["can you get me some deepslate?", "i need a ton of stone for my build", "you mine, i build, deal?"]},
+      {"by": "b", "lines": ["for a price", "sure, i have stacks", "how much", "deal", "i'll bring some"]},
+      {"by": "a", "chance": 0.5, "lines": ["perfect", "you're the best", "deal", "i'll pay you back"], "mark": ["agree"]}
+    ]},
+    {"id": "kinds_speed_vs_chill", "weight": 3, "needs": ["a:voice_speedrunner", "b:voice_casual"], "tags": ["argument", "plans"], "leads": ["plans", "argument"], "about": "pace", "turns": [
+      {"by": "a", "lines": ["how are you so slow", "do you even have a goal", "you've been here all day doing nothing"]},
+      {"by": "b", "lines": ["i'm enjoying it", "it's a game, relax", "nope", "and?", "lol"]},
+      {"by": "a", "lines": ["i don't get you", "fine, fair", "you do you", "one day i'll understand"]}
+    ]},
+    {"id": "kinds_helper_newbie", "weight": 3, "needs": ["a:voice_helper", "b:voice_newbie"], "tags": ["help", "advice"], "leads": ["advice", "help", "crafting"], "about": "you", "turns": [
+      {"by": "a", "lines": ["if you get stuck, come find me", "here's a tip: beds skip the night", "here's a tip: sneak near edges", "here's a tip: eat before you fight"]},
+      {"by": "b", "lines": ["thank you!", "really?", "ok!", "you're so nice", "noted"]},
+      {"by": "a", "chance": 0.5, "lines": ["anytime", "we all started somewhere", "you're doing great"]}
+    ]},
+    {"id": "kinds_hermit_casual", "weight": 3, "needs": ["a:voice_casual", "b:voice_hermit"], "tags": ["friends", "feelings"], "leads": ["feelings", "home"], "about": "you", "turns": [
+      {"by": "a", "lines": ["you don't talk much huh", "you should come out more", "you're always alone, you ok?"]},
+      {"by": "b", "lines": ["i'm fine", "i like it", "mm", "maybe", "people are a lot"]},
+      {"by": "a", "chance": 0.5, "lines": ["fair", "offer stands", "ok, no pressure", "cool"]}
+    ]},
+    {"id": "kinds_bandit_helper", "weight": 3, "needs": ["a:voice_helper", "b:voice_bandit"], "tags": ["argument", "philosophy"], "leads": ["philosophy", "argument"], "about": "you", "turns": [
+      {"by": "a", "lines": ["you could just ask for things, you know", "you'd have more friends if you didn't steal", "it's easier to trade than to take"]},
+      {"by": "b", "lines": ["where's the fun in that", "maybe", "who said i steal", "lol", "nah"]},
+      {"by": "a", "chance": 0.5, "lines": ["just think about it", "the offer stands", "sigh", "ok"]}
+    ]},
+    {"id": "kinds_hoarder_nomad", "weight": 3, "needs": ["a:voice_hoarder", "b:voice_nomad"], "tags": ["storage", "exploring"], "leads": ["storage", "exploring"], "about": "stuff", "turns": [
+      {"by": "a", "lines": ["how do you live with one inventory", "where do you keep all your stuff", "don't you miss having chests"]},
+      {"by": "b", "lines": ["i don't need much", "on my back", "nope", "less stuff, less worry", "an ender chest"]},
+      {"by": "a", "lines": ["i couldn't do it", "wild", "i respect it", "that sounds terrifying"]}
+    ]}
+  ]
+}

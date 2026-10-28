@@ -1,0 +1,137 @@
+{
+  "_comment": "Topics batch three: crafting, redstone, potions, enchanting, armor and weapons. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "redstone_confusing", "tags": ["redstone", "complaints"], "leads": ["redstone", "farming", "building"], "about": "redstone", "turns": [
+      {"by": "a", "lines": ["redstone makes my head hurt", "i don't understand repeaters at all", "i built a redstone thing and it just blinks", "how do people make computers out of redstone"]},
+      {"by": "b", "lines": ["same", "it's not that bad", "watch a tutorial lol", "magic", "no one knows"]},
+      {"by": "a", "chance": 0.5, "lines": ["i'll stick to levers", "maybe", "lol", "one day"]}
+    ]},
+    {"id": "redstone_lamp", "tags": ["redstone", "decor"], "leads": ["decor", "redstone", "building"], "about": "lamps", "turns": [
+      {"by": "a", "lines": ["redstone lamps look so good", "i want lights that turn on at night", "daylight sensors are underrated", "a lamp with a lever is all the redstone i need"]},
+      {"by": "b", "lines": ["they do", "fancy", "you need glowstone though", "nice idea", "lol same"]},
+      {"by": "a", "chance": 0.5, "lines": ["worth it", "i'll get some", "yeah"]}
+    ]},
+    {"id": "piston_fun", "tags": ["redstone", "building"], "leads": ["redstone", "building", "jokes"], "about": "pistons", "turns": [
+      {"by": "a", "lines": ["i made a hidden door with pistons", "pistons are the best block", "i just watched pistons push stuff for an hour", "a sticky piston is all you need"]},
+      {"by": "b", "lines": ["nice", "show me", "lol ok", "they're fun", "i never use them"]},
+      {"by": "a", "chance": 0.5, "lines": ["you should", "anytime", "so satisfying"]}
+    ]},
+    {"id": "hopper_chain", "tags": ["redstone", "storage"], "leads": ["storage", "farming", "redstone"], "about": "hoppers", "turns": [
+      {"by": "a", "lines": ["hoppers are so expensive", "i put hoppers under my farm", "five iron for one hopper, come on", "i need so many hoppers"]},
+      {"by": "b", "lines": ["worth it though", "yeah", "true", "iron farm time", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["i guess", "so much iron", "one day"]}
+    ]},
+    {"id": "potion_favorite", "tags": ["potions", "argument"], "leads": ["potions", "nether", "fighting"], "about": "potions", "turns": [
+      {"by": "a", "lines": ["what's your favorite potion?", "which potion would you drink every day?", "best potion, go"]},
+      {"by": "b", "lines": ["fire resistance", "swiftness", "night vision", "healing, obviously", "strength", "invisibility"]},
+      {"by": "a", "chance": 0.5, "lines": ["good choice", "i'd pick the same", "interesting", "really?"]}
+    ]},
+    {"id": "brewing_hard", "tags": ["potions", "nether"], "leads": ["nether", "potions", "mobs"], "about": "brewing", "turns": [
+      {"by": "a", "lines": ["brewing needs so much nether stuff", "i need blaze powder to brew anything", "nether wart is the hardest part", "i keep forgetting what makes what"]},
+      {"by": "b", "lines": ["the fortress has it", "i'll help you", "write it down", "yeah", "brewing is a pain"]},
+      {"by": "a", "chance": 0.5, "lines": ["thanks", "ugh", "maybe", "i'll figure it out"]}
+    ]},
+    {"id": "splash_mistake", "tags": ["potions", "jokes"], "leads": ["jokes", "potions"], "about": "splash potions", "turns": [
+      {"by": "a", "lines": ["i threw a harming potion at my own feet", "i splashed poison on my cows by accident", "drank a weakness potion before a fight", "i mixed up my potions again"]},
+      {"by": "b", "lines": ["lmao", "how", "classic", "label them", "rip"]},
+      {"by": "a", "chance": 0.5, "lines": ["never again", "it was dark", "lol", "i know"]}
+    ]},
+    {"id": "enchant_luck", "tags": ["enchanting", "complaints"], "leads": ["enchanting", "gear", "tools"], "about": "enchanting", "turns": [
+      {"by": "a", "lines": ["i got bane of arthropods again", "the enchanting table hates me", "thirty levels for unbreaking one", "the enchanting table gave me junk again"]},
+      {"by": "b", "lines": ["rng", "classic", "nice", "it happens", "try again"]},
+      {"by": "a", "chance": 0.5, "lines": ["one more try", "ugh", "lol", "yeah"]}
+    ]},
+    {"id": "bookshelf_count", "tags": ["enchanting", "building"], "leads": ["building", "enchanting", "trees"], "about": "bookshelves", "turns": [
+      {"by": "a", "lines": ["you need fifteen bookshelves, right?", "do bookshelves need to be two high?", "how many bookshelves do you have?"]},
+      {"by": "b", "lines": ["fifteen", "yeah, i think", "not enough lol", "a few", "no idea"]},
+      {"by": "a", "chance": 0.5, "lines": ["so many books", "lots of cows then", "ok", "thanks"]}
+    ]},
+    {"id": "xp_farming", "tags": ["enchanting", "mobs"], "leads": ["mobs", "enchanting", "farming"], "about": "xp", "turns": [
+      {"by": "a", "lines": ["where do you get your xp?", "what's the best way to get levels?", "how do you farm xp?"]},
+      {"by": "b", "lines": ["mob farm", "mining coal", "furnaces", "fishing", "trading with villagers"]},
+      {"by": "a", "chance": 0.5, "lines": ["good idea", "slow though", "i'll try it", "huh, never thought of that"]}
+    ]},
+    {"id": "armor_trims", "tags": ["armor", "decor"], "leads": ["armor", "gear", "structures"], "about": "armor", "turns": [
+      {"by": "a", "lines": ["i want armor that looks cool", "armor trims are the best fashion", "my armor doesn't even match", "leather armor dyed blue looks great"]},
+      {"by": "b", "lines": ["fashion first", "same", "who cares if it works", "lol", "i like mine"]},
+      {"by": "a", "chance": 0.5, "lines": ["drip matters", "it does", "lol", "yeah"]}
+    ]},
+    {"id": "armor_choice", "tags": ["armor", "argument"], "leads": ["armor", "gear"], "about": "armor", "turns": [
+      {"by": "a", "lines": ["full iron is all you need", "iron armor is fine for everything", "diamond armor isn't worth it early"]},
+      {"by": "b", "chance": 0.5, "lines": ["true", "agreed", "yeah", "makes sense"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["i'd rather have diamond", "nah", "depends", "not for the nether"], "mark": ["disagree"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["see", "save the diamonds", "right"]},
+      {"by": "a", "if": ["t:disagree"], "lines": ["fair", "suit yourself", "we'll see"]}
+    ]},
+    {"id": "armor_damaged", "needs": ["a:hurt"], "tags": ["armor", "complaints"], "leads": ["armor", "fighting", "crafting"], "about": "my armor", "turns": [
+      {"by": "a", "lines": ["my armor is almost broken", "my chestplate is falling apart", "i need to fix my armor", "this armor took a beating"]},
+      {"by": "b", "lines": ["anvil time", "make new stuff", "need iron?", "rough", "that's what it's for"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "maybe", "later", "thanks"]}
+    ]},
+    {"id": "weapon_named", "tags": ["weapons", "jokes"], "leads": ["weapons", "jokes", "enchanting"], "about": "my sword", "turns": [
+      {"by": "a", "lines": ["i named my sword", "my sword has a name now", "i named my pickaxe", "my bow has a name now"]},
+      {"by": "b", "lines": ["what's its name", "lol", "nerd", "mine's named bob", "cute"]},
+      {"by": "a", "chance": 0.5, "lines": ["secret", "lol", "don't laugh", "it's a good one"]}
+    ]},
+    {"id": "bow_or_crossbow", "tags": ["weapons", "argument"], "leads": ["weapons", "fighting", "mobs"], "about": "bows", "turns": [
+      {"by": "a", "lines": ["bow or crossbow?", "do you use a bow or a crossbow?", "crossbows, are they any good?"]},
+      {"by": "b", "lines": ["bow", "crossbow", "neither, i melee", "bow with power", "crossbow with multishot"]},
+      {"by": "a", "chance": 0.5, "lines": ["same", "interesting", "fair", "i'm a bow person"]}
+    ]},
+    {"id": "mace_talk", "tags": ["weapons", "fighting"], "leads": ["weapons", "fighting", "structures"], "about": "the mace", "turns": [
+      {"by": "a", "lines": ["have you seen a mace?", "do you know how to get a mace?", "ever hit something with a mace?"]},
+      {"by": "b", "lines": ["no", "trial chambers", "once", "heard about it", "what's a mace"]},
+      {"by": "a", "chance": 0.5, "lines": ["i want one", "jumping and smashing, sounds fun", "one day", "lol"]}
+    ]},
+    {"id": "arrows_count", "tags": ["weapons", "crafting"], "leads": ["crafting", "weapons", "animals"], "about": "arrows", "turns": [
+      {"by": "a", "lines": ["i'm always out of arrows", "i need more feathers", "i should start a chicken farm for arrows", "skeleton arrows are free arrows"]},
+      {"by": "b", "lines": ["same", "chickens", "flint and sticks", "infinity", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "good idea", "one day", "true"]}
+    ]},
+    {"id": "crafting_table_spam", "tags": ["crafting", "jokes"], "leads": ["crafting", "jokes"], "about": "crafting tables", "turns": [
+      {"by": "a", "lines": ["i leave crafting tables everywhere", "there's a crafting table in every cave i've been in", "i place a new crafting table every time"]},
+      {"by": "b", "lines": ["lol same", "i do that too", "litter", "classic"]},
+      {"by": "a", "chance": 0.5, "lines": ["it's tradition", "breadcrumbs", "lol"]}
+    ]},
+    {"id": "smithing_talk", "tags": ["crafting", "gear"], "leads": ["gear", "nether", "armor"], "about": "the smithing table", "turns": [
+      {"by": "a", "lines": ["you need a template for netherite now", "the smithing table is confusing", "i finally used a smithing table", "netherite upgrades cost so much"]},
+      {"by": "b", "lines": ["yeah, bastions", "i know", "nice", "worth it", "ugh"]},
+      {"by": "a", "chance": 0.5, "lines": ["one day", "lol", "yeah"]}
+    ]},
+    {"id": "furnace_fuel", "tags": ["crafting", "argument"], "leads": ["crafting", "mining", "trees"], "about": "fuel", "turns": [
+      {"by": "a", "lines": ["what fuel do you use?", "coal or charcoal?", "best furnace fuel?"]},
+      {"by": "b", "lines": ["coal", "charcoal", "lava bucket", "kelp blocks", "whatever i have"]},
+      {"by": "a", "chance": 0.5, "lines": ["fair", "same", "lava is the best", "kelp is smart"]}
+    ]},
+    {"id": "tool_durability", "tags": ["tools", "complaints"], "leads": ["tools", "enchanting", "crafting"], "about": "tools", "turns": [
+      {"by": "a", "lines": ["my pickaxe just broke mid-vein", "tools break so fast", "i always forget to check durability", "my axe broke chopping one tree"]},
+      {"by": "b", "lines": ["unbreaking", "rip", "mending", "carry a spare", "classic"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "i know", "next time", "lol"]}
+    ]},
+    {"id": "shears_use", "tags": ["tools", "animals"], "leads": ["animals", "tools", "plants"], "about": "shears", "turns": [
+      {"by": "a", "lines": ["shears are underrated", "i keep shears for leaves", "shearing sheep is relaxing", "i forgot shears exist"]},
+      {"by": "b", "lines": ["true", "never use them", "lol", "yeah"]},
+      {"by": "a", "chance": 0.5, "lines": ["try it", "lol", "wool is useful"]}
+    ]},
+    {"id": "compass_clock", "tags": ["tools", "exploring"], "leads": ["exploring", "places"], "about": "finding my way", "turns": [
+      {"by": "a", "lines": ["always carry a compass", "i keep getting lost without a map", "i should make a clock for caves", "i never know what time it is underground"]},
+      {"by": "b", "lines": ["true", "same", "i just use the sun", "coordinates", "yeah"]},
+      {"by": "a", "chance": 0.5, "lines": ["good call", "lol", "yeah"]}
+    ]},
+    {"id": "anvil_broke", "tags": ["crafting", "complaints"], "leads": ["enchanting", "crafting"], "about": "the anvil", "turns": [
+      {"by": "a", "lines": ["my anvil broke again", "anvils break way too fast", "too expensive, the anvil says"]},
+      {"by": "b", "lines": ["ugh", "classic", "iron time", "rip", "too expensive is the worst"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "always", "i hate that"]}
+    ]},
+    {"id": "loom_banners", "tags": ["crafting", "decor"], "leads": ["decor", "building"], "about": "banners", "turns": [
+      {"by": "a", "lines": ["i made a banner for my house", "i made a flag for my base", "i spent an hour at the loom making a banner", "finally finished my banner"]},
+      {"by": "b", "lines": ["show me", "nice", "what's on it", "i suck at banners", "cool"]},
+      {"by": "a", "chance": 0.5, "lines": ["it's a creeper face", "come see", "lol", "it's a secret"]}
+    ]},
+    {"id": "map_wall", "tags": ["tools", "decor", "exploring"], "leads": ["exploring", "decor", "places"], "about": "maps", "turns": [
+      {"by": "a", "lines": ["i'm making a map wall", "i filled in a whole map today", "maps in item frames look great", "i want to map everything"]},
+      {"by": "b", "lines": ["nice", "that's a lot of walking", "cool", "show me", "nerd lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["almost done", "it's worth it", "lol"]}
+    ]}
+  ]
+}

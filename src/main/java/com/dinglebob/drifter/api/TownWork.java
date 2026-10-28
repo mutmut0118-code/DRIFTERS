@@ -93,6 +93,26 @@ public interface TownWork {
 	default void arrested(DrifterEntity guard, java.util.UUID player, int paid, boolean refused) {
 	}
 
+	/**
+	 * A Bandit living in the town (the user, 2026-10-28: "if they are in a town they should be commiting several crimes"):
+	 * every so often it steals or picks a fight ({@code CrookGoal}), and tells the town with {@link #crime}.
+	 */
+	default boolean crook(DrifterEntity drifter) {
+		return false;
+	}
+
+	/** This chest is someone else's in the town (the town's store or till, a neighbour's): a crook's to rob. */
+	default boolean othersChest(DrifterEntity drifter, BlockPos chest) {
+		return false;
+	}
+
+	/**
+	 * The crook did it: {@code kind} "theft" (from the chest at {@code where}) or "fight" (it went for {@code victim}). The
+	 * town judges by which of its people saw it.
+	 */
+	default void crime(DrifterEntity drifter, String kind, @org.jetbrains.annotations.Nullable DrifterEntity victim, BlockPos where) {
+	}
+
 	/** How its town stands with this player: "exiled" (its people drive them out of the town), or null. */
 	@org.jetbrains.annotations.Nullable
 	default String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {

@@ -2405,6 +2405,93 @@
           ]
         }
       ]
+    },
+    {
+      "id": "crook_theft_talk",
+      "weight": 4,
+      "needs": [
+        "a:crook_theft",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.crook} got caught stealing again",
+            "lock your chests. {a.crook}'s at it",
+            "did you hear what {a.crook} took?",
+            "{a.crook} was in someone's chest again",
+            "i don't trust {a.crook} one bit"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "of course they did",
+            "i'm keeping my stuff on me",
+            "why do we even let them stay",
+            "one more time and they're out",
+            "classic {b.crook}"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crook_fight_talk",
+      "weight": 4,
+      "needs": [
+        "a:crook_fight",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.crook} started another fight",
+            "{a.crook} just went at someone for no reason",
+            "did you see {a.crook} swinging at people?",
+            "stay away from {a.crook} today"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "what is wrong with them",
+            "they're gonna hurt someone for real",
+            "the guards should do something",
+            "ugh. again?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crook_gone_talk",
+      "weight": 5,
+      "needs": [
+        "a:crook_thrown_out",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.crook}'s gone. we threw them out",
+            "no more {a.crook}!",
+            "{a.crook} won't be stealing from us anymore",
+            "finally got rid of {a.crook}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "good riddance",
+            "about time",
+            "they'll be back though. watch the woods",
+            "i'm locking my door anyway",
+            "W"
+          ]
+        }
+      ]
     }
   ]
 }

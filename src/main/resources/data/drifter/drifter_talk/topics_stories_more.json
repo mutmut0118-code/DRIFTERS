@@ -1,0 +1,112 @@
+{
+  "_comment": "Topics batch three: more stories told in parts, and two in three parts (part two names part three in its own 'next'). Every later part is a follow_up tagged only story_part. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "story_horse", "tags": ["stories", "animals"], "leads": ["animals", "exploring"], "next": ["story_horse_2"], "about": "the horse", "turns": [
+      {"by": "a", "lines": ["did i ever tell you about my first horse", "so i finally tamed a horse once", "story time: me and a horse", "the best horse i ever had, listen"]},
+      {"by": "b", "lines": ["no, go on", "aw", "tell me", "lol ok"]}
+    ]},
+    {"id": "story_horse_2", "follow_up": true, "tags": ["story_part"], "leads": ["animals", "jokes", "feelings"], "about": "the horse", "turns": [
+      {"by": "a", "lines": ["it threw me off like ten times first", "rode it straight into a ravine", "it was so fast, i named it lightning", "then it wandered off while i was mining"]},
+      {"by": "b", "lines": ["lol", "rip", "classic horse", "nooo"]},
+      {"by": "a", "chance": 0.6, "lines": ["fences. always fences.", "i still think about it", "never again", "found it a week later eating grass"]}
+    ]},
+    {"id": "story_trident", "tags": ["stories", "ocean", "mobs"], "leads": ["ocean", "mobs"], "next": ["story_trident_2"], "about": "the trident", "turns": [
+      {"by": "a", "lines": ["want to hear how i almost got a trident", "so there was this drowned with a trident", "i went hunting drowned once, for a trident", "ok, trident story"]},
+      {"by": "b", "lines": ["almost?", "oh no", "go on", "and?"]}
+    ]},
+    {"id": "story_trident_2", "follow_up": true, "tags": ["story_part"], "leads": ["ocean", "weapons", "complaints"], "about": "the trident", "turns": [
+      {"by": "a", "lines": ["i killed it and it didn't drop it", "it threw it at me like forty times", "it dropped it into a ravine underwater", "i got it, then lost it in lava the next day"]},
+      {"by": "b", "lines": ["pain", "nooo", "that's the worst", "lol figures", "f"]},
+      {"by": "a", "chance": 0.6, "lines": ["one day", "i'm still bitter", "the ocean owes me", "yeah"]}
+    ]},
+    {"id": "story_bees", "tags": ["stories", "animals", "jokes"], "leads": ["animals", "jokes"], "next": ["story_bees_2"], "about": "the bees", "turns": [
+      {"by": "a", "lines": ["i tried to get honey once", "so there's this bee nest by my old house", "never mess with bees, let me tell you why", "bee story, you ready"]},
+      {"by": "b", "lines": ["oh no", "lol", "go on", "i can guess"]}
+    ]},
+    {"id": "story_bees_2", "follow_up": true, "tags": ["story_part"], "leads": ["animals", "jokes", "farming"], "about": "the bees", "turns": [
+      {"by": "a", "lines": ["forgot the campfire. the whole nest came out", "i ran into a lake to get away", "i got stung like twenty times", "i broke the nest by accident and they chased me home"]},
+      {"by": "b", "lines": ["lmao", "rip", "classic", "how are you alive", "lol the lake"]},
+      {"by": "a", "chance": 0.6, "lines": ["campfire first now", "barely", "never again", "i have a bee farm now though"]}
+    ]},
+    {"id": "story_villager_trade", "tags": ["stories", "villagers", "trade"], "leads": ["villagers", "trade"], "next": ["story_villager_trade_2"], "about": "the librarian", "turns": [
+      {"by": "a", "lines": ["i spent a whole day on one librarian", "ever try to get mending from a villager", "story: me versus a librarian", "i had the perfect villager once"]},
+      {"by": "b", "lines": ["oh no", "and?", "go on", "i know that pain"]}
+    ]},
+    {"id": "story_villager_trade_2", "follow_up": true, "tags": ["story_part"], "leads": ["villagers", "enchanting", "jokes"], "about": "the librarian", "turns": [
+      {"by": "a", "lines": ["finally got mending and a zombie got him", "broke the lectern like a hundred times", "got mending and he wanted 38 emeralds", "then i traded with him once and locked it"]},
+      {"by": "b", "lines": ["NO", "pain", "classic villager", "lmao", "f"]},
+      {"by": "a", "chance": 0.6, "lines": ["i built walls after that", "still mad", "never again"]}
+    ]},
+    {"id": "story_raft", "tags": ["stories", "ocean", "exploring"], "leads": ["ocean", "exploring"], "next": ["story_raft_2"], "about": "the boat trip", "turns": [
+      {"by": "a", "lines": ["i crossed an ocean once in a boat", "so i went out to sea with no plan", "boat story, it's a good one", "once i got lost at sea"]},
+      {"by": "b", "lines": ["brave", "uh oh", "go on", "what happened"]}
+    ]},
+    {"id": "story_raft_2", "follow_up": true, "tags": ["story_part"], "leads": ["ocean", "places", "mobs"], "about": "the boat trip", "turns": [
+      {"by": "a", "lines": ["night came and drowned everywhere", "found a tiny island and lived there three days", "found a shipwreck full of loot", "a guardian blasted me off the boat"]},
+      {"by": "b", "lines": ["no way", "lucky", "yikes", "lol", "how did you get back"]},
+      {"by": "a", "chance": 0.6, "lines": ["somehow", "i brought a map next time", "best trip ever", "i still don't know"]}
+    ]},
+    {"id": "story_sheep", "tags": ["stories", "animals", "jokes"], "leads": ["animals", "jokes"], "next": ["story_sheep_2"], "about": "the sheep", "turns": [
+      {"by": "a", "lines": ["i had a pink sheep once", "i found a pink sheep, true story", "ever see a pink sheep in the wild", "story about a sheep, bear with me"]},
+      {"by": "b", "lines": ["no way", "rare", "lol go on", "cute"]}
+    ]},
+    {"id": "story_sheep_2", "follow_up": true, "tags": ["story_part"], "leads": ["animals", "farming", "feelings"], "about": "the sheep", "turns": [
+      {"by": "a", "lines": ["i named her strawberry", "a wolf got her the next day", "kept her for months. best sheep ever", "i made a whole pink bed from her"]},
+      {"by": "b", "lines": ["aw", "rip strawberry", "cute", "noo", "worth it"]},
+      {"by": "a", "chance": 0.6, "lines": ["i miss her", "best sheep", "yeah", "pink is her color"]}
+    ]},
+    {"id": "story_lava_bucket", "tags": ["stories", "danger", "jokes"], "leads": ["danger", "jokes"], "next": ["story_lava_bucket_2"], "about": "the lava", "turns": [
+      {"by": "a", "lines": ["i once tried to move lava with a bucket", "never carry lava near your house, let me tell you", "worst idea i ever had involved lava", "lava bucket story"]},
+      {"by": "b", "lines": ["oh no", "i see where this is going", "go on", "lol"]}
+    ]},
+    {"id": "story_lava_bucket_2", "follow_up": true, "tags": ["story_part"], "leads": ["building", "danger", "jokes"], "about": "the lava", "turns": [
+      {"by": "a", "lines": ["spilled it on my wooden floor", "the whole roof went up", "i clicked the wrong button. house gone", "set my chest room on fire"]},
+      {"by": "b", "lines": ["lmao", "rip house", "that's why i build stone", "classic", "no"]},
+      {"by": "a", "chance": 0.6, "lines": ["stone house now", "lesson learned", "never again", "lol"]}
+    ]},
+    {"id": "story_stronghold", "tags": ["stories", "structures", "end"], "leads": ["structures", "end"], "next": ["story_stronghold_2"], "about": "the stronghold", "turns": [
+      {"by": "a", "lines": ["took me forever to find my first stronghold", "you know how long i followed eyes of ender once?", "stronghold story. long one."]},
+      {"by": "b", "lines": ["how long", "go on", "ugh, i know", "and?"]}
+    ]},
+    {"id": "story_stronghold_2", "follow_up": true, "tags": ["story_part"], "leads": ["structures", "end"], "next": ["story_stronghold_3"], "about": "the stronghold", "turns": [
+      {"by": "a", "lines": ["used like twelve eyes and three broke", "walked a thousand blocks, then it was right under my house", "i dug down and landed in a library"]},
+      {"by": "b", "lines": ["lol", "of course", "no way", "and then?"]}
+    ]},
+    {"id": "story_stronghold_3", "follow_up": true, "tags": ["story_part"], "leads": ["end", "structures", "brag"], "about": "the stronghold", "turns": [
+      {"by": "a", "lines": ["found the portal room and only had one eye left", "silverfish everywhere. i ran out", "the portal was already full. eleven eyes wasted"]},
+      {"by": "b", "lines": ["pain", "nooo", "lmao", "classic", "that's brutal"]},
+      {"by": "a", "chance": 0.6, "lines": ["went back with more eyes", "still mad", "never again", "lol"]}
+    ]},
+    {"id": "story_first_friend", "needs": ["!strangers"], "tags": ["stories", "friends", "memories"], "leads": ["friends", "memories"], "next": ["story_first_friend_2"], "about": "a friend", "turns": [
+      {"by": "a", "lines": ["the first person i ever teamed up with", "i had a partner once, long time ago", "did i tell you about my old friend"]},
+      {"by": "b", "lines": ["no, tell me", "who", "go on", "oh?"]}
+    ]},
+    {"id": "story_first_friend_2", "follow_up": true, "tags": ["story_part"], "leads": ["friends", "memories"], "next": ["story_first_friend_3"], "about": "a friend", "turns": [
+      {"by": "a", "lines": ["we built a house together on a hill", "we mined every day for a week straight", "they taught me how to make a farm"]},
+      {"by": "b", "lines": ["nice", "sounds fun", "what happened", "where are they now"]}
+    ]},
+    {"id": "story_first_friend_3", "follow_up": true, "tags": ["story_part"], "leads": ["feelings", "friends", "memories"], "about": "a friend", "turns": [
+      {"by": "a", "lines": ["one day they just went off exploring and never came back", "we split up after a fight over diamonds", "they moved far away. i still have their sign"]},
+      {"by": "b", "lines": ["aw", "that's sad", "sorry", "maybe you'll see them again", "people come and go"]},
+      {"by": "a", "chance": 0.6, "lines": ["it's ok", "yeah", "i'm glad i have you now", "it was a long time ago"]}
+    ]},
+    {"id": "story_creeper_farm", "tags": ["stories", "mobs", "redstone"], "leads": ["mobs", "redstone"], "next": ["story_creeper_farm_2"], "about": "the farm", "turns": [
+      {"by": "a", "lines": ["i tried to build a creeper farm once", "never build a mob farm without a guide", "so i wanted gunpowder, lots of it"]},
+      {"by": "b", "lines": ["oh no", "and?", "go on", "i sense a disaster"]}
+    ]},
+    {"id": "story_creeper_farm_2", "follow_up": true, "tags": ["story_part"], "leads": ["redstone", "mobs", "jokes"], "about": "the farm", "turns": [
+      {"by": "a", "lines": ["it worked once, then blew itself up", "i fell in my own farm", "it made zero creepers and a hundred spiders", "a creeper got out and found me"]},
+      {"by": "b", "lines": ["lmao", "classic", "rip", "how", "the spiders lol"]},
+      {"by": "a", "chance": 0.6, "lines": ["i just hunt them now", "never again", "lol", "redstone is hard"]}
+    ]},
+    {"id": "story_snow_night", "tags": ["stories", "biomes", "night"], "leads": ["biomes", "night"], "next": ["story_snow_night_2"], "about": "the snow", "turns": [
+      {"by": "a", "lines": ["i spent a night in a snow biome once", "never sleep in powder snow, trust me", "cold story time"]},
+      {"by": "b", "lines": ["brr", "go on", "why", "uh oh"]}
+    ]},
+    {"id": "story_snow_night_2", "follow_up": true, "tags": ["story_part"], "leads": ["biomes", "danger", "gear"], "about": "the snow", "turns": [
+      {"by": "a", "lines": ["fell in powder snow and started freezing", "strays shot me all night", "built an igloo, best night ever actually", "a polar bear chased me across the ice"]},
+      {"by": "b", "lines": ["yikes", "lol", "classic snow biome", "brr"]},
+      {"by": "a", "chance": 0.6, "lines": ["leather boots, always", "barely", "i'd go back", "never again"]}
+    ]}
+  ]
+}

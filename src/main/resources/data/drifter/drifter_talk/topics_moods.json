@@ -1,0 +1,135 @@
+{
+  "_comment": "Topics batch three: how a Drifter is doing right now (its mood, hunger, hurt, a death, a close call, kills, finds, home). These are 'grounded': a talk opens with one of them 7 times in 10 when it fits. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "mood_angry_vent", "weight": 3, "needs": ["a:mood_angry", "!strangers"], "tags": ["feelings", "complaints"], "leads": ["complaints", "feelings", "fighting"], "about": "it", "turns": [
+      {"by": "a", "lines": ["i'm so mad right now", "everything is going wrong today", "don't talk to me, i'm fuming", "i need to hit something"]},
+      {"by": "b", "lines": ["what happened", "breathe", "want to talk about it?", "oof", "go punch a tree"]},
+      {"by": "a", "chance": 0.6, "lines": ["i'll be fine", "long story", "just a bad day", "yeah, maybe"]}
+    ]},
+    {"id": "mood_anxious_talk", "weight": 3, "needs": ["a:mood_anxious"], "tags": ["feelings", "danger"], "leads": ["danger", "feelings", "home"], "about": "it", "turns": [
+      {"by": "a", "lines": ["i've got a bad feeling about today", "i keep hearing things", "i feel like something's watching me", "i can't relax"]},
+      {"by": "b", "lines": ["you're fine", "stay close then", "i hear it too", "it's probably nothing", "deep breaths"]},
+      {"by": "a", "chance": 0.6, "lines": ["i hope so", "thanks", "ok", "i'll try"]}
+    ]},
+    {"id": "mood_confident_brag", "weight": 3, "needs": ["a:mood_confident"], "tags": ["brag", "feelings"], "leads": ["brag", "fighting", "plans"], "about": "today", "turns": [
+      {"by": "a", "lines": ["i feel unstoppable today", "nothing can touch me right now", "today's my day", "i could take on anything"]},
+      {"by": "b", "lines": ["careful", "love that", "famous last words", "go get em", "lol ok"]},
+      {"by": "a", "chance": 0.6, "lines": ["watch me", "lol", "i'll be fine", "let's go"]}
+    ]},
+    {"id": "mood_frustrated_fail", "weight": 3, "needs": ["a:mood_frustrated"], "tags": ["complaints", "feelings"], "leads": ["complaints", "feelings", "advice"], "about": "it", "turns": [
+      {"by": "a", "lines": ["nothing is working today", "i've tried this five times", "why is this so hard", "i'm about to give up"]},
+      {"by": "b", "lines": ["take a break", "try something else", "you got this", "what is it", "been there"]},
+      {"by": "a", "chance": 0.6, "lines": ["maybe", "ugh", "i'll try again", "thanks"]}
+    ]},
+    {"id": "mood_grieving_talk", "weight": 3, "needs": ["a:mood_grieving", "!strangers"], "tags": ["feelings", "death"], "leads": ["feelings", "memories", "friends"], "about": "it", "turns": [
+      {"by": "a", "lines": ["i'm not doing great", "i keep thinking about what i lost", "it's been a hard day", "i don't really feel like talking"]},
+      {"by": "b", "lines": ["i'm here", "i'm sorry", "take your time", "want company?", "it'll get better"]},
+      {"by": "a", "chance": 0.6, "lines": ["thanks", "yeah", "i appreciate it", "stay a bit"], "mark": ["agree"]}
+    ]},
+    {"id": "mood_triumphant_win", "weight": 3, "needs": ["a:mood_triumphant"], "tags": ["brag", "feelings"], "leads": ["brag", "plans", "feelings"], "about": "it", "turns": [
+      {"by": "a", "lines": ["i did it!", "best day ever", "i actually pulled it off", "nothing can ruin today"]},
+      {"by": "b", "lines": ["nice!", "what happened", "proud of you", "lets go", "gg"]},
+      {"by": "a", "chance": 0.6, "lines": [":D", "still can't believe it", "thanks!", "what a day"]}
+    ]},
+    {"id": "mood_panicked_run", "weight": 3, "needs": ["a:mood_panicked"], "tags": ["danger", "feelings"], "leads": ["danger", "mobs"], "about": "it", "turns": [
+      {"by": "a", "lines": ["we need to go, now", "something's coming", "i'm freaking out", "did you see that?!"]},
+      {"by": "b", "lines": ["what?", "calm down", "where?", "i'm with you", "ok ok"]},
+      {"by": "a", "chance": 0.6, "lines": ["just stay close", "i don't know", "ok", "sorry"]}
+    ]},
+    {"id": "mood_calm_day", "needs": ["a:mood_calm", "!night"], "tags": ["feelings", "day"], "leads": ["day", "feelings", "random"], "about": "today", "turns": [
+      {"by": "a", "lines": ["i feel pretty good today", "nice and calm today", "no complaints right now", "today's peaceful"]},
+      {"by": "b", "lines": ["same", "good", "enjoy it", "nice", "lucky you"]},
+      {"by": "a", "chance": 0.5, "lines": ["i will", "yeah", ":)"]}
+    ]},
+    {"id": "hungry_beg", "weight": 3, "needs": ["a:hungry", "!strangers"], "tags": ["food", "help"], "leads": ["food", "help", "farming"], "about": "food", "turns": [
+      {"by": "a", "lines": ["got any food? i'm starving", "can you spare something to eat?", "do you have bread on you?", "anything to eat? anything at all?"]},
+      {"by": "b", "lines": ["sorry, i'm out", "i only have a little", "go hunt something", "same problem", "there's a farm nearby"]},
+      {"by": "a", "chance": 0.5, "lines": ["thanks", "ok", "ugh", "i'll figure it out"]}
+    ]},
+    {"id": "hungry_hunt_plan", "weight": 2, "needs": ["a:hungry"], "tags": ["food", "animals", "plans"], "leads": ["animals", "food", "farming"], "about": "food", "turns": [
+      {"by": "a", "lines": ["i need to go hunt", "i should've brought more food", "my hunger bar is almost empty", "i'm running on fumes"]},
+      {"by": "b", "lines": ["there are cows over there", "eat something", "go, before it gets worse", "same honestly", "plan ahead next time lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["on it", "yeah", "lol", "lesson learned"]}
+    ]},
+    {"id": "hurt_patch_up", "weight": 3, "needs": ["a:hurt"], "tags": ["health", "danger"], "leads": ["health", "food", "mobs"], "about": "it", "turns": [
+      {"by": "a", "lines": ["i'm on like three hearts", "i got beat up out there", "i need to heal before anything", "ow"]},
+      {"by": "b", "lines": ["eat something", "rest up", "what got you", "take it easy", "yikes"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "i'll be fine", "long story", "working on it"]}
+    ]},
+    {"id": "died_again_laugh", "weight": 3, "needs": ["a:died_lately", "!strangers"], "tags": ["death", "jokes"], "leads": ["death", "jokes", "gear"], "about": "dying", "turns": [
+      {"by": "a", "lines": ["so i {a.death}", "don't laugh, but i {a.death}", "guess who {a.death}"]},
+      {"by": "b", "lines": ["lmao", "rip", "how", "classic", "you ok?"]},
+      {"by": "a", "chance": 0.6, "lines": ["it's fine, i'm fine", "i got my stuff back", "lost everything", "embarrassing"]}
+    ]},
+    {"id": "died_lost_stuff", "weight": 2, "needs": ["a:died_lately"], "tags": ["death", "gear", "complaints"], "leads": ["gear", "death", "complaints"], "about": "my stuff", "turns": [
+      {"by": "a", "lines": ["lost my whole inventory when i died", "i died and lost my good pickaxe", "my stuff despawned before i got back", "starting over from nothing again"]},
+      {"by": "b", "lines": ["oof", "that's the worst", "need anything?", "rip", "happens to all of us"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "it's ok", "ugh", "i'll rebuild"]}
+    ]},
+    {"id": "close_call_shaky", "weight": 3, "needs": ["a:close_call"], "tags": ["danger", "feelings"], "leads": ["danger", "mobs", "health"], "about": "that", "turns": [
+      {"by": "a", "lines": ["i almost died to {a.close_call} earlier", "{a.close_call} nearly got me", "half a heart left after {a.close_call}", "still shaking from {a.close_call}"]},
+      {"by": "b", "lines": ["yikes", "glad you're ok", "close one", "be careful", "that happens"]},
+      {"by": "a", "chance": 0.6, "lines": ["too close", "i'm staying in today", "yeah", "never again"]}
+    ]},
+    {"id": "killed_many_tired", "weight": 2, "needs": ["a:killed_many"], "tags": ["fighting", "mobs", "brag"], "leads": ["fighting", "mobs", "weapons"], "about": "the fight", "turns": [
+      {"by": "a", "lines": ["fought {a.kills} mobs today", "i've been fighting all day", "my sword arm is tired", "{a.mob_count} {a.mob}s, back to back"]},
+      {"by": "b", "lines": ["busy", "impressive", "nice", "you ok?", "save some for me"]},
+      {"by": "a", "chance": 0.5, "lines": ["i'm fine", "lol", "what a day", "more tomorrow probably"]}
+    ]},
+    {"id": "killed_mob_kind", "weight": 2, "needs": ["a:killed_mobs"], "tags": ["mobs", "fighting"], "leads": ["mobs", "fighting", "danger"], "about": "the {a.mob}s", "turns": [
+      {"by": "a", "lines": ["the {a.mob}s are everywhere lately", "i keep running into {a.mob}s", "got a {a.mob} earlier", "why are there so many {a.mob}s"]},
+      {"by": "b", "lines": ["same", "i noticed", "careful", "they're the worst", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "stay sharp", "lol"]}
+    ]},
+    {"id": "found_ore_share", "weight": 2, "needs": ["a:found_ore", "!rivals"], "tags": ["mining", "ore"], "leads": ["mining", "ore", "trade"], "about": "the {a.ore}", "turns": [
+      {"by": "a", "lines": ["got {a.ore_count} {a.ore} today", "i found a nice spot for {a.ore}", "came back with {a.ore}", "pockets full of {a.ore}"]},
+      {"by": "b", "lines": ["nice", "share?", "where", "lucky", "good haul"]},
+      {"by": "a", "chance": 0.5, "lines": ["maybe", "not telling lol", "a cave down south", "it was a good day"]}
+    ]},
+    {"id": "diamonds_pocket", "weight": 2, "needs": ["a:has_diamonds", "friends"], "tags": ["diamonds", "plans"], "leads": ["diamonds", "gear", "enchanting"], "about": "the diamonds", "turns": [
+      {"by": "a", "lines": ["what should i make with {a.diamonds} diamonds?", "i have {a.diamonds} diamonds, ideas?", "pickaxe or sword with my diamonds?"]},
+      {"by": "b", "lines": ["pickaxe first", "enchanting table", "sword", "save them", "armor"]},
+      {"by": "a", "chance": 0.5, "lines": ["good call", "hmm", "that's what i thought", "maybe"]}
+    ]},
+    {"id": "no_home_wander", "weight": 2, "needs": ["a:no_home"], "tags": ["home", "feelings"], "leads": ["home", "building", "places"], "about": "home", "turns": [
+      {"by": "a", "lines": ["i still don't have a home", "i've been sleeping wherever", "i need somewhere to live", "every night is a new spot for me"]},
+      {"by": "b", "lines": ["build one", "there's room near me", "that sounds rough", "you'll find a spot", "the nomad life"]},
+      {"by": "a", "chance": 0.5, "lines": ["soon", "maybe", "thanks", "yeah"]}
+    ]},
+    {"id": "has_house_proud", "weight": 2, "needs": ["a:has_house", "!strangers"], "tags": ["home", "building"], "leads": ["home", "decor", "building"], "about": "my house", "turns": [
+      {"by": "a", "lines": ["love my house", "my house is finally done", "having a real house changes everything", "come visit my place sometime"]},
+      {"by": "b", "lines": ["nice", "i'd love to", "jealous", "show me", "congrats"]},
+      {"by": "a", "chance": 0.5, "lines": ["anytime", "it's home", ":)", "door's open"]}
+    ]},
+    {"id": "has_hut_upgrade", "weight": 2, "needs": ["a:has_hut"], "tags": ["home", "building", "plans"], "leads": ["building", "home", "plans"], "about": "the hut", "turns": [
+      {"by": "a", "lines": ["my hut is fine for now", "i need to upgrade my hut", "my hut leaks when it rains", "one day my hut will be a house"]},
+      {"by": "b", "lines": ["start with a bigger floor", "huts are cozy", "i'll help", "everyone starts somewhere", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["thanks", "soon", "yeah", "lol"]}
+    ]},
+    {"id": "built_proud_show", "weight": 2, "needs": ["a:built_lately", "!strangers"], "tags": ["building", "brag"], "leads": ["building", "decor"], "about": "the {a.built}", "turns": [
+      {"by": "a", "lines": ["what do you think of my {a.built}?", "did you see the {a.built} i made?", "be honest, is my {a.built} ok?"]},
+      {"by": "b", "lines": ["it's great", "love it", "needs more windows", "not bad", "haven't seen it yet"]},
+      {"by": "a", "chance": 0.5, "lines": ["thanks", "i'll work on it", "come look", ":)"]}
+    ]},
+    {"id": "traded_story", "weight": 2, "needs": ["a:traded_lately"], "tags": ["trade", "villagers"], "leads": ["trade", "villagers", "town"], "about": "the trade", "turns": [
+      {"by": "a", "lines": ["traded with {a.traded_with} earlier", "{a.traded_with} gave me a good deal", "i think {a.traded_with} ripped me off", "did a trade with {a.traded_with} today"]},
+      {"by": "b", "lines": ["nice", "what did you get", "classic", "fair", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["stuff", "worth it", "eh", "it was fine"]}
+    ]},
+    {"id": "armor_iron_ask", "needs": ["b:armor_iron", "!rivals"], "tags": ["armor", "gear"], "leads": ["armor", "gear", "mining"], "about": "your armor", "turns": [
+      {"by": "a", "lines": ["is that full iron?", "how long did that iron armor take you?", "where'd you find the iron for that armor?"]},
+      {"by": "b", "lines": ["mined it", "a while", "traded for some of it", "most of it, yeah", "caves, lots of caves"]},
+      {"by": "a", "chance": 0.5, "lines": ["nice", "jealous", "worth it", "looks good"]}
+    ]},
+    {"id": "armor_none_worry", "needs": ["b:armor_none", "!strangers"], "tags": ["armor", "help"], "leads": ["armor", "help", "danger"], "about": "your armor", "turns": [
+      {"by": "a", "lines": ["you're not wearing armor?", "where's your armor?", "isn't it scary going around with no armor?"]},
+      {"by": "b", "lines": ["don't have any", "it's fine", "too heavy lol", "lost it", "working on it"]},
+      {"by": "a", "chance": 0.5, "lines": ["be careful", "i'll find you some", "risky", "ok"]}
+    ]},
+    {"id": "evening_tired", "needs": ["evening"], "tags": ["sleep", "day"], "leads": ["sleep", "night", "plans"], "about": "the day", "turns": [
+      {"by": "a", "lines": ["long day", "i'm tired", "almost night already", "where did the day go"]},
+      {"by": "b", "lines": ["same", "bed soon", "time flies", "yeah", "find a bed"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "soon", "tomorrow then"]}
+    ]}
+  ]
+}

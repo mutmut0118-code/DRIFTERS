@@ -31,6 +31,23 @@ for java in glob.glob(os.path.join(ROOT, 'src/*/java/**/*.java'), recursive=True
         for literal, plus in re.findall(r'"([a-z_]+)"(\s*\+)?', call):
             (FLAG_PREFIXES if plus else FLAGS).add(literal)
     WORDS |= set(re.findall(r'words\.put\("([a-z_]+)"', code))
+# Flags set only about a player (Facts.player: owed, insulted, what they hold...) never hold in a talk between two
+# Drifters, so a Drifter topic needing one would never come up.
+FLAGS_ELSEWHERE = set()
+PLAYER_ONLY = set()
+for java in glob.glob(os.path.join(ROOT, 'src/*/java/**/*.java'), recursive=True):
+    code = open(java, encoding='utf-8').read()
+    player = ''
+    if java.endswith('Facts.java') and 'static Facts player(' in code:
+        start = code.index('static Facts player(')
+        end = code.find('public static', start + 1)
+        player = code[start:end if end > 0 else len(code)]
+        code = code[:start] + (code[end:] if end > 0 else '')
+    for call in re.findall(r'flags\.add\((.*?)\);', code):
+        FLAGS_ELSEWHERE.update(re.findall(r'"([a-z_]+)"', call))
+    for call in re.findall(r'flags\.add\((.*?)\);', player):
+        PLAYER_ONLY.update(literal for literal, plus in re.findall(r'"([a-z_]+)"(\s*\+)?', call) if not plus)
+PLAYER_ONLY -= FLAGS_ELSEWHERE
 MOODS = {'calm', 'anxious', 'panicked', 'confident', 'frustrated', 'bored', 'triumphant', 'grieving', 'angry'}
 FLAGS |= {'mood_' + m for m in MOODS} | {'strangers', 'friends', 'rivals', 'acquainted'}
 
@@ -84,6 +101,8 @@ def check_condition(where, condition):
     if c.startswith('a:') or c.startswith('b:'):
         if not known_flag(c[2:]):
             error(where, 'condition "%s": nothing sets %s' % (condition, c[2:]))
+        elif c[2:] in PLAYER_ONLY:
+            error(where, 'condition "%s": %s is only set about players, never between Drifters' % (condition, c[2:]))
     elif not known_flag(c):
         error(where, 'condition "%s": nothing sets it' % condition)
 
@@ -155,6 +174,8 @@ for tid, w in webs.items():
     for tag in w['leads']:
         if tag not in tag_count:
             error(tid, 'leads to "%s", which no topic is about' % tag)
+        elif tag == 'story_part':
+            error(tid, 'leads to story_part (the later part of some other story): give it leads of its own')
     for other in w['next']:
         if other not in ids:
             error(tid, 'next "%s": no such topic' % other)

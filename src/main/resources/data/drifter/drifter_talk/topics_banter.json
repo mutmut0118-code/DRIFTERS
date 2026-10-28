@@ -1,0 +1,102 @@
+{
+  "_comment": "Topics batch three: banter: jokes, teasing, small questions, advice and help. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "would_you_rather_mobs", "tags": ["random", "mobs", "jokes"], "leads": ["mobs", "jokes", "random"], "about": "that", "turns": [
+      {"by": "a", "lines": ["would you rather fight one giant chicken or a hundred tiny creepers?", "would you rather be a creeper or an enderman?", "would you rather live in the nether or the end?"]},
+      {"by": "b", "lines": ["the first one", "the second one", "neither", "easy, the first", "tough one"]},
+      {"by": "a", "chance": 0.5, "lines": ["interesting", "same", "lol", "bold"]}
+    ]},
+    {"id": "would_you_rather_life", "tags": ["random", "philosophy"], "leads": ["random", "philosophy", "home"], "about": "that", "turns": [
+      {"by": "a", "lines": ["would you rather have infinite food or infinite torches?", "would you rather never mine again or never build again?", "would you rather live underground or in the sky?"]},
+      {"by": "b", "lines": ["the first one", "the second one", "hmm, the first", "the second, easy", "can i pick both"]},
+      {"by": "a", "chance": 0.5, "lines": ["good answer", "lol no", "same", "huh"]}
+    ]},
+    {"id": "tease_inventory", "needs": ["friends"], "tags": ["jokes", "friends"], "leads": ["jokes", "storage"], "about": "you", "turns": [
+      {"by": "a", "lines": ["your inventory is a mess, isn't it", "bet you have seeds in every slot", "i bet you carry a stack of dirt everywhere"]},
+      {"by": "b", "lines": ["maybe", "rude", "lol", "you don't know that", "...yes"]},
+      {"by": "a", "chance": 0.5, "lines": ["called it", "lol", "i knew it"]}
+    ]},
+    {"id": "tease_build", "needs": ["friends"], "tags": ["jokes", "building"], "leads": ["building", "jokes"], "about": "your house", "turns": [
+      {"by": "a", "lines": ["your house is a box, admit it", "is your roof made of dirt?", "your house has like two windows"]},
+      {"by": "b", "lines": ["it's a nice box", "rude", "lol", "it works", "says you"]},
+      {"by": "a", "chance": 0.5, "lines": ["lol", "love you though", "it's cozy, i'll give you that"]}
+    ]},
+    {"id": "joke_creeper_hug", "tags": ["jokes", "mobs"], "leads": ["jokes", "mobs"], "about": "creepers", "turns": [
+      {"by": "a", "lines": ["creepers just want hugs", "why did the creeper cross the road? to get to the other ssss", "a creeper walks into a bar. no more bar"]},
+      {"by": "b", "lines": ["lol", "terrible", "boo", "lmao", "i hate that i laughed"]},
+      {"by": "a", "chance": 0.5, "lines": ["i'm here all week", "lol", "you laughed"]}
+    ]},
+    {"id": "joke_skeleton_aim", "tags": ["jokes", "mobs"], "leads": ["jokes", "mobs", "weapons"], "about": "skeletons", "turns": [
+      {"by": "a", "lines": ["skeletons have better aim than me", "how do skeletons see without eyes", "skeletons never miss, it's not fair"]},
+      {"by": "b", "lines": ["lol same", "true", "practice", "aimbot", "lmao"]},
+      {"by": "a", "chance": 0.5, "lines": ["lol", "it's true", "one day"]}
+    ]},
+    {"id": "joke_cow_moon", "tags": ["jokes", "animals"], "leads": ["jokes", "animals"], "about": "cows", "turns": [
+      {"by": "a", "lines": ["cows are plotting something", "chickens are just tiny dinosaurs", "pigs would be great at parkour"]},
+      {"by": "b", "lines": ["lol", "what", "you need sleep", "probably", "lmao"]},
+      {"by": "a", "chance": 0.5, "lines": ["think about it", "lol", "i'm right"]}
+    ]},
+    {"id": "random_shower_thought", "tags": ["random", "philosophy"], "leads": ["philosophy", "random"], "about": "that", "turns": [
+      {"by": "a", "lines": ["where does all the water come from", "who placed the first block", "do fish know they're in a game", "why do zombies burn but not drowned"]},
+      {"by": "b", "lines": ["no idea", "deep", "lol", "you think too much", "good question"]},
+      {"by": "a", "chance": 0.5, "lines": ["i wonder", "lol", "it bugs me"]}
+    ]},
+    {"id": "advice_first_night", "tags": ["advice", "night"], "leads": ["advice", "night", "home"], "about": "the first night", "turns": [
+      {"by": "a", "lines": ["what's your tip for the first night?", "how do you get through the first night?", "first night advice?"]},
+      {"by": "b", "lines": ["dig into a hill", "make a bed fast", "torches and a door", "just run", "kill sheep for wool"]},
+      {"by": "a", "chance": 0.5, "lines": ["solid", "good one", "lol", "noted"]}
+    ]},
+    {"id": "advice_caves", "tags": ["advice", "caves"], "leads": ["caves", "advice", "mining"], "about": "caves", "turns": [
+      {"by": "a", "lines": ["what's your number one cave tip?", "how do you not get lost in caves?", "best cave advice?"]},
+      {"by": "b", "lines": ["torches on one side", "always bring water", "don't go too deep", "listen for mobs", "leave a trail"]},
+      {"by": "a", "chance": 0.5, "lines": ["smart", "good one", "noted", "same"]}
+    ]},
+    {"id": "advice_lesson", "needs": ["!strangers"], "tags": ["advice", "philosophy"], "leads": ["philosophy", "advice", "feelings"], "about": "life", "turns": [
+      {"by": "a", "lines": ["best advice you ever got?", "what would you tell yourself on day one?", "one lesson you learned the hard way?"]},
+      {"by": "b", "lines": ["don't dig straight down", "carry food", "trust no one", "make friends", "don't fight in lava"]},
+      {"by": "a", "chance": 0.5, "lines": ["wise", "true", "lol", "noted"]}
+    ]},
+    {"id": "help_offer_build", "needs": ["!strangers", "!rivals"], "tags": ["help", "building"], "leads": ["building", "help", "friends"], "about": "the build", "turns": [
+      {"by": "a", "lines": ["need a hand with anything?", "want help with your build?", "need someone to carry blocks?"]},
+      {"by": "b", "chance": 0.5, "lines": ["sure", "that'd be great", "yes please", "sometime, yeah"], "mark": ["agree"]},
+      {"by": "b", "if": ["!t:agree"], "lines": ["i'm good", "no thanks", "i've got it", "maybe later"]},
+      {"by": "a", "if": ["t:agree"], "chance": 0.6, "lines": ["anytime", "just say", "count me in"]},
+      {"by": "a", "if": ["!t:agree"], "chance": 0.5, "lines": ["ok", "offer stands", "cool"]}
+    ]},
+    {"id": "players_nice_one", "needs": ["a:likes_a_player"], "tags": ["players", "gossip"], "leads": ["players", "gossip", "friends"], "about": "{a.liked_player}", "turns": [
+      {"by": "a", "lines": ["{a.liked_player} is one of the good ones", "i like {a.liked_player}", "{a.liked_player} helped me once", "have you met {a.liked_player}?"]},
+      {"by": "b", "lines": ["they're nice", "never met them", "yeah", "good to know", "who?"]},
+      {"by": "a", "chance": 0.5, "lines": ["you'd like them", "say hi sometime", "yeah"]}
+    ]},
+    {"id": "players_bad_one", "needs": ["a:dislikes_a_player"], "tags": ["players", "gossip", "danger"], "leads": ["players", "gossip", "danger"], "about": "{a.disliked_player}", "turns": [
+      {"by": "a", "lines": ["stay away from {a.disliked_player}", "i don't trust {a.disliked_player}", "{a.disliked_player} is bad news"]},
+      {"by": "b", "lines": ["why", "noted", "i've heard", "never met them", "ok"]},
+      {"by": "a", "chance": 0.5, "lines": ["just trust me", "long story", "you'll see"]}
+    ]},
+    {"id": "players_wish", "tags": ["players", "random"], "leads": ["players", "friends", "random"], "about": "players", "turns": [
+      {"by": "a", "lines": ["i wish more players came around", "players are so unpredictable", "do you ever wonder what players think of us", "players build the weirdest stuff"]},
+      {"by": "b", "lines": ["same", "true", "sometimes", "lol", "they're interesting"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "lol", "who knows"]}
+    ]},
+    {"id": "compliment_hair", "needs": ["!rivals"], "tags": ["friends", "jokes"], "leads": ["friends", "jokes"], "about": "you", "turns": [
+      {"by": "a", "lines": ["your skin is nice", "i like your look", "you always look like you know what you're doing"]},
+      {"by": "b", "lines": ["thanks", "lol", "i don't", "you too", "aw"]},
+      {"by": "a", "chance": 0.5, "lines": [":)", "lol", "fake it till you make it"]}
+    ]},
+    {"id": "count_days", "tags": ["random", "day"], "leads": ["day", "memories", "random"], "about": "the days", "turns": [
+      {"by": "a", "lines": ["day {a.day} already", "it's been {a.day} days, can you believe it", "i've been counting. day {a.day}"]},
+      {"by": "b", "lines": ["wow", "time flies", "that long?", "lol", "feels like more"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "crazy", "here's to {a.day} more"]}
+    ]},
+    {"id": "goodbye_soon", "needs": ["friends", "evening"], "tags": ["friends", "plans"], "leads": ["plans", "sleep", "friends"], "about": "tomorrow", "turns": [
+      {"by": "a", "lines": ["same time tomorrow?", "see you in the morning?", "meet up tomorrow?"]},
+      {"by": "b", "lines": ["sure", "if i survive the night lol", "yeah", "maybe", "deal"]},
+      {"by": "a", "chance": 0.5, "lines": ["cool", "lol", "don't die", "see you"]}
+    ]},
+    {"id": "song_stuck", "tags": ["music", "jokes"], "leads": ["music", "jokes", "random"], "about": "the song", "turns": [
+      {"by": "a", "lines": ["i keep humming the villager sound", "i've had the creeper hiss stuck in my head all day", "i can't stop hearing that cave sound"]},
+      {"by": "b", "lines": ["hmm", "lol", "why", "now i hear it too", "stop"]},
+      {"by": "a", "chance": 0.5, "lines": ["sorry", "lol", "you're welcome"]}
+    ]}
+  ]
+}

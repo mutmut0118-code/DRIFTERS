@@ -363,7 +363,7 @@
       "leads": ["crafting", "tools", "mining"],
       "about": "that",
       "turns": [
-        {"by": "a", "lines": ["want a tip?", "always carry a water bucket", "dont dig straight down ok", "torches before anything"]},
+        {"by": "a", "lines": ["tip: always carry a water bucket", "tip: dont dig straight down ok", "tip: torches before anything", "tip: never fight a creeper up close"]},
         {"by": "b", "lines": ["oh thanks", "why", "noted!", "ok!", "good to know"]},
         {"by": "a", "chance": 0.5, "lines": ["trust me", "you'll thank me", "np"]}
       ]

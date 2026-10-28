@@ -329,14 +329,19 @@ doc += ['## 6b. Long conversations (the topic web)', '',
         '- **Writing more:** a new topic only needs `tags` and `leads` to join the web (with none, it is about the words of its id). '
         '`links` in `drifter_talk/web.json` place topics written in other files. Themed batches live in `drifter_talk/topics_*.json`; '
         '`python tools/check_talk_web.py .` checks them (unknown tags and conditions, words the game never fills, topics nothing '
-        'leads to).',
+        'leads to, and conditions only ever set about players, such as `b:owed`, in a topic between two Drifters).',
         '- **Which topic opens a talk:** when one of them has something real to talk about (a topic that needs a find, a death, a '
         'mood, rain or a storm...), that comes first 7 times in 10; otherwise an everyday topic (best ore, fav food...). Everyday '
         'topics mostly come up as a talk wanders on.',
         '- **Kinds of player:** `a:voice_miner` (builder, homebody, speedrunner, nomad, hoarder, hermit, pvp_sweat, newbie, casual, '
         'helper, bandit): a topic only that kind brings up.',
         '- **Stories in parts:** the `next` of a topic names its part two, which comes straight after (85%), told by the same one, '
-        'with no "speaking of which". Part two is a `follow_up` tagged only `story_part`, so nothing else leads to it.', '',
+        'with no "speaking of which". Part two is a `follow_up` tagged only `story_part`, so nothing else leads to it. A story in '
+        'three parts: part two names part three in its own `next`.',
+        '- **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town '
+        '(`{a.town}` its name, `{a.leader}` its leader).',
+        '- **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn '
+        'needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).', '',
         '**Tags in use** (topics about each): ' + ', '.join('%s (%d)' % (t, n) for t, n in sorted(tag_count.items(), key=lambda x: (-x[1], x[0]))), '']
 for key in TALK_WHEN:
     doc += block(key, TALK_WHEN[key])

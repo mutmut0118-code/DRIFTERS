@@ -139,7 +139,7 @@ public final class TownFounding {
 				Towns.all().stream().filter(town -> town.spawned).forEach(town -> tend(server, town));
 				// Trade runs between towns with stalls (step 4); leaders, elections, laws (step 5).
 				Towns.all().forEach(town -> TradeRuns.check(server, town));
-				// Townsfolk don't kill visitors on sight, a Bandit among them included.
+				// A Bandit living in a town (one there from before, or one who turned) is its crook: no killing on sight there.
 				Towns.all().forEach(town -> settleDown(server, town));
 				Towns.all().forEach(town -> {
 					boolean politics = Politics.check(server, town);
@@ -157,11 +157,21 @@ public final class TownFounding {
 			return;
 		}
 
+		boolean changed = false;
 		for (UUID id : group.members) {
 			DrifterEntity member = loaded(server, id);
-			if (member != null) {
+			if (member != null && DrifterApi.bandit(member)) {
+				if (town.crooks.add(id)) {
+					DrifterApi.think(member, "lives in " + town.name + " now. easy pickings");
+					changed = true;
+				}
+
 				DrifterApi.settleDown(member);
 			}
+		}
+
+		if (town.crooks.retainAll(group.members) || changed) {
+			Towns.save(server);
 		}
 	}
 
@@ -192,6 +202,12 @@ public final class TownFounding {
 			DrifterEntity leader = loaded(server, group.leader);
 			Home home = leader == null ? null : DrifterApi.home(leader);
 			if (home == null || home.borrowed() || !home.dimension.equals(net.minecraft.world.level.Level.OVERWORLD.location())) {
+				continue;
+			}
+
+			// Bandits don't found towns (the user, 2026-10-28: "bandits shouldnt be in towns, kinda like a skyrim bandit"): a
+			// Bandit's gang stays a gang, and a Bandit in a group of settlers goes its own way first.
+			if (DrifterApi.bandit(leader) || !leaveBandits(server, group) || group.members.size() < FOUNDERS) {
 				continue;
 			}
 
@@ -226,6 +242,42 @@ public final class TownFounding {
 			Chronicle.add(server, "town", founders + " founded the town of " + name);
 			DrifterApi.tell(leader, "town_founded:" + town.id, null, name, name + " was founded by " + founders, NEWS_LASTS, new CompoundTag());
 		}
+	}
+
+	/**
+	 * The Bandits of a group about to found a town leave it (their friends think less of them for it, so they don't team up
+	 * again at once). (One not loaded can't be asked: it's let be.) True when it's done.
+	 */
+	private static boolean leaveBandits(MinecraftServer server, DrifterGroups.Group group) {
+		List<DrifterEntity> bandits = new ArrayList<>();
+		for (UUID id : group.members) {
+			DrifterEntity member = loaded(server, id);
+			if (member != null && DrifterApi.bandit(member)) {
+				bandits.add(member);
+			}
+		}
+
+		for (DrifterEntity bandit : bandits) {
+			DrifterGroups.leave(bandit.getUUID());
+			DrifterApi.setHome(bandit, null);
+			DrifterApi.think(bandit, "the others want to settle down in a town. not for it: it went its own way");
+			for (UUID id : group.members) {
+				DrifterEntity member = loaded(server, id);
+				if (member != null) {
+					DrifterApi.addTrustInDrifter(member, bandit, -30.0);
+					DrifterApi.addTrustInDrifter(bandit, member, -30.0);
+				}
+			}
+
+			Chronicle.add(server, "town", bandit.getName().getString() + " left " + group.name + ": a bandit doesn't settle in a town");
+		}
+
+		return true;
+	}
+
+	/** A town takes no Bandits in (its crooks are ones who were there already, or turned). */
+	static boolean mayJoin(DrifterEntity drifter, DrifterGroups.Group group) {
+		return !DrifterApi.bandit(drifter) || Towns.all().stream().noneMatch(town -> group.id.equals(town.group));
 	}
 
 	// ---------------------------------------------------------------------------------------------

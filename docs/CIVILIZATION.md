@@ -264,6 +264,7 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   campaigning), laws by the leader's personality (no stealing, no killing, a tax, the farms for citizens only); part 2,
   crime and punishment (witnesses, guards collecting fines, exile, bounties; prison later, the user); part 3, unrest (each
   townsperson's approval of the leader: a dropped tax, coups, abdications, revolts with a vote the next morning, a
-  ruthless one's plot to kill the leader).
+  ruthless one's plot to kill the leader). Then (0.22.29-0.22.30) Bandits kept out of towns, and a Bandit living in one
+  anyway is its crook: thefts and fights, judged by witnesses, thrown out the third time.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

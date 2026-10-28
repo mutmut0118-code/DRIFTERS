@@ -73,7 +73,10 @@ public final class Conversations {
 	private static final double SEGUE_CHANGE = 0.85;
 	/** How much more a topic a topic names in its "next" is picked than one it only shares a tag with. */
 	private static final double NEXT_WEIGHT = 3.0;
-	/** How often a topic goes straight on to one it names in its "next" (a story's part two), when one suits them. */
+	/**
+	 * How often a topic goes straight on to one it names in its "next" (a story's part two), when one suits them. A
+	 * follow-up that names a next (the middle of a story in three parts) always goes on.
+	 */
 	private static final double NEXT_FIRST = 0.85;
 	/** Trust that makes two best friends (the longest talks). */
 	private static final double BEST_FRIEND = 80.0;
@@ -362,8 +365,9 @@ public final class Conversations {
 		// The topic's done.
 		effects(talk, now);
 		talk.interest -= talk.topic.web().cost();
+		double nextFirst = talk.topic.web().followUp() ? 1.0 : NEXT_FIRST;
 		for (int tries = 0; tries < 3 && talk.interest >= MIN_INTEREST && talk.done.size() < MOST_TOPICS && now - talk.startedAt < MOST_TICKS; tries++) {
-			Choice next = tries == 0 && talk.a.getRandom().nextDouble() < NEXT_FIRST ? continued(talk) : null;
+			Choice next = tries == 0 && talk.a.getRandom().nextDouble() < nextFirst ? continued(talk) : null;
 			if (next == null && talk.a.getRandom().nextDouble() >= CHANGE_SUBJECT) {
 				next = linked(talk);
 			}

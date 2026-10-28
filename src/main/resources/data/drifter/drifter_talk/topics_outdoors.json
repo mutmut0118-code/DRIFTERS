@@ -1,0 +1,135 @@
+{
+  "_comment": "Topics batch three: the outdoors: fishing, the sky, trees and plants, the sea, pets and music. Some need the weather or time of day. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {"id": "fishing_patience", "tags": ["fishing", "boredom"], "leads": ["fishing", "ocean", "food"], "about": "fishing", "turns": [
+      {"by": "a", "lines": ["fishing takes so much patience", "i fished for an hour and got boots", "fishing is so relaxing", "i caught a pufferfish again"]},
+      {"by": "b", "lines": ["lol same", "that's fishing", "it is relaxing", "boots lol", "i never fish"]},
+      {"by": "a", "chance": 0.5, "lines": ["you should try it", "lol", "it's peaceful", "next time an enchanted book"]}
+    ]},
+    {"id": "fishing_rain", "needs": ["rain"], "tags": ["fishing", "weather"], "leads": ["fishing", "weather", "food"], "about": "fishing", "turns": [
+      {"by": "a", "lines": ["rain is the best time to fish", "fish bite faster in the rain", "perfect fishing weather"]},
+      {"by": "b", "lines": ["really?", "true", "i didn't know that", "let's go then", "i'd rather stay dry"]},
+      {"by": "a", "chance": 0.5, "lines": ["trust me", "grab a rod", "yeah", "suit yourself"]}
+    ]},
+    {"id": "fishing_treasure", "tags": ["fishing", "brag"], "leads": ["fishing", "enchanting", "gear"], "about": "the catch", "turns": [
+      {"by": "a", "lines": ["i fished up a name tag once", "got a mending book from fishing", "caught an enchanted bow fishing", "fished up a saddle today"]},
+      {"by": "b", "lines": ["lucky", "no way", "jealous", "nice", "i only get fish"]},
+      {"by": "a", "chance": 0.5, "lines": ["luck of the sea", "keep trying", "lol", "best day"]}
+    ]},
+    {"id": "sky_clouds", "needs": ["outside", "clear"], "tags": ["sky", "random"], "leads": ["sky", "random", "weather"], "about": "the sky", "turns": [
+      {"by": "a", "lines": ["the clouds are moving fast today", "ever notice the clouds all go one way", "i like watching the clouds", "that cloud looks like a pig"]},
+      {"by": "b", "lines": ["i never noticed", "lol", "kinda relaxing", "they do"]},
+      {"by": "a", "chance": 0.5, "lines": ["look up sometime", "lol", "yeah"]}
+    ]},
+    {"id": "sky_moon", "needs": ["night", "outside"], "tags": ["sky", "night"], "leads": ["sky", "night", "mobs"], "about": "the moon", "turns": [
+      {"by": "a", "lines": ["look at the moon", "the moon's bright tonight", "the moon changes every night, you know", "the moon is square, have you noticed"]},
+      {"by": "b", "lines": ["pretty", "yeah", "full moon means more slimes", "lol it is square", "keep watching for mobs"]},
+      {"by": "a", "chance": 0.5, "lines": ["i like it", "yeah", "true", "lol"]}
+    ]},
+    {"id": "sky_sunrise", "needs": ["morning", "outside"], "tags": ["sky", "day"], "leads": ["sky", "day", "plans"], "about": "the sunrise", "turns": [
+      {"by": "a", "lines": ["the sunrise is nice today", "made it to sunrise", "the sky's all orange", "love when the sun comes up"]},
+      {"by": "b", "lines": ["it is", "finally", "mobs are burning lol", "yeah", "good morning"]},
+      {"by": "a", "chance": 0.5, "lines": ["new day", "let's get going", "yeah"]}
+    ]},
+    {"id": "trees_favorite", "tags": ["trees", "argument"], "leads": ["trees", "building", "biomes"], "about": "trees", "turns": [
+      {"by": "a", "lines": ["what's your favorite tree?", "which tree looks best?", "best tree in the game?"]},
+      {"by": "b", "lines": ["cherry", "dark oak", "birch", "jungle", "spruce", "oak, it's classic"]},
+      {"by": "a", "chance": 0.5, "lines": ["good pick", "same", "interesting", "really?"]}
+    ]},
+    {"id": "trees_floating", "tags": ["trees", "complaints"], "leads": ["trees", "jokes"], "about": "floating trees", "turns": [
+      {"by": "a", "lines": ["someone left floating tree tops everywhere", "i hate when people don't finish chopping trees", "floating leaves, ugh", "who chops just the bottom of trees"]},
+      {"by": "b", "lines": ["not me", "lol guilty", "it's a crime", "ugh, i know", "it was like that when i got here"]},
+      {"by": "a", "chance": 0.5, "lines": ["lol", "anyway", "someone's getting yelled at", "the worst"]}
+    ]},
+    {"id": "trees_replant", "tags": ["trees", "plants"], "leads": ["trees", "farming", "plants"], "about": "saplings", "turns": [
+      {"by": "a", "lines": ["always replant your saplings", "i plant a sapling for every tree i cut", "i made a tree farm today", "i have way too many saplings"]},
+      {"by": "b", "lines": ["good habit", "i forget", "nice", "same", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["trees are friends", "yeah", "try it", "lol"]}
+    ]},
+    {"id": "plants_flowers", "tags": ["plants", "decor"], "leads": ["plants", "decor", "farming"], "about": "flowers", "turns": [
+      {"by": "a", "lines": ["i picked some flowers for my garden", "flower pots make a house feel nice", "i found a flower i've never seen", "bonemeal on grass is so fun"]},
+      {"by": "b", "lines": ["nice", "cute", "show me", "i like flowers"]},
+      {"by": "a", "chance": 0.5, "lines": ["come see", "yeah", ":)"]}
+    ]},
+    {"id": "plants_cactus", "tags": ["plants", "danger"], "leads": ["plants", "biomes"], "about": "cactus", "turns": [
+      {"by": "a", "lines": ["i walked into a cactus again", "cactus hurts more than it should", "why does everything in the desert hurt", "i lost my diamonds to a cactus"]},
+      {"by": "b", "lines": ["lol", "watch your step", "classic desert", "how", "rip"]},
+      {"by": "a", "chance": 0.5, "lines": ["never again", "it's hard to see", "i hate the desert", "lol"]}
+    ]},
+    {"id": "plants_mushrooms", "tags": ["plants", "food"], "leads": ["food", "plants", "caves"], "about": "mushrooms", "turns": [
+      {"by": "a", "lines": ["mushroom stew is underrated", "giant mushrooms are cool", "i found a cave full of mushrooms", "i have so many mushrooms"]},
+      {"by": "b", "lines": ["true", "nice", "stew time", "i never use them", "yeah"]},
+      {"by": "a", "chance": 0.5, "lines": ["try it", "lol", "yeah"]}
+    ]},
+    {"id": "ocean_monument", "tags": ["ocean", "structures"], "leads": ["ocean", "structures", "mobs"], "about": "the monument", "turns": [
+      {"by": "a", "lines": ["have you ever raided an ocean monument?", "is an ocean monument worth it?", "ever been inside an ocean monument?"]},
+      {"by": "b", "lines": ["no way", "once, barely", "too scary", "for the sponges, yes", "mining fatigue, no thanks"]},
+      {"by": "a", "chance": 0.5, "lines": ["same", "brave", "maybe one day", "lol"]}
+    ]},
+    {"id": "ocean_swim", "tags": ["ocean", "danger"], "leads": ["ocean", "mobs", "potions"], "about": "swimming", "turns": [
+      {"by": "a", "lines": ["swimming at night is a bad idea", "drowned everywhere in the water lately", "i almost drowned yesterday", "i need water breathing for the deep parts"]},
+      {"by": "b", "lines": ["yikes", "stay on land", "doors help", "true", "careful"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "noted", "i'll be careful"]}
+    ]},
+    {"id": "ocean_coral", "tags": ["ocean", "biomes"], "leads": ["ocean", "biomes", "decor"], "about": "coral", "turns": [
+      {"by": "a", "lines": ["coral reefs are so pretty", "i want coral in my house", "warm oceans are the best oceans", "coral dies if you take it out of water"]},
+      {"by": "b", "lines": ["they are", "silk touch", "true", "i've never seen one", "sad"]},
+      {"by": "a", "chance": 0.5, "lines": ["you should go", "yeah", "lol"]}
+    ]},
+    {"id": "ocean_dolphins", "tags": ["ocean", "animals"], "leads": ["animals", "ocean"], "about": "dolphins", "turns": [
+      {"by": "a", "lines": ["dolphins are the best", "a dolphin led me to a shipwreck", "swimming with dolphins is so fast", "a dolphin followed my boat for ages"]},
+      {"by": "b", "lines": ["cute", "no way", "nice", "i love dolphins", "cool"]},
+      {"by": "a", "chance": 0.5, "lines": ["right", "yeah", ":)"]}
+    ]},
+    {"id": "pets_dog_name", "tags": ["pets", "animals"], "leads": ["pets", "animals"], "about": "pets", "turns": [
+      {"by": "a", "lines": ["if you had a dog, what would you name it?", "what would you name a cat?", "best name for a pet wolf?"]},
+      {"by": "b", "lines": ["bones", "mittens", "steve", "biscuit", "sir barks a lot", "ghost"]},
+      {"by": "a", "chance": 0.5, "lines": ["perfect", "lol", "good name", "cute"]}
+    ]},
+    {"id": "pets_parrot", "tags": ["pets", "animals"], "leads": ["pets", "animals", "biomes"], "about": "parrots", "turns": [
+      {"by": "a", "lines": ["i want a parrot on my shoulder", "parrots dance to music, did you know", "jungle parrots are so loud", "a parrot copied a creeper sound and scared me"]},
+      {"by": "b", "lines": ["cute", "lol", "no way", "seeds tame them", "i've never seen one"]},
+      {"by": "a", "chance": 0.5, "lines": ["one day", "lol", "jungle trip?"]}
+    ]},
+    {"id": "pets_protect", "tags": ["pets", "danger"], "leads": ["pets", "mobs"], "about": "pets", "turns": [
+      {"by": "a", "lines": ["keep your pets away from creepers", "i always leave my pets home now", "pets in caves is a bad idea", "never take your dog to the nether"]},
+      {"by": "b", "lines": ["learned that the hard way", "true", "yeah", "poor things", "sad but true"]},
+      {"by": "a", "chance": 0.5, "lines": ["safe at home", "yeah", "rip"]}
+    ]},
+    {"id": "music_hum", "tags": ["music", "random"], "leads": ["music", "random", "feelings"], "about": "music", "turns": [
+      {"by": "a", "lines": ["i've got that piano song stuck in my head", "the music when you're alone is so calm", "the game music always hits at the right moment", "sometimes the music makes me sad"]},
+      {"by": "b", "lines": ["same", "it's beautiful", "true", "i know the one", "it does"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "so good", "lol"]}
+    ]},
+    {"id": "music_jukebox", "tags": ["music", "decor"], "leads": ["music", "decor", "home"], "about": "music discs", "turns": [
+      {"by": "a", "lines": ["my favorite music disc is cat", "my favorite disc is blocks", "the best music disc is pigstep", "i only have one disc and i play it every day"]},
+      {"by": "b", "lines": ["good taste", "mine's otherside", "nice", "lol", "i don't have any"]},
+      {"by": "a", "chance": 0.5, "lines": ["fair", "lol", "creepers drop them if a skeleton gets them"]}
+    ]},
+    {"id": "animals_breeding", "tags": ["animals", "farming"], "leads": ["animals", "farming", "food"], "about": "animals", "turns": [
+      {"by": "a", "lines": ["my cow pen is overflowing", "i bred way too many sheep", "baby animals are so cute", "i have more chickens than i know what to do with"]},
+      {"by": "b", "lines": ["lol", "dinner", "cute", "same", "too many"]},
+      {"by": "a", "chance": 0.5, "lines": ["i can't help it", "lol", "yeah"]}
+    ]},
+    {"id": "animals_fox", "tags": ["animals", "biomes"], "leads": ["animals", "biomes"], "about": "foxes", "turns": [
+      {"by": "a", "lines": ["a fox stole my sword", "foxes are so cute", "a fox ate my berries", "i saw a snow fox"]},
+      {"by": "b", "lines": ["lol", "cute", "classic fox", "aww"]},
+      {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "foxes, man"]}
+    ]},
+    {"id": "weather_snow", "needs": ["outside"], "tags": ["weather", "biomes"], "leads": ["weather", "biomes"], "about": "snow", "turns": [
+      {"by": "a", "lines": ["i wish it snowed here", "snow makes everything quiet", "snowball fights would be fun", "i like the cold biomes"]},
+      {"by": "b", "lines": ["me too", "brr", "go north", "true", "lol"]},
+      {"by": "a", "chance": 0.5, "lines": ["one day", "lol", "yeah"]}
+    ]},
+    {"id": "rain_sound", "needs": ["rain"], "tags": ["weather", "feelings"], "leads": ["weather", "home", "sleep"], "about": "the rain", "turns": [
+      {"by": "a", "lines": ["i like the sound of rain", "rain makes me sleepy", "rain on a roof is the best sound", "rain makes everything feel calm"]},
+      {"by": "b", "lines": ["same", "cozy", "it's nice", "i like it too", "i don't mind it"]},
+      {"by": "a", "chance": 0.5, "lines": ["yeah", "best weather", ":)"]}
+    ]},
+    {"id": "storm_mobs", "needs": ["thunder"], "tags": ["weather", "danger"], "leads": ["danger", "mobs", "home"], "about": "the storm", "turns": [
+      {"by": "a", "lines": ["mobs spawn in storms, careful", "this storm is bad", "the thunder is so loud", "we should get inside"]},
+      {"by": "b", "lines": ["yeah", "let's go", "i'm fine", "scary", "careful"]},
+      {"by": "a", "chance": 0.5, "lines": ["stay close", "yeah", "come on"]}
+    ]}
+  ]
+}

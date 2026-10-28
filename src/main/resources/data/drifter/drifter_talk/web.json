@@ -60,7 +60,10 @@
     "coup_talk": {"tags": ["town", "politics", "news"], "leads": ["politics", "town", "gossip"], "about": "coup"},
     "abdication_talk": {"tags": ["town", "politics", "news"], "leads": ["politics", "town"], "about": "leader"},
     "tax_dropped_talk": {"tags": ["town", "politics", "news"], "leads": ["politics", "trade", "town"], "about": "taxes"},
-    "betrayal_talk": {"tags": ["town", "politics", "gossip"], "leads": ["politics", "gossip", "feelings"], "about": "betrayal"}
+    "betrayal_talk": {"tags": ["town", "politics", "gossip"], "leads": ["politics", "gossip", "feelings"], "about": "betrayal"},
+    "crook_theft_talk": {"tags": ["town", "gossip", "complaints"], "leads": ["gossip", "town", "complaints"], "about": "crook"},
+    "crook_fight_talk": {"tags": ["town", "gossip", "danger"], "leads": ["gossip", "town", "danger"], "about": "crook"},
+    "crook_gone_talk": {"tags": ["town", "gossip", "news"], "leads": ["gossip", "town", "politics"], "about": "crook"}
   },
   "topics": [
     {

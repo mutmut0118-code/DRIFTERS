@@ -462,7 +462,8 @@ public final class TownBuilder {
 				continue;
 			}
 
-			DrifterApi.settleDown(drifter);
+			// (No Bandits in a town: the user, 2026-10-28, "kinda like a skyrim bandit".)
+			DrifterApi.notABandit(drifter);
 			Home home = DrifterApi.settleIn(drifter, house, store);
 			home.farm = fields.get(i % fields.size());
 			home.farmRadius = 4;
@@ -486,7 +487,7 @@ public final class TownBuilder {
 					break;
 				}
 
-				DrifterApi.settleDown(other);
+				DrifterApi.notABandit(other);
 				Home shared = DrifterApi.settleInToo(other, house, store);
 				if (shared == null) {
 					other.discard();

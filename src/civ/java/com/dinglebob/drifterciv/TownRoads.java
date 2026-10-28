@@ -274,6 +274,21 @@ final class TownRoads {
 		}
 
 		@Override
+		public boolean crook(DrifterEntity drifter) {
+			return this.town.crooks.contains(drifter.getUUID());
+		}
+
+		@Override
+		public boolean othersChest(DrifterEntity drifter, BlockPos chest) {
+			return Justice.othersChest(this.town, drifter, chest);
+		}
+
+		@Override
+		public void crime(DrifterEntity drifter, String kind, @org.jetbrains.annotations.Nullable DrifterEntity victim, BlockPos where) {
+			Justice.byCrook(this.town, drifter, kind, victim, where);
+		}
+
+		@Override
 		public boolean clearOfTrees(int x, int z) {
 			// (A founded town's plaza, once its stall is up: the plaza's next.)
 			return !this.town.spawned && this.town.stallBuilt && plaza(this.town).away(x, z) <= 0;

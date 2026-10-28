@@ -3090,6 +3090,36 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     town at once, so the leader was "thrown out for killing" it; unarmed, it turned and then didn't fight; it came back to
     life at its old home and went again; looking at the leader the very moment of the check was rare).
   - Also fixed: in strangers meeting, "o/ {b}" read as greeting itself ("o/ im {b}").
+- **Bandits and towns (0.22.29, 0.22.30).** Found by the user: walking about a ready-made town, they were killed twice by
+  tiny_ranger, a Bandit among its people (about 1 in 25 are born Bandits) whom the town had just elected leader. The user,
+  2026-10-28: "bandits shouldnt be in towns, kinda like a skyrim bandit but if they are in a town they should be commiting
+  several crimes to really give that bandit feel".
+  - No Bandits in towns: a ready-made town's people are never Bandits (`DrifterApi.notABandit`: a new personality of
+    another kind); a Bandit-led group never founds a town, and a group about to found one leaves its Bandits out first
+    (they and the others think 30 less of each other); a town takes no Bandit in (`DrifterApi.registerJoinRule`, checked by
+    `DrifterBonds.maybeGroup`).
+  - A Bandit living in a town anyway (from before; or debug `/drifterciv town crook`) is its crook (`Town.crooks`):
+    `DrifterApi.settleDown` makes it an opportunist there (no killing on sight), and `CrookGoal` (Drifter) every half a day
+    to a day, when no town mate it sees is within 16 blocks, sneaks to a chest it has seen that's someone else's in the
+    town (`TownWork.othersChest`: the store, the till, a neighbour's house) and takes up to 32 of the 3 best kinds of thing
+    there, or picks a fight with the town mate it likes least (not the leader; `CrookGoal.Brawl`: to 4 hearts, 30 s at
+    most, a blow below that doesn't land). It tells the town (`TownWork.crime`); `Justice.byCrook` judges by who saw it
+    (a town mate with it in sight within 32 blocks, the one it went for too): -15 trust, a fine (3 for a theft, 2 for a
+    fight, +1 each time) owed to the till like a tax; the third time it's thrown out (out of the group, no home, its
+    town mates' trust -70 both ways, a Bandit again: kills on sight, can be a wanted poster's target).
+  - Talk: flags `crook_theft`, `crook_fight`, `crook_thrown_out` (a day), word `crook`; topics crook_theft_talk,
+    crook_fight_talk, crook_gone_talk; shouts `crook.brawl`, `crime.fight`, `crook.thrown_out`.
+  - Its crook never keeps the stall (`Market.keeper` gives it to someone else), isn't the first or stand-in leader and
+    never stands for election. Thrown out, it turns Bandit only once 160 blocks from the town (`Justice.leaving`; not
+    saved). Debug: `/drifterciv town crook` (again: its crook at it again), `/drifterciv town crook out`.
+  - Tested in the client (made-ready towns): a theft from a neighbour's chest seen ("guards! X's a thief", a fine of 3),
+    an unseen one ("nobody saw it"), fights caught and stopped at a few hearts; headless and client: thrown out.
+    Found and fixed: the crook kept its chase after the fight and killed the one it went for (now it drops it, and
+    blows between them don't land for 10 s); it robbed only the empty till (now the store and neighbours' chests, the
+    best 3 kinds, not the same chest twice, empty ones left a day); at 0.55 it nearly never got round to it (0.66 by
+    day, 0.76 at night, 30 s committed, tried again soon if interrupted); the crook was the stall keeper (the user:
+    "the crook is the shopkeeper") and once the first leader; thrown out and turned Bandit at once, or just past the
+    town's edge, it killed the town's people (160 blocks now).
 - Next: milestone 22 step 6, nations and diplomacy (docs/CIVILIZATION.md), or prison (kept for later, the user).
 
 ## Side session (branch claude/drifter-chat-expansion-574ebe): chat and house plans
@@ -3220,3 +3250,23 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     ten topics and a goodbye; a story's part two came straight after part one. Headless smoke: six topics, no errors.
 - **0.22.29-side.1 (side session):** merged the other session's 0.22.29 (a Bandit living in a town settles down) into
   the chat branch; no conflicts beyond the version number. Same topics as side.4.
+- **Topic batch three, and the merge of 0.22.30 (0.22.30-side.1, side session).** Merged the other session's 0.22.30
+  (Bandits kept out of towns; a Bandit living in one is its crook) and linked its three crook topics into the web
+  (`web.json`). Then 194 new topics: 568 in all, 67 tags, about 5,180 lines.
+  - `topics_town_life.json` (25): everyday life in a town (needs `a:in_town`): the morning, neighbours, the market,
+    jobs, keeping watch, roads, the leader (and being the leader), taxes, thieves, a party, newcomers, what to build next.
+  - `topics_voices_more.json` (28): more of each kind's own topics (casual, speedrunner, nomad, hoarder, hermit,
+    pvp_sweat, bandit, helper, newbie, builder, miner, homebody) and more pairs (builder asks a miner for stone, a
+    speedrunner and a casual, a helper and a newbie, a helper and a bandit, a hoarder and a nomad).
+  - `topics_stories_more.json` (24): ten more two-part stories and two in three parts (the stronghold, the first
+    friend): part two names part three in its own `next`.
+  - `topics_crafting.json` (26): redstone, potions, enchanting, armor, weapons, tools, banners and maps.
+  - `topics_outdoors.json` (26): fishing, the sky (moon, sunrise, clouds), trees and plants, the sea, pets, music,
+    snow, rain and storms.
+  - `topics_moods.json` (25): how a Drifter is doing right now: each mood, hungry, hurt, a death, a close call, kills,
+    ore it found, diamonds in its pocket, no home / a hut / a house, something it built, a trade, the other's armor.
+  - `topics_debates.json` (17): small debates in the agree/disagree pattern (beds in the nether, dirt houses, iron
+    vs diamonds, torches, gravel...). `topics_banter.json` (19): would-you-rather, teasing, jokes, advice, players.
+  - Checker: now flags a condition only ever set about players (`b:owed`, `b:stranger`, `b:holding_fancy`...) used in
+    a topic between two Drifters, where it would never come up (caught two of these while writing).
+  - Fixed: `kinds_newbie_teach` mixed a question ("want a tip?") with tips in one turn; now all tips.
