@@ -1,0 +1,231 @@
+{
+  "_comment": "Topics batch: building, home, storage, decor and redstone. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "roof_style",
+      "tags": ["building", "decor"],
+      "leads": ["building", "decor", "argument"],
+      "about": "roofs",
+      "turns": [
+        {"by": "a", "lines": ["flat roof or slanted?", "roofs are the hardest part", "stairs make the best roofs", "my roof looks so bad"]},
+        {"by": "b", "lines": ["slanted always", "flat is fine", "stairs and slabs", "i never build roofs lol", "dark oak roofs are the best"]},
+        {"by": "a", "chance": 0.35, "lines": ["ew", "nope", "hard no"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["good taste", "true", "agreed"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "fav_wood",
+      "tags": ["building", "decor", "trees"],
+      "leads": ["trees", "building", "argument"],
+      "about": "wood",
+      "turns": [
+        {"by": "a", "lines": ["best wood type?", "spruce is the best wood", "birch is so clean looking", "whats your fav wood"]},
+        {"by": "b", "lines": ["spruce", "dark oak", "birch", "cherry, its pink", "oak, classic", "mangrove"]},
+        {"by": "a", "chance": 0.35, "lines": ["ew no", "thats a crime", "wrong answer"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["nice", "good pick", "respect"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "storage_mess",
+      "tags": ["storage", "home"],
+      "leads": ["storage", "building", "complaints"],
+      "about": "chests",
+      "turns": [
+        {"by": "a", "lines": ["my chests are a mess", "do you label your chests", "need a storage room", "i just dump everything in one chest"]},
+        {"by": "b", "lines": ["signs on every chest", "same, chaos", "barrels save space", "item frames on chests", "i know where everything is"]},
+        {"by": "a", "chance": 0.5, "lines": ["organized person", "same", "good idea", "lol"]}
+      ]
+    },
+    {
+      "id": "barrel_vs_chest",
+      "tags": ["storage", "argument"],
+      "leads": ["storage", "building", "argument"],
+      "about": "barrels",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["barrels or chests?", "barrels are better than chests", "chests look nicer", "barrels can go under blocks"]},
+        {"by": "b", "lines": ["barrels", "chests", "both", "whatever i have wood for", "shulkers lol"]},
+        {"by": "a", "chance": 0.3, "lines": ["wrong", "no way", "nope"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["agreed", "true", "yeah"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "build_big",
+      "tags": ["building", "plans"],
+      "leads": ["building", "plans", "home"],
+      "about": "the build",
+      "turns": [
+        {"by": "a", "lines": ["want to build a castle", "planning something huge", "thinking about a tower", "gonna build a bridge across the river"]},
+        {"by": "b", "lines": ["thats a lot of blocks", "do it!", "i can help", "sounds cool", "you'll never finish lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["watch me", "thanks", "we'll see", "lol maybe not"]}
+      ]
+    },
+    {
+      "id": "window_talk",
+      "tags": ["building", "decor"],
+      "leads": ["decor", "building"],
+      "about": "windows",
+      "turns": [
+        {"by": "a", "lines": ["need glass for windows", "windows make a house", "my house has no windows lol", "glass panes or full glass?"]},
+        {"by": "b", "lines": ["panes look better", "full glass", "need more sand", "windows let mobs see you", "no windows, cave life"]},
+        {"by": "a", "chance": 0.5, "lines": ["fair", "need sand", "true", "lol"]}
+      ]
+    },
+    {
+      "id": "garden_build",
+      "tags": ["decor", "plants", "home"],
+      "leads": ["plants", "farming", "decor"],
+      "about": "the garden",
+      "turns": [
+        {"by": "a", "lines": ["planting flowers around my house", "a garden makes a base feel like home", "found some nice flowers today", "my base needs more green"]},
+        {"by": "b", "lines": ["flowers are nice", "bees love them", "leaves are great for builds", "i dont have time for that", "plant trees too"]},
+        {"by": "a", "chance": 0.5, "lines": ["good idea", "bees!", "true", "maybe"]}
+      ]
+    },
+    {
+      "id": "bridge_build",
+      "tags": ["building", "exploring"],
+      "leads": ["building", "exploring", "places"],
+      "about": "the bridge",
+      "turns": [
+        {"by": "a", "lines": ["building a bridge is so scary", "sneaking off the edge to place blocks", "almost fell building a bridge", "bridges make travel so easy"]},
+        {"by": "b", "lines": ["sneak!", "use scaffolding", "i just swim lol", "boat is faster", "railings help"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "scaffolding, smart", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "lighting_base",
+      "tags": ["building", "home", "mobs"],
+      "leads": ["home", "mobs", "decor"],
+      "about": "lighting",
+      "turns": [
+        {"by": "a", "lines": ["need to light up my base more", "a creeper spawned inside my base", "lanterns or torches?", "lighting is everything"]},
+        {"by": "b", "lines": ["lanterns look nicer", "torches everywhere", "glowstone", "spam torches", "light up a big circle"]},
+        {"by": "a", "chance": 0.5, "lines": ["lanterns it is", "true", "will do", "yeah"]}
+      ]
+    },
+    {
+      "id": "underground_base",
+      "tags": ["home", "caves", "building"],
+      "leads": ["home", "caves", "building", "argument"],
+      "about": "living underground",
+      "turns": [
+        {"by": "a", "lines": ["thinking of living underground", "underground bases are safest", "would you live in a cave", "my base is half underground"]},
+        {"by": "b", "lines": ["too dark", "safest for sure", "i need the sun", "cave bases are cozy", "mobs spawn down there"]},
+        {"by": "a", "chance": 0.3, "lines": ["nah", "you're wrong", "nope"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["fair point", "yeah", "true"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "build_spot",
+      "tags": ["home", "places", "building"],
+      "leads": ["places", "home", "biomes"],
+      "about": "the spot",
+      "turns": [
+        {"by": "a", "lines": ["looking for a good build spot", "where's the best place to build", "found a great spot by a lake", "flat land is so rare"]},
+        {"by": "b", "lines": ["near water", "on a mountain", "near a village", "anywhere with trees", "flat plains"]},
+        {"by": "a", "chance": 0.5, "lines": ["good idea", "maybe", "near water, yeah", "true"]}
+      ]
+    },
+    {
+      "id": "furnace_row",
+      "tags": ["building", "crafting"],
+      "leads": ["crafting", "ore", "storage"],
+      "about": "furnaces",
+      "turns": [
+        {"by": "a", "lines": ["need more furnaces", "smelting takes forever", "blast furnace is so much faster", "made a row of furnaces"]},
+        {"by": "b", "lines": ["more is better", "blast furnace for ore", "smoker for food", "i use one furnace lol", "patience"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "patience lol", "nice", "ok"]}
+      ]
+    },
+    {
+      "id": "redstone_door",
+      "tags": ["redstone", "building"],
+      "leads": ["redstone", "building", "brag"],
+      "about": "redstone",
+      "turns": [
+        {"by": "a", "lines": ["trying to make a piston door", "redstone is like magic", "my redstone never works", "made a secret door"]},
+        {"by": "b", "lines": ["cool", "i dont get redstone", "show me", "its easy once you learn", "just use a button"]},
+        {"by": "a", "chance": 0.5, "lines": ["one day", "lol", "sure", "yeah"]}
+      ]
+    },
+    {
+      "id": "farm_redstone",
+      "tags": ["redstone", "farming"],
+      "leads": ["farming", "redstone", "food"],
+      "about": "auto farm",
+      "turns": [
+        {"by": "a", "lines": ["want an auto farm", "observers make farms easy", "sugarcane farm is the first one", "auto farms are worth it"]},
+        {"by": "b", "lines": ["villager farms!", "too complicated", "pumpkin farm is easy", "i just farm by hand", "yes"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "true", "pumpkins, good one", "lol"]}
+      ]
+    },
+    {
+      "id": "build_fail",
+      "tags": ["building", "jokes", "complaints"],
+      "leads": ["building", "jokes"],
+      "about": "the build",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["my house looks like a box", "i built a wall the wrong way", "my build is so ugly lol", "placed a whole roof the wrong direction"]},
+        {"by": "b", "lines": ["boxes are fine", "lol", "everyone starts somewhere", "mine too", "add some stairs"]},
+        {"by": "a", "chance": 0.5, "lines": ["thanks", "lol", "true", "i'll try"]}
+      ]
+    },
+    {
+      "id": "home_cozy",
+      "tags": ["home", "feelings"],
+      "leads": ["home", "decor", "feelings"],
+      "about": "home",
+      "turns": [
+        {"by": "a", "lines": ["nothing beats coming home", "my house finally feels like home", "home sweet home", "missing my base"]},
+        {"by": "b", "lines": ["aww", "same", "home is where the bed is", "i dont have a home really", "feels good"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "you'll find one", "exactly", "yeah"]}
+      ]
+    },
+    {
+      "id": "fence_talk",
+      "tags": ["building", "animals"],
+      "leads": ["animals", "farming", "building"],
+      "about": "fences",
+      "turns": [
+        {"by": "a", "lines": ["need to fence in my animals", "fences keep the zombies out", "my cows keep escaping", "fences or walls?"]},
+        {"by": "b", "lines": ["fences", "walls look better", "double fence, trust", "lol escaped cows", "gates are important"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "will do", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "decor_bits",
+      "tags": ["decor", "home"],
+      "leads": ["decor", "home", "building"],
+      "about": "decor",
+      "turns": [
+        {"by": "a", "lines": ["paintings make a house", "put a carpet down today", "item frames everywhere lol", "flower pots are so cute"]},
+        {"by": "b", "lines": ["paintings are random tho", "carpets are nice", "yes!", "i dont decorate", "banners too"]},
+        {"by": "a", "chance": 0.5, "lines": ["you should", "banners, yeah", "lol", "same"]}
+      ]
+    },
+    {
+      "id": "mega_storage",
+      "tags": ["storage", "brag"],
+      "leads": ["storage", "brag", "building"],
+      "about": "storage",
+      "turns": [
+        {"by": "a", "lines": ["my storage room is huge now", "built a full storage system", "i have a chest for every block", "sorted all my chests today"]},
+        {"by": "b", "lines": ["show off", "nice", "i need that", "how many chests", "wow"]},
+        {"by": "a", "chance": 0.5, "lines": ["like 40", "come see", "lol", "it took forever"]}
+      ]
+    },
+    {
+      "id": "nether_portal_base",
+      "tags": ["nether", "building"],
+      "leads": ["nether", "building", "decor"],
+      "about": "the portal",
+      "turns": [
+        {"by": "a", "lines": ["built a nether portal at home", "should a portal be inside or outside", "decorated my portal", "portal room in progress"]},
+        {"by": "b", "lines": ["inside, safer", "outside looks cool", "ghasts can come through", "nice", "dont let a piglin through"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "yeah", "lol", "good point"]}
+      ]
+    }
+  ]
+}

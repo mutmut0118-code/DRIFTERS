@@ -1,0 +1,249 @@
+{
+  "_comment": "Topics batch: mobs, fighting and danger. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "creeper_hate",
+      "tags": ["mobs", "danger", "complaints"],
+      "leads": ["mobs", "building", "danger", "jokes"],
+      "about": "creepers",
+      "turns": [
+        {"by": "a", "lines": ["a creeper blew up my wall", "creepers have no right being that quiet", "why do creepers exist", "heard a hiss behind me and just ran"]},
+        {"by": "b", "lines": ["they want a hug", "i hate them so much", "cats scare them off", "shield up and pray", "they ruin everything"]},
+        {"by": "a", "chance": 0.5, "lines": ["cats, huh", "worst mob", "seriously", "lol a hug"]}
+      ]
+    },
+    {
+      "id": "skeleton_archers",
+      "tags": ["mobs", "fighting"],
+      "leads": ["fighting", "gear", "weapons"],
+      "about": "skeletons",
+      "turns": [
+        {"by": "a", "lines": ["skeletons have perfect aim i swear", "got sniped by a skeleton from so far", "skeletons are the worst at night", "skeleton knocked me off a cliff"]},
+        {"by": "b", "lines": ["shield fixes that", "use the trees for cover", "they're better than me at bows", "free arrows tho", "rush them, they back off"]},
+        {"by": "a", "chance": 0.5, "lines": ["free arrows, true", "fair", "still annoying", "ok"]}
+      ]
+    },
+    {
+      "id": "spider_jump",
+      "tags": ["mobs", "night"],
+      "leads": ["mobs", "night", "danger"],
+      "about": "spiders",
+      "turns": [
+        {"by": "a", "lines": ["spiders climbing walls is so unfair", "a spider jumped me from a tree", "spiders are chill in the day at least", "spider eyes are gross"]},
+        {"by": "b", "lines": ["string though", "i hate the sound they make", "they're harmless in the day", "cave spiders are worse", "just put an overhang on your walls"]},
+        {"by": "a", "chance": 0.5, "lines": ["overhang, smart", "true", "ugh", "string is nice"]}
+      ]
+    },
+    {
+      "id": "zombie_horde",
+      "tags": ["mobs", "night", "fighting"],
+      "leads": ["fighting", "home", "villagers"],
+      "about": "zombies",
+      "turns": [
+        {"by": "a", "lines": ["there were like 6 zombies outside last night", "zombies breaking doors is so scary", "zombies are easy but there's always so many", "a baby zombie almost killed me"]},
+        {"by": "b", "lines": ["baby zombies are terrifying", "iron doors, trust", "free rotten flesh lol", "just stay inside at night", "a sword does the job"]},
+        {"by": "a", "chance": 0.5, "lines": ["baby ones are the worst", "iron doors, noted", "true", "yeah"]}
+      ]
+    },
+    {
+      "id": "enderman_eyes",
+      "tags": ["mobs", "end", "danger"],
+      "leads": ["end", "mobs", "jokes"],
+      "about": "endermen",
+      "turns": [
+        {"by": "a", "lines": ["looked at an enderman by accident", "endermen stole a block from my house", "endermen are kinda cute", "you ever fight an enderman"]},
+        {"by": "b", "lines": ["dont look at them", "they cant follow you under 2 blocks", "they took my grass too", "water is their weakness", "pearls though"]},
+        {"by": "a", "chance": 0.5, "lines": ["pearls are worth it", "good trick", "rude", "lol"]}
+      ]
+    },
+    {
+      "id": "witch_fight",
+      "tags": ["mobs", "potions", "fighting"],
+      "leads": ["potions", "fighting", "danger"],
+      "about": "witches",
+      "turns": [
+        {"by": "a", "lines": ["got poisoned by a witch", "witches drink their own potions its so unfair", "fighting a witch is the worst", "found a witch hut"]},
+        {"by": "b", "lines": ["rush them", "use a bow", "they drop redstone tho", "milk for the poison", "avoid them"]},
+        {"by": "a", "chance": 0.5, "lines": ["noted", "good drop", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "phantom_rage",
+      "tags": ["mobs", "sleep", "night"],
+      "leads": ["sleep", "night", "complaints"],
+      "about": "phantoms",
+      "turns": [
+        {"by": "a", "lines": ["phantoms are the worst mob ever added", "got swarmed by phantoms", "phantoms keep finding me", "need to sleep or the phantoms come"]},
+        {"by": "b", "lines": ["just sleep lol", "they're useless", "membranes fix elytra tho", "go underground", "worst mob ever"]},
+        {"by": "a", "chance": 0.5, "lines": ["agreed", "fine ill sleep", "true", "ugh"]}
+      ]
+    },
+    {
+      "id": "drowned_trident",
+      "tags": ["mobs", "ocean", "weapons"],
+      "leads": ["ocean", "weapons", "danger"],
+      "about": "drowned",
+      "turns": [
+        {"by": "a", "lines": ["a drowned threw a trident at me", "drowned are scary in the dark water", "you ever got a trident", "rivers at night are full of drowned"]},
+        {"by": "b", "lines": ["want a trident so bad", "stay out of the water at night", "got one once", "they're slow on land", "they're everywhere"]},
+        {"by": "a", "chance": 0.5, "lines": ["same", "good idea", "nice", "yeah"]}
+      ]
+    },
+    {
+      "id": "slime_chunks",
+      "tags": ["mobs", "caves", "redstone"],
+      "leads": ["redstone", "caves", "mobs"],
+      "about": "slimes",
+      "turns": [
+        {"by": "a", "lines": ["found slimes underground", "slimes are kinda adorable", "need slimeballs for pistons", "swamps have slimes at night"]},
+        {"by": "b", "lines": ["slime chunk!", "cute but annoying", "sticky pistons time", "never seen one", "they split, ugh"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "nice", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "pillager_patrol",
+      "tags": ["mobs", "villagers", "danger"],
+      "leads": ["villagers", "danger", "fighting"],
+      "about": "pillagers",
+      "turns": [
+        {"by": "a", "lines": ["got hit by a pillager patrol", "saw pillagers walking around", "careful, theres pillagers near here", "pillagers have crossbows, so annoying"]},
+        {"by": "b", "lines": ["kill the captain and its a raid", "avoid the banner guy", "they shoot so hard", "where?", "i ran away"]},
+        {"by": "a", "chance": 0.5, "lines": ["good tip", "east of here", "same", "smart"]}
+      ]
+    },
+    {
+      "id": "guardian_ocean",
+      "tags": ["mobs", "ocean", "structures"],
+      "leads": ["ocean", "structures", "danger"],
+      "about": "guardians",
+      "turns": [
+        {"by": "a", "lines": ["found an ocean monument", "guardians lasers are nasty", "ocean monuments look cool from above", "you ever raid a monument"]},
+        {"by": "b", "lines": ["no way, mining fatigue", "sponges are worth it", "too scary", "need water breathing first", "maybe someday"]},
+        {"by": "a", "chance": 0.5, "lines": ["same", "someday", "true", "yeah"]}
+      ]
+    },
+    {
+      "id": "warden_fear",
+      "tags": ["mobs", "danger", "caves"],
+      "leads": ["caves", "danger", "feelings"],
+      "about": "the warden",
+      "turns": [
+        {"by": "a", "lines": ["went to the deep dark once", "the warden is terrifying", "never going near a sculk shrieker again", "heard the warden heartbeat"]},
+        {"by": "b", "lines": ["sneak everywhere", "i just leave", "the loot is good tho", "nope", "wool on the floor"]},
+        {"by": "a", "chance": 0.5, "lines": ["not worth it", "nope nope", "sneak, yeah", "no thanks"]}
+      ]
+    },
+    {
+      "id": "wolf_pack",
+      "tags": ["animals", "mobs", "pets"],
+      "leads": ["pets", "animals", "fighting"],
+      "about": "wolves",
+      "turns": [
+        {"by": "a", "lines": ["saw a pack of wolves", "tamed a wolf once", "wolves are the best", "hit a wolf by accident and the whole pack came"]},
+        {"by": "b", "lines": ["bones, bones, bones", "dont hit them lol", "dogs are op", "i want one", "they die so easily tho"]},
+        {"by": "a", "chance": 0.5, "lines": ["right?", "oops", "true", "aww"]}
+      ]
+    },
+    {
+      "id": "night_fight",
+      "tags": ["fighting", "night", "danger"],
+      "leads": ["fighting", "gear", "home"],
+      "about": "fighting",
+      "turns": [
+        {"by": "a", "lines": ["fought all night", "night fights are the best xp", "so many mobs out tonight", "barely survived the night"]},
+        {"by": "b", "lines": ["good xp", "i stayed inside", "nice", "same", "night is for sleeping"]},
+        {"by": "a", "chance": 0.5, "lines": ["coward lol", "fair", "next time", "lol"]}
+      ]
+    },
+    {
+      "id": "sword_or_axe",
+      "tags": ["weapons", "fighting", "gear"],
+      "leads": ["weapons", "gear", "argument"],
+      "about": "weapons",
+      "turns": [
+        {"by": "a", "lines": ["sword or axe?", "axe hits harder", "swords are faster", "whats your main weapon"]},
+        {"by": "b", "lines": ["sword, sweeping edge", "axe, breaks shields", "bow, keep my distance", "whatever i find", "my fists lol"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah wrong", "hard disagree", "no way"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["respect", "fair", "makes sense"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "bow_skill",
+      "tags": ["weapons", "fighting"],
+      "leads": ["weapons", "fighting", "brag"],
+      "about": "bows",
+      "turns": [
+        {"by": "a", "lines": ["my aim with a bow is so bad", "bows are underrated", "hit a skeleton from like 30 blocks", "need more arrows"]},
+        {"by": "b", "lines": ["practice", "nice shot", "skeletons drop arrows", "i cant aim either", "power 5 is crazy"]},
+        {"by": "a", "chance": 0.5, "lines": ["thanks", "lol", "same", "true"]}
+      ]
+    },
+    {
+      "id": "shield_talk",
+      "tags": ["gear", "fighting"],
+      "leads": ["gear", "weapons", "mobs"],
+      "about": "shields",
+      "turns": [
+        {"by": "a", "lines": ["shields are the most underrated item", "my shield saved me from a creeper", "do you use a shield", "shield blocks arrows, so good"]},
+        {"by": "b", "lines": ["always", "i forget i have it", "axe breaks it", "best item", "i like a totem in my offhand"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "facts", "you should", "fair"]}
+      ]
+    },
+    {
+      "id": "mob_farm",
+      "tags": ["mobs", "redstone", "building"],
+      "leads": ["redstone", "building", "enchanting"],
+      "about": "mob farm",
+      "turns": [
+        {"by": "a", "lines": ["want to build a mob farm", "xp farms are the best", "mob farms take forever", "found a spawner, farm time"]},
+        {"by": "b", "lines": ["spawner farms are easy", "too much work", "help me with mine", "need lots of cobble", "do it!"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "sure", "planning it", "one day"]}
+      ]
+    },
+    {
+      "id": "baby_zombie",
+      "tags": ["mobs", "jokes"],
+      "leads": ["mobs", "jokes", "danger"],
+      "about": "baby zombies",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["saw a baby zombie riding a chicken", "baby zombies are faster than me", "the tiny zombies are the scariest", "chicken jockey!"]},
+        {"by": "b", "lines": ["lmao", "terrifying", "i laughed then i died", "they fit in 1 block holes", "cursed"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "cursed", "exactly"]}
+      ]
+    },
+    {
+      "id": "creeper_crater",
+      "tags": ["mobs", "building", "complaints"],
+      "leads": ["building", "home", "mobs"],
+      "about": "the crater",
+      "turns": [
+        {"by": "a", "lines": ["theres a huge creeper hole next to my house", "have to fix a creeper crater", "creepers keep wrecking the landscape", "a creeper blew up my farm"]},
+        {"by": "b", "lines": ["rip", "fill it with cobble", "make it a pond", "light it up", "happened to me too"]},
+        {"by": "a", "chance": 0.5, "lines": ["a pond, smart", "ugh", "yeah", "maybe"]}
+      ]
+    },
+    {
+      "id": "golem_friend",
+      "tags": ["mobs", "villagers", "town"],
+      "leads": ["villagers", "town", "building"],
+      "about": "iron golems",
+      "turns": [
+        {"by": "a", "lines": ["iron golems are so cool", "an iron golem gave me a flower", "dont hit golems lol", "want a golem at my base"]},
+        {"by": "b", "lines": ["they're so chill", "aww", "they hit hard", "build one, its easy", "they guard villages"]},
+        {"by": "a", "chance": 0.5, "lines": ["right?", "maybe i will", "yeah", "aww"]}
+      ]
+    },
+    {
+      "id": "mob_scare_story",
+      "tags": ["mobs", "danger", "memories"],
+      "leads": ["danger", "death", "memories"],
+      "about": "that scare",
+      "turns": [
+        {"by": "a", "lines": ["worst scare ever: creeper in my bed room", "turned around and an enderman was right there", "a spider fell on me from a cave roof", "zombie in my house when i woke up"]},
+        {"by": "b", "lines": ["i would have screamed", "nope", "how did you survive", "lol", "ok thats nightmare stuff"]},
+        {"by": "a", "chance": 0.5, "lines": ["barely", "luck", "i didnt sleep", "still shaking"]}
+      ]
+    }
+  ]
+}

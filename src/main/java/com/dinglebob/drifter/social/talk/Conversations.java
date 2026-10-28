@@ -75,6 +75,14 @@ public final class Conversations {
 	private static final double NEXT_WEIGHT = 3.0;
 	/** Trust that makes two best friends (the longest talks). */
 	private static final double BEST_FRIEND = 80.0;
+	/**
+	 * How often a talk opens on something real (what one of them did or has, the weather, a mood: a topic that needs it)
+	 * when there is one, over the everyday topics (best ore, fav food...), which mostly come up as a talk wanders on: with
+	 * hundreds of everyday topics, weight alone would bury the news.
+	 */
+	private static final double GROUNDED_SHARE = 0.7;
+	/** Needs that are only who the two are to each other (not something to talk about). */
+	private static final Set<String> NOT_GROUNDS = Set.of("strangers", "acquainted", "friends", "rivals", "groupmates");
 
 	/** A conversation going on. */
 	public static final class Talk {
@@ -510,17 +518,41 @@ public final class Conversations {
 		return was != null && now - was.at() <= RESUME_WITHIN;
 	}
 
-	/** A topic that suits these two now (weighted; not the one they talked about last; not one that only follows another). */
+	/**
+	 * A topic that suits these two now (weighted; not the one they talked about last; not one that only follows another;
+	 * something real first, mostly: {@link #GROUNDED_SHARE}).
+	 */
 	@Nullable
 	private static Topics.Topic pick(DrifterEntity a, DrifterEntity b, Facts aFacts, Facts bFacts, Set<String> world) {
-		List<Topics.Topic> fitting = new ArrayList<>();
-		double total = 0.0;
+		List<Topics.Topic> grounded = new ArrayList<>();
+		List<Topics.Topic> everyday = new ArrayList<>();
 		String last = lastTopic.get(pair(a, b));
 		for (Topics.Topic topic : Topics.all()) {
 			if (!topic.id().equals(last) && !topic.web().followUp() && Topics.holds(topic.needs(), aFacts, bFacts, world)) {
-				fitting.add(topic);
-				total += topic.weight();
+				(grounded(topic) ? grounded : everyday).add(topic);
 			}
+		}
+
+		boolean real = !grounded.isEmpty() && (everyday.isEmpty() || a.getRandom().nextDouble() < GROUNDED_SHARE);
+		return weighted(a, real ? grounded : everyday);
+	}
+
+	/** It needs something real to talk about (more than who the two are to each other). */
+	private static boolean grounded(Topics.Topic topic) {
+		for (String need : topic.needs()) {
+			if (!need.startsWith("!") && !NOT_GROUNDS.contains(need)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Nullable
+	private static Topics.Topic weighted(DrifterEntity a, List<Topics.Topic> fitting) {
+		double total = 0.0;
+		for (Topics.Topic topic : fitting) {
+			total += topic.weight();
 		}
 
 		double roll = a.getRandom().nextDouble() * total;

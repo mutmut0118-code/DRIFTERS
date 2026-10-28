@@ -3176,3 +3176,26 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     left and went back to exploring while talking.
   - Next: the user wants topics in the thousands. Content plan: write topics in batches by tag (new files per theme),
     each with tags/leads; maybe a generator/lint script (unknown tags, dead ends, topics nothing leads to).
+- **Topic batches, first round (0.22.28-side.3, side session).** Toward the user's goal of thousands of topics.
+  - 168 new Drifter-to-Drifter topics in themed files `drifter_talk/topics_*.json`: mining (26), mobs (22), building (20),
+    nature (25), adventure (22), gear (20), life (33). 250 topics in all, 63 tags, about 2,800 different lines. New tags:
+    caves, redstone, potions, ocean, biomes, structures, storage, decor, crafting, fishing, pets, plants, trees, weapons,
+    armor, dreams, philosophy, music, sky, random. Many opinion topics can end in a disagreement (leads to argument).
+    Some need a mood, the weather or the time (stars at night, rain, sunset), or a bond (friends, rivals).
+  - The other session's six town-unrest topics are now linked into the web (`web.json` links: town, politics...).
+  - Which topic opens a talk (`Conversations.pick`): a topic that needs something real (a find, a death, a mood, the
+    weather; not only who they are to each other) comes first 70% of the time when one fits (`GROUNDED_SHARE`), so
+    hundreds of everyday topics don't bury the news. Everyday topics mostly come up as talks wander on.
+  - Long talks hold together: drifted more than 24 blocks apart, a Drifter heads back over (`ConverseGoal` 0.35,
+    under pressing work), so two going off for trees in opposite ways don't end a best-friend talk after two topics
+    (seen in the headless smoke; with it, 7+ topics there).
+  - Tested: dev client, best friends went 10 topics, mostly new ones, each leading to the next (farm_redstone >
+    farming_talk > golden_apple > hunger_struggle > baby_zombie > pillager_patrol > worst_mob > best_enchant) and
+    said bye; headless smoke 7+ topics, no errors, 250 topics loaded.
+  - `tools/check_talk_web.py <project>`: checks the topics before a build. Errors: broken files, an id used twice,
+    conditions nothing sets (it reads every `flags.add` in the mod and the addon), words the game never fills, leads
+    to tags no topic has, `next` naming no topic. Warnings: a tag on one topic only, topics nothing leads to, dead ends,
+    lines repeated across topics. Run it after every batch.
+  - Next batches (ideas): seasons of a Drifter's life (first house, first diamond...), each voice's own topics
+    (builder, miner, hermit, speedrunner...), more mood and bond topics, follow-ups that continue a topic ("next"),
+    town life topics that read the addon's flags, player stories. Then the house plans.

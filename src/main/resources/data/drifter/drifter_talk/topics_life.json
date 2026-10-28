@@ -1,0 +1,388 @@
+{
+  "_comment": "Topics batch: everyday life: feelings, dreams, deep thoughts, memories, jokes, food, music, friendship and rivalry. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "dream_last_night",
+      "tags": ["dreams", "sleep"],
+      "leads": ["dreams", "feelings", "jokes"],
+      "about": "the dream",
+      "turns": [
+        {"by": "a", "lines": ["had the weirdest dream", "dreamed i was a creeper", "dreamed about diamonds everywhere", "do you dream when you sleep"]},
+        {"by": "b", "lines": ["what happened", "lol", "nice dream", "i never remember mine", "creepy"]},
+        {"by": "a", "chance": 0.6, "lines": ["i blew up", "woke up with nothing", "dont remember now", "it was weird"]}
+      ]
+    },
+    {
+      "id": "big_dream",
+      "tags": ["dreams", "plans"],
+      "leads": ["plans", "dreams", "building"],
+      "about": "the dream",
+      "turns": [
+        {"by": "a", "lines": ["whats your dream build", "if you could have anything what would it be", "someday ill have a castle", "my dream is a full diamond house"]},
+        {"by": "b", "lines": ["a big farm", "a tower to the sky", "a beacon", "just a cozy house", "everything lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["nice", "dream big", "same", "lol"]}
+      ]
+    },
+    {
+      "id": "why_here",
+      "tags": ["philosophy", "dreams"],
+      "leads": ["philosophy", "feelings", "memories"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["ever wonder why were here", "who made this world", "do you remember how you got here", "what's the point of it all"]},
+        {"by": "b", "lines": ["to mine", "dont think about it", "no idea", "deep", "to have fun"]},
+        {"by": "a", "chance": 0.6, "lines": ["fair", "deep", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "blocks_think",
+      "tags": ["philosophy", "jokes"],
+      "leads": ["philosophy", "jokes"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["why is everything a cube", "how do we carry 64 blocks of stone", "where do items go when they despawn", "why do trees float"]},
+        {"by": "b", "lines": ["magic", "dont question it", "lol good question", "we're strong", "the void"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "true", "makes sense"]}
+      ]
+    },
+    {
+      "id": "respawn_think",
+      "tags": ["philosophy", "death"],
+      "leads": ["death", "philosophy", "feelings"],
+      "about": "respawning",
+      "turns": [
+        {"by": "a", "lines": ["does dying hurt", "we always come back, weird right", "what happens when you respawn", "do you remember dying"]},
+        {"by": "b", "lines": ["a little", "dont think about it", "you just wake up in bed", "weird", "best not to"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "spooky", "right"]}
+      ]
+    },
+    {
+      "id": "good_memory",
+      "tags": ["memories", "feelings", "friends"],
+      "leads": ["memories", "friends", "feelings"],
+      "about": "old times",
+      "needs": ["!strangers"],
+      "turns": [
+        {"by": "a", "lines": ["remember the first night", "good times huh", "remember when we first met", "things were simpler back then"]},
+        {"by": "b", "lines": ["yeah lol", "good times", "feels like forever ago", "i remember", "we were so bad"]},
+        {"by": "a", "chance": 0.6, "lines": ["we were", "lol yeah", "miss it", "yeah"]}
+      ]
+    },
+    {
+      "id": "first_night",
+      "tags": ["memories", "night", "home"],
+      "leads": ["memories", "night", "home"],
+      "about": "the first night",
+      "turns": [
+        {"by": "a", "lines": ["my first night i hid in a dirt hole", "spent my first night in a tree", "first night was so scary", "remember your first night"]},
+        {"by": "b", "lines": ["dirt hut gang", "lol", "same", "i died", "classic"]},
+        {"by": "a", "chance": 0.5, "lines": ["classic", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "mood_good",
+      "tags": ["feelings"],
+      "leads": ["feelings", "plans", "brag"],
+      "about": "that",
+      "needs": ["a:mood_confident"],
+      "turns": [
+        {"by": "a", "lines": ["feeling great today", "everything's going my way", "best day in a while", "nothing can stop me today"]},
+        {"by": "b", "lines": ["nice", "good for you", "whats the secret", "dont jinx it", "love that"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "just vibes", "thanks", "yeah"]}
+      ]
+    },
+    {
+      "id": "mood_down",
+      "tags": ["feelings", "friends"],
+      "leads": ["feelings", "friends", "jokes"],
+      "about": "that",
+      "needs": ["a:mood_frustrated"],
+      "turns": [
+        {"by": "a", "lines": ["nothing's going right", "today's been rough", "i keep messing up", "ugh, bad day"]},
+        {"by": "b", "lines": ["it'll get better", "want to talk about it", "same honestly", "tomorrow's a new day", "you got this"]},
+        {"by": "a", "chance": 0.6, "if": ["friends"], "lines": ["thanks", "glad youre here", "yeah"]},
+        {"by": "a", "chance": 0.5, "if": ["!friends"], "lines": ["thanks", "maybe", "yeah"]}
+      ]
+    },
+    {
+      "id": "mood_scared",
+      "tags": ["feelings", "danger"],
+      "leads": ["feelings", "danger", "home"],
+      "about": "that",
+      "needs": ["a:mood_anxious"],
+      "turns": [
+        {"by": "a", "lines": ["im a bit on edge", "something feels off", "i keep hearing things", "cant shake this feeling"]},
+        {"by": "b", "lines": ["stay close", "its probably nothing", "same", "lets be careful", "want to head back"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "ok", "thanks"]}
+      ]
+    },
+    {
+      "id": "mood_proud",
+      "tags": ["brag", "feelings"],
+      "leads": ["brag", "feelings", "gear"],
+      "about": "that",
+      "needs": ["a:mood_triumphant"],
+      "turns": [
+        {"by": "a", "lines": ["guess who just did it", "im on top of the world", "just had the best moment", "cant stop smiling"]},
+        {"by": "b", "lines": ["what happened", "nice!", "tell me", "show off", "gg"]},
+        {"by": "a", "chance": 0.5, "lines": ["big win", "you'll see", "lol", "gg"]}
+      ]
+    },
+    {
+      "id": "brag_battle",
+      "tags": ["brag", "rivals"],
+      "leads": ["brag", "rivals", "argument"],
+      "about": "that",
+      "needs": ["rivals"],
+      "turns": [
+        {"by": "a", "lines": ["bet i have more diamonds than you", "my base is better than yours", "i could beat you in a fight", "i mine faster than you"]},
+        {"by": "b", "lines": ["no chance", "prove it", "lol ok", "keep dreaming", "sure you do"]},
+        {"by": "a", "chance": 0.5, "lines": ["watch me", "i will", "whatever"], "mark": ["disagree"], "leads": ["argument"]}
+      ]
+    },
+    {
+      "id": "friend_thanks",
+      "tags": ["friends", "feelings"],
+      "leads": ["friends", "memories", "plans"],
+      "about": "that",
+      "needs": ["friends"],
+      "turns": [
+        {"by": "a", "lines": ["glad i met you", "you're a good friend", "thanks for always being around", "this world is better with friends"]},
+        {"by": "b", "lines": ["same", "aww", "anytime", "you too", "dont get sappy on me lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "always"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "team_up_idea",
+      "tags": ["friends", "plans"],
+      "leads": ["plans", "friends", "building"],
+      "about": "teaming up",
+      "needs": ["!rivals"],
+      "turns": [
+        {"by": "a", "lines": ["we should build something together", "want to team up some time", "two people mine twice as fast", "we'd make a good team"]},
+        {"by": "b", "lines": ["sure", "maybe", "sounds fun", "i work alone", "lets do it"]},
+        {"by": "a", "chance": 0.5, "lines": ["cool", "fair", "deal", "ok"]}
+      ]
+    },
+    {
+      "id": "rival_jab",
+      "tags": ["rivals", "jokes"],
+      "leads": ["rivals", "brag", "argument"],
+      "about": "that",
+      "needs": ["rivals"],
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["nice armor, did you find it in a dumpster", "still alive huh", "oh its you", "you again"]},
+        {"by": "b", "lines": ["funny", "jealous much", "bye", "you wish", "cute"]},
+        {"by": "a", "chance": 0.5, "lines": ["whatever", "lol", "sure"], "mark": ["disagree"]}
+      ]
+    },
+    {
+      "id": "fav_snack",
+      "tags": ["food", "jokes"],
+      "leads": ["food", "farming"],
+      "about": "food",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["cookies are so good", "why is cake so hard to make", "rabbit stew is underrated", "dried kelp is gross"]},
+        {"by": "b", "lines": ["yes", "worth it", "never tried it", "agreed", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "you should", "lol"]}
+      ]
+    },
+    {
+      "id": "cooking_talk",
+      "tags": ["food", "crafting"],
+      "leads": ["food", "farming", "animals"],
+      "about": "cooking",
+      "turns": [
+        {"by": "a", "lines": ["always cook your meat", "made a cake for once", "smokers cook so fast", "raw chicken made me sick"]},
+        {"by": "b", "lines": ["lol", "nice", "yes", "smoker is the best", "rookie mistake"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "hunger_struggle",
+      "tags": ["food", "complaints", "health"],
+      "leads": ["food", "farming", "health"],
+      "about": "food",
+      "turns": [
+        {"by": "a", "lines": ["always hungry", "i eat so much", "food runs out so fast", "why am i always hungry"]},
+        {"by": "b", "lines": ["sprinting does that", "farm more", "same", "eat better food", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "music_disc",
+      "tags": ["music", "decor"],
+      "leads": ["music", "decor", "mobs"],
+      "about": "music",
+      "turns": [
+        {"by": "a", "lines": ["found a music disc", "want a jukebox", "skeletons have to kill creepers for discs", "music makes a base"]},
+        {"by": "b", "lines": ["nice", "which one", "jukebox is easy to make", "i love music", "play it"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "cool", "lol"]}
+      ]
+    },
+    {
+      "id": "note_block",
+      "tags": ["music", "redstone"],
+      "leads": ["music", "redstone"],
+      "about": "note blocks",
+      "turns": [
+        {"by": "a", "lines": ["made a song with note blocks", "note blocks are fun", "redstone music is so cool", "tried to make a tune"]},
+        {"by": "b", "lines": ["play it", "cool", "sounds hard", "nice", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["someday", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "bored_ideas",
+      "tags": ["boredom", "plans"],
+      "leads": ["plans", "boredom", "jokes"],
+      "about": "what to do",
+      "needs": ["a:mood_bored"],
+      "turns": [
+        {"by": "a", "lines": ["im so bored", "what should i do", "nothing to do", "give me an idea"]},
+        {"by": "b", "lines": ["build something", "go explore", "mine", "same", "fight the dragon lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "nah", "ok", "lol"]}
+      ]
+    },
+    {
+      "id": "lazy_day",
+      "tags": ["boredom", "feelings"],
+      "leads": ["feelings", "boredom", "plans"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["dont feel like doing anything", "lazy day today", "taking it easy", "doing nothing is nice sometimes"]},
+        {"by": "b", "lines": ["same", "you earned it", "nice", "get to work lol", "relax"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "health_low",
+      "tags": ["health", "danger"],
+      "leads": ["health", "food", "potions"],
+      "about": "health",
+      "turns": [
+        {"by": "a", "lines": ["almost died earlier", "on 2 hearts lol", "need to heal up", "took so much damage today"]},
+        {"by": "b", "lines": ["eat something", "careful", "rest up", "potions help", "wow"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "will do", "thanks"]}
+      ]
+    },
+    {
+      "id": "fall_damage",
+      "tags": ["health", "jokes", "danger"],
+      "leads": ["danger", "jokes", "enchanting"],
+      "about": "falling",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["fell off a cliff again", "fall damage is my worst enemy", "missed my water bucket clutch", "jumped and forgot how high it was"]},
+        {"by": "b", "lines": ["feather falling", "lol", "classic", "rip", "practice the clutch"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "ugh"]}
+      ]
+    },
+    {
+      "id": "complaint_day",
+      "tags": ["complaints"],
+      "leads": ["complaints", "feelings", "jokes"],
+      "about": "that",
+      "turns": [
+        {"by": "a", "lines": ["everything went wrong today", "i fell in water and lost my torches", "a skeleton took me to 1 heart", "ran out of food mid trip"]},
+        {"by": "b", "lines": ["rough", "oof", "happens", "lol", "same"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "ugh", "lol"]}
+      ]
+    },
+    {
+      "id": "sleep_schedule",
+      "tags": ["sleep", "night"],
+      "leads": ["sleep", "night", "jokes"],
+      "about": "sleep",
+      "turns": [
+        {"by": "a", "lines": ["i never sleep on time", "i sleep the second it gets dark", "beds are the best invention", "slept in a village bed"]},
+        {"by": "b", "lines": ["same", "lol", "sleep is important", "night is for mining", "phantoms though"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "players_weird",
+      "tags": ["players", "jokes"],
+      "leads": ["players", "jokes", "gossip"],
+      "about": "players",
+      "turns": [
+        {"by": "a", "lines": ["players are so weird", "saw a player jump around for no reason", "players spin around a lot", "a player just stared at me"]},
+        {"by": "b", "lines": ["lol", "they do", "maybe they're lost", "creepy", "they're fun"]},
+        {"by": "a", "chance": 0.5, "lines": ["right?", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "players_builds",
+      "tags": ["players", "building"],
+      "leads": ["players", "building", "places"],
+      "about": "their builds",
+      "turns": [
+        {"by": "a", "lines": ["players build crazy stuff", "saw a player's house, it was huge", "players make the coolest builds", "some player made a giant statue"]},
+        {"by": "b", "lines": ["they have so much time", "cool", "where", "i want to see", "show off"]},
+        {"by": "a", "chance": 0.5, "lines": ["north of here", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "gossip_mild",
+      "tags": ["gossip", "friends"],
+      "leads": ["gossip", "players", "jokes"],
+      "about": "that",
+      "needs": ["!strangers"],
+      "turns": [
+        {"by": "a", "lines": ["heard anything interesting lately", "got any news", "whats new", "you hear anything"]},
+        {"by": "b", "lines": ["not much", "quiet lately", "nope", "just the usual", "you tell me"]},
+        {"by": "a", "chance": 0.5, "lines": ["same here", "lol", "boring"]}
+      ]
+    },
+    {
+      "id": "random_fact",
+      "tags": ["jokes", "random"],
+      "leads": ["jokes", "random", "animals"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["did you know cats scare phantoms", "fun fact: foxes can hold items", "axolotls play dead", "pandas can be lazy or angry"]},
+        {"by": "b", "lines": ["really?", "huh", "cool", "didnt know", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["yep", "now you know", "lol"]}
+      ]
+    },
+    {
+      "id": "random_question",
+      "tags": ["random", "jokes"],
+      "leads": ["random", "dreams", "food"],
+      "about": "that",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["would you rather fight 10 zombies or 1 ravager", "if you were a mob what would you be", "fav color?", "would you rather live in the nether or the end"]},
+        {"by": "b", "lines": ["zombies", "a cat", "green", "the end, quieter", "neither lol", "a creeper"]},
+        {"by": "a", "chance": 0.5, "lines": ["fair", "lol", "same", "interesting"]}
+      ]
+    },
+    {
+      "id": "joke_pun",
+      "tags": ["jokes"],
+      "leads": ["jokes", "random"],
+      "about": "that joke",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["what do you call a sheep with no legs? a cloud", "why did the creeper cross the road? to get to the other ssss", "i'm not a fan of slimes, they're too clingy", "i told my pick a joke, it cracked up"]},
+        {"by": "b", "lines": ["boo", "that was awful", "lol", "why", "stop"]},
+        {"by": "a", "chance": 0.5, "lines": ["you laughed", "admit it", "lol"]}
+      ]
+    },
+    {
+      "id": "weekend_vibes",
+      "tags": ["feelings", "day"],
+      "leads": ["feelings", "plans", "weather"],
+      "about": "the day",
+      "needs": ["day", "clear"],
+      "turns": [
+        {"by": "a", "lines": ["perfect day for anything", "sun's out, mood's up", "its so nice out", "love days like this"]},
+        {"by": "b", "lines": ["agreed", "yeah", "lets do something", "nice", "dont waste it"]},
+        {"by": "a", "chance": 0.5, "lines": ["lets", "true", "yeah"]}
+      ]
+    }
+  ]
+}

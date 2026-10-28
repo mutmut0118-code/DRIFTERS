@@ -1,0 +1,229 @@
+{
+  "_comment": "Topics batch: gear, armor, enchanting, potions, crafting and trade. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "armor_upgrade",
+      "tags": ["armor", "gear"],
+      "leads": ["armor", "ore", "enchanting"],
+      "about": "armor",
+      "turns": [
+        {"by": "a", "lines": ["need better armor", "finally got full iron", "leather armor isnt cutting it", "armor makes such a difference"]},
+        {"by": "b", "lines": ["iron is enough", "go for diamond", "chainmail looks cool", "i barely wear any", "enchant it"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "working on it", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "armor_looks",
+      "tags": ["armor", "decor"],
+      "leads": ["armor", "gear", "argument"],
+      "about": "armor",
+      "turns": [
+        {"by": "a", "lines": ["gold armor looks best", "iron armor is so plain", "diamond armor is so shiny", "armor trims are cool"]},
+        {"by": "b", "lines": ["diamond looks best", "leather can be dyed", "chainmail", "netherite is so dark", "looks dont matter"]},
+        {"by": "a", "chance": 0.35, "lines": ["no way", "terrible taste", "nah"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["fair", "true", "nice"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "enchant_table",
+      "tags": ["enchanting", "crafting"],
+      "leads": ["enchanting", "ore", "storage"],
+      "about": "the table",
+      "turns": [
+        {"by": "a", "lines": ["built an enchanting table", "need bookshelves", "15 bookshelves is so many", "enchanting is a gamble"]},
+        {"by": "b", "lines": ["cows for leather", "sugarcane for paper", "worth it", "level 30 enchants are the best", "i got bad luck"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "yeah", "lol", "good tip"]}
+      ]
+    },
+    {
+      "id": "mending_hunt",
+      "tags": ["enchanting", "villagers", "gear"],
+      "leads": ["villagers", "enchanting", "trade"],
+      "about": "mending",
+      "turns": [
+        {"by": "a", "lines": ["looking for mending", "mending is the best enchant", "found a mending villager", "mending makes tools last forever"]},
+        {"by": "b", "lines": ["reroll the librarian", "lucky", "fishing gets it too", "yes", "mending is op"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "nice", "true", "lol"]}
+      ]
+    },
+    {
+      "id": "best_enchant",
+      "tags": ["enchanting", "argument"],
+      "leads": ["enchanting", "gear", "argument"],
+      "about": "enchants",
+      "turns": [
+        {"by": "a", "lines": ["best enchant in the game?", "whats your fav enchant", "efficiency or fortune?", "feather falling is so underrated"]},
+        {"by": "b", "lines": ["mending", "efficiency", "fortune", "protection", "feather falling", "looting"]},
+        {"by": "a", "chance": 0.35, "lines": ["no way", "wrong", "nope"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["good one", "true", "nice"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "anvil_cost",
+      "tags": ["enchanting", "complaints"],
+      "leads": ["enchanting", "complaints", "gear"],
+      "about": "anvils",
+      "turns": [
+        {"by": "a", "lines": ["anvil said too expensive", "anvils break so fast", "combining enchants costs so much", "i hate anvil prices"]},
+        {"by": "b", "lines": ["order matters", "ugh", "same", "too expensive!", "use books"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "ugh", "true"]}
+      ]
+    },
+    {
+      "id": "potion_brewing",
+      "tags": ["potions", "crafting"],
+      "leads": ["potions", "nether", "crafting"],
+      "about": "potions",
+      "turns": [
+        {"by": "a", "lines": ["learning to brew", "need nether wart", "brewing stands are fun", "made my first potion"]},
+        {"by": "b", "lines": ["nice", "fortress has wart", "potions are op", "too complicated", "make healing ones"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "true", "will do"]}
+      ]
+    },
+    {
+      "id": "best_potion",
+      "tags": ["potions", "argument"],
+      "leads": ["potions", "fighting", "argument"],
+      "about": "potions",
+      "turns": [
+        {"by": "a", "lines": ["best potion?", "fire res is the best potion", "strength potions are op", "night vision is so good for caves"]},
+        {"by": "b", "lines": ["healing", "fire res", "speed", "night vision", "invisibility, sneaky"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah", "no way", "wrong"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["good one", "true", "agreed"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "crafting_recipes",
+      "tags": ["crafting", "tools"],
+      "leads": ["crafting", "tools", "jokes"],
+      "about": "crafting",
+      "turns": [
+        {"by": "a", "lines": ["i keep forgetting recipes", "how do you make a piston again", "the recipe book is so useful", "crafting tables everywhere lol"]},
+        {"by": "b", "lines": ["recipe book", "i remember most", "wood, cobble, iron, redstone", "same", "carry one with you"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "yeah", "lol", "thanks"]}
+      ]
+    },
+    {
+      "id": "stone_tools",
+      "tags": ["tools", "memories"],
+      "leads": ["tools", "memories", "ore"],
+      "about": "stone tools",
+      "turns": [
+        {"by": "a", "lines": ["remember stone tools?", "stone pick days", "wooden pickaxe era lol", "first night with stone tools"]},
+        {"by": "b", "lines": ["good times", "dont miss it", "simpler times", "still use them lol", "ah memories"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "right"]}
+      ]
+    },
+    {
+      "id": "trade_deal",
+      "tags": ["trade", "villagers"],
+      "leads": ["trade", "villagers", "ore"],
+      "about": "trading",
+      "turns": [
+        {"by": "a", "lines": ["got a good trade today", "villager prices went up", "trading is the best way to get stuff", "emeralds are worth so much"]},
+        {"by": "b", "lines": ["nice", "cure a zombie villager, cheap prices", "scammed again", "what did you get", "trading is op"]},
+        {"by": "a", "chance": 0.5, "lines": ["books", "yeah", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "totem_talk",
+      "tags": ["gear", "death"],
+      "leads": ["death", "gear", "structures"],
+      "about": "totems",
+      "turns": [
+        {"by": "a", "lines": ["want a totem of undying", "a totem saved me once", "totems are the best item", "lost my totem"]},
+        {"by": "b", "lines": ["evokers drop them", "lucky", "keep it in your offhand", "dont waste it", "rip"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "noted", "true"]}
+      ]
+    },
+    {
+      "id": "shulker_box",
+      "tags": ["storage", "end", "gear"],
+      "leads": ["end", "storage", "dreams"],
+      "about": "shulker boxes",
+      "turns": [
+        {"by": "a", "lines": ["want shulker boxes", "shulkers are the best storage", "carry a chest in your pocket", "need more shulker shells"]},
+        {"by": "b", "lines": ["end cities", "dream item", "so useful", "i dont have any", "someday"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "inventory_full",
+      "tags": ["storage", "complaints"],
+      "leads": ["storage", "complaints", "jokes"],
+      "about": "my inventory",
+      "turns": [
+        {"by": "a", "lines": ["my inventory is always full", "inventory full again", "throwing stuff away to make room", "need a bigger backpack lol"]},
+        {"by": "b", "lines": ["toss the dirt", "ender chest", "same", "take less stuff", "lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["never", "lol", "true", "ugh"]}
+      ]
+    },
+    {
+      "id": "elytra_talk",
+      "tags": ["gear", "end", "exploring"],
+      "leads": ["exploring", "end", "dreams"],
+      "about": "elytra",
+      "turns": [
+        {"by": "a", "lines": ["flying with an elytra must be amazing", "crashed my elytra into a wall", "rockets are expensive", "elytra changes everything"]},
+        {"by": "b", "lines": ["it is", "lol", "gunpowder farm", "so want one", "dont fly into walls"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "trade_with_me",
+      "tags": ["trade", "friends"],
+      "leads": ["trade", "friends", "ore"],
+      "about": "trading",
+      "turns": [
+        {"by": "a", "lines": ["wanna trade sometime", "need some iron, you got any", "ill trade you food for coal", "you have spare wood?"]},
+        {"by": "b", "lines": ["sure", "maybe", "what do i get", "not right now", "for a friend yeah"]},
+        {"by": "a", "chance": 0.5, "lines": ["deal", "later then", "ok", "cool"]}
+      ]
+    },
+    {
+      "id": "tools_named",
+      "tags": ["tools", "gear", "jokes"],
+      "leads": ["tools", "jokes", "brag"],
+      "about": "my pick",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["i named my pickaxe", "do you name your tools", "my sword has a name", "named my axe chopper"]},
+        {"by": "b", "lines": ["what name", "lol", "thats cute", "no", "mine is called pick"]},
+        {"by": "a", "chance": 0.5, "lines": ["secret", "lol", "yeah", "creative"]}
+      ]
+    },
+    {
+      "id": "gear_lost",
+      "tags": ["gear", "death", "complaints"],
+      "leads": ["death", "complaints", "feelings"],
+      "about": "my stuff",
+      "turns": [
+        {"by": "a", "lines": ["lost all my stuff", "my gear despawned", "died with all my diamonds", "everything burned in lava"]},
+        {"by": "b", "lines": ["rip", "oof", "start over", "that sucks", "happened to me too"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "ugh", "starting over", "thanks"]}
+      ]
+    },
+    {
+      "id": "hoarder_pride",
+      "tags": ["storage", "brag", "feelings"],
+      "leads": ["storage", "brag"],
+      "about": "my stash",
+      "turns": [
+        {"by": "a", "lines": ["i keep everything", "never throw anything away", "you never know when you need it", "my chests are full of junk"]},
+        {"by": "b", "lines": ["hoarder", "same", "toss it", "lol", "fair"]},
+        {"by": "a", "chance": 0.5, "lines": ["proud of it", "lol", "maybe"]}
+      ]
+    },
+    {
+      "id": "golden_apple",
+      "tags": ["food", "gear", "health"],
+      "leads": ["food", "health", "gear"],
+      "about": "golden apples",
+      "turns": [
+        {"by": "a", "lines": ["golden apples are op", "saving my golden apple", "ate my golden apple too early", "gapples for fights"]},
+        {"by": "b", "lines": ["always carry one", "nice", "rip", "too expensive", "save it for the dragon"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "true", "lol"]}
+      ]
+    }
+  ]
+}

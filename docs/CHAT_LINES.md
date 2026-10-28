@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (82 topics, 1929 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (250 topics, 4103 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1670,7 +1670,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:unrest, a:dislikes_leader, !a:is_leader, !strangers
 
-*About:* unrest, grumble  ·  *Leads to:* unrest, grumble
+*About:* town, politics, complaints  ·  *Leads to:* politics, complaints, gossip
 
 1. **a**: everyone's sick of {a.leader} · people are talking about getting rid of {a.leader} · {a.leader} has to go. everyone says so · if this keeps up there'll be trouble · how much longer do we put up with {a.leader}
 2. **b**:
@@ -1682,7 +1682,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:revolt, !strangers
 
-*About:* revolt  ·  *Leads to:* revolt
+*About:* town, politics, danger  ·  *Leads to:* politics, town, gossip
 
 1. **a**: no tax till the vote! · tomorrow {a.leader} is out · the whole town's had it with {a.leader} · vote tomorrow. you know what to do
 2. **b**:
@@ -1694,7 +1694,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:after_coup, !strangers
 
-*About:* coup  ·  *Leads to:* coup
+*About:* town, politics, news  ·  *Leads to:* politics, town, gossip
 
 1. **a**:
    - *a:is_leader:* i run things now · {a.old_leader} had their chance · things are gonna change around here
@@ -1708,7 +1708,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:after_abdicated, !strangers
 
-*About:* abdication  ·  *Leads to:* abdication
+*About:* town, politics, news  ·  *Leads to:* politics, town
 
 1. **a**: {a.old_leader} just quit · did you hear? {a.old_leader} stepped down · no leader till the vote, weird · {a.old_leader} gave up being leader
 2. **b**: can't blame them · good call honestly · who's standing? · at least they knew when to go
@@ -1717,7 +1717,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:after_tax_dropped, !a:is_leader, !strangers
 
-*About:* tax, dropped  ·  *Leads to:* tax, dropped
+*About:* town, politics, news  ·  *Leads to:* politics, trade, town
 
 1. **a**: no more tax!! · {a.leader} dropped the tax · the tax is gone, we did it · guess complaining works
 2. **b**: W · about time · finally · my emeralds are safe
@@ -1726,10 +1726,1706 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* a:after_betrayed, !strangers
 
-*About:* betrayal  ·  *Leads to:* betrayal
+*About:* town, politics, gossip  ·  *Leads to:* politics, gossip, feelings
 
 1. **a**: someone attacked {a.leader}! · did you see that?? one of us turned on {a.leader} · i can't believe it. one of our own · watch your back, there's a traitor about
 2. **b**: i knew they hated {b.leader} but wow · scary · they'd better not come back · unbelievable
+
+#### village found
+
+*Needs:* any time
+
+*About:* villagers, places, exploring  ·  *Leads to:* villagers, trade, town
+
+1. **a**: found a village today · theres a village not far from here · villages are always so random · found a village with a blacksmith
+2. **b**: check the chests · blacksmith loot is good · free beds lol · cool · protect it from raids
+3. **a** (50%): did already · yeah · lol · will do
+
+#### villager jobs
+
+*Needs:* any time
+
+*About:* villagers, trade  ·  *Leads to:* trade, enchanting, villagers
+
+1. **a**: which villager is the best · librarians are op · need a cleric for ender pearls · turned a villager into a librarian
+2. **b**: librarian for sure · farmers for emeralds · armorer · toolsmith · fletcher lol sticks for emeralds
+3. **a** (50%): true · nice · smart · sticks lol
+
+#### raid story
+
+*Needs:* any time
+
+*About:* villagers, fighting, danger  ·  *Leads to:* fighting, villagers, brag
+
+1. **a**: survived a raid · raids are chaos · a ravager almost got me · evokers are the worst
+2. **b**: totem of undying though · crazy · i ran lol · congrats · never doing one
+3. **a** (50%): worth it · barely · lol · thanks
+
+#### temple loot
+
+*Needs:* any time
+
+*About:* structures, exploring  ·  *Leads to:* structures, exploring, gear
+
+1. **a**: looted a jungle temple · temples have traps · found a desert temple full of tnt · temple loot was trash
+2. **b**: careful · nice · dig around the traps · got diamonds from one once · rip
+3. **a** (50%): yeah · lucky · lol · ok
+
+#### stronghold hunt
+
+*Needs:* any time
+
+*About:* structures, end  ·  *Leads to:* end, structures, plans
+
+1. **a**: looking for a stronghold · eyes of ender keep breaking · found the stronghold! · strongholds are huge
+2. **b**: follow the eye · need more pearls · nice! · the library rooms are cool · silverfish everywhere
+3. **a** (50%): yeah · ugh pearls · thanks · lol
+
+#### dungeon spawner
+
+*Needs:* any time
+
+*About:* structures, mobs, caves  ·  *Leads to:* mobs, caves, redstone
+
+1. **a**: found a dungeon · zombie spawner underground · dungeons have saddles sometimes · broke a spawner by accident
+2. **b**: xp farm! · loot the chests · careful · nice · torches on it to stop it
+3. **a** (50%): maybe · did it · yeah · lol
+
+#### ruins found
+
+*Needs:* any time
+
+*About:* structures, exploring, memories  ·  *Leads to:* structures, exploring, dreams
+
+1. **a**: found some old ruins · who built all these ruins · trail ruins are so mysterious · ruined portals everywhere
+2. **b**: spooky · someone long ago · free gold · cool · i wonder that too
+3. **a** (50%): right · creepy · yeah
+
+#### map making
+
+*Needs:* any time
+
+*About:* exploring, tools  ·  *Leads to:* exploring, places, plans
+
+1. **a**: making a map · maps are so useful · lost my map · how do you find your way back
+2. **b**: compass · i remember · landmarks · i get lost lol · pillars of dirt
+3. **a** (50%): dirt pillars lol · smart · yeah · same
+
+#### far lands
+
+*Needs:* any time
+
+*About:* exploring, dreams  ·  *Leads to:* exploring, dreams, plans
+
+1. **a**: how far have you gone · want to walk to the edge of the world · is there an end to the world · i want to see everything
+2. **b**: not far · pretty far · it never ends · dream big · me too
+3. **a** (50%): someday · lets go · yeah · right
+
+#### nether first
+
+*Needs:* any time
+
+*About:* nether, memories, danger  ·  *Leads to:* nether, danger, memories
+
+1. **a**: remember your first time in the nether? · my first nether trip was a disaster · first time i heard a ghast i panicked · the nether scared me so much
+2. **b**: died in 2 minutes · it was so red · lost everything in lava · ran right back · still scares me
+3. **a** (50%): classic · lol · same · yeah
+
+#### ghast fight
+
+*Needs:* any time
+
+*About:* nether, mobs, fighting  ·  *Leads to:* nether, mobs, weapons
+
+1. **a**: hit a fireball back at a ghast · ghasts sound like babies crying · a ghast blew up my bridge · ghast tears are rare
+2. **b**: epic · creepy · bow them · cobble bridges · nice
+3. **a** (50%): lol · yeah · true
+
+#### piglin trade
+
+*Needs:* any time
+
+*About:* nether, trade  ·  *Leads to:* nether, trade, ore
+
+1. **a**: traded with piglins · piglins hate me · wear gold around piglins · piglins gave me pearls
+2. **b**: gold armor! · they're greedy · bartering is fun · they're mean · nice
+3. **a** (50%): yeah · lol · true
+
+#### fortress found
+
+*Needs:* any time
+
+*About:* nether, structures  ·  *Leads to:* nether, potions, mobs
+
+1. **a**: found a nether fortress · blazes are annoying · need blaze rods · wither skeletons scare me
+2. **b**: blaze rods for potions · careful · snowballs on blazes · wither skulls tho · nice
+3. **a** (50%): yeah · good tip · lol · true
+
+#### netherite dream
+
+*Needs:* any time
+
+*About:* nether, gear, dreams  ·  *Leads to:* gear, nether, brag
+
+1. **a**: want netherite so bad · ancient debris is so rare · beds blow up in the nether, use them to mine · netherite is the dream
+2. **b**: tnt mining · found 2 once · too much work · one day · y 15 in the nether
+3. **a** (50%): noted · lucky · yeah · true
+
+#### end dragon
+
+*Needs:* any time
+
+*About:* end, fighting, plans  ·  *Leads to:* end, gear, plans
+
+1. **a**: think we could beat the dragon · the dragon is the end goal · you ever fight the ender dragon · need more beds for the dragon lol
+2. **b**: lets do it · not ready · beds explode in the end · need a lot of arrows · someday
+3. **a** (50%) if friends: together then · deal · we'll go
+4. **a** (50%) if !friends: maybe · someday · ok
+
+#### end city
+
+*Needs:* any time
+
+*About:* end, structures, gear  ·  *Leads to:* end, gear, exploring
+
+1. **a**: want an elytra · end cities are so far · shulkers float you up · elytra is the best item
+2. **b**: elytra yes · shulkers are annoying · flying is amazing · rockets! · never been
+3. **a** (50%): yeah · someday · true · lol
+
+#### travel plans
+
+*Needs:* any time
+
+*About:* plans, exploring  ·  *Leads to:* exploring, places, biomes
+
+1. **a**: thinking of going on a trip · want to see a new biome · heading out exploring soon · gonna go far this time
+2. **b**: take food · where to · take a bed · come back soon · bring me something
+3. **a** (50%): will do · not sure yet · sure · lol ok
+
+#### pillager outpost
+
+*Needs:* any time
+
+*About:* structures, villagers, danger  ·  *Leads to:* danger, fighting, structures
+
+1. **a**: saw a pillager outpost · theres an outpost on the hill · outposts have allays sometimes · stay away from the outpost
+2. **b**: dangerous · allays are cute · loot! · dont get bad omen · noted
+3. **a** (50%): yeah · true · lol
+
+#### woodland mansion
+
+*Needs:* any time
+
+*About:* structures, exploring, danger  ·  *Leads to:* structures, mobs, dreams
+
+1. **a**: ever found a woodland mansion · mansions are huge · heard about a mansion far away · vindicators are scary
+2. **b**: never · totem of undying · so far · scary place · id love to see one
+3. **a** (50%): someday · same · yeah
+
+#### boat travel
+
+*Needs:* any time
+
+*About:* exploring, ocean  ·  *Leads to:* ocean, exploring  ·  uses 0.5 interest
+
+1. **a**: boats are the fastest way to travel · boat on ice is crazy · boats are so fun · my boat broke on a lily pad
+2. **b**: ice roads! · lol · true · i walk · fun
+3. **a** (50%): right · lol · yeah
+
+#### nether highway
+
+*Needs:* any time
+
+*About:* nether, exploring, building  ·  *Leads to:* nether, building, exploring
+
+1. **a**: 1 block in the nether is 8 out here · want to build a nether highway · nether travel is so fast · linking portals is confusing
+2. **b**: divide by 8 · ice tunnel · too dangerous · i get lost in there · cool idea
+3. **a** (50%): right · yeah · lol · true
+
+#### abandoned camp
+
+*Needs:* any time
+
+*About:* places, players, exploring  ·  *Leads to:* players, places, gossip
+
+1. **a**: found an empty camp · someone left a dirt hut out there · saw an old base, nobody home · found a chest someone left
+2. **b**: whose was it · dont steal · creepy · maybe a player · leave it
+3. **a** (50%): no idea · didnt touch it · yeah · maybe
+
+#### roof style
+
+*Needs:* any time
+
+*About:* building, decor  ·  *Leads to:* building, decor, argument
+
+1. **a**: flat roof or slanted? · roofs are the hardest part · stairs make the best roofs · my roof looks so bad
+2. **b**: slanted always · flat is fine · stairs and slabs · i never build roofs lol · dark oak roofs are the best
+3. **a** (35%) *(marks disagree; leads to argument)*: ew · nope · hard no
+4. **a** if !t:disagree *(marks agree)*: good taste · true · agreed
+
+#### fav wood
+
+*Needs:* any time
+
+*About:* building, decor, trees  ·  *Leads to:* trees, building, argument
+
+1. **a**: best wood type? · spruce is the best wood · birch is so clean looking · whats your fav wood
+2. **b**: spruce · dark oak · birch · cherry, its pink · oak, classic · mangrove
+3. **a** (35%) *(marks disagree; leads to argument)*: ew no · thats a crime · wrong answer
+4. **a** if !t:disagree *(marks agree)*: nice · good pick · respect
+
+#### storage mess
+
+*Needs:* any time
+
+*About:* storage, home  ·  *Leads to:* storage, building, complaints
+
+1. **a**: my chests are a mess · do you label your chests · need a storage room · i just dump everything in one chest
+2. **b**: signs on every chest · same, chaos · barrels save space · item frames on chests · i know where everything is
+3. **a** (50%): organized person · same · good idea · lol
+
+#### barrel vs chest
+
+*Needs:* any time
+
+*About:* storage, argument  ·  *Leads to:* storage, building, argument  ·  uses 0.5 interest
+
+1. **a**: barrels or chests? · barrels are better than chests · chests look nicer · barrels can go under blocks
+2. **b**: barrels · chests · both · whatever i have wood for · shulkers lol
+3. **a** (30%) *(marks disagree; leads to argument)*: wrong · no way · nope
+4. **a** if !t:disagree *(marks agree)*: agreed · true · yeah
+
+#### build big
+
+*Needs:* any time
+
+*About:* building, plans  ·  *Leads to:* building, plans, home
+
+1. **a**: want to build a castle · planning something huge · thinking about a tower · gonna build a bridge across the river
+2. **b**: thats a lot of blocks · do it! · i can help · sounds cool · you'll never finish lol
+3. **a** (50%): watch me · thanks · we'll see · lol maybe not
+
+#### window talk
+
+*Needs:* any time
+
+*About:* building, decor  ·  *Leads to:* decor, building
+
+1. **a**: need glass for windows · windows make a house · my house has no windows lol · glass panes or full glass?
+2. **b**: panes look better · full glass · need more sand · windows let mobs see you · no windows, cave life
+3. **a** (50%): fair · need sand · true · lol
+
+#### garden build
+
+*Needs:* any time
+
+*About:* decor, plants, home  ·  *Leads to:* plants, farming, decor
+
+1. **a**: planting flowers around my house · a garden makes a base feel like home · found some nice flowers today · my base needs more green
+2. **b**: flowers are nice · bees love them · leaves are great for builds · i dont have time for that · plant trees too
+3. **a** (50%): good idea · bees! · true · maybe
+
+#### bridge build
+
+*Needs:* any time
+
+*About:* building, exploring  ·  *Leads to:* building, exploring, places
+
+1. **a**: building a bridge is so scary · sneaking off the edge to place blocks · almost fell building a bridge · bridges make travel so easy
+2. **b**: sneak! · use scaffolding · i just swim lol · boat is faster · railings help
+3. **a** (50%): yeah · scaffolding, smart · lol · true
+
+#### lighting base
+
+*Needs:* any time
+
+*About:* building, home, mobs  ·  *Leads to:* home, mobs, decor
+
+1. **a**: need to light up my base more · a creeper spawned inside my base · lanterns or torches? · lighting is everything
+2. **b**: lanterns look nicer · torches everywhere · glowstone · spam torches · light up a big circle
+3. **a** (50%): lanterns it is · true · will do · yeah
+
+#### underground base
+
+*Needs:* any time
+
+*About:* home, caves, building  ·  *Leads to:* home, caves, building, argument
+
+1. **a**: thinking of living underground · underground bases are safest · would you live in a cave · my base is half underground
+2. **b**: too dark · safest for sure · i need the sun · cave bases are cozy · mobs spawn down there
+3. **a** (30%) *(marks disagree; leads to argument)*: nah · you're wrong · nope
+4. **a** if !t:disagree *(marks agree)*: fair point · yeah · true
+
+#### build spot
+
+*Needs:* any time
+
+*About:* home, places, building  ·  *Leads to:* places, home, biomes
+
+1. **a**: looking for a good build spot · where's the best place to build · found a great spot by a lake · flat land is so rare
+2. **b**: near water · on a mountain · near a village · anywhere with trees · flat plains
+3. **a** (50%): good idea · maybe · near water, yeah · true
+
+#### furnace row
+
+*Needs:* any time
+
+*About:* building, crafting  ·  *Leads to:* crafting, ore, storage
+
+1. **a**: need more furnaces · smelting takes forever · blast furnace is so much faster · made a row of furnaces
+2. **b**: more is better · blast furnace for ore · smoker for food · i use one furnace lol · patience
+3. **a** (50%): true · patience lol · nice · ok
+
+#### redstone door
+
+*Needs:* any time
+
+*About:* redstone, building  ·  *Leads to:* redstone, building, brag
+
+1. **a**: trying to make a piston door · redstone is like magic · my redstone never works · made a secret door
+2. **b**: cool · i dont get redstone · show me · its easy once you learn · just use a button
+3. **a** (50%): one day · lol · sure · yeah
+
+#### farm redstone
+
+*Needs:* any time
+
+*About:* redstone, farming  ·  *Leads to:* farming, redstone, food
+
+1. **a**: want an auto farm · observers make farms easy · sugarcane farm is the first one · auto farms are worth it
+2. **b**: villager farms! · too complicated · pumpkin farm is easy · i just farm by hand · yes
+3. **a** (50%): maybe · true · pumpkins, good one · lol
+
+#### build fail
+
+*Needs:* any time
+
+*About:* building, jokes, complaints  ·  *Leads to:* building, jokes  ·  uses 0.5 interest
+
+1. **a**: my house looks like a box · i built a wall the wrong way · my build is so ugly lol · placed a whole roof the wrong direction
+2. **b**: boxes are fine · lol · everyone starts somewhere · mine too · add some stairs
+3. **a** (50%): thanks · lol · true · i'll try
+
+#### home cozy
+
+*Needs:* any time
+
+*About:* home, feelings  ·  *Leads to:* home, decor, feelings
+
+1. **a**: nothing beats coming home · my house finally feels like home · home sweet home · missing my base
+2. **b**: aww · same · home is where the bed is · i dont have a home really · feels good
+3. **a** (50%): right · you'll find one · exactly · yeah
+
+#### fence talk
+
+*Needs:* any time
+
+*About:* building, animals  ·  *Leads to:* animals, farming, building
+
+1. **a**: need to fence in my animals · fences keep the zombies out · my cows keep escaping · fences or walls?
+2. **b**: fences · walls look better · double fence, trust · lol escaped cows · gates are important
+3. **a** (50%): true · will do · lol · yeah
+
+#### decor bits
+
+*Needs:* any time
+
+*About:* decor, home  ·  *Leads to:* decor, home, building
+
+1. **a**: paintings make a house · put a carpet down today · item frames everywhere lol · flower pots are so cute
+2. **b**: paintings are random tho · carpets are nice · yes! · i dont decorate · banners too
+3. **a** (50%): you should · banners, yeah · lol · same
+
+#### mega storage
+
+*Needs:* any time
+
+*About:* storage, brag  ·  *Leads to:* storage, brag, building
+
+1. **a**: my storage room is huge now · built a full storage system · i have a chest for every block · sorted all my chests today
+2. **b**: show off · nice · i need that · how many chests · wow
+3. **a** (50%): like 40 · come see · lol · it took forever
+
+#### nether portal base
+
+*Needs:* any time
+
+*About:* nether, building  ·  *Leads to:* nether, building, decor
+
+1. **a**: built a nether portal at home · should a portal be inside or outside · decorated my portal · portal room in progress
+2. **b**: inside, safer · outside looks cool · ghasts can come through · nice · dont let a piglin through
+3. **a** (50%): true · yeah · lol · good point
+
+#### armor upgrade
+
+*Needs:* any time
+
+*About:* armor, gear  ·  *Leads to:* armor, ore, enchanting
+
+1. **a**: need better armor · finally got full iron · leather armor isnt cutting it · armor makes such a difference
+2. **b**: iron is enough · go for diamond · chainmail looks cool · i barely wear any · enchant it
+3. **a** (50%): true · working on it · lol · yeah
+
+#### armor looks
+
+*Needs:* any time
+
+*About:* armor, decor  ·  *Leads to:* armor, gear, argument
+
+1. **a**: gold armor looks best · iron armor is so plain · diamond armor is so shiny · armor trims are cool
+2. **b**: diamond looks best · leather can be dyed · chainmail · netherite is so dark · looks dont matter
+3. **a** (35%) *(marks disagree; leads to argument)*: no way · terrible taste · nah
+4. **a** if !t:disagree *(marks agree)*: fair · true · nice
+
+#### enchant table
+
+*Needs:* any time
+
+*About:* enchanting, crafting  ·  *Leads to:* enchanting, ore, storage
+
+1. **a**: built an enchanting table · need bookshelves · 15 bookshelves is so many · enchanting is a gamble
+2. **b**: cows for leather · sugarcane for paper · worth it · level 30 enchants are the best · i got bad luck
+3. **a** (50%): true · yeah · lol · good tip
+
+#### mending hunt
+
+*Needs:* any time
+
+*About:* enchanting, villagers, gear  ·  *Leads to:* villagers, enchanting, trade
+
+1. **a**: looking for mending · mending is the best enchant · found a mending villager · mending makes tools last forever
+2. **b**: reroll the librarian · lucky · fishing gets it too · yes · mending is op
+3. **a** (50%): yeah · nice · true · lol
+
+#### best enchant
+
+*Needs:* any time
+
+*About:* enchanting, argument  ·  *Leads to:* enchanting, gear, argument
+
+1. **a**: best enchant in the game? · whats your fav enchant · efficiency or fortune? · feather falling is so underrated
+2. **b**: mending · efficiency · fortune · protection · feather falling · looting
+3. **a** (35%) *(marks disagree; leads to argument)*: no way · wrong · nope
+4. **a** if !t:disagree *(marks agree)*: good one · true · nice
+
+#### anvil cost
+
+*Needs:* any time
+
+*About:* enchanting, complaints  ·  *Leads to:* enchanting, complaints, gear
+
+1. **a**: anvil said too expensive · anvils break so fast · combining enchants costs so much · i hate anvil prices
+2. **b**: order matters · ugh · same · too expensive! · use books
+3. **a** (50%): right · ugh · true
+
+#### potion brewing
+
+*Needs:* any time
+
+*About:* potions, crafting  ·  *Leads to:* potions, nether, crafting
+
+1. **a**: learning to brew · need nether wart · brewing stands are fun · made my first potion
+2. **b**: nice · fortress has wart · potions are op · too complicated · make healing ones
+3. **a** (50%): yeah · true · will do
+
+#### best potion
+
+*Needs:* any time
+
+*About:* potions, argument  ·  *Leads to:* potions, fighting, argument
+
+1. **a**: best potion? · fire res is the best potion · strength potions are op · night vision is so good for caves
+2. **b**: healing · fire res · speed · night vision · invisibility, sneaky
+3. **a** (35%) *(marks disagree; leads to argument)*: nah · no way · wrong
+4. **a** if !t:disagree *(marks agree)*: good one · true · agreed
+
+#### crafting recipes
+
+*Needs:* any time
+
+*About:* crafting, tools  ·  *Leads to:* crafting, tools, jokes
+
+1. **a**: i keep forgetting recipes · how do you make a piston again · the recipe book is so useful · crafting tables everywhere lol
+2. **b**: recipe book · i remember most · wood, cobble, iron, redstone · same · carry one with you
+3. **a** (50%): right · yeah · lol · thanks
+
+#### stone tools
+
+*Needs:* any time
+
+*About:* tools, memories  ·  *Leads to:* tools, memories, ore
+
+1. **a**: remember stone tools? · stone pick days · wooden pickaxe era lol · first night with stone tools
+2. **b**: good times · dont miss it · simpler times · still use them lol · ah memories
+3. **a** (50%): lol · yeah · right
+
+#### trade deal
+
+*Needs:* any time
+
+*About:* trade, villagers  ·  *Leads to:* trade, villagers, ore
+
+1. **a**: got a good trade today · villager prices went up · trading is the best way to get stuff · emeralds are worth so much
+2. **b**: nice · cure a zombie villager, cheap prices · scammed again · what did you get · trading is op
+3. **a** (50%): books · yeah · lol · true
+
+#### totem talk
+
+*Needs:* any time
+
+*About:* gear, death  ·  *Leads to:* death, gear, structures
+
+1. **a**: want a totem of undying · a totem saved me once · totems are the best item · lost my totem
+2. **b**: evokers drop them · lucky · keep it in your offhand · dont waste it · rip
+3. **a** (50%): yeah · noted · true
+
+#### shulker box
+
+*Needs:* any time
+
+*About:* storage, end, gear  ·  *Leads to:* end, storage, dreams
+
+1. **a**: want shulker boxes · shulkers are the best storage · carry a chest in your pocket · need more shulker shells
+2. **b**: end cities · dream item · so useful · i dont have any · someday
+3. **a** (50%): right · yeah · lol
+
+#### inventory full
+
+*Needs:* any time
+
+*About:* storage, complaints  ·  *Leads to:* storage, complaints, jokes
+
+1. **a**: my inventory is always full · inventory full again · throwing stuff away to make room · need a bigger backpack lol
+2. **b**: toss the dirt · ender chest · same · take less stuff · lol
+3. **a** (50%): never · lol · true · ugh
+
+#### elytra talk
+
+*Needs:* any time
+
+*About:* gear, end, exploring  ·  *Leads to:* exploring, end, dreams
+
+1. **a**: flying with an elytra must be amazing · crashed my elytra into a wall · rockets are expensive · elytra changes everything
+2. **b**: it is · lol · gunpowder farm · so want one · dont fly into walls
+3. **a** (50%): yeah · lol · true
+
+#### trade with me
+
+*Needs:* any time
+
+*About:* trade, friends  ·  *Leads to:* trade, friends, ore
+
+1. **a**: wanna trade sometime · need some iron, you got any · ill trade you food for coal · you have spare wood?
+2. **b**: sure · maybe · what do i get · not right now · for a friend yeah
+3. **a** (50%): deal · later then · ok · cool
+
+#### tools named
+
+*Needs:* any time
+
+*About:* tools, gear, jokes  ·  *Leads to:* tools, jokes, brag  ·  uses 0.5 interest
+
+1. **a**: i named my pickaxe · do you name your tools · my sword has a name · named my axe chopper
+2. **b**: what name · lol · thats cute · no · mine is called pick
+3. **a** (50%): secret · lol · yeah · creative
+
+#### gear lost
+
+*Needs:* any time
+
+*About:* gear, death, complaints  ·  *Leads to:* death, complaints, feelings
+
+1. **a**: lost all my stuff · my gear despawned · died with all my diamonds · everything burned in lava
+2. **b**: rip · oof · start over · that sucks · happened to me too
+3. **a** (50%): yeah · ugh · starting over · thanks
+
+#### hoarder pride
+
+*Needs:* any time
+
+*About:* storage, brag, feelings  ·  *Leads to:* storage, brag
+
+1. **a**: i keep everything · never throw anything away · you never know when you need it · my chests are full of junk
+2. **b**: hoarder · same · toss it · lol · fair
+3. **a** (50%): proud of it · lol · maybe
+
+#### golden apple
+
+*Needs:* any time
+
+*About:* food, gear, health  ·  *Leads to:* food, health, gear
+
+1. **a**: golden apples are op · saving my golden apple · ate my golden apple too early · gapples for fights
+2. **b**: always carry one · nice · rip · too expensive · save it for the dragon
+3. **a** (50%): yeah · true · lol
+
+#### dream last night
+
+*Needs:* any time
+
+*About:* dreams, sleep  ·  *Leads to:* dreams, feelings, jokes
+
+1. **a**: had the weirdest dream · dreamed i was a creeper · dreamed about diamonds everywhere · do you dream when you sleep
+2. **b**: what happened · lol · nice dream · i never remember mine · creepy
+3. **a** (60%): i blew up · woke up with nothing · dont remember now · it was weird
+
+#### big dream
+
+*Needs:* any time
+
+*About:* dreams, plans  ·  *Leads to:* plans, dreams, building
+
+1. **a**: whats your dream build · if you could have anything what would it be · someday ill have a castle · my dream is a full diamond house
+2. **b**: a big farm · a tower to the sky · a beacon · just a cozy house · everything lol
+3. **a** (50%): nice · dream big · same · lol
+
+#### why here
+
+*Needs:* any time
+
+*About:* philosophy, dreams  ·  *Leads to:* philosophy, feelings, memories
+
+1. **a**: ever wonder why were here · who made this world · do you remember how you got here · what's the point of it all
+2. **b**: to mine · dont think about it · no idea · deep · to have fun
+3. **a** (60%): fair · deep · yeah · true
+
+#### blocks think
+
+*Needs:* any time
+
+*About:* philosophy, jokes  ·  *Leads to:* philosophy, jokes  ·  uses 0.5 interest
+
+1. **a**: why is everything a cube · how do we carry 64 blocks of stone · where do items go when they despawn · why do trees float
+2. **b**: magic · dont question it · lol good question · we're strong · the void
+3. **a** (50%): lol · true · makes sense
+
+#### respawn think
+
+*Needs:* any time
+
+*About:* philosophy, death  ·  *Leads to:* death, philosophy, feelings
+
+1. **a**: does dying hurt · we always come back, weird right · what happens when you respawn · do you remember dying
+2. **b**: a little · dont think about it · you just wake up in bed · weird · best not to
+3. **a** (50%): yeah · spooky · right
+
+#### good memory
+
+*Needs:* !strangers
+
+*About:* memories, feelings, friends  ·  *Leads to:* memories, friends, feelings
+
+1. **a**: remember the first night · good times huh · remember when we first met · things were simpler back then
+2. **b**: yeah lol · good times · feels like forever ago · i remember · we were so bad
+3. **a** (60%): we were · lol yeah · miss it · yeah
+
+#### first night
+
+*Needs:* any time
+
+*About:* memories, night, home  ·  *Leads to:* memories, night, home
+
+1. **a**: my first night i hid in a dirt hole · spent my first night in a tree · first night was so scary · remember your first night
+2. **b**: dirt hut gang · lol · same · i died · classic
+3. **a** (50%): classic · lol · yeah
+
+#### mood good
+
+*Needs:* a:mood_confident
+
+*About:* feelings  ·  *Leads to:* feelings, plans, brag
+
+1. **a**: feeling great today · everything's going my way · best day in a while · nothing can stop me today
+2. **b**: nice · good for you · whats the secret · dont jinx it · love that
+3. **a** (50%): lol · just vibes · thanks · yeah
+
+#### mood down
+
+*Needs:* a:mood_frustrated
+
+*About:* feelings, friends  ·  *Leads to:* feelings, friends, jokes
+
+1. **a**: nothing's going right · today's been rough · i keep messing up · ugh, bad day
+2. **b**: it'll get better · want to talk about it · same honestly · tomorrow's a new day · you got this
+3. **a** (60%) if friends: thanks · glad youre here · yeah
+4. **a** (50%) if !friends: thanks · maybe · yeah
+
+#### mood scared
+
+*Needs:* a:mood_anxious
+
+*About:* feelings, danger  ·  *Leads to:* feelings, danger, home
+
+1. **a**: im a bit on edge · something feels off · i keep hearing things · cant shake this feeling
+2. **b**: stay close · its probably nothing · same · lets be careful · want to head back
+3. **a** (50%): yeah · ok · thanks
+
+#### mood proud
+
+*Needs:* a:mood_triumphant
+
+*About:* brag, feelings  ·  *Leads to:* brag, feelings, gear
+
+1. **a**: guess who just did it · im on top of the world · just had the best moment · cant stop smiling
+2. **b**: what happened · nice! · tell me · show off · gg
+3. **a** (50%): big win · you'll see · lol · gg
+
+#### brag battle
+
+*Needs:* rivals
+
+*About:* brag, rivals  ·  *Leads to:* brag, rivals, argument
+
+1. **a**: bet i have more diamonds than you · my base is better than yours · i could beat you in a fight · i mine faster than you
+2. **b**: no chance · prove it · lol ok · keep dreaming · sure you do
+3. **a** (50%) *(marks disagree; leads to argument)*: watch me · i will · whatever
+
+#### friend thanks
+
+*Needs:* friends
+
+*About:* friends, feelings  ·  *Leads to:* friends, memories, plans
+
+1. **a**: glad i met you · you're a good friend · thanks for always being around · this world is better with friends
+2. **b**: same · aww · anytime · you too · dont get sappy on me lol
+3. **a** (50%) *(marks agree)*: lol · yeah · always
+
+#### team up idea
+
+*Needs:* !rivals
+
+*About:* friends, plans  ·  *Leads to:* plans, friends, building
+
+1. **a**: we should build something together · want to team up some time · two people mine twice as fast · we'd make a good team
+2. **b**: sure · maybe · sounds fun · i work alone · lets do it
+3. **a** (50%): cool · fair · deal · ok
+
+#### rival jab
+
+*Needs:* rivals
+
+*About:* rivals, jokes  ·  *Leads to:* rivals, brag, argument  ·  uses 0.5 interest
+
+1. **a**: nice armor, did you find it in a dumpster · still alive huh · oh its you · you again
+2. **b**: funny · jealous much · bye · you wish · cute
+3. **a** (50%) *(marks disagree)*: whatever · lol · sure
+
+#### fav snack
+
+*Needs:* any time
+
+*About:* food, jokes  ·  *Leads to:* food, farming  ·  uses 0.5 interest
+
+1. **a**: cookies are so good · why is cake so hard to make · rabbit stew is underrated · dried kelp is gross
+2. **b**: yes · worth it · never tried it · agreed · lol
+3. **a** (50%): right · you should · lol
+
+#### cooking talk
+
+*Needs:* any time
+
+*About:* food, crafting  ·  *Leads to:* food, farming, animals
+
+1. **a**: always cook your meat · made a cake for once · smokers cook so fast · raw chicken made me sick
+2. **b**: lol · nice · yes · smoker is the best · rookie mistake
+3. **a** (50%): yeah · lol · true
+
+#### hunger struggle
+
+*Needs:* any time
+
+*About:* food, complaints, health  ·  *Leads to:* food, farming, health
+
+1. **a**: always hungry · i eat so much · food runs out so fast · why am i always hungry
+2. **b**: sprinting does that · farm more · same · eat better food · lol
+3. **a** (50%): true · yeah · lol
+
+#### music disc
+
+*Needs:* any time
+
+*About:* music, decor  ·  *Leads to:* music, decor, mobs
+
+1. **a**: found a music disc · want a jukebox · skeletons have to kill creepers for discs · music makes a base
+2. **b**: nice · which one · jukebox is easy to make · i love music · play it
+3. **a** (50%): yeah · cool · lol
+
+#### note block
+
+*Needs:* any time
+
+*About:* music, redstone  ·  *Leads to:* music, redstone
+
+1. **a**: made a song with note blocks · note blocks are fun · redstone music is so cool · tried to make a tune
+2. **b**: play it · cool · sounds hard · nice · lol
+3. **a** (50%): someday · yeah · lol
+
+#### bored ideas
+
+*Needs:* a:mood_bored
+
+*About:* boredom, plans  ·  *Leads to:* plans, boredom, jokes
+
+1. **a**: im so bored · what should i do · nothing to do · give me an idea
+2. **b**: build something · go explore · mine · same · fight the dragon lol
+3. **a** (50%): maybe · nah · ok · lol
+
+#### lazy day
+
+*Needs:* any time
+
+*About:* boredom, feelings  ·  *Leads to:* feelings, boredom, plans
+
+1. **a**: dont feel like doing anything · lazy day today · taking it easy · doing nothing is nice sometimes
+2. **b**: same · you earned it · nice · get to work lol · relax
+3. **a** (50%): lol · yeah · true
+
+#### health low
+
+*Needs:* any time
+
+*About:* health, danger  ·  *Leads to:* health, food, potions
+
+1. **a**: almost died earlier · on 2 hearts lol · need to heal up · took so much damage today
+2. **b**: eat something · careful · rest up · potions help · wow
+3. **a** (50%): yeah · will do · thanks
+
+#### fall damage
+
+*Needs:* any time
+
+*About:* health, jokes, danger  ·  *Leads to:* danger, jokes, enchanting  ·  uses 0.5 interest
+
+1. **a**: fell off a cliff again · fall damage is my worst enemy · missed my water bucket clutch · jumped and forgot how high it was
+2. **b**: feather falling · lol · classic · rip · practice the clutch
+3. **a** (50%): lol · yeah · ugh
+
+#### complaint day
+
+*Needs:* any time
+
+*About:* complaints  ·  *Leads to:* complaints, feelings, jokes
+
+1. **a**: everything went wrong today · i fell in water and lost my torches · a skeleton took me to 1 heart · ran out of food mid trip
+2. **b**: rough · oof · happens · lol · same
+3. **a** (50%): yeah · ugh · lol
+
+#### sleep schedule
+
+*Needs:* any time
+
+*About:* sleep, night  ·  *Leads to:* sleep, night, jokes
+
+1. **a**: i never sleep on time · i sleep the second it gets dark · beds are the best invention · slept in a village bed
+2. **b**: same · lol · sleep is important · night is for mining · phantoms though
+3. **a** (50%): yeah · lol · true
+
+#### players weird
+
+*Needs:* any time
+
+*About:* players, jokes  ·  *Leads to:* players, jokes, gossip
+
+1. **a**: players are so weird · saw a player jump around for no reason · players spin around a lot · a player just stared at me
+2. **b**: lol · they do · maybe they're lost · creepy · they're fun
+3. **a** (50%): right? · lol · yeah
+
+#### players builds
+
+*Needs:* any time
+
+*About:* players, building  ·  *Leads to:* players, building, places
+
+1. **a**: players build crazy stuff · saw a player's house, it was huge · players make the coolest builds · some player made a giant statue
+2. **b**: they have so much time · cool · where · i want to see · show off
+3. **a** (50%): north of here · lol · yeah
+
+#### gossip mild
+
+*Needs:* !strangers
+
+*About:* gossip, friends  ·  *Leads to:* gossip, players, jokes
+
+1. **a**: heard anything interesting lately · got any news · whats new · you hear anything
+2. **b**: not much · quiet lately · nope · just the usual · you tell me
+3. **a** (50%): same here · lol · boring
+
+#### random fact
+
+*Needs:* any time
+
+*About:* jokes, random  ·  *Leads to:* jokes, random, animals  ·  uses 0.5 interest
+
+1. **a**: did you know cats scare phantoms · fun fact: foxes can hold items · axolotls play dead · pandas can be lazy or angry
+2. **b**: really? · huh · cool · didnt know · lol
+3. **a** (50%): yep · now you know · lol
+
+#### random question
+
+*Needs:* any time
+
+*About:* random, jokes  ·  *Leads to:* random, dreams, food  ·  uses 0.5 interest
+
+1. **a**: would you rather fight 10 zombies or 1 ravager · if you were a mob what would you be · fav color? · would you rather live in the nether or the end
+2. **b**: zombies · a cat · green · the end, quieter · neither lol · a creeper
+3. **a** (50%): fair · lol · same · interesting
+
+#### joke pun
+
+*Needs:* any time
+
+*About:* jokes  ·  *Leads to:* jokes, random  ·  uses 0.5 interest
+
+1. **a**: what do you call a sheep with no legs? a cloud · why did the creeper cross the road? to get to the other ssss · i'm not a fan of slimes, they're too clingy · i told my pick a joke, it cracked up
+2. **b**: boo · that was awful · lol · why · stop
+3. **a** (50%): you laughed · admit it · lol
+
+#### weekend vibes
+
+*Needs:* day, clear
+
+*About:* feelings, day  ·  *Leads to:* feelings, plans, weather
+
+1. **a**: perfect day for anything · sun's out, mood's up · its so nice out · love days like this
+2. **b**: agreed · yeah · lets do something · nice · dont waste it
+3. **a** (50%): lets · true · yeah
+
+#### branch mining
+
+*Needs:* any time
+
+*About:* mining, ore  ·  *Leads to:* mining, diamonds, tools, caves
+
+1. **a**: you branch mine or cave? · how far apart do you space your tunnels · branch mining is so boring but it works · i do 2 block gaps between tunnels
+2. **b**: branch mine at -58 · caves, way faster · 3 gaps, saves time · whatever i feel like · i just dig down and pray
+3. **a** (35%) *(marks disagree; leads to argument)*: nah thats slow · hard disagree · thats not efficient at all
+4. **a** if !t:disagree *(marks agree)*: solid · fair · same honestly · smart
+
+#### dig straight down
+
+*Needs:* any time
+
+*About:* mining, danger  ·  *Leads to:* danger, death, mining, jokes
+
+1. **a**: did you ever dig straight down · never dig straight down they say · i dug straight down once. once. · rule one: dont dig straight down
+2. **b**: into lava lol · every day, im fearless · fell into a ravine doing that · into a cave full of zombies · nope, staircase only
+3. **a** (60%): classic · you live and learn · rip · lol
+
+#### lava scare
+
+*Needs:* any time
+
+*About:* mining, danger, caves  ·  *Leads to:* danger, death, gear, potions
+
+1. **a**: almost walked into lava today · lava is the real final boss · the sound of lava pops makes me nervous · i always carry a water bucket now
+2. **b**: water bucket saves lives · i lost a whole inventory to lava once · fire res potions, trust · lava is beautiful from far away · same, it's everywhere down there
+3. **a** (50%): yeah never again · noted · true · lava is evil
+
+#### cave sounds
+
+*Needs:* any time
+
+*About:* caves, mining, night  ·  *Leads to:* caves, mobs, feelings, jokes
+
+1. **a**: did you hear that cave noise earlier · cave sounds give me the creeps · the cave ambience is so creepy · heard something breathing down there
+2. **b**: thats just the cave · nope, nope, nope · i love them honestly · it's probably a zombie · i put music on in my head
+3. **a** (50%): still creepy · brave · i dont trust caves · lol
+
+#### cave vs ravine
+
+*Needs:* any time
+
+*About:* caves, exploring, mining  ·  *Leads to:* caves, ore, danger, exploring
+
+1. **a**: found a massive cave · cave or ravine, which is better for ore · theres a huge cave system nearby · the new caves are insane
+2. **b**: ravines show so much ore · caves, more to explore · lush caves are the best ones · dripstone caves scare me · deep dark caves, no thanks
+3. **a** (60%): true · good point · gotta light them up first · might go back with torches
+
+#### torches talk
+
+*Needs:* any time
+
+*About:* caves, mining, tools  ·  *Leads to:* caves, mining, building
+
+1. **a**: how many torches you carry · ran out of torches again · torches on the right side going in · coal for torches is the most important thing
+2. **b**: a full stack, always · never enough · right side in, left side out · i forget them every time · i just use the light from lava lol
+3. **a** (50%): smart · same · classic · you gotta be ready
+
+#### pickaxe broke
+
+*Needs:* any time
+
+*About:* tools, mining  ·  *Leads to:* tools, enchanting, complaints
+
+1. **a**: my pickaxe just broke mid tunnel · pick broke at the worst moment · why do pickaxes break so fast · need a new pick already
+2. **b**: always carry a spare · unbreaking fixes that · rip · mending is the dream · just craft another lol
+3. **a** (50%): yeah · lesson learned · easy for you to say · true
+
+#### iron rush
+
+*Needs:* any time
+
+*About:* ore, tools, gear  ·  *Leads to:* gear, mining, tools
+
+1. **a**: need more iron · iron is the most useful ore change my mind · iron is so rare where i dig · got enough iron for full armor yet?
+2. **b**: mountains are full of iron · iron golems are the move · caves near water have tons · not yet, almost · i have like 3 ingots lol
+3. **a** (50%): good tip · noted · i'll check · same struggle
+
+#### coal talk
+
+*Needs:* any time
+
+*About:* ore, mining  ·  *Leads to:* mining, caves, ore
+
+1. **a**: coal is everywhere and i still never have enough · found a big coal vein · charcoal or coal? · coal is underrated
+2. **b**: charcoal is easier honestly · coal for sure · i just burn wood lol · lucky · smelting eats it so fast
+3. **a** (50%): true · fair · lol same
+
+#### gold useless
+
+*Needs:* any time
+
+*About:* ore, gear, nether  ·  *Leads to:* nether, gear, trade, argument
+
+1. **a**: is gold even useful · gold tools are a joke · found gold, now what · gold is just for piglins
+2. **b**: piglins love it · golden apples tho · powered rails! · gold armor so piglins chill · pretty much useless
+3. **a** (30%) *(marks disagree; leads to argument)*: nah · i disagree · hmm not convinced
+4. **a** if !t:disagree *(marks agree)*: oh true · forgot about that · ok fair
+
+#### redstone ore
+
+*Needs:* any time
+
+*About:* ore, redstone  ·  *Leads to:* redstone, building, mining
+
+1. **a**: got a ton of redstone · redstone ore glows when you touch it, its cool · what do you even do with redstone · found redstone everywhere down there
+2. **b**: farms! · doors and stuff · i never use it · clocks and compasses · redstone confuses me
+3. **a** (50%): same · maybe ill try · nice · too complicated for me
+
+#### lapis talk
+
+*Needs:* any time
+
+*About:* ore, enchanting  ·  *Leads to:* enchanting, mining, gear
+
+1. **a**: lapis is so annoying to find · need lapis for enchanting · found a whole lapis vein · lapis looks so nice
+2. **b**: its always near the bottom · nice, share some · villagers sell it sometimes · i have too much honestly · never seen any lol
+3. **a** (50%): lucky · ok · maybe · thanks for the tip
+
+#### emeralds talk
+
+*Needs:* any time
+
+*About:* ore, trade, villagers  ·  *Leads to:* trade, villagers, places
+
+1. **a**: emeralds only spawn in mountains right? · found an emerald ore! · emeralds are rarer than diamonds · need emeralds to trade
+2. **b**: yeah mountains · trade for them, way easier · lucky! · i've never found one · farmers give emeralds for crops
+3. **a** (50%): huh · nice · good to know
+
+#### deepslate talk
+
+*Needs:* any time
+
+*About:* mining, complaints, caves  ·  *Leads to:* mining, tools, complaints
+
+1. **a**: deepslate takes forever to mine · i hate deepslate · deepslate looks nice tho · deep down is where the good stuff is
+2. **b**: efficiency helps · so slow · builds look great with it · worth it for diamonds · just tunnel above it
+3. **a** (50%): true · still · yeah · agreed
+
+#### mining depth
+
+*Needs:* any time
+
+*About:* mining, diamonds  ·  *Leads to:* diamonds, mining, danger
+
+1. **a**: whats the best level for diamonds · how deep do you mine · y -58 is the spot right · i keep mining at the wrong level
+2. **b**: -58 or -59 · as deep as i can go · bedrock-ish · i just follow caves · no idea lol
+3. **a** (50%): noted · ok · makes sense · i'll try that
+
+#### bedrock talk
+
+*Needs:* any time
+
+*About:* mining, jokes  ·  *Leads to:* mining, jokes, end
+
+1. **a**: hit bedrock today · what's under bedrock · tried to break bedrock lol · bedrock is so ugly
+2. **b**: the void · more bedrock · you cant break it silly · i bet theres something down there · nothing good
+3. **a** (50%): spooky · one day · lol · probably
+
+#### mining alone
+
+*Needs:* any time
+
+*About:* mining, feelings, friends  ·  *Leads to:* friends, plans, mining
+
+1. **a**: mining alone gets lonely · you ever mine with someone else · mining is better with company · i like mining alone honestly
+2. **b**: we should go together · same · i like the quiet · more people more loot · they steal the ore lol
+3. **a** (60%) if friends: lets go sometime · deal · next time then
+4. **a** (50%) if !friends: fair · maybe · true
+
+#### lost underground
+
+*Needs:* any time
+
+*About:* caves, danger, exploring  ·  *Leads to:* caves, exploring, jokes
+
+1. **a**: i got so lost in a cave yesterday · ever get lost underground · took me ages to find my way out · caves are a maze
+2. **b**: always · torches on one side, trust · just dig up · i leave a trail of cobble · same thing happened to me
+3. **a** (50%): dig up, smart · will do · lol · yeah
+
+#### cobblestone pile
+
+*Needs:* any time
+
+*About:* mining, storage, jokes  ·  *Leads to:* storage, building, jokes
+
+1. **a**: my inventory is all cobble · what do you do with all the cobblestone · i have like 10 stacks of cobble · cobble is everywhere
+2. **b**: build with it · throw it in lava · keep it, you never know · i need it actually · same lol
+3. **a** (50%): fair · keep it, sure · classic hoarder · lol
+
+#### silk touch
+
+*Needs:* any time
+
+*About:* enchanting, tools, mining  ·  *Leads to:* enchanting, tools, ore
+
+1. **a**: silk touch or fortune? · fortune on diamond ore is so good · silk touch is underrated · do you have fortune yet
+2. **b**: fortune, every time · silk touch for building · both, two picks · neither lol · fortune 3 is the dream
+3. **a** (30%) *(marks disagree; leads to argument)*: nah · nope · thats wrong
+4. **a** if !t:disagree *(marks agree)*: agreed · smart · same
+
+#### strip mine luck
+
+*Needs:* any time
+
+*About:* mining, diamonds, jokes  ·  *Leads to:* diamonds, mining, complaints
+
+1. **a**: mined for an hour, zero diamonds · my luck is cursed · some people find diamonds in 5 mins, i hate them · rng hates me
+2. **b**: skill issue · keep going · found 6 yesterday lol · same honestly · diamonds come when you stop looking
+3. **a** (50%): not helping · lol · maybe · ugh
+
+#### geode found
+
+*Needs:* any time
+
+*About:* caves, exploring, ore  ·  *Leads to:* caves, building, exploring
+
+1. **a**: found an amethyst geode · geodes are so pretty · do you ever find geodes · the sound amethyst makes is so nice
+2. **b**: they are · spyglass time · i break them for fun · never found one · love the chime
+3. **a** (50%): right? · nice · you should look · same
+
+#### copper talk
+
+*Needs:* any time
+
+*About:* ore, building  ·  *Leads to:* building, ore, redstone
+
+1. **a**: copper is useless · what do you use copper for · i have so much copper · copper turns green its cool
+2. **b**: lightning rods · builds, when it goes green · spyglass · nothing lol · the roof on my house
+3. **a** (50%): huh · fair · ok · nice idea
+
+#### mining music
+
+*Needs:* any time
+
+*About:* mining, music, feelings  ·  *Leads to:* music, feelings, mining
+
+1. **a**: the music down in the caves hits different · i hum while mining · love when the music kicks in underground · mining is so peaceful sometimes
+2. **b**: so peaceful · same · until a creeper hisses · i dont notice it · nothing beats it
+3. **a** (50%): exactly · lol true · right
+
+#### mineshaft found
+
+*Needs:* any time
+
+*About:* structures, mining, danger  ·  *Leads to:* structures, mobs, caves
+
+1. **a**: found an old mineshaft · mineshafts are full of cave spiders · you ever loot mineshafts · theres rails all over down there
+2. **b**: cave spiders, nope · free rails! · chest minecarts are nice · got lost in one · bring milk
+3. **a** (50%): milk, good call · yeah · maybe · never again
+
+#### mining hours
+
+*Needs:* any time
+
+*About:* mining, boredom, plans  ·  *Leads to:* plans, boredom, mining
+
+1. **a**: been mining all day · my arm hurts from mining lol · mining for hours and i'm not even tired · how long were you down there
+2. **b**: take a break · same · the grind never stops · worth it? · too long
+3. **a** (50%): maybe · always worth it · yeah · lol
+
+#### creeper hate
+
+*Needs:* any time
+
+*About:* mobs, danger, complaints  ·  *Leads to:* mobs, building, danger, jokes
+
+1. **a**: a creeper blew up my wall · creepers have no right being that quiet · why do creepers exist · heard a hiss behind me and just ran
+2. **b**: they want a hug · i hate them so much · cats scare them off · shield up and pray · they ruin everything
+3. **a** (50%): cats, huh · worst mob · seriously · lol a hug
+
+#### skeleton archers
+
+*Needs:* any time
+
+*About:* mobs, fighting  ·  *Leads to:* fighting, gear, weapons
+
+1. **a**: skeletons have perfect aim i swear · got sniped by a skeleton from so far · skeletons are the worst at night · skeleton knocked me off a cliff
+2. **b**: shield fixes that · use the trees for cover · they're better than me at bows · free arrows tho · rush them, they back off
+3. **a** (50%): free arrows, true · fair · still annoying · ok
+
+#### spider jump
+
+*Needs:* any time
+
+*About:* mobs, night  ·  *Leads to:* mobs, night, danger
+
+1. **a**: spiders climbing walls is so unfair · a spider jumped me from a tree · spiders are chill in the day at least · spider eyes are gross
+2. **b**: string though · i hate the sound they make · they're harmless in the day · cave spiders are worse · just put an overhang on your walls
+3. **a** (50%): overhang, smart · true · ugh · string is nice
+
+#### zombie horde
+
+*Needs:* any time
+
+*About:* mobs, night, fighting  ·  *Leads to:* fighting, home, villagers
+
+1. **a**: there were like 6 zombies outside last night · zombies breaking doors is so scary · zombies are easy but there's always so many · a baby zombie almost killed me
+2. **b**: baby zombies are terrifying · iron doors, trust · free rotten flesh lol · just stay inside at night · a sword does the job
+3. **a** (50%): baby ones are the worst · iron doors, noted · true · yeah
+
+#### enderman eyes
+
+*Needs:* any time
+
+*About:* mobs, end, danger  ·  *Leads to:* end, mobs, jokes
+
+1. **a**: looked at an enderman by accident · endermen stole a block from my house · endermen are kinda cute · you ever fight an enderman
+2. **b**: dont look at them · they cant follow you under 2 blocks · they took my grass too · water is their weakness · pearls though
+3. **a** (50%): pearls are worth it · good trick · rude · lol
+
+#### witch fight
+
+*Needs:* any time
+
+*About:* mobs, potions, fighting  ·  *Leads to:* potions, fighting, danger
+
+1. **a**: got poisoned by a witch · witches drink their own potions its so unfair · fighting a witch is the worst · found a witch hut
+2. **b**: rush them · use a bow · they drop redstone tho · milk for the poison · avoid them
+3. **a** (50%): noted · good drop · yeah · true
+
+#### phantom rage
+
+*Needs:* any time
+
+*About:* mobs, sleep, night  ·  *Leads to:* sleep, night, complaints
+
+1. **a**: phantoms are the worst mob ever added · got swarmed by phantoms · phantoms keep finding me · need to sleep or the phantoms come
+2. **b**: just sleep lol · they're useless · membranes fix elytra tho · go underground · worst mob ever
+3. **a** (50%): agreed · fine ill sleep · true · ugh
+
+#### drowned trident
+
+*Needs:* any time
+
+*About:* mobs, ocean, weapons  ·  *Leads to:* ocean, weapons, danger
+
+1. **a**: a drowned threw a trident at me · drowned are scary in the dark water · you ever got a trident · rivers at night are full of drowned
+2. **b**: want a trident so bad · stay out of the water at night · got one once · they're slow on land · they're everywhere
+3. **a** (50%): same · good idea · nice · yeah
+
+#### slime chunks
+
+*Needs:* any time
+
+*About:* mobs, caves, redstone  ·  *Leads to:* redstone, caves, mobs
+
+1. **a**: found slimes underground · slimes are kinda adorable · need slimeballs for pistons · swamps have slimes at night
+2. **b**: slime chunk! · cute but annoying · sticky pistons time · never seen one · they split, ugh
+3. **a** (50%): right · nice · yeah · lol
+
+#### pillager patrol
+
+*Needs:* any time
+
+*About:* mobs, villagers, danger  ·  *Leads to:* villagers, danger, fighting
+
+1. **a**: got hit by a pillager patrol · saw pillagers walking around · careful, theres pillagers near here · pillagers have crossbows, so annoying
+2. **b**: kill the captain and its a raid · avoid the banner guy · they shoot so hard · where? · i ran away
+3. **a** (50%): good tip · east of here · same · smart
+
+#### guardian ocean
+
+*Needs:* any time
+
+*About:* mobs, ocean, structures  ·  *Leads to:* ocean, structures, danger
+
+1. **a**: found an ocean monument · guardians lasers are nasty · ocean monuments look cool from above · you ever raid a monument
+2. **b**: no way, mining fatigue · sponges are worth it · too scary · need water breathing first · maybe someday
+3. **a** (50%): same · someday · true · yeah
+
+#### warden fear
+
+*Needs:* any time
+
+*About:* mobs, danger, caves  ·  *Leads to:* caves, danger, feelings
+
+1. **a**: went to the deep dark once · the warden is terrifying · never going near a sculk shrieker again · heard the warden heartbeat
+2. **b**: sneak everywhere · i just leave · the loot is good tho · nope · wool on the floor
+3. **a** (50%): not worth it · nope nope · sneak, yeah · no thanks
+
+#### wolf pack
+
+*Needs:* any time
+
+*About:* animals, mobs, pets  ·  *Leads to:* pets, animals, fighting
+
+1. **a**: saw a pack of wolves · tamed a wolf once · wolves are the best · hit a wolf by accident and the whole pack came
+2. **b**: bones, bones, bones · dont hit them lol · dogs are op · i want one · they die so easily tho
+3. **a** (50%): right? · oops · true · aww
+
+#### night fight
+
+*Needs:* any time
+
+*About:* fighting, night, danger  ·  *Leads to:* fighting, gear, home
+
+1. **a**: fought all night · night fights are the best xp · so many mobs out tonight · barely survived the night
+2. **b**: good xp · i stayed inside · nice · same · night is for sleeping
+3. **a** (50%): coward lol · fair · next time · lol
+
+#### sword or axe
+
+*Needs:* any time
+
+*About:* weapons, fighting, gear  ·  *Leads to:* weapons, gear, argument
+
+1. **a**: sword or axe? · axe hits harder · swords are faster · whats your main weapon
+2. **b**: sword, sweeping edge · axe, breaks shields · bow, keep my distance · whatever i find · my fists lol
+3. **a** (35%) *(marks disagree; leads to argument)*: nah wrong · hard disagree · no way
+4. **a** if !t:disagree *(marks agree)*: respect · fair · makes sense
+
+#### bow skill
+
+*Needs:* any time
+
+*About:* weapons, fighting  ·  *Leads to:* weapons, fighting, brag
+
+1. **a**: my aim with a bow is so bad · bows are underrated · hit a skeleton from like 30 blocks · need more arrows
+2. **b**: practice · nice shot · skeletons drop arrows · i cant aim either · power 5 is crazy
+3. **a** (50%): thanks · lol · same · true
+
+#### shield talk
+
+*Needs:* any time
+
+*About:* gear, fighting  ·  *Leads to:* gear, weapons, mobs
+
+1. **a**: shields are the most underrated item · my shield saved me from a creeper · do you use a shield · shield blocks arrows, so good
+2. **b**: always · i forget i have it · axe breaks it · best item · i like a totem in my offhand
+3. **a** (50%): true · facts · you should · fair
+
+#### mob farm
+
+*Needs:* any time
+
+*About:* mobs, redstone, building  ·  *Leads to:* redstone, building, enchanting
+
+1. **a**: want to build a mob farm · xp farms are the best · mob farms take forever · found a spawner, farm time
+2. **b**: spawner farms are easy · too much work · help me with mine · need lots of cobble · do it!
+3. **a** (50%): maybe · sure · planning it · one day
+
+#### baby zombie
+
+*Needs:* any time
+
+*About:* mobs, jokes  ·  *Leads to:* mobs, jokes, danger  ·  uses 0.5 interest
+
+1. **a**: saw a baby zombie riding a chicken · baby zombies are faster than me · the tiny zombies are the scariest · chicken jockey!
+2. **b**: lmao · terrifying · i laughed then i died · they fit in 1 block holes · cursed
+3. **a** (50%): lol · cursed · exactly
+
+#### creeper crater
+
+*Needs:* any time
+
+*About:* mobs, building, complaints  ·  *Leads to:* building, home, mobs
+
+1. **a**: theres a huge creeper hole next to my house · have to fix a creeper crater · creepers keep wrecking the landscape · a creeper blew up my farm
+2. **b**: rip · fill it with cobble · make it a pond · light it up · happened to me too
+3. **a** (50%): a pond, smart · ugh · yeah · maybe
+
+#### golem friend
+
+*Needs:* any time
+
+*About:* mobs, villagers, town  ·  *Leads to:* villagers, town, building
+
+1. **a**: iron golems are so cool · an iron golem gave me a flower · dont hit golems lol · want a golem at my base
+2. **b**: they're so chill · aww · they hit hard · build one, its easy · they guard villages
+3. **a** (50%): right? · maybe i will · yeah · aww
+
+#### mob scare story
+
+*Needs:* any time
+
+*About:* mobs, danger, memories  ·  *Leads to:* danger, death, memories
+
+1. **a**: worst scare ever: creeper in my bed room · turned around and an enderman was right there · a spider fell on me from a cave roof · zombie in my house when i woke up
+2. **b**: i would have screamed · nope · how did you survive · lol · ok thats nightmare stuff
+3. **a** (50%): barely · luck · i didnt sleep · still shaking
+
+#### fav biome
+
+*Needs:* any time
+
+*About:* biomes, places  ·  *Leads to:* biomes, exploring, argument
+
+1. **a**: whats your favorite biome · cherry groves are the best biome · best biome to live in? · i love the taiga
+2. **b**: plains, simple · taiga · cherry grove · mushroom island, no mobs · jungle · snowy places
+3. **a** (35%) *(marks disagree; leads to argument)*: thats a terrible pick · nah · how lol
+4. **a** if !t:disagree *(marks agree)*: solid choice · nice · same
+
+#### desert talk
+
+*Needs:* any time
+
+*About:* biomes, exploring  ·  *Leads to:* structures, biomes, exploring
+
+1. **a**: crossed a desert today · deserts are so empty · found a desert temple · deserts have husks, careful
+2. **b**: watch the pressure plate · too hot · sand for glass · the temples have loot · cactus hurt me
+3. **a** (50%): noted · true · lol · yeah
+
+#### jungle talk
+
+*Needs:* any time
+
+*About:* biomes, trees, exploring  ·  *Leads to:* trees, exploring, animals
+
+1. **a**: got lost in a jungle · jungles are so thick · found cocoa beans in the jungle · saw a parrot
+2. **b**: parrots are cute · jungles are a maze · so many trees · pandas! · climb a tree to see
+3. **a** (50%): good idea · aww · yeah · pandas yes
+
+#### snow biome
+
+*Needs:* any time
+
+*About:* biomes, weather  ·  *Leads to:* biomes, weather, animals
+
+1. **a**: snowy biomes are so pretty · fell in powder snow · its freezing out here · saw a polar bear
+2. **b**: leather boots! · brr · dont fight the polar bear · foxes live there · pretty but cold
+3. **a** (50%): true · nope · foxes! · so cold
+
+#### swamp talk
+
+*Needs:* any time
+
+*About:* biomes, mobs  ·  *Leads to:* mobs, biomes, potions
+
+1. **a**: swamps are gross · theres a witch hut in that swamp · frogs are cute tho · swamp water is so ugly
+2. **b**: frogs! · slimes at night · agreed · mangroves are nice · avoid
+3. **a** (50%): frogs yes · yeah · lol · true
+
+#### mountain view
+
+*Needs:* any time
+
+*About:* biomes, places, feelings  ·  *Leads to:* places, exploring, feelings
+
+1. **a**: climbed a mountain earlier, what a view · the mountains are huge now · you can see forever from up there · built a little hut on a peak
+2. **b**: beautiful · goats tho · dont fall · i love the mountains · sounds peaceful
+3. **a** (50%): it was · goats are menaces · lol · yeah
+
+#### ocean crossing
+
+*Needs:* any time
+
+*About:* ocean, exploring  ·  *Leads to:* ocean, exploring, places
+
+1. **a**: crossed the ocean by boat · the ocean is so big · i get scared in deep water · found an island
+2. **b**: boats are the best · drowned everywhere · islands are cool bases · no thanks · dolphins help
+3. **a** (50%): right · dolphins! · true · lol
+
+#### shipwreck found
+
+*Needs:* any time
+
+*About:* ocean, structures  ·  *Leads to:* structures, ocean, exploring
+
+1. **a**: found a shipwreck · shipwrecks have maps · treasure maps are so fun · the chests in shipwrecks are good
+2. **b**: buried treasure! · nice · heart of the sea · ive never found one · go dig it up
+3. **a** (50%): will do · yeah · lucky right · lol
+
+#### fishing trip
+
+*Needs:* any time
+
+*About:* fishing, food  ·  *Leads to:* fishing, food, ocean
+
+1. **a**: went fishing · fishing is so relaxing · caught a pufferfish lol · you ever fish
+2. **b**: sometimes · caught a saddle once · love it · boring · luck of the sea!
+3. **a** (50%): nice · a saddle lol · fair · yes
+
+#### fish loot
+
+*Needs:* any time
+
+*About:* fishing, enchanting  ·  *Leads to:* enchanting, fishing
+
+1. **a**: got an enchanted book fishing · fishing gives good loot · caught a name tag · fished up a bow
+2. **b**: nice · jealous · i only get fish · luck · fishing is op
+3. **a** (50%): lol · yeah · keep trying
+
+#### cow farm
+
+*Needs:* any time
+
+*About:* animals, farming, food  ·  *Leads to:* animals, food, gear
+
+1. **a**: started a cow farm · cows are the best animal · need leather · my cows multiply so fast
+2. **b**: steak! · leather for books · cows are cute · wheat for breeding · chickens are easier
+3. **a** (50%): true · steak yes · yeah · ok
+
+#### chicken chaos
+
+*Needs:* any time
+
+*About:* animals, jokes  ·  *Leads to:* animals, jokes, food  ·  uses 0.5 interest
+
+1. **a**: threw an egg and got 4 chickens · chickens escape everything · chickens are so dumb lol · my chicken farm is out of control
+2. **b**: lucky · lol · they're cute · chicken is good food · chickens are evil
+3. **a** (50%): lol · evil, yes · yeah
+
+#### horse talk
+
+*Needs:* any time
+
+*About:* animals, exploring  ·  *Leads to:* animals, exploring, pets
+
+1. **a**: tamed a horse · horses are fast · need a saddle · my horse ran away
+2. **b**: horses are great · lead it · saddles are rare · boats are faster lol · name it!
+3. **a** (50%): true · i will · lol · yeah
+
+#### cat pets
+
+*Needs:* any time
+
+*About:* pets, animals  ·  *Leads to:* pets, animals, home
+
+1. **a**: want a cat · cats keep creepers away · found a stray cat in a village · cats bring gifts
+2. **b**: cats are the best · fish to tame · dogs better · aww · my cat sits on my chest
+3. **a** (30%) *(marks disagree; leads to argument)*: nah · wrong · nope
+4. **a** if !t:disagree *(marks agree)*: aww · same · cute
+
+#### pet loss
+
+*Needs:* any time
+
+*About:* pets, feelings, death  ·  *Leads to:* feelings, pets, memories
+
+1. **a**: lost a dog to a creeper once · my cat fell in lava · still miss my old wolf · pets dying is the worst
+2. **b**: thats sad · rip · sorry · i keep mine at home now · never again
+3. **a** (50%): yeah · thanks · it's fine · miss him
+
+#### bees talk
+
+*Needs:* any time
+
+*About:* animals, plants, farming  ·  *Leads to:* plants, farming, food
+
+1. **a**: bees are so cute · got stung by bees · want honey · moved a bee nest
+2. **b**: campfire under it · honey is so good · bees are scary · flowers attract them · aww
+3. **a** (50%): good tip · yum · yeah · lol
+
+#### trees chop
+
+*Needs:* any time
+
+*About:* trees, tools  ·  *Leads to:* trees, building, tools
+
+1. **a**: chopping trees all day · replant your trees · floating leaves everywhere lol · big trees are a pain
+2. **b**: always replant · efficiency axe · leave the floating tree tops lol · nah · the forest is endless
+3. **a** (50%): good habit · lol · true · agreed
+
+#### flowers talk
+
+*Needs:* any time
+
+*About:* plants, decor  ·  *Leads to:* decor, plants, animals
+
+1. **a**: fav flower? · found a flower forest · picking flowers for dye · poppies everywhere
+2. **b**: cornflower · tulips · sunflowers · roses · i dont care lol
+3. **a** (50%): nice · good one · lol · same
+
+#### crops growing
+
+*Needs:* any time
+
+*About:* farming, plants  ·  *Leads to:* farming, food, plants
+
+1. **a**: crops grow so slow · trampled my own crops · watching wheat grow lol · need more water near my farm
+2. **b**: bonemeal · dont jump on them · patience · one water block waters 4 blocks · lol
+3. **a** (50%): oops · noted · ok · yeah
+
+#### stars sky
+
+*Needs:* night, outside
+
+*About:* sky, night, feelings  ·  *Leads to:* sky, feelings, dreams
+
+1. **a**: look at the stars · the moon is so bright tonight · ever just look up at night · night sky is pretty
+2. **b**: pretty · watch for phantoms · i like the moon · beautiful · nice
+3. **a** (50%): yeah · lol · right
+
+#### sunset talk
+
+*Needs:* evening, outside
+
+*About:* sky, day, feelings  ·  *Leads to:* sky, night, feelings
+
+1. **a**: nice sunset · the sky looks amazing · sun's setting, look at that · best part of the day
+2. **b**: beautiful · means mobs soon · yeah · pretty · time to go home
+3. **a** (50%): lol yeah · true · right
+
+#### rain thoughts
+
+*Needs:* rain
+
+*About:* weather, feelings  ·  *Leads to:* weather, feelings, home
+
+1. **a**: rain sounds nice · i like the rain · rain on a roof is cozy · its raining again
+2. **b**: cozy · ugh · good for crops · fishing weather · i hate it
+3. **a** (50%): yeah · true · fair
+
+#### lightning fear
+
+*Needs:* thunder
+
+*About:* weather, danger  ·  *Leads to:* weather, danger, mobs
+
+1. **a**: lightning almost hit me · storms scare me · lightning set a tree on fire · thunder means more mobs
+2. **b**: get inside · lightning rod · stay away from trees · charged creepers are scary · i love storms
+3. **a** (50%): yeah · good idea · lol · true
+
+#### mushroom island
+
+*Needs:* any time
+
+*About:* biomes, animals, places  ·  *Leads to:* biomes, places, animals
+
+1. **a**: ever seen a mushroom island · mooshrooms are so weird · no mobs spawn on mushroom islands · want to live on a mushroom island
+2. **b**: safest place ever · mooshroom stew lol · never seen one · so rare · weird but cool
+3. **a** (50%): right? · lol · someday · yeah
+
+#### turtle beach
+
+*Needs:* any time
+
+*About:* animals, ocean  ·  *Leads to:* ocean, animals, potions
+
+1. **a**: saw turtles on the beach · turtle helmets are cool · dont step on turtle eggs · baby turtles are tiny
+2. **b**: aww · water breathing helmet · zombies smash them · protect them · cute
+3. **a** (50%): right · yeah · aww
 
 #### best ore
 
@@ -1962,9 +3658,10 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Arguments:** a line can **mark** the talk: "disagree" costs both a little trust when the topic ends, "agree" builds it. A disagreement leads on to **argument** topics: friends agree to disagree, rivals keep at it.
 - **Cut short** (a mob, getting hurt, walking off): the one in trouble says "hold up"; the next time the two meet (within a day) they pick it up: "anyway, about the ore".
 - **Try it:** `/drifter talk long [topic]` starts the nearest two on a long talk (plenty of interest, whatever their bond); `/drifter talk status` shows each talk going on, its topics so far and the interest left; `/drifter talk links <topic>` what a topic leads on to.
-- **Writing more:** a new topic only needs `tags` and `leads` to join the web (with none, it is about the words of its id). `links` in `drifter_talk/web.json` place topics written in other files.
+- **Writing more:** a new topic only needs `tags` and `leads` to join the web (with none, it is about the words of its id). `links` in `drifter_talk/web.json` place topics written in other files. Themed batches live in `drifter_talk/topics_*.json`; `python tools/check_talk_web.py .` checks them (unknown tags and conditions, words the game never fills, topics nothing leads to).
+- **Which topic opens a talk:** when one of them has something real to talk about (a topic that needs a find, a death, the weather, a mood...), that comes first 7 times in 10; otherwise an everyday topic (best ore, fav food...). Everyday topics mostly come up as a talk wanders on.
 
-**Tags in use** (topics about each): danger (9), jokes (9), town (9), mobs (8), players (8), gossip (7), politics (7), weather (6), feelings (5), gear (5), home (5), mining (5), building (4), complaints (4), exploring (4), food (4), friends (4), night (4), places (4), plans (4), ore (3), argument (2), boredom (2), day (2), diamonds (2), farming (2), fighting (2), health (2), nether (2), news (2), sleep (2), trade (2), villagers (2), abdication (1), animals (1), betrayal (1), brag (1), coup (1), death (1), doing (1), dropped (1), enchanting (1), end (1), greeting (1), grumble (1), memories (1), revolt (1), rivals (1), tax (1), tools (1), unrest (1)
+**Tags in use** (topics about each): mobs (30), danger (28), jokes (24), exploring (23), mining (23), building (22), feelings (22), gear (19), town (16), complaints (14), home (13), politics (13), fighting (12), night (12), ore (12), caves (11), friends (11), plans (11), players (11), structures (11), villagers (11), animals (10), food (10), nether (10), places (10), tools (10), gossip (9), weather (9), decor (8), enchanting (8), biomes (7), end (7), memories (7), storage (7), trade (7), farming (6), health (6), ocean (6), redstone (6), argument (5), boredom (5), brag (5), crafting (5), death (5), dreams (5), news (5), sleep (5), day (4), diamonds (4), plants (4), music (3), pets (3), philosophy (3), potions (3), rivals (3), trees (3), weapons (3), armor (2), fishing (2), random (2), sky (2), doing (1), greeting (1)
 
 #### `talk.segue.linked`
 

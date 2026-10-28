@@ -327,7 +327,12 @@ doc += ['## 6b. Long conversations (the topic web)', '',
         '`/drifter talk status` shows each talk going on, its topics so far and the interest left; `/drifter talk links <topic>` what a '
         'topic leads on to.',
         '- **Writing more:** a new topic only needs `tags` and `leads` to join the web (with none, it is about the words of its id). '
-        '`links` in `drifter_talk/web.json` place topics written in other files.', '',
+        '`links` in `drifter_talk/web.json` place topics written in other files. Themed batches live in `drifter_talk/topics_*.json`; '
+        '`python tools/check_talk_web.py .` checks them (unknown tags and conditions, words the game never fills, topics nothing '
+        'leads to).',
+        '- **Which topic opens a talk:** when one of them has something real to talk about (a topic that needs a find, a death, the '
+        'weather, a mood...), that comes first 7 times in 10; otherwise an everyday topic (best ore, fav food...). Everyday topics '
+        'mostly come up as a talk wanders on.', '',
         '**Tags in use** (topics about each): ' + ', '.join('%s (%d)' % (t, n) for t, n in sorted(tag_count.items(), key=lambda x: (-x[1], x[0]))), '']
 for key in TALK_WHEN:
     doc += block(key, TALK_WHEN[key])

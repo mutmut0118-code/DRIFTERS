@@ -54,7 +54,13 @@
     "leader_gripe": {"tags": ["town", "politics", "complaints"], "leads": ["politics", "complaints"], "about": "leader"},
     "taxes": {"tags": ["town", "politics", "complaints"], "leads": ["politics", "complaints", "trade"], "about": "taxes"},
     "new_leader_talk": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "leader"},
-    "leader_rounds": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "town"}
+    "leader_rounds": {"tags": ["town", "politics"], "leads": ["politics", "town"], "about": "town"},
+    "unrest_grumble": {"tags": ["town", "politics", "complaints"], "leads": ["politics", "complaints", "gossip"], "about": "leader"},
+    "revolt_talk": {"tags": ["town", "politics", "danger"], "leads": ["politics", "town", "gossip"], "about": "revolt"},
+    "coup_talk": {"tags": ["town", "politics", "news"], "leads": ["politics", "town", "gossip"], "about": "coup"},
+    "abdication_talk": {"tags": ["town", "politics", "news"], "leads": ["politics", "town"], "about": "leader"},
+    "tax_dropped_talk": {"tags": ["town", "politics", "news"], "leads": ["politics", "trade", "town"], "about": "taxes"},
+    "betrayal_talk": {"tags": ["town", "politics", "gossip"], "leads": ["politics", "gossip", "feelings"], "about": "betrayal"}
   },
   "topics": [
     {

@@ -11,13 +11,20 @@ import com.dinglebob.drifter.motor.VirtualKeys;
 /**
  * In a conversation ({@link Conversations}): it goes up to whoever it's talking with and stands facing them, as players
  * do when they stop to chat, till the conversation's over. Anything pressing (a fight, hunger) comes first. In a long talk
- * (past its first topic) it goes back to what it was doing and keeps chatting as it works; with nothing to do, it stays.
+ * (past its first topic) it goes back to what it was doing and keeps chatting as it works; with nothing to do, it stays;
+ * drifted far apart, it heads back over (unless what it's doing matters more).
  */
 public final class ConverseGoal extends Goals.Goal {
 	/** Close enough to talk, standing. */
 	private static final double CLOSE = 3.5;
 	/** In a long talk: above standing about idle, below any work. */
 	private static final double WORKING = 0.12;
+	/**
+	 * In a long talk, drifted this far apart (the talk ends at 48): it heads back over, unless what it's doing matters more
+	 * (as {@code DRIFTED}, about a gathering job's urgency).
+	 */
+	private static final double DRIFT = 24.0;
+	private static final double DRIFTED = 0.35;
 
 	@Override
 	public String id() {
@@ -34,7 +41,11 @@ public final class ConverseGoal extends Goals.Goal {
 	public double urgency(Goals.Context context) {
 		// (As a deal between two: the other's waiting. A danger comes first.)
 		Conversations.Talk talk = Conversations.of(context.drifter());
-		return talk == null || context.threat().urgent() || context.drifter().inCombat() ? 0.0 : talk.longTalk() ? WORKING : 0.75;
+		if (talk == null || context.threat().urgent() || context.drifter().inCombat()) {
+			return 0.0;
+		}
+
+		return !talk.longTalk() ? 0.75 : context.drifter().distanceTo(talk.partnerOf(context.drifter())) > DRIFT ? DRIFTED : WORKING;
 	}
 
 	@Override

@@ -1,0 +1,295 @@
+{
+  "_comment": "Topics batch: mining, caves, ore and tools. Each topic says what it's about (tags) and what it leads to (leads), so long talks wander through them. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "branch_mining",
+      "tags": ["mining", "ore"],
+      "leads": ["mining", "diamonds", "tools", "caves"],
+      "about": "branch mining",
+      "turns": [
+        {"by": "a", "lines": ["you branch mine or cave?", "how far apart do you space your tunnels", "branch mining is so boring but it works", "i do 2 block gaps between tunnels"]},
+        {"by": "b", "lines": ["branch mine at -58", "caves, way faster", "3 gaps, saves time", "whatever i feel like", "i just dig down and pray"]},
+        {"by": "a", "chance": 0.35, "lines": ["nah thats slow", "hard disagree", "thats not efficient at all"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["solid", "fair", "same honestly", "smart"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "dig_straight_down",
+      "tags": ["mining", "danger"],
+      "leads": ["danger", "death", "mining", "jokes"],
+      "about": "digging down",
+      "turns": [
+        {"by": "a", "lines": ["did you ever dig straight down", "never dig straight down they say", "i dug straight down once. once.", "rule one: dont dig straight down"]},
+        {"by": "b", "lines": ["into lava lol", "every day, im fearless", "fell into a ravine doing that", "into a cave full of zombies", "nope, staircase only"]},
+        {"by": "a", "chance": 0.6, "lines": ["classic", "you live and learn", "rip", "lol"]}
+      ]
+    },
+    {
+      "id": "lava_scare",
+      "tags": ["mining", "danger", "caves"],
+      "leads": ["danger", "death", "gear", "potions"],
+      "about": "lava",
+      "turns": [
+        {"by": "a", "lines": ["almost walked into lava today", "lava is the real final boss", "the sound of lava pops makes me nervous", "i always carry a water bucket now"]},
+        {"by": "b", "lines": ["water bucket saves lives", "i lost a whole inventory to lava once", "fire res potions, trust", "lava is beautiful from far away", "same, it's everywhere down there"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah never again", "noted", "true", "lava is evil"]}
+      ]
+    },
+    {
+      "id": "cave_sounds",
+      "tags": ["caves", "mining", "night"],
+      "leads": ["caves", "mobs", "feelings", "jokes"],
+      "about": "cave sounds",
+      "turns": [
+        {"by": "a", "lines": ["did you hear that cave noise earlier", "cave sounds give me the creeps", "the cave ambience is so creepy", "heard something breathing down there"]},
+        {"by": "b", "lines": ["thats just the cave", "nope, nope, nope", "i love them honestly", "it's probably a zombie", "i put music on in my head"]},
+        {"by": "a", "chance": 0.5, "lines": ["still creepy", "brave", "i dont trust caves", "lol"]}
+      ]
+    },
+    {
+      "id": "cave_vs_ravine",
+      "tags": ["caves", "exploring", "mining"],
+      "leads": ["caves", "ore", "danger", "exploring"],
+      "about": "caves",
+      "turns": [
+        {"by": "a", "lines": ["found a massive cave", "cave or ravine, which is better for ore", "theres a huge cave system nearby", "the new caves are insane"]},
+        {"by": "b", "lines": ["ravines show so much ore", "caves, more to explore", "lush caves are the best ones", "dripstone caves scare me", "deep dark caves, no thanks"]},
+        {"by": "a", "chance": 0.6, "lines": ["true", "good point", "gotta light them up first", "might go back with torches"]}
+      ]
+    },
+    {
+      "id": "torches_talk",
+      "tags": ["caves", "mining", "tools"],
+      "leads": ["caves", "mining", "building"],
+      "about": "torches",
+      "turns": [
+        {"by": "a", "lines": ["how many torches you carry", "ran out of torches again", "torches on the right side going in", "coal for torches is the most important thing"]},
+        {"by": "b", "lines": ["a full stack, always", "never enough", "right side in, left side out", "i forget them every time", "i just use the light from lava lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["smart", "same", "classic", "you gotta be ready"]}
+      ]
+    },
+    {
+      "id": "pickaxe_broke",
+      "tags": ["tools", "mining"],
+      "leads": ["tools", "enchanting", "complaints"],
+      "about": "pickaxe",
+      "turns": [
+        {"by": "a", "lines": ["my pickaxe just broke mid tunnel", "pick broke at the worst moment", "why do pickaxes break so fast", "need a new pick already"]},
+        {"by": "b", "lines": ["always carry a spare", "unbreaking fixes that", "rip", "mending is the dream", "just craft another lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lesson learned", "easy for you to say", "true"]}
+      ]
+    },
+    {
+      "id": "iron_rush",
+      "tags": ["ore", "tools", "gear"],
+      "leads": ["gear", "mining", "tools"],
+      "about": "iron",
+      "turns": [
+        {"by": "a", "lines": ["need more iron", "iron is the most useful ore change my mind", "iron is so rare where i dig", "got enough iron for full armor yet?"]},
+        {"by": "b", "lines": ["mountains are full of iron", "iron golems are the move", "caves near water have tons", "not yet, almost", "i have like 3 ingots lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["good tip", "noted", "i'll check", "same struggle"]}
+      ]
+    },
+    {
+      "id": "coal_talk",
+      "tags": ["ore", "mining"],
+      "leads": ["mining", "caves", "ore"],
+      "about": "coal",
+      "turns": [
+        {"by": "a", "lines": ["coal is everywhere and i still never have enough", "found a big coal vein", "charcoal or coal?", "coal is underrated"]},
+        {"by": "b", "lines": ["charcoal is easier honestly", "coal for sure", "i just burn wood lol", "lucky", "smelting eats it so fast"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "fair", "lol same"]}
+      ]
+    },
+    {
+      "id": "gold_useless",
+      "tags": ["ore", "gear", "nether"],
+      "leads": ["nether", "gear", "trade", "argument"],
+      "about": "gold",
+      "turns": [
+        {"by": "a", "lines": ["is gold even useful", "gold tools are a joke", "found gold, now what", "gold is just for piglins"]},
+        {"by": "b", "lines": ["piglins love it", "golden apples tho", "powered rails!", "gold armor so piglins chill", "pretty much useless"]},
+        {"by": "a", "chance": 0.3, "lines": ["nah", "i disagree", "hmm not convinced"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["oh true", "forgot about that", "ok fair"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "redstone_ore",
+      "tags": ["ore", "redstone"],
+      "leads": ["redstone", "building", "mining"],
+      "about": "redstone",
+      "turns": [
+        {"by": "a", "lines": ["got a ton of redstone", "redstone ore glows when you touch it, its cool", "what do you even do with redstone", "found redstone everywhere down there"]},
+        {"by": "b", "lines": ["farms!", "doors and stuff", "i never use it", "clocks and compasses", "redstone confuses me"]},
+        {"by": "a", "chance": 0.5, "lines": ["same", "maybe ill try", "nice", "too complicated for me"]}
+      ]
+    },
+    {
+      "id": "lapis_talk",
+      "tags": ["ore", "enchanting"],
+      "leads": ["enchanting", "mining", "gear"],
+      "about": "lapis",
+      "turns": [
+        {"by": "a", "lines": ["lapis is so annoying to find", "need lapis for enchanting", "found a whole lapis vein", "lapis looks so nice"]},
+        {"by": "b", "lines": ["its always near the bottom", "nice, share some", "villagers sell it sometimes", "i have too much honestly", "never seen any lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["lucky", "ok", "maybe", "thanks for the tip"]}
+      ]
+    },
+    {
+      "id": "emeralds_talk",
+      "tags": ["ore", "trade", "villagers"],
+      "leads": ["trade", "villagers", "places"],
+      "about": "emeralds",
+      "turns": [
+        {"by": "a", "lines": ["emeralds only spawn in mountains right?", "found an emerald ore!", "emeralds are rarer than diamonds", "need emeralds to trade"]},
+        {"by": "b", "lines": ["yeah mountains", "trade for them, way easier", "lucky!", "i've never found one", "farmers give emeralds for crops"]},
+        {"by": "a", "chance": 0.5, "lines": ["huh", "nice", "good to know"]}
+      ]
+    },
+    {
+      "id": "deepslate_talk",
+      "tags": ["mining", "complaints", "caves"],
+      "leads": ["mining", "tools", "complaints"],
+      "about": "deepslate",
+      "turns": [
+        {"by": "a", "lines": ["deepslate takes forever to mine", "i hate deepslate", "deepslate looks nice tho", "deep down is where the good stuff is"]},
+        {"by": "b", "lines": ["efficiency helps", "so slow", "builds look great with it", "worth it for diamonds", "just tunnel above it"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "still", "yeah", "agreed"]}
+      ]
+    },
+    {
+      "id": "mining_depth",
+      "tags": ["mining", "diamonds"],
+      "leads": ["diamonds", "mining", "danger"],
+      "about": "depth",
+      "turns": [
+        {"by": "a", "lines": ["whats the best level for diamonds", "how deep do you mine", "y -58 is the spot right", "i keep mining at the wrong level"]},
+        {"by": "b", "lines": ["-58 or -59", "as deep as i can go", "bedrock-ish", "i just follow caves", "no idea lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["noted", "ok", "makes sense", "i'll try that"]}
+      ]
+    },
+    {
+      "id": "bedrock_talk",
+      "tags": ["mining", "jokes"],
+      "leads": ["mining", "jokes", "end"],
+      "about": "bedrock",
+      "turns": [
+        {"by": "a", "lines": ["hit bedrock today", "what's under bedrock", "tried to break bedrock lol", "bedrock is so ugly"]},
+        {"by": "b", "lines": ["the void", "more bedrock", "you cant break it silly", "i bet theres something down there", "nothing good"]},
+        {"by": "a", "chance": 0.5, "lines": ["spooky", "one day", "lol", "probably"]}
+      ]
+    },
+    {
+      "id": "mining_alone",
+      "tags": ["mining", "feelings", "friends"],
+      "leads": ["friends", "plans", "mining"],
+      "about": "mining",
+      "turns": [
+        {"by": "a", "lines": ["mining alone gets lonely", "you ever mine with someone else", "mining is better with company", "i like mining alone honestly"]},
+        {"by": "b", "lines": ["we should go together", "same", "i like the quiet", "more people more loot", "they steal the ore lol"]},
+        {"by": "a", "chance": 0.6, "if": ["friends"], "lines": ["lets go sometime", "deal", "next time then"]},
+        {"by": "a", "chance": 0.5, "if": ["!friends"], "lines": ["fair", "maybe", "true"]}
+      ]
+    },
+    {
+      "id": "lost_underground",
+      "tags": ["caves", "danger", "exploring"],
+      "leads": ["caves", "exploring", "jokes"],
+      "about": "getting lost",
+      "turns": [
+        {"by": "a", "lines": ["i got so lost in a cave yesterday", "ever get lost underground", "took me ages to find my way out", "caves are a maze"]},
+        {"by": "b", "lines": ["always", "torches on one side, trust", "just dig up", "i leave a trail of cobble", "same thing happened to me"]},
+        {"by": "a", "chance": 0.5, "lines": ["dig up, smart", "will do", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "cobblestone_pile",
+      "tags": ["mining", "storage", "jokes"],
+      "leads": ["storage", "building", "jokes"],
+      "about": "cobble",
+      "turns": [
+        {"by": "a", "lines": ["my inventory is all cobble", "what do you do with all the cobblestone", "i have like 10 stacks of cobble", "cobble is everywhere"]},
+        {"by": "b", "lines": ["build with it", "throw it in lava", "keep it, you never know", "i need it actually", "same lol"]},
+        {"by": "a", "chance": 0.5, "lines": ["fair", "keep it, sure", "classic hoarder", "lol"]}
+      ]
+    },
+    {
+      "id": "silk_touch",
+      "tags": ["enchanting", "tools", "mining"],
+      "leads": ["enchanting", "tools", "ore"],
+      "about": "silk touch",
+      "turns": [
+        {"by": "a", "lines": ["silk touch or fortune?", "fortune on diamond ore is so good", "silk touch is underrated", "do you have fortune yet"]},
+        {"by": "b", "lines": ["fortune, every time", "silk touch for building", "both, two picks", "neither lol", "fortune 3 is the dream"]},
+        {"by": "a", "chance": 0.3, "lines": ["nah", "nope", "thats wrong"], "mark": ["disagree"], "leads": ["argument"]},
+        {"by": "a", "if": ["!t:disagree"], "lines": ["agreed", "smart", "same"], "mark": ["agree"]}
+      ]
+    },
+    {
+      "id": "strip_mine_luck",
+      "tags": ["mining", "diamonds", "jokes"],
+      "leads": ["diamonds", "mining", "complaints"],
+      "about": "luck",
+      "turns": [
+        {"by": "a", "lines": ["mined for an hour, zero diamonds", "my luck is cursed", "some people find diamonds in 5 mins, i hate them", "rng hates me"]},
+        {"by": "b", "lines": ["skill issue", "keep going", "found 6 yesterday lol", "same honestly", "diamonds come when you stop looking"]},
+        {"by": "a", "chance": 0.5, "lines": ["not helping", "lol", "maybe", "ugh"]}
+      ]
+    },
+    {
+      "id": "geode_found",
+      "tags": ["caves", "exploring", "ore"],
+      "leads": ["caves", "building", "exploring"],
+      "about": "geode",
+      "turns": [
+        {"by": "a", "lines": ["found an amethyst geode", "geodes are so pretty", "do you ever find geodes", "the sound amethyst makes is so nice"]},
+        {"by": "b", "lines": ["they are", "spyglass time", "i break them for fun", "never found one", "love the chime"]},
+        {"by": "a", "chance": 0.5, "lines": ["right?", "nice", "you should look", "same"]}
+      ]
+    },
+    {
+      "id": "copper_talk",
+      "tags": ["ore", "building"],
+      "leads": ["building", "ore", "redstone"],
+      "about": "copper",
+      "turns": [
+        {"by": "a", "lines": ["copper is useless", "what do you use copper for", "i have so much copper", "copper turns green its cool"]},
+        {"by": "b", "lines": ["lightning rods", "builds, when it goes green", "spyglass", "nothing lol", "the roof on my house"]},
+        {"by": "a", "chance": 0.5, "lines": ["huh", "fair", "ok", "nice idea"]}
+      ]
+    },
+    {
+      "id": "mining_music",
+      "tags": ["mining", "music", "feelings"],
+      "leads": ["music", "feelings", "mining"],
+      "about": "the music",
+      "turns": [
+        {"by": "a", "lines": ["the music down in the caves hits different", "i hum while mining", "love when the music kicks in underground", "mining is so peaceful sometimes"]},
+        {"by": "b", "lines": ["so peaceful", "same", "until a creeper hisses", "i dont notice it", "nothing beats it"]},
+        {"by": "a", "chance": 0.5, "lines": ["exactly", "lol true", "right"]}
+      ]
+    },
+    {
+      "id": "mineshaft_found",
+      "tags": ["structures", "mining", "danger"],
+      "leads": ["structures", "mobs", "caves"],
+      "about": "mineshaft",
+      "turns": [
+        {"by": "a", "lines": ["found an old mineshaft", "mineshafts are full of cave spiders", "you ever loot mineshafts", "theres rails all over down there"]},
+        {"by": "b", "lines": ["cave spiders, nope", "free rails!", "chest minecarts are nice", "got lost in one", "bring milk"]},
+        {"by": "a", "chance": 0.5, "lines": ["milk, good call", "yeah", "maybe", "never again"]}
+      ]
+    },
+    {
+      "id": "mining_hours",
+      "tags": ["mining", "boredom", "plans"],
+      "leads": ["plans", "boredom", "mining"],
+      "about": "mining",
+      "turns": [
+        {"by": "a", "lines": ["been mining all day", "my arm hurts from mining lol", "mining for hours and i'm not even tired", "how long were you down there"]},
+        {"by": "b", "lines": ["take a break", "same", "the grind never stops", "worth it?", "too long"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "always worth it", "yeah", "lol"]}
+      ]
+    }
+  ]
+}

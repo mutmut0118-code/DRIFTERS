@@ -1,0 +1,249 @@
+{
+  "_comment": "Topics batch: exploring, structures, the nether, the end and villages. Check with: python tools/check_talk_web.py .",
+  "topics": [
+    {
+      "id": "village_found",
+      "tags": ["villagers", "places", "exploring"],
+      "leads": ["villagers", "trade", "town"],
+      "about": "the village",
+      "turns": [
+        {"by": "a", "lines": ["found a village today", "theres a village not far from here", "villages are always so random", "found a village with a blacksmith"]},
+        {"by": "b", "lines": ["check the chests", "blacksmith loot is good", "free beds lol", "cool", "protect it from raids"]},
+        {"by": "a", "chance": 0.5, "lines": ["did already", "yeah", "lol", "will do"]}
+      ]
+    },
+    {
+      "id": "villager_jobs",
+      "tags": ["villagers", "trade"],
+      "leads": ["trade", "enchanting", "villagers"],
+      "about": "villagers",
+      "turns": [
+        {"by": "a", "lines": ["which villager is the best", "librarians are op", "need a cleric for ender pearls", "turned a villager into a librarian"]},
+        {"by": "b", "lines": ["librarian for sure", "farmers for emeralds", "armorer", "toolsmith", "fletcher lol sticks for emeralds"]},
+        {"by": "a", "chance": 0.5, "lines": ["true", "nice", "smart", "sticks lol"]}
+      ]
+    },
+    {
+      "id": "raid_story",
+      "tags": ["villagers", "fighting", "danger"],
+      "leads": ["fighting", "villagers", "brag"],
+      "about": "the raid",
+      "turns": [
+        {"by": "a", "lines": ["survived a raid", "raids are chaos", "a ravager almost got me", "evokers are the worst"]},
+        {"by": "b", "lines": ["totem of undying though", "crazy", "i ran lol", "congrats", "never doing one"]},
+        {"by": "a", "chance": 0.5, "lines": ["worth it", "barely", "lol", "thanks"]}
+      ]
+    },
+    {
+      "id": "temple_loot",
+      "tags": ["structures", "exploring"],
+      "leads": ["structures", "exploring", "gear"],
+      "about": "the temple",
+      "turns": [
+        {"by": "a", "lines": ["looted a jungle temple", "temples have traps", "found a desert temple full of tnt", "temple loot was trash"]},
+        {"by": "b", "lines": ["careful", "nice", "dig around the traps", "got diamonds from one once", "rip"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lucky", "lol", "ok"]}
+      ]
+    },
+    {
+      "id": "stronghold_hunt",
+      "tags": ["structures", "end"],
+      "leads": ["end", "structures", "plans"],
+      "about": "the stronghold",
+      "turns": [
+        {"by": "a", "lines": ["looking for a stronghold", "eyes of ender keep breaking", "found the stronghold!", "strongholds are huge"]},
+        {"by": "b", "lines": ["follow the eye", "need more pearls", "nice!", "the library rooms are cool", "silverfish everywhere"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "ugh pearls", "thanks", "lol"]}
+      ]
+    },
+    {
+      "id": "dungeon_spawner",
+      "tags": ["structures", "mobs", "caves"],
+      "leads": ["mobs", "caves", "redstone"],
+      "about": "the dungeon",
+      "turns": [
+        {"by": "a", "lines": ["found a dungeon", "zombie spawner underground", "dungeons have saddles sometimes", "broke a spawner by accident"]},
+        {"by": "b", "lines": ["xp farm!", "loot the chests", "careful", "nice", "torches on it to stop it"]},
+        {"by": "a", "chance": 0.5, "lines": ["maybe", "did it", "yeah", "lol"]}
+      ]
+    },
+    {
+      "id": "ruins_found",
+      "tags": ["structures", "exploring", "memories"],
+      "leads": ["structures", "exploring", "dreams"],
+      "about": "the ruins",
+      "turns": [
+        {"by": "a", "lines": ["found some old ruins", "who built all these ruins", "trail ruins are so mysterious", "ruined portals everywhere"]},
+        {"by": "b", "lines": ["spooky", "someone long ago", "free gold", "cool", "i wonder that too"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "creepy", "yeah"]}
+      ]
+    },
+    {
+      "id": "map_making",
+      "tags": ["exploring", "tools"],
+      "leads": ["exploring", "places", "plans"],
+      "about": "maps",
+      "turns": [
+        {"by": "a", "lines": ["making a map", "maps are so useful", "lost my map", "how do you find your way back"]},
+        {"by": "b", "lines": ["compass", "i remember", "landmarks", "i get lost lol", "pillars of dirt"]},
+        {"by": "a", "chance": 0.5, "lines": ["dirt pillars lol", "smart", "yeah", "same"]}
+      ]
+    },
+    {
+      "id": "far_lands",
+      "tags": ["exploring", "dreams"],
+      "leads": ["exploring", "dreams", "plans"],
+      "about": "how far",
+      "turns": [
+        {"by": "a", "lines": ["how far have you gone", "want to walk to the edge of the world", "is there an end to the world", "i want to see everything"]},
+        {"by": "b", "lines": ["not far", "pretty far", "it never ends", "dream big", "me too"]},
+        {"by": "a", "chance": 0.5, "lines": ["someday", "lets go", "yeah", "right"]}
+      ]
+    },
+    {
+      "id": "nether_first",
+      "tags": ["nether", "memories", "danger"],
+      "leads": ["nether", "danger", "memories"],
+      "about": "the nether",
+      "turns": [
+        {"by": "a", "lines": ["remember your first time in the nether?", "my first nether trip was a disaster", "first time i heard a ghast i panicked", "the nether scared me so much"]},
+        {"by": "b", "lines": ["died in 2 minutes", "it was so red", "lost everything in lava", "ran right back", "still scares me"]},
+        {"by": "a", "chance": 0.5, "lines": ["classic", "lol", "same", "yeah"]}
+      ]
+    },
+    {
+      "id": "ghast_fight",
+      "tags": ["nether", "mobs", "fighting"],
+      "leads": ["nether", "mobs", "weapons"],
+      "about": "ghasts",
+      "turns": [
+        {"by": "a", "lines": ["hit a fireball back at a ghast", "ghasts sound like babies crying", "a ghast blew up my bridge", "ghast tears are rare"]},
+        {"by": "b", "lines": ["epic", "creepy", "bow them", "cobble bridges", "nice"]},
+        {"by": "a", "chance": 0.5, "lines": ["lol", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "piglin_trade",
+      "tags": ["nether", "trade"],
+      "leads": ["nether", "trade", "ore"],
+      "about": "piglins",
+      "turns": [
+        {"by": "a", "lines": ["traded with piglins", "piglins hate me", "wear gold around piglins", "piglins gave me pearls"]},
+        {"by": "b", "lines": ["gold armor!", "they're greedy", "bartering is fun", "they're mean", "nice"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "fortress_found",
+      "tags": ["nether", "structures"],
+      "leads": ["nether", "potions", "mobs"],
+      "about": "the fortress",
+      "turns": [
+        {"by": "a", "lines": ["found a nether fortress", "blazes are annoying", "need blaze rods", "wither skeletons scare me"]},
+        {"by": "b", "lines": ["blaze rods for potions", "careful", "snowballs on blazes", "wither skulls tho", "nice"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "good tip", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "netherite_dream",
+      "tags": ["nether", "gear", "dreams"],
+      "leads": ["gear", "nether", "brag"],
+      "about": "netherite",
+      "turns": [
+        {"by": "a", "lines": ["want netherite so bad", "ancient debris is so rare", "beds blow up in the nether, use them to mine", "netherite is the dream"]},
+        {"by": "b", "lines": ["tnt mining", "found 2 once", "too much work", "one day", "y 15 in the nether"]},
+        {"by": "a", "chance": 0.5, "lines": ["noted", "lucky", "yeah", "true"]}
+      ]
+    },
+    {
+      "id": "end_dragon",
+      "tags": ["end", "fighting", "plans"],
+      "leads": ["end", "gear", "plans"],
+      "about": "the dragon",
+      "turns": [
+        {"by": "a", "lines": ["think we could beat the dragon", "the dragon is the end goal", "you ever fight the ender dragon", "need more beds for the dragon lol"]},
+        {"by": "b", "lines": ["lets do it", "not ready", "beds explode in the end", "need a lot of arrows", "someday"]},
+        {"by": "a", "chance": 0.5, "if": ["friends"], "lines": ["together then", "deal", "we'll go"]},
+        {"by": "a", "chance": 0.5, "if": ["!friends"], "lines": ["maybe", "someday", "ok"]}
+      ]
+    },
+    {
+      "id": "end_city",
+      "tags": ["end", "structures", "gear"],
+      "leads": ["end", "gear", "exploring"],
+      "about": "end cities",
+      "turns": [
+        {"by": "a", "lines": ["want an elytra", "end cities are so far", "shulkers float you up", "elytra is the best item"]},
+        {"by": "b", "lines": ["elytra yes", "shulkers are annoying", "flying is amazing", "rockets!", "never been"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "someday", "true", "lol"]}
+      ]
+    },
+    {
+      "id": "travel_plans",
+      "tags": ["plans", "exploring"],
+      "leads": ["exploring", "places", "biomes"],
+      "about": "travel",
+      "turns": [
+        {"by": "a", "lines": ["thinking of going on a trip", "want to see a new biome", "heading out exploring soon", "gonna go far this time"]},
+        {"by": "b", "lines": ["take food", "where to", "take a bed", "come back soon", "bring me something"]},
+        {"by": "a", "chance": 0.5, "lines": ["will do", "not sure yet", "sure", "lol ok"]}
+      ]
+    },
+    {
+      "id": "pillager_outpost",
+      "tags": ["structures", "villagers", "danger"],
+      "leads": ["danger", "fighting", "structures"],
+      "about": "the outpost",
+      "turns": [
+        {"by": "a", "lines": ["saw a pillager outpost", "theres an outpost on the hill", "outposts have allays sometimes", "stay away from the outpost"]},
+        {"by": "b", "lines": ["dangerous", "allays are cute", "loot!", "dont get bad omen", "noted"]},
+        {"by": "a", "chance": 0.5, "lines": ["yeah", "true", "lol"]}
+      ]
+    },
+    {
+      "id": "woodland_mansion",
+      "tags": ["structures", "exploring", "danger"],
+      "leads": ["structures", "mobs", "dreams"],
+      "about": "the mansion",
+      "turns": [
+        {"by": "a", "lines": ["ever found a woodland mansion", "mansions are huge", "heard about a mansion far away", "vindicators are scary"]},
+        {"by": "b", "lines": ["never", "totem of undying", "so far", "scary place", "id love to see one"]},
+        {"by": "a", "chance": 0.5, "lines": ["someday", "same", "yeah"]}
+      ]
+    },
+    {
+      "id": "boat_travel",
+      "tags": ["exploring", "ocean"],
+      "leads": ["ocean", "exploring"],
+      "about": "boats",
+      "cost": 0.5,
+      "turns": [
+        {"by": "a", "lines": ["boats are the fastest way to travel", "boat on ice is crazy", "boats are so fun", "my boat broke on a lily pad"]},
+        {"by": "b", "lines": ["ice roads!", "lol", "true", "i walk", "fun"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "lol", "yeah"]}
+      ]
+    },
+    {
+      "id": "nether_highway",
+      "tags": ["nether", "exploring", "building"],
+      "leads": ["nether", "building", "exploring"],
+      "about": "nether travel",
+      "turns": [
+        {"by": "a", "lines": ["1 block in the nether is 8 out here", "want to build a nether highway", "nether travel is so fast", "linking portals is confusing"]},
+        {"by": "b", "lines": ["divide by 8", "ice tunnel", "too dangerous", "i get lost in there", "cool idea"]},
+        {"by": "a", "chance": 0.5, "lines": ["right", "yeah", "lol", "true"]}
+      ]
+    },
+    {
+      "id": "abandoned_camp",
+      "tags": ["places", "players", "exploring"],
+      "leads": ["players", "places", "gossip"],
+      "about": "the camp",
+      "turns": [
+        {"by": "a", "lines": ["found an empty camp", "someone left a dirt hut out there", "saw an old base, nobody home", "found a chest someone left"]},
+        {"by": "b", "lines": ["whose was it", "dont steal", "creepy", "maybe a player", "leave it"]},
+        {"by": "a", "chance": 0.5, "lines": ["no idea", "didnt touch it", "yeah", "maybe"]}
+      ]
+    }
+  ]
+}

@@ -2219,3 +2219,19 @@ gotta go", "cya").
 - [ ] Cut short: if a mob attacks mid-talk, one says "hold up" or "brb". When they next meet (within a day) they pick
       it back up with "anyway, about the ...".
 - [ ] `/drifter talk links worst_mob` lists what a topic can lead to.
+
+## Side session: lots more topics (new, 0.22.28-side.3)
+
+Drifters have 168 new things to talk about with each other (250 in all), on mining, mobs, building, nature,
+adventure, gear and everyday life. You'll see them most in long talks between friends.
+
+- [ ] Stand near two Drifters that are friends and run `/drifter talk long`. Every minute or so run `/drifter talk
+      status`. The topics should wander, e.g. "lava_scare > potion_brewing > fortress_found > ghast_fight".
+- [ ] Watch for arguments on opinion topics (best wood, roof style, sword or axe, best biome, best enchant, cats or
+      dogs...): "thats a crime", then "agree to disagree" for friends.
+- [ ] Some topics only come up at the right time: at night under the sky "look at the stars", at sunset "nice
+      sunset", in the rain "rain sounds nice", in a storm "lightning almost hit me".
+- [ ] A Drifter that just found diamonds, died, or saw a place still mostly opens with that, not with small talk.
+- [ ] In a long talk, if one wanders off more than about 24 blocks while working, it walks back over to keep
+      talking (unless it's busy with something that matters more, like a fight).
+- [ ] `/drifter talk links fav_biome` lists what a topic leads to. Full list of every topic and line: docs/CHAT_LINES.md.
