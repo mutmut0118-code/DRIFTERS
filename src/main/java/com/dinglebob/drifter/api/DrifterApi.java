@@ -92,6 +92,16 @@ public final class DrifterApi {
 		return all;
 	}
 
+	/**
+	 * Settled in a town: a Bandit there gives up killing on sight and sizes strangers up as an Opportunist instead (found:
+	 * a ready-made town's Bandit, elected its leader, killed the player walking about the town). Its personality stays.
+	 */
+	public static void settleDown(DrifterEntity drifter) {
+		if (drifter.getSocial().disposition() == com.dinglebob.drifter.social.Disposition.BANDIT) {
+			drifter.getSocial().setDisposition(com.dinglebob.drifter.social.Disposition.OPPORTUNIST);
+		}
+	}
+
 	/** Its home (base, bed, chests), or null if it has none yet. */
 	@Nullable
 	public static Home home(DrifterEntity drifter) {

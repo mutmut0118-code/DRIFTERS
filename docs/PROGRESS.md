@@ -3218,3 +3218,5 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     rain or storms, not the time of day, so the new day topics don't crowd out news.
   - Tested: dev client (miner + newbie in a sealed box): hot take branch right, the miner brought up its own topic,
     ten topics and a goodbye; a story's part two came straight after part one. Headless smoke: six topics, no errors.
+- **0.22.29-side.1 (side session):** merged the other session's 0.22.29 (a Bandit living in a town settles down) into
+  the chat branch; no conflicts beyond the version number. Same topics as side.4.

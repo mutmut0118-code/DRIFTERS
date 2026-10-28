@@ -462,6 +462,7 @@ public final class TownBuilder {
 				continue;
 			}
 
+			DrifterApi.settleDown(drifter);
 			Home home = DrifterApi.settleIn(drifter, house, store);
 			home.farm = fields.get(i % fields.size());
 			home.farmRadius = 4;
@@ -485,6 +486,7 @@ public final class TownBuilder {
 					break;
 				}
 
+				DrifterApi.settleDown(other);
 				Home shared = DrifterApi.settleInToo(other, house, store);
 				if (shared == null) {
 					other.discard();
