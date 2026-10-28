@@ -335,7 +335,13 @@ public final class Conversations {
 	/** Free to talk: nothing pressing (not fighting, fleeing, hurt, in an encounter, asleep). */
 	private static boolean free(DrifterEntity drifter) {
 		return drifter.isAlive() && !drifter.isTemporary() && drifter.encounter() == null && !trouble(drifter) && !drifter.isSleeping() && of(drifter) == null
-			&& drifter.getHealth() > drifter.getMaxHealth() * 0.5F && drifter.onGround();
+			&& drifter.getHealth() > drifter.getMaxHealth() * 0.5F && drifter.onGround() && !onDuty(drifter);
+	}
+
+	/** On the town's business (collecting a fine, keeping the stall, a trade run): no small talk (found in testing: a guard said "hey there" to the thief it was fining). */
+	private static boolean onDuty(DrifterEntity drifter) {
+		var goal = drifter.getDrifterBrain().currentGoal();
+		return goal != null && (goal.id().equals("guard") || goal.id().equals("stall") || goal.id().equals("trade_run"));
 	}
 
 	private static boolean trouble(DrifterEntity drifter) {

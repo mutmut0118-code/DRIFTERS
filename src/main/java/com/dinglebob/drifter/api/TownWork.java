@@ -78,4 +78,24 @@ public interface TownWork {
 	 */
 	default void talk(DrifterEntity drifter, java.util.Map<String, Object> words, java.util.Set<String> flags) {
 	}
+
+	/** A fine a guard is to collect from a player (step 5, part 2): whom, what it's for, how much (emeralds). */
+	record Arrest(java.util.UUID player, String name, int fine, String crime) {
+	}
+
+	/** The fine this one (a guard of its town) is to collect now, or null. */
+	@org.jetbrains.annotations.Nullable
+	default Arrest arrest(DrifterEntity guard) {
+		return null;
+	}
+
+	/** How it went: {@code paid} emeralds of it handed over, or they {@code refused} (walked off, wouldn't pay). */
+	default void arrested(DrifterEntity guard, java.util.UUID player, int paid, boolean refused) {
+	}
+
+	/** How its town stands with this player: "exiled" (its people drive them out of the town), or null. */
+	@org.jetbrains.annotations.Nullable
+	default String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+		return null;
+	}
 }

@@ -1460,6 +1460,20 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Crime and punishment in towns (new, 0.22.27)
+
+`/drifterciv town` shows fines owed and exiles ("Law: ..."). To try without really stealing: `/drifterciv town crime
+theft` (or `farms`, `murder`), debug, as if the nearest townsperson saw you.
+- [ ] Steal from a town chest while a townsperson sees you: they shout "THIEF!" and the chronicle has "caught stealing
+      (a fine of 3 emeralds)". A guard (a bold one with a weapon) walks up: "that's 3 emeralds for stealing. throw them
+      over". Throw it 3 emeralds (Q): "fine paid. don't do it again" (it takes them to the till).
+- [ ] Don't pay (a minute, or walk away): "then get out of {town}!", exiled for 3 days: in the town its people come at
+      you to drive you out (they stop at the town's edge). A third offence: exile at once.
+- [ ] With the farms law (a cautious leader): killing its animals or trampling its crops costs a 1 emerald fine, unless
+      your bed is in the town (you're a citizen then).
+- [ ] Kill one of its people where another sees: exiled for a week, and a price on your head (bounty hunters come).
+- [ ] After the exile: "may come back to {town}" in the chronicle.
+
 ## A town's leader, elections, laws (new, 0.22.26)
 
 - [ ] `/drifterciv town` in a town: "Leader: X (since day N); laws: ...; next election day N". The founder leads first.
@@ -2124,7 +2138,7 @@ Test in survival: like mobs, hostile Drifters ignore you in creative.
       ground. Players' corpses follow Ragdoll Corpse's own setting, as before.
 - [ ] Switch off: "Ragdolls on death" in the settings screen (bottom row, beside "Catch-up while closed").
 
-## Side session: Drifters remember what you tell them (new, 0.22.26-side.1)
+## Side session: Drifters remember what you tell them (new, 0.22.27-side.1)
 
 Set up: stand near a Drifter that likes you (or make one: look at it and run `/drifter social set <your name> trust 40`,
 then `/drifter social set <your name> familiarity 20`). Talk to it as before: say its name, or look at it, or be the only

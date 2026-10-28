@@ -140,7 +140,8 @@ public final class TownFounding {
 				// Trade runs between towns with stalls (step 4); leaders, elections, laws (step 5).
 				Towns.all().forEach(town -> TradeRuns.check(server, town));
 				Towns.all().forEach(town -> {
-					if (Politics.check(server, town)) {
+					boolean politics = Politics.check(server, town);
+					if (Justice.check(server, town) || politics) {
 						Towns.save(server);
 					}
 				});

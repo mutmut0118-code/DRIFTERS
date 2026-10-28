@@ -59,7 +59,7 @@ Dozens of towns can exist; only the ones being watched cost much.
 ### 3. Leaders and laws
 - A leader: chosen by trust (an election, with campaigning), by strength (a warlord), or by founding the town.
 - Simple laws: no stealing, no killing in town, a tax, a curfew, who may use the farms.
-- Crime and punishment: thieves are seen and reported, guards chase them, fines, prison, exile, bounties (21).
+- Crime and punishment: thieves are seen and reported, guards collect fines, exile, bounties (21). Built in 0.22.27 (step 5, part 2); prison later (the user).
 - Unpopular leaders lose trust; revolts, coups, assassinations, abdications.
 
 ### 4. Nations and diplomacy
