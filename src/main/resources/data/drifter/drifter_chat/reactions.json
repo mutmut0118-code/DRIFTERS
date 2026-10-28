@@ -1020,6 +1020,74 @@
         "fine. leave and don't come back",
         "that's it, you're exiled"
       ]
+    },
+    "unrest.revolt": {
+      "any": [
+        "down with {leader}!",
+        "we've had enough of {leader}!",
+        "no more taxes! {leader} out!",
+        "{town} deserves better than {leader}",
+        "enough!! new vote tomorrow"
+      ],
+      "bandit": [
+        "{leader}'s done. one way or another"
+      ],
+      "helper": [
+        "sorry {leader}, but we need a change"
+      ]
+    },
+    "unrest.coup": {
+      "any": [
+        "{town} is mine now",
+        "{leader}'s out. i'm in charge",
+        "i'm running {town} now. any questions?",
+        "no more {leader}. i lead {town} now"
+      ],
+      "pvp_sweat": [
+        "{leader} was weak. i'm in charge now"
+      ],
+      "bandit": [
+        "new boss. {leader} can cry about it"
+      ]
+    },
+    "unrest.concede": {
+      "any": [
+        "ok ok, no more tax",
+        "fine, i'm dropping the tax",
+        "the tax is gone. happy now?",
+        "alright, no tax for now"
+      ],
+      "helper": [
+        "i hear you all. no more tax"
+      ],
+      "hoarder": [
+        "ugh. fine. no tax"
+      ]
+    },
+    "unrest.abdicate": {
+      "any": [
+        "i'm stepping down. vote tomorrow",
+        "you don't want me? fine, i quit",
+        "i'm done leading {town}",
+        "someone else can lead {town}"
+      ],
+      "helper": [
+        "i tried my best. someone else's turn"
+      ],
+      "hermit": [
+        "i never wanted this anyway"
+      ]
+    },
+    "unrest.betray": {
+      "any": [
+        "this is for {town}, {leader}!",
+        "{leader}!! you're done",
+        "nobody will miss you, {leader}",
+        "time's up, {leader}"
+      ],
+      "bandit": [
+        "should've watched your back, {leader}"
+      ]
     }
   }
 }

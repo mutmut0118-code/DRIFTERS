@@ -60,7 +60,7 @@ Dozens of towns can exist; only the ones being watched cost much.
 - A leader: chosen by trust (an election, with campaigning), by strength (a warlord), or by founding the town.
 - Simple laws: no stealing, no killing in town, a tax, a curfew, who may use the farms.
 - Crime and punishment: thieves are seen and reported, guards collect fines, exile, bounties (21). Built in 0.22.27 (step 5, part 2); prison later (the user).
-- Unpopular leaders lose trust; revolts, coups, assassinations, abdications.
+- Unpopular leaders lose trust; revolts, coups, assassinations, abdications. Built in 0.22.28 (step 5, part 3; approval, not trust).
 
 ### 4. Nations and diplomacy
 - Towns join into nations (by agreement, marriage-like alliances between leaders, or conquest).
@@ -260,5 +260,10 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
 - **Step 4b, money (0.22.25):** a town's till (its store's first chest) takes the stall's takings; its people are paid
   wages from it for the town's work; they buy what they're short of at the stall; a trader walks to the nearest other
   town every few days to sell its plenty and buy what it's short of. Players running stalls: dropped (the user).
+- **Step 5, leaders and laws (0.22.26-0.22.28):** part 1, a leader (the founder, then elections every 5 days with
+  campaigning), laws by the leader's personality (no stealing, no killing, a tax, the farms for citizens only); part 2,
+  crime and punishment (witnesses, guards collecting fines, exile, bounties; prison later, the user); part 3, unrest (each
+  townsperson's approval of the leader: a dropped tax, coups, abdications, revolts with a vote the next morning, a
+  ruthless one's plot to kill the leader).
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.
