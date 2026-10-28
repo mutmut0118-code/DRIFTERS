@@ -3041,3 +3041,53 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     leader); on 779 the town voted its leader out twice (3-4-5, then 4-6-2), each new leader with its own laws (tax 1,
     then 3, then 3 and farms for citizens), and its people paid their tax into the till.
 - Next: step 5 part 2 (crime and punishment: witnesses, guards, fines, exile, bounties), then part 3 (unrest).
+
+## Side session (branch claude/drifter-chat-expansion-574ebe): chat and house plans
+
+Worked in parallel with the step 5 session; base mod only (no addon files, none of the files that session is in).
+Versions carry a suffix (0.22.26-side.N); the plain number is the other session's.
+
+- **Drifters remember what you tell them (0.22.26-side.1; the user, 2026-10-28: "expand the chat system", chose
+  "Remember what I say", "plus more things to ask them").**
+  - `social/talk/Heard` (per Drifter, saved as `DrifterHeard`, its own version 1): per player what to call them, their
+    base (exact or rough), their plan (asked about after 3 minutes, kept a day), promises (due after a day, broken after
+    three: -4 trust once; kept: +3 and "you actually brought it" in place of the plain thanks), likes and hates (4 each),
+    their news (a day). Places told (kind, where, exact or rough, who said so, tellings on; 5 days, 24 kept) and words
+    about others (3 days). Hearsay only: it never goes into the world memory decisions read (DESIGN section 5); it only
+    changes what it says (and the trust a word about someone moves).
+  - `social/talk/Telling`: reading statements (before the questions; never a question: "?" or a question word first):
+    "call me X" / "my name is X"; "my base is at x y z" / "this is my base" / "my house is up north"; a place with
+    where (coords, a direction and distance, or "here"/"that way" with a word like "theres"); "going mining" (15 plans);
+    "ill bring you 5 iron" / "i owe you" (any item by name, or food/wood); "i love cats" / "i hate creepers" (things
+    players talk about, items, creatures, as typed); "bob is a griefer" / "annie is cool" (believed from trust 10, not
+    against its own view of them at 30+, once a day per teller); news (died, diamonds, hungry: a friend with spare food
+    offers some, built, nether, end, dragon, back, tired, lost). A place said in chat is read by every Drifter within 32
+    blocks. New questions: who am i, what do you think of me / of X / of cats, wheres X (in sight, or where and when it
+    last saw them), where are you going (`going.<goal id>` lines), what do you need (hurt, food, home, the strategist's
+    next target), who are your friends, what did i tell you, wheres my base, forget that / forget everything, what do
+    you like. "have you seen a village" with none seen: "havent seen one myself, but X said...".
+  - Said about someone else ("wheres bob", "bob is a griefer"): the one named is who it's about, so it goes to the one
+    you're talking with or looking at, or the only other one close by (`PlayerTalk.addressee`).
+  - Brought up later (`drifter_talk/heard.json`): to the player heard_plan (question), heard_promise,
+    heard_promise_broken, heard_news (question), heard_like, heard_hate, heard_base, heard_place_tell, heard_word_tell,
+    heard_player_news; between Drifters heard_place (effect `pass_place`: the other learns it, one telling on),
+    heard_word_bad / heard_word_good (`pass_word`: a friend thinks a little less/more of them), heard_player_news,
+    heard_player_plan. Hooked in without touching `Facts`: `Heard.addPlayerFacts` / `addDrifterFacts` add flags and
+    words after `Facts.of` in `PlayerChats` and `Conversations`.
+  - It calls you by your nickname in its answers and its talks with you (`Heard.callName`).
+  - A topic whose lines don't fit now says nothing and asks nothing (`PlayerChats.Opening.said`; a forced topic used to
+    ask its question without saying it). An answer to its question counts unless the message is a question of its own
+    ("yeah, found 3 diamonds" answers "find any dias?").
+  - `/drifter heard` (what the nearest was told), `/drifter heard forget`, `/drifter heard age <real minutes>`.
+  - Data: `drifter_chat/heard.json` (phrases and lines), `drifter_talk/heard.json` (topics); docs/CHAT_LINES.md
+    section 8b (the generator has a new section).
+  - Tested in the dev client (scripted chat as the player): nickname used, base, place read by everyone near and
+    retold as hearsay ("you said theres a village somewhere north, about 300 blocks"), plan follow-up asked and
+    answered, promise reminder, where/opinion/need/going/friends/told/forget, hungry offer then bread thrown on "yes",
+    saved data written. See below for what the last run showed.
+  - Last runs: promise reminded ("didnt you say you'd bring 5 iron ingot?") and kept (iron thrown: "ayy finally" in
+    place of "ty"; promise gone); "i hate creepers" kept as typed; Annie told Dora "Tester said theres diamonds around
+    10 -58 40" and Dora then had it ("from Tester (1 tellings on)"). Dora, not knowing Tester, still answered "have you
+    seen diamonds" with "havent seen diamonds" (hearsay is told to those it knows, as its own finds are).
+  - Next on this branch: house plans (the user's second ask). Ideas for chat later: Drifters acting on told places
+    (visiting a told village or base) would change behaviour, so it's a design question for the user first.

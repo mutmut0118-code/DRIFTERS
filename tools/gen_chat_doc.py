@@ -330,6 +330,66 @@ for intent, _, _, keys in ASKS:
     for key in keys:
         doc += block(key, 'Answering **' + intent + '**.')
 
+TELLS = [
+    ('call me X / my name is X', 'It calls you that from now on (in its answers and talks with you)', ['told.nick']),
+    ('my base is at x y z / i live here / my house is up north', 'It remembers where you live (coords, here, or a direction and distance)',
+     ['told.base', 'told.base_here', 'told.base_way']),
+    ('theres a village 300 blocks north / found dias at x y z', 'It remembers the place, who said so, and passes it on to other Drifters; every '
+     'Drifter within 32 blocks reads it in chat. "here" or "over there" needs a word like "theres" or "found"',
+     ['told.place', 'told.place_known', 'told.place_heard']),
+    ('going mining / heading to the nether / going home', 'It wishes you luck, and asks how it went a few minutes later', ['told.plan'] + sorted(
+        k for k in lines if k.startswith('told.plan.'))),
+    ('ill bring you 5 iron / i owe you', 'It holds you to it: reminds you after a day; three days and nothing costs some trust; bring it and it '
+     'thanks you for keeping your word (and likes you more)', ['told.promise', 'told.promise_any', 'told.promise_kept', 'told.promise_late_kept']),
+    ('i love cats / i hate creepers', 'It remembers (things players talk about, items, creatures) and brings it up', ['told.like', 'told.hate']),
+    ('bob is a griefer / annie is cool', 'If it trusts you (10+) and isn\'t sure of them itself, it thinks a little less (or more) of them, once a day '
+     'from each teller, and passes the word on', ['told.word_bad', 'told.word_good', 'told.word_bad_disagree', 'told.word_good_disagree', 'told.word_doubt']),
+    ('i died / found diamonds / im hungry / im back / im lost', 'It reacts; a hungry friend gets offered food (say yes); it asks after it later',
+     sorted(k for k in lines if k.startswith('told.news.')) + ['told.hungry_yes', 'told.hungry_no']),
+]
+NEW_ASKS = [
+    ('me', 'who am i, whats my name, do you remember me', 'What it calls you, and something it remembers', ['ask.me_known', 'ask.me_stranger']),
+    ('opinion', 'what do you think of me / of bob, do you like cats, are we cool', 'How it feels about you or them (trust in words), or the thing',
+     sorted(k for k in lines if k.startswith('ask.opinion_'))),
+    ('where_is', 'wheres bob, have you seen annie', 'In sight, or where and when it last saw them (to someone it knows)',
+     ['ask.where_here', 'ask.where_seen', 'ask.where_unknown', 'ask.where_no', 'ask.where_me']),
+    ('going', 'where are you going', 'Where its current goal takes it', ['ask.going', 'ask.going_idle']),
+    ('need', 'what do you need, need anything', 'What it\'s short of: health, food, a home, the next thing it\'s after',
+     ['ask.need_heal', 'ask.need_food', 'ask.need_home', 'ask.need_target', 'ask.need_nothing']),
+    ('friends', 'who are your friends', 'The players and Drifters it likes best', ['ask.friends', 'ask.friends_you', 'ask.friends_none']),
+    ('told', 'what did i tell you', 'Something you told it (or did: a gift, an insult)', ['ask.told', 'ask.told_none']),
+    ('my_base', 'wheres my base', 'Where you said you live, or where it saw you live', ['ask.my_base_told', 'ask.my_base_seen', 'ask.my_base_none']),
+    ('forget', 'forget that, forget everything', 'Forgets the last thing you told it, or all of it', ['ask.forget', 'ask.forget_all', 'ask.forget_nothing']),
+    ('likes', 'what do you like', 'Its favourite things, in its voice', ['ask.likes']),
+    ('seen_... (heard)', 'have you seen a village', 'Not seen one, but told of one: says who said where', ['ask.seen_heard']),
+]
+doc += ['## 8b. Telling a Drifter things (it remembers)', '',
+        'Said to a Drifter as in section 8 (statements, not questions). What it was told is kept with it (saved) and shown by `/drifter heard`; '
+        '`/drifter heard age <minutes>` makes it older, to see the follow-ups at once. Phrases in `drifter_chat/heard.json` (section 10), '
+        'the topics it brings up later in `drifter_talk/heard.json` (sections 6 and 7, ids starting `heard_`).', '',
+        '| You say | What it does |', '| --- | --- |']
+for said_, what, _ in TELLS:
+    doc.append('| ' + said_ + ' | ' + what + ' |')
+doc.append('')
+for said_, _, keys in TELLS:
+    for key in keys:
+        if key in lines:
+            doc += block(key, 'You said: *' + said_ + '*.')
+doc += ['### More to ask', '', '| Intent | For example | What it answers |', '| --- | --- | --- |']
+for intent, example, what, _ in NEW_ASKS:
+    doc.append('| ' + intent + ' | ' + example + ' | ' + what + ' |')
+doc.append('')
+for intent, _, _, keys in NEW_ASKS:
+    for key in keys:
+        if key in lines:
+            doc += block(key, 'Answering **' + intent + '**.')
+doc += ['### Words it fills in', '',
+        'Where it\'s going, by its current goal (`going.<goal>`), and the words for places, plans, times and memories:', '']
+for prefix in ['going.', 'place.', 'plan.', 'when.', 'memory.']:
+    for key in sorted(k for k in lines if k.startswith(prefix)):
+        doc.append('- `' + key + '`: ' + ' · '.join(esc(x) for v in lines[key].values() for x in v))
+doc.append('')
+
 doc += ['## 9. Not chat, but close', '',
         '- **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod\'s announcements.',
         '- **Thoughts:** what a Drifter thinks (`/drifter thoughts`) never goes to chat.',
@@ -344,7 +404,10 @@ doc += ['## 10. What you can say to them', '',
         '| A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |',
         '| A Drifter\'s name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |',
         '| To a Drifter (section 8) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, '
-        '**help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |',
+        '**help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot**; and **me**, **opinion**, **where_is**, **going**, '
+        '**need**, **friends**, **told**, **my_base**, **forget**, **likes** (section 8b) |',
+        '| Telling a Drifter (section 8b) | **tell_base**, **place_...** (with **place_cue** for "here"), **plan_...**, **promise**, **tell_like**, '
+        '**tell_hate** (with **things**), **word_good**, **word_bad**, **news_...**; "call me ..." |',
         '| Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |', '',
         'Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, '
         'right-click a merchant or a stall keeper.', '']
@@ -353,10 +416,11 @@ for intent, phrases in answers.items():
 doc.append('')
 
 doc += ['## Where they live', '',
-        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`); whims\' '
+        '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`); whims\' '
         'lines in `drifter_whims/*.json`. This doc is generated from them.',
         '- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), '
-        '`social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `encounter/*.java`.', '']
+        '`social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `social/talk/Telling.java` and `Heard.java` (telling it things; what it remembers), '
+        '`encounter/*.java`.', '']
 
 open(os.path.join(ROOT, 'docs/CHAT_LINES.md'), 'w', encoding='utf-8', newline='\n').write('\n'.join(doc))
 print(total, whim_total, answer_total, len(topics), talk_lines)

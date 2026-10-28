@@ -1,0 +1,278 @@
+{
+  "comment": "What players told a Drifter, brought up later (user, 2026-10-28: 'remember what I say'). player_topics: with that player (a the Drifter, b the player): how their plan went, a promise due or broken, what they like, their news, places others told it of. topics: with another Drifter, passing on what players said (a place: effect pass_place, the other learns it; a word about someone: pass_word). Words from what it was told: b.plan, b.plan_go, b.promise, b.like, b.hate, b.base, b.nick; a.heard_what, a.heard_where, a.heard_from, a.heard_about, a.word_from, a.news_from, a.heard_plan, a.plan_from.",
+  "player_topics": [
+    {
+      "id": "heard_plan",
+      "weight": 6,
+      "needs": ["b:plan_due", "!b:plan_home"],
+      "turns": [
+        {
+          "by": "a",
+          "options": [
+            {"if": ["b:plan_mining"], "lines": {"any": ["how was mining? find dias?", "back from mining? find anything good?", "any luck mining?", "find any diamonds?"], "miner": ["how deep did you go? find dias?"]}},
+            {"if": ["b:plan_caving"], "lines": ["how was the cave? find anything?", "back from caving? find anything good?", "survived the caves? find anything?"]},
+            {"if": ["b:plan_nether"], "lines": {"any": ["how was the nether? find a fortress?", "you survived the nether lol. get anything good?", "back from the nether? find anything?"], "newbie": ["you came back from the nether!! was it scary? find anything?"]}},
+            {"if": ["b:plan_end"], "lines": ["did you kill the dragon??", "how was the end? beat the dragon?"]},
+            {"if": ["b:plan_exploring"], "lines": {"any": ["how was exploring? find anything cool?", "back from your adventure? find anything?", "see anything cool out there?"], "nomad": ["find anywhere new out there?"]}},
+            {"if": ["b:plan_building"], "lines": {"any": ["hows the build going? done yet?", "finish the build?"], "builder": ["finished the build? i wanna see"]}},
+            {"if": ["b:plan_fishing"], "lines": ["catch anything good?", "get a mending book? lol"]},
+            {"if": ["b:plan_farming"], "lines": ["hows the farm? good harvest?", "get a good harvest?"]},
+            {"if": ["b:plan_hunting"], "lines": ["good hunt? get food?", "how was the hunt? get enough food?"]},
+            {"if": ["b:plan_trading"], "lines": ["get good trades?", "the villagers give you mending?"]},
+            {"if": ["b:plan_stronghold"], "lines": ["find the stronghold?", "any luck with the stronghold?"]},
+            {"lines": ["how was {b.plan}? go well?", "how'd {b.plan} go? good?", "{b.plan} go ok?"]}
+          ]
+        }
+      ],
+      "question": {
+        "yes": {"lines": {"any": ["nice!", "W", "lets go", "ayy nice", "gg"], "newbie": ["yay!!"], "hoarder": ["share?"], "pvp_sweat": ["nice"], "helper": ["yay, so happy for you!"]}},
+        "no": {"lines": {"any": ["unlucky", "rip", "next time", "f", "aw, next time"], "helper": ["aw, you'll get it next time!"], "pvp_sweat": ["skill issue lol"]}}
+      }
+    },
+    {
+      "id": "heard_promise",
+      "weight": 5,
+      "needs": ["b:promise_due"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["still waiting on that {b.promise} lol", "you said you'd bring {b.promise}", "hey, where's my {b.promise}?", "didnt you say you'd bring {b.promise}?", "{b.promise}? still coming?"],
+            "hoarder": ["{b.promise}. you promised", "i havent forgotten about the {b.promise}"],
+            "bandit": ["you owe me {b.promise}. dont forget"],
+            "helper": ["no rush on the {b.promise} btw!"],
+            "hermit": ["{b.promise}. you said"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "heard_promise_broken",
+      "weight": 8,
+      "needs": ["b:promise_broken"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["guess you forgot about the {b.promise}", "so much for the {b.promise} huh", "{b.promise} never came lol", "you never brought the {b.promise}", "still no {b.promise}. noted"],
+            "hoarder": ["you never paid. i remember", "no {b.promise}. i wont forget"],
+            "bandit": ["you broke your word. bad idea"],
+            "helper": ["its ok about the {b.promise}, really"],
+            "newbie": ["you forgot the {b.promise} :("]
+          }
+        }
+      ]
+    },
+    {
+      "id": "heard_news",
+      "weight": 5,
+      "needs": ["b:told_news"],
+      "turns": [
+        {
+          "by": "a",
+          "options": [
+            {"if": ["b:news_died"], "lines": {"any": ["you get your stuff back?", "did you get your items back?", "find your stuff after you died?"], "helper": ["did you get your stuff back ok?"]}},
+            {"if": ["b:news_diamonds"], "lines": {"any": ["find any more dias?", "make anything with the diamonds?", "more diamonds since?"], "hoarder": ["still have those diamonds?"]}},
+            {"if": ["b:news_hungry"], "lines": ["you eat yet?", "still hungry?", "find food?"]},
+            {"if": ["b:news_built"], "lines": {"any": ["still building?", "adding more to the build?"], "builder": ["can i see your build sometime?"]}},
+            {"if": ["b:news_nether"], "lines": ["going back to the nether?", "gonna go back to the nether?"]},
+            {"if": ["b:news_dragon"], "lines": ["still cant believe you beat the dragon. gonna do it again?", "dragon slayer! do it again?"]},
+            {"if": ["b:news_lost"], "lines": ["you find your way back ok?", "not lost anymore?"]},
+            {"if": ["b:news_tired"], "lines": ["get some sleep?", "feeling better?"]}
+          ]
+        }
+      ],
+      "question": {
+        "yes": {"lines": {"any": ["nice", "good", "W", "ayy", "good to hear"], "helper": ["yay! good"]}},
+        "no": {"lines": {"any": ["rip", "aw", "unlucky", "f", "next time"], "helper": ["aw, i can help if you want"]}}
+      }
+    },
+    {
+      "id": "heard_like",
+      "weight": 1.5,
+      "needs": ["b:told_like", "!b:stranger"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["still into {b.like}?", "you still like {b.like}?", "thought of you, saw some {b.like} lol", "{b.like} fan still?"],
+            "newbie": ["i tried {b.like} like you said! its cool"],
+            "hermit": ["still {b.like}?"]
+          }
+        }
+      ],
+      "question": {
+        "yes": {"lines": ["nice", "same", "respect", "ofc lol"]},
+        "no": {"lines": ["oh lol, ok", "changed your mind huh", "fair"]}
+      }
+    },
+    {
+      "id": "heard_hate",
+      "weight": 0.8,
+      "needs": ["b:told_hate", "!b:stranger"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": ["still hate {b.hate}?", "saw some {b.hate} and thought of you lol", "{b.hate}, your favorite lol"]
+        }
+      ]
+    },
+    {
+      "id": "heard_base",
+      "weight": 1,
+      "needs": ["b:told_base", "b:friend"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["hows the base?", "hows your place doing?", "still living at {b.base}?", "might come visit your base sometime"],
+            "builder": ["hows the base? added anything?"],
+            "bandit": ["hows the base? still unlocked?", "nice base you got. lots of chests?"],
+            "homebody": ["hows home? :)"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "heard_place_tell",
+      "weight": 2,
+      "needs": ["a:heard_place", "!b:stranger"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["btw {a.heard_from} said theres {a.heard_what} {a.heard_where}", "{a.heard_from} told me about {a.heard_what} {a.heard_where}", "heard theres {a.heard_what} {a.heard_where}, {a.heard_from} said", "fyi {a.heard_what} {a.heard_where}, says {a.heard_from}"],
+            "hoarder": ["dont tell anyone but {a.heard_from} found {a.heard_what} {a.heard_where}"],
+            "helper": ["oh! {a.heard_from} said theres {a.heard_what} {a.heard_where}, if you need it"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "heard_word_tell",
+      "weight": 1.5,
+      "needs": ["a:heard_bad", "!b:stranger"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["careful, {a.word_from} says {a.heard_about} is trouble", "{a.word_from} said to watch out for {a.heard_about}", "heads up, {a.heard_about} might be sketchy, {a.word_from} said"],
+            "helper": ["be careful around {a.heard_about}, {a.word_from} said they're trouble"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "heard_player_news",
+      "weight": 1.5,
+      "needs": ["a:heard_news", "!b:stranger"],
+      "turns": [
+        {
+          "by": "a",
+          "options": [
+            {"if": ["a:heard_news_diamonds"], "lines": ["{a.news_from} found diamonds btw", "did you hear {a.news_from} found dias"]},
+            {"if": ["a:heard_news_died"], "lines": ["{a.news_from} died earlier lol", "rip {a.news_from}, died today"]},
+            {"if": ["a:heard_news_dragon"], "lines": ["{a.news_from} beat the dragon!!", "did you hear? {a.news_from} killed the dragon"]},
+            {"if": ["a:heard_news_built"], "lines": ["{a.news_from} built something, go look"]},
+            {"if": ["a:heard_news_nether"], "lines": ["{a.news_from} went to the nether and came back"]}
+          ]
+        }
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "heard_place",
+      "weight": 3,
+      "needs": ["a:heard_place", "!rivals"],
+      "effects": ["pass_place"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": {
+            "any": ["{a.heard_from} said theres {a.heard_what} {a.heard_where}", "{a.heard_from} told me about {a.heard_what} {a.heard_where}", "apparently theres {a.heard_what} {a.heard_where}", "yo {b}, heard theres {a.heard_what} {a.heard_where}"],
+            "hoarder": ["dont tell anyone, but {a.heard_what} {a.heard_where}"],
+            "helper": ["oh {b}! {a.heard_from} said theres {a.heard_what} {a.heard_where}"]
+          }
+        },
+        {
+          "by": "b",
+          "options": [
+            {"if": ["friends"], "lines": ["ooh ty", "nice, lets go check it out", "ty, might go look", "we should go together"]},
+            {"lines": {"any": ["oh nice", "might check it out", "you believe them?", "huh, ok", "ty"], "hermit": ["hm"], "nomad": ["ooh, new place"], "miner": ["ooh, any ore?"]}}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heard_word_bad",
+      "weight": 2,
+      "needs": ["a:heard_bad", "!rivals", "!strangers"],
+      "effects": ["pass_word"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": ["{a.word_from} says {a.heard_about} is trouble", "watch out for {a.heard_about}, {a.word_from} said", "heard {a.heard_about} is sketchy", "{a.word_from} told me not to trust {a.heard_about}"]
+        },
+        {
+          "by": "b",
+          "lines": {"any": ["for real?", "noted", "{a.heard_about}? wow", "figures", "ugh", "i'll keep an eye out"], "helper": ["hm, maybe its a misunderstanding"], "bandit": ["heh"]}
+        }
+      ]
+    },
+    {
+      "id": "heard_word_good",
+      "weight": 1.5,
+      "needs": ["a:heard_good", "!rivals", "!strangers"],
+      "effects": ["pass_word"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": ["{a.word_from} says {a.heard_about} is cool", "heard {a.heard_about} is nice", "{a.word_from} vouches for {a.heard_about}"]
+        },
+        {
+          "by": "b",
+          "lines": ["nice", "good to know", "cool", "oh nice", "yeah {a.heard_about} seems alright"]
+        }
+      ]
+    },
+    {
+      "id": "heard_player_news",
+      "weight": 2,
+      "needs": ["a:heard_news"],
+      "turns": [
+        {
+          "by": "a",
+          "options": [
+            {"if": ["a:heard_news_diamonds"], "lines": ["{a.news_from} found diamonds today", "did you hear {a.news_from} got dias", "{a.news_from} found dias, lucky"]},
+            {"if": ["a:heard_news_died"], "lines": ["{a.news_from} died earlier lol", "rip {a.news_from}, died today"]},
+            {"if": ["a:heard_news_dragon"], "lines": ["{a.news_from} beat the dragon!!", "{a.news_from} killed the ender dragon, crazy"]},
+            {"if": ["a:heard_news_built"], "lines": ["{a.news_from} finished a build", "{a.news_from} built something new"]},
+            {"if": ["a:heard_news_nether"], "lines": ["{a.news_from} went to the nether and survived lol"]},
+            {"if": ["a:heard_news_end"], "lines": ["{a.news_from} went to the end"]}
+          ]
+        },
+        {
+          "by": "b",
+          "lines": {"any": ["no way", "nice", "lol", "huh", "W", "rip"], "hermit": ["hm"], "newbie": ["woah!!"]}
+        }
+      ]
+    },
+    {
+      "id": "heard_player_plan",
+      "weight": 1,
+      "needs": ["a:heard_plan"],
+      "turns": [
+        {
+          "by": "a",
+          "lines": ["{a.plan_from} went {a.heard_plan}", "saw {a.plan_from} earlier, said they were going {a.heard_plan}", "{a.plan_from} is off {a.heard_plan}"]
+        },
+        {
+          "by": "b",
+          "chance": 0.7,
+          "lines": ["nice", "gl to them", "hope they come back lol", "cool", "ok"]
+        }
+      ]
+    }
+  ]
+}

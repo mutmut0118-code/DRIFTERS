@@ -119,6 +119,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.social.DrifterBonds bonds = new com.dinglebob.drifter.social.DrifterBonds(this);
 	/** The news it carries and passes on (milestone 22 groundwork). */
 	private final com.dinglebob.drifter.social.NewsBook news = new com.dinglebob.drifter.social.NewsBook(this);
+	/** What players told it in chat (their base, their plans, places, promises...). */
+	private final com.dinglebob.drifter.social.talk.Heard heard = new com.dinglebob.drifter.social.talk.Heard(this);
 	/** The mannerism layer (section 16): tics on top of whatever it's doing, with the body parts its task leaves free. */
 	private final com.dinglebob.drifter.mannerism.Mannerisms mannerisms = new com.dinglebob.drifter.mannerism.Mannerisms(this);
 	private long lastAttackTime = Long.MIN_VALUE / 2;
@@ -507,6 +509,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.social.NewsBook getNews() {
 		return this.news;
+	}
+
+	public com.dinglebob.drifter.social.talk.Heard getHeard() {
+		return this.heard;
 	}
 
 	public com.dinglebob.drifter.social.Relationships getSocial() {
@@ -2666,6 +2672,7 @@ protected void customServerAiStep() {
 		tag.put("DrifterSocial", this.social.save());
 		tag.put("DrifterBonds", this.bonds.save());
 		tag.put("DrifterNews", this.news.save());
+		tag.put("DrifterHeard", this.heard.save());
 		tag.putBoolean("DrifterNamed", this.named);
 		tag.putFloat("XpP", this.experienceProgress);
 		tag.putInt("XpLevel", this.experienceLevel);
@@ -2760,6 +2767,7 @@ protected void customServerAiStep() {
 			this.social.load(tag.getCompound("DrifterSocial"));
 			this.bonds.load(tag.getCompound("DrifterBonds"));
 			this.news.load(tag.getCompound("DrifterNews"));
+			this.heard.load(tag.getCompound("DrifterHeard"));
 		}
 
 		if (tag.contains("DrifterPersonality", Tag.TAG_COMPOUND)) {

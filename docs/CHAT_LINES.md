@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1578 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 2478 lines in the chat data, 242 in whims, and 2000 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (49 topics, 1393 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (54 topics, 1569 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1141,6 +1141,58 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: do it · you should · need logs? *(answered: yeah lots / i got some / always)* · stone house, fire proof · two floors
    - **builder:** timber frame, trust me · use a stone base, it looks better · do a gable roof
 3. **a** (50%): gonna need so many logs · yeah · ty · maybe tomorrow
+
+#### heard place
+
+*Needs:* a:heard_place, !rivals  ·  *Effects:* pass_place
+
+1. **a**: {a.heard_from} said theres {a.heard_what} {a.heard_where} · {a.heard_from} told me about {a.heard_what} {a.heard_where} · apparently theres {a.heard_what} {a.heard_where} · yo {b}, heard theres {a.heard_what} {a.heard_where}
+   - **hoarder:** dont tell anyone, but {a.heard_what} {a.heard_where}
+   - **helper:** oh {b}! {a.heard_from} said theres {a.heard_what} {a.heard_where}
+2. **b**:
+   - *friends:* ooh ty · nice, lets go check it out · ty, might go look · we should go together
+   - *otherwise:* oh nice · might check it out · you believe them? · huh, ok · ty
+   - *otherwise:* **hermit:** hm
+   - *otherwise:* **nomad:** ooh, new place
+   - *otherwise:* **miner:** ooh, any ore?
+
+#### heard word bad
+
+*Needs:* a:heard_bad, !rivals, !strangers  ·  *Effects:* pass_word
+
+1. **a**: {a.word_from} says {a.heard_about} is trouble · watch out for {a.heard_about}, {a.word_from} said · heard {a.heard_about} is sketchy · {a.word_from} told me not to trust {a.heard_about}
+2. **b**: for real? · noted · {a.heard_about}? wow · figures · ugh · i'll keep an eye out
+   - **helper:** hm, maybe its a misunderstanding
+   - **bandit:** heh
+
+#### heard word good
+
+*Needs:* a:heard_good, !rivals, !strangers  ·  *Effects:* pass_word
+
+1. **a**: {a.word_from} says {a.heard_about} is cool · heard {a.heard_about} is nice · {a.word_from} vouches for {a.heard_about}
+2. **b**: nice · good to know · cool · oh nice · yeah {a.heard_about} seems alright
+
+#### heard player news
+
+*Needs:* a:heard_news
+
+1. **a**:
+   - *a:heard_news_diamonds:* {a.news_from} found diamonds today · did you hear {a.news_from} got dias · {a.news_from} found dias, lucky
+   - *a:heard_news_died:* {a.news_from} died earlier lol · rip {a.news_from}, died today
+   - *a:heard_news_dragon:* {a.news_from} beat the dragon!! · {a.news_from} killed the ender dragon, crazy
+   - *a:heard_news_built:* {a.news_from} finished a build · {a.news_from} built something new
+   - *a:heard_news_nether:* {a.news_from} went to the nether and survived lol
+   - *a:heard_news_end:* {a.news_from} went to the end
+2. **b**: no way · nice · lol · huh · W · rip
+   - **hermit:** hm
+   - **newbie:** woah!!
+
+#### heard player plan
+
+*Needs:* a:heard_plan
+
+1. **a**: {a.plan_from} went {a.heard_plan} · saw {a.plan_from} earlier, said they were going {a.heard_plan} · {a.plan_from} is off {a.heard_plan}
+2. **b** (70%): nice · gl to them · hope they come back lol · cool · ok
 
 #### how are you
 
@@ -1508,13 +1560,127 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 ## 7. Drifters talking to you
 
-A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (20 topics in `drifter_talk/players.json`; **a** is the Drifter, **b** you): a stranger gets a hi, a friend their name and its news, your gear, how hurt you look, the night coming, what it found, a running joke about you, and questions you answer in chat ("wanna team up?": a yes however you say it, and it does it). One Drifter at a time with you, every minute and a half at most; each Drifter every 3 to 15 minutes (the chatty sooner). `/drifter talk me [topic]` makes the nearest one bring something up with you.
+A Drifter near you (8 blocks, seeing you) with nothing pressing now and then brings something up with you (30 topics in `drifter_talk/players.json`; **a** is the Drifter, **b** you): a stranger gets a hi, a friend their name and its news, your gear, how hurt you look, the night coming, what it found, a running joke about you, and questions you answer in chat ("wanna team up?": a yes however you say it, and it does it). One Drifter at a time with you, every minute and a half at most; each Drifter every 3 to 15 minutes (the chatty sooner). `/drifter talk me [topic]` makes the nearest one bring something up with you.
 
 **Running jokes.** Drifters who see someone (you, or a Drifter) die a silly death (lava, a fall, drowning, a cactus...) have a joke for a week: they bring it up with each other ("remember when Tester fell off a cliff lol", and one who was there: "never forget"), and with you ("hey its the cliff diver lol"). The words are `joke.what.*` and `joke.nick.*` below.
 
 **Rounds.** The first time you're about in the morning near two or more Drifters who know you, a few say gm, one after another (`round.gm`); going to bed near them, gn (`round.gn`).
 
 **Standing by.** When a Drifter finishes a talk or answers you, another nearby may add its bit (the *chime* lines of a topic, and `chime.<what you asked>` below).
+
+#### heard plan
+
+*Needs:* b:plan_due, !b:plan_home
+
+1. **a**:
+   - *b:plan_mining:* how was mining? find dias? · back from mining? find anything good? · any luck mining? · find any diamonds?
+   - *b:plan_mining:* **miner:** how deep did you go? find dias?
+   - *b:plan_caving:* how was the cave? find anything? · back from caving? find anything good? · survived the caves? find anything?
+   - *b:plan_nether:* how was the nether? find a fortress? · you survived the nether lol. get anything good? · back from the nether? find anything?
+   - *b:plan_nether:* **newbie:** you came back from the nether!! was it scary? find anything?
+   - *b:plan_end:* did you kill the dragon?? · how was the end? beat the dragon?
+   - *b:plan_exploring:* how was exploring? find anything cool? · back from your adventure? find anything? · see anything cool out there?
+   - *b:plan_exploring:* **nomad:** find anywhere new out there?
+   - *b:plan_building:* hows the build going? done yet? · finish the build?
+   - *b:plan_building:* **builder:** finished the build? i wanna see
+   - *b:plan_fishing:* catch anything good? · get a mending book? lol
+   - *b:plan_farming:* hows the farm? good harvest? · get a good harvest?
+   - *b:plan_hunting:* good hunt? get food? · how was the hunt? get enough food?
+   - *b:plan_trading:* get good trades? · the villagers give you mending?
+   - *b:plan_stronghold:* find the stronghold? · any luck with the stronghold?
+   - *otherwise:* how was {b.plan}? go well? · how'd {b.plan} go? good? · {b.plan} go ok?
+- *You say yes* (it just answers): nice! · W · lets go · ayy nice · gg · **newbie:** yay!! · **hoarder:** share? · **PvP sweat:** nice · **helper:** yay, so happy for you!
+- *You say no:* unlucky · rip · next time · f · aw, next time · **helper:** aw, you'll get it next time! · **PvP sweat:** skill issue lol
+
+#### heard promise
+
+*Needs:* b:promise_due
+
+1. **a**: still waiting on that {b.promise} lol · you said you'd bring {b.promise} · hey, where's my {b.promise}? · didnt you say you'd bring {b.promise}? · {b.promise}? still coming?
+   - **hoarder:** {b.promise}. you promised · i havent forgotten about the {b.promise}
+   - **bandit:** you owe me {b.promise}. dont forget
+   - **helper:** no rush on the {b.promise} btw!
+   - **hermit:** {b.promise}. you said
+
+#### heard promise broken
+
+*Needs:* b:promise_broken
+
+1. **a**: guess you forgot about the {b.promise} · so much for the {b.promise} huh · {b.promise} never came lol · you never brought the {b.promise} · still no {b.promise}. noted
+   - **hoarder:** you never paid. i remember · no {b.promise}. i wont forget
+   - **bandit:** you broke your word. bad idea
+   - **helper:** its ok about the {b.promise}, really
+   - **newbie:** you forgot the {b.promise} :(
+
+#### heard news
+
+*Needs:* b:told_news
+
+1. **a**:
+   - *b:news_died:* you get your stuff back? · did you get your items back? · find your stuff after you died?
+   - *b:news_died:* **helper:** did you get your stuff back ok?
+   - *b:news_diamonds:* find any more dias? · make anything with the diamonds? · more diamonds since?
+   - *b:news_diamonds:* **hoarder:** still have those diamonds?
+   - *b:news_hungry:* you eat yet? · still hungry? · find food?
+   - *b:news_built:* still building? · adding more to the build?
+   - *b:news_built:* **builder:** can i see your build sometime?
+   - *b:news_nether:* going back to the nether? · gonna go back to the nether?
+   - *b:news_dragon:* still cant believe you beat the dragon. gonna do it again? · dragon slayer! do it again?
+   - *b:news_lost:* you find your way back ok? · not lost anymore?
+   - *b:news_tired:* get some sleep? · feeling better?
+- *You say yes* (it just answers): nice · good · W · ayy · good to hear · **helper:** yay! good
+- *You say no:* rip · aw · unlucky · f · next time · **helper:** aw, i can help if you want
+
+#### heard like
+
+*Needs:* b:told_like, !b:stranger
+
+1. **a**: still into {b.like}? · you still like {b.like}? · thought of you, saw some {b.like} lol · {b.like} fan still?
+   - **newbie:** i tried {b.like} like you said! its cool
+   - **hermit:** still {b.like}?
+- *You say yes* (it just answers): nice · same · respect · ofc lol
+- *You say no:* oh lol, ok · changed your mind huh · fair
+
+#### heard hate
+
+*Needs:* b:told_hate, !b:stranger
+
+1. **a**: still hate {b.hate}? · saw some {b.hate} and thought of you lol · {b.hate}, your favorite lol
+
+#### heard base
+
+*Needs:* b:told_base, b:friend
+
+1. **a**: hows the base? · hows your place doing? · still living at {b.base}? · might come visit your base sometime
+   - **builder:** hows the base? added anything?
+   - **bandit:** hows the base? still unlocked? · nice base you got. lots of chests?
+   - **homebody:** hows home? :)
+
+#### heard place tell
+
+*Needs:* a:heard_place, !b:stranger
+
+1. **a**: btw {a.heard_from} said theres {a.heard_what} {a.heard_where} · {a.heard_from} told me about {a.heard_what} {a.heard_where} · heard theres {a.heard_what} {a.heard_where}, {a.heard_from} said · fyi {a.heard_what} {a.heard_where}, says {a.heard_from}
+   - **hoarder:** dont tell anyone but {a.heard_from} found {a.heard_what} {a.heard_where}
+   - **helper:** oh! {a.heard_from} said theres {a.heard_what} {a.heard_where}, if you need it
+
+#### heard word tell
+
+*Needs:* a:heard_bad, !b:stranger
+
+1. **a**: careful, {a.word_from} says {a.heard_about} is trouble · {a.word_from} said to watch out for {a.heard_about} · heads up, {a.heard_about} might be sketchy, {a.word_from} said
+   - **helper:** be careful around {a.heard_about}, {a.word_from} said they're trouble
+
+#### heard player news
+
+*Needs:* a:heard_news, !b:stranger
+
+1. **a**:
+   - *a:heard_news_diamonds:* {a.news_from} found diamonds btw · did you hear {a.news_from} found dias
+   - *a:heard_news_died:* {a.news_from} died earlier lol · rip {a.news_from}, died today
+   - *a:heard_news_dragon:* {a.news_from} beat the dragon!! · did you hear? {a.news_from} killed the dragon
+   - *a:heard_news_built:* {a.news_from} built something, go look
+   - *a:heard_news_nether:* {a.news_from} went to the nether and came back
 
 #### hi stranger
 
@@ -2205,6 +2371,862 @@ Answering **bot**.
 - **hermit:** does it matter
 - **PvP sweat:** bots dont play this good
 
+## 8b. Telling a Drifter things (it remembers)
+
+Said to a Drifter as in section 8 (statements, not questions). What it was told is kept with it (saved) and shown by `/drifter heard`; `/drifter heard age <minutes>` makes it older, to see the follow-ups at once. Phrases in `drifter_chat/heard.json` (section 10), the topics it brings up later in `drifter_talk/heard.json` (sections 6 and 7, ids starting `heard_`).
+
+| You say | What it does |
+| --- | --- |
+| call me X / my name is X | It calls you that from now on (in its answers and talks with you) |
+| my base is at x y z / i live here / my house is up north | It remembers where you live (coords, here, or a direction and distance) |
+| theres a village 300 blocks north / found dias at x y z | It remembers the place, who said so, and passes it on to other Drifters; every Drifter within 32 blocks reads it in chat. "here" or "over there" needs a word like "theres" or "found" |
+| going mining / heading to the nether / going home | It wishes you luck, and asks how it went a few minutes later |
+| ill bring you 5 iron / i owe you | It holds you to it: reminds you after a day; three days and nothing costs some trust; bring it and it thanks you for keeping your word (and likes you more) |
+| i love cats / i hate creepers | It remembers (things players talk about, items, creatures) and brings it up |
+| bob is a griefer / annie is cool | If it trusts you (10+) and isn't sure of them itself, it thinks a little less (or more) of them, once a day from each teller, and passes the word on |
+| i died / found diamonds / im hungry / im back / im lost | It reacts; a hungry friend gets offered food (say yes); it asks after it later |
+
+#### `told.nick`
+
+You said: *call me X / my name is X*.
+
+- **everyone:** ok {nick} it is · got it, {nick} · {nick}, noted · ok {nick} · sure thing {nick} · {nick}. got it · alr {nick} · will do, {nick}
+- **newbie:** ok {nick}!! cool name · {nick}! i'll remember!!
+- **hermit:** {nick}. fine · hm. {nick}
+- **PvP sweat:** {nick}. ok · sure {nick}, whatever
+- **bandit:** {nick}. i'll remember that · {nick}, huh
+- **helper:** nice to meet you {nick}! · {nick}! got it :)
+- **builder:** {nick}, nice o/
+- **homebody:** {nick}! lovely name :)
+
+#### `told.base`
+
+You said: *my base is at x y z / i live here / my house is up north*.
+
+- **everyone:** noted · {coords}, got it · cool, might visit · ok, i'll remember · nice, where's it at? oh {coords}, ok · ty, noted · got it
+- **newbie:** can i come visit?? {coords}!! · ooh i wanna see it
+- **builder:** ooh i'll come see the build · nice, i wanna see it sometime
+- **bandit:** {coords}. interesting · good to know
+- **hoarder:** nice. got chests there?
+- **hermit:** ok · hm
+- **helper:** noted! i'll come by if you need help
+
+#### `told.base_here`
+
+You said: *my base is at x y z / i live here / my house is up north*.
+
+- **everyone:** oh nice, this is yours? · nice place · cool base · oh this is your base? nice · nice, noted · ooh nice spot
+- **builder:** nice build! love the spot · oh this is yours? nice work
+- **newbie:** woah this is yours?? so cool
+- **bandit:** nice place. be a shame if... · nice. good to know
+- **hoarder:** nice. how many chests?
+- **hermit:** hm. nice
+- **homebody:** so cozy! · lovely home :)
+
+#### `told.base_way`
+
+You said: *my base is at x y z / i live here / my house is up north*.
+
+- **everyone:** {way}, ok · noted, {way} · {way}? cool · ok, somewhere {way} · got it · ok, {way} then
+- **newbie:** {way}!! ok!!
+- **bandit:** {way}, huh. noted
+- **hermit:** hm
+
+#### `told.place`
+
+You said: *theres a village 300 blocks north / found dias at x y z*.
+
+- **everyone:** ooh ty · noted, {what} {where} · nice, might check it out · ty for the tip · oh nice, {what}? · good to know · ty, ill remember · {what} {where}? nice
+- **newbie:** ooh {what}!! ty!! · omg really? ty!!
+- **miner:** ooh {what}? ty · nice, ty for the coords
+- **nomad:** ooh, i'll go see · a new place, ty
+- **hoarder:** {what}. ty. noted · dont tell anyone else
+- **hermit:** hm. ok · noted
+- **bandit:** useful. ty · heh, good to know
+- **speedrunner:** ty, saves time
+- **helper:** ty! i'll tell the others
+
+#### `told.place_known`
+
+You said: *theres a village 300 blocks north / found dias at x y z*.
+
+- **everyone:** yeah i know that one · yep, seen it · oh i know, been there · yeah i saw that · i know lol
+- **miner:** yep, i found it first lol
+- **hermit:** i know
+
+#### `told.place_heard`
+
+You said: *theres a village 300 blocks north / found dias at x y z*.
+
+- **everyone:** yeah someone said · i heard · yep, heard about that · oh yeah, someone told me · i heard lol
+
+#### `told.plan`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** gl · have fun · gl with {plan_go} · have fun {plan_go} · good luck · ok, gl · be safe · gl, be careful · have fun! · nice, gl · o7 gl
+- **newbie:** gl!! be careful!! · can i come??
+- **helper:** good luck! shout if you need me · be safe! o/
+- **hermit:** ok · bye
+- **PvP sweat:** gl · dont die lol
+- **homebody:** be careful out there! · come back safe
+
+#### `told.plan.building`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** ooh show me when its done · gl with the build · have fun building
+- **builder:** ooh what are you building? · show me after!
+
+#### `told.plan.caving`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** bring torches · gl, watch the creepers · careful down there · bring a water bucket
+
+#### `told.plan.chopping`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** replant the trees lol · gl, get some logs
+
+#### `told.plan.end`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** gl with the dragon! · bring blocks and beds lol · watch the endermen · o7 gl · dont look at the endermen
+
+#### `told.plan.exploring`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** have fun, find something cool · bring food · tell me what you find · gl, dont get lost
+- **nomad:** nice, which way? · the best thing to do
+
+#### `told.plan.farming`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** nice, the farm life · gl, get some wheat lol
+- **homebody:** love that, have fun
+
+#### `told.plan.fishing`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** get me a mending book lol · gl, catch something good · relaxing, nice
+
+#### `told.plan.home`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** cya · ok, cya later · safe travels · gn if you're sleeping
+- **homebody:** home is the best
+
+#### `told.plan.hunting`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** gl, bring me some steak lol · happy hunting · gl
+
+#### `told.plan.mining`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** bring back dias lol · gl, find dias · dont dig straight down · gl, watch for lava · bring me some iron lol
+- **miner:** ooh where at? gl · y -58 is the spot
+
+#### `told.plan.nether`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** bring fire res · gl, watch out for ghasts · dont fall in lava lol · wear gold · careful with the piglins · gl, find a fortress
+- **newbie:** isnt it scary there??
+
+#### `told.plan.stronghold`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** gl, follow the eyes · bring lots of eyes · almost there then
+- **speedrunner:** nice, triangulate it
+
+#### `told.plan.trading`
+
+You said: *going mining / heading to the nether / going home*.
+
+- **everyone:** get mending! · dont let the villagers rip you off · gl with the trades
+
+#### `told.promise`
+
+You said: *ill bring you 5 iron / i owe you*.
+
+- **everyone:** deal · ill hold you to that · ok, {item}, dont forget lol · bet · deal, {item} · noted. {item} · sweet, ty · ill remember that · holding you to it · ok ok, {item}
+- **newbie:** really?? ty!! · omg ok!! {item}!!
+- **hoarder:** {item}. i'll be waiting · dont forget. {item} · i'm writing that down
+- **hermit:** we'll see · sure
+- **bandit:** you better · or else · {item}. dont make me come get it
+- **PvP sweat:** ok · sure, {item}
+- **helper:** aw you dont have to! ty · ty! no rush
+- **miner:** nice, {item} is always good
+
+#### `told.promise_any`
+
+You said: *ill bring you 5 iron / i owe you*.
+
+- **everyone:** you owe me one then · ill remember that lol · noted · deal · ok, you owe me · holding you to that · lol ok
+- **helper:** you dont owe me anything! · nah youre good
+- **hoarder:** yes you do. i'm counting
+- **bandit:** you do. dont forget
+- **hermit:** hm
+
+#### `told.promise_kept`
+
+You said: *ill bring you 5 iron / i owe you*.
+
+- **everyone:** you actually brought it, ty · ayy you remembered · a person of their word, ty · the {item}! ty · ty, as promised lol · ty {player}, you kept your word · W, thanks
+- **newbie:** you remembered!! tysm · omg the {item}!! ty
+- **hoarder:** {item}. good. thank you · right on time
+- **hermit:** ...you came back. ty
+- **bandit:** good. smart · heh, you kept it
+- **helper:** aww ty, you didnt have to! · you remembered! ty!!
+- **PvP sweat:** ty, respect
+
+#### `told.promise_late_kept`
+
+You said: *ill bring you 5 iron / i owe you*.
+
+- **everyone:** finally lol, ty · better late than never · took you long enough lol, ty · oh you remembered, ty · ayy finally
+- **hoarder:** late. but ty
+- **helper:** no worries, ty!
+- **bandit:** about time
+
+#### `told.like`
+
+You said: *i love cats / i hate creepers*.
+
+- **everyone:** {thing}? nice · same honestly · respect · {thing} is cool · nice taste · oh me too · yeah {thing} is great · {thing}, nice · fair, {thing} is good
+- **newbie:** ooh {thing}!! me too!! · whats {thing}? jk lol
+- **PvP sweat:** {thing}? ok · eh, pvp is better
+- **builder:** nice, {thing} is cool · same, building is better tho
+- **miner:** nice. mining is better tho lol
+- **hermit:** hm. ok · {thing}. fine
+- **helper:** aw nice, {thing} is great! · love that!
+- **hoarder:** {thing}? i'd keep it all
+
+#### `told.hate`
+
+You said: *i love cats / i hate creepers*.
+
+- **everyone:** fair · {thing} is the worst lol · real · same tbh · lol why · ok fair · valid · {thing}? really?
+- **newbie:** me too!! {thing} is scary
+- **PvP sweat:** skill issue lol
+- **hermit:** hm
+- **helper:** aw, thats ok lol
+
+#### `told.word_bad`
+
+You said: *bob is a griefer / annie is cool*.
+
+- **everyone:** noted, ill watch out for {who} · {who}? really? · ugh, ok · good to know · ty for the warning · yikes, ok · i'll keep an eye on {who} · for real? ok
+- **newbie:** oh no, ok!! i'll be careful · {who}?? scary
+- **PvP sweat:** let {who} try me · noted. i'll deal with it
+- **hermit:** figures · noted
+- **bandit:** heh, ok · noted
+- **helper:** oh no, are you ok? · ty for telling me, be safe
+- **hoarder:** locking my chests · noted. hiding my stuff
+
+#### `told.word_good`
+
+You said: *bob is a griefer / annie is cool*.
+
+- **everyone:** good to know · {who} seems nice yeah · nice, noted · oh cool · yeah {who} is alright · noted · ty for telling me
+- **newbie:** {who} is nice!! i agree · yay
+- **hermit:** hm. noted
+- **bandit:** noted. soft target · heh, ok
+- **helper:** aw thats nice to hear!
+
+#### `told.word_bad_disagree`
+
+You said: *bob is a griefer / annie is cool*.
+
+- **everyone:** nah {who} is cool · {who}? cant be · {who} has been fine to me · idk, {who} is my friend · hm, not what i've seen · nah
+- **hermit:** no
+- **helper:** {who}? i'm sure it's a misunderstanding
+
+#### `told.word_good_disagree`
+
+You said: *bob is a griefer / annie is cool*.
+
+- **everyone:** {who}? not to me · hm. we'll see · {who}? nah · lol no · not my experience · i dont trust {who}
+- **bandit:** {who}? no
+- **helper:** hm, i hope so
+
+#### `told.word_doubt`
+
+You said: *bob is a griefer / annie is cool*.
+
+- **everyone:** why should i believe you · says you · hm. sure · and why would i trust you · i dont even know you · ok lol · sure buddy
+- **helper:** hm, i'll see for myself
+- **bandit:** nice try
+
+#### `told.news.back`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** wb · welcome back · wb {player} · wb o/ · ayy wb
+- **homebody:** welcome back!! :)
+- **hermit:** mm
+
+#### `told.news.built`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** ooh show me · nice, i wanna see it · W, gg · nice!! where? · ooh what did you build?
+- **builder:** ooh show me!! what style? · nice, i love builds
+- **newbie:** can i see?? :D
+- **hermit:** nice
+
+#### `told.news.diamonds`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** W · lets gooo · nice!! · how many? · W, gg · ooh nice · dias!! W · W, where at?
+- **newbie:** omg W!!! · diamonds!! lucky!!
+- **miner:** W, how deep? · nice, y -58?
+- **hoarder:** ...can i have one · nice. how many exactly
+- **bandit:** oh really. nice · heh, W
+- **PvP sweat:** W, get armor
+- **hermit:** nice
+
+#### `told.news.died`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** rip · f · oof, rip · rip, what got you? · f, get your stuff back? · rip, need help getting your stuff? · o7 · oof
+- **newbie:** oh no!! rip · noooo
+- **PvP sweat:** skill issue · lol rip
+- **helper:** oh no! want help getting your stuff? · rip, you ok?
+- **hermit:** happens
+- **bandit:** where'd you die? asking for a friend
+
+#### `told.news.dragon`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** W!!! · gg!! · no way, gg · lets gooo · gg wp, you beat the game
+- **PvP sweat:** gg, how long did it take
+- **speedrunner:** what time? lol
+
+#### `told.news.end`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** woah, how was it? · nice, see the dragon? · W
+
+#### `told.news.hungry`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** same lol · eat something · i got nothing sorry · go kill a cow lol · same, i'm out too · rip, try some berries
+- **helper:** oh no, sorry i dont have any!
+- **hermit:** eat then
+
+#### `told.news.hungry_offer`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** want some {food}? · i got {food}, want some? · here, want {food}? · need some {food}?
+- **helper:** i have {food}! want some? · take some {food}?
+- **hoarder:** ...want some {food}? just a little
+
+#### `told.news.lost`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** what are your coords? · check your coords, im at {coords} · f3 is your friend lol · im at {coords} if that helps · follow the sun lol
+- **helper:** oh no! im at {coords}, come find me · want me to come get you? im at {coords}
+- **hermit:** hm. good luck
+
+#### `told.news.nether`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** how was it? · W, you survived · nice, find anything? · welcome back lol · ooh nice
+- **newbie:** woah you went there??
+
+#### `told.news.tired`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** go sleep lol · get some rest · same tbh · sleep is op · take a break
+- **homebody:** go rest! :)
+
+#### `told.hungry_yes`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** here · catch · here you go · take this
+- **helper:** here! eat up
+
+#### `told.hungry_no`
+
+You said: *i died / found diamonds / im hungry / im back / im lost*.
+
+- **everyone:** ok · suit yourself · ok lol
+
+### More to ask
+
+| Intent | For example | What it answers |
+| --- | --- | --- |
+| me | who am i, whats my name, do you remember me | What it calls you, and something it remembers |
+| opinion | what do you think of me / of bob, do you like cats, are we cool | How it feels about you or them (trust in words), or the thing |
+| where_is | wheres bob, have you seen annie | In sight, or where and when it last saw them (to someone it knows) |
+| going | where are you going | Where its current goal takes it |
+| need | what do you need, need anything | What it's short of: health, food, a home, the next thing it's after |
+| friends | who are your friends | The players and Drifters it likes best |
+| told | what did i tell you | Something you told it (or did: a gift, an insult) |
+| my_base | wheres my base | Where you said you live, or where it saw you live |
+| forget | forget that, forget everything | Forgets the last thing you told it, or all of it |
+| likes | what do you like | Its favourite things, in its voice |
+| seen_... (heard) | have you seen a village | Not seen one, but told of one: says who said where |
+
+#### `ask.me_known`
+
+Answering **me**.
+
+- **everyone:** youre {nick} · {nick}, ofc · yeah, {nick} · ofc i know you, {nick} · {nick}! how could i forget · {nick}. you {memory} · ofc, {nick}. {memory} · yeah {nick}, {memory}
+- **newbie:** {nick}!! ofc!!
+- **hermit:** {nick}. yes · you're {nick}
+- **helper:** {nick}! ofc i remember you :)
+- **bandit:** {nick}. i remember you
+
+#### `ask.me_stranger`
+
+Answering **me**.
+
+- **everyone:** idk, who are you? · never seen you before · should i? · nope, who are you · uh, no · havent met you lol
+- **hermit:** no · no idea
+- **newbie:** no, sorry! who are you?
+- **bandit:** not yet
+
+#### `ask.opinion_dislike`
+
+Answering **opinion**.
+
+- **everyone:** {who}? not a fan · {who} is annoying · {who} is kinda sus · dont trust {who} · eh, {who}...
+
+#### `ask.opinion_hate`
+
+Answering **opinion**.
+
+- **everyone:** {who}? dont get me started · cant stand {who} · {who} is the worst · stay away from {who} · {who}? ugh
+
+#### `ask.opinion_like`
+
+Answering **opinion**.
+
+- **everyone:** {who} is cool · {who}? yeah, good friend · i like {who} · {who} is nice · {who} is alright
+
+#### `ask.opinion_love`
+
+Answering **opinion**.
+
+- **everyone:** {who}? love {who} · {who} is my best friend · {who} is the best · {who} is great · would die for {who} lol
+
+#### `ask.opinion_me_dislike`
+
+Answering **opinion**.
+
+- **everyone:** not really · eh, no · you're kinda sus · not after what you did · no comment · nah
+- **helper:** i'm still a bit upset with you
+
+#### `ask.opinion_me_hate`
+
+Answering **opinion**.
+
+- **everyone:** no · lol no · i dont trust you at all · stay away from me · absolutely not
+- **bandit:** you're on my list
+
+#### `ask.opinion_me_like`
+
+Answering **opinion**.
+
+- **everyone:** yeah we're cool · ofc · youre cool · yeah youre alright · we're good · yep, friends
+- **hermit:** you're ok
+
+#### `ask.opinion_me_love`
+
+Answering **opinion**.
+
+- **everyone:** youre the best · ofc we're friends · love you man · best friends lol · youre my favorite person · ride or die
+- **hermit:** you're alright. more than alright
+- **PvP sweat:** you're cool, dont tell anyone
+
+#### `ask.opinion_me_meh`
+
+Answering **opinion**.
+
+- **everyone:** i barely know you · idk you yet · ask me later · eh, we'll see · meh · jury's still out
+- **hermit:** dont know you
+
+#### `ask.opinion_me_ok`
+
+Answering **opinion**.
+
+- **everyone:** youre alright · you seem ok · we're good i guess · sure · youre fine · still getting to know you
+- **hermit:** hm. fine
+
+#### `ask.opinion_meh`
+
+Answering **opinion**.
+
+- **everyone:** eh, {who} · {who}? meh · barely know {who} · no opinion · {who}? never really talked
+
+#### `ask.opinion_ok`
+
+Answering **opinion**.
+
+- **everyone:** {who} is ok · {who}? fine i guess · {who} is alright · dont know {who} that well · {who} seems fine
+
+#### `ask.opinion_thing`
+
+Answering **opinion**.
+
+- **everyone:** {thing}? its alright · love {thing} · {thing} is cool · eh, {thing} · {thing}? yeah its good · not really into {thing}
+- **newbie:** {thing} is so cool!!
+- **hermit:** {thing}. fine
+- **PvP sweat:** {thing}? eh, pvp is better
+- **builder:** {thing}? i'd rather build
+- **miner:** {thing}? i'd rather mine
+
+#### `ask.opinion_unknown`
+
+Answering **opinion**.
+
+- **everyone:** who's {who}? · never met {who} · dont know {who} · {who}? no idea · never heard of {who}
+
+#### `ask.where_here`
+
+Answering **where_is**.
+
+- **everyone:** {who}? right there lol · {who} is right there · uh, behind you · right there lol · look around lol
+
+#### `ask.where_seen`
+
+Answering **where_is**.
+
+- **everyone:** saw {who} {when}, {where} · {who} was {where} {when} · {when}, {where} · last saw {who} {where}, {when} · {who}? {where}, {when}
+- **hermit:** {where}. {when}
+
+#### `ask.where_unknown`
+
+Answering **where_is**.
+
+- **everyone:** no idea · havent seen {who} · dunno · havent seen {who} around · not sure, sorry
+- **hermit:** dont know
+
+#### `ask.where_no`
+
+Answering **where_is**.
+
+- **everyone:** why do you wanna know · not telling · ask {who} yourself · idk you well enough · why?
+- **bandit:** what's it worth to you
+
+#### `ask.where_me`
+
+Answering **where_is**.
+
+- **everyone:** right here lol · uh, here? · im right here · here lol · you're looking at me
+- **hermit:** here.
+
+#### `ask.going`
+
+Answering **going**.
+
+- **everyone:** {doing} · just {doing} · gonna go {doing} · {doing}, wbu · nowhere really, {doing}
+- **hermit:** away · {doing}.
+
+#### `ask.going_idle`
+
+Answering **going**.
+
+- **everyone:** nowhere lol · nowhere really · just chilling · dunno yet · wherever · no plans
+- **nomad:** wherever the road goes · somewhere new, eventually
+- **hermit:** nowhere
+
+#### `ask.need_heal`
+
+Answering **need**.
+
+- **everyone:** to heal up lol · food and a nap · a minute to heal · health lol
+- **newbie:** help im hurt
+
+#### `ask.need_food`
+
+Answering **need**.
+
+- **everyone:** food tbh · food, im starving · some food · anything to eat? · food pls
+- **hoarder:** food. lots of it
+
+#### `ask.need_home`
+
+Answering **need**.
+
+- **everyone:** a place to live lol · a home · somewhere to settle · a base
+- **nomad:** nothing. home is overrated
+
+#### `ask.need_target`
+
+Answering **need**.
+
+- **everyone:** {what} · need {what} · working on {what} · {what} rn · looking for {what} · {what}, got any?
+- **hermit:** {what}.
+- **hoarder:** {what}. and more of everything
+
+#### `ask.need_nothing`
+
+Answering **need**.
+
+- **everyone:** nothing, im good · im good, ty · all good · nah im set · nothing rn
+- **hoarder:** more. always more
+- **helper:** im good! do you need anything?
+
+#### `ask.friends`
+
+Answering **friends**.
+
+- **everyone:** {friends} · {friends} mostly · {friends}, why · uh {friends} · {friends} :)
+- **hermit:** {friends}. that's it
+- **bandit:** friends? {friends}, i guess
+
+#### `ask.friends_you`
+
+Answering **friends**.
+
+- **everyone:** you lol · just you · you, ofc · you're my only friend lol
+- **hermit:** you. i guess
+
+#### `ask.friends_none`
+
+Answering **friends**.
+
+- **everyone:** nobody really · dont have any lol · working on it · no one yet
+- **hermit:** dont need any
+- **PvP sweat:** friends are a weakness
+- **newbie:** none yet :( wanna be friends?
+
+#### `ask.told`
+
+Answering **told**.
+
+- **everyone:** {memory} · uh, {memory} · i remember {memory} · {memory}, right? · you said {memory}
+
+#### `ask.told_none`
+
+Answering **told**.
+
+- **everyone:** nothing really · you havent told me anything lol · not much · uh, nothing? · idk, you tell me
+
+#### `ask.my_base_told`
+
+Answering **my_base**.
+
+- **everyone:** you said {where} · {where}, right? · {where} · uh, {where} i think
+
+#### `ask.my_base_seen`
+
+Answering **my_base**.
+
+- **everyone:** {where}, i saw it · {where} · its {where}
+
+#### `ask.my_base_none`
+
+Answering **my_base**.
+
+- **everyone:** no idea, you never said · you didnt tell me · idk · you never showed me
+
+#### `ask.forget`
+
+Answering **forget**.
+
+- **everyone:** ok, forgot · forgot what? lol · ok ok · already forgotten · what thing?
+- **hermit:** fine
+
+#### `ask.forget_all`
+
+Answering **forget**.
+
+- **everyone:** who are you again? lol · ok, forgot everything · done, clean slate · ok, never met you
+- **helper:** ok! clean slate :)
+
+#### `ask.forget_nothing`
+
+Answering **forget**.
+
+- **everyone:** forget what? · you didnt tell me anything lol · nothing to forget
+
+#### `ask.likes`
+
+Answering **likes**.
+
+- **everyone:** mining and exploring · sunsets tbh · building stuff · a good cave · finding diamonds · chilling · just playing
+- **casual:** just chilling, doing whatever · a bit of everything
+- **newbie:** everything!! its all new · pigs!! and diamonds
+- **builder:** building, obviously · a good build · making things look nice
+- **miner:** mining. obviously · strip mining at y -58 · finding dias
+- **homebody:** my home :) · a cozy base · farming and cooking
+- **speedrunner:** going fast · beating my pb · the dragon fight
+- **nomad:** the road · new places · seeing what's over the next hill
+- **hoarder:** full chests · having lots of stuff · my collection
+- **hermit:** quiet · being left alone
+- **PvP sweat:** pvp · winning · 1v1s
+- **bandit:** other people's stuff lol · easy loot
+- **helper:** helping people! · making friends
+
+#### `ask.seen_heard`
+
+Answering **seen_... (heard)**.
+
+- **everyone:** havent seen {what} myself, but {from} said {where} · {from} said theres {what} {where} · not myself, but {from} told me {where} · heard about {what} {where}, from {from}
+
+### Words it fills in
+
+Where it's going, by its current goal (`going.<goal>`), and the words for places, plans, times and memories:
+
+- `going.bank`: the bank
+- `going.buy`: shopping lol · to buy stuff
+- `going.cavehunch`: checking out a cave · caving · theres a cave i wanna see
+- `going.collect`: picking up my furnace stuff
+- `going.converse`: talking lol
+- `going.cook`: cooking · to the furnace
+- `going.corpse_run`: getting my stuff back · to where i died
+- `going.delve`: mining · down to mine · caving
+- `going.enchant`: enchanting
+- `going.explore`: just exploring · wherever lol · exploring, wanna come? · no idea, just wandering · looking for stuff
+- `going.farm`: the farm · to my crops
+- `going.fight`: fighting · busy fighting
+- `going.fish`: fishing
+- `going.flee`: AWAY · anywhere but here
+- `going.followme`: with you lol · following you
+- `going.food`: getting food · food run
+- `going.house`: building my house · working on my house
+- `going.hunt`: hunting · getting food · to kill some cows lol
+- `going.hut`: building a hut
+- `going.light`: putting torches up
+- `going.loot`: looting
+- `going.nether_go`: the nether · nether trip
+- `going.nighthunt`: hunting mobs · out hunting
+- `going.pen`: my animal pen
+- `going.planhouse`: planning my house
+- `going.portal`: building a portal
+- `going.prey`: hunting
+- `going.pursue`: after someone
+- `going.roads`: building a road
+- `going.settle`: looking for a place to live · finding a spot to settle
+- `going.shelter`: home, its getting dark · inside, night's coming · somewhere safe
+- `going.stall`: my stall
+- `going.store`: home to drop stuff off · to my chests
+- `going.tax`: paying taxes ugh
+- `going.tidy`: cleaning up
+- `going.townbuild`: building for the town · town building stuff
+- `going.trade`: trading
+- `going.trade_run`: on a trade run · trading in another town
+- `going.visit`: visiting someone · to see a friend
+- `going.wages`: getting paid lol
+- `going.whim`: nowhere really, just messing around · just doing something fun
+- `place.where.exact`: at {coords} · around {coords}
+- `place.where.near`: near here · around here · close by
+- `place.where.way`: {way} of here · somewhere {way}, about {dist} blocks · like {dist} blocks {way} · {way}, {dist} blocks or so
+- `place.word.ancient_city`: an ancient city
+- `place.word.bastion`: a bastion
+- `place.word.bees`: bees
+- `place.word.cave`: a cave · a big cave
+- `place.word.cherry`: a cherry grove
+- `place.word.coal`: coal
+- `place.word.cows`: cows
+- `place.word.desert`: a desert
+- `place.word.diamonds`: diamonds
+- `place.word.dungeon`: a dungeon · a spawner
+- `place.word.end_city`: an end city
+- `place.word.fortress`: a fortress
+- `place.word.gold`: gold
+- `place.word.horses`: horses
+- `place.word.iron`: iron
+- `place.word.jungle`: a jungle
+- `place.word.lava`: lava
+- `place.word.mansion`: a mansion
+- `place.word.mineshaft`: a mineshaft
+- `place.word.monument`: an ocean monument
+- `place.word.mountain`: mountains
+- `place.word.mushroom`: a mushroom island
+- `place.word.ocean`: an ocean
+- `place.word.outpost`: a pillager outpost
+- `place.word.portal`: a portal
+- `place.word.pumpkins`: pumpkins
+- `place.word.ravine`: a ravine
+- `place.word.sheep`: sheep
+- `place.word.shipwreck`: a shipwreck
+- `place.word.snow`: a snowy biome
+- `place.word.stronghold`: a stronghold
+- `place.word.sugar_cane`: sugar cane
+- `place.word.swamp`: a swamp
+- `place.word.temple`: a temple
+- `place.word.trial_chambers`: trial chambers
+- `place.word.village`: a village
+- `plan.go.building`: building
+- `plan.go.caving`: caving
+- `plan.go.chopping`: chopping trees
+- `plan.go.enchanting`: enchanting
+- `plan.go.end`: to the end
+- `plan.go.exploring`: exploring
+- `plan.go.farming`: farming
+- `plan.go.fishing`: fishing
+- `plan.go.home`: home
+- `plan.go.hunting`: hunting
+- `plan.go.mining`: mining
+- `plan.go.nether`: to the nether
+- `plan.go.raid`: raiding
+- `plan.go.stronghold`: looking for the stronghold
+- `plan.go.trading`: trading
+- `plan.word.building`: the build
+- `plan.word.caving`: caving
+- `plan.word.chopping`: chopping
+- `plan.word.enchanting`: enchanting
+- `plan.word.end`: the end
+- `plan.word.exploring`: exploring
+- `plan.word.farming`: the farm
+- `plan.word.fishing`: fishing
+- `plan.word.home`: home
+- `plan.word.hunting`: the hunt
+- `plan.word.mining`: mining
+- `plan.word.nether`: the nether
+- `plan.word.raid`: the raid
+- `plan.word.stronghold`: the stronghold hunt
+- `plan.word.trading`: trading
+- `when.days`: a few days ago · a while ago · days ago
+- `when.just`: just now · a sec ago · like a minute ago
+- `when.minutes`: a few minutes ago · a bit ago · earlier
+- `when.today`: earlier today · today · this morning
+- `when.yesterday`: yesterday
+- `memory.base`: you live {where} · your base is {where}
+- `memory.gift`: you gave me {item} · you gave me {item}, ty again
+- `memory.hate`: you hate {thing} · you dont like {thing}
+- `memory.insult`: you called me {insult} · you said i was {insult}
+- `memory.like`: you like {thing} · you're into {thing}
+- `memory.news.back`: you came back
+- `memory.news.built`: you built something
+- `memory.news.diamonds`: you found diamonds · you got dias
+- `memory.news.died`: you died lol · you died earlier
+- `memory.news.dragon`: you beat the dragon
+- `memory.news.end`: you went to the end
+- `memory.news.hungry`: you were starving
+- `memory.news.lost`: you got lost lol
+- `memory.news.nether`: you went to the nether
+- `memory.news.tired`: you were tired
+- `memory.nick`: you go by {nick} · you're {nick}
+- `memory.plan`: you went {plan_go} · you were off {plan_go}
+- `memory.promise`: you owe me {item} · you said you'd bring {item}
+
 ## 9. Not chat, but close
 
 - **Manhunt:** messages like "[Drifter] Bob respawned and is back on the hunt." are the mod's announcements.
@@ -2220,7 +3242,8 @@ A message means whichever of these it has the longest phrase of: "no problem" is
 | An escort, after it asks | **yes** or **ready** (it sets off), **no** (it goes alone), **unsure** (it asks again) |
 | A race, after it challenges you | **ready** or **yes** (the countdown), **no**, **unsure** |
 | A Drifter's name, or a part of it 4 letters or longer ("grumpy" or "baker" for xXGrumpybakerXx; not everyday words like "over" or "just"), within 32 blocks | It turns to look for you and may answer (huh) |
-| To a Drifter (section 8) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, **help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot** |
+| To a Drifter (section 8) | **wyd**, **hru**, **name**, **coords**, **base**, **seen_...**, **follow**, **team**, **come**, **stop**, **help**, **give**, **trade**, **duel**, **compliment**, **insult**, **joke**, **bot**; and **me**, **opinion**, **where_is**, **going**, **need**, **friends**, **told**, **my_base**, **forget**, **likes** (section 8b) |
+| Telling a Drifter (section 8b) | **tell_base**, **place_...** (with **place_cue** for "here"), **plan_...**, **promise**, **tell_like**, **tell_hate** (with **things**), **word_good**, **word_bad**, **news_...**; "call me ..." |
 | Anyone near (not in an encounter) | **greeting**, **night**, **bye**, **thanks**: the rituals in section 2 |
 
 Other encounters are answered by doing, not typing: hit a duellist to accept, throw items (Q) at a mugger or a hungry traveller, right-click a merchant or a stall keeper.
@@ -2233,6 +3256,85 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **night** (23): gn · gnn · good night · goodnight · night · nite · nighty night · night all · gn all · gn everyone · night everyone · nn · gnight · going to bed · off to bed · bedtime · time to sleep · sleep well · sweet dreams · logging off for the night · heading to bed · going to sleep · zzz
 - **thanks** (30): ty · tyy · thx · thanks · thank you · thank u · tysm · tyvm · ty so much · thanks so much · thanks a lot · much appreciated · appreciate it · appreciate you · cheers · ta · merci · gracias · danke · ty o7 · thank you so much · tyty · ty ty · thanks man · thanks bro · ty bro · you rock · ur the best · youre the best · legend
 - **bye** (31): bye · byee · bye bye · bb · cya · see ya · see you · see you later · see ya later · later · laters · l8r · take care · o7 · peace · peace out · im out · gtg · got to go · gotta go · have to go · heading out · logging off · logging · brb · afk · farewell · goodbye · good bye · catch you later · ttyl
+- **me** (18): whats my name · what is my name · do you remember me · remember me · do you know me · you know me · u know me · who am i · know who i am · do you know who i am · you remember me · u remember me · forgot me · did you forget me · whats my nickname · what do you call me · what do u call me · say my name
+- **opinion** (31): what do you think of · what do you think about · what do u think of · what do u think about · what you think of · what you think about · thoughts on · do you like · do u like · you like · how do you feel about · how do u feel about · do you trust · do u trust · you trust · are we friends · are we cool · are we good · we cool · we good · we friends · do you hate · do u hate · you hate · is he nice · is she nice · are they nice · whats your opinion on · opinion on · your opinion of · rate
+- **where_is** (14): where is · wheres · where s · have you seen · you seen · u seen · seen · know where · where did · whered · where can i find · any sign of · where went · where are they
+- **going** (17): where are you going · where you going · where u going · where r u going · where are u going · where you headed · where are you headed · where u headed · where you off to · where are you off to · where u off to · where to · going somewhere · heading somewhere · where are you heading · where you heading · where u heading
+- **need** (28): what do you need · what do u need · whatcha need · what you need · what u need · need anything · do you need anything · you need anything · u need anything · anything you need · need something · do you need help · do u need help · you need help · u need help · need any help · need a hand · what are you looking for · what you looking for · what u looking for · what are you after · what you after · what do you want · what do u want · whatcha want · can i help · can i help you · how can i help
+- **friends** (17): who are your friends · who r your friends · whos your friend · who is your friend · your friends · ur friends · best friend · bestie · who do you like · who do u like · who do you hang out with · do you have friends · got any friends · any friends · whos your bestie · who are ur friends · whos ur friend
+- **told** (13): what did i tell you · what did i tell u · what did i say · remember what i said · what do you know about me · what do u know about me · what do you remember · what do u remember · do you remember what i said · what have i told you · tell me what you know about me · what do you know of me · what did i say earlier
+- **my_base** (17): wheres my base · where is my base · where do i live · wheres my house · where is my house · wheres my home · where is my home · remember my base · do you know my base · know my base · where i live · know where i live · my base coords · wheres my place · where is my place · wheres my castle · where did i say my base was
+- **forget** (15): forget it · forget that · forget what i said · forget everything · forget about it · forget me · forget all · forget all of it · scratch that · ignore that · ignore what i said · dont remember that · never mind that · forget everything i said · forget everything i told you
+- **likes** (18): what do you like · what do u like · whats your favorite · whats your favourite · whats your fav · whats ur fav · whats ur favorite · favorite thing · fav thing · what are you into · what r u into · what u into · what do you enjoy · any hobbies · whats your hobby · whats ur hobby · what do you do for fun · what do u do for fun
+- **word_good** (36): is cool · is nice · is chill · is my friend · is a friend · is my buddy · is my bestie · is good · is great · is awesome · is kind · is the best · is legit · is trustworthy · you can trust · u can trust · trust him · trust her · trust them · helped me · saved me · is a good guy · is good people · is goated · is sweet · is funny · is a legend · is a w · is cracked · is pro · is a pro · is helpful · is generous · gave me · is friendly · is safe
+- **word_bad** (50): is a griefer · griefer · griefed · griefed me · is mean · is bad · is evil · is a thief · is a scammer · scammed me · scammer · stole · stole from me · stole my · robbed me · killed me · is toxic · is annoying · is a jerk · is rude · is sus · is shady · is a liar · lied to me · liar · dont trust · do not trust · never trust · cant trust · watch out for · be careful of · be careful around · be careful with · stay away from · keep away from · hates me · attacked me · hit me · is dangerous · is trash · is a bandit · is a pk · is a killer · is a menace · spawn killed me · trapped me · burned my · blew up my · broke my · took my stuff
+- **tell_base** (28): my base · my house · my home · i live · my place · my castle · my town · my village · my bunker · my hut · my cabin · my build · our base · our house · our town · we live · my mansion · my tower · my plot · my starter base · my main base · this is my base · this is my house · welcome to my base · welcome to my house · my camp · my shack · my hideout
+- **promise** (38): ill bring you · ill give you · ill get you · ill pay you · ill send you · ill craft you · ill make you · ill find you · ill bring u · ill give u · ill get u · ill pay u · i will bring you · i will give you · i will get you · i will pay you · gonna bring you · gonna give you · gonna get you · im gonna bring you · im gonna give you · i promise · promise ill · pinky promise · i owe you · i owe u · owe you one · owe u one · ill pay you back · ill pay u back · ill make it up to you · ill repay you · next time ill bring · ill bring some · ill bring it · ill bring them · ill save you some · ill save u some
+- **tell_like** (23): i like · i love · i really like · i really love · i luv · i enjoy · im into · im really into · im a fan of · my favorite · my fav · my favourite · i adore · love me some · i prefer · i rly like · i kinda like · big fan of · huge fan of · im obsessed with · cant get enough of · i lowkey love · i lowkey like
+- **tell_hate** (17): i hate · i dont like · i do not like · i cant stand · i despise · i really hate · not a fan of · im not a fan of · i loathe · i dislike · i hate it when · i rly hate · i kinda hate · i lowkey hate · screw · i really dont like · ugh i hate
+- **things** (215): building · mining · pvp · pve · farming · exploring · exploration · fishing · redstone · parkour · speedrunning · speedruns · the nether · nether · the end · caves · caving · villages · trading · enchanting · brewing · potions · hardcore · survival · creative · bedwars · skywars · skyblock · minigames · boats · elytra · flying · music discs · mods · modded · shaders · sunsets · sunrises · the night · night time · rain · storms · thunderstorms · snow · mountains · forests · deserts · the ocean · oceans · jungles · swamps · cherry trees · cherry blossoms · mushroom islands · ice spikes · structures · dungeons · raids · bosses · the dragon · the wither · archery · swords · axes · tridents · maces · bows · crossbows · armor trims · trims · banners · decorating · interior design · terraforming · gardening · pixel art · statues · castles · bridges · roads · railways · rails · minecarts · horse racing · pets · taming · villager trading · grinding · afk farms · farms · mob farms · iron farms · gold farms · xp farms · automation · tech · storage systems · sorting · hoarding · collecting · loot · treasure · treasure hunting · shipwrecks · temples · ancient cities · sculk · the deep dark · netherite · diamonds · emeralds · copper · amethyst · lanterns · torches · campfires · music · note blocks · books · maps · map art · cartography · teamwork · multiplayer · singleplayer · coop · challenges · nostalgia · old versions · updates · snapshots · glitches · texture packs · resource packs · skins · creepers · zombies · skeletons · spiders · endermen · the warden · phantoms · drowned · slimes · ghasts · blazes · piglins · hoglins · baby zombies · chickens · pigs · sheep · cows · cats · dogs · wolves · foxes · axolotls · bees · frogs · parrots · pandas · goats · sniffers · allays · camels · llamas · turtles · dolphins · squids · glow squids · horses · mooshrooms · rabbits · bunnies · polar bears · iron golems · snow golems · villagers · wandering traders · pillagers · witches · lava · water · sand · gravel · dirt · cobblestone · deepslate · wood · spruce · birch · dark oak · oak · acacia · jungle wood · mangroves · bamboo · cactus · flowers · sunflowers · pumpkins · melons · cake · cookies · bread · steak · golden apples · golden carrots · beetroot soup · rabbit stew · pumpkin pie · honey · sweet berries · glow berries
+- **place_cue** (21): theres · there is · there are · theres a · found · i found · spotted · i spotted · saw · i saw · is here · are here · is over there · are over there · look · check out · come see · loads of · lots of · tons of · a bunch of
+- **place_village** (5): village · villages · villagers · a town · some villagers
+- **place_diamonds** (5): diamonds · diamond · dias · dia · diamond ore
+- **place_iron** (3): iron · iron ore · raw iron
+- **place_gold** (2): gold · gold ore
+- **place_coal** (2): coal · coal ore
+- **place_dungeon** (7): dungeon · spawner · mob spawner · zombie spawner · skeleton spawner · spider spawner · monster spawner
+- **place_portal** (4): portal · nether portal · ruined portal · broken portal
+- **place_fortress** (3): fortress · nether fortress · blaze spawner
+- **place_bastion** (2): bastion · bastion remnant
+- **place_cave** (5): cave · caves · cavern · big cave · huge cave
+- **place_mineshaft** (3): mineshaft · abandoned mineshaft · mine shaft
+- **place_ravine** (2): ravine · canyon
+- **place_temple** (4): temple · desert temple · jungle temple · pyramid
+- **place_shipwreck** (4): shipwreck · ship wreck · wrecked ship · sunken ship
+- **place_monument** (4): monument · ocean monument · guardians · guardian temple
+- **place_stronghold** (2): stronghold · end portal
+- **place_ancient_city** (3): ancient city · deep dark · warden
+- **place_outpost** (3): outpost · pillager outpost · pillager tower
+- **place_mansion** (2): mansion · woodland mansion
+- **place_trial_chambers** (4): trial chamber · trial chambers · trial spawner · vault
+- **place_lava** (3): lava pool · lava lake · lava
+- **place_end_city** (2): end city · end ship
+- **place_mountain** (4): mountain · mountains · big mountain · peak
+- **place_ocean** (3): ocean · the sea · a sea
+- **place_desert** (1): desert
+- **place_jungle** (1): jungle
+- **place_swamp** (2): swamp · mangrove swamp
+- **place_cherry** (5): cherry grove · cherry trees · cherry blossom · cherry forest · pink trees
+- **place_mushroom** (4): mushroom island · mushroom biome · mooshrooms · mushroom fields
+- **place_snow** (6): snow biome · snowy biome · snowy · ice spikes · igloo · snowy plains
+- **place_sheep** (1): sheep
+- **place_cows** (2): cows · cow
+- **place_horses** (2): horses · horse
+- **place_bees** (3): bees · bee nest · beehive
+- **place_sugar_cane** (2): sugar cane · sugarcane
+- **place_pumpkins** (4): pumpkins · pumpkin · melons · melon
+- **plan_mining** (18): going mining · gonna go mining · gonna mine · going to mine · off to mine · heading to mine · go mining · going strip mining · going branch mining · time to mine · mining time · gonna strip mine · gonna go mine · heading down to mine · off mining · back to mining · gonna dig · going down to mine
+- **plan_caving** (10): going caving · gonna go caving · going spelunking · going into a cave · going in the cave · gonna explore caves · gonna explore some caves · heading into the caves · cave diving · off caving
+- **plan_nether** (12): going to the nether · gonna go to the nether · heading to the nether · off to the nether · going nether · nether trip · going in the nether · into the nether · gonna do the nether · gonna go nether · back to the nether · going to the nether rn
+- **plan_end** (9): going to the end · heading to the end · fight the dragon · kill the dragon · gonna kill the dragon · off to the end · end trip · gonna fight the dragon · going to fight the dragon
+- **plan_exploring** (15): going exploring · gonna explore · going to explore · off exploring · heading out exploring · going on an adventure · gonna go on an adventure · going for a walk · gonna explore a bit · gonna look around · going to look around · going scouting · gonna scout · off to explore · exploring time
+- **plan_building** (11): going to build · gonna build · working on my build · off to build · gonna work on my base · working on my base · going to work on my house · build time · gonna work on my house · back to building · gonna decorate
+- **plan_fishing** (6): going fishing · gonna fish · gonna go fish · fishing time · gonna go fishing · off fishing
+- **plan_farming** (9): going farming · gonna farm · working on my farm · tend the farm · gonna harvest · gonna plant · going to harvest · farm time · gonna work on my farm
+- **plan_hunting** (11): going hunting · gonna hunt · gonna kill some mobs · mob hunting · gonna get food · going to get food · getting food · gonna get some food · off hunting · monster hunting · gonna grind mobs
+- **plan_home** (14): going home · heading home · head home · going back home · back to base · going back to base · going back to my base · gonna go home · off home · heading back home · heading back to base · going back to my house · going to my base · going to my house
+- **plan_trading** (8): going trading · gonna trade with villagers · going to the village · heading to the village · trading with villagers · gonna go trade · going to trade · villager trading time
+- **plan_raid** (5): going to raid · gonna raid · going raiding · fight the raid · gonna start a raid
+- **plan_stronghold** (7): going to find the stronghold · looking for the stronghold · stronghold hunting · throwing eyes · gonna find the end portal · gonna find the stronghold · going to find the end portal
+- **plan_chopping** (10): going to chop · gonna chop wood · chopping trees · get some wood · getting wood · gonna get wood · going to get wood · wood run · gonna chop some trees · going to chop trees
+- **plan_enchanting** (5): gonna enchant · going to enchant · enchanting my · gonna enchant my stuff · enchanting time
+- **news_died** (21): i died · just died · died lol · i got killed · got killed · i fell · fell in lava · i died to · died to a · rip me · i got blown up · creeper got me · creeper blew me up · lost my stuff · lost all my stuff · lost everything · lost my items · i drowned · fell off a cliff · i burned · killed me
+- **news_diamonds** (14): found diamonds · got diamonds · found dias · got dias · found a diamond · got a diamond · finally diamonds · found my first diamonds · mined diamonds · dias lets go · diamonds lets go · i found diamonds · i got diamonds · first diamonds
+- **news_hungry** (13): im hungry · so hungry · im starving · starving · no food · out of food · need food · i need food · im so hungry · hungry af · im out of food · got no food · i have no food
+- **news_built** (13): finished my house · finished my base · built a house · just built · finished building · done building · my build is done · finished the build · built my base · finished my build · built a base · built my house · finally finished
+- **news_nether** (6): back from the nether · been to the nether · just got back from the nether · survived the nether · went to the nether · came back from the nether
+- **news_end** (4): back from the end · been to the end · went to the end · came back from the end
+- **news_dragon** (8): killed the dragon · beat the dragon · killed the ender dragon · beat the ender dragon · beat the game · beat minecraft · dragon is dead · the dragon is dead
+- **news_back** (8): im back · back now · just got back · back again · i am back · im home · made it back · im back home
+- **news_tired** (7): im tired · so tired · im sleepy · sleepy · exhausted · im exhausted · im so tired
+- **news_lost** (10): im lost · i got lost · got lost · i am lost · i dont know where i am · dont know where i am · lost my way · cant find my way · cant find my base · cant find my house
 - **wyd** (23): wyd · wud · what you doing · what are you doing · what r u doing · what are u doing · whatcha doing · watcha doing · what you up to · what are you up to · what r u up to · whats up with you · what u doing · what you doin · what are you doin · you busy · are you busy · u busy · busy · what are you working on · what you working on · whatcha up to · up to anything
 - **hru** (24): how are you · how r u · how are u · hru · how you doing · how are you doing · how u doing · hows it going · how is it going · you good · u good · you ok · u ok · are you ok · are you okay · you okay · how have you been · hows life · hows your day · how was your day · you alright · u alright · wbu · hbu
 - **name** (13): whats your name · what is your name · whats ur name · ur name · your name · who are you · who r u · who are u · who is this · whos this · who dis · do i know you · have we met
@@ -2259,5 +3361,5 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 
 ## Where they live
 
-- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
-- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `encounter/*.java`.
+- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`); whims' lines in `drifter_whims/*.json`. This doc is generated from them.
+- Code: `social/Lines.java` (loading, picking in a voice, reading answers), `social/ChatLines.java` (rate limits), `social/ChatReplies.java` (the rituals), `social/talk/PlayerTalk.java` (asking a Drifter), `social/talk/Telling.java` and `Heard.java` (telling it things; what it remembers), `encounter/*.java`.

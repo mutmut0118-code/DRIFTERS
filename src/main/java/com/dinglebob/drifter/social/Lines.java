@@ -275,6 +275,20 @@ public final class Lines {
 		return " " + out + " ";
 	}
 
+	/** The longest phrase of this intent found in the message (as matched: lower case, no punctuation), or null. */
+	@Nullable
+	public static String phrase(String text, String intent) {
+		String said = normalize(text);
+		String best = null;
+		for (String phrase : answers.getOrDefault(intent, List.of())) {
+			if ((best == null || phrase.length() > best.length()) && said.contains(phrase)) {
+				best = phrase;
+			}
+		}
+
+		return best == null ? null : best.trim();
+	}
+
 	/**
 	 * What this message means, of these intents ("yes", "no"...): the one whose phrase found in it is longest ("no
 	 * problem" is a yes, though it has "no" in it; "hell no" a no, though "hell" isn't), a tie going to the earlier intent

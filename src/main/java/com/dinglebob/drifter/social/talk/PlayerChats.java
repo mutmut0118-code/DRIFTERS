@@ -62,6 +62,8 @@ public final class PlayerChats {
 		final Set<String> world;
 		int turn;
 		long nextAt;
+		/** It said something (a topic whose lines didn't fit says nothing, and asks nothing). */
+		boolean said;
 
 		Opening(DrifterEntity drifter, ServerPlayer player, Topics.Topic topic, long now) {
 			this.drifter = drifter;
@@ -69,6 +71,7 @@ public final class PlayerChats {
 			this.topic = topic;
 			this.a = Facts.of(drifter, null);
 			this.b = Facts.player(drifter, player);
+			Heard.addPlayerFacts(drifter, player, this.a, this.b);
 			this.world = Facts.world(drifter, player);
 			this.nextAt = now + 5;
 		}
@@ -154,6 +157,7 @@ public final class PlayerChats {
 	public static Topics.Topic start(DrifterEntity drifter, ServerPlayer player, @Nullable String topicId, long now) {
 		Facts a = Facts.of(drifter, null);
 		Facts b = Facts.player(drifter, player);
+		Heard.addPlayerFacts(drifter, player, a, b);
 		Set<String> world = Facts.world(drifter, player);
 		Topics.Topic topic = topicId != null ? Topics.playerTopic(topicId) : pick(drifter, a, b, world);
 		if (topic == null) {
@@ -166,6 +170,7 @@ public final class PlayerChats {
 		lastDrifter.put(drifter.getUUID(), now);
 		lastPair.put(drifter.getUUID() + ":" + player.getUUID(), now);
 		PlayerTalk.focusOn(player, drifter, now);
+		drifter.getHeard().topicSaid(player, topic.id(), now);
 		drifter.getMemory().thoughts().add(now, "started talking with " + player.getGameProfile().getName() + " (" + topic.id().replace('_', ' ') + ")");
 		return topic;
 	}
@@ -213,6 +218,7 @@ public final class PlayerChats {
 
 				opening.drifter.getCamera().lookAt(opening.player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
 				ChatLines.speak(opening.drifter, line);
+				opening.said = true;
 				opening.nextAt = now + Math.min(120, 30 + line.length() * 2) + opening.drifter.getRandom().nextInt(20);
 				return true;
 			}
@@ -223,7 +229,7 @@ public final class PlayerChats {
 
 	/** Said its piece: it waits for an answer to its question, or a bystander may add something. */
 	private static void end(Opening opening, long now) {
-		if (opening.topic.question() != null) {
+		if (opening.topic.question() != null && opening.said) {
 			PlayerTalk.ask(opening.drifter, opening.player, opening.topic.question(), vars(opening), now);
 		}
 
@@ -232,8 +238,9 @@ public final class PlayerChats {
 	}
 
 	private static Object[] vars(Opening opening) {
-		List<Object> vars = new ArrayList<>(List.of("a", opening.drifter.getName().getString(), "b", opening.player.getGameProfile().getName(), "player",
-			opening.player.getGameProfile().getName()));
+		// (They're called what they asked to be.)
+		String called = Heard.callName(opening.drifter, opening.player);
+		List<Object> vars = new ArrayList<>(List.of("a", opening.drifter.getName().getString(), "b", called, "player", called));
 		opening.a.words.forEach((key, value) -> {
 			vars.add("a." + key);
 			vars.add(value);

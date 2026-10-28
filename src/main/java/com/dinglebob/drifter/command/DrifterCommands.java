@@ -638,6 +638,7 @@ public final class DrifterCommands {
 		WhimCommands.register(root);
 		EncounterCommands.register(root);
 		HouseCommands.register(root);
+		HeardCommands.register(root);
 
 		dispatcher.register(root);
 	}

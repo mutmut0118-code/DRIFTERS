@@ -66,8 +66,8 @@ public final class Conversations {
 			this.a = a;
 			this.b = b;
 			this.topic = topic;
-			this.aFacts = Facts.of(a, b);
-			this.bFacts = Facts.of(b, a);
+			this.aFacts = facts(a, b);
+			this.bFacts = facts(b, a);
 			this.world = Facts.world(a, b);
 			this.nextAt = now + 10 + a.getRandom().nextInt(20);
 		}
@@ -158,8 +158,8 @@ public final class Conversations {
 			return null;
 		}
 
-		Facts aFacts = Facts.of(a, b);
-		Facts bFacts = Facts.of(b, a);
+		Facts aFacts = facts(a, b);
+		Facts bFacts = facts(b, a);
 		Set<String> world = Facts.world(a, b);
 		Topics.Topic topic = topicId != null ? Topics.byId(topicId) : pick(a, b, aFacts, bFacts, world);
 		if (topic == null) {
@@ -176,6 +176,13 @@ public final class Conversations {
 		a.getDrifterBrain().poke();
 		b.getDrifterBrain().poke();
 		return talk;
+	}
+
+	/** Its facts, talking with the other: what it knows, and what players told it that it could pass on. */
+	private static Facts facts(DrifterEntity me, DrifterEntity other) {
+		Facts facts = Facts.of(me, other);
+		Heard.addDrifterFacts(me, other, facts);
+		return facts;
 	}
 
 	/** A topic that suits these two now (weighted; not the one they talked about last). */
@@ -310,6 +317,9 @@ public final class Conversations {
 					com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, -2.0);
 					com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, -2.0);
 				}
+				// What a player told it, passed on (a place; a word about someone).
+				case "pass_place" -> Heard.passPlace(talk.a, talk.b, now);
+				case "pass_word" -> Heard.passWord(talk.a, talk.b, now);
 				default -> {
 				}
 			}

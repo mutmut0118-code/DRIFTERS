@@ -586,7 +586,10 @@ public class SocialWatcher {
 		}
 
 		this.record(player, SocialEvent.GIFT, SocialEvent.GIFT.trust + value);
-		ChatLines.say(this.drifter, ChatLines.Kind.THANKS, "player", player.getGameProfile().getName());
+		// (What they promised it: "you actually brought it", in place of a plain thanks.)
+		if (!this.drifter.getHeard().gift(player, stack)) {
+			ChatLines.say(this.drifter, ChatLines.Kind.THANKS, "player", player.getGameProfile().getName());
+		}
 		Watch w = this.watch(player);
 		w.giftAt = this.now();
 		w.thanked = false;

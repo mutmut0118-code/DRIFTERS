@@ -2123,3 +2123,41 @@ Test in survival: like mobs, hostile Drifters ignore you in creative.
       keeps them forever). After that it's gone the next time you're near, and whatever was still in it lies on the
       ground. Players' corpses follow Ragdoll Corpse's own setting, as before.
 - [ ] Switch off: "Ragdolls on death" in the settings screen (bottom row, beside "Catch-up while closed").
+
+## Side session: Drifters remember what you tell them (new, 0.22.26-side.1)
+
+Set up: stand near a Drifter that likes you (or make one: look at it and run `/drifter social set <your name> trust 40`,
+then `/drifter social set <your name> familiarity 20`). Talk to it as before: say its name, or look at it, or be the only
+one close by. Everything you tell it shows with `/drifter heard` (stand next to it). Full list of phrases and lines:
+docs/CHAT_LINES.md section 8b.
+
+- [ ] Say `call me Dingle` (any name). It answers ("ok Dingle it is") and from then on calls you that when it answers
+      you or starts a talk with you. `whats my name` gets "youre Dingle", sometimes with something it remembers.
+- [ ] Say `my base is at 120 64 -300` (your own numbers), or stand at home and say `this is my base`, or `my house is
+      up north`. It says "noted". Later `wheres my base` gets it back ("you said at 120 64 -300", or "north of here").
+- [ ] Say `theres a village 300 blocks north` or `found dias at 10 -58 40`. It thanks you. Every Drifter within 32
+      blocks reads it too. Ask another one `have you seen a village`: if it hasn't seen one itself, "havent seen a
+      village myself, but Dingle said north of here...".
+- [ ] Places travel: two Drifters talking later pass it on ("Tester said theres a village..."); the one told has it
+      too (`/drifter heard` on it shows "from Tester (1 tellings on)"). It's hearsay: it doesn't change where they go.
+- [ ] Say `going mining` (or `heading to the nether`, `going exploring`). It says "gl". A few minutes later, when it
+      next starts a chat with you, it asks how it went ("how was mining? find dias?"); answer `yeah` or `nope`.
+      To skip the wait: `/drifter heard age 4` (real minutes), then `/drifter talk me heard_plan`.
+- [ ] Say `ill bring you 5 iron`. It holds you to it. After a day it reminds you ("still waiting on that 5 iron ingot
+      lol"); after three days with nothing it's a little less fond of you and says so. Throw it the iron (Q) and
+      instead of a plain "ty" it says "you actually brought it" (and likes you more). Skip the wait with
+      `/drifter heard age 25` (a game day is 20 real minutes), then `/drifter talk me heard_promise`; `age 65` for
+      the broken one (then `/drifter talk me heard_promise_broken`).
+- [ ] Say `i love cats` or `i hate creepers`. It reacts, and now and then brings it up later ("still into cats?").
+- [ ] Say `<another Drifter's name> is a griefer` while talking to a different one. It says "noted, ill watch out for
+      ..." (if it trusts you; a stranger gets "why should i believe you"; if it's friends with them it sticks up for
+      them). It thinks a little less of them, and may pass the word on.
+- [ ] Say `i died`, `found diamonds`, `im back`, `im lost`, `im hungry`. It reacts ("rip, need help getting your
+      stuff?", "W", "wb", its coords if you're lost). Hungry, and it likes you and has food: "want some bread?" Say
+      `yes` and it throws you some.
+- [ ] New questions: `what do you think of me` (or of someone), `do you like cats`, `wheres <name>`, `where are you
+      going`, `what do you need`, `who are your friends`, `what did i tell you`, `what do you like`.
+- [ ] `forget that` forgets the last thing you told it; `forget everything` all of it (it calls you by your real name
+      again).
+- [ ] Questions aren't statements: `is there a village north?` or `do you like cats?` don't get remembered.
+- [ ] Leave and rejoin the world: `/drifter heard` still shows what it was told.

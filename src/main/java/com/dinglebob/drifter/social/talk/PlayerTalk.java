@@ -59,6 +59,10 @@ public final class PlayerTalk {
 
 	private static final String[] INTENTS = {"wyd", "hru", "name", "coords", "base", "seen_village", "seen_diamonds", "seen_iron", "seen_dungeon",
 		"seen_portal", "seen_fortress", "follow", "come", "stop", "help", "team", "give", "trade", "duel", "compliment", "insult", "joke", "bot"};
+	/** These, and what's new to ask (who am i, where's bob...: {@link Telling}). */
+	private static final String[] ASKED = concat(INTENTS, Telling.ASKS);
+	/** And what they think of someone else ("bob is a griefer"). */
+	private static final String[] ALL = concat(ASKED, Telling.WORDS);
 
 	/** How far it hears someone talking to it without its name: looking at it, or the only one this close. */
 	private static final double LOOKED_AT = 16.0;
@@ -68,7 +72,7 @@ public final class PlayerTalk {
 	/** A "can i have" with no item: the next message naming one is what they want, this long after. */
 	private static final long WAITING_FOR_ITEM = 20L * 30;
 	/** Trust from which it tells a direction, and from which it gives things or comes when asked. */
-	private static final double KNOWS_THEM = 10.0;
+	static final double KNOWS_THEM = 10.0;
 	/** Familiarity with which an acquaintance (trust over {@link #KNOWS_THEM}) comes along too. */
 	private static final double FAMILIAR = 3.0;
 	/** Insults lately (a day): it brings them up when asked for something. */
@@ -114,11 +118,12 @@ public final class PlayerTalk {
 	public static boolean heard(ServerPlayer player, String text) {
 		long now = player.level().getGameTime();
 		Focus focused = focus.get(player.getUUID());
-		String intent = Lines.answer(text, INTENTS);
+		String intent = Lines.answer(text, ALL);
 		// The answer to what a Drifter just asked them (a yes or a no, and nothing else asked).
 		Asked question = asked.get(player.getUUID());
 		if (question != null && now < question.until() && question.drifter().isAlive() && question.drifter().distanceTo(player) <= SocialWatcher.NAME_RANGE
-			&& (intent == null || intent.equals("compliment") || intent.equals("follow") || intent.equals("team"))) {
+			// (Not a question of their own: "yeah, found 3 diamonds" answers "find any dias?".)
+			&& (intent == null || intent.equals("compliment") || intent.equals("follow") || intent.equals("team") || !Telling.question(text))) {
 			String yes = Lines.answer(text, "yes", "no", "ready");
 			if (yes != null) {
 				asked.remove(player.getUUID());
@@ -127,7 +132,9 @@ public final class PlayerTalk {
 			}
 		}
 
-		DrifterEntity drifter = addressee(player, text, focused, now);
+		// A place said in chat is read by every Drifter close by (whoever it was said to).
+		Telling.overheard(player, text, now);
+		DrifterEntity drifter = addressee(player, text, focused, now, Telling.aboutOthers(intent));
 		if (drifter == null) {
 			return false;
 		}
@@ -137,12 +144,24 @@ public final class PlayerTalk {
 			intent = "give";
 		}
 
-		if (intent == null) {
+		// (In an encounter, the encounter does the talking.)
+		if (drifter.encounter() != null) {
 			return false;
 		}
 
-		// (In an encounter, the encounter does the talking.)
-		if (drifter.encounter() != null) {
+		// Something they tell it ("call me X", "my base is at ...", "going mining"): it remembers, and answers.
+		if (Telling.told(drifter, player, text, intent, now)) {
+			focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+			drifter.getSocial().watcher().spokenTo(player);
+			return true;
+		}
+
+		// (A word about someone it doesn't know of: whatever else the message asks.)
+		if (intent != null && (intent.equals("word_good") || intent.equals("word_bad"))) {
+			intent = Lines.answer(text, ASKED);
+		}
+
+		if (intent == null) {
 			return false;
 		}
 
@@ -200,7 +219,7 @@ public final class PlayerTalk {
 
 	/** Food it can spare, or null. */
 	@Nullable
-	private static Item spareFood(DrifterEntity drifter) {
+	static Item spareFood(DrifterEntity drifter) {
 		for (Map.Entry<Integer, Integer> entry : com.dinglebob.drifter.brain.Storage.spare(drifter).entrySet()) {
 			ItemStack stack = drifter.getInventory().getItem(entry.getKey());
 			if (entry.getValue() > 0 && stack.has(DataComponents.FOOD)) {
@@ -220,8 +239,13 @@ public final class PlayerTalk {
 	// Who it's said to
 	// ---------------------------------------------------------------------------------------------
 
+	/**
+	 * Who it's said to. Said about someone else ({@code aboutOthers}: "wheres bob", "bob is a griefer"), the one named is
+	 * who it's about: it's said to the one they're talking with, looking at, or the only other one close by (to the one named
+	 * if there's nobody else).
+	 */
 	@Nullable
-	private static DrifterEntity addressee(ServerPlayer player, String text, @Nullable Focus focused, long now) {
+	private static DrifterEntity addressee(ServerPlayer player, String text, @Nullable Focus focused, long now, boolean aboutOthers) {
 		ServerLevel level = player.serverLevel();
 		List<DrifterEntity> near = level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(SocialWatcher.NAME_RANGE),
 			drifter -> drifter.isAlive() && !drifter.isTemporary() || drifter.isAlive() && drifter.encounter() != null);
@@ -232,14 +256,34 @@ public final class PlayerTalk {
 		// Named.
 		String words = " " + text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", " ") + " ";
 		DrifterEntity named = null;
+		int namedCount = 0;
 		for (DrifterEntity drifter : near) {
-			if (SocialWatcher.called(words, drifter.getName().getString()) && (named == null || drifter.distanceTo(player) < named.distanceTo(player))) {
-				named = drifter;
+			if (SocialWatcher.called(words, drifter.getName().getString())) {
+				namedCount++;
+				if (named == null || drifter.distanceTo(player) < named.distanceTo(player)) {
+					named = drifter;
+				}
 			}
 		}
 
-		if (named != null) {
+		if (named != null && !(aboutOthers && namedCount == 1)) {
+			// ("annie, wheres bob": of the two, the one they're talking with.)
+			if (aboutOthers && focused != null && now < focused.until()) {
+				for (DrifterEntity drifter : near) {
+					if (drifter.getUUID().equals(focused.drifter()) && SocialWatcher.called(words, drifter.getName().getString())) {
+						return drifter;
+					}
+				}
+			}
+
 			return named;
+		}
+
+		// (About the one named: said to someone else.)
+		DrifterEntity about = named;
+		near = near.stream().filter(drifter -> drifter != about).toList();
+		if (near.isEmpty()) {
+			return about;
 		}
 
 		// The one they've been talking with.
@@ -271,7 +315,7 @@ public final class PlayerTalk {
 
 		// The only one close by.
 		List<DrifterEntity> close = near.stream().filter(drifter -> drifter.distanceTo(player) <= ONLY_ONE).toList();
-		return close.size() == 1 ? close.get(0) : null;
+		return close.size() == 1 ? close.get(0) : about;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -279,8 +323,9 @@ public final class PlayerTalk {
 	// ---------------------------------------------------------------------------------------------
 
 	private static void answer(DrifterEntity drifter, ServerPlayer player, String intent, String text, long now) {
-		String name = player.getGameProfile().getName();
-		Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), name);
+		Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
+		// (What it calls them: their name, or what they asked to be called.)
+		String name = Heard.callName(drifter, player);
 		Mode mode = Mode.toward(drifter, player);
 		// (A 1v1 they asked for is a game, not a grudge: it still talks to them.)
 		boolean hostile = (mode.hostile() || mode == Mode.WARNING) && !Spar.on(drifter, player);
@@ -383,13 +428,21 @@ public final class PlayerTalk {
 			}
 			case "duel" -> duel(drifter, player, r);
 			default -> {
+				// The newer questions (who am i, where's bob...); one it can't answer (where's no one it knows): what else the
+				// message asks.
+				if (!Telling.asked(drifter, player, intent, text, r, knows, now)) {
+					String other = Lines.answer(text, INTENTS);
+					if (other != null) {
+						answer(drifter, player, other, text, now);
+					}
+				}
 			}
 		}
 	}
 
 	/** What it's doing, in a few words (its job, without the progress: "gather birch log"), or null when it isn't. */
 	@Nullable
-	private static String doing(DrifterEntity drifter) {
+	static String doing(DrifterEntity drifter) {
 		var activity = drifter.getDrifterBrain().activity();
 		if (activity == null) {
 			return null;
@@ -423,7 +476,7 @@ public final class PlayerTalk {
 
 	/** Have you seen one: from its memory only (what it saw), told as its trust in them allows. */
 	private static void seen(DrifterEntity drifter, ServerPlayer player, String intent, boolean friend, boolean knows) {
-		String name = player.getGameProfile().getName();
+		String name = Heard.callName(drifter, player);
 		record Sought(MemoryKind kind, String what, Predicate<MemoryEntry> is) {
 		}
 
@@ -437,6 +490,14 @@ public final class PlayerTalk {
 		};
 		MemoryEntry entry = drifter.getMemory().nearest(sought.kind(), drifter.level().dimension().location(), drifter.position(), Double.MAX_VALUE, sought.is());
 		if (entry == null) {
+			// Not seen one, but told of one ("bob said theres one up north").
+			Heard.Place told = drifter.getHeard().nearest(intent.substring("seen_".length()), drifter.position());
+			if (told != null && (knows || drifter.getPersonality().archetype() == Archetype.HELPER)) {
+				reply(drifter, "ask.seen_heard", null, "player", name, "what", sought.what(), "where", Heard.where(drifter, told, player.position()), "from",
+					told.teller().equals(player.getGameProfile().getName()) ? "you" : told.teller());
+				return;
+			}
+
 			reply(drifter, "ask.seen_none", null, "player", name, "what", sought.what());
 			return;
 		}
@@ -454,7 +515,7 @@ public final class PlayerTalk {
 
 	/** "Can i have some bread?": from what it can spare, to someone it likes (or owes), about what they're worth to it. */
 	private static void give(DrifterEntity drifter, ServerPlayer player, Relationship r, String text, long now) {
-		String name = player.getGameProfile().getName();
+		String name = Heard.callName(drifter, player);
 		Item item = wanted(drifter, text);
 		if (item == null) {
 			reply(drifter, "ask.give_what", null, "player", name);
@@ -501,7 +562,7 @@ public final class PlayerTalk {
 
 	/** "1v1?": a fighter takes it (if it doesn't think they'd crush it), the rest don't. */
 	private static void duel(DrifterEntity drifter, ServerPlayer player, Relationship r) {
-		String name = player.getGameProfile().getName();
+		String name = Heard.callName(drifter, player);
 		Archetype archetype = drifter.getPersonality().archetype();
 		double bravery = drifter.getPersonality().get(Trait.BRAVERY);
 		double aggression = drifter.getPersonality().get(Trait.AGGRESSION);
@@ -539,7 +600,7 @@ public final class PlayerTalk {
 
 	/** A number they said (1 to 64), or null. */
 	@Nullable
-	private static Integer number(String text) {
+	static Integer number(String text) {
 		Matcher matcher = NUMBER.matcher(text);
 		while (matcher.find()) {
 			int n = Integer.parseInt(matcher.group(1));
@@ -634,7 +695,7 @@ public final class PlayerTalk {
 		return pos.getX() + " " + pos.getY() + " " + pos.getZ();
 	}
 
-	private static String way(Vec3 from, Vec3 to) {
+	static String way(Vec3 from, Vec3 to) {
 		double dx = to.x - from.x;
 		double dz = to.z - from.z;
 		String[] ways = {"south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"};
@@ -643,7 +704,7 @@ public final class PlayerTalk {
 		return ways[index];
 	}
 
-	private static int distance(Vec3 from, Vec3 to) {
+	static int distance(Vec3 from, Vec3 to) {
 		int d = (int)Math.round(Math.sqrt((to.x - from.x) * (to.x - from.x) + (to.z - from.z) * (to.z - from.z)));
 		// (Players round: "about 120", not "about 117".)
 		return d < 20 ? d : (int)(Math.round(d / 10.0) * 10);
@@ -654,7 +715,7 @@ public final class PlayerTalk {
 	// ---------------------------------------------------------------------------------------------
 
 	/** Its answer, said once it's "typed" (longer lines later); then what it said it'd do, if anything. */
-	private static void reply(DrifterEntity drifter, String key, @Nullable Runnable then, Object... vars) {
+	static void reply(DrifterEntity drifter, String key, @Nullable Runnable then, Object... vars) {
 		String line = Lines.pick(drifter, key, vars);
 		long now = drifter.level().getGameTime();
 		answeredAt.put(drifter.getUUID(), now);
@@ -669,6 +730,15 @@ public final class PlayerTalk {
 		long at = now + 15 + Math.min(80, line.length() * 2) + drifter.getRandom().nextInt(15);
 		replies.add(new Reply(drifter, line, at, then));
 		replyAt.put(drifter.getUUID(), at);
+	}
+
+	private static String[] concat(String[]... lists) {
+		List<String> all = new ArrayList<>();
+		for (String[] list : lists) {
+			all.addAll(List.of(list));
+		}
+
+		return all.toArray(String[]::new);
 	}
 
 	private static void tick(MinecraftServer server) {
