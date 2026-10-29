@@ -195,7 +195,8 @@ public final class PartsExhibit {
 		// it in (the main stone, the trim's: steps and sills; brick walls textured or not).
 		String[][] stones = {{"cobblestone", "cobblestone", ""}, {"cobblestone", "cobblestone", "textured"}, {"cobblestone", "andesite", ""},
 			{"cobblestone", "deepslate", "textured"}, {"deepslate", "deepslate", "textured"}, {"deepslate", "cobblestone", "textured"},
-			{"tuff", "tuff", "textured"}, {"tuff", "deepslate", ""}, {"andesite", "deepslate", ""}, {"andesite", "cobblestone", ""}};
+			{"tuff", "tuff", "textured"}, {"tuff", "deepslate", ""}, {"andesite", "deepslate", ""}, {"andesite", "cobblestone", ""},
+			{"sandstone", "sandstone", ""}, {"red_sandstone", "red_sandstone", ""}};
 		for (String styleId : new String[] {"stone_house", "cobble_cottage"}) {
 			HouseStyle style = GeneratedPlans.styles().get(styleId);
 			HousePlan plan = style == null ? null : draw("style:" + styleId, style, null);

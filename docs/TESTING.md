@@ -2440,3 +2440,22 @@ stones; brick walls sometimes get a few cracked bricks or tiles of their own sto
 - [ ] Houses already built or half-built in your worlds stay exactly as they were.
 
 Installed as 0.22.42-side.1: also has the other session's 0.22.41-0.22.42 (their checks are in their own sections above).
+
+## Side session: overnight batch (new, 0.22.42-side.2)
+
+Chat fixes and more topics, builders finishing roofs, chest labels, desert houses.
+
+- [ ] Chat: say "trade?" to a Drifter, then "a diamond sword". It answers about the sword ("nope, none", or gives one
+      if it's a friend with a spare), not "havent seen any".
+- [ ] Chat: be rude to a Drifter ("fuck you", "i dont like you", "who asked", "ur a jerk"). It answers every time
+      ("ok buddy", "so original"...) and likes you a little less. Normal talk ("this cave is so boring") isn't rude.
+- [ ] Drifters chatting with each other bring up new things: being hungry, nearly dying, losing their stuff, their
+      diamonds, their house, rainy nights, thunder, little debates (shields, cats or dogs, torches or lanterns).
+- [ ] Roofs: watch a Drifter build a house with a tall roof (a two-storey house, or one with dormers). It now walks up
+      onto the roof to finish the top rows, so the house ends up complete: no gap along the ridge, dormers finished.
+- [ ] Chest labels: once a Drifter's house is built, it puts a sign on the front of its house chests saying what's in
+      them ("Ores", "Wood", "Food", "Stone", "Misc"...), and changes the sign when the contents change. Quickest to see
+      in a ready-made town (`/drifterciv town spawn 6 Testby`), a day or two in: look at the chests inside the houses.
+- [ ] Desert houses: in a desert, new Drifters mostly build their houses in sandstone (smooth sandstone steps and
+      sills); in badlands, red sandstone. See them all in `/drifter house parts` (the stones rows end with sandstone and
+      red sandstone).

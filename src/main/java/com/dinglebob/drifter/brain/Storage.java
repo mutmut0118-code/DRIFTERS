@@ -67,7 +67,7 @@ public final class Storage {
 			if (isWorthlessStone(stack) && !houseStone(drifter, stack) || stack.is(Items.POISONOUS_POTATO)) {
 				kind = "worthless";
 				limit = 0;
-			} else if (stack.is(Items.GRAVEL) || stack.is(Items.SAND) || stack.is(Items.RED_SAND)) {
+			} else if ((stack.is(Items.GRAVEL) || stack.is(Items.SAND) || stack.is(Items.RED_SAND)) && !houseStone(drifter, stack)) {
 				kind = "loose";
 				limit = KEEP_LOOSE;
 			} else if (stack.is(Items.DIRT) || stack.is(Items.COARSE_DIRT) || stack.is(Items.ROOTED_DIRT)) {
@@ -104,8 +104,8 @@ public final class Storage {
 	}
 
 	/**
-	 * A stone its house is being built of (andesite walls, tuff: HousePalette), which isn't junk to it then (found in
-	 * testing: a builder threw out the andesite for its walls, then went looking for more).
+	 * A stone its house is being built of (andesite walls, tuff, the sand for sandstone: HousePalette), which isn't junk to
+	 * it then (found in testing: a builder threw out the andesite for its walls, then went looking for more).
 	 */
 	private static boolean houseStone(DrifterEntity drifter, ItemStack stack) {
 		Home home = drifter.getDrifterBrain().home();
@@ -116,7 +116,7 @@ public final class Storage {
 		for (Map<String, String> woods : home.project == null ? List.of(home.planWoods) : List.of(home.planWoods, home.project.woods)) {
 			for (String key : new String[] {com.dinglebob.drifter.building.plan.HousePalette.STONE_KEY, com.dinglebob.drifter.building.plan.HousePalette.TRIM_KEY}) {
 				var stone = com.dinglebob.drifter.building.plan.HousePalette.stoneNamed(woods.get(key));
-				if (stone != null && stack.is(stone.raw())) {
+				if (stone != null && (stack.is(stone.raw()) || stone.madeFrom() != null && stack.is(stone.madeFrom().asItem()))) {
 					return true;
 				}
 			}

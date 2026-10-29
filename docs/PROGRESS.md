@@ -3591,3 +3591,35 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
   - Also merged the other session's 0.22.41 (how a war feels; no mining in towns); Conversations.pick keeps both its
     pressing-topics rule and this session's grounded/everyday split.
 - **0.22.42-side.1 (side session):** merged the other session's 0.22.42 (nations, step 6 part 3). Headless smoke test: talks run, no errors.
+- **Overnight side batch (0.22.42-side.2; the user, 2026-10-29: "doing the rest of whats left back to back? from chat to
+  the houses"):**
+  - Chat bug: after "trade?" (or "can i have something"), a message naming an item is the answer even when a word in
+    it means something else ("a diamond sword" was heard as "seen diamonds?"); `PlayerTalk.heard`. Tested in the dev
+    client: "nope, none".
+  - Chat bug: insults with no reply ("fiery fuck you", "i dont like you" in the user's log): 70 more ways to be rude in
+    `drifter_chat/insults_more.json` (swearing, "who asked", "i dont like you"...; nothing so general it catches normal
+    talk: "this cave is so boring" is still small talk). Tested in the dev client.
+  - 35 more topics (`drifter_talk/topics_grounded.json`, 628 in all): how it is now (hungry, a close call, lost its
+    things, its diamonds, its hut, house or no home, what it built, a rare find, a big fight, its group), weather and
+    time (rainy nights, thunder, mornings, evenings, clear nights), seven debates, advice and plans between friends,
+    jokes and small talk. Checked with tools/check_talk_web.py; three run on a headless server.
+  - Builders finish tall roofs (found: the top rows of any roof 10+ up, and dormers, were never built):
+    `BuildPlanActivity`: (1) a step down off its pillar counted as having walked over for the next block, so each block
+    it climbed down from was given up as out of reach; (2) spots chosen to work a little off the middle of the block (up
+    a pillar it never stands quite in the middle); (3) it may stand on the roof itself (a bottom-half stair or slab under
+    it, room above; no pillaring from there), as a player finishes a roof: from inside, the top rows of a two-layer roof
+    can't be got at. Tested: a cobble cottage pasted with its roof's top rows taken off, rebuilt to 1264 of 1264 (dormers
+    and ridge) in 3 days (before: 1114, stuck). Tried and dropped: pillars up to 9 (slower, no better).
+  - House insides: chest labels (the furnishing guidebook's "label every chest"). `building/ChestLabels` (what a chest
+    holds most of, from its memory: Wood, Stone, Ores, Food, Gear, Mob drops, Farm, Dirt & sand, else Misc),
+    `LabelChestsGoal` + `LabelChestsActivity` (by day at home, after its house is built; signs of its main wood from six
+    planks and a stick at the crafting table by its chests, planks fetched or made the usual way; sneak-placed on the
+    chest's front, the label written on; a label that's out of date is written over), and `StoreActivity` labels chests
+    in reach when it has signs on it. Tested: a made-ready town over 4 days (four labels by one townsperson; picture: an
+    "Ores" sign on a bedside chest). Not done: rugs and other decoration.
+  - Biome houses: sandstone and red sandstone in HousePalette (walls sandstone, cut sandstone where the plan has stone
+    bricks, steps and sills smooth sandstone; counted from sand it knows, four to a block, and sandstone; sandstone, red
+    sandstone and red sand in the sources table; a house's sand isn't junk). Tested: a Drifter on a flat desert picks
+    sandstone for 3 of 4 plans.
+  - Also: Placement counts the same shape in another stone (from the stones change), `/drifter house parts` stones rows
+    have sandstone and red sandstone.

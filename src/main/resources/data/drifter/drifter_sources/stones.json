@@ -1,7 +1,8 @@
 {
-	"_comment": "Building stones that drop themselves (0.22.40-side.2: a house's stone can be the stone round its builder's home; HousePalette). Dug with any pickaxe.",
+	"_comment": "Building stones that drop themselves, and red sand (sandstone is made from sand, four to a block: dug sandstone is mostly buried under the sand, so it isn't listed) (0.22.40-side.2: a house's stone can be the stone round its builder's home; HousePalette). Dug with any pickaxe.",
 	"sources": [
 		{ "item": "minecraft:andesite", "block": ["minecraft:andesite"], "drops": "self", "tool": "minecraft:wooden_pickaxe" },
-		{ "item": "minecraft:tuff", "block": ["minecraft:tuff"], "drops": "self", "tool": "minecraft:wooden_pickaxe" }
+		{ "item": "minecraft:tuff", "block": ["minecraft:tuff"], "drops": "self", "tool": "minecraft:wooden_pickaxe" },
+		{ "item": "minecraft:red_sand", "block": ["minecraft:red_sand"], "drops": "self" }
 	]
 }

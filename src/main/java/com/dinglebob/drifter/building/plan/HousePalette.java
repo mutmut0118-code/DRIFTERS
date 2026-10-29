@@ -52,8 +52,12 @@ public final class HousePalette {
 	 * by eye, not any two), and what a textured wall scatters through its fine blocks (only its own: cracked bricks,
 	 * tiles; the user didn't like one stone dotted through another).
 	 */
-	public record Stone(String name, String rough, String fine, String finePart, Item raw, Block natural, List<String> trims, List<String> fineMix) {
+	public record Stone(String name, String rough, String fine, String finePart, Item raw, Block natural, List<String> trims, List<String> fineMix,
+		@Nullable Block madeFrom) {
 	}
+
+	/** Blocks of what a stone is made from (sand) to one of it (sandstone: four sand). */
+	private static final int MADE_FROM_EACH = 4;
 
 	/**
 	 * Stones a house can be built of; cobblestone (the plan as drawn) first. No granite or diorite (the user: "take granite
@@ -63,12 +67,18 @@ public final class HousePalette {
 	 */
 	public static final List<Stone> STONES = List.of(
 		new Stone("cobblestone", "cobblestone", "stone_bricks", "stone_brick", Items.COBBLESTONE, Blocks.STONE, List.of("andesite", "deepslate"),
-			List.of("cracked_stone_bricks")),
+			List.of("cracked_stone_bricks"), null),
 		new Stone("deepslate", "cobbled_deepslate", "deepslate_bricks", "deepslate_brick", Items.COBBLED_DEEPSLATE, Blocks.DEEPSLATE,
-			List.of("cobblestone"), List.of("cracked_deepslate_bricks", "deepslate_tiles")),
+			List.of("cobblestone"), List.of("cracked_deepslate_bricks", "deepslate_tiles"), null),
 		new Stone("andesite", "andesite", "polished_andesite", "polished_andesite", Items.ANDESITE, Blocks.ANDESITE, List.of("deepslate", "cobblestone"),
-			List.of()),
-		new Stone("tuff", "tuff", "tuff_bricks", "tuff_brick", Items.TUFF, Blocks.TUFF, List.of("deepslate"), List.of("polished_tuff")));
+			List.of(), null),
+		new Stone("tuff", "tuff", "tuff_bricks", "tuff_brick", Items.TUFF, Blocks.TUFF, List.of("deepslate"), List.of("polished_tuff"), null),
+		// The desert's and the badlands' (biome houses: the sand round them, as the wood is the trees round them): sandstone
+		// walls, smooth sandstone steps and sills; made from the sand it digs (four to a block) or dug as it is.
+		new Stone("sandstone", "sandstone", "cut_sandstone", "smooth_sandstone", Items.SANDSTONE, Blocks.SANDSTONE, List.of(), List.of(),
+			Blocks.SAND),
+		new Stone("red_sandstone", "red_sandstone", "cut_red_sandstone", "smooth_red_sandstone", Items.RED_SANDSTONE, Blocks.RED_SANDSTONE,
+			List.of(), List.of(), Blocks.RED_SAND));
 	/** Saved with the woods (so a town build's palette reaches every builder as it is): the main stone, the trim's, the mix. */
 	public static final String STONE_KEY = "#stone";
 	public static final String TRIM_KEY = "#trim";
@@ -297,21 +307,44 @@ public final class HousePalette {
 				count += count(drifter, fine.asItem());
 			}
 
+			if (stone.madeFrom() != null) {
+				count += count(drifter, stone.madeFrom().asItem()) / MADE_FROM_EACH;
+			}
+
 			have.put(stone, count);
 		}
 
 		var level = drifter.level();
-		for (var pos : KnownBlocks.find(drifter, STONE_RADIUS, state -> naturalStone(state) != null, STONE_COUNT_MAX)) {
-			Stone stone = naturalStone(level.getBlockState(pos));
+		Map<Stone, Integer> from = new HashMap<>();
+		for (var pos : KnownBlocks.find(drifter, STONE_RADIUS, state -> naturalStone(state) != null || madeFromOf(state) != null, STONE_COUNT_MAX)) {
+			BlockState state = level.getBlockState(pos);
+			Stone stone = naturalStone(state);
+			Stone source = madeFromOf(state);
 			if (stone != null && KnownBlocks.mayTake(level, pos)) {
 				have.merge(stone, 1, Integer::sum);
+			} else if (source != null && KnownBlocks.mayTake(level, pos)) {
+				from.merge(source, 1, Integer::sum);
 			}
 		}
+
+		from.forEach((stone, blocks) -> have.merge(stone, blocks / MADE_FROM_EACH, Integer::sum));
 
 		countedFor = drifter.getUUID();
 		countedAt = now;
 		counted = Map.copyOf(have);
 		return counted;
+	}
+
+	/** The stone this block (sand) is made into, or null. */
+	@Nullable
+	private static Stone madeFromOf(BlockState state) {
+		for (Stone stone : STONES) {
+			if (stone.madeFrom() != null && state.is(stone.madeFrom())) {
+				return stone;
+			}
+		}
+
+		return null;
 	}
 
 	@Nullable
