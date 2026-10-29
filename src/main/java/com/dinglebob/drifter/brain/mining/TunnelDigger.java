@@ -340,6 +340,38 @@ public final class TunnelDigger {
 		return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(nextFeet), 0.3, leg.stairs() ? "step down the stairs" : "step along the tunnel");
 	}
 
+	/** How far under the surface a room can be (a house's ground floor under its roof, a cellar). */
+	private static final int ROOMS_DOWN = 12;
+
+	/**
+	 * Air near the surface with built blocks round it (a floor, walls, a ceiling: anything placed, or that looks built): a
+	 * room, not a cave. Not cobblestone (its own plugs, or another miner's), and not deep down (old mines, a mineshaft).
+	 */
+	private boolean intoBuilding(Level level, BlockPos air) {
+		if (level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, air.getX(), air.getZ()) - air.getY() > ROOMS_DOWN) {
+			return false;
+		}
+
+		for (Direction direction : Direction.values()) {
+			for (int far = 1; far <= 3; far++) {
+				BlockPos pos = air.relative(direction, far);
+				BlockState state = level.getBlockState(pos);
+				if (state.isAir()) {
+					continue;
+				}
+
+				boolean plug = state.is(net.minecraft.world.level.block.Blocks.COBBLESTONE) || state.is(net.minecraft.world.level.block.Blocks.COBBLED_DEEPSLATE);
+				if (!plug && (!KnownBlocks.mayTake(level, pos) || com.dinglebob.drifter.nav.NavView.looksBuilt(state))) {
+					return true;
+				}
+
+				break;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Water, a cave, gravel or sand, lava, rock too hard, someone's build: not this way. Open air under the open sky (the
 	 * top of a staircase dug from the surface) is fine.
@@ -531,13 +563,24 @@ public final class TunnelDigger {
 
 				BlockState state = level.getBlockState(neighbor);
 				boolean outdoors = state.isAir() && level.canSeeSky(neighbor);
+				if (state.isAir() && !outdoors && this.intoBuilding(level, neighbor)) {
+					// Not a cave: someone's room (a house's walls and floor round it). No cobblestone in their house; not this way
+					// (found by the user: town houses' windows and rooms filled with cobblestone by a staircase dug beside them).
+					if (!t.done) {
+						t.done = true;
+						this.say("dug into someone's house: not this way");
+					}
+
+					continue;
+				}
+
 				if (!level.getFluidState(neighbor).isEmpty() || state.isAir() && !outdoors) {
 					// Broke into a cave or water: plug the opening (next step).
 					if (this.plug == null) {
 						this.plug = neighbor;
 						this.plugFrom = dug;
 						this.plugging = false;
-						this.say(state.isAir() ? "broke into a cave: plugging the hole" : "hit water: plugging it");
+						this.say((state.isAir() ? "broke into a cave: plugging the hole" : "hit water: plugging it") + " at " + neighbor.toShortString());
 						if (state.isAir()) {
 							this.caveBreach = neighbor.immutable();
 						}

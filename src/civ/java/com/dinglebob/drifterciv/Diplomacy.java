@@ -186,7 +186,12 @@ final class Diplomacy {
 				killer = credit instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(credit);
 			}
 
+			// (Gone for good, it's left its group by now: the one it was in.)
 			Town mine = server == null || killer == null ? null : townOf(drifter.getUUID());
+			if (mine == null && killer != null && drifter.groupAtDeath() != null) {
+				mine = townOfGroup(drifter.groupAtDeath());
+			}
+
 			Town theirs = mine == null ? null : townOf(killer.getUUID());
 			Relation r = theirs == null || theirs == mine ? null : relation(mine, theirs);
 			if (r != null && r.war) {
@@ -197,6 +202,12 @@ final class Diplomacy {
 					+ killer.getName().getString() + ")");
 				Towns.save(server);
 			}
+		});
+		// A town's raiders gather at its own plaza (the user, 2026-10-29: "if everyone grouped up at their own town instead of a
+		// spot behind a building in the enemies town").
+		DrifterApi.setRaidMusters(group -> {
+			Town town = townOfGroup(group);
+			return town == null ? null : town.center;
 		});
 		// A town's raids go for the town they're at war with: its store (its till), which everyone round about knows of.
 		DrifterApi.setRaidTargets((attackers, defenders) -> {

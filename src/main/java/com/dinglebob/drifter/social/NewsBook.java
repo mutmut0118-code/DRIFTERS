@@ -180,6 +180,18 @@ public final class NewsBook {
 					return;
 				}
 
+				// Its own side killed it (it, or one of its group): one of theirs down, no grief, no grudge against its own (the
+				// user, 2026-10-29: "even the enemies mourned the deaths of the people they killed? doesnt make sense").
+				// (Not when it was one of its own group too: a killing among themselves is mourned.)
+				var mine = com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID());
+				var killers = news.other() == null ? null : com.dinglebob.drifter.world.DrifterGroups.of(news.other());
+				boolean ownKilled = news.data().hasUUID("Group") && killers != null && news.data().getUUID("Group").equals(killers.id);
+				if (news.other() != null && !ownKilled && (news.other().equals(this.drifter.getUUID()) || mine != null && killers == mine)) {
+					this.drifter.getMemory().thoughts().add(now, (seen ? "saw " : "heard that ") + news.aboutName() + " " + news.what() + from
+						+ " (one of theirs)");
+					return;
+				}
+
 				var bond = news.about() == null ? null : this.drifter.getBonds().get(news.about());
 				boolean friend = bond != null && bond.trust >= DrifterBonds.FRIEND;
 				// Gone for good (stakes, part 2): it hits harder, and stays with it.
@@ -193,7 +205,8 @@ public final class NewsBook {
 						this.mourn(news, closeness);
 						// (Seeing it happen: a word, the way a player would, now and then; nothing at all, as often.)
 						if (seen && this.drifter.getRandom().nextFloat() < 0.6F) {
-							ChatLines.speak(this.drifter, Lines.pick(this.drifter, "grief.saw", "who", news.aboutName()));
+							// (Once the fight's over: the user, 2026-10-29.)
+							ChatReplies.afterFight(this.drifter, Lines.pick(this.drifter, "grief.saw", "who", news.aboutName()), true);
 						}
 					}
 				}
@@ -253,7 +266,11 @@ public final class NewsBook {
 		for (News news : fresh.subList(0, Math.min(PER_MEETING, fresh.size()))) {
 			theirs.hear(news, this.drifter);
 			told++;
-			if (news.kind() != News.Kind.CUSTOM && news.hops() <= 1 && this.drifter.getRandom().nextInt(3) == 0 && playerNear(other)) {
+			// (Out loud, but not "rip" about one its own side killed: found in the user's war, "rip X. X was slain by" the teller.)
+			boolean ours = news.kind() == News.Kind.DEATH && news.other() != null && (news.other().equals(this.drifter.getUUID())
+				|| com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID()) != null
+				&& com.dinglebob.drifter.world.DrifterGroups.of(news.other()) == com.dinglebob.drifter.world.DrifterGroups.of(this.drifter.getUUID()));
+			if (!ours && news.kind() != News.Kind.CUSTOM && news.hops() <= 1 && this.drifter.getRandom().nextInt(3) == 0 && playerNear(other)) {
 				ChatLines.sayLine(this.drifter, Lines.pick(this.drifter, news.kind() == News.Kind.DEATH ? "news.death" : "news.deed", "who", news.aboutName(),
 					"what", news.what()));
 			}
@@ -313,6 +330,12 @@ public final class NewsBook {
 		// (Whether it's gone for good, and where: stakes, part 2.)
 		CompoundTag data = new CompoundTag();
 		data.putBoolean("Final", !comesBack);
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(dead.getUUID());
+		java.util.UUID groupId = group != null ? group.id : dead.groupAtDeath();
+		if (groupId != null) {
+			data.putUUID("Group", groupId);
+		}
+
 		data.putLong("Where", dead.blockPosition().asLong());
 		data.putString("Dimension", dead.level().dimension().location().toString());
 		News news = new News("death:" + dead.getUUID() + ":" + now, News.Kind.DEATH, dead.getUUID(), name, killer == null ? null : killer.getUUID(),

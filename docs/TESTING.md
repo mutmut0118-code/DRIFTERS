@@ -1478,6 +1478,22 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       the attacker's leader rallies its people ("rallying ... for a raid"), they march on the other's store, fight and
       loot it; the other side raids back. The chronicle: "X of A fell in the war with B (killed by Y)".
       `/drifterciv relations` shows the war, since when and each side's dead.
+- [ ] How a war feels (0.22.41). Same two towns at war, watch from between them:
+      - The attackers' leader calls them together on their own plaza ("grab your swords"), they set off together, and
+        charge once the town's in sight ("Envoyby is right there. GO"). Only people with a weapon and good health go.
+      - The other town shouts the alarm ("they're raiding us!") and its fighters run to the store.
+      - They fight it out instead of hiding; someone badly hurt backs off, and once most of them are hurt the leader
+        calls it ("fall back!").
+      - Nobody says "rip" or "o7" about someone their own side just killed; the killer might say "got one". The other
+        side's "rip ..." lines come after the fighting, not mid-swing.
+      - No small talk ("i have iron armor now!!") while the raid's on: only talk about the war.
+      - Wrecking depends on the raiders' leader: `/drifter wars` shows it ("loot only", "doors and fields too", "fire
+        too"). To see the worst now: `/drifter wars grief 2` while a raid is on. Doors broken, crops trampled, a few
+        fires (raiders need their own flint and steel); nothing near a bed.
+      - A day after the raid, the raided town's people put their houses back together (doors back, burnt walls
+        rebuilt).
+- [ ] Towns over a few days (0.22.41): no cobblestone in house windows, up house walls or inside rooms. Townspeople who go
+      mining walk out past the town's edge first and dig away from it.
 - [ ] Allies: make two towns allies first (`/drifterciv relations set B 80`, then `envoy B peace`, a few days later
       `envoy B alliance`); a third town declaring war on one brings the other in ("stood by its ally").
 - [ ] Peace: after some days and deaths a side sends terms ("enough fighting. Aby wants peace" or reparations); a
@@ -2389,3 +2405,24 @@ windows, a balcony over the front door, and a cross-shaped house.
       and I'll copy your changes).
 
 Installed as 0.22.40-side.1: also has the other session's 0.22.38-0.22.40 (gear by place in town, diplomacy, wars between towns; their checks are in their own sections above).
+
+## Side session: houses in other stones (new, 0.22.41-side.1)
+
+Drifters now build some houses in the stone around them (deepslate, andesite, tuff) instead of always cobblestone, with
+the steps and window sills in a second stone that goes with it. No granite or diorite, and no speckled mix of two
+stones; brick walls sometimes get a few cracked bricks or tiles of their own stone.
+
+- [ ] See every pairing: in a creative world, stand somewhere open and type `/drifter house parts`. The third and
+      fourth rows are new: a stone house and a cobble cottage in each pairing (the sign says which: "cobblestone/
+      deepslate tex" means stone bricks with deepslate brick steps and sills, textured). Tell me which you like and which
+      look off.
+- [ ] Type `/drifter house parts` again in the same spot: it clears the old ones first, so nothing runs together.
+- [ ] Give a Drifter some stone and ask what it would build: stand by it and type
+      `/drifter give minecraft:andesite 400`, `/drifter give minecraft:cobbled_deepslate 150`, then
+      `/drifter house info house:townhouse_164` (house names differ from world to world; any `house:...` name
+      works). It says which stones it would use, e.g. "stone: andesite, trim deepslate". Different houses get different picks.
+- [ ] In a new world, Drifters that live near andesite (grey speckled patches on hillsides and in caves) or that mine
+      a lot of deepslate sometimes build in it. Their houses keep the andesite they carry instead of throwing it out.
+- [ ] Houses already built or half-built in your worlds stay exactly as they were.
+
+Installed as 0.22.41-side.1: also has the other session's 0.22.41 (their checks are in their own section above).

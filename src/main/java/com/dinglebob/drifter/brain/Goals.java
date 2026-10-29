@@ -2525,6 +2525,12 @@ public final class Goals {
 				return 0.6;
 			}
 
+			// Its house wrecked in a raid: built back up (the user, 2026-10-29: "the attacked town rebuilds").
+			if (home != null && home.planDone && home.planId != null && home.planOrigin != null && !home.borrowed()
+				&& drifter.level().getGameTime() < home.mendUntil && home.near(drifter, Home.STORAGE_RANGE) && !Schedule.isNight(drifter)) {
+				return 0.5;
+			}
+
 			// (A town's household: its house is its only home, given a plot; it builds whatever it's like, at any stage.)
 			boolean townHouse = home != null && home.noHut && home.planId != null && home.planOrigin != null;
 			if (home == null || !home.hutBuilt && !home.noHut || home.borrowed() || home.planDone || home.houseBuilt || !home.near(drifter, Home.STORAGE_RANGE)

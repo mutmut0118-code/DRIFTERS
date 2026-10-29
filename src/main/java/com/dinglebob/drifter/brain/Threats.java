@@ -267,6 +267,10 @@ public final class Threats {
 			|| entity.getMainHandItem().getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem;
 	}
 
+	/** At war: below this share of its health it falls back; worse odds than this and it runs whatever its health. */
+	public static final double WAR_FALL_BACK = 0.4;
+	public static final double WAR_HOPELESS = 0.3;
+
 	/** Below this Bravery it fights like a coward (section 13 fighting styles). */
 	public static final double COWARD_BRAVERY = 0.3;
 
@@ -397,6 +401,18 @@ public final class Threats {
 				|| drifter.getDrifterBrain().hitsWhileBackingOff >= 2 && now - drifter.getDrifterBrain().lastHitWhileBackingOff < 100)) {
 			decision = Decision.ENGAGE_CAREFUL;
 			main = lastAttacker;
+		}
+
+		// At war (its group and theirs): it stands and fights with its side, unless it's hopeless, and falls back once it's low
+		// (the user, 2026-10-29: "few would fight and others would just hide; should be more fighting but if everybody gets low
+		// they retreat").
+		if (main instanceof com.dinglebob.drifter.entity.DrifterEntity enemy && com.dinglebob.drifter.world.DrifterWars.atWar(drifter, enemy)) {
+			boolean low = drifter.getHealth() < drifter.getMaxHealth() * WAR_FALL_BACK;
+			if (!low && (decision == Decision.AVOID || decision == Decision.RETREAT || decision == Decision.FLEE && ratio >= WAR_HOPELESS)) {
+				decision = Decision.ENGAGE_CAREFUL;
+			} else if (low && decision.fights() && !(recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5 && stuckInPlace(drifter, now))) {
+				decision = Decision.RETREAT;
+			}
 		}
 
 		// An archer close by (a skeleton): backing off in the open only gets it shot in the back, so it rushes it unless it's

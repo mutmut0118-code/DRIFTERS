@@ -444,6 +444,11 @@ public class BuildPlanActivity extends Activity {
 			return Status.SUCCESS;
 		}
 
+		if (home.mendUntil > 0) {
+			home.mendUntil = 0;
+			this.think("fixed up its house" + (missing > 0 ? " (bar " + missing + " blocks it couldn't reach)" : ""));
+		}
+
 		if (!home.planDone) {
 			home.planDone = true;
 			// Its build now: it uses the door, not the wall (user, 2026-10-17).

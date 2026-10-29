@@ -667,6 +667,24 @@ public class DrifterEntity extends PathfinderMob {
 		this.tradeRun = run;
 	}
 
+	/**
+	 * In a fight now: after someone, someone after it, or hit in the last five seconds. What it says about a death waits
+	 * till it's out of one (the user, 2026-10-29: "people should acknowledge the deaths after they fight").
+	 */
+	/** The group it was in when it died (gone for good, it's left it by the time the others hear). Not saved. */
+	@org.jetbrains.annotations.Nullable
+	private java.util.UUID groupAtDeath;
+
+	@org.jetbrains.annotations.Nullable
+	public java.util.UUID groupAtDeath() {
+		return this.groupAtDeath;
+	}
+
+	public boolean inAFight() {
+		return this.getTarget() != null && this.getTarget().isAlive() || this.brain.pursuit() != null
+			|| this.getLastHurtByMob() != null && this.tickCount - this.getLastHurtByMobTimestamp() < 20 * 5;
+	}
+
 	/** An errand to another town it's on (DrifterApi.setErrand: an envoy), or null. Not saved. */
 	@org.jetbrains.annotations.Nullable
 	private com.dinglebob.drifter.api.Errand errand;
@@ -2423,6 +2441,7 @@ protected void customServerAiStep() {
 		if (this.level() instanceof ServerLevel server) {
 			var group = com.dinglebob.drifter.world.DrifterGroups.of(this.getUUID());
 			if (group != null) {
+				this.groupAtDeath = group.id;
 				String name = this.getName().getString();
 				if (!comesBack) {
 					com.dinglebob.drifter.world.DrifterGroups.leave(this.getUUID());

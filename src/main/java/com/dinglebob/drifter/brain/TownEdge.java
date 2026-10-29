@@ -26,6 +26,21 @@ public final class TownEdge {
 		return town != null && town.townGround(pos.getX(), pos.getZ());
 	}
 
+	/** Near enough its town that a mine dug from here could run under it: within its edge and a margin. */
+	public static boolean nearTown(DrifterEntity drifter, BlockPos pos) {
+		var town = drifter.getTownWork();
+		if (town == null) {
+			return false;
+		}
+
+		double dx = pos.getX() - town.center().getX();
+		double dz = pos.getZ() - town.center().getZ();
+		return Math.sqrt(dx * dx + dz * dz) <= town.radius() + NEAR;
+	}
+
+	/** How far past its town's edge a mine could still run back under it. */
+	private static final int NEAR = 24;
+
 	/** The ground just outside its town that way from the middle (the top block's air above it), or null if not in a town. */
 	@Nullable
 	public static BlockPos outside(DrifterEntity drifter, Direction way) {

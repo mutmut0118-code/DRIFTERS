@@ -246,8 +246,8 @@ public final class Conversations {
 	/** Start a conversation between these two on this topic (or one that suits them); the talk, or null if none suits. */
 	@Nullable
 	public static Talk start(DrifterEntity a, DrifterEntity b, @Nullable String topicId, long now) {
-		// (One conversation at a time each.)
-		if (of(a) != null || of(b) != null) {
+		// (One conversation at a time each; none in the middle of a fight, nor on the way to one: out on a raid.)
+		if (of(a) != null || of(b) != null || a.inAFight() || b.inAFight() || onARaid(a) || onARaid(b)) {
 			return null;
 		}
 
@@ -561,6 +561,23 @@ public final class Conversations {
 		return was != null && now - was.at() <= RESUME_WITHIN;
 	}
 
+	/** Needs that make a topic pressing: talked about before anything else while they hold. */
+	private static final Set<String> PRESSING = Set.of("a:at_war", "a:town_war", "a:town_fell", "a:revolt", "a:after_betrayed", "a:after_coup");
+
+	/** Out on a raid with its group now (gathering, on the march, at it, or coming back). */
+	private static boolean onARaid(DrifterEntity drifter) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		return group != null && com.dinglebob.drifter.world.DrifterWars.raidOf(group.id) != null
+			&& drifter.getDrifterBrain().currentGoal() != null && drifter.getDrifterBrain().currentGoal().id().equals("raid");
+	}
+
+	/** Its group is out raiding, or being raided, now. */
+	private static boolean raiding(DrifterEntity drifter) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		return group != null && (com.dinglebob.drifter.world.DrifterWars.raidOf(group.id) != null || com.dinglebob.drifter.world.DrifterWars.raidOn(group.id) != null);
+	}
+
+
 	/**
 	 * A topic that suits these two now (weighted; not the one they talked about last; not one that only follows another;
 	 * something real first, mostly: {@link #GROUNDED_SHARE}).
@@ -574,6 +591,20 @@ public final class Conversations {
 			if (!topic.id().equals(last) && !topic.web().followUp() && Topics.holds(topic.needs(), aFacts, bFacts, world)) {
 				(grounded(topic) ? grounded : everyday).add(topic);
 			}
+		}
+
+		List<Topics.Topic> fitting = new ArrayList<>(grounded);
+		fitting.addAll(everyday);
+		// What's pressing (a war, someone fallen, a revolt) crowds out small talk (the user, 2026-10-29: "people were chatting
+		// normally like they werent fighting in a war").
+		// While a raid is on (theirs, or on them), nothing else at all.
+		List<Topics.Topic> pressing = fitting.stream().filter(topic -> topic.needs().stream().anyMatch(PRESSING::contains)).toList();
+		if (raiding(a) || raiding(b)) {
+			return pressing.isEmpty() ? null : pressing.get(a.getRandom().nextInt(pressing.size()));
+		}
+
+		if (!pressing.isEmpty() && a.getRandom().nextDouble() < 0.75) {
+			return pressing.get(a.getRandom().nextInt(pressing.size()));
 		}
 
 		boolean real = !grounded.isEmpty() && (everyday.isEmpty() || a.getRandom().nextDouble() < GROUNDED_SHARE);
