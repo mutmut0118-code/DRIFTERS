@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11's site choice (0.23.0) |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1) |
 | B | Trades and services instead of villager trading | Not started |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -602,5 +602,17 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Tested: headless (vanilla and the user's Tectonic: towns located, villages "Could not find", a town made a step at a
     time); in the client on Tectonic, flying in from 400 blocks off: the town made itself as the player came within 12
     chunks, on flat savanna by the sea, the hill beside it left alone (screenshots).
-  - Next: A11's layout and walk check (door paths stepped a block at a time, cut or filled; a walk from the plaza to every
-    door, the store, the stall, the fields; fixed or the house dropped), then A3/A4 (biome styles, sizes, hamlets, ruins).
+  - Next: A11's layout and walk check, then A3/A4 (biome styles, sizes, hamlets, ruins).
+- **0.23.1: A11's layout and walk check.**
+  - Door paths: from the door out of the house (a porch is part of it) to its road, up to 16 blocks, laid a block up or down
+    a step at most from the door's floor to the road, the ground built up with dirt or cut down along it, path on top,
+    three blocks of room cleared over it (on the user's Tectonic land a door could stand three blocks over its road with
+    nothing between: just the kind of spot a Drifter pillars at).
+  - The walk check (`TownWalk`), the last step of making a town: from the plaza, everywhere reachable on foot as a player
+    walks (a block up with room to jump, up to three down, two blocks of room, through doors and gates, no swimming, nothing
+    placed or broken); every door, the store, the stall (any side), the fields (any side) checked; what can't be reached
+    goes in the log and the town's message.
+  - Tested on Tectonic: four towns, 53 of 53 places walked to (the one miss before, a field, was reachable from its other
+    sides); half a day in a hill town by the sea in the client: no pillaring, one failed bridge out at a mine, no plugs in
+    the town (189 cave plugs, all 75 to 100 blocks out, in its people's mine stairs past the edge, and one 30 blocks under).
+  - Next: A3 (the town's woods and stone by its biome), A4 (sizes: small towns of 8 to 16, hamlets).

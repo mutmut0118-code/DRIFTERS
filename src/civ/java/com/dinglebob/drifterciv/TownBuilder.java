@@ -786,6 +786,7 @@ public final class TownBuilder {
 				this.then("light", () -> this.light(piece));
 			}
 
+			this.then("walk", this::walk);
 			this.then("finish", this::finish);
 		}
 
@@ -799,6 +800,31 @@ public final class TownBuilder {
 			this.torches += made[1];
 		}
 
+		/** Its places walked to from the plaza (A11): which can't be, logged (none, it's walkable). */
+		private final List<String> unwalkable = new ArrayList<>();
+
+		private void walk() {
+			java.util.Map<String, List<BlockPos>> places = new java.util.LinkedHashMap<>();
+			for (int i = 0; i < this.houses.size(); i++) {
+				var house = this.houses.get(i);
+				if (house.door() != null) {
+					places.put("house " + (i + 1) + " (" + house.planId() + ")", List.of(house.door().relative(this.plots.get(i).front)));
+				}
+			}
+
+			places.put("the store", List.copyOf(this.store));
+			BlockPos stall = this.stallAt().offset(2, 0, 2);
+			places.put("the stall", List.of(stall.offset(0, 0, 3), stall.offset(0, 0, -3), stall.offset(4, 0, 0), stall.offset(-4, 0, 0)));
+			for (int i = 0; i < this.fields.size(); i++) {
+				BlockPos field = this.fields.get(i);
+				places.put("field " + (i + 1), List.of(field.offset(5, 0, 0), field.offset(-5, 0, 0), field.offset(0, 0, 5), field.offset(0, 0, -5)));
+			}
+
+			this.unwalkable.addAll(TownWalk.unreachable(this.level, this.area.inflatedBy(4), new BlockPos(this.cx + 3, this.y0, this.cz), places));
+			DrifterCivilizations.LOGGER.info("[town] {}: walked to {} of {} places from the plaza{}", this.name, places.size() - this.unwalkable.size(),
+				places.size(), this.unwalkable.isEmpty() ? "" : "; not: " + String.join(", ", this.unwalkable));
+		}
+
 		private void finish() {
 			Town town = this.town;
 			Chronicle.quiet = false;
@@ -808,7 +834,8 @@ public final class TownBuilder {
 			DrifterCivilizations.LOGGER.info("[town] {} made: {} people in {} houses, {} ms of work over {} s; the longest step {} ms ({}); over 50 ms: {}",
 				this.name, this.people.size(), this.houses.size(), this.worked / 1_000_000, seconds, this.longest / 1_000_000, this.longestStep, this.slow);
 			this.result = new Result(town, this.name + ": " + this.people.size() + " people in " + this.houses.size() + " houses, the plaza at " + this.cx + ", "
-				+ this.y0 + ", " + this.cz + " (" + this.lamps + " lamp posts and " + this.torches + " torches for dark corners)");
+				+ this.y0 + ", " + this.cz + " (" + this.lamps + " lamp posts and " + this.torches + " torches for dark corners)"
+				+ (this.unwalkable.isEmpty() ? "" : "; can't walk to " + String.join(", ", this.unwalkable)));
 		}
 	}
 
@@ -1050,25 +1077,88 @@ public final class TownBuilder {
 		return null;
 	}
 
-	/** A dirt path from the door out to its road. */
+	/** How far out from a door its path goes looking for the road. */
+	private static final int LONGEST_PATH = 16;
+
+	/**
+	 * A path from the door out to its road, a block up or down a step at most: the ground cut down or built up along it
+	 * and room cleared overhead, so it's walked without pillaring, digging or a jump onto anything taller (milestone 23,
+	 * A11; on the user's hilly Tectonic land a door could stand three blocks over its road with nothing between).
+	 */
 	private static void path(ServerLevel level, DrifterApi.PlacedHouse house, Direction front, List<Rect> roads) {
 		if (house.door() == null) {
 			return;
 		}
 
-		BlockPos step = house.door().relative(front);
-		for (int i = 0; i < 16; i++) {
-			BlockPos at = step;
-			if (roads.stream().anyMatch(rect -> rect.contains(at.getX(), at.getZ()))) {
-				break;
-			}
-
-			BlockPos top = new BlockPos(step.getX(), ground(level, step.getX(), step.getZ()), step.getZ());
-			if (!house.box().isInside(top) && (level.getBlockState(top).is(Blocks.GRASS_BLOCK) || level.getBlockState(top).is(Blocks.DIRT))) {
-				set(level, top, Blocks.DIRT_PATH.defaultBlockState());
-			}
-
+		var box = house.box();
+		BlockPos door = house.door();
+		// Out of the house first (a porch is part of it): the level stepped down to from its sill is the door's floor.
+		BlockPos step = door.relative(front);
+		while (box.isInside(new BlockPos(step.getX(), box.minY(), step.getZ())) && step.distManhattan(door) < LONGEST_PATH) {
 			step = step.relative(front);
+		}
+
+		List<BlockPos> cells = new ArrayList<>();
+		boolean reached = false;
+		for (int i = 0; i < LONGEST_PATH && !reached; i++) {
+			BlockPos at = step;
+			cells.add(at);
+			reached = roads.stream().anyMatch(rect -> rect.contains(at.getX(), at.getZ()));
+			step = step.relative(front);
+		}
+
+		int n = cells.size();
+		int[] top = new int[n];
+		for (int i = 0; i < n; i++) {
+			top[i] = ground(level, cells.get(i).getX(), cells.get(i).getZ());
+		}
+
+		// The levels it's laid at: a block from the one before at most, from the door's floor to the road (fixed ends).
+		int start = door.getY() - 1;
+		int end = reached ? top[n - 1] : top[n - 1];
+		for (int pass = 0; pass < 4; pass++) {
+			int previous = start;
+			for (int i = 0; i < n - (reached ? 1 : 0); i++) {
+				top[i] = Math.max(previous - 1, Math.min(previous + 1, top[i]));
+				previous = top[i];
+			}
+
+			if (reached) {
+				int next = end;
+				for (int i = n - 2; i >= 0; i--) {
+					top[i] = Math.max(next - 1, Math.min(next + 1, top[i]));
+					next = top[i];
+				}
+			}
+		}
+
+		for (int i = 0; i < n - (reached ? 1 : 0); i++) {
+			BlockPos column = cells.get(i);
+			int x = column.getX();
+			int z = column.getZ();
+			int g = ground(level, x, z);
+			if (wet(level, x, z)) {
+				continue;
+			}
+
+			// Built up (dirt under the path), or cut down (the bank dug away), then the path, and room over it.
+			for (int y = g + 1; y < top[i]; y++) {
+				set(level, new BlockPos(x, y, z), Blocks.DIRT.defaultBlockState());
+			}
+
+			for (int y = top[i] + 1; y <= g; y++) {
+				set(level, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
+			}
+
+			set(level, new BlockPos(x, top[i], z), Blocks.DIRT_PATH.defaultBlockState());
+			for (int y = top[i] + 1; y <= top[i] + 3; y++) {
+				BlockPos above = new BlockPos(x, y, z);
+				BlockState state = level.getBlockState(above);
+				if (!state.isAir() && !box.isInside(above) && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LEAVES)
+					|| state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(Blocks.STONE) || state.is(Blocks.GRAVEL) || state.is(Blocks.SAND))) {
+					set(level, above, Blocks.AIR.defaultBlockState());
+				}
+			}
 		}
 	}
 

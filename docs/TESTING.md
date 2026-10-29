@@ -1472,6 +1472,9 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] On hilly land (your Tectonic pack): it sits on the flattest ground near where it would go, not on a slope; where
       nothing near is flat enough there's no town at all.
 - [ ] Debug: `/drifterciv town sites make` makes the nearest now; `/drifterciv town go` takes you to the nearest town.
+- [ ] Walk a town on hilly land (0.23.1): from the plaza to every door on foot, never a jump onto anything taller than a
+      block or a drop of more than three; each door's path steps a block at a time down or up to the road. Over a day,
+      no cobblestone pillars or bridges in the town (its people's mines start out past the edge).
 
 ## Beds in town houses (new, 0.22.34)
 
