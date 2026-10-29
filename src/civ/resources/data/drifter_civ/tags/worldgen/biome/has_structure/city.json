@@ -1,0 +1,6 @@
+{
+	"replace": false,
+	"values": [
+		"#drifter_civ:has_structure/town"
+	]
+}

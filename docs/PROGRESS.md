@@ -3491,6 +3491,14 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   - Tested in the client (a town of about 20, the player watching in creative): first try, waves of 7 and 8 with a third
     vindicators, 12 of its people's lives lost in four minutes and the raid not over; rebalanced, two waves (5 and 6), it
     fought them off: 11 raiders brought down, 3 lives lost.
+- **0.23.8: towns and cities located apart** (the user: "is there a way we can separate the command to locate towns and
+  cities?"). A city is its own structure now, `drifter_civ:city` (structure set `drifter_civ:cities`, placed exactly as
+  the towns' set, so on the same spots; biome tag `#drifter_civ:has_structure/city`, the towns' biomes). The town one
+  gives way where a city goes, the city one goes only there (that's checked first, before the land is looked over).
+  `/locate structure drifter_civ:town` finds towns (hamlets and ruins too), `drifter_civ:city` cities, and the structure
+  tag `#drifter_civ:settlements` either. In a world made before 0.23.8, cities already made stay `drifter_civ:town`.
+  Tested headless on seed 779: from spawn a town at 1296,-512 and the city at -2304,-1136; standing in the city, the town
+  locate skipped it (the next town 1,619 blocks off) and the city locate found it 65 blocks off.
 - **0.23.7: B1, lines of work (first part).** `Trades`: each townsperson has a line, given the first time it's asked and
   saved with the town: the stall's keeper, the leader, its guards (the two the town's made with; else the boldest two),
   at least two farmers, then by its nature (Builder: builder; Miner, Hoarder, Speedrunner: miner; Homebody, Helper:

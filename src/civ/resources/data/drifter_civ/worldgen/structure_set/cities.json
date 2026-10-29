@@ -1,0 +1,11 @@
+{
+	"structures": [
+		{ "structure": "drifter_civ:city", "weight": 1 }
+	],
+	"placement": {
+		"type": "minecraft:random_spread",
+		"spacing": 54,
+		"separation": 16,
+		"salt": 20261029
+	}
+}
