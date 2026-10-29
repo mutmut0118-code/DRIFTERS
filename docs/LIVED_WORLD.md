@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6); next A10 |
-| B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7) |
+| B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
 
@@ -349,7 +349,8 @@ players.
 - Smith: ingots into tools and armour at a crafting table; repairs at an anvil (needs XP: Drifters have XP levels).
 - Fletcher: sticks, flint, feathers into arrows; string into bows; hunts chickens for feathers.
 - Fisher: fishing (milestone 18), cooks the catch; treasure (books, saddles) sold.
-- Shepherd: shears sheep (built), dyes wool, makes beds and carpets.
+- Shepherd: shears sheep (not built yet: Drifters only kill sheep for wool; shearing comes first), dyes wool, makes beds
+  and carpets.
 - Hunter: hunts (built: night hunts), leather and meat.
 - Enchanter/librarian: books from paper and leather (sugar cane farm), bookshelves; enchants at its table with its own
   levels and lapis (built: enchanting); enchanted books from enchanting books.
@@ -709,4 +710,35 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   tag `#drifter_civ:settlements` either. In a world made before 0.23.8, cities already made stay `drifter_civ:town`.
   Tested headless on seed 779: from spawn a town at 1296,-512 and the city at -2304,-1136; standing in the city, the town
   locate skipped it (the next town 1,619 blocks off) and the city locate found it 65 blocks off.
-  - Next: B2 and B3 (lines that make things, their own shops at their doors).
+- **0.23.9: B2 and B3, trades that make things and shops at their doors (first part).**
+  - Lines of work are data now: `data/drifter_civ/drifter_lines/<line>.json` (the goals it leans toward and how much, the
+    natures that take to it, and for a trade its shop: from what size of town, the word on its sign, what it makes and
+    how many it keeps, what else it sells, what it buys). A datapack can change or add them.
+  - Four trades: **smith** (iron tools and armour, shears, buckets, shields; buys iron and coal), **fletcher** (arrows,
+    bows, rods; buys feathers, flint, string, sticks), **fisher** (rods; sells the fish it catches and cooks and what comes
+    up with them: name tags, saddles, books; leans on fishing more than most), **enchanter** (paper, books, bookshelves;
+    sells enchanted books and lapis; buys lapis, leather, sugar cane). A town has a smith and a fletcher from 8 people, a
+    fisher from 10, an enchanter from 12, another of each for every 30 more. Its lines given before there were trades
+    (towns made before 0.23.9): one from the commonest line takes the trade up, the one it suits best ("X took up the
+    smith's trade in Y").
+  - Making (B2, core `TownWork.wares`, goal "wares", urgency 0.5 by day): whichever of its trade's things it's short of
+    (in its home's chests and its pockets, past one of a tool for its own use) that it can make most cheaply, got the way
+    it gets anything: the planner mines the iron, hunts chickens for feathers and cows for leather, smelts, crafts at its
+    table. What it makes goes into its chests at home like anything else. (At 0.4 a smith tended the town's farm most of
+    the day; found in testing.)
+  - Its shop (B3, `Trades.LineShop`, core `ShopKeeper.open` for its hours): late morning (2000 to 5000) it takes what it
+    has to sell from its chests and stands by its door path, by the sign with its name (A6), which it writes over the
+    first time ("Ann's / smithy"); right-click: the trading screen, from its pockets, at the town's prices (dearer when
+    it's scarce); it buys what its trade needs while it has fewer than 32, with its own money (it keeps its takings). Other
+    Drifters buy from it as from the stall. The rest of the day it makes things, eats, sleeps and lives; off on a mining
+    trip, its shop's shut that day. Core `DrifterApi.frontDoor`.
+  - `/drifterciv prices`: the stall and each trade's shop (where, open or shut, what it's making, what's at home to sell,
+    its offers). Talk topics: the smith short of iron, the fletcher after feathers, the fisher's catch, the enchanter's
+    books (`trade_*_talk`).
+  - Tested headless (seed 779, the plains spot, a town of 21, a day and a half): the trades given out (a smith, a fletcher,
+    a fisher, an enchanter), stands found by each door; the smith made shears, a bucket, a shield, an iron helmet and
+    boots, then went mining for more iron and sold a spare iron pickaxe for 2 emeralds; the fletcher made 32 arrows and kept
+    its shop. Found and fixed: a door path is a dirt path, not a full block, so no stand was found by any path.
+  - Not yet: shepherds (Drifters don't shear sheep yet: wool from the planner means killing sheep; shearing first), smiths
+    repairing at an anvil and enchanters enchanting your things (B5), prices that move with sales (B4).
+  - Next: shearing and the shepherd, then B4 (prices that move), B5 (services: repairs, enchanting your things), B6, B7.

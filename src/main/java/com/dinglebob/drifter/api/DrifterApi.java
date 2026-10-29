@@ -280,6 +280,18 @@ public final class DrifterApi {
 		return plans;
 	}
 
+	/**
+	 * The lower half of a house's front door (the one on {@code front}, that one walks straight out of), as put up with this
+	 * plan, corner and turn; null if it has none (milestone 23 B3: a seller's shop at its door).
+	 */
+	@Nullable
+	public static net.minecraft.core.BlockPos frontDoor(MinecraftServer server, String planId, net.minecraft.core.BlockPos origin,
+		net.minecraft.world.level.block.Rotation rotation, net.minecraft.core.Direction front) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, planId);
+		return plan == null ? null : com.dinglebob.drifter.building.plan.HousePlacer.door(new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin,
+			rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn()), front);
+	}
+
 	/** The sides of its box a plan's doors are on once turned this way (to put its front to a road). */
 	public static java.util.Set<net.minecraft.core.Direction> doorSides(MinecraftServer server, String planId, net.minecraft.world.level.block.Rotation rotation) {
 		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(server, planId);

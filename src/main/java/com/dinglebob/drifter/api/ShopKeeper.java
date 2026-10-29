@@ -23,6 +23,14 @@ public interface ShopKeeper {
 	@Nullable
 	BlockPos stand(DrifterEntity keeper);
 
+	/**
+	 * Its open hours: it's at its stand then (a town's stall: morning to mid-afternoon; a smith at its door, mornings only,
+	 * so it has the rest of the day to make what it sells).
+	 */
+	default boolean open(DrifterEntity keeper) {
+		return com.dinglebob.drifter.trade.StallGoal.open(keeper);
+	}
+
 	/** What it would trade with this player now: from what it carries. */
 	List<ShopOffer> offers(DrifterEntity keeper, Player player);
 

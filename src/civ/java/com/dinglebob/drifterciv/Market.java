@@ -316,7 +316,7 @@ public final class Market {
 	 * it has them; buying: the player gives the goods for money (its times set by the caller).
 	 */
 	@Nullable
-	private static ShopKeeper.ShopOffer trade(Item item, double each, int carried, boolean sells) {
+	static ShopKeeper.ShopOffer trade(Item item, double each, int carried, boolean sells) {
 		double smallest = DrifterApi.moneyWorth(DrifterApi.money(0.0));
 		int bundle = (int)Math.max(1, Math.min(64, Math.ceil(smallest / each)));
 		ItemStack money = DrifterApi.money(each * bundle);
@@ -349,7 +349,7 @@ public final class Market {
 		return lines;
 	}
 
-	private static String describe(ItemStack stack) {
+	static String describe(ItemStack stack) {
 		return stack.getCount() + " " + stack.getHoverName().getString().toLowerCase(java.util.Locale.ROOT);
 	}
 

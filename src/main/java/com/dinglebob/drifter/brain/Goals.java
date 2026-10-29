@@ -576,6 +576,55 @@ public final class Goals {
 	}
 
 	/**
+	 * Making things to sell (milestone 23 B2, a town's lines of work: a smith's tools, a fletcher's arrows; set by Drifter:
+	 * Civilizations through {@link com.dinglebob.drifter.api.TownWork#wares}): whichever of them it's short of that it can
+	 * make most cheaply, got the way it gets anything (mined, hunted, crafted at its table, smelted). What it makes it puts
+	 * away at home like anything else; its shop sells it from there.
+	 */
+	public static final class MakeWares extends PlannedGoal {
+		@Override
+		public String id() {
+			return "wares";
+		}
+
+		@Nullable
+		private static com.dinglebob.drifter.api.TownWork.Wares wanted(DrifterEntity drifter) {
+			var work = drifter.getTownWork();
+			return work == null ? null : work.wares(drifter);
+		}
+
+		@Override
+		public String name(Context context) {
+			var wares = wanted(context.drifter());
+			return wares == null ? "make things to sell" : "make " + wares.what();
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			var wares = wanted(context.drifter());
+			return wares == null ? List.of() : wares.items();
+		}
+
+		@Override
+		protected int count(Context context) {
+			var wares = wanted(context.drifter());
+			return wares == null ? 0 : wares.count();
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (Schedule.isNight(drifter) || context.threat().urgent() || wanted(drifter) == null) {
+				return 0.0;
+			}
+
+			// (Its day's work: below a one-off for its town and keeping its shop, about its other chores; found in testing, at 0.4
+			// a smith tended the town's farm most of the day.)
+			return 0.5;
+		}
+	}
+
+	/**
 	 * The group's banner (section 21 team wars: "a group gets a name and a banner it hangs at its base, so players can tell
 	 * sides apart"): the leader makes one (six wool of a colour and a stick) and stands it by its hut door.
 	 */
@@ -2824,6 +2873,7 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.encounter.EncounterGoal());
 		goals.add(new GroupBanner());
 		goals.add(new TownBanner());
+		goals.add(new MakeWares());
 		goals.add(new com.dinglebob.drifter.brain.activity.PassThroughActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.DelveActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.PursuitActivity.Goal());

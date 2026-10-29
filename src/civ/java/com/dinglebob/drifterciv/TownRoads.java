@@ -285,6 +285,12 @@ final class TownRoads {
 
 		@Override
 		@org.jetbrains.annotations.Nullable
+		public Wares wares(DrifterEntity drifter) {
+			return Trades.wares(this.town, drifter);
+		}
+
+		@Override
+		@org.jetbrains.annotations.Nullable
 		public Banner banner(DrifterEntity drifter) {
 			return Nations.banner(this.town, drifter);
 		}

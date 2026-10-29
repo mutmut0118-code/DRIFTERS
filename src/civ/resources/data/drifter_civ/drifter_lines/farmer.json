@@ -1,0 +1,14 @@
+{
+	"_comment": "Fields, the pen, cooking. At least two in every town.",
+	"goals": [
+		"farm",
+		"pen",
+		"cook",
+		"food"
+	],
+	"natures": [
+		"homebody",
+		"helper"
+	],
+	"pool": 0
+}

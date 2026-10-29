@@ -67,6 +67,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Diplomacy.register();
 		TownSites.register();
 		TownRaids.register();
+		Trades.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -415,6 +416,7 @@ public final class DrifterCivilizations implements ModInitializer {
 				}
 
 				Market.prices(ctx.getSource().getServer(), town).forEach(line -> ctx.getSource().sendSuccess(() -> Component.literal(line), false));
+				Trades.shops(ctx.getSource().getServer(), town).forEach(line -> ctx.getSource().sendSuccess(() -> Component.literal(line), false));
 				return 1;
 			}))
 			.then(Commands.literal("towns").executes(ctx -> {

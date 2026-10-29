@@ -1,0 +1,16 @@
+{
+	"goals": [
+		"roads",
+		"townbuild",
+		"ease_ground",
+		"light",
+		"house",
+		"planhouse",
+		"scaffold",
+		"tidy"
+	],
+	"natures": [
+		"builder"
+	],
+	"pool": 3
+}

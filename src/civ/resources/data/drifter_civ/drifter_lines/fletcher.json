@@ -1,0 +1,42 @@
+{
+	"_comment": "Arrows (flint, sticks, feathers from chickens it hunts), bows, rods.",
+	"goals": [
+		"wares",
+		"hunt"
+	],
+	"natures": [
+		"pvp_sweat",
+		"nomad"
+	],
+	"shop": {
+		"from": 8,
+		"sign": "fletcher",
+		"makes": [
+			{
+				"item": "minecraft:arrow",
+				"keep": 64,
+				"batch": 16
+			},
+			{
+				"item": "minecraft:bow",
+				"keep": 2,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:fishing_rod",
+				"keep": 1,
+				"batch": 1
+			}
+		],
+		"sells": [
+			"minecraft:feather",
+			"minecraft:string"
+		],
+		"buys": [
+			"minecraft:feather",
+			"minecraft:flint",
+			"minecraft:string",
+			"minecraft:stick"
+		]
+	}
+}

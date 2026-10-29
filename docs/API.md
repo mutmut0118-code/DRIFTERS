@@ -86,6 +86,9 @@ whom to meet and where they live, the message; `arrived`, `back`, `told`, `gaveU
 `DrifterApi.randomName(server, random)`: a name as Drifters have them (0.23.4).
 `DrifterApi.addTrustInPlayer(drifter, player, name, change)`: it thinks better (or worse) of a player (0.23.6).
 `TownWork.leaning(drifter, goal)`: how much more a goal (by id) counts for it (its line of work; added to the goal's urgency; 0.23.7).
+`TownWork.wares(drifter)` and `TownWork.Wares(items, count, what)`: what its line has it make to sell (any of the items till it carries count of them; core goal "wares"; 0.23.9).
+`ShopKeeper.open(keeper)`: its open hours (default: the stall's, morning to mid-afternoon; 0.23.9).
+`DrifterApi.frontDoor(server, planId, origin, rotation, front)`: a house's front door, as put up (0.23.9).
 `DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of

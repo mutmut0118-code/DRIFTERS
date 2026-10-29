@@ -3204,6 +3204,122 @@
           ]
         }
       ]
+    },
+    {
+      "id": "trade_smith_talk",
+      "weight": 1,
+      "needs": [
+        "a:line_smith"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "need more iron for the smithy",
+            "made another bucket today if anyone wants one",
+            "my shop's out of pickaxes again",
+            "anyone got iron? paying",
+            "smithing all day, my arms hurt lol"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "how much for a pickaxe",
+            "i'll swing by in the morning",
+            "nice",
+            "mine broke yesterday actually",
+            "i've got a bit of iron"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trade_fletcher_talk",
+      "weight": 1,
+      "needs": [
+        "a:line_fletcher"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "need feathers, chickens keep running off",
+            "got arrows at mine in the morning",
+            "anyone seen spiders? need string for bows",
+            "made a stack of arrows today",
+            "flint is so annoying to get"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "i'll take some arrows",
+            "there's gravel by the river",
+            "lol",
+            "saw spiders by the cave last night",
+            "nice"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trade_fisher_talk",
+      "weight": 1,
+      "needs": [
+        "a:line_fisher"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "fish were biting today",
+            "caught a name tag lol",
+            "sat by the water all morning, so peaceful",
+            "got cooked cod at mine if anyone's hungry",
+            "rain's the best for fishing"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "nice",
+            "save me some",
+            "what's a name tag for",
+            "jealous",
+            "how many"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trade_enchanter_talk",
+      "weight": 1,
+      "needs": [
+        "a:line_enchanter"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "need more leather for books",
+            "sugar cane grows so slow",
+            "made a few books today",
+            "anyone got lapis? paying",
+            "trying to get enough shelves for the table"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "i've got leather",
+            "nice",
+            "found some lapis in the mine",
+            "what are you enchanting",
+            "lol good luck"
+          ]
+        }
+      ]
     }
   ]
 }

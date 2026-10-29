@@ -1,0 +1,42 @@
+{
+	"_comment": "Books and bookshelves (paper from sugar cane, leather from cows), and what its table gives.",
+	"goals": [
+		"wares",
+		"enchant"
+	],
+	"natures": [
+		"builder",
+		"hoarder"
+	],
+	"shop": {
+		"from": 12,
+		"sign": "books",
+		"makes": [
+			{
+				"item": "minecraft:book",
+				"keep": 8,
+				"batch": 3
+			},
+			{
+				"item": "minecraft:bookshelf",
+				"keep": 4,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:paper",
+				"keep": 16,
+				"batch": 3
+			}
+		],
+		"sells": [
+			"minecraft:enchanted_book",
+			"minecraft:lapis_lazuli"
+		],
+		"buys": [
+			"minecraft:lapis_lazuli",
+			"minecraft:leather",
+			"minecraft:sugar_cane",
+			"minecraft:paper"
+		]
+	}
+}

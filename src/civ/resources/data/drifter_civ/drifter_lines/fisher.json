@@ -1,0 +1,39 @@
+{
+	"_comment": "Fish (and what comes up with them), sold cooked.",
+	"goals": [
+		"fish",
+		"cook",
+		"wares"
+	],
+	"leaning": 0.2,
+	"natures": [
+		"hermit",
+		"homebody"
+	],
+	"shop": {
+		"from": 10,
+		"sign": "fish",
+		"makes": [
+			{
+				"item": "minecraft:fishing_rod",
+				"keep": 2,
+				"batch": 1
+			}
+		],
+		"sells": [
+			"minecraft:cooked_cod",
+			"minecraft:cooked_salmon",
+			"minecraft:cod",
+			"minecraft:salmon",
+			"minecraft:name_tag",
+			"minecraft:saddle",
+			"minecraft:nautilus_shell",
+			"minecraft:enchanted_book",
+			"minecraft:lily_pad"
+		],
+		"buys": [
+			"minecraft:string",
+			"minecraft:stick"
+		]
+	}
+}

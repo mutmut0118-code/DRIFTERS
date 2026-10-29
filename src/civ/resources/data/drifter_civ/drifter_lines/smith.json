@@ -1,0 +1,78 @@
+{
+	"_comment": "Iron tools and armour, from iron it mines or buys.",
+	"goals": [
+		"wares",
+		"progress"
+	],
+	"natures": [
+		"miner",
+		"speedrunner"
+	],
+	"shop": {
+		"from": 8,
+		"sign": "smithy",
+		"makes": [
+			{
+				"item": "minecraft:iron_pickaxe",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_axe",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_shovel",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_sword",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:shears",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:bucket",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_helmet",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_boots",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_leggings",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:iron_chestplate",
+				"keep": 1,
+				"batch": 1
+			},
+			{
+				"item": "minecraft:shield",
+				"keep": 1,
+				"batch": 1
+			}
+		],
+		"sells": [],
+		"buys": [
+			"minecraft:iron_ingot",
+			"minecraft:raw_iron",
+			"minecraft:coal"
+		]
+	}
+}

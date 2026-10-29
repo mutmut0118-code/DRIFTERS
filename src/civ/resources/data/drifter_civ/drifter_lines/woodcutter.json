@@ -1,0 +1,10 @@
+{
+	"goals": [
+		"clear_trees",
+		"collect"
+	],
+	"natures": [
+		"hermit"
+	],
+	"pool": 1
+}
