@@ -175,6 +175,9 @@ public class GatherActivity extends Activity {
 				&& !KnownBlocks.notWorthDiving(level, pos, level.getBlockState(pos))
 				// Never a block holding back lava it has seen (found in testing: gathering stone by a lava pool let it in).
 				&& !this.touchesKnownLava(level, pos)
+				// Nor stone with sand or gravel on it: that falls in on it and buries the drop (found in testing: a desert
+				// builder dug stone under the sand, half smothered, and never got the cobblestone).
+				&& (level.getBlockState(pos).getBlock() instanceof FallingBlock || !(level.getBlockState(pos.above()).getBlock() instanceof FallingBlock))
 				&& (!level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS) || trees.check(pos))
 				&& (this.where == null || this.where.test(pos)))
 			.limit(MAX_CANDIDATES)

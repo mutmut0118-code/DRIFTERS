@@ -3651,7 +3651,7 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
   - Also merged the other session's 0.22.41 (how a war feels; no mining in towns); Conversations.pick keeps both its
     pressing-topics rule and this session's grounded/everyday split.
 - **0.22.42-side.1 (side session):** merged the other session's 0.22.42 (nations, step 6 part 3). Headless smoke test: talks run, no errors.
-- **Overnight side batch (0.22.42-side.2; the user, 2026-10-29: "doing the rest of whats left back to back? from chat to
+- **Overnight side batch (0.23.2-side.1, on the other session's 0.23.2; the user, 2026-10-29: "doing the rest of whats left back to back? from chat to
   the houses"):**
   - Chat bug: after "trade?" (or "can i have something"), a message naming an item is the answer even when a word in
     it means something else ("a diamond sword" was heard as "seen diamonds?"); `PlayerTalk.heard`. Tested in the dev
@@ -3683,3 +3683,21 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     sandstone for 3 of 4 plans.
   - Also: Placement counts the same shape in another stone (from the stones change), `/drifter house parts` stones rows
     have sandstone and red sandstone.
+  - Found in the desert tests and fixed (these touch every Drifter, not only builders):
+    - **The game ran at one tick a second** round a Drifter with a home and no bed where there are no sheep: the bed plan
+      tried every colour of wool and dye down to the flowers (millions of sub-plans, 4.5 s a look), from the strategist,
+      the "get a bed" goal and the spare bed and bed decoration whims. `Planner` now stops after 30,000 sub-plans
+      (MAX_STEPS; an ordinary plan takes a few thousand) and settles for the best it has, and `Strategist` doesn't look
+      for a way to a bed again for 30 s when it found none. A 3.6-day desert run went from over an hour to 20 seconds.
+    - A crafting table it can't walk back to (at the bottom of a shaft it dug, sand fallen in) is forgotten, so it puts a
+      new one down (`CraftActivity`); before, it went back to it again and again.
+    - Levelling a house site with no dirt about: it fills with sand, red sand or gravel, and goes for whichever of those
+      it knows of (`BuildPlanActivity.fillToGet`); before, a desert builder went for dirt forever and never built.
+    - Gathering never digs stone with sand or gravel on top (it fell in, half smothered it and buried the drop;
+      `GatherActivity`).
+  - Not finished: a desert house built to the end in a test. On a flat desert (three sand, three sandstone, then stone)
+    the builder got to 160-440 of 888 blocks; what stops it now is the old digging code, not the house code: its furnace
+    ends up at the bottom of a shaft through the sand that it can't get back down. Its stone choice there was sandstone
+    in 3 of 7 runs (it counts the sand it has seen, and a big house needs a lot).
+  - Cross house (2,334 blocks): on a deep flat world it got to 1,025 blocks, then ran out of wood (no trees on a flat
+    world); a run in a normal world is the test.

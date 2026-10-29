@@ -49,6 +49,13 @@ public final class Planner {
 	private static final int MAX_DEPTH = 9;
 	/** Ingredient alternatives considered per need (planks: oak, birch, ...); what it carries is always considered. */
 	private static final int MAX_CANDIDATES = 12;
+	/**
+	 * Sub-plans one plan may try before it settles for the best it has (none: no way it can see). A bed with no sheep
+	 * about tried every colour of wool and every dye down to the flowers, millions of sub-plans and over four seconds
+	 * a look, every time it chose what to do (found in testing: a desert builder ran the game at one tick a second);
+	 * an ordinary plan takes a few thousand.
+	 */
+	private static final int MAX_STEPS = 30_000;
 	/** Rough costs in seconds. */
 	private static final double COST_CRAFT = 3.0;
 	private static final double COST_PLACE = 3.0;
@@ -285,6 +292,7 @@ public final class Planner {
 	private final Level level;
 	private final Map<Item, Integer> realInventory;
 	private final Deque<Item> inProgress = new ArrayDeque<>();
+	private int steps;
 
 	private Planner(DrifterEntity drifter, KnownWorld world) {
 		this.drifter = drifter;
@@ -300,6 +308,10 @@ public final class Planner {
 		Planner planner = new Planner(drifter, world);
 		State start = new State(new HashMap<>(planner.realInventory), new ArrayList<>(), new HashSet<>(), new HashMap<>(), new HashMap<>(), 0.0);
 		State end = planner.obtainAny(start, goal, count, 0);
+		if (planner.steps > MAX_STEPS) {
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] plan for {} hit the sub-plan cap", goal.get(0));
+		}
+
 		return end == null ? INFEASIBLE : new Plan(List.copyOf(end.actions), true, end.cost);
 	}
 
@@ -449,7 +461,7 @@ public final class Planner {
 	/** Gets {@code count} of one item and uses them up (extras made along the way stay in the inventory). */
 	@Nullable
 	private State obtainItem(State state, Item item, int count, int depth) {
-		if (depth > MAX_DEPTH || this.inProgress.contains(item)) {
+		if (depth > MAX_DEPTH || this.inProgress.contains(item) || ++this.steps > MAX_STEPS) {
 			return null;
 		}
 

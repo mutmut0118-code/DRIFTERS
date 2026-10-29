@@ -301,11 +301,15 @@ public class BuildPlanActivity extends Activity {
 					"build up the foundation");
 			}
 
-			if (this.drifter.getInventory().count(stack -> stack.is(Items.DIRT)) == 0) {
-				return this.gather(Items.DIRT, 32);
+			// Dirt, or what the ground is where there's none (a desert's sand: found in testing, a desert builder went for
+			// dirt it didn't know of again and again and never built).
+			java.util.function.Predicate<net.minecraft.world.item.ItemStack> earth = this.drifter.getInventory().count(stack -> stack.is(Items.DIRT)) > 0
+				? stack -> stack.is(Items.DIRT) : stack -> FILL.contains(stack.getItem());
+			if (this.drifter.getInventory().count(earth) == 0) {
+				return this.gather(this.fillToGet(), 32);
 			}
 
-			return this.workAt(level, plan, fill, fill.below(), () -> this.place(fill, new PlaceBlockTask(this.drifter, fill, stack -> stack.is(Items.DIRT), "dirt")), "fill the ground");
+			return this.workAt(level, plan, fill, fill.below(), () -> this.place(fill, new PlaceBlockTask(this.drifter, fill, earth, "dirt")), "fill the ground");
 		}
 
 		// 3. Build. With some spare blocks to pillar up and get back down with (found in testing: out of them, it was stuck
@@ -1486,6 +1490,21 @@ public class BuildPlanActivity extends Activity {
 	}
 
 	/** More of a material: made or gathered the way the planner works it out (no long trips just for a house block). */
+	/** What it fills the ground with when it has no dirt: the loose ground of a desert, a beach, badlands. */
+	private static final java.util.Set<Item> FILL = java.util.Set.of(Items.DIRT, Items.COARSE_DIRT, Items.SAND, Items.RED_SAND, Items.GRAVEL);
+
+	/** Dirt if it knows of any round here, else the sand (or red sand, or gravel) it knows of. */
+	private Item fillToGet() {
+		for (Item item : List.of(Items.DIRT, Items.SAND, Items.RED_SAND, Items.GRAVEL)) {
+			net.minecraft.world.level.block.Block block = ((net.minecraft.world.item.BlockItem) item).getBlock();
+			if (!KnownBlocks.find(this.drifter, 48, state -> state.is(block) || item == Items.DIRT && state.is(Blocks.GRASS_BLOCK), 1).isEmpty()) {
+				return item;
+			}
+		}
+
+		return Items.DIRT;
+	}
+
 	private Status gather(Item item, int count) {
 		if (++this.gathers > 12) {
 			return this.fail("went for materials too many times; another go later");

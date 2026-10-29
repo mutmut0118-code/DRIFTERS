@@ -30,6 +30,9 @@ public class CraftActivity extends Activity {
 	private boolean crafted;
 	@org.jetbrains.annotations.Nullable
 	private String stepFailure;
+	/** The table it's walking to (forgotten if it can't get there). */
+	@org.jetbrains.annotations.Nullable
+	private BlockPos goingTo;
 
 	public CraftActivity(DrifterEntity drifter, Item item, int times) {
 		super(drifter);
@@ -52,6 +55,27 @@ public class CraftActivity extends Activity {
 	protected void stepDone(com.dinglebob.drifter.executor.Task step, Status status) {
 		if (status == Status.FAILURE) {
 			this.stepFailure = step.describe() + ": " + step.failureReason();
+			this.forgetTable();
+		}
+
+		this.goingTo = null;
+	}
+
+	@Override
+	protected void onStop() {
+		// Ran out of time on the way (stuck in a sand pit the table is at the bottom of, in testing, every time it went back).
+		if (this.failureReason() != null) {
+			this.forgetTable();
+		}
+
+		super.onStop();
+	}
+
+	/** A walk to the table that didn't get there: that table's forgotten, so the next plan puts one down where it is. */
+	private void forgetTable() {
+		if (this.goingTo != null) {
+			Stations.giveUp(this.drifter, Blocks.CRAFTING_TABLE, this.goingTo);
+			this.goingTo = null;
 		}
 	}
 
@@ -87,6 +111,7 @@ public class CraftActivity extends Activity {
 			if (spot == null && !this.approached && this.drifter.blockPosition().distSqr(table) > 4 * 4) {
 				// It doesn't remember the ground round it well enough from here (its home, seen hours ago): go and look.
 				this.approached = true;
+				this.goingTo = table;
 				return this.begin(new NavigateTask(this.drifter, Vec3.atCenterOf(table), 3.0, "walk over to the crafting table"));
 			}
 
@@ -98,6 +123,7 @@ public class CraftActivity extends Activity {
 			}
 
 			this.walked = true;
+			this.goingTo = table;
 			return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk to the crafting table"));
 		}
 

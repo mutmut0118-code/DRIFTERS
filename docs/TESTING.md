@@ -2460,7 +2460,9 @@ stones; brick walls sometimes get a few cracked bricks or tiles of their own sto
 
 Installed as 0.22.42-side.1: also has the other session's 0.22.41-0.22.42 (their checks are in their own sections above).
 
-## Side session: overnight batch (new, 0.22.42-side.2)
+Installed as 0.23.2-side.1: also has the other session's 0.23.0-0.23.2 (their checks are in their own sections above).
+
+## Side session: overnight batch (new, 0.23.2-side.1)
 
 Chat fixes and more topics, builders finishing roofs, chest labels, desert houses.
 
@@ -2477,4 +2479,8 @@ Chat fixes and more topics, builders finishing roofs, chest labels, desert house
       in a ready-made town (`/drifterciv town spawn 6 Testby`), a day or two in: look at the chests inside the houses.
 - [ ] Desert houses: in a desert, new Drifters mostly build their houses in sandstone (smooth sandstone steps and
       sills); in badlands, red sandstone. See them all in `/drifter house parts` (the stones rows end with sandstone and
-      red sandstone).
+      red sandstone). A big house may still be cobblestone if it hasn't seen much sand yet.
+- [ ] Desert speed: a Drifter living in a desert (no sheep about) no longer makes the game crawl. Before, the game could
+      drop to about one tick a second around it (mobs and time nearly frozen). Watch for that.
+- [ ] Desert building: a desert Drifter levels its house site with sand (not dirt it can't find), puts down a new
+      crafting table when it can't get back to its old one, and doesn't dig stone with sand on top of it.

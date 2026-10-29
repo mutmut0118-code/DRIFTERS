@@ -1,6 +1,7 @@
 package com.dinglebob.drifter.brain;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
@@ -386,6 +387,26 @@ public final class Strategist {
 		return false;
 	}
 
+	/**
+	 * How long it goes on without a way to a bed before it works it out again. The bed plan tries every colour of wool and
+	 * dye, and with no sheep about (a desert) that took about a second, every time it chose what to do (found in testing:
+	 * a desert builder ran the game at one tick a second).
+	 */
+	private static final long BED_RECHECK = 20L * 30;
+	private static final Map<java.util.UUID, Long> NO_BED_WAY = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** It looked for a way to a bed lately and found none. */
+	private static boolean noBedWayYet(DrifterEntity drifter) {
+		Long until = NO_BED_WAY.get(drifter.getUUID());
+		long now = drifter.level().getGameTime();
+		if (until == null || now >= until || until - now > BED_RECHECK) {
+			NO_BED_WAY.remove(drifter.getUUID());
+			return false;
+		}
+
+		return true;
+	}
+
 	/** The first target it hasn't reached yet, or null when the early game is done. */
 	@Nullable
 	public static Target nextTarget(DrifterEntity drifter) {
@@ -420,12 +441,14 @@ public final class Strategist {
 			// Only once it has seen sheep of a colour it can use: a player without sheep around gets on with other things
 			// (found in testing: it wandered for five days looking for sheep and never went for iron). A town's household
 			// (no hut) wants one for its house too.
-			if (home != null && (home.hutBuilt || home.noHut) && !hasBed(drifter)) {
+			if (home != null && (home.hutBuilt || home.noHut) && !hasBed(drifter) && !noBedWayYet(drifter)) {
 				Target bed = new Target("a bed", BEDS, 1, Strategist::hasBed);
 				Planner.Plan plan = Planner.plan(drifter, KnownWorld.scan(drifter), BEDS, 1);
 				if (plan.feasible() && !(plan.next() instanceof Planner.Explore) && workable.test(bed)) {
 					return bed;
 				}
+
+				NO_BED_WAY.put(drifter.getUUID(), drifter.level().getGameTime() + BED_RECHECK);
 			}
 
 			for (Target target : laterTargets(drifter)) {
