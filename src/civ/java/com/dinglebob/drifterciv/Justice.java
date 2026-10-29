@@ -147,11 +147,11 @@ final class Justice {
 			return true;
 		});
 
-		// Its guards: its two boldest with a weapon.
+		// Its guards: its two boldest with a weapon (not its leader).
 		List<DrifterEntity> fit = new ArrayList<>();
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
-			if (member != null && member.getInventory().count(stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) > 0) {
+			if (member != null && !id.equals(town.leader) && member.getInventory().count(stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) > 0) {
 				fit.add(member);
 			}
 		}
@@ -227,6 +227,13 @@ final class Justice {
 				}
 
 				Chronicle.add(server, "law", name + " killed " + victim + " of " + town.name + ": the town's enemy now");
+				// (One of another town's people: between the towns too.)
+				Town theirs = Diplomacy.townOf(drifter.getUUID());
+				if (theirs != null && theirs != town) {
+					Diplomacy.incident(server, town, theirs, -25.0, "killing");
+					Chronicle.add(server, "diplomacy", "A killing stands between " + town.name + " and " + theirs.name + " (" + name + " of " + theirs.name
+						+ " killed " + victim + ")");
+				}
 			}
 		}
 

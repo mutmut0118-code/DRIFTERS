@@ -3120,7 +3120,71 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     day, 0.76 at night, 30 s committed, tried again soon if interrupted); the crook was the stall keeper (the user:
     "the crook is the shopkeeper") and once the first leader; thrown out and turned Bandit at once, or just past the
     town's edge, it killed the town's people (160 blocks now).
-- Next: milestone 22 step 6, nations and diplomacy (docs/CIVILIZATION.md), or prison (kept for later, the user).
+- **Step 6, part 1: diplomacy (0.22.39; the user: "go ahead with nations").** Step 6 split in three: part 1 diplomacy,
+  part 2 wars between towns, part 3 nations. `Diplomacy` (addon):
+  - Two towns know of each other once one does: people who knew each other before (a town made ready: `TownHistory`
+    starts them at +10 a friendship, -15 a grudge), one of its people within 64 blocks of the other's middle, word of its
+    founding (the `town_founded` news) reaching one of its people. "X knows of Y now (...)".
+  - Their standing (-100 to 100; "close friends" 60+, "friendly" 25+, "neutral", "unfriendly" -25-, "hostile" -60-): each
+    day by their leaders' natures (+2 x warmth: sociability and forgiveness, -2 x heat: aggression; out of sight a
+    leader counts as middling), +0.5 for a trade deal and for peace, -0.5 for towns within 500 blocks not at peace; at
+    once: a killing of one's people by the other's -25 ("A killing stands between..."), an insult -12, an offer turned
+    down -4, taken +8, each trade there +3.
+  - Each morning a leader may send an envoy (sociable leaders more often; one out at a time; three days between two towns;
+    towns within 3000 blocks): an insult if they're on bad terms (-30 or worse) and it's aggressive (0.6), else an alliance
+    (65+, at peace already), peace (35+) or a trade deal (15+, both with stalls). The envoy (its most sociable, not the
+    leader, keeper or a crook) walks there (`Errand`, `ErrandGoal`: Drifter), to their leader (their leader's house if
+    they aren't about the middle), says its piece and hears the answer, then walks home; out of sight it takes as long as
+    the walk would (six ticks a block each way), walking it a day at most each way; after a trip out of the running world
+    it's given its errand again where it was. Their leader takes it by the standing and its nature (trade: greed; peace:
+    caution, not aggression; alliance: sociability).
+  - Pacts: a trade deal sends their traders to each other first (`TradeRuns.nearestMarket`); peace and an alliance hold
+    their groups' tension at 15 (no fighting on sight); an alliance brings peace with it (and is for part 2's wars).
+  - Talk: `ally_town` (word `ally`), `rival_town` (`rival`), `town_trade|peace|alliance|refused|insult|killing` (two days,
+    word `other`); topics ally_town_talk, rival_town_talk, town_*_talk; lines `envoy.trade|peace|alliance|insult`,
+    `envoy.yes|no|insulted`. Commands: `/drifterciv relations`; debug `/drifterciv relations set <town> <standing>`,
+    `/drifterciv relations envoy <town> trade|peace|alliance|insult`.
+  - Tested: headless, three towns over three days (a trade deal, then peace, between two; an insult leaving two hostile;
+    their traders going to their partners); in the client, an envoy walked from one town to the next, to its leader:
+    "hey. Envoyby wants to trade with Farby. deal?" / "ok, you've got a deal", and home. Found and fixed: the out-of-sight
+    timer answered before a slow walker got there; an envoy that went out of the running world lost its errand; an envoy
+    waited in an empty plaza (now to the leader's house).
+- **Planned (not started): a lived-in world, Drifter towns instead of villages** (docs/LIVED_WORLD.md; the user,
+  2026-10-29: "replace villages and villagers as a whole ... MCA Reborn ... skyrim, fallout ... while still having that
+  feel of a player"). Decided: villages replaced completely, real shops only, friends and companions (no romance), built
+  after nations, as milestone 23 (cities of 40-80 households among small towns of 8-16, 2.5x rarer than villages;
+  villagers a setting; culture folded in; the player a citizen). Phases: A towns where villages were (worldgen), B trades replacing villager trading, C town life and culture, D you
+  and the town.
+- **Step 6, part 2: wars between towns (0.22.40; the user: "go ahead with nations part 2").** Built on the group wars
+  (milestone 12, `DrifterWars`: fighting on sight, raids), with the town deciding when they start and end:
+  - Declared by envoy ("WAR"): when the standing is -60 or worse and the leader aggressive (0.55), or within three days of
+    a killing, at -40, with a vengeful leader (0.6); not in a truce. "X declared war on Y". Declaring on a town it was at
+    peace or allied with: "breaking its word": every other town that knows of it thinks 10 less of it, and its offers of
+    pacts are taken 0.15 less often for each time (`brokenWord`, saved).
+  - Allies: the defender's ally joins ("stood by its ally") unless its leader's careful (0.7): then "stayed out", -15 with
+    the one it let down; the attacker's ally joins if its leader's aggressive (0.5).
+  - At war: their groups' tension held at war (`DrifterApi.declareWar`; town groups' wars are "managed": no truce of
+    their own after two deaths or a quiet stretch, `DrifterApi.setWarManaged`); their people fight on sight; raids go for
+    the enemy town's store (its till), which they know of (`DrifterApi.setRaidTargets`), and loot it. Each death by the
+    other side counted ("X of A fell in the war with B (killed by Y)"; a potion's or an arrow's by the kill credit).
+  - Weariness: 6 a day at war, 15 a death of its own, -5 one of theirs, careful leaders more, aggressive or vengeful
+    less; at 40 its leader sends terms ("TERMS"): reparations if it's lost more (4 + 3 a death more, 24 at most), else a
+    white peace. A winning greedy leader (0.6; two deaths ahead, two days in) may demand payment instead ("DEMAND": 6 +
+    3 a death ahead, 30 at most). Taken by the other's caution, aggression, weariness and the payment.
+  - Peace: a peace pact, a seven-day truce (no war, `DrifterApi.makePeace`), the standing up to -20 at least; payment
+    owed paid out of the payer's till as emeralds are there and into the other's till (real emeralds moved, never made;
+    "X paid n emeralds toward its peace with Y").
+  - Talk: `at_war` (word `enemy`), `town_war`, `town_fell`, `town_peace_made`, `town_broken_word`, `town_let_down`;
+    topics at_war_talk and town_*_talk; lines `envoy.war`, `envoy.war_reply`, `envoy.terms`, `envoy.terms_white`,
+    `envoy.demand`, `envoy.peace_yes|no`. `/drifterciv relations` shows wars (since when, each side's dead), truces and
+    what's owed; debug `/drifterciv relations war|peace <town>`, and `envoy <town> war|terms|demand`.
+  - Tested: headless, three towns: an alliance, a declaration of war, the ally standing by; a demand turned down (its
+    envoy killed one of theirs on the way out), another, then reparations offered and taken after four days (7
+    emeralds owed). In the client, two towns 160 blocks apart at war: one rallied and marched on the other's store, the
+    other raided back, six dead in the first hour, each in the chronicle. Fixed: an alliance offered twice was agreed
+    twice; a death by a thrown potion wasn't counted.
+- Next: step 6 part 3, nations (allied towns joining under a capital, a name and banner, tribute, rebellions and
+  independence). Then milestone 23 (docs/LIVED_WORLD.md). Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
   respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
   dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)
@@ -3224,6 +3288,17 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   each other (60 % old friends, 25 % acquaintances, 15 % an old grudge), "The people of T and U go back a long way (n
   old friendships)", "X of T and Y of U have an old grudge"; the far side's bond is kept (`Town.pendingBonds`) till that
   one is loaded. `DrifterApi.setBond` (by id, loaded or not).
+- **Gear by place in a town made ready (0.22.38; the user: "everyone is wearing diamond and i think everyone feels a bit
+  too overpowered; i cant tell a guard from a citizen, or a citizen from a leader").** Everyone had a delver's kit (iron
+  to diamond, enchanted). Now `Delvers.townKit` (`DrifterApi.equipTown`), roles decided once all are in: the leader (the
+  group's first) a gold helmet for a crown, an iron or diamond chestplate, iron legs and boots, a diamond weapon of its
+  favourite kind, a shield; its two boldest (bravery + aggression) the guards: a full iron suit (a diamond piece at most,
+  now and then), an iron weapon, shield, bow and 32 arrows, enchantments sometimes; everyone else a working life's,
+  humble (35 %: stone tools, a stone sword or none, a leather piece now and then), settled (iron tools, a stone or iron
+  sword, up to two pieces of leather, chain or iron) or well off (20 %: iron tools and sword, up to three pieces of chain
+  and iron, a shield maybe), never a full suit; a bow for one in five. The stall keeper wears a leather tunic (an apron).
+  Less cobblestone in the pack (8-23, was 32). Justice's guards are never the leader. Founded towns are unchanged:
+  their people wear what they made themselves.
 
 
 ## Side session (branch claude/drifter-chat-expansion-574ebe): chat and house plans
@@ -3412,3 +3487,5 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     the dormer roof is flat-topped now: stair, block, stair). Not reached in testing: a cross house built to the end.
   - Next for houses (ideas, not asked yet): biome styles (sandstone, terracotta, snowy spruce), insides; builders still
     leave the top of tall roofs (ridge 12+ up) unbuilt, for every style.
+- **0.22.40-side.1 (side session):** merged the other session's 0.22.38-0.22.40 (gear by place in a made-ready town,
+  diplomacy, wars between towns). Headless smoke test: 17 house styles, 300 plans, talks run, no errors.

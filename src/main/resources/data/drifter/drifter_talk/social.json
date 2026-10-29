@@ -2492,6 +2492,390 @@
           ]
         }
       ]
+    },
+    {
+      "id": "ally_town_talk",
+      "weight": 2,
+      "needs": [
+        "a:ally_town",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "good thing we're allies with {a.ally}",
+            "{a.ally} has our back",
+            "heard {a.ally} is doing well",
+            "we should visit {a.ally} sometime"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "yeah, good people over there",
+            "for now anyway",
+            "true",
+            "they owe us one"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rival_town_talk",
+      "weight": 2,
+      "needs": [
+        "a:rival_town",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "can't stand {a.rival}",
+            "don't trust anyone from {a.rival}",
+            "{a.rival} is up to something",
+            "if you see someone from {a.rival}, keep walking"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "same",
+            "they're not all bad",
+            "agreed",
+            "one day there'll be trouble with them"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_trade_talk",
+      "weight": 4,
+      "needs": [
+        "a:town_trade",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "we've got a trade deal with {a.other} now",
+            "trading with {a.other} from now on",
+            "{a.other} agreed to trade with us"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "nice",
+            "more emeralds for us",
+            "about time",
+            "hope they've got iron"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_peace_talk",
+      "weight": 4,
+      "needs": [
+        "a:town_peace",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "peace with {a.other}. finally",
+            "no more trouble with {a.other}",
+            "we made peace with {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "good",
+            "we'll see how long it lasts",
+            "about time",
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_alliance_talk",
+      "weight": 5,
+      "needs": [
+        "a:town_alliance",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "we're allies with {a.other} now!",
+            "{a.other} and us, allies",
+            "big news, we're allied with {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "W",
+            "let's go",
+            "nobody's messing with us now",
+            "nice"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_refused_talk",
+      "weight": 3,
+      "needs": [
+        "a:town_refused",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} said no",
+            "so {a.other} turned us down",
+            "{a.other} didn't want the deal"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "their loss",
+            "rude",
+            "whatever",
+            "figures"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_insult_talk",
+      "weight": 5,
+      "needs": [
+        "a:town_insult",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "did you hear what got said between us and {a.other}?",
+            "{a.other} and us, it's getting ugly",
+            "after that insult, me and {a.other} are done"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "they started it",
+            "this won't end well",
+            "lol",
+            "bad blood now"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_killing_talk",
+      "weight": 5,
+      "needs": [
+        "a:town_killing",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "someone from {a.other} killed one of ours",
+            "{a.other} has blood on its hands",
+            "never forgive {a.other} for that"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "they'll pay",
+            "watch your back near {b.other}",
+            "unbelievable",
+            "this means war"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "at_war_talk",
+      "weight": 4,
+      "needs": [
+        "a:at_war",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "this war with {a.enemy} better end soon",
+            "keep your sword on you. {a.enemy} could come any time",
+            "we'll beat {a.enemy}",
+            "i hate this war",
+            "anyone seen {a.enemy}'s lot about?"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "we'll win",
+            "i just want it over",
+            "stay inside after dark",
+            "they'll pay",
+            "same"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_war_talk",
+      "weight": 6,
+      "needs": [
+        "a:town_war",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "it's war with {a.other}",
+            "did you hear? war with {a.other}",
+            "{a.other}... war. great",
+            "war. actual war with {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "about time",
+            "this is bad",
+            "get your armour on",
+            "we'll see who wins"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_fell_talk",
+      "weight": 6,
+      "needs": [
+        "a:town_fell",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "we lost someone to {a.other}",
+            "{a.other} got another one of ours",
+            "another one gone. this war..."
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "...",
+            "they'll pay for that",
+            "rip",
+            "how many more"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_peace_made_talk",
+      "weight": 5,
+      "needs": [
+        "a:town_peace_made",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "the war with {a.other} is over",
+            "peace with {a.other}. finally",
+            "it's over. no more war"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "thank god",
+            "W",
+            "for now",
+            "never again"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_broken_word_talk",
+      "weight": 4,
+      "needs": [
+        "a:town_broken_word",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} broke its word. don't trust them",
+            "{a.other} went back on a peace. snakes",
+            "never make a deal with {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "noted",
+            "always knew it",
+            "wow",
+            "lol snakes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_let_down_talk",
+      "weight": 4,
+      "needs": [
+        "a:town_let_down",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "some ally {a.other} turned out to be",
+            "{a.other} left us to it",
+            "{a.other} didn't show up when it mattered"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "remember that",
+            "cowards",
+            "figures",
+            "we don't need them"
+          ]
+        }
+      ]
     }
   ]
 }

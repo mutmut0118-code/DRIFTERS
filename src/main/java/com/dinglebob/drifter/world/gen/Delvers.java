@@ -247,6 +247,110 @@ public final class Delvers {
 		inventory.add(new ItemStack(Items.BREAD, 8));
 	}
 
+	/**
+	 * What a town made ready's people wear and carry, by their place in it (the user, 2026-10-28: "for made ready towns,
+	 * everyone is wearing diamond and i think everyone feels a bit too overpowered; i cant tell a guard from a citizen, or
+	 * a citizen from a leader"):
+	 * <ul>
+	 *   <li>"citizen": a working life's gear, humble (stone tools, a leather piece maybe), settled (iron tools, a stone or
+	 *       iron sword, a piece or two of leather, chain or iron) or well off (iron tools and sword, up to three pieces of
+	 *       chain and iron, never a full suit);</li>
+	 *   <li>"guard": a full iron suit (a diamond piece now and then, enchanted sometimes), an iron weapon, shield and bow;</li>
+	 *   <li>"leader": a gold helmet for a crown, an iron or diamond chestplate, a diamond weapon, a shield.</li>
+	 * </ul>
+	 */
+	public static void townKit(DrifterEntity drifter, RandomSource random, String role) {
+		ServerLevel level = (ServerLevel)drifter.level();
+		var inventory = drifter.getInventory();
+		Weapons.Family favorite = Weapons.favorite(drifter);
+		boolean guard = role.equals("guard");
+		boolean leader = role.equals("leader");
+		double life = guard || leader ? 0.9 : random.nextDouble();
+		boolean humble = life < 0.35;
+		boolean wellOff = life >= 0.8;
+
+		// Armor.
+		EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+		int worn = 0;
+		Item[][] suits = {
+			{Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE, Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS},
+			{Items.CHAINMAIL_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.CHAINMAIL_LEGGINGS, Items.CHAINMAIL_BOOTS},
+			{Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},
+			{Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS}};
+		for (int i = 0; i < slots.length; i++) {
+			Item piece = null;
+			if (guard) {
+				// (A diamond piece at most.)
+				boolean diamond = worn == 0 && random.nextFloat() < 0.08F;
+				piece = suits[diamond ? 3 : 2][i];
+				worn += diamond ? 1 : 0;
+			} else if (leader) {
+				piece = i == 0 ? Items.GOLDEN_HELMET : i == 1 ? suits[random.nextBoolean() ? 3 : 2][1] : suits[2][i];
+			} else if ((wellOff ? random.nextFloat() < 0.5F : !humble && random.nextFloat() < 0.35F || humble && random.nextFloat() < 0.15F) && worn < (wellOff ? 3 : 2)) {
+				// (Never a full suit: that's a guard's look.)
+				float kind = random.nextFloat();
+				piece = suits[humble ? 0 : wellOff ? (kind < 0.55F ? 2 : 1) : kind < 0.5F ? 0 : kind < 0.75F ? 1 : 2][i];
+				worn++;
+			}
+
+			if (piece != null) {
+				ItemStack stack = new ItemStack(piece);
+				if ((guard || leader) && random.nextFloat() < 0.3F) {
+					enchant(level, stack, random);
+				}
+
+				drifter.setItemSlot(slots[i], stack);
+			}
+		}
+
+		// A weapon: the leader's diamond, a guard's iron, most others' stone or iron, the humble now and then none.
+		Weapons.Tier tier = leader ? Weapons.Tier.DIAMOND : guard || wellOff ? Weapons.Tier.IRON
+			: humble ? (random.nextBoolean() ? Weapons.Tier.STONE : null) : random.nextFloat() < 0.4F ? Weapons.Tier.IRON : Weapons.Tier.STONE;
+		if (tier != null) {
+			Item weapon = favorite.at(tier);
+			if (weapon == null) {
+				weapon = switch (tier) {
+					case DIAMOND -> Items.DIAMOND_SWORD;
+					case IRON -> Items.IRON_SWORD;
+					default -> Items.STONE_SWORD;
+				};
+			}
+
+			ItemStack stack = new ItemStack(weapon);
+			if ((guard || leader) && random.nextFloat() < 0.4F) {
+				enchant(level, stack, random);
+			}
+
+			inventory.add(stack);
+		}
+
+		if ((guard || leader || wellOff && random.nextBoolean()) && (!favorite.twoHanded() || !com.dinglebob.drifter.compat.BetterCombatCompat.active())) {
+			drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+		}
+
+		if (guard || random.nextFloat() < 0.2F) {
+			inventory.add(new ItemStack(Items.BOW));
+			inventory.add(new ItemStack(Items.ARROW, guard ? 32 : 12 + random.nextInt(12)));
+		}
+
+		// The tools of its working life.
+		boolean iron = !humble;
+		inventory.add(new ItemStack(iron ? Items.IRON_PICKAXE : Items.STONE_PICKAXE));
+		inventory.add(new ItemStack(iron ? Items.IRON_AXE : Items.STONE_AXE));
+		inventory.add(new ItemStack(iron && random.nextBoolean() ? Items.IRON_SHOVEL : Items.STONE_SHOVEL));
+		inventory.add(new ItemStack(humble ? Items.WOODEN_HOE : random.nextBoolean() ? Items.IRON_HOE : Items.STONE_HOE));
+		inventory.add(new ItemStack(Items.TORCH, 8 + random.nextInt(12)));
+		inventory.add(new ItemStack(Items.BREAD, 6 + random.nextInt(6)));
+		if (random.nextBoolean()) {
+			inventory.add(new ItemStack(random.nextBoolean() ? Items.COOKED_BEEF : Items.COOKED_PORKCHOP, 4 + random.nextInt(6)));
+		}
+
+		inventory.add(new ItemStack(Items.COBBLESTONE, 8 + random.nextInt(16)));
+		if (!humble && random.nextFloat() < 0.4F) {
+			inventory.add(new ItemStack(Items.WATER_BUCKET));
+		}
+	}
+
 	/** An enchanting-table enchantment at level 8 to 25, as a player of its gear would have. */
 	private static void enchant(ServerLevel level, ItemStack stack, RandomSource random) {
 		Optional<? extends net.minecraft.core.HolderSet<net.minecraft.world.item.enchantment.Enchantment>> table = level.registryAccess()

@@ -1955,6 +1955,10 @@ Each milestone ends with a test you can actually run.
     nations and wars, culture, a chronicle and a "one island" mode, inspired by the "1000 players simulate civilization"
     videos. Its own mod that needs Drifter (user's call: "its really big i think it should be like an addon mod"), with
     a small Drifter API added first. Several milestones; same fairness rules.
+23. **A lived-in world** (user, 2026-10-29; docs/LIVED_WORLD.md): Drifter towns and cities replace villages and
+    villagers ("replace villages and villagers as a whole ... MCA Reborn ... skyrim, fallout ... while still having that
+    feel of a player"): towns where villages were, real shops and services instead of villager trading, town life and
+    culture, and the player's place in a town (friends, companions, a citizen). In the addon; after milestone 22.
 
 Two extra acceptance tests use the manhunt test mode below: **Manhunt (hunter)** after milestone 9, and **Manhunt (speedrunner)** after milestone 14 (The End). They are tests, not milestones of their own.
 

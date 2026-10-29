@@ -1466,6 +1466,29 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
 - [ ] A new town on a hillside (0.22.37): its roads and the land round the plaza and the store climb a block at a time
       (no cliffs of two or three); nobody pillars up from the plaza to the store.
+- [ ] Diplomacy (0.22.39). Make two towns 150-500 blocks apart (`/drifterciv town spawn 5 Aby`, walk off, again for
+      `Bby`). `/drifterciv relations` in one: the other, how they stand, their pacts. To see an envoy now: `/drifterciv
+      relations set Bby 40` then `/drifterciv relations envoy Bby trade` (or peace, alliance, insult). The chronicle:
+      "X set out from Aby for Bby to offer a trade deal"; follow it: it walks there, finds their leader, says its piece
+      ("hey. Aby wants to trade with Bby. deal?") and gets an answer ("ok, you've got a deal" / "not interested"), then
+      walks home ("X came back to Aby from Bby"). Without the debug commands, leaders send envoys on their own every few
+      days as they get on (or don't).
+- [ ] War (0.22.40). Two towns 150-300 blocks apart, then in one: `/drifterciv relations war <other>` (debug: at once;
+      without it, a leader declares war by envoy when they're hostile and it's aggressive). Watch from between them:
+      the attacker's leader rallies its people ("rallying ... for a raid"), they march on the other's store, fight and
+      loot it; the other side raids back. The chronicle: "X of A fell in the war with B (killed by Y)".
+      `/drifterciv relations` shows the war, since when and each side's dead.
+- [ ] Allies: make two towns allies first (`/drifterciv relations set B 80`, then `envoy B peace`, a few days later
+      `envoy B alliance`); a third town declaring war on one brings the other in ("stood by its ally").
+- [ ] Peace: after some days and deaths a side sends terms ("enough fighting. Aby wants peace" or reparations); a
+      winner may demand emeralds. Peace: a truce for a week, a peace pact, the payment taken from the payer's till into
+      the other's as the emeralds are there (`/drifterciv relations`: "owes"). To see it now: `envoy <other> terms`.
+- [ ] Breaking a peace by declaring war: the other towns hear ("broke its word"), and trust it less.
+- [ ] People talk about it: the trade deal, the peace, an insult ("did you hear what got said between us and Bby?"), a
+      town they can't stand.
+- [ ] A new town (0.22.38): the leader wears a gold helmet; two guards wear full iron with a shield (and a bow); the
+      stall keeper a leather tunic; everyone else a piece or two of leather, chain or iron, or nothing, with stone or iron
+      tools. Nobody in diamond head to toe.
 - [ ] Make two towns near each other (0.22.37): `/drifterciv chronicle` tells of best friends, people who never got on,
       and the two towns going back a long way (maybe an old grudge). `/drifter social` on a townsperson: it knows everyone
       in its town, some well, some barely, a few it doesn't like; housemates are close.
@@ -2364,3 +2387,5 @@ windows, a balcony over the front door, and a cross-shaped house.
       styles). With Drifter: Civilizations, new towns get some of them too: more stone walls, fewer all-wood houses.
 - [ ] Tell me which ones you like and which look off, the same way as before (or edit them by hand in the parts world
       and I'll copy your changes).
+
+Installed as 0.22.40-side.1: also has the other session's 0.22.38-0.22.40 (gear by place in town, diplomacy, wars between towns; their checks are in their own sections above).

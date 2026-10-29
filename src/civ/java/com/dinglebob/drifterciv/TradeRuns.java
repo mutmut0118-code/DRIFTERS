@@ -151,6 +151,8 @@ final class TradeRuns {
 					Chronicle.add(server, "trade", name + " set out from " + from + " to trade in " + to);
 				} else if (what.startsWith("traded: ")) {
 					Chronicle.add(server, "trade", name + " of " + from + " traded in " + to + ": " + what.substring(8));
+					// (Trade between them warms the two towns a little.)
+					Diplomacy.incident(server, town, other, 3.0, null);
 				} else if (what.equals("back home")) {
 					Chronicle.add(server, "trade", name + " came back to " + from + " from trading in " + to);
 				} else {
@@ -165,6 +167,13 @@ final class TradeRuns {
 	/** The nearest other town with a stall within reach, or null. */
 	@Nullable
 	private static Town nearestMarket(Town town) {
+		// A trade deal's partner first (step 6, part 1).
+		for (Town partner : Diplomacy.partners(town)) {
+			if (partner.dimension.equals(town.dimension) && partner.stallBuilt && partner.stallPlot != null && partner.center.closerThan(town.center, FARTHEST)) {
+				return partner;
+			}
+		}
+
 		Town best = null;
 		for (Town other : Towns.all()) {
 			if (other != town && other.dimension.equals(town.dimension) && other.stallBuilt && other.stallPlot != null

@@ -70,6 +70,8 @@ Dozens of towns can exist; only the ones being watched cost much.
 - Spies, scouts and messengers carry news (news only travels by someone carrying it).
 
 ### 5. Culture
+(Folded into docs/LIVED_WORLD.md phase C, the user 2026-10-29: "should fold them into this plan that way it integrates
+better"; flags and banners stay with nations, step 6 part 3.)
 - Flags and banners for towns and nations (banners exist for groups already).
 - Monuments, statues, festivals, a calendar of yearly events.
 - Beliefs: a shrine, a cult with odd rules, a rival cult; holy places worth fighting over.
@@ -266,5 +268,14 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   townsperson's approval of the leader: a dropped tax, coups, abdications, revolts with a vote the next morning, a
   ruthless one's plot to kill the leader). Then (0.22.29-0.22.30) Bandits kept out of towns, and a Bandit living in one
   anyway is its crook: thefts and fights, judged by witnesses, thrown out the third time.
+- **Step 6, nations and diplomacy (started 0.22.39), in three parts:** part 1, diplomacy (done, 0.22.39): towns that
+  know of each other, their standing, envoys walking with offers (trade deals, peace, alliances) and insults, pacts with
+  effects, talk and the chronicle; part 2, wars between towns (done, 0.22.40: declared by envoy when the standing sinks,
+  allies called in, raids on the enemy's store, the dead counted, weariness, terms and demands, payments between tills,
+  truces, broken words remembered); part 3, nations (allied towns joining, a capital, a name and banner,
+  tribute, rebellions and independence).
+- **After step 6: milestone 23, a lived-in world** (docs/LIVED_WORLD.md, planned 2026-10-29): Drifter towns replace villages and
+  villagers, real shops replace villager trading, town life, and the player's place in a town (friends, companions,
+  citizenship). Phases A to D there.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

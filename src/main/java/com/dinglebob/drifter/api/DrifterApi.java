@@ -495,6 +495,19 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.gen.Delvers.settledKit(drifter, random);
 	}
 
+	/**
+	 * (A town made ready.) Gear by its place in the town: "citizen" (a working life's, humble to well off), "guard" (a full
+	 * iron suit, shield and bow) or "leader" (a gold helmet for a crown, a diamond weapon).
+	 */
+	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role) {
+		com.dinglebob.drifter.world.gen.Delvers.townKit(drifter, random, role);
+	}
+
+	/** (A town made ready.) The stall keeper's leather apron: a leather tunic in place of what it wore. */
+	public static void wearApron(DrifterEntity drifter) {
+		drifter.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.LEATHER_CHESTPLATE));
+	}
+
 	/** It builds no hut of its own (a town's people live in houses); it still builds a house. */
 	public static void setNoHut(DrifterEntity drifter, boolean noHut) {
 		Home home = drifter.getDrifterBrain().home();
@@ -786,6 +799,47 @@ public final class DrifterApi {
 	/** It goes on this trade run to another town (step 4), or (null) it's off it. */
 	public static void setTradeRun(DrifterEntity drifter, @Nullable TradeRun run) {
 		drifter.setTradeRun(run);
+	}
+
+	/** It goes on this errand to another town (an envoy; null: none). */
+	public static void setErrand(DrifterEntity drifter, @Nullable Errand errand) {
+		drifter.setErrand(errand);
+	}
+
+	/** The errand it's on, or null. */
+	@Nullable
+	public static Errand errand(DrifterEntity drifter) {
+		return drifter.getErrand();
+	}
+
+	/** Two groups' tension (0 to 100: 30 they fight on sight, 70 war and raids; DrifterWars). */
+	public static double tension(UUID a, UUID b) {
+		return com.dinglebob.drifter.world.DrifterWars.tension(a, b);
+	}
+
+	/** Two groups' tension, set (a peace pact holds it down; a war declared puts it up). */
+	public static void setTension(MinecraftServer server, UUID a, UUID b, double tension) {
+		com.dinglebob.drifter.world.DrifterWars.setTension(a, b, tension, server.overworld().getGameTime());
+	}
+
+	/** Its group's wars run by another mod (a town's): no truce of their own (see {@link #declareWar}, {@link #makePeace}). */
+	public static void setWarManaged(UUID group, boolean managed) {
+		com.dinglebob.drifter.world.DrifterWars.setManaged(group, managed);
+	}
+
+	/** Where its raids go for groups another mod knows the places of (a town's store); null from it: as usual. */
+	public static void setRaidTargets(@Nullable java.util.function.BiFunction<UUID, UUID, net.minecraft.core.BlockPos> targets) {
+		com.dinglebob.drifter.world.DrifterWars.setRaidTargets(targets);
+	}
+
+	/** Two groups at war (fighting on sight, raids). */
+	public static void declareWar(MinecraftServer server, UUID a, UUID b) {
+		com.dinglebob.drifter.world.DrifterWars.setTension(a, b, com.dinglebob.drifter.world.DrifterWars.WAR + 10.0, server.overworld().getGameTime());
+	}
+
+	/** Two groups at peace, with a truce of this many game days. */
+	public static void makePeace(MinecraftServer server, UUID a, UUID b, int days) {
+		com.dinglebob.drifter.world.DrifterWars.peace(server, a, b, 24000L * days);
 	}
 
 	/** The trade run it's on, or null. */

@@ -470,7 +470,6 @@ public final class TownBuilder {
 			home.farmRadius = 4;
 			home.pen = pen;
 			plot.owner = drifter.getUUID();
-			DrifterApi.equipSettled(drifter, random);
 			stock(level, home, house.box());
 			for (BlockPos chest : home.chests()) {
 				DrifterApi.rememberChest(drifter, chest);
@@ -499,7 +498,6 @@ public final class TownBuilder {
 				shared.farmRadius = 4;
 				shared.pen = pen;
 				plot.residents.add(other.getUUID());
-				DrifterApi.equipSettled(other, random);
 				for (BlockPos chest : shared.chests()) {
 					DrifterApi.rememberChest(other, chest);
 				}
@@ -511,6 +509,16 @@ public final class TownBuilder {
 		}
 
 		var group = DrifterApi.formGroup(people, name);
+		// Gear by their place in the town (the user, 2026-10-28: everyone in diamond, "i cant tell a guard from a citizen, or a
+		// citizen from a leader"): its leader (the group's first), its two boldest as guards, the rest a working life's.
+		List<DrifterEntity> boldest = new ArrayList<>(people.subList(Math.min(1, people.size()), people.size()));
+		boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
+			.reversed());
+		for (DrifterEntity one : people) {
+			String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0 && boldest.indexOf(one) < 2 ? "guard"
+				: "citizen";
+			DrifterApi.equipTown(one, random, role);
+		}
 
 		long day = Chronicle.day(server);
 		Town town = new Town(UUID.randomUUID(), name, group == null ? null : group.id, dimension, new BlockPos(cx, y0, cz), day, true);
@@ -532,6 +540,7 @@ public final class TownBuilder {
 				store.forEach(chest -> DrifterApi.rememberChest(one, chest));
 				if (one.getUUID().equals(town.keeper)) {
 					one.getInventory().add(new ItemStack(Items.EMERALD, 8));
+					DrifterApi.wearApron(one);
 				}
 			}
 		}

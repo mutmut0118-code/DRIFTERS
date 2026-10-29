@@ -1175,6 +1175,163 @@
       "pvp_sweat": [
         "fine. gg"
       ]
+    },
+    "envoy.trade": {
+      "any": [
+        "{leader} of {town} sent me. want to set up trade between us?",
+        "hey. {town} wants to trade with {them}. deal?",
+        "{leader} says we should trade. {town} has stuff you need",
+        "trade deal? {town} and {them}. {leader}'s idea"
+      ],
+      "hoarder": [
+        "{town} has goods. you have emeralds. let's talk"
+      ]
+    },
+    "envoy.peace": {
+      "any": [
+        "{leader} sent me. {town} wants peace with {them}",
+        "no fighting between {town} and {them}. that's the offer",
+        "{leader} says let's keep the peace. you in?",
+        "peace between our towns? {leader} wants it"
+      ],
+      "helper": [
+        "we'd like to be friends with {them}. truly"
+      ]
+    },
+    "envoy.alliance": {
+      "any": [
+        "{leader} wants {town} and {them} to stand together. allies?",
+        "an alliance. {town} and {them}. what do you say",
+        "{leader} sent me to ask: allies?",
+        "if anyone comes for you, {town} has your back. and you ours?"
+      ]
+    },
+    "envoy.insult": {
+      "any": [
+        "{leader} says {them} is a joke of a town",
+        "message from {leader}: nobody likes you",
+        "{town} thinks {them} is a dump. just passing it on",
+        "{leader} says stay out of our way"
+      ],
+      "bandit": [
+        "{leader} says watch yourselves"
+      ],
+      "pvp_sweat": [
+        "{town} would wipe {them} in a day. just saying"
+      ]
+    },
+    "envoy.yes": {
+      "any": [
+        "deal. tell {leader} we agree",
+        "sure. {them} agrees",
+        "ok, you've got a deal",
+        "alright. tell {leader} yes"
+      ],
+      "helper": [
+        "gladly! tell {leader} thanks"
+      ]
+    },
+    "envoy.no": {
+      "any": [
+        "not interested. go home",
+        "no. tell {leader} no",
+        "we'll pass",
+        "maybe some other time"
+      ],
+      "hermit": [
+        "no."
+      ]
+    },
+    "envoy.insulted": {
+      "any": [
+        "get out of {them}",
+        "tell {leader} to say it to my face",
+        "wow. ok. go home",
+        "{town} will regret that"
+      ],
+      "pvp_sweat": [
+        "tell {leader} we'll see about that"
+      ],
+      "helper": [
+        "...that's not very nice"
+      ]
+    },
+    "envoy.war": {
+      "any": [
+        "{leader} says this means war",
+        "{town} is done talking. it's war",
+        "message from {leader}: war. get ready",
+        "you had your chance. {town} declares war on {them}"
+      ],
+      "pvp_sweat": [
+        "{leader} says gg in advance. it's war"
+      ],
+      "bandit": [
+        "war. {leader} says lock your doors"
+      ]
+    },
+    "envoy.war_reply": {
+      "any": [
+        "then come and get us",
+        "bring it",
+        "you'll regret this",
+        "tell {leader} we'll be waiting",
+        "fine. war it is"
+      ],
+      "helper": [
+        "...why. ok. tell {leader} we're ready"
+      ],
+      "hermit": [
+        "leave."
+      ]
+    },
+    "envoy.terms": {
+      "any": [
+        "{leader} wants this over. {amount} emeralds and it's done",
+        "we're done fighting. {town} pays {amount} emeralds for peace",
+        "peace? {leader} offers {amount} emeralds"
+      ]
+    },
+    "envoy.terms_white": {
+      "any": [
+        "{leader} says let's end this. no payment either way",
+        "enough fighting. {town} wants peace",
+        "{leader} sent me: peace?",
+        "nobody's winning this. peace?"
+      ]
+    },
+    "envoy.demand": {
+      "any": [
+        "{leader} says pay {amount} emeralds and the war ends",
+        "{amount} emeralds. that's the price of peace",
+        "you're losing. {amount} emeralds and we stop",
+        "{leader} wants {amount} emeralds. then it's over"
+      ],
+      "bandit": [
+        "{amount} emeralds or we keep coming"
+      ]
+    },
+    "envoy.peace_yes": {
+      "any": [
+        "fine. it's over",
+        "deal. no more fighting",
+        "ok. tell {leader} it's peace",
+        "finally. yes"
+      ],
+      "pvp_sweat": [
+        "gg. peace"
+      ]
+    },
+    "envoy.peace_no": {
+      "any": [
+        "no. we fight on",
+        "not a chance",
+        "tell {leader} we're not done",
+        "never"
+      ],
+      "pvp_sweat": [
+        "nah we're winning this"
+      ]
     }
   }
 }

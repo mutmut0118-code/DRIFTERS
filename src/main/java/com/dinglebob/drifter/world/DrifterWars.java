@@ -148,6 +148,45 @@ public final class DrifterWars {
 	public static final long RETREAT_TICKS = 20 * 60 * 6;
 
 	private static final Map<String, Feud> feuds = new HashMap<>();
+	/**
+	 * Groups whose wars another mod runs (a town's: Drifter: Civilizations declares them and makes the peace): no truce of
+	 * their own after losses or quiet, no easing off while at war. Not saved: the mod says so again each time.
+	 */
+	private static final java.util.Set<UUID> managed = new java.util.HashSet<>();
+	/** Where a group's raid on another goes when another mod knows better (a town's store), or null. */
+	@Nullable
+	private static java.util.function.BiFunction<UUID, UUID, BlockPos> raidTargets;
+
+	/** Its wars run by another mod (or not any more). */
+	public static void setManaged(UUID group, boolean on) {
+		if (on) {
+			managed.add(group);
+		} else {
+			managed.remove(group);
+		}
+	}
+
+	/** Where raids go, for groups another mod knows the places of (null from it: as usual, a base someone has seen). */
+	public static void setRaidTargets(@Nullable java.util.function.BiFunction<UUID, UUID, BlockPos> targets) {
+		raidTargets = targets;
+	}
+
+	private static boolean managed(Feud feud) {
+		return managed.contains(feud.a) && managed.contains(feud.b);
+	}
+
+	/** A peace another mod made: low tension, no raids, a truce of this long (ticks). */
+	public static void peace(MinecraftServer server, UUID a, UUID b, long truce) {
+		Feud feud = feudOrNew(a, b);
+		long now = server.overworld().getGameTime();
+		feud.tension = AFTER_TRUCE;
+		feud.truceUntil = now + truce;
+		feud.lossesA = 0;
+		feud.lossesB = 0;
+		feud.warSince = -1;
+		raids.values().removeIf(raid -> raid.attackers.equals(a) && raid.defenders.equals(b) || raid.attackers.equals(b) && raid.defenders.equals(a));
+		dirty = true;
+	}
 	private static final Map<UUID, Raid> raids = new HashMap<>();
 	private static final Map<UUID, Long> lastRaid = new HashMap<>();
 	private static boolean dirty;
@@ -382,7 +421,7 @@ public final class DrifterWars {
 			}
 
 			for (Feud feud : feuds.values()) {
-				if (now - feud.lastIncident > QUIET_AFTER && feud.tension > 0) {
+				if (now - feud.lastIncident > QUIET_AFTER && feud.tension > 0 && !(managed(feud) && feud.tension >= WAR)) {
 					feud.tension = Math.max(0.0, feud.tension - QUIET_PER_HOUR);
 					dirty = true;
 				}
@@ -392,6 +431,10 @@ public final class DrifterWars {
 		// Truces.
 		for (Feud feud : feuds.values()) {
 			boolean war = feud.tension >= WAR;
+			if (managed(feud)) {
+				continue;
+			}
+
 			if (feud.lossesA >= LOSSES_FOR_TRUCE || feud.lossesB >= LOSSES_FOR_TRUCE || war && now - feud.lastIncident > QUIET_FOR_TRUCE) {
 				truce(server, feud, now, feud.lossesA >= LOSSES_FOR_TRUCE || feud.lossesB >= LOSSES_FOR_TRUCE ? "heavy losses" : "a long quiet");
 			}
@@ -454,8 +497,12 @@ public final class DrifterWars {
 			return;
 		}
 
-		// Only a base one of them has seen (knowledge through perception).
-		BlockPos target = knownBase(server, group, rival);
+		// Only a base one of them has seen (knowledge through perception), or a place another mod knows they know (a town's).
+		BlockPos target = raidTargets != null ? raidTargets.apply(attackers, defenders) : null;
+		if (target == null) {
+			target = knownBase(server, group, rival);
+		}
+
 		if (target == null) {
 			return;
 		}

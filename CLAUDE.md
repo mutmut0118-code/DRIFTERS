@@ -24,7 +24,9 @@ docs/WHIMS.md is reference for the whim system milestone. Don't implement whims 
 docs/ENCOUNTERS.md is the plan for milestone 21 (encounters and bounties); docs/OFFSCREEN_WHIMS.md is the design of
 whims offscreen (the user picked A + small B + C + E; built). docs/WHIMS_HOWTO.md is how to write a whim (every field,
 action, steps verb and offscreen value): keep it up to date when whims change. docs/CIVILIZATION.md is the plan for
-milestone 22, civilization as an addon mod (after 21; not started).
+milestone 22, civilization as an addon mod (after 21; not started). docs/LIVED_WORLD.md is the plan and progress for the addon's next direction
+(Drifter towns replacing villages and villagers; built after nations): read it before working on it, and keep its status
+and progress up to date.
 
 ## Version targets
 
