@@ -1,0 +1,1863 @@
+{
+ "_comment": "Topics batch (side session, 0.22.42-side.2): grounded talk on how it is now (hungry, hurt, a close call, its diamonds, its house or none, what it built, traded, killed), weather and time, debates (agree/disagree pattern), advice and plans between friends, jokes and small talk. Check with: python tools/check_talk_web.py .",
+ "topics": [
+  {
+   "id": "hungry_now",
+   "weight": 2,
+   "needs": [
+    "a:hungry"
+   ],
+   "tags": [
+    "food",
+    "complaints"
+   ],
+   "leads": [
+    "food",
+    "farming",
+    "complaints"
+   ],
+   "about": "being hungry",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "im starving",
+      "so hungry rn",
+      "need food asap",
+      "my hunger bar is flashing",
+      "i'd eat a raw potato right now"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "same",
+      "eat something lol",
+      "go find a cow",
+      "rough",
+      "oof"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "on it",
+      "yeah yeah",
+      "lol",
+      "if only"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hurt_now",
+   "weight": 2,
+   "needs": [
+    "a:hurt"
+   ],
+   "tags": [
+    "health",
+    "danger"
+   ],
+   "leads": [
+    "health",
+    "danger",
+    "mobs"
+   ],
+   "about": "getting hurt",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "barely alive rn",
+      "im on like two hearts",
+      "took a beating earlier",
+      "dont look at my health bar",
+      "i need to heal up"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "yikes",
+      "heal up",
+      "go rest",
+      "you good?",
+      "careful out there"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "i'll live",
+      "probably",
+      "slowly",
+      "it's fine",
+      "lol"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "close_call_story",
+   "weight": 2,
+   "needs": [
+    "a:close_call"
+   ],
+   "tags": [
+    "danger",
+    "stories"
+   ],
+   "leads": [
+    "danger",
+    "mobs",
+    "death"
+   ],
+   "about": "that close call",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "nearly died earlier",
+      "that was way too close",
+      "i almost lost everything back there",
+      "half a heart. half a heart."
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what happened",
+      "how",
+      "oh no",
+      "dang",
+      "lucky"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "didn't see it coming",
+      "got jumped",
+      "fell and then a mob showed up",
+      "won't make that mistake again"
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "glad you made it",
+      "be careful",
+      "classic",
+      "rip almost"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "died_lately_lost_items",
+   "weight": 2,
+   "needs": [
+    "a:died_lately"
+   ],
+   "tags": [
+    "death",
+    "complaints"
+   ],
+   "leads": [
+    "death",
+    "gear",
+    "feelings"
+   ],
+   "about": "losing everything",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "lost all my stuff when i died",
+      "my items despawned",
+      "i died and couldnt get back in time",
+      "everything i had, gone"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "that hurts",
+      "rip",
+      "ugh, the worst",
+      "start over i guess",
+      "f"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "back to wooden tools",
+      "it is what it is",
+      "never again",
+      "yep"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "diamonds_flex",
+   "weight": 2,
+   "needs": [
+    "a:has_diamonds",
+    "!rivals"
+   ],
+   "tags": [
+    "diamonds",
+    "brag"
+   ],
+   "leads": [
+    "diamonds",
+    "gear",
+    "enchanting"
+   ],
+   "about": "diamonds",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "got diamonds on me",
+      "finally have some diamonds",
+      "who's got diamonds? me",
+      "diamond count going up"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "flex",
+      "lucky",
+      "share?",
+      "jealous"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "enough for a pick",
+      "not telling",
+      "lol",
+      "working on a full set"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "diamonds_plans",
+   "needs": [
+    "a:has_diamonds",
+    "friends"
+   ],
+   "tags": [
+    "diamonds",
+    "plans"
+   ],
+   "leads": [
+    "diamonds",
+    "tools",
+    "enchanting"
+   ],
+   "about": "what to make with diamonds",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "pickaxe first or sword first?",
+      "what should i make with my diamonds?",
+      "diamond pick or diamond armor?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "pick always",
+      "pickaxe obviously",
+      "sword if you fight a lot",
+      "armor, stay alive",
+      "save them for an enchanting table"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "makes sense",
+      "pick it is",
+      "hmm good point",
+      "ok ok"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "homeless_complaint",
+   "weight": 2,
+   "needs": [
+    "a:no_home"
+   ],
+   "tags": [
+    "home",
+    "complaints"
+   ],
+   "leads": [
+    "home",
+    "building",
+    "plans"
+   ],
+   "about": "having no home",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "still don't have a real base",
+      "i need a house",
+      "sleeping in a hole again tonight",
+      "i should really build something"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "build one",
+      "you'll get there",
+      "same honestly",
+      "pick a spot and go",
+      "dirt hut it"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "one day",
+      "soon",
+      "where though",
+      "yeah yeah"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "hut_upgrade",
+   "needs": [
+    "a:has_hut"
+   ],
+   "tags": [
+    "home",
+    "building",
+    "plans"
+   ],
+   "leads": [
+    "home",
+    "building",
+    "plans"
+   ],
+   "about": "the hut",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "my hut is tiny",
+      "gonna upgrade the hut soon",
+      "i'm outgrowing my little shack",
+      "the hut is fine for now"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "huts are cozy",
+      "go big",
+      "upgrade time",
+      "a hut's a start",
+      "nothing wrong with a hut"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "true",
+      "maybe stone next",
+      "we'll see",
+      "lol"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "house_pride",
+   "weight": 2,
+   "needs": [
+    "a:has_house",
+    "!strangers"
+   ],
+   "tags": [
+    "home",
+    "building",
+    "brag"
+   ],
+   "leads": [
+    "home",
+    "building",
+    "decor"
+   ],
+   "about": "the house",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "my house is coming along",
+      "really happy with my house",
+      "finally finished the roof",
+      "you should see my place"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "show me sometime",
+      "nice",
+      "proud of you",
+      "i bet it looks good",
+      "invite me"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "anytime",
+      "it's nothing fancy",
+      "come by",
+      "thanks"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "built_lately_talk",
+   "weight": 2,
+   "needs": [
+    "a:built_lately"
+   ],
+   "tags": [
+    "building",
+    "brag"
+   ],
+   "leads": [
+    "building",
+    "decor",
+    "home"
+   ],
+   "about": "what it built",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "built {a.built} today",
+      "just finished {a.built}",
+      "put up {a.built} earlier",
+      "working on {a.built}"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "cool",
+      "how'd it turn out",
+      "send pics lol",
+      "productive"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "decent",
+      "not bad",
+      "happy with it",
+      "lol thanks"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "killed_many_brag",
+   "needs": [
+    "a:killed_many"
+   ],
+   "tags": [
+    "fighting",
+    "brag"
+   ],
+   "leads": [
+    "fighting",
+    "mobs",
+    "weapons"
+   ],
+   "about": "the fighting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i've killed so many mobs lately",
+      "my sword's been busy",
+      "mob count is getting silly",
+      "nothing stands a chance"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "show off",
+      "nice",
+      "save some for me",
+      "impressive",
+      "careful, pride before a fall"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "lol",
+      "it's a lifestyle",
+      "fair",
+      "can't help it"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "found_rare_secret",
+   "needs": [
+    "a:found_rare"
+   ],
+   "tags": [
+    "exploring",
+    "brag"
+   ],
+   "leads": [
+    "exploring",
+    "structures",
+    "ore"
+   ],
+   "about": "a rare find",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "found something rare today",
+      "you won't believe what i found",
+      "got lucky out there"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what",
+      "spill",
+      "no way",
+      "tell me",
+      "where"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "secret",
+      "not saying yet",
+      "you'll see",
+      "maybe later",
+      "lol"
+     ],
+     "chance": 0.8
+    }
+   ]
+  },
+  {
+   "id": "group_life",
+   "weight": 2,
+   "needs": [
+    "groupmates"
+   ],
+   "tags": [
+    "friends",
+    "feelings"
+   ],
+   "leads": [
+    "friends",
+    "plans",
+    "home"
+   ],
+   "about": "being in a group",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "glad we're a group",
+      "being in a crew is nice",
+      "better together honestly",
+      "solo was lonely"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "same",
+      "for sure",
+      "yeah",
+      "agreed",
+      "it's nice"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "stick together",
+      "team",
+      "lol",
+      "yep"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "rain_night_inside",
+   "weight": 2,
+   "needs": [
+    "rain",
+    "night"
+   ],
+   "tags": [
+    "weather",
+    "night"
+   ],
+   "leads": [
+    "weather",
+    "night",
+    "home"
+   ],
+   "about": "rainy nights",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "rain and night, perfect",
+      "staying in tonight",
+      "rainy nights are for sorting chests",
+      "nope, not going out in this"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "same",
+      "cozy",
+      "smart",
+      "mobs everywhere out there",
+      "good call"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "yep",
+      "chest sorting time",
+      "lol",
+      "fire's going"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "thunder_creeper",
+   "weight": 2,
+   "needs": [
+    "thunder"
+   ],
+   "tags": [
+    "weather",
+    "mobs",
+    "danger"
+   ],
+   "leads": [
+    "mobs",
+    "danger",
+    "weather"
+   ],
+   "about": "charged creepers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "thunder means charged creepers",
+      "stay away from creepers in this",
+      "a lightning creeper would ruin my day"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true",
+      "terrifying",
+      "skulls though",
+      "i'm staying in",
+      "yikes"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "exactly",
+      "not worth it",
+      "lol",
+      "yep"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "morning_plans",
+   "weight": 2,
+   "needs": [
+    "morning",
+    "!strangers"
+   ],
+   "tags": [
+    "plans",
+    "day"
+   ],
+   "leads": [
+    "plans",
+    "mining",
+    "building"
+   ],
+   "about": "the day ahead",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "what's the plan today?",
+      "what are you up to today?",
+      "any plans for today?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "mining probably",
+      "building",
+      "no idea yet",
+      "food first",
+      "exploring a bit",
+      "chilling"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "nice",
+      "same",
+      "sounds good",
+      "good luck"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "evening_wrap",
+   "weight": 2,
+   "needs": [
+    "evening"
+   ],
+   "tags": [
+    "day",
+    "feelings"
+   ],
+   "leads": [
+    "day",
+    "sleep",
+    "home"
+   ],
+   "about": "the day",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "long day",
+      "that day went fast",
+      "done for today i think",
+      "getting dark, heading in soon"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "same",
+      "rest up",
+      "productive at least",
+      "yeah",
+      "night soon"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "yep",
+      "bed time",
+      "lol",
+      "tomorrow then"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "clear_night_stars",
+   "needs": [
+    "clear",
+    "night",
+    "outside"
+   ],
+   "tags": [
+    "sky",
+    "night"
+   ],
+   "leads": [
+    "sky",
+    "night",
+    "philosophy"
+   ],
+   "about": "the stars",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "clear sky tonight",
+      "look at the moon",
+      "nice night for once",
+      "the stars look good tonight"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "pretty",
+      "nice",
+      "it is",
+      "almost peaceful",
+      "until the zombies show up"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "lol",
+      "true",
+      "enjoy it",
+      "yeah"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "debate_shields",
+   "tags": [
+    "argument",
+    "gear"
+   ],
+   "leads": [
+    "gear",
+    "fighting",
+    "argument"
+   ],
+   "about": "shields",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "shields are the best item in the game",
+      "a shield saves more lives than armor",
+      "never leave without a shield"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true",
+      "facts",
+      "fair",
+      "can't argue"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nah",
+      "they're clunky",
+      "i just dodge",
+      "armor's better"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "shield gang",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "your loss",
+      "fair",
+      "suit yourself"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "debate_night_mining",
+   "tags": [
+    "argument",
+    "mining"
+   ],
+   "leads": [
+    "mining",
+    "night",
+    "argument"
+   ],
+   "about": "mining at night",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "night is the best time to mine",
+      "why sleep when you can mine",
+      "i only mine at night"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "same",
+      "true",
+      "underground it's always night anyway",
+      "makes sense"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "sleep is important",
+      "nah",
+      "skip the night",
+      "too risky"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "exactly",
+      "see",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fair",
+      "eh",
+      "to each their own"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "debate_netherite",
+   "tags": [
+    "argument",
+    "gear",
+    "nether"
+   ],
+   "leads": [
+    "gear",
+    "nether",
+    "argument"
+   ],
+   "about": "netherite",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "netherite isn't worth the effort",
+      "netherite is overrated",
+      "diamond is enough honestly"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "agreed",
+      "true",
+      "yeah diamond's fine",
+      "fair"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's totally worth it",
+      "nah",
+      "lava proof though",
+      "it's the best"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "right",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "eh",
+      "fair",
+      "we'll see"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "debate_cats_dogs",
+   "tags": [
+    "argument",
+    "pets"
+   ],
+   "leads": [
+    "pets",
+    "animals",
+    "argument"
+   ],
+   "about": "pets",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "dogs are better than cats",
+      "wolves beat cats any day",
+      "a dog is the best friend you can have"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true",
+      "dogs all the way",
+      "facts",
+      "obviously"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "cats though",
+      "nah",
+      "cats scare creepers",
+      "both are good"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "dog gang",
+      "see",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fair",
+      "cats are ok",
+      "agree to disagree"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "debate_flat_vs_hills",
+   "tags": [
+    "argument",
+    "building"
+   ],
+   "leads": [
+    "building",
+    "biomes",
+    "argument"
+   ],
+   "about": "where to build",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "flat land is best for building",
+      "always build on flat ground",
+      "hills are a pain to build on"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true",
+      "much easier",
+      "agreed",
+      "yeah"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hills look cooler",
+      "nah",
+      "a cliff base though",
+      "flat is boring"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "easy mode",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fair",
+      "looks do matter",
+      "eh"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "debate_best_food",
+   "tags": [
+    "argument",
+    "food"
+   ],
+   "leads": [
+    "food",
+    "farming",
+    "argument"
+   ],
+   "about": "the best food",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "bread is the best food",
+      "steak beats everything",
+      "golden carrots are the only food that matters"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "agreed",
+      "true",
+      "facts",
+      "hard to argue"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nah",
+      "steak though",
+      "pork chops",
+      "it's fine i guess"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "right",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fair",
+      "eh",
+      "food is food"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "debate_torches_lanterns",
+   "tags": [
+    "argument",
+    "decor"
+   ],
+   "leads": [
+    "decor",
+    "building",
+    "argument"
+   ],
+   "about": "lighting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "lanterns look way better than torches",
+      "torches are ugly",
+      "lanterns or nothing"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "agreed",
+      "true",
+      "they do",
+      "much nicer"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "torches are cheap",
+      "nah",
+      "torches are classic",
+      "lanterns cost iron"
+     ],
+     "if": [
+      "!t:agree"
+     ],
+     "mark": [
+      "disagree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "fancy",
+      "lol"
+     ],
+     "if": [
+      "t:agree"
+     ],
+     "chance": 0.6
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fair",
+      "cheap is good",
+      "eh"
+     ],
+     "if": [
+      "t:disagree"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "advice_creeper",
+   "needs": [
+    "friends"
+   ],
+   "tags": [
+    "advice",
+    "mobs"
+   ],
+   "leads": [
+    "mobs",
+    "danger",
+    "advice"
+   ],
+   "about": "creepers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "tip: back off when a creeper hisses",
+      "always sprint-hit creepers",
+      "if it hisses, run",
+      "never let a creeper near your house"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "good tip",
+      "learned that the hard way",
+      "yeah",
+      "noted",
+      "obviously lol"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "just saying",
+      "lol",
+      "you'd be surprised",
+      "stay safe"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "advice_water_bucket",
+   "needs": [
+    "friends"
+   ],
+   "tags": [
+    "advice",
+    "tools"
+   ],
+   "leads": [
+    "tools",
+    "danger",
+    "advice"
+   ],
+   "about": "water buckets",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "carry a water bucket, always",
+      "a water bucket saved me so many times",
+      "never go mining without water"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "facts",
+      "i always forget",
+      "true",
+      "good call",
+      "mlg time"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "seriously",
+      "lol",
+      "trust me",
+      "yep"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "plan_trip_together",
+   "needs": [
+    "friends",
+    "!a:voice_hermit"
+   ],
+   "tags": [
+    "plans",
+    "friends",
+    "exploring"
+   ],
+   "leads": [
+    "exploring",
+    "plans",
+    "friends"
+   ],
+   "about": "a trip together",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "we should go exploring sometime",
+      "road trip soon",
+      "let's go find a village together",
+      "we should check out the mountains"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "i'm down",
+      "sure, sometime",
+      "maybe later",
+      "sounds fun",
+      "after i sort my stuff"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "soon",
+      "deal",
+      "i'll let you know",
+      "cool"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "plan_farm",
+   "needs": [
+    "!strangers"
+   ],
+   "tags": [
+    "plans",
+    "farming"
+   ],
+   "leads": [
+    "farming",
+    "food",
+    "plans"
+   ],
+   "about": "a farm",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want to start a real farm",
+      "thinking about a wheat farm",
+      "gonna build a cow pen",
+      "need a proper farm"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "good idea",
+      "food solved",
+      "go for it",
+      "farming is relaxing",
+      "i can help"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "yeah",
+      "soon",
+      "maybe",
+      "we'll see"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "joke_creeper_bar",
+   "needs": [
+    "!strangers"
+   ],
+   "tags": [
+    "jokes",
+    "mobs"
+   ],
+   "leads": [
+    "jokes",
+    "mobs"
+   ],
+   "about": "creepers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "creepers just want hugs",
+      "creepers have such explosive tempers",
+      "a creeper walked into a bar. the bar is gone"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "terrible",
+      "boo",
+      "haha",
+      "that's awful"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "i'll be here all night",
+      "lol",
+      "thank you thank you"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "joke_gravel",
+   "tags": [
+    "jokes",
+    "mining"
+   ],
+   "leads": [
+    "jokes",
+    "mining"
+   ],
+   "about": "gravel",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "gravel is the real final boss",
+      "i hate gravel more than creepers",
+      "gravel fell on me again"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol same",
+      "gravel is evil",
+      "flint though",
+      "classic",
+      "haha"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "never trust gravel",
+      "lol",
+      "every time"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "random_favorite_block",
+   "needs": [
+    "!strangers"
+   ],
+   "tags": [
+    "random",
+    "building"
+   ],
+   "leads": [
+    "building",
+    "decor",
+    "random"
+   ],
+   "about": "favorite blocks",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "what's your favorite block?",
+      "best block in the game, go",
+      "favorite block?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "spruce planks",
+      "deepslate bricks",
+      "glass",
+      "dirt lol",
+      "moss",
+      "cobblestone, honestly"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "solid choice",
+      "interesting",
+      "lol",
+      "respect"
+     ],
+     "chance": 0.6
+    }
+   ]
+  },
+  {
+   "id": "random_cave_sounds",
+   "tags": [
+    "random",
+    "caves"
+   ],
+   "leads": [
+    "caves",
+    "danger",
+    "random"
+   ],
+   "about": "cave sounds",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "the cave sounds freak me out",
+      "heard a cave noise earlier and nope'd out",
+      "those cave sounds are not okay"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "same",
+      "they're the worst",
+      "lol",
+      "it's just ambience",
+      "i love them actually"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "nope",
+      "lol",
+      "never again",
+      "fair"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "random_sheep_colors",
+   "needs": [
+    "outside"
+   ],
+   "tags": [
+    "random",
+    "animals"
+   ],
+   "leads": [
+    "animals",
+    "farming",
+    "random"
+   ],
+   "about": "sheep",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "saw a pink sheep earlier",
+      "the rare sheep colors are cute",
+      "i want a rainbow sheep pen"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "cute",
+      "lucky",
+      "pink sheep are rare",
+      "nice",
+      "lol"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "right?",
+      "yeah",
+      "lol"
+     ],
+     "chance": 0.5
+    }
+   ]
+  },
+  {
+   "id": "random_lost",
+   "tags": [
+    "random",
+    "exploring"
+   ],
+   "leads": [
+    "exploring",
+    "places",
+    "random"
+   ],
+   "about": "getting lost",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i got so lost yesterday",
+      "no idea where i was for a while",
+      "walked in circles for ages"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "happens",
+      "lol same",
+      "write down coords",
+      "follow the sun",
+      "rip"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "found my way eventually",
+      "lesson learned",
+      "lol",
+      "yep"
+     ],
+     "chance": 0.6
+    }
+   ]
+  }
+ ]
+}

@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (593 topics, 8270 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (628 topics, 8749 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -3701,6 +3701,371 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 1. **a**: golden apples are op · saving my golden apple · ate my golden apple too early · gapples for fights
 2. **b**: always carry one · nice · rip · too expensive · save it for the dragon
 3. **a** (50%): yeah · true · lol
+
+#### hungry now
+
+*Needs:* a:hungry
+
+*About:* food, complaints  ·  *Leads to:* food, farming, complaints
+
+1. **a**: im starving · so hungry rn · need food asap · my hunger bar is flashing · i'd eat a raw potato right now
+2. **b**: same · eat something lol · go find a cow · rough · oof
+3. **a** (50%): on it · yeah yeah · lol · if only
+
+#### hurt now
+
+*Needs:* a:hurt
+
+*About:* health, danger  ·  *Leads to:* health, danger, mobs
+
+1. **a**: barely alive rn · im on like two hearts · took a beating earlier · dont look at my health bar · i need to heal up
+2. **b**: yikes · heal up · go rest · you good? · careful out there
+3. **a** (60%): i'll live · probably · slowly · it's fine · lol
+
+#### close call story
+
+*Needs:* a:close_call
+
+*About:* danger, stories  ·  *Leads to:* danger, mobs, death
+
+1. **a**: nearly died earlier · that was way too close · i almost lost everything back there · half a heart. half a heart.
+2. **b**: what happened · how · oh no · dang · lucky
+3. **a** (70%): didn't see it coming · got jumped · fell and then a mob showed up · won't make that mistake again
+4. **b** (50%): glad you made it · be careful · classic · rip almost
+
+#### died lately lost items
+
+*Needs:* a:died_lately
+
+*About:* death, complaints  ·  *Leads to:* death, gear, feelings
+
+1. **a**: lost all my stuff when i died · my items despawned · i died and couldnt get back in time · everything i had, gone
+2. **b**: that hurts · rip · ugh, the worst · start over i guess · f
+3. **a** (60%): back to wooden tools · it is what it is · never again · yep
+
+#### diamonds flex
+
+*Needs:* a:has_diamonds, !rivals
+
+*About:* diamonds, brag  ·  *Leads to:* diamonds, gear, enchanting
+
+1. **a**: got diamonds on me · finally have some diamonds · who's got diamonds? me · diamond count going up
+2. **b**: nice · flex · lucky · share? · jealous
+3. **a** (60%): enough for a pick · not telling · lol · working on a full set
+
+#### diamonds plans
+
+*Needs:* a:has_diamonds, friends
+
+*About:* diamonds, plans  ·  *Leads to:* diamonds, tools, enchanting
+
+1. **a**: pickaxe first or sword first? · what should i make with my diamonds? · diamond pick or diamond armor?
+2. **b**: pick always · pickaxe obviously · sword if you fight a lot · armor, stay alive · save them for an enchanting table
+3. **a** (60%): makes sense · pick it is · hmm good point · ok ok
+
+#### homeless complaint
+
+*Needs:* a:no_home
+
+*About:* home, complaints  ·  *Leads to:* home, building, plans
+
+1. **a**: still don't have a real base · i need a house · sleeping in a hole again tonight · i should really build something
+2. **b**: build one · you'll get there · same honestly · pick a spot and go · dirt hut it
+3. **a** (50%): one day · soon · where though · yeah yeah
+
+#### hut upgrade
+
+*Needs:* a:has_hut
+
+*About:* home, building, plans  ·  *Leads to:* home, building, plans
+
+1. **a**: my hut is tiny · gonna upgrade the hut soon · i'm outgrowing my little shack · the hut is fine for now
+2. **b**: huts are cozy · go big · upgrade time · a hut's a start · nothing wrong with a hut
+3. **a** (50%): true · maybe stone next · we'll see · lol
+
+#### house pride
+
+*Needs:* a:has_house, !strangers
+
+*About:* home, building, brag  ·  *Leads to:* home, building, decor
+
+1. **a**: my house is coming along · really happy with my house · finally finished the roof · you should see my place
+2. **b**: show me sometime · nice · proud of you · i bet it looks good · invite me
+3. **a** (60%): anytime · it's nothing fancy · come by · thanks
+
+#### built lately talk
+
+*Needs:* a:built_lately
+
+*About:* building, brag  ·  *Leads to:* building, decor, home
+
+1. **a**: built {a.built} today · just finished {a.built} · put up {a.built} earlier · working on {a.built}
+2. **b**: nice · cool · how'd it turn out · send pics lol · productive
+3. **a** (50%): decent · not bad · happy with it · lol thanks
+
+#### killed many brag
+
+*Needs:* a:killed_many
+
+*About:* fighting, brag  ·  *Leads to:* fighting, mobs, weapons
+
+1. **a**: i've killed so many mobs lately · my sword's been busy · mob count is getting silly · nothing stands a chance
+2. **b**: show off · nice · save some for me · impressive · careful, pride before a fall
+3. **a** (60%): lol · it's a lifestyle · fair · can't help it
+
+#### found rare secret
+
+*Needs:* a:found_rare
+
+*About:* exploring, brag  ·  *Leads to:* exploring, structures, ore
+
+1. **a**: found something rare today · you won't believe what i found · got lucky out there
+2. **b**: what · spill · no way · tell me · where
+3. **a** (80%): secret · not saying yet · you'll see · maybe later · lol
+
+#### group life
+
+*Needs:* groupmates
+
+*About:* friends, feelings  ·  *Leads to:* friends, plans, home
+
+1. **a**: glad we're a group · being in a crew is nice · better together honestly · solo was lonely
+2. **b**: same · for sure · yeah · agreed · it's nice
+3. **a** (50%): stick together · team · lol · yep
+
+#### rain night inside
+
+*Needs:* rain, night
+
+*About:* weather, night  ·  *Leads to:* weather, night, home
+
+1. **a**: rain and night, perfect · staying in tonight · rainy nights are for sorting chests · nope, not going out in this
+2. **b**: same · cozy · smart · mobs everywhere out there · good call
+3. **a** (50%): yep · chest sorting time · lol · fire's going
+
+#### thunder creeper
+
+*Needs:* thunder
+
+*About:* weather, mobs, danger  ·  *Leads to:* mobs, danger, weather
+
+1. **a**: thunder means charged creepers · stay away from creepers in this · a lightning creeper would ruin my day
+2. **b**: true · terrifying · skulls though · i'm staying in · yikes
+3. **a** (50%): exactly · not worth it · lol · yep
+
+#### morning plans
+
+*Needs:* morning, !strangers
+
+*About:* plans, day  ·  *Leads to:* plans, mining, building
+
+1. **a**: what's the plan today? · what are you up to today? · any plans for today?
+2. **b**: mining probably · building · no idea yet · food first · exploring a bit · chilling
+3. **a** (60%): nice · same · sounds good · good luck
+
+#### evening wrap
+
+*Needs:* evening
+
+*About:* day, feelings  ·  *Leads to:* day, sleep, home
+
+1. **a**: long day · that day went fast · done for today i think · getting dark, heading in soon
+2. **b**: same · rest up · productive at least · yeah · night soon
+3. **a** (50%): yep · bed time · lol · tomorrow then
+
+#### clear night stars
+
+*Needs:* clear, night, outside
+
+*About:* sky, night  ·  *Leads to:* sky, night, philosophy
+
+1. **a**: clear sky tonight · look at the moon · nice night for once · the stars look good tonight
+2. **b**: pretty · nice · it is · almost peaceful · until the zombies show up
+3. **a** (50%): lol · true · enjoy it · yeah
+
+#### debate shields
+
+*Needs:* any time
+
+*About:* argument, gear  ·  *Leads to:* gear, fighting, argument
+
+1. **a**: shields are the best item in the game · a shield saves more lives than armor · never leave without a shield
+2. **b** (50%) *(marks agree)*: true · facts · fair · can't argue
+3. **b** if !t:agree *(marks disagree)*: nah · they're clunky · i just dodge · armor's better
+4. **a** (60%) if t:agree: see · shield gang · lol
+5. **a** (60%) if t:disagree: your loss · fair · suit yourself
+
+#### debate night mining
+
+*Needs:* any time
+
+*About:* argument, mining  ·  *Leads to:* mining, night, argument
+
+1. **a**: night is the best time to mine · why sleep when you can mine · i only mine at night
+2. **b** (50%) *(marks agree)*: same · true · underground it's always night anyway · makes sense
+3. **b** if !t:agree *(marks disagree)*: sleep is important · nah · skip the night · too risky
+4. **a** (60%) if t:agree: exactly · see · lol
+5. **a** (60%) if t:disagree: fair · eh · to each their own
+
+#### debate netherite
+
+*Needs:* any time
+
+*About:* argument, gear, nether  ·  *Leads to:* gear, nether, argument
+
+1. **a**: netherite isn't worth the effort · netherite is overrated · diamond is enough honestly
+2. **b** (50%) *(marks agree)*: agreed · true · yeah diamond's fine · fair
+3. **b** if !t:agree *(marks disagree)*: it's totally worth it · nah · lava proof though · it's the best
+4. **a** (60%) if t:agree: see · right · lol
+5. **a** (60%) if t:disagree: eh · fair · we'll see
+
+#### debate cats dogs
+
+*Needs:* any time
+
+*About:* argument, pets  ·  *Leads to:* pets, animals, argument
+
+1. **a**: dogs are better than cats · wolves beat cats any day · a dog is the best friend you can have
+2. **b** (50%) *(marks agree)*: true · dogs all the way · facts · obviously
+3. **b** if !t:agree *(marks disagree)*: cats though · nah · cats scare creepers · both are good
+4. **a** (60%) if t:agree: dog gang · see · lol
+5. **a** (60%) if t:disagree: fair · cats are ok · agree to disagree
+
+#### debate flat vs hills
+
+*Needs:* any time
+
+*About:* argument, building  ·  *Leads to:* building, biomes, argument
+
+1. **a**: flat land is best for building · always build on flat ground · hills are a pain to build on
+2. **b** (50%) *(marks agree)*: true · much easier · agreed · yeah
+3. **b** if !t:agree *(marks disagree)*: hills look cooler · nah · a cliff base though · flat is boring
+4. **a** (60%) if t:agree: see · easy mode · lol
+5. **a** (60%) if t:disagree: fair · looks do matter · eh
+
+#### debate best food
+
+*Needs:* any time
+
+*About:* argument, food  ·  *Leads to:* food, farming, argument
+
+1. **a**: bread is the best food · steak beats everything · golden carrots are the only food that matters
+2. **b** (50%) *(marks agree)*: agreed · true · facts · hard to argue
+3. **b** if !t:agree *(marks disagree)*: nah · steak though · pork chops · it's fine i guess
+4. **a** (60%) if t:agree: see · right · lol
+5. **a** (60%) if t:disagree: fair · eh · food is food
+
+#### debate torches lanterns
+
+*Needs:* any time
+
+*About:* argument, decor  ·  *Leads to:* decor, building, argument
+
+1. **a**: lanterns look way better than torches · torches are ugly · lanterns or nothing
+2. **b** (50%) *(marks agree)*: agreed · true · they do · much nicer
+3. **b** if !t:agree *(marks disagree)*: torches are cheap · nah · torches are classic · lanterns cost iron
+4. **a** (60%) if t:agree: see · fancy · lol
+5. **a** (60%) if t:disagree: fair · cheap is good · eh
+
+#### advice creeper
+
+*Needs:* friends
+
+*About:* advice, mobs  ·  *Leads to:* mobs, danger, advice
+
+1. **a**: tip: back off when a creeper hisses · always sprint-hit creepers · if it hisses, run · never let a creeper near your house
+2. **b**: good tip · learned that the hard way · yeah · noted · obviously lol
+3. **a** (50%): just saying · lol · you'd be surprised · stay safe
+
+#### advice water bucket
+
+*Needs:* friends
+
+*About:* advice, tools  ·  *Leads to:* tools, danger, advice
+
+1. **a**: carry a water bucket, always · a water bucket saved me so many times · never go mining without water
+2. **b**: facts · i always forget · true · good call · mlg time
+3. **a** (50%): seriously · lol · trust me · yep
+
+#### plan trip together
+
+*Needs:* friends, !a:voice_hermit
+
+*About:* plans, friends, exploring  ·  *Leads to:* exploring, plans, friends
+
+1. **a**: we should go exploring sometime · road trip soon · let's go find a village together · we should check out the mountains
+2. **b**: i'm down · sure, sometime · maybe later · sounds fun · after i sort my stuff
+3. **a** (60%): soon · deal · i'll let you know · cool
+
+#### plan farm
+
+*Needs:* !strangers
+
+*About:* plans, farming  ·  *Leads to:* farming, food, plans
+
+1. **a**: i want to start a real farm · thinking about a wheat farm · gonna build a cow pen · need a proper farm
+2. **b**: good idea · food solved · go for it · farming is relaxing · i can help
+3. **a** (50%): yeah · soon · maybe · we'll see
+
+#### joke creeper bar
+
+*Needs:* !strangers
+
+*About:* jokes, mobs  ·  *Leads to:* jokes, mobs
+
+1. **a**: creepers just want hugs · creepers have such explosive tempers · a creeper walked into a bar. the bar is gone
+2. **b**: lol · terrible · boo · haha · that's awful
+3. **a** (50%): i'll be here all night · lol · thank you thank you
+
+#### joke gravel
+
+*Needs:* any time
+
+*About:* jokes, mining  ·  *Leads to:* jokes, mining
+
+1. **a**: gravel is the real final boss · i hate gravel more than creepers · gravel fell on me again
+2. **b**: lol same · gravel is evil · flint though · classic · haha
+3. **a** (50%): never trust gravel · lol · every time
+
+#### random favorite block
+
+*Needs:* !strangers
+
+*About:* random, building  ·  *Leads to:* building, decor, random
+
+1. **a**: what's your favorite block? · best block in the game, go · favorite block?
+2. **b**: spruce planks · deepslate bricks · glass · dirt lol · moss · cobblestone, honestly
+3. **a** (60%): solid choice · interesting · lol · respect
+
+#### random cave sounds
+
+*Needs:* any time
+
+*About:* random, caves  ·  *Leads to:* caves, danger, random
+
+1. **a**: the cave sounds freak me out · heard a cave noise earlier and nope'd out · those cave sounds are not okay
+2. **b**: same · they're the worst · lol · it's just ambience · i love them actually
+3. **a** (50%): nope · lol · never again · fair
+
+#### random sheep colors
+
+*Needs:* outside
+
+*About:* random, animals  ·  *Leads to:* animals, farming, random
+
+1. **a**: saw a pink sheep earlier · the rare sheep colors are cute · i want a rainbow sheep pen
+2. **b**: cute · lucky · pink sheep are rare · nice · lol
+3. **a** (50%): right? · yeah · lol
+
+#### random lost
+
+*Needs:* any time
+
+*About:* random, exploring  ·  *Leads to:* exploring, places, random
+
+1. **a**: i got so lost yesterday · no idea where i was for a while · walked in circles for ages
+2. **b**: happens · lol same · write down coords · follow the sun · rip
+3. **a** (60%): found my way eventually · lesson learned · lol · yep
 
 #### dream last night
 
@@ -7115,7 +7480,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): feelings (68), town (62), argument (50), danger (49), jokes (48), mobs (47), building (45), friends (40), exploring (35), mining (33), complaints (31), plans (31), home (30), memories (26), gear (25), story_part (25), animals (24), night (23), stories (23), brag (21), fighting (21), day (19), decor (19), gossip (19), trade (19), weather (19), places (18), caves (17), food (17), politics (17), tools (17), nether (16), villagers (16), end (15), philosophy (15), players (15), random (15), structures (15), biomes (14), crafting (14), ore (14), storage (14), ocean (13), enchanting (12), death (11), nation (11), redstone (11), sleep (10), boredom (9), farming (9), help (9), plants (9), weapons (9), advice (8), health (8), pets (8), armor (7), diamonds (7), dreams (7), potions (7), trees (7), doing (6), music (6), news (6), sky (6), fishing (5), greeting (5), rivals (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), down (1), fell (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), rebelled (1), refused (1), rival (1), submitted (1), tribute (1), word (1)
+**Tags in use** (topics about each): feelings (70), town (62), argument (57), danger (52), building (50), jokes (50), mobs (50), friends (42), exploring (38), plans (36), mining (35), complaints (34), home (33), gear (27), brag (26), memories (26), animals (25), night (25), story_part (25), stories (24), fighting (22), day (21), weather (21), decor (20), food (19), gossip (19), random (19), trade (19), caves (18), places (18), tools (18), nether (17), politics (17), villagers (16), end (15), philosophy (15), players (15), structures (15), biomes (14), crafting (14), ore (14), storage (14), ocean (13), death (12), enchanting (12), nation (11), redstone (11), advice (10), farming (10), sleep (10), boredom (9), diamonds (9), health (9), help (9), pets (9), plants (9), weapons (9), armor (7), dreams (7), potions (7), sky (7), trees (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), down (1), fell (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), rebelled (1), refused (1), rival (1), submitted (1), tribute (1), word (1)
 
 #### `talk.segue.linked`
 
