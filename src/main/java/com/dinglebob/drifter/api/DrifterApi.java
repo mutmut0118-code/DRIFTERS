@@ -521,6 +521,16 @@ public final class DrifterApi {
 		return group;
 	}
 
+	/**
+	 * What it thinks of another Drifter, set outright, by id (it needn't be loaded): trust and how well it knows them (a
+	 * town made ready, its people with a past).
+	 */
+	public static void setBond(DrifterEntity drifter, UUID other, String name, double trust, double familiarity) {
+		var r = drifter.getBonds().heardOf(other, name);
+		r.addTrust(trust - r.trust);
+		r.addFamiliarity(familiarity - r.familiarity);
+	}
+
 	/** Its trust in another Drifter, set (they know each other from then on). */
 	public static void setTrustInDrifter(DrifterEntity drifter, DrifterEntity other, double trust) {
 		drifter.getBonds().setTrust(other, trust);

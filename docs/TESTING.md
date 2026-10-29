@@ -1464,6 +1464,11 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
 
 - [ ] Make a new town (`/drifterciv town spawn 8 Bedby`) and look in its houses: every bed is on a floor you can walk to
       from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
+- [ ] A new town on a hillside (0.22.37): its roads and the land round the plaza and the store climb a block at a time
+      (no cliffs of two or three); nobody pillars up from the plaza to the store.
+- [ ] Make two towns near each other (0.22.37): `/drifterciv chronicle` tells of best friends, people who never got on,
+      and the two towns going back a long way (maybe an old grudge). `/drifter social` on a townsperson: it knows everyone
+      in its town, some well, some barely, a few it doesn't like; housemates are close.
 - [ ] A new town after a few days (0.22.36): no cobblestone pillars up house fronts, no torches on top of beams, no 1x1
       holes in its grass (mine shafts start outside the town), far fewer stray cobblestone blocks. At dusk townspeople go
       into their houses and stay in (no in-and-out).

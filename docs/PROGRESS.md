@@ -3207,3 +3207,20 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Result over the same day and a half: cobblestone placed 1,152 -> 722 (most of what's left underground, mining); in
     the town above ground, chest errands 27 -> 7. Still seen: a few pillars on errands up steep hillsides, pillars up to
     chop tall trees.
+- **Hillsides (0.22.37; the user: "fix the hillside pillaring too").** The pillars up hillsides were up cliffs the town
+  builder made: a levelled site (the plaza cut into a hill, the store's plateau) was eased into the land round it over a
+  fixed few blocks, so a nine-block difference came out as steps of two and three, and its road went straight up them.
+  `TownBuilder.foundation` now eases the land a block up or down a block out (the band widened as needed, up to 10), and
+  `easeRoad` builds a road up where the land jumps so it climbs and drops a block at a time (filled, never dug). Same
+  seed: steps of 2+ between road blocks 27 -> 3; steps of 2-3 over the town's ground 512 -> 193 (the rest natural hills).
+  A day and a half there: 60 or so stray cobblestone blocks above ground over the whole town (and one Drifter's
+  cobblestone hut).
+- **A past for towns made ready (0.22.37; the user: "for spawned towns, can we already established relationships with
+  one another? that way it seems like it has some history between towns and everybody already knows eachother?").**
+  `TownHistory`: instead of trust 60 all round, its people's bonds go by how alike they are (seven traits) and chance,
+  housemates +20, each seeing it a little differently, and how well they know each other (30-80, housemates 80+): about
+  10 % don't get on (never below -25: no enemies), 42 % acquaintances, 38 % friends, 10 % close. The chronicle: "X and Y
+  of T have been best friends for years", "... have never got on". With other towns within 3000 blocks: 2-4 pairs know
+  each other (60 % old friends, 25 % acquaintances, 15 % an old grudge), "The people of T and U go back a long way (n
+  old friendships)", "X of T and Y of U have an old grudge"; the far side's bond is kept (`Town.pendingBonds`) till that
+  one is loaded. `DrifterApi.setBond` (by id, loaded or not).
