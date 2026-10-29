@@ -146,8 +146,16 @@ public final class PlayerTalk {
 		}
 
 		// "can i have something" ... "bread": the item, a moment later.
+		// (Naming an item it waits for is the answer even when a word in it means something else: "trade?" ... "a diamond
+		// sword" was heard as asking whether it had seen diamonds.)
 		boolean itemAnswer = false;
-		if (intent == null && focused != null && focused.drifter().equals(drifter.getUUID()) && now < focused.wantsItemUntil()) {
+		boolean waitingForItem = focused != null && focused.drifter().equals(drifter.getUUID()) && now < focused.wantsItemUntil();
+		if (waitingForItem && intent != null && !intent.equals("insult") && !intent.equals("compliment") && !Telling.question(text)
+			&& named(text) != null) {
+			intent = null;
+		}
+
+		if (intent == null && waitingForItem) {
 			intent = "give";
 			itemAnswer = true;
 		}
