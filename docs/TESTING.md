@@ -1494,6 +1494,20 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
         rebuilt).
 - [ ] Towns over a few days (0.22.41): no cobblestone in house windows, up house walls or inside rooms. Townspeople who go
       mining walk out past the town's edge first and dig away from it.
+- [ ] Nations (0.22.42). Two towns near each other. Quick way: in one, `/drifterciv nations join <other>` (debug: at once).
+      The natural way: make them allies (`relations set <other> 80`, `envoy <other> peace`, a few days later `envoy <other>
+      alliance`), wait three days at 75+, and the bigger town proposes a union; or `relations envoy <other> union` now.
+      - `/drifterciv nations`: the nation's name, colour, capital and ruler, each town's standing with the capital and
+        tribute owed. The chronicle: "A and B joined together as the A League, with A its capital".
+      - Within a day or so, someone in each town (its leader, or someone else if the leader keeps the stall) makes a
+        banner of the nation's colour from flowers and wool and stands it on the plaza. Flowers of that colour need to be
+        about.
+      - Every 5 days the other town pays the capital 3 emeralds from its till ("paid n emeralds in tribute"). To see it
+        now: `/drifterciv nations tribute`.
+      - A war on either town (or `/drifterciv relations war <x>` from the capital) brings the other in.
+      - Rising: in the member town, `/drifterciv relations set <capital> -60`, then `relations envoy <capital>
+        independence`. Its ruler either lets it go ("left the ..., free again") or goes to war to keep it.
+      - People talk about it: tribute ("another tribute to A. great"), the new banner, being conquered.
 - [ ] Allies: make two towns allies first (`/drifterciv relations set B 80`, then `envoy B peace`, a few days later
       `envoy B alliance`); a third town declaring war on one brings the other in ("stood by its ally").
 - [ ] Peace: after some days and deaths a side sends terms ("enough fighting. Aby wants peace" or reparations); a
@@ -2425,4 +2439,4 @@ stones; brick walls sometimes get a few cracked bricks or tiles of their own sto
       a lot of deepslate sometimes build in it. Their houses keep the andesite they carry instead of throwing it out.
 - [ ] Houses already built or half-built in your worlds stay exactly as they were.
 
-Installed as 0.22.41-side.1: also has the other session's 0.22.41 (their checks are in their own section above).
+Installed as 0.22.42-side.1: also has the other session's 0.22.41-0.22.42 (their checks are in their own sections above).

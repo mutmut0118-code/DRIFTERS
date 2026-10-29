@@ -29,13 +29,25 @@ public class PlaceBannerActivity extends Activity {
 	private boolean walked;
 	private boolean placed;
 
+	/** A town's banner (its town's spot and colour) rather than the group's by its hut door; null for the group's. */
+	@Nullable
+	private final com.dinglebob.drifter.api.TownWork.Banner town;
+
 	public PlaceBannerActivity(DrifterEntity drifter) {
+		this(drifter, null);
+	}
+
+	public PlaceBannerActivity(DrifterEntity drifter, @Nullable com.dinglebob.drifter.api.TownWork.Banner town) {
 		super(drifter);
+		this.town = town;
+		if (town != null) {
+			this.spot = town.spot();
+		}
 	}
 
 	@Override
 	public String describe() {
-		return "put up the group's banner";
+		return this.town != null ? "put up " + this.town.what() : "put up the group's banner";
 	}
 
 	@Override
@@ -45,6 +57,17 @@ public class PlaceBannerActivity extends Activity {
 
 	@Override
 	protected void stepDone(Task step, Status status) {
+		if (step instanceof PlaceBlockTask && status == Status.SUCCESS && this.spot != null && this.town != null) {
+			var work = this.drifter.getTownWork();
+			if (work != null) {
+				work.bannerUp(this.drifter, this.spot);
+			}
+
+			this.placed = true;
+			this.think("put up " + this.town.what());
+			return;
+		}
+
 		if (step instanceof PlaceBlockTask && status == Status.SUCCESS && this.spot != null) {
 			Home home = this.drifter.getDrifterBrain().home();
 			if (home != null) {
@@ -60,6 +83,22 @@ public class PlaceBannerActivity extends Activity {
 	protected Status next() {
 		if (this.placed) {
 			return Status.SUCCESS;
+		}
+
+		if (this.town != null) {
+			// (Its town's spot: walked to, then stood on the ground there, of its colour.)
+			if (!Reach.canReach(this.drifter, this.spot.below())) {
+				if (this.walked) {
+					return this.fail("can't get to where the banner goes");
+				}
+
+				BlockPos stand = KnownBlocks.standingSpotFor(this.drifter, this.spot, Set.of(this.spot));
+				this.walked = true;
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(stand != null ? stand : this.spot), 2.0, "walk over to where the banner goes"));
+			}
+
+			net.minecraft.world.item.Item item = this.town.item();
+			return this.begin(new PlaceBlockTask(this.drifter, this.spot, stack -> stack.is(item), this.town.what()));
 		}
 
 		Home home = this.drifter.getDrifterBrain().home();

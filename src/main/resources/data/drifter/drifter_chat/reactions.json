@@ -1420,6 +1420,93 @@
       "pvp_sweat": [
         "ok we're cooked, back"
       ]
+    },
+    "envoy.union": {
+      "any": [
+        "{leader} wants {them} and {town} to be one. one banner, {town} at the head. what do you say?",
+        "we've been allies long enough. {leader} says join us. properly",
+        "{town} and {them}, together. {leader} would rule, you'd keep your own leader. deal?",
+        "join {town}. {leader}'s offer. stronger together"
+      ],
+      "pvp_sweat": [
+        "{leader} says merge. we carry, you profit"
+      ]
+    },
+    "envoy.submit": {
+      "any": [
+        "you've lost. {leader} says bow to {town} and it ends",
+        "submit to {town}. that's the only way this stops",
+        "{leader}'s terms: you're part of {town} now. or we keep coming",
+        "kneel to {town} and the fighting stops"
+      ],
+      "bandit": [
+        "you're ours now. say yes"
+      ]
+    },
+    "envoy.independence": {
+      "any": [
+        "{town} is done with {them}. we're free. no more tribute",
+        "{leader} says {town} answers to nobody now",
+        "we're leaving. {town} is its own again",
+        "no more tribute. {town} is free"
+      ],
+      "pvp_sweat": [
+        "we're out. gg {them}"
+      ]
+    },
+    "envoy.union_yes": {
+      "any": [
+        "alright. one banner. tell {leader} yes",
+        "yeah. we're in",
+        "deal. {them} joins {nation}",
+        "fine by us. together then"
+      ],
+      "helper": [
+        "yes! tell {leader} thank you"
+      ]
+    },
+    "envoy.union_no": {
+      "any": [
+        "no. {them} answers to nobody",
+        "we're good as we are",
+        "allies, sure. subjects, no",
+        "tell {leader} thanks but no"
+      ],
+      "hermit": [
+        "no."
+      ]
+    },
+    "envoy.submit_yes": {
+      "any": [
+        "...fine. it's over. we're {town}'s",
+        "enough. we yield",
+        "we yield. just stop",
+        "ok. you win. we'll bow"
+      ]
+    },
+    "envoy.submit_no": {
+      "any": [
+        "never",
+        "we'll die first",
+        "not a chance. keep fighting",
+        "tell {leader} to come take it"
+      ]
+    },
+    "envoy.independence_war": {
+      "any": [
+        "you don't just leave {nation}. it's war",
+        "{leader} won't have it. we'll drag you back",
+        "free? we'll see about that",
+        "then we'll come and get you"
+      ]
+    },
+    "envoy.independence_go": {
+      "any": [
+        "fine. go then",
+        "go. we won't stop you",
+        "...ok. {town} is free",
+        "your loss. good luck out there"
+      ]
     }
   }
 }

@@ -118,4 +118,21 @@ public interface TownWork {
 	default String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
 		return null;
 	}
+
+	/**
+	 * A banner its town wants it to make and stand at a spot (a nation's colour on the plaza: milestone 22 step 6 part 3), or
+	 * null. Asked of each of its people (one of them makes it).
+	 */
+	@org.jetbrains.annotations.Nullable
+	default Banner banner(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** It stood the banner up there. */
+	default void bannerUp(DrifterEntity drifter, BlockPos where) {
+	}
+
+	/** A banner of this colour (a banner item, e.g. {@code Items.RED_BANNER}) to stand at {@code spot}, and why (its thought). */
+	record Banner(net.minecraft.world.item.Item item, BlockPos spot, String what) {
+	}
 }

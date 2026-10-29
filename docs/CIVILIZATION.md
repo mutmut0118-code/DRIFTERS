@@ -272,8 +272,9 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   know of each other, their standing, envoys walking with offers (trade deals, peace, alliances) and insults, pacts with
   effects, talk and the chronicle; part 2, wars between towns (done, 0.22.40: declared by envoy when the standing sinks,
   allies called in, raids on the enemy's store, the dead counted, weariness, terms and demands, payments between tills,
-  truces, broken words remembered); part 3, nations (allied towns joining, a capital, a name and banner,
-  tribute, rebellions and independence).
+  truces, broken words remembered); part 3, nations (done, 0.22.42: allies joining by envoy, or a loser made to
+  submit; a capital, a name and a colour, each town's banner of it on its plaza; its towns' wars shared; tribute between
+  tills; risings: let go, or fought over).
 - **After step 6: milestone 23, a lived-in world** (docs/LIVED_WORLD.md, planned 2026-10-29): Drifter towns replace villages and
   villagers, real shops replace villager trading, town life, and the player's place in a town (friends, companions,
   citizenship). Phases A to D there.

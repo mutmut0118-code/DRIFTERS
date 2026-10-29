@@ -2876,6 +2876,305 @@
           ]
         }
       ]
+    },
+    {
+      "id": "nation_life_talk",
+      "weight": 3,
+      "needs": [
+        "a:in_nation",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.nation}. still getting used to that name",
+            "whole region flies {a.capital}'s colours now",
+            "being part of {a.nation} isn't bad",
+            "you think {a.nation} lasts?"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "it's alright",
+            "beats fighting alone",
+            "for now",
+            "we'll see"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_capital_talk",
+      "weight": 3,
+      "needs": [
+        "a:nation_capital",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "we're the capital now. kinda wild",
+            "everyone answers to us now",
+            "head of {a.nation}. who'd have thought"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "don't let it go to your head",
+            "lol yeah",
+            "more work too",
+            "ruling's easy. keeping them happy isn't"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_tribute_talk",
+      "weight": 4,
+      "needs": [
+        "a:nation_tribute",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "another tribute to {a.capital}. great",
+            "why do we pay {a.capital} again",
+            "{a.capital} wants its emeralds again",
+            "tribute day. love that"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "it's what we signed up for",
+            "robbery",
+            "keep your voice down",
+            "one day we won't"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_conquered_talk",
+      "weight": 4,
+      "needs": [
+        "a:nation_conquered",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "i hate flying their banner",
+            "we didn't choose {a.nation}",
+            "one day we'll be free of {a.capital}",
+            "{a.capital} won. doesn't mean i have to like it"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "careful who hears that",
+            "same",
+            "one day",
+            "keep your head down"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_formed_talk",
+      "weight": 6,
+      "needs": [
+        "a:nation_formed",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "did you hear? {a.nation}. we're a nation now",
+            "{a.other} joined with {a.capital}. {a.nation} they're calling it",
+            "one banner now. {a.nation}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "about time",
+            "big if true",
+            "huh. ok",
+            "what changes?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_joined_talk",
+      "weight": 5,
+      "needs": [
+        "a:nation_joined",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} joined {a.nation}",
+            "{a.nation} got bigger. {a.other} is in"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "more the merrier",
+            "nice",
+            "more tribute for {a.capital}",
+            "ok"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_submitted_talk",
+      "weight": 5,
+      "needs": [
+        "a:nation_submitted",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} gave in. part of {a.nation} now",
+            "{a.other} bowed to {a.capital}",
+            "{a.other} lost the war. now they pay us"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "they had it coming",
+            "poor them",
+            "won't last",
+            "W"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_rebelled_talk",
+      "weight": 6,
+      "needs": [
+        "a:nation_rebelled",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} wants out of {a.nation}",
+            "{a.other} stopped paying. they say they're free",
+            "{a.other} rose up against {a.capital}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "good for them",
+            "this won't end well",
+            "traitors",
+            "can't blame them"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_free_talk",
+      "weight": 5,
+      "needs": [
+        "a:nation_free",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} is free of {a.nation} now",
+            "{a.other} left {a.nation}",
+            "{a.nation} lost {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "good riddance",
+            "lucky them",
+            "huh",
+            "who's next"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_kept_talk",
+      "weight": 5,
+      "needs": [
+        "a:nation_kept",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other}'s rising got crushed",
+            "{a.capital} dragged {a.other} back in",
+            "{a.other} lost. still in {a.nation}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "told you",
+            "harsh",
+            "they'll try again",
+            "that's that then"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nation_banner_talk",
+      "weight": 3,
+      "needs": [
+        "a:nation_banner",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "saw the new banner on the plaza?",
+            "{a.nation}'s banner is up in {a.other}",
+            "nice banner"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "looks good",
+            "it's a banner",
+            "fancy",
+            "makes it real i guess"
+          ]
+        }
+      ]
     }
   ]
 }

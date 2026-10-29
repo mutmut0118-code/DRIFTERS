@@ -76,6 +76,8 @@ final class Diplomacy {
 		int lossesB;
 		/** No war again before this day (a peace made). */
 		long truceUntilDay = -100;
+		/** Allied since this day (nations, part 3: allied a while before joining). */
+		long alliedSinceDay = -100;
 		/** Emeralds one owes the other by a peace (reparations, or what was demanded), and those taken from its till on the
 		 * way to the other's. */
 		@Nullable
@@ -196,6 +198,7 @@ final class Diplomacy {
 			Relation r = theirs == null || theirs == mine ? null : relation(mine, theirs);
 			if (r != null && r.war) {
 				r.lost(mine.id);
+				Nations.fell(server, mine);
 				r.news = "fell";
 				r.newsDay = Chronicle.day(server);
 				Chronicle.add(server, "war", drifter.getName().getString() + " of " + mine.name + " fell in the war with " + theirs.name + " (killed by "
@@ -294,6 +297,7 @@ final class Diplomacy {
 		// (Its wars are the town's to make and end: no truce of their own.)
 		DrifterApi.setWarManaged(group.id, true);
 		pay(server, town);
+		Nations.check(server, town);
 		// Seen: one of its people near another town.
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
@@ -398,10 +402,10 @@ final class Diplomacy {
 				continue;
 			}
 
-			String want = wants(town, other, r, leader, day);
+			String want = wants(server, town, other, r, leader, day);
 			if (want != null) {
 				// (War and peace first.)
-				double need = Math.abs(r.standing) + 1.0 + (r.war || want.equals("WAR") ? 200.0 : 0.0);
+				double need = Math.abs(r.standing) + 1.0 + (r.war || want.equals("WAR") || want.equals("INDEPENDENCE") ? 200.0 : 0.0);
 				if (need > bestNeed) {
 					bestNeed = need;
 					best = r;
@@ -411,7 +415,8 @@ final class Diplomacy {
 		}
 
 		// (Not every morning: a sociable leader sends envoys more; war and peace don't wait on that.)
-		if (best == null || !best.war && !"WAR".equals(kind) && server.overworld().getRandom().nextDouble() > 0.3 + 0.5 * trait(leader, "sociability")) {
+		if (best == null || !best.war && !"WAR".equals(kind) && !"INDEPENDENCE".equals(kind)
+			&& server.overworld().getRandom().nextDouble() > 0.3 + 0.5 * trait(leader, "sociability")) {
 			return;
 		}
 
@@ -420,7 +425,19 @@ final class Diplomacy {
 
 	/** What this town's leader would send the other, or null. */
 	@Nullable
-	private static String wants(Town town, Town other, Relation r, @Nullable DrifterEntity leader, long day) {
+	private static String wants(MinecraftServer server, Town town, Town other, Relation r, @Nullable DrifterEntity leader, long day) {
+		// Its nation first (part 3): joining, a conqueror's demand, a town wanting out.
+		String nation = Nations.wants(server, town, other, r, leader, day);
+		if (nation != null) {
+			return nation;
+		}
+
+		// (Two of one nation: no insults, no wars, no pacts to offer: they have them.)
+		boolean fellows = Nations.fellows(town, other);
+		if (fellows && !r.war) {
+			return null;
+		}
+
 		// At war: peace, when it's had enough (terms), or (winning, and greedy) on its terms (a demand).
 		if (r.war) {
 			if (weariness(town, r, leader, day) >= WEARY) {
@@ -432,8 +449,10 @@ final class Diplomacy {
 			return theirs >= mine + 2 && day - r.warSinceDay >= 2 && trait(leader, "greed") >= 0.6 ? "DEMAND" : null;
 		}
 
-		// War: on terms that bad and an aggressive leader, or a vengeful one after a killing.
-		if (day >= r.truceUntilDay && (r.standing <= FOR_WAR && trait(leader, "aggression") >= 0.55
+		// War: on terms that bad and an aggressive leader, or a vengeful one after a killing. (In a nation, only its capital
+		// starts one.)
+		Nations.Nation mine = Nations.of(town);
+		if ((mine == null || mine.capital.equals(town.id)) && day >= r.truceUntilDay && (r.standing <= FOR_WAR && trait(leader, "aggression") >= 0.55
 			|| r.news.equals("killing") && day - r.newsDay <= 3 && r.standing <= FOR_REVENGE && trait(leader, "vengefulness") >= 0.6)) {
 			return "WAR";
 		}
@@ -492,6 +511,9 @@ final class Diplomacy {
 			case "WAR" -> "to declare war";
 			case "TERMS" -> mission.amount > 0 ? "to offer " + mission.amount + " emeralds for peace" : "to offer peace";
 			case "DEMAND" -> "to demand " + mission.amount + " emeralds for peace";
+			case "UNION" -> "to propose they join " + (Nations.of(town) != null ? Nations.of(town).name : "together under " + town.name);
+			case "SUBMIT" -> "to demand it submit to " + town.name;
+			case "INDEPENDENCE" -> "to tell " + other.name + " it's free of it";
 			default -> "to offer " + Pact.valueOf(kind).words;
 		};
 		Chronicle.add(server, "diplomacy", envoyName + " set out from " + town.name + " for " + other.name + " " + what);
@@ -617,6 +639,11 @@ final class Diplomacy {
 			return;
 		}
 
+		if (Nations.answer(server, mission, from, to, r, met)) {
+			Towns.save(server);
+			return;
+		}
+
 		if (mission.kind.equals("TERMS") || mission.kind.equals("DEMAND")) {
 			if (!r.war) {
 				return;
@@ -672,6 +699,7 @@ final class Diplomacy {
 			r.pacts.add(pact);
 			if (pact == Pact.ALLIANCE) {
 				r.pacts.add(Pact.PEACE);
+				r.alliedSinceDay = day;
 			}
 
 			incident(server, from, to, 8.0, pact.name().toLowerCase(java.util.Locale.ROOT));
@@ -733,11 +761,18 @@ final class Diplomacy {
 			}
 		}
 
+		// Their nations' towns (part 3): in it, no choice.
+		List<Town> in = Nations.war(server, attacker, defender, day);
+		if (Nations.fellows(attacker, defender)) {
+			Towns.save(server);
+			return;
+		}
+
 		// Their allies: the defender's stand by it unless their leader's too careful (then they're resented for it); the
 		// attacker's join if theirs is spoiling for it.
 		for (Relation ally : of(defender)) {
 			Town friend = byId(ally.other(defender.id).toString());
-			if (friend == null || friend == attacker || !ally.pacts.contains(Pact.ALLIANCE)) {
+			if (friend == null || friend == attacker || in.contains(friend) || !ally.pacts.contains(Pact.ALLIANCE)) {
 				continue;
 			}
 
@@ -756,7 +791,7 @@ final class Diplomacy {
 
 		for (Relation ally : of(attacker)) {
 			Town friend = byId(ally.other(attacker.id).toString());
-			if (friend == null || friend == defender || !ally.pacts.contains(Pact.ALLIANCE)) {
+			if (friend == null || friend == defender || in.contains(friend) || !ally.pacts.contains(Pact.ALLIANCE)) {
 				continue;
 			}
 
@@ -773,7 +808,7 @@ final class Diplomacy {
 		Towns.save(server);
 	}
 
-	private static void begin(MinecraftServer server, Town x, Town y, Relation r, long day, String news) {
+	static void begin(MinecraftServer server, Town x, Town y, Relation r, long day, String news) {
 		r.pacts.clear();
 		r.war = true;
 		r.warSinceDay = day;
@@ -811,6 +846,8 @@ final class Diplomacy {
 		Town other = payer == x ? y : x;
 		Chronicle.add(server, "war", x.name + " and " + y.name + " made peace after " + Math.max(1, day - r.warSinceDay + 1) + " days"
 			+ (payer != null && amount > 0 ? " (" + payer.name + " pays " + other.name + " " + amount + " emeralds)" : " (neither side paying)"));
+		// (A rising: settled by who asked for it. Part 3.)
+		Nations.peace(server, x, y, payer);
 		Towns.save(server);
 	}
 
@@ -849,7 +886,7 @@ final class Diplomacy {
 	}
 
 	/** Emeralds into its till (count over 0) or out of it (under 0), as many as there are, or room for, if it's loaded. */
-	private static int till(MinecraftServer server, Town town, int count) {
+	static int till(MinecraftServer server, Town town, int count) {
 		BlockPos till = town.till();
 		var level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
 			net.minecraft.resources.ResourceLocation.parse(town.dimension)));
@@ -912,6 +949,7 @@ final class Diplomacy {
 	 * {@code town_killing}; word {@code other}).
 	 */
 	static void talk(Town town, long day, Map<String, Object> words, java.util.Set<String> flags) {
+		Nations.talk(town, day, words, flags);
 		Relation friend = null;
 		Relation foe = null;
 		Relation latest = null;
@@ -1051,6 +1089,7 @@ final class Diplomacy {
 
 			one.putInt("Owed", r.owed);
 			one.putInt("InTransit", r.inTransit);
+			one.putLong("AlliedSinceDay", r.alliedSinceDay);
 			list.add(one);
 		}
 
@@ -1106,6 +1145,7 @@ final class Diplomacy {
 			r.owedBy = one.hasUUID("OwedBy") ? one.getUUID("OwedBy") : null;
 			r.owed = one.getInt("Owed");
 			r.inTransit = one.getInt("InTransit");
+			r.alliedSinceDay = one.contains("AlliedSinceDay") ? one.getLong("AlliedSinceDay") : -100;
 			relations.put(key(r.a, r.b), r);
 		}
 
