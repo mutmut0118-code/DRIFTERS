@@ -18,7 +18,8 @@ import net.minecraft.world.level.block.Blocks;
 public final class Food {
 	/** Eats when food drops to this: its habit (section 17 habit fingerprint, 12 to 17). */
 	public static int eatThreshold(DrifterEntity drifter) {
-		return drifter.getPersonality().habits().eatThreshold;
+		// (Warier when dying would cost more: it keeps its food up, as a hardcore player does.)
+		return Math.min(17, drifter.getPersonality().habits().eatThreshold + (int)Math.round(4.0 * Stakes.wariness(drifter)));
 	}
 
 	/** Below the eat threshold, eating beats routine work (progress scores 0.5). */

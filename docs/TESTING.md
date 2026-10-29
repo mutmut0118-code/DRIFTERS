@@ -1460,6 +1460,37 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Beds in town houses (new, 0.22.34)
+
+- [ ] Make a new town (`/drifterciv town spawn 8 Bedby`) and look in its houses: every bed is on a floor you can walk to
+      from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
+- [ ] At night the townspeople walk to bed; nobody pillars cobblestone inside or up the outside of a house. (Towns made
+      before this version keep their old beds.)
+
+## The respawn setting changes how careful they are (new, 0.22.31)
+
+The more a death would cost a Drifter, the warier it plays. Set it in the settings screen (Mod Menu) or with
+`/drifter config respawn bed|lives|permadeath`. `/drifter personality` (looking at one) shows "Stakes: 1.00
+(permadeath)" and its traits as they act now (caution up, bravery down).
+- [ ] Permadeath: at night most stay in (few go out hunting mobs); a fight they don't need, they skip; one that's going
+      badly, they back off from sooner; they keep their food bar up; they don't chase a mob or a player far.
+- [ ] Lives: with all 5 comebacks left they act as before; with one left they're nearly as careful as permadeath; on the
+      last (`/drifter respawns` shows deaths) as careful as permadeath.
+- [ ] Bed respawn: a little bolder than before.
+- [ ] Brave ones still take more chances than careful ones; nobody says anything about it.
+
+Feelings (new, 0.22.32), best seen with `/drifter config respawn permadeath`:
+- [ ] Kill a Drifter in front of its friend (`/drifter group <name>` makes two friends at once): the friend may react in
+      a word ("NO", "bro"), keeps away from you or comes for you, holds a grudge (`/drifter social show <you>` while
+      looking at it: "killed a friend of it"), and doesn't chat with you any more.
+- [ ] Some time later, by day, the friend walks back to where it happened and stands there a while (sometimes "o7",
+      "f"). It's sad on and off for a day or more (`/drifter mood`).
+- [ ] Beat a Drifter down (not a brave one): around 4 hearts left it gives in, "ok ok take it", and throws you its best
+      few things, then runs. It doesn't forget it.
+- [ ] Nobody explains the rule ("one life" and the like); it shows in what they do.
+- [ ] A Drifter fighting or hunting you (a Bandit gang: `/drifter banditgang`) never introduces itself, greets you,
+      says "welcome back" when you log in, or "hey!! no hitting"; say "hi" and only friendly ones answer (0.22.33).
+
 ## Bandits and towns: the town crook (new, 0.22.30)
 
 Bandits don't live in towns ("kinda like a skyrim bandit"). If one does anyway (one from an older world, or made with
@@ -2294,4 +2325,12 @@ outdoors, how a Drifter is doing, debates and banter. Also has the other session
       something". A hungry Drifter asks for food; a Drifter that died lately jokes about how.
 - [ ] Nothing odd: watch a long talk between two friends for a few minutes (`/drifter talk long`). Each answer should
       fit what was just said. Note any line that doesn't, with the topic name from `/drifter talk status`.
+
+## Side session: asking for something it doesn't have (new, 0.22.34-side.1)
+
+- [ ] Ask a Drifter for something it doesn't carry: "can i have some bread". It should say "dont have any" / "i dont
+      have bread", not "what do you need?". Same for "golden apples", "porkchops", "food".
+- [ ] "can i have something" gets "what do you need?" once. Answer "bread" (it has none): "none, sorry". Answer
+      something vague ("uhh the thing"): "i dont have that". It never asks "what do you need?" twice in a row.
+- [ ] A friend Drifter that has bread still gives some: "can i have 3 bread" gets "take these" and it hands them over.
 

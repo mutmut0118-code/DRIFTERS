@@ -3121,6 +3121,68 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     "the crook is the shopkeeper") and once the first leader; thrown out and turned Bandit at once, or just past the
     town's edge, it killed the town's people (160 blocks now).
 - Next: milestone 22 step 6, nations and diplomacy (docs/CIVILIZATION.md), or prison (kept for later, the user).
+- **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
+  respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
+  dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)
+  read through its personality, feeding caution (fleeing earlier, fewer fights started, shelter earlier, fewer risky
+  shortcuts, gear and food before danger), feelings and talk (fear after a close call, "i only get one life", mourning
+  friends gone for good, deeper grudges for a killing), and giving in (handing things over when mugged, begging). Not
+  started; asked the user whether it goes before nations. The user on the talk: "dont make it corny disney expositiony
+  though; like every drifter knows they have one life left, they dont gotta say that": show it in what they do, never
+  have them explain the rule ("i only get one life" is out); any words are short, shaky reactions in the moment. Grief and
+  grudges stay ("they can still grieve and have grudges and stuff"): just never spelled out as the rule.
+  - **Part 1, caution (0.22.31; the user: "go ahead with part 1").** `Stakes`: what dying would cost it, 0.1 when it
+    comes back at its bed, 0.3 with all its lives left (the default: where everything was tuned), rising to 0.7 with one
+    comeback left, 1.0 when the next death is the last (permadeath, out of lives); an encounter's or a battle's Drifter
+    stays at 0.3. Its difference from 0.3 pulls on its traits (`Personality.setStakes`, set every second; per unit:
+    Caution +0.35, Bravery -0.35, Aggression -0.15, Curiosity -0.15; with permadeath about +-0.25), so everything that
+    reads them gets warier: fight or flee (`Threats.courage`), cowardice, night style (no night hunting for most),
+    shelter time, paths (`PathSearch` risk), caves and mining legs, whims at night, starting on players. And directly,
+    by `Stakes.wariness` (0 as tuned, 1 when the next death is the last): eats sooner (threshold +4), gives up chases
+    sooner (-50 %, the relentless -30 %), fights it could skip worth 60 % less, no drop that leaves it under 6 + 8
+    health. `/drifter personality` shows "Stakes: ..." and the traits as they act. No talk about it (part 2: feelings).
+  - Tested in the client, the same seed and setup twice (4 Drifters with stone swords, night, 3 mobs on each, 2 more a
+    minute later): bed respawn, 12 picks of "fight", 29 of "get away", 3 went out hunting mobs, none stayed in;
+    permadeath, 1 fight, 8 get away, nobody hunted, 3 stayed in. Nobody died in either.
+  - **Part 2, feelings (0.22.32; the user: "go ahead with part 2").** A death's news says whether it was for good and
+    where (`NewsBook.sawDie(..., comesBack)`); seeing it (not only hearing) now moves a Drifter too. A friend gone for
+    good: grieving at full (not 0.6), and `NewsBook.Mourning` for 1 to 3 days by how close they were (it misses them now
+    and then: grieving again; saved), and once, by day, `MournGoal` takes it to stand where they died (it saw it or was
+    told where) for 12 s. The killer: trust down twice as much when it's for good (a player: -30 a friend's death, a
+    Drifter now too, -30, through `DrifterBonds.heardOf`), and a friend's death for good is a grudge (for life when they
+    were close, or it's vengeful) and a wrong (no warning first). Hurt by a player or a Drifter when dying would cost a
+    lot (`Stakes.wariness`): more fear (up to twice), the trust loss half again, and nearly killed with wariness 0.7 or
+    more, a grudge for life. Giving in: hit by a player down to 4 hearts, wary (0.5 or more), not brave (under 0.6),
+    not one out to kill, and not winning: it faces them, says so ("ok ok take it", "STOP. take it") and throws them
+    its best 3 stacks (armour and weapon stay on it), once a fight, then gets away as before. Lines (short, the way
+    players type, never the rule spelled out; the user): `grief.saw` ("NO", "{who}!!", "bro"; 60 %), `grief.visit`
+    ("o7", "rip {who}", "f"; 40 %), `yield`. Also fixed: a Drifter never opens a chat with a player it can't stand (it
+    said "hi stranger" to the player who had just killed its friend, while still looking them over).
+  - Tested in the client (permadeath; Ann and Bob teamed up, Bob killed by the player in front of Ann, Cat beaten
+    down): Ann "saw Bob die (gone for good)", trust in the player -100 with two grudges, kept away from them, grieved,
+    and later walked back and stood where Bob died ("f"); Cat said "STOP. take it" and threw 3 stacks. Not yet seen: a
+    Drifter killing another Drifter's friend for good (the same code, by `heardOf`).
+  - **No friendly words to an enemy (0.22.33).** Found by the user: "while im fighting drifters they also stop to
+    introduce themselves", and the raiders who were out to kill them said "yay MutMut0118 is back" / "welcome back! :)"
+    when they logged in, and "hey!! no hitting" mid-fight. A Drifter looking a player over (or not seeing them yet) wasn't
+    "hostile" by its mode. Now `Mode.atOdds` (hostile, warning, keeping clear or running; trust under -25; a kill-on-sight
+    Bandit; after them or fighting them; hit by them in the last 30 s; an encounter's) keeps it from opening a chat with
+    them, greeting them, welcoming them back, answering their greetings or congratulating them, and makes its answers to
+    them an enemy's; and "hey!! no hitting" is only for one hit by surprise, not one already fighting them. Tested in the
+    client: a Bandit gang hunting the player said nothing friendly to "hi" or "whats ur name"; a friendly Drifter still
+    answered ("im Fren", "cant complain").
+- **Beds where they can be walked to (0.22.34).** Found by the user: "something to cause drifters to pillar cobblestone in
+  their homes ... bed placement is still very random; those houses with the logs on top cause a drifter to pillar up to
+  reach their bed; beds in weird places, like in front of stairs and ways that block the player". `bedSpot` (a house's
+  bed when the plan has none: every town household, a Drifter's own house) took any spot inside with a floor under it and
+  a roof over it: the top of a log beam or a block of furniture too. Now it works out where someone can stand in the
+  house walking in from its doors (steps up a block, drops, ladders) and takes the best spot that's on that floor, with
+  open floor beside it, and that cuts none of it off once the bed is down (the stairs, a ladder, a room). Headless: three
+  towns of 12 houses and the 300 plans' checks, 374 beds, all placed so (272 on the ground floor, 102 upstairs); making
+  the plans at start-up takes 0.65 s (was 0.37). Beds already placed stay where they are.
+  - Not reproduced: "bridging over a path block even though its 1 step down" (a path one step down was walked across in a
+    test; the bridging in the user's traces was up the outside of houses, at roof height). Asked the user where.
+
 
 ## Side session (branch claude/drifter-chat-expansion-574ebe): chat and house plans
 
@@ -3270,3 +3332,12 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
   - Checker: now flags a condition only ever set about players (`b:owed`, `b:stranger`, `b:holding_fancy`...) used in
     a topic between two Drifters, where it would never come up (caught two of these while writing).
   - Fixed: `kinds_newbie_teach` mixed a question ("want a tip?") with tips in one turn; now all tips.
+- **0.22.34-side.1 (side session):** merged the other session's 0.22.31-0.22.34 (stakes: caution and grief by the
+  respawn setting, no friendly words to a player it's at odds with, beds only where they can be walked to). Fixed from
+  the user's chat log ("can i have soem bread" ... "need what?" ... "bread" ... "like what", over and over): a Drifter
+  asked for something it doesn't carry used to ask what they want, again and again (`PlayerTalk.wanted` only knows
+  its own inventory). Now `PlayerTalk.named` reads any item named (all the words of its id, read as chat is: "golden
+  apples", "porkchops", "food") and it says it has none ("dont have any", "i dont have bread"); it asks "what do you
+  need?" only when it can't make out an item, and only once (the next answer gets "i dont have that"). Tested in the
+  dev client. Left as it was: after "trade?", "a diamond sword" is heard as asking whether it has seen diamonds.
+

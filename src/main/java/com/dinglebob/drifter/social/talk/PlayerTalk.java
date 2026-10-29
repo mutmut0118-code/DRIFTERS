@@ -146,8 +146,10 @@ public final class PlayerTalk {
 		}
 
 		// "can i have something" ... "bread": the item, a moment later.
+		boolean itemAnswer = false;
 		if (intent == null && focused != null && focused.drifter().equals(drifter.getUUID()) && now < focused.wantsItemUntil()) {
 			intent = "give";
+			itemAnswer = true;
 		}
 
 		// (In an encounter, the encounter does the talking.)
@@ -171,7 +173,8 @@ public final class PlayerTalk {
 			return false;
 		}
 
-		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+		// (Still waiting when this answers "what do you need?", so give knows it asked already.)
+		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, itemAnswer ? focused.wantsItemUntil() : -1));
 		drifter.getSocial().watcher().spokenTo(player);
 		answer(drifter, player, intent, text, now);
 		// Someone standing by may add their bit ("lmao", "ooh fight", "me too pls").
@@ -334,7 +337,8 @@ public final class PlayerTalk {
 		String name = Heard.callName(drifter, player);
 		Mode mode = Mode.toward(drifter, player);
 		// (A 1v1 they asked for is a game, not a grudge: it still talks to them.)
-		boolean hostile = (mode.hostile() || mode == Mode.WARNING) && !Spar.on(drifter, player);
+		// (At odds with them in any way, it answers as an enemy would: no "name's Ann" mid-hunt.)
+		boolean hostile = (mode.hostile() || mode == Mode.WARNING || Mode.atOdds(drifter, player)) && !Spar.on(drifter, player);
 		boolean insultedLately = r.lastInsultAt >= 0 && now - r.lastInsultAt < INSULT_REMEMBERED && !r.lastInsult.isEmpty();
 		Object[] who = {"player", name, "name", drifter.getName().getString()};
 
@@ -522,8 +526,19 @@ public final class PlayerTalk {
 	/** "Can i have some bread?": from what it can spare, to someone it likes (or owes), about what they're worth to it. */
 	private static void give(DrifterEntity drifter, ServerPlayer player, Relationship r, String text, long now) {
 		String name = Heard.callName(drifter, player);
+		Focus focused = focus.get(player.getUUID());
+		boolean askedAlready = focused != null && focused.drifter().equals(drifter.getUUID()) && now < focused.wantsItemUntil();
+		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
 		Item item = wanted(drifter, text);
 		if (item == null) {
+			// Something it doesn't carry ("bread", with none on it): it says so. It asks what they want only when it can't
+			// make out any item, and only once ("bread" ... "what do you need?" ... "bread" ... "what do you need?" was a loop).
+			String named = named(text);
+			if (named != null || askedAlready) {
+				reply(drifter, "ask.give_none", null, "player", name, "item", named != null ? named : "that");
+				return;
+			}
+
 			reply(drifter, "ask.give_what", null, "player", name);
 			focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, now + WAITING_FOR_ITEM));
 			return;
@@ -666,6 +681,51 @@ public final class PlayerTalk {
 		}
 
 		return best;
+	}
+
+	/**
+	 * Any item they named, carried or not ("bread", "golden apple", "porkchop", "food"), as it's called, or null: an item
+	 * whose every telling word they said (the one with the most such words: "golden apple" over "apple").
+	 */
+	@Nullable
+	private static String named(String text) {
+		java.util.Set<String> said = new java.util.HashSet<>();
+		for (String word : Lines.normalize(text).trim().split(" ")) {
+			if (!word.isBlank()) {
+				said.add(singular(word));
+			}
+		}
+
+		if (said.contains("food") || said.contains("wood")) {
+			return said.contains("food") ? "food" : "wood";
+		}
+
+		Item best = null;
+		int bestScore = 0;
+		for (Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+			int score = 0;
+			boolean all = true;
+			// (Spelled as chat is read: "apple" is "aple", as "apples" was.)
+			for (String word : Lines.normalize(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath().replace('_', ' ')).trim().split(" ")) {
+				if (word.isBlank() || GENERIC.contains(word)) {
+					continue;
+				}
+
+				if (said.contains(singular(word))) {
+					score++;
+				} else {
+					all = false;
+					break;
+				}
+			}
+
+			if (all && score > bestScore) {
+				best = item;
+				bestScore = score;
+			}
+		}
+
+		return best == null ? null : new ItemStack(best).getHoverName().getString().toLowerCase(Locale.ROOT);
 	}
 
 	private static String singular(String word) {

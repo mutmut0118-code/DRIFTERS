@@ -86,6 +86,8 @@ public class SocialWatcher {
 		boolean pendingAccident;
 		boolean attackedRecorded;
 		boolean nearlyRecorded;
+		/** It gave in to them in this fight. */
+		boolean gaveIn;
 		boolean wasCrouching;
 		final ArrayDeque<Long> crouches = new ArrayDeque<>();
 		long lastCrouchSpamAt = Long.MIN_VALUE / 2;
@@ -356,6 +358,7 @@ public class SocialWatcher {
 			w.damage = 0.0F;
 			w.attackedRecorded = false;
 			w.nearlyRecorded = false;
+			w.gaveIn = false;
 		}
 
 		w.hits++;
@@ -363,7 +366,8 @@ public class SocialWatcher {
 		w.lastHitAt = now;
 		w.peacefulTicks = 0;
 		w.pendingAccident = w.hits == 1;
-		if (w.hits == 1) {
+		// ("hey!! no hitting" is for a friendly one taken by surprise, not one already fighting them.)
+		if (w.hits == 1 && !this.wasAtOdds(player)) {
 			ChatLines.say(this.drifter, ChatLines.Kind.OUCH, "player", player.getGameProfile().getName());
 		}
 
@@ -376,6 +380,70 @@ public class SocialWatcher {
 			w.nearlyRecorded = true;
 			this.record(player, SocialEvent.NEARLY_KILLED, 0.0);
 		}
+
+		// Losing, and dying would cost a lot (stakes, part 2): it gives in, once.
+		if (healthAfter > 0.0F && healthAfter <= GIVES_IN && !w.gaveIn && this.givesIn(player)) {
+			w.gaveIn = true;
+			this.giveIn(player);
+		}
+	}
+
+	/** At odds with them before this hit (the hit itself makes anyone so). */
+	private boolean wasAtOdds(Player player) {
+		Relationship r = this.drifter.getSocial().get(player.getUUID());
+		var pursuit = this.drifter.getDrifterBrain().pursuit();
+		return r != null && r.trust < Mode.HOSTILE_TRUST || BanditGoals.ruthless(this.drifter) || pursuit != null && pursuit.target == player
+			|| this.drifter.getTarget() == player;
+	}
+
+	/** Health (half-hearts) at or under which one that's losing, and would lose a lot by dying, gives in. */
+	private static final float GIVES_IN = 8.0F;
+	/** How wary (stakes) it has to be to give in rather than fight on or run. */
+	private static final double GIVE_IN_WARINESS = 0.5;
+	/** What it hands over: its best few stacks. */
+	private static final int GIVES = 3;
+
+	/** Wary enough, not the kind to give in to anyone (a Bandit, a hunter), and not winning this. */
+	private boolean givesIn(Player player) {
+		if (com.dinglebob.drifter.brain.Stakes.wariness(this.drifter) < GIVE_IN_WARINESS || com.dinglebob.drifter.brain.Pursuit.relentless(this.drifter)
+			|| this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= 0.6) {
+			return false;
+		}
+
+		var threat = com.dinglebob.drifter.brain.Threats.assess(this.drifter);
+		return threat.decision() != com.dinglebob.drifter.brain.Threats.Decision.ENGAGE;
+	}
+
+	/**
+	 * Gives in to a player who's beating it: faces them, says so, and throws them its best few things (its armour and weapon
+	 * stay on it). Then it gets away as it would anyway. It's no gift: they're still the one who did this.
+	 */
+	private void giveIn(Player player) {
+		var inventory = this.drifter.getInventory();
+		java.util.List<Integer> slots = new java.util.ArrayList<>();
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
+			if (!inventory.getItem(i).isEmpty() && !com.dinglebob.drifter.brain.Storage.isJunk(this.drifter, inventory.getItem(i))) {
+				slots.add(i);
+			}
+		}
+
+		slots.sort(java.util.Comparator.comparingDouble((Integer i) -> -ItemValues.each(inventory.getItem(i)) * inventory.getItem(i).getCount()));
+		Vec3 to = player.getEyePosition().subtract(this.drifter.getEyePosition());
+		this.drifter.setYRot((float)(Math.atan2(-to.x, to.z) * (180.0 / Math.PI)));
+		this.drifter.setYHeadRot(this.drifter.getYRot());
+		this.drifter.setXRot(0.0F);
+		ChatLines.speak(this.drifter, Lines.pick(this.drifter, "yield", "player", player.getGameProfile().getName()));
+		int given = 0;
+		for (int slot : slots) {
+			if (given++ >= GIVES) {
+				break;
+			}
+
+			this.drifter.tossForward(inventory.removeItemNoUpdate(slot), false);
+		}
+
+		this.drifter.getMemory().thoughts().add(this.now(), "gave in to " + player.getGameProfile().getName() + ": threw them " + Math.min(given, GIVES)
+			+ " stacks of its things");
 	}
 
 	/** It died, killed by this player. */

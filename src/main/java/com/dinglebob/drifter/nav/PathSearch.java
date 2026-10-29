@@ -344,8 +344,10 @@ public class PathSearch {
 		this.jumpBoost = boost == null ? 0 : boost.getAmplifier() + 1;
 		this.memory = drifter.getMemory();
 		int maxDrop = SAFE_DROP;
+		// (Warier when dying would cost more: no drop that hurts unless it's well.)
+		float keeps = MIN_HEALTH_AFTER_DROP + 8.0F * (float)com.dinglebob.drifter.brain.Stakes.wariness(drifter);
 		while (maxDrop < WATER_DROP && fallDamage(drifter, maxDrop + 1) <= MAX_DROP_DAMAGE
-			&& drifter.getHealth() - fallDamage(drifter, maxDrop + 1) >= MIN_HEALTH_AFTER_DROP) {
+			&& drifter.getHealth() - fallDamage(drifter, maxDrop + 1) >= keeps) {
 			maxDrop++;
 		}
 

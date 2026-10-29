@@ -131,6 +131,18 @@ public class Relationships {
 			}
 			// Fear scaled by the damage (a heart of damage is 2 points of Fear, up to 30).
 			case ATTACKED -> fear = Mth.clamp(amount * 1.0, 0.0, 30.0);
+			default -> {
+			}
+		}
+
+		// Hurt badly when dying would cost more (stakes, part 2): it takes it harder, and fears them more.
+		double wary = com.dinglebob.drifter.brain.Stakes.wariness(this.drifter);
+		if (event == SocialEvent.ATTACKED || event == SocialEvent.NEARLY_KILLED) {
+			trust *= 1.0 + 0.5 * wary;
+			fear *= 1.0 + wary;
+		}
+
+		switch (event) {
 			case BETTER_GEAR -> {
 				// A level: only the part above what their gear already earned.
 				int level = (int)Mth.clamp(amount, event.fear, SocialEvent.GEAR_FEAR_MAX);
@@ -146,7 +158,9 @@ public class Relationships {
 		r.addFear(fear);
 		if (event.grudge > 0) {
 			boolean forever = this.disposition() == Disposition.GRUDGE_HOLDER
-				|| event.grudge >= SocialEvent.SEVERE_GRUDGE && this.drifter.getPersonality().get(Trait.VENGEFULNESS) >= VENGEFUL;
+				|| event.grudge >= SocialEvent.SEVERE_GRUDGE && this.drifter.getPersonality().get(Trait.VENGEFULNESS) >= VENGEFUL
+				// (Nearly killed when that would have been the end of it: it doesn't forget.)
+				|| event == SocialEvent.NEARLY_KILLED && wary >= 0.7;
 			r.grudges.add(new Relationship.Grudge(event, event.grudge, now, forever));
 		}
 

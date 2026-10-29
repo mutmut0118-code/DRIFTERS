@@ -140,6 +140,30 @@ public enum Mode {
 		return wanted;
 	}
 
+	/**
+	 * At odds with this player, whatever its mode says this moment: no friendly words for them (no "hi stranger", "name's
+	 * Ann", "welcome back!", "hey!! no hitting"). Found by the user: a Bandit out to kill them introduced itself mid-hunt,
+	 * and greeted them when they logged back in (still looking them over, or not seen yet, its mode wasn't hostile).
+	 * Hostile, warning, keeping clear or running from them; trust low; a kill-on-sight Bandit; after them or fighting
+	 * them; hit by them in the last half-minute; an encounter that came for them.
+	 */
+	public static boolean atOdds(DrifterEntity drifter, Player player) {
+		Mode mode = toward(drifter, player);
+		if (mode.hostile() || mode == WARNING || mode == AVOIDING || mode == FLEEING || mode == DEFENSIVE) {
+			return true;
+		}
+
+		Relationship r = drifter.getSocial().get(player.getUUID());
+		if (r != null && r.trust < HOSTILE_TRUST) {
+			return true;
+		}
+
+		var pursuit = drifter.getDrifterBrain().pursuit();
+		return BanditGoals.ruthless(drifter) && BanditGoals.prey(drifter, player) || pursuit != null && pursuit.target == player
+			|| drifter.getTarget() == player || drifter.getLastHurtByMob() == player && drifter.tickCount - drifter.getLastHurtByMobTimestamp() < 20 * 30
+			|| drifter.encounter() != null && drifter.encounter().hostileTo(drifter, player);
+	}
+
 	private static Mode wanted(DrifterEntity drifter, Player player, Relationship r) {
 		Disposition disposition = drifter.getSocial().disposition();
 		double bravery = drifter.getPersonality().get(Trait.BRAVERY);

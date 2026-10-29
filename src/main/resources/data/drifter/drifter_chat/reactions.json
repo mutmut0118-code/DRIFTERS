@@ -1128,6 +1128,53 @@
       "bandit": [
         "finally. no more pretending"
       ]
+    },
+    "grief.saw": {
+      "any": [
+        "NO",
+        "{who}!!",
+        "nooo",
+        "bro",
+        "{who}??",
+        "no no no",
+        "...",
+        "wait no"
+      ],
+      "hermit": [
+        "..."
+      ],
+      "pvp_sweat": [
+        "who did that"
+      ]
+    },
+    "grief.visit": {
+      "any": [
+        "o7",
+        "rip {who}",
+        "miss you {who}",
+        "...",
+        "f",
+        "gg {who}"
+      ],
+      "helper": [
+        "sorry {who}"
+      ]
+    },
+    "yield": {
+      "any": [
+        "ok ok take it",
+        "STOP. take it",
+        "im done im done",
+        "pls",
+        "fine take it all",
+        "ok you win"
+      ],
+      "hoarder": [
+        "ugh. take it"
+      ],
+      "pvp_sweat": [
+        "fine. gg"
+      ]
     }
   }
 }

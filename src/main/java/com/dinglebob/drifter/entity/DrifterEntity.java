@@ -1353,6 +1353,16 @@ protected void customServerAiStep() {
 		}
 
 		this.lastAiTick = this.level().getGameTime();
+		// What dying would cost it (the respawn setting, its lives left): it pulls on its traits.
+		if (this.tickCount == 1 || (this.tickCount + this.getId()) % 20 == 0) {
+			this.getPersonality().setStakes(com.dinglebob.drifter.brain.Stakes.pull(this));
+		}
+
+		// Friends gone for good, missed now and then (stakes, part 2).
+		if ((this.tickCount + this.getId()) % 600 == 0) {
+			this.getNews().tickMourning();
+		}
+
 		long started = System.nanoTime();
 		super.customServerAiStep();
 		this.delverDespawn();

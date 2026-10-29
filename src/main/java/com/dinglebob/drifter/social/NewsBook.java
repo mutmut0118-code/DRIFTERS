@@ -50,8 +50,39 @@ public final class NewsBook {
 	/** A death is seen this far off at most (and then only in sight). */
 	private static final double WITNESS_RANGE = 32.0;
 
+	/**
+	 * A friend gone for good (stakes, part 2; the user, 2026-10-28: "they can still grieve and have grudges and stuff"):
+	 * for a day to three by how close they were it misses them now and then, and once (if it knows where) goes to stand
+	 * where they died. Saved.
+	 */
+	public static final class Mourning {
+		public final UUID dead;
+		public final String name;
+		@Nullable
+		public final net.minecraft.core.BlockPos where;
+		public final String dimension;
+		public final long until;
+		public final double closeness;
+		public boolean visited;
+
+		Mourning(UUID dead, String name, @Nullable net.minecraft.core.BlockPos where, String dimension, long until, double closeness) {
+			this.dead = dead;
+			this.name = name;
+			this.where = where;
+			this.dimension = dimension;
+			this.until = until;
+			this.closeness = closeness;
+		}
+	}
+
+	/** Losing a friend for good: they're missed for this long (game ticks), and up to three times it at the closest. */
+	private static final long MOURNS = 24000L;
+	/** What a Drifter killing a friend of it costs that Drifter in its trust (doubled by friendship, again when it's for good). */
+	private static final double DRIFTER_KILLER = 30.0;
+
 	private final DrifterEntity drifter;
 	private final Map<String, News> news = new LinkedHashMap<>();
+	private final List<Mourning> mourning = new ArrayList<>();
 	/** When it last told each Drifter something (once a minute per pair at most). */
 	private final Map<UUID, Long> toldAt = new java.util.HashMap<>();
 
@@ -67,10 +98,29 @@ public final class NewsBook {
 		return this.news.containsKey(key);
 	}
 
-	/** Something it saw (or was part of) for itself. */
+	/** Something it saw (or was part of) for itself. A death it saw goes to its heart at once. */
 	public void saw(News news) {
 		if (!this.news.containsKey(news.key())) {
 			this.put(news);
+			if (news.kind() == News.Kind.DEATH) {
+				this.react(news, null);
+			}
+		}
+	}
+
+	/** Friends it's missing now (gone for good). */
+	public List<Mourning> mourning() {
+		return List.copyOf(this.mourning);
+	}
+
+	/** Now and then (from its entity, every half a minute): it misses them; the time to mourn passes. */
+	public void tickMourning() {
+		long now = this.drifter.level().getGameTime();
+		this.mourning.removeIf(m -> now > m.until);
+		for (Mourning m : this.mourning) {
+			if (this.drifter.getRandom().nextFloat() < 0.15F + 0.25F * (float)m.closeness) {
+				this.drifter.getPersonality().feel(Mood.GRIEVING, 0.25 + 0.35 * m.closeness, "misses " + m.name);
+			}
 		}
 	}
 
@@ -96,14 +146,16 @@ public final class NewsBook {
 		}
 	}
 
-	/** What hearing it does to it. */
+	/** What hearing it (or seeing it: {@code teller} null and first-hand) does to it. */
 	private void react(News news, @Nullable DrifterEntity teller) {
 		long now = this.drifter.level().getGameTime();
 		String from = teller == null ? "" : " (from " + teller.getName().getString() + ")";
-		// What the teller's word is worth: its trust in them (strangers count for a little), less with each telling.
+		// What the teller's word is worth: its trust in them (strangers count for a little), less with each telling. Seen
+		// with its own eyes: all of it.
 		double belief = teller == null ? 1.0 : Math.max(0.1, (this.drifter.getBonds().get(teller.getUUID()) == null ? 0.0
 			: this.drifter.getBonds().get(teller.getUUID()).trust) / 100.0 + 0.5);
-		double worth = HEARSAY * Math.min(1.0, belief) * Math.pow(PER_HOP, Math.max(0, news.hops() - 1));
+		boolean seen = teller == null && news.hops() == 0;
+		double worth = seen ? 1.0 : HEARSAY * Math.min(1.0, belief) * Math.pow(PER_HOP, Math.max(0, news.hops() - 1));
 		switch (news.kind()) {
 			case PLAYER_DEED -> {
 				if (news.about() == null || news.other() != null && news.other().equals(this.drifter.getUUID())) {
@@ -124,18 +176,43 @@ public final class NewsBook {
 					before, r.trust));
 			}
 			case DEATH -> {
-				var bond = news.about() == null ? null : this.drifter.getBonds().get(news.about());
-				boolean friend = bond != null && bond.trust >= DrifterBonds.FRIEND;
-				this.drifter.getMemory().thoughts().add(now, "heard that " + news.aboutName() + " " + news.what() + from);
-				if (friend) {
-					this.drifter.getPersonality().feel(Mood.GRIEVING, 0.6, news.aboutName() + " died");
+				if (news.about() != null && news.about().equals(this.drifter.getUUID())) {
+					return;
 				}
 
-				// Killed by a player: thought the less of (much less by a friend of the dead).
-				if (news.weight() > 0.0 && news.other() != null) {
-					Relationship r = this.drifter.getSocial().getOrMeet(news.other(), news.otherName());
+				var bond = news.about() == null ? null : this.drifter.getBonds().get(news.about());
+				boolean friend = bond != null && bond.trust >= DrifterBonds.FRIEND;
+				// Gone for good (stakes, part 2): it hits harder, and stays with it.
+				boolean gone = news.data().getBoolean("Final");
+				double closeness = bond == null ? 0.0 : Math.max(0.0, Math.min(1.0, (bond.trust - DrifterBonds.FRIEND) / (100.0 - DrifterBonds.FRIEND)));
+				this.drifter.getMemory().thoughts().add(now, (seen ? "saw " + news.aboutName() + " die" : "heard that " + news.aboutName() + " " + news.what() + from)
+					+ (gone ? " (gone for good)" : ""));
+				if (friend) {
+					this.drifter.getPersonality().feel(Mood.GRIEVING, gone ? 1.0 : 0.6, news.aboutName() + " died");
+					if (gone) {
+						this.mourn(news, closeness);
+						// (Seeing it happen: a word, the way a player would, now and then; nothing at all, as often.)
+						if (seen && this.drifter.getRandom().nextFloat() < 0.6F) {
+							ChatLines.speak(this.drifter, Lines.pick(this.drifter, "grief.saw", "who", news.aboutName()));
+						}
+					}
+				}
+
+				// The one who killed it: thought the less of (much less by a friend of the dead, and again when it's for good).
+				if (news.other() != null && !news.other().equals(this.drifter.getUUID())) {
+					double scale = worth * (friend ? 2.0 : 0.5) * (gone ? 2.0 : 1.0);
+					boolean byPlayer = news.weight() > 0.0;
+					Relationship r = byPlayer ? this.drifter.getSocial().getOrMeet(news.other(), news.otherName())
+						: this.drifter.getBonds().heardOf(news.other(), news.otherName());
 					double before = r.trust;
-					r.addTrust(SocialEvent.KILLED_FRIEND.trust * worth * (friend ? 2.0 : 0.5));
+					r.addTrust((byPlayer ? SocialEvent.KILLED_FRIEND.trust : -DRIFTER_KILLER) * scale);
+					// A friend killed for good: a grudge, for life when they were close or it's the vengeful kind.
+					if (friend && gone) {
+						boolean forever = closeness >= 0.5 || this.drifter.getPersonality().get(Trait.VENGEFULNESS) >= Relationships.VENGEFUL;
+						r.grudges.add(new Relationship.Grudge(SocialEvent.KILLED_FRIEND, SocialEvent.KILLED_FRIEND.grudge * (1.0 + closeness), now, forever));
+						r.wronged = true;
+					}
+
 					if (r.trust != before) {
 						this.drifter.getMemory().thoughts().add(now, String.format(Locale.ROOT, "%s killed %s: trust %.0f -> %.0f", news.otherName(),
 							news.aboutName(), before, r.trust));
@@ -192,6 +269,19 @@ public final class NewsBook {
 		return player != null && SocialWatcher.isRealPlayer(player);
 	}
 
+	/** A friend gone for good: missed for a while, and the place it died known if the news says. */
+	private void mourn(News news, double closeness) {
+		if (this.mourning.stream().anyMatch(m -> m.dead.equals(news.about()))) {
+			return;
+		}
+
+		CompoundTag data = news.data();
+		net.minecraft.core.BlockPos where = data.contains("Where") ? net.minecraft.core.BlockPos.of(data.getLong("Where")) : null;
+		long now = this.drifter.level().getGameTime();
+		this.mourning.add(new Mourning(news.about(), news.aboutName(), where, data.getString("Dimension"), now + Math.round(MOURNS * (1.0 + 2.0 * closeness)),
+			closeness));
+	}
+
 	// ----- Making news -----
 
 	/** A player did this to {@code drifter}, which cost or earned them this much of its trust. */
@@ -208,7 +298,7 @@ public final class NewsBook {
 	 * {@code dead} died, as its death message has it: the news, for the Drifters who saw it (in sight, or right beside it).
 	 * Who killed it is kept if it was a player or a Drifter.
 	 */
-	public static void sawDie(DrifterEntity dead, String message, DamageSource source) {
+	public static void sawDie(DrifterEntity dead, String message, DamageSource source, boolean comesBack) {
 		Entity killer = source.getEntity();
 		DrifterEntity owner = FakePlayerBridge.ownerOf(killer);
 		if (owner != null) {
@@ -220,8 +310,13 @@ public final class NewsBook {
 		long now = dead.level().getGameTime();
 		String name = dead.getName().getString();
 		String what = message.startsWith(name) ? message.substring(name.length()).trim() : "died";
+		// (Whether it's gone for good, and where: stakes, part 2.)
+		CompoundTag data = new CompoundTag();
+		data.putBoolean("Final", !comesBack);
+		data.putLong("Where", dead.blockPosition().asLong());
+		data.putString("Dimension", dead.level().dimension().location().toString());
 		News news = new News("death:" + dead.getUUID() + ":" + now, News.Kind.DEATH, dead.getUUID(), name, killer == null ? null : killer.getUUID(),
-			killer == null ? "" : killer.getName().getString(), what, now, 0, killer instanceof Player ? 1.0 : 0.0, DEFAULT_LASTS, new CompoundTag());
+			killer == null ? "" : killer.getName().getString(), what, now, 0, killer instanceof Player ? 1.0 : 0.0, DEFAULT_LASTS, data);
 		for (DrifterEntity other : dead.level().getEntitiesOfClass(DrifterEntity.class, dead.getBoundingBox().inflate(WITNESS_RANGE), DrifterEntity::isAlive)) {
 			if (other == dead) {
 				continue;
@@ -246,6 +341,23 @@ public final class NewsBook {
 		ListTag list = new ListTag();
 		this.news.values().forEach(news -> list.add(news.save()));
 		tag.put("News", list);
+		ListTag mourning = new ListTag();
+		for (Mourning m : this.mourning) {
+			CompoundTag one = new CompoundTag();
+			one.putUUID("Dead", m.dead);
+			one.putString("Name", m.name);
+			if (m.where != null) {
+				one.putLong("Where", m.where.asLong());
+			}
+
+			one.putString("Dimension", m.dimension);
+			one.putLong("Until", m.until);
+			one.putDouble("Closeness", m.closeness);
+			one.putBoolean("Visited", m.visited);
+			mourning.add(one);
+		}
+
+		tag.put("Mourning", mourning);
 		return tag;
 	}
 
@@ -256,6 +368,15 @@ public final class NewsBook {
 			if (news != null) {
 				this.news.put(news.key(), news);
 			}
+		}
+
+		this.mourning.clear();
+		for (Tag t : tag.getList("Mourning", Tag.TAG_COMPOUND)) {
+			CompoundTag one = (CompoundTag)t;
+			Mourning m = new Mourning(one.getUUID("Dead"), one.getString("Name"), one.contains("Where") ? net.minecraft.core.BlockPos.of(one.getLong("Where")) : null,
+				one.getString("Dimension"), one.getLong("Until"), one.getDouble("Closeness"));
+			m.visited = one.getBoolean("Visited");
+			this.mourning.add(m);
 		}
 	}
 }
