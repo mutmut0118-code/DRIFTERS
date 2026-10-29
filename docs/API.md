@@ -84,6 +84,7 @@ whom to meet and where they live, the message; `arrived`, `back`, `told`, `gaveU
 ("sandstone", "mossy_cobblestone"); `PlacedHouse.stone()`; kept with its home's palette (0.23.2).
 `DrifterApi.stillBuilding(drifter, days)`: its house isn't finished; it builds what's missing of its plan over those days.
 `DrifterApi.randomName(server, random)`: a name as Drifters have them (0.23.4).
+`DrifterApi.addTrustInPlayer(drifter, player, name, change)`: it thinks better (or worse) of a player (0.23.6).
 `DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of

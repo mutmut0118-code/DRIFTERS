@@ -3478,3 +3478,16 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
     by world generation (69 people in 35 houses), a ruin, towns and a hamlet, every place walked to, no step over 116 ms.
   - Not yet: districts, a market street, more stalls, walls; A10 (towns far away as summaries: for now their people go
     on as every Drifter does out of sight).
+- **0.23.6: A7's raids on towns.** Vanilla's raids don't come to a Drifter town (found in testing: a player with Bad Omen in
+  one, no raid; vanilla counts a village by POIs its villagers have claimed, and Drifters' beds and bell aren't claimed).
+  `TownRaids`: a player with Bad Omen within 64 blocks of a town's middle (not on peaceful) spends it ("Something's coming
+  for X..."); half a minute later raiders come from 80 blocks out, making for its plaza when they've nobody to fight:
+  waves (two, a city three), 2 + the wave's number + one for every eight of its people (ten at most), a quarter of them
+  vindicators, the rest pillagers (a city's last wave with a ravager); the next wave when a quarter of the last are left
+  or three minutes on. Its people fight or run by their natures (as with any hostile mob). All down: "X fought off a raid
+  (n raiders brought down, m of them by <player>)", and each of its people trusts the player who helped more (12, and 2 a
+  raider, up to 10). Ten minutes after the last wave with raiders still about: they make off. Debug: `/drifterciv town
+  raid` (Bad Omen given). `DrifterApi.addTrustInPlayer`.
+  - Tested in the client (a town of about 20, the player watching in creative): first try, waves of 7 and 8 with a third
+    vindicators, 12 of its people's lives lost in four minutes and the raid not over; rebalanced, two waves (5 and 6), it
+    fought them off: 11 raiders brought down, 3 lives lost.

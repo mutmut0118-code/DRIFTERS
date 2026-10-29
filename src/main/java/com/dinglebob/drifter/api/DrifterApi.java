@@ -176,6 +176,11 @@ public final class DrifterApi {
 		return r == null ? 0.0 : r.trust;
 	}
 
+	/** It thinks this much better (or worse, under 0) of a player (met now if it hadn't: by name). */
+	public static void addTrustInPlayer(DrifterEntity drifter, UUID player, String name, double change) {
+		drifter.getSocial().getOrMeet(player, name).addTrust(change);
+	}
+
 	/** How much it trusts another Drifter (-100 to 100; 0 for a stranger). */
 	public static double trustInDrifter(DrifterEntity drifter, UUID other) {
 		var r = drifter.getBonds().get(other);

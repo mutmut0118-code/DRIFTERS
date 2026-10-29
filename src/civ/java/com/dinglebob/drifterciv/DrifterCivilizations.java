@@ -66,6 +66,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Justice.register();
 		Diplomacy.register();
 		TownSites.register();
+		TownRaids.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -374,6 +375,12 @@ public final class DrifterCivilizations implements ModInitializer {
 						source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 						return 1;
 					})))
+				// Debug: a raid on the nearest town, as if you'd walked in with Bad Omen.
+				.then(Commands.literal("raid").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					boolean in = TownRaids.debugRaid(ctx.getSource().getPlayerOrException());
+					ctx.getSource().sendSuccess(() -> Component.literal(in ? "Debug: Bad Omen given; a raid's coming" : "Debug: Bad Omen given (walk into a town)"), true);
+					return 1;
+				}))
 				// Debug: the ruins of a town that failed, made here at once (as world generation now and then makes one).
 				.then(Commands.literal("ruin").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var source = ctx.getSource();

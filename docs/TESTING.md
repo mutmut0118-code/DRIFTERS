@@ -1488,6 +1488,9 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Cities (0.23.5): rare (one at most in a big stretch of land), up to a hundred people, many streets. To see one now:
       `/drifterciv town city 60` where there's room (it's made over half a minute, a bit each tick). Walk it: every door
       reachable from the plaza on foot.
+- [ ] Raids (0.23.6): walk into a town with Bad Omen (or `/drifterciv town raid` there): "Something's coming...", then
+      pillagers and vindicators in waves making for the plaza; its people fight or run. Help bring them down, and once
+      they're all down the town's people think better of you ("won't forget that").
 
 ## Beds in town houses (new, 0.22.34)
 
