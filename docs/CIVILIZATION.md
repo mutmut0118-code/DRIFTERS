@@ -70,6 +70,8 @@ Dozens of towns can exist; only the ones being watched cost much.
 - Spies, scouts and messengers carry news (news only travels by someone carrying it).
 
 ### 5. Culture
+(Folded into docs/LIVED_WORLD.md phase C, the user 2026-10-29: "should fold them into this plan that way it integrates
+better"; flags and banners stay with nations, step 6 part 3.)
 - Flags and banners for towns and nations (banners exist for groups already).
 - Monuments, statues, festivals, a calendar of yearly events.
 - Beliefs: a shrine, a cult with odd rules, a rival cult; holy places worth fighting over.
@@ -271,7 +273,7 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   effects, talk and the chronicle; part 2, wars between towns (declared when the standing sinks: armies on the march,
   peace terms, tribute, broken promises remembered); part 3, nations (allied towns joining, a capital, a name and banner,
   tribute, rebellions and independence).
-- **After step 6: a lived-in world** (docs/LIVED_WORLD.md, planned 2026-10-29): Drifter towns replace villages and
+- **After step 6: milestone 23, a lived-in world** (docs/LIVED_WORLD.md, planned 2026-10-29): Drifter towns replace villages and
   villagers, real shops replace villager trading, town life, and the player's place in a town (friends, companions,
   citizenship). Phases A to D there.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building

@@ -9,8 +9,9 @@ of like MCA Reborn (the mod) and like rpg game civilizations (skyrim, fallout) w
 and not completely into the 'roleplay npc'". Then: "lets expand on this plan and make it a whole seperate very detailed
 document, kind of like progress.md; i feel like this is too big of a step to not be on paper".
 
-Planned 2026-10-29, right after milestone 22 step 6 part 1 (diplomacy, 0.22.39). Built after nations (step 6 parts 2
-and 3), phase by phase, one step at a time, each with a version, a test and an entry here.
+Planned 2026-10-29, right after milestone 22 step 6 part 1 (diplomacy, 0.22.39). **Milestone 23** (its own milestone,
+after 22 ends with nations: step 6 parts 2 and 3), built phase by phase, one step at a time, each with a version (0.23.x),
+a test and an entry here.
 
 ---
 
@@ -20,7 +21,7 @@ and 3), phase by phase, one step at a time, each with a version, a test and an e
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | Not started |
 | B | Trades and services instead of villager trading | Not started |
-| C | Town life (days, hangouts, comings and goings, events) | Not started |
+| C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
 
 Already built that this stands on: see "What's there to build on" below.
@@ -36,6 +37,20 @@ Already built that this stands on: see "What's there to build on" below.
 3. **Closeness: friends and companions.** Friendship with real perks: invited in, food and gifts, warnings, backup in a
    fight, coming along on trips. No romance or marriage.
 4. **Order: after nations.** Wars (step 6 part 2) and nations (part 3) first; then phases A to D here.
+5. **Villagers for players' farms: a setting.** Villages are replaced, but a setting lets villagers exist (curing zombie
+   villagers, spawn eggs) for players who want trading halls and iron farms. Off by default.
+6. **Milestone 23** (the user: "whatever you think best"): its own milestone after 22, so 22 ends cleanly with nations and
+   this gets its own versions (0.23.x).
+7. **Culture folded in** (the user: "should fold them into this plan that way it integrates better"): festivals,
+   monuments, beliefs and traditions (CIVILIZATION.md part 5) are phase C here. Flags and banners for nations stay with
+   nations (step 6 part 3).
+8. **Cities, and how common** (the user: "about 2-3x more rarer than villages, and at most a town should have 100
+   drifters and usually at least 40-80 households, so it feels like a CITY, ofc there could be small town variations
+   that connect with bigger towns, like 8-16 household towns"; the rarity to tweak as recommended): see A4. Settlements
+   about 2.5 times rarer than villages; most of them small towns of 8 to 16 households, a city of 40 to 80 households
+   (100 Drifters at most) now and then, with small towns round it on roads to it.
+9. **The player in a town: a citizen only for now** (the user: "keep the town roles for later and just be a citizen").
+   Roles (guard, keeper, builder for hire) later.
 
 Still open: see "Questions for the user" at the end.
 
@@ -162,8 +177,11 @@ Goal: you explore a new world and every village is a Drifter town, each one diff
   place, furnish, stock; store; stall; fields; pen; lamps; people), each stage cut into block batches with a per-tick
   budget (say 3 ms). Started when the player is within ~12 chunks; anything not finished when they arrive finishes
   faster (a bigger budget) rather than showing half a town.
-- **Risk:** the biggest technical one in the plan. If slices aren't enough, generate the static part (ground, roads,
-  houses) as real structure pieces at chunk generation, and only the people and the stocking at first load.
+- **Risk:** the biggest technical one in the plan, and bigger with cities (decision 8): a city of 60 houses is five
+  times today's 12-house town (about a minute of building in one go). So: **small towns** made a slice at a time as
+  above; **cities** with their static part (levelled ground, roads, houses) generated as real structure pieces at chunk
+  generation, the way vanilla villages are, and only the people, the stocking and the past (A5) at first load. Both
+  measured before going on.
 - **Test:** a flight at full speed over a world full of towns: no tick over 50 ms from it (`/drifter` timings), every
   town whole by the time it's in view.
 
@@ -177,15 +195,30 @@ Goal: you explore a new world and every village is a Drifter town, each one diff
   house rules: memory "House style rules").
 - **Test:** one town in each biome side by side (a debug command to make one with a biome's style).
 
-### A4. Sizes and shapes
+### A4. Sizes, spacing and shapes (decision 8)
 
-- **What:** not every village spot gets a town: a **homestead** (1 or 2 households, a field, a pen), a **hamlet** (3 to
-  5: a well, a few houses on one road), a **village** (6 to 12: plaza, store, stall, notice board), a **town** (13 to 25:
-  all that, side roads, two stalls, later walls). Weights a setting (say 30/35/25/10).
-- **How:** `TownBuilder` already scales by households; homesteads and hamlets skip the plaza and store. Layout follows the
-  land (A2's slices on a terrain survey first: rivers, slopes, the easing from 0.22.37).
-- **Also:** a few spots get a **ruin** instead: a town that failed (burnt houses, an empty store, a grave or two, a
-  sign), so the world has history; a setting (say 5%).
+- **How common:** vanilla villages are spaced 34 chunks apart (8 at least), about one per 34 x 34 chunks where a biome
+  allows one. Settlements here are about **2.5 times rarer**: spaced **54 chunks** apart (16 at least), about one per
+  860 x 860 blocks, before biomes rule some out. Cities are rarer still (below). Both settings.
+- **What a spot gets** (weights, settings):
+  - **Small town** (60%): **8 to 16 households** (10 to 25 Drifters): a plaza with well and notice board, a store, a
+    stall, fields, a pen, houses on two or three roads.
+  - **Hamlet or homestead** (20%): 1 to 5 households on one road, a well and a field: the edges of the world.
+  - **Ruin** (5%): a town that failed (burnt houses, an empty store, graves, a sign): history.
+  - **City** (15% of spots, but never within about 2,000 blocks of another city): **40 to 80 households, 100 Drifters
+    at most** ("so it feels like a CITY"): a big plaza, several districts off main roads (its houses, a market street of
+    shops, the farms outside), two or three stalls, a store per district, a hall, walls later; its leader leads the
+    region (nations, step 6 part 3).
+- **Cities and their towns:** each city has a few small towns and hamlets round it (the spots within ~1,500 blocks) that
+  "connect" to it: roads worn between them (A8), trade runs to its market, envoys, the city as their capital when nations
+  come (step 6 part 3). The world reads as regions: a city, its towns, the wild between.
+- **People per household:** most one, some two (rooms: built), so 40 to 80 households is about 50 to 100 Drifters; the
+  cap of 100 holds however many rooms there are.
+- **Layout** follows the land (a terrain survey first: rivers, slopes, the easing from 0.22.37); a city's districts each
+  laid out like a town of its own around the main roads.
+- **A city near you is a lot of Drifters** (milestone 16: about 100 full Drifters cost about 10 ms a tick): its people
+  near the player in full, the rest of the city at lighter detail (the detail tiers: built), and the city as a summary
+  when nobody's near (A10). Measured with a city before cities are switched on.
 
 ### A5. A town with a past
 
@@ -228,7 +261,8 @@ Goal: you explore a new world and every village is a Drifter town, each one diff
 - Camps, strip mines, cave torches, wanderers, delvers, Bandit outposts: kept (they're the world beyond the towns).
 - `LivedInStructures`' villages: with towns replacing villages there are none to move into; kept for old worlds.
 - Wanderers and lone homesteaders may move into a town (C4); Bandit outposts raid towns (part 2 of nations, and A7).
-- Roads between towns: worn paths along the way trade runs and envoys walk (later; a path is a block at a time).
+- Roads between towns: worn paths along the way trade runs and envoys walk; between a city and its towns (A4) made with
+  the city at world generation, as a road a player would have worn, a block wide at the ends, three by the city.
 
 ### A9. Mods that rely on villages
 
@@ -248,7 +282,8 @@ Goal: you explore a new world and every village is a Drifter town, each one diff
   by in summary (harvests, trade, building, elections, someone leaving, a raid) and it's as the summary says when you
   come back.
 - **How:** CatchUp-style steps per town per in-game day from the same numbers the full town uses; the Drifter directory
-  for its people. Needed once a world has dozens of towns.
+  for its people. Needed once a world has dozens of towns, and from the first city (a city's 100 people can't all be
+  played out).
 
 ---
 
@@ -331,9 +366,10 @@ players.
 
 ---
 
-## 6. Phase C: town life
+## 6. Phase C: town life and culture
 
-Goal: a town you can watch for a day and see a day go by, the same way you'd watch players on a server.
+Goal: a town you can watch for a day and see a day go by, the same way you'd watch players on a server; and over weeks,
+a town with its own ways (culture folded in here: decision 7).
 
 ### C1. A townsperson's day
 
@@ -365,13 +401,28 @@ Goal: a town you can watch for a day and see a day go by, the same way you'd wat
   crowd in the plaza.
 - **A build day:** the town builds something together (a wall, a hall, a monument) with everyone helping.
 - **Contests:** a fishing contest, a race (the race encounter exists), a duel at the plaza (sparring exists).
-- **Festivals** (culture, CIVILIZATION.md part 5): yearly, from the town's own history (the day it was founded, a war
-  won, someone remembered).
+- **Festivals:** see C6.
 
 ### C5. Animals and the land around
 
 - Pets kept and fed, horses ridden and stabled, the pen tended (built), bees and honey, fishing spots; the woods round a
   town cut over time (felled trees: built), the land worked outward.
+
+### C6. Culture (CIVILIZATION.md part 5, folded in)
+
+- **A calendar of its own:** festivals from the town's history (the day it was founded, a war won, a famous death); on
+  the day, people gather at the plaza, a feast (food shared from the store), music (note blocks, jukeboxes if they
+  have discs), fireworks if someone made them. "It's Founding Day!" in chat, the chronicle remembers.
+- **Monuments:** the town builds one together (a build day, C4) after something big: a statue of a dead leader, a
+  tower, a fountain; real blocks, real work; a sign says what it's for.
+- **Beliefs:** some towns have a shrine (a small build with candles, flowers, a lectern); a few people keep to it (they
+  visit, leave flowers); now and then a cult with odd rules (no killing cows, everyone wears a pumpkin on full moons);
+  a rival cult in the next town; a holy place worth fighting over (wars: step 6 part 2). Never preaching at the player:
+  players-who-roleplay, not priests.
+- **Traditions from what happened:** what the town did more than once becomes its custom (a fishing contest every week
+  after the first one was fun; never going near the ravine where three died).
+- **A town's character:** from its people (traits averaged) and its history: a friendly market town, a grim mining town,
+  a pious town, a rough town; it shows in its talk, its laws (step 5) and its festivals.
 
 ---
 
@@ -433,7 +484,8 @@ its problem.
 - **The chronicle:** every coming and going, opening and closing of a shop, event; the town's book.
 - **Commands:** `/drifterciv town` grows (lines of work, shops, where you stand); debug ones to make a town of a
   biome and size, start an event, move someone in or out, set a reputation.
-- **Settings** (Mod Menu): replace villages, villagers spawning, town size weights, ruins, events on/off, companions on/off.
+- **Settings** (Mod Menu): replace villages, villagers allowed (decision 5), settlement spacing, the size weights, cities
+  on/off and how far apart, ruins, events and festivals on/off, companions on/off.
 - **Saves:** towns to be made (A1), half-made towns (A2), shops, lines, reputation: versioned.
 - **Data files:** lines of work, biome styles, events, notice board posts: data, so they can be changed in a datapack.
 - **Performance:** each step measured (timings) with a town or several near; far towns cost almost nothing (A10).
@@ -445,7 +497,8 @@ its problem.
 - **B:** a town of 12 over a few days: lines spread, goods made, shops stocked from production only (no item appears),
   prices move; buy, sell, get a sword enchanted, a pickaxe repaired.
 - **C:** a town watched over two days: the day's rhythm, a gathering at the plaza, a newcomer moving in, someone leaving,
-  a market day with traders from the next town.
+  a market day with traders from the next town; a festival on its day; a shrine visited; a monument built after
+  something big.
 - **D:** a player befriending someone (perks show up), a companion trip (it comes, fights, goes home), getting a plot
   and building, a notice board request done and paid.
 - Each step: a headless smoke run and a client test, as now; TESTING.md entries in plain language.
@@ -454,29 +507,25 @@ its problem.
 
 After nations (decided). Then:
 
-1. **A1 + A2** (villages replaced, towns made a slice at a time): the hard part first; worth a step on its own.
-2. **A3, A4** (biome styles, sizes, ruins).
+1. **A1 + A2** (villages replaced, small towns made a slice at a time): the hard part first; worth a step on its own.
+2. **A3, A4** (biome styles; small towns, hamlets, ruins); then **cities** (A2's structure pieces, districts, the roads to
+   their towns) with **A10** alongside (a city needs the summary layer).
 3. **A5, A6** (a past, people's touches), **A7** (raids, golems, the wandering merchant), **A9** (other mods).
 4. **B1 to B3** (lines, production, shops), then **B4 to B7** (prices, services, villager goods).
-5. **C1 to C3** (the day, places, comings and goings), then **C4, C5** (events, animals).
+5. **C1 to C3** (the day, places, comings and goings), then **C4 to C6** (events, animals, culture).
 6. **D1 to D3** (reputation, friends, companions), then **D4 to D6** (living there, the board).
-7. **A10** (far towns as summaries) when worlds have enough towns for it to matter (likely alongside A).
+7. (A10 comes with cities, step 2.)
 
 Each a version, a test, and a line in the status table at the top.
 
-## 11. Questions for the user (still open)
+## 11. Questions for the user
 
-1. **Villagers for players' farms:** with villages replaced, villager farms (trading halls, iron farms) are gone. Keep a
-   setting that lets villagers exist (curing zombie villagers, for instance) for players who want them, or none at all?
-2. **Which milestone:** this as milestone 23 (its own, after 22 ends with nations), or as more steps of 22?
-3. **Culture** (CIVILIZATION.md part 5: festivals, monuments, beliefs) overlaps phase C: fold it in here, or keep it
-   after nations as planned?
-4. **A town's size and number:** how common should towns be compared with villages (vanilla spacing gives about one
-   per 34 chunks), and how big at most?
-5. **The player in a town:** can a player ever be given a role (guard, keeper, builder for hire), or only citizen?
+All answered (decisions 1 to 9 at the top). New ones go here as they come up.
 
 ## 12. Progress
 
 (Entries here as steps are built, newest last, as in PROGRESS.md.)
 
 - 2026-10-29: planned (this document); decisions 1 to 4 above.
+- 2026-10-29: decisions 5 to 9 (villagers as a setting, milestone 23, culture folded into phase C, cities and their
+  towns with the spacing worked out in A4, the player a citizen only for now).

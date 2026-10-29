@@ -3152,7 +3152,8 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 - **Planned (not started): a lived-in world, Drifter towns instead of villages** (docs/LIVED_WORLD.md; the user,
   2026-10-29: "replace villages and villagers as a whole ... MCA Reborn ... skyrim, fallout ... while still having that
   feel of a player"). Decided: villages replaced completely, real shops only, friends and companions (no romance), built
-  after nations. Phases: A towns where villages were (worldgen), B trades replacing villager trading, C town life, D you
+  after nations, as milestone 23 (cities of 40-80 households among small towns of 8-16, 2.5x rarer than villages;
+  villagers a setting; culture folded in; the player a citizen). Phases: A towns where villages were (worldgen), B trades replacing villager trading, C town life and culture, D you
   and the town.
 - Next: step 6 part 2, wars between towns (declared when the standing sinks; armies, peace terms, tribute, broken promises
   remembered); then part 3, nations. Prison is kept for later (the user).
