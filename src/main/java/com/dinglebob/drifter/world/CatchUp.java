@@ -952,7 +952,7 @@ public final class CatchUp {
 	private static void furnish(DrifterEntity drifter, double day, Report report) {
 		Home home = drifter.getDrifterBrain().home();
 		Level level = drifter.level();
-		if (home == null || home.borrowed() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+		if (home == null || noHut(home) || home.borrowed() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
 			return;
 		}
 
@@ -1130,10 +1130,19 @@ public final class CatchUp {
 	 * its own home, only while that's loaded, never where a player put a block or something stands, the door gap left
 	 * open. The rest (door, bed, torch) it does for real next time it's about.
 	 */
+	/**
+	 * It has no hut to build or furnish: it lives in a town house or a house of its own (the user's screenshots, 2026-10-29:
+	 * a 9x9 cobblestone hut roof, walls and doors inside town houses; it went up in catch-up whenever a town Drifter came
+	 * back from being unloaded, so it "kept coming back" after every fix to the Drifters' own building).
+	 */
+	private static boolean noHut(Home home) {
+		return home.noHut || home.planDone || home.hutTakenDown;
+	}
+
 	private static void buildHut(DrifterEntity drifter, Report report) {
 		Home home = drifter.getDrifterBrain().home();
 		Level level = drifter.level();
-		if (home == null || home.hutBuilt || home.borrowed() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
+		if (home == null || home.hutBuilt || noHut(home) || home.borrowed() || !home.dimension.equals(level.dimension().location()) || !level.isLoaded(home.center)) {
 			return;
 		}
 
@@ -1188,6 +1197,7 @@ public final class CatchUp {
 			}
 
 			level.setBlock(cell, ((net.minecraft.world.item.BlockItem)block.getItem()).getBlock().defaultBlockState(), 3);
+			com.dinglebob.drifter.debug.PlaceLog.placed(drifter, cell);
 			block.shrink(1);
 			report.built++;
 		}

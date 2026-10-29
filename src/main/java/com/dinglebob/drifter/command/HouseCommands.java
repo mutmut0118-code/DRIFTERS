@@ -41,6 +41,8 @@ public final class HouseCommands {
 			.then(Commands.literal("status").executes(HouseCommands::status))
 			// Debug: the house as a map, layer by layer.
 			.then(Commands.literal("map").executes(HouseCommands::map))
+			// Debug: blocks in every loaded Drifter's house that aren't in its plan (stray cobblestone and the like), to the log.
+			.then(Commands.literal("strays").executes(HouseCommands::strays))
 			.then(Commands.literal("info").then(plan().executes(HouseCommands::info)))
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
 			.then(Commands.literal("layout").then(Commands.argument("bed", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -245,6 +247,54 @@ public final class HouseCommands {
 		}
 
 		return 1;
+	}
+
+	private static int strays(CommandContext<CommandSourceStack> ctx) {
+		var level = ctx.getSource().getLevel();
+		java.util.Set<String> seen = new java.util.HashSet<>();
+		int total = 0;
+		for (DrifterEntity drifter : level.getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(DrifterEntity.class), DrifterEntity::isAlive)) {
+			var home = drifter.getDrifterBrain().home();
+			HousePlan plan = home == null || home.planId == null || home.planOrigin == null ? null : HousePlans.get(ctx.getSource().getServer(), home.planId);
+			if (plan == null || !seen.add(home.planId + "@" + home.planOrigin.toShortString())) {
+				continue;
+			}
+
+			var placed = com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home);
+			java.util.Map<BlockPos, net.minecraft.world.level.block.state.BlockState> want = placed.buildMap();
+			java.util.Set<BlockPos> ground = new java.util.HashSet<>(placed.ground);
+			java.util.Map<String, Integer> kinds = new java.util.TreeMap<>();
+			java.util.List<String> where = new java.util.ArrayList<>();
+			for (int y = 1; y < placed.sizeY; y++) {
+				for (int z = 0; z < placed.sizeZ; z++) {
+					for (int x = 0; x < placed.sizeX; x++) {
+						BlockPos pos = home.planOrigin.offset(x, y, z);
+						var there = level.getBlockState(pos);
+						// (Furniture isn't in plans: beds, chests, stations, doors.)
+						if (want.containsKey(pos) || ground.contains(pos) || there.isAir() || there.canBeReplaced()
+							|| there.getCollisionShape(level, pos).isEmpty() || level.getBlockEntity(pos) != null
+							|| there.is(net.minecraft.tags.BlockTags.DOORS) || there.is(net.minecraft.world.level.block.Blocks.CRAFTING_TABLE)) {
+							continue;
+						}
+
+						String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(there.getBlock()).getPath();
+						kinds.merge(id, 1, Integer::sum);
+						if (where.size() < 12) {
+							where.add(id + " " + pos.toShortString());
+						}
+					}
+				}
+			}
+
+			int count = kinds.values().stream().mapToInt(Integer::intValue).sum();
+			total += count;
+			com.dinglebob.drifter.Drifter.LOGGER.info("[strays] {} at {} ({}): {} not in the plan {} e.g. {}", home.planId, home.planOrigin.toShortString(),
+				drifter.getName().getString(), count, kinds, where);
+		}
+
+		int all = total;
+		say(ctx, all + " blocks in Drifter houses that aren't in their plans (the server log lists them: [strays])");
+		return all;
 	}
 
 	private static int info(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

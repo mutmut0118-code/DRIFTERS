@@ -204,6 +204,7 @@ public class UseOnBlockTask extends Task {
 	}
 
 	private Status click(BlockHitResult hit) {
+		boolean block = this.drifter.getMainHandItem().getItem() instanceof net.minecraft.world.item.BlockItem;
 		InteractionResult used = FakePlayerBridge.act(this.drifter, fake -> {
 			// The way a placed block faces (a bed's head): a player lines that up by where they stand; here it's set for the
 			// click, the aim stays the same.
@@ -229,6 +230,9 @@ public class UseOnBlockTask extends Task {
 		// On the server a placed block reports "consume", not "success": in vanilla the swing is the player's own client's,
 		// which sees "success".
 		this.drifter.swing(InteractionHand.MAIN_HAND);
+		if (block) {
+			com.dinglebob.drifter.debug.PlaceLog.placed(this.drifter, hit.getBlockPos().relative(hit.getDirection()));
+		}
 
 		if (this.scaffold) {
 			BlockPos placed = hit.getBlockPos().relative(hit.getDirection());

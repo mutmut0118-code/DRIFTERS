@@ -57,6 +57,43 @@ final class SensesCommands {
 				return 1;
 			}))));
 		root.then(Commands.literal("senses").executes(SensesCommands::senses));
+		// Debug: a box of blocks, layer by layer, to the server log (one letter a block, the key after each layer).
+		root.then(Commands.literal("dumpbox").then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
+			.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos()).executes(ctx -> {
+				net.minecraft.core.BlockPos a = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "from");
+				net.minecraft.core.BlockPos b = net.minecraft.commands.arguments.coordinates.BlockPosArgument.getLoadedBlockPos(ctx, "to");
+				var level = ctx.getSource().getLevel();
+				String letters = "#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+				for (int y = Math.min(a.getY(), b.getY()); y <= Math.max(a.getY(), b.getY()); y++) {
+					java.util.Map<String, Character> key = new java.util.LinkedHashMap<>();
+					StringBuilder out = new StringBuilder("[dumpbox] y" + y + " (rows z " + Math.min(a.getZ(), b.getZ()) + "+, x from " + Math.min(a.getX(), b.getX()) + ")");
+					for (int z = Math.min(a.getZ(), b.getZ()); z <= Math.max(a.getZ(), b.getZ()); z++) {
+						out.append(System.lineSeparator()).append("  ");
+						for (int x = Math.min(a.getX(), b.getX()); x <= Math.max(a.getX(), b.getX()); x++) {
+							var state = level.getBlockState(new net.minecraft.core.BlockPos(x, y, z));
+							if (state.isAir()) {
+								out.append('.');
+								continue;
+							}
+
+							String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+							out.append(key.computeIfAbsent(id, k -> letters.charAt(Math.min(key.size(), letters.length() - 1))));
+						}
+					}
+
+					out.append(System.lineSeparator()).append("  key: ").append(key);
+					com.dinglebob.drifter.Drifter.LOGGER.info(out.toString());
+				}
+
+				return 1;
+			}))));
+		// Debug: every block a Drifter puts down goes to the server log (who, where, doing what).
+		root.then(Commands.literal("placelog").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+			boolean on = com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on");
+			com.dinglebob.drifter.debug.PlaceLog.on = on;
+			ctx.getSource().sendSuccess(() -> Component.literal("Blocks Drifters place " + (on ? "now go to the server log ([placelog])" : "no longer go to the server log")), true);
+			return 1;
+		})));
 		// Debug: it asks the nearest Drifter it knows for something to trade, now (milestone 22 groundwork).
 		root.then(Commands.literal("barter").executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());

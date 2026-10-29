@@ -435,6 +435,32 @@ public final class NavView {
 		return false;
 	}
 
+	/** How far up a roof or upper floor is looked for over a spot inside a building. */
+	private static final int INDOOR_ROOF = 20;
+
+	/**
+	 * Inside a finished building: standing on a floor someone built, under something built (a ceiling, an upper floor, a
+	 * roof). A player takes the stairs or the door there; it never pillars or bridges indoors (the user's screenshots,
+	 * 2026-10-29: cobblestone pillars and floors left inside town houses; "it keeps coming back").
+	 */
+	public boolean indoors(BlockPos feet) {
+		if (!this.builtOrPlaced(feet.below())) {
+			return false;
+		}
+
+		for (int up = 2; up <= INDOOR_ROOF; up++) {
+			if (this.builtOrPlaced(feet.above(up))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean builtOrPlaced(BlockPos pos) {
+		return this.world.drifterBuilt(pos) && !this.scaffold.contains(pos) || this.world.playerPlaced(pos);
+	}
+
 	/** Lava it has seen within two blocks across and one below or above: no pillaring there (a jump can tip it in). */
 	public boolean lavaWithinTwo(BlockPos feet) {
 		long key = feet.asLong();

@@ -2500,3 +2500,20 @@ Chat fixes and more topics, builders finishing roofs, chest labels, desert house
       drop to about one tick a second around it (mobs and time nearly frozen). Watch for that.
 - [ ] Desert building: a desert Drifter levels its house site with sand (not dirt it can't find), puts down a new
       crafting table when it can't get back to its old one, and doesn't dig stone with sand on top of it.
+
+## Side session: stray cobblestone in houses (new, 0.23.8-side.1)
+
+The cobblestone in town houses came mostly from the "catch-up" that fills in what a Drifter did while you were away: it
+built a starter hut (9x9, cobblestone walls and a roof two blocks up) in the middle of town houses. Fixed. The
+cobblestone between the logs of a stone barn's walls is how that house is meant to look.
+
+- [ ] Make a fresh town: `/drifterciv town spawn 8 Cobbleton`. Fly far away (over 300 blocks) and stay away a few
+      minutes, or `/tick sprint 12000` while away, then come back. Walk through every house: no cobblestone walls,
+      slabs or pillars inside, no single blocks on porches. Do it twice.
+- [ ] Old towns keep the blocks already there (break them by hand). To count them: type `/drifter house strays`. It
+      says how many blocks in Drifter houses aren't in their plans, and the log lists where.
+- [ ] If you still find a new stray block: type `/drifter placelog true`, play until you see one appear, and send me
+      `logs/latest.log` (the `[placelog]` lines say who put each block, where and while doing what).
+      `/drifter placelog false` turns it off.
+- [ ] Drifters still go caving in real caves (`/drifter thoughts` shows "going caving"), and builders still pillar up
+      inside their own half-built houses to reach high blocks.

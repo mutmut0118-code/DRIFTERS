@@ -3772,3 +3772,32 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
     in 3 of 7 runs (it counts the sand it has seen, and a big house needs a lot).
   - Cross house (2,334 blocks): on a deep flat world it got to 1,025 blocks, then ran out of wood (no trees on a flat
     world); a run in a normal world is the test.
+
+### Side session: stray cobblestone in houses (0.23.8-side.1)
+
+The user (2026-10-29, screenshots of a made-ready town: cobblestone walls and blocks in rooms, cobblestone in a loft,
+single blocks on porches; "this has been an ongoing problem, theres been several fixes and it keeps coming back").
+(The cobblestone between the logs of a stone barn's walls is its design: `stone_barn` infill.)
+- **New debug tools, kept in:** `/drifter placelog true|false` (every block a Drifter puts down, by hand or in
+  catch-up, to the server log: `[placelog] <who> put <block> at x y z | goal | what it was doing | by <code>`;
+  `debug/PlaceLog`, hooked in `Senses.placedBlock`, `UseOnBlockTask.click`, offscreen whims and catch-up huts; off by
+  default, not saved); `/drifter house strays` (for every loaded Drifter's planned house, the solid blocks in it that
+  aren't in its plan, furniture aside, to the log as `[strays]`); `/drifter dumpbox <from> <to>` (a box of blocks layer
+  by layer to the log).
+- **Main cause: catch-up built starter huts inside town houses.** `CatchUp.buildHut` (and `furnish`, the hut's door and
+  stations) didn't look at `Home.noHut`, which town households have: whenever a town Drifter came back from being
+  unloaded (the player away from the town), catch-up put a 9x9 cobblestone hut (walls round its feet, a roof two up,
+  log and plank door frame) round its home spot, in the middle of its house. That's why it kept coming back: every
+  fix was to the Drifters' own building and routes; this one placed blocks straight into the world, so the place log
+  didn't see it either. Now neither runs for a home with no hut (town households), a planned house done, or a hut taken
+  down (`CatchUp.noHut`). Tested: a town of 7-8 houses unloaded for half a day and a day, twice: with the old rule 132
+  then 178 stray blocks in 3 of 5 houses (cobblestone 34-73 a house); with the fix 0 in every house.
+- **Second cause: caving in houses.** `Caver.underground` counted any roofed spot as under ground except the Drifter's
+  own house, so a dark town house was a cave: Drifters "went caving" in a cottage and pillared through its rooms (24
+  cobblestone in 1.5 days). Now a spot under a roof or floor someone built (the first solid block over it, leaves aside,
+  is Drifter-built or player-placed) isn't under ground; that test also decides surfacing, exploring, the cave hunch and
+  mining trips. A 3-day rerun: no caving in houses.
+- **Backstop:** routes never pillar or bridge indoors (`NavView.indoors`: on a built floor with something built within
+  20 over its head; its own scaffolding doesn't count). Built marks go on a house only once it's finished, so a
+  builder still pillars inside its own house while building it.
+- Not seen in these tests: night walling-in inside houses (town Drifters sleep in their beds or stay up).

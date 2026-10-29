@@ -499,6 +499,7 @@ public final class WhimsAway {
 		level.setBlock(pos, state, 3);
 		stack.shrink(1);
 		PlayerPlacedBlocks.recordBuilt(level, pos);
+		com.dinglebob.drifter.debug.PlaceLog.placed(drifter, pos);
 		return true;
 	}
 }

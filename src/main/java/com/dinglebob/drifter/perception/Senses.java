@@ -1295,6 +1295,7 @@ public class Senses {
 
 	/** It placed this block itself, so it knows it's there (the start of the owned-blocks log, section 6). */
 	public void placedBlock(BlockPos pos) {
+		com.dinglebob.drifter.debug.PlaceLog.placed(this.drifter, pos);
 		this.rememberBlock(pos, this.level().getBlockState(pos), MemorySource.SEEN);
 		this.drifter.getDrifterBrain().forgetKnownWorld();
 	}

@@ -407,7 +407,22 @@ public final class Caver {
 		}
 
 		com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
-		return home == null || !home.inOwnBuilding(pos, 1);
+		if (home != null && home.inOwnBuilding(pos, 1)) {
+			return false;
+		}
+
+		// Under a roof or a floor someone built (a town house, another Drifter's, a player's), not under ground: a glance up
+		// tells a player that much (the user's screenshots, 2026-10-29: cobblestone pillars inside town houses; traced to
+		// Drifters "going caving" in a cottage and pillaring about in its rooms and loft).
+		int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+		for (BlockPos.MutableBlockPos up = pos.above().mutable(); up.getY() < top; up.move(net.minecraft.core.Direction.UP)) {
+			var state = level.getBlockState(up);
+			if (!state.getCollisionShape(level, up).isEmpty() && !state.is(net.minecraft.tags.BlockTags.LEAVES)) {
+				return !com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, up);
+			}
+		}
+
+		return true;
 	}
 
 	/** A solid block (not leaves) over its head, for a spot to count as in a cave (found in testing: "a cave" under a tree; with 3 blocks of cover required, shallow caves had no spots at all). */

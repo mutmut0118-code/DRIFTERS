@@ -696,7 +696,8 @@ public class PathSearch {
 
 		NavView.Kind below = this.view.cell(f.below()).kind();
 		boolean placeable = below == NavView.Kind.OPEN || below == NavView.Kind.WATER;
-		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.failedBridges.contains(f)) {
+		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.failedBridges.contains(f)
+			&& !this.view.indoors(node.pos)) {
 			double cost = BRIDGE + c.cost + BLOCK_RESOURCE * this.thrift * 2.0;
 			this.add(node, f, MoveType.BRIDGE, cost, c, 1);
 		}
@@ -1306,7 +1307,7 @@ public class PathSearch {
 		// Not from water: floating, there's nothing to jump off and the block can't go under its feet (found in testing: in
 		// a pool with high sides it planned pillars from the water and bobbed there; it digs a step into the side instead).
 		if (onSolidFloor && !inWater && !this.view.isWater(n.below()) && node.blocksUsed < this.blocksAvailable
-			&& !this.failedPillars.contains(n) && !this.view.lavaWithinTwo(n)) {
+			&& !this.failedPillars.contains(n) && !this.view.lavaWithinTwo(n) && !this.view.indoors(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
 				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);
