@@ -109,6 +109,8 @@ public class BuildPlanActivity extends Activity {
 	/** The cell it last walked over to place, so a walk that didn't help isn't made again and again. */
 	@Nullable
 	private BlockPos walkedFor;
+	/** The last walk it went to start was a step down off its pillar first. */
+	private boolean steppedDown;
 	@Nullable
 	private String couldntGet;
 
@@ -546,8 +548,13 @@ public class BuildPlanActivity extends Activity {
 			return null;
 		}
 
-		this.walkedFor = pos;
-		return this.goTo(spot, "walk over to build");
+		// (Only a walk or a climb that's under way counts as having gone over for it: a step down off the pillar it's on first
+		// doesn't. Found in testing: each step down counted, so on a roof every block it climbed down from was given up on as
+		// out of reach, the top rows of a roof 10 up never got built.)
+		this.steppedDown = false;
+		Status go = this.goTo(spot, "walk over to build");
+		this.walkedFor = this.steppedDown ? null : pos;
+		return go;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -1210,6 +1217,7 @@ public class BuildPlanActivity extends Activity {
 			return null;
 		}
 
+		this.steppedDown = true;
 		return this.digAt(under);
 	}
 
@@ -1551,15 +1559,30 @@ public class BuildPlanActivity extends Activity {
 		});
 	}
 
-	/** The nearest spot (on the ground, or up to {@code most} blocks up a pillar) from whose eye height {@code canFrom} holds. */
+	/**
+	 * The nearest spot (on the ground, or up to {@code most} blocks up a pillar) from whose eye height {@code canFrom} holds;
+	 * one where it still holds a little off the middle of the block first (found in testing: up a pillar it never stands
+	 * quite in the middle, and from a spot that only just reached, the top rows of a roof were out of reach once there).
+	 */
 	@Nullable
 	private Spot standFor(Level level, BlockPos target, PlacedPlan plan, @Nullable BlockPos avoid, int most, java.util.function.Predicate<Vec3> canFrom) {
+		Spot sure = this.standFor(level, target, plan, avoid, most, eye -> canFrom.test(eye) && canFrom.test(eye.add(OFF_MIDDLE, 0.0, 0.0))
+			&& canFrom.test(eye.add(-OFF_MIDDLE, 0.0, 0.0)) && canFrom.test(eye.add(0.0, 0.0, OFF_MIDDLE)) && canFrom.test(eye.add(0.0, 0.0, -OFF_MIDDLE)), 0.6);
+		return sure != null ? sure : this.standFor(level, target, plan, avoid, most, canFrom, 0.2);
+	}
+
+	/** How far off the middle of a block it may stand (a pillar's top, a spot it walked to). */
+	private static final double OFF_MIDDLE = 0.3;
+
+	@Nullable
+	private Spot standFor(Level level, BlockPos target, PlacedPlan plan, @Nullable BlockPos avoid, int most, java.util.function.Predicate<Vec3> canFrom,
+		double spare) {
 		Map<BlockPos, BlockState> want = plan.buildMap();
 		for (int height = 0; height <= most; height++) {
 			Spot best = null;
 			double bestCost = Double.MAX_VALUE;
 			for (BlockPos pos : BlockPos.betweenClosed(target.offset(-4, -4 - height, -4), target.offset(4, 1 - height, 4))) {
-				if (!KnownBlocks.isStandable(level, pos) || !this.drifter.getSenses().terrain().isKnown(pos.below())) {
+				if (!(KnownBlocks.isStandable(level, pos) || height == 0 && roofFooting(level, pos)) || !this.drifter.getSenses().terrain().isKnown(pos.below())) {
 					continue;
 				}
 
@@ -1575,7 +1598,7 @@ public class BuildPlanActivity extends Activity {
 
 				// From the middle of the block, with a little to spare (it never stands quite in the middle).
 				Vec3 eye = new Vec3(top.getX() + 0.5, top.getY() + net.minecraft.world.entity.player.Player.DEFAULT_EYE_HEIGHT, top.getZ() + 0.5);
-				if (eye.distanceTo(Vec3.atCenterOf(target)) > this.drifter.blockInteractionRange() - 0.2) {
+				if (eye.distanceTo(Vec3.atCenterOf(target)) > this.drifter.blockInteractionRange() - spare) {
 					continue;
 				}
 
@@ -1591,6 +1614,22 @@ public class BuildPlanActivity extends Activity {
 		}
 
 		return null;
+	}
+
+	/**
+	 * On a roof: a stair or slab under it that's the bottom half (a roof's own steps), room to stand above it. A player
+	 * finishes a roof standing on it (found in testing: from inside, the top rows of a roof two layers thick can't be got
+	 * at, so they were never built). Not for pillaring up from.
+	 */
+	private static boolean roofFooting(Level level, BlockPos pos) {
+		BlockState under = level.getBlockState(pos.below());
+		boolean step = under.getBlock() instanceof net.minecraft.world.level.block.StairBlock
+			&& under.getValue(net.minecraft.world.level.block.StairBlock.HALF) == net.minecraft.world.level.block.state.properties.Half.BOTTOM
+			|| under.getBlock() instanceof net.minecraft.world.level.block.SlabBlock
+			&& under.getValue(net.minecraft.world.level.block.SlabBlock.TYPE) == net.minecraft.world.level.block.state.properties.SlabType.BOTTOM;
+		return step && level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()
+			&& level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty()
+			&& level.getFluidState(pos).isEmpty() && level.getFluidState(pos.above()).isEmpty();
 	}
 
 	/**
