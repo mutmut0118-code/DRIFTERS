@@ -1464,6 +1464,16 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
 
 - [ ] Make a new town (`/drifterciv town spawn 8 Bedby`) and look in its houses: every bed is on a floor you can walk to
       from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
+- [ ] A new town on a hillside (0.22.37): its roads and the land round the plaza and the store climb a block at a time
+      (no cliffs of two or three); nobody pillars up from the plaza to the store.
+- [ ] Make two towns near each other (0.22.37): `/drifterciv chronicle` tells of best friends, people who never got on,
+      and the two towns going back a long way (maybe an old grudge). `/drifter social` on a townsperson: it knows everyone
+      in its town, some well, some barely, a few it doesn't like; housemates are close.
+- [ ] A new town after a few days (0.22.36): no cobblestone pillars up house fronts, no torches on top of beams, no 1x1
+      holes in its grass (mine shafts start outside the town), far fewer stray cobblestone blocks. At dusk townspeople go
+      into their houses and stay in (no in-and-out).
+- [ ] Walk the streets and the plaza of a town: no townsperson warns you off or comes at you (0.22.35). Walk into a
+      territorial one's house and it may warn you; step back out and it leaves you be (no chase after).
 - [ ] At night the townspeople walk to bed; nobody pillars cobblestone inside or up the outside of a house. (Towns made
       before this version keep their old beds.)
 
@@ -2334,3 +2344,4 @@ outdoors, how a Drifter is doing, debates and banter. Also has the other session
       something vague ("uhh the thing"): "i dont have that". It never asks "what do you need?" twice in a row.
 - [ ] A friend Drifter that has bread still gives some: "can i have 3 bread" gets "take these" and it hands them over.
 
+Installed as 0.22.37-side.1: also has the other session's 0.22.35-0.22.37 (their checks are in the town section above).

@@ -54,6 +54,8 @@ public class GatherActivity extends Activity {
 	@Nullable
 	private Direction stairDirection;
 	private int stairSteps;
+	/** Walks out of its town to dig down. */
+	private int townWalks;
 	private boolean collectNext;
 	private final Set<BlockPos> badSpots = new HashSet<>();
 	/** Blocks it walked over to have a look at (once each) before giving up on them. */
@@ -456,6 +458,16 @@ public class GatherActivity extends Activity {
 		}
 
 		if (this.stairDirection == null) {
+			// Not in the middle of its town: out past its edge first (found by the user: holes all over a town's grass).
+			if (com.dinglebob.drifter.brain.TownEdge.inTown(this.drifter, this.drifter.blockPosition())) {
+				BlockPos out = com.dinglebob.drifter.brain.TownEdge.outside(this.drifter, com.dinglebob.drifter.brain.TownEdge.wayOut(this.drifter));
+				if (out == null || this.townWalks++ > 2) {
+					return this.fail("won't dig a hole in its town");
+				}
+
+				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(out), 2.0, "walk out of town to dig"));
+			}
+
 			this.stairDirection = this.drifter.getDirection();
 			this.think("digging down to find " + this.label);
 		}

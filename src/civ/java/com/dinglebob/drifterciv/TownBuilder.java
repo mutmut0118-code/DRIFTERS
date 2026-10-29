@@ -350,6 +350,7 @@ public final class TownBuilder {
 			houses.size(), households, roads.size(), turnedDown[0], turnedDown[1], turnedDown[2], turnedDown[3], turnedDown[4]);
 		// 5. The roads over the ground as it is now, the plaza paved, the well, bell and board, lamps along the roads.
 		for (Road road : roads) {
+			easeRoad(level, road, plaza);
 			Rect rect = road.rect();
 			for (int x = rect.x0(); x <= rect.x1(); x++) {
 				for (int z = rect.z0(); z <= rect.z1(); z++) {
@@ -510,13 +511,6 @@ public final class TownBuilder {
 		}
 
 		var group = DrifterApi.formGroup(people, name);
-		for (DrifterEntity one : people) {
-			for (DrifterEntity other : people) {
-				if (one != other) {
-					DrifterApi.setTrustInDrifter(one, other, 60.0);
-				}
-			}
-		}
 
 		long day = Chronicle.day(server);
 		Town town = new Town(UUID.randomUUID(), name, group == null ? null : group.id, dimension, new BlockPos(cx, y0, cz), day, true);
@@ -528,6 +522,9 @@ public final class TownBuilder {
 		town.stallPlot = new Town.Plot(stallAt, 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
 		town.stallBuilt = true;
 		Towns.add(server, town);
+		// A past: its people all know each other, some better than others, and a few know people of the towns about.
+		TownHistory.neighbours(server, town, people, random);
+		TownHistory.acrossTowns(server, town, people, random);
 		if (group != null) {
 			Market.keeper(server, town, group);
 			// (Made ready: they stocked the store themselves, and the keeper has a little money to buy with.)
@@ -628,6 +625,9 @@ public final class TownBuilder {
 	 */
 	private static void foundation(ServerLevel level, Rect site, int base, int clear, List<Rect> keep, RandomSource random, int blend,
 		boolean stoneEdge) {
+		// Wide enough to ease the land in a block at a time (found by the user: the plaza cut into a hill left a cliff of
+		// two- and three-block steps round it, and its people pillared up and down it; a player walks a slope of one).
+		blend = Math.max(blend, Math.min(MOST_BLEND, steepest(level, site, base, blend, keep) + 1));
 		Rect ring = new Rect(site.x0() - blend, site.z0() - blend, site.x1() + blend, site.z1() + blend);
 		for (int x = ring.x0(); x <= ring.x1(); x++) {
 			for (int z = ring.z0(); z <= ring.z1(); z++) {
@@ -653,7 +653,8 @@ public final class TownBuilder {
 					continue;
 				}
 
-				int h = d == 0 ? base : base + Math.round((g - base) * (float)(d - 1) / blend);
+				// (A block up or down a block out, the first ring flat: a slope it walks.)
+				int h = d == 0 ? base : base + Math.max(-(d - 1), Math.min(d - 1, g - base));
 				boolean edge = stoneEdge && d == 0 && (x == site.x0() || x == site.x1() || z == site.z0() || z == site.z1());
 				// Built up: a stone foundation wall at the house's edge, earth elsewhere, grass on top (the old top buried).
 				if (h > g) {
@@ -681,6 +682,24 @@ public final class TownBuilder {
 				}
 			}
 		}
+	}
+
+	/** Blocks out at most the land round a site is eased over. */
+	private static final int MOST_BLEND = 10;
+
+	/** The most the ground just round a site (its first rings) stands above or below it. */
+	private static int steepest(ServerLevel level, Rect site, int base, int blend, List<Rect> keep) {
+		int most = 0;
+		for (int x = site.x0() - blend; x <= site.x1() + blend; x++) {
+			for (int z = site.z0() - blend; z <= site.z1() + blend; z++) {
+				int d = site.away(x, z);
+				if (d > 0 && !inAny(keep, x, z) && !wet(level, x, z)) {
+					most = Math.max(most, Math.abs(ground(level, x, z) - base));
+				}
+			}
+		}
+
+		return most;
 	}
 
 	/**
@@ -945,6 +964,53 @@ public final class TownBuilder {
 
 		heights.sort(Integer::compare);
 		return heights.get(heights.size() - 1) - heights.get(0) > MOST_STEP ? null : heights.get(heights.size() / 2);
+	}
+
+	/**
+	 * A road built up where the land jumps, so it climbs and drops a block at a time, as a player makes a way up a bank
+	 * (found by the user: Drifters pillaring up from the plaza to the store, its road straight up a cliff of three-block
+	 * steps). Only filled, never dug; not over water or in the plaza.
+	 */
+	private static void easeRoad(ServerLevel level, Road road, Rect plaza) {
+		int n = road.length();
+		int[] want = new int[n];
+		Direction across = road.way().getClockWise();
+		for (int t = 0; t < n; t++) {
+			BlockPos mid = road.at(t);
+			int high = Integer.MIN_VALUE;
+			for (int side = -1; side <= 1; side++) {
+				BlockPos cell = mid.relative(across, side);
+				high = Math.max(high, ground(level, cell.getX(), cell.getZ()));
+			}
+
+			want[t] = high;
+		}
+
+		for (int t = 1; t < n; t++) {
+			want[t] = Math.max(want[t], want[t - 1] - 1);
+		}
+
+		for (int t = n - 2; t >= 0; t--) {
+			want[t] = Math.max(want[t], want[t + 1] - 1);
+		}
+
+		for (int t = 0; t < n; t++) {
+			BlockPos mid = road.at(t);
+			for (int side = -1; side <= 1; side++) {
+				BlockPos cell = mid.relative(across, side);
+				if (plaza.contains(cell.getX(), cell.getZ()) || wet(level, cell.getX(), cell.getZ())) {
+					continue;
+				}
+
+				int g = ground(level, cell.getX(), cell.getZ());
+				if (g < want[t]) {
+					buried(level, new BlockPos(cell.getX(), g, cell.getZ()));
+					for (int y = g + 1; y <= want[t]; y++) {
+						set(level, new BlockPos(cell.getX(), y, cell.getZ()), (y == want[t] ? Blocks.GRASS_BLOCK : Blocks.DIRT).defaultBlockState());
+					}
+				}
+			}
+		}
 	}
 
 	/** One block of road: dirt path on the ground (planks over water), what grows on it cleared. */

@@ -292,8 +292,10 @@ public class NavigateTask extends Task {
 	}
 
 	private boolean atGoal() {
-		return this.drifter.position().distanceTo(this.target.get()) <= this.radius
-			&& (this.drifter.onGround() || this.drifter.isInWater() || this.drifter.onClimbable());
+		Vec3 target = this.target.get();
+		boolean near = this.looseHeight ? Math.hypot(this.drifter.getX() - target.x, this.drifter.getZ() - target.z) <= this.radius
+			&& Math.abs(this.drifter.getY() - target.y) <= PathSearch.LOOSE_HEIGHT : this.drifter.position().distanceTo(target) <= this.radius;
+		return near && (this.drifter.onGround() || this.drifter.isInWater() || this.drifter.onClimbable());
 	}
 
 	/** Plans again, stopping first (something is in the way, or it's stuck). */
@@ -329,6 +331,9 @@ public class NavigateTask extends Task {
 		}
 
 		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5), this.lastBlocks);
+		if (this.looseHeight) {
+			this.search.loose();
+		}
 		this.path = List.of();
 		this.index = 0;
 		this.sinceProgress = 0;
@@ -1242,6 +1247,14 @@ public class NavigateTask extends Task {
 		this.urgent = true;
 		return this;
 	}
+
+	/** Roughly there will do: within its radius across the ground, and within a few blocks up or down (exploring). */
+	public NavigateTask loose() {
+		this.looseHeight = true;
+		return this;
+	}
+
+	private boolean looseHeight;
 
 	/** A grown (pricking) berry bush its body overlaps, or null. */
 	@Nullable

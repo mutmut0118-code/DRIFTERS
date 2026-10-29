@@ -71,6 +71,7 @@ battle going on now. `DrifterApi.groupById(id)`: a group by its id, as events gi
 `DrifterApi.doorSides(server, plan, rotation)`: the sides its doors are on once turned (to put its front to a road).
 `DrifterApi.placeHouse(level, plan, corner, rotation, wood, front)`: (testing) the house put up at once.
 `DrifterApi.settleIn(drifter, house, sharedChests)`: it lives there from now on (home, bed, a chest of its own, no hut).
+`DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of
 another kind), `turnBandit(drifter)`, `registerJoinRule((drifter, group) -> mayJoin)` (0.22.30; checked when friends

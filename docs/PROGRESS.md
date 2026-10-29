@@ -3182,6 +3182,48 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   the plans at start-up takes 0.65 s (was 0.37). Beds already placed stay where they are.
   - Not reproduced: "bridging over a path block even though its 1 step down" (a path one step down was walked across in a
     test; the bridging in the user's traces was up the outside of houses, at roof height). Asked the user where.
+- **A town Drifter's base is its house (0.22.35).** Found by the user ("can u see why lynx is trying to fight me?"):
+  LynxPRO, a territorial townsperson in a made-ready town, warned them off ("dont even think about it") as they walked
+  past, took it as ignored 2 s later, drove them "out of its base" and then chased them: its base was 20 blocks round its
+  house, which in a town is the streets and the plaza. In a town (`getTownWork` set) its base is now its own house and 2
+  blocks round it (`Mode.IN_TOWN_MARGIN`, `Home.inOwnBuilding`); and driving someone out ends the chase its hits started
+  (`HostileGoals.Fight.endsChase`). Tested in the client: three townspeople made territorial, next to the player in the
+  plaza for a minute: no warning.
+- **Pillars, holes and stray cobblestone in towns (0.22.36).** Found by the user (screenshots: cobblestone pillars up
+  house fronts with a torch at the top, 1x1 holes in the grass, loose cobblestone; "does this have something to do with
+  light levels?"). Traced in the client with a temporary log of every cobblestone a Drifter placed (who, where, doing
+  what) over a day and a half in a made-ready town, replayed from the same save:
+  - Torches: `LightBaseActivity.townDarkSpot` took the top block of a column, under eaves the top of a beam or ledge (only
+    "dirt, or not recorded as built" kept it off buildings): now only on ground (dirt, grass, sand, gravel, snow), never
+    a built block.
+  - Night hunting: an exploring leg's point was at its own height, over lower ground a point in the air, and it pillared
+    up to it (58 blocks in the town in the trace). Routes can now be loose (`NavigateTask.loose`, `PathSearch.loose`:
+    there within the radius across the ground and 8 up or down); exploring legs are. 58 -> 0.
+  - Holes: mine stairs started 3 blocks outside a town house, in the town's grass, and when they wouldn't start it dug
+    down where it stood; digging down for stone too. Now (`TownEdge`) mine stairs start past the town's edge, and digging
+    down for stone walks out of town first; neither digs down in the town.
+  - The house shelter loop: in for the night before dark, "not night" read as morning: out and back in four times a
+    second (the user's tyler_82). It's morning now only once it's been night, or early in the day.
+  - Result over the same day and a half: cobblestone placed 1,152 -> 722 (most of what's left underground, mining); in
+    the town above ground, chest errands 27 -> 7. Still seen: a few pillars on errands up steep hillsides, pillars up to
+    chop tall trees.
+- **Hillsides (0.22.37; the user: "fix the hillside pillaring too").** The pillars up hillsides were up cliffs the town
+  builder made: a levelled site (the plaza cut into a hill, the store's plateau) was eased into the land round it over a
+  fixed few blocks, so a nine-block difference came out as steps of two and three, and its road went straight up them.
+  `TownBuilder.foundation` now eases the land a block up or down a block out (the band widened as needed, up to 10), and
+  `easeRoad` builds a road up where the land jumps so it climbs and drops a block at a time (filled, never dug). Same
+  seed: steps of 2+ between road blocks 27 -> 3; steps of 2-3 over the town's ground 512 -> 193 (the rest natural hills).
+  A day and a half there: 60 or so stray cobblestone blocks above ground over the whole town (and one Drifter's
+  cobblestone hut).
+- **A past for towns made ready (0.22.37; the user: "for spawned towns, can we already established relationships with
+  one another? that way it seems like it has some history between towns and everybody already knows eachother?").**
+  `TownHistory`: instead of trust 60 all round, its people's bonds go by how alike they are (seven traits) and chance,
+  housemates +20, each seeing it a little differently, and how well they know each other (30-80, housemates 80+): about
+  10 % don't get on (never below -25: no enemies), 42 % acquaintances, 38 % friends, 10 % close. The chronicle: "X and Y
+  of T have been best friends for years", "... have never got on". With other towns within 3000 blocks: 2-4 pairs know
+  each other (60 % old friends, 25 % acquaintances, 15 % an old grudge), "The people of T and U go back a long way (n
+  old friendships)", "X of T and Y of U have an old grudge"; the far side's bond is kept (`Town.pendingBonds`) till that
+  one is loaded. `DrifterApi.setBond` (by id, loaded or not).
 
 
 ## Side session (branch claude/drifter-chat-expansion-574ebe): chat and house plans
@@ -3341,3 +3383,6 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
   need?" only when it can't make out an item, and only once (the next answer gets "i dont have that"). Tested in the
   dev client. Left as it was: after "trade?", "a diamond sword" is heard as asking whether it has seen diamonds.
 
+- **0.22.37-side.1 (side session):** merged the other session's 0.22.35-0.22.37 (a town Drifter's base is its own house,
+  fewer pillars/holes/stray cobblestone in towns, towns without cliffs, made-ready towns come with a past). No chat
+  changes; headless smoke test: talks run, 568 topics, no errors.

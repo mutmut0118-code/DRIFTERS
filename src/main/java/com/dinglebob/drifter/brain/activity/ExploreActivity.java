@@ -101,8 +101,9 @@ public class ExploreActivity extends Activity {
 
 		return switch (this.phase++) {
 			case 0 -> this.begin(new LookAroundTask(this.drifter));
+			// (A point on the map, at its own height: roughly there will do, on whatever ground is there.)
 			case 1 -> this.begin(new NavigateTask(this.drifter, aboveLavaSea(this.drifter, this.toward != null ? this.toward : this.pickDirection()),
-				this.toward != null ? 4.0 : 6.0, "explore " + this.reason));
+				this.toward != null ? 4.0 : 6.0, "explore " + this.reason).loose());
 			case 2 -> this.begin(new LookAroundTask(this.drifter));
 			default -> Status.SUCCESS;
 		};

@@ -189,6 +189,11 @@ public final class Town {
 	 */
 	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
 	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
+	/** A bond of one of its people with someone who wasn't loaded when it was made (a town made ready), set once they are. */
+	public record Bond(UUID who, UUID other, String otherName, double trust, double familiarity) {
+	}
+
+	public final List<Bond> pendingBonds = new ArrayList<>();
 	public String lastCrook = "";
 	public String lastCrime = "";
 	public long lastCrimeDay = -100;
@@ -311,6 +316,7 @@ public final class Town {
 		ListTag crooks = new ListTag();
 		this.crooks.forEach(id -> crooks.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
 		tag.put("Crooks", crooks);
+		tag.put("PendingBonds", TownHistory.save(this.pendingBonds));
 		tag.putString("LastCrook", this.lastCrook);
 		tag.putString("LastCrime", this.lastCrime);
 		tag.putLong("LastCrimeDay", this.lastCrimeDay);
@@ -423,6 +429,7 @@ public final class Town {
 			town.crooks.add(net.minecraft.nbt.NbtUtils.loadUUID(t));
 		}
 
+		TownHistory.load(tag.getList("PendingBonds", Tag.TAG_COMPOUND), town.pendingBonds);
 		town.lastCrook = tag.getString("LastCrook");
 		town.lastCrime = tag.getString("LastCrime");
 		town.lastCrimeDay = tag.contains("LastCrimeDay") ? tag.getLong("LastCrimeDay") : -100;

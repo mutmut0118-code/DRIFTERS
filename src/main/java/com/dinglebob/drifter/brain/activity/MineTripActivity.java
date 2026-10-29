@@ -755,6 +755,12 @@ public class MineTripActivity extends Activity {
 					entrance = this.ground(middle.relative(side, out));
 				}
 
+				// Living in a town: out past its edge, that side (found by the user: mine shafts all over a town's grass).
+				BlockPos outOfTown = com.dinglebob.drifter.brain.TownEdge.outside(this.drifter, side);
+				if (outOfTown != null) {
+					entrance = outOfTown;
+				}
+
 				way = side;
 			} else {
 				entrance = this.drifter.blockPosition();
@@ -832,6 +838,12 @@ public class MineTripActivity extends Activity {
 			Home own = this.drifter.getDrifterBrain().home();
 			if (firm == null && own != null && own.inOwnBuilding(here, 1)) {
 				this.why = "nowhere to start its stairs outside its house";
+				return Status.FAILURE;
+			}
+
+			// (Nor down through its town's ground.)
+			if (com.dinglebob.drifter.brain.TownEdge.inTown(this.drifter, here)) {
+				this.why = "won't dig its stairs in the middle of its town";
 				return Status.FAILURE;
 			}
 

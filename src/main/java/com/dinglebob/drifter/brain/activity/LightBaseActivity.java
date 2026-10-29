@@ -172,10 +172,14 @@ public class LightBaseActivity extends Activity {
 					continue;
 				}
 
+				// On the ground itself (grass, dirt, sand, gravel), never on top of something: the top block of a column under a
+				// house's eaves is a beam or a ledge (found by the user: cobblestone pillars up the fronts of town houses, a torch on
+				// a beam at the top of each).
 				net.minecraft.world.level.block.state.BlockState under = level.getBlockState(spot.below());
-				if (under.is(net.minecraft.world.level.block.Blocks.DIRT_PATH) || under.is(net.minecraft.world.level.block.Blocks.FARMLAND)
-					|| !level.getFluidState(spot.below()).isEmpty() || !under.is(net.minecraft.tags.BlockTags.DIRT)
-					&& com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, spot.below())) {
+				boolean ground = under.is(net.minecraft.tags.BlockTags.DIRT) || under.is(net.minecraft.tags.BlockTags.SAND)
+					|| under.is(net.minecraft.world.level.block.Blocks.GRAVEL) || under.is(net.minecraft.world.level.block.Blocks.SNOW_BLOCK);
+				if (!ground || under.is(net.minecraft.world.level.block.Blocks.FARMLAND) || !level.getFluidState(spot.below()).isEmpty()
+					|| com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, spot.below())) {
 					continue;
 				}
 

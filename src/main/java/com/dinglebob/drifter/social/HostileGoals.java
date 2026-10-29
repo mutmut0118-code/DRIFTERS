@@ -107,6 +107,11 @@ public final class HostileGoals {
 				String doneThought() {
 					return "drove " + this.player.getGameProfile().getName() + " out of its base";
 				}
+
+				@Override
+				boolean endsChase() {
+					return true;
+				}
 			};
 		}
 	}
@@ -413,6 +418,11 @@ public final class HostileGoals {
 
 		abstract boolean done();
 
+		/** Done, it's done with them (no chase after). */
+		boolean endsChase() {
+			return false;
+		}
+
 		String doneThought() {
 			return null;
 		}
@@ -455,6 +465,13 @@ public final class HostileGoals {
 				String thought = this.doneThought();
 				if (thought != null) {
 					this.think(thought);
+				}
+
+				// (Its hits started a chase: over with the fight, when that's all it wanted. Found by the user: driven out of a
+				// townsperson's base, they were chased round the town for minutes after.)
+				var pursuit = this.drifter.getDrifterBrain().pursuit();
+				if (this.endsChase() && pursuit != null && pursuit.target == this.player) {
+					this.drifter.getDrifterBrain().endPursuit();
 				}
 
 				return Status.SUCCESS;
