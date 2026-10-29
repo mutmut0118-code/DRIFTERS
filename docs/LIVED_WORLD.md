@@ -1,82 +1,482 @@
-# A lived-in world: Drifter towns instead of villages (plan, not started)
+# A lived-in world: Drifter towns instead of villages
+
+The plan and the progress for the addon's next big direction, kept like docs/PROGRESS.md: what's decided, what's done,
+what's next, and every step written down before it's built.
 
 The user (2026-10-29): "the direction i want this addon to go is to actually replace villages and villagers as a whole;
 i actually want to add back the illusion of this world being lived in (an early idea starting this mod); take inspiration
 of like MCA Reborn (the mod) and like rpg game civilizations (skyrim, fallout) while still having that feel of a player,
-and not completely into the 'roleplay npc'". Planned right after step 6 part 1 (diplomacy, 0.22.39); built after nations
-(step 6 parts 2 and 3) unless the user says otherwise.
+and not completely into the 'roleplay npc'". Then: "lets expand on this plan and make it a whole seperate very detailed
+document, kind of like progress.md; i feel like this is too big of a step to not be on paper".
 
-## The idea in one paragraph
+Planned 2026-10-29, right after milestone 22 step 6 part 1 (diplomacy, 0.22.39). Built after nations (step 6 parts 2
+and 3), phase by phase, one step at a time, each with a version, a test and an entry here.
 
-Every settlement you find is a Drifter town: a long-running survival server's town, not an NPC village. The houses are
-ones players built, the roads are worn paths, the farms are real farms, there's a market stall, a notice board, a leader
-somebody voted for, two neighbours who've never got on. Its people are players: they mine, farm, build and trade for real,
-talk like players in chat, log off for good one day, and new ones move in. What you get from MCA Reborn and Skyrim is the
-*feeling*: everyone has a name, a house, a job, friends and grudges, a routine, a past with the next town over; you can
-become one of them. What you don't get is the NPC: no dialogue trees, no quest markers, no scripted lines that ignore
-what's going on.
+---
 
-## The rule that keeps it player-like
+## Status
 
-Anything an RPG NPC does, a Drifter does the way a player on a server would:
+| Phase | What | Status |
+| --- | --- | --- |
+| A | Towns where villages were (world generation) | Not started |
+| B | Trades and services instead of villager trading | Not started |
+| C | Town life (days, hangouts, comings and goings, events) | Not started |
+| D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
 
-| RPG / MCA | Drifter way |
-| --- | --- |
-| Villager trade menu with fixed offers | A stall or a shop where they sell what their town actually made, at prices they set (they run out; prices move) |
-| Blacksmith, enchanter, priest | Someone who's good at it and has the setup: "i've got an enchanting table, bring lapis and i'll do your sword" |
-| Quest giver with a marker | The notice board and chat: "anyone got 20 iron? paying 5 emeralds", "someone killed my dog, 10 diamonds for whoever finds them" |
-| Innkeeper, rent a room | "you can crash at mine tonight" from a friend, or the town's spare house |
-| Marriage, children (MCA) | Best friends, duos, roommates, a crew; newcomers "join the server" and move in (open question) |
-| Guards in uniform | The two boldest with full iron (0.22.38); the town's laws (step 5) |
-| Followers | A friend who comes with you ("wanna go mining?"), on its own terms |
-| Rumours | News that travels person to person (built), the chronicle |
+Already built that this stands on: see "What's there to build on" below.
 
-## What it would take, in phases
-
-**Phase A: towns where villages were (worldgen).**
-- Vanilla villages stop generating (a setting); where one would have been (same places, same biomes), a Drifter town is
-  made the first time its ground loads, built as the made-ready towns are now: houses from the house plans in the
-  biome's style (plains, desert, savanna, taiga, snowy), roads, plaza, store, stall, fields, pen, lamps.
-- Sizes: a homestead (one or two households), a hamlet (3 to 5), a village (6 to 12), a town (13 to 25, walls later).
-- A past already: weeks of history in the chronicle, bonds (0.22.37), worn paths, a few graves, a stocked store, some
-  houses half finished or abandoned (someone quit), signs with names.
-- What villages did, done another way: iron golems become the town's guards; raids hit Drifter towns (they fight back);
-  zombie sieges; the wandering trader becomes a travelling Drifter merchant (the encounter exists); "breeding" becomes
-  newcomers moving in. Villagers and zombie villagers don't spawn (a setting).
-- Already there to build on: Drifters moving into villages, bandit outposts, camps, strip mines, cave torches
-  (`LivedInStructures`, `DrifterFeatures`).
-
-**Phase B: trades and trades (replacing villager trading).**
-- Each town's people take up a line by how they play: farmer, miner, smith, builder, fletcher, fisher, shepherd,
-  librarian/enchanter, brewer, cartographer (sells maps of places they know). They sell what they actually have, from
-  the stall or their own door, and offer services with what they have set up (enchanting, repairs at an anvil, brewing).
-- Prices from supply and demand (CIVILIZATION.md part 2), so iron is cheap in a mining town.
-- What a librarian's enchanted books and a cleric's ender pearls gave players: still to be had, from someone who made
-  or found them.
-
-**Phase C: town life.**
-- Routines: up at dawn, work, the plaza at midday, home or the campfire at dusk, in before dark; market days.
-- Hangouts: the plaza, a campfire, someone's porch; people chatting there (the talk system), not standing still.
-- Coming and going: newcomers move in (wanderers settle), people leave or quit for good, houses change hands, the town
-  grows or shrinks; abandoned houses get looted (by Bandits, or you).
-- Festivals and events (culture, step 7).
-
-**Phase D: you and the town (MCA's heart, as a player would have it).**
-- Reputation per town (what its people think of you, spread by word of mouth: built per person; a town's view on top).
-- Friends: trusted enough, they invite you in, give you food, warn you, back you up, come along on a trip.
-- Living there: ask for a plot and build your house, or take an empty one; a citizen (laws, tax, a vote) but not leader
-  (the user, 2026-10-21).
-- The notice board: real needs posted by real people (a request system exists), bounties, lost things.
-- Being hated works too: wanted, exiled, raided (built: step 5).
-
-**Then nations (step 6 parts 2 and 3) across a world full of towns.**
+---
 
 ## Decided (the user, 2026-10-29)
 
-1. Villages: **replaced completely**: no vanilla villages or villagers; a Drifter town wherever a village would have
-   generated, in the biome's style, from a homestead to a town.
-2. Trading: **real shops only**: what their town actually made, at their prices, services if they have the setup; they
-   can run out. No fixed-offer menu.
-3. Closeness: **friends and companions**: friendships with real perks (invited in, gifts, warnings, backup, coming along
-   on trips); no romance or marriage.
-4. Order: **after nations** (step 6 parts 2 and 3), then phases A to D here.
+1. **Villages: replaced completely.** No vanilla villages and no villagers. Wherever a village would have generated, a
+   Drifter town is made instead, in the biome's style, from a lone homestead to a town.
+2. **Trading: real shops only.** Drifters sell what their town actually made, at prices they set, and offer services
+   (enchanting, repairs, brewing) when they have the setup. They can run out. No fixed villager-style trade menu.
+3. **Closeness: friends and companions.** Friendship with real perks: invited in, food and gifts, warnings, backup in a
+   fight, coming along on trips. No romance or marriage.
+4. **Order: after nations.** Wars (step 6 part 2) and nations (part 3) first; then phases A to D here.
+
+Still open: see "Questions for the user" at the end.
+
+---
+
+## 1. The idea
+
+Every settlement you find is a Drifter town: a long-running survival server's town, not an NPC village. The houses are
+ones players built, the roads are paths worn by walking, the farms are real farms, there's a market stall, a notice
+board, a leader somebody voted for, two neighbours who've never got on, a grave by the church of someone who isn't
+coming back. Its people are players: they mine, farm, build and trade for real, talk like players in chat, log off for
+good one day, and new ones move in.
+
+From MCA Reborn and Skyrim/Fallout we take the **feeling**: everyone has a name, a house, a job, friends and grudges, a
+routine, a past with the town over the hill; there are shops, guards, rumours, things that need doing; you can become
+one of them, or their enemy. We don't take the **NPC**: no dialogue trees, no quest markers, no lines that ignore what's
+going on, nobody standing behind a counter forever, nothing they have that they didn't get.
+
+### The rule that keeps it player-like
+
+Anything an RPG NPC does, a Drifter does the way a player on a server would.
+
+| RPG / MCA | Drifter way |
+| --- | --- |
+| A villager's trade menu with fixed offers | A stall or a shop at their door, selling what their town actually made, at their prices; they run out, prices move |
+| The blacksmith, the enchanter, the priest | Someone good at it with the setup: "i've got an enchanting table, bring lapis and i'll do your sword" |
+| A quest giver with a marker | The notice board and chat: "anyone got 20 iron? paying 5 emeralds"; "10 diamonds to whoever finds my dog" |
+| The innkeeper | "you can crash at mine tonight" from a friend; the town's empty house |
+| Marriage and children (MCA) | Not this (decided). Best friends, a crew, a companion; newcomers "join the server" and move in |
+| Guards in uniform | The two boldest in full iron (0.22.38); the town's laws (step 5) |
+| Followers | A friend who comes with you ("wanna go mining?"), on its own terms, and goes home when it's had enough |
+| Rumours | News passed person to person (built), the chronicle, the notice board |
+| Scripted barks | Chat lines in player speak, picked by what's actually happening (built: thousands of lines and topics) |
+
+### Not this (anti-goals)
+
+- No floating markers, no menus that aren't Minecraft's own (the trading screen is the one exception, and it shows only
+  real stock).
+- Nobody stands at a counter all day: a shopkeeper keeps its stall in open hours and lives its life the rest.
+- No item from nothing (DESIGN.md section 1): what a shop sells was mined, farmed, crafted, looted or traded.
+- No knowledge from nothing: a Drifter knows of a town, a danger or a price because it saw it or was told.
+- Not a theme park: towns aren't the same everywhere; a lot of them are small, some are failing, some are gone.
+
+---
+
+## 2. What's there to build on
+
+Built already (milestones 1 to 22), and how each part of this plan uses it:
+
+- **Drifters that play survival** (the whole mod): the people. Their jobs in phase B are what they already do (mine,
+  farm, fish, hunt, smelt, craft, enchant, brew), done for the town.
+- **World generation that's lived in** (`world/gen`): camps with huts (`CampFeature`), strip mines and cave torches
+  left by people (`StripMineFeature`, `CaveTorchFeature`), wanderers (`WandererFeature`), felled trees (`Felling`),
+  vanilla villages some Drifters moved into and outposts Bandits hold (`LivedInStructures`), mineshaft delvers
+  (`Delvers`). Phase A replaces the village part and keeps the rest.
+- **Towns made ready** (addon, `TownBuilder`): plaza, well, bell, notice board, roads off it and side roads, the store,
+  the market stall, fields, a pen, lamp posts, houses from the house plans with their fronts to the road, furnished,
+  stocked, lit; their people settled in, geared by their place (0.22.38), with a past (0.22.37). Phase A turns this into
+  world generation.
+- **Towns founded by their people** (step 3b, `TownFounding`): Drifters who get on found a town and build it block by
+  block. Stays as it is; phase C's newcomers and growth run on it.
+- **House plans by the hundred** (milestone 15): 12 styles, ~300 generated plans, the user's guidebook, furnishing
+  (`Furnishing`), beds where they can be walked to (0.22.34). Phase A needs biome styles.
+- **Money and markets** (step 4): the till, wages, the stall and its keeper (`Market`, `StallGoal`, `ShopKeeper`), the
+  trading screen, trade runs between towns (`TradeRuns`, `TradeRunGoal`), Numismatic Overhaul coins when installed.
+  Phase B grows this into shops for every trade.
+- **Leaders, laws, crime, unrest** (step 5): elections, tax, guards collecting fines, exile, bounties, the town's crook,
+  revolts and coups. Phase D's citizenship plugs into it.
+- **Diplomacy** (step 6 part 1): towns knowing of each other, standing, envoys, pacts. Nations (parts 2 and 3) next.
+- **The chronicle** (`Chronicle`): the world's history as it happens; the notice board and the town's book.
+- **News that travels** (`NewsBook`), **bonds and trust** (`DrifterBonds`, `Relationships`), **talk** (topics,
+  thousands of lines, player chat in both directions, requests, sparring, `RequestGoal`), **moods and stakes**
+  (milestone 7, stakes parts 1 and 2), **grief and grudges**.
+- **Encounters** (milestone 21): merchant, escort, convoy, bounty hunters, wanted posters, lost dog, injured traveller,
+  village raid, mourner, builders, and more. Phase A's wandering trader and phase D's notice board borrow from them.
+- **Offscreen catch-up** (milestone 10, `CatchUp`) and the **Drifter directory** (`DrifterRegistry`): the base for towns
+  that go on while nobody's near.
+
+---
+
+## 3. Hard constraints (every step)
+
+- **Fairness** (DESIGN.md section 1): perception only, player time, player reach, player vulnerability, no impossible
+  placement, no free items. A town *made* by world generation is the one place things appear at once (as made-ready
+  towns do now); everything after is earned.
+- **Architecture** (DESIGN.md section 2): Drifters are mobs with a fake player only at the moment of acting; the addon
+  goes through `com.dinglebob.drifter.api` (grow the API in the same change when it needs more).
+- **The two layers** (CIVILIZATION.md): towns near players are played out in full; towns far away are summaries that move
+  forward cheaply. A world will have dozens of towns; only the near ones may cost much.
+- **Performance budget**: making a town today takes 8 to 17 seconds in one go (it's for testing). World generation
+  can't stall the game like that: towns must be made a slice at a time (see A2).
+- **Settings** for anything a player might not want (Mod Menu, `DrifterConfigScreen`): villages replaced (on), villagers
+  spawning (off), town sizes, how common.
+- **Saves**: versioned (DESIGN.md section 20); a world made before keeps working (old villages stay where they are).
+- **Compatibility**: other mods that put things in villages (the user's pack: Bountiful's bounty boards, Guard Villagers,
+  Nova Structures) and mods that rely on villagers. See A9.
+- **Player speak** in every line (the user, 2026-10-28: "dont make it corny disney expositiony").
+
+---
+
+## 4. Phase A: towns where villages were
+
+Goal: you explore a new world and every village is a Drifter town, each one different, already old.
+
+### A1. Villages replaced in world generation
+
+- **What:** the village structure set gives way to the addon's town structure: same spacing, same biomes, same seed
+  logic, so towns are where you'd expect villages, and `/locate` finds them.
+- **How:** a data-driven override of `minecraft:worldgen/structure_set/villages` pointing at a `drifter_civ:town`
+  structure (a custom structure type). Its start records the town's spot, biome and size in a saved list ("towns to
+  make") and places nothing heavy at chunk generation; the town is built later (A2). With the setting off, villages
+  generate as before.
+- **Villagers:** don't spawn (natural spawns, spawn eggs aside; a setting); zombie villagers become zombies; the wandering
+  trader's spawner is off (A7).
+- **Existing worlds:** villages already generated stay vanilla (or, a setting, get Drifters moving in as now).
+- **Test:** `/locate structure drifter_civ:town` from spawn finds one; a new world has no village anywhere; flying
+  over a few thousand blocks finds towns where villages would have been.
+
+### A2. Building a town a slice at a time
+
+- **What:** a town is made when the player first comes near its spot (its chunks loaded), in slices of a few
+  milliseconds a tick, over a few seconds, before they get close enough to see it; out of sight, never a stall.
+- **How:** split `TownBuilder` into stages that resume (clear and level the plaza; lay roads; each house: site, level,
+  place, furnish, stock; store; stall; fields; pen; lamps; people), each stage cut into block batches with a per-tick
+  budget (say 3 ms). Started when the player is within ~12 chunks; anything not finished when they arrive finishes
+  faster (a bigger budget) rather than showing half a town.
+- **Risk:** the biggest technical one in the plan. If slices aren't enough, generate the static part (ground, roads,
+  houses) as real structure pieces at chunk generation, and only the people and the stocking at first load.
+- **Test:** a flight at full speed over a world full of towns: no tick over 50 ms from it (`/drifter` timings), every
+  town whole by the time it's in view.
+
+### A3. Towns in the biome's style
+
+- **What:** a plains town of timber and oak, a desert town of sandstone, a savanna town of acacia, a taiga town of
+  spruce logs, a snowy town of spruce and stone, (later) jungle, swamp, cherry, badlands.
+- **How:** house styles by biome (`drifter_house_styles`: each style says which biomes it suits and its palette); new
+  styles where none fit (sandstone for deserts first); roads of the right ground (path, sand-coloured path in deserts:
+  smooth sandstone or packed mud); lamps and fences in the town's wood. Every style still Drifter-buildable (the user's
+  house rules: memory "House style rules").
+- **Test:** one town in each biome side by side (a debug command to make one with a biome's style).
+
+### A4. Sizes and shapes
+
+- **What:** not every village spot gets a town: a **homestead** (1 or 2 households, a field, a pen), a **hamlet** (3 to
+  5: a well, a few houses on one road), a **village** (6 to 12: plaza, store, stall, notice board), a **town** (13 to 25:
+  all that, side roads, two stalls, later walls). Weights a setting (say 30/35/25/10).
+- **How:** `TownBuilder` already scales by households; homesteads and hamlets skip the plaza and store. Layout follows the
+  land (A2's slices on a terrain survey first: rivers, slopes, the easing from 0.22.37).
+- **Also:** a few spots get a **ruin** instead: a town that failed (burnt houses, an empty store, a grave or two, a
+  sign), so the world has history; a setting (say 5%).
+
+### A5. A town with a past
+
+- **What:** a town made at world generation looks lived in for weeks: worn paths, crops at all stages, an extension
+  half built with scaffolding, a fallen-down shed, graves, signs with names, a bed someone doesn't sleep in any more, a
+  pet or two, the chronicle's "before you came" entries.
+- **How:**
+  - Its history written first, then the town made to match: a founding some days back, the houses in the order they
+    went up, an election or two, a death (a grave, its friends' grief cooled to a grudge or a memory), someone who quit
+    (an empty house, its chest half emptied), a newcomer (the newest, smallest house), a bad winter (a ruined field).
+    The chronicle gets those entries with their days (negative day numbers, or "years ago").
+  - People: bonds from that history (0.22.37's, grown from these events), the grudge with whoever did the killing.
+  - Wear: paths along the routes walked most (the roads, house to well, house to field), grass worn to dirt by doors,
+    flowers in gardens, a chest or two by the fields, a lit path to the mine.
+- **Test:** walk into a town on day one: the chronicle reads like a history; at least two things in it you can find in
+  the town (the grave, the half-built house).
+
+### A6. People who live there
+
+- **What:** each household's people (bonds, kits, roles: built), plus: names on signs by their doors, the beds and
+  chests that are theirs, a tamed dog or cat, a horse in a stable, their own touches (a banner, flowers, a lantern).
+- **How:** as made-ready towns now, plus pets tamed to them (they feed and keep them), horses (Drifters ride: milestone
+  18), signs, banners (built for groups).
+
+### A7. What villages did, done another way
+
+- **Iron golems:** gone with villagers; the town's guards (0.22.38) do their job, and a town might build a golem if a
+  Drifter knows how (later; it takes real iron and a pumpkin).
+- **Raids:** vanilla raids need villagers; the addon's raid: a pillager band that comes for a Drifter town (someone with
+  Bad Omen walks in, or now and then on their own); the townspeople fight, hide or flee by their natures; a player who
+  helps is a hero to the town (reputation, D1). The village-raid encounter (milestone 21) is the start.
+- **Zombie sieges:** zombies at night going for the town; lit towns rarely (0.22.36's lighting), dark ones do.
+- **The wandering trader:** a travelling Drifter merchant who goes town to town (the merchant encounter and trade runs
+  combined): goods from far away, news from far away.
+- **Breeding:** newcomers moving in (C4).
+- **Cats and the bell:** cats in towns are someone's pets; the bell rings when danger comes (the guards ring it).
+
+### A8. The rest of Drifter's world generation alongside
+
+- Camps, strip mines, cave torches, wanderers, delvers, Bandit outposts: kept (they're the world beyond the towns).
+- `LivedInStructures`' villages: with towns replacing villages there are none to move into; kept for old worlds.
+- Wanderers and lone homesteaders may move into a town (C4); Bandit outposts raid towns (part 2 of nations, and A7).
+- Roads between towns: worn paths along the way trade runs and envoys walk (later; a path is a block at a time).
+
+### A9. Mods that rely on villages
+
+- **Bountiful** (the user's pack: bounty boards in villages): a board in each town's plaza instead (the notice board can
+  be one, or a Bountiful board placed by the town), so its bounties still work.
+- **Guard Villagers:** no villagers to guard; its guards don't spawn in towns.
+- **Nova Structures and village-adjacent structures:** checked one by one; anything that needs a village gets a town.
+- **Players' villager farms** (trading halls, iron farms, breeders): impossible without villagers. The trade-off of
+  "replaced completely" (decided); worth saying in the settings screen. A setting brings villagers back for players who
+  want their farms (see the questions at the end).
+- **MCA Reborn itself:** if installed alongside, it would add its villagers back; the addon says so in the log, not
+  fight it.
+
+### A10. Towns far away (the cheap layer)
+
+- **What:** a town nobody's near is a summary: its people, stock, houses, leader, laws, standing with others; its days go
+  by in summary (harvests, trade, building, elections, someone leaving, a raid) and it's as the summary says when you
+  come back.
+- **How:** CatchUp-style steps per town per in-game day from the same numbers the full town uses; the Drifter directory
+  for its people. Needed once a world has dozens of towns.
+
+---
+
+## 5. Phase B: trades and services
+
+Goal: everything a villager gave you, you can still get, from a person who made it, and it feels like trading with
+players.
+
+### B1. Lines of work
+
+- **What:** each townsperson takes up a line by how it plays and what the town needs: **farmer, miner, smith, builder,
+  woodcutter, fletcher, fisher, shepherd, hunter, enchanter/librarian, brewer, cartographer**, and the town's **keeper**
+  (the stall), **guards** and **leader** (built).
+- **How:** a data file of trades (what each does, sells, needs, its tools and station), chosen by traits (a miner: a
+  Miner archetype or high skill and curiosity underground; a builder: Builder archetype), by what the town is short of
+  (CIVILIZATION.md part 1: "a town short of food gets more farmers"), and by what it's got (an enchanter needs a table).
+  A line is a leaning, not a cage: everyone still eats, sleeps, chats and does whims.
+- **Test:** a town of 12: lines spread sensibly; `/drifterciv town` lists who does what.
+
+### B2. Making what they sell (real production)
+
+- Farmer: fields harvested, bread baked, crops stored (built: farming).
+- Miner: mine trips (built) for ores, coal, stone; smelted.
+- Smith: ingots into tools and armour at a crafting table; repairs at an anvil (needs XP: Drifters have XP levels).
+- Fletcher: sticks, flint, feathers into arrows; string into bows; hunts chickens for feathers.
+- Fisher: fishing (milestone 18), cooks the catch; treasure (books, saddles) sold.
+- Shepherd: shears sheep (built), dyes wool, makes beds and carpets.
+- Hunter: hunts (built: night hunts), leather and meat.
+- Enchanter/librarian: books from paper and leather (sugar cane farm), bookshelves; enchants at its table with its own
+  levels and lapis (built: enchanting); enchanted books from enchanting books.
+- Brewer: nether wart (a Nether trip: milestone 11), a brewing stand, potions (built: brewing).
+- Cartographer: maps of where it has been (a real map item, filled by its own walking).
+- Builder: builds for the town (built: town builds, roads) and, later, for players (D).
+- Each line's goods go to its own chest at home or the store; what's for sale goes to its shop (B3).
+
+### B3. Shops
+
+- **What:** besides the town's stall, a few people sell from their own door: a smith's anvil corner, an enchanter's
+  table, a fisher's barrel by the dock. Right-click: the trading screen (built), showing only what's in their shop
+  chest, at their prices.
+- **How:** `ShopKeeper` per seller (built for the stall keeper), open hours from its schedule (C1), stock from its own
+  production; a shop sign over the door with its name and line ("Ann's smithy").
+- **What it buys:** what its line needs (a smith buys iron, coal; an enchanter lapis, leather, sugar cane), so players can
+  sell too.
+
+### B4. Prices
+
+- Supply and demand per town (CIVILIZATION.md part 2): plenty makes it cheap, short makes it dear; what sells, its price
+  creeps up; what doesn't, down. A mining town's iron is cheap, a farming town's bread. Traders between towns (built) carry
+  the difference. Haggling: a friend's price is better (D1); a hated player's worse, or no sale.
+
+### B5. Services
+
+- **Enchanting:** you hand over the item and lapis (and pay); it enchants at its table with its levels; you get it back.
+  What comes out is the table's roll (fair: the same as yours).
+- **Repairs:** at an anvil, with your materials and its levels.
+- **Brewing:** you bring ingredients or buy its potions.
+- **Smithing:** netherite upgrades if it has a template.
+- **Building:** a builder builds you a house from its plans if you bring (or buy) the blocks (later, phase D).
+- **How:** the request system (built: `RequestGoal`) and the trading screen together; a service is a request with a
+  payment and an item handed over and back (it keeps your item only while it works on it; it never runs off with it, or
+  a Bandit might...).
+
+### B6. What villagers gave players, and where it's had now
+
+| From villagers | Now |
+| --- | --- |
+| Mending, enchanted books | Enchanters' books (enchanting table rolls), fishers' treasure |
+| Ender pearls (cleric) | Hunters who kill endermen; Drifters who've been to the End (if on) |
+| Bottles o' enchanting | Not sold (no villager source); XP from mobs, as a player |
+| Emeralds (selling crops) | Selling to shops; wages for town work (built); emerald ore |
+| Diamond gear (smith) | A smith with diamonds to spare (rare and dear) |
+| Maps to monuments, mansions | Cartographers who've seen one (they go exploring; built) |
+| Glass, bricks, terracotta | Masons/builders who make them |
+
+### B7. Players selling to towns, and wages
+
+- Shops buy what their line needs (B3); the stall buys what the town needs (built).
+- Players can work for the town for wages (roads, builds, guard duty), paid from the till (built for Drifters).
+
+---
+
+## 6. Phase C: town life
+
+Goal: a town you can watch for a day and see a day go by, the same way you'd watch players on a server.
+
+### C1. A townsperson's day
+
+- Dawn: up, eat, check its chests and fields. Morning: its line of work (B). Midday: the plaza, the well, a chat.
+  Afternoon: work, a trip (mine, trade, envoy), shops open. Dusk: home, the campfire, the porch. Night: in (stakes, 0.22.31),
+  a few out hunting (built), guards on watch.
+- **How:** the existing goal scoring with a light "time of day" pull per line and per person (habits differ: an early
+  riser, a night owl); the schedule (built) already has night styles. Nobody's day is fixed.
+
+### C2. Places to be
+
+- The plaza and well at midday, a campfire or a porch at dusk, the stall in the morning, the fields at harvest. Two or
+  three gathered talk (conversations: built), someone sits on a bench (built), someone shows off its gear (built).
+- A **gathering spot** per town (the plaza; later a hall or a tavern-like house: a long table, a campfire) where people
+  drift to when they've nothing on.
+
+### C3. Comings and goings
+
+- **Newcomers:** a wanderer passing through who gets on with the people (trust) and finds room (an empty house or a plot)
+  moves in ("X joined the town"; the chronicle). Towns grow; a full one turns newcomers away.
+- **Leavers:** someone who's fallen out with everyone, or bored (mood), or whose friend died, leaves ("X left for good"):
+  its house empty, its chest half taken. With permadeath, someone dies and doesn't come back: a grave, grief (built).
+- **Houses changing hands:** an empty house goes to a newcomer or a household that's grown (two friends rooming).
+- **Building:** a growing town builds more houses, a second stall, walls (founded towns: built; made towns too).
+
+### C4. Events
+
+- **Market day** (every few days): stalls and shops all open, people come from the towns around (trade runs), a
+  crowd in the plaza.
+- **A build day:** the town builds something together (a wall, a hall, a monument) with everyone helping.
+- **Contests:** a fishing contest, a race (the race encounter exists), a duel at the plaza (sparring exists).
+- **Festivals** (culture, CIVILIZATION.md part 5): yearly, from the town's own history (the day it was founded, a war
+  won, someone remembered).
+
+### C5. Animals and the land around
+
+- Pets kept and fed, horses ridden and stabled, the pen tended (built), bees and honey, fishing spots; the woods round a
+  town cut over time (felled trees: built), the land worked outward.
+
+---
+
+## 7. Phase D: you and the town
+
+Goal: you can matter to a town, the way you matter on a server: by being useful, being a friend, living there, or being
+its problem.
+
+### D1. What a town thinks of you
+
+- Each person's trust and fear (built) and what they've heard (news: built) make the town's view of you: welcome,
+  neutral, wary, unwelcome, wanted. Word spreads town to town (envoys, traders).
+- Effects: prices (B4), whether shops serve you, whether guards watch you, whether people greet you, whether you can
+  live there (D4), whether they'll help you.
+- `/drifterciv town` shows where you stand (or just what people say to you).
+
+### D2. Friends
+
+- With one person: trusted enough (thresholds by trait), it: invites you in ("come in, it's cold"), gives you food when
+  you're low, warns you of what it's seen (a creeper behind you, Bandits up the road), lends a hand in a fight, trades at
+  a friend's price, lets you sleep in its spare bed, tells you things (where the diamonds were).
+- Friendship goes both ways: forget it for weeks and it cools; wrong it and it's over (grudges: built).
+
+### D3. Companions
+
+- A friend can come with you ("wanna go mining?" either way; built: following, requests): it follows on its own terms,
+  fights beside you, mines its own ores and keeps them, eats its own food, wants to go home when it's tired, hurt, or the
+  trip's done, and tells you so. It won't follow you into lava or into the End on a whim (stakes: built).
+- Two at most at a time; a companion who dies with permadeath is gone (and its friends know who was with it).
+
+### D4. Living there
+
+- **Asking for a plot:** a town that thinks well of you gives you a plot by a road (the leader decides; laws apply); you
+  build your house; you're a citizen: you pay the tax, you can vote (not lead: the user, 2026-10-21), the guards protect
+  you, its people are your neighbours.
+- **An empty house:** bought from the town (the till) or given, if they really like you.
+- **A bed for the night:** a friend's spare bed (D2), or the town's spare house.
+
+### D5. The notice board
+
+- Real needs, posted by real people, in player speak: "need 32 iron, paying 6 emeralds", "lost my dog near the river,
+  reward", "bandits up north, 10 diamonds a head", "anyone selling a horse?". Taken off when done or when it's no longer
+  needed.
+- **How:** requests (built) posted on the board's signs instead of only said aloud; bounties (built: wanted posters);
+  lost things (built: lost dog). Bountiful's board, if installed, shows them too (A9).
+
+### D6. Being their problem
+
+- Thief, killer, griefer: fines, exile, bounties, the town's crook (all built: step 5). Hated: shops shut, guards come,
+  the town might pay someone to deal with you (bounty hunters: built).
+
+---
+
+## 8. Across all phases
+
+- **Talk:** every step brings its topics and lines (player speak): the new house, a newcomer, someone who left, the
+  smith's prices, market day, the player who moved in. Content in `drifter_talk` and `drifter_chat`; docs/CHAT_LINES.md
+  regenerated.
+- **The chronicle:** every coming and going, opening and closing of a shop, event; the town's book.
+- **Commands:** `/drifterciv town` grows (lines of work, shops, where you stand); debug ones to make a town of a
+  biome and size, start an event, move someone in or out, set a reputation.
+- **Settings** (Mod Menu): replace villages, villagers spawning, town size weights, ruins, events on/off, companions on/off.
+- **Saves:** towns to be made (A1), half-made towns (A2), shops, lines, reputation: versioned.
+- **Data files:** lines of work, biome styles, events, notice board posts: data, so they can be changed in a datapack.
+- **Performance:** each step measured (timings) with a town or several near; far towns cost almost nothing (A10).
+
+## 9. Testing, phase by phase
+
+- **A:** a new world flown over (towns found, none half-made, no lag), one of each biome and size, the chronicle's past,
+  `/locate`; an old world loads unchanged.
+- **B:** a town of 12 over a few days: lines spread, goods made, shops stocked from production only (no item appears),
+  prices move; buy, sell, get a sword enchanted, a pickaxe repaired.
+- **C:** a town watched over two days: the day's rhythm, a gathering at the plaza, a newcomer moving in, someone leaving,
+  a market day with traders from the next town.
+- **D:** a player befriending someone (perks show up), a companion trip (it comes, fights, goes home), getting a plot
+  and building, a notice board request done and paid.
+- Each step: a headless smoke run and a client test, as now; TESTING.md entries in plain language.
+
+## 10. Order of work
+
+After nations (decided). Then:
+
+1. **A1 + A2** (villages replaced, towns made a slice at a time): the hard part first; worth a step on its own.
+2. **A3, A4** (biome styles, sizes, ruins).
+3. **A5, A6** (a past, people's touches), **A7** (raids, golems, the wandering merchant), **A9** (other mods).
+4. **B1 to B3** (lines, production, shops), then **B4 to B7** (prices, services, villager goods).
+5. **C1 to C3** (the day, places, comings and goings), then **C4, C5** (events, animals).
+6. **D1 to D3** (reputation, friends, companions), then **D4 to D6** (living there, the board).
+7. **A10** (far towns as summaries) when worlds have enough towns for it to matter (likely alongside A).
+
+Each a version, a test, and a line in the status table at the top.
+
+## 11. Questions for the user (still open)
+
+1. **Villagers for players' farms:** with villages replaced, villager farms (trading halls, iron farms) are gone. Keep a
+   setting that lets villagers exist (curing zombie villagers, for instance) for players who want them, or none at all?
+2. **Which milestone:** this as milestone 23 (its own, after 22 ends with nations), or as more steps of 22?
+3. **Culture** (CIVILIZATION.md part 5: festivals, monuments, beliefs) overlaps phase C: fold it in here, or keep it
+   after nations as planned?
+4. **A town's size and number:** how common should towns be compared with villages (vanilla spacing gives about one
+   per 34 chunks), and how big at most?
+5. **The player in a town:** can a player ever be given a role (guard, keeper, builder for hire), or only citizen?
+
+## 12. Progress
+
+(Entries here as steps are built, newest last, as in PROGRESS.md.)
+
+- 2026-10-29: planned (this document); decisions 1 to 4 above.
