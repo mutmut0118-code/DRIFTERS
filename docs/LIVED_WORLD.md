@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6); next A10 |
-| B | Trades and services instead of villager trading | Not started |
+| B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
 
@@ -688,3 +688,17 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     vindicators, 12 of its people's lives lost in four minutes and the raid not over; rebalanced, two waves (5 and 6), it
     fought them off: 11 raiders brought down, 3 lives lost.
   - Next: phase B (lines of work, production, shops); A10 and the wandering merchant (A7) when they're needed.
+- **0.23.7: B1, lines of work (first part).** `Trades`: each townsperson has a line, given the first time it's asked and
+  saved with the town: the stall's keeper, the leader, its guards (the two the town's made with; else the boldest two),
+  at least two farmers, then by its nature (Builder: builder; Miner, Hoarder, Speedrunner: miner; Homebody, Helper:
+  farmer; Hermit: woodcutter; Nomad, PvP sweat: hunter) while that line is under a quarter of the town, and the rest to
+  whichever of farmer, woodcutter, hunter, builder, miner has fewest. A line is a leaning: in what it chooses, its
+  line's goals count 0.08 more (a farmer: the farm, the pen, cooking; a builder: roads, town builds, easing the ground,
+  lighting, its house; a miner: getting on, caves; a hunter: hunting; a woodcutter: clearing trees, gathering; a guard:
+  guarding, defending, driving people out). Core: `TownWork.leaning(drifter, goal)`, added to a goal's urgency.
+  `/drifterciv town` shows who does what ("Work: builder: ...; farmer: ..."). Talk flags `line_<line>`, word `line`.
+  Tested headless: a town of 24: 4 builders, 4 farmers, 2 guards, 4 hunters, 5 miners, 3 woodcutters, the keeper, the
+  leader (before the quarter cap: six builders).
+  - Not yet (B1 to B3): lines that make things to sell (smith, fletcher, enchanter, fisher, shepherd), their shops and
+    prices.
+  - Next: B2 and B3 (lines that make things, their own shops at their doors).

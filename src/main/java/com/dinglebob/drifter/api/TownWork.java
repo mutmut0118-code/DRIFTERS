@@ -128,6 +128,14 @@ public interface TownWork {
 		return null;
 	}
 
+	/**
+	 * How much more this goal (by id) counts for it in what it chooses (its line of work: milestone 23 B1; a little, 0 for
+	 * most goals).
+	 */
+	default double leaning(DrifterEntity drifter, String goal) {
+		return 0.0;
+	}
+
 	/** It stood the banner up there. */
 	default void bannerUp(DrifterEntity drifter, BlockPos where) {
 	}

@@ -1056,10 +1056,14 @@ public final class TownBuilder {
 			List<DrifterEntity> boldest = new ArrayList<>(this.people.subList(Math.min(1, this.people.size()), this.people.size()));
 			boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
 				.reversed());
+			List<UUID> guards = new ArrayList<>();
 			for (DrifterEntity one : this.people) {
 				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0 && boldest.indexOf(one) < 2 ? "guard"
 					: "citizen";
 				DrifterApi.equipTown(one, this.random, role);
+				if (role.equals("guard")) {
+					guards.add(one.getUUID());
+				}
 			}
 
 			long day = Chronicle.day(this.server);
@@ -1072,6 +1076,7 @@ public final class TownBuilder {
 			town.pen = this.pen;
 			town.stallPlot = new Town.Plot(this.stallAt(), 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
 			town.stallBuilt = true;
+			guards.forEach(id -> town.lines.put(id, "guard"));
 			Towns.add(this.server, town);
 			// A past: its people all know each other, some better than others, and a few know people of the towns about.
 			TownHistory.neighbours(this.server, town, this.people, this.random);

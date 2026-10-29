@@ -279,6 +279,11 @@ final class TownRoads {
 		}
 
 		@Override
+		public double leaning(DrifterEntity drifter, String goal) {
+			return Trades.leaning(this.town, drifter, goal);
+		}
+
+		@Override
 		@org.jetbrains.annotations.Nullable
 		public Banner banner(DrifterEntity drifter) {
 			return Nations.banner(this.town, drifter);

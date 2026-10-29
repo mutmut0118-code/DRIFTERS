@@ -570,6 +570,7 @@ public final class DrifterCivilizations implements ModInitializer {
 			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " houses, " + alivePeople + " people alive; the store has "
 			+ stacks + " stacks in " + town.store.size() + " chests"), false);
 		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
+		source.sendSuccess(() -> Component.literal("  Work: " + Trades.describe(town)), false);
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (politicsGroup != null && town.leader != null) {

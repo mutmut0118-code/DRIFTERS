@@ -3491,3 +3491,16 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   - Tested in the client (a town of about 20, the player watching in creative): first try, waves of 7 and 8 with a third
     vindicators, 12 of its people's lives lost in four minutes and the raid not over; rebalanced, two waves (5 and 6), it
     fought them off: 11 raiders brought down, 3 lives lost.
+- **0.23.7: B1, lines of work (first part).** `Trades`: each townsperson has a line, given the first time it's asked and
+  saved with the town: the stall's keeper, the leader, its guards (the two the town's made with; else the boldest two),
+  at least two farmers, then by its nature (Builder: builder; Miner, Hoarder, Speedrunner: miner; Homebody, Helper:
+  farmer; Hermit: woodcutter; Nomad, PvP sweat: hunter) while that line is under a quarter of the town, and the rest to
+  whichever of farmer, woodcutter, hunter, builder, miner has fewest. A line is a leaning: in what it chooses, its
+  line's goals count 0.08 more (a farmer: the farm, the pen, cooking; a builder: roads, town builds, easing the ground,
+  lighting, its house; a miner: getting on, caves; a hunter: hunting; a woodcutter: clearing trees, gathering; a guard:
+  guarding, defending, driving people out). Core: `TownWork.leaning(drifter, goal)`, added to a goal's urgency.
+  `/drifterciv town` shows who does what ("Work: builder: ...; farmer: ..."). Talk flags `line_<line>`, word `line`.
+  Tested headless: a town of 24: 4 builders, 4 farmers, 2 guards, 4 hunters, 5 miners, 3 woodcutters, the keeper, the
+  leader (before the quarter cap: six builders).
+  - Not yet (B1 to B3): lines that make things to sell (smith, fletcher, enchanter, fisher, shepherd), their shops and
+    prices.

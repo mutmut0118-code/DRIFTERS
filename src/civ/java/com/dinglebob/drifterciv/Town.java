@@ -191,6 +191,8 @@ public final class Town {
 	 * crimes"), who steal and pick fights now and then till it throws them out.
 	 */
 	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
+	/** Each of its people's line of work (milestone 23 B1: Trades). */
+	public final java.util.Map<UUID, String> lines = new java.util.HashMap<>();
 	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
 	/** A bond of one of its people with someone who wasn't loaded when it was made (a town made ready), set once they are. */
 	public record Bond(UUID who, UUID other, String otherName, double trust, double familiarity) {
@@ -323,6 +325,9 @@ public final class Town {
 		ListTag crooks = new ListTag();
 		this.crooks.forEach(id -> crooks.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
 		tag.put("Crooks", crooks);
+		CompoundTag lines = new CompoundTag();
+		this.lines.forEach((id, line) -> lines.putString(id.toString(), line));
+		tag.put("Lines", lines);
 		tag.put("PendingBonds", TownHistory.save(this.pendingBonds));
 		tag.putString("LastCrook", this.lastCrook);
 		tag.putString("LastCrime", this.lastCrime);
@@ -435,6 +440,14 @@ public final class Town {
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;
 		for (Tag t : tag.getList("Crooks", Tag.TAG_INT_ARRAY)) {
 			town.crooks.add(net.minecraft.nbt.NbtUtils.loadUUID(t));
+		}
+
+		CompoundTag lines = tag.getCompound("Lines");
+		for (String key : lines.getAllKeys()) {
+			try {
+				town.lines.put(UUID.fromString(key), lines.getString(key));
+			} catch (IllegalArgumentException ignored) {
+			}
 		}
 
 		TownHistory.load(tag.getList("PendingBonds", Tag.TAG_COMPOUND), town.pendingBonds);

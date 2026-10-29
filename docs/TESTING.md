@@ -1491,6 +1491,9 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Raids (0.23.6): walk into a town with Bad Omen (or `/drifterciv town raid` there): "Something's coming...", then
       pillagers and vindicators in waves making for the plaza; its people fight or run. Help bring them down, and once
       they're all down the town's people think better of you ("won't forget that").
+- [ ] Lines of work (0.23.7): `/drifterciv town` shows who does what (farmers, builders, miners, hunters, woodcutters,
+      guards, the keeper, the leader). Watch a while: farmers more at the fields, builders more on roads and building,
+      hunters out hunting; everyone still eats, sleeps and chats.
 
 ## Beds in town houses (new, 0.22.34)
 
