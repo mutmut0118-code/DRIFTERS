@@ -3433,3 +3433,12 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
     Hamlets have the same plaza, store and stall for now, only fewer houses.
   - Tested on Tectonic: seven spots, six made (taiga, plains, desert; 2 to 16 households), 79 of 79 places walked to;
     screenshots of a taiga town among spruce by a lake and a desert hamlet in the dunes.
+- **0.23.3: A4's ruins.** A twentieth of spots are the ruins of a town that failed: 4 to 7 houses laid out as a town's,
+  then fallen in (doors, beds, torches, lanterns and carpets gone; glass mostly gone; wood gone more the higher it is, so
+  roofs have fallen in; cobblestone gone to moss in places; cobwebs; chests empty), the fields gone to grass and coarse
+  dirt, the pen empty with gaps in its fence, no bell or lamps, the store empty but for some bones and rotten flesh, and
+  two to four graves west of the plaza (coarse dirt and a sign: "here lies", a name as Drifters have them, "rip" or
+  "o7"). Nobody lives there; it isn't a town (no group), only a line in the chronicle ("The ruins of X stand where a
+  village might have"). `DrifterApi.randomName`. Debug: `/drifterciv town ruin` (made here at once). Tested in the
+  client: made in about 1 to 1.7 s of steps; a screenshot of fallen-in roofs (another round of screenshots came out
+  blank, the land not yet drawn after the teleport: to look at again).

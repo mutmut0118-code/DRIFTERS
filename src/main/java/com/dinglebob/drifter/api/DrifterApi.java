@@ -301,6 +301,11 @@ public final class DrifterApi {
 	/** Another mod makes its own towns where villages would be (Drifter: Civilizations, milestone 23). */
 	private static volatile boolean townsForVillages;
 
+	/** A name as a Drifter would have one (for a grave, a sign: the same lists Drifters' names come from). */
+	public static String randomName(MinecraftServer server, net.minecraft.util.RandomSource random) {
+		return com.dinglebob.drifter.identity.Usernames.generate(random, server);
+	}
+
 	/** An addon that makes towns where villages would be says so; villages (and the wandering trader) then don't come. */
 	public static void setTownsForVillages(boolean on) {
 		townsForVillages = on;

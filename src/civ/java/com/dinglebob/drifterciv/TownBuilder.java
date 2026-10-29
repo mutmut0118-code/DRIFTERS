@@ -205,12 +205,27 @@ public final class TownBuilder {
 		}
 
 		// (For testing: all of it at once.)
-		Job job = new Job(level, cx, cz, households, wanted, false);
+		Job job = new Job(level, cx, cz, households, wanted, false, false);
 		while (job.step()) {
 		}
 
 		Result result = job.result();
 		return new Result(result.town(), result.message() + warning);
+	}
+
+	/** Debug: the ruins of a town made here at once. */
+	public static Result ruin(ServerLevel level, BlockPos at) {
+		for (int x = at.getX() - REACH - 16; x <= at.getX() + REACH + 16; x += 16) {
+			for (int z = at.getZ() - REACH - 16; z <= at.getZ() + REACH + 16; z += 16) {
+				level.getChunk(x >> 4, z >> 4);
+			}
+		}
+
+		Job job = new Job(level, at.getX(), at.getZ(), 4 + level.getRandom().nextInt(4), null, true, true);
+		while (job.step()) {
+		}
+
+		return job.result();
 	}
 
 	/** How far round its middle a town's ground (and what's worked out round it) may reach: its chunks loaded before it's made. */
@@ -232,6 +247,9 @@ public final class TownBuilder {
 		final int cz;
 		final int households;
 		final boolean world;
+		/** A town that failed long ago (A4: "a town that failed (burnt houses, an empty store, graves, a sign): history"):
+		 * nobody lives there. */
+		final boolean ruin;
 		private final java.util.ArrayDeque<Step> steps = new java.util.ArrayDeque<>();
 		private long longest;
 		private String longestStep = "";
@@ -279,7 +297,7 @@ public final class TownBuilder {
 		private int lamps;
 		private int torches;
 
-		Job(ServerLevel level, int cx, int cz, int households, @Nullable String wanted, boolean world) {
+		Job(ServerLevel level, int cx, int cz, int households, @Nullable String wanted, boolean world, boolean ruin) {
 			this.level = level;
 			this.server = level.getServer();
 			this.random = level.getRandom();
@@ -289,6 +307,7 @@ public final class TownBuilder {
 			this.cz = cz;
 			this.households = households;
 			this.world = world;
+			this.ruin = ruin;
 			this.steps.add(new Step("layout", this::layout));
 		}
 
@@ -414,6 +433,19 @@ public final class TownBuilder {
 			foundation(this.level, rect, fieldBase, 4, keep, this.random, WIDE_BLEND, false);
 			BlockPos field = new BlockPos((rect.x0() + rect.x1()) / 2, fieldBase, (rect.z0() + rect.z1()) / 2);
 			this.fields.add(field.above());
+			if (this.ruin) {
+				for (int dx = -4; dx <= 4; dx++) {
+					for (int dz = -4; dz <= 4; dz++) {
+						set(this.level, field.offset(dx, 0, dz), (this.random.nextFloat() < 0.4F ? Blocks.COARSE_DIRT : Blocks.GRASS_BLOCK).defaultBlockState());
+						if (this.random.nextFloat() < 0.3F) {
+							set(this.level, field.offset(dx, 1, dz), Blocks.SHORT_GRASS.defaultBlockState());
+						}
+					}
+				}
+
+				return;
+			}
+
 			for (int dx = -4; dx <= 4; dx++) {
 				for (int dz = -4; dz <= 4; dz++) {
 					BlockPos pos = field.offset(dx, 0, dz);
@@ -432,6 +464,16 @@ public final class TownBuilder {
 		private void pen() {
 			this.pen = onGround(this.level, (this.penRect.x0() + this.penRect.x1()) / 2, (this.penRect.z0() + this.penRect.z1()) / 2);
 			penFence(this.level, this.pen, 5);
+			if (this.ruin) {
+				for (BlockPos pos : BlockPos.betweenClosed(this.pen.offset(-6, -2, -6), this.pen.offset(6, 4, 6))) {
+					if (this.level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FENCES) && this.random.nextFloat() < 0.35F) {
+						set(this.level, pos.immutable(), Blocks.AIR.defaultBlockState());
+					}
+				}
+
+				return;
+			}
+
 			for (EntityType<?> animal : List.of(EntityType.COW, EntityType.COW, EntityType.SHEEP, EntityType.SHEEP, EntityType.CHICKEN, EntityType.CHICKEN)) {
 				animal.spawn(this.level, onGround(this.level, this.pen.getX() + this.random.nextInt(7) - 3, this.pen.getZ() + this.random.nextInt(7) - 3),
 					MobSpawnType.COMMAND);
@@ -570,7 +612,13 @@ public final class TownBuilder {
 			}
 
 			this.then("plazaThings", this::plazaThings);
-			this.then("roadLamps", this::roadLamps);
+			if (!this.ruin) {
+				this.then("roadLamps", this::roadLamps);
+			} else {
+				this.built.addAll(this.taken);
+				this.built.addAll(this.houseRects);
+			}
+
 			this.then("stallAndPaths", this::stallAndPaths);
 			this.then("areaAndTrees", this::areaAndTrees);
 		}
@@ -629,8 +677,12 @@ public final class TownBuilder {
 				}
 			}
 
-			place(this.level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
 			this.board = new BlockPos(cx - 5, y0, cz - 5);
+			if (this.ruin) {
+				return;
+			}
+
+			place(this.level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
 			for (int dx : new int[] {-PLAZA, PLAZA}) {
 				for (int dz : new int[] {-PLAZA, PLAZA}) {
 					lamp(this.level, new BlockPos(cx + dx, y0, cz + dz));
@@ -704,7 +756,101 @@ public final class TownBuilder {
 				});
 			}
 
+			if (this.ruin) {
+				for (int i = 0; i < this.houses.size(); i++) {
+					var house = this.houses.get(i);
+					this.then("ruin", () -> this.ruinHouse(house));
+				}
+
+				this.then("graves", this::graves);
+				this.then("finish", this::finish);
+				return;
+			}
+
 			this.then("peopleStart", this::peopleStart);
+		}
+
+		// -----------------------------------------------------------------------------------------
+		// A ruin: its houses fallen in, its store emptied, its dead in the ground.
+		// -----------------------------------------------------------------------------------------
+
+		/** A house gone to ruin: the roof fallen in (the higher, the more of it gone), holes in the walls, its door and glass
+		 * gone, moss on its stone, cobwebs in the corners; nothing left in its chests, its bed gone. */
+		private void ruinHouse(DrifterApi.PlacedHouse house) {
+			var box = house.box();
+			double height = Math.max(1, box.getYSpan() - 1);
+			for (BlockPos at : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+				BlockPos pos = at.immutable();
+				BlockState state = this.level.getBlockState(pos);
+				if (state.isAir()) {
+					continue;
+				}
+
+				double up = (pos.getY() - box.minY()) / height;
+				if (state.getBlock() instanceof DoorBlock || state.getBlock() instanceof net.minecraft.world.level.block.BedBlock || state.is(Blocks.TORCH)
+					|| state.is(Blocks.WALL_TORCH) || state.is(Blocks.LANTERN) || state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS)) {
+					set(this.level, pos, Blocks.AIR.defaultBlockState());
+				} else if (state.is(net.minecraft.tags.BlockTags.IMPERMEABLE) || state.getBlock() instanceof net.minecraft.world.level.block.IronBarsBlock) {
+					if (this.random.nextFloat() < 0.7F) {
+						set(this.level, pos, Blocks.AIR.defaultBlockState());
+					}
+				} else if (state.ignitedByLava() && pos.getY() > box.minY() && this.random.nextFloat() < 0.15 + 0.6 * up * up) {
+					set(this.level, pos, Blocks.AIR.defaultBlockState());
+				} else if (state.getBlock().defaultBlockState().is(Blocks.COBBLESTONE) && this.random.nextFloat() < 0.4F) {
+					set(this.level, pos, Blocks.MOSSY_COBBLESTONE.defaultBlockState());
+				} else if (this.level.getBlockEntity(pos) instanceof net.minecraft.world.Container container) {
+					container.clearContent();
+				}
+			}
+
+			for (BlockPos at : BlockPos.betweenClosed(box.minX() + 1, box.minY() + 1, box.minZ() + 1, box.maxX() - 1, box.maxY() - 1, box.maxZ() - 1)) {
+				if (this.level.getBlockState(at).isAir() && !this.level.getBlockState(at.above()).isAir() && this.random.nextFloat() < 0.03F) {
+					set(this.level, at.immutable(), Blocks.COBWEB.defaultBlockState());
+				}
+			}
+		}
+
+		/** Its store emptied (a few bones and rotten flesh left), and two to four graves by the plaza with names on them. */
+		private void graves() {
+			for (int i = 0; i < this.store.size(); i++) {
+				if (this.level.getBlockEntity(this.store.get(i)) instanceof net.minecraft.world.Container chest) {
+					chest.clearContent();
+					if (i == 0) {
+						chest.setItem(0, new ItemStack(Items.BONE, 2 + this.random.nextInt(4)));
+						chest.setItem(4, new ItemStack(Items.ROTTEN_FLESH, 1 + this.random.nextInt(3)));
+					}
+				}
+			}
+
+			int want = 2 + this.random.nextInt(3);
+			int made = 0;
+			for (int tries = 0; tries < 60 && made < want; tries++) {
+				int x = this.cx - PLAZA - 3 - this.random.nextInt(8);
+				int z = this.cz + this.random.nextInt(2 * PLAZA + 1) - PLAZA;
+				if (this.built.stream().anyMatch(rect -> rect.away(x, z) <= 1) || this.roadRects.stream().anyMatch(rect -> rect.away(x, z) <= 1)) {
+					continue;
+				}
+
+				BlockPos head = onGround(this.level, x, z);
+				BlockPos foot = onGround(this.level, x, z + 1);
+				if (head.getY() != foot.getY() || !this.level.getBlockState(head).isAir() || wet(this.level, x, z)) {
+					continue;
+				}
+
+				set(this.level, head.below(), Blocks.COARSE_DIRT.defaultBlockState());
+				set(this.level, foot.below(), Blocks.COARSE_DIRT.defaultBlockState());
+				place(this.level, head, Blocks.OAK_SIGN.defaultBlockState().setValue(net.minecraft.world.level.block.StandingSignBlock.ROTATION, 8));
+				if (this.level.getBlockEntity(head) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
+					var text = new net.minecraft.world.level.block.entity.SignText()
+						.setMessage(0, Component.literal("here lies"))
+						.setMessage(1, Component.literal(DrifterApi.randomName(this.server, this.random)))
+						.setMessage(3, Component.literal(this.random.nextFloat() < 0.5F ? "rip" : "o7"));
+					sign.setText(text, true);
+					sign.setText(text, false);
+				}
+
+				made++;
+			}
 		}
 
 		private List<net.minecraft.world.level.levelgen.structure.BoundingBox> pieces() {
@@ -881,6 +1027,16 @@ public final class TownBuilder {
 		private void finish() {
 			Town town = this.town;
 			Chronicle.quiet = false;
+			if (this.ruin) {
+				Chronicle.add(this.server, "town", "The ruins of " + this.name + " stand where a village might have: " + this.houses.size()
+					+ " houses fallen in, nobody living there for a long time");
+				DrifterCivilizations.LOGGER.info("[town] the ruins of {} made: {} houses, {} ms of work; the longest step {} ms ({})", this.name,
+					this.houses.size(), this.worked / 1_000_000, this.longest / 1_000_000, this.longestStep);
+				this.result = new Result(null, "the ruins of " + this.name + ": " + this.houses.size() + " houses, the plaza at " + this.cx + ", " + this.y0
+					+ ", " + this.cz);
+				return;
+			}
+
 			Chronicle.add(this.server, "town", this.name + (this.world ? " stands where a village might have" : " was founded") + ", with " + this.people.size()
 				+ " people in " + this.houses.size() + " houses" + (this.world ? "" : " (made ready, for testing)"));
 			long seconds = Math.round((System.nanoTime() - this.startedAt) / 1e9);

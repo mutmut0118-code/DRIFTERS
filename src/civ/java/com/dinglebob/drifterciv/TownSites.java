@@ -66,6 +66,8 @@ final class TownSites {
 		final int x;
 		final int z;
 		final int households;
+		/** A town that failed long ago (nobody lives there). */
+		boolean ruin;
 		/** Its land asked for (loading). */
 		boolean loading;
 		/** Debug: made now, player or not. */
@@ -98,6 +100,8 @@ final class TownSites {
 	static final double HAMLETS = 0.25;
 	static final int HAMLET_FEWEST = 2;
 	static final int HAMLET_MOST = 5;
+	/** A twentieth of spots: the ruins of a town that failed (4 to 7 houses). */
+	static final double RUINS = 0.05;
 
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_civ_town", Comparator.comparingLong(ChunkPos::toLong));
 	private static final ConcurrentLinkedQueue<Site> found = new ConcurrentLinkedQueue<>();
@@ -193,7 +197,7 @@ final class TownSites {
 			}
 
 			making = site;
-			job = new TownBuilder.Job(level, site.x, site.z, site.households, null, true);
+			job = new TownBuilder.Job(level, site.x, site.z, site.households, null, true, site.ruin);
 			DrifterCivilizations.LOGGER.info("[town] making a town at {}, {} ({} households)", site.x, site.z, site.households);
 			return;
 		}
@@ -280,6 +284,7 @@ final class TownSites {
 			if (piece instanceof Marker marker) {
 				BoundingBox box = marker.getBoundingBox();
 				Site site = new Site(dimension, box.minX(), box.minZ(), marker.households);
+				site.ruin = marker.ruin;
 				site.forced = true;
 				sites.add(site);
 				return site;
@@ -335,9 +340,11 @@ final class TownSites {
 				return Optional.empty();
 			}
 
-			int households = context.random().nextDouble() < HAMLETS ? HAMLET_FEWEST + context.random().nextInt(HAMLET_MOST - HAMLET_FEWEST + 1)
+			double roll = context.random().nextDouble();
+			boolean ruin = roll < RUINS;
+			int households = ruin ? 4 + context.random().nextInt(4) : roll < RUINS + HAMLETS ? HAMLET_FEWEST + context.random().nextInt(HAMLET_MOST - HAMLET_FEWEST + 1)
 				: FEWEST + context.random().nextInt(MOST - FEWEST + 1);
-			return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households))));
+			return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households, ruin))));
 		}
 	}
 
@@ -506,20 +513,24 @@ final class TownSites {
 	/** Its mark in the world: nothing placed; it tells the addon where the town goes when its chunk is made. */
 	public static final class Marker extends StructurePiece {
 		private final int households;
+		private final boolean ruin;
 
-		Marker(BlockPos spot, int households) {
+		Marker(BlockPos spot, int households, boolean ruin) {
 			super(MARKER, 0, new BoundingBox(spot.getX(), spot.getY(), spot.getZ(), spot.getX(), spot.getY(), spot.getZ()));
 			this.households = households;
+			this.ruin = ruin;
 		}
 
 		Marker(CompoundTag tag) {
 			super(MARKER, tag);
 			this.households = tag.getInt("Households");
+			this.ruin = tag.getBoolean("Ruin");
 		}
 
 		@Override
 		protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
 			tag.putInt("Households", this.households);
+			tag.putBoolean("Ruin", this.ruin);
 		}
 
 		@Override
@@ -527,7 +538,9 @@ final class TownSites {
 			ChunkPos chunk, BlockPos pivot) {
 			BoundingBox box = this.getBoundingBox();
 			if (chunkBox.isInside(box.getCenter())) {
-				found.add(new Site(level.getLevel().dimension().location().toString(), box.minX(), box.minZ(), this.households));
+				Site site = new Site(level.getLevel().dimension().location().toString(), box.minX(), box.minZ(), this.households);
+				site.ruin = this.ruin;
+				found.add(site);
 			}
 		}
 	}
@@ -544,6 +557,7 @@ final class TownSites {
 			one.putInt("X", site.x);
 			one.putInt("Z", site.z);
 			one.putInt("Households", site.households);
+			one.putBoolean("Ruin", site.ruin);
 			list.add(one);
 		}
 
@@ -557,7 +571,9 @@ final class TownSites {
 		making = null;
 		for (Tag t : tag.getList("Sites", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
-			sites.add(new Site(one.getString("Dimension"), one.getInt("X"), one.getInt("Z"), one.getInt("Households")));
+			Site site = new Site(one.getString("Dimension"), one.getInt("X"), one.getInt("Z"), one.getInt("Households"));
+			site.ruin = one.getBoolean("Ruin");
+			sites.add(site);
 		}
 	}
 }

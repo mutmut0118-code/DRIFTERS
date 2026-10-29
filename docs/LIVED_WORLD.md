@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2) |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3) |
 | B | Trades and services instead of villager trading | Not started |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -629,3 +629,13 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Tested on Tectonic: seven spots, six made (taiga, plains, desert; 2 to 16 households), 79 of 79 places walked to;
     screenshots of a taiga town among spruce by a lake and a desert hamlet in the dunes.
   - Next: A4's ruins and cities (with A10, the summary layer for towns nobody's near), then A5 (a past), A6, A7, A9.
+- **0.23.3: A4's ruins.** A twentieth of spots are the ruins of a town that failed: 4 to 7 houses laid out as a town's,
+  then fallen in (doors, beds, torches, lanterns and carpets gone; glass mostly gone; wood gone more the higher it is, so
+  roofs have fallen in; cobblestone gone to moss in places; cobwebs; chests empty), the fields gone to grass and coarse
+  dirt, the pen empty with gaps in its fence, no bell or lamps, the store empty but for some bones and rotten flesh, and
+  two to four graves west of the plaza (coarse dirt and a sign: "here lies", a name as Drifters have them, "rip" or
+  "o7"). Nobody lives there; it isn't a town (no group), only a line in the chronicle ("The ruins of X stand where a
+  village might have"). `DrifterApi.randomName`. Debug: `/drifterciv town ruin` (made here at once). Tested in the
+  client: made in about 1 to 1.7 s of steps; a screenshot of fallen-in roofs (another round of screenshots came out
+  blank, the land not yet drawn after the teleport: to look at again).
+  - Next: A5 (a town's past written first and the town made to match), then cities with A10.

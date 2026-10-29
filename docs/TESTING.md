@@ -1478,6 +1478,8 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Towns look like their land (0.23.2): a desert town of sandstone with sandstone roads, a savanna town of acacia, a
       taiga town of spruce with mossy cobblestone, snowy towns of spruce and stone, plains of oak and birch. Some spots
       are hamlets of 2 to 5 houses; most towns 8 to 16.
+- [ ] Now and then, the ruins of a town (0.23.3): roofs fallen in, no doors, empty chests, graves by the plaza with names
+      on signs, nobody there. To see one now: `/drifterciv town ruin` where you stand.
 
 ## Beds in town houses (new, 0.22.34)
 
