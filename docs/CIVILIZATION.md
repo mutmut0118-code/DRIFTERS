@@ -271,5 +271,8 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   effects, talk and the chronicle; part 2, wars between towns (declared when the standing sinks: armies on the march,
   peace terms, tribute, broken promises remembered); part 3, nations (allied towns joining, a capital, a name and banner,
   tribute, rebellions and independence).
+- **After step 6: a lived-in world** (docs/LIVED_WORLD.md, planned 2026-10-29): Drifter towns replace villages and
+  villagers, real shops replace villager trading, town life, and the player's place in a town (friends, companions,
+  citizenship). Phases A to D there.
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

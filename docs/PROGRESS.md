@@ -3149,6 +3149,11 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     "hey. Envoyby wants to trade with Farby. deal?" / "ok, you've got a deal", and home. Found and fixed: the out-of-sight
     timer answered before a slow walker got there; an envoy that went out of the running world lost its errand; an envoy
     waited in an empty plaza (now to the leader's house).
+- **Planned (not started): a lived-in world, Drifter towns instead of villages** (docs/LIVED_WORLD.md; the user,
+  2026-10-29: "replace villages and villagers as a whole ... MCA Reborn ... skyrim, fallout ... while still having that
+  feel of a player"). Decided: villages replaced completely, real shops only, friends and companions (no romance), built
+  after nations. Phases: A towns where villages were (worldgen), B trades replacing villager trading, C town life, D you
+  and the town.
 - Next: step 6 part 2, wars between towns (declared when the standing sinks; armies, peace terms, tribute, broken promises
   remembered); then part 3, nations. Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
