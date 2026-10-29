@@ -3120,7 +3120,37 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     day, 0.76 at night, 30 s committed, tried again soon if interrupted); the crook was the stall keeper (the user:
     "the crook is the shopkeeper") and once the first leader; thrown out and turned Bandit at once, or just past the
     town's edge, it killed the town's people (160 blocks now).
-- Next: milestone 22 step 6, nations and diplomacy (docs/CIVILIZATION.md), or prison (kept for later, the user).
+- **Step 6, part 1: diplomacy (0.22.39; the user: "go ahead with nations").** Step 6 split in three: part 1 diplomacy,
+  part 2 wars between towns, part 3 nations. `Diplomacy` (addon):
+  - Two towns know of each other once one does: people who knew each other before (a town made ready: `TownHistory`
+    starts them at +10 a friendship, -15 a grudge), one of its people within 64 blocks of the other's middle, word of its
+    founding (the `town_founded` news) reaching one of its people. "X knows of Y now (...)".
+  - Their standing (-100 to 100; "close friends" 60+, "friendly" 25+, "neutral", "unfriendly" -25-, "hostile" -60-): each
+    day by their leaders' natures (+2 x warmth: sociability and forgiveness, -2 x heat: aggression; out of sight a
+    leader counts as middling), +0.5 for a trade deal and for peace, -0.5 for towns within 500 blocks not at peace; at
+    once: a killing of one's people by the other's -25 ("A killing stands between..."), an insult -12, an offer turned
+    down -4, taken +8, each trade there +3.
+  - Each morning a leader may send an envoy (sociable leaders more often; one out at a time; three days between two towns;
+    towns within 3000 blocks): an insult if they're on bad terms (-30 or worse) and it's aggressive (0.6), else an alliance
+    (65+, at peace already), peace (35+) or a trade deal (15+, both with stalls). The envoy (its most sociable, not the
+    leader, keeper or a crook) walks there (`Errand`, `ErrandGoal`: Drifter), to their leader (their leader's house if
+    they aren't about the middle), says its piece and hears the answer, then walks home; out of sight it takes as long as
+    the walk would (six ticks a block each way), walking it a day at most each way; after a trip out of the running world
+    it's given its errand again where it was. Their leader takes it by the standing and its nature (trade: greed; peace:
+    caution, not aggression; alliance: sociability).
+  - Pacts: a trade deal sends their traders to each other first (`TradeRuns.nearestMarket`); peace and an alliance hold
+    their groups' tension at 15 (no fighting on sight); an alliance brings peace with it (and is for part 2's wars).
+  - Talk: `ally_town` (word `ally`), `rival_town` (`rival`), `town_trade|peace|alliance|refused|insult|killing` (two days,
+    word `other`); topics ally_town_talk, rival_town_talk, town_*_talk; lines `envoy.trade|peace|alliance|insult`,
+    `envoy.yes|no|insulted`. Commands: `/drifterciv relations`; debug `/drifterciv relations set <town> <standing>`,
+    `/drifterciv relations envoy <town> trade|peace|alliance|insult`.
+  - Tested: headless, three towns over three days (a trade deal, then peace, between two; an insult leaving two hostile;
+    their traders going to their partners); in the client, an envoy walked from one town to the next, to its leader:
+    "hey. Envoyby wants to trade with Farby. deal?" / "ok, you've got a deal", and home. Found and fixed: the out-of-sight
+    timer answered before a slow walker got there; an envoy that went out of the running world lost its errand; an envoy
+    waited in an empty plaza (now to the leader's house).
+- Next: step 6 part 2, wars between towns (declared when the standing sinks; armies, peace terms, tribute, broken promises
+  remembered); then part 3, nations. Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
   respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
   dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)

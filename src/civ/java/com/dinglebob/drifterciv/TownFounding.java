@@ -139,6 +139,8 @@ public final class TownFounding {
 				Towns.all().stream().filter(town -> town.spawned).forEach(town -> tend(server, town));
 				// Trade runs between towns with stalls (step 4); leaders, elections, laws (step 5).
 				Towns.all().forEach(town -> TradeRuns.check(server, town));
+				// Towns that know of each other: envoys, pacts, standing (step 6, part 1).
+				Towns.all().forEach(town -> Diplomacy.check(server, town));
 				// Bonds made with people who weren't loaded then (a town made ready): set now they are.
 				Towns.all().forEach(town -> TownHistory.applyPending(server, town));
 				// A Bandit living in a town (one there from before, or one who turned) is its crook: no killing on sight there.

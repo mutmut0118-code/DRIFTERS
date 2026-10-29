@@ -170,6 +170,8 @@ final class TownHistory {
 				}
 			}
 
+			// (The two towns know of each other, on the footing their people's past puts them.)
+			Diplomacy.meet(server, town, other, 10.0 * friends - 15.0 * grudges, null);
 			if (friends > 0) {
 				Chronicle.add(server, "town", "The people of " + town.name + " and " + other.name + " go back a long way (" + friends
 					+ (friends == 1 ? " old friendship" : " old friendships") + ")");

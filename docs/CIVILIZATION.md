@@ -266,5 +266,10 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   townsperson's approval of the leader: a dropped tax, coups, abdications, revolts with a vote the next morning, a
   ruthless one's plot to kill the leader). Then (0.22.29-0.22.30) Bandits kept out of towns, and a Bandit living in one
   anyway is its crook: thefts and fights, judged by witnesses, thrown out the third time.
+- **Step 6, nations and diplomacy (started 0.22.39), in three parts:** part 1, diplomacy (done, 0.22.39): towns that
+  know of each other, their standing, envoys walking with offers (trade deals, peace, alliances) and insults, pacts with
+  effects, talk and the chronicle; part 2, wars between towns (declared when the standing sinks: armies on the march,
+  peace terms, tribute, broken promises remembered); part 3, nations (allied towns joining, a capital, a name and banner,
+  tribute, rebellions and independence).
 - **Was next:** towns founded by their people (step 3b): neighbours growing friendly, the founding, plots, each building
   its own house.

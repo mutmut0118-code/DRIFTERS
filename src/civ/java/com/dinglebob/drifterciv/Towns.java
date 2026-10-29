@@ -102,6 +102,8 @@ public final class Towns {
 			Town town = Town.load((CompoundTag)t);
 			towns.put(town.id, town);
 		}
+
+		Diplomacy.load(state(server).tag);
 	}
 
 	static void save(MinecraftServer server) {
@@ -110,6 +112,7 @@ public final class Towns {
 		ListTag list = new ListTag();
 		towns.values().forEach(town -> list.add(town.save()));
 		tag.put("Towns", list);
+		Diplomacy.save(tag);
 		State state = state(server);
 		state.tag = tag;
 		state.setDirty();

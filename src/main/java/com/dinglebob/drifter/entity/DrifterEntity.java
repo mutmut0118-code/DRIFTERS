@@ -661,6 +661,19 @@ public class DrifterEntity extends PathfinderMob {
 		this.tradeRun = run;
 	}
 
+	/** An errand to another town it's on (DrifterApi.setErrand: an envoy), or null. Not saved. */
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.api.Errand errand;
+
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.api.Errand getErrand() {
+		return this.errand;
+	}
+
+	public void setErrand(@org.jetbrains.annotations.Nullable com.dinglebob.drifter.api.Errand errand) {
+		this.errand = errand;
+	}
+
 	/** Its town's shared work (roads, lights, its house's ground: DrifterApi.setTownWork), or null. Not saved. */
 	@org.jetbrains.annotations.Nullable
 	private com.dinglebob.drifter.api.TownWork townWork;

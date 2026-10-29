@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1688 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1724 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (58 topics, 1489 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (66 topics, 1547 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1579,6 +1579,62 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 1. **a**: {a.crook}'s gone. we threw them out · no more {a.crook}! · {a.crook} won't be stealing from us anymore · finally got rid of {a.crook}
 2. **b**: good riddance · about time · they'll be back though. watch the woods · i'm locking my door anyway · W
+
+#### ally town talk
+
+*Needs:* a:ally_town, !strangers
+
+1. **a**: good thing we're allies with {a.ally} · {a.ally} has our back · heard {a.ally} is doing well · we should visit {a.ally} sometime
+2. **b**: yeah, good people over there · for now anyway · true · they owe us one
+
+#### rival town talk
+
+*Needs:* a:rival_town, !strangers
+
+1. **a**: can't stand {a.rival} · don't trust anyone from {a.rival} · {a.rival} is up to something · if you see someone from {a.rival}, keep walking
+2. **b**: same · they're not all bad · agreed · one day there'll be trouble with them
+
+#### town trade talk
+
+*Needs:* a:town_trade, !strangers
+
+1. **a**: we've got a trade deal with {a.other} now · trading with {a.other} from now on · {a.other} agreed to trade with us
+2. **b**: nice · more emeralds for us · about time · hope they've got iron
+
+#### town peace talk
+
+*Needs:* a:town_peace, !strangers
+
+1. **a**: peace with {a.other}. finally · no more trouble with {a.other} · we made peace with {a.other}
+2. **b**: good · we'll see how long it lasts · about time · W
+
+#### town alliance talk
+
+*Needs:* a:town_alliance, !strangers
+
+1. **a**: we're allies with {a.other} now! · {a.other} and us, allies · big news, we're allied with {a.other}
+2. **b**: W · let's go · nobody's messing with us now · nice
+
+#### town refused talk
+
+*Needs:* a:town_refused, !strangers
+
+1. **a**: {a.other} said no · so {a.other} turned us down · {a.other} didn't want the deal
+2. **b**: their loss · rude · whatever · figures
+
+#### town insult talk
+
+*Needs:* a:town_insult, !strangers
+
+1. **a**: did you hear what got said between us and {a.other}? · {a.other} and us, it's getting ugly · after that insult, me and {a.other} are done
+2. **b**: they started it · this won't end well · lol · bad blood now
+
+#### town killing talk
+
+*Needs:* a:town_killing, !strangers
+
+1. **a**: someone from {a.other} killed one of ours · {a.other} has blood on its hands · never forgive {a.other} for that
+2. **b**: they'll pay · watch your back near {b.other} · unbelievable · this means war
 
 ## 7. Drifters talking to you
 

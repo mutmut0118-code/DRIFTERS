@@ -801,6 +801,27 @@ public final class DrifterApi {
 		drifter.setTradeRun(run);
 	}
 
+	/** It goes on this errand to another town (an envoy; null: none). */
+	public static void setErrand(DrifterEntity drifter, @Nullable Errand errand) {
+		drifter.setErrand(errand);
+	}
+
+	/** The errand it's on, or null. */
+	@Nullable
+	public static Errand errand(DrifterEntity drifter) {
+		return drifter.getErrand();
+	}
+
+	/** Two groups' tension (0 to 100: 30 they fight on sight, 70 war and raids; DrifterWars). */
+	public static double tension(UUID a, UUID b) {
+		return com.dinglebob.drifter.world.DrifterWars.tension(a, b);
+	}
+
+	/** Two groups' tension, set (a peace pact holds it down; a war declared puts it up). */
+	public static void setTension(MinecraftServer server, UUID a, UUID b, double tension) {
+		com.dinglebob.drifter.world.DrifterWars.setTension(a, b, tension, server.overworld().getGameTime());
+	}
+
 	/** The trade run it's on, or null. */
 	@Nullable
 	public static TradeRun tradeRun(DrifterEntity drifter) {

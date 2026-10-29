@@ -227,6 +227,13 @@ final class Justice {
 				}
 
 				Chronicle.add(server, "law", name + " killed " + victim + " of " + town.name + ": the town's enemy now");
+				// (One of another town's people: between the towns too.)
+				Town theirs = Diplomacy.townOf(drifter.getUUID());
+				if (theirs != null && theirs != town) {
+					Diplomacy.incident(server, town, theirs, -25.0, "killing");
+					Chronicle.add(server, "diplomacy", "A killing stands between " + town.name + " and " + theirs.name + " (" + name + " of " + theirs.name
+						+ " killed " + victim + ")");
+				}
 			}
 		}
 
