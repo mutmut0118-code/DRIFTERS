@@ -16,7 +16,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -42,12 +44,69 @@ public final class HousePalette {
 	private static final List<String> PARTS = List.of("_log", "_wood", "_planks", "_stairs", "_slab", "_fence_gate", "_fence", "_door",
 		"_trapdoor", "_button", "_pressure_plate", "_wall_hanging_sign", "_hanging_sign", "_wall_sign", "_sign");
 
+	/**
+	 * A building stone (0.22.40-side.2, the user: "more variation to stone materials, instead of just using cobblestone"):
+	 * what a plan's cobblestone becomes ({@code rough}, and its stairs, slabs and walls), what its stone bricks become
+	 * ({@code fine}; {@code finePart} its stairs and slabs), the item it's dug as, the block it's dug from, the stones that
+	 * look well as its trim (the steps round the foundation, the sills; the user: "think about the palette": pairs chosen
+	 * by eye, not any two), and what a textured wall scatters through its fine blocks (only its own: cracked bricks,
+	 * tiles; the user didn't like one stone dotted through another).
+	 */
+	public record Stone(String name, String rough, String fine, String finePart, Item raw, Block natural, List<String> trims, List<String> fineMix) {
+	}
+
+	/**
+	 * Stones a house can be built of; cobblestone (the plan as drawn) first. No granite or diorite (the user: "take granite
+	 * out of the equation"; diorite's white speckle clashes the same way). The pairs: stone bricks over a polished andesite
+	 * or deepslate brick step; deepslate bricks over a stone brick one; tuff bricks over deepslate bricks; polished
+	 * andesite over deepslate or stone bricks.
+	 */
+	public static final List<Stone> STONES = List.of(
+		new Stone("cobblestone", "cobblestone", "stone_bricks", "stone_brick", Items.COBBLESTONE, Blocks.STONE, List.of("andesite", "deepslate"),
+			List.of("cracked_stone_bricks")),
+		new Stone("deepslate", "cobbled_deepslate", "deepslate_bricks", "deepslate_brick", Items.COBBLED_DEEPSLATE, Blocks.DEEPSLATE,
+			List.of("cobblestone"), List.of("cracked_deepslate_bricks", "deepslate_tiles")),
+		new Stone("andesite", "andesite", "polished_andesite", "polished_andesite", Items.ANDESITE, Blocks.ANDESITE, List.of("deepslate", "cobblestone"),
+			List.of()),
+		new Stone("tuff", "tuff", "tuff_bricks", "tuff_brick", Items.TUFF, Blocks.TUFF, List.of("deepslate"), List.of("polished_tuff")));
+	/** Saved with the woods (so a town build's palette reaches every builder as it is): the main stone, the trim's, the mix. */
+	public static final String STONE_KEY = "#stone";
+	public static final String TRIM_KEY = "#trim";
+	public static final String MIX_KEY = "#mix";
+	/** One block in this many of a textured brick wall is another of its own stone (a cracked brick, a tile). */
+	private static final int MIX_ONE_IN = 6;
+	/** How often a Drifter builds in a stone round it rather than cobblestone, gives the house a trim, mixes its walls. */
+	private static final float LOCAL_STONE_CHANCE = 0.75F;
+	private static final float TRIM_CHANCE = 0.7F;
+	private static final float MIX_CHANCE = 0.6F;
+	/** How far round it a Drifter counts the stone it knows of, and the most blocks it counts. */
+	private static final int STONE_RADIUS = 48;
+	private static final int STONE_COUNT_MAX = 4000;
+
 	private final Map<String, String> woods;
 	private final boolean deepslate;
+	/** The main stone and the trim's (null: as drawn, or the old cobblestone-to-deepslate swap); the mix's seed (null: none). */
+	@Nullable
+	private final Stone stone;
+	@Nullable
+	private final Stone trim;
+	@Nullable
+	private final Integer mix;
 
 	private HousePalette(Map<String, String> woods, boolean deepslate) {
 		this.woods = woods;
 		this.deepslate = deepslate;
+		this.stone = stoneNamed(woods.get(STONE_KEY));
+		Stone trim = stoneNamed(woods.get(TRIM_KEY));
+		this.trim = trim == null ? this.stone : trim;
+		Integer mix = null;
+		try {
+			mix = woods.containsKey(MIX_KEY) ? Integer.valueOf(woods.get(MIX_KEY)) : null;
+		} catch (NumberFormatException e) {
+			// (No mix.)
+		}
+
+		this.mix = this.stone == null ? null : mix;
 	}
 
 	/** A saved palette (the one it picked when it chose the plan). */
@@ -55,12 +114,37 @@ public final class HousePalette {
 		return new HousePalette(Map.copyOf(woods), deepslate);
 	}
 
+	/** This palette's woods with stones in place of the plan's cobblestone and stone bricks (for the parts exhibit and tests). */
+	public HousePalette withStone(String stone, String trim, @Nullable Integer mix) {
+		Map<String, String> map = new HashMap<>(this.woods);
+		map.put(STONE_KEY, stone);
+		map.put(TRIM_KEY, trim);
+		map.remove(MIX_KEY);
+		if (mix != null) {
+			map.put(MIX_KEY, Integer.toString(mix));
+		}
+
+		return new HousePalette(Map.copyOf(map), false);
+	}
+
+	/** The woods it swaps, and the stones under {@link #STONE_KEY} and the rest (saved as they are). */
 	public Map<String, String> woods() {
 		return this.woods;
 	}
 
 	public boolean deepslate() {
 		return this.deepslate;
+	}
+
+	@Nullable
+	public static Stone stoneNamed(@Nullable String name) {
+		for (Stone stone : STONES) {
+			if (stone.name().equals(name)) {
+				return stone;
+			}
+		}
+
+		return null;
 	}
 
 	/** As the plan is: nothing swapped. */
@@ -109,9 +193,136 @@ public final class HousePalette {
 			}
 		}
 
-		int cobble = count(drifter, net.minecraft.world.item.Items.COBBLESTONE);
-		int deep = count(drifter, net.minecraft.world.item.Items.COBBLED_DEEPSLATE);
-		return new HousePalette(map, deep > cobble);
+		chooseStones(drifter, plan, map);
+		return new HousePalette(map, false);
+	}
+
+	/**
+	 * The plan's stone in a stone it has or knows of round it (enough for the walls), the stairs and slabs (the step round
+	 * the foundation, the sills) in a second one that goes with it, and some brick walls textured. Each Drifter's taste for each plan
+	 * is its own and stays the same (the same draw every time it looks at that plan); only stone it could get counts.
+	 */
+	private static void chooseStones(DrifterEntity drifter, HousePlan plan, Map<String, String> map) {
+		double[] need = stoneNeeds(plan);
+		if (need[0] + need[1] <= 0.0) {
+			return;
+		}
+
+		Map<Stone, Integer> have = stonesAround(drifter);
+		RandomSource random = RandomSource.create(drifter.getUUID().getLeastSignificantBits() * 31L + plan.id.hashCode());
+		Stone cobblestone = STONES.get(0);
+		Stone main = cobblestone;
+		Stone local = null;
+		for (Stone stone : STONES) {
+			if (stone != cobblestone && have.getOrDefault(stone, 0) >= need[0] && (local == null || have.get(stone) > have.get(local))) {
+				local = stone;
+			}
+		}
+
+		// (Carrying more cobbled deepslate than cobblestone, as before 0.22.40-side.2: deepslate.)
+		if (local != null && (random.nextFloat() < LOCAL_STONE_CHANCE || local.name().equals("deepslate")
+			&& count(drifter, Items.COBBLED_DEEPSLATE) > count(drifter, Items.COBBLESTONE))) {
+			main = local;
+		}
+
+		// The trim: a stone that goes with it, the first of those it could get enough of (its own kind of house, the other
+		// first now and then).
+		Stone trim = main;
+		if (random.nextFloat() < TRIM_CHANCE) {
+			List<String> trims = new ArrayList<>(main.trims());
+			if (trims.size() > 1 && random.nextBoolean()) {
+				java.util.Collections.reverse(trims);
+			}
+
+			for (String name : trims) {
+				Stone stone = stoneNamed(name);
+				if (stone != null && have.getOrDefault(stone, 0) >= need[1]) {
+					trim = stone;
+					break;
+				}
+			}
+		}
+
+		boolean mixed = random.nextFloat() < MIX_CHANCE;
+		int seed = random.nextInt(1 << 20);
+		if (main == cobblestone && trim == cobblestone && !mixed) {
+			return;
+		}
+
+		map.put(STONE_KEY, main.name());
+		map.put(TRIM_KEY, trim.name());
+		if (mixed) {
+			map.put(MIX_KEY, Integer.toString(seed));
+		}
+	}
+
+	/**
+	 * The raw stone the plan's stone blocks come to: [0] its full blocks (the main stone), [1] its stairs, slabs and walls
+	 * (the trim's).
+	 */
+	static double[] stoneNeeds(HousePlan plan) {
+		double main = 0.0;
+		double trim = 0.0;
+		for (HousePlan.Cell cell : plan.cells) {
+			String path = BuiltInRegistries.BLOCK.getKey(cell.state().getBlock()).getPath();
+			if (path.equals("cobblestone")) {
+				main += 1.0;
+			} else if (path.equals("stone_bricks")) {
+				main += 1.0;
+			} else if (path.startsWith("cobblestone_") || path.startsWith("stone_brick_")) {
+				trim += path.endsWith("_stairs") ? 1.5 : path.endsWith("_slab") ? 0.5 : 1.0;
+			}
+		}
+
+		return new double[] {main, trim};
+	}
+
+	/** The last count (it looks at many plans at once: one look round for them all). */
+	private static java.util.UUID countedFor;
+	private static long countedAt;
+	private static Map<Stone, Integer> counted = Map.of();
+
+	/** Each stone it has (on it, in its chests) and knows of round it that it could dig (a stone block it's seen: one apiece). */
+	public static synchronized Map<Stone, Integer> stonesAround(DrifterEntity drifter) {
+		long now = drifter.level().getGameTime();
+		if (drifter.getUUID().equals(countedFor) && now - countedAt >= 0 && now - countedAt < 100) {
+			return counted;
+		}
+
+		Map<Stone, Integer> have = new HashMap<>();
+		for (Stone stone : STONES) {
+			int count = count(drifter, stone.raw());
+			Block fine = BuiltInRegistries.BLOCK.get(ResourceLocation.withDefaultNamespace(stone.fine()));
+			if (fine != Blocks.AIR && fine.asItem() != stone.raw()) {
+				count += count(drifter, fine.asItem());
+			}
+
+			have.put(stone, count);
+		}
+
+		var level = drifter.level();
+		for (var pos : KnownBlocks.find(drifter, STONE_RADIUS, state -> naturalStone(state) != null, STONE_COUNT_MAX)) {
+			Stone stone = naturalStone(level.getBlockState(pos));
+			if (stone != null && KnownBlocks.mayTake(level, pos)) {
+				have.merge(stone, 1, Integer::sum);
+			}
+		}
+
+		countedFor = drifter.getUUID();
+		countedAt = now;
+		counted = Map.copyOf(have);
+		return counted;
+	}
+
+	@Nullable
+	private static Stone naturalStone(BlockState state) {
+		for (Stone stone : STONES) {
+			if (state.is(stone.natural())) {
+				return stone;
+			}
+		}
+
+		return null;
 	}
 
 	private static int contrast(String a, String b) {
@@ -195,8 +406,13 @@ public final class HousePalette {
 		return drifter.getInventory().count(stack -> stack.is(item)) + (home == null ? 0 : home.stored().getOrDefault(item, 0));
 	}
 
-	/** The block this palette puts where the plan has {@code state}, with the same facing, half and the rest. */
+	/** The block this palette puts where the plan has {@code state}, with the same facing, half and the rest (unmixed). */
 	public BlockState apply(BlockState state) {
+		return this.apply(state, null);
+	}
+
+	/** The same, at {@code at} in the plan (where a mixed wall has its other blocks: the same ones every time). */
+	public BlockState apply(BlockState state, @Nullable net.minecraft.core.BlockPos at) {
 		ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
 		String path = id.getPath();
 		String swapped = path;
@@ -208,6 +424,8 @@ public final class HousePalette {
 		} else if (wood != null && this.woods.containsKey(wood) && !this.woods.get(wood).equals(wood)) {
 			String to = this.woods.get(wood);
 			swapped = path.startsWith("stripped_") ? "stripped_" + to + path.substring(("stripped_" + wood).length()) : to + path.substring(wood.length());
+		} else if (this.stone != null && (path.startsWith("cobblestone") || path.equals("stone_bricks") || path.startsWith("stone_brick_"))) {
+			swapped = this.stoneFor(path, at);
 		} else if (this.deepslate && path.startsWith("cobblestone")) {
 			swapped = "cobbled_deepslate" + path.substring("cobblestone".length());
 		}
@@ -229,6 +447,93 @@ public final class HousePalette {
 		return out;
 	}
 
+	/**
+	 * A plan's cobblestone or stone brick block in this palette's stones: full blocks in the main stone, stairs, slabs and
+	 * walls in the trim's (its polished or brick form where there is one; a trim of the house's own stone keeps the plan's
+	 * rough steps rough). Textured: one block in six of a brick wall a cracked brick or the like, of the same stone.
+	 */
+	private String stoneFor(String path, @Nullable net.minecraft.core.BlockPos at) {
+		if (path.equals("cobblestone")) {
+			return this.stone.rough();
+		}
+
+		if (path.equals("stone_bricks")) {
+			List<String> mix = this.stone.fineMix();
+			return !mix.isEmpty() && this.mixed(at, 1) ? mix.get(Math.floorMod(hash(at, this.mix + 2), mix.size())) : this.stone.fine();
+		}
+
+		boolean fine = path.startsWith("stone_brick_");
+		String rest = path.substring(fine ? "stone_brick".length() : "cobblestone".length());
+		// (A trim of another stone in its dressed form, polished or brick, even where the plan has cobblestone steps.)
+		boolean dressed = fine || this.trim != this.stone;
+		for (String candidate : dressed ? List.of(this.trim.finePart() + rest, this.trim.rough() + rest) : List.of(this.trim.rough() + rest)) {
+			if (BuiltInRegistries.BLOCK.containsKey(ResourceLocation.withDefaultNamespace(candidate))) {
+				return candidate;
+			}
+		}
+
+		return path;
+	}
+
+	private boolean mixed(@Nullable net.minecraft.core.BlockPos at, int salt) {
+		return at != null && this.mix != null && Math.floorMod(hash(at, this.mix * 7 + salt), MIX_ONE_IN) == 0;
+	}
+
+	private static int hash(@Nullable net.minecraft.core.BlockPos at, int seed) {
+		long h = at == null ? seed : (at.asLong() * 0x9E3779B97F4A7C15L) ^ (seed * 0xC2B2AE3D27D4EB4FL);
+		h ^= h >>> 31;
+		h *= 0xBF58476D1CE4E5B9L;
+		return (int)(h ^ (h >>> 29));
+	}
+
+	/**
+	 * The same shape of building stone in two stones (granite stairs and cobblestone stairs, a cracked brick and a stone
+	 * brick): what it built before it ran out of one stone still counts once the plan has another.
+	 */
+	public static boolean sameButStone(BlockState have, BlockState want) {
+		String a = stoneShape(BuiltInRegistries.BLOCK.getKey(have.getBlock()).getPath());
+		return a != null && a.equals(stoneShape(BuiltInRegistries.BLOCK.getKey(want.getBlock()).getPath()));
+	}
+
+	/** The stone a building stone's block or item is made of ("granite_stairs", "polished_granite": granite), or null. */
+	@Nullable
+	public static Stone stoneOf(String path) {
+		for (Stone stone : STONES) {
+			if (path.equals(stone.rough()) || path.equals(stone.fine()) || stone.fineMix().contains(path)) {
+				return stone;
+			}
+
+			for (String prefix : List.of(stone.rough(), stone.finePart())) {
+				if (path.startsWith(prefix + "_") && stoneShape(path) != null) {
+					return stone;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/** "full", "_stairs", "_slab" or "_wall" for a building stone's block, else null. */
+	@Nullable
+	private static String stoneShape(String path) {
+		for (Stone stone : STONES) {
+			if (path.equals(stone.rough()) || path.equals(stone.fine()) || stone.fineMix().contains(path)) {
+				return "full";
+			}
+
+			for (String prefix : List.of(stone.rough(), stone.finePart())) {
+				if (path.startsWith(prefix + "_")) {
+					String rest = path.substring(prefix.length());
+					if (rest.equals("_stairs") || rest.equals("_slab") || rest.equals("_wall")) {
+						return rest;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
 	private static <T extends Comparable<T>> BlockState copy(BlockState from, BlockState to, Property<T> property) {
 		return to.hasProperty(property) ? to.setValue(property, from.getValue(property)) : to;
 	}
@@ -237,7 +542,7 @@ public final class HousePalette {
 	public List<HousePlan.Cell> apply(HousePlan plan) {
 		List<HousePlan.Cell> out = new ArrayList<>(plan.cells.size());
 		for (HousePlan.Cell cell : plan.cells) {
-			out.add(new HousePlan.Cell(cell.pos(), this.apply(cell.state())));
+			out.add(new HousePlan.Cell(cell.pos(), this.apply(cell.state(), cell.pos())));
 		}
 
 		return out;
@@ -249,8 +554,14 @@ public final class HousePalette {
 		}
 
 		List<String> parts = new ArrayList<>();
-		this.woods.forEach((from, to) -> parts.add(from.equals(to) ? from + " stays" : from + " → " + to));
-		if (this.deepslate) {
+		this.woods.forEach((from, to) -> {
+			if (!from.startsWith("#")) {
+				parts.add(from.equals(to) ? from + " stays" : from + " → " + to);
+			}
+		});
+		if (this.stone != null) {
+			parts.add("stone: " + this.stone.name() + (this.trim != this.stone ? ", trim " + this.trim.name() : "") + (this.mix != null && !this.stone.fineMix().isEmpty() ? ", textured" : ""));
+		} else if (this.deepslate) {
 			parts.add("cobblestone → cobbled deepslate");
 		}
 

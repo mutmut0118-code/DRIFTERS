@@ -1380,6 +1380,17 @@ public class BuildPlanActivity extends Activity {
 			}
 		}
 
+		// Out of a stone (the granite round home all dug, say): no more mixing if it was a block for that, else the trim in
+		// the walls' stone, else the walls in cobblestone. What it built already stays (Placement counts the same shape in
+		// any stone).
+		String stoneChange = this.stoneMakeDo(this.project && home.project != null ? home.project.woods : home.planWoods,
+			net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath());
+		if (stoneChange != null) {
+			this.placed = null;
+			this.think("can't get any more " + name + ": " + stoneChange);
+			return Status.RUNNING;
+		}
+
 		// Windows it can leave open, lanterns go without (a house stands without them; the 0.22.7 houses hang them from
 		// the beams, and a lantern takes iron); the walls and roof it can't do without: another go later.
 		if (lantern(item)) {
@@ -1395,6 +1406,44 @@ public class BuildPlanActivity extends Activity {
 		home.houseGivenUp.add(item);
 		this.think("can't get any " + name + ": leaving its house's windows open for now");
 		return Status.RUNNING;
+	}
+
+	/** Its house's stones changed to do without the stone {@code path} is made of; what it does instead, or null if none. */
+	@Nullable
+	private String stoneMakeDo(Map<String, String> woods, String path) {
+		HousePalette.Stone main = HousePalette.stoneNamed(woods.get(HousePalette.STONE_KEY));
+		if (main == null) {
+			return null;
+		}
+
+		HousePalette.Stone trim = java.util.Objects.requireNonNullElse(HousePalette.stoneNamed(woods.get(HousePalette.TRIM_KEY)), main);
+		HousePalette.Stone cobblestone = HousePalette.STONES.get(0);
+		for (HousePalette.Stone stone : HousePalette.STONES) {
+			if (stone.fineMix().contains(path) && woods.remove(HousePalette.MIX_KEY) != null) {
+				return "building the rest of its walls without them";
+			}
+		}
+
+		HousePalette.Stone of = HousePalette.stoneOf(path);
+		if (of == null) {
+			return null;
+		}
+
+		if (of == trim && trim != main) {
+			woods.put(HousePalette.TRIM_KEY, main.name());
+			return "the rest of its house's steps and sills in " + main.name();
+		}
+
+		if (of == main && main != cobblestone) {
+			woods.put(HousePalette.STONE_KEY, cobblestone.name());
+			if (trim == main) {
+				woods.put(HousePalette.TRIM_KEY, cobblestone.name());
+			}
+
+			return "building the rest of its house's stone in cobblestone";
+		}
+
+		return null;
 	}
 
 	private static boolean lantern(Item item) {

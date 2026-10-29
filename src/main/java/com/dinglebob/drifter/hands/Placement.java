@@ -90,8 +90,9 @@ public final class Placement {
 
 	/** It already stands there as the plan has it (as far as its look goes). */
 	public static boolean matches(BlockState have, BlockState want) {
-		// (The same block in another wood counts: oak stairs where the plan now has spruce, after it ran out of oak.)
-		if (have.getBlock() != want.getBlock() && !sameButWood(have, want)) {
+		// (The same block in another wood or stone counts: oak stairs where the plan now has spruce, after it ran out of oak.)
+		if (have.getBlock() != want.getBlock() && !sameButWood(have, want)
+			&& !com.dinglebob.drifter.building.plan.HousePalette.sameButStone(have, want)) {
 			return false;
 		}
 

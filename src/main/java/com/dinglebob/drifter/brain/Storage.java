@@ -2,6 +2,7 @@ package com.dinglebob.drifter.brain;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -63,7 +64,7 @@ public final class Storage {
 
 			String kind;
 			int limit;
-			if (isWorthlessStone(stack) || stack.is(Items.POISONOUS_POTATO)) {
+			if (isWorthlessStone(stack) && !houseStone(drifter, stack) || stack.is(Items.POISONOUS_POTATO)) {
 				kind = "worthless";
 				limit = 0;
 			} else if (stack.is(Items.GRAVEL) || stack.is(Items.SAND) || stack.is(Items.RED_SAND)) {
@@ -99,7 +100,29 @@ public final class Storage {
 	/** Would it rather not pick this up when it's short of room? */
 	public static boolean isJunk(DrifterEntity drifter, ItemStack stack) {
 		return drifter.getPersonality().archetype() != com.dinglebob.drifter.personality.Archetype.HOARDER
-			&& (isWorthlessStone(stack) || stack.is(Items.POISONOUS_POTATO) || stack.is(Items.GRAVEL) || stack.is(Items.ROTTEN_FLESH));
+			&& (isWorthlessStone(stack) && !houseStone(drifter, stack) || stack.is(Items.POISONOUS_POTATO) || stack.is(Items.GRAVEL) || stack.is(Items.ROTTEN_FLESH));
+	}
+
+	/**
+	 * A stone its house is being built of (andesite walls, tuff: HousePalette), which isn't junk to it then (found in
+	 * testing: a builder threw out the andesite for its walls, then went looking for more).
+	 */
+	private static boolean houseStone(DrifterEntity drifter, ItemStack stack) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home == null) {
+			return false;
+		}
+
+		for (Map<String, String> woods : home.project == null ? List.of(home.planWoods) : List.of(home.planWoods, home.project.woods)) {
+			for (String key : new String[] {com.dinglebob.drifter.building.plan.HousePalette.STONE_KEY, com.dinglebob.drifter.building.plan.HousePalette.TRIM_KEY}) {
+				var stone = com.dinglebob.drifter.building.plan.HousePalette.stoneNamed(woods.get(key));
+				if (stone != null && stack.is(stone.raw())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	private static boolean isWorthlessStone(ItemStack stack) {

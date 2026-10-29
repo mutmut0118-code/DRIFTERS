@@ -43,7 +43,7 @@ public final class HousePlacer {
 		for (HousePlan.Cell cell : plan.cells) {
 			BlockPos t = StructureTemplate.transform(cell.pos(), net.minecraft.world.level.block.Mirror.NONE, rotation, BlockPos.ZERO);
 			BlockPos world = origin.offset(t.getX() - minX, t.getY(), t.getZ() - minZ);
-			BlockState state = palette.apply(cell.state().rotate(rotation));
+			BlockState state = palette.apply(cell.state().rotate(rotation), cell.pos());
 			if (PlacedPlan.hangs(state)) {
 				hanging.add(world);
 				hangingStates.add(state);

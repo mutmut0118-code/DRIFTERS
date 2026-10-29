@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.dinglebob.drifter.building.plan.HousePalette;
 import com.dinglebob.drifter.building.plan.HousePlan;
 import com.dinglebob.drifter.building.plan.HousePlans;
 import com.google.gson.GsonBuilder;
@@ -161,6 +162,8 @@ public final class PartsExhibit {
 
 	/** Lays it all out from {@code at} (the first row's north-west corner) eastward, rows going south. What it made, in words. */
 	public static String build(ServerLevel level, BlockPos at) {
+		Path file = level.getServer().getWorldPath(LevelResource.ROOT).resolve("drifter_house_parts.json");
+		clearLast(level, file);
 		JsonArray map = new JsonArray();
 		int made = 0;
 		// 1. The parts.
@@ -188,7 +191,29 @@ public final class PartsExhibit {
 			}
 		}
 
-		// 3. The hand-made plans.
+		// 3. Stones (0.22.40-side.2): a stone house and a cobblestone cottage in each pairing of stones a Drifter might build
+		// it in (the main stone, the trim's: steps and sills; brick walls textured or not).
+		String[][] stones = {{"cobblestone", "cobblestone", ""}, {"cobblestone", "cobblestone", "textured"}, {"cobblestone", "andesite", ""},
+			{"cobblestone", "deepslate", "textured"}, {"deepslate", "deepslate", "textured"}, {"deepslate", "cobblestone", "textured"},
+			{"tuff", "tuff", "textured"}, {"tuff", "deepslate", ""}, {"andesite", "deepslate", ""}, {"andesite", "cobblestone", ""}};
+		for (String styleId : new String[] {"stone_house", "cobble_cottage"}) {
+			HouseStyle style = GeneratedPlans.styles().get(styleId);
+			HousePlan plan = style == null ? null : draw("style:" + styleId, style, null);
+			if (plan == null) {
+				continue;
+			}
+
+			x = 0;
+			z += ROW;
+			for (String[] stone : stones) {
+				HousePalette palette = HousePalette.asDrawn().withStone(stone[0], stone[1], stone[2].isEmpty() ? null : 7);
+				String label = stone[0] + (stone[1].equals(stone[0]) ? "" : "/" + stone[1]) + (stone[2].isEmpty() ? "" : " tex");
+				x += place(level, at.offset(x, 0, z), plan, "Stone", label, map, "stone", null, number++, palette);
+				made++;
+			}
+		}
+
+		// 4. The hand-made plans.
 		x = 0;
 		z += ROW;
 		for (HousePlan plan : HousePlans.all(level.getServer()).values()) {
@@ -201,7 +226,6 @@ public final class PartsExhibit {
 			made++;
 		}
 
-		Path file = level.getServer().getWorldPath(LevelResource.ROOT).resolve("drifter_house_parts.json");
 		JsonObject root = new JsonObject();
 		root.addProperty("origin", at.getX() + " " + at.getY() + " " + at.getZ());
 		root.add("exhibits", map);
@@ -211,14 +235,46 @@ public final class PartsExhibit {
 			return "built " + made + ", but couldn't write " + file + ": " + e.getMessage();
 		}
 
-		return "built " + made + " (parts, styles, plans); the list is in " + file.getFileName();
+		return "built " + made + " (parts, styles, stones, plans); the list is in " + file.getFileName();
+	}
+
+	/**
+	 * Empties what the last exhibit built (each house's box and its sign, from the list it wrote), so a new one doesn't
+	 * go up through the old (found 2026-10-29: rows moved when the stones rows came in, and the houses ran together).
+	 */
+	private static void clearLast(ServerLevel level, Path file) {
+		if (!Files.exists(file)) {
+			return;
+		}
+
+		try {
+			JsonObject root = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+			for (var element : root.getAsJsonArray("exhibits")) {
+				JsonObject entry = element.getAsJsonObject();
+				int[] from = java.util.Arrays.stream(entry.get("from").getAsString().split(" ")).mapToInt(Integer::parseInt).toArray();
+				int[] to = java.util.Arrays.stream(entry.get("to").getAsString().split(" ")).mapToInt(Integer::parseInt).toArray();
+				for (BlockPos pos : BlockPos.betweenClosed(from[0], from[1], from[2], to[0], to[1], to[2])) {
+					level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+
+				level.setBlock(new BlockPos(from[0] + (to[0] - from[0] + 1) / 2, from[1], from[2] - 3), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+			}
+		} catch (IOException | RuntimeException e) {
+			// (An old list it can't read: it builds over whatever is there.)
+		}
 	}
 
 	/** One house as drawn, a sign in front (north of it); the room it took along the row. */
 	private static int place(ServerLevel level, BlockPos corner, HousePlan plan, String line1, String line2, JsonArray map, String kind,
 		@Nullable JsonObject style, int number) {
+		return place(level, corner, plan, line1, line2, map, kind, style, number, HousePalette.asDrawn());
+	}
+
+	/** The same in a palette's stones and woods. */
+	private static int place(ServerLevel level, BlockPos corner, HousePlan plan, String line1, String line2, JsonArray map, String kind,
+		@Nullable JsonObject style, int number, HousePalette palette) {
 		for (HousePlan.Cell cell : plan.cells) {
-			level.setBlock(corner.offset(cell.pos()), cell.state(), Block.UPDATE_CLIENTS);
+			level.setBlock(corner.offset(cell.pos()), palette.apply(cell.state(), cell.pos()), Block.UPDATE_CLIENTS);
 		}
 
 		var box = new net.minecraft.world.level.levelgen.structure.BoundingBox(corner.getX(), corner.getY(), corner.getZ(),

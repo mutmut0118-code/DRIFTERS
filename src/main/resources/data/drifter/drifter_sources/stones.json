@@ -1,0 +1,7 @@
+{
+	"_comment": "Building stones that drop themselves (0.22.40-side.2: a house's stone can be the stone round its builder's home; HousePalette). Dug with any pickaxe.",
+	"sources": [
+		{ "item": "minecraft:andesite", "block": ["minecraft:andesite"], "drops": "self", "tool": "minecraft:wooden_pickaxe" },
+		{ "item": "minecraft:tuff", "block": ["minecraft:tuff"], "drops": "self", "tool": "minecraft:wooden_pickaxe" }
+	]
+}

@@ -21,6 +21,7 @@ import com.dinglebob.drifter.entity.DrifterInventory;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
@@ -113,7 +114,8 @@ public final class CatchUpHouse {
 		Raw need = raw(placed);
 		List<Container> chests = chests(level, home);
 		Predicate<ItemStack> logs = stack -> stack.is(ItemTags.LOGS);
-		Predicate<ItemStack> cobble = stack -> stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE);
+		// (Stone of any building kind it carries: dug offscreen, the house's own stone or another.)
+		Predicate<ItemStack> cobble = stack -> HousePalette.STONES.stream().anyMatch(stone -> stack.is(stone.raw()));
 		Predicate<ItemStack> sand = stack -> stack.is(Items.SAND) || stack.is(Items.RED_SAND) || stack.is(Items.GLASS);
 		if (count(drifter, chests, logs) < Math.ceil(need.logs()) || count(drifter, chests, cobble) < Math.ceil(need.cobble())
 			|| count(drifter, chests, sand) < Math.ceil(need.sand())) {
@@ -258,14 +260,10 @@ public final class CatchUpHouse {
 				logs += 0.75 * n;
 			} else if (stack.is(Items.LADDER)) {
 				logs += 0.15 * n;
-			} else if (stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE) || stack.is(ItemTags.STONE_BRICKS)) {
-				cobble += n;
-			} else if (stack.is(Items.COBBLESTONE_STAIRS) || stack.is(Items.COBBLED_DEEPSLATE_STAIRS)) {
-				cobble += 1.5 * n;
-			} else if (stack.is(Items.COBBLESTONE_SLAB) || stack.is(Items.COBBLED_DEEPSLATE_SLAB)) {
-				cobble += 0.5 * n;
-			} else if (stack.is(Items.COBBLESTONE_WALL) || stack.is(Items.COBBLED_DEEPSLATE_WALL)) {
-				cobble += n;
+			} else if (stack.is(ItemTags.STONE_BRICKS) || HousePalette.stoneOf(BuiltInRegistries.ITEM.getKey(item).getPath()) != null) {
+				// (Any building stone: cobblestone, granite, deepslate bricks... a stair 1.5, a slab half.)
+				String path = BuiltInRegistries.ITEM.getKey(item).getPath();
+				cobble += (path.endsWith("_stairs") ? 1.5 : path.endsWith("_slab") ? 0.5 : 1.0) * n;
 			} else if (stack.is(Items.GLASS)) {
 				sand += n;
 			} else if (stack.is(Items.GLASS_PANE)) {
