@@ -3420,3 +3420,16 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   - Tested on Tectonic: four towns, 53 of 53 places walked to (the one miss before, a field, was reachable from its other
     sides); half a day in a hill town by the sea in the client: no pillaring, one failed bridge out at a mine, no plugs in
     the town (189 cave plugs, all 75 to 100 blocks out, in its people's mine stairs past the edge, and one 30 blocks under).
+- **0.23.2: A3 (towns in their biome's style) and A4's first sizes.**
+  - A town's style by the biome at its middle (`TownBuilder.Style`): plains (oak, birch, some spruce; cobblestone; a
+    stone-brick plaza), desert (birch and acacia; sandstone for the houses' cobblestone, sandstone store walls, a smooth and
+    cut sandstone plaza, smooth sandstone roads and paths, over sand too), savanna (acacia, some oak and dark oak), taiga
+    (spruce, some dark oak and oak; mossy cobblestone in the houses and the plaza), snowy (spruce, birch, dark oak; a stone
+    brick plaza). Its main wood for the store, stall, well, pen, fences and lamp posts. No more cherry and mangrove houses
+    in a savanna.
+  - The houses' stone: a palette's new "@stone" (kept with its woods, so a home's saved palette has it and its people
+    rebuild in the same stone; `DrifterApi.placeHouse(..., wood, stone, front)`, `PlacedHouse.stone`).
+  - Sizes (A4): a quarter of spots a hamlet of 2 to 5 households, the rest small towns of 8 to 16 (cities and ruins next).
+    Hamlets have the same plaza, store and stall for now, only fewer houses.
+  - Tested on Tectonic: seven spots, six made (taiga, plains, desert; 2 to 16 households), 79 of 79 places walked to;
+    screenshots of a taiga town among spruce by a lake and a desert hamlet in the dunes.

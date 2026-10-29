@@ -89,9 +89,15 @@ final class TownSites {
 	private static final int LOAD_RADIUS = TownBuilder.MOST_REACH / 16 + 2;
 	/** Work done on a town each tick at most (it goes on next tick). */
 	private static final long BUDGET_NANOS = 10_000_000L;
-	/** Small towns for now (A4's sizes come next): this many households. */
+	/**
+	 * Sizes (A4, the user: "small town variations ... like 8-16 household towns"): a small town of 8 to 16 households, or now
+	 * and then (a quarter of spots) a hamlet of 2 to 5. Cities (40 to 80) and ruins come later.
+	 */
 	static final int FEWEST = 8;
-	static final int MOST = 12;
+	static final int MOST = 16;
+	static final double HAMLETS = 0.25;
+	static final int HAMLET_FEWEST = 2;
+	static final int HAMLET_MOST = 5;
 
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_civ_town", Comparator.comparingLong(ChunkPos::toLong));
 	private static final ConcurrentLinkedQueue<Site> found = new ConcurrentLinkedQueue<>();
@@ -329,7 +335,8 @@ final class TownSites {
 				return Optional.empty();
 			}
 
-			int households = FEWEST + context.random().nextInt(MOST - FEWEST + 1);
+			int households = context.random().nextDouble() < HAMLETS ? HAMLET_FEWEST + context.random().nextInt(HAMLET_MOST - HAMLET_FEWEST + 1)
+				: FEWEST + context.random().nextInt(MOST - FEWEST + 1);
 			return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households))));
 		}
 	}

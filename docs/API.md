@@ -80,6 +80,8 @@ whom to meet and where they live, the message; `arrived`, `back`, `told`, `gaveU
 `DrifterApi.setTownsForVillages(true)`: an addon makes its own towns where villages would be; with the setting on
 (`villagesReplaced()`), no village (#minecraft:village) generates or can be located, and no wandering trader comes;
 `noVillagers()`: zombie villagers kept out too (0.23.0).
+`DrifterApi.placeHouse(level, plan, origin, rotation, wood, stone, front)`: a house with its cobblestone of another stone
+("sandstone", "mossy_cobblestone"); `PlacedHouse.stone()`; kept with its home's palette (0.23.2).
 `DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of

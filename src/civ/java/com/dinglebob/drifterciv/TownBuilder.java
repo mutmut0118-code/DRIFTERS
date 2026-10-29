@@ -97,6 +97,53 @@ public final class TownBuilder {
 	public record Result(@Nullable Town town, String message) {
 	}
 
+	/**
+	 * A town's look, by its biome (milestone 23, docs/LIVED_WORLD.md A3: "a plains town of timber and oak, a desert town of
+	 * sandstone, a savanna town of acacia, a taiga town of spruce logs, a snowy town of spruce and stone"): its woods (the
+	 * first its main one: the store, stall, well, fences, lamps; the rest as often as they're listed, for its houses), the
+	 * stone its houses have for cobblestone (null: cobblestone), the store's walls, the plaza's paving, and its paths and what
+	 * goes under them.
+	 */
+	record Style(String name, List<String> woods, @Nullable String stone, Block wall, Block paving, Block pavingToo, Block path, Block fill) {
+		static final Style PLAINS = new Style("plains", List.of("oak", "oak", "oak", "birch", "birch", "spruce"), null, Blocks.COBBLESTONE,
+			Blocks.STONE_BRICKS, Blocks.COBBLESTONE, Blocks.DIRT_PATH, Blocks.DIRT);
+		static final Style DESERT = new Style("desert", List.of("birch", "birch", "acacia"), "sandstone", Blocks.SANDSTONE, Blocks.SMOOTH_SANDSTONE,
+			Blocks.CUT_SANDSTONE, Blocks.SMOOTH_SANDSTONE, Blocks.SANDSTONE);
+		static final Style SAVANNA = new Style("savanna", List.of("acacia", "acacia", "acacia", "acacia", "oak", "dark_oak"), null, Blocks.COBBLESTONE,
+			Blocks.STONE_BRICKS, Blocks.COBBLESTONE, Blocks.DIRT_PATH, Blocks.DIRT);
+		static final Style TAIGA = new Style("taiga", List.of("spruce", "spruce", "spruce", "spruce", "dark_oak", "oak"), "mossy_cobblestone",
+			Blocks.COBBLESTONE, Blocks.COBBLESTONE, Blocks.MOSSY_COBBLESTONE, Blocks.DIRT_PATH, Blocks.DIRT);
+		static final Style SNOWY = new Style("snowy", List.of("spruce", "spruce", "spruce", "spruce", "birch", "dark_oak"), null, Blocks.COBBLESTONE,
+			Blocks.STONE_BRICKS, Blocks.COBBLESTONE, Blocks.DIRT_PATH, Blocks.DIRT);
+
+		String main() {
+			return this.woods.get(0);
+		}
+
+		String pick(RandomSource random) {
+			return this.woods.get(random.nextInt(this.woods.size()));
+		}
+
+		/** The style for the biome at this spot. */
+		static Style at(ServerLevel level, BlockPos pos) {
+			var biome = level.getBiome(pos);
+			return biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_DESERT) || biome.is(net.minecraft.tags.BiomeTags.IS_BADLANDS) ? DESERT
+				: biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_SAVANNA) || biome.is(net.minecraft.tags.BiomeTags.IS_SAVANNA) ? SAVANNA
+				: biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_SNOWY) ? SNOWY
+				: biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_TAIGA) || biome.is(net.minecraft.tags.BiomeTags.IS_TAIGA) ? TAIGA : PLAINS;
+		}
+	}
+
+	/** The style of the town being made (set by its job each step; plains for anything else). */
+	private static Style style = Style.PLAINS;
+
+	/** A block of the town's main wood: "planks", "log", "fence", "door"... (oak if there's no such block). */
+	private static Block wood(String kind) {
+		Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.withDefaultNamespace(style.main() + "_" + kind));
+		return block == Blocks.AIR ? net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.withDefaultNamespace("oak_" + kind))
+			: block;
+	}
+
 
 	/** A rectangle of the town's ground (min and max x and z, inclusive), to keep things apart. */
 	private record Rect(int x0, int z0, int x1, int z1) {
@@ -228,6 +275,7 @@ public final class TownBuilder {
 		private final List<DrifterEntity> people = new ArrayList<>();
 		@Nullable
 		private Town town;
+		private Style look = Style.PLAINS;
 		private int lamps;
 		private int torches;
 
@@ -252,6 +300,7 @@ public final class TownBuilder {
 			}
 
 			long start = System.nanoTime();
+			style = this.look;
 			// (Its own entries only: its people's comings and goings aren't news while it's being made.)
 			Chronicle.quiet = true;
 			try {
@@ -330,6 +379,9 @@ public final class TownBuilder {
 			branches(this.level, this.roads, this.taken, this.random, 2 + this.households / 4, cx, cz);
 			this.roads.forEach(road -> this.roadRects.add(road.rect()));
 			this.y0 = median(this.level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
+			this.look = Style.at(this.level, new BlockPos(cx, this.y0, cz));
+			style = this.look;
+			DrifterCivilizations.LOGGER.info("[town] {}: a {} town", this.name, this.look.name());
 			this.then("plaza", this::plaza);
 			this.then("store", this::store);
 			for (Rect rect : this.fieldRects) {
@@ -487,7 +539,7 @@ public final class TownBuilder {
 				keep.addAll(this.roadRects);
 				foundation(this.level, site, base, plan.sizeY() + 2, keep, this.random, BLEND, true);
 				BlockPos origin = new BlockPos(site.x0(), plan.groundLayer() ? base : base + 1, site.z0());
-				house = DrifterApi.placeHouse(this.level, plan.id(), origin, rotation, WOODS[this.random.nextInt(WOODS.length)], front);
+				house = DrifterApi.placeHouse(this.level, plan.id(), origin, rotation, this.look.pick(this.random), this.look.stone(), front);
 				if (house != null) {
 					changed(house.box());
 					this.planIndex = (this.planIndex + tries + 1) % this.plans.size();
@@ -546,7 +598,7 @@ public final class TownBuilder {
 			int y0 = this.y0;
 			for (int x = cx - PLAZA; x <= cx + PLAZA; x++) {
 				for (int z = cz - PLAZA; z <= cz + PLAZA; z++) {
-					set(this.level, new BlockPos(x, y0 - 1, z), (this.random.nextFloat() < 0.3F ? Blocks.COBBLESTONE : Blocks.STONE_BRICKS).defaultBlockState());
+					set(this.level, new BlockPos(x, y0 - 1, z), (this.random.nextFloat() < 0.3F ? this.look.pavingToo() : this.look.paving()).defaultBlockState());
 				}
 			}
 
@@ -558,21 +610,22 @@ public final class TownBuilder {
 						set(this.level, pos.below(), Blocks.WATER.defaultBlockState());
 						set(this.level, pos.below(2), Blocks.WATER.defaultBlockState());
 					} else {
-						set(this.level, pos.below(), Blocks.COBBLESTONE.defaultBlockState());
-						place(this.level, pos, (Math.abs(dx) == 1 && Math.abs(dz) == 1 ? Blocks.OAK_FENCE : Blocks.COBBLESTONE_WALL).defaultBlockState());
+						set(this.level, pos.below(), this.look.wall().defaultBlockState());
+						place(this.level, pos, (Math.abs(dx) == 1 && Math.abs(dz) == 1 ? wood("fence") : this.look.wall() == Blocks.SANDSTONE ? Blocks.SANDSTONE_WALL
+							: Blocks.COBBLESTONE_WALL).defaultBlockState());
 					}
 				}
 			}
 
 			for (int dx = -1; dx <= 1; dx += 2) {
 				for (int dz = -1; dz <= 1; dz += 2) {
-					place(this.level, this.well.offset(dx, 1, dz), Blocks.OAK_FENCE.defaultBlockState());
+					place(this.level, this.well.offset(dx, 1, dz), wood("fence").defaultBlockState());
 				}
 			}
 
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dz = -1; dz <= 1; dz++) {
-					set(this.level, this.well.offset(dx, 2, dz), Blocks.OAK_SLAB.defaultBlockState());
+					set(this.level, this.well.offset(dx, 2, dz), wood("slab").defaultBlockState());
 				}
 			}
 
@@ -603,7 +656,7 @@ public final class TownBuilder {
 		/** A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4); paths
 		 * from each door to its road. */
 		private void stallAndPaths() {
-			DrifterApi.placeHouse(this.level, DrifterApi.stallPlan(), this.stallAt(), Rotation.NONE, "oak", Direction.SOUTH);
+			DrifterApi.placeHouse(this.level, DrifterApi.stallPlan(), this.stallAt(), Rotation.NONE, this.look.main(), this.look.stone(), Direction.SOUTH);
 			GROUND.clear();
 			for (int i = 0; i < this.houses.size(); i++) {
 				path(this.level, this.houses.get(i), this.plots.get(i).front, this.roadRects);
@@ -1059,8 +1112,8 @@ public final class TownBuilder {
 			for (int y = tops[i]; y <= up; y++) {
 				BlockPos pos = column.atY(y);
 				boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ() && y == tops[i];
-				place(level, pos, isGate ? Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.EAST)
-					: Blocks.OAK_FENCE.defaultBlockState());
+				place(level, pos, isGate ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, Direction.EAST)
+					: wood("fence").defaultBlockState());
 			}
 		}
 	}
@@ -1143,14 +1196,14 @@ public final class TownBuilder {
 
 			// Built up (dirt under the path), or cut down (the bank dug away), then the path, and room over it.
 			for (int y = g + 1; y < top[i]; y++) {
-				set(level, new BlockPos(x, y, z), Blocks.DIRT.defaultBlockState());
+				set(level, new BlockPos(x, y, z), style.fill().defaultBlockState());
 			}
 
 			for (int y = top[i] + 1; y <= g; y++) {
 				set(level, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
 			}
 
-			set(level, new BlockPos(x, top[i], z), Blocks.DIRT_PATH.defaultBlockState());
+			set(level, new BlockPos(x, top[i], z), style.path().defaultBlockState());
 			for (int y = top[i] + 1; y <= top[i] + 3; y++) {
 				BlockPos above = new BlockPos(x, y, z);
 				BlockState state = level.getBlockState(above);
@@ -1182,20 +1235,20 @@ public final class TownBuilder {
 		int y0 = o.getY();
 		for (int dx = 0; dx <= 8; dx++) {
 			for (int dz = 0; dz <= 8; dz++) {
-				set(level, o.offset(dx, -1, dz), Blocks.COBBLESTONE.defaultBlockState());
-				set(level, o.offset(dx, 4, dz), Blocks.OAK_PLANKS.defaultBlockState());
+				set(level, o.offset(dx, -1, dz), style.wall().defaultBlockState());
+				set(level, o.offset(dx, 4, dz), wood("planks").defaultBlockState());
 				boolean wall = dx == 0 || dx == 8 || dz == 0 || dz == 8;
 				for (int dy = 0; dy < 4; dy++) {
 					boolean corner = (dx == 0 || dx == 8) && (dz == 0 || dz == 8);
 					set(level, o.offset(dx, dy, dz), !wall ? Blocks.AIR.defaultBlockState()
-						: (corner ? Blocks.OAK_LOG : Blocks.COBBLESTONE).defaultBlockState());
+						: (corner ? wood("log") : style.wall()).defaultBlockState());
 				}
 			}
 		}
 
 		BlockPos door = o.offset(0, 0, 4);
-		set(level, door, Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST).setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER));
-		set(level, door.above(), Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST).setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
+		set(level, door, wood("door").defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST).setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER));
+		set(level, door.above(), wood("door").defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST).setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
 		for (int dz = 3; dz <= 5; dz++) {
 			place(level, o.offset(8, 1, dz), Blocks.GLASS_PANE.defaultBlockState());
 		}
@@ -1204,8 +1257,9 @@ public final class TownBuilder {
 		place(level, o.offset(7, 2, 6), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, Direction.WEST));
 		for (int x = door.getX() - 1; x >= cx + 2; x--) {
 			BlockPos top = new BlockPos(x, ground(level, x, door.getZ()), door.getZ());
-			if (level.getBlockState(top).is(Blocks.GRASS_BLOCK) || level.getBlockState(top).is(Blocks.DIRT)) {
-				set(level, top, Blocks.DIRT_PATH.defaultBlockState());
+			if (level.getBlockState(top).is(Blocks.GRASS_BLOCK) || level.getBlockState(top).is(Blocks.DIRT)
+				|| style.path() != Blocks.DIRT_PATH && level.getBlockState(top).is(Blocks.SAND)) {
+				set(level, top, style.path().defaultBlockState());
 			}
 		}
 
@@ -1240,8 +1294,8 @@ public final class TownBuilder {
 			return;
 		}
 
-		place(level, pos, Blocks.OAK_FENCE.defaultBlockState());
-		place(level, pos.above(), Blocks.OAK_FENCE.defaultBlockState());
+		place(level, pos, wood("fence").defaultBlockState());
+		place(level, pos.above(), wood("fence").defaultBlockState());
 		place(level, pos.above(2), Blocks.LANTERN.defaultBlockState());
 	}
 
@@ -1404,8 +1458,9 @@ public final class TownBuilder {
 			set(level, pos, Blocks.OAK_PLANKS.defaultBlockState());
 		} else {
 			BlockState state = level.getBlockState(pos);
-			set(level, pos, state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(Blocks.PODZOL) || state.is(Blocks.COARSE_DIRT)
-				|| state.is(Blocks.MYCELIUM) ? Blocks.DIRT_PATH.defaultBlockState() : state);
+			boolean ground = state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(Blocks.PODZOL) || state.is(Blocks.COARSE_DIRT)
+				|| state.is(Blocks.MYCELIUM) || style.path() != Blocks.DIRT_PATH && (state.is(Blocks.SAND) || state.is(Blocks.RED_SAND) || state.is(Blocks.SANDSTONE));
+			set(level, pos, ground ? style.path().defaultBlockState() : state);
 		}
 
 		fellIn(level, x, z, top + 1, top + 4);

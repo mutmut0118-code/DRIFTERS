@@ -320,7 +320,7 @@ public final class DrifterApi {
 
 	/** A house as put up: its plan, corner, turn and wood, the box it fills, and its front door's lower half. */
 	public record PlacedHouse(String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation, String wood,
-		net.minecraft.world.level.levelgen.structure.BoundingBox box, @Nullable net.minecraft.core.BlockPos door) {
+		net.minecraft.world.level.levelgen.structure.BoundingBox box, @Nullable net.minecraft.core.BlockPos door, @Nullable String stone) {
 	}
 
 	/**
@@ -339,14 +339,22 @@ public final class DrifterApi {
 	@Nullable
 	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
 		String wood, @Nullable net.minecraft.core.Direction front) {
+		return placeHouse(level, planId, origin, rotation, wood, null, front);
+	}
+
+	/** The same, its cobblestone of {@code stone} ("sandstone", "mossy_cobblestone"...) rather than cobblestone (null: as drawn). */
+	@Nullable
+	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
+		String wood, @Nullable String stone, @Nullable net.minecraft.core.Direction front) {
 		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), planId);
 		if (plan == null) {
 			return null;
 		}
 
-		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, wood);
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, wood, stone);
 		var placed = com.dinglebob.drifter.building.plan.HousePlacer.place(level, plan, origin, rotation, palette);
-		return new PlacedHouse(planId, origin.immutable(), rotation, wood, placed.box(), com.dinglebob.drifter.building.plan.HousePlacer.door(placed, front));
+		return new PlacedHouse(planId, origin.immutable(), rotation, wood, placed.box(), com.dinglebob.drifter.building.plan.HousePlacer.door(placed, front),
+			stone);
 	}
 
 	/**
@@ -357,7 +365,7 @@ public final class DrifterApi {
 		ServerLevel level = (ServerLevel)drifter.level();
 		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), house.planId());
 		var palette = plan == null ? com.dinglebob.drifter.building.plan.HousePalette.asDrawn()
-			: com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood());
+			: com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood(), house.stone());
 		var box = house.box();
 		// (Its middle at floor level: a block up from a plan whose lowest layer is its ground.)
 		boolean groundLayer = plan != null && plan.cells.stream()
@@ -438,7 +446,7 @@ public final class DrifterApi {
 			return null;
 		}
 
-		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood());
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood(), house.stone());
 		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, house.origin(), house.rotation(), palette);
 		var spot = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, placed.buildMap());
 		if (spot == null) {

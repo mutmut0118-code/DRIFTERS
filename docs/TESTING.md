@@ -1475,6 +1475,9 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Walk a town on hilly land (0.23.1): from the plaza to every door on foot, never a jump onto anything taller than a
       block or a drop of more than three; each door's path steps a block at a time down or up to the road. Over a day,
       no cobblestone pillars or bridges in the town (its people's mines start out past the edge).
+- [ ] Towns look like their land (0.23.2): a desert town of sandstone with sandstone roads, a savanna town of acacia, a
+      taiga town of spruce with mossy cobblestone, snowy towns of spruce and stone, plains of oak and birch. Some spots
+      are hamlets of 2 to 5 houses; most towns 8 to 16.
 
 ## Beds in town houses (new, 0.22.34)
 
