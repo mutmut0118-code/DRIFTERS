@@ -365,6 +365,15 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + "'s store and stall count as up; its plaza is next"), true);
 					return 1;
 				}))
+				// Debug: a city made here at once (40 to 80 households, a hundred people at most).
+				.then(Commands.literal("city").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("households", IntegerArgumentType.integer(TownBuilder.CITY, 80)).executes(ctx -> {
+						var source = ctx.getSource();
+						TownBuilder.Result result = TownBuilder.city(source.getLevel(), BlockPos.containing(source.getPosition()),
+							IntegerArgumentType.getInteger(ctx, "households"));
+						source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
+						return 1;
+					})))
 				// Debug: the ruins of a town that failed, made here at once (as world generation now and then makes one).
 				.then(Commands.literal("ruin").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var source = ctx.getSource();

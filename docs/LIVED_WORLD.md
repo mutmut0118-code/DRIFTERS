@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4); next A7, cities with A10 |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5); next A10, A7 |
 | B | Trades and services instead of villager trading | Not started |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -655,4 +655,23 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     drowning, a creeper, a fall into a ravine; two who left, two newcomers still building, a hard winter), every place
     walked to; tree tidying in 20-block pieces now (a taiga town's took 120 ms a piece at 32): no step over 50 ms in two of
     them, 45 ms at most.
-  - Next: A7 (what villages did, another way: raids on towns, the wandering merchant), then cities with A10.
+- **0.23.5: cities (A4), and front doors found properly.**
+  - One town spot in each three by three of spots (about 2,600 blocks across; which one picked from the world's seed) is a
+    city of 40 to 80 households if a town goes there, so cities are rare and never close. A city's main roads run 132
+    blocks (a town's 72); its side roads come off any road, side roads too, and run up to twice as long; a hundred people
+    at most (its other houses stand empty for newcomers); its land (13 chunks round) loaded once a player is within 20
+    chunks. Chronicle: "X stands where a village might have: a city, with 92 people in 44 houses". Debug: `/drifterciv
+    town city <40-80>` (a city spot here, made a step at a time).
+  - Made a step at a time like a town: its streets a few tries a step (2.6 s at once before), each street kept inside its
+    reach before its ground is looked at (beyond it the land wasn't loaded and looking made it: 2.8 s), a house spot's
+    plans tried 15 ms a step and picked up again next step (400 ms before). A city: about 7 to 10 s of work over 20 to 35
+    s, the longest step the walk check (110 ms, once).
+  - Front doors (core `HousePlacer`): a door counts as a house's front only if one walks straight out of the house from it
+    at door height; its side is the way out. Before, any door was given the side of the box it was nearest, and a
+    two-room farmhouse's inner door was taken for its front: its path and the walk to it went through the house (found by
+    the walk check in a city: every unreachable house was one of those). Lamp posts kept off door paths too.
+  - Tested on Tectonic: a city of 92 people in 44 houses, all 48 places walked to; the seven-spot run again: a city made
+    by world generation (69 people in 35 houses), a ruin, towns and a hamlet, every place walked to, no step over 116 ms.
+  - Not yet: districts, a market street, more stalls, walls; A10 (towns far away as summaries: for now their people go
+    on as every Drifter does out of sight).
+  - Next: A10 (far towns as summaries), A7 (raids, the wandering merchant); then phase B.

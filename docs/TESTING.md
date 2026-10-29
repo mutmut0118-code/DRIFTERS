@@ -1485,6 +1485,9 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       town: the grave west of the plaza with the name on it, the empty house, a house only partly built that its owner
       finishes over the next days. Names on signs by the doors; some houses have a named dog or cat. With Bountiful, a
       bounty board on the plaza.
+- [ ] Cities (0.23.5): rare (one at most in a big stretch of land), up to a hundred people, many streets. To see one now:
+      `/drifterciv town city 60` where there's room (it's made over half a minute, a bit each tick). Walk it: every door
+      reachable from the plaza on foot.
 
 ## Beds in town houses (new, 0.22.34)
 
