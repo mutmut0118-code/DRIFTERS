@@ -77,6 +77,12 @@ public final class DrifterConfig {
 		boolean worldgenCaveTorches = true;
 		/** Drifters living in some villages, Bandit gangs holding some pillager outposts (user, 2026-10-16). */
 		boolean worldgenVillages = true;
+		/** With Drifter: Civilizations, Drifter towns are made where villages would have been, and no villages (milestone 23,
+		 * the user: "replace villages and villagers as a whole"). New chunks only. */
+		boolean replaceVillages = true;
+		/** Villagers still about with villages replaced (zombie villagers to cure: players' trading halls and iron farms; the
+		 * user's decision 5: off by default). */
+		boolean villagers = false;
 		boolean worldgenOutposts = true;
 		/** Lone Drifters out in the world with no home: fresh, setting off on day one, or passing through (user, 2026-10-17). */
 		boolean worldgenWanderers = true;
@@ -252,6 +258,24 @@ public final class DrifterConfig {
 
 	public static boolean worldgenVillages() {
 		return data.worldgenVillages;
+	}
+
+	public static boolean replaceVillages() {
+		return data.replaceVillages;
+	}
+
+	public static void setReplaceVillages(boolean on) {
+		data.replaceVillages = on;
+		save();
+	}
+
+	public static boolean villagers() {
+		return data.villagers;
+	}
+
+	public static void setVillagers(boolean on) {
+		data.villagers = on;
+		save();
 	}
 
 	public static void setWorldgenVillages(boolean on) {

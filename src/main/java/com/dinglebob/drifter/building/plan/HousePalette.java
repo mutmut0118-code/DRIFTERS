@@ -167,8 +167,22 @@ public final class HousePalette {
 	 * planks on it and in its chests) and sees round home, most first; deepslate for cobblestone if it has more of that.
 	 */
 	/** The plan's main wood as this one, its other woods one that stands out against it (world-gen houses: the wood that grows round them). */
+	/**
+	 * Its stone, kept with its woods (so a home's saved palette has it): what cobblestone (and its stairs, slabs and walls)
+	 * becomes, e.g. "sandstone" (a desert town: milestone 23 A3).
+	 */
+	public static final String STONE = "@stone";
+
 	public static HousePalette forWood(HousePlan plan, String wood) {
+		return forWood(plan, wood, null);
+	}
+
+	public static HousePalette forWood(HousePlan plan, String wood, @org.jetbrains.annotations.Nullable String stone) {
 		Map<String, String> map = new HashMap<>();
+		if (stone != null) {
+			map.put(STONE, stone);
+		}
+
 		List<String> planWoods = woodsByUse(plan);
 		for (int i = 0; i < planWoods.size(); i++) {
 			map.put(planWoods.get(i), i == 0 ? wood : PARTNER.getOrDefault(wood, wood));
@@ -459,6 +473,9 @@ public final class HousePalette {
 			swapped = path.startsWith("stripped_") ? "stripped_" + to + path.substring(("stripped_" + wood).length()) : to + path.substring(wood.length());
 		} else if (this.stone != null && (path.startsWith("cobblestone") || path.equals("stone_bricks") || path.startsWith("stone_brick_"))) {
 			swapped = this.stoneFor(path, at);
+		} else if (this.woods.containsKey(STONE) && path.startsWith("cobblestone")) {
+			// (A town's stone, from its biome: the addon's, milestone 23.)
+			swapped = this.woods.get(STONE) + path.substring("cobblestone".length());
 		} else if (this.deepslate && path.startsWith("cobblestone")) {
 			swapped = "cobbled_deepslate" + path.substring("cobblestone".length());
 		}
@@ -588,7 +605,9 @@ public final class HousePalette {
 
 		List<String> parts = new ArrayList<>();
 		this.woods.forEach((from, to) -> {
-			if (!from.startsWith("#")) {
+			if (from.equals(STONE)) {
+				parts.add("cobblestone → " + to);
+			} else if (!from.startsWith("#")) {
 				parts.add(from.equals(to) ? from + " stays" : from + " → " + to);
 			}
 		});

@@ -282,13 +282,45 @@ public final class DrifterApi {
 			return java.util.Set.of();
 		}
 
-		return com.dinglebob.drifter.building.plan.HousePlacer.doorSides(new com.dinglebob.drifter.building.plan.PlacedPlan(plan, net.minecraft.core.BlockPos.ZERO,
-			rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn()));
+		// (Kept per plan and turn: a town's layout asks it of every plan at every spot; found measuring a town: most of its
+		// 17 seconds.)
+		DoorSides known = DOOR_SIDES.get(planId + "|" + rotation);
+		if (known != null && known.plan() == plan) {
+			return known.sides();
+		}
+
+		var sides = java.util.Set.copyOf(com.dinglebob.drifter.building.plan.HousePlacer.doorSides(new com.dinglebob.drifter.building.plan.PlacedPlan(plan,
+			net.minecraft.core.BlockPos.ZERO, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn())));
+		DOOR_SIDES.put(planId + "|" + rotation, new DoorSides(plan, sides));
+		return sides;
 	}
+
+	private record DoorSides(Object plan, java.util.Set<net.minecraft.core.Direction> sides) {
+	}
+
+	/** Another mod makes its own towns where villages would be (Drifter: Civilizations, milestone 23). */
+	private static volatile boolean townsForVillages;
+
+	/** An addon that makes towns where villages would be says so; villages (and the wandering trader) then don't come. */
+	public static void setTownsForVillages(boolean on) {
+		townsForVillages = on;
+	}
+
+	/** Villages are replaced: an addon makes towns instead and the setting's on (new chunks only). */
+	public static boolean villagesReplaced() {
+		return townsForVillages && com.dinglebob.drifter.DrifterConfig.replaceVillages();
+	}
+
+	/** Villagers stay out of it too (none spawning as zombie villagers to cure). */
+	public static boolean noVillagers() {
+		return villagesReplaced() && !com.dinglebob.drifter.DrifterConfig.villagers();
+	}
+
+	private static final java.util.Map<String, DoorSides> DOOR_SIDES = new java.util.concurrent.ConcurrentHashMap<>();
 
 	/** A house as put up: its plan, corner, turn and wood, the box it fills, and its front door's lower half. */
 	public record PlacedHouse(String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation, String wood,
-		net.minecraft.world.level.levelgen.structure.BoundingBox box, @Nullable net.minecraft.core.BlockPos door) {
+		net.minecraft.world.level.levelgen.structure.BoundingBox box, @Nullable net.minecraft.core.BlockPos door, @Nullable String stone) {
 	}
 
 	/**
@@ -307,14 +339,22 @@ public final class DrifterApi {
 	@Nullable
 	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
 		String wood, @Nullable net.minecraft.core.Direction front) {
+		return placeHouse(level, planId, origin, rotation, wood, null, front);
+	}
+
+	/** The same, its cobblestone of {@code stone} ("sandstone", "mossy_cobblestone"...) rather than cobblestone (null: as drawn). */
+	@Nullable
+	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
+		String wood, @Nullable String stone, @Nullable net.minecraft.core.Direction front) {
 		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), planId);
 		if (plan == null) {
 			return null;
 		}
 
-		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, wood);
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, wood, stone);
 		var placed = com.dinglebob.drifter.building.plan.HousePlacer.place(level, plan, origin, rotation, palette);
-		return new PlacedHouse(planId, origin.immutable(), rotation, wood, placed.box(), com.dinglebob.drifter.building.plan.HousePlacer.door(placed, front));
+		return new PlacedHouse(planId, origin.immutable(), rotation, wood, placed.box(), com.dinglebob.drifter.building.plan.HousePlacer.door(placed, front),
+			stone);
 	}
 
 	/**
@@ -325,7 +365,7 @@ public final class DrifterApi {
 		ServerLevel level = (ServerLevel)drifter.level();
 		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), house.planId());
 		var palette = plan == null ? com.dinglebob.drifter.building.plan.HousePalette.asDrawn()
-			: com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood());
+			: com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood(), house.stone());
 		var box = house.box();
 		// (Its middle at floor level: a block up from a plan whose lowest layer is its ground.)
 		boolean groundLayer = plan != null && plan.cells.stream()
@@ -406,7 +446,7 @@ public final class DrifterApi {
 			return null;
 		}
 
-		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood());
+		var palette = com.dinglebob.drifter.building.plan.HousePalette.forWood(plan, house.wood(), house.stone());
 		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, house.origin(), house.rotation(), palette);
 		var spot = com.dinglebob.drifter.brain.activity.BuildPlanActivity.bedSpot(level, placed, placed.buildMap());
 		if (spot == null) {

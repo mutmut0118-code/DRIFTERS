@@ -13,6 +13,7 @@
 		"BlockItemAccessor",
 		"BlockItemMixin",
 		"BowItemMixin",
+		"ChunkGeneratorStructureStateMixin",
 		"ChunkMapMixin",
 		"EntitySoundMixin",
 		"ExperienceOrbAccessor",
@@ -31,9 +32,11 @@
 		"PlayerAdvancementsMixin",
 		"RunAroundLikeCrazyGoalMixin",
 		"ServerLevelGameEventMixin",
+		"StructureMixin",
 		"NearestAttackableTargetGoalAccessor",
 		"PlayerAccessor",
-		"TargetGoalAccessor"
+		"TargetGoalAccessor",
+		"WanderingTraderSpawnerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
