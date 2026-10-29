@@ -1460,6 +1460,13 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Beds in town houses (new, 0.22.34)
+
+- [ ] Make a new town (`/drifterciv town spawn 8 Bedby`) and look in its houses: every bed is on a floor you can walk to
+      from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
+- [ ] At night the townspeople walk to bed; nobody pillars cobblestone inside or up the outside of a house. (Towns made
+      before this version keep their old beds.)
+
 ## The respawn setting changes how careful they are (new, 0.22.31)
 
 The more a death would cost a Drifter, the warier it plays. Set it in the settings screen (Mod Menu) or with

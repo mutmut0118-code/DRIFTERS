@@ -3171,3 +3171,14 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     them an enemy's; and "hey!! no hitting" is only for one hit by surprise, not one already fighting them. Tested in the
     client: a Bandit gang hunting the player said nothing friendly to "hi" or "whats ur name"; a friendly Drifter still
     answered ("im Fren", "cant complain").
+- **Beds where they can be walked to (0.22.34).** Found by the user: "something to cause drifters to pillar cobblestone in
+  their homes ... bed placement is still very random; those houses with the logs on top cause a drifter to pillar up to
+  reach their bed; beds in weird places, like in front of stairs and ways that block the player". `bedSpot` (a house's
+  bed when the plan has none: every town household, a Drifter's own house) took any spot inside with a floor under it and
+  a roof over it: the top of a log beam or a block of furniture too. Now it works out where someone can stand in the
+  house walking in from its doors (steps up a block, drops, ladders) and takes the best spot that's on that floor, with
+  open floor beside it, and that cuts none of it off once the bed is down (the stairs, a ladder, a room). Headless: three
+  towns of 12 houses and the 300 plans' checks, 374 beds, all placed so (272 on the ground floor, 102 upstairs); making
+  the plans at start-up takes 0.65 s (was 0.37). Beds already placed stay where they are.
+  - Not reproduced: "bridging over a path block even though its 1 step down" (a path one step down was walked across in a
+    test; the bridging in the user's traces was up the outside of houses, at roof height). Asked the user where.

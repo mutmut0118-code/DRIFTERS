@@ -845,7 +845,9 @@ public class BuildPlanActivity extends Activity {
 
 	/**
 	 * Where its bed goes: the plan's own bed spot if it has one; otherwise a spot on the floor inside, out of the doorway,
-	 * head against a wall, as far from the door as it can.
+	 * head against a wall, as far from the door as it can. Only on open floor someone can walk to from a door (not up on a
+	 * beam or a block of furniture), and never where it cuts off any of the house: the stairs, a ladder, a room (found by
+	 * the user: Drifters pillaring up to beds on top of logs, beds in front of stairs).
 	 */
 	@Nullable
 	public static BedSpot bedSpot(net.minecraft.world.level.BlockGetter level, PlacedPlan plan, Map<BlockPos, BlockState> want) {
@@ -867,6 +869,11 @@ public class BuildPlanActivity extends Activity {
 			}
 		}
 
+		List<BlockPos> doorways = plan.build.stream().filter(c -> c.state().getBlock() instanceof net.minecraft.world.level.block.DoorBlock
+			&& c.state().getValue(net.minecraft.world.level.block.DoorBlock.HALF) == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER)
+			.map(PlacedPlan.Cell::pos).toList();
+		Set<BlockPos> walkable = walkable(level, plan, want, doorways, Set.of());
+		List<Map.Entry<BedSpot, Double>> ranked = new java.util.ArrayList<>();
 		BedSpot best = null;
 		double bestScore = -Double.MAX_VALUE;
 		for (BlockPos column : plan.footprint()) {
@@ -897,11 +904,117 @@ public class BuildPlanActivity extends Activity {
 						bestScore = score;
 						best = new BedSpot(foot.immutable(), facing);
 					}
+
+					if (walkable.contains(foot) && walkable.contains(head) && onOpenFloor(walkable, foot, head)) {
+						ranked.add(Map.entry(new BedSpot(foot.immutable(), facing), score));
+					}
 				}
 			}
 		}
 
-		return best;
+		// The best that's on open floor and cuts nothing off; else (no door in the plan, odd houses) as before.
+		ranked.sort(Map.Entry.<BedSpot, Double>comparingByValue().reversed());
+		for (Map.Entry<BedSpot, Double> entry : ranked) {
+			BlockPos foot = entry.getKey().foot();
+			BlockPos head = entry.getKey().head();
+			Set<BlockPos> after = walkable(level, plan, want, doorways, Set.of(foot, head));
+			boolean cutsOff = walkable.stream().anyMatch(cell -> !cell.equals(foot) && !cell.equals(head) && !after.contains(cell));
+			boolean besideIt = after.stream().anyMatch(cell -> cell.distManhattan(foot) <= 1 || cell.distManhattan(head) <= 1);
+			if (!cutsOff && besideIt) {
+				return entry.getKey();
+			}
+		}
+
+		return !ranked.isEmpty() ? ranked.get(0).getKey() : best;
+	}
+
+	/** Both halves of the bed on open floor: at least two cells beside it, at its level, someone can stand on. */
+	private static boolean onOpenFloor(Set<BlockPos> walkable, BlockPos foot, BlockPos head) {
+		int open = 0;
+		for (BlockPos half : new BlockPos[]{foot, head}) {
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				BlockPos beside = half.relative(side);
+				if (!beside.equals(foot) && !beside.equals(head) && walkable.contains(beside)) {
+					open++;
+				}
+			}
+		}
+
+		return open >= 2;
+	}
+
+	/**
+	 * Where someone can stand in the house (feet cells), walking in from its doors: steps up a block, drops of up to three,
+	 * ladders and the like; {@code blocked} cells taken as solid (a bed there). The plan's blocks as planned, the world's
+	 * elsewhere; doors and gates as open.
+	 */
+	private static Set<BlockPos> walkable(net.minecraft.world.level.BlockGetter level, PlacedPlan plan, Map<BlockPos, BlockState> want,
+		List<BlockPos> doors, Set<BlockPos> blocked) {
+		var box = plan.box();
+		java.util.function.Predicate<BlockPos> inside = p -> p.getX() >= box.minX() - 1 && p.getX() <= box.maxX() + 1 && p.getZ() >= box.minZ() - 1
+			&& p.getZ() <= box.maxZ() + 1 && p.getY() >= box.minY() - 1 && p.getY() <= box.maxY() + 1;
+		java.util.function.Function<BlockPos, BlockState> state = p -> want.containsKey(p) ? want.get(p) : level.getBlockState(p);
+		java.util.function.Predicate<BlockPos> solid = p -> {
+			if (blocked.contains(p)) {
+				return true;
+			}
+
+			BlockState s = state.apply(p);
+			return !(s.getBlock() instanceof net.minecraft.world.level.block.DoorBlock) && !(s.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock)
+				&& !s.getCollisionShape(level, p).isEmpty();
+		};
+		java.util.function.Predicate<BlockPos> climb = p -> !blocked.contains(p) && state.apply(p).is(BlockTags.CLIMBABLE);
+		java.util.function.Predicate<BlockPos> stand = p -> inside.test(p) && !solid.test(p) && !solid.test(p.above())
+			&& (solid.test(p.below()) || climb.test(p) || climb.test(p.below()));
+		Set<BlockPos> seen = new HashSet<>();
+		java.util.ArrayDeque<BlockPos> open = new java.util.ArrayDeque<>();
+		for (BlockPos door : doors) {
+			if (!solid.test(door.above()) && seen.add(door)) {
+				open.add(door);
+			}
+		}
+
+		while (!open.isEmpty()) {
+			BlockPos p = open.poll();
+			List<BlockPos> next = new java.util.ArrayList<>();
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				BlockPos q = p.relative(side);
+				if (stand.test(q)) {
+					next.add(q);
+				} else if (solid.test(q) && !solid.test(p.above(2)) && stand.test(q.above())) {
+					next.add(q.above());
+				} else if (!solid.test(q) && !solid.test(q.above())) {
+					for (int down = 1; down <= 3; down++) {
+						if (stand.test(q.below(down))) {
+							next.add(q.below(down));
+							break;
+						}
+
+						if (solid.test(q.below(down))) {
+							break;
+						}
+					}
+				}
+			}
+
+			if (climb.test(p) || climb.test(p.above())) {
+				if (inside.test(p.above()) && !solid.test(p.above()) && !solid.test(p.above(2))) {
+					next.add(p.above());
+				}
+			}
+
+			if (climb.test(p.below()) && !solid.test(p.below())) {
+				next.add(p.below());
+			}
+
+			for (BlockPos q : next) {
+				if (seen.add(q.immutable())) {
+					open.add(q.immutable());
+				}
+			}
+		}
+
+		return seen;
 	}
 
 	/** Room inside the house here (as for half a bed): a chest's place too ({@link MoveInActivity}). */
