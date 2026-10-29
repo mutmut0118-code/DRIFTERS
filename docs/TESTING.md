@@ -1464,6 +1464,8 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
 
 - [ ] Make a new town (`/drifterciv town spawn 8 Bedby`) and look in its houses: every bed is on a floor you can walk to
       from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
+- [ ] Walk the streets and the plaza of a town: no townsperson warns you off or comes at you (0.22.35). Walk into a
+      territorial one's house and it may warn you; step back out and it leaves you be (no chase after).
 - [ ] At night the townspeople walk to bed; nobody pillars cobblestone inside or up the outside of a house. (Towns made
       before this version keep their old beds.)
 

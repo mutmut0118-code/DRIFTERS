@@ -58,6 +58,8 @@ public enum Mode {
 	public static final double VENGEFUL_GRUDGE = 40.0;
 	/** How far round home counts as "its base" for a territorial one. */
 	public static final double BASE_RADIUS = 20.0;
+	/** In a town: its house, and this many blocks round it. */
+	public static final int IN_TOWN_MARGIN = 2;
 
 	public String id() {
 		return this.name().toLowerCase(Locale.ROOT);
@@ -169,7 +171,10 @@ public enum Mode {
 		double bravery = drifter.getPersonality().get(Trait.BRAVERY);
 		boolean afraid = r.fear > AVOID_FEAR + 30.0 * bravery;
 		Home home = drifter.getDrifterBrain().home();
-		boolean inItsBase = home != null && home.center.closerThan(player.blockPosition(), BASE_RADIUS);
+		// In a town its base is its own house (found by the user: a territorial townsperson warned them off, then chased them,
+		// for walking down the street past its house: twenty blocks round its house took in the streets and the plaza).
+		boolean inItsBase = home != null && (drifter.getTownWork() != null && home.planBox() != null ? home.inOwnBuilding(player.blockPosition(), IN_TOWN_MARGIN)
+			: home.center.closerThan(player.blockPosition(), BASE_RADIUS));
 		if (r.trust >= ALLY_TRUST) {
 			return ALLY;
 		}

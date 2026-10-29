@@ -3182,3 +3182,10 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   the plans at start-up takes 0.65 s (was 0.37). Beds already placed stay where they are.
   - Not reproduced: "bridging over a path block even though its 1 step down" (a path one step down was walked across in a
     test; the bridging in the user's traces was up the outside of houses, at roof height). Asked the user where.
+- **A town Drifter's base is its house (0.22.35).** Found by the user ("can u see why lynx is trying to fight me?"):
+  LynxPRO, a territorial townsperson in a made-ready town, warned them off ("dont even think about it") as they walked
+  past, took it as ignored 2 s later, drove them "out of its base" and then chased them: its base was 20 blocks round its
+  house, which in a town is the streets and the plaza. In a town (`getTownWork` set) its base is now its own house and 2
+  blocks round it (`Mode.IN_TOWN_MARGIN`, `Home.inOwnBuilding`); and driving someone out ends the chase its hits started
+  (`HostileGoals.Fight.endsChase`). Tested in the client: three townspeople made territorial, next to the player in the
+  plaza for a minute: no warning.
