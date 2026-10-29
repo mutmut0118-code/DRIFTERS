@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1724 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1759 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (66 topics, 1547 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (72 topics, 1593 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1635,6 +1635,48 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 1. **a**: someone from {a.other} killed one of ours · {a.other} has blood on its hands · never forgive {a.other} for that
 2. **b**: they'll pay · watch your back near {b.other} · unbelievable · this means war
+
+#### at war talk
+
+*Needs:* a:at_war, !strangers
+
+1. **a**: this war with {a.enemy} better end soon · keep your sword on you. {a.enemy} could come any time · we'll beat {a.enemy} · i hate this war · anyone seen {a.enemy}'s lot about?
+2. **b**: we'll win · i just want it over · stay inside after dark · they'll pay · same
+
+#### town war talk
+
+*Needs:* a:town_war, !strangers
+
+1. **a**: it's war with {a.other} · did you hear? war with {a.other} · {a.other}... war. great · war. actual war with {a.other}
+2. **b**: about time · this is bad · get your armour on · we'll see who wins
+
+#### town fell talk
+
+*Needs:* a:town_fell, !strangers
+
+1. **a**: we lost someone to {a.other} · {a.other} got another one of ours · another one gone. this war...
+2. **b**: ... · they'll pay for that · rip · how many more
+
+#### town peace made talk
+
+*Needs:* a:town_peace_made, !strangers
+
+1. **a**: the war with {a.other} is over · peace with {a.other}. finally · it's over. no more war
+2. **b**: thank god · W · for now · never again
+
+#### town broken word talk
+
+*Needs:* a:town_broken_word, !strangers
+
+1. **a**: {a.other} broke its word. don't trust them · {a.other} went back on a peace. snakes · never make a deal with {a.other}
+2. **b**: noted · always knew it · wow · lol snakes
+
+#### town let down talk
+
+*Needs:* a:town_let_down, !strangers
+
+1. **a**: some ally {a.other} turned out to be · {a.other} left us to it · {a.other} didn't show up when it mattered
+2. **b**: remember that · cowards · figures · we don't need them
 
 ## 7. Drifters talking to you
 

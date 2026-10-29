@@ -108,18 +108,28 @@ public final class DrifterCivilizations implements ModInitializer {
 								+ " (" + Math.round(r.standing) + ")"), true);
 							return 1;
 						}))))
+				// Debug: war declared at once (no envoy), or a white peace made at once.
+				.then(Commands.literal("war").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.executes(ctx -> warOrPeace(ctx, true))))
+				.then(Commands.literal("peace").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.executes(ctx -> warOrPeace(ctx, false))))
 				.then(Commands.literal("envoy").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
 						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
 						.then(Commands.argument("what", com.mojang.brigadier.arguments.StringArgumentType.word())
-							.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("trade", "peace", "alliance", "insult"), builder))
+							.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("trade", "peace", "alliance", "insult", "war", "terms",
+								"demand"), builder))
 							.executes(ctx -> {
 								Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
 								Town other = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "other"));
 								var group = town == null || town.group == null ? null : DrifterApi.groupById(town.group);
 								String what = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "what").toUpperCase(java.util.Locale.ROOT);
-								if (group == null || other == null || other == town || !List.of("TRADE", "PEACE", "ALLIANCE", "INSULT").contains(what)) {
-									ctx.getSource().sendFailure(Component.literal("No such other town (or not trade, peace, alliance or insult)"));
+								if (group == null || other == null || other == town || !List.of("TRADE", "PEACE", "ALLIANCE", "INSULT", "WAR", "TERMS", "DEMAND").contains(what)) {
+									ctx.getSource().sendFailure(Component.literal("No such other town (or not trade, peace, alliance, insult, war, terms or demand)"));
 									return 0;
 								}
 
@@ -374,10 +384,43 @@ public final class DrifterCivilizations implements ModInitializer {
 			}
 
 			String pacts = r.pacts.isEmpty() ? "no pacts" : String.join(", ", r.pacts.stream().map(p -> p.words).toList());
+			long day = Chronicle.day(ctx.getSource().getServer());
+			String war = r.war ? "AT WAR since day " + r.warSinceDay + " (dead: " + town.name + " " + r.losses(town.id) + ", " + other.name + " "
+				+ r.losses(other.id) + ")" : r.truceUntilDay > day ? "truce till day " + r.truceUntilDay : null;
+			String owed = r.owedBy == null || r.owed + r.inTransit == 0 ? null : (r.owedBy.equals(town.id) ? "owes " : "is owed ") + (r.owed + r.inTransit)
+				+ " emeralds";
 			ctx.getSource().sendSuccess(() -> Component.literal("  " + other.name + ": " + Diplomacy.word(r.standing) + " (" + Math.round(r.standing) + "), "
-				+ pacts + (r.insults > 0 ? ", " + r.insults + " insult" + (r.insults == 1 ? "" : "s") : "")), false);
+				+ (war != null ? war + ", " : "") + pacts + (owed != null ? ", " + owed : "") + (r.insults > 0 ? ", " + r.insults + " insult"
+				+ (r.insults == 1 ? "" : "s") : "")), false);
 		}
 
+		return 1;
+	}
+
+	/** Debug: the nearest town at war with the named one now, or at a white peace now. */
+	private static int warOrPeace(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx, boolean war) {
+		var server = ctx.getSource().getServer();
+		Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+		Town other = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "other"));
+		if (town == null || other == null || other == town) {
+			ctx.getSource().sendFailure(Component.literal("No such other town"));
+			return 0;
+		}
+
+		var r = Diplomacy.meet(server, town, other, 0.0, null);
+		if (war == r.war) {
+			ctx.getSource().sendFailure(Component.literal(war ? "Already at war" : "Not at war"));
+			return 0;
+		}
+
+		if (war) {
+			Diplomacy.war(server, town, other, r);
+		} else {
+			Diplomacy.peace(server, town, other, r, null, 0);
+		}
+
+		ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " and " + other.name + (war ? ": at war" : ": at peace")
+			+ " (see the chronicle)"), true);
 		return 1;
 	}
 

@@ -270,8 +270,9 @@ bigger groups; roads; the 30-day run. Then milestone 22 proper, starting with "o
   anyway is its crook: thefts and fights, judged by witnesses, thrown out the third time.
 - **Step 6, nations and diplomacy (started 0.22.39), in three parts:** part 1, diplomacy (done, 0.22.39): towns that
   know of each other, their standing, envoys walking with offers (trade deals, peace, alliances) and insults, pacts with
-  effects, talk and the chronicle; part 2, wars between towns (declared when the standing sinks: armies on the march,
-  peace terms, tribute, broken promises remembered); part 3, nations (allied towns joining, a capital, a name and banner,
+  effects, talk and the chronicle; part 2, wars between towns (done, 0.22.40: declared by envoy when the standing sinks,
+  allies called in, raids on the enemy's store, the dead counted, weariness, terms and demands, payments between tills,
+  truces, broken words remembered); part 3, nations (allied towns joining, a capital, a name and banner,
   tribute, rebellions and independence).
 - **After step 6: milestone 23, a lived-in world** (docs/LIVED_WORLD.md, planned 2026-10-29): Drifter towns replace villages and
   villagers, real shops replace villager trading, town life, and the player's place in a town (friends, companions,

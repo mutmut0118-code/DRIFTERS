@@ -3155,8 +3155,36 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   after nations, as milestone 23 (cities of 40-80 households among small towns of 8-16, 2.5x rarer than villages;
   villagers a setting; culture folded in; the player a citizen). Phases: A towns where villages were (worldgen), B trades replacing villager trading, C town life and culture, D you
   and the town.
-- Next: step 6 part 2, wars between towns (declared when the standing sinks; armies, peace terms, tribute, broken promises
-  remembered); then part 3, nations. Prison is kept for later (the user).
+- **Step 6, part 2: wars between towns (0.22.40; the user: "go ahead with nations part 2").** Built on the group wars
+  (milestone 12, `DrifterWars`: fighting on sight, raids), with the town deciding when they start and end:
+  - Declared by envoy ("WAR"): when the standing is -60 or worse and the leader aggressive (0.55), or within three days of
+    a killing, at -40, with a vengeful leader (0.6); not in a truce. "X declared war on Y". Declaring on a town it was at
+    peace or allied with: "breaking its word": every other town that knows of it thinks 10 less of it, and its offers of
+    pacts are taken 0.15 less often for each time (`brokenWord`, saved).
+  - Allies: the defender's ally joins ("stood by its ally") unless its leader's careful (0.7): then "stayed out", -15 with
+    the one it let down; the attacker's ally joins if its leader's aggressive (0.5).
+  - At war: their groups' tension held at war (`DrifterApi.declareWar`; town groups' wars are "managed": no truce of
+    their own after two deaths or a quiet stretch, `DrifterApi.setWarManaged`); their people fight on sight; raids go for
+    the enemy town's store (its till), which they know of (`DrifterApi.setRaidTargets`), and loot it. Each death by the
+    other side counted ("X of A fell in the war with B (killed by Y)"; a potion's or an arrow's by the kill credit).
+  - Weariness: 6 a day at war, 15 a death of its own, -5 one of theirs, careful leaders more, aggressive or vengeful
+    less; at 40 its leader sends terms ("TERMS"): reparations if it's lost more (4 + 3 a death more, 24 at most), else a
+    white peace. A winning greedy leader (0.6; two deaths ahead, two days in) may demand payment instead ("DEMAND": 6 +
+    3 a death ahead, 30 at most). Taken by the other's caution, aggression, weariness and the payment.
+  - Peace: a peace pact, a seven-day truce (no war, `DrifterApi.makePeace`), the standing up to -20 at least; payment
+    owed paid out of the payer's till as emeralds are there and into the other's till (real emeralds moved, never made;
+    "X paid n emeralds toward its peace with Y").
+  - Talk: `at_war` (word `enemy`), `town_war`, `town_fell`, `town_peace_made`, `town_broken_word`, `town_let_down`;
+    topics at_war_talk and town_*_talk; lines `envoy.war`, `envoy.war_reply`, `envoy.terms`, `envoy.terms_white`,
+    `envoy.demand`, `envoy.peace_yes|no`. `/drifterciv relations` shows wars (since when, each side's dead), truces and
+    what's owed; debug `/drifterciv relations war|peace <town>`, and `envoy <town> war|terms|demand`.
+  - Tested: headless, three towns: an alliance, a declaration of war, the ally standing by; a demand turned down (its
+    envoy killed one of theirs on the way out), another, then reparations offered and taken after four days (7
+    emeralds owed). In the client, two towns 160 blocks apart at war: one rallied and marched on the other's store, the
+    other raided back, six dead in the first hour, each in the chronicle. Fixed: an alliance offered twice was agreed
+    twice; a death by a thrown potion wasn't counted.
+- Next: step 6 part 3, nations (allied towns joining under a capital, a name and banner, tribute, rebellions and
+  independence). Then milestone 23 (docs/LIVED_WORLD.md). Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
   respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
   dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)

@@ -67,6 +67,21 @@ final class Diplomacy {
 		 * the day. */
 		String news = "";
 		long newsDay = -100;
+		/** At war (part 2): since when (game day), who started it, each side's dead. */
+		boolean war;
+		long warSinceDay = -1;
+		@Nullable
+		UUID startedBy;
+		int lossesA;
+		int lossesB;
+		/** No war again before this day (a peace made). */
+		long truceUntilDay = -100;
+		/** Emeralds one owes the other by a peace (reparations, or what was demanded), and those taken from its till on the
+		 * way to the other's. */
+		@Nullable
+		UUID owedBy;
+		int owed;
+		int inTransit;
 
 		Relation(UUID a, UUID b) {
 			this.a = a;
@@ -75,6 +90,18 @@ final class Diplomacy {
 
 		UUID other(UUID town) {
 			return town.equals(this.a) ? this.b : this.a;
+		}
+
+		int losses(UUID town) {
+			return town.equals(this.a) ? this.lossesA : this.lossesB;
+		}
+
+		void lost(UUID town) {
+			if (town.equals(this.a)) {
+				this.lossesA++;
+			} else {
+				this.lossesB++;
+			}
 		}
 	}
 
@@ -92,6 +119,8 @@ final class Diplomacy {
 		/** Walking it (loaded when sent); else it goes as long as the walk would take. */
 		boolean walking;
 		boolean answered;
+		/** Peace terms: the emeralds offered (TERMS: paid by its town) or demanded (DEMAND: paid to it); 0, a white peace. */
+		int amount;
 
 		Mission(UUID from, UUID to, String kind, UUID envoy, String envoyName, long sentAt, long arriveAt, long backAt) {
 			this.from = from;
@@ -104,6 +133,19 @@ final class Diplomacy {
 			this.backAt = backAt;
 		}
 	}
+
+	/**
+	 * War (part 2): the standing at which an aggressive leader (0.55) declares it, or a vengeful one (0.6) after a killing
+	 * at -40; how weary a side must be to offer peace; the truce after a peace (days).
+	 */
+	private static final double FOR_WAR = -60.0;
+	private static final double FOR_REVENGE = -40.0;
+	private static final double WEARY = 40.0;
+	private static final int TRUCE_DAYS = 7;
+	/** Who goes back on a peace or an alliance by declaring war: every town that knows of it thinks this much less of it. */
+	private static final double BROKEN_WORD = -10.0;
+	/** Towns that broke their word (a peace, an alliance), how often: they're trusted less with pacts. Saved. */
+	private static final Map<UUID, Integer> brokenWord = new java.util.HashMap<>();
 
 	/** Standing a pact needs (offered), and that makes an aggressive leader insult them. */
 	private static final double FOR_TRADE = 15.0;
@@ -134,6 +176,35 @@ final class Diplomacy {
 	private static final Map<UUID, Long> doneDay = new java.util.HashMap<>();
 
 	static void register() {
+		// A town's people killed by the other's in a war: its losses, and the chronicle.
+		DrifterEvents.DIED.register((drifter, source, comesBack) -> {
+			MinecraftServer server = drifter.getServer();
+			DrifterEntity killer = source.getEntity() instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity());
+			// (A thrown potion, an arrow's owner gone: whoever gets the kill.)
+			if (killer == null) {
+				var credit = drifter.getKillCredit();
+				killer = credit instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(credit);
+			}
+
+			Town mine = server == null || killer == null ? null : townOf(drifter.getUUID());
+			Town theirs = mine == null ? null : townOf(killer.getUUID());
+			Relation r = theirs == null || theirs == mine ? null : relation(mine, theirs);
+			if (r != null && r.war) {
+				r.lost(mine.id);
+				r.news = "fell";
+				r.newsDay = Chronicle.day(server);
+				Chronicle.add(server, "war", drifter.getName().getString() + " of " + mine.name + " fell in the war with " + theirs.name + " (killed by "
+					+ killer.getName().getString() + ")");
+				Towns.save(server);
+			}
+		});
+		// A town's raids go for the town they're at war with: its store (its till), which everyone round about knows of.
+		DrifterApi.setRaidTargets((attackers, defenders) -> {
+			Town from = townOfGroup(attackers);
+			Town to = townOfGroup(defenders);
+			Relation r = from == null || to == null ? null : relation(from, to);
+			return r == null || !r.war ? null : to.till() != null ? to.till() : to.center;
+		});
 		// Word of a town's founding reaching one of another town's people: its town knows of it now.
 		DrifterEvents.HEARD_NEWS.register((drifter, news, from) -> {
 			if (news.key().startsWith("town_founded:") && drifter.getServer() != null) {
@@ -209,6 +280,9 @@ final class Diplomacy {
 			return;
 		}
 
+		// (Its wars are the town's to make and end: no truce of their own.)
+		DrifterApi.setWarManaged(group.id, true);
+		pay(server, town);
 		// Seen: one of its people near another town.
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
@@ -287,8 +361,13 @@ final class Diplomacy {
 				r.standing = Math.max(-100.0, Math.min(100.0, r.standing + drift));
 			}
 
+			// At war: kept at war (a raid, fighting on sight) till a peace is made.
+			if (r.war && town.group != null && other.group != null && DrifterApi.tension(town.group, other.group) < 70.0) {
+				DrifterApi.declareWar(server, town.group, other.group);
+			}
+
 			// At peace: their people don't fight (their groups' tension held down).
-			if ((r.pacts.contains(Pact.PEACE) || r.pacts.contains(Pact.ALLIANCE)) && town.group != null && other.group != null
+			if (!r.war && (r.pacts.contains(Pact.PEACE) || r.pacts.contains(Pact.ALLIANCE)) && town.group != null && other.group != null
 				&& DrifterApi.tension(town.group, other.group) > PEACEFUL) {
 				DrifterApi.setTension(server, town.group, other.group, PEACEFUL);
 			}
@@ -308,9 +387,10 @@ final class Diplomacy {
 				continue;
 			}
 
-			String want = wants(town, other, r, leader);
+			String want = wants(town, other, r, leader, day);
 			if (want != null) {
-				double need = Math.abs(r.standing) + 1.0;
+				// (War and peace first.)
+				double need = Math.abs(r.standing) + 1.0 + (r.war || want.equals("WAR") ? 200.0 : 0.0);
 				if (need > bestNeed) {
 					bestNeed = need;
 					best = r;
@@ -319,8 +399,8 @@ final class Diplomacy {
 			}
 		}
 
-		// (Not every morning: a sociable leader sends envoys more.)
-		if (best == null || server.overworld().getRandom().nextDouble() > 0.3 + 0.5 * trait(leader, "sociability")) {
+		// (Not every morning: a sociable leader sends envoys more; war and peace don't wait on that.)
+		if (best == null || !best.war && !"WAR".equals(kind) && server.overworld().getRandom().nextDouble() > 0.3 + 0.5 * trait(leader, "sociability")) {
 			return;
 		}
 
@@ -329,7 +409,24 @@ final class Diplomacy {
 
 	/** What this town's leader would send the other, or null. */
 	@Nullable
-	private static String wants(Town town, Town other, Relation r, @Nullable DrifterEntity leader) {
+	private static String wants(Town town, Town other, Relation r, @Nullable DrifterEntity leader, long day) {
+		// At war: peace, when it's had enough (terms), or (winning, and greedy) on its terms (a demand).
+		if (r.war) {
+			if (weariness(town, r, leader, day) >= WEARY) {
+				return "TERMS";
+			}
+
+			int mine = r.losses(town.id);
+			int theirs = r.losses(other.id);
+			return theirs >= mine + 2 && day - r.warSinceDay >= 2 && trait(leader, "greed") >= 0.6 ? "DEMAND" : null;
+		}
+
+		// War: on terms that bad and an aggressive leader, or a vengeful one after a killing.
+		if (day >= r.truceUntilDay && (r.standing <= FOR_WAR && trait(leader, "aggression") >= 0.55
+			|| r.news.equals("killing") && day - r.newsDay <= 3 && r.standing <= FOR_REVENGE && trait(leader, "vengefulness") >= 0.6)) {
+			return "WAR";
+		}
+
 		if (r.standing <= FOR_INSULT && trait(leader, "aggression") >= 0.6) {
 			return "INSULT";
 		}
@@ -372,9 +469,20 @@ final class Diplomacy {
 		long walk = (long)(Math.sqrt(town.center.distSqr(other.center)) * TICKS_A_BLOCK);
 		Mission mission = new Mission(town.id, other.id, kind, envoyId, envoyName, now, now + walk, now + 2 * walk);
 		mission.walking = envoy != null;
+		// Peace terms: reparations by the side that's lost more, else a white peace; a demand by the winner.
+		int mine = r.losses(town.id);
+		int theirs = r.losses(other.id);
+		mission.amount = kind.equals("TERMS") ? (mine > theirs ? Math.min(24, 4 + 3 * (mine - theirs)) : 0)
+			: kind.equals("DEMAND") ? Math.min(30, 6 + 3 * Math.max(0, theirs - mine)) : 0;
 		missions.add(mission);
 		r.lastEnvoyDay = Chronicle.day(server);
-		String what = kind.equals("INSULT") ? "to tell its leader what " + town.name + " thinks of them" : "to offer " + Pact.valueOf(kind).words;
+		String what = switch (kind) {
+			case "INSULT" -> "to tell its leader what " + town.name + " thinks of them";
+			case "WAR" -> "to declare war";
+			case "TERMS" -> mission.amount > 0 ? "to offer " + mission.amount + " emeralds for peace" : "to offer peace";
+			case "DEMAND" -> "to demand " + mission.amount + " emeralds for peace";
+			default -> "to offer " + Pact.valueOf(kind).words;
+		};
 		Chronicle.add(server, "diplomacy", envoyName + " set out from " + town.name + " for " + other.name + " " + what);
 		if (envoy != null) {
 			DrifterApi.think(envoy, "is to go to " + other.name + " " + what);
@@ -406,7 +514,8 @@ final class Diplomacy {
 
 	private static Errand errand(MinecraftServer server, Town town, Town other, Mission mission, DrifterEntity envoy) {
 		String leaderName = name(town, town.leader);
-		String message = line(envoy, "envoy." + mission.kind.toLowerCase(java.util.Locale.ROOT), "leader", leaderName, "town", town.name, "them", other.name);
+		String key = mission.kind.equals("TERMS") && mission.amount == 0 ? "envoy.terms_white" : "envoy." + mission.kind.toLowerCase(java.util.Locale.ROOT);
+		String message = line(envoy, key, "leader", leaderName, "town", town.name, "them", other.name, "amount", mission.amount);
 		return new Errand() {
 			@Override
 			public BlockPos there() {
@@ -484,6 +593,44 @@ final class Diplomacy {
 		Relation r = meet(server, from, to, 0.0, null);
 		DrifterEntity theirLeader = to.leader == null ? null : TownFounding.loaded(server, to.leader);
 		String fromLeader = name(from, from.leader);
+		long day = Chronicle.day(server);
+		if (mission.kind.equals("WAR")) {
+			if (!r.war) {
+				war(server, from, to, r);
+			}
+
+			if (met != null) {
+				com.dinglebob.drifter.social.ChatLines.speak(met, line(met, "envoy.war_reply", "leader", fromLeader, "town", from.name, "them", to.name));
+			}
+
+			return;
+		}
+
+		if (mission.kind.equals("TERMS") || mission.kind.equals("DEMAND")) {
+			if (!r.war) {
+				return;
+			}
+
+			// Their leader: weary of it, careful, or paid, it takes it; aggressive, it fights on.
+			boolean offer = mission.kind.equals("TERMS");
+			double lean = offer ? 0.35 + 0.3 * trait(theirLeader, "caution") - 0.3 * trait(theirLeader, "aggression") + (mission.amount > 0 ? 0.25 : 0.0)
+				: -0.15 + 0.2 * trait(theirLeader, "caution") - 0.2 * trait(theirLeader, "aggression");
+			boolean yes = server.overworld().getRandom().nextDouble() < lean + weariness(to, r, theirLeader, day) / 100.0;
+			if (yes) {
+				// Who pays whom: the offering side its reparations; the demanded-of side what was demanded.
+				peace(server, from, to, r, offer ? from : to, mission.amount);
+			} else {
+				Chronicle.add(server, "war", to.name + " turned down " + from.name + "'s " + (offer ? "offer of peace" : "demand") + ": the war goes on");
+			}
+
+			if (met != null) {
+				com.dinglebob.drifter.social.ChatLines.speak(met, line(met, yes ? "envoy.peace_yes" : "envoy.peace_no", "leader", fromLeader, "town", from.name,
+					"them", to.name, "amount", mission.amount));
+			}
+
+			return;
+		}
+
 		if (mission.kind.equals("INSULT")) {
 			r.insults++;
 			incident(server, from, to, -12.0, "insult");
@@ -497,11 +644,18 @@ final class Diplomacy {
 		}
 
 		Pact pact = Pact.valueOf(mission.kind);
+		// (Theirs already: a second envoy with the same offer; nothing new.)
+		if (r.pacts.contains(pact) || r.war) {
+			return;
+		}
+
 		double lean = switch (pact) {
 			case TRADE -> 0.3 + 0.3 * (trait(theirLeader, "greed") - 0.5);
 			case PEACE -> 0.35 + 0.3 * (trait(theirLeader, "caution") - 0.5) - 0.3 * (trait(theirLeader, "aggression") - 0.5);
 			case ALLIANCE -> -0.2 + 0.3 * (trait(theirLeader, "sociability") - 0.5);
 		};
+		// (A town known to have broken its word is trusted less with a pact.)
+		lean -= 0.15 * brokenWord.getOrDefault(from.id, 0);
 		boolean yes = server.overworld().getRandom().nextDouble() < lean + r.standing / 100.0;
 		if (yes) {
 			r.pacts.add(pact);
@@ -534,6 +688,209 @@ final class Diplomacy {
 	}
 
 	// ---------------------------------------------------------------------------------------------
+	// War and peace (part 2)
+	// ---------------------------------------------------------------------------------------------
+
+	/**
+	 * How tired a town is of its war with the other: the days, its dead (less the other's), and its leader's nature
+	 * (careful, more; aggressive or vengeful, less).
+	 */
+	static double weariness(Town town, Relation r, @Nullable DrifterEntity leader, long day) {
+		if (!r.war) {
+			return 0.0;
+		}
+
+		Town other = byId(r.other(town.id).toString());
+		int theirs = other == null ? 0 : r.losses(other.id);
+		return 6.0 * Math.max(0, day - r.warSinceDay) + 15.0 * r.losses(town.id) - 5.0 * theirs + 30.0 * (trait(leader, "caution") - 0.5)
+			- 30.0 * (trait(leader, "aggression") - 0.5) - 10.0 * trait(leader, "vengefulness");
+	}
+
+	/** {@code attacker} declares war on {@code defender}: its word broken if they were at peace; their allies called in. */
+	static void war(MinecraftServer server, Town attacker, Town defender, Relation r) {
+		long day = Chronicle.day(server);
+		boolean brokePeace = r.pacts.contains(Pact.PEACE) || r.pacts.contains(Pact.ALLIANCE);
+		Chronicle.add(server, "war", attacker.name + " declared war on " + defender.name + (brokePeace ? ", breaking its word" : ""));
+		begin(server, attacker, defender, r, day, "war");
+		if (brokePeace) {
+			brokenWord.merge(attacker.id, 1, Integer::sum);
+			for (Relation other : of(attacker)) {
+				Town third = byId(other.other(attacker.id).toString());
+				if (third != null && third != defender) {
+					incident(server, attacker, third, BROKEN_WORD, "broken_word");
+				}
+			}
+		}
+
+		// Their allies: the defender's stand by it unless their leader's too careful (then they're resented for it); the
+		// attacker's join if theirs is spoiling for it.
+		for (Relation ally : of(defender)) {
+			Town friend = byId(ally.other(defender.id).toString());
+			if (friend == null || friend == attacker || !ally.pacts.contains(Pact.ALLIANCE)) {
+				continue;
+			}
+
+			DrifterEntity theirLeader = friend.leader == null ? null : TownFounding.loaded(server, friend.leader);
+			if (trait(theirLeader, "caution") < 0.7) {
+				Relation against = meet(server, friend, attacker, 0.0, null);
+				if (!against.war) {
+					Chronicle.add(server, "war", friend.name + " stood by its ally " + defender.name + ": at war with " + attacker.name);
+					begin(server, friend, attacker, against, day, "war");
+				}
+			} else {
+				Chronicle.add(server, "war", friend.name + " stayed out of " + defender.name + "'s war");
+				incident(server, friend, defender, -15.0, "let_down");
+			}
+		}
+
+		for (Relation ally : of(attacker)) {
+			Town friend = byId(ally.other(attacker.id).toString());
+			if (friend == null || friend == defender || !ally.pacts.contains(Pact.ALLIANCE)) {
+				continue;
+			}
+
+			DrifterEntity theirLeader = friend.leader == null ? null : TownFounding.loaded(server, friend.leader);
+			if (trait(theirLeader, "aggression") >= 0.5) {
+				Relation against = meet(server, friend, defender, 0.0, null);
+				if (!against.war) {
+					Chronicle.add(server, "war", friend.name + " joined its ally " + attacker.name + "'s war on " + defender.name);
+					begin(server, friend, defender, against, day, "war");
+				}
+			}
+		}
+
+		Towns.save(server);
+	}
+
+	private static void begin(MinecraftServer server, Town x, Town y, Relation r, long day, String news) {
+		r.pacts.clear();
+		r.war = true;
+		r.warSinceDay = day;
+		r.startedBy = x.id;
+		r.lossesA = 0;
+		r.lossesB = 0;
+		r.standing = Math.min(r.standing, FOR_WAR);
+		r.news = news;
+		r.newsDay = day;
+		if (x.group != null && y.group != null) {
+			DrifterApi.setWarManaged(x.group, true);
+			DrifterApi.setWarManaged(y.group, true);
+			DrifterApi.declareWar(server, x.group, y.group);
+		}
+	}
+
+	/** The war over: a peace pact, a truce, and {@code payer} owing the other this much (0: a white peace). */
+	static void peace(MinecraftServer server, Town x, Town y, Relation r, @Nullable Town payer, int amount) {
+		long day = Chronicle.day(server);
+		r.war = false;
+		r.truceUntilDay = day + TRUCE_DAYS;
+		r.pacts.add(Pact.PEACE);
+		r.standing = Math.max(r.standing, -20.0);
+		r.news = "peace_made";
+		r.newsDay = day;
+		if (payer != null && amount > 0) {
+			r.owedBy = payer.id;
+			r.owed += amount;
+		}
+
+		if (x.group != null && y.group != null) {
+			DrifterApi.makePeace(server, x.group, y.group, TRUCE_DAYS);
+		}
+
+		Town other = payer == x ? y : x;
+		Chronicle.add(server, "war", x.name + " and " + y.name + " made peace after " + Math.max(1, day - r.warSinceDay + 1) + " days"
+			+ (payer != null && amount > 0 ? " (" + payer.name + " pays " + other.name + " " + amount + " emeralds)" : " (neither side paying)"));
+		Towns.save(server);
+	}
+
+	/**
+	 * What its peaces cost it, paid from its till, and what it's owed, put in its till, when its till is loaded: real
+	 * emeralds out of one and into the other, never made.
+	 */
+	private static void pay(MinecraftServer server, Town town) {
+		for (Relation r : of(town)) {
+			Town other = byId(r.other(town.id).toString());
+			if (other == null || r.owedBy == null) {
+				continue;
+			}
+
+			if (r.owedBy.equals(town.id) && r.owed > 0) {
+				int taken = till(server, town, -r.owed);
+				if (taken > 0) {
+					r.owed -= taken;
+					r.inTransit += taken;
+					Chronicle.add(server, "war", town.name + " paid " + taken + " emeralds toward its peace with " + other.name
+						+ (r.owed > 0 ? " (" + r.owed + " still owed)" : " (all paid)"));
+					Towns.save(server);
+				}
+			} else if (!r.owedBy.equals(town.id) && r.inTransit > 0) {
+				int put = till(server, town, r.inTransit);
+				if (put > 0) {
+					r.inTransit -= put;
+					if (r.owed == 0 && r.inTransit == 0) {
+						r.owedBy = null;
+					}
+
+					Towns.save(server);
+				}
+			}
+		}
+	}
+
+	/** Emeralds into its till (count over 0) or out of it (under 0), as many as there are, or room for, if it's loaded. */
+	private static int till(MinecraftServer server, Town town, int count) {
+		BlockPos till = town.till();
+		var level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+			net.minecraft.resources.ResourceLocation.parse(town.dimension)));
+		if (till == null || level == null || !level.isLoaded(till) || !(level.getBlockEntity(till) instanceof net.minecraft.world.Container chest)) {
+			return 0;
+		}
+
+		int done = 0;
+		if (count < 0) {
+			for (int i = 0; i < chest.getContainerSize() && done < -count; i++) {
+				var stack = chest.getItem(i);
+				if (stack.is(net.minecraft.world.item.Items.EMERALD)) {
+					int take = Math.min(stack.getCount(), -count - done);
+					stack.shrink(take);
+					done += take;
+				}
+			}
+		} else {
+			for (int i = 0; i < chest.getContainerSize() && done < count; i++) {
+				var stack = chest.getItem(i);
+				if (stack.isEmpty()) {
+					int put = Math.min(64, count - done);
+					chest.setItem(i, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.EMERALD, put));
+					done += put;
+				} else if (stack.is(net.minecraft.world.item.Items.EMERALD) && stack.getCount() < 64) {
+					int put = Math.min(64 - stack.getCount(), count - done);
+					stack.grow(put);
+					done += put;
+				}
+			}
+		}
+
+		if (done > 0) {
+			chest.setChanged();
+		}
+
+		return done;
+	}
+
+	/** The town whose group this is, or null. */
+	@Nullable
+	static Town townOfGroup(UUID group) {
+		for (Town town : Towns.all()) {
+			if (group.equals(town.group)) {
+				return town;
+			}
+		}
+
+		return null;
+	}
+
+	// ---------------------------------------------------------------------------------------------
 	// For the rest of the addon
 	// ---------------------------------------------------------------------------------------------
 
@@ -548,6 +905,11 @@ final class Diplomacy {
 		Relation foe = null;
 		Relation latest = null;
 		for (Relation r : of(town)) {
+			if (r.war && byId(r.other(town.id).toString()) != null) {
+				flags.add("at_war");
+				words.put("enemy", byId(r.other(town.id).toString()).name);
+			}
+
 			if (r.pacts.contains(Pact.ALLIANCE) && (friend == null || r.standing > friend.standing)) {
 				friend = r;
 			}
@@ -663,6 +1025,21 @@ final class Diplomacy {
 			one.putInt("Insults", r.insults);
 			one.putString("News", r.news);
 			one.putLong("NewsDay", r.newsDay);
+			one.putBoolean("War", r.war);
+			one.putLong("WarSinceDay", r.warSinceDay);
+			if (r.startedBy != null) {
+				one.putUUID("StartedBy", r.startedBy);
+			}
+
+			one.putInt("LossesA", r.lossesA);
+			one.putInt("LossesB", r.lossesB);
+			one.putLong("TruceUntilDay", r.truceUntilDay);
+			if (r.owedBy != null) {
+				one.putUUID("OwedBy", r.owedBy);
+			}
+
+			one.putInt("Owed", r.owed);
+			one.putInt("InTransit", r.inTransit);
 			list.add(one);
 		}
 
@@ -679,10 +1056,14 @@ final class Diplomacy {
 			one.putLong("ArriveAt", m.arriveAt);
 			one.putLong("BackAt", m.backAt);
 			one.putBoolean("Answered", m.answered);
+			one.putInt("Amount", m.amount);
 			out.add(one);
 		}
 
 		tag.put("Missions", out);
+		CompoundTag broken = new CompoundTag();
+		brokenWord.forEach((id, n) -> broken.putInt(id.toString(), n));
+		tag.put("BrokenWord", broken);
 	}
 
 	static void load(CompoundTag tag) {
@@ -705,7 +1086,25 @@ final class Diplomacy {
 			r.insults = one.getInt("Insults");
 			r.news = one.getString("News");
 			r.newsDay = one.getLong("NewsDay");
+			r.war = one.getBoolean("War");
+			r.warSinceDay = one.contains("WarSinceDay") ? one.getLong("WarSinceDay") : -1;
+			r.startedBy = one.hasUUID("StartedBy") ? one.getUUID("StartedBy") : null;
+			r.lossesA = one.getInt("LossesA");
+			r.lossesB = one.getInt("LossesB");
+			r.truceUntilDay = one.contains("TruceUntilDay") ? one.getLong("TruceUntilDay") : -100;
+			r.owedBy = one.hasUUID("OwedBy") ? one.getUUID("OwedBy") : null;
+			r.owed = one.getInt("Owed");
+			r.inTransit = one.getInt("InTransit");
 			relations.put(key(r.a, r.b), r);
+		}
+
+		brokenWord.clear();
+		CompoundTag broken = tag.getCompound("BrokenWord");
+		for (String key : broken.getAllKeys()) {
+			try {
+				brokenWord.put(UUID.fromString(key), broken.getInt(key));
+			} catch (IllegalArgumentException ignored) {
+			}
 		}
 
 		for (Tag t : tag.getList("Missions", Tag.TAG_COMPOUND)) {
@@ -714,6 +1113,7 @@ final class Diplomacy {
 			Mission m = new Mission(one.getUUID("From"), one.getUUID("To"), one.getString("Kind"), one.getUUID("Envoy"), one.getString("EnvoyName"),
 				one.getLong("SentAt"), one.getLong("ArriveAt"), one.getLong("BackAt"));
 			m.answered = one.getBoolean("Answered");
+			m.amount = one.getInt("Amount");
 			missions.add(m);
 		}
 	}

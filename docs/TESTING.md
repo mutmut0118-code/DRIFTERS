@@ -1473,6 +1473,17 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       ("hey. Aby wants to trade with Bby. deal?") and gets an answer ("ok, you've got a deal" / "not interested"), then
       walks home ("X came back to Aby from Bby"). Without the debug commands, leaders send envoys on their own every few
       days as they get on (or don't).
+- [ ] War (0.22.40). Two towns 150-300 blocks apart, then in one: `/drifterciv relations war <other>` (debug: at once;
+      without it, a leader declares war by envoy when they're hostile and it's aggressive). Watch from between them:
+      the attacker's leader rallies its people ("rallying ... for a raid"), they march on the other's store, fight and
+      loot it; the other side raids back. The chronicle: "X of A fell in the war with B (killed by Y)".
+      `/drifterciv relations` shows the war, since when and each side's dead.
+- [ ] Allies: make two towns allies first (`/drifterciv relations set B 80`, then `envoy B peace`, a few days later
+      `envoy B alliance`); a third town declaring war on one brings the other in ("stood by its ally").
+- [ ] Peace: after some days and deaths a side sends terms ("enough fighting. Aby wants peace" or reparations); a
+      winner may demand emeralds. Peace: a truce for a week, a peace pact, the payment taken from the payer's till into
+      the other's as the emeralds are there (`/drifterciv relations`: "owes"). To see it now: `envoy <other> terms`.
+- [ ] Breaking a peace by declaring war: the other towns hear ("broke its word"), and trust it less.
 - [ ] People talk about it: the trade deal, the peace, an insult ("did you hear what got said between us and Bby?"), a
       town they can't stand.
 - [ ] A new town (0.22.38): the leader wears a gold helmet; two guards wear full iron with a shield (and a bow); the

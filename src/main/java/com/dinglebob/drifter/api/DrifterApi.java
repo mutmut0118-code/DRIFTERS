@@ -822,6 +822,26 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.DrifterWars.setTension(a, b, tension, server.overworld().getGameTime());
 	}
 
+	/** Its group's wars run by another mod (a town's): no truce of their own (see {@link #declareWar}, {@link #makePeace}). */
+	public static void setWarManaged(UUID group, boolean managed) {
+		com.dinglebob.drifter.world.DrifterWars.setManaged(group, managed);
+	}
+
+	/** Where its raids go for groups another mod knows the places of (a town's store); null from it: as usual. */
+	public static void setRaidTargets(@Nullable java.util.function.BiFunction<UUID, UUID, net.minecraft.core.BlockPos> targets) {
+		com.dinglebob.drifter.world.DrifterWars.setRaidTargets(targets);
+	}
+
+	/** Two groups at war (fighting on sight, raids). */
+	public static void declareWar(MinecraftServer server, UUID a, UUID b) {
+		com.dinglebob.drifter.world.DrifterWars.setTension(a, b, com.dinglebob.drifter.world.DrifterWars.WAR + 10.0, server.overworld().getGameTime());
+	}
+
+	/** Two groups at peace, with a truce of this many game days. */
+	public static void makePeace(MinecraftServer server, UUID a, UUID b, int days) {
+		com.dinglebob.drifter.world.DrifterWars.peace(server, a, b, 24000L * days);
+	}
+
 	/** The trade run it's on, or null. */
 	@Nullable
 	public static TradeRun tradeRun(DrifterEntity drifter) {

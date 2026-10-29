@@ -74,6 +74,8 @@ battle going on now. `DrifterApi.groupById(id)`: a group by its id, as events gi
 `DrifterApi.setErrand(drifter, errand)` / `errand(drifter)`: an errand to another town (`Errand`: there, its name, home,
 whom to meet and where they live, the message; `arrived`, `back`, `told`, `gaveUp`), walked by `ErrandGoal` (0.22.39).
 `DrifterApi.tension(a, b)` / `setTension(server, a, b, t)`: two groups' feud tension (0.22.39).
+`DrifterApi.setWarManaged(group, on)`, `declareWar(server, a, b)`, `makePeace(server, a, b, days)`,
+`setRaidTargets((attackers, defenders) -> pos)`: wars run by the addon (0.22.40).
 `DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of

@@ -1255,6 +1255,83 @@
       "helper": [
         "...that's not very nice"
       ]
+    },
+    "envoy.war": {
+      "any": [
+        "{leader} says this means war",
+        "{town} is done talking. it's war",
+        "message from {leader}: war. get ready",
+        "you had your chance. {town} declares war on {them}"
+      ],
+      "pvp_sweat": [
+        "{leader} says gg in advance. it's war"
+      ],
+      "bandit": [
+        "war. {leader} says lock your doors"
+      ]
+    },
+    "envoy.war_reply": {
+      "any": [
+        "then come and get us",
+        "bring it",
+        "you'll regret this",
+        "tell {leader} we'll be waiting",
+        "fine. war it is"
+      ],
+      "helper": [
+        "...why. ok. tell {leader} we're ready"
+      ],
+      "hermit": [
+        "leave."
+      ]
+    },
+    "envoy.terms": {
+      "any": [
+        "{leader} wants this over. {amount} emeralds and it's done",
+        "we're done fighting. {town} pays {amount} emeralds for peace",
+        "peace? {leader} offers {amount} emeralds"
+      ]
+    },
+    "envoy.terms_white": {
+      "any": [
+        "{leader} says let's end this. no payment either way",
+        "enough fighting. {town} wants peace",
+        "{leader} sent me: peace?",
+        "nobody's winning this. peace?"
+      ]
+    },
+    "envoy.demand": {
+      "any": [
+        "{leader} says pay {amount} emeralds and the war ends",
+        "{amount} emeralds. that's the price of peace",
+        "you're losing. {amount} emeralds and we stop",
+        "{leader} wants {amount} emeralds. then it's over"
+      ],
+      "bandit": [
+        "{amount} emeralds or we keep coming"
+      ]
+    },
+    "envoy.peace_yes": {
+      "any": [
+        "fine. it's over",
+        "deal. no more fighting",
+        "ok. tell {leader} it's peace",
+        "finally. yes"
+      ],
+      "pvp_sweat": [
+        "gg. peace"
+      ]
+    },
+    "envoy.peace_no": {
+      "any": [
+        "no. we fight on",
+        "not a chance",
+        "tell {leader} we're not done",
+        "never"
+      ],
+      "pvp_sweat": [
+        "nah we're winning this"
+      ]
     }
   }
 }

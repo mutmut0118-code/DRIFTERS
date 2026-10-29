@@ -2710,6 +2710,172 @@
           ]
         }
       ]
+    },
+    {
+      "id": "at_war_talk",
+      "weight": 4,
+      "needs": [
+        "a:at_war",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "this war with {a.enemy} better end soon",
+            "keep your sword on you. {a.enemy} could come any time",
+            "we'll beat {a.enemy}",
+            "i hate this war",
+            "anyone seen {a.enemy}'s lot about?"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "we'll win",
+            "i just want it over",
+            "stay inside after dark",
+            "they'll pay",
+            "same"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_war_talk",
+      "weight": 6,
+      "needs": [
+        "a:town_war",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "it's war with {a.other}",
+            "did you hear? war with {a.other}",
+            "{a.other}... war. great",
+            "war. actual war with {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "about time",
+            "this is bad",
+            "get your armour on",
+            "we'll see who wins"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_fell_talk",
+      "weight": 6,
+      "needs": [
+        "a:town_fell",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "we lost someone to {a.other}",
+            "{a.other} got another one of ours",
+            "another one gone. this war..."
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "...",
+            "they'll pay for that",
+            "rip",
+            "how many more"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_peace_made_talk",
+      "weight": 5,
+      "needs": [
+        "a:town_peace_made",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "the war with {a.other} is over",
+            "peace with {a.other}. finally",
+            "it's over. no more war"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "thank god",
+            "W",
+            "for now",
+            "never again"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_broken_word_talk",
+      "weight": 4,
+      "needs": [
+        "a:town_broken_word",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "{a.other} broke its word. don't trust them",
+            "{a.other} went back on a peace. snakes",
+            "never make a deal with {a.other}"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "noted",
+            "always knew it",
+            "wow",
+            "lol snakes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_let_down_talk",
+      "weight": 4,
+      "needs": [
+        "a:town_let_down",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "some ally {a.other} turned out to be",
+            "{a.other} left us to it",
+            "{a.other} didn't show up when it mattered"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "remember that",
+            "cowards",
+            "figures",
+            "we don't need them"
+          ]
+        }
+      ]
     }
   ]
 }
