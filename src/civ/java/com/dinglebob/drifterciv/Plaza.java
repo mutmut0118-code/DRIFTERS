@@ -420,7 +420,7 @@ final class Plaza {
 		for (int i = all.size() - 1; i >= 0; i--) {
 			String text = all.get(i).text();
 			if (text.contains(town.name)) {
-				String said = "Day " + all.get(i).day() + ": " + text.replace("The people of " + town.name + " ", "").replace(" of " + town.name, "")
+				String said = Chronicle.dayName(all.get(i).day()) + ": " + text.replace("The people of " + town.name + " ", "").replace(" of " + town.name, "")
 					.replace(" in " + town.name, "");
 				List<String> lines = new ArrayList<>();
 				StringBuilder line = new StringBuilder();

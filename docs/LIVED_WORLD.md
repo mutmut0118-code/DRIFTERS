@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3) |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4); next A7, cities with A10 |
 | B | Trades and services instead of villager trading | Not started |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -638,4 +638,21 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   village might have"). `DrifterApi.randomName`. Debug: `/drifterciv town ruin` (made here at once). Tested in the
   client: made in about 1 to 1.7 s of steps; a screenshot of fallen-in roofs (another round of screenshots came out
   blank, the land not yet drawn after the teleport: to look at again).
-  - Next: A5 (a town's past written first and the town made to match), then cities with A10.
+- **0.23.4: A5 (a town with a past), A6's touches, A9's Bountiful board.**
+  - A town made by world generation (or `town spawn`) has a past, written into the chronicle on the days it happened
+    (before the world's first day if need be: "20 days before day 1"; `Chronicle.addPast`, `dayName`): founded 20 to 60
+    days back by its leader and a friend, its first houses going up, its leader chosen, how many houses it had by
+    halfway. And things in it to find that match: half the time someone left for good and their house stands empty (its
+    household never moved in, its chests bare); often a newcomer arrived two days ago and its house is only a third built
+    (its top taken off; it builds the rest over the next six days with what it gathers: `DrifterApi.stillBuilding`, the
+    raid mending's way); often someone died (a grave west of the plaza with their name, the death in the chronicle with
+    how, and its people now and then saying "still think about X sometimes": flag `town_past_dead`, word `dead`, saved
+    with the town); sometimes a hard winter (a corner of a field gone to coarse dirt).
+  - A6: a sign with its owner's name by each door path, facing the road; a third of households keep a named dog or cat by
+    the door, tamed to them.
+  - A9: with Bountiful installed, its bounty board on each town's plaza (its boards were in villages, and there are none).
+  - Tested on Tectonic (headless, three towns): each with its past in the chronicle (founded 28 to 54 days before day 1; a
+    drowning, a creeper, a fall into a ravine; two who left, two newcomers still building, a hard winter), every place
+    walked to; tree tidying in 20-block pieces now (a taiga town's took 120 ms a piece at 32): no step over 50 ms in two of
+    them, 45 ms at most.
+  - Next: A7 (what villages did, another way: raids on towns, the wandering merchant), then cities with A10.

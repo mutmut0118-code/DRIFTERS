@@ -380,6 +380,32 @@ public final class Chronicle {
 
 	/** A line for a list: "Day 3: Ann made a home near 120, -40". */
 	static String line(Entry entry) {
-		return String.format(Locale.ROOT, "Day %d: %s", entry.day(), entry.text());
+		return dayName(entry.day()) + ": " + entry.text();
+	}
+
+	/** "Day 12", or for a day before the world's first (a town's past: milestone 23 A5), "20 days before day 1". */
+	static String dayName(long day) {
+		return day >= 1 ? "Day " + day : (1 - day) + (1 - day == 1 ? " day" : " days") + " before day 1";
+	}
+
+	/**
+	 * Something that happened {@code daysAgo} days before today (a town's past, written when it's made: A5), put in among
+	 * the rest by its day.
+	 */
+	static void addPast(@Nullable MinecraftServer server, String kind, String text, long daysAgo) {
+		if (server == null) {
+			return;
+		}
+
+		long day = day(server) - daysAgo;
+		Entry entry = new Entry(day, server.overworld().getGameTime() - daysAgo * 24000L, kind, text);
+		int at = entries.size();
+		while (at > 0 && entries.get(at - 1).day() > day) {
+			at--;
+		}
+
+		entries.add(at, entry);
+		dirty = true;
+		DrifterCivilizations.LOGGER.info("[chronicle] {}: {}", dayName(day), text);
 	}
 }

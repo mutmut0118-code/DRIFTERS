@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (83 topics, 1672 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (84 topics, 1681 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1754,6 +1754,13 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 1. **a**: saw the new banner on the plaza? · {a.nation}'s banner is up in {a.other} · nice banner
 2. **b**: looks good · it's a banner · fancy · makes it real i guess
+
+#### town past dead talk
+
+*Needs:* a:town_past_dead, !strangers
+
+1. **a**: still think about {a.dead} sometimes · {a.dead} would've liked this · miss {a.dead} · walked past {a.dead}'s grave today
+2. **b**: yeah · me too · o7 · they really would have · ...
 
 ## 7. Drifters talking to you
 

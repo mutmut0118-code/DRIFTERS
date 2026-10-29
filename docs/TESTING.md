@@ -1480,6 +1480,11 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       are hamlets of 2 to 5 houses; most towns 8 to 16.
 - [ ] Now and then, the ruins of a town (0.23.3): roofs fallen in, no doors, empty chests, graves by the plaza with names
       on signs, nobody there. To see one now: `/drifterciv town ruin` where you stand.
+- [ ] A town's past (0.23.4): `/drifterciv chronicle` in a new town tells its history from weeks before day 1 (founded
+      by..., houses built, its leader chosen, maybe someone who died, someone who left, a hard winter). Find them in the
+      town: the grave west of the plaza with the name on it, the empty house, a house only partly built that its owner
+      finishes over the next days. Names on signs by the doors; some houses have a named dog or cat. With Bountiful, a
+      bounty board on the plaza.
 
 ## Beds in town houses (new, 0.22.34)
 

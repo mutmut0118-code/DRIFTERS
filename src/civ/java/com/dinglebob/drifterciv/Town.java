@@ -88,6 +88,9 @@ public final class Town {
 
 	public final UUID id;
 	public String name;
+	/** Someone it lost before it was found (a town's past: milestone 23 A5): their name, for its people's talk. */
+	@Nullable
+	public String pastDead;
 	@Nullable
 	public UUID group;
 	public final String dimension;
@@ -218,6 +221,10 @@ public final class Town {
 		CompoundTag tag = new CompoundTag();
 		tag.putUUID("Id", this.id);
 		tag.putString("Name", this.name);
+		if (this.pastDead != null) {
+			tag.putString("PastDead", this.pastDead);
+		}
+
 		if (this.group != null) {
 			tag.putUUID("Group", this.group);
 		}
@@ -338,6 +345,7 @@ public final class Town {
 	static Town load(CompoundTag tag) {
 		Town town = new Town(tag.getUUID("Id"), tag.getString("Name"), tag.hasUUID("Group") ? tag.getUUID("Group") : null, tag.getString("Dimension"),
 			BlockPos.of(tag.getLong("Center")), tag.getLong("FoundedDay"), tag.getBoolean("Spawned"));
+		town.pastDead = tag.contains("PastDead") ? tag.getString("PastDead") : null;
 		for (Tag t : tag.getList("Plots", Tag.TAG_COMPOUND)) {
 			town.plots.add(Plot.load((CompoundTag)t));
 		}

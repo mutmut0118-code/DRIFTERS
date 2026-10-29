@@ -301,6 +301,17 @@ public final class DrifterApi {
 	/** Another mod makes its own towns where villages would be (Drifter: Civilizations, milestone 23). */
 	private static volatile boolean townsForVillages;
 
+	/**
+	 * Its house isn't finished: for the next {@code days} it builds the rest of its plan (what's missing of it) with what it
+	 * gathers (a town's newcomer still putting its house up: milestone 23 A5; a house a raid wrecked mends the same way).
+	 */
+	public static void stillBuilding(DrifterEntity drifter, int days) {
+		Home home = drifter.getDrifterBrain().home();
+		if (home != null) {
+			home.mendUntil = drifter.level().getGameTime() + 24000L * days;
+		}
+	}
+
 	/** A name as a Drifter would have one (for a grave, a sign: the same lists Drifters' names come from). */
 	public static String randomName(MinecraftServer server, net.minecraft.util.RandomSource random) {
 		return com.dinglebob.drifter.identity.Usernames.generate(random, server);

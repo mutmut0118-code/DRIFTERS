@@ -672,7 +672,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		int lines = 0;
 		long day = -1;
 		for (Chronicle.Entry entry : Chronicle.all()) {
-			String text = (entry.day() != day ? "Day " + entry.day() + "\n" : "") + entry.text() + "\n";
+			String text = (entry.day() != day ? Chronicle.dayName(entry.day()) + "\n" : "") + entry.text() + "\n";
 			day = entry.day();
 			// About 14 lines a page; a long line takes two or three.
 			int takes = 1 + text.length() / 19;
@@ -685,8 +685,8 @@ public final class DrifterCivilizations implements ModInitializer {
 				}
 
 				// (A new page names its day again.)
-				if (!text.startsWith("Day ")) {
-					text = "Day " + entry.day() + "\n" + text;
+				if (!text.startsWith(Chronicle.dayName(entry.day()))) {
+					text = Chronicle.dayName(entry.day()) + "\n" + text;
 				}
 			}
 

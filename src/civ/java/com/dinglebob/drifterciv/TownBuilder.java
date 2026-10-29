@@ -296,6 +296,11 @@ public final class TownBuilder {
 		private Style look = Style.PLAINS;
 		private int lamps;
 		private int torches;
+		/** Its past (A5): how long ago it was founded; the house left empty (its household gone) and the one still going up. */
+		private int foundedAgo;
+		private int emptyHouse = -1;
+		private int buildingHouse = -1;
+		private final List<String> owners = new ArrayList<>();
 
 		Job(ServerLevel level, int cx, int cz, int households, @Nullable String wanted, boolean world, boolean ruin) {
 			this.level = level;
@@ -726,6 +731,8 @@ public final class TownBuilder {
 
 		/** The area's pieces, this wide each way, for the steps that go over all of it. */
 		private static final int PIECE = 32;
+		/** Smaller for the trees (a wooded town's took 120 ms a piece at 32: found in a taiga town). */
+		private static final int TREE_PIECE = 20;
 
 		private void areaAndTrees() {
 			int minX = this.cx - PLAZA;
@@ -749,7 +756,7 @@ public final class TownBuilder {
 			}
 
 			this.area = new net.minecraft.world.level.levelgen.structure.BoundingBox(minX - 6, minY - 12, minZ - 6, maxX + 6, maxY + 16, maxZ + 6);
-			for (var piece : this.pieces()) {
+			for (var piece : this.pieces(TREE_PIECE)) {
 				this.then("trees", () -> {
 					DrifterApi.tidyTrees(this.level, piece);
 					GROUND.clear();
@@ -823,8 +830,14 @@ public final class TownBuilder {
 			}
 
 			int want = 2 + this.random.nextInt(3);
-			int made = 0;
-			for (int tries = 0; tries < 60 && made < want; tries++) {
+			for (int made = 0; made < want; made++) {
+				this.grave(DrifterApi.randomName(this.server, this.random));
+			}
+		}
+
+		/** A grave west of the plaza: a mound of coarse dirt and a sign ("here lies", the name, "rip" or "o7"). */
+		private boolean grave(String name) {
+			for (int tries = 0; tries < 40; tries++) {
 				int x = this.cx - PLAZA - 3 - this.random.nextInt(8);
 				int z = this.cz + this.random.nextInt(2 * PLAZA + 1) - PLAZA;
 				if (this.built.stream().anyMatch(rect -> rect.away(x, z) <= 1) || this.roadRects.stream().anyMatch(rect -> rect.away(x, z) <= 1)) {
@@ -833,7 +846,7 @@ public final class TownBuilder {
 
 				BlockPos head = onGround(this.level, x, z);
 				BlockPos foot = onGround(this.level, x, z + 1);
-				if (head.getY() != foot.getY() || !this.level.getBlockState(head).isAir() || wet(this.level, x, z)) {
+				if (head.getY() != foot.getY() || !this.level.getBlockState(head).isAir() || !this.level.getBlockState(foot).isAir() || wet(this.level, x, z)) {
 					continue;
 				}
 
@@ -843,22 +856,24 @@ public final class TownBuilder {
 				if (this.level.getBlockEntity(head) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
 					var text = new net.minecraft.world.level.block.entity.SignText()
 						.setMessage(0, Component.literal("here lies"))
-						.setMessage(1, Component.literal(DrifterApi.randomName(this.server, this.random)))
+						.setMessage(1, Component.literal(name))
 						.setMessage(3, Component.literal(this.random.nextFloat() < 0.5F ? "rip" : "o7"));
 					sign.setText(text, true);
 					sign.setText(text, false);
 				}
 
-				made++;
+				return true;
 			}
+
+			return false;
 		}
 
-		private List<net.minecraft.world.level.levelgen.structure.BoundingBox> pieces() {
+		private List<net.minecraft.world.level.levelgen.structure.BoundingBox> pieces(int size) {
 			List<net.minecraft.world.level.levelgen.structure.BoundingBox> list = new ArrayList<>();
-			for (int x = this.area.minX(); x <= this.area.maxX(); x += PIECE) {
-				for (int z = this.area.minZ(); z <= this.area.maxZ(); z += PIECE) {
-					list.add(new net.minecraft.world.level.levelgen.structure.BoundingBox(x, this.area.minY(), z, Math.min(x + PIECE - 1, this.area.maxX()),
-						this.area.maxY(), Math.min(z + PIECE - 1, this.area.maxZ())));
+			for (int x = this.area.minX(); x <= this.area.maxX(); x += size) {
+				for (int z = this.area.minZ(); z <= this.area.maxZ(); z += size) {
+					list.add(new net.minecraft.world.level.levelgen.structure.BoundingBox(x, this.area.minY(), z, Math.min(x + size - 1, this.area.maxX()),
+						this.area.maxY(), Math.min(z + size - 1, this.area.maxZ())));
 				}
 			}
 
@@ -876,6 +891,16 @@ public final class TownBuilder {
 				this.storeRect.x1(), this.storeBase + 8, this.storeRect.z1());
 			this.plazaBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(this.plaza.x0() - 2, this.y0 - 3, this.plaza.z0() - 2,
 				this.plaza.x1() + 2, this.y0 + 5, this.plaza.z1() + 2);
+			// Its past (A5): one house's people gone for good (left empty), the newest still going up.
+			this.foundedAgo = 20 + this.random.nextInt(41);
+			if (this.houses.size() >= 4 && this.random.nextFloat() < 0.5F) {
+				this.emptyHouse = this.houses.size() - 2;
+			}
+
+			if (this.houses.size() >= 3 && this.random.nextFloat() < 0.6F) {
+				this.buildingHouse = this.houses.size() - 1;
+			}
+
 			for (int i = 0; i < this.houses.size(); i++) {
 				int index = i;
 				this.then("household", () -> this.household(index));
@@ -887,10 +912,30 @@ public final class TownBuilder {
 		private void household(int i) {
 			DrifterApi.PlacedHouse house = this.houses.get(i);
 			Town.Plot plot = this.plots.get(i);
+			if (i == this.emptyHouse) {
+				this.owners.add(DrifterApi.randomName(this.server, this.random));
+				return;
+			}
+
 			BlockPos stand = doorstep(this.level, house, plot);
 			DrifterEntity drifter = DrifterApi.spawn(this.level, stand, null);
 			if (drifter == null) {
+				this.owners.add("");
 				return;
+			}
+
+			this.owners.add(drifter.getName().getString());
+			nameSign(this.level, house, plot.front, drifter.getName().getString());
+			this.pet(drifter, stand);
+			// (The newest house, its top not built yet: its owner puts the rest up over the next days, with what it gathers.)
+			if (i == this.buildingHouse) {
+				var box = house.box();
+				int keep = box.minY() + Math.max(3, box.getYSpan() / 3);
+				for (BlockPos at : BlockPos.betweenClosed(box.minX(), keep, box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+					if (!this.level.getBlockState(at).isAir()) {
+						set(this.level, at.immutable(), Blocks.AIR.defaultBlockState());
+					}
+				}
 			}
 
 			// (No Bandits in a town: the user, 2026-10-28, "kinda like a skyrim bandit".)
@@ -908,6 +953,11 @@ public final class TownBuilder {
 			DrifterApi.knowsBox(drifter, this.storeBox);
 			DrifterApi.knowsBox(drifter, this.plazaBox);
 			this.people.add(drifter);
+			if (i == this.buildingHouse) {
+				DrifterApi.stillBuilding(drifter, 6);
+				return;
+			}
+
 			// A house with more than one room takes more households: someone in each other room (user, 2026-10-23: "that way
 			// there is more citizens without having more houses").
 			plot.room = DrifterApi.households(this.level, house.planId(), house.origin(), house.rotation());
@@ -978,15 +1028,110 @@ public final class TownBuilder {
 				}
 			}
 
+			this.past(town, group);
 			noticeBoard(this.level, this.board, town, this.people);
+			// Bountiful's bounty board on the plaza, if it's installed (its boards are in villages, and there are none now: A9).
+			var bounties = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+				"bountiful", "bountyboard"));
+			if (bounties.isPresent() && !this.ruin) {
+				BlockPos at = new BlockPos(this.cx - 5, this.y0, this.cz + 5);
+				if (this.level.getBlockState(at).isAir()) {
+					place(this.level, at, bounties.get().defaultBlockState());
+				}
+			}
 			// Lit all over, inside the houses and out, so nothing spawns in the town at night (user, 2026-10-23: "the town isnt
 			// fully lit up alot, causing a bunch of mobs to spawn and killing half the town"): a piece at a time.
-			for (var piece : this.pieces()) {
+			for (var piece : this.pieces(PIECE)) {
 				this.then("light", () -> this.light(piece));
 			}
 
 			this.then("walk", this::walk);
 			this.then("finish", this::finish);
+		}
+
+		/** Names for a household's dog or cat. */
+		private static final String[] PET_NAMES = {"Biscuit", "Rex", "Pepper", "Shadow", "Mochi", "Buddy", "Luna", "Bean", "Socks", "Ghost", "Max",
+			"Nugget", "Pickles", "Waffles", "Bandit", "Smokey", "Cookie", "Ziggy"};
+
+		/** Now and then (a third of households) a dog or a cat of its own by its door, tamed to it, named (A6). */
+		private void pet(DrifterEntity owner, BlockPos at) {
+			if (this.random.nextFloat() >= 0.33F) {
+				return;
+			}
+
+			var type = this.random.nextBoolean() ? EntityType.WOLF : EntityType.CAT;
+			var pet = type.create(this.level);
+			if (!(pet instanceof net.minecraft.world.entity.TamableAnimal animal)) {
+				return;
+			}
+
+			animal.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, this.random.nextFloat() * 360.0F, 0.0F);
+			animal.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(at), MobSpawnType.STRUCTURE, null);
+			animal.setTame(true, true);
+			animal.setOwnerUUID(owner.getUUID());
+			animal.setCustomName(Component.literal(PET_NAMES[this.random.nextInt(PET_NAMES.length)]));
+			animal.setPersistenceRequired();
+			this.level.addFreshEntity(animal);
+		}
+
+		/**
+		 * Its past (A5: "its history written first, then the town made to match"): its founding some weeks back, its houses
+		 * going up, its leader chosen, and things to find in it: a grave, the house its people left, the house still going up,
+		 * a field that failed one winter. The chronicle has them, days before the world's first if need be.
+		 */
+		private void past(Town town, @Nullable com.dinglebob.drifter.world.DrifterGroups.Group group) {
+			int ago = this.foundedAgo;
+			String leader = group == null ? "its founders" : group.names.getOrDefault(group.leader, "its founders");
+			String first = this.owners.stream().filter(n -> !n.isEmpty() && !n.equals(leader)).findFirst().orElse("a friend");
+			Chronicle.addPast(this.server, "town", this.name + " was founded by " + leader + " and " + first, ago);
+			int built = Math.min(3, this.houses.size());
+			for (int i = 0; i < built; i++) {
+				if (!this.owners.get(i).isEmpty() && !this.owners.get(i).equals(leader)) {
+					Chronicle.addPast(this.server, "town", this.owners.get(i) + " built a house in " + this.name, ago - 2 - i * 2);
+				}
+			}
+
+			Chronicle.addPast(this.server, "town", leader + " was chosen to lead " + this.name, ago - 5);
+			if (this.houses.size() > built) {
+				Chronicle.addPast(this.server, "town", this.name + " had " + this.houses.size() + " houses", ago / 2);
+			}
+
+			// Someone who died: a grave by the plaza, and its people still speak of them.
+			if (this.random.nextFloat() < 0.6F) {
+				String dead = DrifterApi.randomName(this.server, this.random);
+				String[] how = {"fell into a ravine", "was blown up by a creeper", "drowned crossing the river", "never came back from the mine",
+					"was killed by bandits on the road", "froze on the way back from a trip"};
+				if (this.grave(dead)) {
+					town.pastDead = dead;
+					Chronicle.addPast(this.server, "death", dead + " of " + this.name + " " + how[this.random.nextInt(how.length)], 3 + this.random.nextInt(Math.max(1,
+						ago - 8)));
+				}
+			}
+
+			if (this.emptyHouse >= 0) {
+				Chronicle.addPast(this.server, "town", this.owners.get(this.emptyHouse) + " left " + this.name + " for good (its house stands empty)",
+					1 + this.random.nextInt(Math.max(1, ago / 3)));
+			}
+
+			if (this.buildingHouse >= 0 && !this.owners.get(this.buildingHouse).isEmpty()) {
+				Chronicle.addPast(this.server, "town", this.owners.get(this.buildingHouse) + " moved to " + this.name + " and started on a house", 2);
+			}
+
+			// A hard winter: a corner of a field that failed.
+			if (!this.fields.isEmpty() && this.random.nextFloat() < 0.4F) {
+				BlockPos field = this.fields.get(this.random.nextInt(this.fields.size())).below();
+				for (int dx = 1; dx <= 4; dx++) {
+					for (int dz = 1; dz <= 3; dz++) {
+						BlockPos pos = field.offset(dx, 0, dz);
+						if (this.level.getBlockState(pos).is(Blocks.FARMLAND)) {
+							set(this.level, pos.above(), Blocks.AIR.defaultBlockState());
+							set(this.level, pos, Blocks.COARSE_DIRT.defaultBlockState());
+						}
+					}
+				}
+
+				Chronicle.addPast(this.server, "town", "A hard winter in " + this.name + ": part of a field failed", ago / 3 + 1);
+			}
 		}
 
 		private void light(net.minecraft.world.level.levelgen.structure.BoundingBox piece) {
@@ -1284,6 +1429,45 @@ public final class TownBuilder {
 		}
 
 		return null;
+	}
+
+	/**
+	 * A sign with its owner's name by its door path, facing the road (milestone 23 A6: "names on signs by their doors"), if
+	 * there's open ground beside the path.
+	 */
+	private static void nameSign(ServerLevel level, DrifterApi.PlacedHouse house, Direction front, String name) {
+		if (house.door() == null) {
+			return;
+		}
+
+		var box = house.box();
+		BlockPos step = house.door().relative(front);
+		while (box.isInside(new BlockPos(step.getX(), box.minY(), step.getZ())) && step.distManhattan(house.door()) < LONGEST_PATH) {
+			step = step.relative(front);
+		}
+
+		int rotation = switch (front) {
+			case SOUTH -> 0;
+			case WEST -> 4;
+			case NORTH -> 8;
+			default -> 12;
+		};
+		for (Direction side : new Direction[] {front.getClockWise(), front.getCounterClockWise()}) {
+			BlockPos at = onGround(level, step.relative(side).getX(), step.relative(side).getZ());
+			if (!level.getBlockState(at).isAir() || !level.getBlockState(at.below()).isSolid() || box.isInside(at)) {
+				continue;
+			}
+
+			place(level, at, wood("sign").defaultBlockState().setValue(net.minecraft.world.level.block.StandingSignBlock.ROTATION, rotation));
+			if (level.getBlockEntity(at) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
+				String short15 = name.length() > 15 ? name.substring(0, 15) : name;
+				var text = new net.minecraft.world.level.block.entity.SignText().setMessage(1, Component.literal(short15));
+				sign.setText(text, true);
+				sign.setText(text, false);
+			}
+
+			return;
+		}
 	}
 
 	/** How far out from a door its path goes looking for the road. */
