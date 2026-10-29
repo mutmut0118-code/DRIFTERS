@@ -1,0 +1,8 @@
+{
+	"type": "drifter_civ:town",
+	"city": true,
+	"biomes": "#drifter_civ:has_structure/city",
+	"step": "surface_structures",
+	"terrain_adaptation": "none",
+	"spawn_overrides": {}
+}

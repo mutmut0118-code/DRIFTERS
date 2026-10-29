@@ -9,7 +9,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.api.DrifterApi;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
@@ -343,11 +345,21 @@ final class TownSites {
 	/** Most of its ground that may be water. */
 	private static final double MOST_WET = 0.25;
 
+	/**
+	 * A town spot, or (with {@code "city": true}) a city spot: two structures on the same spots (their sets placed alike), the
+	 * town one never where a city goes and the city one only there, so each can be found on its own (the user: "is there a
+	 * way we can separate the command to locate towns and cities?": {@code /locate structure drifter_civ:town} and
+	 * {@code drifter_civ:city}; both: {@code #drifter_civ:settlements}).
+	 */
 	public static final class TownStructure extends Structure {
-		public static final MapCodec<TownStructure> CODEC = simpleCodec(TownStructure::new);
+		public static final MapCodec<TownStructure> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(settingsCodec(instance),
+			Codec.BOOL.optionalFieldOf("city", false).forGetter(structure -> structure.city)).apply(instance, TownStructure::new));
 
-		public TownStructure(StructureSettings settings) {
+		private final boolean city;
+
+		public TownStructure(StructureSettings settings, boolean city) {
 			super(settings);
+			this.city = city;
 		}
 
 		@Override
@@ -357,7 +369,8 @@ final class TownSites {
 
 		@Override
 		protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
-			if (!DrifterApi.villagesReplaced()) {
+			// (Whether it's a city's spot first: cheap, and the other one's spots aren't looked over at all.)
+			if (!DrifterApi.villagesReplaced() || cityCell(context) != this.city) {
 				return Optional.empty();
 			}
 
@@ -367,7 +380,7 @@ final class TownSites {
 			}
 
 			double roll = context.random().nextDouble();
-			if (cityCell(context)) {
+			if (this.city) {
 				int households = CITY_FEWEST + context.random().nextInt(CITY_MOST - CITY_FEWEST + 1);
 				return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households, false))));
 			}

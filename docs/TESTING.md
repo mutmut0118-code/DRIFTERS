@@ -1467,6 +1467,9 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       trader comes, and no zombie villagers turn up at night (settings: "Towns replace villages", "Villagers").
 - [ ] `/locate structure drifter_civ:town` finds the nearest Drifter town spot (they're about 2.5 times rarer than
       villages, in the biomes villages go in). `/drifterciv town sites` lists the spots found so far.
+- [ ] Towns and cities apart (0.23.8, new world): `/locate structure drifter_civ:town` finds only towns (hamlets and
+      ruins too), `/locate structure drifter_civ:city` only cities, `/locate structure #drifter_civ:settlements` the
+      nearest of either.
 - [ ] Fly toward one: when you're about 12 chunks off, it's made, a bit each tick, out of sight; no freeze. By the time
       you're there it's whole: plaza, well, store, stall, fields, pen, houses along roads, people living in them.
 - [ ] On hilly land (your Tectonic pack): it sits on the flattest ground near where it would go, not on a slope; where

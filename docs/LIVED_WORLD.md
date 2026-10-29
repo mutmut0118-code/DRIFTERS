@@ -701,4 +701,12 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   leader (before the quarter cap: six builders).
   - Not yet (B1 to B3): lines that make things to sell (smith, fletcher, enchanter, fisher, shepherd), their shops and
     prices.
+- **0.23.8: towns and cities located apart** (the user: "is there a way we can separate the command to locate towns and
+  cities?"). A city is its own structure now, `drifter_civ:city` (structure set `drifter_civ:cities`, placed exactly as
+  the towns' set, so on the same spots; biome tag `#drifter_civ:has_structure/city`, the towns' biomes). The town one
+  gives way where a city goes, the city one goes only there (that's checked first, before the land is looked over).
+  `/locate structure drifter_civ:town` finds towns (hamlets and ruins too), `drifter_civ:city` cities, and the structure
+  tag `#drifter_civ:settlements` either. In a world made before 0.23.8, cities already made stay `drifter_civ:town`.
+  Tested headless on seed 779: from spawn a town at 1296,-512 and the city at -2304,-1136; standing in the city, the town
+  locate skipped it (the next town 1,619 blocks off) and the city locate found it 65 blocks off.
   - Next: B2 and B3 (lines that make things, their own shops at their doors).
