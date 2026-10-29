@@ -88,6 +88,9 @@ public final class Town {
 
 	public final UUID id;
 	public String name;
+	/** Someone it lost before it was found (a town's past: milestone 23 A5): their name, for its people's talk. */
+	@Nullable
+	public String pastDead;
 	@Nullable
 	public UUID group;
 	public final String dimension;
@@ -188,6 +191,8 @@ public final class Town {
 	 * crimes"), who steal and pick fights now and then till it throws them out.
 	 */
 	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
+	/** Each of its people's line of work (milestone 23 B1: Trades). */
+	public final java.util.Map<UUID, String> lines = new java.util.HashMap<>();
 	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
 	/** A bond of one of its people with someone who wasn't loaded when it was made (a town made ready), set once they are. */
 	public record Bond(UUID who, UUID other, String otherName, double trust, double familiarity) {
@@ -218,6 +223,10 @@ public final class Town {
 		CompoundTag tag = new CompoundTag();
 		tag.putUUID("Id", this.id);
 		tag.putString("Name", this.name);
+		if (this.pastDead != null) {
+			tag.putString("PastDead", this.pastDead);
+		}
+
 		if (this.group != null) {
 			tag.putUUID("Group", this.group);
 		}
@@ -316,6 +325,9 @@ public final class Town {
 		ListTag crooks = new ListTag();
 		this.crooks.forEach(id -> crooks.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
 		tag.put("Crooks", crooks);
+		CompoundTag lines = new CompoundTag();
+		this.lines.forEach((id, line) -> lines.putString(id.toString(), line));
+		tag.put("Lines", lines);
 		tag.put("PendingBonds", TownHistory.save(this.pendingBonds));
 		tag.putString("LastCrook", this.lastCrook);
 		tag.putString("LastCrime", this.lastCrime);
@@ -338,6 +350,7 @@ public final class Town {
 	static Town load(CompoundTag tag) {
 		Town town = new Town(tag.getUUID("Id"), tag.getString("Name"), tag.hasUUID("Group") ? tag.getUUID("Group") : null, tag.getString("Dimension"),
 			BlockPos.of(tag.getLong("Center")), tag.getLong("FoundedDay"), tag.getBoolean("Spawned"));
+		town.pastDead = tag.contains("PastDead") ? tag.getString("PastDead") : null;
 		for (Tag t : tag.getList("Plots", Tag.TAG_COMPOUND)) {
 			town.plots.add(Plot.load((CompoundTag)t));
 		}
@@ -427,6 +440,14 @@ public final class Town {
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;
 		for (Tag t : tag.getList("Crooks", Tag.TAG_INT_ARRAY)) {
 			town.crooks.add(net.minecraft.nbt.NbtUtils.loadUUID(t));
+		}
+
+		CompoundTag lines = tag.getCompound("Lines");
+		for (String key : lines.getAllKeys()) {
+			try {
+				town.lines.put(UUID.fromString(key), lines.getString(key));
+			} catch (IllegalArgumentException ignored) {
+			}
 		}
 
 		TownHistory.load(tag.getList("PendingBonds", Tag.TAG_COMPOUND), town.pendingBonds);

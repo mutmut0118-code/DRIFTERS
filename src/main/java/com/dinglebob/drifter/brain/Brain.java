@@ -453,6 +453,11 @@ public class Brain {
 			Goals.Goal goal = rest.get(i);
 			long t = System.nanoTime();
 			urgencies[i] = nether && !NetherGoals.IN_THE_NETHER.contains(goal.id()) ? 0.0 : goal.urgency(context);
+			// (Its line of work in its town: the things of its line count a little more. Milestone 23 B1.)
+			var work = this.drifter.getTownWork();
+			if (urgencies[i] > 0.0 && work != null) {
+				urgencies[i] += work.leaning(this.drifter, goal.id());
+			}
 			com.dinglebob.drifter.debug.DrifterPerf.add(com.dinglebob.drifter.debug.DrifterPerf.Part.BRAIN_SCORE, System.nanoTime() - t,
 				() -> this.drifter.getName().getString() + ": urgency of " + goal.id());
 			order[i] = i;

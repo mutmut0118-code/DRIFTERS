@@ -3175,6 +3175,35 @@
           ]
         }
       ]
+    },
+    {
+      "id": "town_past_dead_talk",
+      "weight": 1,
+      "needs": [
+        "a:town_past_dead",
+        "!strangers"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            "still think about {a.dead} sometimes",
+            "{a.dead} would've liked this",
+            "miss {a.dead}",
+            "walked past {a.dead}'s grave today"
+          ]
+        },
+        {
+          "by": "b",
+          "lines": [
+            "yeah",
+            "me too",
+            "o7",
+            "they really would have",
+            "..."
+          ]
+        }
+      ]
     }
   ]
 }

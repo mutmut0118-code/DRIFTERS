@@ -19,8 +19,8 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2) |
-| B | Trades and services instead of villager trading | Not started |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6); next A10 |
+| B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
 
@@ -629,3 +629,76 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Tested on Tectonic: seven spots, six made (taiga, plains, desert; 2 to 16 households), 79 of 79 places walked to;
     screenshots of a taiga town among spruce by a lake and a desert hamlet in the dunes.
   - Next: A4's ruins and cities (with A10, the summary layer for towns nobody's near), then A5 (a past), A6, A7, A9.
+- **0.23.3: A4's ruins.** A twentieth of spots are the ruins of a town that failed: 4 to 7 houses laid out as a town's,
+  then fallen in (doors, beds, torches, lanterns and carpets gone; glass mostly gone; wood gone more the higher it is, so
+  roofs have fallen in; cobblestone gone to moss in places; cobwebs; chests empty), the fields gone to grass and coarse
+  dirt, the pen empty with gaps in its fence, no bell or lamps, the store empty but for some bones and rotten flesh, and
+  two to four graves west of the plaza (coarse dirt and a sign: "here lies", a name as Drifters have them, "rip" or
+  "o7"). Nobody lives there; it isn't a town (no group), only a line in the chronicle ("The ruins of X stand where a
+  village might have"). `DrifterApi.randomName`. Debug: `/drifterciv town ruin` (made here at once). Tested in the
+  client: made in about 1 to 1.7 s of steps; a screenshot of fallen-in roofs (another round of screenshots came out
+  blank, the land not yet drawn after the teleport: to look at again).
+- **0.23.4: A5 (a town with a past), A6's touches, A9's Bountiful board.**
+  - A town made by world generation (or `town spawn`) has a past, written into the chronicle on the days it happened
+    (before the world's first day if need be: "20 days before day 1"; `Chronicle.addPast`, `dayName`): founded 20 to 60
+    days back by its leader and a friend, its first houses going up, its leader chosen, how many houses it had by
+    halfway. And things in it to find that match: half the time someone left for good and their house stands empty (its
+    household never moved in, its chests bare); often a newcomer arrived two days ago and its house is only a third built
+    (its top taken off; it builds the rest over the next six days with what it gathers: `DrifterApi.stillBuilding`, the
+    raid mending's way); often someone died (a grave west of the plaza with their name, the death in the chronicle with
+    how, and its people now and then saying "still think about X sometimes": flag `town_past_dead`, word `dead`, saved
+    with the town); sometimes a hard winter (a corner of a field gone to coarse dirt).
+  - A6: a sign with its owner's name by each door path, facing the road; a third of households keep a named dog or cat by
+    the door, tamed to them.
+  - A9: with Bountiful installed, its bounty board on each town's plaza (its boards were in villages, and there are none).
+  - Tested on Tectonic (headless, three towns): each with its past in the chronicle (founded 28 to 54 days before day 1; a
+    drowning, a creeper, a fall into a ravine; two who left, two newcomers still building, a hard winter), every place
+    walked to; tree tidying in 20-block pieces now (a taiga town's took 120 ms a piece at 32): no step over 50 ms in two of
+    them, 45 ms at most.
+- **0.23.5: cities (A4), and front doors found properly.**
+  - One town spot in each three by three of spots (about 2,600 blocks across; which one picked from the world's seed) is a
+    city of 40 to 80 households if a town goes there, so cities are rare and never close. A city's main roads run 132
+    blocks (a town's 72); its side roads come off any road, side roads too, and run up to twice as long; a hundred people
+    at most (its other houses stand empty for newcomers); its land (13 chunks round) loaded once a player is within 20
+    chunks. Chronicle: "X stands where a village might have: a city, with 92 people in 44 houses". Debug: `/drifterciv
+    town city <40-80>` (a city spot here, made a step at a time).
+  - Made a step at a time like a town: its streets a few tries a step (2.6 s at once before), each street kept inside its
+    reach before its ground is looked at (beyond it the land wasn't loaded and looking made it: 2.8 s), a house spot's
+    plans tried 15 ms a step and picked up again next step (400 ms before). A city: about 7 to 10 s of work over 20 to 35
+    s, the longest step the walk check (110 ms, once).
+  - Front doors (core `HousePlacer`): a door counts as a house's front only if one walks straight out of the house from it
+    at door height; its side is the way out. Before, any door was given the side of the box it was nearest, and a
+    two-room farmhouse's inner door was taken for its front: its path and the walk to it went through the house (found by
+    the walk check in a city: every unreachable house was one of those). Lamp posts kept off door paths too.
+  - Tested on Tectonic: a city of 92 people in 44 houses, all 48 places walked to; the seven-spot run again: a city made
+    by world generation (69 people in 35 houses), a ruin, towns and a hamlet, every place walked to, no step over 116 ms.
+  - Not yet: districts, a market street, more stalls, walls; A10 (towns far away as summaries: for now their people go
+    on as every Drifter does out of sight).
+- **0.23.6: A7's raids on towns.** Vanilla's raids don't come to a Drifter town (found in testing: a player with Bad Omen in
+  one, no raid; vanilla counts a village by POIs its villagers have claimed, and Drifters' beds and bell aren't claimed).
+  `TownRaids`: a player with Bad Omen within 64 blocks of a town's middle (not on peaceful) spends it ("Something's coming
+  for X..."); half a minute later raiders come from 80 blocks out, making for its plaza when they've nobody to fight:
+  waves (two, a city three), 2 + the wave's number + one for every eight of its people (ten at most), a quarter of them
+  vindicators, the rest pillagers (a city's last wave with a ravager); the next wave when a quarter of the last are left
+  or three minutes on. Its people fight or run by their natures (as with any hostile mob). All down: "X fought off a raid
+  (n raiders brought down, m of them by <player>)", and each of its people trusts the player who helped more (12, and 2 a
+  raider, up to 10). Ten minutes after the last wave with raiders still about: they make off. Debug: `/drifterciv town
+  raid` (Bad Omen given). `DrifterApi.addTrustInPlayer`.
+  - Tested in the client (a town of about 20, the player watching in creative): first try, waves of 7 and 8 with a third
+    vindicators, 12 of its people's lives lost in four minutes and the raid not over; rebalanced, two waves (5 and 6), it
+    fought them off: 11 raiders brought down, 3 lives lost.
+  - Next: phase B (lines of work, production, shops); A10 and the wandering merchant (A7) when they're needed.
+- **0.23.7: B1, lines of work (first part).** `Trades`: each townsperson has a line, given the first time it's asked and
+  saved with the town: the stall's keeper, the leader, its guards (the two the town's made with; else the boldest two),
+  at least two farmers, then by its nature (Builder: builder; Miner, Hoarder, Speedrunner: miner; Homebody, Helper:
+  farmer; Hermit: woodcutter; Nomad, PvP sweat: hunter) while that line is under a quarter of the town, and the rest to
+  whichever of farmer, woodcutter, hunter, builder, miner has fewest. A line is a leaning: in what it chooses, its
+  line's goals count 0.08 more (a farmer: the farm, the pen, cooking; a builder: roads, town builds, easing the ground,
+  lighting, its house; a miner: getting on, caves; a hunter: hunting; a woodcutter: clearing trees, gathering; a guard:
+  guarding, defending, driving people out). Core: `TownWork.leaning(drifter, goal)`, added to a goal's urgency.
+  `/drifterciv town` shows who does what ("Work: builder: ...; farmer: ..."). Talk flags `line_<line>`, word `line`.
+  Tested headless: a town of 24: 4 builders, 4 farmers, 2 guards, 4 hunters, 5 miners, 3 woodcutters, the keeper, the
+  leader (before the quarter cap: six builders).
+  - Not yet (B1 to B3): lines that make things to sell (smith, fletcher, enchanter, fisher, shepherd), their shops and
+    prices.
+  - Next: B2 and B3 (lines that make things, their own shops at their doors).

@@ -66,6 +66,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Justice.register();
 		Diplomacy.register();
 		TownSites.register();
+		TownRaids.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -365,6 +366,28 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + "'s store and stall count as up; its plaza is next"), true);
 					return 1;
 				}))
+				// Debug: a city made here at once (40 to 80 households, a hundred people at most).
+				.then(Commands.literal("city").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("households", IntegerArgumentType.integer(TownBuilder.CITY, 80)).executes(ctx -> {
+						var source = ctx.getSource();
+						TownBuilder.Result result = TownBuilder.city(source.getLevel(), BlockPos.containing(source.getPosition()),
+							IntegerArgumentType.getInteger(ctx, "households"));
+						source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
+						return 1;
+					})))
+				// Debug: a raid on the nearest town, as if you'd walked in with Bad Omen.
+				.then(Commands.literal("raid").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					boolean in = TownRaids.debugRaid(ctx.getSource().getPlayerOrException());
+					ctx.getSource().sendSuccess(() -> Component.literal(in ? "Debug: Bad Omen given; a raid's coming" : "Debug: Bad Omen given (walk into a town)"), true);
+					return 1;
+				}))
+				// Debug: the ruins of a town that failed, made here at once (as world generation now and then makes one).
+				.then(Commands.literal("ruin").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					TownBuilder.Result result = TownBuilder.ruin(source.getLevel(), BlockPos.containing(source.getPosition()));
+					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
+					return 1;
+				}))
 				.then(Commands.literal("spawn").requires(source -> source.hasPermission(2))
 					.executes(ctx -> spawnTown(ctx, TownBuilder.DEFAULT_HOUSEHOLDS, null))
 					.then(Commands.argument("households", IntegerArgumentType.integer(2, TownBuilder.MAX_HOUSEHOLDS))
@@ -547,6 +570,7 @@ public final class DrifterCivilizations implements ModInitializer {
 			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " houses, " + alivePeople + " people alive; the store has "
 			+ stacks + " stacks in " + town.store.size() + " chests"), false);
 		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
+		source.sendSuccess(() -> Component.literal("  Work: " + Trades.describe(town)), false);
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (politicsGroup != null && town.leader != null) {
@@ -665,7 +689,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		int lines = 0;
 		long day = -1;
 		for (Chronicle.Entry entry : Chronicle.all()) {
-			String text = (entry.day() != day ? "Day " + entry.day() + "\n" : "") + entry.text() + "\n";
+			String text = (entry.day() != day ? Chronicle.dayName(entry.day()) + "\n" : "") + entry.text() + "\n";
 			day = entry.day();
 			// About 14 lines a page; a long line takes two or three.
 			int takes = 1 + text.length() / 19;
@@ -678,8 +702,8 @@ public final class DrifterCivilizations implements ModInitializer {
 				}
 
 				// (A new page names its day again.)
-				if (!text.startsWith("Day ")) {
-					text = "Day " + entry.day() + "\n" + text;
+				if (!text.startsWith(Chronicle.dayName(entry.day()))) {
+					text = Chronicle.dayName(entry.day()) + "\n" + text;
 				}
 			}
 

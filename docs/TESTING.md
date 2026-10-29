@@ -1478,6 +1478,22 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Towns look like their land (0.23.2): a desert town of sandstone with sandstone roads, a savanna town of acacia, a
       taiga town of spruce with mossy cobblestone, snowy towns of spruce and stone, plains of oak and birch. Some spots
       are hamlets of 2 to 5 houses; most towns 8 to 16.
+- [ ] Now and then, the ruins of a town (0.23.3): roofs fallen in, no doors, empty chests, graves by the plaza with names
+      on signs, nobody there. To see one now: `/drifterciv town ruin` where you stand.
+- [ ] A town's past (0.23.4): `/drifterciv chronicle` in a new town tells its history from weeks before day 1 (founded
+      by..., houses built, its leader chosen, maybe someone who died, someone who left, a hard winter). Find them in the
+      town: the grave west of the plaza with the name on it, the empty house, a house only partly built that its owner
+      finishes over the next days. Names on signs by the doors; some houses have a named dog or cat. With Bountiful, a
+      bounty board on the plaza.
+- [ ] Cities (0.23.5): rare (one at most in a big stretch of land), up to a hundred people, many streets. To see one now:
+      `/drifterciv town city 60` where there's room (it's made over half a minute, a bit each tick). Walk it: every door
+      reachable from the plaza on foot.
+- [ ] Raids (0.23.6): walk into a town with Bad Omen (or `/drifterciv town raid` there): "Something's coming...", then
+      pillagers and vindicators in waves making for the plaza; its people fight or run. Help bring them down, and once
+      they're all down the town's people think better of you ("won't forget that").
+- [ ] Lines of work (0.23.7): `/drifterciv town` shows who does what (farmers, builders, miners, hunters, woodcutters,
+      guards, the keeper, the leader). Watch a while: farmers more at the fields, builders more on roads and building,
+      hunters out hunting; everyone still eats, sleeps and chats.
 
 ## Beds in town houses (new, 0.22.34)
 
@@ -2460,9 +2476,9 @@ stones; brick walls sometimes get a few cracked bricks or tiles of their own sto
 
 Installed as 0.22.42-side.1: also has the other session's 0.22.41-0.22.42 (their checks are in their own sections above).
 
-Installed as 0.23.2-side.1: also has the other session's 0.23.0-0.23.2 (their checks are in their own sections above).
+Installed as 0.23.7-side.1: also has the other session's 0.23.0-0.23.7 (their checks are in their own sections above).
 
-## Side session: overnight batch (new, 0.23.2-side.1)
+## Side session: overnight batch (new, 0.23.7-side.1)
 
 Chat fixes and more topics, builders finishing roofs, chest labels, desert houses.
 

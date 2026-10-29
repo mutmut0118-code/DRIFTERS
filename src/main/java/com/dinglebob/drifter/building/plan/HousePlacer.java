@@ -69,58 +69,81 @@ public final class HousePlacer {
 		return placed;
 	}
 
-	/** The sides of its box its doors are on, turned this way (a house's front). */
+	/**
+	 * The sides of its box its front doors are on: each door from which one walks straight out of the house at door height
+	 * (nothing solid in the way to the box's edge), its side the way out. A door between two rooms isn't one (found in a
+	 * city: a farmhouse's inner door taken for its front, its path and the walk to it through the house).
+	 */
 	public static Set<Direction> doorSides(PlacedPlan placed) {
 		Set<Direction> sides = EnumSet.noneOf(Direction.class);
-		var box = placed.box();
+		Set<BlockPos> solid = solid(placed);
 		for (PlacedPlan.Cell cell : placed.build) {
-			if (!(cell.state().getBlock() instanceof DoorBlock)) {
-				continue;
-			}
-
-			BlockPos p = cell.pos();
-			int west = p.getX() - box.minX();
-			int east = box.maxX() - p.getX();
-			int north = p.getZ() - box.minZ();
-			int south = box.maxZ() - p.getZ();
-			int nearest = Math.min(Math.min(west, east), Math.min(north, south));
-			if (nearest == west) {
-				sides.add(Direction.WEST);
-			} else if (nearest == east) {
-				sides.add(Direction.EAST);
-			} else if (nearest == north) {
-				sides.add(Direction.NORTH);
-			} else {
-				sides.add(Direction.SOUTH);
+			if (cell.state().getBlock() instanceof DoorBlock) {
+				Direction out = wayOut(placed, solid, cell.pos());
+				if (out != null) {
+					sides.add(out);
+				}
 			}
 		}
 
 		return sides;
 	}
 
-	/** The front door's lower half (the one on {@code side}, else any), or null. */
+	/** The front door's lower half (one whose way out is {@code side}, else any front door, else any door), or null. */
 	@Nullable
 	public static BlockPos door(PlacedPlan placed, @Nullable Direction side) {
 		BlockPos any = null;
-		var box = placed.box();
+		BlockPos front = null;
+		Set<BlockPos> solid = solid(placed);
 		for (PlacedPlan.Cell cell : placed.build) {
-			if (cell.state().getBlock() instanceof DoorBlock) {
-				BlockPos p = cell.pos();
-				any = any == null ? p : any;
-				boolean onSide = side == null || switch (side) {
-					case WEST -> p.getX() - box.minX() <= 1;
-					case EAST -> box.maxX() - p.getX() <= 1;
-					case NORTH -> p.getZ() - box.minZ() <= 1;
-					case SOUTH -> box.maxZ() - p.getZ() <= 1;
-					default -> false;
-				};
-				if (onSide) {
-					return p;
-				}
+			if (!(cell.state().getBlock() instanceof DoorBlock) || cell.state().getValue(DoorBlock.HALF) != net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER) {
+				continue;
+			}
+
+			BlockPos p = cell.pos();
+			any = any == null ? p : any;
+			Direction out = wayOut(placed, solid, p);
+			if (out != null && (side == null || out == side)) {
+				return p;
+			}
+
+			front = front == null && out != null ? p : front;
+		}
+
+		return front != null ? front : any;
+	}
+
+	/** The plan's cells something can't walk through. */
+	private static Set<BlockPos> solid(PlacedPlan placed) {
+		Set<BlockPos> solid = new java.util.HashSet<>();
+		for (PlacedPlan.Cell cell : placed.build) {
+			if (!cell.state().isAir() && !(cell.state().getBlock() instanceof DoorBlock) && cell.state().blocksMotion()) {
+				solid.add(cell.pos());
 			}
 		}
 
-		return any;
+		return solid;
+	}
+
+	/** Which way one walks straight out of the house from this door (feet and head clear to the box's edge), or null. */
+	@Nullable
+	private static Direction wayOut(PlacedPlan placed, Set<BlockPos> solid, BlockPos door) {
+		var box = placed.box();
+		BlockPos feet = door;
+		for (Direction way : Direction.Plane.HORIZONTAL) {
+			BlockPos at = feet.relative(way);
+			boolean clear = true;
+			while (box.isInside(at) && clear) {
+				clear = !solid.contains(at) && !solid.contains(at.above());
+				at = at.relative(way);
+			}
+
+			if (clear) {
+				return way;
+			}
+		}
+
+		return null;
 	}
 
 	/** The head of a bed inside the house as it stands, or null. */

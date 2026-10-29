@@ -306,6 +306,11 @@ final class Politics {
 
 		// (Its town's friends and foes, and the latest between them: step 6.)
 		Diplomacy.talk(town, day, words, flags);
+		Trades.talk(town, drifter, words, flags);
+		if (town.pastDead != null) {
+			flags.add("town_past_dead");
+			words.put("dead", town.pastDead);
+		}
 		// (Its crook caught at it lately: step 5.)
 		if (!town.lastCrime.isEmpty() && day - town.lastCrimeDay <= 1 && !town.lastCrook.equals(drifter.getName().getString())) {
 			flags.add("crook_" + town.lastCrime);

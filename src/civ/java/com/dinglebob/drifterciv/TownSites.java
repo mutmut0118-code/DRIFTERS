@@ -66,6 +66,8 @@ final class TownSites {
 		final int x;
 		final int z;
 		final int households;
+		/** A town that failed long ago (nobody lives there). */
+		boolean ruin;
 		/** Its land asked for (loading). */
 		boolean loading;
 		/** Debug: made now, player or not. */
@@ -81,12 +83,22 @@ final class TownSites {
 		ChunkPos chunk() {
 			return new ChunkPos(this.x >> 4, this.z >> 4);
 		}
+
+		boolean city() {
+			return this.households >= TownBuilder.CITY;
+		}
+
+		int loadRadius() {
+			return this.city() ? CITY_LOAD_RADIUS : LOAD_RADIUS;
+		}
 	}
 
-	/** A player this near: its land loaded and the town made (twelve chunks). */
+	/** A player this near: its land loaded and the town made (twelve chunks; a city, being bigger and seen from further, 20). */
 	private static final double MAKE_WITHIN = 12 * 16;
+	private static final double CITY_MAKE_WITHIN = 20 * 16;
 	/** Chunks loaded round a town's middle while it's made (its reach, and what's looked at round it). */
 	private static final int LOAD_RADIUS = TownBuilder.MOST_REACH / 16 + 2;
+	private static final int CITY_LOAD_RADIUS = TownBuilder.CITY_MOST_REACH / 16 + 2;
 	/** Work done on a town each tick at most (it goes on next tick). */
 	private static final long BUDGET_NANOS = 10_000_000L;
 	/**
@@ -98,6 +110,15 @@ final class TownSites {
 	static final double HAMLETS = 0.25;
 	static final int HAMLET_FEWEST = 2;
 	static final int HAMLET_MOST = 5;
+	/** A twentieth of spots: the ruins of a town that failed (4 to 7 houses). */
+	static final double RUINS = 0.05;
+	/**
+	 * Cities (A4: "40-80 households, 100 Drifters at most", "never within about 2,000 blocks of another city"): one spot in
+	 * each three by three of spots (about 2,600 blocks across), picked from the world's seed, is a city if a town goes there.
+	 */
+	static final int CITY_FEWEST = 40;
+	static final int CITY_MOST = 80;
+	private static final int SPACING = 54;
 
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_civ_town", Comparator.comparingLong(ChunkPos::toLong));
 	private static final ConcurrentLinkedQueue<Site> found = new ConcurrentLinkedQueue<>();
@@ -183,7 +204,7 @@ final class TownSites {
 
 			// Its land: asked for (made out of sight by the generator's own threads), then, once all of it's there, the town.
 			if (!site.loading) {
-				level.getChunkSource().addRegionTicket(TICKET, site.chunk(), LOAD_RADIUS, site.chunk());
+				level.getChunkSource().addRegionTicket(TICKET, site.chunk(), site.loadRadius(), site.chunk());
 				site.loading = true;
 				continue;
 			}
@@ -193,7 +214,7 @@ final class TownSites {
 			}
 
 			making = site;
-			job = new TownBuilder.Job(level, site.x, site.z, site.households, null, true);
+			job = new TownBuilder.Job(level, site.x, site.z, site.households, null, true, site.ruin);
 			DrifterCivilizations.LOGGER.info("[town] making a town at {}, {} ({} households)", site.x, site.z, site.households);
 			return;
 		}
@@ -211,7 +232,7 @@ final class TownSites {
 		sites.remove(site);
 		ServerLevel level = level(server, site.dimension);
 		if (level != null) {
-			level.getChunkSource().removeRegionTicket(TICKET, site.chunk(), LOAD_RADIUS, site.chunk());
+			level.getChunkSource().removeRegionTicket(TICKET, site.chunk(), site.loadRadius(), site.chunk());
 		}
 
 		DrifterCivilizations.LOGGER.info("[town] {}", finished.result().message());
@@ -219,13 +240,15 @@ final class TownSites {
 	}
 
 	private static boolean near(ServerLevel level, Site site) {
-		return level.players().stream().anyMatch(player -> Math.hypot(player.getX() - site.x, player.getZ() - site.z) < MAKE_WITHIN);
+		double within = site.city() ? CITY_MAKE_WITHIN : MAKE_WITHIN;
+		return level.players().stream().anyMatch(player -> Math.hypot(player.getX() - site.x, player.getZ() - site.z) < within);
 	}
 
 	private static boolean loaded(ServerLevel level, Site site) {
 		ChunkPos middle = site.chunk();
-		for (int dx = -LOAD_RADIUS + 1; dx <= LOAD_RADIUS - 1; dx++) {
-			for (int dz = -LOAD_RADIUS + 1; dz <= LOAD_RADIUS - 1; dz++) {
+		int radius = site.loadRadius();
+		for (int dx = -radius + 1; dx <= radius - 1; dx++) {
+			for (int dz = -radius + 1; dz <= radius - 1; dz++) {
 				// (Really there, made and loaded: hasChunk only says it's meant to be, and the town would make it on the spot.)
 				if (level.getChunkSource().getChunkNow(middle.x + dx, middle.z + dz) == null) {
 					return false;
@@ -245,6 +268,13 @@ final class TownSites {
 	static List<Site> pending(String dimension, BlockPos from) {
 		return sites.stream().filter(site -> site.dimension.equals(dimension))
 			.sorted(Comparator.comparingDouble(site -> Math.hypot(site.x - from.getX(), site.z - from.getZ()))).toList();
+	}
+
+	/** Debug: a spot for a town of this many households here, made now (no player needed). */
+	static void debugSite(ServerLevel level, BlockPos at, int households) {
+		Site site = new Site(level.dimension().location().toString(), at.getX(), at.getZ(), households);
+		site.forced = true;
+		sites.add(site);
 	}
 
 	/** Debug: the nearest spot not made yet made now (no player needed). */
@@ -280,6 +310,7 @@ final class TownSites {
 			if (piece instanceof Marker marker) {
 				BoundingBox box = marker.getBoundingBox();
 				Site site = new Site(dimension, box.minX(), box.minZ(), marker.households);
+				site.ruin = marker.ruin;
 				site.forced = true;
 				sites.add(site);
 				return site;
@@ -335,10 +366,30 @@ final class TownSites {
 				return Optional.empty();
 			}
 
-			int households = context.random().nextDouble() < HAMLETS ? HAMLET_FEWEST + context.random().nextInt(HAMLET_MOST - HAMLET_FEWEST + 1)
+			double roll = context.random().nextDouble();
+			if (cityCell(context)) {
+				int households = CITY_FEWEST + context.random().nextInt(CITY_MOST - CITY_FEWEST + 1);
+				return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households, false))));
+			}
+
+			boolean ruin = roll < RUINS;
+			int households = ruin ? 4 + context.random().nextInt(4) : roll < RUINS + HAMLETS ? HAMLET_FEWEST + context.random().nextInt(HAMLET_MOST - HAMLET_FEWEST + 1)
 				: FEWEST + context.random().nextInt(MOST - FEWEST + 1);
-			return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households))));
+			return Optional.of(new GenerationStub(spot, builder -> builder.addPiece(new Marker(spot, households, ruin))));
 		}
+	}
+
+	/** This spot is the one in its three by three of spots that's a city (picked from the world's seed). */
+	private static boolean cityCell(Structure.GenerationContext context) {
+		int i = Math.floorDiv(context.chunkPos().x, SPACING);
+		int j = Math.floorDiv(context.chunkPos().z, SPACING);
+		int regionI = Math.floorDiv(i, 3);
+		int regionJ = Math.floorDiv(j, 3);
+		long hash = context.seed() ^ (regionI * 341873128712L + regionJ * 132897987541L) ^ 0x5DEECE66DL;
+		hash = (hash ^ (hash >>> 29)) * 0xBF58476D1CE4E5B9L;
+		hash ^= hash >>> 32;
+		int chosen = (int)Math.floorMod(hash, 9L);
+		return Math.floorMod(i, 3) * 3 + Math.floorMod(j, 3) == chosen;
 	}
 
 	/** Good enough to stop looking: this flat at the core and over the whole of it. */
@@ -506,20 +557,24 @@ final class TownSites {
 	/** Its mark in the world: nothing placed; it tells the addon where the town goes when its chunk is made. */
 	public static final class Marker extends StructurePiece {
 		private final int households;
+		private final boolean ruin;
 
-		Marker(BlockPos spot, int households) {
+		Marker(BlockPos spot, int households, boolean ruin) {
 			super(MARKER, 0, new BoundingBox(spot.getX(), spot.getY(), spot.getZ(), spot.getX(), spot.getY(), spot.getZ()));
 			this.households = households;
+			this.ruin = ruin;
 		}
 
 		Marker(CompoundTag tag) {
 			super(MARKER, tag);
 			this.households = tag.getInt("Households");
+			this.ruin = tag.getBoolean("Ruin");
 		}
 
 		@Override
 		protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
 			tag.putInt("Households", this.households);
+			tag.putBoolean("Ruin", this.ruin);
 		}
 
 		@Override
@@ -527,7 +582,9 @@ final class TownSites {
 			ChunkPos chunk, BlockPos pivot) {
 			BoundingBox box = this.getBoundingBox();
 			if (chunkBox.isInside(box.getCenter())) {
-				found.add(new Site(level.getLevel().dimension().location().toString(), box.minX(), box.minZ(), this.households));
+				Site site = new Site(level.getLevel().dimension().location().toString(), box.minX(), box.minZ(), this.households);
+				site.ruin = this.ruin;
+				found.add(site);
 			}
 		}
 	}
@@ -544,6 +601,7 @@ final class TownSites {
 			one.putInt("X", site.x);
 			one.putInt("Z", site.z);
 			one.putInt("Households", site.households);
+			one.putBoolean("Ruin", site.ruin);
 			list.add(one);
 		}
 
@@ -557,7 +615,9 @@ final class TownSites {
 		making = null;
 		for (Tag t : tag.getList("Sites", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
-			sites.add(new Site(one.getString("Dimension"), one.getInt("X"), one.getInt("Z"), one.getInt("Households")));
+			Site site = new Site(one.getString("Dimension"), one.getInt("X"), one.getInt("Z"), one.getInt("Households"));
+			site.ruin = one.getBoolean("Ruin");
+			sites.add(site);
 		}
 	}
 }
