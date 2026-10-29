@@ -63,6 +63,8 @@ public final class PersonalityCommands {
 			ctx.getSource().sendSuccess(() -> Component.literal(line), false);
 		}
 
+		ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.brain.Stakes.describe(drifter)), false);
+
 		return 1;
 	}
 

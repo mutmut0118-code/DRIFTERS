@@ -74,6 +74,8 @@ public final class Pursuit {
 		boolean relentless = relentless(drifter);
 		double minutes = (relentless ? 10.0 : 2.0) + (relentless ? 3.0 : 1.5) * personality.get(Trait.VENGEFULNESS)
 			+ (relentless ? 2.0 : 1.0) * personality.get(Trait.AGGRESSION) + (relentless ? 1.0 : 0.5) * personality.get(Trait.PATIENCE);
+		// (Warier when dying would cost more: it gives up a chase sooner, out to kill or not.)
+		minutes *= 1.0 - (relentless ? 0.3 : 0.5) * Stakes.wariness(drifter);
 		return (long)(minutes * 1200);
 	}
 

@@ -901,9 +901,10 @@ public final class Goals {
 				return 1.0;
 			}
 
-			// Something it could beat, further off: worth it if it's coming (or for the drops, if it likes a fight).
+			// Something it could beat, further off: worth it if it's coming (or for the drops, if it likes a fight); a fight it
+			// could skip is less worth it when dying would cost more.
 			double aggression = context.drifter().getPersonality().get(com.dinglebob.drifter.personality.Trait.AGGRESSION);
-			return (threat.decision() == Threats.Decision.ENGAGE ? 0.25 : 0.1) + 0.3 * aggression;
+			return ((threat.decision() == Threats.Decision.ENGAGE ? 0.25 : 0.1) + 0.3 * aggression) * (1.0 - 0.6 * Stakes.wariness(context.drifter()));
 		}
 
 		@Override

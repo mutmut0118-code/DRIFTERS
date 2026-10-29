@@ -3121,3 +3121,26 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     "the crook is the shopkeeper") and once the first leader; thrown out and turned Bandit at once, or just past the
     town's edge, it killed the town's people (160 blocks now).
 - Next: milestone 22 step 6, nations and diplomacy (docs/CIVILIZATION.md), or prison (kept for later, the user).
+- **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
+  respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
+  dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)
+  read through its personality, feeding caution (fleeing earlier, fewer fights started, shelter earlier, fewer risky
+  shortcuts, gear and food before danger), feelings and talk (fear after a close call, "i only get one life", mourning
+  friends gone for good, deeper grudges for a killing), and giving in (handing things over when mugged, begging). Not
+  started; asked the user whether it goes before nations. The user on the talk: "dont make it corny disney expositiony
+  though; like every drifter knows they have one life left, they dont gotta say that": show it in what they do, never
+  have them explain the rule ("i only get one life" is out); any words are short, shaky reactions in the moment. Grief and
+  grudges stay ("they can still grieve and have grudges and stuff"): just never spelled out as the rule.
+  - **Part 1, caution (0.22.31; the user: "go ahead with part 1").** `Stakes`: what dying would cost it, 0.1 when it
+    comes back at its bed, 0.3 with all its lives left (the default: where everything was tuned), rising to 0.7 with one
+    comeback left, 1.0 when the next death is the last (permadeath, out of lives); an encounter's or a battle's Drifter
+    stays at 0.3. Its difference from 0.3 pulls on its traits (`Personality.setStakes`, set every second; per unit:
+    Caution +0.35, Bravery -0.35, Aggression -0.15, Curiosity -0.15; with permadeath about +-0.25), so everything that
+    reads them gets warier: fight or flee (`Threats.courage`), cowardice, night style (no night hunting for most),
+    shelter time, paths (`PathSearch` risk), caves and mining legs, whims at night, starting on players. And directly,
+    by `Stakes.wariness` (0 as tuned, 1 when the next death is the last): eats sooner (threshold +4), gives up chases
+    sooner (-50 %, the relentless -30 %), fights it could skip worth 60 % less, no drop that leaves it under 6 + 8
+    health. `/drifter personality` shows "Stakes: ..." and the traits as they act. No talk about it (part 2: feelings).
+  - Tested in the client, the same seed and setup twice (4 Drifters with stone swords, night, 3 mobs on each, 2 more a
+    minute later): bed respawn, 12 picks of "fight", 29 of "get away", 3 went out hunting mobs, none stayed in;
+    permadeath, 1 fight, 8 get away, nobody hunted, 3 stayed in. Nobody died in either.

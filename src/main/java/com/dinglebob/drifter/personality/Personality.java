@@ -34,8 +34,17 @@ public final class Personality {
 		Mood.GRIEVING, Map.of(Trait.INDUSTRIOUSNESS, -0.2, Trait.CURIOSITY, -0.2),
 		Mood.ANGRY, Map.of(Trait.AGGRESSION, 0.2));
 
+	/**
+	 * How what dying would cost it pulls on traits, per unit of {@code Stakes#pull} (about -0.2 when it always comes back,
+	 * +0.7 when the next death is its last): warier, less bold, less keen on a fight or on poking about.
+	 */
+	private static final Map<Trait, Double> STAKES_PULL = Map.of(Trait.CAUTION, 0.35, Trait.BRAVERY, -0.35, Trait.AGGRESSION, -0.15,
+		Trait.CURIOSITY, -0.15);
+
 	private Archetype archetype;
 	private EnumMap<Trait, Double> traits;
+	/** {@code Stakes#pull}, kept up to date by its entity (not saved). */
+	private double stakes;
 	private Habits habits;
 	private final MoodState mood = new MoodState();
 	private double skillGained;
@@ -97,7 +106,13 @@ public final class Personality {
 			value += pull.getOrDefault(trait, 0.0) * this.mood.intensity();
 		}
 
+		value += STAKES_PULL.getOrDefault(trait, 0.0) * this.stakes;
 		return Archetype.clamp(value);
+	}
+
+	/** What dying would cost it now ({@code Stakes#pull}), set by its entity. */
+	public void setStakes(double stakes) {
+		this.stakes = stakes;
 	}
 
 	public float getF(Trait trait) {

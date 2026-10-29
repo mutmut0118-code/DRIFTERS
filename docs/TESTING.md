@@ -1460,6 +1460,18 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## The respawn setting changes how careful they are (new, 0.22.31)
+
+The more a death would cost a Drifter, the warier it plays. Set it in the settings screen (Mod Menu) or with
+`/drifter config respawn bed|lives|permadeath`. `/drifter personality` (looking at one) shows "Stakes: 1.00
+(permadeath)" and its traits as they act now (caution up, bravery down).
+- [ ] Permadeath: at night most stay in (few go out hunting mobs); a fight they don't need, they skip; one that's going
+      badly, they back off from sooner; they keep their food bar up; they don't chase a mob or a player far.
+- [ ] Lives: with all 5 comebacks left they act as before; with one left they're nearly as careful as permadeath; on the
+      last (`/drifter respawns` shows deaths) as careful as permadeath.
+- [ ] Bed respawn: a little bolder than before.
+- [ ] Brave ones still take more chances than careful ones; nobody says anything about it.
+
 ## Bandits and towns: the town crook (new, 0.22.30)
 
 Bandits don't live in towns ("kinda like a skyrim bandit"). If one does anyway (one from an older world, or made with
