@@ -2345,3 +2345,22 @@ outdoors, how a Drifter is doing, debates and banter. Also has the other session
 - [ ] A friend Drifter that has bread still gives some: "can i have 3 bread" gets "take these" and it hands them over.
 
 Installed as 0.22.37-side.1: also has the other session's 0.22.35-0.22.37 (their checks are in the town section above).
+
+## Side session: stone houses and new shapes (new, 0.22.37-side.2)
+
+New house styles with more stone (so a town doesn't all burn), and four new parts: a barn roof (gambrel), dormer
+windows, a balcony over the front door, and a cross-shaped house.
+
+- [ ] Look at them all at once: in a creative world, stand somewhere open and type `/drifter house parts`. It builds a
+      row of every house part with a sign in front. The new ones are #19 (barn roof: steep at the bottom, gentler at the
+      top), #20 (dormers: a little window with its own roof sticking out of the roof), #21 (balcony over the door, with
+      a railing and a door out from upstairs), #22 (cross house: a wing out the front and the back, the front door in the
+      front wing's end). The second row has a house of each style: the new ones are "cobble cottage", "cross house",
+      "stone barn", "stone house" and "townhouse".
+- [ ] Walk inside #20: the dormer window lets light in from the roof. Walk out onto the balcony of #21 from upstairs.
+- [ ] In a world you've played before: houses your Drifters already built, or are halfway through, stay exactly the
+      same. Nothing changes shape, and builders don't start knocking parts down.
+- [ ] New Drifters in a new world now sometimes build the new houses (about a quarter of the designs are the new
+      styles). With Drifter: Civilizations, new towns get some of them too: more stone walls, fewer all-wood houses.
+- [ ] Tell me which ones you like and which look off, the same way as before (or edit them by hand in the parts world
+      and I'll copy your changes).

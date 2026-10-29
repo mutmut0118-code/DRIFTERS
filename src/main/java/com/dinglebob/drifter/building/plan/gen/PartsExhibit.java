@@ -138,6 +138,10 @@ public final class PartsExhibit {
 			new Part("Two rooms", "17 long", with("long_bays", new int[] {4}, "partition", 1), "two rooms"),
 			new Part("Vaulted roof", "2 thick", with("vaulted", 1), "vaulted"),
 			new Part("Lanterns", "", with("lanterns", 1), "lanterns"),
+			new Part("Roof: gambrel", "barn roof", with("roof", "gambrel"), "gambrel"),
+			new Part("Dormers", "17 x 13", with("long_bays", new int[] {4}, "short_bays", new int[] {3}, "dormers", 1), "dormers"),
+			new Part("Balcony", "over the door", with("floors", new int[] {2, 2}, "balcony", 1), "balcony"),
+			new Part("Cross house", "21 x 13", with("long_bays", new int[] {5}, "short_bays", new int[] {3}, "wing", 1, "wing_t", 1, "cross", 1), "cross"),
 			new Part("Log ridge,", "floor border", with("ridge_log", 1, "floor_border", "minecraft:spruce_planks"), null));
 	}
 

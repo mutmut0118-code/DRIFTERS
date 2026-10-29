@@ -1,0 +1,41 @@
+{
+	"foundation": "minecraft:cobblestone",
+	"plinth": "minecraft:cobblestone_stairs",
+	"floor": "minecraft:oak_planks",
+	"frame": "minecraft:spruce_log",
+	"infill": "minecraft:stone_bricks",
+	"upper_infill": [
+		"minecraft:oak_planks",
+		"minecraft:stone_bricks"
+	],
+	"gable_fill": "minecraft:oak_planks",
+	"stair": "minecraft:spruce_stairs",
+	"slab": "minecraft:spruce_slab",
+	"door": "minecraft:spruce_door",
+	"window": "minecraft:glass",
+	"sill": "minecraft:spruce_stairs",
+	"weight": 1.5,
+	"gaps": [
+		3
+	],
+	"long_bays": [
+		3
+	],
+	"short_bays": [
+		2,
+		3
+	],
+	"floors": [
+		2,
+		3
+	],
+	"roofs": {
+		"gable": 3,
+		"steep": 1
+	},
+	"lintels": 1,
+	"balcony": 0.8,
+	"dormers": 0.4,
+	"lanterns": 0.5,
+	"tall_windows": 0.3
+}

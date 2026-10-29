@@ -69,6 +69,14 @@ public final class HouseStyle {
 		return random.nextDouble() < this.num(key, fallback);
 	}
 
+	/**
+	 * A chance only a style that names it draws (a part added after the first styles: their plans draw the same numbers as
+	 * before, so a world's plans stay as they were).
+	 */
+	public boolean newChance(String key, RandomSource random) {
+		return this.json.has(key) && this.chance(key, 0.0, random);
+	}
+
 	/** One of the material's options (or the fallback; null fallback means "none" when the style leaves it out). */
 	@Nullable
 	public Block material(String key, @Nullable Block fallback, RandomSource random) {

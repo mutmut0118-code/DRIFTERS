@@ -127,7 +127,7 @@ public final class GeneratedPlans {
 		List<HouseStyle> all = new ArrayList<>(from.values());
 		double total = all.stream().mapToDouble(HouseStyle::weight).sum();
 		for (int i = 0; i < count && !all.isEmpty(); i++) {
-			RandomSource random = RandomSource.create(seed * 31L + i * 0x9E3779B97F4A7C15L);
+			RandomSource random = randomFor(seed, i);
 			HouseStyle style = all.get(all.size() - 1);
 			double at = random.nextDouble() * total;
 			for (HouseStyle candidate : all) {
@@ -139,27 +139,91 @@ public final class GeneratedPlans {
 			}
 
 			String id = prefix + style.id() + "_" + i;
-			for (int attempt = 0; attempt < TRIES; attempt++) {
-				HousePlan plan = legacy ? PlanGenerator.generate(id, style, random) : HouseGenerator.generate(id, style, random);
-				List<String> planFeatures = legacy ? PlanGenerator.lastFeatures : HouseGenerator.lastFeatures;
-				String problem = plan == null ? "no plan" : PlanCheck.problem(plan);
-				if (problem == null) {
-					made.put(id, plan);
-					madeFeatures.put(id, planFeatures);
-					planFeatures.forEach(feature -> tally.merge(feature, 1, Integer::sum));
-					break;
-				}
-
+			HousePlan plan = draw(id, style, random, legacy, (draft, problem) -> {
 				String kind = problem.replaceAll(" [(].*", "").replaceAll("[0-9]+ ", "");
 				if (rejected.merge(kind, 1, Integer::sum) <= 3) {
-					Drifter.LOGGER.info("[Drifter] house plan draft {} thrown away: {}", id, problem);
+					Drifter.LOGGER.info("[Drifter] house plan draft {} thrown away: {}", draft, problem);
 				}
+			});
+			if (plan != null) {
+				List<String> planFeatures = legacy ? PlanGenerator.lastFeatures : HouseGenerator.lastFeatures;
+				made.put(id, plan);
+				madeFeatures.put(id, planFeatures);
+				planFeatures.forEach(feature -> tally.merge(feature, 1, Integer::sum));
 			}
 		}
 
 		Drifter.LOGGER.info("[Drifter] made {} {}house plans from {} styles in {} ms (drafts thrown away: {}; {})", made.size(), legacy ? "old " : "",
 			all.size(), (System.nanoTime() - started) / 1_000_000, rejected, tally);
 		return new Made(java.util.Collections.unmodifiableMap(made), madeFeatures);
+	}
+
+	/** The random numbers plan {@code number} of a world is drawn from (its style is the first of them). */
+	private static RandomSource randomFor(long seed, int number) {
+		return RandomSource.create(seed * 31L + number * 0x9E3779B97F4A7C15L);
+	}
+
+	/** The first sound draft of this plan (up to {@link #TRIES}), or null; {@code thrownAway} hears of each that wasn't. */
+	@org.jetbrains.annotations.Nullable
+	private static HousePlan draw(String id, HouseStyle style, RandomSource random, boolean legacy, java.util.function.BiConsumer<String, String> thrownAway) {
+		for (int attempt = 0; attempt < TRIES; attempt++) {
+			HousePlan plan = legacy ? PlanGenerator.generate(id, style, random) : HouseGenerator.generate(id, style, random);
+			String problem = plan == null ? "no plan" : PlanCheck.problem(plan);
+			if (problem == null) {
+				return plan;
+			}
+
+			thrownAway.accept(id, problem);
+		}
+
+		return null;
+	}
+
+	private static final Map<String, HousePlan> remade = new java.util.HashMap<>();
+	private static long remadeFor = Long.MIN_VALUE;
+	private static int remadeVersion = -1;
+
+	/**
+	 * A plan of this world by its id ("house:cottage_12") that this world's plans don't have (new styles came in since the
+	 * house was begun, and the draw for that number fell on another style now; the user's worlds have houses begun from the
+	 * first twelve): made again as it was, from the same random numbers, so a half-built house or a town's house keeps its
+	 * plan. Null if the style is gone or the draw doesn't make a sound house.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static synchronized HousePlan again(MinecraftServer server, String id) {
+		int cut = id.lastIndexOf('_');
+		if (!id.startsWith(PREFIX) || cut < 0) {
+			return null;
+		}
+
+		HouseStyle style = styles.get(id.substring(PREFIX.length(), cut));
+		int number;
+		try {
+			number = Integer.parseInt(id.substring(cut + 1));
+		} catch (NumberFormatException e) {
+			return null;
+		}
+
+		long seed = server.getWorldData().worldGenOptions().seed();
+		if (seed != remadeFor || stylesVersion != remadeVersion) {
+			remade.clear();
+			remadeFor = seed;
+			remadeVersion = stylesVersion;
+		}
+
+		if (style == null || number < 0) {
+			return null;
+		}
+
+		if (!remade.containsKey(id)) {
+			RandomSource random = randomFor(seed, number);
+			// (The draw that picked its style.)
+			random.nextDouble();
+			remade.put(id, draw(id, style, random, false, (draft, problem) -> {
+			}));
+		}
+
+		return remade.get(id);
 	}
 
 	/** The house styles, by id (debug: the parts exhibit). */

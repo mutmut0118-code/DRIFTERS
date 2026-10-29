@@ -117,6 +117,11 @@ public final class HousePlans {
 			plan = com.dinglebob.drifter.building.plan.gen.GeneratedPlans.legacy(server, id);
 		}
 
+		// (So does one begun from a plan this world's plans no longer have since new styles came in.)
+		if (plan == null && id.startsWith(com.dinglebob.drifter.building.plan.gen.GeneratedPlans.PREFIX)) {
+			plan = com.dinglebob.drifter.building.plan.gen.GeneratedPlans.again(server, id);
+		}
+
 		return plan;
 	}
 

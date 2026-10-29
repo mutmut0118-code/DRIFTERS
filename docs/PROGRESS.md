@@ -3386,3 +3386,29 @@ Versions carry a suffix (0.22.26-side.N); the plain number is the other session'
 - **0.22.37-side.1 (side session):** merged the other session's 0.22.35-0.22.37 (a town Drifter's base is its own house,
   fewer pillars/holes/stray cobblestone in towns, towns without cliffs, made-ready towns come with a past). No chat
   changes; headless smoke test: talks run, 568 topics, no errors.
+- **0.22.37-side.2 (side session): house plans, stone and new shapes.** The user picked "stone houses" and "new
+  shapes" (of stone houses, biome styles, new shapes, insides).
+  - Five new styles, more stone (wooden towns burn): `stone_house` (stone brick or cobblestone walls on both storeys,
+    stone gable ends, dormers, a balcony), `cobble_cottage` (cobblestone walls and gable ends, dormers), `townhouse` (two
+    or three storeys, stone ground floor, a balcony over the door), `stone_barn` (cobblestone ground floor, a gambrel
+    roof), `cross_house` (stone brick, a cross plan). About a quarter of a world's 300 plans are these now.
+  - New parts in `HouseGenerator`: a gambrel roof (steep rows for the lower half of the slope, then 45 degrees:
+    `steepRows`), dormers (`Draft.dormer`: a 3-wide gabled window a row in from the eave, its roof running back into the
+    main one, the main roof opened behind it; over the middle bay or post and every other bay out, both slopes), a
+    balcony over the front door (`Draft.balcony`: a floor two deep across the door's bay on the beam, braces, a railing
+    of the frame's wood, the storey above's door out), a cross house (`Draft.crossWing`: the T wing as drawn, mirrored
+    out of the front, the front door in its gable end). Shown in `/drifter house parts` (#19 to #22).
+  - Old worlds keep their plans: the new parts draw random numbers only for styles that name them
+    (`HouseStyle.newChance`; `materials` draws in the same order as before), and a plan id the world's plans no longer
+    have (a new style took its number) is made again from its id (`GeneratedPlans.again`, from `HousePlans.get`).
+    Checked: all 300 plans of a seed-777 world made by 0.22.37-side.1, asked for by id from the new build, came out
+    block for block the same.
+  - Tested: `/drifter house parts` in the dev client, all four parts looked over from outside and in (pictures).
+    Drifters building them (headless, deep flat, peaceful, each given its plan's blocks by command): a two-storey
+    townhouse with a balcony reached 644 of 888 (the balcony done; stuck on its main roof's edge and short of planks);
+    a two-storey gambrel barn 879 of 946 (left: the top of the roof at the gable ends, 15-17 up, out of reach, so the
+    barn style is one storey now); a dormer cottage 1210 of 1270 in 14 days (both dormers' windows, posts and overhangs
+    up; left: the main roof's top rows 12 up, out of reach as on any 13-wide roof, and the slab on top of each dormer, so
+    the dormer roof is flat-topped now: stair, block, stair). Not reached in testing: a cross house built to the end.
+  - Next for houses (ideas, not asked yet): biome styles (sandstone, terracotta, snowy spruce), insides; builders still
+    leave the top of tall roofs (ridge 12+ up) unbuilt, for every style.
