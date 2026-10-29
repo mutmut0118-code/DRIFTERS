@@ -1481,6 +1481,8 @@ Feelings (new, 0.22.32), best seen with `/drifter config respawn permadeath`:
 - [ ] Beat a Drifter down (not a brave one): around 4 hearts left it gives in, "ok ok take it", and throws you its best
       few things, then runs. It doesn't forget it.
 - [ ] Nobody explains the rule ("one life" and the like); it shows in what they do.
+- [ ] A Drifter fighting or hunting you (a Bandit gang: `/drifter banditgang`) never introduces itself, greets you,
+      says "welcome back" when you log in, or "hey!! no hitting"; say "hi" and only friendly ones answer (0.22.33).
 
 ## Bandits and towns: the town crook (new, 0.22.30)
 

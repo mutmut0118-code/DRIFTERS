@@ -3162,3 +3162,12 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     down): Ann "saw Bob die (gone for good)", trust in the player -100 with two grudges, kept away from them, grieved,
     and later walked back and stood where Bob died ("f"); Cat said "STOP. take it" and threw 3 stacks. Not yet seen: a
     Drifter killing another Drifter's friend for good (the same code, by `heardOf`).
+  - **No friendly words to an enemy (0.22.33).** Found by the user: "while im fighting drifters they also stop to
+    introduce themselves", and the raiders who were out to kill them said "yay MutMut0118 is back" / "welcome back! :)"
+    when they logged in, and "hey!! no hitting" mid-fight. A Drifter looking a player over (or not seeing them yet) wasn't
+    "hostile" by its mode. Now `Mode.atOdds` (hostile, warning, keeping clear or running; trust under -25; a kill-on-sight
+    Bandit; after them or fighting them; hit by them in the last 30 s; an encounter's) keeps it from opening a chat with
+    them, greeting them, welcoming them back, answering their greetings or congratulating them, and makes its answers to
+    them an enemy's; and "hey!! no hitting" is only for one hit by surprise, not one already fighting them. Tested in the
+    client: a Bandit gang hunting the player said nothing friendly to "hi" or "whats ur name"; a friendly Drifter still
+    answered ("im Fren", "cant complain").

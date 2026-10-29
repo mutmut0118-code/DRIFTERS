@@ -130,7 +130,7 @@ public final class ChatReplies {
 	/** A player made an advancement that shows in chat: one or two Drifters about say gg (PlayerAdvancementsMixin). */
 	public static void advancement(ServerPlayer player) {
 		if (SocialWatcher.isRealPlayer(player)) {
-			answer(player.serverLevel(), player, near(player.serverLevel(), player, reads(), false), "congrats", MOST, 30, player.getGameProfile().getName());
+			answer(player.serverLevel(), player, near(player.serverLevel(), player, reads(), true), "congrats", MOST, 30, player.getGameProfile().getName());
 		}
 	}
 
@@ -158,7 +158,7 @@ public final class ChatReplies {
 		List<DrifterEntity> drifters = new ArrayList<>(level.getEntitiesOfClass(DrifterEntity.class, center.getBoundingBox().inflate(range),
 			drifter -> drifter.isAlive() && !drifter.isTemporary() && drifter.encounter() == null));
 		if (friendly && center instanceof ServerPlayer player) {
-			drifters.removeIf(drifter -> Mode.toward(drifter, player).hostile());
+			drifters.removeIf(drifter -> Mode.atOdds(drifter, player));
 		}
 
 		drifters.sort(java.util.Comparator.comparingDouble(drifter -> drifter.distanceToSqr(center)));

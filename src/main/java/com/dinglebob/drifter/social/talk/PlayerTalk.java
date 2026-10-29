@@ -283,7 +283,8 @@ public final class PlayerTalk {
 		Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), name);
 		Mode mode = Mode.toward(drifter, player);
 		// (A 1v1 they asked for is a game, not a grudge: it still talks to them.)
-		boolean hostile = (mode.hostile() || mode == Mode.WARNING) && !Spar.on(drifter, player);
+		// (At odds with them in any way, it answers as an enemy would: no "name's Ann" mid-hunt.)
+		boolean hostile = (mode.hostile() || mode == Mode.WARNING || Mode.atOdds(drifter, player)) && !Spar.on(drifter, player);
 		boolean insultedLately = r.lastInsultAt >= 0 && now - r.lastInsultAt < INSULT_REMEMBERED && !r.lastInsult.isEmpty();
 		Object[] who = {"player", name, "name", drifter.getName().getString()};
 

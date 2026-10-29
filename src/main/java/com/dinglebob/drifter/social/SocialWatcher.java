@@ -366,7 +366,8 @@ public class SocialWatcher {
 		w.lastHitAt = now;
 		w.peacefulTicks = 0;
 		w.pendingAccident = w.hits == 1;
-		if (w.hits == 1) {
+		// ("hey!! no hitting" is for a friendly one taken by surprise, not one already fighting them.)
+		if (w.hits == 1 && !this.wasAtOdds(player)) {
 			ChatLines.say(this.drifter, ChatLines.Kind.OUCH, "player", player.getGameProfile().getName());
 		}
 
@@ -385,6 +386,14 @@ public class SocialWatcher {
 			w.gaveIn = true;
 			this.giveIn(player);
 		}
+	}
+
+	/** At odds with them before this hit (the hit itself makes anyone so). */
+	private boolean wasAtOdds(Player player) {
+		Relationship r = this.drifter.getSocial().get(player.getUUID());
+		var pursuit = this.drifter.getDrifterBrain().pursuit();
+		return r != null && r.trust < Mode.HOSTILE_TRUST || BanditGoals.ruthless(this.drifter) || pursuit != null && pursuit.target == player
+			|| this.drifter.getTarget() == player;
 	}
 
 	/** Health (half-hearts) at or under which one that's losing, and would lose a lot by dying, gives in. */
