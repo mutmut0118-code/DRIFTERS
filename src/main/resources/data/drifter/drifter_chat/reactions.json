@@ -1332,6 +1332,94 @@
       "pvp_sweat": [
         "nah we're winning this"
       ]
+    },
+    "war.kill": {
+      "any": [
+        "got one",
+        "one down",
+        "that's {who}",
+        "next",
+        "{who}'s done",
+        "that's for ours"
+      ],
+      "helper": [
+        "...sorry {who}"
+      ],
+      "pvp_sweat": [
+        "ez",
+        "too easy",
+        "gg {who}"
+      ],
+      "bandit": [
+        "who's next"
+      ]
+    },
+    "war.kill_seen": {
+      "any": [
+        "nice",
+        "one less",
+        "good",
+        "nice one",
+        "they had it coming"
+      ],
+      "helper": [
+        "...ok"
+      ]
+    },
+    "war.rally": {
+      "any": [
+        "everyone to the plaza. we're hitting {enemy}",
+        "grab your swords, we're going to {enemy}",
+        "fighters, on me. {enemy} today",
+        "gear up. we move on {enemy} now"
+      ],
+      "pvp_sweat": [
+        "on me. {enemy} won't know what hit them"
+      ],
+      "helper": [
+        "everyone ready? we go together. stay close"
+      ]
+    },
+    "war.charge": {
+      "any": [
+        "CHARGE",
+        "GO GO GO",
+        "for us! get them!",
+        "NOW. GO",
+        "everyone in!",
+        "{enemy} is right there. GO"
+      ],
+      "pvp_sweat": [
+        "send it",
+        "LETS GO"
+      ],
+      "bandit": [
+        "take everything"
+      ]
+    },
+    "war.alarm": {
+      "any": [
+        "THEY'RE HERE",
+        "{enemy} is attacking!!",
+        "to the store, they're raiding us!",
+        "{enemy}'s here, grab your swords",
+        "RAID! {enemy}!"
+      ],
+      "hermit": [
+        "...they're here"
+      ]
+    },
+    "war.fall_back": {
+      "any": [
+        "fall back!",
+        "back home, now",
+        "we're done, pull back",
+        "retreat! go go",
+        "out, out, back home"
+      ],
+      "pvp_sweat": [
+        "ok we're cooked, back"
+      ]
     }
   }
 }

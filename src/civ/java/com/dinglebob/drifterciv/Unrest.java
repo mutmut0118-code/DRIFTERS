@@ -290,7 +290,8 @@ final class Unrest {
 		}
 
 		loaded.stream().filter(one -> approval(town, one.getUUID()) <= UNHAPPY).findFirst()
-			.ifPresent(one -> ChatLines.speak(one, Lines.pick(one, "unrest.revolt", "leader", leaderName, "town", town.name)));
+			// (Not mid-fight, a war on: once it's out of it.)
+			.ifPresent(one -> com.dinglebob.drifter.social.ChatReplies.afterFight(one, Lines.pick(one, "unrest.revolt", "leader", leaderName, "town", town.name), true));
 		String against = town.candidates.size() > 1 ? ": " + String.join(" against ", town.candidates.stream().map(id -> name(group, id)).toList()) : "";
 		Chronicle.add(server, "town", "The people of " + town.name + " rose up against " + leaderName + " (" + mood.unhappy + " of " + mood.people
 			+ " unhappy; no tax paid till the vote tomorrow morning" + against + ")");

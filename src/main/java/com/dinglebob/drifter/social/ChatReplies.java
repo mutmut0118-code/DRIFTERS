@@ -41,7 +41,36 @@ public final class ChatReplies {
 	/** Most Drifters answering one thing. */
 	private static final int MOST = 2;
 
-	private record Pending(UUID drifter, String key, long at, Object[] vars) {
+	/**
+	 * A line it's to say from {@code at} on: a key's line (or {@code text} as it is); {@code afterFight}: not while it's in
+	 * a fight (it waits, a couple of minutes at most); {@code urgent}: past the chat limits (said to someone's face, or
+	 * something that can't wait).
+	 */
+	private record Pending(UUID drifter, String key, long at, Object[] vars, @org.jetbrains.annotations.Nullable String text, boolean afterFight,
+		boolean urgent) {
+		Pending(UUID drifter, String key, long at, Object[] vars) {
+			this(drifter, key, at, vars, null, false, false);
+		}
+	}
+
+	/** How long a line waits for a fight to be over before it's not worth saying. */
+	private static final long FIGHT_WAIT = 20L * 60 * 2;
+
+	/** It says this once it's out of the fight it's in (now, if it isn't in one): a death acknowledged after the fighting. */
+	public static void afterFight(DrifterEntity drifter, @org.jetbrains.annotations.Nullable String text, boolean urgent) {
+		if (text != null && !text.isEmpty()) {
+			pending.add(new Pending(drifter.getUUID(), "", drifter.level().getGameTime() + 10, new Object[0], text, true, urgent));
+		}
+	}
+
+	/** On the side of whoever killed it: the killer, or one of its group (no "rip" from them; the user, 2026-10-29). */
+	public static boolean killersSide(DrifterEntity reader, @org.jetbrains.annotations.Nullable DrifterEntity killer) {
+		if (killer == null) {
+			return false;
+		}
+
+		var group = com.dinglebob.drifter.world.DrifterGroups.of(reader.getUUID());
+		return killer == reader || group != null && com.dinglebob.drifter.world.DrifterGroups.of(killer.getUUID()) == group;
 	}
 
 	private static final List<Pending> pending = new ArrayList<>();
@@ -110,15 +139,40 @@ public final class ChatReplies {
 					joke(near(level, dead, 32.0, false).stream().filter(drifter -> drifter != dead).toList(), who, source);
 				}
 
+				// Who killed it (a Drifter): its side doesn't mourn it (the user, 2026-10-29: "even the enemies mourned the deaths
+				// of the people they killed? doesnt make sense"); everyone says what they say once the fight's over.
+				DrifterEntity killer = source.getEntity() instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity());
+				if (killer == null) {
+					var credit = dead.getKillCredit();
+					killer = credit instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(credit);
+				}
+
+				var deadGroup = com.dinglebob.drifter.world.DrifterGroups.of(dead.getUUID());
+				if (deadGroup == null && dead.groupAtDeath() != null) {
+					deadGroup = com.dinglebob.drifter.world.DrifterGroups.byId(dead.groupAtDeath());
+				}
+
+				boolean enemy = killer != null && (deadGroup == null || com.dinglebob.drifter.world.DrifterGroups.of(killer.getUUID()) != deadGroup);
 				for (DrifterEntity reader : near(level, dead, reads(), false)) {
 					if (reader == dead) {
+						continue;
+					}
+
+					long at = level.getGameTime() + 20 + reader.getRandom().nextInt(40);
+					if (enemy && killersSide(reader, killer)) {
+						// Its own kill, or one of its side's: now and then a word for it, after.
+						if (reader.getRandom().nextDouble() < (reader == killer ? 0.6 : 0.2) * chattiness(reader)) {
+							pending.add(new Pending(reader.getUUID(), reader == killer ? "war.kill" : "war.kill_seen", at, new Object[] {"who", who}, null, true,
+								false));
+						}
+
 						continue;
 					}
 
 					var bond = reader.getBonds().get(dead.getUUID());
 					boolean friend = bond != null && bond.trust >= DrifterBonds.FRIEND;
 					if (friend || reader.getRandom().nextDouble() < 0.25 * chattiness(reader)) {
-						queue(reader, friend ? "rip_friend" : "rip_drifter", level.getGameTime() + 20 + reader.getRandom().nextInt(40), "who", who);
+						pending.add(new Pending(reader.getUUID(), friend ? "rip_friend" : "rip_drifter", at, new Object[] {"who", who}, null, true, false));
 					}
 				}
 			}
@@ -228,12 +282,29 @@ public final class ChatReplies {
 				continue;
 			}
 
-			it.remove();
+			DrifterEntity drifter = null;
 			for (ServerLevel level : server.getAllLevels()) {
-				if (level.getEntity(line.drifter()) instanceof DrifterEntity drifter && drifter.isAlive()) {
-					ChatLines.sayLine(drifter, Lines.pick(drifter, line.key(), line.vars()));
+				if (level.getEntity(line.drifter()) instanceof DrifterEntity one && one.isAlive()) {
+					drifter = one;
 					break;
 				}
+			}
+
+			// (Still fighting: later, or not at all once it's been too long.)
+			if (drifter != null && line.afterFight() && drifter.inAFight() && now - line.at() < FIGHT_WAIT) {
+				continue;
+			}
+
+			it.remove();
+			if (drifter == null || line.afterFight() && now - line.at() >= FIGHT_WAIT) {
+				continue;
+			}
+
+			String text = line.text() != null ? line.text() : Lines.pick(drifter, line.key(), line.vars());
+			if (line.urgent()) {
+				ChatLines.speak(drifter, text);
+			} else {
+				ChatLines.sayLine(drifter, text);
 			}
 		}
 	}

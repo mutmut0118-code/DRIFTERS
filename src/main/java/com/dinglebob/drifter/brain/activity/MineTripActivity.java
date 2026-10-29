@@ -765,6 +765,18 @@ public class MineTripActivity extends Activity {
 			} else {
 				entrance = this.drifter.blockPosition();
 				way = this.drifter.getDirection();
+				// In or by its town (away from its house): out past the edge first, heading away (found in testing: a mining
+				// trip begun in a town dug stairs among its houses and sealed their rooms with cobblestone as "caves").
+				if (com.dinglebob.drifter.brain.TownEdge.nearTown(this.drifter, entrance)) {
+					way = com.dinglebob.drifter.brain.TownEdge.wayOut(this.drifter);
+					BlockPos outOfTown = com.dinglebob.drifter.brain.TownEdge.outside(this.drifter, way);
+					if (outOfTown == null) {
+						this.why = "nowhere to start its stairs outside its town";
+						return Status.FAILURE;
+					}
+
+					entrance = outOfTown;
+				}
 			}
 
 			this.tunnel = new Tunnel(entrance, way, MAX_STEPS);
@@ -845,6 +857,11 @@ public class MineTripActivity extends Activity {
 			if (com.dinglebob.drifter.brain.TownEdge.inTown(this.drifter, here)) {
 				this.why = "won't dig its stairs in the middle of its town";
 				return Status.FAILURE;
+			}
+
+			// (By its town: heading away from it, not back under its houses.)
+			if (com.dinglebob.drifter.brain.TownEdge.nearTown(this.drifter, here)) {
+				way = com.dinglebob.drifter.brain.TownEdge.wayOut(this.drifter);
 			}
 
 			int targetY = this.targetY != Integer.MIN_VALUE ? this.targetY : this.depth;

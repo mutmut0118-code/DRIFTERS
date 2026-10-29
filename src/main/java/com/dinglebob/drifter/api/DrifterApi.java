@@ -832,6 +832,11 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.DrifterWars.setRaidTargets(targets);
 	}
 
+	/** Where its groups gather for a raid (a town's plaza), for groups another mod knows the places of; null: as usual. */
+	public static void setRaidMusters(@Nullable java.util.function.Function<UUID, net.minecraft.core.BlockPos> musters) {
+		com.dinglebob.drifter.world.DrifterWars.setRaidMusters(musters);
+	}
+
 	/** Two groups at war (fighting on sight, raids). */
 	public static void declareWar(MinecraftServer server, UUID a, UUID b) {
 		com.dinglebob.drifter.world.DrifterWars.setTension(a, b, com.dinglebob.drifter.world.DrifterWars.WAR + 10.0, server.overworld().getGameTime());

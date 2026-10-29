@@ -214,14 +214,22 @@ public final class SocialCommands {
 				}
 
 				String truce = now < feud.truceUntil ? String.format(Locale.ROOT, ", truce for %d more min", (feud.truceUntil - now) / 1200) : "";
-				String raiding = raid == null ? "" : ", " + com.dinglebob.drifter.world.DrifterWars.name(raid.attackers) + " raiding (" + raid.phase.name().toLowerCase(Locale.ROOT) + ")";
+				String raiding = raid == null ? "" : ", " + com.dinglebob.drifter.world.DrifterWars.name(raid.attackers) + " raiding (" + raid.phase.name().toLowerCase(Locale.ROOT)
+					+ ", " + java.util.List.of("loot only", "doors and fields too", "fire too").get(raid.grief) + ")";
 				say(ctx, String.format(Locale.ROOT, "%s vs %s: %s, tension %d, losses %d / %d%s%s", com.dinglebob.drifter.world.DrifterWars.name(feud.a),
 					com.dinglebob.drifter.world.DrifterWars.name(feud.b), com.dinglebob.drifter.world.DrifterWars.levelName(feud.tension),
 					Math.round(feud.tension), feud.lossesA, feud.lossesB, truce, raiding));
 			}
 
 			return feuds.size();
-		}));
+		})
+			// Debug: how rough the raids on now are (0 loot only, 1 doors and fields too, 2 fire too), whatever their leaders are like.
+			.then(Commands.literal("grief").then(Commands.argument("grief", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 2)).executes(ctx -> {
+				int grief = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "grief");
+				int raids = com.dinglebob.drifter.world.DrifterWars.debugGrief(grief);
+				ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + raids + " raid" + (raids == 1 ? "" : "s") + " now at grief " + grief), true);
+				return raids;
+			}))));
 		root.then(Commands.literal("war").then(Commands.argument("one", StringArgumentType.word()).then(Commands.argument("other", StringArgumentType.word())
 			.then(Commands.argument("tension", DoubleArgumentType.doubleArg(0, 100)).executes(ctx -> {
 				DrifterEntity one = named(ctx, StringArgumentType.getString(ctx, "one"));

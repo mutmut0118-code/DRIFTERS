@@ -125,6 +125,16 @@ public final class DrifterWars {
 		public long phaseSince;
 		public boolean warCry;
 		public int looted;
+		/**
+		 * How much its raiders wreck, by their leader's nature (the user, 2026-10-29: griefing in a war "by the leader's
+		 * nature"): 0 the loot only, 1 doors and fields too (an aggressive leader), 2 fire as well (a ruthless one). Beds never.
+		 */
+		public int grief;
+		/** Something was broken or set alight (the place wants mending after). */
+		public boolean wrecked;
+		/** What its raiders have broken, and the fires they've lit, so far. */
+		public int broken;
+		public int fires;
 
 		Raid(UUID attackers, UUID defenders, BlockPos target, BlockPos home, long now) {
 			this.attackers = attackers;
@@ -156,6 +166,15 @@ public final class DrifterWars {
 	/** Where a group's raid on another goes when another mod knows better (a town's store), or null. */
 	@Nullable
 	private static java.util.function.BiFunction<UUID, UUID, BlockPos> raidTargets;
+
+	/** Where a group gathers for a raid when another mod says (a town's plaza), or null (its leader's home). */
+	@Nullable
+	private static java.util.function.Function<UUID, BlockPos> raidMusters;
+
+	/** Where a group gathers for a raid, for groups another mod knows the places of (null from it: its leader's home). */
+	public static void setRaidMusters(@Nullable java.util.function.Function<UUID, BlockPos> musters) {
+		raidMusters = musters;
+	}
 
 	/** Its wars run by another mod (or not any more). */
 	public static void setManaged(UUID group, boolean on) {
@@ -244,6 +263,18 @@ public final class DrifterWars {
 		DrifterGroups.Group mine = DrifterGroups.of(one.getUUID());
 		DrifterGroups.Group theirs = DrifterGroups.of(other.getUUID());
 		return mine != null && theirs != null && mine != theirs && tension(mine.id, theirs.id) >= SKIRMISH
+			&& one.level().getGameTime() >= feudOrNew(mine.id, theirs.id).truceUntil;
+	}
+
+	/** At war, their two groups (fighting on sight is skirmishing; this is the real thing). */
+	public static boolean atWar(DrifterEntity one, DrifterEntity other) {
+		if (!DrifterConfig.drifterWars()) {
+			return false;
+		}
+
+		DrifterGroups.Group mine = DrifterGroups.of(one.getUUID());
+		DrifterGroups.Group theirs = DrifterGroups.of(other.getUUID());
+		return mine != null && theirs != null && mine != theirs && tension(mine.id, theirs.id) >= WAR
 			&& one.level().getGameTime() >= feudOrNew(mine.id, theirs.id).truceUntil;
 	}
 
@@ -451,7 +482,14 @@ public final class DrifterWars {
 			}
 		}
 
-		raids.values().removeIf(raid -> raidOver(server, raid, now));
+		raids.values().removeIf(raid -> {
+			boolean over = raidOver(server, raid, now);
+			if (over) {
+				mend(server, raid);
+			}
+
+			return over;
+		});
 	}
 
 	/** Each group's base: its leader's home, while the leader is about. */
@@ -507,7 +545,15 @@ public final class DrifterWars {
 			return;
 		}
 
-		Raid raid = new Raid(attackers, defenders, target, leader.getDrifterBrain().home().center, now);
+		// (Gathering at its own town's plaza, if another mod says where: the user, 2026-10-29: "if everyone grouped up at their
+		// own town ... that way they can run in and it can be on sight".)
+		BlockPos muster = raidMusters != null ? raidMusters.apply(attackers) : null;
+		Raid raid = new Raid(attackers, defenders, target, muster != null ? muster : leader.getDrifterBrain().home().center, now);
+		var nature = leader.getPersonality();
+		double aggression = nature.get(com.dinglebob.drifter.personality.Trait.AGGRESSION);
+		boolean ruthless = nature.archetype() == com.dinglebob.drifter.personality.Archetype.BANDIT
+			|| aggression >= 0.8 && nature.get(com.dinglebob.drifter.personality.Trait.FORGIVENESS) <= 0.3;
+		raid.grief = !DrifterConfig.raiding() ? 0 : ruthless ? 2 : aggression >= 0.65 ? 1 : 0;
 		raids.put(attackers, raid);
 		lastRaid.put(attackers, now);
 		Drifter.LOGGER.info("[Drifter] {} sets off to raid {} at {}", group.name, rival.name, target.toShortString());
@@ -569,8 +615,36 @@ public final class DrifterWars {
 		incident(raid.attackers, raid.defenders, PER_RAID / 3.0, now, "a raid");
 	}
 
-	public static void endRaid(Raid raid) {
-		raids.remove(raid.attackers);
+	/** Debug: every raid on now wrecks this much. How many there are. */
+	public static int debugGrief(int grief) {
+		raids.values().forEach(raid -> raid.grief = grief);
+		return raids.size();
+	}
+
+	public static void endRaid(MinecraftServer server, Raid raid) {
+		if (raids.remove(raid.attackers) != null) {
+			mend(server, raid);
+		}
+	}
+
+	/** How long after a raid its people see to mending their houses. */
+	private static final long MENDS = 24000L * 2;
+
+	/** A raid that wrecked things is over: the raided group's people near it set about mending their houses. */
+	private static void mend(MinecraftServer server, Raid raid) {
+		if (!raid.wrecked) {
+			return;
+		}
+
+		long now = server.overworld().getGameTime();
+		forMembers(server, raid.defenders, member -> {
+			var home = member.getDrifterBrain().home();
+			if (home != null && home.planId != null && home.planOrigin != null && home.center.closerThan(raid.target, 96.0)) {
+				// (Its plan's house built again where it's missing: doors, burnt walls; a couple of days to see to it.)
+				home.mendUntil = now + MENDS;
+				member.getMemory().thoughts().add(now, "the raid wrecked the place: fixing up its house");
+			}
+		});
 	}
 
 	@Nullable

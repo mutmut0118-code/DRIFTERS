@@ -1478,6 +1478,22 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       the attacker's leader rallies its people ("rallying ... for a raid"), they march on the other's store, fight and
       loot it; the other side raids back. The chronicle: "X of A fell in the war with B (killed by Y)".
       `/drifterciv relations` shows the war, since when and each side's dead.
+- [ ] How a war feels (0.22.41). Same two towns at war, watch from between them:
+      - The attackers' leader calls them together on their own plaza ("grab your swords"), they set off together, and
+        charge once the town's in sight ("Envoyby is right there. GO"). Only people with a weapon and good health go.
+      - The other town shouts the alarm ("they're raiding us!") and its fighters run to the store.
+      - They fight it out instead of hiding; someone badly hurt backs off, and once most of them are hurt the leader
+        calls it ("fall back!").
+      - Nobody says "rip" or "o7" about someone their own side just killed; the killer might say "got one". The other
+        side's "rip ..." lines come after the fighting, not mid-swing.
+      - No small talk ("i have iron armor now!!") while the raid's on: only talk about the war.
+      - Wrecking depends on the raiders' leader: `/drifter wars` shows it ("loot only", "doors and fields too", "fire
+        too"). To see the worst now: `/drifter wars grief 2` while a raid is on. Doors broken, crops trampled, a few
+        fires (raiders need their own flint and steel); nothing near a bed.
+      - A day after the raid, the raided town's people put their houses back together (doors back, burnt walls
+        rebuilt).
+- [ ] Towns over a few days (0.22.41): no cobblestone in house windows, up house walls or inside rooms. Townspeople who go
+      mining walk out past the town's edge first and dig away from it.
 - [ ] Allies: make two towns allies first (`/drifterciv relations set B 80`, then `envoy B peace`, a few days later
       `envoy B alliance`); a third town declaring war on one brings the other in ("stood by its ally").
 - [ ] Peace: after some days and deaths a side sends terms ("enough fighting. Aby wants peace" or reparations); a

@@ -76,6 +76,7 @@ whom to meet and where they live, the message; `arrived`, `back`, `told`, `gaveU
 `DrifterApi.tension(a, b)` / `setTension(server, a, b, t)`: two groups' feud tension (0.22.39).
 `DrifterApi.setWarManaged(group, on)`, `declareWar(server, a, b)`, `makePeace(server, a, b, days)`,
 `setRaidTargets((attackers, defenders) -> pos)`: wars run by the addon (0.22.40).
+`DrifterApi.setRaidMusters(group -> pos)`: where a group's raiders gather before setting off (a town's plaza; 0.22.41).
 `DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of

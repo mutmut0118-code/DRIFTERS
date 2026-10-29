@@ -3183,6 +3183,44 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     emeralds owed). In the client, two towns 160 blocks apart at war: one rallied and marched on the other's store, the
     other raided back, six dead in the first hour, each in the chronicle. Fixed: an alliance offered twice was agreed
     twice; a death by a thrown potion wasn't counted.
+- **How a war feels (0.22.41; the user, 2026-10-29).** "people should acknowledge the deaths after they fight; even the
+  enemies mourned the deaths of the people they killed?", "should be more fighting, but if everybody gets low they
+  retreat", "people were chatting normally like they werent fighting in a war, is there any like war cries?", "would
+  griefing be in a war?", "everyone grouped up at their own town ... so they can run in and it can be on sight":
+  - Deaths: the killer's side doesn't mourn its kills or hold a grudge over them (`ChatReplies.killersSide`, NewsBook's
+    DEATH react, `meet` doesn't pass on a death its side caused as sad news); the killer may say a word ("got one", "one
+    down": `war.kill`, `war.kill_seen`). Every "rip", "o7" and grief line waits till the speaker's out of the fight
+    (`DrifterEntity.inAFight`: a target, a pursuit, or hit in the last 5 s; `ChatReplies.afterFight`, 2 minutes at most).
+    A town's revolt cry waits the same way. `DrifterEntity.groupAtDeath` keeps the side of one who died after leaving.
+  - Fighting (`Threats`): against an enemy at war it stands and fights where it'd have backed off, unless it's hopeless
+    (its odds under 0.3, courage counted), and falls back once under 40% health.
+  - Raids (`WarGoals`): only armed, fit people (60% health) go. They gather at their own town's plaza
+    (`DrifterApi.setRaidMusters`; the leader calls them: `war.rally`), set off when everyone's there (stragglers waited
+    for 15 s), and charge together once within 48 blocks (`war.charge`). The leader calls the fall back when twice as
+    many of them are hurt as fit (`war.fall_back`). The raided town: the first to see them raises the alarm
+    (`war.alarm`) and its armed, fit people run to defend the store (`Defend`, urgency 1.02).
+  - Talk: no conversation starts mid-fight or out on a raid (a leader stopping to chat held up its whole march); while a
+    raid is on (theirs, or on them) only war talk; otherwise war, a death or a revolt is talked about first 75% of the time.
+  - Wrecking, by the raid leader's nature (the user picked "by the leader's nature"; `Raid.grief`): a fair leader's
+    raiders loot the store only; an aggressive one's (aggression 0.65) also break doors, fence gates and crops; a
+    ruthless one's (a Bandit, or aggression 0.8 and forgiveness 0.3 or less) also set fire to wooden blocks with their own
+    flint and steel (on a side of the block with air in front it can see). Looting first (no wrecking for 20 s), within 32
+    blocks of the store, only what they've seen and what someone built (no trees), nothing right by a bed (2.5 blocks), no
+    fire within 6 of a bed or 8 of the store, never in spawn protection; at most 10 breaks and 4 fires a raid, all its
+    raiders together. Debug: `/drifter wars grief <0-2>` (the raids on now); `/drifter wars` shows each raid's.
+  - Rebuilding: when a raid that wrecked things ends, the raided town's people near it get two days to mend their houses
+    (`Home.mendUntil`, saved): the house-building goal builds the plan's missing blocks again (doors, burnt walls) with
+    materials they have or gather ("fixed up its house").
+  - Fixed, found by the user in a test (screenshots: cobblestone in town houses' windows, up their walls, in their
+    rooms): a mining trip begun in town dug its stairs among the houses (away from home it started where it stood; a
+    fresh start by the edge could turn back in), and a tunnel breaking into a room took it for a cave and plugged it with
+    cobblestone. Now a tunnel that opens into a room near the surface (built blocks round it, not cobblestone plugs) leaves
+    it be and gives up that way ("dug into someone's house: not this way"); a trip in or near a town (its edge + 24)
+    starts its stairs past the edge, heading away (`TownEdge.nearTown`). The plug's spot is in the thought now.
+  - Tested in the client, two towns 160 blocks apart, at war (seed 779, several runs): rally, charge, alarm and the
+    fight lines said; mourning only from the dead's own side, and after the fighting ("they had it coming" from the
+    killers'); about a dozen deaths an hour; fires lit (4 a raid) with flint and steel; both towns' people "fixed up
+    its house" after being raided. Not seen yet: a fall back called (no raid got worn down).
 - Next: step 6 part 3, nations (allied towns joining under a capital, a name and banner, tribute, rebellions and
   independence). Then milestone 23 (docs/LIVED_WORLD.md). Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the

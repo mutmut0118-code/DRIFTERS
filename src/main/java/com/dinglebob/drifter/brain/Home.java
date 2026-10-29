@@ -119,6 +119,8 @@ public final class Home {
 	public final java.util.Set<String> houseWoodsShort = new java.util.HashSet<>();
 	public boolean planDeepslate;
 	public boolean planDone;
+	/** Its finished house wants mending till then (a raid wrecked it): the plan's missing blocks built again. */
+	public long mendUntil;
 	/** Its hut (and house) are recorded as Drifter-built (homes from before that was recorded get it once). */
 	public boolean builtRecorded;
 	/** It just finished (or gave up on) its hut: not back to it before this (not saved). */
@@ -652,6 +654,7 @@ public final class Home {
 			plan.put("Woods", woods);
 			plan.putBoolean("Deepslate", this.planDeepslate);
 			plan.putBoolean("Done", this.planDone);
+			plan.putLong("MendUntil", this.mendUntil);
 			if (this.planBox != null) {
 				plan.putIntArray("Box", this.planBox);
 			}
@@ -758,6 +761,7 @@ public final class Home {
 
 			home.planDeepslate = plan.getBoolean("Deepslate");
 			home.planDone = plan.getBoolean("Done");
+			home.mendUntil = plan.getLong("MendUntil");
 			home.planBed = NbtUtils.readBlockPos(plan, "Bed").orElse(null);
 		}
 
