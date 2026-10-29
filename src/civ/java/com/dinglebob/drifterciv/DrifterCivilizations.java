@@ -65,6 +65,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownFounding.register();
 		Justice.register();
 		Diplomacy.register();
+		TownSites.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -175,6 +176,45 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: to the nearest town's plaza (testing world-generated towns).
+				.then(Commands.literal("go").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), player.blockPosition());
+					if (town == null) {
+						ctx.getSource().sendFailure(Component.literal("No town made yet"));
+						return 0;
+					}
+
+					player.teleportTo(ctx.getSource().getLevel(), town.center.getX() + 0.5, town.center.getY() + 1, town.center.getZ() + 0.5, player.getYRot(),
+						player.getXRot());
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: to " + town.name), true);
+					return 1;
+				}))
+				// Where world generation put towns not made yet (milestone 23 A1: made when a player comes near), nearest first.
+				.then(Commands.literal("sites").executes(ctx -> {
+					BlockPos from = BlockPos.containing(ctx.getSource().getPosition());
+					var pending = TownSites.pending(ctx.getSource().getLevel().dimension().location().toString(), from);
+					String making = TownSites.making();
+					ctx.getSource().sendSuccess(() -> Component.literal(pending.size() + " town spots not made yet" + (making != null ? "; making one at " + making : "")
+						+ ". /locate structure drifter_civ:town finds them too"), false);
+					for (var site : pending.subList(0, Math.min(8, pending.size()))) {
+						ctx.getSource().sendSuccess(() -> Component.literal("  " + site.x + ", " + site.z + " (" + Math.round(Math.hypot(site.x - from.getX(),
+							site.z - from.getZ())) + " blocks away, " + site.households + " households)"), false);
+					}
+
+					return pending.size();
+				})
+					// Debug: the nearest made now, a step at a time as usual, player near or not.
+					.then(Commands.literal("make").requires(source -> source.hasPermission(2)).executes(ctx -> {
+						var site = TownSites.makeNearest(ctx.getSource().getLevel(), BlockPos.containing(ctx.getSource().getPosition()));
+						if (site == null) {
+							ctx.getSource().sendFailure(Component.literal("No town spot near (or villages aren't replaced: the setting)"));
+							return 0;
+						}
+
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: making the town at " + site.x + ", " + site.z + " now"), true);
+						return 1;
+					})))
 				// Debug: the player running it did this in the nearest town, seen by the nearest of its people (theft, farms, murder).
 				.then(Commands.literal("crime").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())

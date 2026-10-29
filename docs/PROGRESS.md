@@ -3257,7 +3257,7 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     Fixed: leaders who keep the stall never got to it (a bearer instead). Not seen yet: a ruler going to war over a
     rising, a conqueror's demand taken, a banner made from flowers picked (the planner can; no flowers near in that test).
   - Later: a town that leaves taking its old banner down; patterned banners.
-- Next: milestone 23 (docs/LIVED_WORLD.md). Prison is kept for later (the user).
+- Next: milestone 23 (docs/LIVED_WORLD.md, its progress kept there too). Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
   respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
   dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)
@@ -3372,3 +3372,40 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   and iron, a shield maybe), never a full suit; a bow for one in five. The stall keeper wears a leather tunic (an apron).
   Less cobblestone in the pack (8-23, was 32). Justice's guards are never the leader. Founded towns are unchanged:
   their people wear what they made themselves.
+
+## Milestone 23: a lived-in world (started 2026-10-29)
+
+The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
+Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
+
+- **0.23.0: A1 + A2 + A11's site choice (towns where villages were, made a step at a time, on the flattest ground).**
+  - Villages replaced (setting "Towns replace villages", on; new chunks only): Drifter's hook `DrifterApi.setTownsForVillages`
+    (the addon sets it); Drifter's mixins give anything tagged #minecraft:village no placements (`ChunkGeneratorStructureState`)
+    and no generation point (`Structure`), so none generates and /locate and maps give up at once (found: with villages
+    only stopped where they'd start, /locate for one ran a minute and the server shut itself down); no wandering trader;
+    no zombie villagers spawning unless "Villagers" is on (off; for trading halls and iron farms; takes a restart).
+  - `drifter_civ:town` (structure set `drifter_civ:towns`: random spread, 54 chunks apart, 16 at least; biomes: vanilla's
+    village biome tags and sunflower plains). Its spot (A11, the user's "flattest land given the choice"): the land within
+    112 blocks looked over on a 24-block grid from the generator's own heights, nearest first, its biome asked from high
+    above first (biomes go by height: under a hill, at sea level, it's a cave's), heights worked out only as needed; a
+    spot's core (48 blocks) may rise and fall 12 at most, the whole (72) 64, a quarter water; scored by roughness, water
+    and how far it moved; the first one flat enough (4 and 20) taken; nowhere: no town. On the user's Tectonic: a spot's
+    search 1 ms typically (1.3 s at worst, on a worldgen thread), /locate 1 to 2.6 s; of 44 spots 10 got a town, the rest
+    in no village biome at all (forests, mountains, sea), only a few turned down for the ground.
+  - The structure places nothing: a marker records the spot as its chunk generates (`TownSites`, saved with the towns).
+    A player within 12 chunks: the land round it (radius 10 chunks) asked for with a ticket, loaded out of sight, and once
+    it's really there (a chunk made, not just asked for: `hasChunk` only says it's meant to be, and the first test made
+    the land on the spot, 2.7 s in one step), the town made a step at a time (`TownBuilder.Job`): layout, plaza, store,
+    fields, pen, the houses (a few spots tried a step), each road, the plaza's things, road lamps, the stall and paths, the
+    trees it cut (32-block pieces), each household, the town and its people, its lights (pieces); 10 ms of steps a tick.
+  - Making a town: 17 s before (one go); measured: 11 s of it the house layout asking each of ~300 plans' door sides at
+    every spot (now kept per plan, `DrifterApi.doorSides`), the ground re-measured each try (kept per column while laying
+    out, forgotten when a block in it changes). Now about 2 to 2.6 s of work over 4 to 14 s, the longest step 60 to 98 ms
+    (tree tidying), a handful over 50 ms. House plans read at world start (353 ms).
+  - `/drifterciv town sites` (spots not made yet, nearest first), debug `town sites make` (the nearest made now, player
+    or not), `town go` (to the nearest town's plaza); `/locate structure drifter_civ:town`.
+  - Tested: headless (vanilla and the user's Tectonic: towns located, villages "Could not find", a town made a step at a
+    time); in the client on Tectonic, flying in from 400 blocks off: the town made itself as the player came within 12
+    chunks, on flat savanna by the sea, the hill beside it left alone (screenshots).
+  - Next: A11's layout and walk check (door paths stepped a block at a time, cut or filled; a walk from the plaza to every
+    door, the store, the stall, the fields; fixed or the house dropped), then A3/A4 (biome styles, sizes, hamlets, ruins).

@@ -106,6 +106,12 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 				"Lone Drifters with no home yet: just starting out, or passing through."));
 		this.row(toggle("Mineshaft delvers", DrifterConfig.worldgenDelvers(), DrifterConfig::setWorldgenDelvers,
 			"Well-armed Drifters delving some mineshafts, looting their chests. Mostly unfriendly."), null);
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("drifter_civ")) {
+			this.row(toggle("Towns replace villages", DrifterConfig.replaceVillages(), DrifterConfig::setReplaceVillages,
+					"Drifter: Civilizations: a Drifter town wherever a village would be, and no villages or wandering traders. New chunks only."),
+				toggle("Villagers", DrifterConfig.villagers(), DrifterConfig::setVillagers,
+					"With villages replaced, zombie villagers still turn up to cure (for trading halls and iron farms). Off: none. Takes a restart."));
+		}
 
 		this.heading("More");
 		this.row(this.page("Spawning...", "How common each kind of new Drifter is, the most at once, and their skins.", () -> new DrifterSpawnScreen(this)),

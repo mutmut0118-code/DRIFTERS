@@ -1460,6 +1460,19 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       lists the same chests after a few seconds).
 - [ ] **One hut builder**: two members of a new group with no hut: only one builds it; the other does something else.
 
+## Milestone 23: towns where villages were (new, 0.23.0)
+
+Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land you've never been to).
+- [ ] No villages anywhere new: `/locate structure #minecraft:village` says "Could not find" at once. No wandering
+      trader comes, and no zombie villagers turn up at night (settings: "Towns replace villages", "Villagers").
+- [ ] `/locate structure drifter_civ:town` finds the nearest Drifter town spot (they're about 2.5 times rarer than
+      villages, in the biomes villages go in). `/drifterciv town sites` lists the spots found so far.
+- [ ] Fly toward one: when you're about 12 chunks off, it's made, a bit each tick, out of sight; no freeze. By the time
+      you're there it's whole: plaza, well, store, stall, fields, pen, houses along roads, people living in them.
+- [ ] On hilly land (your Tectonic pack): it sits on the flattest ground near where it would go, not on a slope; where
+      nothing near is flat enough there's no town at all.
+- [ ] Debug: `/drifterciv town sites make` makes the nearest now; `/drifterciv town go` takes you to the nearest town.
+
 ## Beds in town houses (new, 0.22.34)
 
 - [ ] Make a new town (`/drifterciv town spawn 8 Bedby`) and look in its houses: every bed is on a floor you can walk to

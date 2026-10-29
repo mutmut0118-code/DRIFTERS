@@ -77,6 +77,9 @@ whom to meet and where they live, the message; `arrived`, `back`, `told`, `gaveU
 `DrifterApi.setWarManaged(group, on)`, `declareWar(server, a, b)`, `makePeace(server, a, b, days)`,
 `setRaidTargets((attackers, defenders) -> pos)`: wars run by the addon (0.22.40).
 `DrifterApi.setRaidMusters(group -> pos)`: where a group's raiders gather before setting off (a town's plaza; 0.22.41).
+`DrifterApi.setTownsForVillages(true)`: an addon makes its own towns where villages would be; with the setting on
+(`villagesReplaced()`), no village (#minecraft:village) generates or can be located, and no wandering trader comes;
+`noVillagers()`: zombie villagers kept out too (0.23.0).
 `DrifterApi.setBond(drifter, otherId, name, trust, familiarity)`: what it thinks of another Drifter, by id (0.22.37).
 `DrifterApi.settleDown(drifter)`: a Bandit living in a town gives up killing on sight (an Opportunist toward strangers
 from now on; 0.22.29). `DrifterApi.bandit(drifter)` (born one, or one now), `notABandit(drifter)` (a new personality of

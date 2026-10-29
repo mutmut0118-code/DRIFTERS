@@ -282,9 +282,41 @@ public final class DrifterApi {
 			return java.util.Set.of();
 		}
 
-		return com.dinglebob.drifter.building.plan.HousePlacer.doorSides(new com.dinglebob.drifter.building.plan.PlacedPlan(plan, net.minecraft.core.BlockPos.ZERO,
-			rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn()));
+		// (Kept per plan and turn: a town's layout asks it of every plan at every spot; found measuring a town: most of its
+		// 17 seconds.)
+		DoorSides known = DOOR_SIDES.get(planId + "|" + rotation);
+		if (known != null && known.plan() == plan) {
+			return known.sides();
+		}
+
+		var sides = java.util.Set.copyOf(com.dinglebob.drifter.building.plan.HousePlacer.doorSides(new com.dinglebob.drifter.building.plan.PlacedPlan(plan,
+			net.minecraft.core.BlockPos.ZERO, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn())));
+		DOOR_SIDES.put(planId + "|" + rotation, new DoorSides(plan, sides));
+		return sides;
 	}
+
+	private record DoorSides(Object plan, java.util.Set<net.minecraft.core.Direction> sides) {
+	}
+
+	/** Another mod makes its own towns where villages would be (Drifter: Civilizations, milestone 23). */
+	private static volatile boolean townsForVillages;
+
+	/** An addon that makes towns where villages would be says so; villages (and the wandering trader) then don't come. */
+	public static void setTownsForVillages(boolean on) {
+		townsForVillages = on;
+	}
+
+	/** Villages are replaced: an addon makes towns instead and the setting's on (new chunks only). */
+	public static boolean villagesReplaced() {
+		return townsForVillages && com.dinglebob.drifter.DrifterConfig.replaceVillages();
+	}
+
+	/** Villagers stay out of it too (none spawning as zombie villagers to cure). */
+	public static boolean noVillagers() {
+		return villagesReplaced() && !com.dinglebob.drifter.DrifterConfig.villagers();
+	}
+
+	private static final java.util.Map<String, DoorSides> DOOR_SIDES = new java.util.concurrent.ConcurrentHashMap<>();
 
 	/** A house as put up: its plan, corner, turn and wood, the box it fills, and its front door's lower half. */
 	public record PlacedHouse(String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation, String wood,

@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | Not started |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11's site choice (0.23.0) |
 | B | Trades and services instead of villager trading | Not started |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -51,6 +51,13 @@ Already built that this stands on: see "What's there to build on" below.
    (100 Drifters at most) now and then, with small towns round it on roads to it.
 9. **The player in a town: a citizen only for now** (the user: "keep the town roles for later and just be a citizen").
    Roles (guard, keeper, builder for hire) later.
+10. **Steep, hilly worlds: towns must still be easy to get around** (the user, 2026-10-29: "the world generation has to
+    be compatible and dynamic, i intend running this on a modpack with a configured version of tectonic that has high
+    mountains and hilly terrain, so it has to be easy to get around without the town being covered with cobblestone
+    pillaring and bridging"). See "Terrain" in section 3 and A11.
+11. **Towns go on the flattest land to hand** (the user, 2026-10-29: "you should set it up where its preferred to be on
+    flattest land given the choice, that way it isnt placed anywhere"): a town's spot is the flattest open ground within
+    reach of where it would generate; nothing flat enough near, no town there (better none than one on a cliff). See A11.
 
 Still open: see "Questions for the user" at the end.
 
@@ -148,6 +155,11 @@ Built already (milestones 1 to 22), and how each part of this plan uses it:
 - **Compatibility**: other mods that put things in villages (the user's pack: Bountiful's bounty boards, Guard Villagers,
   Nova Structures) and mods that rely on villagers. See A9.
 - **Player speak** in every line (the user, 2026-10-28: "dont make it corny disney expositiony").
+- **Terrain** (decisions 10 and 11): the user plays with Tectonic (3.0.28, configured: vertical scale 1.52, elevation
+  boost 2.45, build height up to 1360, rolling hills on; with Lithostitched and Terrain Slabs), so mountains are high and
+  the lowlands hilly. Every step has to work there, not only on vanilla terrain: towns on the flattest ground to hand,
+  laid out to the land, and walkable, so their people (and players) get round them on foot without pillaring, bridging or
+  digging. Tested on that terrain (the user's jar and config, in the "meridian test 3" profile), not only on vanilla.
 
 ---
 
@@ -194,6 +206,33 @@ Goal: you explore a new world and every village is a Drifter town, each one diff
   smooth sandstone or packed mud); lamps and fences in the town's wood. Every style still Drifter-buildable (the user's
   house rules: memory "House style rules").
 - **Test:** one town in each biome side by side (a debug command to make one with a biome's style).
+
+### A11. Steep land: where a town goes, and getting round it (decisions 10 and 11)
+
+Vanilla villages sit wherever their jigsaw pieces fit; on Tectonic's terrain that's often a hillside. Drifter towns
+don't, and once there, nobody should have to pillar or bridge to get about.
+
+- **The flattest ground to hand.** When a town's spot comes up (A1), the land round it is looked over first, from the
+  world generator's own heights (no chunks made for it): a coarse grid of heights over the reach a town may move (about
+  seven chunks each way, so the town still belongs to its spot), each candidate scored by how much its ground rises and
+  falls over the town's footprint (the plaza and its first ring of houses most), how much is water, and how far it moved.
+  The best wins. **Nothing flat enough** (the rise over the core above a limit, a setting): **no town** in that spot.
+  Cities (A4) need more flat ground still, and are rarer for it.
+- **Laid out to the land.** The plaza where it's flattest; roads that follow the contours (bending round a hill rather
+  than straight up it), at most a block up every few blocks, with steps (stairs or slabs, Terrain Slabs' if installed)
+  where they climb; houses on terraces at their own height (built: foundations, easing), stepped down a slope rather than
+  on stilts; nothing over a drop a player couldn't walk.
+- **Water and gaps** are crossed only by real bridges the town is made with (planks, fences, a few wide), never by a
+  Drifter putting blocks down; a river through a town gets a bridge, not a pillar line.
+- **Walkable, checked.** Once a town is made, a walk is worked out from the plaza to every door, the store, the stall,
+  the fields and the well, by the same pathfinding Drifters use (no blocks placed or broken). A place it can't be walked
+  to gets steps put in, or the house is dropped. A town that fails that isn't finished.
+- **Its people walk it.** In their own town Drifters keep to its roads and paths and don't pillar, bridge or dig (built in
+  part: 0.22.36 to 0.22.41, mining out past the edge, beds that can be walked to; this makes it the rule for anything
+  built by worldgen).
+- **Tested on the user's terrain**: Tectonic's jar and config copied into the test setup; flights over a world of towns
+  in hills and by mountains, then a day in a hill town counting blocks Drifters put down or dug (the cobblestone count, as
+  in 0.22.36), aiming for none.
 
 ### A4. Sizes, spacing and shapes (decision 8)
 
@@ -507,7 +546,8 @@ its problem.
 
 After nations (decided). Then:
 
-1. **A1 + A2** (villages replaced, small towns made a slice at a time): the hard part first; worth a step on its own.
+1. **A1 + A2**, with **A11's site choice** (villages replaced, each town on the flattest ground to hand or none, small
+   towns made a slice at a time): the hard part first; worth a step on its own. Then A11's layout and walk check.
 2. **A3, A4** (biome styles; small towns, hamlets, ruins); then **cities** (A2's structure pieces, districts, the roads to
    their towns) with **A10** alongside (a city needs the summary layer).
 3. **A5, A6** (a past, people's touches), **A7** (raids, golems, the wandering merchant), **A9** (other mods).
@@ -529,3 +569,38 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
 - 2026-10-29: planned (this document); decisions 1 to 4 above.
 - 2026-10-29: decisions 5 to 9 (villagers as a setting, milestone 23, culture folded into phase C, cities and their
   towns with the spacing worked out in A4, the player a citizen only for now).
+- 2026-10-29: decisions 10 and 11 (steep, hilly worlds: the user's Tectonic pack; towns on the flattest land to hand, or
+  none), A11 written.
+- 2026-10-29: started A1 + A2 (0.23.0). Measured making a 12-house town: 17 s, 11 of it the house layout asking every
+  plan's door sides at every spot (now kept per plan: the layout 0.7 s; a town about 2 s besides loading its land).
+- **0.23.0: A1 + A2 + A11's site choice (towns where villages were, made a step at a time, on the flattest ground).**
+  - Villages replaced (setting "Towns replace villages", on; new chunks only): Drifter's hook `DrifterApi.setTownsForVillages`
+    (the addon sets it); Drifter's mixins give anything tagged #minecraft:village no placements (`ChunkGeneratorStructureState`)
+    and no generation point (`Structure`), so none generates and /locate and maps give up at once (found: with villages
+    only stopped where they'd start, /locate for one ran a minute and the server shut itself down); no wandering trader;
+    no zombie villagers spawning unless "Villagers" is on (off; for trading halls and iron farms; takes a restart).
+  - `drifter_civ:town` (structure set `drifter_civ:towns`: random spread, 54 chunks apart, 16 at least; biomes: vanilla's
+    village biome tags and sunflower plains). Its spot (A11, the user's "flattest land given the choice"): the land within
+    112 blocks looked over on a 24-block grid from the generator's own heights, nearest first, its biome asked from high
+    above first (biomes go by height: under a hill, at sea level, it's a cave's), heights worked out only as needed; a
+    spot's core (48 blocks) may rise and fall 12 at most, the whole (72) 64, a quarter water; scored by roughness, water
+    and how far it moved; the first one flat enough (4 and 20) taken; nowhere: no town. On the user's Tectonic: a spot's
+    search 1 ms typically (1.3 s at worst, on a worldgen thread), /locate 1 to 2.6 s; of 44 spots 10 got a town, the rest
+    in no village biome at all (forests, mountains, sea), only a few turned down for the ground.
+  - The structure places nothing: a marker records the spot as its chunk generates (`TownSites`, saved with the towns).
+    A player within 12 chunks: the land round it (radius 10 chunks) asked for with a ticket, loaded out of sight, and once
+    it's really there (a chunk made, not just asked for: `hasChunk` only says it's meant to be, and the first test made
+    the land on the spot, 2.7 s in one step), the town made a step at a time (`TownBuilder.Job`): layout, plaza, store,
+    fields, pen, the houses (a few spots tried a step), each road, the plaza's things, road lamps, the stall and paths, the
+    trees it cut (32-block pieces), each household, the town and its people, its lights (pieces); 10 ms of steps a tick.
+  - Making a town: 17 s before (one go); measured: 11 s of it the house layout asking each of ~300 plans' door sides at
+    every spot (now kept per plan, `DrifterApi.doorSides`), the ground re-measured each try (kept per column while laying
+    out, forgotten when a block in it changes). Now about 2 to 2.6 s of work over 4 to 14 s, the longest step 60 to 98 ms
+    (tree tidying), a handful over 50 ms. House plans read at world start (353 ms).
+  - `/drifterciv town sites` (spots not made yet, nearest first), debug `town sites make` (the nearest made now, player
+    or not), `town go` (to the nearest town's plaza); `/locate structure drifter_civ:town`.
+  - Tested: headless (vanilla and the user's Tectonic: towns located, villages "Could not find", a town made a step at a
+    time); in the client on Tectonic, flying in from 400 blocks off: the town made itself as the player came within 12
+    chunks, on flat savanna by the sea, the hill beside it left alone (screenshots).
+  - Next: A11's layout and walk check (door paths stepped a block at a time, cut or filled; a walk from the plaza to every
+    door, the store, the stall, the fields; fixed or the house dropped), then A3/A4 (biome styles, sizes, hamlets, ruins).

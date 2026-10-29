@@ -97,6 +97,7 @@ public final class TownBuilder {
 	public record Result(@Nullable Town town, String message) {
 	}
 
+
 	/** A rectangle of the town's ground (min and max x and z, inclusive), to keep things apart. */
 	private record Rect(int x0, int z0, int x1, int z1) {
 		static Rect of(BlockPos a, BlockPos b) {
@@ -144,8 +145,6 @@ public final class TownBuilder {
 	}
 
 	public static Result spawn(ServerLevel level, BlockPos at, int households, @Nullable String wanted) {
-		MinecraftServer server = level.getServer();
-		RandomSource random = level.getRandom();
 		String dimension = level.dimension().location().toString();
 		Town near = Towns.nearest(dimension, at);
 		String warning = near != null && near.center.closerThan(at, Towns.MIN_SPACING) ? " (" + near.name + " is closer than "
@@ -158,337 +157,569 @@ public final class TownBuilder {
 			}
 		}
 
-		int y0 = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, cx, cz);
-		String name = wanted != null ? wanted : Towns.newName(random);
-		Chronicle.quiet = true;
-		try {
-			return build(level, server, random, dimension, warning, cx, cz, y0, households, name);
-		} finally {
-			Chronicle.quiet = false;
+		// (For testing: all of it at once.)
+		Job job = new Job(level, cx, cz, households, wanted, false);
+		while (job.step()) {
 		}
+
+		Result result = job.result();
+		return new Result(result.town(), result.message() + warning);
 	}
 
-	private static Result build(ServerLevel level, MinecraftServer server, RandomSource random, String dimension, String warning, int cx, int cz, int y0,
-		int households, String name) {
-		List<DrifterApi.HousePlanInfo> plans = new ArrayList<>(DrifterApi.housePlans(server).stream()
-			.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) >= SMALLEST_HOUSE && Math.max(plan.sizeX(), plan.sizeZ()) <= BIGGEST_HOUSE
-				&& plan.sizeY() <= 24).toList());
-		if (plans.isEmpty()) {
-			return new Result(null, "No house plans to build with (see /drifter houses)");
+	/** How far round its middle a town's ground (and what's worked out round it) may reach: its chunks loaded before it's made. */
+	static final int MOST_REACH = REACH + 40;
+
+	/**
+	 * A town made a step at a time (milestone 23, docs/LIVED_WORLD.md A2: "out of sight, never a stall"): laid out first,
+	 * then the plaza, the store, the fields, each house, each road, the plaza's things, the trees it cut, each household, the
+	 * lights a piece at a time, each step a few to some tens of milliseconds. The land it's on loaded first. {@code
+	 * world}: made by world generation (where a village would be) rather than for testing.
+	 */
+	static final class Job {
+		final ServerLevel level;
+		final MinecraftServer server;
+		final RandomSource random;
+		final String dimension;
+		final String name;
+		final int cx;
+		final int cz;
+		final int households;
+		final boolean world;
+		private final java.util.ArrayDeque<Step> steps = new java.util.ArrayDeque<>();
+		private long longest;
+		private String longestStep = "";
+		/** Steps that took over a tick's worth (50 ms), by what they were. */
+		private final java.util.Map<String, Integer> slow = new java.util.TreeMap<>();
+		private final long startedAt = System.nanoTime();
+		private long worked;
+		@Nullable
+		private Result result;
+
+		// The layout, and what's been made so far.
+		private int y0;
+		private List<DrifterApi.HousePlanInfo> plans;
+		private Rect plaza;
+		private final List<Road> roads = new ArrayList<>();
+		private int storeZ;
+		private int storeBase;
+		private Rect storeRect;
+		private List<Rect> fieldRects;
+		private Rect penRect;
+		private final List<Rect> taken = new ArrayList<>();
+		private final List<Rect> roadRects = new ArrayList<>();
+		private List<BlockPos> store = List.of();
+		private final List<BlockPos> fields = new ArrayList<>();
+		private BlockPos pen;
+		private final List<Side> sides = new ArrayList<>();
+		private final List<Town.Plot> plots = new ArrayList<>();
+		private final List<DrifterApi.PlacedHouse> houses = new ArrayList<>();
+		private final List<Rect> houseRects = new ArrayList<>();
+		private int planIndex;
+		private final int[] turnedDown = new int[5];
+		private int round = -1;
+		private boolean roundOpen;
+		private BlockPos well;
+		private BlockPos board;
+		private final List<Rect> built = new ArrayList<>();
+		private final List<Rect> all = new ArrayList<>();
+		private net.minecraft.world.level.levelgen.structure.BoundingBox area;
+		private net.minecraft.world.level.levelgen.structure.BoundingBox storeBox;
+		private net.minecraft.world.level.levelgen.structure.BoundingBox plazaBox;
+		private final List<DrifterEntity> people = new ArrayList<>();
+		@Nullable
+		private Town town;
+		private int lamps;
+		private int torches;
+
+		Job(ServerLevel level, int cx, int cz, int households, @Nullable String wanted, boolean world) {
+			this.level = level;
+			this.server = level.getServer();
+			this.random = level.getRandom();
+			this.dimension = level.dimension().location().toString();
+			this.name = wanted != null ? wanted : Towns.newName(this.random);
+			this.cx = cx;
+			this.cz = cz;
+			this.households = households;
+			this.world = world;
+			this.steps.add(new Step("layout", this::layout));
 		}
 
-		// The plan, as a village grows: the plaza in the middle, four roads out from it and side roads off those, the store
-		// by the north road, the fields and pen by the south one, and the houses along the roads with room between them,
-		// nearest the plaza first. Nothing is built till it's laid out.
-		Rect plaza = new Rect(cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA);
-		List<Road> roads = new ArrayList<>();
-		for (Direction way : Direction.Plane.HORIZONTAL) {
-			Road arm = new Road(cx + way.getStepX() * (PLAZA + 1), cz + way.getStepZ() * (PLAZA + 1), way, ARM);
-			roads.add(new Road(arm.x(), arm.z(), way, Math.max(1, dry(level, arm))));
+		/** One step done; false when it's all made (or there's nothing to make it with). */
+		boolean step() {
+			Step next = this.steps.poll();
+			if (next == null) {
+				return false;
+			}
+
+			long start = System.nanoTime();
+			// (Its own entries only: its people's comings and goings aren't news while it's being made.)
+			Chronicle.quiet = true;
+			try {
+				next.work().run();
+			} finally {
+				Chronicle.quiet = false;
+				long took = System.nanoTime() - start;
+				this.worked += took;
+				if (took > 50_000_000L) {
+					this.slow.merge(next.what(), 1, Integer::sum);
+				}
+
+				if (took > this.longest) {
+					this.longest = took;
+					this.longestStep = next.what();
+				}
+			}
+
+			return this.result == null || !this.steps.isEmpty();
 		}
 
-		// The store's spot by the north road: where the ground suits it (found in testing: on a hillside its door opened onto a
-		// bank of earth), with a flat apron to the road.
-		int storeZ = cz - 28;
-		Integer storeBase = null;
-		for (int z = cz - 28; z <= cz - PLAZA - 11 && storeBase == null; z++) {
-			storeBase = siteBase(level, cx + 4, z, cx + 12, z + 8);
-			storeZ = storeBase != null ? z : storeZ;
+		boolean done() {
+			return this.result != null && this.steps.isEmpty();
 		}
 
-		if (storeBase == null) {
-			storeBase = median(level, cx + 4, storeZ, cx + 12, storeZ + 8);
+		Result result() {
+			return this.result != null ? this.result : new Result(null, this.name + ": not made yet");
 		}
 
-		Rect storeRect = new Rect(cx + 2, storeZ - 1, cx + 13, storeZ + 9);
-		List<Rect> fieldRects = List.of(new Rect(cx + 3, cz + 12, cx + 11, cz + 20), new Rect(cx + 3, cz + 23, cx + 11, cz + 31));
-		Rect penRect = new Rect(cx - 13, cz + 12, cx - 3, cz + 22);
-		List<Rect> taken = new ArrayList<>(List.of(plaza, storeRect, penRect));
-		taken.addAll(fieldRects);
+		private void then(String what, Runnable step) {
+			this.steps.addLast(new Step(what, step));
+		}
 
-		// Side roads off the main ones, out into the land (a village's lanes).
-		branches(level, roads, taken, random, 2 + households / 4, cx, cz);
-		List<Rect> roadRects = new ArrayList<>(roads.stream().map(Road::rect).toList());
+		private record Step(String what, Runnable work) {
+		}
 
-		// 1. The plaza at its ground's middle height, a stone edge where the land falls away and the land round it eased up to
-		// it (not dug into a hill as a pit: user, 2026-10-23).
-		y0 = median(level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
-		foundation(level, plaza, y0 - 1, CLEAR_ABOVE, List.of(), random, WIDE_BLEND, true);
+		// -----------------------------------------------------------------------------------------
+		// 1. The layout, as a village grows: the plaza in the middle, four roads out from it and side roads off those, the
+		// store by the north road, the fields and pen by the south one; houses along the roads come later, one at a time.
+		// -----------------------------------------------------------------------------------------
 
-		// 2. The store, at the height of its own ground, eased in the same way.
-		foundation(level, storeRect, storeBase, 8, List.of(plaza), random, WIDE_BLEND, true);
-		List<BlockPos> store = store(level, new BlockPos(cx + 4, storeBase + 1, storeZ), cx);
+		private void layout() {
+			GROUND.clear();
+			this.plans = new ArrayList<>(DrifterApi.housePlans(this.server).stream()
+				.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) >= SMALLEST_HOUSE && Math.max(plan.sizeX(), plan.sizeZ()) <= BIGGEST_HOUSE
+					&& plan.sizeY() <= 24).toList());
+			if (this.plans.isEmpty()) {
+				this.result = new Result(null, "No house plans to build with (see /drifter houses)");
+				return;
+			}
 
-		// 3. The shared farm (two fields, east of the south road) and the pen (west of it).
-		List<BlockPos> fields = new ArrayList<>();
-		for (Rect rect : fieldRects) {
-			int fieldBase = median(level, rect.x0(), rect.z0(), rect.x1(), rect.z1());
+			int cx = this.cx;
+			int cz = this.cz;
+			this.plaza = new Rect(cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA);
+			for (Direction way : Direction.Plane.HORIZONTAL) {
+				Road arm = new Road(cx + way.getStepX() * (PLAZA + 1), cz + way.getStepZ() * (PLAZA + 1), way, ARM);
+				this.roads.add(new Road(arm.x(), arm.z(), way, Math.max(1, dry(this.level, arm))));
+			}
+
+			// The store's spot by the north road: where the ground suits it (found in testing: on a hillside its door opened onto
+			// a bank of earth), with a flat apron to the road.
+			this.storeZ = cz - 28;
+			Integer storeBase = null;
+			for (int z = cz - 28; z <= cz - PLAZA - 11 && storeBase == null; z++) {
+				storeBase = siteBase(this.level, cx + 4, z, cx + 12, z + 8);
+				this.storeZ = storeBase != null ? z : this.storeZ;
+			}
+
+			this.storeBase = storeBase != null ? storeBase : median(this.level, cx + 4, this.storeZ, cx + 12, this.storeZ + 8);
+			this.storeRect = new Rect(cx + 2, this.storeZ - 1, cx + 13, this.storeZ + 9);
+			this.fieldRects = List.of(new Rect(cx + 3, cz + 12, cx + 11, cz + 20), new Rect(cx + 3, cz + 23, cx + 11, cz + 31));
+			this.penRect = new Rect(cx - 13, cz + 12, cx - 3, cz + 22);
+			this.taken.addAll(List.of(this.plaza, this.storeRect, this.penRect));
+			this.taken.addAll(this.fieldRects);
+			// Side roads off the main ones, out into the land (a village's lanes).
+			branches(this.level, this.roads, this.taken, this.random, 2 + this.households / 4, cx, cz);
+			this.roads.forEach(road -> this.roadRects.add(road.rect()));
+			this.y0 = median(this.level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
+			this.then("plaza", this::plaza);
+			this.then("store", this::store);
+			for (Rect rect : this.fieldRects) {
+				this.then("field", () -> this.field(rect));
+			}
+
+			this.then("pen", this::pen);
+			this.then("houses", this::houses);
+		}
+
+		/** The plaza at its ground's middle height, a stone edge where the land falls away and the land round it eased up to it
+		 * (not dug into a hill as a pit: user, 2026-10-23). */
+		private void plaza() {
+			foundation(this.level, this.plaza, this.y0 - 1, CLEAR_ABOVE, List.of(), this.random, WIDE_BLEND, true);
+		}
+
+		/** The store, at the height of its own ground, eased in the same way. */
+		private void store() {
+			foundation(this.level, this.storeRect, this.storeBase, 8, List.of(this.plaza), this.random, WIDE_BLEND, true);
+			this.store = TownBuilder.store(this.level, new BlockPos(this.cx + 4, this.storeBase + 1, this.storeZ), this.cx);
+		}
+
+		/** One of the shared farm's two fields (east of the south road). */
+		private void field(Rect rect) {
+			int fieldBase = median(this.level, rect.x0(), rect.z0(), rect.x1(), rect.z1());
 			// (Eased into the land round it: dug into a slope as a pit, its people climbed out on blocks they put down on the
 			// farmland; found by the user.)
-			List<Rect> keep = new ArrayList<>(List.of(plaza, storeRect));
-			fieldRects.stream().filter(other -> other != rect).forEach(keep::add);
-			foundation(level, rect, fieldBase, 4, keep, random, WIDE_BLEND, false);
+			List<Rect> keep = new ArrayList<>(List.of(this.plaza, this.storeRect));
+			this.fieldRects.stream().filter(other -> other != rect).forEach(keep::add);
+			foundation(this.level, rect, fieldBase, 4, keep, this.random, WIDE_BLEND, false);
 			BlockPos field = new BlockPos((rect.x0() + rect.x1()) / 2, fieldBase, (rect.z0() + rect.z1()) / 2);
-			fields.add(field.above());
+			this.fields.add(field.above());
 			for (int dx = -4; dx <= 4; dx++) {
 				for (int dz = -4; dz <= 4; dz++) {
 					BlockPos pos = field.offset(dx, 0, dz);
 					if (dx == 0 && dz == 0) {
-						set(level, pos, Blocks.WATER.defaultBlockState());
+						set(this.level, pos, Blocks.WATER.defaultBlockState());
 						continue;
 					}
 
-					set(level, pos, Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE));
-					set(level, pos.above(), Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, random.nextInt(8)));
+					set(this.level, pos, Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE));
+					set(this.level, pos.above(), Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, this.random.nextInt(8)));
 				}
 			}
 		}
 
-		BlockPos pen = onGround(level, (penRect.x0() + penRect.x1()) / 2, (penRect.z0() + penRect.z1()) / 2);
-		penFence(level, pen, 5);
-		for (EntityType<?> animal : List.of(EntityType.COW, EntityType.COW, EntityType.SHEEP, EntityType.SHEEP, EntityType.CHICKEN, EntityType.CHICKEN)) {
-			animal.spawn(level, onGround(level, pen.getX() + random.nextInt(7) - 3, pen.getZ() + random.nextInt(7) - 3), MobSpawnType.COMMAND);
+		/** The pen (west of the south road) and its animals. */
+		private void pen() {
+			this.pen = onGround(this.level, (this.penRect.x0() + this.penRect.x1()) / 2, (this.penRect.z0() + this.penRect.z1()) / 2);
+			penFence(this.level, this.pen, 5);
+			for (EntityType<?> animal : List.of(EntityType.COW, EntityType.COW, EntityType.SHEEP, EntityType.SHEEP, EntityType.CHICKEN, EntityType.CHICKEN)) {
+				animal.spawn(this.level, onGround(this.level, this.pen.getX() + this.random.nextInt(7) - 3, this.pen.getZ() + this.random.nextInt(7) - 3),
+					MobSpawnType.COMMAND);
+			}
 		}
 
-		// 4. The houses: each from a different plan (as far as they go), its front to the road, along the roads with room
-		// between them, the nearest free spot to the plaza first; each on its own ground, eased into the land round it.
-		java.util.Collections.shuffle(plans, new java.util.Random(random.nextLong()));
-		List<Side> sides = new ArrayList<>();
-		List<Town.Plot> plots = new ArrayList<>();
-		List<DrifterApi.PlacedHouse> houses = new ArrayList<>();
-		List<Rect> houseRects = new ArrayList<>();
-		int planIndex = 0;
-		// Why spots were turned down (for the log): out of the town, by a road, by the store, fields or another house, the ground.
-		int[] turnedDown = new int[5];
-		// (Where the land is broken, by water or slopes too steep, more side roads till the houses fit.)
-		for (int round = 0; round < 4 && houses.size() < households; round++) {
-			if (round > 0) {
-				List<Rect> busy = new ArrayList<>(taken);
-				busy.addAll(houseRects);
-				int had = roads.size();
-				branches(level, roads, busy, random, roads.size() - 4 + 2, cx, cz);
-				roads.subList(had, roads.size()).forEach(road -> roadRects.add(road.rect()));
-			}
+		// -----------------------------------------------------------------------------------------
+		// 2. The houses: each from a different plan (as far as they go), its front to the road, along the roads with room
+		// between them, the nearest free spot to the plaza first; each on its own ground, eased into the land round it. A few
+		// spots tried a step (a house put up ends it); where the land is broken, by water or slopes too steep, more side roads
+		// till the houses fit (four rounds at most).
+		// -----------------------------------------------------------------------------------------
 
-			for (int i = sides.size() / 2; i < roads.size(); i++) {
-				Road road = roads.get(i);
-				int start = i < 4 ? 2 : 4;
-				sides.add(new Side(road, road.way().getClockWise(), start));
-				sides.add(new Side(road, road.way().getCounterClockWise(), start));
-			}
+		/** A step's spots tried for this long at most (a house put up ends it sooner). */
+		private static final long TRYING_NANOS = 8_000_000L;
 
-			while (houses.size() < households) {
-				Side side = sides.stream().filter(s -> !s.full).min(java.util.Comparator.comparingDouble(s -> {
+		private void houses() {
+			long start = System.nanoTime();
+			while (System.nanoTime() - start < TRYING_NANOS) {
+				if (!this.roundOpen) {
+					this.round++;
+					if (this.round >= 4 || this.houses.size() >= this.households) {
+						this.housesDone();
+						return;
+					}
+
+					if (this.round > 0) {
+						List<Rect> busy = new ArrayList<>(this.taken);
+						busy.addAll(this.houseRects);
+						int had = this.roads.size();
+						branches(this.level, this.roads, busy, this.random, this.roads.size() - 4 + 2, this.cx, this.cz);
+						this.roads.subList(had, this.roads.size()).forEach(road -> this.roadRects.add(road.rect()));
+					}
+
+					for (int i = this.sides.size() / 2; i < this.roads.size(); i++) {
+						Road road = this.roads.get(i);
+						int startAt = i < 4 ? 2 : 4;
+						this.sides.add(new Side(road, road.way().getClockWise(), startAt));
+						this.sides.add(new Side(road, road.way().getCounterClockWise(), startAt));
+					}
+
+					this.roundOpen = true;
+				}
+
+				if (this.houses.size() >= this.households) {
+					this.housesDone();
+					return;
+				}
+
+				Side side = this.sides.stream().filter(s -> !s.full).min(java.util.Comparator.comparingDouble(s -> {
 					BlockPos at = s.road.at(s.cursor);
-					return Math.hypot(at.getX() - cx, at.getZ() - cz);
+					return Math.hypot(at.getX() - this.cx, at.getZ() - this.cz);
 				})).orElse(null);
 				if (side == null) {
+					this.roundOpen = false;
+					continue;
+				}
+
+				if (this.trySpot(side)) {
 					break;
 				}
-
-				DrifterApi.PlacedHouse house = null;
-				Direction front = side.out.getOpposite();
-				int setback = LEAST_SETBACK + random.nextInt(MOST_SETBACK - LEAST_SETBACK + 1);
-				for (int tries = 0; tries < plans.size() && house == null; tries++) {
-					DrifterApi.HousePlanInfo plan = plans.get((planIndex + tries) % plans.size());
-					Rotation rotation = turnFor(server, plan.id(), front);
-					if (rotation == null) {
-						continue;
-					}
-
-					boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
-					int sx = turned ? plan.sizeZ() : plan.sizeX();
-					int sz = turned ? plan.sizeX() : plan.sizeZ();
-					boolean alongX = side.road.way().getAxis() == Direction.Axis.X;
-					int along = alongX ? sx : sz;
-					int depth = alongX ? sz : sx;
-					if (side.cursor + along > side.road.length()) {
-						continue;
-					}
-
-					int near = 2 + setback;
-					Rect site = Rect.of(side.road.at(side.cursor).relative(side.out, near),
-						side.road.at(side.cursor + along - 1).relative(side.out, near + depth - 1));
-					int why = Math.abs(site.x0() - cx) > REACH || Math.abs(site.x1() - cx) > REACH || Math.abs(site.z0() - cz) > REACH
-						|| Math.abs(site.z1() - cz) > REACH ? 0 : roadRects.stream().anyMatch(road -> road.near(site, LEAST_SETBACK - 1)) ? 1
-						: taken.stream().anyMatch(other -> other.near(site, HOUSE_GAP)) ? 2 : houseRects.stream().anyMatch(other -> other.near(site, HOUSE_GAP)) ? 3 : -1;
-					Integer base = why >= 0 ? null : siteBase(level, site.x0(), site.z0(), site.x1(), site.z1());
-					if (base == null) {
-						turnedDown[why >= 0 ? why : 4]++;
-						continue;
-					}
-
-					// Its own ground, eased into the land round it (a plan whose lowest layer is its own ground goes a block down, its
-					// ground in place of the land's).
-					List<Rect> keep = new ArrayList<>(taken);
-					keep.addAll(houseRects);
-					keep.addAll(roadRects);
-					foundation(level, site, base, plan.sizeY() + 2, keep, random, BLEND, true);
-					BlockPos origin = new BlockPos(site.x0(), plan.groundLayer() ? base : base + 1, site.z0());
-					house = DrifterApi.placeHouse(level, plan.id(), origin, rotation, WOODS[random.nextInt(WOODS.length)], front);
-					if (house != null) {
-						planIndex = (planIndex + tries + 1) % plans.size();
-						side.cursor += along + HOUSE_GAP + random.nextInt(MORE_GAP + 1);
-						Town.Plot made = new Town.Plot(origin, sx, sz, plan.id(), rotation, front, null);
-						made.built = true;
-						plots.add(made);
-						houses.add(house);
-						houseRects.add(site);
-						DrifterCivilizations.LOGGER.info("[town] {} at {}, its door at {}", plan.id(), house.box(), house.door());
-					}
-				}
-
-				if (house == null) {
-					side.cursor += SKIP;
-				}
-
-				side.full = side.cursor >= side.road.length() - 4;
 			}
+
+			this.steps.addFirst(new Step("houses", this::houses));
 		}
 
-		DrifterCivilizations.LOGGER.info("[town] {} of {} houses on {} roads; spots turned down: {} out of the town, {} by a road, {} by the store or fields, {} by a house, {} for the ground",
-			houses.size(), households, roads.size(), turnedDown[0], turnedDown[1], turnedDown[2], turnedDown[3], turnedDown[4]);
-		// 5. The roads over the ground as it is now, the plaza paved, the well, bell and board, lamps along the roads.
-		for (Road road : roads) {
-			easeRoad(level, road, plaza);
+		/** A house at this side's next spot if one fits there (true: one went up); the side moved on either way. */
+		private boolean trySpot(Side side) {
+			DrifterApi.PlacedHouse house = null;
+			Direction front = side.out.getOpposite();
+			int setback = LEAST_SETBACK + this.random.nextInt(MOST_SETBACK - LEAST_SETBACK + 1);
+			for (int tries = 0; tries < this.plans.size() && house == null; tries++) {
+				DrifterApi.HousePlanInfo plan = this.plans.get((this.planIndex + tries) % this.plans.size());
+				Rotation rotation = turnFor(this.server, plan.id(), front);
+				if (rotation == null) {
+					continue;
+				}
+
+				boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+				int sx = turned ? plan.sizeZ() : plan.sizeX();
+				int sz = turned ? plan.sizeX() : plan.sizeZ();
+				boolean alongX = side.road.way().getAxis() == Direction.Axis.X;
+				int along = alongX ? sx : sz;
+				int depth = alongX ? sz : sx;
+				if (side.cursor + along > side.road.length()) {
+					continue;
+				}
+
+				int near = 2 + setback;
+				Rect site = Rect.of(side.road.at(side.cursor).relative(side.out, near), side.road.at(side.cursor + along - 1).relative(side.out, near + depth - 1));
+				int why = Math.abs(site.x0() - this.cx) > REACH || Math.abs(site.x1() - this.cx) > REACH || Math.abs(site.z0() - this.cz) > REACH
+					|| Math.abs(site.z1() - this.cz) > REACH ? 0 : this.roadRects.stream().anyMatch(road -> road.near(site, LEAST_SETBACK - 1)) ? 1
+					: this.taken.stream().anyMatch(other -> other.near(site, HOUSE_GAP)) ? 2
+					: this.houseRects.stream().anyMatch(other -> other.near(site, HOUSE_GAP)) ? 3 : -1;
+				Integer base = why >= 0 ? null : siteBase(this.level, site.x0(), site.z0(), site.x1(), site.z1());
+				if (base == null) {
+					this.turnedDown[why >= 0 ? why : 4]++;
+					continue;
+				}
+
+				// Its own ground, eased into the land round it (a plan whose lowest layer is its own ground goes a block down, its
+				// ground in place of the land's).
+				List<Rect> keep = new ArrayList<>(this.taken);
+				keep.addAll(this.houseRects);
+				keep.addAll(this.roadRects);
+				foundation(this.level, site, base, plan.sizeY() + 2, keep, this.random, BLEND, true);
+				BlockPos origin = new BlockPos(site.x0(), plan.groundLayer() ? base : base + 1, site.z0());
+				house = DrifterApi.placeHouse(this.level, plan.id(), origin, rotation, WOODS[this.random.nextInt(WOODS.length)], front);
+				if (house != null) {
+					changed(house.box());
+					this.planIndex = (this.planIndex + tries + 1) % this.plans.size();
+					side.cursor += along + HOUSE_GAP + this.random.nextInt(MORE_GAP + 1);
+					Town.Plot made = new Town.Plot(origin, sx, sz, plan.id(), rotation, front, null);
+					made.built = true;
+					this.plots.add(made);
+					this.houses.add(house);
+					this.houseRects.add(site);
+					DrifterCivilizations.LOGGER.info("[town] {} at {}, its door at {}", plan.id(), house.box(), house.door());
+				}
+			}
+
+			if (house == null) {
+				side.cursor += SKIP;
+			}
+
+			side.full = side.cursor >= side.road.length() - 4;
+			return house != null;
+		}
+
+		private void housesDone() {
+			DrifterCivilizations.LOGGER.info("[town] {} of {} houses on {} roads; spots turned down: {} out of the town, {} by a road, {} by the store or fields, {} by a house, {} for the ground",
+				this.houses.size(), this.households, this.roads.size(), this.turnedDown[0], this.turnedDown[1], this.turnedDown[2], this.turnedDown[3],
+				this.turnedDown[4]);
+			for (Road road : this.roads) {
+				this.then("road", () -> this.road(road));
+			}
+
+			this.then("plazaThings", this::plazaThings);
+			this.then("roadLamps", this::roadLamps);
+			this.then("stallAndPaths", this::stallAndPaths);
+			this.then("areaAndTrees", this::areaAndTrees);
+		}
+
+		// -----------------------------------------------------------------------------------------
+		// 3. The roads over the ground as it is now, the plaza paved, the well, bell and board's spot, lamps along the roads,
+		// the stall and the paths to the doors.
+		// -----------------------------------------------------------------------------------------
+
+		private void road(Road road) {
+			easeRoad(this.level, road, this.plaza);
 			Rect rect = road.rect();
 			for (int x = rect.x0(); x <= rect.x1(); x++) {
 				for (int z = rect.z0(); z <= rect.z1(); z++) {
-					if (!plaza.contains(x, z)) {
-						road(level, x, z);
+					if (!this.plaza.contains(x, z)) {
+						TownBuilder.road(this.level, x, z);
 					}
 				}
 			}
 		}
 
-		for (int x = cx - PLAZA; x <= cx + PLAZA; x++) {
-			for (int z = cz - PLAZA; z <= cz + PLAZA; z++) {
-				set(level, new BlockPos(x, y0 - 1, z), (random.nextFloat() < 0.3F ? Blocks.COBBLESTONE : Blocks.STONE_BRICKS).defaultBlockState());
+		private void plazaThings() {
+			int cx = this.cx;
+			int cz = this.cz;
+			int y0 = this.y0;
+			for (int x = cx - PLAZA; x <= cx + PLAZA; x++) {
+				for (int z = cz - PLAZA; z <= cz + PLAZA; z++) {
+					set(this.level, new BlockPos(x, y0 - 1, z), (this.random.nextFloat() < 0.3F ? Blocks.COBBLESTONE : Blocks.STONE_BRICKS).defaultBlockState());
+				}
 			}
-		}
 
-		BlockPos well = new BlockPos(cx, y0, cz);
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dz = -1; dz <= 1; dz++) {
-				BlockPos pos = well.offset(dx, 0, dz);
-				if (dx == 0 && dz == 0) {
-					set(level, pos.below(), Blocks.WATER.defaultBlockState());
-					set(level, pos.below(2), Blocks.WATER.defaultBlockState());
-				} else {
-					set(level, pos.below(), Blocks.COBBLESTONE.defaultBlockState());
-					place(level, pos, (Math.abs(dx) == 1 && Math.abs(dz) == 1 ? Blocks.OAK_FENCE : Blocks.COBBLESTONE_WALL).defaultBlockState());
+			this.well = new BlockPos(cx, y0, cz);
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					BlockPos pos = this.well.offset(dx, 0, dz);
+					if (dx == 0 && dz == 0) {
+						set(this.level, pos.below(), Blocks.WATER.defaultBlockState());
+						set(this.level, pos.below(2), Blocks.WATER.defaultBlockState());
+					} else {
+						set(this.level, pos.below(), Blocks.COBBLESTONE.defaultBlockState());
+						place(this.level, pos, (Math.abs(dx) == 1 && Math.abs(dz) == 1 ? Blocks.OAK_FENCE : Blocks.COBBLESTONE_WALL).defaultBlockState());
+					}
+				}
+			}
+
+			for (int dx = -1; dx <= 1; dx += 2) {
+				for (int dz = -1; dz <= 1; dz += 2) {
+					place(this.level, this.well.offset(dx, 1, dz), Blocks.OAK_FENCE.defaultBlockState());
+				}
+			}
+
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					set(this.level, this.well.offset(dx, 2, dz), Blocks.OAK_SLAB.defaultBlockState());
+				}
+			}
+
+			place(this.level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
+			this.board = new BlockPos(cx - 5, y0, cz - 5);
+			for (int dx : new int[] {-PLAZA, PLAZA}) {
+				for (int dz : new int[] {-PLAZA, PLAZA}) {
+					lamp(this.level, new BlockPos(cx + dx, y0, cz + dz));
 				}
 			}
 		}
 
-		for (int dx = -1; dx <= 1; dx += 2) {
-			for (int dz = -1; dz <= 1; dz += 2) {
-				place(level, well.offset(dx, 1, dz), Blocks.OAK_FENCE.defaultBlockState());
-			}
-		}
-
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dz = -1; dz <= 1; dz++) {
-				set(level, well.offset(dx, 2, dz), Blocks.OAK_SLAB.defaultBlockState());
-			}
-		}
-
-		place(level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
-		BlockPos board = new BlockPos(cx - 5, y0, cz - 5);
-		for (int dx : new int[] {-PLAZA, PLAZA}) {
-			for (int dz : new int[] {-PLAZA, PLAZA}) {
-				lamp(level, new BlockPos(cx + dx, y0, cz + dz));
-			}
-		}
-
-		List<Rect> built = new ArrayList<>(taken);
-		built.addAll(houseRects);
-		for (Road road : roads) {
-			for (int t = 8; t < road.length(); t += 12) {
-				Direction out = (t / 12) % 2 == 0 ? road.way().getClockWise() : road.way().getCounterClockWise();
-				BlockPos at = road.at(t).relative(out, 2);
-				if (built.stream().noneMatch(rect -> rect.away(at.getX(), at.getZ()) <= 1) && roadRects.stream().noneMatch(rect -> rect.contains(at.getX(), at.getZ()))) {
-					lamp(level, onGround(level, at.getX(), at.getZ()));
+		private void roadLamps() {
+			this.built.addAll(this.taken);
+			this.built.addAll(this.houseRects);
+			for (Road road : this.roads) {
+				for (int t = 8; t < road.length(); t += 12) {
+					Direction out = (t / 12) % 2 == 0 ? road.way().getClockWise() : road.way().getCounterClockWise();
+					BlockPos at = road.at(t).relative(out, 2);
+					if (this.built.stream().noneMatch(rect -> rect.away(at.getX(), at.getZ()) <= 1)
+						&& this.roadRects.stream().noneMatch(rect -> rect.contains(at.getX(), at.getZ()))) {
+						lamp(this.level, onGround(this.level, at.getX(), at.getZ()));
+					}
 				}
 			}
 		}
 
-		// A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4).
-		BlockPos stallAt = new BlockPos(cx + 2, y0, cz + 2);
-		DrifterApi.placeHouse(level, DrifterApi.stallPlan(), stallAt, Rotation.NONE, "oak", Direction.SOUTH);
-		// Paths from each door to its road.
-		for (int i = 0; i < houses.size(); i++) {
-			path(level, houses.get(i), plots.get(i).front, roadRects);
+		/** A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4); paths
+		 * from each door to its road. */
+		private void stallAndPaths() {
+			DrifterApi.placeHouse(this.level, DrifterApi.stallPlan(), this.stallAt(), Rotation.NONE, "oak", Direction.SOUTH);
+			GROUND.clear();
+			for (int i = 0; i < this.houses.size(); i++) {
+				path(this.level, this.houses.get(i), this.plots.get(i).front, this.roadRects);
+			}
 		}
 
-		// The town's area: everything in it, and a little round.
-		int minX = cx - PLAZA;
-		int maxX = cx + PLAZA;
-		int minZ = cz - PLAZA;
-		int maxZ = cz + PLAZA;
-		List<Rect> all = new ArrayList<>(built);
-		all.addAll(roadRects);
-		for (Rect rect : all) {
-			minX = Math.min(minX, rect.x0());
-			maxX = Math.max(maxX, rect.x1());
-			minZ = Math.min(minZ, rect.z0());
-			maxZ = Math.max(maxZ, rect.z1());
+		private BlockPos stallAt() {
+			return new BlockPos(this.cx + 2, this.y0, this.cz + 2);
 		}
 
-		int minY = y0;
-		int maxY = y0;
-		for (DrifterApi.PlacedHouse house : houses) {
-			minY = Math.min(minY, house.box().minY());
-			maxY = Math.max(maxY, house.box().maxY());
+		// -----------------------------------------------------------------------------------------
+		// 4. The town's area (everything in it and a little round), the trees it cut through tidied a piece at a time (no
+		// trunks or leaves left hanging: user, 2026-10-22).
+		// -----------------------------------------------------------------------------------------
+
+		/** The area's pieces, this wide each way, for the steps that go over all of it. */
+		private static final int PIECE = 32;
+
+		private void areaAndTrees() {
+			int minX = this.cx - PLAZA;
+			int maxX = this.cx + PLAZA;
+			int minZ = this.cz - PLAZA;
+			int maxZ = this.cz + PLAZA;
+			this.all.addAll(this.built);
+			this.all.addAll(this.roadRects);
+			for (Rect rect : this.all) {
+				minX = Math.min(minX, rect.x0());
+				maxX = Math.max(maxX, rect.x1());
+				minZ = Math.min(minZ, rect.z0());
+				maxZ = Math.max(maxZ, rect.z1());
+			}
+
+			int minY = this.y0;
+			int maxY = this.y0;
+			for (DrifterApi.PlacedHouse house : this.houses) {
+				minY = Math.min(minY, house.box().minY());
+				maxY = Math.max(maxY, house.box().maxY());
+			}
+
+			this.area = new net.minecraft.world.level.levelgen.structure.BoundingBox(minX - 6, minY - 12, minZ - 6, maxX + 6, maxY + 16, maxZ + 6);
+			for (var piece : this.pieces()) {
+				this.then("trees", () -> {
+					DrifterApi.tidyTrees(this.level, piece);
+					GROUND.clear();
+				});
+			}
+
+			this.then("peopleStart", this::peopleStart);
 		}
 
-		var area = new net.minecraft.world.level.levelgen.structure.BoundingBox(minX - 6, minY - 12, minZ - 6, maxX + 6, maxY + 16, maxZ + 6);
-		// The trees the town cut through: no trunks or leaves left hanging (user, 2026-10-22).
-		DrifterApi.tidyTrees(level, area);
+		private List<net.minecraft.world.level.levelgen.structure.BoundingBox> pieces() {
+			List<net.minecraft.world.level.levelgen.structure.BoundingBox> list = new ArrayList<>();
+			for (int x = this.area.minX(); x <= this.area.maxX(); x += PIECE) {
+				for (int z = this.area.minZ(); z <= this.area.maxZ(); z += PIECE) {
+					list.add(new net.minecraft.world.level.levelgen.structure.BoundingBox(x, this.area.minY(), z, Math.min(x + PIECE - 1, this.area.maxX()),
+						this.area.maxY(), Math.min(z + PIECE - 1, this.area.maxZ())));
+				}
+			}
 
-		// 6. Its people: one moved into each house (furnished as a player would, the user's guidebook), friends with the
-		// rest, one group; well on in their lives, with the gear for it (user, 2026-10-23: "all of the players should be like
-		// mid-late game, above tier 2, that way drifters can defend themselves").
-		List<DrifterEntity> people = new ArrayList<>();
-		var storeBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(storeRect.x0(), storeBase - 2, storeRect.z0(), storeRect.x1(),
-			storeBase + 8, storeRect.z1());
-		var plazaBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(plaza.x0() - 2, y0 - 3, plaza.z0() - 2, plaza.x1() + 2, y0 + 5,
-			plaza.z1() + 2);
-		for (int i = 0; i < houses.size(); i++) {
-			DrifterApi.PlacedHouse house = houses.get(i);
-			Town.Plot plot = plots.get(i);
-			BlockPos stand = doorstep(level, house, plot);
-			DrifterEntity drifter = DrifterApi.spawn(level, stand, null);
+			return list;
+		}
+
+		// -----------------------------------------------------------------------------------------
+		// 5. Its people: one moved into each house (furnished as a player would, the user's guidebook), a household a step;
+		// friends with the rest, one group; well on in their lives, with the gear for it (user, 2026-10-23: "all of the players
+		// should be like mid-late game, above tier 2, that way drifters can defend themselves").
+		// -----------------------------------------------------------------------------------------
+
+		private void peopleStart() {
+			this.storeBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(this.storeRect.x0(), this.storeBase - 2, this.storeRect.z0(),
+				this.storeRect.x1(), this.storeBase + 8, this.storeRect.z1());
+			this.plazaBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(this.plaza.x0() - 2, this.y0 - 3, this.plaza.z0() - 2,
+				this.plaza.x1() + 2, this.y0 + 5, this.plaza.z1() + 2);
+			for (int i = 0; i < this.houses.size(); i++) {
+				int index = i;
+				this.then("household", () -> this.household(index));
+			}
+
+			this.then("townUp", this::townUp);
+		}
+
+		private void household(int i) {
+			DrifterApi.PlacedHouse house = this.houses.get(i);
+			Town.Plot plot = this.plots.get(i);
+			BlockPos stand = doorstep(this.level, house, plot);
+			DrifterEntity drifter = DrifterApi.spawn(this.level, stand, null);
 			if (drifter == null) {
-				continue;
+				return;
 			}
 
 			// (No Bandits in a town: the user, 2026-10-28, "kinda like a skyrim bandit".)
 			DrifterApi.notABandit(drifter);
-			Home home = DrifterApi.settleIn(drifter, house, store);
-			home.farm = fields.get(i % fields.size());
+			Home home = DrifterApi.settleIn(drifter, house, this.store);
+			home.farm = this.fields.get(i % this.fields.size());
 			home.farmRadius = 4;
-			home.pen = pen;
+			home.pen = this.pen;
 			plot.owner = drifter.getUUID();
-			stock(level, home, house.box());
+			stock(this.level, home, house.box());
 			for (BlockPos chest : home.chests()) {
 				DrifterApi.rememberChest(drifter, chest);
 			}
 
-			DrifterApi.knowsBox(drifter, storeBox);
-			DrifterApi.knowsBox(drifter, plazaBox);
-			people.add(drifter);
+			DrifterApi.knowsBox(drifter, this.storeBox);
+			DrifterApi.knowsBox(drifter, this.plazaBox);
+			this.people.add(drifter);
 			// A house with more than one room takes more households: someone in each other room (user, 2026-10-23: "that way
 			// there is more citizens without having more houses").
-			plot.room = DrifterApi.households(level, house.planId(), house.origin(), house.rotation());
+			plot.room = DrifterApi.households(this.level, house.planId(), house.origin(), house.rotation());
 			for (int more = 1; more < plot.room; more++) {
-				DrifterEntity other = DrifterApi.spawn(level, stand, null);
+				DrifterEntity other = DrifterApi.spawn(this.level, stand, null);
 				if (other == null) {
 					break;
 				}
 
 				DrifterApi.notABandit(other);
-				Home shared = DrifterApi.settleInToo(other, house, store);
+				Home shared = DrifterApi.settleInToo(other, house, this.store);
 				if (shared == null) {
 					other.discard();
 					break;
@@ -496,66 +727,89 @@ public final class TownBuilder {
 
 				shared.farm = home.farm;
 				shared.farmRadius = 4;
-				shared.pen = pen;
+				shared.pen = this.pen;
 				plot.residents.add(other.getUUID());
 				for (BlockPos chest : shared.chests()) {
 					DrifterApi.rememberChest(other, chest);
 				}
 
-				DrifterApi.knowsBox(other, storeBox);
-				DrifterApi.knowsBox(other, plazaBox);
-				people.add(other);
+				DrifterApi.knowsBox(other, this.storeBox);
+				DrifterApi.knowsBox(other, this.plazaBox);
+				this.people.add(other);
 			}
 		}
 
-		var group = DrifterApi.formGroup(people, name);
-		// Gear by their place in the town (the user, 2026-10-28: everyone in diamond, "i cant tell a guard from a citizen, or a
-		// citizen from a leader"): its leader (the group's first), its two boldest as guards, the rest a working life's.
-		List<DrifterEntity> boldest = new ArrayList<>(people.subList(Math.min(1, people.size()), people.size()));
-		boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
-			.reversed());
-		for (DrifterEntity one : people) {
-			String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0 && boldest.indexOf(one) < 2 ? "guard"
-				: "citizen";
-			DrifterApi.equipTown(one, random, role);
-		}
+		/** One group, geared by their places; the town itself, its past and its keeper; its notice board. */
+		private void townUp() {
+			var group = DrifterApi.formGroup(this.people, this.name);
+			// Gear by their place in the town (the user, 2026-10-28: everyone in diamond, "i cant tell a guard from a citizen, or
+			// a citizen from a leader"): its leader (the group's first), its two boldest as guards, the rest a working life's.
+			List<DrifterEntity> boldest = new ArrayList<>(this.people.subList(Math.min(1, this.people.size()), this.people.size()));
+			boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
+				.reversed());
+			for (DrifterEntity one : this.people) {
+				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0 && boldest.indexOf(one) < 2 ? "guard"
+					: "citizen";
+				DrifterApi.equipTown(one, this.random, role);
+			}
 
-		long day = Chronicle.day(server);
-		Town town = new Town(UUID.randomUUID(), name, group == null ? null : group.id, dimension, new BlockPos(cx, y0, cz), day, true);
-		town.plots.addAll(plots);
-		town.store.addAll(store);
-		town.fields.addAll(fields);
-		town.well = well;
-		town.pen = pen;
-		town.stallPlot = new Town.Plot(stallAt, 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
-		town.stallBuilt = true;
-		Towns.add(server, town);
-		// A past: its people all know each other, some better than others, and a few know people of the towns about.
-		TownHistory.neighbours(server, town, people, random);
-		TownHistory.acrossTowns(server, town, people, random);
-		if (group != null) {
-			Market.keeper(server, town, group);
-			// (Made ready: they stocked the store themselves, and the keeper has a little money to buy with.)
-			for (DrifterEntity one : people) {
-				store.forEach(chest -> DrifterApi.rememberChest(one, chest));
-				if (one.getUUID().equals(town.keeper)) {
-					one.getInventory().add(new ItemStack(Items.EMERALD, 8));
-					DrifterApi.wearApron(one);
+			long day = Chronicle.day(this.server);
+			Town town = new Town(UUID.randomUUID(), this.name, group == null ? null : group.id, this.dimension, new BlockPos(this.cx, this.y0, this.cz), day, true);
+			this.town = town;
+			town.plots.addAll(this.plots);
+			town.store.addAll(this.store);
+			town.fields.addAll(this.fields);
+			town.well = this.well;
+			town.pen = this.pen;
+			town.stallPlot = new Town.Plot(this.stallAt(), 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
+			town.stallBuilt = true;
+			Towns.add(this.server, town);
+			// A past: its people all know each other, some better than others, and a few know people of the towns about.
+			TownHistory.neighbours(this.server, town, this.people, this.random);
+			TownHistory.acrossTowns(this.server, town, this.people, this.random);
+			if (group != null) {
+				Market.keeper(this.server, town, group);
+				// (Made ready: they stocked the store themselves, and the keeper has a little money to buy with.)
+				for (DrifterEntity one : this.people) {
+					this.store.forEach(chest -> DrifterApi.rememberChest(one, chest));
+					if (one.getUUID().equals(town.keeper)) {
+						one.getInventory().add(new ItemStack(Items.EMERALD, 8));
+						DrifterApi.wearApron(one);
+					}
 				}
 			}
+
+			noticeBoard(this.level, this.board, town, this.people);
+			// Lit all over, inside the houses and out, so nothing spawns in the town at night (user, 2026-10-23: "the town isnt
+			// fully lit up alot, causing a bunch of mobs to spawn and killing half the town"): a piece at a time.
+			for (var piece : this.pieces()) {
+				this.then("light", () -> this.light(piece));
+			}
+
+			this.then("finish", this::finish);
 		}
 
-		noticeBoard(level, board, town, people);
-		// 7. Lit all over, inside the houses and out, so nothing spawns in the town at night (user, 2026-10-23: "the town isnt
-		// fully lit up alot, causing a bunch of mobs to spawn and killing half the town").
-		List<Rect> noLamp = new ArrayList<>(roadRects);
-		noLamp.addAll(fieldRects);
-		noLamp.add(plaza);
-		int[] lights = TownLights.light(level, area, houses.stream().map(DrifterApi.PlacedHouse::box).toList(),
-			(x, z) -> all.stream().anyMatch(rect -> rect.away(x, z) <= TOWN_GROUND), (x, z) -> noLamp.stream().anyMatch(rect -> rect.contains(x, z)));
-		Chronicle.add(server, "town", name + " was founded with " + people.size() + " people in " + houses.size() + " houses (made ready, for testing)");
-		return new Result(town, name + ": " + people.size() + " people in " + houses.size() + " houses, the plaza at " + cx + ", " + y0 + ", " + cz + " (" + lights[0]
-			+ " lamp posts and " + lights[1] + " torches for dark corners)" + warning);
+		private void light(net.minecraft.world.level.levelgen.structure.BoundingBox piece) {
+			List<Rect> noLamp = new ArrayList<>(this.roadRects);
+			noLamp.addAll(this.fieldRects);
+			noLamp.add(this.plaza);
+			int[] made = TownLights.light(this.level, piece, this.houses.stream().map(DrifterApi.PlacedHouse::box).toList(),
+				(x, z) -> this.all.stream().anyMatch(rect -> rect.away(x, z) <= TOWN_GROUND), (x, z) -> noLamp.stream().anyMatch(rect -> rect.contains(x, z)));
+			this.lamps += made[0];
+			this.torches += made[1];
+		}
+
+		private void finish() {
+			Town town = this.town;
+			Chronicle.quiet = false;
+			Chronicle.add(this.server, "town", this.name + (this.world ? " stands where a village might have" : " was founded") + ", with " + this.people.size()
+				+ " people in " + this.houses.size() + " houses" + (this.world ? "" : " (made ready, for testing)"));
+			long seconds = Math.round((System.nanoTime() - this.startedAt) / 1e9);
+			DrifterCivilizations.LOGGER.info("[town] {} made: {} people in {} houses, {} ms of work over {} s; the longest step {} ms ({}); over 50 ms: {}",
+				this.name, this.people.size(), this.houses.size(), this.worked / 1_000_000, seconds, this.longest / 1_000_000, this.longestStep, this.slow);
+			this.result = new Result(town, this.name + ": " + this.people.size() + " people in " + this.houses.size() + " houses, the plaza at " + this.cx + ", "
+				+ this.y0 + ", " + this.cz + " (" + this.lamps + " lamp posts and " + this.torches + " torches for dark corners)");
+		}
 	}
 
 	/**
@@ -921,6 +1175,36 @@ public final class TownBuilder {
 	 * the top of water there.
 	 */
 	private static int ground(ServerLevel level, int x, int z) {
+		long key = BlockPos.asLong(x, 0, z);
+		Integer known = GROUND.get(key);
+		if (known != null) {
+			return known;
+		}
+
+		int top = groundNow(level, x, z);
+		GROUND.put(key, top);
+		return top;
+	}
+
+	/**
+	 * Each column's ground while a town is laid out (its spots tried by the dozen; found measuring a town), forgotten for a
+	 * column as soon as a block in it changes.
+	 */
+	private static final java.util.Map<Long, Integer> GROUND = new java.util.HashMap<>();
+
+	private static void changed(int x, int z) {
+		GROUND.remove(BlockPos.asLong(x, 0, z));
+	}
+
+	private static void changed(net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+		for (int x = box.minX(); x <= box.maxX(); x++) {
+			for (int z = box.minZ(); z <= box.maxZ(); z++) {
+				changed(x, z);
+			}
+		}
+	}
+
+	private static int groundNow(ServerLevel level, int x, int z) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
 		while (pos.getY() > level.getMinBuildHeight()) {
 			BlockState state = level.getBlockState(pos);
@@ -1048,11 +1332,13 @@ public final class TownBuilder {
 	private static void set(ServerLevel level, BlockPos pos, BlockState state) {
 		if (level.getBlockState(pos) != state) {
 			level.setBlock(pos, state, Block.UPDATE_CLIENTS);
+			changed(pos.getX(), pos.getZ());
 		}
 	}
 
 	/** A block set with its neighbours told (fences join up, a lantern sits on its post). */
 	private static void place(ServerLevel level, BlockPos pos, BlockState state) {
 		level.setBlock(pos, state, Block.UPDATE_ALL);
+		changed(pos.getX(), pos.getZ());
 	}
 }
