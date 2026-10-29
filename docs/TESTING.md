@@ -1466,6 +1466,9 @@ Drifters now tell each other what they've seen. Stand near a Drifter and type `/
       from the door, with floor beside it, never on a beam or a block, never blocking the stairs, a ladder or a doorway.
 - [ ] A new town on a hillside (0.22.37): its roads and the land round the plaza and the store climb a block at a time
       (no cliffs of two or three); nobody pillars up from the plaza to the store.
+- [ ] A new town (0.22.38): the leader wears a gold helmet; two guards wear full iron with a shield (and a bow); the
+      stall keeper a leather tunic; everyone else a piece or two of leather, chain or iron, or nothing, with stone or iron
+      tools. Nobody in diamond head to toe.
 - [ ] Make two towns near each other (0.22.37): `/drifterciv chronicle` tells of best friends, people who never got on,
       and the two towns going back a long way (maybe an old grudge). `/drifter social` on a townsperson: it knows everyone
       in its town, some well, some barely, a few it doesn't like; housemates are close.

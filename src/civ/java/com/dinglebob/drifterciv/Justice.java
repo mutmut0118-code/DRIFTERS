@@ -147,11 +147,11 @@ final class Justice {
 			return true;
 		});
 
-		// Its guards: its two boldest with a weapon.
+		// Its guards: its two boldest with a weapon (not its leader).
 		List<DrifterEntity> fit = new ArrayList<>();
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
-			if (member != null && member.getInventory().count(stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) > 0) {
+			if (member != null && !id.equals(town.leader) && member.getInventory().count(stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) > 0) {
 				fit.add(member);
 			}
 		}

@@ -3224,3 +3224,14 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   each other (60 % old friends, 25 % acquaintances, 15 % an old grudge), "The people of T and U go back a long way (n
   old friendships)", "X of T and Y of U have an old grudge"; the far side's bond is kept (`Town.pendingBonds`) till that
   one is loaded. `DrifterApi.setBond` (by id, loaded or not).
+- **Gear by place in a town made ready (0.22.38; the user: "everyone is wearing diamond and i think everyone feels a bit
+  too overpowered; i cant tell a guard from a citizen, or a citizen from a leader").** Everyone had a delver's kit (iron
+  to diamond, enchanted). Now `Delvers.townKit` (`DrifterApi.equipTown`), roles decided once all are in: the leader (the
+  group's first) a gold helmet for a crown, an iron or diamond chestplate, iron legs and boots, a diamond weapon of its
+  favourite kind, a shield; its two boldest (bravery + aggression) the guards: a full iron suit (a diamond piece at most,
+  now and then), an iron weapon, shield, bow and 32 arrows, enchantments sometimes; everyone else a working life's,
+  humble (35 %: stone tools, a stone sword or none, a leather piece now and then), settled (iron tools, a stone or iron
+  sword, up to two pieces of leather, chain or iron) or well off (20 %: iron tools and sword, up to three pieces of chain
+  and iron, a shield maybe), never a full suit; a bow for one in five. The stall keeper wears a leather tunic (an apron).
+  Less cobblestone in the pack (8-23, was 32). Justice's guards are never the leader. Founded towns are unchanged:
+  their people wear what they made themselves.

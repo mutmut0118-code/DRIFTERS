@@ -495,6 +495,19 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.gen.Delvers.settledKit(drifter, random);
 	}
 
+	/**
+	 * (A town made ready.) Gear by its place in the town: "citizen" (a working life's, humble to well off), "guard" (a full
+	 * iron suit, shield and bow) or "leader" (a gold helmet for a crown, a diamond weapon).
+	 */
+	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role) {
+		com.dinglebob.drifter.world.gen.Delvers.townKit(drifter, random, role);
+	}
+
+	/** (A town made ready.) The stall keeper's leather apron: a leather tunic in place of what it wore. */
+	public static void wearApron(DrifterEntity drifter) {
+		drifter.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.LEATHER_CHESTPLATE));
+	}
+
 	/** It builds no hut of its own (a town's people live in houses); it still builds a house. */
 	public static void setNoHut(DrifterEntity drifter, boolean noHut) {
 		Home home = drifter.getDrifterBrain().home();
