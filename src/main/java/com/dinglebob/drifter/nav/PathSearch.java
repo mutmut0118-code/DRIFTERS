@@ -409,13 +409,38 @@ public class PathSearch {
 	 */
 	private double heuristic(BlockPos pos) {
 		double dx = pos.getX() + 0.5 - this.target.x;
-		double dy = pos.getY() - this.target.y;
+		double dy = this.looseDy(pos.getY() - this.target.y);
 		double dz = pos.getZ() + 0.5 - this.target.z;
 		return Math.max(0.0, Math.sqrt(dx * dx + dy * dy + dz * dz) - this.goalRadius) * WALK;
 	}
 
 	private boolean isGoal(BlockPos pos) {
+		if (this.looseHeight) {
+			double dx = pos.getX() + 0.5 - this.target.x;
+			double dz = pos.getZ() + 0.5 - this.target.z;
+			return Math.sqrt(dx * dx + dz * dz) <= this.goalRadius && Math.abs(pos.getY() - this.target.y) <= LOOSE_HEIGHT;
+		}
+
 		return Vec3.atBottomCenterOf(pos).distanceTo(this.target) <= this.goalRadius;
+	}
+
+	/** The height difference that counts (none within {@link #LOOSE_HEIGHT}, going loosely). */
+	private double looseDy(double dy) {
+		return this.looseHeight ? Math.max(0.0, Math.abs(dy) - LOOSE_HEIGHT) : dy;
+	}
+
+	/**
+	 * Going somewhere roughly (an exploring leg: a point picked on the map at its own height): there once it's that close
+	 * across the ground and within this many blocks up or down, wherever the ground there is (found by the user: pillars
+	 * four to six high all over a town, built to get up to a point in the air over lower ground).
+	 */
+	public static final int LOOSE_HEIGHT = 8;
+	private boolean looseHeight;
+
+	/** Arrives on the ground anywhere within its radius across and {@link #LOOSE_HEIGHT} up or down. */
+	public PathSearch loose() {
+		this.looseHeight = true;
+		return this;
 	}
 
 	/** Searches on for up to {@code nanos} (at least {@link PathBudget#MIN_NODES} nodes, at most

@@ -3189,3 +3189,21 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   blocks round it (`Mode.IN_TOWN_MARGIN`, `Home.inOwnBuilding`); and driving someone out ends the chase its hits started
   (`HostileGoals.Fight.endsChase`). Tested in the client: three townspeople made territorial, next to the player in the
   plaza for a minute: no warning.
+- **Pillars, holes and stray cobblestone in towns (0.22.36).** Found by the user (screenshots: cobblestone pillars up
+  house fronts with a torch at the top, 1x1 holes in the grass, loose cobblestone; "does this have something to do with
+  light levels?"). Traced in the client with a temporary log of every cobblestone a Drifter placed (who, where, doing
+  what) over a day and a half in a made-ready town, replayed from the same save:
+  - Torches: `LightBaseActivity.townDarkSpot` took the top block of a column, under eaves the top of a beam or ledge (only
+    "dirt, or not recorded as built" kept it off buildings): now only on ground (dirt, grass, sand, gravel, snow), never
+    a built block.
+  - Night hunting: an exploring leg's point was at its own height, over lower ground a point in the air, and it pillared
+    up to it (58 blocks in the town in the trace). Routes can now be loose (`NavigateTask.loose`, `PathSearch.loose`:
+    there within the radius across the ground and 8 up or down); exploring legs are. 58 -> 0.
+  - Holes: mine stairs started 3 blocks outside a town house, in the town's grass, and when they wouldn't start it dug
+    down where it stood; digging down for stone too. Now (`TownEdge`) mine stairs start past the town's edge, and digging
+    down for stone walks out of town first; neither digs down in the town.
+  - The house shelter loop: in for the night before dark, "not night" read as morning: out and back in four times a
+    second (the user's tyler_82). It's morning now only once it's been night, or early in the day.
+  - Result over the same day and a half: cobblestone placed 1,152 -> 722 (most of what's left underground, mining); in
+    the town above ground, chest errands 27 -> 7. Still seen: a few pillars on errands up steep hillsides, pillars up to
+    chop tall trees.

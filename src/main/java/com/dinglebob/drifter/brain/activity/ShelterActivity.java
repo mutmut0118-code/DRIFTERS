@@ -175,6 +175,10 @@ public class ShelterActivity extends Activity {
 	private int sleepTries;
 	/** It has had its sleep tonight. */
 	private boolean rested;
+	/** It's been night while it was in (so "not night" now is morning, not the evening before). */
+	private boolean sawNight;
+	/** Day time (ticks) before which "not night" is surely the morning. */
+	private static final long EARLY_DAY = 6000L;
 
 	/**
 	 * Section 18: into bed by the player's rules (night or a thunderstorm, no monsters within 8 blocks); a short sleep
@@ -449,7 +453,15 @@ public class ShelterActivity extends Activity {
 					return Status.RUNNING;
 				}
 
-				if (!Schedule.isNight(this.drifter) && Schedule.believedTime(this.drifter) < Schedule.SHELTER_THINKING) {
+				// Morning: not night, and it's been night (or it's early in the day). In early for the night, it's evening, not
+				// morning (found by the user's game: in the house before dark, out "for the morning" and back in, four times a
+				// second till dark).
+				if (Schedule.isNight(this.drifter)) {
+					this.sawNight = true;
+				}
+
+				long believed = Schedule.believedTime(this.drifter);
+				if (!Schedule.isNight(this.drifter) && believed < Schedule.SHELTER_THINKING && (this.sawNight || believed < EARLY_DAY)) {
 					// A guess (milestone 20, "wrong guesses"): something hostile it heard out there in the night and never saw,
 					// it takes to be still about, and it stays in a little longer (the zombie may well have burned up at sunrise).
 					long now = level.getGameTime();
