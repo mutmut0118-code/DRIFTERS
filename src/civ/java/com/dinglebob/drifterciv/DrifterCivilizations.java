@@ -87,6 +87,38 @@ public final class DrifterCivilizations implements ModInitializer {
 						ctx.getSource().sendSuccess(() -> Component.literal("Each morning, the day before in chat: " + (on ? "on" : "off")), true);
 						return 1;
 					}))))
+			// The world's nations (step 6, part 3): each one's capital, towns, tribute and banners; debug: tribute due now.
+			.then(Commands.literal("nations")
+				.executes(ctx -> {
+					List<String> lines = Nations.describe(ctx.getSource().getServer());
+					if (lines.isEmpty()) {
+						ctx.getSource().sendSuccess(() -> Component.literal("No nations yet"), false);
+					}
+
+					lines.forEach(line -> ctx.getSource().sendSuccess(() -> Component.literal(line), false));
+					return lines.size();
+				})
+				.then(Commands.literal("tribute").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Nations.debugTribute(ctx.getSource().getServer());
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: every nation's tribute falls due now"), true);
+					return 1;
+				}))
+				// Debug: the named town joins the nearest one's nation at once (a new one, the nearest its capital), no envoy.
+				.then(Commands.literal("join").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.executes(ctx -> {
+							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+							Town other = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "other"));
+							if (town == null || other == null || other == town || Nations.of(other) != null) {
+								ctx.getSource().sendFailure(Component.literal("No such other town, or it's in a nation already"));
+								return 0;
+							}
+
+							var nation = Nations.join(ctx.getSource().getServer(), town, other, false);
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + other.name + " is in " + nation.name + " now"), true);
+							return 1;
+						}))))
 			// The nearest town's dealings with the others it knows of (step 6, part 1); debug: a standing set, an envoy sent now.
 			.then(Commands.literal("relations")
 				.executes(DrifterCivilizations::relations)
@@ -122,14 +154,16 @@ public final class DrifterCivilizations implements ModInitializer {
 						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
 						.then(Commands.argument("what", com.mojang.brigadier.arguments.StringArgumentType.word())
 							.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("trade", "peace", "alliance", "insult", "war", "terms",
-								"demand"), builder))
+								"demand", "union", "submit", "independence"), builder))
 							.executes(ctx -> {
 								Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
 								Town other = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "other"));
 								var group = town == null || town.group == null ? null : DrifterApi.groupById(town.group);
 								String what = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "what").toUpperCase(java.util.Locale.ROOT);
-								if (group == null || other == null || other == town || !List.of("TRADE", "PEACE", "ALLIANCE", "INSULT", "WAR", "TERMS", "DEMAND").contains(what)) {
-									ctx.getSource().sendFailure(Component.literal("No such other town (or not trade, peace, alliance, insult, war, terms or demand)"));
+								if (group == null || other == null || other == town || !List.of("TRADE", "PEACE", "ALLIANCE", "INSULT", "WAR", "TERMS", "DEMAND", "UNION", "SUBMIT",
+									"INDEPENDENCE").contains(what)) {
+									ctx.getSource().sendFailure(Component.literal("No such other town (or not trade, peace, alliance, insult, war, terms, demand, union, submit or"
+										+ " independence)"));
 									return 0;
 								}
 

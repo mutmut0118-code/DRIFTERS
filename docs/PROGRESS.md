@@ -3221,8 +3221,43 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
     fight lines said; mourning only from the dead's own side, and after the fighting ("they had it coming" from the
     killers'); about a dozen deaths an hour; fires lit (4 a raid) with flint and steel; both towns' people "fixed up
     its house" after being raided. Not seen yet: a fall back called (no raid got worn down).
-- Next: step 6 part 3, nations (allied towns joining under a capital, a name and banner, tribute, rebellions and
-  independence). Then milestone 23 (docs/LIVED_WORLD.md). Prison is kept for later (the user).
+- **Step 6, part 3: nations (0.22.42; the user: "go ahead with nations part 3").** `Nations` (addon), saved with the towns:
+  - Joining: two allies (allied 3 days, standing 75+), the bigger town's leader (or a capital's) sends an envoy proposing
+    a union ("UNION"): taken by the other leader's sociability, less its ambition, more if it's the smaller town, and the
+    standing. The first two make a nation, the proposer its capital. Conquest: at war, 3 deaths ahead and 3 days in, an
+    aggressive leader (0.6) demands the other submit ("SUBMIT"): a weary, careful leader gives in (peace, and it joins
+    conquered, at -10 with its capital).
+  - A nation: a capital (its leader rules), its towns (their own leaders, laws and elections still); a name by how it came
+    about and its ruler's nature ("the X League/Accord" warm, "the X Dominion/Realm of X" aggressive or by conquest, "the
+    Kingdom of X/the X Union" else); a colour no other nation has, one a common flower dyes (red, blue, yellow, orange,
+    magenta, light blue, pink, light gray; then white).
+  - Banner: a town's bearer (its leader, or if it keeps the stall the first of its people who doesn't) makes a banner of
+    the colour (flowers picked, dye, white wool dyed, six of it and a stick: all its own; core goal `TownBanner`,
+    `TownWork.banner` / `bannerUp`) and stands it on the plaza a few blocks from the middle. Flowers are sources for the
+    planner now (`drifter_sources/early_game.json`), so it can dye wool generally.
+  - Its towns: at peace and allied with each other, no insults or wars between them; only the capital starts wars, and a
+    war on any of them (or by the capital) brings all of them in, no staying out ("went to war with Y for the X"); a town
+    dragged into a war minds it (-6 with its capital), and each of its dead in a war (-2).
+  - Tribute: every 5 days each town owes the capital 3 emeralds (conquered: 5), and minds it (-3, conquered -5); paid out
+    of its till into the capital's as the emeralds are there (real ones; "X paid n emeralds in tribute to Y").
+  - Rebellion: a town at -30 or worse with its capital, its leader aggressive (0.5) or ambitious (0.6), declares itself
+    free ("INDEPENDENCE"). A ruler that's aggressive (0.55) or very greedy (0.75) won't let it go: war, the nation's other
+    towns with the capital; whoever asks for peace loses (the rebels: back in, conquered; the capital: they go free).
+    Else "X left the Y, free again". Leaving drops the alliance, keeps the peace; a nation down to its capital is no more.
+  - Talk: flags `in_nation` (words `nation`, `capital`), `nation_capital`, `nation_conquered`, `nation_tribute`, and the
+    latest (`nation_formed|joined|submitted|rebelled|free|kept|banner`, word `other`); topics nation_*_talk; envoy lines
+    `envoy.union|submit|independence` and replies. `/drifterciv nations` lists them (capital, ruler, towns, standing with
+    the capital, tribute, banners); debug `/drifterciv nations join <town>` (at once), `nations tribute` (due now), and
+    `relations envoy <town> union|submit|independence`.
+  - Tested: headless, three towns: a union proposed twice (turned down, then taken: "the Union of Aby"), tribute paid from
+    a till ("Bby paid 2 emeralds in tribute to Aby"), a war that brought the other town in ("went to war with Cby for the
+    Kingdom of Aby"), a demand to submit refused, a town declaring itself free and let go ("the Union of Aby is no more").
+    In the client: each town's bearer dyed wool, crafted the nation's blue banner and stood it on the plaza ("raised the
+    banner of the Envoyby Accord over Envoyby"; given the dyes for the test, the snowy test world having no flowers near).
+    Fixed: leaders who keep the stall never got to it (a bearer instead). Not seen yet: a ruler going to war over a
+    rising, a conqueror's demand taken, a banner made from flowers picked (the planner can; no flowers near in that test).
+  - Later: a town that leaves taking its old banner down; patterned banners.
+- Next: milestone 23 (docs/LIVED_WORLD.md). Prison is kept for later (the user).
 - **Wanted (the user, 2026-10-28): behaviour by the respawn setting.** "i want their behavior to change depending on the
   respawn setting; they act too calm for a person that is never gonna spawn again". Proposed: one "stakes" number (what
   dying costs it: permadeath highest, its last life in lives mode high, back at its bed low; no bed with bed mode = gone)

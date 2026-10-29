@@ -104,6 +104,7 @@ public final class Towns {
 		}
 
 		Diplomacy.load(state(server).tag);
+		Nations.load(state(server).tag);
 	}
 
 	static void save(MinecraftServer server) {
@@ -113,6 +114,7 @@ public final class Towns {
 		towns.values().forEach(town -> list.add(town.save()));
 		tag.put("Towns", list);
 		Diplomacy.save(tag);
+		Nations.save(tag);
 		State state = state(server);
 		state.tag = tag;
 		state.setDirty();

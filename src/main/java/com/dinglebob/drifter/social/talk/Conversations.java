@@ -179,7 +179,8 @@ public final class Conversations {
 	}
 
 	/** Needs that make a topic pressing: talked about before anything else while they hold. */
-	private static final Set<String> PRESSING = Set.of("a:at_war", "a:town_war", "a:town_fell", "a:revolt", "a:after_betrayed", "a:after_coup");
+	private static final Set<String> PRESSING = Set.of("a:at_war", "a:town_war", "a:town_fell", "a:revolt", "a:after_betrayed", "a:after_coup",
+		"a:nation_rebelled");
 
 	/** Out on a raid with its group now (gathering, on the march, at it, or coming back). */
 	private static boolean onARaid(DrifterEntity drifter) {

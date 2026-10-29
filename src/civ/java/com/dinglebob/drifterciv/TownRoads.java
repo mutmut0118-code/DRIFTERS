@@ -279,6 +279,19 @@ final class TownRoads {
 		}
 
 		@Override
+		@org.jetbrains.annotations.Nullable
+		public Banner banner(DrifterEntity drifter) {
+			return Nations.banner(this.town, drifter);
+		}
+
+		@Override
+		public void bannerUp(DrifterEntity drifter, net.minecraft.core.BlockPos where) {
+			if (drifter.getServer() != null) {
+				Nations.bannerUp(drifter.getServer(), this.town, drifter, where);
+			}
+		}
+
+		@Override
 		public boolean othersChest(DrifterEntity drifter, BlockPos chest) {
 			return Justice.othersChest(this.town, drifter, chest);
 		}

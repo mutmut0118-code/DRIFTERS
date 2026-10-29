@@ -1,5 +1,5 @@
 {
-	"_comment": "Where items come from, for the planner (DESIGN.md section 8, Acquisition rules). Crafting and smelting come from the game's own recipes; this file covers mining and mob drops. 'drops: self' means the block drops itself. 'color': only sheep of that wool colour (a bed needs three of one colour). 'tool' is the cheapest tool to make when it carries nothing that can harvest the block. Datapacks can add more files in drifter_sources.",
+	"_comment": "Where items come from, for the planner (DESIGN.md section 8, Acquisition rules). Crafting and smelting come from the game's own recipes; this file covers mining and mob drops. 'drops: self' means the block drops itself. 'color': only sheep of that wool colour (a bed needs three of one colour). Flowers are picked by hand (for dyes: a nation's banner, a bed of a colour). 'tool' is the cheapest tool to make when it carries nothing that can harvest the block. Datapacks can add more files in drifter_sources.",
 	"sources": [
 		{ "item": "#minecraft:logs", "block": ["#minecraft:logs"], "drops": "self" },
 		{ "item": "minecraft:cobblestone", "block": ["minecraft:stone"], "tool": "minecraft:wooden_pickaxe" },
@@ -38,6 +38,18 @@
 		{ "item": "minecraft:brown_wool", "mob": "minecraft:sheep", "color": "brown" },
 		{ "item": "minecraft:green_wool", "mob": "minecraft:sheep", "color": "green" },
 		{ "item": "minecraft:red_wool", "mob": "minecraft:sheep", "color": "red" },
-		{ "item": "minecraft:black_wool", "mob": "minecraft:sheep", "color": "black" }
+		{ "item": "minecraft:black_wool", "mob": "minecraft:sheep", "color": "black" },
+		{ "item": "minecraft:poppy", "block": ["minecraft:poppy"], "drops": "self" },
+		{ "item": "minecraft:dandelion", "block": ["minecraft:dandelion"], "drops": "self" },
+		{ "item": "minecraft:cornflower", "block": ["minecraft:cornflower"], "drops": "self" },
+		{ "item": "minecraft:blue_orchid", "block": ["minecraft:blue_orchid"], "drops": "self" },
+		{ "item": "minecraft:allium", "block": ["minecraft:allium"], "drops": "self" },
+		{ "item": "minecraft:azure_bluet", "block": ["minecraft:azure_bluet"], "drops": "self" },
+		{ "item": "minecraft:oxeye_daisy", "block": ["minecraft:oxeye_daisy"], "drops": "self" },
+		{ "item": "minecraft:red_tulip", "block": ["minecraft:red_tulip"], "drops": "self" },
+		{ "item": "minecraft:orange_tulip", "block": ["minecraft:orange_tulip"], "drops": "self" },
+		{ "item": "minecraft:white_tulip", "block": ["minecraft:white_tulip"], "drops": "self" },
+		{ "item": "minecraft:pink_tulip", "block": ["minecraft:pink_tulip"], "drops": "self" },
+		{ "item": "minecraft:lily_of_the_valley", "block": ["minecraft:lily_of_the_valley"], "drops": "self" }
 	]
 }

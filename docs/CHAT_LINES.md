@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1803 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 1844 lines in the chat data, 242 in whims, and 1016 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (72 topics, 1593 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (83 topics, 1672 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1677,6 +1677,83 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 1. **a**: some ally {a.other} turned out to be · {a.other} left us to it · {a.other} didn't show up when it mattered
 2. **b**: remember that · cowards · figures · we don't need them
+
+#### nation life talk
+
+*Needs:* a:in_nation, !strangers
+
+1. **a**: {a.nation}. still getting used to that name · whole region flies {a.capital}'s colours now · being part of {a.nation} isn't bad · you think {a.nation} lasts?
+2. **b**: it's alright · beats fighting alone · for now · we'll see
+
+#### nation capital talk
+
+*Needs:* a:nation_capital, !strangers
+
+1. **a**: we're the capital now. kinda wild · everyone answers to us now · head of {a.nation}. who'd have thought
+2. **b**: don't let it go to your head · lol yeah · more work too · ruling's easy. keeping them happy isn't
+
+#### nation tribute talk
+
+*Needs:* a:nation_tribute, !strangers
+
+1. **a**: another tribute to {a.capital}. great · why do we pay {a.capital} again · {a.capital} wants its emeralds again · tribute day. love that
+2. **b**: it's what we signed up for · robbery · keep your voice down · one day we won't
+
+#### nation conquered talk
+
+*Needs:* a:nation_conquered, !strangers
+
+1. **a**: i hate flying their banner · we didn't choose {a.nation} · one day we'll be free of {a.capital} · {a.capital} won. doesn't mean i have to like it
+2. **b**: careful who hears that · same · one day · keep your head down
+
+#### nation formed talk
+
+*Needs:* a:nation_formed, !strangers
+
+1. **a**: did you hear? {a.nation}. we're a nation now · {a.other} joined with {a.capital}. {a.nation} they're calling it · one banner now. {a.nation}
+2. **b**: about time · big if true · huh. ok · what changes?
+
+#### nation joined talk
+
+*Needs:* a:nation_joined, !strangers
+
+1. **a**: {a.other} joined {a.nation} · {a.nation} got bigger. {a.other} is in
+2. **b**: more the merrier · nice · more tribute for {a.capital} · ok
+
+#### nation submitted talk
+
+*Needs:* a:nation_submitted, !strangers
+
+1. **a**: {a.other} gave in. part of {a.nation} now · {a.other} bowed to {a.capital} · {a.other} lost the war. now they pay us
+2. **b**: they had it coming · poor them · won't last · W
+
+#### nation rebelled talk
+
+*Needs:* a:nation_rebelled, !strangers
+
+1. **a**: {a.other} wants out of {a.nation} · {a.other} stopped paying. they say they're free · {a.other} rose up against {a.capital}
+2. **b**: good for them · this won't end well · traitors · can't blame them
+
+#### nation free talk
+
+*Needs:* a:nation_free, !strangers
+
+1. **a**: {a.other} is free of {a.nation} now · {a.other} left {a.nation} · {a.nation} lost {a.other}
+2. **b**: good riddance · lucky them · huh · who's next
+
+#### nation kept talk
+
+*Needs:* a:nation_kept, !strangers
+
+1. **a**: {a.other}'s rising got crushed · {a.capital} dragged {a.other} back in · {a.other} lost. still in {a.nation}
+2. **b**: told you · harsh · they'll try again · that's that then
+
+#### nation banner talk
+
+*Needs:* a:nation_banner, !strangers
+
+1. **a**: saw the new banner on the plaza? · {a.nation}'s banner is up in {a.other} · nice banner
+2. **b**: looks good · it's a banner · fancy · makes it real i guess
 
 ## 7. Drifters talking to you
 

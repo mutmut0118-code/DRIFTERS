@@ -509,6 +509,73 @@ public final class Goals {
 	}
 
 	/**
+	 * Its town's banner (milestone 22 step 6 part 3: a nation's colour on each of its towns' plazas): the leader makes one
+	 * of that colour (six dyed wool and a stick, all its own) and stands it where the town says.
+	 */
+	public static final class TownBanner extends PlannedGoal {
+		@Override
+		public String id() {
+			return "town_banner";
+		}
+
+		@Nullable
+		private static com.dinglebob.drifter.api.TownWork.Banner wanted(DrifterEntity drifter) {
+			var work = drifter.getTownWork();
+			return work == null ? null : work.banner(drifter);
+		}
+
+		@Override
+		public String name(Context context) {
+			var banner = wanted(context.drifter());
+			return banner == null ? "put up its town's banner" : carrying(context.drifter(), banner) ? "put up " + banner.what() : "make " + banner.what();
+		}
+
+		private static boolean carrying(DrifterEntity drifter, com.dinglebob.drifter.api.TownWork.Banner banner) {
+			return drifter.getInventory().count(stack -> stack.is(banner.item())) > 0;
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			var banner = wanted(context.drifter());
+			return banner == null ? List.of() : List.of(banner.item());
+		}
+
+		@Override
+		protected int count(Context context) {
+			return 1;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			var banner = wanted(drifter);
+			if (banner == null || Schedule.isNight(drifter) || !drifter.level().isLoaded(banner.spot())) {
+				return 0.0;
+			}
+
+			// (A one-off for its town: before the day's chores.)
+			return 0.6;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			var banner = wanted(context.drifter());
+			return banner != null && carrying(context.drifter(), banner) ? 1.0 : super.feasibility(context);
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			var banner = wanted(context.drifter());
+			if (banner != null && carrying(context.drifter(), banner)) {
+				return new com.dinglebob.drifter.brain.activity.PlaceBannerActivity(context.drifter(), banner);
+			}
+
+			return super.start(context);
+		}
+	}
+
+	/**
 	 * The group's banner (section 21 team wars: "a group gets a name and a banner it hangs at its base, so players can tell
 	 * sides apart"): the leader makes one (six wool of a colour and a stick) and stands it by its hut door.
 	 */
@@ -2755,6 +2822,7 @@ public final class Goals {
 		// Its part in an encounter (milestone 21, docs/ENCOUNTERS.md).
 		goals.add(new com.dinglebob.drifter.encounter.EncounterGoal());
 		goals.add(new GroupBanner());
+		goals.add(new TownBanner());
 		goals.add(new com.dinglebob.drifter.brain.activity.PassThroughActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.DelveActivity.Goal());
 		goals.add(new com.dinglebob.drifter.brain.activity.PursuitActivity.Goal());
