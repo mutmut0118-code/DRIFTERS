@@ -1472,6 +1472,16 @@ The more a death would cost a Drifter, the warier it plays. Set it in the settin
 - [ ] Bed respawn: a little bolder than before.
 - [ ] Brave ones still take more chances than careful ones; nobody says anything about it.
 
+Feelings (new, 0.22.32), best seen with `/drifter config respawn permadeath`:
+- [ ] Kill a Drifter in front of its friend (`/drifter group <name>` makes two friends at once): the friend may react in
+      a word ("NO", "bro"), keeps away from you or comes for you, holds a grudge (`/drifter social show <you>` while
+      looking at it: "killed a friend of it"), and doesn't chat with you any more.
+- [ ] Some time later, by day, the friend walks back to where it happened and stands there a while (sometimes "o7",
+      "f"). It's sad on and off for a day or more (`/drifter mood`).
+- [ ] Beat a Drifter down (not a brave one): around 4 hearts left it gives in, "ok ok take it", and throws you its best
+      few things, then runs. It doesn't forget it.
+- [ ] Nobody explains the rule ("one life" and the like); it shows in what they do.
+
 ## Bandits and towns: the town crook (new, 0.22.30)
 
 Bandits don't live in towns ("kinda like a skyrim bandit"). If one does anyway (one from an older world, or made with

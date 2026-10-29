@@ -166,7 +166,7 @@ public final class Respawns {
 		String cause = message.getString().replace(drifter.getName().getString(), "it").trim();
 		drifter.recordDeath(now, new Corpse(drifter.blockPosition(), level.dimension().location(), now, lost ? 0 : worth, killerId, cause));
 		// The Drifters who saw it carry the news (milestone 22 groundwork).
-		com.dinglebob.drifter.social.NewsBook.sawDie(drifter, message.getString(), source);
+		com.dinglebob.drifter.social.NewsBook.sawDie(drifter, message.getString(), source, comesBack);
 		if (!comesBack) {
 			boolean outOfLives = DrifterConfig.respawnMode() == DrifterConfig.RespawnMode.LIVES && !source.is(DamageTypes.GENERIC_KILL);
 			if (outOfLives) {

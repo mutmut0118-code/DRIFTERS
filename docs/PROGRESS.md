@@ -3144,3 +3144,21 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
   - Tested in the client, the same seed and setup twice (4 Drifters with stone swords, night, 3 mobs on each, 2 more a
     minute later): bed respawn, 12 picks of "fight", 29 of "get away", 3 went out hunting mobs, none stayed in;
     permadeath, 1 fight, 8 get away, nobody hunted, 3 stayed in. Nobody died in either.
+  - **Part 2, feelings (0.22.32; the user: "go ahead with part 2").** A death's news says whether it was for good and
+    where (`NewsBook.sawDie(..., comesBack)`); seeing it (not only hearing) now moves a Drifter too. A friend gone for
+    good: grieving at full (not 0.6), and `NewsBook.Mourning` for 1 to 3 days by how close they were (it misses them now
+    and then: grieving again; saved), and once, by day, `MournGoal` takes it to stand where they died (it saw it or was
+    told where) for 12 s. The killer: trust down twice as much when it's for good (a player: -30 a friend's death, a
+    Drifter now too, -30, through `DrifterBonds.heardOf`), and a friend's death for good is a grudge (for life when they
+    were close, or it's vengeful) and a wrong (no warning first). Hurt by a player or a Drifter when dying would cost a
+    lot (`Stakes.wariness`): more fear (up to twice), the trust loss half again, and nearly killed with wariness 0.7 or
+    more, a grudge for life. Giving in: hit by a player down to 4 hearts, wary (0.5 or more), not brave (under 0.6),
+    not one out to kill, and not winning: it faces them, says so ("ok ok take it", "STOP. take it") and throws them
+    its best 3 stacks (armour and weapon stay on it), once a fight, then gets away as before. Lines (short, the way
+    players type, never the rule spelled out; the user): `grief.saw` ("NO", "{who}!!", "bro"; 60 %), `grief.visit`
+    ("o7", "rip {who}", "f"; 40 %), `yield`. Also fixed: a Drifter never opens a chat with a player it can't stand (it
+    said "hi stranger" to the player who had just killed its friend, while still looking them over).
+  - Tested in the client (permadeath; Ann and Bob teamed up, Bob killed by the player in front of Ann, Cat beaten
+    down): Ann "saw Bob die (gone for good)", trust in the player -100 with two grudges, kept away from them, grieved,
+    and later walked back and stood where Bob died ("f"); Cat said "STOP. take it" and threw 3 stacks. Not yet seen: a
+    Drifter killing another Drifter's friend for good (the same code, by `heardOf`).

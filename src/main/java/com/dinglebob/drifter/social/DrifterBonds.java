@@ -274,6 +274,11 @@ public class DrifterBonds {
 			this.drifter.getSocial().temperBaseline()));
 	}
 
+	/** One it knows only by name (heard of, or not about now). */
+	public Relationship heardOf(UUID id, String name) {
+		return this.byDrifter.computeIfAbsent(id, key -> new Relationship(key, name, this.drifter.getSocial().temperBaseline()));
+	}
+
 	/** Debug: its trust in that Drifter, set outright. */
 	public void setTrust(DrifterEntity other, double trust) {
 		Relationship r = this.known(other);
@@ -303,7 +308,8 @@ public class DrifterBonds {
 		com.dinglebob.drifter.world.DrifterWars.hurt(other, this.drifter, amount);
 		Relationship r = this.known(other);
 		r.addTrust(HIT_TRUST_PER_DAMAGE * amount);
-		r.addFear(HIT_FEAR_PER_DAMAGE * amount);
+		// (More afraid of them when dying would cost more: stakes, part 2.)
+		r.addFear(HIT_FEAR_PER_DAMAGE * amount * (1.0 + com.dinglebob.drifter.brain.Stakes.wariness(this.drifter)));
 		this.think(other.getName().getString() + " hit it: trust " + Math.round(r.trust));
 	}
 

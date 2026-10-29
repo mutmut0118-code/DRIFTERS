@@ -1352,6 +1352,11 @@ protected void customServerAiStep() {
 			this.getPersonality().setStakes(com.dinglebob.drifter.brain.Stakes.pull(this));
 		}
 
+		// Friends gone for good, missed now and then (stakes, part 2).
+		if ((this.tickCount + this.getId()) % 600 == 0) {
+			this.getNews().tickMourning();
+		}
+
 		long started = System.nanoTime();
 		super.customServerAiStep();
 		this.delverDespawn();
