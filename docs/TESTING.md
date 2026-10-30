@@ -2535,3 +2535,19 @@ cobblestone between the logs of a stone barn's walls is how that house is meant 
       `/drifter placelog false` turns it off.
 - [ ] Drifters still go caving in real caves (`/drifter thoughts` shows "going caving"), and builders still pillar up
       inside their own half-built houses to reach high blocks.
+
+Installed as 0.23.9-side.1: also has the other session's 0.23.9 (its checks are in its own section above).
+
+## Side session: stray cobblestone on town roads (new, 0.23.8-side.2)
+
+Drifters in a town now take down the blocks they put down to step up or cross a gap on town ground, and they walk round
+by the roads and steps instead of stepping up where they can.
+
+- [ ] In a town (a fresh one: `/drifterciv town spawn 8 Cobbleton`), play or `/tick sprint 48000` for two days, then
+      walk the roads: no new lone cobblestone on the roads, grass between houses or beside steps. Old blocks from
+      before stay (break them by hand).
+- [ ] To count them: stand in the plaza and type `/drifter cobblescan 100`. It says how many cobblestone blocks are out
+      in the open; the log lists them, `T` for ones on the town's ground and `S:<name>` for whose leftovers they are
+      (that Drifter should take them down soon).
+- [ ] Sometimes a townsperson says "taking down a pillar or bridge it left by home" (`/drifter thoughts`).
+- [ ] Blocks out in the wild past the town (by mine entrances, on hills) can still be there: that's normal.

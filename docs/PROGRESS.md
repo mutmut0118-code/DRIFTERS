@@ -3869,3 +3869,27 @@ single blocks on porches; "this has been an ongoing problem, theres been several
   20 over its head; its own scaffolding doesn't count). Built marks go on a house only once it's finished, so a
   builder still pillars inside its own house while building it.
 - Not seen in these tests: night walling-in inside houses (town Drifters sleep in their beds or stay up).
+
+### Side session: stray cobblestone on town roads (0.23.8-side.2)
+
+The user (2026-10-30, screenshots: lone cobblestone blocks on a town's sand roads and grass, beside a sandstone stair
+road up a cliff; "okay so how can we fix this in the roads").
+- **Traced** (`/drifter cobblescan <radius>`, new: cobblestone in the open round here, tagged `T` on a town's ground
+  and `S:<name>` for whose scaffolding it is; with `/drifter placelog`): a town of 7 houses over 2 days and an away
+  period, with the fixes off: 38 new blocks in the open within 120, 16 of them on town ground, every one a route's step
+  up or bridge on an everyday errand (trading, the farm, lighting the base, fetching from its chest, setting off to
+  mine). None was ever taken down.
+- **Fixed:**
+  - Town Drifters tidy their own pillars and bridges anywhere on their town's ground, whatever their tidiness
+    (`TidyScaffoldActivity.inReach`); the tidy goal ran only with a starter hut, which town households don't have (now
+    a hut, a town house or a planned house done), and is keener in a town (+0.4).
+  - The tidy goal kept its keenness only until it started: from then it scored nothing, so the next thing to come along
+    stopped it at once and the blocks stayed (every Drifter, not only in towns). It keeps it now until it's done
+    (`TidyScaffoldActivity.finished`).
+  - Routes cost 6 s more for each block put down on the town's ground (`PathSearch.TOWN_PLACE`, about 25 blocks of
+    walking): they take the roads and steps. The town's ground is copied per town, a chunk at a time, for the path
+    threads (`nav/TownGround`, made again every 5 minutes).
+- **Result** (same test, fixes on, two runs): 1 and 0 new blocks on town ground after 2 days (the one still on its
+  owner's list to take down), 2 after the away period (an owner off mining); 18 blocks taken down in one run. Blocks out
+  past the town (mine entrances, exploring, Drifters passing through) stay, as a player's would.
+- Not tested: the cliff stair road in the user's screenshot (no such road in the test towns).

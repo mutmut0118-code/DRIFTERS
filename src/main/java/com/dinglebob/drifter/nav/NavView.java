@@ -101,6 +101,7 @@ public final class NavView {
 		this.lavaBurns = drifter.recentLavaBurns();
 		this.leakPlugs = drifter.recentLeakPlugs();
 		this.scaffold = new java.util.HashSet<>(drifter.scaffold());
+		this.townGround = TownGround.around(drifter, this.feet, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
 		this.leatherBoots = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET).is(net.minecraft.world.item.Items.LEATHER_BOOTS);
 		this.tools = Tools.toolsOf(drifter);
 		this.onGround = drifter.onGround();
@@ -433,6 +434,15 @@ public final class NavView {
 		}
 
 		return false;
+	}
+
+	/** Its town's ground round here, or null (no town). */
+	@org.jetbrains.annotations.Nullable
+	private final TownGround townGround;
+
+	/** This column is its town's ground (streets, round its houses): it walks round there rather than step up or bridge. */
+	public boolean townGround(BlockPos pos) {
+		return this.townGround != null && this.townGround.contains(pos.getX(), pos.getZ());
 	}
 
 	/** How far up a roof or upper floor is looked for over a spot inside a building. */

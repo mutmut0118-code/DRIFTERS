@@ -1851,9 +1851,18 @@ public final class Goals {
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			Home home = drifter.getDrifterBrain().home();
-			if (home == null || !home.hutBuilt || !home.near(drifter, Home.STORAGE_RANGE) || Schedule.isNight(drifter)
-				|| com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.radius(drifter) == 0) {
+			// (Settled: a hut, a town house or a house of its own; in a town everyone tidies the town's ground.)
+			boolean town = drifter.getTownWork() != null;
+			if (home == null || !(home.hutBuilt || home.noHut || home.planDone) || !home.near(drifter, Home.STORAGE_RANGE) || Schedule.isNight(drifter)
+				|| com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.radius(drifter) == 0 && !town) {
 				return 0.0;
+			}
+
+			// Under way: it keeps at it (found in a town test: its keenness dropped to nothing the moment it started, so the
+			// next thing to come along stopped it every time and the blocks stayed up).
+			if (drifter.getDrifterBrain().currentGoal() == this
+				&& drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.TidyScaffoldActivity activity && !activity.finished()) {
+				return this.urgency;
 			}
 
 			long now = drifter.level().getGameTime();
@@ -1865,11 +1874,13 @@ public final class Goals {
 			this.some = com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.next(drifter, home, java.util.Set.of()) != null;
 			// Keener the more there is: a few blocks can wait, a forest of pillars gets seen to (found in testing: 164 left
 			// standing, the job always lost to something else).
-			this.urgency = URGENCY + Math.min(0.2, com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.countLeft(drifter, home) / 200.0);
+			this.urgency = URGENCY + (town ? TOWN : 0.0) + Math.min(0.2, com.dinglebob.drifter.brain.activity.TidyScaffoldActivity.countLeft(drifter, home) / 200.0);
 			return this.some ? this.urgency : 0.0;
 		}
 
 		private static final double URGENCY = 0.3;
+		/** Keener in a town (a block on the street is in everyone's way, and town work otherwise always wins). */
+		private static final double TOWN = 0.4;
 		private double urgency = URGENCY;
 		private long checkAfter;
 		private boolean some;
