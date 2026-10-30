@@ -155,6 +155,11 @@ final class HandsCommands {
 
 		root.then(Commands.literal("use").executes(ctx -> start(ctx, UseItemTask::new)));
 
+		// Debug: pillar up this high where it stands (its own scaffolding, remembered: for testing the tidying).
+		root.then(Commands.literal("pillar").then(Commands.argument("height", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 12))
+			.executes(ctx -> start(ctx, drifter -> new com.dinglebob.drifter.executor.task.PillarUpTask(drifter,
+				com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "height"))))));
+
 		root.then(Commands.literal("eat").executes(ctx -> start(ctx, drifter -> new SequenceTask(drifter, "eat", List.of(
 			new SelectItemTask(drifter, stack -> isEdible(drifter, stack), "food"),
 			new UseItemTask(drifter))))));

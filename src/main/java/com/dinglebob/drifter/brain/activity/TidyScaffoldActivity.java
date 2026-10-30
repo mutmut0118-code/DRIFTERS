@@ -67,8 +67,19 @@ public class TidyScaffoldActivity extends Activity {
 			return this.finish();
 		}
 
+		// Up on a pillar of its own (one it put up to reach a tall one): down it, a block at a time, when nothing more is
+		// in reach from up there.
+		var level = this.drifter.level();
+		BlockPos feet = this.drifter.blockPosition();
+		boolean onOwn = this.drifter.onGround() && this.drifter.isScaffold(feet.below())
+			&& !level.getBlockState(feet.below(2)).getCollisionShape(level, feet.below(2)).isEmpty();
 		BlockPos block = next(this.drifter, home, this.skipped);
-		if (block == null) {
+		if (block == null || !Reach.canReach(this.drifter, block) && onOwn) {
+			if (onOwn) {
+				this.drifter.forgetScaffold(feet.below());
+				return this.begin(this.dig(feet.below()));
+			}
+
 			return this.finish();
 		}
 
@@ -84,11 +95,47 @@ public class TidyScaffoldActivity extends Activity {
 
 		BlockPos spot = KnownBlocks.standingSpotFor(this.drifter, block, Set.of());
 		if (spot == null || this.walks.merge(block, 1, Integer::sum) > 2) {
+			// The top of a pillar too tall to reach from the ground (it takes them down from the top, so the rest stood too;
+			// the user's screenshots, 2026-10-30): up beside it on a few blocks of its own, as a player does, then down again.
+			BlockPos beside = this.climbs < MAX_CLIMBS && com.dinglebob.drifter.hands.Tools.buildingBlockCount(this.drifter) >= 3 ? beside(block) : null;
+			if (beside != null) {
+				this.climbs++;
+				int height = Math.max(1, Math.min(6, block.getY() - beside.getY() - 2));
+				this.think("climbing up beside a tall pillar it left to take it down");
+				return this.begin(new SequenceTask(this.drifter, "climb up beside a pillar it left", List.of(
+					new NavigateTask(this.drifter, Vec3.atBottomCenterOf(beside), 0.3, "walk to the foot of the pillar", NavigateTask.Pace.STROLL),
+					new com.dinglebob.drifter.executor.task.PillarUpTask(this.drifter, height))));
+			}
+
 			this.skipped.add(block);
 			return Status.RUNNING;
 		}
 
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk over to a block it left", NavigateTask.Pace.STROLL));
+	}
+
+	/** Climbs up beside tall pillars per visit. */
+	private static final int MAX_CLIMBS = 2;
+	private int climbs;
+
+	/** A spot on the ground beside the foot of the pillar this block tops (open, with floor), or null. */
+	@Nullable
+	private BlockPos beside(BlockPos top) {
+		var level = this.drifter.level();
+		BlockPos bottom = top;
+		while (this.drifter.isScaffold(bottom.below()) && top.getY() - bottom.getY() < 12) {
+			bottom = bottom.below();
+		}
+
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			BlockPos at = bottom.relative(side);
+			if (level.getBlockState(at).isAir() && level.getBlockState(at.above()).isAir() && level.getBlockState(at.below()).isFaceSturdy(level, at.below(),
+				net.minecraft.core.Direction.UP)) {
+				return at;
+			}
+		}
+
+		return null;
 	}
 
 	/** It has done what it came to do (the goal stays keen on it till then). */
@@ -191,11 +238,30 @@ public class TidyScaffoldActivity extends Activity {
 			&& box.minZ < pos.getZ() + 1 && box.maxZ > pos.getZ();
 	}
 
+	/**
+	 * Nothing over it but leaves and its own scaffolding (not down a mine or a cave). Before, "the sky over it": under a tree's
+	 * leaves the sky's light is a little less, and every block but a pillar's top has the next one over it, so the pillars it
+	 * built to cut tall trees were forgotten at the first look and stood for good (the user's screenshots, 2026-10-30:
+	 * cobblestone pillars under an acacia in a town).
+	 */
+	private static boolean inTheOpen(DrifterEntity drifter, BlockPos pos) {
+		net.minecraft.world.level.Level level = drifter.level();
+		int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+		for (BlockPos.MutableBlockPos up = pos.above().mutable(); up.getY() < top; up.move(net.minecraft.core.Direction.UP)) {
+			BlockState over = level.getBlockState(up);
+			if (!over.getCollisionShape(level, up).isEmpty() && !over.is(net.minecraft.tags.BlockTags.LEAVES) && !drifter.isScaffold(up)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	/** Still the building block it put there, and not part of something it built since. */
 	private static boolean stillScaffold(DrifterEntity drifter, Home home, BlockPos pos) {
 		BlockState state = drifter.level().getBlockState(pos);
 		// Out in the open only: pillars and bridges down its mines and caves aren't an eyesore (and mostly out of reach).
-		return !state.isAir() && drifter.level().canSeeSky(pos.above()) && com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(state.getBlock().asItem()))
+		return !state.isAir() && inTheOpen(drifter, pos) && com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(state.getBlock().asItem()))
 			&& !home.inOwnBuilding(pos, 1) && drifter.level().getFluidState(pos).isEmpty();
 	}
 }

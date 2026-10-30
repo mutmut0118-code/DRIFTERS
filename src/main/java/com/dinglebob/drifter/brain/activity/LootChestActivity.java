@@ -159,6 +159,13 @@ public class LootChestActivity extends Activity {
 
 	/** Part of another Drifter's base (its chests, or anything round its home): not loot. */
 	private static boolean drifterBase(DrifterEntity self, BlockPos pos) {
+		// In a house a Drifter built (on its floor, or one of the house's own blocks): a neighbour's, its household's, someone
+		// away from home; not loot (found in town tests: townspeople "looting" the chests in the other houses of their town).
+		var level = self.level();
+		if (com.dinglebob.drifter.world.PlayerPlacedBlocks.isDrifterBuilt(level, pos) || com.dinglebob.drifter.world.PlayerPlacedBlocks.isDrifterBuilt(level, pos.below())) {
+			return true;
+		}
+
 		for (DrifterEntity other : self.level().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(pos).inflate(160.0))) {
 			Home home = other.getDrifterBrain().home();
 			if (other != self && home != null && (home.chests().contains(pos) || home.center.closerThan(pos, BASE_RADIUS))) {

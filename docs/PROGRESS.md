@@ -3973,6 +3973,57 @@ of slabs, while still keeping the slabs". So, as built:
     player's build (no digging through it, no camps or homes on it, encounters not spawning there). The slabs it
     generates (marked `generated`) are natural ground now (`NavView.naturalSlab`); ones a player puts down are still
     built. The rest of the compatibility check is still to do.
+
+
+### Side session: pillars left by trees (0.23.10-side.2)
+
+The user (2026-10-30, screenshots: cobblestone pillars up beside an acacia in a town, one block up under its leaves;
+"check logs for cobblestone scan"). Their game ran 0.23.10. The scan: 95 cobblestone blocks in the open within 100, 89
+on town ground; most in rows at one height round the plaza (unowned: the town's own, by the look of them); the pillars
+by the tree were AcornX's, fierymarsh's and EpicToast's, Drifters cutting acacia logs (`GatherActivity` pillars up beside a
+trunk for logs out of reach).
+- **Fixed: pillars under trees were never tidied.** `TidyScaffoldActivity.stillScaffold` took "out in the open" as the
+  sky's full light over the block: under leaves that's a little less, and every block of a pillar but its top has the
+  next one over it, so those were forgotten at the first look (it drops what fails the test from its memory). Now
+  `inTheOpen`: nothing over it up the column but leaves and its own scaffolding (mines and caves still don't count).
+- **Fixed: the get-down job left the bottom of its pillar.** Up on its own pillar with no blocks, `GetDownActivity` dug
+  down only until the drop was safe and then dropped, leaving three blocks; it now digs its own pillar all the way down.
+- `/drifter cobblescan` now also sees pillars under leaves and every block of a pillar (nothing over it but leaves and
+  more of the same). `/drifter personality set <trait> <0-1>` (debug, for tests).
+- Not reproduced in a test: three runs (a plains town, four Drifters by tall spruces on flat ground, a town with tall
+  spruces planted) had few tree pillars; one left 3 blocks after the get-down (fixed above). The user's pillars may also
+  be too tall to reach the top of from the ground (the tidy goes top first); to watch.
+
+### Side session: desert houses, decorating, fixes, chat (0.23.12-side.1)
+
+The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
+- **Desert houses get built.** Two causes: (1) `HousePalette.chooseStones` took a local stone only with enough of it
+  known for the whole house; in a desert the sand seen early never added up, so it chose cobblestone, whose stone is
+  under the sand: the builder dug for stone it never reached. Now, sand all round and little stone seen (a stone made
+  from sand known at a quarter of the need, more than twice the stone seen): sandstone (red sandstone), always. (2) A
+  furnace put down at the bottom of a shaft through the sand, its stone never collected: `PlaceStationActivity` goes back
+  up home first for a furnace (not a crafting table) when it's 4-24 below a home near by; `CollectSmeltActivity` gives a
+  furnace up after 3 failed trips back (`FurnaceJob.failedTrips`, "can't get back to the furnace: leaving what's in
+  it"). Tested (the flat desert run that stopped at 169 of 888 for days): sandstone, 745 of 888 after 5 days, climbing.
+- **Decorating** (`building/Decor`, `DecorateGoal`, `DecorateActivity`; the user's "rugs and other decoration"): once
+  its house is built and it lives in it, by day at home, a rug of carpet on open floor in the main room (3x3, 3x2 or 2x2,
+  as big as its wool makes, nearest the middle, never by a door) and a painting on a long blank wall at eye height (not
+  glass, a door or a chest); carpet and the painting made the usual way (the planner: wool from its chests or sheep), a
+  wool kept back for the painting; "laid a rug and hung a painting: feels like home". Keeps at it once started. Tested
+  (one Drifter, a finished house, 7 wool and sticks): a 3x3 rug and a painting.
+- **Fixes:** a chest in a house a Drifter built (on its floor) is never "loot" (`LootChestActivity.drifterBase`: town
+  Drifters took their neighbours' and their own household's chests for loot); the tidy job climbs beside a pillar too
+  tall to reach from the ground (`TidyScaffoldActivity.beside`, a pillar of its own, up to 2 a visit) and digs its own
+  pillar back down after; the tidy runs for any home now (a hut or house isn't needed). Tested: an 8-high pillar taken
+  down in full.
+- **Chat:** `topics_home_life.json`, 40 topics (673 in all): the rug and the painting, rug colours, decorating or not,
+  flat roofs, overhangs, thick roofs, houses all alike, the next house, desert living, sandstone houses, falling sand, a
+  lost furnace, taking pillars down, a messy neighbour, tall trees, neighbours' chests, a neighbour's house, the town's
+  roads and lamps, chest labels, a cozy house, a small house, the hut left behind, no house yet, stairs, long days,
+  plans for the day, a forgotten tool, a full inventory, sheep for wool, complimenting a house, a housewarming, too much
+  cobblestone; debates: paintings, flat roofs, stone or wood, carpet or slabs, one floor or two. Tested: forced in pairs,
+  they play and lead on into others ("on that note carpet beats slabs for floors").
+- Debug: `/drifter pillar <height>`, `/drifter personality set <trait> <0-1>`.
 - **0.23.13: W3, more shapes, picked by the land** (the user: "add a river town shape too and more shapes"; picked: river,
   harbour, hill, ring, grid).
   - The land round the plaza looked over first (`survey`, every fourth block 80 out, and sixteen ways out from the plaza):

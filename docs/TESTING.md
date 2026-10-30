@@ -2583,3 +2583,31 @@ nothing on top. Some reach out 2 blocks with wood underneath; some lids are full
 - [ ] In a new world (or a new town: `/drifterciv town spawn 8 Flatby`), some Drifters' houses come out flat-roofed.
       Watch one get built: the walls go up as before, then the flat top goes on, and the Drifter moves in.
 - [ ] Houses already built or half-built in your worlds stay as they were.
+
+## Side session: pillars left by trees (new, 0.23.10-side.2)
+
+Drifters build a cobblestone pillar beside a tall tree to cut its high logs. They now take those down, even under the
+leaves, and a Drifter that gets stuck up a pillar digs all the way down it instead of jumping off partway.
+
+- [ ] In a town with trees, after a day or two: no new cobblestone pillars beside the trees. Old ones from before stay
+      (break them by hand); a Drifter may still take down ones it remembers as its own.
+- [ ] If you see a new one: stand by it and type `/drifter cobblescan 30`. In the log, `S:<name>` after a block says whose
+      it is; tell me the name and whether it was up under the leaves.
+
+Installed as 0.23.12-side.1: also has the other session's 0.23.11-0.23.12 (their checks are in their own sections above).
+
+## Side session: desert houses, decorating, fixes, chat (new, 0.23.12-side.1)
+
+- [ ] Desert houses: a Drifter living in a desert builds its house in sandstone (red sandstone in the badlands) and gets
+      it built, instead of stopping early for days. Its furnace stays at home, not at the bottom of a hole in the sand.
+- [ ] Decorating: a Drifter that has moved into its house (or a townsperson) puts a rug of carpet in the middle of its
+      main room and hangs a painting on a blank wall, on a quiet day. It needs wool: a few sheep about helps. Quickest:
+      stand by one in its house and type `/drifter give minecraft:white_wool 7` and `/drifter give minecraft:stick 8`,
+      then wait a day. `/drifter thoughts` says "laid a rug and hung a painting: feels like home".
+- [ ] Townspeople no longer "loot" the chests in other houses of their own town.
+- [ ] Tall pillars a Drifter left (by trees) come down: it may put up a few blocks beside one to reach the top, then dig
+      its own back down.
+- [ ] Chat: 40 new things Drifters talk about: their rugs and paintings, flat roofs, the desert, sandstone houses, falling
+      sand, a furnace they lost, taking pillars down, neighbours, the town's roads and lamps, chest labels, a housewarming,
+      and debates (flat roofs, stone or wood houses, carpet or slabs, one floor or two). To hear one now: stand by a
+      Drifter and type `/drifter talk debate_flat_roofs` (or `laid_a_rug`, `desert_living`, `lost_furnace`).

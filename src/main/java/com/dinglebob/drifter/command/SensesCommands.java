@@ -34,6 +34,19 @@ final class SensesCommands {
 	private SensesCommands() {
 	}
 
+	/** Nothing over it up to the top of the column but leaves and more of the same (a pillar), for the cobblestone scan. */
+	private static boolean openOver(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, int top) {
+		for (int y = pos.getY() + 1; y < top; y++) {
+			net.minecraft.core.BlockPos up = new net.minecraft.core.BlockPos(pos.getX(), y, pos.getZ());
+			var over = level.getBlockState(up);
+			if (!over.getCollisionShape(level, up).isEmpty() && !over.is(net.minecraft.tags.BlockTags.LEAVES) && !over.is(level.getBlockState(pos).getBlock())) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
 		root.then(Commands.literal("debug")
 			.then(Commands.literal("on").executes(ctx -> debug(ctx, true)))
@@ -76,11 +89,11 @@ final class SensesCommands {
 					}
 
 					int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-					for (int y = top - 12; y < top; y++) {
+					for (int y = top - 16; y < top; y++) {
 						net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
 						var state = level.getBlockState(pos);
 						if ((state.is(net.minecraft.world.level.block.Blocks.COBBLESTONE) || state.is(net.minecraft.world.level.block.Blocks.COBBLED_DEEPSLATE))
-							&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isDrifterBuilt(level, pos) && level.canSeeSky(pos.above())) {
+							&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isDrifterBuilt(level, pos) && openOver(level, pos, top)) {
 							String tag = "";
 							if (town != null && town.townGround(x, z)) {
 								tag += " T";
