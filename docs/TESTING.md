@@ -2558,3 +2558,17 @@ by the roads and steps instead of stepping up where they can.
       (that Drifter should take them down soon).
 - [ ] Sometimes a townsperson says "taking down a pillar or bridge it left by home" (`/drifter thoughts`).
 - [ ] Blocks out in the wild past the town (by mine entrances, on hills) can still be there: that's normal.
+
+Installed as 0.23.10-side.1: also has the other session's 0.23.10 (its checks are in its own section above).
+
+## Side session: flat-roofed houses (new, 0.23.10-side.1)
+
+About a third of new house plans are now the same houses with a flat roof: a plain lid level with the tops of the walls,
+nothing on top. Some reach out 2 blocks with wood underneath; some lids are full blocks, some slabs.
+
+- [ ] See them all: in a creative world, stand somewhere open and type `/drifter house parts`. In the styles row, each
+      style is followed by its flat twin ("cottage flat", "stone house flat"...). The end of the first row has the flat
+      parts: a plain lid, one reaching 2 out, a full-block lid, two storeys with a flat-roofed wing.
+- [ ] In a new world (or a new town: `/drifterciv town spawn 8 Flatby`), some Drifters' houses come out flat-roofed.
+      Watch one get built: the walls go up as before, then the flat top goes on, and the Drifter moves in.
+- [ ] Houses already built or half-built in your worlds stay as they were.

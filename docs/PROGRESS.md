@@ -3899,6 +3899,35 @@ road up a cliff; "okay so how can we fix this in the roads").
   owner's list to take down), 2 after the away period (an owner off mining); 18 blocks taken down in one run. Blocks out
   past the town (mine entrances, exploring, Drifters passing through) stay, as a player's would.
 - Not tested: the cliff stair road in the user's screenshot (no such road in the test towns).
+
+### Side session: flat-roofed houses (0.23.10-side.1)
+
+The user (2026-10-30, with their "Flat-Roof and Square Architecture Guidebook"): "lets start switching it up with flat
+roof houses!". First made three guidebook styles (a modern box, an adobe with vigas, a mid-century house with a deep
+overhang) with capped parapets, slab decks, stairs up to a stair tower on the roof, ribbon windows, a lower wing. The user:
+"a bit too realistic, especially with the things on top; i was just thinking like the same houses but with square roofs
+instead of actual roofs, because every house kind of looks similar", then "remove the hole in the roof and just make it a
+flat roof", "lower the overhang a bit", "roofs that go outward aswell", "some of the plans roofs with full blocks instead
+of slabs, while still keeping the slabs". So, as built:
+- **Every style has a flat twin** (`HouseStyle.flatTwin`, added in `GeneratedPlans.load`): "cottage_flat" and so on, the
+  same house (walls, windows, door, materials, wing), drawn half as often as its style: about a third of a world's plans
+  (100 of 298 on a test seed). Its roof is a lid: one layer level with the walls' tops, a block out all round, nothing on
+  it; 4 in 10 reach 2 out with wood slabs underneath (`cantilever`, `overhang`); half are full blocks (planks, or stone
+  where the slab is stone; `lid_full`), half slabs. Twins leave out dormers, the tower, the cross and the door in the
+  gable end; a flat-roofed square is drawn again. A two-storey twin's wing gets its own lid a storey up.
+- `HouseGenerator`: roof "flat" (only styles naming it draw it, so older styles' plans are unchanged), `flatRoof` (the lid;
+  or, for a style that asks, a capped parapet over a slab deck, a cantilever, vigas), `stairTower` (no style uses it now),
+  ribbon windows; the top storey's lanterns hang under the lid; no tie beams under a flat roof.
+- `/drifter house parts`: new parts (flat lid, 2 out, full blocks, two storeys with a flat wing); the twins are in the
+  styles row beside their originals. Debug: `/drifter house plandump <plan>` (a plan's own cells, layer by layer, to the
+  log).
+- Tested: every plan passes PlanCheck. Builder runs in a fresh deep-flat world (enough wood given; no trees there): a
+  farmhouse twin with a full-block lid built to all 765 of 765 blocks; a barn house twin to 1,008 of 1,016 (a corner
+  post's top and a few lid blocks at its front corners out of reach; it moved in). Earlier, the parapet style built in
+  full (1,311) over two runs.
+- Found in testing: a beam across the top storey closed the hole over stairs up to a roof; a door can't stand on a bottom
+  slab. Both fixed (the stair tower isn't used now). Also: `run/server.properties` had been left pointing at an old
+  world folder (`deserttest`), so several runs reused one world; it's back to `world`.
 - **0.23.11: W1 and W2, roads that look made and ground shaped to fit.**
   - Roads and door paths one material a settlement (the user: "when the roads are mixed, it should be of the same type, like
     stone texturing for cities, and planks for towns, just path blocks for hamlets"): a city's stone bricks (some cracked,

@@ -55,8 +55,12 @@ import net.minecraft.world.level.block.state.properties.SlabType;
  *       ridge), dormers on a 45° roof, a balcony over the front door, a cross house (the T wing's twin out of the front,
  *       the door in its gable end). Only styles that name these draw for them, so older styles' plans stay the same.</li>
  * </ul>
- * No porches, shed roofs or flat roofs (the user took the porch apart: "no flat roof on a traditional house"). Built with
- * the front as the long north side (or the west gable end, then turned so it faces north): the front is the low-z side.
+ * No porches or shed roofs, and no flat roof on a traditional house (the user took the porch apart). Flat roofs only in
+ * styles that name them (the user's flat-roof guidebook, 2026-10-30): every one edged (a capped parapet, or a cantilever
+ * with a wood soffit), a deck of bottom slabs (no mobs spawn on it), a stair up to a little stair tower with a door out onto
+ * the roof, a lower wing out of the back on two storeys (three roof heights), ribbon windows upstairs, vigas on an adobe.
+ * Built with the front as the long north side (or the west gable end, then turned so it faces north): the front is the
+ * low-z side.
  */
 public final class HouseGenerator {
 	private HouseGenerator() {
@@ -76,7 +80,7 @@ public final class HouseGenerator {
 
 	private record Materials(Block foundation, @Nullable Block plinth, Block floor, @Nullable Block border, Block frame, Block infill,
 		Block upperInfill, Block gableFill, Block window, @Nullable Block sill, boolean lintels, Block stair, Block roofBlock, Block slab,
-		boolean logRidge, Block door, Block chimney, boolean lanterns, Block railing) {
+		boolean logRidge, Block door, Block chimney, boolean lanterns, Block railing, Block deck, Block cap, Block soffit, Block viga) {
 	}
 
 	private static Materials materials(HouseStyle style, RandomSource random) {
@@ -100,8 +104,13 @@ public final class HouseGenerator {
 		Block chimney = style.material("chimney_block", Blocks.COBBLESTONE, random);
 		boolean lanterns = style.chance("lanterns", 0.0, random);
 		Block railing = style.material("railing", fenceOf(frame), random);
+		// (Flat roofs: the deck, the parapet's cap, the cantilever's underside. Drawn only by styles that name them.)
+		Block deck = style.material("deck", slab, random);
+		Block cap = style.material("cap", deck, random);
+		Block soffit = style.material("soffit", slab, random);
+		Block viga = style.material("viga", frame, random);
 		return new Materials(foundation, plinth, floor, border, frame, infill, upper, gableFill, window, sill, lintels, stair, roofBlock, slab,
-			logRidge, door, chimney, lanterns, railing);
+			logRidge, door, chimney, lanterns, railing, deck, cap, soffit, viga);
 	}
 
 	/** The fence of a log's wood (spruce log or stripped spruce log: spruce fence), for a balcony's railing. */
@@ -119,10 +128,11 @@ public final class HouseGenerator {
 		return Blocks.OAK_FENCE;
 	}
 
-	/** The full block a stair is cut from (spruce stairs: spruce planks; stone brick stairs: stone bricks). */
+	/** The full block a stair or slab is cut from (spruce stairs: spruce planks; stone brick slab: stone bricks). */
 	private static Block fullBlockOf(Block stair) {
 		String path = BuiltInRegistries.BLOCK.getKey(stair).getPath();
-		String base = path.endsWith("_stairs") ? path.substring(0, path.length() - "_stairs".length()) : path;
+		String base = path.endsWith("_stairs") ? path.substring(0, path.length() - "_stairs".length())
+			: path.endsWith("_slab") ? path.substring(0, path.length() - "_slab".length()) : path;
 		for (String id : new String[] {base + "_planks", base + "s", base}) {
 			ResourceLocation location = ResourceLocation.withDefaultNamespace(id);
 			if (BuiltInRegistries.BLOCK.containsKey(location)) {
@@ -230,7 +240,13 @@ public final class HouseGenerator {
 		}
 
 		int floors = style.between("floors", 1, 1, random);
+		// (A flat-roofed cube is the guidebook's first don't: those styles draw again.)
+		if (length == width && style.roofs().containsKey("flat")) {
+			return null;
+		}
+
 		String roof = length == width ? "hip" : pick(random, style.roofs());
+		boolean flat = roof.equals("flat");
 		boolean gableFront = length != width && style.chance("gable_front", 0.0, random);
 		Direction front = gableFront ? Direction.WEST : Direction.NORTH;
 		Draft d = new Draft(m, random, gap);
@@ -274,7 +290,7 @@ public final class HouseGenerator {
 
 		// A tower at the front corner away from the door (the door's middle or the other way at random).
 		int tw = gap + 2;
-		boolean tower = !roof.equals("steep") && !roof.equals("gambrel") && floors == 1 && Math.min(length, width) >= tw + 4 && style.chance("tower", 0.0, random);
+		boolean tower = !flat && !roof.equals("steep") && !roof.equals("gambrel") && floors == 1 && Math.min(length, width) >= tw + 4 && style.chance("tower", 0.0, random);
 		int doorMiddle2 = 2 * doorAt + doorWidth - 1;
 		boolean towerAtStart = doorMiddle2 == main.length(front) - 1 ? random.nextBoolean() : doorMiddle2 > main.length(front) - 1;
 		if (tower && (postDoor || (towerAtStart ? doorBay == 0 : doorBay == frontBays.size() - 1))) {
@@ -292,6 +308,15 @@ public final class HouseGenerator {
 		if (gabled && style.chance("wing", 0.0, random)) {
 			for (int w = (int)Math.floor(width * 0.7); w >= Math.ceil(width * 0.5); w--) {
 				if (w % 2 == 1 && w >= 9 && ridge(roof, STOREY, w) <= ridge(roof, top, width) - 2) {
+					wingWidth = w;
+					break;
+				}
+			}
+		} else if (flat && floors >= 2 && style.chance("wing", 0.0, random)) {
+			// A flat roof's wing: one storey against the house's two or more (a step in the roof's height, the guidebook's
+			// second law), 50-70% of its width.
+			for (int w = (int)Math.floor(width * 0.7); w >= Math.ceil(width * 0.5); w--) {
+				if (w % 2 == 1 && w >= 9) {
 					wingWidth = w;
 					break;
 				}
@@ -333,6 +358,18 @@ public final class HouseGenerator {
 			}
 
 			flights.add(flight);
+		}
+
+		// A flat roof's way up: a staircase from the top storey through the deck into a little stair tower with a door out onto
+		// the roof (the guidebook: "put something on it"; the tower is also the roof's third height).
+		Flight roofFlight = null;
+		if (flat && style.newChance("roof_stairs", random)) {
+			int s = floors - 1;
+			Direction side = s % 2 == 0 ? Direction.SOUTH : Direction.NORTH;
+			boolean east = s > 0 ? flights.get(s - 1).dir() < 0 : random.nextBoolean();
+			roofFlight = new Flight(s, side, east ? 3 : length - 4, east ? 1 : -1);
+			flights.add(roofFlight);
+			features.add("roof terrace");
 		}
 
 		if (wingWidth > 0) {
@@ -380,6 +417,29 @@ public final class HouseGenerator {
 		boolean sills = m.sill() != null && random.nextBoolean();
 		boolean tall = style.chance("tall_windows", 0.0, random);
 		boolean wide = style.chance("wide_windows", 0.5, random);
+		// (Flat roofs: windows filling the upper storeys' long bays, the posts their mullions; the edge, vigas, parapet height.)
+		boolean ribbon = flat && style.newChance("ribbon", random);
+		boolean cantilever = flat && style.newChance("cantilever", random);
+		int overhang = cantilever ? style.between("overhang", 1, 1, random) : 0;
+		boolean vigas = flat && !cantilever && style.newChance("vigas", random);
+		int parapet = flat && !cantilever ? style.between("parapet", 1, 1, random) : 0;
+		// (A lid of full blocks instead of slabs: a thicker edge; the user, 2026-10-30: "some of the plans roofs with full
+		// blocks instead of slabs, while still keeping the slabs".)
+		boolean fullLid = flat && parapet == 0 && style.newChance("lid_full", random);
+		if (ribbon) {
+			features.add("ribbon windows");
+		}
+
+		if (flat) {
+			features.add(cantilever ? "outward " + overhang : parapet == 0 ? "flat lid" : "parapet " + parapet);
+			if (fullLid) {
+				features.add("full-block lid");
+			}
+		}
+
+		if (vigas) {
+			features.add("vigas");
+		}
 		boolean vault = style.chance("vaulted", 0.0, random) || width + 2 >= THICK_ROOF;
 		if (sills) {
 			features.add("sills");
@@ -457,7 +517,7 @@ public final class HouseGenerator {
 					}
 
 					if (!skip) {
-						d.window(main, side, b, s * STOREY, tall, wide, sills, inside(s) - 1);
+						d.window(main, side, b, s * STOREY, tall, wide, sills, inside(s) - 1, ribbon && s > 0 && side.getAxis() == Direction.Axis.Z);
 					}
 				}
 			}
@@ -499,7 +559,12 @@ public final class HouseGenerator {
 
 		// --- The roof.
 		int ridgeAt;
-		if (gabled) {
+		if (flat) {
+			d.flatRoof(main, top, List.of(SIDES), roofFlight, cantilever, overhang, parapet, vigas, fullLid, gap);
+			if (roofFlight != null) {
+				d.stairTower(main, top, roofFlight);
+			}
+		} else if (gabled) {
 			d.gable(main, top, roof, vault);
 			d.gableEnds(main, top, chimney != Direction.WEST, chimney != Direction.EAST, inside(floors - 1) - 1);
 		} else {
@@ -514,13 +579,15 @@ public final class HouseGenerator {
 			}
 
 			int x = main.x0() + a;
-			for (int z = main.z0() + inside(floors - 1); z <= main.z1() - inside(floors - 1); z++) {
+			// (Not under a flat roof: its deck is there, and a beam would close the hole over the stairs up to it.)
+			for (int z = main.z0() + inside(floors - 1); z <= main.z1() - inside(floors - 1) && !flat; z++) {
 				d.putIfFree(new BlockPos(x, top, z), axis(m.frame(), Direction.Axis.Z));
 			}
 
 			if (m.lanterns()) {
 				for (int s = 0; s < floors; s++) {
-					d.putIfFree(new BlockPos(x, (s + 1) * STOREY - 1, (main.z0() + main.z1()) / 2), Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
+					d.putIfFree(new BlockPos(x, (s + 1) * STOREY - (flat && parapet == 0 && s == floors - 1 ? 0 : 1), (main.z0() + main.z1()) / 2),
+						Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
 				}
 			}
 		}
@@ -550,16 +617,23 @@ public final class HouseGenerator {
 			for (Direction side : new Direction[] {Direction.SOUTH, Direction.WEST, Direction.EAST}) {
 				int len = wing.length(side);
 				for (int[] b : bays(len, gapFor(len, gap))) {
-					d.window(wing, side, b, 0, tall, wide, sills, 1);
+					d.window(wing, side, b, 0, tall, wide, sills, 1, false);
 				}
+			}
+
+			if (flat) {
+				// Its own flat roof a storey up, edged as the house's on its three open sides (the fourth is the house's wall).
+				d.flatRoof(wing, STOREY, List.of(Direction.SOUTH, Direction.WEST, Direction.EAST), null, cantilever, overhang, parapet, vigas, fullLid, gap);
 			}
 
 			Map<BlockPos, BlockState> wingRoof = new HashMap<>();
 			// (Drawn as if its ridge ran along x, from the main ridge back: what's under the main roof is left out.)
 			Draft w = new Draft(m, random, gap);
 			Rect turned = new Rect((main.z0() + main.z1()) / 2, wing.x0(), wing.z1(), wing.x1());
-			w.gable(turned, STOREY, roof, vault);
-			w.gableEnds(turned, STOREY, false, true, 1);
+			if (!flat) {
+				w.gable(turned, STOREY, roof, vault);
+				w.gableEnds(turned, STOREY, false, true, 1);
+			}
 			for (Map.Entry<BlockPos, BlockState> entry : w.cells.entrySet()) {
 				// (Drawn with its ridge along "x": turn x and z back.)
 				BlockPos pos = new BlockPos(entry.getKey().getZ(), entry.getKey().getY(), entry.getKey().getX());
@@ -579,12 +653,13 @@ public final class HouseGenerator {
 					continue;
 				}
 
-				for (int x = wing.x0() + 2; x <= wing.x1() - 2; x++) {
+				// (Not under a flat roof: its deck is there.)
+				for (int x = wing.x0() + 2; x <= wing.x1() - 2 && !flat; x++) {
 					d.put(new BlockPos(x, STOREY, wing.z0() + a), axis(m.frame(), Direction.Axis.X));
 				}
 
 				if (m.lanterns()) {
-					d.putIfFree(new BlockPos((wing.x0() + wing.x1()) / 2, STOREY - 1, wing.z0() + a), Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
+					d.putIfFree(new BlockPos((wing.x0() + wing.x1()) / 2, STOREY - (flat && parapet == 0 ? 0 : 1), wing.z0() + a), Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
 				}
 			}
 
@@ -674,7 +749,7 @@ public final class HouseGenerator {
 			for (Direction outer : new Direction[] {innerX.getOpposite(), innerZ.getOpposite()}) {
 				int len = t.length(outer);
 				for (int[] b : bays(len, gapFor(len, gap))) {
-					d.window(t, outer, b, towerTop - STOREY, false, wide, false, 0);
+					d.window(t, outer, b, towerTop - STOREY, false, wide, false, 0, false);
 				}
 			}
 
@@ -1022,6 +1097,117 @@ public final class HouseGenerator {
 			}
 		}
 
+		/**
+		 * A flat roof on the rect's walls ({@code top} high), on these sides (a wing's fourth side is the house's wall): a deck
+		 * of bottom slabs over the room (the guidebook's slab-deck law: no mobs spawn on it, no torches wanted), a hole in it
+		 * over the stairs up ({@code access}), and an edge (its first law): a parapet on the frame line, the posts carried up
+		 * through it, capped with slabs ({@code parapet} high over the deck); or a cantilever, bottom slabs of wood {@code
+		 * overhang} out past the wall (the soffit: the dark line under the edge a pitched roof's eave draws), a slab curb on
+		 * the beam. Vigas: a log end out under the parapet at each post (Pueblo).
+		 */
+		void flatRoof(Rect r, int top, List<Direction> edges, @Nullable Flight access, boolean cantilever, int overhang, int parapet, boolean vigas,
+			boolean fullLid, int wantedGap) {
+			java.util.Set<BlockPos> hole = new java.util.HashSet<>();
+			if (access != null) {
+				int last = access.start() + access.dir() * (STEPS - 1);
+				for (int a = access.low(); a <= access.high(); a++) {
+					if (a != last) {
+						hole.add(r.at(access.side(), a, top, inside(access.storey())));
+					}
+				}
+			}
+
+			BlockState deck = bottom(this.m.deck());
+			// A plain lid (no parapet asked for; the user, 2026-10-30: "remove the hole in the roof and just make it a flat
+			// roof"): one layer of slabs over the walls' tops, a block out past them on the open sides, nothing sunk behind
+			// an edge.
+			// Reaching out further ("roofs that go outward"): the same lid {@code overhang} out, wood underneath past the walls.
+			if (parapet == 0) {
+				int out = cantilever ? overhang : 1;
+				int x0 = r.x0() - (edges.contains(Direction.WEST) ? out : 0);
+				int x1 = r.x1() + (edges.contains(Direction.EAST) ? out : 0);
+				int z0 = r.z0() - (edges.contains(Direction.NORTH) ? out : 0);
+				int z1 = r.z1() + (edges.contains(Direction.SOUTH) ? out : 0);
+				for (int x = x0; x <= x1; x++) {
+					for (int z = z0; z <= z1; z++) {
+						Block block = cantilever && r.depth(x, z) < 0 ? this.m.soffit() : this.m.deck();
+						this.putIfFree(new BlockPos(x, top + 1, z), fullLid ? fullBlockOf(block).defaultBlockState() : bottom(block));
+					}
+				}
+
+				return;
+			}
+
+			for (int x = r.x0(); x <= r.x1(); x++) {
+				for (int z = r.z0(); z <= r.z1(); z++) {
+					BlockPos pos = new BlockPos(x, top, z);
+					if (r.depth(x, z) >= 1 && !hole.contains(pos)) {
+						this.putIfFree(pos, deck);
+					}
+				}
+			}
+
+			for (Direction side : edges) {
+				int len = r.length(side);
+				int gap = gapFor(len, wantedGap);
+				if (cantilever) {
+					// (The corners too, from the side drawn first: each slab placed against the one before it.)
+					for (int a = -overhang; a < len + overhang; a++) {
+						for (int out = 1; out <= overhang; out++) {
+							this.putIfFree(r.at(side, a, top, -out), bottom(this.m.soffit()));
+						}
+					}
+
+					for (int a = 0; a < len; a++) {
+						this.putIfFree(r.at(side, a, top + 1, 0), deck);
+					}
+
+					continue;
+				}
+
+				for (int a = 0; a < len; a++) {
+					for (int row = 1; row <= parapet; row++) {
+						this.putIfFree(r.at(side, a, top + row, 0), post(len, gap, a) ? axis(this.m.frame(), Direction.Axis.Y)
+							: axis(this.m.upperInfill(), along(side)));
+					}
+
+					this.putIfFree(r.at(side, a, top + parapet + 1, 0), bottom(this.m.cap()));
+					if (vigas && post(len, gap, a) && a > 0 && a < len - 1) {
+						this.putIfFree(r.at(side, a, top, -1), axis(this.m.viga(), side.getAxis()));
+					}
+				}
+			}
+		}
+
+		/**
+		 * The stair tower over the top of the stairs up to a flat roof: walls three high round the flight's top (the house's
+		 * wall its back), a slab roof on them, a door at the top step's end out onto the deck, a torch inside.
+		 */
+		void stairTower(Rect r, int top, Flight f) {
+			int in = inside(f.storey());
+			int last = f.start() + f.dir() * (STEPS - 1);
+			int doorAt = last + f.dir();
+			int end = f.dir() > 0 ? f.low() - 1 : f.high() + 1;
+			int from = Math.min(end, doorAt);
+			int to = Math.max(end, doorAt);
+			for (int a = from; a <= to; a++) {
+				for (int depth = 0; depth <= in + 1; depth++) {
+					boolean wall = a == from || a == to || depth == 0 || depth == in + 1;
+					boolean corner = (a == from || a == to) && (depth == 0 || depth == in + 1);
+					for (int y = top + 1; y <= top + 3 && wall; y++) {
+						this.put(r.at(f.side(), a, y, depth), corner ? axis(this.m.frame(), Direction.Axis.Y) : axis(this.m.upperInfill(), along(f.side())));
+					}
+
+					this.put(r.at(f.side(), a, top + 4, depth), bottom(this.m.deck()));
+				}
+			}
+
+			// (A full block under the door: a door won't stand on a bottom slab, found in a build test.)
+			this.put(r.at(f.side(), doorAt, top, in), axis(this.m.upperInfill(), along(f.side())));
+			this.doorway(r.at(f.side(), doorAt, top + 1, in), f.dir() > 0 ? Direction.EAST : Direction.WEST);
+			this.put(r.at(f.side(), f.dir() > 0 ? f.low() : f.high(), top + 2, 1), torch(f.side().getOpposite()));
+		}
+
 		/** A door inside (between rooms): at {@code lower}, facing that way. */
 		void doorway(BlockPos lower, Direction facing) {
 			BlockState door = this.m.door().defaultBlockState().setValue(DoorBlock.FACING, facing).setValue(DoorBlock.HINGE, DoorHingeSide.LEFT)
@@ -1042,9 +1228,9 @@ public final class HouseGenerator {
 		 * A window in a bay: centred, a block clear of the posts (wider bays: three wide or one with room either side), in
 		 * the wall a block in from the frame, at eye level (two high if tall); a sill under it, a lintel over it.
 		 */
-		void window(Rect r, Direction side, int[] bay, int y0, boolean tall, boolean wide, boolean sills, int depth) {
+		void window(Rect r, Direction side, int[] bay, int y0, boolean tall, boolean wide, boolean sills, int depth, boolean ribbon) {
 			int bw = bay[1] - bay[0] + 1;
-			int ww = bw >= 6 ? (bw % 2 == 1 ? 3 : 2) : bw == 5 ? (wide ? 3 : 1) : bw - 2;
+			int ww = ribbon ? bw : bw >= 6 ? (bw % 2 == 1 ? 3 : 2) : bw == 5 ? (wide ? 3 : 1) : bw - 2;
 			if (ww < 1) {
 				return;
 			}
@@ -1280,6 +1466,12 @@ public final class HouseGenerator {
 	private static BlockState stair(Block block, Direction facing) {
 		BlockState state = block.defaultBlockState();
 		return state.hasProperty(StairBlock.FACING) ? state.setValue(StairBlock.FACING, facing).setValue(StairBlock.HALF, Half.BOTTOM) : state;
+	}
+
+	/** A slab as a bottom slab (anything else as it is). */
+	private static BlockState bottom(Block block) {
+		BlockState state = block.defaultBlockState();
+		return state.hasProperty(SlabBlock.TYPE) ? state.setValue(SlabBlock.TYPE, SlabType.BOTTOM) : state;
 	}
 
 	private static BlockState upsideDown(Block block, Direction facing) {

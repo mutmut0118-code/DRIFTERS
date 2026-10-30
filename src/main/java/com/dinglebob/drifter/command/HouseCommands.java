@@ -43,6 +43,30 @@ public final class HouseCommands {
 			.then(Commands.literal("map").executes(HouseCommands::map))
 			// Debug: blocks in every loaded Drifter's house that aren't in its plan (stray cobblestone and the like), to the log.
 			.then(Commands.literal("strays").executes(HouseCommands::strays))
+			// Debug: a plan's own cells, layer by layer, to the log (one letter a block, the key after each layer).
+			.then(Commands.literal("plandump").then(plan().executes(ctx -> {
+				HousePlan plan = plan(ctx);
+				java.util.Map<BlockPos, net.minecraft.world.level.block.state.BlockState> cells = new java.util.HashMap<>();
+				plan.cells.forEach(cell -> cells.put(cell.pos(), cell.state()));
+				String letters = "#abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+				for (int y = 0; y < plan.size.getY(); y++) {
+					java.util.Map<String, Character> key = new java.util.LinkedHashMap<>();
+					StringBuilder out = new StringBuilder("[plandump] " + plan.id + " y" + y + " (rows z, x across)");
+					for (int z = 0; z < plan.size.getZ(); z++) {
+						out.append(System.lineSeparator()).append("  ");
+						for (int x = 0; x < plan.size.getX(); x++) {
+							var state = cells.get(new BlockPos(x, y, z));
+							out.append(state == null ? '.' : key.computeIfAbsent(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath(),
+								k -> letters.charAt(Math.min(key.size(), letters.length() - 1))));
+						}
+					}
+
+					out.append(System.lineSeparator()).append("  key: ").append(key);
+					com.dinglebob.drifter.Drifter.LOGGER.info(out.toString());
+				}
+
+				return 1;
+			})))
 			.then(Commands.literal("info").then(plan().executes(HouseCommands::info)))
 			.then(Commands.literal("keep").then(plan().executes(HouseCommands::keep)))
 			.then(Commands.literal("layout").then(Commands.argument("bed", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
