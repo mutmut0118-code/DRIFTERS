@@ -101,6 +101,9 @@ public final class Town {
 	public final List<Plot> plots = new ArrayList<>();
 	/** Side lanes off its main roads (a town founded by its people lays them out as it grows). */
 	public final List<TownRoads.Road> lanes = new ArrayList<>();
+	/** A town made ready (0.23.10 on): its shape (crossroads, main_street, winding) and its roads' columns as laid, bends and all. */
+	public String shape = "";
+	public long[] roadColumns = new long[0];
 	public final List<BlockPos> store = new ArrayList<>();
 	public final List<BlockPos> fields = new ArrayList<>();
 	@Nullable
@@ -246,6 +249,14 @@ public final class Town {
 		}
 
 		tag.put("Lanes", lanes);
+		if (!this.shape.isEmpty()) {
+			tag.putString("Shape", this.shape);
+		}
+
+		if (this.roadColumns.length > 0) {
+			tag.putLongArray("RoadColumns", this.roadColumns);
+		}
+
 		ListTag plots = new ListTag();
 		this.plots.forEach(plot -> plots.add(plot.save()));
 		tag.put("Plots", plots);
@@ -375,6 +386,8 @@ public final class Town {
 			}
 		}
 
+		town.shape = tag.getString("Shape");
+		town.roadColumns = tag.getLongArray("RoadColumns");
 		town.stallPlot = tag.contains("StallPlot") ? Plot.load(tag.getCompound("StallPlot")) : null;
 		town.stallBuilt = tag.getBoolean("StallBuilt");
 		town.keeper = tag.hasUUID("Keeper") ? tag.getUUID("Keeper") : null;

@@ -389,6 +389,48 @@ public final class DrifterCivilizations implements ModInitializer {
 					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 					return 1;
 				}))
+				// Debug: the nearest town seen from above, saved as a picture in the server's town-maps folder.
+				.then(Commands.literal("map").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null) {
+						source.sendFailure(Component.literal("No town near"));
+						return 0;
+					}
+
+					try {
+						int radius = town.plots.size() >= TownBuilder.CITY ? TownBuilder.CITY_REACH + 8 : 112;
+						java.nio.file.Path file = TownMap.draw(source.getLevel(), town.center, radius, town.name);
+						source.sendSuccess(() -> Component.literal("Debug: a map of " + town.name + " saved to " + file), true);
+						return 1;
+					} catch (java.io.IOException e) {
+						source.sendFailure(Component.literal("Couldn't save the map: " + e.getMessage()));
+						return 0;
+					}
+				}))
+				// Debug: the shape every town made from now on has (crossroads, main_street, winding), or "any" (each its own).
+				.then(Commands.literal("shape").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("shape", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((ctx, builder) -> {
+							for (TownBuilder.Shape shape : TownBuilder.Shape.values()) {
+								builder.suggest(shape.id);
+							}
+
+							return builder.suggest("any").buildFuture();
+						})
+						.executes(ctx -> {
+							String id = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "shape");
+							TownBuilder.Shape shape = TownBuilder.Shape.byId(id);
+							if (shape == null && !id.equals("any")) {
+								ctx.getSource().sendFailure(Component.literal("No such shape: crossroads, main_street, winding or any"));
+								return 0;
+							}
+
+							TownBuilder.forcedShape = shape;
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: towns made from now on: " + (shape == null ? "each its own shape"
+								: shape.id + " (" + shape.what + ")") + " (till the server restarts)"), true);
+							return 1;
+						})))
 				.then(Commands.literal("spawn").requires(source -> source.hasPermission(2))
 					.executes(ctx -> spawnTown(ctx, TownBuilder.DEFAULT_HOUSEHOLDS, null))
 					.then(Commands.argument("households", IntegerArgumentType.integer(2, TownBuilder.MAX_HOUSEHOLDS))
@@ -572,6 +614,11 @@ public final class DrifterCivilizations implements ModInitializer {
 			+ " (" + age + (age == 1 ? " day" : " days") + " ago), " + town.plots.size() + " houses, " + alivePeople + " people alive; the store has "
 			+ stacks + " stacks in " + town.store.size() + " chests"), false);
 		source.sendSuccess(() -> Component.literal("  " + String.join(", ", people)), false);
+		TownBuilder.Shape shape = TownBuilder.Shape.byId(town.shape);
+		if (shape != null) {
+			source.sendSuccess(() -> Component.literal("  Shape: " + shape.id.replace('_', ' ') + " (" + shape.what + ")"), false);
+		}
+
 		source.sendSuccess(() -> Component.literal("  Work: " + Trades.describe(town)), false);
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);

@@ -1503,6 +1503,13 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       its door path: its name sign now says what it sells ("Ann's / smithy"). Right-click it: the trading screen with
       only what it made (an iron pickaxe, arrows...). Sell it what its trade needs (iron to a smith, feathers to a
       fletcher). Over a few days its stock grows; a smith off mining has its shop shut that morning.
+- [ ] Town shapes (0.23.10): new towns come in three shapes. Make one of each in a new world and walk them:
+      `/drifterciv town shape winding`, then `/drifterciv town spawn 10 Windy` (and again with `main_street` and
+      `crossroads`, each a few hundred blocks apart; `/drifterciv town shape any` afterwards for normal towns). Look for:
+      roads that bend round hills instead of going straight up them; a main street town strung along one long street;
+      the store, fields and pen near the plaza but off the roads, the store's door facing a road; no road running on
+      into the wild past the last house; every door reachable on foot. `/drifterciv town` says the shape.
+      `/drifterciv town map` saves a picture of the town from above into the instance's `town-maps` folder.
 
 ## Beds in town houses (new, 0.22.34)
 

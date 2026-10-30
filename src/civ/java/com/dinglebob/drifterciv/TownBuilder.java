@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.Filterable;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
@@ -174,31 +175,176 @@ public final class TownBuilder {
 		}
 	}
 
-	/** A road: its middle line from (x, z), this way, so long; three wide. */
-	private record Road(int x, int z, Direction way, int length) {
-		BlockPos at(int t) {
-			return new BlockPos(this.x + this.way.getStepX() * t, 0, this.z + this.way.getStepZ() * t);
+	/**
+	 * A road (the user, 2026-10-30: "curved and bending roads, roads that follow the land"): its middle line a block a step,
+	 * bending as it goes, and the columns it covers (three wide), each with the step of the line it's nearest.
+	 */
+	private static final class Road {
+		final double[] xs;
+		final double[] zs;
+		final double[] headings;
+		final java.util.Map<Long, Integer> cells = new java.util.HashMap<>();
+		final Rect bounds;
+
+		/** From its middle line's points: {x, z, heading} each (a block's middle is x + 0.5). */
+		Road(List<double[]> line) {
+			int n = line.size();
+			this.xs = new double[n];
+			this.zs = new double[n];
+			this.headings = new double[n];
+			java.util.Map<Long, Double> nearest = new java.util.HashMap<>();
+			int x0 = Integer.MAX_VALUE;
+			int z0 = Integer.MAX_VALUE;
+			int x1 = Integer.MIN_VALUE;
+			int z1 = Integer.MIN_VALUE;
+			for (int t = 0; t < n; t++) {
+				this.xs[t] = line.get(t)[0];
+				this.zs[t] = line.get(t)[1];
+				this.headings[t] = line.get(t)[2];
+				int bx = Mth.floor(this.xs[t]);
+				int bz = Mth.floor(this.zs[t]);
+				for (int x = bx - 2; x <= bx + 2; x++) {
+					for (int z = bz - 2; z <= bz + 2; z++) {
+						double dx = x + 0.5 - this.xs[t];
+						double dz = z + 0.5 - this.zs[t];
+						double d = dx * dx + dz * dz;
+						if (d > HALF_WIDTH * HALF_WIDTH) {
+							continue;
+						}
+
+						long key = BlockPos.asLong(x, 0, z);
+						Double had = nearest.get(key);
+						if (had == null || d < had) {
+							nearest.put(key, d);
+							this.cells.put(key, t);
+						}
+
+						x0 = Math.min(x0, x);
+						z0 = Math.min(z0, z);
+						x1 = Math.max(x1, x);
+						z1 = Math.max(z1, z);
+					}
+				}
+			}
+
+			this.bounds = n == 0 ? new Rect(0, 0, -1, -1) : new Rect(x0, z0, x1, z1);
 		}
 
-		Rect rect() {
-			Direction across = this.way.getClockWise();
-			return Rect.of(this.at(0).relative(across, 1), this.at(this.length - 1).relative(across, -1));
+		int length() {
+			return this.xs.length;
+		}
+
+		BlockPos at(int t) {
+			return new BlockPos(Mth.floor(this.xs[t]), 0, Mth.floor(this.zs[t]));
+		}
+
+		double heading(int t) {
+			return this.headings[Math.max(0, Math.min(this.headings.length - 1, t))];
+		}
+
+		/** The same road, only its first {@code length} steps. */
+		Road upTo(int length) {
+			if (length >= this.length()) {
+				return this;
+			}
+
+			List<double[]> line = new ArrayList<>();
+			for (int t = 0; t < length; t++) {
+				line.add(new double[] {this.xs[t], this.zs[t], this.headings[t]});
+			}
+
+			return new Road(line);
+		}
+
+		/** The step of its middle line nearest x, z if within {@code by} blocks of it, or -1. */
+		int nearest(double x, double z, double by) {
+			int best = -1;
+			double bestSq = by * by;
+			for (int t = 0; t < this.length(); t++) {
+				double dx = this.xs[t] - x;
+				double dz = this.zs[t] - z;
+				if (dx * dx + dz * dz <= bestSq) {
+					bestSq = dx * dx + dz * dz;
+					best = t;
+				}
+			}
+
+			return best;
 		}
 	}
 
-	/** One side of a road houses go along: the way out from the road (their fronts face back to it), and how far along. */
+	/** Half a road's width, out from its middle line (three blocks wide). */
+	private static final double HALF_WIDTH = 1.5;
+
+	/** One side of a road houses go along (1 or -1: which side of the way it goes), and how far along. */
 	private static final class Side {
 		final Road road;
-		final Direction out;
+		final int sign;
 		int cursor;
 		boolean full;
 
-		Side(Road road, Direction out, int cursor) {
+		Side(Road road, int sign, int cursor) {
 			this.road = road;
-			this.out = out;
+			this.sign = sign;
 			this.cursor = cursor;
+			this.full = cursor >= road.length() - 4;
+		}
+
+		/** The way out from the road on this side at this step (the houses' fronts face back to it). */
+		double out(int t) {
+			return this.road.heading(t) + this.sign * Math.PI / 2;
 		}
 	}
+
+	/**
+	 * A town's shape (the user, 2026-10-30: "can we change the shape to different types? like curved and bending roads, roads
+	 * that follow the land, and towns that go down a main street"): how much its roads wander besides following the land
+	 * ({@code wander}), how hard they keep to the way they set off ({@code keep}), and how far they turn a block at most
+	 * (radians). How many leave the plaza and which ways: {@link Job#mainHeadings}.
+	 */
+	enum Shape {
+		CROSSROADS("crossroads", "four roads out from the plaza, bending with the land", 0.8, 5.0, 0.07),
+		MAIN_STREET("main_street", "one long street through the plaza, a few lanes off it", 1.0, 4.0, 0.07),
+		WINDING("winding", "three roads winding out from the plaza, lanes off any of them", 2.5, 1.5, 0.1);
+
+		final String id;
+		final String what;
+		final double wander;
+		final double keep;
+		final double turn;
+
+		Shape(String id, String what, double wander, double keep, double turn) {
+			this.id = id;
+			this.what = what;
+			this.wander = wander;
+			this.keep = keep;
+			this.turn = turn;
+		}
+
+		@Nullable
+		static Shape byId(String id) {
+			for (Shape shape : values()) {
+				if (shape.id.equals(id)) {
+					return shape;
+				}
+			}
+
+			return null;
+		}
+	}
+
+	/** Debug: the shape every town made from now on has (null: each its own, by its size and chance). */
+	@Nullable
+	static Shape forcedShape;
+	/** How often a small town has each shape (the rest winding; a hamlet's is a main street, a city's crossroads). */
+	private static final double CROSSROADS_SHARE = 0.35;
+	private static final double MAIN_STREET_SHARE = 0.40;
+	/** Side roads at least this far apart. */
+	private static final int LANES_APART = 20;
+	/** A road leads to a house, the store, a field or the pen this near it; it runs this far past the last, and out of the plaza this far at least. */
+	private static final int LEADS_TO = 12;
+	private static final int ROAD_BEYOND = 6;
+	private static final int ROAD_STUB = 12;
 
 	public static Result spawn(ServerLevel level, BlockPos at, int households, @Nullable String wanted) {
 		String dimension = level.dimension().location().toString();
@@ -283,13 +429,21 @@ public final class TownBuilder {
 		private List<DrifterApi.HousePlanInfo> plans;
 		private Rect plaza;
 		private final List<Road> roads = new ArrayList<>();
-		private int storeZ;
+		/** Its shape, and how many of its roads leave the plaza (the rest are side roads off them). */
+		final Shape shape;
+		private int mains;
+		private BlockPos storeAt;
+		private Direction storeFront = Direction.WEST;
+		private Direction penFront = Direction.EAST;
 		private int storeBase;
 		private Rect storeRect;
 		private List<Rect> fieldRects;
 		private Rect penRect;
 		private final List<Rect> taken = new ArrayList<>();
-		private final List<Rect> roadRects = new ArrayList<>();
+		/** Every column of its roads, and (worked out when first asked) the town's ground round them. */
+		private final java.util.Set<Long> roadCells = new java.util.HashSet<>();
+		@Nullable
+		private java.util.Set<Long> roadGround;
 		private List<BlockPos> store = List.of();
 		private final List<BlockPos> fields = new ArrayList<>();
 		private BlockPos pen;
@@ -334,6 +488,9 @@ public final class TownBuilder {
 			this.world = world;
 			this.ruin = ruin;
 			this.city = households >= CITY && !ruin;
+			float roll = this.random.nextFloat();
+			this.shape = forcedShape != null ? forcedShape : this.city ? Shape.CROSSROADS : households <= 5 ? Shape.MAIN_STREET
+				: roll < CROSSROADS_SHARE ? Shape.CROSSROADS : roll < CROSSROADS_SHARE + MAIN_STREET_SHARE ? Shape.MAIN_STREET : Shape.WINDING;
 			this.steps.add(new Step("layout", this::layout));
 		}
 
@@ -385,8 +542,9 @@ public final class TownBuilder {
 		}
 
 		// -----------------------------------------------------------------------------------------
-		// 1. The layout, as a village grows: the plaza in the middle, four roads out from it and side roads off those, the
-		// store by the north road, the fields and pen by the south one; houses along the roads come later, one at a time.
+		// 1. The layout, as a village grows, by the town's shape: the plaza in the middle and its roads out from it, following
+		// the land; the store, the fields and the pen near the plaza where there's room off the roads; side roads off those;
+		// houses along the roads come later, one at a time.
 		// -----------------------------------------------------------------------------------------
 
 		private void layout() {
@@ -404,48 +562,378 @@ public final class TownBuilder {
 			int cx = this.cx;
 			int cz = this.cz;
 			this.plaza = new Rect(cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA);
-			for (Direction way : Direction.Plane.HORIZONTAL) {
-				Road main = new Road(cx + way.getStepX() * (PLAZA + 1), cz + way.getStepZ() * (PLAZA + 1), way, arm);
-				this.roads.add(new Road(main.x(), main.z(), way, Math.max(1, dry(this.level, main))));
+			this.taken.add(this.plaza);
+			// (A main street a third longer: it's most of the town.)
+			int length = this.shape == Shape.MAIN_STREET ? arm + arm / 3 : arm;
+			for (double heading : this.mainHeadings()) {
+				double edge = (PLAZA + 1) / Math.max(Math.abs(Math.cos(heading)), Math.abs(Math.sin(heading)));
+				Road main = this.lay(cx + 0.5 + Math.cos(heading) * edge, cz + 0.5 + Math.sin(heading) * edge, heading, length, List.of(this.plaza), 0);
+				if (main.length() > 0) {
+					this.addRoad(main);
+				}
 			}
 
-			// The store's spot by the north road: where the ground suits it (found in testing: on a hillside its door opened onto
-			// a bank of earth), with a flat apron to the road.
-			this.storeZ = cz - 28;
-			Integer storeBase = null;
-			for (int z = cz - 28; z <= cz - PLAZA - 11 && storeBase == null; z++) {
-				storeBase = siteBase(this.level, cx + 4, z, cx + 12, z + 8);
-				this.storeZ = storeBase != null ? z : this.storeZ;
+			// (None out of it: water or the town's edge right by the plaza that way. Any way out it can, two at most.)
+			for (int k = 0; k < 8 && this.roads.size() < 2; k++) {
+				double heading = k * Math.PI / 4;
+				double edge = (PLAZA + 1) / Math.max(Math.abs(Math.cos(heading)), Math.abs(Math.sin(heading)));
+				Road main = this.lay(cx + 0.5 + Math.cos(heading) * edge, cz + 0.5 + Math.sin(heading) * edge, heading, length, List.of(this.plaza), 0);
+				if (main.length() >= SHORTEST_BRANCH && this.roads.stream().noneMatch(other -> other.bounds.near(main.bounds, 4))) {
+					this.addRoad(main);
+				}
 			}
 
-			this.storeBase = storeBase != null ? storeBase : median(this.level, cx + 4, this.storeZ, cx + 12, this.storeZ + 8);
-			this.storeRect = new Rect(cx + 2, this.storeZ - 1, cx + 13, this.storeZ + 9);
-			this.fieldRects = List.of(new Rect(cx + 3, cz + 12, cx + 11, cz + 20), new Rect(cx + 3, cz + 23, cx + 11, cz + 31));
-			this.penRect = new Rect(cx - 13, cz + 12, cx - 3, cz + 22);
-			this.taken.addAll(List.of(this.plaza, this.storeRect, this.penRect));
-			this.taken.addAll(this.fieldRects);
+			this.mains = this.roads.size();
+			DrifterCivilizations.LOGGER.info("[town] {}: {} ({} roads from the plaza)", this.name, this.shape.id, this.mains);
+			this.then("lots", this::lots);
+		}
+
+		/** The ways its roads leave the plaza: four square, a main street's two, a winding town's three. */
+		private double[] mainHeadings() {
+			return switch (this.shape) {
+				case CROSSROADS -> new double[] {0, Math.PI / 2, Math.PI, -Math.PI / 2};
+				case MAIN_STREET -> {
+					double way = this.flattestAxis();
+					yield new double[] {way, way + Math.PI};
+				}
+				case WINDING -> {
+					double first = this.random.nextDouble() * 2 * Math.PI;
+					double[] ways = new double[3];
+					for (int i = 0; i < 3; i++) {
+						ways[i] = first + i * 2 * Math.PI / 3 + (this.random.nextDouble() - 0.5) * 0.6;
+					}
+
+					yield ways;
+				}
+			};
+		}
+
+		/** For a main street: the line through the plaza (of eight) that climbs least either side of it. */
+		private double flattestAxis() {
+			double best = 0;
+			double bestCost = Double.MAX_VALUE;
+			int middle = ground(this.level, this.cx, this.cz);
+			for (int k = 0; k < 8; k++) {
+				double way = k * Math.PI / 8;
+				// (Ties broken at random, so a flat plain's streets don't all run east to west.)
+				double cost = this.random.nextDouble() * 2;
+				for (int sign = -1; sign <= 1; sign += 2) {
+					int last = middle;
+					for (int d = PLAZA + 6; d <= arm; d += 6) {
+						int x = Mth.floor(this.cx + 0.5 + sign * Math.cos(way) * d);
+						int z = Mth.floor(this.cz + 0.5 + sign * Math.sin(way) * d);
+						if (!this.inReach(x, z, 4)) {
+							break;
+						}
+
+						int g = ground(this.level, x, z);
+						cost += Math.abs(g - last) + (wet(this.level, x, z) ? 10 : 0);
+						last = g;
+					}
+				}
+
+				if (cost < bestCost) {
+					bestCost = cost;
+					best = way;
+				}
+			}
+
+			return best;
+		}
+
+		/**
+		 * A road laid from (x, z) setting off this way, up to so long (the user, 2026-10-30: "roads that follow the land"): every
+		 * few blocks it takes the way on that climbs least over the next twelve, so it bends round a hill rather than going
+		 * straight up it, kept to the way it set off by its shape's {@code keep} and wandering by its {@code wander}; it turns a
+		 * few degrees a block at most, so its bends are wide. It stops at the town's edge, at water too wide to bridge, short of
+		 * {@code avoid} (this far off), and where it meets another road (a junction).
+		 */
+		private Road lay(double x, double z, double heading, int length, List<Rect> avoid, int gap) {
+			List<double[]> line = new ArrayList<>();
+			double way = heading;
+			double target = heading;
+			int wetRun = 0;
+			for (int t = 0; t < length; t++) {
+				if (t > 0) {
+					if (t % 4 == 0) {
+						target = this.choose(x, z, way, heading);
+					}
+
+					way += Mth.clamp(Math.atan2(Math.sin(target - way), Math.cos(target - way)), -this.shape.turn, this.shape.turn);
+					x += Math.cos(way);
+					z += Math.sin(way);
+				}
+
+				int bx = Mth.floor(x);
+				int bz = Mth.floor(z);
+				if (!this.inReach(bx, bz, 2) || avoid.stream().anyMatch(rect -> rect.away(bx, bz) <= gap)) {
+					break;
+				}
+
+				if (wet(this.level, bx, bz)) {
+					if (++wetRun > LONGEST_BRIDGE) {
+						break;
+					}
+				} else {
+					wetRun = 0;
+				}
+
+				boolean joins = t > 4 && this.nearRoad(bx, bz, 2);
+				line.add(new double[] {x, z, way});
+				if (joins) {
+					break;
+				}
+			}
+
+			// (Never ending in the water: a bridge goes across or not at all.)
+			for (int left = Math.min(wetRun, LONGEST_BRIDGE); left > 0 && !line.isEmpty(); left--) {
+				line.remove(line.size() - 1);
+			}
+
+			return new Road(line);
+		}
+
+		/** The way on from here (of five, up to 30 degrees either side) that climbs least over the next twelve blocks. */
+		private double choose(double x, double z, double way, double heading) {
+			int here = ground(this.level, Mth.floor(x), Mth.floor(z));
+			double best = way;
+			double bestCost = Double.MAX_VALUE;
+			for (int k = -2; k <= 2; k++) {
+				double next = way + k * Math.PI / 12;
+				double cost = Math.abs(Math.atan2(Math.sin(next - heading), Math.cos(next - heading))) * this.shape.keep
+					+ this.random.nextDouble() * this.shape.wander;
+				int last = here;
+				for (int ahead = 4; ahead <= 12; ahead += 4) {
+					int ax = Mth.floor(x + Math.cos(next) * ahead);
+					int az = Mth.floor(z + Math.sin(next) * ahead);
+					if (!this.inReach(ax, az, 4)) {
+						cost += 6;
+						break;
+					}
+
+					int g = ground(this.level, ax, az);
+					cost += Math.abs(g - last) + (wet(this.level, ax, az) ? 3 : 0) + (ahead > 4 && this.nearRoad(ax, az, 3) ? 4 : 0);
+					last = g;
+				}
+
+				if (cost < bestCost) {
+					bestCost = cost;
+					best = next;
+				}
+			}
+
+			return best;
+		}
+
+		private void addRoad(Road road) {
+			this.roads.add(road);
+			this.roadCells.addAll(road.cells.keySet());
+		}
+
+		/** Inside the town's reach, with this much to spare. */
+		private boolean inReach(int x, int z, int spare) {
+			return Math.abs(x - this.cx) <= reach - spare && Math.abs(z - this.cz) <= reach - spare;
+		}
+
+		private boolean inReach(Rect rect) {
+			return this.inReach(rect.x0(), rect.z0(), 0) && this.inReach(rect.x1(), rect.z1(), 0);
+		}
+
+		/** A road within this many blocks of x, z. */
+		private boolean nearRoad(int x, int z, int by) {
+			for (int dx = -by; dx <= by; dx++) {
+				for (int dz = -by; dz <= by; dz++) {
+					if (this.roadCells.contains(BlockPos.asLong(x + dx, 0, z + dz))) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/** A road within this many blocks of the rectangle. */
+		private boolean nearRoad(Rect rect, int by) {
+			for (int x = rect.x0() - by; x <= rect.x1() + by; x++) {
+				for (int z = rect.z0() - by; z <= rect.z1() + by; z++) {
+					if (this.roadCells.contains(BlockPos.asLong(x, 0, z))) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/** On the town's ground by its roads (lit at night). */
+		private boolean byRoad(int x, int z) {
+			if (this.roadGround == null) {
+				this.roadGround = TownRoads.around(this.roadCells.stream().mapToLong(Long::longValue).toArray(), TOWN_GROUND);
+			}
+
+			return this.roadGround.contains(BlockPos.asLong(x, 0, z));
+		}
+
+		/** Steps out from the middle of this side of the rectangle to a road or the plaza, or {@link Integer#MAX_VALUE} past {@code most}. */
+		private int toRoad(Rect rect, Direction side, int most) {
+			int x = side == Direction.EAST ? rect.x1() : side == Direction.WEST ? rect.x0() : (rect.x0() + rect.x1()) / 2;
+			int z = side == Direction.SOUTH ? rect.z1() : side == Direction.NORTH ? rect.z0() : (rect.z0() + rect.z1()) / 2;
+			for (int step = 1; step <= most; step++) {
+				int ax = x + side.getStepX() * step;
+				int az = z + side.getStepZ() * step;
+				if (this.roadCells.contains(BlockPos.asLong(ax, 0, az)) || this.plaza.contains(ax, az)) {
+					return step;
+				}
+			}
+
+			return Integer.MAX_VALUE;
+		}
+
+		/** A spot for the store, a field or the pen, the side it faces (the nearest road or the plaza), its ground's height. */
+		private record Lot(Rect site, Direction front, @Nullable Integer base) {
+		}
+
+		/**
+		 * The best spot this size within {@code most} of {@code near}'s middle: off the roads, clear of what's there, on ground
+		 * that suits it ({@code flat}: or none) and facing a road or the plaza a few blocks off ({@code facing}: or none), the
+		 * nearer the better. Null if there's none.
+		 */
+		@Nullable
+		private Lot lot(int w, int d, Rect near, int most, boolean flat, boolean facing) {
+			int mx = (near.x0() + near.x1()) / 2;
+			int mz = (near.z0() + near.z1()) / 2;
+			List<int[]> spots = new ArrayList<>();
+			for (int ox = -most; ox <= most; ox += 2) {
+				for (int oz = -most; oz <= most; oz += 2) {
+					spots.add(new int[] {ox, oz});
+				}
+			}
+
+			spots.sort(java.util.Comparator.comparingInt(o -> o[0] * o[0] + o[1] * o[1]));
+			Lot best = null;
+			double bestScore = Double.MAX_VALUE;
+			int looked = 0;
+			for (int[] o : spots) {
+				Rect site = new Rect(mx + o[0] - w / 2, mz + o[1] - d / 2, mx + o[0] - w / 2 + w - 1, mz + o[1] - d / 2 + d - 1);
+				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.nearRoad(site, 2)) {
+					continue;
+				}
+
+				Integer base = siteBase(this.level, site.x0(), site.z0(), site.x1(), site.z1());
+				if (base == null && flat) {
+					continue;
+				}
+
+				Direction front = null;
+				int away = Integer.MAX_VALUE;
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					int steps = this.toRoad(site, side, 10);
+					if (steps < away) {
+						away = steps;
+						front = side;
+					}
+				}
+
+				if (front == null && facing) {
+					continue;
+				}
+
+				// (Its door's path climbs a block a step at most: no more above or below its road than it's steps from it. Found in a
+				// city: a store three blocks over its road, its path a step too steep to walk up.)
+				int rise = 0;
+				if (front != null && base != null) {
+					int ax = (front == Direction.EAST ? site.x1() : front == Direction.WEST ? site.x0() : (site.x0() + site.x1()) / 2) + front.getStepX() * away;
+					int az = (front == Direction.SOUTH ? site.z1() : front == Direction.NORTH ? site.z0() : (site.z0() + site.z1()) / 2) + front.getStepZ() * away;
+					rise = Math.abs(ground(this.level, ax, az) - base);
+					if (facing && rise > away) {
+						continue;
+					}
+				}
+
+				double score = Math.sqrt(o[0] * o[0] + o[1] * o[1]) + (front != null ? away : 12) + 2 * rise + (base == null ? 20 : 0);
+				if (score < bestScore) {
+					bestScore = score;
+					best = new Lot(site, front != null ? front : Direction.NORTH, base);
+				}
+
+				// (The nearest few that suit: enough to pick well from, without trying the whole town.)
+				if (++looked >= 24) {
+					break;
+				}
+			}
+
+			return best;
+		}
+
+		/** The store by the plaza, the two fields together and the pen near it, where there's room off its roads. */
+		private void lots() {
+			int cx = this.cx;
+			int cz = this.cz;
+			Lot store = this.lot(9, 9, this.plaza, 40, true, true);
+			if (store == null) {
+				store = this.lot(9, 9, this.plaza, 48, false, false);
+			}
+
+			Rect storeSite = store != null ? store.site() : new Rect(cx + 4, cz - 28, cx + 12, cz - 20);
+			this.storeFront = store != null ? store.front() : Direction.WEST;
+			this.storeBase = store != null && store.base() != null ? store.base() : median(this.level, storeSite.x0(), storeSite.z0(), storeSite.x1(),
+				storeSite.z1());
+			this.storeAt = new BlockPos(storeSite.x0(), this.storeBase + 1, storeSite.z0());
+			// (A block round it at its height, a doorstep; the land beyond eased to it.)
+			this.storeRect = new Rect(storeSite.x0() - 1, storeSite.z0() - 1, storeSite.x1() + 1, storeSite.z1() + 1);
+			this.taken.add(this.storeRect);
+			List<Rect> fields = new ArrayList<>();
+			Lot first = this.lot(9, 9, this.plaza, 44, false, false);
+			if (first != null) {
+				fields.add(first.site());
+				this.taken.add(first.site());
+				Lot second = this.lot(9, 9, first.site(), 20, false, false);
+				if (second != null) {
+					fields.add(second.site());
+					this.taken.add(second.site());
+				}
+			}
+
+			if (fields.isEmpty()) {
+				fields.add(new Rect(cx + 3, cz + 12, cx + 11, cz + 20));
+				this.taken.add(fields.get(0));
+			}
+
+			this.fieldRects = List.copyOf(fields);
+			Lot pen = this.lot(11, 11, this.plaza, 44, false, false);
+			this.penRect = pen != null ? pen.site() : new Rect(cx - 13, cz + 12, cx - 3, cz + 22);
+			this.penFront = pen != null ? pen.front() : Direction.EAST;
+			this.taken.add(this.penRect);
 			// Side roads off the main ones, out into the land (a village's lanes): a few tries a step (a city's took 2.6 s at once).
 			this.then("streets", this::streets);
 		}
 
 		private int streetTries;
 
+		/** How many side roads it wants to start with (more come if its houses don't fit). */
+		private int lanesWanted() {
+			return switch (this.shape) {
+				case CROSSROADS -> 2 + this.households / 4;
+				case MAIN_STREET -> this.households / 6;
+				case WINDING -> 1 + this.households / 4;
+			};
+		}
+
 		private void streets() {
-			int want = 2 + this.households / 4;
-			branches(this.level, this.roads, this.taken, this.random, want, this.cx, this.cz, 6);
+			int want = this.lanesWanted();
+			this.branches(this.taken, want, 6);
 			this.streetTries += 6;
-			if (this.roads.size() < 4 + want && this.streetTries < 32 + 4 * want) {
+			if (this.roads.size() < this.mains + want && this.streetTries < 32 + 4 * want) {
 				this.steps.addFirst(new Step("streets", this::streets));
 				return;
 			}
 
 			int cx = this.cx;
 			int cz = this.cz;
-			this.roads.forEach(road -> this.roadRects.add(road.rect()));
 			this.y0 = median(this.level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
 			this.look = Style.at(this.level, new BlockPos(cx, this.y0, cz));
 			style = this.look;
-			DrifterCivilizations.LOGGER.info("[town] {}: a {} town", this.name, this.look.name());
+			DrifterCivilizations.LOGGER.info("[town] {}: a {} town, {} roads", this.name, this.look.name(), this.roads.size());
 			this.then("plaza", this::plaza);
 			this.then("store", this::store);
 			for (Rect rect : this.fieldRects) {
@@ -456,26 +944,77 @@ public final class TownBuilder {
 			this.then("houses", this::houses);
 		}
 
+		/**
+		 * Up to {@code want} side roads in all (beyond the main ones), off a main road (a city's and a winding town's: off any
+		 * road), out into the land, following it as the main roads do, clear of {@code busy} and of each other.
+		 */
+		private void branches(List<Rect> busy, int want, int most) {
+			boolean anyRoad = this.city || this.shape == Shape.WINDING;
+			int shortest = this.shape == Shape.MAIN_STREET ? 16 : SHORTEST_BRANCH;
+			int longest = (this.shape == Shape.MAIN_STREET ? 30 : LONGEST_BRANCH) * (this.city ? 2 : 1);
+			for (int tries = 0; tries < most && this.roads.size() < this.mains + want; tries++) {
+				int pick = anyRoad ? this.roads.size() : this.mains;
+				if (pick == 0) {
+					return;
+				}
+
+				Road from = this.roads.get(this.random.nextInt(pick));
+				if (from.length() < 24) {
+					continue;
+				}
+
+				int t = 12 + this.random.nextInt(Math.max(1, from.length() - 20));
+				double way = from.heading(t) + (this.random.nextBoolean() ? Math.PI / 2 : -Math.PI / 2);
+				int length = shortest + this.random.nextInt(longest - shortest + 1);
+				Road lane = this.lay(from.xs[t] + Math.cos(way) * 2, from.zs[t] + Math.sin(way) * 2, way, length, busy, 5);
+				if (lane.length() >= shortest / 2 && this.apart(lane, from)) {
+					this.addRoad(lane);
+				}
+			}
+		}
+
+		/** A side road far enough from the others, but the one it leaves (where it ends at one, its end aside). */
+		private boolean apart(Road lane, Road from) {
+			for (int i = this.mains; i < this.roads.size(); i++) {
+				Road other = this.roads.get(i);
+				if (other == from || !other.bounds.near(lane.bounds, LANES_APART)) {
+					continue;
+				}
+
+				for (int t = 0; t < lane.length() - 6; t += 2) {
+					for (int u = 0; u < other.length(); u += 2) {
+						double dx = lane.xs[t] - other.xs[u];
+						double dz = lane.zs[t] - other.zs[u];
+						if (dx * dx + dz * dz < LANES_APART * LANES_APART) {
+							return false;
+						}
+					}
+				}
+			}
+
+			return true;
+		}
+
 		/** The plaza at its ground's middle height, a stone edge where the land falls away and the land round it eased up to it
 		 * (not dug into a hill as a pit: user, 2026-10-23). */
 		private void plaza() {
-			foundation(this.level, this.plaza, this.y0 - 1, CLEAR_ABOVE, List.of(), this.random, WIDE_BLEND, true);
+			foundation(this.level, this.plaza, this.y0 - 1, CLEAR_ABOVE, List.of(), java.util.Set.of(), this.random, WIDE_BLEND, true);
 		}
 
-		/** The store, at the height of its own ground, eased in the same way. */
+		/** The store, at the height of its own ground, eased in the same way, its door to its road or the plaza. */
 		private void store() {
-			foundation(this.level, this.storeRect, this.storeBase, 8, List.of(this.plaza), this.random, WIDE_BLEND, true);
-			this.store = TownBuilder.store(this.level, new BlockPos(this.cx + 4, this.storeBase + 1, this.storeZ), this.cx);
+			foundation(this.level, this.storeRect, this.storeBase, 8, List.of(this.plaza), this.roadCells, this.random, WIDE_BLEND, true);
+			this.store = TownBuilder.store(this.level, this.storeAt, this.storeFront);
 		}
 
-		/** One of the shared farm's two fields (east of the south road). */
+		/** One of the shared farm's two fields. */
 		private void field(Rect rect) {
 			int fieldBase = median(this.level, rect.x0(), rect.z0(), rect.x1(), rect.z1());
 			// (Eased into the land round it: dug into a slope as a pit, its people climbed out on blocks they put down on the
 			// farmland; found by the user.)
 			List<Rect> keep = new ArrayList<>(List.of(this.plaza, this.storeRect));
 			this.fieldRects.stream().filter(other -> other != rect).forEach(keep::add);
-			foundation(this.level, rect, fieldBase, 4, keep, this.random, WIDE_BLEND, false);
+			foundation(this.level, rect, fieldBase, 4, keep, this.roadCells, this.random, WIDE_BLEND, false);
 			BlockPos field = new BlockPos((rect.x0() + rect.x1()) / 2, fieldBase, (rect.z0() + rect.z1()) / 2);
 			this.fields.add(field.above());
 			if (this.ruin) {
@@ -508,7 +1047,7 @@ public final class TownBuilder {
 		/** The pen (west of the south road) and its animals. */
 		private void pen() {
 			this.pen = onGround(this.level, (this.penRect.x0() + this.penRect.x1()) / 2, (this.penRect.z0() + this.penRect.z1()) / 2);
-			penFence(this.level, this.pen, 5);
+			penFence(this.level, this.pen, 5, this.penFront);
 			if (this.ruin) {
 				for (BlockPos pos : BlockPos.betweenClosed(this.pen.offset(-6, -2, -6), this.pen.offset(6, 4, 6))) {
 					if (this.level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FENCES) && this.random.nextFloat() < 0.35F) {
@@ -548,16 +1087,15 @@ public final class TownBuilder {
 					if (this.round > 0) {
 						List<Rect> busy = new ArrayList<>(this.taken);
 						busy.addAll(this.houseRects);
-						int had = this.roads.size();
-						branches(this.level, this.roads, busy, this.random, this.roads.size() - 4 + 2, this.cx, this.cz);
-						this.roads.subList(had, this.roads.size()).forEach(road -> this.roadRects.add(road.rect()));
+						int more = this.roads.size() - this.mains + 2;
+						this.branches(busy, more, 32 + 4 * more);
 					}
 
 					for (int i = this.sides.size() / 2; i < this.roads.size(); i++) {
 						Road road = this.roads.get(i);
-						int startAt = i < 4 ? 2 : 4;
-						this.sides.add(new Side(road, road.way().getClockWise(), startAt));
-						this.sides.add(new Side(road, road.way().getCounterClockWise(), startAt));
+						int startAt = i < this.mains ? 2 : 4;
+						this.sides.add(new Side(road, 1, startAt));
+						this.sides.add(new Side(road, -1, startAt));
 					}
 
 					this.roundOpen = true;
@@ -596,7 +1134,13 @@ public final class TownBuilder {
 
 		private boolean trySpot(Side side) {
 			DrifterApi.PlacedHouse house = null;
-			Direction front = side.out.getOpposite();
+			Road road = side.road;
+			// The way out from the road over this stretch of it, and the straight way nearest it (houses stand square).
+			double outWay = side.out(Math.min(road.length() - 1, side.cursor + 6));
+			double ox = Math.cos(outWay);
+			double oz = Math.sin(outWay);
+			Direction out = Direction.getNearest(ox, 0, oz);
+			Direction front = out.getOpposite();
 			int setback = this.trying == side ? this.tryingSetback : LEAST_SETBACK + this.random.nextInt(MOST_SETBACK - LEAST_SETBACK + 1);
 			int from = this.trying == side ? this.triedPlans : 0;
 			this.trying = null;
@@ -619,20 +1163,33 @@ public final class TownBuilder {
 				boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
 				int sx = turned ? plan.sizeZ() : plan.sizeX();
 				int sz = turned ? plan.sizeX() : plan.sizeZ();
-				boolean alongX = side.road.way().getAxis() == Direction.Axis.X;
-				int along = alongX ? sx : sz;
-				int depth = alongX ? sz : sx;
-				if (side.cursor + along > side.road.length()) {
+				boolean outX = out.getAxis() == Direction.Axis.X;
+				int along = outX ? sz : sx;
+				int depth = outX ? sx : sz;
+				if (side.cursor + along > road.length()) {
 					continue;
 				}
 
-				int near = 2 + setback;
-				Rect site = Rect.of(side.road.at(side.cursor).relative(side.out, near), side.road.at(side.cursor + along - 1).relative(side.out, near + depth - 1));
-				int why = Math.abs(site.x0() - this.cx) > reach || Math.abs(site.x1() - this.cx) > reach || Math.abs(site.z0() - this.cz) > reach
-					|| Math.abs(site.z1() - this.cz) > reach ? 0 : this.roadRects.stream().anyMatch(road -> road.near(site, LEAST_SETBACK - 1)) ? 1
-					: this.taken.stream().anyMatch(other -> other.near(site, HOUSE_GAP)) ? 2
-					: this.houseRects.stream().anyMatch(other -> other.near(site, HOUSE_GAP)) ? 3 : -1;
-				Integer base = why >= 0 ? null : siteBase(this.level, site.x0(), site.z0(), site.x1(), site.z1());
+				// Its front's middle this far out from the road's middle line, a little further where a bend comes close.
+				int mid = side.cursor + along / 2;
+				Rect site = null;
+				for (int push = 0; push <= 4 && site == null; push++) {
+					double d = HALF_WIDTH + 0.5 + setback + push;
+					Rect tried = footprint(Mth.floor(road.xs[mid] + ox * d), Mth.floor(road.zs[mid] + oz * d), out, along, depth);
+					if (!this.nearRoad(tried, LEAST_SETBACK - 1)) {
+						site = tried;
+					}
+				}
+
+				if (site == null) {
+					this.turnedDown[1]++;
+					continue;
+				}
+
+				Rect at = site;
+				int why = !this.inReach(at) ? 0 : this.taken.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) ? 2
+					: this.houseRects.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) ? 3 : -1;
+				Integer base = why >= 0 ? null : siteBase(this.level, at.x0(), at.z0(), at.x1(), at.z1());
 				if (base == null) {
 					this.turnedDown[why >= 0 ? why : 4]++;
 					continue;
@@ -642,19 +1199,20 @@ public final class TownBuilder {
 				// ground in place of the land's).
 				List<Rect> keep = new ArrayList<>(this.taken);
 				keep.addAll(this.houseRects);
-				keep.addAll(this.roadRects);
-				foundation(this.level, site, base, plan.sizeY() + 2, keep, this.random, BLEND, true);
-				BlockPos origin = new BlockPos(site.x0(), plan.groundLayer() ? base : base + 1, site.z0());
+				foundation(this.level, at, base, plan.sizeY() + 2, keep, this.roadCells, this.random, BLEND, true);
+				BlockPos origin = new BlockPos(at.x0(), plan.groundLayer() ? base : base + 1, at.z0());
 				house = DrifterApi.placeHouse(this.level, plan.id(), origin, rotation, this.look.pick(this.random), this.look.stone(), front);
 				if (house != null) {
 					changed(house.box());
 					this.planIndex = (this.planIndex + tries + 1) % this.plans.size();
-					side.cursor += along + HOUSE_GAP + this.random.nextInt(MORE_GAP + 1);
+					// On along the road as far as the house reaches along it (further where the road runs at a slant to it).
+					double slant = Math.abs(outX ? Math.sin(road.heading(mid)) : Math.cos(road.heading(mid)));
+					side.cursor += (int)Math.ceil(along / Math.max(0.6, slant)) + HOUSE_GAP + this.random.nextInt(MORE_GAP + 1);
 					Town.Plot made = new Town.Plot(origin, sx, sz, plan.id(), rotation, front, null);
 					made.built = true;
 					this.plots.add(made);
 					this.houses.add(house);
-					this.houseRects.add(site);
+					this.houseRects.add(at);
 					DrifterCivilizations.LOGGER.info("[town] {} at {}, its door at {}", plan.id(), house.box(), house.door());
 				}
 			}
@@ -663,43 +1221,98 @@ public final class TownBuilder {
 				side.cursor += SKIP;
 			}
 
-			side.full = side.cursor >= side.road.length() - 4;
+			side.full = side.cursor >= road.length() - 4;
 			return house != null;
+		}
+
+		/**
+		 * Its roads cut back to what they lead to (in testing, a hamlet's roads ran on into the wild past its last house): each
+		 * as far as its last house, the store, a field or the pen, or a side road that's kept, and a few blocks more; a side
+		 * road that leads to nothing, gone; a road out of the plaza, a stub at least.
+		 */
+		private void trimRoads() {
+			List<Rect> places = new ArrayList<>(this.houseRects);
+			this.taken.stream().filter(rect -> rect != this.plaza).forEach(places::add);
+			int n = this.roads.size();
+			int[] need = new int[n];
+			for (int i = 0; i < n; i++) {
+				Road road = this.roads.get(i);
+				need[i] = i < this.mains ? Math.min(road.length() - 1, ROAD_STUB) : -1;
+				for (int t = 0; t < road.length(); t++) {
+					int x = Mth.floor(road.xs[t]);
+					int z = Mth.floor(road.zs[t]);
+					if (t > need[i] && places.stream().anyMatch(rect -> rect.away(x, z) <= LEADS_TO)) {
+						need[i] = t;
+					}
+				}
+			}
+
+			// A side road that's kept keeps the road it leaves as far as where it leaves it, and one it runs into as far as that.
+			for (boolean more = true; more; ) {
+				more = false;
+				for (int i = this.mains; i < n; i++) {
+					Road lane = this.roads.get(i);
+					for (int end : need[i] < 0 ? new int[0] : new int[] {0, need[i]}) {
+						for (int j = 0; j < n; j++) {
+							int t = j == i ? -1 : this.roads.get(j).nearest(lane.xs[end], lane.zs[end], 4);
+							if (t > need[j]) {
+								need[j] = t;
+								more = true;
+							}
+						}
+					}
+				}
+			}
+
+			List<Road> kept = new ArrayList<>();
+			int keptMains = 0;
+			for (int i = 0; i < n; i++) {
+				if (need[i] >= 0) {
+					kept.add(this.roads.get(i).upTo(need[i] + 1 + ROAD_BEYOND));
+					keptMains += i < this.mains ? 1 : 0;
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[town] {}: {} of {} roads kept (cut back to what they lead to)", this.name, kept.size(), n);
+			this.roads.clear();
+			this.roadCells.clear();
+			kept.forEach(this::addRoad);
+			this.mains = keptMains;
 		}
 
 		private void housesDone() {
 			DrifterCivilizations.LOGGER.info("[town] {} of {} houses on {} roads; spots turned down: {} out of the town, {} by a road, {} by the store or fields, {} by a house, {} for the ground",
 				this.houses.size(), this.households, this.roads.size(), this.turnedDown[0], this.turnedDown[1], this.turnedDown[2], this.turnedDown[3],
 				this.turnedDown[4]);
+			this.trimRoads();
+			this.built.addAll(this.taken);
+			this.built.addAll(this.houseRects);
 			for (Road road : this.roads) {
 				this.then("road", () -> this.road(road));
 			}
 
 			this.then("plazaThings", this::plazaThings);
+			// (The paths before the lamps, so no lamp post stands on one: one in front of a door blocked the way in.)
+			this.then("stallAndPaths", this::stallAndPaths);
 			if (!this.ruin) {
 				this.then("roadLamps", this::roadLamps);
-			} else {
-				this.built.addAll(this.taken);
-				this.built.addAll(this.houseRects);
 			}
 
-			this.then("stallAndPaths", this::stallAndPaths);
 			this.then("areaAndTrees", this::areaAndTrees);
 		}
 
 		// -----------------------------------------------------------------------------------------
-		// 3. The roads over the ground as it is now, the plaza paved, the well, bell and board's spot, lamps along the roads,
-		// the stall and the paths to the doors.
+		// 3. The roads over the ground as it is now, the plaza paved, the well, bell and board's spot, the stall and the paths
+		// to the doors, lamps along the roads.
 		// -----------------------------------------------------------------------------------------
 
 		private void road(Road road) {
 			easeRoad(this.level, road, this.plaza);
-			Rect rect = road.rect();
-			for (int x = rect.x0(); x <= rect.x1(); x++) {
-				for (int z = rect.z0(); z <= rect.z1(); z++) {
-					if (!this.plaza.contains(x, z)) {
-						TownBuilder.road(this.level, x, z);
-					}
+			for (long cell : road.cells.keySet()) {
+				int x = BlockPos.getX(cell);
+				int z = BlockPos.getZ(cell);
+				if (!this.plaza.contains(x, z)) {
+					TownBuilder.road(this.level, x, z);
 				}
 			}
 		}
@@ -749,34 +1362,44 @@ public final class TownBuilder {
 			place(this.level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
 			for (int dx : new int[] {-PLAZA, PLAZA}) {
 				for (int dz : new int[] {-PLAZA, PLAZA}) {
-					lamp(this.level, new BlockPos(cx + dx, y0, cz + dz));
+					if (!this.nearRoad(cx + dx, cz + dz, 1)) {
+						lamp(this.level, new BlockPos(cx + dx, y0, cz + dz));
+					}
 				}
 			}
 		}
 
 		private void roadLamps() {
-			this.built.addAll(this.taken);
-			this.built.addAll(this.houseRects);
 			for (Road road : this.roads) {
 				for (int t = 8; t < road.length(); t += 12) {
-					Direction out = (t / 12) % 2 == 0 ? road.way().getClockWise() : road.way().getCounterClockWise();
-					BlockPos at = road.at(t).relative(out, 2);
-					if (this.built.stream().noneMatch(rect -> rect.away(at.getX(), at.getZ()) <= 1)
-						&& this.roadRects.stream().noneMatch(rect -> rect.contains(at.getX(), at.getZ()))) {
-						lamp(this.level, onGround(this.level, at.getX(), at.getZ()));
+					double way = road.heading(t) + ((t / 12) % 2 == 0 ? Math.PI / 2 : -Math.PI / 2);
+					int x = Mth.floor(road.xs[t] + Math.cos(way) * 2.2);
+					int z = Mth.floor(road.zs[t] + Math.sin(way) * 2.2);
+					long column = BlockPos.asLong(x, 0, z);
+					if (!this.roadCells.contains(column) && !this.pathCells.contains(column) && this.built.stream().noneMatch(rect -> rect.away(x, z) <= 1)) {
+						lamp(this.level, onGround(this.level, x, z));
 					}
 				}
 			}
 		}
 
 		/** A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4); paths
-		 * from each door to its road. */
+		 * from each door, the store's too, to its road (or the plaza). */
 		private void stallAndPaths() {
 			DrifterApi.placeHouse(this.level, DrifterApi.stallPlan(), this.stallAt(), Rotation.NONE, this.look.main(), this.look.stone(), Direction.SOUTH);
 			GROUND.clear();
+			java.util.function.LongPredicate road = column -> this.roadCells.contains(column) || this.plaza.contains(BlockPos.getX(column), BlockPos.getZ(column));
 			for (int i = 0; i < this.houses.size(); i++) {
-				this.pathCells.addAll(path(this.level, this.houses.get(i), this.plots.get(i).front, this.roadRects));
+				var house = this.houses.get(i);
+				if (house.door() != null) {
+					this.pathCells.addAll(path(this.level, house.door(), house.box(), this.plots.get(i).front, road));
+				}
 			}
+
+			BlockPos o = this.storeAt;
+			DrifterCivilizations.LOGGER.info("[town] {}: the store at {}, its door to the {}", this.name, o.toShortString(), this.storeFront.getName());
+			this.pathCells.addAll(path(this.level, storeDoor(o, this.storeFront), new net.minecraft.world.level.levelgen.structure.BoundingBox(o.getX(), o.getY(),
+				o.getZ(), o.getX() + 8, o.getY() + 4, o.getZ() + 8), this.storeFront, road));
 		}
 
 		private BlockPos stallAt() {
@@ -799,7 +1422,7 @@ public final class TownBuilder {
 			int minZ = this.cz - PLAZA;
 			int maxZ = this.cz + PLAZA;
 			this.all.addAll(this.built);
-			this.all.addAll(this.roadRects);
+			this.roads.forEach(road -> this.all.add(road.bounds));
 			for (Rect rect : this.all) {
 				minX = Math.min(minX, rect.x0());
 				maxX = Math.max(maxX, rect.x1());
@@ -899,7 +1522,7 @@ public final class TownBuilder {
 			for (int tries = 0; tries < 40; tries++) {
 				int x = this.cx - PLAZA - 3 - this.random.nextInt(8);
 				int z = this.cz + this.random.nextInt(2 * PLAZA + 1) - PLAZA;
-				if (this.built.stream().anyMatch(rect -> rect.away(x, z) <= 1) || this.roadRects.stream().anyMatch(rect -> rect.away(x, z) <= 1)) {
+				if (this.built.stream().anyMatch(rect -> rect.away(x, z) <= 1) || this.nearRoad(x, z, 1)) {
 					continue;
 				}
 
@@ -1076,6 +1699,8 @@ public final class TownBuilder {
 			town.pen = this.pen;
 			town.stallPlot = new Town.Plot(this.stallAt(), 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
 			town.stallBuilt = true;
+			town.shape = this.shape.id;
+			town.roadColumns = this.roadCells.stream().mapToLong(Long::longValue).toArray();
 			guards.forEach(id -> town.lines.put(id, "guard"));
 			Towns.add(this.server, town);
 			// A past: its people all know each other, some better than others, and a few know people of the towns about.
@@ -1200,11 +1825,11 @@ public final class TownBuilder {
 		}
 
 		private void light(net.minecraft.world.level.levelgen.structure.BoundingBox piece) {
-			List<Rect> noLamp = new ArrayList<>(this.roadRects);
-			noLamp.addAll(this.fieldRects);
+			List<Rect> noLamp = new ArrayList<>(this.fieldRects);
 			noLamp.add(this.plaza);
 			int[] made = TownLights.light(this.level, piece, this.houses.stream().map(DrifterApi.PlacedHouse::box).toList(),
-				(x, z) -> this.all.stream().anyMatch(rect -> rect.away(x, z) <= TOWN_GROUND), (x, z) -> noLamp.stream().anyMatch(rect -> rect.contains(x, z))
+				(x, z) -> this.built.stream().anyMatch(rect -> rect.away(x, z) <= TOWN_GROUND) || this.byRoad(x, z),
+				(x, z) -> noLamp.stream().anyMatch(rect -> rect.contains(x, z)) || this.roadCells.contains(BlockPos.asLong(x, 0, z))
 					|| this.pathCells.contains(BlockPos.asLong(x, 0, z)));
 			this.lamps += made[0];
 			this.torches += made[1];
@@ -1259,74 +1884,20 @@ public final class TownBuilder {
 		}
 	}
 
-	/**
-	 * Up to {@code want} side roads in all (beyond the four main ones) off the main roads, out into the land, clear of
-	 * {@code busy} and of each other.
-	 */
-	private static void branches(ServerLevel level, List<Road> roads, List<Rect> busy, RandomSource random, int want, int cx, int cz) {
-		branches(level, roads, busy, random, want, cx, cz, 32 + 4 * want);
-	}
-
-	/** The same, this many tries at most. */
-	private static void branches(ServerLevel level, List<Road> roads, List<Rect> busy, RandomSource random, int want, int cx, int cz, int most) {
-		// (A city's off any road, side roads too, and longer: its streets fill its ground; a town's off its main roads.)
-		boolean city = arm == CITY_ARM;
-		for (int tries = 0; tries < most && roads.size() < 4 + want; tries++) {
-			Road main = roads.get(random.nextInt(city ? roads.size() : 4));
-			if (main.length() < 24) {
-				continue;
-			}
-
-			int t = 12 + random.nextInt(Math.max(1, main.length() - 20));
-			Direction way = random.nextBoolean() ? main.way().getClockWise() : main.way().getCounterClockWise();
-			BlockPos from = main.at(t).relative(way, 2);
-			int longest = city ? 2 * LONGEST_BRANCH : LONGEST_BRANCH;
-			int length = SHORTEST_BRANCH + random.nextInt(longest - SHORTEST_BRANCH + 1);
-			// (Kept within its reach before its ground is looked at: beyond it the land may not be there yet, and looking makes
-			// it; found in a city, one step of streets took 2.8 s.)
-			while (length > 0 && !within(new Road(from.getX(), from.getZ(), way, length).rect(), cx, cz)) {
-				length--;
-			}
-
-			Road planned = new Road(from.getX(), from.getZ(), way, length);
-			if (t >= main.length() || length < SHORTEST_BRANCH / 2 || dry(level, planned) < SHORTEST_BRANCH / 2) {
-				continue;
-			}
-
-			Road branch = new Road(planned.x(), planned.z(), way, dry(level, planned));
-			Rect rect = branch.rect();
-			boolean clear = Math.abs(rect.x0() - cx) <= reach && Math.abs(rect.x1() - cx) <= reach && Math.abs(rect.z0() - cz) <= reach
-				&& Math.abs(rect.z1() - cz) <= reach && busy.stream().noneMatch(other -> other.near(rect, 8))
-				&& roads.stream().skip(4).noneMatch(other -> other != main && other.rect().near(rect, 20));
-			if (clear) {
-				roads.add(branch);
-			}
-		}
-	}
-
 	/** Water a road bridges (planks over it); more and the road ends at the shore (found in testing: roads out over the sea). */
 	private static final int LONGEST_BRIDGE = 5;
 
-	/** Inside the town's reach (the one being made). */
-	private static boolean within(Rect rect, int cx, int cz) {
-		return Math.abs(rect.x0() - cx) <= reach && Math.abs(rect.x1() - cx) <= reach && Math.abs(rect.z0() - cz) <= reach && Math.abs(rect.z1() - cz) <= reach;
-	}
-
-	/** How far a road goes before water too wide to bridge: its whole length if there's none. */
-	private static int dry(ServerLevel level, Road road) {
-		int wet = 0;
-		for (int t = 0; t < road.length(); t++) {
-			BlockPos at = road.at(t);
-			if (wet(level, at.getX(), at.getZ())) {
-				if (++wet > LONGEST_BRIDGE) {
-					return t - wet + 1;
-				}
-			} else {
-				wet = 0;
-			}
+	/** A house's footprint: its front's middle at fx, fz, going {@code out} from there, {@code along} wide and {@code depth} deep. */
+	private static Rect footprint(int fx, int fz, Direction out, int along, int depth) {
+		int across = fx - along / 2;
+		if (out.getAxis() == Direction.Axis.X) {
+			int x0 = out == Direction.EAST ? fx : fx - depth + 1;
+			int z0 = fz - along / 2;
+			return new Rect(x0, z0, x0 + depth - 1, z0 + along - 1);
 		}
 
-		return road.length() - wet;
+		int z0 = out == Direction.SOUTH ? fz : fz - depth + 1;
+		return new Rect(across, z0, across + along - 1, z0 + depth - 1);
 	}
 
 	/** What a household well on in its life keeps: building stuff and iron in storage, coal for the furnace, food by the bed. */
@@ -1357,16 +1928,16 @@ public final class TownBuilder {
 	 * over {@link #BLEND} blocks instead of a cut straight down or a step straight up (the first ring flat, for its doorstep).
 	 * Trees in the way come down whole first. Ground in {@code keep} (roads, other houses, the store...) isn't touched.
 	 */
-	private static void foundation(ServerLevel level, Rect site, int base, int clear, List<Rect> keep, RandomSource random, int blend,
-		boolean stoneEdge) {
+	private static void foundation(ServerLevel level, Rect site, int base, int clear, List<Rect> keep, java.util.Set<Long> keepCells, RandomSource random,
+		int blend, boolean stoneEdge) {
 		// Wide enough to ease the land in a block at a time (found by the user: the plaza cut into a hill left a cliff of
 		// two- and three-block steps round it, and its people pillared up and down it; a player walks a slope of one).
-		blend = Math.max(blend, Math.min(MOST_BLEND, steepest(level, site, base, blend, keep) + 1));
+		blend = Math.max(blend, Math.min(MOST_BLEND, steepest(level, site, base, blend, keep, keepCells) + 1));
 		Rect ring = new Rect(site.x0() - blend, site.z0() - blend, site.x1() + blend, site.z1() + blend);
 		for (int x = ring.x0(); x <= ring.x1(); x++) {
 			for (int z = ring.z0(); z <= ring.z1(); z++) {
 				int d = site.away(x, z);
-				if (d > 0 && inAny(keep, x, z)) {
+				if (d > 0 && kept(keep, keepCells, x, z)) {
 					continue;
 				}
 
@@ -1378,7 +1949,7 @@ public final class TownBuilder {
 		for (int x = ring.x0(); x <= ring.x1(); x++) {
 			for (int z = ring.z0(); z <= ring.z1(); z++) {
 				int d = site.away(x, z);
-				if (d > 0 && inAny(keep, x, z)) {
+				if (d > 0 && kept(keep, keepCells, x, z)) {
 					continue;
 				}
 
@@ -1422,12 +1993,12 @@ public final class TownBuilder {
 	private static final int MOST_BLEND = 10;
 
 	/** The most the ground just round a site (its first rings) stands above or below it. */
-	private static int steepest(ServerLevel level, Rect site, int base, int blend, List<Rect> keep) {
+	private static int steepest(ServerLevel level, Rect site, int base, int blend, List<Rect> keep, java.util.Set<Long> keepCells) {
 		int most = 0;
 		for (int x = site.x0() - blend; x <= site.x1() + blend; x++) {
 			for (int z = site.z0() - blend; z <= site.z1() + blend; z++) {
 				int d = site.away(x, z);
-				if (d > 0 && !inAny(keep, x, z) && !wet(level, x, z)) {
+				if (d > 0 && !kept(keep, keepCells, x, z) && !wet(level, x, z)) {
 					most = Math.max(most, Math.abs(ground(level, x, z) - base));
 				}
 			}
@@ -1445,6 +2016,11 @@ public final class TownBuilder {
 		if (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.PODZOL) || state.is(Blocks.MYCELIUM) || state.is(Blocks.DIRT_PATH)) {
 			set(level, pos, Blocks.DIRT.defaultBlockState());
 		}
+	}
+
+	/** Ground left as it is: in one of these rectangles, or one of these columns (a road). */
+	private static boolean kept(List<Rect> keep, java.util.Set<Long> keepCells, int x, int z) {
+		return inAny(keep, x, z) || keepCells.contains(BlockPos.asLong(x, 0, z));
 	}
 
 	private static boolean inAny(List<Rect> rects, int x, int z) {
@@ -1473,7 +2049,7 @@ public final class TownBuilder {
 	 * hills, the fences dont connect when a block goes upward"): at a step the lower post goes up as high as the next one, as
 	 * a player builds a fence on a slope. A gate on the east side.
 	 */
-	private static void penFence(ServerLevel level, BlockPos middle, int half) {
+	private static void penFence(ServerLevel level, BlockPos middle, int half, Direction front) {
 		List<BlockPos> ring = new ArrayList<>();
 		for (int i = -half; i < half; i++) {
 			ring.add(new BlockPos(middle.getX() + i, 0, middle.getZ() - half));
@@ -1496,14 +2072,14 @@ public final class TownBuilder {
 			tops[i] = ground(level, ring.get(i).getX(), ring.get(i).getZ()) + 1;
 		}
 
-		BlockPos gate = new BlockPos(middle.getX() + half, 0, middle.getZ());
+		BlockPos gate = new BlockPos(middle.getX() + front.getStepX() * half, 0, middle.getZ() + front.getStepZ() * half);
 		for (int i = 0; i < ring.size(); i++) {
 			BlockPos column = ring.get(i);
 			int up = Math.max(tops[i], Math.max(tops[(i + 1) % ring.size()], tops[(i + ring.size() - 1) % ring.size()]));
 			for (int y = tops[i]; y <= up; y++) {
 				BlockPos pos = column.atY(y);
 				boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ() && y == tops[i];
-				place(level, pos, isGate ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, Direction.EAST)
+				place(level, pos, isGate ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, front)
 					: wood("fence").defaultBlockState());
 			}
 		}
@@ -1568,14 +2144,9 @@ public final class TownBuilder {
 	 * and room cleared overhead, so it's walked without pillaring, digging or a jump onto anything taller (milestone 23,
 	 * A11; on the user's hilly Tectonic land a door could stand three blocks over its road with nothing between).
 	 */
-	private static List<Long> path(ServerLevel level, DrifterApi.PlacedHouse house, Direction front, List<Rect> roads) {
+	private static List<Long> path(ServerLevel level, BlockPos door, net.minecraft.world.level.levelgen.structure.BoundingBox box, Direction front,
+		java.util.function.LongPredicate road) {
 		List<Long> columns = new ArrayList<>();
-		if (house.door() == null) {
-			return columns;
-		}
-
-		var box = house.box();
-		BlockPos door = house.door();
 		// Out of the house first (a porch is part of it): the level stepped down to from its sill is the door's floor.
 		BlockPos step = door.relative(front);
 		while (box.isInside(new BlockPos(step.getX(), box.minY(), step.getZ())) && step.distManhattan(door) < LONGEST_PATH) {
@@ -1587,11 +2158,11 @@ public final class TownBuilder {
 		for (int i = 0; i < LONGEST_PATH && !reached; i++) {
 			BlockPos at = step;
 			cells.add(at);
-			reached = roads.stream().anyMatch(rect -> rect.contains(at.getX(), at.getZ()));
+			reached = road.test(BlockPos.asLong(at.getX(), 0, at.getZ()));
 			step = step.relative(front);
 		}
 
-		BlockPos outside = house.door().relative(front);
+		BlockPos outside = door.relative(front);
 		columns.add(BlockPos.asLong(outside.getX(), 0, outside.getZ()));
 		cells.forEach(cell -> columns.add(BlockPos.asLong(cell.getX(), 0, cell.getZ())));
 		int n = cells.size();
@@ -1665,9 +2236,28 @@ public final class TownBuilder {
 		return onGround(level, step.getX(), step.getZ());
 	}
 
-	/** The store: 9 by 9, cobblestone walls, a plank roof, its door to the north-south road (west), chests round the walls. */
-	private static List<BlockPos> store(ServerLevel level, BlockPos o, int cx) {
-		int y0 = o.getY();
+	/** Which way the store's turned for its door to face {@code front} (it's drawn with its door to the west). */
+	private static Rotation storeTurn(Direction front) {
+		return switch (front) {
+			case NORTH -> Rotation.CLOCKWISE_90;
+			case EAST -> Rotation.CLOCKWISE_180;
+			case SOUTH -> Rotation.COUNTERCLOCKWISE_90;
+			default -> Rotation.NONE;
+		};
+	}
+
+	/** A spot in the store as drawn (dx, dz from its corner, its door to the west), turned for its door to face {@code front}. */
+	private static BlockPos inStore(BlockPos o, Direction front, int dx, int dy, int dz) {
+		return o.offset(4, dy, 4).offset(new BlockPos(dx - 4, 0, dz - 4).rotate(storeTurn(front)));
+	}
+
+	private static BlockPos storeDoor(BlockPos o, Direction front) {
+		return inStore(o, front, 0, 0, 4);
+	}
+
+	/** The store: 9 by 9, cobblestone walls, a plank roof, its door to {@code front} (a road or the plaza), chests round the walls. */
+	private static List<BlockPos> store(ServerLevel level, BlockPos o, Direction front) {
+		Rotation turn = storeTurn(front);
 		for (int dx = 0; dx <= 8; dx++) {
 			for (int dz = 0; dz <= 8; dz++) {
 				set(level, o.offset(dx, -1, dz), style.wall().defaultBlockState());
@@ -1681,29 +2271,21 @@ public final class TownBuilder {
 			}
 		}
 
-		BlockPos door = o.offset(0, 0, 4);
-		set(level, door, wood("door").defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST).setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER));
-		set(level, door.above(), wood("door").defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST).setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
+		BlockPos door = storeDoor(o, front);
+		set(level, door, wood("door").defaultBlockState().setValue(DoorBlock.FACING, front).setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER));
+		set(level, door.above(), wood("door").defaultBlockState().setValue(DoorBlock.FACING, front).setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
 		for (int dz = 3; dz <= 5; dz++) {
-			place(level, o.offset(8, 1, dz), Blocks.GLASS_PANE.defaultBlockState());
+			place(level, inStore(o, front, 8, 1, dz), Blocks.GLASS_PANE.defaultBlockState());
 		}
 
-		place(level, o.offset(1, 2, 2), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, Direction.EAST));
-		place(level, o.offset(7, 2, 6), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, Direction.WEST));
-		for (int x = door.getX() - 1; x >= cx + 2; x--) {
-			BlockPos top = new BlockPos(x, ground(level, x, door.getZ()), door.getZ());
-			if (level.getBlockState(top).is(Blocks.GRASS_BLOCK) || level.getBlockState(top).is(Blocks.DIRT)
-				|| style.path() != Blocks.DIRT_PATH && level.getBlockState(top).is(Blocks.SAND)) {
-				set(level, top, style.path().defaultBlockState());
-			}
-		}
-
+		place(level, inStore(o, front, 1, 2, 2), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, turn.rotate(Direction.EAST)));
+		place(level, inStore(o, front, 7, 2, 6), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, turn.rotate(Direction.WEST)));
 		List<BlockPos> chests = new ArrayList<>();
 		int[][] spots = {{7, 1, 2}, {7, 3, 2}, {7, 5, 2}, {7, 7, 2}, {3, 1, 3}, {5, 1, 3}, {3, 7, 1}, {5, 7, 1}};
 		for (int[] spot : spots) {
-			BlockPos pos = o.offset(spot[0], 0, spot[1]);
+			BlockPos pos = inStore(o, front, spot[0], 0, spot[1]);
 			Direction facing = spot[2] == 2 ? Direction.WEST : spot[2] == 3 ? Direction.SOUTH : Direction.NORTH;
-			set(level, pos, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facing));
+			set(level, pos, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, turn.rotate(facing)));
 			chests.add(pos);
 		}
 
@@ -1841,21 +2423,23 @@ public final class TownBuilder {
 	/**
 	 * A road built up where the land jumps, so it climbs and drops a block at a time, as a player makes a way up a bank
 	 * (found by the user: Drifters pillaring up from the plaza to the store, its road straight up a cliff of three-block
-	 * steps). Only filled, never dug; not over water or in the plaza.
+	 * steps). Only filled, never dug; not over water or in the plaza. Along its middle line, bends and all.
 	 */
 	private static void easeRoad(ServerLevel level, Road road, Rect plaza) {
 		int n = road.length();
+		if (n == 0) {
+			return;
+		}
+
 		int[] want = new int[n];
-		Direction across = road.way().getClockWise();
 		for (int t = 0; t < n; t++) {
 			BlockPos mid = road.at(t);
-			int high = Integer.MIN_VALUE;
-			for (int side = -1; side <= 1; side++) {
-				BlockPos cell = mid.relative(across, side);
-				high = Math.max(high, ground(level, cell.getX(), cell.getZ()));
-			}
+			want[t] = ground(level, mid.getX(), mid.getZ());
+		}
 
-			want[t] = high;
+		for (var cell : road.cells.entrySet()) {
+			int t = cell.getValue();
+			want[t] = Math.max(want[t], ground(level, BlockPos.getX(cell.getKey()), BlockPos.getZ(cell.getKey())));
 		}
 
 		for (int t = 1; t < n; t++) {
@@ -1866,20 +2450,19 @@ public final class TownBuilder {
 			want[t] = Math.max(want[t], want[t + 1] - 1);
 		}
 
-		for (int t = 0; t < n; t++) {
-			BlockPos mid = road.at(t);
-			for (int side = -1; side <= 1; side++) {
-				BlockPos cell = mid.relative(across, side);
-				if (plaza.contains(cell.getX(), cell.getZ()) || wet(level, cell.getX(), cell.getZ())) {
-					continue;
-				}
+		for (var cell : road.cells.entrySet()) {
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			if (plaza.contains(x, z) || wet(level, x, z)) {
+				continue;
+			}
 
-				int g = ground(level, cell.getX(), cell.getZ());
-				if (g < want[t]) {
-					buried(level, new BlockPos(cell.getX(), g, cell.getZ()));
-					for (int y = g + 1; y <= want[t]; y++) {
-						set(level, new BlockPos(cell.getX(), y, cell.getZ()), (y == want[t] ? Blocks.GRASS_BLOCK : Blocks.DIRT).defaultBlockState());
-					}
+			int g = ground(level, x, z);
+			int w = want[cell.getValue()];
+			if (g < w) {
+				buried(level, new BlockPos(x, g, z));
+				for (int y = g + 1; y <= w; y++) {
+					set(level, new BlockPos(x, y, z), (y == w ? Blocks.GRASS_BLOCK : Blocks.DIRT).defaultBlockState());
 				}
 			}
 		}

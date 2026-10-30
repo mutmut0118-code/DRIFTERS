@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6); next A10 |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -58,6 +58,9 @@ Already built that this stands on: see "What's there to build on" below.
 11. **Towns go on the flattest land to hand** (the user, 2026-10-29: "you should set it up where its preferred to be on
     flattest land given the choice, that way it isnt placed anywhere"): a town's spot is the flattest open ground within
     reach of where it would generate; nothing flat enough near, no town there (better none than one on a cliff). See A11.
+12. **Town shapes** (the user, 2026-10-30: "can we change the shape to different types? like curved and bending roads,
+    roads that follow the land, and towns that go down a main street"): crossroads, main street and winding towns, their
+    roads following the land. See 0.23.10 in the progress.
 
 Still open: see "Questions for the user" at the end.
 
@@ -742,3 +745,31 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Not yet: shepherds (Drifters don't shear sheep yet: wool from the planner means killing sheep; shearing first), smiths
     repairing at an anvil and enchanters enchanting your things (B5), prices that move with sales (B4).
   - Next: shearing and the shepherd, then B4 (prices that move), B5 (services: repairs, enchanting your things), B6, B7.
+- **0.23.10: town shapes (the user, 2026-10-30: "can we change the shape to different types? like curved and bending
+  roads, roads that follow the land, and towns that go down a main street").** Before, every town was a plus of four
+  straight roads with the store, the fields and the pen always in the same corners.
+  - Three shapes (`TownBuilder.Shape`): **crossroads** (four roads out from the plaza, bending with the land), **main
+    street** (one long street through the plaza, a third longer than a road, along the line across the land that climbs
+    least, a few short lanes off it), **winding** (three roads out at about a third of a turn apart, wandering, lanes off
+    any road). A small town's is crossroads 35%, main street 40%, winding 25%; a hamlet's a main street; a city's
+    crossroads (its roads bend too). Saved with the town; `/drifterciv town` says which. Debug: `/drifterciv town shape
+    <crossroads|main_street|winding|any>` (every town made after, till the server restarts).
+  - Roads that follow the land (A11's "roads that follow the contours"): a road is laid a block a step, and every four
+    blocks it takes the way on (of five, up to 30 degrees either side) that climbs least over the next twelve, kept to
+    the way it set off by its shape and wandering a little; it turns a few degrees a block at most, so its bends are wide;
+    three wide along its middle line, built up a block a step where the land jumps, planks over water up to five wide; it
+    ends at water wider than that, the town's edge, or where it meets another road (a junction). Side roads the same.
+  - The store, the two fields and the pen go where there's room near the plaza, off the roads (nearest first, on ground
+    that suits): the store turned to face its road or the plaza, a path from its door (only where that path can climb a
+    block a step: found in a city, a store three blocks over its road), the pen's gate to its road.
+  - Houses along a bending road stand square, their fronts to the road, pushed back a little where a bend comes close.
+  - Roads cut back to what they lead to once the houses are up (a few blocks past the last house, the store, a field or
+    the pen; side roads leading nowhere gone; roads out of the plaza a stub at least): a hamlet's roads ran on into the
+    wild.
+  - Its people's road work keeps to its roads as laid (`Town.roadColumns`, saved; towns made before keep the old four
+    straight roads), and its lit ground follows them.
+  - Debug: `/drifterciv town map` (the nearest town from above, saved as a picture in the game folder's `town-maps`).
+  - Tested headless on the user's Tectonic (seed 779): a winding hamlet among hills, a main street town of 11 houses, a
+    crossroads hamlet, a city of 60 households (46 to 59 houses, 92 to 100 people): every place walked to (after the store
+    fix), no step over 136 ms; and vanilla: one of each shape, a ruin, a town of 3. Maps in the session.
+  - Next: back to phase B (shearing and the shepherd, B4 prices, B5 services).
