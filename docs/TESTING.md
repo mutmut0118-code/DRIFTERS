@@ -1503,6 +1503,13 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       its door path: its name sign now says what it sells ("Ann's / smithy"). Right-click it: the trading screen with
       only what it made (an iron pickaxe, arrows...). Sell it what its trade needs (iron to a smith, feathers to a
       fletcher). Over a few days its stock grows; a smith off mining has its shop shut that morning.
+- [ ] Town shapes (0.23.10): new towns come in three shapes. Make one of each in a new world and walk them:
+      `/drifterciv town shape winding`, then `/drifterciv town spawn 10 Windy` (and again with `main_street` and
+      `crossroads`, each a few hundred blocks apart; `/drifterciv town shape any` afterwards for normal towns). Look for:
+      roads that bend round hills instead of going straight up them; a main street town strung along one long street;
+      the store, fields and pen near the plaza but off the roads, the store's door facing a road; no road running on
+      into the wild past the last house; every door reachable on foot. `/drifterciv town` says the shape.
+      `/drifterciv town map` saves a picture of the town from above into the instance's `town-maps` folder.
 
 ## Beds in town houses (new, 0.22.34)
 
@@ -2545,7 +2552,9 @@ by the roads and steps instead of stepping up where they can.
 - [ ] Sometimes a townsperson says "taking down a pillar or bridge it left by home" (`/drifter thoughts`).
 - [ ] Blocks out in the wild past the town (by mine entrances, on hills) can still be there: that's normal.
 
-## Side session: flat-roofed houses (new, 0.23.9-side.2)
+Installed as 0.23.10-side.1: also has the other session's 0.23.10 (its checks are in its own section above).
+
+## Side session: flat-roofed houses (new, 0.23.10-side.1)
 
 About a third of new house plans are now the same houses with a flat roof: a plain lid level with the tops of the walls,
 nothing on top. Some reach out 2 blocks with wood underneath; some lids are full blocks, some slabs.

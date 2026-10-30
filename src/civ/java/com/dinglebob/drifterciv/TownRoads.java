@@ -131,11 +131,37 @@ final class TownRoads {
 		return false;
 	}
 
+	/** Every column within {@code by} blocks (square) of these. */
+	static java.util.Set<Long> around(long[] columns, int by) {
+		java.util.Set<Long> near = new java.util.HashSet<>();
+		java.util.Set<Long> done = new java.util.HashSet<>();
+		for (long column : columns) {
+			int x = BlockPos.getX(column);
+			int z = BlockPos.getZ(column);
+			// (Roads are three wide: most of a column's square is its neighbours' too, so each 2 by 2 block's done once.)
+			if (!done.add(BlockPos.asLong(x >> 1, 0, z >> 1))) {
+				continue;
+			}
+
+			int x0 = x & ~1;
+			int z0 = z & ~1;
+			for (int ax = x0 - by; ax <= x0 + 1 + by; ax++) {
+				for (int az = z0 - by; az <= z0 + 1 + by; az++) {
+					near.add(BlockPos.asLong(ax, 0, az));
+				}
+			}
+		}
+
+		return near;
+	}
+
 	/** Its work for this town: its roads, its ground (see {@link TownWork}). */
 	static final class Work implements TownWork {
 		final Town town;
 		private List<BlockPos> roadColumns = List.of();
 		private List<Rect> ground = List.of();
+		/** Columns this near its roads, for a town whose roads are kept as columns. */
+		private java.util.Set<Long> byRoads = java.util.Set.of();
 		private int radius;
 		/** What it was worked out for (plots and lanes so far). */
 		private int forPlots = -1;
@@ -158,7 +184,13 @@ final class TownRoads {
 			// The roads as far as they lead to something (a few blocks past its last house), the plaza's middle out.
 			List<BlockPos> columns = new ArrayList<>();
 			List<Rect> roadRects = new ArrayList<>();
-			for (Road road : TownRoads.roads(this.town)) {
+			// (A town made ready since 0.23.10: its roads as they were laid, bends and all, not four straight ones.)
+			this.byRoads = this.town.roadColumns.length > 0 ? around(this.town.roadColumns, TOWN_GROUND) : java.util.Set.of();
+			for (long column : this.town.roadColumns) {
+				columns.add(BlockPos.of(column));
+			}
+
+			for (Road road : this.town.roadColumns.length > 0 ? List.<Road>of() : TownRoads.roads(this.town)) {
 				int last = -1;
 				for (int t = 0; t < road.length(); t++) {
 					BlockPos at = road.at(t);
@@ -194,6 +226,10 @@ final class TownRoads {
 					Math.max(Math.abs(rect.z0() - middle.getZ()), Math.abs(rect.z1() - middle.getZ()))));
 			}
 
+			for (long column : this.town.roadColumns) {
+				radius = Math.max(radius, Math.max(Math.abs(BlockPos.getX(column) - middle.getX()), Math.abs(BlockPos.getZ(column) - middle.getZ())));
+			}
+
 			this.radius = radius + TOWN_GROUND;
 		}
 
@@ -206,6 +242,10 @@ final class TownRoads {
 		@Override
 		public boolean townGround(int x, int z) {
 			this.refresh();
+			if (this.byRoads.contains(BlockPos.asLong(x, 0, z))) {
+				return true;
+			}
+
 			for (Rect rect : this.ground) {
 				if (rect.away(x, z) <= TOWN_GROUND) {
 					return true;

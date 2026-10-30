@@ -19,7 +19,8 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6); next A10 |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Planned (2026-10-30); next W1 + W2 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -58,6 +59,22 @@ Already built that this stands on: see "What's there to build on" below.
 11. **Towns go on the flattest land to hand** (the user, 2026-10-29: "you should set it up where its preferred to be on
     flattest land given the choice, that way it isnt placed anywhere"): a town's spot is the flattest open ground within
     reach of where it would generate; nothing flat enough near, no town there (better none than one on a cliff). See A11.
+12. **Town shapes** (the user, 2026-10-30: "can we change the shape to different types? like curved and bending roads,
+    roads that follow the land, and towns that go down a main street"): crossroads, main street and winding towns, their
+    roads following the land. See 0.23.10 in the progress.
+13. **The civilized world** (the user, 2026-10-30; see 4b, phase W): a world plan made at world creation places every
+    settlement: nations of a capital city in the middle and towns round it, roads joining them and highways between
+    nations, wild land past the civilization's edge. Replaces A1's village-spaced spots and decision 8's rarity (its sizes
+    stay). Nations already exist with a history of about 1,000 days (WorldBox).
+14. **How many and how spread** (the user: "let this be a setting between all 3, with 4 by default"; "a variable number
+    setting from around spawn to spread over the world but the recommended as the default"): nations few (2-3), normal
+    (4, the default), many (6-8); spread from around spawn (the default) to over the world. You start near a nation, not in
+    it.
+15. **Roads by size** (the user picked it): cities stone brick and cobblestone, towns a gravel, path and cobblestone mix,
+    hamlets and highways worn dirt and gravel; slabs and stairs on climbs (never one-block dirt steps), planks on bridges.
+16. **More shapes** (the user picked all): river town, harbour/coast town, hill town, ring town, grid (city districts).
+17. **Terrain shaped to fit, every time** (the user: "terraform the terrain in a most possible natural way"): one height
+    plan per town, terraces with retaining walls on steep land, natural cuts and fills, no air boxes.
 
 Still open: see "Questions for the user" at the end.
 
@@ -326,6 +343,159 @@ don't, and once there, nobody should have to pillar or bridge to get about.
 
 ---
 
+## 4b. Phase W: the civilized world (planned 2026-10-30)
+
+The user (2026-10-30), after the town shapes (0.23.10): "add a river town shape too and more shapes"; "change the path
+to make it look more natural? maybe cobble stone or planks? cause it has stairs"; "a big city in the middle, with towns
+in the outskirts, and all the roads are connected. With like long roads connected to different nations across the
+world"; "terraform the terrain in a most possible natural way that way it does fit, every single time ... instead of an
+air box? just incase half a city is on top of a mountain"; "nations to 'already' exist, with their own feuds and
+alliances with other nations like i loaded into a civilization server in the middle of their '1000 days' (think of the
+game WorldBox)"; "but also the civilization to be limited, and have like a max amount of nations and towns, that way the
+world isnt too cluttered with drifters".
+
+Goal: you load a new world and walk into a civilization that's been going for years: a few nations, each a capital city
+with its towns round it, roads between them all and highways between the nations, every town sitting naturally on its
+land, a history of wars, alliances and fallen towns behind it, and wild land past its edges.
+
+### What changes from phase A
+
+- **Where towns go:** no longer one per village-spaced spot (A1, A4's spacing, decision 8's rarity). A **world plan**
+  made once, at world creation, places every settlement: nations, their capitals, their towns and hamlets, free towns and
+  ruins. Still no villages anywhere (decision 1), and towns are still made when a player comes near (A2).
+- **Sizes stay** (decision 8): a capital city 40 to 80 households (100 Drifters at most), towns 8 to 16, hamlets 1 to 5.
+- **Old worlds** keep what they have (towns already made, spots already recorded); the plan is for new worlds.
+
+### W1. Roads and paths that look made (decided: "by size")
+
+- **Cities:** streets of stone bricks and cobblestone (some mossy and cracked), stone brick slabs and stairs where they
+  climb.
+- **Towns:** gravel, path and cobblestone mixed, as a road a town's people laid and walk; cobblestone slabs and stairs on
+  climbs.
+- **Hamlets, door paths in small places, and highways between towns:** worn dirt path, coarse dirt and gravel; slabs
+  (cobblestone, or the town's wood) where they climb.
+- **Climbs:** never a one-block step of dirt: a slab between two levels, stairs where it's steeper, the road's sides
+  built up or cut back to match (no ledge beside a stair). A climb too steep for that winds instead (W2, W5).
+- **Bridges:** planks with fence or wall railings and log or stone piers, by the town's or road's style; long ones arched
+  a little.
+- **Door paths:** a step or two of stairs where the door's floor is above the road, not a dirt column.
+- Desert towns keep sandstone (smooth and cut sandstone, sandstone slabs and stairs).
+- **Lamps from villages** (the user, 2026-10-30: "lets steal the lamp builds from villages and use them for the towns"):
+  the town's lamp posts (road lamps, plaza corners, dark corners lit when it's made) are vanilla's own village lamp
+  builds, loaded from the game's structure files and picked by the town's style: plains `village/plains/plains_lamp_1`,
+  desert `desert_lamp_1`, savanna `savanna_lamp_post_01`, taiga `taiga_lamp_post_1`, snowy `snowy_lamp_post_01` to `03`
+  (the jigsaw block in each swapped for what it stands for). Where one doesn't fit (no room, steep ground) the fence and
+  lantern post as now. Lamps a town's own people put up later (lighting work, founded towns) are built block by block,
+  so they stay what a Drifter can build: the same village designs where it has the blocks, else the fence post.
+
+### W2. The ground plan: terrain shaped to fit, every time
+
+Today each part of a town (the plaza, each house, the store) flattens its own patch and clears a box of air over it; on a
+hillside that leaves a cube cut into the hill and walls of dirt. Instead:
+
+- **One height plan per town**, worked out before anything is built: a target height for every column of its ground,
+  from the land itself (smoothed), the plaza's level, each house's level and the roads' grades.
+- **Gentle land stays as it is**: only what's needed is moved.
+- **Steep land becomes terraces**: districts on levels, each level's edge a retaining wall (stone, cobblestone, mossy
+  cobblestone; sandstone in deserts; a few blocks high at most, more terraces rather than one tall wall), roads and stairs
+  between levels. A city half up a mountain steps up it like a hill town; never sliced flat, never refused for it if
+  there's any way.
+- **Cut and filled to look natural**: the edges eased into the land round them over a wide, smooth falloff (not a
+  straight cut), the right layers (grass on top, dirt, then stone; sand and sandstone in deserts; snow on snowy ground),
+  nothing floating, no overhangs left, no bare dirt cliffs; trees on moved ground felled whole; water kept where it was
+  (rivers aren't filled; a river town builds round its river).
+- **No air boxes**: room is cleared over what's built (a house, the plaza) and the land round it eased down to it, never
+  a cube cut out of a hill.
+- The walk check (A11) stays: every place reachable on foot, nothing pillared.
+
+### W3. More shapes (decided: all of them)
+
+Besides crossroads, main street and winding (0.23.10), and picked by the land where it fits (a river through the spot: a
+river town; a shore: a harbour; a hill: a hill town), by chance otherwise:
+
+- **River town:** straddles a river: the plaza by a bridge, roads along both banks, houses facing the water, a dock or
+  two (the fisher's), a second bridge in a bigger one.
+- **Harbour / coast town:** strung along a shore: a waterfront road, piers out over the water with a boat or two, the
+  fisher's dock, the market near the water.
+- **Hill town:** on a hill: streets spiralling or zig-zagging up it, houses on terraces (W2), the plaza at the top or on
+  a shoulder of it, a lookout.
+- **Ring town:** a ring road round the plaza, spokes out from it, houses inside and outside the ring.
+- **Grid:** planned blocks, for a capital's districts (its middle a grid round a big plaza, the outer districts other
+  shapes), and now and then a planned town.
+
+### W4. The world plan: nations, cities and their towns
+
+Made once, the first time the world starts (in the background, from the world generator's own heights: nothing built):
+
+- **Settings** (Mod Menu):
+  - **How many nations:** few (2 to 3), normal (**4**, the default), many (6 to 8).
+  - **How spread out:** from "around spawn" (the default: every nation within a few thousand blocks of spawn) to "spread
+    over the world" (the same nations, further apart, longer highways).
+  - Free towns, ruins, history length (W6) on/off or how much.
+- **Each nation:** a **capital city** in its middle, on the best ground of its region; **3 to 5 towns** in a ring on its
+  outskirts (500 to 1,500 blocks out), on good ground by preference near rivers and coasts; **2 to 4 hamlets** further
+  out. Its land is the land round them (for borders and talk; no walls drawn on the map).
+- **Between nations:** wild land; **2 to 3 free towns** (in no nation), the **ruins** the history leaves (W6).
+- **Limits:** that's all the civilization there is; past it the world stays wild (camps, wanderers, mines and the rest
+  of Drifter's world generation stay). A town founded later by Drifters themselves counts toward the limit.
+- **You start near one nation, not inside it**: spawn a few hundred blocks from a town, ideally on or near a road.
+- **Placed by the plan in world generation**: the town structures go where the plan says (a placement of our own), so
+  `/locate` still finds them (`drifter_civ:town`, `drifter_civ:city`).
+
+### W5. Roads between: all connected
+
+- **Inside a nation:** a road from the capital to each of its towns, hamlets off the nearest town or road.
+- **Between nations:** highways joining the capitals (each to its nearest two or three, so it's one network), free
+  towns joined to the nearest road.
+- **Routed over the land**, worked out with the plan from the generator's heights: round mountains, up valleys, switching
+  back on slopes too steep, across rivers by bridge, never across open sea (a coast road goes round); grades a player
+  walks.
+- **Built as the land generates** (each chunk lays its own stretch as it's made), so a highway thousands of blocks long
+  costs nothing until someone's there: the road (W1's highway look), bridges, and along it now and then a signpost at a
+  fork ("Aby 340" one way), a lamp post near towns, a bench or a well at a crossroads.
+- **Used**: trade runs, envoys and travellers walk the roads (they already walk between towns; now along these).
+
+### W6. A history already written (WorldBox)
+
+- At world creation, after the plan: a **fast summary simulation of about 1,000 days**, with the same rules the towns live
+  by now (diplomacy's standing by leaders' natures, envoys, trade deals, peace, alliances, wars, unions, conquest,
+  tribute, rebellion: milestone 22 step 6), run on summaries (no Drifters, no blocks), a day a step.
+- **Out of it:** each nation's state (its capital, its towns, its ruler, its colour and banner), who's allied with whom and
+  who's at war or holds a grudge, towns conquered or free, towns that fell (ruins, with their graves and a sign), leaders
+  that came and went, famous deaths; **the chronicle** of it all, dated days before day 1 ("312 days before day 1: the
+  Dominion of Aby took Bby"); people's bonds and grudges in each town to match (TownHistory's way, from these events).
+- **The towns are made to match it** when you come near: the right size and nation, the banner on the plaza, a grudge
+  with the town that killed its people, the ruin where a town fell.
+- **It goes on**: from day 1 the nations carry on by the same rules (they do now), with their past behind them.
+
+### W7. Towns nobody's near (A10, needed now)
+
+- With a whole civilization made at once, most towns are summaries most of the time: their people, stock, leader,
+  standing; their days go by cheaply (harvests, trade, building, elections, wars). Made in full only when a player comes
+  near (as now), matching the summary; and back to a summary when nobody has been near for a long time.
+
+### Order (W)
+
+1. **W1 + W2**: roads and paths that look made, and the ground plan (terraces, natural cuts and fills, no air boxes).
+   Every town looks better from this alone, and the rest builds on it.
+2. **W3**: river, harbour, hill, ring and grid shapes.
+3. **W4 + W5**: the world plan (nations, capitals, towns, limits, settings) and the roads and highways between them.
+4. **W6 + W7**: the history and the summary layer.
+
+Each a version, a test (headless on the user's Tectonic, maps from above with `/drifterciv town map`, then the client), and
+an entry in the progress below. Phase B (shearing and the shepherd, B4 to B7) waits until W is done, or goes alongside
+if the user would rather.
+
+### Risks
+
+- **Routing roads over the land** (W5) from the generator's heights is the costly part on Tectonic (a height asked for
+  is about a millisecond there): done once, in the background, on a coarse grid first; measured before going on.
+- **Terraforming** (W2) is done when the town is made (its land loaded, as now), so its cost goes into the town's steps
+  (10 ms a tick); a city on a mountain is the worst case and gets measured.
+- **Roads built at chunk generation** may only touch the chunk being made: each chunk lays its own stretch from the plan.
+
+---
+
 ## 5. Phase B: trades and services
 
 Goal: everything a villager gave you, you can still get, from a person who made it, and it feels like trading with
@@ -556,6 +726,7 @@ After nations (decided). Then:
 5. **C1 to C3** (the day, places, comings and goings), then **C4 to C6** (events, animals, culture).
 6. **D1 to D3** (reputation, friends, companions), then **D4 to D6** (living there, the board).
 7. (A10 comes with cities, step 2.)
+8. **Phase W** (planned 2026-10-30, 4b) comes before the rest of phase B: W1 + W2, W3, W4 + W5, W6 + W7 (A10 is W7).
 
 Each a version, a test, and a line in the status table at the top.
 
@@ -742,3 +913,32 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Not yet: shepherds (Drifters don't shear sheep yet: wool from the planner means killing sheep; shearing first), smiths
     repairing at an anvil and enchanters enchanting your things (B5), prices that move with sales (B4).
   - Next: shearing and the shepherd, then B4 (prices that move), B5 (services: repairs, enchanting your things), B6, B7.
+- **0.23.10: town shapes (the user, 2026-10-30: "can we change the shape to different types? like curved and bending
+  roads, roads that follow the land, and towns that go down a main street").** Before, every town was a plus of four
+  straight roads with the store, the fields and the pen always in the same corners.
+  - Three shapes (`TownBuilder.Shape`): **crossroads** (four roads out from the plaza, bending with the land), **main
+    street** (one long street through the plaza, a third longer than a road, along the line across the land that climbs
+    least, a few short lanes off it), **winding** (three roads out at about a third of a turn apart, wandering, lanes off
+    any road). A small town's is crossroads 35%, main street 40%, winding 25%; a hamlet's a main street; a city's
+    crossroads (its roads bend too). Saved with the town; `/drifterciv town` says which. Debug: `/drifterciv town shape
+    <crossroads|main_street|winding|any>` (every town made after, till the server restarts).
+  - Roads that follow the land (A11's "roads that follow the contours"): a road is laid a block a step, and every four
+    blocks it takes the way on (of five, up to 30 degrees either side) that climbs least over the next twelve, kept to
+    the way it set off by its shape and wandering a little; it turns a few degrees a block at most, so its bends are wide;
+    three wide along its middle line, built up a block a step where the land jumps, planks over water up to five wide; it
+    ends at water wider than that, the town's edge, or where it meets another road (a junction). Side roads the same.
+  - The store, the two fields and the pen go where there's room near the plaza, off the roads (nearest first, on ground
+    that suits): the store turned to face its road or the plaza, a path from its door (only where that path can climb a
+    block a step: found in a city, a store three blocks over its road), the pen's gate to its road.
+  - Houses along a bending road stand square, their fronts to the road, pushed back a little where a bend comes close.
+  - Roads cut back to what they lead to once the houses are up (a few blocks past the last house, the store, a field or
+    the pen; side roads leading nowhere gone; roads out of the plaza a stub at least): a hamlet's roads ran on into the
+    wild.
+  - Its people's road work keeps to its roads as laid (`Town.roadColumns`, saved; towns made before keep the old four
+    straight roads), and its lit ground follows them.
+  - Debug: `/drifterciv town map` (the nearest town from above, saved as a picture in the game folder's `town-maps`).
+  - Tested headless on the user's Tectonic (seed 779): a winding hamlet among hills, a main street town of 11 houses, a
+    crossroads hamlet, a city of 60 households (46 to 59 houses, 92 to 100 people): every place walked to (after the store
+    fix), no step over 136 ms; and vanilla: one of each shape, a ruin, a town of 3. Maps in the session.
+  - Next: back to phase B (shearing and the shepherd, B4 prices, B5 services).
+- 2026-10-30: phase W planned (4b; decisions 13 to 17): the civilized world, roads by size, terrain shaped to fit, more shapes, a history already written; settings for how many nations and how spread out. Order: W1 + W2, W3, W4 + W5, W6 + W7, then back to phase B.

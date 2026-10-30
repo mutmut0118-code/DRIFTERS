@@ -3522,6 +3522,41 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
     its shop. Found and fixed: a door path is a dirt path, not a full block, so no stand was found by any path.
   - Not yet: shepherds (Drifters don't shear sheep yet: wool from the planner means killing sheep; shearing first), smiths
     repairing at an anvil and enchanters enchanting your things (B5), prices that move with sales (B4).
+- **0.23.10: town shapes (the user, 2026-10-30: "can we change the shape to different types? like curved and bending
+  roads, roads that follow the land, and towns that go down a main street").** Before, every town was a plus of four
+  straight roads with the store, the fields and the pen always in the same corners.
+  - Three shapes (`TownBuilder.Shape`): **crossroads** (four roads out from the plaza, bending with the land), **main
+    street** (one long street through the plaza, a third longer than a road, along the line across the land that climbs
+    least, a few short lanes off it), **winding** (three roads out at about a third of a turn apart, wandering, lanes off
+    any road). A small town's is crossroads 35%, main street 40%, winding 25%; a hamlet's a main street; a city's
+    crossroads (its roads bend too). Saved with the town; `/drifterciv town` says which. Debug: `/drifterciv town shape
+    <crossroads|main_street|winding|any>` (every town made after, till the server restarts).
+  - Roads that follow the land (A11's "roads that follow the contours"): a road is laid a block a step, and every four
+    blocks it takes the way on (of five, up to 30 degrees either side) that climbs least over the next twelve, kept to
+    the way it set off by its shape and wandering a little; it turns a few degrees a block at most, so its bends are wide;
+    three wide along its middle line, built up a block a step where the land jumps, planks over water up to five wide; it
+    ends at water wider than that, the town's edge, or where it meets another road (a junction). Side roads the same.
+  - The store, the two fields and the pen go where there's room near the plaza, off the roads (nearest first, on ground
+    that suits): the store turned to face its road or the plaza, a path from its door (only where that path can climb a
+    block a step: found in a city, a store three blocks over its road), the pen's gate to its road.
+  - Houses along a bending road stand square, their fronts to the road, pushed back a little where a bend comes close.
+  - Roads cut back to what they lead to once the houses are up (a few blocks past the last house, the store, a field or
+    the pen; side roads leading nowhere gone; roads out of the plaza a stub at least): a hamlet's roads ran on into the
+    wild.
+  - Its people's road work keeps to its roads as laid (`Town.roadColumns`, saved; towns made before keep the old four
+    straight roads), and its lit ground follows them.
+  - Debug: `/drifterciv town map` (the nearest town from above, saved as a picture in the game folder's `town-maps`).
+  - Tested headless on the user's Tectonic (seed 779): a winding hamlet among hills, a main street town of 11 houses, a
+    crossroads hamlet, a city of 60 households (46 to 59 houses, 92 to 100 people): every place walked to (after the store
+    fix), no step over 136 ms; and vanilla: one of each shape, a ruin, a town of 3. Maps in the session.
+  - Next: phase W (planned below), then back to phase B (shearing and the shepherd, B4 prices, B5 services).
+- **Planned 2026-10-30: phase W, the civilized world** (docs/LIVED_WORLD.md 4b, decisions 13 to 17): a world plan made at
+  world creation (nations: a capital city in the middle, towns round it; settings for how many, 2-3 / 4 / 6-8, and how
+  spread, around spawn to over the world), roads joining them all and highways between nations, roads by size (stone in
+  cities, mixed in towns, dirt and gravel on highways; slabs and stairs on climbs), terrain shaped to fit (one height plan
+  a town, terraces, no air boxes), river, harbour, hill, ring and grid shapes, and a history of about 1,000 days already
+  written (WorldBox). Order: W1 + W2, W3, W4 + W5, W6 + W7.
+
 - **0.23.8: towns and cities located apart** (the user: "is there a way we can separate the command to locate towns and
   cities?"). A city is its own structure now, `drifter_civ:city` (structure set `drifter_civ:cities`, placed exactly as
   the towns' set, so on the same spots; biome tag `#drifter_civ:has_structure/city`, the towns' biomes). The town one
@@ -3865,7 +3900,7 @@ road up a cliff; "okay so how can we fix this in the roads").
   past the town (mine entrances, exploring, Drifters passing through) stay, as a player's would.
 - Not tested: the cliff stair road in the user's screenshot (no such road in the test towns).
 
-### Side session: flat-roofed houses (0.23.9-side.2)
+### Side session: flat-roofed houses (0.23.10-side.1)
 
 The user (2026-10-30, with their "Flat-Roof and Square Architecture Guidebook"): "lets start switching it up with flat
 roof houses!". First made three guidebook styles (a modern box, an adobe with vigas, a mid-century house with a deep
