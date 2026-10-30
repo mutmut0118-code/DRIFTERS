@@ -52,7 +52,7 @@ public final class StallGoal extends Goals.Goal {
 		ShopKeeper shop = drifter.getShop();
 		BlockPos stand = shop == null ? null : shop.stand(drifter);
 		// (Its job in its open hours: above its own chores, below staying alive and eating.)
-		return stand != null && open(drifter) && drifter.blockPosition().closerThan(stand, RANGE) ? 0.72 : 0.0;
+		return stand != null && shop.open(drifter) && drifter.blockPosition().closerThan(stand, RANGE) ? 0.72 : 0.0;
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public final class StallGoal extends Goals.Goal {
 			protected Status next() {
 				ShopKeeper shop = this.drifter.getShop();
 				BlockPos stand = shop == null ? null : shop.stand(this.drifter);
-				if (stand == null || !open(this.drifter)) {
+				if (stand == null || !shop.open(this.drifter)) {
 					return Status.SUCCESS;
 				}
 
@@ -111,7 +111,7 @@ public final class StallGoal extends Goals.Goal {
 					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(stand), 0.6, "go to its stall"));
 				}
 
-				return this.begin(new WaitTask(this.drifter, "keep its stall", () -> !open(this.drifter), 20 * 30));
+				return this.begin(new WaitTask(this.drifter, "keep its stall", () -> !shop.open(this.drifter), 20 * 30));
 			}
 		};
 	}

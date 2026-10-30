@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (629 topics, 8758 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (633 topics, 8798 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -1991,6 +1991,42 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 1. **a**: still think about {a.dead} sometimes · {a.dead} would've liked this · miss {a.dead} · walked past {a.dead}'s grave today
 2. **b**: yeah · me too · o7 · they really would have · ...
+
+#### trade smith talk
+
+*Needs:* a:line_smith
+
+*About:* trade, smith  ·  *Leads to:* trade, smith
+
+1. **a**: need more iron for the smithy · made another bucket today if anyone wants one · my shop's out of pickaxes again · anyone got iron? paying · smithing all day, my arms hurt lol
+2. **b**: how much for a pickaxe · i'll swing by in the morning · nice · mine broke yesterday actually · i've got a bit of iron
+
+#### trade fletcher talk
+
+*Needs:* a:line_fletcher
+
+*About:* trade, fletcher  ·  *Leads to:* trade, fletcher
+
+1. **a**: need feathers, chickens keep running off · got arrows at mine in the morning · anyone seen spiders? need string for bows · made a stack of arrows today · flint is so annoying to get
+2. **b**: i'll take some arrows · there's gravel by the river · lol · saw spiders by the cave last night · nice
+
+#### trade fisher talk
+
+*Needs:* a:line_fisher
+
+*About:* trade, fisher  ·  *Leads to:* trade, fisher
+
+1. **a**: fish were biting today · caught a name tag lol · sat by the water all morning, so peaceful · got cooked cod at mine if anyone's hungry · rain's the best for fishing
+2. **b**: nice · save me some · what's a name tag for · jealous · how many
+
+#### trade enchanter talk
+
+*Needs:* a:line_enchanter
+
+*About:* trade, enchanter  ·  *Leads to:* trade, enchanter
+
+1. **a**: need more leather for books · sugar cane grows so slow · made a few books today · anyone got lapis? paying · trying to get enough shelves for the table
+2. **b**: i've got leather · nice · found some lapis in the mine · what are you enchanting · lol good luck
 
 #### village found
 
@@ -7489,7 +7525,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): feelings (70), town (63), argument (57), danger (52), building (50), jokes (50), mobs (50), friends (42), exploring (38), plans (36), mining (35), complaints (34), home (33), gear (27), brag (26), memories (26), animals (25), night (25), story_part (25), stories (24), fighting (22), day (21), weather (21), decor (20), food (19), gossip (19), random (19), trade (19), caves (18), places (18), tools (18), nether (17), politics (17), villagers (16), end (15), philosophy (15), players (15), structures (15), biomes (14), crafting (14), ore (14), storage (14), ocean (13), death (12), enchanting (12), nation (11), redstone (11), advice (10), farming (10), sleep (10), boredom (9), diamonds (9), health (9), help (9), pets (9), plants (9), weapons (9), armor (7), dreams (7), potions (7), sky (7), trees (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), fell (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), submitted (1), tribute (1), word (1)
+**Tags in use** (topics about each): feelings (70), town (63), argument (57), danger (52), building (50), jokes (50), mobs (50), friends (42), exploring (38), plans (36), mining (35), complaints (34), home (33), gear (27), brag (26), memories (26), animals (25), night (25), story_part (25), stories (24), trade (23), fighting (22), day (21), weather (21), decor (20), food (19), gossip (19), random (19), caves (18), places (18), tools (18), nether (17), politics (17), villagers (16), end (15), philosophy (15), players (15), structures (15), biomes (14), crafting (14), ore (14), storage (14), ocean (13), death (12), enchanting (12), nation (11), redstone (11), advice (10), farming (10), sleep (10), boredom (9), diamonds (9), health (9), help (9), pets (9), plants (9), weapons (9), armor (7), dreams (7), potions (7), sky (7), trees (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), word (1)
 
 #### `talk.segue.linked`
 

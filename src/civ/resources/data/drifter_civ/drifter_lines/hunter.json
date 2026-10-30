@@ -1,0 +1,12 @@
+{
+	"goals": [
+		"hunt",
+		"nighthunt",
+		"prey"
+	],
+	"natures": [
+		"nomad",
+		"pvp_sweat"
+	],
+	"pool": 2
+}

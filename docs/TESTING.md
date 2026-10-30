@@ -1497,6 +1497,12 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Lines of work (0.23.7): `/drifterciv town` shows who does what (farmers, builders, miners, hunters, woodcutters,
       guards, the keeper, the leader). Watch a while: farmers more at the fields, builders more on roads and building,
       hunters out hunting; everyone still eats, sleeps and chats.
+- [ ] Trades and shops (0.23.9): in a town of 8 or more, `/drifterciv town` lists a smith and a fletcher (a fisher from
+      10 people, an enchanter from 12). `/drifterciv prices` there shows each trade's shop: where it stands, open or shut,
+      what it's making and what it has at home to sell. Late in the morning (after the town's stall opens) find one by
+      its door path: its name sign now says what it sells ("Ann's / smithy"). Right-click it: the trading screen with
+      only what it made (an iron pickaxe, arrows...). Sell it what its trade needs (iron to a smith, feathers to a
+      fletcher). Over a few days its stock grows; a smith off mining has its shop shut that morning.
 
 ## Beds in town houses (new, 0.22.34)
 
@@ -2522,6 +2528,8 @@ cobblestone between the logs of a stone barn's walls is how that house is meant 
       `/drifter placelog false` turns it off.
 - [ ] Drifters still go caving in real caves (`/drifter thoughts` shows "going caving"), and builders still pillar up
       inside their own half-built houses to reach high blocks.
+
+Installed as 0.23.9-side.1: also has the other session's 0.23.9 (its checks are in its own section above).
 
 ## Side session: stray cobblestone on town roads (new, 0.23.8-side.2)
 

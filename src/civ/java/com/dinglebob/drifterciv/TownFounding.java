@@ -186,6 +186,7 @@ public final class TownFounding {
 		}
 
 		boolean changed = Market.keeper(server, town, group);
+		changed |= Trades.tend(server, town, group);
 		TownRoads.setWork(server, town, group.members);
 		if (changed || town.booksChanged) {
 			town.booksChanged = false;
@@ -379,6 +380,7 @@ public final class TownFounding {
 
 		changed |= store(server, town, group);
 		changed |= Market.stall(server, town, group);
+		changed |= Trades.tend(server, town, group);
 		// The plaza: a well, a notice board, lamp posts; the board kept up to date.
 		changed |= Plaza.build(server, town, group);
 		Plaza.board(server, town);

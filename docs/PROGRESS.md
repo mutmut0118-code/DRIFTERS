@@ -3491,6 +3491,37 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   - Tested in the client (a town of about 20, the player watching in creative): first try, waves of 7 and 8 with a third
     vindicators, 12 of its people's lives lost in four minutes and the raid not over; rebalanced, two waves (5 and 6), it
     fought them off: 11 raiders brought down, 3 lives lost.
+- **0.23.9: B2 and B3, trades that make things and shops at their doors (first part).**
+  - Lines of work are data now: `data/drifter_civ/drifter_lines/<line>.json` (the goals it leans toward and how much, the
+    natures that take to it, and for a trade its shop: from what size of town, the word on its sign, what it makes and
+    how many it keeps, what else it sells, what it buys). A datapack can change or add them.
+  - Four trades: **smith** (iron tools and armour, shears, buckets, shields; buys iron and coal), **fletcher** (arrows,
+    bows, rods; buys feathers, flint, string, sticks), **fisher** (rods; sells the fish it catches and cooks and what comes
+    up with them: name tags, saddles, books; leans on fishing more than most), **enchanter** (paper, books, bookshelves;
+    sells enchanted books and lapis; buys lapis, leather, sugar cane). A town has a smith and a fletcher from 8 people, a
+    fisher from 10, an enchanter from 12, another of each for every 30 more. Its lines given before there were trades
+    (towns made before 0.23.9): one from the commonest line takes the trade up, the one it suits best ("X took up the
+    smith's trade in Y").
+  - Making (B2, core `TownWork.wares`, goal "wares", urgency 0.5 by day): whichever of its trade's things it's short of
+    (in its home's chests and its pockets, past one of a tool for its own use) that it can make most cheaply, got the way
+    it gets anything: the planner mines the iron, hunts chickens for feathers and cows for leather, smelts, crafts at its
+    table. What it makes goes into its chests at home like anything else. (At 0.4 a smith tended the town's farm most of
+    the day; found in testing.)
+  - Its shop (B3, `Trades.LineShop`, core `ShopKeeper.open` for its hours): late morning (2000 to 5000) it takes what it
+    has to sell from its chests and stands by its door path, by the sign with its name (A6), which it writes over the
+    first time ("Ann's / smithy"); right-click: the trading screen, from its pockets, at the town's prices (dearer when
+    it's scarce); it buys what its trade needs while it has fewer than 32, with its own money (it keeps its takings). Other
+    Drifters buy from it as from the stall. The rest of the day it makes things, eats, sleeps and lives; off on a mining
+    trip, its shop's shut that day. Core `DrifterApi.frontDoor`.
+  - `/drifterciv prices`: the stall and each trade's shop (where, open or shut, what it's making, what's at home to sell,
+    its offers). Talk topics: the smith short of iron, the fletcher after feathers, the fisher's catch, the enchanter's
+    books (`trade_*_talk`).
+  - Tested headless (seed 779, the plains spot, a town of 21, a day and a half): the trades given out (a smith, a fletcher,
+    a fisher, an enchanter), stands found by each door; the smith made shears, a bucket, a shield, an iron helmet and
+    boots, then went mining for more iron and sold a spare iron pickaxe for 2 emeralds; the fletcher made 32 arrows and kept
+    its shop. Found and fixed: a door path is a dirt path, not a full block, so no stand was found by any path.
+  - Not yet: shepherds (Drifters don't shear sheep yet: wool from the planner means killing sheep; shearing first), smiths
+    repairing at an anvil and enchanters enchanting your things (B5), prices that move with sales (B4).
 - **0.23.8: towns and cities located apart** (the user: "is there a way we can separate the command to locate towns and
   cities?"). A city is its own structure now, `drifter_civ:city` (structure set `drifter_civ:cities`, placed exactly as
   the towns' set, so on the same spots; biome tag `#drifter_civ:has_structure/city`, the towns' biomes). The town one

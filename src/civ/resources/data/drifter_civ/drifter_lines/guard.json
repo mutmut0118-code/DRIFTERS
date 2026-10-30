@@ -1,0 +1,9 @@
+{
+	"_comment": "The town's two guards (the boldest).",
+	"goals": [
+		"guard",
+		"defend",
+		"helpfight",
+		"driveout"
+	]
+}

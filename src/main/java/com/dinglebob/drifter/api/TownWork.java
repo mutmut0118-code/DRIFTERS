@@ -136,8 +136,24 @@ public interface TownWork {
 		return 0.0;
 	}
 
+	/**
+	 * What its line of work has it make to sell (milestone 23 B2: a smith's tools, a fletcher's arrows), or null (nothing
+	 * now). Asked now and then; it gets them the way it gets anything, and puts them away at home.
+	 */
+	@org.jetbrains.annotations.Nullable
+	default Wares wares(DrifterEntity drifter) {
+		return null;
+	}
+
 	/** It stood the banner up there. */
 	default void bannerUp(DrifterEntity drifter, BlockPos where) {
+	}
+
+	/**
+	 * Things to make: any of {@code items} till it carries {@code count} of them in all (the cheapest to make first), and
+	 * what they are for its thoughts ("tools to sell").
+	 */
+	record Wares(java.util.List<net.minecraft.world.item.Item> items, int count, String what) {
 	}
 
 	/** A banner of this colour (a banner item, e.g. {@code Items.RED_BANNER}) to stand at {@code spot}, and why (its thought). */

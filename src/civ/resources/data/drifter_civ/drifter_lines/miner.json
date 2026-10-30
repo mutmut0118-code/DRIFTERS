@@ -1,0 +1,13 @@
+{
+	"goals": [
+		"progress",
+		"cavehunch",
+		"store"
+	],
+	"natures": [
+		"miner",
+		"hoarder",
+		"speedrunner"
+	],
+	"pool": 4
+}
