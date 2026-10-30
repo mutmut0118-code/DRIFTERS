@@ -3549,7 +3549,13 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   - Tested headless on the user's Tectonic (seed 779): a winding hamlet among hills, a main street town of 11 houses, a
     crossroads hamlet, a city of 60 households (46 to 59 houses, 92 to 100 people): every place walked to (after the store
     fix), no step over 136 ms; and vanilla: one of each shape, a ruin, a town of 3. Maps in the session.
-  - Next: back to phase B (shearing and the shepherd, B4 prices, B5 services).
+  - Next: phase W (planned below), then back to phase B (shearing and the shepherd, B4 prices, B5 services).
+- **Planned 2026-10-30: phase W, the civilized world** (docs/LIVED_WORLD.md 4b, decisions 13 to 17): a world plan made at
+  world creation (nations: a capital city in the middle, towns round it; settings for how many, 2-3 / 4 / 6-8, and how
+  spread, around spawn to over the world), roads joining them all and highways between nations, roads by size (stone in
+  cities, mixed in towns, dirt and gravel on highways; slabs and stairs on climbs), terrain shaped to fit (one height plan
+  a town, terraces, no air boxes), river, harbour, hill, ring and grid shapes, and a history of about 1,000 days already
+  written (WorldBox). Order: W1 + W2, W3, W4 + W5, W6 + W7.
 
 - **0.23.8: towns and cities located apart** (the user: "is there a way we can separate the command to locate towns and
   cities?"). A city is its own structure now, `drifter_civ:city` (structure set `drifter_civ:cities`, placed exactly as
