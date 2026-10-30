@@ -380,6 +380,13 @@ land, a history of wars, alliances and fallen towns behind it, and wild land pas
   a little.
 - **Door paths:** a step or two of stairs where the door's floor is above the road, not a dirt column.
 - Desert towns keep sandstone (smooth and cut sandstone, sandstone slabs and stairs).
+- **Lamps from villages** (the user, 2026-10-30: "lets steal the lamp builds from villages and use them for the towns"):
+  the town's lamp posts (road lamps, plaza corners, dark corners lit when it's made) are vanilla's own village lamp
+  builds, loaded from the game's structure files and picked by the town's style: plains `village/plains/plains_lamp_1`,
+  desert `desert_lamp_1`, savanna `savanna_lamp_post_01`, taiga `taiga_lamp_post_1`, snowy `snowy_lamp_post_01` to `03`
+  (the jigsaw block in each swapped for what it stands for). Where one doesn't fit (no room, steep ground) the fence and
+  lantern post as now. Lamps a town's own people put up later (lighting work, founded towns) are built block by block,
+  so they stay what a Drifter can build: the same village designs where it has the blocks, else the fence post.
 
 ### W2. The ground plan: terrain shaped to fit, every time
 
