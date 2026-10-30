@@ -1513,7 +1513,7 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Roads and ground (0.23.11): in a new world make a town (`/drifterciv town spawn 10 Planky`), a hamlet
       (`/drifterciv town spawn 4 Dirty`) and a city (`/drifterciv town city 40`), on hilly ground if you can. Look for:
       a town's roads and door paths all planks of its wood, a hamlet's all dirt path, a city's stone bricks; a slab
-      wherever a road or path climbs (no block-high steps); bridges with railings; village lamp posts in the town's
+      where a road or path climbs one step, stairs where it climbs on (no block-high steps, no jumping needed); bridges with railings; village lamp posts in the town's
       style; now and then a campfire, hay or log seats in a front yard or on the plaza. On a slope: the land round the
       plaza, fields and houses eased in gentle banks, low cobblestone retaining walls where one level meets another,
       no boxes cut into hills, no dirt cliffs. Every door reachable on foot.

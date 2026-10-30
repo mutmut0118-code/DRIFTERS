@@ -944,8 +944,10 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Roads and door paths one material a settlement (the user: "when the roads are mixed, it should be of the same type, like
     stone texturing for cities, and planks for towns, just path blocks for hamlets"): a city's stone bricks (some cracked,
     some mossy; smooth and cut sandstone in the desert), a town's planks of its own wood, a hamlet's dirt path. Where a
-    road or path climbs, a slab on the lower step (stone brick, the town's wood, or Terrain Slabs' path slab in a hamlet
-    when it's installed): half a block and half again, never a block-high step. A door path's first block level with the
+    road or path climbs one step, a slab on the lower (stone brick, the town's wood, or Terrain Slabs' path slab in a
+    hamlet when it's installed); where it climbs on, a block every block, stairs (stone brick, the town's wood): slabs on
+    every step of a climb still left a block between them (found by the walk check, a city's store). Never a block-high
+    step of earth. A door path's first block level with the
     door's floor (a step up right outside a door had no room over it, under the wall: found by the walk check, a store).
     Bridges: plank decks with fence railings either side, on log piers every few blocks.
   - Lamps from villages (the user: "lets steal the lamp builds from villages"): road lamps, plaza corners and the lamps
@@ -964,7 +966,8 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     rock), cut earth its top block again; trees on moved ground felled whole; water never filled. No more boxes cut into
     hills (each part used to flatten its own patch and ease ten blocks round it at most).
   - Tested headless on the user's Tectonic (seed 779, Terrain Slabs in too): a winding hamlet on a hillside, a main street
-    town, a crossroads hamlet, every place walked to, no step over 50 ms but a household; pictures in the client: plank
+    town, a crossroads hamlet, a city of 57 houses, every place walked to, no step over 50 ms but a household and the
+    city's walk check; pictures in the client: plank
     streets, dirt path with path slabs climbing a terraced hillside, village lamps, a log seat on the plaza.
   - Next: Terrain Slabs across the whole mod (the user: "this whole mod needs to be compatible with countered terrain
     slabs"), then W3 (river, harbour, hill, ring and grid shapes).

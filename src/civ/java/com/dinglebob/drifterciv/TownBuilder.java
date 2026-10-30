@@ -145,6 +145,7 @@ public final class TownBuilder {
 	/** Its roads' and paths' blocks, and the slab for where they climb (set by its job each step: W1, by its size). */
 	private static java.util.function.Supplier<BlockState> paving = Blocks.DIRT_PATH::defaultBlockState;
 	private static BlockState pavingSlab = Blocks.COBBLESTONE_SLAB.defaultBlockState();
+	private static BlockState pavingStairs = Blocks.COBBLESTONE_STAIRS.defaultBlockState();
 
 	/** A block of the town's main wood: "planks", "log", "fence", "door"... (oak if there's no such block). */
 	private static Block wood(String kind) {
@@ -509,6 +510,7 @@ public final class TownBuilder {
 			style = this.look;
 			paving = this::paving;
 			pavingSlab = this.pavingSlab();
+			pavingStairs = this.pavingStairs();
 			arm = this.city ? CITY_ARM : ARM;
 			reach = this.city ? CITY_REACH : REACH;
 			// (Its own entries only: its people's comings and goings aren't news while it's being made.)
@@ -1412,6 +1414,12 @@ public final class TownBuilder {
 			return wood("slab").defaultBlockState();
 		}
 
+		/** The stairs up a road or path that climbs a block every block: a city's stone brick (sandstone), the wood's elsewhere. */
+		private BlockState pavingStairs() {
+			return this.city ? (this.look == Style.DESERT ? Blocks.SMOOTH_SANDSTONE_STAIRS : Blocks.STONE_BRICK_STAIRS).defaultBlockState()
+				: wood("stairs").defaultBlockState();
+		}
+
 		/** One of the town's lamp posts at {@code feet}: its village's own (W1), else a fence post and a lantern. */
 		@Nullable
 		private BlockPos lampAt(BlockPos feet) {
@@ -1503,18 +1511,17 @@ public final class TownBuilder {
 					continue;
 				}
 
-				// Climbs: a slab on the lower of two levels side by side, so it's half a block up and half again.
+				// Climbs: on the lower of two levels side by side, a slab (one step) or stairs (a climb that goes on: slabs on every
+				// step of it still left a block between them, found by the walk check), up the way the road goes where it can.
 				int top = ground(this.level, x, z);
-				for (Direction side : Direction.Plane.HORIZONTAL) {
+				double heading = road.heading(road.cells.get(cell));
+				Direction along = Direction.getNearest(Math.cos(heading), 0, Math.sin(heading));
+				for (Direction side : new Direction[] {along, along.getOpposite(), along.getClockWise(), along.getCounterClockWise()}) {
 					int nx = x + side.getStepX();
 					int nz = z + side.getStepZ();
 					if ((this.roadCells.contains(BlockPos.asLong(nx, 0, nz)) || this.plaza.contains(nx, nz)) && !wet(this.level, nx, nz)
 						&& ground(this.level, nx, nz) == top + 1) {
-						BlockPos over = new BlockPos(x, top + 1, z);
-						if (this.level.getBlockState(over).isAir()) {
-							set(this.level, over, pavingSlab);
-						}
-
+						climb(this.level, new BlockPos(x, top + 1, z), side, ground(this.level, nx + side.getStepX(), nz + side.getStepZ()) > top + 1);
 						break;
 					}
 				}
@@ -2084,6 +2091,21 @@ public final class TownBuilder {
 			}
 
 			this.unwalkable.addAll(TownWalk.unreachable(this.level, this.area.inflatedBy(4), new BlockPos(this.cx + 3, this.y0, this.cz), places));
+			if (this.unwalkable.contains("the store")) {
+				// (What's in front of its door, for working out why: each block out, the ground's height and what's on it.)
+				StringBuilder out = new StringBuilder();
+				BlockPos door = storeDoor(this.storeAt, this.storeFront);
+				for (int i = 0; i <= 6; i++) {
+					BlockPos at = door.relative(this.storeFront, i);
+					int top = ground(this.level, at.getX(), at.getZ());
+					out.append(' ').append(top).append(':').append(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(this.level.getBlockState(at.atY(top))
+						.getBlock()).getPath()).append('/').append(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(this.level.getBlockState(at.atY(top + 1))
+						.getBlock()).getPath());
+				}
+
+				DrifterCivilizations.LOGGER.info("[town] {}: the store's door at {} ({}), out from it:{}", this.name, door.toShortString(), this.storeFront.getName(), out);
+			}
+
 			DrifterCivilizations.LOGGER.info("[town] {}: walked to {} of {} places from the plaza{}", this.name, places.size() - this.unwalkable.size(),
 				places.size(), this.unwalkable.isEmpty() ? "" : "; not: " + String.join(", ", this.unwalkable));
 		}
@@ -2348,14 +2370,23 @@ public final class TownBuilder {
 			}
 		}
 
-		// Where it climbs (to the door, along it, to the road): a slab on the lower step, never a block-high step of earth.
+		// Where it climbs (to the door, along it, to the road): a slab on the lower of a single step, stairs up a climb that
+		// goes on; never a block-high step of earth.
 		for (int i = 0; i < n - (reached ? 1 : 0); i++) {
 			BlockPos column = cells.get(i);
 			int before = i == 0 ? start : top[i - 1];
+			int beforeThat = i <= 1 ? start : top[i - 2];
 			int after = i + 1 < n ? top[i + 1] : top[i];
+			int afterThat = i + 2 < n ? top[i + 2] : after;
 			BlockPos over = new BlockPos(column.getX(), top[i] + 1, column.getZ());
-			if ((before == top[i] + 1 || after == top[i] + 1) && !wet(level, column.getX(), column.getZ()) && level.getBlockState(over).isAir()) {
-				set(level, over, pavingSlab);
+			if (wet(level, column.getX(), column.getZ())) {
+				continue;
+			}
+
+			if (after == top[i] + 1) {
+				climb(level, over, front, afterThat > after);
+			} else if (before == top[i] + 1) {
+				climb(level, over, front.getOpposite(), i > 0 && beforeThat > before);
 			}
 		}
 
@@ -2575,6 +2606,20 @@ public final class TownBuilder {
 				set(level, above, Blocks.AIR.defaultBlockState());
 			}
 		}
+	}
+
+	/**
+	 * A step up {@code up} placed at {@code over} (on the lower of two levels): stairs if the climb goes on past it ({@code
+	 * steep}: a block every block, walked without a jump only on stairs), else a slab (half a block up, half again). Only
+	 * into air.
+	 */
+	private static void climb(ServerLevel level, BlockPos over, Direction up, boolean steep) {
+		if (!level.getBlockState(over).isAir()) {
+			return;
+		}
+
+		set(level, over, steep && pavingStairs.hasProperty(net.minecraft.world.level.block.StairBlock.FACING)
+			? pavingStairs.setValue(net.minecraft.world.level.block.StairBlock.FACING, up) : pavingSlab);
 	}
 
 	/** A block set quietly (no neighbour updates): the ground and walls. Only when it changes. */
