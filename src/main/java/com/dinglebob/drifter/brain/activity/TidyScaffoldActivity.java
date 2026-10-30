@@ -91,7 +91,15 @@ public class TidyScaffoldActivity extends Activity {
 		return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 0.5, "walk over to a block it left", NavigateTask.Pace.STROLL));
 	}
 
+	/** It has done what it came to do (the goal stays keen on it till then). */
+	public boolean finished() {
+		return this.finished;
+	}
+
+	private boolean finished;
+
 	private Status finish() {
+		this.finished = true;
 		if (this.removed > 0) {
 			this.think("took down " + this.removed + " blocks it had left round home");
 		}
@@ -102,13 +110,13 @@ public class TidyScaffoldActivity extends Activity {
 	/** How many of its scaffold blocks are left standing round home (for how keen it is to tidy). */
 	public static int countLeft(DrifterEntity drifter, Home home) {
 		int radius = radius(drifter);
-		if (radius == 0) {
+		if (radius == 0 && drifter.getTownWork() == null) {
 			return 0;
 		}
 
 		int count = 0;
 		for (BlockPos pos : drifter.scaffold()) {
-			if (home.center.closerThan(pos, radius) && stillScaffold(drifter, home, pos)) {
+			if (inReach(drifter, home, pos, radius) && stillScaffold(drifter, home, pos)) {
 				count++;
 			}
 		}
@@ -133,7 +141,7 @@ public class TidyScaffoldActivity extends Activity {
 	@Nullable
 	public static BlockPos next(DrifterEntity drifter, Home home, Set<BlockPos> skip) {
 		int radius = radius(drifter);
-		if (radius == 0) {
+		if (radius == 0 && drifter.getTownWork() == null) {
 			return null;
 		}
 
@@ -141,7 +149,7 @@ public class TidyScaffoldActivity extends Activity {
 		BlockPos best = null;
 		double bestDistance = Double.MAX_VALUE;
 		for (BlockPos pos : drifter.scaffold()) {
-			if (skip.contains(pos) || !home.center.closerThan(pos, radius)) {
+			if (skip.contains(pos) || !inReach(drifter, home, pos, radius)) {
 				continue;
 			}
 
@@ -162,6 +170,15 @@ public class TidyScaffoldActivity extends Activity {
 		}
 
 		return best;
+	}
+
+	/**
+	 * Round home within its tidying radius, or anywhere on its town's ground, however messy it is: neighbours live there
+	 * (the user's screenshots, 2026-10-30: lone cobblestone blocks on town roads and beside steps, left by routes that
+	 * stepped up or bridged on errands; town Drifters never tidied them at all, having no hut).
+	 */
+	private static boolean inReach(DrifterEntity drifter, Home home, BlockPos pos, int radius) {
+		return radius > 0 && home.center.closerThan(pos, radius) || com.dinglebob.drifter.brain.TownEdge.inTown(drifter, pos);
 	}
 
 	/**

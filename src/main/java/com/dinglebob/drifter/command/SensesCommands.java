@@ -57,6 +57,52 @@ final class SensesCommands {
 				return 1;
 			}))));
 		root.then(Commands.literal("senses").executes(SensesCommands::senses));
+		// Debug: cobblestone out in the open round here (stray scaffolding, steps), not part of anything built, to the log.
+		root.then(Commands.literal("cobblescan").then(Commands.argument("radius", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 256)).executes(ctx -> {
+			int radius = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "radius");
+			var level = ctx.getSource().getLevel();
+			net.minecraft.core.BlockPos center = net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition());
+			java.util.List<String> found = new java.util.ArrayList<>();
+			// Tagged: T on a town's ground, then whose scaffolding it is (a Drifter remembers what it put down to get somewhere).
+			java.util.List<com.dinglebob.drifter.entity.DrifterEntity> drifters = new java.util.ArrayList<>(level.getEntities(
+				net.minecraft.world.level.entity.EntityTypeTest.forClass(com.dinglebob.drifter.entity.DrifterEntity.class), d -> true));
+			com.dinglebob.drifter.api.TownWork town = drifters.stream().map(com.dinglebob.drifter.entity.DrifterEntity::getTownWork)
+				.filter(java.util.Objects::nonNull).findFirst().orElse(null);
+			int[] onTown = {0};
+			for (int x = center.getX() - radius; x <= center.getX() + radius; x++) {
+				for (int z = center.getZ() - radius; z <= center.getZ() + radius; z++) {
+					if (level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
+						continue;
+					}
+
+					int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+					for (int y = top - 12; y < top; y++) {
+						net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
+						var state = level.getBlockState(pos);
+						if ((state.is(net.minecraft.world.level.block.Blocks.COBBLESTONE) || state.is(net.minecraft.world.level.block.Blocks.COBBLED_DEEPSLATE))
+							&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isDrifterBuilt(level, pos) && level.canSeeSky(pos.above())) {
+							String tag = "";
+							if (town != null && town.townGround(x, z)) {
+								tag += " T";
+								onTown[0]++;
+							}
+
+							for (var d : drifters) {
+								if (d.isScaffold(pos)) {
+									tag += " S:" + d.getName().getString();
+								}
+							}
+
+							found.add(x + " " + y + " " + z + tag);
+						}
+					}
+				}
+			}
+
+			com.dinglebob.drifter.Drifter.LOGGER.info("[cobblescan] {} in the open within {} ({} on town ground): {}", found.size(), radius, onTown[0], found);
+			ctx.getSource().sendSuccess(() -> Component.literal(found.size() + " cobblestone blocks in the open within " + radius + " (the log lists them: [cobblescan])"), false);
+			return found.size();
+		})));
 		// Debug: a box of blocks, layer by layer, to the server log (one letter a block, the key after each layer).
 		root.then(Commands.literal("dumpbox").then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 			.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos()).executes(ctx -> {

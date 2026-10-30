@@ -74,6 +74,11 @@ public class PathSearch {
 	public static final double CLIMB_UP = 0.45;
 	public static final double CLIMB_DOWN = 0.35;
 	public static final double BRIDGE = 1.4;
+	/**
+	 * Seconds more for a block put down on its town's ground (a step up, a bridge): about 25 blocks of walking round, so it
+	 * takes the road and the steps (the user, 2026-10-30: lone cobblestone blocks on town roads).
+	 */
+	public static final double TOWN_PLACE = 6.0;
 	public static final double PILLAR = 1.0;
 	public static final double DOOR = 0.6;
 	public static final double AVOID = 4.0;
@@ -698,7 +703,7 @@ public class PathSearch {
 		boolean placeable = below == NavView.Kind.OPEN || below == NavView.Kind.WATER;
 		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.failedBridges.contains(f)
 			&& !this.view.indoors(node.pos)) {
-			double cost = BRIDGE + c.cost + BLOCK_RESOURCE * this.thrift * 2.0;
+			double cost = BRIDGE + c.cost + BLOCK_RESOURCE * this.thrift * 2.0 + (this.view.townGround(f) ? TOWN_PLACE : 0.0);
 			this.add(node, f, MoveType.BRIDGE, cost, c, 1);
 		}
 	}
@@ -1310,7 +1315,8 @@ public class PathSearch {
 			&& !this.failedPillars.contains(n) && !this.view.lavaWithinTwo(n) && !this.view.indoors(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
-				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0, head, 1);
+				this.add(node, n.above(), MoveType.PILLAR, PILLAR + head.cost + BLOCK_RESOURCE * this.thrift * 2.0
+					+ (this.view.townGround(n) ? TOWN_PLACE : 0.0), head, 1);
 			}
 		}
 	}
