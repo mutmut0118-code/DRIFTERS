@@ -243,8 +243,21 @@ public final class HousePalette {
 			}
 		}
 
-		// (Carrying more cobbled deepslate than cobblestone, as before 0.22.40-side.2: deepslate.)
-		if (local != null && (random.nextFloat() < LOCAL_STONE_CHANCE || local.name().equals("deepslate")
+		// Sand all round and little stone seen (a desert, the badlands): its sandstone, always, enough or not yet. The sand goes
+		// on for ever and the stone is under it (found in desert tests: a builder that picked cobblestone dug for stone it
+		// never reached, and the house stopped at 169 of 888 blocks for days).
+		Stone sandy = null;
+		for (Stone stone : STONES) {
+			int seen = have.getOrDefault(stone, 0);
+			if (stone.madeFrom() != null && seen >= need[0] / 4.0 && seen > 2 * have.getOrDefault(cobblestone, 0)
+				&& (sandy == null || seen > have.get(sandy))) {
+				sandy = stone;
+			}
+		}
+
+		if (sandy != null) {
+			main = sandy;
+		} else if (local != null && (random.nextFloat() < LOCAL_STONE_CHANCE || local.name().equals("deepslate")
 			&& count(drifter, Items.COBBLED_DEEPSLATE) > count(drifter, Items.COBBLESTONE))) {
 			main = local;
 		}

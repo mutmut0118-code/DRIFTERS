@@ -33,7 +33,8 @@ public class PlaceStationActivity extends Activity {
 
 	@Override
 	protected int timeoutTicks() {
-		return 20 * 40;
+		// (Longer when it climbs back up home first.)
+		return 20 * 120;
 	}
 
 	@Override
@@ -51,6 +52,7 @@ public class PlaceStationActivity extends Activity {
 		}
 	}
 
+	private boolean wentUp;
 	private int digsDown;
 	private int indoorTries;
 	private static final int MAX_DIG_DOWN = 8;
@@ -84,6 +86,19 @@ public class PlaceStationActivity extends Activity {
 			if (home.houseCenter != null) {
 				this.tried.add(home.houseCenter);
 			}
+		}
+
+		// A furnace not down a shallow hole it dug by home: it has to come back to one it loads (found in desert tests: the
+		// furnace at the bottom of a shaft through the sand, no way back down, the stone in it never collected). Up and home
+		// first, as a player carries it back. (A table's used at once, and one it can't reach it replaces; deep in a mine it
+		// stays where it is.)
+		int down = home == null ? 0 : home.center.getY() - this.drifter.getBlockY();
+		if (!this.wentUp && home != null && this.item != net.minecraft.world.item.Items.CRAFTING_TABLE && down > 3 && down <= 24
+			&& home.near(this.drifter, com.dinglebob.drifter.brain.Home.STORAGE_RANGE)
+			&& com.dinglebob.drifter.brain.mining.Caver.underground(this.drifter, this.drifter.blockPosition())) {
+			this.wentUp = true;
+			return this.begin(new com.dinglebob.drifter.executor.task.NavigateTask(this.drifter, net.minecraft.world.phys.Vec3.atBottomCenterOf(home.center), 3.0,
+				"go back up home to put the " + this.label + " down"));
 		}
 
 		// At home in its house from a plan: the place its layout has for this (the work wall, the crafting table in the storage

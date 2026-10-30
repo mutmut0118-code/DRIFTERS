@@ -2575,3 +2575,19 @@ leaves, and a Drifter that gets stuck up a pillar digs all the way down it inste
       (break them by hand); a Drifter may still take down ones it remembers as its own.
 - [ ] If you see a new one: stand by it and type `/drifter cobblescan 30`. In the log, `S:<name>` after a block says whose
       it is; tell me the name and whether it was up under the leaves.
+
+## Side session: desert houses, decorating, fixes, chat (new, 0.23.10-side.3)
+
+- [ ] Desert houses: a Drifter living in a desert builds its house in sandstone (red sandstone in the badlands) and gets
+      it built, instead of stopping early for days. Its furnace stays at home, not at the bottom of a hole in the sand.
+- [ ] Decorating: a Drifter that has moved into its house (or a townsperson) puts a rug of carpet in the middle of its
+      main room and hangs a painting on a blank wall, on a quiet day. It needs wool: a few sheep about helps. Quickest:
+      stand by one in its house and type `/drifter give minecraft:white_wool 7` and `/drifter give minecraft:stick 8`,
+      then wait a day. `/drifter thoughts` says "laid a rug and hung a painting: feels like home".
+- [ ] Townspeople no longer "loot" the chests in other houses of their own town.
+- [ ] Tall pillars a Drifter left (by trees) come down: it may put up a few blocks beside one to reach the top, then dig
+      its own back down.
+- [ ] Chat: 40 new things Drifters talk about: their rugs and paintings, flat roofs, the desert, sandstone houses, falling
+      sand, a furnace they lost, taking pillars down, neighbours, the town's roads and lamps, chest labels, a housewarming,
+      and debates (flat roofs, stone or wood houses, carpet or slabs, one floor or two). To hear one now: stand by a
+      Drifter and type `/drifter talk debate_flat_roofs` (or `laid_a_rug`, `desert_living`, `lost_furnace`).

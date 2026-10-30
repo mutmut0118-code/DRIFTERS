@@ -48,6 +48,24 @@ public class CollectSmeltActivity extends Activity {
 		}
 	}
 
+	/** Trips back that failed before it gives a furnace up. */
+	private static final int TRIPS = 3;
+
+	@Override
+	protected void onStop() {
+		// A furnace it can't get back to (found in desert tests: one left at the bottom of a shaft through the sand, the
+		// stone in it never collected, the house never built): after a few tries it gives it up and smelts again elsewhere,
+		// as a player would rather than dig all the way back.
+		String why = this.failureReason();
+		if (!this.took && why != null && !why.startsWith("no room") && !why.startsWith("the furnace is gone") && ++this.job.failedTrips >= TRIPS) {
+			this.drifter.getDrifterBrain().removeFurnaceJob(this.job);
+			com.dinglebob.drifter.brain.Stations.giveUp(this.drifter, this.drifter.level().getBlockState(this.job.furnace).getBlock(), this.job.furnace);
+			this.think("can't get back to the furnace at " + this.job.furnace.toShortString() + ": leaving what's in it");
+		}
+
+		super.onStop();
+	}
+
 	@Override
 	protected Status next() {
 		BlockPos furnace = this.job.furnace;

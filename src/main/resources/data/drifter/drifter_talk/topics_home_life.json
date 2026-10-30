@@ -1,0 +1,1990 @@
+{
+	"_comment": "Topics batch (side session, 0.23.10-side.3): home life now that Drifters decorate (rugs, paintings), flat roofs and overhangs, desert living and sandstone houses, tidying pillars, town neighbours, everyday talk, debates (agree/disagree pattern). Check with: python tools/check_talk_web.py .",
+	"topics": [
+		{
+			"id": "laid_a_rug",
+			"weight": 2,
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"decor",
+				"home",
+				"brag"
+			],
+			"leads": [
+				"decor",
+				"home",
+				"building"
+			],
+			"about": "the rug it laid",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"finally put a rug down in my house",
+						"laid a carpet in the main room",
+						"my house has a rug now",
+						"made a little rug for the floor",
+						"added carpet, house feels way cozier"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"nice",
+						"fancy",
+						"cozy",
+						"rugs make a house",
+						"what colour?",
+						"ooh"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"white, it's all i had",
+						"plain white lol",
+						"whatever wool i had",
+						"it's a start"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "hung_a_painting",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"decor",
+				"home"
+			],
+			"leads": [
+				"decor",
+				"home",
+				"random"
+			],
+			"about": "a painting it hung",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"hung a painting in my house",
+						"got a painting on the wall now",
+						"put up a painting, it's a weird one",
+						"my painting is just some guy and a sunset i think",
+						"random painting turned out pretty nice"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"which one?",
+						"nice",
+						"paintings are a gamble",
+						"hope it's not the skull one",
+						"art"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"no idea what it is",
+						"the one with the pond",
+						"it's fine",
+						"lol",
+						"it's growing on me"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "rug_colours",
+			"tags": [
+				"decor",
+				"opinion"
+			],
+			"leads": [
+				"decor",
+				"animals",
+				"home"
+			],
+			"about": "rug colours",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"need more coloured wool",
+						"wish i had red wool for a rug",
+						"white carpet gets boring",
+						"want a blue rug",
+						"might dye some wool for a rug"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"shear a coloured sheep",
+						"dye is easy",
+						"find a red flower",
+						"white is classic",
+						"lapis makes blue"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"good idea",
+						"true",
+						"maybe later",
+						"ok"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "decor_vs_useful",
+			"tags": [
+				"decor",
+				"philosophy"
+			],
+			"leads": [
+				"decor",
+				"home",
+				"storage"
+			],
+			"about": "decorating or not",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"decorating is a waste of wool",
+						"why decorate when chests are useful",
+						"rugs dont do anything",
+						"i only build what i need"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"it's your home though",
+						"makes it feel lived in",
+						"you live there",
+						"fair",
+						"a bit of cozy never hurt"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"hmm",
+						"maybe",
+						"still",
+						"eh"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "debate_paintings",
+			"tags": [
+				"decor",
+				"argument"
+			],
+			"leads": [
+				"decor",
+				"home",
+				"jokes"
+			],
+			"about": "paintings",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"paintings are the best decoration",
+						"every house needs a painting",
+						"paintings make a wall"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"true",
+						"agreed",
+						"yeah",
+						"love them"
+					],
+					"chance": 0.5,
+					"mark": [
+						"agree"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"they're so random",
+						"nah",
+						"item frames are better",
+						"too ugly"
+					],
+					"if": [
+						"!t:agree"
+					],
+					"mark": [
+						"disagree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"see",
+						"exactly",
+						"lol"
+					],
+					"chance": 0.6,
+					"if": [
+						"t:agree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"fair",
+						"each their own",
+						"ok"
+					],
+					"if": [
+						"t:disagree"
+					]
+				}
+			]
+		},
+		{
+			"id": "debate_flat_roofs",
+			"tags": [
+				"building",
+				"argument"
+			],
+			"leads": [
+				"building",
+				"home",
+				"argument"
+			],
+			"about": "flat roofs",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"flat roofs look clean",
+						"flat roofs are underrated",
+						"square houses are nice actually",
+						"i like a flat roof"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"same",
+						"true",
+						"clean look",
+						"agree"
+					],
+					"chance": 0.5,
+					"mark": [
+						"agree"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"pitched roofs look better",
+						"nah, a roof needs a slope",
+						"boring",
+						"looks unfinished"
+					],
+					"if": [
+						"!t:agree"
+					],
+					"mark": [
+						"disagree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"see",
+						"nice",
+						"flat gang"
+					],
+					"chance": 0.6,
+					"if": [
+						"t:agree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"fair",
+						"each their own",
+						"ok ok"
+					],
+					"if": [
+						"t:disagree"
+					]
+				}
+			]
+		},
+		{
+			"id": "roof_overhang",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"building",
+				"opinion"
+			],
+			"leads": [
+				"building",
+				"home"
+			],
+			"about": "an overhang",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"my roof sticks out two blocks",
+						"gave my roof an overhang",
+						"overhangs make the house look bigger",
+						"the roof over my door keeps the rain off lol"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"nice",
+						"shade",
+						"looks good",
+						"classic",
+						"roofs are hard"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"took forever",
+						"yeah",
+						"lol",
+						"worth it"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "full_block_roof",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"building",
+				"jokes"
+			],
+			"leads": [
+				"building",
+				"home"
+			],
+			"about": "a thick roof",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"my roof is solid planks, no slabs",
+						"used full blocks for my roof",
+						"thick roof, very sturdy"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"mobs can spawn on that",
+						"solid",
+						"nice",
+						"light it up",
+						"at least it's solid"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"oh no",
+						"worth it",
+						"torches it is",
+						"lol"
+					],
+					"chance": 0.6
+				}
+			]
+		},
+		{
+			"id": "everyone_same_house",
+			"needs": [
+				"a:in_town"
+			],
+			"tags": [
+				"building",
+				"town",
+				"complaints"
+			],
+			"leads": [
+				"building",
+				"town",
+				"home"
+			],
+			"about": "houses looking alike",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"every house in this town looks the same",
+						"we all built the same house lol",
+						"need some variety around here"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"build a weird one then",
+						"lol true",
+						"mine's different",
+						"flat roof, be different",
+						"honestly"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"maybe i will",
+						"lol",
+						"fair",
+						"next house"
+					],
+					"chance": 0.6
+				}
+			]
+		},
+		{
+			"id": "next_house_plans",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"building",
+				"plans",
+				"dreams"
+			],
+			"leads": [
+				"building",
+				"plans",
+				"home"
+			],
+			"about": "the next house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"next house i'm doing two floors",
+						"i want a bigger house",
+						"my next build is gonna be stone",
+						"planning a house with a wing",
+						"want a house with a balcony"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"go for it",
+						"nice",
+						"you'll need a lot of stone",
+						"dream big",
+						"send pics lol"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"one day",
+						"haha",
+						"yeah",
+						"slowly"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "desert_living",
+			"tags": [
+				"biomes",
+				"home"
+			],
+			"leads": [
+				"biomes",
+				"building",
+				"complaints"
+			],
+			"about": "living in the desert",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"the desert is rough to live in",
+						"no trees out here",
+						"sand everywhere",
+						"wood is so hard to find in the desert",
+						"desert life is brutal"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"build with sandstone",
+						"move lol",
+						"at least it's flat",
+						"cactus farm",
+						"no creepers hiding in trees"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"already am",
+						"never",
+						"true",
+						"ha"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "sandstone_house",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"building",
+				"biomes",
+				"brag"
+			],
+			"leads": [
+				"building",
+				"biomes",
+				"home"
+			],
+			"about": "a sandstone house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"my house is all sandstone",
+						"built in sandstone, fits the desert",
+						"sandstone house looks so good",
+						"used sand for my whole house"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"smart",
+						"matches",
+						"nice",
+						"sand is free",
+						"classy"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"took a lot of sand",
+						"yeah",
+						"lol",
+						"four sand a block"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "sand_falls",
+			"tags": [
+				"mining",
+				"danger",
+				"complaints"
+			],
+			"leads": [
+				"mining",
+				"danger",
+				"biomes"
+			],
+			"about": "falling sand",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"sand fell on my head again",
+						"nearly suffocated digging under sand",
+						"dug under some sand, bad idea",
+						"never mine stone with sand on top"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"classic",
+						"oof",
+						"dig from the side",
+						"gravel's worse",
+						"lol rookie mistake"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"learned that",
+						"lol",
+						"never again",
+						"yeah"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "lost_furnace",
+			"tags": [
+				"crafting",
+				"complaints",
+				"jokes"
+			],
+			"leads": [
+				"crafting",
+				"mining",
+				"complaints"
+			],
+			"about": "a furnace it lost",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"left my furnace down a hole",
+						"can't get back to my furnace",
+						"my stone is still cooking somewhere down there",
+						"forgot where i put my furnace"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"just make another",
+						"lol",
+						"furnaces are cheap",
+						"that's rough",
+						"dig back down"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"fine",
+						"yeah",
+						"lesson learned",
+						"8 cobble later..."
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "tidy_pillars",
+			"tags": [
+				"building",
+				"home"
+			],
+			"leads": [
+				"building",
+				"home",
+				"complaints"
+			],
+			"about": "taking pillars down",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"spent all morning taking down my old pillars",
+						"cleaned up my dirt towers",
+						"took down the pillars by the trees",
+						"finally removed my old bridges"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"nice",
+						"respect",
+						"i never do that",
+						"neat freak",
+						"the town thanks you"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"someone has to",
+						"lol",
+						"it was bugging me",
+						"yeah"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "messy_neighbour",
+			"needs": [
+				"a:in_town"
+			],
+			"tags": [
+				"town",
+				"complaints",
+				"gossip"
+			],
+			"leads": [
+				"town",
+				"gossip",
+				"building"
+			],
+			"about": "pillars everywhere",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"someone keeps leaving cobble pillars around",
+						"who left that pillar by the tree",
+						"there's cobble on the road again",
+						"random blocks everywhere, come on"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"wasn't me",
+						"lol guilty",
+						"probably a tree pillar",
+						"annoying",
+						"tell them"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"sure",
+						"hmm",
+						"lol",
+						"whoever it is"
+					],
+					"chance": 0.6
+				}
+			]
+		},
+		{
+			"id": "tree_pillar",
+			"tags": [
+				"trees",
+				"building"
+			],
+			"leads": [
+				"trees",
+				"tools",
+				"building"
+			],
+			"about": "cutting a tall tree",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"had to pillar up to cut a tall spruce",
+						"the top logs are always out of reach",
+						"tall trees are a pain",
+						"had to build up to get the last logs"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"leave the top",
+						"big trees are worth it",
+						"hope you took the pillar down",
+						"just use a bigger tree farm"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"i did",
+						"most of it",
+						"lol",
+						"yeah"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "neighbour_chests",
+			"needs": [
+				"a:in_town"
+			],
+			"tags": [
+				"town",
+				"storage",
+				"trust"
+			],
+			"leads": [
+				"town",
+				"storage",
+				"friends"
+			],
+			"about": "keeping to its own chests",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"i don't touch other people's chests",
+						"never open a neighbour's chest",
+						"my chests are mine, yours are yours"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"good rule",
+						"same",
+						"unless they say so",
+						"trust",
+						"respect"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"exactly",
+						"yeah",
+						"simple",
+						"right"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "neighbour_house",
+			"needs": [
+				"a:in_town"
+			],
+			"tags": [
+				"town",
+				"building",
+				"gossip"
+			],
+			"leads": [
+				"town",
+				"building",
+				"decor"
+			],
+			"about": "a neighbour's house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"the house next to mine is really nice",
+						"my neighbour's house is huge",
+						"saw the inside of the house down the road",
+						"someone in town has a rug and a painting, fancy"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"jealous?",
+						"lol",
+						"go visit",
+						"nice",
+						"who?"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"a little",
+						"maybe",
+						"lol",
+						"someone"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "town_road_steps",
+			"needs": [
+				"a:in_town"
+			],
+			"tags": [
+				"town",
+				"complaints"
+			],
+			"leads": [
+				"town",
+				"building",
+				"complaints"
+			],
+			"about": "the town's roads",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"these roads go up and down a lot",
+						"the steps on the road are steep",
+						"our roads need work",
+						"the road up the hill is a climb"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"better than no roads",
+						"take the stairs",
+						"good exercise",
+						"true",
+						"we should fix them"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"i guess",
+						"lol",
+						"someday",
+						"yeah"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "town_quiet_day_talk",
+			"needs": [
+				"a:in_town",
+				"day"
+			],
+			"tags": [
+				"town",
+				"day",
+				"feelings"
+			],
+			"leads": [
+				"town",
+				"feelings",
+				"random"
+			],
+			"about": "a quiet day in town",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"quiet day in town",
+						"nothing happening today",
+						"peaceful around here today",
+						"everyone's busy today"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"nice for once",
+						"enjoy it",
+						"i like quiet",
+						"too quiet",
+						"calm before the storm"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"yeah",
+						"lol",
+						"for real",
+						"mhm"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "town_lamps",
+			"needs": [
+				"a:in_town"
+			],
+			"tags": [
+				"town",
+				"night"
+			],
+			"leads": [
+				"town",
+				"night",
+				"building"
+			],
+			"about": "the lamp posts",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"the lamp posts make the town look nice at night",
+						"glad the roads are lit",
+						"town looks good with the lamps on"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"keeps the mobs out",
+						"agreed",
+						"nice",
+						"very cozy",
+						"true"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"yeah",
+						"mhm",
+						"exactly"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "chest_labels_talk",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"storage",
+				"home",
+				"brag"
+			],
+			"leads": [
+				"storage",
+				"home",
+				"decor"
+			],
+			"about": "labelled chests",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"put signs on all my chests",
+						"labelled my chests finally",
+						"my chests have signs now, so organised",
+						"every chest of mine says what's in it"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"organised",
+						"nice",
+						"i should do that",
+						"show off",
+						"item frames are better"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"took a while",
+						"lol",
+						"you should",
+						"never lose anything now"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "cozy_house",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"home",
+				"feelings"
+			],
+			"leads": [
+				"home",
+				"decor",
+				"feelings"
+			],
+			"about": "a cozy house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"my house finally feels like home",
+						"love coming home at night",
+						"my bed, my chests, my house, perfect",
+						"nothing beats your own house"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"home sweet home",
+						"agreed",
+						"that's the dream",
+						"cozy",
+						"nice"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"mhm",
+						"yeah",
+						"took a while",
+						"lol"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "house_too_small",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"home",
+				"complaints"
+			],
+			"leads": [
+				"home",
+				"building",
+				"storage"
+			],
+			"about": "a small house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"my house is too small already",
+						"running out of room for chests",
+						"need an extension",
+						"no room left in my house"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"build a wing",
+						"dig a basement",
+						"more chests",
+						"build up",
+						"that's a good problem"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"maybe",
+						"good idea",
+						"lol",
+						"true"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "hut_to_house_talk",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"home",
+				"building",
+				"brag"
+			],
+			"leads": [
+				"home",
+				"building",
+				"plans"
+			],
+			"about": "moving out of the hut",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"moved out of my little hut",
+						"finally done with the hut",
+						"upgraded from a hut to a real house"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"congrats",
+						"big step",
+						"nice",
+						"the hut served you well",
+						"about time"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"thanks",
+						"lol",
+						"yeah",
+						"rip hut"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "no_house_yet",
+			"needs": [
+				"a:no_home"
+			],
+			"tags": [
+				"home",
+				"complaints"
+			],
+			"leads": [
+				"home",
+				"building",
+				"plans"
+			],
+			"about": "still no house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"still don't have a house",
+						"i'm basically homeless lol",
+						"need to build somewhere",
+						"sleeping in a hole again tonight"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"build one",
+						"you'll get there",
+						"come stay in town",
+						"a hole is a house",
+						"rough"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"one day",
+						"lol",
+						"maybe",
+						"yeah"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "stairs_inside",
+			"needs": [
+				"a:has_house"
+			],
+			"tags": [
+				"building",
+				"home"
+			],
+			"leads": [
+				"building",
+				"home"
+			],
+			"about": "stairs in the house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"my stairs go right through the middle of my house",
+						"stairs take up so much room",
+						"upstairs is my favourite room"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"ladders save space",
+						"stairs are nicer",
+						"classic",
+						"true",
+						"two floors is nice though"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"yeah",
+						"maybe",
+						"lol",
+						"true"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "long_day",
+			"needs": [
+				"evening"
+			],
+			"tags": [
+				"feelings",
+				"day"
+			],
+			"leads": [
+				"feelings",
+				"random"
+			],
+			"about": "a long day",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"long day",
+						"today was a lot",
+						"so much walking today",
+						"my legs hurt lol"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"same",
+						"rest up",
+						"you earned it",
+						"same here",
+						"tomorrow's another day"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"yeah",
+						"mhm",
+						"lol",
+						"true"
+					],
+					"chance": 0.4
+				}
+			]
+		},
+		{
+			"id": "good_morning_plans",
+			"needs": [
+				"morning"
+			],
+			"tags": [
+				"plans",
+				"day"
+			],
+			"leads": [
+				"plans",
+				"mining",
+				"building"
+			],
+			"about": "the day's plans",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"what's the plan today?",
+						"busy day ahead?",
+						"got anything planned today?"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"mining",
+						"building",
+						"farm stuff",
+						"nothing",
+						"no idea",
+						"whatever comes up"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"nice",
+						"same",
+						"fair",
+						"sounds good"
+					],
+					"chance": 0.6
+				}
+			]
+		},
+		{
+			"id": "lost_track_of_time",
+			"needs": [
+				"evening"
+			],
+			"tags": [
+				"random",
+				"jokes"
+			],
+			"leads": [
+				"random",
+				"night"
+			],
+			"about": "losing track of time",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"lost track of time again",
+						"didn't notice it got dark",
+						"how is it night already"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"happens",
+						"lol",
+						"time flies",
+						"classic",
+						"every time"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"yeah",
+						"lol",
+						"rip"
+					],
+					"chance": 0.4
+				}
+			]
+		},
+		{
+			"id": "forgot_tool",
+			"tags": [
+				"tools",
+				"jokes"
+			],
+			"leads": [
+				"tools",
+				"complaints"
+			],
+			"about": "a forgotten tool",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"walked all the way out and forgot my pickaxe",
+						"left my axe at home",
+						"forgot my sword, great"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"lol",
+						"classic",
+						"happens to everyone",
+						"make another",
+						"rookie"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"ugh",
+						"lol",
+						"yeah",
+						"never again"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "full_inventory",
+			"tags": [
+				"storage",
+				"complaints"
+			],
+			"leads": [
+				"storage",
+				"home"
+			],
+			"about": "a full inventory",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"inventory full again",
+						"no room for anything",
+						"why do i carry so much dirt",
+						"full of junk again"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"throw out the dirt",
+						"go home and sort",
+						"need more chests",
+						"same every time",
+						"toss the seeds"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"yeah",
+						"never",
+						"lol",
+						"on it"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "seen_a_sheep",
+			"tags": [
+				"animals",
+				"decor"
+			],
+			"leads": [
+				"animals",
+				"decor",
+				"farming"
+			],
+			"about": "sheep for wool",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"need wool, seen any sheep?",
+						"looking for sheep for wool",
+						"anyone got a sheep farm?"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"there's some by the river",
+						"no",
+						"check the hills",
+						"i have a few",
+						"nope"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"thanks",
+						"ok",
+						"i'll look",
+						"hm"
+					],
+					"chance": 0.6
+				}
+			]
+		},
+		{
+			"id": "compliment_house",
+			"needs": [
+				"friends",
+				"b:has_house"
+			],
+			"tags": [
+				"friends",
+				"home",
+				"building"
+			],
+			"leads": [
+				"friends",
+				"building",
+				"decor"
+			],
+			"about": "complimenting a house",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"your house looks great",
+						"love what you did with your house",
+						"nice place you've got"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"thanks",
+						"aw thanks",
+						"took me ages",
+						"appreciate it",
+						"yours is nice too"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"for real",
+						"mhm",
+						"lol",
+						"no problem"
+					],
+					"chance": 0.4
+				}
+			]
+		},
+		{
+			"id": "housewarming",
+			"needs": [
+				"friends",
+				"b:has_house"
+			],
+			"tags": [
+				"friends",
+				"home",
+				"jokes"
+			],
+			"leads": [
+				"friends",
+				"home",
+				"decor"
+			],
+			"about": "a housewarming",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"when's the housewarming?",
+						"do i get a tour of the house?",
+						"i'm coming over to see the new place"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"anytime",
+						"bring wool",
+						"lol sure",
+						"wipe your feet",
+						"it's not done yet"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"lol",
+						"deal",
+						"ok",
+						"can't wait"
+					],
+					"chance": 0.6
+				}
+			]
+		},
+		{
+			"id": "cobble_everywhere",
+			"tags": [
+				"building",
+				"opinion"
+			],
+			"leads": [
+				"building",
+				"mining"
+			],
+			"about": "too much cobblestone",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"i have way too much cobblestone",
+						"cobble everywhere in my chests",
+						"drowning in cobblestone"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"build something",
+						"stone bricks",
+						"smelt it",
+						"make a wall",
+						"same"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"good idea",
+						"maybe",
+						"lol",
+						"ok"
+					],
+					"chance": 0.5
+				}
+			]
+		},
+		{
+			"id": "debate_stone_or_wood",
+			"tags": [
+				"building",
+				"argument"
+			],
+			"leads": [
+				"building",
+				"danger",
+				"argument"
+			],
+			"about": "stone or wood houses",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"stone houses are better, no fires",
+						"wood houses burn too easily",
+						"stone is the way to build"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"true",
+						"fair",
+						"stone gang",
+						"yeah"
+					],
+					"chance": 0.5,
+					"mark": [
+						"agree"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"wood looks better",
+						"nah, wood is cozy",
+						"just don't light fires",
+						"stone is ugly"
+					],
+					"if": [
+						"!t:agree"
+					],
+					"mark": [
+						"disagree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"see",
+						"exactly",
+						"lol"
+					],
+					"chance": 0.6,
+					"if": [
+						"t:agree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"fair",
+						"each their own",
+						"ok"
+					],
+					"if": [
+						"t:disagree"
+					]
+				}
+			]
+		},
+		{
+			"id": "debate_carpet_or_slab",
+			"tags": [
+				"decor",
+				"argument"
+			],
+			"leads": [
+				"decor",
+				"building",
+				"argument"
+			],
+			"about": "carpet or slabs",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"carpet beats slabs for floors",
+						"carpet is the best floor",
+						"rugs over bare floor any day"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"agreed",
+						"true",
+						"yeah",
+						"cozy"
+					],
+					"chance": 0.5,
+					"mark": [
+						"agree"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"slabs are cleaner",
+						"nah",
+						"bare wood is nice",
+						"carpet burns"
+					],
+					"if": [
+						"!t:agree"
+					],
+					"mark": [
+						"disagree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"see",
+						"lol",
+						"cozy wins"
+					],
+					"chance": 0.6,
+					"if": [
+						"t:agree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"fair",
+						"ok",
+						"each their own"
+					],
+					"if": [
+						"t:disagree"
+					]
+				}
+			]
+		},
+		{
+			"id": "debate_two_floors",
+			"tags": [
+				"building",
+				"home",
+				"argument"
+			],
+			"leads": [
+				"building",
+				"home",
+				"argument"
+			],
+			"about": "one floor or two",
+			"turns": [
+				{
+					"by": "a",
+					"lines": [
+						"two floors is the minimum",
+						"every house needs an upstairs",
+						"one floor houses are too small"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"true",
+						"agreed",
+						"yeah",
+						"upstairs is nice"
+					],
+					"chance": 0.5,
+					"mark": [
+						"agree"
+					]
+				},
+				{
+					"by": "b",
+					"lines": [
+						"one floor is fine",
+						"nah, stairs are annoying",
+						"big one floor house is better"
+					],
+					"if": [
+						"!t:agree"
+					],
+					"mark": [
+						"disagree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"exactly",
+						"see",
+						"lol"
+					],
+					"chance": 0.6,
+					"if": [
+						"t:agree"
+					]
+				},
+				{
+					"by": "a",
+					"lines": [
+						"fair",
+						"ok",
+						"suit yourself"
+					],
+					"if": [
+						"t:disagree"
+					]
+				}
+			]
+		}
+	]
+}

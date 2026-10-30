@@ -937,7 +937,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (633 topics, 8798 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (673 topics, 9330 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -4111,6 +4111,416 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 1. **a**: i got so lost yesterday · no idea where i was for a while · walked in circles for ages
 2. **b**: happens · lol same · write down coords · follow the sun · rip
 3. **a** (60%): found my way eventually · lesson learned · lol · yep
+
+#### laid a rug
+
+*Needs:* a:has_house
+
+*About:* decor, home, brag  ·  *Leads to:* decor, home, building
+
+1. **a**: finally put a rug down in my house · laid a carpet in the main room · my house has a rug now · made a little rug for the floor · added carpet, house feels way cozier
+2. **b**: nice · fancy · cozy · rugs make a house · what colour? · ooh
+3. **a** (50%): white, it's all i had · plain white lol · whatever wool i had · it's a start
+
+#### hung a painting
+
+*Needs:* a:has_house
+
+*About:* decor, home  ·  *Leads to:* decor, home, random
+
+1. **a**: hung a painting in my house · got a painting on the wall now · put up a painting, it's a weird one · my painting is just some guy and a sunset i think · random painting turned out pretty nice
+2. **b**: which one? · nice · paintings are a gamble · hope it's not the skull one · art
+3. **a** (50%): no idea what it is · the one with the pond · it's fine · lol · it's growing on me
+
+#### rug colours
+
+*Needs:* any time
+
+*About:* decor, opinion  ·  *Leads to:* decor, animals, home
+
+1. **a**: need more coloured wool · wish i had red wool for a rug · white carpet gets boring · want a blue rug · might dye some wool for a rug
+2. **b**: shear a coloured sheep · dye is easy · find a red flower · white is classic · lapis makes blue
+3. **a** (50%): good idea · true · maybe later · ok
+
+#### decor vs useful
+
+*Needs:* any time
+
+*About:* decor, philosophy  ·  *Leads to:* decor, home, storage
+
+1. **a**: decorating is a waste of wool · why decorate when chests are useful · rugs dont do anything · i only build what i need
+2. **b**: it's your home though · makes it feel lived in · you live there · fair · a bit of cozy never hurt
+3. **a** (50%): hmm · maybe · still · eh
+
+#### debate paintings
+
+*Needs:* any time
+
+*About:* decor, argument  ·  *Leads to:* decor, home, jokes
+
+1. **a**: paintings are the best decoration · every house needs a painting · paintings make a wall
+2. **b** (50%) *(marks agree)*: true · agreed · yeah · love them
+3. **b** if !t:agree *(marks disagree)*: they're so random · nah · item frames are better · too ugly
+4. **a** (60%) if t:agree: see · exactly · lol
+5. **a** if t:disagree: fair · each their own · ok
+
+#### debate flat roofs
+
+*Needs:* any time
+
+*About:* building, argument  ·  *Leads to:* building, home, argument
+
+1. **a**: flat roofs look clean · flat roofs are underrated · square houses are nice actually · i like a flat roof
+2. **b** (50%) *(marks agree)*: same · true · clean look · agree
+3. **b** if !t:agree *(marks disagree)*: pitched roofs look better · nah, a roof needs a slope · boring · looks unfinished
+4. **a** (60%) if t:agree: see · nice · flat gang
+5. **a** if t:disagree: fair · each their own · ok ok
+
+#### roof overhang
+
+*Needs:* a:has_house
+
+*About:* building, opinion  ·  *Leads to:* building, home
+
+1. **a**: my roof sticks out two blocks · gave my roof an overhang · overhangs make the house look bigger · the roof over my door keeps the rain off lol
+2. **b**: nice · shade · looks good · classic · roofs are hard
+3. **a** (50%): took forever · yeah · lol · worth it
+
+#### full block roof
+
+*Needs:* a:has_house
+
+*About:* building, jokes  ·  *Leads to:* building, home
+
+1. **a**: my roof is solid planks, no slabs · used full blocks for my roof · thick roof, very sturdy
+2. **b**: mobs can spawn on that · solid · nice · light it up · at least it's solid
+3. **a** (60%): oh no · worth it · torches it is · lol
+
+#### everyone same house
+
+*Needs:* a:in_town
+
+*About:* building, town, complaints  ·  *Leads to:* building, town, home
+
+1. **a**: every house in this town looks the same · we all built the same house lol · need some variety around here
+2. **b**: build a weird one then · lol true · mine's different · flat roof, be different · honestly
+3. **a** (60%): maybe i will · lol · fair · next house
+
+#### next house plans
+
+*Needs:* a:has_house
+
+*About:* building, plans, dreams  ·  *Leads to:* building, plans, home
+
+1. **a**: next house i'm doing two floors · i want a bigger house · my next build is gonna be stone · planning a house with a wing · want a house with a balcony
+2. **b**: go for it · nice · you'll need a lot of stone · dream big · send pics lol
+3. **a** (50%): one day · haha · yeah · slowly
+
+#### desert living
+
+*Needs:* any time
+
+*About:* biomes, home  ·  *Leads to:* biomes, building, complaints
+
+1. **a**: the desert is rough to live in · no trees out here · sand everywhere · wood is so hard to find in the desert · desert life is brutal
+2. **b**: build with sandstone · move lol · at least it's flat · cactus farm · no creepers hiding in trees
+3. **a** (50%): already am · never · true · ha
+
+#### sandstone house
+
+*Needs:* a:has_house
+
+*About:* building, biomes, brag  ·  *Leads to:* building, biomes, home
+
+1. **a**: my house is all sandstone · built in sandstone, fits the desert · sandstone house looks so good · used sand for my whole house
+2. **b**: smart · matches · nice · sand is free · classy
+3. **a** (50%): took a lot of sand · yeah · lol · four sand a block
+
+#### sand falls
+
+*Needs:* any time
+
+*About:* mining, danger, complaints  ·  *Leads to:* mining, danger, biomes
+
+1. **a**: sand fell on my head again · nearly suffocated digging under sand · dug under some sand, bad idea · never mine stone with sand on top
+2. **b**: classic · oof · dig from the side · gravel's worse · lol rookie mistake
+3. **a** (50%): learned that · lol · never again · yeah
+
+#### lost furnace
+
+*Needs:* any time
+
+*About:* crafting, complaints, jokes  ·  *Leads to:* crafting, mining, complaints
+
+1. **a**: left my furnace down a hole · can't get back to my furnace · my stone is still cooking somewhere down there · forgot where i put my furnace
+2. **b**: just make another · lol · furnaces are cheap · that's rough · dig back down
+3. **a** (50%): fine · yeah · lesson learned · 8 cobble later...
+
+#### tidy pillars
+
+*Needs:* any time
+
+*About:* building, home  ·  *Leads to:* building, home, complaints
+
+1. **a**: spent all morning taking down my old pillars · cleaned up my dirt towers · took down the pillars by the trees · finally removed my old bridges
+2. **b**: nice · respect · i never do that · neat freak · the town thanks you
+3. **a** (50%): someone has to · lol · it was bugging me · yeah
+
+#### messy neighbour
+
+*Needs:* a:in_town
+
+*About:* town, complaints, gossip  ·  *Leads to:* town, gossip, building
+
+1. **a**: someone keeps leaving cobble pillars around · who left that pillar by the tree · there's cobble on the road again · random blocks everywhere, come on
+2. **b**: wasn't me · lol guilty · probably a tree pillar · annoying · tell them
+3. **a** (60%): sure · hmm · lol · whoever it is
+
+#### tree pillar
+
+*Needs:* any time
+
+*About:* trees, building  ·  *Leads to:* trees, tools, building
+
+1. **a**: had to pillar up to cut a tall spruce · the top logs are always out of reach · tall trees are a pain · had to build up to get the last logs
+2. **b**: leave the top · big trees are worth it · hope you took the pillar down · just use a bigger tree farm
+3. **a** (50%): i did · most of it · lol · yeah
+
+#### neighbour chests
+
+*Needs:* a:in_town
+
+*About:* town, storage, trust  ·  *Leads to:* town, storage, friends
+
+1. **a**: i don't touch other people's chests · never open a neighbour's chest · my chests are mine, yours are yours
+2. **b**: good rule · same · unless they say so · trust · respect
+3. **a** (50%): exactly · yeah · simple · right
+
+#### neighbour house
+
+*Needs:* a:in_town
+
+*About:* town, building, gossip  ·  *Leads to:* town, building, decor
+
+1. **a**: the house next to mine is really nice · my neighbour's house is huge · saw the inside of the house down the road · someone in town has a rug and a painting, fancy
+2. **b**: jealous? · lol · go visit · nice · who?
+3. **a** (50%): a little · maybe · lol · someone
+
+#### town road steps
+
+*Needs:* a:in_town
+
+*About:* town, complaints  ·  *Leads to:* town, building, complaints
+
+1. **a**: these roads go up and down a lot · the steps on the road are steep · our roads need work · the road up the hill is a climb
+2. **b**: better than no roads · take the stairs · good exercise · true · we should fix them
+3. **a** (50%): i guess · lol · someday · yeah
+
+#### town quiet day talk
+
+*Needs:* a:in_town, day
+
+*About:* town, day, feelings  ·  *Leads to:* town, feelings, random
+
+1. **a**: quiet day in town · nothing happening today · peaceful around here today · everyone's busy today
+2. **b**: nice for once · enjoy it · i like quiet · too quiet · calm before the storm
+3. **a** (50%): yeah · lol · for real · mhm
+
+#### town lamps
+
+*Needs:* a:in_town
+
+*About:* town, night  ·  *Leads to:* town, night, building
+
+1. **a**: the lamp posts make the town look nice at night · glad the roads are lit · town looks good with the lamps on
+2. **b**: keeps the mobs out · agreed · nice · very cozy · true
+3. **a** (50%): yeah · mhm · exactly
+
+#### chest labels talk
+
+*Needs:* a:has_house
+
+*About:* storage, home, brag  ·  *Leads to:* storage, home, decor
+
+1. **a**: put signs on all my chests · labelled my chests finally · my chests have signs now, so organised · every chest of mine says what's in it
+2. **b**: organised · nice · i should do that · show off · item frames are better
+3. **a** (50%): took a while · lol · you should · never lose anything now
+
+#### cozy house
+
+*Needs:* a:has_house
+
+*About:* home, feelings  ·  *Leads to:* home, decor, feelings
+
+1. **a**: my house finally feels like home · love coming home at night · my bed, my chests, my house, perfect · nothing beats your own house
+2. **b**: home sweet home · agreed · that's the dream · cozy · nice
+3. **a** (50%): mhm · yeah · took a while · lol
+
+#### house too small
+
+*Needs:* a:has_house
+
+*About:* home, complaints  ·  *Leads to:* home, building, storage
+
+1. **a**: my house is too small already · running out of room for chests · need an extension · no room left in my house
+2. **b**: build a wing · dig a basement · more chests · build up · that's a good problem
+3. **a** (50%): maybe · good idea · lol · true
+
+#### hut to house talk
+
+*Needs:* a:has_house
+
+*About:* home, building, brag  ·  *Leads to:* home, building, plans
+
+1. **a**: moved out of my little hut · finally done with the hut · upgraded from a hut to a real house
+2. **b**: congrats · big step · nice · the hut served you well · about time
+3. **a** (50%): thanks · lol · yeah · rip hut
+
+#### no house yet
+
+*Needs:* a:no_home
+
+*About:* home, complaints  ·  *Leads to:* home, building, plans
+
+1. **a**: still don't have a house · i'm basically homeless lol · need to build somewhere · sleeping in a hole again tonight
+2. **b**: build one · you'll get there · come stay in town · a hole is a house · rough
+3. **a** (50%): one day · lol · maybe · yeah
+
+#### stairs inside
+
+*Needs:* a:has_house
+
+*About:* building, home  ·  *Leads to:* building, home
+
+1. **a**: my stairs go right through the middle of my house · stairs take up so much room · upstairs is my favourite room
+2. **b**: ladders save space · stairs are nicer · classic · true · two floors is nice though
+3. **a** (50%): yeah · maybe · lol · true
+
+#### long day
+
+*Needs:* evening
+
+*About:* feelings, day  ·  *Leads to:* feelings, random
+
+1. **a**: long day · today was a lot · so much walking today · my legs hurt lol
+2. **b**: same · rest up · you earned it · same here · tomorrow's another day
+3. **a** (40%): yeah · mhm · lol · true
+
+#### good morning plans
+
+*Needs:* morning
+
+*About:* plans, day  ·  *Leads to:* plans, mining, building
+
+1. **a**: what's the plan today? · busy day ahead? · got anything planned today?
+2. **b**: mining · building · farm stuff · nothing · no idea · whatever comes up
+3. **a** (60%): nice · same · fair · sounds good
+
+#### lost track of time
+
+*Needs:* evening
+
+*About:* random, jokes  ·  *Leads to:* random, night
+
+1. **a**: lost track of time again · didn't notice it got dark · how is it night already
+2. **b**: happens · lol · time flies · classic · every time
+3. **a** (40%): yeah · lol · rip
+
+#### forgot tool
+
+*Needs:* any time
+
+*About:* tools, jokes  ·  *Leads to:* tools, complaints
+
+1. **a**: walked all the way out and forgot my pickaxe · left my axe at home · forgot my sword, great
+2. **b**: lol · classic · happens to everyone · make another · rookie
+3. **a** (50%): ugh · lol · yeah · never again
+
+#### full inventory
+
+*Needs:* any time
+
+*About:* storage, complaints  ·  *Leads to:* storage, home
+
+1. **a**: inventory full again · no room for anything · why do i carry so much dirt · full of junk again
+2. **b**: throw out the dirt · go home and sort · need more chests · same every time · toss the seeds
+3. **a** (50%): yeah · never · lol · on it
+
+#### seen a sheep
+
+*Needs:* any time
+
+*About:* animals, decor  ·  *Leads to:* animals, decor, farming
+
+1. **a**: need wool, seen any sheep? · looking for sheep for wool · anyone got a sheep farm?
+2. **b**: there's some by the river · no · check the hills · i have a few · nope
+3. **a** (60%): thanks · ok · i'll look · hm
+
+#### compliment house
+
+*Needs:* friends, b:has_house
+
+*About:* friends, home, building  ·  *Leads to:* friends, building, decor
+
+1. **a**: your house looks great · love what you did with your house · nice place you've got
+2. **b**: thanks · aw thanks · took me ages · appreciate it · yours is nice too
+3. **a** (40%): for real · mhm · lol · no problem
+
+#### housewarming
+
+*Needs:* friends, b:has_house
+
+*About:* friends, home, jokes  ·  *Leads to:* friends, home, decor
+
+1. **a**: when's the housewarming? · do i get a tour of the house? · i'm coming over to see the new place
+2. **b**: anytime · bring wool · lol sure · wipe your feet · it's not done yet
+3. **a** (60%): lol · deal · ok · can't wait
+
+#### cobble everywhere
+
+*Needs:* any time
+
+*About:* building, opinion  ·  *Leads to:* building, mining
+
+1. **a**: i have way too much cobblestone · cobble everywhere in my chests · drowning in cobblestone
+2. **b**: build something · stone bricks · smelt it · make a wall · same
+3. **a** (50%): good idea · maybe · lol · ok
+
+#### debate stone or wood
+
+*Needs:* any time
+
+*About:* building, argument  ·  *Leads to:* building, danger, argument
+
+1. **a**: stone houses are better, no fires · wood houses burn too easily · stone is the way to build
+2. **b** (50%) *(marks agree)*: true · fair · stone gang · yeah
+3. **b** if !t:agree *(marks disagree)*: wood looks better · nah, wood is cozy · just don't light fires · stone is ugly
+4. **a** (60%) if t:agree: see · exactly · lol
+5. **a** if t:disagree: fair · each their own · ok
+
+#### debate carpet or slab
+
+*Needs:* any time
+
+*About:* decor, argument  ·  *Leads to:* decor, building, argument
+
+1. **a**: carpet beats slabs for floors · carpet is the best floor · rugs over bare floor any day
+2. **b** (50%) *(marks agree)*: agreed · true · yeah · cozy
+3. **b** if !t:agree *(marks disagree)*: slabs are cleaner · nah · bare wood is nice · carpet burns
+4. **a** (60%) if t:agree: see · lol · cozy wins
+5. **a** if t:disagree: fair · ok · each their own
+
+#### debate two floors
+
+*Needs:* any time
+
+*About:* building, home, argument  ·  *Leads to:* building, home, argument
+
+1. **a**: two floors is the minimum · every house needs an upstairs · one floor houses are too small
+2. **b** (50%) *(marks agree)*: true · agreed · yeah · upstairs is nice
+3. **b** if !t:agree *(marks disagree)*: one floor is fine · nah, stairs are annoying · big one floor house is better
+4. **a** (60%) if t:agree: exactly · see · lol
+5. **a** if t:disagree: fair · ok · suit yourself
 
 #### dream last night
 
@@ -7525,7 +7935,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): feelings (70), town (63), argument (57), danger (52), building (50), jokes (50), mobs (50), friends (42), exploring (38), plans (36), mining (35), complaints (34), home (33), gear (27), brag (26), memories (26), animals (25), night (25), story_part (25), stories (24), trade (23), fighting (22), day (21), weather (21), decor (20), food (19), gossip (19), random (19), caves (18), places (18), tools (18), nether (17), politics (17), villagers (16), end (15), philosophy (15), players (15), structures (15), biomes (14), crafting (14), ore (14), storage (14), ocean (13), death (12), enchanting (12), nation (11), redstone (11), advice (10), farming (10), sleep (10), boredom (9), diamonds (9), health (9), help (9), pets (9), plants (9), weapons (9), armor (7), dreams (7), potions (7), sky (7), trees (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), word (1)
+**Tags in use** (topics about each): feelings (73), town (70), building (65), argument (62), jokes (55), danger (53), mobs (50), home (46), friends (44), complaints (42), exploring (38), plans (38), mining (36), brag (30), decor (27), gear (27), animals (26), memories (26), night (26), story_part (25), day (24), stories (24), trade (23), fighting (22), gossip (21), weather (21), random (20), food (19), tools (19), caves (18), places (18), nether (17), politics (17), storage (17), biomes (16), philosophy (16), villagers (16), crafting (15), end (15), players (15), structures (15), ore (14), ocean (13), death (12), enchanting (12), nation (11), redstone (11), advice (10), farming (10), sleep (10), boredom (9), diamonds (9), health (9), help (9), pets (9), plants (9), weapons (9), dreams (8), trees (8), armor (7), potions (7), sky (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), opinion (3), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), trust (1), word (1)
 
 #### `talk.segue.linked`
 

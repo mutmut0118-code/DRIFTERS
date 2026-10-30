@@ -17,6 +17,8 @@ public final class FurnaceJob {
 	public final Item output;
 	public int count;
 	public long readyAt;
+	/** Trips back to it that failed (not saved): after a few it gives the furnace up. */
+	public int failedTrips;
 
 	public FurnaceJob(BlockPos furnace, Item output, int count, long readyAt) {
 		this.furnace = furnace.immutable();
