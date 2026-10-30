@@ -1538,6 +1538,21 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       little way off and `/drifter goto me`. It walks up the slab-edged slopes without hopping at every half step, and
       where a slab sits at the foot of a two-block rise it goes round to a way up instead of jumping at it again and again.
       New towns on slab-covered land have no slabs left sticking up on their roads or round their houses.
+- [ ] Natural ground in towns (0.23.16; your pictures): make a new world (old towns keep their old ground), or fly to land
+      nobody has been near, and look at new towns, hill towns most of all (`/drifterciv locate town`):
+      - Round houses and fields the ground slopes gently, its edges wandering, with Terrain Slabs' slabs on its steps like
+        the land round it: no square rings of steps, no grey stone terraces, no quarry dug into a hill.
+      - Retaining walls are short: three blocks or so at most. On a very steep hill there are fewer houses instead.
+      - No lava showing anywhere in a town, no cliff of dirt standing straight up out of a river, no deep slots one or two
+        blocks wide between walls in a hill town.
+      - Each house's path starts at its door, whichever side that's on, and finds its way round the other houses to the
+        nearest road, the plaza or another path. No path runs up to a wall or through a house.
+      - In a hamlet (the smallest towns, dirt roads), roads and paths climb with path slabs, never stairs.
+      - Stand where a new town is being made: no seeds or flowers left lying on the ground after it, and less lag while
+        it's made.
+- [ ] Roads between towns (0.23.16): follow one over hilly land. It's cut into hills as well as built up over dips, with
+      gentle slopes beside it (no narrow ridge of dirt), climbs with path slabs only (no cobblestone stairs), and goes
+      straight through a ruined portal in its way (the ruin's blocks cleared off the road) instead of climbing over it.
 
 ## Beds in town houses (new, 0.22.34)
 

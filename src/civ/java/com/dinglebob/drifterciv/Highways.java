@@ -90,7 +90,13 @@ final class Highways {
 					continue;
 				}
 
+				long started = System.nanoTime();
 				build(level, road, p, a, b);
+				long ms = (System.nanoTime() - started) / 1_000_000L;
+				if (ms > 50) {
+					DrifterCivilizations.LOGGER.info("[road] a stretch at {}, {} took {} ms", mid[0], mid[1], ms);
+				}
+
 				road.built[p] = true;
 				level.getChunkSource().removeRegionTicket(TICKET, chunk, LOAD_RADIUS, chunk);
 				loading.remove(key);
