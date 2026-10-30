@@ -32,3 +32,20 @@ plans stay exactly as they were in old worlds. Don't add these to those twelve: 
   wing's twin out of the front, the front door in its gable end)
 A house begun from a plan keeps it even when new styles change which plans a world makes (GeneratedPlans.again
 makes it again from its name).
+Flat roofs (the user, 2026-10-30: "the same houses but with square roofs instead of actual roofs, because every house
+kind of looks similar"; "remove the hole in the roof and just make it a flat roof"): every style here gets a flat twin
+("cottage_flat", drawn half as often as the style; HouseStyle.flatTwin): the same house, a flat lid level with the walls'
+tops (no parapet, nothing on it), a block out all round; 4 in 10 reach 2 out with wood underneath; half the lids are full
+blocks (planks, or stone where the slab is stone), half slabs. A twin leaves out dormers, a tower, a cross and the door
+in the gable end. A flat-roofed square is drawn again. Roof fields (a style can set them; the twins set the first ones):
+  roofs {"flat": w}   a flat roof
+  parapet [a,b]       0: the plain lid; 1 or 2: a capped parapet that high over a slab deck, the posts carried up
+  cantilever          the chance the lid reaches out further (overhang) with soffit slabs (wood) underneath
+  overhang [a,b]      how far (2 for the twins)
+  lid_full            the chance the lid is full blocks, not slabs
+  deck, cap, soffit   the lid's or deck's slab (default: slab), the parapet's cap (default: deck), the underside's slab
+  viga, vigas         log ends out under a parapet (Pueblo) and their chance
+  ribbon              the chance of windows filling every bay of the upper storeys' long walls
+  roof_stairs         the chance of stairs up through a slab deck to a little stair tower on the roof (the user found it
+                      "a bit too realistic, especially with the things on top": no style uses it now)
+  wing                on two storeys or more: a one-storey wing out of the back with its own flat roof

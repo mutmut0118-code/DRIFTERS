@@ -39,6 +39,43 @@ public final class HouseStyle {
 		return this.id;
 	}
 
+	/** How often a style's flat twin is drawn, against the style itself. */
+	private static final double FLAT_SHARE = 0.5;
+	/** How often a flat twin's lid reaches out 2 or 3 instead of 1. */
+	private static final double OUTWARD = 0.4;
+	/** How often a flat twin's lid is full blocks rather than slabs. */
+	private static final double FULL_LID = 0.5;
+
+	/**
+	 * The same house with a flat roof (the user, 2026-10-30: "the same houses but with square roofs instead of actual roofs,
+	 * because every house kind of looks similar"; and of the first flat styles: "a bit too realistic, especially with the
+	 * things on top"): a deck behind a low capped edge, nothing on it; none of the parts a pitched roof needs (dormers, a
+	 * tower, a cross, the door in a gable end). Null for a style that's flat already.
+	 */
+	@Nullable
+	public HouseStyle flatTwin() {
+		if (this.roofs().containsKey("flat")) {
+			return null;
+		}
+
+		JsonObject json = this.json.deepCopy();
+		JsonObject roofs = new JsonObject();
+		roofs.addProperty("flat", 1);
+		json.add("roofs", roofs);
+		json.addProperty("weight", this.weight() * FLAT_SHARE);
+		// A plain flat lid level with the walls' tops (the user: "remove the hole in the roof"), sometimes reaching further out
+		// with wood underneath ("roofs that go outward").
+		json.addProperty("parapet", 0);
+		json.addProperty("cantilever", OUTWARD);
+		json.addProperty("overhang", 2);
+		json.addProperty("lid_full", FULL_LID);
+		for (String key : new String[] {"gable_front", "tower", "dormers", "chimney", "cross", "roof_stairs", "vigas", "ribbon"}) {
+			json.remove(key);
+		}
+
+		return new HouseStyle(this.id + "_flat", json);
+	}
+
 	public double weight() {
 		return this.num("weight", 1.0);
 	}

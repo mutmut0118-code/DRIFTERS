@@ -75,7 +75,16 @@ public final class GeneratedPlans {
 	}
 
 	private static void load(ResourceManager manager) {
-		styles = read(manager, DIRECTORY);
+		// Each style and its flat-roofed twin ("cottage_flat"), in name order.
+		Map<String, HouseStyle> withTwins = new java.util.TreeMap<>(read(manager, DIRECTORY));
+		for (HouseStyle style : List.copyOf(withTwins.values())) {
+			HouseStyle twin = style.flatTwin();
+			if (twin != null) {
+				withTwins.putIfAbsent(twin.id(), twin);
+			}
+		}
+
+		styles = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(withTwins));
 		legacyStyles = read(manager, LEGACY_DIRECTORY);
 		stylesVersion++;
 		Drifter.LOGGER.info("Loaded {} Drifter house styles ({} old ones)", styles.size(), legacyStyles.size());
