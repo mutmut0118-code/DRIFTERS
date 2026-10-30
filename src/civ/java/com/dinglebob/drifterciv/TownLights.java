@@ -35,10 +35,11 @@ final class TownLights {
 
 	/**
 	 * Lights the area; {@code houses}: their boxes (indoors); {@code town}: the town's own ground outdoors (not the woods
-	 * round it); {@code noLamp}: columns a lamp post mustn't stand in. Lamp posts and torches added.
+	 * round it); {@code noLamp}: columns a lamp post mustn't stand in; {@code lamps}: puts a lamp post up standing at a spot, and
+	 * says where its light is (null: none fits). Lamp posts and torches added.
 	 */
 	static int[] light(ServerLevel level, BoundingBox area, List<BoundingBox> houses, BiPredicate<Integer, Integer> town,
-		BiPredicate<Integer, Integer> noLamp) {
+		BiPredicate<Integer, Integer> noLamp, java.util.function.Function<BlockPos, BlockPos> lampPosts) {
 		Light light = new Light(level, area);
 		light.spreadAll();
 		int lamps = 0;
@@ -54,9 +55,9 @@ final class TownLights {
 
 				if (!underHouse && town.test(x, z) && area.isInside(outdoors) && spawnable(level, outdoors) && light.at(outdoors) < ENOUGH) {
 					BlockPos lamp = lampSpot(level, outdoors, noLamp, houses);
-					if (lamp != null) {
-						lampPost(level, lamp);
-						light.spreadFrom(lamp.above(2), LANTERN);
+					BlockPos lit = lamp == null ? null : lampPosts.apply(lamp);
+					if (lit != null) {
+						light.spreadFrom(lit, Math.max(TORCH, level.getBlockState(lit).getLightEmission()));
 						lamps++;
 					}
 				}
@@ -111,12 +112,6 @@ final class TownLights {
 		}
 
 		return null;
-	}
-
-	private static void lampPost(ServerLevel level, BlockPos pos) {
-		level.setBlock(pos, Blocks.OAK_FENCE.defaultBlockState(), Block.UPDATE_ALL);
-		level.setBlock(pos.above(), Blocks.OAK_FENCE.defaultBlockState(), Block.UPDATE_ALL);
-		level.setBlock(pos.above(2), Blocks.LANTERN.defaultBlockState(), Block.UPDATE_ALL);
 	}
 
 	/** A torch for this dark floor: on a wall beside it at head height (a player's way), else standing on it. Where it went. */

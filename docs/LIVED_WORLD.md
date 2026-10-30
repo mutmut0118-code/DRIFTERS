@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Planned (2026-10-30); next W1 + W2 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11); next Terrain Slabs compatibility, then W3 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -368,12 +368,10 @@ land, a history of wars, alliances and fallen towns behind it, and wild land pas
 
 ### W1. Roads and paths that look made (decided: "by size")
 
-- **Cities:** streets of stone bricks and cobblestone (some mossy and cracked), stone brick slabs and stairs where they
-  climb.
-- **Towns:** gravel, path and cobblestone mixed, as a road a town's people laid and walk; cobblestone slabs and stairs on
-  climbs.
-- **Hamlets, door paths in small places, and highways between towns:** worn dirt path, coarse dirt and gravel; slabs
-  (cobblestone, or the town's wood) where they climb.
+- **One material a settlement** (the user, 2026-10-30: "when the roads are mixed, it should be of the same type"):
+  **cities** stone bricks (some cracked and mossy), **towns** planks of the town's wood, **hamlets** dirt path; slabs of
+  the same where they climb (Terrain Slabs' path slab for dirt path, if installed). Highways between towns (W5): worn
+  dirt path.
 - **Climbs:** never a one-block step of dirt: a slab between two levels, stairs where it's steeper, the road's sides
   built up or cut back to match (no ledge beside a stair). A climb too steep for that winds instead (W2, W5).
 - **Bridges:** planks with fence or wall railings and log or stone piers, by the town's or road's style; long ones arched
@@ -942,3 +940,31 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     fix), no step over 136 ms; and vanilla: one of each shape, a ruin, a town of 3. Maps in the session.
   - Next: back to phase B (shearing and the shepherd, B4 prices, B5 services).
 - 2026-10-30: phase W planned (4b; decisions 13 to 17): the civilized world, roads by size, terrain shaped to fit, more shapes, a history already written; settings for how many nations and how spread out. Order: W1 + W2, W3, W4 + W5, W6 + W7, then back to phase B.
+- **0.23.11: W1 and W2, roads that look made and ground shaped to fit.**
+  - Roads and door paths one material a settlement (the user: "when the roads are mixed, it should be of the same type, like
+    stone texturing for cities, and planks for towns, just path blocks for hamlets"): a city's stone bricks (some cracked,
+    some mossy; smooth and cut sandstone in the desert), a town's planks of its own wood, a hamlet's dirt path. Where a
+    road or path climbs, a slab on the lower step (stone brick, the town's wood, or Terrain Slabs' path slab in a hamlet
+    when it's installed): half a block and half again, never a block-high step. A door path's first block level with the
+    door's floor (a step up right outside a door had no room over it, under the wall: found by the walk check, a store).
+    Bridges: plank decks with fence railings either side, on log piers every few blocks.
+  - Lamps from villages (the user: "lets steal the lamp builds from villages"): road lamps, plaza corners and the lamps
+    for dark corners are the game's own village lamp posts by the town's style (plains, desert, savanna, taiga, the three
+    snowy ones), read from its structure files with their jigsaw blocks swapped as a village does; the fence and lantern
+    where one doesn't fit. Taiga village street bits (the user: "add the taiga decorations too"): a campfire, hay with a
+    campfire, log seats, a garden box, in a third of front yards and on the plaza, in the town's wood (sandstone for
+    cobblestone in the desert). `VillageBits`.
+  - The ground plan (`GroundPlan`): the houses' spots are chosen first, then the town's ground is shaped once for all of
+    it, a piece a step, then everything put up on it. Every column gets one height: the plaza, the store, the fields and
+    each house at their own (a ring a block wide round each at that height), the land falling or rising a block every two
+    from there till it meets the land as it was (gentle banks: a block a step looked like pits round the fields in the
+    first pictures); its roads at the grades they're laid at, with shoulders and banks. Where two ask for more than banks
+    give, the nearer wins and a retaining wall stands between (cobblestone, mossy cobblestone, stone; sandstone in the
+    desert), grass on top. Filled ground gets the land's own layers (its top block, dirt, sandstone under sand, rock under
+    rock), cut earth its top block again; trees on moved ground felled whole; water never filled. No more boxes cut into
+    hills (each part used to flatten its own patch and ease ten blocks round it at most).
+  - Tested headless on the user's Tectonic (seed 779, Terrain Slabs in too): a winding hamlet on a hillside, a main street
+    town, a crossroads hamlet, every place walked to, no step over 50 ms but a household; pictures in the client: plank
+    streets, dirt path with path slabs climbing a terraced hillside, village lamps, a log seat on the plaza.
+  - Next: Terrain Slabs across the whole mod (the user: "this whole mod needs to be compatible with countered terrain
+    slabs"), then W3 (river, harbour, hill, ring and grid shapes).

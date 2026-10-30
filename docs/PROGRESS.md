@@ -3899,3 +3899,31 @@ road up a cliff; "okay so how can we fix this in the roads").
   owner's list to take down), 2 after the away period (an owner off mining); 18 blocks taken down in one run. Blocks out
   past the town (mine entrances, exploring, Drifters passing through) stay, as a player's would.
 - Not tested: the cliff stair road in the user's screenshot (no such road in the test towns).
+- **0.23.11: W1 and W2, roads that look made and ground shaped to fit.**
+  - Roads and door paths one material a settlement (the user: "when the roads are mixed, it should be of the same type, like
+    stone texturing for cities, and planks for towns, just path blocks for hamlets"): a city's stone bricks (some cracked,
+    some mossy; smooth and cut sandstone in the desert), a town's planks of its own wood, a hamlet's dirt path. Where a
+    road or path climbs, a slab on the lower step (stone brick, the town's wood, or Terrain Slabs' path slab in a hamlet
+    when it's installed): half a block and half again, never a block-high step. A door path's first block level with the
+    door's floor (a step up right outside a door had no room over it, under the wall: found by the walk check, a store).
+    Bridges: plank decks with fence railings either side, on log piers every few blocks.
+  - Lamps from villages (the user: "lets steal the lamp builds from villages"): road lamps, plaza corners and the lamps
+    for dark corners are the game's own village lamp posts by the town's style (plains, desert, savanna, taiga, the three
+    snowy ones), read from its structure files with their jigsaw blocks swapped as a village does; the fence and lantern
+    where one doesn't fit. Taiga village street bits (the user: "add the taiga decorations too"): a campfire, hay with a
+    campfire, log seats, a garden box, in a third of front yards and on the plaza, in the town's wood (sandstone for
+    cobblestone in the desert). `VillageBits`.
+  - The ground plan (`GroundPlan`): the houses' spots are chosen first, then the town's ground is shaped once for all of
+    it, a piece a step, then everything put up on it. Every column gets one height: the plaza, the store, the fields and
+    each house at their own (a ring a block wide round each at that height), the land falling or rising a block every two
+    from there till it meets the land as it was (gentle banks: a block a step looked like pits round the fields in the
+    first pictures); its roads at the grades they're laid at, with shoulders and banks. Where two ask for more than banks
+    give, the nearer wins and a retaining wall stands between (cobblestone, mossy cobblestone, stone; sandstone in the
+    desert), grass on top. Filled ground gets the land's own layers (its top block, dirt, sandstone under sand, rock under
+    rock), cut earth its top block again; trees on moved ground felled whole; water never filled. No more boxes cut into
+    hills (each part used to flatten its own patch and ease ten blocks round it at most).
+  - Tested headless on the user's Tectonic (seed 779, Terrain Slabs in too): a winding hamlet on a hillside, a main street
+    town, a crossroads hamlet, every place walked to, no step over 50 ms but a household; pictures in the client: plank
+    streets, dirt path with path slabs climbing a terraced hillside, village lamps, a log seat on the plaza.
+  - Next: Terrain Slabs across the whole mod (the user: "this whole mod needs to be compatible with countered terrain
+    slabs"), then W3 (river, harbour, hill, ring and grid shapes).
