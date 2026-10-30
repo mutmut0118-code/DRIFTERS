@@ -1520,6 +1520,12 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Lamps (0.23.12): in a new town, lamp posts stand along the roads and beside door paths, not alone in the grass
       and never on a roof (look at the store); dark corners have torches on walls, lanterns on the pen's fence posts or a
       torch in the ground. At night nothing spawns inside the town.
+- [ ] Shapes by the land (0.23.13): make towns with `/drifterciv town spawn 10 <name>` (shape left to the land:
+      `/drifterciv town shape any`) somewhere 10 to 40 blocks from a river (`/locate biome minecraft:river`), near the
+      sea (`/locate biome minecraft:beach`, then a little inland) and on a hill. `/drifterciv town` says the shape it took:
+      river (a bridge from the plaza over the river, roads along both banks, a dock), harbour (a road down to the shore, a
+      waterfront road, piers with lanterns and a boat), hill (roads round the hill, terraces, a lookout tower you can climb).
+      Force the others with `/drifterciv town shape ring` and `grid`. Walk over the bridges: no wall at either end, no gap.
 - [ ] Terrain Slabs (0.23.12): with Terrain Slabs installed, Drifters dig, camp and build on slab-covered hillsides as
       on any ground (before, every slab looked like a player's build to them).
 

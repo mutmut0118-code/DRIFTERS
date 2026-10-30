@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11); next Terrain Slabs compatibility, then W3 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13); next W4 + W5 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -985,3 +985,37 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     player's build (no digging through it, no camps or homes on it, encounters not spawning there). The slabs it
     generates (marked `generated`) are natural ground now (`NavView.naturalSlab`); ones a player puts down are still
     built. The rest of the compatibility check is still to do.
+- **0.23.13: W3, more shapes, picked by the land** (the user: "add a river town shape too and more shapes"; picked: river,
+  harbour, hill, ring, grid).
+  - The land round the plaza looked over first (`survey`, every fourth block 80 out, and sixteen ways out from the plaza):
+    a river (water 6 to 40 blocks across with land past it, within 56: the nearest water alone was once a stream, with
+    the sea further off another way), a shore (water with no land past it, within 80), a hill (14 blocks or more between
+    the highest and lowest ground within 48). A river makes a **river town**, a shore a **harbour**, a hill a **hill
+    town**; elsewhere a town's shape by chance (crossroads 25%, main street 30%, winding 20%, ring 15%, grid 10%); a
+    hamlet a main street (or a river or harbour hamlet by the water); a city a grid with crossroads out of it.
+  - **River town:** a road from the plaza straight across the river by a bridge (up to 40 blocks of water), roads along both
+    banks from its ends keeping off the water, a road away from the river, a dock or two from the banks.
+  - **Harbour:** a road from the plaza down to the shore, a waterfront road along it both ways, roads inland, and piers
+    every so often (planks a block over the water, three wide with railings, log piles, a lantern at the end, a boat tied
+    up).
+  - **Hill town:** its roads leave the plaza round the hill both ways and down it, following the contours (they climb
+    least that way); houses on terraces (W2); a lookout on the highest free ground near the plaza (a little tower of logs
+    and planks, a ladder up to a railed floor, lanterns on its corners).
+  - **Ring town:** a ring road round the plaza (24 out, a city's 40, wavering a little; kept whole when roads are cut back),
+    four spokes out through it, lanes off any road.
+  - **Grid:** straight streets every 24 blocks round the plaza (a town's 30 out, a city's 72), with the four bending roads
+    out beyond.
+  - Bridges carry the road at its own height: a deck at least a block over the water on log piers, ramping down to the
+    banks, railings both sides (at the water's own level, a bridge from a plaza on a high bank stopped at a wall). Roads
+    leave the plaza level with it. Door paths: their first two blocks level with the door's floor (a slab right outside a
+    door was a step up under the wall). Fields, the store and the pen never on water; the pen on level ground (on a
+    hillside it ran down a staircase of cut rock). `/drifterciv town shape <...>` takes the new shapes too.
+  - Tested headless on the user's Tectonic (seed 779; spots found with `/locate biome`): towns by a river (twice), by the
+    sea, on a hill (twice), the river, harbour and hill shapes picked by the land; a ring town and a grid town (set): every house, the
+    store, the stall and every field walked to in all of them; half a day in a river town of 16 people (none died;
+    a few blocks put down near the plaza: a pillar up a retaining wall by the river,
+    trees climbed for logs). Pictures in the client.
+  - Not yet: two bridges in a big river town, a market by the water in a harbour, the fisher using the dock; lots of
+    lamps still in a hill town (its terraces hold the light in); Drifters' own walking takes a slab for a full block (a
+    step up needing a jump: Terrain Slabs compatibility, still to do).
+  - Next: W4 + W5 (the world plan: nations, capitals and their towns; the roads and highways between them).

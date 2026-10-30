@@ -408,7 +408,7 @@ public final class DrifterCivilizations implements ModInitializer {
 						return 0;
 					}
 				}))
-				// Debug: the shape every town made from now on has (crossroads, main_street, winding), or "any" (each its own).
+				// Debug: the shape every town made from now on has (crossroads, main_street, winding, river, harbour, hill, ring, grid), or "any" (each its own).
 				.then(Commands.literal("shape").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("shape", com.mojang.brigadier.arguments.StringArgumentType.word())
 						.suggests((ctx, builder) -> {
@@ -422,7 +422,7 @@ public final class DrifterCivilizations implements ModInitializer {
 							String id = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "shape");
 							TownBuilder.Shape shape = TownBuilder.Shape.byId(id);
 							if (shape == null && !id.equals("any")) {
-								ctx.getSource().sendFailure(Component.literal("No such shape: crossroads, main_street, winding or any"));
+								ctx.getSource().sendFailure(Component.literal("No such shape: crossroads, main_street, winding, river, harbour, hill, ring, grid or any"));
 								return 0;
 							}
 
