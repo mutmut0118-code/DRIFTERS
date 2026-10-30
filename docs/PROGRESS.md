@@ -3928,6 +3928,52 @@ of slabs, while still keeping the slabs". So, as built:
 - Found in testing: a beam across the top storey closed the hole over stairs up to a roof; a door can't stand on a bottom
   slab. Both fixed (the stair tower isn't used now). Also: `run/server.properties` had been left pointing at an old
   world folder (`deserttest`), so several runs reused one world; it's back to `world`.
+- **0.23.11: W1 and W2, roads that look made and ground shaped to fit.**
+  - Roads and door paths one material a settlement (the user: "when the roads are mixed, it should be of the same type, like
+    stone texturing for cities, and planks for towns, just path blocks for hamlets"): a city's stone bricks (some cracked,
+    some mossy; smooth and cut sandstone in the desert), a town's planks of its own wood, a hamlet's dirt path. Where a
+    road or path climbs one step, a slab on the lower (stone brick, the town's wood, or Terrain Slabs' path slab in a
+    hamlet when it's installed); where it climbs on, a block every block, stairs (stone brick, the town's wood): slabs on
+    every step of a climb still left a block between them (found by the walk check, a city's store). Never a block-high
+    step of earth. A door path's first block level with the
+    door's floor (a step up right outside a door had no room over it, under the wall: found by the walk check, a store).
+    Bridges: plank decks with fence railings either side, on log piers every few blocks.
+  - Lamps from villages (the user: "lets steal the lamp builds from villages"): road lamps, plaza corners and the lamps
+    for dark corners are the game's own village lamp posts by the town's style (plains, desert, savanna, taiga, the three
+    snowy ones), read from its structure files with their jigsaw blocks swapped as a village does; the fence and lantern
+    where one doesn't fit. Taiga village street bits (the user: "add the taiga decorations too"): a campfire, hay with a
+    campfire, log seats, a garden box, in a third of front yards and on the plaza, in the town's wood (sandstone for
+    cobblestone in the desert). `VillageBits`.
+  - The ground plan (`GroundPlan`): the houses' spots are chosen first, then the town's ground is shaped once for all of
+    it, a piece a step, then everything put up on it. Every column gets one height: the plaza, the store, the fields and
+    each house at their own (a ring a block wide round each at that height), the land falling or rising a block every two
+    from there till it meets the land as it was (gentle banks: a block a step looked like pits round the fields in the
+    first pictures); its roads at the grades they're laid at, with shoulders and banks. Where two ask for more than banks
+    give, the nearer wins and a retaining wall stands between (cobblestone, mossy cobblestone, stone; sandstone in the
+    desert), grass on top. Filled ground gets the land's own layers (its top block, dirt, sandstone under sand, rock under
+    rock), cut earth its top block again; trees on moved ground felled whole; water never filled. No more boxes cut into
+    hills (each part used to flatten its own patch and ease ten blocks round it at most).
+  - Tested headless on the user's Tectonic (seed 779, Terrain Slabs in too): a winding hamlet on a hillside, a main street
+    town, a crossroads hamlet, a city of 57 houses, every place walked to, no step over 50 ms but a household and the
+    city's walk check; pictures in the client: plank
+    streets, dirt path with path slabs climbing a terraced hillside, village lamps, a log seat on the plaza.
+  - Next: Terrain Slabs across the whole mod (the user: "this whole mod needs to be compatible with countered terrain
+    slabs"), then W3 (river, harbour, hill, ring and grid shapes).
+- **0.23.12: lamps that make sense, and Terrain Slabs' natural slabs.**
+  - Lamps (the user: "there is always a lamp on top of a building, specifically the shared chest one", "too many,
+    scattered", "make it make sense"): lamp posts first where a player puts them, one beside each door path where it
+    meets its road and along each road every twelve blocks, sides in turn, none within six of another; then each dark
+    spot lit the way a player lights a town: a lamp post beside the nearest road or path (the darkest spot there, not the
+    edge of the dark), else a torch on the nearest wall, else a lantern on a fence post (the pen, a bridge), else a torch
+    in the ground; never a lamp post on its own in the grass. Lamp posts stand only on the ground, never a roof; the store
+    and the stall count as buildings (the store had a lamp on its roof). A hamlet: about 25 posts and 25 torches, where it
+    had about 50 posts.
+  - Terrain Slabs (the user: "this whole mod needs to be compatible with countered terrain slabs"): its slabs are in the
+    game's slab tag, and Drifters took every slab for something built, so every hillside with its slabs looked like a
+    player's build (no digging through it, no camps or homes on it, encounters not spawning there). The slabs it
+    generates (marked `generated`) are natural ground now (`NavView.naturalSlab`); ones a player puts down are still
+    built. The rest of the compatibility check is still to do.
+
 
 ### Side session: pillars left by trees (0.23.10-side.2)
 
@@ -3948,7 +3994,7 @@ trunk for logs out of reach).
   spruces planted) had few tree pillars; one left 3 blocks after the get-down (fixed above). The user's pillars may also
   be too tall to reach the top of from the ground (the tidy goes top first); to watch.
 
-### Side session: desert houses, decorating, fixes, chat (0.23.10-side.3)
+### Side session: desert houses, decorating, fixes, chat (0.23.12-side.1)
 
 The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
 - **Desert houses get built.** Two causes: (1) `HousePalette.chooseStones` took a local stone only with enough of it

@@ -1510,6 +1510,18 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       the store, fields and pen near the plaza but off the roads, the store's door facing a road; no road running on
       into the wild past the last house; every door reachable on foot. `/drifterciv town` says the shape.
       `/drifterciv town map` saves a picture of the town from above into the instance's `town-maps` folder.
+- [ ] Roads and ground (0.23.11): in a new world make a town (`/drifterciv town spawn 10 Planky`), a hamlet
+      (`/drifterciv town spawn 4 Dirty`) and a city (`/drifterciv town city 40`), on hilly ground if you can. Look for:
+      a town's roads and door paths all planks of its wood, a hamlet's all dirt path, a city's stone bricks; a slab
+      where a road or path climbs one step, stairs where it climbs on (no block-high steps, no jumping needed); bridges with railings; village lamp posts in the town's
+      style; now and then a campfire, hay or log seats in a front yard or on the plaza. On a slope: the land round the
+      plaza, fields and houses eased in gentle banks, low cobblestone retaining walls where one level meets another,
+      no boxes cut into hills, no dirt cliffs. Every door reachable on foot.
+- [ ] Lamps (0.23.12): in a new town, lamp posts stand along the roads and beside door paths, not alone in the grass
+      and never on a roof (look at the store); dark corners have torches on walls, lanterns on the pen's fence posts or a
+      torch in the ground. At night nothing spawns inside the town.
+- [ ] Terrain Slabs (0.23.12): with Terrain Slabs installed, Drifters dig, camp and build on slab-covered hillsides as
+      on any ground (before, every slab looked like a player's build to them).
 
 ## Beds in town houses (new, 0.22.34)
 
@@ -2576,7 +2588,9 @@ leaves, and a Drifter that gets stuck up a pillar digs all the way down it inste
 - [ ] If you see a new one: stand by it and type `/drifter cobblescan 30`. In the log, `S:<name>` after a block says whose
       it is; tell me the name and whether it was up under the leaves.
 
-## Side session: desert houses, decorating, fixes, chat (new, 0.23.10-side.3)
+Installed as 0.23.12-side.1: also has the other session's 0.23.11-0.23.12 (their checks are in their own sections above).
+
+## Side session: desert houses, decorating, fixes, chat (new, 0.23.12-side.1)
 
 - [ ] Desert houses: a Drifter living in a desert builds its house in sandstone (red sandstone in the badlands) and gets
       it built, instead of stopping early for days. Its furnace stays at home, not at the bottom of a hole in the sand.
