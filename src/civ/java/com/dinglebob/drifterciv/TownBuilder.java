@@ -1604,18 +1604,72 @@ public final class TownBuilder {
 			}
 		}
 
+		/**
+		 * Lamps where a player would put them (the user: "make it make sense"): one beside each door path where it meets its
+		 * road, then along each road every twelve blocks, sides in turn, none within six of another.
+		 */
 		private void roadLamps() {
-			for (Road road : this.roads) {
-				for (int t = 8; t < road.length(); t += 12) {
-					double way = road.heading(t) + ((t / 12) % 2 == 0 ? Math.PI / 2 : -Math.PI / 2);
-					int x = Mth.floor(road.xs[t] + Math.cos(way) * 2.2);
-					int z = Mth.floor(road.zs[t] + Math.sin(way) * 2.2);
-					long column = BlockPos.asLong(x, 0, z);
-					if (!this.roadCells.contains(column) && !this.pathCells.contains(column) && this.built.stream().noneMatch(rect -> rect.away(x, z) <= 1)) {
-						this.lampAt(onGround(this.level, x, z));
+			for (List<Long> path : this.doorPaths) {
+				if (path.size() < 3) {
+					continue;
+				}
+
+				// (The path's last block before the road, and a block to one side of it.)
+				long last = path.get(path.size() - 2);
+				long before = path.get(path.size() - 3);
+				int dx = BlockPos.getX(last) - BlockPos.getX(before);
+				int dz = BlockPos.getZ(last) - BlockPos.getZ(before);
+				for (int side = -1; side <= 1; side += 2) {
+					if (this.wayLamp(BlockPos.getX(last) - dz * side, BlockPos.getZ(last) + dx * side)) {
+						break;
 					}
 				}
 			}
+
+			for (Road road : this.roads) {
+				for (int t = 8; t < road.length(); t += 12) {
+					double way = road.heading(t) + ((t / 12) % 2 == 0 ? Math.PI / 2 : -Math.PI / 2);
+					this.wayLamp(Mth.floor(road.xs[t] + Math.cos(way) * 2.2), Mth.floor(road.zs[t] + Math.sin(way) * 2.2));
+				}
+			}
+		}
+
+		/** A lamp by a road or path here, if it's free ground off them and the buildings, and no lamp's within six. */
+		private boolean wayLamp(int x, int z) {
+			long column = BlockPos.asLong(x, 0, z);
+			if (this.roadCells.contains(column) || this.pathCells.contains(column) || this.built.stream().anyMatch(rect -> rect.away(x, z) <= 1)
+				|| this.wayLamps.stream().anyMatch(lamp -> Math.abs(BlockPos.getX(lamp) - x) + Math.abs(BlockPos.getZ(lamp) - z) < 6)) {
+				return false;
+			}
+
+			if (this.lampAt(onGround(this.level, x, z)) == null) {
+				return false;
+			}
+
+			this.wayLamps.add(column);
+			return true;
+		}
+
+		/** Each door path's columns, door out; the lamps put up by the roads and paths. */
+		private final List<List<Long>> doorPaths = new ArrayList<>();
+		private final List<Long> wayLamps = new ArrayList<>();
+
+		/** Beside one of its roads or paths, or the plaza (within two). */
+		private boolean byWay(int x, int z) {
+			if (this.plaza.away(x, z) <= 2) {
+				return true;
+			}
+
+			for (int dx = -2; dx <= 2; dx++) {
+				for (int dz = -2; dz <= 2; dz++) {
+					long key = BlockPos.asLong(x + dx, 0, z + dz);
+					if (this.roadCells.contains(key) || this.pathCells.contains(key)) {
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		/** A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4); paths
@@ -1627,7 +1681,9 @@ public final class TownBuilder {
 			for (int i = 0; i < this.houses.size(); i++) {
 				var house = this.houses.get(i);
 				if (house.door() != null) {
-					this.pathCells.addAll(path(this.level, house.door(), house.box(), this.plots.get(i).front, road));
+					List<Long> columns = path(this.level, house.door(), house.box(), this.plots.get(i).front, road);
+					this.pathCells.addAll(columns);
+					this.doorPaths.add(columns);
 				}
 			}
 
@@ -2062,10 +2118,18 @@ public final class TownBuilder {
 		private void light(net.minecraft.world.level.levelgen.structure.BoundingBox piece) {
 			List<Rect> noLamp = new ArrayList<>(this.fieldRects);
 			noLamp.add(this.plaza);
-			int[] made = TownLights.light(this.level, piece, this.houses.stream().map(DrifterApi.PlacedHouse::box).toList(),
+			// (The store and the stall are buildings too: their roofs aren't ground; the store had a lamp on its roof.)
+			List<net.minecraft.world.level.levelgen.structure.BoundingBox> buildings = new ArrayList<>(this.houses.stream().map(DrifterApi.PlacedHouse::box)
+				.toList());
+			BlockPos o = this.storeAt;
+			buildings.add(new net.minecraft.world.level.levelgen.structure.BoundingBox(o.getX(), o.getY() - 1, o.getZ(), o.getX() + 8, o.getY() + 5, o.getZ() + 8));
+			BlockPos stall = this.stallAt();
+			buildings.add(new net.minecraft.world.level.levelgen.structure.BoundingBox(stall.getX(), stall.getY() - 1, stall.getZ(), stall.getX() + 4,
+				stall.getY() + 5, stall.getZ() + 3));
+			int[] made = TownLights.light(this.level, piece, buildings,
 				(x, z) -> this.built.stream().anyMatch(rect -> rect.away(x, z) <= TOWN_GROUND) || this.byRoad(x, z),
 				(x, z) -> noLamp.stream().anyMatch(rect -> rect.contains(x, z)) || this.roadCells.contains(BlockPos.asLong(x, 0, z))
-					|| this.pathCells.contains(BlockPos.asLong(x, 0, z)), this::lampAt);
+					|| this.pathCells.contains(BlockPos.asLong(x, 0, z)), this::byWay, this::lampAt);
 			this.lamps += made[0];
 			this.torches += made[1];
 		}

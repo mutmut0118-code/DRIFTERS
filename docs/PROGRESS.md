@@ -3959,3 +3959,17 @@ of slabs, while still keeping the slabs". So, as built:
     streets, dirt path with path slabs climbing a terraced hillside, village lamps, a log seat on the plaza.
   - Next: Terrain Slabs across the whole mod (the user: "this whole mod needs to be compatible with countered terrain
     slabs"), then W3 (river, harbour, hill, ring and grid shapes).
+- **0.23.12: lamps that make sense, and Terrain Slabs' natural slabs.**
+  - Lamps (the user: "there is always a lamp on top of a building, specifically the shared chest one", "too many,
+    scattered", "make it make sense"): lamp posts first where a player puts them, one beside each door path where it
+    meets its road and along each road every twelve blocks, sides in turn, none within six of another; then each dark
+    spot lit the way a player lights a town: a lamp post beside the nearest road or path (the darkest spot there, not the
+    edge of the dark), else a torch on the nearest wall, else a lantern on a fence post (the pen, a bridge), else a torch
+    in the ground; never a lamp post on its own in the grass. Lamp posts stand only on the ground, never a roof; the store
+    and the stall count as buildings (the store had a lamp on its roof). A hamlet: about 25 posts and 25 torches, where it
+    had about 50 posts.
+  - Terrain Slabs (the user: "this whole mod needs to be compatible with countered terrain slabs"): its slabs are in the
+    game's slab tag, and Drifters took every slab for something built, so every hillside with its slabs looked like a
+    player's build (no digging through it, no camps or homes on it, encounters not spawning there). The slabs it
+    generates (marked `generated`) are natural ground now (`NavView.naturalSlab`); ones a player puts down are still
+    built. The rest of the compatibility check is still to do.

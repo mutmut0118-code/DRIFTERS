@@ -7,6 +7,7 @@ import java.util.function.BiPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -35,11 +36,18 @@ final class TownLights {
 
 	/**
 	 * Lights the area; {@code houses}: their boxes (indoors); {@code town}: the town's own ground outdoors (not the woods
-	 * round it); {@code noLamp}: columns a lamp post mustn't stand in; {@code lamps}: puts a lamp post up standing at a spot, and
-	 * says where its light is (null: none fits). Lamp posts and torches added.
+	 * round it); {@code noLamp}: columns a lamp post mustn't stand in; {@code byWay}: columns beside its roads, paths and
+	 * plaza; {@code lampPosts}: puts a lamp post up standing at a spot, and says where its light is (null: none fits). Lamp
+	 * posts and torches added.
+	 *
+	 * <p>A dark spot outdoors is lit the way a player lights a town (the user, 2026-10-30: "too many, scattered", "make it
+	 * make sense"): a lamp post beside the nearest road or path; else a torch on the nearest house wall; else a lantern on a
+	 * fence post; else a torch in the ground. No lamp post stands on its own in the grass. Returns the lamp posts put up
+	 * and the torches and lanterns. Lamp posts stand only on the
+	 * ground (never on a roof: the store had one on its roof).
 	 */
 	static int[] light(ServerLevel level, BoundingBox area, List<BoundingBox> houses, BiPredicate<Integer, Integer> town,
-		BiPredicate<Integer, Integer> noLamp, java.util.function.Function<BlockPos, BlockPos> lampPosts) {
+		BiPredicate<Integer, Integer> noLamp, BiPredicate<Integer, Integer> byWay, java.util.function.Function<BlockPos, BlockPos> lampPosts) {
 		Light light = new Light(level, area);
 		light.spreadAll();
 		int lamps = 0;
@@ -54,11 +62,33 @@ final class TownLights {
 				}
 
 				if (!underHouse && town.test(x, z) && area.isInside(outdoors) && spawnable(level, outdoors) && light.at(outdoors) < ENOUGH) {
-					BlockPos lamp = lampSpot(level, outdoors, noLamp, houses);
+					BlockPos lamp = lampSpot(level, outdoors, noLamp, houses, byWay, BY_WAY, light);
 					BlockPos lit = lamp == null ? null : lampPosts.apply(lamp);
+					boolean post = lit != null;
+					if (post) {
+						lamps++;
+					}
+
+					if (lit == null) {
+						lit = wallTorch(level, outdoors, houses);
+					}
+
+					if (lit == null) {
+						lit = fenceLantern(level, outdoors);
+					}
+
+					if (lit == null) {
+						// (Away from any road, wall or fence: a torch stuck in the ground, as a player lights a field's corner.)
+						lamp = lampSpot(level, outdoors, noLamp, houses, (ax, az) -> true, 3, light);
+						if (lamp != null && Blocks.TORCH.defaultBlockState().canSurvive(level, lamp)) {
+							level.setBlock(lamp, Blocks.TORCH.defaultBlockState(), Block.UPDATE_ALL);
+							lit = lamp;
+						}
+					}
+
 					if (lit != null) {
 						light.spreadFrom(lit, Math.max(TORCH, level.getBlockState(lit).getLightEmission()));
-						lamps++;
+						torches += post ? 0 : 1;
 					}
 				}
 
@@ -94,20 +124,90 @@ final class TownLights {
 			&& under.isValidSpawn(level, below, EntityType.ZOMBIE) && under.isFaceSturdy(level, below, Direction.UP);
 	}
 
-	/** Where a lamp post for this dark spot goes: there, or the nearest ground round it off the roads and fields. */
+	/** How far from a dark spot a lamp by a road may be to light it, and a torch on a wall or a lantern on a fence. */
+	private static final int BY_WAY = 6;
+	private static final int NEAR = 5;
+
+	/**
+	 * Where a lamp post for this dark spot goes: ground within {@code reach} of it (in {@code where}) off the roads, fields
+	 * and buildings, with room for it; the darkest of them, and of those the furthest in (a lamp at the edge of the dark,
+	 * where the dark was first found, wasted half its light: fifty lamps in a hamlet).
+	 */
 	@org.jetbrains.annotations.Nullable
-	private static BlockPos lampSpot(ServerLevel level, BlockPos dark, BiPredicate<Integer, Integer> noLamp, List<BoundingBox> houses) {
-		for (BlockPos column : BlockPos.withinManhattan(dark.atY(0), 3, 0, 3)) {
+	private static BlockPos lampSpot(ServerLevel level, BlockPos dark, BiPredicate<Integer, Integer> noLamp, List<BoundingBox> houses,
+		BiPredicate<Integer, Integer> where, int reach, Light light) {
+		BlockPos best = null;
+		int bestLight = Integer.MAX_VALUE;
+		int bestAway = -1;
+		for (BlockPos column : BlockPos.withinManhattan(dark.atY(0), reach, 0, reach)) {
 			int x = column.getX();
 			int z = column.getZ();
+			if (!where.test(x, z) || noLamp.test(x, z)) {
+				continue;
+			}
+
 			BlockPos pos = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
 			boolean byHouse = false;
 			for (BoundingBox house : houses) {
 				byHouse |= house.inflatedBy(1).isInside(pos.atY(house.minY()));
 			}
 
-			if (!byHouse && !noLamp.test(x, z) && spawnable(level, pos) && level.getBlockState(pos.above(2)).isAir()) {
-				return pos;
+			if (!byHouse && ground(level.getBlockState(pos.below())) && spawnable(level, pos) && level.getBlockState(pos.above(2)).isAir()) {
+				int lit = light.at(pos);
+				int away = Math.abs(x - dark.getX()) + Math.abs(z - dark.getZ());
+				if (lit < bestLight || lit == bestLight && away > bestAway) {
+					best = pos;
+					bestLight = lit;
+					bestAway = away;
+				}
+			}
+		}
+
+		return best;
+	}
+
+	/** The ground itself (earth, sand, gravel, rock, the town's paving), not a roof, a fence or a decoration. */
+	private static boolean ground(BlockState state) {
+		return state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(Blocks.GRAVEL) || state.is(Blocks.DIRT_PATH)
+			|| state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SANDSTONE) || state.is(Blocks.COBBLESTONE)
+			|| state.is(Blocks.MOSSY_COBBLESTONE) || state.is(BlockTags.STONE_BRICKS) || state.is(Blocks.SMOOTH_SANDSTONE) || state.is(Blocks.CUT_SANDSTONE)
+			|| state.is(Blocks.PODZOL) || state.is(Blocks.MYCELIUM);
+	}
+
+	/** A torch on the outside of the nearest building's wall at head height, facing out over this dark spot. Where it went. */
+	@org.jetbrains.annotations.Nullable
+	private static BlockPos wallTorch(ServerLevel level, BlockPos dark, List<BoundingBox> houses) {
+		for (BlockPos column : BlockPos.withinManhattan(dark.atY(0), NEAR, 0, NEAR)) {
+			int x = column.getX();
+			int z = column.getZ();
+			BlockPos head = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) + 1, z);
+			if (!level.getBlockState(head).isAir() || houses.stream().anyMatch(house -> house.isInside(head))) {
+				continue;
+			}
+
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				BlockPos wall = head.relative(side);
+				BlockState torch = Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, side.getOpposite());
+				if (houses.stream().anyMatch(house -> house.isInside(wall)) && torch.canSurvive(level, head)) {
+					level.setBlock(head, torch, Block.UPDATE_ALL);
+					return head;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/** A lantern on top of the nearest fence post (a pen, a bridge's railing). Where it went. */
+	@org.jetbrains.annotations.Nullable
+	private static BlockPos fenceLantern(ServerLevel level, BlockPos dark) {
+		for (BlockPos column : BlockPos.withinManhattan(dark.atY(0), NEAR, 0, NEAR)) {
+			int x = column.getX();
+			int z = column.getZ();
+			BlockPos top = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+			if (level.getBlockState(top.below()).is(BlockTags.FENCES) && level.getBlockState(top).isAir()) {
+				level.setBlock(top, Blocks.LANTERN.defaultBlockState(), Block.UPDATE_ALL);
+				return top;
 			}
 		}
 

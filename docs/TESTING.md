@@ -1517,6 +1517,11 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       style; now and then a campfire, hay or log seats in a front yard or on the plaza. On a slope: the land round the
       plaza, fields and houses eased in gentle banks, low cobblestone retaining walls where one level meets another,
       no boxes cut into hills, no dirt cliffs. Every door reachable on foot.
+- [ ] Lamps (0.23.12): in a new town, lamp posts stand along the roads and beside door paths, not alone in the grass
+      and never on a roof (look at the store); dark corners have torches on walls, lanterns on the pen's fence posts or a
+      torch in the ground. At night nothing spawns inside the town.
+- [ ] Terrain Slabs (0.23.12): with Terrain Slabs installed, Drifters dig, camp and build on slab-covered hillsides as
+      on any ground (before, every slab looked like a player's build to them).
 
 ## Beds in town houses (new, 0.22.34)
 

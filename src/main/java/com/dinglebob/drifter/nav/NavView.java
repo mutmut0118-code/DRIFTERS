@@ -528,12 +528,35 @@ public final class NavView {
 	 * turns up in villages, dungeons and temples (stone drops it, but stone itself is natural).
 	 */
 	public static boolean looksBuilt(BlockState state) {
+		if (naturalSlab(state)) {
+			return false;
+		}
+
 		return state.is(Blocks.COBBLESTONE) || state.is(Blocks.MOSSY_COBBLESTONE) || state.is(Blocks.COBBLED_DEEPSLATE) || state.is(Blocks.SMOOTH_STONE)
 			|| state.is(BlockTags.PLANKS) || state.is(BlockTags.WOOL) || state.is(BlockTags.WOOL_CARPETS) || state.is(BlockTags.STAIRS)
 			|| state.is(BlockTags.SLABS) || state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES) || state.is(BlockTags.WALLS)
 			|| state.is(BlockTags.DOORS) || state.is(BlockTags.TRAPDOORS) || state.is(BlockTags.BEDS) || state.is(BlockTags.STONE_BRICKS)
 			|| state.is(ConventionalBlockTags.GLASS_BLOCKS) || state.is(ConventionalBlockTags.GLASS_PANES) || state.is(Blocks.BRICKS)
 			|| state.is(Blocks.BOOKSHELF) || state.is(Blocks.TORCH) || state.is(Blocks.LANTERN);
+	}
+
+	/**
+	 * A slab the land itself has (Terrain Slabs, the user's pack: grass, dirt, sand and stone slabs smoothing the terrain,
+	 * marked {@code generated}; it's in the game's slab tag, so before this every hillside looked built). One a player put
+	 * down isn't.
+	 */
+	public static boolean naturalSlab(BlockState state) {
+		if (!state.is(BlockTags.SLABS)) {
+			return false;
+		}
+
+		for (var property : state.getProperties()) {
+			if (property.getName().equals("generated") && property instanceof net.minecraft.world.level.block.state.properties.BooleanProperty flag) {
+				return state.getValue(flag);
+			}
+		}
+
+		return false;
 	}
 
 	/** Something it can stand on top of: a known solid block no taller than a full block, or unknown (assumed). */
