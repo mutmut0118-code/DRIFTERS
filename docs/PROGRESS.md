@@ -4106,3 +4106,25 @@ The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
     feuding and allied from the start, ruins from wars); towns far away as summaries (W7); towns founded later by
     Drifters don't count toward the limit yet; lots of lamps in hill towns and mountain cities.
   - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+- **0.23.15: Terrain Slabs across the mod** (the user: "this whole mod needs to be compatible with countered terrain
+  slabs"; "do terrain slabs next").
+  - How Terrain Slabs works (read from its code): ordinary bottom slabs (in the game's slab tag) put down by world
+    generation where the ground steps up a block, marked `generated=true`; broken, they drop the full block. Plants on them
+    are only drawn half a block lower on the client; on the server nothing else changes.
+  - Walking: the pathfinder knew every floor as a full block, so a slab at the foot of a two-block rise looked like a
+    one-block jump; from half a block lower it's a block and a half, higher than a jump (1.25, from the player's own jump
+    numbers: `JumpPhysics.JUMP_HEIGHT`). It jumped there over and over, a quarter of a block short, until it gave up.
+    Now a jump up counts the real rise (`NavView.floorTop`): over a jump, not a move; no higher than a player's step
+    (0.6, the step height attribute's default), a step it walks up at walking cost, no lining up and no jump
+    (`NavigateTask.halfStep`), as a player walks up a slab hillside.
+  - Building: a natural slab is natural ground (`BuildPlanActivity.natural`, `BlockNotes.isNaturalGround`), so it's
+    cleared out of a house's space like grass and counts as land, not somebody's build; a house spot reads the ground under
+    it (`PlanSite`).
+  - Towns (through `DrifterApi.naturalSlab`): the ground is the block under a natural slab (it counted as a block of ground,
+    a bump in every street and plot); slabs are cleared off roads, highways, paths and plots like plants, and off ground
+    that's cut down (one was left floating); a plaza's or a village lamp's spot with only slabs in it counts as clear.
+  - Tested headless: a course on flat ground (a two-block wall with natural slabs along its foot, a proper slab ramp a few
+    blocks along): the old build jumped at the wall from the slab for 40 s and never got up, then 36 s and 4 s on two more
+    trips; the new one 4, 6 and 3 s, up the ramp, never stuck. 25 Drifters on the user's Tectonic (seed 779, Terrain Slabs
+    in): 21 of 25 on taiga hills (the four stopped by spruce leaves, as before; the old build 24 of 25) and 25 of 25 on
+    plains (18 s on average; the old build 19 s). Six towns of every shape on slab-edged land: every place walked to in all.

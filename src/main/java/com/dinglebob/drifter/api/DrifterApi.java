@@ -373,6 +373,14 @@ public final class DrifterApi {
 
 	private static volatile java.util.function.Predicate<net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> notPlaced = s -> false;
 
+	/**
+	 * A slab the land itself has (Terrain Slabs: grass, dirt, sand and stone slabs smoothing hillsides, marked {@code
+	 * generated}), not one somebody put down: half a block of ground, cleared like a plant where something's built.
+	 */
+	public static boolean naturalSlab(net.minecraft.world.level.block.state.BlockState state) {
+		return com.dinglebob.drifter.nav.NavView.naturalSlab(state);
+	}
+
 	/** Villagers stay out of it too (none spawning as zombie villagers to cure). */
 	public static boolean noVillagers() {
 		return villagesReplaced() && !com.dinglebob.drifter.DrifterConfig.villagers();

@@ -25,6 +25,23 @@ public final class JumpPhysics {
 	private static final double AIR_SPEED = 0.02;
 	private static final double SPRINT_AIR_SPEED = 0.025999999;
 	private static final double SPRINT_FACTOR = 1.3;
+	/**
+	 * How high a standing jump lifts its feet (no Jump Boost): about 1.25 blocks. A block up from a slab is 1.5, out of reach
+	 * (Terrain Slabs' hillsides).
+	 */
+	public static final double JUMP_HEIGHT = jumpHeight();
+
+	private static double jumpHeight() {
+		double y = 0.0;
+		double up = JUMP_POWER;
+		while (up > 0.0) {
+			y += up;
+			up = (up - GRAVITY) * VERTICAL_DRAG;
+		}
+
+		return y;
+	}
+
 	/** Ticks of run-up that count as at full speed (it is within 1% of it after 6). */
 	private static final int RUN_UP_TICKS = 12;
 

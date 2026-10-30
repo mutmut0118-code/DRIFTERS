@@ -264,7 +264,10 @@ public final class PlanSite {
 			boolean tree = false;
 			while (top.getY() > this.level.getMinBuildHeight()) {
 				BlockState state = chunk.getBlockState(top);
-				if (!(state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES) || state.canBeReplaced() && state.getFluidState().isEmpty())) {
+				// (A slab the land has, Terrain Slabs' half step on a hillside, is half a block of ground: the ground is under it,
+				// and it goes with the levelling.)
+				if (!(state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES) || state.canBeReplaced() && state.getFluidState().isEmpty()
+					|| com.dinglebob.drifter.nav.NavView.naturalSlab(state) && state.getFluidState().isEmpty())) {
 					break;
 				}
 

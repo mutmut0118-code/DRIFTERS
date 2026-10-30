@@ -115,7 +115,7 @@ final class VillageBits {
 		BoundingBox box = template.getBoundingBox(settings, origin);
 		for (BlockPos pos : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
 			BlockState state = level.getBlockState(pos);
-			if (!state.isAir() && !(state.canBeReplaced() && state.getFluidState().isEmpty())) {
+			if (!state.isAir() && !((state.canBeReplaced() || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)) && state.getFluidState().isEmpty())) {
 				return null;
 			}
 		}

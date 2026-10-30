@@ -43,6 +43,8 @@ public class PathSearch {
 	public static final double SPRINT = 1.0 / 5.612;
 	public static final double DIAGONAL = WALK * Math.sqrt(2.0);
 	public static final double JUMP_EXTRA = 0.3;
+	/** A player's step height (0.6): a rise no higher than this is walked up, no jump (onto a slab from a full block). */
+	public static final double STEP_RISE = net.minecraft.world.entity.ai.attributes.Attributes.STEP_HEIGHT.value().getDefaultValue();
 	/** On top of a gap jump's time: a little over walking round when that's about as quick (a player doesn't jump for fun). */
 	public static final double PARKOUR_EXTRA = 0.6;
 	/** Risk of a gap jump over a drop that would hurt, before the Caution weight (plus a little per block of depth). */
@@ -726,12 +728,29 @@ public class PathSearch {
 			return;
 		}
 
+		// How far up it really goes: from a slab (half a block; Terrain Slabs' hillsides are edged with them) onto a full block
+		// is a block and a half, past a jump; onto a slab from a full block, half a block, a step it walks up.
+		double rise = 1.0 + this.view.floorTop(f) - this.floorTopUnder(node);
+		if (rise > JumpPhysics.JUMP_HEIGHT) {
+			return;
+		}
+
 		BlockPos t = f.above();
 		// (Not a jump that failed it a moment ago; the same memory as bridges.)
 		Clearance c = this.failedBridges.contains(t) ? null : this.clear(true, node.pos.above(2), t, t.above());
 		if (c != null) {
-			this.add(node, t, MoveType.JUMP_UP, WALK + JUMP_EXTRA + c.cost, c, 0);
+			this.add(node, t, MoveType.JUMP_UP, WALK + (rise <= STEP_RISE ? 0.0 : JUMP_EXTRA) + c.cost, c, 0);
 		}
+	}
+
+	/** The top of what it stands on at this node, inside its block (a slab half): a block it places, water or a ladder as full. */
+	private double floorTopUnder(Node node) {
+		if (node.move == MoveType.BRIDGE || node.move == MoveType.PILLAR || this.view.cell(node.pos).kind() == NavView.Kind.CLIMB
+			|| this.view.isWater(node.pos)) {
+			return 1.0;
+		}
+
+		return this.view.floorTop(node.pos.below());
 	}
 
 	/**

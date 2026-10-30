@@ -1534,6 +1534,10 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       roads, with a signpost by the road near each town. Old worlds keep working as before.
 - [ ] Terrain Slabs (0.23.12): with Terrain Slabs installed, Drifters dig, camp and build on slab-covered hillsides as
       on any ground (before, every slab looked like a player's build to them).
+- [ ] Terrain Slabs walking (0.23.15): on hilly land with Terrain Slabs, `/drifter spawn Tess`, then stand on a hill a
+      little way off and `/drifter goto me`. It walks up the slab-edged slopes without hopping at every half step, and
+      where a slab sits at the foot of a two-block rise it goes round to a way up instead of jumping at it again and again.
+      New towns on slab-covered land have no slabs left sticking up on their roads or round their houses.
 
 ## Beds in town houses (new, 0.22.34)
 

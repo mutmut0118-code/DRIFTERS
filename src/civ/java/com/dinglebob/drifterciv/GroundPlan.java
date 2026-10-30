@@ -312,6 +312,13 @@ final class GroundPlan {
 		BlockState top = this.level.getBlockState(new BlockPos(x, g, z));
 		BlockState surface = this.surface(top);
 		BlockState under = this.under(surface);
+		// A slab the land had on its top (Terrain Slabs' half step): gone with the old surface (cut down, it was left floating).
+		BlockPos half = new BlockPos(x, g + 1, z);
+		BlockState halfState = this.level.getBlockState(half);
+		if (com.dinglebob.drifter.api.DrifterApi.naturalSlab(halfState) && halfState.getFluidState().isEmpty()) {
+			TownBuilder.set(this.level, half, Blocks.AIR.defaultBlockState());
+		}
+
 		TownBuilder.fellIn(this.level, x, z, Math.min(g, t) + 1, Math.max(g, t) + 3);
 		if (t > g) {
 			TownBuilder.buried(this.level, new BlockPos(x, g, z));
@@ -341,7 +348,7 @@ final class GroundPlan {
 		for (int y = t + 1; y <= t + 2; y++) {
 			BlockPos over = new BlockPos(x, y, z);
 			BlockState state = this.level.getBlockState(over);
-			if (!state.isAir() && state.canBeReplaced() && state.getFluidState().isEmpty()) {
+			if (!state.isAir() && (state.canBeReplaced() || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)) && state.getFluidState().isEmpty()) {
 				TownBuilder.set(this.level, over, Blocks.AIR.defaultBlockState());
 			}
 		}

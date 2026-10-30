@@ -641,7 +641,8 @@ public class BuildPlanActivity extends Activity {
 		return state.is(BlockTags.DIRT) || state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)
 			|| state.is(BlockTags.SAND) || state.is(Blocks.GRAVEL) || state.is(BlockTags.REPLACEABLE_BY_TREES) || state.is(BlockTags.FLOWERS)
 			|| state.is(BlockTags.SAPLINGS) || state.is(Blocks.SNOW) || state.is(Blocks.CLAY) || state.is(BlockTags.COAL_ORES)
-			|| state.is(Blocks.SUGAR_CANE) || state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON) || state.is(Blocks.MOSS_CARPET);
+			|| state.is(Blocks.SUGAR_CANE) || state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON) || state.is(Blocks.MOSS_CARPET)
+			|| com.dinglebob.drifter.nav.NavView.naturalSlab(state);
 	}
 
 	/** The highest natural block in the house's space that isn't the plan's (and isn't its ground), or null. */

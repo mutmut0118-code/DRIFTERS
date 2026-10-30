@@ -3171,7 +3171,7 @@ public final class TownBuilder {
 			for (int y = top[i] + 1; y <= top[i] + 3; y++) {
 				BlockPos above = new BlockPos(x, y, z);
 				BlockState state = level.getBlockState(above);
-				if (!state.isAir() && !box.isInside(above) && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LEAVES)
+				if (!state.isAir() && !box.isInside(above) && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LEAVES) || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)
 					|| state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(Blocks.STONE) || state.is(Blocks.GRAVEL) || state.is(Blocks.SAND))) {
 					set(level, above, Blocks.AIR.defaultBlockState());
 				}
@@ -3352,8 +3352,9 @@ public final class TownBuilder {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
 		while (pos.getY() > level.getMinBuildHeight()) {
 			BlockState state = level.getBlockState(pos);
+			// (A slab the land has, Terrain Slabs' half step, is over the ground, like a plant: the ground's the block under it.)
 			if (!state.getFluidState().isEmpty() || !(state.isAir() || state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS)
-				|| state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+				|| state.is(net.minecraft.tags.BlockTags.LEAVES) || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state))) {
 				break;
 			}
 
@@ -3412,7 +3413,8 @@ public final class TownBuilder {
 		for (int y = top + 1; y <= top + 4; y++) {
 			BlockPos above = new BlockPos(x, y, z);
 			BlockState state = level.getBlockState(above);
-			if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+			if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+				|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state))) {
 				set(level, above, Blocks.AIR.defaultBlockState());
 			}
 		}
@@ -3511,7 +3513,8 @@ public final class TownBuilder {
 			for (int y = top.getY() + 1; y <= top.getY() + 4; y++) {
 				BlockPos above = new BlockPos(x, y, z);
 				var state = level.getBlockState(above);
-				if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+				if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+					|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state))) {
 					set(level, above, Blocks.AIR.defaultBlockState());
 				}
 			}
