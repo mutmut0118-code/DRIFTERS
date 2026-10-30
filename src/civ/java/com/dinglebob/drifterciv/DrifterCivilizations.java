@@ -66,6 +66,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		Justice.register();
 		Diplomacy.register();
 		TownSites.register();
+		WorldPlan.register();
+		Highways.register();
 		TownRaids.register();
 		Trades.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
@@ -90,6 +92,52 @@ public final class DrifterCivilizations implements ModInitializer {
 						ctx.getSource().sendSuccess(() -> Component.literal("Each morning, the day before in chat: " + (on ? "on" : "off")), true);
 						return 1;
 					}))))
+			// The civilized world (W4): the nearest city, town, hamlet or ruin of the world plan, made or not, and where; the plan
+			// as a whole (debug: build the roads round here now).
+			.then(Commands.literal("locate")
+				.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.suggests((ctx, builder) -> builder.suggest("city").suggest("town").suggest("hamlet").suggest("ruin").suggest("any").buildFuture())
+					.executes(ctx -> {
+						String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
+						BlockPos from = BlockPos.containing(ctx.getSource().getPosition());
+						WorldPlan.Place place = WorldPlan.nearest(from, kind.equals("any") ? null : kind);
+						if (place == null) {
+							ctx.getSource().sendFailure(Component.literal(WorldPlan.planned ? WorldPlan.ready ? "None in this world" : "The world plan is still being made"
+								: "This world has no plan (made before it, or with \"A world of nations\" off): /locate structure drifter_civ:town"));
+							return 0;
+						}
+
+						WorldPlan.PlannedNation nation = WorldPlan.nation(place.nation);
+						int far = (int)Math.round(Math.hypot(place.x - from.getX(), place.z - from.getZ()));
+						ctx.getSource().sendSuccess(() -> Component.literal(place.name + " (a " + place.kind + (nation != null ? ", of " + nation.name() : place.ruin()
+							? "" : ", in no nation") + ") is at " + place.x + ", " + place.z + ", " + far + " blocks away" + (place.made ? "" : " (not seen yet)")), false);
+						return 1;
+					})))
+			.then(Commands.literal("plan")
+				.executes(ctx -> {
+					if (!WorldPlan.ready) {
+						ctx.getSource().sendFailure(Component.literal(WorldPlan.planned ? "The world plan is still being made" : "This world has no plan"));
+						return 0;
+					}
+
+					for (WorldPlan.PlannedNation nation : WorldPlan.nations) {
+						List<String> towns = WorldPlan.places.stream().filter(p -> nation.id().equals(p.nation)).map(p -> p.name + " (" + p.kind + " at " + p.x + ", "
+							+ p.z + (p.made ? ", made" : "") + ")").toList();
+						ctx.getSource().sendSuccess(() -> Component.literal(nation.name() + " (" + nation.colour().getName() + "): " + String.join("; ", towns)), false);
+					}
+
+					List<String> free = WorldPlan.places.stream().filter(p -> p.nation == null).map(p -> p.name + " (" + p.kind + " at " + p.x + ", " + p.z
+						+ ")").toList();
+					ctx.getSource().sendSuccess(() -> Component.literal("In no nation: " + String.join("; ", free)), false);
+					ctx.getSource().sendSuccess(() -> Component.literal("Roads: " + Highways.describe()), false);
+					return 1;
+				})
+				.then(Commands.literal("roads").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Highways.forcedNear = BlockPos.containing(ctx.getSource().getPosition());
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: roads within 1000 blocks of here are built now, a stretch at a time, player or not"),
+						true);
+					return 1;
+				})))
 			// The world's nations (step 6, part 3): each one's capital, towns, tribute and banners; debug: tribute due now.
 			.then(Commands.literal("nations")
 				.executes(ctx -> {
@@ -390,24 +438,9 @@ public final class DrifterCivilizations implements ModInitializer {
 					return 1;
 				}))
 				// Debug: the nearest town seen from above, saved as a picture in the server's town-maps folder.
-				.then(Commands.literal("map").requires(source -> source.hasPermission(2)).executes(ctx -> {
-					var source = ctx.getSource();
-					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
-					if (town == null) {
-						source.sendFailure(Component.literal("No town near"));
-						return 0;
-					}
-
-					try {
-						int radius = town.plots.size() >= TownBuilder.CITY ? TownBuilder.CITY_REACH + 8 : 112;
-						java.nio.file.Path file = TownMap.draw(source.getLevel(), town.center, radius, town.name);
-						source.sendSuccess(() -> Component.literal("Debug: a map of " + town.name + " saved to " + file), true);
-						return 1;
-					} catch (java.io.IOException e) {
-						source.sendFailure(Component.literal("Couldn't save the map: " + e.getMessage()));
-						return 0;
-					}
-				}))
+				.then(Commands.literal("map").requires(source -> source.hasPermission(2)).executes(ctx -> townMap(ctx, 0))
+					.then(Commands.argument("radius", IntegerArgumentType.integer(16, 1024)).executes(ctx -> townMap(ctx, IntegerArgumentType.getInteger(ctx,
+						"radius")))))
 				// Debug: the shape every town made from now on has (crossroads, main_street, winding, river, harbour, hill, ring, grid), or "any" (each its own).
 				.then(Commands.literal("shape").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("shape", com.mojang.brigadier.arguments.StringArgumentType.word())
@@ -491,6 +524,28 @@ public final class DrifterCivilizations implements ModInitializer {
 					return stopped ? 1 : 0;
 				})))));
 		LOGGER.info("Drifter: Civilizations {} loaded, on Drifter {} (API {})", version(), DrifterApi.version(), DrifterApi.API_VERSION);
+	}
+
+	/** Debug: the nearest town (or, with a radius, the land round here) from above, as a picture in the server's town-maps folder. */
+	private static int townMap(CommandContext<CommandSourceStack> ctx, int radius) {
+		var source = ctx.getSource();
+		Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+		if (town == null && radius == 0) {
+			source.sendFailure(Component.literal("No town near"));
+			return 0;
+		}
+
+		try {
+			BlockPos center = radius > 0 ? BlockPos.containing(source.getPosition()) : town.center;
+			int size = radius > 0 ? radius : town.plots.size() >= TownBuilder.CITY ? TownBuilder.CITY_REACH + 8 : 112;
+			String name = radius > 0 ? "land_" + center.getX() + "_" + center.getZ() : town.name;
+			java.nio.file.Path file = TownMap.draw(source.getLevel(), center, size, name);
+			source.sendSuccess(() -> Component.literal("Debug: a map saved to " + file), true);
+			return 1;
+		} catch (java.io.IOException e) {
+			source.sendFailure(Component.literal("Couldn't save the map: " + e.getMessage()));
+			return 0;
+		}
 	}
 
 	private static int spawnTown(CommandContext<CommandSourceStack> ctx, int households, @Nullable String name) {

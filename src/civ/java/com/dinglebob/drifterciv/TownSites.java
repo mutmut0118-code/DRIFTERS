@@ -74,6 +74,9 @@ final class TownSites {
 		boolean loading;
 		/** Debug: made now, player or not. */
 		boolean forced;
+		/** A town of the world plan (W4): its id there. */
+		@Nullable
+		java.util.UUID planned;
 
 		Site(String dimension, int x, int z, int households) {
 			this.dimension = dimension;
@@ -216,7 +219,13 @@ final class TownSites {
 			}
 
 			making = site;
-			job = new TownBuilder.Job(level, site.x, site.z, site.households, null, true, site.ruin);
+			WorldPlan.Place place = WorldPlan.place(site.planned);
+			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin);
+			if (place != null) {
+				job.plannedId = place.id;
+				job.gates = List.copyOf(place.gates);
+			}
+
 			DrifterCivilizations.LOGGER.info("[town] making a town at {}, {} ({} households)", site.x, site.z, site.households);
 			return;
 		}
@@ -238,6 +247,10 @@ final class TownSites {
 		}
 
 		DrifterCivilizations.LOGGER.info("[town] {}", finished.result().message());
+		if (site.planned != null) {
+			WorldPlan.made(server, site.planned, finished.result().town());
+		}
+
 		Towns.save(server);
 	}
 
@@ -270,6 +283,18 @@ final class TownSites {
 	static List<Site> pending(String dimension, BlockPos from) {
 		return sites.stream().filter(site -> site.dimension.equals(dimension))
 			.sorted(Comparator.comparingDouble(site -> Math.hypot(site.x - from.getX(), site.z - from.getZ()))).toList();
+	}
+
+	/** A spot of the world plan (W4), made as a player comes near like any other. */
+	static void planned(ServerLevel level, WorldPlan.Place place) {
+		if (place.made || sites.stream().anyMatch(site -> place.id.equals(site.planned))) {
+			return;
+		}
+
+		Site site = new Site(level.dimension().location().toString(), place.x, place.z, place.households);
+		site.ruin = place.ruin();
+		site.planned = place.id;
+		sites.add(site);
 	}
 
 	/** Debug: a spot for a town of this many households here, made now (no player needed). */
@@ -370,7 +395,8 @@ final class TownSites {
 		@Override
 		protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
 			// (Whether it's a city's spot first: cheap, and the other one's spots aren't looked over at all.)
-			if (!DrifterApi.villagesReplaced() || cityCell(context) != this.city) {
+			// (A civilized world's towns go where its plan says: WorldPlan.)
+			if (!DrifterApi.villagesReplaced() || WorldPlan.planned || cityCell(context) != this.city) {
 				return Optional.empty();
 			}
 
@@ -615,6 +641,10 @@ final class TownSites {
 			one.putInt("Z", site.z);
 			one.putInt("Households", site.households);
 			one.putBoolean("Ruin", site.ruin);
+			if (site.planned != null) {
+				one.putUUID("Planned", site.planned);
+			}
+
 			list.add(one);
 		}
 
@@ -630,6 +660,7 @@ final class TownSites {
 			CompoundTag one = (CompoundTag)t;
 			Site site = new Site(one.getString("Dimension"), one.getInt("X"), one.getInt("Z"), one.getInt("Households"));
 			site.ruin = one.getBoolean("Ruin");
+			site.planned = one.hasUUID("Planned") ? one.getUUID("Planned") : null;
 			sites.add(site);
 		}
 	}

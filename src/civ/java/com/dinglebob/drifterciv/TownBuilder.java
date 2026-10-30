@@ -467,6 +467,10 @@ public final class TownBuilder {
 		private List<DrifterApi.HousePlanInfo> plans;
 		private Rect plaza;
 		private final List<Road> roads = new ArrayList<>();
+		/** A town of the world plan (W4): its id (its nation knows it by it), and the ways its roads between towns come in. */
+		@Nullable
+		UUID plannedId;
+		List<Double> gates = List.of();
 		/** Its shape, and how many of its roads leave the plaza (the rest are side roads off them). */
 		Shape shape;
 		private int mains;
@@ -620,6 +624,25 @@ public final class TownBuilder {
 				this.addRoad(this.ring(this.city ? RING + 16 : RING));
 			} else if (this.shape == Shape.GRID) {
 				this.gridStreets(this.city ? CITY_GRID : TOWN_GRID);
+			}
+
+			// The roads between towns (W5) come in from these ways: a main road out to meet each (one going that way already does),
+			// never cut back.
+			for (double gate : this.gates) {
+				Road served = null;
+				for (Road road : this.roads) {
+					if (road.length() > 0 && Math.abs(Math.atan2(Math.sin(road.heading(0) - gate), Math.cos(road.heading(0) - gate))) < 0.5) {
+						served = road;
+					}
+				}
+
+				if (served == null) {
+					served = this.main(gate, arm + 24, new Laying(8, 0.3, 0.07, LONGEST_BRIDGE, 3, false));
+				}
+
+				if (served != null) {
+					served.loop = true;
+				}
 			}
 
 			// (None out of it: water or the town's edge right by the plaza that way. Any way out it can, two at most.)
@@ -1928,60 +1951,124 @@ public final class TownBuilder {
 				pads.add(new GroundPlan.Pad(rect, base, PAD_REACH, 4));
 			}
 
+			List<GroundPlan.Pad> others = List.copyOf(pads);
 			for (Pending spot : this.pending) {
 				pads.add(new GroundPlan.Pad(spot.site(), spot.base(), PAD_REACH, spot.plan().sizeY() + 2));
 			}
 
 			GroundPlan plan = new GroundPlan(this.level, pads, this.random, this.look == Style.DESERT);
+			// Its roads' heights, all of them together (each worked out on its own, a high street and a low one crossing on a
+			// mountain stood a wall apart: found in a mountain city): from the ground as the rest leaves it (a bridge's a block
+			// over the water at least, level with the plaza where they leave it), then a block a step at most between any two
+			// side by side, halfway between built up over dips and cut down through bumps (so a road down a mountain is cut in
+			// at the top and built up at the bottom, not one long embankment).
+			java.util.Map<Long, Integer> base = new java.util.HashMap<>();
+			java.util.Set<Long> level = new java.util.HashSet<>();
 			for (Road road : this.roads) {
-				int n = road.length();
-				if (n == 0) {
-					continue;
-				}
-
-				int[] want = new int[n];
-				for (int t = 0; t < n; t++) {
-					BlockPos mid = road.at(t);
-					want[t] = plan.base(mid.getX(), mid.getZ());
-				}
-
-				for (var cell : road.cells.entrySet()) {
-					int x = BlockPos.getX(cell.getKey());
-					int z = BlockPos.getZ(cell.getKey());
-					want[cell.getValue()] = Math.max(want[cell.getValue()], plan.base(x, z));
-					// (Level with the plaza where it leaves it: a river town's bridge began in the water by the plaza, below its
-					// bank, and stopped at a wall.)
-					if (this.plaza.away(x, z) <= 1) {
-						want[cell.getValue()] = Math.max(want[cell.getValue()], this.y0 - 1);
-					}
-				}
-
-				for (int t = 1; t < n; t++) {
-					want[t] = Math.max(want[t], want[t - 1] - 1);
-				}
-
-				for (int t = n - 2; t >= 0; t--) {
-					want[t] = Math.max(want[t], want[t + 1] - 1);
-				}
-
-				for (var cell : road.cells.entrySet()) {
-					int x = BlockPos.getX(cell.getKey());
-					int z = BlockPos.getZ(cell.getKey());
+				for (long cell : road.cells.keySet()) {
+					int x = BlockPos.getX(cell);
+					int z = BlockPos.getZ(cell);
 					if (this.plaza.contains(x, z)) {
 						continue;
 					}
 
-					if (plan.wet(x, z)) {
-						// A bridge: its deck at the road's height, a block over the water at least (it ramps down to the water from
-						// a high bank; at the water's own level, the plaza's bank stood over its end as a wall: found in a river town).
-						this.bridges.merge(cell.getKey(), Math.max(want[cell.getValue()], plan.natural(x, z) + 1), Math::max);
-					} else {
-						plan.road(cell.getKey(), want[cell.getValue()]);
+					int b = plan.wet(x, z) ? plan.natural(x, z) + 1 : plan.base(x, z);
+					if (this.plaza.away(x, z) <= 1) {
+						b = this.y0 - 1;
+						level.add(cell);
 					}
+
+					base.merge(cell, b, Math::max);
+				}
+			}
+
+			java.util.Map<Long, Integer> high = settle(base, true, level);
+			java.util.Map<Long, Integer> low = settle(base, false, level);
+			java.util.Map<Long, Integer> wants = new java.util.HashMap<>();
+			for (long cell : base.keySet()) {
+				wants.put(cell, level.contains(cell) ? this.y0 - 1 : Math.floorDiv(high.get(cell) + low.get(cell), 2));
+			}
+
+			// Each house at its street's height (within a block or two): its door path climbs a block a step at most, and with
+			// streets cut into a hill a house on the hill's own ground stood ten blocks under its street (found in a hill town).
+			List<GroundPlan.Pad> rebased = new ArrayList<>(others);
+			for (int i = 0; i < this.pending.size(); i++) {
+				Pending spot = this.pending.get(i);
+				Integer street = this.streetAt(spot, wants);
+				int at = street == null ? spot.base() : Mth.clamp(spot.base(), street - 2, street + 1);
+				if (at != spot.base()) {
+					spot = new Pending(spot.site(), at, spot.plan(), spot.rotation(), spot.front(), spot.sx(), spot.sz());
+					this.pending.set(i, spot);
+				}
+
+				rebased.add(new GroundPlan.Pad(spot.site(), spot.base(), PAD_REACH, spot.plan().sizeY() + 2));
+			}
+
+			plan = new GroundPlan(this.level, rebased, this.random, this.look == Style.DESERT);
+			for (long cell : base.keySet()) {
+				int x = BlockPos.getX(cell);
+				int z = BlockPos.getZ(cell);
+				int want = wants.get(cell);
+				if (plan.wet(x, z)) {
+					// A bridge: its deck at the road's height, a block over the water at least (it ramps down to the water from
+					// a high bank; at the water's own level, the plaza's bank stood over its end as a wall: found in a river town).
+					this.bridges.merge(cell, Math.max(want, plan.natural(x, z) + 1), Math::max);
+				} else {
+					plan.road(cell, want);
 				}
 			}
 
 			return plan;
+		}
+
+		/**
+		 * Heights over these columns with a block a step at most between any two side by side: {@code up}, each no lower than
+		 * its own and built up from its neighbours (the least filling that does it); else no higher, cut down (the least
+		 * cutting). Those in {@code fixed} stay as they are (the roads level with the plaza where they leave it: moved, they
+		 * left the plaza a step off its own roads, found in a city walked to from nowhere).
+		 */
+		private static java.util.Map<Long, Integer> settle(java.util.Map<Long, Integer> base, boolean up, java.util.Set<Long> fixed) {
+			java.util.Map<Long, Integer> heights = new java.util.HashMap<>(base);
+			java.util.PriorityQueue<long[]> queue = new java.util.PriorityQueue<>((a, b) -> up ? Long.compare(b[1], a[1]) : Long.compare(a[1], b[1]));
+			base.forEach((cell, height) -> queue.add(new long[] {cell, height}));
+			while (!queue.isEmpty()) {
+				long[] next = queue.poll();
+				int height = (int)next[1];
+				if (heights.get(next[0]) != height) {
+					continue;
+				}
+
+				int x = BlockPos.getX(next[0]);
+				int z = BlockPos.getZ(next[0]);
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					long other = BlockPos.asLong(x + side.getStepX(), 0, z + side.getStepZ());
+					Integer there = heights.get(other);
+					int bound = up ? height - 1 : height + 1;
+					if (there != null && !fixed.contains(other) && (up ? there < bound : there > bound)) {
+						heights.put(other, bound);
+						queue.add(new long[] {other, bound});
+					}
+				}
+			}
+
+			return heights;
+		}
+
+		/** The height of the street in front of this house (out from the middle of its front, twelve blocks at most), or null. */
+		@Nullable
+		private Integer streetAt(Pending spot, java.util.Map<Long, Integer> wants) {
+			Rect site = spot.site();
+			Direction front = spot.front();
+			int x = front == Direction.EAST ? site.x1() : front == Direction.WEST ? site.x0() : (site.x0() + site.x1()) / 2;
+			int z = front == Direction.SOUTH ? site.z1() : front == Direction.NORTH ? site.z0() : (site.z0() + site.z1()) / 2;
+			for (int step = 1; step <= 12; step++) {
+				Integer street = wants.get(BlockPos.asLong(x + front.getStepX() * step, 0, z + front.getStepZ() * step));
+				if (street != null) {
+					return street;
+				}
+			}
+
+			return null;
 		}
 
 		/** A house put up on its spot (its ground shaped by now). */
@@ -2614,7 +2701,8 @@ public final class TownBuilder {
 			}
 
 			long day = Chronicle.day(this.server);
-			Town town = new Town(UUID.randomUUID(), this.name, group == null ? null : group.id, this.dimension, new BlockPos(this.cx, this.y0, this.cz), day, true);
+			Town town = new Town(this.plannedId != null ? this.plannedId : UUID.randomUUID(), this.name, group == null ? null : group.id, this.dimension,
+				new BlockPos(this.cx, this.y0, this.cz), day, true);
 			this.town = town;
 			town.plots.addAll(this.plots);
 			town.store.addAll(this.store);
@@ -3103,7 +3191,9 @@ public final class TownBuilder {
 				continue;
 			}
 
-			if (after == top[i] + 1) {
+			// (Never on the block right outside the door: a half step up there still meets the wall over the door; a whole step
+			// up from it, out in the open, is a jump. Found by the walk check, a mountain city's store.)
+			if (after == top[i] + 1 && i > 0) {
 				climb(level, over, front, afterThat > after);
 			} else if (before == top[i] + 1) {
 				climb(level, over, front.getOpposite(), i > 0 && beforeThat > before);
@@ -3340,6 +3430,139 @@ public final class TownBuilder {
 
 		set(level, over, steep && pavingStairs.hasProperty(net.minecraft.world.level.block.StairBlock.FACING)
 			? pavingStairs.setValue(net.minecraft.world.level.block.StairBlock.FACING, up) : pavingSlab);
+	}
+
+	/**
+	 * A stretch of a road between towns (W5, {@link Highways}) along this line (a point a block, {x, z, heading}): a worn dirt
+	 * path three wide (smooth sandstone in a desert), built up a block a step over dips, a slab or stairs where it climbs, a
+	 * railed bridge on piers over water. Columns of a town's own roads ({@code keep}) left as they are.
+	 */
+	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep) {
+		if (line.size() < 2) {
+			return;
+		}
+
+		double[] mid = line.get(line.size() / 2);
+		BlockPos middle = new BlockPos(Mth.floor(mid[0]), 0, Mth.floor(mid[1]));
+		style = Style.at(level, middle.atY(ground(level, middle.getX(), middle.getZ()) + 1));
+		paving = style.path()::defaultBlockState;
+		var pathSlab = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+			"terrain_slabs", "path_slab"));
+		pavingSlab = style == Style.DESERT ? Blocks.SMOOTH_SANDSTONE_SLAB.defaultBlockState() : pathSlab.isPresent() ? pathSlab.get().defaultBlockState()
+			: Blocks.COBBLESTONE_SLAB.defaultBlockState();
+		pavingStairs = style == Style.DESERT ? Blocks.SANDSTONE_STAIRS.defaultBlockState() : Blocks.COBBLESTONE_STAIRS.defaultBlockState();
+		GROUND.clear();
+		Road road = new Road(line);
+		int n = road.length();
+		int[] want = new int[n];
+		java.util.Map<Long, Integer> water = new java.util.HashMap<>();
+		for (int t = 0; t < n; t++) {
+			BlockPos at = road.at(t);
+			want[t] = ground(level, at.getX(), at.getZ());
+		}
+
+		for (var cell : road.cells.entrySet()) {
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			int g = ground(level, x, z);
+			if (wet(level, x, z)) {
+				water.put(cell.getKey(), g);
+			}
+
+			want[cell.getValue()] = Math.max(want[cell.getValue()], g);
+		}
+
+		for (int t = 1; t < n; t++) {
+			want[t] = Math.max(want[t], want[t - 1] - 1);
+		}
+
+		for (int t = n - 2; t >= 0; t--) {
+			want[t] = Math.max(want[t], want[t + 1] - 1);
+		}
+
+		java.util.Map<Long, Integer> decks = new java.util.HashMap<>();
+		for (var cell : road.cells.entrySet()) {
+			if (keep.contains(cell.getKey())) {
+				continue;
+			}
+
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			int w = want[cell.getValue()];
+			Integer surface = water.get(cell.getKey());
+			if (surface != null) {
+				int deck = Math.max(w, surface + 1);
+				decks.put(cell.getKey(), deck);
+				set(level, new BlockPos(x, deck, z), wood("planks").defaultBlockState());
+				continue;
+			}
+
+			int g = ground(level, x, z);
+			if (g < w) {
+				buried(level, new BlockPos(x, g, z));
+				for (int y = g + 1; y < w; y++) {
+					set(level, new BlockPos(x, y, z), style.fill().defaultBlockState());
+				}
+			}
+
+			BlockPos top = new BlockPos(x, Math.max(g, w), z);
+			set(level, top, paving.get());
+			fellIn(level, x, z, top.getY() + 1, top.getY() + 4);
+			for (int y = top.getY() + 1; y <= top.getY() + 4; y++) {
+				BlockPos above = new BlockPos(x, y, z);
+				var state = level.getBlockState(above);
+				if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+					set(level, above, Blocks.AIR.defaultBlockState());
+				}
+			}
+		}
+
+		for (var cell : road.cells.entrySet()) {
+			if (keep.contains(cell.getKey())) {
+				continue;
+			}
+
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			Integer deck = decks.get(cell.getKey());
+			if (deck != null) {
+				// A railing over the water beside the deck, on a pier now and then.
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					int nx = x + side.getStepX();
+					int nz = z + side.getStepZ();
+					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || !wet(level, nx, nz)) {
+						continue;
+					}
+
+					BlockPos rail = new BlockPos(nx, deck, nz);
+					set(level, rail, wood("planks").defaultBlockState());
+					if (level.getBlockState(rail.above()).isAir()) {
+						place(level, rail.above(), wood("fence").defaultBlockState());
+					}
+
+					if (Math.floorMod(nx + nz, 4) == 0) {
+						for (BlockPos pier = rail.below(); pier.getY() > deck - 32 && (level.getBlockState(pier).isAir() || !level.getFluidState(pier).isEmpty());
+							pier = pier.below()) {
+							set(level, pier, wood("log").defaultBlockState());
+						}
+					}
+				}
+
+				continue;
+			}
+
+			int top = ground(level, x, z);
+			Direction along = Direction.getNearest(Math.cos(road.heading(cell.getValue())), 0, Math.sin(road.heading(cell.getValue())));
+			for (Direction side : new Direction[] {along, along.getOpposite(), along.getClockWise(), along.getCounterClockWise()}) {
+				int nx = x + side.getStepX();
+				int nz = z + side.getStepZ();
+				long next = BlockPos.asLong(nx, 0, nz);
+				if ((road.cells.containsKey(next) || keep.contains(next)) && ground(level, nx, nz) == top + 1) {
+					climb(level, new BlockPos(x, top + 1, z), side, ground(level, nx + side.getStepX(), nz + side.getStepZ()) > top + 1);
+					break;
+				}
+			}
+		}
 	}
 
 	/** A block set quietly (no neighbour updates): the ground and walls. Only when it changes. */

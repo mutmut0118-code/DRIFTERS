@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13); next W4 + W5 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14); next W6 + W7 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -1019,3 +1019,51 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     lamps still in a hill town (its terraces hold the light in); Drifters' own walking takes a slab for a full block (a
     step up needing a jump: Terrain Slabs compatibility, still to do).
   - Next: W4 + W5 (the world plan: nations, capitals and their towns; the roads and highways between them).
+- **0.23.14: W4 + W5, the civilized world: nations made with the world, roads between them all.**
+  - Settings (Mod Menu, new worlds only): **A world of nations** (on), **Nations** (few: 2 to 3; **4**; many: 6 to 8),
+    **Spread** (round spawn, the default, to over the world: distances times 1 to 4). Core `DrifterConfig.civilizedWorld`,
+    `nations`, `civSpread`; `DrifterApi.civilizedWorld()`, `nationsSetting()`, `spreadSetting()`.
+  - Planned or not, decided as the overworld loads (before any of it generates): a world with a plan saved is; a brand new
+    one is if the setting's on; any other (made before 0.23.14, or the setting off) keeps towns where villages would be
+    (A1). In a planned world the town and city structures have no placements (`DrifterApi.setNotPlaced`, the same way
+    villages are gone).
+  - The plan (`WorldPlan`), made once as the world first starts, in the background, from the generator's own terrain (its
+    rough surface, before caves and crags: the generator's exact heights take 8 ms each on the user's Tectonic, and the
+    first plans took minutes; now about 7 s): capitals on a ring about 1,100 blocks from spawn (a second ring further for
+    many nations), each on the best ground near its point (a few tries round the ring, on rougher ground if need be);
+    each nation's 3 to 5 towns 550 to 950 out from its capital, 2 to 4 hamlets past some of them; two or three free towns
+    between nations; a ruin or two; nothing within 300 of spawn (you start near a nation, not in it). Sizes as before (a
+    capital 40 to 80 households, towns 8 to 16, hamlets 2 to 5).
+  - Its nations made at once (`Nations.planned`), named from their capitals ("the Kingdom of X", "the X League"...), each a
+    colour; their towns members already. Each town is made as before when a player comes near (`TownSites`), with the id
+    and name the plan gave it, and is at peace and allied with its fellows already made (`Nations.plannedMade`).
+  - Roads between them (W5): a nation's capital to each of its towns, hamlets to their nearest town, each capital to its
+    nearest two (one network), free towns to the nearest place; routed over the land on a 32-block grid (climbs and water
+    dear, the sea gone round), corners rounded off. Built a stretch (48 blocks) at a time as a player comes within twelve
+    chunks (`Highways`), its land loaded first: a worn dirt path three wide (smooth sandstone in deserts), built up a block
+    a step over dips, slabs (Terrain Slabs' path slab when it's there) or stairs on climbs, railed plank bridges on piers
+    over water. Each town lays a main road out each way a road comes in (kept whole), and the stretch at its end waits for
+    it and runs on to meet its nearest road; a signpost there with where the road goes and how far.
+  - Streets on steep ground: all of a town's roads get their heights together, a block a step at most between any two side
+    by side, halfway between built up over dips and cut into bumps (worked out each on its own, a high street and a low one
+    crossing on a mountain stood a wall apart; filled only, a road down a mountain was one long embankment); level with the
+    plaza where they leave it, those held. Each house is then set at its street's height (within a block or two) and the
+    ground shaped round it (with streets cut into a hill, a house on the hill's own ground stood ten blocks under its
+    street).
+  - Spots checked on the land's real heights too: the plan's quick surface leaves out Tectonic's crags (a snowy peak looked
+    like gentle ground), so each spot's core is checked at nine points from the generator itself.
+  - Door paths: no slab or stair on the block right outside a door (a half step there still meets the wall over the
+    door; found by the walk check, a mountain city's store).
+  - Commands: `/drifterciv locate <city|town|hamlet|ruin|any>` (the nearest of the plan, made or not, its nation and how
+    far), `/drifterciv plan` (every nation and its places, the roads built so far); debug `/drifterciv plan roads` (every
+    stretch within 1,000 blocks built now, player or not), `/drifterciv town map <radius>` (the land round here from above).
+  - Tested headless on the user's Tectonic (seed 779, a new world each time): the plan in 7 to 14 s (4 nations, 18
+    places, 16 roads, 13,800 blocks of road); a capital (a grid city of about 40 houses on a mountain, 75 people) and one of
+    its towns made, in its nation ("friendly" with its capital): every place in both walked to; 67 stretches of road built
+    round them: from the city's south road down to the town, joined to its streets; others west over a river by a bridge,
+    and east. Another capital (a grid city on a snowy mountain): 30 of its 32 places walked to (two A-frame cabins not:
+    to look at). Every shape of town (0.23.13's test) still walked through.
+  - Not yet: a capital by the sea with no towns round it in one test (no ground for them); the history (W6: nations
+    feuding and allied from the start, ruins from wars); towns far away as summaries (W7); towns founded later by
+    Drifters don't count toward the limit yet; lots of lamps in hill towns and mountain cities.
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries).

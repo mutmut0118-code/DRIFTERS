@@ -344,6 +344,35 @@ public final class DrifterApi {
 		return townsForVillages && com.dinglebob.drifter.DrifterConfig.replaceVillages();
 	}
 
+	/** A new world is a civilized world (the addon's world plan of nations), and how many nations and how spread out. */
+	public static boolean civilizedWorld() {
+		return townsForVillages && com.dinglebob.drifter.DrifterConfig.replaceVillages() && com.dinglebob.drifter.DrifterConfig.civilizedWorld();
+	}
+
+	/** 1 few, 2 normal, 3 many. */
+	public static int nationsSetting() {
+		return com.dinglebob.drifter.DrifterConfig.nations();
+	}
+
+	/** 1 round spawn to 5 over the world. */
+	public static int spreadSetting() {
+		return com.dinglebob.drifter.DrifterConfig.civSpread();
+	}
+
+	/**
+	 * Structures an addon places itself (a civilized world's towns, put where its world plan says): no placements, so /locate
+	 * and generation don't look for them the usual way (as villages, replaced).
+	 */
+	public static void setNotPlaced(java.util.function.Predicate<net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> which) {
+		notPlaced = which;
+	}
+
+	public static boolean notPlaced(net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure> structure) {
+		return notPlaced.test(structure);
+	}
+
+	private static volatile java.util.function.Predicate<net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> notPlaced = s -> false;
+
 	/** Villagers stay out of it too (none spawning as zombie villagers to cure). */
 	public static boolean noVillagers() {
 		return villagesReplaced() && !com.dinglebob.drifter.DrifterConfig.villagers();

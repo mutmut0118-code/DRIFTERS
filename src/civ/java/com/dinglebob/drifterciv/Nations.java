@@ -207,6 +207,48 @@ final class Nations {
 		return nation;
 	}
 
+	/**
+	 * A nation of the world plan (W4), made with the world: its capital and towns known by the ids they'll have, none of them
+	 * made yet (each is when a player comes near: {@link #plannedMade}).
+	 */
+	static void planned(MinecraftServer server, WorldPlan.PlannedNation planned, List<UUID> towns) {
+		if (nations.containsKey(planned.id())) {
+			return;
+		}
+
+		long day = Chronicle.day(server);
+		Nation nation = new Nation(planned.id(), planned.name(), planned.capital(), planned.colour(), day);
+		for (UUID town : towns) {
+			if (!town.equals(planned.capital())) {
+				Member member = new Member(town, day);
+				member.tributeDay = day + TRIBUTE_EVERY;
+				nation.members.put(town, member);
+			}
+		}
+
+		nation.news = "formed";
+		nations.put(nation.id, nation);
+	}
+
+	/** One of a planned nation's towns made: at peace and allied with each of its fellows made already. */
+	static void plannedMade(MinecraftServer server, UUID id, Town town) {
+		Nation nation = nations.get(id);
+		if (nation == null) {
+			return;
+		}
+
+		for (UUID one : nation.towns()) {
+			Town other = Diplomacy.byId(one.toString());
+			if (other != null && other != town) {
+				var r = Diplomacy.meet(server, town, other, 0.0, null);
+				r.pacts.add(Diplomacy.Pact.PEACE);
+				r.pacts.add(Diplomacy.Pact.ALLIANCE);
+			}
+		}
+
+		Towns.save(server);
+	}
+
 	/** {@code town} is out of its nation (free, or the nation no more with only its capital left). */
 	static void leave(MinecraftServer server, Town town, String how) {
 		Nation nation = of(town);
@@ -685,11 +727,18 @@ final class Nations {
 		List<String> lines = new ArrayList<>();
 		for (Nation nation : nations.values()) {
 			Town capital = Diplomacy.byId(nation.capital.toString());
-			lines.add(nation.name + " (" + nation.colour.getName().replace('_', ' ') + "), since day " + nation.foundedDay + ": capital " + (capital == null ? "?"
-				: capital.name + ", ruled by " + Diplomacy.name(capital, capital.leader)));
+			WorldPlan.Place seat = WorldPlan.place(nation.capital);
+			lines.add(nation.name + " (" + nation.colour.getName().replace('_', ' ') + "), since day " + nation.foundedDay + ": capital " + (capital == null
+				? seat != null ? seat.name + " (not seen yet, at " + seat.x + ", " + seat.z + ")" : "?" : capital.name + ", ruled by " + Diplomacy.name(capital,
+				capital.leader)));
 			for (Member member : nation.members.values()) {
 				Town town = Diplomacy.byId(member.town.toString());
 				if (town == null) {
+					WorldPlan.Place planned = WorldPlan.place(member.town);
+					if (planned != null) {
+						lines.add("  " + planned.name + " (a " + planned.kind + ", not seen yet, at " + planned.x + ", " + planned.z + ")");
+					}
+
 					continue;
 				}
 

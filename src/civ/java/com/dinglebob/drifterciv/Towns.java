@@ -106,6 +106,13 @@ public final class Towns {
 		Diplomacy.load(state(server).tag);
 		Nations.load(state(server).tag);
 		TownSites.load(state(server).tag);
+		WorldPlan.load(state(server).tag);
+		WorldPlan.start(server);
+	}
+
+	/** What's saved, read as the overworld loads (before the towns are: to know whether it's a planned world). */
+	static CompoundTag savedTag(net.minecraft.server.level.ServerLevel overworld) {
+		return overworld.getDataStorage().computeIfAbsent(new SavedData.Factory<>(State::new, State::load, null), "drifter_civ_towns").tag;
 	}
 
 	static void save(MinecraftServer server) {
@@ -117,6 +124,7 @@ public final class Towns {
 		Diplomacy.save(tag);
 		Nations.save(tag);
 		TownSites.save(tag);
+		WorldPlan.save(tag);
 		State state = state(server);
 		state.tag = tag;
 		state.setDirty();

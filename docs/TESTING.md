@@ -1526,6 +1526,12 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       river (a bridge from the plaza over the river, roads along both banks, a dock), harbour (a road down to the shore, a
       waterfront road, piers with lanterns and a boat), hill (roads round the hill, terraces, a lookout tower you can climb).
       Force the others with `/drifterciv town shape ring` and `grid`. Walk over the bridges: no wall at either end, no gap.
+- [ ] A world of nations (0.23.14): make a NEW world (Mod Menu: Drifter settings, "A world of nations" on, "Nations" 4,
+      "Spread" round spawn). Wait about ten seconds, then `/drifterciv plan`: the nations and their places. `/drifterciv
+      locate city` and fly there (or `/tp` near it): the capital is made as you come near, a big town with a grid of stone
+      streets. `/drifterciv nations` shows it in its nation. Follow a dirt road out of it: it's built ahead of you as you
+      go (a stretch at a time), bends round hills, crosses rivers on railed bridges, and reaches the next town, joining its
+      roads, with a signpost by the road near each town. Old worlds keep working as before.
 - [ ] Terrain Slabs (0.23.12): with Terrain Slabs installed, Drifters dig, camp and build on slab-covered hillsides as
       on any ground (before, every slab looked like a player's build to them).
 
