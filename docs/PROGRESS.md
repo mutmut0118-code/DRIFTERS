@@ -3928,3 +3928,22 @@ of slabs, while still keeping the slabs". So, as built:
 - Found in testing: a beam across the top storey closed the hole over stairs up to a roof; a door can't stand on a bottom
   slab. Both fixed (the stair tower isn't used now). Also: `run/server.properties` had been left pointing at an old
   world folder (`deserttest`), so several runs reused one world; it's back to `world`.
+
+### Side session: pillars left by trees (0.23.10-side.2)
+
+The user (2026-10-30, screenshots: cobblestone pillars up beside an acacia in a town, one block up under its leaves;
+"check logs for cobblestone scan"). Their game ran 0.23.10. The scan: 95 cobblestone blocks in the open within 100, 89
+on town ground; most in rows at one height round the plaza (unowned: the town's own, by the look of them); the pillars
+by the tree were AcornX's, fierymarsh's and EpicToast's, Drifters cutting acacia logs (`GatherActivity` pillars up beside a
+trunk for logs out of reach).
+- **Fixed: pillars under trees were never tidied.** `TidyScaffoldActivity.stillScaffold` took "out in the open" as the
+  sky's full light over the block: under leaves that's a little less, and every block of a pillar but its top has the
+  next one over it, so those were forgotten at the first look (it drops what fails the test from its memory). Now
+  `inTheOpen`: nothing over it up the column but leaves and its own scaffolding (mines and caves still don't count).
+- **Fixed: the get-down job left the bottom of its pillar.** Up on its own pillar with no blocks, `GetDownActivity` dug
+  down only until the drop was safe and then dropped, leaving three blocks; it now digs its own pillar all the way down.
+- `/drifter cobblescan` now also sees pillars under leaves and every block of a pillar (nothing over it but leaves and
+  more of the same). `/drifter personality set <trait> <0-1>` (debug, for tests).
+- Not reproduced in a test: three runs (a plains town, four Drifters by tall spruces on flat ground, a town with tall
+  spruces planted) had few tree pillars; one left 3 blocks after the get-down (fixed above). The user's pillars may also
+  be too tall to reach the top of from the ground (the tidy goes top first); to watch.

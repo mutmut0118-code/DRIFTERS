@@ -191,11 +191,30 @@ public class TidyScaffoldActivity extends Activity {
 			&& box.minZ < pos.getZ() + 1 && box.maxZ > pos.getZ();
 	}
 
+	/**
+	 * Nothing over it but leaves and its own scaffolding (not down a mine or a cave). Before, "the sky over it": under a tree's
+	 * leaves the sky's light is a little less, and every block but a pillar's top has the next one over it, so the pillars it
+	 * built to cut tall trees were forgotten at the first look and stood for good (the user's screenshots, 2026-10-30:
+	 * cobblestone pillars under an acacia in a town).
+	 */
+	private static boolean inTheOpen(DrifterEntity drifter, BlockPos pos) {
+		net.minecraft.world.level.Level level = drifter.level();
+		int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+		for (BlockPos.MutableBlockPos up = pos.above().mutable(); up.getY() < top; up.move(net.minecraft.core.Direction.UP)) {
+			BlockState over = level.getBlockState(up);
+			if (!over.getCollisionShape(level, up).isEmpty() && !over.is(net.minecraft.tags.BlockTags.LEAVES) && !drifter.isScaffold(up)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	/** Still the building block it put there, and not part of something it built since. */
 	private static boolean stillScaffold(DrifterEntity drifter, Home home, BlockPos pos) {
 		BlockState state = drifter.level().getBlockState(pos);
 		// Out in the open only: pillars and bridges down its mines and caves aren't an eyesore (and mostly out of reach).
-		return !state.isAir() && drifter.level().canSeeSky(pos.above()) && com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(state.getBlock().asItem()))
+		return !state.isAir() && inTheOpen(drifter, pos) && com.dinglebob.drifter.hands.Tools.BUILDING_BLOCK.test(new net.minecraft.world.item.ItemStack(state.getBlock().asItem()))
 			&& !home.inOwnBuilding(pos, 1) && drifter.level().getFluidState(pos).isEmpty();
 	}
 }

@@ -2565,3 +2565,13 @@ nothing on top. Some reach out 2 blocks with wood underneath; some lids are full
 - [ ] In a new world (or a new town: `/drifterciv town spawn 8 Flatby`), some Drifters' houses come out flat-roofed.
       Watch one get built: the walls go up as before, then the flat top goes on, and the Drifter moves in.
 - [ ] Houses already built or half-built in your worlds stay as they were.
+
+## Side session: pillars left by trees (new, 0.23.10-side.2)
+
+Drifters build a cobblestone pillar beside a tall tree to cut its high logs. They now take those down, even under the
+leaves, and a Drifter that gets stuck up a pillar digs all the way down it instead of jumping off partway.
+
+- [ ] In a town with trees, after a day or two: no new cobblestone pillars beside the trees. Old ones from before stay
+      (break them by hand); a Drifter may still take down ones it remembers as its own.
+- [ ] If you see a new one: stand by it and type `/drifter cobblescan 30`. In the log, `S:<name>` after a block says whose
+      it is; tell me the name and whether it was up under the leaves.

@@ -35,7 +35,27 @@ public final class PersonalityCommands {
 				.executes(ctx -> reroll(ctx, null))
 				.then(Commands.argument("archetype", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(Archetype.values()).map(Archetype::id), builder))
-					.executes(ctx -> reroll(ctx, StringArgumentType.getString(ctx, "archetype"))))));
+					.executes(ctx -> reroll(ctx, StringArgumentType.getString(ctx, "archetype")))))
+			// Debug: one trait set by hand (for tests: a tidy Drifter, a brave one).
+			.then(Commands.literal("set").then(Commands.argument("trait", StringArgumentType.word())
+				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(com.dinglebob.drifter.personality.Trait.values())
+					.map(t -> t.name().toLowerCase(java.util.Locale.ROOT)), builder))
+				.then(Commands.argument("value", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(0.0, 1.0)).executes(ctx -> {
+					com.dinglebob.drifter.personality.Trait trait;
+					try {
+						trait = com.dinglebob.drifter.personality.Trait.valueOf(StringArgumentType.getString(ctx, "trait").toUpperCase(java.util.Locale.ROOT));
+					} catch (IllegalArgumentException e) {
+						ctx.getSource().sendFailure(net.minecraft.network.chat.Component.literal("No such trait"));
+						return 0;
+					}
+
+					var drifter = DrifterCommands.nearest(ctx.getSource());
+					double value = com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "value");
+					drifter.getPersonality().set(trait, value);
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(DrifterCommands.label(drifter) + " " + trait.name().toLowerCase(java.util.Locale.ROOT)
+						+ " now " + value), true);
+					return 1;
+				})))));
 		root.then(Commands.literal("mood")
 			.executes(PersonalityCommands::showMood)
 			.then(Commands.argument("mood", StringArgumentType.word())

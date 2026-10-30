@@ -47,6 +47,12 @@ public class GetDownActivity extends Activity {
 		Level level = this.drifter.level();
 		BlockPos feet = this.drifter.blockPosition();
 		if (!stuckUp(this.drifter)) {
+			// Low enough to drop, but still on its own pillar: the rest of it comes down too, a block at a time (found in a
+			// town test: it dug until the drop was safe and jumped, and three blocks of cobblestone stood by the trees for good).
+			if (this.drifter.onGround() && this.drifter.isScaffold(feet.below()) && solid(level, feet.below(2))) {
+				return this.begin(this.dig(feet.below()));
+			}
+
 			this.think("back down");
 			return Status.SUCCESS;
 		}
