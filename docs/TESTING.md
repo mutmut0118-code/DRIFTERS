@@ -1550,6 +1550,15 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       - In a hamlet (the smallest towns, dirt roads), roads and paths climb with path slabs, never stairs.
       - Stand where a new town is being made: no seeds or flowers left lying on the ground after it, and less lag while
         it's made.
+- [ ] Towns on flat land (0.23.18): make a new world, then `/drifterciv plan` lists the places. Visit a few with
+      `/drifterciv locate town`: every capital, town and hamlet is on low, fairly flat land (by the sea or a river, or a
+      plain not far over it), never on a mountain or a steep hill, with no tall cliffs cut round it.
+- [ ] Roads between towns wind and stay on land (0.23.18): follow a road out of a town. It curves through the land,
+      round hills, never in a long straight line, and never out over the sea (a river gets a short bridge). Places on
+      different islands have no road between them. Where it runs past a house (one a Drifter built, or a town's), the
+      house is untouched.
+- [ ] Bridges (0.23.18): a road's bridge over a river on a slant has one joined railing on each side (posts in the
+      corners), and no patch of dirt path in the middle where it crosses a sandbar.
 - [ ] Walkable roads and paths (0.23.17): in a new town on hilly land (a new world, or land you haven't been near), walk
       every street and a few door paths. You never have to jump: roads rise half a block at a time on slabs (stone brick
       in cities, wood in towns, path slabs in hamlets), never stairs, and nothing is a block high side by side. Paths from
@@ -2644,9 +2653,9 @@ Installed as 0.23.12-side.1: also has the other session's 0.23.11-0.23.12 (their
       and debates (flat roofs, stone or wood houses, carpet or slabs, one floor or two). To hear one now: stand by a
       Drifter and type `/drifter talk debate_flat_roofs` (or `laid_a_rug`, `desert_living`, `lost_furnace`).
 
-Installed as 0.23.17-side.1: also has the other session's 0.23.13-0.23.17 (their checks are in their own sections above).
+Installed as 0.23.18-side.1: also has the other session's 0.23.13-0.23.18 (their checks are in their own sections above).
 
-## Side session: Touch'n Motion on Drifters (new, 0.23.17-side.1)
+## Side session: Touch'n Motion on Drifters (new, 0.23.18-side.1)
 
 Touch'n Motion is a mod (not a resource pack): an add-on to EMF Compat that adds to a player's animation, with Fresh
 Animations: Player Extension. Feet that stand on stairs and slabs, a hand on a wall you stand beside, the body leaning

@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17); next W6 + W7 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18); next W6 + W7 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -1142,3 +1142,33 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     blocks is built at once (the debug command: chunks loading and the game's own ticks).
   - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a road only waits for its land, so
     it's built a little behind you on fast travel.
+
+- **0.23.18: towns on low flat land, winding roads that never cross the sea, roads leave houses alone, joined bridge
+  railings** (the user, 2026-10-30, with pictures of a capital on a mountain cut into cliffs twenty high, roads straight
+  over the sea, a house half buried by a road, plank bridges: "i think we need to rework city and town placement because
+  idk if a city on a mountain or hill is gonna work", "still very long roads", "make the roads windy and scenic", "make
+  sure the towns are around sea level, that way it automatically goes around the mountains", "the terraforming is infact
+  destroying the houses", "diagonal bridges over rivers the fences dont connect", "random path patches in the middle of
+  the bridge").
+  - The plan reads the land by its real heights (`WorldPlan.real`: the generator's final terrain, from over the sea down,
+    half a millisecond a spot). The rough terrain it used left out Tectonic's crags, and with Continents (in the user's
+    profile, now in the test too) put the land 90 blocks under the sea: mountains looked gentle to towns and roads.
+  - Placement: flat land only (a city's core within 10 blocks, a town's 8, a hamlet's 6, no cliff of more than 5 between
+    spots 16 apart), its core at most 24 over the sea, the lower the better. Nothing suits: it looks twice, then three
+    times as far (at most 1,000 blocks), then in any biome, then isn't made (it went on rougher ground before).
+  - Roads: never over open water (water with no land within about 50 blocks: the sea, a lake; a river's still bridged);
+    none whose way round is more than 1.7 times the straight line (and 200); nations joined by their nearest two towns
+    within 1,600 blocks, not capital to capital (3,200 blocks over the sea in the user's world). They wind: the search
+    leans on a smooth lie of the land (`wander`), and its corners are rounded three times.
+  - A road between towns is cut or built at most 6 blocks from the ground (its banks reach no further: cliffs stood over
+    it). It leaves anything built standing as it is (`TownBuilder.built`: planks, glass, a door... under the top): it took
+    a house's roof for the ground and cut the house away.
+  - Bridges: up to 8 steps of land in the middle of a crossing are bridged over (a sandbar was paved, dirt in the middle
+    of the bridge); railings round a slanting bridge's corners get a post in the corner, and every fence is joined to
+    those beside it (they only touched at their corners).
+  - Tested headless on the user's world seed with Tectonic and Continents: 2 nations, 9 places, 6 roads (2,756 blocks;
+    9,364 before), the plan 37 s. The capital on flat land by the sea: 60 of its 78 houses (31 of 77 on its hill before),
+    64 of 64 places walked to, 29 of 15,164 steps need a jump; two towns 11 of 11 and 15 of 16 houses, all walked to.
+  - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a Drifter standing where a town is
+    made can be built into a wall (one suffocated in the test).
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
