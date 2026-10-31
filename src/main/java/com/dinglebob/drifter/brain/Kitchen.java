@@ -37,6 +37,8 @@ public final class Kitchen {
 	private static final long CHOICE_MIN_TICKS = 20L * 5;
 	/** Cooked within this long: something to talk about. */
 	public static final long COOKED_LATELY = 24000L * 2;
+	/** Below this (and not on the mod's meal list) a pot recipe is an ingredient, not dinner. */
+	private static final int MEAL_NUTRITION = 6;
 	/** Meals it likes to have on it (or in its cabinets) before it cooks more. */
 	public static final int MEALS_WANTED = 3;
 
@@ -172,7 +174,12 @@ public final class Kitchen {
 			Planner.potMeals(drifter.level()).forEach((meal, recipes) -> ready.put(meal,
 				recipes.stream().mapToDouble(recipe -> readiness(drifter, recipe)).max().orElse(0.0)));
 			List<Item> meals = new ArrayList<>(ready.keySet());
-			meals.removeIf(meal -> new ItemStack(meal).get(DataComponents.FOOD) == null || Food.isBad(new ItemStack(meal)));
+			// (A real meal: the mod's meal list, or something filling. Tomato sauce or cooked rice is for cooking with.)
+			meals.removeIf(meal -> {
+				ItemStack stack = new ItemStack(meal);
+				FoodProperties food = stack.get(DataComponents.FOOD);
+				return food == null || Food.isBad(stack) || !FarmersDelight.isMeal(stack) && food.nutrition() < MEAL_NUTRITION;
+			});
 			meals.sort(Comparator.comparingDouble((Item meal) -> -ready.get(meal)).thenComparingDouble(meal -> -value(meal)));
 			for (Item meal : meals.subList(0, Math.min(MEALS_CONSIDERED, meals.size()))) {
 				Planner.Plan plan = Planner.plan(drifter, world, meal, drifter.getInventory().count(stack -> stack.is(meal)) + 1);

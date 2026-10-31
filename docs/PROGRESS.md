@@ -4476,6 +4476,16 @@ runtime, CLAUDE.md soft dependencies): without the mod nothing changes.
   what it has the makings of first); the cook goal baked the stew's potatoes first (now kept); it walked off mid-cook
   when the goal's plan ran dry (now it sees the pot through, and a batch it's called away from it comes back for:
   `Brain.PotBatch`); fried pieces landing on the stove top out of its reach (it stands in front of the stove now).
+- **Client test (0.23.22-side.3), a full meal:** in the dev client (flat world, farmhouse pasted, Farmer's Delight loaded),
+  asked for pasta with meatballs with a beef, two tomatoes, three wheat, an egg and two bowls on it, it planned "cut 1 raw
+  beef on the cutting board > craft wheat dough > cut 1 wheat dough on the cutting board > cook 1 tomato sauce in the
+  cooking pot > cook 1 pasta with meatballs in the cooking pot" (42 s) and did it all in 26 s: minced beef and raw pasta
+  off the board, the sauce served into a bowl, the pasta cooked with it and served into the other (the sauce's bowl came
+  back). Screenshots in `run/screenshots` (fd_k*: fitting out the kitchen; fd_m*: the meal). Fixed from it: a crafting
+  table put down in front of the stove (things put down in the house keep off its furniture places and the floor in front
+  of them: `Furnishing.keepClear`); the meal chooser cooking tomato sauce as a meal (only the mod's meal list or food of 6+
+  now); a meal cooking in the pot not counted by the planner (it went looking for more tomatoes: `Planner.PotCollect`); back
+  at the pot early, it waits for the meal instead of giving the batch up.
 - Design questions: none. Not done: building a stove or pot when it has none from scratch is planned through the normal
   Strategist targets (bricks from clay, a campfire, a water bucket) but not watched end to end in a test yet; feasts
   (placed meal blocks served with a bowl) aren't cooked or served.

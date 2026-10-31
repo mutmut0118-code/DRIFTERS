@@ -125,6 +125,7 @@ public final class Goals {
 			case Planner.Cut cut -> new com.dinglebob.drifter.brain.activity.CutActivity(drifter, cut);
 			case Planner.PotCook cook -> new com.dinglebob.drifter.brain.activity.PotCookActivity(drifter, cook);
 			case Planner.FillBucket fill -> new com.dinglebob.drifter.brain.activity.FillBucketActivity(drifter, fill.count());
+			case Planner.PotCollect collect -> new com.dinglebob.drifter.brain.activity.PotCookActivity(drifter, collect.batch());
 		};
 	}
 

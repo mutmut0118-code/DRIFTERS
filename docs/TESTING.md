@@ -2753,7 +2753,7 @@ setup as above (creative, a flat floor, `/drifter spawn Ann`, `/drifter brain of
 Still not on Drifters: Create, Supplementaries and Create Aeronautics controls (cranks, wheels, throttles: Drifters
 don't use them), typing, and driving trains.
 
-## Side session: Farmer's Delight kitchens and cooking (new, 0.23.22-side.2)
+## Side session: Farmer's Delight kitchens and cooking (new, 0.23.22-side.3)
 
 Installed as 0.23.22-side.2: also has the nickname work from the other side session (its section is below).
 
@@ -2782,6 +2782,11 @@ Setup: a creative world, a flat spot. Spawn a Drifter and give it a house quickl
       in, and the bowls, closes it and waits by the stove (the pot bubbles), about 10 seconds a stew, then takes the three
       beef stews out. `/drifter inventory` shows them. `/drifter thoughts` says "cooking 3 beef stew ..." then "cooked
       beef stew".
+- [ ] **A full meal from scratch (pasta with meatballs).** With the kitchen in, `/drifter give minecraft:beef`,
+      `/drifter give farmersdelight:tomato 2`, `/drifter give minecraft:wheat 3`, `/drifter give minecraft:egg`,
+      `/drifter give minecraft:bowl 2`, then `/drifter get farmersdelight:pasta_with_meatballs`. In about half a minute it
+      cuts the beef on the board (minced beef), makes dough and cuts it into pasta, cooks tomato sauce in the pot, then cooks
+      the pasta with meatballs and takes it out. `/drifter plan farmersdelight:pasta_with_meatballs` shows the steps first.
 - [ ] **It keeps the stew's ingredients for the stew.** With a kitchen and the beef, carrots and potatoes on it, it
       doesn't put them in the furnace on their own any more.
 - [ ] **It fries in the skillet.** With the skillet on a stove in its kitchen, `/drifter give minecraft:porkchop 3`, then

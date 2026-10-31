@@ -137,6 +137,18 @@ public final class Furnishing {
 		return base == null || base.takes(level.getBlockState(spot.pos().below()).getBlock());
 	}
 
+	/** The layout's places and the floor in front of each (where it's used from): not for anything else put down in the house. */
+	public static Set<BlockPos> keepClear(BlockGetter level, PlacedPlan placed, @Nullable BlockPos bed) {
+		Set<BlockPos> clear = new HashSet<>();
+		for (Spot spot : plan(level, placed, bed)) {
+			clear.add(spot.pos());
+			BlockPos base = spot.upper() || spot.use().base() != null ? spot.pos().below() : spot.pos();
+			clear.add(base.relative(spot.facing()));
+		}
+
+		return clear;
+	}
+
 	/** Every free place in the layout that this block could go in now (the kitchen's, in order), for fitting out a kitchen. */
 	public static List<Spot> freeFor(BlockGetter level, PlacedPlan placed, @Nullable BlockPos bed, Block block) {
 		List<Spot> free = new ArrayList<>();

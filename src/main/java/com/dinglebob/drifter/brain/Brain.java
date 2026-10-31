@@ -260,7 +260,7 @@ public class Brain {
 	 * A meal it left cooking in a pot (Farmer's Delight): where, what, and when it's done. It comes back for it, as for a
 	 * furnace's batch. Not saved.
 	 */
-	public record PotBatch(BlockPos pot, net.minecraft.world.item.Item meal, long readyAt) {
+	public record PotBatch(BlockPos pot, net.minecraft.world.item.Item meal, int count, long readyAt) {
 	}
 
 	@org.jetbrains.annotations.Nullable

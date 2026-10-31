@@ -40,6 +40,7 @@ public class PotCookActivity extends KitchenActivity {
 	private Phase phase = Phase.CLEAR;
 	private int batches;
 	private int lights;
+	private boolean waitedAtPot;
 
 	public PotCookActivity(DrifterEntity drifter, Planner.PotCook cook) {
 		super(drifter);
@@ -205,7 +206,7 @@ public class PotCookActivity extends KitchenActivity {
 
 				this.phase = Phase.COOK;
 				// It remembers the batch: called away, it comes back for it.
-				this.drifter.getDrifterBrain().setPotBatch(new com.dinglebob.drifter.brain.Brain.PotBatch(pos, this.meal,
+				this.drifter.getDrifterBrain().setPotBatch(new com.dinglebob.drifter.brain.Brain.PotBatch(pos, this.meal, this.batches,
 					this.now() + (long)this.batches * this.cook.cookTicks() + 40));
 				this.think("cooking " + this.batches + " " + Planner.name(this.cook.meal()) + " (" + String.join(", ", this.cook.inputLabels()) + ")");
 				return this.begin(ContainerTask.load(this.drifter, pos, FarmersDelight::pot, loads, Planner.name(this.cook.meal())));
@@ -231,6 +232,21 @@ public class PotCookActivity extends KitchenActivity {
 			}
 			case TAKE -> {
 				this.phase = Phase.TIDY;
+				boolean stillCooking = !pot.getItem(FarmersDelight.POT_MEAL).isEmpty();
+				for (int slot = 0; slot < FarmersDelight.POT_INPUTS; slot++) {
+					stillCooking |= !pot.getItem(slot).isEmpty();
+				}
+
+				if (stillCooking && !this.waitedAtPot && FarmersDelight.heatedFrom(this.drifter.level(), pos)) {
+					// Back before it's done: it waits by the stove for it.
+					this.waitedAtPot = true;
+					this.phase = Phase.TAKE;
+					return this.begin(new WaitTask(this.drifter, Planner.name(this.meal) + " to finish", () -> {
+						Container now = this.pot(pos);
+						return now == null || !now.getItem(FarmersDelight.POT_OUTPUT).isEmpty() && now.getItem(FarmersDelight.POT_MEAL).isEmpty();
+					}, 20 * 30));
+				}
+
 				if (pot.getItem(FarmersDelight.POT_OUTPUT).isEmpty()) {
 					// Nothing served (no bowls in it, or someone took them): done here.
 					this.drifter.getDrifterBrain().setPotBatch(null);

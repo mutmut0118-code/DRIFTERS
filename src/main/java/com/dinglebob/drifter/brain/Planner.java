@@ -81,7 +81,7 @@ public final class Planner {
 	// ---------------------------------------------------------------------------------------------
 
 	public sealed interface Action permits Gather, Hunt, Craft, Place, Smelt, Explore, Collect, Fetch, Mine, MakeObsidian, TakeBed, Cut, PotCook,
-		FillBucket {
+		FillBucket, PotCollect {
 		String describe();
 	}
 
@@ -173,6 +173,14 @@ public final class Planner {
 		}
 	}
 
+	/** Go back to the cooking pot for a meal it left cooking there (Farmer's Delight). */
+	public record PotCollect(Brain.PotBatch batch) implements Action {
+		@Override
+		public String describe() {
+			return "take the " + name(this.batch.meal()) + " out of the cooking pot";
+		}
+	}
+
 	/** Fill buckets with water at water it knows (a cooking pot's recipe takes a water bucket). */
 	public record FillBucket(int count) implements Action {
 		@Override
@@ -235,6 +243,8 @@ public final class Planner {
 		final Map<FurnaceJob, Integer> fromFurnaces;
 		/** How much of each stored item the plan has already counted on taking from home. */
 		final Map<Item, Integer> fromHome;
+		/** The plan counts on the meal cooking in the pot (Farmer's Delight). */
+		boolean fromPot;
 		double cost;
 
 		State(Map<Item, Integer> inventory, List<Action> actions, Set<Block> placed, Map<FurnaceJob, Integer> fromFurnaces, Map<Item, Integer> fromHome,
@@ -248,8 +258,10 @@ public final class Planner {
 		}
 
 		State copy() {
-			return new State(new HashMap<>(this.inventory), new ArrayList<>(this.actions), new HashSet<>(this.placed), new HashMap<>(this.fromFurnaces),
+			State copy = new State(new HashMap<>(this.inventory), new ArrayList<>(this.actions), new HashSet<>(this.placed), new HashMap<>(this.fromFurnaces),
 				new HashMap<>(this.fromHome), this.cost);
+			copy.fromPot = this.fromPot;
+			return copy;
 		}
 
 		int count(Item item) {
@@ -416,6 +428,18 @@ public final class Planner {
 				if (remaining <= 0) {
 					return base;
 				}
+			}
+		}
+
+		// Then a meal it left cooking in the pot (Farmer's Delight): it only has to go back for it.
+		Brain.PotBatch batch = this.drifter.getDrifterBrain().potBatch();
+		if (batch != null && !base.fromPot && candidates.contains(batch.meal())) {
+			base.fromPot = true;
+			base.addAction(new PotCollect(batch));
+			base.cost += COST_COLLECT;
+			remaining -= batch.count();
+			if (remaining <= 0) {
+				return base;
 			}
 		}
 
