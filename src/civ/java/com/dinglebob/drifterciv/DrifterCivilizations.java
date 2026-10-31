@@ -264,6 +264,56 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: the nearest town's market day, or Founding Day, today (milestone 23 C4, C6).
+				.then(Commands.literal("market").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null) {
+						return 0;
+					}
+
+					town.forcedMarketDay = Chronicle.day(ctx.getSource().getServer());
+					town.eventDay = -1;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: market day in " + town.name + " today" + (town.stallBuilt ? "" : " (it has no stall up!)")),
+						false);
+					return 1;
+				}))
+				.then(Commands.literal("monument").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null) {
+						return 0;
+					}
+
+					town.monumentFor = "In memory of|those who|built|" + town.name;
+					town.monumentDay = -100;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: a monument due in " + town.name + " (its people begin it at the next check)"), false);
+					return 1;
+				}))
+				.then(Commands.literal("festival").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null) {
+						return 0;
+					}
+
+					long today = Chronicle.day(ctx.getSource().getServer());
+					long years = Math.max(1, (today - town.bornDay) / TownCulture.YEAR);
+					town.bornDay = today - years * TownCulture.YEAR;
+					town.festivalDay = -1;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: Founding Day in " + town.name + " today"), false);
+					return 1;
+				}))
+				// Debug: comings and goings (milestone 23 C3) at the nearest town now.
+				.then(Commands.literal("leave").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					String what = town == null ? "no town" : TownLife.debugLeave(ctx.getSource().getServer(), town);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + what), false);
+					return 1;
+				}))
+				.then(Commands.literal("newcomer").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					String what = town == null ? "no town" : TownLife.debugArrive(ctx.getSource().getServer(), town);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + what), false);
+					return 1;
+				}))
 				// Debug: every town house's blocks gone (by layer), logged.
 				.then(Commands.literal("damage").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var level = ctx.getSource().getLevel();
@@ -737,6 +787,29 @@ public final class DrifterCivilizations implements ModInitializer {
 		}
 
 		source.sendSuccess(() -> Component.literal("  Work: " + Trades.describe(town)), false);
+		// Its life and culture (milestone 23, phase C): its character, market day, festivals, the latest comings and goings.
+		long today = Chronicle.day(source.getServer());
+		String character = TownCulture.character(source.getServer(), town);
+		long toMarket = -1;
+		for (long d = 0; d < TownEvents.MARKET_EVERY && town.stallBuilt; d++) {
+			if (TownEvents.marketDay(town, today + d)) {
+				toMarket = d;
+				break;
+			}
+		}
+
+		long toFestival = 0;
+		while (toFestival < TownCulture.YEAR && TownCulture.festival(town, today + toFestival) == null) {
+			toFestival++;
+		}
+
+		String festival = TownCulture.festival(town, today + toFestival);
+		long market = toMarket;
+		long festivalIn = toFestival;
+		source.sendSuccess(() -> Component.literal("  Life: " + character + "; market day " + (market < 0 ? "none (no stall)" : market == 0 ? "today" : "in "
+			+ market + (market == 1 ? " day" : " days")) + "; " + (festival == null ? "no festival" : TownCulture.name(festival) + (festivalIn == 0 ? " today"
+			: " in " + festivalIn + " days")) + (town.shrine != null ? "; a shrine" : "") + (town.fire != null ? "; a gathering fire" : "")
+			+ (town.newest != null ? "; newest: " + town.newest : "") + (town.lastLeft != null ? "; last to leave: " + town.lastLeft : "")), false);
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (politicsGroup != null && town.leader != null) {

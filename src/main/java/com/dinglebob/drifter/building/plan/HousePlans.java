@@ -105,6 +105,10 @@ public final class HousePlans {
 			return LAMP_PLAN;
 		}
 
+		if (id.equals(MONUMENT)) {
+			return MONUMENT_PLAN;
+		}
+
 		// A town's store: a house plan with chests along its inside walls (made from the house plan when asked).
 		if (id.startsWith(STORE_PREFIX)) {
 			HousePlan base = get(server, id.substring(STORE_PREFIX.length()));
@@ -172,6 +176,42 @@ public final class HousePlans {
 		}
 
 		return HousePlan.generated(STALL, new net.minecraft.core.Vec3i(5, 4, 4), cells);
+	}
+
+	/**
+	 * A town's monument (milestone 23 C6: "a statue of a dead leader, a tower ... real blocks, real work; a sign says what
+	 * it's for"): 3 by 3, a cobblestone base, a pedestal on it (cobblestone in the middle, slabs round), a figure of
+	 * cobblestone wall two high, a torch for its light on top, and a sign on the front of the base ({@link #MONUMENT_SIGN},
+	 * facing north before it's turned) the town writes what it's for on.
+	 */
+	public static final String MONUMENT = "town:monument";
+	public static final net.minecraft.core.BlockPos MONUMENT_SIGN = new net.minecraft.core.BlockPos(1, 1, 0);
+	private static final HousePlan MONUMENT_PLAN = monument();
+
+	private static HousePlan monument() {
+		List<HousePlan.Cell> cells = new ArrayList<>();
+		var stone = net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState();
+		var slab = net.minecraft.world.level.block.Blocks.COBBLESTONE_SLAB.defaultBlockState();
+		var wall = net.minecraft.world.level.block.Blocks.COBBLESTONE_WALL.defaultBlockState();
+		var sign = net.minecraft.world.level.block.Blocks.OAK_WALL_SIGN.defaultBlockState()
+			.setValue(net.minecraft.world.level.block.WallSignBlock.FACING, net.minecraft.core.Direction.NORTH);
+		for (int x = 0; x <= 2; x++) {
+			for (int z = 0; z <= 2; z++) {
+				cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 0, z), stone));
+				if (x == 1 && z == 1) {
+					cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 1, z), stone));
+				} else if (x != 1 || z != 0) {
+					cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(x, 1, z), slab));
+				}
+			}
+		}
+
+		// (The sign hangs on the front of the pedestal's middle, where the front slab would be.)
+		cells.add(new HousePlan.Cell(MONUMENT_SIGN, sign));
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(1, 2, 1), wall));
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(1, 3, 1), wall));
+		cells.add(new HousePlan.Cell(new net.minecraft.core.BlockPos(1, 4, 1), net.minecraft.world.level.block.Blocks.TORCH.defaultBlockState()));
+		return HousePlan.generated(MONUMENT, new net.minecraft.core.Vec3i(3, 5, 3), cells);
 	}
 
 	/**

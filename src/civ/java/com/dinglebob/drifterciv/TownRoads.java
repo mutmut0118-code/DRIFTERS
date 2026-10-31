@@ -294,6 +294,11 @@ final class TownRoads {
 		@Override
 		public void talk(DrifterEntity drifter, java.util.Map<String, Object> words, java.util.Set<String> flags) {
 			Politics.talk(drifter, this.town, words, flags);
+			if (DrifterCivilizations.server() != null) {
+				TownLife.talk(this.town, Chronicle.day(DrifterCivilizations.server()), words, flags);
+				TownEvents.talk(this.town, Chronicle.day(DrifterCivilizations.server()), words, flags);
+				TownCulture.talk(this.town, Chronicle.day(DrifterCivilizations.server()), words, flags);
+			}
 		}
 
 		@Override
@@ -320,7 +325,15 @@ final class TownRoads {
 
 		@Override
 		public double leaning(DrifterEntity drifter, String goal) {
-			return Trades.leaning(this.town, drifter, goal);
+			long day = DrifterCivilizations.server() == null ? 0 : Chronicle.day(DrifterCivilizations.server());
+			return Trades.leaning(this.town, drifter, goal) + TownDay.leaning(this.town, drifter, goal) + TownEvents.leaning(this.town, drifter, goal, day)
+				+ TownCulture.leaning(this.town, drifter, goal, day);
+		}
+
+		@Override
+		@org.jetbrains.annotations.Nullable
+		public BlockPos place(DrifterEntity drifter, String kind) {
+			return TownDay.place(this.town, drifter, kind);
 		}
 
 		@Override

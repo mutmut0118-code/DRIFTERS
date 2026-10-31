@@ -330,6 +330,11 @@ public final class DrifterApi {
 	}
 
 	/** A name as a Drifter would have one (for a grave, a sign: the same lists Drifters' names come from). */
+	/** The time of day as its habit has it (an early riser's day runs ahead: milestone 23 C1), 0 to 23999. */
+	public static long ownTime(DrifterEntity drifter) {
+		return com.dinglebob.drifter.brain.Schedule.ownTime(drifter);
+	}
+
 	/** A Drifter's kind of name, not checked against those taken (safe off the server thread; for the past, not the living). */
 	public static String looseName(net.minecraft.util.RandomSource random) {
 		return com.dinglebob.drifter.identity.Usernames.loose(random);
@@ -1006,6 +1011,24 @@ public final class DrifterApi {
 	}
 
 	/** The plans of a town's well, notice board and lamp post (milestone 22; built as town builds). */
+	/** A town's monument (milestone 23 C6): 3 by 3, a figure on a pedestal, a sign on its front for what it's for. */
+	public static String monumentPlan() {
+		return com.dinglebob.drifter.building.plan.HousePlans.MONUMENT;
+	}
+
+	/** Where its monument's sign is, for a monument put up here turned so. */
+	public static net.minecraft.core.BlockPos monumentSign(net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(null, com.dinglebob.drifter.building.plan.HousePlans.MONUMENT);
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn());
+		for (var cell : placed.build) {
+			if (cell.state().getBlock() instanceof net.minecraft.world.level.block.WallSignBlock) {
+				return cell.pos();
+			}
+		}
+
+		return origin;
+	}
+
 	public static String wellPlan() {
 		return com.dinglebob.drifter.building.plan.HousePlans.WELL;
 	}
@@ -1059,6 +1082,40 @@ public final class DrifterApi {
 	/** Its shop's trading screen for this player now, as if right-clicked (debug). False if it has none, or nothing on offer. */
 	public static boolean openShop(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
 		return drifter.getShop() != null && com.dinglebob.drifter.trade.DrifterMerchant.open(drifter, drifter.getShop(), player);
+	}
+
+	/** How much it feels one of its moods now (0 to 1), by name ("bored", "grieving", "angry", ...; 0 if there's no such mood). */
+	public static double mood(DrifterEntity drifter, String name) {
+		for (com.dinglebob.drifter.personality.Mood mood : com.dinglebob.drifter.personality.Mood.values()) {
+			if (mood.name().equalsIgnoreCase(name)) {
+				return Math.min(1.0, drifter.getPersonality().mood().pressure(mood));
+			}
+		}
+
+		return 0.0;
+	}
+
+	/** Its kind of player ("casual", "nomad", "homebody", ...: its archetype), lower case. */
+	public static String archetype(DrifterEntity drifter) {
+		return drifter.getPersonality().archetype().name().toLowerCase(java.util.Locale.ROOT);
+	}
+
+	/**
+	 * It moves into a house that's up already (someone's who left, one standing empty: milestone 23 C3): its home there, its
+	 * bed (one put in if there's none), {@code shared} chests its too, as {@link #settleIn}. Null if there's no such plan.
+	 */
+	@Nullable
+	public static Home moveIntoHouse(DrifterEntity drifter, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
+		List<net.minecraft.core.BlockPos> shared) {
+		var plan = drifter.getServer() == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(drifter.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn());
+		PlacedHouse house = new PlacedHouse(planId, origin.immutable(), rotation, "oak", placed.box(), com.dinglebob.drifter.building.plan.HousePlacer.door(placed,
+			null), null);
+		return settleIn(drifter, house, shared);
 	}
 
 	/** One of its personality traits (0 to 1), by name ("greed", "sociability", ...; 0.5 if there's no such trait). */

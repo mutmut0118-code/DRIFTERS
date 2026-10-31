@@ -1556,6 +1556,28 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       built out of sight ahead of you (about 460 blocks off at render distance 9), so walk, ride or fly toward a town and
       it's already there when you can see it, never going up in front of you. Quit while the screen's up and reopen: it
       carries on. Old worlds don't get the screen.
+- [ ] Town life, phase C (0.23.23). Stand in a town for a day (or use `/time set` to jump: 1000 morning, 6000 noon,
+      11800 evening). `/drifterciv town` says its character ("a friendly market town", "a rough town"...), when its
+      market day and next festival are, whether it has a shrine and a gathering fire, and its newest and last to leave.
+      - A day's rhythm: in the morning people work and some read the notice board or walk round the fields; around noon
+        several come to the plaza and the well and chat; in the evening they gather round the campfire on a corner of the
+        plaza (two logs by it); at night they go in. Early risers are about first, night owls last.
+      - Comings and goings: now and then someone leaves for good ("X left T for good" in the chronicle: fell out with
+        everyone, restless, or grieving) and their house stands empty; a homeless wanderer near the town, or a newcomer up
+        the road, moves into an empty house ("X moved to T"). Try `/drifterciv town leave` then `/drifterciv town newcomer`.
+        People talk about the newcomer and the one who left for a few days.
+      - Market day (every 4 days; `/drifterciv town market` makes today one): the keeper calls it out in the morning,
+        people come to the stall all day, traders from the towns round come that day, people talk about it.
+      - A fishing contest (every 12 days in a town by water): everyone with a rod fishes; at evening the one with the
+        most fish wins and says so; the chronicle has it.
+      - Festivals: Founding Day on the town's anniversary and a harvest festival half a town-year (60 days) later
+        (`/drifterciv town festival` makes today Founding Day): the leader calls it out, people celebrate at the plaza
+        (hopping, cheering), someone rings the bell, those with bread feast at dusk.
+      - A shrine (about half the towns): stone bricks, a carved stone with lit candles, flower pots; the patient,
+        forgiving ones go and sit by it now and then.
+      - Monuments: when a town's leader is gone for good, or the town wins a war, its people build a monument on the plaza
+        together (cobblestone figure on a pedestal, a torch on top) and its sign says what it's for. Try
+        `/drifterciv town monument` and watch them gather cobblestone and build it.
 - [ ] The world's past (0.23.22): make a new world. `/drifterciv plan` lists its nations and places (a town burned in its
       past shows as a ruin), and says how far its past has gone. Read the chronicle (the town notice board, or the
       chronicle book): before day 1, its nations founded, rulers who died or stepped down and who came after, peace pacts

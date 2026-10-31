@@ -22,7 +22,7 @@ a test and an entry here.
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
 | W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Done: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20), W6 + W7 its past and the places nobody's near (0.23.22); LOD mods later |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
-| C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
+| C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); not yet: cults, traditions, bees and stables |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
 
 Already built that this stands on: see "What's there to build on" below.
@@ -1287,3 +1287,48 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     border quarrel or two a year); three towns made to match (a ruin where one burned, an old grudge between towns of
     nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
   - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.
+- **0.23.23: phase C, town life and culture: a townsperson's day, places to be, comings and goings, market days, fishing
+  contests, festivals, shrines, monuments, a town's character** (the user, 2026-10-31: "start phase C, test thoroughly you
+  have my client and server").
+  - C1, a townsperson's day (`TownDay`): nobody's day is fixed; what each chooses goes by the same goal scoring, with a
+    light pull by the time of its own day: an early riser's day runs up to an hour and a half ahead of the sun's, a night
+    owl's behind (`Schedule.habit`: hard-working and careful ones rise early, fidgety and curious ones stay up; the same
+    each day). First light: a bite, its chests, the fields; morning and afternoon: its line of work (trade runs in the
+    afternoon); midday: a break, a chat; evening: work put down, the gathering fire, a chat; night as before. Whims get
+    finer times (`dawn`, `morning`, `midday`, `afternoon`, `dusk`, each by its own day), and a whim of a part of the day
+    counts ten times as much in that part (the thing to do then: one in 250 whims came up once a day before).
+  - C2, places to be: a whim target `town` (`"place"`: plaza, well, fire, board, bell, stall, store, fields, market,
+    festival, shrine; `TownWork.place`: a spot round it, a different one for each of its people), and the town's whims
+    (`drifter_civ/drifter_whims/town.json`): a break at the plaza at midday, a drink at the well, reading the board and a
+    walk round the fields in the morning, browsing the stall in the afternoon, the plaza at first light, the evening at the
+    fire. Each town gets a **gathering fire**: a campfire with two stripped logs by it in a free corner of the plaza (none
+    where roads come into all four).
+  - C3, comings and goings (`TownLife`, once a day in the morning, not on a town's first): someone who's fallen out with
+    most of the town (trust under 5), a bored nomad, or someone grieving may leave for good, out of its group, its house
+    empty (never the leader, the keeper, nor one of the last four); a homeless Drifter about the town with no group, no
+    Bandit, who gets on with its people moves into a house standing empty or a spare room and joins; with a house empty
+    and nobody come for three days, a newcomer now and then comes up its road from out of sight (a fresh wanderer) and
+    moves in. Chronicle lines and talk (`town_newcomer`, `town_left`). `DrifterApi.moveIntoHouse`, `mood`, `archetype`.
+  - C4, events (`TownEvents`): **market day** every 4 days (a different day for each town): the keeper calls it out and
+    keeps the stall all day, people come to see what's for sale (the `market` whims), the towns round it send their
+    traders that day (`TradeRuns.marketToday`); a **fishing contest** every 12 days in a town by water when two or more
+    have a rod: whoever has the most fish by evening wins and says so. A build day is the monument (C6).
+  - C5, animals and the land: as built (pets, pens, horses, fishing; the woods round a town cut by its people since
+    0.23.21, not the trees in it). Bees and stables not done.
+  - C6, culture (`TownCulture`): a **calendar**, a town year of 60 days from its founding (its past, W6): Founding Day
+    and a harvest festival half a year after; on the day the leader calls it out, work counts less, people celebrate at
+    the plaza (hopping, cheering), ring the bell, feast at dusk (those with bread). A **shrine** in half the towns (stone
+    bricks, a carved stone with candles lit on it, flower pots), on its own lot by the plaza: the patient, forgiving ones
+    sit by it now and then. **Monuments**: a leader gone for good, or a war won, and the town builds one on the plaza
+    together (`town:monument`: a cobblestone figure on a pedestal, a torch on top; a town build, every block gathered and
+    placed by them), its sign then saying what it's for ("In memory of / X / who led / T"). Its **character** from its
+    people's natures and what it has: a rough town, a pious town, a friendly market town, a hard-working town, a fishing
+    town... (in `/drifterciv town` and talk). Cults and traditions not done.
+  - `/drifterciv town` has a "Life" line (character, market day, next festival, shrine, fire, newest, last to leave).
+    Debug: `/drifterciv town leave`, `newcomer`, `market`, `festival`, `monument`.
+  - Tested: headless (the user's seed, two towns, 11 days): the time-of-day whims (a day: 11 plaza breaks, 11 at first
+    light, 7 field walks, 5 board readings, 4 evenings at the fire; with Founding Day 9 celebrating, 7 at the market, 2 at
+    the shrine), market days alternating and a trader going to the other's, Founding Day called out, a newcomer up the road
+    on day 2, a restless nomad leaving on day 7 and a homeless Drifter moving into its house; in the client (a player in the
+    town): the plaza breaks walked (37 s each), 33 plaza breaks, 13 at the well and 14 evenings at the fire in four
+    minutes, a debug leaver and a newcomer moving into its house.

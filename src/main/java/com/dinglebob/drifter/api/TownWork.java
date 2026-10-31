@@ -25,6 +25,16 @@ public interface TownWork {
 	int radius();
 
 	/**
+	 * A spot to stand at by one of the town's places (milestone 23 C2, places to be): "plaza", "well", "fire" (its gathering
+	 * fire), "board" (its notice board), "stall", "store", "fields", "bell"; or null if it has none of them. A little way off
+	 * the thing itself, round it, different for each of its people (so a few gather round, not on one block).
+	 */
+	@org.jetbrains.annotations.Nullable
+	default BlockPos place(DrifterEntity drifter, String kind) {
+		return null;
+	}
+
+	/**
 	 * Cells this one is to fill with water (a well's basin; a Drifter with a bucket fetches it from water it knows and pours
 	 * it in), or none. Asked now and then.
 	 */

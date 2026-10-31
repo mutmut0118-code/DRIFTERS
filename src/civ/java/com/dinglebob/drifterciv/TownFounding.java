@@ -143,6 +143,12 @@ public final class TownFounding {
 				Towns.all().forEach(town -> Diplomacy.check(server, town));
 				// Bonds made with people who weren't loaded then (a town made ready): set now they are.
 				Towns.all().forEach(town -> TownHistory.applyPending(server, town));
+				// Comings and goings (milestone 23 C3): once a day, someone may leave, someone may move in.
+				List.copyOf(Towns.all()).forEach(town -> TownLife.check(server, town));
+				// Its events (C4): market day, a fishing contest.
+				Towns.all().forEach(town -> TownEvents.check(server, town));
+				// Its culture (C6): festivals.
+				Towns.all().forEach(town -> TownCulture.check(server, town));
 				// A Bandit living in a town (one there from before, or one who turned) is its crook: no killing on sight there.
 				Towns.all().forEach(town -> settleDown(server, town));
 				Towns.all().forEach(town -> {

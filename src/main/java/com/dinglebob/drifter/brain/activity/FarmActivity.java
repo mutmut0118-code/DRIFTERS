@@ -598,7 +598,9 @@ public class FarmActivity extends Activity {
 
 	/** Seeds on it, or grass it knows of nearby to get some from. */
 	public static boolean seedsAround(DrifterEntity drifter) {
-		return drifter.getInventory().count(stack -> stack.is(Items.WHEAT_SEEDS)) > 0
+		// (Seeds in its chests at home count: in a town it gathers no grass, its store and its own chests have them.)
+		var home = drifter.getDrifterBrain().home();
+		return drifter.getInventory().count(stack -> stack.is(Items.WHEAT_SEEDS)) > 0 || home != null && home.stored(Items.WHEAT_SEEDS) > 0
 			|| KnownWorld.anyTakeable(drifter, state -> state.is(Blocks.SHORT_GRASS) || state.is(Blocks.TALL_GRASS) || state.is(Blocks.FERN)
 				|| state.is(Blocks.LARGE_FERN));
 	}

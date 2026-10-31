@@ -46,7 +46,27 @@ public record Whim(String id, String category, String action, JsonObject params,
 
 	/** When it fits: the time of day or the weather (it looks at the sky, which it can see). */
 	public enum When {
-		ANY, DAY, NIGHT, SUNSET, SUNRISE, RAIN, THUNDER, CLEAR
+		ANY, DAY, NIGHT, SUNSET, SUNRISE, RAIN, THUNDER, CLEAR,
+		/** Parts of its own day (its habit: an early riser's come earlier; milestone 23 C1): first light, the morning, the middle
+		 * of the day, the afternoon, the evening. */
+		DAWN, MORNING, MIDDAY, AFTERNOON, DUSK;
+
+		/** One of the parts of its own day. */
+		public boolean ofDay() {
+			return this == DAWN || this == MORNING || this == MIDDAY || this == AFTERNOON || this == DUSK;
+		}
+
+		/** Its own time (0 to 23999) is in this part of the day. */
+		public boolean fits(long own) {
+			return switch (this) {
+				case DAWN -> own >= 23000L || own < 1000L;
+				case MORNING -> own >= 1000L && own < 5000L;
+				case MIDDAY -> own >= 5000L && own < 7500L;
+				case AFTERNOON -> own >= 7500L && own < 11000L;
+				case DUSK -> own >= 11000L && own < 13000L;
+				default -> true;
+			};
+		}
 	}
 
 	/** Something it has to carry (an item id, or a tag as "#namespace:tag"), and how many. */

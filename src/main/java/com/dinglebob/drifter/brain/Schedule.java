@@ -176,6 +176,24 @@ public final class Schedule {
 			&& !drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.PANICKED);
 	}
 
+	/**
+	 * Its habit (milestone 23 C1, a townsperson's day: "habits differ: an early riser, a night owl"): how far its day runs
+	 * ahead of the sun's, in ticks, -1500 (an early riser: up and at it an hour and a half before the rest) to +1500 (a night
+	 * owl). Hard-working, careful ones rise earlier; fidgety, curious ones stay up. The same for it every day.
+	 */
+	public static long habit(DrifterEntity drifter) {
+		var p = drifter.getPersonality();
+		double lean = 0.6 * (p.get(com.dinglebob.drifter.personality.Trait.FIDGET) + p.get(com.dinglebob.drifter.personality.Trait.CURIOSITY)
+			- p.get(com.dinglebob.drifter.personality.Trait.INDUSTRIOUSNESS) - p.get(com.dinglebob.drifter.personality.Trait.CAUTION));
+		double own = ((drifter.getUUID().getLeastSignificantBits() >>> 11) % 1000) / 1000.0 - 0.5;
+		return Math.round(net.minecraft.util.Mth.clamp(lean + own, -1.0, 1.0) * 1500);
+	}
+
+	/** The time of day as its habit has it (0 to 23999; {@link #habit}). */
+	public static long ownTime(DrifterEntity drifter) {
+		return Math.floorMod(drifter.level().getDayTime() - habit(drifter), 24000L);
+	}
+
 	public static long believedTime(DrifterEntity drifter) {
 		return drifter.getSenses().time().believedTimeOfDay();
 	}
