@@ -525,7 +525,12 @@ public final class DrifterApi {
 			long now = level.getGameTime();
 			for (var spot : com.dinglebob.drifter.building.Furnishing.furnish(level, placed, home.planBed, net.minecraft.world.level.block.Block.UPDATE_ALL)) {
 				var state = level.getBlockState(spot.pos());
-				if (spot.use().chest()) {
+				if (spot.use() == com.dinglebob.drifter.building.Furnishing.Use.CABINET) {
+					// A kitchen cabinet (Farmer's Delight) is storage, like a chest.
+					if (com.dinglebob.drifter.compat.FarmersDelight.isCabinet(state)) {
+						home.addChest(spot.pos());
+					}
+				} else if (spot.use().chest()) {
 					// (A double chest once: its two halves are one container.)
 					if (state.is(net.minecraft.world.level.block.Blocks.CHEST) && state.getValue(net.minecraft.world.level.block.ChestBlock.TYPE)
 						!= net.minecraft.world.level.block.state.properties.ChestType.RIGHT) {

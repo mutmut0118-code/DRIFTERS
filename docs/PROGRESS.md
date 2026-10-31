@@ -2272,8 +2272,8 @@ Bountiful until it's added.
   eats like any food.
 - Whims: a warm bowl of stew, a mug of hot cocoa at night, setting a cooking pot over a campfire (plus the earlier
   ones: a knife, a cutting board, watching the stew, a slice of pie).
-- Found for later: its cooking pot takes items through Fabric's standard item transfer, so Drifters could cook its
-  meals (ingredients in from the top, a bowl, the meal out the bottom); not done yet.
+- Cooking with it (kitchens, the pot, the board, the skillet): done in the side session 0.23.22-side.1, see "Side session:
+  Farmer's Delight kitchens and cooking" at the end.
 
 ### Bountiful (written, needs Kambrik)
 
@@ -4414,3 +4414,65 @@ The user (2026-10-31): "how can we add the rest?", then "yea do all three".
     border quarrel or two a year); three towns made to match (a ruin where one burned, an old grudge between towns of
     nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
   - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.
+
+### Side session: Farmer's Delight kitchens and cooking (0.23.22-side.1)
+
+The user (2026-10-31): "i want them to actually know how to cook food using the mod farmers delight, theres furniture such
+as a stove, a cooking pot, cutting board, and cabinets, and from that they can make many different foods"; then "please
+also do your research for this and see how players cook using farmers delight". Optional integration (detected at
+runtime, CLAUDE.md soft dependencies): without the mod nothing changes.
+
+- **How players do it** (researched: the mod's own code, Farmer's Delight Refabricated 3.3.6, and player guides): a flint
+  knife first; the cutting board (right-click an item onto it, right-click with the knife per piece, pieces pop out);
+  the cooking pot over heat (a lit stove, a campfire), up to six ingredients each in its own slot, ~10 s a batch, a bowl
+  (or bottle, pumpkin) per serving, either in the pot's container slot or right-clicking the pot holding one; raw meats
+  go on the stove top or in a skillet instead (a stack, one piece at a time, each popping out); stoves are lit when
+  placed and relit with flint and steel; cabinets are storage. Drifters do it the same way.
+- **Build:** FD is a compile-only dependency from Modrinth's maven (`farmers_delight_version`). Dev game launches load it
+  only when asked: `DRIFTER_FD=1` (or `-PfarmersDelight`), so tests run with and without it.
+- **Code:** `compat/FarmersDelight` (registry ids only; safe without the mod) and `compat/farmersdelight/FdBridge` (the
+  mod's own classes, only touched when it's loaded): its cooking pot and cutting board recipes from the recipe manager,
+  the pot's nine slots as a container ("window"), what's on the board or in the skillet.
+- **Planner:** new actions `Cut` (a cutting board recipe: the input, a knife it carries or makes, a board it knows or
+  places) and `PotCook` (a pot recipe: each ingredient per batch, a bowl per meal, only with a pot on a lit stove it knows;
+  it doesn't build a kitchen for one meal) and `FillBucket` (a water bucket for the pot's own recipe, with the mod only).
+  So getting a meal chains: gather or fetch crops, cut on the board, cook in the pot, served into bowls. Wild crops and
+  clay are planner sources (`drifter_sources/farmers_delight.json`, loaded only with the mod: sources files take
+  `"requires_mod"` now).
+- **Activities:** `CutActivity` + `BoardTask` (puts exactly the pieces it means to cut on the board, a knife click per
+  piece through the fake player, picks up what comes off), `PotCookActivity` (lights an unlit stove with flint and steel,
+  loads the pot's window slot by slot in one visit with `ContainerTask.load`, waits by the stove, takes the meals out),
+  `SkilletActivity` (the cook goal fries raw meat in the kitchen's skillet when there's one on a lit stove, standing by
+  for each piece), `FillBucketActivity`.
+- **Goals:** `CookMeal` ("cookmeal": at home by day with fewer than 3 meals, or hungry with nothing to eat; the meal is
+  `Kitchen.chooseMeal`: of the meals it has the makings of, the most filling it can cook soon, a plan under 300 s with no
+  exploring), `FitKitchenGoal` ("kitchen": kitchen things it carries go in their places in its house's layout). The cook
+  goal keeps a chosen meal's ingredients out of the furnace (found in testing: it baked the stew's potatoes). Its kitchen
+  is a Strategist target once its house is up, after the iron basics: a knife, a cutting board, a stove, a cooking pot, a
+  cabinet. Meals rank a little above plain food when it eats. Storage keeps a knife, 8 bowls and kitchen things to put up.
+- **Furnishing:** the layout (the user's furnishing guidebook) gains a kitchen along another wall of the main room or the
+  entry: a cabinet with the cutting board on it, a stove with the cooking pot on it, (3 long) a second stove with the
+  skillet, (4 long) a cabinet at the end; the first wall where the stove fits without blocking the way, the longest walls
+  first, a lone stove and pot at the least. Kitchen blocks count as furniture for the layout; cabinets are home storage
+  (perception: stove, pot, board, skillet are stations; cabinets storage). Ready-made towns (Drifter: Civilizations, via
+  `DrifterApi.settleIn`) get the kitchen too, stove lit. `/drifter house furnishing`: the nearest one's layout, what's in
+  each place, its pot and skillet, the meal it would cook.
+- **Whims** (`drifter_whims/kitchen.json`, all `requires_mod`): cook for a friend (gives a meal), share a meal (walks over
+  and eats with a friend), brag about the stew, mind the pot, tidy the kitchen, taste-test. **Chat** topics
+  (`drifter_talk/topics_kitchen.json`, loaded only with the mod: talk files take `"requires_mod"` now; flags
+  `has_kitchen`, `cooked_lately` with `{a.meal}`, `has_meal` from `Kitchen.addTalkFacts`): the meal it just cooked,
+  sharing its cooking, its kitchen, the best meal (an argument), the board first, out of bowls, full for ages, stepping on
+  the stove, wild crops.
+- **Tested headless with the mod** (flat world, a farmhouse pasted, `DRIFTER_FD=1`): it fitted out the kitchen (stove, pot
+  on it, cabinet, board on it), cut cabbage on the board and picked up the leaves, planned "cook 3 beef stew in the cooking
+  pot"; a spawned town's houses each got the full kitchen (two stoves, pot, skillet, two cabinets, board).
+  Then, given beef, carrots, potatoes and bowls, it cooked 3 beef stews in the pot (opened it, an ingredient a slot, the
+  bowls in, waited by the stove, took the stews out: "cooked beef stew (3 on it now)"); fried 4 porkchops in a skillet on
+  a lit stove and picked them all up. Found and fixed on the way: the kitchen's stove didn't fit the farmhouse's first
+  wall (now the first wall and place where the stove fits); the meal chooser only looked at the most filling meals (now
+  what it has the makings of first); the cook goal baked the stew's potatoes first (now kept); it walked off mid-cook
+  when the goal's plan ran dry (now it sees the pot through, and a batch it's called away from it comes back for:
+  `Brain.PotBatch`); fried pieces landing on the stove top out of its reach (it stands in front of the stove now).
+- Design questions: none. Not done: building a stove or pot when it has none from scratch is planned through the normal
+  Strategist targets (bricks from clay, a campfire, a water bucket) but not watched end to end in a test yet; feasts
+  (placed meal blocks served with a bowl) aren't cooked or served.

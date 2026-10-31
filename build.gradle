@@ -11,7 +11,7 @@ repositories {
 	// for more information about repositories.
 	// Mod Menu, compile-only: the Drifter settings screen (user's choice, 2026-10-16). Not needed to run.
 	maven { url = "https://maven.terraformersmc.com/releases/" }
-	// EMF and ETF, compile-only: Touch'n Motion on Drifters (client/render/DrifterTouchNMotionHook). Not needed to run.
+	// EMF and ETF (and Farmer's Delight), compile-only: Touch'n Motion on Drifters (client/render/DrifterTouchNMotionHook). Not needed to run.
 	exclusiveContent {
 		forRepository {
 			maven { url = "https://api.modrinth.com/maven" }
@@ -78,6 +78,13 @@ dependencies {
 	// Optional: EMF's animation hook, for Touch'n Motion on Drifters. Compile-only; only loaded when EMF is there.
 	modCompileOnly "maven.modrinth:entity-model-features:${project.emf_version}"
 	modCompileOnly "maven.modrinth:entitytexturefeatures:${project.etf_version}"
+
+	// Optional: Farmer's Delight, for cooking (compat/farmersdelight). Compile-only, so Drifter runs with or without it.
+	// The dev game launches only load it when asked: ./gradlew runServer -PfarmersDelight, or DRIFTER_FD=1 (tests run both ways).
+	modCompileOnly "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
+	if (project.hasProperty("farmersDelight") || System.getenv("DRIFTER_FD") == "1") {
+		modLocalRuntime "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
+	}
 }
 
 processResources {

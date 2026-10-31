@@ -120,6 +120,11 @@ public final class Sources {
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
+				// Sources of another mod's things (Farmer's Delight's wild crops): only with that mod installed.
+				if (root.has("requires_mod") && !net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(root.get("requires_mod").getAsString())) {
+					continue;
+				}
+
 				for (JsonElement element : root.getAsJsonArray("sources")) {
 					JsonObject entry = element.getAsJsonObject();
 					List<String> blocks = new ArrayList<>();

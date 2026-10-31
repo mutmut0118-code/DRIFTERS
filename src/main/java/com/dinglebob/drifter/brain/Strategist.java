@@ -286,6 +286,8 @@ public final class Strategist {
 			order.add(3, ironWeapon);
 		}
 
+		// Its kitchen once its house is up (Farmer's Delight, optional): after the iron basics (the stove and pot take iron).
+		order.addAll(Kitchen.targets(drifter));
 		List<Target> diamond = new java.util.ArrayList<>(DIAMOND_TARGETS.subList(0, 2));
 		Target diamondWeapon = Weapons.target(drifter, Weapons.Tier.DIAMOND);
 		if (diamondWeapon != null) {

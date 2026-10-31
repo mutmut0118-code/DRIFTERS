@@ -134,6 +134,11 @@ public final class Topics {
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+				// A file of topics about another mod's things (Farmer's Delight's kitchen): only with that mod installed.
+				if (json.has("requires_mod") && !net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(json.get("requires_mod").getAsString())) {
+					continue;
+				}
+
 				if (json.has("topics")) {
 					for (JsonElement element : json.getAsJsonArray("topics")) {
 						loaded.add(topic(element.getAsJsonObject()));

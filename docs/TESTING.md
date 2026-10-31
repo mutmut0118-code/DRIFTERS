@@ -2752,3 +2752,50 @@ setup as above (creative, a flat floor, `/drifter spawn Ann`, `/drifter brain of
 
 Still not on Drifters: Create, Supplementaries and Create Aeronautics controls (cranks, wheels, throttles: Drifters
 don't use them), typing, and driving trains.
+
+## Side session: Farmer's Delight kitchens and cooking (new, 0.23.22-side.1)
+
+Only with Farmer's Delight Refabricated installed (it's in DRIFTER TEST). Without it nothing here changes: houses get no
+kitchen and Drifters cook in the furnace as before.
+
+Setup: a creative world, a flat spot. Spawn a Drifter and give it a house quickly (stand a few blocks away from it):
+
+1. `/drifter spawn Cook`, then `/drifter home here` while standing next to it.
+2. Stand where the house should go and type `/drifter house paste farmhouse`, then `/drifter house choose farmhouse`,
+   `/drifter house site ~ ~ ~` (same spot) and `/drifter house done`.
+
+- [ ] **It fits out a kitchen.** Give it the kitchen things: `/drifter give farmersdelight:stove 2`,
+      `/drifter give farmersdelight:cooking_pot`, `/drifter give farmersdelight:cutting_board`,
+      `/drifter give farmersdelight:skillet`, `/drifter give farmersdelight:oak_cabinet 2`. Then
+      `/drifter brain goal kitchen` (or just wait: it does it on its own by day). Along one inside wall it puts down a
+      stove with the cooking pot on top and a cabinet with the cutting board on top; on a longer wall a second stove with
+      the skillet, and another cabinet. Everything faces into the room. `/drifter house furnishing` lists every place in
+      its house's layout and what's there.
+- [ ] **It cuts on the cutting board.** `/drifter give farmersdelight:flint_knife`, `/drifter give farmersdelight:cabbage 2`,
+      then `/drifter get farmersdelight:cabbage_leaf 2`. It walks to the board, puts a cabbage on it, cuts it with the
+      knife (you hear the knife), and picks up the leaves.
+- [ ] **It cooks a stew in the pot.** `/drifter give minecraft:beef 3`, `/drifter give minecraft:carrot 3`,
+      `/drifter give minecraft:potato 3`, `/drifter give minecraft:bowl 3`, then `/drifter brain goal cookmeal` (or wait:
+      at home by day with fewer than 3 meals it cooks on its own). It opens the pot, puts the beef, carrots and potatoes
+      in, and the bowls, closes it and waits by the stove (the pot bubbles), about 10 seconds a stew, then takes the three
+      beef stews out. `/drifter inventory` shows them. `/drifter thoughts` says "cooking 3 beef stew ..." then "cooked
+      beef stew".
+- [ ] **It keeps the stew's ingredients for the stew.** With a kitchen and the beef, carrots and potatoes on it, it
+      doesn't put them in the furnace on their own any more.
+- [ ] **It fries in the skillet.** With the skillet on a stove in its kitchen, `/drifter give minecraft:porkchop 3`, then
+      `/drifter brain goal cook`. It puts the porkchops in the skillet and stands by while they cook one by one (each pops
+      out cooked), picking them up.
+- [ ] **It lights the stove again.** Put the stove out (right-click it with a water bucket), give it
+      `/drifter give minecraft:flint_and_steel`, then `/drifter brain goal cookmeal` with stew ingredients on it. It lights
+      the stove first, then cooks.
+- [ ] **It eats its meals.** Let it get hungry (or `/drifter food 10`): it eats a stew before plain food.
+- [ ] **Ready-made towns (Drifter: Civilizations):** a town made with the world (or `/drifterciv town spawn`) has a
+      kitchen in each house: a lit stove with a pot, a cabinet with a cutting board. The town's Drifters cook in them.
+- [ ] **Planning:** `/drifter plan farmersdelight:beef_stew 3` shows the steps (gather or fetch what's missing, cut on
+      the board, cook in the pot). `/drifter house furnishing` also says which meal it would cook now.
+- [ ] **Whims and chat** (with a friend Drifter nearby): it brings a friend some of its cooking, shares a meal (walks
+      over, eats with them), brags about its stew in chat, minds the pot, tidies the kitchen. `/drifter whim cook_for_a_friend`,
+      `/drifter whim share_a_meal`, `/drifter whim mind_the_pot` start them now. In chat between Drifters: "just cooked beef
+      stew", "want some beef stew? made extra", "got a stove and a cooking pot in my house now", the best-meal argument.
+- [ ] **Without Farmer's Delight** (take its jar out): houses are furnished as before (no kitchen), no errors in the log,
+      Drifters cook raw food in the furnace or smoker as before.

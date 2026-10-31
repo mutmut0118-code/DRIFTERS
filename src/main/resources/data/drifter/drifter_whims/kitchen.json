@@ -1,0 +1,121 @@
+{
+	"_comment": "The kitchen (Farmer's Delight, optional; side session 0.23.22-side.1): cooking for a friend, sharing a meal, showing off a stew, minding the pot. Every whim here needs the mod ('requires_mod'). Meals are Farmer's Delight's meal list (#farmersdelight:meals).",
+	"whims": [
+		{
+			"id": "cook_for_a_friend",
+			"category": "modded",
+			"action": "gift",
+			"gates": "M",
+			"params": {
+				"requires_mod": "farmersdelight",
+				"items": ["#farmersdelight:meals"],
+				"keep": 1
+			},
+			"needs": [{"item": "#farmersdelight:meals", "count": 2}],
+			"archetypes": {"helper": 2.5, "homebody": 1.8, "casual": 1.2, "bandit": 0.1, "hoarder": 0.3},
+			"traits": {"sociability": 0.7, "greed": -0.6},
+			"chat": ["made too much, here", "cooked extra for you", "try this, made it myself", "fresh from the pot", "here, it's still warm", "brought you some of my cooking"],
+			"cooldown": 36000,
+			"thought": "bringing a friend some of its cooking"
+		},
+		{
+			"id": "share_a_meal",
+			"category": "modded",
+			"action": "steps",
+			"gates": "M",
+			"params": {
+				"requires_mod": "farmersdelight",
+				"find": {"friend": {"type": "friend", "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "friend", "near": 2},
+					{"do": "say", "to": "friend", "lines": ["lunch break?", "eat with me", "food's better with company", "sit down, have a bite", "dinner time"], "chance": 0.6},
+					{"do": "look_at", "target": "friend", "ticks": 20},
+					{"do": "eat", "item": "#farmersdelight:meals"},
+					{"do": "say", "lines": ["mm", "so good", "needed that", "hits the spot", "ok i'm a good cook"], "chance": 0.4},
+					{"do": "look_at", "target": "friend", "ticks": 40}
+				]
+			},
+			"needs": [{"item": "#farmersdelight:meals"}],
+			"archetypes": {"homebody": 2.0, "helper": 1.5, "casual": 1.2, "hermit": 0.3},
+			"traits": {"sociability": 0.8},
+			"cooldown": 24000,
+			"offscreen": "real",
+			"thought": "sharing a meal with a friend"
+		},
+		{
+			"id": "brag_about_the_stew",
+			"category": "modded",
+			"action": "chat",
+			"params": {
+				"requires_mod": "farmersdelight",
+				"lines": ["just cooked the best stew of my life", "my cooking is getting really good", "who wants to try my stew", "made a whole pot of soup, no big deal", "i should open a restaurant", "chef mode activated"]
+			},
+			"needs": [{"item": "#farmersdelight:meals"}],
+			"gates": "M",
+			"archetypes": {"homebody": 1.5, "casual": 1.3, "pvp_sweat": 0.8, "hermit": 0.2},
+			"traits": {"sociability": 0.5},
+			"moods": {"triumphant": 1.0, "confident": 0.5},
+			"cooldown": 48000,
+			"thought": "showing off its cooking"
+		},
+		{
+			"id": "mind_the_pot",
+			"category": "modded",
+			"action": "steps",
+			"params": {
+				"requires_mod": "farmersdelight",
+				"find": {"pot": {"type": "block", "ids": ["farmersdelight:cooking_pot"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "pot", "near": 2},
+					{"do": "crouch", "ticks": 20},
+					{"do": "look_at", "target": "pot", "ticks": 100},
+					{"do": "say", "lines": ["smells good", "almost ready", "needs more salt", "mmm", "don't burn, don't burn"], "chance": 0.25}
+				]
+			},
+			"archetypes": {"homebody": 2.0, "helper": 1.2, "speedrunner": 0.2},
+			"traits": {"patience": 0.5},
+			"cooldown": 24000,
+			"offscreen": "show",
+			"thought": "minding the cooking pot"
+		},
+		{
+			"id": "tidy_the_kitchen",
+			"category": "modded",
+			"action": "steps",
+			"params": {
+				"requires_mod": "farmersdelight",
+				"find": {
+					"board": {"type": "block", "ids": ["farmersdelight:cutting_board"], "radius": 16},
+					"stove": {"type": "block", "ids": ["farmersdelight:stove"], "radius": 16, "optional": true}
+				},
+				"steps": [
+					{"do": "walk_to", "target": "board", "near": 2},
+					{"do": "look_at", "target": "board", "ticks": 40},
+					{"do": "walk_to", "target": "stove", "near": 2},
+					{"do": "look_at", "target": "stove", "ticks": 40},
+					{"do": "look_around", "times": 1}
+				]
+			},
+			"archetypes": {"homebody": 1.8, "builder": 1.2},
+			"traits": {"tidiness": 0.8},
+			"cooldown": 48000,
+			"offscreen": "show",
+			"thought": "tidying up its kitchen"
+		},
+		{
+			"id": "taste_test",
+			"category": "modded",
+			"action": "eat",
+			"params": {
+				"requires_mod": "farmersdelight",
+				"items": ["farmersdelight:tomato_sauce", "farmersdelight:cooked_rice", "farmersdelight:cabbage_leaf", "farmersdelight:tomato", "farmersdelight:onion"]
+			},
+			"archetypes": {"homebody": 1.5, "newbie": 1.5, "casual": 1.1},
+			"traits": {"curiosity": 0.5},
+			"weight": 0.6,
+			"cooldown": 48000,
+			"chat": ["needs something", "hm. a bit plain", "not bad", "tastes like more"],
+			"thought": "taste-testing its ingredients"
+		}
+	]
+}
