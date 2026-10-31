@@ -128,7 +128,16 @@ final class WorldPlan {
 	 * search may look at.
 	 */
 	static final int CELL = 32;
-	private static final int MOST_NODES = 20_000;
+	/**
+	 * A road's search: its own finer grid (at 32 a road went straight up a mountain and over the sea, the user's pictures, 2026-10-30:
+	 * "going AROUND hills and mountains for the easiest way there"), and how many cells it may look at.
+	 */
+	static final int ROAD_CELL = 16;
+	/** A road longer than this is searched for on the plan's own grid ({@link #CELL}). */
+	private static final int LONG_ROAD = 1200;
+	private static final int MOST_NODES = 25_000;
+	/** A road's search leans this much on the straight-line distance left (finds a near-cheapest way, far quicker: 78 s for a world's roads at 1). */
+	private static final double GREED = 1.6;
 
 	static void register() {
 		ServerWorldEvents.LOAD.register((server, level) -> {
@@ -327,7 +336,7 @@ final class WorldPlan {
 			long towns = System.nanoTime();
 			this.roads();
 			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights asked", (capitals - start) / 1_000_000, (towns - capitals)
-				/ 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size());
+				/ 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size() + this.roadHeights.size());
 		}
 
 		// ----- Where things go -----
@@ -498,6 +507,25 @@ final class WorldPlan {
 			}
 
 			return high - low <= size.coreRise() * 3 / 2;
+		}
+
+		private final Map<Long, int[]> roadHeights = new HashMap<>();
+
+		/** {@link #land}, on a road's grid of cells this wide (the middle of cell i, j). */
+		private int[] roadLand(int i, int j, int cell) {
+			if (cell == CELL) {
+				return this.land(i * CELL + CELL / 2, j * CELL + CELL / 2);
+			}
+
+			long key = BlockPos.asLong(i, 0, j);
+			int[] known = this.roadHeights.get(key);
+			if (known == null) {
+				int floor = this.surface(i * cell + cell / 2, j * cell + cell / 2);
+				known = new int[] {floor, floor <= this.generator.getSeaLevel() ? 1 : 0};
+				this.roadHeights.put(key, known);
+			}
+
+			return known;
 		}
 
 		/** The ground's height here and whether it's water (at or under the sea's level), asked of the generator once a spot. */
@@ -717,15 +745,22 @@ final class WorldPlan {
 		}
 
 		/**
-		 * The way between two points over the land, on a grid of cells {@link #CELL} wide: what it costs to go is the way's
-		 * length, its climbs (dear), and water (dearer: a bridge now and then, never across the sea if there's a way round);
-		 * the cheapest found (A*), then its corners rounded off, a point every {@link #STEP} blocks.
+		 * The way between two points over the land, on a grid of cells {@link #ROAD_CELL} wide: the easiest way, as a player
+		 * would lay a road (the user, 2026-10-30: "going AROUND hills and mountains for the easiest way there? instead of
+		 * splitting a WHOLE mountain, or going across the ocean with a straight line"). Each step costs its length, more the
+		 * steeper it is (its grade squared: gentle ways round a hill beat a climb over it; past one in two, a cliff, only if
+		 * there's nothing else), a river a little (a bridge now and then), the sea or a lake (deep water) a great deal. The
+		 * cheapest found (A*), then its corners rounded off, a point every {@link #STEP} blocks. None found: no road (a
+		 * straight line before, over the sea and up the mountains).
 		 */
 		private List<int[]> route(int ax, int az, int bx, int bz) {
-			int si = Math.floorDiv(ax, CELL);
-			int sj = Math.floorDiv(az, CELL);
-			int ti = Math.floorDiv(bx, CELL);
-			int tj = Math.floorDiv(bz, CELL);
+			// (A long road on the coarser grid: on the fine one a capital's road to the next, 3,000 blocks, looked at 40,000
+			// cells and found none.)
+			int cell = Math.hypot(bx - ax, bz - az) > LONG_ROAD ? CELL : ROAD_CELL;
+			int si = Math.floorDiv(ax, cell);
+			int sj = Math.floorDiv(az, cell);
+			int ti = Math.floorDiv(bx, cell);
+			int tj = Math.floorDiv(bz, cell);
 			Map<Long, Double> cost = new HashMap<>();
 			Map<Long, Long> from = new HashMap<>();
 			PriorityQueue<double[]> open = new PriorityQueue<>(java.util.Comparator.comparingDouble(n -> n[2]));
@@ -735,18 +770,23 @@ final class WorldPlan {
 			open.add(new double[] {si, sj, 0});
 			int nodes = 0;
 			boolean found = false;
+			int sea = this.generator.getSeaLevel();
 			while (!open.isEmpty() && nodes++ < MOST_NODES) {
 				double[] node = open.poll();
 				int i = (int)node[0];
 				int j = (int)node[1];
 				long key = BlockPos.asLong(i, 0, j);
+				double here = cost.get(key);
+				if (node[2] > here + GREED * Math.hypot(ti - i, tj - j) * cell + 1e-6) {
+					continue;
+				}
+
 				if (key == goal) {
 					found = true;
 					break;
 				}
 
-				double here = cost.get(key);
-				int[] land = this.land(i * CELL + CELL / 2, j * CELL + CELL / 2);
+				int[] land = this.roadLand(i, j, cell);
 				for (int di = -1; di <= 1; di++) {
 					for (int dj = -1; dj <= 1; dj++) {
 						if (di == 0 && dj == 0) {
@@ -755,30 +795,35 @@ final class WorldPlan {
 
 						int ni = i + di;
 						int nj = j + dj;
-						int[] next = this.land(ni * CELL + CELL / 2, nj * CELL + CELL / 2);
-						double step = Math.hypot(di, dj) * CELL;
-						int climb = Math.abs(next[0] - land[0]);
-						double g = here + step + 4.0 * climb + (climb > 8 ? 120 : 0) + (next[1] == 1 ? 80 : 0);
+						int[] next = this.roadLand(ni, nj, cell);
+						double step = Math.hypot(di, dj) * cell;
+						double grade = Math.abs(next[0] - land[0]) / step;
+						double g = here + step * (1 + 40 * grade * grade) + (grade > 0.5 ? step * 40 : 0)
+							+ (next[1] == 1 ? next[0] < sea - 4 ? 2500 : 60 : 0);
 						long nkey = BlockPos.asLong(ni, 0, nj);
 						if (g < cost.getOrDefault(nkey, Double.MAX_VALUE)) {
 							cost.put(nkey, g);
 							from.put(nkey, key);
-							open.add(new double[] {ni, nj, g + Math.hypot(ti - ni, tj - nj) * CELL});
+							open.add(new double[] {ni, nj, g + GREED * Math.hypot(ti - ni, tj - nj) * cell});
 						}
 					}
 				}
 			}
 
+			DrifterCivilizations.LOGGER.info("[plan] road {}, {} to {}, {}: {} cells looked at on a {} grid{}", ax, az, bx, bz, nodes, cell, found ? "" : ", no way");
+			if (!found) {
+				return List.of();
+			}
+
 			List<double[]> corners = new ArrayList<>();
-			if (found) {
-				for (long at = goal; ; at = from.get(at)) {
-					corners.add(0, new double[] {BlockPos.getX(at) * CELL + CELL / 2.0, BlockPos.getZ(at) * CELL + CELL / 2.0});
-					if (at == start) {
-						break;
-					}
+			for (long at = goal; ; at = from.get(at)) {
+				corners.add(0, new double[] {BlockPos.getX(at) * cell + cell / 2.0, BlockPos.getZ(at) * cell + cell / 2.0});
+				if (at == start) {
+					break;
 				}
-			} else {
-				corners.add(new double[] {ax, az});
+			}
+
+			if (corners.size() < 2) {
 				corners.add(new double[] {bx, bz});
 			}
 

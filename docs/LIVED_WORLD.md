@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16); next W6 + W7 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17); next W6 + W7 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -1107,3 +1107,38 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Not yet: a mountain capital is smaller than before; lots of lamps in hill towns; founded towns don't count toward the
     limit.
   - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+- **0.23.17: walkable roads and paths, roads between towns routed round hills, no cut-off roads, no lava bridges, fewer
+  freezes** (the user, 2026-10-30, with pictures: "the paths are not walkable, they have steps that are 1.5 to 2 blocks
+  high, some staircases are jumbled all over the place ... these stone paths look like they're TOO natural, at the expense
+  of being convenient"; "some long paths get cut off in the middle and then continue"; "going AROUND hills and mountains
+  for the easiest way there? instead of splitting a WHOLE mountain, or going across the ocean with a straight line").
+  - Town roads: every town's (not just hamlets') heights settled in half blocks, a block every two at most in any
+    direction, a slab on each rise: no stairs on roads, nothing a jump high, across a road too (three wide, it stepped
+    across itself, and its stairs faced every way). Never cut below water beside it (a stream spilled down a road).
+  - The step bug: a road's climbs read the heights off the blocks after slabs were down, so a slab counted as a block of
+    ground and the next column got a slab a whole block over it; where two roads crossed the second paved over the first's
+    slab, a block up. Now by the heights they were laid at (`laid`); paths read a road's height under its slab (`paved`).
+  - Door paths: in half blocks where there's room (a slab each rise), else a block a step with stairs (`levels`).
+  - The test, logged for each town and each stretch of road between towns: how many steps side by side along roads and
+    paths need a jump (`countSteps`). Six towns: 3 to 6 of 1,500 to 2,400 (before: 17 to 143); the mountain capital 15 of
+    12,379; roads between towns a few of about 250 a stretch (before the slab fix: a third).
+  - Roads between towns, routed (`WorldPlan.route`): a finer grid (16 blocks; the plan's 32 for roads over 1,200 blocks),
+    each step dearer the steeper (its grade squared; over one in two, a cliff, only if there's nothing else), a river a
+    little, the sea or a lake (water 4 under the sea's level) a great deal; a quicker search leaning on the distance left
+    (GREED 1.6, 25,000 cells at most). No way found: no road (it was a straight line, over the sea and up mountains).
+    The plan takes about 30 s now (13 s before), in the background.
+  - Their path slabs are placed ones, not "generated": marked as the land's, the next stretch cleared them off as plants.
+  - Cut off in the middle (0.23.16's freeze fix went too far): the ground plan skipped land without loaded land all
+    round it, so pieces of a road were left unshaped. Now land is read and shaped where its own chunk is loaded; only
+    felling a tree needs the land round it loaded. A stretch at a town's end waits for the land out to the town's road it
+    runs on to (read while still loading, the server stopped 30 s); nothing on land not yet loaded is read.
+  - Lava isn't water (`TownBuilder.wet`): a road bridged a lava pool on planks and fence, which caught fire. Lava on any
+    ground a town shapes, or on the land beside it, is sealed with stone.
+  - Drifters (main mod): labelling chests at home only reads chests on loaded land (one away on an errand made the game
+    load its home's land there and then, five seconds' stop).
+  - Tested headless on the user's Tectonic (seed 779): six towns of every shape, every place walked to; the mountain
+    capital 31 of 31 places walked to, its town 16 of 16; 62 stretches of road built, none over 0.2 s; maps show roads
+    winding along the land and down from the capital in bends. A 2 to 5 s stop remains while every road within 1,000
+    blocks is built at once (the debug command: chunks loading and the game's own ticks).
+  - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a road only waits for its land, so
+    it's built a little behind you on fast travel.

@@ -1550,6 +1550,13 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       - In a hamlet (the smallest towns, dirt roads), roads and paths climb with path slabs, never stairs.
       - Stand where a new town is being made: no seeds or flowers left lying on the ground after it, and less lag while
         it's made.
+- [ ] Walkable roads and paths (0.23.17): in a new town on hilly land (a new world, or land you haven't been near), walk
+      every street and a few door paths. You never have to jump: roads rise half a block at a time on slabs (stone brick
+      in cities, wood in towns, path slabs in hamlets), never stairs, and nothing is a block high side by side. Paths from
+      doors do the same where they have room; only a door well above or below its road gets a few stairs.
+- [ ] Roads between towns go round (0.23.17): `/drifterciv locate town`, then follow a road out of a town. It winds
+      round hills and along valleys, in bends down a mountain, never straight up one or out over the sea, and never stops
+      and starts again with a gap.
 - [ ] Roads between towns (0.23.16): follow one over hilly land. It's cut into hills as well as built up over dips, with
       gentle slopes beside it (no narrow ridge of dirt), climbs with path slabs only (no cobblestone stairs), and goes
       straight through a ruined portal in its way (the ruin's blocks cleared off the road) instead of climbing over it.

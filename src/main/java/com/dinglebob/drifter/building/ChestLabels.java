@@ -123,6 +123,11 @@ public final class ChestLabels {
 	public record Job(BlockPos chest, BlockPos front, Direction facing, String text, boolean sign) {
 	}
 
+	/** This spot's land loaded. */
+	private static boolean loaded(Level level, BlockPos pos) {
+		return level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4) != null;
+	}
+
 	/** Its house's chests that want a label, or a new one (from what it remembers is in them). */
 	public static java.util.List<Job> wanted(DrifterEntity drifter, Home home) {
 		java.util.List<Job> jobs = new java.util.ArrayList<>();
@@ -132,6 +137,12 @@ public final class ChestLabels {
 		}
 
 		for (BlockPos pos : home.chests()) {
+			// (Only chests whose land is loaded: away from home, reading one made the game load its land there and then, the
+			// server stopping five seconds; found with a town's people away on errands.)
+			if (!loaded(level, pos) || Direction.Plane.HORIZONTAL.stream().anyMatch(side -> !loaded(level, pos.relative(side)))) {
+				continue;
+			}
+
 			BlockState chest = level.getBlockState(pos);
 			if (!home.inOwnBuilding(pos, 0) || !(chest.getBlock() instanceof ChestBlock)) {
 				continue;

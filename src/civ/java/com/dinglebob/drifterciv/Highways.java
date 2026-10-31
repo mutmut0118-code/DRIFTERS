@@ -80,14 +80,41 @@ final class Highways {
 
 				String key = h + ":" + p;
 				ChunkPos chunk = new ChunkPos(mid[0] >> 4, mid[1] >> 4);
+				// (At a town's end it runs on as far as the town's nearest road, up to 64 blocks: that land loaded too. Read
+				// while it was still loading, the server stopped for 30 s, found on the user's Tectonic.)
+				List<int[]> ends = new ArrayList<>();
+				if (first) {
+					long meet = meetPoint(road.from, road.points.get(a));
+					if (meet != Long.MIN_VALUE) {
+						ends.add(new int[] {road.points.get(a)[0], road.points.get(a)[1], BlockPos.getX(meet), BlockPos.getZ(meet)});
+					}
+				}
+
+				if (last) {
+					long meet = meetPoint(road.to, road.points.get(b));
+					if (meet != Long.MIN_VALUE) {
+						ends.add(new int[] {road.points.get(b)[0], road.points.get(b)[1], BlockPos.getX(meet), BlockPos.getZ(meet)});
+					}
+				}
+
 				if (!loading.containsKey(key)) {
 					level.getChunkSource().addRegionTicket(TICKET, chunk, LOAD_RADIUS, chunk);
 					loading.put(key, chunk);
+					for (int[] end : ends) {
+						ChunkPos far = new ChunkPos(end[2] >> 4, end[3] >> 4);
+						level.getChunkSource().addRegionTicket(TICKET, far, LOAD_RADIUS, far);
+					}
+
 					continue;
 				}
 
-				if (!loaded(level, road, a, b)) {
+				if (!loaded(level, road, a, b) || ends.stream().anyMatch(end -> !loadedAlong(level, end))) {
 					continue;
+				}
+
+				for (int[] end : ends) {
+					ChunkPos far = new ChunkPos(end[2] >> 4, end[3] >> 4);
+					level.getChunkSource().removeRegionTicket(TICKET, far, LOAD_RADIUS, far);
 				}
 
 				long started = System.nanoTime();
@@ -161,6 +188,45 @@ final class Highways {
 		if (last) {
 			sign(level, corners, false, road.from);
 		}
+	}
+
+	/** The town's road column nearest {@code end} within reach of it (where the stretch there runs on to), or Long.MIN_VALUE. */
+	private static long meetPoint(java.util.UUID id, int[] end) {
+		Town town = Diplomacy.byId(id.toString());
+		if (town == null || town.roadColumns.length == 0) {
+			return Long.MIN_VALUE;
+		}
+
+		long best = Long.MIN_VALUE;
+		double bestDistance = MEET_WITHIN;
+		for (long column : town.roadColumns) {
+			double d = Math.hypot(BlockPos.getX(column) + 0.5 - (end[0] + 0.5), BlockPos.getZ(column) + 0.5 - (end[1] + 0.5));
+			if (d <= bestDistance) {
+				bestDistance = d;
+				best = column;
+			}
+		}
+
+		return best;
+	}
+
+	/** The land along a straight run (x0, z0 to x1, z1) loaded, every few blocks, a chunk each side. */
+	private static boolean loadedAlong(ServerLevel level, int[] run) {
+		double length = Math.hypot(run[2] - run[0], run[3] - run[1]);
+		for (double d = 0; d <= length + 8; d += 8) {
+			double f = length == 0 ? 0 : Math.min(1, d / length);
+			int x = (int)Math.floor(run[0] + (run[2] - run[0]) * f);
+			int z = (int)Math.floor(run[1] + (run[3] - run[1]) * f);
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					if (level.getChunkSource().getChunkNow((x >> 4) + dx, (z >> 4) + dz) == null) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/** The stretch at a town's end run on straight to the town's nearest road (within reach of it). */

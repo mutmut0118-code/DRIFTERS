@@ -143,12 +143,11 @@ final class GroundPlan {
 	}
 
 	/**
-	 * Water here (never filled), or land without loaded land all round it (never touched: reading or shaping it, or felling a
-	 * tree on it whose leaves reach over, made the game generate the land there and then; a road between towns stopped the
-	 * server for ten seconds).
+	 * Water here (never filled), or land not loaded (never touched: reading or shaping it made the game load or generate the
+	 * land there and then; a road between towns stopped the server for ten seconds).
 	 */
 	boolean wet(int x, int z) {
-		if (!this.loaded(x, z)) {
+		if (!this.known(x, z)) {
 			return true;
 		}
 
@@ -156,9 +155,19 @@ final class GroundPlan {
 		return this.water.get(BlockPos.asLong(x, 0, z));
 	}
 
+	/** This column's chunk loaded (to read and shape). */
+	private boolean known(int x, int z) {
+		return this.level.getChunkSource().getChunkNow(x >> 4, z >> 4) != null;
+	}
+
 	private final Map<Long, Boolean> loaded = new HashMap<>();
 
-	/** This column's chunk and every chunk round it loaded. */
+	/**
+	 * This column's chunk and every chunk round it loaded: to fell a tree here (its leaves reach over; felling one at the edge
+	 * of what's loaded made the game generate the land past it). Only that: with it for everything, a road between towns
+	 * left whole pieces of itself unshaped where the land round them wasn't loaded yet, cut off in the middle (the user's
+	 * pictures).
+	 */
 	private boolean loaded(int x, int z) {
 		return this.loaded.computeIfAbsent(ChunkPos.asLong(x >> 4, z >> 4), key -> {
 			int cx = ChunkPos.getX(key);
@@ -314,6 +323,17 @@ final class GroundPlan {
 		// Asked for more than banks can give: the nearer has its way, and a wall stands between (see apply).
 		int g = this.natural(x, z);
 		int t = lo > hi ? nearLo <= nearHi ? lo : hi : Mth.clamp(g, lo, hi);
+		// Cut down beside water: no lower than the water (it spilled down a road cut below a stream: the user's picture).
+		if (t < g) {
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				int nx = x + side.getStepX();
+				int nz = z + side.getStepZ();
+				if (this.known(nx, nz) && this.wet(nx, nz)) {
+					t = Math.min(g, Math.max(t, this.natural(nx, nz)));
+				}
+			}
+		}
+
 		// Built up near water: no higher than a slope down to it (it stood over a river as a cliff of dirt). Not a road's
 		// shoulder: a bridge's ramp is held at its height.
 		if (t > g && roadAway > 1) {
@@ -332,7 +352,7 @@ final class GroundPlan {
 		Integer cap = null;
 		for (int dx = -SHORE; dx <= SHORE; dx++) {
 			for (int dz = -SHORE; dz <= SHORE; dz++) {
-				if (!this.loaded(x + dx, z + dz) || !this.wet(x + dx, z + dz)) {
+				if (!this.known(x + dx, z + dz) || !this.wet(x + dx, z + dz)) {
 					continue;
 				}
 
@@ -561,7 +581,8 @@ final class GroundPlan {
 
 		Pad pad = this.padAt(x, z);
 		if (!moved && face == t && pad == null) {
-			// (Left as it was; a slab at its foot where ground moved beside it now stands a block over it.)
+			// (Left as it was; lava showing on it sealed; a slab at its foot where ground moved beside it now stands a block over it.)
+			this.sealLava(x, z, g, t);
 			this.footSlab(x, z, t, onRoad);
 			return;
 		}
@@ -576,7 +597,10 @@ final class GroundPlan {
 			TownBuilder.set(this.level, half, Blocks.AIR.defaultBlockState());
 		}
 
-		TownBuilder.fellIn(this.level, x, z, Math.min(g, t) + 1, Math.max(g, t) + 3);
+		if (this.loaded(x, z)) {
+			TownBuilder.fellIn(this.level, x, z, Math.min(g, t) + 1, Math.max(g, t) + 3);
+		}
+
 		if (t > g) {
 			TownBuilder.buried(this.level, new BlockPos(x, g, z));
 			for (int y = g + 1; y <= t; y++) {
@@ -609,7 +633,10 @@ final class GroundPlan {
 		this.sealLava(x, z, g, t);
 		// Plants left floating or buried, and room over a pad (its trees felled whole; the store's, a house's height).
 		int clear = pad != null ? pad.clear() : 2;
-		TownBuilder.fellIn(this.level, x, z, t + 1, t + clear);
+		if (this.loaded(x, z)) {
+			TownBuilder.fellIn(this.level, x, z, t + 1, t + clear);
+		}
+
 		// (Up to two over the old top too: grass on ground cut away under it, left hanging now nothing breaks it.)
 		for (int y = t + 1; y <= Math.max(t, g) + 2; y++) {
 			BlockPos over = new BlockPos(x, y, z);
@@ -625,11 +652,11 @@ final class GroundPlan {
 	}
 
 	/**
-	 * Lava a cut opened (found in the user's pictures: a pool of it on a terrace in a town), here under its new top and in the
-	 * ground beside it down the face: stone.
+	 * Lava a cut opened or lying on the land (found in the user's pictures: a pool of it on a terrace in a town, and by a road),
+	 * here under its top and in the ground beside it down the face: stone.
 	 */
 	private void sealLava(int x, int z, int g, int t) {
-		for (int y = t - 3; y <= t; y++) {
+		for (int y = t - 3; y <= Math.max(g, t) + 1; y++) {
 			this.stoneOverLava(new BlockPos(x, y, z));
 		}
 
