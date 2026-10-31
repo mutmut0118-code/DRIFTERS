@@ -2605,3 +2605,13 @@ Installed as 0.23.12-side.1: also has the other session's 0.23.11-0.23.12 (their
       sand, a furnace they lost, taking pillars down, neighbours, the town's roads and lamps, chest labels, a housewarming,
       and debates (flat roofs, stone or wood houses, carpet or slabs, one floor or two). To hear one now: stand by a
       Drifter and type `/drifter talk debate_flat_roofs` (or `laid_a_rug`, `desert_living`, `lost_furnace`).
+
+## Side session: more names, and nicknames (new, 0.23.22-side.1)
+
+- [ ] New Drifters have more varied names: more words, and new kinds like c0bble, slowww, FoxTTV, DrSloth, JustAPhoenix,
+      jk_ember, Player482, __pine__. See 30 at once: `/drifter names 30`, then look in the log (`[names]`).
+- [ ] Drifters say each other's names the short way: in talk, xXFrostXx is "frost", pinewick42 is "pine", Sofia_Meteor
+      is "sofia". The name over their head and in chat's <...> stays the full one.
+- [ ] They call you by a short name too (mutmut0118: "mutmut"); if you told one "call me X", it still uses X.
+- [ ] Say a Drifter's nickname in chat (e.g. "frost come here"): it knows you mean it.
+- [ ] What would someone be called? `/drifter nick xXFrostXx` says "frost".

@@ -4024,3 +4024,29 @@ The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
   cobblestone; debates: paintings, flat roofs, stone or wood, carpet or slabs, one floor or two. Tested: forced in pairs,
   they play and lead on into others ("on that note carpet beats slabs for floors").
 - Debug: `/drifter pillar <height>`, `/drifter personality set <trait> <0-1>`.
+
+### Side session: more names, and everyone goes by a nickname (0.23.22-side.1)
+
+The user (2026-10-31): "do 1 2 and change the idea of 4 as everybody using nicknames as a stand in for their user name;
+like the name would be like xXfrostXx but everybody (even strangers) will refer to them as frost; that way its realistic
+and nobody is typing a complex name everytime" (personality-matched names left out; reserving a dead Drifter's name later).
+- **More words:** `drifter_names/more.json` (merged with default.json): ~330 more words (mobs and the game's things,
+  food, weather and sky, colours, gaming slang, plants and places, gear, characters), ~110 adjectives, ~160 first names
+  (some from other languages), more add-ons, and two new lists: `titles` (Dr, Captain, Sir...) and `sentences`
+  (ImNotA%s, %sEnjoyer, TheReal%s...). About 820 words in all (was 280).
+- **More shapes** (`Usernames.more`, a quarter of names): letters for numbers (c0bble, h3r0n), a held letter (slowww,
+  buunny), a streamer's tag (FoxTTV, Pulsar_tv), a title (DrSloth, Captain_Pilot), a short sentence (JustAPhoenix,
+  SheepOnTop, NoBirchNoLife), initials (jk_ember), a brand new player's (Player482, Steve_12345) and underscores round it
+  (moss_, __pine__). The old shapes keep the rest.
+- **Nicknames** (`identity/Nicknames`): what everyone calls a username, worked out from the name, the same for everyone:
+  styling off (xX..Xx, itz/the/not/just..., mc/ttv/live..., digits, underscores), letters for numbers back (c0bble:
+  cobble), held letters undone, split into words (at underscores, digits, capitals, and known words: pinewick: pine wick,
+  veratoast: vera toast, tuffox: tuff fox); kept: a first name, else the thing over the adjective (sleepy_fox: fox), else
+  the first word, titles and fillers aside (DrSloth: sloth, JustAPhoenix: phoenix). Players' names too (mutmut0118:
+  mutmut). 0 wrong in 300 random names in the last check.
+- Used everywhere a Drifter says a name (`Lines.fill`: {name}, {b}, {player}, {who}..., only for someone's username, so a
+  town or an item stays as it is; a nickname a player asked for, {nick}, stays as asked). Drifters answer to their
+  nickname when called (`SocialWatcher.called`). The name over a Drifter's head and in the chat's <...> stays the full
+  username, as for a player.
+- Debug: `/drifter nick <username>` (what everyone calls it), `/drifter names <count>` (sample names with nicknames to the
+  log).

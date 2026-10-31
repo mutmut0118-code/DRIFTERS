@@ -264,11 +264,20 @@ public final class Lines {
 		return ok;
 	}
 
-	/** The line with its words filled in: {name} is the Drifter's own, the rest from {@code vars}. */
+	/**
+	 * The line with its words filled in: {name} is the Drifter's own, the rest from {@code vars}. Anyone's username comes
+	 * out as their nickname (xXFrostXx: frost; the user, 2026-10-31: "everybody (even strangers) will refer to them as
+	 * frost"); a nickname a player asked for ({nick}) as they asked.
+	 */
 	private static String fill(DrifterEntity drifter, String line, Object... vars) {
-		String filled = line.replace("{name}", drifter.getName().getString());
+		String filled = line.replace("{name}", com.dinglebob.drifter.identity.Nicknames.of(drifter));
 		for (int i = 0; i + 1 < vars.length; i += 2) {
-			filled = filled.replace("{" + vars[i] + "}", String.valueOf(vars[i + 1]));
+			String value = String.valueOf(vars[i + 1]);
+			if (vars[i + 1] instanceof String text && !"nick".equals(vars[i])) {
+				value = com.dinglebob.drifter.identity.Nicknames.spoken(drifter, text);
+			}
+
+			filled = filled.replace("{" + vars[i] + "}", value);
 		}
 
 		return filled;
