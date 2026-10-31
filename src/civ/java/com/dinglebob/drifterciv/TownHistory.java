@@ -135,6 +135,10 @@ final class TownHistory {
 
 			List<UUID> them = new ArrayList<>(theirs.members);
 			int pairs = 2 + random.nextInt(3);
+			// (Their towns fought in the world's past, or are on bad terms: grudges more than friendships.)
+			boolean foes = WorldPlan.foes(town.id, other.id);
+			float friendly = foes ? 0.2F : 0.6F;
+			float middling = foes ? 0.45F : 0.85F;
 			int friends = 0;
 			int grudges = 0;
 			String grudge = null;
@@ -145,11 +149,11 @@ final class TownHistory {
 				float roll = random.nextFloat();
 				double trust;
 				double known;
-				if (roll < 0.6F) {
+				if (roll < friendly) {
 					trust = 55.0 + random.nextInt(30);
 					known = 30.0 + random.nextInt(30);
 					friends++;
-				} else if (roll < 0.85F) {
+				} else if (roll < middling) {
 					trust = 20.0 + random.nextInt(25);
 					known = 15.0 + random.nextInt(15);
 				} else {

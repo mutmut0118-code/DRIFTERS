@@ -4386,3 +4386,31 @@ The user (2026-10-31): "how can we add the rest?", then "yea do all three".
     trees between houses. Clearing a house's own spot still can.
   - Tested: two towns of the user's world and the road between, 6,000 ticks: no town house with a block gone (one before),
     every place walked to.
+- **0.23.22: W6 + W7, a history already written and towns nobody's near living by it** (the user, 2026-10-31: "you are
+  free to start w6 and w7, that being included in the pre generator loading screen").
+  - `History`: made with the world plan, on the loading screen (13 ms), after its roads: 1,000 days of the places' past a
+    day a step, on summaries. Each place: a leader with a nature (aggression, warmth, ambition), who comes after them
+    (250 to 700 days a leader; a nation's ruler's passing in the chronicle), its people (born, and lost in battle), when it
+    was founded (capitals first, their towns after, hamlets later; the plan's ruins abandoned "after a hard winter"...).
+    Between powers (a nation, or a town in none): a standing their rulers' natures move each day, nearer seats grating
+    more; quarrels at the border; a peace pact on good terms, an alliance after; war on bad terms by an aggressive ruler;
+    battles near the frontier towns that cost each side people (a leader falling now and then); a frontier town taken (to
+    the winner's nation, conquered) or burned (a ruin); a nation conquered whole by one much stronger; peace when they're
+    weary or the loser asks; a conquered town wearing of its nation and, its leader ambitious, rising up (free, or at war);
+    a free town joining its ally's nation. Its events go in the chronicle, days before day 1 (34 to 36 for 4 nations).
+  - Towns made to match: in the nation their past left them in (a nation's founding day its capital's), a ruin where a
+    town fell, their leader the past's (the first person of the town is named so and leads it), founded when the past
+    says; with each town of another power already made, their standing, pacts and any war still on
+    (`WorldPlan.made`); their people's grudges with the people of towns their nation fought (`TownHistory`: a grudge 55% of
+    the time, not 15%). A conquered town pays its nation more and may rise up (`Nations.Member.conquered`).
+  - W7: after day 1, the powers none of whose towns are made go on by the same summary, a step each game day (their news in
+    the chronicle as "News from afar: ..."); the nations follow (`Nations.follow`: a town taken or fallen moves, a nation
+    conquered whole goes), and a town made later is made as its summary has it then (fallen since: a ruin). A power with a
+    town made lives by the towns' own diplomacy from then on. Saved with the plan; worlds planned before have no past.
+    (Not done: a town made in full going back to a summary when nobody's been near a long time; the main mod's offscreen
+    Drifters carry made towns.)
+  - `/drifterciv plan` says how far its past has gone; its list shows fallen towns as ruins.
+  - Tested headless on the user's seed: the past (4 nations, 2 wars at once, a town burned, rulers coming and going, a
+    border quarrel or two a year); three towns made to match (a ruin where one burned, an old grudge between towns of
+    nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
+  - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.

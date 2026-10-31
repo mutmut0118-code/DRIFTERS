@@ -114,6 +114,18 @@ public final class Usernames {
 	}
 
 	/** A fresh username not used by anyone the server knows of right now. */
+	/** A name from the lists without asking which are taken (off the server thread: an addon's history of the world). */
+	public static String loose(RandomSource random) {
+		for (int i = 0; i < MAX_TRIES; i++) {
+			String name = candidate(random, lists);
+			if (allowed(name)) {
+				return name;
+			}
+		}
+
+		return pick(random, lists.words()) + (1000 + random.nextInt(9000));
+	}
+
 	public static String generate(RandomSource random, MinecraftServer server) {
 		Set<String> taken = taken(server);
 		for (int i = 0; i < MAX_TRIES; i++) {

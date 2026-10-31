@@ -137,6 +137,41 @@ final class Nations {
 	}
 
 	@Nullable
+	/**
+	 * The world's places nobody's near, after a day of their summary (W7, {@link History}): each unmade town in the nation
+	 * its past now says (taken, risen up, joined), out of any if it fell; a nation conquered whole, none of its towns made,
+	 * gone.
+	 */
+	static void follow(MinecraftServer server, List<WorldPlan.Place> places, List<WorldPlan.PlannedNation> planned) {
+		long day = Chronicle.day(server);
+		for (WorldPlan.Place place : places) {
+			if (place.made) {
+				continue;
+			}
+
+			Nation now = of(place.id);
+			UUID want = place.ruin() ? null : place.nation;
+			if (now != null && now.capital.equals(place.id) || now == null && want == null || now != null && now.id.equals(want)) {
+				continue;
+			}
+
+			if (now != null) {
+				now.members.remove(place.id);
+			}
+
+			Nation to = want == null ? null : nations.get(want);
+			if (to != null && !to.has(place.id)) {
+				Member member = new Member(place.id, day);
+				member.tributeDay = day + TRIBUTE_EVERY;
+				member.conquered = place.conquered;
+				to.members.put(place.id, member);
+			}
+		}
+
+		nations.values().removeIf(nation -> planned.stream().noneMatch(p -> p.id().equals(nation.id)) && places.stream().anyMatch(p -> p.id.equals(
+			nation.capital)) && places.stream().noneMatch(p -> p.made && nation.has(p.id)));
+	}
+
 	static Nation of(UUID town) {
 		for (Nation nation : nations.values()) {
 			if (nation.has(town)) {
@@ -211,17 +246,20 @@ final class Nations {
 	 * A nation of the world plan (W4), made with the world: its capital and towns known by the ids they'll have, none of them
 	 * made yet (each is when a player comes near: {@link #plannedMade}).
 	 */
-	static void planned(MinecraftServer server, WorldPlan.PlannedNation planned, List<UUID> towns) {
+	static void planned(MinecraftServer server, WorldPlan.PlannedNation planned, List<UUID> towns, List<UUID> conquered, long foundedAgo) {
 		if (nations.containsKey(planned.id())) {
 			return;
 		}
 
 		long day = Chronicle.day(server);
-		Nation nation = new Nation(planned.id(), planned.name(), planned.capital(), planned.colour(), day);
+		// (Founded when its capital was, in the world's past.)
+		Nation nation = new Nation(planned.id(), planned.name(), planned.capital(), planned.colour(), day - Math.max(0, foundedAgo));
 		for (UUID town : towns) {
 			if (!town.equals(planned.capital())) {
 				Member member = new Member(town, day);
 				member.tributeDay = day + TRIBUTE_EVERY;
+				// (Taken in a war of its past: it pays more, and may rise up.)
+				member.conquered = conquered.contains(town);
 				nation.members.put(town, member);
 			}
 		}
@@ -728,7 +766,7 @@ final class Nations {
 		for (Nation nation : nations.values()) {
 			Town capital = Diplomacy.byId(nation.capital.toString());
 			WorldPlan.Place seat = WorldPlan.place(nation.capital);
-			lines.add(nation.name + " (" + nation.colour.getName().replace('_', ' ') + "), since day " + nation.foundedDay + ": capital " + (capital == null
+			lines.add(nation.name + " (" + nation.colour.getName().replace('_', ' ') + "), since " + Chronicle.dayName(nation.foundedDay) + ": capital " + (capital == null
 				? seat != null ? seat.name + " (not seen yet, at " + seat.x + ", " + seat.z + ")" : "?" : capital.name + ", ruled by " + Diplomacy.name(capital,
 				capital.leader)));
 			for (Member member : nation.members.values()) {

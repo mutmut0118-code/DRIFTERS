@@ -475,6 +475,10 @@ public final class TownBuilder {
 		/** A town of the world plan (W4): its id (its nation knows it by it), and the ways its roads between towns come in. */
 		@Nullable
 		UUID plannedId;
+		/** Its leader's name and how long ago it was founded, by the world's past (null, -1: none). */
+		@Nullable
+		String leaderName;
+		int pastAgo = -1;
 		List<Double> gates = List.of();
 		/** Its shape, and how many of its roads leave the plaza (the rest are side roads off them). */
 		Shape shape;
@@ -2810,7 +2814,7 @@ public final class TownBuilder {
 			// Its past (A5): one house's people gone for good (left empty). (Not the newest still going up any more, its top
 			// taken off for its owner to finish: it looked like a house cut in half, the user's pictures three times over,
 			// 2026-10-30/31: "cut up houses still happen".)
-			this.foundedAgo = 20 + this.random.nextInt(41);
+			this.foundedAgo = this.pastAgo > 0 ? this.pastAgo : 20 + this.random.nextInt(41);
 			if (this.houses.size() >= 4 && this.random.nextFloat() < 0.5F) {
 				this.emptyHouse = this.houses.size() - 2;
 			}
@@ -2833,7 +2837,8 @@ public final class TownBuilder {
 
 			BlockPos stand = doorstep(this.level, house, plot);
 			// (A city: a hundred people at most, however many rooms; the rest of its houses stand empty for newcomers.)
-			DrifterEntity drifter = this.people.size() >= CITY_PEOPLE ? null : DrifterApi.spawn(this.level, stand, null);
+			// (Its first person leads it: by the world's past, its leader now.)
+			DrifterEntity drifter = this.people.size() >= CITY_PEOPLE ? null : DrifterApi.spawn(this.level, stand, this.people.isEmpty() ? this.leaderName : null);
 			if (drifter == null) {
 				this.owners.add("");
 				return;

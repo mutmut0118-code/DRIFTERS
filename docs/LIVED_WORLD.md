@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20); next W6 + W7 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Done: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20), W6 + W7 its past and the places nobody's near (0.23.22); LOD mods later |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -1259,3 +1259,31 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     trees between houses. Clearing a house's own spot still can.
   - Tested: two towns of the user's world and the road between, 6,000 ticks: no town house with a block gone (one before),
     every place walked to.
+- **0.23.22: W6 + W7, a history already written and towns nobody's near living by it** (the user, 2026-10-31: "you are
+  free to start w6 and w7, that being included in the pre generator loading screen").
+  - `History`: made with the world plan, on the loading screen (13 ms), after its roads: 1,000 days of the places' past a
+    day a step, on summaries. Each place: a leader with a nature (aggression, warmth, ambition), who comes after them
+    (250 to 700 days a leader; a nation's ruler's passing in the chronicle), its people (born, and lost in battle), when it
+    was founded (capitals first, their towns after, hamlets later; the plan's ruins abandoned "after a hard winter"...).
+    Between powers (a nation, or a town in none): a standing their rulers' natures move each day, nearer seats grating
+    more; quarrels at the border; a peace pact on good terms, an alliance after; war on bad terms by an aggressive ruler;
+    battles near the frontier towns that cost each side people (a leader falling now and then); a frontier town taken (to
+    the winner's nation, conquered) or burned (a ruin); a nation conquered whole by one much stronger; peace when they're
+    weary or the loser asks; a conquered town wearing of its nation and, its leader ambitious, rising up (free, or at war);
+    a free town joining its ally's nation. Its events go in the chronicle, days before day 1 (34 to 36 for 4 nations).
+  - Towns made to match: in the nation their past left them in (a nation's founding day its capital's), a ruin where a
+    town fell, their leader the past's (the first person of the town is named so and leads it), founded when the past
+    says; with each town of another power already made, their standing, pacts and any war still on
+    (`WorldPlan.made`); their people's grudges with the people of towns their nation fought (`TownHistory`: a grudge 55% of
+    the time, not 15%). A conquered town pays its nation more and may rise up (`Nations.Member.conquered`).
+  - W7: after day 1, the powers none of whose towns are made go on by the same summary, a step each game day (their news in
+    the chronicle as "News from afar: ..."); the nations follow (`Nations.follow`: a town taken or fallen moves, a nation
+    conquered whole goes), and a town made later is made as its summary has it then (fallen since: a ruin). A power with a
+    town made lives by the towns' own diplomacy from then on. Saved with the plan; worlds planned before have no past.
+    (Not done: a town made in full going back to a summary when nobody's been near a long time; the main mod's offscreen
+    Drifters carry made towns.)
+  - `/drifterciv plan` says how far its past has gone; its list shows fallen towns as ruins.
+  - Tested headless on the user's seed: the past (4 nations, 2 wars at once, a town burned, rulers coming and going, a
+    border quarrel or two a year); three towns made to match (a ruin where one burned, an old grudge between towns of
+    nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
+  - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.

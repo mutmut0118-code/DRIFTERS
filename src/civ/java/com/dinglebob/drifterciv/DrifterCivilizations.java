@@ -122,15 +122,20 @@ public final class DrifterCivilizations implements ModInitializer {
 					}
 
 					for (WorldPlan.PlannedNation nation : WorldPlan.nations) {
-						List<String> towns = WorldPlan.places.stream().filter(p -> nation.id().equals(p.nation)).map(p -> p.name + " (" + p.kind + " at " + p.x + ", "
+						List<String> towns = WorldPlan.places.stream().filter(p -> nation.id().equals(p.nation)).map(p -> p.name + " (" + (p.ruin() ? "ruin" : p.kind) + " at " + p.x + ", "
 							+ p.z + (p.made ? ", made" : "") + ")").toList();
 						ctx.getSource().sendSuccess(() -> Component.literal(nation.name() + " (" + nation.colour().getName() + "): " + String.join("; ", towns)), false);
 					}
 
-					List<String> free = WorldPlan.places.stream().filter(p -> p.nation == null).map(p -> p.name + " (" + p.kind + " at " + p.x + ", " + p.z
+					List<String> free = WorldPlan.places.stream().filter(p -> p.nation == null).map(p -> p.name + " (" + (p.ruin() ? "ruin" : p.kind) + " at " + p.x + ", " + p.z
 						+ ")").toList();
 					ctx.getSource().sendSuccess(() -> Component.literal("In no nation: " + String.join("; ", free)), false);
 					ctx.getSource().sendSuccess(() -> Component.literal("Roads: " + Highways.describe()), false);
+					if (WorldPlan.history != null) {
+						long since = WorldPlan.history.day - History.DAYS;
+						ctx.getSource().sendSuccess(() -> Component.literal("Its past: " + History.DAYS + " days before day 1, " + since
+							+ " since (the places nobody's near living by their summary)"), false);
+					}
 					return 1;
 				})
 				.then(Commands.literal("built").requires(source -> source.hasPermission(2)).executes(ctx -> {

@@ -1556,6 +1556,13 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       built out of sight ahead of you (about 460 blocks off at render distance 9), so walk, ride or fly toward a town and
       it's already there when you can see it, never going up in front of you. Quit while the screen's up and reopen: it
       carries on. Old worlds don't get the screen.
+- [ ] The world's past (0.23.22): make a new world. `/drifterciv plan` lists its nations and places (a town burned in its
+      past shows as a ruin), and says how far its past has gone. Read the chronicle (the town notice board, or the
+      chronicle book): before day 1, its nations founded, rulers who died or stepped down and who came after, peace pacts
+      and alliances, wars declared, battles and their dead, towns taken or burned, towns rising up. Visit a town: its leader
+      is the one the past ends with, it was founded when the past says, it flies its nation's banner; a town burned in a
+      war is a ruin. Two towns whose nations fought: some of their people hold old grudges (the chronicle says so when the
+      second is made). Play a few days: now and then "News from afar" about nations you haven't been near.
 - [ ] Whole houses, one bridge, no stacked slabs (0.23.21): in a new world, every town house has its roof (none cut
       off flat part way up). Where two roads cross the same river, there's one bridge, its railings only along its sides
       (no fence across the deck). Along roads, no slab sits on a slab or a block on a slab. A town in a swamp has its

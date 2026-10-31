@@ -54,9 +54,21 @@ final class WorldPlan {
 		final int x;
 		final int z;
 		final int households;
+		/** Its nation (null: free); changed by its history (taken, risen up, joined: {@link History}). */
 		@Nullable
-		final UUID nation;
+		UUID nation;
 		boolean made;
+		/** Its summary (W6, W7: {@link History}): its leader now and their nature (0 to 1), its people, fallen to a ruin, taken by
+		 * its nation in a war and how it feels about that. */
+		String leader = "";
+		double aggression = 0.5;
+		double warmth = 0.5;
+		double ambition = 0.5;
+		long leaderSince;
+		double people;
+		boolean fell;
+		boolean conquered;
+		double loyalty = 50;
 		/** The ways (radians, from its middle) its roads arrive from: when it's made, a main road goes out each way to meet them. */
 		final List<Double> gates = new ArrayList<>();
 
@@ -70,8 +82,9 @@ final class WorldPlan {
 			this.nation = nation;
 		}
 
+		/** A ruin: one of the plan, or a town that fell in its history. */
 		boolean ruin() {
-			return this.kind.equals("ruin");
+			return this.kind.equals("ruin") || this.fell;
 		}
 
 		/** How far out from its middle its own roads go (the roads between towns begin past it). */
@@ -117,6 +130,9 @@ final class WorldPlan {
 	static final List<Place> places = new ArrayList<>();
 	static final List<PlannedNation> nations = new ArrayList<>();
 	static final List<Highway> highways = new ArrayList<>();
+	/** The world's past, and its present for the places nobody's near (W6, W7). */
+	@Nullable
+	static History history;
 	private static final TagKey<Biome> TOWN_BIOMES = TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("drifter_civ", "has_structure/town"));
 	private static final TagKey<net.minecraft.world.level.levelgen.structure.Structure> SETTLEMENTS = TagKey.create(Registries.STRUCTURE,
 		ResourceLocation.fromNamespaceAndPath("drifter_civ", "settlements"));
@@ -187,9 +203,11 @@ final class WorldPlan {
 				places.clear();
 				nations.clear();
 				highways.clear();
+				history = null;
 			}
 		});
 		DrifterApi.setNotPlaced(structure -> planned && structure.is(SETTLEMENTS));
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(WorldPlan::present);
 	}
 
 	/**
@@ -268,13 +286,24 @@ final class WorldPlan {
 		nations.addAll(plan.nations);
 		highways.clear();
 		highways.addAll(plan.highways);
+		history = plan.history;
 		for (Place place : places) {
 			TownSites.planned(server.overworld(), place);
 		}
 
+		// Its past in the chronicle, days before day 1.
+		if (history != null) {
+			for (History.Event event : history.events) {
+				Chronicle.addPast(server, event.kind(), event.text(), History.DAYS - event.day());
+			}
+
+			history.events.clear();
+		}
+
 		for (PlannedNation nation : nations) {
 			List<UUID> towns = places.stream().filter(p -> nation.id().equals(p.nation) && !p.ruin()).map(p -> p.id).toList();
-			Nations.planned(server, nation, towns);
+			List<UUID> conquered = places.stream().filter(p -> nation.id().equals(p.nation) && p.conquered).map(p -> p.id).toList();
+			Nations.planned(server, nation, towns, conquered, foundedAgo(nation.capital()));
 		}
 
 		ready = true;
@@ -329,7 +358,70 @@ final class WorldPlan {
 			Nations.plannedMade(server, place.nation, town);
 		}
 
+		// On the footing their past left them with each town of another power already made (W6): their standing, their pacts,
+		// a war still on.
+		if (town != null && history != null) {
+			long day = Chronicle.day(server);
+			for (Town other : Towns.all()) {
+				Place theirs = place(other.id);
+				if (other == town || theirs == null || history.power(theirs).equals(history.power(place))) {
+					continue;
+				}
+
+				History.Ties ties = history.ties(history.power(place), history.power(theirs));
+				Diplomacy.Relation r = Diplomacy.meet(server, town, other, ties.standing, null);
+				r.standing = ties.standing;
+				if (ties.peace || ties.alliance) {
+					r.pacts.add(Diplomacy.Pact.PEACE);
+				}
+
+				if (ties.alliance) {
+					r.pacts.add(Diplomacy.Pact.ALLIANCE);
+					r.alliedSinceDay = day;
+				}
+
+				if (ties.war && !r.war) {
+					r.war = true;
+					r.warSinceDay = day;
+					UUID started = ties.startedBy;
+					r.startedBy = started == null ? null : started.equals(history.power(place)) ? town.id : other.id;
+				}
+			}
+		}
+
 		Towns.save(server);
+	}
+
+	/** The two towns' powers fought in their past or are on bad terms (their people hold grudges: {@link TownHistory}). */
+	static boolean foes(UUID a, UUID b) {
+		Place pa = place(a);
+		Place pb = place(b);
+		return history != null && pa != null && pb != null && history.foes(pa, pb);
+	}
+
+	/** Days before now this planned town was founded, by its past (-1: not planned). */
+	static int foundedAgo(@Nullable UUID id) {
+		Place place = place(id);
+		return place == null || history == null ? -1 : history.foundedAgo(place);
+	}
+
+	/** W7: the places nobody's near live their days by the summary, a step each game day. */
+	private static void present(MinecraftServer server) {
+		if (!ready || history == null || server.getTickCount() % 40 != 0) {
+			return;
+		}
+
+		long want = History.DAYS + Chronicle.day(server);
+		boolean stepped = false;
+		for (int i = 0; i < 3 && history.day < want; i++) {
+			history.day++;
+			history.step(server);
+			stepped = true;
+		}
+
+		if (stepped) {
+			Nations.follow(server, places, nations);
+		}
 	}
 
 	/** The nearest place of this kind ("city", "town", "hamlet", "ruin"; null: any) to here. */
@@ -417,6 +509,12 @@ final class WorldPlan {
 
 			long towns = System.nanoTime();
 			this.roads();
+			this.stillWanted();
+			long past = System.nanoTime();
+			this.history = new History(this.places, this.nations, this.level.getSeed());
+			this.history.write();
+			DrifterCivilizations.LOGGER.info("[plan] its past: {} days, {} things happened, {} ms", History.DAYS, this.history.events.size(),
+				(System.nanoTime() - past) / 1_000_000);
 			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights on its grid, {} in all ({} ms)", (capitals - start)
 				/ 1_000_000, (towns - capitals) / 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size(), this.realHeights.size(),
 				this.realNanos.sum() / 1_000_000);
@@ -652,6 +750,9 @@ final class WorldPlan {
 		 * sea). A cave's mouth just under the top can read lower; near enough.
 		 */
 		private final java.util.concurrent.atomic.LongAdder realNanos = new java.util.concurrent.atomic.LongAdder();
+		/** Its past (W6), written after its roads. */
+		@Nullable
+		History history;
 		/** Told when its places are chosen (before its roads). */
 		@Nullable
 		Runnable placesChosen;
@@ -1325,6 +1426,15 @@ final class WorldPlan {
 			}
 
 			one.putBoolean("Made", place.made);
+			one.putString("Leader", place.leader);
+			one.putDouble("Aggression", place.aggression);
+			one.putDouble("Warmth", place.warmth);
+			one.putDouble("Ambition", place.ambition);
+			one.putLong("LeaderSince", place.leaderSince);
+			one.putDouble("People", place.people);
+			one.putBoolean("Fell", place.fell);
+			one.putBoolean("Conquered", place.conquered);
+			one.putDouble("Loyalty", place.loyalty);
 			ListTag gates = new ListTag();
 			place.gates.forEach(gate -> gates.add(net.minecraft.nbt.DoubleTag.valueOf(gate)));
 			one.put("Gates", gates);
@@ -1367,6 +1477,12 @@ final class WorldPlan {
 		}
 
 		plan.put("Roads", roads);
+		if (history != null) {
+			CompoundTag past = new CompoundTag();
+			history.save(past);
+			plan.put("History", past);
+		}
+
 		tag.put("Plan", plan);
 	}
 
@@ -1392,6 +1508,15 @@ final class WorldPlan {
 			Place place = new Place(one.getUUID("Id"), one.getString("Name"), one.getString("Kind"), one.getInt("X"), one.getInt("Z"), one.getInt("Households"),
 				one.hasUUID("Nation") ? one.getUUID("Nation") : null);
 			place.made = one.getBoolean("Made");
+			place.leader = one.getString("Leader");
+			place.aggression = one.contains("Aggression") ? one.getDouble("Aggression") : 0.5;
+			place.warmth = one.contains("Warmth") ? one.getDouble("Warmth") : 0.5;
+			place.ambition = one.contains("Ambition") ? one.getDouble("Ambition") : 0.5;
+			place.leaderSince = one.getLong("LeaderSince");
+			place.people = one.contains("People") ? one.getDouble("People") : place.households;
+			place.fell = one.getBoolean("Fell");
+			place.conquered = one.getBoolean("Conquered");
+			place.loyalty = one.contains("Loyalty") ? one.getDouble("Loyalty") : 50;
 			for (Tag gate : one.getList("Gates", Tag.TAG_DOUBLE)) {
 				place.gates.add(((net.minecraft.nbt.DoubleTag)gate).getAsDouble());
 			}
@@ -1422,6 +1547,14 @@ final class WorldPlan {
 			}
 
 			highways.add(highway);
+		}
+
+		// (Worlds planned before their past was written have none: their places live as before.)
+		if (plan.contains("History")) {
+			history = new History(places, nations, places.isEmpty() ? 0 : places.get(0).id.getMostSignificantBits());
+			history.load(plan.getCompound("History"));
+		} else {
+			history = null;
 		}
 
 		ready = true;

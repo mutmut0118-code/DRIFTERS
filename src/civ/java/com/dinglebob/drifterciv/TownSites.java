@@ -234,10 +234,18 @@ final class TownSites {
 
 			making = site;
 			WorldPlan.Place place = WorldPlan.place(site.planned);
+			// (Its past may have moved on since its land was asked for: fallen since, it's made a ruin.)
+			if (place != null) {
+				site.ruin = place.ruin();
+			}
+
 			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin);
 			if (place != null) {
 				job.plannedId = place.id;
 				job.gates = List.copyOf(place.gates);
+				// (As its past has it: its leader now, founded so long ago.)
+				job.leaderName = place.leader.isEmpty() ? null : place.leader;
+				job.pastAgo = WorldPlan.foundedAgo(place.id);
 			}
 
 			DrifterCivilizations.LOGGER.info("[town] making a town at {}, {} ({} households)", site.x, site.z, site.households);
@@ -304,8 +312,16 @@ final class TownSites {
 
 	/** A spot of the world plan (W4), made as a player comes near like any other. */
 	static void planned(ServerLevel level, WorldPlan.Place place) {
-		if (place.made || sites.stream().anyMatch(site -> place.id.equals(site.planned))) {
+		if (place.made) {
 			return;
+		}
+
+		// (Asked for already, its land loading while the plan was made: a ruin now if its past says so.)
+		for (Site site : sites) {
+			if (place.id.equals(site.planned)) {
+				site.ruin = place.ruin();
+				return;
+			}
 		}
 
 		Site site = new Site(level.dimension().location().toString(), place.x, place.z, place.households);

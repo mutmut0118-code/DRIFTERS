@@ -330,6 +330,11 @@ public final class DrifterApi {
 	}
 
 	/** A name as a Drifter would have one (for a grave, a sign: the same lists Drifters' names come from). */
+	/** A Drifter's kind of name, not checked against those taken (safe off the server thread; for the past, not the living). */
+	public static String looseName(net.minecraft.util.RandomSource random) {
+		return com.dinglebob.drifter.identity.Usernames.loose(random);
+	}
+
 	public static String randomName(MinecraftServer server, net.minecraft.util.RandomSource random) {
 		return com.dinglebob.drifter.identity.Usernames.generate(random, server);
 	}
