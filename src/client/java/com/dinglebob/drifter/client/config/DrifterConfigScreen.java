@@ -111,12 +111,18 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 					"Drifter: Civilizations: a Drifter town wherever a village would be, and no villages or wandering traders. New chunks only."),
 				toggle("Villagers", DrifterConfig.villagers(), DrifterConfig::setVillagers,
 					"With villages replaced, zombie villagers still turn up to cure (for trading halls and iron farms). Off: none. Takes a restart."));
+			this.row(toggle("A world of nations", DrifterConfig.civilizedWorld(), DrifterConfig::setCivilizedWorld,
+					"Drifter: Civilizations: a new world comes with nations already in it: a capital city with its towns round it, roads between them all. Off: towns where villages would be. New worlds only."),
+				slider("Nations", 1, 3, DrifterConfig.nations(), v -> v == 1 ? "few (2-3)" : v == 2 ? "4" : "many (6-8)", DrifterConfig::setNations,
+					"How many nations a new world has. New worlds only."));
+			this.row(slider("Spread", 1, 5, DrifterConfig.civSpread(), v -> v == 1 ? "round spawn" : v == 5 ? "over the world" : "x" + (1 + (v - 1) * 0.75),
+					DrifterConfig::setCivSpread, "How far apart the nations are: round spawn (a few thousand blocks) to spread over the world. New worlds only."), null);
 		}
 
 		this.heading("More");
 		this.row(this.page("Spawning...", "How common each kind of new Drifter is, the most at once, and their skins.", () -> new DrifterSpawnScreen(this)),
 			this.page("Encounters...", "Random events with Drifters you meet once: how often, and each kind on or off.", () -> new DrifterEncounterScreen(this)));
-		this.row(this.page("Performance...", "Helper threads, and how often far-off Drifters think.", () -> new DrifterPerformanceScreen(this)), null);
+		this.row(this.page("Performance...", "Helper threads, how often far-off Drifters think, and Touch'n Motion on Drifters.", () -> new DrifterPerformanceScreen(this)), null);
 	}
 
 	private static String aggressionText(int value) {

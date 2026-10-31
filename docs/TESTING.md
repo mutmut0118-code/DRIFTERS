@@ -1520,8 +1520,84 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
 - [ ] Lamps (0.23.12): in a new town, lamp posts stand along the roads and beside door paths, not alone in the grass
       and never on a roof (look at the store); dark corners have torches on walls, lanterns on the pen's fence posts or a
       torch in the ground. At night nothing spawns inside the town.
+- [ ] Shapes by the land (0.23.13): make towns with `/drifterciv town spawn 10 <name>` (shape left to the land:
+      `/drifterciv town shape any`) somewhere 10 to 40 blocks from a river (`/locate biome minecraft:river`), near the
+      sea (`/locate biome minecraft:beach`, then a little inland) and on a hill. `/drifterciv town` says the shape it took:
+      river (a bridge from the plaza over the river, roads along both banks, a dock), harbour (a road down to the shore, a
+      waterfront road, piers with lanterns and a boat), hill (roads round the hill, terraces, a lookout tower you can climb).
+      Force the others with `/drifterciv town shape ring` and `grid`. Walk over the bridges: no wall at either end, no gap.
+- [ ] A world of nations (0.23.14): make a NEW world (Mod Menu: Drifter settings, "A world of nations" on, "Nations" 4,
+      "Spread" round spawn). Wait about ten seconds, then `/drifterciv plan`: the nations and their places. `/drifterciv
+      locate city` and fly there (or `/tp` near it): the capital is made as you come near, a big town with a grid of stone
+      streets. `/drifterciv nations` shows it in its nation. Follow a dirt road out of it: it's built ahead of you as you
+      go (a stretch at a time), bends round hills, crosses rivers on railed bridges, and reaches the next town, joining its
+      roads, with a signpost by the road near each town. Old worlds keep working as before.
 - [ ] Terrain Slabs (0.23.12): with Terrain Slabs installed, Drifters dig, camp and build on slab-covered hillsides as
       on any ground (before, every slab looked like a player's build to them).
+- [ ] Terrain Slabs walking (0.23.15): on hilly land with Terrain Slabs, `/drifter spawn Tess`, then stand on a hill a
+      little way off and `/drifter goto me`. It walks up the slab-edged slopes without hopping at every half step, and
+      where a slab sits at the foot of a two-block rise it goes round to a way up instead of jumping at it again and again.
+      New towns on slab-covered land have no slabs left sticking up on their roads or round their houses.
+- [ ] Natural ground in towns (0.23.16; your pictures): make a new world (old towns keep their old ground), or fly to land
+      nobody has been near, and look at new towns, hill towns most of all (`/drifterciv locate town`):
+      - Round houses and fields the ground slopes gently, its edges wandering, with Terrain Slabs' slabs on its steps like
+        the land round it: no square rings of steps, no grey stone terraces, no quarry dug into a hill.
+      - Retaining walls are short: three blocks or so at most. On a very steep hill there are fewer houses instead.
+      - No lava showing anywhere in a town, no cliff of dirt standing straight up out of a river, no deep slots one or two
+        blocks wide between walls in a hill town.
+      - Each house's path starts at its door, whichever side that's on, and finds its way round the other houses to the
+        nearest road, the plaza or another path. No path runs up to a wall or through a house.
+      - In a hamlet (the smallest towns, dirt roads), roads and paths climb with path slabs, never stairs.
+      - Stand where a new town is being made: no seeds or flowers left lying on the ground after it, and less lag while
+        it's made.
+- [ ] The world readied before you play (0.23.19, 0.23.20): make a new world (civilized world on). After the usual
+      loading, a "Building the world" screen shows what it's on ("Planning the nations", then any town or road in sight
+      of spawn), a bar and a clock; it can't be closed, and it's gone in under a minute. Then play: towns and roads are
+      built out of sight ahead of you (about 460 blocks off at render distance 9), so walk, ride or fly toward a town and
+      it's already there when you can see it, never going up in front of you. Quit while the screen's up and reopen: it
+      carries on. Old worlds don't get the screen.
+- [ ] The world's past (0.23.22): make a new world. `/drifterciv plan` lists its nations and places (a town burned in its
+      past shows as a ruin), and says how far its past has gone. Read the chronicle (the town notice board, or the
+      chronicle book): before day 1, its nations founded, rulers who died or stepped down and who came after, peace pacts
+      and alliances, wars declared, battles and their dead, towns taken or burned, towns rising up. Visit a town: its leader
+      is the one the past ends with, it was founded when the past says, it flies its nation's banner; a town burned in a
+      war is a ruin. Two towns whose nations fought: some of their people hold old grudges (the chronicle says so when the
+      second is made). Play a few days: now and then "News from afar" about nations you haven't been near.
+- [ ] Whole houses, one bridge, no stacked slabs (0.23.21): in a new world, every town house has its roof (none cut
+      off flat part way up). Where two roads cross the same river, there's one bridge, its railings only along its sides
+      (no fence across the deck). Along roads, no slab sits on a slab or a block on a slab. A town in a swamp has its
+      houses (it isn't almost empty). Drifters living in a town go out to the woods for wood: none pillar up the trees
+      between the houses, none break the grass there.
+- [ ] Natural slopes and snow (0.23.19): beside a road between towns cut into a hill, the land rises a block at a time
+      in its own grass, dirt and stone: no cobblestone walls (towns keep their cobblestone terraces). In a snowy place the
+      moved ground has snow on it like the land round it (no green patches in the snow).
+- [ ] One road, not two (0.23.19): roads leaving a town the same way run as one road and split off where they part; no
+      two roads side by side, none paved over another where they cross or branch.
+- [ ] Towns keep off what's built (0.23.19): in an old world, build something (or find a Drifter's house) near where a
+      town will be made, then come near: the town's roads stop short of it, no house or field goes on it, and its ground
+      isn't cut or filled there. Houses have no paths from their doors (the store still has one).
+- [ ] Tidy roads and towns (0.23.19): no leaves or bits of tree trunk floating over roads and paths, no vines hanging in
+      the air; lamp posts at least 12 blocks apart (a dark corner between gets a torch); roads go round ruins, outposts
+      and temples instead of through them.
+- [ ] Towns on flat land (0.23.18): make a new world, then `/drifterciv plan` lists the places. Visit a few with
+      `/drifterciv locate town`: every capital, town and hamlet is on low, fairly flat land (by the sea or a river, or a
+      plain not far over it), never on a mountain or a steep hill, with no tall cliffs cut round it.
+- [ ] Roads between towns wind and stay on land (0.23.18): follow a road out of a town. It curves through the land,
+      round hills, never in a long straight line, and never out over the sea (a river gets a short bridge). Places on
+      different islands have no road between them. Where it runs past a house (one a Drifter built, or a town's), the
+      house is untouched.
+- [ ] Bridges (0.23.18): a road's bridge over a river on a slant has one joined railing on each side (posts in the
+      corners), and no patch of dirt path in the middle where it crosses a sandbar.
+- [ ] Walkable roads and paths (0.23.17): in a new town on hilly land (a new world, or land you haven't been near), walk
+      every street and a few door paths. You never have to jump: roads rise half a block at a time on slabs (stone brick
+      in cities, wood in towns, path slabs in hamlets), never stairs, and nothing is a block high side by side. Paths from
+      doors do the same where they have room; only a door well above or below its road gets a few stairs.
+- [ ] Roads between towns go round (0.23.17): `/drifterciv locate town`, then follow a road out of a town. It winds
+      round hills and along valleys, in bends down a mountain, never straight up one or out over the sea, and never stops
+      and starts again with a gap.
+- [ ] Roads between towns (0.23.16): follow one over hilly land. It's cut into hills as well as built up over dips, with
+      gentle slopes beside it (no narrow ridge of dirt), climbs with path slabs only (no cobblestone stairs), and goes
+      straight through a ruined portal in its way (the ruin's blocks cleared off the road) instead of climbing over it.
 
 ## Beds in town houses (new, 0.22.34)
 
@@ -2605,6 +2681,79 @@ Installed as 0.23.12-side.1: also has the other session's 0.23.11-0.23.12 (their
       sand, a furnace they lost, taking pillars down, neighbours, the town's roads and lamps, chest labels, a housewarming,
       and debates (flat roofs, stone or wood houses, carpet or slabs, one floor or two). To hear one now: stand by a
       Drifter and type `/drifter talk debate_flat_roofs` (or `laid_a_rug`, `desert_living`, `lost_furnace`).
+
+Installed as 0.23.18-side.1: also has the other session's 0.23.13-0.23.18 (their checks are in their own sections above).
+
+## Side session: Touch'n Motion on Drifters (new, 0.23.18-side.1)
+
+Touch'n Motion is a mod (not a resource pack): an add-on to EMF Compat that adds to a player's animation, with Fresh
+Animations: Player Extension. Feet that stand on stairs and slabs, a hand on a wall you stand beside, the body leaning
+as you move, hands going to the thing you use, mining swings onto the block. Drifters now get it too. Your DRIFTER TEST
+profile already has everything it needs (EMF, ETF, EMF Compat Core, Touch'n Motion, and the two Fresh Animations packs
+switched on). Without Touch'n Motion, Drifters look exactly as before.
+
+Setup, once (creative world, cheats on). Stand somewhere flat and open, then type these one at a time:
+
+1. `/fill ~-6 ~-1 ~-6 ~6 ~-1 ~6 stone` and `/fill ~-6 ~ ~-6 ~6 ~4 ~6 air` (a flat floor).
+2. `/drifter spawn Ann`, then `/drifter brain off` (it stays put).
+
+Checks:
+
+- [ ] Feet on a step: put a slab beside Ann (`/setblock ~1 ~ ~ stone_slab` while standing where Ann is, then step back)
+      and nudge Ann so it stands half on the slab (`/tp @e[type=drifter:drifter,limit=1,sort=nearest] ~0.5 ~0.5 ~`, run
+      from where Ann stands). One foot is on the slab, the other leg reaches down to the floor, as yours does. Without
+      Touch'n Motion both feet float at the slab's height.
+- [ ] Hand on a wall: build a wall 3 high right beside Ann (a block away is too far). After a moment, Ann puts the
+      hand nearest the wall on it.
+- [ ] Mining: `/drifter give minecraft:diamond_pickaxe`, `/drifter slot 0`, put an obsidian block a block in front of
+      Ann at head height, look at it, type `/drifter mine ` and press Tab to fill in the block you're looking at, then
+      Enter. Ann takes a pickaxe stance and swings onto the block (three different blows), not the plain arm swing.
+- [ ] Walking about (`/drifter brain on`): its torso leans into turns and stops; standing idle, it looks at you or an
+      animal near by; hands brush through crops as it walks a field.
+- [ ] The setting: Mods > Drifter > Configure > Performance... > "Touch'n Motion" (or type
+      `/drifter config touchnmotion false`, and `true` to turn it back on). Off: Drifters go back to the plain animations
+      at once (players keep theirs). Flip it while watching a Drifter on a step to see the difference.
+- [ ] Nothing odd for players: you can still hit Drifters normally (no invisible extra target), no second Drifter shadow
+      or name, and a minimap doesn't show extra player dots where Drifters are. (Each Drifter near you has a hidden
+      stand-in player on your side only; tell me if anything sees it.)
+- [ ] With Better Combat: a Drifter's weapon swings and rolls still look as before (Touch'n Motion pauses for them).
+
+Drifters further than 64 blocks away don't get it.
+
+## Side session: Touch'n Motion, the rest (new, 0.23.18-side.2)
+
+Drifters now also get Touch'n Motion's hand gestures for what they do, its riding poses, and its pocket gesture. Same
+setup as above (creative, a flat floor, `/drifter spawn Ann`, `/drifter brain off`). For each check, flip
+`/drifter config touchnmotion false` and back to `true` to see the difference.
+
+- [ ] Chest: put a chest a block in front of Ann with some items in it. Look at the chest and type
+      `/drifter container ` then press Tab (fills in the chest), then type ` takeall` and press Enter. One hand goes on the
+      chest's edge and the other goes through it as the items come out.
+- [ ] Doors and buttons: let a Drifter play on its own (`/drifter brain on`) near a house with a door. When it goes
+      through, a hand goes on the door. A Drifter pressing a button or pulling a lever reaches for it.
+- [ ] Feeding: spawn a cow next to Ann, `/drifter give minecraft:wheat 4`, `/drifter slot 0`, then
+      `/drifter useonentity @e[type=cow,limit=1,sort=nearest]`. The wheat goes to the cow's mouth, then the other hand
+      strokes it. Same with shears on a sheep (`/drifter give minecraft:shears`; it bends to shear), or a bucket on a cow
+      (milking).
+- [ ] Planting: farmland by water in front of Ann, `/drifter give minecraft:wheat_seeds 4`, `/drifter slot 0`, then
+      `/drifter useon ` and Tab while looking at the farmland. It bends and presses the seed in.
+- [ ] Mining with a pickaxe (`/drifter mine`, from the section above) still shows the pickaxe stance.
+- [ ] Minecart: put a minecart next to Ann and type
+      `/ride @e[type=drifter:drifter,limit=1,sort=nearest] mount @e[type=minecart,limit=1,sort=nearest]`. It sits against
+      the back with its hands on the sides.
+- [ ] Boat and horse: the same `/ride` command with `@e[type=boat,limit=1,sort=nearest]` (or a tame, saddled horse:
+      `/summon horse ~ ~ ~ {Tame:1b,SaddleItem:{id:"minecraft:saddle",count:1}}` and `@e[type=horse,limit=1,sort=nearest]`).
+      A Drifter only stays on a boat or a horse it rides on purpose, so it gets off after about a second: watch right
+      after pressing Enter. In the boat its hands go out to the oars; on the horse its hands go forward and it leans
+      into the ride. Best of all, watch a Drifter cross water by boat or ride a horse it tamed, on its own.
+- [ ] Picking up: drop a few items near Ann and type `/drifter collect`. After it picks them up, one hand goes to a back
+      pocket.
+- [ ] Nothing odd: a Drifter in a boat sits in the same seat as before (the front), and a second rider still fits.
+
+Still not on Drifters: Create, Supplementaries and Create Aeronautics controls (cranks, wheels, throttles: Drifters
+don't use them), typing, and driving trains.
+
+Installed as 0.23.22-side.1: also has the other session's 0.23.13-0.23.22 (their checks are in their own sections above).
 
 ## Side session: more names, and nicknames (new, 0.23.22-side.1)
 

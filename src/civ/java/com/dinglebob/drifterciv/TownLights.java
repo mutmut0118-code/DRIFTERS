@@ -33,6 +33,8 @@ final class TownLights {
 	/** A lantern's light, and a torch's. */
 	private static final int LANTERN = 15;
 	private static final int TORCH = 14;
+	/** No lamp post within this many steps of another. */
+	private static final int LAMP_APART = 12;
 
 	/**
 	 * Lights the area; {@code houses}: their boxes (indoors); {@code town}: the town's own ground outdoors (not the woods
@@ -52,6 +54,7 @@ final class TownLights {
 		light.spreadAll();
 		int lamps = 0;
 		int torches = 0;
+		List<BlockPos> posts = new java.util.ArrayList<>();
 		for (int x = area.minX(); x <= area.maxX(); x++) {
 			for (int z = area.minZ(); z <= area.maxZ(); z++) {
 				// Outdoors: the top of the ground.
@@ -63,10 +66,18 @@ final class TownLights {
 
 				if (!underHouse && town.test(x, z) && area.isInside(outdoors) && spawnable(level, outdoors) && light.at(outdoors) < ENOUGH) {
 					BlockPos lamp = lampSpot(level, outdoors, noLamp, houses, byWay, BY_WAY, light);
+					// (Lamp posts spread out: no other within LAMP_APART; a spot still dark beside one gets a torch. On a hillside,
+					// where the land shades the light, they stood five together: the user's picture.)
+					BlockPos at = lamp;
+					if (at != null && posts.stream().anyMatch(other -> other.distManhattan(at.atY(other.getY())) < LAMP_APART)) {
+						lamp = null;
+					}
+
 					BlockPos lit = lamp == null ? null : lampPosts.apply(lamp);
 					boolean post = lit != null;
 					if (post) {
 						lamps++;
+						posts.add(lamp);
 					}
 
 					if (lit == null) {

@@ -153,6 +153,13 @@ final class HandsCommands {
 						"use " + DrifterCommands.describe(drifter.getMainHandItem()) + " on " + pos.toShortString()));
 				})));
 
+		// Right-clicks a creature with its held item (feeding, shearing, milking, an armour stand).
+		root.then(Commands.literal("useonentity").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
+			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");
+			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.UseOnEntityTask(drifter, target,
+				"use " + DrifterCommands.describe(drifter.getMainHandItem()) + " on " + target.getName().getString()));
+		})));
+
 		root.then(Commands.literal("use").executes(ctx -> start(ctx, UseItemTask::new)));
 
 		// Debug: pillar up this high where it stands (its own scaffolding, remembered: for testing the tidying).

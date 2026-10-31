@@ -582,6 +582,19 @@ public final class NavView {
 	}
 
 	/**
+	 * How high the top of this floor is inside its block: a bottom slab (Terrain Slabs' hillsides, a path's half step) half,
+	 * a full block (stairs, a top slab) one. Anything it hasn't seen as solid counts as a full block.
+	 */
+	public double floorTop(BlockPos floor) {
+		if (!this.knowledge.isKnown(floor) || this.cell(floor).kind() != Kind.SOLID) {
+			return 1.0;
+		}
+
+		VoxelShape shape = this.state(floor).getCollisionShape(this.world, floor);
+		return shape.isEmpty() ? 1.0 : Math.min(1.0, shape.max(Direction.Axis.Y));
+	}
+
+	/**
 	 * Good footing to jump from or land on: a full-height block it has seen with ordinary grip (not ice, slime, honey or
 	 * soul sand, which change how a jump goes), so the jump goes as the physics says.
 	 */

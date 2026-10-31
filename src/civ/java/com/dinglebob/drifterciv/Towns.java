@@ -34,9 +34,35 @@ public final class Towns {
 	private static final Map<UUID, Town> towns = new LinkedHashMap<>();
 
 	public static void register() {
+		com.dinglebob.drifter.api.DrifterApi.setSettled(Towns::settled);
 		ServerLifecycleEvents.SERVER_STARTED.register(Towns::load);
 		ServerLifecycleEvents.SERVER_STOPPING.register(Towns::save);
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> towns.clear());
+	}
+
+	/** Within a town's land (its trees and plants not gathered: {@link DrifterApi#setSettled}). */
+	static boolean settled(net.minecraft.world.level.Level level, BlockPos pos) {
+		String dimension = level.dimension().location().toString();
+		// (Asked on other threads too, while the towns change: a copy, and if it changed under it, nothing.)
+		List<Town> all;
+		try {
+			all = List.copyOf(towns.values());
+		} catch (java.util.ConcurrentModificationException e) {
+			return false;
+		}
+
+		for (Town town : all) {
+			if (town.dimension.equals(dimension)) {
+				double dx = pos.getX() - town.center.getX();
+				double dz = pos.getZ() - town.center.getZ();
+				int land = town.land();
+				if (dx * dx + dz * dz <= (double)land * land) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public static List<Town> all() {
@@ -106,6 +132,13 @@ public final class Towns {
 		Diplomacy.load(state(server).tag);
 		Nations.load(state(server).tag);
 		TownSites.load(state(server).tag);
+		WorldPlan.load(state(server).tag);
+		WorldPlan.start(server);
+	}
+
+	/** What's saved, read as the overworld loads (before the towns are: to know whether it's a planned world). */
+	static CompoundTag savedTag(net.minecraft.server.level.ServerLevel overworld) {
+		return overworld.getDataStorage().computeIfAbsent(new SavedData.Factory<>(State::new, State::load, null), "drifter_civ_towns").tag;
 	}
 
 	static void save(MinecraftServer server) {
@@ -117,6 +150,7 @@ public final class Towns {
 		Diplomacy.save(tag);
 		Nations.save(tag);
 		TownSites.save(tag);
+		WorldPlan.save(tag);
 		State state = state(server);
 		state.tag = tag;
 		state.setDirty();

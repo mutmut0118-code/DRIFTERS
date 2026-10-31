@@ -104,6 +104,7 @@ public class MineTask extends Task {
 
 		this.drifter.swing(InteractionHand.MAIN_HAND);
 		this.progress += this.drifter.getDestroyProgress(now, this.drifter.level(), this.pos);
+		com.dinglebob.drifter.hands.HandSignals.mining(this.drifter, this.pos);
 		if (this.progress >= 1.0F) {
 			return this.breakBlock(true);
 		}
@@ -117,6 +118,7 @@ public class MineTask extends Task {
 			state.attack(this.drifter.level(), this.pos, fake);
 			return null;
 		});
+		com.dinglebob.drifter.hands.HandSignals.mining(this.drifter, this.pos);
 		this.drifter.swing(InteractionHand.MAIN_HAND);
 		if (this.drifter.getDestroyProgress(state, this.drifter.level(), this.pos) >= 1.0F) {
 			return this.breakBlock(false);

@@ -185,6 +185,8 @@ public final class TownBuilder {
 		final double[] headings;
 		final java.util.Map<Long, Integer> cells = new java.util.HashMap<>();
 		final Rect bounds;
+		/** A ring road: kept whole (never cut back to what it leads to). */
+		boolean loop;
 
 		/** From its middle line's points: {x, z, heading} each (a block's middle is x + 0.5). */
 		Road(List<double[]> line) {
@@ -305,7 +307,13 @@ public final class TownBuilder {
 	enum Shape {
 		CROSSROADS("crossroads", "four roads out from the plaza, bending with the land", 0.8, 5.0, 0.07),
 		MAIN_STREET("main_street", "one long street through the plaza, a few lanes off it", 1.0, 4.0, 0.07),
-		WINDING("winding", "three roads winding out from the plaza, lanes off any of them", 2.5, 1.5, 0.1);
+		WINDING("winding", "three roads winding out from the plaza, lanes off any of them", 2.5, 1.5, 0.1),
+		// W3 (the user, 2026-10-30: "add a river town shape too and more shapes"; picked: river, harbour, hill, ring and grid).
+		RIVER("river", "on both banks of a river: a bridge by the plaza, roads along the banks, a dock", 1.0, 3.0, 0.07),
+		HARBOUR("harbour", "along a shore: a waterfront road, piers out over the water", 1.0, 3.0, 0.07),
+		HILL("hill", "on a hill: its streets winding round it, houses on terraces, a lookout", 0.4, 0.8, 0.1),
+		RING("ring", "a ring road round the plaza, spokes out from it", 0.8, 5.0, 0.07),
+		GRID("grid", "planned streets on a grid round the plaza", 0.0, 10.0, 0.07);
 
 		final String id;
 		final String what;
@@ -333,20 +341,50 @@ public final class TownBuilder {
 		}
 	}
 
+	private static Shape byChance(RandomSource random) {
+		double roll = random.nextDouble();
+		for (int i = 0; i < SHARES.length; i++) {
+			roll -= SHARES[i];
+			if (roll < 0) {
+				return BY_CHANCE[i];
+			}
+		}
+
+		return Shape.CROSSROADS;
+	}
+
 	/** Debug: the shape every town made from now on has (null: each its own, by its size and chance). */
 	@Nullable
 	static Shape forcedShape;
-	/** How often a small town has each shape (the rest winding; a hamlet's is a main street, a city's crossroads). */
-	private static final double CROSSROADS_SHARE = 0.35;
-	private static final double MAIN_STREET_SHARE = 0.40;
+	/**
+	 * How often a town has each shape where the land doesn't pick one (a river through it: a river town; a shore: a harbour;
+	 * a hill: a hill town); a hamlet's is a main street, a city's a grid in the middle with crossroads out.
+	 */
+	private static final double[] SHARES = {0.25, 0.30, 0.20, 0.15, 0.10};
+	private static final Shape[] BY_CHANCE = {Shape.CROSSROADS, Shape.MAIN_STREET, Shape.WINDING, Shape.RING, Shape.GRID};
+	/** Grid streets this far apart; a town's grid this far out from the plaza, a city's this far. */
+	private static final int GRID_STEP = 24;
+	private static final int TOWN_GRID = 30;
+	private static final int CITY_GRID = 72;
+	/** A ring road this far from the plaza's middle (a city's further). */
+	private static final int RING = 24;
+	/** How far round the plaza the land's looked over for water and hills (a harbour's shore was 70 blocks off in testing). */
+	private static final int SURVEY = 80;
+	/** The most water a river town's bridge crosses. */
+	private static final int LONGEST_RIVER_BRIDGE = 40;
 	/** Side roads at least this far apart. */
 	private static final int LANES_APART = 20;
 	/** A road leads to a house, the store, a field or the pen this near it; it runs this far past the last, and out of the plaza this far at least. */
 	private static final int LEADS_TO = 12;
 	private static final int ROAD_BEYOND = 6;
 	private static final int ROAD_STUB = 12;
-	/** How far round its plaza, store, fields and houses the land is eased to them (W2), and its ground's pieces, a step each. */
-	private static final int PAD_REACH = 24;
+	/**
+	 * How far round its plaza, store, fields and houses the land is eased to them by banks alone (W2): past it, low terraces,
+	 * the land left as it is where it's no more than a wall's height a terrace off (at 24 blocks of banks, a house on a steep
+	 * hill sat in a quarry; at 8, a hill town found room for three houses of ten). Two: the doorstep, then a terrace's wall
+	 * where the hill's steep, as hill villages are cut in. And its ground's pieces, a step each.
+	 */
+	private static final int PAD_REACH = 2;
 	private static final int GROUND_PIECE = 24;
 	/** This many households or fewer: a hamlet (its roads and paths dirt and gravel). */
 	private static final int HAMLET = 5;
@@ -434,8 +472,16 @@ public final class TownBuilder {
 		private List<DrifterApi.HousePlanInfo> plans;
 		private Rect plaza;
 		private final List<Road> roads = new ArrayList<>();
+		/** A town of the world plan (W4): its id (its nation knows it by it), and the ways its roads between towns come in. */
+		@Nullable
+		UUID plannedId;
+		/** Its leader's name and how long ago it was founded, by the world's past (null, -1: none). */
+		@Nullable
+		String leaderName;
+		int pastAgo = -1;
+		List<Double> gates = List.of();
 		/** Its shape, and how many of its roads leave the plaza (the rest are side roads off them). */
-		final Shape shape;
+		Shape shape;
 		private int mains;
 		private BlockPos storeAt;
 		private Direction storeFront = Direction.WEST;
@@ -445,6 +491,12 @@ public final class TownBuilder {
 		private List<Rect> fieldRects;
 		private Rect penRect;
 		private final List<Rect> taken = new ArrayList<>();
+		/**
+		 * Columns of its land something's built on already (a house a Drifter put up, a ruin: {@link #built}): its roads,
+		 * houses and lots keep off them and its ground isn't shaped there (the user's picture, 2026-10-31: a Drifter's house
+		 * by a town, half of it cut away by the town made round it).
+		 */
+		private final java.util.Set<Long> standing = new java.util.HashSet<>();
 		/** Every column of its roads, and (worked out when first asked) the town's ground round them. */
 		private final java.util.Set<Long> roadCells = new java.util.HashSet<>();
 		@Nullable
@@ -457,7 +509,7 @@ public final class TownBuilder {
 		private final List<DrifterApi.PlacedHouse> houses = new ArrayList<>();
 		private final List<Rect> houseRects = new ArrayList<>();
 		private int planIndex;
-		private final int[] turnedDown = new int[5];
+		private final int[] turnedDown = new int[6];
 		private int round = -1;
 		private boolean roundOpen;
 		private BlockPos well;
@@ -493,9 +545,7 @@ public final class TownBuilder {
 			this.world = world;
 			this.ruin = ruin;
 			this.city = households >= CITY && !ruin;
-			float roll = this.random.nextFloat();
-			this.shape = forcedShape != null ? forcedShape : this.city ? Shape.CROSSROADS : households <= 5 ? Shape.MAIN_STREET
-				: roll < CROSSROADS_SHARE ? Shape.CROSSROADS : roll < CROSSROADS_SHARE + MAIN_STREET_SHARE ? Shape.MAIN_STREET : Shape.WINDING;
+			this.shape = forcedShape != null ? forcedShape : this.city ? Shape.GRID : households <= 5 ? Shape.MAIN_STREET : byChance(this.random);
 			this.steps.add(new Step("layout", this::layout));
 		}
 
@@ -571,13 +621,55 @@ public final class TownBuilder {
 			int cz = this.cz;
 			this.plaza = new Rect(cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA);
 			this.taken.add(this.plaza);
+			int around = reach + GroundPlan.MOST_REACH;
+			for (int x = cx - around; x <= cx + around; x++) {
+				for (int z = cz - around; z <= cz + around; z++) {
+					if (loadedAt(this.level, x, z) && built(this.level, x, z)) {
+						this.standing.add(BlockPos.asLong(x, 0, z));
+					}
+				}
+			}
+
+			if (!this.standing.isEmpty()) {
+				DrifterCivilizations.LOGGER.info("[town] {}: {} columns already built on, kept off", this.name, this.standing.size());
+			}
+
+			this.survey();
+			this.pickShape();
 			// (A main street a third longer: it's most of the town.)
 			int length = this.shape == Shape.MAIN_STREET ? arm + arm / 3 : arm;
-			for (double heading : this.mainHeadings()) {
-				double edge = (PLAZA + 1) / Math.max(Math.abs(Math.cos(heading)), Math.abs(Math.sin(heading)));
-				Road main = this.lay(cx + 0.5 + Math.cos(heading) * edge, cz + 0.5 + Math.sin(heading) * edge, heading, length, List.of(this.plaza), 0);
-				if (main.length() > 0) {
-					this.addRoad(main);
+			switch (this.shape) {
+				case RIVER -> this.riverRoads(length);
+				case HARBOUR -> this.harbourRoads(length);
+				default -> {
+					for (double heading : this.mainHeadings()) {
+						this.main(heading, length, this.laying());
+					}
+				}
+			}
+
+			if (this.shape == Shape.RING) {
+				this.addRoad(this.ring(this.city ? RING + 16 : RING));
+			} else if (this.shape == Shape.GRID) {
+				this.gridStreets(this.city ? CITY_GRID : TOWN_GRID);
+			}
+
+			// The roads between towns (W5) come in from these ways: a main road out to meet each (one going that way already does),
+			// never cut back.
+			for (double gate : this.gates) {
+				Road served = null;
+				for (Road road : this.roads) {
+					if (road.length() > 0 && Math.abs(Math.atan2(Math.sin(road.heading(0) - gate), Math.cos(road.heading(0) - gate))) < 0.5) {
+						served = road;
+					}
+				}
+
+				if (served == null) {
+					served = this.main(gate, arm + 24, new Laying(8, 0.3, 0.07, LONGEST_BRIDGE, 3, false));
+				}
+
+				if (served != null) {
+					served.loop = true;
 				}
 			}
 
@@ -592,14 +684,19 @@ public final class TownBuilder {
 			}
 
 			this.mains = this.roads.size();
-			DrifterCivilizations.LOGGER.info("[town] {}: {} ({} roads from the plaza)", this.name, this.shape.id, this.mains);
+			DrifterCivilizations.LOGGER.info("[town] {}: {} ({} roads from the plaza{})", this.name, this.shape.id, this.mains, this.river ? ", a river "
+				+ this.riverWidth + " wide " + (int)this.waterAway + " off" : this.coast ? ", the shore " + (int)this.waterAway + " off" : this.hill ? ", a hill" : "");
 			this.then("lots", this::lots);
 		}
 
-		/** The ways its roads leave the plaza: four square, a main street's two, a winding town's three. */
+		/**
+		 * The ways its roads leave the plaza: four square (a ring's and a grid's spokes too), a main street's two, a winding
+		 * town's three, a hill town's round the hill both ways and down it.
+		 */
 		private double[] mainHeadings() {
 			return switch (this.shape) {
-				case CROSSROADS -> new double[] {0, Math.PI / 2, Math.PI, -Math.PI / 2};
+				case CROSSROADS, RING, GRID, RIVER, HARBOUR -> new double[] {0, Math.PI / 2, Math.PI, -Math.PI / 2};
+				case HILL -> new double[] {this.uphill + Math.PI / 2, this.uphill - Math.PI / 2, this.uphill + Math.PI};
 				case MAIN_STREET -> {
 					double way = this.flattestAxis();
 					yield new double[] {way, way + Math.PI};
@@ -650,13 +747,43 @@ public final class TownBuilder {
 		}
 
 		/**
+		 * How a road's laid: how hard it keeps to the way it set off, how much it wanders, how far it turns a block (radians),
+		 * the most water it bridges, what water ahead costs it, and whether it stops where it meets another road.
+		 */
+		private record Laying(double keep, double wander, double turn, int bridge, double wetCost, boolean junctions) {
+		}
+
+		/** The town's shape's way of laying a road. */
+		private Laying laying() {
+			return new Laying(this.shape.keep, this.shape.wander, this.shape.turn, LONGEST_BRIDGE, 3, true);
+		}
+
+		/** A road out of the plaza this way (from its edge), if one goes that way at all. */
+		@Nullable
+		private Road main(double heading, int length, Laying laying) {
+			double edge = (PLAZA + 1) / Math.max(Math.abs(Math.cos(heading)), Math.abs(Math.sin(heading)));
+			Road main = this.lay(this.cx + 0.5 + Math.cos(heading) * edge, this.cz + 0.5 + Math.sin(heading) * edge, heading, length, List.of(this.plaza), 0,
+				laying);
+			if (main.length() == 0) {
+				return null;
+			}
+
+			this.addRoad(main);
+			return main;
+		}
+
+		private Road lay(double x, double z, double heading, int length, List<Rect> avoid, int gap) {
+			return this.lay(x, z, heading, length, avoid, gap, this.laying());
+		}
+
+		/**
 		 * A road laid from (x, z) setting off this way, up to so long (the user, 2026-10-30: "roads that follow the land"): every
 		 * few blocks it takes the way on that climbs least over the next twelve, so it bends round a hill rather than going
-		 * straight up it, kept to the way it set off by its shape's {@code keep} and wandering by its {@code wander}; it turns a
-		 * few degrees a block at most, so its bends are wide. It stops at the town's edge, at water too wide to bridge, short of
-		 * {@code avoid} (this far off), and where it meets another road (a junction).
+		 * straight up it, kept to the way it set off by {@code keep} and wandering by {@code wander}; it turns a few degrees a
+		 * block at most, so its bends are wide. It stops at the town's edge, at water too wide to bridge, short of {@code
+		 * avoid} (this far off), and (if it's to) where it meets another road (a junction).
 		 */
-		private Road lay(double x, double z, double heading, int length, List<Rect> avoid, int gap) {
+		private Road lay(double x, double z, double heading, int length, List<Rect> avoid, int gap, Laying laying) {
 			List<double[]> line = new ArrayList<>();
 			double way = heading;
 			double target = heading;
@@ -664,29 +791,29 @@ public final class TownBuilder {
 			for (int t = 0; t < length; t++) {
 				if (t > 0) {
 					if (t % 4 == 0) {
-						target = this.choose(x, z, way, heading);
+						target = this.choose(x, z, way, heading, laying);
 					}
 
-					way += Mth.clamp(Math.atan2(Math.sin(target - way), Math.cos(target - way)), -this.shape.turn, this.shape.turn);
+					way += Mth.clamp(Math.atan2(Math.sin(target - way), Math.cos(target - way)), -laying.turn(), laying.turn());
 					x += Math.cos(way);
 					z += Math.sin(way);
 				}
 
 				int bx = Mth.floor(x);
 				int bz = Mth.floor(z);
-				if (!this.inReach(bx, bz, 2) || avoid.stream().anyMatch(rect -> rect.away(bx, bz) <= gap)) {
+				if (!this.inReach(bx, bz, 2) || avoid.stream().anyMatch(rect -> rect.away(bx, bz) <= gap) || this.standingNear(bx, bz, 3)) {
 					break;
 				}
 
 				if (wet(this.level, bx, bz)) {
-					if (++wetRun > LONGEST_BRIDGE) {
+					if (++wetRun > laying.bridge()) {
 						break;
 					}
 				} else {
 					wetRun = 0;
 				}
 
-				boolean joins = t > 4 && this.nearRoad(bx, bz, 2);
+				boolean joins = laying.junctions() && t > 4 && this.nearRoad(bx, bz, 2);
 				line.add(new double[] {x, z, way});
 				if (joins) {
 					break;
@@ -694,7 +821,7 @@ public final class TownBuilder {
 			}
 
 			// (Never ending in the water: a bridge goes across or not at all.)
-			for (int left = Math.min(wetRun, LONGEST_BRIDGE); left > 0 && !line.isEmpty(); left--) {
+			for (int left = Math.min(wetRun, laying.bridge()); left > 0 && !line.isEmpty(); left--) {
 				line.remove(line.size() - 1);
 			}
 
@@ -702,14 +829,14 @@ public final class TownBuilder {
 		}
 
 		/** The way on from here (of five, up to 30 degrees either side) that climbs least over the next twelve blocks. */
-		private double choose(double x, double z, double way, double heading) {
+		private double choose(double x, double z, double way, double heading, Laying laying) {
 			int here = ground(this.level, Mth.floor(x), Mth.floor(z));
 			double best = way;
 			double bestCost = Double.MAX_VALUE;
 			for (int k = -2; k <= 2; k++) {
 				double next = way + k * Math.PI / 12;
-				double cost = Math.abs(Math.atan2(Math.sin(next - heading), Math.cos(next - heading))) * this.shape.keep
-					+ this.random.nextDouble() * this.shape.wander;
+				double cost = Math.abs(Math.atan2(Math.sin(next - heading), Math.cos(next - heading))) * laying.keep()
+					+ this.random.nextDouble() * laying.wander();
 				int last = here;
 				for (int ahead = 4; ahead <= 12; ahead += 4) {
 					int ax = Mth.floor(x + Math.cos(next) * ahead);
@@ -720,7 +847,7 @@ public final class TownBuilder {
 					}
 
 					int g = ground(this.level, ax, az);
-					cost += Math.abs(g - last) + (wet(this.level, ax, az) ? 3 : 0) + (ahead > 4 && this.nearRoad(ax, az, 3) ? 4 : 0);
+					cost += Math.abs(g - last) + (wet(this.level, ax, az) ? laying.wetCost() : 0) + (ahead > 4 && this.nearRoad(ax, az, 3) ? 4 : 0);
 					last = g;
 				}
 
@@ -731,6 +858,477 @@ public final class TownBuilder {
 			}
 
 			return best;
+		}
+
+		// -----------------------------------------------------------------------------------------
+		// W3: the land round the plaza looked over, the shape it picks, and the roads of the shapes that need their own.
+		// -----------------------------------------------------------------------------------------
+
+		/** What the land round the plaza is (see survey). */
+		private boolean river;
+		private boolean coast;
+		private boolean hill;
+		/** The way to the nearest water and how far; the river's (or the shore's) line; how wide the river is; the way uphill. */
+		private double toWater;
+		private double waterAway;
+		private double waterLine;
+		private int riverWidth;
+		private double uphill;
+
+		/**
+		 * The land within about 80 blocks of the plaza looked over (every fourth block): water, and whether it's a river (land
+		 * again past it, straight on from the plaza, within 40 blocks) or a shore (a lake's, the sea's); how the land rises
+		 * and falls (a hill: 14 blocks or more between its highest and lowest).
+		 */
+		private void survey() {
+			int h0 = ground(this.level, this.cx, this.cz);
+			int high = h0;
+			int low = h0;
+			double ux = 0;
+			double uz = 0;
+			int samples = 0;
+			List<int[]> water = new ArrayList<>();
+			for (int dx = -SURVEY; dx <= SURVEY; dx += 4) {
+				for (int dz = -SURVEY; dz <= SURVEY; dz += 4) {
+					int x = this.cx + dx;
+					int z = this.cz + dz;
+					double d = Math.sqrt(dx * dx + dz * dz);
+					if (d > SURVEY || !this.inReach(x, z, 4)) {
+						continue;
+					}
+
+					samples++;
+					if (wet(this.level, x, z)) {
+						water.add(new int[] {x, z});
+						continue;
+					}
+
+					int h = ground(this.level, x, z);
+					if (d <= 48) {
+						high = Math.max(high, h);
+						low = Math.min(low, h);
+					}
+
+					if (d > 0 && d <= 48) {
+						ux += (h - h0) * dx / d;
+						uz += (h - h0) * dz / d;
+					}
+				}
+			}
+
+			this.uphill = Math.atan2(uz, ux);
+			this.hill = high - low >= 14;
+			if (water.size() < 4 || samples == 0) {
+				return;
+			}
+
+			// Out from the plaza sixteen ways: the nearest river (water 6 to 40 blocks across, land again past it) and the nearest
+			// shore (water with no land past it). The nearest water alone was a stream once, with the sea further off another way.
+			double riverAt = Double.MAX_VALUE;
+			double shoreAt = Double.MAX_VALUE;
+			double riverWay = 0;
+			double shoreWay = 0;
+			int riverAcross = 0;
+			for (int k = 0; k < 16; k++) {
+				double way = k * Math.PI / 8;
+				int first = -1;
+				int across = 0;
+				boolean landAgain = false;
+				for (int d = 0; d <= SURVEY + 40; d++) {
+					int x = Mth.floor(this.cx + 0.5 + Math.cos(way) * d);
+					int z = Mth.floor(this.cz + 0.5 + Math.sin(way) * d);
+					if (!this.inReach(x, z, 2)) {
+						break;
+					}
+
+					if (wet(this.level, x, z)) {
+						first = first < 0 ? d : first;
+						across++;
+					} else if (first >= 0) {
+						landAgain = true;
+						break;
+					}
+				}
+
+				if (first < 0) {
+					continue;
+				}
+
+				if (landAgain && across >= 6 && across <= LONGEST_RIVER_BRIDGE && first <= 56 && first < riverAt) {
+					riverAt = first;
+					riverWay = way;
+					riverAcross = across;
+				} else if (!landAgain && across >= 8 && first <= SURVEY && first < shoreAt) {
+					shoreAt = first;
+					shoreWay = way;
+				}
+			}
+
+			// (A stream a few blocks wide is bridged like any water, not a river town: found, a hill town taken for one.)
+			this.river = riverAt < Double.MAX_VALUE;
+			this.coast = !this.river && shoreAt < Double.MAX_VALUE;
+			this.toWater = this.river ? riverWay : shoreWay;
+			this.waterAway = this.river ? riverAt : this.coast ? shoreAt : 0;
+			this.riverWidth = riverAcross;
+			DrifterCivilizations.LOGGER.info("[town] {}: water in {} of {} samples; a river {}, a shore {}", this.name, water.size(), samples,
+				this.river ? (int)riverAt + " off, " + riverAcross + " across" : "none near", shoreAt < Double.MAX_VALUE ? (int)shoreAt + " off" : "none near");
+			if (!this.river && !this.coast) {
+				return;
+			}
+
+			int[] nearest = {Mth.floor(this.cx + Math.cos(this.toWater) * this.waterAway), Mth.floor(this.cz + Math.sin(this.toWater) * this.waterAway)};
+			// The water's line: the long way of its samples near the nearest (a river's flow, a shore's run).
+			double mx = 0;
+			double mz = 0;
+			int n = 0;
+			for (int[] w : water) {
+				if (Math.hypot(w[0] - nearest[0], w[1] - nearest[1]) <= 48) {
+					mx += w[0];
+					mz += w[1];
+					n++;
+				}
+			}
+
+			mx /= Math.max(1, n);
+			mz /= Math.max(1, n);
+			double sxx = 0;
+			double szz = 0;
+			double sxz = 0;
+			for (int[] w : water) {
+				if (Math.hypot(w[0] - nearest[0], w[1] - nearest[1]) <= 48) {
+					sxx += (w[0] - mx) * (w[0] - mx);
+					szz += (w[1] - mz) * (w[1] - mz);
+					sxz += (w[0] - mx) * (w[1] - mz);
+				}
+			}
+
+			// (A shore runs across the way to the water; a river's line from its samples.)
+			this.waterLine = this.river ? 0.5 * Math.atan2(2 * sxz, sxx - szz) : this.toWater + Math.PI / 2;
+		}
+
+		/** The shape the land picks (a river, a shore, a hill), unless it's set (debug) or a city; the chance one otherwise. */
+		private void pickShape() {
+			Shape picked = this.shape;
+			if (forcedShape == null && !this.city) {
+				picked = this.river ? Shape.RIVER : this.coast ? Shape.HARBOUR : this.hill ? Shape.HILL : this.shape;
+			}
+
+			// (Asked for a river or a harbour with no water near: a main street.)
+			if (picked == Shape.RIVER && !this.river || picked == Shape.HARBOUR && !this.river && !this.coast) {
+				picked = Shape.MAIN_STREET;
+			}
+
+			this.shape = picked;
+		}
+
+		/**
+		 * A river town's roads: one from the plaza across the river by a bridge, keeping straight; along both banks from its
+		 * ends, up and down the river, keeping off the water.
+		 */
+		private void riverRoads(int length) {
+			Road bridge = this.main(this.toWater, length + LONGEST_RIVER_BRIDGE, new Laying(12, 0.2, 0.05, LONGEST_RIVER_BRIDGE, 0, false));
+			if (bridge == null) {
+				return;
+			}
+
+			int before = -1;
+			int after = -1;
+			for (int t = 0; t < bridge.length(); t++) {
+				BlockPos at = bridge.at(t);
+				boolean w = wet(this.level, at.getX(), at.getZ());
+				if (w && before < 0) {
+					before = t - 1;
+				} else if (!w && before >= 0 && after < 0) {
+					after = t;
+				}
+			}
+
+			Laying bank = new Laying(2.0, 0.6, 0.07, LONGEST_BRIDGE, 12, true);
+			for (int foot : new int[] {Math.max(0, before - 3), after + 3}) {
+				if (foot < 0 || foot >= bridge.length() || before < 0) {
+					continue;
+				}
+
+				for (int sign = -1; sign <= 1; sign += 2) {
+					double way = this.waterLine + (sign < 0 ? Math.PI : 0);
+					Road road = this.lay(bridge.xs[foot] + Math.cos(way) * 4, bridge.zs[foot] + Math.sin(way) * 4, way, length, List.of(this.plaza), 0, bank);
+					if (road.length() >= SHORTEST_BRANCH / 2) {
+						this.addRoad(road);
+						this.banks.add(road);
+					}
+				}
+			}
+
+			// (Away from the water too, so it's a town and not only a riverside.)
+			this.main(this.toWater + Math.PI, length, this.laying());
+		}
+
+		/** A harbour's roads: one from the plaza down to the shore, along the shore both ways from there, one inland. */
+		private void harbourRoads(int length) {
+			Road down = this.main(this.toWater, Math.max(length, (int)this.waterAway + 8), new Laying(10, 0.2, 0.05, 0, 0, false));
+			if (down != null && down.length() > 4) {
+				int foot = Math.max(0, down.length() - 3);
+				Laying front = new Laying(1.5, 0.5, 0.08, 3, 14, true);
+				for (int sign = -1; sign <= 1; sign += 2) {
+					double way = this.waterLine + (sign < 0 ? Math.PI : 0);
+					Road road = this.lay(down.xs[foot] + Math.cos(way) * 2, down.zs[foot] + Math.sin(way) * 2, way, length, List.of(this.plaza), 0, front);
+					if (road.length() >= SHORTEST_BRANCH / 2) {
+						this.addRoad(road);
+						this.banks.add(road);
+					}
+				}
+			}
+
+			this.main(this.toWater + Math.PI, length, this.laying());
+			this.main(this.toWater + Math.PI / 2, length / 2, this.laying());
+			this.main(this.toWater - Math.PI / 2, length / 2, this.laying());
+		}
+
+		/** Roads along the water (a river's banks, a harbour's front), for its docks and piers. */
+		private final List<Road> banks = new ArrayList<>();
+
+		/** A ring road round the plaza this far out (wavering a little), as far round as the land lets it go. */
+		private Road ring(int radius) {
+			List<double[]> line = new ArrayList<>();
+			int n = (int)Math.round(2 * Math.PI * radius);
+			double phase = this.random.nextDouble() * 2 * Math.PI;
+			double waver = this.random.nextDouble() * 2 * Math.PI;
+			int wetRun = 0;
+			for (int i = 0; i <= n; i++) {
+				double a = phase + i * 2 * Math.PI / n;
+				double r = radius + 2 * Math.sin(3 * a + waver);
+				double x = this.cx + 0.5 + Math.cos(a) * r;
+				double z = this.cz + 0.5 + Math.sin(a) * r;
+				int bx = Mth.floor(x);
+				int bz = Mth.floor(z);
+				if (!this.inReach(bx, bz, 2)) {
+					break;
+				}
+
+				wetRun = wet(this.level, bx, bz) ? wetRun + 1 : 0;
+				if (wetRun > LONGEST_BRIDGE) {
+					break;
+				}
+
+				line.add(new double[] {x, z, a + Math.PI / 2});
+			}
+
+			for (int left = Math.min(wetRun, LONGEST_BRIDGE); left > 0 && !line.isEmpty(); left--) {
+				line.remove(line.size() - 1);
+			}
+
+			Road ring = new Road(line);
+			ring.loop = true;
+			return ring;
+		}
+
+		/** Straight streets on a grid round the plaza, every {@link #GRID_STEP} blocks, out this far each way. */
+		private void gridStreets(int span) {
+			for (int k = -span / GRID_STEP * GRID_STEP; k <= span; k += GRID_STEP) {
+				if (k == 0) {
+					continue;
+				}
+
+				for (int axis = 0; axis < 2; axis++) {
+					double x = axis == 0 ? this.cx + 0.5 - span : this.cx + 0.5 + k;
+					double z = axis == 0 ? this.cz + 0.5 + k : this.cz + 0.5 - span;
+					Road street = this.straight(x, z, axis == 0 ? 0 : Math.PI / 2, 2 * span + 1);
+					if (street.length() >= SHORTEST_BRANCH) {
+						this.addRoad(street);
+					}
+				}
+			}
+		}
+
+		/** A straight road, its longest dry run (bridging a little water) inside the town's reach. */
+		private Road straight(double x, double z, double heading, int length) {
+			List<double[]> best = new ArrayList<>();
+			List<double[]> line = new ArrayList<>();
+			int wetRun = 0;
+			for (int t = 0; t <= length; t++) {
+				double px = x + Math.cos(heading) * t;
+				double pz = z + Math.sin(heading) * t;
+				int bx = Mth.floor(px);
+				int bz = Mth.floor(pz);
+				boolean ok = this.inReach(bx, bz, 2);
+				wetRun = ok && wet(this.level, bx, bz) ? wetRun + 1 : 0;
+				if (!ok || wetRun > LONGEST_BRIDGE) {
+					for (int left = Math.min(wetRun, LONGEST_BRIDGE); left > 0 && !line.isEmpty(); left--) {
+						line.remove(line.size() - 1);
+					}
+
+					if (line.size() > best.size()) {
+						best = line;
+					}
+
+					line = new ArrayList<>();
+					wetRun = 0;
+					continue;
+				}
+
+				line.add(new double[] {px, pz, heading});
+			}
+
+			if (line.size() > best.size()) {
+				best = line;
+			}
+
+			return new Road(best);
+		}
+
+		/** A hill town's lookout's spot (null: none), on the highest free ground near the plaza. */
+		@Nullable
+		private Rect lookout;
+
+		/**
+		 * Docks and piers (W3): a river town's a dock or two from its banks, a harbour's piers along its front every so often
+		 * (planks a block over the water, railings, piles, a lantern at the end, a boat tied up at a harbour's).
+		 */
+		private void waterfront() {
+			int made = 0;
+			for (Road bank : this.banks) {
+				int every = this.shape == Shape.RIVER ? 30 : 20;
+				for (int t = 6; t < bank.length() - 4 && made < (this.shape == Shape.RIVER ? 2 : 4); t += every) {
+					made += this.pier(bank, t) ? 1 : 0;
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[town] {}: {} piers", this.name, made);
+		}
+
+		private boolean pier(Road road, int t) {
+			// Which side the water's on: the first side that meets it within ten blocks.
+			double heading = road.heading(t);
+			for (int sign = -1; sign <= 1; sign += 2) {
+				double out = heading + sign * Math.PI / 2;
+				Direction way = Direction.getNearest(Math.cos(out), 0, Math.sin(out));
+				BlockPos from = road.at(t);
+				int edge = -1;
+				for (int d = 2; d <= 10 && edge < 0; d++) {
+					BlockPos at = from.relative(way, d);
+					if (this.roadCells.contains(BlockPos.asLong(at.getX(), 0, at.getZ())) && d > 2) {
+						break;
+					}
+
+					if (wet(this.level, at.getX(), at.getZ())) {
+						edge = d;
+					}
+				}
+
+				if (edge < 0) {
+					continue;
+				}
+
+				int length = this.shape == Shape.RIVER ? Math.max(3, Math.min(5, this.riverWidth / 3)) : 8 + this.random.nextInt(7);
+				int half = this.shape == Shape.RIVER ? 0 : 1;
+				BlockPos start = from.relative(way, edge);
+				int deck = ground(this.level, start.getX(), start.getZ()) + 1;
+				Direction across = way.getClockWise();
+				List<BlockPos> laid = new ArrayList<>();
+				for (int k = 0; k < length; k++) {
+					BlockPos mid = start.relative(way, k);
+					boolean wetHere = true;
+					for (int w = -half; w <= half; w++) {
+						BlockPos column = mid.relative(across, w);
+						wetHere &= wet(this.level, column.getX(), column.getZ());
+					}
+
+					if (!wetHere || !this.inReach(mid.getX(), mid.getZ(), 2)) {
+						break;
+					}
+
+					for (int w = -half; w <= half; w++) {
+						BlockPos plank = mid.relative(across, w).atY(deck);
+						set(this.level, plank, wood("planks").defaultBlockState());
+						for (int y = 1; y <= 3; y++) {
+							if (!this.level.getBlockState(plank.above(y)).isAir()) {
+								set(this.level, plank.above(y), Blocks.AIR.defaultBlockState());
+							}
+						}
+
+						this.pathCells.add(BlockPos.asLong(plank.getX(), 0, plank.getZ()));
+						// Piles: a log down to the bottom under its edges every few blocks.
+						if (k % 3 == 2 && (w == -half || w == half)) {
+							for (BlockPos pile = plank.below(); pile.getY() > deck - 24 && !this.level.getFluidState(pile).isEmpty(); pile = pile.below()) {
+								set(this.level, pile, wood("log").defaultBlockState());
+							}
+						}
+
+						// Railings along a wide pier's sides, its walk between them.
+						if (half > 0 && w != 0 && k % 2 == 1) {
+							place(this.level, plank.above(), wood("fence").defaultBlockState());
+						}
+					}
+
+					laid.add(mid.atY(deck));
+				}
+
+				if (laid.size() < 3) {
+					continue;
+				}
+
+				BlockPos end = laid.get(laid.size() - 1).relative(across, half > 0 ? half : 0);
+				place(this.level, end.above(), wood("fence").defaultBlockState());
+				place(this.level, end.above(2), Blocks.LANTERN.defaultBlockState());
+				if (this.shape == Shape.HARBOUR) {
+					var boat = EntityType.BOAT.create(this.level);
+					BlockPos beside = laid.get(laid.size() - 1).relative(across, half + 2);
+					if (boat != null && wet(this.level, beside.getX(), beside.getZ())) {
+						boat.moveTo(beside.getX() + 0.5, deck - 0.5, beside.getZ() + 0.5, way.toYRot(), 0);
+						this.level.addFreshEntity(boat);
+					}
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
+		/** A hill town's lookout: a little tower of logs and planks with a ladder up to a railed floor, a lantern on each corner. */
+		private void lookoutTower() {
+			Rect spot = this.lookout;
+			if (spot == null) {
+				return;
+			}
+
+			int x0 = spot.x0() + 1;
+			int z0 = spot.z0() + 1;
+			int h = ground(this.level, x0 + 1, z0 + 1);
+			for (int dx = 0; dx <= 2; dx++) {
+				for (int dz = 0; dz <= 2; dz++) {
+					boolean corner = (dx == 0 || dx == 2) && (dz == 0 || dz == 2);
+					for (int y = h + 1; y <= h + 6; y++) {
+						if (corner) {
+							set(this.level, new BlockPos(x0 + dx, y, z0 + dz), wood("log").defaultBlockState());
+						}
+					}
+
+					if (!(dx == 1 && dz == 1)) {
+						set(this.level, new BlockPos(x0 + dx, h + 5, z0 + dz), wood("planks").defaultBlockState());
+					}
+
+					if (!corner && !(dx == 1 && dz == 1)) {
+						place(this.level, new BlockPos(x0 + dx, h + 6, z0 + dz), wood("fence").defaultBlockState());
+					}
+
+					if (corner) {
+						place(this.level, new BlockPos(x0 + dx, h + 7, z0 + dz), Blocks.LANTERN.defaultBlockState());
+					}
+				}
+			}
+
+			// The ladder's wall (the south side's middle), the ladder against it up through the floor.
+			for (int y = h + 1; y <= h + 4; y++) {
+				set(this.level, new BlockPos(x0 + 1, y, z0 + 2), wood("planks").defaultBlockState());
+			}
+
+			for (int y = h + 1; y <= h + 5; y++) {
+				place(this.level, new BlockPos(x0 + 1, y, z0 + 1), Blocks.LADDER.defaultBlockState().setValue(net.minecraft.world.level.block.LadderBlock.FACING,
+					Direction.NORTH));
+			}
+
+			set(this.level, new BlockPos(x0 + 1, h + 6, z0 + 2), wood("planks").defaultBlockState());
 		}
 
 		private void addRoad(Road road) {
@@ -745,6 +1343,38 @@ public final class TownBuilder {
 
 		private boolean inReach(Rect rect) {
 			return this.inReach(rect.x0(), rect.z0(), 0) && this.inReach(rect.x1(), rect.z1(), 0);
+		}
+
+		/** Something already built within this many blocks of x, z. */
+		private boolean standingNear(int x, int z, int by) {
+			if (this.standing.isEmpty()) {
+				return false;
+			}
+
+			for (int dx = -by; dx <= by; dx++) {
+				for (int dz = -by; dz <= by; dz++) {
+					if (this.standing.contains(BlockPos.asLong(x + dx, 0, z + dz))) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/** Something already built within this many blocks of the rectangle. */
+		private boolean standingNear(Rect rect, int by) {
+			if (this.standing.isEmpty()) {
+				return false;
+			}
+
+			for (long column : this.standing) {
+				if (rect.away(BlockPos.getX(column), BlockPos.getZ(column)) <= by) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/** A road within this many blocks of x, z. */
@@ -797,6 +1427,19 @@ public final class TownBuilder {
 			return Integer.MAX_VALUE;
 		}
 
+		/** Water anywhere in it (a field with the river in a corner of it was walked to from no side: found in a grid town). */
+		private boolean anyWet(Rect rect) {
+			for (int x = rect.x0(); x <= rect.x1(); x++) {
+				for (int z = rect.z0(); z <= rect.z1(); z++) {
+					if (wet(this.level, x, z)) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
 		/** A spot for the store, a field or the pen, the side it faces (the nearest road or the plaza), its ground's height. */
 		private record Lot(Rect site, Direction front, @Nullable Integer base) {
 		}
@@ -823,12 +1466,12 @@ public final class TownBuilder {
 			int looked = 0;
 			for (int[] o : spots) {
 				Rect site = new Rect(mx + o[0] - w / 2, mz + o[1] - d / 2, mx + o[0] - w / 2 + w - 1, mz + o[1] - d / 2 + d - 1);
-				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.nearRoad(site, 2)) {
+				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.nearRoad(site, 2) || this.standingNear(site, 4)) {
 					continue;
 				}
 
 				Integer base = siteBase(this.level, site.x0(), site.z0(), site.x1(), site.z1());
-				if (base == null && flat) {
+				if (base == null && (flat || this.anyWet(site))) {
 					continue;
 				}
 
@@ -858,7 +1501,8 @@ public final class TownBuilder {
 					}
 				}
 
-				double score = Math.sqrt(o[0] * o[0] + o[1] * o[1]) + (front != null ? away : 12) + 2 * rise + (base == null ? 20 : 0);
+				int misfit = GroundPlan.misfit(this.level, site, base != null ? base : median(this.level, site.x0(), site.z0(), site.x1(), site.z1()), PAD_REACH);
+				double score = Math.sqrt(o[0] * o[0] + o[1] * o[1]) + (front != null ? away : 12) + 2 * rise + (base == null ? 20 : 0) + 4 * misfit;
 				if (score < bestScore) {
 					bestScore = score;
 					best = new Lot(site, front != null ? front : Direction.NORTH, base);
@@ -912,18 +1556,51 @@ public final class TownBuilder {
 			this.penRect = pen != null ? pen.site() : new Rect(cx - 13, cz + 12, cx - 3, cz + 22);
 			this.penFront = pen != null ? pen.front() : Direction.EAST;
 			this.taken.add(this.penRect);
+			if (this.shape == Shape.HILL) {
+				this.lookout = this.highestSpot();
+				if (this.lookout != null) {
+					this.taken.add(this.lookout);
+				}
+			}
+
 			// Side roads off the main ones, out into the land (a village's lanes): a few tries a step (a city's took 2.6 s at once).
 			this.then("streets", this::streets);
 		}
 
 		private int streetTries;
 
+		/** The highest free 5 by 5 spot within 32 of the plaza (a hill town's lookout), on ground that suits it. */
+		@Nullable
+		private Rect highestSpot() {
+			Rect best = null;
+			int bestHeight = Integer.MIN_VALUE;
+			for (int dx = -32; dx <= 32; dx += 2) {
+				for (int dz = -32; dz <= 32; dz += 2) {
+					Rect spot = new Rect(this.cx + dx - 2, this.cz + dz - 2, this.cx + dx + 2, this.cz + dz + 2);
+					if (!this.inReach(spot) || this.taken.stream().anyMatch(other -> other.near(spot, 3)) || this.nearRoad(spot, 2)) {
+						continue;
+					}
+
+					Integer base = siteBase(this.level, spot.x0(), spot.z0(), spot.x1(), spot.z1());
+					if (base != null && base > bestHeight) {
+						bestHeight = base;
+						best = spot;
+					}
+				}
+			}
+
+			return best;
+		}
+
 		/** How many side roads it wants to start with (more come if its houses don't fit). */
 		private int lanesWanted() {
 			return switch (this.shape) {
 				case CROSSROADS -> 2 + this.households / 4;
 				case MAIN_STREET -> this.households / 6;
-				case WINDING -> 1 + this.households / 4;
+				case WINDING, HILL -> 1 + this.households / 4;
+				case RIVER, HARBOUR -> 1 + this.households / 5;
+				case RING -> this.households / 6;
+				case GRID -> this.city ? 2 + this.households / 4 : 1;
 			};
 		}
 
@@ -950,7 +1627,7 @@ public final class TownBuilder {
 		 * road), out into the land, following it as the main roads do, clear of {@code busy} and of each other.
 		 */
 		private void branches(List<Rect> busy, int want, int most) {
-			boolean anyRoad = this.city || this.shape == Shape.WINDING;
+			boolean anyRoad = this.city || this.shape == Shape.WINDING || this.shape == Shape.RING;
 			int shortest = this.shape == Shape.MAIN_STREET ? 16 : SHORTEST_BRANCH;
 			int longest = (this.shape == Shape.MAIN_STREET ? 30 : LONGEST_BRANCH) * (this.city ? 2 : 1);
 			for (int tries = 0; tries < most && this.roads.size() < this.mains + want; tries++) {
@@ -1178,8 +1855,20 @@ public final class TownBuilder {
 
 				Rect at = site;
 				int why = !this.inReach(at) ? 0 : this.taken.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) ? 2
-					: this.houseRects.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) ? 3 : -1;
+					: this.houseRects.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) || this.standingNear(at, HOUSE_GAP + 2) ? 3 : -1;
 				Integer base = why >= 0 ? null : siteBase(this.level, at.x0(), at.z0(), at.x1(), at.z1());
+				// (Not where its ground would be moved on out past its reach, or built up over water: too steep a hill, or a cliff
+				// of fill into a river; the user's pictures.)
+				int misfit = base == null ? 0 : GroundPlan.misfit(this.level, at, base, PAD_REACH);
+				if (misfit > 0) {
+					if (this.turnedDown[5] % 200 == 0) {
+						DrifterCivilizations.LOGGER.info("[town] {}: {} at {} too steep or by water by {}: {}", this.name, at, base, misfit, GroundPlan.why);
+					}
+
+					this.turnedDown[5]++;
+					continue;
+				}
+
 				if (base == null) {
 					this.turnedDown[why >= 0 ? why : 4]++;
 					continue;
@@ -1215,7 +1904,7 @@ public final class TownBuilder {
 			int[] need = new int[n];
 			for (int i = 0; i < n; i++) {
 				Road road = this.roads.get(i);
-				need[i] = i < this.mains ? Math.min(road.length() - 1, ROAD_STUB) : -1;
+				need[i] = road.loop ? road.length() - 1 : i < this.mains ? Math.min(road.length() - 1, ROAD_STUB) : -1;
 				for (int t = 0; t < road.length(); t++) {
 					int x = Mth.floor(road.xs[t]);
 					int z = Mth.floor(road.zs[t]);
@@ -1259,9 +1948,9 @@ public final class TownBuilder {
 		}
 
 		private void housesDone() {
-			DrifterCivilizations.LOGGER.info("[town] {} of {} houses on {} roads; spots turned down: {} out of the town, {} by a road, {} by the store or fields, {} by a house, {} for the ground",
+			DrifterCivilizations.LOGGER.info("[town] {} of {} houses on {} roads; spots turned down: {} out of the town, {} by a road, {} by the store or fields, {} by a house, {} for the ground, {} too steep or by water",
 				this.pending.size(), this.households, this.roads.size(), this.turnedDown[0], this.turnedDown[1], this.turnedDown[2], this.turnedDown[3],
-				this.turnedDown[4]);
+				this.turnedDown[4], this.turnedDown[5]);
 			this.trimRoads();
 			this.built.addAll(this.taken);
 			this.built.addAll(this.houseRects);
@@ -1287,6 +1976,14 @@ public final class TownBuilder {
 				this.then("road", () -> this.road(road));
 			}
 
+			if (!this.banks.isEmpty() && !this.ruin) {
+				this.then("waterfront", this::waterfront);
+			}
+
+			if (this.lookout != null && !this.ruin) {
+				this.then("lookout", this::lookoutTower);
+			}
+
 			this.then("plazaThings", this::plazaThings);
 			// (The paths before the lamps, so no lamp post stands on one: one in front of a door blocked the way in.)
 			this.then("stallAndPaths", this::stallAndPaths);
@@ -1303,6 +2000,8 @@ public final class TownBuilder {
 		}
 
 		private GroundPlan ground;
+		/** Its bridges' decks: each column's height. */
+		private final java.util.Map<Long, Integer> bridges = new java.util.HashMap<>();
 		private final List<Integer> fieldBases = new ArrayList<>();
 
 		/**
@@ -1313,53 +2012,163 @@ public final class TownBuilder {
 			List<GroundPlan.Pad> pads = new ArrayList<>();
 			pads.add(new GroundPlan.Pad(this.plaza, this.y0 - 1, PAD_REACH, CLEAR_ABOVE));
 			pads.add(new GroundPlan.Pad(this.storeRect, this.storeBase, PAD_REACH, 8));
+			// (The pen level too: on a hillside its fence ran down a staircase of cut rock, found in a hill town.)
+			pads.add(new GroundPlan.Pad(this.penRect, median(this.level, this.penRect.x0(), this.penRect.z0(), this.penRect.x1(), this.penRect.z1()), PAD_REACH, 3));
+			if (this.lookout != null) {
+				pads.add(new GroundPlan.Pad(this.lookout, median(this.level, this.lookout.x0(), this.lookout.z0(), this.lookout.x1(), this.lookout.z1()), PAD_REACH,
+					9));
+			}
 			for (Rect rect : this.fieldRects) {
 				int base = median(this.level, rect.x0(), rect.z0(), rect.x1(), rect.z1());
 				this.fieldBases.add(base);
 				pads.add(new GroundPlan.Pad(rect, base, PAD_REACH, 4));
 			}
 
+			List<GroundPlan.Pad> others = List.copyOf(pads);
 			for (Pending spot : this.pending) {
 				pads.add(new GroundPlan.Pad(spot.site(), spot.base(), PAD_REACH, spot.plan().sizeY() + 2));
 			}
 
 			GroundPlan plan = new GroundPlan(this.level, pads, this.random, this.look == Style.DESERT);
+			plan.spareBuilt();
+			// Its roads' heights, all of them together (each worked out on its own, a high street and a low one crossing on a
+			// mountain stood a wall apart: found in a mountain city): from the ground as the rest leaves it (a bridge's a block
+			// over the water at least, level with the plaza where they leave it), then a block a step at most between any two
+			// side by side, halfway between built up over dips and cut down through bumps (so a road down a mountain is cut in
+			// at the top and built up at the bottom, not one long embankment).
+			java.util.Map<Long, Integer> base = new java.util.HashMap<>();
+			java.util.Set<Long> level = new java.util.HashSet<>();
 			for (Road road : this.roads) {
-				int n = road.length();
-				if (n == 0) {
-					continue;
-				}
-
-				int[] want = new int[n];
-				for (int t = 0; t < n; t++) {
-					BlockPos mid = road.at(t);
-					want[t] = plan.base(mid.getX(), mid.getZ());
-				}
-
-				for (var cell : road.cells.entrySet()) {
-					int x = BlockPos.getX(cell.getKey());
-					int z = BlockPos.getZ(cell.getKey());
-					want[cell.getValue()] = Math.max(want[cell.getValue()], plan.base(x, z));
-				}
-
-				for (int t = 1; t < n; t++) {
-					want[t] = Math.max(want[t], want[t - 1] - 1);
-				}
-
-				for (int t = n - 2; t >= 0; t--) {
-					want[t] = Math.max(want[t], want[t + 1] - 1);
-				}
-
-				for (var cell : road.cells.entrySet()) {
-					int x = BlockPos.getX(cell.getKey());
-					int z = BlockPos.getZ(cell.getKey());
-					if (!this.plaza.contains(x, z) && !plan.wet(x, z)) {
-						plan.road(cell.getKey(), want[cell.getValue()]);
+				for (long cell : road.cells.keySet()) {
+					int x = BlockPos.getX(cell);
+					int z = BlockPos.getZ(cell);
+					if (this.plaza.contains(x, z)) {
+						continue;
 					}
+
+					int b = plan.wet(x, z) ? plan.natural(x, z) + 1 : plan.base(x, z);
+					if (this.plaza.away(x, z) <= 1) {
+						b = this.y0 - 1;
+						level.add(cell);
+					}
+
+					base.merge(cell, b, Math::max);
+				}
+			}
+
+			// Every road climbs half a block a column at most, worked out in half blocks: a block every two, a slab between, in
+			// any direction (across a road too), so it's walked up without a jump and never needs stairs (the user, 2026-10-30,
+			// with pictures: steps a block and a half or two high, "staircases jumbled all over the place", "TOO natural, at the
+			// expense of being convenient"; at a block a column, a road three wide stepped across itself and its stairs faced
+			// every way). Never cut below water beside it either (it spilled down the road).
+			int k = 2;
+			java.util.Map<Long, Integer> scaled = new java.util.HashMap<>();
+			base.forEach((cell, b) -> scaled.put(cell, b * k));
+			java.util.Map<Long, Integer> high = settle(scaled, true, level);
+			java.util.Map<Long, Integer> low = settle(scaled, false, level);
+			java.util.Map<Long, Integer> mids = new java.util.HashMap<>();
+			for (long cell : base.keySet()) {
+				int mid = level.contains(cell) ? (this.y0 - 1) * k : Math.floorDiv(high.get(cell) + low.get(cell), 2);
+				int x = BlockPos.getX(cell);
+				int z = BlockPos.getZ(cell);
+				if (!plan.wet(x, z)) {
+					for (Direction side : Direction.Plane.HORIZONTAL) {
+						if (plan.wet(x + side.getStepX(), z + side.getStepZ())) {
+							mid = Math.max(mid, plan.natural(x + side.getStepX(), z + side.getStepZ()) * k);
+						}
+					}
+				}
+
+				mids.put(cell, mid);
+			}
+
+			mids = settle(mids, true, level);
+			java.util.Map<Long, Integer> wants = new java.util.HashMap<>();
+			for (long cell : base.keySet()) {
+				wants.put(cell, level.contains(cell) ? this.y0 - 1 : Math.floorDiv(mids.get(cell) + k - 1, k));
+			}
+
+			// Each house at its street's height (within a block or two): its door path climbs a block a step at most, and with
+			// streets cut into a hill a house on the hill's own ground stood ten blocks under its street (found in a hill town).
+			List<GroundPlan.Pad> rebased = new ArrayList<>(others);
+			for (int i = 0; i < this.pending.size(); i++) {
+				Pending spot = this.pending.get(i);
+				Integer street = this.streetAt(spot, wants);
+				int at = street == null ? spot.base() : Mth.clamp(spot.base(), street - 2, street + 1);
+				if (at != spot.base()) {
+					spot = new Pending(spot.site(), at, spot.plan(), spot.rotation(), spot.front(), spot.sx(), spot.sz());
+					this.pending.set(i, spot);
+				}
+
+				rebased.add(new GroundPlan.Pad(spot.site(), spot.base(), PAD_REACH, spot.plan().sizeY() + 2));
+			}
+
+			plan = new GroundPlan(this.level, rebased, this.random, this.look == Style.DESERT);
+			plan.spareBuilt();
+			for (long cell : base.keySet()) {
+				int x = BlockPos.getX(cell);
+				int z = BlockPos.getZ(cell);
+				int want = wants.get(cell);
+				if (plan.wet(x, z)) {
+					// A bridge: its deck at the road's height, a block over the water at least (it ramps down to the water from
+					// a high bank; at the water's own level, the plaza's bank stood over its end as a wall: found in a river town).
+					this.bridges.merge(cell, Math.max(want, plan.natural(x, z) + 1), Math::max);
+				} else {
+					plan.road(cell, want);
 				}
 			}
 
 			return plan;
+		}
+
+		/**
+		 * Heights over these columns with a block a step at most between any two side by side: {@code up}, each no lower than
+		 * its own and built up from its neighbours (the least filling that does it); else no higher, cut down (the least
+		 * cutting). Those in {@code fixed} stay as they are (the roads level with the plaza where they leave it: moved, they
+		 * left the plaza a step off its own roads, found in a city walked to from nowhere).
+		 */
+		private static java.util.Map<Long, Integer> settle(java.util.Map<Long, Integer> base, boolean up, java.util.Set<Long> fixed) {
+			java.util.Map<Long, Integer> heights = new java.util.HashMap<>(base);
+			java.util.PriorityQueue<long[]> queue = new java.util.PriorityQueue<>((a, b) -> up ? Long.compare(b[1], a[1]) : Long.compare(a[1], b[1]));
+			base.forEach((cell, height) -> queue.add(new long[] {cell, height}));
+			while (!queue.isEmpty()) {
+				long[] next = queue.poll();
+				int height = (int)next[1];
+				if (heights.get(next[0]) != height) {
+					continue;
+				}
+
+				int x = BlockPos.getX(next[0]);
+				int z = BlockPos.getZ(next[0]);
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					long other = BlockPos.asLong(x + side.getStepX(), 0, z + side.getStepZ());
+					Integer there = heights.get(other);
+					int bound = up ? height - 1 : height + 1;
+					if (there != null && !fixed.contains(other) && (up ? there < bound : there > bound)) {
+						heights.put(other, bound);
+						queue.add(new long[] {other, bound});
+					}
+				}
+			}
+
+			return heights;
+		}
+
+		/** The height of the street in front of this house (out from the middle of its front, twelve blocks at most), or null. */
+		@Nullable
+		private Integer streetAt(Pending spot, java.util.Map<Long, Integer> wants) {
+			Rect site = spot.site();
+			Direction front = spot.front();
+			int x = front == Direction.EAST ? site.x1() : front == Direction.WEST ? site.x0() : (site.x0() + site.x1()) / 2;
+			int z = front == Direction.SOUTH ? site.z1() : front == Direction.NORTH ? site.z0() : (site.z0() + site.z1()) / 2;
+			for (int step = 1; step <= 12; step++) {
+				Integer street = wants.get(BlockPos.asLong(x + front.getStepX() * step, 0, z + front.getStepZ() * step));
+				if (street != null) {
+					return street;
+				}
+			}
+
+			return null;
 		}
 
 		/** A house put up on its spot (its ground shaped by now). */
@@ -1414,8 +2223,20 @@ public final class TownBuilder {
 			return wood("slab").defaultBlockState();
 		}
 
-		/** The stairs up a road or path that climbs a block every block: a city's stone brick (sandstone), the wood's elsewhere. */
+		/** A hamlet: dirt roads and paths, climbing by path slabs alone. */
+		private boolean gentle() {
+			return !this.city && this.households <= HAMLET;
+		}
+
+		/**
+		 * The stairs up a road or path that climbs a block every block: a city's stone brick (sandstone), the wood's in a town;
+		 * a hamlet's slab (stairs in a dirt path looked stuck on: the user's pictures).
+		 */
 		private BlockState pavingStairs() {
+			if (this.gentle()) {
+				return this.pavingSlab();
+			}
+
 			return this.city ? (this.look == Style.DESERT ? Blocks.SMOOTH_SANDSTONE_STAIRS : Blocks.STONE_BRICK_STAIRS).defaultBlockState()
 				: wood("stairs").defaultBlockState();
 		}
@@ -1494,8 +2315,17 @@ public final class TownBuilder {
 			for (long cell : road.cells.keySet()) {
 				int x = BlockPos.getX(cell);
 				int z = BlockPos.getZ(cell);
-				if (!this.plaza.contains(x, z)) {
-					TownBuilder.road(this.level, x, z);
+				Integer deck = this.bridges.get(cell);
+				if (deck != null) {
+					BlockPos plank = new BlockPos(x, deck, z);
+					set(this.level, plank, wood("planks").defaultBlockState());
+					for (int y = 1; y <= 4; y++) {
+						if (!this.level.getBlockState(plank.above(y)).isAir()) {
+							set(this.level, plank.above(y), Blocks.AIR.defaultBlockState());
+						}
+					}
+				} else if (!this.plaza.contains(x, z)) {
+					TownBuilder.road(this.level, x, z, this.laid(x, z));
 				}
 			}
 
@@ -1506,30 +2336,49 @@ public final class TownBuilder {
 					continue;
 				}
 
-				if (wet(this.level, x, z)) {
-					this.railing(x, z);
-					continue;
+				Integer deck = this.bridges.get(cell);
+				if (deck != null) {
+					this.railing(x, z, deck);
 				}
 
 				// Climbs: on the lower of two levels side by side, a slab (one step) or stairs (a climb that goes on: slabs on every
 				// step of it still left a block between them, found by the walk check), up the way the road goes where it can.
-				int top = ground(this.level, x, z);
+				// (By the heights they were laid at: read off the blocks, a slab another put down counted as a block of ground, and
+				// the next got a slab a whole block over it; where two roads crossed, the second paved over the first's slab, a
+				// block up. Steps a block high: the user's pictures.)
+				int top = this.laid(x, z);
 				double heading = road.heading(road.cells.get(cell));
 				Direction along = Direction.getNearest(Math.cos(heading), 0, Math.sin(heading));
 				for (Direction side : new Direction[] {along, along.getOpposite(), along.getClockWise(), along.getCounterClockWise()}) {
 					int nx = x + side.getStepX();
 					int nz = z + side.getStepZ();
-					if ((this.roadCells.contains(BlockPos.asLong(nx, 0, nz)) || this.plaza.contains(nx, nz)) && !wet(this.level, nx, nz)
-						&& ground(this.level, nx, nz) == top + 1) {
-						climb(this.level, new BlockPos(x, top + 1, z), side, ground(this.level, nx + side.getStepX(), nz + side.getStepZ()) > top + 1);
+					if ((this.roadCells.contains(BlockPos.asLong(nx, 0, nz)) || this.plaza.contains(nx, nz)) && this.laid(nx, nz) == top + 1) {
+						climb(this.level, new BlockPos(x, top + 1, z), side, this.laid(nx + side.getStepX(), nz + side.getStepZ()) > top + 1);
 						break;
 					}
 				}
 			}
 		}
 
-		/** A bridge's railing beside this plank of it (out over the water: a plank and a fence), on a log pier now and then. */
-		private void railing(int x, int z) {
+		/** The height a road's (or the plaza's) column was laid at: its top block, under any slab or stair on it. */
+		private int laid(int x, int z) {
+			if (this.plaza.contains(x, z)) {
+				return this.y0 - 1;
+			}
+
+			Integer deck = this.bridges.get(BlockPos.asLong(x, 0, z));
+			if (deck != null) {
+				return deck;
+			}
+
+			return this.roadCells.contains(BlockPos.asLong(x, 0, z)) && !this.ground.wet(x, z) ? this.ground.target(x, z) : paved(this.level, x, z);
+		}
+
+		/**
+		 * A bridge's railing beside this plank of its deck (out over the water: a plank at the deck's height and a fence on it),
+		 * on a log pier down to the bottom now and then.
+		 */
+		private void railing(int x, int z, int height) {
 			for (Direction side : Direction.Plane.HORIZONTAL) {
 				int nx = x + side.getStepX();
 				int nz = z + side.getStepZ();
@@ -1537,15 +2386,15 @@ public final class TownBuilder {
 					continue;
 				}
 
-				int top = ground(this.level, nx, nz);
-				BlockPos deck = new BlockPos(nx, top, nz);
+				BlockPos deck = new BlockPos(nx, height, nz);
 				set(this.level, deck, wood("planks").defaultBlockState());
 				if (this.level.getBlockState(deck.above()).isAir()) {
 					place(this.level, deck.above(), wood("fence").defaultBlockState());
 				}
 
 				if (Math.floorMod(nx + nz, 4) == 0) {
-					for (BlockPos pier = deck.below(); pier.getY() > deck.getY() - 24 && !this.level.getFluidState(pier).isEmpty(); pier = pier.below()) {
+					for (BlockPos pier = deck.below(); pier.getY() > deck.getY() - 32
+						&& (this.level.getBlockState(pier).isAir() || !this.level.getFluidState(pier).isEmpty()); pier = pier.below()) {
 						set(this.level, pier, wood("log").defaultBlockState());
 					}
 				}
@@ -1672,25 +2521,123 @@ public final class TownBuilder {
 			return false;
 		}
 
-		/** A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4); paths
-		 * from each door, the store's too, to its road (or the plaza). */
+		/**
+		 * A market stall on the plaza, its counter to the well (north): kept by the most trader-like of them (step 4); paths
+		 * from each door, the store's too, to its road, the plaza or a path laid already (the store's first, then the houses
+		 * nearest the middle out), round the houses, the store, the fields, the pen and the lookout.
+		 */
 		private void stallAndPaths() {
 			DrifterApi.placeHouse(this.level, DrifterApi.stallPlan(), this.stallAt(), Rotation.NONE, this.look.main(), this.look.stone(), Direction.SOUTH);
 			GROUND.clear();
-			java.util.function.LongPredicate road = column -> this.roadCells.contains(column) || this.plaza.contains(BlockPos.getX(column), BlockPos.getZ(column));
+			BlockPos o = this.storeAt;
+			var storeBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(o.getX(), o.getY(), o.getZ(), o.getX() + 8, o.getY() + 4, o.getZ() + 8);
+			List<Rect> keepOff = new ArrayList<>(this.fieldRects);
+			keepOff.add(this.penRect);
+			if (this.lookout != null) {
+				keepOff.add(this.lookout);
+			}
+
+			java.util.function.LongPredicate blocked = column -> {
+				int x = BlockPos.getX(column);
+				int z = BlockPos.getZ(column);
+				if (x >= storeBox.minX() && x <= storeBox.maxX() && z >= storeBox.minZ() && z <= storeBox.maxZ()) {
+					return true;
+				}
+
+				for (var house : this.houses) {
+					var box = house.box();
+					if (x >= box.minX() && x <= box.maxX() && z >= box.minZ() && z <= box.maxZ()) {
+						return true;
+					}
+				}
+
+				return this.standing.contains(column) || keepOff.stream().anyMatch(rect -> rect.contains(x, z));
+			};
+			// (Another's path, where it's off the buildings: not its first block, in a porch.)
+			java.util.function.LongPredicate road = column -> this.roadCells.contains(column) || this.plaza.contains(BlockPos.getX(column), BlockPos.getZ(column))
+				|| this.pathCells.contains(column) && !blocked.test(column);
+			DrifterCivilizations.LOGGER.info("[town] {}: the store at {}, its door to the {}", this.name, o.toShortString(), this.storeFront.getName());
+			this.pathCells.addAll(path(this.level, storeDoor(o, this.storeFront), storeBox, this.storeFront, road, blocked));
+			List<Integer> order = new ArrayList<>();
 			for (int i = 0; i < this.houses.size(); i++) {
-				var house = this.houses.get(i);
-				if (house.door() != null) {
-					List<Long> columns = path(this.level, house.door(), house.box(), this.plots.get(i).front, road);
-					this.pathCells.addAll(columns);
-					this.doorPaths.add(columns);
+				order.add(i);
+			}
+
+			order.sort(java.util.Comparator.comparingDouble(i -> {
+				var box = this.houses.get(i).box();
+				return Math.hypot(box.getCenter().getX() - this.cx, box.getCenter().getZ() - this.cz);
+			}));
+			// (No paths from house doors (the user, 2026-10-31: "i think we can remove paths that connect to houses doorways",
+			// pictures of them standing up as blocks of stone brick by the doors): a house stands by its road, its doorstep
+			// on the ground. The store keeps its path to the plaza.)
+
+			this.countSteps();
+			java.util.Set<Long> ways = new java.util.HashSet<>(this.roadCells);
+			ways.addAll(this.pathCells);
+			tidy(this.level, ways);
+		}
+
+		/**
+		 * The test: how many steps between its road and path blocks side by side need a jump (over half a block, or a block up
+		 * a stair). The user, 2026-10-30: "the paths are not walkable, they have steps that are 1.5 to 2 blocks high".
+		 */
+		private void countSteps() {
+			java.util.Set<Long> ways = new java.util.HashSet<>(this.roadCells);
+			ways.addAll(this.pathCells);
+			int pairs = 0;
+			int jumps = 0;
+			for (long cell : ways) {
+				int x = BlockPos.getX(cell);
+				int z = BlockPos.getZ(cell);
+				if (this.plaza.contains(x, z) || this.bridges.containsKey(cell)) {
+					continue;
+				}
+
+				for (Direction side : new Direction[] {Direction.EAST, Direction.SOUTH}) {
+					long next = BlockPos.asLong(x + side.getStepX(), 0, z + side.getStepZ());
+					if (!ways.contains(next) || this.bridges.containsKey(next) || this.plaza.contains(x + side.getStepX(), z + side.getStepZ())) {
+						continue;
+					}
+
+					if (this.railed(x, z) || this.railed(x + side.getStepX(), z + side.getStepZ())) {
+						continue;
+					}
+
+					double a = this.walkTop(x, z);
+					double b = this.walkTop(x + side.getStepX(), z + side.getStepZ());
+					pairs++;
+					// (Up a stair, a block: walked.)
+					boolean stair = this.stairAt(a < b ? x : x + side.getStepX(), a < b ? z : z + side.getStepZ());
+					if (Math.abs(a - b) > (stair ? 1.05 : 0.6)) {
+						if (jumps < 6) {
+							DrifterCivilizations.LOGGER.info("[town] {}: a jump at {}, {} ({}) to {}, {} ({}): {}, {}", this.name, x, z, a, x + side.getStepX(),
+								z + side.getStepZ(), b, this.roadCells.contains(cell) ? "road" : "path", this.roadCells.contains(next) ? "road" : "path");
+						}
+
+						jumps++;
+					}
 				}
 			}
 
-			BlockPos o = this.storeAt;
-			DrifterCivilizations.LOGGER.info("[town] {}: the store at {}, its door to the {}", this.name, o.toShortString(), this.storeFront.getName());
-			this.pathCells.addAll(path(this.level, storeDoor(o, this.storeFront), new net.minecraft.world.level.levelgen.structure.BoundingBox(o.getX(), o.getY(),
-				o.getZ(), o.getX() + 8, o.getY() + 4, o.getZ() + 8), this.storeFront, road));
+			DrifterCivilizations.LOGGER.info("[town] {}: {} of {} steps along its roads and paths need a jump", this.name, jumps, pairs);
+		}
+
+		/** A railing on top here (a pier's side: not walked over). */
+		private boolean railed(int x, int z) {
+			BlockState top = this.level.getBlockState(new BlockPos(x, ground(this.level, x, z), z));
+			return top.is(net.minecraft.tags.BlockTags.FENCES) || top.is(net.minecraft.tags.BlockTags.WALLS);
+		}
+
+		private boolean stairAt(int x, int z) {
+			return this.level.getBlockState(new BlockPos(x, ground(this.level, x, z), z)).getBlock() instanceof net.minecraft.world.level.block.StairBlock;
+		}
+
+		/** The height a player stands at on this road or path block (a slab or stair: half a block lower than its top). */
+		private double walkTop(int x, int z) {
+			int y = ground(this.level, x, z);
+			BlockState state = this.level.getBlockState(new BlockPos(x, y, z));
+			return state.getBlock() instanceof net.minecraft.world.level.block.SlabBlock || state.getBlock() instanceof net.minecraft.world.level.block.StairBlock
+				? y + 0.5 : y + 1.0;
 		}
 
 		private BlockPos stallAt() {
@@ -1864,14 +2811,12 @@ public final class TownBuilder {
 				this.storeRect.x1(), this.storeBase + 8, this.storeRect.z1());
 			this.plazaBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(this.plaza.x0() - 2, this.y0 - 3, this.plaza.z0() - 2,
 				this.plaza.x1() + 2, this.y0 + 5, this.plaza.z1() + 2);
-			// Its past (A5): one house's people gone for good (left empty), the newest still going up.
-			this.foundedAgo = 20 + this.random.nextInt(41);
+			// Its past (A5): one house's people gone for good (left empty). (Not the newest still going up any more, its top
+			// taken off for its owner to finish: it looked like a house cut in half, the user's pictures three times over,
+			// 2026-10-30/31: "cut up houses still happen".)
+			this.foundedAgo = this.pastAgo > 0 ? this.pastAgo : 20 + this.random.nextInt(41);
 			if (this.houses.size() >= 4 && this.random.nextFloat() < 0.5F) {
 				this.emptyHouse = this.houses.size() - 2;
-			}
-
-			if (this.houses.size() >= 3 && this.random.nextFloat() < 0.6F) {
-				this.buildingHouse = this.houses.size() - 1;
 			}
 
 			for (int i = 0; i < this.houses.size(); i++) {
@@ -1892,7 +2837,8 @@ public final class TownBuilder {
 
 			BlockPos stand = doorstep(this.level, house, plot);
 			// (A city: a hundred people at most, however many rooms; the rest of its houses stand empty for newcomers.)
-			DrifterEntity drifter = this.people.size() >= CITY_PEOPLE ? null : DrifterApi.spawn(this.level, stand, null);
+			// (Its first person leads it: by the world's past, its leader now.)
+			DrifterEntity drifter = this.people.size() >= CITY_PEOPLE ? null : DrifterApi.spawn(this.level, stand, this.people.isEmpty() ? this.leaderName : null);
 			if (drifter == null) {
 				this.owners.add("");
 				return;
@@ -1981,7 +2927,8 @@ public final class TownBuilder {
 			}
 
 			long day = Chronicle.day(this.server);
-			Town town = new Town(UUID.randomUUID(), this.name, group == null ? null : group.id, this.dimension, new BlockPos(this.cx, this.y0, this.cz), day, true);
+			Town town = new Town(this.plannedId != null ? this.plannedId : UUID.randomUUID(), this.name, group == null ? null : group.id, this.dimension,
+				new BlockPos(this.cx, this.y0, this.cz), day, true);
 			this.town = town;
 			town.plots.addAll(this.plots);
 			town.store.addAll(this.store);
@@ -2155,6 +3102,13 @@ public final class TownBuilder {
 			}
 
 			this.unwalkable.addAll(TownWalk.unreachable(this.level, this.area.inflatedBy(4), new BlockPos(this.cx + 3, this.y0, this.cz), places));
+			for (int i = 0; i < this.houses.size(); i++) {
+				var house = this.houses.get(i);
+				if (house.door() != null && this.unwalkable.contains("house " + (i + 1) + " (" + house.planId() + ")")) {
+					this.logOut("house " + (i + 1), house.door(), this.plots.get(i).front);
+				}
+			}
+
 			if (this.unwalkable.contains("the store")) {
 				// (What's in front of its door, for working out why: each block out, the ground's height and what's on it.)
 				StringBuilder out = new StringBuilder();
@@ -2172,6 +3126,20 @@ public final class TownBuilder {
 
 			DrifterCivilizations.LOGGER.info("[town] {}: walked to {} of {} places from the plaza{}", this.name, places.size() - this.unwalkable.size(),
 				places.size(), this.unwalkable.isEmpty() ? "" : "; not: " + String.join(", ", this.unwalkable));
+		}
+
+		/** Debug, for a place the walk check couldn't reach: what's out from its door, each block's ground and what's on it. */
+		private void logOut(String what, BlockPos door, Direction front) {
+			StringBuilder out = new StringBuilder();
+			for (int i = 0; i <= 8; i++) {
+				BlockPos at = door.relative(front, i);
+				int top = ground(this.level, at.getX(), at.getZ());
+				out.append(' ').append(top).append(':').append(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(this.level.getBlockState(at.atY(top))
+					.getBlock()).getPath()).append('/').append(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(this.level.getBlockState(at.atY(top + 1))
+					.getBlock()).getPath());
+			}
+
+			DrifterCivilizations.LOGGER.info("[town] {}: {}'s door at {} ({}), out from it:{}", this.name, what, door.toShortString(), front.getName(), out);
 		}
 
 		private void finish() {
@@ -2247,6 +3215,68 @@ public final class TownBuilder {
 	}
 
 	/** Trees with a log or leaves in this column between these heights felled whole (a player clears a tree, not half). */
+	/**
+	 * Over and beside these columns (a road's, a path's), what felling and cutting left hanging (the user's pictures: leaves
+	 * floating over a path, vines hanging in the air, a piece of trunk up in the leaves): trunks left in the air and leaves no
+	 * tree holds, as the main mod tidies round a house it puts up ({@link DrifterApi#tidyTrees}), then vines with nothing to
+	 * hang on (set without telling the blocks round them, so no seeds drop, nothing let them fall).
+	 */
+	static void tidy(ServerLevel level, java.util.Collection<Long> columns) {
+		java.util.Set<Long> near = new java.util.HashSet<>();
+		int x0 = Integer.MAX_VALUE;
+		int z0 = Integer.MAX_VALUE;
+		int x1 = Integer.MIN_VALUE;
+		int z1 = Integer.MIN_VALUE;
+		int y0 = Integer.MAX_VALUE;
+		int y1 = Integer.MIN_VALUE;
+		for (long column : columns) {
+			int x = BlockPos.getX(column);
+			int z = BlockPos.getZ(column);
+			if (!loadedAt(level, x, z)) {
+				continue;
+			}
+
+			int g = groundNow(level, x, z);
+			x0 = Math.min(x0, x);
+			z0 = Math.min(z0, z);
+			x1 = Math.max(x1, x);
+			z1 = Math.max(z1, z);
+			y0 = Math.min(y0, g);
+			y1 = Math.max(y1, g);
+			for (int dx = -TIDY_NEAR; dx <= TIDY_NEAR; dx++) {
+				for (int dz = -TIDY_NEAR; dz <= TIDY_NEAR; dz++) {
+					if (loadedAt(level, x + dx, z + dz)) {
+						near.add(BlockPos.asLong(x + dx, 0, z + dz));
+					}
+				}
+			}
+		}
+
+		if (near.isEmpty()) {
+			return;
+		}
+
+		DrifterApi.tidyTrees(level, new net.minecraft.world.level.levelgen.structure.BoundingBox(x0 - TIDY_NEAR, y0 - 2, z0 - TIDY_NEAR, x1 + TIDY_NEAR,
+			y1 + 12, z1 + TIDY_NEAR));
+
+		// Vines with nothing to hang on, from the top down (one under a vine that's gone has nothing either).
+		for (long column : near) {
+			int x = BlockPos.getX(column);
+			int z = BlockPos.getZ(column);
+			int bottom = groundNow(level, x, z);
+			for (int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z); y > bottom; y--) {
+				BlockPos pos = new BlockPos(x, y, z);
+				BlockState state = level.getBlockState(pos);
+				if (state.is(Blocks.VINE) && !state.canSurvive(level, pos)) {
+					set(level, pos, Blocks.AIR.defaultBlockState());
+				}
+			}
+		}
+	}
+
+	/** {@link #tidy}: this far either side of the way. */
+	private static final int TIDY_NEAR = 2;
+
 	static void fellIn(ServerLevel level, int x, int z, int fromY, int toY) {
 		for (int y = fromY; y <= toY; y++) {
 			BlockPos pos = new BlockPos(x, y, z);
@@ -2314,12 +3344,14 @@ public final class TownBuilder {
 	 * A sign with its owner's name by its door path, facing the road (milestone 23 A6: "names on signs by their doors"), if
 	 * there's open ground beside the path.
 	 */
-	private static void nameSign(ServerLevel level, DrifterApi.PlacedHouse house, Direction front, String name) {
+	private static void nameSign(ServerLevel level, DrifterApi.PlacedHouse house, Direction plotFront, String name) {
 		if (house.door() == null) {
 			return;
 		}
 
 		var box = house.box();
+		// (By the side the door's on, where its path starts.)
+		Direction front = doorSide(level, house.door(), box, plotFront);
 		BlockPos step = house.door().relative(front);
 		while (box.isInside(new BlockPos(step.getX(), box.minY(), step.getZ())) && step.distManhattan(house.door()) < LONGEST_PATH) {
 			step = step.relative(front);
@@ -2349,60 +3381,71 @@ public final class TownBuilder {
 		}
 	}
 
-	/** How far out from a door its path goes looking for the road. */
+	/** How far out from a door its path goes looking for the road (straight out, when no way round is found). */
 	private static final int LONGEST_PATH = 16;
+	/** How far a door's path may wander from its door looking for a road or another path, and how much looking it does. */
+	private static final int PATH_SEARCH = 40;
+	private static final int PATH_NODES = 8000;
 
 	/**
 	 * A path from the door out to its road, a block up or down a step at most: the ground cut down or built up along it
 	 * and room cleared overhead, so it's walked without pillaring, digging or a jump onto anything taller (milestone 23,
-	 * A11; on the user's hilly Tectonic land a door could stand three blocks over its road with nothing between).
+	 * A11; on the user's hilly Tectonic land a door could stand three blocks over its road with nothing between). It goes out
+	 * the side the door's on and finds its way to the nearest road, the plaza or another house's path, round whatever's
+	 * built ({@code blocked}): it went straight out the front before, and from a side door that ran through its own house
+	 * and the next ones to the plaza (the user's picture: a path up to a wall with no door).
 	 */
 	private static List<Long> path(ServerLevel level, BlockPos door, net.minecraft.world.level.levelgen.structure.BoundingBox box, Direction front,
-		java.util.function.LongPredicate road) {
+		java.util.function.LongPredicate road, java.util.function.LongPredicate blocked) {
 		List<Long> columns = new ArrayList<>();
 		// Out of the house first (a porch is part of it): the level stepped down to from its sill is the door's floor.
-		BlockPos step = door.relative(front);
+		Direction out = doorSide(level, door, box, front);
+		BlockPos step = door.relative(out);
 		while (box.isInside(new BlockPos(step.getX(), box.minY(), step.getZ())) && step.distManhattan(door) < LONGEST_PATH) {
-			step = step.relative(front);
+			step = step.relative(out);
 		}
 
-		List<BlockPos> cells = new ArrayList<>();
-		boolean reached = false;
-		for (int i = 0; i < LONGEST_PATH && !reached; i++) {
+		List<BlockPos> cells = route(level, step, out, road, blocked);
+		boolean reached = cells != null;
+		if (cells == null) {
+			// (No way found: straight out, as far as anything built.)
+			cells = new ArrayList<>();
 			BlockPos at = step;
-			cells.add(at);
-			reached = road.test(BlockPos.asLong(at.getX(), 0, at.getZ()));
-			step = step.relative(front);
+			for (int i = 0; i < LONGEST_PATH && !reached; i++) {
+				long key = BlockPos.asLong(at.getX(), 0, at.getZ());
+				if (i > 0 && blocked.test(key)) {
+					break;
+				}
+
+				cells.add(at);
+				reached = road.test(key);
+				at = at.relative(out);
+			}
 		}
 
-		BlockPos outside = door.relative(front);
+		BlockPos outside = door.relative(out);
 		columns.add(BlockPos.asLong(outside.getX(), 0, outside.getZ()));
 		cells.forEach(cell -> columns.add(BlockPos.asLong(cell.getX(), 0, cell.getZ())));
 		int n = cells.size();
 		int[] top = new int[n];
 		for (int i = 0; i < n; i++) {
-			top[i] = ground(level, cells.get(i).getX(), cells.get(i).getZ());
+			top[i] = paved(level, cells.get(i).getX(), cells.get(i).getZ());
 		}
 
 		// The levels it's laid at: a block from the one before at most, from the door's floor to the road (fixed ends).
 		int start = door.getY() - 1;
-		int end = reached ? top[n - 1] : top[n - 1];
+		int end = top[n - 1];
 		// (Its first block level with the door's floor: a step up right outside a door has no room over it to jump, under the
 		// wall above the door; found by the walk check, a store whose way out was a block up.)
-		for (int pass = 0; pass < 4; pass++) {
-			int previous = start;
-			for (int i = 0; i < n - (reached ? 1 : 0); i++) {
-				top[i] = i == 0 ? start : Math.max(previous - 1, Math.min(previous + 1, top[i]));
-				previous = top[i];
-			}
-
-			if (reached) {
-				int next = end;
-				for (int i = n - 2; i >= 1; i--) {
-					top[i] = Math.max(next - 1, Math.min(next + 1, top[i]));
-					next = top[i];
-				}
-			}
+		// (Its first two where there's room: a slab or stair right outside the door is still a step up under the wall.)
+		int flat = n >= 4 ? 1 : 0;
+		// In half blocks first: a block every two at most, a slab on each rise, walked without a jump (the user, 2026-10-30:
+		// paths with steps a block and a half or two high); where the door's too far over or under its road for that, a block
+		// a step, stairs up a climb that goes on.
+		int[] ground = top.clone();
+		if (!levels(top, start, end, flat, reached, 2)) {
+			System.arraycopy(ground, 0, top, 0, n);
+			levels(top, start, end, flat, reached, 1);
 		}
 
 		for (int i = 0; i < n - (reached ? 1 : 0); i++) {
@@ -2424,18 +3467,18 @@ public final class TownBuilder {
 			}
 
 			set(level, new BlockPos(x, top[i], z), paving.get());
-			for (int y = top[i] + 1; y <= top[i] + 3; y++) {
+			for (int y = top[i] + 1; y <= Math.max(top[i] + 3, g + 2); y++) {
 				BlockPos above = new BlockPos(x, y, z);
 				BlockState state = level.getBlockState(above);
-				if (!state.isAir() && !box.isInside(above) && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LEAVES)
-					|| state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(Blocks.STONE) || state.is(Blocks.GRAVEL) || state.is(Blocks.SAND))) {
+				if (!state.isAir() && !box.isInside(above) && (plant(state) || state.is(net.minecraft.tags.BlockTags.LEAVES) || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)
+					|| litter(state) || state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(Blocks.STONE) || state.is(Blocks.GRAVEL) || state.is(Blocks.SAND))) {
 					set(level, above, Blocks.AIR.defaultBlockState());
 				}
 			}
 		}
 
 		// Where it climbs (to the door, along it, to the road): a slab on the lower of a single step, stairs up a climb that
-		// goes on; never a block-high step of earth.
+		// goes on; never a block-high step of earth. Each faces the way the path goes there.
 		for (int i = 0; i < n - (reached ? 1 : 0); i++) {
 			BlockPos column = cells.get(i);
 			int before = i == 0 ? start : top[i - 1];
@@ -2447,14 +3490,171 @@ public final class TownBuilder {
 				continue;
 			}
 
-			if (after == top[i] + 1) {
-				climb(level, over, front, afterThat > after);
+			Direction ahead = i + 1 < n ? way(column, cells.get(i + 1)) : i > 0 ? way(cells.get(i - 1), column) : out;
+			Direction back = i > 0 ? way(column, cells.get(i - 1)) : out.getOpposite();
+			// (Never on the block right outside the door: a half step up there still meets the wall over the door; a whole step
+			// up from it, out in the open, is a jump. Found by the walk check, a mountain city's store.)
+			if (after == top[i] + 1 && i > 0) {
+				climb(level, over, ahead, afterThat > after);
 			} else if (before == top[i] + 1) {
-				climb(level, over, front.getOpposite(), i > 0 && beforeThat > before);
+				climb(level, over, back, i > 0 && beforeThat > before);
 			}
 		}
 
 		return columns;
+	}
+
+	/**
+	 * A path's levels (its ground's heights in {@code top}), in steps of 1/{@code k} block: from the door's floor ({@code
+	 * start}, its first {@code flat} + 1 level with it) to the road ({@code end}, if {@code reached}), a step apart at most.
+	 * Whether they all are (a door too far over or under its road for steps that small, and they aren't).
+	 */
+	private static boolean levels(int[] top, int start, int end, int flat, boolean reached, int k) {
+		int n = top.length;
+		int[] at = new int[n];
+		for (int i = 0; i < n; i++) {
+			at[i] = top[i] * k;
+		}
+
+		for (int pass = 0; pass < 4; pass++) {
+			int previous = start * k;
+			for (int i = 0; i < n - (reached ? 1 : 0); i++) {
+				at[i] = i <= flat ? start * k : Math.max(previous - 1, Math.min(previous + 1, at[i]));
+				previous = at[i];
+			}
+
+			if (reached) {
+				int next = end * k;
+				for (int i = n - 2; i > flat; i--) {
+					at[i] = Math.max(next - 1, Math.min(next + 1, at[i]));
+					next = at[i];
+				}
+			}
+		}
+
+		boolean whole = Math.abs(at[0] - start * k) <= 1;
+		for (int i = 1; i < n; i++) {
+			whole &= Math.abs(at[i] - at[i - 1]) <= 1;
+		}
+
+		for (int i = 0; i < n - (reached ? 1 : 0); i++) {
+			top[i] = Math.floorDiv(at[i] + k - 1, k);
+		}
+
+		return whole;
+	}
+
+	/** The way from one column to the next beside it. */
+	private static Direction way(BlockPos from, BlockPos to) {
+		return Direction.getNearest(to.getX() - from.getX(), 0, to.getZ() - from.getZ());
+	}
+
+	/**
+	 * The side of the house its door opens onto: the way out from it that's clear at a player's height to the edge of the
+	 * house (a porch is part of it), the shortest; its front if none is.
+	 */
+	private static Direction doorSide(ServerLevel level, BlockPos door, net.minecraft.world.level.levelgen.structure.BoundingBox box, Direction front) {
+		Direction best = front;
+		int bestSteps = Integer.MAX_VALUE;
+		for (Direction side : new Direction[] {front, front.getClockWise(), front.getCounterClockWise(), front.getOpposite()}) {
+			BlockPos at = door.relative(side);
+			int steps = 1;
+			boolean clear = true;
+			while (box.isInside(new BlockPos(at.getX(), box.minY(), at.getZ())) && steps < LONGEST_PATH) {
+				if (!level.getBlockState(at).getCollisionShape(level, at).isEmpty() || !level.getBlockState(at.above()).getCollisionShape(level, at.above()).isEmpty()) {
+					clear = false;
+					break;
+				}
+
+				at = at.relative(side);
+				steps++;
+			}
+
+			if (clear && steps < bestSteps) {
+				best = side;
+				bestSteps = steps;
+			}
+		}
+
+		return best;
+	}
+
+	/**
+	 * The way from {@code start} to the nearest column {@code goal} takes (a road, the plaza, another house's path) round
+	 * anything {@code blocked} and water: the fewest steps, then the fewest turns and the least climbing. Null if none is found
+	 * near.
+	 */
+	@Nullable
+	private static List<BlockPos> route(ServerLevel level, BlockPos start, Direction out, java.util.function.LongPredicate goal,
+		java.util.function.LongPredicate blocked) {
+		long first = BlockPos.asLong(start.getX(), 0, start.getZ());
+		if (goal.test(first)) {
+			return new ArrayList<>(List.of(start));
+		}
+
+		if (blocked.test(first) || wet(level, start.getX(), start.getZ())) {
+			return null;
+		}
+
+		// Each node: its column, the way it came into it in its y (turns cost a little); the cheapest cost to it, and where from.
+		java.util.Map<Long, Double> cost = new java.util.HashMap<>();
+		java.util.Map<Long, Long> from = new java.util.HashMap<>();
+		java.util.PriorityQueue<double[]> open = new java.util.PriorityQueue<>(java.util.Comparator.comparingDouble(a -> a[0]));
+		long startNode = BlockPos.asLong(start.getX(), out.get2DDataValue(), start.getZ());
+		cost.put(startNode, 0.0);
+		open.add(new double[] {0.0, startNode});
+		int looked = 0;
+		while (!open.isEmpty() && looked++ < PATH_NODES) {
+			double[] next = open.poll();
+			long node = (long)next[1];
+			if (next[0] > cost.get(node)) {
+				continue;
+			}
+
+			int x = BlockPos.getX(node);
+			int z = BlockPos.getZ(node);
+			Direction came = Direction.from2DDataValue(BlockPos.getY(node));
+			int here = ground(level, x, z);
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				int nx = x + side.getStepX();
+				int nz = z + side.getStepZ();
+				if (Math.max(Math.abs(nx - start.getX()), Math.abs(nz - start.getZ())) > PATH_SEARCH) {
+					continue;
+				}
+
+				long key = BlockPos.asLong(nx, 0, nz);
+				if (goal.test(key)) {
+					// Reached: back to the start.
+					List<BlockPos> cells = new ArrayList<>();
+					cells.add(new BlockPos(nx, 0, nz));
+					for (long at = node; ; at = from.get(at)) {
+						cells.add(new BlockPos(BlockPos.getX(at), 0, BlockPos.getZ(at)));
+						if (at == startNode) {
+							break;
+						}
+					}
+
+					java.util.Collections.reverse(cells);
+					return cells;
+				}
+
+				if (blocked.test(key) || wet(level, nx, nz)) {
+					continue;
+				}
+
+				int rise = Math.abs(ground(level, nx, nz) - here);
+				double c = next[0] + 1.0 + (side != came ? 0.6 : 0.0) + rise * 1.5 + (rise > 2 ? 6.0 : 0.0);
+				long to = BlockPos.asLong(nx, side.get2DDataValue(), nz);
+				Double known = cost.get(to);
+				if (known == null || c < known) {
+					cost.put(to, c);
+					from.put(to, node);
+					open.add(new double[] {c, to});
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -2606,8 +3806,9 @@ public final class TownBuilder {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
 		while (pos.getY() > level.getMinBuildHeight()) {
 			BlockState state = level.getBlockState(pos);
-			if (!state.getFluidState().isEmpty() || !(state.isAir() || state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS)
-				|| state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+			// (A slab the land has, Terrain Slabs' half step, and a pumpkin or a melon lying on it, are over the ground, like a plant: the ground's the block under.)
+			if (!state.getFluidState().isEmpty() || !(state.isAir() || plant(state) || state.is(net.minecraft.tags.BlockTags.LOGS)
+				|| state.is(net.minecraft.tags.BlockTags.LEAVES) || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state) || litter(state))) {
 				break;
 			}
 
@@ -2617,8 +3818,65 @@ public final class TownBuilder {
 		return pos.getY();
 	}
 
+	/**
+	 * Something built standing here: from the top down to the land's own ground, a block the land doesn't make (planks, a
+	 * door, glass, cobblestone, a bed, a torch...). A tree's logs and leaves, plants, water, the land's slabs and a road's
+	 * own paving aren't. A road between towns leaves such a column as it is: it took a house's roof for the ground and cut
+	 * the house away, or buried it (the user's picture, 2026-10-30: "the terraforming is infact destroying the houses").
+	 */
+	static boolean built(ServerLevel level, int x, int z) {
+		return builtBy(level, x, z) != null;
+	}
+
+	/** The block that makes this column count as built ({@link #built}), or null. */
+	@Nullable
+	static BlockState builtBy(ServerLevel level, int x, int z) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
+		for (int k = 0; k < 24 && pos.getY() > level.getMinBuildHeight(); k++, pos.move(0, -1, 0)) {
+			BlockState state = level.getBlockState(pos);
+			if (state.isAir() || !state.getFluidState().isEmpty() || plant(state) || state.is(net.minecraft.tags.BlockTags.LEAVES) || litter(state)
+				|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)) {
+				continue;
+			}
+
+			// (A tree's logs, standing or fallen: a house has more than logs to it.)
+			if (state.is(net.minecraft.tags.BlockTags.LOGS) && !net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath()
+				.startsWith("stripped")) {
+				continue;
+			}
+
+			String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+			boolean land = state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+				|| state.is(net.minecraft.tags.BlockTags.SAND) || state.is(net.minecraft.tags.BlockTags.TERRACOTTA) || state.is(Blocks.GRAVEL)
+				|| state.is(Blocks.DIRT_PATH) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW) || state.is(net.minecraft.tags.BlockTags.ICE)
+				|| state.is(Blocks.CLAY) || state.is(Blocks.MUD) || state.is(Blocks.CALCITE) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.MAGMA_BLOCK)
+				|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.BEDROCK) || id.contains("sandstone") || id.contains("_ore") || id.startsWith("terrain_slabs:")
+				|| state.is(Blocks.MOSS_BLOCK) || state.is(Blocks.MYCELIUM) || state.is(Blocks.PODZOL) || state.is(Blocks.SMOOTH_BASALT)
+				|| state.is(Blocks.AMETHYST_BLOCK) || state.is(Blocks.BUDDING_AMETHYST) || state.is(Blocks.MUSHROOM_STEM) || state.is(Blocks.RED_MUSHROOM_BLOCK)
+				|| state.is(Blocks.BROWN_MUSHROOM_BLOCK) || state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON) || state.is(Blocks.BEE_NEST)
+				|| state.is(Blocks.DRIPSTONE_BLOCK) || state.is(Blocks.POINTED_DRIPSTONE)
+				// (A mangrove swamp's roots and moss carpet, and the land's other growing things: taken for building, a town in a
+				// swamp kept off 5,000 columns of its own land and had room for two houses of eleven; the user's log, 2026-10-31.)
+				|| state.is(net.minecraft.tags.BlockTags.MANGROVE_ROOTS_CAN_GROW_THROUGH) || state.is(net.minecraft.tags.BlockTags.REPLACEABLE_BY_TREES)
+				|| state.is(net.minecraft.tags.BlockTags.LUSH_GROUND_REPLACEABLE) || state.is(net.minecraft.tags.BlockTags.FLOWERS)
+				|| state.is(net.minecraft.tags.BlockTags.SAPLINGS) || state.is(net.minecraft.tags.BlockTags.CORALS) || state.is(net.minecraft.tags.BlockTags.CORAL_BLOCKS)
+				|| state.is(net.minecraft.tags.BlockTags.CAVE_VINES) || state.is(net.minecraft.tags.BlockTags.SNOW) || state.is(Blocks.SUGAR_CANE)
+				|| state.is(Blocks.CACTUS) || state.is(Blocks.BAMBOO) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT) || state.is(Blocks.COCOA)
+				|| state.is(Blocks.BIG_DRIPLEAF) || state.is(Blocks.BIG_DRIPLEAF_STEM) || state.is(Blocks.HANGING_ROOTS) || state.is(Blocks.SPORE_BLOSSOM)
+				|| state.is(Blocks.SWEET_BERRY_BUSH) || state.is(Blocks.SEA_PICKLE) || state.is(Blocks.SCULK)
+				|| state.is(Blocks.TUFF) || state.is(Blocks.BASALT) || state.is(Blocks.BLACKSTONE);
+			return land ? null : state;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Water on top here (bridged, never filled). Not lava: that's filled and sealed like any hole (taken for water, a road
+	 * bridged a lava pool on planks and fence, which caught fire: the user's picture).
+	 */
 	static boolean wet(ServerLevel level, int x, int z) {
-		return !level.getFluidState(new BlockPos(x, ground(level, x, z), z)).isEmpty();
+		return level.getFluidState(new BlockPos(x, ground(level, x, z), z)).is(net.minecraft.tags.FluidTags.WATER);
 	}
 
 	/** The block over the ground at x, z (where something stands on it). */
@@ -2657,16 +3915,16 @@ public final class TownBuilder {
 		return heights.get(heights.size() - 1) - heights.get(0) > MOST_STEP ? null : heights.get(heights.size() / 2);
 	}
 
-	/** One block of road: the town's paving on the ground (planks over water), what grows on it cleared. */
-	private static void road(ServerLevel level, int x, int z) {
-		int top = ground(level, x, z);
+	/** One block of road: the town's paving at {@code top} (planks over water), what grows on it cleared. */
+	private static void road(ServerLevel level, int x, int z, int top) {
 		BlockPos pos = new BlockPos(x, top, z);
 		set(level, pos, !level.getFluidState(pos).isEmpty() ? wood("planks").defaultBlockState() : paving.get());
 		fellIn(level, x, z, top + 1, top + 4);
 		for (int y = top + 1; y <= top + 4; y++) {
 			BlockPos above = new BlockPos(x, y, z);
 			BlockState state = level.getBlockState(above);
-			if (!state.isAir() && (state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES))) {
+			if (!state.isAir() && (plant(state) || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+				|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state) || litter(state))) {
 				set(level, above, Blocks.AIR.defaultBlockState());
 			}
 		}
@@ -2686,10 +3944,453 @@ public final class TownBuilder {
 			? pavingStairs.setValue(net.minecraft.world.level.block.StairBlock.FACING, up) : pavingSlab);
 	}
 
-	/** A block set quietly (no neighbour updates): the ground and walls. Only when it changes. */
+	/**
+	 * A stretch of a road between towns (W5, {@link Highways}) along this line (a point a block, {x, z, heading}): a worn dirt
+	 * path three wide (smooth sandstone in a desert), a railed bridge on piers over water. Its heights are halfway between
+	 * built up over dips and cut down through bumps, climbing half a block a block at most, with the land eased to it on both
+	 * sides as a town's roads have ({@link GroundPlan}): it was only ever built up before, a ridge a block wide with dirt down
+	 * its sides on a slope (the user's pictures). It climbs by path slabs (Terrain Slabs'; sandstone slabs in a desert), never
+	 * stairs: cobblestone stairs in a dirt path looked stuck on. Ruins in its way (a ruined portal, worldgen's) are cleared off
+	 * it, not climbed over. Its ends stay at the ground there, so the stretches either side meet it. Columns of a town's own
+	 * roads ({@code keep}) left as they are.
+	 */
+	/**
+	 * A bridge's railings: planks at the deck's height with a fence on, on a pier now and then. Where a railing goes round a
+	 * corner (a bridge on a slant: its edge steps), a post put in the corner, so it's one railing all along: the fences only
+	 * touched at their corners, and didn't join (the user's pictures, with how it should look).
+	 */
+	private static void bridgeRails(ServerLevel level, java.util.Map<Long, Integer> rails, java.util.Set<Long> road) {
+		java.util.Map<Long, Integer> corners = new java.util.HashMap<>();
+		for (var rail : rails.entrySet()) {
+			int x = BlockPos.getX(rail.getKey());
+			int z = BlockPos.getZ(rail.getKey());
+			for (int dx = -1; dx <= 1; dx += 2) {
+				for (int dz = -1; dz <= 1; dz += 2) {
+					Integer other = rails.get(BlockPos.asLong(x + dx, 0, z + dz));
+					long a = BlockPos.asLong(x + dx, 0, z);
+					long b = BlockPos.asLong(x, 0, z + dz);
+					if (other == null || rails.containsKey(a) || rails.containsKey(b) || corners.containsKey(a) || corners.containsKey(b)) {
+						continue;
+					}
+
+					long corner = !road.contains(a) ? a : !road.contains(b) ? b : 0;
+					if (corner != 0) {
+						corners.put(corner, Math.max(rail.getValue(), other));
+					}
+				}
+			}
+		}
+
+		rails.putAll(corners);
+		java.util.List<BlockPos> fences = new java.util.ArrayList<>();
+		for (var rail : rails.entrySet()) {
+			int deck = rail.getValue();
+			int x = BlockPos.getX(rail.getKey());
+			int z = BlockPos.getZ(rail.getKey());
+			BlockPos at = new BlockPos(x, deck, z);
+			// (Another bridge's deck there, open over it: no railing across it.)
+			BlockState there = level.getBlockState(at);
+			if (there.is(net.minecraft.tags.BlockTags.PLANKS) && level.getBlockState(at.above()).isAir()) {
+				continue;
+			}
+
+			set(level, at, wood("planks").defaultBlockState());
+			BlockState over = level.getBlockState(at.above());
+			if (over.isAir() || plant(over)) {
+				set(level, at.above(), wood("fence").defaultBlockState());
+				fences.add(at.above());
+			}
+
+			if (Math.floorMod(x + z, 4) == 0) {
+				for (BlockPos pier = at.below(); pier.getY() > deck - 32 && (level.getBlockState(pier).isAir() || !level.getFluidState(pier).isEmpty()
+					|| plant(level.getBlockState(pier))); pier = pier.below()) {
+					set(level, pier, wood("log").defaultBlockState());
+				}
+			}
+		}
+
+		// (Each fence joined to those beside it: put down one by one, a fence only joined the next one put down by it.)
+		for (BlockPos fence : fences) {
+			BlockState state = level.getBlockState(fence);
+			place(level, fence, Block.updateFromNeighbourShapes(state, level, fence));
+		}
+	}
+
+	/** Land this many steps long or less in the middle of a crossing is bridged over. */
+	private static final int ISLET = 8;
+	/** A road between towns is cut or built at most this far from the ground. */
+	private static final int HIGHWAY_DEEPEST = 6;
+
+	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep) {
+		if (line.size() < 2) {
+			return;
+		}
+
+		double[] mid = line.get(line.size() / 2);
+		BlockPos middle = new BlockPos(Mth.floor(mid[0]), 0, Mth.floor(mid[1]));
+		style = Style.at(level, middle.atY(ground(level, middle.getX(), middle.getZ()) + 1));
+		paving = style.path()::defaultBlockState;
+		// (A placed slab, not "generated": marked as the land's own, the next stretch cleared it off the road as a plant, and
+		// every climb was a block-high step again.)
+		BlockState slab = style == Style.DESERT ? Blocks.SMOOTH_SANDSTONE_SLAB.defaultBlockState()
+			: net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("terrain_slabs", "path_slab"))
+				.map(Block::defaultBlockState).orElse(null);
+		Road road = new Road(line);
+		int n = road.length();
+		// Ruins in its way and on its shoulders cleared first, so they aren't taken for the ground.
+		for (long cell : road.cells.keySet()) {
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					long column = BlockPos.asLong(BlockPos.getX(cell) + dx, 0, BlockPos.getZ(cell) + dz);
+					if (!keep.contains(column)) {
+						clearRuin(level, BlockPos.getX(column), BlockPos.getZ(column));
+					}
+				}
+			}
+		}
+
+		GROUND.clear();
+		double[] ground = new double[n];
+		java.util.Arrays.fill(ground, Double.NEGATIVE_INFINITY);
+		java.util.Map<Long, Integer> water = new java.util.HashMap<>();
+		// (Something built on its way, a house: left as it is, not taken for the ground, not paved over.)
+		java.util.Set<Long> standing = new java.util.HashSet<>();
+		for (var cell : road.cells.entrySet()) {
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			if (!loadedAt(level, x, z)) {
+				continue;
+			}
+
+			if (!keep.contains(cell.getKey()) && built(level, x, z)) {
+				standing.add(cell.getKey());
+				continue;
+			}
+
+			// (Under a slab laid already, the block it's on: the stretch beside it, sharing its last few blocks, paved over its
+			// slabs as ground, stacking them a block up; the user's picture.)
+			int g = paved(level, x, z);
+			if (wet(level, x, z)) {
+				water.put(cell.getKey(), g);
+				g++;
+			}
+
+			ground[cell.getValue()] = Math.max(ground[cell.getValue()], g);
+		}
+
+		for (int t = 0; t < n; t++) {
+			if (ground[t] == Double.NEGATIVE_INFINITY) {
+				BlockPos at = road.at(t);
+				ground[t] = loadedAt(level, at.getX(), at.getZ()) || t == 0 ? ground(level, at.getX(), at.getZ()) : ground[t - 1];
+			}
+		}
+
+		// Built up over dips (the least filling) and cut down through bumps (the least cutting), half a block a block at most;
+		// halfway between, held to its ends' heights.
+		double[] up = ground.clone();
+		double[] down = ground.clone();
+		for (int pass = 0; pass < 2; pass++) {
+			for (int t = 1; t < n; t++) {
+				up[t] = Math.max(up[t], up[t - 1] - 0.5);
+				down[t] = Math.min(down[t], down[t - 1] + 0.5);
+			}
+
+			for (int t = n - 2; t >= 0; t--) {
+				up[t] = Math.max(up[t], up[t + 1] - 0.5);
+				down[t] = Math.min(down[t], down[t + 1] + 0.5);
+			}
+		}
+
+		int[] want = new int[n];
+		for (int t = 0; t < n; t++) {
+			double h = (up[t] + down[t]) / 2.0;
+			h = Mth.clamp(h, ground[0] - t * 0.5, ground[0] + t * 0.5);
+			h = Mth.clamp(h, ground[n - 1] - (n - 1 - t) * 0.5, ground[n - 1] + (n - 1 - t) * 0.5);
+			// (Never cut or built more than its banks can ease: through a ridge, cliffs twenty high stood over it, the user's
+			// pictures; steeper there, a step to climb, rather. Its way's planned round such land now.)
+			h = Mth.clamp(h, ground[t] - HIGHWAY_DEEPEST, ground[t] + HIGHWAY_DEEPEST);
+			want[t] = (int)Math.floor(h + 0.5);
+		}
+
+		// The land shaped to it, its shoulders and banks, the town's roads it meets held as they are.
+		// A bit of land in the middle of a crossing (a sandbar, a reed bed: a few steps between water) is bridged too, the deck
+		// going on over it: paved, it was a patch of dirt path in the middle of the bridge (the user's picture).
+		boolean[] wetAt = new boolean[n];
+		for (var cell : road.cells.entrySet()) {
+			if (water.containsKey(cell.getKey())) {
+				wetAt[cell.getValue()] = true;
+			}
+		}
+
+		// (A bridge's wood from where it is: from the stretch's middle, two stretches over one river were two woods.)
+		for (long cell : water.keySet()) {
+			style = Style.at(level, new BlockPos(BlockPos.getX(cell), water.get(cell) + 1, BlockPos.getZ(cell)));
+			break;
+		}
+
+		java.util.Set<Long> islets = new java.util.HashSet<>();
+		for (int t = 0; t < n; t++) {
+			if (wetAt[t]) {
+				continue;
+			}
+
+			int end = t;
+			while (end < n && !wetAt[end]) {
+				end++;
+			}
+
+			if (t > 0 && end < n && end - t <= ISLET) {
+				for (var cell : road.cells.entrySet()) {
+					int at = cell.getValue();
+					int x = BlockPos.getX(cell.getKey());
+					int z = BlockPos.getZ(cell.getKey());
+					if (at >= t && at < end && !keep.contains(cell.getKey()) && !standing.contains(cell.getKey()) && loadedAt(level, x, z)
+						&& ground(level, x, z) <= want[at]) {
+						islets.add(cell.getKey());
+						water.put(cell.getKey(), ground(level, x, z));
+					}
+				}
+			}
+
+			t = end;
+		}
+
+		GroundPlan plan = new GroundPlan(level, List.of(), level.getRandom(), style == Style.DESERT);
+		plan.spareBuilt();
+		plan.wildSlopes();
+		for (var cell : road.cells.entrySet()) {
+			if (!keep.contains(cell.getKey()) && !water.containsKey(cell.getKey()) && !standing.contains(cell.getKey())) {
+				plan.road(cell.getKey(), want[cell.getValue()]);
+			}
+		}
+
+		for (long column : keep) {
+			int x = BlockPos.getX(column);
+			int z = BlockPos.getZ(column);
+			boolean near = false;
+			for (int dx = -2; dx <= 2 && !near; dx++) {
+				for (int dz = -2; dz <= 2 && !near; dz++) {
+					near = road.cells.containsKey(BlockPos.asLong(x + dx, 0, z + dz));
+				}
+			}
+
+			if (near) {
+				plan.road(column, ground(level, x, z));
+			}
+		}
+
+		for (var piece : plan.pieces(32)) {
+			plan.apply(piece);
+		}
+
+		GROUND.clear();
+		java.util.Map<Long, Integer> decks = new java.util.HashMap<>();
+		// (Each column's height as paved: read off the blocks after, a slab put down on one counted as a block of ground.)
+		java.util.Map<Long, Integer> laidAt = new java.util.HashMap<>();
+		for (var cell : road.cells.entrySet()) {
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			if (keep.contains(cell.getKey()) || standing.contains(cell.getKey()) || !loadedAt(level, x, z)) {
+				continue;
+			}
+
+			Integer surface = water.get(cell.getKey());
+			if (surface != null) {
+				int deck = Math.max(want[cell.getValue()], surface + 1);
+				decks.put(cell.getKey(), deck);
+				set(level, new BlockPos(x, deck, z), wood("planks").defaultBlockState());
+				// (Another road's railing where this deck goes: off it. Two bridges side by side had a fence across where they met.)
+				if (level.getBlockState(new BlockPos(x, deck + 1, z)).getBlock() instanceof net.minecraft.world.level.block.FenceBlock) {
+					set(level, new BlockPos(x, deck + 1, z), Blocks.AIR.defaultBlockState());
+				}
+
+				continue;
+			}
+
+			BlockPos top = new BlockPos(x, paved(level, x, z), z);
+			laidAt.put(cell.getKey(), top.getY());
+			set(level, top, paving.get());
+			fellIn(level, x, z, top.getY() + 1, top.getY() + 4);
+			for (int y = top.getY() + 1; y <= top.getY() + 4; y++) {
+				BlockPos above = new BlockPos(x, y, z);
+				var state = level.getBlockState(above);
+				if (!state.isAir() && (plant(state) || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+					|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state) || litter(state))) {
+					set(level, above, Blocks.AIR.defaultBlockState());
+				}
+			}
+		}
+
+		java.util.Map<Long, Integer> rails = new java.util.HashMap<>();
+		for (var cell : road.cells.entrySet()) {
+			int x = BlockPos.getX(cell.getKey());
+			int z = BlockPos.getZ(cell.getKey());
+			if (keep.contains(cell.getKey()) || !loadedAt(level, x, z)) {
+				continue;
+			}
+
+			Integer deck = decks.get(cell.getKey());
+			if (deck != null) {
+				// A railing beside the deck (over the water, or the bit of land it goes over), put up after.
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					int nx = x + side.getStepX();
+					int nz = z + side.getStepZ();
+					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || !wet(level, nx, nz) && !islets.contains(cell.getKey())) {
+						continue;
+					}
+
+					rails.merge(BlockPos.asLong(nx, 0, nz), deck, Math::max);
+				}
+
+				continue;
+			}
+
+			// Where it climbs: the path slab on the lower of the two (half a block up, half again).
+			if (slab == null) {
+				continue;
+			}
+
+			Integer laid = laidAt.get(cell.getKey());
+			if (laid == null) {
+				continue;
+			}
+
+			int top = laid;
+			Direction along = Direction.getNearest(Math.cos(road.heading(cell.getValue())), 0, Math.sin(road.heading(cell.getValue())));
+			for (Direction side : new Direction[] {along, along.getOpposite(), along.getClockWise(), along.getCounterClockWise()}) {
+				int nx = x + side.getStepX();
+				int nz = z + side.getStepZ();
+				long next = BlockPos.asLong(nx, 0, nz);
+				BlockPos over = new BlockPos(x, top + 1, z);
+				Integer there = laidAt.containsKey(next) ? laidAt.get(next) : keep.contains(next) && loadedAt(level, nx, nz) ? Integer.valueOf(paved(level, nx, nz)) : null;
+				if (there != null && there == top + 1 && level.getBlockState(over).isAir()) {
+					set(level, over, slab);
+					break;
+				}
+			}
+		}
+
+		bridgeRails(level, rails, road.cells.keySet());
+		tidy(level, road.cells.keySet());
+
+		// The test: steps along it that need a jump (over half a block between columns side by side, off the bridges).
+		int pairs = 0;
+		int jumps = 0;
+		for (long cell : laidAt.keySet()) {
+			for (Direction side : new Direction[] {Direction.EAST, Direction.SOUTH}) {
+				long next = BlockPos.asLong(BlockPos.getX(cell) + side.getStepX(), 0, BlockPos.getZ(cell) + side.getStepZ());
+				if (laidAt.containsKey(next)) {
+					pairs++;
+					jumps += Math.abs(standOn(level, cell) - standOn(level, next)) > 0.6 ? 1 : 0;
+				}
+			}
+		}
+
+		if (jumps > 0) {
+			DrifterCivilizations.LOGGER.info("[road] a stretch at {}: {} of {} steps along it need a jump", middle.toShortString(), jumps, pairs);
+		}
+	}
+
+	/** The height a player stands at on this column's top (a slab: half a block lower). */
+	private static double standOn(ServerLevel level, long column) {
+		int x = BlockPos.getX(column);
+		int z = BlockPos.getZ(column);
+		int y = ground(level, x, z);
+		return level.getBlockState(new BlockPos(x, y, z)).getBlock() instanceof net.minecraft.world.level.block.SlabBlock ? y + 0.5 : y + 1.0;
+	}
+
+	/**
+	 * Grass, flowers, mushrooms, saplings, ferns: what grows on the land, cleared off ground that's moved or built on (cleared
+	 * only where replaceable before, flowers and mushrooms were left to break when the ground under them went, and dropped).
+	 */
+	static boolean plant(BlockState state) {
+		return state.canBeReplaced() || state.getBlock() instanceof net.minecraft.world.level.block.BushBlock;
+	}
+
+	/**
+	 * The top of the ground here with any of the town's slabs or stairs on it left out (they're on top of it: counted as a
+	 * block of ground, a path ran a block high onto a road's slab).
+	 */
+	static int paved(ServerLevel level, int x, int z) {
+		int y = ground(level, x, z);
+		BlockState state = level.getBlockState(new BlockPos(x, y, z));
+		boolean step = state.getBlock() instanceof net.minecraft.world.level.block.SlabBlock && !com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)
+			|| state.getBlock() instanceof net.minecraft.world.level.block.StairBlock;
+		return step ? y - 1 : y;
+	}
+
+	/** This column's land loaded (read before it was, the game stopped to finish loading it). */
+	private static boolean loadedAt(ServerLevel level, int x, int z) {
+		return level.getChunkSource().getChunkNow(x >> 4, z >> 4) != null;
+	}
+
+	/** Things lying on the land, not the land: pumpkins, melons, mushroom blocks, bee nests (a road climbed over a pumpkin patch). */
+	static boolean litter(BlockState state) {
+		return state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON) || state.is(Blocks.BROWN_MUSHROOM_BLOCK) || state.is(Blocks.RED_MUSHROOM_BLOCK)
+			|| state.is(Blocks.MUSHROOM_STEM) || state.is(Blocks.BEE_NEST);
+	}
+
+	/** The land itself: earth, rock, sand, gravel, clay, snow and ice. */
+	private static boolean terrain(BlockState state) {
+		return state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD) || state.is(net.minecraft.tags.BlockTags.SAND)
+			|| state.is(net.minecraft.tags.BlockTags.TERRACOTTA) || state.is(Blocks.GRAVEL) || state.is(Blocks.SANDSTONE) || state.is(Blocks.RED_SANDSTONE)
+			|| state.is(Blocks.CLAY) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.ICE) || state.is(Blocks.PACKED_ICE)
+			|| state.is(Blocks.MUD);
+	}
+
+	/**
+	 * Over the land in a road's way here: a ruin's blocks (a ruined portal or another ruin the world made, nothing anyone
+	 * built) cleared, and its lava filled (a road between towns climbed over a ruined portal and its pumpkin patch: the user's
+	 * picture). Anything else built is left as it is.
+	 */
+	private static void clearRuin(ServerLevel level, int x, int z) {
+		if (!loadedAt(level, x, z)) {
+			return;
+		}
+
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
+		for (int i = 0; i < 24 && pos.getY() > level.getMinBuildHeight(); i++, pos.move(0, -1, 0)) {
+			BlockState state = level.getBlockState(pos);
+			if (!state.getFluidState().isEmpty()) {
+				if (state.getFluidState().is(net.minecraft.tags.FluidTags.LAVA)) {
+					set(level, pos.immutable(), style.fill().defaultBlockState());
+				}
+
+				return;
+			}
+
+			if (state.isAir() || plant(state) || state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+				|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)) {
+				continue;
+			}
+
+			if (terrain(state)) {
+				return;
+			}
+
+			if (!litter(state) && !worldRuin(level, pos)) {
+				return;
+			}
+
+			set(level, pos.immutable(), Blocks.AIR.defaultBlockState());
+		}
+	}
+
+	/** Part of a ruin the world made here (a ruined portal, or a structure with "ruin" in its name). */
+	private static boolean worldRuin(ServerLevel level, BlockPos pos) {
+		return level.structureManager().getStructureWithPieceAt(pos, holder -> holder.is(net.minecraft.tags.StructureTags.RUINED_PORTAL)
+			|| holder.unwrapKey().map(key -> key.location().getPath().contains("ruin")).orElse(false)).isValid();
+	}
+
+	/**
+	 * A block set quietly: no neighbour updates, and nothing beside it told to look at its shape again (the ground and walls;
+	 * the user, 2026-10-30: "whenever a town spawns, items break on the ground, specifically seeds, because of the grass
+	 * breaking, and it lags sometimes": each block cut away under grass broke it, dropping its seeds, and each told its
+	 * neighbours in turn). Plants on moved ground are cleared by whatever moves it. Only when it changes.
+	 */
 	static void set(ServerLevel level, BlockPos pos, BlockState state) {
 		if (level.getBlockState(pos) != state) {
-			level.setBlock(pos, state, Block.UPDATE_CLIENTS);
+			level.setBlock(pos, state, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
 			changed(pos.getX(), pos.getZ());
 		}
 	}

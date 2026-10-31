@@ -252,7 +252,7 @@ final class Plaza {
 		ServerLevel level = server.overworld();
 		for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-1, -1, -1), origin.offset(sx, 5, sz))) {
 			var state = level.getBlockState(pos);
-			if (!(state.isAir() || state.canBeReplaced() || state.is(net.minecraft.tags.BlockTags.LEAVES) || state.is(net.minecraft.tags.BlockTags.LOGS)
+			if (!(state.isAir() || state.canBeReplaced() || com.dinglebob.drifter.api.DrifterApi.naturalSlab(state) || state.is(net.minecraft.tags.BlockTags.LEAVES) || state.is(net.minecraft.tags.BlockTags.LOGS)
 				|| state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.tags.BlockTags.SAND) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
 				|| state.is(net.minecraft.world.level.block.Blocks.GRAVEL) || state.is(net.minecraft.world.level.block.Blocks.DIRT_PATH)
 				|| state.is(net.minecraft.world.level.block.Blocks.SNOW_BLOCK) || state.is(net.minecraft.tags.BlockTags.FLOWERS))) {

@@ -132,6 +132,10 @@ public class ContainerTask extends Task {
 
 				int movedNow = this.mode == Mode.PUT ? this.putOneStack() : this.takeOneStack();
 				this.moved += movedNow;
+				if (movedNow > 0) {
+					com.dinglebob.drifter.hands.HandSignals.moved(this.drifter);
+				}
+
 				if (movedNow == 0 || this.moved >= this.amount) {
 					if (this.moved == 0) {
 						return this.fail(this.mode == Mode.PUT ? "nothing to put in, or no room" : "nothing to take, or no room");
@@ -166,6 +170,7 @@ public class ContainerTask extends Task {
 		this.drifter.getKeys().releaseAll();
 		this.drifter.getSenses().sawContents(this.pos, this.container, true);
 		Containers.playOpen(this.drifter.level(), this.pos);
+		com.dinglebob.drifter.hands.HandSignals.menu(this.drifter, this.pos);
 		this.opened = true;
 		this.wait = InventoryPause.roll(this.drifter, InventoryPause.CONTAINER_MIN, InventoryPause.CONTAINER_MAX);
 		this.phase = Phase.LOOK_OVER;
@@ -270,6 +275,7 @@ public class ContainerTask extends Task {
 			}
 
 			Containers.playClose(this.drifter.level(), this.pos);
+			com.dinglebob.drifter.hands.HandSignals.menu(this.drifter, null);
 		}
 	}
 }

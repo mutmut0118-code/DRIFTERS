@@ -74,6 +74,9 @@ final class TownSites {
 		boolean loading;
 		/** Debug: made now, player or not. */
 		boolean forced;
+		/** A town of the world plan (W4): its id there. */
+		@Nullable
+		java.util.UUID planned;
 
 		Site(String dimension, int x, int z, int households) {
 			this.dimension = dimension;
@@ -95,14 +98,15 @@ final class TownSites {
 		}
 	}
 
-	/** A player this near: its land loaded and the town made (twelve chunks; a city, being bigger and seen from further, 20). */
-	private static final double MAKE_WITHIN = 12 * 16;
-	private static final double CITY_MAKE_WITHIN = 20 * 16;
+	/** A city's made this much further off than a town (bigger, seen from further). */
+	private static final int CITY_MORE = 128;
 	/** Chunks loaded round a town's middle while it's made (its reach, and what's looked at round it). */
 	private static final int LOAD_RADIUS = TownBuilder.MOST_REACH / 16 + 2;
 	private static final int CITY_LOAD_RADIUS = TownBuilder.CITY_MOST_REACH / 16 + 2;
 	/** Work done on a town each tick at most (it goes on next tick). */
 	private static final long BUDGET_NANOS = 10_000_000L;
+	/** While the world's built before it's played (nobody playing yet): more a tick. */
+	private static final long BUILDING_BUDGET_NANOS = 40_000_000L;
 	/**
 	 * Sizes (A4, the user: "small town variations ... like 8-16 household towns"): a small town of 8 to 16 households, or now
 	 * and then (a quarter of spots) a hamlet of 2 to 5. Cities (40 to 80) and ruins come later.
@@ -184,39 +188,66 @@ final class TownSites {
 		// The one being made: a little more of it.
 		if (job != null) {
 			long start = System.nanoTime();
-			while (!job.done() && job.step() && System.nanoTime() - start < BUDGET_NANOS) {
+			long budget = WorldBuild.building ? BUILDING_BUDGET_NANOS : BUDGET_NANOS;
+			while (!job.done() && job.step() && System.nanoTime() - start < budget) {
 			}
 
 			if (job.done()) {
 				done(server);
 			}
 
-			return;
+			// (The next town's land is asked for as this one's made: each waited a minute for its land after the last.)
 		}
 
 		if (server.getTickCount() % 20 != 0 || sites.isEmpty()) {
 			return;
 		}
 
-		for (Site site : List.copyOf(sites)) {
+		// Nearest first (to a player, or to spawn while the world's built before it's played).
+		List<Site> order = new ArrayList<>(sites);
+		order.sort(Comparator.comparingDouble(site -> {
+			ServerLevel level = level(server, site.dimension);
+			return level == null ? Double.MAX_VALUE : WorldBuild.distance(level, site.x, site.z);
+		}));
+		for (Site site : order) {
 			ServerLevel level = level(server, site.dimension);
 			if (level == null || !site.forced && !near(level, site)) {
 				continue;
 			}
 
 			// Its land: asked for (made out of sight by the generator's own threads), then, once all of it's there, the town.
+			// (A town or two's land at a time besides the one being made, not every town ahead's at once.)
+			if (!site.loading && sites.stream().filter(other -> other.loading && other != making).count() >= (WorldBuild.building ? 2 : 1)) {
+				continue;
+			}
+
 			if (!site.loading) {
 				level.getChunkSource().addRegionTicket(TICKET, site.chunk(), site.loadRadius(), site.chunk());
 				site.loading = true;
 				continue;
 			}
 
-			if (!loaded(level, site)) {
+			// (A town of the plan waits for the whole plan: its ways in come with its roads.)
+			if (job != null || !loaded(level, site) || site.planned != null && !WorldPlan.ready) {
 				continue;
 			}
 
 			making = site;
-			job = new TownBuilder.Job(level, site.x, site.z, site.households, null, true, site.ruin);
+			WorldPlan.Place place = WorldPlan.place(site.planned);
+			// (Its past may have moved on since its land was asked for: fallen since, it's made a ruin.)
+			if (place != null) {
+				site.ruin = place.ruin();
+			}
+
+			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin);
+			if (place != null) {
+				job.plannedId = place.id;
+				job.gates = List.copyOf(place.gates);
+				// (As its past has it: its leader now, founded so long ago.)
+				job.leaderName = place.leader.isEmpty() ? null : place.leader;
+				job.pastAgo = WorldPlan.foundedAgo(place.id);
+			}
+
 			DrifterCivilizations.LOGGER.info("[town] making a town at {}, {} ({} households)", site.x, site.z, site.households);
 			return;
 		}
@@ -238,12 +269,19 @@ final class TownSites {
 		}
 
 		DrifterCivilizations.LOGGER.info("[town] {}", finished.result().message());
+		if (site.planned != null) {
+			WorldPlan.made(server, site.planned, finished.result().town());
+		}
+
 		Towns.save(server);
 	}
 
+	/**
+	 * Near enough to make: well out past what a player can see (the user, 2026-10-30: "i dont see everything unfold in my
+	 * eyes"; it was twelve chunks, a town put up in plain view), a city further.
+	 */
 	private static boolean near(ServerLevel level, Site site) {
-		double within = site.city() ? CITY_MAKE_WITHIN : MAKE_WITHIN;
-		return level.players().stream().anyMatch(player -> Math.hypot(player.getX() - site.x, player.getZ() - site.z) < within);
+		return WorldBuild.distance(level, site.x, site.z) < WorldBuild.ahead(level.getServer()) + (site.city() ? CITY_MORE : 0);
 	}
 
 	private static boolean loaded(ServerLevel level, Site site) {
@@ -270,6 +308,26 @@ final class TownSites {
 	static List<Site> pending(String dimension, BlockPos from) {
 		return sites.stream().filter(site -> site.dimension.equals(dimension))
 			.sorted(Comparator.comparingDouble(site -> Math.hypot(site.x - from.getX(), site.z - from.getZ()))).toList();
+	}
+
+	/** A spot of the world plan (W4), made as a player comes near like any other. */
+	static void planned(ServerLevel level, WorldPlan.Place place) {
+		if (place.made) {
+			return;
+		}
+
+		// (Asked for already, its land loading while the plan was made: a ruin now if its past says so.)
+		for (Site site : sites) {
+			if (place.id.equals(site.planned)) {
+				site.ruin = place.ruin();
+				return;
+			}
+		}
+
+		Site site = new Site(level.dimension().location().toString(), place.x, place.z, place.households);
+		site.ruin = place.ruin();
+		site.planned = place.id;
+		sites.add(site);
 	}
 
 	/** Debug: a spot for a town of this many households here, made now (no player needed). */
@@ -370,7 +428,8 @@ final class TownSites {
 		@Override
 		protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
 			// (Whether it's a city's spot first: cheap, and the other one's spots aren't looked over at all.)
-			if (!DrifterApi.villagesReplaced() || cityCell(context) != this.city) {
+			// (A civilized world's towns go where its plan says: WorldPlan.)
+			if (!DrifterApi.villagesReplaced() || WorldPlan.planned || cityCell(context) != this.city) {
 				return Optional.empty();
 			}
 
@@ -609,12 +668,21 @@ final class TownSites {
 	static void save(CompoundTag tag) {
 		ListTag list = new ListTag();
 		for (Site site : sites) {
+			// (A plan's spot before the plan's saved with it: the plan's made again on opening, and its spots with it.)
+			if (site.planned != null && !WorldPlan.ready) {
+				continue;
+			}
+
 			CompoundTag one = new CompoundTag();
 			one.putString("Dimension", site.dimension);
 			one.putInt("X", site.x);
 			one.putInt("Z", site.z);
 			one.putInt("Households", site.households);
 			one.putBoolean("Ruin", site.ruin);
+			if (site.planned != null) {
+				one.putUUID("Planned", site.planned);
+			}
+
 			list.add(one);
 		}
 
@@ -630,6 +698,7 @@ final class TownSites {
 			CompoundTag one = (CompoundTag)t;
 			Site site = new Site(one.getString("Dimension"), one.getInt("X"), one.getInt("Z"), one.getInt("Households"));
 			site.ruin = one.getBoolean("Ruin");
+			site.planned = one.hasUUID("Planned") ? one.getUUID("Planned") : null;
 			sites.add(site);
 		}
 	}

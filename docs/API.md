@@ -143,6 +143,16 @@ of it every few seconds (chests, the house plan, the farm, pen...), build one ho
 blocks) and only one builds the hut. `DrifterApi.setGroupLimit(group, n)`: how many it takes (0: the "Group size"
 setting, four by default, up to 32).
 
+## The civilized world (milestone 23, W4)
+
+- `DrifterApi.civilizedWorld()`: new worlds come with the addon's world plan (the setting "A world of nations", with
+  towns replacing villages); `nationsSetting()` (1 few, 2 normal, 3 many), `spreadSetting()` (1 round spawn to 5 over the
+  world).
+- `DrifterApi.naturalSlab(state)`: a slab the land has (Terrain Slabs' `generated` slabs), not one somebody put down:
+  half a block of ground, cleared like a plant where something's built.
+- `DrifterApi.setNotPlaced(Predicate<Holder<Structure>>)`: structures the addon places itself get no placements (so
+  /locate and generation don't look for them); `notPlaced(holder)` asks.
+
 ## Roads
 
 Drifters keep to paths they've seen: blocks in the tag `drifter:roads` (dirt paths) cost less to walk on in their

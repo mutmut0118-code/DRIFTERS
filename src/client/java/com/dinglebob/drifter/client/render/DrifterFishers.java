@@ -34,8 +34,13 @@ public final class DrifterFishers {
 		});
 	}
 
-	/** This Drifter's stand-in (made the first time). */
+	/** This Drifter's stand-in (made the first time): with Touch'n Motion, the one in the world it animates the cast by. */
 	public static RemotePlayer standIn(DrifterEntity drifter) {
+		RemotePlayer animated = DrifterTouchNMotion.standIn(drifter);
+		if (animated != null) {
+			return animated;
+		}
+
 		RemotePlayer standIn = STAND_INS.get(drifter);
 		if (standIn == null || standIn.level() != drifter.level()) {
 			UUID id = UUID.nameUUIDFromBytes(("drifter-fisher:" + drifter.getUUID()).getBytes(java.nio.charset.StandardCharsets.UTF_8));

@@ -1511,7 +1511,7 @@ public class NavigateTask extends Task {
 
 		// Into a jump up it must be lined up with the step: cutting the corner on the way, it runs into the block beside
 		// the step (often two high on a hillside) and jumps against it (found in testing).
-		if (b.type() == MoveType.JUMP_UP) {
+		if (b.type() == MoveType.JUMP_UP && !this.halfStep(b)) {
 			return sameDirection(a, b);
 		}
 
@@ -1530,6 +1530,25 @@ public class NavigateTask extends Task {
 
 	private static boolean sameDirection(PathStep a, PathStep b) {
 		return a.to().getX() - a.from().getX() == b.to().getX() - b.from().getX() && a.to().getZ() - a.from().getZ() == b.to().getZ() - b.from().getZ();
+	}
+
+	/**
+	 * A step up no higher than a player's step (onto a slab from a full block, or a slab to a block: Terrain Slabs' hillsides):
+	 * walked up as on the level, no lining up and no jump.
+	 */
+	private boolean halfStep(PathStep step) {
+		if (step.type() != MoveType.JUMP_UP) {
+			return false;
+		}
+
+		double rise = step.to().getY() - step.from().getY() + this.floorTop(step.to().below()) - this.floorTop(step.from().below());
+		return rise <= com.dinglebob.drifter.nav.PathSearch.STEP_RISE;
+	}
+
+	/** How high the top of this floor is inside its block (a bottom slab half; nothing there or a full block one). */
+	private double floorTop(BlockPos floor) {
+		var shape = this.level().getBlockState(floor).getCollisionShape(this.level(), floor);
+		return shape.isEmpty() ? 1.0 : Math.min(1.0, shape.max(Direction.Axis.Y));
 	}
 
 	/** How far it is to the side of the line a step runs along (from its start's middle through its end's middle). */
@@ -1813,7 +1832,7 @@ public class NavigateTask extends Task {
 		}
 
 		// A jump up from off to the side: line up in front of the step first (its start's middle), then jump.
-		boolean liningUp = step.type() == MoveType.JUMP_UP && this.drifter.onGround() && this.offLine(step) > JUMP_LINE_UP;
+		boolean liningUp = step.type() == MoveType.JUMP_UP && this.drifter.onGround() && this.offLine(step) > JUMP_LINE_UP && !this.halfStep(step);
 		if (liningUp) {
 			goal = Vec3.atBottomCenterOf(step.from());
 		}
@@ -1930,7 +1949,8 @@ public class NavigateTask extends Task {
 		boolean jump = switch (step.type()) {
 			// Only while still below the step: once up on it, a little off its middle, it just walks there (found in testing:
 			// it kept jumping on the spot after climbing out of water).
-			case JUMP_UP -> !liningUp && this.feet().getY() < step.to().getY() && (horizontal < 1.3 || this.drifter.horizontalCollision);
+			case JUMP_UP -> !liningUp && !this.halfStep(step) && this.feet().getY() < step.to().getY()
+				&& (horizontal < 1.3 || this.drifter.horizontalCollision);
 			case SWIM_UP, CLIMB_UP -> true;
 			// In water: keep its head above the surface (jump while its eyes are under, let go once they're out, so it
 			// bobs gently instead of bouncing out of the water), and jump up the bank when it swims into it.

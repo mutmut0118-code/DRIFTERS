@@ -104,6 +104,25 @@ public final class Town {
 	/** A town made ready (0.23.10 on): its shape (crossroads, main_street, winding) and its roads' columns as laid, bends and all. */
 	public String shape = "";
 	public long[] roadColumns = new long[0];
+	/** How far out from its middle its houses reach, and more round them ({@link #land}); worked out again when its plots change. */
+	private int landRadius = -1;
+	private int landPlots = -1;
+
+	/** Its land: within this of its middle (its furthest house and a margin; 48 at least). */
+	public int land() {
+		if (this.landPlots != this.plots.size()) {
+			int far = 0;
+			for (Plot plot : this.plots) {
+				far = Math.max(far, (int)Math.hypot(plot.origin.getX() + plot.sizeX / 2.0 - this.center.getX(), plot.origin.getZ() + plot.sizeZ / 2.0
+					- this.center.getZ()));
+			}
+
+			this.landRadius = Math.max(48, far + 24);
+			this.landPlots = this.plots.size();
+		}
+
+		return this.landRadius;
+	}
 	public final List<BlockPos> store = new ArrayList<>();
 	public final List<BlockPos> fields = new ArrayList<>();
 	@Nullable

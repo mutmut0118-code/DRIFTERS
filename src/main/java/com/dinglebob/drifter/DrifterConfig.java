@@ -83,6 +83,16 @@ public final class DrifterConfig {
 		/** Villagers still about with villages replaced (zombie villagers to cure: players' trading halls and iron farms; the
 		 * user's decision 5: off by default). */
 		boolean villagers = false;
+		/** With Drifter: Civilizations, new worlds are a civilized world (milestone 23, W4: the user, 2026-10-30: "a big city in
+		 * the middle, with towns in the outskirts, and all the roads are connected"): nations made with the world, roads
+		 * between them. Off: towns where villages would be (A1). */
+		boolean civilizedWorld = true;
+		/** How many nations: 1 few (2 to 3), 2 normal (4), 3 many (6 to 8) (the user: "a setting between all 3, with 4 by
+		 * default"). */
+		int nations = 2;
+		/** How far apart: 1 round spawn (the default) to 5 spread over the world (the user: "a variable number setting from around
+		 * spawn to spread over the world"). */
+		int civSpread = 1;
 		boolean worldgenOutposts = true;
 		/** Lone Drifters out in the world with no home: fresh, setting off on day one, or passing through (user, 2026-10-17). */
 		boolean worldgenWanderers = true;
@@ -109,6 +119,8 @@ public final class DrifterConfig {
 		boolean farHalfRate = true;
 		/** Real player skins, downloaded like a multiplayer server's (user, 2026-10-20); off: the game's default skins. */
 		boolean realSkins = true;
+		/** Touch'n Motion's animations on Drifters too, when it's installed (user, 2026-10-30); client only. */
+		boolean touchNMotion = true;
 		/** Encounters (milestone 21, user 2026-10-20): random events with Drifters you meet once and never again. */
 		boolean encounters = true;
 		/** About one every this many in-game days per player. */
@@ -178,6 +190,15 @@ public final class DrifterConfig {
 
 	public static void setRealSkins(boolean on) {
 		data.realSkins = on;
+		save();
+	}
+
+	public static boolean touchNMotion() {
+		return data.touchNMotion;
+	}
+
+	public static void setTouchNMotion(boolean on) {
+		data.touchNMotion = on;
 		save();
 	}
 
@@ -275,6 +296,33 @@ public final class DrifterConfig {
 
 	public static void setVillagers(boolean on) {
 		data.villagers = on;
+		save();
+	}
+
+	public static boolean civilizedWorld() {
+		return data.civilizedWorld;
+	}
+
+	public static void setCivilizedWorld(boolean on) {
+		data.civilizedWorld = on;
+		save();
+	}
+
+	public static int nations() {
+		return Math.max(1, Math.min(3, data.nations));
+	}
+
+	public static void setNations(int value) {
+		data.nations = Math.max(1, Math.min(3, value));
+		save();
+	}
+
+	public static int civSpread() {
+		return Math.max(1, Math.min(5, data.civSpread));
+	}
+
+	public static void setCivSpread(int value) {
+		data.civSpread = Math.max(1, Math.min(5, value));
 		save();
 	}
 

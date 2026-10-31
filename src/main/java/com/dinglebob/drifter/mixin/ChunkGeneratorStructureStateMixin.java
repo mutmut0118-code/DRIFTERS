@@ -24,7 +24,7 @@ import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement
 public abstract class ChunkGeneratorStructureStateMixin {
 	@Inject(method = "getPlacementsForStructure", at = @At("HEAD"), cancellable = true)
 	private void drifter$noVillages(Holder<Structure> structure, CallbackInfoReturnable<List<StructurePlacement>> cir) {
-		if (DrifterApi.villagesReplaced() && structure.is(StructureTags.VILLAGE)) {
+		if (DrifterApi.villagesReplaced() && structure.is(StructureTags.VILLAGE) || DrifterApi.notPlaced(structure)) {
 			cir.setReturnValue(List.of());
 		}
 	}

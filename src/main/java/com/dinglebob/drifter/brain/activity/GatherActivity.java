@@ -171,7 +171,7 @@ public class GatherActivity extends Activity {
 		com.dinglebob.drifter.brain.TreeLogs trees = new com.dinglebob.drifter.brain.TreeLogs(level);
 		List<BlockPos> candidates = this.have() >= this.wanted ? restOfTree : KnownBlocks.find(this.drifter, SEARCH_RADIUS, this.blocks, MAX_CANDIDATES * 4).stream()
 			.filter(pos -> !pos.equals(below) && !pos.equals(nextStair) && (this.lowestFirst || !underfoot(pos, feet))
-				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayTake(level, pos) && exposed(level, pos)
+				&& !this.blacklist().contains(pos, this.now()) && KnownBlocks.mayGather(level, pos) && exposed(level, pos)
 				&& !KnownBlocks.notWorthDiving(level, pos, level.getBlockState(pos))
 				// Never a block holding back lava it has seen (found in testing: gathering stone by a lava pool let it in).
 				&& !this.touchesKnownLava(level, pos)
@@ -286,7 +286,7 @@ public class GatherActivity extends Activity {
 			// find oak log".)
 			.anyMatch(pos -> underfoot(pos, feet) && feet.getY() - pos.getY() <= 8 && !this.blacklist().contains(pos, this.now())
 				&& !level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS)
-				&& KnownBlocks.mayTake(level, pos) && !KnownBlocks.underWater(level, pos))) {
+				&& KnownBlocks.mayGather(level, pos) && !KnownBlocks.underWater(level, pos))) {
 			return this.stairStep();
 		}
 

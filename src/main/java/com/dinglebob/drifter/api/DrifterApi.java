@@ -330,6 +330,11 @@ public final class DrifterApi {
 	}
 
 	/** A name as a Drifter would have one (for a grave, a sign: the same lists Drifters' names come from). */
+	/** A Drifter's kind of name, not checked against those taken (safe off the server thread; for the past, not the living). */
+	public static String looseName(net.minecraft.util.RandomSource random) {
+		return com.dinglebob.drifter.identity.Usernames.loose(random);
+	}
+
 	public static String randomName(MinecraftServer server, net.minecraft.util.RandomSource random) {
 		return com.dinglebob.drifter.identity.Usernames.generate(random, server);
 	}
@@ -342,6 +347,43 @@ public final class DrifterApi {
 	/** Villages are replaced: an addon makes towns instead and the setting's on (new chunks only). */
 	public static boolean villagesReplaced() {
 		return townsForVillages && com.dinglebob.drifter.DrifterConfig.replaceVillages();
+	}
+
+	/** A new world is a civilized world (the addon's world plan of nations), and how many nations and how spread out. */
+	public static boolean civilizedWorld() {
+		return townsForVillages && com.dinglebob.drifter.DrifterConfig.replaceVillages() && com.dinglebob.drifter.DrifterConfig.civilizedWorld();
+	}
+
+	/** 1 few, 2 normal, 3 many. */
+	public static int nationsSetting() {
+		return com.dinglebob.drifter.DrifterConfig.nations();
+	}
+
+	/** 1 round spawn to 5 over the world. */
+	public static int spreadSetting() {
+		return com.dinglebob.drifter.DrifterConfig.civSpread();
+	}
+
+	/**
+	 * Structures an addon places itself (a civilized world's towns, put where its world plan says): no placements, so /locate
+	 * and generation don't look for them the usual way (as villages, replaced).
+	 */
+	public static void setNotPlaced(java.util.function.Predicate<net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> which) {
+		notPlaced = which;
+	}
+
+	public static boolean notPlaced(net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure> structure) {
+		return notPlaced.test(structure);
+	}
+
+	private static volatile java.util.function.Predicate<net.minecraft.core.Holder<net.minecraft.world.level.levelgen.structure.Structure>> notPlaced = s -> false;
+
+	/**
+	 * A slab the land itself has (Terrain Slabs: grass, dirt, sand and stone slabs smoothing hillsides, marked {@code
+	 * generated}), not one somebody put down: half a block of ground, cleared like a plant where something's built.
+	 */
+	public static boolean naturalSlab(net.minecraft.world.level.block.state.BlockState state) {
+		return com.dinglebob.drifter.nav.NavView.naturalSlab(state);
 	}
 
 	/** Villagers stay out of it too (none spawning as zombie villagers to cure). */
@@ -373,6 +415,43 @@ public final class DrifterApi {
 	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,
 		String wood, @Nullable net.minecraft.core.Direction front) {
 		return placeHouse(level, planId, origin, rotation, wood, null, front);
+	}
+
+	private static volatile java.util.function.BiPredicate<net.minecraft.world.level.Level, net.minecraft.core.BlockPos> settled = (level, pos) -> false;
+
+	/**
+	 * Settled land (the addon's towns): trees, leaves and plants there aren't gathered, Drifters fetch wood and seeds from the
+	 * wild ({@link com.dinglebob.drifter.brain.KnownBlocks#mayGather}).
+	 */
+	public static void setSettled(java.util.function.BiPredicate<net.minecraft.world.level.Level, net.minecraft.core.BlockPos> which) {
+		settled = which;
+	}
+
+	public static boolean settled(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+		return settled.test(level, pos);
+	}
+
+	/**
+	 * Debug: how much of a house put up from this plan here is gone: for each layer up from its corner, how many of the
+	 * blocks the plan has there are air now (null if there's no such plan).
+	 */
+	@Nullable
+	public static int[] missingByLayer(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn());
+		int[] missing = new int[plan.size.getY() + 1];
+		for (var cell : placed.buildMap().entrySet()) {
+			int layer = cell.getKey().getY() - origin.getY();
+			if (layer >= 0 && layer < missing.length && !cell.getValue().isAir() && level.getBlockState(cell.getKey()).isAir()) {
+				missing[layer]++;
+			}
+		}
+
+		return missing;
 	}
 
 	/** The same, its cobblestone of {@code stone} ("sandstone", "mossy_cobblestone"...) rather than cobblestone (null: as drawn). */

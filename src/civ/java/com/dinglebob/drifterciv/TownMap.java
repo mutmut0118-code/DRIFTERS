@@ -28,16 +28,17 @@ final class TownMap {
 
 	/** The land this far round {@code center} drawn into {@code town-maps/<name>.png} in the server's folder; where it went. */
 	static Path draw(ServerLevel level, BlockPos center, int radius, String name) throws IOException {
+		int scale = radius > 200 ? 1 : SCALE;
 		int size = radius * 2 + 1;
-		BufferedImage image = new BufferedImage(size * SCALE, size * SCALE, BufferedImage.TYPE_INT_RGB);
+		BufferedImage image = new BufferedImage(size * scale, size * scale, BufferedImage.TYPE_INT_RGB);
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				int x = center.getX() - radius + i;
 				int z = center.getZ() - radius + j;
-				int colour = colour(level, x, z);
-				for (int a = 0; a < SCALE; a++) {
-					for (int b = 0; b < SCALE; b++) {
-						image.setRGB(i * SCALE + a, j * SCALE + b, colour);
+				int colour = colour(level, x, z, radius <= 200);
+				for (int a = 0; a < scale; a++) {
+					for (int b = 0; b < scale; b++) {
+						image.setRGB(i * scale + a, j * scale + b, colour);
 					}
 				}
 			}
@@ -50,16 +51,23 @@ final class TownMap {
 		return file.toAbsolutePath();
 	}
 
-	private static int colour(ServerLevel level, int x, int z) {
-		// (Loaded, or made, if need be: it's a debug command.)
-		level.getChunk(x >> 4, z >> 4);
+	private static int colour(ServerLevel level, int x, int z, boolean load) {
+		// (Loaded, or made, if need be, for a town's map; a big one only what's loaded: making 600 blocks of new land in one
+		// tick stopped the server.)
+		if (level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
+			if (!load) {
+				return 0x101010;
+			}
+
+			level.getChunk(x >> 4, z >> 4);
+		}
 		int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
 		BlockPos pos = new BlockPos(x, top, z);
 		BlockState state = level.getBlockState(pos);
 		int colour = state.is(Blocks.DIRT_PATH) || state.is(Blocks.SMOOTH_SANDSTONE) && top <= level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) ? ROAD
 			: state.getMapColor(level, pos).col;
 		// (Shaded as a map is: lighter where the land rises to the north, darker where it falls.)
-		int north = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z - 1) - 1;
+		int north = level.getChunkSource().getChunkNow(x >> 4, (z - 1) >> 4) == null ? top : level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z - 1) - 1;
 		double shade = top > north ? 1.12 : top < north ? 0.82 : 1.0;
 		int r = Math.min(255, (int)(((colour >> 16) & 255) * shade));
 		int g = Math.min(255, (int)(((colour >> 8) & 255) * shade));

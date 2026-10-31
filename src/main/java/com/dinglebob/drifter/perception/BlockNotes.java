@@ -39,7 +39,7 @@ public final class BlockNotes {
 	public static boolean isNaturalGround(BlockState state) {
 		return state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(Blocks.GRAVEL)
 			|| state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW) || state.is(Blocks.POWDER_SNOW) || state.is(BlockTags.ICE)
-			|| state.is(BlockTags.TERRACOTTA) || state.is(Blocks.CALCITE);
+			|| state.is(BlockTags.TERRACOTTA) || state.is(Blocks.CALCITE) || com.dinglebob.drifter.nav.NavView.naturalSlab(state);
 	}
 
 	@Nullable

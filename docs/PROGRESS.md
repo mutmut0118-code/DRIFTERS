@@ -4024,6 +4024,397 @@ The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
   cobblestone; debates: paintings, flat roofs, stone or wood, carpet or slabs, one floor or two. Tested: forced in pairs,
   they play and lead on into others ("on that note carpet beats slabs for floors").
 - Debug: `/drifter pillar <height>`, `/drifter personality set <trait> <0-1>`.
+- **0.23.13: W3, more shapes, picked by the land** (the user: "add a river town shape too and more shapes"; picked: river,
+  harbour, hill, ring, grid).
+  - The land round the plaza looked over first (`survey`, every fourth block 80 out, and sixteen ways out from the plaza):
+    a river (water 6 to 40 blocks across with land past it, within 56: the nearest water alone was once a stream, with
+    the sea further off another way), a shore (water with no land past it, within 80), a hill (14 blocks or more between
+    the highest and lowest ground within 48). A river makes a **river town**, a shore a **harbour**, a hill a **hill
+    town**; elsewhere a town's shape by chance (crossroads 25%, main street 30%, winding 20%, ring 15%, grid 10%); a
+    hamlet a main street (or a river or harbour hamlet by the water); a city a grid with crossroads out of it.
+  - **River town:** a road from the plaza straight across the river by a bridge (up to 40 blocks of water), roads along both
+    banks from its ends keeping off the water, a road away from the river, a dock or two from the banks.
+  - **Harbour:** a road from the plaza down to the shore, a waterfront road along it both ways, roads inland, and piers
+    every so often (planks a block over the water, three wide with railings, log piles, a lantern at the end, a boat tied
+    up).
+  - **Hill town:** its roads leave the plaza round the hill both ways and down it, following the contours (they climb
+    least that way); houses on terraces (W2); a lookout on the highest free ground near the plaza (a little tower of logs
+    and planks, a ladder up to a railed floor, lanterns on its corners).
+  - **Ring town:** a ring road round the plaza (24 out, a city's 40, wavering a little; kept whole when roads are cut back),
+    four spokes out through it, lanes off any road.
+  - **Grid:** straight streets every 24 blocks round the plaza (a town's 30 out, a city's 72), with the four bending roads
+    out beyond.
+  - Bridges carry the road at its own height: a deck at least a block over the water on log piers, ramping down to the
+    banks, railings both sides (at the water's own level, a bridge from a plaza on a high bank stopped at a wall). Roads
+    leave the plaza level with it. Door paths: their first two blocks level with the door's floor (a slab right outside a
+    door was a step up under the wall). Fields, the store and the pen never on water; the pen on level ground (on a
+    hillside it ran down a staircase of cut rock). `/drifterciv town shape <...>` takes the new shapes too.
+  - Tested headless on the user's Tectonic (seed 779; spots found with `/locate biome`): towns by a river (twice), by the
+    sea, on a hill (twice), the river, harbour and hill shapes picked by the land; a ring town and a grid town (set): every house, the
+    store, the stall and every field walked to in all of them; half a day in a river town of 16 people (none died;
+    a few blocks put down near the plaza: a pillar up a retaining wall by the river,
+    trees climbed for logs). Pictures in the client.
+  - Not yet: two bridges in a big river town, a market by the water in a harbour, the fisher using the dock; lots of
+    lamps still in a hill town (its terraces hold the light in); Drifters' own walking takes a slab for a full block (a
+    step up needing a jump: Terrain Slabs compatibility, still to do).
+  - Next: W4 + W5 (the world plan: nations, capitals and their towns; the roads and highways between them).
+- **0.23.14: W4 + W5, the civilized world: nations made with the world, roads between them all.**
+  - Settings (Mod Menu, new worlds only): **A world of nations** (on), **Nations** (few: 2 to 3; **4**; many: 6 to 8),
+    **Spread** (round spawn, the default, to over the world: distances times 1 to 4). Core `DrifterConfig.civilizedWorld`,
+    `nations`, `civSpread`; `DrifterApi.civilizedWorld()`, `nationsSetting()`, `spreadSetting()`.
+  - Planned or not, decided as the overworld loads (before any of it generates): a world with a plan saved is; a brand new
+    one is if the setting's on; any other (made before 0.23.14, or the setting off) keeps towns where villages would be
+    (A1). In a planned world the town and city structures have no placements (`DrifterApi.setNotPlaced`, the same way
+    villages are gone).
+  - The plan (`WorldPlan`), made once as the world first starts, in the background, from the generator's own terrain (its
+    rough surface, before caves and crags: the generator's exact heights take 8 ms each on the user's Tectonic, and the
+    first plans took minutes; now about 7 s): capitals on a ring about 1,100 blocks from spawn (a second ring further for
+    many nations), each on the best ground near its point (a few tries round the ring, on rougher ground if need be);
+    each nation's 3 to 5 towns 550 to 950 out from its capital, 2 to 4 hamlets past some of them; two or three free towns
+    between nations; a ruin or two; nothing within 300 of spawn (you start near a nation, not in it). Sizes as before (a
+    capital 40 to 80 households, towns 8 to 16, hamlets 2 to 5).
+  - Its nations made at once (`Nations.planned`), named from their capitals ("the Kingdom of X", "the X League"...), each a
+    colour; their towns members already. Each town is made as before when a player comes near (`TownSites`), with the id
+    and name the plan gave it, and is at peace and allied with its fellows already made (`Nations.plannedMade`).
+  - Roads between them (W5): a nation's capital to each of its towns, hamlets to their nearest town, each capital to its
+    nearest two (one network), free towns to the nearest place; routed over the land on a 32-block grid (climbs and water
+    dear, the sea gone round), corners rounded off. Built a stretch (48 blocks) at a time as a player comes within twelve
+    chunks (`Highways`), its land loaded first: a worn dirt path three wide (smooth sandstone in deserts), built up a block
+    a step over dips, slabs (Terrain Slabs' path slab when it's there) or stairs on climbs, railed plank bridges on piers
+    over water. Each town lays a main road out each way a road comes in (kept whole), and the stretch at its end waits for
+    it and runs on to meet its nearest road; a signpost there with where the road goes and how far.
+  - Streets on steep ground: all of a town's roads get their heights together, a block a step at most between any two side
+    by side, halfway between built up over dips and cut into bumps (worked out each on its own, a high street and a low one
+    crossing on a mountain stood a wall apart; filled only, a road down a mountain was one long embankment); level with the
+    plaza where they leave it, those held. Each house is then set at its street's height (within a block or two) and the
+    ground shaped round it (with streets cut into a hill, a house on the hill's own ground stood ten blocks under its
+    street).
+  - Spots checked on the land's real heights too: the plan's quick surface leaves out Tectonic's crags (a snowy peak looked
+    like gentle ground), so each spot's core is checked at nine points from the generator itself.
+  - Door paths: no slab or stair on the block right outside a door (a half step there still meets the wall over the
+    door; found by the walk check, a mountain city's store).
+  - Commands: `/drifterciv locate <city|town|hamlet|ruin|any>` (the nearest of the plan, made or not, its nation and how
+    far), `/drifterciv plan` (every nation and its places, the roads built so far); debug `/drifterciv plan roads` (every
+    stretch within 1,000 blocks built now, player or not), `/drifterciv town map <radius>` (the land round here from above).
+  - Tested headless on the user's Tectonic (seed 779, a new world each time): the plan in 7 to 14 s (4 nations, 18
+    places, 16 roads, 13,800 blocks of road); a capital (a grid city of about 40 houses on a mountain, 75 people) and one of
+    its towns made, in its nation ("friendly" with its capital): every place in both walked to; 67 stretches of road built
+    round them: from the city's south road down to the town, joined to its streets; others west over a river by a bridge,
+    and east. Another capital (a grid city on a snowy mountain): 30 of its 32 places walked to (two A-frame cabins not:
+    to look at). Every shape of town (0.23.13's test) still walked through.
+  - Not yet: a capital by the sea with no towns round it in one test (no ground for them); the history (W6: nations
+    feuding and allied from the start, ruins from wars); towns far away as summaries (W7); towns founded later by
+    Drifters don't count toward the limit yet; lots of lamps in hill towns and mountain cities.
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+- **0.23.15: Terrain Slabs across the mod** (the user: "this whole mod needs to be compatible with countered terrain
+  slabs"; "do terrain slabs next").
+  - How Terrain Slabs works (read from its code): ordinary bottom slabs (in the game's slab tag) put down by world
+    generation where the ground steps up a block, marked `generated=true`; broken, they drop the full block. Plants on them
+    are only drawn half a block lower on the client; on the server nothing else changes.
+  - Walking: the pathfinder knew every floor as a full block, so a slab at the foot of a two-block rise looked like a
+    one-block jump; from half a block lower it's a block and a half, higher than a jump (1.25, from the player's own jump
+    numbers: `JumpPhysics.JUMP_HEIGHT`). It jumped there over and over, a quarter of a block short, until it gave up.
+    Now a jump up counts the real rise (`NavView.floorTop`): over a jump, not a move; no higher than a player's step
+    (0.6, the step height attribute's default), a step it walks up at walking cost, no lining up and no jump
+    (`NavigateTask.halfStep`), as a player walks up a slab hillside.
+  - Building: a natural slab is natural ground (`BuildPlanActivity.natural`, `BlockNotes.isNaturalGround`), so it's
+    cleared out of a house's space like grass and counts as land, not somebody's build; a house spot reads the ground under
+    it (`PlanSite`).
+  - Towns (through `DrifterApi.naturalSlab`): the ground is the block under a natural slab (it counted as a block of ground,
+    a bump in every street and plot); slabs are cleared off roads, highways, paths and plots like plants, and off ground
+    that's cut down (one was left floating); a plaza's or a village lamp's spot with only slabs in it counts as clear.
+  - Tested headless: a course on flat ground (a two-block wall with natural slabs along its foot, a proper slab ramp a few
+    blocks along): the old build jumped at the wall from the slab for 40 s and never got up, then 36 s and 4 s on two more
+    trips; the new one 4, 6 and 3 s, up the ramp, never stuck. 25 Drifters on the user's Tectonic (seed 779, Terrain Slabs
+    in): 21 of 25 on taiga hills (the four stopped by spruce leaves, as before; the old build 24 of 25) and 25 of 25 on
+    plains (18 s on average; the old build 19 s). Six towns of every shape on slab-edged land: every place walked to in all.
+- **0.23.16: natural ground in towns, roads between towns cut as well as built up, door paths that find their way, no
+  seeds dropped** (the user, 2026-10-30, with pictures: "the terraforming comes off a little bit too unnatural, and i dont
+  think stone stairs goes with the path blocks"; a path "cuts through the whole town to the plaza, instead of connecting to
+  a path from the town"; "whenever a town spawns, items break on the ground, specifically seeds ... and it lags sometimes").
+  - Ground (`GroundPlan`): a pad's banks (a block every two) reach only past its doorstep ring now (`PAD_REACH` 2, was 24);
+    past that, low terraces: the land may stand a wall's height (3) more off each 6 blocks out before it's moved, so a
+    hillside gets a short retaining wall behind a house and terraces up the hill, not a quarry 24 blocks deep with a wall
+    ten high at the back. Nothing's moved past 12 blocks from a pad (`MOST_REACH`); a house's spot must fit within that
+    (`GroundPlan.misfit`: the land at that edge no more than its banks and terraces take, and no fill standing more than a
+    wall over the water's edge), or it's turned down ("too steep or by water" in the log). Banks' edges wander (a smooth
+    noise added to the distance, which is as the crow flies now: square rings of steps round rectangles before). Filled
+    ground within 8 of water slopes down to it (a cliff of dirt into a river before). A slot one or two wide between ground
+    two higher on both sides is filled (a hill city's slots between walls). Rock cut into under soil gets earth and its top
+    block back (grey stone terraces before); lava a cut opens is sealed with stone. With Terrain Slabs, each step of moved
+    ground (and land beside it a block under it) gets the land's own slab at its foot, "generated" as the mod's are
+    (`GroundPlan.slabFor`). Roads' pull on the land worked out once over the whole area (`RoadField`), their banks 12 out.
+    Land without loaded land all round it is never read or shaped (it made the game generate land there and then).
+  - Roads between towns (`TownBuilder.highway`): heights halfway between built up over dips and cut through bumps, half a
+    block a block at most, held to the ground at a stretch's ends; the land eased to them both sides by the same ground
+    plan as a town's roads (a ridge a block wide with dirt sides before). Climbs by path slabs only (Terrain Slabs'; smooth
+    sandstone in a desert; none without the mod), never cobblestone stairs. Ruins in the way (a ruined portal, or another
+    structure with "ruin" in its name) cleared off it, their lava filled; pumpkins, melons, mushroom blocks and bee nests
+    aren't ground (`litter`): it climbed over a ruined portal and its pumpkins before. Anything else built is left.
+  - Hamlets: roads settled in half blocks (a block every two at most, a path slab between), paths and roads climb by slabs
+    alone (`gentle`); towns keep wood stairs with planks, cities stone brick.
+  - Door paths: out the side the door is on (the way from the door that's clear to the house's edge), then the shortest way
+    round houses, the store, fields, the pen and the lookout to a road, the plaza or another house's path (`route`), the
+    store's first and houses nearest the middle next; stairs and slabs facing the way it goes. Name signs by that side.
+  - Dropped items and lag: the town's blocks are set without telling neighbours to look at their shape again
+    (`UPDATE_KNOWN_SHAPE`): each block cut away under grass broke it with drops, and set off its neighbours in turn.
+    Plants (grass, flowers, mushrooms, saplings: `plant`) are cleared off moved ground, up to two over the old top.
+  - Tested headless on the user's Tectonic (seed 779): six towns of every shape, every place walked to in all; houses:
+    10, 10, 10, 10 in the gentle ones (as before), Riverb 2 (before 4) and Hilly 5 (before 6) on rough and craggy land.
+    Loose items after the six: 11 (8 brown mushrooms from felled trees, a sapling, a torch, a dirt block), 48 before the
+    flowers were cleared too, seeds none. The mountain capital: 28 of its 52 houses (about 40 before, many on quarries
+    and tall walls), all 32 places walked to; its town 13 of 14, all walked to. Roads: 63 stretches built, the slowest
+    0.27 s, no freezes (a stretch shaping land still loading stalled 10 s before that was fixed).
+  - Not yet: a mountain capital is smaller than before; lots of lamps in hill towns; founded towns don't count toward the
+    limit.
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+- **0.23.17: walkable roads and paths, roads between towns routed round hills, no cut-off roads, no lava bridges, fewer
+  freezes** (the user, 2026-10-30, with pictures: "the paths are not walkable, they have steps that are 1.5 to 2 blocks
+  high, some staircases are jumbled all over the place ... these stone paths look like they're TOO natural, at the expense
+  of being convenient"; "some long paths get cut off in the middle and then continue"; "going AROUND hills and mountains
+  for the easiest way there? instead of splitting a WHOLE mountain, or going across the ocean with a straight line").
+  - Town roads: every town's (not just hamlets') heights settled in half blocks, a block every two at most in any
+    direction, a slab on each rise: no stairs on roads, nothing a jump high, across a road too (three wide, it stepped
+    across itself, and its stairs faced every way). Never cut below water beside it (a stream spilled down a road).
+  - The step bug: a road's climbs read the heights off the blocks after slabs were down, so a slab counted as a block of
+    ground and the next column got a slab a whole block over it; where two roads crossed the second paved over the first's
+    slab, a block up. Now by the heights they were laid at (`laid`); paths read a road's height under its slab (`paved`).
+  - Door paths: in half blocks where there's room (a slab each rise), else a block a step with stairs (`levels`).
+  - The test, logged for each town and each stretch of road between towns: how many steps side by side along roads and
+    paths need a jump (`countSteps`). Six towns: 3 to 6 of 1,500 to 2,400 (before: 17 to 143); the mountain capital 15 of
+    12,379; roads between towns a few of about 250 a stretch (before the slab fix: a third).
+  - Roads between towns, routed (`WorldPlan.route`): a finer grid (16 blocks; the plan's 32 for roads over 1,200 blocks),
+    each step dearer the steeper (its grade squared; over one in two, a cliff, only if there's nothing else), a river a
+    little, the sea or a lake (water 4 under the sea's level) a great deal; a quicker search leaning on the distance left
+    (GREED 1.6, 25,000 cells at most). No way found: no road (it was a straight line, over the sea and up mountains).
+    The plan takes about 30 s now (13 s before), in the background.
+  - Their path slabs are placed ones, not "generated": marked as the land's, the next stretch cleared them off as plants.
+  - Cut off in the middle (0.23.16's freeze fix went too far): the ground plan skipped land without loaded land all
+    round it, so pieces of a road were left unshaped. Now land is read and shaped where its own chunk is loaded; only
+    felling a tree needs the land round it loaded. A stretch at a town's end waits for the land out to the town's road it
+    runs on to (read while still loading, the server stopped 30 s); nothing on land not yet loaded is read.
+  - Lava isn't water (`TownBuilder.wet`): a road bridged a lava pool on planks and fence, which caught fire. Lava on any
+    ground a town shapes, or on the land beside it, is sealed with stone.
+  - Drifters (main mod): labelling chests at home only reads chests on loaded land (one away on an errand made the game
+    load its home's land there and then, five seconds' stop).
+  - Tested headless on the user's Tectonic (seed 779): six towns of every shape, every place walked to; the mountain
+    capital 31 of 31 places walked to, its town 16 of 16; 62 stretches of road built, none over 0.2 s; maps show roads
+    winding along the land and down from the capital in bends. A 2 to 5 s stop remains while every road within 1,000
+    blocks is built at once (the debug command: chunks loading and the game's own ticks).
+  - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a road only waits for its land, so
+    it's built a little behind you on fast travel.
+
+- **0.23.18: towns on low flat land, winding roads that never cross the sea, roads leave houses alone, joined bridge
+  railings** (the user, 2026-10-30, with pictures of a capital on a mountain cut into cliffs twenty high, roads straight
+  over the sea, a house half buried by a road, plank bridges: "i think we need to rework city and town placement because
+  idk if a city on a mountain or hill is gonna work", "still very long roads", "make the roads windy and scenic", "make
+  sure the towns are around sea level, that way it automatically goes around the mountains", "the terraforming is infact
+  destroying the houses", "diagonal bridges over rivers the fences dont connect", "random path patches in the middle of
+  the bridge").
+  - The plan reads the land by its real heights (`WorldPlan.real`: the generator's final terrain, from over the sea down,
+    half a millisecond a spot). The rough terrain it used left out Tectonic's crags, and with Continents (in the user's
+    profile, now in the test too) put the land 90 blocks under the sea: mountains looked gentle to towns and roads.
+  - Placement: flat land only (a city's core within 10 blocks, a town's 8, a hamlet's 6, no cliff of more than 5 between
+    spots 16 apart), its core at most 24 over the sea, the lower the better. Nothing suits: it looks twice, then three
+    times as far (at most 1,000 blocks), then in any biome, then isn't made (it went on rougher ground before).
+  - Roads: never over open water (water with no land within about 50 blocks: the sea, a lake; a river's still bridged);
+    none whose way round is more than 1.7 times the straight line (and 200); nations joined by their nearest two towns
+    within 1,600 blocks, not capital to capital (3,200 blocks over the sea in the user's world). They wind: the search
+    leans on a smooth lie of the land (`wander`), and its corners are rounded three times.
+  - A road between towns is cut or built at most 6 blocks from the ground (its banks reach no further: cliffs stood over
+    it). It leaves anything built standing as it is (`TownBuilder.built`: planks, glass, a door... under the top): it took
+    a house's roof for the ground and cut the house away.
+  - Bridges: up to 8 steps of land in the middle of a crossing are bridged over (a sandbar was paved, dirt in the middle
+    of the bridge); railings round a slanting bridge's corners get a post in the corner, and every fence is joined to
+    those beside it (they only touched at their corners).
+  - Tested headless on the user's world seed with Tectonic and Continents: 2 nations, 9 places, 6 roads (2,756 blocks;
+    9,364 before), the plan 37 s. The capital on flat land by the sea: 60 of its 78 houses (31 of 77 on its hill before),
+    64 of 64 places walked to, 29 of 15,164 steps need a jump; two towns 11 of 11 and 15 of 16 houses, all walked to.
+  - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a Drifter standing where a town is
+    made can be built into a wall (one suffocated in the test).
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+### Side session: Touch'n Motion on Drifters (0.23.18-side.1)
+
+The user (2026-10-30): "this EMF mod called touch n motion ... i would love it if drifters were to be compatible with this
+as well". Built on the other session's 0.23.17, then 0.23.18 merged in (0.23.18-side.1).
+- **What it is:** Touch'n Motion (victorkozhokin/emf-compat, `extensions/touch_n_motion`, GPL-3.0, by STRadaT) is a
+  Java mod, an EMF Compat Core extension, not a resource pack: procedural additions on top of an EMF player model (made
+  for Fresh Animations: Player Extension): foot IK on stairs and slabs, balance, torso lean and pose inertia, hand on the
+  wall, leaning on fences, hands through crops, look at creatures, doors/buttons/blocks used by hand, mining swings,
+  fishing, fright, riding. It drives no `.jem` variables of its own: it moves the model parts after EMF has animated them,
+  from its EMF animation hook (`TouchNMotionHook.onAnimationEnd`, `onBipedPoseCopyEnd` for armour), working out what to
+  do right before the model is posed (`ModelSpace.before`, from its mixin on `LivingEntityRenderer.render`).
+- **Why it skipped Drifters:** player only, everywhere: `ModelSpace.before` returns for anything not an
+  `AbstractClientPlayer`, its hook for anything not a `Player`, and its features find players by id and UUID in the
+  client world (`level.getPlayerByUUID`, `level.players()`, `DrawnEntities.inWorld`), mining by the block-crack list
+  under the player's id. EMF itself already animates Drifters with Fresh Animations (the vanilla player model layers).
+  Nothing in a resource pack could change that, and its code can't be copied in (GPL; Drifter is all rights reserved).
+- **The bridge** (`client/render/DrifterTouchNMotion`, `DrifterStandIn`, `DrifterTouchNMotionHook`; mixins
+  `LivingEntityRendererMixin`, `LevelRendererAccessor`): each Drifter within 64 blocks of the camera gets a stand-in
+  `RemotePlayer` in the client world (made and removed only between ticks; never drawn, ticked by nothing but the copy,
+  not pickable or pushable, no sprint particles; ids below every server id). After each client tick it copies the
+  Drifter: position and old position, rotations, ground, water, powder snow, pose, shared and living flags (crouch,
+  sprint, swim, glide, item in use), hands and armour, main arm, swing, hurt, sleeping spot, the walk (worked out as a
+  player's). The Drifter's crack is put under the stand-in's id too. Right before the Drifter's model is posed, the
+  addon's `ModelSpace.before` is called with the stand-in; then in EMF's hook (ours, registered at the first Drifter
+  drawn, so after EMF Compat Core's) the addon's own hook is called with the Drifter's animation state made over to the
+  stand-in (a proxy: its entity, UUID and "is a player" are the stand-in's), with that state on ETF's state stack for
+  the armour copy. A fishing Drifter's bobber is owned by this stand-in (DrifterFishers), so the addon sees its fishing.
+  All of the addon by reflection; EMF and ETF are compile-only (Modrinth maven), the hook class loaded only with both
+  mods there. Any failure turns it off for the session with one log line; without the addon nothing is made.
+- Stands down: riding (the stand-in isn't on the mount), dying, Better Combat swings and rolls (`swingPlaying`), beyond
+  64 blocks. Setting: `touchNMotion` (on), on the Performance page and `/drifter config touchnmotion <true|false>`.
+- Not covered here (done in side.2 below): hands, riding, the pocket.
+
+### Side session: Touch'n Motion, the rest (0.23.18-side.2)
+
+The user (2026-10-31): "how can we add the rest?", then "yea do all three".
+- **Hands** (`hands/HandSignals`, mixins `HelperGameModeMixin` on `ServerPlayerGameMode.useItemOn` and
+  `HelperPlayerMixin` on `Player.interactOn` / `attack`, each only for a Drifter's FakePlayer helper; `MineTask` and
+  `ContainerTask` calls): the addon's server part relays each player's `HandsState` (use/attack held, the block or
+  creature under the crosshair, the container open, stacks moved) and `HandsAct`s (feed, milk, shear, armour stand,
+  seed) to others. A Drifter has no game, so our server sends the same from what it really does: a use holds USE 6 ticks
+  on the block or creature; each mining tick ATTACK on the block (where its look meets it); a container from open to
+  close with a count of stacks moved; acts worked out from the item and the target (wheat to an animal that eats it, a
+  bucket on a cow or goat, shears on one ready, an armour stand, seeds on farmland). Sent on change only, as
+  `drifter:hands` / `drifter:hand_act`, to players tracking the Drifter whose game takes them (registered on the client
+  only with the addon there). The client hands the last state to the addon's `ClientHands.receive` every tick while
+  busy (it forgets after 1.5 s), once when idle again, under the stand-in's id; with no block or creature named, the
+  stand-in's own look (a pick) as the crosshair. Acts go to `ClientHands.receive(HandsAct)`.
+- **Riding:** `DrifterStandIn.getVehicle()` is the Drifter's vehicle (the stand-in isn't among its riders, so vanilla
+  never seats or moves it); while the addon looks (`ModelSpace.before`, both hook calls, the horse lift) the stand-in
+  takes the Drifter's place in the vehicle's passenger list (`EntityPassengersAccessor`; put back in a finally), so its
+  seat and who rows are right. On a horse: the addon's `ClientEventHandler` and `FootGroundingFeature` pre/post render
+  steps around the Drifter's draw (as its mixin on `PlayerRenderer.render`), and its riding pose
+  (`RidingPose.apply` with the horse's walk, kept as EMF Compat Core poses under the Drifter's UUID, cleared on
+  dismount) at the end of the Drifter model's setupAnim, as its mixin does for a player.
+- **Pocket:** `TakeItemMixin` (client, `ClientPacketListener.handleTakeItemEntity`): a Drifter's pickup calls the
+  addon's `PocketStash.picked` with its stand-in.
+- Riding Drifters are no longer left out. The extras are looked up apart: if they don't match, the rest still works.
+- Debug: `/drifter useonentity <target>` (UseOnEntityTask), `/drifter config touchnmotion <true|false>`.
+- Tested in the dev client (EMF, ETF, EMF Compat Core, Touch'n Motion 1.0.4, Fresh Animations + FA Player Extension):
+  the chest (USE on it, the container open, a stack moved, closed: the hand on the chest's edge in the shot), feeding
+  (act 0), shearing (act 2), planting (act 4; bent over the farmland with the seeds), all handed to the stand-ins; the
+  boat (rider 0: arms out to the oars, against a plain sit with it off), the horse (hands forward and leaning, against
+  upright), a minecart (rider 0); pickups handed on (the pocket gesture itself not seen: the Drifter was behind a sheep).
+  A Drifter put on a boat or horse by `/ride` gets off after a second (`dismountIfIdle`), so only its own rides last.
+- **0.23.19: the world built before it's played (a loading screen), towns keep off what's built, no door paths, one
+  road where two go the same way, round ruins, natural slopes in the wild, snow on moved ground, tidy roads, lamps apart,
+  a plan only for its own world** (the user, 2026-10-30/31, with pictures: "the whole world plan needs to be pregenerated
+  before i load the world that way i dont see everything unfold in my eyes ... it could be like an extra loading
+  screen?"; "cut up houses still happen", "the house is not part of the town"; "i think we can remove paths that connect
+  to houses doorways"; "there is usually two roads right next to eachother and they both lead the same way"; "paths should
+  go around any type of ruins/outposts"; "the slopes are smooth instead of cobblestone walls ... that can only be for paths
+  in the wild ... the cobblestone in towns can stay"; "when it comes to snowy biomes it doesnt blend in well"; "lamps most
+  likely need to be spread out"; "floating leaves, floating vines on the paths").
+  - `WorldBuild`: a new civilized world, as it first opens, makes its plan, then every town in it and every road between
+    them, their land generated for them (two towns' land loading ahead of the one being made, six stretches of road at
+    once, 40 ms a tick on towns), before anyone plays. Players wait behind a loading screen (the addon's client:
+    `WorldBuildScreen`, the title screen's panorama, what it's on, a bar, a clock; it can't be closed), held where they
+    stand and unhurt. Left halfway, it carries on when the world's opened again. Old worlds: as before.
+  - The plan works the land's heights out ahead on all but one core at once (`WorldPlan.prefetch`): a plan of the user's
+    world in 11 s (6.7 minutes one at a time, with the game running beside it).
+  - A plan is only for the world it was made for (`WorldPlan.generation`): the user left a world before its plan was
+    ready and made another; the first's plan was handed to the second as well, its places on the second's land, a capital
+    in the sea (Coppercrest, "water in 1257 of 1257 samples") and a hill town with 35 lamp posts for 3 houses.
+  - Cut houses: a Drifter's own house, built before the town was made round it, was cut through by the town's ground,
+    roads and paths. A town now finds what's built on its land first (`TownBuilder.built`: blocks the land doesn't make,
+    under the top) and keeps its roads (they stop short), houses, lots and paths off it; its ground isn't shaped there.
+    Roads between towns already did (0.23.18).
+  - No paths from house doors (they stood up as blocks of stone brick by the doors); the store keeps its path.
+  - Roads between towns: a later one along an earlier one's way costs a third (`ON_ROAD`), so roads the same way run as
+    one; where it runs within 7 blocks of one already planned only its pieces off it are built, each joined to it (no two
+    side by side, none paved over another where it branches or crosses); a town gets one way in for them. Their way goes
+    round where the world's own placement puts a structure on the land (a ruin, an outpost, a temple: `structureBy`, 8
+    times the cost); in the wild their banks are slopes of the land's own earth a block at a time (`GroundPlan.wildSlopes`,
+    `slope`), no cobblestone walls. Towns keep their cobblestone terraces and retaining walls.
+  - Snow: moved ground where snow lay gets a layer of snow back (and its grass snowy).
+  - Tidy: along roads and paths, after they're built, trunks left in the air and leaves no tree holds go (the main mod's
+    tidy, `DrifterApi.tidyTrees`), and vines with nothing to hang on.
+  - Lamp posts at least 12 blocks apart (`TownLights.LAMP_APART`); a dark spot between gets a torch.
+  - Debug: `/drifterciv plan height` (the land's height here as the plan reads it, and as generated).
+  - Tested headless on the user's world seed (Tectonic, Continents): the plan in 10 s, the world built in 208 s (1 city,
+    3 towns, a hamlet, a ruin, 40 stretches of road); every place in every town walked to, the capital 54 of 54 houses,
+    0 of 14,333 steps a jump. On another seed of theirs, 3 nations and 20 places: 18 minutes with the game running beside
+    it and before the land's heights were worked out ahead (the plan 6.7 minutes of it).
+  - Not yet: a road stretch now and then has a few steps a jump where it was held to 6 blocks off the ground; founded
+    towns don't count toward the limit.
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries); LOD mods (Distant Horizons) after.
+
+- **0.23.20: the loading screen under a minute (the plan in about 10 s, only what's in sight of spawn before play, the
+  rest built ahead out of sight as they play); land at the sea's level is land** (the user, 2026-10-31: "okay how can we
+  optimize building the world / mien took about 5 minutes"; "the goal is to get this down to a minute at most").
+  - Where the five minutes went (their log): the plan 60 s (roads 46 s, 9 of 14 roads finding no way), then 275 s of
+    building, most of it waiting for land to be generated: about 10,000 chunks for 16 places and 58 stretches of road.
+  - Before play now only what's within sight of spawn and six chunks more (`WorldBuild.FIRST_CHUNKS`); everything else
+    is built as players play, nearest first, their view distance and 20 chunks more ahead of them (`WorldBuild.ahead`:
+    464 blocks at the user's 9; it was twelve chunks, a town put up in plain view): a town or two's land loading at a time
+    (two while the world's readied), three stretches of road (six). A town's land is asked for as soon as the plan's
+    places are chosen, before its roads are planned (`Plan.placesChosen`); a town of the plan waits for the whole plan.
+  - The plan: a spot's looked for nearest first, 48 at a time, till 16 suit (it read the land over a circle a thousand
+    blocks across for each first); a height's looked for from over the last one worked out near it, not from high over
+    the sea (`Plan.hints`): the plan of the user's world in 9 to 23 s (37 s), heights 1.5 ms each on all cores.
+  - Land whose top is at the sea's level is a beach, not water (water's a block under it): taken for water, the low land
+    round towns by the sea was sea, and 9 roads of 14 found no way (3 of 14 now).
+  - Trees tidied only on land really there (`Felling.writable`: hasChunkAt says yes for land still being made, and a
+    road's tidy stopped the server six seconds waiting for it).
+  - Tested: headless on the user's seed with their view distance, ready 33 s after the world opened (the plan 23 s of it);
+    in the dev client, a brand-new world: the loading screen ("Planning the nations", the bar, the clock) then play 23 s
+    after joining.
+  - Next: W6 + W7; LOD mods (Distant Horizons).
+- **0.23.21: no half-built houses, towns in swamps keep their land, one bridge where two roads cross a river, no
+  stacked slabs, no trees or grass gathered in town** (the user, 2026-10-31, with pictures: "bridges being mixed/blocked
+  off / stacked slabs, especially for path blocks making it look weird / Cutoff houses / and i think we need to remove the
+  need for drifters to cut down trees and grass in town, and only look for that in the wild, it causes all that pillaring
+  they do").
+  - Cut-off houses, found at last (a watch on every block taken out of a town house, `[watch]`, since taken out again):
+    the town itself. Each town left its newest house with everything over a third of its height taken off, for its owner
+    to finish over the next days (A5, a town's past); it looked like a house cut in half, three times reported. Gone: every
+    town house is whole. In the user's world, 2 of about 100 houses (`/drifterciv town damage`, debug: town houses with
+    blocks gone, by layer).
+  - Towns in a mangrove swamp kept off thousands of columns of their own land (`TownBuilder.built` took mangrove roots
+    and moss carpet for building: 5,473 and 3,206 columns round one town, 2 houses of 11): the land's growing things count
+    as land now (mangrove roots, moss, flowers, saplings, corals, cave vines, sugar cane, cactus, bamboo, kelp, dripleaf...).
+    `/drifterciv plan built` (debug): what's counted as built within 128 blocks, by block.
+  - Roads between towns: under a slab already laid, the block it's on is their ground (`paved`): the stretch beside, sharing
+    its last few blocks, paved over its slabs as ground, a block up; two roads within 10 blocks of each other are one
+    (`SHARE`, was 7: two bridges side by side over a river); a deck laid where another road's railing stood takes the
+    railing off, and no railing goes across another bridge's deck; a bridge's wood is from where it is, not the stretch's
+    middle (two woods on one river).
+  - Drifters in a town gather no trees, leaves, grass or flowers there (`KnownBlocks.mayGather`, `DrifterApi.setSettled`:
+    a town's land, its furthest house and 24 more): wood and seeds come from the woods round it, no pillaring up the last
+    trees between houses. Clearing a house's own spot still can.
+  - Tested: two towns of the user's world and the road between, 6,000 ticks: no town house with a block gone (one before),
+    every place walked to.
+- **0.23.22: W6 + W7, a history already written and towns nobody's near living by it** (the user, 2026-10-31: "you are
+  free to start w6 and w7, that being included in the pre generator loading screen").
+  - `History`: made with the world plan, on the loading screen (13 ms), after its roads: 1,000 days of the places' past a
+    day a step, on summaries. Each place: a leader with a nature (aggression, warmth, ambition), who comes after them
+    (250 to 700 days a leader; a nation's ruler's passing in the chronicle), its people (born, and lost in battle), when it
+    was founded (capitals first, their towns after, hamlets later; the plan's ruins abandoned "after a hard winter"...).
+    Between powers (a nation, or a town in none): a standing their rulers' natures move each day, nearer seats grating
+    more; quarrels at the border; a peace pact on good terms, an alliance after; war on bad terms by an aggressive ruler;
+    battles near the frontier towns that cost each side people (a leader falling now and then); a frontier town taken (to
+    the winner's nation, conquered) or burned (a ruin); a nation conquered whole by one much stronger; peace when they're
+    weary or the loser asks; a conquered town wearing of its nation and, its leader ambitious, rising up (free, or at war);
+    a free town joining its ally's nation. Its events go in the chronicle, days before day 1 (34 to 36 for 4 nations).
+  - Towns made to match: in the nation their past left them in (a nation's founding day its capital's), a ruin where a
+    town fell, their leader the past's (the first person of the town is named so and leads it), founded when the past
+    says; with each town of another power already made, their standing, pacts and any war still on
+    (`WorldPlan.made`); their people's grudges with the people of towns their nation fought (`TownHistory`: a grudge 55% of
+    the time, not 15%). A conquered town pays its nation more and may rise up (`Nations.Member.conquered`).
+  - W7: after day 1, the powers none of whose towns are made go on by the same summary, a step each game day (their news in
+    the chronicle as "News from afar: ..."); the nations follow (`Nations.follow`: a town taken or fallen moves, a nation
+    conquered whole goes), and a town made later is made as its summary has it then (fallen since: a ruin). A power with a
+    town made lives by the towns' own diplomacy from then on. Saved with the plan; worlds planned before have no past.
+    (Not done: a town made in full going back to a summary when nobody's been near a long time; the main mod's offscreen
+    Drifters carry made towns.)
+  - `/drifterciv plan` says how far its past has gone; its list shows fallen towns as ruins.
+  - Tested headless on the user's seed: the past (4 nations, 2 wars at once, a town burned, rulers coming and going, a
+    border quarrel or two a year); three towns made to match (a ruin where one burned, an old grudge between towns of
+    nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
+  - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.
+
 
 ### Side session: more names, and everyone goes by a nickname (0.23.22-side.1)
 
