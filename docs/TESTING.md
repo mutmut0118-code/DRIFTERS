@@ -1550,11 +1550,12 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       - In a hamlet (the smallest towns, dirt roads), roads and paths climb with path slabs, never stairs.
       - Stand where a new town is being made: no seeds or flowers left lying on the ground after it, and less lag while
         it's made.
-- [ ] The world built before you play (0.23.19): make a new world (civilized world on). After the usual loading, a
-      "Building the world" screen shows what it's on ("Planning the nations", "Building towns (3 of 12)", "Laying roads
-      (40 of 300)") with a bar and a clock. It can't be closed. When it goes, every town and road is already there: walk
-      or fly to a town and nothing gets built in front of you. Quit halfway and reopen the world: it carries on where it
-      was. Old worlds don't get the screen.
+- [ ] The world readied before you play (0.23.19, 0.23.20): make a new world (civilized world on). After the usual
+      loading, a "Building the world" screen shows what it's on ("Planning the nations", then any town or road in sight
+      of spawn), a bar and a clock; it can't be closed, and it's gone in under a minute. Then play: towns and roads are
+      built out of sight ahead of you (about 460 blocks off at render distance 9), so walk, ride or fly toward a town and
+      it's already there when you can see it, never going up in front of you. Quit while the screen's up and reopen: it
+      carries on. Old worlds don't get the screen.
 - [ ] Natural slopes and snow (0.23.19): beside a road between towns cut into a hill, the land rises a block at a time
       in its own grass, dirt and stone: no cobblestone walls (towns keep their cobblestone terraces). In a snowy place the
       moved ground has snow on it like the land round it (no green patches in the snow).

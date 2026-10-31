@@ -221,6 +221,16 @@ final class WorldPlan {
 			try {
 				Plan plan = new Plan(level, spawn, count, spread);
 				plan.generation = made;
+				// (Its places, as soon as they're chosen: their land generated while the roads between them are planned.)
+				plan.placesChosen = () -> server.execute(() -> {
+					if (made == generation && server.overworld() == level && !ready) {
+						places.clear();
+						places.addAll(plan.places);
+						for (Place place : places) {
+							TownSites.planned(level, place);
+						}
+					}
+				});
 				plan.make();
 				server.execute(() -> {
 					// (Only for the world it was made for: a world left before its plan was ready, and another made, got both
@@ -359,6 +369,9 @@ final class WorldPlan {
 	private static final int CLIFF = 5;
 	/** A place's core is at most this far over the sea. */
 	private static final int LOWLAND = 24;
+	/** A spot's looked for among this many nearest at a time, till this many suit. */
+	private static final int BATCH = 48;
+	private static final int ENOUGH = 16;
 	/** A place looks for flat land at most this far from where it was meant to be. */
 	private static final int MOST_MOVE = 1000;
 
@@ -398,6 +411,10 @@ final class WorldPlan {
 
 			this.freeTowns();
 			this.ruins();
+			if (this.placesChosen != null) {
+				this.placesChosen.run();
+			}
+
 			long towns = System.nanoTime();
 			this.roads();
 			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights on its grid, {} in all ({} ms)", (capitals - start)
@@ -573,7 +590,7 @@ final class WorldPlan {
 					}
 
 					int y = this.realLand(c[0] + a * FINE, c[1] + b * FINE)[0];
-					if (y <= this.generator.getSeaLevel()) {
+					if (y < this.generator.getSeaLevel()) {
 						return false;
 					}
 
@@ -619,7 +636,9 @@ final class WorldPlan {
 			int[] known = this.realHeights.get(key);
 			if (known == null) {
 				int floor = this.real(x, z);
-				known = new int[] {floor, floor <= this.generator.getSeaLevel() ? 1 : 0};
+				// (Water's up to a block under the sea's level: land whose top's at it is a beach. Taken for water, the low land
+				// round towns by the sea was sea, and roads found no way between them: the user's world, 9 roads of 14.)
+				known = new int[] {floor, floor < this.generator.getSeaLevel() ? 1 : 0};
 				this.realHeights.put(key, known);
 			}
 
@@ -633,6 +652,9 @@ final class WorldPlan {
 		 * sea). A cave's mouth just under the top can read lower; near enough.
 		 */
 		private final java.util.concurrent.atomic.LongAdder realNanos = new java.util.concurrent.atomic.LongAdder();
+		/** Told when its places are chosen (before its roads). */
+		@Nullable
+		Runnable placesChosen;
 		/** The world's {@link WorldPlan#generation} it's made for (-1: a debug one, never stopped). */
 		int generation = -1;
 
@@ -672,7 +694,11 @@ final class WorldPlan {
 			net.minecraft.world.level.levelgen.DensityFunction density = this.randomState.router().finalDensity();
 			int low = this.level.getMinBuildHeight();
 			int high = this.level.getMaxBuildHeight() - 1;
-			int y = Math.min(high, this.generator.getSeaLevel() + 96);
+			// (From a little over the land worked out nearest before, if any: half the looks of coming down from high over the
+			// sea every time.)
+			long near = BlockPos.asLong(x >> 6, 0, z >> 6);
+			Integer hint = this.hints.get(near);
+			int y = Math.min(high, hint != null ? hint + 24 : this.generator.getSeaLevel() + 96);
 			while (y < high && this.solidAt(density, x, y, z)) {
 				y = Math.min(high, y + 32);
 			}
@@ -692,8 +718,12 @@ final class WorldPlan {
 				}
 			}
 
+			this.hints.put(near, y);
 			return y;
 		}
+
+		/** The last land height worked out in each square 64 blocks wide: where the next there's looked for from. */
+		private final Map<Long, Integer> hints = new java.util.concurrent.ConcurrentHashMap<>();
 
 		private boolean solidAt(net.minecraft.world.level.levelgen.DensityFunction density, int x, int y, int z) {
 			return density.compute(new net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext(x, y, z)) > 0;
@@ -760,20 +790,33 @@ final class WorldPlan {
 			}
 
 			candidates.sort(java.util.Comparator.comparingDouble(c -> Math.hypot(c[0] - x0, c[1] - z0)));
-			// (Every cell any of them looks at, worked out ahead all at once.)
-			List<int[]> around = new ArrayList<>();
-			int far = move + size.whole() + CELL;
-			for (int dx = -far; dx <= far; dx += CELL) {
-				for (int dz = -far; dz <= far; dz += CELL) {
-					if (dx * dx + dz * dz <= far * far) {
-						around.add(new int[] {Math.floorDiv(x0 + dx, CELL) * CELL + CELL / 2, Math.floorDiv(z0 + dz, CELL) * CELL + CELL / 2});
-					}
-				}
-			}
-
-			this.prefetch(around);
 			List<double[]> suits = new ArrayList<>();
-			for (int[] c : candidates) {
+			for (int k = 0; k < candidates.size(); k++) {
+				// (Nearest first, a batch at a time, the land each looks at worked out ahead all at once; enough that suit, and
+				// it looks no further: the whole circle first took most of a plan's time.)
+				if (k % BATCH == 0) {
+					if (suits.size() >= ENOUGH) {
+						break;
+					}
+
+					java.util.Set<Long> cells = new java.util.HashSet<>();
+					List<int[]> around = new ArrayList<>();
+					for (int[] c : candidates.subList(k, Math.min(candidates.size(), k + BATCH))) {
+						for (int dx = -size.whole(); dx <= size.whole(); dx += CELL) {
+							for (int dz = -size.whole(); dz <= size.whole(); dz += CELL) {
+								int cx = Math.floorDiv(c[0] + dx, CELL) * CELL + CELL / 2;
+								int cz = Math.floorDiv(c[1] + dz, CELL) * CELL + CELL / 2;
+								if (dx * dx + dz * dz <= size.whole() * size.whole() && cells.add(BlockPos.asLong(cx, 0, cz))) {
+									around.add(new int[] {cx, cz});
+								}
+							}
+						}
+					}
+
+					this.prefetch(around);
+				}
+
+				int[] c = candidates.get(k);
 				if (this.land(c[0], c[1])[1] == 1 || biome && !this.townBiome(c[0], c[1])) {
 					continue;
 				}

@@ -1,6 +1,7 @@
 package com.dinglebob.drifterciv;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -13,17 +14,21 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A new civilized world built before it's played (the user, 2026-10-30: "the whole world plan needs to be pregenerated
- * before i load the world that way i dont see everything unfold in my eyes ... it could be like an extra loading screen?"):
- * once, as it first opens, the plan's made, then every town in it and every road between them, their land generated for
- * them, as fast as the server goes, before anyone plays. Players in it meanwhile wait behind a loading screen (the
- * addon's client shows it, {@link Progress}), held where they stand and unhurt. Old worlds, and towns where villages would
- * be, are made as players come near, as before.
+ * A new civilized world readied before it's played (the user, 2026-10-30: "the whole world plan needs to be pregenerated
+ * before i load the world that way i dont see everything unfold in my eyes ... it could be like an extra loading screen?";
+ * 2026-10-31: "the goal is to get this down to a minute at most"): once, as it first opens, the plan's made, then every
+ * town and road within sight of spawn and a little more ({@link #FIRST_CHUNKS}), their land generated for them, before
+ * anyone plays. Players wait meanwhile
+ * behind a loading screen (the addon's client shows it, {@link Progress}), held where they stand and unhurt. The rest is
+ * built as they play, that far ahead of them: out of sight, never in front of them. (Everything at once took five minutes
+ * on the user's machine, ten thousand chunks of land generated for it.)
  */
 public final class WorldBuild {
 	private WorldBuild() {
@@ -39,6 +44,9 @@ public final class WorldBuild {
 	private static String stage = "";
 	private static int done;
 	private static int total;
+	/** Built this many chunks out past a player's view distance; before play, all this many out from spawn's. */
+	private static final int AHEAD_CHUNKS = 20;
+	private static final int FIRST_CHUNKS = 6;
 
 	static void register() {
 		PayloadTypeRegistry.playS2C().register(Progress.TYPE, Progress.CODEC);
@@ -73,22 +81,27 @@ public final class WorldBuild {
 			done = 0;
 			total = 0;
 		} else {
+			ServerLevel level = server.overworld();
+			// (Before play, only what could be seen from spawn and a little more: the rest goes on being built ahead as they play,
+			// out of sight. Everything ahead first took over a minute, most of it waiting for land to be generated.)
+			int ahead = (server.getPlayerList().getViewDistance() + FIRST_CHUNKS) * 16;
+			// The places and stretches of road near enough to build now (a stretch at a town's end once its town is).
+			List<WorldPlan.Place> near = WorldPlan.places.stream().filter(place -> distance(level, place.x, place.z) < ahead + (place.kind.equals("city") ? 128 : 0))
+				.toList();
+			int places = near.size();
+			int made = (int)near.stream().filter(place -> place.made).count();
+			int[] roads = Highways.nearStretches(level, ahead);
 			if (!started) {
 				started = true;
-				TownSites.makeAllPlanned();
-				DrifterCivilizations.LOGGER.info("[build] the plan's ready: building {} places and {} stretches of road", WorldPlan.places.size(),
-					Highways.stretches());
+				DrifterCivilizations.LOGGER.info("[build] the plan's ready: {} places of {} and {} stretches of road of {} within {} blocks built first", places,
+					WorldPlan.places.size(), roads[1], Highways.stretches(), ahead);
 			}
 
-			int places = WorldPlan.places.size();
-			int made = (int)WorldPlan.places.stream().filter(place -> place.made).count();
-			int stretches = Highways.stretches();
-			int built = Highways.built();
-			stage = made < places ? "Building towns (" + made + " of " + places + ")" : "Laying roads (" + built + " of " + stretches + ")";
+			stage = made < places ? "Building towns (" + made + " of " + places + ")" : "Laying roads (" + roads[0] + " of " + roads[1] + ")";
 			// (A town counts as much as twenty stretches of road: about the time each takes.)
-			done = made * 20 + built;
-			total = places * 20 + stretches;
-			if (made >= places && built >= stretches) {
+			done = made * 20 + roads[0];
+			total = places * 20 + roads[1];
+			if (made >= places && roads[0] >= roads[1]) {
 				finish(server);
 				return;
 			}
@@ -117,6 +130,29 @@ public final class WorldBuild {
 		held.clear();
 		wasInvulnerable.clear();
 		DrifterCivilizations.LOGGER.info("[build] the world's built ({} s)", (System.currentTimeMillis() - since) / 1000);
+	}
+
+	/**
+	 * How far out from the players towns and roads are built: their view distance and {@link #AHEAD_CHUNKS} more (a town
+	 * put up twelve chunks off was put up in plain view).
+	 */
+	static int ahead(MinecraftServer server) {
+		return Math.max(256, Math.min(1024, (server.getPlayerList().getViewDistance() + AHEAD_CHUNKS) * 16));
+	}
+
+	/** From the nearest player to here (across: x and z), or from spawn while the world's readied before it's played. */
+	static double distance(ServerLevel level, int x, int z) {
+		double best = Double.MAX_VALUE;
+		for (ServerPlayer player : level.players()) {
+			best = Math.min(best, Math.hypot(player.getX() - x, player.getZ() - z));
+		}
+
+		if (building) {
+			BlockPos spawn = level.getSharedSpawnPos();
+			best = Math.min(best, Math.hypot(spawn.getX() - x, spawn.getZ() - z));
+		}
+
+		return best;
 	}
 
 	/** Waiting players kept where they stand, unhurt (nothing gets at them while they can't see). */

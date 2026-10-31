@@ -98,9 +98,8 @@ final class TownSites {
 		}
 	}
 
-	/** A player this near: its land loaded and the town made (twelve chunks; a city, being bigger and seen from further, 20). */
-	private static final double MAKE_WITHIN = 12 * 16;
-	private static final double CITY_MAKE_WITHIN = 20 * 16;
+	/** A city's made this much further off than a town (bigger, seen from further). */
+	private static final int CITY_MORE = 128;
 	/** Chunks loaded round a town's middle while it's made (its reach, and what's looked at round it). */
 	private static final int LOAD_RADIUS = TownBuilder.MOST_REACH / 16 + 2;
 	private static final int CITY_LOAD_RADIUS = TownBuilder.CITY_MOST_REACH / 16 + 2;
@@ -197,26 +196,28 @@ final class TownSites {
 				done(server);
 			}
 
-			// (While the world's built before it's played, the next town's land is asked for as this one's made: each waited
-			// a minute for its land after the last.)
-			if (!WorldBuild.building) {
-				return;
-			}
+			// (The next town's land is asked for as this one's made: each waited a minute for its land after the last.)
 		}
 
 		if (server.getTickCount() % 20 != 0 || sites.isEmpty()) {
 			return;
 		}
 
-		for (Site site : List.copyOf(sites)) {
+		// Nearest first (to a player, or to spawn while the world's built before it's played).
+		List<Site> order = new ArrayList<>(sites);
+		order.sort(Comparator.comparingDouble(site -> {
+			ServerLevel level = level(server, site.dimension);
+			return level == null ? Double.MAX_VALUE : WorldBuild.distance(level, site.x, site.z);
+		}));
+		for (Site site : order) {
 			ServerLevel level = level(server, site.dimension);
 			if (level == null || !site.forced && !near(level, site)) {
 				continue;
 			}
 
 			// Its land: asked for (made out of sight by the generator's own threads), then, once all of it's there, the town.
-			// (Building the whole world: two more towns' land at a time than the one being made.)
-			if (!site.loading && WorldBuild.building && sites.stream().filter(other -> other.loading && other != making).count() >= 2) {
+			// (A town or two's land at a time besides the one being made, not every town ahead's at once.)
+			if (!site.loading && sites.stream().filter(other -> other.loading && other != making).count() >= (WorldBuild.building ? 2 : 1)) {
 				continue;
 			}
 
@@ -226,7 +227,8 @@ final class TownSites {
 				continue;
 			}
 
-			if (job != null || !loaded(level, site)) {
+			// (A town of the plan waits for the whole plan: its ways in come with its roads.)
+			if (job != null || !loaded(level, site) || site.planned != null && !WorldPlan.ready) {
 				continue;
 			}
 
@@ -266,9 +268,12 @@ final class TownSites {
 		Towns.save(server);
 	}
 
+	/**
+	 * Near enough to make: well out past what a player can see (the user, 2026-10-30: "i dont see everything unfold in my
+	 * eyes"; it was twelve chunks, a town put up in plain view), a city further.
+	 */
 	private static boolean near(ServerLevel level, Site site) {
-		double within = site.city() ? CITY_MAKE_WITHIN : MAKE_WITHIN;
-		return level.players().stream().anyMatch(player -> Math.hypot(player.getX() - site.x, player.getZ() - site.z) < within);
+		return WorldBuild.distance(level, site.x, site.z) < WorldBuild.ahead(level.getServer()) + (site.city() ? CITY_MORE : 0);
 	}
 
 	private static boolean loaded(ServerLevel level, Site site) {
@@ -307,15 +312,6 @@ final class TownSites {
 		site.ruin = place.ruin();
 		site.planned = place.id;
 		sites.add(site);
-	}
-
-	/** The world built before it's played ({@link WorldBuild}): every planned spot made now, no player needed. */
-	static void makeAllPlanned() {
-		for (Site site : sites) {
-			if (site.planned != null) {
-				site.forced = true;
-			}
-		}
 	}
 
 	/** Debug: a spot for a town of this many households here, made now (no player needed). */
@@ -656,6 +652,11 @@ final class TownSites {
 	static void save(CompoundTag tag) {
 		ListTag list = new ListTag();
 		for (Site site : sites) {
+			// (A plan's spot before the plan's saved with it: the plan's made again on opening, and its spots with it.)
+			if (site.planned != null && !WorldPlan.ready) {
+				continue;
+			}
+
 			CompoundTag one = new CompoundTag();
 			one.putString("Dimension", site.dimension);
 			one.putInt("X", site.x);

@@ -495,6 +495,12 @@ public final class Felling {
 			return Math.abs((pos.getX() >> 4) - center.x) <= 1 && Math.abs((pos.getZ() >> 4) - center.z) <= 1;
 		}
 
+		// (Really there: hasChunkAt says yes for land still being made, and reading it waited for it there and then; a road
+		// between towns tidying its trees stopped the server six seconds.)
+		if (level instanceof net.minecraft.server.level.ServerLevel server) {
+			return server.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4) != null;
+		}
+
 		return level.hasChunkAt(pos);
 	}
 }

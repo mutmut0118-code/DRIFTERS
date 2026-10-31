@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world built before it's played (0.23.19); next W6 + W7 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20); next W6 + W7 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -1214,3 +1214,24 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Not yet: a road stretch now and then has a few steps a jump where it was held to 6 blocks off the ground; founded
     towns don't count toward the limit.
   - Next: W6 + W7 (a history already written; towns nobody's near as summaries); LOD mods (Distant Horizons) after.
+- **0.23.20: the loading screen under a minute (the plan in about 10 s, only what's in sight of spawn before play, the
+  rest built ahead out of sight as they play); land at the sea's level is land** (the user, 2026-10-31: "okay how can we
+  optimize building the world / mien took about 5 minutes"; "the goal is to get this down to a minute at most").
+  - Where the five minutes went (their log): the plan 60 s (roads 46 s, 9 of 14 roads finding no way), then 275 s of
+    building, most of it waiting for land to be generated: about 10,000 chunks for 16 places and 58 stretches of road.
+  - Before play now only what's within sight of spawn and six chunks more (`WorldBuild.FIRST_CHUNKS`); everything else
+    is built as players play, nearest first, their view distance and 20 chunks more ahead of them (`WorldBuild.ahead`:
+    464 blocks at the user's 9; it was twelve chunks, a town put up in plain view): a town or two's land loading at a time
+    (two while the world's readied), three stretches of road (six). A town's land is asked for as soon as the plan's
+    places are chosen, before its roads are planned (`Plan.placesChosen`); a town of the plan waits for the whole plan.
+  - The plan: a spot's looked for nearest first, 48 at a time, till 16 suit (it read the land over a circle a thousand
+    blocks across for each first); a height's looked for from over the last one worked out near it, not from high over
+    the sea (`Plan.hints`): the plan of the user's world in 9 to 23 s (37 s), heights 1.5 ms each on all cores.
+  - Land whose top is at the sea's level is a beach, not water (water's a block under it): taken for water, the low land
+    round towns by the sea was sea, and 9 roads of 14 found no way (3 of 14 now).
+  - Trees tidied only on land really there (`Felling.writable`: hasChunkAt says yes for land still being made, and a
+    road's tidy stopped the server six seconds waiting for it).
+  - Tested: headless on the user's seed with their view distance, ready 33 s after the world opened (the plan 23 s of it);
+    in the dev client, a brand-new world: the loading screen ("Planning the nations", the bar, the clock) then play 23 s
+    after joining.
+  - Next: W6 + W7; LOD mods (Distant Horizons).

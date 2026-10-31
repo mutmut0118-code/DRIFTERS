@@ -31,10 +31,9 @@ final class Highways {
 
 	/** Points a stretch (four blocks apart: 48 blocks). */
 	static final int PIECE = 12;
-	/** A player this near a stretch: it's built (its land loaded first). */
-	private static final double BUILD_WITHIN = 12 * 16;
 	private static final int LOAD_RADIUS = 3;
-	/** While the world's built before it's played, at most this many stretches' land loading at once. */
+	/** At most this many stretches' land loading at once (while the world's built before it's played: more). */
+	private static final int AT_ONCE = 3;
 	private static final int BUILDING_AT_ONCE = 6;
 	/** How far a stretch at a town's end may reach to meet its roads. */
 	private static final int MEET_WITHIN = 64;
@@ -64,19 +63,28 @@ final class Highways {
 		}
 
 		List<WorldPlan.Highway> roads = WorldPlan.highways;
+		// The stretches near enough, nearest first.
+		List<int[]> wanted = new ArrayList<>();
 		for (int h = 0; h < roads.size(); h++) {
 			WorldPlan.Highway road = roads.get(h);
 			for (int p = 0; p < road.built.length; p++) {
-				if (road.built[p]) {
-					continue;
+				int a = p * PIECE;
+				int[] mid = road.points.get((a + Math.min(road.points.size() - 1, a + PIECE)) / 2);
+				if (!road.built[p] && near(level, mid)) {
+					wanted.add(new int[] {h, p, (int)WorldBuild.distance(level, mid[0], mid[1])});
 				}
+			}
+		}
 
+		wanted.sort(Comparator.comparingInt(one -> one[2]));
+		for (int[] one : wanted) {
+			int h = one[0];
+			int p = one[1];
+			WorldPlan.Highway road = roads.get(h);
+			{
 				int a = p * PIECE;
 				int b = Math.min(road.points.size() - 1, a + PIECE);
 				int[] mid = road.points.get((a + b) / 2);
-				if (!near(level, mid)) {
-					continue;
-				}
 
 				// (The stretch at a town's end runs on to meet its roads: the town first.)
 				boolean first = p == 0 && road.fromEnd;
@@ -105,8 +113,8 @@ final class Highways {
 				}
 
 				if (!loading.containsKey(key)) {
-					// (Building the whole world: a few stretches' land asked for at a time, not every road's at once.)
-					if (WorldBuild.building && loading.size() >= BUILDING_AT_ONCE) {
+					// (A few stretches' land asked for at a time, not every road ahead's at once.)
+					if (loading.size() >= (WorldBuild.building ? BUILDING_AT_ONCE : AT_ONCE)) {
 						continue;
 					}
 
@@ -146,6 +154,31 @@ final class Highways {
 		}
 	}
 
+	/**
+	 * The stretches within this of a player (or spawn) to build now (at a town's end, once the town's made): how many are
+	 * built, and how many there are.
+	 */
+	static int[] nearStretches(ServerLevel level, int within) {
+		int built = 0;
+		int all = 0;
+		for (WorldPlan.Highway road : WorldPlan.highways) {
+			for (int p = 0; p < road.built.length; p++) {
+				int a = p * PIECE;
+				int[] mid = road.points.get((a + Math.min(road.points.size() - 1, a + PIECE)) / 2);
+				boolean first = p == 0 && road.fromEnd;
+				boolean last = p == road.built.length - 1 && road.toEnd;
+				if (WorldBuild.distance(level, mid[0], mid[1]) >= within || first && !made(road.from) || last && !made(road.to)) {
+					continue;
+				}
+
+				all++;
+				built += road.built[p] ? 1 : 0;
+			}
+		}
+
+		return new int[] {built, all};
+	}
+
 	/** All the plan's stretches of road, and how many are built. */
 	static int stretches() {
 		return WorldPlan.highways.stream().mapToInt(road -> road.built.length).sum();
@@ -162,16 +195,13 @@ final class Highways {
 		return built;
 	}
 
+	/** Near enough to build: well out past what a player can see ({@link WorldBuild#ahead}; it was twelve chunks, in plain view). */
 	private static boolean near(ServerLevel level, int[] at) {
-		if (WorldBuild.building) {
-			return true;
-		}
-
 		if (forcedNear != null && Math.hypot(forcedNear.getX() - at[0], forcedNear.getZ() - at[1]) < 1000) {
 			return true;
 		}
 
-		return level.players().stream().anyMatch(player -> Math.hypot(player.getX() - at[0], player.getZ() - at[1]) < BUILD_WITHIN);
+		return WorldBuild.distance(level, at[0], at[1]) < WorldBuild.ahead(level.getServer());
 	}
 
 	private static boolean made(java.util.UUID id) {
