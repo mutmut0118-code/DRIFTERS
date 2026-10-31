@@ -422,6 +422,13 @@ public final class DrifterCommands {
 					+ " (for Drifters that haven't got one yet)"), true);
 				return 1;
 			})))
+			// Touch'n Motion on Drifters (a client setting: in singleplayer, the same as the settings page's).
+			.then(Commands.literal("touchnmotion").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setTouchNMotion(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Touch'n Motion on Drifters " + (com.dinglebob.drifter.DrifterConfig.touchNMotion() ? "on" : "off")
+					+ " (this game's own setting; in multiplayer each player's)"), true);
+				return 1;
+			})))
 			// Gap jumps on or off (to compare, or if they cause trouble).
 			.then(Commands.literal("parkour").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setParkour(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));

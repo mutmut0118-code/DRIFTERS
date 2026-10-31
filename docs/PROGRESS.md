@@ -4233,6 +4233,71 @@ The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
   - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a Drifter standing where a town is
     made can be built into a wall (one suffocated in the test).
   - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+### Side session: Touch'n Motion on Drifters (0.23.18-side.1)
+
+The user (2026-10-30): "this EMF mod called touch n motion ... i would love it if drifters were to be compatible with this
+as well". Built on the other session's 0.23.17, then 0.23.18 merged in (0.23.18-side.1).
+- **What it is:** Touch'n Motion (victorkozhokin/emf-compat, `extensions/touch_n_motion`, GPL-3.0, by STRadaT) is a
+  Java mod, an EMF Compat Core extension, not a resource pack: procedural additions on top of an EMF player model (made
+  for Fresh Animations: Player Extension): foot IK on stairs and slabs, balance, torso lean and pose inertia, hand on the
+  wall, leaning on fences, hands through crops, look at creatures, doors/buttons/blocks used by hand, mining swings,
+  fishing, fright, riding. It drives no `.jem` variables of its own: it moves the model parts after EMF has animated them,
+  from its EMF animation hook (`TouchNMotionHook.onAnimationEnd`, `onBipedPoseCopyEnd` for armour), working out what to
+  do right before the model is posed (`ModelSpace.before`, from its mixin on `LivingEntityRenderer.render`).
+- **Why it skipped Drifters:** player only, everywhere: `ModelSpace.before` returns for anything not an
+  `AbstractClientPlayer`, its hook for anything not a `Player`, and its features find players by id and UUID in the
+  client world (`level.getPlayerByUUID`, `level.players()`, `DrawnEntities.inWorld`), mining by the block-crack list
+  under the player's id. EMF itself already animates Drifters with Fresh Animations (the vanilla player model layers).
+  Nothing in a resource pack could change that, and its code can't be copied in (GPL; Drifter is all rights reserved).
+- **The bridge** (`client/render/DrifterTouchNMotion`, `DrifterStandIn`, `DrifterTouchNMotionHook`; mixins
+  `LivingEntityRendererMixin`, `LevelRendererAccessor`): each Drifter within 64 blocks of the camera gets a stand-in
+  `RemotePlayer` in the client world (made and removed only between ticks; never drawn, ticked by nothing but the copy,
+  not pickable or pushable, no sprint particles; ids below every server id). After each client tick it copies the
+  Drifter: position and old position, rotations, ground, water, powder snow, pose, shared and living flags (crouch,
+  sprint, swim, glide, item in use), hands and armour, main arm, swing, hurt, sleeping spot, the walk (worked out as a
+  player's). The Drifter's crack is put under the stand-in's id too. Right before the Drifter's model is posed, the
+  addon's `ModelSpace.before` is called with the stand-in; then in EMF's hook (ours, registered at the first Drifter
+  drawn, so after EMF Compat Core's) the addon's own hook is called with the Drifter's animation state made over to the
+  stand-in (a proxy: its entity, UUID and "is a player" are the stand-in's), with that state on ETF's state stack for
+  the armour copy. A fishing Drifter's bobber is owned by this stand-in (DrifterFishers), so the addon sees its fishing.
+  All of the addon by reflection; EMF and ETF are compile-only (Modrinth maven), the hook class loaded only with both
+  mods there. Any failure turns it off for the session with one log line; without the addon nothing is made.
+- Stands down: riding (the stand-in isn't on the mount), dying, Better Combat swings and rolls (`swingPlaying`), beyond
+  64 blocks. Setting: `touchNMotion` (on), on the Performance page and `/drifter config touchnmotion <true|false>`.
+- Not covered here (done in side.2 below): hands, riding, the pocket.
+
+### Side session: Touch'n Motion, the rest (0.23.18-side.2)
+
+The user (2026-10-31): "how can we add the rest?", then "yea do all three".
+- **Hands** (`hands/HandSignals`, mixins `HelperGameModeMixin` on `ServerPlayerGameMode.useItemOn` and
+  `HelperPlayerMixin` on `Player.interactOn` / `attack`, each only for a Drifter's FakePlayer helper; `MineTask` and
+  `ContainerTask` calls): the addon's server part relays each player's `HandsState` (use/attack held, the block or
+  creature under the crosshair, the container open, stacks moved) and `HandsAct`s (feed, milk, shear, armour stand,
+  seed) to others. A Drifter has no game, so our server sends the same from what it really does: a use holds USE 6 ticks
+  on the block or creature; each mining tick ATTACK on the block (where its look meets it); a container from open to
+  close with a count of stacks moved; acts worked out from the item and the target (wheat to an animal that eats it, a
+  bucket on a cow or goat, shears on one ready, an armour stand, seeds on farmland). Sent on change only, as
+  `drifter:hands` / `drifter:hand_act`, to players tracking the Drifter whose game takes them (registered on the client
+  only with the addon there). The client hands the last state to the addon's `ClientHands.receive` every tick while
+  busy (it forgets after 1.5 s), once when idle again, under the stand-in's id; with no block or creature named, the
+  stand-in's own look (a pick) as the crosshair. Acts go to `ClientHands.receive(HandsAct)`.
+- **Riding:** `DrifterStandIn.getVehicle()` is the Drifter's vehicle (the stand-in isn't among its riders, so vanilla
+  never seats or moves it); while the addon looks (`ModelSpace.before`, both hook calls, the horse lift) the stand-in
+  takes the Drifter's place in the vehicle's passenger list (`EntityPassengersAccessor`; put back in a finally), so its
+  seat and who rows are right. On a horse: the addon's `ClientEventHandler` and `FootGroundingFeature` pre/post render
+  steps around the Drifter's draw (as its mixin on `PlayerRenderer.render`), and its riding pose
+  (`RidingPose.apply` with the horse's walk, kept as EMF Compat Core poses under the Drifter's UUID, cleared on
+  dismount) at the end of the Drifter model's setupAnim, as its mixin does for a player.
+- **Pocket:** `TakeItemMixin` (client, `ClientPacketListener.handleTakeItemEntity`): a Drifter's pickup calls the
+  addon's `PocketStash.picked` with its stand-in.
+- Riding Drifters are no longer left out. The extras are looked up apart: if they don't match, the rest still works.
+- Debug: `/drifter useonentity <target>` (UseOnEntityTask), `/drifter config touchnmotion <true|false>`.
+- Tested in the dev client (EMF, ETF, EMF Compat Core, Touch'n Motion 1.0.4, Fresh Animations + FA Player Extension):
+  the chest (USE on it, the container open, a stack moved, closed: the hand on the chest's edge in the shot), feeding
+  (act 0), shearing (act 2), planting (act 4; bent over the farmland with the seeds), all handed to the stand-ins; the
+  boat (rider 0: arms out to the oars, against a plain sit with it off), the horse (hands forward and leaning, against
+  upright), a minecart (rider 0); pickups handed on (the pocket gesture itself not seen: the Drifter was behind a sheep).
+  A Drifter put on a boat or horse by `/ride` gets off after a second (`dismountIfIdle`), so only its own rides last.
 - **0.23.19: the world built before it's played (a loading screen), towns keep off what's built, no door paths, one
   road where two go the same way, round ruins, natural slopes in the wild, snow on moved ground, tidy roads, lamps apart,
   a plan only for its own world** (the user, 2026-10-30/31, with pictures: "the whole world plan needs to be pregenerated

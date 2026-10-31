@@ -11,6 +11,15 @@ repositories {
 	// for more information about repositories.
 	// Mod Menu, compile-only: the Drifter settings screen (user's choice, 2026-10-16). Not needed to run.
 	maven { url = "https://maven.terraformersmc.com/releases/" }
+	// EMF and ETF, compile-only: Touch'n Motion on Drifters (client/render/DrifterTouchNMotionHook). Not needed to run.
+	exclusiveContent {
+		forRepository {
+			maven { url = "https://api.modrinth.com/maven" }
+		}
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
 }
 
 loom {
@@ -65,6 +74,10 @@ dependencies {
 
 	// Optional: Mod Menu's settings button for Drifter. Compile-only, so Drifter runs with or without it.
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+	// Optional: EMF's animation hook, for Touch'n Motion on Drifters. Compile-only; only loaded when EMF is there.
+	modCompileOnly "maven.modrinth:entity-model-features:${project.emf_version}"
+	modCompileOnly "maven.modrinth:entitytexturefeatures:${project.etf_version}"
 }
 
 processResources {

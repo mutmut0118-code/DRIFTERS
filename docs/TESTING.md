@@ -2668,3 +2668,74 @@ Installed as 0.23.12-side.1: also has the other session's 0.23.11-0.23.12 (their
       sand, a furnace they lost, taking pillars down, neighbours, the town's roads and lamps, chest labels, a housewarming,
       and debates (flat roofs, stone or wood houses, carpet or slabs, one floor or two). To hear one now: stand by a
       Drifter and type `/drifter talk debate_flat_roofs` (or `laid_a_rug`, `desert_living`, `lost_furnace`).
+
+Installed as 0.23.18-side.1: also has the other session's 0.23.13-0.23.18 (their checks are in their own sections above).
+
+## Side session: Touch'n Motion on Drifters (new, 0.23.18-side.1)
+
+Touch'n Motion is a mod (not a resource pack): an add-on to EMF Compat that adds to a player's animation, with Fresh
+Animations: Player Extension. Feet that stand on stairs and slabs, a hand on a wall you stand beside, the body leaning
+as you move, hands going to the thing you use, mining swings onto the block. Drifters now get it too. Your DRIFTER TEST
+profile already has everything it needs (EMF, ETF, EMF Compat Core, Touch'n Motion, and the two Fresh Animations packs
+switched on). Without Touch'n Motion, Drifters look exactly as before.
+
+Setup, once (creative world, cheats on). Stand somewhere flat and open, then type these one at a time:
+
+1. `/fill ~-6 ~-1 ~-6 ~6 ~-1 ~6 stone` and `/fill ~-6 ~ ~-6 ~6 ~4 ~6 air` (a flat floor).
+2. `/drifter spawn Ann`, then `/drifter brain off` (it stays put).
+
+Checks:
+
+- [ ] Feet on a step: put a slab beside Ann (`/setblock ~1 ~ ~ stone_slab` while standing where Ann is, then step back)
+      and nudge Ann so it stands half on the slab (`/tp @e[type=drifter:drifter,limit=1,sort=nearest] ~0.5 ~0.5 ~`, run
+      from where Ann stands). One foot is on the slab, the other leg reaches down to the floor, as yours does. Without
+      Touch'n Motion both feet float at the slab's height.
+- [ ] Hand on a wall: build a wall 3 high right beside Ann (a block away is too far). After a moment, Ann puts the
+      hand nearest the wall on it.
+- [ ] Mining: `/drifter give minecraft:diamond_pickaxe`, `/drifter slot 0`, put an obsidian block a block in front of
+      Ann at head height, look at it, type `/drifter mine ` and press Tab to fill in the block you're looking at, then
+      Enter. Ann takes a pickaxe stance and swings onto the block (three different blows), not the plain arm swing.
+- [ ] Walking about (`/drifter brain on`): its torso leans into turns and stops; standing idle, it looks at you or an
+      animal near by; hands brush through crops as it walks a field.
+- [ ] The setting: Mods > Drifter > Configure > Performance... > "Touch'n Motion" (or type
+      `/drifter config touchnmotion false`, and `true` to turn it back on). Off: Drifters go back to the plain animations
+      at once (players keep theirs). Flip it while watching a Drifter on a step to see the difference.
+- [ ] Nothing odd for players: you can still hit Drifters normally (no invisible extra target), no second Drifter shadow
+      or name, and a minimap doesn't show extra player dots where Drifters are. (Each Drifter near you has a hidden
+      stand-in player on your side only; tell me if anything sees it.)
+- [ ] With Better Combat: a Drifter's weapon swings and rolls still look as before (Touch'n Motion pauses for them).
+
+Drifters further than 64 blocks away don't get it.
+
+## Side session: Touch'n Motion, the rest (new, 0.23.18-side.2)
+
+Drifters now also get Touch'n Motion's hand gestures for what they do, its riding poses, and its pocket gesture. Same
+setup as above (creative, a flat floor, `/drifter spawn Ann`, `/drifter brain off`). For each check, flip
+`/drifter config touchnmotion false` and back to `true` to see the difference.
+
+- [ ] Chest: put a chest a block in front of Ann with some items in it. Look at the chest and type
+      `/drifter container ` then press Tab (fills in the chest), then type ` takeall` and press Enter. One hand goes on the
+      chest's edge and the other goes through it as the items come out.
+- [ ] Doors and buttons: let a Drifter play on its own (`/drifter brain on`) near a house with a door. When it goes
+      through, a hand goes on the door. A Drifter pressing a button or pulling a lever reaches for it.
+- [ ] Feeding: spawn a cow next to Ann, `/drifter give minecraft:wheat 4`, `/drifter slot 0`, then
+      `/drifter useonentity @e[type=cow,limit=1,sort=nearest]`. The wheat goes to the cow's mouth, then the other hand
+      strokes it. Same with shears on a sheep (`/drifter give minecraft:shears`; it bends to shear), or a bucket on a cow
+      (milking).
+- [ ] Planting: farmland by water in front of Ann, `/drifter give minecraft:wheat_seeds 4`, `/drifter slot 0`, then
+      `/drifter useon ` and Tab while looking at the farmland. It bends and presses the seed in.
+- [ ] Mining with a pickaxe (`/drifter mine`, from the section above) still shows the pickaxe stance.
+- [ ] Minecart: put a minecart next to Ann and type
+      `/ride @e[type=drifter:drifter,limit=1,sort=nearest] mount @e[type=minecart,limit=1,sort=nearest]`. It sits against
+      the back with its hands on the sides.
+- [ ] Boat and horse: the same `/ride` command with `@e[type=boat,limit=1,sort=nearest]` (or a tame, saddled horse:
+      `/summon horse ~ ~ ~ {Tame:1b,SaddleItem:{id:"minecraft:saddle",count:1}}` and `@e[type=horse,limit=1,sort=nearest]`).
+      A Drifter only stays on a boat or a horse it rides on purpose, so it gets off after about a second: watch right
+      after pressing Enter. In the boat its hands go out to the oars; on the horse its hands go forward and it leans
+      into the ride. Best of all, watch a Drifter cross water by boat or ride a horse it tamed, on its own.
+- [ ] Picking up: drop a few items near Ann and type `/drifter collect`. After it picks them up, one hand goes to a back
+      pocket.
+- [ ] Nothing odd: a Drifter in a boat sits in the same seat as before (the front), and a second rider still fits.
+
+Still not on Drifters: Create, Supplementaries and Create Aeronautics controls (cranks, wheels, throttles: Drifters
+don't use them), typing, and driving trains.

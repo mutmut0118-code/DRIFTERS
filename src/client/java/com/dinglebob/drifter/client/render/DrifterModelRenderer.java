@@ -64,6 +64,7 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 		@Override
 		public void setupAnim(DrifterEntity drifter, float limbSwing, float limbSwingAmount, float ageInTicks, float headYaw, float headPitch) {
 			super.setupAnim(drifter, limbSwing, limbSwingAmount, ageInTicks, headYaw, headPitch);
+			DrifterTouchNMotion.ridingPose(this, drifter);
 			DrifterSwingAnimations.apply(this, drifter, ageInTicks, limbSwingAmount);
 		}
 	}
@@ -71,7 +72,12 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 	@Override
 	public void render(DrifterEntity drifter, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light) {
 		this.setModelProperties(drifter, partialTick);
-		super.render(drifter, yaw, partialTick, poseStack, buffers, light);
+		boolean onHorse = DrifterTouchNMotion.beforeDraw(drifter, poseStack, partialTick);
+		try {
+			super.render(drifter, yaw, partialTick, poseStack, buffers, light);
+		} finally {
+			DrifterTouchNMotion.drawn(drifter, poseStack, onHorse);
+		}
 	}
 
 	@Override

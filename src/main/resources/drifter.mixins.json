@@ -20,6 +20,8 @@
 		"ExplosionMixin",
 		"FishingHookAccessor",
 		"FishingHookMixin",
+		"HelperGameModeMixin",
+		"HelperPlayerMixin",
 		"ItemEntityAccessor",
 		"LivingEntityAccessor",
 		"LivingEntityClimbMixin",

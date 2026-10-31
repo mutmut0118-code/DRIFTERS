@@ -122,7 +122,7 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 		this.heading("More");
 		this.row(this.page("Spawning...", "How common each kind of new Drifter is, the most at once, and their skins.", () -> new DrifterSpawnScreen(this)),
 			this.page("Encounters...", "Random events with Drifters you meet once: how often, and each kind on or off.", () -> new DrifterEncounterScreen(this)));
-		this.row(this.page("Performance...", "Helper threads, and how often far-off Drifters think.", () -> new DrifterPerformanceScreen(this)), null);
+		this.row(this.page("Performance...", "Helper threads, how often far-off Drifters think, and Touch'n Motion on Drifters.", () -> new DrifterPerformanceScreen(this)), null);
 	}
 
 	private static String aggressionText(int value) {

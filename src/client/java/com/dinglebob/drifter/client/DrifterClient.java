@@ -14,6 +14,7 @@ public class DrifterClient implements ClientModInitializer {
 		DebugOverlayRenderer.register();
 		com.dinglebob.drifter.client.debug.DevClientTest.register();
 		com.dinglebob.drifter.client.render.DrifterFishers.register();
+		com.dinglebob.drifter.client.render.DrifterTouchNMotion.register();
 		com.dinglebob.drifter.client.chat.DrifterSpeech.register();
 	}
 }
