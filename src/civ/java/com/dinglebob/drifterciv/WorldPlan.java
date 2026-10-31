@@ -90,6 +90,12 @@ final class WorldPlan {
 		final UUID to;
 		final List<int[]> points;
 		final boolean[] built;
+		/**
+		 * Its first point's at the road's start (the {@code from} town's end: it runs on to meet that town's roads, a signpost
+		 * there), its last at the end. A piece of a road between two it shares the way with another is neither.
+		 */
+		boolean fromEnd = true;
+		boolean toEnd = true;
 
 		Highway(UUID from, UUID to, List<int[]> points) {
 			this.from = from;
@@ -103,7 +109,11 @@ final class WorldPlan {
 	static volatile boolean planned;
 	/** The plan's made (places and roads). */
 	static volatile boolean ready;
+	/** Every town and road in the plan is built (before it was played: {@link WorldBuild}). */
+	static volatile boolean built;
 	private static volatile boolean making;
+	/** Counted up each time a world closes: a plan still being made for one that's closed stops, and isn't used. */
+	private static volatile int generation;
 	static final List<Place> places = new ArrayList<>();
 	static final List<PlannedNation> nations = new ArrayList<>();
 	static final List<Highway> highways = new ArrayList<>();
@@ -140,6 +150,21 @@ final class WorldPlan {
 	/** How much a road's search leans on {@link Plan#wander} (a step costs up to this many times more), and how wide its swells. */
 	private static final double WANDER = 1.5;
 	private static final int WANDER_SIZE = 96;
+	/** A step by where a structure may stand costs this many times more: round it, if there's a way. */
+	private static final double BY_STRUCTURE = 8;
+	/** The threads the plan works the land's heights out on (all but one core; the game's own work comes first). */
+	private static final java.util.concurrent.ForkJoinPool POOL = new java.util.concurrent.ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
+		pool -> {
+			var thread = java.util.concurrent.ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+			thread.setName("Drifter world plan " + thread.getPoolIndex());
+			thread.setDaemon(true);
+			thread.setPriority(Thread.MIN_PRIORITY);
+			return thread;
+		}, null, false);
+	/** A road's point within this of another road's already planned is on that road (shares its way). */
+	private static final int SHARE = 7;
+	/** A step along a road already planned costs this much of one off it: a road heading the same way joins it. */
+	private static final double ON_ROAD = 0.35;
 	/** Two nations' nearest towns further apart than this (times the spread) have no road between them. */
 	private static final int BETWEEN_NATIONS = 1600;
 	/** A road whose way round is longer than this many times the straight line (and 200) isn't made: round a sea, a gulf. */
@@ -153,8 +178,12 @@ final class WorldPlan {
 		});
 		ServerWorldEvents.UNLOAD.register((server, level) -> {
 			if (level.dimension() == Level.OVERWORLD) {
+				generation++;
+				making = false;
 				planned = false;
 				ready = false;
+				built = false;
+				WorldBuild.building = false;
 				places.clear();
 				nations.clear();
 				highways.clear();
@@ -169,7 +198,9 @@ final class WorldPlan {
 	 */
 	private static void decide(ServerLevel overworld) {
 		CompoundTag saved = Towns.savedTag(overworld);
-		planned = saved.getBoolean("Planned") || overworld.getGameTime() == 0 && !saved.contains("Towns") && DrifterApi.civilizedWorld();
+		boolean fresh = overworld.getGameTime() == 0 && !saved.contains("Towns") && DrifterApi.civilizedWorld();
+		planned = saved.getBoolean("Planned") || fresh;
+		WorldBuild.decide(fresh, saved.getBoolean("Built"), saved.getBoolean("Building"));
 		DrifterCivilizations.LOGGER.info("[plan] this world is {}", planned ? "a civilized world (nations made with it)" : "not planned (towns where villages would be)");
 	}
 
@@ -180,6 +211,7 @@ final class WorldPlan {
 		}
 
 		making = true;
+		int made = generation;
 		ServerLevel level = server.overworld();
 		BlockPos spawn = level.getSharedSpawnPos();
 		int count = nationsWanted(level.getSeed());
@@ -188,8 +220,17 @@ final class WorldPlan {
 			long started = System.nanoTime();
 			try {
 				Plan plan = new Plan(level, spawn, count, spread);
+				plan.generation = made;
 				plan.make();
-				server.execute(() -> apply(server, plan, (System.nanoTime() - started) / 1_000_000));
+				server.execute(() -> {
+					// (Only for the world it was made for: a world left before its plan was ready, and another made, got both
+					// worlds' places, the first's capital in the sea there: the user's log, 2026-10-31.)
+					if (made == generation && server.overworld() == level) {
+						apply(server, plan, (System.nanoTime() - started) / 1_000_000);
+					}
+				});
+			} catch (java.util.concurrent.CancellationException e) {
+				DrifterCivilizations.LOGGER.info("[plan] the world was left before its plan was made: stopped");
 			} catch (Throwable e) {
 				DrifterCivilizations.LOGGER.error("[plan] couldn't make the world plan", e);
 				making = false;
@@ -233,6 +274,11 @@ final class WorldPlan {
 		DrifterCivilizations.LOGGER.info("[plan] {} nations, {} places ({} cities), {} roads ({} blocks); made in {} ms", nations.size(), places.size(), cities,
 			highways.size(), highways.stream().mapToInt(h -> h.points.size() * Plan.STEP).sum(), millis);
 		Chronicle.add(server, "plan", "The world has " + nations.size() + " nations: " + String.join(", ", nations.stream().map(PlannedNation::name).toList()));
+	}
+
+	/** Debug: the land's height here as the plan reads it ({@link Plan#real}). */
+	static int realHeight(ServerLevel level, int x, int z) {
+		return new Plan(level, level.getSharedSpawnPos(), 1, 1).real(x, z);
 	}
 
 	@Nullable
@@ -356,7 +402,7 @@ final class WorldPlan {
 			this.roads();
 			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights on its grid, {} in all ({} ms)", (capitals - start)
 				/ 1_000_000, (towns - capitals) / 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size(), this.realHeights.size(),
-				this.realNanos / 1_000_000);
+				this.realNanos.sum() / 1_000_000);
 		}
 
 		// ----- Where things go -----
@@ -550,7 +596,7 @@ final class WorldPlan {
 		}
 
 		private final Map<Long, int[]> roadHeights = new HashMap<>();
-		private final Map<Long, int[]> realHeights = new HashMap<>();
+		private final Map<Long, int[]> realHeights = new java.util.concurrent.ConcurrentHashMap<>();
 
 		/**
 		 * The land on a road's grid of cells this wide (the middle of cell i, j), by its real heights: by the rough ones, a road
@@ -586,12 +632,39 @@ final class WorldPlan {
 		 * ms; the generator's rough terrain, quicker, left out the crags, and with Continents had the land 90 blocks under the
 		 * sea). A cave's mouth just under the top can read lower; near enough.
 		 */
-		private long realNanos;
+		private final java.util.concurrent.atomic.LongAdder realNanos = new java.util.concurrent.atomic.LongAdder();
+		/** The world's {@link WorldPlan#generation} it's made for (-1: a debug one, never stopped). */
+		int generation = -1;
+
+		/** Its world closed: stopped. */
+		private void stillWanted() {
+			if (this.generation >= 0 && this.generation != WorldPlan.generation) {
+				throw new java.util.concurrent.CancellationException();
+			}
+		}
+
+		/**
+		 * These spots' real heights worked out ahead, on all but one of the machine's cores at once (one at a time, a world's
+		 * plan took six minutes; the user waits for it now, before the world's played: {@link WorldBuild}).
+		 */
+		private void prefetch(List<int[]> spots) {
+			this.stillWanted();
+			List<int[]> wanted = spots.stream().filter(spot -> !this.realHeights.containsKey(BlockPos.asLong(spot[0], 0, spot[1]))).toList();
+			if (wanted.size() < 64) {
+				return;
+			}
+
+			try {
+				POOL.submit(() -> wanted.parallelStream().forEach(spot -> this.realLand(spot[0], spot[1]))).get();
+			} catch (Exception e) {
+				DrifterCivilizations.LOGGER.warn("[plan] couldn't work the land's heights out ahead: {}", e.toString());
+			}
+		}
 
 		private int real(int x, int z) {
 			long started = System.nanoTime();
 			int y = this.realTop(x, z);
-			this.realNanos += System.nanoTime() - started;
+			this.realNanos.add(System.nanoTime() - started);
 			return y;
 		}
 
@@ -670,6 +743,7 @@ final class WorldPlan {
 		 */
 		@Nullable
 		private int[] best(int x0, int z0, int move, Size size, boolean biome) {
+			this.stillWanted();
 			int grid = CELL;
 			List<int[]> candidates = new ArrayList<>();
 			for (int dx = -move; dx <= move; dx += grid) {
@@ -686,6 +760,18 @@ final class WorldPlan {
 			}
 
 			candidates.sort(java.util.Comparator.comparingDouble(c -> Math.hypot(c[0] - x0, c[1] - z0)));
+			// (Every cell any of them looks at, worked out ahead all at once.)
+			List<int[]> around = new ArrayList<>();
+			int far = move + size.whole() + CELL;
+			for (int dx = -far; dx <= far; dx += CELL) {
+				for (int dz = -far; dz <= far; dz += CELL) {
+					if (dx * dx + dz * dz <= far * far) {
+						around.add(new int[] {Math.floorDiv(x0 + dx, CELL) * CELL + CELL / 2, Math.floorDiv(z0 + dz, CELL) * CELL + CELL / 2});
+					}
+				}
+			}
+
+			this.prefetch(around);
 			List<double[]> suits = new ArrayList<>();
 			for (int[] c : candidates) {
 				if (this.land(c[0], c[1])[1] == 1 || biome && !this.townBiome(c[0], c[1])) {
@@ -830,9 +916,74 @@ final class WorldPlan {
 			}
 
 			List<int[]> between = new ArrayList<>(line.subList(first, last + 1));
-			a.gates.add(Math.atan2(between.get(0)[1] - a.z, between.get(0)[0] - a.x));
-			b.gates.add(Math.atan2(between.get(between.size() - 1)[1] - b.z, between.get(between.size() - 1)[0] - b.x));
-			this.highways.add(new Highway(a.id, b.id, between));
+			// (A way in for each end it doesn't share: two the same way made two main roads out of the town side by side.)
+			if (this.sharedNear(between.get(0)) == null) {
+				a.gates.add(Math.atan2(between.get(0)[1] - a.z, between.get(0)[0] - a.x));
+			}
+
+			if (this.sharedNear(between.get(between.size() - 1)) == null) {
+				b.gates.add(Math.atan2(between.get(between.size() - 1)[1] - b.z, between.get(between.size() - 1)[0] - b.x));
+			}
+
+			// Where it runs with a road already planned (out of the same town the same way, or across one), that road's the way:
+			// only the pieces off it are built, each joined to it (two roads side by side, the same way, and one paved over
+			// another where it branched off: the user's pictures).
+			int start = -1;
+			for (int k = 0; k <= between.size(); k++) {
+				boolean free = k < between.size() && this.sharedNear(between.get(k)) == null;
+				if (free && start < 0) {
+					start = k;
+				} else if (!free && start >= 0) {
+					List<int[]> run = new ArrayList<>(between.subList(start, k));
+					int[] before = start > 0 ? this.sharedNear(between.get(start - 1)) : null;
+					int[] after = k < between.size() ? this.sharedNear(between.get(k)) : null;
+					if (before != null) {
+						run.add(0, before);
+					}
+
+					if (after != null) {
+						run.add(after);
+					}
+
+					if (run.size() >= 4) {
+						Highway road = new Highway(a.id, b.id, run);
+						road.fromEnd = start == 0;
+						road.toEnd = k == between.size();
+						this.highways.add(road);
+					}
+
+					start = -1;
+				}
+			}
+
+			for (int[] point : between) {
+				this.planned.computeIfAbsent(BlockPos.asLong(Math.floorDiv(point[0], SHARE), 0, Math.floorDiv(point[1], SHARE)), cellKey -> new ArrayList<>()).add(point);
+			}
+		}
+
+		/** Points of the roads planned so far, by squares {@link #SHARE} wide. */
+		private final Map<Long, List<int[]>> planned = new HashMap<>();
+
+		/** The nearest point of a road already planned within {@link #SHARE} of this one, or null. */
+		@Nullable
+		private int[] sharedNear(int[] point) {
+			int[] best = null;
+			double bestDistance = SHARE;
+			int gx = Math.floorDiv(point[0], SHARE);
+			int gz = Math.floorDiv(point[1], SHARE);
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					for (int[] other : this.planned.getOrDefault(BlockPos.asLong(gx + dx, 0, gz + dz), List.of())) {
+						double d = Math.hypot(other[0] - point[0], other[1] - point[1]);
+						if (d <= bestDistance) {
+							bestDistance = d;
+							best = other;
+						}
+					}
+				}
+			}
+
+			return best;
 		}
 
 		/**
@@ -845,9 +996,24 @@ final class WorldPlan {
 		 * straight line before, over the sea and up the mountains).
 		 */
 		private List<int[]> route(int ax, int az, int bx, int bz) {
+			this.stillWanted();
 			// (A long road on the coarser grid: on the fine one a capital's road to the next, 3,000 blocks, looked at 40,000
 			// cells and found none.)
 			int cell = Math.hypot(bx - ax, bz - az) > LONG_ROAD ? CELL : ROAD_CELL;
+			// (The land along the way worked out ahead, all at once: the cells within a fair way round the straight line.)
+			double straight = Math.hypot(bx - ax, bz - az);
+			List<int[]> corridor = new ArrayList<>();
+			for (int i = Math.floorDiv(Math.min(ax, bx) - (int)straight / 2, cell); i <= Math.floorDiv(Math.max(ax, bx) + (int)straight / 2, cell); i++) {
+				for (int j = Math.floorDiv(Math.min(az, bz) - (int)straight / 2, cell); j <= Math.floorDiv(Math.max(az, bz) + (int)straight / 2, cell); j++) {
+					double mx = i * cell + cell / 2.0;
+					double mz = j * cell + cell / 2.0;
+					if (Math.hypot(mx - ax, mz - az) + Math.hypot(mx - bx, mz - bz) <= straight * 1.25 + 120) {
+						corridor.add(new int[] {i * cell + cell / 2, j * cell + cell / 2});
+					}
+				}
+			}
+
+			this.prefetch(corridor);
 			int si = Math.floorDiv(ax, cell);
 			int sj = Math.floorDiv(az, cell);
 			int ti = Math.floorDiv(bx, cell);
@@ -897,9 +1063,11 @@ final class WorldPlan {
 
 						double step = Math.hypot(di, dj) * cell;
 						double grade = Math.abs(next[0] - land[0]) / step;
-						double g = here + step * (1 + 40 * grade * grade + WANDER * this.wander(ni * cell, nj * cell)) + (grade > 0.5 ? step * 40 : 0)
-							+ (next[1] == 1 ? next[0] < sea - 4 ? 2500 : 60 : 0);
 						long nkey = BlockPos.asLong(ni, 0, nj);
+						boolean onRoad = this.usedCells.contains(BlockPos.asLong(ni, cell, nj));
+						double g = here + step * (onRoad ? ON_ROAD : 1 + 40 * grade * grade + WANDER * this.wander(ni * cell, nj * cell)) + (grade > 0.5 ? step * 40 : 0)
+							+ (this.structureBy(ni * cell + cell / 2, nj * cell + cell / 2) ? step * BY_STRUCTURE : 0)
+							+ (next[1] == 1 ? next[0] < sea - 4 ? 2500 : 60 : 0);
 						double far = along.get(key) + step;
 						if (g < cost.getOrDefault(nkey, Double.MAX_VALUE) && far + Math.hypot(ti - ni, tj - nj) * cell <= longest) {
 							cost.put(nkey, g);
@@ -915,6 +1083,13 @@ final class WorldPlan {
 				: ", no way (none over the land, nor round it in " + (int)longest + " blocks)");
 			if (!found) {
 				return List.of();
+			}
+
+			for (long at = goal; ; at = from.get(at)) {
+				this.usedCells.add(BlockPos.asLong(BlockPos.getX(at), cell, BlockPos.getZ(at)));
+				if (at == start) {
+					break;
+				}
 			}
 
 			List<double[]> corners = new ArrayList<>();
@@ -990,7 +1165,72 @@ final class WorldPlan {
 			return ((h ^ h >>> 32) >>> 11) / (double)(1L << 53);
 		}
 
+		/** A surface structure's placement and the structures it places (a ruin, an outpost, a temple...). */
+		private record Surface(net.minecraft.world.level.levelgen.structure.placement.StructurePlacement placement,
+			List<net.minecraft.world.level.levelgen.structure.Structure> structures) {
+		}
+
+		@Nullable
+		private List<Surface> surfaces;
+		private final Map<Long, Boolean> structureChunks = new HashMap<>();
+
+		/**
+		 * A structure on the land (not under it) may stand by here: one starts in this chunk or one beside it, as the world's
+		 * own placement has it, in a biome it goes in. A road's way goes round them (the user, 2026-10-30: "paths should go
+		 * around any type of ruins/outposts"; it went through, clearing the ruin off its way). Villages aren't made in a
+		 * planned world (towns are), so they aren't counted.
+		 */
+		private boolean structureBy(int x, int z) {
+			if (this.surfaces == null) {
+				List<Surface> list = new ArrayList<>();
+				for (var set : this.level.registryAccess().registryOrThrow(Registries.STRUCTURE_SET)) {
+					if (set.placement() instanceof net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement) {
+						continue;
+					}
+
+					List<net.minecraft.world.level.levelgen.structure.Structure> on = set.structures().stream().map(entry -> entry.structure())
+						.filter(holder -> holder.value().step() == net.minecraft.world.level.levelgen.GenerationStep.Decoration.SURFACE_STRUCTURES
+							&& !holder.is(SETTLEMENTS)).map(net.minecraft.core.Holder::value).toList();
+					if (!on.isEmpty()) {
+						list.add(new Surface(set.placement(), on));
+					}
+				}
+
+				this.surfaces = list;
+			}
+
+			int cx = x >> 4;
+			int cz = z >> 4;
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					int ax = cx + dx;
+					int az = cz + dz;
+					boolean there = this.structureChunks.computeIfAbsent(net.minecraft.world.level.ChunkPos.asLong(ax, az), key -> {
+						var state = this.level.getChunkSource().getGeneratorState();
+						for (Surface surface : this.surfaces) {
+							if (surface.placement().isStructureChunk(state, ax, az)) {
+								var biome = this.generator.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(ax * 16 + 8), QuartPos.fromBlock(this.generator.getSeaLevel()
+									+ 8), QuartPos.fromBlock(az * 16 + 8), this.randomState.sampler());
+								if (surface.structures().stream().anyMatch(structure -> structure.biomes().contains(biome))) {
+									return true;
+								}
+							}
+						}
+
+						return false;
+					});
+					if (there) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
 		private final Map<Long, Boolean> open = new HashMap<>();
+		/** The cells (keyed with their grid's width) roads planned so far go through. */
+		private final Set<Long> usedCells = new HashSet<>();
 
 		/**
 		 * Water with no land within about 50 blocks: the sea or a lake, no road over it (a river's bridged). A road went
@@ -1021,6 +1261,8 @@ final class WorldPlan {
 
 	static void save(CompoundTag tag) {
 		tag.putBoolean("Planned", planned);
+		tag.putBoolean("Built", built);
+		tag.putBoolean("Building", WorldBuild.building);
 		if (!ready) {
 			return;
 		}
@@ -1076,6 +1318,8 @@ final class WorldPlan {
 			}
 
 			one.putByteArray("Built", built);
+			one.putBoolean("FromEnd", highway.fromEnd);
+			one.putBoolean("ToEnd", highway.toEnd);
 			roads.add(one);
 		}
 
@@ -1092,6 +1336,8 @@ final class WorldPlan {
 		if (tag.contains("Planned")) {
 			planned = tag.getBoolean("Planned");
 		}
+
+		built = tag.getBoolean("Built");
 
 		if (!tag.contains("Plan")) {
 			return;
@@ -1125,6 +1371,8 @@ final class WorldPlan {
 			}
 
 			Highway highway = new Highway(one.getUUID("From"), one.getUUID("To"), points);
+			highway.fromEnd = !one.contains("FromEnd") || one.getBoolean("FromEnd");
+			highway.toEnd = !one.contains("ToEnd") || one.getBoolean("ToEnd");
 			byte[] built = one.getByteArray("Built");
 			for (int i = 0; i < Math.min(built.length, highway.built.length); i++) {
 				highway.built[i] = built[i] == 1;

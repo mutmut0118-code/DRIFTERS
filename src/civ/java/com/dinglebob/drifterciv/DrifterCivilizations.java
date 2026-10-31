@@ -68,6 +68,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownSites.register();
 		WorldPlan.register();
 		Highways.register();
+		WorldBuild.register();
 		TownRaids.register();
 		Trades.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
@@ -132,6 +133,18 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Roads: " + Highways.describe()), false);
 					return 1;
 				})
+				.then(Commands.literal("height").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					// Debug: the land's height here as the plan reads it, and as it's generated.
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					var level = ctx.getSource().getLevel();
+					int plan = WorldPlan.realHeight(level, at.getX(), at.getZ());
+					level.getChunk(at);
+					int floor = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.OCEAN_FLOOR, at.getX(), at.getZ()) - 1;
+					int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, at.getX(), at.getZ()) - 1;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: at " + at.getX() + ", " + at.getZ() + " the plan reads the land at " + plan
+						+ "; generated, its floor at " + floor + " and its top at " + top), false);
+					return 1;
+				}))
 				.then(Commands.literal("roads").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					Highways.forcedNear = BlockPos.containing(ctx.getSource().getPosition());
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: roads within 1000 blocks of here are built now, a stretch at a time, player or not"),

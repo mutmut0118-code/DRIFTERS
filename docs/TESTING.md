@@ -1550,6 +1550,22 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       - In a hamlet (the smallest towns, dirt roads), roads and paths climb with path slabs, never stairs.
       - Stand where a new town is being made: no seeds or flowers left lying on the ground after it, and less lag while
         it's made.
+- [ ] The world built before you play (0.23.19): make a new world (civilized world on). After the usual loading, a
+      "Building the world" screen shows what it's on ("Planning the nations", "Building towns (3 of 12)", "Laying roads
+      (40 of 300)") with a bar and a clock. It can't be closed. When it goes, every town and road is already there: walk
+      or fly to a town and nothing gets built in front of you. Quit halfway and reopen the world: it carries on where it
+      was. Old worlds don't get the screen.
+- [ ] Natural slopes and snow (0.23.19): beside a road between towns cut into a hill, the land rises a block at a time
+      in its own grass, dirt and stone: no cobblestone walls (towns keep their cobblestone terraces). In a snowy place the
+      moved ground has snow on it like the land round it (no green patches in the snow).
+- [ ] One road, not two (0.23.19): roads leaving a town the same way run as one road and split off where they part; no
+      two roads side by side, none paved over another where they cross or branch.
+- [ ] Towns keep off what's built (0.23.19): in an old world, build something (or find a Drifter's house) near where a
+      town will be made, then come near: the town's roads stop short of it, no house or field goes on it, and its ground
+      isn't cut or filled there. Houses have no paths from their doors (the store still has one).
+- [ ] Tidy roads and towns (0.23.19): no leaves or bits of tree trunk floating over roads and paths, no vines hanging in
+      the air; lamp posts at least 12 blocks apart (a dark corner between gets a torch); roads go round ruins, outposts
+      and temples instead of through them.
 - [ ] Towns on flat land (0.23.18): make a new world, then `/drifterciv plan` lists the places. Visit a few with
       `/drifterciv locate town`: every capital, town and hamlet is on low, fairly flat land (by the sea or a river, or a
       plain not far over it), never on a mountain or a steep hill, with no tall cliffs cut round it.

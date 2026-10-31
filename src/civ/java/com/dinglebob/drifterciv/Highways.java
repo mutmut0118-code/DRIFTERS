@@ -34,6 +34,8 @@ final class Highways {
 	/** A player this near a stretch: it's built (its land loaded first). */
 	private static final double BUILD_WITHIN = 12 * 16;
 	private static final int LOAD_RADIUS = 3;
+	/** While the world's built before it's played, at most this many stretches' land loading at once. */
+	private static final int BUILDING_AT_ONCE = 6;
 	/** How far a stretch at a town's end may reach to meet its roads. */
 	private static final int MEET_WITHIN = 64;
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_civ_road", Comparator.comparingLong(ChunkPos::toLong));
@@ -44,15 +46,20 @@ final class Highways {
 
 	static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(Highways::tick);
+		// (A world left: the stretches it was loading are forgotten, not waited for in the next.)
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			loading.clear();
+			forcedNear = null;
+		});
 	}
 
 	private static void tick(MinecraftServer server) {
-		if (!WorldPlan.ready || server.getTickCount() % 10 != 0) {
+		if (!WorldPlan.ready || server.getTickCount() % (WorldBuild.building ? 1 : 10) != 0) {
 			return;
 		}
 
 		ServerLevel level = server.overworld();
-		if (level.players().isEmpty() && forcedNear == null) {
+		if (level.players().isEmpty() && forcedNear == null && !WorldBuild.building) {
 			return;
 		}
 
@@ -72,8 +79,8 @@ final class Highways {
 				}
 
 				// (The stretch at a town's end runs on to meet its roads: the town first.)
-				boolean first = p == 0;
-				boolean last = p == road.built.length - 1;
+				boolean first = p == 0 && road.fromEnd;
+				boolean last = p == road.built.length - 1 && road.toEnd;
 				if (first && !made(road.from) || last && !made(road.to)) {
 					continue;
 				}
@@ -98,6 +105,11 @@ final class Highways {
 				}
 
 				if (!loading.containsKey(key)) {
+					// (Building the whole world: a few stretches' land asked for at a time, not every road's at once.)
+					if (WorldBuild.building && loading.size() >= BUILDING_AT_ONCE) {
+						continue;
+					}
+
 					level.getChunkSource().addRegionTicket(TICKET, chunk, LOAD_RADIUS, chunk);
 					loading.put(key, chunk);
 					for (int[] end : ends) {
@@ -134,7 +146,27 @@ final class Highways {
 		}
 	}
 
+	/** All the plan's stretches of road, and how many are built. */
+	static int stretches() {
+		return WorldPlan.highways.stream().mapToInt(road -> road.built.length).sum();
+	}
+
+	static int built() {
+		int built = 0;
+		for (WorldPlan.Highway road : WorldPlan.highways) {
+			for (boolean one : road.built) {
+				built += one ? 1 : 0;
+			}
+		}
+
+		return built;
+	}
+
 	private static boolean near(ServerLevel level, int[] at) {
+		if (WorldBuild.building) {
+			return true;
+		}
+
 		if (forcedNear != null && Math.hypot(forcedNear.getX() - at[0], forcedNear.getZ() - at[1]) < 1000) {
 			return true;
 		}
@@ -170,8 +202,8 @@ final class Highways {
 		}
 
 		java.util.Set<Long> townRoads = new java.util.HashSet<>();
-		boolean first = piece == 0;
-		boolean last = piece == road.built.length - 1;
+		boolean first = piece == 0 && road.fromEnd;
+		boolean last = piece == road.built.length - 1 && road.toEnd;
 		if (first) {
 			meet(road.from, corners, true, townRoads);
 		}

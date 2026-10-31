@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 
 /**
@@ -42,7 +43,9 @@ import net.minecraft.world.level.material.Fluids;
  * <p>Looking natural (the user, 2026-10-30, with pictures: "the terraforming comes off a little bit too unnatural"): a
  * bank's edge wanders (round rectangles it made square rings of steps, like a stepped pit); past a pad's reach the land may
  * stand a {@link #WALL} more off each {@link #TERRACE} before it's moved (it cut 24 blocks into a hill before, a quarry with
- * a wall of cobblestone ten high at the back), so a steep hill gets low terraces and no wall's much taller than that; filled ground slopes down to water instead of standing
+ * a wall of cobblestone ten high at the back), so a steep hill gets low terraces and no wall's much taller than that (in
+ * town: the user, 2026-10-31, "the cobblestone in towns can stay"; out in the wild, by a road between towns, a slope of the
+ * land's own earth a block at a time instead, {@link #wildSlopes}); filled ground slopes down to water instead of standing
  * over it as a cliff of dirt; a slot one or two wide left between higher ground is filled; cut rock gets earth and grass
  * back on top, lava a cut opens is sealed; and with Terrain Slabs, each step of moved ground gets the land's own slab at
  * its foot, as the land round it has.
@@ -56,7 +59,7 @@ final class GroundPlan {
 	private static final int CELL = 16;
 	/** How far round a road's columns the land's eased to it at most (its shoulders a block wide, then gentle banks). */
 	private static final int ROAD_REACH = 12;
-	/** Round a road, banks alone this far; past it the land may stand a {@link #WALL} off before it's moved. */
+	/** Round a road, banks alone this far; past it the land may stand a {@link #WALL} off before it's moved (out in the wild: steeper slopes). */
 	private static final int ROAD_BANK = 6;
 	/**
 	 * How far round a pad the land's eased to it at most (past its own reach, only what stands more than terraces take). The
@@ -124,6 +127,13 @@ final class GroundPlan {
 
 	void spareBuilt() {
 		this.spare = true;
+	}
+
+	/** Out in the wild (a road between towns): slopes of the land's own earth, no retaining walls ({@link #slope}). */
+	private boolean wild;
+
+	void wildSlopes() {
+		this.wild = true;
 	}
 
 	private boolean standing(int x, int z) {
@@ -394,12 +404,26 @@ final class GroundPlan {
 			return 0;
 		}
 
-		return (int)Math.floor((d + this.wobble(x, z)) / 2.0) + terraces(d, reach);
+		return this.wild ? slope(d, reach, this.wobble(x, z)) : (int)Math.floor((d + this.wobble(x, z)) / 2.0) + terraces(d, reach);
 	}
 
 	/** Walls' heights more the land may stand off, {@code d} out from what's held past its {@code reach}: a wall each terrace. */
 	private static int terraces(double d, int reach) {
 		return d > reach ? WALL * (int)Math.ceil((d - reach) / TERRACE) : 0;
+	}
+
+	/**
+	 * Out in the wild ({@link #wildSlopes}), how far the land may stand off what's held {@code d} out (past its doorstep): a
+	 * block every two within {@code reach}, a block a block past it, a natural slope of the land's own earth (the user,
+	 * 2026-10-30: "the slopes are smooth instead of cobblestone walls and they actually use like natural terrain like grass
+	 * dirt and stone ... rising/lowering the terrain a block at a time"; 2026-10-31: "that can only be for paths in the wild").
+	 */
+	static int slope(double d, int reach, double wobble) {
+		if (d <= reach) {
+			return (int)Math.floor((d + wobble) / 2.0);
+		}
+
+		return (int)Math.floor((reach + wobble) / 2.0) + (int)Math.floor(d - reach);
 	}
 
 	/** A smooth wander, 0 to 2.5, for banks' edges: the same for a column whoever asks. */
@@ -475,7 +499,8 @@ final class GroundPlan {
 					}
 
 					int d = Math.max(Math.abs(dx), Math.abs(dz));
-					int e = d <= 1 ? 0 : (int)Math.floor((d + this.wobble(rx + dx, rz + dz)) / 2.0) + terraces(d, ROAD_BANK);
+					double w = this.wobble(rx + dx, rz + dz);
+					int e = d <= 1 ? 0 : this.wild ? slope(d, ROAD_BANK, w) : (int)Math.floor((d + w) / 2.0) + terraces(d, ROAD_BANK);
 					if (height - e > f.lo[i] || height - e == f.lo[i] && d < f.loD[i]) {
 						f.lo[i] = height - e;
 						f.loD[i] = d;
@@ -592,10 +617,17 @@ final class GroundPlan {
 		}
 
 		Pad pad = this.padAt(x, z);
+		// Snow lying on it (a snowy biome): put back on moved ground, so it isn't a patch of green in the snow (the user's pictures).
+		BlockState was = this.level.getBlockState(new BlockPos(x, g, z));
+		boolean snowy = this.level.getBlockState(new BlockPos(x, g + 1, z)).is(Blocks.SNOW) || was.is(Blocks.SNOW_BLOCK)
+			|| was.hasProperty(BlockStateProperties.SNOWY) && was.getValue(BlockStateProperties.SNOWY);
 		if (!moved && face == t && pad == null) {
 			// (Left as it was; lava showing on it sealed; a slab at its foot where ground moved beside it now stands a block over it.)
 			this.sealLava(x, z, g, t);
-			this.footSlab(x, z, t, onRoad);
+			if (!snowy) {
+				this.footSlab(x, z, t, onRoad);
+			}
+
 			return;
 		}
 
@@ -638,8 +670,19 @@ final class GroundPlan {
 			}
 		}
 
+		// Under a face (land lower beside it): in town a retaining wall; in the wild, anything open in the ground filled with
+		// the land's own, earth near the top, rock under.
 		for (int y = face + 1; y <= t - 1; y++) {
-			TownBuilder.set(this.level, new BlockPos(x, y, z), this.wall());
+			BlockPos pos = new BlockPos(x, y, z);
+			if (!this.wild) {
+				TownBuilder.set(this.level, pos, this.wall());
+				continue;
+			}
+
+			BlockState there = this.level.getBlockState(pos);
+			if (there.isAir() || TownBuilder.plant(there) || !there.getFluidState().isEmpty()) {
+				TownBuilder.set(this.level, pos, y >= t - 3 ? under : this.rock());
+			}
 		}
 
 		this.sealLava(x, z, g, t);
@@ -658,9 +701,27 @@ final class GroundPlan {
 			}
 		}
 
-		if (pad == null) {
+		if (pad == null && snowy && !onRoad) {
+			this.snow(x, z, t);
+		} else if (pad == null) {
 			this.footSlab(x, z, t, onRoad);
 		}
+	}
+
+	/** A layer of snow on this column's top (at t), its grass snowy under it. */
+	private void snow(int x, int z, int t) {
+		BlockPos top = new BlockPos(x, t, z);
+		BlockPos over = top.above();
+		BlockState ground = this.level.getBlockState(top);
+		if (!this.level.getBlockState(over).isAir() || !ground.isFaceSturdy(this.level, top, Direction.UP)) {
+			return;
+		}
+
+		if (ground.hasProperty(BlockStateProperties.SNOWY)) {
+			TownBuilder.set(this.level, top, ground.setValue(BlockStateProperties.SNOWY, true));
+		}
+
+		TownBuilder.set(this.level, over, Blocks.SNOW.defaultBlockState());
 	}
 
 	/**
@@ -847,5 +908,10 @@ final class GroundPlan {
 		}
 
 		return (roll < 0.6F ? Blocks.COBBLESTONE : roll < 0.85F ? Blocks.MOSSY_COBBLESTONE : Blocks.STONE).defaultBlockState();
+	}
+
+	/** The land's rock, deep under moved ground. */
+	private BlockState rock() {
+		return (this.sandy ? Blocks.SANDSTONE : Blocks.STONE).defaultBlockState();
 	}
 }

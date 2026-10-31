@@ -106,6 +106,8 @@ final class TownSites {
 	private static final int CITY_LOAD_RADIUS = TownBuilder.CITY_MOST_REACH / 16 + 2;
 	/** Work done on a town each tick at most (it goes on next tick). */
 	private static final long BUDGET_NANOS = 10_000_000L;
+	/** While the world's built before it's played (nobody playing yet): more a tick. */
+	private static final long BUILDING_BUDGET_NANOS = 40_000_000L;
 	/**
 	 * Sizes (A4, the user: "small town variations ... like 8-16 household towns"): a small town of 8 to 16 households, or now
 	 * and then (a quarter of spots) a hamlet of 2 to 5. Cities (40 to 80) and ruins come later.
@@ -187,14 +189,19 @@ final class TownSites {
 		// The one being made: a little more of it.
 		if (job != null) {
 			long start = System.nanoTime();
-			while (!job.done() && job.step() && System.nanoTime() - start < BUDGET_NANOS) {
+			long budget = WorldBuild.building ? BUILDING_BUDGET_NANOS : BUDGET_NANOS;
+			while (!job.done() && job.step() && System.nanoTime() - start < budget) {
 			}
 
 			if (job.done()) {
 				done(server);
 			}
 
-			return;
+			// (While the world's built before it's played, the next town's land is asked for as this one's made: each waited
+			// a minute for its land after the last.)
+			if (!WorldBuild.building) {
+				return;
+			}
 		}
 
 		if (server.getTickCount() % 20 != 0 || sites.isEmpty()) {
@@ -208,13 +215,18 @@ final class TownSites {
 			}
 
 			// Its land: asked for (made out of sight by the generator's own threads), then, once all of it's there, the town.
+			// (Building the whole world: two more towns' land at a time than the one being made.)
+			if (!site.loading && WorldBuild.building && sites.stream().filter(other -> other.loading && other != making).count() >= 2) {
+				continue;
+			}
+
 			if (!site.loading) {
 				level.getChunkSource().addRegionTicket(TICKET, site.chunk(), site.loadRadius(), site.chunk());
 				site.loading = true;
 				continue;
 			}
 
-			if (!loaded(level, site)) {
+			if (job != null || !loaded(level, site)) {
 				continue;
 			}
 
@@ -295,6 +307,15 @@ final class TownSites {
 		site.ruin = place.ruin();
 		site.planned = place.id;
 		sites.add(site);
+	}
+
+	/** The world built before it's played ({@link WorldBuild}): every planned spot made now, no player needed. */
+	static void makeAllPlanned() {
+		for (Site site : sites) {
+			if (site.planned != null) {
+				site.forced = true;
+			}
+		}
 	}
 
 	/** Debug: a spot for a town of this many households here, made now (no player needed). */

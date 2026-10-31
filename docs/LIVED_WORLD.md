@@ -20,7 +20,7 @@ a test and an entry here.
 | Phase | What | Status |
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
-| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18); next W6 + W7 |
+| W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | In progress: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world built before it's played (0.23.19); next W6 + W7 |
 | B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Not started |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
@@ -1172,3 +1172,45 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a Drifter standing where a town is
     made can be built into a wall (one suffocated in the test).
   - Next: W6 + W7 (a history already written; towns nobody's near as summaries).
+- **0.23.19: the world built before it's played (a loading screen), towns keep off what's built, no door paths, one
+  road where two go the same way, round ruins, natural slopes in the wild, snow on moved ground, tidy roads, lamps apart,
+  a plan only for its own world** (the user, 2026-10-30/31, with pictures: "the whole world plan needs to be pregenerated
+  before i load the world that way i dont see everything unfold in my eyes ... it could be like an extra loading
+  screen?"; "cut up houses still happen", "the house is not part of the town"; "i think we can remove paths that connect
+  to houses doorways"; "there is usually two roads right next to eachother and they both lead the same way"; "paths should
+  go around any type of ruins/outposts"; "the slopes are smooth instead of cobblestone walls ... that can only be for paths
+  in the wild ... the cobblestone in towns can stay"; "when it comes to snowy biomes it doesnt blend in well"; "lamps most
+  likely need to be spread out"; "floating leaves, floating vines on the paths").
+  - `WorldBuild`: a new civilized world, as it first opens, makes its plan, then every town in it and every road between
+    them, their land generated for them (two towns' land loading ahead of the one being made, six stretches of road at
+    once, 40 ms a tick on towns), before anyone plays. Players wait behind a loading screen (the addon's client:
+    `WorldBuildScreen`, the title screen's panorama, what it's on, a bar, a clock; it can't be closed), held where they
+    stand and unhurt. Left halfway, it carries on when the world's opened again. Old worlds: as before.
+  - The plan works the land's heights out ahead on all but one core at once (`WorldPlan.prefetch`): a plan of the user's
+    world in 11 s (6.7 minutes one at a time, with the game running beside it).
+  - A plan is only for the world it was made for (`WorldPlan.generation`): the user left a world before its plan was
+    ready and made another; the first's plan was handed to the second as well, its places on the second's land, a capital
+    in the sea (Coppercrest, "water in 1257 of 1257 samples") and a hill town with 35 lamp posts for 3 houses.
+  - Cut houses: a Drifter's own house, built before the town was made round it, was cut through by the town's ground,
+    roads and paths. A town now finds what's built on its land first (`TownBuilder.built`: blocks the land doesn't make,
+    under the top) and keeps its roads (they stop short), houses, lots and paths off it; its ground isn't shaped there.
+    Roads between towns already did (0.23.18).
+  - No paths from house doors (they stood up as blocks of stone brick by the doors); the store keeps its path.
+  - Roads between towns: a later one along an earlier one's way costs a third (`ON_ROAD`), so roads the same way run as
+    one; where it runs within 7 blocks of one already planned only its pieces off it are built, each joined to it (no two
+    side by side, none paved over another where it branches or crosses); a town gets one way in for them. Their way goes
+    round where the world's own placement puts a structure on the land (a ruin, an outpost, a temple: `structureBy`, 8
+    times the cost); in the wild their banks are slopes of the land's own earth a block at a time (`GroundPlan.wildSlopes`,
+    `slope`), no cobblestone walls. Towns keep their cobblestone terraces and retaining walls.
+  - Snow: moved ground where snow lay gets a layer of snow back (and its grass snowy).
+  - Tidy: along roads and paths, after they're built, trunks left in the air and leaves no tree holds go (the main mod's
+    tidy, `DrifterApi.tidyTrees`), and vines with nothing to hang on.
+  - Lamp posts at least 12 blocks apart (`TownLights.LAMP_APART`); a dark spot between gets a torch.
+  - Debug: `/drifterciv plan height` (the land's height here as the plan reads it, and as generated).
+  - Tested headless on the user's world seed (Tectonic, Continents): the plan in 10 s, the world built in 208 s (1 city,
+    3 towns, a hamlet, a ruin, 40 stretches of road); every place in every town walked to, the capital 54 of 54 houses,
+    0 of 14,333 steps a jump. On another seed of theirs, 3 nations and 20 places: 18 minutes with the game running beside
+    it and before the land's heights were worked out ahead (the plan 6.7 minutes of it).
+  - Not yet: a road stretch now and then has a few steps a jump where it was held to 6 blocks off the ground; founded
+    towns don't count toward the limit.
+  - Next: W6 + W7 (a history already written; towns nobody's near as summaries); LOD mods (Distant Horizons) after.
