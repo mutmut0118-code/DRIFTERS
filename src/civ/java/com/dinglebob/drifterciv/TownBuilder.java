@@ -2807,14 +2807,12 @@ public final class TownBuilder {
 				this.storeRect.x1(), this.storeBase + 8, this.storeRect.z1());
 			this.plazaBox = new net.minecraft.world.level.levelgen.structure.BoundingBox(this.plaza.x0() - 2, this.y0 - 3, this.plaza.z0() - 2,
 				this.plaza.x1() + 2, this.y0 + 5, this.plaza.z1() + 2);
-			// Its past (A5): one house's people gone for good (left empty), the newest still going up.
+			// Its past (A5): one house's people gone for good (left empty). (Not the newest still going up any more, its top
+			// taken off for its owner to finish: it looked like a house cut in half, the user's pictures three times over,
+			// 2026-10-30/31: "cut up houses still happen".)
 			this.foundedAgo = 20 + this.random.nextInt(41);
 			if (this.houses.size() >= 4 && this.random.nextFloat() < 0.5F) {
 				this.emptyHouse = this.houses.size() - 2;
-			}
-
-			if (this.houses.size() >= 3 && this.random.nextFloat() < 0.6F) {
-				this.buildingHouse = this.houses.size() - 1;
 			}
 
 			for (int i = 0; i < this.houses.size(); i++) {
@@ -3822,6 +3820,12 @@ public final class TownBuilder {
 	 * the house away, or buried it (the user's picture, 2026-10-30: "the terraforming is infact destroying the houses").
 	 */
 	static boolean built(ServerLevel level, int x, int z) {
+		return builtBy(level, x, z) != null;
+	}
+
+	/** The block that makes this column count as built ({@link #built}), or null. */
+	@Nullable
+	static BlockState builtBy(ServerLevel level, int x, int z) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
 		for (int k = 0; k < 24 && pos.getY() > level.getMinBuildHeight(); k++, pos.move(0, -1, 0)) {
 			BlockState state = level.getBlockState(pos);
@@ -3845,11 +3849,21 @@ public final class TownBuilder {
 				|| state.is(Blocks.MOSS_BLOCK) || state.is(Blocks.MYCELIUM) || state.is(Blocks.PODZOL) || state.is(Blocks.SMOOTH_BASALT)
 				|| state.is(Blocks.AMETHYST_BLOCK) || state.is(Blocks.BUDDING_AMETHYST) || state.is(Blocks.MUSHROOM_STEM) || state.is(Blocks.RED_MUSHROOM_BLOCK)
 				|| state.is(Blocks.BROWN_MUSHROOM_BLOCK) || state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON) || state.is(Blocks.BEE_NEST)
-				|| state.is(Blocks.DRIPSTONE_BLOCK) || state.is(Blocks.POINTED_DRIPSTONE);
-			return !land;
+				|| state.is(Blocks.DRIPSTONE_BLOCK) || state.is(Blocks.POINTED_DRIPSTONE)
+				// (A mangrove swamp's roots and moss carpet, and the land's other growing things: taken for building, a town in a
+				// swamp kept off 5,000 columns of its own land and had room for two houses of eleven; the user's log, 2026-10-31.)
+				|| state.is(net.minecraft.tags.BlockTags.MANGROVE_ROOTS_CAN_GROW_THROUGH) || state.is(net.minecraft.tags.BlockTags.REPLACEABLE_BY_TREES)
+				|| state.is(net.minecraft.tags.BlockTags.LUSH_GROUND_REPLACEABLE) || state.is(net.minecraft.tags.BlockTags.FLOWERS)
+				|| state.is(net.minecraft.tags.BlockTags.SAPLINGS) || state.is(net.minecraft.tags.BlockTags.CORALS) || state.is(net.minecraft.tags.BlockTags.CORAL_BLOCKS)
+				|| state.is(net.minecraft.tags.BlockTags.CAVE_VINES) || state.is(net.minecraft.tags.BlockTags.SNOW) || state.is(Blocks.SUGAR_CANE)
+				|| state.is(Blocks.CACTUS) || state.is(Blocks.BAMBOO) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT) || state.is(Blocks.COCOA)
+				|| state.is(Blocks.BIG_DRIPLEAF) || state.is(Blocks.BIG_DRIPLEAF_STEM) || state.is(Blocks.HANGING_ROOTS) || state.is(Blocks.SPORE_BLOSSOM)
+				|| state.is(Blocks.SWEET_BERRY_BUSH) || state.is(Blocks.SEA_PICKLE) || state.is(Blocks.SCULK)
+				|| state.is(Blocks.TUFF) || state.is(Blocks.BASALT) || state.is(Blocks.BLACKSTONE);
+			return land ? null : state;
 		}
 
-		return false;
+		return null;
 	}
 
 	/**
@@ -3969,6 +3983,12 @@ public final class TownBuilder {
 			int x = BlockPos.getX(rail.getKey());
 			int z = BlockPos.getZ(rail.getKey());
 			BlockPos at = new BlockPos(x, deck, z);
+			// (Another bridge's deck there, open over it: no railing across it.)
+			BlockState there = level.getBlockState(at);
+			if (there.is(net.minecraft.tags.BlockTags.PLANKS) && level.getBlockState(at.above()).isAir()) {
+				continue;
+			}
+
 			set(level, at, wood("planks").defaultBlockState());
 			BlockState over = level.getBlockState(at.above());
 			if (over.isAir() || plant(over)) {
@@ -4042,7 +4062,9 @@ public final class TownBuilder {
 				continue;
 			}
 
-			int g = ground(level, x, z);
+			// (Under a slab laid already, the block it's on: the stretch beside it, sharing its last few blocks, paved over its
+			// slabs as ground, stacking them a block up; the user's picture.)
+			int g = paved(level, x, z);
 			if (wet(level, x, z)) {
 				water.put(cell.getKey(), g);
 				g++;
@@ -4093,6 +4115,12 @@ public final class TownBuilder {
 			if (water.containsKey(cell.getKey())) {
 				wetAt[cell.getValue()] = true;
 			}
+		}
+
+		// (A bridge's wood from where it is: from the stretch's middle, two stretches over one river were two woods.)
+		for (long cell : water.keySet()) {
+			style = Style.at(level, new BlockPos(BlockPos.getX(cell), water.get(cell) + 1, BlockPos.getZ(cell)));
+			break;
 		}
 
 		java.util.Set<Long> islets = new java.util.HashSet<>();
@@ -4166,10 +4194,15 @@ public final class TownBuilder {
 				int deck = Math.max(want[cell.getValue()], surface + 1);
 				decks.put(cell.getKey(), deck);
 				set(level, new BlockPos(x, deck, z), wood("planks").defaultBlockState());
+				// (Another road's railing where this deck goes: off it. Two bridges side by side had a fence across where they met.)
+				if (level.getBlockState(new BlockPos(x, deck + 1, z)).getBlock() instanceof net.minecraft.world.level.block.FenceBlock) {
+					set(level, new BlockPos(x, deck + 1, z), Blocks.AIR.defaultBlockState());
+				}
+
 				continue;
 			}
 
-			BlockPos top = new BlockPos(x, ground(level, x, z), z);
+			BlockPos top = new BlockPos(x, paved(level, x, z), z);
 			laidAt.put(cell.getKey(), top.getY());
 			set(level, top, paving.get());
 			fellIn(level, x, z, top.getY() + 1, top.getY() + 4);

@@ -162,7 +162,7 @@ final class WorldPlan {
 			return thread;
 		}, null, false);
 	/** A road's point within this of another road's already planned is on that road (shares its way). */
-	private static final int SHARE = 7;
+	private static final int SHARE = 10;
 	/** A step along a road already planned costs this much of one off it: a road heading the same way joins it. */
 	private static final double ON_ROAD = 0.35;
 	/** Two nations' nearest towns further apart than this (times the spread) have no road between them. */

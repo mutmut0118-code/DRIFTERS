@@ -4362,3 +4362,27 @@ The user (2026-10-31): "how can we add the rest?", then "yea do all three".
     in the dev client, a brand-new world: the loading screen ("Planning the nations", the bar, the clock) then play 23 s
     after joining.
   - Next: W6 + W7; LOD mods (Distant Horizons).
+- **0.23.21: no half-built houses, towns in swamps keep their land, one bridge where two roads cross a river, no
+  stacked slabs, no trees or grass gathered in town** (the user, 2026-10-31, with pictures: "bridges being mixed/blocked
+  off / stacked slabs, especially for path blocks making it look weird / Cutoff houses / and i think we need to remove the
+  need for drifters to cut down trees and grass in town, and only look for that in the wild, it causes all that pillaring
+  they do").
+  - Cut-off houses, found at last (a watch on every block taken out of a town house, `[watch]`, since taken out again):
+    the town itself. Each town left its newest house with everything over a third of its height taken off, for its owner
+    to finish over the next days (A5, a town's past); it looked like a house cut in half, three times reported. Gone: every
+    town house is whole. In the user's world, 2 of about 100 houses (`/drifterciv town damage`, debug: town houses with
+    blocks gone, by layer).
+  - Towns in a mangrove swamp kept off thousands of columns of their own land (`TownBuilder.built` took mangrove roots
+    and moss carpet for building: 5,473 and 3,206 columns round one town, 2 houses of 11): the land's growing things count
+    as land now (mangrove roots, moss, flowers, saplings, corals, cave vines, sugar cane, cactus, bamboo, kelp, dripleaf...).
+    `/drifterciv plan built` (debug): what's counted as built within 128 blocks, by block.
+  - Roads between towns: under a slab already laid, the block it's on is their ground (`paved`): the stretch beside, sharing
+    its last few blocks, paved over its slabs as ground, a block up; two roads within 10 blocks of each other are one
+    (`SHARE`, was 7: two bridges side by side over a river); a deck laid where another road's railing stood takes the
+    railing off, and no railing goes across another bridge's deck; a bridge's wood is from where it is, not the stretch's
+    middle (two woods on one river).
+  - Drifters in a town gather no trees, leaves, grass or flowers there (`KnownBlocks.mayGather`, `DrifterApi.setSettled`:
+    a town's land, its furthest house and 24 more): wood and seeds come from the woods round it, no pillaring up the last
+    trees between houses. Clearing a house's own spot still can.
+  - Tested: two towns of the user's world and the road between, 6,000 ticks: no town house with a block gone (one before),
+    every place walked to.

@@ -66,6 +66,24 @@ public final class KnownBlocks {
 	}
 
 	/**
+	 * A block it may gather (for wood, seeds, saplings...): one it may take, and not a tree, leaves or a plant on settled
+	 * land (a town's: {@link com.dinglebob.drifter.api.DrifterApi#setSettled}). In a town a player fetches wood from the woods
+	 * round it rather than chop the last trees between the houses (the user, 2026-10-31: "remove the need for drifters to cut
+	 * down trees and grass in town, and only look for that in the wild, it causes all that pillaring they do").
+	 */
+	public static boolean mayGather(Level level, BlockPos pos) {
+		if (!mayTake(level, pos)) {
+			return false;
+		}
+
+		net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+		boolean growing = state.is(net.minecraft.tags.BlockTags.LOGS) || state.is(net.minecraft.tags.BlockTags.LEAVES)
+			|| state.is(net.minecraft.tags.BlockTags.REPLACEABLE_BY_TREES) || state.is(net.minecraft.tags.BlockTags.FLOWERS)
+			|| state.is(net.minecraft.tags.BlockTags.SAPLINGS);
+		return !growing || !com.dinglebob.drifter.api.DrifterApi.settled(level, pos);
+	}
+
+	/**
 	 * Ore, or stone, with water touching it (the bottom of a lake): not worth diving for (found in testing: it drowned going
 	 * for ore; in a 5-day run four drowned gathering cobblestone off lake beds). Clay and sand it still dives for, as players
 	 * do.

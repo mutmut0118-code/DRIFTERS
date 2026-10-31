@@ -412,6 +412,43 @@ public final class DrifterApi {
 		return placeHouse(level, planId, origin, rotation, wood, null, front);
 	}
 
+	private static volatile java.util.function.BiPredicate<net.minecraft.world.level.Level, net.minecraft.core.BlockPos> settled = (level, pos) -> false;
+
+	/**
+	 * Settled land (the addon's towns): trees, leaves and plants there aren't gathered, Drifters fetch wood and seeds from the
+	 * wild ({@link com.dinglebob.drifter.brain.KnownBlocks#mayGather}).
+	 */
+	public static void setSettled(java.util.function.BiPredicate<net.minecraft.world.level.Level, net.minecraft.core.BlockPos> which) {
+		settled = which;
+	}
+
+	public static boolean settled(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+		return settled.test(level, pos);
+	}
+
+	/**
+	 * Debug: how much of a house put up from this plan here is gone: for each layer up from its corner, how many of the
+	 * blocks the plan has there are air now (null if there's no such plan).
+	 */
+	@Nullable
+	public static int[] missingByLayer(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation) {
+		var plan = com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), planId);
+		if (plan == null) {
+			return null;
+		}
+
+		var placed = new com.dinglebob.drifter.building.plan.PlacedPlan(plan, origin, rotation, com.dinglebob.drifter.building.plan.HousePalette.asDrawn());
+		int[] missing = new int[plan.size.getY() + 1];
+		for (var cell : placed.buildMap().entrySet()) {
+			int layer = cell.getKey().getY() - origin.getY();
+			if (layer >= 0 && layer < missing.length && !cell.getValue().isAir() && level.getBlockState(cell.getKey()).isAir()) {
+				missing[layer]++;
+			}
+		}
+
+		return missing;
+	}
+
 	/** The same, its cobblestone of {@code stone} ("sandstone", "mossy_cobblestone"...) rather than cobblestone (null: as drawn). */
 	@Nullable
 	public static PlacedHouse placeHouse(ServerLevel level, String planId, net.minecraft.core.BlockPos origin, net.minecraft.world.level.block.Rotation rotation,

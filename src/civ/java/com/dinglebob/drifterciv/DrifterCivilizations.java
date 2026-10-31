@@ -133,6 +133,26 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Roads: " + Highways.describe()), false);
 					return 1;
 				})
+				.then(Commands.literal("built").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					// Debug: within 128 blocks, the columns counted as built on, by the block that decides it.
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					var level = ctx.getSource().getLevel();
+					java.util.Map<String, Integer> by = new java.util.TreeMap<>();
+					for (int x = at.getX() - 128; x <= at.getX() + 128; x++) {
+						for (int z = at.getZ() - 128; z <= at.getZ() + 128; z++) {
+							if (level.getChunkSource().getChunkNow(x >> 4, z >> 4) != null) {
+								var state = TownBuilder.builtBy(level, x, z);
+								if (state != null) {
+									by.merge(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), 1, Integer::sum);
+								}
+							}
+						}
+					}
+
+					LOGGER.info("[built] round {}: {}", at.toShortString(), by);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + by), false);
+					return 1;
+				}))
 				.then(Commands.literal("height").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					// Debug: the land's height here as the plan reads it, and as it's generated.
 					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
@@ -239,6 +259,30 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// Debug: every town house's blocks gone (by layer), logged.
+				.then(Commands.literal("damage").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var level = ctx.getSource().getLevel();
+					int damaged = 0;
+					for (Town town : Towns.all()) {
+						for (Town.Plot plot : town.plots) {
+							int[] missing = DrifterApi.missingByLayer(level, plot.planId, plot.origin, plot.rotation);
+							if (missing == null || level.getChunkSource().getChunkNow(plot.origin.getX() >> 4, plot.origin.getZ() >> 4) == null) {
+								continue;
+							}
+
+							int sum = java.util.Arrays.stream(missing).sum();
+							if (sum > 8) {
+								damaged++;
+								LOGGER.info("[damage] {} {} at {} built {}: {} gone, by layer {}", town.name, plot.planId, plot.origin.toShortString(), plot.built, sum,
+									java.util.Arrays.toString(missing));
+							}
+						}
+					}
+
+					int count = damaged;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + count + " town houses with blocks gone (in the log)"), false);
+					return 1;
+				}))
 				// Debug: to the nearest town's plaza (testing world-generated towns).
 				.then(Commands.literal("go").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var player = ctx.getSource().getPlayerOrException();

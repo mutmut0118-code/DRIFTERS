@@ -1556,6 +1556,11 @@ Needs Drifter: Civilizations. New chunks only: make a new world (or fly to land 
       built out of sight ahead of you (about 460 blocks off at render distance 9), so walk, ride or fly toward a town and
       it's already there when you can see it, never going up in front of you. Quit while the screen's up and reopen: it
       carries on. Old worlds don't get the screen.
+- [ ] Whole houses, one bridge, no stacked slabs (0.23.21): in a new world, every town house has its roof (none cut
+      off flat part way up). Where two roads cross the same river, there's one bridge, its railings only along its sides
+      (no fence across the deck). Along roads, no slab sits on a slab or a block on a slab. A town in a swamp has its
+      houses (it isn't almost empty). Drifters living in a town go out to the woods for wood: none pillar up the trees
+      between the houses, none break the grass there.
 - [ ] Natural slopes and snow (0.23.19): beside a road between towns cut into a hill, the land rises a block at a time
       in its own grass, dirt and stone: no cobblestone walls (towns keep their cobblestone terraces). In a snowy place the
       moved ground has snow on it like the land round it (no green patches in the snow).
