@@ -3703,6 +3703,43 @@ public final class TownBuilder {
 	}
 
 	/**
+	 * Something built standing here: from the top down to the land's own ground, a block the land doesn't make (planks, a
+	 * door, glass, cobblestone, a bed, a torch...). A tree's logs and leaves, plants, water, the land's slabs and a road's
+	 * own paving aren't. A road between towns leaves such a column as it is: it took a house's roof for the ground and cut
+	 * the house away, or buried it (the user's picture, 2026-10-30: "the terraforming is infact destroying the houses").
+	 */
+	static boolean built(ServerLevel level, int x, int z) {
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
+		for (int k = 0; k < 24 && pos.getY() > level.getMinBuildHeight(); k++, pos.move(0, -1, 0)) {
+			BlockState state = level.getBlockState(pos);
+			if (state.isAir() || !state.getFluidState().isEmpty() || plant(state) || state.is(net.minecraft.tags.BlockTags.LEAVES) || litter(state)
+				|| com.dinglebob.drifter.api.DrifterApi.naturalSlab(state)) {
+				continue;
+			}
+
+			if (state.is(net.minecraft.tags.BlockTags.LOGS) && state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)
+				&& state.getValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS) == Direction.Axis.Y
+				&& !net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath().startsWith("stripped")) {
+				continue;
+			}
+
+			String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+			boolean land = state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
+				|| state.is(net.minecraft.tags.BlockTags.SAND) || state.is(net.minecraft.tags.BlockTags.TERRACOTTA) || state.is(Blocks.GRAVEL)
+				|| state.is(Blocks.DIRT_PATH) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW) || state.is(net.minecraft.tags.BlockTags.ICE)
+				|| state.is(Blocks.CLAY) || state.is(Blocks.MUD) || state.is(Blocks.CALCITE) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.MAGMA_BLOCK)
+				|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.BEDROCK) || id.contains("sandstone") || id.contains("_ore") || id.startsWith("terrain_slabs:")
+				|| state.is(Blocks.MOSS_BLOCK) || state.is(Blocks.MYCELIUM) || state.is(Blocks.PODZOL) || state.is(Blocks.SMOOTH_BASALT)
+				|| state.is(Blocks.AMETHYST_BLOCK) || state.is(Blocks.BUDDING_AMETHYST) || state.is(Blocks.MUSHROOM_STEM) || state.is(Blocks.RED_MUSHROOM_BLOCK)
+				|| state.is(Blocks.BROWN_MUSHROOM_BLOCK) || state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON) || state.is(Blocks.BEE_NEST)
+				|| state.is(Blocks.DRIPSTONE_BLOCK) || state.is(Blocks.POINTED_DRIPSTONE);
+			return !land;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Water on top here (bridged, never filled). Not lava: that's filled and sealed like any hole (taken for water, a road
 	 * bridged a lava pool on planks and fence, which caught fire: the user's picture).
 	 */
@@ -3785,6 +3822,67 @@ public final class TownBuilder {
 	 * it, not climbed over. Its ends stay at the ground there, so the stretches either side meet it. Columns of a town's own
 	 * roads ({@code keep}) left as they are.
 	 */
+	/**
+	 * A bridge's railings: planks at the deck's height with a fence on, on a pier now and then. Where a railing goes round a
+	 * corner (a bridge on a slant: its edge steps), a post put in the corner, so it's one railing all along: the fences only
+	 * touched at their corners, and didn't join (the user's pictures, with how it should look).
+	 */
+	private static void bridgeRails(ServerLevel level, java.util.Map<Long, Integer> rails, java.util.Set<Long> road) {
+		java.util.Map<Long, Integer> corners = new java.util.HashMap<>();
+		for (var rail : rails.entrySet()) {
+			int x = BlockPos.getX(rail.getKey());
+			int z = BlockPos.getZ(rail.getKey());
+			for (int dx = -1; dx <= 1; dx += 2) {
+				for (int dz = -1; dz <= 1; dz += 2) {
+					Integer other = rails.get(BlockPos.asLong(x + dx, 0, z + dz));
+					long a = BlockPos.asLong(x + dx, 0, z);
+					long b = BlockPos.asLong(x, 0, z + dz);
+					if (other == null || rails.containsKey(a) || rails.containsKey(b) || corners.containsKey(a) || corners.containsKey(b)) {
+						continue;
+					}
+
+					long corner = !road.contains(a) ? a : !road.contains(b) ? b : 0;
+					if (corner != 0) {
+						corners.put(corner, Math.max(rail.getValue(), other));
+					}
+				}
+			}
+		}
+
+		rails.putAll(corners);
+		java.util.List<BlockPos> fences = new java.util.ArrayList<>();
+		for (var rail : rails.entrySet()) {
+			int deck = rail.getValue();
+			int x = BlockPos.getX(rail.getKey());
+			int z = BlockPos.getZ(rail.getKey());
+			BlockPos at = new BlockPos(x, deck, z);
+			set(level, at, wood("planks").defaultBlockState());
+			BlockState over = level.getBlockState(at.above());
+			if (over.isAir() || plant(over)) {
+				set(level, at.above(), wood("fence").defaultBlockState());
+				fences.add(at.above());
+			}
+
+			if (Math.floorMod(x + z, 4) == 0) {
+				for (BlockPos pier = at.below(); pier.getY() > deck - 32 && (level.getBlockState(pier).isAir() || !level.getFluidState(pier).isEmpty()
+					|| plant(level.getBlockState(pier))); pier = pier.below()) {
+					set(level, pier, wood("log").defaultBlockState());
+				}
+			}
+		}
+
+		// (Each fence joined to those beside it: put down one by one, a fence only joined the next one put down by it.)
+		for (BlockPos fence : fences) {
+			BlockState state = level.getBlockState(fence);
+			place(level, fence, Block.updateFromNeighbourShapes(state, level, fence));
+		}
+	}
+
+	/** Land this many steps long or less in the middle of a crossing is bridged over. */
+	private static final int ISLET = 8;
+	/** A road between towns is cut or built at most this far from the ground. */
+	private static final int HIGHWAY_DEEPEST = 6;
+
 	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep) {
 		if (line.size() < 2) {
 			return;
@@ -3817,10 +3915,17 @@ public final class TownBuilder {
 		double[] ground = new double[n];
 		java.util.Arrays.fill(ground, Double.NEGATIVE_INFINITY);
 		java.util.Map<Long, Integer> water = new java.util.HashMap<>();
+		// (Something built on its way, a house: left as it is, not taken for the ground, not paved over.)
+		java.util.Set<Long> standing = new java.util.HashSet<>();
 		for (var cell : road.cells.entrySet()) {
 			int x = BlockPos.getX(cell.getKey());
 			int z = BlockPos.getZ(cell.getKey());
 			if (!loadedAt(level, x, z)) {
+				continue;
+			}
+
+			if (!keep.contains(cell.getKey()) && built(level, x, z)) {
+				standing.add(cell.getKey());
 				continue;
 			}
 
@@ -3861,13 +3966,53 @@ public final class TownBuilder {
 			double h = (up[t] + down[t]) / 2.0;
 			h = Mth.clamp(h, ground[0] - t * 0.5, ground[0] + t * 0.5);
 			h = Mth.clamp(h, ground[n - 1] - (n - 1 - t) * 0.5, ground[n - 1] + (n - 1 - t) * 0.5);
+			// (Never cut or built more than its banks can ease: through a ridge, cliffs twenty high stood over it, the user's
+			// pictures; steeper there, a step to climb, rather. Its way's planned round such land now.)
+			h = Mth.clamp(h, ground[t] - HIGHWAY_DEEPEST, ground[t] + HIGHWAY_DEEPEST);
 			want[t] = (int)Math.floor(h + 0.5);
 		}
 
 		// The land shaped to it, its shoulders and banks, the town's roads it meets held as they are.
-		GroundPlan plan = new GroundPlan(level, List.of(), level.getRandom(), style == Style.DESERT);
+		// A bit of land in the middle of a crossing (a sandbar, a reed bed: a few steps between water) is bridged too, the deck
+		// going on over it: paved, it was a patch of dirt path in the middle of the bridge (the user's picture).
+		boolean[] wetAt = new boolean[n];
 		for (var cell : road.cells.entrySet()) {
-			if (!keep.contains(cell.getKey()) && !water.containsKey(cell.getKey())) {
+			if (water.containsKey(cell.getKey())) {
+				wetAt[cell.getValue()] = true;
+			}
+		}
+
+		java.util.Set<Long> islets = new java.util.HashSet<>();
+		for (int t = 0; t < n; t++) {
+			if (wetAt[t]) {
+				continue;
+			}
+
+			int end = t;
+			while (end < n && !wetAt[end]) {
+				end++;
+			}
+
+			if (t > 0 && end < n && end - t <= ISLET) {
+				for (var cell : road.cells.entrySet()) {
+					int at = cell.getValue();
+					int x = BlockPos.getX(cell.getKey());
+					int z = BlockPos.getZ(cell.getKey());
+					if (at >= t && at < end && !keep.contains(cell.getKey()) && !standing.contains(cell.getKey()) && loadedAt(level, x, z)
+						&& ground(level, x, z) <= want[at]) {
+						islets.add(cell.getKey());
+						water.put(cell.getKey(), ground(level, x, z));
+					}
+				}
+			}
+
+			t = end;
+		}
+
+		GroundPlan plan = new GroundPlan(level, List.of(), level.getRandom(), style == Style.DESERT);
+		plan.spareBuilt();
+		for (var cell : road.cells.entrySet()) {
+			if (!keep.contains(cell.getKey()) && !water.containsKey(cell.getKey()) && !standing.contains(cell.getKey())) {
 				plan.road(cell.getKey(), want[cell.getValue()]);
 			}
 		}
@@ -3898,7 +4043,7 @@ public final class TownBuilder {
 		for (var cell : road.cells.entrySet()) {
 			int x = BlockPos.getX(cell.getKey());
 			int z = BlockPos.getZ(cell.getKey());
-			if (keep.contains(cell.getKey()) || !loadedAt(level, x, z)) {
+			if (keep.contains(cell.getKey()) || standing.contains(cell.getKey()) || !loadedAt(level, x, z)) {
 				continue;
 			}
 
@@ -3924,6 +4069,7 @@ public final class TownBuilder {
 			}
 		}
 
+		java.util.Map<Long, Integer> rails = new java.util.HashMap<>();
 		for (var cell : road.cells.entrySet()) {
 			int x = BlockPos.getX(cell.getKey());
 			int z = BlockPos.getZ(cell.getKey());
@@ -3933,26 +4079,15 @@ public final class TownBuilder {
 
 			Integer deck = decks.get(cell.getKey());
 			if (deck != null) {
-				// A railing over the water beside the deck, on a pier now and then.
+				// A railing beside the deck (over the water, or the bit of land it goes over), put up after.
 				for (Direction side : Direction.Plane.HORIZONTAL) {
 					int nx = x + side.getStepX();
 					int nz = z + side.getStepZ();
-					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || !wet(level, nx, nz)) {
+					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || !wet(level, nx, nz) && !islets.contains(cell.getKey())) {
 						continue;
 					}
 
-					BlockPos rail = new BlockPos(nx, deck, nz);
-					set(level, rail, wood("planks").defaultBlockState());
-					if (level.getBlockState(rail.above()).isAir()) {
-						place(level, rail.above(), wood("fence").defaultBlockState());
-					}
-
-					if (Math.floorMod(nx + nz, 4) == 0) {
-						for (BlockPos pier = rail.below(); pier.getY() > deck - 32 && (level.getBlockState(pier).isAir() || !level.getFluidState(pier).isEmpty());
-							pier = pier.below()) {
-							set(level, pier, wood("log").defaultBlockState());
-						}
-					}
+					rails.merge(BlockPos.asLong(nx, 0, nz), deck, Math::max);
 				}
 
 				continue;
@@ -3982,6 +4117,8 @@ public final class TownBuilder {
 				}
 			}
 		}
+
+		bridgeRails(level, rails, road.cells.keySet());
 
 		// The test: steps along it that need a jump (over half a block between columns side by side, off the bridges).
 		int pairs = 0;

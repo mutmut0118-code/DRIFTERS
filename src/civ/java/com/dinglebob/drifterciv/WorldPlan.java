@@ -29,7 +29,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 
 /**
@@ -138,6 +137,13 @@ final class WorldPlan {
 	private static final int MOST_NODES = 25_000;
 	/** A road's search leans this much on the straight-line distance left (finds a near-cheapest way, far quicker: 78 s for a world's roads at 1). */
 	private static final double GREED = 1.6;
+	/** How much a road's search leans on {@link Plan#wander} (a step costs up to this many times more), and how wide its swells. */
+	private static final double WANDER = 1.5;
+	private static final int WANDER_SIZE = 96;
+	/** Two nations' nearest towns further apart than this (times the spread) have no road between them. */
+	private static final int BETWEEN_NATIONS = 1600;
+	/** A road whose way round is longer than this many times the straight line (and 200) isn't made: round a sea, a gulf. */
+	private static final double MOST_ROUND = 1.7;
 
 	static void register() {
 		ServerWorldEvents.LOAD.register((server, level) -> {
@@ -290,12 +296,25 @@ final class WorldPlan {
 	// Making it (in the background)
 	// ---------------------------------------------------------------------------------------------
 
-	/** Sizes of spot: how far its core and its whole reach, and how much each may rise and fall. */
+	/**
+	 * Sizes of spot: how far its core and its whole reach, and how much each may rise and fall (the core by the land's real
+	 * heights, the whole roughly). Flat land only (the user, 2026-10-30, of a capital on a mountain cut into cliffs: "idk if a
+	 * city on a mountain or hill is gonna work"): it was 16 and 72 for a city, and twice that if nothing suited; now a place
+	 * that finds no flat land near where it was meant to be looks further, and then isn't made.
+	 */
 	private record Size(int core, int coreRise, int whole, int wholeRise) {
-		static final Size CITY = new Size(72, 16, 132, 72);
-		static final Size TOWN = new Size(48, 12, 72, 64);
-		static final Size HAMLET = new Size(32, 10, 48, 48);
+		static final Size CITY = new Size(64, 10, 128, 36);
+		static final Size TOWN = new Size(44, 8, 72, 26);
+		static final Size HAMLET = new Size(28, 6, 48, 20);
 	}
+
+	/** The real heights over a spot's core are looked at this far apart; two of them further apart than {@link #CLIFF} is a cliff in it. */
+	private static final int FINE = 16;
+	private static final int CLIFF = 5;
+	/** A place's core is at most this far over the sea. */
+	private static final int LOWLAND = 24;
+	/** A place looks for flat land at most this far from where it was meant to be. */
+	private static final int MOST_MOVE = 1000;
 
 	private static final class Plan {
 		/** Points along a road this far apart. */
@@ -335,8 +354,9 @@ final class WorldPlan {
 			this.ruins();
 			long towns = System.nanoTime();
 			this.roads();
-			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights asked", (capitals - start) / 1_000_000, (towns - capitals)
-				/ 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size() + this.roadHeights.size());
+			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights on its grid, {} in all ({} ms)", (capitals - start)
+				/ 1_000_000, (towns - capitals) / 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size(), this.realHeights.size(),
+				this.realNanos / 1_000_000);
 		}
 
 		// ----- Where things go -----
@@ -490,96 +510,134 @@ final class WorldPlan {
 		// ----- The land (from the generator) -----
 
 		/**
-		 * The rough surface leaves out the crags (the generator's jaggedness: on the user's Tectonic a snowy peak looked like
-		 * gentle ground, and a city went on it, nothing in it walkable from its plaza): the core's real heights, from the
-		 * generator itself, at its middle and eight round it.
+		 * The core flat by the land's real heights (the rough surface leaves out the crags: on the user's Tectonic a snowy peak
+		 * looked like gentle ground, and a city went on it, nothing in it walkable from its plaza), every {@link #FINE} blocks
+		 * over it: within its rise, no cliff between two beside each other, none of it under water.
 		 */
 		private boolean reallyFlat(int[] c, Size size) {
 			int low = Integer.MAX_VALUE;
 			int high = Integer.MIN_VALUE;
-			for (int k = -1; k < 8; k++) {
-				double a = k * Math.PI / 4;
-				int r = k < 0 ? 0 : size.core() * 2 / 3;
-				int y = this.generator.getBaseHeight(c[0] + (int)(Math.cos(a) * r), c[1] + (int)(Math.sin(a) * r), Heightmap.Types.OCEAN_FLOOR_WG, this.level,
-					this.randomState);
-				low = Math.min(low, y);
-				high = Math.max(high, y);
+			int n = size.core() / FINE;
+			int[][] ys = new int[2 * n + 1][2 * n + 1];
+			for (int a = -n; a <= n; a++) {
+				for (int b = -n; b <= n; b++) {
+					if (a * a + b * b > n * n) {
+						ys[a + n][b + n] = Integer.MIN_VALUE;
+						continue;
+					}
+
+					int y = this.realLand(c[0] + a * FINE, c[1] + b * FINE)[0];
+					if (y <= this.generator.getSeaLevel()) {
+						return false;
+					}
+
+					ys[a + n][b + n] = y;
+					low = Math.min(low, y);
+					high = Math.max(high, y);
+					if (high - low > size.coreRise()) {
+						return false;
+					}
+
+					int left = a > -n ? ys[a + n - 1][b + n] : Integer.MIN_VALUE;
+					int back = b > -n ? ys[a + n][b + n - 1] : Integer.MIN_VALUE;
+					if (left != Integer.MIN_VALUE && Math.abs(left - y) > CLIFF || back != Integer.MIN_VALUE && Math.abs(back - y) > CLIFF) {
+						return false;
+					}
+				}
 			}
 
-			return high - low <= size.coreRise() * 3 / 2;
+			return true;
 		}
 
 		private final Map<Long, int[]> roadHeights = new HashMap<>();
+		private final Map<Long, int[]> realHeights = new HashMap<>();
 
-		/** {@link #land}, on a road's grid of cells this wide (the middle of cell i, j). */
+		/**
+		 * The land on a road's grid of cells this wide (the middle of cell i, j), by its real heights: by the rough ones, a road
+		 * went over a mountain its search took for gentle ground, cut into cliffs (the user's pictures, 2026-10-30).
+		 */
 		private int[] roadLand(int i, int j, int cell) {
-			if (cell == CELL) {
-				return this.land(i * CELL + CELL / 2, j * CELL + CELL / 2);
-			}
-
-			long key = BlockPos.asLong(i, 0, j);
+			long key = BlockPos.asLong(i, cell, j);
 			int[] known = this.roadHeights.get(key);
 			if (known == null) {
-				int floor = this.surface(i * cell + cell / 2, j * cell + cell / 2);
-				known = new int[] {floor, floor <= this.generator.getSeaLevel() ? 1 : 0};
+				known = this.realLand(i * cell + cell / 2, j * cell + cell / 2);
 				this.roadHeights.put(key, known);
 			}
 
 			return known;
 		}
 
-		/** The ground's height here and whether it's water (at or under the sea's level), asked of the generator once a spot. */
-		private int[] land(int x, int z) {
-			int i = Math.floorDiv(x, CELL);
-			int j = Math.floorDiv(z, CELL);
-			long key = BlockPos.asLong(i, 0, j);
-			int[] known = this.heights.get(key);
+		/** The land's real height here (crags and all, {@link #real}) and whether it's water, asked once a spot. */
+		private int[] realLand(int x, int z) {
+			long key = BlockPos.asLong(x, 0, z);
+			int[] known = this.realHeights.get(key);
 			if (known == null) {
-				int floor = this.surface(i * CELL + CELL / 2, j * CELL + CELL / 2);
+				int floor = this.real(x, z);
 				known = new int[] {floor, floor <= this.generator.getSeaLevel() ? 1 : 0};
-				this.heights.put(key, known);
+				this.realHeights.put(key, known);
 			}
 
 			return known;
 		}
 
 		/**
-		 * The land's rough top here: where the generator's terrain (before caves and crags) turns solid, found from about the
-		 * sea's level up or down 32 blocks at a time, then to the block. A tenth of the time the generator's own height takes
-		 * on the user's Tectonic (8 ms each there: the first plans took minutes); near enough for where towns and roads go.
+		 * The land's real top here: where the generator's final terrain (its crags and cliffs) turns solid, from well over the
+		 * sea down, a few blocks at a time, then to the block. Half a millisecond on the user's Tectonic (its own height took 8
+		 * ms; the generator's rough terrain, quicker, left out the crags, and with Continents had the land 90 blocks under the
+		 * sea). A cave's mouth just under the top can read lower; near enough.
 		 */
-		private int surface(int x, int z) {
-			net.minecraft.world.level.levelgen.DensityFunction density = this.randomState.router().initialDensityWithoutJaggedness();
+		private long realNanos;
+
+		private int real(int x, int z) {
+			long started = System.nanoTime();
+			int y = this.realTop(x, z);
+			this.realNanos += System.nanoTime() - started;
+			return y;
+		}
+
+		private int realTop(int x, int z) {
+			net.minecraft.world.level.levelgen.DensityFunction density = this.randomState.router().finalDensity();
 			int low = this.level.getMinBuildHeight();
 			int high = this.level.getMaxBuildHeight() - 1;
-			int y = Math.max(low, Math.min(high, this.generator.getSeaLevel() + 8));
-			boolean solid = this.solid(density, x, y, z);
-			int step = solid ? 32 : -32;
-			while (y + step >= low && y + step <= high && this.solid(density, x, y + step, z) == solid) {
-				y += step;
+			int y = Math.min(high, this.generator.getSeaLevel() + 96);
+			while (y < high && this.solidAt(density, x, y, z)) {
+				y = Math.min(high, y + 32);
 			}
 
-			// Solid at the lower of the two, open at the higher: to the block between them.
-			int a = solid ? y : Math.max(low, y + step);
-			int b = solid ? Math.min(high, y + step) : y;
-			if (this.solid(density, x, b, z)) {
-				return b;
+			int open = y;
+			while (y > low && !this.solidAt(density, x, y, z)) {
+				open = y;
+				y = Math.max(low, y - 6);
 			}
 
-			while (b - a > 1) {
-				int m = (a + b) / 2;
-				if (this.solid(density, x, m, z)) {
-					a = m;
+			while (open - y > 1) {
+				int m = (open + y) / 2;
+				if (this.solidAt(density, x, m, z)) {
+					y = m;
 				} else {
-					b = m;
+					open = m;
 				}
 			}
 
-			return a;
+			return y;
 		}
 
-		private boolean solid(net.minecraft.world.level.levelgen.DensityFunction density, int x, int y, int z) {
-			return density.compute(new net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext(x, y, z)) > 0.390625;
+		private boolean solidAt(net.minecraft.world.level.levelgen.DensityFunction density, int x, int y, int z) {
+			return density.compute(new net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext(x, y, z)) > 0;
+		}
+
+		/** The ground's height here and whether it's water (at or under the sea's level), on the plan's grid ({@link #real}). */
+		private int[] land(int x, int z) {
+			int i = Math.floorDiv(x, CELL);
+			int j = Math.floorDiv(z, CELL);
+			long key = BlockPos.asLong(i, 0, j);
+			int[] known = this.heights.get(key);
+			if (known == null) {
+				known = this.realLand(i * CELL + CELL / 2, j * CELL + CELL / 2);
+				this.heights.put(key, known);
+			}
+
+			return known;
 		}
 
 		private boolean townBiome(int x, int z) {
@@ -589,27 +647,26 @@ final class WorldPlan {
 		}
 
 		/**
-		 * A spot of this size near (x, z): the best that suits; if none, one on rougher ground a little further (the ground's
-		 * shaped to fit: W2); if still none, in any biome.
+		 * A flat spot of this size near (x, z): the best in a town's biome; if none, the best further out (twice, then three
+		 * times as far); then in any biome. Never on rougher ground (it was, shaped to fit: a capital on a mountain, cliffs cut
+		 * all round it). Null if there's no flat land near: it isn't made.
 		 */
 		@Nullable
 		private int[] findSpot(int x, int z, int move, Size size) {
-			int[] spot = this.best(x, z, move, size, true);
-			if (spot == null) {
-				spot = this.best(x, z, move * 3 / 2, new Size(size.core(), size.coreRise() * 2, size.whole(), size.wholeRise() * 3 / 2), true);
+			for (int far = 1; far <= 3; far++) {
+				int[] spot = this.best(x, z, Math.min(move * far, MOST_MOVE), size, true);
+				if (spot != null) {
+					return spot;
+				}
 			}
 
-			if (spot == null) {
-				spot = this.best(x, z, move * 3 / 2, new Size(size.core(), size.coreRise() * 2, size.whole(), size.wholeRise() * 3 / 2), false);
-			}
-
-			return spot;
+			return this.best(x, z, Math.min(move * 3, MOST_MOVE), size, false);
 		}
 
 		/**
 		 * The best spot of this size within {@code move} of (x, z): in a town's biome, not wet at its core, its core and whole
-		 * not too rough, a little water allowed (a river or the sea beside it makes a river town or a harbour); the flattest,
-		 * nearest. Null if none.
+		 * flat enough roughly, a little water allowed (a river or the sea beside it makes a river town or a harbour); of those,
+		 * the flattest and nearest that's really flat ({@link #reallyFlat}). Null if none.
 		 */
 		@Nullable
 		private int[] best(int x0, int z0, int move, Size size, boolean biome) {
@@ -629,9 +686,7 @@ final class WorldPlan {
 			}
 
 			candidates.sort(java.util.Comparator.comparingDouble(c -> Math.hypot(c[0] - x0, c[1] - z0)));
-			int[] best = null;
-			double bestScore = Double.MAX_VALUE;
-			int looked = 0;
+			List<double[]> suits = new ArrayList<>();
 			for (int[] c : candidates) {
 				if (this.land(c[0], c[1])[1] == 1 || biome && !this.townBiome(c[0], c[1])) {
 					continue;
@@ -675,44 +730,80 @@ final class WorldPlan {
 					continue;
 				}
 
-				double score = 3.0 * (coreHigh - coreLow) + (high - low) / 4.0 + 10.0 * wet / cells + Math.hypot(c[0] - x0, c[1] - z0) / 48.0;
-				if (score < bestScore && this.reallyFlat(c, size)) {
-					bestScore = score;
-					best = c;
+				// Low land, by the sea or not far over it (the user, 2026-10-30: "make sure the towns are around sea level, that way
+				// it automatically goes around the mountains"): the lower the better.
+				int sea = this.generator.getSeaLevel();
+				if (coreHigh > sea + LOWLAND) {
+					continue;
 				}
 
-				// (The best of the first few that suit: near enough where it was meant to be, without looking at the whole land.)
-				if (++looked >= 12) {
-					break;
+				suits.add(new double[] {c[0], c[1], 3.0 * (coreHigh - coreLow) + (high - low) / 2.0 + 10.0 * wet / cells + Math.hypot(c[0] - x0, c[1] - z0) / 48.0
+					+ (coreLow - sea) / 2.0});
+			}
+
+			// (The real heights are slower to work out: only the best few of those that suit roughly.)
+			suits.sort(java.util.Comparator.comparingDouble(s -> s[2]));
+			for (int k = 0; k < Math.min(10, suits.size()); k++) {
+				int[] c = {(int)suits.get(k)[0], (int)suits.get(k)[1]};
+				if (this.reallyFlat(c, size)) {
+					return c;
 				}
 			}
 
-			return best;
+			return null;
 		}
 
 		// ----- The roads between (W5) -----
 
 		/**
 		 * Which places a road joins: a nation's capital to each of its towns, each hamlet to its nearest town (or the capital),
-		 * the capitals to each other (each to its nearest two, so it's all one network), free towns to the nearest place.
+		 * free towns to the nearest place, and each nation to its two nearest neighbours by their nearest two towns (or
+		 * capitals), if they're near enough: capital to capital went 3,000 blocks and more, over the sea (the user, 2026-10-30:
+		 * "still very long roads").
 		 */
 		private void roads() {
 			Set<String> joined = new HashSet<>();
 			List<Place> lived = this.places.stream().filter(p -> !p.ruin()).toList();
 			for (Place place : lived) {
-				if (place.kind.equals("city")) {
-					lived.stream().filter(p -> p.kind.equals("city") && p != place).sorted(java.util.Comparator.comparingDouble(p -> Math.hypot(p.x - place.x,
-						p.z - place.z))).limit(2).forEach(other -> this.join(place, other, joined));
-				} else if (place.kind.equals("town") && place.nation != null) {
+				if (place.kind.equals("town") && place.nation != null) {
 					lived.stream().filter(p -> p.kind.equals("city") && place.nation.equals(p.nation)).findFirst().ifPresent(capital -> this.join(capital, place,
 						joined));
 				} else if (place.kind.equals("hamlet")) {
 					lived.stream().filter(p -> p != place && !p.kind.equals("hamlet") && place.nation != null && place.nation.equals(p.nation))
 						.min(java.util.Comparator.comparingDouble(p -> Math.hypot(p.x - place.x, p.z - place.z))).ifPresent(town -> this.join(town, place, joined));
-				} else {
+				} else if (place.nation == null) {
 					lived.stream().filter(p -> p != place).min(java.util.Comparator.comparingDouble(p -> Math.hypot(p.x - place.x, p.z - place.z)))
 						.ifPresent(other -> this.join(other, place, joined));
 				}
+			}
+
+			for (PlannedNation nation : this.nations) {
+				List<Place> mine = lived.stream().filter(p -> nation.id().equals(p.nation) && !p.kind.equals("hamlet")).toList();
+				List<Place[]> nearest = new ArrayList<>();
+				for (PlannedNation other : this.nations) {
+					if (other == nation) {
+						continue;
+					}
+
+					Place[] pair = null;
+					double best = Double.MAX_VALUE;
+					for (Place a : mine) {
+						for (Place b : lived) {
+							double d = Math.hypot(a.x - b.x, a.z - b.z);
+							if (other.id().equals(b.nation) && !b.kind.equals("hamlet") && d < best) {
+								best = d;
+								pair = new Place[] {a, b};
+							}
+						}
+					}
+
+					if (pair != null && best <= BETWEEN_NATIONS * this.spread) {
+						nearest.add(pair);
+					}
+				}
+
+				nearest.stream().sorted(java.util.Comparator.comparingDouble(p -> Math.hypot(p[0].x - p[1].x, p[0].z - p[1].z))).limit(2).forEach(p -> this.join(p[0],
+					p[1], joined));
 			}
 		}
 
@@ -762,11 +853,15 @@ final class WorldPlan {
 			int ti = Math.floorDiv(bx, cell);
 			int tj = Math.floorDiv(bz, cell);
 			Map<Long, Double> cost = new HashMap<>();
+			// (How far along each is: none looked at that can't make it in the longest way round allowed.)
+			Map<Long, Double> along = new HashMap<>();
+			double longest = MOST_ROUND * Math.hypot(bx - ax, bz - az) + 200;
 			Map<Long, Long> from = new HashMap<>();
 			PriorityQueue<double[]> open = new PriorityQueue<>(java.util.Comparator.comparingDouble(n -> n[2]));
 			long start = BlockPos.asLong(si, 0, sj);
 			long goal = BlockPos.asLong(ti, 0, tj);
 			cost.put(start, 0.0);
+			along.put(start, 0.0);
 			open.add(new double[] {si, sj, 0});
 			int nodes = 0;
 			boolean found = false;
@@ -796,13 +891,19 @@ final class WorldPlan {
 						int ni = i + di;
 						int nj = j + dj;
 						int[] next = this.roadLand(ni, nj, cell);
+						if (next[1] == 1 && this.openWater(ni, nj, cell)) {
+							continue;
+						}
+
 						double step = Math.hypot(di, dj) * cell;
 						double grade = Math.abs(next[0] - land[0]) / step;
-						double g = here + step * (1 + 40 * grade * grade) + (grade > 0.5 ? step * 40 : 0)
+						double g = here + step * (1 + 40 * grade * grade + WANDER * this.wander(ni * cell, nj * cell)) + (grade > 0.5 ? step * 40 : 0)
 							+ (next[1] == 1 ? next[0] < sea - 4 ? 2500 : 60 : 0);
 						long nkey = BlockPos.asLong(ni, 0, nj);
-						if (g < cost.getOrDefault(nkey, Double.MAX_VALUE)) {
+						double far = along.get(key) + step;
+						if (g < cost.getOrDefault(nkey, Double.MAX_VALUE) && far + Math.hypot(ti - ni, tj - nj) * cell <= longest) {
 							cost.put(nkey, g);
+							along.put(nkey, far);
 							from.put(nkey, key);
 							open.add(new double[] {ni, nj, g + GREED * Math.hypot(ti - ni, tj - nj) * cell});
 						}
@@ -810,7 +911,8 @@ final class WorldPlan {
 				}
 			}
 
-			DrifterCivilizations.LOGGER.info("[plan] road {}, {} to {}, {}: {} cells looked at on a {} grid{}", ax, az, bx, bz, nodes, cell, found ? "" : ", no way");
+			DrifterCivilizations.LOGGER.info("[plan] road {}, {} to {}, {}: {} cells looked at on a {} grid{}", ax, az, bx, bz, nodes, cell, found ? ""
+				: ", no way (none over the land, nor round it in " + (int)longest + " blocks)");
 			if (!found) {
 				return List.of();
 			}
@@ -829,8 +931,8 @@ final class WorldPlan {
 
 			corners.set(0, new double[] {ax, az});
 			corners.set(corners.size() - 1, new double[] {bx, bz});
-			// Corners rounded off (twice cut), then a point every few blocks along.
-			for (int round = 0; round < 2 && corners.size() > 2; round++) {
+			// Corners rounded off (three times cut: curves), then a point every few blocks along.
+			for (int round = 0; round < 3 && corners.size() > 2; round++) {
 				List<double[]> cut = new ArrayList<>();
 				cut.add(corners.get(0));
 				for (int k = 0; k < corners.size() - 1; k++) {
@@ -861,6 +963,55 @@ final class WorldPlan {
 
 			points.add(new int[] {bx, bz});
 			return points;
+		}
+
+		/**
+		 * A smooth lie of the land a road's search leans on (0 to 1, changing over a couple of hundred blocks): ways that wind
+		 * (the user, 2026-10-30: "make the roads windy and scenic"), not straight over flat land, round a hill rather than over.
+		 */
+		private double wander(int x, int z) {
+			double gx = x / (double)WANDER_SIZE;
+			double gz = z / (double)WANDER_SIZE;
+			int ix = (int)Math.floor(gx);
+			int iz = (int)Math.floor(gz);
+			double fx = gx - ix;
+			double fz = gz - iz;
+			fx = fx * fx * (3 - 2 * fx);
+			fz = fz * fz * (3 - 2 * fz);
+			double a = this.lattice(ix, iz) + (this.lattice(ix + 1, iz) - this.lattice(ix, iz)) * fx;
+			double b = this.lattice(ix, iz + 1) + (this.lattice(ix + 1, iz + 1) - this.lattice(ix, iz + 1)) * fx;
+			return a + (b - a) * fz;
+		}
+
+		private double lattice(int i, int j) {
+			long h = this.level.getSeed() ^ i * 0x9E3779B97F4A7C15L ^ j * 0xC2B2AE3D27D4EB4FL;
+			h = (h ^ h >>> 31) * 0xBF58476D1CE4E5B9L;
+			h = (h ^ h >>> 29) * 0x94D049BB133111EBL;
+			return ((h ^ h >>> 32) >>> 11) / (double)(1L << 53);
+		}
+
+		private final Map<Long, Boolean> open = new HashMap<>();
+
+		/**
+		 * Water with no land within about 50 blocks: the sea or a lake, no road over it (a river's bridged). A road went
+		 * straight over the sea between islands, its deep water only dear (the user's pictures, 2026-10-30).
+		 */
+		private boolean openWater(int i, int j, int cell) {
+			long key = BlockPos.asLong(i, cell, j);
+			Boolean known = this.open.get(key);
+			if (known == null) {
+				int r = Math.max(1, 48 / cell);
+				known = true;
+				for (int a = -r; a <= r && known; a++) {
+					for (int b = -r; b <= r && known; b++) {
+						known = this.roadLand(i + a, j + b, cell)[1] == 1;
+					}
+				}
+
+				this.open.put(key, known);
+			}
+
+			return known;
 		}
 	}
 

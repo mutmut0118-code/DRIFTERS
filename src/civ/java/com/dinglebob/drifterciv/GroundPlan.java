@@ -118,6 +118,18 @@ final class GroundPlan {
 		this.maxZ = Math.max(this.maxZ, z1);
 	}
 
+	/** Columns with something built standing in them ({@link TownBuilder#built}) left as they are: for a road through land already lived on. */
+	private boolean spare;
+	private final Map<Long, Boolean> builtAt = new HashMap<>();
+
+	void spareBuilt() {
+		this.spare = true;
+	}
+
+	private boolean standing(int x, int z) {
+		return this.spare && this.builtAt.computeIfAbsent(BlockPos.asLong(x, 0, z), key -> TownBuilder.built(this.level, x, z));
+	}
+
 	/** A road's column held at this height (where two roads meet, the higher). */
 	void road(long column, int height) {
 		this.roads.merge(column, height, Math::max);
@@ -556,7 +568,7 @@ final class GroundPlan {
 	}
 
 	private void column(int x, int z) {
-		if (this.wet(x, z)) {
+		if (this.wet(x, z) || this.standing(x, z)) {
 			return;
 		}
 
