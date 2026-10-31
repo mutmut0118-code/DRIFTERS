@@ -100,6 +100,12 @@ public final class DrifterStandIn extends RemotePlayer {
 		this.calculateEntityAnimation(false);
 	}
 
+	/** Riding what its Drifter rides, to the addon (not one of the vehicle's riders: DrifterTouchNMotion seats it there a moment). */
+	@Override
+	public net.minecraft.world.entity.Entity getVehicle() {
+		return this.drifter.isRemoved() ? null : this.drifter.getVehicle();
+	}
+
 	@Override
 	public void tick() {
 		// Copied from the Drifter after the world's tick (DrifterTouchNMotion), never moved by itself.

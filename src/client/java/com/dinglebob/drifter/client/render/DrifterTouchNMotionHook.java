@@ -66,6 +66,7 @@ final class DrifterTouchNMotionHook extends EMFAnimationApi.EMFAnimationHook {
 		AnimationContext swapped = new AnimationContext(asStandIn, context.animatingModelRoot(), context.error(),
 			context.partsRequestedToPauseThisAnimation(), context.animationHandler());
 		this.states.push(asStandIn);
+		Runnable unseat = DrifterTouchNMotion.seat(standIn);
 		try {
 			float[] before = TRACE ? pose(context) : null;
 			this.addon.onAnimationEnd(swapped, wasCancelledByHook);
@@ -75,6 +76,7 @@ final class DrifterTouchNMotionHook extends EMFAnimationApi.EMFAnimationHook {
 		} catch (RuntimeException | LinkageError e) {
 			DrifterTouchNMotion.hookFailed(e);
 		} finally {
+			unseat.run();
 			this.states.pop();
 		}
 	}
@@ -88,11 +90,13 @@ final class DrifterTouchNMotionHook extends EMFAnimationApi.EMFAnimationHook {
 		}
 
 		this.states.push(madeOver(state, standIn));
+		Runnable unseat = DrifterTouchNMotion.seat(standIn);
 		try {
 			this.addon.onBipedPoseCopyEnd(pose, model, wasCancelledByHook);
 		} catch (RuntimeException | LinkageError e) {
 			DrifterTouchNMotion.hookFailed(e);
 		} finally {
+			unseat.run();
 			this.states.pop();
 		}
 	}

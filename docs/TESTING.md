@@ -2689,6 +2689,37 @@ Checks:
       stand-in player on your side only; tell me if anything sees it.)
 - [ ] With Better Combat: a Drifter's weapon swings and rolls still look as before (Touch'n Motion pauses for them).
 
-Not covered on Drifters: riding (boats, minecarts, horses: Touch'n Motion's riding poses), and the gestures it only
-knows from your own keys or from a server with Touch'n Motion on it (pressing a button, feeding an animal, putting armour
-on). Drifters further than 64 blocks away don't get it.
+Drifters further than 64 blocks away don't get it.
+
+## Side session: Touch'n Motion, the rest (new, 0.23.18-side.2)
+
+Drifters now also get Touch'n Motion's hand gestures for what they do, its riding poses, and its pocket gesture. Same
+setup as above (creative, a flat floor, `/drifter spawn Ann`, `/drifter brain off`). For each check, flip
+`/drifter config touchnmotion false` and back to `true` to see the difference.
+
+- [ ] Chest: put a chest a block in front of Ann with some items in it. Look at the chest and type
+      `/drifter container ` then press Tab (fills in the chest), then type ` takeall` and press Enter. One hand goes on the
+      chest's edge and the other goes through it as the items come out.
+- [ ] Doors and buttons: let a Drifter play on its own (`/drifter brain on`) near a house with a door. When it goes
+      through, a hand goes on the door. A Drifter pressing a button or pulling a lever reaches for it.
+- [ ] Feeding: spawn a cow next to Ann, `/drifter give minecraft:wheat 4`, `/drifter slot 0`, then
+      `/drifter useonentity @e[type=cow,limit=1,sort=nearest]`. The wheat goes to the cow's mouth, then the other hand
+      strokes it. Same with shears on a sheep (`/drifter give minecraft:shears`; it bends to shear), or a bucket on a cow
+      (milking).
+- [ ] Planting: farmland by water in front of Ann, `/drifter give minecraft:wheat_seeds 4`, `/drifter slot 0`, then
+      `/drifter useon ` and Tab while looking at the farmland. It bends and presses the seed in.
+- [ ] Mining with a pickaxe (`/drifter mine`, from the section above) still shows the pickaxe stance.
+- [ ] Minecart: put a minecart next to Ann and type
+      `/ride @e[type=drifter:drifter,limit=1,sort=nearest] mount @e[type=minecart,limit=1,sort=nearest]`. It sits against
+      the back with its hands on the sides.
+- [ ] Boat and horse: the same `/ride` command with `@e[type=boat,limit=1,sort=nearest]` (or a tame, saddled horse:
+      `/summon horse ~ ~ ~ {Tame:1b,SaddleItem:{id:"minecraft:saddle",count:1}}` and `@e[type=horse,limit=1,sort=nearest]`).
+      A Drifter only stays on a boat or a horse it rides on purpose, so it gets off after about a second: watch right
+      after pressing Enter. In the boat its hands go out to the oars; on the horse its hands go forward and it leans
+      into the ride. Best of all, watch a Drifter cross water by boat or ride a horse it tamed, on its own.
+- [ ] Picking up: drop a few items near Ann and type `/drifter collect`. After it picks them up, one hand goes to a back
+      pocket.
+- [ ] Nothing odd: a Drifter in a boat sits in the same seat as before (the front), and a second rider still fits.
+
+Still not on Drifters: Create, Supplementaries and Create Aeronautics controls (cranks, wheels, throttles: Drifters
+don't use them), typing, and driving trains.

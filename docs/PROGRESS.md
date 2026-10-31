@@ -4264,5 +4264,37 @@ as well". Built on the other session's 0.23.17, then 0.23.18 merged in (0.23.18-
   mods there. Any failure turns it off for the session with one log line; without the addon nothing is made.
 - Stands down: riding (the stand-in isn't on the mount), dying, Better Combat swings and rolls (`swingPlaying`), beyond
   64 blocks. Setting: `touchNMotion` (on), on the Performance page and `/drifter config touchnmotion <true|false>`.
-- Not covered: what the addon only knows from the local player's own input or a server running it (button presses,
-  feeding, armour don, container search): Drifters send nothing it reads. Riding poses.
+- Not covered here (done in side.2 below): hands, riding, the pocket.
+
+### Side session: Touch'n Motion, the rest (0.23.18-side.2)
+
+The user (2026-10-31): "how can we add the rest?", then "yea do all three".
+- **Hands** (`hands/HandSignals`, mixins `HelperGameModeMixin` on `ServerPlayerGameMode.useItemOn` and
+  `HelperPlayerMixin` on `Player.interactOn` / `attack`, each only for a Drifter's FakePlayer helper; `MineTask` and
+  `ContainerTask` calls): the addon's server part relays each player's `HandsState` (use/attack held, the block or
+  creature under the crosshair, the container open, stacks moved) and `HandsAct`s (feed, milk, shear, armour stand,
+  seed) to others. A Drifter has no game, so our server sends the same from what it really does: a use holds USE 6 ticks
+  on the block or creature; each mining tick ATTACK on the block (where its look meets it); a container from open to
+  close with a count of stacks moved; acts worked out from the item and the target (wheat to an animal that eats it, a
+  bucket on a cow or goat, shears on one ready, an armour stand, seeds on farmland). Sent on change only, as
+  `drifter:hands` / `drifter:hand_act`, to players tracking the Drifter whose game takes them (registered on the client
+  only with the addon there). The client hands the last state to the addon's `ClientHands.receive` every tick while
+  busy (it forgets after 1.5 s), once when idle again, under the stand-in's id; with no block or creature named, the
+  stand-in's own look (a pick) as the crosshair. Acts go to `ClientHands.receive(HandsAct)`.
+- **Riding:** `DrifterStandIn.getVehicle()` is the Drifter's vehicle (the stand-in isn't among its riders, so vanilla
+  never seats or moves it); while the addon looks (`ModelSpace.before`, both hook calls, the horse lift) the stand-in
+  takes the Drifter's place in the vehicle's passenger list (`EntityPassengersAccessor`; put back in a finally), so its
+  seat and who rows are right. On a horse: the addon's `ClientEventHandler` and `FootGroundingFeature` pre/post render
+  steps around the Drifter's draw (as its mixin on `PlayerRenderer.render`), and its riding pose
+  (`RidingPose.apply` with the horse's walk, kept as EMF Compat Core poses under the Drifter's UUID, cleared on
+  dismount) at the end of the Drifter model's setupAnim, as its mixin does for a player.
+- **Pocket:** `TakeItemMixin` (client, `ClientPacketListener.handleTakeItemEntity`): a Drifter's pickup calls the
+  addon's `PocketStash.picked` with its stand-in.
+- Riding Drifters are no longer left out. The extras are looked up apart: if they don't match, the rest still works.
+- Debug: `/drifter useonentity <target>` (UseOnEntityTask), `/drifter config touchnmotion <true|false>`.
+- Tested in the dev client (EMF, ETF, EMF Compat Core, Touch'n Motion 1.0.4, Fresh Animations + FA Player Extension):
+  the chest (USE on it, the container open, a stack moved, closed: the hand on the chest's edge in the shot), feeding
+  (act 0), shearing (act 2), planting (act 4; bent over the farmland with the seeds), all handed to the stand-ins; the
+  boat (rider 0: arms out to the oars, against a plain sit with it off), the horse (hands forward and leaning, against
+  upright), a minecart (rider 0); pickups handed on (the pocket gesture itself not seen: the Drifter was behind a sheep).
+  A Drifter put on a boat or horse by `/ride` gets off after a second (`dismountIfIdle`), so only its own rides last.
