@@ -4203,3 +4203,37 @@ The user (2026-10-30): "do your recommendations, then do fixes, then do chat".
     blocks is built at once (the debug command: chunks loading and the game's own ticks).
   - Not yet: lots of lamps in hill towns; founded towns don't count toward the limit; a road only waits for its land, so
     it's built a little behind you on fast travel.
+
+### Side session: Touch'n Motion on Drifters (0.23.17-side.1)
+
+The user (2026-10-30): "this EMF mod called touch n motion ... i would love it if drifters were to be compatible with this
+as well". Built on the other session's 0.23.17 (merged first).
+- **What it is:** Touch'n Motion (victorkozhokin/emf-compat, `extensions/touch_n_motion`, GPL-3.0, by STRadaT) is a
+  Java mod, an EMF Compat Core extension, not a resource pack: procedural additions on top of an EMF player model (made
+  for Fresh Animations: Player Extension): foot IK on stairs and slabs, balance, torso lean and pose inertia, hand on the
+  wall, leaning on fences, hands through crops, look at creatures, doors/buttons/blocks used by hand, mining swings,
+  fishing, fright, riding. It drives no `.jem` variables of its own: it moves the model parts after EMF has animated them,
+  from its EMF animation hook (`TouchNMotionHook.onAnimationEnd`, `onBipedPoseCopyEnd` for armour), working out what to
+  do right before the model is posed (`ModelSpace.before`, from its mixin on `LivingEntityRenderer.render`).
+- **Why it skipped Drifters:** player only, everywhere: `ModelSpace.before` returns for anything not an
+  `AbstractClientPlayer`, its hook for anything not a `Player`, and its features find players by id and UUID in the
+  client world (`level.getPlayerByUUID`, `level.players()`, `DrawnEntities.inWorld`), mining by the block-crack list
+  under the player's id. EMF itself already animates Drifters with Fresh Animations (the vanilla player model layers).
+  Nothing in a resource pack could change that, and its code can't be copied in (GPL; Drifter is all rights reserved).
+- **The bridge** (`client/render/DrifterTouchNMotion`, `DrifterStandIn`, `DrifterTouchNMotionHook`; mixins
+  `LivingEntityRendererMixin`, `LevelRendererAccessor`): each Drifter within 64 blocks of the camera gets a stand-in
+  `RemotePlayer` in the client world (made and removed only between ticks; never drawn, ticked by nothing but the copy,
+  not pickable or pushable, no sprint particles; ids below every server id). After each client tick it copies the
+  Drifter: position and old position, rotations, ground, water, powder snow, pose, shared and living flags (crouch,
+  sprint, swim, glide, item in use), hands and armour, main arm, swing, hurt, sleeping spot, the walk (worked out as a
+  player's). The Drifter's crack is put under the stand-in's id too. Right before the Drifter's model is posed, the
+  addon's `ModelSpace.before` is called with the stand-in; then in EMF's hook (ours, registered at the first Drifter
+  drawn, so after EMF Compat Core's) the addon's own hook is called with the Drifter's animation state made over to the
+  stand-in (a proxy: its entity, UUID and "is a player" are the stand-in's), with that state on ETF's state stack for
+  the armour copy. A fishing Drifter's bobber is owned by this stand-in (DrifterFishers), so the addon sees its fishing.
+  All of the addon by reflection; EMF and ETF are compile-only (Modrinth maven), the hook class loaded only with both
+  mods there. Any failure turns it off for the session with one log line; without the addon nothing is made.
+- Stands down: riding (the stand-in isn't on the mount), dying, Better Combat swings and rolls (`swingPlaying`), beyond
+  64 blocks. Setting: `touchNMotion` (on), on the Performance page and `/drifter config touchnmotion <true|false>`.
+- Not covered: what the addon only knows from the local player's own input or a server running it (button presses,
+  feeding, armour don, container search): Drifters send nothing it reads. Riding poses.

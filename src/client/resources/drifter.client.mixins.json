@@ -5,6 +5,8 @@
 	"client": [
 		"FishingHookClientMixin",
 		"ItemInHandLayerMixin",
+		"LevelRendererAccessor",
+		"LivingEntityRendererMixin",
 		"compat.ChatHeadsMixin"
 	],
 	"injectors": {

@@ -383,6 +383,20 @@ public final class DrifterSwingAnimations {
 		}
 	}
 
+	/** A Better Combat swing or Combat Roll's roll plays on this Drifter now (Touch'n Motion stands down for it). */
+	public static boolean swingPlaying(DrifterEntity drifter) {
+		State state = ready ? STATES.get(drifter) : null;
+		if (state == null) {
+			return false;
+		}
+
+		try {
+			return state.rolling || (boolean)layerActive.invoke(state.attackLayer);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return false;
+		}
+	}
+
 	private static void disable(Throwable e) {
 		ready = false;
 		failed = true;

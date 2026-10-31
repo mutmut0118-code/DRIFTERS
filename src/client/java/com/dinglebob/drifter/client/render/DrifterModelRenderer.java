@@ -71,7 +71,11 @@ public class DrifterModelRenderer extends MobRenderer<DrifterEntity, PlayerModel
 	@Override
 	public void render(DrifterEntity drifter, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light) {
 		this.setModelProperties(drifter, partialTick);
-		super.render(drifter, yaw, partialTick, poseStack, buffers, light);
+		try {
+			super.render(drifter, yaw, partialTick, poseStack, buffers, light);
+		} finally {
+			DrifterTouchNMotion.drawn();
+		}
 	}
 
 	@Override
