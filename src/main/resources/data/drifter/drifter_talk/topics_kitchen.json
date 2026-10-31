@@ -1,5 +1,5 @@
 {
-	"_comment": "The kitchen (Farmer's Delight, optional; side session 0.23.22-side.1): cooking, the stove and the pot, the cutting board, meals, sharing food. Only loaded with the mod installed ('requires_mod'). Flags from brain/Kitchen.addTalkFacts: has_kitchen, cooked_lately (with {a.meal}), has_meal. Check with: python tools/check_talk_web.py .",
+	"_comment": "The kitchen (Farmer's Delight, optional; side session 0.23.22-side.2): cooking, the stove and the pot, the cutting board, meals, sharing food. Only loaded with the mod installed ('requires_mod'). Flags from brain/Kitchen.addTalkFacts: has_kitchen, cooked_lately (with {a.meal}), has_meal. Check with: python tools/check_talk_web.py .",
 	"requires_mod": "farmersdelight",
 	"topics": [
 		{

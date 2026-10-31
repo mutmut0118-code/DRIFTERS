@@ -2753,7 +2753,9 @@ setup as above (creative, a flat floor, `/drifter spawn Ann`, `/drifter brain of
 Still not on Drifters: Create, Supplementaries and Create Aeronautics controls (cranks, wheels, throttles: Drifters
 don't use them), typing, and driving trains.
 
-## Side session: Farmer's Delight kitchens and cooking (new, 0.23.22-side.1)
+## Side session: Farmer's Delight kitchens and cooking (new, 0.23.22-side.2)
+
+Installed as 0.23.22-side.2: also has the nickname work from the other side session (its section is below).
 
 Only with Farmer's Delight Refabricated installed (it's in DRIFTER TEST). Without it nothing here changes: houses get no
 kitchen and Drifters cook in the furnace as before.
@@ -2799,3 +2801,15 @@ Setup: a creative world, a flat spot. Spawn a Drifter and give it a house quickl
       stew", "want some beef stew? made extra", "got a stove and a cooking pot in my house now", the best-meal argument.
 - [ ] **Without Farmer's Delight** (take its jar out): houses are furnished as before (no kitchen), no errors in the log,
       Drifters cook raw food in the furnace or smoker as before.
+
+Installed as 0.23.22-side.1: also has the other session's 0.23.13-0.23.22 (their checks are in their own sections above).
+
+## Side session: more names, and nicknames (new, 0.23.22-side.1)
+
+- [ ] New Drifters have more varied names: more words, and new kinds like c0bble, slowww, FoxTTV, DrSloth, JustAPhoenix,
+      jk_ember, Player482, __pine__. See 30 at once: `/drifter names 30`, then look in the log (`[names]`).
+- [ ] Drifters say each other's names the short way: in talk, xXFrostXx is "frost", pinewick42 is "pine", Sofia_Meteor
+      is "sofia". The name over their head and in chat's <...> stays the full one.
+- [ ] They call you by a short name too (mutmut0118: "mutmut"); if you told one "call me X", it still uses X.
+- [ ] Say a Drifter's nickname in chat (e.g. "frost come here"): it knows you mean it.
+- [ ] What would someone be called? `/drifter nick xXFrostXx` says "frost".

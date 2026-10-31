@@ -2272,7 +2272,7 @@ Bountiful until it's added.
   eats like any food.
 - Whims: a warm bowl of stew, a mug of hot cocoa at night, setting a cooking pot over a campfire (plus the earlier
   ones: a knife, a cutting board, watching the stew, a slice of pie).
-- Cooking with it (kitchens, the pot, the board, the skillet): done in the side session 0.23.22-side.1, see "Side session:
+- Cooking with it (kitchens, the pot, the board, the skillet): done in the side session 0.23.22-side.2, see "Side session:
   Farmer's Delight kitchens and cooking" at the end.
 
 ### Bountiful (written, needs Kambrik)
@@ -4415,7 +4415,10 @@ The user (2026-10-31): "how can we add the rest?", then "yea do all three".
     nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
   - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.
 
-### Side session: Farmer's Delight kitchens and cooking (0.23.22-side.1)
+### Side session: Farmer's Delight kitchens and cooking (0.23.22-side.2)
+
+Installed as 0.23.22-side.2: also has the other side session's nicknames work (its 0.23.22-side.1, section below), merged
+in so the install didn't take it out of the user's game.
 
 The user (2026-10-31): "i want them to actually know how to cook food using the mod farmers delight, theres furniture such
 as a stove, a cooking pot, cutting board, and cabinets, and from that they can make many different foods"; then "please
@@ -4476,3 +4479,30 @@ runtime, CLAUDE.md soft dependencies): without the mod nothing changes.
 - Design questions: none. Not done: building a stove or pot when it has none from scratch is planned through the normal
   Strategist targets (bricks from clay, a campfire, a water bucket) but not watched end to end in a test yet; feasts
   (placed meal blocks served with a bowl) aren't cooked or served.
+
+
+### Side session: more names, and everyone goes by a nickname (0.23.22-side.1)
+
+The user (2026-10-31): "do 1 2 and change the idea of 4 as everybody using nicknames as a stand in for their user name;
+like the name would be like xXfrostXx but everybody (even strangers) will refer to them as frost; that way its realistic
+and nobody is typing a complex name everytime" (personality-matched names left out; reserving a dead Drifter's name later).
+- **More words:** `drifter_names/more.json` (merged with default.json): ~330 more words (mobs and the game's things,
+  food, weather and sky, colours, gaming slang, plants and places, gear, characters), ~110 adjectives, ~160 first names
+  (some from other languages), more add-ons, and two new lists: `titles` (Dr, Captain, Sir...) and `sentences`
+  (ImNotA%s, %sEnjoyer, TheReal%s...). About 820 words in all (was 280).
+- **More shapes** (`Usernames.more`, a quarter of names): letters for numbers (c0bble, h3r0n), a held letter (slowww,
+  buunny), a streamer's tag (FoxTTV, Pulsar_tv), a title (DrSloth, Captain_Pilot), a short sentence (JustAPhoenix,
+  SheepOnTop, NoBirchNoLife), initials (jk_ember), a brand new player's (Player482, Steve_12345) and underscores round it
+  (moss_, __pine__). The old shapes keep the rest.
+- **Nicknames** (`identity/Nicknames`): what everyone calls a username, worked out from the name, the same for everyone:
+  styling off (xX..Xx, itz/the/not/just..., mc/ttv/live..., digits, underscores), letters for numbers back (c0bble:
+  cobble), held letters undone, split into words (at underscores, digits, capitals, and known words: pinewick: pine wick,
+  veratoast: vera toast, tuffox: tuff fox); kept: a first name, else the thing over the adjective (sleepy_fox: fox), else
+  the first word, titles and fillers aside (DrSloth: sloth, JustAPhoenix: phoenix). Players' names too (mutmut0118:
+  mutmut). 0 wrong in 300 random names in the last check.
+- Used everywhere a Drifter says a name (`Lines.fill`: {name}, {b}, {player}, {who}..., only for someone's username, so a
+  town or an item stays as it is; a nickname a player asked for, {nick}, stays as asked). Drifters answer to their
+  nickname when called (`SocialWatcher.called`). The name over a Drifter's head and in the chat's <...> stays the full
+  username, as for a player.
+- Debug: `/drifter nick <username>` (what everyone calls it), `/drifter names <count>` (sample names with nicknames to the
+  log).
