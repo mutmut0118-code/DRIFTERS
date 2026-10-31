@@ -2818,3 +2818,8 @@ Installed as 0.23.22-side.1: also has the other session's 0.23.13-0.23.22 (their
 - [ ] They call you by a short name too (mutmut0118: "mutmut"); if you told one "call me X", it still uses X.
 - [ ] Say a Drifter's nickname in chat (e.g. "frost come here"): it knows you mean it.
 - [ ] What would someone be called? `/drifter nick xXFrostXx` says "frost".
+
+## Side session: a third batch of names (new, 0.23.22-side.2)
+
+- [ ] New Drifters' names come from almost twice as many words (about 1,540): `/drifter names 30` shows some in the log
+      with what everyone calls them (e.g. BigRiddleEnergy: riddle, p3nguin: penguin, WildcatWasHere: wildcat).
