@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 2874 lines in the chat data, 242 in whims, and 2136 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 2874 lines in the chat data, 273 in whims, and 2136 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -334,6 +334,11 @@ Said as the whim starts (half the time), as the whole of a chat whim, or at one 
 | good_night | saying good night (sunset) | gn · night · going to bed · night all · gn all · gn o/ · sleep pls · bed · everyone sleep pls · skip the night? · zzz · nn |
 | happy_dance | doing a little dance (any) | lets gooo · yesss · LETS GOOO · W · hype · we up · woo! |
 | snowball_fight | starting a snowball fight (any) | snowball fight! · get rekt · incoming · SNOWBALL FIGHT · heads up · catch · you started this |
+| cook_for_a_friend | bringing a friend some of its cooking (any) | made too much, here · cooked extra for you · try this, made it myself · fresh from the pot · here, it's still warm · brought you some of my cooking |
+| share_a_meal | sharing a meal with a friend (any) | lunch break? · eat with me · food's better with company · sit down, have a bite · dinner time · mm · so good · needed that · hits the spot · ok i'm a good cook |
+| brag_about_the_stew | showing off its cooking (any) | just cooked the best stew of my life · my cooking is getting really good · who wants to try my stew · made a whole pot of soup, no big deal · i should open a restaurant · chef mode activated |
+| mind_the_pot | minding the cooking pot (any) | smells good · almost ready · needs more salt · mmm · don't burn, don't burn |
+| taste_test | taste-testing its ingredients (any) | needs something · hm. a bit plain · not bad · tastes like more |
 | oops_dropped_a_stack | dropped a stack by mistake (any) | oops |
 | eats_a_spider_eye | eating a spider eye (not a good idea) (any) | ew · why did i eat that · that was a mistake · blegh · poison. great · note to self: dont eat that |
 | brag_about_bow | showing off its unique bow (any) | found a unique bow · this bow is something else · look at this bow · wait till you see what this bow does · this bow is op · bow diff · new bow, who dis |
@@ -937,7 +942,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (673 topics, 9330 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (682 topics, 9447 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -4522,6 +4527,95 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 4. **a** (60%) if t:agree: exactly · see · lol
 5. **a** if t:disagree: fair · ok · suit yourself
 
+#### cooked a stew
+
+*Needs:* a:cooked_lately
+
+*About:* cooking, food, brag  ·  *Leads to:* cooking, food, home
+
+1. **a**: just cooked {a.meal} · made a whole pot of {a.meal} · {a.meal} came out perfect · finally got the {a.meal} right · cooked {a.meal} for dinner
+2. **b**: nice · ooh · save me some · smells good from here · chef · what's in it? · jealous
+3. **a** (60%): secret recipe · just stuff from the garden · chopped everything on the board first · the stove does all the work · ten seconds in the pot and done
+
+#### share my cooking
+
+*Needs:* a:has_meal, friends
+
+*About:* cooking, friends, food  ·  *Leads to:* cooking, friends, food
+
+1. **a**: want some {a.meal}? made extra · i've got {a.meal} if you're hungry · cooked too much {a.meal}, you want some · try my {a.meal}
+2. **b**: yes please · you're the best · wouldn't say no · i'm good, thanks · is it any good? · always
+3. **a** (50%): it's good, trust me · come by the house later · i'll bring a bowl · anytime
+
+#### kitchen setup
+
+*Needs:* a:has_kitchen
+
+*About:* cooking, home, building  ·  *Leads to:* cooking, home, decor
+
+1. **a**: got a stove and a cooking pot in my house now · set up a proper kitchen · my kitchen's done, stove and all · put a cutting board on the counter · cabinets in the kitchen, feels like a real house
+2. **b**: fancy · a real kitchen? · how'd you get the iron for that · i still cook on a campfire · nice, what are you making
+3. **a** (50%): the pot took five iron · the stove's just bricks and a campfire really · stew, mostly · whatever's in the garden
+
+#### best meal
+
+*Needs:* any time
+
+*About:* cooking, food, argument  ·  *Leads to:* cooking, food, argument
+
+1. **a**: beef stew is the best food there is · nothing beats fried rice · pasta with meatballs, no contest · chicken soup when you're hurt, every time · honestly a baked potato is fine
+2. **b**: disagree · vegetable soup though · steak is easier · fish stew is underrated · you haven't had a roast chicken then · fair
+3. **a** (60%): agree to disagree · you just haven't tried mine · fine, rice is good too · ok but stew fills you up for ages
+
+#### board first
+
+*Needs:* any time
+
+*About:* cooking, advice, tools  ·  *Leads to:* cooking, tools, advice
+
+1. **a**: cut your meat on the board first, you get two pieces · a knife and a cutting board doubles your food · always chop the cabbage before the pot · flint knife is all you need to start
+2. **b**: really? · good tip · i just throw it in raw · where do i get a knife · huh, never thought of that
+3. **a** (50%): flint and a stick · gravel gives you flint · trust me · works every time
+
+#### out of bowls
+
+*Needs:* any time
+
+*About:* cooking, complaints  ·  *Leads to:* cooking, complaints, crafting
+
+1. **a**: always out of bowls · the stew sits in the pot till i make bowls · need more bowls, again · where do all my bowls go
+2. **b**: planks, three of them · same · you get them back when you eat · just make a stack
+3. **a** (40%): i know, i know · yeah but i forget · a stack it is
+
+#### full for ages
+
+*Needs:* any time
+
+*About:* cooking, food, health  ·  *Leads to:* cooking, food, health
+
+1. **a**: a proper stew keeps you full for ages · after a hot meal my hunger just stops for a while · soup heals you better than you'd think · eating real meals now, no more raw potatoes
+2. **b**: nourishment, yeah · that's the comfort thing · worth the effort · i should cook more · true
+
+#### stove burn
+
+*Needs:* any time
+
+*About:* cooking, jokes, home  ·  *Leads to:* cooking, jokes, danger
+
+1. **a**: walked on my own stove again · burned my feet on the stove lol · don't stand on a lit stove, learned that · the stove is hot. who knew
+2. **b**: lol · classic · how · rip your boots · skill issue
+3. **a** (50%): it was dark ok · never again · i blame the cabinet
+
+#### wild crops
+
+*Needs:* any time
+
+*About:* cooking, plants, exploring  ·  *Leads to:* cooking, plants, farming
+
+1. **a**: found wild cabbages by the beach · there's wild rice in the swamp · saw wild tomatoes out in the savanna · wild onions all over the plains here
+2. **b**: grab some seeds · plant them at home · good for soup · nice find · where exactly?
+3. **a** (50%): took a few · they'll go in the garden · not far from here
+
 #### dream last night
 
 *Needs:* any time
@@ -7935,7 +8029,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): feelings (73), town (70), building (65), argument (62), jokes (55), danger (53), mobs (50), home (46), friends (44), complaints (42), exploring (38), plans (38), mining (36), brag (30), decor (27), gear (27), animals (26), memories (26), night (26), story_part (25), day (24), stories (24), trade (23), fighting (22), gossip (21), weather (21), random (20), food (19), tools (19), caves (18), places (18), nether (17), politics (17), storage (17), biomes (16), philosophy (16), villagers (16), crafting (15), end (15), players (15), structures (15), ore (14), ocean (13), death (12), enchanting (12), nation (11), redstone (11), advice (10), farming (10), sleep (10), boredom (9), diamonds (9), health (9), help (9), pets (9), plants (9), weapons (9), dreams (8), trees (8), armor (7), potions (7), sky (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), opinion (3), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), trust (1), word (1)
+**Tags in use** (topics about each): feelings (73), town (70), building (66), argument (63), jokes (56), danger (53), mobs (50), home (48), friends (45), complaints (43), exploring (39), plans (38), mining (36), brag (31), decor (27), gear (27), animals (26), memories (26), night (26), story_part (25), day (24), stories (24), food (23), trade (23), fighting (22), gossip (21), weather (21), random (20), tools (20), caves (18), places (18), nether (17), politics (17), storage (17), biomes (16), philosophy (16), villagers (16), crafting (15), end (15), players (15), structures (15), ore (14), ocean (13), death (12), enchanting (12), advice (11), nation (11), redstone (11), farming (10), health (10), plants (10), sleep (10), boredom (9), cooking (9), diamonds (9), help (9), pets (9), weapons (9), dreams (8), trees (8), armor (7), potions (7), sky (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), opinion (3), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), trust (1), word (1)
 
 #### `talk.segue.linked`
 

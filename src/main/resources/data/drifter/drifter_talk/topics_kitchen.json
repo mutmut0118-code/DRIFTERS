@@ -1,0 +1,108 @@
+{
+	"_comment": "The kitchen (Farmer's Delight, optional; side session 0.23.22-side.2): cooking, the stove and the pot, the cutting board, meals, sharing food. Only loaded with the mod installed ('requires_mod'). Flags from brain/Kitchen.addTalkFacts: has_kitchen, cooked_lately (with {a.meal}), has_meal. Check with: python tools/check_talk_web.py .",
+	"requires_mod": "farmersdelight",
+	"topics": [
+		{
+			"id": "cooked_a_stew",
+			"weight": 2,
+			"needs": ["a:cooked_lately"],
+			"tags": ["cooking", "food", "brag"],
+			"leads": ["cooking", "food", "home"],
+			"about": "the meal it just cooked",
+			"turns": [
+				{"by": "a", "lines": ["just cooked {a.meal}", "made a whole pot of {a.meal}", "{a.meal} came out perfect", "finally got the {a.meal} right", "cooked {a.meal} for dinner"]},
+				{"by": "b", "lines": ["nice", "ooh", "save me some", "smells good from here", "chef", "what's in it?", "jealous"]},
+				{"by": "a", "lines": ["secret recipe", "just stuff from the garden", "chopped everything on the board first", "the stove does all the work", "ten seconds in the pot and done"], "chance": 0.6}
+			]
+		},
+		{
+			"id": "share_my_cooking",
+			"needs": ["a:has_meal", "friends"],
+			"tags": ["cooking", "friends", "food"],
+			"leads": ["cooking", "friends", "food"],
+			"about": "sharing its cooking",
+			"turns": [
+				{"by": "a", "lines": ["want some {a.meal}? made extra", "i've got {a.meal} if you're hungry", "cooked too much {a.meal}, you want some", "try my {a.meal}"]},
+				{"by": "b", "lines": ["yes please", "you're the best", "wouldn't say no", "i'm good, thanks", "is it any good?", "always"]},
+				{"by": "a", "lines": ["it's good, trust me", "come by the house later", "i'll bring a bowl", "anytime"], "chance": 0.5}
+			]
+		},
+		{
+			"id": "kitchen_setup",
+			"needs": ["a:has_kitchen"],
+			"tags": ["cooking", "home", "building"],
+			"leads": ["cooking", "home", "decor"],
+			"about": "its kitchen",
+			"turns": [
+				{"by": "a", "lines": ["got a stove and a cooking pot in my house now", "set up a proper kitchen", "my kitchen's done, stove and all", "put a cutting board on the counter", "cabinets in the kitchen, feels like a real house"]},
+				{"by": "b", "lines": ["fancy", "a real kitchen?", "how'd you get the iron for that", "i still cook on a campfire", "nice, what are you making"]},
+				{"by": "a", "lines": ["the pot took five iron", "the stove's just bricks and a campfire really", "stew, mostly", "whatever's in the garden"], "chance": 0.5}
+			]
+		},
+		{
+			"id": "best_meal",
+			"tags": ["cooking", "food", "argument"],
+			"leads": ["cooking", "food", "argument"],
+			"about": "the best meal",
+			"turns": [
+				{"by": "a", "lines": ["beef stew is the best food there is", "nothing beats fried rice", "pasta with meatballs, no contest", "chicken soup when you're hurt, every time", "honestly a baked potato is fine"]},
+				{"by": "b", "lines": ["disagree", "vegetable soup though", "steak is easier", "fish stew is underrated", "you haven't had a roast chicken then", "fair"]},
+				{"by": "a", "lines": ["agree to disagree", "you just haven't tried mine", "fine, rice is good too", "ok but stew fills you up for ages"], "chance": 0.6}
+			]
+		},
+		{
+			"id": "board_first",
+			"tags": ["cooking", "advice", "tools"],
+			"leads": ["cooking", "tools", "advice"],
+			"about": "the cutting board",
+			"turns": [
+				{"by": "a", "lines": ["cut your meat on the board first, you get two pieces", "a knife and a cutting board doubles your food", "always chop the cabbage before the pot", "flint knife is all you need to start"]},
+				{"by": "b", "lines": ["really?", "good tip", "i just throw it in raw", "where do i get a knife", "huh, never thought of that"]},
+				{"by": "a", "lines": ["flint and a stick", "gravel gives you flint", "trust me", "works every time"], "chance": 0.5}
+			]
+		},
+		{
+			"id": "out_of_bowls",
+			"tags": ["cooking", "complaints"],
+			"leads": ["cooking", "complaints", "crafting"],
+			"about": "bowls",
+			"turns": [
+				{"by": "a", "lines": ["always out of bowls", "the stew sits in the pot till i make bowls", "need more bowls, again", "where do all my bowls go"]},
+				{"by": "b", "lines": ["planks, three of them", "same", "you get them back when you eat", "just make a stack"]},
+				{"by": "a", "lines": ["i know, i know", "yeah but i forget", "a stack it is"], "chance": 0.4}
+			]
+		},
+		{
+			"id": "full_for_ages",
+			"tags": ["cooking", "food", "health"],
+			"leads": ["cooking", "food", "health"],
+			"about": "proper meals",
+			"turns": [
+				{"by": "a", "lines": ["a proper stew keeps you full for ages", "after a hot meal my hunger just stops for a while", "soup heals you better than you'd think", "eating real meals now, no more raw potatoes"]},
+				{"by": "b", "lines": ["nourishment, yeah", "that's the comfort thing", "worth the effort", "i should cook more", "true"]}
+			]
+		},
+		{
+			"id": "stove_burn",
+			"tags": ["cooking", "jokes", "home"],
+			"leads": ["cooking", "jokes", "danger"],
+			"about": "stepping on the stove",
+			"turns": [
+				{"by": "a", "lines": ["walked on my own stove again", "burned my feet on the stove lol", "don't stand on a lit stove, learned that", "the stove is hot. who knew"]},
+				{"by": "b", "lines": ["lol", "classic", "how", "rip your boots", "skill issue"]},
+				{"by": "a", "lines": ["it was dark ok", "never again", "i blame the cabinet"], "chance": 0.5}
+			]
+		},
+		{
+			"id": "wild_crops",
+			"tags": ["cooking", "plants", "exploring"],
+			"leads": ["cooking", "plants", "farming"],
+			"about": "wild crops",
+			"turns": [
+				{"by": "a", "lines": ["found wild cabbages by the beach", "there's wild rice in the swamp", "saw wild tomatoes out in the savanna", "wild onions all over the plains here"]},
+				{"by": "b", "lines": ["grab some seeds", "plant them at home", "good for soup", "nice find", "where exactly?"]},
+				{"by": "a", "lines": ["took a few", "they'll go in the garden", "not far from here"], "chance": 0.5}
+			]
+		}
+	]
+}

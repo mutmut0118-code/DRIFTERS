@@ -78,6 +78,24 @@ final class TownDay {
 		};
 	}
 
+	/**
+	 * How soon its next whim may come, as a share of the usual wait: a festival day, much sooner (a crowd at the plaza all
+	 * day); a market day, sooner; the middle of the day and the evening (the gatherings), a little sooner.
+	 */
+	static double whimPace(Town town, DrifterEntity drifter, long day) {
+		if (TownCulture.festival(town, day) != null) {
+			return 0.25;
+		}
+
+		Part part = part(DrifterApi.ownTime(drifter));
+		boolean gathering = part == Part.MIDDAY || part == Part.DUSK;
+		if (TownEvents.marketDay(town, day)) {
+			return gathering ? 0.4 : 0.6;
+		}
+
+		return gathering ? 0.6 : 1.0;
+	}
+
 	/** What part of its day it's in, for /drifterciv town and its thoughts. */
 	static String describe(DrifterEntity drifter) {
 		return part(DrifterApi.ownTime(drifter)).name().toLowerCase(java.util.Locale.ROOT);

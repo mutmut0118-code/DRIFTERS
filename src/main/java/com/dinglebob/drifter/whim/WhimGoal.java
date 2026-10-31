@@ -73,7 +73,10 @@ public final class WhimGoal extends Goals.Goal {
 			return this.runningScore;
 		}
 
-		if (!com.dinglebob.drifter.DrifterConfig.whims() || now - state(drifter).lastAny < this.nextGap || !calm(drifter, context)) {
+		// (Its town may want it sooner: a festival, the midday and evening gatherings; milestone 23.)
+		var work = drifter.getTownWork();
+		double pace = work == null ? 1.0 : Math.max(0.1, Math.min(1.0, work.whimPace(drifter)));
+		if (!com.dinglebob.drifter.DrifterConfig.whims() || now - state(drifter).lastAny < this.nextGap * pace || !calm(drifter, context)) {
 			return 0.0;
 		}
 

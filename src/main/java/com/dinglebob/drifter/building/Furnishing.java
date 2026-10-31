@@ -34,7 +34,10 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * <li>a storage wall in the main room: chests in pairs (double chests), two high where the ceiling allows, the crafting
  * table set in the middle between them (the hub: every recipe pulls from storage);</li>
  * <li>a work wall beside it: the furnace and the smoker side by side, the fuel chest at the end;</li>
- * <li>a bedside chest by the head of the bed.</li>
+ * <li>a bedside chest by the head of the bed;</li>
+ * <li>with Farmer's Delight (optional), a kitchen along another wall: a stove with the cooking pot on it, a cutting board on
+ * a cabinet, a second stove with the skillet where the wall is long enough, another cabinet. Without the mod a plan's
+ * layout is exactly as it was.</li>
  * </ul>
  * Each faces the floor it's used from, its back to a wall (placed from where you'd use it, as a player places it; found
  * by the user: chests facing the corner "look backwards"), never in a doorway or at the foot of stairs or a ladder, and
@@ -47,10 +50,26 @@ public final class Furnishing {
 	}
 
 	public enum Use {
-		STORAGE_CHEST, CRAFTING_TABLE, FURNACE, SMOKER, FUEL_CHEST, DUMP_CHEST, BEDSIDE_CHEST;
+		STORAGE_CHEST, CRAFTING_TABLE, FURNACE, SMOKER, FUEL_CHEST, DUMP_CHEST, BEDSIDE_CHEST,
+		// The kitchen (Farmer's Delight): only in a layout with the mod installed.
+		STOVE, COOKING_POT, CUTTING_BOARD, SKILLET, CABINET;
 
 		public boolean chest() {
 			return this == STORAGE_CHEST || this == FUEL_CHEST || this == DUMP_CHEST || this == BEDSIDE_CHEST;
+		}
+
+		public boolean kitchen() {
+			return this == STOVE || this == COOKING_POT || this == CUTTING_BOARD || this == SKILLET || this == CABINET;
+		}
+
+		/** What it sits on, for the kitchen's things that go on top of another (the pot on a stove, the board on a cabinet). */
+		@Nullable
+		public Use base() {
+			return switch (this) {
+				case COOKING_POT, SKILLET -> STOVE;
+				case CUTTING_BOARD -> CABINET;
+				default -> null;
+			};
 		}
 
 		public Block block() {
@@ -58,8 +77,27 @@ public final class Furnishing {
 				case CRAFTING_TABLE -> Blocks.CRAFTING_TABLE;
 				case FURNACE -> Blocks.FURNACE;
 				case SMOKER -> Blocks.SMOKER;
+				case STOVE -> kitchenBlock("stove");
+				case COOKING_POT -> kitchenBlock("cooking_pot");
+				case CUTTING_BOARD -> kitchenBlock("cutting_board");
+				case SKILLET -> kitchenBlock("skillet");
+				case CABINET -> kitchenBlock("oak_cabinet");
 				default -> Blocks.CHEST;
 			};
+		}
+
+		/** This block goes in a place of this kind (any cabinet in a cabinet's place). */
+		public boolean takes(Block block) {
+			if (this.chest()) {
+				return block == Blocks.CHEST;
+			}
+
+			return this == CABINET ? com.dinglebob.drifter.compat.FarmersDelight.isCabinet(block.defaultBlockState()) : this.block() == block;
+		}
+
+		private static Block kitchenBlock(String path) {
+			Block block = com.dinglebob.drifter.compat.FarmersDelight.block(path);
+			return block == null ? Blocks.AIR : block;
 		}
 	}
 
@@ -84,13 +122,43 @@ public final class Furnishing {
 	@Nullable
 	public static Spot next(BlockGetter level, PlacedPlan placed, @Nullable BlockPos bed, Block block, boolean upper) {
 		for (Spot spot : plan(level, placed, bed)) {
-			boolean kind = spot.use().chest() ? block == Blocks.CHEST : spot.use().block() == block;
-			if (kind && (upper || !spot.upper()) && level.getBlockState(spot.pos()).canBeReplaced()) {
+			if (spot.use().takes(block) && (upper || !spot.upper() || spot.use().base() != null) && level.getBlockState(spot.pos()).canBeReplaced()
+				&& baseIn(level, spot)) {
 				return spot;
 			}
 		}
 
 		return null;
+	}
+
+	/** A kitchen thing that sits on another has it there (a pot only once its stove is in). */
+	public static boolean baseIn(BlockGetter level, Spot spot) {
+		Use base = spot.use().base();
+		return base == null || base.takes(level.getBlockState(spot.pos().below()).getBlock());
+	}
+
+	/** The layout's places and the floor in front of each (where it's used from): not for anything else put down in the house. */
+	public static Set<BlockPos> keepClear(BlockGetter level, PlacedPlan placed, @Nullable BlockPos bed) {
+		Set<BlockPos> clear = new HashSet<>();
+		for (Spot spot : plan(level, placed, bed)) {
+			clear.add(spot.pos());
+			BlockPos base = spot.upper() || spot.use().base() != null ? spot.pos().below() : spot.pos();
+			clear.add(base.relative(spot.facing()));
+		}
+
+		return clear;
+	}
+
+	/** Every free place in the layout that this block could go in now (the kitchen's, in order), for fitting out a kitchen. */
+	public static List<Spot> freeFor(BlockGetter level, PlacedPlan placed, @Nullable BlockPos bed, Block block) {
+		List<Spot> free = new ArrayList<>();
+		for (Spot spot : plan(level, placed, bed)) {
+			if (spot.use().takes(block) && level.getBlockState(spot.pos()).canBeReplaced() && baseIn(level, spot)) {
+				free.add(spot);
+			}
+		}
+
+		return free;
 	}
 
 	/** A room big enough to sleep in (a bed and room round it). */
@@ -120,8 +188,17 @@ public final class Furnishing {
 				Furnish.chest(level, spot.pos(), spot.facing(), flags);
 			} else {
 				BlockState state = spot.use().block().defaultBlockState();
+				if (state.isAir() || !baseIn(level, spot)) {
+					continue;
+				}
+
 				if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
 					state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, spot.facing());
+				}
+
+				// A stove goes in lit, as it does when a player puts one down.
+				if (spot.use() == Use.STOVE && state.hasProperty(BlockStateProperties.LIT)) {
+					state = state.setValue(BlockStateProperties.LIT, true);
 				}
 
 				level.setBlock(spot.pos(), state, flags);
@@ -134,7 +211,7 @@ public final class Furnishing {
 	/** Things that are furniture: the layout's places count as floor on the shell (so it's the same before and after). */
 	static boolean ours(BlockState state) {
 		return state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST) || state.is(Blocks.BARREL) || state.is(Blocks.CRAFTING_TABLE)
-			|| state.getBlock() instanceof AbstractFurnaceBlock;
+			|| state.getBlock() instanceof AbstractFurnaceBlock || com.dinglebob.drifter.compat.FarmersDelight.isKitchen(state);
 	}
 
 	private static final class Layout {
@@ -207,6 +284,24 @@ public final class Furnishing {
 				}
 			}
 
+			// 2b. The kitchen (Farmer's Delight): along another wall of the main room or the entry.
+			if (com.dinglebob.drifter.compat.FarmersDelight.loaded()) {
+				// (A wall three long or more first, anywhere: the stove, the pot and the board want the room.)
+				List<Set<BlockPos>> kitchenRooms = entry != null && entry != main ? List.of(main, entry) : List.of(main);
+				// The first wall where the stove fits without blocking the way (the longest walls first; a lone stove and pot at
+				// the least).
+				boolean laid = false;
+				for (int least : new int[] {3, 2, 1}) {
+					for (Set<BlockPos> room : kitchenRooms) {
+						for (Run run : this.runs(room)) {
+							if (!laid && run.cells.size() >= least) {
+								laid = this.kitchen(room, run, least);
+							}
+						}
+					}
+				}
+			}
+
 			// 3. The dump chest, just inside the front door to one side.
 			if (front != null && entry != null) {
 				BlockPos in = this.inside(front, entry);
@@ -253,6 +348,55 @@ public final class Furnishing {
 					this.add(up, row[i], run.facing, true);
 				}
 			}
+		}
+
+		/**
+		 * The kitchen along this run: a cabinet with the cutting board on it, the stove with the pot on it, then (three long) a
+		 * second stove with the skillet, and (four long) a cabinet at the end; a lone stove and pot if {@code most} is 1. From
+		 * the run's middle, or further along if the stove can't go there; false if it can't go anywhere on this run.
+		 */
+		private boolean kitchen(Set<BlockPos> room, Run run, int most) {
+			int size = most == 1 ? 1 : Math.min(run.cells.size(), 4);
+			Use[] row = size >= 4 ? new Use[] {Use.CABINET, Use.STOVE, Use.STOVE, Use.CABINET}
+				: size == 3 ? new Use[] {Use.CABINET, Use.STOVE, Use.STOVE} : size == 2 ? new Use[] {Use.CABINET, Use.STOVE} : new Use[] {Use.STOVE};
+			Use[] onTop = size >= 4 ? new Use[] {Use.CUTTING_BOARD, Use.COOKING_POT, Use.SKILLET, null}
+				: size == 3 ? new Use[] {Use.CUTTING_BOARD, Use.COOKING_POT, Use.SKILLET} : size == 2 ? new Use[] {Use.CUTTING_BOARD, Use.COOKING_POT}
+				: new Use[] {Use.COOKING_POT};
+			int stove = java.util.Arrays.asList(row).indexOf(Use.STOVE);
+			List<Integer> starts = new ArrayList<>();
+			starts.add((run.cells.size() - row.length) / 2);
+			for (int start = 0; start + row.length <= run.cells.size(); start++) {
+				if (!starts.contains(start)) {
+					starts.add(start);
+				}
+			}
+
+			for (int start : starts) {
+				if (!this.keep(room, run.cells.get(start + stove))) {
+					continue;
+				}
+
+				// The stoves first (the kitchen's heart), then the cabinets, as far as the room stays usable; listed in the
+				// order they go in.
+				for (Use kind : new Use[] {Use.STOVE, Use.CABINET}) {
+					for (int i = 0; i < row.length; i++) {
+						BlockPos pos = run.cells.get(start + i);
+						if (row[i] != kind || !this.keep(room, pos)) {
+							continue;
+						}
+
+						this.add(pos, row[i], run.facing, false);
+						BlockPos up = pos.above();
+						if (onTop[i] != null && this.air(up) && !this.want.containsKey(up)) {
+							this.add(up, onTop[i], run.facing, true);
+						}
+					}
+				}
+
+				return true;
+			}
+
+			return false;
 		}
 
 		private void add(BlockPos pos, Use use, Direction facing, boolean upper) {

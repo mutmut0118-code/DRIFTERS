@@ -44,12 +44,12 @@ public final class Usernames {
 	private static final Pattern VALID = Pattern.compile("[A-Za-z0-9_]{" + MIN_LENGTH + "," + MAX_LENGTH + "}");
 	private static final int MAX_TRIES = 200;
 
-	private record Lists(List<String> words, List<String> adjectives, List<String> firstNames, List<String> prefixes, List<String> suffixes,
-		Set<String> banned, List<String> bannedParts) {
+	record Lists(List<String> words, List<String> adjectives, List<String> firstNames, List<String> prefixes, List<String> suffixes,
+		Set<String> banned, List<String> bannedParts, List<String> titles, List<String> sentences) {
 	}
 
 	private static final Lists FALLBACK = new Lists(List.of("drift", "stone", "pine", "fox", "moss", "ember"), List.of("lazy", "swift", "quiet"),
-		List.of("sam", "alex", "max"), List.of("xX", "itz"), List.of("Xx", "mc"), Set.of(), List.of());
+		List.of("sam", "alex", "max"), List.of("xX", "itz"), List.of("Xx", "mc"), Set.of(), List.of(), List.of("Dr", "Captain"), List.of("ImNotA%s"));
 	private static volatile Lists lists = FALLBACK;
 
 	private Usernames() {
@@ -77,6 +77,8 @@ public final class Usernames {
 		List<String> suffixes = new ArrayList<>();
 		Set<String> banned = new HashSet<>();
 		List<String> bannedParts = new ArrayList<>();
+		List<String> titles = new ArrayList<>();
+		List<String> sentences = new ArrayList<>();
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
@@ -89,6 +91,8 @@ public final class Usernames {
 				addAll(json, "banned", bannedNames);
 				bannedNames.forEach(name -> banned.add(name.toLowerCase(Locale.ROOT)));
 				addAll(json, "banned_parts", bannedParts);
+				addAll(json, "titles", titles);
+				addAll(json, "sentences", sentences);
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter names file {}", file.getKey(), e);
 			}
@@ -102,7 +106,9 @@ public final class Usernames {
 
 		bannedParts.replaceAll(part -> part.toLowerCase(Locale.ROOT));
 		lists = new Lists(List.copyOf(words), List.copyOf(adjectives), List.copyOf(firstNames), prefixes.isEmpty() ? FALLBACK.prefixes() : List.copyOf(prefixes),
-			suffixes.isEmpty() ? FALLBACK.suffixes() : List.copyOf(suffixes), Set.copyOf(banned), List.copyOf(bannedParts));
+			suffixes.isEmpty() ? FALLBACK.suffixes() : List.copyOf(suffixes), Set.copyOf(banned), List.copyOf(bannedParts),
+			titles.isEmpty() ? FALLBACK.titles() : List.copyOf(titles), sentences.isEmpty() ? FALLBACK.sentences() : List.copyOf(sentences));
+		Nicknames.clear();
 		Drifter.LOGGER.info("Loaded {} words for Drifter usernames", words.size() + adjectives.size() + firstNames.size());
 	}
 
@@ -179,17 +185,17 @@ public final class Usernames {
 	private static String candidate(RandomSource random, Lists l) {
 		int roll = random.nextInt(100);
 		String name;
-		if (roll < 28) {
+		if (roll < 22) {
 			// pinewick42, moss_77, Ember2009
 			name = pick(random, l.words()) + (random.nextInt(3) == 0 ? pick(random, l.words()) : "") + (random.nextInt(4) == 0 ? "_" : "") + digits(random);
-		} else if (roll < 55) {
+		} else if (roll < 42) {
 			// frostotter, FrostOtter, sleepyfox
 			String first = random.nextBoolean() ? pick(random, l.adjectives()) : pick(random, l.words());
 			name = random.nextInt(3) == 0 ? capital(first) + capital(pick(random, l.words())) : first + pick(random, l.words());
-		} else if (roll < 70) {
+		} else if (roll < 53) {
 			// sleepy_fox, lost_cobble_3
 			name = pick(random, l.adjectives()) + "_" + pick(random, l.words()) + (random.nextInt(4) == 0 ? "_" + random.nextInt(10) : "");
-		} else if (roll < 88) {
+		} else if (roll < 67) {
 			// leo2011, mia_09, Kai_Otter
 			String first = pick(random, l.firstNames());
 			name = switch (random.nextInt(4)) {
@@ -198,6 +204,8 @@ public final class Usernames {
 				case 2 -> capital(first) + "_" + capital(pick(random, l.words()));
 				default -> first + pick(random, l.words());
 			};
+		} else if (roll >= 76) {
+			name = more(random, l, roll);
 		} else {
 			// The occasional styled one: xXFrostXx, itzmossy, NoodleMC, TheOtter.
 			String word = random.nextBoolean() ? pick(random, l.words()) : pick(random, l.adjectives()) + pick(random, l.words());
@@ -215,6 +223,78 @@ public final class Usernames {
 		}
 
 		return name;
+	}
+
+	/**
+	 * More of the shapes real players' names come in (the user, 2026-10-31: "expand this"): letters for numbers (c0bble),
+	 * a letter held (slowww), a streamer's tag (FoxTTV), a title (DrSloth), a short sentence (ImNotAFox), initials
+	 * (jk_ember), a brand new player's (Player482, Steve_12345) and underscores round it (moss_, __pine__).
+	 */
+	private static String more(RandomSource random, Lists l, int roll) {
+		String word = pick(random, l.words());
+		return switch (roll) {
+			case 76, 77, 78 -> leet(random, word) + (random.nextBoolean() ? digits(random) : "");
+			case 79, 80 -> stretch(random, random.nextBoolean() ? word : pick(random, l.adjectives()));
+			case 81, 82, 83 -> capital(word) + pick(random, List.of("TTV", "_TTV", "_yt", "YT", "Live", "_tv", "Plays"));
+			case 84, 85, 86, 87 -> pick(random, l.titles()) + (random.nextInt(3) == 0 ? "_" : "") + capital(word);
+			case 88, 89, 90, 91 -> String.format(Locale.ROOT, pick(random, l.sentences()), capital(word));
+			case 92, 93 -> (char)('a' + random.nextInt(26)) + "" + (char)('a' + random.nextInt(26)) + "_" + word;
+			case 94, 95 -> switch (random.nextInt(3)) {
+				case 0 -> "Player" + (100 + random.nextInt(900));
+				case 1 -> pick(random, List.of("Steve", "Alex", "steve", "alex")) + (random.nextBoolean() ? "_" : "") + (1000 + random.nextInt(99000));
+				default -> capital(pick(random, l.firstNames())) + (10000 + random.nextInt(90000));
+			};
+			default -> switch (random.nextInt(3)) {
+				case 0 -> word + "_";
+				case 1 -> "__" + word + "__";
+				default -> "_" + word + "_" + (random.nextBoolean() ? digits(random) : "");
+			};
+		};
+	}
+
+	/** A letter or two as a number (o 0, e 3, a 4, i 1, s 5). */
+	private static String leet(RandomSource random, String word) {
+		StringBuilder out = new StringBuilder();
+		int swaps = 0;
+		for (char c : word.toCharArray()) {
+			String digit = switch (c) {
+				case 'o' -> "0";
+				case 'e' -> "3";
+				case 'a' -> "4";
+				case 'i' -> "1";
+				case 's' -> "5";
+				default -> null;
+			};
+			if (digit != null && swaps < 2 && random.nextInt(3) > 0) {
+				out.append(digit);
+				swaps++;
+			} else {
+				out.append(c);
+			}
+		}
+
+		return out.toString();
+	}
+
+	/** Its last letter held (slowww), or a vowel doubled (kiiwi). */
+	private static String stretch(RandomSource random, String word) {
+		if (random.nextBoolean()) {
+			char last = word.charAt(word.length() - 1);
+			return word + String.valueOf(last).repeat(1 + random.nextInt(3));
+		}
+
+		for (int i = 0; i < word.length(); i++) {
+			if ("aeiou".indexOf(word.charAt(i)) >= 0) {
+				return word.substring(0, i + 1) + word.charAt(i) + word.substring(i + 1);
+			}
+		}
+
+		return word + word.charAt(word.length() - 1);
+	}
+
+	/** The lists as loaded (for nicknames: which parts of a name are words, first names, add-ons). */
+	static Lists lists() {
+		return lists;
 	}
 
 	private static String digits(RandomSource random) {

@@ -331,6 +331,12 @@ final class TownRoads {
 		}
 
 		@Override
+		public double whimPace(DrifterEntity drifter) {
+			long day = DrifterCivilizations.server() == null ? 0 : Chronicle.day(DrifterCivilizations.server());
+			return TownDay.whimPace(this.town, drifter, day);
+		}
+
+		@Override
 		@org.jetbrains.annotations.Nullable
 		public BlockPos place(DrifterEntity drifter, String kind) {
 			return TownDay.place(this.town, drifter, kind);

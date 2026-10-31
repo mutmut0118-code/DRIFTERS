@@ -302,6 +302,7 @@ public final class Conversations {
 	private static Facts facts(DrifterEntity me, DrifterEntity other) {
 		Facts facts = Facts.of(me, other);
 		Heard.addDrifterFacts(me, other, facts);
+		com.dinglebob.drifter.brain.Kitchen.addTalkFacts(me, facts.flags, facts.words);
 		facts.flags.add("voice_" + me.getPersonality().archetype().name().toLowerCase(java.util.Locale.ROOT));
 		return facts;
 	}

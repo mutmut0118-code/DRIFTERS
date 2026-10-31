@@ -122,6 +122,10 @@ public final class Goals {
 			case Planner.Fetch fetch -> new com.dinglebob.drifter.brain.activity.FetchActivity(drifter, fetch.chest(), fetch.item(), fetch.count());
 			case Planner.MakeObsidian obsidian -> new com.dinglebob.drifter.brain.activity.ObsidianActivity(drifter, obsidian.total());
 			case Planner.TakeBed take -> new com.dinglebob.drifter.brain.activity.PickUpBlockActivity(drifter, take.bed(), "the villager's bed");
+			case Planner.Cut cut -> new com.dinglebob.drifter.brain.activity.CutActivity(drifter, cut);
+			case Planner.PotCook cook -> new com.dinglebob.drifter.brain.activity.PotCookActivity(drifter, cook);
+			case Planner.FillBucket fill -> new com.dinglebob.drifter.brain.activity.FillBucketActivity(drifter, fill.count());
+			case Planner.PotCollect collect -> new com.dinglebob.drifter.brain.activity.PotCookActivity(drifter, collect.batch());
 		};
 	}
 
@@ -395,7 +399,8 @@ public final class Goals {
 			var inventory = context.drifter().getInventory();
 			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 				ItemStack stack = inventory.getItem(slot);
-				if (Food.isCookable(context.drifter().level(), stack)) {
+				// (Not what it's keeping for a meal in its kitchen: the stew's beef and potatoes stay out of the furnace.)
+				if (Food.isCookable(context.drifter().level(), stack) && !Kitchen.saving(context.drifter(), context.world(), stack)) {
 					counts.merge(stack.getItem(), stack.getCount(), Integer::sum);
 				}
 			}
@@ -452,15 +457,149 @@ public final class Goals {
 
 			// Ahead of time: a batch is worth a short detour to a furnace it knows (a bit above routine progress).
 			if (raw >= BATCH) {
-				return context.world().furnaceNear || context.world().smokerNear ? 0.55 : 0.4;
+				return context.world().furnaceNear || context.world().smokerNear || skillet(context) != null ? 0.55 : 0.4;
 			}
 
 			return 0.25;
 		}
 
+		/** The kitchen's skillet on a lit stove (Farmer's Delight), if it knows one and this raw food fries. */
+		@Nullable
+		private static net.minecraft.core.BlockPos skillet(Context context) {
+			Item raw = raw(context);
+			if (raw == null || !com.dinglebob.drifter.compat.FarmersDelight.loaded()) {
+				return null;
+			}
+
+			net.minecraft.core.BlockPos skillet = com.dinglebob.drifter.brain.activity.SkilletActivity.usable(context.drifter());
+			return skillet != null && com.dinglebob.drifter.brain.activity.SkilletActivity.fries(context.drifter().level(), raw) ? skillet : null;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return skillet(context) != null ? 1.0 : super.feasibility(context);
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			// In its kitchen, the skillet on the stove: it stands and fries the meat there (Farmer's Delight).
+			if (skillet(context) != null) {
+				return new com.dinglebob.drifter.brain.activity.SkilletActivity(context.drifter(), raw(context));
+			}
+
+			return super.start(context);
+		}
+
 		@Override
 		public int minCommitTicks() {
 			return 20 * 20;
+		}
+	}
+
+	/**
+	 * Cook a meal in the kitchen (Farmer's Delight, optional; the user, 2026-10-31: "they can make many different foods"): with
+	 * a pot on a lit stove it knows, it keeps a few good meals on it, as a player cooks a batch of stew. The meal is the best
+	 * it can make soon (Kitchen#chooseMeal); the plan chains what it takes: crops gathered or fetched from its chests, cut on
+	 * the board, cooked in the pot, served into bowls.
+	 */
+	public static final class CookMeal extends PlannedGoal {
+		@Nullable
+		private Item meal(Context context) {
+			return Kitchen.chooseMeal(context.drifter(), context.world());
+		}
+
+		/** At the pot right now (loading it, waiting by it, taking the meals out): it sees that through. */
+		private boolean cooking(Context context) {
+			return context.drifter().getDrifterBrain().currentGoal() == this
+				&& context.drifter().getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.PotCookActivity activity && !activity.finished();
+		}
+
+		/** A batch it left in the pot that should be done by now: it goes back for it. */
+		@Nullable
+		private static com.dinglebob.drifter.brain.Brain.PotBatch waiting(Context context) {
+			var batch = context.drifter().getDrifterBrain().potBatch();
+			return batch != null && context.drifter().level().getGameTime() >= batch.readyAt() ? batch : null;
+		}
+
+		@Override
+		public String id() {
+			return "cookmeal";
+		}
+
+		@Override
+		public String name(Context context) {
+			var batch = waiting(context);
+			if (batch != null && !this.cooking(context)) {
+				return "take the " + Planner.name(batch.meal()) + " out of the pot";
+			}
+
+			Item meal = this.meal(context);
+			return meal == null ? "cook a meal" : "cook " + Planner.name(meal);
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			Item meal = this.meal(context);
+			return meal == null ? List.of() : List.of(meal);
+		}
+
+		@Override
+		protected int count(Context context) {
+			Item meal = this.meal(context);
+			// (One more than it has: the pot takes as many batches as it has the makings of, up to three.)
+			return meal == null ? 0 : context.drifter().getInventory().count(stack -> stack.is(meal)) + 1;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			if (!com.dinglebob.drifter.compat.FarmersDelight.loaded() || context.drifter().isInLava()) {
+				return 0.0;
+			}
+
+			if (this.cooking(context)) {
+				return 0.75;
+			}
+
+			if (waiting(context) != null) {
+				return 0.56;
+			}
+
+			if (Planner.usablePot(context.drifter()) == null) {
+				return 0.0;
+			}
+
+			// Hungry with nothing it would eat: a meal is how it eats (if it can make one soon).
+			int food = context.drifter().getFoodData().getFoodLevel();
+			if (food < Food.eatThreshold(context.drifter()) && Food.choose(context.drifter()) == null) {
+				return Math.max(0.55, context.needs().hunger());
+			}
+
+			// At home with few meals put by: a batch of stew (a bit above routine work, by day).
+			Home home = context.drifter().getDrifterBrain().home();
+			if (Kitchen.mealsCarried(context.drifter()) < Kitchen.MEALS_WANTED && home != null && home.near(context.drifter(), Home.STORAGE_RANGE)
+				&& !Schedule.isNight(context.drifter())) {
+				return 0.52;
+			}
+
+			return 0.0;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return this.cooking(context) || waiting(context) != null ? 1.0 : super.feasibility(context);
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			var batch = waiting(context);
+			return batch != null ? new com.dinglebob.drifter.brain.activity.PotCookActivity(context.drifter(), batch) : super.start(context);
+		}
+
+		@Override
+		public int minCommitTicks() {
+			return 20 * 30;
 		}
 	}
 
@@ -2870,6 +3009,9 @@ public final class Goals {
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		goals.add(new LabelChestsGoal());
 		goals.add(new DecorateGoal());
+		// The kitchen (Farmer's Delight, optional): fitting it out, and cooking in it.
+		goals.add(new FitKitchenGoal());
+		goals.add(new CookMeal());
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());

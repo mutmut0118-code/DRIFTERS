@@ -146,6 +146,27 @@ final class SensesCommands {
 
 				return 1;
 			}))));
+		// What everyone would call someone with this username.
+		root.then(Commands.literal("nick").then(Commands.argument("username", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(ctx -> {
+			String name = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "username");
+			String nick = com.dinglebob.drifter.identity.Nicknames.of(name);
+			ctx.getSource().sendSuccess(() -> Component.literal(name + " goes by \"" + nick + "\""), false);
+			return 1;
+		})));
+		// Debug: sample usernames and what everyone would call them, to the log.
+		root.then(Commands.literal("names").then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 500)).executes(ctx -> {
+			int count = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count");
+			var random = net.minecraft.util.RandomSource.create();
+			StringBuilder out = new StringBuilder("[names]");
+			for (int i = 0; i < count; i++) {
+				String name = com.dinglebob.drifter.identity.Usernames.generate(random, ctx.getSource().getServer());
+				out.append(System.lineSeparator()).append("  ").append(name).append(" -> ").append(com.dinglebob.drifter.identity.Nicknames.of(name));
+			}
+
+			com.dinglebob.drifter.Drifter.LOGGER.info(out.toString());
+			ctx.getSource().sendSuccess(() -> Component.literal(count + " sample names in the log ([names])"), false);
+			return count;
+		})));
 		// Debug: every block a Drifter puts down goes to the server log (who, where, doing what).
 		root.then(Commands.literal("placelog").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 			boolean on = com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on");

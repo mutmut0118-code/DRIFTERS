@@ -2272,8 +2272,8 @@ Bountiful until it's added.
   eats like any food.
 - Whims: a warm bowl of stew, a mug of hot cocoa at night, setting a cooking pot over a campfire (plus the earlier
   ones: a knife, a cutting board, watching the stew, a slice of pie).
-- Found for later: its cooking pot takes items through Fabric's standard item transfer, so Drifters could cook its
-  meals (ingredients in from the top, a bowl, the meal out the bottom); not done yet.
+- Cooking with it (kitchens, the pot, the board, the skillet): done in the side session 0.23.22-side.2, see "Side session:
+  Farmer's Delight kitchens and cooking" at the end.
 
 ### Bountiful (written, needs Kambrik)
 
@@ -4414,6 +4414,116 @@ The user (2026-10-31): "how can we add the rest?", then "yea do all three".
     border quarrel or two a year); three towns made to match (a ruin where one burned, an old grudge between towns of
     nations that quarrelled); 10 days on, saved and opened again: its past went on from day 11.
   - Next: phase W done (but LOD mods, after); back to phase B, or what the user wants next.
+
+### Side session: Farmer's Delight kitchens and cooking (0.23.22-side.2)
+
+Installed as 0.23.22-side.2: also has the other side session's nicknames work (its 0.23.22-side.1, section below), merged
+in so the install didn't take it out of the user's game.
+
+The user (2026-10-31): "i want them to actually know how to cook food using the mod farmers delight, theres furniture such
+as a stove, a cooking pot, cutting board, and cabinets, and from that they can make many different foods"; then "please
+also do your research for this and see how players cook using farmers delight". Optional integration (detected at
+runtime, CLAUDE.md soft dependencies): without the mod nothing changes.
+
+- **How players do it** (researched: the mod's own code, Farmer's Delight Refabricated 3.3.6, and player guides): a flint
+  knife first; the cutting board (right-click an item onto it, right-click with the knife per piece, pieces pop out);
+  the cooking pot over heat (a lit stove, a campfire), up to six ingredients each in its own slot, ~10 s a batch, a bowl
+  (or bottle, pumpkin) per serving, either in the pot's container slot or right-clicking the pot holding one; raw meats
+  go on the stove top or in a skillet instead (a stack, one piece at a time, each popping out); stoves are lit when
+  placed and relit with flint and steel; cabinets are storage. Drifters do it the same way.
+- **Build:** FD is a compile-only dependency from Modrinth's maven (`farmers_delight_version`). Dev game launches load it
+  only when asked: `DRIFTER_FD=1` (or `-PfarmersDelight`), so tests run with and without it.
+- **Code:** `compat/FarmersDelight` (registry ids only; safe without the mod) and `compat/farmersdelight/FdBridge` (the
+  mod's own classes, only touched when it's loaded): its cooking pot and cutting board recipes from the recipe manager,
+  the pot's nine slots as a container ("window"), what's on the board or in the skillet.
+- **Planner:** new actions `Cut` (a cutting board recipe: the input, a knife it carries or makes, a board it knows or
+  places) and `PotCook` (a pot recipe: each ingredient per batch, a bowl per meal, only with a pot on a lit stove it knows;
+  it doesn't build a kitchen for one meal) and `FillBucket` (a water bucket for the pot's own recipe, with the mod only).
+  So getting a meal chains: gather or fetch crops, cut on the board, cook in the pot, served into bowls. Wild crops and
+  clay are planner sources (`drifter_sources/farmers_delight.json`, loaded only with the mod: sources files take
+  `"requires_mod"` now).
+- **Activities:** `CutActivity` + `BoardTask` (puts exactly the pieces it means to cut on the board, a knife click per
+  piece through the fake player, picks up what comes off), `PotCookActivity` (lights an unlit stove with flint and steel,
+  loads the pot's window slot by slot in one visit with `ContainerTask.load`, waits by the stove, takes the meals out),
+  `SkilletActivity` (the cook goal fries raw meat in the kitchen's skillet when there's one on a lit stove, standing by
+  for each piece), `FillBucketActivity`.
+- **Goals:** `CookMeal` ("cookmeal": at home by day with fewer than 3 meals, or hungry with nothing to eat; the meal is
+  `Kitchen.chooseMeal`: of the meals it has the makings of, the most filling it can cook soon, a plan under 300 s with no
+  exploring), `FitKitchenGoal` ("kitchen": kitchen things it carries go in their places in its house's layout). The cook
+  goal keeps a chosen meal's ingredients out of the furnace (found in testing: it baked the stew's potatoes). Its kitchen
+  is a Strategist target once its house is up, after the iron basics: a knife, a cutting board, a stove, a cooking pot, a
+  cabinet. Meals rank a little above plain food when it eats. Storage keeps a knife, 8 bowls and kitchen things to put up.
+- **Furnishing:** the layout (the user's furnishing guidebook) gains a kitchen along another wall of the main room or the
+  entry: a cabinet with the cutting board on it, a stove with the cooking pot on it, (3 long) a second stove with the
+  skillet, (4 long) a cabinet at the end; the first wall where the stove fits without blocking the way, the longest walls
+  first, a lone stove and pot at the least. Kitchen blocks count as furniture for the layout; cabinets are home storage
+  (perception: stove, pot, board, skillet are stations; cabinets storage). Ready-made towns (Drifter: Civilizations, via
+  `DrifterApi.settleIn`) get the kitchen too, stove lit. `/drifter house furnishing`: the nearest one's layout, what's in
+  each place, its pot and skillet, the meal it would cook.
+- **Whims** (`drifter_whims/kitchen.json`, all `requires_mod`): cook for a friend (gives a meal), share a meal (walks over
+  and eats with a friend), brag about the stew, mind the pot, tidy the kitchen, taste-test. **Chat** topics
+  (`drifter_talk/topics_kitchen.json`, loaded only with the mod: talk files take `"requires_mod"` now; flags
+  `has_kitchen`, `cooked_lately` with `{a.meal}`, `has_meal` from `Kitchen.addTalkFacts`): the meal it just cooked,
+  sharing its cooking, its kitchen, the best meal (an argument), the board first, out of bowls, full for ages, stepping on
+  the stove, wild crops.
+- **Tested headless with the mod** (flat world, a farmhouse pasted, `DRIFTER_FD=1`): it fitted out the kitchen (stove, pot
+  on it, cabinet, board on it), cut cabbage on the board and picked up the leaves, planned "cook 3 beef stew in the cooking
+  pot"; a spawned town's houses each got the full kitchen (two stoves, pot, skillet, two cabinets, board).
+  Then, given beef, carrots, potatoes and bowls, it cooked 3 beef stews in the pot (opened it, an ingredient a slot, the
+  bowls in, waited by the stove, took the stews out: "cooked beef stew (3 on it now)"); fried 4 porkchops in a skillet on
+  a lit stove and picked them all up. Found and fixed on the way: the kitchen's stove didn't fit the farmhouse's first
+  wall (now the first wall and place where the stove fits); the meal chooser only looked at the most filling meals (now
+  what it has the makings of first); the cook goal baked the stew's potatoes first (now kept); it walked off mid-cook
+  when the goal's plan ran dry (now it sees the pot through, and a batch it's called away from it comes back for:
+  `Brain.PotBatch`); fried pieces landing on the stove top out of its reach (it stands in front of the stove now).
+- **Client test (0.23.22-side.3), a full meal:** in the dev client (flat world, farmhouse pasted, Farmer's Delight loaded),
+  asked for pasta with meatballs with a beef, two tomatoes, three wheat, an egg and two bowls on it, it planned "cut 1 raw
+  beef on the cutting board > craft wheat dough > cut 1 wheat dough on the cutting board > cook 1 tomato sauce in the
+  cooking pot > cook 1 pasta with meatballs in the cooking pot" (42 s) and did it all in 26 s: minced beef and raw pasta
+  off the board, the sauce served into a bowl, the pasta cooked with it and served into the other (the sauce's bowl came
+  back). Screenshots in `run/screenshots` (fd_k*: fitting out the kitchen; fd_m*: the meal). Fixed from it: a crafting
+  table put down in front of the stove (things put down in the house keep off its furniture places and the floor in front
+  of them: `Furnishing.keepClear`); the meal chooser cooking tomato sauce as a meal (only the mod's meal list or food of 6+
+  now); a meal cooking in the pot not counted by the planner (it went looking for more tomatoes: `Planner.PotCollect`); back
+  at the pot early, it waits for the meal instead of giving the batch up.
+- Design questions: none. Not done: building a stove or pot when it has none from scratch is planned through the normal
+  Strategist targets (bricks from clay, a campfire, a water bucket) but not watched end to end in a test yet; feasts
+  (placed meal blocks served with a bowl) aren't cooked or served.
+
+
+### Side session: more names, and everyone goes by a nickname (0.23.22-side.1)
+
+The user (2026-10-31): "do 1 2 and change the idea of 4 as everybody using nicknames as a stand in for their user name;
+like the name would be like xXfrostXx but everybody (even strangers) will refer to them as frost; that way its realistic
+and nobody is typing a complex name everytime" (personality-matched names left out; reserving a dead Drifter's name later).
+- **More words:** `drifter_names/more.json` (merged with default.json): ~330 more words (mobs and the game's things,
+  food, weather and sky, colours, gaming slang, plants and places, gear, characters), ~110 adjectives, ~160 first names
+  (some from other languages), more add-ons, and two new lists: `titles` (Dr, Captain, Sir...) and `sentences`
+  (ImNotA%s, %sEnjoyer, TheReal%s...). About 820 words in all (was 280).
+- **More shapes** (`Usernames.more`, a quarter of names): letters for numbers (c0bble, h3r0n), a held letter (slowww,
+  buunny), a streamer's tag (FoxTTV, Pulsar_tv), a title (DrSloth, Captain_Pilot), a short sentence (JustAPhoenix,
+  SheepOnTop, NoBirchNoLife), initials (jk_ember), a brand new player's (Player482, Steve_12345) and underscores round it
+  (moss_, __pine__). The old shapes keep the rest.
+- **Nicknames** (`identity/Nicknames`): what everyone calls a username, worked out from the name, the same for everyone:
+  styling off (xX..Xx, itz/the/not/just..., mc/ttv/live..., digits, underscores), letters for numbers back (c0bble:
+  cobble), held letters undone, split into words (at underscores, digits, capitals, and known words: pinewick: pine wick,
+  veratoast: vera toast, tuffox: tuff fox); kept: a first name, else the thing over the adjective (sleepy_fox: fox), else
+  the first word, titles and fillers aside (DrSloth: sloth, JustAPhoenix: phoenix). Players' names too (mutmut0118:
+  mutmut). 0 wrong in 300 random names in the last check.
+- Used everywhere a Drifter says a name (`Lines.fill`: {name}, {b}, {player}, {who}..., only for someone's username, so a
+  town or an item stays as it is; a nickname a player asked for, {nick}, stays as asked). Drifters answer to their
+  nickname when called (`SocialWatcher.called`). The name over a Drifter's head and in the chat's <...> stays the full
+  username, as for a player.
+- Debug: `/drifter nick <username>` (what everyone calls it), `/drifter names <count>` (sample names with nicknames to the
+  log).
+
+### Side session: a third batch of names (0.23.22-side.2)
+
+The user (2026-11-01): "lets add some more names". `drifter_names/extra.json`: 350 more words (animals, everyday things,
+instruments, sweets, gems, weather), 153 adjectives, 217 first names from many places, 18 titles (Duke, Sensei, Coach,
+Admiral...), 20 sentence-names (BigRiddleEnergy, %sWasHere, NotAToad...), a few add-ons; 1,540 words in all (was about
+820). Nicknames: two digits in a row standing for letters read back (bl00m: bloom, f41ry: fairy), and a short bit of a
+name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstatic: static). 0 odd in 400 random names.
 - **0.23.23: phase C, town life and culture: a townsperson's day, places to be, comings and goings, market days, fishing
   contests, festivals, shrines, monuments, a town's character** (the user, 2026-10-31: "start phase C, test thoroughly you
   have my client and server").
@@ -4458,4 +4568,11 @@ The user (2026-10-31): "how can we add the rest?", then "yea do all three".
     the shrine), market days alternating and a trader going to the other's, Founding Day called out, a newcomer up the road
     on day 2, a restless nomad leaving on day 7 and a homeless Drifter moving into its house; in the client (a player in the
     town): the plaza breaks walked (37 s each), 33 plaza breaks, 13 at the well and 14 evenings at the fire in four
-    minutes, a debug leaver and a newcomer moving into its house.
+    minutes, a debug leaver and a newcomer moving into its house; Founding Day from above: people at the plaza, the bell
+    rung, feasts at dusk; a monument begun on the plaza (headless: built by its people within the day). A town wants whims
+    sooner at its gatherings (`TownWork.whimPace`: a festival a quarter of the usual wait, market day and midday and evening
+    sooner): with the usual 3 to 6 minutes between whims a festival's plaza was mostly empty. A monument's spot is looked
+    for in rings round the plaza (level, near its height, nothing built, no road), its sign turned to the well.
+  - Farmers count the seeds in their chests at home (`FarmActivity.seedsAround`): with no grass gathered in town (0.23.21)
+    a farmer with seeds at home waited, "no grass about".
+  - Merged the side sessions' 0.23.22-side.3 (Farmer's Delight kitchens and cooking, username words and nicknames).

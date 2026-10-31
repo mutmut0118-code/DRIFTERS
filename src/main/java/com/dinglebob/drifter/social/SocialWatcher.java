@@ -897,6 +897,12 @@ public class SocialWatcher {
 			return true;
 		}
 
+		// By what everyone calls them (c0bble: "cobble"; the user, 2026-10-31: everybody goes by a nickname).
+		String nick = com.dinglebob.drifter.identity.Nicknames.of(name);
+		if (!nick.equals(lower) && nick.length() >= NAME_PART && text.contains(" " + nick + " ")) {
+			return true;
+		}
+
 		for (String word : text.trim().split("[^a-z0-9]+")) {
 			if (word.length() >= NAME_PART && !EVERYDAY.contains(word) && lower.contains(word)) {
 				return true;

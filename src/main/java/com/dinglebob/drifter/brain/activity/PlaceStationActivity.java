@@ -156,6 +156,16 @@ public class PlaceStationActivity extends Activity {
 			}
 		}
 
+		// Not in its house's furniture places or the floor in front of them (found in a client test: a crafting table put
+		// down in front of the kitchen's stove, in the way of the cooking).
+		if (home != null && home.planId != null && home.planOrigin != null && home.planDone && this.drifter.getServer() != null) {
+			var plan = com.dinglebob.drifter.building.plan.HousePlans.get(this.drifter.getServer(), home.planId);
+			if (plan != null) {
+				this.tried.addAll(com.dinglebob.drifter.building.Furnishing.keepClear(this.drifter.level(),
+					com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home), home.planBed));
+			}
+		}
+
 		Optional<BlockPos> spot = KnownBlocks.placementSpotNear(this.drifter, this.tried);
 		if (spot.isEmpty()) {
 			// Up on a pillar (it built one to reach something): down first, digging out its own blocks (found in testing:

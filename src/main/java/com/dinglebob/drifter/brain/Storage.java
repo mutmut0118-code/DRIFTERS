@@ -286,6 +286,16 @@ public final class Storage {
 			return "bucket";
 		} else if (stack.is(Items.CRAFTING_TABLE)) {
 			return "table";
+		} else if (com.dinglebob.drifter.compat.FarmersDelight.isKnife(stack)) {
+			// Its knife (Farmer's Delight): what it cuts on the board with.
+			return "knife";
+		} else if (com.dinglebob.drifter.compat.FarmersDelight.loaded() && stack.is(Items.BOWL)) {
+			// Bowls for the cooking pot's meals.
+			return "bowl";
+		} else if (com.dinglebob.drifter.compat.FarmersDelight.loaded() && stack.getItem() instanceof net.minecraft.world.item.BlockItem block
+			&& com.dinglebob.drifter.compat.FarmersDelight.isKitchen(block.getBlock().defaultBlockState())) {
+			// A stove, a cooking pot, a cutting board, a cabinet: kept until it's in the kitchen.
+			return "kitchen";
 		} else if (stack.is(ItemTags.BANNERS) || stack.is(Items.SMOKER) || stack.is(Items.BLAST_FURNACE)) {
 			// The group's banner, a smoker or blast furnace for the hut: kept until it's put up (it's what it made them for).
 			return "to put up";
@@ -353,6 +363,9 @@ public final class Storage {
 			case "wheat" -> 16;
 			case "torch" -> KEEP_TORCHES;
 			case "food" -> KEEP_FOOD;
+			case "knife" -> 1;
+			case "bowl" -> 8;
+			case "kitchen" -> 8;
 			case "building" -> KEEP_BUILDING_BLOCKS;
 			case "wood" -> KEEP_WOOD;
 			case "stick" -> KEEP_STICKS;

@@ -232,36 +232,80 @@ final class TownCulture {
 		Towns.save(server);
 	}
 
-	/** A spot on the plaza for a monument (3 by 3, a block clear round it, on the plaza's paving, no road coming in by it). */
+	/**
+	 * A spot for a monument: on the plaza or by it (rings out from its middle, the nearest first), 3 by 3 with a block clear
+	 * round it, all of it level, within two of the plaza's height, nothing built on it, no road on it; turned with its sign
+	 * to the plaza's middle. Null if there's none (a crowded plaza in a valley).
+	 */
 	@Nullable
 	private static Town.Plot monumentSpot(net.minecraft.server.level.ServerLevel level, Town town) {
 		BlockPos c = town.center;
-		int[][] tries = {{0, -5, 2}, {-5, 0, 1}, {5, 0, 3}, {0, 5, 0}};
-		net.minecraft.world.level.block.Rotation[] turns = net.minecraft.world.level.block.Rotation.values();
 		java.util.Set<Long> roads = new java.util.HashSet<>();
 		for (long column : town.roadColumns) {
 			roads.add(column);
 		}
 
-		for (int[] at : tries) {
-			BlockPos origin = c.offset(at[0] - 1, 0, at[1] - 1);
-			boolean fits = true;
-			for (int dx = -1; dx <= 3 && fits; dx++) {
-				for (int dz = -1; dz <= 3 && fits; dz++) {
-					BlockPos column = origin.offset(dx, 0, dz);
-					int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.getX(), column.getZ());
-					fits = top == c.getY() && !roads.contains(BlockPos.asLong(column.getX(), 0, column.getZ()))
-						&& level.getBlockState(column.atY(top - 1)).isFaceSturdy(level, column.atY(top - 1), Direction.UP);
+		for (int ring = 4; ring <= 16; ring++) {
+			for (int k = 0; k < ring * 8; k++) {
+				double angle = 2 * Math.PI * k / (ring * 8);
+				int mx = c.getX() + (int)Math.round(Math.cos(angle) * ring);
+				int mz = c.getZ() + (int)Math.round(Math.sin(angle) * ring);
+				Integer at = level(level, roads, mx, mz, c.getY());
+				if (at == null) {
+					continue;
 				}
-			}
 
-			if (fits) {
-				// (Its sign to the plaza's middle: turned to face the well.)
-				return new Town.Plot(origin.atY(c.getY()), 3, 3, DrifterApi.monumentPlan(), turns[at[2]], Direction.NORTH, null);
+				// (Its sign to the plaza's middle: the plan's sign faces north before it's turned.)
+				Direction toward = Direction.getNearest(c.getX() - mx, 0, c.getZ() - mz);
+				net.minecraft.world.level.block.Rotation turn = switch (toward) {
+					case SOUTH -> net.minecraft.world.level.block.Rotation.CLOCKWISE_180;
+					case EAST -> net.minecraft.world.level.block.Rotation.CLOCKWISE_90;
+					case WEST -> net.minecraft.world.level.block.Rotation.COUNTERCLOCKWISE_90;
+					default -> net.minecraft.world.level.block.Rotation.NONE;
+				};
+				return new Town.Plot(new BlockPos(mx - 1, at, mz - 1), 3, 3, DrifterApi.monumentPlan(), turn, Direction.NORTH, null);
 			}
 		}
 
 		return null;
+	}
+
+	/** The height to stand a monument at, its middle here (its 5 by 5 level, near the plaza's height, clear), or null. */
+	@Nullable
+	private static Integer level(net.minecraft.server.level.ServerLevel level, java.util.Set<Long> roads, int mx, int mz, int plaza) {
+		Integer height = null;
+		for (int dx = -2; dx <= 2; dx++) {
+			for (int dz = -2; dz <= 2; dz++) {
+				int x = mx + dx;
+				int z = mz + dz;
+				if (!level.hasChunkAt(new BlockPos(x, 0, z)) || roads.contains(BlockPos.asLong(x, 0, z)) || TownBuilder.built(level, x, z) && !paving(level, x,
+					z)) {
+					return null;
+				}
+
+				int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+				BlockPos under = new BlockPos(x, top - 1, z);
+				if (height == null) {
+					height = top;
+				}
+
+				if (top != height || Math.abs(top - plaza) > 2 || !level.getBlockState(under).isFaceSturdy(level, under, Direction.UP)
+					|| !level.getFluidState(under).isEmpty() || !level.getBlockState(under.above()).isAir()) {
+					return null;
+				}
+			}
+		}
+
+		return height;
+	}
+
+	/** The plaza's own paving here (counts as built, but a monument may stand on it). */
+	private static boolean paving(net.minecraft.server.level.ServerLevel level, int x, int z) {
+		int top = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+		var state = level.getBlockState(new BlockPos(x, top - 1, z));
+		String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+		return id.contains("stone_bricks") || id.contains("cobblestone") || id.equals("gravel") || id.contains("sandstone") || id.contains("path")
+			|| id.contains("bricks");
 	}
 
 	// ---------------------------------------------------------------------------------------------

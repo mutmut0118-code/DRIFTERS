@@ -1331,4 +1331,11 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
     the shrine), market days alternating and a trader going to the other's, Founding Day called out, a newcomer up the road
     on day 2, a restless nomad leaving on day 7 and a homeless Drifter moving into its house; in the client (a player in the
     town): the plaza breaks walked (37 s each), 33 plaza breaks, 13 at the well and 14 evenings at the fire in four
-    minutes, a debug leaver and a newcomer moving into its house.
+    minutes, a debug leaver and a newcomer moving into its house; Founding Day from above: people at the plaza, the bell
+    rung, feasts at dusk; a monument begun on the plaza (headless: built by its people within the day). A town wants whims
+    sooner at its gatherings (`TownWork.whimPace`: a festival a quarter of the usual wait, market day and midday and evening
+    sooner): with the usual 3 to 6 minutes between whims a festival's plaza was mostly empty. A monument's spot is looked
+    for in rings round the plaza (level, near its height, nothing built, no road), its sign turned to the well.
+  - Farmers count the seeds in their chests at home (`FarmActivity.seedsAround`): with no grass gathered in town (0.23.21)
+    a farmer with seeds at home waited, "no grass about".
+  - Merged the side sessions' 0.23.22-side.3 (Farmer's Delight kitchens and cooking, username words and nicknames).
