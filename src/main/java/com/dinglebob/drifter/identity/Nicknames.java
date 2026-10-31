@@ -90,8 +90,8 @@ public final class Nicknames {
 		for (int i = 0; i < username.length(); i++) {
 			char c = username.charAt(i);
 			// (Or the very first, before a letter: 5ock.)
-			boolean inside = i < username.length() - 1 && Character.isLetter(username.charAt(i + 1))
-				&& (i == 0 || Character.isLetter(username.charAt(i - 1)));
+			// (Two in a row too: bl00m, f41ry.)
+			boolean inside = leetSide(username, i, 1) && (i == 0 || leetSide(username, i, -1));
 			char letter = inside ? switch (c) {
 				case '0' -> 'o';
 				case '3' -> 'e';
@@ -149,16 +149,21 @@ public final class Nicknames {
 			}
 		}
 
-		// One part made of two words (pinewick, sleepyfox, veratoast): split it where the first known word ends, and a
-		// first name in it is the name.
-		if (kept.size() == 1) {
-			kept = split(kept.get(0), words, adjectives, firstNames);
-			for (String p : kept) {
-				if (firstNames.contains(p)) {
-					return p;
-				}
+		// Each part made of two words (pinewick, sleepyfox, veratoast) split where the first known word ends, a first name in
+		// it the name; bits of two letters (ms_, jk_) aside.
+		List<String> split = new ArrayList<>();
+		for (String p : kept) {
+			split.addAll(split(p, words, adjectives, firstNames));
+		}
+
+		for (String p : split) {
+			if (firstNames.contains(p)) {
+				return p;
 			}
 		}
+
+		List<String> longer = split.stream().filter(p -> p.length() >= MIN).toList();
+		kept = longer.isEmpty() ? split : longer;
 
 		// The thing rather than what it's like (sleepy_fox: fox), else the first word (frost_otter: frost).
 		List<String> named = kept.stream().filter(p -> !TITLES.contains(p) && !FILLER.contains(p)).toList();
@@ -199,6 +204,22 @@ public final class Nicknames {
 	/** Digits standing for letters, every one (for the check above). */
 	private static String decode(String text) {
 		return text.replace('0', 'o').replace('3', 'e').replace('4', 'a').replace('1', 'i').replace('5', 's');
+	}
+
+	/** A digit standing for a letter at i has a letter that way ({@code step} 1 or -1), past any more such digits. */
+	private static boolean leetSide(String name, int i, int step) {
+		for (int j = i + step; j >= 0 && j < name.length(); j += step) {
+			char c = name.charAt(j);
+			if (Character.isLetter(c)) {
+				return true;
+			}
+
+			if ("01345".indexOf(c) < 0) {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	private static void flush(List<String> parts, StringBuilder part) {

@@ -4441,3 +4441,11 @@ and nobody is typing a complex name everytime" (personality-matched names left o
   username, as for a player.
 - Debug: `/drifter nick <username>` (what everyone calls it), `/drifter names <count>` (sample names with nicknames to the
   log).
+
+### Side session: a third batch of names (0.23.22-side.2)
+
+The user (2026-11-01): "lets add some more names". `drifter_names/extra.json`: 350 more words (animals, everyday things,
+instruments, sweets, gems, weather), 153 adjectives, 217 first names from many places, 18 titles (Duke, Sensei, Coach,
+Admiral...), 20 sentence-names (BigRiddleEnergy, %sWasHere, NotAToad...), a few add-ons; 1,540 words in all (was about
+820). Nicknames: two digits in a row standing for letters read back (bl00m: bloom, f41ry: fairy), and a short bit of a
+name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstatic: static). 0 odd in 400 random names.
