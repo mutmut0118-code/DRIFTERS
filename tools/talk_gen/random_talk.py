@@ -131,6 +131,52 @@ def weight_of(block, default):
 
 GENERIC_W = (0.5, 0.6, 0.6, 0.7, 0.7, 0.8)
 
+# Replies that answer one line in particular ("goats are pure chaos" answers "the goat, it's chaos", not "the allay"):
+# found by a shared word, and carried on that line as its answers, so the reply always fits what was said.
+STOP = set('''mine that this they them their there what with your just like have when then than been some would could
+should always never even really honestly obviously sure true yeah nice good great cool cozy classic fair valid same
+mean think know thing things stuff every everything nothing because about from into over still only more most
+the and for you but lol way all its it's not can too one get got off out yes now how why who any was are had has
+'''.split())
+
+
+def stem(word):
+    """A rough stem, so "mining" meets "mine", "hugging" "hug" and "torches" "torch"."""
+    if word.endswith('ing') and len(word) > 5:
+        word = word[:-3]
+        if len(word) > 2 and word[-1] == word[-2]:
+            word = word[:-1]
+    for end in ('es', 's', 'e'):
+        if word.endswith(end) and len(word) - len(end) >= 3:
+            word = word[:-len(end)]
+            break
+    return word[:4]
+
+
+def words(line):
+    return {stem(w) for w in re.findall(r"[a-z]+", line) if (len(w) >= 3 or w == 'hm') and w not in STOP}
+
+
+def with_replies(lines, replies, generic, n=2):
+    """Each line carries its own replies (the ones sharing the most words with it, plus a few generic ones); a reply
+    that shares no word with any of the lines goes with all of them."""
+    own = {line: [] for line in lines}
+    unmatched = []
+    for reply in replies:
+        overlap = {line: len(words(reply) & words(line)) for line in lines}
+        best = max(overlap.values()) if overlap else 0
+        if best == 0:
+            unmatched.append(reply)
+        for line in lines:
+            if best and overlap[line] == best:
+                own[line].append(reply)
+    out = []
+    for line in lines:
+        mine = own[line] + unmatched
+        out.append({'line': line, 'then': mine + some(generic, n if mine else n + 1)})
+    return out
+
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Shared reactions (each topic takes a few at random, so no one line is in every topic).
@@ -267,8 +313,8 @@ def build_hypo(block):
         block['leads'] or leads_of(['hypothetical', 'dreams', 'random'], tags),
         [turn('a', ask(f['q'], f['ans'])),
          turn('b', ['hm']),
-         turn('a', takes),
-         turn('b', f.get('b', []) + some(HYPO_B, 3 if f.get('b') else 5), chance=0.85),
+         turn('a', with_replies(takes, f.get('b', []), HYPO_B, 3)),
+         turn('b', some(HYPO_B, 4)),
          turn('a', f.get('c', []) + some(HYPO_C, 2 if f.get('c') else 4), chance=0.5)],
         needs=block['needs'], weight=weight_of(block, GENERIC_W))
 
@@ -312,8 +358,8 @@ def build_joke(block):
          turn('b', ['hm']),
          turn('a', f['p']),
          turn('b', f.get('b', []) + some(JOKE_GROAN, 5)),
-         turn('a', some(JOKE_AFTER, 3), chance=0.45),
-         turn('b', some(JOKE_END, 3), chance=0.3)],
+         turn('a', some(JOKE_AFTER, 3), chance=0.45, mark=['more']),
+         turn('b', some(JOKE_END, 3), chance=0.6, cond=['t:more'])],
         needs=block['needs'], weight=weight_of(block, GENERIC_W))
 
 
@@ -339,7 +385,7 @@ def build_thought(block):
     tags = block['tags']
     lines = []
     for t in f['t']:
-        pres = THOUGHT_Q if t.endswith('?') else THOUGHT_S
+        pres = [p for p in (THOUGHT_Q if t.endswith('?') else THOUGHT_S) if len(p + t) <= 90] or ['']
         lines += [p + t for p in some(pres, 3 if len(f['t']) == 1 else 2)]
     add('thought_' + block['key'], block['about'], ['philosophy'] + tags,
         block['leads'] or leads_of(['philosophy', 'random'], tags, ['jokes']),
@@ -359,8 +405,8 @@ def build_fav(block):
     add('fav_' + block['key'], block['about'], ['favourites'] + tags, block['leads'] or leads_of(['favourites', 'opinion'], tags),
         [turn('a', ask(f['q'], f['ans'])),
          turn('b', ['hm']),
-         turn('a', takes),
-         turn('b', f.get('b', []) + some(FAV_B, 3), chance=0.85),
+         turn('a', with_replies(takes, f.get('b', []), FAV_B, 2)),
+         turn('b', some(FAV_B, 3)),
          turn('a', some(FAV_END, 3), chance=0.4)],
         needs=block['needs'], weight=weight_of(block, GENERIC_W))
 
@@ -372,10 +418,11 @@ def build_take(block):
     tags = block['tags']
     add('take_' + block['key'], block['about'], ['argument'] + tags, block['leads'] or leads_of(['argument', 'opinion'], tags),
         [turn('a', f['c']),
-         turn('b', f['y'] + some(TAKE_Y, 2), chance=0.5, mark=['agree']),
-         turn('b', f['n'] + some(TAKE_N, 2), cond=['!t:agree'], mark=['disagree']),
-         turn('a', f.get('ay', []) + some(TAKE_AY, 3), chance=0.7, cond=['t:agree']),
-         turn('a', f.get('an', []) + some(TAKE_AN, 3), cond=['t:disagree']),
+         turn('b', with_replies(f['y'] + some(TAKE_Y, 2), f.get('ay', []), TAKE_AY, 2), chance=0.5, mark=['agree']),
+         turn('b', with_replies(f['n'] + some(TAKE_N, 2), f.get('an', []), TAKE_AN, 2), cond=['!t:agree'],
+              mark=['disagree']),
+         # (Always answered, by the reply carried on what b said: agreeing or not.)
+         turn('a', ['hm']),
          turn('b', some(TAKE_BN, 3), chance=0.4, cond=['t:disagree'])],
         needs=block['needs'], weight=weight_of(block, GENERIC_W))
 
@@ -1432,7 +1479,7 @@ c: when pigs fly, i guess
 q: if you could add one mob, what would it be? | what mob would you add if you could add one?
 ans: a mole that digs tunnels for you | a cave owl that hoots when a creeper's close | a mob that sorts your chests | a giant turtle you can ride | something that eats gravel
 a: mine's a little firefly that lights up caves | i'd add a mule that follows you without a lead | a mob that picks up your stuff when you die
-b: that'd save so many lost items | fireflies in caves, cute
+b: picking up your stuff, that'd save me | fireflies in caves, cute
 
 # diamonds_common | common diamonds idea | diamonds ore
 q: if diamonds were as common as coal, what would be rare? | what if diamonds were everywhere, like coal?
@@ -1523,7 +1570,7 @@ b: in front of your house is the worst | ravines are evil
 q: what if you could see ores through walls? | imagine seeing every ore through the stone
 ans: that's cheating lol | it'd ruin mining | i'd find every diamond in a day | i'd get bored so fast | it'd be like the game playing itself
 a: honestly i'd turn it off, finding stuff is the fun | i'd use it once and feel guilty | mining would just be walking to dots
-b: same, the surprise is the whole thing | yeah no fun in that
+b: same, finding stuff is the fun part | yeah no fun in that
 
 # fly_free | flying idea | sky exploring
 q: if you could fly without an elytra, where would you go first? | flying, no elytra, first stop?
@@ -1553,7 +1600,7 @@ b: soggy forever lol | the sound is nice though
 q: what if trees grew the second you planted them? | imagine saplings grew instantly
 ans: wood would be free | i'd build a forest in a day | oops, a tree in my house | i'd plant one under someone's floor lol | no more waiting, yes
 a: i'd plant a whole forest around my house | i'd make a tree maze | i'd accidentally grow one in my face
-b: tree maze lol | that's a prank waiting to happen
+b: tree maze lol | a tree maze, lol
 
 # pick_respawn | respawn spot idea | death home
 q: if you could respawn anywhere you wanted, where? | where would your respawn spot be, anywhere at all?
@@ -1673,7 +1720,7 @@ b: again? again? lol | a cheering pick, i want that
 q: what if every mob had a name? | imagine every zombie had a name
 ans: i'd feel bad hitting them | i'd learn the names of the regulars | dave the zombie | i'd write their names down | i'd name the creeper that blew up my house
 a: there'd be one zombie i'd recognise every night | i'd feel bad hitting a skeleton called tim | creepers would all be called trouble
-b: tim the skeleton, rip | the regulars, lol
+b: tim the skeleton, rip | one zombie every night, lol
 
 # beds_no_skip | sleepless beds idea | sleep night
 q: what if beds didn't skip the night? | imagine sleeping didn't skip the night
@@ -1847,7 +1894,7 @@ b: he'd still charge too much | a netherite pick, smart
 q: if you could change how you look, what would you change? | new look, what's it gonna be?
 ans: a cape | a hat | new hair | a cooler shirt | glowing eyes
 a: i'd get a big hat | i'd get a cape, finally | nothing, i look great
-b: nothing, confident lol | a cape is a good call
+b: a cape would suit you | a cape is a good call
 
 # world_road | world road idea | exploring building
 q: what if there was one road around the whole world? | imagine one giant road around everything
@@ -1979,7 +2026,7 @@ b: a lot of bread, yes | halfway, lol
 q: what if music played every time you found diamonds? | imagine a song every time you found diamonds
 ans: i'd love it | i'd hear it in my dreams | i'd hum along | i'd mine forever | it'd be loud
 a: i'd dance every time | i'd mine just to hear it | i'd get it stuck in my head
-b: mining for the song, lol | dancing in a cave, nice
+b: just to hear it, lol | dancing in a cave, nice
 
 # cloud_walk | cloud walking idea | sky dreams
 q: what if you could walk on clouds? | imagine standing on the clouds
@@ -2111,7 +2158,7 @@ b: torches on trees, fire hazard | every cave lit, nice
 q: if you could know one thing about tomorrow, what? | one thing about tomorrow, what do you want to know?
 ans: the weather | if i'll find diamonds | if i'll die | what's for dinner | who i'll meet
 a: i'd want to know if it rains | i'd want to know if creepers are near my house | i'd want to know if i find iron
-b: the weather, practical | creepers, smart
+b: knowing if it rains, practical | creepers, smart
 
 # house_name | house name idea | home jokes
 q: if your house had a name, what would it be? | what would you name your house?
@@ -2685,7 +2732,7 @@ a?.5: your turn | i love clear nights
 # found_name_tag | found a name tag | riddles animals
 aq: guess what i found today | guess what i found! => diamonds? | a saddle? | a dog? | a cave?
 a: nope, a name tag! in a dungeon chest | a name tag, from a dungeon
-b: ooh, what are you naming? | nice, those are rare | name something silly
+b: ooh, what are you naming? | nice, what'll you name? | rare! what are you gonna name?
 a: my next cow, obviously | haven't decided yet | something long and dramatic
 
 # found_waterfall_cave | found a waterfall cave | riddles caves
@@ -2727,14 +2774,14 @@ a: it's halfway across the ocean | wanna come? | on a beach somewhere, i think
 # found_flat_spot | found a building spot | riddles building
 aq: guess what i found today | guess what i found => diamonds? | a village? | a cave? | a horse?
 a: the perfect flat spot for a house | a perfect spot to build, by the river
-b: build there! | is it near water? | finally
-a: right on the water | already put a torch on it | it's even got trees around it
+b: build there! | finally | nice, claim it
+a: already put a torch on it | gonna start tomorrow | it's even got trees around it
 
 # found_lush_cave | found a lush cave | riddles caves plants
 aq: guess what i found under the hill | guess what i found => iron? | a dungeon? | lava? | bats?
 a: a lush cave, all green inside | a lush cave! glow berries everywhere
-b: no way, those are so pretty | axolotls? | take me
-a: two axolotls, yeah | i picked some glow berries | it's like a garden down there
+b: no way, those are so pretty | take me | lucky
+a: there were axolotls too | i picked some glow berries | it's like a garden down there
 
 # twenty_cow | twenty questions, a cow | riddles animals
 a: twenty questions. i've got an animal | ok twenty questions, i'm thinking of an animal
@@ -2789,7 +2836,7 @@ b?.5: lol fine, it's a pig | i'll allow it
 needs: time_night
 a: can't sleep, i'm counting sheep | one sheep, two sheep... | counting sheep, it's not working
 b: count the pink ones, they're rarer | you're gonna get a headache | try counting creepers, you'll stay awake
-a: now i'm counting creepers, thanks | i lost count at a white one | twelve sheep, still awake
+a: i lost count at a white one | twelve sheep, still awake | it's not working | ugh
 b?.6: lol go to bed | try warm milk... from a bucket
 
 # guess_number | number guessing game | jokes
@@ -4428,13 +4475,13 @@ b: under someone's floor, creepy | behind vines, smart
 q: if you had to describe this world in one word, what is it? | one word for this world?
 ans: big | blocky | beautiful | dangerous | home
 a: mine's endless | cozy, mostly | chaos
-b: endless, true | cozy, sometimes
+b: endless, true | mostly cozy, sure
 
 # mob_sound | favourite mob sound | mobs music
 q: what's your favourite mob sound? | best noise a mob makes?
 ans: a cat purring | a cow mooing | a villager's hm | a fox squeaking | a frog croaking
 a: mine's a bee buzzing | an axolotl's little chirp | a horse snort
-b: the villager hm is iconic | bees buzzing, cozy
+b: a horse snort, lol | bees buzzing, cozy
 
 # drinks | favourite drink | food
 q: what's your favourite thing to drink? | best drink, milk or what?
@@ -5529,7 +5576,2229 @@ ay: ore on every wall
 an: just bring water
 """
 
-# @@MORE@@
+# ---------------------------------------------------------------------------------------------------------------------
+# 7. Small talk, written out turn by turn (see build_free): a: / b: turns, a?.5: a turn with a chance, aq: questions =>
+# answers (the other's answer turn follows), +voice: lines for one voice. The weather (rain, thunder, clear), the time of
+# day, being bored, check-ins, moods, how they stand with each other, working side by side, comfortable silence.
+
+SMALL = """
+// The weather: rain.
+# rain_again | another rainy day | weather
+needs: rain
+a: rain again | it's raining again | of course it's raining | another rainy one
+b: crops'll like it at least | good for the farms | i kind of like it | good day to stay in
+a: yeah, i guess | true | fair enough | still soggy though
+b?.5: it'll clear up | it never lasts
+
+# rain_fishing | fishing in the rain | weather fishing
+needs: rain
+a: rain makes the fish bite faster, did you know | fish bite faster when it rains | perfect fishing weather, this
++newbie: someone told me fish like rain, is that real?
+b: is that true? | really? | huh, never knew that | wait, really?
+a: yep, way faster | trust me, the bobber dips twice as quick | yep, every fisher knows it
+b: might grab a rod then | ok, i'm going fishing | worth a try | huh. good to know
+a?.5: bring me a salmon | catch me one too
+
+# rain_roof | rain on the roof | weather home
+needs: rain
+a: love the sound of rain on a roof | rain on a roof is the best sound | nothing beats rain when you're inside
+b: so cozy | makes me sleepy | best sound there is | agreed
+a: i could listen to it all day | right? | perfect nap weather
+b?.5: mhm | same
+
+# rain_wet | soaked in the rain | weather complaints
+needs: rain outside
+a: i'm soaked | everything's wet | i'm so wet right now | this rain's getting in my boots
+b: same | at least it's not lava | you'll dry off | lol you look like a drowned
+a: ha | ugh | i'll dry eventually | lol
+b?.5: you'll live | find a roof
+
+# rain_zombies | zombies in the rain | weather mobs
+needs: rain
+a: the zombies won't burn today, not in this rain | rain means the zombies stick around | with this rain the mobs won't burn off
+b: ugh, right | i forgot about that | keep your sword out then | great, zombies all day
+a: yep, stay sharp | gonna be a long day | eyes open | i'm keeping my sword out
+b?.5: same | noted
+
+# rain_snow | snow up north | weather biomes
+needs: rain
+a: bet it's snowing up in the mountains | somewhere up high this is snow | the peaks are getting snow right now
+b: probably | snow's prettier than rain | i'd take snow over this | not going up to check
+a: snow golem weather | i'd go make a snowman | snow's nicer, yeah | heh
+b?.5: lol | maybe tomorrow
+
+# rain_how_long | how long the rain lasts | weather
+needs: rain
+aq: how long's this rain gonna last? | when do you think the rain stops? | is this rain ever stopping? => no idea | soon, hopefully | it's been going ages | till tomorrow probably | who knows
+a: hope it's soon | ugh | i've got stuff to do outside | i'll wait it out
+b?.6: find something inside to do | sort your chests in the meantime | good time to craft
+
+# rain_crops | rain on the farm | weather farming
+needs: rain
+a: the farm's getting a good soak | the wheat's loving this | my farm's happy today | the crops are drinking it up
+b: do crops grow faster in the rain? | does rain even help crops? | does the rain actually do anything for them?
+a: they say it does | i think so, a bit | feels like it does | they look happier anyway
+b: i'll take it | good enough for me | then i like rain now | huh
+a?.4: lol | the carrots say thanks
+
+# rain_indoors | stuck inside | weather boredom
+needs: rain
+a: rain day. guess i'm staying in | not going out in this | staying indoors today | rain means inside work
+b: good time to sort chests | craft something | same here | good day for a nap
+a: maybe | lol, fair | ok | not a bad idea
+b?.4: rain's good for something at least
+
+# rain_tracks | rain and mobs spawning | weather danger
+needs: rain outside
+a: it's so dark with these clouds | can barely see in this rain | gloomy out | the clouds make it feel like night
+b: stay in the light | watch for creepers, you can't hear them in this | keep close | yeah, creepy
+a: i'll stay close | good point | noted | i hate this
+b?.5: me too | it'll pass
+
+# rain_drowned | drowned in the rain | weather mobs ocean
+needs: rain
+a: the drowned come up on the beach when it rains | rain brings the drowned up | the drowned love this weather
+b: ugh, tridents | stay away from the water then | great | not going near the beach
+a: yep | right? | unless you want a trident
+b?.5: no thanks | i like having all my hearts
+
+# rain_bucket | catching rain | weather jokes
+needs: rain outside
+a: i tried to fill a bucket with rain | can you fill a bucket with rain? | i held out a bucket for like five minutes
+b: and? | did it work? | lol what happened?
+a: nothing. empty | not a drop | the bucket just sat there | just a wet arm
+b: lol | cauldrons do it, slowly | rain's not that generous | should've used a cauldron
+a?.5: next time | now you tell me
+
+# rain_umbrella | no umbrellas | weather jokes
+needs: rain outside
+a: wish we had umbrellas | someone should invent an umbrella | i'd pay emeralds for an umbrella
+b: hold a slab over your head | just stand under a tree | lol, an umbrella | wear a turtle shell
+a: lol, a slab | ok that's funny | i'll try the turtle shell | the tree's leaking though
+b?.5: you'll dry | lol
+
+// The weather: thunder.
+# thunder_storm | the thunderstorm | weather danger
+needs: thunder
+a: this storm is nasty | thunder's loud today | did you hear that crack? | big storm
++newbie: the thunder scares me ngl
+b: stay away from tall trees | stay under a roof | lightning loves tall stuff | stay inside, mobs spawn in this
+a: noted | not moving | i'm staying put | way ahead of you
+b?.5: good | smart
+
+# thunder_creeper | charged creepers | weather mobs
+needs: thunder
+a: lightning makes charged creepers, you know | storms make charged creepers | if lightning hits a creeper it goes charged
++newbie: someone said lightning makes creepers stronger??
+b: oh no | don't say that | that's terrifying | i'd rather not meet one
+a: bigger boom, blue glow | twice the blast | they glow blue and hit way harder
+b: i'm staying inside | hard pass | ok i'm hiding | creepers were bad enough
+a?.5: same | good idea
+
+# thunder_pigs | lightning on pigs | weather animals
+needs: thunder
+a: lightning turns pigs into zombie pigmen, i heard | if lightning hits a pig, it goes zombie | storm's gonna make some angry pigs
+b: poor pigs | really? | lol that's cursed | so that's where they come from
+a: yep, zombified piglins | true story | saw it once | it's real
+b?.5: keep the pigs inside then | i'm checking on my pigs
+
+# thunder_nap | sleeping through the storm | weather sleep
+needs: thunder
+a: you can sleep in a storm, even in the day | thunder means beds work right now | storm's on, we could sleep it off
+b: oh, nap time | might do that | good, skip it | i'd rather wait it out
+a: i'm going to nap | worth it | skip the whole storm | your call
+b?.5: night | enjoy
+
+# thunder_jump | thunder made me jump | weather feelings
+needs: thunder
+a: that one made me jump | ok that was loud | whoa, that was close | i jumped so hard just now
+b: lol same | it was close | i saw that | i felt that in my bones
+a: my heart | not a fan | glad i'm not a tree | ok, i'm fine
+b?.5: lol | breathe
+
+# thunder_count | counting after lightning | weather
+needs: thunder
+a: count after the flash, it tells you how far the storm is | one, two, three... boom | i count the seconds after the flash
+b: does that work? | how far was that one? | what's it tell you?
+a: more seconds, farther away | that one was close | it's moving away, i think | no idea, it just feels smart
+b: lol ok | i'll start counting | neat | ok weather expert
+a?.4: three... four... boom | see, closer
+
+# thunder_fire | lightning fires | weather danger home
+needs: thunder
+a: hope lightning doesn't hit my roof | wood roofs and lightning, not a good mix | lightning sets stuff on fire, right?
+b: it can | that's why i use stone | keep a water bucket handy | put up a lightning rod
+a: a lightning rod, good idea | i'm getting a bucket | stone roof next time | ugh
+b?.5: copper's cheap | better safe
+
+# thunder_mobs | mobs in the storm | weather mobs
+needs: thunder outside
+a: the storm's bringing out everything | mobs everywhere in this | it's like night out here | why is it so dark
+b: storms spawn mobs, even in the day | it's the clouds | stay close | swords out
+a: great | lovely | got it | ugh
+b?.5: we'll be fine | just stay near the torches
+
+// The weather: clear.
+# clear_nice | a nice clear day | weather day
+needs: clear time_day
+a: nice day | beautiful day out | perfect weather | not a cloud in the sky
+b: finally | perfect for building | perfect for exploring | good one | love these days
+a: gonna make the most of it | we should get stuff done | hope it lasts | sun's out, mobs burn
+b?.5: mhm | let's go
+
+# clear_sunrise | the sunrise | sky day
+needs: clear time_morning
+aq: did you see the sunrise? | catch the sunrise this morning? => yeah, so orange | missed it, was inside | i was underground lol | saw a bit of it
+a: it was a nice one | best part of the day | i try to catch it every day | heh
+b?.5: i'll look tomorrow | mhm
+
+# clear_stars | stars | sky night
+needs: clear time_night
+w: 1.2
+a: lots of stars out tonight | clear night, look at the stars | the stars are out
+b: pretty | nice | i'm watching for phantoms | the moon's bright too
+a: makes me want to stay up | peaceful | almost worth the zombies | could look at them all night
+b?.5: almost | mhm
+
+# clear_hot | a hot day | weather
+needs: clear time_day outside
+a: hot one today | the sun's strong today | so bright out | i'm baking out here
++speedrunner: sun's out. zombies burn. good
+b: find some shade | stand under a tree | good day for a swim | i like it warm
+a: lol | shade sounds good | i'll be fine | mobs are burning at least
+b?.5: true | heh
+
+# clear_dry | the rain's gone | weather
+needs: clear outside
+a: dry at last | nice to be dry | no rain today, finally | good, no rain
+b: about time | everything smells fresh | i was getting soggy | back to work
+a: same | lol | mhm | let's get stuff done
+b?.4: don't jinx it
+
+# clear_rainbow | no rainbows | weather sky jokes
+needs: clear
+a: ever notice there are no rainbows here? | why don't we get rainbows after rain? | i've never seen a rainbow here
+b: never thought about it | the sky's too square | maybe they're hiding | we've got rainbow sheep, close enough
+a: lol, sheep | huh, true | heh
+b?.5: someone should build one out of wool | we should make one out of wool
+
+# clear_forecast | rain tomorrow | weather
+needs: clear
+aq: think it'll rain tomorrow? | gonna rain tomorrow, you think? => hope not | no idea, can't tell | probably, it's been dry | doesn't matter, i'll be underground
+a: i want to build outside tomorrow | hope it's dry, i've got plans | we'll see | heh
+b?.6: plan for both | bring a roof lol
+
+# clear_breeze | a nice breeze | weather
+needs: clear outside
+a: nice breeze | the leaves are moving, nice | can you feel that breeze? | good air today
+b: nice | mhm | perfect | i feel it
+a: days like this are rare | i could stand here all day | ahh
+b?.5: same | enjoy it
+
+// The time of day.
+# morning_hi | good morning | greeting day
+needs: time_morning
+w: 1.2
+a: morning | good morning | morning! | mornin
++hermit: morning. | hm. morning
+b: morning | hey, morning | morning to you too | ugh, already?
+aq: sleep ok? | sleep alright? => like a log | not great | ok i guess | the zombies were groaning all night
+a: breakfast time then | let's get going | well, it's a new day | mm
+b?.4: yep | coffee... i mean, bread
+
+# morning_plan | plans for the day | plans day
+needs: time_morning
+w: 1.2
+aq: what's the plan today? | got plans today? | what are you up to today? => mining, as usual | building, finishing the walls | no idea yet | farm work | gonna explore a bit | nothing, honestly
+a: fair enough | ok | sounds alright | heh, ok
+a: me, i'm getting wood | i'm gonna mine | i'm fixing my roof | i'll just wander
+b?.5: good luck | have fun | see you later
+
+# morning_burning | zombies burning | mobs day
+needs: time_morning clear outside
+a: love watching the zombies burn in the morning | morning means zombies on fire | the sun's cooking the zombies
+b: best part of the morning | lol | serves them right | free rotten flesh
+a: i just watch | it's like a fireworks show | don't stand too close | every morning, same show
+b?.5: lol | true
+
+# morning_tired | sleepy morning | sleep day
+needs: time_morning
+a: i'm still tired | barely awake | slept terrible | need more sleep
+b: same | long night? | the bed's right there | perk up, it's morning
+a: mm | five more minutes | i'm up, i'm up | ugh
+b?.5: lol | breakfast helps
+
+# morning_early | up early | day
+needs: time_morning
+a: you're up early | early start, huh | up with the sun?
+b: always | couldn't sleep | lots to do | the rooster woke me... i mean the chickens
+a: nice | respect | lol | same here
+b?.5: early bird gets the iron | mhm
+
+# day_midday | midday already | day
+needs: time_day
+a: half the day gone already | it's midday already? | time flies | sun's right up there
+b: feels like it just started | wow | days go fast | where'd the morning go
+a: right? | gotta hurry | i've barely done anything | heh
+b?.5: better get moving | mhm
+
+# day_lazy | a lazy afternoon | day boredom
+needs: time_day
+a: lazy afternoon | feels like a slow day | nothing's happening today | quiet day
+b: nice though | i like quiet days | too quiet | enjoy it while it lasts
+a: true | mhm | yeah | can't complain
+b?.5: the night'll be busy | the mobs will make up for it tonight
+
+# day_lunch | lunch | food day
+needs: time_day
+aq: had lunch yet? | eaten today? => not yet | yeah, some bread | an apple, that's it | i forgot to eat lol
+a: heh | ha | fair | ok
+a: i had a carrot | i've got a potato somewhere | i'm living on bread | i'll eat later
+b?.5: lol | heh
+
+# evening_dark | night is coming | night
+needs: time_evening
+w: 1.2
+a: sun's going down | getting dark soon | night's coming | look, sunset
+b: better head in | time to light some torches | already? | gonna be a long night
+a: yep | let's wrap up | one more thing and i'm done | i'll finish up quick
+b?.6: don't get caught out | hurry
+
+# evening_sunset | the sunset | sky
+needs: time_evening clear
+a: pretty sunset | look at that sky | nice sunset tonight | the sky's all orange
+b: wow | it is | gorgeous | i stopped to look too
+a: almost makes up for the zombies | love this time of day | wish it lasted longer
+b?.5: mhm | same
+
+# evening_dinner | dinner | food
+needs: time_evening
+aq: what's for dinner? | what are you eating tonight? | dinner plans? => steak | bread, again | whatever's in my chest | i'm out of food lol | baked potatoes | fish
+a: heh | lol, ok | i'm having stew | mine's baked potatoes
+b?.5: mhm | nice
+
+# evening_review | how the day went | day feelings
+needs: time_evening
+aq: good day? | how was your day? | get much done today? => pretty good | not much | lots, actually | ugh, don't ask | some, could be worse
+a: mine was ok | i got some stuff done | tomorrow's another day | same as always for me
+b?.5: yep | true
+
+# evening_tomorrow | plans for tomorrow | plans
+needs: time_evening
+aq: plans for tomorrow? | what you doing tomorrow? => mining | more of the same | building | sleep in lol | no idea | exploring
+a: nice | sounds like a plan | ha, ok
+a: i'm gonna go fishing | i might look for a village | i'll finish my wall | i'll just see
+b?.5: good luck | have fun
+
+# night_noises | night noises | night mobs
+needs: time_night
+w: 1.2
+a: hear that zombie? | something's groaning out there | the noises at night get to me | spiders are clicking somewhere
+b: i hear it | ignore it | it can't get in | probably just a zombie
+a: hope you're right | if you say so | i'm keeping my sword close | ok
+b?.5: relax | it's fine
+
+# night_awake | can't sleep | night sleep
+needs: time_night
+w: 1.2
+a: can't sleep | wide awake | i'm not tired at all | no sleep for me tonight
+b: same | count sheep | why not? | try lying down at least
+a: too much on my mind | the zombies keep me up | dunno | i'll try
+b?.5: good luck | night then
+
+# night_phantoms | phantoms coming | night sleep mobs
+needs: time_night
+a: haven't slept in three nights, the phantoms are coming | if i don't sleep soon the phantoms come | phantoms incoming, i haven't slept
+b: go to bed! | sleep, silly | you know how to fix that | lol go sleep
+a: i will, i will | after one more thing | ok mom | fine
+b?.6: phantoms aren't worth it | they're the worst
+
+# night_late | it's late | night
+needs: time_night
+a: it's late | way past bedtime | late night again | we should be asleep
+b: yeah | night owl, me | i'm fine | sleep is for the weak
++speedrunner: sleep skips night. go
+a: lol | true | i'll go soon | heh
+b?.5: goodnight then | sleep well
+
+# night_moon | the moon | night sky
+needs: time_night clear
+a: big moon tonight | full moon | look at the moon | moon's bright
+b: slimes come out on full moons, you know | pretty | means more mobs | nice light at least
+a: huh | mhm | heh
+b?.5: careful out there | stay close to the torches
+
+# night_watch | keeping watch | night danger
+needs: time_night outside
+a: i'll keep watch | you watch left, i'll watch right | eyes open, it's dark | stay close
+b: ok | got it | watching | i've got your back
+a: thanks | good | anything moves, yell | we'll be ok
+b?.5: mhm | yep
+
+# night_cozy | a cozy night in | night home
+needs: time_night home_near
+a: nights are better inside | love being in when it's dark | nothing beats a lit room at night | night in, finally
+b: cozy | agreed | the zombies can knock all they like | mhm
+a: let them groan | warm and safe | heh | exactly
+b?.5: mhm | good night for it
+
+// Being bored.
+# bored_so | so bored | boredom
+needs: a:mood_bored
+a: i'm so bored | bored bored bored | nothing to do | i'm bored out of my mind
+b: same | go mine something | build something | find a cave
+a: meh | maybe | i don't feel like it | ugh, fine
+b?.5: or just sit | lol
+
+# bored_game | let's play something | boredom
+needs: a:mood_bored
+aq: wanna play a game? | bored. play a game with me? | let's play something => sure, what? | like what? | ok, what game? | fine, one game
+a: race you to that tree | staring contest. go | who can sneak the quietest | first to find a flower wins
+b: you're on | ok fine | lol ok | i'm winning this
+a?.5: go! | ready, set...
+
+# bored_count | counting things | boredom
+needs: a:mood_bored
+a: i counted the blocks in my wall | i counted every torch in town | i've been counting clouds | i counted my cobblestone. twice
+b: how many? | and? | how many was it?
+a: lots | forty-two | lost count halfway | twelve hundred... i think
+b: you need a hobby | wow | ok that's sad | impressive, kind of
+a?.5: counting is my hobby | i know
+
+# bored_sit | sitting around | boredom
+needs: a:mood_bored
+a: i've just been sitting here | been staring at a wall | haven't moved in ages | i'm just watching the chickens
+b: sounds relaxing | get up! | sounds boring | chickens are fun though
+a: it's not | i can't be bothered | maybe in a bit | heh
+b?.5: i'll sit with you | come do something with me
+
+# bored_other | b looks bored | boredom friends
+needs: b:mood_bored
+a: you look bored | you ok? you look bored | you seem bored | bored, huh?
+b: so bored | yeah | is it that obvious | nothing to do
+a: come help me then | let's go explore | i've got a job for you | let's go find a cave
+b: sure | anything's better than this | ok fine | maybe later
+a?.5: great | come on then
+
+# bored_ideas | ideas for the bored | boredom plans
+needs: a:mood_bored
+aq: give me something to do | i'm bored, what should i do? | any ideas? i'm bored => build a statue | go fishing | tame a cat | dig a really deep hole | organize your chests | plant a garden
+a: hm, maybe | not bad | oh, that's a good one | i'll think about it
+b?.5: anything beats sitting | go on then
+
+# bored_dig | digging from boredom | boredom mining
+needs: a:mood_bored a:can_mine
+a: i dug a hole just to dig a hole | i mined a staircase to nowhere | i made a tunnel that goes nowhere
+b: why | lol | relatable | find anything?
+a: boredom | a bit of coal | just dirt | it was something to do
+b?.5: lol | ok fair
+
+# bored_clouds | watching clouds | boredom sky
+needs: a:mood_bored outside clear
+a: the clouds all move the same way, have you noticed | i've been watching clouds all day | the clouds are slow today
+b: you're bored | that's a lot of cloud watching | they always go west | lol ok
+a: very bored | so bored | they do, huh | it's relaxing
+b?.5: come do something | lol
+
+# bored_rain | bored in the rain | boredom weather
+needs: a:mood_bored rain
+a: rain and nothing to do | bored and wet | rainy and boring | this rain is so boring
+b: rainy days are like that | sort something | take a nap | go fishing, fish bite more in the rain
+a: maybe | i'll nap | fishing, hm | heh
+b?.5: there you go | mhm
+
+# bored_night | bored at night | boredom night
+needs: a:mood_bored time_night
+a: nights are so long | the night's dragging | nothing to do at night | night is boring
+b: sleep then | craft something | go hunting zombies | count sheep
+a: not tired | eh | maybe | lol
+b?.5: suit yourself | night
+
+// Check-ins.
+# day_good | how's your day | greeting
+aq: how's your day going? | how's your day been? | how's it going? => pretty good | good, found some iron | not bad | busy, but good | great, actually
+a: nice | good to hear | glad
+b: you? | how's yours? | and you?
+a: pretty good | not bad | slow, but ok | can't complain
+b?.5: nice | good
+
+# day_bad | a bad day | greeting feelings
+aq: how's your day? | how you doing today? => ugh, don't ask | not great | rough | could be better | bad. i died twice
+a: oh no | sorry | that sucks | yikes
+b: creepers. so many creepers | lost my pickaxe in lava | fell down a hole, twice | just everything
+a: tomorrow's better | it'll pick up | come sit for a bit | ugh, i'm sorry
+b?.5: thanks | maybe | yeah
+
+# been_up_to | how have you been | greeting friends
+needs: acquainted
+w: 0.9
+aq: how've you been? | haven't seen you in a bit, how've you been? => good, busy | same as always | alright | been mining mostly | eh, ok
+a: nice | good, good | glad you're alive lol | heh
+b: you? | and yourself? | what about you?
+a: same old | busy | can't complain | built a new room
+b?.5: nice | good to hear
+
+# doing_what | what are you up to | doing
+aq: whatcha doing? | what are you up to? | what you doing? => not much | working | just walking | looking for stuff | nothing really | thinking
+a: cool | ok | fair | heh
+b: you? | what about you? | and you?
+a: just wandering | nothing much | looking for sheep | heading home soon
+b?.5: cool | ok
+
+# hungry_a | starving | food health
+needs: a:hungry
+a: i'm starving | so hungry | need food | my stomach's growling
+b: eat something then | go eat! | you should eat | eat, silly
+a: i'm out | soon | i'm saving it | after this
+b?.6: don't starve | don't pass out on me | i'd share if i had any
+
+# hungry_share | sharing food | food friends
+needs: a:hungry b:spare_food
+a: i'm starving | so hungry | need food | i haven't eaten all day
+b: here, take some of mine | want some bread? i've got extra | i've got spare food, have some
+a: you sure? | really? thanks | you're a lifesaver | i owe you
+b: course | no problem | eat up | anytime
+a?.5: thanks | mm, better
+
+# hurt_b | you look hurt | health
+needs: b:hurt
+a: you ok? you look hurt | you're hurt | whoa, you're beat up | you look rough
+b: i'm fine | took a beating | skeletons | it's nothing
+a: eat something, it heals | take it easy | rest up | sit down a bit
+b: will do | i'm ok | yeah yeah | thanks
+a?.5: good | i mean it
+
+# hurt_a | a is hurt | health
+needs: a:hurt
+a: ow | i'm hurt bad | ugh, that hurt | i'm all beat up
+b: what happened? | what got you? | who did that?
+a: a skeleton | fell off a ledge | a zombie got me | a creeper, sort of
+b: eat something | rest up | you'll heal | careful out there
+a?.5: yeah | thanks
+
+# town_life | how's town | town
+needs: in_town
+aq: how's town treating you? | liking it here in town? | how's town life? => good, lots of people | it's ok | noisy | love it | still getting used to it
+a: it grows on you | i like it | the bell's too loud sometimes | heh
+b?.5: true | lol, the bell
+
+# house_how | how's the house | home building
+needs: b:has_house
+aq: how's the house? | how's your place coming? | house ok? => good, finally has a roof | fine | needs more chests | a creeper took a wall | cozy | still building
+a: heh | need a hand? | i'll come see it sometime | houses are never done
+b?.5: sure | anytime | sometime
+
+# no_home | no home yet | home
+needs: b:no_home
+aq: where are you staying these days? | where do you sleep? | got a place yet? => nowhere really | wherever i end up | under a tree | in a hole lol | here and there
+a: you should build something | i know a good spot | a dirt hut's better than nothing | you can use mine sometime
+b: maybe | one day | i like it this way | thanks
+a?.5: think about it | ok
+
+// Moods.
+# mood_good | a good mood | feelings
+needs: a:mood_confident
+a: feeling good today | i'm in a good mood | today's a good day | nothing can stop me today
++pvp_sweat: feeling unbeatable today
+b: nice | love that | glad to hear | what's got you so happy?
+a: dunno, just good | found some iron | slept well | everything's going right
+b: keep it up | ride it out | nice | good for you
+a?.4: i will | heh
+
+# mood_frustrated | frustrated | feelings complaints
+needs: a:mood_frustrated
+a: ugh | nothing is working today | i'm so annoyed | everything's going wrong
+b: what's wrong? | what happened? | rough one?
+a: can't find any iron | my farm broke | creepers | i keep dying | just everything
+b: it'll turn around | take a break | want help? | breathe
+a?.5: maybe | thanks | yeah
+
+# mood_calm | a calm day | feelings
+needs: a:mood_calm
+a: nice and calm today | feeling peaceful | it's quiet, i like it | good to just relax
+b: same | enjoy it | rare day | nothing chasing you for once
+a: mhm | exactly | i'll take it | yep
+b?.4: ... | mhm
+
+# mood_anxious | a bad feeling | feelings danger
+needs: a:mood_anxious
+a: i've got a bad feeling | something feels off | i'm jumpy today | i keep looking over my shoulder
+b: about what? | why? | what's wrong?
+a: dunno | the dark, i guess | just a feeling | creepers, probably
+b: it's fine | i'll keep an eye out | you're safe here | stay close then
+a?.5: thanks | ok
+
+# mood_win | a winning day | feelings brag
+needs: a:mood_triumphant
+a: i did it | today was a win | i'm on fire today | best day ever
+b: did what? | what happened? | tell me | nice, what?
+a: beat a whole pack of zombies | finished my build | i didn't die once | got a full set of iron
+b: nice! | w | let's go | proud of you
+a?.5: thanks | i know | heh
+
+# mood_sad | feeling down | feelings
+needs: a:mood_grieving
+a: rough week | not doing great | i'm a bit down | been sad lately
+b: you ok? | want to talk? | i'm sorry | here if you need
+a: i'll be ok | not really | thanks | just need time
+b: take your time | i'm around | sit with me a bit | it gets easier
+a?.5: thanks | yeah
+
+# mood_angry | angry | feelings complaints
+needs: a:mood_angry
+a: i'm so mad | ugh, i could punch a tree | i'm furious | don't even
+b: whoa | what happened? | who made you mad? | calm down
+a: someone took my stuff | a creeper blew up my door | i lost everything | doesn't matter
+b: that's awful | i'd be mad too | want me to help? | breathe
+a?.5: thanks | yeah
+
+# mood_b_off | b seems off | feelings friends
+needs: b:mood_frustrated
+a: you seem off | rough day? | you good? | something wrong?
+b: just frustrated | everything's broken | ugh, yeah | don't ask
+a: want help? | want to vent? | take a break with me
+b: maybe later | thanks | i'm ok | sure
+a?.5: ok | anytime
+
+# mood_b_scared | b seems scared | feelings danger
+needs: b:mood_anxious
+a: you look jumpy | you ok? you look spooked | relax, it's just me | why so tense?
+b: sorry, on edge | heard something | i'm fine | bad feeling, that's all
+a: i'll stick around | probably nothing | want me to walk with you? | stay near me
+b: thanks | ok | maybe | yeah
+a?.5: anytime | sure
+
+# mood_b_happy | b seems happy | feelings
+needs: b:mood_confident
+a: you look happy | someone's in a good mood | what's with the grin?
+b: good day | found some iron | slept great | just a good day
+a: nice | love to see it | good for you | heh
+b?.5: thanks | it's a good one
+
+# mood_b_bored_too | both bored | boredom
+needs: a:mood_bored b:mood_bored
+a: are you as bored as i am? | you bored too? | we're both bored, huh
+b: so bored | yep | bored to death | very
+a: let's do something | wanna go explore? | race you somewhere | let's find a cave
+b: ok | sure | fine | anything
+a?.5: let's go | come on
+
+// How they stand.
+# friends_hey | good to see a friend | friends greeting
+needs: friends
+w: 0.9
+a: hey you | there you are | good to see you | hey friend
+b: hey! | hey hey | hi! | heyy
+aq: what've you been up to? | what's new? | been busy? => this and that | mining | not much | building, mostly | all sorts
+a: nice | cool | same old here | heh
+b?.5: we should hang more | let's do something later
+
+# friends_hangout | hanging out more | friends plans
+needs: friends
+w: 0.9
+a: we should hang out more | we don't hang out enough | let's do something together soon
+b: agreed | yeah, i'd like that | name the day | for sure
+a: deal | soon then | i'll hold you to it
+b?.5: you better | heh
+
+# friends_glad | glad we're friends | friends feelings
+needs: friends
+w: 0.8
+a: glad we met, you know | you're alright, you know that? | i'm glad you're around
+b: aw | you too | stop it | lol thanks | same
+a: just saying | mean it | lol ok | heh
+b?.5: ...thanks | you're alright too
+
+# friends_remember | when we met | friends memories
+needs: friends
+w: 0.8
+aq: remember when we first met? | remember the first time we talked? => barely | yeah, you were lost | you ran from me lol | yeah, at night | sort of
+a: lol | good times | look at us now | heh
+b?.5: we've come a long way | mhm
+
+# friends_trust | trusting each other | friends trust
+needs: friends
+w: 0.7
+a: you know i've got your back, right? | if anything happens, i've got you | you can count on me
+b: i know | same here | thanks | likewise
+a: good | ok | just making sure | heh
+b?.5: always | mhm
+
+# strangers_hi | meeting a stranger | greeting
+needs: strangers
+w: 0.9
+a: hi | hello | hey there | hi, don't think we've met
+b: hi | hey | hello | oh, hi
+aq: you from around here? | you live nearby? => sort of | yeah, over the hill | no, just passing | not really
+a: well, nice to meet you | nice to meet you | good to meet you
+b?.5: you too | likewise
+
+# strangers_clear | nice weather, stranger | greeting weather
+needs: strangers clear
+a: nice weather | good day for it | lovely day | not bad out today
+b: it is | yep | can't complain | sure is
+a: well, safe travels | take care | have a good one
+b?.5: you too | bye
+
+# strangers_rain | wet weather, stranger | greeting weather
+needs: strangers rain
+a: wet one today | some rain, huh | lovely weather... not | bit damp
+b: yep | sure is | heh | crops'll be happy
+a: well, stay dry | take care
+b?.5: you too | you too, bye | bye
+
+# strangers_night | strangers at night | greeting night
+needs: strangers time_night
+a: bit late to be out | evening | careful, it's dark | out late, huh
+b: you too | yep | i know | hi
+a: watch out for creepers | stay safe | anyway | night then
+b?.5: you too | thanks
+
+# strangers_name | names | greeting
+needs: strangers
+aq: what's your name? | i'm {a}, and you? | name's {a}. you? => {b} | i'm {b} | {b}, nice to meet you | it's {b}
+a: nice to meet you | cool name | got it | hi then
+b?.6: likewise | you too
+
+# strangers_where | where are you headed | greeting exploring
+needs: strangers
+aq: where you headed? | going anywhere nice? => nowhere special | home | wherever | just walking | looking for iron
+a: good luck | safe travels | take care
+b?.5: thanks | you too
+
+# acquainted_again | seeing them again | greeting
+needs: acquainted !friends
+a: oh, you again | hey, we've met | you again, hi | i know you
+b: hi again | yep, me | hello again | small world
+a: good to see you | heh | what are the odds | funny how that works
+b?.5: yeah | heh
+
+# rivals_hi | awkward with a rival | rivals
+needs: rivals
+a: oh. it's you | you | great, it's you | hi... i guess
+b: what | hi | nice to see you too | don't start
+a: just saying hi | relax | i'm not starting anything | ok, ok
+b: sure | hmph | ok | fine
+a?.5: ... | bye then
+
+# rivals_rain | weather with a rival | rivals weather
+needs: rivals rain
+a: bad weather | raining | rain | wet one
+b: i noticed | yep | so? | thanks for the update
+a: just making conversation | ok, forget it | fine | wow, ok
+b?.5: ... | sure
+
+# rivals_truce | a small truce | rivals
+needs: rivals
+w: 0.8
+a: look, can we just not fight today? | truce, for today? | i'm too tired to argue with you today
+b: fine | for today | ok | if you say so
+a: good | deal | thanks | ok then
+b?.5: don't get used to it | just today
+
+# groupmates_how | how the group's doing | friends
+needs: groupmates
+aq: how's the group doing? | everyone in the group ok? | think the group's working out? => i think so | yeah, good | some arguing, but fine | we need more food | i like it
+a: ok | i'll keep an eye on it | noted | heh
+b?.5: good | yep
+
+# groupmates_lead | who should lead | friends politics
+needs: groupmates
+aq: who do you think should lead the group? | does the group even need a leader? => you | me, obviously | nobody, we're fine | whoever has the most food | not me
+a: ha | interesting | i'll think about it | lol, fair
+b?.5: just saying | heh
+
+// Working side by side, passing the time.
+# work_long | a long job | doing
+a: this is taking forever | i've been at this all day | so much to do | it's never done
+b: keep going | same here | you got this | take a break
+a: yeah | trying | i will | ok
+b?.5: talk while you work | i'll keep you company
+
+# work_hum | humming | music doing
+a: hm hm hmm | la la la | dum de dum | da da dum
+b: what's that song? | what are you humming? | catchy | you're humming again
+a: no idea | made it up | the one from the jukebox | it's stuck in my head
+b: it's stuck in mine now | lol | keep going | nice
+a?.5: hm hm hmm | la la
+
+# work_company | working together | doing friends
+a: nice working with someone | better with company | more fun with two | i like working together
+b: agreed | mhm | goes faster too | you're not bad help
+a: heh | mhm | right?
+b?.5: let's keep going | back to it
+
+# work_cobble | too much cobble | mining doing
+needs: a:can_mine
+a: that's my ninth stack of cobble | cobble, cobble, more cobble | i've got so much cobble | my chests are all cobble
+b: never enough | you can never have too much | build something with it | throw some in lava
+a: i guess | true | lol | it's stone, everything's stone
+b?.5: lol | ok
+
+# work_break | a break | doing
+a: i need a break | break time | let's sit for a minute | my arms are tired
+b: same | ok, five minutes | sure, go ahead
+a: ahh, better | thanks | mm, that's nice
+b?.5: back to work | ok, enough
+
+# work_progress | how the work's going | building doing
+aq: how's it coming along? | how's the work going? | getting there? => slowly | almost done | ugh | good, actually | halfway
+a: want help? | need a hand? | i can help if you want
+b: maybe | thanks, i'm ok | nah, i got it | sure
+
+# work_talk | talk while working | doing
+a: talk to me, this is boring | say something, i'm bored of this | entertain me while i work
+b: about what? | uh, what do you want to hear? | ok... nice weather?
+a: anything | lol, anything | that'll do | tell me something weird
+b: chickens can't swim but they float | i once fell in my own pit | i named a cow once | i saw a fox carrying a sword
+a: lol | huh | ok that helps | more
+b?.4: that's all i've got | ok one more later
+
+# work_song | a working song | music doing
+a: we need a work song | someone sing something | this needs music
+b: mine, mine, mine all day | dig dig dig | i only know the noteblock song | no
+a: lol | perfect | keep going | ok, rude
+b?.5: dig dig dig | la la
+
+# work_almost | almost done | doing
+a: almost done | nearly there | last bit | so close
+b: nice | finally | go go go | can't believe it
+a: there. done | done! | finished | and... done
+b: w | nice | took long enough | good job
+a?.5: thanks | heh
+
+# work_wrong | a mistake at work | doing building
+a: oops | wait, wrong block | ugh, i placed it wrong | i messed that up
+b: lol | happens | just break it | no one saw
+a: i saw | fixed | there | ok, fixed it
+b?.4: nice | perfect now
+
+# work_tools | a tool breaking | tools doing
+a: my pickaxe just broke | there goes my axe | tool broke again | my shovel's gone
+b: rip, got a spare? | got another one? | spare?
+a: luckily yes | nope | ugh, no | i'll make one
+b?.4: always carry two | lol
+
+// Quiet time.
+# silence_sit | sitting quietly | friends
+needs: friends
+w: 0.7
+a: ... | .. | *sits down*
+b: ... | mhm | nice out
+a: this is nice | nice, this | peaceful | don't need to talk, huh
+b: yeah | mhm | it is
+a?.4: ... | heh
+
+# silence_sky | looking up | friends sky
+needs: friends outside
+w: 0.7
+a: ... | *looks up*
+b: ... | what?
+a: nothing | just looking | nothing, just sitting
+b: mhm | heh | ok then
+a?.4: ... | nice
+
+# silence_night | a quiet night | friends night
+needs: friends time_night
+w: 0.8
+a: ... | quiet night
+b: ... | mhm
+a: i like this | this is good | no zombies for once | nice and still
+b: mhm | yeah | agreed
+a?.4: ... | heh
+
+# silence_rain | quiet rain | friends weather
+needs: friends rain
+w: 0.8
+a: ... | *listens to the rain*
+b: ... | mhm
+a: nice, the rain | rain's relaxing | i could sit here all day
+b: mhm | same | yeah
+a?.4: ... | heh
+
+# silence_awkward | an awkward silence | strangers
+needs: strangers
+w: 0.6
+a: ... | so... | um
+b: ... | so...
+a: nice weather? | anyway | yeah | ok then
+b: yeah | sure | heh
+a?.5: bye then | ok, see you
+
+// Everyday bits: food, sleep, chores, the walk, gear.
+# snack | a snack | food
+aq: got any snacks? | anything to eat on you? => an apple | some bread | cookies, but they're mine | nope | a raw potato lol
+a: lol | nice | i'd eat that | heh
+a: i'm getting peckish | i should eat something | i've got carrots somewhere
+b?.5: go eat then | mhm
+
+# best_meal | a good meal | food
+a: had the best stew earlier | ate a whole steak earlier, so good | baked a cake yesterday | had golden carrots, felt fancy
+b: jealous | nice | save me some next time | fancy
+a: heh | next time | you'd love it | mhm
+b?.5: you better | i'm holding you to that
+
+# bread_again | bread again | food complaints
+a: bread again | i've eaten so much bread | if i see one more loaf | bread for breakfast, lunch and dinner
+b: bread's fine | lol | get a cow | try fishing
+a: i'm sick of it | lol | i want steak
+b?.5: steak's a cow away | fish is free
+
+# nap | a nap | sleep
+a: i could use a nap | so sleepy | i need a nap | my eyes are closing
+b: can't nap in the day | lie down then | same | power through
+a: ugh | true | i'll try later | mm
+b?.5: night's coming anyway | soon
+
+# bed_comfy | a comfy bed | sleep home
+needs: a:has_house
+a: love my bed | slept so well last night | my bed's the best thing i own | new wool on my bed, so soft
+b: nice | jealous | same, beds are great
+a: heh | mhm | best sleep ever | it's so soft
+b?.5: nice | sounds cozy
+
+# chores | chores | home doing
+a: so many chores today | gotta refill the furnace, feed the animals, fix a wall | the chores never end
+b: same | that's life | do them later
+a: ugh | lol | never ends
+b?.5: ok | heh
+
+# sort_chests | sorting chests | storage doing
+a: spent all morning sorting chests | my chests are a mess | i need to sort my storage | i labelled every chest
+b: worth it | nice | signs are the way
+a: it's so satisfying | heh | mhm
+b?.5: never | mhm
+
+# long_walk | a long walk | exploring
+needs: outside
+a: long walk today | my legs are tired | walked forever | so much walking
+b: same | get a horse | it's good for you
+a: heh | i'll get a horse eventually | lol
+b?.5: lol | ok
+
+# where_are_we | where are we | exploring
+needs: outside
+aq: where even are we? | do you know where we are? => no idea | somewhere | near home, i think | lost, probably | follow the sun
+a: great | lol | ok good | helpful
+b?.5: we'll figure it out | relax
+
+# nice_spot | a nice spot | places exploring
+needs: outside
+a: nice spot this | this is a good spot | i like it here | pretty view
+b: it is | mhm | could build here | yeah, peaceful
+a: maybe one day | heh | i'll remember it | right?
+b?.5: mhm | nice
+
+# armor_nice | nice armor | armor
+needs: b:armor_iron
+a: nice armor | iron suits you | looking tough | shiny
+b: thanks | took ages | it's heavy | i know
+a: heh | worth it | mhm | i bet
+b?.4: mhm | heh
+
+# armor_none | no armor | armor danger
+needs: b:armor_none
+a: where's your armor? | no armor? brave | you're not wearing anything | out here with no armor?
+b: don't have any | it's heavy | i'm fast | working on it
+a: be careful | get some leather at least | brave | hm
+b?.5: i will | yeah yeah
+
+# armor_shiny | diamond armor | armor brag
+needs: b:armor_diamond
+a: fancy armor | diamond, huh | look at you | ok rich person
+b: earned it | thanks | lots of mining
+a: heh | nice | fair
+b?.4: heh | you'll get there
+
+# diamonds_ask | how many diamonds | diamonds
+needs: b:has_diamonds
+aq: got any diamonds on you? | how many diamonds you got? => {b.diamonds} | a few | not telling | {b.diamonds}, why?
+a: nice | ha | heh | just asking
+b?.5: hm | sure
+
+// More weather and time.
+# rain_morning | a rainy morning | weather day
+needs: rain time_morning
+a: rainy morning | gloomy start | woke up to rain | wet morning
+b: back to bed then | yeah | it'll clear | lovely
+a: lol | mhm | heh
+b?.5: mm | heh
+
+# rain_night | a rainy night | weather night
+needs: rain time_night
+a: rainy night | rain and dark | wet and dark out | gloomy night
+b: stay in | perfect for sleeping | the zombies get wet too | ugh
+a: good | true | lol | mhm
+b?.5: night | heh
+
+# thunder_night | a stormy night | weather night danger
+needs: thunder time_night
+a: stormy night | dark and stormy | worst kind of night | storm and dark, great
+b: stay inside | lock the door | beds, now | ugh
+a: way ahead of you | already in | yep | mhm
+b?.5: good | night
+
+# clear_evening_walk | an evening walk | weather day
+needs: clear time_evening outside
+a: nice evening | good night for a walk | cool air tonight | evening's nice
+b: before the mobs come | it is | mhm | let's walk
+a: true | heh | quick one | ok
+b?.5: mhm | lol
+
+# clear_morning_fresh | a fresh morning | day weather
+needs: clear time_morning outside
+a: fresh morning | nice morning | the air's nice | good morning out
+b: it is | mhm | feels new | good day ahead
+a: let's make it count | heh | mhm | right?
+b?.5: yeah | let's go
+
+# day_sun | sunburn jokes | day jokes
+needs: clear time_day outside
+a: wish i could burn like zombies so i'd have an excuse to stay in | lucky we don't burn | glad i'm not a zombie today
+b: lol | that's a weird wish | same honestly | true
+a: heh | just saying | right? | mhm
+b?.4: lol | ok
+
+# evening_torches | lighting torches | night building
+needs: time_evening
+a: time to light the torches | gotta put torches up before dark | torch time | the lamps need lighting
+b: i'll do the east side | i'll help | already did mine
+a: thanks | nice | ok
+b?.5: go go | hurry
+
+# night_zombie_knock | zombie at the door | night mobs home
+needs: time_night
+a: a zombie's been banging on my door all night | zombies at my door again | some zombie loves my door
+b: lol, is the door holding? | is the door ok? | is the door holding up?
+a: it's holding | for now | barely
+b?.5: good | lol
+
+# night_spider | spiders at night | night mobs
+needs: time_night
+a: spiders are out | i saw a spider on my wall | spider on the roof | spiders everywhere tonight
+b: string | yuck | they're harmless... mostly | kill it
+a: free string | ugh | heh | later
+b?.5: lol | ok
+
+# night_what_doing | what are you doing up | night
+needs: time_night
+aq: what are you doing up? | why aren't you sleeping? => couldn't sleep | phantoms don't scare me | working | i forgot to sleep | same as you
+a: fair | lol | ok | heh
+b?.5: you? | night owl too?
+
+// Town life.
+# town_bell | the town bell | town
+needs: in_town
+a: that bell is loud | someone keeps ringing the bell | the bell again | why does someone always ring the bell
+b: lol | probably someone bored | it's for raids | i like it
+a: heh | ugh | ok
+b?.5: lol | just let them
+
+# town_busy | busy town | town
+needs: in_town
+a: busy today | lots of people around | town's lively | so many people out
+b: market day? | i like it busy | too busy | yeah
+a: maybe | heh | same | mhm
+b?.5: mhm | heh
+
+# town_quiet | a quiet town | town
+needs: in_town
+a: quiet in town today | nobody's around | town's dead today | so quiet
+b: everyone's mining | probably | nice for a change | spooky
+a: heh | mhm | true | lol
+b?.5: mhm | ok
+
+# town_neighbours | the neighbours | town friends
+needs: in_town
+aq: met the neighbours yet? | know anyone around here? => a few | not really | everyone, lol | the one with the cats | just you
+a: heh | cool | ok | same
+
+# town_food | town food | town food
+needs: in_town
+a: town food's the best | someone's cooking something | smells good around here | there's always bread in town
+b: mhm | i'm hungry now | thanks for that | wonder who's cooking
+a: heh | lol | mhm
+b?.5: ...i'm going to find out | ok
+
+// Animals around.
+# animal_cow | the cows | animals
+a: the cows are being loud today | that cow keeps staring at me | a cow got out again | cows everywhere
+b: lol | moo | cows are like that | fence them
+a: heh | ugh | mhm
+b?.5: lol | ok
+
+# animal_cat | a cat around | animals pets
+a: there's a cat following me | a cat sat on my chest | a stray cat keeps hanging around | found a cat in my house
+b: feed it fish | lucky | cats are the best | keep it
+a: maybe | i think i will | i don't have fish | heh
+b?.5: do it | mhm
+
+# animal_chicken | chickens | animals farming
+a: chickens everywhere | my chickens escaped | eggs all over my floor | one chicken became twelve
+b: lol | that's chickens for you | fence them | free eggs
+a: ugh | heh | mhm | true
+b?.5: lol | ok
+
+# animal_bee | bees | animals
+a: the bees are busy today | bees buzzing everywhere | a bee followed me home | so many bees
+b: honey! | don't make them mad | aww | nice
+a: heh | i won't | mhm | lol
+b?.5: careful | ok
+
+# animal_parrot | a parrot | animals
+a: saw a parrot dancing earlier | a parrot copied a creeper sound at me | parrots are weird
+b: lol | they do that | parrots are funny
+a: heh | mhm | yep
+b?.5: lol | ok
+
+// Voices.
+# builder_eye | a builder's eye | building
+needs: a:voice_builder
+a: that wall bugs me | something's off about that roof | needs more depth, that wall | i can't stop looking at that corner
+b: looks fine to me | it's a wall | what's wrong with it? | you and your walls
+a: it's all wrong | you wouldn't get it | it's flat | ugh
+b?.5: lol ok | fix it then
+
+# miner_dark | a miner's mood | mining
+needs: a:voice_miner
+a: miss the caves already | too bright up here | i like it better underground | need to get back down
+b: lol | you're a mole | go on then | the sun's nice though
+a: it's not | heh | soon | mhm
+b?.5: mole | lol
+
+# newbie_question | a newbie's question | random
+needs: a:voice_newbie
+aq: is it normal that the sun is square? | why is the moon square? | do cows ever sleep? => yeah | no idea | lol yes | good question
+a: oh ok | huh | weird | cool
+b?.5: lol | you'll get used to stuff
+
+# hermit_short | hermit small talk | random
+needs: a:voice_hermit
+a: hm | hi | ... | yeah
+b: hi | hey | talkative today | ok
+a: mhm | ok | heh | bye
+b?.5: bye | lol ok
+
+# nomad_restless | restless | exploring
+needs: a:voice_nomad
+a: been here too long | itching to move | i need to see somewhere new | too many walls around here
+b: you just got here | go on then | stay a bit | where to next?
+a: i know | soon | maybe | wherever
+b?.5: lol | ok
+
+# helper_offer | an offer of help | help
+needs: a:voice_helper
+aq: need anything? | can i help with anything? | anything you need? => i'm ok | maybe some food | some torches would help | nah, thanks | a hand later
+a: ok | sure thing | just ask | anytime
+b?.5: thanks | you're the best
+
+# hoarder_mine | a hoarder's chests | storage
+needs: a:voice_hoarder
+a: i need more chests | ran out of chest space again | i've got a chest just for flowers | i keep everything
+b: lol | why | you have a problem | of course you do
+a: you never know | it's useful | mind your business
+b?.5: lol | sure
+
+// @@SMALL_END@@
+"""
+
+# ---------------------------------------------------------------------------------------------------------------------
+# 8. Silly back-and-forths, written out like the small talk: naming animals, made-up games and songs, rating armor,
+# dream builds, impressions, inventing words and holidays.
+
+SILLY = """
+// Naming animals.
+# name_cow | naming a cow | animals
+aq: if you had a cow, what would you name it? | name a cow. go | quick, best name for a cow? => moo-riel | steak... no wait | bessie, classic | sir moos-a-lot | milkshake
+a: ha | perfect | lol | nice one
+a: mine'd be called burger | i'd go with daisy | i'd call it mr. cow | mine's called moo-dy
+b: lol | cute | creative | heh | good one
+a?.4: heh | i stand by it
+
+# name_pig | naming a pig | animals
+aq: what would you name a pig? | best pig name? | if you saddled a pig, what would you name it? => bacon, sorry | sir oinks | pinky | porkchop | the pink menace
+a: ha | perfect | lol | nice one
+a: mine's called truffle | i'd name it carrot, since it loves them | i'd call mine speedy, as a joke
+b: lol | cute | good one | ha
+a?.4: heh | it fits
+
+# name_chicken | naming a chicken | animals
+aq: name a chicken | what would you name a chicken? | best chicken name? => nugget | sir clucks | eggbert | feathers | dinner
+a: lol | perfect | love it | heh
+a: i'd call mine captain beak | mine's called pebble | i'd name it boss
+b: lol | cute | love it | heh
+a?.4: it earned it | mhm
+
+# name_horse | naming a horse | animals
+aq: what would you name your horse? | best horse name, go | if you tamed a horse, its name would be? => thunder | biscuit | speedy | sir gallops | mr. legs
+a: lol | that fits | good one | heh
+a: mine'd be called lightning | i'd go with oats | i'd call it hay-ley
+b: lol | cute | good one | heh
+a?.4: thanks | i'm proud of that
+
+# name_wolf | naming a wolf | animals pets
+aq: if you tamed a wolf, what would you call it? | best name for a wolf? | name a dog. go => bones | fluffy | captain | sir woofs | chomp
+a: lol | good one | ha | love it
+a: mine'd be called biscuit | i'd name it shadow | i'd call it stick, because it fetches
+b: lol | nice | aww | heh
+a?.4: it fits | mhm
+
+# name_cat | naming a cat | animals pets
+aq: name a cat | what would you call a cat? | best cat name? => whiskers | fish | mr. mittens | creeper chaser | boots
+a: lol | perfect | love it | heh
+a: mine'd be called sock | i'd call it captain fluff | i'd name it nugget
+b: lol | aww | cute | heh
+a?.4: perfect | mhm
+
+# name_sheep | naming a sheep | animals
+aq: name a sheep | what would you name a sheep? => wooly | cloud | sir fluff | baa-bara | sweater
+a: lol | good one | ha | love it
+a: i'd call mine mutton chop | i'd go with fuzzy | i'd name it wooliam
+b: lol | good one | cute | heh
+a?.4: thanks | i'm a genius
+
+# name_creeper | naming a creeper | mobs jokes
+aq: if creepers had names, what'd you call one? | name a creeper | what's a good creeper name? => boom | hissy | gary | mr. kaboom | crater
+a: lol | perfect | love it | heh
+a: mine'd be called sneaky pete | i'd name it ka-boris | i'd call it hole maker
+b: lol | good one | perfect | heh
+a?.4: he deserves a name | mhm
+
+# name_villager | naming villagers | villagers jokes
+aq: if you named a villager, what would you name it? | name a villager | best villager name? => hmm | sir trades-a-lot | nose | emerald | hrrm
+a: ha | perfect | lol | nice one
+a: mine'd be called big nose | i'd name one rip-off | i'd call mine mr. emerald
+b: lol | fair | rude | heh
+a?.4: they rip me off every time | mhm
+
+// Inventing games.
+# game_invent | inventing a game | random
+a: let's invent a game | i've got an idea for a game | new game, i just made it up
+b: ok | what's the game? | go on | uh oh
+a: whoever finds the weirdest block wins | first to see a pink sheep wins | we take turns naming mobs, first to repeat loses
+b: you're on | ok i'm in | that's dumb. i'm in | lol ok
+a?.5: go! | ready... go
+
+# game_floor_lava | the floor is lava | random
+a: the floor is lava! | quick, the floor is lava | floor is lava, go
+b: *jumps on a block* | the floor is literally dirt | i'm on a fence | wait, is it actually?
+a: lol | you're out | nice save | no, but play along
+b: ok ok | this is dumb | lol | i'm safe
+a?.4: heh | i win
+
+# game_tag | playing tag | random
+a: tag, you're it | tag! | *taps you* you're it
+b: hey! | no fair | i wasn't ready | oh it's on
+a: lol | catch me if you can | too slow | run!
+b: get back here | ugh | i'm coming for you
+a?.5: never! | lol
+
+# game_staring | a staring contest | random
+a: staring contest. go | bet i can stare longer than you | staring contest, ready?
+b: ok | go | you're on | fine
+a: ... | ...
+b: ... | ... | ...
+a: you blinked | i blinked. ugh | a bat distracted me | you win
+b: lol | nice | i always win | rematch
+a?.4: rematch | heh
+
+# game_sneak | sneaking contest | random
+a: bet i can sneak quieter than you | sneaking contest | who can sneak up on that cow
+b: you're on | lol ok | it's a cow | ok fine
+a: *sneaks* | shh | watch this
+b: the cow saw you | not bad | lol | it walked off
+a?.5: ugh | rematch
+
+# game_rps | rock paper shears | random
+aq: rock paper shears? | rock paper shears, best of one | rock, paper, shears, go => rock | paper | shears | uh, paper
+a: ha, i win | dang, you win | lol, tie | i picked the same, tie
+b: rematch | no fair | heh | best of three
+a?.5: ok again | lol
+
+# game_hide | hide and seek | random
+a: hide and seek? | let's play hide and seek | you hide, i'll count
+b: ok, count to ten | i'm the best hider | lol, ok | fine
+a: one... two... ten! | ready or not | coming!
+b: ... | you'll never find me | ...
+a: found you | you're behind the tree, i can see your head | i give up
+b?.5: dang | lol | heh
+
+# game_jump | jump contest | random
+a: bet i can jump higher | who jumps higher | jumping contest
+b: we jump the same lol | everyone jumps one block | ok | sure
+a: i'll jump with more style | watch my form | it's about style
+b: lol | ok, style points | 3 out of 10 | heh
+a?.4: heh | watch again
+
+// Rating each other's armor and stuff.
+# rate_armor_iron | rating iron armor | armor
+needs: b:armor_iron
+a: rate my outfit | ok i'm rating your armor | let me rate your armor
+b: oh no | go ahead | be nice | ok
+a: iron. solid. 7 out of 10 | shiny. 8. would be 9 with a helmet feather | classic iron, 6, needs more colour
+b: fair | rude | i'll take it | that's it?
+a?.4: heh | improve and come back
+
+# rate_armor_leather | rating leather armor | armor
+needs: b:armor_leather
+a: rating your armor | let me rate your outfit | i'm rating your armor
+b: oh no | go on | be nice
+a: leather. cozy. 5 out of 10 | very brown. 4 | leather, the fashion choice. 6
+b: harsh | it's comfy | fair | i'll upgrade soon
+a?.4: heh | looking forward to it
+
+# rate_armor_diamond | rating diamond armor | armor
+needs: b:armor_diamond
+a: rating your armor | let me rate your outfit | ok, your armor
+b: oh no | go on | this'll be good
+a: diamond. 9 out of 10. too shiny | 10. annoying, but 10 | 8, a bit show-offy
+b: lol | fair | i'll take it | you're just jealous
+a?.4: heh | it's a compliment
+
+# rate_armor_none | rating no armor | armor
+needs: b:armor_none
+a: rating your armor | let me rate your outfit | ok, your armor
+b: i don't have any | go on | oh no
+a: nothing. 2 out of 10, bold | none at all. 1, for courage | zero. the zombies thank you
+b: lol | rude | fair | i'm fast though
+a?.4: heh | get some leather
+
+# rate_house | rating a house | building home
+needs: b:has_house
+a: i'd rate your house | your house, out of 10 | ok i'm rating your house
+b: oh no | go on | be nice
+a: 7, good roof | 8, nice windows | 6, needs flowers | 9, cozy
+b: fair | i'll take it | only that? | heh
+a?.4: improve and i'll come back | heh
+
+# rate_walk | rating a walk | jokes
+a: rate my walk | how's my walk? out of 10 | rate how i walk
+b: 6 | 4, a bit stompy | 8, very confident | 3, you walk like a zombie
+a: lol | hm | ok | i'll take it
+b?.5: heh | practise
+
+# rate_sword | rating swords | weapons
+aq: rate my sword | my sword, out of 10? => 7 | 5 | 9 | 3
+a: fair | lol | hm | i'll take it
+b: needs an enchant | swords are swords | it's pointy | heh
+a?.4: lol | mhm
+
+// Made-up songs.
+# song_mine | a mining song | music mining
+a: i made up a song | listen to this song | new song
+b: oh no | go on | sing it
+a: dig dig dig, down we go, coal and iron, here we go | mine all day, mine all night, find some diamonds, shiny bright
+b: lol | that's terrible | catchy | encore
+a?.5: thank you | i'm writing more
+
+# song_creeper | a creeper song | music mobs
+a: i made a creeper song | listen | new song, it's about creepers
+b: oh no | go | sing it
+a: hiss hiss, boom boom, there goes my living room | sneaky green, never seen, until he's gone ka-boom
+b: lol | ugh, so true | that's dark | catchy
+a?.5: thank you | it's a hit
+
+# song_bread | a bread song | music food
+a: song about bread, ready? | i wrote a bread song | listen to my bread song
+b: no | ok | go on
+a: bread bread bread, fills my head, eat it in my comfy bed | three wheat in a row, bread is good, i think you know
+b: lol | that's so bad | wow | ok that's good
+a?.5: it's art | i know
+
+# song_noteblock | noteblock song | music
+a: i'm learning a noteblock song | i've got a noteblock tune going | building a noteblock song
+b: which one? | nice | how's it sound? | oh no
+a: ding ding dong | like a chicken | it's mostly one note | bad, so far
+b: lol | keep at it | ding | heh
+a?.4: thanks | heh
+
+// Dream builds.
+# dream_build | a dream build | building dreams
+aq: if you could build anything, what would it be? | what's your dream build? | biggest thing you'd build? => a castle in the sky | a floating island | a huge library | a giant statue of me | a tower to the clouds
+a: nice | ambitious | lol | i'd visit
+a: mine's a mansion with a moat | i want a treehouse village | i'd build a giant cake
+b: lol | nice | love it | heh
+a?.4: one day | maybe
+
+# dream_room | a dream room | building home dreams
+aq: what room would you add to your house? | dream room? | if you added one room, what? => a library | a pool | a secret room | a big kitchen | a trophy room
+a: nice | good one | ooh | i'd want that too
+a: mine'd be a room just for cats | i'd add a lava room. just to look at | a nap room
+b: lol | nice | i'd visit | heh
+a?.4: mhm | dreams
+
+# dream_pet | a dream pet | animals dreams
+aq: if you could tame any mob, which one? | dream pet? | which mob would you keep as a pet? => a ghast | an iron golem | a fox | an axolotl | a creeper, carefully
+a: lol | good one | a fox, cute | dangerous
+a: mine's a baby panda | i'd want an allay | i'd tame a sniffer
+b: aww | cute | good one | heh
+a?.4: mhm | one day
+
+// Impressions.
+# impress_villager | villager impression | villagers jokes
+a: hmm | hrmm | huuh | hmmm?
+b: what? | are you ok? | was that a villager? | lol
+a: my villager impression | it's a villager | hrmm. that's yes
+b: lol perfect | that's good | stop | hrmm
+a?.4: hrmm | hmm
+
+# impress_zombie | zombie impression | mobs jokes
+a: uuurrgh | uhhhh | hurrrgh
+b: lol what | zombie? | you ok? | stop
+a: zombie impression | i'm a zombie | uuurgh, yes
+b: lol | 7 out of 10 | too real | do a skeleton
+a?.4: *rattles* | lol
+
+# impress_creeper | creeper impression | mobs jokes
+a: ssssss | sssss... | hisss
+b: don't! | that's not funny | ah! | lol stop
+a: lol | gotcha | creeper impression | you jumped
+b: i did not | ugh | that's mean | heh
+a?.4: lol | you did
+
+# impress_chicken | chicken impression | animals jokes
+a: bawk | buk buk | bawk bawk
+b: lol what | chicken? | stop | what was that
+a: chicken impression | i'm a chicken | buk
+b: lol | 9 out of 10 | eerie | heh
+a?.4: bawk | thanks
+
+# impress_ghast | ghast impression | mobs jokes
+a: weeeeh | *ghast noise* | hwaaa
+b: what is that | stop | lol | that's horrible
+a: ghast impression | i'm a ghast | weeeh
+b: too real | lol | i hate it | heh
+a?.4: weeeh | lol
+
+// Made-up words and holidays.
+# word_invent | inventing a word | jokes
+a: i invented a word | new word: crumbly. it means a creeper ruined it | new word: sheepish, but for actual sheep
+b: lol | that's a word already | ok i like it | huh
+a: it's different | trust me | spread it around | heh
+b?.5: lol ok | i'll use it
+
+# holiday | inventing a holiday | jokes
+aq: if we made a holiday, what would it be? | what holiday should we have? => creeper day | bread day | diamond day | cow day | no mining day
+a: lol | love it | perfect | heh
+a: i'd make sheep shearing day | i'd do a day where nobody fights | i'd make a nap day
+b: lol | nice | i'd join | heh
+a?.4: one day | mhm
+
+# flag_design | designing a flag | building
+aq: if we had a flag, what'd it look like? | design a flag, what's on it? => a creeper face | a loaf of bread | a pickaxe | a sheep | just green
+a: lol | strong | i like that | heh
+a: mine'd have a cow on it | a diamond, obviously | a big torch
+b: nice | lol | classic | heh
+a?.4: i'll make a banner | mhm
+
+# shop_pretend | pretending to run a shop | trade jokes
+a: welcome to my shop | what can i get you? i'm a shop now | step right up, i'm a shop
+b: one bread, please | i'll take a diamond | i'll have your best pickaxe
+a: that'll be three emeralds | one emerald, and no refunds | that's ten emeralds. each
+b: lol | rip-off | ok i'll pass | i'll take it
+a?.4: come again | pleasure doing business
+
+# title_self | silly titles | jokes
+aq: if you had a title, what would it be? | what's your title? like a knight would have => {b} the brave | {b} the hungry | sir {b} of the cave | {b} the lost | lord {b}
+a: lol | fits | perfect | heh
+a: mine's {a} the great | i'm {a}, master of dirt | {a} the creeper slayer
+b: lol | sure | fits | heh
+a?.4: thank you | mhm
+
+// @@SILLY_END@@
+"""
+
+SILLY2 = """
+// More names.
+# name_fox | naming a fox | animals
+aq: name a fox | what would you call a fox? | best fox name? => sly | berry | sir sneaks | ginger | thief
+a: lol | that fits | good one | heh
+a: mine'd be called sweetberry | i'd go with mr. sneaky | i'd call it socks
+b: lol | cute | good one | heh
+a?.4: it fits | mhm
+
+# name_axolotl | naming an axolotl | animals
+aq: name an axolotl | what would you call an axolotl? => smiley | pinky | noodle | bubbles | lotl
+a: lol | good one | ha | love it
+a: mine'd be called gill-bert | i'd go with wiggles | i'd call it sir smiles
+b: lol | aww | good one | heh
+a?.4: it's perfect | mhm
+
+# name_llama | naming a llama | animals
+aq: what would you name a llama? | name a llama => spitty | carpet | fluffy | drama | sir spits
+a: lol | that fits | good one | heh
+a: mine'd be called no-spit | i'd go with dolly | i'd call it trouble
+b: lol | fair | cute | heh
+a?.4: they earn their names | mhm
+
+# name_bee | naming a bee | animals
+aq: name a bee | what would you call a bee? => buzz | honey | stinger | bumble | sir buzzalot
+a: lol | perfect | love it | heh
+a: mine'd be called pollen | i'd call mine stripes | i'd name it queenie
+b: aww | lol | cute | heh
+a?.4: it buzzes approval | mhm
+
+# name_frog | naming a frog | animals
+aq: name a frog | what would you name a frog? => hoppy | lily | croaks | sir ribbit | jumper
+a: lol | good one | ha | love it
+a: mine'd be called puddle | i'd go with leap | i'd call it mr. slime-eater
+b: lol | aww | good one | heh
+a?.4: mhm | heh
+
+# name_turtle | naming a turtle | animals ocean
+aq: name a turtle | what would you call a turtle? => speedy | shelly | sir slow | rocket | old timer
+a: lol | perfect | love it | heh
+a: mine'd be called zoom | i'd go with pebble | i'd call it grandpa
+b: lol | cute | good one | heh
+a?.4: it suits a turtle | mhm
+
+# name_goat | naming a goat | animals
+aq: name a goat | what would you name a goat? => headbutt | screamer | billy | cliff | menace
+a: lol | good one | ha | love it
+a: mine'd be called yelly | i'd go with bonk | i'd call it trouble
+b: lol | fair | perfect | heh
+a?.4: goats earn it | mhm
+
+# name_squid | naming a squid | animals ocean
+aq: name a squid | what would you call a squid? => inky | squishy | tentacles | splash | sir ink
+a: lol | that fits | good one | heh
+a: mine'd be called calamari... sorry | i'd go with wiggles | i'd call it dot
+b: lol | dark | cute | heh
+a?.4: mhm | heh
+
+# name_sword | naming a sword | weapons
+aq: if you named your sword, what would it be? | name your sword | what would you call your sword? => pointy | zombie bane | the stick | old reliable | sir stabs
+a: ha | perfect | lol | nice one
+a: mine's called mr. sharp | i'd call mine the bread knife | i'd name mine creeper's end
+b: lol | strong | good one | heh
+a?.4: it deserves a name | mhm
+
+# name_pickaxe | naming a pickaxe | tools mining
+aq: name your pickaxe | what would you call your pickaxe? => picky | rocky | diggy | the digger | old faithful
+a: lol | good one | ha | love it
+a: mine's called stoney | i'd call mine the boss | i'd name it hole-y
+b: lol | nice | good one | heh
+a?.4: it works hard | mhm
+
+# name_house | naming a house | home
+aq: if your house had a name, what would it be? | name your house | what would you call your house? => the hut | castle {b} | dirt manor | cozy corner | the box
+a: lol | that fits | good one | heh
+a: mine'd be called fort cozy | i'd call mine the cobble palace | i'd name mine stinky towers
+b: lol | nice | love it | heh
+a?.4: heh | i might put up a sign
+
+# name_boat | naming a boat | ocean
+aq: name a boat | what would you call your boat? => wobbles | the float | sir splash | leaky | lucky
+a: lol | good one | ha | love it
+a: mine'd be called not sinking | i'd go with oak express | i'd call it the drifter
+b: lol | nice | good one | heh
+a?.4: mhm | heh
+
+// Inventing things.
+# invent_food | inventing a food | food
+aq: if you could invent a food, what would it be? | make up a new food | new food idea? => carrot cake | melon bread | mushroom pie | cookie stew | honey steak
+a: lol | i'd eat that | ooh | heh
+a: mine's chocolate bread | i'd make apple pie, a real one | pumpkin soup
+b: yum | nice | i'd eat that | heh
+a?.4: someone make it | mhm
+
+# invent_block | inventing a block | building
+aq: if you could invent a block, what would it be? | new block idea, go | what block should exist? => glass that glows | bouncy wool | invisible stone | a block that sorts items | sticky dirt
+a: lol | ooh | nice | i'd use that
+a: i'd make a pillow block | a block that hums | i'd make a self-lighting torch block
+b: lol | nice | i'd want that | heh
+a?.4: one day | mhm
+
+# invent_tool | inventing a tool | tools
+aq: if you could invent a tool, what? | new tool idea? | make up a tool => a hammer that mines 3x3 | a leaf blower | a chest on legs | a stick that finds ore | a fishing net
+a: lol | ooh | i'd use that | heh
+a: i'd make a tree hugger, cuts a whole tree | a magnet for drops | a ladder you can carry
+b: ooh | nice | i want that | heh
+a?.4: one day | mhm
+
+# invent_job | inventing a job | villagers
+aq: if villagers had a new job, what should it be? | new villager job? => chef | firefighter | mailman | barber | dancer
+a: lol | ooh | nice | heh
+a: i'd add a dog walker | i'd make a lifeguard | a guy who just tells jokes
+b: lol | nice | love it | heh
+a?.4: mhm | heh
+
+// Silly questions.
+# q_chicken_bird | is a chicken a bird | animals jokes
+aq: is a chicken a bird? | wait, are chickens birds? => yes | obviously | they don't really fly, so... | they're chickens | depends
+a: hm | ok | lol | interesting
+a: they fly a little | i've seen one flap off a cliff | they fall slowly, so maybe
+b: lol | so birds then | the jury's out | heh
+a?.4: mhm | heh
+
+# q_cake_meal | is cake a meal | food jokes
+aq: is cake a meal? | does cake count as dinner? => yes | absolutely | no | only if you eat all of it | if you want
+a: lol | good answer | hm | fair
+b: now i want cake | i'm hungry now | cake for dinner then
+a?.4: lol | mhm
+
+# q_fish_sleep | do fish sleep | animals fishing
+aq: do fish sleep? | have you ever seen a fish sleep? => no idea | with their eyes open | no | they're always swimming | never thought about it
+a: hm | weird | lol | huh
+a: now i need to know | i'll watch one tonight | i bet they nap
+b: let me know | lol | heh | good luck
+a?.4: i will | mhm
+
+# q_cow_ladder | cows on ladders | animals jokes
+aq: can a cow climb a ladder? | do you think cows can climb ladders? => no | i've never seen one | lol no | they'd try
+a: imagine | lol | hm | shame
+b: a cow on a roof, that's the dream | i'd pay to see that | lol | heh
+a?.4: one day | mhm
+
+// Pretend games.
+# pretend_villager | pretending to be villagers | villagers jokes
+a: hrm. hrmm | *offers you one emerald for a stick* | hmm hrm
+b: hrm? | hrmm | *takes the emerald* | lol
+a: hrm! | hmm hrm | deal | *nods*
+b: we're terrible at this | lol | hrm | heh
+a?.4: hrm | lol
+
+# pretend_guard | pretending to be guards | town jokes
+a: halt! who goes there? | stop! state your business | who goes there?
+b: just me | a traveller | it's me, you know me | uh, a friend
+a: you may pass | very well | fine, pass | lol ok
+b: thank you, guard | lol | heh | so official
+a?.4: next! | heh
+
+# pretend_tour | a pretend tour | places jokes
+needs: outside
+a: and on your left, a tree | welcome to the tour. here's some dirt | on your right, a rock
+b: lol | amazing | wow | so historic
+a: and here, more dirt | please don't touch the cow | that's a famous bush
+b: lol | five stars | i want a refund | heh
+a?.4: no refunds | thank you
+
+// Challenges.
+# challenge_walk | walking backwards | random
+a: challenge: walk backwards all the way home | bet you can't walk backwards for a whole day | backwards walking challenge
+b: no | lol | i'd fall in a hole | sure, why not
+a: chicken | lol | ok | heh
+b?.5: fine | maybe tomorrow
+
+# challenge_no_jump | no jumping | random
+a: challenge: no jumping for a whole day | bet you can't go a day without jumping | no jump challenge
+b: easy | that's hard actually | sure | no way
+a: ok | we'll see | heh | lol
+b?.5: i've already jumped | lol
+
+# challenge_cake | eating only cake | food
+a: challenge: only eat cake for a day | could you eat only cake for a day? | cake only, one day
+b: easy | sign me up | lol | i'd be sick
+a: ha | ok | heh | true
+b?.5: tomorrow then | mhm
+
+# challenge_one_block | one block house | building
+a: challenge: build a house in one minute | speed build a house, go | who can build a house fastest
+b: dirt hut, done | four walls and a roof, lol | one dirt block, i'm inside it
+a: that's not a house | lol | that's a hole with a roof
+b?.5: it counts | totally
+
+// Word games.
+# rhyme_game | a rhyming game | jokes
+aqq: rhyme game. cave => wave / brave / gave || rhyme with this: block => rock / clock / sock || rhyme game, i say a word: stone => bone / cone / alone
+a: lol | nice | ok | heh
+b: my turn. zombie | ok, my word: creeper | my turn: pickaxe
+a: ...no | nothing rhymes with that | lol you win | heh
+b?.4: i win | lol
+
+# mob_alphabet | the mob alphabet | mobs
+a: mob alphabet. a, axolotl | name mobs a to z. a: allay | mobs by letter, a is axolotl
+b: b, bee | b, blaze | b, bat
+a: c, creeper | c, cow | c, cat
+b: d, drowned | d, dolphin | d, donkey
+a: e... enderman | e, endermite | e, evoker
+b: f... fox | f, frog | i give up
+a?.4: lol | we'll finish later
+
+# compliment_battle | a compliment battle | friends
+a: compliment battle. go | i bet i can be nicer than you | let's do compliments
+b: you build nice walls | your torches are perfectly placed | you never leave anyone behind
+a: you make great bread | you're the best miner i know | your house is cozy
+b: ok you win | lol stop | aww | heh
+a?.4: heh | i win
+
+# insult_battle | a game insult battle | jokes rivals
+a: insult battle. go | roast me. go | let's trade insults
+b: you built a dirt hut and called it a house | you dig straight down | you fight creepers with your fists
+a: you run from chickens | you sleep in your boots | your torches are on the wrong side
+b: lol | ok fair | that one hurt | heh
+a?.4: lol | i win
+
+// Silly thinking.
+# cow_thoughts | what cows think | animals jokes
+aq: what do you think cows think about? | what goes on in a cow's head? => grass | nothing | us | escaping | moo
+a: lol | probably | hm | heh
+a: i bet they're plotting | they're judging us | i think they just want to be left alone
+b: lol | probably | heh | fair
+a?.4: mhm | moo
+
+# skeleton_job | skeleton jobs | mobs jokes
+aq: if skeletons had jobs, what would they be? | what job would a skeleton have? => archers, obviously | bone sellers | drummers | doctors | they'd be bad at everything
+a: lol | fair | hm | heh
+a: i'd hire one for target practice | they'd make good door guards | they'd sell their own bones
+b: lol | dark | heh | fair
+a?.4: mhm | heh
+
+# creeper_say | talking to a creeper | mobs jokes
+aq: if you could say one thing to a creeper, what? | what would you tell a creeper? => why | please don't | go away | hug? no | get a hobby
+a: lol | fair | relatable | heh
+a: i'd tell it it needs a hug, then run | i'd ask why it hates walls | i'd tell it to go blow up a rock
+b: lol | heh | it'd still blow up | fair
+a?.4: probably | mhm
+
+# ghast_diary | a ghast's diary | mobs jokes
+a: imagine a ghast's diary | dear diary, today i cried again | what do ghasts even write about
+b: lol | sad | dear diary, someone hit my fireball back | i'd read it
+a: dear diary, i'm so big and so sad | entry two: still crying | lol
+b: heh | poor thing | i'd read it | lol
+a?.4: bestseller | mhm
+
+// Group stuff.
+# team_name | a team name | friends
+aq: if we were a team, what'd we call ourselves? | team name, go | what should we call ourselves? => the diggers | the night crew | team bread | the lost ones | creeper patrol
+a: lol | perfect | strong | heh
+a: i'd go with the cobble crew | the two torches | team no armor
+b: lol | nice | ok that's good | heh
+a?.4: we need a banner | mhm
+
+# motto | our motto | friends
+aq: what should our motto be? | if we had a motto, what? => never dig down | always bring food | torches first | sleep before phantoms | no one gets left behind
+a: lol | good one | wise | heh
+a: mine'd be: always carry a bucket | look before you jump | never trust a quiet cave
+b: lol | wise | true | heh
+a?.4: words to live by | mhm
+
+# battle_cry | a battle cry | fighting jokes
+aq: what's your battle cry? | if you had a battle cry, what? => for the bread! | ahhh | for diamonds! | run! | yaaa
+a: lol | perfect | relatable | heh
+a: mine's: for the cows! | i'd yell: not today, zombie | mine's just screaming
+b: lol | nice | strong | heh
+a?.4: mhm | heh
+
+# handshake | a secret handshake | friends jokes
+needs: friends
+a: we need a secret handshake | let's make a handshake | i made us a handshake
+b: lol ok | how does it go? | show me
+a: punch, punch, jump, sneak | crouch twice, then spin | jump, look up, look down
+b: lol | ok i'm in | that's silly | heh
+a?.4: practise it | mhm
+
+// Odds and ends.
+# fortune | telling a fortune | jokes
+a: let me tell your fortune | i see your future | i'm a fortune teller now
+b: lol ok | go on | what do you see?
+a: i see... a creeper | i see diamonds in your future | i see bread. lots of bread | you will fall in a hole
+b: great | lol | i'll take it | heh
+a?.4: the cards don't lie | heh
+
+# describe_blocks | yourself in three blocks | random
+aq: describe yourself in three blocks | if you were three blocks, which? => dirt, stone, torch | wool, wool, wool | cobble, cobble, diamond | tnt, sand, gravel | glass, glass, glass
+a: lol | fits | hm | heh
+a: me: oak, cobble, bread... ok bread's not a block | i'm grass, stone and a chest | i'm mostly gravel
+b: lol | fits | heh | fair
+a?.4: mhm | heh
+
+# doormat | a doormat | home jokes
+aq: if you had a doormat, what would it say? | doormat text, go => go away | welcome | wipe your feet | no creepers | knock first
+a: lol | classic | perfect | heh
+a: mine'd say: no zombies allowed | mine'd say: bring food | mine'd say: not this house, creeper
+b: lol | nice | love it | heh
+a?.4: mhm | heh
+
+# dance | a silly dance | music jokes
+a: watch my dance | i learned a dance | check this out
+b: oh no | go on | let's see
+a: *sneaks up and down* | *jumps in a circle* | *spins*
+b: lol | wow | that's the zombie shuffle | heh
+a?.4: thank you, thank you | heh
+
+# superpower | a useless superpower | jokes
+aq: what's the worst superpower you could get here? | worst superpower? => talking to chickens | only seeing dirt | glowing in the dark | always hungry | creepers love you
+a: lol | that's bad | hm | heh
+a: mine'd be: fish follow you everywhere | can only walk sideways | you sneeze when you mine
+b: lol | awful | heh | fair
+a?.4: mhm | heh
+
+# award | the silly awards | friends jokes
+a: and the award for most deaths goes to... | the award for worst roof goes to... | the prize for most cobble goes to...
+b: me? | not me | me, probably | oh no
+a: you | me, actually | the cows | heh
+b: lol | i accept | fair | heh
+a?.4: congrats | mhm
+
+// @@SILLY2_END@@
+"""
+
+SMALL2 = """
+// What they've been up to (from what the game knows of them).
+# found_ore_ask | found anything | mining ore
+needs: b:found_ore
+aq: find anything good lately? | any luck down there? | find any ore? => some iron | a bit of coal | some {b.ore}, actually | a little | not much
+a: nice | not bad | heh | better than nothing
+b: you? | how about you? | and you?
+a: just dirt | some coal | nothing, as usual | a bit of copper
+
+# killed_mobs_ask | busy with mobs | fighting mobs
+needs: b:killed_mobs
+aq: busy night? | fought much lately? | the mobs give you trouble? => a few zombies | some skeletons | a whole bunch | nothing i couldn't handle | too many
+a: nice | heh | rather you than me | good
+b?.5: it's always something | mhm
+
+# built_lately_ask | building lately | building
+needs: b:built_lately
+aq: building anything? | what are you building these days? | working on a build? => a little hut | a wall | a new room | just fixing stuff | a tower, kind of
+a: i'd like to see it sometime | show me when it's done | nice, can i see it sometime?
+b: sure | sometime | when it's done
+
+# traded_ask | trading lately | trade villagers
+needs: b:traded_lately
+aq: good trades lately? | the villagers treat you ok? | trading much? => decent | they ripped me off | got some bread | one good deal | so-so
+a: heh | villagers, huh | hrm
+b?.5: hrm | mhm
+
+# outside_hi | out and about | exploring
+needs: outside
+a: out for a walk? | nice to be outside | getting some air? | out exploring?
+b: yep | sort of | just passing | had to get out
+a: same | heh | nice | mhm
+b?.5: heh | yep
+
+# home_near_hi | close to home | home
+needs: a:home_near
+a: home's just over there | i live right over there | my place is close | almost home
+b: nice | cool | lucky | handy
+a: drop by sometime | heh | mhm | yeah, it's nice
+b?.5: mhm | nice
+
+# loner_quiet | a quiet one | feelings
+needs: a:loner
+a: i don't talk much | not much of a talker, sorry | i keep to myself mostly
+b: that's ok | fine by me | me neither | no worries
+a: thanks | heh | mhm | ok
+b?.5: we can just stand here | mhm
+
+# sociable_chat | a chatty one | friends
+needs: a:sociable
+a: love a chat | i could talk all day | it's nice to have someone to talk to | finally, someone to talk to
+b: lol | same | ok then | talk away
+a: so, how's things? | how've you been? | how are you doing?
+b: fine | good | same old | not bad
+a?.5: nice | heh
+
+// Small questions.
+# what_time | what time is it | day
+aq: what time is it, you think? | any idea what time it is? => no clue | look at the sun | midday-ish | late, probably | time for food
+a: helpful | lol | ok | thanks
+b?.5: get a clock | mhm
+
+# lost_track | losing track of time | day
+a: i've lost track of time | how long have we been out here? | where did the day go? | what day is it even
+b: no idea | same | forever | days blur
+a: lol | heh | mhm | ugh
+b?.5: doesn't matter | eh
+
+# feet_hurt | sore feet | health complaints
+a: my feet hurt | so much walking | my legs are dead | i need to sit
+b: same | sit then | get a horse | soft boots?
+a: maybe | heh | i should | lol
+b?.5: mhm | ok
+
+# smell | a smell | random jokes
+a: what's that smell? | do you smell that? | something smells | i smell rotten flesh
+b: not me | it's you | zombies | probably your chest
+a: rude | lol | ugh | heh
+b?.5: just saying | heh
+
+# dirt_on_you | dirt on you | jokes
+a: you've got dirt on you | you're covered in dust | there's gravel in your hair | you look like you've been mining
+b: been mining | thanks | lol | i know
+a: heh | it suits you | mhm | lol
+b?.5: occupational hazard | mhm
+
+# weird_dream | a weird dream | dreams sleep
+a: i had the weirdest dream | had a strange dream last night | dreamt about a giant chicken
+b: about what? | go on | lol | how weird?
+a: a cow was the mayor | i was a sheep | the sky was green | everything was made of bread
+b: lol | that's weird | heh | sounds great actually
+a?.4: yeah | mhm
+
+# forget | forgetting things | random
+a: i keep forgetting things | what was i doing again? | i came over here for something | i forgot why i'm here
+b: lol | same | happens | it'll come back
+a: oh, right | nope, gone | ugh | heh
+b?.5: lol | mhm
+
+# good_news | tell me something good | feelings
+aq: tell me something good | say something nice, i need it | any good news? => the sun's coming up tomorrow | i found a flower | the cows are happy | nobody died today | you're here
+a: aw | heh | i'll take it | that helps
+b?.5: anytime | mhm
+
+# guess_what | guess what | random
+aq: guess what | guess what! => what? | chicken butt? | what?? | tell me
+a: i saw a fox today | i didn't die today | i found a nice flower | nothing, just wanted to say it
+b: nice | lol | heh | cool
+a?.4: heh | mhm
+
+# hiccups | hiccups | jokes
+a: hic | *hic* | ugh, hiccups
+b: lol | hold your breath | jump in water | eat bread
+a: hic | hic. ok, i'll try | it's not working, hic
+b?.5: lol | heh
+
+# sneeze | a sneeze | jokes
+a: achoo | *sneezes* | ah... choo
+b: bless you | lol | bless | careful, you'll scare the cows
+a: thanks | sorry | heh | lol
+b?.4: mhm | heh
+
+// Voice small talk.
+# speedrunner_slow | a speedrunner waiting | doing
+needs: a:voice_speedrunner
+a: this is slow | we're wasting daylight | come on, let's move | every second counts
+b: relax | it's fine | what's the rush? | ok ok
+a: time's everything | ugh | just saying | moving
+b?.5: lol | chill
+
+# pvp_bored | a fighter bored | fighting boredom
+needs: a:voice_pvp_sweat
+a: nobody to fight | i need a fight | too peaceful | i'm getting rusty
+b: fight a zombie | relax | not me | it's nice and quiet
+a: ugh | heh | quiet is boring
+b?.5: lol | wait for night
+
+# homebody_home | a homebody | home
+needs: a:voice_homebody
+a: i miss my house | can't wait to get home | i should be home by now | home is the best place
+b: go home then | lol | same | it's not far
+a: soon | heh | i will | mhm
+b?.5: mhm | heh
+
+# casual_hey | a casual hello | greeting
+needs: a:voice_casual
+a: yo | sup | hey | what's up
+b: yo | hey | sup | hey hey
+a: cool | heh | mhm
+b?.5: yep | mhm
+
+# bandit_eye | a bandit's eye | jokes
+needs: a:voice_bandit
+a: nice stuff you've got | that's a nice pack | you carry a lot, huh | shiny boots
+b: hands off | thanks? | ...why? | it's mine
+a: just saying | relax | lol | heh
+b?.5: sure | i'm watching you
+
+// More weather and time.
+# thunder_evening | a storm at dusk | weather night
+needs: thunder time_evening
+a: storm and the sun's going down | worst time for a storm | night and a storm, great
+b: inside, now | yep | let's go | ugh
+a: right behind you | heh | mhm | yep
+b?.5: hurry | go
+
+# rain_evening | rain at dusk | weather
+needs: rain time_evening
+a: rainy evening | wet dusk | the rain's not stopping tonight | soggy evening
+b: early night then | cozy | ugh | yep
+a: mhm | heh | yeah | same
+b?.5: stay dry | night
+
+# clear_night_cold | a cold night | night weather
+needs: clear time_night outside
+a: cold tonight | chilly | brr | nights are cold out here
+b: build a fire | campfire? | go inside | brr indeed
+a: good idea | heh | maybe | mhm
+b?.5: mhm | heh
+
+# morning_birds | a quiet morning | day
+needs: time_morning outside
+a: quiet morning | so still out | nice and quiet this early | peaceful morning
+b: before the chaos | mhm | love it | yep
+a: heh | mhm | right? | enjoy it
+b?.5: mhm | yep
+
+# day_busy | a busy day | day doing
+needs: time_day
+a: busy day | lots to do | not a moment to sit | running around all day
+b: same | slow down | want help? | heh
+a: maybe later | ugh | can't | ok
+b?.5: ok | mhm
+
+# evening_tired | tired at dusk | sleep
+needs: time_evening
+a: i'm wiped | long day | so tired | ready for bed
+b: same | almost night | sleep soon | rest up
+a: mhm | can't wait | heh | yep
+b?.5: night | rest well
+
+# night_owl | up late | night
+needs: time_night
+aq: you a night owl? | do you like nights? => yep | not really | depends | i like the quiet | i hate them
+a: heh | fair | mhm | same
+b?.5: mhm | heh
+
+# night_glow | glow at night | night sky
+needs: time_night outside
+a: the torches look nice from here | look how the lights glow | lights in the dark, pretty
+b: mhm | nice | cozy | like stars on the ground
+a: heh | mhm | right? | yeah
+b?.5: mhm | nice
+
+# rain_friends | rain with a friend | weather friends
+needs: rain friends
+a: rain's better with company | at least we're stuck together | glad i'm not stuck in this alone
+b: same | aw | heh | true
+a: mhm | heh | yeah | lol
+b?.5: mhm | heh
+
+# clear_friends | a nice day with a friend | weather friends
+needs: clear friends time_day
+a: good day for it | nice day, nice company | can't ask for more than this
+b: mhm | agreed | heh | true
+a: mhm | heh | right? | yeah
+b?.5: mhm | heh
+
+# thunder_friends | the storm with a friend | weather friends
+needs: thunder friends
+a: stay close, it's a big one | glad you're here for this | storms are less scary with company
+b: i've got you | right here | heh | mhm
+a: thanks | heh | mhm | ok
+b?.5: mhm | heh
+
+// Groups, towns and the rest.
+# in_group_how | how's the group treating you | friends
+needs: a:in_group
+a: the group's alright | i like having a group | groups make it easier | nice having people
+b: mhm | same | yeah | lucky
+a: heh | mhm | yeah
+b?.5: mhm | heh
+
+# acquainted_where | where did we meet | memories
+needs: acquainted
+aq: where did we meet again? | how do we know each other again? => around here | at night, i think | no idea | by a river | in a cave, maybe
+a: right | heh | huh | mhm
+b?.5: mhm | heh
+
+# strangers_nice | a nice stranger | greeting
+needs: strangers
+a: you seem nice | nice to meet someone friendly | good to see a friendly face
+b: you too | thanks | heh | likewise
+a: mhm | heh | well, see you | take care
+b?.5: you too | bye
+
+# strangers_careful | careful strangers | greeting danger
+needs: strangers
+a: you're not going to rob me, are you? | you're friendly, right? | no funny business, ok?
+b: lol no | depends | relax | no, are you?
+a: heh | ok then | lol
+b?.5: mhm | heh
+
+# town_market | the market | town trade
+needs: in_town
+a: anyone selling bread? | who sells tools around here? | where do i buy wool around here?
+b: dunno | ask around | maybe the farmer | not me
+a: ok | heh | thanks | mhm
+b?.5: mhm | good luck
+
+# town_walls | town walls | town building
+needs: in_town
+a: town could use better walls | the walls here are low | a zombie could just walk in here
+b: true | they're fine | we should build some | eh
+a: heh | maybe | mhm | i'd help
+b?.5: mhm | heh
+
+# town_night | town at night | town night
+needs: in_town time_night
+a: town's nice at night | lights on in town | quiet town tonight
+b: mhm | cozy | yep | nice
+a: heh | mhm | right? | yeah
+b?.5: mhm | heh
+
+# random_cold | catching a cold | health jokes
+a: i think i'm catching a cold | sniffles | achoo. ugh
+b: from the rain? | drink some milk | rest up | lol
+a: maybe | heh | i'll try | mhm
+b?.5: mhm | get well
+
+# random_hat | wanting a hat | armor jokes
+a: i want a hat | wish i had a hat | i need a hat that isn't a helmet
+b: carved pumpkin? | a turtle shell | a flower | lol
+a: hm | maybe | heh | lol
+b?.5: you'd look great | heh
+
+# random_luck | feeling lucky | feelings
+a: feeling lucky today | i've got a good feeling about today | today's my lucky day
+b: nice | let's see | heh | don't jinx it
+a: heh | mhm | ok | lol
+b?.5: mhm | heh
+
+# random_unlucky | an unlucky day | feelings complaints
+a: so unlucky today | nothing's going my way | worst luck ever
+b: aw | it'll turn around | rough
+a: ugh | mhm | yeah
+b?.5: mhm | heh
+
+// @@SMALL2_END@@
+"""
+
+SMALL3 = """
+// More passing the time while working.
+# work_chop | chopping trees | doing trees
+a: chop chop | another tree down | this oak's taking forever | so many logs
+b: timber | nice | need a better axe | plant a sapling
+a: lol | heh | mhm
+b?.5: good | mhm
+
+# work_dig_rhythm | digging rhythm | mining doing
+needs: a:can_mine
+a: dig, step, dig, step | i've got a rhythm going | mine, mine, torch, mine
+b: lol | nice | keep it up | don't stop now
+a: it's hypnotic | heh | mhm | i'm in the zone
+b?.5: lol | mhm
+
+# work_farm | farm work | farming doing
+a: harvest time | so much wheat | replanting all of it, ugh | the carrots are ready
+b: nice | bread time | want a hand? | the best part
+a: heh | mhm | sure | almost done
+b?.5: mhm | heh
+
+# work_fish | fishing quietly | fishing doing
+a: ... *casts* | nothing biting | fish, please | come on, fish
+b: patience | they'll come | shh, you'll scare them | lol
+a: ... | mhm | ok | heh
+a?.6: got one! | a boot. great | finally, a salmon
+
+# work_torches | placing torches | building doing
+a: torch here, torch there | need more torches | i'm out of torches again | torches everywhere
+b: never enough | lol | it's so bright now
+a: mhm | i'll make more | heh
+b?.5: mhm | heh
+
+# work_fence | building a fence | building animals
+a: fence's almost done | one more fence post | the cows can't escape now
+b: nice | they'll find a way | about time | good
+a: heh | they'd better not | mhm | lol
+b?.5: they will | heh
+
+# work_quiet | working in silence | doing friends
+needs: friends
+w: 0.7
+a: ... | *keeps working*
+b: ... | *keeps working too*
+a: nice, this | good team
+b: mhm | yep | agreed
+a?.4: ... | back to it
+
+# work_count_down | counting the blocks left | building doing
+a: ten more blocks | five to go | almost out of stone | last row
+b: go go | you've got this | nearly | nice
+a: three... two... one | done | ugh, ran out | there
+b?.5: nice | heh
+
+// More quiet and comfortable moments.
+# silence_stars | quiet under the stars | night sky friends
+needs: friends time_night clear outside
+w: 0.8
+a: ... | *looks at the stars*
+b: ... | mhm
+a: pretty, huh | lots of them tonight | i never get tired of this
+b: mhm | yeah | same
+a?.4: ... | heh
+
+# silence_sunset | quiet at sunset | sky friends
+needs: friends time_evening clear
+w: 0.8
+a: ... | *watches the sunset*
+b: ... | nice
+a: good one tonight | orange | love this bit
+b: mhm | yeah | same
+a?.4: ... | heh
+
+# silence_fire | sitting by a campfire | night friends
+needs: friends time_night
+w: 0.7
+a: ... | *warms hands by the fire*
+b: ... | mhm
+a: nice and warm | love a campfire | crackly
+b: mhm | yeah | same
+a?.4: ... | heh
+
+# silence_water | by the water | friends
+needs: friends outside
+w: 0.6
+a: ... | *watches the water*
+b: ... | mhm
+a: calm today | fish are jumping | nice sound
+b: mhm | yeah | heh
+a?.4: ... | heh
+
+// More small questions.
+# fav_time | favourite time of day | day night
+aq: what's your favourite time of day? | morning or night person? => morning | night | sunset | midday | whenever i'm asleep
+a: heh | same | fair | mhm
+a: i'm a sunrise one | night, for the stars | evenings, when the work's done
+b?.5: fair | heh
+
+# fav_weather | favourite weather | weather
+aq: what's your favourite weather? | rain or sun? | storm or sunshine? => sun | rain | storms, honestly | anything but thunder | clear nights
+a: heh | fair | mhm | same
+a: i like a light rain | sun, always | storms are cool from inside
+b?.5: mhm | heh
+
+# sleep_well | sleeping well | sleep
+aq: how'd you sleep? | sleep ok last night? => fine | badly | like a rock | the zombies were loud | didn't
+a: heh | mhm | ok
+b: you? | and you?
+a: fine | so-so | great | not bad
+
+# miss_anything | missing something | feelings
+aq: you miss anything? | ever miss the old days? => sometimes | nope | my first house | my old dog | the early days
+a: mhm | fair | heh | same
+b?.5: anyway | mhm
+
+# what_learned | learned anything | random
+aq: learn anything new lately? | figured anything out lately? => gravel falls | don't dig down | cows give milk | beds blow up in the nether, apparently | not much
+a: heh | good to know | lol | mhm
+b?.5: mhm | heh
+
+# what_want | what they want | dreams
+aq: what do you want most right now? | if you could have anything right now? => a nap | diamonds | a steak | a horse | a bigger house
+a: heh | same | mhm | fair
+a: i'd take a warm bed | i want a cat | i'd take a full set of iron
+b?.5: fair | heh
+
+# compliment | a small compliment | friends
+a: you're good company | nice talking to you | you're easy to talk to
+b: thanks | you too | aw | heh
+a: mhm | heh | mean it | ok
+b?.5: mhm | heh
+
+# goodbye_soon | saying goodbye soon | greeting
+a: i should get going soon | gotta head off in a bit | i'll leave you to it soon
+b: ok | already? | see you | no rush
+a: mhm | yeah | soon | heh
+b?.5: take care | see you
+
+# hello_again | hello again | greeting
+needs: acquainted
+w: 0.8
+a: oh hey | hello again | hey there | look who it is
+b: hey | hi | hello | it's me
+a: how's it going? | how are things? | all good?
+b: good | fine | ok | not bad
+a?.5: nice | glad to hear
+
+# weather_talk | talking about the weather | weather
+aq: what do you think of this weather? | how's the weather treating you? => fine | could be better | love it | it's weather | meh
+a: heh | fair | mhm | lol
+b?.5: talking about the weather, huh | we're that bored
+
+// @@SMALL3_END@@
+"""
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -5561,10 +7830,16 @@ for b in tables('FAVS'):
     build_fav(b)
 for b in tables('TAKES'):
     build_take(b)
-for b in tables('SMALL'):
-    build_free(b, 'small_', ['small_talk', 'random'], (0.6, 0.7, 0.8, 0.9))
-for b in tables('SILLY'):
-    build_free(b, 'silly_', ['silly', 'jokes', 'random'], GENERIC_W)
+for name in ('SMALL', 'SMALL2', 'SMALL3'):
+    for b in tables(name):
+        if 'small_talk' not in b['tags']:
+            b['tags'] = ['small_talk'] + b['tags']
+        build_free(b, 'small_', ['small_talk', 'random'], (0.6, 0.7, 0.8, 0.9))
+for name in ('SILLY', 'SILLY2'):
+    for b in tables(name):
+        if 'silly' not in b['tags']:
+            b['tags'] = ['silly'] + b['tags']
+        build_free(b, 'silly_', ['silly', 'jokes', 'random'], GENERIC_W)
 
 
 def every_line(lines):

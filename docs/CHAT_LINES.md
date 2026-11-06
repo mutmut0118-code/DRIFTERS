@@ -942,7 +942,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (6681 topics, 176957 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (10710 topics, 305039 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -9279,7 +9279,62 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 1. **b**: you always have the worst takes · classic you · why do i even talk to you · of course you'd say that
 2. **a** *(marks disagree)*: says you · ok and? · cry about it · at least im not you
 
-### Generated: `topics_gen_debates.json` (22 topics)
+### Generated: `topics_gen_banter.json` (1192 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/banter.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g banter roast house tumor
+
+*Needs:* friends
+
+*About:* roasts, jokes, building  ·  *Leads to:* building, roasts, jokes, friends
+
+1. **a**: your house looks like a cobblestone tumor · did you build your house or did it just grow there · your base looks like a creeper hit it and you said good enough
+2. **b**: at least i have a house, you live in a hole *(answered: a hole with a roof beats whatever that is)* · says the one with a dirt roof *(answered: my dirt roof is still nicer than your lump)* · it's called rustic, look it up *(answered: i looked it up. it said lump of cobble)*
+3. **a**: lol
+4. **b** (80%): brutal · ok i need a minute · i'm telling everyone you said that · i'll remember this · that's going in the book
+   - **newbie:** ok that was funny
+   - **PvP sweat:** rematch later
+   - **builder:** rude, but i'll fix it
+5. **a** (40%): respect though · ok i'm done lol · good talk
+   - **speedrunner:** ok back to it
+   - **homebody:** come over later, i'll make food
+
+#### g banter roast house box
+
+*Needs:* friends
+
+*About:* roasts, jokes, building  ·  *Leads to:* building, roasts, jokes, friends
+
+1. **a**: your house is a box with a door on it · is your house a house or a storage crate · nice box. when's the house going up
+2. **b**: boxes are efficient *(answered: efficient at looking sad maybe)* · a box keeps the rain off, that's the job *(answered: so does a leaf, and it looks better)* · your house is the same box but uglier *(answered: mine has a window. that's one more than yours)*
+3. **a**: lol
+4. **b** (80%): touche · rude. accurate, but rude · brutal · fine, you win this one · i'll remember this
+   - **PvP sweat:** lucky hit
+   - **casual:** bruh
+   - **bandit:** noted. i'll get you back
+5. **a** (40%): this is why we're friends · gg · we're both bad, it's fine
+   - **casual:** anyway lol
+   - **helper:** i'm only teasing, you know that
+
+#### g banter roast dirt hut
+
+*Needs:* friends, b:has_hut
+
+*About:* roasts, jokes, building  ·  *Leads to:* building, roasts, jokes, friends
+
+1. **a**: you still live in a dirt hut lol · your house is made of the stuff i walk on · cozy dirt hut you got there
+2. **b**: dirt is a building block, look it up *(answered: so is gravel, doesn't mean you live in it)* · it's temporary *(answered: temporary since day one)* · it's a starter home, ok *(answered: a sheep tried to eat your starter home)*
+3. **a**: lol
+4. **b** (80%): ok i need a minute · ok that one hurt · dang ok · ok ok truce · lmao ok
+   - **newbie:** that's mean lol
+   - **nomad:** i'll be gone tomorrow anyway
+   - **casual:** bruh
+5. **a** (40%): ok ok, peace · lol i missed this · gg
+   - **PvP sweat:** gg ez
+   - **casual:** lmaooo
+
+### Generated: `topics_gen_debates.json` (1238 topics)
 
 Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/debates.py`, rerun it to rebuild the file). Too many to list; a few samples:
 
@@ -9343,7 +9398,7 @@ Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script 
 8. **a** (50%) if !t:agree: fine, be wrong then · we'll see who's right · i'm not taking it back
    - **PvP sweat:** i'm always right, you'll learn
 
-### Generated: `topics_gen_deep.json` (1217 topics)
+### Generated: `topics_gen_deep.json` (1212 topics)
 
 Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/deep.py`, rerun it to rebuild the file). Too many to list; a few samples:
 
@@ -9357,16 +9412,16 @@ Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script 
 2. **b**: heavy thought · i try not to go there · ngl that's crossed my mind too · huh. i've wondered the same · that one keeps me up some nights
    - **casual:** bro who hurt you lol. but yeah · lol ok philosopher. fair though · that's dark. i kinda get it though
    - **hermit:** the bed forgets. we don't. · everyone wakes. not everyone wakes the same. · mm. dying teaches.
-   - **newbie:** wait, should i be scared of that?? · i've only died like twice and it was awful · i just thought dying was part of it
-   - **helper:** you ok? that's a big thing to carry · i'm glad you're here to wonder about it · you can always talk to me about this
+   - **newbie:** ok now i'm a little scared of dying lol · i've only died like twice and it was awful · i just thought dying was part of it
+   - **helper:** that's a big thing to carry around · i'm glad you're here to wonder about it · you can always talk to me about this
    - **speedrunner:** dying costs me a minute. that's all i let it be · a death is just a reset with extra walking · i count my deaths. the number never feels good
-3. **a**: like, the fall still hurts. then you're back in bed like nothing happened *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / it counts. ask anyone who lost their diamonds / maybe it's practice for something)* · your stuff stays where you died, but you don't *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / it counts. ask anyone who lost their diamonds / maybe it's practice for something)* · the world keeps your stuff and hands you back to yourself *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / it counts. ask anyone who lost their diamonds / maybe it's practice for something)*
+3. **a**: the fall still hurts. then you're back in bed like nothing happened *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / maybe it's practice for something)* · your stuff stays where you died, but you don't *(answered: it counts. ask anyone who lost their diamonds / if it didn't count we wouldn't run from creepers)* · the world keeps your stuff and hands you back to yourself *(answered: it counts. ask anyone who lost their diamonds / maybe it's practice for something / i think it counts because we're scared of it)*
 4. **b**: hm
 5. **a** (70%): anyway. glad we're both still here · let's just not die today · beds everywhere, that's my answer · still here. that counts for something
    - **hermit:** we wake. that's enough.
    - **casual:** ok that's enough death talk for one day lol
    - **newbie:** i'm gonna be extra careful now
-6. **b** (40%): yeah · mhm · same · true · for real · hm · yeah. · fr · right
+6. **b** (40%): glad we talked about it · stay out of lava, deal? · same time tomorrow, both alive · don't go dying on me
 
 #### g deep respawn counts talk
 
@@ -9376,10 +9431,13 @@ Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script 
 
 1. **a**: does dying count if you always come back? *(answered: it counts. you lose everything / not really, it's like a bad nap / i think it counts because it hurts / idk. it feels like it should)* · is it still dying if you wake up after? *(answered: yeah, something ends every time / no, dying means not coming back / it's dying with a second chance)*
 2. **b**: hm
-3. **a**: huh. maybe · i want to believe that · i keep going back and forth on it · that's one way to see it · maybe you're right
-   - **hermit:** mm. maybe. · perhaps.
-   - **newbie:** oh. i never thought of it like that · woah ok
-4. **b** (60%): you've been chewing on this one · go on · what got you thinking about dying · there's more, isn't there
+3. **a**: huh · hm · fair · fair enough · ha, ok · yeah, i get that · hm. ok
+   - **hermit:** mm. · hm.
+   - **newbie:** oh, ok · ohh
+   - **casual:** lol fair · ok fair
+   - **speedrunner:** noted · ok
+   - **helper:** i get that · that's fair
+4. **b** (60%): you've been chewing on this one · go on · you've been thinking about this a lot, huh · there's more, isn't there
 
 #### g deep respawn counts talk 2
 
@@ -9387,10 +9445,10 @@ Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script 
 
 *About:* story_part, death, philosophy  ·  *Leads to:* death, philosophy, feelings, memories, g_deep_respawn_counts_talk_3  ·  only follows another
 
-1. **a**: the thing that gets me is nobody else even notices *(answered: then i've left a lot of me in lava lol / then we should be careful how many we spend)* · the world doesn't stop for it. the sun just keeps going *(answered: then i've left a lot of me in lava lol / then we should be careful how many we spend)* · what if every death costs something we can't see *(answered: then i've left a lot of me in lava lol / then we should be careful how many we spend)* · maybe a little bit of us stays where we fell *(answered: if that's true i want my bits back / i think the part that stays is the fear / then i've left a lot of me in lava lol / then we should be careful how many we spend)*
+1. **a**: the thing that gets me is nobody else even notices *(answered: yeah, the world just keeps going / i notice. i always notice / that's the lonely part of it)* · the world doesn't stop for it. the sun just keeps going *(answered: maybe that's kind of comforting / yeah. the cows don't even look up / then we have to notice for each other)* · what if every death costs something we can't see *(answered: then we should be careful how many we spend / that's a scary thought / then i've spent way too many)* · maybe a little bit of us stays where we fell *(answered: then i've left a lot of me in lava lol / if that's true i want my bits back / i think the part that stays is the fear)*
 2. **b**: hm
 
-### Generated: `topics_gen_random.json` (881 topics)
+### Generated: `topics_gen_random.json` (1190 topics)
 
 Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/random_talk.py`, rerun it to rebuild the file). Too many to list; a few samples:
 
@@ -9580,6 +9638,52 @@ Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script 
 7. **b** (50%) if t:agree: next time will go better · trust me on that one · you got this
 8. **b** (60%) if !t:agree: just saying · noted, no tips · ok ok, i'll stop
 
+### Generated: `topics_gen_world.json` (1317 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/world.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g world zombie see
+
+*Needs:* any time
+
+*About:* zombie, mobs, night  ·  *Leads to:* zombie, mobs, danger
+
+1. **a**: zombies are out early tonight · heard a zombie groaning outside my door · a baby zombie chased me halfway home · killed four zombies on the way over here
+2. **b**: they never shut up · the baby ones are the worst · at least they burn at sunrise · more rotten flesh for nobody · yikes · ugh · oof · nope · careful · not a fan
+3. **a** (50%): yeah · lol · mhm · anyway · yep · just saying
+
+#### g world zombie ask
+
+*Needs:* any time
+
+*About:* zombie, mobs, night  ·  *Leads to:* zombie, mobs, danger
+
+1. **a**: what do zombies drop? *(answered: rotten flesh mostly, sometimes iron or a carrot / rotten flesh, and once in a while an iron ingot)* · can zombies break doors? *(answered: on hard they can, the wooden ones / only on hard, iron doors are safe)*
+2. **b**: not sure tbh
+3. **a**: oh ok · good to know · huh · makes sense · ah ok · noted · ok cool
+   - **newbie:** ohh · wait really · ok writing that down · you know so much
+   - **speedrunner:** k · noted
+   - **hermit:** hm · ok
+4. **a** (60%) *(marks more)*: why didn't that zombie burn in the sun? *(answered: it had a helmet on / it was wearing a hat, they don't burn then)* · can you cure a zombie villager? *(answered: weakness splash, then a golden apple / throw weakness at it and feed it a golden apple)*
+5. **b** if t:more: not sure tbh
+6. **a** (80%) if t:more: thanks · appreciate it · ty · i'll remember that · good tips
+   - **newbie:** thank you!! · you're the best · ty ty
+   - **hermit:** ok
+   - **speedrunner:** k
+   - **PvP sweat:** sure · yeah yeah
+   - **helper:** thanks, i'll pass it on
+
+#### g world zombie like
+
+*Needs:* any time
+
+*About:* zombie, mobs, night, opinion  ·  *Leads to:* zombie, mobs, danger
+
+1. **a**: zombies are kind of my favourite mob · i like fighting zombies honestly · zombies are the honest mob
+2. **b**: they're easy at least · until a horde shows up · lol you would · same · fair · honestly same · i get that · lol ok · can't argue with that
+3. **a** (80%) *(marks why)*: they're slow and you can see them coming · no tricks, they just walk at you · they're easy xp and they barely fight back
+4. **b** (50%) if t:why: fair · true · lol · makes sense · fair enough · valid
+
 ## 6b. Long conversations (the topic web)
 
 A conversation can go on from topic to topic. Each topic says what it is **about** (tags) and what it **leads to** (tags, and sometimes topics by name). When a topic ends, they go on to one it leads to that suits them (either of them can bring it up, so it goes back and forth), or now and then (15%) change the subject. A topic is never repeated within one talk; greetings only start a talk; follow-ups (like "agree to disagree") only come after another topic.
@@ -9596,7 +9700,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): venting (1329), complaints (1297), philosophy (1205), story_part (1129), building (827), feelings (573), argument (523), animals (447), mobs (445), advice (435), stories (393), home (372), food (370), death (358), jokes (357), exploring (349), danger (341), mining (334), opinion (313), crafting (306), friends (275), tools (252), farming (250), brag (246), town (245), memories (242), caves (228), night (222), ocean (214), decor (208), gear (199), fighting (195), plants (192), trees (190), villagers (179), would_you_rather (158), biomes (154), hypothetical (140), weather (135), nether (133), sky (127), boredom (126), structures (125), storage (123), favourites (119), sleep (110), armor (102), morals (102), pets (98), weapons (86), world (84), end (83), riddles (83), trade (78), plans (77), diamonds (73), random (72), ore (71), fishing (62), wonder (56), music (52), meaning (50), travel (50), places (49), players (48), gossip (46), dreams (45), politics (45), time (43), legacy (42), loneliness (42), cooking (41), health (39), help (38), day (37), enchanting (35), fear (29), freedom (28), happiness (28), redstone (16), potions (14), nation (11), rivals (10), doing (6), news (6), greeting (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), trust (1), word (1)
+**Tags in use** (topics about each): argument (1455), opinion (1363), complaints (1342), story_part (1330), venting (1329), philosophy (1218), building (1103), mobs (936), animals (877), jokes (874), feelings (803), biomes (715), advice (679), home (555), stories (539), food (519), trolls (511), friends (505), exploring (484), danger (469), town (464), ocean (448), roasts (444), mining (438), death (424), caves (419), farming (374), night (367), structures (367), villagers (345), nether (338), crafting (333), fighting (327), tools (322), trees (320), plants (297), rivals (293), decor (285), weather (277), memories (261), brag (255), gear (253), storage (232), small_talk (223), sky (218), trade (218), armor (185), pets (175), players (164), weapons (164), would_you_rather (158), end (154), sleep (153), boredom (141), hypothetical (140), morals (132), favourites (122), diamonds (107), ore (104), day (95), random (94), fishing (93), gossip (89), plans (89), travel (88), silly (86), world (86), enchanting (85), riddles (83), music (79), politics (75), health (73), help (67), places (56), wonder (56), cooking (55), meaning (55), trust (52), time (51), dreams (50), loneliness (46), legacy (42), happiness (37), freedom (36), fear (35), potions (34), redstone (30), doing (29), horse (25), pillager (25), greeting (22), villager (21), deep_dark (19), ender_dragon (18), jungle (17), piglin (17), wolf (17), iron_golem (16), warden (16), wither (16), skeleton (15), zombie (15), cat (14), enderman (14), llama (14), lush_caves (14), parrot (14), spider (14), swamp (14), wandering_trader (14), badlands (13), axolotl (12), bee (12), fox (12), ghast (12), goat (12), panda (12), slime (12), sniffer (12), turtle (12), witch (12), camel (11), creeper (11), desert (11), mushroom_fields (11), nation (11), plains (11), savanna (11), cherry_grove (10), dark_forest (10), taiga (10), allay (9), ancient_city (9), armadillo (9), bamboo_jungle (9), basalt_deltas (9), bastion (9), bat (9), beach (9), birch_forest (9), blaze (9), bogged (9), breeze (9), buried_treasure (9), cave_spider (9), chicken (9), cow (9), crimson_forest (9), daytime (9), deep_ocean (9), desert_pyramid (9), dolphin (9), donkey (9), dripstone_caves (9), drowned (9), dungeon (9), elder_guardian (9), end_city (9), endermite (9), evoker (9), flower_forest (9), forest (9), fortress (9), frog (9), frozen_ocean (9), full_moon (9), glow_squid (9), grove (9), guardian (9), hoglin (9), husk (9), ice_spikes (9), igloo (9), jagged_peaks (9), jungle_temple (9), magma_cube (9), mangrove_swamp (9), meadow (9), mineshaft (9), moon (9), mooshroom (9), nether_wastes (9), nighttime (9), ocean_monument (9), ocean_ruins (9), ocelot (9), old_growth_taiga (9), outer_end (9), phantom (9), pig (9), piglin_brute (9), pillager_outpost (9), polar_bear (9), pufferfish (9), rabbit (9), rain (9), ravager (9), river (9), ruined_portal (9), sheep (9), shipwreck (9), shulker (9), silverfish (9), snow_golem (9), snowfall (9), snowy_plains (9), snowy_slopes (9), snowy_taiga (9), soul_sand_valley (9), squid (9), stars (9), stony_peaks (9), stray (9), strider (9), stronghold (9), sunrise (9), sunset (9), swamp_hut (9), the_end (9), thunderstorm (9), trail_ruins (9), trial_chambers (9), vex (9), village (9), vindicator (9), warm_ocean (9), warped_forest (9), windswept_hills (9), wither_skeleton (9), woodland_mansion (9), zombie_villager (9), zombified_piglin (9), cod (8), mule (8), tropical_fish (8), zoglin (8), salmon (7), news (6), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), strangers (1), submitted (1), tribute (1), word (1)
 
 #### `talk.segue.linked`
 
