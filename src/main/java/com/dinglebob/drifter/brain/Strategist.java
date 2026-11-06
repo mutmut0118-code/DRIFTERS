@@ -302,12 +302,15 @@ public final class Strategist {
 
 		// The enchanting table after the diamond pickaxe and sword, before the diamond armor (section 9: "some archetypes
 		// make an enchanting table before any armor"; it makes the most of the diamonds it has).
-		order.addAll(ENCHANTING_TARGETS);
+		// (Only once it knows enchanting is a thing: a newbie finds out from a village library, an enchanted find or a friend.)
+		if (drifter.knows(com.dinglebob.drifter.personality.Lore.Area.ENCHANTING)) {
+			order.addAll(ENCHANTING_TARGETS);
+		}
 		// Diamond chestplate, leggings and helmet before the Nether (user's request, 2026-10-16: blazes and ghasts hit hard,
 		// iron isn't enough there). The boots after: in the Nether its gold piece goes in that slot anyway.
 		order.addAll(DIAMOND_TARGETS.subList(2, 5));
 		// The Nether once it enchants (stage 8; section 9: "Day 12 onward"), before the diamond boots and bookshelves.
-		if (stage(drifter) >= 8) {
+		if (stage(drifter) >= 8 && drifter.knows(com.dinglebob.drifter.personality.Lore.Area.NETHER)) {
 			order.addAll(PORTAL_TARGETS);
 			if (portalLit(drifter)) {
 				order.addAll(NETHER_PACKING);
@@ -320,7 +323,9 @@ public final class Strategist {
 		order.addAll(brewingTargets(drifter));
 		order.addAll(DIAMOND_TARGETS.subList(5, DIAMOND_TARGETS.size()));
 		// Then bookshelves round the table, one at a time (3 books each: sugar cane and leather), up to 15.
-		order.add(BOOKSHELF_TARGET);
+		if (drifter.knows(com.dinglebob.drifter.personality.Lore.Area.ENCHANTING)) {
+			order.add(BOOKSHELF_TARGET);
+		}
 		return order;
 	}
 

@@ -2845,3 +2845,27 @@ Installed as 0.23.22-side.1: also has the other session's 0.23.13-0.23.22 (their
 
 - [ ] New Drifters' names come from almost twice as many words (about 1,540): `/drifter names 30` shows some in the log
       with what everyone calls them (e.g. BigRiddleEnergy: riddle, p3nguin: penguin, WildcatWasHere: wildcat).
+
+## Side session: chat, part 5 (new, 0.23.23-side.1)
+
+- [ ] **Who's talking to whom.** Stand in a town where Drifters are chatting. Their first line to someone starts with that
+      one's short name most of the time ("frost, you seen my axe?", "hey frost, ..."). Hover your mouse over a Drifter's
+      name in chat (open chat with T first): it says "talking to frost (xXFrostXx)", or "talking to you" when it's you.
+- [ ] **Advancement cheers are off.** Make an advancement near Drifters: no "gg" or "W". Turn it on in Mod Menu (Drifter's
+      config, "Cheer advancements") and they cheer again.
+- [ ] **Fewer typos**, and fewer "*word" fixes after them. A newbie still makes the most.
+- [ ] **Talk turns into doing.** Two friendly Drifters near each other (make them friends: `/drifter bond <other> 40` run
+      at each), then `/drifter talk plan_share_food_offer` (one needs spare food, the other hungry: `/drifter food 4` on it),
+      `plan_tag_along`, `plan_show_home` (the one asking needs a home within 48 blocks: `/drifter home here`),
+      `plan_hunt_tonight` (in the afternoon, both with a sword), `plan_mine_now` (both with a pickaxe and torches),
+      `plan_visit_later`. When the other says yes, they do it: walk over and toss food ("here" / "thx"), follow, walk home
+      together ("ta-da" / "nice place"), both go out hunting that night, go mining together on the next trip, drop by later.
+      `/drifter plans` lists what's agreed. They also come up by themselves in talks.
+- [ ] **What each knows.** `/drifter lore` on a Drifter: a newbie knows only farming and animals; a speedrunner or a
+      knowledgeable one most things. A newbie asks a veteran about the Nether or enchanting, gets wrong ideas put right
+      ("can i sleep in the nether?" "your bed will explode"), and then knows it (`/drifter lore` shows "(learned)"); a veteran
+      gives advice and talks about its plans ("i'm building a nether portal soon"). A newbie doesn't build a portal or an
+      enchanting table till it knows of them (told, seen in a village, or found).
+- [ ] **Lots more to talk about**: stories in several parts, hot takes and long debates, deep talks at night, roasts and
+      trolls, venting, would-you-rathers and small talk, and talk about every mob, biome, structure, block, tool and food.
+      `/drifter talk status` shows the topics of talks going on.

@@ -1,0 +1,319 @@
+{
+ "_comment": "What Drifters say while doing what they agreed in a talk (social/talk/Together.java; side session, 2026-11-06): showing someone their place, sharing food, tagging along. {b} is the other one.",
+ "lines": {
+  "together.show_home.lead": {
+   "any": [
+    "follow me",
+    "this way",
+    "come on, it's not far",
+    "ok follow me",
+    "it's just over here",
+    "right this way",
+    "keep up",
+    "this way, it's close"
+   ],
+   "casual": [
+    "ok come on lol",
+    "follow me follow me",
+    "its right over here",
+    "c'mon"
+   ],
+   "newbie": [
+    "ok ok follow me!",
+    "this way!! it's not much but",
+    "come see come see"
+   ],
+   "builder": [
+    "this way, mind the scaffolding",
+    "follow me, it's the one with the nice roof",
+    "come on, i'll give you the tour"
+   ],
+   "homebody": [
+    "come on in, it's this way",
+    "follow me, i'll show you around",
+    "it's just down here"
+   ],
+   "hermit": [
+    "this way.",
+    "follow.",
+    "don't tell anyone where it is"
+   ],
+   "speedrunner": [
+    "follow, quick",
+    "this way, it's fast"
+   ],
+   "pvp_sweat": [
+    "follow me",
+    "this way, don't fall behind"
+   ],
+   "hoarder": [
+    "this way. don't touch my chests",
+    "follow me, and hands off the loot"
+   ]
+  },
+  "together.show_home.here": {
+   "any": [
+    "here it is",
+    "this is it",
+    "home sweet home",
+    "this is my place",
+    "welcome to my house",
+    "ta-da",
+    "this is where i live",
+    "here we are"
+   ],
+   "casual": [
+    "here it is lol",
+    "welcome to the crib",
+    "my humble home",
+    "it's not much but it's mine"
+   ],
+   "newbie": [
+    "this is my house!! do you like it",
+    "i built it myself!",
+    "it's my first house"
+   ],
+   "builder": [
+    "here it is. took me a while",
+    "welcome. check out the details",
+    "the whole thing's hand placed"
+   ],
+   "homebody": [
+    "welcome in",
+    "make yourself at home",
+    "this is home"
+   ],
+   "hermit": [
+    "this is it.",
+    "home."
+   ],
+   "speedrunner": [
+    "this is it, nothing fancy",
+    "here. it's a base"
+   ],
+   "hoarder": [
+    "here it is. all my stuff's inside",
+    "welcome. count the chests"
+   ],
+   "nomad": [
+    "this is it, for now anyway",
+    "where i'm staying, for now"
+   ]
+  },
+  "together.show_home.follow": {
+   "any": [
+    "right behind you",
+    "lead the way",
+    "coming",
+    "ok",
+    "show me",
+    "omw",
+    "after you"
+   ],
+   "casual": [
+    "coming coming",
+    "lead the way lol",
+    "ok show me"
+   ],
+   "newbie": [
+    "ooh ok!",
+    "coming!!",
+    "yay show me"
+   ],
+   "hermit": [
+    "fine.",
+    "ok."
+   ],
+   "speedrunner": [
+    "go",
+    "ok quick"
+   ]
+  },
+  "together.show_home.nice": {
+   "any": [
+    "nice place",
+    "oh this is nice",
+    "cozy",
+    "love it",
+    "this is sick",
+    "nice house",
+    "ooh fancy",
+    "i like it",
+    "solid build",
+    "nice spot"
+   ],
+   "casual": [
+    "yo this is nice",
+    "ok this is cool",
+    "nice lol",
+    "this slaps"
+   ],
+   "newbie": [
+    "woah!! this is so cool",
+    "i wish my house was this nice",
+    "how did you build this"
+   ],
+   "builder": [
+    "nice proportions",
+    "good roof",
+    "i'd add a few windows but nice",
+    "clean build"
+   ],
+   "homebody": [
+    "so cozy",
+    "this feels like a home",
+    "i love it"
+   ],
+   "hermit": [
+    "it's fine.",
+    "decent."
+   ],
+   "speedrunner": [
+    "nice, efficient",
+    "solid"
+   ],
+   "pvp_sweat": [
+    "decent base",
+    "defendable, nice"
+   ],
+   "hoarder": [
+    "how many chests you got",
+    "nice. what's in the chests?"
+   ],
+   "nomad": [
+    "nice, i could never stay in one place though",
+    "cool spot"
+   ]
+  },
+  "together.share_food.give": {
+   "any": [
+    "here",
+    "here you go",
+    "catch",
+    "take this",
+    "here, eat",
+    "for you",
+    "here, don't starve"
+   ],
+   "casual": [
+    "here lol",
+    "catch",
+    "here dude eat something"
+   ],
+   "newbie": [
+    "here!! take it",
+    "you can have this!"
+   ],
+   "helper": [
+    "here, take as much as you need",
+    "eat up",
+    "here, no worries"
+   ],
+   "hoarder": [
+    "here. you owe me",
+    "fine, take it. just this once"
+   ],
+   "hermit": [
+    "here.",
+    "take it."
+   ],
+   "speedrunner": [
+    "here",
+    "catch"
+   ]
+  },
+  "together.share_food.none": {
+   "any": [
+    "oh wait i ate it all",
+    "huh, i'm out actually",
+    "nvm i don't have any left",
+    "oops, all gone"
+   ],
+   "casual": [
+    "lol i'm out actually, my bad"
+   ],
+   "newbie": [
+    "oh no i ate it"
+   ]
+  },
+  "together.share_food.thanks": {
+   "any": [
+    "thanks",
+    "thx",
+    "ty",
+    "thank you",
+    "appreciate it",
+    "lifesaver",
+    "ty ty",
+    "you're the best"
+   ],
+   "casual": [
+    "tyty",
+    "ty dude",
+    "thx lol",
+    "goat"
+   ],
+   "newbie": [
+    "thank you so much!!",
+    "yay thank you"
+   ],
+   "hermit": [
+    "thanks.",
+    "ty."
+   ],
+   "speedrunner": [
+    "ty",
+    "thx"
+   ],
+   "pvp_sweat": [
+    "ty",
+    "appreciated"
+   ]
+  },
+  "together.share_food.follow": {
+   "any": [
+    "oh thanks",
+    "for real?",
+    "you sure?",
+    "ok"
+   ],
+   "newbie": [
+    "really?!"
+   ],
+   "hermit": [
+    "ok."
+   ]
+  },
+  "together.tag_along.follow": {
+   "any": [
+    "lead the way",
+    "right behind you",
+    "i'll follow you",
+    "ok go",
+    "you lead",
+    "where to?",
+    "after you"
+   ],
+   "casual": [
+    "ok lets go lol",
+    "i'm following",
+    "lead on"
+   ],
+   "newbie": [
+    "ok i'll follow you!",
+    "wait for me!"
+   ],
+   "hermit": [
+    "fine. lead.",
+    "ok."
+   ],
+   "speedrunner": [
+    "go go",
+    "ok fast"
+   ],
+   "nomad": [
+    "lead on, i go where the road goes"
+   ]
+  }
+ }
+}

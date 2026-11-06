@@ -234,6 +234,23 @@ public final class PlayerTalk {
 		}
 	}
 
+	/** The player talking with it just now (the latest to turn to it), or null. */
+	@Nullable
+	private static ServerPlayer listener(DrifterEntity drifter) {
+		long now = drifter.level().getGameTime();
+		UUID best = null;
+		long bestUntil = Long.MIN_VALUE;
+		for (Map.Entry<UUID, Focus> entry : focus.entrySet()) {
+			Focus focused = entry.getValue();
+			if (focused.drifter().equals(drifter.getUUID()) && focused.until() > now && focused.until() > bestUntil) {
+				best = entry.getKey();
+				bestUntil = focused.until();
+			}
+		}
+
+		return best == null || drifter.getServer() == null ? null : drifter.getServer().getPlayerList().getPlayer(best);
+	}
+
 	/** Food it can spare, or null. */
 	@Nullable
 	static Item spareFood(DrifterEntity drifter) {
@@ -830,6 +847,12 @@ public final class PlayerTalk {
 			if (reply.drifter().level().getGameTime() >= reply.at()) {
 				it.remove();
 				answeredAt.put(reply.drifter().getUUID(), reply.drifter().level().getGameTime());
+				// (To the player talking with it, if one is: its name in chat says so.)
+				ServerPlayer listener = listener(reply.drifter());
+				if (listener != null) {
+					ChatLines.to(reply.drifter(), listener);
+				}
+
 				ChatLines.speak(reply.drifter(), reply.text());
 				if (reply.then() != null) {
 					reply.then().run();

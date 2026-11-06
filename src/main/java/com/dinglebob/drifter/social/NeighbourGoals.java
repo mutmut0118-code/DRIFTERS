@@ -57,8 +57,7 @@ public final class NeighbourGoals {
 		private static DrifterEntity target(Goals.Context context) {
 			DrifterEntity drifter = context.drifter();
 			Home home = drifter.getDrifterBrain().home();
-			if (!DrifterBonds.neighbourly || home == null || Schedule.isNight(drifter) || drifter.encounter() != null
-				|| !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			if (Schedule.isNight(drifter) || drifter.encounter() != null || !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
 				return null;
 			}
 
@@ -67,6 +66,18 @@ public final class NeighbourGoals {
 			DrifterBonds bonds = drifter.getBonds();
 			if (onVisit(drifter)) {
 				return level.getEntity(bonds.visiting) instanceof DrifterEntity other && other.isAlive() ? other : null;
+			}
+
+			// One it said it'd drop by on ("come by my place sometime" "will do"; talk.Together), now it's time: whatever the
+			// gap since its last visit, and neighbours or not.
+			DrifterEntity planned = com.dinglebob.drifter.social.talk.Together.visitDue(drifter);
+			Relationship plannedBond = planned == null ? null : bonds.get(planned.getUUID());
+			if (plannedBond != null && planned.distanceTo(drifter) < NEIGHBOURS * 3 && place(plannedBond, level.getGameTime()) != null) {
+				return planned;
+			}
+
+			if (!DrifterBonds.neighbourly || home == null) {
+				return null;
 			}
 
 			// (A visit cut short is over when its time is.)
@@ -125,6 +136,11 @@ public final class NeighbourGoals {
 			}
 
 			// (Once there, it stays its while: found in testing, a chore that came along cut nearly every visit short.)
+			// (One it said it would make comes before most chores: they're expecting it.)
+			if (!onVisit(context.drifter()) && com.dinglebob.drifter.social.talk.Together.visitDue(context.drifter()) != null) {
+				return 0.6;
+			}
+
 			return onVisit(context.drifter()) ? 0.62 : 0.3 + 0.25 * context.drifter().getPersonality().get(Trait.SOCIABILITY);
 		}
 
@@ -157,6 +173,7 @@ public final class NeighbourGoals {
 				bonds.lastVisit = drifter.level().getGameTime();
 				bonds.visiting = other.getUUID();
 				bonds.visitEnds = bonds.lastVisit + VISIT_TICKS;
+				com.dinglebob.drifter.social.talk.Together.visiting(drifter);
 				drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "went over to visit " + other.getName().getString());
 			}
 

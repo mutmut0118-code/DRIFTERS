@@ -1,0 +1,6753 @@
+{
+ "_comment": "What each one knows of the game (personality/Lore.java; side session, 2026-11-06; the user: \"certain personalities can know a bit more when spawned, with a newbie knowing the least\"): a veteran's advice (teaches the other), a newbie's questions and wrong ideas (it learns), a veteran's plans, debates between two who know. Minecraft 1.21.1 facts.",
+ "topics": [
+  {
+   "id": "lore_advice_trading",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_trading",
+    "b:new_to_trading",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "trade",
+    "advice"
+   ],
+   "leads": [
+    "villagers",
+    "trade",
+    "town"
+   ],
+   "about": "villager trading",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you trade with villagers much?",
+      "you know villagers trade right?",
+      "ever traded with a villager?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "not really",
+      "they trade?",
+      "i just thought they wandered around",
+      "never tried"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they need a workstation to get a job, like a composter makes a farmer",
+      "a lectern turns one into a librarian, and some sell mending books",
+      "the more you trade with one, the better its trades get"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "cure a zombie villager and it gives you huge discounts",
+      "emeralds are the money, farmers buy wheat and carrots for them",
+      "if one has no job, put a workstation near it"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_trading"
+   ]
+  },
+  {
+   "id": "lore_ask_trading",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_trading",
+    "b:knows_trading",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "trade",
+    "advice"
+   ],
+   "leads": [
+    "villagers",
+    "trade",
+    "town"
+   ],
+   "about": "villager trading",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do i get a villager to trade?",
+       "then": [
+        "give it a job, put a workstation near it",
+        "it needs a workstation, like a lectern or a smoker"
+       ]
+      },
+      {
+       "line": "what do villagers even want?",
+       "then": [
+        "emeralds mostly, and farmers buy crops",
+        "depends on the job, but emeralds are the money"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "why is that villager's trades so bad?",
+       "then": [
+        "trade with it more and it levels up",
+        "they get better trades as they level up"
+       ]
+      },
+      {
+       "line": "where do i get emeralds?",
+       "then": [
+        "sell stuff to villagers, wheat or paper",
+        "farm crops and sell them to a farmer villager"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_trading"
+   ]
+  },
+  {
+   "id": "lore_myth_trading",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_trading",
+    "b:knows_trading",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "trade",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "villagers",
+    "trade",
+    "town"
+   ],
+   "about": "villager trading",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "i tried trading with that green-robed guy and he just shook his head",
+       "then": [
+        "that's a nitwit, they never trade",
+        "green robe means nitwit, try another one"
+       ]
+      },
+      {
+       "line": "can i trade diamonds with a villager?",
+       "then": [
+        "they want emeralds, not diamonds",
+        "nah, emeralds are the money"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_trading"
+   ]
+  },
+  {
+   "id": "lore_plans_trading",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_trading",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "trade",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "villagers",
+    "trade",
+    "town",
+    "plans"
+   ],
+   "about": "villager trading",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i'm setting up some villager trades",
+      "gonna get a librarian for mending",
+      "i need a farmer villager to sell wheat to"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_trading"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_trading"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they need a workstation to get a job, like a composter makes a farmer",
+      "a lectern turns one into a librarian, and some sell mending books",
+      "the more you trade with one, the better its trades get"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_trading"
+   ]
+  },
+  {
+   "id": "lore_debate_trading",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_trading",
+    "b:knows_trading"
+   ],
+   "tags": [
+    "villagers",
+    "trade",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "villagers",
+    "trade",
+    "town",
+    "argument"
+   ],
+   "about": "villager trading",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "trading halls are basically cheating"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "fair, it is a lot",
+      "honestly yeah"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's just smart",
+      "nah it's efficient"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_enchanting",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_enchanting",
+    "b:new_to_enchanting",
+    "!rivals"
+   ],
+   "tags": [
+    "enchanting",
+    "gear",
+    "advice"
+   ],
+   "leads": [
+    "enchanting",
+    "gear",
+    "crafting"
+   ],
+   "about": "enchanting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you enchant your stuff?",
+      "you know about enchanting?",
+      "ever made an enchanting table?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "not really",
+      "i've heard of it",
+      "how does it work?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you make the table with a book, two diamonds and four obsidian",
+      "it costs lapis and levels each time",
+      "bookshelves around it, one block away, get you up to level 30"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fifteen bookshelves is the max you need",
+      "an anvil puts enchanted books onto gear",
+      "a grindstone takes enchantments off and gives some xp back"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_enchanting"
+   ]
+  },
+  {
+   "id": "lore_ask_enchanting",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_enchanting",
+    "b:knows_enchanting",
+    "!rivals"
+   ],
+   "tags": [
+    "enchanting",
+    "gear",
+    "advice"
+   ],
+   "leads": [
+    "enchanting",
+    "gear",
+    "crafting"
+   ],
+   "about": "enchanting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do you make an enchanting table?",
+       "then": [
+        "a book, two diamonds and four obsidian",
+        "book on top, diamonds on the sides, obsidian under"
+       ]
+      },
+      {
+       "line": "why can i only get level 8 enchants?",
+       "then": [
+        "you need bookshelves around the table",
+        "put bookshelves round it, one block gap"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's the blue stuff for?",
+       "then": [
+        "lapis, you need it to enchant",
+        "lapis lazuli, the table eats it"
+       ]
+      },
+      {
+       "line": "how many bookshelves do i need?",
+       "then": [
+        "fifteen for level 30",
+        "fifteen, with a gap between them and the table"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_enchanting"
+   ]
+  },
+  {
+   "id": "lore_myth_enchanting",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_enchanting",
+    "b:knows_enchanting",
+    "!rivals"
+   ],
+   "tags": [
+    "enchanting",
+    "gear",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "enchanting",
+    "gear",
+    "crafting"
+   ],
+   "about": "enchanting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "do you put diamonds in the enchanting table to enchant?",
+       "then": [
+        "no, lapis and levels",
+        "lapis, not diamonds lol"
+       ]
+      },
+      {
+       "line": "i thought enchanting was just for swords",
+       "then": [
+        "armor, tools, bows, books, almost anything",
+        "nah, pickaxes get fortune, armor gets protection"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_enchanting"
+   ]
+  },
+  {
+   "id": "lore_plans_enchanting",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_enchanting",
+    "!rivals"
+   ],
+   "tags": [
+    "enchanting",
+    "gear",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "enchanting",
+    "gear",
+    "crafting",
+    "plans"
+   ],
+   "about": "enchanting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i need to put bookshelves round my table",
+      "saving up for a level 30 enchant",
+      "i want fortune on my pickaxe"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_enchanting"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_enchanting"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you make the table with a book, two diamonds and four obsidian",
+      "it costs lapis and levels each time",
+      "bookshelves around it, one block away, get you up to level 30"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_enchanting"
+   ]
+  },
+  {
+   "id": "lore_debate_enchanting",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_enchanting",
+    "b:knows_enchanting"
+   ],
+   "tags": [
+    "enchanting",
+    "gear",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "enchanting",
+    "gear",
+    "crafting",
+    "argument"
+   ],
+   "about": "enchanting",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "fortune is better than silk touch"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true, more diamonds",
+      "for ores, yeah"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "silk touch is way more useful",
+      "silk touch for everything else though"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_nether",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_nether",
+    "b:new_to_nether",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "danger",
+    "advice"
+   ],
+   "leads": [
+    "nether",
+    "danger",
+    "exploring"
+   ],
+   "about": "the nether",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you been to the nether yet?",
+      "you know about the nether right?",
+      "ever built a nether portal?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the what?",
+      "no, what's that?",
+      "i've heard stories",
+      "is that a real place?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you need an obsidian frame, four wide and five tall, then light it",
+      "beds blow up there, don't try to sleep",
+      "water just evaporates in the nether"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "wear at least one piece of gold or the piglins attack",
+      "one block there is eight blocks here, good for travel",
+      "ghasts shoot fireballs, hit them back"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_nether"
+   ]
+  },
+  {
+   "id": "lore_ask_nether",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_nether",
+    "b:knows_nether",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "danger",
+    "advice"
+   ],
+   "leads": [
+    "nether",
+    "danger",
+    "exploring"
+   ],
+   "about": "the nether",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do you get to the nether?",
+       "then": [
+        "build an obsidian frame and light it with flint and steel",
+        "a portal, obsidian, four by five"
+       ]
+      },
+      {
+       "line": "is the nether dangerous?",
+       "then": [
+        "very, lava everywhere and ghasts",
+        "yeah, bring fire resistance if you can"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "why do people go to the nether?",
+       "then": [
+        "blaze rods, quartz, netherite, fast travel",
+        "blaze rods mostly, you need them for the end"
+       ]
+      },
+      {
+       "line": "what's a ghast?",
+       "then": [
+        "a big floating thing that shoots fireballs",
+        "giant white jellyfish that screams and shoots fire"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_nether"
+   ]
+  },
+  {
+   "id": "lore_myth_nether",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_nether",
+    "b:knows_nether",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "danger",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "nether",
+    "danger",
+    "exploring"
+   ],
+   "about": "the nether",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "can i sleep in the nether to skip the night?",
+       "then": [
+        "your bed will explode",
+        "no! beds explode there"
+       ]
+      },
+      {
+       "line": "i'll bring a water bucket to the nether in case of lava",
+       "then": [
+        "water evaporates there",
+        "won't work, water just vanishes"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_nether"
+   ]
+  },
+  {
+   "id": "lore_plans_nether",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_nether",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "danger",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "nether",
+    "danger",
+    "exploring",
+    "plans"
+   ],
+   "about": "the nether",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i'm building a nether portal soon",
+      "gonna go to the nether for blaze rods",
+      "need obsidian for a portal"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_nether"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_nether"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you need an obsidian frame, four wide and five tall, then light it",
+      "beds blow up there, don't try to sleep",
+      "water just evaporates in the nether"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_nether"
+   ]
+  },
+  {
+   "id": "lore_debate_nether",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_nether",
+    "b:knows_nether"
+   ],
+   "tags": [
+    "nether",
+    "danger",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "nether",
+    "danger",
+    "exploring",
+    "argument"
+   ],
+   "about": "the nether",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "the nether is the worst dimension"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "so true, it's awful",
+      "agreed, too hot"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's the best one",
+      "nah, the loot is great"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_brewing",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_brewing",
+    "b:new_to_brewing",
+    "!rivals"
+   ],
+   "tags": [
+    "potions",
+    "crafting",
+    "advice"
+   ],
+   "leads": [
+    "potions",
+    "crafting",
+    "nether"
+   ],
+   "about": "brewing",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you brew potions?",
+      "know how to brew?",
+      "ever used a brewing stand?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "no idea how",
+      "potions?",
+      "not really",
+      "is it hard?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "the stand needs blaze powder as fuel",
+      "nether wart in a water bottle makes an awkward potion, most start from that",
+      "redstone makes a potion last longer"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "glowstone makes it stronger but shorter",
+      "gunpowder turns it into a splash potion",
+      "a fermented spider eye flips a potion into a bad one"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_brewing"
+   ]
+  },
+  {
+   "id": "lore_ask_brewing",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_brewing",
+    "b:knows_brewing",
+    "!rivals"
+   ],
+   "tags": [
+    "potions",
+    "crafting",
+    "advice"
+   ],
+   "leads": [
+    "potions",
+    "crafting",
+    "nether"
+   ],
+   "about": "brewing",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do you make a brewing stand?",
+       "then": [
+        "a blaze rod and three cobblestone",
+        "blaze rod on top of cobblestone"
+       ]
+      },
+      {
+       "line": "what do i put in first?",
+       "then": [
+        "water bottles, then nether wart",
+        "nether wart, for an awkward potion"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do i make a potion last longer?",
+       "then": [
+        "add redstone",
+        "redstone dust, after the main ingredient"
+       ]
+      },
+      {
+       "line": "what's the best potion?",
+       "then": [
+        "fire resistance for the nether",
+        "healing, or strength for fights"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_brewing"
+   ]
+  },
+  {
+   "id": "lore_myth_brewing",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_brewing",
+    "b:knows_brewing",
+    "!rivals"
+   ],
+   "tags": [
+    "potions",
+    "crafting",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "potions",
+    "crafting",
+    "nether"
+   ],
+   "about": "brewing",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "can i just drink water bottles for healing?",
+       "then": [
+        "it's just water lol",
+        "no, you need glistering melon for healing"
+       ]
+      },
+      {
+       "line": "i thought only witches had potions",
+       "then": [
+        "they drop some, but you can brew them",
+        "you can brew your own with a stand"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_brewing"
+   ]
+  },
+  {
+   "id": "lore_plans_brewing",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_brewing",
+    "!rivals"
+   ],
+   "tags": [
+    "potions",
+    "crafting",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "potions",
+    "crafting",
+    "nether",
+    "plans"
+   ],
+   "about": "brewing",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want to brew some fire resistance",
+      "need nether wart for potions",
+      "gonna set up a brewing stand"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_brewing"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_brewing"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "the stand needs blaze powder as fuel",
+      "nether wart in a water bottle makes an awkward potion, most start from that",
+      "redstone makes a potion last longer"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_brewing"
+   ]
+  },
+  {
+   "id": "lore_debate_brewing",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_brewing",
+    "b:knows_brewing"
+   ],
+   "tags": [
+    "potions",
+    "crafting",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "potions",
+    "crafting",
+    "nether",
+    "argument"
+   ],
+   "about": "brewing",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "potions are a waste of time"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "kinda, yeah",
+      "too much setup"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "they save your life",
+      "not in the nether they aren't"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_raids",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_raids",
+    "b:new_to_raids",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "danger",
+    "fighting"
+   ],
+   "leads": [
+    "villagers",
+    "fighting",
+    "danger"
+   ],
+   "about": "raids",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you know how raids work?",
+      "ever fought off a raid?",
+      "seen a pillager outpost?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "raids?",
+      "no, what happens?",
+      "pillagers?",
+      "never seen one"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "kill a raid captain, the one with the banner, and it drops an ominous bottle",
+      "drink it and walk into a village and a raid starts",
+      "win and you get hero of the village, cheap trades"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ravagers hit really hard, watch out",
+      "evokers summon vexes and those fangs",
+      "pillagers shoot crossbows, bring a shield"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_raids"
+   ]
+  },
+  {
+   "id": "lore_ask_raids",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_raids",
+    "b:knows_raids",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "danger",
+    "fighting"
+   ],
+   "leads": [
+    "villagers",
+    "fighting",
+    "danger"
+   ],
+   "about": "raids",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's a raid?",
+       "then": [
+        "waves of pillagers attacking a village",
+        "illagers come for a village, wave after wave"
+       ]
+      },
+      {
+       "line": "how does a raid start?",
+       "then": [
+        "drink an ominous bottle and walk into a village",
+        "kill a captain, drink what it drops, go to a village"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "why would anyone start a raid?",
+       "then": [
+        "hero of the village, and totems from evokers",
+        "totems of undying and cheap trades"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_raids"
+   ]
+  },
+  {
+   "id": "lore_myth_raids",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_raids",
+    "b:knows_raids",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "danger",
+    "fighting",
+    "jokes"
+   ],
+   "leads": [
+    "villagers",
+    "fighting",
+    "danger"
+   ],
+   "about": "raids",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "those guys with the banner hats are friendly right?",
+       "then": [
+        "pillagers, they shoot you",
+        "no, those are illagers, they hate you"
+       ]
+      },
+      {
+       "line": "a raid is just one big wave right?",
+       "then": [
+        "several waves, they get harder",
+        "no, waves, more each time"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_raids"
+   ]
+  },
+  {
+   "id": "lore_plans_raids",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_raids",
+    "!rivals"
+   ],
+   "tags": [
+    "villagers",
+    "danger",
+    "fighting",
+    "plans"
+   ],
+   "leads": [
+    "villagers",
+    "fighting",
+    "danger",
+    "plans"
+   ],
+   "about": "raids",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want to fight a raid for totems",
+      "gonna clear that pillager outpost",
+      "i need a shield before the next raid"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_raids"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_raids"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "kill a raid captain, the one with the banner, and it drops an ominous bottle",
+      "drink it and walk into a village and a raid starts",
+      "win and you get hero of the village, cheap trades"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_raids"
+   ]
+  },
+  {
+   "id": "lore_debate_raids",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_raids",
+    "b:knows_raids"
+   ],
+   "tags": [
+    "villagers",
+    "danger",
+    "fighting",
+    "argument"
+   ],
+   "leads": [
+    "villagers",
+    "fighting",
+    "danger",
+    "argument"
+   ],
+   "about": "raids",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "raids are the best part of the game"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "they're so fun",
+      "true"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "they wreck villages",
+      "too stressful"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_redstone",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_redstone",
+    "b:new_to_redstone",
+    "!rivals"
+   ],
+   "tags": [
+    "redstone",
+    "building",
+    "advice"
+   ],
+   "leads": [
+    "redstone",
+    "building",
+    "crafting"
+   ],
+   "about": "redstone",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you do any redstone?",
+      "know much about redstone?",
+      "ever built a redstone door?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the red dust?",
+      "no, it looks hard",
+      "a little",
+      "not really"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "dust carries a signal fifteen blocks",
+      "a repeater boosts the signal and adds a delay",
+      "observers fire when the block in front changes"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "pistons push up to twelve blocks",
+      "a comparator reads how full a chest is",
+      "levers stay on, buttons turn off again"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_redstone"
+   ]
+  },
+  {
+   "id": "lore_ask_redstone",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_redstone",
+    "b:knows_redstone",
+    "!rivals"
+   ],
+   "tags": [
+    "redstone",
+    "building",
+    "advice"
+   ],
+   "leads": [
+    "redstone",
+    "building",
+    "crafting"
+   ],
+   "about": "redstone",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how far does redstone go?",
+       "then": [
+        "fifteen blocks, then you need a repeater",
+        "fifteen, repeaters reset it"
+       ]
+      },
+      {
+       "line": "how do you make an auto farm?",
+       "then": [
+        "observer and piston, it sees the crop grow",
+        "observers, pistons, and a hopper underneath"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's a comparator for?",
+       "then": [
+        "it reads containers and compares signals",
+        "tells you how full a chest is"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_redstone"
+   ]
+  },
+  {
+   "id": "lore_myth_redstone",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_redstone",
+    "b:knows_redstone",
+    "!rivals"
+   ],
+   "tags": [
+    "redstone",
+    "building",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "redstone",
+    "building",
+    "crafting"
+   ],
+   "about": "redstone",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "is redstone just red dust for decoration?",
+       "then": [
+        "it's wiring, it powers stuff",
+        "no, it's like electricity"
+       ]
+      },
+      {
+       "line": "i put redstone on the door but nothing happened",
+       "then": [
+        "you need a lever or button to power it",
+        "it needs a power source, a lever"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_redstone"
+   ]
+  },
+  {
+   "id": "lore_plans_redstone",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_redstone",
+    "!rivals"
+   ],
+   "tags": [
+    "redstone",
+    "building",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "redstone",
+    "building",
+    "crafting",
+    "plans"
+   ],
+   "about": "redstone",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want to build a piston door",
+      "gonna make an auto sugar cane farm",
+      "need more redstone for my farm"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_redstone"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_redstone"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "dust carries a signal fifteen blocks",
+      "a repeater boosts the signal and adds a delay",
+      "observers fire when the block in front changes"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_redstone"
+   ]
+  },
+  {
+   "id": "lore_debate_redstone",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_redstone",
+    "b:knows_redstone"
+   ],
+   "tags": [
+    "redstone",
+    "building",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "redstone",
+    "building",
+    "crafting",
+    "argument"
+   ],
+   "about": "redstone",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "redstone is the hardest part of the game"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "for real",
+      "100%"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's just logic",
+      "nah it's easy once you get it"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_anvils",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_anvils",
+    "b:new_to_anvils",
+    "!rivals"
+   ],
+   "tags": [
+    "gear",
+    "enchanting",
+    "crafting"
+   ],
+   "leads": [
+    "gear",
+    "enchanting",
+    "tools"
+   ],
+   "about": "anvils",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you use an anvil?",
+      "know how anvils work?",
+      "ever combined books on an anvil?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "just to rename stuff",
+      "not really",
+      "what for?",
+      "no"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "an anvil puts enchanted books on tools",
+      "it repairs gear with the same material, iron for iron",
+      "after enough uses it says too expensive"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they chip and break as you use them",
+      "renaming costs a level but it's worth it for named pets",
+      "it takes three iron blocks and four ingots to make one"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_anvils"
+   ]
+  },
+  {
+   "id": "lore_ask_anvils",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_anvils",
+    "b:knows_anvils",
+    "!rivals"
+   ],
+   "tags": [
+    "gear",
+    "enchanting",
+    "crafting"
+   ],
+   "leads": [
+    "gear",
+    "enchanting",
+    "tools"
+   ],
+   "about": "anvils",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do i get mending on my pickaxe?",
+       "then": [
+        "anvil, pickaxe in, book in",
+        "put the book on with an anvil"
+       ]
+      },
+      {
+       "line": "why does my anvil say too expensive?",
+       "then": [
+        "you've worked on that item too many times",
+        "every use makes the next cost more"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do you make an anvil?",
+       "then": [
+        "three iron blocks and four iron ingots",
+        "iron blocks on top, ingots below"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_anvils"
+   ]
+  },
+  {
+   "id": "lore_myth_anvils",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_anvils",
+    "b:knows_anvils",
+    "!rivals"
+   ],
+   "tags": [
+    "gear",
+    "enchanting",
+    "crafting",
+    "jokes"
+   ],
+   "leads": [
+    "gear",
+    "enchanting",
+    "tools"
+   ],
+   "about": "anvils",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "does an anvil fix stuff for free?",
+       "then": [
+        "costs levels",
+        "no, levels every time"
+       ]
+      },
+      {
+       "line": "will an anvil last forever?",
+       "then": [
+        "it gets chipped then breaks",
+        "no, it wears out"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_anvils"
+   ]
+  },
+  {
+   "id": "lore_plans_anvils",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_anvils",
+    "!rivals"
+   ],
+   "tags": [
+    "gear",
+    "enchanting",
+    "crafting",
+    "plans"
+   ],
+   "leads": [
+    "gear",
+    "enchanting",
+    "tools",
+    "plans"
+   ],
+   "about": "anvils",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "need to combine my books on an anvil",
+      "gonna make an anvil soon",
+      "i need levels for the anvil"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_anvils"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_anvils"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "an anvil puts enchanted books on tools",
+      "it repairs gear with the same material, iron for iron",
+      "after enough uses it says too expensive"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_anvils"
+   ]
+  },
+  {
+   "id": "lore_debate_anvils",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_anvils",
+    "b:knows_anvils"
+   ],
+   "tags": [
+    "gear",
+    "enchanting",
+    "crafting",
+    "argument"
+   ],
+   "leads": [
+    "gear",
+    "enchanting",
+    "tools",
+    "argument"
+   ],
+   "about": "anvils",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "mending makes the game too easy"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "kinda yeah",
+      "it does"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's just quality of life",
+      "nah, you still have to find it"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_fortresses",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_fortresses",
+    "b:new_to_fortresses",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "structures",
+    "danger"
+   ],
+   "leads": [
+    "nether",
+    "structures",
+    "mobs"
+   ],
+   "about": "nether fortresses",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you found a nether fortress yet?",
+      "know where to get blaze rods?",
+      "ever raided a fortress?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "a fortress?",
+      "blaze rods?",
+      "no, where are they?",
+      "never been"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fortresses are made of dark nether brick, like bridges over the lava",
+      "blazes spawn there from spawners, they drop blaze rods",
+      "wither skeletons there drop skulls sometimes"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they tend to run north and south, so look that way",
+      "bring snowballs for blazes, they hate them",
+      "put torches round the blaze spawner if you want it off"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_fortresses"
+   ]
+  },
+  {
+   "id": "lore_ask_fortresses",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_fortresses",
+    "b:knows_fortresses",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "structures",
+    "danger"
+   ],
+   "leads": [
+    "nether",
+    "structures",
+    "mobs"
+   ],
+   "about": "nether fortresses",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "where do blaze rods come from?",
+       "then": [
+        "blazes, in nether fortresses",
+        "kill blazes at a fortress spawner"
+       ]
+      },
+      {
+       "line": "how do i find a fortress?",
+       "then": [
+        "search north or south, they line up that way",
+        "look for the dark brick bridges"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's a wither skeleton?",
+       "then": [
+        "tall black skeleton in fortresses, gives you wither",
+        "the black ones, they drop skulls"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_fortresses"
+   ]
+  },
+  {
+   "id": "lore_myth_fortresses",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_fortresses",
+    "b:knows_fortresses",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "structures",
+    "danger",
+    "jokes"
+   ],
+   "leads": [
+    "nether",
+    "structures",
+    "mobs"
+   ],
+   "about": "nether fortresses",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "blazes are like fire chickens right?",
+       "then": [
+        "they shoot fireballs at you",
+        "lol no, they fly and shoot fire"
+       ]
+      },
+      {
+       "line": "i'll just find blaze rods in chests",
+       "then": [
+        "you get them from blazes mostly",
+        "kill blazes, that's the way"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_fortresses"
+   ]
+  },
+  {
+   "id": "lore_plans_fortresses",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_fortresses",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "structures",
+    "danger",
+    "plans"
+   ],
+   "leads": [
+    "nether",
+    "structures",
+    "mobs",
+    "plans"
+   ],
+   "about": "nether fortresses",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "need to find a fortress for blaze rods",
+      "gonna farm a blaze spawner",
+      "i want wither skulls"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_fortresses"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_fortresses"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "fortresses are made of dark nether brick, like bridges over the lava",
+      "blazes spawn there from spawners, they drop blaze rods",
+      "wither skeletons there drop skulls sometimes"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_fortresses"
+   ]
+  },
+  {
+   "id": "lore_debate_fortresses",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_fortresses",
+    "b:knows_fortresses"
+   ],
+   "tags": [
+    "nether",
+    "structures",
+    "danger",
+    "argument"
+   ],
+   "leads": [
+    "nether",
+    "structures",
+    "mobs",
+    "argument"
+   ],
+   "about": "nether fortresses",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "blazes are worse than ghasts"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true, they're relentless",
+      "so true"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "ghasts are worse",
+      "nah ghasts knock you into lava"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_bartering",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_bartering",
+    "b:new_to_bartering",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "trade",
+    "advice"
+   ],
+   "leads": [
+    "nether",
+    "trade",
+    "gear"
+   ],
+   "about": "piglin bartering",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you barter with piglins?",
+      "know about piglin trading?",
+      "ever thrown gold at a piglin?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the pig guys?",
+      "they trade?",
+      "no, they attack me",
+      "not really"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "throw a gold ingot at a piglin and it throws something back",
+      "you get ender pearls, obsidian, fire resistance potions from them",
+      "wear gold or they attack you"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "don't open chests or mine gold near them, they get mad",
+      "bastions are full of angry ones, careful",
+      "speedrunners get their pearls that way"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_bartering"
+   ]
+  },
+  {
+   "id": "lore_ask_bartering",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_bartering",
+    "b:knows_bartering",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "trade",
+    "advice"
+   ],
+   "leads": [
+    "nether",
+    "trade",
+    "gear"
+   ],
+   "about": "piglin bartering",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do i trade with piglins?",
+       "then": [
+        "throw gold ingots at them",
+        "drop gold near them, they look at it, then toss you something"
+       ]
+      },
+      {
+       "line": "why do piglins attack me?",
+       "then": [
+        "you're not wearing gold",
+        "wear a gold helmet or boots"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what do piglins give you?",
+       "then": [
+        "pearls, string, obsidian, potions",
+        "random stuff, ender pearls are the good ones"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_bartering"
+   ]
+  },
+  {
+   "id": "lore_myth_bartering",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_bartering",
+    "b:knows_bartering",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "trade",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "nether",
+    "trade",
+    "gear"
+   ],
+   "about": "piglin bartering",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "can i trade emeralds with piglins?",
+       "then": [
+        "only gold",
+        "they only like gold"
+       ]
+      },
+      {
+       "line": "piglins are friendly if i'm nice to them right?",
+       "then": [
+        "wear gold, that's all they care about",
+        "only if you wear gold"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_bartering"
+   ]
+  },
+  {
+   "id": "lore_plans_bartering",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_bartering",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "trade",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "nether",
+    "trade",
+    "gear",
+    "plans"
+   ],
+   "about": "piglin bartering",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i'm saving gold to barter with piglins",
+      "need pearls, gonna barter",
+      "gonna make some gold armor for the nether"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_bartering"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_bartering"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "throw a gold ingot at a piglin and it throws something back",
+      "you get ender pearls, obsidian, fire resistance potions from them",
+      "wear gold or they attack you"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_bartering"
+   ]
+  },
+  {
+   "id": "lore_debate_bartering",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_bartering",
+    "b:knows_bartering"
+   ],
+   "tags": [
+    "nether",
+    "trade",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "nether",
+    "trade",
+    "gear",
+    "argument"
+   ],
+   "about": "piglin bartering",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "bartering is better than hunting endermen"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "way faster",
+      "true"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "endermen are easier",
+      "nah, endermen"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_end",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_end",
+    "b:new_to_end",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "danger",
+    "advice"
+   ],
+   "leads": [
+    "end",
+    "plans",
+    "danger"
+   ],
+   "about": "the end",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you thought about going to the end?",
+      "know how to get to the end?",
+      "ever found a stronghold?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the end of what?",
+      "what's the end?",
+      "no",
+      "a stronghold?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you need eyes of ender, blaze powder and an ender pearl each",
+      "throw an eye and follow it, it leads to the stronghold",
+      "the portal room needs twelve eyes, some frames have them already"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "bring blocks and a bow, the dragon's up high",
+      "bring water to scare off the endermen",
+      "after the dragon you can go to the outer islands"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_end"
+   ]
+  },
+  {
+   "id": "lore_ask_end",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_end",
+    "b:knows_end",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "danger",
+    "advice"
+   ],
+   "leads": [
+    "end",
+    "plans",
+    "danger"
+   ],
+   "about": "the end",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do i get to the end?",
+       "then": [
+        "eyes of ender, they lead you to a stronghold portal",
+        "make eyes of ender and follow them"
+       ]
+      },
+      {
+       "line": "how many eyes of ender do i need?",
+       "then": [
+        "up to twelve",
+        "twelve for an empty portal"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's in the end?",
+       "then": [
+        "the ender dragon, then end cities",
+        "a dragon, then elytra out in the islands"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_end"
+   ]
+  },
+  {
+   "id": "lore_myth_end",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_end",
+    "b:knows_end",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "danger",
+    "advice",
+    "jokes"
+   ],
+   "leads": [
+    "end",
+    "plans",
+    "danger"
+   ],
+   "about": "the end",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "is the end the end of the game? like credits?",
+       "then": [
+        "there are credits, but the game keeps going",
+        "kind of, but there's loads after"
+       ]
+      },
+      {
+       "line": "i'll just dig straight down to find the end",
+       "then": [
+        "you need a stronghold portal",
+        "nope, eyes of ender lead you to it"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_end"
+   ]
+  },
+  {
+   "id": "lore_plans_end",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_end",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "danger",
+    "advice",
+    "plans"
+   ],
+   "leads": [
+    "end",
+    "plans",
+    "danger",
+    "plans"
+   ],
+   "about": "the end",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i need more ender pearls for eyes",
+      "gonna look for the stronghold",
+      "i want to fight the dragon soon"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_end"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_end"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you need eyes of ender, blaze powder and an ender pearl each",
+      "throw an eye and follow it, it leads to the stronghold",
+      "the portal room needs twelve eyes, some frames have them already"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_end"
+   ]
+  },
+  {
+   "id": "lore_debate_end",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_end",
+    "b:knows_end"
+   ],
+   "tags": [
+    "end",
+    "danger",
+    "advice",
+    "argument"
+   ],
+   "leads": [
+    "end",
+    "plans",
+    "danger",
+    "argument"
+   ],
+   "about": "the end",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "killing the dragon is the real end of the game"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "true, it's the boss",
+      "yeah"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the game never ends",
+      "nah, it's just the start"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_trial_chambers",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_trial_chambers",
+    "b:new_to_trial_chambers",
+    "!rivals"
+   ],
+   "tags": [
+    "structures",
+    "caves",
+    "fighting"
+   ],
+   "leads": [
+    "structures",
+    "caves",
+    "fighting"
+   ],
+   "about": "trial chambers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you found a trial chamber yet?",
+      "know about trial chambers?",
+      "ever done a trial spawner?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "a what?",
+      "no",
+      "the copper place?",
+      "never heard of it"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they're copper and tuff rooms deep underground",
+      "trial spawners send waves, beat them and you get trial keys",
+      "keys open the vaults for loot"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "breezes jump around and knock arrows away",
+      "you can get wind charges from breezes",
+      "with an ominous bottle the trials get harder and the loot better, like the heavy core for a mace"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_trial_chambers"
+   ]
+  },
+  {
+   "id": "lore_ask_trial_chambers",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_trial_chambers",
+    "b:knows_trial_chambers",
+    "!rivals"
+   ],
+   "tags": [
+    "structures",
+    "caves",
+    "fighting"
+   ],
+   "leads": [
+    "structures",
+    "caves",
+    "fighting"
+   ],
+   "about": "trial chambers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's a trial chamber?",
+       "then": [
+        "an underground place with spawners and loot vaults",
+        "copper rooms with mob waves"
+       ]
+      },
+      {
+       "line": "how do i open a vault?",
+       "then": [
+        "a trial key from beating a spawner",
+        "trial keys, from the spawners"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's a breeze?",
+       "then": [
+        "a windy mob that jumps around",
+        "wind guy, it deflects arrows"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_trial_chambers"
+   ]
+  },
+  {
+   "id": "lore_myth_trial_chambers",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_trial_chambers",
+    "b:knows_trial_chambers",
+    "!rivals"
+   ],
+   "tags": [
+    "structures",
+    "caves",
+    "fighting",
+    "jokes"
+   ],
+   "leads": [
+    "structures",
+    "caves",
+    "fighting"
+   ],
+   "about": "trial chambers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "can i break the trial spawner and take it home?",
+       "then": [
+        "can't mine those",
+        "nope, they don't drop"
+       ]
+      },
+      {
+       "line": "the vault keeps giving loot if i hit it right?",
+       "then": [
+        "once per player",
+        "one key, one loot, per player"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_trial_chambers"
+   ]
+  },
+  {
+   "id": "lore_plans_trial_chambers",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_trial_chambers",
+    "!rivals"
+   ],
+   "tags": [
+    "structures",
+    "caves",
+    "fighting",
+    "plans"
+   ],
+   "leads": [
+    "structures",
+    "caves",
+    "fighting",
+    "plans"
+   ],
+   "about": "trial chambers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want to find a trial chamber",
+      "need wind charges",
+      "gonna try the ominous trials"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_trial_chambers"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_trial_chambers"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they're copper and tuff rooms deep underground",
+      "trial spawners send waves, beat them and you get trial keys",
+      "keys open the vaults for loot"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_trial_chambers"
+   ]
+  },
+  {
+   "id": "lore_debate_trial_chambers",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_trial_chambers",
+    "b:knows_trial_chambers"
+   ],
+   "tags": [
+    "structures",
+    "caves",
+    "fighting",
+    "argument"
+   ],
+   "leads": [
+    "structures",
+    "caves",
+    "fighting",
+    "argument"
+   ],
+   "about": "trial chambers",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "the mace is broken"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's insane",
+      "completely"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's balanced, it's hard to get",
+      "nah, it's fair"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_netherite",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_netherite",
+    "b:new_to_netherite",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "gear",
+    "ore"
+   ],
+   "leads": [
+    "nether",
+    "gear",
+    "mining"
+   ],
+   "about": "netherite",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you got any netherite?",
+      "know how to get netherite?",
+      "ever found ancient debris?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "netherite?",
+      "no",
+      "is that better than diamond?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ancient debris is in the nether, lowest around y 15",
+      "beds or tnt blow up the netherrack and the debris survives",
+      "you smelt it into scrap, four scrap and four gold make an ingot"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you need a netherite upgrade template from a bastion",
+      "upgrade diamond gear at a smithing table",
+      "netherite stuff floats in lava, you don't lose it"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_netherite"
+   ]
+  },
+  {
+   "id": "lore_ask_netherite",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_netherite",
+    "b:knows_netherite",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "gear",
+    "ore"
+   ],
+   "leads": [
+    "nether",
+    "gear",
+    "mining"
+   ],
+   "about": "netherite",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "where's ancient debris?",
+       "then": [
+        "the nether, around y 15",
+        "low in the nether, blow it up with beds"
+       ]
+      },
+      {
+       "line": "how do i make netherite armor?",
+       "then": [
+        "diamond armor, an ingot and a template at a smithing table",
+        "smithing table, upgrade your diamond stuff"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "is netherite worth it?",
+       "then": [
+        "it's the best gear",
+        "yes, and it doesn't burn"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_netherite"
+   ]
+  },
+  {
+   "id": "lore_myth_netherite",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_netherite",
+    "b:knows_netherite",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "gear",
+    "ore",
+    "jokes"
+   ],
+   "leads": [
+    "nether",
+    "gear",
+    "mining"
+   ],
+   "about": "netherite",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "netherite is from the end right?",
+       "then": [
+        "the nether",
+        "no, ancient debris, nether"
+       ]
+      },
+      {
+       "line": "i can just craft netherite armor like diamond",
+       "then": [
+        "it's an upgrade at a smithing table",
+        "nah, you upgrade diamond with a template"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_netherite"
+   ]
+  },
+  {
+   "id": "lore_plans_netherite",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_netherite",
+    "!rivals"
+   ],
+   "tags": [
+    "nether",
+    "gear",
+    "ore",
+    "plans"
+   ],
+   "leads": [
+    "nether",
+    "gear",
+    "mining",
+    "plans"
+   ],
+   "about": "netherite",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "going debris mining soon",
+      "need a netherite template",
+      "i want netherite boots"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_netherite"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_netherite"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ancient debris is in the nether, lowest around y 15",
+      "beds or tnt blow up the netherrack and the debris survives",
+      "you smelt it into scrap, four scrap and four gold make an ingot"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_netherite"
+   ]
+  },
+  {
+   "id": "lore_debate_netherite",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_netherite",
+    "b:knows_netherite"
+   ],
+   "tags": [
+    "nether",
+    "gear",
+    "ore",
+    "argument"
+   ],
+   "leads": [
+    "nether",
+    "gear",
+    "mining",
+    "argument"
+   ],
+   "about": "netherite",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "netherite is overrated"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "diamond's enough",
+      "kinda"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's the best, period",
+      "nah, it floats in lava"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_warden",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_warden",
+    "b:new_to_warden",
+    "!rivals"
+   ],
+   "tags": [
+    "danger",
+    "caves",
+    "mobs"
+   ],
+   "leads": [
+    "danger",
+    "caves",
+    "mobs"
+   ],
+   "about": "the warden",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you know about the warden?",
+      "ever been to an ancient city?",
+      "seen the deep dark?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the what?",
+      "no",
+      "is it scary?",
+      "the dark place?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "the deep dark is way down, below y 0, with sculk everywhere",
+      "sculk shriekers summon the warden if you make noise",
+      "it's blind, it finds you by vibrations and smell"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "sneak everywhere, walking makes vibrations",
+      "wool blocks vibrations",
+      "ancient cities have great loot, swift sneak books"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_warden"
+   ]
+  },
+  {
+   "id": "lore_ask_warden",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_warden",
+    "b:knows_warden",
+    "!rivals"
+   ],
+   "tags": [
+    "danger",
+    "caves",
+    "mobs"
+   ],
+   "leads": [
+    "danger",
+    "caves",
+    "mobs"
+   ],
+   "about": "the warden",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what's the warden?",
+       "then": [
+        "a huge blind mob in the deep dark, it'll kill you fast",
+        "the scariest mob, run"
+       ]
+      },
+      {
+       "line": "can i fight the warden?",
+       "then": [
+        "you can but don't",
+        "it kills you in a few hits, avoid it"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do i not wake it up?",
+       "then": [
+        "sneak, and don't step on shriekers",
+        "crouch everywhere, throw snowballs to distract it"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_warden"
+   ]
+  },
+  {
+   "id": "lore_myth_warden",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_warden",
+    "b:knows_warden",
+    "!rivals"
+   ],
+   "tags": [
+    "danger",
+    "caves",
+    "mobs",
+    "jokes"
+   ],
+   "leads": [
+    "danger",
+    "caves",
+    "mobs"
+   ],
+   "about": "the warden",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "the warden's a boss you're meant to fight right?",
+       "then": [
+        "it's meant to be run from",
+        "no, it's a hazard, sneak"
+       ]
+      },
+      {
+       "line": "i'll just run fast past the shriekers",
+       "then": [
+        "running is loud, sneak",
+        "that's how you wake it"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_warden"
+   ]
+  },
+  {
+   "id": "lore_plans_warden",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_warden",
+    "!rivals"
+   ],
+   "tags": [
+    "danger",
+    "caves",
+    "mobs",
+    "plans"
+   ],
+   "leads": [
+    "danger",
+    "caves",
+    "mobs",
+    "plans"
+   ],
+   "about": "the warden",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want swift sneak from an ancient city",
+      "gonna sneak through an ancient city",
+      "need lots of wool for the deep dark"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_warden"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_warden"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "the deep dark is way down, below y 0, with sculk everywhere",
+      "sculk shriekers summon the warden if you make noise",
+      "it's blind, it finds you by vibrations and smell"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_warden"
+   ]
+  },
+  {
+   "id": "lore_debate_warden",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_warden",
+    "b:knows_warden"
+   ],
+   "tags": [
+    "danger",
+    "caves",
+    "mobs",
+    "argument"
+   ],
+   "leads": [
+    "danger",
+    "caves",
+    "mobs",
+    "argument"
+   ],
+   "about": "the warden",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "the warden is the hardest mob"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "easily",
+      "for sure"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the wither's harder",
+      "nah, you just avoid it"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_dragon",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_dragon",
+    "b:new_to_dragon",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "fighting",
+    "danger"
+   ],
+   "leads": [
+    "end",
+    "fighting",
+    "plans"
+   ],
+   "about": "the ender dragon",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you ever fought the dragon?",
+      "know how to beat the dragon?",
+      "planning to kill the dragon?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the dragon?",
+      "no",
+      "is it hard?",
+      "what dragon?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "break the end crystals on the pillars first, they heal it",
+      "some crystals are caged, climb up or shoot through",
+      "hit it when it perches on the portal"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "you can bottle its breath for lingering potions",
+      "beds explode in the end too, speedrunners use them on it",
+      "after it dies, throw a pearl into the gateway for the outer islands"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_dragon"
+   ]
+  },
+  {
+   "id": "lore_ask_dragon",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_dragon",
+    "b:knows_dragon",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "fighting",
+    "danger"
+   ],
+   "leads": [
+    "end",
+    "fighting",
+    "plans"
+   ],
+   "about": "the ender dragon",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do you beat the dragon?",
+       "then": [
+        "crystals first, then hit it when it lands",
+        "break the crystals, then swing at it on the portal"
+       ]
+      },
+      {
+       "line": "what drops from the dragon?",
+       "then": [
+        "loads of xp and the egg",
+        "xp, and the dragon egg"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what do i bring?",
+       "then": [
+        "a bow, blocks, food, water for endermen",
+        "bow and arrows, lots of blocks"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_dragon"
+   ]
+  },
+  {
+   "id": "lore_myth_dragon",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_dragon",
+    "b:knows_dragon",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "fighting",
+    "danger",
+    "jokes"
+   ],
+   "leads": [
+    "end",
+    "fighting",
+    "plans"
+   ],
+   "about": "the ender dragon",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "can i tame the dragon?",
+       "then": [
+        "lol no",
+        "no, you kill it"
+       ]
+      },
+      {
+       "line": "the dragon's weak if i just punch it?",
+       "then": [
+        "break the crystals first or it heals",
+        "it heals from the crystals"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_dragon"
+   ]
+  },
+  {
+   "id": "lore_plans_dragon",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_dragon",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "fighting",
+    "danger",
+    "plans"
+   ],
+   "leads": [
+    "end",
+    "fighting",
+    "plans",
+    "plans"
+   ],
+   "about": "the ender dragon",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i'm getting ready for the dragon",
+      "gonna kill the dragon this week",
+      "need a better bow for the dragon"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_dragon"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_dragon"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "break the end crystals on the pillars first, they heal it",
+      "some crystals are caged, climb up or shoot through",
+      "hit it when it perches on the portal"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_dragon"
+   ]
+  },
+  {
+   "id": "lore_debate_dragon",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_dragon",
+    "b:knows_dragon"
+   ],
+   "tags": [
+    "end",
+    "fighting",
+    "danger",
+    "argument"
+   ],
+   "leads": [
+    "end",
+    "fighting",
+    "plans",
+    "argument"
+   ],
+   "about": "the ender dragon",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "the dragon fight is too easy"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "kinda, once you know it",
+      "true"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it's hard first time",
+      "nah, it's scary"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_elytra",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_elytra",
+    "b:new_to_elytra",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "exploring",
+    "gear"
+   ],
+   "leads": [
+    "end",
+    "exploring",
+    "gear"
+   ],
+   "about": "elytra",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you got an elytra?",
+      "know where elytra come from?",
+      "ever flown with an elytra?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the wings?",
+      "no",
+      "what's that?",
+      "can you really fly?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they're in end cities, on the end ship, in an item frame",
+      "kill the dragon, then pearl into the gateway to get to the cities",
+      "fireworks boost you while flying"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "mending on an elytra is a must",
+      "phantom membranes repair it at an anvil",
+      "shulkers guard the cities, they make you float"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_elytra"
+   ]
+  },
+  {
+   "id": "lore_ask_elytra",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_elytra",
+    "b:knows_elytra",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "exploring",
+    "gear"
+   ],
+   "leads": [
+    "end",
+    "exploring",
+    "gear"
+   ],
+   "about": "elytra",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "where do i get an elytra?",
+       "then": [
+        "end ships, out past the dragon",
+        "end cities, on the ship"
+       ]
+      },
+      {
+       "line": "how do you fly with it?",
+       "then": [
+        "jump, then jump again in the air",
+        "jump off something high and glide, fireworks boost you"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "what fixes an elytra?",
+       "then": [
+        "mending or phantom membranes",
+        "phantom membranes at an anvil"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_elytra"
+   ]
+  },
+  {
+   "id": "lore_myth_elytra",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_elytra",
+    "b:knows_elytra",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "exploring",
+    "gear",
+    "jokes"
+   ],
+   "leads": [
+    "end",
+    "exploring",
+    "gear"
+   ],
+   "about": "elytra",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "can i craft an elytra from phantom membranes?",
+       "then": [
+        "membranes repair it, you have to find one",
+        "no, you find it in end ships"
+       ]
+      },
+      {
+       "line": "i'll just jump off a cliff with it and i'm fine right?",
+       "then": [
+        "open it in the air, and watch the walls",
+        "yeah but don't hit a wall"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_elytra"
+   ]
+  },
+  {
+   "id": "lore_plans_elytra",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_elytra",
+    "!rivals"
+   ],
+   "tags": [
+    "end",
+    "exploring",
+    "gear",
+    "plans"
+   ],
+   "leads": [
+    "end",
+    "exploring",
+    "gear",
+    "plans"
+   ],
+   "about": "elytra",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want an elytra so bad",
+      "gonna go to the end cities",
+      "need fireworks for flying"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_elytra"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_elytra"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "they're in end cities, on the end ship, in an item frame",
+      "kill the dragon, then pearl into the gateway to get to the cities",
+      "fireworks boost you while flying"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_elytra"
+   ]
+  },
+  {
+   "id": "lore_debate_elytra",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_elytra",
+    "b:knows_elytra"
+   ],
+   "tags": [
+    "end",
+    "exploring",
+    "gear",
+    "argument"
+   ],
+   "leads": [
+    "end",
+    "exploring",
+    "gear",
+    "argument"
+   ],
+   "about": "elytra",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "elytra ruined exploring"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "kinda, it's too fast",
+      "true"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "it made it better",
+      "nah, it's the best item"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lore_advice_beacons",
+   "weight": 2.0,
+   "needs": [
+    "a:knows_beacons",
+    "b:new_to_beacons",
+    "!rivals"
+   ],
+   "tags": [
+    "crafting",
+    "building",
+    "end"
+   ],
+   "leads": [
+    "building",
+    "crafting",
+    "brag"
+   ],
+   "about": "beacons",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "you got a beacon?",
+      "know how beacons work?",
+      "ever built a beacon pyramid?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "the light thing?",
+      "no",
+      "what does it do?",
+      "never seen one"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "a beacon needs a nether star, from killing the wither",
+      "it sits on a pyramid of iron, gold, emerald, diamond or netherite blocks",
+      "bigger pyramid, more powers"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh",
+      "huh",
+      "good to know",
+      "wait really?",
+      "ok",
+      "noted"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "haste two is great for mining",
+      "you feed it an ingot or gem to pick a power",
+      "the wither takes three skulls and four soul sand"
+     ],
+     "chance": 0.8
+    },
+    {
+     "by": "b",
+     "lines": [
+      "thanks for the tip",
+      "i'll remember that",
+      "appreciate it",
+      "learned something today",
+      "ok that's useful"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "teach_beacons"
+   ]
+  },
+  {
+   "id": "lore_ask_beacons",
+   "weight": 2.0,
+   "needs": [
+    "a:new_to_beacons",
+    "b:knows_beacons",
+    "!rivals"
+   ],
+   "tags": [
+    "crafting",
+    "building",
+    "end"
+   ],
+   "leads": [
+    "building",
+    "crafting",
+    "brag"
+   ],
+   "about": "beacons",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how do you make a beacon?",
+       "then": [
+        "a nether star, glass and obsidian",
+        "nether star from the wither, plus glass and obsidian"
+       ]
+      },
+      {
+       "line": "what does a beacon do?",
+       "then": [
+        "gives you powers nearby, like haste",
+        "buffs, speed or haste or regen"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "hm"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "ohh",
+      "ok that makes sense",
+      "huh",
+      "wait really?",
+      "cool"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "how big does the pyramid have to be?",
+       "then": [
+        "four layers for everything",
+        "one layer works, four gets all the powers"
+       ]
+      }
+     ],
+     "chance": 0.7
+    },
+    {
+     "by": "b",
+     "lines": [
+      "well"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "ty",
+      "you know a lot",
+      "how do you know all this",
+      "ok i'm writing that down"
+     ],
+     "chance": 0.8
+    }
+   ],
+   "effects": [
+    "learn_beacons"
+   ]
+  },
+  {
+   "id": "lore_myth_beacons",
+   "weight": 1.5,
+   "needs": [
+    "a:voice_newbie",
+    "a:new_to_beacons",
+    "b:knows_beacons",
+    "!rivals"
+   ],
+   "tags": [
+    "crafting",
+    "building",
+    "end",
+    "jokes"
+   ],
+   "leads": [
+    "building",
+    "crafting",
+    "brag"
+   ],
+   "about": "beacons",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      {
+       "line": "is a beacon just a fancy light?",
+       "then": [
+        "it gives you powers",
+        "it buffs you, haste and stuff"
+       ]
+      },
+      {
+       "line": "i can make a beacon with diamonds right?",
+       "then": [
+        "you need a nether star",
+        "nether star, from the wither"
+       ]
+      }
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "uh"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "oh",
+      "wait what",
+      "oops",
+      "nobody told me",
+      "that explains a lot",
+      "oh no"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "lol",
+      "you'll learn",
+      "we all did that once",
+      "now you know",
+      "happens"
+     ],
+     "chance": 0.7
+    }
+   ],
+   "effects": [
+    "learn_beacons"
+   ]
+  },
+  {
+   "id": "lore_plans_beacons",
+   "weight": 1.5,
+   "needs": [
+    "a:knows_beacons",
+    "!rivals"
+   ],
+   "tags": [
+    "crafting",
+    "building",
+    "end",
+    "plans"
+   ],
+   "leads": [
+    "building",
+    "crafting",
+    "brag",
+    "plans"
+   ],
+   "about": "beacons",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i want to kill the wither for a star",
+      "saving iron blocks for a beacon pyramid",
+      "need haste two for mining"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "nice",
+      "good luck",
+      "need a hand?",
+      "sounds like a plan",
+      "big moves"
+     ],
+     "if": [
+      "b:knows_beacons"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "what's that?",
+      "huh?",
+      "i don't know what that is",
+      "explain?"
+     ],
+     "mark": [
+      "asked"
+     ],
+     "if": [
+      "b:new_to_beacons"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "a beacon needs a nether star, from killing the wither",
+      "it sits on a pyramid of iron, gold, emerald, diamond or netherite blocks",
+      "bigger pyramid, more powers"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "oh cool",
+      "sounds hard",
+      "huh, neat",
+      "i should try that"
+     ],
+     "if": [
+      "t:asked"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "thanks",
+      "we'll see how it goes",
+      "wish me luck",
+      "should be fun"
+     ],
+     "chance": 0.6,
+     "if": [
+      "!t:asked"
+     ]
+    }
+   ],
+   "effects": [
+    "teach_beacons"
+   ]
+  },
+  {
+   "id": "lore_debate_beacons",
+   "weight": 1.2,
+   "needs": [
+    "a:knows_beacons",
+    "b:knows_beacons"
+   ],
+   "tags": [
+    "crafting",
+    "building",
+    "end",
+    "argument"
+   ],
+   "leads": [
+    "building",
+    "crafting",
+    "brag",
+    "argument"
+   ],
+   "about": "beacons",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "a beacon is the best thing to own"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "haste is life",
+      "true"
+     ],
+     "chance": 0.5,
+     "mark": [
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "mending's better",
+      "nah, too expensive"
+     ],
+     "mark": [
+      "disagree"
+     ],
+     "if": [
+      "!t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "see",
+      "exactly",
+      "glad someone gets it"
+     ],
+     "chance": 0.7,
+     "if": [
+      "t:agree"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": [
+      "agree to disagree",
+      "you're wrong but ok",
+      "we'll see",
+      "whatever you say"
+     ],
+     "if": [
+      "t:disagree"
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -219,6 +219,7 @@ public final class PlayerChats {
 				}
 
 				opening.drifter.getCamera().lookAt(opening.player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+				ChatLines.to(opening.drifter, opening.player);
 				ChatLines.speak(opening.drifter, line);
 				opening.said = true;
 				opening.nextAt = now + Math.min(120, 30 + line.length() * 2) + opening.drifter.getRandom().nextInt(20);

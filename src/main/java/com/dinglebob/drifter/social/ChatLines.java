@@ -69,18 +69,81 @@ public final class ChatLines {
 
 	/** One message of it, out now. */
 	static void deliver(DrifterEntity drifter, String text) {
-		Component line = Component.literal("<" + drifter.getName().getString() + "> " + text);
 		double range = DrifterConfig.chatRange();
 		java.util.UUID audience = drifter.encounter() != null ? drifter.encounter().player : null;
+		To to = talkingTo(drifter);
 		for (net.minecraft.server.level.ServerPlayer player : drifter.getServer().getPlayerList().getPlayers()) {
 			if (player.getUUID().equals(audience) || player.level() == drifter.level() && player.distanceTo(drifter) <= range) {
 				DrifterSaidPayload.send(player, drifter, text);
-				player.sendSystemMessage(line);
+				player.sendSystemMessage(line(drifter, text, to, player));
 			}
 		}
 
-		// (The server's log has it too, as it has players' chat.)
-		drifter.getServer().sendSystemMessage(line);
+		// (The server's log has it too, as it has players' chat; who it's to after it.)
+		String plain = "<" + drifter.getName().getString() + "> " + text;
+		drifter.getServer().sendSystemMessage(Component.literal(to == null ? plain : plain + " [to " + to.name() + "]"));
+	}
+
+	/**
+	 * Its line as this player sees it: its name, and hovering the name says who it's talking to (the user, 2026-11-05: in a
+	 * town "there is alot of conversations happening, but i dont know whos talking to who").
+	 */
+	private static Component line(DrifterEntity drifter, String text, @org.jetbrains.annotations.Nullable To to, net.minecraft.server.level.ServerPlayer player) {
+		net.minecraft.network.chat.MutableComponent name = Component.literal(drifter.getName().getString());
+		if (to != null) {
+			String who = to.who().equals(player.getUUID()) ? "you" : to.shown();
+			name = name.withStyle(style -> style.withHoverEvent(new net.minecraft.network.chat.HoverEvent(
+				net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.literal("talking to " + who))));
+		}
+
+		return Component.literal("<").append(name).append("> " + text);
+	}
+
+	/** Who it's talking to just now: their UUID, the name it calls them (their nickname) and their username. */
+	private record To(UUID who, String name, String username, long until) {
+		String shown() {
+			return name.equalsIgnoreCase(username) ? name : name + " (" + username + ")";
+		}
+	}
+
+	private static final Map<UUID, To> talkingTo = new HashMap<>();
+	/** How long a line's "talking to" holds: past its last line to them, by then a talk's next line has come. */
+	private static final long TALKING_TO = 20 * 20;
+
+	/** It's talking to this one (a Drifter or a player): its name in chat says so (hover) for a while. */
+	public static void to(DrifterEntity drifter, net.minecraft.world.entity.Entity who) {
+		String username = who.getName().getString();
+		talkingTo.put(drifter.getUUID(), new To(who.getUUID(), com.dinglebob.drifter.identity.Nicknames.of(username), username,
+			drifter.level().getGameTime() + TALKING_TO));
+	}
+
+	/** It's saying something to everyone (no one in particular). */
+	public static void toEveryone(DrifterEntity drifter) {
+		talkingTo.remove(drifter.getUUID());
+	}
+
+	@org.jetbrains.annotations.Nullable
+	private static To talkingTo(DrifterEntity drifter) {
+		long now = drifter.level().getGameTime();
+		To to = talkingTo.get(drifter.getUUID());
+		if (to != null && to.until() > now) {
+			return to;
+		}
+
+		if (to != null) {
+			talkingTo.remove(drifter.getUUID());
+		}
+
+		// (An encounter's lines are to its player.)
+		if (drifter.encounter() != null) {
+			net.minecraft.server.level.ServerPlayer player = drifter.getServer().getPlayerList().getPlayer(drifter.encounter().player);
+			if (player != null) {
+				String username = player.getGameProfile().getName();
+				return new To(player.getUUID(), com.dinglebob.drifter.identity.Nicknames.of(username), username, now);
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -119,6 +182,7 @@ public final class ChatLines {
 
 		lastLine.put(drifter.getUUID(), now);
 		recent.addLast(now);
+		toEveryone(drifter);
 		send(drifter, text);
 	}
 
@@ -158,6 +222,7 @@ public final class ChatLines {
 		lastLine.put(drifter.getUUID(), now);
 		lastKind.put(kindKey, now);
 		recent.addLast(now);
+		toEveryone(drifter);
 		send(drifter, line);
 	}
 }

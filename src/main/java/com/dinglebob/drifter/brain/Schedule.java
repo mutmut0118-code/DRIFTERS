@@ -85,6 +85,11 @@ public final class Schedule {
 	public static NightStyle chooseNightStyle(DrifterEntity drifter) {
 		com.dinglebob.drifter.personality.Personality p = drifter.getPersonality();
 		boolean calm = !p.is(com.dinglebob.drifter.personality.Mood.ANXIOUS) && !p.is(com.dinglebob.drifter.personality.Mood.PANICKED);
+		// It said it'd hunt with someone tonight ("hunt tonight?" "bet"): out it goes if it's fit, braver with company.
+		if (calm && fitToHunt(drifter) && com.dinglebob.drifter.social.talk.Together.huntTonight(drifter)) {
+			return NightStyle.HUNT;
+		}
+
 		if (calm && p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= HUNT_BRAVERY
 			&& p.get(com.dinglebob.drifter.personality.Trait.CAUTION) < HUNT_MAX_CAUTION && fitToHunt(drifter)) {
 			return NightStyle.HUNT;

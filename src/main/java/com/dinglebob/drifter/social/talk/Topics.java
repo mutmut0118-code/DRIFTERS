@@ -3,6 +3,7 @@ package com.dinglebob.drifter.social.talk;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,7 +142,7 @@ public final class Topics {
 
 				if (json.has("topics")) {
 					for (JsonElement element : json.getAsJsonArray("topics")) {
-						loaded.add(topic(element.getAsJsonObject()));
+						loaded.add(lored(topic(element.getAsJsonObject())));
 					}
 				}
 
@@ -173,6 +174,12 @@ public final class Topics {
 			}
 		}
 
+		Set<String> inChains = new HashSet<>();
+		for (Topic topic : loaded) {
+			inChains.addAll(topic.web().next());
+		}
+
+		chained = inChains;
 		topics = List.copyOf(loaded);
 		playerTopics = List.copyOf(withPlayers);
 		byId = ids;
@@ -189,6 +196,43 @@ public final class Topics {
 
 		Drifter.LOGGER.info("Loaded {} Drifter conversation topics, {} to bring up with players ({} lines; {} tags in the web)", topics.size(), playerTopics.size(),
 			lines, tags.size());
+	}
+
+	/** Topics some topic names as its {@code next} (a story's part 3, a debate's round 2). */
+	private static Set<String> chained = Set.of();
+
+	/**
+	 * A part of a chain (named in another's {@code next}): it comes up only after the part before, never by its tags alone
+	 * (a story's part 3 popping up in the middle of a talk about mobs; found writing the generated stories).
+	 */
+	public static boolean chained(Topic topic) {
+		return topic.web().followUp() && chained.contains(topic.id());
+	}
+
+	/** Topic tags only one who knows that part of the game brings up (a newbie doesn't talk bed bombing in the Nether). */
+	private static final Map<String, String> LORE_TAGS = Map.of("nether", "nether", "end", "end", "enchanting", "enchanting", "potions", "brewing",
+		"redstone", "redstone");
+
+	/**
+	 * A topic about the Nether, the End, enchanting, potions or redstone is brought up only by one who knows of it
+	 * ({@code personality.Lore}; the user, 2026-11-05: a newbie knows the least): its needs get {@code a:knows_<area>},
+	 * unless it says itself who knows what (the knowledge topics: a newbie asking).
+	 */
+	private static Topic lored(Topic topic) {
+		if (topic.needs().stream().anyMatch(need -> need.contains("knows_") || need.contains("new_to_"))) {
+			return topic;
+		}
+
+		List<String> needs = new ArrayList<>(topic.needs());
+		for (String tag : topic.web().tags()) {
+			String area = LORE_TAGS.get(tag);
+			if (area != null && !needs.contains("a:knows_" + area)) {
+				needs.add("a:knows_" + area);
+			}
+		}
+
+		return needs.size() == topic.needs().size() ? topic
+			: new Topic(topic.id(), topic.weight(), List.copyOf(needs), topic.turns(), topic.effects(), topic.chime(), topic.question(), topic.web());
 	}
 
 	private static Topic topic(JsonObject topic) {
