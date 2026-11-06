@@ -250,9 +250,22 @@ final class TownNews {
 			return null;
 		}
 
-		List<String> heads = headlines(town, server, 3);
-		return heads.isEmpty() ? null : new TownWork.News(heads, gazette(server, town));
+		// (Worked out once a day for its crier, not each time it weighs up what to do.)
+		Today today = papers.get(town.id);
+		if (today == null || today.day != day) {
+			List<String> heads = headlines(town, server, 3);
+			today = new Today(day, heads.isEmpty() ? null : new TownWork.News(heads, gazette(server, town)));
+			papers.put(town.id, today);
+		}
+
+		return today.news;
 	}
+
+	/** Each town's news for its crier today. */
+	private record Today(long day, @Nullable TownWork.News news) {
+	}
+
+	private static final Map<UUID, Today> papers = new HashMap<>();
 
 	static void cried(Town town, DrifterEntity drifter) {
 		if (drifter.getServer() != null) {
