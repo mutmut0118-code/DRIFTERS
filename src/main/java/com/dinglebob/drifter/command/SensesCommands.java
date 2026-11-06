@@ -153,6 +153,27 @@ final class SensesCommands {
 			ctx.getSource().sendSuccess(() -> Component.literal(name + " goes by \"" + nick + "\""), false);
 			return 1;
 		})));
+		// What the nearest knows of the game (personality.Lore), and teaching it one part (debug).
+		root.then(Commands.literal("lore").executes(ctx -> {
+			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+			String text = DrifterCommands.label(drifter) + " " + drifter.getLore().describe(drifter);
+			ctx.getSource().sendSuccess(() -> Component.literal(text), false);
+			return 1;
+		}).then(Commands.literal("learn").then(Commands.argument("area", com.mojang.brigadier.arguments.StringArgumentType.word())
+			.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+				java.util.Arrays.stream(com.dinglebob.drifter.personality.Lore.Area.values()).map(area -> area.key), builder))
+			.executes(ctx -> {
+				DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+				var area = com.dinglebob.drifter.personality.Lore.Area.of(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "area"));
+				if (area == null) {
+					ctx.getSource().sendFailure(Component.literal("No such part of the game"));
+					return 0;
+				}
+
+				boolean learned = drifter.getLore().learn(drifter, area, "a command");
+				ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + (learned ? " learned about " : " already knew about ") + area.key), true);
+				return 1;
+			}))));
 		// What Drifters agreed in their talks to do together (talk.Together), to the log and chat.
 		root.then(Commands.literal("plans").executes(ctx -> {
 			var plans = com.dinglebob.drifter.social.talk.Together.all();

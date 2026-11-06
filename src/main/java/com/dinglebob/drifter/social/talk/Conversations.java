@@ -350,6 +350,15 @@ public final class Conversations {
 		if (me.getShop() != null) {
 			facts.flags.add("keeps_shop");
 		}
+
+		// What it knows of the game (personality.Lore): a veteran's advice, a newbie's questions.
+		for (com.dinglebob.drifter.personality.Lore.Area area : com.dinglebob.drifter.personality.Lore.Area.values()) {
+			if (me.knows(area)) {
+				facts.flags.add("knows_" + area.key);
+			} else {
+				facts.flags.add("new_to_" + area.key);
+			}
+		}
 	}
 
 	/** The world as they see it, and what the talk's been marked ({@code t:disagree}). */
@@ -910,6 +919,15 @@ public final class Conversations {
 					}
 				}
 				default -> {
+					// Told about part of the game: "teach_nether" (a tells b), "learn_nether" (b tells a).
+					if (effect.startsWith("teach_") || effect.startsWith("learn_")) {
+						var area = com.dinglebob.drifter.personality.Lore.Area.of(effect.substring(6));
+						DrifterEntity learner = effect.startsWith("teach_") ? talk.b : talk.a;
+						DrifterEntity teacher = talk.partnerOf(learner);
+						if (area != null && teacher.knows(area)) {
+							learner.getLore().learn(learner, area, "told by " + teacher.getName().getString());
+						}
+					}
 				}
 			}
 		}

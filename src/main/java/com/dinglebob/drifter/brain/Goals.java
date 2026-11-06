@@ -1357,7 +1357,8 @@ public final class Goals {
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
-			if (home == null || !home.near(drifter, Schedule.GO_HOME_RANGE) || context.stage() < 8 || Strategist.portalLit(drifter)) {
+			if (home == null || !home.near(drifter, Schedule.GO_HOME_RANGE) || context.stage() < 8 || Strategist.portalLit(drifter)
+				|| !drifter.knows(com.dinglebob.drifter.personality.Lore.Area.NETHER)) {
 				return 0.0;
 			}
 
@@ -1408,7 +1409,7 @@ public final class Goals {
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
 			com.dinglebob.drifter.brain.Home home = drifter.getDrifterBrain().home();
-			if (home == null || !home.near(drifter, Schedule.GO_HOME_RANGE)) {
+			if (home == null || !home.near(drifter, Schedule.GO_HOME_RANGE) || !drifter.knows(com.dinglebob.drifter.personality.Lore.Area.ENCHANTING)) {
 				return 0.0;
 			}
 

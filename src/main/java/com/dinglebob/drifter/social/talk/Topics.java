@@ -136,7 +136,7 @@ public final class Topics {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
 				if (json.has("topics")) {
 					for (JsonElement element : json.getAsJsonArray("topics")) {
-						loaded.add(topic(element.getAsJsonObject()));
+						loaded.add(lored(topic(element.getAsJsonObject())));
 					}
 				}
 
@@ -184,6 +184,32 @@ public final class Topics {
 
 		Drifter.LOGGER.info("Loaded {} Drifter conversation topics, {} to bring up with players ({} lines; {} tags in the web)", topics.size(), playerTopics.size(),
 			lines, tags.size());
+	}
+
+	/** Topic tags only one who knows that part of the game brings up (a newbie doesn't talk bed bombing in the Nether). */
+	private static final Map<String, String> LORE_TAGS = Map.of("nether", "nether", "end", "end", "enchanting", "enchanting", "potions", "brewing",
+		"redstone", "redstone");
+
+	/**
+	 * A topic about the Nether, the End, enchanting, potions or redstone is brought up only by one who knows of it
+	 * ({@code personality.Lore}; the user, 2026-11-05: a newbie knows the least): its needs get {@code a:knows_<area>},
+	 * unless it says itself who knows what (the knowledge topics: a newbie asking).
+	 */
+	private static Topic lored(Topic topic) {
+		if (topic.needs().stream().anyMatch(need -> need.contains("knows_") || need.contains("new_to_"))) {
+			return topic;
+		}
+
+		List<String> needs = new ArrayList<>(topic.needs());
+		for (String tag : topic.web().tags()) {
+			String area = LORE_TAGS.get(tag);
+			if (area != null && !needs.contains("a:knows_" + area)) {
+				needs.add("a:knows_" + area);
+			}
+		}
+
+		return needs.size() == topic.needs().size() ? topic
+			: new Topic(topic.id(), topic.weight(), List.copyOf(needs), topic.turns(), topic.effects(), topic.chime(), topic.question(), topic.web());
 	}
 
 	private static Topic topic(JsonObject topic) {

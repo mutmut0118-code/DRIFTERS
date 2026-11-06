@@ -70,7 +70,8 @@ public final class BrewGoal extends Goals.Goal {
 
 	/** It knows how to brew. */
 	public static boolean brews(DrifterEntity drifter) {
-		return drifter.getPersonality().get(Trait.KNOWLEDGE) >= KNOWLEDGE;
+		// (Its Knowledge, its kind of player, or learned since: Lore. BREWING's Knowledge is this KNOWLEDGE.)
+		return drifter.knows(com.dinglebob.drifter.personality.Lore.Area.BREWING);
 	}
 
 	/** How many of each it likes to carry. */

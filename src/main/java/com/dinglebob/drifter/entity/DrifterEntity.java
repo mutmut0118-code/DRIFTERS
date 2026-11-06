@@ -105,6 +105,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final DrifterFoodData foodData = new DrifterFoodData();
 	/** What it has done lately worth talking about (its conversations; saved). */
 	private final com.dinglebob.drifter.social.talk.Diary diary = new com.dinglebob.drifter.social.talk.Diary();
+	/** What it knows of the game beyond the basics (the Nether, enchanting, the End...): see Lore. */
+	private final com.dinglebob.drifter.personality.Lore lore = new com.dinglebob.drifter.personality.Lore();
 	private final VirtualKeys keys = new VirtualKeys();
 	private final CameraModel camera;
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
@@ -485,6 +487,15 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.social.talk.Diary getDiary() {
 		return this.diary;
+	}
+
+	public com.dinglebob.drifter.personality.Lore getLore() {
+		return this.lore;
+	}
+
+	/** It knows this part of the game (from the start, or learned since). */
+	public boolean knows(com.dinglebob.drifter.personality.Lore.Area area) {
+		return this.lore.knows(this, area);
 	}
 
 	public DrifterFoodData getFoodData() {
@@ -1311,6 +1322,10 @@ public class DrifterEntity extends PathfinderMob {
 
 		if (!this.level().isClientSide && this.isAlive()) {
 			this.pickUpNearbyItems();
+			// What it's seen, been and got teaches it (every 10 seconds, each at its own moment).
+			if ((this.tickCount + (this.getId() & 0xFF)) % 200 == 0) {
+				this.lore.check(this);
+			}
 		}
 	}
 
@@ -2696,6 +2711,7 @@ protected void customServerAiStep() {
 		tag.putInt("DrifterSaveVersion", SAVE_VERSION);
 		tag.put("DrifterInventory", this.inventory.save(this.registryAccess()));
 		tag.put("Diary", this.diary.save());
+		tag.put("DrifterLore", this.lore.save());
 		tag.putInt("SelectedItemSlot", this.inventory.getSelected());
 		this.foodData.addAdditionalSaveData(tag);
 		tag.putString("Skin", this.getSkinTexture().toString());
@@ -2757,6 +2773,8 @@ protected void customServerAiStep() {
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
 		this.foodData.readAdditionalSaveData(tag);
 		this.diary.load(tag.getCompound("Diary"));
+		// (Older saves have none: it knows what its personality gives it, and learns the rest again.)
+		this.lore.load(tag.getCompound("DrifterLore"));
 		this.experienceProgress = tag.getFloat("XpP");
 		this.experienceLevel = tag.getInt("XpLevel");
 		this.totalExperience = tag.getInt("XpTotal");
