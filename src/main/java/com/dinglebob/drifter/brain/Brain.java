@@ -251,6 +251,41 @@ public class Brain {
 		this.furnaceJobs.remove(job);
 	}
 
+	/** The last meal it cooked in a pot (Farmer's Delight; not saved: something to talk about for a while), and when. */
+	@org.jetbrains.annotations.Nullable
+	private net.minecraft.world.item.Item cookedMeal;
+	private long cookedAt = Long.MIN_VALUE / 2;
+
+	/**
+	 * A meal it left cooking in a pot (Farmer's Delight): where, what, and when it's done. It comes back for it, as for a
+	 * furnace's batch. Not saved.
+	 */
+	public record PotBatch(BlockPos pot, net.minecraft.world.item.Item meal, int count, long readyAt) {
+	}
+
+	@org.jetbrains.annotations.Nullable
+	private PotBatch potBatch;
+
+	@org.jetbrains.annotations.Nullable
+	public PotBatch potBatch() {
+		return this.potBatch;
+	}
+
+	public void setPotBatch(@org.jetbrains.annotations.Nullable PotBatch batch) {
+		this.potBatch = batch;
+	}
+
+	public void noteCooked(net.minecraft.world.item.Item meal, long now) {
+		this.cookedMeal = meal;
+		this.cookedAt = now;
+	}
+
+	/** The meal it cooked within this many ticks, or null. */
+	@org.jetbrains.annotations.Nullable
+	public net.minecraft.world.item.Item cookedLately(long now, long within) {
+		return now - this.cookedAt <= within ? this.cookedMeal : null;
+	}
+
 	/** An exploring leg for this reason ended. */
 	public void noteExplored(String reason) {
 		this.explored.merge(reason, 1, Integer::sum);

@@ -1,0 +1,16 @@
+{
+	"_comment": "Farmer's Delight (optional): where a kitchen's ingredients come from, for the planner. Wild crops picked by hand (cabbages and beetroots on beaches, onions, carrots and potatoes in plains and forests, tomatoes in savannas, rice in swamps), and clay for the bricks a stove and a cooking pot take. Only loaded with the mod installed ('requires_mod').",
+	"requires_mod": "farmersdelight",
+	"sources": [
+		{ "item": "farmersdelight:cabbage", "block": ["farmersdelight:wild_cabbages"] },
+		{ "item": "farmersdelight:cabbage_seeds", "block": ["farmersdelight:wild_cabbages"] },
+		{ "item": "farmersdelight:onion", "block": ["farmersdelight:wild_onions"] },
+		{ "item": "farmersdelight:tomato", "block": ["farmersdelight:wild_tomatoes"] },
+		{ "item": "farmersdelight:tomato_seeds", "block": ["farmersdelight:wild_tomatoes"] },
+		{ "item": "farmersdelight:rice", "block": ["farmersdelight:wild_rice"] },
+		{ "item": "minecraft:carrot", "block": ["farmersdelight:wild_carrots"] },
+		{ "item": "minecraft:potato", "block": ["farmersdelight:wild_potatoes"] },
+		{ "item": "minecraft:beetroot", "block": ["farmersdelight:wild_beetroots"] },
+		{ "item": "minecraft:clay_ball", "block": ["minecraft:clay"] }
+	]
+}

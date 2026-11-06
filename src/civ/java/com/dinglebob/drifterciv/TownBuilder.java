@@ -65,6 +65,8 @@ public final class TownBuilder {
 	static final int BIGGEST_HOUSE = 25;
 	/** The plaza's half-width (user, 2026-10-23: "its way too big and it makes a bit of a hole when its on hill"). */
 	private static final int PLAZA = 7;
+	/** The share of towns with a shrine (C6). */
+	private static final float SHRINES = 0.5F;
 	/** Air cleared above the plaza (trees). */
 	private static final int CLEAR_ABOVE = 12;
 	/** Most a house's ground may rise and fall across its footprint (its foundation and the land eased round it make up the rest). */
@@ -513,6 +515,14 @@ public final class TownBuilder {
 		private int round = -1;
 		private boolean roundOpen;
 		private BlockPos well;
+		@Nullable
+		BlockPos fire;
+		/** Its shrine's lot, its ground's height, and the shrine (C6). */
+		@Nullable
+		private Rect shrineRect;
+		private int shrineBase;
+		@Nullable
+		private BlockPos shrineAt;
 		private BlockPos board;
 		private final List<Rect> built = new ArrayList<>();
 		private final List<Rect> all = new ArrayList<>();
@@ -1556,6 +1566,15 @@ public final class TownBuilder {
 			this.penRect = pen != null ? pen.site() : new Rect(cx - 13, cz + 12, cx - 3, cz + 22);
 			this.penFront = pen != null ? pen.front() : Direction.EAST;
 			this.taken.add(this.penRect);
+			// A shrine, in some towns (C6): a little lot of its own near the plaza.
+			if (!this.ruin && this.random.nextFloat() < SHRINES) {
+				Lot shrine = this.lot(5, 5, this.plaza, 40, true, false);
+				if (shrine != null) {
+					this.shrineRect = shrine.site();
+					this.taken.add(this.shrineRect);
+				}
+			}
+
 			if (this.shape == Shape.HILL) {
 				this.lookout = this.highestSpot();
 				if (this.lookout != null) {
@@ -1985,6 +2004,9 @@ public final class TownBuilder {
 			}
 
 			this.then("plazaThings", this::plazaThings);
+			if (this.shrineRect != null) {
+				this.then("shrine", this::shrine);
+			}
 			// (The paths before the lamps, so no lamp post stands on one: one in front of a door blocked the way in.)
 			this.then("stallAndPaths", this::stallAndPaths);
 			if (!this.ruin) {
@@ -2017,6 +2039,11 @@ public final class TownBuilder {
 			if (this.lookout != null) {
 				pads.add(new GroundPlan.Pad(this.lookout, median(this.level, this.lookout.x0(), this.lookout.z0(), this.lookout.x1(), this.lookout.z1()), PAD_REACH,
 					9));
+			}
+
+			if (this.shrineRect != null) {
+				this.shrineBase = median(this.level, this.shrineRect.x0(), this.shrineRect.z0(), this.shrineRect.x1(), this.shrineRect.z1());
+				pads.add(new GroundPlan.Pad(this.shrineRect, this.shrineBase, PAD_REACH, 4));
 			}
 			for (Rect rect : this.fieldRects) {
 				int base = median(this.level, rect.x0(), rect.z0(), rect.x1(), rect.z1());
@@ -2401,6 +2428,72 @@ public final class TownBuilder {
 			}
 		}
 
+		/**
+		 * Its gathering fire (milestone 23 C2, "a gathering spot per town ... a campfire"): a campfire in one of the plaza's
+		 * south corners, two logs laid by it to sit on, where its people drift to of an evening. In a corner no road comes into
+		 * (a road across the plaza's corner would run into it); none if both have one.
+		 */
+		private void gatheringFire() {
+			// (The south corners first; the north ones, by the board and the bell, if roads come into both.)
+			int[][] corners = {{4, 4}, {-4, 4}, {4, -2}, {-4, -2}};
+			for (int[] corner : corners) {
+				int side = corner[0] > 0 ? 1 : -1;
+				BlockPos fire = new BlockPos(this.cx + corner[0], this.y0, this.cz + corner[1]);
+				BlockPos logA = fire.offset(2 * side, 0, 0);
+				BlockPos logB = fire.offset(0, 0, corner[1] > 0 ? 2 : -2);
+				if (this.nearRoad(fire.getX(), fire.getZ(), 1) || this.nearRoad(logA.getX(), logA.getZ(), 0) || this.nearRoad(logB.getX(), logB.getZ(), 0)
+					|| !this.level.getBlockState(fire).isAir() || !this.level.getBlockState(logA).isAir() || !this.level.getBlockState(logB).isAir()) {
+					continue;
+				}
+
+				place(this.level, fire, Blocks.CAMPFIRE.defaultBlockState());
+				BlockState log = wood("log").defaultBlockState();
+				// (Stripped: a log people sit on, not a tree's.)
+				Block stripped = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.withDefaultNamespace("stripped_"
+					+ style.main() + "_log"));
+				if (stripped != Blocks.AIR) {
+					log = stripped.defaultBlockState();
+				}
+
+				set(this.level, logA, log.trySetValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS, Direction.Axis.Z));
+				set(this.level, logB, log.trySetValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS, Direction.Axis.X));
+				this.fire = fire;
+				DrifterCivilizations.LOGGER.info("[town] {}: its gathering fire at {}", this.name, fire.toShortString());
+				return;
+			}
+
+			DrifterCivilizations.LOGGER.info("[town] {}: no corner of the plaza free for a gathering fire", this.name);
+		}
+
+		/**
+		 * Its shrine (C6, "a small build with candles, flowers"): a base of stone bricks, a carved stone in the middle with
+		 * candles lit on it, flowers in pots at its corners. Its people's own, open on all four sides.
+		 */
+		private void shrine() {
+			int x = (this.shrineRect.x0() + this.shrineRect.x1()) / 2;
+			int z = (this.shrineRect.z0() + this.shrineRect.z1()) / 2;
+			BlockPos middle = new BlockPos(x, this.shrineBase, z);
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					set(this.level, middle.offset(dx, 0, dz), Blocks.STONE_BRICKS.defaultBlockState());
+				}
+			}
+
+			set(this.level, middle.above(), Blocks.CHISELED_STONE_BRICKS.defaultBlockState());
+			place(this.level, middle.above(2), Blocks.WHITE_CANDLE.defaultBlockState().setValue(net.minecraft.world.level.block.CandleBlock.CANDLES, 3)
+				.setValue(net.minecraft.world.level.block.CandleBlock.LIT, true));
+			Block[] pots = {Blocks.POTTED_POPPY, Blocks.POTTED_DANDELION, Blocks.POTTED_CORNFLOWER, Blocks.POTTED_OXEYE_DAISY};
+			int k = 0;
+			for (int dx = -1; dx <= 1; dx += 2) {
+				for (int dz = -1; dz <= 1; dz += 2) {
+					place(this.level, middle.offset(dx, 1, dz), pots[k++ % pots.length].defaultBlockState());
+				}
+			}
+
+			this.shrineAt = middle.above();
+			DrifterCivilizations.LOGGER.info("[town] {}: a shrine at {}", this.name, this.shrineAt.toShortString());
+		}
+
 		private void plazaThings() {
 			int cx = this.cx;
 			int cz = this.cz;
@@ -2444,6 +2537,7 @@ public final class TownBuilder {
 			}
 
 			place(this.level, new BlockPos(cx + 5, y0, cz - 5), Blocks.BELL.defaultBlockState().setValue(BellBlock.FACING, Direction.SOUTH));
+			this.gatheringFire();
 			for (int dx : new int[] {-PLAZA, PLAZA}) {
 				for (int dz : new int[] {-PLAZA, PLAZA}) {
 					if (!this.nearRoad(cx + dx, cz + dz, 1)) {
@@ -2934,6 +3028,11 @@ public final class TownBuilder {
 			town.store.addAll(this.store);
 			town.fields.addAll(this.fields);
 			town.well = this.well;
+			town.fire = this.fire;
+			town.byWater = this.river || this.coast || !this.banks.isEmpty();
+			town.shrine = this.shrineAt;
+			// (Founded so long ago, by its past: its calendar from then.)
+			town.bornDay = day - this.foundedAgo;
 			town.pen = this.pen;
 			town.stallPlot = new Town.Plot(this.stallAt(), 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
 			town.stallBuilt = true;

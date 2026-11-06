@@ -1,0 +1,249 @@
+{
+  "comment": "Milestone 23 C3: a town's comings and goings, talked about for a few days (TownLife.talk: town_newcomer with {a.newcomer}, town_left with {a.leaver}).",
+  "topics": [
+    {
+      "id": "town_newcomer_chat",
+      "weight": 4,
+      "needs": [
+        "a:town_newcomer"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "you met {a.newcomer} yet?",
+              "then": [
+                "yeah seems nice",
+                "not yet",
+                "the new one? briefly",
+                "they moved in fast lol"
+              ]
+            },
+            {
+              "line": "{a.newcomer} moved in",
+              "then": [
+                "oh nice",
+                "about time someone took that house",
+                "hope they stay",
+                "where'd they come from"
+              ]
+            },
+            {
+              "line": "new neighbour, {a.newcomer}",
+              "then": [
+                "ya i saw",
+                "cool",
+                "more hands for the fields"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_left_chat",
+      "weight": 4,
+      "needs": [
+        "a:town_left"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "{a.leaver} left",
+              "then": [
+                "for good?",
+                "saw that coming",
+                "huh. why",
+                "their loss"
+              ]
+            },
+            {
+              "line": "heard {a.leaver} packed up and went",
+              "then": [
+                "ya, house is empty now",
+                "wonder where they went",
+                "they never really fit in",
+                "gonna miss them"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "market_day_chat",
+      "weight": 4,
+      "needs": [
+        "a:market_day"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "you going to the market?",
+              "then": [
+                "already went",
+                "later maybe",
+                "ya need to sell some stuff",
+                "nah broke lol"
+              ]
+            },
+            {
+              "line": "market day today",
+              "then": [
+                "finally",
+                "anything good?",
+                "gonna check it out",
+                "same stuff as last time probably"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contest_day_chat",
+      "weight": 4,
+      "needs": [
+        "a:contest_day"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "you in the fishing contest?",
+              "then": [
+                "obviously",
+                "no rod lol",
+                "im gonna win",
+                "maybe"
+              ]
+            },
+            {
+              "line": "contest today, bring your rod",
+              "then": [
+                "already fishing",
+                "ez win",
+                "whats the prize",
+                "ok ok"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contest_won_chat",
+      "weight": 4,
+      "needs": [
+        "a:contest_won"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "{a.winner} won the fishing contest",
+              "then": [
+                "of course they did",
+                "rigged",
+                "gg",
+                "how many did they get"
+              ]
+            },
+            {
+              "line": "did you see {a.winner} won",
+              "then": [
+                "ya lucky",
+                "next time its mine",
+                "well deserved",
+                "they fish all day anyway"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "festival_chat",
+      "weight": 5,
+      "needs": [
+        "a:festival_day"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "happy {a.festival}!",
+              "then": [
+                "you too!",
+                "happy {a.festival}",
+                "best day",
+                "lets gooo"
+              ]
+            },
+            {
+              "line": "you coming to the plaza for {a.festival}?",
+              "then": [
+                "obviously",
+                "after work",
+                "already there lol",
+                "wouldnt miss it"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_character_rough",
+      "weight": 1,
+      "needs": [
+        "a:character_rough_town"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "this town gets rowdy",
+              "then": [
+                "thats how we like it",
+                "someone got punched again",
+                "keeps things interesting"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town_character_friendly",
+      "weight": 1,
+      "needs": [
+        "a:character_friendly_market_town"
+      ],
+      "turns": [
+        {
+          "by": "a",
+          "lines": [
+            {
+              "line": "people are so nice here",
+              "then": [
+                "best town around",
+                "and the market's good",
+                "yeah everyone helps out"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

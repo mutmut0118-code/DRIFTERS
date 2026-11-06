@@ -35,6 +35,8 @@ public final class WhimGoal extends Goals.Goal {
 	private static final long GAP = 20L * 60 * 3;
 	/** How long a pick stays chosen before it picks again (so the score and the start agree). */
 	private static final long PICK_FOR = 20L * 10;
+	/** How much more a whim of a part of the day counts in that part. */
+	private static final double TIME_OF_DAY = 10.0;
 
 	@Nullable
 	private Whim picked;
@@ -71,7 +73,10 @@ public final class WhimGoal extends Goals.Goal {
 			return this.runningScore;
 		}
 
-		if (!com.dinglebob.drifter.DrifterConfig.whims() || now - state(drifter).lastAny < this.nextGap || !calm(drifter, context)) {
+		// (Its town may want it sooner: a festival, the midday and evening gatherings; milestone 23.)
+		var work = drifter.getTownWork();
+		double pace = work == null ? 1.0 : Math.max(0.1, Math.min(1.0, work.whimPace(drifter)));
+		if (!com.dinglebob.drifter.DrifterConfig.whims() || now - state(drifter).lastAny < this.nextGap * pace || !calm(drifter, context)) {
 			return 0.0;
 		}
 
@@ -294,6 +299,11 @@ public final class WhimGoal extends Goals.Goal {
 			weight *= 1.0 + Math.min(1.0, p.mood().pressure(mood.getKey())) * mood.getValue();
 		}
 
+		// (A whim of a part of its day, in that part: the thing to do then, much likelier; milestone 23 C1, a townsperson's day.)
+		if (whim.when().ofDay() && whim.when().fits(com.dinglebob.drifter.brain.Schedule.ownTime(drifter))) {
+			weight *= TIME_OF_DAY;
+		}
+
 		// [R]: the careful ones rarely.
 		if (whim.gates().risky()) {
 			double caution = p.get(Trait.CAUTION);
@@ -370,6 +380,7 @@ public final class WhimGoal extends Goals.Goal {
 			case RAIN -> level.isRaining();
 			case THUNDER -> level.isThundering();
 			case CLEAR -> !level.isRaining() && time < 12000L;
+			case DAWN, MORNING, MIDDAY, AFTERNOON, DUSK -> when.fits(com.dinglebob.drifter.brain.Schedule.ownTime(drifter));
 		};
 	}
 

@@ -67,6 +67,15 @@ public final class BlockNotes {
 			return new Note(MemoryKind.STORAGE, id, 0.7F);
 		}
 
+		// A kitchen (Farmer's Delight): the stove, pot, board and skillet are stations it cooks at; cabinets are storage.
+		if (com.dinglebob.drifter.compat.FarmersDelight.isCabinet(state)) {
+			return new Note(MemoryKind.STORAGE, id, 0.7F);
+		}
+
+		if (com.dinglebob.drifter.compat.FarmersDelight.isKitchen(state)) {
+			return new Note(MemoryKind.STATION, id, 0.7F);
+		}
+
 		if (state.is(Blocks.CRAFTING_TABLE) || state.is(Blocks.FURNACE) || state.is(Blocks.BLAST_FURNACE) || state.is(Blocks.SMOKER)
 			|| state.is(BlockTags.BEDS) || state.is(Blocks.ENCHANTING_TABLE) || state.is(BlockTags.ANVIL) || state.is(Blocks.BREWING_STAND)
 			|| state.is(Blocks.SMITHING_TABLE)) {

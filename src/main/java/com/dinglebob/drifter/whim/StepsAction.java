@@ -63,6 +63,9 @@ final class StepsAction implements WhimAction {
 		CHEST(16),
 		/** A spot it knows under the open sky. */
 		SKY(12),
+		/** A place of its town (milestone 23 C2: {@code "place"}: plaza, well, fire, board, stall, store, fields, bell), if it lives
+		 * in one and is near enough. */
+		TOWN(160),
 		/** A free bit of flat ground it knows (to put something down on). */
 		GROUND(8);
 
@@ -90,7 +93,9 @@ final class StepsAction implements WhimAction {
 
 	/** Each verb and the settings it takes (besides "do" and "chance"). */
 	static final Map<String, Set<String>> VERBS = new LinkedHashMap<>();
-	private static final Set<String> TARGET_KEYS = Set.of("type", "ids", "radius", "optional");
+	private static final Set<String> TARGET_KEYS = Set.of("type", "ids", "radius", "optional", "place");
+	/** The places of a town a {@code town} target can name. */
+	static final Set<String> TOWN_PLACES = Set.of("plaza", "well", "fire", "board", "stall", "store", "fields", "bell", "market", "festival", "shrine");
 	private static final List<String> LOOK_AT = List.of("sun", "moon", "stars", "clouds", "rain", "ahead", "up", "down");
 
 	static {
@@ -164,6 +169,16 @@ final class StepsAction implements WhimAction {
 					} else {
 						ids.add(value.getAsString());
 					}
+				}
+
+				if (kind == Kind.TOWN) {
+					String place = json.has("place") ? json.get("place").getAsString() : "";
+					if (!TOWN_PLACES.contains(place)) {
+						throw new IllegalArgumentException(where + " (a town place) needs \"place\": one of " + String.join(", ", TOWN_PLACES)
+							+ (place.isEmpty() ? "" : WhimCheck.didYouMean(place, TOWN_PLACES)));
+					}
+
+					ids.add(place);
 				}
 
 				if ((kind == Kind.BLOCK || kind == Kind.MOB) && ids.isEmpty()) {
@@ -384,6 +399,11 @@ final class StepsAction implements WhimAction {
 			case GROUND -> {
 				BlockPos spot = WhimActions.freeGround(drifter, target.radius(), 1, 2);
 				yield spot == null ? null : new Found(spot, null);
+			}
+			case TOWN -> {
+				var work = drifter.getTownWork();
+				BlockPos spot = work == null ? null : work.place(drifter, target.ids().get(0));
+				yield spot == null || spot.distSqr(drifter.blockPosition()) > (double)target.radius() * target.radius() ? null : new Found(spot, null);
 			}
 		};
 	}

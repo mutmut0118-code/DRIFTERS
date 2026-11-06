@@ -127,6 +127,9 @@ public final class Town {
 	public final List<BlockPos> fields = new ArrayList<>();
 	@Nullable
 	public BlockPos well;
+	/** Its gathering fire on the plaza (milestone 23 C2: where its people drift to of an evening), or null (towns made before). */
+	@Nullable
+	public BlockPos fire;
 	@Nullable
 	public BlockPos pen;
 	/** Where its people are building (or built) its store (step 3c), and whether it's up. */
@@ -147,6 +150,42 @@ public final class Town {
 	public final List<Plot> plaza = new ArrayList<>();
 	public boolean wellFilled;
 	public long boardDay = -1;
+	/** Comings and goings (milestone 23 C3, {@link TownLife}): the day it last looked, the newest of its people and the latest
+	 * to leave (and the days), the day a newcomer last came up its road. */
+	public long lifeDay = -1;
+	@Nullable
+	public String newest;
+	public long newestDay = -100;
+	@Nullable
+	public String lastLeft;
+	public long lastLeftDay = -100;
+	public long arrivedDay = -100;
+	/** Its events (milestone 23 C4, {@link TownEvents}): by water (a harbour, a river: its fishing contests), the day it last
+	 * called its events, its last contest's winner and the day. */
+	public boolean byWater;
+	public long eventDay = -1;
+	@Nullable
+	public String contestWinner;
+	public long contestDay = -100;
+	/** Debug: market day on this day too (`/drifterciv town market`). */
+	public long forcedMarketDay = -100;
+	/** Its culture (milestone 23 C6, {@link TownCulture}): the day it was founded (its past: before day 1 if it has one), the
+	 * day of its last festival, its shrine (null: none), its character as last worked out. */
+	public long bornDay;
+	public long festivalDay = -1;
+	@Nullable
+	public BlockPos shrine;
+	@Nullable
+	public String character;
+	/** Monuments (C6): the leader it knew last (one of them gone for good: a monument), what the next is for (its sign's
+	 * lines, "|" between; null: none due), the one going up, the day the last was finished. */
+	@Nullable
+	public java.util.UUID knownLeader;
+	@Nullable
+	public String monumentFor;
+	@Nullable
+	public Plot monument;
+	public long monumentDay = -100;
 	/**
 	 * Its money (step 4; the user, 2026-10-28: "Town treasury"): wages it owes each of its people for its work (points: an
 	 * emerald is 6), and what it has paid out all told. The money itself is in its till ({@link #till()}), real items.
@@ -285,6 +324,10 @@ public final class Town {
 			tag.putLong("Well", this.well.asLong());
 		}
 
+		if (this.fire != null) {
+			tag.putLong("Fire", this.fire.asLong());
+		}
+
 		if (this.pen != null) {
 			tag.putLong("Pen", this.pen.asLong());
 		}
@@ -309,6 +352,48 @@ public final class Town {
 		tag.put("Plaza", plaza);
 		tag.putBoolean("WellFilled", this.wellFilled);
 		tag.putLong("BoardDay", this.boardDay);
+		tag.putLong("LifeDay", this.lifeDay);
+		if (this.newest != null) {
+			tag.putString("Newest", this.newest);
+		}
+
+		tag.putLong("NewestDay", this.newestDay);
+		if (this.lastLeft != null) {
+			tag.putString("LastLeft", this.lastLeft);
+		}
+
+		tag.putLong("LastLeftDay", this.lastLeftDay);
+		tag.putLong("ArrivedDay", this.arrivedDay);
+		tag.putBoolean("ByWater", this.byWater);
+		tag.putLong("EventDay", this.eventDay);
+		if (this.contestWinner != null) {
+			tag.putString("ContestWinner", this.contestWinner);
+		}
+
+		tag.putLong("ContestDay", this.contestDay);
+		tag.putLong("BornDay", this.bornDay);
+		tag.putLong("FestivalDay", this.festivalDay);
+		if (this.shrine != null) {
+			tag.putLong("Shrine", this.shrine.asLong());
+		}
+
+		if (this.character != null) {
+			tag.putString("Character", this.character);
+		}
+
+		if (this.knownLeader != null) {
+			tag.putUUID("KnownLeader", this.knownLeader);
+		}
+
+		if (this.monumentFor != null) {
+			tag.putString("MonumentFor", this.monumentFor);
+		}
+
+		if (this.monument != null) {
+			tag.put("Monument", this.monument.save());
+		}
+
+		tag.putLong("MonumentDay", this.monumentDay);
 		CompoundTag owed = new CompoundTag();
 		this.owed.forEach((id, points) -> owed.putDouble(id.toString(), points));
 		tag.put("Owed", owed);
@@ -394,6 +479,7 @@ public final class Town {
 		}
 
 		town.well = tag.contains("Well") ? BlockPos.of(tag.getLong("Well")) : null;
+		town.fire = tag.contains("Fire") ? BlockPos.of(tag.getLong("Fire")) : null;
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
 		town.storePlot = tag.contains("StorePlot") ? Plot.load(tag.getCompound("StorePlot")) : null;
 		town.storeBuilt = tag.getBoolean("StoreBuilt") || town.spawned;
@@ -417,6 +503,24 @@ public final class Town {
 
 		town.wellFilled = tag.getBoolean("WellFilled");
 		town.boardDay = tag.contains("BoardDay") ? tag.getLong("BoardDay") : -1;
+		town.lifeDay = tag.contains("LifeDay") ? tag.getLong("LifeDay") : -1;
+		town.newest = tag.contains("Newest") ? tag.getString("Newest") : null;
+		town.newestDay = tag.contains("NewestDay") ? tag.getLong("NewestDay") : -100;
+		town.lastLeft = tag.contains("LastLeft") ? tag.getString("LastLeft") : null;
+		town.lastLeftDay = tag.contains("LastLeftDay") ? tag.getLong("LastLeftDay") : -100;
+		town.arrivedDay = tag.contains("ArrivedDay") ? tag.getLong("ArrivedDay") : -100;
+		town.byWater = tag.getBoolean("ByWater");
+		town.eventDay = tag.contains("EventDay") ? tag.getLong("EventDay") : -1;
+		town.contestWinner = tag.contains("ContestWinner") ? tag.getString("ContestWinner") : null;
+		town.contestDay = tag.contains("ContestDay") ? tag.getLong("ContestDay") : -100;
+		town.bornDay = tag.contains("BornDay") ? tag.getLong("BornDay") : town.foundedDay;
+		town.festivalDay = tag.contains("FestivalDay") ? tag.getLong("FestivalDay") : -1;
+		town.shrine = tag.contains("Shrine") ? BlockPos.of(tag.getLong("Shrine")) : null;
+		town.character = tag.contains("Character") ? tag.getString("Character") : null;
+		town.knownLeader = tag.hasUUID("KnownLeader") ? tag.getUUID("KnownLeader") : null;
+		town.monumentFor = tag.contains("MonumentFor") ? tag.getString("MonumentFor") : null;
+		town.monument = tag.contains("Monument") ? Plot.load(tag.getCompound("Monument")) : null;
+		town.monumentDay = tag.contains("MonumentDay") ? tag.getLong("MonumentDay") : -100;
 		CompoundTag owed = tag.getCompound("Owed");
 		for (String key : owed.getAllKeys()) {
 			try {

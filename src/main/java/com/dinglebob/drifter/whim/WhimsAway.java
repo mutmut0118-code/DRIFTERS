@@ -182,6 +182,7 @@ public final class WhimsAway {
 			case SUNSET -> time >= 11500L && time < 13000L;
 			case SUNRISE -> time >= 22800L || time < 500L;
 			case RAIN, THUNDER -> false;
+			case DAWN, MORNING, MIDDAY, AFTERNOON, DUSK -> when.fits(time);
 		};
 	}
 

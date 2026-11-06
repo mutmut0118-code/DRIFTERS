@@ -101,6 +101,7 @@ public final class Chronicle {
 			}
 		});
 		DrifterEvents.GROUP_CHANGED.register((member, groupId) -> {
+			// (See toldLeaving.)
 			MinecraftServer server = DrifterCivilizations.server();
 			if (server == null) {
 				return;
@@ -109,7 +110,8 @@ public final class Chronicle {
 			if (groupId == null) {
 				UUID was = groupOf.remove(member);
 				String group = was == null ? null : groupNames.get(was);
-				if (group != null) {
+				// (One whose leaving the town tells of itself: not twice. C3.)
+				if (group != null && !toldLeaving.remove(member)) {
 					add(server, "group", name(member) + " left " + group);
 				}
 
@@ -392,6 +394,9 @@ public final class Chronicle {
 	 * Something that happened {@code daysAgo} days before today (a town's past, written when it's made: A5), put in among
 	 * the rest by its day.
 	 */
+	/** Leaving a group its town tells of in its own words (C3: "left T for good"): the group's line isn't added too. */
+	static final java.util.Set<UUID> toldLeaving = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
 	static void addPast(@Nullable MinecraftServer server, String kind, String text, long daysAgo) {
 		if (server == null) {
 			return;

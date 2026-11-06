@@ -828,6 +828,11 @@ final class Diplomacy {
 	/** The war over: a peace pact, a truce, and {@code payer} owing the other this much (0: a white peace). */
 	static void peace(MinecraftServer server, Town x, Town y, Relation r, @Nullable Town payer, int amount) {
 		long day = Chronicle.day(server);
+		// (The side that didn't pay won: a monument to it, C6.)
+		if (payer != null) {
+			TownCulture.won(payer == x ? y : x, payer);
+		}
+
 		r.war = false;
 		r.truceUntilDay = day + TRUCE_DAYS;
 		r.pacts.add(Pact.PEACE);

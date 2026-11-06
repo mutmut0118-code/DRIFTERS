@@ -55,8 +55,10 @@ final class TradeRuns {
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
 		long now = server.overworld().getGameTime();
 		long time = server.overworld().getDayTime() % 24000L;
-		if (group == null || !town.stallBuilt || town.stallPlot == null || time < FROM || time > UNTIL
-			|| now - sent.getOrDefault(town.id, Long.MIN_VALUE / 2) < EVERY) {
+		// (A town round it with its market day today: a run there, whatever the days since the last, once a day; C4.)
+		Town market = marketToday(town, Chronicle.day(server));
+		long since = now - sent.getOrDefault(town.id, Long.MIN_VALUE / 2);
+		if (group == null || !town.stallBuilt || town.stallPlot == null || time < FROM || time > UNTIL || since < EVERY && (market == null || since < 24000L)) {
 			return;
 		}
 
@@ -164,9 +166,31 @@ final class TradeRuns {
 			.map(item -> item.getDescription().getString().toLowerCase(java.util.Locale.ROOT)).toList()) + " to " + to + " to trade");
 	}
 
+	/** A town round it (in reach of a run) with its market day today, the nearest. */
+	@Nullable
+	private static Town marketToday(Town town, long day) {
+		Town best = null;
+		for (Town other : Towns.all()) {
+			if (other != town && other.dimension.equals(town.dimension) && TownEvents.marketDay(other, day) && other.center.closerThan(town.center, FARTHEST)
+				&& (best == null || other.center.distSqr(town.center) < best.center.distSqr(town.center))) {
+				best = other;
+			}
+		}
+
+		return best;
+	}
+
 	/** The nearest other town with a stall within reach, or null. */
 	@Nullable
 	private static Town nearestMarket(Town town) {
+		// A market day round it first (C4).
+		if (DrifterCivilizations.server() != null) {
+			Town market = marketToday(town, Chronicle.day(DrifterCivilizations.server()));
+			if (market != null) {
+				return market;
+			}
+		}
+
 		// A trade deal's partner first (step 6, part 1).
 		for (Town partner : Diplomacy.partners(town)) {
 			if (partner.dimension.equals(town.dimension) && partner.stallBuilt && partner.stallPlot != null && partner.center.closerThan(town.center, FARTHEST)) {

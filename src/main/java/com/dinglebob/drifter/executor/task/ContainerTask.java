@@ -51,6 +51,16 @@ public class ContainerTask extends Task {
 	/** Putting away exact amounts from particular stacks (storing at home): stack -> how many of it to put in. */
 	@Nullable
 	private java.util.IdentityHashMap<ItemStack, Integer> quota;
+	/** How it sees the container's slots, for one that isn't a plain container (a cooking pot's window); null: the usual. */
+	@Nullable
+	private java.util.function.BiFunction<net.minecraft.world.level.Level, BlockPos, Container> lookup;
+	/** Loading a window slot by slot (a cooking pot: an ingredient in each slot, the bowls in theirs), a click each. */
+	@Nullable
+	private java.util.ArrayDeque<Load> loads;
+
+	/** One slot to fill: up to {@code amount} of what matches, into that slot only. */
+	public record Load(int slot, Predicate<ItemStack> filter, int amount) {
+	}
 	private Phase phase = Phase.AIM;
 	@Nullable
 	private Container container;
@@ -79,8 +89,35 @@ public class ContainerTask extends Task {
 		return task;
 	}
 
+	/**
+	 * Loads a window slot by slot in one visit (Farmer's Delight's cooking pot: each ingredient in its own slot, the bowls in
+	 * theirs), seen through {@code lookup}. Done when every slot has had its click; fails if nothing went in at all.
+	 */
+	public static ContainerTask load(DrifterEntity drifter, BlockPos pos, java.util.function.BiFunction<net.minecraft.world.level.Level, BlockPos, Container> lookup,
+		java.util.List<Load> loads, String label) {
+		ContainerTask task = new ContainerTask(drifter, pos, Mode.PUT, stack -> false, label, Integer.MAX_VALUE, null);
+		task.lookup = lookup;
+		task.loads = new java.util.ArrayDeque<>(loads);
+		return task;
+	}
+
+	/** Sees the container through {@code lookup} (a cooking pot's window). */
+	public ContainerTask through(java.util.function.BiFunction<net.minecraft.world.level.Level, BlockPos, Container> lookup) {
+		this.lookup = lookup;
+		return this;
+	}
+
+	@Nullable
+	private Container find() {
+		return this.lookup != null ? this.lookup.apply(this.drifter.level(), this.pos) : Containers.get(this.drifter.level(), this.pos);
+	}
+
 	@Override
 	public String describe() {
+		if (this.loads != null) {
+			return "load " + this.label + " at " + this.pos.toShortString();
+		}
+
 		String what = this.amount == Integer.MAX_VALUE ? "all " + this.label : this.amount + " " + this.label;
 		return (this.mode == Mode.PUT ? "put " + what + " into " : "take " + what + " from ") + "the container at " + this.pos.toShortString();
 	}
@@ -125,9 +162,24 @@ public class ContainerTask extends Task {
 
 				this.wait = InventoryPause.CLICK_TICKS;
 				// Looked up again each click: a double chest is a fresh wrapper each time, and the block may be gone.
-				this.container = Containers.get(this.drifter.level(), this.pos);
+				this.container = this.find();
 				if (this.container == null) {
 					return this.fail("the container is gone");
+				}
+
+				if (this.loads != null) {
+					Load load = this.loads.poll();
+					if (load == null) {
+						return this.moved > 0 ? Status.SUCCESS : this.fail("nothing to put in, or no room");
+					}
+
+					int put = this.putInto(load);
+					this.moved += put;
+					if (put > 0) {
+						com.dinglebob.drifter.hands.HandSignals.moved(this.drifter);
+					}
+
+					return Status.RUNNING;
 				}
 
 				int movedNow = this.mode == Mode.PUT ? this.putOneStack() : this.takeOneStack();
@@ -155,20 +207,23 @@ public class ContainerTask extends Task {
 			return Status.RUNNING;
 		}
 
-		if (Containers.get(this.drifter.level(), this.pos) == null) {
+		if (this.find() == null) {
 			return this.fail("it won't open (blocked, an ender chest, or not a container)");
 		}
 
 		InteractionResult clicked = FakePlayerBridge.act(this.drifter,
 			fake -> fake.gameMode.useItemOn(fake, this.drifter.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND, hit));
-		this.container = Containers.get(this.drifter.level(), this.pos);
+		this.container = this.find();
 		if (!clicked.consumesAction() || this.container == null) {
 			return this.fail("it won't open (protected?)");
 		}
 
 		this.drifter.swing(InteractionHand.MAIN_HAND);
 		this.drifter.getKeys().releaseAll();
-		this.drifter.getSenses().sawContents(this.pos, this.container, true);
+		if (this.lookup == null) {
+			this.drifter.getSenses().sawContents(this.pos, this.container, true);
+		}
+
 		Containers.playOpen(this.drifter.level(), this.pos);
 		com.dinglebob.drifter.hands.HandSignals.menu(this.drifter, this.pos);
 		this.opened = true;
@@ -189,6 +244,48 @@ public class ContainerTask extends Task {
 		}
 
 		return false;
+	}
+
+	/** Drags what matches into one slot of the window, up to the amount (its click for this slot). */
+	private int putInto(Load load) {
+		if (load.slot() >= this.container.getContainerSize()) {
+			return 0;
+		}
+
+		DrifterInventory inventory = this.drifter.getInventory();
+		int put = 0;
+		for (int from = 0; from < DrifterInventory.MAIN_SIZE && put < load.amount(); from++) {
+			ItemStack stack = inventory.getItem(from);
+			if (stack.isEmpty() || !load.filter().test(stack) || !this.container.canPlaceItem(load.slot(), stack)) {
+				continue;
+			}
+
+			ItemStack existing = this.container.getItem(load.slot());
+			int limit = Math.min(this.container.getMaxStackSize(stack), stack.getMaxStackSize());
+			int count;
+			if (existing.isEmpty()) {
+				count = Math.min(Math.min(limit, stack.getCount()), load.amount() - put);
+				this.container.setItem(load.slot(), stack.split(count));
+			} else if (ItemStack.isSameItemSameComponents(existing, stack)) {
+				count = Math.min(Math.min(limit - existing.getCount(), stack.getCount()), load.amount() - put);
+				if (count <= 0) {
+					break;
+				}
+
+				existing.grow(count);
+				stack.shrink(count);
+			} else {
+				break;
+			}
+
+			put += count;
+		}
+
+		if (put > 0) {
+			this.container.setChanged();
+		}
+
+		return put;
 	}
 
 	/** Shift-click one matching stack from the Drifter's main inventory into the container. */
@@ -269,7 +366,7 @@ public class ContainerTask extends Task {
 	@Override
 	protected void onStop() {
 		if (this.opened) {
-			Container current = Containers.get(this.drifter.level(), this.pos);
+			Container current = this.lookup == null ? Containers.get(this.drifter.level(), this.pos) : null;
 			if (current != null) {
 				this.drifter.getSenses().sawContents(this.pos, current);
 			}

@@ -570,11 +570,12 @@ public final class Home {
 	/** Its chests that are really still chests (it checks the ones it can see; others it trusts). */
 	public void forgetMissingChests(DrifterEntity drifter) {
 		this.chests.keySet().removeIf(pos -> drifter.getSenses().terrain().isKnown(pos)
-			&& !(drifter.level().getBlockState(pos).getBlock() instanceof ChestBlock || drifter.level().getBlockState(pos).getBlock() instanceof BarrelBlock));
+			&& !(drifter.level().getBlockState(pos).getBlock() instanceof ChestBlock || drifter.level().getBlockState(pos).getBlock() instanceof BarrelBlock
+				|| com.dinglebob.drifter.compat.FarmersDelight.isCabinet(drifter.level().getBlockState(pos))));
 	}
 
 	public static boolean isStorageBlock(net.minecraft.world.level.block.state.BlockState state) {
-		return state.is(Blocks.CHEST) || state.is(Blocks.BARREL) || state.is(Blocks.TRAPPED_CHEST);
+		return state.is(Blocks.CHEST) || state.is(Blocks.BARREL) || state.is(Blocks.TRAPPED_CHEST) || com.dinglebob.drifter.compat.FarmersDelight.isCabinet(state);
 	}
 
 	public CompoundTag save() {

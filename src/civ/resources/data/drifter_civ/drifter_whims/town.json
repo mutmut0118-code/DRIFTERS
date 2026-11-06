@@ -1,0 +1,769 @@
+{
+	"whims": [
+		{
+			"id": "midday_at_the_plaza",
+			"category": "town",
+			"action": "steps",
+			"when": "midday",
+			"weight": 8,
+			"comment": "Milestone 23 C2: the plaza at midday, a break from work; others there make it a chat (conversations).",
+			"params": {
+				"find": {
+					"plaza": {
+						"type": "town",
+						"place": "plaza"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "plaza",
+						"near": 1.5
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "say",
+						"lines": [
+							"lunch break",
+							"anyone around?",
+							"nice out today",
+							"whats new",
+							"so whats everyone up to",
+							"finally a break",
+							"busy morning",
+							"ok im taking five"
+						],
+						"chance": 0.35
+					},
+					{
+						"do": "wait",
+						"ticks": 240
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "wait",
+						"ticks": 160
+					}
+				]
+			},
+			"traits": {
+				"sociability": 1.0
+			},
+			"cooldown": 18000,
+			"offscreen": "show",
+			"thought": "taking a break at the plaza"
+		},
+		{
+			"id": "a_drink_at_the_well",
+			"category": "town",
+			"action": "steps",
+			"when": "midday",
+			"weight": 3,
+			"params": {
+				"find": {
+					"well": {
+						"type": "town",
+						"place": "well"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "well",
+						"near": 1.5
+					},
+					{
+						"do": "look_at",
+						"target": "well",
+						"ticks": 50
+					},
+					{
+						"do": "crouch",
+						"ticks": 25
+					},
+					{
+						"do": "say",
+						"lines": [
+							"water's cold today",
+							"best water around",
+							"needed that",
+							"ahh"
+						],
+						"chance": 0.2
+					},
+					{
+						"do": "wait",
+						"ticks": 120
+					}
+				]
+			},
+			"cooldown": 24000,
+			"offscreen": "show",
+			"thought": "stopping by the well"
+		},
+		{
+			"id": "evening_at_the_fire",
+			"category": "town",
+			"action": "steps",
+			"when": "dusk",
+			"weight": 8,
+			"comment": "Milestone 23 C2: the town's gathering fire of an evening.",
+			"params": {
+				"find": {
+					"fire": {
+						"type": "town",
+						"place": "fire"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "fire",
+						"near": 1.2
+					},
+					{
+						"do": "crouch",
+						"ticks": 30
+					},
+					{
+						"do": "say",
+						"lines": [
+							"long day",
+							"good day today",
+							"anyone got food",
+							"fire's nice",
+							"what a day",
+							"my feet hurt lol",
+							"who's on watch tonight",
+							"ok story time",
+							"same time tomorrow"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "wait",
+						"ticks": 200
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "wait",
+						"ticks": 200
+					}
+				]
+			},
+			"traits": {
+				"sociability": 1.0,
+				"patience": 0.3
+			},
+			"cooldown": 18000,
+			"offscreen": "show",
+			"thought": "sitting by the town fire for the evening"
+		},
+		{
+			"id": "reading_the_board",
+			"category": "town",
+			"action": "steps",
+			"when": "morning",
+			"weight": 3,
+			"params": {
+				"find": {
+					"board": {
+						"type": "town",
+						"place": "board"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "board",
+						"near": 1.5
+					},
+					{
+						"do": "look_at",
+						"at": "ahead",
+						"ticks": 100
+					},
+					{
+						"do": "say",
+						"lines": [
+							"anything new on the board?",
+							"lets see whats posted",
+							"hm nothing for me",
+							"oh interesting"
+						],
+						"chance": 0.3
+					},
+					{
+						"do": "think",
+						"text": "read the notice board"
+					}
+				]
+			},
+			"traits": {
+				"curiosity": 0.8
+			},
+			"cooldown": 24000,
+			"offscreen": "show",
+			"thought": "reading the notice board"
+		},
+		{
+			"id": "morning_round_the_fields",
+			"category": "town",
+			"action": "steps",
+			"when": "morning",
+			"weight": 2,
+			"params": {
+				"find": {
+					"fields": {
+						"type": "town",
+						"place": "fields"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "fields",
+						"near": 2
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "crouch",
+						"ticks": 20
+					},
+					{
+						"do": "think",
+						"text": "the town's fields are coming along"
+					}
+				]
+			},
+			"traits": {
+				"industriousness": 0.6
+			},
+			"cooldown": 24000,
+			"offscreen": "show",
+			"thought": "a walk round the town's fields"
+		},
+		{
+			"id": "browsing_the_stall",
+			"category": "town",
+			"action": "steps",
+			"when": "afternoon",
+			"weight": 3,
+			"params": {
+				"find": {
+					"stall": {
+						"type": "town",
+						"place": "stall"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "stall",
+						"near": 1.5
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "say",
+						"lines": [
+							"whats for sale today",
+							"prices went up again",
+							"anything good?",
+							"just looking"
+						],
+						"chance": 0.35
+					},
+					{
+						"do": "wait",
+						"ticks": 160
+					}
+				]
+			},
+			"traits": {
+				"greed": 0.5,
+				"curiosity": 0.4
+			},
+			"cooldown": 24000,
+			"offscreen": "show",
+			"thought": "browsing at the stall"
+		},
+		{
+			"id": "dawn_at_the_plaza",
+			"category": "town",
+			"action": "steps",
+			"when": "dawn",
+			"weight": 2,
+			"params": {
+				"find": {
+					"plaza": {
+						"type": "town",
+						"place": "plaza"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "plaza",
+						"near": 1.5
+					},
+					{
+						"do": "look_at",
+						"at": "sun",
+						"ticks": 80
+					},
+					{
+						"do": "say",
+						"lines": [
+							"morning",
+							"gm",
+							"morning all",
+							"up early again"
+						],
+						"chance": 0.3
+					}
+				]
+			},
+			"archetypes": {
+				"homebody": 1.3
+			},
+			"traits": {
+				"industriousness": 0.5
+			},
+			"cooldown": 24000,
+			"offscreen": "show",
+			"thought": "out early, the town still quiet"
+		},
+		{
+			"id": "market_day_morning",
+			"category": "town",
+			"action": "steps",
+			"when": "morning",
+			"weight": 10,
+			"comment": "Milestone 23 C4: market day (the 'market' place is the stall, only on its market day).",
+			"params": {
+				"find": {
+					"market": {
+						"type": "town",
+						"place": "market"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "market",
+						"near": 1.5
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "say",
+						"lines": [
+							"market day!",
+							"lets see whats new",
+							"anything good today?",
+							"ooh whats this",
+							"how much for that"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "wait",
+						"ticks": 300
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "wait",
+						"ticks": 160
+					}
+				]
+			},
+			"traits": {
+				"greed": 0.4,
+				"sociability": 0.6
+			},
+			"cooldown": 9000,
+			"offscreen": "show",
+			"thought": "at the market"
+		},
+		{
+			"id": "market_day_afternoon",
+			"category": "town",
+			"action": "steps",
+			"when": "afternoon",
+			"weight": 10,
+			"params": {
+				"find": {
+					"market": {
+						"type": "town",
+						"place": "market"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "market",
+						"near": 1.5
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "say",
+						"lines": [
+							"busy market today",
+							"prices are good today",
+							"crowded lol",
+							"one more look"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "wait",
+						"ticks": 300
+					}
+				]
+			},
+			"traits": {
+				"greed": 0.4,
+				"sociability": 0.6
+			},
+			"cooldown": 9000,
+			"offscreen": "show",
+			"thought": "back at the market"
+		},
+		{
+			"id": "festival_midday",
+			"category": "town",
+			"action": "steps",
+			"when": "midday",
+			"weight": 12,
+			"comment": "Milestone 23 C6: a festival day (the 'festival' place is the plaza, only on a festival day).",
+			"params": {
+				"find": {
+					"festival": {
+						"type": "town",
+						"place": "festival"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "festival",
+						"near": 1.5
+					},
+					{
+						"do": "jump",
+						"times": 3
+					},
+					{
+						"do": "say",
+						"lines": [
+							"happy founding day!",
+							"best day of the year",
+							"party at the plaza!",
+							"lets goooo",
+							"who brought food",
+							"cheers everyone",
+							"love this town"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "wait",
+						"ticks": 300
+					},
+					{
+						"do": "swing",
+						"times": 2
+					},
+					{
+						"do": "wait",
+						"ticks": 200
+					}
+				]
+			},
+			"traits": {
+				"sociability": 0.8
+			},
+			"cooldown": 6000,
+			"offscreen": "show",
+			"thought": "celebrating at the plaza"
+		},
+		{
+			"id": "festival_afternoon",
+			"category": "town",
+			"action": "steps",
+			"when": "afternoon",
+			"weight": 12,
+			"comment": "Milestone 23 C6: a festival day (the 'festival' place is the plaza, only on a festival day).",
+			"params": {
+				"find": {
+					"festival": {
+						"type": "town",
+						"place": "festival"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "festival",
+						"near": 1.5
+					},
+					{
+						"do": "jump",
+						"times": 3
+					},
+					{
+						"do": "say",
+						"lines": [
+							"happy founding day!",
+							"best day of the year",
+							"party at the plaza!",
+							"lets goooo",
+							"who brought food",
+							"cheers everyone",
+							"love this town"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "wait",
+						"ticks": 300
+					},
+					{
+						"do": "swing",
+						"times": 2
+					},
+					{
+						"do": "wait",
+						"ticks": 200
+					}
+				]
+			},
+			"traits": {
+				"sociability": 0.8
+			},
+			"cooldown": 6000,
+			"offscreen": "show",
+			"thought": "celebrating at the plaza"
+		},
+		{
+			"id": "festival_dusk",
+			"category": "town",
+			"action": "steps",
+			"when": "dusk",
+			"weight": 12,
+			"comment": "Milestone 23 C6: a festival day (the 'festival' place is the plaza, only on a festival day).",
+			"params": {
+				"find": {
+					"festival": {
+						"type": "town",
+						"place": "festival"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "festival",
+						"near": 1.5
+					},
+					{
+						"do": "jump",
+						"times": 3
+					},
+					{
+						"do": "say",
+						"lines": [
+							"happy founding day!",
+							"best day of the year",
+							"party at the plaza!",
+							"lets goooo",
+							"who brought food",
+							"cheers everyone",
+							"love this town"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "look_around"
+					},
+					{
+						"do": "wait",
+						"ticks": 300
+					},
+					{
+						"do": "swing",
+						"times": 2
+					},
+					{
+						"do": "wait",
+						"ticks": 200
+					}
+				]
+			},
+			"traits": {
+				"sociability": 0.8
+			},
+			"cooldown": 6000,
+			"offscreen": "show",
+			"thought": "celebrating at the plaza"
+		},
+		{
+			"id": "festival_bell",
+			"category": "town",
+			"action": "steps",
+			"when": "midday",
+			"weight": 6,
+			"params": {
+				"find": {
+					"festival": {
+						"type": "town",
+						"place": "festival"
+					},
+					"bell": {
+						"type": "block",
+						"ids": [
+							"minecraft:bell"
+						],
+						"radius": 40
+					}
+				},
+				"steps": [
+					{
+						"do": "use",
+						"target": "bell",
+						"times": 3,
+						"gap": 12
+					},
+					{
+						"do": "say",
+						"lines": [
+							"ding ding ding",
+							"festival time!",
+							"everyone to the plaza!"
+						],
+						"chance": 0.5
+					}
+				]
+			},
+			"traits": {
+				"fidget": 0.6
+			},
+			"cooldown": 12000,
+			"offscreen": "show",
+			"thought": "ringing the bell for the festival"
+		},
+		{
+			"id": "festival_feast",
+			"category": "town",
+			"action": "steps",
+			"when": "dusk",
+			"weight": 8,
+			"params": {
+				"find": {
+					"festival": {
+						"type": "town",
+						"place": "festival"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "festival",
+						"near": 1.5
+					},
+					{
+						"do": "eat",
+						"item": "minecraft:bread"
+					},
+					{
+						"do": "say",
+						"lines": [
+							"feast!",
+							"good bread this year",
+							"ok im full",
+							"best meal all month"
+						],
+						"chance": 0.4
+					},
+					{
+						"do": "wait",
+						"ticks": 200
+					}
+				]
+			},
+			"needs": [
+				{
+					"item": "minecraft:bread",
+					"count": 1
+				}
+			],
+			"cooldown": 12000,
+			"offscreen": "show",
+			"thought": "feasting at the plaza"
+		},
+		{
+			"id": "sit_by_the_shrine",
+			"category": "town",
+			"action": "steps",
+			"when": "afternoon",
+			"weight": 4,
+			"comment": "Milestone 23 C6: a town's shrine (some towns have one); patient, forgiving ones keep to it. Never preaching.",
+			"params": {
+				"find": {
+					"shrine": {
+						"type": "town",
+						"place": "shrine"
+					}
+				},
+				"steps": [
+					{
+						"do": "walk_to",
+						"target": "shrine",
+						"near": 1.2
+					},
+					{
+						"do": "crouch",
+						"ticks": 60
+					},
+					{
+						"do": "look_at",
+						"at": "down",
+						"ticks": 200
+					},
+					{
+						"do": "think",
+						"text": "felt calmer after sitting by the shrine"
+					}
+				]
+			},
+			"traits": {
+				"patience": 1.0,
+				"forgiveness": 1.0,
+				"caution": 0.4
+			},
+			"cooldown": 36000,
+			"offscreen": "show",
+			"thought": "sitting quietly by the shrine"
+		}
+	]
+}

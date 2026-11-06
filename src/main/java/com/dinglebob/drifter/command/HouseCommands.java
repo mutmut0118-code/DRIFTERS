@@ -77,6 +77,8 @@ public final class HouseCommands {
 				.executes(HouseCommands::site)))
 			// Debug: the house at its site counts as built and lived in (its bed is the one inside), e.g. after a paste.
 			.then(Commands.literal("done").executes(HouseCommands::done))
+			// Debug: the nearest one's house layout (the kitchen's places with Farmer's Delight), what's in each, its pot, its meal.
+			.then(Commands.literal("furnishing").executes(HouseCommands::furnishing))
 			.then(Commands.literal("save").then(Commands.argument("name", StringArgumentType.word())
 				.then(Commands.argument("from", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
 					.then(Commands.argument("to", net.minecraft.commands.arguments.coordinates.BlockPosArgument.blockPos())
@@ -464,6 +466,35 @@ public final class HouseCommands {
 
 		BlockPos bed = home.planBed;
 		say(ctx, DrifterCommands.label(drifter) + "'s house counts as built" + (bed != null ? ", its bed at " + bed.toShortString() : " (no bed inside)"));
+		return 1;
+	}
+
+	private static int furnishing(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var home = drifter.getDrifterBrain().home();
+		HousePlan plan = home == null || home.planId == null || home.planOrigin == null ? null : HousePlans.get(ctx.getSource().getServer(), home.planId);
+		if (plan == null) {
+			say(ctx, DrifterCommands.label(drifter) + " has no house from a plan");
+			return 0;
+		}
+
+		var level = drifter.level();
+		List<String> parts = new java.util.ArrayList<>();
+		for (var spot : com.dinglebob.drifter.building.Furnishing.plan(level, com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home), home.planBed)) {
+			var state = level.getBlockState(spot.pos());
+			parts.add(spot.use().name().toLowerCase(Locale.ROOT) + " " + spot.pos().toShortString() + (spot.upper() ? " (on top)" : "") + ": "
+				+ (state.isAir() ? "free" : state.getBlock().getName().getString().toLowerCase(Locale.ROOT)));
+		}
+
+		say(ctx, DrifterCommands.label(drifter) + "'s layout (" + parts.size() + "): " + String.join("; ", parts));
+		if (com.dinglebob.drifter.compat.FarmersDelight.loaded()) {
+			BlockPos pot = com.dinglebob.drifter.brain.Planner.usablePot(drifter);
+			var meal = com.dinglebob.drifter.brain.Kitchen.chooseMeal(drifter, com.dinglebob.drifter.brain.KnownWorld.scan(drifter));
+			say(ctx, "Kitchen: pot " + (pot == null ? "none it can use" : pot.toShortString()) + ", skillet "
+				+ (com.dinglebob.drifter.brain.activity.SkilletActivity.usable(drifter) == null ? "none" : "ready") + ", would cook "
+				+ (meal == null ? "nothing yet" : com.dinglebob.drifter.brain.Planner.name(meal)) + ", meals on it " + com.dinglebob.drifter.brain.Kitchen.mealsCarried(drifter));
+		}
+
 		return 1;
 	}
 
