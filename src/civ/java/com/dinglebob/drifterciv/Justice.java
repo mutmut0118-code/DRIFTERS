@@ -246,6 +246,63 @@ final class Justice {
 	// ---------------------------------------------------------------------------------------------
 
 	private static final int FINE_FIGHT = 2;
+	/** A city's crook goes at it this much sooner than a town's (the user, 2026-11-06: "causing much more crime than usual"). */
+	static final double CITY_CROOK_PACE = 0.3;
+	/** A city with no crook gets one this many days after the last was thrown out (or at once, the first time). */
+	private static final long NEW_CROOK_AFTER = 3;
+	/** When each city's last crook was thrown out (the day; not saved: after a reload, a new one may come sooner). */
+	private static final Map<UUID, Long> crookOut = new HashMap<>();
+
+	/**
+	 * A city always has its crook (the user, 2026-11-06: "a town crook should always be in a city"): none, and none thrown
+	 * out lately, one of its people turns to it (the one least like a good neighbour: aggressive, greedy, unforgiving; not its leader,
+	 * its keeper or a guard).
+	 */
+	static boolean cityCrook(MinecraftServer server, Town town) {
+		if (!Towns.city(town) || !town.crooks.isEmpty()) {
+			return false;
+		}
+
+		long day = Chronicle.day(server);
+		Long out = crookOut.get(town.id);
+		if (out != null && day - out < NEW_CROOK_AFTER) {
+			return false;
+		}
+
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group == null || group.members.size() < 6) {
+			return false;
+		}
+
+		DrifterEntity pick = null;
+		double best = -Double.MAX_VALUE;
+		for (UUID id : group.members) {
+			DrifterEntity member = TownFounding.loaded(server, id);
+			if (member == null || id.equals(town.leader) || id.equals(group.leader) || id.equals(town.keeper) || "guard".equals(town.lines.get(id))
+				|| DrifterApi.tradeRun(member) != null) {
+				continue;
+			}
+
+			double score = DrifterApi.trait(member, "aggression") + DrifterApi.trait(member, "greed") - DrifterApi.trait(member, "forgiveness");
+			if (score > best) {
+				best = score;
+				pick = member;
+			}
+		}
+
+		if (pick == null) {
+			return false;
+		}
+
+		DrifterApi.turnBandit(pick);
+		town.crooks.add(pick.getUUID());
+		DrifterApi.settleDown(pick);
+		DrifterApi.think(pick, "lives in " + town.name + ". a big city. easy pickings");
+		DrifterCivilizations.LOGGER.info("[town] {} is {}'s crook now (a city always has one)", pick.getName().getString(), town.name);
+		crookOut.remove(town.id);
+		return true;
+	}
+
 	/** What a crook's crime does to the trust of those who saw it (and of the one it wronged). */
 	private static final double SAW_IT = -15.0;
 	/** Thrown out: what its town mates think of it then (so they don't team up with it again). */
@@ -370,6 +427,7 @@ final class Justice {
 		String name = crook.getName().getString();
 		DrifterGroups.leave(crook.getUUID());
 		town.crooks.remove(crook.getUUID());
+		crookOut.put(town.id, Chronicle.day(server));
 		town.taxOwed.remove(crook.getUUID());
 		town.lastCrime = "thrown_out";
 		DrifterApi.setHome(crook, null);

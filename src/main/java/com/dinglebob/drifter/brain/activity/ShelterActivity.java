@@ -61,6 +61,9 @@ public class ShelterActivity extends Activity {
 	private int doorTries;
 	/** It has walked home for the night already (or has no home to go to). */
 	private boolean wentHome;
+	/** It thought of heading home; the stretches it's walked home from far off. */
+	private boolean toldHome;
+	private int homeLegs;
 
 	public ShelterActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -136,7 +139,7 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private BlockPos houseBed() {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()) {
+		if (home == null || !home.near(this.drifter, Schedule.goHomeRange(this.drifter)) || this.drifter.getDrifterBrain().homeCutOff()) {
 			return null;
 		}
 
@@ -235,7 +238,7 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private com.dinglebob.drifter.building.StarterHut hut() {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()
+		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.goHomeRange(this.drifter)) || this.drifter.getDrifterBrain().homeCutOff()
 			|| home.planBed(this.drifter.level()) != null) {
 			// (Moved into the house it built from a plan: the hut's a shed now; the house routine takes it to bed.)
 			return null;
@@ -333,12 +336,23 @@ public class ShelterActivity extends Activity {
 				// TODO(milestone 8 step 2): sleep in the starter hut instead of digging in beside it.
 				com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
 				if (!this.wentHome && this.top == null) {
-					this.wentHome = true;
-					if (home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4
+					if (home != null && home.near(this.drifter, Schedule.goHomeRange(this.drifter)) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4
 						&& !this.drifter.getDrifterBrain().homeCutOff()) {
-						this.think("heading home for the night");
+						if (!this.toldHome) {
+							this.toldHome = true;
+							this.think("heading home for the night");
+						}
+
+						// (From far off, a stretch at a time, along the road if there is one.)
+						if (this.drifter.blockPosition().distSqr(home.center) > 40 * 40 && ++this.homeLegs <= 24) {
+							return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, home.center, 1.5, "go home for the night"));
+						}
+
+						this.wentHome = true;
 						return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.5, "go home for the night"));
 					}
+
+					this.wentHome = true;
 				}
 
 				if (!this.drifter.onGround()) {
@@ -424,8 +438,14 @@ public class ShelterActivity extends Activity {
 					return Status.RUNNING;
 				}
 
-				// The village house round its home spot; the house it built, by the bed.
+				// The village house round its home spot; the house it built, by the bed. (Far: home a stretch at a time, along the
+				// road if there is one, those not counted as tries: a townsperson goes home from far off.)
 				BlockPos inside = home.houseBed != null ? home.center : besideBed(level, bed);
+				if (feet.distSqr(inside) > 40 * 40) {
+					this.houseTries--;
+					return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, inside, 2.0, "go home for the night"));
+				}
+
 				if (feet.distSqr(inside) > 2 * 2) {
 					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(inside), 0.5, "go into the house"));
 				}

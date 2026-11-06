@@ -1,6 +1,23 @@
 {
-	"_comment": "Threats from mods (milestone 19). Entries for mods that aren't installed never match anything. Guard Villagers' guards only count while one is after the Drifter (a bandit raiding the village, or one that hit a guard or a villager): armoured, with a sword or crossbow, about a vindicator.",
+	"_comment": "Threats from mods (milestone 19). Entries for mods that aren't installed never match anything. Guard Villagers' guards only count while one is after the Drifter (a bandit raiding the village, or one that hit a guard or a villager): armoured, with a sword or crossbow, about a vindicator. Alex's Mobs: its hostile animals aren't 'monsters' to the game, so without an entry here they counted for nothing until they attacked (the user, 2026-11-06: 'Drifters tend to get killed by tusklins alot, tusklins are always hostile'); the big neutral ones only count while one is after it.",
 	"threats": {
-		"guardvillagers:guard": { "danger": 2.6, "neutral": true }
+		"guardvillagers:guard": { "danger": 2.6, "neutral": true },
+		"alexsmobs:tusklin": { "danger": 3.5 },
+		"alexsmobs:crocodile": { "danger": 2.6 },
+		"alexsmobs:komodo_dragon": { "danger": 2.0 },
+		"alexsmobs:anaconda": { "danger": 2.2 },
+		"alexsmobs:rattlesnake": { "danger": 1.0 },
+		"alexsmobs:dropbear": { "danger": 2.2 },
+		"alexsmobs:mimicube": { "danger": 2.4 },
+		"alexsmobs:warped_mosco": { "danger": 6.0 },
+		"alexsmobs:grizzly_bear": { "danger": 3.0, "neutral": true },
+		"alexsmobs:gorilla": { "danger": 2.4, "neutral": true },
+		"alexsmobs:tiger": { "danger": 3.0, "neutral": true },
+		"alexsmobs:snow_leopard": { "danger": 1.6, "neutral": true },
+		"alexsmobs:elephant": { "danger": 4.0, "neutral": true },
+		"alexsmobs:rhinoceros": { "danger": 3.5, "neutral": true },
+		"alexsmobs:moose": { "danger": 2.6, "neutral": true },
+		"alexsmobs:bison": { "danger": 2.4, "neutral": true },
+		"alexsmobs:tarantula_hawk": { "danger": 2.0, "neutral": true }
 	}
 }

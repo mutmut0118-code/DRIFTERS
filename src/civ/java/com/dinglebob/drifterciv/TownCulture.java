@@ -53,13 +53,33 @@ final class TownCulture {
 		return festival.equals("founding") ? "Founding Day" : "the harvest festival";
 	}
 
-	/** On a festival day, work counts less, ease more. */
+	/** On a festival day, work counts less (much less), ease more. */
 	static double leaning(Town town, DrifterEntity drifter, String goal, long day) {
 		if (festival(town, day) == null) {
 			return 0.0;
 		}
 
-		return WORK.contains(goal) ? -0.15 : goal.equals("whim") ? 0.12 : goal.equals("converse") ? 0.1 : 0.0;
+		return WORK.contains(goal) ? -0.25 : goal.equals("whim") ? 0.12 : goal.equals("converse") ? 0.1 : 0.0;
+	}
+
+	/**
+	 * Where it gathers on a festival day, from its morning to its evening (its own day): a spot of its own round the plaza
+	 * (the user, 2026-11-06: "when festivals happen civs should mainly gather around the plaza"); else null. Not its guards
+	 * by night, nor anyone away on a trade run.
+	 */
+	@Nullable
+	static BlockPos gathering(Town town, DrifterEntity drifter) {
+		long day = drifter.getServer() == null ? 0 : Chronicle.day(drifter.getServer());
+		if (festival(town, day) == null || DrifterApi.tradeRun(drifter) != null) {
+			return null;
+		}
+
+		TownDay.Part part = TownDay.part(DrifterApi.ownTime(drifter));
+		if (part == TownDay.Part.NIGHT) {
+			return null;
+		}
+
+		return TownDay.place(town, drifter, "plaza");
 	}
 
 	/** Each check: a festival's morning, called out; a monument due, begun, built. */
@@ -93,6 +113,8 @@ final class TownCulture {
 		}
 
 		DrifterCivilizations.LOGGER.info("[culture] {}", text);
+		TownBells.ring(server, town, name(festival), festival.equals("founding") ? java.util.List.of("founding day! everyone to the plaza!",
+			"ding ding! happy founding day!") : java.util.List.of("harvest festival! everyone to the plaza!", "festival time!"));
 		Towns.save(server);
 	}
 

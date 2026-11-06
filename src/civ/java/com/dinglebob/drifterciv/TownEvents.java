@@ -83,6 +83,7 @@ final class TownEvents {
 				}
 
 				Chronicle.add(server, "market", "Market day in " + town.name);
+				TownBells.ring(server, town, "market day", java.util.List.of("market day! the stall's open", "market's open, come and see!"));
 			}
 
 			if (contestDay(town, day)) {

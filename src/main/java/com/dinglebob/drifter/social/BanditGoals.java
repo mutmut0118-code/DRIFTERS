@@ -988,15 +988,6 @@ public final class BanditGoals {
 
 	/** A stretch of up to 32 blocks toward somewhere far (the way players cross country, a bit at a time). */
 	static Task leg(DrifterEntity drifter, BlockPos to, String what) {
-		Vec3 from = drifter.position();
-		Vec3 toward = Vec3.atBottomCenterOf(to).subtract(from);
-		double distance = Math.sqrt(toward.x * toward.x + toward.z * toward.z);
-		if (distance <= 32.0) {
-			return new NavigateTask(drifter, Vec3.atBottomCenterOf(to), 3.0, what);
-		}
-
-		Vec3 step = from.add(toward.x / distance * 32.0, 0.0, toward.z / distance * 32.0);
-		BlockPos ground = drifter.level().getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, BlockPos.containing(step));
-		return new NavigateTask(drifter, Vec3.atBottomCenterOf(ground), 4.0, what);
+		return com.dinglebob.drifter.nav.Legs.toward(drifter, to, 3.0, what);
 	}
 }

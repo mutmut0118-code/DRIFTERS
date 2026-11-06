@@ -119,6 +119,48 @@ public interface TownWork {
 		return false;
 	}
 
+	/**
+	 * Its town's bell to ring now, why, and what to call out after (an event's begun: a festival, market day, a war), for
+	 * the one its town picked to ring it; null for everyone else, and when there's nothing to ring for.
+	 */
+	default Bell bell(DrifterEntity drifter) {
+		return null;
+	}
+
+	/**
+	 * Where to be for its town's gathering now (a festival day: the plaza, a spot of its own there), or null when there's
+	 * none on (the user, 2026-11-06: "when festivals happen civs should mainly gather around the plaza").
+	 */
+	default BlockPos gathering(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** It rang the bell. */
+	default void rang(DrifterEntity drifter) {
+	}
+
+	/** A bell to ring: where it is, what for ("the festival"), the lines to call out after. */
+	record Bell(BlockPos pos, String why, List<String> lines) {
+	}
+
+	/** How soon a crook goes at it again, as a share of the usual wait (a city's crook: much sooner). 1 by default. */
+	default double crookPace(DrifterEntity drifter) {
+		return 1.0;
+	}
+
+	/**
+	 * One of its town's guards (the user, 2026-11-06: "in a city there should be a higher ratio of guards, patrolling at
+	 * night so random civs dont get killed"): it walks the town's rounds ({@code PatrolGoal}), by night most of all.
+	 */
+	default boolean guard(DrifterEntity drifter) {
+		return false;
+	}
+
+	/** A guard's rounds: the spots it walks between, in order (along its town's roads), or empty. */
+	default List<BlockPos> patrol(DrifterEntity drifter) {
+		return List.of();
+	}
+
 	/** This chest is someone else's in the town (the town's store or till, a neighbour's): a crook's to rob. */
 	default boolean othersChest(DrifterEntity drifter, BlockPos chest) {
 		return false;

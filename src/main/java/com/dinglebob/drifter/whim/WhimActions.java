@@ -146,20 +146,20 @@ public final class WhimActions {
 	 * An activity that runs a list of steps in order, each made when its turn comes (so it reads the world then). A
 	 * step that fails ends it; the whim is a whim, it doesn't try hard.
 	 */
-	static class Steps extends Activity {
+	public static class Steps extends Activity {
 		private final String what;
 		private final int timeout;
 		private final List<Supplier<Task>> steps = new ArrayList<>();
 		private int next;
 		private boolean failed;
 
-		Steps(DrifterEntity drifter, String what, int timeout) {
+		public Steps(DrifterEntity drifter, String what, int timeout) {
 			super(drifter);
 			this.what = what;
 			this.timeout = timeout;
 		}
 
-		Steps then(Supplier<Task> step) {
+		public Steps then(Supplier<Task> step) {
 			this.steps.add(step);
 			return this;
 		}
@@ -1257,7 +1257,7 @@ public final class WhimActions {
 		}
 
 		@Nullable
-		static Entity nearestCompany(DrifterEntity drifter) {
+		public static Entity nearestCompany(DrifterEntity drifter) {
 			Entity best = null;
 			for (Awareness awareness : drifter.getSenses().tracked()) {
 				if (awareness.visibleNow && awareness.identified && awareness.entity.distanceTo(drifter) < 16.0

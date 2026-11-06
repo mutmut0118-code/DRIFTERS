@@ -151,6 +151,14 @@ public final class TownFounding {
 				Towns.all().forEach(town -> TownCulture.check(server, town));
 				// A Bandit living in a town (one there from before, or one who turned) is its crook: no killing on sight there.
 				Towns.all().forEach(town -> settleDown(server, town));
+				// Its bell, when something's begun.
+				Towns.all().forEach(town -> TownBells.check(server, town));
+				// A city's crook (always one).
+				Towns.all().forEach(town -> {
+					if (Justice.cityCrook(server, town)) {
+						Towns.save(server);
+					}
+				});
 				Towns.all().forEach(town -> {
 					boolean politics = Politics.check(server, town);
 					if (Justice.check(server, town) || politics) {

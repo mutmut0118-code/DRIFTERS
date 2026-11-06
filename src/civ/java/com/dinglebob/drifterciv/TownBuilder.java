@@ -3006,14 +3006,14 @@ public final class TownBuilder {
 		private void townUp() {
 			var group = DrifterApi.formGroup(this.people, this.name);
 			// Gear by their place in the town (the user, 2026-10-28: everyone in diamond, "i cant tell a guard from a citizen, or
-			// a citizen from a leader"): its leader (the group's first), its two boldest as guards, the rest a working life's.
+			// a citizen from a leader"): its leader (the group's first), its boldest as guards (a city one in seven, a town one in ten, two at least), the rest a working life's.
 			List<DrifterEntity> boldest = new ArrayList<>(this.people.subList(Math.min(1, this.people.size()), this.people.size()));
 			boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
 				.reversed());
 			List<UUID> guards = new ArrayList<>();
 			for (DrifterEntity one : this.people) {
-				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0 && boldest.indexOf(one) < 2 ? "guard"
-					: "citizen";
+				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0
+					&& boldest.indexOf(one) < Math.max(2, this.city ? this.people.size() / 7 : this.people.size() / 10) ? "guard" : "citizen";
 				DrifterApi.equipTown(one, this.random, role);
 				if (role.equals("guard")) {
 					guards.add(one.getUUID());
@@ -4121,6 +4121,16 @@ public final class TownBuilder {
 	private static final int HIGHWAY_DEEPEST = 6;
 
 	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep) {
+		highway(level, line, keep, java.util.Set.of());
+	}
+
+	/**
+	 * The same, never putting a railing on {@code avoid}: the columns of the roads about (this road's stretches either side,
+	 * and others'). A railing beside one stretch's end stood on the next stretch's way, a block up or down from its deck so
+	 * the deck didn't clear it: a fence across the bridge (the user, 2026-11-06: "on roads between towns, fences sometimes
+	 * block the path when on rivers").
+	 */
+	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep, java.util.Set<Long> avoid) {
 		if (line.size() < 2) {
 			return;
 		}
@@ -4298,9 +4308,22 @@ public final class TownBuilder {
 				int deck = Math.max(want[cell.getValue()], surface + 1);
 				decks.put(cell.getKey(), deck);
 				set(level, new BlockPos(x, deck, z), wood("planks").defaultBlockState());
-				// (Another road's railing where this deck goes: off it. Two bridges side by side had a fence across where they met.)
-				if (level.getBlockState(new BlockPos(x, deck + 1, z)).getBlock() instanceof net.minecraft.world.level.block.FenceBlock) {
-					set(level, new BlockPos(x, deck + 1, z), Blocks.AIR.defaultBlockState());
+				// (Another road's railing where this deck goes: off it, its plank too if it stands a block up. Two bridges side by
+				// side had a fence across where they met; a railing a block higher than the deck stayed, across the way.)
+				BlockPos one = new BlockPos(x, deck + 1, z);
+				BlockPos two = one.above();
+				if (level.getBlockState(two).getBlock() instanceof net.minecraft.world.level.block.FenceBlock
+					&& level.getBlockState(one).is(net.minecraft.tags.BlockTags.PLANKS)) {
+					set(level, two, Blocks.AIR.defaultBlockState());
+					set(level, one, Blocks.AIR.defaultBlockState());
+				}
+
+				if (level.getBlockState(one).getBlock() instanceof net.minecraft.world.level.block.FenceBlock) {
+					set(level, one, Blocks.AIR.defaultBlockState());
+				}
+
+				if (level.getBlockState(two).getBlock() instanceof net.minecraft.world.level.block.FenceBlock && level.getBlockState(one).isAir()) {
+					set(level, two, Blocks.AIR.defaultBlockState());
 				}
 
 				continue;
@@ -4334,7 +4357,8 @@ public final class TownBuilder {
 				for (Direction side : Direction.Plane.HORIZONTAL) {
 					int nx = x + side.getStepX();
 					int nz = z + side.getStepZ();
-					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || !wet(level, nx, nz) && !islets.contains(cell.getKey())) {
+					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || avoid.contains(BlockPos.asLong(nx, 0, nz))
+						|| !wet(level, nx, nz) && !islets.contains(cell.getKey())) {
 						continue;
 					}
 
@@ -4369,7 +4393,9 @@ public final class TownBuilder {
 			}
 		}
 
-		bridgeRails(level, rails, road.cells.keySet());
+		java.util.Set<Long> ways = new java.util.HashSet<>(road.cells.keySet());
+		ways.addAll(avoid);
+		bridgeRails(level, rails, ways);
 		tidy(level, road.cells.keySet());
 
 		// The test: steps along it that need a jump (over half a block between columns side by side, off the bridges).

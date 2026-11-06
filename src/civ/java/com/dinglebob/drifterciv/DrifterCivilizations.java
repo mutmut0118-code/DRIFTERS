@@ -71,6 +71,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		WorldBuild.register();
 		TownRaids.register();
 		Trades.register();
+		DrifterApi.setRoutes(Routes::between);
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -114,6 +115,17 @@ public final class DrifterCivilizations implements ModInitializer {
 							? "" : ", in no nation") + ") is at " + place.x + ", " + place.z + ", " + far + " blocks away" + (place.made ? "" : " (not seen yet)")), false);
 						return 1;
 					})))
+			// (Debug: the way along the roads from here to there, as the Drifters going far take it.)
+			.then(Commands.literal("route")
+				.then(Commands.argument("x", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+					.then(Commands.argument("z", com.mojang.brigadier.arguments.IntegerArgumentType.integer()).executes(ctx -> {
+						BlockPos from = BlockPos.containing(ctx.getSource().getPosition());
+						BlockPos to = new BlockPos(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "x"), from.getY(),
+							com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "z"));
+						String way = Routes.describe(from, to);
+						ctx.getSource().sendSuccess(() -> Component.literal("To " + to.getX() + ", " + to.getZ() + ": " + way), false);
+						return 1;
+					}))))
 			.then(Commands.literal("plan")
 				.executes(ctx -> {
 					if (!WorldPlan.ready) {
@@ -361,7 +373,7 @@ public final class DrifterCivilizations implements ModInitializer {
 						+ ". /locate structure drifter_civ:town finds them too"), false);
 					for (var site : pending.subList(0, Math.min(8, pending.size()))) {
 						ctx.getSource().sendSuccess(() -> Component.literal("  " + site.x + ", " + site.z + " (" + Math.round(Math.hypot(site.x - from.getX(),
-							site.z - from.getZ())) + " blocks away, " + site.households + " households)"), false);
+							site.z - from.getZ())) + " blocks away, " + site.households + " households" + TownSites.progress(ctx.getSource().getLevel(), site) + ")"), false);
 					}
 
 					return pending.size();

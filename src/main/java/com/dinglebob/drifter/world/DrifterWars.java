@@ -135,6 +135,10 @@ public final class DrifterWars {
 		/** What its raiders have broken, and the fires they've lit, so far. */
 		public int broken;
 		public int fires;
+		/** The leader's speech before the march: lines said, when the last was, which. */
+		public int speech;
+		public long lastSpoke;
+		public final java.util.Set<String> said = new java.util.HashSet<>();
 
 		Raid(UUID attackers, UUID defenders, BlockPos target, BlockPos home, long now) {
 			this.attackers = attackers;
@@ -152,7 +156,7 @@ public final class DrifterWars {
 	}
 
 	/** How long each part of a raid may take at most. */
-	public static final long GATHER_TICKS = 20 * 60;
+	public static final long GATHER_TICKS = 20 * 90;
 	public static final long TRAVEL_TICKS = 20 * 60 * 6;
 	public static final long ATTACK_TICKS = 20 * 60 * 3;
 	public static final long RETREAT_TICKS = 20 * 60 * 6;
@@ -587,9 +591,13 @@ public final class DrifterWars {
 			return true;
 		}
 
+		// (The march: about a second and a half a block of the way as the crow flies, six minutes at least: towns are far apart,
+		// the road between them winds, and the band marches at a walk, waiting for its stragglers; a march turned back halfway,
+		// then 48 blocks short, a war over before it came: the user's notes, then the tests of it.)
+		long march = Math.max(TRAVEL_TICKS, (long)(Math.sqrt(raid.home.distSqr(raid.target)) * 20 * 1.5));
 		long limit = switch (raid.phase) {
 			case GATHER -> GATHER_TICKS;
-			case TRAVEL -> TRAVEL_TICKS;
+			case TRAVEL -> march;
 			case ATTACK -> ATTACK_TICKS;
 			case RETREAT -> RETREAT_TICKS;
 		};

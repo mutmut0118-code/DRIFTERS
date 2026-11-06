@@ -724,6 +724,35 @@ public final class DrifterApi {
 		com.dinglebob.drifter.social.DrifterBonds.neighbourly = neighbourly;
 	}
 
+	/**
+	 * The ways along roads (from, to: the points in order, or empty), for Drifters going far (raids, trade runs, envoys,
+	 * bandits): they keep to them (a mod with roads between towns).
+	 */
+	public static void setRoutes(java.util.function.BiFunction<net.minecraft.core.BlockPos, net.minecraft.core.BlockPos, List<net.minecraft.core.BlockPos>> routes) {
+		com.dinglebob.drifter.nav.Legs.setRoutes(routes);
+	}
+
+	/** A raid between groups (a war's): who on whom, how far along ("gather", "travel", "attack", "retreat"), since when. */
+	public record RaidInfo(UUID attackers, UUID defenders, String phase, long startedAt) {
+	}
+
+	/** The raid this group is on, or null. */
+	@Nullable
+	public static RaidInfo raidBy(UUID group) {
+		return raidInfo(com.dinglebob.drifter.world.DrifterWars.raidOf(group));
+	}
+
+	/** A raid on this group, or null. */
+	@Nullable
+	public static RaidInfo raidOn(UUID group) {
+		return raidInfo(com.dinglebob.drifter.world.DrifterWars.raidOn(group));
+	}
+
+	@Nullable
+	private static RaidInfo raidInfo(@Nullable com.dinglebob.drifter.world.DrifterWars.Raid raid) {
+		return raid == null ? null : new RaidInfo(raid.attackers, raid.defenders, raid.phase.name().toLowerCase(java.util.Locale.ROOT), raid.startedAt);
+	}
+
 	/** Every group there is. */
 	public static List<DrifterGroups.Group> groups() {
 		return DrifterGroups.all();

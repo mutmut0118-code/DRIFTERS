@@ -188,7 +188,7 @@ final class Trades {
 			return "leader";
 		}
 
-		if (count(town, "guard") < 2 && DrifterApi.trait(drifter, "bravery") + DrifterApi.trait(drifter, "aggression") >= 1.3) {
+		if (count(town, "guard") < Towns.guardsWanted(town, people(town)) && DrifterApi.trait(drifter, "bravery") + DrifterApi.trait(drifter, "aggression") >= 1.1) {
 			return "guard";
 		}
 
@@ -233,6 +233,38 @@ final class Trades {
 		town.lines.keySet().retainAll(group.members);
 		int people = group.members.size();
 		boolean changed = false;
+		// Its guards: the boldest of those in a common line take it up, till there are enough (a city more of them).
+		while (count(town, "guard") < Towns.guardsWanted(town, people)) {
+			Map<String, Long> counts = new HashMap<>();
+			town.lines.values().forEach(other -> counts.merge(other, 1L, Long::sum));
+			DrifterEntity best = null;
+			double bestScore = -1.0;
+			for (UUID id : group.members) {
+				String now = town.lines.get(id);
+				Line was = now == null ? null : line(now);
+				DrifterEntity member = TownFounding.loaded(server, id);
+				if (member == null || was == null || was.pool() < 0 || town.crooks.contains(id) || id.equals(town.leader) || id.equals(town.keeper)
+					|| now.equals("farmer") && counts.getOrDefault("farmer", 0L) <= 2) {
+					continue;
+				}
+
+				double score = DrifterApi.trait(member, "bravery") + DrifterApi.trait(member, "aggression");
+				if (score > bestScore) {
+					best = member;
+					bestScore = score;
+				}
+			}
+
+			if (best == null) {
+				break;
+			}
+
+			town.lines.put(best.getUUID(), "guard");
+			DrifterApi.think(best, "is one of " + town.name + "'s guards now");
+			Chronicle.add(server, "town", best.getName().getString() + " joined " + town.name + "'s guard");
+			changed = true;
+		}
+
 		for (Line line : lines.values()) {
 			while (count(town, line.name()) < wanted(line, people)) {
 				Map<String, Long> counts = new HashMap<>();
