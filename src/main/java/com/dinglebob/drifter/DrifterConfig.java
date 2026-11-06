@@ -54,6 +54,8 @@ public final class DrifterConfig {
 		String chattiness = "normal";
 		/** Typos (sometimes fixed with a "*word"), and longer lines sent in two (chat phase 4). */
 		boolean typing = true;
+		/** "gg" and "W" in chat when a player makes an advancement (the user, 2026-11-05: "optional, off"). */
+		boolean advancementCheers = false;
 		/** Players seen together share a little of each other's standing (section 14 "Forgiveness and multiplayer"). */
 		boolean shareReputation = true;
 		/** Every Drifter thought goes to the game log (user's choice, 2026-10-15: on by default). */
@@ -699,6 +701,16 @@ public final class DrifterConfig {
 
 	public static void setTyping(boolean on) {
 		data.typing = on;
+		save();
+	}
+
+	/** Cheering a player's advancement in chat. */
+	public static boolean advancementCheers() {
+		return data.advancementCheers;
+	}
+
+	public static void setAdvancementCheers(boolean on) {
+		data.advancementCheers = on;
 		save();
 	}
 

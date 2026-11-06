@@ -153,6 +153,19 @@ final class SensesCommands {
 			ctx.getSource().sendSuccess(() -> Component.literal(name + " goes by \"" + nick + "\""), false);
 			return 1;
 		})));
+		// What Drifters agreed in their talks to do together (talk.Together), to the log and chat.
+		root.then(Commands.literal("plans").executes(ctx -> {
+			var plans = com.dinglebob.drifter.social.talk.Together.all();
+			StringBuilder out = new StringBuilder("[plans] " + plans.size());
+			for (var plan : plans) {
+				out.append(System.lineSeparator()).append("  ").append(plan.describe());
+			}
+
+			com.dinglebob.drifter.Drifter.LOGGER.info(out.toString());
+			String text = out.toString();
+			ctx.getSource().sendSuccess(() -> Component.literal(text), false);
+			return plans.size();
+		}));
 		// Debug: sample usernames and what everyone would call them, to the log.
 		root.then(Commands.literal("names").then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 500)).executes(ctx -> {
 			int count = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count");

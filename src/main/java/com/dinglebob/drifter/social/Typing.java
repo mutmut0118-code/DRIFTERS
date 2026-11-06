@@ -114,8 +114,8 @@ public final class Typing {
 		}
 
 		words[index] = wrong;
-		// The tidy fix theirs more often.
-		boolean fixes = random.nextDouble() < 0.25 + 0.5 * drifter.getPersonality().get(Trait.TIDINESS);
+		// The tidy fix theirs more often; most let it go (the user, 2026-11-05: "even less corrections").
+		boolean fixes = random.nextDouble() < 0.08 + 0.25 * drifter.getPersonality().get(Trait.TIDINESS);
 		return new String[] {String.join(" ", words), fixes ? word : null};
 	}
 
@@ -149,13 +149,14 @@ public final class Typing {
 	private static double chance(DrifterEntity drifter) {
 		double skill = drifter.getPersonality().get(Trait.SKILL);
 		Archetype archetype = drifter.getPersonality().archetype();
-		double chance = 0.03 + 0.08 * (1.0 - skill);
+		// (A little less than at first: the user, 2026-11-05, "a little bit less typos".)
+		double chance = 0.022 + 0.06 * (1.0 - skill);
 		if (archetype == Archetype.NEWBIE) {
-			chance += 0.06;
+			chance += 0.045;
 		} else if (archetype == Archetype.CASUAL || archetype == Archetype.SPEEDRUNNER) {
-			chance += 0.03;
+			chance += 0.022;
 		} else if (archetype == Archetype.BUILDER || archetype == Archetype.HERMIT) {
-			chance -= 0.02;
+			chance -= 0.015;
 		}
 
 		return Math.max(0.01, chance);
@@ -168,6 +169,9 @@ public final class Typing {
 			for (String part : name.toLowerCase(Locale.ROOT).split("[^a-z]+")) {
 				names.add(part);
 			}
+
+			// (And what everyone calls them: frost for xXFrostXx.)
+			names.add(com.dinglebob.drifter.identity.Nicknames.of(name));
 		};
 		add.accept(drifter.getName().getString());
 		if (drifter.getServer() != null) {

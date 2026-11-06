@@ -32,6 +32,13 @@ public final class GroupGoals {
 	/** A group mate close by (in earshot: "going mining, coming?") setting off on a mining trip; or null. */
 	@Nullable
 	static DrifterEntity mateSettingOff(DrifterEntity drifter, double range) {
+		// (Or the one it said it'd go mining with: "wanna go mining later?" "sure"; see talk.Together.)
+		DrifterEntity planned = com.dinglebob.drifter.social.talk.Together.mineMate(drifter);
+		if (planned != null && planned.level() == drifter.level() && planned.distanceTo(drifter) <= range
+			&& planned.getDrifterBrain().activity() instanceof MineTripActivity trip && trip.settingOff()) {
+			return planned;
+		}
+
 		DrifterGroups.Group group = DrifterGroups.of(drifter.getUUID());
 		if (group == null || !(drifter.level() instanceof ServerLevel level)) {
 			return null;
@@ -105,7 +112,8 @@ public final class GroupGoals {
 			}
 
 			// (A shopkeeper in its open hours keeps its shop: found in testing, the town's keeper off mining all day.)
-			if (drifter.level().getGameTime() - this.lastJoined < AGAIN_AFTER || drifter.getShop() != null && com.dinglebob.drifter.trade.StallGoal.open(drifter)
+			boolean planned = com.dinglebob.drifter.social.talk.Together.mineMate(drifter) != null;
+			if (!planned && drifter.level().getGameTime() - this.lastJoined < AGAIN_AFTER || drifter.getShop() != null && com.dinglebob.drifter.trade.StallGoal.open(drifter)
 				|| Schedule.isNight(drifter) || drifter.getHealth() < 14.0F || context.stage() < 4
 				|| drifter.getInventory().count(stack -> stack.is(ItemTags.PICKAXES) && stack.isCorrectToolForDrops(Blocks.IRON_ORE.defaultBlockState())) == 0
 				|| drifter.getInventory().count(stack -> stack.is(Items.TORCH)) < 4) {
@@ -146,6 +154,7 @@ public final class GroupGoals {
 			}
 
 			this.lastJoined = context.drifter().level().getGameTime();
+			com.dinglebob.drifter.social.talk.Together.wentMining(context.drifter());
 			context.drifter().getMemory().thoughts().add(this.lastJoined, "going mining with " + mate.getName().getString() + " (for " + trip.oreLabel() + ")");
 			mate.getMemory().thoughts().add(this.lastJoined, context.drifter().getName().getString() + " is coming mining too");
 			return MineTripActivity.alongside(context.drifter(), trip, mate);

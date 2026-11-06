@@ -1,0 +1,2165 @@
+{
+ "_comment": "Talks that end in doing something together (side session, 2026-11-06; the user: \"ofc the talking leading to actions\"): a asks, b says yes (less often if a loner, or timid for a night hunt) or no, and a yes makes a plan (social/talk/Together.java): go mining (now: b tags along till a mining trip; either way the next trip that day is together), hunt tonight, come see a's house, share food, tag along, visit later.",
+ "topics": [
+  {
+   "id": "plan_mine_now",
+   "weight": 2.0,
+   "needs": [
+    "a:can_mine",
+    "b:can_mine",
+    "!rivals",
+    "!a:keeps_shop",
+    "!b:keeps_shop",
+    "!strangers",
+    "!time_night",
+    "!time_evening"
+   ],
+   "tags": [
+    "plans",
+    "mining"
+   ],
+   "leads": [
+    "mining",
+    "caves",
+    "ore"
+   ],
+   "about": "going mining together",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "wanna go mining together?",
+       "i'm heading down for iron soon, come with?",
+       "mining trip? two pickaxes beat one",
+       "need a mining buddy, you in?",
+       "wanna go caving later? safer with two",
+       "you up for a mining run today?"
+      ],
+      "miner": [
+       "there's a cave mouth not far from here, wanna go down together?",
+       "i'm going deep today. coming?",
+       "i know a good spot for iron, want in?"
+      ],
+      "newbie": [
+       "can i come mining with you? i always get lost down there",
+       "will you go mining with me? caves are scary alone"
+      ],
+      "speedrunner": [
+       "quick iron run? together's faster",
+       "strip mine sprint, you in?"
+      ],
+      "casual": [
+       "wanna go mine some stuff lol",
+       "mining? i'm bored of the surface"
+      ],
+      "hoarder": [
+       "wanna go mining? we split everything... mostly"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "sure",
+       "i'm down",
+       "yeah let's go",
+       "bet, i've got torches",
+       "ok but i'm not going near lava",
+       "sure, i need iron anyway",
+       "count me in"
+      ],
+      "miner": [
+       "always",
+       "you don't have to ask twice",
+       "finally someone who gets it"
+      ],
+      "newbie": [
+       "yes!! i'll stay close",
+       "ok but you go first"
+      ],
+      "hermit": [
+       "fine. stay quiet down there.",
+       "ok. don't talk too much."
+      ],
+      "speedrunner": [
+       "go go go",
+       "yes, fast though"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "sure",
+       "i'm down",
+       "yeah let's go",
+       "bet, i've got torches",
+       "ok but i'm not going near lava",
+       "sure, i need iron anyway",
+       "count me in"
+      ],
+      "miner": [
+       "always",
+       "you don't have to ask twice",
+       "finally someone who gets it"
+      ],
+      "newbie": [
+       "yes!! i'll stay close",
+       "ok but you go first"
+      ],
+      "hermit": [
+       "fine. stay quiet down there.",
+       "ok. don't talk too much."
+      ],
+      "speedrunner": [
+       "go go go",
+       "yes, fast though"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "nah i'm good up here",
+       "maybe later",
+       "not today, got stuff to do",
+       "caves give me the creeps",
+       "i'll pass this time",
+       "can't, i'm busy"
+      ],
+      "hermit": [
+       "i mine alone.",
+       "no."
+      ],
+      "homebody": [
+       "i'd rather stay home",
+       "too dark down there for me"
+      ],
+      "builder": [
+       "i'm in the middle of a build",
+       "can't, the roof won't build itself"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "cool, i'll lead",
+       "nice, bring torches",
+       "sweet, stick close down there",
+       "let's do it",
+       "ok, when i head down you follow",
+       "awesome, finally some company down there"
+      ],
+      "speedrunner": [
+       "keep up",
+       "no afk"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "all good",
+       "your loss lol",
+       "another time then",
+       "fair",
+       "more ore for me"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_mine"
+   ]
+  },
+  {
+   "id": "plan_mine_tomorrow",
+   "weight": 2.0,
+   "needs": [
+    "a:can_mine",
+    "b:can_mine",
+    "!rivals",
+    "!a:keeps_shop",
+    "!b:keeps_shop",
+    "!strangers",
+    "time_evening"
+   ],
+   "tags": [
+    "plans",
+    "mining"
+   ],
+   "leads": [
+    "mining",
+    "night",
+    "plans"
+   ],
+   "about": "a mining trip tomorrow",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "wanna go mining tomorrow? too late now",
+       "mining trip tomorrow morning?",
+       "tomorrow, me and you, mining. yes?",
+       "first thing tomorrow, wanna hit the caves?"
+      ],
+      "miner": [
+       "i'm going deep tomorrow, come with",
+       "tomorrow i'm after diamonds. want in?"
+      ],
+      "newbie": [
+       "can we go mining together tomorrow?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "deal, tomorrow",
+       "sure, first thing",
+       "ok, wake me up",
+       "yeah, tomorrow works",
+       "sounds like a plan"
+      ],
+      "casual": [
+       "bet, tomorrow",
+       "ok if i wake up lol"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "deal, tomorrow",
+       "sure, first thing",
+       "ok, wake me up",
+       "yeah, tomorrow works",
+       "sounds like a plan"
+      ],
+      "casual": [
+       "bet, tomorrow",
+       "ok if i wake up lol"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "can't tomorrow",
+       "tomorrow's no good",
+       "i'll see how i feel",
+       "nah, got plans"
+      ],
+      "hermit": [
+       "probably not."
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "cool, see you in the morning",
+       "nice, bring a spare pick",
+       "it's a plan",
+       "don't oversleep"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok, some other time",
+       "no worries",
+       "fair enough"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_mine"
+   ]
+  },
+  {
+   "id": "plan_mine_ore_spot",
+   "weight": 2.0,
+   "needs": [
+    "a:can_mine",
+    "b:can_mine",
+    "!rivals",
+    "!a:keeps_shop",
+    "!b:keeps_shop",
+    "a:found_ore",
+    "!time_night"
+   ],
+   "tags": [
+    "plans",
+    "mining",
+    "ore"
+   ],
+   "leads": [
+    "ore",
+    "mining",
+    "caves"
+   ],
+   "about": "the ore it found",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i found a {a.ore} vein not far from here",
+      "there's {a.ore} in a cave near here, i saw it",
+      "saw some {a.ore} the other day, left it for later"
+     ]
+    },
+    {
+     "by": "b",
+     "chance": 0.8,
+     "lines": [
+      "oh nice",
+      "how much?",
+      "where?",
+      "jealous",
+      "you didn't mine it?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "wanna go get it together?",
+       "come help me mine it out?",
+       "we could split it, wanna come?",
+       "i'll show you where, if you help"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "yes please",
+       "i'm in",
+       "split it fifty fifty?",
+       "show me",
+       "say less"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "yes please",
+       "i'm in",
+       "split it fifty fifty?",
+       "show me",
+       "say less"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "nah, it's yours",
+       "you go ahead",
+       "i'm good, thanks though"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "deal",
+       "ok, next time i head down",
+       "cool, half's yours"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "more for me then",
+       "ok, your loss"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_mine"
+   ]
+  },
+  {
+   "id": "plan_hunt_tonight",
+   "weight": 2.0,
+   "needs": [
+    "a:can_hunt",
+    "b:can_hunt",
+    "!rivals",
+    "!time_morning",
+    "!time_night",
+    "!a:timid",
+    "!strangers"
+   ],
+   "tags": [
+    "plans",
+    "night",
+    "fighting"
+   ],
+   "leads": [
+    "night",
+    "mobs",
+    "fighting"
+   ],
+   "about": "hunting tonight",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "hunt tonight?",
+       "wanna go mob hunting when it gets dark?",
+       "i need bones and string, come hunt with me tonight?",
+       "tonight, mob hunt, you and me?",
+       "you up for some night fighting?",
+       "i'm going out after dark, wanna come?"
+      ],
+      "pvp_sweat": [
+       "tonight. you and me. let's farm some mobs the hard way",
+       "night hunt? i need the practice"
+      ],
+      "speedrunner": [
+       "need pearls. endermen tonight?",
+       "blaze rods later, but tonight, pearls. you in?"
+      ],
+      "casual": [
+       "wanna go beat up some zombies tonight lol",
+       "night hunt? could be fun"
+      ],
+      "nomad": [
+       "the night's when things happen. come out with me?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:timid"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "bet",
+       "i'm in, i need xp anyway",
+       "ok but you're on creeper duty",
+       "let's do it",
+       "sure, i'll bring a sword",
+       "yeah, safer with two"
+      ],
+      "pvp_sweat": [
+       "finally",
+       "let's go, i'll take the skeletons"
+      ],
+      "newbie": [
+       "ok... you'll protect me right?",
+       "eek ok, i'll try"
+      ],
+      "casual": [
+       "sure why not lol",
+       "ok but if i die it's on you"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:brave",
+      "!b:timid",
+      "!t:plan_yes"
+     ],
+     "chance": 0.95,
+     "lines": {
+      "any": [
+       "bet",
+       "i'm in, i need xp anyway",
+       "ok but you're on creeper duty",
+       "let's do it",
+       "sure, i'll bring a sword",
+       "yeah, safer with two"
+      ],
+      "pvp_sweat": [
+       "finally",
+       "let's go, i'll take the skeletons"
+      ],
+      "newbie": [
+       "ok... you'll protect me right?",
+       "eek ok, i'll try"
+      ],
+      "casual": [
+       "sure why not lol",
+       "ok but if i die it's on you"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:timid",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "bet",
+       "i'm in, i need xp anyway",
+       "ok but you're on creeper duty",
+       "let's do it",
+       "sure, i'll bring a sword",
+       "yeah, safer with two"
+      ],
+      "pvp_sweat": [
+       "finally",
+       "let's go, i'll take the skeletons"
+      ],
+      "newbie": [
+       "ok... you'll protect me right?",
+       "eek ok, i'll try"
+      ],
+      "casual": [
+       "sure why not lol",
+       "ok but if i die it's on you"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "no way, i'm staying inside",
+       "it's dangerous out there at night",
+       "i'll pass, i like my hearts",
+       "not tonight",
+       "i'm too beat"
+      ],
+      "homebody": [
+       "absolutely not, i'll be in bed",
+       "nights are for staying in"
+      ],
+      "newbie": [
+       "no no no, the zombies scare me"
+      ],
+      "hermit": [
+       "no."
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "see you at dusk",
+       "bring a sword",
+       "nice, back to back",
+       "don't run off",
+       "it's a date lol"
+      ],
+      "pvp_sweat": [
+       "don't steal my kills",
+       "we go at dark"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "fine, more xp for me",
+       "suit yourself",
+       "ok, stay safe",
+       "scaredy cat lol"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_hunt"
+   ]
+  },
+  {
+   "id": "plan_hunt_drops",
+   "weight": 2.0,
+   "needs": [
+    "a:can_hunt",
+    "b:can_hunt",
+    "!rivals",
+    "!time_morning",
+    "!time_night",
+    "!a:timid"
+   ],
+   "tags": [
+    "plans",
+    "night",
+    "mobs"
+   ],
+   "leads": [
+    "mobs",
+    "night",
+    "crafting"
+   ],
+   "about": "the drops it needs",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i'm out of string",
+      "need gunpowder for tnt",
+      "i need more bones for my farm",
+      "out of arrows, need feathers and string"
+     ]
+    },
+    {
+     "by": "b",
+     "chance": 0.7,
+     "lines": [
+      "mobs tonight then",
+      "night's coming",
+      "spiders drop string",
+      "that's a night job"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "come out with me tonight?",
+       "wanna help me farm some tonight?",
+       "you wanna come? we split the drops"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:timid"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "ok, i need some too",
+       "sure, split the drops",
+       "why not",
+       "fine, but i keep the pearls"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:brave",
+      "!b:timid",
+      "!t:plan_yes"
+     ],
+     "chance": 0.95,
+     "lines": {
+      "any": [
+       "ok, i need some too",
+       "sure, split the drops",
+       "why not",
+       "fine, but i keep the pearls"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:timid",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok, i need some too",
+       "sure, split the drops",
+       "why not",
+       "fine, but i keep the pearls"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "good luck with that",
+       "i'll stay in, thanks",
+       "nope, too risky"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "cool, meet at dusk",
+       "nice, we'll clean up",
+       "great, stick close"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok, i'll go alone",
+       "fair"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_hunt"
+   ]
+  },
+  {
+   "id": "plan_show_home",
+   "weight": 2.0,
+   "needs": [
+    "a:home_near",
+    "!b:been_to_theirs",
+    "!rivals"
+   ],
+   "tags": [
+    "plans",
+    "home"
+   ],
+   "leads": [
+    "home",
+    "building",
+    "decor"
+   ],
+   "about": "its house",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "wanna see my house?",
+       "come check out my place, it's right over there",
+       "want a tour of my base?",
+       "i live just over there, wanna see?",
+       "you wanna come see my place?"
+      ],
+      "builder": [
+       "wanna see what i've been building? it's close",
+       "i just finished the roof, come look",
+       "i need a second opinion on my build, come see"
+      ],
+      "newbie": [
+       "do you wanna see my house?? i built it myself",
+       "come see my house! it's my first one"
+      ],
+      "homebody": [
+       "come over, i'll show you around",
+       "want to see where i live? it's cozy"
+      ],
+      "hoarder": [
+       "wanna see my storage room? it's beautiful"
+      ],
+      "casual": [
+       "wanna see my house? it's kinda mid but"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "sure, show me",
+       "yeah let's see it",
+       "ooh yes",
+       "lead the way",
+       "sure, i've been curious"
+      ],
+      "builder": [
+       "always, show me",
+       "let's see your style"
+      ],
+      "newbie": [
+       "yes!!",
+       "ooh ok!"
+      ],
+      "hermit": [
+       "fine. quickly."
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "sure, show me",
+       "yeah let's see it",
+       "ooh yes",
+       "lead the way",
+       "sure, i've been curious"
+      ],
+      "builder": [
+       "always, show me",
+       "let's see your style"
+      ],
+      "newbie": [
+       "yes!!",
+       "ooh ok!"
+      ],
+      "hermit": [
+       "fine. quickly."
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "maybe another time",
+       "i'm kinda busy, later?",
+       "nah, i'm good",
+       "some other time"
+      ],
+      "hermit": [
+       "no.",
+       "i don't do visits."
+      ],
+      "speedrunner": [
+       "no time, sorry"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "awesome",
+       "cool cool",
+       "ok you're gonna love it",
+       "nice, it's not far",
+       "yay"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok, offer stands",
+       "no worries",
+       "another time then"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_show_home"
+   ]
+  },
+  {
+   "id": "plan_show_home_asked",
+   "weight": 2.0,
+   "needs": [
+    "a:home_near",
+    "!b:been_to_theirs",
+    "!rivals",
+    "!strangers"
+   ],
+   "tags": [
+    "plans",
+    "home"
+   ],
+   "leads": [
+    "home",
+    "building",
+    "town"
+   ],
+   "about": "where it lives",
+   "turns": [
+    {
+     "by": "b",
+     "lines": [
+      "where do you live anyway?",
+      "you got a base around here?",
+      "do you have a house?",
+      "where's your place at?"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "yeah, it's close, wanna see it?",
+       "just over there, want to see?",
+       "right nearby, i'll show you",
+       "close by. want the tour?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "sure",
+       "yeah ok",
+       "go on then",
+       "lead on"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "sure",
+       "yeah ok",
+       "go on then",
+       "lead on"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "oh another time",
+       "maybe later, i was just asking"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "ok",
+       "great",
+       "cool"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok lol",
+       "fair"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_show_home"
+   ]
+  },
+  {
+   "id": "plan_share_food_offer",
+   "weight": 3.0,
+   "needs": [
+    "a:spare_food",
+    "b:hungry",
+    "!a:hungry",
+    "!rivals"
+   ],
+   "tags": [
+    "plans",
+    "food",
+    "help"
+   ],
+   "leads": [
+    "food",
+    "farming",
+    "help"
+   ],
+   "about": "food",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "you look hungry, want some food?",
+       "you hungry? i've got extra",
+       "want some of my food?",
+       "here, i have more than i need, want some?",
+       "when did you last eat? want some?"
+      ],
+      "helper": [
+       "you're starving, let me give you something",
+       "take some of my food, please"
+      ],
+      "hoarder": [
+       "i guess i could spare some food. maybe.",
+       "i have food. it'll cost you. kidding. want some?"
+      ],
+      "newbie": [
+       "are you hungry? you can have some of mine!"
+      ],
+      "casual": [
+       "yo you're starving, want some food?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "yes please",
+       "omg yes",
+       "i'm starving, thank you",
+       "you're a lifesaver",
+       "if you don't mind"
+      ],
+      "hermit": [
+       "...ok. thanks."
+      ],
+      "newbie": [
+       "really?! yes please"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "yes please",
+       "omg yes",
+       "i'm starving, thank you",
+       "you're a lifesaver",
+       "if you don't mind"
+      ],
+      "hermit": [
+       "...ok. thanks."
+      ],
+      "newbie": [
+       "really?! yes please"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "i'm ok, thanks",
+       "nah i'll find my own",
+       "i'm fine, really",
+       "keep it, you'll need it"
+      ],
+      "hermit": [
+       "i don't need help."
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "hold on",
+       "one sec",
+       "coming right up",
+       "sure thing"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok, just ask",
+       "if you change your mind",
+       "ok, stubborn"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_share_food"
+   ]
+  },
+  {
+   "id": "plan_share_food_complain",
+   "weight": 2.5,
+   "needs": [
+    "a:spare_food",
+    "b:hungry",
+    "!a:hungry",
+    "!rivals"
+   ],
+   "tags": [
+    "plans",
+    "food",
+    "complaints"
+   ],
+   "leads": [
+    "food",
+    "farming",
+    "feelings"
+   ],
+   "about": "being hungry",
+   "turns": [
+    {
+     "by": "b",
+     "lines": [
+      "i'm so hungry",
+      "i haven't eaten all day",
+      "my stomach won't stop growling",
+      "i'm running on empty",
+      "i could eat a whole cow"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "here, i can give you some",
+       "want some of mine?",
+       "i've got spare, want it?",
+       "i'll give you some, hold on"
+      ],
+      "helper": [
+       "i got you, here"
+      ],
+      "hoarder": [
+       "...fine. i have some. you want it?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "really? thanks",
+       "you'd do that?",
+       "please",
+       "you're the best"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "really? thanks",
+       "you'd do that?",
+       "please",
+       "you're the best"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "nah, i'll manage",
+       "i'll go hunt something",
+       "don't worry about it"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "of course",
+       "no problem",
+       "course"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok, if you're sure",
+       "suit yourself"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_share_food"
+   ]
+  },
+  {
+   "id": "plan_tag_along",
+   "weight": 2.0,
+   "needs": [
+    "!rivals",
+    "!a:keeps_shop",
+    "!strangers"
+   ],
+   "tags": [
+    "plans",
+    "friends"
+   ],
+   "leads": [
+    "friends",
+    "exploring",
+    "doing"
+   ],
+   "about": "tagging along",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "what are you up to?",
+      "whatcha doing?",
+      "busy?",
+      "what's the plan today?"
+     ]
+    },
+    {
+     "by": "b",
+     "lines": [
+      "just doing stuff",
+      "gathering, mostly",
+      "nothing much, wandering",
+      "this and that",
+      "the usual"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "mind if i tag along?",
+       "can i come with?",
+       "want company?",
+       "i'll come with you, if that's ok"
+      ],
+      "newbie": [
+       "can i follow you? i wanna learn how you do stuff",
+       "can i come? i'll be quiet"
+      ],
+      "casual": [
+       "mind if i tag along lol",
+       "i'll come, i'm bored"
+      ],
+      "nomad": [
+       "mind if i wander with you a while?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "sure, come along",
+       "yeah why not",
+       "the more the merrier",
+       "sure, keep up",
+       "ok, stick close"
+      ],
+      "newbie": [
+       "yes! company!"
+      ],
+      "helper": [
+       "of course, come on"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "sure, come along",
+       "yeah why not",
+       "the more the merrier",
+       "sure, keep up",
+       "ok, stick close"
+      ],
+      "newbie": [
+       "yes! company!"
+      ],
+      "helper": [
+       "of course, come on"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "i work better alone",
+       "nah, it's boring stuff",
+       "maybe next time",
+       "i'd rather go alone today"
+      ],
+      "hermit": [
+       "no.",
+       "i'm better alone."
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "sweet",
+       "cool, lead on",
+       "nice",
+       "let's go"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "fair enough",
+       "ok, see you",
+       "no worries"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_tag_along"
+   ]
+  },
+  {
+   "id": "plan_tag_along_bored",
+   "weight": 2.0,
+   "needs": [
+    "!rivals",
+    "!a:keeps_shop",
+    "!strangers",
+    "a:mood_bored"
+   ],
+   "tags": [
+    "plans",
+    "boredom"
+   ],
+   "leads": [
+    "boredom",
+    "friends",
+    "random"
+   ],
+   "about": "being bored",
+   "turns": [
+    {
+     "by": "a",
+     "lines": [
+      "i'm so bored",
+      "there's nothing to do",
+      "i've done everything today",
+      "so bored i started counting blocks"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "can i just follow you around for a bit?",
+       "entertain me. can i come with you?",
+       "whatever you're doing, can i join?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "lol sure",
+       "ok, but it's not exciting",
+       "come on then",
+       "sure, you can help"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "lol sure",
+       "ok, but it's not exciting",
+       "come on then",
+       "sure, you can help"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "go find a hobby lol",
+       "nah, go build something",
+       "you'll be more bored with me"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "thank you",
+       "anything's better than this",
+       "yay"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "rude",
+       "fine",
+       "ugh ok"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_tag_along"
+   ]
+  },
+  {
+   "id": "plan_explore_together",
+   "weight": 2.0,
+   "needs": [
+    "!rivals",
+    "!a:keeps_shop",
+    "!strangers",
+    "!time_night",
+    "!time_evening"
+   ],
+   "tags": [
+    "plans",
+    "exploring"
+   ],
+   "leads": [
+    "exploring",
+    "biomes",
+    "structures"
+   ],
+   "about": "exploring together",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "wanna go exploring? you lead, i'll follow",
+       "show me around? you know this area better",
+       "take me somewhere cool?",
+       "where's the best spot round here? show me"
+      ],
+      "newbie": [
+       "can you show me around? i don't know this place"
+      ],
+      "nomad": [
+       "i've never been this way. show me?"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "sure, follow me",
+       "ok, i know a spot",
+       "come on then",
+       "yeah, i'll show you"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "sure, follow me",
+       "ok, i know a spot",
+       "come on then",
+       "yeah, i'll show you"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "i'm not a tour guide lol",
+       "not right now",
+       "maybe later"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "nice",
+       "cool",
+       "lead on"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok",
+       "fine lol"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_tag_along"
+   ]
+  },
+  {
+   "id": "plan_visit_later",
+   "weight": 2.0,
+   "needs": [
+    "a:has_house",
+    "!rivals",
+    "!b:keeps_shop",
+    "!time_night",
+    "!time_evening"
+   ],
+   "tags": [
+    "plans",
+    "home",
+    "friends"
+   ],
+   "leads": [
+    "home",
+    "friends",
+    "town"
+   ],
+   "about": "visiting later",
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "you should come by my place sometime",
+       "drop by my house later if you want",
+       "come visit later, i'll show you around",
+       "stop by mine later?",
+       "come over later, i'll be home"
+      ],
+      "homebody": [
+       "come over later, i'll be in",
+       "visit me later, i never get visitors"
+      ],
+      "builder": [
+       "come by later, i'll have the new room done"
+      ],
+      "newbie": [
+       "will you visit me later?"
+      ],
+      "hermit": [
+       "you can come by later. if you must."
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "will do",
+       "sure, i'll swing by",
+       "ok i'll stop by later",
+       "sounds good",
+       "i'll be there"
+      ],
+      "casual": [
+       "bet",
+       "ok i'll pull up"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "will do",
+       "sure, i'll swing by",
+       "ok i'll stop by later",
+       "sounds good",
+       "i'll be there"
+      ],
+      "casual": [
+       "bet",
+       "ok i'll pull up"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "maybe, we'll see",
+       "i'm not much for visiting",
+       "can't today",
+       "we'll see"
+      ],
+      "hermit": [
+       "probably not."
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "cool, it's not far",
+       "see you later then",
+       "i'll be around",
+       "great, see you"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "offer's open",
+       "ok, whenever",
+       "no pressure"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_visit"
+   ]
+  },
+  {
+   "id": "plan_visit_ask",
+   "weight": 2.0,
+   "needs": [
+    "a:has_house",
+    "!b:been_to_theirs",
+    "!rivals",
+    "!strangers",
+    "!time_night",
+    "!time_evening"
+   ],
+   "tags": [
+    "plans",
+    "home"
+   ],
+   "leads": [
+    "home",
+    "friends"
+   ],
+   "about": "never having been over",
+   "turns": [
+    {
+     "by": "b",
+     "lines": [
+      "i've never seen your place",
+      "you never invite me over",
+      "where even is your house"
+     ]
+    },
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "come by later then",
+       "come over later, i'll show you",
+       "you're always welcome, come by later"
+      ]
+     }
+    },
+    {
+     "by": "b",
+     "if": [
+      "b:loner"
+     ],
+     "chance": 0.3,
+     "lines": {
+      "any": [
+       "ok i will",
+       "deal",
+       "sure, later",
+       "i'll hold you to that"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!b:loner",
+      "!t:plan_yes"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok i will",
+       "deal",
+       "sure, later",
+       "i'll hold you to that"
+      ]
+     },
+     "mark": [
+      "plan_yes",
+      "agree"
+     ]
+    },
+    {
+     "by": "b",
+     "if": [
+      "!t:plan_yes"
+     ],
+     "lines": {
+      "any": [
+       "eh, maybe",
+       "maybe some day"
+      ]
+     },
+     "mark": [
+      "decline"
+     ]
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:plan_yes"
+     ],
+     "chance": 0.85,
+     "lines": {
+      "any": [
+       "good",
+       "see you then",
+       "looking forward to it"
+      ]
+     }
+    },
+    {
+     "by": "a",
+     "if": [
+      "t:decline"
+     ],
+     "chance": 0.75,
+     "lines": {
+      "any": [
+       "ok lol",
+       "fair"
+      ]
+     }
+    }
+   ],
+   "effects": [
+    "plan_visit"
+   ]
+  }
+ ]
+}

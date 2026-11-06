@@ -303,14 +303,72 @@ public final class Conversations {
 		Facts facts = Facts.of(me, other);
 		Heard.addDrifterFacts(me, other, facts);
 		facts.flags.add("voice_" + me.getPersonality().archetype().name().toLowerCase(java.util.Locale.ROOT));
+		planFacts(me, other, facts);
 		return facts;
+	}
+
+	/** What it could do with the other (for the topics that make plans: Together): fit to mine, to hunt, food to share... */
+	private static void planFacts(DrifterEntity me, DrifterEntity other, Facts facts) {
+		Relationship bond = me.getBonds().get(other.getUUID());
+		if (bond != null && bond.knownBase != null) {
+			facts.flags.add("been_to_theirs");
+		}
+
+		if (me.getInventory().count(stack -> stack.is(net.minecraft.tags.ItemTags.PICKAXES)
+			&& stack.isCorrectToolForDrops(net.minecraft.world.level.block.Blocks.IRON_ORE.defaultBlockState())) > 0
+			&& me.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.TORCH)) >= 4) {
+			facts.flags.add("can_mine");
+		}
+
+		if (com.dinglebob.drifter.brain.Schedule.fitToHunt(me)) {
+			facts.flags.add("can_hunt");
+		}
+
+		if (PlayerTalk.spareFood(me) != null) {
+			facts.flags.add("spare_food");
+		}
+
+		com.dinglebob.drifter.brain.Home home = me.getDrifterBrain().home();
+		if (home != null && home.center.closerToCenterThan(me.position(), 48.0)) {
+			facts.flags.add("home_near");
+		}
+
+		double sociable = sociability(me);
+		if (sociable >= 0.6) {
+			facts.flags.add("sociable");
+		} else if (sociable <= 0.3) {
+			facts.flags.add("loner");
+		}
+
+		double bravery = me.getPersonality().get(Trait.BRAVERY);
+		if (bravery >= 0.6) {
+			facts.flags.add("brave");
+		} else if (bravery <= 0.3) {
+			facts.flags.add("timid");
+		}
+
+		if (me.getShop() != null) {
+			facts.flags.add("keeps_shop");
+		}
 	}
 
 	/** The world as they see it, and what the talk's been marked ({@code t:disagree}). */
 	private static Set<String> world(DrifterEntity a, DrifterEntity b, Set<String> marks) {
-		Set<String> world = Facts.world(a, b);
-		marks.forEach(mark -> world.add("t:" + mark));
-		return world;
+		Set<String> flags = Facts.world(a, b);
+		marks.forEach(mark -> flags.add("t:" + mark));
+		// The time of day (as a believes it): "hunt tonight?" in the afternoon, "mining tomorrow?" at dusk.
+		long time = com.dinglebob.drifter.brain.Schedule.believedTime(a);
+		if (com.dinglebob.drifter.brain.Schedule.isNight(time)) {
+			flags.add("time_night");
+		} else if (time < 4000) {
+			flags.add("time_morning");
+		} else if (time < 9000) {
+			flags.add("time_day");
+		} else {
+			flags.add("time_evening");
+		}
+
+		return flags;
 	}
 
 	/**
@@ -691,13 +749,13 @@ public final class Conversations {
 				talk.world = world(talk.a, talk.b, talk.marks);
 			}
 
-			String line = Lines.filled(speaker, template, vars(talk));
+			String line = addressed(talk, speaker, Lines.filled(speaker, template, vars(talk)));
 			if (talk.segue != null) {
 				line = talk.segue + " " + line;
 				talk.segue = null;
 			}
 
-			say(talk, speaker, line, now);
+			out(talk, speaker, line, now);
 			return true;
 		}
 
@@ -716,6 +774,57 @@ public final class Conversations {
 	}
 
 	private static void say(Talk talk, DrifterEntity speaker, String line, long now) {
+		out(talk, speaker, addressed(talk, speaker, line), now);
+	}
+
+	/** Greetings a name goes after ("hey frost, ..."), not before. */
+	private static final Set<String> GREETINGS = Set.of("hey", "heya", "hi", "hiya", "hello", "yo", "oi", "sup", "ayo", "ay", "ey", "hej", "howdy", "morning", "evening");
+
+	/**
+	 * Its line, maybe with the one it's talking to named (the user, 2026-11-05: in a town full of talk "i dont know whos
+	 * talking to who"): mostly on its first line to them, now and then after, more where other talks go on nearby (as players
+	 * do on a busy server). "frost, you seen my axe?", "hey frost, ...".
+	 */
+	private static String addressed(Talk talk, DrifterEntity speaker, String line) {
+		DrifterEntity partner = talk.partnerOf(speaker);
+		String nick = com.dinglebob.drifter.identity.Nicknames.of(partner).toLowerCase(java.util.Locale.ROOT);
+		String lower = line.toLowerCase(java.util.Locale.ROOT);
+		if (nick.isEmpty() || line.startsWith("*") || line.length() < 4
+			|| lower.matches("(?s).*\\b" + java.util.regex.Pattern.quote(nick) + "\\b.*")
+			|| lower.contains(partner.getName().getString().toLowerCase(java.util.Locale.ROOT))) {
+			return line;
+		}
+
+		int nearby = 0;
+		for (Talk other : talks) {
+			if (other != talk && other.a.level() == speaker.level() && other.a.distanceToSqr(speaker) < 32 * 32) {
+				nearby++;
+			}
+		}
+
+		double chance = (talk.lines == 0 ? 0.7 : talk.lines == 1 ? 0.3 : 0.12) + Math.min(0.25, 0.1 * nearby);
+		if (speaker.getRandom().nextDouble() >= chance) {
+			return line;
+		}
+
+		// After a greeting: "hey frost, ...", "yo frost!".
+		int end = 0;
+		while (end < line.length() && Character.isLetter(line.charAt(end))) {
+			end++;
+		}
+
+		if (end > 0 && GREETINGS.contains(lower.substring(0, end))) {
+			String rest = line.substring(end);
+			return line.substring(0, end) + " " + nick + (rest.isEmpty() || rest.startsWith(",") || rest.startsWith("!") || rest.startsWith("?") || rest.startsWith(".") ? rest : "," + rest);
+		}
+
+		// Or first: "frost, ..." (sometimes no comma, as typed).
+		return nick + (speaker.getRandom().nextInt(3) == 0 ? " " : ", ") + line;
+	}
+
+	/** Its line out, to its partner, and the wait while the other reads it and types. */
+	private static void out(Talk talk, DrifterEntity speaker, String line, long now) {
+		ChatLines.to(speaker, talk.partnerOf(speaker));
 		ChatLines.converse(speaker, line);
 		talk.lines++;
 		// Reading it and typing the answer: longer lines take longer (as they work, longer still).
@@ -755,6 +864,9 @@ public final class Conversations {
 		// (Both cleared: a topic's marks are its own, so the next topic's "if"s start fresh.)
 		boolean disagreed = talk.marks.remove("disagree");
 		boolean agreed = talk.marks.remove("agree");
+		// (A yes to doing something together: see Together.)
+		boolean yes = talk.marks.remove("plan_yes");
+		talk.marks.remove("decline");
 		if (disagreed) {
 			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.a, talk.b, -1.5);
 			com.dinglebob.drifter.api.DrifterApi.addTrustInDrifter(talk.b, talk.a, -1.5);
@@ -784,6 +896,19 @@ public final class Conversations {
 				// What a player told it, passed on (a place; a word about someone).
 				case "pass_place" -> Heard.passPlace(talk.a, talk.b, now);
 				case "pass_word" -> Heard.passWord(talk.a, talk.b, now);
+				// What they agreed to do (the user, 2026-11-05: "the talking leading to actions"): who leads it is the one who
+				// brought it up (a), but for a tag-along (b leads: a asked to come) and mining (the better miner leads).
+				case "plan_show_home" -> { if (yes) Together.agree(Together.Kind.SHOW_HOME, talk.a, talk.b); }
+				case "plan_share_food" -> { if (yes) Together.agree(Together.Kind.SHARE_FOOD, talk.a, talk.b); }
+				case "plan_tag_along" -> { if (yes) Together.agree(Together.Kind.TAG_ALONG, talk.b, talk.a); }
+				case "plan_hunt" -> { if (yes) Together.agree(Together.Kind.HUNT, talk.a, talk.b); }
+				case "plan_visit" -> { if (yes) Together.agree(Together.Kind.VISIT, talk.a, talk.b); }
+				case "plan_mine" -> {
+					if (yes) {
+						boolean aLeads = talk.a.getPersonality().get(Trait.SKILL) >= talk.b.getPersonality().get(Trait.SKILL);
+						Together.agree(Together.Kind.MINE, aLeads ? talk.a : talk.b, aLeads ? talk.b : talk.a);
+					}
+				}
 				default -> {
 				}
 			}

@@ -2231,6 +2231,13 @@ public final class Goals {
 				this.anchor = context.drifter().position();
 			}
 
+			// Hunting with someone (they said so in a talk): around where it last saw them, so they go together.
+			DrifterEntity mate = com.dinglebob.drifter.social.talk.Together.huntMate(context.drifter());
+			var seenMate = mate == null || mate.level() != context.drifter().level() ? null : context.drifter().getSenses().awarenessOf(mate);
+			if (seenMate != null && seenMate.lastSeenPos != null && seenMate.lastSeenPos.distanceTo(context.drifter().position()) < 64.0) {
+				this.anchor = seenMate.lastSeenPos;
+			}
+
 			// Prowl around where it was at dusk: a point 8 to 20 blocks off it.
 			var random = context.drifter().getRandom();
 			double angle = random.nextDouble() * Math.PI * 2.0;
@@ -2870,6 +2877,8 @@ public final class Goals {
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		goals.add(new LabelChestsGoal());
 		goals.add(new DecorateGoal());
+		// What it agreed in a talk to do with someone (show its place, share food, tag along).
+		goals.add(new com.dinglebob.drifter.social.talk.Together());
 		// Toward players (milestone 9, section 14).
 		goals.addAll(com.dinglebob.drifter.social.SocialGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.HostileGoals.all());

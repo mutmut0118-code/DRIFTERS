@@ -183,7 +183,7 @@ public final class ChatReplies {
 
 	/** A player made an advancement that shows in chat: one or two Drifters about say gg (PlayerAdvancementsMixin). */
 	public static void advancement(ServerPlayer player) {
-		if (SocialWatcher.isRealPlayer(player)) {
+		if (SocialWatcher.isRealPlayer(player) && com.dinglebob.drifter.DrifterConfig.advancementCheers()) {
 			answer(player.serverLevel(), player, near(player.serverLevel(), player, reads(), true), "congrats", MOST, 30, player.getGameProfile().getName());
 		}
 	}
