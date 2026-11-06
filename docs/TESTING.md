@@ -2869,3 +2869,51 @@ Installed as 0.23.22-side.1: also has the other session's 0.23.13-0.23.22 (their
 - [ ] **Lots more to talk about**: stories in several parts, hot takes and long debates, deep talks at night, roasts and
       trolls, venting, would-you-rathers and small talk, and talk about every mob, biome, structure, block, tool and food.
       `/drifter talk status` shows the topics of talks going on.
+
+## 0.23.24: your notes (wars, town life, travel, the world, news, rebuilding) (new)
+
+Make a new world with "A world of nations" on (towns are made as you come near). Commands are typed in chat (T), with
+cheats on. `/drifterciv locate city` and `/drifterciv locate town` find the places; `/tp` there.
+
+- [ ] **A war, from the start.** Stand by a town, then `/drifterciv relations war <other town>` (tab completes the names).
+      Within a minute or two its leader rallies: the bell rings ("to arms!"), about half to seven in ten of the town come
+      to the plaza (not all of it). Once most are there, the leader gives a speech, a line every five seconds (twelve in
+      all), everyone facing it; then they march off **at a walk along the road** to the other town, the leader in front,
+      the rest keeping up. Nobody goes in and out of houses. `/drifter wars` shows the raid: its stage, where the leader
+      is, how far from the target, how many are with it, how many speech lines said. When they get close they charge in.
+- [ ] **Guards at night.** In a city, `/drifterciv town`: the "Work" line lists the guards (about one in seven people). At
+      night, stand in the town: guards walk the town's roads in rounds and the plaza, looking about; they fight the mobs
+      they meet. Everyone else is **in their house** (nobody digging a hole in the ground).
+- [ ] **A festival.** `/drifterciv town festival` in a town (the next morning it's on if it's night): someone rings the bell
+      ("festival time!"), and through the day most of the town is round the plaza, mingling, hopping, chatting.
+- [ ] **The bell on market day**: `/drifterciv town market`: the bell rings in the morning ("market day!").
+- [ ] **Home life.** Watch a townsperson at dawn or dusk: now and then one goes to its stove or furnace at home and
+      cooks, or stands by it making breakfast or supper; others look out of the window, potter about, sit in of an evening.
+      Townspeople do things for fun (whims) about twice as often as before; the ones in iron armor go out exploring more.
+- [ ] **A crook in every city.** `/drifterciv town` in a city: one of its people is its crook (the log says "is
+      Westbury's crook now"); things go missing from chests and fights start much more often than in a town.
+- [ ] **Encounters on the road.** Walk a road between towns for a while: encounters come about three times as often as
+      off it, and they start on the road ahead (a merchant coming along it, someone waiting on it).
+- [ ] **Chests.** Open chests in a town's houses and its store: 9 to 18 stacks each, all sorts (food, Farmer's Delight's
+      crops and dishes, wood and stone, iron, gold, coal, seeds, odds and ends).
+- [ ] **The market stall** (`/drifterciv prices` in a town): dearer than before (bread about 4 an emerald), and besides its
+      everyday goods it sells a few better things (gold, gems, a pie...).
+- [ ] **Looters at ruins.** Walk up to ruined portals, desert pyramids, Philips' ruins: about half have one to three
+      Drifters looting them. Half of those are townsfolk out scavenging (friendly; they've moved into the nearest town and
+      walk home after); the rest are delvers who attack on sight. (Needs "delvers" on in the config, as for mineshafts.)
+- [ ] **The town mine.** By the edge of a new town: a log frame over a wide staircase going down. Follow it: torches, a
+      landing every sixteen steps, down to Y 11; a room with a chest and a crafting table, and a corridor with strip mines
+      off both sides. The town's miners go down it on their mining trips.
+- [ ] **City shapes.** New cities aren't all grids: some are a star (six avenues and a ring road), a double ring (two
+      rings, spokes through both), crossroads, winding, a ring. `/drifterciv town` says which ("Shape:"). Debug: before a
+      city is made, `/drifterciv town shape star` (or `rings`).
+- [ ] **The Gazette.** Right-click the lectern on a town's plaza: "The <town> Gazette", today's headlines on the first
+      page, then the town's news, then news from elsewhere, its people at the back. A new one each morning.
+- [ ] **The crier.** Be on a town's plaza in the morning: one of its people calls out the headlines ("extra extra!
+      ..."), and if it has a book and quill it hands you a copy of the paper (it makes a couple when it can).
+- [ ] **Rebuilding.** Blow up part of a Drifter's house (a creeper by it, or `/summon creeper ~ ~ ~ {Fuse:1,ignited:1b}`
+      next to the house): its owner says so ("MY HOUSE") and builds the hole back with the same blocks over the next day or
+      two, and a neighbour or two come and help ("help build X's house back" in `/drifter thoughts`).
+- [ ] **Tusklins** (Alex's Mobs): Drifters treat them as dangerous: a poorly armed one keeps away or runs; a well-armed
+      one fights them.
+- [ ] **Bugs fixed**: no pen built inside another pen; no fences across a bridge on a road between towns.

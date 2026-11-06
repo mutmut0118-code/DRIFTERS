@@ -4577,6 +4577,66 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     a farmer with seeds at home waited, "no grass about".
   - Merged the side sessions' 0.23.22-side.3 (Farmer's Delight kitchens and cooking, username words and nicknames).
 
+- **0.23.24: the user's notes of 2026-11-06 (wars, town life, travel, the world, news, rebuilding)**:
+  - **Wars**: a raid takes half to seven in ten of a town (the same ones all the raid long, 40 at most; a town of four or
+    fewer all go), not every armed one within 96 blocks (a city of a hundred all came). Once most have gathered (all of
+    them, or two in three after half the muster's time, half after three quarters), the leader gives a speech: twelve
+    lines five seconds apart (`war.speech_open`, `war.speech`, `war.speech_close`, never the same line twice), its band
+    facing it; then they're confident and march. The leader marches at a walk along the road (the rest jog to keep up when
+    they fall behind; it waits ten seconds at most for anyone 24 or more blocks back); the raid's time to get there is a
+    second and a half a block of the way as the crow flies (six minutes at least); the raid's own goal no longer gives up
+    every four minutes on the way. Tested headless: a speech, 13 of 15 marching with the leader along the road 700
+    blocks, the charge, the fight, home.
+  - **Long walks along the roads** (`nav/Legs`, raids, bandits, trade runs, errands, guards' far rounds, going home at
+    night): a stretch at a time along the road between towns when there's one there (the addon's `Routes`: the plan's
+    roads as a web, the shortest way to a town worked out once and kept; `/drifterciv route <x> <z>`), else straight on to
+    open ground (never a roof: a stretch's end on a house's roof had a war's leader in and out of its own town's houses).
+  - **Town life**: guards by a town's size (a city one in seven, a town one in ten, two at least; existing towns fill up
+    from their boldest), and the **night rounds** (`PatrolGoal`): along a dozen road spots round the town and the plaza,
+    at a walk, a look round at each, by night instead of going in (a round now and then by day); the fight takes over
+    when something's about. **Townspeople go home at night** (no hole in the ground, no mining from one, no carrying on
+    in the dark; only the guards, and now and then the very boldest out after mobs): they head home from up to 320
+    blocks (was 96), a stretch at a time. **Festivals**: everyone gathers at the plaza from morning to evening
+    (`GatherGoal`: there and mingling, a look at whoever's about, a happy hop), work counting much less. **The bell**
+    (`TownBells`, `BellGoal`): rung (three strikes, a line called out) by the leader if near, else whoever's nearest, on a
+    festival's morning, market day's, a war declared on it or by it, its raiders mustering, raiders coming in. **Whims**
+    come twice as often for townspeople (a seasoned one in iron, and guards, less so), and seasoned ones lean out
+    (explore, delve), the rest to town; **home life**: cooking (the real thing: `cook`, `cookmeal`) leans to the morning and
+    the evening at home, and six home whims (breakfast and supper by its stove, a midday bite, looking out of the window,
+    pottering about, sitting in of an evening; town places `home` and `kitchen`). **A crook in every city**
+    (`Justice.cityCrook`: the least neighbourly, not the leader, keeper or a guard; another three days after one's thrown
+    out), at it three times as often as a town's.
+  - **Bugs**: tusklins and Alex's Mobs' other dangerous animals are threats (`drifter_threats/modded.json`: tusklins
+    hostile at 3.5; crocodiles, komodo dragons, anacondas...; bears, tigers, elephants... only when after it); a pen is
+    never put where there's a fence, gate or wall round already (a pen in the town's pen); a bridge's railing never goes on
+    another road's way or the same road's next stretch (`Highways.waysAbout`), and a deck clears a railing a block above
+    it too (fences across bridges); a town site out of range lets go of its land (one asked for while the world was built
+    before it was played held the queue for good: no other town was ever made after it).
+  - **Travel**: encounters come three times as soon on a road between towns, and start on the road when there's one
+    near (`Legs.roadPointsNear`).
+  - **The world**: a town's chests are full (`TownChests`: a household's chests 9 to 18 stacks each, by the kind of
+    household; food, Farmer's Delight's crops and dishes, building stuff, valuables, farming, odds and ends; the store
+    14 to 22 stacks a chest: 135 stacks in a city's store, was 11). The stall sells at 1.6 times the town's price, and up
+    to three of its better things (gold, gems, pies...) besides its everyday goods. **Looters at ruins** (`Delvers.ruin`,
+    tag `drifter:looter_ruins`: ruined portals, pyramids, igloos, Philips Ruins', Hopo's portals): half the ruins have one
+    to three; half of those are townsfolk out scavenging (they join the nearest town with a house free, within 800
+    blocks, and go home after), the rest delvers. **The town mine**: a staircase three wide from a lot by its edge down to
+    Y 11 (a landing every sixteen steps, torches), a hub (chest, table), a corridor with sixteen strip mines; its people's
+    mining trips start at the hub. **City shapes**: a city is a grid, crossroads, winding, ring, **star** (six avenues and
+    a ring) or **double ring** (two rings, spokes through both), never a main street; a river or harbour city by the
+    land.
+  - **News**: the plaza's lectern holds the day's **Gazette**, printed each morning from the chronicle (its headlines,
+    the town's news, news from elsewhere, its people at the back). Its **crier** (the most sociable of its people) calls
+    the headlines on the plaza of a morning ("extra extra! ...") and hands each player about a copy, written in a book and
+    quill of its own (it makes a couple: `TownPaper`).
+  - **Rebuilding**: an explosion that blows a hole in a Drifter's house (from a plan) sets it mending for two days (the
+    plan's missing blocks, in the woods it was built in, gathered again), and two of its group nearby help build it back
+    ("help build X's house back"). Tested: three creepers in a town at night, each owner building back with two
+    neighbours.
+  - Merged the chat side session's 0.23.23-side.2 (10,710 talk topics).
+  - Known: in the test world the capital Westbury has no roads (it's on a peninsula and the plan's roads go round by
+    land only): its people walk straight. Roads over the sea (a long bridge, a ferry) are a question for the user.
+
 ## Side session: chat, part 5 (0.23.23-side.1)
 
 The user (2026-11-05): more parts to stories and topics of every kind ("controversial opinions, deep and philosophical
