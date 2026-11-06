@@ -4617,15 +4617,15 @@ to debate) until you hit 10000 total topics".
   brought up only by one who knows (`Topics.lored`). 80 knowledge topics (`drifter_talk/topics_lore.json`,
   `tools/talk_gen/lore.py`): a veteran's advice, a newbie's questions and wrong ideas put right, a veteran's plans, debates
   between two who know. Talk facts `knows_<area>` / `new_to_<area>`. `/drifter lore` (and `/drifter lore learn <area>`).
-- **Topics to 10,000**: 6,681 Drifter topics now (from 767), written by generators in `tools/talk_gen`
-  (`BRIEF.md` is how to write one; each script rebuilds its `drifter_talk/topics_gen_*.json`): stories in 3-5 parts (1,207,
-  `stories.py`, also a part 3 or 4 for each old two-part story, hooked on through `links`), everyday things and doings
-  subject by subject from small talk to debate (1,249, `things.py`), venting with listeners by personality (1,329,
-  `venting.py`), deep and philosophical talks (1,217, `deep.py`), would-you-rathers, what-ifs and small talk (881,
-  `random_talk.py`), hot takes (22, `debates.py`). **Half-done (the session ran out):** `deep.py`, `random_talk.py` and
-  `debates.py` were stopped before their writers finished and read back over them (they pass the checker); `banter.py`
-  (roasts, trolls, ragebait, callouts) and `world.py` (every mob, biome and structure) are unfinished scripts with no output
-  yet. **Next:** finish those (and the long debates in `debates.py`) to reach the user's 10,000.
+- **Topics to 10,000**: 10,710 Drifter topics now (from 767; 0.23.23-side.2), written by generators in `tools/talk_gen`
+  (`BRIEF.md` is how to write one; each script rebuilds its `drifter_talk/topics_gen_*.json`; each writer played its topics
+  out with random picks and fixed what didn't follow): stories in 3-5 parts (1,207, `stories.py`, also a part 3 or 4 for
+  each old two-part story, hooked on through `links`), everyday things and doings subject by subject from small talk to
+  debate (1,249, `things.py`), venting with listeners by personality (1,329, `venting.py`), deep and philosophical talks
+  (1,212, `deep.py`), would-you-rathers, what-ifs, games and small talk (1,190, `random_talk.py`), hot takes and two-part
+  long debates (1,238, `debates.py`; `--extra` builds ~900 more takes, left out), every mob, biome, structure and the
+  weather and sky (1,317, `world.py`), roasts, ragebait, trolls, accusations, debts and making up (1,192, `banter.py`).
+  New tags include venting, travel, small_talk, silly, roasts, trolls. 83,571 distinct lines; the talk data is 17 MB.
   A chained part (named in another topic's `next`) now only comes up after the part before, never by its tags
   (`Topics.chained`). CHAT_LINES.md lists the hand-written topics and samples of each generated batch.
 - Tested headless: names on first lines and "[to ...]" in the log; share food (offered, walked over, tossed 3 steak,

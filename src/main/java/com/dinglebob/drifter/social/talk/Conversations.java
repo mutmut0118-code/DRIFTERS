@@ -801,7 +801,8 @@ public final class Conversations {
 		DrifterEntity partner = talk.partnerOf(speaker);
 		String nick = com.dinglebob.drifter.identity.Nicknames.of(partner).toLowerCase(java.util.Locale.ROOT);
 		String lower = line.toLowerCase(java.util.Locale.ROOT);
-		if (nick.isEmpty() || line.startsWith("*") || line.length() < 4
+		// (Not on a short reply: "kip, hm. ok" reads wrong.)
+		if (nick.isEmpty() || line.startsWith("*") || line.length() < (talk.lines == 0 ? 4 : 14)
 			|| lower.matches("(?s).*\\b" + java.util.regex.Pattern.quote(nick) + "\\b.*")
 			|| lower.contains(partner.getName().getString().toLowerCase(java.util.Locale.ROOT))) {
 			return line;
