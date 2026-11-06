@@ -2917,3 +2917,19 @@ cheats on. `/drifterciv locate city` and `/drifterciv locate town` find the plac
 - [ ] **Tusklins** (Alex's Mobs): Drifters treat them as dangerous: a poorly armed one keeps away or runs; a well-armed
       one fights them.
 - [ ] **Bugs fixed**: no pen built inside another pen; no fences across a bridge on a road between towns.
+
+## 0.23.25: house chests, valuables at home, roads over water (new)
+
+Make a new world with "A world of nations" on.
+
+- [ ] **House chests full.** Open the chests in a town's houses, both halves of the double chests, barrels and Farmer's
+      Delight cabinets: none empty, 9 to 18 stacks each. `/drifterciv town chests` (standing in a town) counts them: how
+      many, how many empty, stacks each on average, how many stacks of valuables.
+- [ ] **Valuables at home.** Gold, gems (emeralds, diamonds now and then, lapis, amethyst) and money (emeralds, or
+      Numismatic Overhaul's coins) are in the houses' chests, a few in each house. The town's store has wood, stone, ore,
+      coal, food, seeds, but no gems or money.
+- [ ] **Roads over water.** Where towns are split by water: narrow water (up to about 80 blocks) has a long railed bridge
+      on piers. Wider water: the road ends at a dock (planks out over the water, railings, a lantern, a sign "Boats
+      across / to (town)", a boat tied up), and on the far shore another dock where the road goes on. `/drifterciv route
+      <x> <z>` from one town to the other shows the way along the roads. A Drifter going that way (a trade run, a war)
+      walks to the dock and rows across in its own boat.

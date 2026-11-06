@@ -31,8 +31,8 @@ final class Routes {
 	/** The road's way is taken unless it's this many times as long as straight there (and a bit). */
 	private static final double DETOUR = 3.0;
 
-	/** The roads as a web: points (x, z) of the roads, then the places (their middles). */
-	private record Graph(Object stamp, int roads, int[] xs, int[] zs, int[][] to, float[][] cost, WorldPlan.Place[] places) {
+	/** The roads as a web: points (x, z) of the roads, then the places (their middles); the boat crossings between points. */
+	private record Graph(Object stamp, int roads, int[] xs, int[] zs, int[][] to, float[][] cost, WorldPlan.Place[] places, java.util.Set<Long> boats) {
 		int size() {
 			return this.xs.length;
 		}
@@ -94,11 +94,13 @@ final class Routes {
 		int n = start;
 		for (int guard = 0; n >= 0 && n != end && guard < g.size(); guard++) {
 			// (Not the middle of the place it's leaving: straight on to where its road leaves.)
+			// (A point the way goes on from by boat: marked, for the walker, Legs.FERRY.)
+			int on = field.next[n];
 			if (n != start || n < g.roads) {
-				way.add(new BlockPos(g.xs[n], 0, g.zs[n]));
+				way.add(new BlockPos(g.xs[n], on >= 0 && g.boats.contains(pair(n, on)) ? com.dinglebob.drifter.nav.Legs.FERRY : 0, g.zs[n]));
 			}
 
-			n = field.next[n];
+			n = on;
 		}
 
 		way.add(to);
@@ -204,7 +206,8 @@ final class Routes {
 			return null;
 		}
 
-		Object stamp = List.of(highways.size(), placesNow.size(), System.identityHashCode(highways.get(0)), System.identityHashCode(placesNow.get(0)));
+		Object stamp = List.of(highways.size(), placesNow.size(), System.identityHashCode(highways.get(0)), System.identityHashCode(placesNow.get(0)),
+			WorldPlan.ferries.size());
 		if (graph != null && graph.stamp.equals(stamp)) {
 			return graph;
 		}
@@ -281,6 +284,20 @@ final class Routes {
 			}
 		}
 
+		// Boat crossings: the road point by each dock to the one by the other, the way across dearer than walking it.
+		java.util.Set<Long> boats = new java.util.HashSet<>();
+		for (WorldPlan.Ferry ferry : WorldPlan.ferries) {
+			int a = nearestRoad(xs, zs, roads, ferry.x1(), ferry.z1());
+			int b = nearestRoad(xs, zs, roads, ferry.x2(), ferry.z2());
+			if (a >= 0 && b >= 0 && a != b) {
+				int d = Float.floatToIntBits((float)(Math.hypot(xs[a] - xs[b], zs[a] - zs[b]) * BOAT));
+				edges.get(a).add(new int[] {b, d});
+				edges.get(b).add(new int[] {a, d});
+				boats.add(pair(a, b));
+				boats.add(pair(b, a));
+			}
+		}
+
 		int[][] to = new int[size][];
 		float[][] cost = new float[size][];
 		for (int i = 0; i < size; i++) {
@@ -293,8 +310,30 @@ final class Routes {
 			}
 		}
 
-		graph = new Graph(stamp, roads, xs, zs, to, cost, places);
+		graph = new Graph(stamp, roads, xs, zs, to, cost, places, boats);
 		return graph;
+	}
+
+	/** Crossing by boat counts this many times its length. */
+	private static final double BOAT = 1.5;
+
+	private static long pair(int a, int b) {
+		return ((long)a << 32) | (b & 0xFFFFFFFFL);
+	}
+
+	/** The road point nearest x, z (within 16), or -1. */
+	private static int nearestRoad(int[] xs, int[] zs, int roads, int x, int z) {
+		int best = -1;
+		double far = 16;
+		for (int n = 0; n < roads; n++) {
+			double d = Math.hypot(xs[n] - x, zs[n] - z);
+			if (d <= far) {
+				far = d;
+				best = n;
+			}
+		}
+
+		return best;
 	}
 
 	private static void link(List<List<int[]>> edges, int[] xs, int[] zs, int a, int b) {

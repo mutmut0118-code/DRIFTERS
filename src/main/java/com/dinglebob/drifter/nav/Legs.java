@@ -33,6 +33,8 @@ public final class Legs {
 
 	/** About how far a stretch goes. */
 	public static final double STRETCH = 32.0;
+	/** A route's point with this height: from it to the next is across water, by boat (a dock to a dock). */
+	public static final int FERRY = -1;
 	/** Within this, it goes straight there. */
 	private static final double NEAR = 40.0;
 	/** A road this far off at most is joined; past it, it's not this one's road. */
@@ -119,8 +121,15 @@ public final class Legs {
 			return null;
 		}
 
+		// At a dock, the way on across water: straight to the far one (its walk takes the boat out: NavigateTask, BoatTask).
+		if (route.get(nearest).getY() == FERRY && best <= 12.0 && nearest + 1 < route.size()) {
+			BlockPos far = route.get(nearest + 1);
+			return ground(drifter.level(), far.getX(), far.getZ());
+		}
+
 		// Off it: onto it first. On it: a stretch further along (a point on the way that far on, between two of its points if
-		// they're far apart); the road's done within a stretch of the end: straight on.
+		// they're far apart; never past a dock: it stops there for the boat); the road's done within a stretch of the end:
+		// straight on.
 		double x;
 		double z;
 		if (best > 8.0) {
@@ -138,6 +147,12 @@ public final class Legs {
 
 				BlockPos a = route.get(i);
 				BlockPos b = route.get(i + 1);
+				if (a.getY() == FERRY && i > nearest) {
+					x = a.getX();
+					z = a.getZ();
+					break;
+				}
+
 				double length = Math.hypot(b.getX() - a.getX(), b.getZ() - a.getZ());
 				if (length >= left) {
 					x = a.getX() + (b.getX() - a.getX()) * left / length;

@@ -15,8 +15,9 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
  * What a town's chests hold when it's made (the user, 2026-11-06: "we should revamp chest inventories, for more various
  * items, materials, and food given that farmer delights is added, make em more filled most of the chests are empty with 3
  * item stacks being the most"): a household's chests nine to eighteen stacks each, from a few pools (food, its pantry of
- * Farmer's Delight's crops and dishes when that's installed, building stuff, valuables, farming, odds and ends) leaning to
- * what its kind of household would keep; the store's, fuller still, by what each chest is for. Things a mod doesn't have
+ * Farmer's Delight's crops and dishes when that's installed, building stuff, ore, farming, odds and ends) leaning to what
+ * its kind of household would keep, and its own valuables (gold, gems, its purse); the store's, fuller still, by what each
+ * chest is for, never valuables. Things a mod doesn't have
  * (Farmer's Delight not installed) are left out.
  */
 final class TownChests {
@@ -64,10 +65,19 @@ final class TownChests {
 		e("minecraft:ladder", 4, 12, 0.8), e("minecraft:oak_fence", 4, 12, 0.8), e("minecraft:white_wool", 2, 8, 1), e("minecraft:andesite", 8, 32, 1),
 		e("minecraft:deepslate", 8, 32, 0.6), e("minecraft:hay_block", 1, 4, 0.8));
 
-	static final List<Entry> VALUABLES = List.of(e("minecraft:iron_ingot", 4, 18, 4), e("minecraft:raw_iron", 4, 16, 2), e("minecraft:gold_ingot", 2, 8, 1.5),
-		e("minecraft:gold_nugget", 6, 24, 1.5), e("minecraft:copper_ingot", 6, 24, 2), e("minecraft:raw_copper", 6, 20, 1), e("minecraft:coal", 12, 48, 4),
-		e("minecraft:charcoal", 8, 24, 1.5), e("minecraft:redstone", 8, 32, 1.5), e("minecraft:lapis_lazuli", 4, 16, 1), e("minecraft:emerald", 1, 6, 1),
-		e("minecraft:diamond", 1, 2, 0.25), e("minecraft:amethyst_shard", 2, 8, 0.6), e("minecraft:quartz", 4, 12, 0.4));
+	/** Ore, coal and ingots of the everyday metals (what the store keeps for everyone). */
+	static final List<Entry> ORE = List.of(e("minecraft:iron_ingot", 4, 18, 4), e("minecraft:raw_iron", 4, 16, 2), e("minecraft:copper_ingot", 6, 24, 2),
+		e("minecraft:raw_copper", 6, 20, 1), e("minecraft:coal", 12, 48, 4), e("minecraft:charcoal", 8, 24, 1.5), e("minecraft:redstone", 8, 32, 1.5));
+
+	/**
+	 * A household's own valuables, never the store's (the user, 2026-11-06: "valuable stuff like gems, or coin purses, or
+	 * any related to the sort, should be in households instead of shared chests"): gold, gems, Numismatic Overhaul's coins
+	 * and money bag when it's there.
+	 */
+	static final List<Entry> TREASURE = List.of(e("minecraft:gold_ingot", 2, 8, 2), e("minecraft:gold_nugget", 6, 24, 2), e("minecraft:emerald", 1, 6, 2),
+		e("minecraft:diamond", 1, 2, 0.4), e("minecraft:lapis_lazuli", 4, 16, 1.2), e("minecraft:amethyst_shard", 2, 8, 1), e("minecraft:quartz", 4, 12, 0.5),
+		e("minecraft:raw_gold", 2, 6, 0.6), e("minecraft:golden_apple", 1, 1, 0.2), e("numismatic-overhaul:silver_coin", 2, 12, 1.5),
+		e("numismatic-overhaul:bronze_coin", 8, 48, 1.5), e("numismatic-overhaul:gold_coin", 1, 1, 0.1), e("numismatic-overhaul:money_bag", 1, 1, 0.5));
 
 	static final List<Entry> FARMING = List.of(e("minecraft:wheat_seeds", 12, 48, 4), e("minecraft:wheat", 8, 32, 3), e("minecraft:beetroot_seeds", 6, 24, 2),
 		e("minecraft:melon_seeds", 2, 8, 1), e("minecraft:pumpkin_seeds", 2, 8, 1), e("minecraft:bone_meal", 6, 24, 2), e("minecraft:oak_sapling", 2, 8, 1.5),
@@ -82,45 +92,76 @@ final class TownChests {
 		e("minecraft:red_dye", 2, 8, 0.6), e("minecraft:blue_dye", 2, 8, 0.4), e("minecraft:ink_sac", 2, 6, 0.6), e("minecraft:gunpowder", 2, 8, 0.6),
 		e("minecraft:slime_ball", 1, 4, 0.3), e("minecraft:map", 1, 1, 0.3), e("minecraft:compass", 1, 1, 0.2), e("minecraft:clock", 1, 1, 0.15));
 
-	/** A household's kinds of things, by how much of each it keeps (the pools above, in order: food, pantry, building, valuables, farming, odds). */
+	/** A household's kinds of things, by how much of each it keeps (the pools, in order: food, pantry, building, ore, farming, odds, treasure). */
 	private static final double[][] HOUSEHOLDS = {
 		// a farmer's: food and the fields
-		{4, 3, 1, 1, 4, 1},
+		{4, 3, 1, 1, 4, 1, 0.6},
 		// a builder's: stone and wood
-		{2, 1, 5, 1.5, 1, 1.5},
+		{2, 1, 5, 1.5, 1, 1.5, 0.6},
 		// a smith's: ore, coal, ingots
-		{2, 1, 2, 5, 0.5, 1.5},
+		{2, 1, 2, 5, 0.5, 1.5, 1},
 		// a cook's: the pantry
-		{4, 5, 1, 1, 2, 1},
+		{4, 5, 1, 1, 2, 1, 0.6},
 		// a hunter's or fisher's: meat and fish, arrows and string
-		{5, 2, 1, 1, 1.5, 3},
+		{5, 2, 1, 1, 1.5, 3, 0.6},
 		// a well-off one's: a bit of everything, more of the good stuff
-		{3, 2, 2, 3, 1.5, 2}};
+		{3, 2, 2, 2, 1.5, 2, 2.5}};
 
 	/** A household's chests: each 9 to 18 stacks, by a kind of household picked for it. */
-	static void household(net.minecraft.server.level.ServerLevel level, List<ChestBlockEntity> chests, RandomSource random) {
+	static void household(net.minecraft.server.level.ServerLevel level, List<? extends net.minecraft.world.Container> chests, RandomSource random) {
 		double[] mix = HOUSEHOLDS[random.nextInt(HOUSEHOLDS.length)];
-		for (ChestBlockEntity chest : chests) {
-			fill(chest, mix, 9 + random.nextInt(10), random);
+		for (net.minecraft.world.Container chest : chests) {
+			fill(chest, mix, Math.min(chest.getContainerSize() - 2, 9 + random.nextInt(10)), random);
+		}
+
+		// Its own valuables, put away somewhere in the house: a stack or two of them, and its purse (its money).
+		if (chests.isEmpty()) {
+			return;
+		}
+
+		int treasures = 1 + random.nextInt(mix[6] > 2 ? 3 : 2);
+		for (int i = 0; i < treasures; i++) {
+			put(chests.get(random.nextInt(chests.size())), pick(TREASURE, random), random);
+		}
+
+		put(chests.get(random.nextInt(chests.size())), com.dinglebob.drifter.api.DrifterApi.money(6 + random.nextInt(mix[6] > 2 ? 90 : 40)), random);
+	}
+
+	/** One stack into a free slot of it (at random), if there's room. */
+	private static void put(net.minecraft.world.Container chest, ItemStack stack, RandomSource random) {
+		if (stack.isEmpty()) {
+			return;
+		}
+
+		List<Integer> free = new ArrayList<>();
+		for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+			if (chest.getItem(slot).isEmpty()) {
+				free.add(slot);
+			}
+		}
+
+		if (!free.isEmpty()) {
+			chest.setItem(free.get(random.nextInt(free.size())), stack);
 		}
 	}
 
 	/** One of the town store's chests, by what it's for (0 wood, 1 stone, 2 ore and coal, 3 food, then the rest a bit of everything): full-ish. */
 	static void store(ChestBlockEntity chest, int which, RandomSource random) {
+		// (Never its valuables: those are its households', at home.)
 		double[] mix = switch (which) {
-			case 0, 1 -> new double[] {0, 0, 6, 0.5, 0.5, 0.5};
-			case 2 -> new double[] {0, 0, 0.5, 6, 0, 1};
-			case 3 -> new double[] {5, 4, 0, 0, 2, 0};
-			case 4 -> new double[] {1, 1, 1, 1, 4, 1};
-			default -> new double[] {2, 2, 2, 2, 2, 3};
+			case 0, 1 -> new double[] {0, 0, 6, 0.5, 0.5, 0.5, 0};
+			case 2 -> new double[] {0, 0, 0.5, 6, 0, 1, 0};
+			case 3 -> new double[] {5, 4, 0, 0, 2, 0, 0};
+			case 4 -> new double[] {1, 1, 1, 1, 4, 1, 0};
+			default -> new double[] {2, 2, 2, 2, 2, 3, 0};
 		};
 		fill(chest, mix, 14 + random.nextInt(9), random);
 	}
 
-	private static final List<List<Entry>> POOLS = List.of(FOOD, PANTRY, BUILDING, VALUABLES, FARMING, ODDS);
+	private static final List<List<Entry>> POOLS = List.of(FOOD, PANTRY, BUILDING, ORE, FARMING, ODDS, TREASURE);
 
 	/** {@code stacks} stacks into the chest's empty slots, at random, each from a pool picked by {@code mix}. */
-	private static void fill(ChestBlockEntity chest, double[] mix, int stacks, RandomSource random) {
+	private static void fill(net.minecraft.world.Container chest, double[] mix, int stacks, RandomSource random) {
 		List<Integer> free = new ArrayList<>();
 		for (int slot = 0; slot < chest.getContainerSize(); slot++) {
 			if (chest.getItem(slot).isEmpty()) {

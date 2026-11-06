@@ -563,6 +563,58 @@ public final class DrifterCivilizations implements ModInitializer {
 					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 					return 1;
 				}))
+				// The nearest town's house storage: how many chests, barrels and cabinets, how many empty, how full on average.
+				.then(Commands.literal("chests").executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null) {
+						source.sendFailure(Component.literal("No town here"));
+						return 0;
+					}
+
+					int containers = 0;
+					int empty = 0;
+					int stacks = 0;
+					int valuables = 0;
+					for (Town.Plot plot : town.plots) {
+						if (!plot.built || plot.sizeX == 0) {
+							continue;
+						}
+
+						int x1 = plot.origin.getX() + Math.max(plot.sizeX, plot.sizeZ);
+						int z1 = plot.origin.getZ() + Math.max(plot.sizeX, plot.sizeZ);
+						for (BlockPos pos : BlockPos.betweenClosed(plot.origin.getX() - 2, plot.origin.getY() - 3, plot.origin.getZ() - 2, x1 + 2, plot.origin.getY() + 14, z1 + 2)) {
+							var entity = source.getLevel().getBlockEntity(pos);
+							if (entity instanceof net.minecraft.world.level.block.entity.ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity) {
+								var container = (net.minecraft.world.Container)entity;
+								containers++;
+								int here = 0;
+								for (int slot = 0; slot < container.getContainerSize(); slot++) {
+									var stack = container.getItem(slot);
+									if (!stack.isEmpty()) {
+										here++;
+										if (DrifterApi.worth(stack) >= 3.0) {
+											valuables++;
+										}
+									}
+								}
+
+								stacks += here;
+								if (here == 0) {
+									empty++;
+								}
+							}
+						}
+					}
+
+					int all = containers;
+					int none = empty;
+					int filled = stacks;
+					int worth = valuables;
+					source.sendSuccess(() -> Component.literal(town.name + "'s houses: " + all + " chests and barrels (each half of a double chest counted), " + none
+						+ " empty, " + (all == 0 ? 0 : filled / all) + " stacks each on average, " + worth + " stacks of valuables (gold, gems, money)"), false);
+					return all;
+				}))
 				// Debug: the nearest town seen from above, saved as a picture in the server's town-maps folder.
 				.then(Commands.literal("map").requires(source -> source.hasPermission(2)).executes(ctx -> townMap(ctx, 0))
 					.then(Commands.argument("radius", IntegerArgumentType.integer(16, 1024)).executes(ctx -> townMap(ctx, IntegerArgumentType.getInteger(ctx,

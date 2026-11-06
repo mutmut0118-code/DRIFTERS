@@ -109,6 +109,9 @@ final class WorldPlan {
 		 */
 		boolean fromEnd = true;
 		boolean toEnd = true;
+		/** Its first (last) point's at a shore where a boat crossing begins: a dock there. */
+		boolean fromDock;
+		boolean toDock;
 
 		Highway(UUID from, UUID to, List<int[]> points) {
 			this.from = from;
@@ -130,6 +133,17 @@ final class WorldPlan {
 	static final List<Place> places = new ArrayList<>();
 	static final List<PlannedNation> nations = new ArrayList<>();
 	static final List<Highway> highways = new ArrayList<>();
+	/**
+	 * Boat crossings: over water too wide for a bridge, a road ends at a dock on each shore (the user, 2026-11-06: "long
+	 * bridge over narrow water, then by boat"); from one dock to the other by boat.
+	 */
+	static final List<Ferry> ferries = new ArrayList<>();
+
+	record Ferry(int x1, int z1, int x2, int z2) {
+	}
+
+	/** Water a road bridges at most (blocks of it in a row); wider, a boat crossing. */
+	static final int LONG_BRIDGE = 80;
 	/** The world's past, and its present for the places nobody's near (W6, W7). */
 	@Nullable
 	static History history;
@@ -203,6 +217,7 @@ final class WorldPlan {
 				places.clear();
 				nations.clear();
 				highways.clear();
+				ferries.clear();
 				history = null;
 			}
 		});
@@ -286,6 +301,8 @@ final class WorldPlan {
 		nations.addAll(plan.nations);
 		highways.clear();
 		highways.addAll(plan.highways);
+		ferries.clear();
+		ferries.addAll(plan.ferries);
 		history = plan.history;
 		for (Place place : places) {
 			TownSites.planned(server.overworld(), place);
@@ -480,6 +497,7 @@ final class WorldPlan {
 		final List<Place> places = new ArrayList<>();
 		final List<PlannedNation> nations = new ArrayList<>();
 		final List<Highway> highways = new ArrayList<>();
+		final List<Ferry> ferries = new ArrayList<>();
 		private final Set<String> names = new HashSet<>();
 		private final Map<Long, int[]> heights = new HashMap<>();
 
@@ -1043,7 +1061,11 @@ final class WorldPlan {
 				return;
 			}
 
-			List<int[]> line = this.route(a.x, a.z, b.x, b.z);
+			List<int[]> line = this.route(a.x, a.z, b.x, b.z, false);
+			// (No way by land: over the water, the narrowest way across: a long bridge, or wider, by boat.)
+			if (line.isEmpty()) {
+				line = this.route(a.x, a.z, b.x, b.z, true);
+			}
 			// Only the stretch between the two towns' own roads (each town's roads go out to meet it).
 			int first = 0;
 			while (first < line.size() && Math.hypot(line.get(first)[0] - a.x, line.get(first)[1] - a.z) < a.reach()) {
@@ -1069,9 +1091,50 @@ final class WorldPlan {
 				b.gates.add(Math.atan2(between.get(between.size() - 1)[1] - b.z, between.get(between.size() - 1)[0] - b.x));
 			}
 
-			// Where it runs with a road already planned (out of the same town the same way, or across one), that road's the way:
-			// only the pieces off it are built, each joined to it (two roads side by side, the same way, and one paved over
-			// another where it branched off: the user's pictures).
+			// Water too wide to bridge: the road ends on this shore, a boat crossing, the road on from the other.
+			List<List<int[]>> parts = new ArrayList<>();
+			List<int[]> part = new ArrayList<>();
+			int wet = 0;
+			int lastDry = -1;
+			for (int k = 0; k < between.size(); k++) {
+				int[] p = between.get(k);
+				if (this.realLand(p[0], p[1])[1] == 1) {
+					wet++;
+					continue;
+				}
+
+				if (wet * STEP > LONG_BRIDGE && lastDry >= 0 && !part.isEmpty()) {
+					int[] from = between.get(lastDry);
+					this.ferries.add(new Ferry(from[0], from[1], p[0], p[1]));
+					parts.add(part);
+					part = new ArrayList<>();
+				} else if (wet > 0 && lastDry >= 0) {
+					// (A bridge: its water stays in the road.)
+					part.addAll(between.subList(lastDry + 1, k));
+				}
+
+				part.add(p);
+				wet = 0;
+				lastDry = k;
+			}
+
+			parts.add(part);
+			for (int n = 0; n < parts.size(); n++) {
+				this.pieces(a, b, parts.get(n), n == 0, n == parts.size() - 1);
+			}
+		}
+
+		/**
+		 * A road's way between two towns (or a town and a shore, a shore and a town) as highways: where it runs with a road
+		 * already planned (out of the same town the same way, or across one), that road's the way: only the pieces off it are
+		 * built, each joined to it (two roads side by side, the same way, and one paved over another where it branched off: the
+		 * user's pictures). {@code townStart}, {@code townEnd}: its ends are at a town (else at a dock).
+		 */
+		private void pieces(Place a, Place b, List<int[]> between, boolean townStart, boolean townEnd) {
+			if (between.size() < 2) {
+				return;
+			}
+
 			int start = -1;
 			for (int k = 0; k <= between.size(); k++) {
 				boolean free = k < between.size() && this.sharedNear(between.get(k)) == null;
@@ -1091,8 +1154,10 @@ final class WorldPlan {
 
 					if (run.size() >= 4) {
 						Highway road = new Highway(a.id, b.id, run);
-						road.fromEnd = start == 0;
-						road.toEnd = k == between.size();
+						road.fromEnd = townStart && start == 0;
+						road.toEnd = townEnd && k == between.size();
+						road.fromDock = !townStart && start == 0;
+						road.toDock = !townEnd && k == between.size();
 						this.highways.add(road);
 					}
 
@@ -1139,7 +1204,7 @@ final class WorldPlan {
 		 * cheapest found (A*), then its corners rounded off, a point every {@link #STEP} blocks. None found: no road (a
 		 * straight line before, over the sea and up the mountains).
 		 */
-		private List<int[]> route(int ax, int az, int bx, int bz) {
+		private List<int[]> route(int ax, int az, int bx, int bz, boolean overWater) {
 			this.stillWanted();
 			// (A long road on the coarser grid: on the fine one a capital's road to the next, 3,000 blocks, looked at 40,000
 			// cells and found none.)
@@ -1175,7 +1240,6 @@ final class WorldPlan {
 			open.add(new double[] {si, sj, 0});
 			int nodes = 0;
 			boolean found = false;
-			int sea = this.generator.getSeaLevel();
 			while (!open.isEmpty() && nodes++ < MOST_NODES) {
 				double[] node = open.poll();
 				int i = (int)node[0];
@@ -1201,7 +1265,8 @@ final class WorldPlan {
 						int ni = i + di;
 						int nj = j + dj;
 						int[] next = this.roadLand(ni, nj, cell);
-						if (next[1] == 1 && this.openWater(ni, nj, cell)) {
+						boolean sea = next[1] == 1 && this.openWater(ni, nj, cell);
+						if (sea && !overWater) {
 							continue;
 						}
 
@@ -1211,7 +1276,7 @@ final class WorldPlan {
 						boolean onRoad = this.usedCells.contains(BlockPos.asLong(ni, cell, nj));
 						double g = here + step * (onRoad ? ON_ROAD : 1 + 40 * grade * grade + WANDER * this.wander(ni * cell, nj * cell)) + (grade > 0.5 ? step * 40 : 0)
 							+ (this.structureBy(ni * cell + cell / 2, nj * cell + cell / 2) ? step * BY_STRUCTURE : 0)
-							+ (next[1] == 1 ? next[0] < sea - 4 ? 2500 : 60 : 0);
+							+ (sea ? step * 6 : next[1] == 1 ? next[0] < this.generator.getSeaLevel() - 4 ? 2500 : 60 : 0);
 						double far = along.get(key) + step;
 						if (g < cost.getOrDefault(nkey, Double.MAX_VALUE) && far + Math.hypot(ti - ni, tj - nj) * cell <= longest) {
 							cost.put(nkey, g);
@@ -1473,10 +1538,20 @@ final class WorldPlan {
 			one.putByteArray("Built", built);
 			one.putBoolean("FromEnd", highway.fromEnd);
 			one.putBoolean("ToEnd", highway.toEnd);
+			one.putBoolean("FromDock", highway.fromDock);
+			one.putBoolean("ToDock", highway.toDock);
 			roads.add(one);
 		}
 
 		plan.put("Roads", roads);
+		ListTag crossings = new ListTag();
+		for (Ferry ferry : ferries) {
+			CompoundTag one = new CompoundTag();
+			one.putIntArray("At", new int[] {ferry.x1(), ferry.z1(), ferry.x2(), ferry.z2()});
+			crossings.add(one);
+		}
+
+		plan.put("Ferries", crossings);
 		if (history != null) {
 			CompoundTag past = new CompoundTag();
 			history.save(past);
@@ -1490,6 +1565,7 @@ final class WorldPlan {
 		places.clear();
 		nations.clear();
 		highways.clear();
+		ferries.clear();
 		ready = false;
 		making = false;
 		if (tag.contains("Planned")) {
@@ -1541,12 +1617,21 @@ final class WorldPlan {
 			Highway highway = new Highway(one.getUUID("From"), one.getUUID("To"), points);
 			highway.fromEnd = !one.contains("FromEnd") || one.getBoolean("FromEnd");
 			highway.toEnd = !one.contains("ToEnd") || one.getBoolean("ToEnd");
+			highway.fromDock = one.getBoolean("FromDock");
+			highway.toDock = one.getBoolean("ToDock");
 			byte[] built = one.getByteArray("Built");
 			for (int i = 0; i < Math.min(built.length, highway.built.length); i++) {
 				highway.built[i] = built[i] == 1;
 			}
 
 			highways.add(highway);
+		}
+
+		for (Tag t : plan.getList("Ferries", Tag.TAG_COMPOUND)) {
+			int[] at = ((CompoundTag)t).getIntArray("At");
+			if (at.length == 4) {
+				ferries.add(new Ferry(at[0], at[1], at[2], at[3]));
+			}
 		}
 
 		// (Worlds planned before their past was written have none: their places live as before.)

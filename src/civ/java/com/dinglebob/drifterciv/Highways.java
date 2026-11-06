@@ -243,6 +243,18 @@ final class Highways {
 		}
 
 		TownBuilder.highway(level, line(corners), townRoads, waysAbout(corners, road, a, b));
+		// A dock where it meets water too wide to bridge (its boat crossing's end).
+		if (piece == 0 && road.fromDock && road.points.size() > 1) {
+			int[] p = road.points.get(0);
+			int[] q = road.points.get(1);
+			TownBuilder.dock(level, p[0], p[1], p[0] - q[0], p[1] - q[1], placeName(road.to));
+		}
+
+		if (piece == road.built.length - 1 && road.toDock && road.points.size() > 1) {
+			int[] p = road.points.get(road.points.size() - 1);
+			int[] q = road.points.get(road.points.size() - 2);
+			TownBuilder.dock(level, p[0], p[1], p[0] - q[0], p[1] - q[1], placeName(road.to));
+		}
 		if (first) {
 			sign(level, corners, true, road.to);
 		}
@@ -250,6 +262,17 @@ final class Highways {
 		if (last) {
 			sign(level, corners, false, road.from);
 		}
+	}
+
+	/** A place of the plan's name (for a dock's sign). */
+	private static String placeName(java.util.UUID id) {
+		for (WorldPlan.Place place : WorldPlan.places) {
+			if (place.id.equals(id)) {
+				return place.name;
+			}
+		}
+
+		return "the far shore";
 	}
 
 	/**

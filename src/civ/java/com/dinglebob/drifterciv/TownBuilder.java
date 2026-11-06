@@ -3191,7 +3191,6 @@ public final class TownBuilder {
 				}
 			}
 
-			stock(this.level, home, house.box());
 			for (BlockPos chest : home.chests()) {
 				DrifterApi.rememberChest(drifter, chest);
 			}
@@ -3201,6 +3200,7 @@ public final class TownBuilder {
 			this.people.add(drifter);
 			if (i == this.buildingHouse) {
 				DrifterApi.stillBuilding(drifter, 6);
+				stock(this.level, house.box());
 				return;
 			}
 
@@ -3232,6 +3232,9 @@ public final class TownBuilder {
 				DrifterApi.knowsBox(other, this.plazaBox);
 				this.people.add(other);
 			}
+
+			// Its storage filled once everyone's in (their bedside chests too).
+			stock(this.level, house.box());
 		}
 
 		/** One group, geared by their places; the town itself, its past and its keeper; its notice board. */
@@ -3520,15 +3523,22 @@ public final class TownBuilder {
 	 * What a household well on in its life keeps: its chests nine to eighteen stacks each, food (Farmer's Delight's too),
 	 * building stuff, valuables, farming and odds and ends, by the kind of household it is ({@link TownChests}).
 	 */
-	private static void stock(ServerLevel level, Home home, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
-		List<ChestBlockEntity> chests = new ArrayList<>();
-		for (BlockPos chest : home.chests()) {
-			if (box.isInside(chest) && level.getBlockEntity(chest) instanceof ChestBlockEntity entity) {
-				chests.add(entity);
+	private static void stock(ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+		// (Every chest in it, each half of a double chest (only the first half was filled, the other left empty: the user,
+		// 2026-11-06, "most of the chests are empty"), barrels, Farmer's Delight's cabinets; not furnaces. Only empty ones.)
+		List<net.minecraft.world.Container> storage = new ArrayList<>();
+		for (BlockPos pos : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+			var entity = level.getBlockEntity(pos);
+			boolean store = entity instanceof ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity
+				|| entity instanceof net.minecraft.world.Container && net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock())
+					.getPath().contains("cabinet");
+			if (store && entity instanceof net.minecraft.world.Container container && container.isEmpty()) {
+				storage.add(container);
 			}
 		}
 
-		TownChests.household(level, chests, level.random);
+		TownChests.household(level, storage, level.random);
+		storage.forEach(net.minecraft.world.Container::setChanged);
 	}
 
 	/**
@@ -4336,6 +4346,91 @@ public final class TownBuilder {
 			BlockState state = level.getBlockState(fence);
 			place(level, fence, Block.updateFromNeighbourShapes(state, level, fence));
 		}
+	}
+
+	/**
+	 * A dock where a road between towns meets water too wide to bridge (the user, 2026-11-06: "long bridge over narrow
+	 * water, then by boat"): from the shore at {@code x, z} out over the water toward {@code dx, dz} (a heading), planks a
+	 * block over it three wide and seven long, railings, a lantern at the end, a sign at its foot, a boat tied up beside it.
+	 */
+	static void dock(ServerLevel level, int x, int z, double dx, double dz, String to) {
+		Direction way = Direction.getNearest(dx, 0, dz);
+		Direction across = way.getClockWise();
+		BlockPos shore = new BlockPos(x, 0, z);
+		int edge = -1;
+		for (int d = 0; d <= 16 && edge < 0; d++) {
+			BlockPos at = shore.relative(way, d);
+			if (loadedAt(level, at.getX(), at.getZ()) && wet(level, at.getX(), at.getZ())) {
+				edge = d;
+			}
+		}
+
+		if (edge < 0) {
+			return;
+		}
+
+		BlockPos start = shore.relative(way, edge);
+		int deck = ground(level, start.getX(), start.getZ()) + 1;
+		BlockPos end = null;
+		for (int k = 0; k < 7; k++) {
+			BlockPos mid = start.relative(way, k);
+			if (!loadedAt(level, mid.getX(), mid.getZ())) {
+				break;
+			}
+
+			for (int w = -1; w <= 1; w++) {
+				BlockPos plank = mid.relative(across, w).atY(deck);
+				set(level, plank, wood("planks").defaultBlockState());
+				for (int y = 1; y <= 3; y++) {
+					if (!level.getBlockState(plank.above(y)).isAir()) {
+						set(level, plank.above(y), Blocks.AIR.defaultBlockState());
+					}
+				}
+
+				if (k % 3 == 0) {
+					for (BlockPos pile = plank.below(); pile.getY() > deck - 24 && (level.getBlockState(pile).isAir()
+						|| !level.getFluidState(pile).isEmpty()); pile = pile.below()) {
+						set(level, pile, wood("log").defaultBlockState());
+					}
+				}
+			}
+
+			for (int w = -2; w <= 2; w += 4) {
+				BlockPos side = mid.relative(across, w).atY(deck);
+				set(level, side, wood("planks").defaultBlockState());
+				place(level, side.above(), wood("fence").defaultBlockState());
+			}
+
+			end = mid.atY(deck);
+		}
+
+		if (end == null) {
+			return;
+		}
+
+		BlockPos post = end.relative(across, 2).above(2);
+		place(level, post, wood("fence").defaultBlockState());
+		place(level, post.above(), Blocks.LANTERN.defaultBlockState());
+		// A sign at its foot: where the boats go.
+		BlockPos foot = start.relative(way.getOpposite()).atY(ground(level, start.getX() - way.getStepX(), start.getZ() - way.getStepZ()) + 1);
+		if (level.getBlockState(foot).isAir()) {
+			place(level, foot, Blocks.OAK_SIGN.defaultBlockState().setValue(net.minecraft.world.level.block.StandingSignBlock.ROTATION,
+				net.minecraft.world.level.block.state.properties.RotationSegment.convertToSegment(way.getOpposite())));
+			if (level.getBlockEntity(foot) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
+				sign.setText(new net.minecraft.world.level.block.entity.SignText().setMessage(0, Component.literal("Boats across"))
+					.setMessage(1, Component.literal("to " + to)), true);
+			}
+		}
+
+		// A boat tied up by its end (for anyone crossing without one).
+		BlockPos water = end.relative(way).atY(deck - 1);
+		net.minecraft.world.entity.vehicle.Boat boat = net.minecraft.world.entity.EntityType.BOAT.create(level);
+		if (boat != null && !level.getFluidState(water).isEmpty()) {
+			boat.moveTo(water.getX() + 0.5, water.getY() + 0.6, water.getZ() + 0.5, way.toYRot(), 0.0F);
+			level.addFreshEntity(boat);
+		}
+
+		DrifterCivilizations.LOGGER.info("[roads] a dock at {} for the boats across to {}", start.toShortString(), to);
 	}
 
 	/** Land this many steps long or less in the middle of a crossing is bridged over. */

@@ -4634,8 +4634,25 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     ("help build X's house back"). Tested: three creepers in a town at night, each owner building back with two
     neighbours.
   - Merged the chat side session's 0.23.23-side.2 (10,710 talk topics).
-  - Known: in the test world the capital Westbury has no roads (it's on a peninsula and the plan's roads go round by
-    land only): its people walk straight. Roads over the sea (a long bridge, a ferry) are a question for the user.
+  - In the test world the capital Westbury had no roads (on a peninsula, the plan's roads went round by land only): the
+    user's answer, a long bridge over narrow water, then by boat (0.23.25).
+
+- **0.23.25: household chests, valuables at home, roads over water** (the user, 2026-11-06: "for chests i mostly meant
+  the households"; "valuable stuff like gems, or coin purses ... should be in households instead of shared chests";
+  "long bridge over narrow water, then by boat").
+  - Every storage block in a house is filled once all its households are in: both halves of each double chest (only the
+    first half was, the other left empty), barrels, Farmer's Delight's cabinets, the extra households' bedside chests.
+    A town of 12 houses: 81 chests and barrels, none empty, 14 stacks each on average. `/drifterciv town chests` counts
+    them.
+  - Valuables are a household's own: gold, gems, Numismatic Overhaul's coins and money bag when it's there, a stack or two
+    a house and its purse (money); the store keeps ore, coal and ingots, never valuables (62 stacks of valuables in that
+    town's houses).
+  - Roads over water: with no way by land, the plan looks again over the water (the narrowest way across). Water up to 80
+    blocks is bridged (a long railed bridge on piers); wider, the road ends at a dock on each shore (`WorldPlan.Ferry`;
+    planks three wide out over the water, railings, a lantern, a sign "Boats across / to (town)", a boat tied up), and the
+    way across is by boat: the route finder joins the two docks, and a Drifter on its way rows across in its own boat
+    (`Legs.FERRY`, then its walk's `BoatTask`). On the test seed the capital, Westbury, on a peninsula with no road
+    before, now has both (665 and 1,146 blocks along the roads), a dock built at each crossing.
 
 ## Side session: chat, part 5 (0.23.23-side.1)
 
