@@ -537,7 +537,9 @@ public final class Conversations {
 		leads.addAll(talk.leads);
 		for (String tag : leads) {
 			for (Topics.Topic topic : Topics.tagged(tag)) {
-				links.merge(topic, 1.0, Double::sum);
+				if (!Topics.chained(topic)) {
+					links.merge(topic, 1.0, Double::sum);
+				}
 			}
 		}
 

@@ -4576,3 +4576,61 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
   - Farmers count the seeds in their chests at home (`FarmActivity.seedsAround`): with no grass gathered in town (0.23.21)
     a farmer with seeds at home waited, "no grass about".
   - Merged the side sessions' 0.23.22-side.3 (Farmer's Delight kitchens and cooking, username words and nicknames).
+
+## Side session: chat, part 5 (0.23.23-side.1)
+
+The user (2026-11-05): more parts to stories and topics of every kind ("controversial opinions, deep and philosophical
+conversations, discourse and insults, trolls and ragebaiters, long debates, venting, and more random convos"), personalities
+knowing more or less of the game, telling who's talking to whom in a busy town, advancement cheers optional and off, fewer
+typos and corrections, and talk leading to actions; then (2026-11-06) "more topics for each subject matter (from small talks
+to debate) until you hit 10000 total topics".
+
+- **Advancement cheers** ("gg", "W" when a player makes an advancement): a setting, off by default (`advancementCheers`
+  in DrifterConfig, a toggle in the Mod Menu screen next to typing).
+- **Typos**: fewer (2.2% to 8.2% a line by Skill, a newbie +4.5%, a builder or hermit less) and fewer fixed ("*word":
+  8% to 33% of them by Tidiness).
+- **Who's talking to whom**: a Drifter says the other's nickname on its first line to them most of the time, now and then
+  after ("frost, you seen my axe?", "hey frost, ..."), more where other talks go on nearby (`Conversations.addressed`).
+  Hovering its name in chat shows "talking to frost (xXFrostXx)", or "talking to you" (`ChatLines.to`, a vanilla hover on
+  the name; set by Drifter talks, its answers to a player, its openings to a player and an encounter's lines). The server
+  log has "[to frost]" after the line.
+- **Talk leads to doing** (`social/talk/Together`): a topic's effect `plan_<kind>` makes a plan when the other said yes
+  (`plan_yes` mark; `decline` otherwise). Kinds: **show home** (it walks home, the other follows; once both are there the
+  guest knows where it lives, +1 trust); **share food** (walks up and tosses 3 of its spare food, "thx"); **tag along**
+  (the asker follows the other 3 minutes, gives up after 20 s out of sight); **mine** (the next mining trip either sets off
+  on that day the other joins, through `GroupGoals.JoinMiningTrip`, group mates or not; in the day it tags along till
+  then); **hunt tonight** (both go out hunting that night, even one that'd stay in, if fit: `Schedule.chooseNightStyle`;
+  they prowl round each other: `Goals.NightHunt`); **visit later** (the guest is told where the host lives and goes over
+  later that day: `NeighbourGoals.Visit`, neighbours or not). 14 topics in `drifter_talk/topics_plans.json`
+  (`tools/talk_gen/plans.py`), loners and timid ones say yes less. New talk facts: can_mine, can_hunt, spare_food,
+  home_near, sociable, loner, brave, timid, keeps_shop, been_to_theirs, and the time of day (time_morning/day/evening/night).
+  Plans aren't saved (minutes to a day). `/drifter plans` lists them. Chat lines in `drifter_chat/together.json`.
+- **Game knowledge by personality** (`personality/Lore`, saved as `DrifterLore`, versioned): 18 parts of the game
+  (farming, animals, trading, enchanting, nether, brewing, raids, redstone, anvils, fortresses, bartering, end,
+  trial_chambers, netherite, warden, dragon, elytra, beacons), each known from the start if its Knowledge trait is high
+  enough or it's its kind of player's thing (a speedrunner the End and bartering, a builder redstone, a pvp_sweat
+  enchanting and brewing...); a newbie knows only farming and animals. It learns by going (the Nether, the End), getting
+  (an enchanted item, a blaze rod, an eye of ender, ancient debris, an elytra, a potion, redstone), seeing (a remembered
+  enchanting table, brewing stand, anvil, Nether portal, End portal frame) and being told (`teach_<area>` / `learn_<area>`
+  topic effects). It plans only for what it knows: the enchanting table and bookshelves, the portal and the Nether, and
+  brewing (BrewGoal now asks Lore, the same 0.4 Knowledge). Topics tagged nether, end, enchanting, potions or redstone are
+  brought up only by one who knows (`Topics.lored`). 80 knowledge topics (`drifter_talk/topics_lore.json`,
+  `tools/talk_gen/lore.py`): a veteran's advice, a newbie's questions and wrong ideas put right, a veteran's plans, debates
+  between two who know. Talk facts `knows_<area>` / `new_to_<area>`. `/drifter lore` (and `/drifter lore learn <area>`).
+- **Topics to 10,000**: 6,681 Drifter topics now (from 767), written by generators in `tools/talk_gen`
+  (`BRIEF.md` is how to write one; each script rebuilds its `drifter_talk/topics_gen_*.json`): stories in 3-5 parts (1,207,
+  `stories.py`, also a part 3 or 4 for each old two-part story, hooked on through `links`), everyday things and doings
+  subject by subject from small talk to debate (1,249, `things.py`), venting with listeners by personality (1,329,
+  `venting.py`), deep and philosophical talks (1,217, `deep.py`), would-you-rathers, what-ifs and small talk (881,
+  `random_talk.py`), hot takes (22, `debates.py`). **Half-done (the session ran out):** `deep.py`, `random_talk.py` and
+  `debates.py` were stopped before their writers finished and read back over them (they pass the checker); `banter.py`
+  (roasts, trolls, ragebait, callouts) and `world.py` (every mob, biome and structure) are unfinished scripts with no output
+  yet. **Next:** finish those (and the long debates in `debates.py`) to reach the user's 10,000.
+  A chained part (named in another topic's `next`) now only comes up after the part before, never by its tags
+  (`Topics.chained`). CHAT_LINES.md lists the hand-written topics and samples of each generated batch.
+- Tested headless: names on first lines and "[to ...]" in the log; share food (offered, walked over, tossed 3 steak,
+  "thx"), tag along (followed), show home (walked home, the guest followed and "saw its place"), hunt tonight (both went out
+  hunting that night), visit later (planned), mine (the tag-along till a trip); a newbie knowing only farming and animals,
+  asking a speedrunner about the Nether and learning it, then the dragon from its plans. The hover itself isn't checked
+  in the client (a vanilla chat hover).
+- Merged the main line's 0.23.23.

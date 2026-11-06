@@ -3,6 +3,7 @@ package com.dinglebob.drifter.social.talk;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,6 +174,12 @@ public final class Topics {
 			}
 		}
 
+		Set<String> inChains = new HashSet<>();
+		for (Topic topic : loaded) {
+			inChains.addAll(topic.web().next());
+		}
+
+		chained = inChains;
 		topics = List.copyOf(loaded);
 		playerTopics = List.copyOf(withPlayers);
 		byId = ids;
@@ -189,6 +196,17 @@ public final class Topics {
 
 		Drifter.LOGGER.info("Loaded {} Drifter conversation topics, {} to bring up with players ({} lines; {} tags in the web)", topics.size(), playerTopics.size(),
 			lines, tags.size());
+	}
+
+	/** Topics some topic names as its {@code next} (a story's part 3, a debate's round 2). */
+	private static Set<String> chained = Set.of();
+
+	/**
+	 * A part of a chain (named in another's {@code next}): it comes up only after the part before, never by its tags alone
+	 * (a story's part 3 popping up in the middle of a talk about mobs; found writing the generated stories).
+	 */
+	public static boolean chained(Topic topic) {
+		return topic.web().followUp() && chained.contains(topic.id());
 	}
 
 	/** Topic tags only one who knows that part of the game brings up (a newbie doesn't talk bed bombing in the Nether). */

@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 2874 lines in the chat data, 273 in whims, and 2136 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 3054 lines in the chat data, 273 in whims, and 2136 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -942,7 +942,7 @@ They finished it.
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (682 topics, 9447 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (6681 topics, 176957 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -4949,6 +4949,998 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: agreed · yeah · lets do something · nice · dont waste it
 3. **a** (50%): lets · true · yeah
 
+#### lore advice trading
+
+*Needs:* a:knows_trading, b:new_to_trading, !rivals  ·  *Effects:* teach_trading
+
+*About:* villagers, trade, advice  ·  *Leads to:* villagers, trade, town
+
+1. **a**: you trade with villagers much? · you know villagers trade right? · ever traded with a villager?
+2. **b**: not really · they trade? · i just thought they wandered around · never tried
+3. **a**: they need a workstation to get a job, like a composter makes a farmer · a lectern turns one into a librarian, and some sell mending books · the more you trade with one, the better its trades get
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): cure a zombie villager and it gives you huge discounts · emeralds are the money, farmers buy wheat and carrots for them · if one has no job, put a workstation near it
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask trading
+
+*Needs:* a:new_to_trading, b:knows_trading, !rivals  ·  *Effects:* learn_trading
+
+*About:* villagers, trade, advice  ·  *Leads to:* villagers, trade, town
+
+1. **a**: how do i get a villager to trade? *(answered: give it a job, put a workstation near it / it needs a workstation, like a lectern or a smoker)* · what do villagers even want? *(answered: emeralds mostly, and farmers buy crops / depends on the job, but emeralds are the money)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): why is that villager's trades so bad? *(answered: trade with it more and it levels up / they get better trades as they level up)* · where do i get emeralds? *(answered: sell stuff to villagers, wheat or paper / farm crops and sell them to a farmer villager)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth trading
+
+*Needs:* a:voice_newbie, a:new_to_trading, b:knows_trading, !rivals  ·  *Effects:* learn_trading
+
+*About:* villagers, trade, advice, jokes  ·  *Leads to:* villagers, trade, town
+
+1. **a**: i tried trading with that green-robed guy and he just shook his head *(answered: that's a nitwit, they never trade / green robe means nitwit, try another one)* · can i trade diamonds with a villager? *(answered: they want emeralds, not diamonds / nah, emeralds are the money)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans trading
+
+*Needs:* a:knows_trading, !rivals  ·  *Effects:* teach_trading
+
+*About:* villagers, trade, advice, plans  ·  *Leads to:* villagers, trade, town, plans
+
+1. **a**: i'm setting up some villager trades · gonna get a librarian for mending · i need a farmer villager to sell wheat to
+2. **b** if b:knows_trading: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_trading *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: they need a workstation to get a job, like a composter makes a farmer · a lectern turns one into a librarian, and some sell mending books · the more you trade with one, the better its trades get
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate trading
+
+*Needs:* a:knows_trading, b:knows_trading
+
+*About:* villagers, trade, advice, argument  ·  *Leads to:* villagers, trade, town, argument
+
+1. **a**: trading halls are basically cheating
+2. **b** (50%) *(marks agree)*: fair, it is a lot · honestly yeah
+3. **b** if !t:agree *(marks disagree)*: it's just smart · nah it's efficient
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice enchanting
+
+*Needs:* a:knows_enchanting, b:new_to_enchanting, !rivals  ·  *Effects:* teach_enchanting
+
+*About:* enchanting, gear, advice  ·  *Leads to:* enchanting, gear, crafting
+
+1. **a**: you enchant your stuff? · you know about enchanting? · ever made an enchanting table?
+2. **b**: what's that? · not really · i've heard of it · how does it work?
+3. **a**: you make the table with a book, two diamonds and four obsidian · it costs lapis and levels each time · bookshelves around it, one block away, get you up to level 30
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): fifteen bookshelves is the max you need · an anvil puts enchanted books onto gear · a grindstone takes enchantments off and gives some xp back
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask enchanting
+
+*Needs:* a:new_to_enchanting, b:knows_enchanting, !rivals  ·  *Effects:* learn_enchanting
+
+*About:* enchanting, gear, advice  ·  *Leads to:* enchanting, gear, crafting
+
+1. **a**: how do you make an enchanting table? *(answered: a book, two diamonds and four obsidian / book on top, diamonds on the sides, obsidian under)* · why can i only get level 8 enchants? *(answered: you need bookshelves around the table / put bookshelves round it, one block gap)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what's the blue stuff for? *(answered: lapis, you need it to enchant / lapis lazuli, the table eats it)* · how many bookshelves do i need? *(answered: fifteen for level 30 / fifteen, with a gap between them and the table)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth enchanting
+
+*Needs:* a:voice_newbie, a:new_to_enchanting, b:knows_enchanting, !rivals  ·  *Effects:* learn_enchanting
+
+*About:* enchanting, gear, advice, jokes  ·  *Leads to:* enchanting, gear, crafting
+
+1. **a**: do you put diamonds in the enchanting table to enchant? *(answered: no, lapis and levels / lapis, not diamonds lol)* · i thought enchanting was just for swords *(answered: armor, tools, bows, books, almost anything / nah, pickaxes get fortune, armor gets protection)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans enchanting
+
+*Needs:* a:knows_enchanting, !rivals  ·  *Effects:* teach_enchanting
+
+*About:* enchanting, gear, advice, plans  ·  *Leads to:* enchanting, gear, crafting, plans
+
+1. **a**: i need to put bookshelves round my table · saving up for a level 30 enchant · i want fortune on my pickaxe
+2. **b** if b:knows_enchanting: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_enchanting *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: you make the table with a book, two diamonds and four obsidian · it costs lapis and levels each time · bookshelves around it, one block away, get you up to level 30
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate enchanting
+
+*Needs:* a:knows_enchanting, b:knows_enchanting
+
+*About:* enchanting, gear, advice, argument  ·  *Leads to:* enchanting, gear, crafting, argument
+
+1. **a**: fortune is better than silk touch
+2. **b** (50%) *(marks agree)*: true, more diamonds · for ores, yeah
+3. **b** if !t:agree *(marks disagree)*: silk touch is way more useful · silk touch for everything else though
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice nether
+
+*Needs:* a:knows_nether, b:new_to_nether, !rivals  ·  *Effects:* teach_nether
+
+*About:* nether, danger, advice  ·  *Leads to:* nether, danger, exploring
+
+1. **a**: you been to the nether yet? · you know about the nether right? · ever built a nether portal?
+2. **b**: the what? · no, what's that? · i've heard stories · is that a real place?
+3. **a**: you need an obsidian frame, four wide and five tall, then light it · beds blow up there, don't try to sleep · water just evaporates in the nether
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): wear at least one piece of gold or the piglins attack · one block there is eight blocks here, good for travel · ghasts shoot fireballs, hit them back
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask nether
+
+*Needs:* a:new_to_nether, b:knows_nether, !rivals  ·  *Effects:* learn_nether
+
+*About:* nether, danger, advice  ·  *Leads to:* nether, danger, exploring
+
+1. **a**: how do you get to the nether? *(answered: build an obsidian frame and light it with flint and steel / a portal, obsidian, four by five)* · is the nether dangerous? *(answered: very, lava everywhere and ghasts / yeah, bring fire resistance if you can)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): why do people go to the nether? *(answered: blaze rods, quartz, netherite, fast travel / blaze rods mostly, you need them for the end)* · what's a ghast? *(answered: a big floating thing that shoots fireballs / giant white jellyfish that screams and shoots fire)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth nether
+
+*Needs:* a:voice_newbie, a:new_to_nether, b:knows_nether, !rivals  ·  *Effects:* learn_nether
+
+*About:* nether, danger, advice, jokes  ·  *Leads to:* nether, danger, exploring
+
+1. **a**: can i sleep in the nether to skip the night? *(answered: your bed will explode / no! beds explode there)* · i'll bring a water bucket to the nether in case of lava *(answered: water evaporates there / won't work, water just vanishes)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans nether
+
+*Needs:* a:knows_nether, !rivals  ·  *Effects:* teach_nether
+
+*About:* nether, danger, advice, plans  ·  *Leads to:* nether, danger, exploring, plans
+
+1. **a**: i'm building a nether portal soon · gonna go to the nether for blaze rods · need obsidian for a portal
+2. **b** if b:knows_nether: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_nether *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: you need an obsidian frame, four wide and five tall, then light it · beds blow up there, don't try to sleep · water just evaporates in the nether
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate nether
+
+*Needs:* a:knows_nether, b:knows_nether
+
+*About:* nether, danger, advice, argument  ·  *Leads to:* nether, danger, exploring, argument
+
+1. **a**: the nether is the worst dimension
+2. **b** (50%) *(marks agree)*: so true, it's awful · agreed, too hot
+3. **b** if !t:agree *(marks disagree)*: it's the best one · nah, the loot is great
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice brewing
+
+*Needs:* a:knows_brewing, b:new_to_brewing, !rivals  ·  *Effects:* teach_brewing
+
+*About:* potions, crafting, advice  ·  *Leads to:* potions, crafting, nether
+
+1. **a**: you brew potions? · know how to brew? · ever used a brewing stand?
+2. **b**: no idea how · potions? · not really · is it hard?
+3. **a**: the stand needs blaze powder as fuel · nether wart in a water bottle makes an awkward potion, most start from that · redstone makes a potion last longer
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): glowstone makes it stronger but shorter · gunpowder turns it into a splash potion · a fermented spider eye flips a potion into a bad one
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask brewing
+
+*Needs:* a:new_to_brewing, b:knows_brewing, !rivals  ·  *Effects:* learn_brewing
+
+*About:* potions, crafting, advice  ·  *Leads to:* potions, crafting, nether
+
+1. **a**: how do you make a brewing stand? *(answered: a blaze rod and three cobblestone / blaze rod on top of cobblestone)* · what do i put in first? *(answered: water bottles, then nether wart / nether wart, for an awkward potion)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): how do i make a potion last longer? *(answered: add redstone / redstone dust, after the main ingredient)* · what's the best potion? *(answered: fire resistance for the nether / healing, or strength for fights)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth brewing
+
+*Needs:* a:voice_newbie, a:new_to_brewing, b:knows_brewing, !rivals  ·  *Effects:* learn_brewing
+
+*About:* potions, crafting, advice, jokes  ·  *Leads to:* potions, crafting, nether
+
+1. **a**: can i just drink water bottles for healing? *(answered: it's just water lol / no, you need glistering melon for healing)* · i thought only witches had potions *(answered: they drop some, but you can brew them / you can brew your own with a stand)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans brewing
+
+*Needs:* a:knows_brewing, !rivals  ·  *Effects:* teach_brewing
+
+*About:* potions, crafting, advice, plans  ·  *Leads to:* potions, crafting, nether, plans
+
+1. **a**: i want to brew some fire resistance · need nether wart for potions · gonna set up a brewing stand
+2. **b** if b:knows_brewing: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_brewing *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: the stand needs blaze powder as fuel · nether wart in a water bottle makes an awkward potion, most start from that · redstone makes a potion last longer
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate brewing
+
+*Needs:* a:knows_brewing, b:knows_brewing
+
+*About:* potions, crafting, advice, argument  ·  *Leads to:* potions, crafting, nether, argument
+
+1. **a**: potions are a waste of time
+2. **b** (50%) *(marks agree)*: kinda, yeah · too much setup
+3. **b** if !t:agree *(marks disagree)*: they save your life · not in the nether they aren't
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice raids
+
+*Needs:* a:knows_raids, b:new_to_raids, !rivals  ·  *Effects:* teach_raids
+
+*About:* villagers, danger, fighting  ·  *Leads to:* villagers, fighting, danger
+
+1. **a**: you know how raids work? · ever fought off a raid? · seen a pillager outpost?
+2. **b**: raids? · no, what happens? · pillagers? · never seen one
+3. **a**: kill a raid captain, the one with the banner, and it drops an ominous bottle · drink it and walk into a village and a raid starts · win and you get hero of the village, cheap trades
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): ravagers hit really hard, watch out · evokers summon vexes and those fangs · pillagers shoot crossbows, bring a shield
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask raids
+
+*Needs:* a:new_to_raids, b:knows_raids, !rivals  ·  *Effects:* learn_raids
+
+*About:* villagers, danger, fighting  ·  *Leads to:* villagers, fighting, danger
+
+1. **a**: what's a raid? *(answered: waves of pillagers attacking a village / illagers come for a village, wave after wave)* · how does a raid start? *(answered: drink an ominous bottle and walk into a village / kill a captain, drink what it drops, go to a village)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): why would anyone start a raid? *(answered: hero of the village, and totems from evokers / totems of undying and cheap trades)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth raids
+
+*Needs:* a:voice_newbie, a:new_to_raids, b:knows_raids, !rivals  ·  *Effects:* learn_raids
+
+*About:* villagers, danger, fighting, jokes  ·  *Leads to:* villagers, fighting, danger
+
+1. **a**: those guys with the banner hats are friendly right? *(answered: pillagers, they shoot you / no, those are illagers, they hate you)* · a raid is just one big wave right? *(answered: several waves, they get harder / no, waves, more each time)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans raids
+
+*Needs:* a:knows_raids, !rivals  ·  *Effects:* teach_raids
+
+*About:* villagers, danger, fighting, plans  ·  *Leads to:* villagers, fighting, danger, plans
+
+1. **a**: i want to fight a raid for totems · gonna clear that pillager outpost · i need a shield before the next raid
+2. **b** if b:knows_raids: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_raids *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: kill a raid captain, the one with the banner, and it drops an ominous bottle · drink it and walk into a village and a raid starts · win and you get hero of the village, cheap trades
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate raids
+
+*Needs:* a:knows_raids, b:knows_raids
+
+*About:* villagers, danger, fighting, argument  ·  *Leads to:* villagers, fighting, danger, argument
+
+1. **a**: raids are the best part of the game
+2. **b** (50%) *(marks agree)*: they're so fun · true
+3. **b** if !t:agree *(marks disagree)*: they wreck villages · too stressful
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice redstone
+
+*Needs:* a:knows_redstone, b:new_to_redstone, !rivals  ·  *Effects:* teach_redstone
+
+*About:* redstone, building, advice  ·  *Leads to:* redstone, building, crafting
+
+1. **a**: you do any redstone? · know much about redstone? · ever built a redstone door?
+2. **b**: the red dust? · no, it looks hard · a little · not really
+3. **a**: dust carries a signal fifteen blocks · a repeater boosts the signal and adds a delay · observers fire when the block in front changes
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): pistons push up to twelve blocks · a comparator reads how full a chest is · levers stay on, buttons turn off again
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask redstone
+
+*Needs:* a:new_to_redstone, b:knows_redstone, !rivals  ·  *Effects:* learn_redstone
+
+*About:* redstone, building, advice  ·  *Leads to:* redstone, building, crafting
+
+1. **a**: how far does redstone go? *(answered: fifteen blocks, then you need a repeater / fifteen, repeaters reset it)* · how do you make an auto farm? *(answered: observer and piston, it sees the crop grow / observers, pistons, and a hopper underneath)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what's a comparator for? *(answered: it reads containers and compares signals / tells you how full a chest is)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth redstone
+
+*Needs:* a:voice_newbie, a:new_to_redstone, b:knows_redstone, !rivals  ·  *Effects:* learn_redstone
+
+*About:* redstone, building, advice, jokes  ·  *Leads to:* redstone, building, crafting
+
+1. **a**: is redstone just red dust for decoration? *(answered: it's wiring, it powers stuff / no, it's like electricity)* · i put redstone on the door but nothing happened *(answered: you need a lever or button to power it / it needs a power source, a lever)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans redstone
+
+*Needs:* a:knows_redstone, !rivals  ·  *Effects:* teach_redstone
+
+*About:* redstone, building, advice, plans  ·  *Leads to:* redstone, building, crafting, plans
+
+1. **a**: i want to build a piston door · gonna make an auto sugar cane farm · need more redstone for my farm
+2. **b** if b:knows_redstone: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_redstone *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: dust carries a signal fifteen blocks · a repeater boosts the signal and adds a delay · observers fire when the block in front changes
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate redstone
+
+*Needs:* a:knows_redstone, b:knows_redstone
+
+*About:* redstone, building, advice, argument  ·  *Leads to:* redstone, building, crafting, argument
+
+1. **a**: redstone is the hardest part of the game
+2. **b** (50%) *(marks agree)*: for real · 100%
+3. **b** if !t:agree *(marks disagree)*: it's just logic · nah it's easy once you get it
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice anvils
+
+*Needs:* a:knows_anvils, b:new_to_anvils, !rivals  ·  *Effects:* teach_anvils
+
+*About:* gear, enchanting, crafting  ·  *Leads to:* gear, enchanting, tools
+
+1. **a**: you use an anvil? · know how anvils work? · ever combined books on an anvil?
+2. **b**: just to rename stuff · not really · what for? · no
+3. **a**: an anvil puts enchanted books on tools · it repairs gear with the same material, iron for iron · after enough uses it says too expensive
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): they chip and break as you use them · renaming costs a level but it's worth it for named pets · it takes three iron blocks and four ingots to make one
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask anvils
+
+*Needs:* a:new_to_anvils, b:knows_anvils, !rivals  ·  *Effects:* learn_anvils
+
+*About:* gear, enchanting, crafting  ·  *Leads to:* gear, enchanting, tools
+
+1. **a**: how do i get mending on my pickaxe? *(answered: anvil, pickaxe in, book in / put the book on with an anvil)* · why does my anvil say too expensive? *(answered: you've worked on that item too many times / every use makes the next cost more)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): how do you make an anvil? *(answered: three iron blocks and four iron ingots / iron blocks on top, ingots below)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth anvils
+
+*Needs:* a:voice_newbie, a:new_to_anvils, b:knows_anvils, !rivals  ·  *Effects:* learn_anvils
+
+*About:* gear, enchanting, crafting, jokes  ·  *Leads to:* gear, enchanting, tools
+
+1. **a**: does an anvil fix stuff for free? *(answered: costs levels / no, levels every time)* · will an anvil last forever? *(answered: it gets chipped then breaks / no, it wears out)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans anvils
+
+*Needs:* a:knows_anvils, !rivals  ·  *Effects:* teach_anvils
+
+*About:* gear, enchanting, crafting, plans  ·  *Leads to:* gear, enchanting, tools, plans
+
+1. **a**: need to combine my books on an anvil · gonna make an anvil soon · i need levels for the anvil
+2. **b** if b:knows_anvils: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_anvils *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: an anvil puts enchanted books on tools · it repairs gear with the same material, iron for iron · after enough uses it says too expensive
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate anvils
+
+*Needs:* a:knows_anvils, b:knows_anvils
+
+*About:* gear, enchanting, crafting, argument  ·  *Leads to:* gear, enchanting, tools, argument
+
+1. **a**: mending makes the game too easy
+2. **b** (50%) *(marks agree)*: kinda yeah · it does
+3. **b** if !t:agree *(marks disagree)*: it's just quality of life · nah, you still have to find it
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice fortresses
+
+*Needs:* a:knows_fortresses, b:new_to_fortresses, !rivals  ·  *Effects:* teach_fortresses
+
+*About:* nether, structures, danger  ·  *Leads to:* nether, structures, mobs
+
+1. **a**: you found a nether fortress yet? · know where to get blaze rods? · ever raided a fortress?
+2. **b**: a fortress? · blaze rods? · no, where are they? · never been
+3. **a**: fortresses are made of dark nether brick, like bridges over the lava · blazes spawn there from spawners, they drop blaze rods · wither skeletons there drop skulls sometimes
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): they tend to run north and south, so look that way · bring snowballs for blazes, they hate them · put torches round the blaze spawner if you want it off
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask fortresses
+
+*Needs:* a:new_to_fortresses, b:knows_fortresses, !rivals  ·  *Effects:* learn_fortresses
+
+*About:* nether, structures, danger  ·  *Leads to:* nether, structures, mobs
+
+1. **a**: where do blaze rods come from? *(answered: blazes, in nether fortresses / kill blazes at a fortress spawner)* · how do i find a fortress? *(answered: search north or south, they line up that way / look for the dark brick bridges)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what's a wither skeleton? *(answered: tall black skeleton in fortresses, gives you wither / the black ones, they drop skulls)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth fortresses
+
+*Needs:* a:voice_newbie, a:new_to_fortresses, b:knows_fortresses, !rivals  ·  *Effects:* learn_fortresses
+
+*About:* nether, structures, danger, jokes  ·  *Leads to:* nether, structures, mobs
+
+1. **a**: blazes are like fire chickens right? *(answered: they shoot fireballs at you / lol no, they fly and shoot fire)* · i'll just find blaze rods in chests *(answered: you get them from blazes mostly / kill blazes, that's the way)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans fortresses
+
+*Needs:* a:knows_fortresses, !rivals  ·  *Effects:* teach_fortresses
+
+*About:* nether, structures, danger, plans  ·  *Leads to:* nether, structures, mobs, plans
+
+1. **a**: need to find a fortress for blaze rods · gonna farm a blaze spawner · i want wither skulls
+2. **b** if b:knows_fortresses: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_fortresses *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: fortresses are made of dark nether brick, like bridges over the lava · blazes spawn there from spawners, they drop blaze rods · wither skeletons there drop skulls sometimes
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate fortresses
+
+*Needs:* a:knows_fortresses, b:knows_fortresses
+
+*About:* nether, structures, danger, argument  ·  *Leads to:* nether, structures, mobs, argument
+
+1. **a**: blazes are worse than ghasts
+2. **b** (50%) *(marks agree)*: true, they're relentless · so true
+3. **b** if !t:agree *(marks disagree)*: ghasts are worse · nah ghasts knock you into lava
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice bartering
+
+*Needs:* a:knows_bartering, b:new_to_bartering, !rivals  ·  *Effects:* teach_bartering
+
+*About:* nether, trade, advice  ·  *Leads to:* nether, trade, gear
+
+1. **a**: you barter with piglins? · know about piglin trading? · ever thrown gold at a piglin?
+2. **b**: the pig guys? · they trade? · no, they attack me · not really
+3. **a**: throw a gold ingot at a piglin and it throws something back · you get ender pearls, obsidian, fire resistance potions from them · wear gold or they attack you
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): don't open chests or mine gold near them, they get mad · bastions are full of angry ones, careful · speedrunners get their pearls that way
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask bartering
+
+*Needs:* a:new_to_bartering, b:knows_bartering, !rivals  ·  *Effects:* learn_bartering
+
+*About:* nether, trade, advice  ·  *Leads to:* nether, trade, gear
+
+1. **a**: how do i trade with piglins? *(answered: throw gold ingots at them / drop gold near them, they look at it, then toss you something)* · why do piglins attack me? *(answered: you're not wearing gold / wear a gold helmet or boots)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what do piglins give you? *(answered: pearls, string, obsidian, potions / random stuff, ender pearls are the good ones)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth bartering
+
+*Needs:* a:voice_newbie, a:new_to_bartering, b:knows_bartering, !rivals  ·  *Effects:* learn_bartering
+
+*About:* nether, trade, advice, jokes  ·  *Leads to:* nether, trade, gear
+
+1. **a**: can i trade emeralds with piglins? *(answered: only gold / they only like gold)* · piglins are friendly if i'm nice to them right? *(answered: wear gold, that's all they care about / only if you wear gold)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans bartering
+
+*Needs:* a:knows_bartering, !rivals  ·  *Effects:* teach_bartering
+
+*About:* nether, trade, advice, plans  ·  *Leads to:* nether, trade, gear, plans
+
+1. **a**: i'm saving gold to barter with piglins · need pearls, gonna barter · gonna make some gold armor for the nether
+2. **b** if b:knows_bartering: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_bartering *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: throw a gold ingot at a piglin and it throws something back · you get ender pearls, obsidian, fire resistance potions from them · wear gold or they attack you
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate bartering
+
+*Needs:* a:knows_bartering, b:knows_bartering
+
+*About:* nether, trade, advice, argument  ·  *Leads to:* nether, trade, gear, argument
+
+1. **a**: bartering is better than hunting endermen
+2. **b** (50%) *(marks agree)*: way faster · true
+3. **b** if !t:agree *(marks disagree)*: endermen are easier · nah, endermen
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice end
+
+*Needs:* a:knows_end, b:new_to_end, !rivals  ·  *Effects:* teach_end
+
+*About:* end, danger, advice  ·  *Leads to:* end, plans, danger
+
+1. **a**: you thought about going to the end? · know how to get to the end? · ever found a stronghold?
+2. **b**: the end of what? · what's the end? · no · a stronghold?
+3. **a**: you need eyes of ender, blaze powder and an ender pearl each · throw an eye and follow it, it leads to the stronghold · the portal room needs twelve eyes, some frames have them already
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): bring blocks and a bow, the dragon's up high · bring water to scare off the endermen · after the dragon you can go to the outer islands
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask end
+
+*Needs:* a:new_to_end, b:knows_end, !rivals  ·  *Effects:* learn_end
+
+*About:* end, danger, advice  ·  *Leads to:* end, plans, danger
+
+1. **a**: how do i get to the end? *(answered: eyes of ender, they lead you to a stronghold portal / make eyes of ender and follow them)* · how many eyes of ender do i need? *(answered: up to twelve / twelve for an empty portal)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what's in the end? *(answered: the ender dragon, then end cities / a dragon, then elytra out in the islands)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth end
+
+*Needs:* a:voice_newbie, a:new_to_end, b:knows_end, !rivals  ·  *Effects:* learn_end
+
+*About:* end, danger, advice, jokes  ·  *Leads to:* end, plans, danger
+
+1. **a**: is the end the end of the game? like credits? *(answered: there are credits, but the game keeps going / kind of, but there's loads after)* · i'll just dig straight down to find the end *(answered: you need a stronghold portal / nope, eyes of ender lead you to it)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans end
+
+*Needs:* a:knows_end, !rivals  ·  *Effects:* teach_end
+
+*About:* end, danger, advice, plans  ·  *Leads to:* end, plans, danger, plans
+
+1. **a**: i need more ender pearls for eyes · gonna look for the stronghold · i want to fight the dragon soon
+2. **b** if b:knows_end: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_end *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: you need eyes of ender, blaze powder and an ender pearl each · throw an eye and follow it, it leads to the stronghold · the portal room needs twelve eyes, some frames have them already
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate end
+
+*Needs:* a:knows_end, b:knows_end
+
+*About:* end, danger, advice, argument  ·  *Leads to:* end, plans, danger, argument
+
+1. **a**: killing the dragon is the real end of the game
+2. **b** (50%) *(marks agree)*: true, it's the boss · yeah
+3. **b** if !t:agree *(marks disagree)*: the game never ends · nah, it's just the start
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice trial chambers
+
+*Needs:* a:knows_trial_chambers, b:new_to_trial_chambers, !rivals  ·  *Effects:* teach_trial_chambers
+
+*About:* structures, caves, fighting  ·  *Leads to:* structures, caves, fighting
+
+1. **a**: you found a trial chamber yet? · know about trial chambers? · ever done a trial spawner?
+2. **b**: a what? · no · the copper place? · never heard of it
+3. **a**: they're copper and tuff rooms deep underground · trial spawners send waves, beat them and you get trial keys · keys open the vaults for loot
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): breezes jump around and knock arrows away · you can get wind charges from breezes · with an ominous bottle the trials get harder and the loot better, like the heavy core for a mace
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask trial chambers
+
+*Needs:* a:new_to_trial_chambers, b:knows_trial_chambers, !rivals  ·  *Effects:* learn_trial_chambers
+
+*About:* structures, caves, fighting  ·  *Leads to:* structures, caves, fighting
+
+1. **a**: what's a trial chamber? *(answered: an underground place with spawners and loot vaults / copper rooms with mob waves)* · how do i open a vault? *(answered: a trial key from beating a spawner / trial keys, from the spawners)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what's a breeze? *(answered: a windy mob that jumps around / wind guy, it deflects arrows)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth trial chambers
+
+*Needs:* a:voice_newbie, a:new_to_trial_chambers, b:knows_trial_chambers, !rivals  ·  *Effects:* learn_trial_chambers
+
+*About:* structures, caves, fighting, jokes  ·  *Leads to:* structures, caves, fighting
+
+1. **a**: can i break the trial spawner and take it home? *(answered: can't mine those / nope, they don't drop)* · the vault keeps giving loot if i hit it right? *(answered: once per player / one key, one loot, per player)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans trial chambers
+
+*Needs:* a:knows_trial_chambers, !rivals  ·  *Effects:* teach_trial_chambers
+
+*About:* structures, caves, fighting, plans  ·  *Leads to:* structures, caves, fighting, plans
+
+1. **a**: i want to find a trial chamber · need wind charges · gonna try the ominous trials
+2. **b** if b:knows_trial_chambers: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_trial_chambers *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: they're copper and tuff rooms deep underground · trial spawners send waves, beat them and you get trial keys · keys open the vaults for loot
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate trial chambers
+
+*Needs:* a:knows_trial_chambers, b:knows_trial_chambers
+
+*About:* structures, caves, fighting, argument  ·  *Leads to:* structures, caves, fighting, argument
+
+1. **a**: the mace is broken
+2. **b** (50%) *(marks agree)*: it's insane · completely
+3. **b** if !t:agree *(marks disagree)*: it's balanced, it's hard to get · nah, it's fair
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice netherite
+
+*Needs:* a:knows_netherite, b:new_to_netherite, !rivals  ·  *Effects:* teach_netherite
+
+*About:* nether, gear, ore  ·  *Leads to:* nether, gear, mining
+
+1. **a**: you got any netherite? · know how to get netherite? · ever found ancient debris?
+2. **b**: what's that? · netherite? · no · is that better than diamond?
+3. **a**: ancient debris is in the nether, lowest around y 15 · beds or tnt blow up the netherrack and the debris survives · you smelt it into scrap, four scrap and four gold make an ingot
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): you need a netherite upgrade template from a bastion · upgrade diamond gear at a smithing table · netherite stuff floats in lava, you don't lose it
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask netherite
+
+*Needs:* a:new_to_netherite, b:knows_netherite, !rivals  ·  *Effects:* learn_netherite
+
+*About:* nether, gear, ore  ·  *Leads to:* nether, gear, mining
+
+1. **a**: where's ancient debris? *(answered: the nether, around y 15 / low in the nether, blow it up with beds)* · how do i make netherite armor? *(answered: diamond armor, an ingot and a template at a smithing table / smithing table, upgrade your diamond stuff)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): is netherite worth it? *(answered: it's the best gear / yes, and it doesn't burn)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth netherite
+
+*Needs:* a:voice_newbie, a:new_to_netherite, b:knows_netherite, !rivals  ·  *Effects:* learn_netherite
+
+*About:* nether, gear, ore, jokes  ·  *Leads to:* nether, gear, mining
+
+1. **a**: netherite is from the end right? *(answered: the nether / no, ancient debris, nether)* · i can just craft netherite armor like diamond *(answered: it's an upgrade at a smithing table / nah, you upgrade diamond with a template)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans netherite
+
+*Needs:* a:knows_netherite, !rivals  ·  *Effects:* teach_netherite
+
+*About:* nether, gear, ore, plans  ·  *Leads to:* nether, gear, mining, plans
+
+1. **a**: going debris mining soon · need a netherite template · i want netherite boots
+2. **b** if b:knows_netherite: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_netherite *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: ancient debris is in the nether, lowest around y 15 · beds or tnt blow up the netherrack and the debris survives · you smelt it into scrap, four scrap and four gold make an ingot
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate netherite
+
+*Needs:* a:knows_netherite, b:knows_netherite
+
+*About:* nether, gear, ore, argument  ·  *Leads to:* nether, gear, mining, argument
+
+1. **a**: netherite is overrated
+2. **b** (50%) *(marks agree)*: diamond's enough · kinda
+3. **b** if !t:agree *(marks disagree)*: it's the best, period · nah, it floats in lava
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice warden
+
+*Needs:* a:knows_warden, b:new_to_warden, !rivals  ·  *Effects:* teach_warden
+
+*About:* danger, caves, mobs  ·  *Leads to:* danger, caves, mobs
+
+1. **a**: you know about the warden? · ever been to an ancient city? · seen the deep dark?
+2. **b**: the what? · no · is it scary? · the dark place?
+3. **a**: the deep dark is way down, below y 0, with sculk everywhere · sculk shriekers summon the warden if you make noise · it's blind, it finds you by vibrations and smell
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): sneak everywhere, walking makes vibrations · wool blocks vibrations · ancient cities have great loot, swift sneak books
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask warden
+
+*Needs:* a:new_to_warden, b:knows_warden, !rivals  ·  *Effects:* learn_warden
+
+*About:* danger, caves, mobs  ·  *Leads to:* danger, caves, mobs
+
+1. **a**: what's the warden? *(answered: a huge blind mob in the deep dark, it'll kill you fast / the scariest mob, run)* · can i fight the warden? *(answered: you can but don't / it kills you in a few hits, avoid it)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): how do i not wake it up? *(answered: sneak, and don't step on shriekers / crouch everywhere, throw snowballs to distract it)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth warden
+
+*Needs:* a:voice_newbie, a:new_to_warden, b:knows_warden, !rivals  ·  *Effects:* learn_warden
+
+*About:* danger, caves, mobs, jokes  ·  *Leads to:* danger, caves, mobs
+
+1. **a**: the warden's a boss you're meant to fight right? *(answered: it's meant to be run from / no, it's a hazard, sneak)* · i'll just run fast past the shriekers *(answered: running is loud, sneak / that's how you wake it)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans warden
+
+*Needs:* a:knows_warden, !rivals  ·  *Effects:* teach_warden
+
+*About:* danger, caves, mobs, plans  ·  *Leads to:* danger, caves, mobs, plans
+
+1. **a**: i want swift sneak from an ancient city · gonna sneak through an ancient city · need lots of wool for the deep dark
+2. **b** if b:knows_warden: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_warden *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: the deep dark is way down, below y 0, with sculk everywhere · sculk shriekers summon the warden if you make noise · it's blind, it finds you by vibrations and smell
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate warden
+
+*Needs:* a:knows_warden, b:knows_warden
+
+*About:* danger, caves, mobs, argument  ·  *Leads to:* danger, caves, mobs, argument
+
+1. **a**: the warden is the hardest mob
+2. **b** (50%) *(marks agree)*: easily · for sure
+3. **b** if !t:agree *(marks disagree)*: the wither's harder · nah, you just avoid it
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice dragon
+
+*Needs:* a:knows_dragon, b:new_to_dragon, !rivals  ·  *Effects:* teach_dragon
+
+*About:* end, fighting, danger  ·  *Leads to:* end, fighting, plans
+
+1. **a**: you ever fought the dragon? · know how to beat the dragon? · planning to kill the dragon?
+2. **b**: the dragon? · no · is it hard? · what dragon?
+3. **a**: break the end crystals on the pillars first, they heal it · some crystals are caged, climb up or shoot through · hit it when it perches on the portal
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): you can bottle its breath for lingering potions · beds explode in the end too, speedrunners use them on it · after it dies, throw a pearl into the gateway for the outer islands
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask dragon
+
+*Needs:* a:new_to_dragon, b:knows_dragon, !rivals  ·  *Effects:* learn_dragon
+
+*About:* end, fighting, danger  ·  *Leads to:* end, fighting, plans
+
+1. **a**: how do you beat the dragon? *(answered: crystals first, then hit it when it lands / break the crystals, then swing at it on the portal)* · what drops from the dragon? *(answered: loads of xp and the egg / xp, and the dragon egg)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what do i bring? *(answered: a bow, blocks, food, water for endermen / bow and arrows, lots of blocks)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth dragon
+
+*Needs:* a:voice_newbie, a:new_to_dragon, b:knows_dragon, !rivals  ·  *Effects:* learn_dragon
+
+*About:* end, fighting, danger, jokes  ·  *Leads to:* end, fighting, plans
+
+1. **a**: can i tame the dragon? *(answered: lol no / no, you kill it)* · the dragon's weak if i just punch it? *(answered: break the crystals first or it heals / it heals from the crystals)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans dragon
+
+*Needs:* a:knows_dragon, !rivals  ·  *Effects:* teach_dragon
+
+*About:* end, fighting, danger, plans  ·  *Leads to:* end, fighting, plans, plans
+
+1. **a**: i'm getting ready for the dragon · gonna kill the dragon this week · need a better bow for the dragon
+2. **b** if b:knows_dragon: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_dragon *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: break the end crystals on the pillars first, they heal it · some crystals are caged, climb up or shoot through · hit it when it perches on the portal
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate dragon
+
+*Needs:* a:knows_dragon, b:knows_dragon
+
+*About:* end, fighting, danger, argument  ·  *Leads to:* end, fighting, plans, argument
+
+1. **a**: the dragon fight is too easy
+2. **b** (50%) *(marks agree)*: kinda, once you know it · true
+3. **b** if !t:agree *(marks disagree)*: it's hard first time · nah, it's scary
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice elytra
+
+*Needs:* a:knows_elytra, b:new_to_elytra, !rivals  ·  *Effects:* teach_elytra
+
+*About:* end, exploring, gear  ·  *Leads to:* end, exploring, gear
+
+1. **a**: you got an elytra? · know where elytra come from? · ever flown with an elytra?
+2. **b**: the wings? · no · what's that? · can you really fly?
+3. **a**: they're in end cities, on the end ship, in an item frame · kill the dragon, then pearl into the gateway to get to the cities · fireworks boost you while flying
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): mending on an elytra is a must · phantom membranes repair it at an anvil · shulkers guard the cities, they make you float
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask elytra
+
+*Needs:* a:new_to_elytra, b:knows_elytra, !rivals  ·  *Effects:* learn_elytra
+
+*About:* end, exploring, gear  ·  *Leads to:* end, exploring, gear
+
+1. **a**: where do i get an elytra? *(answered: end ships, out past the dragon / end cities, on the ship)* · how do you fly with it? *(answered: jump, then jump again in the air / jump off something high and glide, fireworks boost you)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): what fixes an elytra? *(answered: mending or phantom membranes / phantom membranes at an anvil)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth elytra
+
+*Needs:* a:voice_newbie, a:new_to_elytra, b:knows_elytra, !rivals  ·  *Effects:* learn_elytra
+
+*About:* end, exploring, gear, jokes  ·  *Leads to:* end, exploring, gear
+
+1. **a**: can i craft an elytra from phantom membranes? *(answered: membranes repair it, you have to find one / no, you find it in end ships)* · i'll just jump off a cliff with it and i'm fine right? *(answered: open it in the air, and watch the walls / yeah but don't hit a wall)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans elytra
+
+*Needs:* a:knows_elytra, !rivals  ·  *Effects:* teach_elytra
+
+*About:* end, exploring, gear, plans  ·  *Leads to:* end, exploring, gear, plans
+
+1. **a**: i want an elytra so bad · gonna go to the end cities · need fireworks for flying
+2. **b** if b:knows_elytra: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_elytra *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: they're in end cities, on the end ship, in an item frame · kill the dragon, then pearl into the gateway to get to the cities · fireworks boost you while flying
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate elytra
+
+*Needs:* a:knows_elytra, b:knows_elytra
+
+*About:* end, exploring, gear, argument  ·  *Leads to:* end, exploring, gear, argument
+
+1. **a**: elytra ruined exploring
+2. **b** (50%) *(marks agree)*: kinda, it's too fast · true
+3. **b** if !t:agree *(marks disagree)*: it made it better · nah, it's the best item
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
+#### lore advice beacons
+
+*Needs:* a:knows_beacons, b:new_to_beacons, !rivals  ·  *Effects:* teach_beacons
+
+*About:* crafting, building, end  ·  *Leads to:* building, crafting, brag
+
+1. **a**: you got a beacon? · know how beacons work? · ever built a beacon pyramid?
+2. **b**: the light thing? · no · what does it do? · never seen one
+3. **a**: a beacon needs a nether star, from killing the wither · it sits on a pyramid of iron, gold, emerald, diamond or netherite blocks · bigger pyramid, more powers
+4. **b**: oh · huh · good to know · wait really? · ok · noted
+5. **a** (80%): haste two is great for mining · you feed it an ingot or gem to pick a power · the wither takes three skulls and four soul sand
+6. **b** (80%): thanks for the tip · i'll remember that · appreciate it · learned something today · ok that's useful
+
+#### lore ask beacons
+
+*Needs:* a:new_to_beacons, b:knows_beacons, !rivals  ·  *Effects:* learn_beacons
+
+*About:* crafting, building, end  ·  *Leads to:* building, crafting, brag
+
+1. **a**: how do you make a beacon? *(answered: a nether star, glass and obsidian / nether star from the wither, plus glass and obsidian)* · what does a beacon do? *(answered: gives you powers nearby, like haste / buffs, speed or haste or regen)*
+2. **b**: hm
+3. **a**: ohh · ok that makes sense · huh · wait really? · cool
+4. **a** (70%): how big does the pyramid have to be? *(answered: four layers for everything / one layer works, four gets all the powers)*
+5. **b**: well
+6. **a** (80%): thanks · ty · you know a lot · how do you know all this · ok i'm writing that down
+
+#### lore myth beacons
+
+*Needs:* a:voice_newbie, a:new_to_beacons, b:knows_beacons, !rivals  ·  *Effects:* learn_beacons
+
+*About:* crafting, building, end, jokes  ·  *Leads to:* building, crafting, brag
+
+1. **a**: is a beacon just a fancy light? *(answered: it gives you powers / it buffs you, haste and stuff)* · i can make a beacon with diamonds right? *(answered: you need a nether star / nether star, from the wither)*
+2. **b**: uh
+3. **a**: oh · wait what · oops · nobody told me · that explains a lot · oh no
+4. **b** (70%): lol · you'll learn · we all did that once · now you know · happens
+
+#### lore plans beacons
+
+*Needs:* a:knows_beacons, !rivals  ·  *Effects:* teach_beacons
+
+*About:* crafting, building, end, plans  ·  *Leads to:* building, crafting, brag, plans
+
+1. **a**: i want to kill the wither for a star · saving iron blocks for a beacon pyramid · need haste two for mining
+2. **b** if b:knows_beacons: nice · good luck · need a hand? · sounds like a plan · big moves
+3. **b** if b:new_to_beacons *(marks asked)*: what's that? · huh? · i don't know what that is · explain?
+4. **a** if t:asked: a beacon needs a nether star, from killing the wither · it sits on a pyramid of iron, gold, emerald, diamond or netherite blocks · bigger pyramid, more powers
+5. **b** if t:asked: oh cool · sounds hard · huh, neat · i should try that
+6. **a** (60%) if !t:asked: thanks · we'll see how it goes · wish me luck · should be fun
+
+#### lore debate beacons
+
+*Needs:* a:knows_beacons, b:knows_beacons
+
+*About:* crafting, building, end, argument  ·  *Leads to:* building, crafting, brag, argument
+
+1. **a**: a beacon is the best thing to own
+2. **b** (50%) *(marks agree)*: haste is life · true
+3. **b** if !t:agree *(marks disagree)*: mending's better · nah, too expensive
+4. **a** (70%) if t:agree: see · exactly · glad someone gets it
+5. **a** if t:disagree: agree to disagree · you're wrong but ok · we'll see · whatever you say
+
 #### first diamond
 
 *Needs:* any time
@@ -6517,6 +7509,280 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 2. **b**: yeah · let's go · i'm fine · scary · careful
 3. **a** (50%): stay close · yeah · come on
 
+#### plan mine now
+
+*Needs:* a:can_mine, b:can_mine, !rivals, !a:keeps_shop, !b:keeps_shop, !strangers, !time_night, !time_evening  ·  *Effects:* plan_mine
+
+*About:* plans, mining  ·  *Leads to:* mining, caves, ore
+
+1. **a**: wanna go mining together? · i'm heading down for iron soon, come with? · mining trip? two pickaxes beat one · need a mining buddy, you in? · wanna go caving later? safer with two · you up for a mining run today?
+   - **miner:** there's a cave mouth not far from here, wanna go down together? · i'm going deep today. coming? · i know a good spot for iron, want in?
+   - **newbie:** can i come mining with you? i always get lost down there · will you go mining with me? caves are scary alone
+   - **speedrunner:** quick iron run? together's faster · strip mine sprint, you in?
+   - **casual:** wanna go mine some stuff lol · mining? i'm bored of the surface
+   - **hoarder:** wanna go mining? we split everything... mostly
+2. **b** (30%) if b:loner *(marks plan_yes, agree)*: sure · i'm down · yeah let's go · bet, i've got torches · ok but i'm not going near lava · sure, i need iron anyway · count me in
+   - **miner:** always · you don't have to ask twice · finally someone who gets it
+   - **newbie:** yes!! i'll stay close · ok but you go first
+   - **hermit:** fine. stay quiet down there. · ok. don't talk too much.
+   - **speedrunner:** go go go · yes, fast though
+3. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: sure · i'm down · yeah let's go · bet, i've got torches · ok but i'm not going near lava · sure, i need iron anyway · count me in
+   - **miner:** always · you don't have to ask twice · finally someone who gets it
+   - **newbie:** yes!! i'll stay close · ok but you go first
+   - **hermit:** fine. stay quiet down there. · ok. don't talk too much.
+   - **speedrunner:** go go go · yes, fast though
+4. **b** if !t:plan_yes *(marks decline)*: nah i'm good up here · maybe later · not today, got stuff to do · caves give me the creeps · i'll pass this time · can't, i'm busy
+   - **hermit:** i mine alone. · no.
+   - **homebody:** i'd rather stay home · too dark down there for me
+   - **builder:** i'm in the middle of a build · can't, the roof won't build itself
+5. **a** (85%) if t:plan_yes: cool, i'll lead · nice, bring torches · sweet, stick close down there · let's do it · ok, when i head down you follow · awesome, finally some company down there
+   - **speedrunner:** keep up · no afk
+6. **a** (75%) if t:decline: all good · your loss lol · another time then · fair · more ore for me
+
+#### plan mine tomorrow
+
+*Needs:* a:can_mine, b:can_mine, !rivals, !a:keeps_shop, !b:keeps_shop, !strangers, time_evening  ·  *Effects:* plan_mine
+
+*About:* plans, mining  ·  *Leads to:* mining, night, plans
+
+1. **a**: wanna go mining tomorrow? too late now · mining trip tomorrow morning? · tomorrow, me and you, mining. yes? · first thing tomorrow, wanna hit the caves?
+   - **miner:** i'm going deep tomorrow, come with · tomorrow i'm after diamonds. want in?
+   - **newbie:** can we go mining together tomorrow?
+2. **b** (30%) if b:loner *(marks plan_yes, agree)*: deal, tomorrow · sure, first thing · ok, wake me up · yeah, tomorrow works · sounds like a plan
+   - **casual:** bet, tomorrow · ok if i wake up lol
+3. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: deal, tomorrow · sure, first thing · ok, wake me up · yeah, tomorrow works · sounds like a plan
+   - **casual:** bet, tomorrow · ok if i wake up lol
+4. **b** if !t:plan_yes *(marks decline)*: can't tomorrow · tomorrow's no good · i'll see how i feel · nah, got plans
+   - **hermit:** probably not.
+5. **a** (85%) if t:plan_yes: cool, see you in the morning · nice, bring a spare pick · it's a plan · don't oversleep
+6. **a** (75%) if t:decline: ok, some other time · no worries · fair enough
+
+#### plan mine ore spot
+
+*Needs:* a:can_mine, b:can_mine, !rivals, !a:keeps_shop, !b:keeps_shop, a:found_ore, !time_night  ·  *Effects:* plan_mine
+
+*About:* plans, mining, ore  ·  *Leads to:* ore, mining, caves
+
+1. **a**: i found a {a.ore} vein not far from here · there's {a.ore} in a cave near here, i saw it · saw some {a.ore} the other day, left it for later
+2. **b** (80%): oh nice · how much? · where? · jealous · you didn't mine it?
+3. **a**: wanna go get it together? · come help me mine it out? · we could split it, wanna come? · i'll show you where, if you help
+4. **b** (30%) if b:loner *(marks plan_yes, agree)*: yes please · i'm in · split it fifty fifty? · show me · say less
+5. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: yes please · i'm in · split it fifty fifty? · show me · say less
+6. **b** if !t:plan_yes *(marks decline)*: nah, it's yours · you go ahead · i'm good, thanks though
+7. **a** (85%) if t:plan_yes: deal · ok, next time i head down · cool, half's yours
+8. **a** (75%) if t:decline: more for me then · ok, your loss
+
+#### plan hunt tonight
+
+*Needs:* a:can_hunt, b:can_hunt, !rivals, !time_morning, !time_night, !a:timid, !strangers  ·  *Effects:* plan_hunt
+
+*About:* plans, night, fighting  ·  *Leads to:* night, mobs, fighting
+
+1. **a**: hunt tonight? · wanna go mob hunting when it gets dark? · i need bones and string, come hunt with me tonight? · tonight, mob hunt, you and me? · you up for some night fighting? · i'm going out after dark, wanna come?
+   - **PvP sweat:** tonight. you and me. let's farm some mobs the hard way · night hunt? i need the practice
+   - **speedrunner:** need pearls. endermen tonight? · blaze rods later, but tonight, pearls. you in?
+   - **casual:** wanna go beat up some zombies tonight lol · night hunt? could be fun
+   - **nomad:** the night's when things happen. come out with me?
+2. **b** (30%) if b:timid *(marks plan_yes, agree)*: bet · i'm in, i need xp anyway · ok but you're on creeper duty · let's do it · sure, i'll bring a sword · yeah, safer with two
+   - **PvP sweat:** finally · let's go, i'll take the skeletons
+   - **newbie:** ok... you'll protect me right? · eek ok, i'll try
+   - **casual:** sure why not lol · ok but if i die it's on you
+3. **b** (95%) if b:brave, !b:timid, !t:plan_yes *(marks plan_yes, agree)*: bet · i'm in, i need xp anyway · ok but you're on creeper duty · let's do it · sure, i'll bring a sword · yeah, safer with two
+   - **PvP sweat:** finally · let's go, i'll take the skeletons
+   - **newbie:** ok... you'll protect me right? · eek ok, i'll try
+   - **casual:** sure why not lol · ok but if i die it's on you
+4. **b** (75%) if !b:timid, !t:plan_yes *(marks plan_yes, agree)*: bet · i'm in, i need xp anyway · ok but you're on creeper duty · let's do it · sure, i'll bring a sword · yeah, safer with two
+   - **PvP sweat:** finally · let's go, i'll take the skeletons
+   - **newbie:** ok... you'll protect me right? · eek ok, i'll try
+   - **casual:** sure why not lol · ok but if i die it's on you
+5. **b** if !t:plan_yes *(marks decline)*: no way, i'm staying inside · it's dangerous out there at night · i'll pass, i like my hearts · not tonight · i'm too beat
+   - **homebody:** absolutely not, i'll be in bed · nights are for staying in
+   - **newbie:** no no no, the zombies scare me
+   - **hermit:** no.
+6. **a** (85%) if t:plan_yes: see you at dusk · bring a sword · nice, back to back · don't run off · it's a date lol
+   - **PvP sweat:** don't steal my kills · we go at dark
+7. **a** (75%) if t:decline: fine, more xp for me · suit yourself · ok, stay safe · scaredy cat lol
+
+#### plan hunt drops
+
+*Needs:* a:can_hunt, b:can_hunt, !rivals, !time_morning, !time_night, !a:timid  ·  *Effects:* plan_hunt
+
+*About:* plans, night, mobs  ·  *Leads to:* mobs, night, crafting
+
+1. **a**: i'm out of string · need gunpowder for tnt · i need more bones for my farm · out of arrows, need feathers and string
+2. **b** (70%): mobs tonight then · night's coming · spiders drop string · that's a night job
+3. **a**: come out with me tonight? · wanna help me farm some tonight? · you wanna come? we split the drops
+4. **b** (30%) if b:timid *(marks plan_yes, agree)*: ok, i need some too · sure, split the drops · why not · fine, but i keep the pearls
+5. **b** (95%) if b:brave, !b:timid, !t:plan_yes *(marks plan_yes, agree)*: ok, i need some too · sure, split the drops · why not · fine, but i keep the pearls
+6. **b** (75%) if !b:timid, !t:plan_yes *(marks plan_yes, agree)*: ok, i need some too · sure, split the drops · why not · fine, but i keep the pearls
+7. **b** if !t:plan_yes *(marks decline)*: good luck with that · i'll stay in, thanks · nope, too risky
+8. **a** (85%) if t:plan_yes: cool, meet at dusk · nice, we'll clean up · great, stick close
+9. **a** (75%) if t:decline: ok, i'll go alone · fair
+
+#### plan show home
+
+*Needs:* a:home_near, !b:been_to_theirs, !rivals  ·  *Effects:* plan_show_home
+
+*About:* plans, home  ·  *Leads to:* home, building, decor
+
+1. **a**: wanna see my house? · come check out my place, it's right over there · want a tour of my base? · i live just over there, wanna see? · you wanna come see my place?
+   - **builder:** wanna see what i've been building? it's close · i just finished the roof, come look · i need a second opinion on my build, come see
+   - **newbie:** do you wanna see my house?? i built it myself · come see my house! it's my first one
+   - **homebody:** come over, i'll show you around · want to see where i live? it's cozy
+   - **hoarder:** wanna see my storage room? it's beautiful
+   - **casual:** wanna see my house? it's kinda mid but
+2. **b** (30%) if b:loner *(marks plan_yes, agree)*: sure, show me · yeah let's see it · ooh yes · lead the way · sure, i've been curious
+   - **builder:** always, show me · let's see your style
+   - **newbie:** yes!! · ooh ok!
+   - **hermit:** fine. quickly.
+3. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: sure, show me · yeah let's see it · ooh yes · lead the way · sure, i've been curious
+   - **builder:** always, show me · let's see your style
+   - **newbie:** yes!! · ooh ok!
+   - **hermit:** fine. quickly.
+4. **b** if !t:plan_yes *(marks decline)*: maybe another time · i'm kinda busy, later? · nah, i'm good · some other time
+   - **hermit:** no. · i don't do visits.
+   - **speedrunner:** no time, sorry
+5. **a** (85%) if t:plan_yes: awesome · cool cool · ok you're gonna love it · nice, it's not far · yay
+6. **a** (75%) if t:decline: ok, offer stands · no worries · another time then
+
+#### plan show home asked
+
+*Needs:* a:home_near, !b:been_to_theirs, !rivals, !strangers  ·  *Effects:* plan_show_home
+
+*About:* plans, home  ·  *Leads to:* home, building, town
+
+1. **b**: where do you live anyway? · you got a base around here? · do you have a house? · where's your place at?
+2. **a**: yeah, it's close, wanna see it? · just over there, want to see? · right nearby, i'll show you · close by. want the tour?
+3. **b** (30%) if b:loner *(marks plan_yes, agree)*: sure · yeah ok · go on then · lead on
+4. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: sure · yeah ok · go on then · lead on
+5. **b** if !t:plan_yes *(marks decline)*: oh another time · maybe later, i was just asking
+6. **a** (85%) if t:plan_yes: ok · great · cool
+7. **a** (75%) if t:decline: ok lol · fair
+
+#### plan share food offer
+
+*Needs:* a:spare_food, b:hungry, !a:hungry, !rivals  ·  *Effects:* plan_share_food
+
+*About:* plans, food, help  ·  *Leads to:* food, farming, help
+
+1. **a**: you look hungry, want some food? · you hungry? i've got extra · want some of my food? · here, i have more than i need, want some? · when did you last eat? want some?
+   - **helper:** you're starving, let me give you something · take some of my food, please
+   - **hoarder:** i guess i could spare some food. maybe. · i have food. it'll cost you. kidding. want some?
+   - **newbie:** are you hungry? you can have some of mine!
+   - **casual:** yo you're starving, want some food?
+2. **b** (30%) if b:loner *(marks plan_yes, agree)*: yes please · omg yes · i'm starving, thank you · you're a lifesaver · if you don't mind
+   - **hermit:** ...ok. thanks.
+   - **newbie:** really?! yes please
+3. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: yes please · omg yes · i'm starving, thank you · you're a lifesaver · if you don't mind
+   - **hermit:** ...ok. thanks.
+   - **newbie:** really?! yes please
+4. **b** if !t:plan_yes *(marks decline)*: i'm ok, thanks · nah i'll find my own · i'm fine, really · keep it, you'll need it
+   - **hermit:** i don't need help.
+5. **a** (85%) if t:plan_yes: hold on · one sec · coming right up · sure thing
+6. **a** (75%) if t:decline: ok, just ask · if you change your mind · ok, stubborn
+
+#### plan share food complain
+
+*Needs:* a:spare_food, b:hungry, !a:hungry, !rivals  ·  *Effects:* plan_share_food
+
+*About:* plans, food, complaints  ·  *Leads to:* food, farming, feelings
+
+1. **b**: i'm so hungry · i haven't eaten all day · my stomach won't stop growling · i'm running on empty · i could eat a whole cow
+2. **a**: here, i can give you some · want some of mine? · i've got spare, want it? · i'll give you some, hold on
+   - **helper:** i got you, here
+   - **hoarder:** ...fine. i have some. you want it?
+3. **b** (30%) if b:loner *(marks plan_yes, agree)*: really? thanks · you'd do that? · please · you're the best
+4. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: really? thanks · you'd do that? · please · you're the best
+5. **b** if !t:plan_yes *(marks decline)*: nah, i'll manage · i'll go hunt something · don't worry about it
+6. **a** (85%) if t:plan_yes: of course · no problem · course
+7. **a** (75%) if t:decline: ok, if you're sure · suit yourself
+
+#### plan tag along
+
+*Needs:* !rivals, !a:keeps_shop, !strangers  ·  *Effects:* plan_tag_along
+
+*About:* plans, friends  ·  *Leads to:* friends, exploring, doing
+
+1. **a**: what are you up to? · whatcha doing? · busy? · what's the plan today?
+2. **b**: just doing stuff · gathering, mostly · nothing much, wandering · this and that · the usual
+3. **a**: mind if i tag along? · can i come with? · want company? · i'll come with you, if that's ok
+   - **newbie:** can i follow you? i wanna learn how you do stuff · can i come? i'll be quiet
+   - **casual:** mind if i tag along lol · i'll come, i'm bored
+   - **nomad:** mind if i wander with you a while?
+4. **b** (30%) if b:loner *(marks plan_yes, agree)*: sure, come along · yeah why not · the more the merrier · sure, keep up · ok, stick close
+   - **newbie:** yes! company!
+   - **helper:** of course, come on
+5. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: sure, come along · yeah why not · the more the merrier · sure, keep up · ok, stick close
+   - **newbie:** yes! company!
+   - **helper:** of course, come on
+6. **b** if !t:plan_yes *(marks decline)*: i work better alone · nah, it's boring stuff · maybe next time · i'd rather go alone today
+   - **hermit:** no. · i'm better alone.
+7. **a** (85%) if t:plan_yes: sweet · cool, lead on · nice · let's go
+8. **a** (75%) if t:decline: fair enough · ok, see you · no worries
+
+#### plan tag along bored
+
+*Needs:* !rivals, !a:keeps_shop, !strangers, a:mood_bored  ·  *Effects:* plan_tag_along
+
+*About:* plans, boredom  ·  *Leads to:* boredom, friends, random
+
+1. **a**: i'm so bored · there's nothing to do · i've done everything today · so bored i started counting blocks
+2. **a**: can i just follow you around for a bit? · entertain me. can i come with you? · whatever you're doing, can i join?
+3. **b** (30%) if b:loner *(marks plan_yes, agree)*: lol sure · ok, but it's not exciting · come on then · sure, you can help
+4. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: lol sure · ok, but it's not exciting · come on then · sure, you can help
+5. **b** if !t:plan_yes *(marks decline)*: go find a hobby lol · nah, go build something · you'll be more bored with me
+6. **a** (85%) if t:plan_yes: thank you · anything's better than this · yay
+7. **a** (75%) if t:decline: rude · fine · ugh ok
+
+#### plan explore together
+
+*Needs:* !rivals, !a:keeps_shop, !strangers, !time_night, !time_evening  ·  *Effects:* plan_tag_along
+
+*About:* plans, exploring  ·  *Leads to:* exploring, biomes, structures
+
+1. **a**: wanna go exploring? you lead, i'll follow · show me around? you know this area better · take me somewhere cool? · where's the best spot round here? show me
+   - **newbie:** can you show me around? i don't know this place
+   - **nomad:** i've never been this way. show me?
+2. **b** (30%) if b:loner *(marks plan_yes, agree)*: sure, follow me · ok, i know a spot · come on then · yeah, i'll show you
+3. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: sure, follow me · ok, i know a spot · come on then · yeah, i'll show you
+4. **b** if !t:plan_yes *(marks decline)*: i'm not a tour guide lol · not right now · maybe later
+5. **a** (85%) if t:plan_yes: nice · cool · lead on
+6. **a** (75%) if t:decline: ok · fine lol
+
+#### plan visit later
+
+*Needs:* a:has_house, !rivals, !b:keeps_shop, !time_night, !time_evening  ·  *Effects:* plan_visit
+
+*About:* plans, home, friends  ·  *Leads to:* home, friends, town
+
+1. **a**: you should come by my place sometime · drop by my house later if you want · come visit later, i'll show you around · stop by mine later? · come over later, i'll be home
+   - **homebody:** come over later, i'll be in · visit me later, i never get visitors
+   - **builder:** come by later, i'll have the new room done
+   - **newbie:** will you visit me later?
+   - **hermit:** you can come by later. if you must.
+2. **b** (30%) if b:loner *(marks plan_yes, agree)*: will do · sure, i'll swing by · ok i'll stop by later · sounds good · i'll be there
+   - **casual:** bet · ok i'll pull up
+3. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: will do · sure, i'll swing by · ok i'll stop by later · sounds good · i'll be there
+   - **casual:** bet · ok i'll pull up
+4. **b** if !t:plan_yes *(marks decline)*: maybe, we'll see · i'm not much for visiting · can't today · we'll see
+   - **hermit:** probably not.
+5. **a** (85%) if t:plan_yes: cool, it's not far · see you later then · i'll be around · great, see you
+6. **a** (75%) if t:decline: offer's open · ok, whenever · no pressure
+
+#### plan visit ask
+
+*Needs:* a:has_house, !b:been_to_theirs, !rivals, !strangers, !time_night, !time_evening  ·  *Effects:* plan_visit
+
+*About:* plans, home  ·  *Leads to:* home, friends
+
+1. **b**: i've never seen your place · you never invite me over · where even is your house
+2. **a**: come by later then · come over later, i'll show you · you're always welcome, come by later
+3. **b** (30%) if b:loner *(marks plan_yes, agree)*: ok i will · deal · sure, later · i'll hold you to that
+4. **b** (75%) if !b:loner, !t:plan_yes *(marks plan_yes, agree)*: ok i will · deal · sure, later · i'll hold you to that
+5. **b** if !t:plan_yes *(marks decline)*: eh, maybe · maybe some day
+6. **a** (85%) if t:plan_yes: good · see you then · looking forward to it
+7. **a** (75%) if t:decline: ok lol · fair
+
 #### story creeper house
 
 *Needs:* any time
@@ -6530,7 +7796,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* building, mobs, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* building, mobs, jokes, g_story_old_creeper_house_3  ·  only follows another
 
 1. **a**: and it blew up my whole storage wall · it went off right next to my chests · half my house just gone · and my cat just watched lol
 2. **b**: nooo · rip · thats the worst · did your stuff survive · lmao
@@ -6549,7 +7815,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* death, danger, complaints  ·  only follows another
+*About:* story_part  ·  *Leads to:* death, danger, complaints, g_story_old_lost_diamonds_3  ·  only follows another
 
 1. **a**: then i fell in lava on the way home · a skeleton knocked me into a ravine with all of it · and then a creeper. gone. all of it. · and i forgot where i died
 2. **b**: NO · pain · thats cursed · i'd quit · f
@@ -6568,7 +7834,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* mobs, home, night  ·  only follows another
+*About:* story_part  ·  *Leads to:* mobs, home, night, g_story_old_night_lost_3  ·  only follows another
 
 1. **a**: dug into a hill and waited it out in the dark · zombies everywhere, i just ran till morning · found a village and hid in a house · built a dirt tower and sat on it all night
 2. **b**: smart · classic · lucky · i would have panicked · lol the dirt tower
@@ -6587,7 +7853,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* villagers, trade, brag  ·  only follows another
+*About:* story_part  ·  *Leads to:* villagers, trade, brag, g_story_old_village_rescue_3  ·  only follows another
 
 1. **a**: fought them off till sunrise · the golem and me, back to back · only lost one villager · now they give me discounts lol
 2. **b**: hero · nice · respect · the discounts lol · gg
@@ -6606,7 +7872,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* nether, jokes, brag  ·  only follows another
+*About:* story_part  ·  *Leads to:* nether, jokes, brag, g_story_old_ghast_3  ·  only follows another
 
 1. **a**: swung at the fireball and sent it right back · it blew up my portal and i was stuck · i fell into the lava sea · punched the fireball, killed the ghast first try
 2. **b**: no way · stuck in the nether, nightmare · rip · legend · lucky
@@ -6625,7 +7891,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* feelings, pets, memories  ·  only follows another
+*About:* story_part  ·  *Leads to:* feelings, pets, memories, g_story_old_pet_3  ·  only follows another
 
 1. **a**: followed me everywhere, even into caves · it saved me from a skeleton once · it ran off one day and never came back · still have its collar
 2. **b**: aww · best friend · sad · good doggo · miss it?
@@ -6644,7 +7910,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* building, home, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* building, home, jokes, g_story_old_first_house_3  ·  only follows another
 
 1. **a**: it was a dirt box with one torch · no door, just a hole · i built it out of wood and it burned down · the roof was gravel. it fell.
 2. **b**: lmao · classic · the gravel lol · we all start there · iconic
@@ -6663,7 +7929,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* potions, danger, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* potions, danger, jokes, g_story_old_witch_3  ·  only follows another
 
 1. **a**: she threw slowness then poison then harming · i had to drink milk mid fight · fell in the water and she kept healing · got her in the end, took her potions
 2. **b**: brutal · lol · well earned · nice loot · never going to a swamp
@@ -6682,7 +7948,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* ocean, brag, gear  ·  only follows another
+*About:* story_part  ·  *Leads to:* ocean, brag, gear, g_story_old_shipwreck_3  ·  only follows another
 
 1. **a**: dug 30 holes before i found it · heart of the sea inside! · the chest was right under a drowned · got a whole stack of iron and some diamonds
 2. **b**: worth it · nice · lucky · lol 30 holes · jealous
@@ -6701,7 +7967,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* end, dreams, plans  ·  only follows another
+*About:* story_part  ·  *Leads to:* end, dreams, plans, g_story_old_end_3  ·  only follows another
 
 1. **a**: an island in the void, black and purple · endermen everywhere, you can't look anywhere · towers with crystals on top, and the dragon circling · they say there are cities past the dragon
 2. **b**: scary · want to go · someday · sounds amazing · no thanks
@@ -6720,7 +7986,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* trade, jokes, complaints  ·  only follows another
+*About:* story_part  ·  *Leads to:* trade, jokes, complaints, g_story_old_trade_scam_3  ·  only follows another
 
 1. **a**: paid 30 emeralds for a book of bane of arthropods · traded all my wheat for one emerald · he locked the trade right after · i clicked the wrong trade, got a compass
 2. **b**: lmao · pain · bane of arthropods lol · rip · classic villager
@@ -6739,7 +8005,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* caves, mining, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* caves, mining, jokes, g_story_old_cave_in_3  ·  only follows another
 
 1. **a**: the whole ceiling came down on me · i dug out and it just kept falling · had to put a torch under it to survive · suffocated in gravel. very dignified.
 2. **b**: lmao · rip · torch trick, smart · gravel wins again · classic
@@ -6758,7 +8024,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* animals, jokes, feelings  ·  only follows another
+*About:* story_part  ·  *Leads to:* animals, jokes, feelings, g_story_old_horse_3  ·  only follows another
 
 1. **a**: it threw me off like ten times first · rode it straight into a ravine · it was so fast, i named it lightning · then it wandered off while i was mining
 2. **b**: lol · rip · classic horse · nooo
@@ -6777,7 +8043,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* ocean, weapons, complaints  ·  only follows another
+*About:* story_part  ·  *Leads to:* ocean, weapons, complaints, g_story_old_trident_3  ·  only follows another
 
 1. **a**: i killed it and it didn't drop it · it threw it at me like forty times · it dropped it into a ravine underwater · i got it, then lost it in lava the next day
 2. **b**: pain · nooo · that's the worst · lol figures · f
@@ -6796,7 +8062,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* animals, jokes, farming  ·  only follows another
+*About:* story_part  ·  *Leads to:* animals, jokes, farming, g_story_old_bees_3  ·  only follows another
 
 1. **a**: forgot the campfire. the whole nest came out · i ran into a lake to get away · i got stung like twenty times · i broke the nest by accident and they chased me home
 2. **b**: lmao · rip · classic · how are you alive · lol the lake
@@ -6815,7 +8081,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* villagers, enchanting, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* villagers, enchanting, jokes, g_story_old_villager_trade_3  ·  only follows another
 
 1. **a**: finally got mending and a zombie got him · broke the lectern like a hundred times · got mending and he wanted 38 emeralds · then i traded with him once and locked it
 2. **b**: NO · pain · classic villager · lmao · f
@@ -6834,7 +8100,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* ocean, places, mobs  ·  only follows another
+*About:* story_part  ·  *Leads to:* ocean, places, mobs, g_story_old_raft_3  ·  only follows another
 
 1. **a**: night came and drowned everywhere · found a tiny island and lived there three days · found a shipwreck full of loot · a guardian blasted me off the boat
 2. **b**: no way · lucky · yikes · lol · how did you get back
@@ -6853,7 +8119,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* animals, farming, feelings  ·  only follows another
+*About:* story_part  ·  *Leads to:* animals, farming, feelings, g_story_old_sheep_3  ·  only follows another
 
 1. **a**: i named her strawberry · a wolf got her the next day · kept her for months. best sheep ever · i made a whole pink bed from her
 2. **b**: aw · rip strawberry · cute · noo · worth it
@@ -6872,7 +8138,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* building, danger, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* building, danger, jokes, g_story_old_lava_bucket_3  ·  only follows another
 
 1. **a**: spilled it on my wooden floor · the whole roof went up · i clicked the wrong button. house gone · set my chest room on fire
 2. **b**: lmao · rip house · that's why i build stone · classic · no
@@ -6900,7 +8166,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* end, structures, brag  ·  only follows another
+*About:* story_part  ·  *Leads to:* end, structures, brag, g_story_old_stronghold_4  ·  only follows another
 
 1. **a**: found the portal room and only had one eye left · silverfish everywhere. i ran out · the portal was already full. eleven eyes wasted
 2. **b**: pain · nooo · lmao · classic · that's brutal
@@ -6928,7 +8194,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* feelings, friends, memories  ·  only follows another
+*About:* story_part  ·  *Leads to:* feelings, friends, memories, g_story_old_first_friend_4  ·  only follows another
 
 1. **a**: one day they just went off exploring and never came back · we split up after a fight over diamonds · they moved far away. i still have their sign
 2. **b**: aw · that's sad · sorry · maybe you'll see them again · people come and go
@@ -6947,7 +8213,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* redstone, mobs, jokes  ·  only follows another
+*About:* story_part  ·  *Leads to:* redstone, mobs, jokes, g_story_old_creeper_farm_3  ·  only follows another
 
 1. **a**: it worked once, then blew itself up · i fell in my own farm · it made zero creepers and a hundred spiders · a creeper got out and found me
 2. **b**: lmao · classic · rip · how · the spiders lol
@@ -6966,7 +8232,7 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 
 *Needs:* any time
 
-*About:* story_part  ·  *Leads to:* biomes, danger, gear  ·  only follows another
+*About:* story_part  ·  *Leads to:* biomes, danger, gear, g_story_old_snow_night_3  ·  only follows another
 
 1. **a**: fell in powder snow and started freezing · strays shot me all night · built an igloo, best night ever actually · a polar bear chased me across the ice
 2. **b**: yikes · lol · classic snow biome · brr
@@ -8013,6 +9279,307 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 1. **b**: you always have the worst takes · classic you · why do i even talk to you · of course you'd say that
 2. **a** *(marks disagree)*: says you · ok and? · cry about it · at least im not you
 
+### Generated: `topics_gen_debates.json` (22 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/debates.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g debate hot creepers misunderstood
+
+*Needs:* any time
+
+*About:* mobs, opinion  ·  *Leads to:* mobs, danger, home, opinion
+
+1. **a**: creepers are misunderstood · creepers just want a hug · i'll say it: creepers are the most honest mob in the game · say what you want, creepers are misunderstood
+2. **b** (40%) *(marks agree)*: honestly the hiss is a courtesy · finally someone said it · 100%
+   - **builder:** yes, from a building view too · agreed, and it looks better too · honestly the hiss is a courtesy
+3. **b** if !t:agree *(marks dh_creepers_misunderstood_no; leads to argument)*: one deleted my whole storage wall · polite? it ate half my house · they sneak up behind you on purpose · no way · nope
+   - **speedrunner:** no. waste of time · inefficient take · they sneak up behind you on purpose
+4. **a** (70%) if t:agree: they hiss before they blow, that's manners · a skeleton never says sorry first · that's what i'm saying · thank you
+5. **a** if t:dh_creepers_misunderstood_no: you built next to a cave, that's on you · light your yard and they leave you alone · they don't burn in the sun, they just live with us
+6. **b** (40%) if t:dh_creepers_misunderstood_no *(marks agree)*: ok the hiss is kinda polite · ok i see it now · hm. maybe
+   - **newbie:** wait yeah you're right · ohh ok that makes sense · ok the hiss is kinda polite
+7. **b** (75%) if t:dh_creepers_misunderstood_no, !t:agree *(marks disagree)*: still no · yeah no · nope, still wrong
+   - **PvP sweat:** cope
+
+#### g debate why creepers misunderstood
+
+*Needs:* any time
+
+*About:* mobs, opinion  ·  *Leads to:* mobs, danger, home, opinion
+
+1. **a**: creepers are the most honest mob in the game · the creeper is the only mob that warns you first · i will die on this hill: creepers aren't evil, they're lonely
+2. **b**: and why's that? *(answered: they only blow up when you get close, it's a boundary thing / cats scare them off, so they're basically shy / they don't follow you into water, very polite)* · i need reasons *(answered: they only blow up when you get close, it's a boundary thing / cats scare them off, so they're basically shy / they don't follow you into water, very polite)* · go on... *(answered: they only blow up when you get close, it's a boundary thing / cats scare them off, so they're basically shy / they don't follow you into water, very polite)*
+   - **bandit:** says who? *(answered: they only blow up when you get close, it's a boundary thing / cats scare them off, so they're basically shy / they don't follow you into water, very polite)*
+   - **newbie:** wait why? *(answered: they only blow up when you get close, it's a boundary thing / cats scare them off, so they're basically shy / they don't follow you into water, very polite)*
+3. **a**: hm · well
+4. **b** (40%) *(marks agree)*: true, a zombie never warns you · hm. maybe · ok i see it now
+   - **builder:** ok, i can picture it now · true, a zombie never warns you
+5. **a** (50%) if t:agree: glad someone gets it · told you
+6. **b** if !t:agree *(marks dw_creepers_misunderstood_no; leads to argument)*: a warning one second before isn't manners · my chest room disagrees · they creep up silently, it's in the name · nope
+   - **homebody:** hm, no · not in my house · they creep up silently, it's in the name
+7. **a** if t:dw_creepers_misunderstood_no: you walked up to it, not the other way round · get a cat and you'll never see one again
+8. **b** (35%) if t:dw_creepers_misunderstood_no *(marks agree)*: fine, the cat thing is cute, they're just scared · ugh ok fine · you might be onto something
+   - **helper:** ok you changed my mind · you know what, fair · fine, the cat thing is cute, they're just scared
+9. **b** (60%) if t:dw_creepers_misunderstood_no, !t:agree *(marks disagree)*: keep telling yourself that · that's a no from me · agree to disagree
+   - **speedrunner:** no. moving on
+
+#### g debate spicy creepers misunderstood
+
+*Needs:* a:voice_hermit
+
+*About:* mobs, argument  ·  *Leads to:* mobs, danger, home, argument
+
+1. **a**: creepers aren't evil, they're lonely · every creeper hole is a free skylight · say what you want, every creeper hole is a free skylight · controversial but creepers just want a hug
+2. **b** *(marks ds_creepers_misunderstood_no; leads to argument)*: they killed me twice this week · tell that to my crater of a front yard · did you hit your head · excuse me??
+   - **nomad:** i've walked a thousand blocks and never heard worse · tell that to my crater of a front yard
+3. **a**: a charged creeper is just a creeper having a big day · they drop gunpowder, so they literally leave you a gift · that's a lighting problem, not a creeper problem
+4. **b** (35%) *(marks agree)*: alright, i'll stop yelling at them · ok... fair point · huh, never thought of it like that
+   - **bandit:** heh, fine · alright, i'll stop yelling at them
+5. **a** (60%) if t:agree: finally · this is why we get along
+6. **b** (40%) if !t:agree *(marks disagree)*: i need new friends · i'm going to pretend this never happened · this is why nobody asks you stuff
+   - **hermit:** never talk to me.
+7. **b** (75%) if !t:agree, !t:disagree: you're so weird lol · lmao fine, enjoy being wrong · you're a menace
+   - **helper:** lol ok, you do you
+8. **a** (50%) if !t:agree: fine, be wrong then · we'll see who's right · i'm not taking it back
+   - **PvP sweat:** i'm always right, you'll learn
+
+### Generated: `topics_gen_deep.json` (1217 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/deep.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g deep respawn counts
+
+*Needs:* any time
+
+*About:* death, philosophy  ·  *Leads to:* death, philosophy, feelings, memories
+
+1. **a**: been thinking about whether dying even counts if we come back · if we always wake up after, is it really dying? · dying feels like it should be bigger than it is · you fall, it goes dark, then you're just back in bed
+2. **b**: heavy thought · i try not to go there · ngl that's crossed my mind too · huh. i've wondered the same · that one keeps me up some nights
+   - **casual:** bro who hurt you lol. but yeah · lol ok philosopher. fair though · that's dark. i kinda get it though
+   - **hermit:** the bed forgets. we don't. · everyone wakes. not everyone wakes the same. · mm. dying teaches.
+   - **newbie:** wait, should i be scared of that?? · i've only died like twice and it was awful · i just thought dying was part of it
+   - **helper:** you ok? that's a big thing to carry · i'm glad you're here to wonder about it · you can always talk to me about this
+   - **speedrunner:** dying costs me a minute. that's all i let it be · a death is just a reset with extra walking · i count my deaths. the number never feels good
+3. **a**: like, the fall still hurts. then you're back in bed like nothing happened *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / it counts. ask anyone who lost their diamonds / maybe it's practice for something)* · your stuff stays where you died, but you don't *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / it counts. ask anyone who lost their diamonds / maybe it's practice for something)* · the world keeps your stuff and hands you back to yourself *(answered: i think it counts because we're scared of it / if it didn't count we wouldn't run from creepers / it counts. ask anyone who lost their diamonds / maybe it's practice for something)*
+4. **b**: hm
+5. **a** (70%): anyway. glad we're both still here · let's just not die today · beds everywhere, that's my answer · still here. that counts for something
+   - **hermit:** we wake. that's enough.
+   - **casual:** ok that's enough death talk for one day lol
+   - **newbie:** i'm gonna be extra careful now
+6. **b** (40%): yeah · mhm · same · true · for real · hm · yeah. · fr · right
+
+#### g deep respawn counts talk
+
+*Needs:* any time
+
+*About:* death, philosophy  ·  *Leads to:* death, philosophy, feelings, memories, g_deep_respawn_counts_talk_2
+
+1. **a**: does dying count if you always come back? *(answered: it counts. you lose everything / not really, it's like a bad nap / i think it counts because it hurts / idk. it feels like it should)* · is it still dying if you wake up after? *(answered: yeah, something ends every time / no, dying means not coming back / it's dying with a second chance)*
+2. **b**: hm
+3. **a**: huh. maybe · i want to believe that · i keep going back and forth on it · that's one way to see it · maybe you're right
+   - **hermit:** mm. maybe. · perhaps.
+   - **newbie:** oh. i never thought of it like that · woah ok
+4. **b** (60%): you've been chewing on this one · go on · what got you thinking about dying · there's more, isn't there
+
+#### g deep respawn counts talk 2
+
+*Needs:* any time
+
+*About:* story_part, death, philosophy  ·  *Leads to:* death, philosophy, feelings, memories, g_deep_respawn_counts_talk_3  ·  only follows another
+
+1. **a**: the thing that gets me is nobody else even notices *(answered: then i've left a lot of me in lava lol / then we should be careful how many we spend)* · the world doesn't stop for it. the sun just keeps going *(answered: then i've left a lot of me in lava lol / then we should be careful how many we spend)* · what if every death costs something we can't see *(answered: then i've left a lot of me in lava lol / then we should be careful how many we spend)* · maybe a little bit of us stays where we fell *(answered: if that's true i want my bits back / i think the part that stays is the fear / then i've left a lot of me in lava lol / then we should be careful how many we spend)*
+2. **b**: hm
+
+### Generated: `topics_gen_random.json` (881 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/random_talk.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g random wyr creeper size
+
+*Needs:* any time
+
+*About:* would_you_rather, mobs  ·  *Leads to:* would_you_rather, random, mobs
+
+1. **a**: would you rather fight 100 chicken-sized creepers or one creeper the size of a house? · 100 tiny creepers or one giant house-sized creeper, go
+2. **b** (50%) *(marks wyr_creeper_size_1)*: the tiny ones, one sword sweep and half are gone · hundred tiny ones easy, they'd barely dent the grass · tiny ones. i'd pillar up and wait
+3. **b** if !t:wyr_creeper_size_1 *(marks wyr_creeper_size_2)*: the giant one, you'd see it coming a mile off · one big one, i'm not getting swarmed · giant one. one creeper is one problem
+4. **a** if t:wyr_creeper_size_1: nah, a hundred of them would surround you in seconds · nah, a few arrows and the big one's done · bold pick
+5. **a** if t:wyr_creeper_size_2: but tiny blasts would barely scratch your armor · nah, a hundred little hisses would be kinda cute · brave
+6. **b** if t:wyr_creeper_size_1: tiny blasts would barely scratch your armor · a hundred little hisses would be kinda cute · my answer stays
+7. **b** if t:wyr_creeper_size_2: a hundred of them would surround you in seconds · a few arrows and the big one's done · easy choice honestly
+8. **a** (65%): solid reasoning honestly · i'd still pick mine · fair enough · good thing it'll never happen
+
+#### g random wyr bread stew
+
+*Needs:* any time
+
+*About:* would_you_rather, food  ·  *Leads to:* would_you_rather, random, food
+
+1. **a**: would you rather only eat bread forever or only rabbit stew? · bread for the rest of your life or rabbit stew for the rest of your life? · ok would you rather only eat bread forever or only rabbit stew?
+2. **b** (50%) *(marks wyr_bread_stew_1)*: bread. three wheat and done, no hunting · bread easy, it stacks to 64 · bread, i'm not chasing rabbits every day
+3. **b** if !t:wyr_bread_stew_1 *(marks wyr_bread_stew_2)*: rabbit stew, it actually fills you up · stew. bread gets old by day two · rabbit stew, at least it has carrots in it
+4. **a** if t:wyr_bread_stew_1: but stew is like five foods in one bowl · idk, bread forever sounds like a punishment · bold pick
+5. **a** if t:wyr_bread_stew_2: but wheat grows anywhere, rabbits run off · idk, you can carry a whole stack of bread · brave
+6. **b** if t:wyr_bread_stew_1: wheat grows anywhere, rabbits run off · you can carry a whole stack of bread · still my pick
+7. **b** if t:wyr_bread_stew_2: stew is like five foods in one bowl · bread forever sounds like a punishment · my answer stays
+8. **a** (65%): i'd still pick mine · fair enough · hm. i'll allow it · ok your logic checks out
+
+#### g random wyr mine build
+
+*Needs:* any time
+
+*About:* would_you_rather, mining, building  ·  *Leads to:* would_you_rather, random, mining, building
+
+1. **a**: would you rather never mine again or never build again? · no more mining ever, or no more building ever. pick
+2. **b** (50%) *(marks wyr_mine_build_1)*: never mine. i'd trade for stone · give up mining, building is the fun part · never mine again, caves scare me anyway
+3. **b** if !t:wyr_mine_build_1 *(marks wyr_mine_build_2)*: never build, i'd live in a cave happily · give up building. mining is my whole life · never build. a hole is a house
+4. **a** if t:wyr_mine_build_1: no mining means no iron, no diamonds, nothing · nah, a cave is a house if you squint · really? that one?
+5. **a** if t:wyr_mine_build_2: nah see, you can trade for stone, you can't trade for a home · nah see, building is what makes a place yours · hmm, i don't know about that
+6. **b** if t:wyr_mine_build_1: you can trade for stone, you can't trade for a home · building is what makes a place yours · think about it
+7. **b** if t:wyr_mine_build_2: no mining means no iron, no diamonds, nothing · a cave is a house if you squint · final answer
+8. **a** (65%): ok your logic checks out · ok you win this one · agree to disagree · next question
+
+### Generated: `topics_gen_stories.json` (1207 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/stories.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g story lava v1
+
+*Needs:* any time
+
+*About:* stories, danger, mining, death  ·  *Leads to:* danger, mining, caves, g_story_lava_v1_2
+
+1. **a**: so i'm strip mining down at the deepslate · ok picture this. me, down at the deepslate, mining away · was digging a tunnel down at the deepslate, nice and quiet · story time. i was mining down at the deepslate
+2. **b**: uh oh · i don't like where this is going · go on · and then? · then what
+   - **nomad:** and then? · go on, i love a good tale · go on
+   - **casual:** lol go on · ok ok and · uh oh
+3. **a**: already had nine diamonds on me · best trip in ages, nine diamonds already · nine diamonds in my bag. life was good
+4. **b**: nice haul · don't jinx it · i sense a but coming · w · jealous
+   - **builder:** that'd look great on a wall · ooh · i sense a but coming
+5. **a**: then i break one more block · so i mine the block in front of me · i swing at the next bit of stone and
+6. **b**: oh no · it's lava isn't it · don't say it · please not lava · noooo
+
+#### g story lava v1 2
+
+*Needs:* any time
+
+*About:* story_part  ·  *Leads to:* danger, mining, caves, g_story_lava_v1_3  ·  only follows another  ·  uses 0.5 interest
+
+1. **a**: lava. pouring straight at my feet · and lava just gushes out of the wall · lava comes pouring in like a waterfall · the whole wall turns orange. lava
+2. **b**: NOOO · lava is the worst · run · with all that loot on you?? · no way · NO
+3. **a**: and my water bucket was back home in a chest · no water bucket. nothing. just a pickaxe · of course i'd left my bucket at home
+4. **b**: oh no · always carry water · rookie move · you're doomed · nooo
+   - **miner:** classic deep stuff · happens down there · always carry water
+5. **a** (70%): so i'm backing up as fast as i can · i turn around and run back down the tunnel · i start running backwards up the tunnel
+
+#### g story lava v1 3
+
+*Needs:* any time
+
+*About:* story_part  ·  *Leads to:* mining, danger, death  ·  only follows another  ·  uses 0.5 interest
+
+1. **a**: didn't matter. i caught fire anyway · too slow. the lava got my feet · i tripped on a torch and fell right in · i was on fire before i'd gone three blocks
+2. **b**: noooo · not the diamonds · pain · rip everything · oof · noo
+3. **a**: diamonds gone. burned up with me · everything burned. diamonds too · respawned at home. diamonds was ash
+4. **b**: that's the worst way to lose stuff · lava doesn't give anything back · f in the chat · that's sad · noo
+   - **hermit:** hm. sorry · happens · that's the worst way to lose stuff
+   - **nomad:** that's the way of it · loss is part of the road · lava doesn't give anything back
+5. **a** (70%): now i carry two water buckets · i check every wall for lava now · now i dig with a bucket in my offhand · lesson learned the hard way
+
+### Generated: `topics_gen_things.json` (1249 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/things.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g things oak mention
+
+*Needs:* any time
+
+*About:* trees, building  ·  *Leads to:* trees, building, home
+
+1. **a**: chopped a whole patch of oaks today · got like four stacks of oak logs · oak planks, oak planks, oak planks lol · planted a row of oak saplings by my place · got two apples off one oak tree
+2. **b**: classic · oak never lets you down · the starter wood · nice · oh nice · ooh · cool · lol nice · w · solid
+   - **newbie:** ooh · wow
+   - **hermit:** mm · ok
+3. **a** (50%): smells like a fresh start · gonna need more though · the leaves took ages to go · yeah · lol · mhm · yep · ikr
+
+#### g things oak ask
+
+*Needs:* any time
+
+*About:* trees, building, advice  ·  *Leads to:* trees, building, home
+
+1. **a**: do oak leaves drop apples? *(answered: yeah, oak and dark oak do / yep, when the leaves decay)* · how many planks from one oak log? *(answered: four / four planks a log, always)*
+2. **b**: hm
+3. **a**: huh · neat · oh · ohh ok · good to know · makes sense · cool, ty · noted · ah ok
+4. **a** (60%) *(marks more)*: why do some oaks grow huge with branches? *(answered: that's the big oak, it just happens sometimes / random, some saplings grow the fancy kind)*
+5. **b** if t:more: hm
+6. **a** (70%) if t:more: thanks · ty · you know a lot · ok that helps · appreciate it
+   - **newbie:** ty ty · writing that down
+
+#### g things oak like
+
+*Needs:* any time
+
+*About:* trees, building, opinion  ·  *Leads to:* trees, building, home
+
+1. **a**: oak is the comfort wood · nothing beats plain oak planks · oak logs with stripped oak, so clean
+   - **builder:** oak and cobble, the classic for a reason · stripped oak makes great beams
+2. **b**: kinda basic though · the starter wood · spruce is better tbh · same · fair · true · valid · ngl same · each their own
+   - **hermit:** mm · fine
+3. **a** (60%): basic is good · it just works · right? · exactly · lol · yeah · mhm
+
+### Generated: `topics_gen_venting.json` (1329 topics)
+
+Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `tools/talk_gen/venting.py`, rerun it to rebuild the file). Too many to list; a few samples:
+
+#### g vent lava comfort
+
+*Needs:* !strangers
+
+*About:* venting, death, complaints  ·  *Leads to:* feelings, friends, death
+
+1. **a**: fell in lava with all my stuff · lost my whole inventory to lava · lava ate everything i had on me · mined one block too many and there was lava · watched my diamond pick burn in lava
+2. **b** (85%): were you mining? *(answered: yeah, digging down like an idiot / strip mining, broke one block and there it was)* · did anything survive? *(answered: nothing. lava eats everything / not a single item. not one.)* · how much did you have on you? *(answered: a stack of iron and my good pick / everything. i was on my way home.)*
+3. **a** (70%): i heard it bubbling and kept going anyway · the lava was right behind the stone · i had just enchanted that pick too · i was literally on my way back to my chest
+4. **b**: i hate that for you · at least you respawned · you'll get it all back, promise
+   - **helper:** aw no, i'm so sorry · come by later, i've got spare tools for you · i can lend you a pick and some food · don't beat yourself up, it happens to everyone
+   - **homebody:** come home and rest a bit · i'll cook you something, come over · stuff can be replaced, you can't
+   - **PvP sweat:** rough. gear comes back though · shake it off, regear, go again · deaths happen. get back out there
+5. **a** (65%) *(marks agree)*: time to go get new stuff i guess · ok. back to square one. · needed to get that out · appreciate it, really · talking helped, thanks
+   - **hoarder:** at least my main stash is safe · ok. back to collecting, i guess
+   - **hermit:** enough talking. thanks. · ok. done now.
+6. **a** if !t:agree: i was so close to a full kit too · i'm still thinking about that pickaxe · ugh, i know. still. · i'm still annoyed
+7. **b** (50%) if t:agree: any time, really · that's what i'm here for · you'd do the same for me
+8. **b** (60%) if !t:agree: fair, be mad · ok, grump away · give it a day
+
+#### g vent lava relate
+
+*Needs:* any time
+
+*About:* venting, death, complaints  ·  *Leads to:* stories, venting, death
+
+1. **a**: fell in lava with all my stuff · lost my whole inventory to lava · lava ate everything i had on me · mined one block too many and there was lava · watched my diamond pick burn in lava
+2. **a** (50%): i heard it bubbling and kept going anyway · the lava was right behind the stone · i had just enchanted that pick too · i was literally on my way back to my chest
+3. **b**: same, i lost a full iron set in lava once · i fell in lava on my second day, lost everything · i swam in lava by accident once. once. · lava took my first diamond sword, i still miss it
+4. **a**: no way · ok yours is worse · wait, seriously · ok i feel slightly less dumb
+5. **b** (60%): never went near that spot again · we've all been there · lesson learned the hard way · took me days to get back on my feet lol
+6. **a** (70%) *(marks agree)*: glad it's not just me · we're both cursed then · ok that helped, weirdly
+
+#### g vent lava advice
+
+*Needs:* !b:voice_newbie
+
+*About:* venting, death, complaints  ·  *Leads to:* advice, death, gear
+
+1. **a**: fell in lava with all my stuff · lost my whole inventory to lava · lava ate everything i had on me · mined one block too many and there was lava · watched my diamond pick burn in lava
+2. **b** (60%): were you mining? *(answered: yeah, digging down like an idiot / strip mining, broke one block and there it was)* · did anything survive? *(answered: nothing. lava eats everything / not a single item. not one.)* · how much did you have on you? *(answered: a stack of iron and my good pick / everything. i was on my way home.)*
+3. **a** (50%): i heard it bubbling and kept going anyway · the lava was right behind the stone · i had just enchanted that pick too · i was literally on my way back to my chest
+4. **b**: always carry a water bucket, it saves you · never dig straight down, ever · if you hear lava, back off and wall it up · keep spare gear in a chest at home
+5. **a** (55%) *(marks agree)*: i'll try that next time · noted · why didn't i think of that · ok, writing that down
+6. **a** if !t:agree: yeah yeah i know · i KNOW. i just wanted to complain · easy for you to say · i know, i just didn't
+7. **b** (50%) if t:agree: next time will go better · trust me on that one · you got this
+8. **b** (60%) if !t:agree: just saying · noted, no tips · ok ok, i'll stop
+
 ## 6b. Long conversations (the topic web)
 
 A conversation can go on from topic to topic. Each topic says what it is **about** (tags) and what it **leads to** (tags, and sometimes topics by name). When a topic ends, they go on to one it leads to that suits them (either of them can bring it up, so it goes back and forth), or now and then (15%) change the subject. A topic is never repeated within one talk; greetings only start a talk; follow-ups (like "agree to disagree") only come after another topic.
@@ -8029,7 +9596,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): feelings (73), town (70), building (66), argument (63), jokes (56), danger (53), mobs (50), home (48), friends (45), complaints (43), exploring (39), plans (38), mining (36), brag (31), decor (27), gear (27), animals (26), memories (26), night (26), story_part (25), day (24), stories (24), food (23), trade (23), fighting (22), gossip (21), weather (21), random (20), tools (20), caves (18), places (18), nether (17), politics (17), storage (17), biomes (16), philosophy (16), villagers (16), crafting (15), end (15), players (15), structures (15), ore (14), ocean (13), death (12), enchanting (12), advice (11), nation (11), redstone (11), farming (10), health (10), plants (10), sleep (10), boredom (9), cooking (9), diamonds (9), help (9), pets (9), weapons (9), dreams (8), trees (8), armor (7), potions (7), sky (7), doing (6), music (6), news (6), fishing (5), greeting (5), rivals (5), opinion (3), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), trust (1), word (1)
+**Tags in use** (topics about each): venting (1329), complaints (1297), philosophy (1205), story_part (1129), building (827), feelings (573), argument (523), animals (447), mobs (445), advice (435), stories (393), home (372), food (370), death (358), jokes (357), exploring (349), danger (341), mining (334), opinion (313), crafting (306), friends (275), tools (252), farming (250), brag (246), town (245), memories (242), caves (228), night (222), ocean (214), decor (208), gear (199), fighting (195), plants (192), trees (190), villagers (179), would_you_rather (158), biomes (154), hypothetical (140), weather (135), nether (133), sky (127), boredom (126), structures (125), storage (123), favourites (119), sleep (110), armor (102), morals (102), pets (98), weapons (86), world (84), end (83), riddles (83), trade (78), plans (77), diamonds (73), random (72), ore (71), fishing (62), wonder (56), music (52), meaning (50), travel (50), places (49), players (48), gossip (46), dreams (45), politics (45), time (43), legacy (42), loneliness (42), cooking (41), health (39), help (38), day (37), enchanting (35), fear (29), freedom (28), happiness (28), redstone (16), potions (14), nation (11), rivals (10), doing (6), news (6), greeting (5), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), submitted (1), tribute (1), trust (1), word (1)
 
 #### `talk.segue.linked`
 

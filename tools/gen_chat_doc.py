@@ -202,8 +202,12 @@ TALK = os.path.join(ROOT, 'src/main/resources/data/drifter/drifter_talk')
 topics = []
 player_topics = []
 links = {}
+# Topics written by the generators in tools/talk_gen (topics_gen_*.json, thousands): counted, and a few shown as samples.
+generated = {}
 for path in sorted(glob.glob(TALK + '/*.json')):
     data = json.load(open(path, encoding='utf-8'))
+    if os.path.basename(path).startswith('topics_gen_'):
+        generated[os.path.basename(path)] = data.get('topics', [])
     topics += data.get('topics', [])
     player_topics += data.get('player_topics', [])
     for topic_id, link in data.get('links', {}).items():
@@ -293,8 +297,21 @@ def render(topic):
     doc.append('')
 
 
+GENERATED_IDS = {topic['id'] for batch in generated.values() for topic in batch}
 for topic in topics:
-    render(topic)
+    if topic['id'] not in GENERATED_IDS:
+        render(topic)
+
+for name, batch in generated.items():
+    script = 'tools/talk_gen/' + name[len('topics_gen_'):-len('.json')] + '.py'
+    for candidate in sorted(glob.glob(os.path.join(ROOT, 'tools/talk_gen/*.py'))):
+        if name in open(candidate, encoding='utf-8').read():
+            script = 'tools/talk_gen/' + os.path.basename(candidate)
+    doc += ['### Generated: `%s` (%d topics)' % (name, len(batch)), '',
+            'Written by a generator (see `tools/talk_gen/BRIEF.md`; this batch by the script for `%s`, rerun it to rebuild the file). '
+            'Too many to list; a few samples:' % script, '']
+    for topic in batch[:3]:
+        render(topic)
 
 TALK_WHEN = {
     'talk.segue.linked': 'Going on to a topic linked to the last one: said in front of its first line (about half the time).',
