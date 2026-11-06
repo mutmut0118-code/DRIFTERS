@@ -835,6 +835,7 @@ final class Diplomacy {
 		// (The side that didn't pay won: a monument to it, C6.)
 		if (payer != null) {
 			TownCulture.won(payer == x ? y : x, payer);
+			TownTraditions.warWon(server, payer == x ? y : x, payer);
 		}
 
 		r.war = false;

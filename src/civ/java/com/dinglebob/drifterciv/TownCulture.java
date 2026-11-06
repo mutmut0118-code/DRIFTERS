@@ -45,12 +45,17 @@ final class TownCulture {
 		}
 
 		long of = Math.floorMod(age, YEAR);
-		return of == 0 ? "founding" : of == YEAR / 2 ? "harvest" : null;
+		return of == 0 ? "founding" : of == YEAR / 2 ? "harvest" : TownTraditions.festival(town, of);
 	}
 
 	/** What it's called. */
 	static String name(String festival) {
-		return festival.equals("founding") ? "Founding Day" : "the harvest festival";
+		return switch (festival) {
+			case "founding" -> "Founding Day";
+			case "victory" -> "Victory Day";
+			case "remembrance" -> "Remembrance Day";
+			default -> "the harvest festival";
+		};
 	}
 
 	/** On a festival day, work counts less (much less), ease more. */
@@ -100,21 +105,36 @@ final class TownCulture {
 		town.festivalDay = day;
 		DrifterGroups.Group group = DrifterApi.groupById(town.group);
 		long years = (day - town.bornDay) / YEAR;
-		String text = festival.equals("founding") ? "It's Founding Day in " + town.name + ": " + years + (years == 1 ? " year" : " years")
-			+ " since it was founded" : "The harvest festival in " + town.name;
+		String forWhom = TownTraditions.festivalFor(town, festival);
+		String text = switch (festival) {
+			case "founding" -> "It's Founding Day in " + town.name + ": " + years + (years == 1 ? " year" : " years") + " since it was founded";
+			case "victory" -> "Victory Day in " + town.name + ", for its win over " + forWhom;
+			case "remembrance" -> town.name + " remembers " + forWhom + " today";
+			default -> "The harvest festival in " + town.name;
+		};
 		Chronicle.add(server, "festival", text);
 		UUID leader = town.leader != null ? town.leader : group == null ? null : group.leader;
 		DrifterEntity speaker = leader == null ? null : TownFounding.loaded(server, leader);
 		if (speaker != null) {
-			String[] lines = festival.equals("founding") ? new String[] {"happy founding day everyone!", "its founding day! " + years + " years of " + town.name,
-				"founding day, everyone to the plaza!", "happy founding day " + town.name} : new String[] {"harvest festival today!",
-				"happy harvest everyone", "harvest festival, food at the plaza!", "good harvest this year, lets celebrate"};
+			String[] lines = switch (festival) {
+				case "founding" -> new String[] {"happy founding day everyone!", "its founding day! " + years + " years of " + town.name,
+					"founding day, everyone to the plaza!", "happy founding day " + town.name};
+				case "victory" -> new String[] {"victory day! we beat " + forWhom, "remember when we won against " + forWhom + "? party at the plaza",
+					"happy victory day " + town.name};
+				case "remembrance" -> new String[] {"today we remember " + forWhom, "miss you " + forWhom, "a quiet one today. for " + forWhom};
+				default -> new String[] {"harvest festival today!", "happy harvest everyone", "harvest festival, food at the plaza!",
+					"good harvest this year, lets celebrate"};
+			};
 			com.dinglebob.drifter.social.ChatLines.speak(speaker, lines[speaker.getRandom().nextInt(lines.length)]);
 		}
 
 		DrifterCivilizations.LOGGER.info("[culture] {}", text);
-		TownBells.ring(server, town, name(festival), festival.equals("founding") ? java.util.List.of("founding day! everyone to the plaza!",
-			"ding ding! happy founding day!") : java.util.List.of("harvest festival! everyone to the plaza!", "festival time!"));
+		TownBells.ring(server, town, name(festival), switch (festival) {
+			case "founding" -> java.util.List.of("founding day! everyone to the plaza!", "ding ding! happy founding day!");
+			case "victory" -> java.util.List.of("victory day! everyone to the plaza!", "for " + town.name + "!");
+			case "remembrance" -> java.util.List.of("to the plaza, for " + forWhom, "we remember " + forWhom);
+			default -> java.util.List.of("harvest festival! everyone to the plaza!", "festival time!");
+		});
 		Towns.save(server);
 	}
 
@@ -163,6 +183,10 @@ final class TownCulture {
 			var was = town.knownLeader == null ? null : DrifterApi.record(town.knownLeader);
 			if (was != null && was.status() == com.dinglebob.drifter.api.DrifterRecord.Status.GONE && town.monumentFor == null) {
 				town.monumentFor = "In memory of|" + was.name() + "|who led|" + town.name;
+			}
+
+			if (was != null && was.status() == com.dinglebob.drifter.api.DrifterRecord.Status.GONE) {
+				TownTraditions.leaderGone(server, town, was.name());
 			}
 
 			town.knownLeader = town.leader;

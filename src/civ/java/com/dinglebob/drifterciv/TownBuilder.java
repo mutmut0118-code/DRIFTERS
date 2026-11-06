@@ -518,6 +518,15 @@ public final class TownBuilder {
 		@Nullable
 		private Direction mineWay;
 		private final java.util.Set<BlockPos> mineCells = new java.util.LinkedHashSet<>();
+		/** Its stable's horses and the stall each stands in (handed to households as they settle). */
+		private final List<UUID> horses = new ArrayList<>();
+		private final List<BlockPos> stalls = new ArrayList<>();
+		private int horsesGiven;
+		/** Its apiary's hives, and the stable's insides (its people know them). */
+		private final List<BlockPos> hives = new ArrayList<>();
+		private final List<BlockPos> stableCells = new ArrayList<>();
+		@Nullable
+		private BlockPos stableAt;
 		private final List<Rect> taken = new ArrayList<>();
 		/**
 		 * Columns of its land something's built on already (a house a Drifter put up, a ruin: {@link #built}): its roads,
@@ -2961,12 +2970,176 @@ public final class TownBuilder {
 			}
 
 			this.then("mine", this::mine);
+			this.then("stable", this::stable);
+			this.then("apiary", this::apiary);
 			for (int i = 0; i < this.houses.size(); i++) {
 				int index = i;
 				this.then("household", () -> this.household(index));
 			}
 
 			this.then("townUp", this::townUp);
+		}
+
+		/**
+		 * The town's stable (C5; the user, 2026-11-06: "bees and stables"): on a lot by its edge, eleven across and six deep,
+		 * walls of planks with log corners, a roof of slabs, open at the front; three stalls with hay at the back, a fence
+		 * between each; a horse in each (tamed and saddled, its people's: a household each), tied to the fence; a chest with
+		 * leads and wheat, a cauldron of water. A hamlet has none; a town one horse or two, a city three.
+		 */
+		private void stable() {
+			if (this.ruin || this.households <= 5) {
+				return;
+			}
+
+			Lot lot = this.lot(11, 11, this.penRect, 40, false, false);
+			if (lot == null) {
+				DrifterCivilizations.LOGGER.info("[town] {}: no lot for a stable", this.name);
+				return;
+			}
+
+			Rect site = lot.site();
+			this.taken.add(site);
+			Direction front = lot.front() != null ? lot.front() : Direction.SOUTH;
+			Direction in = front.getOpposite();
+			Direction across = front.getClockWise();
+			int base = lot.base() != null ? lot.base() : median(this.level, site.x0(), site.z0(), site.x1(), site.z1());
+			BlockPos middle = new BlockPos((site.x0() + site.x1()) / 2, base, (site.z0() + site.z1()) / 2);
+			BlockPos frontMid = middle.relative(front, 3);
+			java.util.function.BiFunction<Integer, Integer, BlockPos> at = (a, b) -> frontMid.relative(across, a).relative(in, b);
+			for (int a = -5; a <= 5; a++) {
+				for (int b = 0; b <= 5; b++) {
+					BlockPos floor = at.apply(a, b);
+					for (BlockPos below = floor.below(); below.getY() > base - 6 && (this.level.getBlockState(below).isAir()
+						|| !this.level.getFluidState(below).isEmpty()); below = below.below()) {
+						set(this.level, below, Blocks.DIRT.defaultBlockState());
+					}
+
+					set(this.level, floor, Blocks.COARSE_DIRT.defaultBlockState());
+					for (int h = 1; h <= 5; h++) {
+						set(this.level, floor.above(h), Blocks.AIR.defaultBlockState());
+					}
+
+					boolean wall = Math.abs(a) == 5 || b == 5;
+					if (wall) {
+						for (int h = 1; h <= 3; h++) {
+							set(this.level, floor.above(h), (Math.abs(a) == 5 && (b == 0 || b == 5) ? wood("log") : wood("planks")).defaultBlockState());
+						}
+					}
+
+					set(this.level, floor.above(4), wood("slab").defaultBlockState());
+					for (int h = 0; h <= 4; h++) {
+						this.stableCells.add(floor.above(h));
+					}
+				}
+			}
+
+			// The stalls: [-4, -3], [-1, 1], [3, 4], fences between (front to back but the first row), hay at the back.
+			for (int a : new int[] {-2, 2}) {
+				for (int b = 1; b <= 4; b++) {
+					place(this.level, at.apply(a, b).above(), wood("fence").defaultBlockState());
+				}
+			}
+
+			int[] middles = {-3, 0, 3};
+			for (int k = 0; k < middles.length; k++) {
+				set(this.level, at.apply(middles[k], 4).above(), Blocks.HAY_BLOCK.defaultBlockState());
+				int horses = this.city ? 3 : this.households >= 8 ? 2 : 1;
+				if (k >= horses) {
+					continue;
+				}
+
+				BlockPos stall = at.apply(middles[k], 2).above();
+				BlockPos post = at.apply(middles[k] < 0 ? -2 : 2, 2).above();
+				net.minecraft.world.entity.animal.horse.Horse horse = net.minecraft.world.entity.EntityType.HORSE.create(this.level);
+				if (horse == null) {
+					continue;
+				}
+
+				horse.moveTo(stall.getX() + 0.5, stall.getY(), stall.getZ() + 0.5, in.getOpposite().toYRot(), 0.0F);
+				horse.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(stall), net.minecraft.world.entity.MobSpawnType.STRUCTURE, null);
+				horse.setTamed(true);
+				horse.equipSaddle(new ItemStack(Items.SADDLE), null);
+				horse.setPersistenceRequired();
+				if (this.level.addFreshEntity(horse)) {
+					horse.setLeashedTo(net.minecraft.world.entity.decoration.LeashFenceKnotEntity.getOrCreateKnot(this.level, post), true);
+					this.horses.add(horse.getUUID());
+					this.stalls.add(stall);
+				}
+			}
+
+			BlockPos chestAt = at.apply(4, 0).above();
+			set(this.level, chestAt, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, front));
+			if (this.level.getBlockEntity(chestAt) instanceof ChestBlockEntity chest) {
+				chest.setItem(0, new ItemStack(Items.LEAD, 2));
+				chest.setItem(1, new ItemStack(Items.WHEAT, 16));
+				chest.setItem(2, new ItemStack(Items.HAY_BLOCK, 4));
+			}
+
+			set(this.level, at.apply(-4, 0).above(), Blocks.WATER_CAULDRON.defaultBlockState()
+				.setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
+			this.stableAt = frontMid.above();
+			DrifterCivilizations.LOGGER.info("[town] {}: its stable at {}, {} horses", this.name, frontMid.toShortString(), this.horses.size());
+		}
+
+		/**
+		 * Its apiary (C5): by its fields, a patch of flowers and two or three hives, each sat on a lit campfire (its smoke keeps
+		 * the bees calm when someone takes the honey, as a player keeps them), bees in each, some honey in them already.
+		 */
+		private void apiary() {
+			if (this.ruin || this.fieldRects.isEmpty()) {
+				return;
+			}
+
+			Lot lot = this.lot(7, 7, this.fieldRects.get(0), 24, false, false);
+			if (lot == null) {
+				return;
+			}
+
+			Rect site = lot.site();
+			this.taken.add(site);
+			Block[] flowers = {Blocks.POPPY, Blocks.DANDELION, Blocks.CORNFLOWER, Blocks.OXEYE_DAISY, Blocks.AZURE_BLUET, Blocks.ALLIUM};
+			int hives = 2 + this.random.nextInt(2);
+			int made = 0;
+			for (int x = site.x0() + 1; x <= site.x1() - 1; x++) {
+				for (int z = site.z0() + 1; z <= site.z1() - 1; z++) {
+					int g = ground(this.level, x, z);
+					BlockPos top = new BlockPos(x, g, z);
+					if (!this.level.getFluidState(top).isEmpty() || !this.level.getBlockState(top.above()).isAir() && !plant(this.level.getBlockState(top.above()))) {
+						continue;
+					}
+
+					boolean hive = made < hives && (x - site.x0()) % 3 == 1 && z == site.z0() + 1;
+					if (hive) {
+						set(this.level, top.above(), Blocks.CAMPFIRE.defaultBlockState());
+						BlockState hiveState = Blocks.BEEHIVE.defaultBlockState().setValue(net.minecraft.world.level.block.BeehiveBlock.FACING,
+							lot.front() != null ? lot.front() : Direction.SOUTH).setValue(net.minecraft.world.level.block.BeehiveBlock.HONEY_LEVEL,
+							this.random.nextInt(6));
+						set(this.level, top.above(2), hiveState);
+						if (this.level.getBlockEntity(top.above(2)) instanceof net.minecraft.world.level.block.entity.BeehiveBlockEntity entity) {
+							for (int b = 0; b < 2 + this.random.nextInt(2); b++) {
+								net.minecraft.world.entity.animal.Bee bee = net.minecraft.world.entity.EntityType.BEE.create(this.level);
+								if (bee != null) {
+									bee.moveTo(top.getX() + 0.5, top.getY() + 3, top.getZ() + 0.5);
+									entity.addOccupant(bee);
+								}
+							}
+						}
+
+						this.hives.add(top.above(2));
+						made++;
+					} else if (z > site.z0() + 2 && this.random.nextFloat() < 0.7F) {
+						if (this.level.getBlockState(top).is(Blocks.DIRT) || this.level.getBlockState(top).is(Blocks.COARSE_DIRT)) {
+							set(this.level, top, Blocks.GRASS_BLOCK.defaultBlockState());
+						}
+
+						if (this.level.getBlockState(top).is(net.minecraft.tags.BlockTags.DIRT)) {
+							set(this.level, top.above(), flowers[this.random.nextInt(flowers.length)].defaultBlockState());
+						}
+					}
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[town] {}: an apiary of {} hives", this.name, made);
 		}
 
 		/** Its hub and strip mines this deep (where iron, gold, redstone and lapis are all about, and caves). */
@@ -3181,6 +3354,22 @@ public final class TownBuilder {
 			home.farmRadius = 4;
 			home.pen = this.pen;
 			plot.owner = drifter.getUUID();
+			// Its town's hives and stable (it knows where they are, and the way in).
+			for (BlockPos hive : this.hives) {
+				drifter.getSenses().terrain().mark(hive);
+			}
+
+			for (BlockPos cell : this.stableCells) {
+				drifter.getSenses().terrain().mark(cell);
+			}
+
+			// A horse of its own in the stable, while there are any to hand out.
+			if (this.horsesGiven < this.horses.size() && this.level.getEntity(this.horses.get(this.horsesGiven))
+				instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+				DrifterApi.keepHorse(drifter, horse, this.stalls.get(this.horsesGiven));
+				this.horsesGiven++;
+			}
+
 			// (The town's mine is its mine: its trips start at the hub, branching off round the compass; it knows the way down.)
 			if (this.mineBottom != null) {
 				home.mineBottom = this.mineBottom;

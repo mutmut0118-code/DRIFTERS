@@ -259,6 +259,10 @@ public final class Town {
 	 * crimes"), who steal and pick fights now and then till it throws them out.
 	 */
 	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
+	/** Its customs (C6, {@link TownTraditions}), what it's counted toward them, where its people died out there. */
+	public final java.util.Set<String> traditions = new java.util.LinkedHashSet<>();
+	public final java.util.Map<String, Integer> tally = new java.util.HashMap<>();
+	public final List<BlockPos> deathSpots = new ArrayList<>();
 	/** Each of its people's line of work (milestone 23 B1: Trades). */
 	public final java.util.Map<UUID, String> lines = new java.util.HashMap<>();
 	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
@@ -444,6 +448,13 @@ public final class Town {
 		tag.putString("Upheaval", this.upheaval);
 		tag.putLong("UpheavalDay", this.upheavalDay);
 		tag.putString("OldLeader", this.oldLeader);
+		ListTag customs = new ListTag();
+		this.traditions.forEach(word -> customs.add(net.minecraft.nbt.StringTag.valueOf(word)));
+		tag.put("Traditions", customs);
+		CompoundTag tally = new CompoundTag();
+		this.tally.forEach(tally::putInt);
+		tag.put("Tally", tally);
+		tag.putLongArray("DeathSpots", this.deathSpots.stream().mapToLong(BlockPos::asLong).toArray());
 		tag.putBoolean("Revolt", this.revolt);
 		tag.putBoolean("Conceded", this.conceded);
 		if (this.plotter != null) {
@@ -589,6 +600,18 @@ public final class Town {
 		town.upheaval = tag.getString("Upheaval");
 		town.upheavalDay = tag.contains("UpheavalDay") ? tag.getLong("UpheavalDay") : -100;
 		town.oldLeader = tag.getString("OldLeader");
+		for (Tag t : tag.getList("Traditions", Tag.TAG_STRING)) {
+			town.traditions.add(t.getAsString());
+		}
+
+		CompoundTag tally = tag.getCompound("Tally");
+		for (String key : tally.getAllKeys()) {
+			town.tally.put(key, tally.getInt(key));
+		}
+
+		for (long spot : tag.getLongArray("DeathSpots")) {
+			town.deathSpots.add(BlockPos.of(spot));
+		}
 		town.revolt = tag.getBoolean("Revolt");
 		town.conceded = tag.getBoolean("Conceded");
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;

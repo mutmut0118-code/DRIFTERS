@@ -275,7 +275,9 @@ public final class WarGoals {
 			}
 
 			// (To the leader where it's gathering them; it's on its way there. Listening, once it's speaking: facing it.)
-			Vec3 to = leader.blockPosition().closerThan(this.raid.home, 8.0) ? leader.position() : Vec3.atBottomCenterOf(this.raid.home);
+			// (Round the leader wherever it is about the town: stuck getting to the spot itself, the band waited there without it
+			// and the speech never came; a test of it.)
+			Vec3 to = leader.blockPosition().closerThan(this.raid.home, 40.0) ? leader.position() : Vec3.atBottomCenterOf(this.raid.home);
 			if (this.drifter.position().distanceTo(to) > 5.0) {
 				return this.begin(new NavigateTask(this.drifter, to, 3.0, "go to where the raid gathers"));
 			}

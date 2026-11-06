@@ -48,6 +48,21 @@ public final class Legs {
 		routes = which;
 	}
 
+	/** Places it keeps away from (a town's custom: where three of its people died), for it; none by default. */
+	private static volatile java.util.function.BiPredicate<DrifterEntity, BlockPos> keepAway = (drifter, at) -> false;
+
+	public static void setKeepAway(java.util.function.BiPredicate<DrifterEntity, BlockPos> which) {
+		keepAway = which;
+	}
+
+	private static boolean keptAway(DrifterEntity drifter, BlockPos at) {
+		try {
+			return keepAway.test(drifter, at);
+		} catch (RuntimeException e) {
+			return false;
+		}
+	}
+
 	/** Points of the roads between towns within a distance of somewhere (x, z; y ignored), or none. */
 	private static volatile BiFunction<BlockPos, Integer, List<BlockPos>> roadPoints = (at, within) -> List.of();
 
@@ -80,6 +95,12 @@ public final class Legs {
 	public static Task toward(DrifterEntity drifter, BlockPos to, double near, String what, NavigateTask.Pace pace) {
 		Vec3 from = drifter.position();
 		double distance = Math.hypot(to.getX() + 0.5 - from.x, to.getZ() + 0.5 - from.z);
+		// (Far: its horse from the stable first, if it keeps one; its walk then rides it.)
+		Task horse = distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP ? com.dinglebob.drifter.skills.StableGoal.fetch(drifter, distance) : null;
+		if (horse != null) {
+			return horse;
+		}
+
 		if (distance <= NEAR) {
 			return new NavigateTask(drifter, Vec3.atBottomCenterOf(to), near, what, pace);
 		}
@@ -173,9 +194,17 @@ public final class Legs {
 	/** About a stretch straight toward it, to open ground near there (not a roof, not water). */
 	private static BlockPos straight(DrifterEntity drifter, BlockPos to, double distance) {
 		Vec3 from = drifter.position();
-		double fx = (to.getX() + 0.5 - from.x) / distance;
-		double fz = (to.getZ() + 0.5 - from.z) / distance;
-		return openNear(drifter.level(), (int)Math.floor(from.x + fx * STRETCH), (int)Math.floor(from.z + fz * STRETCH), 6);
+		double way = Math.atan2(to.getZ() + 0.5 - from.z, to.getX() + 0.5 - from.x);
+		// (Round a place it keeps away from: the way on turned a bit, then more, till the stretch's end is clear of it.)
+		for (double turn : new double[] {0, 0.7, -0.7, 1.4, -1.4}) {
+			int sx = (int)Math.floor(from.x + Math.cos(way + turn) * STRETCH);
+			int sz = (int)Math.floor(from.z + Math.sin(way + turn) * STRETCH);
+			if (!keptAway(drifter, new BlockPos(sx, 0, sz))) {
+				return openNear(drifter.level(), sx, sz, 6);
+			}
+		}
+
+		return openNear(drifter.level(), (int)Math.floor(from.x + Math.cos(way) * STRETCH), (int)Math.floor(from.z + Math.sin(way) * STRETCH), 6);
 	}
 
 	/** Open ground round this column (rings out to {@code rings}), else its own top. */

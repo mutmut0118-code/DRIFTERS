@@ -74,6 +74,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		DrifterApi.setRoutes(Routes::between);
 		DrifterApi.setRoadPoints(Routes::near);
 		DrifterApi.setTownLooters(TownLife::scavengers);
+		TownTraditions.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -893,7 +894,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		source.sendSuccess(() -> Component.literal("  Life: " + character + "; market day " + (market < 0 ? "none (no stall)" : market == 0 ? "today" : "in "
 			+ market + (market == 1 ? " day" : " days")) + "; " + (festival == null ? "no festival" : TownCulture.name(festival) + (festivalIn == 0 ? " today"
 			: " in " + festivalIn + " days")) + (town.shrine != null ? "; a shrine" : "") + (town.fire != null ? "; a gathering fire" : "")
-			+ (town.newest != null ? "; newest: " + town.newest : "") + (town.lastLeft != null ? "; last to leave: " + town.lastLeft : "")), false);
+			+ (town.newest != null ? "; newest: " + town.newest : "") + (town.lastLeft != null ? "; last to leave: " + town.lastLeft : "")
+			+ (town.traditions.isEmpty() ? "" : "; customs: " + String.join(", ", TownTraditions.describe(town)))), false);
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (politicsGroup != null && town.leader != null) {

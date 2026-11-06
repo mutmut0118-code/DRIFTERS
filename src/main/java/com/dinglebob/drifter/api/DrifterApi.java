@@ -770,6 +770,21 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.gen.Delvers.setTownLooters(which);
 	}
 
+	/**
+	 * Places a Drifter keeps away from on its long walks (a town's: where three of its people died): true for a spot near
+	 * one of them, for this Drifter.
+	 */
+	public static void setKeepAway(java.util.function.BiPredicate<DrifterEntity, net.minecraft.core.BlockPos> keepAway) {
+		com.dinglebob.drifter.nav.Legs.setKeepAway(keepAway);
+	}
+
+	/** (A town made ready.) Its horse (tamed to it), kept in this stall of its town's stable. */
+	public static void keepHorse(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse, net.minecraft.core.BlockPos stall) {
+		horse.setOwnerUUID(drifter.getUUID());
+		drifter.getDrifterBrain().setHorse(horse.getUUID(), stall);
+		drifter.getDrifterBrain().setStall(stall);
+	}
+
 	/** Every group there is. */
 	public static List<DrifterGroups.Group> groups() {
 		return DrifterGroups.all();
