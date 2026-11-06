@@ -576,6 +576,8 @@ public final class DrifterCivilizations implements ModInitializer {
 					int empty = 0;
 					int stacks = 0;
 					int valuables = 0;
+					int cabinets = 0;
+					int kinds = 0;
 					for (Town.Plot plot : town.plots) {
 						if (!plot.built || plot.sizeX == 0) {
 							continue;
@@ -585,6 +587,19 @@ public final class DrifterCivilizations implements ModInitializer {
 						int z1 = plot.origin.getZ() + Math.max(plot.sizeX, plot.sizeZ);
 						for (BlockPos pos : BlockPos.betweenClosed(plot.origin.getX() - 2, plot.origin.getY() - 3, plot.origin.getZ() - 2, x1 + 2, plot.origin.getY() + 14, z1 + 2)) {
 							var entity = source.getLevel().getBlockEntity(pos);
+							if (entity instanceof net.minecraft.world.Container pantry && net.minecraft.core.registries.BuiltInRegistries.BLOCK
+								.getKey(source.getLevel().getBlockState(pos).getBlock()).getPath().contains("cabinet")) {
+								cabinets++;
+								java.util.Set<net.minecraft.world.item.Item> items = new java.util.HashSet<>();
+								for (int slot = 0; slot < pantry.getContainerSize(); slot++) {
+									if (!pantry.getItem(slot).isEmpty()) {
+										items.add(pantry.getItem(slot).getItem());
+									}
+								}
+
+								kinds += items.size();
+							}
+
 							if (entity instanceof net.minecraft.world.level.block.entity.ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity) {
 								var container = (net.minecraft.world.Container)entity;
 								containers++;
@@ -611,8 +626,11 @@ public final class DrifterCivilizations implements ModInitializer {
 					int none = empty;
 					int filled = stacks;
 					int worth = valuables;
+					int pantries = cabinets;
+					int foods = kinds;
 					source.sendSuccess(() -> Component.literal(town.name + "'s houses: " + all + " chests and barrels (each half of a double chest counted), " + none
-						+ " empty, " + (all == 0 ? 0 : filled / all) + " stacks each on average, " + worth + " stacks of valuables (gold, gems, money)"), false);
+						+ " empty, " + (all == 0 ? 0 : filled / all) + " stacks each on average, " + worth + " stacks of valuables (gold, gems, money); "
+						+ pantries + " kitchen cabinets, " + (pantries == 0 ? 0 : foods / pantries) + " kinds of ingredient each"), false);
 					return all;
 				}))
 				// Debug: the nearest town seen from above, saved as a picture in the server's town-maps folder.

@@ -130,6 +130,25 @@ public final class Kitchen {
 		return food.nutrition() + food.saturation() + (food.effects().isEmpty() ? 0.0 : 3.0);
 	}
 
+	/** How much less a dish counts for each of it already carried or put by at home (two at most). */
+	private static final double HAVE_IT = 4.0;
+
+	/** Its liking for this dish: its own (the same each time), and a bit by the day (0 to 7 points). */
+	private static double taste(DrifterEntity drifter, Item meal) {
+		long seed = drifter.getUUID().getLeastSignificantBits() * 31 + BuiltInRegistries.ITEM.getKey(meal).hashCode();
+		long day = drifter.level().getDayTime() / 24000L;
+		double own = Math.floorMod(seed ^ (seed >>> 17), 1000) / 1000.0 * 4.0;
+		double today = Math.floorMod((seed + day * 7919) * 0x9E3779B1L >>> 7, 1000) / 1000.0 * 3.0;
+		return own + today;
+	}
+
+	/** How many of this dish it has already, on it and at home (two at most). */
+	private static int had(DrifterEntity drifter, Item meal) {
+		Home home = drifter.getDrifterBrain().home();
+		int count = drifter.getInventory().count(stack -> stack.is(meal)) + (home == null ? 0 : home.stored(meal));
+		return Math.min(2, count);
+	}
+
 	/** Meals it carries (the mod's meal list). */
 	public static int mealsCarried(DrifterEntity drifter) {
 		return drifter.getInventory().count(FarmersDelight::isMeal);
@@ -187,7 +206,10 @@ public final class Kitchen {
 					continue;
 				}
 
-				double score = value(meal) - plan.cost() / 30.0;
+				// (Its own taste, and something it hasn't got already: always the most filling one, it cooked chicken soup all day
+				// with a pantry full of the makings of a dozen dishes; the user, 2026-11-06, "various amounts of farmers delight
+				// foods".)
+				double score = value(meal) - plan.cost() / 30.0 + taste(drifter, meal) - HAVE_IT * had(drifter, meal);
 				if (score > bestScore) {
 					bestScore = score;
 					best = meal;

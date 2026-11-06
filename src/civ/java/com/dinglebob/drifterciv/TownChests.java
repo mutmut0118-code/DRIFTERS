@@ -92,6 +92,100 @@ final class TownChests {
 		e("minecraft:red_dye", 2, 8, 0.6), e("minecraft:blue_dye", 2, 8, 0.4), e("minecraft:ink_sac", 2, 6, 0.6), e("minecraft:gunpowder", 2, 8, 0.6),
 		e("minecraft:slime_ball", 1, 4, 0.3), e("minecraft:map", 1, 1, 0.3), e("minecraft:compass", 1, 1, 0.2), e("minecraft:clock", 1, 1, 0.15));
 
+	/**
+	 * A kitchen cabinet's pantry (the user, 2026-11-06: "a wide array of ingredients in the cabinet, to make various amounts
+	 * of farmers delight foods"): what the cooking pot's dishes are made of, a little of a lot of things: Farmer's Delight's
+	 * crops, cuts, dough, pasta, milk and sauce (when it's installed), the vegetables, mushrooms, eggs, meat and fish its
+	 * dishes call for, and bowls to serve them in.
+	 */
+	static final List<Entry> INGREDIENTS = List.of(e("farmersdelight:cabbage", 3, 10, 3), e("farmersdelight:tomato", 3, 10, 3),
+		e("farmersdelight:onion", 3, 10, 3), e("farmersdelight:rice", 4, 16, 3), e("farmersdelight:cabbage_leaf", 2, 8, 1.5),
+		e("farmersdelight:minced_beef", 2, 6, 2), e("farmersdelight:beef_patty", 1, 4, 1), e("farmersdelight:chicken_cuts", 2, 6, 2),
+		e("farmersdelight:bacon", 2, 6, 2), e("farmersdelight:mutton_chops", 2, 6, 1.5), e("farmersdelight:cod_slice", 2, 6, 1.5),
+		e("farmersdelight:salmon_slice", 2, 6, 1.5), e("farmersdelight:ham", 1, 2, 0.6), e("farmersdelight:wheat_dough", 2, 8, 2),
+		e("farmersdelight:raw_pasta", 2, 8, 2), e("farmersdelight:pie_crust", 1, 3, 1), e("farmersdelight:milk_bottle", 2, 6, 2),
+		e("farmersdelight:tomato_sauce", 1, 4, 1.5), e("farmersdelight:pumpkin_slice", 2, 8, 1.5), e("minecraft:carrot", 4, 16, 3),
+		e("minecraft:potato", 4, 16, 3), e("minecraft:beetroot", 3, 12, 2), e("minecraft:brown_mushroom", 2, 8, 2.5), e("minecraft:red_mushroom", 2, 8, 2),
+		e("minecraft:egg", 3, 12, 2.5), e("minecraft:sugar", 3, 12, 1.5), e("minecraft:cocoa_beans", 2, 8, 1), e("minecraft:apple", 2, 8, 1.5),
+		e("minecraft:sweet_berries", 4, 12, 1), e("minecraft:glow_berries", 2, 8, 0.6), e("minecraft:dried_kelp", 4, 12, 1), e("minecraft:beef", 2, 6, 1.5),
+		e("minecraft:porkchop", 2, 6, 1.5), e("minecraft:chicken", 2, 6, 1.5), e("minecraft:mutton", 2, 6, 1), e("minecraft:cod", 2, 6, 1),
+		e("minecraft:salmon", 2, 6, 1), e("minecraft:rabbit", 1, 4, 0.6), e("minecraft:bread", 2, 8, 1), e("minecraft:bone", 2, 6, 0.5),
+		e("minecraft:wheat", 4, 16, 1), e("minecraft:honey_bottle", 1, 3, 0.5));
+
+	/** A cabinet's pantry: 14 to 22 ingredients, each a different one, and a stack of bowls. */
+	static void cabinet(net.minecraft.world.Container cabinet, boolean tidy, RandomSource random) {
+		List<ItemStack> stacks = new ArrayList<>();
+		java.util.Set<Item> had = new java.util.HashSet<>();
+		int want = Math.min(cabinet.getContainerSize() - 1, 14 + random.nextInt(9));
+		for (int tries = 0; stacks.size() < want && tries < want * 4; tries++) {
+			ItemStack stack = pick(INGREDIENTS, random);
+			if (!stack.isEmpty() && had.add(stack.getItem())) {
+				stacks.add(stack);
+			}
+		}
+
+		Item bowl = item("minecraft:bowl");
+		if (bowl != null) {
+			stacks.add(new ItemStack(bowl, 4 + random.nextInt(9)));
+		}
+
+		lay(cabinet, stacks, tidy, random);
+	}
+
+	/**
+	 * The stacks into the container: a tidy one's from the first slot on, alike together, sorted; else wherever there's a
+	 * free slot.
+	 */
+	private static void lay(net.minecraft.world.Container chest, List<ItemStack> stacks, boolean tidy, RandomSource random) {
+		if (tidy) {
+			stacks = merged(stacks);
+			stacks.sort(java.util.Comparator.comparing(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()));
+			int slot = 0;
+			for (ItemStack stack : stacks) {
+				while (slot < chest.getContainerSize() && !chest.getItem(slot).isEmpty()) {
+					slot++;
+				}
+
+				if (slot >= chest.getContainerSize()) {
+					return;
+				}
+
+				chest.setItem(slot++, stack);
+			}
+
+			return;
+		}
+
+		for (ItemStack stack : stacks) {
+			put(chest, stack, random);
+		}
+	}
+
+	/** Like stacks put together (up to a full stack each). */
+	private static List<ItemStack> merged(List<ItemStack> stacks) {
+		List<ItemStack> out = new ArrayList<>();
+		for (ItemStack stack : stacks) {
+			ItemStack rest = stack.copy();
+			for (ItemStack into : out) {
+				if (ItemStack.isSameItemSameComponents(into, rest) && into.getCount() < into.getMaxStackSize()) {
+					int moved = Math.min(rest.getCount(), into.getMaxStackSize() - into.getCount());
+					into.grow(moved);
+					rest.shrink(moved);
+				}
+
+				if (rest.isEmpty()) {
+					break;
+				}
+			}
+
+			if (!rest.isEmpty()) {
+				out.add(rest);
+			}
+		}
+
+		return out;
+	}
+
 	/** A household's kinds of things, by how much of each it keeps (the pools, in order: food, pantry, building, ore, farming, odds, treasure). */
 	private static final double[][] HOUSEHOLDS = {
 		// a farmer's: food and the fields
@@ -107,24 +201,97 @@ final class TownChests {
 		// a well-off one's: a bit of everything, more of the good stuff
 		{3, 2, 2, 2, 1.5, 2, 2.5}};
 
-	/** A household's chests: each 9 to 18 stacks, by a kind of household picked for it. */
-	static void household(net.minecraft.server.level.ServerLevel level, List<? extends net.minecraft.world.Container> chests, RandomSource random) {
+	/**
+	 * A household's chests: each 9 to 18 stacks, by a kind of household picked for it, kept as its people keep things (the
+	 * user, 2026-11-06: "depending on the personality they could be organized or not"): a tidy household (its tidiness from
+	 * 0.6) keeps one kind of thing a chest (food, building stuff, ore...), alike stacked together, sorted, its valuables in
+	 * one chest of their own; a middling one's chests each lean to a kind; a messy one's (under 0.35) a jumble, anywhere.
+	 * Its kitchen cabinets hold its pantry ({@link #cabinet}).
+	 */
+	static void household(net.minecraft.server.level.ServerLevel level, List<? extends net.minecraft.world.Container> chests,
+		List<? extends net.minecraft.world.Container> cabinets, double tidiness, RandomSource random) {
 		double[] mix = HOUSEHOLDS[random.nextInt(HOUSEHOLDS.length)];
-		for (net.minecraft.world.Container chest : chests) {
-			fill(chest, mix, Math.min(chest.getContainerSize() - 2, 9 + random.nextInt(10)), random);
+		boolean tidy = tidiness >= 0.6;
+		boolean messy = tidiness < 0.35;
+		for (net.minecraft.world.Container cabinet : cabinets) {
+			cabinet(cabinet, !messy, random);
 		}
 
-		// Its own valuables, put away somewhere in the house: a stack or two of them, and its purse (its money).
+		// (Which kinds it keeps most of, for a tidy one's chests: one kind each, round them.)
+		List<Integer> kinds = new ArrayList<>();
+		for (int k = 0; k < 6; k++) {
+			if (mix[k] >= 1.0) {
+				kinds.add(k);
+			}
+		}
+
+		kinds.sort(java.util.Comparator.comparingDouble((Integer k) -> -mix[k]));
+		for (int c = 0; c < chests.size(); c++) {
+			net.minecraft.world.Container chest = chests.get(c);
+			int stacks = Math.min(chest.getContainerSize() - 2, 9 + random.nextInt(10));
+			double[] here = mix.clone();
+			here[6] = 0;
+			if (tidy && !kinds.isEmpty()) {
+				int kind = kinds.get(c % kinds.size());
+				java.util.Arrays.fill(here, 0);
+				here[kind] = 1;
+			} else if (!messy && !kinds.isEmpty()) {
+				here[kinds.get(random.nextInt(kinds.size()))] *= 4;
+			}
+
+			List<ItemStack> laid = new ArrayList<>();
+			for (int n = 0; n < stacks; n++) {
+				ItemStack stack = pickFrom(here, random);
+				if (!stack.isEmpty()) {
+					laid.add(stack);
+				}
+			}
+
+			lay(chest, laid, tidy, random);
+		}
+
+		// Its own valuables, put away somewhere in the house: a stack or two of them, and its purse (its money). A tidy
+		// household's all in one chest (the last), together.
 		if (chests.isEmpty()) {
 			return;
 		}
 
+		List<ItemStack> valuables = new ArrayList<>();
 		int treasures = 1 + random.nextInt(mix[6] > 2 ? 3 : 2);
 		for (int i = 0; i < treasures; i++) {
-			put(chests.get(random.nextInt(chests.size())), pick(TREASURE, random), random);
+			valuables.add(pick(TREASURE, random));
 		}
 
-		put(chests.get(random.nextInt(chests.size())), com.dinglebob.drifter.api.DrifterApi.money(6 + random.nextInt(mix[6] > 2 ? 90 : 40)), random);
+		valuables.add(com.dinglebob.drifter.api.DrifterApi.money(6 + random.nextInt(mix[6] > 2 ? 90 : 40)));
+		valuables.removeIf(ItemStack::isEmpty);
+		if (tidy) {
+			lay(chests.get(chests.size() - 1), valuables, true, random);
+		} else {
+			for (ItemStack stack : valuables) {
+				put(chests.get(random.nextInt(chests.size())), stack, random);
+			}
+		}
+	}
+
+	/** One stack from a pool picked by {@code mix} (the pantry's plain food if Farmer's Delight isn't there). */
+	private static ItemStack pickFrom(double[] mix, RandomSource random) {
+		double total = 0;
+		for (double w : mix) {
+			total += w;
+		}
+
+		if (total <= 0) {
+			return ItemStack.EMPTY;
+		}
+
+		double roll = random.nextDouble() * total;
+		int pool = 0;
+		while (pool < mix.length - 1 && (roll -= mix[pool]) > 0) {
+			pool++;
+		}
+
+		ItemStack stack = pick(POOLS.get(pool), random);
+		return stack.isEmpty() ? pick(FOOD, random) : stack;
 	}
 
 	/** One stack into a free slot of it (at random), if there's room. */

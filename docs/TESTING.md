@@ -2933,3 +2933,16 @@ Make a new world with "A world of nations" on.
       across / to (town)", a boat tied up), and on the far shore another dock where the road goes on. `/drifterciv route
       <x> <z>` from one town to the other shows the way along the roads. A Drifter going that way (a trade run, a war)
       walks to the dock and rows across in its own boat.
+
+## 0.23.26: chests kept by personality, pantries (new)
+
+New world, "A world of nations" on, Farmer's Delight installed.
+
+- [ ] **Tidy and messy households.** Open the chests in a few houses. In some, each chest holds one kind of thing (a food
+      chest, a building chest, an ore chest...), stacks together and sorted from the top left, the gold, gems and money
+      all in one chest. In others it's a jumble, things in any slot, valuables anywhere. (`/drifter personality` on the household's
+      Drifter shows its tidiness: high is tidy.)
+- [ ] **Pantries.** Open a house's kitchen cabinet: lots of different ingredients (cabbage, tomatoes, onions, rice, cuts of
+      meat, dough, pasta, milk bottles, tomato sauce, mushrooms, eggs, carrots, potatoes...) and some bowls.
+      `/drifterciv town chests` counts the cabinets and the kinds of ingredient in each. Over a day or two, watch the
+      Drifters cook all sorts of Farmer's Delight dishes in their pots.

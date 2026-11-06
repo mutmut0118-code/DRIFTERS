@@ -3200,7 +3200,7 @@ public final class TownBuilder {
 			this.people.add(drifter);
 			if (i == this.buildingHouse) {
 				DrifterApi.stillBuilding(drifter, 6);
-				stock(this.level, house.box());
+				stock(this.level, house.box(), DrifterApi.trait(drifter, "tidiness"));
 				return;
 			}
 
@@ -3233,8 +3233,8 @@ public final class TownBuilder {
 				this.people.add(other);
 			}
 
-			// Its storage filled once everyone's in (their bedside chests too).
-			stock(this.level, house.box());
+			// Its storage filled once everyone's in (their bedside chests too), kept as its first household keeps things.
+			stock(this.level, house.box(), DrifterApi.trait(drifter, "tidiness"));
 		}
 
 		/** One group, geared by their places; the town itself, its past and its keeper; its notice board. */
@@ -3523,22 +3523,24 @@ public final class TownBuilder {
 	 * What a household well on in its life keeps: its chests nine to eighteen stacks each, food (Farmer's Delight's too),
 	 * building stuff, valuables, farming and odds and ends, by the kind of household it is ({@link TownChests}).
 	 */
-	private static void stock(ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+	private static void stock(ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox box, double tidiness) {
 		// (Every chest in it, each half of a double chest (only the first half was filled, the other left empty: the user,
 		// 2026-11-06, "most of the chests are empty"), barrels, Farmer's Delight's cabinets; not furnaces. Only empty ones.)
 		List<net.minecraft.world.Container> storage = new ArrayList<>();
+		List<net.minecraft.world.Container> cabinets = new ArrayList<>();
 		for (BlockPos pos : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
 			var entity = level.getBlockEntity(pos);
-			boolean store = entity instanceof ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity
-				|| entity instanceof net.minecraft.world.Container && net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock())
-					.getPath().contains("cabinet");
-			if (store && entity instanceof net.minecraft.world.Container container && container.isEmpty()) {
-				storage.add(container);
+			boolean cabinet = entity instanceof net.minecraft.world.Container && net.minecraft.core.registries.BuiltInRegistries.BLOCK
+				.getKey(level.getBlockState(pos).getBlock()).getPath().contains("cabinet");
+			boolean chest = entity instanceof ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity;
+			if ((chest || cabinet) && entity instanceof net.minecraft.world.Container container && container.isEmpty()) {
+				(cabinet ? cabinets : storage).add(container);
 			}
 		}
 
-		TownChests.household(level, storage, level.random);
+		TownChests.household(level, storage, cabinets, tidiness, level.random);
 		storage.forEach(net.minecraft.world.Container::setChanged);
+		cabinets.forEach(net.minecraft.world.Container::setChanged);
 	}
 
 	/**

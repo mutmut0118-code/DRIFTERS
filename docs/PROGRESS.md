@@ -4654,6 +4654,21 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     (`Legs.FERRY`, then its walk's `BoatTask`). On the test seed the capital, Westbury, on a peninsula with no road
     before, now has both (665 and 1,146 blocks along the roads), a dock built at each crossing.
 
+- **0.23.26: chests kept by personality, a pantry in each kitchen cabinet** (the user, 2026-11-06: "depending on the
+  personality they could be organized or not in households"; "a wide array of ingredients in the cabinet, to make various
+  amounts of farmers delight foods").
+  - A household's chests by its first household's tidiness: tidy (0.6 and up) one kind of thing a chest (food, building
+    stuff, ore, farming, odds and ends, the kinds it keeps most of first), alike stacked together and sorted from the first
+    slot, its valuables and purse together in one chest; middling, each chest leaning to a kind; messy (under 0.35), a
+    jumble in any slots, its valuables anywhere.
+  - Kitchen cabinets (Farmer's Delight) hold a pantry: 14 to 22 different ingredients, a few to sixteen of each, and bowls
+    (`TownChests.INGREDIENTS`: its crops, cuts, dough, pasta, milk bottles, tomato sauce, pumpkin slices; carrots,
+    potatoes, beetroot, mushrooms, eggs, sugar, cocoa, berries, meat, fish, bones). A town of 12 houses: 13 cabinets, 19
+    kinds of ingredient each. Drifters cook from what's stored at home, so the dishes they can make go up.
+  - Which dish it cooks: its own taste (some dishes it likes more, a little by the day) and something it hasn't got
+    already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
+    mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
+
 ## Side session: chat, part 5 (0.23.23-side.1)
 
 The user (2026-11-05): more parts to stories and topics of every kind ("controversial opinions, deep and philosophical
