@@ -732,6 +732,14 @@ public final class DrifterApi {
 		com.dinglebob.drifter.nav.Legs.setRoutes(routes);
 	}
 
+	/**
+	 * The points of the roads between towns within a distance of a spot (x, z): encounters come more often on them, and
+	 * start on them (the user, 2026-11-06: "encounters between towns should happen when traveling on roads").
+	 */
+	public static void setRoadPoints(java.util.function.BiFunction<net.minecraft.core.BlockPos, Integer, List<net.minecraft.core.BlockPos>> points) {
+		com.dinglebob.drifter.nav.Legs.setRoadPoints(points);
+	}
+
 	/** A raid between groups (a war's): who on whom, how far along ("gather", "travel", "attack", "retreat"), since when. */
 	public record RaidInfo(UUID attackers, UUID defenders, String phase, long startedAt) {
 	}
@@ -751,6 +759,15 @@ public final class DrifterApi {
 	@Nullable
 	private static RaidInfo raidInfo(@Nullable com.dinglebob.drifter.world.DrifterWars.Raid raid) {
 		return raid == null ? null : new RaidInfo(raid.attackers, raid.defenders, raid.phase.name().toLowerCase(java.util.Locale.ROOT), raid.startedAt);
+	}
+
+	/**
+	 * Who makes a new Drifter one of a town's people, for the town scavengers met at ruins: for a spot, the way to make one
+	 * the nearest town's (its group, a house), or null when there's no town near with room.
+	 */
+	public static void setTownLooters(@Nullable java.util.function.BiFunction<net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos,
+		java.util.function.Consumer<DrifterEntity>> which) {
+		com.dinglebob.drifter.world.gen.Delvers.setTownLooters(which);
 	}
 
 	/** Every group there is. */

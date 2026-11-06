@@ -105,6 +105,30 @@ final class Routes {
 		return way;
 	}
 
+	/** The road points within {@code within} blocks of {@code at} (x, z), on the server's thread; none while there's no plan. */
+	static List<BlockPos> near(BlockPos at, int within) {
+		if (!WorldPlan.ready) {
+			return List.of();
+		}
+
+		Graph g = graph();
+		if (g == null) {
+			return List.of();
+		}
+
+		List<BlockPos> found = new ArrayList<>();
+		long reach = (long)within * within;
+		for (int n = 0; n < g.roads; n++) {
+			long dx = g.xs[n] - at.getX();
+			long dz = g.zs[n] - at.getZ();
+			if (dx * dx + dz * dz <= reach) {
+				found.add(new BlockPos(g.xs[n], 0, g.zs[n]));
+			}
+		}
+
+		return found;
+	}
+
 	/** The place {@code pos} is in (within its reach), or a road point near it; or -1. */
 	private static int node(Graph g, BlockPos pos, int fallback) {
 		int place = placeAt(g, pos);

@@ -46,6 +46,29 @@ public final class Legs {
 		routes = which;
 	}
 
+	/** Points of the roads between towns within a distance of somewhere (x, z; y ignored), or none. */
+	private static volatile BiFunction<BlockPos, Integer, List<BlockPos>> roadPoints = (at, within) -> List.of();
+
+	/** An addon's roads, near a spot (for encounters on the road). */
+	public static void setRoadPoints(BiFunction<BlockPos, Integer, List<BlockPos>> which) {
+		roadPoints = which;
+	}
+
+	/** Points of the roads between towns within this far of here (x, z), or none. */
+	public static List<BlockPos> roadPointsNear(BlockPos at, int within) {
+		try {
+			List<BlockPos> points = roadPoints.apply(at, within);
+			return points == null ? List.of() : points;
+		} catch (RuntimeException e) {
+			return List.of();
+		}
+	}
+
+	/** On (or by) a road between towns. */
+	public static boolean onRoad(BlockPos at) {
+		return !roadPointsNear(at, 5).isEmpty();
+	}
+
 	/** The next stretch toward {@code to} (within {@code near} of it at the end), saying {@code what} it's doing. */
 	public static Task toward(DrifterEntity drifter, BlockPos to, double near, String what) {
 		return toward(drifter, to, near, what, NavigateTask.Pace.TRAVEL);

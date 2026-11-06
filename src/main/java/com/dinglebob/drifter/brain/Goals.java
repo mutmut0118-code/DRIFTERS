@@ -648,6 +648,47 @@ public final class Goals {
 	}
 
 	/**
+	 * Its town's crier keeps a book and quill or two (made the way it makes anything: paper from sugar cane, leather, a feather,
+	 * an ink sac), to write the morning's paper up in for whoever's about ({@code CrierGoal}).
+	 */
+	public static final class TownPaper extends PlannedGoal {
+		private static final int KEEPS = 2;
+
+		@Override
+		public String id() {
+			return "town_paper";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "make a book and quill for the paper";
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			return List.of(Items.WRITABLE_BOOK);
+		}
+
+		@Override
+		protected int count(Context context) {
+			return KEEPS;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			var work = drifter.getTownWork();
+			if (work == null || !work.crier(drifter) || Schedule.isNight(drifter) || context.threat().urgent()
+				|| drifter.getInventory().count(stack -> stack.is(Items.WRITABLE_BOOK)) >= KEEPS) {
+				return 0.0;
+			}
+
+			// (A small chore of its own, between its others.)
+			return 0.3;
+		}
+	}
+
+	/**
 	 * Its town's banner (milestone 22 step 6 part 3: a nation's colour on each of its towns' plazas): the leader makes one
 	 * of that colour (six dyed wool and a stick, all its own) and stands it where the town says.
 	 */
@@ -2717,6 +2758,11 @@ public final class Goals {
 		@Override
 		public String name(Context context) {
 			Home home = context.drifter().getDrifterBrain().home();
+			// (A neighbour's house blown up: helping build it back, HouseDamage.)
+			if (home != null && home.project != null && home.project.label.endsWith("'s house")) {
+				return "help build " + home.project.label + " back";
+			}
+
 			return "work on the town's " + (home == null || home.project == null ? "build" : home.project.label);
 		}
 
@@ -3013,7 +3059,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.trade.TownMoneyGoals.Wages(), new com.dinglebob.drifter.trade.TownMoneyGoals.Bank(), new com.dinglebob.drifter.trade.TownMoneyGoals.Tax(), new com.dinglebob.drifter.trade.BuyGoal(), new com.dinglebob.drifter.trade.TradeRunGoal(), new com.dinglebob.drifter.social.ErrandGoal(), new com.dinglebob.drifter.social.GuardGoal(), new com.dinglebob.drifter.social.PatrolGoal(), new com.dinglebob.drifter.whim.BellGoal(), new com.dinglebob.drifter.whim.GatherGoal(), new com.dinglebob.drifter.social.CrookGoal(), new com.dinglebob.drifter.social.MournGoal(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.trade.TownMoneyGoals.Wages(), new com.dinglebob.drifter.trade.TownMoneyGoals.Bank(), new com.dinglebob.drifter.trade.TownMoneyGoals.Tax(), new com.dinglebob.drifter.trade.BuyGoal(), new com.dinglebob.drifter.trade.TradeRunGoal(), new com.dinglebob.drifter.social.ErrandGoal(), new com.dinglebob.drifter.social.GuardGoal(), new com.dinglebob.drifter.social.PatrolGoal(), new com.dinglebob.drifter.whim.BellGoal(), new com.dinglebob.drifter.whim.GatherGoal(), new com.dinglebob.drifter.whim.CrierGoal(), new TownPaper(), new com.dinglebob.drifter.social.CrookGoal(), new com.dinglebob.drifter.social.MournGoal(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		goals.add(new LabelChestsGoal());
 		goals.add(new DecorateGoal());

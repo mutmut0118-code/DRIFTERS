@@ -1,5 +1,7 @@
 package com.dinglebob.drifter.encounter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +48,27 @@ final class EncounterSpawner {
 		int noGround = 0;
 		int height = 0;
 		int seen = 0;
+		// A road between towns in the ring: on it first (who's met on a road is met on the road).
+		List<BlockPos> road = new ArrayList<>();
+		for (BlockPos point : com.dinglebob.drifter.nav.Legs.roadPointsNear(BlockPos.containing(center), (int)Math.ceil(max))) {
+			double d = Math.hypot(point.getX() + 0.5 - center.x, point.getZ() + 0.5 - center.z);
+			if (d >= min && d <= max && (toward == null || (point.getX() - center.x) * toward.x + (point.getZ() - center.z) * toward.z >= 0)) {
+				road.add(point);
+			}
+		}
+
+		java.util.Collections.shuffle(road, new java.util.Random(random.nextLong()));
+		for (BlockPos point : road.subList(0, Math.min(road.size(), TRIES / 2))) {
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					BlockPos spot = onRoad(level, point.getX() + dx, point.getZ() + dz);
+					if (spot != null && Math.abs(spot.getY() - center.y) <= MAX_RISE && hidden(level, spot)) {
+						return spot;
+					}
+				}
+			}
+		}
+
 		for (int i = 0; i < TRIES; i++) {
 			double angle = toward != null && i < TRIES / 2 ? Math.atan2(toward.z, toward.x) + (random.nextDouble() - 0.5) * 1.2
 				: random.nextDouble() * Math.PI * 2.0;
@@ -67,6 +90,18 @@ final class EncounterSpawner {
 		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] no hidden spot for an encounter near {}: {} not open ground, {} too high or low, {} in view",
 			BlockPos.containing(center).toShortString(), noGround, height, seen);
 		return null;
+	}
+
+	/** Standing room on a road here (its path, a bridge's deck), on loaded land; or null. */
+	@Nullable
+	private static BlockPos onRoad(ServerLevel level, int x, int z) {
+		if (!level.hasChunk(x >> 4, z >> 4)) {
+			return null;
+		}
+
+		BlockPos top = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
+		var below = level.getBlockState(top.below());
+		return below.getFluidState().isEmpty() && !below.isAir() && com.dinglebob.drifter.brain.KnownBlocks.isStandable(level, top) ? top : null;
 	}
 
 	/** Standing room on natural open ground in this column (not water, not a roof, not leaves), on loaded land; or null. */

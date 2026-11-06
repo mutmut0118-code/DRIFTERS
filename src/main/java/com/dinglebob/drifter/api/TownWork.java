@@ -135,6 +135,27 @@ public interface TownWork {
 		return null;
 	}
 
+	/**
+	 * The news for its town's crier to call out this morning, and the paper to hand out (a written book), if it's the crier
+	 * and hasn't yet today; else null.
+	 */
+	default News news(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** It's its town's crier (it keeps a book and quill or two for the paper). */
+	default boolean crier(DrifterEntity drifter) {
+		return false;
+	}
+
+	/** It cried the news for today. */
+	default void cried(DrifterEntity drifter) {
+	}
+
+	/** The day's headlines, and a copy of the paper. */
+	record News(List<String> headlines, net.minecraft.world.item.ItemStack paper) {
+	}
+
 	/** It rang the bell. */
 	default void rang(DrifterEntity drifter) {
 	}

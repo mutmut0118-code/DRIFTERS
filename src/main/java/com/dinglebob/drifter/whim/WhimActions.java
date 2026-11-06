@@ -199,14 +199,14 @@ public final class WhimActions {
 	}
 
 	/** Looks at something (a spot, or an entity as it moves) for a while; now and then a hop if it's having fun. */
-	static class Gaze extends Task {
+	public static class Gaze extends Task {
 		private final Supplier<Vec3> at;
 		private final int ticks;
 		private final boolean hops;
 		private final String what;
 		private int looked;
 
-		Gaze(DrifterEntity drifter, Supplier<Vec3> at, int ticks, boolean hops, String what) {
+		public Gaze(DrifterEntity drifter, Supplier<Vec3> at, int ticks, boolean hops, String what) {
 			super(drifter);
 			this.at = at;
 			this.ticks = ticks;

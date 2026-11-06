@@ -1555,6 +1555,18 @@
         "together. now. let's go",
         "follow me. to {enemy}!"
       ]
+    },
+    "house.blown_up": {
+      "any": [
+        "MY HOUSE",
+        "noooo my house",
+        "are you kidding me. a creeper?? in my house??",
+        "great. just great. theres a hole in my wall",
+        "ugh. gonna have to rebuild that",
+        "who let a creeper in here",
+        "my walls!!",
+        "ok. deep breaths. we rebuild"
+      ]
     }
   }
 }

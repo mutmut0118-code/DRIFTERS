@@ -132,6 +132,13 @@ public final class Town {
 	public BlockPos fire;
 	@Nullable
 	public BlockPos pen;
+	/** Its mine (made ready since 0.23.24): the top of its stairs, the hub at their bottom, which way its corridor runs. */
+	@Nullable
+	public BlockPos mine;
+	@Nullable
+	public BlockPos mineBottom;
+	@Nullable
+	public Direction mineWay;
 	/** Where its people are building (or built) its store (step 3c), and whether it's up. */
 	@Nullable
 	public Plot storePlot;
@@ -332,6 +339,12 @@ public final class Town {
 			tag.putLong("Pen", this.pen.asLong());
 		}
 
+		if (this.mine != null && this.mineBottom != null && this.mineWay != null) {
+			tag.putLong("Mine", this.mine.asLong());
+			tag.putLong("MineBottom", this.mineBottom.asLong());
+			tag.putString("MineWay", this.mineWay.getName());
+		}
+
 		if (this.storePlot != null) {
 			tag.put("StorePlot", this.storePlot.save());
 		}
@@ -481,6 +494,11 @@ public final class Town {
 		town.well = tag.contains("Well") ? BlockPos.of(tag.getLong("Well")) : null;
 		town.fire = tag.contains("Fire") ? BlockPos.of(tag.getLong("Fire")) : null;
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
+		if (tag.contains("Mine")) {
+			town.mine = BlockPos.of(tag.getLong("Mine"));
+			town.mineBottom = BlockPos.of(tag.getLong("MineBottom"));
+			town.mineWay = Direction.byName(tag.getString("MineWay"));
+		}
 		town.storePlot = tag.contains("StorePlot") ? Plot.load(tag.getCompound("StorePlot")) : null;
 		town.storeBuilt = tag.getBoolean("StoreBuilt") || town.spawned;
 		for (Tag one : tag.getList("Lanes", Tag.TAG_COMPOUND)) {

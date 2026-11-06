@@ -45,8 +45,16 @@ public final class Market {
 	private static final int KINDS = 6;
 	/** It buys what the town has fewer than this of. */
 	private static final int SHORT = 32;
-	/** A player selling it something gets this much of the price it sells for. */
+	/** A player selling it something gets this much of the town's price for it. */
 	private static final double BUYS_AT = 0.8;
+	/**
+	 * What it sells goes for this much over the town's price (a shopkeeper's living: the user, 2026-11-06, "prices for the
+	 * market should be more expensive").
+	 */
+	private static final double SELLS_AT = 1.6;
+	/** Besides its everyday goods, a few of its better things (worth this many points apiece or more), when the store has some. */
+	private static final double VALUABLE = 2.0;
+	private static final int VALUABLE_KINDS = 3;
 	/** What it buys from players (when the town is short of it): food, iron, coal, wood, stone, wool, leather, light. */
 	private static final List<Item> WANTED = List.of(Items.BREAD, Items.WHEAT, Items.IRON_INGOT, Items.COAL, Items.OAK_LOG, Items.SPRUCE_LOG,
 		Items.BIRCH_LOG, Items.COBBLESTONE, Items.WHITE_WOOL, Items.LEATHER, Items.TORCH);
@@ -222,6 +230,12 @@ public final class Market {
 				.sorted(java.util.Comparator.<Map.Entry<Item, Integer>>comparingInt(entry -> plenty(entry.getKey()) < PLENTY ? 0 : 1)
 					.thenComparing(Map.Entry.<Item, Integer>comparingByValue().reversed())).limit(KINDS)
 				.forEach(entry -> stock.put(entry.getKey(), Math.min(64, entry.getValue() / 2)));
+			// And a few of its better things (gold, gems, a saddle, a fine meal...), the dearest first: a few of them, never all
+			// it has (the user: "some items should be more valuable (not replacing the items already there)").
+			home.stored().entrySet().stream().filter(entry -> !stock.containsKey(entry.getKey()) && entry.getValue() >= 2 && sellable(entry.getKey())
+					&& DrifterApi.worth(new ItemStack(entry.getKey())) >= VALUABLE)
+				.sorted(java.util.Comparator.<Map.Entry<Item, Integer>>comparingDouble(entry -> DrifterApi.worth(new ItemStack(entry.getKey()))).reversed())
+				.limit(VALUABLE_KINDS).forEach(entry -> stock.put(entry.getKey(), Math.max(1, Math.min(16, entry.getValue() / 2))));
 			return stock;
 		}
 
@@ -231,7 +245,7 @@ public final class Market {
 			// Selling: what it took from the store to sell, as much as it carries.
 			for (Item item : this.stock(keeper).keySet()) {
 				int carried = keeper.getInventory().count(stack -> stack.is(item));
-				ShopOffer offer = trade(item, price(keeper, item), carried, true);
+				ShopOffer offer = trade(item, price(keeper, item) * SELLS_AT, carried, true);
 				if (offer != null) {
 					offers.add(offer);
 				}

@@ -72,6 +72,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownRaids.register();
 		Trades.register();
 		DrifterApi.setRoutes(Routes::between);
+		DrifterApi.setRoadPoints(Routes::near);
+		DrifterApi.setTownLooters(TownLife::scavengers);
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()

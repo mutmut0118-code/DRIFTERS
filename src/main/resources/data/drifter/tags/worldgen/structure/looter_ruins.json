@@ -1,0 +1,28 @@
+{
+	"replace": false,
+	"values": [
+		"minecraft:ruined_portal",
+		"minecraft:ruined_portal_desert",
+		"minecraft:ruined_portal_jungle",
+		"minecraft:ruined_portal_swamp",
+		"minecraft:ruined_portal_mountain",
+		"minecraft:desert_pyramid",
+		"minecraft:jungle_pyramid",
+		"minecraft:igloo",
+		{ "id": "hopo:portal/overworld/portal_deepslate", "required": false },
+		{ "id": "hopo:portal/overworld/portal_dripstone", "required": false },
+		{ "id": "hopo:portal/overworld/portal_lush", "required": false },
+		{ "id": "hopo:portal/overworld/portal_ruined", "required": false },
+		{ "id": "philipsruins:ancient_ruins", "required": false },
+		{ "id": "philipsruins:ancient_towers", "required": false },
+		{ "id": "philipsruins:badlands_structures", "required": false },
+		{ "id": "philipsruins:desert_structures", "required": false },
+		{ "id": "philipsruins:field_stone_ruins", "required": false },
+		{ "id": "philipsruins:level_one_ruins", "required": false },
+		{ "id": "philipsruins:level_two_ruins", "required": false },
+		{ "id": "philipsruins:level_two_ruins_pool", "required": false },
+		{ "id": "philipsruins:level_three_ruins", "required": false },
+		{ "id": "philipsruins:pumpkin_ruins", "required": false },
+		{ "id": "philipsruins:rare_ruin", "required": false }
+	]
+}

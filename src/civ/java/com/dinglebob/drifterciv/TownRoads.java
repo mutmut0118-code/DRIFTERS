@@ -339,6 +339,21 @@ final class TownRoads {
 		}
 
 		@Override
+		public TownWork.News news(DrifterEntity drifter) {
+			return TownNews.news(this.town, drifter);
+		}
+
+		@Override
+		public boolean crier(DrifterEntity drifter) {
+			return TownNews.isCrier(this.town, drifter);
+		}
+
+		@Override
+		public void cried(DrifterEntity drifter) {
+			TownNews.cried(this.town, drifter);
+		}
+
+		@Override
 		public void rang(DrifterEntity drifter) {
 			TownBells.rang(this.town, drifter);
 		}

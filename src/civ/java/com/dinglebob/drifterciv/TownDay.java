@@ -219,6 +219,13 @@ final class TownDay {
 
 				return null;
 			}
+			case "mine" -> {
+				if (town.mine == null) {
+					return null;
+				}
+
+				spots.add(town.mine);
+			}
 			case "board" -> spots.add(c.offset(-5, 0, -4));
 			case "bell" -> spots.add(c.offset(5, 0, -4));
 			case "stall" -> {

@@ -602,9 +602,14 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	public void startDelving(BlockPos from, long until) {
+		this.startDelving(from, until, true);
+	}
+
+	/** The same; {@code visitor}: an encounter's delver (gone when nobody's near), else one of the world's own, kept. */
+	public void startDelving(BlockPos from, long until, boolean visitor) {
 		this.delveFrom = from.immutable();
 		this.delveUntil = until;
-		this.delver = true;
+		this.delver = visitor;
 	}
 
 	/**

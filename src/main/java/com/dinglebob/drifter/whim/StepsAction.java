@@ -95,7 +95,7 @@ final class StepsAction implements WhimAction {
 	static final Map<String, Set<String>> VERBS = new LinkedHashMap<>();
 	private static final Set<String> TARGET_KEYS = Set.of("type", "ids", "radius", "optional", "place");
 	/** The places of a town a {@code town} target can name. */
-	static final Set<String> TOWN_PLACES = Set.of("plaza", "well", "fire", "board", "stall", "store", "fields", "bell", "market", "festival", "shrine", "home", "kitchen");
+	static final Set<String> TOWN_PLACES = Set.of("plaza", "well", "fire", "board", "stall", "store", "fields", "bell", "market", "festival", "shrine", "home", "kitchen", "mine");
 	private static final List<String> LOOK_AT = List.of("sun", "moon", "stars", "clouds", "rain", "ahead", "up", "down");
 
 	static {
