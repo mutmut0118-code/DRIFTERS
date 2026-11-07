@@ -2946,3 +2946,38 @@ New world, "A world of nations" on, Farmer's Delight installed.
       meat, dough, pasta, milk bottles, tomato sauce, mushrooms, eggs, carrots, potatoes...) and some bowls.
       `/drifterciv town chests` counts the cabinets and the kinds of ingredient in each. Over a day or two, watch the
       Drifters cook all sorts of Farmer's Delight dishes in their pots.
+
+## Side session: more whims (new, 0.23.26-side.1)
+
+41 new whims. Any world works; a Creative world with commands is easiest. To try one now, stand next to a Drifter and type
+`/drifter whim <name>` (it does it at once, or tells you why it can't). `/drifter lore` shows what that Drifter knows.
+To make a test pair: `/drifter spawn Nova` and `/drifter spawn Vet` a few blocks apart, then next to Nova
+`/drifter personality reroll newbie`, next to Vet `/drifter personality reroll helper` and `/drifter personality set knowledge 1.0`,
+and next to Vet `/drifter group Nova` (friends).
+
+- [ ] **What it knows.** Put a nether portal, an enchanting table, a brewing stand and an end portal frame near them.
+      A newbie learns what a thing is the moment it first sees one, and that same day it may stand and wonder at it:
+      `what_is_this_portal`, `what_is_this_table`, `what_is_this_stand`, `what_are_these_frames` ("what is this purple
+      thing", "it has a floating book??"). Vet won't ("hasn't just found out about nether"), nor will Nova the next day.
+      Vet gives tips to whoever's about: `tip_about_the_nether`, `tip_about_enchanting`, `tip_about_brewing`,
+      `tip_about_raids`, `tip_about_the_end`, `tip_about_redstone`, `tip_about_trading`, `tip_about_trial_chambers`
+      (Nova can't: "doesn't know about the nether"). Vet also watches the runes go into the enchanting table
+      (`watch_the_runes`), the brewing stand (`watch_the_brewing_stand`), looks up a beacon's beam (`stand_in_the_beacon`),
+      and keeps very still and crouched near a sculk shrieker in the deep dark (`quiet_by_the_sculk`).
+- [ ] **The moon and snow.** `/time set 18000` is a full moon night (day 0 of the 8): `full_moon_gazing` ("big moon
+      tonight"), `full_moon_warning` (Vet, with company). `/time set 114000` is a new moon: `no_moon_tonight` ("cant see a
+      thing"). In a snowy biome with `/weather rain`: `watch_the_snow_fall`, `catch_snowflakes` (looks up and hops). On a snow
+      layer: `snow_angel` (crouches in the snow). `/weather thunder`: `home_before_the_storm` (walks home: give it one with
+      `/drifter home here` first), `lightning_from_the_doorway` (needs its hut or house).
+- [ ] **Little mistakes** (newbies the most). Next to a sweet berry bush: `into_the_berry_bush` (it walks into it and gets
+      pricked, "ow ow ow", it really loses a bit of health). With exactly one or two diamonds: `first_diamond_oops`
+      ("DIAMOND!!", then "wait... a pickaxe takes three"); with more it says "has more than 2". At night:
+      `jump_at_a_noise`. With a home chest: `what_was_i_doing` ("...what was i doing").
+- [ ] **Small moments.** Give items with `/drifter give compass`, `spyglass`, `goat_horn`, `clock`: `check_the_compass`
+      (looks down at it, turns round), `look_through_the_spyglass` (the real spyglass-to-the-eye pose), `blow_the_horn` (you
+      hear the horn), `check_the_clock` (at sunset). Animals: `watch_an_axolotl` (crouches by the water), `watch_a_frog`,
+      `watch_glow_squid` (at night), `eye_a_goat`, `watch_a_sniffer`, `watch_a_camel`.
+- [ ] **With friends** (Vet and Nova grouped): `show_off_a_diamond` (holds up a diamond to its friend, "look what i
+      found"), `high_five` (walks up, swings, hops), `fire_with_a_friend` (at night by a campfire).
+- [ ] **They come up on their own.** Leave Drifters living a few days: in `/drifter thoughts` you should now and then see
+      "gazing at the full moon", "giving a tip about the Nether", "walking into a berry bush (ow)" and the like.

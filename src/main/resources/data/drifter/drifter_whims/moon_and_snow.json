@@ -1,0 +1,94 @@
+{
+	"whims": [
+		{
+			"id": "full_moon_gazing", "category": "weather", "action": "watch_sky", "when": "full_moon", "gates": "R",
+			"comment": "\"full_moon\" and \"new_moon\": a clear night of that moon (one night in eight each), so these weigh more to come up at all.",
+			"params": {"what": "moon"},
+			"archetypes": {"hermit": 2.0, "nomad": 1.3, "speedrunner": 0.4}, "traits": {"patience": 0.4}, "weight": 3.0, "duration": 200, "cooldown": 96000,
+			"chat": ["big moon tonight", "full moon!!", "look at the moon rn", "the moon is huge", "full moon. spooky"],
+			"thought": "gazing at the full moon"
+		},
+		{
+			"id": "full_moon_warning", "category": "social", "action": "chat", "when": "full_moon", "gates": "M",
+			"params": {"lines": ["full moon, mobs are gonna be rough tonight", "more slimes on a full moon btw", "full moon = spiders with effects. careful",
+				"stay in tonight, full moon", "zombies hit harder on a full moon i swear"]},
+			"archetypes": {"helper": 1.8}, "traits": {"knowledge": 0.8, "caution": 0.5, "sociability": 0.4}, "weight": 3.0, "cooldown": 96000,
+			"thought": "warning about the full moon"
+		},
+		{
+			"id": "no_moon_tonight", "category": "weather", "action": "steps", "when": "new_moon",
+			"params": {
+				"steps": [
+					{"do": "look_at", "at": "up", "ticks": 60},
+					{"do": "look_around"},
+					{"do": "say", "lines": ["no moon tonight", "cant see a thing", "so dark rn", "where'd the moon go", "pitch black out here"], "chance": 0.4}
+				]
+			},
+			"archetypes": {"hermit": 1.5, "newbie": 1.3}, "traits": {"caution": 0.3}, "weight": 3.0, "cooldown": 96000, "offscreen": "show",
+			"thought": "noticing there's no moon tonight"
+		},
+		{
+			"id": "watch_the_snow_fall", "category": "weather", "action": "steps", "when": "snow",
+			"comment": "\"snow\": snow falling where it stands (rain in a cold biome).",
+			"params": {
+				"find": {"open": {"type": "sky", "radius": 10}},
+				"steps": [
+					{"do": "walk_to", "target": "open", "near": 0.8},
+					{"do": "look_at", "at": "up", "ticks": 100},
+					{"do": "say", "lines": ["snow!!", "its snowing", "pretty", "snow day", "love the snow"], "chance": 0.3}
+				]
+			},
+			"archetypes": {"homebody": 1.5, "newbie": 1.5}, "traits": {"patience": 0.4}, "cooldown": 24000, "offscreen": "show",
+			"thought": "watching the snow fall"
+		},
+		{
+			"id": "catch_snowflakes", "category": "weather", "action": "steps", "when": "snow",
+			"params": {
+				"find": {"open": {"type": "sky", "radius": 10}},
+				"steps": [
+					{"do": "walk_to", "target": "open", "near": 0.8},
+					{"do": "look_at", "at": "up", "ticks": 60, "hops": true},
+					{"do": "jump", "times": 2},
+					{"do": "say", "lines": ["catching snowflakes lol", "got one", "nom", "snowflake on my tongue"], "chance": 0.3}
+				]
+			},
+			"archetypes": {"newbie": 2.0, "casual": 1.3, "speedrunner": 0.3}, "traits": {"fidget": 0.6}, "cooldown": 24000, "offscreen": "show",
+			"thought": "trying to catch snowflakes"
+		},
+		{
+			"id": "snow_angel", "category": "weather", "action": "steps",
+			"params": {
+				"find": {"snow": {"type": "block", "ids": ["minecraft:snow"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "snow", "near": 0.6},
+					{"do": "crouch", "ticks": 50},
+					{"do": "look_at", "at": "up", "ticks": 40},
+					{"do": "say", "lines": ["snow angel", "minecraft snow angels are just crouching ok", "made a snow angel. trust"], "chance": 0.3}
+				]
+			},
+			"archetypes": {"newbie": 1.8, "casual": 1.3, "speedrunner": 0.2}, "traits": {"fidget": 0.4, "creativity": 0.3}, "cooldown": 48000, "offscreen": "show",
+			"thought": "making a snow angel (sort of)"
+		},
+		{
+			"id": "home_before_the_storm", "category": "weather", "action": "steps", "when": "thunder",
+			"params": {
+				"find": {"home": {"type": "home", "radius": 96}},
+				"steps": [
+					{"do": "say", "lines": ["storm's coming, heading in", "nope, going home", "not getting struck today", "inside time"], "chance": 0.4},
+					{"do": "walk_to", "target": "home", "near": 3},
+					{"do": "look_at", "at": "clouds", "ticks": 40}
+				]
+			},
+			"archetypes": {"homebody": 2.0, "newbie": 1.3, "nomad": 0.4}, "traits": {"caution": 0.8, "bravery": -0.3}, "weight": 1.5, "cooldown": 24000,
+			"offscreen": "show",
+			"thought": "heading home as the storm rolls in"
+		},
+		{
+			"id": "lightning_from_the_doorway", "category": "weather", "action": "watch_sky", "when": "thunder",
+			"params": {"what": "clouds", "from": "door"},
+			"archetypes": {"homebody": 1.8, "hermit": 1.5}, "traits": {"patience": 0.4}, "duration": 200, "cooldown": 24000,
+			"chat": ["that was close", "lightning!!", "one mississippi two mississippi", "i felt that one", "the thunder is so loud"],
+			"thought": "watching the lightning from its doorway"
+		}
+	]
+}

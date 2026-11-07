@@ -1,0 +1,136 @@
+{
+	"whims": [
+		{
+			"id": "tip_about_the_nether", "category": "social", "action": "chat", "gates": "M", "knows": "nether",
+			"comment": "Whims by what it knows of the game (personality/Lore: \"knows\"): a veteran's tips, only about what it knows.",
+			"params": {"lines": ["pro tip: never sleep in the nether", "bring fire res to the nether trust me", "wear gold in the nether or the piglins jump you",
+				"nether portals go 8 blocks for 1 btw", "dont dig straight down in the nether. lava everywhere", "build your portal on blocks you placed, ghasts break the rest"]},
+			"archetypes": {"newbie": 0.1, "helper": 2.0, "speedrunner": 1.3, "hermit": 0.5}, "traits": {"sociability": 0.6, "knowledge": 0.5}, "weight": 0.6, "cooldown": 48000,
+			"thought": "giving a tip about the Nether"
+		},
+		{
+			"id": "tip_about_enchanting", "category": "social", "action": "chat", "gates": "M", "knows": "enchanting",
+			"params": {"lines": ["15 bookshelves for max level enchants", "mending is the best enchant fr", "put unbreaking on everything",
+				"dont waste levels on the 1 level enchant", "leave a block of air between the table and the shelves", "lapis goes in the table, keep some on you"]},
+			"archetypes": {"newbie": 0.1, "helper": 2.0, "miner": 1.3, "pvp_sweat": 1.3}, "traits": {"sociability": 0.6, "knowledge": 0.5}, "weight": 0.6, "cooldown": 48000,
+			"thought": "giving a tip about enchanting"
+		},
+		{
+			"id": "tip_about_brewing", "category": "social", "action": "chat", "gates": "M", "knows": "brewing",
+			"params": {"lines": ["blaze powder fuels the brewing stand", "nether wart first, then the rest", "redstone makes potions last longer",
+				"glowstone makes them stronger but shorter", "gunpowder for splash potions", "fermented spider eye flips a potion, kinda"]},
+			"archetypes": {"newbie": 0.1, "helper": 2.0, "hermit": 1.5, "pvp_sweat": 1.3}, "traits": {"sociability": 0.5, "knowledge": 0.5}, "weight": 0.6, "cooldown": 48000,
+			"thought": "giving a tip about brewing"
+		},
+		{
+			"id": "tip_about_raids", "category": "social", "action": "chat", "gates": "M", "knows": "raids",
+			"params": {"lines": ["dont drink an ominous bottle unless you want a raid", "kill the evokers first, vexes are the worst", "evokers drop totems btw",
+				"a raid can get rough, get the villagers inside", "ravagers hit like a truck, shield up"]},
+			"archetypes": {"newbie": 0.1, "helper": 1.8, "nomad": 1.3, "bandit": 1.2}, "traits": {"sociability": 0.5, "knowledge": 0.5}, "weight": 0.5, "cooldown": 48000,
+			"thought": "giving a tip about raids"
+		},
+		{
+			"id": "tip_about_the_end", "category": "social", "action": "chat", "gates": "M", "knows": "end",
+			"params": {"lines": ["bring loads of blocks to the end, the void is no joke", "wear a pumpkin and endermen leave you alone",
+				"eyes of ender break sometimes, bring extra", "dont look at endermen. just dont", "beds blow up in the end. use that on the dragon"]},
+			"archetypes": {"newbie": 0.1, "helper": 1.8, "speedrunner": 2.0}, "traits": {"sociability": 0.5, "knowledge": 0.5}, "weight": 0.5, "cooldown": 48000,
+			"thought": "giving a tip about the End"
+		},
+		{
+			"id": "tip_about_redstone", "category": "social", "action": "chat", "gates": "M", "knows": "redstone",
+			"params": {"lines": ["comparators can tell how full a chest is", "observers are so op", "repeaters carry a signal further",
+				"a redstone torch turns off when its block gets power", "hoppers into chests = free sorting, sort of"]},
+			"archetypes": {"newbie": 0.1, "builder": 2.0, "helper": 1.5}, "traits": {"creativity": 0.5, "knowledge": 0.5}, "weight": 0.5, "cooldown": 48000,
+			"thought": "giving a tip about redstone"
+		},
+		{
+			"id": "tip_about_trading", "category": "social", "action": "chat", "gates": "M", "knows": "trading",
+			"params": {"lines": ["cure a zombie villager for cheap trades", "librarians are the best villagers", "trade once to lock a villager's job",
+				"a villager won't take a job without a workstation", "emeralds are the money, farm them"]},
+			"archetypes": {"newbie": 0.1, "helper": 1.8, "hoarder": 1.5, "homebody": 1.3}, "traits": {"sociability": 0.5, "greed": 0.3}, "weight": 0.5, "cooldown": 48000,
+			"thought": "giving a tip about trading"
+		},
+		{
+			"id": "tip_about_trial_chambers", "category": "social", "action": "chat", "gates": "M", "knows": "trial_chambers",
+			"params": {"lines": ["a trial key opens a vault, one each", "breezes knock your arrows away, go melee", "ominous trials have the better loot",
+				"trial spawners come back after a while", "watch out for the breeze's wind charges near ledges"]},
+			"archetypes": {"newbie": 0.1, "helper": 1.5, "nomad": 1.8, "pvp_sweat": 1.3}, "traits": {"sociability": 0.5, "knowledge": 0.5}, "weight": 0.5, "cooldown": 48000,
+			"thought": "giving a tip about trial chambers"
+		},
+		{
+			"id": "what_is_this_portal", "category": "exploration", "action": "watch_block", "knows": "new:nether",
+			"comment": "A newbie's wonder at a thing it has just found out about (\"new:nether\": it learned of the Nether within the day; seeing a portal is how most learn).",
+			"params": {"blocks": ["minecraft:nether_portal"], "radius": 24},
+			"archetypes": {"newbie": 2.5, "casual": 1.2}, "traits": {"curiosity": 0.8}, "weight": 3.0, "duration": 120, "cooldown": 48000,
+			"chat": ["what is this purple thing", "is it safe to walk in??", "whats this portal do", "the purple stuff is swirling", "uh. what is that"],
+			"thought": "wondering what the purple portal is"
+		},
+		{
+			"id": "what_is_this_table", "category": "exploration", "action": "watch_block", "knows": "new:enchanting",
+			"params": {"blocks": ["minecraft:enchanting_table"], "radius": 16},
+			"archetypes": {"newbie": 2.5, "casual": 1.2}, "traits": {"curiosity": 0.8}, "weight": 3.0, "duration": 100, "cooldown": 48000,
+			"chat": ["what does this table do", "it has a floating book??", "fancy table", "the book is moving by itself", "what language is that"],
+			"thought": "wondering what the table with the book is"
+		},
+		{
+			"id": "what_is_this_stand", "category": "exploration", "action": "watch_block", "knows": "new:brewing",
+			"params": {"blocks": ["minecraft:brewing_stand"], "radius": 16},
+			"archetypes": {"newbie": 2.5, "casual": 1.2}, "traits": {"curiosity": 0.8}, "weight": 3.0, "duration": 100, "cooldown": 48000,
+			"chat": ["what is this thing", "some kind of potion maker?", "what do the bottles go in", "is this for science"],
+			"thought": "wondering what the brewing stand is for"
+		},
+		{
+			"id": "what_are_these_frames", "category": "exploration", "action": "watch_block", "knows": "new:end",
+			"params": {"blocks": ["minecraft:end_portal_frame"], "radius": 16},
+			"archetypes": {"newbie": 2.0, "casual": 1.2, "nomad": 1.3}, "traits": {"curiosity": 0.8}, "weight": 3.0, "duration": 120, "cooldown": 48000,
+			"chat": ["weird green blocks", "what are these frames for", "some have eyes in them??", "this place is creepy"],
+			"thought": "wondering what the strange frames are"
+		},
+		{
+			"id": "watch_the_runes", "category": "micro", "action": "steps", "knows": "enchanting",
+			"params": {
+				"find": {"table": {"type": "block", "ids": ["minecraft:enchanting_table"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "table", "near": 2},
+					{"do": "look_at", "target": "table", "ticks": 120},
+					{"do": "say", "lines": ["love the little letters", "the book flapping :)", "standard galactic alphabet goes hard", "one day ill read it"], "chance": 0.2}
+				]
+			},
+			"archetypes": {"hermit": 1.5, "miner": 1.3}, "traits": {"patience": 0.5}, "cooldown": 24000, "offscreen": "show",
+			"thought": "watching the runes drift into the enchanting table"
+		},
+		{
+			"id": "watch_the_brewing_stand", "category": "micro", "action": "watch_block", "knows": "brewing",
+			"params": {"blocks": ["minecraft:brewing_stand"], "radius": 16},
+			"archetypes": {"hermit": 1.8, "pvp_sweat": 1.2}, "traits": {"patience": 0.5}, "duration": 120, "cooldown": 24000,
+			"thought": "watching the brewing stand bubble"
+		},
+		{
+			"id": "stand_in_the_beacon", "category": "micro", "action": "steps", "knows": "beacons",
+			"params": {
+				"find": {"beacon": {"type": "block", "ids": ["minecraft:beacon"], "radius": 32}},
+				"steps": [
+					{"do": "walk_to", "target": "beacon", "near": 3},
+					{"do": "look_at", "at": "up", "ticks": 80},
+					{"do": "say", "lines": ["beacon vibes", "the beam goes all the way up", "worth the wither tbh", "so pretty"], "chance": 0.3}
+				]
+			},
+			"traits": {"patience": 0.3, "creativity": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "looking up the beacon's beam"
+		},
+		{
+			"id": "quiet_by_the_sculk", "category": "micro", "action": "steps", "knows": "warden",
+			"comment": "It doesn't walk over (a sculk sensor hears footsteps): it keeps still and crouched where it is.",
+			"params": {
+				"find": {"shrieker": {"type": "block", "ids": ["minecraft:sculk_shrieker"], "radius": 16}},
+				"steps": [
+					{"do": "crouch", "ticks": 80},
+					{"do": "look_at", "target": "shrieker", "ticks": 40},
+					{"do": "think", "text": "kept very still near the sculk (it knows what lives down here)"}
+				]
+			},
+			"traits": {"caution": 0.8}, "cooldown": 12000, "offscreen": "show",
+			"thought": "keeping quiet near the sculk"
+		}
+	]
+}

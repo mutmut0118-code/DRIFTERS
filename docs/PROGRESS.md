@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | In progress: engine, steps whims (docs/WHIMS_HOWTO.md), 141 whims (of about 900 ideas in docs/WHIMS.md), offscreen whims (milestone 20) | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, steps whims (docs/WHIMS_HOWTO.md), 209 whims (188 in the mod, 21 town whims in the addon; of about 900 ideas in docs/WHIMS.md), offscreen whims (milestone 20), whims by what it knows, the moon and snow (0.23.26-side.1) | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 | 16 | Scale | **In progress** (2026-10-19): helper threads for paths and eyes, crowd perception, cheaper decisions, spread-out catch-up; see "Milestone 16" below | 1000 Drifters across a world and 300 round a player at a steady 20 TPS; a 150v150 battle playable (user, 2026-10-18). |
 | 15 | House plans by the hundred | **Done** (user, 2026-10-19): 9 data-file styles, L and T wings, lofts, corner towers, A-frames, 300 checked plans per world; Drifters pick and build them on their own | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
@@ -4726,3 +4726,46 @@ to debate) until you hit 10000 total topics".
   asking a speedrunner about the Nether and learning it, then the dragon from its plans. The hover itself isn't checked
   in the client (a vanilla chat hover).
 - Merged the main line's 0.23.23.
+
+## Side session: more whims (0.23.26-side.1)
+
+The user (2026-11-06): "okay cool, lets work on more whims!" Proposed five groups; the user picked A to D (the question
+offered four; E, friends, was in the recommended list and is built too, three whims, easy to drop). 41 new whims (188 in
+the mod, 209 with the addon's town whims); the main-line session keeps out of the whim files (memory note
+`lived-world-order`), and this branch keeps out of the addon's `town.json`.
+
+- **Engine** (docs/WHIMS_HOWTO.md updated, also with the `town` target and the parts of the day it lacked):
+  - `knows` (a field): areas of the game it must know (`personality/Lore`), `"!area"` must not know yet, `"new:area"`
+    found out within the last in-game day (`Lore.learnedSince`, a time per area kept while the game runs, not saved).
+    Checked in `WhimGoal.whyNot` and while away (`WhimsAway`); a wrong area name leaves the whim out with a guess.
+    Found in the smoke test: a Drifter learns the Nether the moment it sees a portal (`Lore.check`), so a "!nether"
+    wonder at a portal could never come up; the wonder whims use `new:` instead (the day it first saw one).
+  - `when` values `full_moon`, `new_moon` (a clear night of that moon; while away from the moon's phase by the day count)
+    and `snow` (raining where the biome makes it snow; never while away).
+  - A need's `most` ("only while it has no more than 2"): `WhimGoal.whyNot` ("has more than 2 minecraft:diamond"),
+    `WhimsAway.carries`.
+  - Steps verb `use_item` (`StepsAction.HoldUp`): the item's own use through the fake player (the horn's call, the
+    spyglass's click), then the Drifter holds it up for `ticks` so the client shows the spyglass or horn pose; refuses
+    food and drink (`eat`).
+- **Whims**: `lore.json` (16: eight veterans' tips by area, M gate, newbies 0.1; four wonders at a portal, enchanting
+  table, brewing stand, end portal frame, `new:`; watching the runes, the brewing stand, a beacon's beam; keeping still
+  and crouched near a sculk shrieker, `knows: warden`); `moon_and_snow.json` (8: full moon gazing and a warning, no moon
+  tonight, snow falling, catching snowflakes, a snow angel, home before the storm, lightning from the doorway);
+  `mistakes.json` (+4: into a berry bush, R gate, real damage; its first diamond, `most` 2; jumping at a noise; forgetting
+  what it came to its chest for); `small_moments.json` (10: compass, clock, spyglass, goat horn; an axolotl, a frog,
+  glow squid, a goat, a sniffer, a camel); `friends.json` (+3: showing off a diamond, a high five, the fire with a friend).
+- **Tested** (headless, a deep flat snowy world, a newbie and a helper with Knowledge 1, each whim forced): all 185 whims
+  load with no warnings; refusals say why ("already knows about nether", "has more than 2 minecraft:diamond", "not the
+  right time or weather (new_moon)"); ran as written: tips, the brewing stand, the beacon, the sculk, the berry bush
+  ("ow"), the first diamond, the compass, the spyglass and the horn (`use_item`), the clock, full moon gazing, no moon
+  tonight, jumping at a noise, snow falling, snowflakes, the snow angel, full moon warnings (both, with company), the fire
+  with a friend (started), home before the storm (started; at night the night shelter took over), and a newbie that had
+  just learned of the Nether wondering at the portal. Tips are near never for a newbie now (one that had only just seen a
+  portal gave "pro tip: never sleep in the nether" in the first run).
+- **Not checked** (need the user's game): the animal whims (axolotl, frog, glow squid, goat, sniffer, camel) and
+  `watch_wildlife` alike find nothing on a headless server: `/drifter senses` tracks no animals there at all, even three
+  standing 4 blocks in front of it (Drifters it does track), so that's the test set-up, not these whims; the spyglass and
+  horn poses and hearing the horn (client); `what_was_i_doing` (needs a home with its own chest); `show_off_a_diamond`
+  and `high_five` (the test pair hadn't spotted each other in time: "nobody about").
+- Lore learning runs about every 30 s (`DrifterEntity` tick), so a `new:` whim can come up from then until a day later.
+
