@@ -3013,3 +3013,24 @@ and next to Vet `/drifter group Nova` (friends).
       found"), `high_five` (walks up, swings, hops), `fire_with_a_friend` (at night by a campfire).
 - [ ] **They come up on their own.** Leave Drifters living a few days: in `/drifter thoughts` you should now and then see
       "gazing at the full moon", "giving a tip about the Nether", "walking into a berry bush (ow)" and the like.
+
+## 0.23.28: a town's notices on the Bountiful bounty board (new)
+
+Needs Bountiful (and Kambrik) in the game, as in DRIFTER TEST. New world, "A world of nations" on.
+
+- [ ] **The notice on the board.** Find a town's bounty board (made-ready towns have one on the plaza, near the well).
+      In the morning, when the keeper puts up a notice, it's also on the board: the paper asks for the notice's things,
+      and the reward is an emerald with "N emeralds from <town>" when you point at it. Its paper is called "Notice from
+      <town>".
+- [ ] **Turn it in.** Take the paper, bring what it asks for, right-click the board with the paper: "<town> paid you N
+      emeralds for the ...". The keeper says thanks if it's near, and the notice is gone from `/drifterciv town` and from
+      the board.
+- [ ] **Filled the other way.** Throw the keeper the things instead (Q, looking at it): within ten seconds the notice is
+      off the board too. A paper you took before that, turned in after, just gives your things back ("That notice was
+      already taken down").
+- [ ] **Drifters fill them too.** Now and then a townsperson reads the board; if it has the things spare it takes the
+      town's bounty and turns it in. `/drifter thoughts` on it: "took a bounty: 40 paper for 1 emerald from Hollowbrook",
+      then "filled Hollowbrook's notice at the board".
+- [ ] Debug, standing in a town: `/drifterciv town bounty` opens its board from where you are; `/drifterciv town bounty
+      paper` puts its notice's paper in your hand; `/drifterciv town bounty goods` gives you what it asks for; then
+      `/drifterciv town bounty` again turns it in.

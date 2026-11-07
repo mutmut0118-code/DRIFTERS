@@ -4669,6 +4669,33 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.28: a town's notices on Bountiful's bounty board** (the user, 2026-11-07: "will there be notices compat with
+  bountiful?", then "yes build it"). Only with Bountiful installed (`TownBounties`).
+  - Each notice up in a town is also a real bounty on its board (the one on a made-ready town's plaza, or any board within
+    40 blocks of a town's middle, looked for once a day when it has none; `Town.bountyBoard`): asks for the notice's
+    things, its reward a command (`drifterciv bountiful <notice> <item> <count> %PLAYER_NAME%`, run by Bountiful as the
+    server) shown as "9 emeralds from Hollowbrook" with an emerald icon (our pool entry
+    `data/bountiful/bounty_pools/drifter_civ/drifterciv_notice.json`, never used to make bounties; Bountiful logs that
+    it's "not attached to any existing data" once at start, harmless). Named "Notice from <town>", marked with the notice's
+    id (`Notice.id`, saved) in its custom data; runs out when the notice comes down.
+  - Turned in at a board (Bountiful takes the things): the town pays (the poster's money, then the till's, as when thrown;
+    "all it had" if short), the things go to the poster (else the till, else by the board), the notice comes down, the
+    chronicle and the poster say so, the poster trusts the player more. Turned in after the notice is down (filled by
+    throwing, or old): the things back.
+  - Filled by throwing, or taken down: off the board within ten seconds. Pruned by Bountiful: put back. No free slot: one
+    of Bountiful's own taken off for it.
+  - Drifters reading the board (BountyGoal) can fill them with what they can spare: the reward command finds the Drifter
+    through `DrifterApi.actingHelper()` (new; `FakePlayerBridge.acting()`), pays its helper, and the Drifter gets it.
+    Their thoughts show the pay by its name ("took a bounty: 40 paper for 1 emerald from Hollowbrook").
+  - Board reached by reflection (its `bounties`, `addBounty`, `removeBounty`, `getFreeSlots`; Bountiful 8.0.0-beta.2):
+    if that fails it logs once and stops, and notices still work by throwing.
+  - Debug: `/drifterciv town bounty` (right-click the nearest town's board with what's in your hand, from anywhere: an empty
+    hand opens it, a paper is turned in), `bounty paper` (its first notice's paper in your hand), `bounty goods` (what the
+    first notice asks for).
+  - Tested in the client (Hollowbrook, the test seed): the notice on the plaza board with the emerald; a player turned in
+    its paper ("Hollowbrook paid you 1 emerald for the 16 paper", the chronicle line); next day a farmer given the paper
+    the notice wanted read the board, took the town's bounty and turned it in, and was paid.
+
 - **0.23.27: phase C's rest (traditions, stables, bees), D1 and D5, B4, B5 and B6** (the user, 2026-11-06: "lets do c, for
   traditions, and bees and stables, and then only d1 and d5, and then go to b4 b5 and b6"; whims left to another session).
   - **Traditions** (`TownTraditions`, `Town.traditions`): two fishing contests won and the contest is weekly (every six

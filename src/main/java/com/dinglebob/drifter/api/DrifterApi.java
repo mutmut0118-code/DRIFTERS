@@ -1205,6 +1205,23 @@ public final class DrifterApi {
 		return com.dinglebob.drifter.trade.Money.priceStack(points);
 	}
 
+	/**
+	 * The helper player of the Drifter acting through it right now (inside its break, place, use: what that sets off runs
+	 * then, such as a Bountiful bounty's reward, which gets this helper as its player), or null. Things given to it go to the
+	 * Drifter when the action ends; its Drifter is {@link #drifterBehind}.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static net.minecraft.world.entity.player.Player actingHelper() {
+		DrifterEntity drifter = com.dinglebob.drifter.hands.FakePlayerBridge.acting();
+		return drifter == null ? null : drifter.helperPlayer;
+	}
+
+	/** The Drifter behind this entity: itself, or the Drifter whose helper player it is; null for anyone else. */
+	@org.jetbrains.annotations.Nullable
+	public static DrifterEntity drifterBehind(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.Entity entity) {
+		return com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(entity);
+	}
+
 	/** What a stack of money is worth in points (0: not money). */
 	public static double moneyWorth(net.minecraft.world.item.ItemStack stack) {
 		return com.dinglebob.drifter.trade.Money.worth(stack);

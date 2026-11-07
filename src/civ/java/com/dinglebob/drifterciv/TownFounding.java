@@ -154,6 +154,8 @@ public final class TownFounding {
 				// What it thinks of the players about (D1); its notices (D5).
 				Towns.all().forEach(town -> TownReputation.check(server, town));
 				Towns.all().forEach(town -> TownNotices.check(server, town));
+				// Its notices on its Bountiful board too, when Bountiful's here.
+				Towns.all().forEach(town -> TownBounties.check(server, town));
 				// Prices settling each day (B4).
 				Towns.all().forEach(town -> {
 					long day = Chronicle.day(server);

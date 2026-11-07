@@ -30,8 +30,8 @@ import net.minecraft.world.item.Items;
  * speak. Each morning its keeper (or leader) posts what the town's short of ("need 32 iron, paying 9 emeralds"), when it
  * and the till have the money; throw the poster that many (to it, in one go or several) and it pays you there and then,
  * from its own money first, then the till's. A warning goes up when there are bandits about ("bandits up north, watch
- * yourselves"). They're in the Gazette, on the plaza board's last sign, in `/drifterciv town`; taken down when done or
- * after three days.
+ * yourselves"). They're in the Gazette, on the plaza board's last sign, in `/drifterciv town`, and with Bountiful on the town's
+ * bounty board as real bounties ({@link TownBounties}); taken down when done or after three days.
  */
 final class TownNotices {
 	private TownNotices() {
@@ -48,6 +48,8 @@ final class TownNotices {
 		final long day;
 		/** What each player has handed over toward it so far. */
 		final Map<UUID, Integer> delivered = new HashMap<>();
+		/** Its own id (its paper on a Bountiful board is marked with it: TownBounties). */
+		UUID id = UUID.randomUUID();
 
 		Notice(UUID poster, String posterName, String item, int count, double points, String text, long day) {
 			this.poster = poster;
@@ -68,6 +70,7 @@ final class TownNotices {
 			tag.putDouble("Points", this.points);
 			tag.putString("Text", this.text);
 			tag.putLong("Day", this.day);
+			tag.putUUID("Id", this.id);
 			CompoundTag given = new CompoundTag();
 			this.delivered.forEach((id, n) -> given.putInt(id.toString(), n));
 			tag.put("Delivered", given);
@@ -77,6 +80,10 @@ final class TownNotices {
 		static Notice load(CompoundTag tag) {
 			Notice notice = new Notice(tag.getUUID("Poster"), tag.getString("PosterName"), tag.getString("Item"), tag.getInt("Count"),
 				tag.getDouble("Points"), tag.getString("Text"), tag.getLong("Day"));
+			if (tag.hasUUID("Id")) {
+				notice.id = tag.getUUID("Id");
+			}
+
 			CompoundTag given = tag.getCompound("Delivered");
 			for (String key : given.getAllKeys()) {
 				try {
@@ -91,7 +98,7 @@ final class TownNotices {
 
 	/** Notices up at once at most, and how long one stays up (days). */
 	private static final int MOST = 3;
-	private static final int STAYS = 3;
+	static final int STAYS = 3;
 	/** What it'll pay over an item's worth (a request pays a bit better than the stall). */
 	private static final double PREMIUM = 1.3;
 	/** Bandits within this of the town: a warning. */
@@ -186,7 +193,7 @@ final class TownNotices {
 	}
 
 	@Nullable
-	private static Container till(MinecraftServer server, Town town) {
+	static Container till(MinecraftServer server, Town town) {
 		BlockPos at = town.till();
 		return at != null && server.overworld().isLoaded(at) && server.overworld().getBlockEntity(at) instanceof Container chest ? chest : null;
 	}
@@ -255,7 +262,7 @@ final class TownNotices {
 	}
 
 	/** Money out of this container, a piece at a time, till it's worth {@code points}; what's still owed. */
-	private static double take(Container from, double points, List<ItemStack> into) {
+	static double take(Container from, double points, List<ItemStack> into) {
 		for (int slot = 0; slot < from.getContainerSize() && points > 0; slot++) {
 			ItemStack stack = from.getItem(slot);
 			double each = stack.isEmpty() ? 0 : DrifterApi.moneyWorth(stack.copyWithCount(1));

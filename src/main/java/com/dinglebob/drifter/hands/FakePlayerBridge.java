@@ -50,11 +50,25 @@ public final class FakePlayerBridge {
 		}
 
 		syncIn(drifter, fake);
+		ACTING.push(drifter);
 		try {
 			return action.apply(fake);
 		} finally {
+			ACTING.pop();
 			syncOut(drifter, fake);
 		}
+	}
+
+	/** The Drifters acting through their helpers right now, innermost first (server thread only). */
+	private static final java.util.ArrayDeque<DrifterEntity> ACTING = new java.util.ArrayDeque<>();
+
+	/**
+	 * The Drifter whose helper is acting right now (inside its break, place, use...: what that sets off runs then, such as a
+	 * Bountiful bounty's reward), or null. Give it things through its helper then: its own pack is overwritten as it ends.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static DrifterEntity acting() {
+		return ACTING.peek();
 	}
 
 	private static GameProfile profileFor(DrifterEntity drifter) {

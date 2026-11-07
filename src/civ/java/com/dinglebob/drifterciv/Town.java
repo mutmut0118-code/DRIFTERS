@@ -157,6 +157,10 @@ public final class Town {
 	public final List<Plot> plaza = new ArrayList<>();
 	public boolean wellFilled;
 	public long boardDay = -1;
+	/** Its Bountiful bounty board (its notices go up on it: TownBounties), and the day it last looked for one. */
+	@Nullable
+	public BlockPos bountyBoard;
+	public long bountyLook = -1;
 	/** Comings and goings (milestone 23 C3, {@link TownLife}): the day it last looked, the newest of its people and the latest
 	 * to leave (and the days), the day a newcomer last came up its road. */
 	public long lifeDay = -1;
@@ -380,6 +384,9 @@ public final class Town {
 		tag.put("Plaza", plaza);
 		tag.putBoolean("WellFilled", this.wellFilled);
 		tag.putLong("BoardDay", this.boardDay);
+		if (this.bountyBoard != null) {
+			tag.putLong("BountyBoard", this.bountyBoard.asLong());
+		}
 		tag.putLong("LifeDay", this.lifeDay);
 		if (this.newest != null) {
 			tag.putString("Newest", this.newest);
@@ -555,6 +562,7 @@ public final class Town {
 
 		town.wellFilled = tag.getBoolean("WellFilled");
 		town.boardDay = tag.contains("BoardDay") ? tag.getLong("BoardDay") : -1;
+		town.bountyBoard = tag.contains("BountyBoard") ? BlockPos.of(tag.getLong("BountyBoard")) : null;
 		town.lifeDay = tag.contains("LifeDay") ? tag.getLong("LifeDay") : -1;
 		town.newest = tag.contains("Newest") ? tag.getString("Newest") : null;
 		town.newestDay = tag.contains("NewestDay") ? tag.getLong("NewestDay") : -100;

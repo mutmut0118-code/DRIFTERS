@@ -135,6 +135,12 @@ takes from its home's chests to sell). `DrifterApi.stallPlan()`, `stallStand(...
 and `DrifterApi.setNeighbourly(true)`: neighbours who get along don't turn into rivals over the same ground (only those
 already at odds); off in the plain mod.
 
+Acting through its helper (0.23.28): `DrifterApi.actingHelper()` is the helper player of the Drifter acting through it
+right now (inside its break, place, use: what that sets off runs then, such as a Bountiful bounty's reward command, which
+gets this helper as its player), or null; things given to it reach the Drifter when the action ends (give them to the
+helper, not the Drifter's own pack, which is overwritten then). `DrifterApi.drifterBehind(entity)`: the Drifter behind an
+entity (itself, or the one whose helper it is), or null.
+
 ## Groups (a town's beginnings)
 
 `DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the

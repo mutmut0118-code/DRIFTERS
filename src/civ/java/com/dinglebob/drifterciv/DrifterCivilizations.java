@@ -279,6 +279,23 @@ public final class DrifterCivilizations implements ModInitializer {
 									+ " (see the chronicle)" : "nobody to send")), true);
 								return sent ? 1 : 0;
 							})))))
+			// A town's notice turned in at a Bountiful board: what its paper's reward runs (TownBounties), "<notice> <item> <count>
+			// <player>"; the town pays them, and takes the things.
+			.then(Commands.literal("bountiful").requires(source -> source.hasPermission(2))
+				.then(Commands.argument("paper", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
+					String[] parts = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "paper").trim().split("\\s+");
+					try {
+						var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(net.minecraft.resources.ResourceLocation.parse(parts[1]));
+						if (parts.length < 4 || item.isEmpty()) {
+							return 0;
+						}
+
+						return TownBounties.cashIn(ctx.getSource().getServer(), java.util.UUID.fromString(parts[0]), item.get(), Integer.parseInt(parts[2]), parts[3]) ? 1 : 0;
+					} catch (RuntimeException e) {
+						ctx.getSource().sendFailure(Component.literal("drifterciv bountiful <notice> <item> <count> <player>"));
+						return 0;
+					}
+				})))
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
@@ -567,6 +584,44 @@ public final class DrifterCivilizations implements ModInitializer {
 					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 					return 1;
 				}))
+				// Debug (with Bountiful): the nearest town's bounty board right-clicked with what's in your hand, from where you are
+				// (an empty hand opens it, a paper is turned in); "paper": its first notice's paper from the board, in your hand.
+				.then(Commands.literal("bounty").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					if (town == null || !TownBounties.click(player, town)) {
+						ctx.getSource().sendFailure(Component.literal("The nearest town has no bounty board (or Bountiful isn't here)"));
+						return 0;
+					}
+
+					return 1;
+				}).then(Commands.literal("paper").executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					ItemStack paper = town == null ? ItemStack.EMPTY : TownBounties.paperOnBoard(ctx.getSource().getServer(), town);
+					if (paper.isEmpty()) {
+						ctx.getSource().sendFailure(Component.literal("No notice on the nearest town's bounty board"));
+						return 0;
+					}
+
+					player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, paper);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + "'s notice paper in your hand"), true);
+					return 1;
+				})).then(Commands.literal("goods").executes(ctx -> {
+					// Debug: what the nearest town's first notice asks for, given you.
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					var notice = town == null || town.notices.isEmpty() ? null : town.notices.get(0);
+					if (notice == null) {
+						ctx.getSource().sendFailure(Component.literal("No notice up in the nearest town"));
+						return 0;
+					}
+
+					player.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+						net.minecraft.resources.ResourceLocation.parse(notice.item)), notice.count));
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: given what " + town.name + "'s notice asks for (" + notice.count + " " + notice.item + ")"), true);
+					return 1;
+				})))
 				// Debug: what's in your hand to the nearest Drifter, as if you'd thrown it to it (a job, a notice; B5, D5).
 				.then(Commands.literal("fill").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					// Debug: the nearest town's first notice filled, as if you'd brought its poster what it asked for.
