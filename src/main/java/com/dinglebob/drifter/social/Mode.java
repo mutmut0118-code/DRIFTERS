@@ -60,6 +60,10 @@ public enum Mode {
 	public static final double BASE_RADIUS = 20.0;
 	/** In a town: its house, and this many blocks round it. */
 	public static final int IN_TOWN_MARGIN = 2;
+	/** Someone wanted in its town is gone after this far past the town's edge. */
+	public static final int WANTED_REACH = 48;
+	/** Under this Bravery a townsperson (not a guard) keeps clear of someone wanted rather than going for them. */
+	public static final double TIMID = 0.35;
 
 	public String id() {
 		return this.name().toLowerCase(Locale.ROOT);
@@ -94,8 +98,17 @@ public enum Mode {
 		// Exiled from its town (step 5 of milestone 22: a law broken, the fine not paid, or a killing): in the town, it drives
 		// them out, as from its own base.
 		var town = drifter.getTownWork();
-		if (town != null && "exiled".equals(town.standing(drifter, player)) && player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center()))
-			<= town.radius() + 8 && drifter.level().getDifficulty() != Difficulty.PEACEFUL && com.dinglebob.drifter.DrifterConfig.playerAggression() > 0) {
+		String standing = town == null ? null : town.standing(drifter, player);
+		double fromTown = town == null ? Double.MAX_VALUE : player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center()));
+		boolean mayFight = drifter.level().getDifficulty() != Difficulty.PEACEFUL && com.dinglebob.drifter.DrifterConfig.playerAggression() > 0;
+		// Wanted there (a killing seen, a massacre, an arrest resisted; the user, 2026-11-07: "enforce and up crime awareness
+		// and behavior"): about the town, its guards and its bold go for them on sight; the rest keep well clear.
+		if ("wanted".equals(standing) && fromTown <= town.radius() + WANTED_REACH && mayFight) {
+			r.wronged = true;
+			return timid(drifter) ? AVOIDING : VENGEFUL;
+		}
+
+		if (("exiled".equals(standing) || "wanted".equals(standing)) && fromTown <= town.radius() + 8 && mayFight) {
 			r.wronged = true;
 			return TERRITORIAL;
 		}
@@ -140,6 +153,24 @@ public enum Mode {
 		}
 
 		return wanted;
+	}
+
+	/** Not one to go after someone wanted: no guard, and a pacifist or not brave enough. */
+	private static boolean timid(DrifterEntity drifter) {
+		var town = drifter.getTownWork();
+		return (town == null || !town.guard(drifter)) && (drifter.getSocial().disposition() == Disposition.PACIFIST
+			|| drifter.getPersonality().get(Trait.BRAVERY) < TIMID);
+	}
+
+	/**
+	 * It goes after this player wherever about its town they are (not only in sight): they're wanted there, they're about
+	 * the town, and it's a guard or bold enough (the alarm tells it where they were; the user, 2026-11-07, "enforce").
+	 */
+	public static boolean pursuesWanted(DrifterEntity drifter, Player player) {
+		var town = drifter.getTownWork();
+		return town != null && "wanted".equals(town.standing(drifter, player)) && !timid(drifter)
+			&& player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center())) <= town.radius() + WANTED_REACH
+			&& drifter.level().getDifficulty() != Difficulty.PEACEFUL && com.dinglebob.drifter.DrifterConfig.playerAggression() > 0;
 	}
 
 	/**

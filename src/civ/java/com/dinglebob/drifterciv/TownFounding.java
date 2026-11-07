@@ -156,6 +156,8 @@ public final class TownFounding {
 				Towns.all().forEach(town -> TownNotices.check(server, town));
 				// Its notices on its Bountiful board too, when Bountiful's here.
 				Towns.all().forEach(town -> TownBounties.check(server, town));
+				// Its mine's faces, for its people from before they knew them (0.23.29).
+				Towns.all().forEach(town -> TownMine.check(server, town));
 				// Prices settling each day (B4).
 				Towns.all().forEach(town -> {
 					long day = Chronicle.day(server);
@@ -773,6 +775,13 @@ public final class TownFounding {
 		for (Town.Plot plot : taken) {
 			if (x <= plot.origin.getX() + plot.sizeX - 1 + GAP && x + sx - 1 >= plot.origin.getX() - GAP && z <= plot.origin.getZ() + plot.sizeZ - 1 + GAP
 				&& z + sz - 1 >= plot.origin.getZ() - GAP) {
+				return true;
+			}
+		}
+
+		// Nor its fields, pen, mine, stable, hives (found by the user: a stable and a mine on top of homes).
+		for (int[] rect : town.keepOff) {
+			if (x <= rect[2] + GAP && x + sx - 1 >= rect[0] - GAP && z <= rect[3] + GAP && z + sz - 1 >= rect[1] - GAP) {
 				return true;
 			}
 		}

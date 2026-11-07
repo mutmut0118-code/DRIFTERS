@@ -99,8 +99,12 @@ final class TownNotices {
 	/** Notices up at once at most, and how long one stays up (days). */
 	private static final int MOST = 3;
 	static final int STAYS = 3;
-	/** What it'll pay over an item's worth (a request pays a bit better than the stall). */
-	private static final double PREMIUM = 1.3;
+	/**
+	 * What it'll pay over an item's worth (a request pays a good deal better than the stall), and the least a notice pays
+	 * (money points: 3 emeralds; the user, 2026-11-07, "yes please" to more than "16 paper for 1 emerald").
+	 */
+	private static final double PREMIUM = 1.6;
+	private static final double LEAST = 18.0;
 	/** Bandits within this of the town: a warning. */
 	private static final double BANDITS_NEAR = 300.0;
 
@@ -132,7 +136,7 @@ final class TownNotices {
 				}
 
 				int count = 8 * (2 + poster.getRandom().nextInt(5));
-				double points = Math.max(6.0, Math.round(DrifterApi.worth(new ItemStack(item)) * count * PREMIUM));
+				double points = Math.max(LEAST, Math.round(DrifterApi.worth(new ItemStack(item)) * count * PREMIUM));
 				if (money(poster, town, server) < points) {
 					continue;
 				}

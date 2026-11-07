@@ -36,6 +36,21 @@ import net.minecraft.world.entity.player.Player;
  *   <li>Exiled: its people drive them out of the town (not past it) until it's over.</li>
  * </ul>
  * Only what its people saw (or found: valuables gone from a chest after someone was seen at it).
+ * <p>
+ * Stronger (the user, 2026-11-07: "we need to enforce and up crime awareness and behavior towards me/drifter commiting them,
+ * especially theft, killing a drifter with witnesses, or committing a massacre"):
+ * <ul>
+ *   <li>Theft seen as it happens: any of its people who sees a player take things from the town's chests (its store, its
+ *       till, a chest in one of its houses, one about its middle) says so; the fine is 3 emeralds and what was taken is
+ *       worth, more each time; stealing while exiled makes them wanted.</li>
+ *   <li>A killing: everyone of the town who saw it (or was close enough to hear it and knew who), not just one; wanted for
+ *       the week of the exile (its guards and bold people go for them on sight about the town, the rest keep clear).</li>
+ *   <li>A massacre (three of its people killed within a few days of each other): wanted there for a month, a price on
+ *       their head, and word goes round the towns about (wanted in them too for ten days).</li>
+ *   <li>A Drifter killer: those who saw it make it their enemy on sight, the whole town nearly so; one of its own is thrown
+ *       out; a Drifter who massacres is the enemy of every town about.</li>
+ *   <li>A fine refused: exile, and wanted for it.</li>
+ * </ul>
  */
 final class Justice {
 	private Justice() {
@@ -54,6 +69,28 @@ final class Justice {
 	private static final double WITNESS = 32.0;
 	/** The same deed seen by several of them within this is one crime (ticks). */
 	private static final long SAME_CRIME = 20L * 60;
+	/** A killing witnessed: seen within this, the killer in sight within the last few seconds; or this close, heard. */
+	private static final double MURDER_WITNESS = 48.0;
+	private static final long JUST_SEEN = 100L;
+	private static final double HEARD_IT = 16.0;
+	/** Three of its people killed, each within this many days of the last: a massacre. */
+	private static final int MASSACRE = 3;
+	private static final long MASSACRE_DAYS = 3;
+	/** A massacre: exiled and wanted this long; the towns this near hear of it, and want them this long. */
+	private static final long MASSACRE_EXILE = 30;
+	private static final double WORD_SPREADS = 1500.0;
+	private static final long HEARD_MASSACRE = 10;
+	/** What those who saw a theft, a killing, think of the one who did it (and the rest of the town, of a killing). */
+	private static final double SAW_THEFT = -20.0;
+	private static final double SAW_MURDER = -60.0;
+	private static final double HEARD_MURDER = -20.0;
+	/** A Drifter's killing: those who saw it, and the rest of the town (at or under -60 it's an enemy on sight). */
+	private static final double SAW_DRIFTER_MURDER = -90.0;
+	private static final double HEARD_DRIFTER_MURDER = -65.0;
+	/** A Drifter's killings lately (not saved): how many, and the day of the last. */
+	private static final Map<UUID, long[]> drifterKills = new HashMap<>();
+	/** When a town's people last called out someone wanted there (not saved). */
+	private static final Map<String, Long> calledOut = new HashMap<>();
 
 	/** A town's guards, picked each check (not saved), and which guard is after which culprit since when. */
 	private static final Map<UUID, List<UUID>> guards = new HashMap<>();
@@ -69,7 +106,13 @@ final class Justice {
 			}
 
 			switch (deed) {
-				case CAUGHT_STEALING, TOOK_VALUABLES -> crime(serverPlayer.server, town, serverPlayer, "theft", drifter);
+				case CAUGHT_STEALING, TOOK_VALUABLES -> {
+					// (Not when it's what they were seen taking already: found gone later, the same theft.)
+					Town.Criminal seen = town.crimes.get(serverPlayer.getUUID());
+					if (seen == null || serverPlayer.server.overworld().getGameTime() - seen.lastSeenTheft > 24000L) {
+						crime(serverPlayer.server, town, serverPlayer, "theft", drifter);
+					}
+				}
 				case KILLED_FARM_ANIMAL, TRAMPLED_CROPS -> {
 					if (town.laws.contains(Politics.FARMS) && !citizen(serverPlayer, town)) {
 						crime(serverPlayer.server, town, serverPlayer, "farms", drifter);
@@ -77,6 +120,12 @@ final class Justice {
 				}
 				default -> {
 				}
+			}
+		});
+
+		DrifterEvents.SEEN_TAKING.register((player, chest, taken, saw) -> {
+			if (player instanceof ServerPlayer serverPlayer) {
+				seenTaking(serverPlayer, chest, taken, saw);
 			}
 		});
 
@@ -92,28 +141,31 @@ final class Justice {
 				return;
 			}
 
-			// (Self-defence isn't murder: it came at them first. Found: a leader killing the one who turned on it.)
+			// (Self-defence isn't murder: it came at them first. Found: a leader killing the one who turned on it. Not for someone
+			// wanted there, though: the guards who come for them are in the right.)
 			var killer = playerKiller != null ? playerKiller : drifterKiller;
-			if (com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(killer.getLastHurtByMob()) == dead || dead.getTarget() == killer) {
+			Town.Criminal record = playerKiller == null ? null : town.crimes.get(playerKiller.getUUID());
+			boolean wanted = record != null && record.wantedUntil > 0;
+			if (!wanted && (com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(killer.getLastHurtByMob()) == dead || dead.getTarget() == killer)) {
 				return;
 			}
 
-			// Someone of the town saw it.
-			DrifterEntity witness = null;
-			for (DrifterEntity one : level.getEntitiesOfClass(DrifterEntity.class, dead.getBoundingBox().inflate(WITNESS), d -> d.isAlive() && d != dead && d != killer
-				&& town.group != null && DrifterGroups.of(d.getUUID()) != null && town.group.equals(DrifterGroups.of(d.getUUID()).id))) {
+			// Those of the town who saw it: the killer in sight just now, near; or close enough to hear it, knowing who.
+			List<DrifterEntity> witnesses = new ArrayList<>();
+			long now = level.getGameTime();
+			for (DrifterEntity one : level.getEntitiesOfClass(DrifterEntity.class, dead.getBoundingBox().inflate(MURDER_WITNESS), d -> d.isAlive() && d != dead
+				&& d != killer && town.group != null && DrifterGroups.of(d.getUUID()) != null && town.group.equals(DrifterGroups.of(d.getUUID()).id))) {
 				var seen = one.getSenses().awarenessOf(killer);
-				if (seen != null && seen.identified) {
-					witness = one;
-					break;
+				if (seen != null && seen.identified && (seen.visibleNow || now - seen.lastSeenTick <= JUST_SEEN || one.distanceTo(dead) <= HEARD_IT)) {
+					witnesses.add(one);
 				}
 			}
 
-			if (witness == null) {
+			if (witnesses.isEmpty()) {
 				return;
 			}
 
-			murder(level.getServer(), town, dead, playerKiller instanceof ServerPlayer p ? p : null, drifterKiller, witness);
+			murder(level.getServer(), town, dead, playerKiller instanceof ServerPlayer p ? p : null, drifterKiller, witnesses);
 		});
 	}
 
@@ -126,12 +178,35 @@ final class Justice {
 
 		boolean changed = false;
 		long day = Chronicle.day(server);
-		for (Town.Criminal criminal : town.crimes.values()) {
+		for (Map.Entry<UUID, Town.Criminal> entry : town.crimes.entrySet()) {
+			Town.Criminal criminal = entry.getValue();
+			if (criminal.wantedUntil > 0 && day >= criminal.wantedUntil) {
+				criminal.wantedUntil = 0;
+				changed = true;
+			}
+
 			if (criminal.exiledUntil > 0 && day >= criminal.exiledUntil) {
 				criminal.exiledUntil = 0;
 				criminal.offences = 0;
 				Chronicle.add(server, "law", criminal.name + " may come back to " + town.name + ": the exile is over");
 				changed = true;
+			}
+
+			// Someone wanted, back about the town: whoever of its people sees them first calls it out (now and then).
+			ServerPlayer player = criminal.wantedUntil > 0 ? server.getPlayerList().getPlayer(entry.getKey()) : null;
+			String key = town.id + "|" + entry.getKey();
+			if (player != null && player.blockPosition().closerThan(town.center, IN_TOWN) && server.overworld().getGameTime() - calledOut.getOrDefault(key, -100000L)
+				> 20L * 60 * 3) {
+				for (UUID id : group.members) {
+					DrifterEntity member = TownFounding.loaded(server, id);
+					if (member != null && member.level() == player.level() && member.getSocial().watcher().sees(player)) {
+						calledOut.put(key, server.overworld().getGameTime());
+						com.dinglebob.drifter.social.ChatLines.speak(member, com.dinglebob.drifter.social.Lines.pick(member, "crime.wanted", "player",
+							criminal.name));
+						alarm(server, town, player);
+						break;
+					}
+				}
 			}
 		}
 
@@ -184,9 +259,109 @@ final class Justice {
 		Towns.save(server);
 	}
 
+	/** A player seen taking things out of a chest: theft, if it was one of a town's that saw it (and not theirs to take). */
+	private static void seenTaking(ServerPlayer player, BlockPos chest, List<net.minecraft.world.item.ItemStack> taken, List<DrifterEntity> saw) {
+		String dimension = player.level().dimension().location().toString();
+		for (Town town : Towns.all()) {
+			if (!town.dimension.equals(dimension) || town.group == null || !theirs(player, town, chest)) {
+				continue;
+			}
+
+			List<DrifterEntity> witnesses = saw.stream().filter(one -> {
+				DrifterGroups.Group group = DrifterGroups.of(one.getUUID());
+				return group != null && town.group.equals(group.id);
+			}).toList();
+			if (!witnesses.isEmpty()) {
+				theft(player.server, town, player, chest, taken, witnesses);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * The town's chest, not this player's to take from: its till, its store (a citizen may take from that), one in its houses,
+	 * or one about its middle the player didn't put there (its mine's, its stable's).
+	 */
+	private static boolean theirs(ServerPlayer player, Town town, BlockPos chest) {
+		if (!chest.closerThan(town.center, IN_TOWN)) {
+			return false;
+		}
+
+		if (chest.equals(town.till())) {
+			return true;
+		}
+
+		if (town.store.contains(chest)) {
+			return !citizen(player, town);
+		}
+
+		for (Town.Plot plot : town.plots) {
+			if (inPlot(plot, chest)) {
+				return true;
+			}
+		}
+
+		return !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(player.level(), chest);
+	}
+
+	/**
+	 * Seen stealing: those who saw think less of them, one of them shouts; a fine of 3 emeralds and what it was worth (more
+	 * each time; more of the same theft in the next few seconds adds to it), the third time exile; stealing while exiled,
+	 * wanted.
+	 */
+	private static void theft(MinecraftServer server, Town town, ServerPlayer player, BlockPos chest, List<net.minecraft.world.item.ItemStack> taken,
+		List<DrifterEntity> saw) {
+		long now = server.overworld().getGameTime();
+		long day = Chronicle.day(server);
+		String name = player.getGameProfile().getName();
+		Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
+		double worth = taken.stream().mapToDouble(stack -> DrifterApi.worth(stack) * stack.getCount()).sum();
+		int value = (int)Math.ceil(worth / 6.0);
+		DrifterGroups.Group group = DrifterApi.groupById(town.group);
+		String whose = group == null ? "the town" : owner(server, town, group, chest);
+		String what = taken.size() == 1 ? taken.get(0).getCount() + " " + taken.get(0).getHoverName().getString().toLowerCase(java.util.Locale.ROOT)
+			: taken.stream().mapToInt(net.minecraft.world.item.ItemStack::getCount).sum() + " things";
+		boolean more = now - criminal.lastSeenTheft < 20L * 15 && "theft".equals(criminal.crime);
+		criminal.lastSeenTheft = now;
+		criminal.lastAt = now;
+		for (DrifterEntity one : saw) {
+			DrifterApi.addTrustInPlayer(one, player.getUUID(), name, SAW_THEFT);
+			DrifterApi.think(one, "saw " + name + " take " + what + " from " + whose);
+		}
+
+		if (!more) {
+			DrifterEntity witness = saw.get(0);
+			com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.theft", "player", name));
+		}
+
+		if (criminal.exiledUntil > 0) {
+			if (criminal.wantedUntil <= day) {
+				Chronicle.add(server, "law", name + " was seen stealing from " + whose + " in " + town.name + " while exiled: wanted there now");
+			}
+
+			criminal.wantedUntil = Math.max(criminal.wantedUntil, day + EXILE);
+		} else if (more) {
+			criminal.fine += value;
+		} else {
+			criminal.offences++;
+			criminal.crime = "theft";
+			if (criminal.offences >= REPEAT) {
+				exile(server, town, criminal, EXILE, "stealing again (" + criminal.offences + " times)");
+			} else {
+				criminal.fine += FINE_THEFT + value + 2 * (criminal.offences - 1);
+				Chronicle.add(server, "law", name + " was seen stealing " + what + " from " + whose + " in " + town.name + " (a fine of " + criminal.fine
+					+ " emeralds)");
+			}
+		}
+
+		Towns.save(server);
+	}
+
 	/** One of its people killed, and seen. */
 	private static void murder(MinecraftServer server, Town town, DrifterEntity dead, @Nullable ServerPlayer player, @Nullable DrifterEntity drifter,
-		DrifterEntity witness) {
+		List<DrifterEntity> witnesses) {
+		DrifterEntity witness = witnesses.get(0);
+		long day = Chronicle.day(server);
 		String victim = dead.getName().getString();
 		DrifterGroups.Group townGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (townGroup != null) {
@@ -200,32 +375,80 @@ final class Justice {
 		}
 
 		if (player != null) {
-			Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(player.getGameProfile().getName()));
+			String name = player.getGameProfile().getName();
+			Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
+			boolean wantedAlready = criminal.wantedUntil > day;
 			criminal.offences++;
 			criminal.crime = "murder";
-			com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.murder", "player", criminal.name,
-				"who", victim));
-			exile(server, town, criminal, MURDER_EXILE, "killing " + victim);
-			if (DrifterApi.postBounty(player, "the people of " + town.name, "the killing of " + victim)) {
-				Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + criminal.name + "'s head for killing " + victim);
+			criminal.kills++;
+			criminal.recentKills = day - criminal.lastKillDay <= MASSACRE_DAYS ? criminal.recentKills + 1 : 1;
+			criminal.lastKillDay = day;
+			// Those who saw it, and the rest of the town once it hears.
+			for (DrifterEntity one : witnesses) {
+				DrifterApi.addTrustInPlayer(one, player.getUUID(), name, SAW_MURDER);
+				DrifterApi.think(one, "saw " + name + " kill " + victim);
+			}
+
+			if (townGroup != null) {
+				for (UUID id : townGroup.members) {
+					DrifterEntity member = TownFounding.loaded(server, id);
+					if (member != null && !witnesses.contains(member)) {
+						DrifterApi.addTrustInPlayer(member, player.getUUID(), name, HEARD_MURDER);
+					}
+				}
+			}
+
+			alarm(server, town, player);
+			if (criminal.recentKills == MASSACRE) {
+				massacre(server, town, player, criminal, victim, witness);
+			} else if (criminal.recentKills > MASSACRE) {
+				com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.massacre", "player", name,
+					"who", victim));
+				criminal.exiledUntil = Math.max(criminal.exiledUntil, day + MASSACRE_EXILE);
+				criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MASSACRE_EXILE);
+				Chronicle.add(server, "law", name + " killed " + victim + " of " + town.name + " too (" + criminal.recentKills + " in all)");
+			} else {
+				com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.murder", "player", name,
+					"who", victim));
+				exile(server, town, criminal, Math.max(MURDER_EXILE, criminal.exiledUntil - day), "killing " + victim);
+				criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MURDER_EXILE);
+				if (!wantedAlready && DrifterApi.postBounty(player, "the people of " + town.name, "the killing of " + victim)) {
+					Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + name + "'s head for killing " + victim);
+				}
 			}
 		} else if (drifter != null) {
 			String name = drifter.getName().getString();
-			DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
-			if (group != null && group.members.contains(drifter.getUUID())) {
-				// One of its own: out of the town.
-				DrifterGroups.leave(drifter.getUUID());
-				Chronicle.add(server, "law", name + " was thrown out of " + town.name + " for killing " + victim);
-				DrifterApi.think(drifter, "was thrown out of " + town.name + " for killing " + victim);
-			} else if (group != null) {
-				// An outsider: the town's enemy.
+			DrifterGroups.Group group = townGroup;
+			// Those who saw it make it their enemy on sight, and the rest of the town nearly as much.
+			for (DrifterEntity one : witnesses) {
+				DrifterApi.addTrustInDrifter(one, drifter, SAW_DRIFTER_MURDER);
+				DrifterApi.think(one, "saw " + name + " kill " + victim);
+			}
+
+			com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.murder", "player", name,
+				"who", victim));
+			if (group != null) {
 				for (UUID id : group.members) {
 					DrifterEntity member = TownFounding.loaded(server, id);
-					if (member != null) {
-						DrifterApi.addTrustInDrifter(member, drifter, -50.0);
+					if (member != null && member != drifter && !witnesses.contains(member)) {
+						DrifterApi.addTrustInDrifter(member, drifter, HEARD_DRIFTER_MURDER);
 					}
 				}
+			}
 
+			long[] kills = drifterKills.computeIfAbsent(drifter.getUUID(), id -> new long[] {0, -100});
+			kills[0] = day - kills[1] <= MASSACRE_DAYS ? kills[0] + 1 : 1;
+			kills[1] = day;
+			if (kills[0] == MASSACRE) {
+				drifterMassacre(server, town, drifter, (int)kills[0]);
+			}
+
+			if (group != null && group.members.contains(drifter.getUUID())) {
+				// One of its own: out of the town, for good.
+				throwOut(server, town, group, drifter, "killing " + victim);
+				town.crimes.remove(drifter.getUUID());
+			} else if (group != null) {
+				// An outsider: the town's enemy (its people's trust in it, above).
 				Chronicle.add(server, "law", name + " killed " + victim + " of " + town.name + ": the town's enemy now");
 				// (One of another town's people: between the towns too.)
 				Town theirs = Diplomacy.townOf(drifter.getUUID());
@@ -238,6 +461,100 @@ final class Justice {
 		}
 
 		Towns.save(server);
+	}
+
+	/** Who hears the town's alarm: its people this near where it was raised. */
+	private static final double ALARM = 96.0;
+
+	/**
+	 * The town's alarm (a killing seen, someone wanted seen back): its people near hear where the one it's after is, and its
+	 * guards and bold ones go looking there (the timid keep clear).
+	 */
+	private static void alarm(MinecraftServer server, Town town, ServerPlayer player) {
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group == null) {
+			return;
+		}
+
+		for (UUID id : group.members) {
+			DrifterEntity member = TownFounding.loaded(server, id);
+			if (member != null && member.level() == player.level() && member.distanceTo(player) <= ALARM) {
+				DrifterApi.alert(member, player, player.blockPosition());
+			}
+		}
+	}
+
+	/**
+	 * A massacre (the user, 2026-11-07): three of its people killed within a few days of each other. Wanted there for a
+	 * month, its people's trust gone for good, a price on their head; and word goes round the towns about: wanted in each
+	 * of them too, for ten days.
+	 */
+	private static void massacre(MinecraftServer server, Town town, ServerPlayer player, Town.Criminal criminal, String victim, DrifterEntity witness) {
+		long day = Chronicle.day(server);
+		String name = player.getGameProfile().getName();
+		criminal.crime = "massacre";
+		criminal.fine = 0;
+		criminal.exiledUntil = Math.max(criminal.exiledUntil, day + MASSACRE_EXILE);
+		criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MASSACRE_EXILE);
+		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.massacre", "player", name, "who", victim));
+		Chronicle.add(server, "law", "The massacre at " + town.name + ": " + name + " killed " + criminal.recentKills + " of its people. Wanted there for "
+			+ MASSACRE_EXILE + " days");
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group != null) {
+			for (UUID id : group.members) {
+				DrifterEntity member = TownFounding.loaded(server, id);
+				if (member != null) {
+					DrifterApi.addTrustInPlayer(member, player.getUUID(), name, -100.0);
+				}
+			}
+		}
+
+		if (DrifterApi.postBounty(player, "the people of " + town.name, "the massacre at " + town.name)) {
+			Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + name + "'s head for the massacre");
+		}
+
+		town.heard.put(player.getUUID(), -100.0);
+		int heard = 0;
+		for (Town other : Towns.all()) {
+			if (other == town || !other.dimension.equals(town.dimension) || !other.center.closerThan(town.center, WORD_SPREADS)) {
+				continue;
+			}
+
+			Town.Criminal there = other.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
+			there.crime = "massacre";
+			there.exiledUntil = Math.max(there.exiledUntil, day + HEARD_MASSACRE);
+			there.wantedUntil = Math.max(there.wantedUntil, day + HEARD_MASSACRE);
+			other.heard.merge(player.getUUID(), -60.0, (a, b) -> Math.max(-100.0, a + b));
+			heard++;
+		}
+
+		if (heard > 0) {
+			Chronicle.add(server, "law", "Word of the massacre at " + town.name + " reached " + heard + (heard == 1 ? " town" : " towns") + " about: " + name
+				+ " is wanted there too");
+		}
+	}
+
+	/** A Drifter's massacre: the enemy on sight of every town about (their people's trust in it gone). */
+	private static void drifterMassacre(MinecraftServer server, Town town, DrifterEntity drifter, int kills) {
+		String name = drifter.getName().getString();
+		Chronicle.add(server, "law", "The massacre at " + town.name + ": " + name + " killed " + kills + " of its people. Every town about knows its face now");
+		for (Town other : Towns.all()) {
+			if (!other.dimension.equals(town.dimension) || !other.center.closerThan(town.center, WORD_SPREADS) || other.group == null) {
+				continue;
+			}
+
+			DrifterGroups.Group group = DrifterApi.groupById(other.group);
+			if (group == null) {
+				continue;
+			}
+
+			for (UUID id : group.members) {
+				DrifterEntity member = TownFounding.loaded(server, id);
+				if (member != null && member != drifter) {
+					DrifterApi.addTrustInDrifter(member, drifter, -80.0);
+				}
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -529,7 +846,20 @@ final class Justice {
 				Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(player.getGameProfile().getName()));
 				criminal.crime = "murder";
 				exile(server, town, criminal, MURDER_EXILE, "a killing (debug)");
+				criminal.wantedUntil = Math.max(criminal.wantedUntil, Chronicle.day(server) + MURDER_EXILE);
 				DrifterApi.postBounty(player, "the people of " + town.name, "a killing (debug)");
+				Towns.save(server);
+			}
+			case "massacre" -> {
+				Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(player.getGameProfile().getName()));
+				criminal.kills += MASSACRE;
+				criminal.recentKills = MASSACRE;
+				criminal.lastKillDay = Chronicle.day(server);
+				massacre(server, town, player, criminal, "someone (debug)", witness);
+				Towns.save(server);
+			}
+			case "pardon" -> {
+				town.crimes.remove(player.getUUID());
 				Towns.save(server);
 			}
 			default -> {
@@ -606,16 +936,20 @@ final class Justice {
 		} else {
 			criminal.fine = Math.max(0, criminal.fine - paid);
 			exile(server, town, criminal, EXILE, "wouldn't pay a fine");
+			// (And wanted for it: its guards make them go, the hard way; the user, 2026-11-07, "enforce".)
+			criminal.wantedUntil = Math.max(criminal.wantedUntil, Chronicle.day(server) + EXILE);
+			com.dinglebob.drifter.social.ChatLines.speak(guard, com.dinglebob.drifter.social.Lines.pick(guard, "guard.force", "player", criminal.name,
+				"town", town.name));
 		}
 
 		Towns.save(server);
 	}
 
-	/** "exiled" while this player is. */
+	/** "wanted" while this player is (its guards and bold people go for them), "exiled" while they're only that. */
 	@Nullable
 	static String standing(Town town, Player player) {
 		Town.Criminal criminal = town.crimes.get(player.getUUID());
-		return criminal != null && criminal.exiledUntil > 0 ? "exiled" : null;
+		return criminal == null ? null : criminal.wantedUntil > 0 ? "wanted" : criminal.exiledUntil > 0 ? "exiled" : null;
 	}
 
 	/** A citizen: a player whose bed is in the town. */

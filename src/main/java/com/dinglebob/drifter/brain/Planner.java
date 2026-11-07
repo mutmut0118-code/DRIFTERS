@@ -450,7 +450,8 @@ public final class Planner {
 			for (Item item : candidates) {
 				int left = home.stored(item) - base.fromHome.getOrDefault(item, 0);
 				int take = Math.min(left, remaining);
-				net.minecraft.core.BlockPos chest = take > 0 ? home.chestWith(item) : null;
+				net.minecraft.core.BlockPos chest = take > 0 ? home.chestWith(item, take,
+					pos -> com.dinglebob.drifter.brain.activity.FetchActivity.users(pos, this.drifter.getUUID())) : null;
 				if (chest != null) {
 					base.fromHome.merge(item, take, Integer::sum);
 					base.addAction(new Fetch(chest, item, take));

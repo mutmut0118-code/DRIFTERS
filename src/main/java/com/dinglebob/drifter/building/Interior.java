@@ -120,7 +120,7 @@ public final class Interior {
 		BlockPos best = null;
 		double bestScore = -Double.MAX_VALUE;
 		for (BlockPos pos : this.room) {
-			if (excluded.contains(pos) || !this.open(pos) || this.byDoor(pos) || this.byLadder(pos)
+			if (excluded.contains(pos) || !this.open(pos) || this.byDoor(pos) || this.byLadder(pos) || this.byStairs(pos)
 				|| !this.level.getBlockState(pos.above()).getCollisionShape(this.level, pos.above()).isEmpty()) {
 				continue;
 			}
@@ -199,6 +199,19 @@ public final class Interior {
 		}
 
 		return false;
+	}
+
+	/** Where you step on or off stairs (one beside it at its level or a step down), or under a staircase. */
+	private boolean byStairs(BlockPos pos) {
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			for (int dy = -1; dy <= 0; dy++) {
+				if (this.level.getBlockState(pos.relative(side).above(dy)).getBlock() instanceof net.minecraft.world.level.block.StairBlock) {
+					return true;
+				}
+			}
+		}
+
+		return this.level.getBlockState(pos.above(2)).getBlock() instanceof net.minecraft.world.level.block.StairBlock;
 	}
 
 	/** With something put down here, it can still walk from the door to the bed and to everything in the room. */

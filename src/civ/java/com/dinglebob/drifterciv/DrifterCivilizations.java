@@ -415,13 +415,13 @@ public final class DrifterCivilizations implements ModInitializer {
 				// Debug: the player running it did this in the nearest town, seen by the nearest of its people (theft, farms, murder).
 				.then(Commands.literal("crime").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "murder"), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "murder", "massacre", "pardon"), builder))
 						.executes(ctx -> {
 							var player = ctx.getSource().getPlayerOrException();
 							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), player.blockPosition());
 							String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
 							if (town == null || !Justice.debugCrime(ctx.getSource().getServer(), town, player, kind)) {
-								ctx.getSource().sendFailure(Component.literal("No town (or none of its people) near you, or not a crime: theft, farms, murder"));
+								ctx.getSource().sendFailure(Component.literal("No town (or none of its people) near you, or not a crime: theft, farms, murder, massacre (pardon: forgiven)"));
 								return 0;
 							}
 
@@ -584,6 +584,39 @@ public final class DrifterCivilizations implements ModInitializer {
 					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 					return 1;
 				}))
+				// Debug: the nearest town looked over for what the user found wrong (0.23.29): torches in its mine, beds in the way,
+				// workshops out of doors, houses on its kept ground.
+				.then(Commands.literal("check").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null) {
+						ctx.getSource().sendFailure(Component.literal("No town"));
+						return 0;
+					}
+
+					String report = TownMine.check(ctx.getSource().getLevel(), town);
+					ctx.getSource().sendSuccess(() -> Component.literal(town.name + ": " + report), false);
+					DrifterCivilizations.LOGGER.info("[check] {}: {}", town.name, report);
+					return 1;
+				}))
+				// Debug: to the nearest town's mine, its mouth or its hub at the bottom (facing down its stairs, or along its corridor).
+				.then(Commands.literal("goto").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("place", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("mine", "hub"), builder))
+						.executes(ctx -> {
+							var player = ctx.getSource().getPlayerOrException();
+							Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+							String place = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "place");
+							BlockPos to = town == null ? null : place.equals("hub") ? town.mineBottom : place.equals("mine") ? town.mine : null;
+							if (to == null || town.mineWay == null) {
+								ctx.getSource().sendFailure(Component.literal("The nearest town has no mine (places: mine, hub)"));
+								return 0;
+							}
+
+							float yaw = town.mineWay.toYRot();
+							player.teleportTo(player.serverLevel(), to.getX() + 0.5, to.getY(), to.getZ() + 0.5, yaw, place.equals("hub") ? 10.0F : 35.0F);
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: at " + town.name + "'s " + place + " (" + to.toShortString() + ")"), true);
+							return 1;
+						})))
 				// Debug (with Bountiful): the nearest town's bounty board right-clicked with what's in your hand, from where you are
 				// (an empty hand opens it, a paper is turned in); "paper": its first notice's paper from the board, in your hand.
 				.then(Commands.literal("bounty").requires(source -> source.hasPermission(2)).executes(ctx -> {
@@ -620,6 +653,51 @@ public final class DrifterCivilizations implements ModInitializer {
 					player.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
 						net.minecraft.resources.ResourceLocation.parse(notice.item)), notice.count));
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: given what " + town.name + "'s notice asks for (" + notice.count + " " + notice.item + ")"), true);
+					return 1;
+				})))
+				// Debug: the nearest of the nearest town's store chests opened, as if you'd right-clicked it (a real click: whoever
+				// sees you at it sees you); "take": the first few stacks taken out of the chest you have open, and it shut.
+				.then(Commands.literal("steal").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					BlockPos chest = town == null ? null : town.store.stream().min(java.util.Comparator.comparingDouble(pos -> pos.distSqr(player.blockPosition())))
+						.orElse(null);
+					if (chest == null) {
+						ctx.getSource().sendFailure(Component.literal("The nearest town has no store chests"));
+						return 0;
+					}
+
+					// (Out of reach, the chest shuts again at once: in front of it first, facing it.)
+					if (player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(chest)) > 4.0) {
+						var state = player.serverLevel().getBlockState(chest);
+						net.minecraft.core.Direction facing = state.hasProperty(net.minecraft.world.level.block.ChestBlock.FACING)
+							? state.getValue(net.minecraft.world.level.block.ChestBlock.FACING) : net.minecraft.core.Direction.NORTH;
+						BlockPos front = chest.relative(facing);
+						player.teleportTo(player.serverLevel(), front.getX() + 0.5, front.getY(), front.getZ() + 0.5, facing.getOpposite().toYRot(), 30.0F);
+					}
+
+					var hit = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(chest), net.minecraft.core.Direction.UP, chest, false);
+					player.gameMode.useItemOn(player, player.serverLevel(), ItemStack.EMPTY, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: opened " + town.name + "'s store chest at " + chest.toShortString()), true);
+					return 1;
+				}).then(Commands.literal("take").executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					if (!(player.containerMenu instanceof net.minecraft.world.inventory.ChestMenu menu)) {
+						ctx.getSource().sendFailure(Component.literal("No chest open"));
+						return 0;
+					}
+
+					int took = 0;
+					for (int slot = 0; slot < menu.getContainer().getContainerSize() && took < 3; slot++) {
+						if (!menu.getContainer().getItem(slot).isEmpty()) {
+							menu.quickMoveStack(player, slot);
+							took++;
+						}
+					}
+
+					player.closeContainer();
+					int stacks = took;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: took " + stacks + " stacks and shut the chest"), true);
 					return 1;
 				})))
 				// Debug: what's in your hand to the nearest Drifter, as if you'd thrown it to it (a job, a notice; B5, D5).

@@ -139,6 +139,11 @@ public final class Town {
 	public BlockPos mineBottom;
 	@Nullable
 	public Direction mineWay;
+	/**
+	 * Its ground kept for what isn't a house (its fields, pen, mine, stable, hives, shrine...; x0, z0, x1, z1 each): no new
+	 * house goes over them (found by the user: a stable and a mine on top of homes).
+	 */
+	public final List<int[]> keepOff = new ArrayList<>();
 	/** Where its people are building (or built) its store (step 3c), and whether it's up. */
 	@Nullable
 	public Plot storePlot;
@@ -233,8 +238,16 @@ public final class Town {
 		public String crime = "";
 		/** The day the exile ends (0: not exiled). */
 		public long exiledUntil;
+		/** The day being wanted ends (0: not wanted): its guards and bold people go for them on sight about the town. */
+		public long wantedUntil;
+		/** Killings of its people seen: all told, lately (each within a few days of the last), and the day of the last. */
+		public int kills;
+		public int recentKills;
+		public long lastKillDay = -100;
 		/** When it was last caught (game time; not saved). */
 		long lastAt = Long.MIN_VALUE / 2;
+		/** When it was last seen stealing (game time; not saved): the same things found gone later aren't another theft. */
+		long lastSeenTheft = Long.MIN_VALUE / 2;
 
 		Criminal(String name) {
 			this.name = name;
@@ -356,6 +369,12 @@ public final class Town {
 
 		if (this.pen != null) {
 			tag.putLong("Pen", this.pen.asLong());
+		}
+
+		if (!this.keepOff.isEmpty()) {
+			ListTag kept = new ListTag();
+			this.keepOff.forEach(rect -> kept.add(new net.minecraft.nbt.IntArrayTag(rect)));
+			tag.put("KeepOff", kept);
 		}
 
 		if (this.mine != null && this.mineBottom != null && this.mineWay != null) {
@@ -510,6 +529,10 @@ public final class Town {
 			one.putInt("Fine", c.fine);
 			one.putString("Crime", c.crime);
 			one.putLong("ExiledUntil", c.exiledUntil);
+			one.putLong("WantedUntil", c.wantedUntil);
+			one.putInt("Kills", c.kills);
+			one.putInt("RecentKills", c.recentKills);
+			one.putLong("LastKillDay", c.lastKillDay);
 			crimes.add(one);
 		});
 		tag.put("Crimes", crimes);
@@ -535,6 +558,13 @@ public final class Town {
 		town.well = tag.contains("Well") ? BlockPos.of(tag.getLong("Well")) : null;
 		town.fire = tag.contains("Fire") ? BlockPos.of(tag.getLong("Fire")) : null;
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
+		for (Tag one : tag.getList("KeepOff", Tag.TAG_INT_ARRAY)) {
+			int[] rect = ((net.minecraft.nbt.IntArrayTag)one).getAsIntArray();
+			if (rect.length == 4) {
+				town.keepOff.add(rect);
+			}
+		}
+
 		if (tag.contains("Mine")) {
 			town.mine = BlockPos.of(tag.getLong("Mine"));
 			town.mineBottom = BlockPos.of(tag.getLong("MineBottom"));
@@ -690,6 +720,10 @@ public final class Town {
 			c.fine = one.getInt("Fine");
 			c.crime = one.getString("Crime");
 			c.exiledUntil = one.getLong("ExiledUntil");
+			c.wantedUntil = one.getLong("WantedUntil");
+			c.kills = one.getInt("Kills");
+			c.recentKills = one.getInt("RecentKills");
+			c.lastKillDay = one.contains("LastKillDay") ? one.getLong("LastKillDay") : -100;
 			town.crimes.put(one.getUUID("Id"), c);
 		}
 		return town;

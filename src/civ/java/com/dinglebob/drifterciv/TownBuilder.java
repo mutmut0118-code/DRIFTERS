@@ -1530,7 +1530,9 @@ public final class TownBuilder {
 			int looked = 0;
 			for (int[] o : spots) {
 				Rect site = new Rect(mx + o[0] - w / 2, mz + o[1] - d / 2, mx + o[0] - w / 2 + w - 1, mz + o[1] - d / 2 + d - 1);
-				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.nearRoad(site, 2) || this.standingNear(site, 4)) {
+				// (Nor on a house: found by the user, a stable and a mine on top of homes, their lots never checked against them.)
+				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.houseRects.stream().anyMatch(other -> other.near(site, 3))
+					|| this.nearRoad(site, 2) || this.standingNear(site, 4)) {
 					continue;
 				}
 
@@ -3170,10 +3172,27 @@ public final class TownBuilder {
 			// (Down toward the town's middle: under its own land, all loaded, away from the wild beyond.)
 			int dx = this.cx - ex;
 			int dz = this.cz - ez;
-			Direction way = Math.abs(dx) >= Math.abs(dz) ? (dx >= 0 ? Direction.EAST : Direction.WEST) : (dz >= 0 ? Direction.SOUTH : Direction.NORTH);
-			Direction side = way.getClockWise();
+			Direction toward = Math.abs(dx) >= Math.abs(dz) ? (dx >= 0 ? Direction.EAST : Direction.WEST) : (dz >= 0 ? Direction.SOUTH : Direction.NORTH);
+			// (Its stairs' first stretch, shallow under the ground, not under a house: toward the middle if that's clear, else to
+			// a side; found by the user's town check, the first stretch under a house built before it.)
 			int top = ground(this.level, ex, ez);
 			int bottom = top - MINE_Y < 24 ? top - 24 : MINE_Y;
+			// (And all of it on loaded ground: its stairs, landings, hub and corridor.)
+			int reach = (top - bottom) * 19 / 16 + 44;
+			Direction way = toward;
+			for (Direction d : new Direction[] {toward, toward.getClockWise(), toward.getCounterClockWise()}) {
+				BlockPos mouth = new BlockPos(ex, 0, ez).relative(d.getOpposite(), 3);
+				Rect first = stairsStretch(mouth, d);
+				BlockPos end = mouth.relative(d, reach);
+				if (this.houseRects.stream().noneMatch(house -> house.near(first, 1)) && loadedAt(this.level, end.getX(), end.getZ())
+					&& loadedAt(this.level, end.relative(d.getClockWise(), 18).getX(), end.relative(d.getClockWise(), 18).getZ())
+					&& loadedAt(this.level, end.relative(d.getCounterClockWise(), 18).getX(), end.relative(d.getCounterClockWise(), 18).getZ())) {
+					way = d;
+					break;
+				}
+			}
+
+			Direction side = way.getClockWise();
 			BlockState steps = (this.look.wall() == Blocks.SANDSTONE ? Blocks.SANDSTONE_STAIRS : Blocks.COBBLESTONE_STAIRS).defaultBlockState()
 				.setValue(net.minecraft.world.level.block.StairBlock.FACING, way.getOpposite());
 			BlockPos at = new BlockPos(ex, top + 1, ez).relative(way.getOpposite(), 3);
@@ -3189,6 +3208,8 @@ public final class TownBuilder {
 			}
 
 			this.mineEntrance = at;
+			// (The stairs' first stretch, shallow under the ground: kept off too, with the lot.)
+			this.taken.add(stairsStretch(at, way));
 			// Down: a block down each block on, a landing of three every sixteen.
 			int feet = top + 1;
 			BlockPos column = at;
@@ -3217,9 +3238,13 @@ public final class TownBuilder {
 				for (int b = -3; b <= 3; b++) {
 					BlockPos cell = hub.relative(way, a).relative(side, b);
 					this.mineCell(cell, 4);
-					if (Math.abs(a) == 3 && b == 0 || Math.abs(b) == 3 && a == 0) {
-						this.mineTorch(cell, Math.abs(a) == 3 ? (a > 0 ? way : way.getOpposite()) : (b > 0 ? side : side.getOpposite()));
-					}
+				}
+			}
+
+			// (Lit along its side walls, three a side: its ends are the stairs and the corridor.)
+			for (int a = -2; a <= 2; a += 2) {
+				for (int b = -3; b <= 3; b += 6) {
+					this.mineTorch(hub.relative(way, a).relative(side, b), b > 0 ? side : side.getOpposite());
 				}
 			}
 
@@ -3236,6 +3261,8 @@ public final class TownBuilder {
 
 				if (i % 8 == 4) {
 					this.mineTorch(c.relative(side, -1), side.getOpposite());
+				} else if (i % 8 == 0) {
+					this.mineTorch(c.relative(side, 1), side);
 				}
 
 				if (i % 4 == 2) {
@@ -3247,10 +3274,24 @@ public final class TownBuilder {
 				}
 			}
 
+			// A torch halfway along each strip (once they're all dug: a strip's wall may be the next one's end).
+			for (int i = 2; i < 32; i += 4) {
+				for (Direction out : new Direction[] {side, side.getOpposite()}) {
+					this.mineTorch(start.relative(way, i).relative(out, 9), way);
+				}
+			}
+
 			this.mineBottom = hub;
 			this.mineWay = way;
 			DrifterCivilizations.LOGGER.info("[town] {}: its mine from {} down to Y {} ({} blocks dug)", this.name, at.toShortString(), hub.getY(),
 				this.mineCells.size());
+		}
+
+		/** The ground over a mine's stairs where they're still shallow: from its mouth twelve blocks on, two either side. */
+		private static Rect stairsStretch(BlockPos mouth, Direction way) {
+			BlockPos far = mouth.relative(way, 12);
+			return new Rect(Math.min(mouth.getX(), far.getX()) - 2, Math.min(mouth.getZ(), far.getZ()) - 2, Math.max(mouth.getX(), far.getX()) + 2,
+				Math.max(mouth.getZ(), far.getZ()) + 2);
 		}
 
 		/** One step of the stairs: three across, four high, the step under it; a torch on its wall now and then. */
@@ -3302,18 +3343,22 @@ public final class TownBuilder {
 			}
 		}
 
-		/** A torch on the wall beside this cell (on the side {@code facing} points away from), the wall made if it's open. */
-		private void mineTorch(BlockPos cell, Direction facing) {
-			BlockPos wall = cell.relative(facing.getOpposite());
-			if (this.mineCells.contains(wall)) {
+		/**
+		 * A torch a block up in this cell, on its wall {@code toWall} of it (the wall made if it's open; none if that's more of
+		 * the mine). Found by the user: the mine all dark, every torch put to the wrong side (into the mine), so none went up.
+		 */
+		private void mineTorch(BlockPos cell, Direction toWall) {
+			BlockPos at = cell.above();
+			BlockPos wall = at.relative(toWall);
+			if (this.mineCells.contains(wall) || !this.level.getBlockState(at).isAir()) {
 				return;
 			}
 
-			if (!this.level.getBlockState(wall).isFaceSturdy(this.level, wall, facing)) {
+			if (!this.level.getBlockState(wall).isFaceSturdy(this.level, wall, toWall.getOpposite())) {
 				set(this.level, wall, Blocks.COBBLESTONE.defaultBlockState());
 			}
 
-			place(this.level, cell.above(), Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, facing));
+			set(this.level, at, Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, toWall.getOpposite()));
 		}
 
 		private void household(int i) {
@@ -3370,15 +3415,8 @@ public final class TownBuilder {
 				this.horsesGiven++;
 			}
 
-			// (The town's mine is its mine: its trips start at the hub, branching off round the compass; it knows the way down.)
-			if (this.mineBottom != null) {
-				home.mineBottom = this.mineBottom;
-				home.mineDirection = this.mineWay.getClockWise();
-				home.mineTrips = this.random.nextInt(4);
-				for (BlockPos cell : this.mineCells) {
-					drifter.getSenses().terrain().mark(cell);
-				}
-			}
+			// (The town's mine is its mine: its trips start at its share of the faces down there; it knows the way down.)
+			this.mineShare(drifter, home);
 
 			for (BlockPos chest : home.chests()) {
 				DrifterApi.rememberChest(drifter, chest);
@@ -3412,6 +3450,7 @@ public final class TownBuilder {
 				shared.farm = home.farm;
 				shared.farmRadius = 4;
 				shared.pen = this.pen;
+				this.mineShare(other, shared);
 				plot.residents.add(other.getUUID());
 				for (BlockPos chest : shared.chests()) {
 					DrifterApi.rememberChest(other, chest);
@@ -3424,6 +3463,22 @@ public final class TownBuilder {
 
 			// Its storage filled once everyone's in (their bedside chests too), kept as its first household keeps things.
 			stock(this.level, house.box(), DrifterApi.trait(drifter, "tidiness"));
+		}
+
+		/** Its share of the town's mine (the next one's, by how many people there are so far): its faces, and the way down. */
+		private void mineShare(DrifterEntity drifter, Home home) {
+			if (this.mineBottom == null || this.mineEntrance == null) {
+				return;
+			}
+
+			home.townMine.clear();
+			home.townMine.addAll(TownMine.share(TownMine.faces(this.mineEntrance, this.mineBottom, this.mineWay), this.people.size()));
+			home.townMinePath.clear();
+			home.townMinePath.addAll(TownMine.path(this.mineEntrance, this.mineBottom, this.mineWay));
+			home.mineTrips = 0;
+			for (BlockPos cell : this.mineCells) {
+				drifter.getSenses().terrain().mark(cell);
+			}
 		}
 
 		/** One group, geared by their places; the town itself, its past and its keeper; its notice board. */
@@ -3461,6 +3516,12 @@ public final class TownBuilder {
 			town.mine = this.mineEntrance;
 			town.mineBottom = this.mineBottom;
 			town.mineWay = this.mineWay;
+			// Its ground that isn't for houses (the plaza's kept apart anyway).
+			for (Rect rect : this.taken) {
+				if (rect != this.plaza) {
+					town.keepOff.add(new int[] {rect.x0(), rect.z0(), rect.x1(), rect.z1()});
+				}
+			}
 			town.stallPlot = new Town.Plot(this.stallAt(), 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
 			town.stallBuilt = true;
 			town.shape = this.shape.id;

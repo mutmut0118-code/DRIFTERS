@@ -776,6 +776,7 @@ public class SocialWatcher {
 	// ---------------------------------------------------------------------------------------------
 
 	public static void register() {
+		ChestWatch.register();
 		PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> {
 			if (!isRealPlayer(player)) {
 				return;
@@ -796,6 +797,12 @@ public class SocialWatcher {
 
 			BlockPos pos = hit.getBlockPos();
 			ItemStack held = player.getItemInHand(hand);
+			// A chest or a barrel opened: what they take from it, if anyone sees (theft seen as it happens).
+			if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && !player.isSecondaryUseActive()
+				&& com.dinglebob.drifter.brain.Home.isStorageBlock(level.getBlockState(pos))) {
+				ChestWatch.used(serverPlayer, pos);
+			}
+
 			forDriftersNear(level, pos, 32.0, drifter -> {
 				Home home = drifter.getDrifterBrain().home();
 				SocialWatcher watcher = drifter.getSocial().watcher();

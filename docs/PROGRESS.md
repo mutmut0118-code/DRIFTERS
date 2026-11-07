@@ -4669,6 +4669,86 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.29: the user's town bugs, crime taken seriously, notices pay more** (the user, 2026-11-07, with pictures: "the
+  town mine has no light, and nobody uses the town mine ... still having random strip mines around town", "when drifters
+  wake up, they break 2 blocks to get out?", "found enchanting table outside of house", "structures like stables and town
+  mines spawn on homes", "whenever a town spawns, everyone has the goal to go use a shared chest", beds in front of stairs
+  and of furnaces, tables and chests; "we need to enforce and up crime awareness and behavior towards me/drifter commiting
+  them, especially theft, killing a drifter with witnesses, or committing a massacre"; and "yes please" to better notice
+  pay).
+  - **The town mine lit**: every torch it meant to put up went to the wrong side (into the mine, so none went up);
+    fixed, and more of them: three a side in the hub, both sides of the corridor, one halfway along each strip.
+  - **The town mine used** (`TownMine`, `Home.townMine`, `Home.MineFace`/`Dig`): its faces worked out from how it's dug
+    (each strip's end, the corridor's end, each landing of its stairs, ways down from the hub's sides) and handed out to
+    its people, a few each (two strips of their own, a landing or the corridor's end while they go round, a way down), so
+    two don't dig into each other's tunnels and take them for caves. A mining trip near the height of a face goes down the
+    town's stairs to it and digs on: a strip straight on (48 blocks) from a strip's end, a branch mine from the corridor's
+    end or a landing; deeper than all of it, stairs on down from the hub (then its own mine from there, as before). Each
+    face moves on to where the trip got. The way down is walked a stretch at a time (its mouth, each landing, its hub;
+    `Home.townMinePath`), and back up the same way (found in testing: the whole way down as one walk, 140 blocks and 60
+    down, came apart, "can't get back to the end of the tunnel", every deep trip; the way back up would dig stairs to the
+    surface, holes in the town). Cavers look for caves from the hub first. The old way (the hub as a staircase of its
+    own, branching round the compass) is gone; worlds from before get their people's faces on the next check. "can't get
+    back to the end of the tunnel" now says why.
+  - **No digging in round the town** (`ShelterActivity` `TOWN`): the test showed 9 townspeople a night "digging in" (and
+    3 "sealed in", 1 "walled in") because they couldn't find their way into their house; they broke out in the morning
+    (the user's "2 blocks to get out") and left holes. In its town it never digs in or walls itself in now: it waits the
+    night out by the plaza's fire, and tries its house again a minute on (twice).
+  - **Workshops inside** (`DrifterApi.furnitureSpot`): an enchanting table, anvil or smithing table goes in the room round
+    its bed (as Drifters place their own stations: against a wall, out of the doorway, off the stairs, clear of the other
+    furniture and the floor in front of it); else on its floor only under its roof and walled in each way (the house's
+    outline took in its porch and foundation). `Interior` keeps stair steps clear too.
+  - **Lots off the houses**: the mine, stable and hives chose their lots without looking at the houses (`lot` checked the
+    other lots and roads only); now they keep three blocks off. And the town keeps its fields, pen, mine (and the first
+    stretch of its stairs), stable, hives, shrine and lookout (`Town.keepOff`, saved): no house built later goes on them.
+  - **No rush to the store**: a town just made sent about half its people to the store's chest at once ("fetch 4 spruce
+    planks from its chest", 11 of 23, all for a shield). Everyone in a town has a shield to start with now; every
+    household keeps the everyday things by it (planks, cobblestone, sticks, torches, coal; `TownChests.household`); the
+    chest it fetches from is one with enough, its own house's before the store's (the nearest home), and not one two
+    others are already on their way to if another has it (`Home.chestWith(item, wanted, busy)`, `FetchActivity.users`).
+    In testing: 3 of 23 at the store in the first minute, the rest at their own houses.
+  - **Beds out of the way** (`BuildPlanActivity.bedSpot`): no half of a bed where you step on or off stairs or a ladder,
+    under a staircase, or in front of something used from the floor (chests, barrels, furnaces, crafting tables, anvils,
+    enchanting tables, lecterns, brewing stands, the workstations, Farmer's Delight's kitchen); only if nowhere else will
+    do. (A house plan's own bed stays where the plan has it.)
+  - **Crime, seen and dealt with** (`Justice`, `ChestWatch`, `DrifterEvents.SEEN_TAKING`, `Mode`):
+    - Theft seen as it happens: a player opens a chest or a barrel; what's in it is noted, and who among the Drifters near
+      (24 blocks) sees them at it; when they shut it, what they took out goes to the town if it was its chest (its till,
+      its store unless they live there, a chest in one of its houses, one about the middle they didn't put there) and one
+      of its people saw. The witnesses think less of them (-20) and one shouts; a fine of 3 emeralds plus what was taken is
+      worth, more each time (a third time, exile); stealing while exiled makes them wanted. A guard comes to collect, as
+      before; refusing is exile and wanted.
+    - A killing: everyone of the town who saw it (48 blocks, the killer in sight within 5 s, or 16 blocks and knowing who),
+      not just one; they trust the killer far less (-60), the rest of the town less (-20). Exiled and wanted for a week, a
+      price on their head the first time.
+    - Wanted (new standing, `TownWork.standing` "wanted"): about the town (its edge and 48 blocks), its guards and its bold
+      people go for them on sight (vengeful), the timid keep clear; someone calls it out when they're back ("it's {player}!
+      get them!"). Exiled only: driven out, as before.
+    - The alarm (`Justice.alarm`, `DrifterApi.alert`, `Mode.pursuesWanted`): a killing seen, or someone wanted seen back,
+      tells the town's people within 96 blocks where they are; its guards and bold ones go looking there (out of sight
+      too, for five minutes, about the town; `HostileGoals.Hunt`). Found in the first client test: after the killings
+      everyone lost sight of the killer within seconds and went back to their day.
+    - A massacre: three of its people killed within three days of each other. Wanted there a month, its people's trust in
+      them gone (-100), a price on their head, and word goes to every town within 1,500 blocks: wanted there too for ten
+      days, and they think much less of them. In the chronicle ("The massacre at Hollowbrook: ...").
+    - A Drifter killer: those who saw it make it their enemy on sight (-90), the rest of the town nearly (-65: still an
+      enemy on sight); one of the town's own is thrown out for good (as a crook is, a bandit once it's gone). A Drifter
+      that massacres (three in three days) is the enemy on sight of every town within 1,500 blocks.
+    - New lines: `crime.massacre`, `crime.wanted`, `guard.force`.
+  - **Notices pay more**: 1.6 times what the things are worth (was 1.3), at least 3 emeralds (was 1).
+  - Debug: `/drifterciv town steal` (right-clicks the nearest store chest as you, for real: whoever sees you sees you),
+    `town steal take` (takes three stacks out and shuts it), `town crime massacre` / `town crime pardon`, `town goto mine`
+    / `town goto hub`, `town check` (torches in its mine, beds beside stairs or a station, workshops not under a roof,
+    houses on its kept ground).
+  - Tested (the test seed): `town check` on Hollowbrook (23 people) and Westbury (91): the mine lit (42 to 94 torches), 0
+    of 46 and 0 of 182 bed halves beside stairs or a station, no workshop outdoors, no house on kept ground (one had the
+    mine's first stretch under a house before the stairs learned to turn aside). A night in each town: no townsperson dug
+    in (9 a night before). A day of mining: trips down the town's mine, none dug new stairs from the town's edge. In the
+    client: "player took stuff from our chest!", "seen stealing 75 things from the town's store (a fine of 9 emeralds)";
+    a killing: "player killed rae!!", exiled and a price on their head, the guards and bold "looking for Player973 where
+    it last saw them", then "going after them" (the player down to under 4 health through Resistance IV); three: "guards!!
+    it's a massacre", "The massacre at Hollowbrook", word reached the town about. The headless server ran it too.
+
 - **0.23.28: a town's notices on Bountiful's bounty board** (the user, 2026-11-07: "will there be notices compat with
   bountiful?", then "yes build it"). Only with Bountiful installed (`TownBounties`).
   - Each notice up in a town is also a real bounty on its board (the one on a made-ready town's plaza, or any board within

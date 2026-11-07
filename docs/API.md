@@ -141,6 +141,14 @@ gets this helper as its player), or null; things given to it reach the Drifter w
 helper, not the Drifter's own pack, which is overwritten then). `DrifterApi.drifterBehind(entity)`: the Drifter behind an
 entity (itself, or the one whose helper it is), or null.
 
+Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
+player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
+`TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid
+keep clear ("exiled": driven out). `Home.townMine`: a town's mine as faces to dig on from (`Home.MineFace`: where, the
+way on, and `Dig` STRIP, BRANCH or DOWN); a home's mining trips start there. `Home.chestWith(item, wanted, busy)`: the
+chest to fetch from (one with enough, nearest home, not crowded). `DrifterApi.furnitureSpot(level, home, notHere)`: a spot
+in the room round its bed for one more piece of furniture.
+
 ## Groups (a town's beginnings)
 
 `DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the

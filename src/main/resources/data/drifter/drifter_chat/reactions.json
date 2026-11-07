@@ -988,6 +988,50 @@
         "...{who}."
       ]
     },
+    "crime.massacre": {
+      "any": [
+        "{player} is killing everyone!!",
+        "RUN! {player}'s killing us all",
+        "{who} too?! somebody stop {player}",
+        "guards!! it's a massacre",
+        "{player}, you monster"
+      ],
+      "helper": [
+        "why are you doing this, {player}",
+        "please, {player}, stop"
+      ],
+      "pvp_sweat": [
+        "you're not walking out of here, {player}"
+      ],
+      "hermit": [
+        "..."
+      ]
+    },
+    "crime.wanted": {
+      "any": [
+        "it's {player}! get them!",
+        "{player}'s back! guards!",
+        "that's the one, {player}!",
+        "{player}! you've got some nerve"
+      ],
+      "helper": [
+        "{player}... you shouldn't be here"
+      ],
+      "hermit": [
+        "you."
+      ]
+    },
+    "guard.force": {
+      "any": [
+        "you had your chance, {player}",
+        "by order of {town}: you're done",
+        "stop right there, {player}!",
+        "{player}! drop your weapon!"
+      ],
+      "pvp_sweat": [
+        "the hard way then"
+      ]
+    },
     "guard.demand": {
       "any": [
         "{player}, you owe {fine} emeralds for {crime}. pay up",

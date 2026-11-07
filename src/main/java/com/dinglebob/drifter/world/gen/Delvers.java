@@ -415,7 +415,9 @@ public final class Delvers {
 			inventory.add(stack);
 		}
 
-		if ((guard || leader || wellOff && random.nextBoolean()) && (!favorite.twoHanded() || !com.dinglebob.drifter.compat.BetterCombatCompat.active())) {
+		// (Everyone in a town has a shield by then: found by the user, a town just made with half its people off to the store
+		// together for planks to make one, crowding it and leaving the town empty.)
+		if (!favorite.twoHanded() || !com.dinglebob.drifter.compat.BetterCombatCompat.active()) {
 			drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
 		}
 

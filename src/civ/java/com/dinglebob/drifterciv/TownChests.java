@@ -250,11 +250,20 @@ final class TownChests {
 			lay(chest, laid, tidy, random);
 		}
 
-		// Its own valuables, put away somewhere in the house: a stack or two of them, and its purse (its money). A tidy
-		// household's all in one chest (the last), together.
 		if (chests.isEmpty()) {
 			return;
 		}
+
+		// The everyday things every household keeps by it, as a player keeps them at home: planks, cobblestone, sticks,
+		// torches, coal (found by the user: a town just made, half its people off to the store at once for a few planks or
+		// some cobblestone their own chests didn't have).
+		for (ItemStack basic : List.of(new ItemStack(Items.OAK_PLANKS, 16 + random.nextInt(25)), new ItemStack(Items.COBBLESTONE, 16 + random.nextInt(33)),
+			new ItemStack(Items.STICK, 8 + random.nextInt(17)), new ItemStack(Items.TORCH, 8 + random.nextInt(9)), new ItemStack(Items.COAL, 6 + random.nextInt(11)))) {
+			put(chests.get(tidy ? 0 : random.nextInt(chests.size())), basic, random);
+		}
+
+		// Its own valuables, put away somewhere in the house: a stack or two of them, and its purse (its money). A tidy
+		// household's all in one chest (the last), together.
 
 		List<ItemStack> valuables = new ArrayList<>();
 		int treasures = 1 + random.nextInt(mix[6] > 2 ? 3 : 2);

@@ -33,6 +33,31 @@ public class FetchActivity extends Activity {
 	}
 
 	@Override
+	protected void onStart() {
+		super.onStart();
+		USERS.computeIfAbsent(this.chest.immutable(), pos -> new java.util.HashSet<>()).add(this.drifter.getUUID());
+	}
+
+	/** Who's on their way to each chest or at it, for it (so others pick another chest that has it, not crowd one). */
+	private static final java.util.Map<BlockPos, Set<java.util.UUID>> USERS = new java.util.HashMap<>();
+
+	/** How many others are fetching from this chest now. */
+	public static int users(BlockPos chest, java.util.UUID besides) {
+		Set<java.util.UUID> users = USERS.get(chest);
+		return users == null ? 0 : (int)users.stream().filter(id -> !id.equals(besides)).count();
+	}
+
+	@Override
+	protected void onStop() {
+		Set<java.util.UUID> users = USERS.get(this.chest);
+		if (users != null && users.remove(this.drifter.getUUID()) && users.isEmpty()) {
+			USERS.remove(this.chest);
+		}
+
+		super.onStop();
+	}
+
+	@Override
 	public String describe() {
 		return "fetch " + this.count + " " + this.item.getDescription().getString().toLowerCase(Locale.ROOT) + " from its chest";
 	}

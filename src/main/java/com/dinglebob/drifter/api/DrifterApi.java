@@ -181,6 +181,17 @@ public final class DrifterApi {
 		drifter.getSocial().getOrMeet(player, name).addTrust(change);
 	}
 
+	/**
+	 * It's told this player was just here (a shout, the town's alarm): where to look for them, and that they did wrong.
+	 * Someone its town wants, a guard or a bold one goes looking there ({@link com.dinglebob.drifter.social.Mode#pursuesWanted}).
+	 */
+	public static void alert(DrifterEntity drifter, net.minecraft.world.entity.player.Player player, net.minecraft.core.BlockPos where) {
+		var r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
+		r.lastSeenPos = where.immutable();
+		r.lastSeenAt = drifter.level().getGameTime();
+		r.wronged = true;
+	}
+
 	/** How much it trusts another Drifter (-100 to 100; 0 for a stranger). */
 	public static double trustInDrifter(DrifterEntity drifter, UUID other) {
 		var r = drifter.getBonds().get(other);
@@ -622,6 +633,29 @@ public final class DrifterApi {
 		drifter.getDrifterBrain().setHome(home);
 		knowsBox(drifter, box.inflatedBy(3));
 		return home;
+	}
+
+	/**
+	 * A spot inside its house for one more piece of furniture (a workshop's table, an anvil): in the room round its bed,
+	 * against a wall, out of the doorway and off the stairs, clear of its other furniture and the floor in front of it, and
+	 * leaving the way through; or null. Not {@code notHere}. (Found by the user: an enchanting table put outside a house, on
+	 * its foundation, the house's outline taken for its inside.)
+	 */
+	@Nullable
+	public static net.minecraft.core.BlockPos furnitureSpot(ServerLevel level, Home home, java.util.Set<net.minecraft.core.BlockPos> notHere) {
+		net.minecraft.core.BlockPos bed = home.houseBed(level);
+		var room = bed == null ? null : com.dinglebob.drifter.building.Interior.of(level, bed);
+		if (room == null) {
+			return null;
+		}
+
+		java.util.Set<net.minecraft.core.BlockPos> excluded = new java.util.HashSet<>(notHere);
+		var plan = home.planId == null || home.planOrigin == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), home.planId);
+		if (plan != null) {
+			excluded.addAll(com.dinglebob.drifter.building.Furnishing.keepClear(level, com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home), home.planBed));
+		}
+
+		return room.spot(com.dinglebob.drifter.building.Interior.Kind.STATION, excluded);
 	}
 
 	/** How many households this house takes: one, and one more for each other room big enough to sleep in (up to four). */

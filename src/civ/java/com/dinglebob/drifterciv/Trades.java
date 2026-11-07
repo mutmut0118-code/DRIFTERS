@@ -191,7 +191,7 @@ final class Trades {
 				return;
 			}
 
-			BlockPos spot = indoorSpot(level, home, box);
+			BlockPos spot = indoorSpot(level, home, box, java.util.Set.of());
 			if (spot == null) {
 				return;
 			}
@@ -203,14 +203,14 @@ final class Trades {
 			drifter.getInventory().add(new ItemStack(net.minecraft.world.item.Items.LAPIS_LAZULI, 12 + drifter.getRandom().nextInt(13)));
 			drifter.getInventory().add(new ItemStack(net.minecraft.world.item.Items.BOOK, 3 + drifter.getRandom().nextInt(4)));
 		} else {
-			BlockPos anvil = indoorSpot(level, home, box);
+			BlockPos anvil = indoorSpot(level, home, box, java.util.Set.of());
 			if (anvil == null) {
 				return;
 			}
 
 			level.setBlock(anvil, net.minecraft.world.level.block.Blocks.ANVIL.defaultBlockState(), 3);
 			drifter.getSenses().terrain().mark(anvil);
-			BlockPos table = indoorSpot(level, home, box);
+			BlockPos table = indoorSpot(level, home, box, java.util.Set.of(anvil));
 			if (table != null) {
 				level.setBlock(table, net.minecraft.world.level.block.Blocks.SMITHING_TABLE.defaultBlockState(), 3);
 				drifter.getSenses().terrain().mark(table);
@@ -223,14 +223,26 @@ final class Trades {
 		DrifterCivilizations.LOGGER.info("[trades] {} set up as {} in {}", drifter.getName().getString(), line, town.name);
 	}
 
-	/** A free spot on its house's floor against a wall (nothing on it, room over it, not by a door), or null. */
+	/**
+	 * A free spot in its house for a workshop's thing: the room round its bed first, as a player furnishes it (off the stairs,
+	 * clear of the other furniture); else on its house's floor against a wall, under its roof and walled in each way (not on
+	 * a porch or its foundation: found by the user, an enchanting table outside), nothing on it, room over it, not by a door;
+	 * or null.
+	 */
 	@Nullable
-	private static BlockPos indoorSpot(net.minecraft.server.level.ServerLevel level, Home home, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+	private static BlockPos indoorSpot(net.minecraft.server.level.ServerLevel level, Home home, net.minecraft.world.level.levelgen.structure.BoundingBox box,
+		java.util.Set<BlockPos> notHere) {
+		BlockPos inRoom = DrifterApi.furnitureSpot(level, home, notHere);
+		if (inRoom != null) {
+			return inRoom;
+		}
+
 		BlockPos bed = home.houseBed(level);
 		int y = bed != null ? bed.getY() : home.center.getY();
 		for (BlockPos pos : BlockPos.betweenClosed(box.minX() + 1, y, box.minZ() + 1, box.maxX() - 1, y, box.maxZ() - 1)) {
 			var below = level.getBlockState(pos.below());
-			if (!level.getBlockState(pos).isAir() || !level.getBlockState(pos.above()).isAir() || !below.isFaceSturdy(level, pos.below(), net.minecraft.core.Direction.UP)) {
+			if (notHere.contains(pos) || !level.getBlockState(pos).isAir() || !level.getBlockState(pos.above()).isAir()
+				|| !below.isFaceSturdy(level, pos.below(), net.minecraft.core.Direction.UP) || !indoors(level, box, pos)) {
 				continue;
 			}
 
@@ -248,6 +260,31 @@ final class Trades {
 		}
 
 		return null;
+	}
+
+	/** Under a roof (a solid block over it in the house) and walled each way along its floor, within the house. */
+	private static boolean indoors(net.minecraft.server.level.ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox box, BlockPos pos) {
+		boolean roof = false;
+		for (int up = 2; up <= 6 && pos.getY() + up <= box.maxY() && !roof; up++) {
+			roof = !level.getBlockState(pos.above(up)).getCollisionShape(level, pos.above(up)).isEmpty();
+		}
+
+		if (!roof) {
+			return false;
+		}
+
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			boolean wall = false;
+			for (BlockPos at = pos.relative(side); box.isInside(at) && !wall; at = at.relative(side)) {
+				wall = !level.getBlockState(at).getCollisionShape(level, at).isEmpty();
+			}
+
+			if (!wall) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static long count(Town town, String line) {

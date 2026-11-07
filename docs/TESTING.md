@@ -3034,3 +3034,41 @@ Needs Bountiful (and Kambrik) in the game, as in DRIFTER TEST. New world, "A wor
 - [ ] Debug, standing in a town: `/drifterciv town bounty` opens its board from where you are; `/drifterciv town bounty
       paper` puts its notice's paper in your hand; `/drifterciv town bounty goods` gives you what it asks for; then
       `/drifterciv town bounty` again turns it in.
+
+## 0.23.29: town bugs fixed, crime taken seriously, notices pay more (new)
+
+New world, "A world of nations" on (the bug fixes are in how a town is made).
+
+- [ ] **The mine is lit.** `/drifterciv town goto mine` takes you to the nearest town's mine: torches down the stairs, in
+      the hub at the bottom (`/drifterciv town goto hub`), along the corridor and halfway along each strip.
+- [ ] **They mine from it.** Over a day or two, follow someone off mining (`/drifter thoughts` on them): "down the town's
+      mine, on along a strip (Y 11) for raw iron" or "branching off at Y 27", and the strips down there get longer. Few or
+      no new staircases dug from the edge of the town any more.
+- [ ] **No holes round the town at night.** At night, nobody digs in or walls themselves in inside the town. Anyone who
+      can't get into their house stands by the plaza's fire till morning ("in town for the night: staying out by the
+      light").
+- [ ] **Workshops inside.** A town's enchanter has its enchanting table inside its house (`/drifterciv town` says who),
+      a smith its anvil and smithing table inside, never out on the porch or the foundation.
+- [ ] **Nothing on the houses.** The stable, the mine's mouth and the hives stand on their own ground, not on top of a
+      house. Houses built later don't go over the fields, the pen, the mine, the stable or the hives either.
+- [ ] **No rush to the store.** When a town appears, its people go about their day: not half of them at the store's chest
+      at once.
+- [ ] **Beds out of the way.** In houses with more than one household, the extra beds aren't in front of the stairs, or in
+      front of chests, furnaces or crafting tables.
+- [ ] **Theft is seen.** Open a chest in a town (the store, someone's house) while townspeople can see you and take
+      something: one shouts ("THIEF!"), `/drifterciv town` shows your fine (3 emeralds and what you took was worth), and a
+      guard comes to collect. Refuse to pay (walk off) and you're exiled and wanted. Take something while nobody's looking
+      and nothing happens (until the owner finds it gone). (Debug: stand on the plaza, `/drifterciv town steal`, then
+      `/drifterciv town steal take`.)
+- [ ] **A killing is seen, and they come for you.** Kill a townsperson in front of others: "MURDERER", exiled and wanted
+      for a week, a bounty. Guards and the braver townspeople attack you on sight about the town, and come looking where you
+      were even when you've ducked out of sight; the timid run. Come back later and someone calls it out ("it's {you}! get
+      them!").
+- [ ] **A massacre.** Kill three of a town's people (within three days): the chronicle tells of the massacre, you're
+      wanted there for a month, and the towns round it (1,500 blocks) hear: wanted there too for ten days. (Debug:
+      `/drifterciv town crime massacre`; `/drifterciv town crime pardon` clears your record in that town.)
+- [ ] **Drifters who kill.** A townsperson who kills another in front of others is thrown out, and those who saw fight it
+      on sight. One that kills three is the enemy of every town about.
+- [ ] **Notices pay more.** A notice pays at least 3 emeralds now ("need 48 white wool, paying 3 emeralds").
+- [ ] Debug, standing in a town: `/drifterciv town check` counts the torches in its mine, beds beside stairs or a
+      station, workshops not under a roof, and houses on ground kept for other things (all but the torches should be 0).

@@ -219,7 +219,10 @@ public interface TownWork {
 	default void crime(DrifterEntity drifter, String kind, @org.jetbrains.annotations.Nullable DrifterEntity victim, BlockPos where) {
 	}
 
-	/** How its town stands with this player: "exiled" (its people drive them out of the town), or null. */
+	/**
+	 * How its town stands with this player: "wanted" (its guards and bold people go for them on sight about the town, the
+	 * rest keep clear), "exiled" (its people drive them out of the town), or null.
+	 */
 	@org.jetbrains.annotations.Nullable
 	default String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
 		return null;

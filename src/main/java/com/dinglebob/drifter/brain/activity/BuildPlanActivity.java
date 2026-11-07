@@ -929,20 +929,65 @@ public class BuildPlanActivity extends Activity {
 			}
 		}
 
-		// The best that's on open floor and cuts nothing off; else (no door in the plan, odd houses) as before.
+		// The best that's on open floor and cuts nothing off, out of the way of stairs and of the things the house is used
+		// by (found by the user: beds in front of the stairs up, and in front of furnaces, crafting tables and chests); else
+		// one that's only in their way; else (no door in the plan, odd houses) as before.
 		ranked.sort(Map.Entry.<BedSpot, Double>comparingByValue().reversed());
-		for (Map.Entry<BedSpot, Double> entry : ranked) {
-			BlockPos foot = entry.getKey().foot();
-			BlockPos head = entry.getKey().head();
-			Set<BlockPos> after = walkable(level, plan, want, doorways, Set.of(foot, head));
-			boolean cutsOff = walkable.stream().anyMatch(cell -> !cell.equals(foot) && !cell.equals(head) && !after.contains(cell));
-			boolean besideIt = after.stream().anyMatch(cell -> cell.distManhattan(foot) <= 1 || cell.distManhattan(head) <= 1);
-			if (!cutsOff && besideIt) {
-				return entry.getKey();
+		for (boolean careful : new boolean[] {true, false}) {
+			for (Map.Entry<BedSpot, Double> entry : ranked) {
+				BlockPos foot = entry.getKey().foot();
+				BlockPos head = entry.getKey().head();
+				if (careful && (inTheWay(level, want, foot) || inTheWay(level, want, head))) {
+					continue;
+				}
+
+				Set<BlockPos> after = walkable(level, plan, want, doorways, Set.of(foot, head));
+				boolean cutsOff = walkable.stream().anyMatch(cell -> !cell.equals(foot) && !cell.equals(head) && !after.contains(cell));
+				boolean besideIt = after.stream().anyMatch(cell -> cell.distManhattan(foot) <= 1 || cell.distManhattan(head) <= 1);
+				if (!cutsOff && besideIt) {
+					return entry.getKey();
+				}
 			}
 		}
 
 		return !ranked.isEmpty() ? ranked.get(0).getKey() : best;
+	}
+
+	/**
+	 * Half a bed here would be in the way: where you step on or off stairs or a ladder, under a staircase, or in front of
+	 * something used from the floor (a chest, a furnace, a crafting table, an anvil, a lectern...). The plan's blocks as
+	 * planned, the world's elsewhere.
+	 */
+	private static boolean inTheWay(net.minecraft.world.level.BlockGetter level, Map<BlockPos, BlockState> want, BlockPos pos) {
+		java.util.function.Function<BlockPos, BlockState> state = p -> want.containsKey(p) ? want.get(p) : level.getBlockState(p);
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			for (int dy = -1; dy <= 1; dy++) {
+				BlockState next = state.apply(pos.relative(side).above(dy));
+				if (next.getBlock() instanceof net.minecraft.world.level.block.StairBlock && dy <= 0 || next.is(BlockTags.CLIMBABLE) && dy <= 0) {
+					return true;
+				}
+			}
+
+			if (usedFromTheFloor(state.apply(pos.relative(side)))) {
+				return true;
+			}
+		}
+
+		return state.apply(pos.above(2)).getBlock() instanceof net.minecraft.world.level.block.StairBlock;
+	}
+
+	/** Something a player uses standing in front of it. */
+	private static boolean usedFromTheFloor(BlockState state) {
+		net.minecraft.world.level.block.Block block = state.getBlock();
+		return com.dinglebob.drifter.brain.Home.isStorageBlock(state) || block instanceof net.minecraft.world.level.block.AbstractFurnaceBlock
+			|| block instanceof net.minecraft.world.level.block.CraftingTableBlock || block instanceof net.minecraft.world.level.block.AnvilBlock
+			|| block instanceof net.minecraft.world.level.block.EnchantingTableBlock || block instanceof net.minecraft.world.level.block.LecternBlock
+			|| block instanceof net.minecraft.world.level.block.BrewingStandBlock || block instanceof net.minecraft.world.level.block.GrindstoneBlock
+			|| block instanceof net.minecraft.world.level.block.StonecutterBlock || block instanceof net.minecraft.world.level.block.LoomBlock
+			|| block instanceof net.minecraft.world.level.block.CartographyTableBlock || block instanceof net.minecraft.world.level.block.SmithingTableBlock
+			|| block instanceof net.minecraft.world.level.block.ComposterBlock || block instanceof net.minecraft.world.level.block.AbstractCauldronBlock
+			|| block instanceof net.minecraft.world.level.block.JukeboxBlock || block instanceof net.minecraft.world.level.block.ShulkerBoxBlock
+			|| block instanceof net.minecraft.world.level.block.EnderChestBlock || com.dinglebob.drifter.compat.FarmersDelight.isKitchen(state);
 	}
 
 	/** Both halves of the bed on open floor: at least two cells beside it, at its level, someone can stand on. */

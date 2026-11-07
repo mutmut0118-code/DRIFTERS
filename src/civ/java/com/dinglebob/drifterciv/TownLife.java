@@ -292,11 +292,8 @@ final class TownLife {
 			return false;
 		}
 
-		// (The town's mine is its mine too.)
-		if (town.mineBottom != null && town.mineWay != null) {
-			home.mineBottom = town.mineBottom;
-			home.mineDirection = town.mineWay.getClockWise();
-		}
+		// (The town's mine is its mine too: its share of its faces.)
+		TownMine.give(town, home, group.members.size());
 
 		String name = one.getName().getString();
 		DrifterApi.setGroupLimit(group, Math.max(group.limit(), group.members.size() + 1));

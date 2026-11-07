@@ -284,8 +284,9 @@ public class MineTripActivity extends Activity {
 
 	@Override
 	protected boolean countsAsFailure(Task step) {
-		// Caving: a spot it couldn't get to or a torch that wouldn't go on the wall is part of exploring, not a failure.
-		if (this.phase == Phase.CAVE) {
+		// Caving: a spot it couldn't get to or a torch that wouldn't go on the wall is part of exploring, not a failure. Nor a
+		// stretch of the way through its town's mine (it goes on to the next).
+		if (this.phase == Phase.CAVE || step == this.pathStep) {
 			return false;
 		}
 
@@ -294,6 +295,11 @@ public class MineTripActivity extends Activity {
 
 	@Override
 	protected void stepDone(Task step, Status status) {
+		if (step == this.pathStep) {
+			this.pathStep = null;
+			return;
+		}
+
 		if (this.phase == Phase.DIG && this.digger != null) {
 			this.digger.stepDone(step, status);
 			this.relayThought();
@@ -683,20 +689,31 @@ public class MineTripActivity extends Activity {
 		if (this.caves() && !this.cavingDone) {
 
 			Home caveHome = this.drifter.getDrifterBrain().home();
-			BlockPos from = caveHome != null && caveHome.near(this.drifter, Home.STORAGE_RANGE) ? caveHome.center : this.drifter.blockPosition();
+			boolean atHome = caveHome != null && caveHome.near(this.drifter, Home.STORAGE_RANGE);
+			BlockPos from = atHome ? caveHome.center : this.drifter.blockPosition();
+			// Its town's mine first: the caves it broke into, down there (the user, 2026-11-07: nobody used the town mine to go
+			// exploring from); then the ones about home.
+			java.util.List<BlockPos> starts = new java.util.ArrayList<>();
+			if (atHome) {
+				caveHome.townMine.stream().filter(face -> face.dig() == Home.Dig.DOWN).findFirst().ifPresent(face -> starts.add(face.at()));
+			}
+
+			starts.add(from);
 			// Only a real cave (not air under an overhang by the surface; found in testing): a few tries.
 			java.util.Set<BlockPos> notCaves = new java.util.HashSet<>();
 			BlockPos cave = null;
-			for (int tries = 0; tries < 5 && cave == null; tries++) {
-				BlockPos candidate = Caver.findFrontier(this.drifter, from, CAVE_SEARCH, this.depth, java.util.Set.of(), notCaves);
-				if (candidate == null) {
-					break;
-				}
+			for (BlockPos start : starts) {
+				for (int tries = 0; tries < 5 && cave == null; tries++) {
+					BlockPos candidate = Caver.findFrontier(this.drifter, start, CAVE_SEARCH, this.depth, java.util.Set.of(), notCaves);
+					if (candidate == null) {
+						break;
+					}
 
-				if (Caver.isCave(this.drifter, candidate)) {
-					cave = candidate;
-				} else {
-					notCaves.add(candidate);
+					if (Caver.isCave(this.drifter, candidate)) {
+						cave = candidate;
+					} else {
+						notCaves.add(candidate);
+					}
 				}
 			}
 
@@ -736,6 +753,28 @@ public class MineTripActivity extends Activity {
 			this.tunnel.branchMine(home.mineBottom, way, MAIN_LENGTH, this.spacing(), BRANCH_LENGTH);
 			this.branched = true;
 			this.think("back down to its mine, branching " + way.getName());
+		} else if (home != null && home.near(this.drifter, Home.STORAGE_RANGE) && this.townFace(home, targetY) != null) {
+			// Its town's mine (the user, 2026-11-07): down its stairs to a face near the height it wants, and on from there: a
+			// strip on from a strip's end, a branch mine from the corridor's end or a landing; deeper than all of it, stairs on
+			// down from the bottom.
+			Home.MineFace face = this.townFace;
+			this.tunnel = new Tunnel(face.at(), face.way(), MAX_STEPS);
+			switch (face.dig()) {
+				case STRIP -> {
+					this.tunnel.legs.add(new Tunnel.Leg(face.at(), face.way(), TOWN_STRIP, Tunnel.LEVEL));
+					this.branched = true;
+					this.think(String.format(Locale.ROOT, "down the town's mine, on along a strip (Y %d) for %s", face.at().getY(), this.label));
+				}
+				case BRANCH -> {
+					this.tunnel.branchMine(face.at(), face.way(), MAIN_LENGTH, this.spacing(), BRANCH_LENGTH);
+					this.branched = true;
+					this.think(String.format(Locale.ROOT, "down the town's mine, branching off at Y %d for %s", face.at().getY(), this.label));
+				}
+				case DOWN -> {
+					this.tunnel.legs.add(new Tunnel.Leg(face.at(), face.way(), 400, targetY));
+					this.think(String.format(Locale.ROOT, "down the town's mine, then digging on down toward Y %d for %s", targetY, this.label));
+				}
+			}
 		} else {
 			BlockPos entrance;
 			Direction way;
@@ -786,10 +825,67 @@ public class MineTripActivity extends Activity {
 
 		this.digger = new TunnelDigger(this.drifter, this.tunnel);
 		this.phase = Phase.DIG;
+		// Starting down in its town's mine: down its stairs a stretch at a time first.
+		if (home != null && this.inTownMine(home, this.tunnel.entrance)) {
+			this.minePath = new java.util.ArrayDeque<>(home.townMinePath);
+		}
+
 		return Status.RUNNING;
 	}
 
+	/** The way down (or up) its town's mine still to walk, a stretch at a time; how often the next stretch has failed. */
+	@Nullable
+	private java.util.ArrayDeque<BlockPos> minePath;
+	private int minePathTries;
+	private boolean wentUpMine;
+
+	/** This spot is down in its town's mine (well under its mouth, near its hub). */
+	private boolean inTownMine(Home home, BlockPos at) {
+		if (home.townMinePath.size() < 2) {
+			return false;
+		}
+
+		BlockPos mouth = home.townMinePath.get(0);
+		BlockPos hub = home.townMinePath.get(home.townMinePath.size() - 1);
+		double dx = at.getX() - hub.getX();
+		double dz = at.getZ() - hub.getZ();
+		return at.getY() < mouth.getY() - 8 && dx * dx + dz * dz < 128 * 128;
+	}
+
+	/** The next stretch of the way through its town's mine, or null when it's walked (or there's none). */
+	@Nullable
+	private Status walkMinePath(String what) {
+		java.util.ArrayDeque<BlockPos> path = this.minePath;
+		if (path == null) {
+			return null;
+		}
+
+		while (!path.isEmpty() && (this.drifter.blockPosition().closerThan(path.peek(), 3.0) || this.minePathTries > 2)) {
+			path.poll();
+			this.minePathTries = 0;
+		}
+
+		if (path.isEmpty()) {
+			this.minePath = null;
+			return null;
+		}
+
+		this.minePathTries++;
+		NavigateTask walk = new NavigateTask(this.drifter, Vec3.atBottomCenterOf(path.peek()), 1.5, what);
+		this.pathStep = walk;
+		return this.begin(walk);
+	}
+
+	/** The walk along the way through its town's mine now going, or null. */
+	@Nullable
+	private Task pathStep;
+
 	private Status dig() {
+		Status down = this.walkMinePath("go down the town's mine");
+		if (down != null) {
+			return down;
+		}
+
 		// Ore it wants that it has just seen close by (it broke into a cave, or a wall showed it): a player goes and gets
 		// it before carrying on, the way most iron is found since caves got big (section 10.3 "Caving").
 		if (this.tunnel != null && this.tunnel.steps % 2 == 0) {
@@ -889,8 +985,72 @@ public class MineTripActivity extends Activity {
 
 		this.think("heading back up: " + this.why);
 		this.rememberStairs();
+		this.moveTownFace();
 		this.phase = Phase.HOME;
 		return Status.RUNNING;
+	}
+
+	/** A strip dug on from a town mine's strip end, this long a trip. */
+	private static final int TOWN_STRIP = 48;
+	/** The town mine's face this trip set out from, or null. */
+	@Nullable
+	private Home.MineFace townFace;
+
+	/**
+	 * The town mine's face for a trip to this height (kept as this trip's): the next of its faces (round them trip by trip,
+	 * so its people spread out) within a dozen blocks of it; deeper than them all, stairs down from the bottom (its two
+	 * sides in turn); null when there's no town mine, or the height's above all of it.
+	 */
+	@Nullable
+	private Home.MineFace townFace(Home home, int targetY) {
+		if (this.townFace != null) {
+			return this.townFace;
+		}
+
+		java.util.List<Home.MineFace> faces = home.townMine;
+		if (faces.isEmpty()) {
+			return null;
+		}
+
+		int n = faces.size();
+		int start = Math.floorMod(home.mineTrips, n);
+		for (int i = 0; i < n; i++) {
+			Home.MineFace face = faces.get((start + i) % n);
+			if (face.dig() != Home.Dig.DOWN && Math.abs(face.at().getY() - targetY) <= 12) {
+				home.mineTrips = start + i + 1;
+				this.townFace = face;
+				return face;
+			}
+		}
+
+		java.util.List<Home.MineFace> down = faces.stream().filter(face -> face.dig() == Home.Dig.DOWN).toList();
+		if (!down.isEmpty() && down.get(0).at().getY() - targetY > 12) {
+			home.mineTrips++;
+			this.townFace = down.get(Math.floorMod(home.mineTrips, down.size()));
+			return this.townFace;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Back from the town mine: its face moved on to where this trip got to along it (a strip's new end, the corridor's), so
+	 * the next trip from it digs new ground; not if the way turned (it stays where it was).
+	 */
+	private void moveTownFace() {
+		Home.MineFace face = this.townFace;
+		Home home = this.drifter.getDrifterBrain().home();
+		Tunnel t = this.tunnel;
+		if (face == null || face.dig() == Home.Dig.DOWN || home == null || t == null) {
+			return;
+		}
+
+		int along = (t.tip.getX() - face.at().getX()) * face.way().getStepX() + (t.tip.getZ() - face.at().getZ()) * face.way().getStepZ();
+		BlockPos on = face.at().relative(face.way(), along);
+		int index = home.townMine.indexOf(face);
+		if (along > 0 && index >= 0 && t.contains(on)) {
+			home.townMine.set(index, new Home.MineFace(on, face.way(), face.dig()));
+		}
 	}
 
 	/**
@@ -921,6 +1081,20 @@ public class MineTripActivity extends Activity {
 
 	private Status goHome() {
 		Home home = this.drifter.getDrifterBrain().home();
+		// Down in its town's mine: back to its hub and up its stairs a stretch at a time, then home.
+		if (home != null && !this.wentUpMine && this.inTownMine(home, this.drifter.blockPosition())) {
+			this.wentUpMine = true;
+			java.util.List<BlockPos> up = new java.util.ArrayList<>(home.townMinePath);
+			java.util.Collections.reverse(up);
+			this.minePath = new java.util.ArrayDeque<>(up);
+			this.minePathTries = 0;
+		}
+
+		Status up = this.walkMinePath("go back up the town's mine");
+		if (up != null) {
+			return up;
+		}
+
 		BlockPos target = home != null && home.near(this.drifter, Home.STORAGE_RANGE + 64) ? home.center
 			: this.tunnel != null ? this.tunnel.entrance : null;
 		if (target == null || this.drifter.blockPosition().distSqr(target) <= 3 * 3) {

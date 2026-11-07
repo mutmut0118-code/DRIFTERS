@@ -63,6 +63,9 @@ public final class TunnelDigger {
 	private boolean plugging;
 	private boolean oreStep;
 	private boolean walkingToTip;
+	/** Why the last walk to the tunnel's end failed (for the thought when it gives up on it). */
+	@Nullable
+	private String walkFailure;
 	private int walkFailures;
 	private final ArrayDeque<BlockPos> ores = new ArrayDeque<>();
 	private final Map<BlockPos, Integer> oreTries = new HashMap<>();
@@ -235,7 +238,7 @@ public final class TunnelDigger {
 		if (!feet.equals(t.tip)) {
 			if (this.walkingToTip && ++this.walkFailures > 3) {
 				// Can't get back to where this leg starts: skip it.
-				this.say("can't get back to the end of the tunnel at " + t.tip.toShortString());
+				this.say("can't get back to the end of the tunnel at " + t.tip.toShortString() + (this.walkFailure == null ? "" : " (" + this.walkFailure + ")"));
 				t.legSteps = t.leg.length();
 				this.walkingToTip = false;
 				return this.next();
@@ -547,6 +550,10 @@ public final class TunnelDigger {
 	public void stepDone(Task step, Task.Status status) {
 		Tunnel t = this.tunnel;
 		Level level = this.drifter.level();
+		if (this.walkingToTip && status == Task.Status.FAILURE) {
+			this.walkFailure = step.failureReason();
+		}
+
 		if (this.digging != null && status == Task.Status.SUCCESS && level.getBlockState(this.digging).getCollisionShape(level, this.digging).isEmpty()) {
 			BlockPos dug = this.digging;
 			t.opened.add(dug);
