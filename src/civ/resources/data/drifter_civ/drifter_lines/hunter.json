@@ -8,5 +8,29 @@
 		"nomad",
 		"pvp_sweat"
 	],
-	"pool": 2
+	"pool": 2,
+	"_comment": "B6: what villagers gave, had now: ender pearls from the endermen it hunts; leather, feathers, bones, string, gunpowder, meat.",
+	"shop": {
+		"from": 10,
+		"sign": "hunter",
+		"makes": [],
+		"sells": [
+			"minecraft:ender_pearl",
+			"minecraft:leather",
+			"minecraft:rabbit_hide",
+			"minecraft:feather",
+			"minecraft:bone",
+			"minecraft:string",
+			"minecraft:gunpowder",
+			"minecraft:spider_eye",
+			"minecraft:cooked_beef",
+			"minecraft:cooked_porkchop",
+			"minecraft:cooked_mutton",
+			"minecraft:rabbit_foot"
+		],
+		"buys": [
+			"minecraft:arrow",
+			"minecraft:bread"
+		]
+	}
 }

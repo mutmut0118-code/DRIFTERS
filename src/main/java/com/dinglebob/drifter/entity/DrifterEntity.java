@@ -2337,6 +2337,7 @@ protected void customServerAiStep() {
 				ItemStack taken = before.copyWithCount(count - stack.getCount());
 				if (!taken.isEmpty()) {
 					this.social.watcher().pickedUpFrom(thrower, taken);
+					com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(this, thrower, taken);
 				}
 			}
 

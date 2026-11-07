@@ -99,6 +99,18 @@ public final class DrifterEvents {
 		}
 	});
 
+	/** A player threw a Drifter something and it picked it up (what it took of it). */
+	public static final Event<Received> RECEIVED = EventFactory.createArrayBacked(Received.class, listeners -> (drifter, player, stack) -> {
+		for (Received listener : listeners) {
+			listener.onReceived(drifter, player, stack);
+		}
+	});
+
+	@FunctionalInterface
+	public interface Received {
+		void onReceived(DrifterEntity drifter, Player player, net.minecraft.world.item.ItemStack stack);
+	}
+
 	@FunctionalInterface
 	public interface Died {
 		void onDied(DrifterEntity drifter, DamageSource source, boolean comesBack);

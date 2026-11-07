@@ -2946,3 +2946,35 @@ New world, "A world of nations" on, Farmer's Delight installed.
       meat, dough, pasta, milk bottles, tomato sauce, mushrooms, eggs, carrots, potatoes...) and some bowls.
       `/drifterciv town chests` counts the cabinets and the kinds of ingredient in each. Over a day or two, watch the
       Drifters cook all sorts of Farmer's Delight dishes in their pots.
+
+## 0.23.27: traditions, stables, bees; what a town thinks of you, notices; prices, services, goods (new)
+
+New world, "A world of nations" on.
+
+- [ ] **Stables.** A town (not a hamlet) has a stable by its edge: three stalls with hay, one to three horses tied up,
+      saddled. Follow a Drifter off on a long trip (a trade run, a war): it walks to its horse, unties it and rides off. Of
+      an evening, it rides back into its stall and ties it up.
+- [ ] **Bees.** By a town's fields: flowers and two or three hives on campfires, bees about. Now and then someone takes
+      honey with a glass bottle from a full one (no angry bees).
+- [ ] **Traditions** (they take time): `/drifterciv town` shows "customs" once a town has some: after its second fishing
+      contest won, a weekly one; after busy market days, the big market every third day; after a war won, Victory Day each
+      year; after its leader's gone, Remembrance Day. Each one is in the chronicle when it starts.
+- [ ] **What a town thinks of you.** `/drifterciv town` shows "You: neutral (0)" at first. Be nice (gifts, help) and it
+      goes up to welcome: cheaper prices at its stall and shops, "hey <you>! welcome back" when you walk in. Steal there
+      (debug: `/drifterciv town crime theft`, twice): wary, then unwelcome or wanted: dearer prices, "keep an eye on that
+      one", a guard following you round, watching; wanted, they won't sell to you or work for you. Other towns nearby hear
+      of it over a few days.
+- [ ] **Notices.** In the morning a town's keeper puts up a notice ("need 24 leather, paying 2 emeralds"): see it in the
+      Gazette (the page after the front), on the plaza board's last sign, and in `/drifterciv town`. Throw the keeper the
+      things (Q, looking at it): it says how many more, then pays you when it has them all. Sometimes a warning: "bandits
+      up north, watch yourselves". (Debug: `/drifterciv town fill`.)
+- [ ] **Prices move.** Buy the same thing from the stall a few times: it gets a bit dearer; the next days it settles back.
+      A town with many miners sells iron cheaper; a farming town, food.
+- [ ] **Services.** Throw a town's enchanter (`/drifterciv town` lists who) a sword or a tool, then 2 emeralds: "ok,
+      give me a minute"; it goes to its enchanting table, enchants it, and throws it back. Throw its smith a worn tool or
+      armour, some of what it's made of (iron ingots for iron), then an emerald: repaired at its anvil, back to you with
+      what it didn't use. A diamond piece, a netherite ingot and the upgrade template, then 3 emeralds: netherite. Walk off
+      without paying and after two minutes it gives everything back. (Debug: hold it and `/drifterciv town hand smith`.)
+- [ ] **What villagers used to sell.** Enchanters sell enchanted books they've made; hunters ender pearls, leather and
+      such; masons (builders) glass, bricks, stone bricks, terracotta; miners ores, now and then a diamond; smiths diamond
+      gear when they have some spare.

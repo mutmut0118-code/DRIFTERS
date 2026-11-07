@@ -4669,6 +4669,53 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.27: phase C's rest (traditions, stables, bees), D1 and D5, B4, B5 and B6** (the user, 2026-11-06: "lets do c, for
+  traditions, and bees and stables, and then only d1 and d5, and then go to b4 b5 and b6"; whims left to another session).
+  - **Traditions** (`TownTraditions`, `Town.traditions`): two fishing contests won and the contest is weekly (every six
+    days); three busy market days (three trades or more) and it's the big market every third day; a war won and Victory
+    Day each year on that day of its year; a leader gone for good and Remembrance Day for them; three of its people dead
+    near one place outside the town and they keep away from it (their long walks turn round it: `Legs` keep-away). Each
+    told in the chronicle; festivals called out with their own lines and bell; "customs" in `/drifterciv town`.
+  - **Stables** (`TownBuilder.stable`, `StableGoal`): a town of six households or more has a stable on a lot by its edge
+    (planks and logs, a slab roof, three stalls with hay, a chest of leads and wheat, a cauldron of water), a horse a
+    household for its first one to three (tamed, saddled, tied to the stall's fence; `Brain.stall`). Off on a trip of 150
+    blocks or more it walks to its horse, unties it and rides (its walk rides its own saddled horse); of an evening it
+    rides it back into its stall and ties it up again with its lead. Its people know the stable's insides.
+  - **Bees** (`TownBuilder.apiary`, `Goals.Honey`): by its fields, a flower patch and two or three hives each sat on a lit
+    campfire (calm bees), bees in them, honey in some; townspeople know them, and take the honey with a glass bottle when
+    a hive's full (making bottles first if they have none).
+  - **D1, what a town thinks of you** (`TownReputation`): its people's trust in you (those who know you), your crimes
+    there (fines, exile), and what it's heard from the towns round it (each day a town's opinion moves the towns within
+    1,500 blocks a fifth of the way): welcome, neutral, wary, unwelcome, wanted. Its stall and shops: 0.9, 1, 1.15, 1.4
+    times the price, and nothing for the wanted; someone says something as you come into town (once in ten minutes); its
+    nearest guard keeps an eye on you while you're wary or worse (follows you round at a distance, watching);
+    `/drifterciv town` says "You: welcome (+34)".
+  - **D5, the notice board** (`TownNotices`): each morning its keeper (or leader) posts what the town's short of, when it
+    and the till have the money ("need 32 iron, paying 9 emeralds - name"; three at most, three days each); throw the
+    poster that many (in one go or several: "12 of 32, keep em coming") and it pays you on the spot, from its own money
+    then the till's. A warning when there are bandits about ("bandits up north, watch yourselves"). In the Gazette (a
+    notices page after the front), on the plaza board's last sign, in `/drifterciv town`. `DrifterEvents.RECEIVED`: a
+    player threw a Drifter something.
+  - **B4, prices** (`Market.price`): what's selling goes up (six in a hundred a sale, to 1.5 times), a day settles it back,
+    what's stocked and doesn't sell drifts down (to 0.8); what the town makes itself is cheaper there (three miners or
+    smiths: ores and ingots 0.8; four farmers: food 0.85; two fishers: fish 0.8; woodcutters: wood; hunters: leather,
+    feathers, bones, string); and what it thinks of you (D1).
+  - **B5, services** (`TownServices`, `ServiceGoal`): throw its enchanter something to enchant, then 2 emeralds (and lapis
+    if you like), and it enchants it at its table (the table's roll, its own levels and lapis); throw its smith a worn
+    tool or armour, the material, then an emerald, and it repairs it at an anvil (a quarter a unit, a level a unit); a
+    diamond piece with a netherite ingot and the template, then 3 emeralds, and it upgrades it at a smithing table. It
+    holds your things apart while it works, hands it back when you're near (and what it didn't use), gives it all back if
+    you don't pay within two minutes or it can't; one job at a time; dearer if the town doesn't like you, none if you're
+    wanted. In a town made ready, an enchanter or smith gets its workshop when it takes up its craft (an enchanting
+    table, or an anvil and a smithing table, in its house; a few levels; the enchanter lapis and books).
+  - **B6, what villagers gave, had now**: its enchanter enchants books to sell (`EnchantBooksGoal`, four kept at most);
+    the hunter's shop sells ender pearls (from the endermen it hunts), leather, feathers, bones, string, gunpowder, meat;
+    the mason's (builder) makes and sells glass, bricks, stone bricks, terracotta, smooth stone; the miner's sells coal,
+    ores, a diamond or an emerald when it has one to spare; the smith's sells diamond gear when it has a spare piece;
+    the fisher's treasure as before.
+  - Debug: `/drifterciv town hand [line]` (what's in your hand to the nearest Drifter, or to the town's Drifter of that
+    line, as if thrown), `/drifterciv town fill` (the first notice's poster brought what it asked for).
+
 ## Side session: chat, part 5 (0.23.23-side.1)
 
 The user (2026-11-05): more parts to stories and topics of every kind ("controversial opinions, deep and philosophical

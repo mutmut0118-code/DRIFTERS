@@ -151,6 +151,25 @@ public final class TownFounding {
 				Towns.all().forEach(town -> TownCulture.check(server, town));
 				// A Bandit living in a town (one there from before, or one who turned) is its crook: no killing on sight there.
 				Towns.all().forEach(town -> settleDown(server, town));
+				// What it thinks of the players about (D1); its notices (D5).
+				Towns.all().forEach(town -> TownReputation.check(server, town));
+				Towns.all().forEach(town -> TownNotices.check(server, town));
+				// Prices settling each day (B4).
+				Towns.all().forEach(town -> {
+					long day = Chronicle.day(server);
+					if (town.demandDay < day) {
+						town.demandDay = day;
+						DrifterEntity keeper = town.keeper == null ? null : loaded(server, town.keeper);
+						java.util.Set<String> stocked = new java.util.HashSet<>();
+						if (keeper != null && keeper.getShop() != null) {
+							keeper.getShop().stock(keeper).keySet().forEach(item -> stocked.add(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString()));
+						}
+
+						Market.newDay(town, stocked);
+					}
+				});
+				// Jobs done for players (B5): handed back.
+				Towns.all().stream().findFirst().ifPresent(town -> TownServices.check(server, town));
 				// Its paper, printed each morning on its lectern.
 				Towns.all().forEach(town -> TownNews.check(server, town));
 				// Its bell, when something's begun.

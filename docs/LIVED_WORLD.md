@@ -21,9 +21,9 @@ a test and an entry here.
 | --- | --- | --- |
 | A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
 | W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Done: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20), W6 + W7 its past and the places nobody's near (0.23.22); LOD mods later |
-| B | Trades and services instead of villager trading | In progress: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9) |
-| C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); the user's notes (0.23.24): guards by size and night rounds, home at night, festival crowds, bells, home whims and cooking, a crook in every city, the Gazette and a crier, the town mine, fuller chests, rebuilding after an explosion; not yet: cults, traditions, bees and stables |
-| D | You and the town (reputation, friends, companions, living there, the notice board) | Not started |
+| B | Trades and services instead of villager trading | Done: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9), B4 prices, B5 services (enchanting, repairs, netherite), B6 what villagers gave (0.23.27); not yet: B7 |
+| C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); the user's notes (0.23.24): guards by size and night rounds, home at night, festival crowds, bells, home whims and cooking, a crook in every city, the Gazette and a crier, the town mine, fuller chests, rebuilding after an explosion; traditions, stables and bees (0.23.27); not yet: cults |
+| D | You and the town (reputation, friends, companions, living there, the notice board) | D1 what a town thinks of you, D5 the notice board (0.23.27); not yet: D2 friends, D3 companions, D4 living there (D6 built in step 5) |
 
 Already built that this stands on: see "What's there to build on" below.
 

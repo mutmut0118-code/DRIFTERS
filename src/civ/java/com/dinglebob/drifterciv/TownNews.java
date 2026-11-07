@@ -49,7 +49,7 @@ final class TownNews {
 	static void check(MinecraftServer server, Town town) {
 		long day = Chronicle.day(server);
 		long time = server.overworld().getDayTime() % 24000L;
-		if (printed.getOrDefault(town.id, -1L) == day || time > 12000L) {
+		if (printed.getOrDefault(town.id, -1L) == day || time < 1500L || time > 12000L) {
 			return;
 		}
 
@@ -119,6 +119,17 @@ final class TownNews {
 		}
 
 		pages.add(page(front.toString()));
+		// The notice board (D5): what's wanted, and warnings.
+		List<String> notices = TownNotices.lines(town);
+		if (!notices.isEmpty()) {
+			StringBuilder board = new StringBuilder("NOTICES\n\n");
+			for (String notice : notices) {
+				board.append("* ").append(notice).append("\n\n");
+			}
+
+			pages.add(page(board.toString()));
+		}
+
 		paginate(pages, "In " + town.name, own);
 		paginate(pages, "From afar", world);
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);

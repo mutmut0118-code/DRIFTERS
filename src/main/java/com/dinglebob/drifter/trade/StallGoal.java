@@ -51,6 +51,12 @@ public final class StallGoal extends Goals.Goal {
 		DrifterEntity drifter = context.drifter();
 		ShopKeeper shop = drifter.getShop();
 		BlockPos stand = shop == null ? null : shop.stand(drifter);
+		// (A job taken for someone comes first: its stall waits; an enchanting waited behind it most of a minute, a test.)
+		var work = drifter.getTownWork();
+		if (work != null && work.service(drifter) != null) {
+			return 0.0;
+		}
+
 		// (Its job in its open hours: above its own chores, below staying alive and eating.)
 		return stand != null && shop.open(drifter) && drifter.blockPosition().closerThan(stand, RANGE) ? 0.72 : 0.0;
 	}

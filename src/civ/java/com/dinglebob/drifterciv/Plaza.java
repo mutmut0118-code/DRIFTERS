@@ -394,6 +394,11 @@ final class Plaza {
 		long households = town.plots.stream().filter(plot -> plot.built).count();
 		String leader = group == null ? "" : group.names.getOrDefault(town.leader != null ? town.leader : group.leader, "");
 		List<String> news = latest(town);
+		// (Its notices first on its last sign, when there are any: D5.)
+		List<String> posted = TownNotices.lines(town);
+		if (!posted.isEmpty()) {
+			news = signLines(posted.get(0));
+		}
 		String[][] text = {
 			{"Welcome to", town.name, "est. day " + town.foundedDay, ""},
 			{households + (households == 1 ? " home, " : " homes, ") + people + " ppl", "Leader:", leader, Politics.lawsShort(town)},
@@ -412,6 +417,23 @@ final class Plaza {
 		}
 
 		town.boardDay = day;
+	}
+
+	/** A notice in sign-sized pieces (15 letters a line, three lines). */
+	private static List<String> signLines(String said) {
+		List<String> lines = new ArrayList<>();
+		StringBuilder line = new StringBuilder();
+		for (String word : said.split(" ")) {
+			if (line.length() + word.length() + 1 > 15 && line.length() > 0) {
+				lines.add(line.toString());
+				line = new StringBuilder();
+			}
+
+			line.append(line.length() > 0 ? " " : "").append(word);
+		}
+
+		lines.add(line.toString());
+		return lines.subList(0, Math.min(3, lines.size()));
 	}
 
 	/** The town's latest news, in sign-sized pieces (15 letters a line, three lines). */

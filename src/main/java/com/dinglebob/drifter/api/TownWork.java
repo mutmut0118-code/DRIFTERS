@@ -177,6 +177,31 @@ public interface TownWork {
 		return false;
 	}
 
+	/**
+	 * A job it's taken on for a player (B5: an enchanting, a repair, a netherite upgrade), or null: what kind ("enchant",
+	 * "repair", "netherite"), said ("enchant someone's sword"), the item, what it was given to do it with.
+	 */
+	default Service service(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** It's done the job (or couldn't): what goes back to the player (the item, leftovers). */
+	default void serviced(DrifterEntity drifter, List<net.minecraft.world.item.ItemStack> back, boolean done) {
+	}
+
+	record Service(String kind, String what, net.minecraft.world.item.ItemStack item, List<net.minecraft.world.item.ItemStack> materials) {
+	}
+
+	/** It makes enchanted books to sell (its town's enchanter: B6, what villagers gave had now). */
+	default boolean enchantsBooks(DrifterEntity drifter) {
+		return false;
+	}
+
+	/** The player this guard keeps an eye on now (one its town is wary of, or worse, in the town), or null. */
+	default net.minecraft.world.entity.player.Player watched(DrifterEntity guard) {
+		return null;
+	}
+
 	/** A guard's rounds: the spots it walks between, in order (along its town's roads), or empty. */
 	default List<BlockPos> patrol(DrifterEntity drifter) {
 		return List.of();

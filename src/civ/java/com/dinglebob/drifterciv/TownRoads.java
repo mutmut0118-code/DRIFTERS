@@ -359,6 +359,26 @@ final class TownRoads {
 		}
 
 		@Override
+		public net.minecraft.world.entity.player.Player watched(DrifterEntity guard) {
+			return TownReputation.watched(this.town, guard);
+		}
+
+		@Override
+		public TownWork.Service service(DrifterEntity drifter) {
+			return TownServices.service(drifter);
+		}
+
+		@Override
+		public void serviced(DrifterEntity drifter, List<net.minecraft.world.item.ItemStack> back, boolean done) {
+			TownServices.serviced(drifter, back, done);
+		}
+
+		@Override
+		public boolean enchantsBooks(DrifterEntity drifter) {
+			return "enchanter".equals(this.town.lines.get(drifter.getUUID()));
+		}
+
+		@Override
 		public boolean guard(DrifterEntity drifter) {
 			return "guard".equals(this.town.lines.get(drifter.getUUID()));
 		}

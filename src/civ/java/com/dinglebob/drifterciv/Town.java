@@ -263,6 +263,17 @@ public final class Town {
 	public final java.util.Set<String> traditions = new java.util.LinkedHashSet<>();
 	public final java.util.Map<String, Integer> tally = new java.util.HashMap<>();
 	public final List<BlockPos> deathSpots = new ArrayList<>();
+	/** What it's heard of each player from the towns round it (D1, -100 to 100), and the day it last passed its own word on. */
+	public final java.util.Map<UUID, Double> heard = new java.util.HashMap<>();
+	/** What's been selling at its stall and shops (B4: an item's price, times this), and the day it last settled. */
+	public final java.util.Map<String, Double> demand = new java.util.HashMap<>();
+	public long demandDay = -1;
+	public long wordDay = -1;
+	/** Its notices up (D5, {@link TownNotices}), the day they were last put up, and a warning (not saved). */
+	public final List<TownNotices.Notice> notices = new ArrayList<>();
+	public long noticeDay = -1;
+	@Nullable
+	public String warning;
 	/** Each of its people's line of work (milestone 23 B1: Trades). */
 	public final java.util.Map<UUID, String> lines = new java.util.HashMap<>();
 	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
@@ -455,6 +466,18 @@ public final class Town {
 		this.tally.forEach(tally::putInt);
 		tag.put("Tally", tally);
 		tag.putLongArray("DeathSpots", this.deathSpots.stream().mapToLong(BlockPos::asLong).toArray());
+		CompoundTag heard = new CompoundTag();
+		this.heard.forEach((id, n) -> heard.putDouble(id.toString(), n));
+		tag.put("Heard", heard);
+		CompoundTag demand = new CompoundTag();
+		this.demand.forEach(demand::putDouble);
+		tag.put("Demand", demand);
+		tag.putLong("DemandDay", this.demandDay);
+		tag.putLong("WordDay", this.wordDay);
+		ListTag notices = new ListTag();
+		this.notices.forEach(notice -> notices.add(notice.save()));
+		tag.put("Notices", notices);
+		tag.putLong("NoticeDay", this.noticeDay);
 		tag.putBoolean("Revolt", this.revolt);
 		tag.putBoolean("Conceded", this.conceded);
 		if (this.plotter != null) {
@@ -612,6 +635,27 @@ public final class Town {
 		for (long spot : tag.getLongArray("DeathSpots")) {
 			town.deathSpots.add(BlockPos.of(spot));
 		}
+
+		CompoundTag heard = tag.getCompound("Heard");
+		for (String key : heard.getAllKeys()) {
+			try {
+				town.heard.put(UUID.fromString(key), heard.getDouble(key));
+			} catch (IllegalArgumentException ignored) {
+			}
+		}
+
+		town.wordDay = tag.contains("WordDay") ? tag.getLong("WordDay") : -1;
+		CompoundTag demand = tag.getCompound("Demand");
+		for (String key : demand.getAllKeys()) {
+			town.demand.put(key, demand.getDouble(key));
+		}
+
+		town.demandDay = tag.contains("DemandDay") ? tag.getLong("DemandDay") : -1;
+		for (Tag t : tag.getList("Notices", Tag.TAG_COMPOUND)) {
+			town.notices.add(TownNotices.Notice.load((CompoundTag)t));
+		}
+
+		town.noticeDay = tag.contains("NoticeDay") ? tag.getLong("NoticeDay") : -1;
 		town.revolt = tag.getBoolean("Revolt");
 		town.conceded = tag.getBoolean("Conceded");
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;

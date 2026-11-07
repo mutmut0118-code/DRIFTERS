@@ -242,10 +242,16 @@ public final class Market {
 		@Override
 		public List<ShopOffer> offers(DrifterEntity keeper, Player player) {
 			List<ShopOffer> offers = new ArrayList<>();
+			// What the town thinks of them (D1): dearer the less it likes them; the wanted, nothing.
+			double standing = TownReputation.of(this.town, player).prices;
+			if (standing < 0) {
+				return offers;
+			}
+
 			// Selling: what it took from the store to sell, as much as it carries.
 			for (Item item : this.stock(keeper).keySet()) {
 				int carried = keeper.getInventory().count(stack -> stack.is(item));
-				ShopOffer offer = trade(item, price(keeper, item) * SELLS_AT, carried, true);
+				ShopOffer offer = trade(item, price(keeper, item) * SELLS_AT * standing, carried, true);
 				if (offer != null) {
 					offers.add(offer);
 				}
@@ -274,6 +280,10 @@ public final class Market {
 		@Override
 		public void traded(DrifterEntity keeper, Player player, ShopOffer offer) {
 			this.town.trades++;
+			// (It sold the goods: what sells goes up.)
+			if (DrifterApi.moneyWorth(offer.goods()) <= 0) {
+				sold(this.town, offer.goods().getItem());
+			}
 		}
 
 		@Override
@@ -317,12 +327,88 @@ public final class Market {
 		return (home == null ? 0 : home.stored(item)) + keeper.getInventory().count(stack -> stack.is(item));
 	}
 
-	/** One's price in points: its worth, dearer the less the town has (up to 1.6 times), cheaper the more (down to half). */
+	/**
+	 * One's price in points: its worth, dearer the less the town has (up to 1.6 times), cheaper the more (down to half);
+	 * then by what's been selling (B4: each sale puts it up a little, a day without settles it back; goods nobody buys go
+	 * down), and what the town makes itself is cheaper there (a mining town's iron, a farming town's bread).
+	 */
 	static double price(DrifterEntity keeper, Item item) {
 		int supply = supply(keeper, item);
 		double factor = Math.max(0.5, Math.min(1.6, 1.6 - 1.1 * supply / (supply + 48.0)));
-		return Math.max(0.05, DrifterApi.worth(new ItemStack(item)) * factor);
+		Town town = townOf(keeper);
+		double demand = town == null ? 1.0 : town.demand.getOrDefault(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString(), 1.0);
+		return Math.max(0.05, DrifterApi.worth(new ItemStack(item)) * factor * demand * (town == null ? 1.0 : specialty(town, item)));
 	}
+
+	/** The town a keeper (or anyone) is one of, or null. */
+	@Nullable
+	static Town townOf(DrifterEntity drifter) {
+		var group = DrifterApi.group(drifter.getUUID());
+		if (group == null) {
+			return null;
+		}
+
+		for (Town town : Towns.all()) {
+			if (group.id.equals(town.group)) {
+				return town;
+			}
+		}
+
+		return null;
+	}
+
+	/** How much cheaper a town's own goods are there, by how many of its people work at them. */
+	static double specialty(Town town, Item item) {
+		ItemStack stack = new ItemStack(item);
+		String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath();
+		long miners = town.lines.values().stream().filter(line -> line.equals("miner") || line.equals("smith")).count();
+		long farmers = town.lines.values().stream().filter(line -> line.equals("farmer")).count();
+		long fishers = town.lines.values().stream().filter(line -> line.equals("fisher")).count();
+		long woodcutters = town.lines.values().stream().filter(line -> line.equals("woodcutter") || line.equals("builder")).count();
+		long hunters = town.lines.values().stream().filter(line -> line.equals("hunter")).count();
+		if (miners >= 3 && (id.contains("iron") || id.contains("coal") || id.contains("copper") || id.contains("gold") || id.contains("redstone"))) {
+			return 0.8;
+		}
+
+		if (fishers >= 2 && (id.contains("cod") || id.contains("salmon") || id.contains("fish"))) {
+			return 0.8;
+		}
+
+		if (farmers >= 4 && stack.has(net.minecraft.core.component.DataComponents.FOOD)) {
+			return 0.85;
+		}
+
+		if (woodcutters >= 3 && (id.endsWith("_log") || id.endsWith("_planks") || id.equals("stick"))) {
+			return 0.8;
+		}
+
+		return hunters >= 2 && (id.equals("leather") || id.equals("feather") || id.equals("bone") || id.equals("string")) ? 0.85 : 1.0;
+	}
+
+	/** It sold some of this (a player bought it): its price creeps up. */
+	static void sold(Town town, Item item) {
+		String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString();
+		town.demand.merge(id, 1.06, (was, by) -> Math.min(MOST_DEMAND, was * by));
+	}
+
+	/** Each day: what sold settles back toward its price, what didn't (and it has) drifts down. */
+	static void newDay(Town town, java.util.Set<String> stocked) {
+		for (var entry : town.demand.entrySet()) {
+			entry.setValue(1.0 + (entry.getValue() - 1.0) * 0.85);
+		}
+
+		for (String id : stocked) {
+			if (town.demand.getOrDefault(id, 1.0) <= 1.0) {
+				town.demand.merge(id, 0.97, (was, by) -> Math.max(LEAST_DEMAND, was * by));
+			}
+		}
+
+		town.demand.values().removeIf(value -> Math.abs(value - 1.0) < 0.01);
+	}
+
+	/** How far what's selling (or not) moves a price, at most. */
+	private static final double MOST_DEMAND = 1.5;
+	private static final double LEAST_DEMAND = 0.8;
 
 	/**
 	 * A trade at {@code each} points apiece: enough of them together to cost one piece of money at least (16 bread for an

@@ -37,7 +37,9 @@ public final class PatrolGoal extends Goals.Goal {
 
 	@Override
 	public String name(Goals.Context context) {
-		return dark(context) ? "keep watch over the town" : "walk the town's rounds";
+		TownWork town = context.drifter().getTownWork();
+		net.minecraft.world.entity.player.Player watched = town == null ? null : town.watched(context.drifter());
+		return watched != null ? "keep an eye on " + watched.getGameProfile().getName() : dark(context) ? "keep watch over the town" : "walk the town's rounds";
 	}
 
 	private static boolean dark(Goals.Context context) {
@@ -54,8 +56,16 @@ public final class PatrolGoal extends Goals.Goal {
 			return 0.0;
 		}
 
+		// (Someone the town doesn't trust about: it keeps an eye on them, day or night.)
+		if (town.watched(drifter) != null) {
+			return WATCH;
+		}
+
 		return dark(context) ? NIGHT : DAY;
 	}
+
+	/** Keeping an eye on someone the town doesn't trust (D1): above its rounds by day. */
+	private static final double WATCH = 0.62;
 
 	@Override
 	public double feasibility(Goals.Context context) {
@@ -71,6 +81,41 @@ public final class PatrolGoal extends Goals.Goal {
 	public Activity start(Goals.Context context) {
 		DrifterEntity drifter = context.drifter();
 		TownWork town = drifter.getTownWork();
+		// Someone it's to keep an eye on: near them (not too near), watching.
+		net.minecraft.world.entity.player.Player watched = town == null ? null : town.watched(drifter);
+		if (watched != null) {
+			return new Activity(drifter) {
+				@Override
+				public String describe() {
+					return "keep an eye on " + watched.getGameProfile().getName();
+				}
+
+				@Override
+				protected int timeoutTicks() {
+					return 20 * 60;
+				}
+
+				@Override
+				protected boolean countsAsFailure(Task step) {
+					return false;
+				}
+
+				@Override
+				protected Status next() {
+					if (!watched.isAlive() || watched.level() != this.drifter.level() || Threats.assess(this.drifter).main() != null) {
+						return Status.SUCCESS;
+					}
+
+					if (this.drifter.distanceTo(watched) > 8.0) {
+						return this.begin(new NavigateTask(this.drifter, watched.position(), 5.0, "keep an eye on " + watched.getGameProfile().getName(),
+							NavigateTask.Pace.STROLL));
+					}
+
+					return this.begin(new com.dinglebob.drifter.executor.task.LookAtTask(this.drifter, watched.getEyePosition(), 60));
+				}
+			};
+		}
+
 		List<BlockPos> rounds = town == null ? List.of() : town.patrol(drifter);
 		if (rounds.isEmpty()) {
 			return null;

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dinglebob.drifter.api.DrifterApi;
+import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.api.DrifterEvents;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -75,6 +76,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		DrifterApi.setRoadPoints(Routes::near);
 		DrifterApi.setTownLooters(TownLife::scavengers);
 		TownTraditions.register();
+		TownNotices.register();
+		TownServices.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -564,6 +567,73 @@ public final class DrifterCivilizations implements ModInitializer {
 					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 					return 1;
 				}))
+				// Debug: what's in your hand to the nearest Drifter, as if you'd thrown it to it (a job, a notice; B5, D5).
+				.then(Commands.literal("fill").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					// Debug: the nearest town's first notice filled, as if you'd brought its poster what it asked for.
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					var notice = town == null || town.notices.isEmpty() ? null : town.notices.get(0);
+					DrifterEntity poster = notice == null ? null : TownFounding.loaded(ctx.getSource().getServer(), notice.poster);
+					if (poster == null) {
+						ctx.getSource().sendFailure(Component.literal("No notice up in the nearest town (or its poster isn't loaded)"));
+						return 0;
+					}
+
+					player.teleportTo(poster.getX() + 1.5, poster.getY(), poster.getZ());
+					ItemStack goods = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse(notice.item)),
+						notice.count);
+					poster.getInventory().add(goods.copy());
+					com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(poster, player, goods);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: brought " + notice.posterName + " what its notice asked for"), true);
+					return 1;
+				}))
+				.then(Commands.literal("hand").requires(source -> source.hasPermission(2)).then(Commands.argument("line", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.executes(ctx -> {
+						// Debug: to the nearest town's Drifter of that line (enchanter, smith...), then what's in your hand to it.
+						var player = ctx.getSource().getPlayerOrException();
+						Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+						String line = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "line");
+						DrifterEntity found = null;
+						if (town != null) {
+							for (var entry : town.lines.entrySet()) {
+								DrifterEntity one = entry.getValue().equals(line) ? TownFounding.loaded(ctx.getSource().getServer(), entry.getKey()) : null;
+								if (one != null) {
+									found = one;
+									break;
+								}
+							}
+						}
+
+						if (found == null) {
+							ctx.getSource().sendFailure(Component.literal("No " + line + " in the nearest town"));
+							return 0;
+						}
+
+						player.teleportTo(found.getX() + 1.5, found.getY(), found.getZ());
+						return handOver(ctx.getSource(), player, found);
+					})))
+				.then(Commands.literal("hand").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					ItemStack held = player.getMainHandItem().copy();
+					DrifterEntity nearest = null;
+					for (DrifterEntity one : player.level().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(8.0), DrifterEntity::isAlive)) {
+						if (nearest == null || one.distanceTo(player) < nearest.distanceTo(player)) {
+							nearest = one;
+						}
+					}
+
+					if (held.isEmpty() || nearest == null) {
+						ctx.getSource().sendFailure(Component.literal("Nothing in your hand, or no Drifter within 8 blocks"));
+						return 0;
+					}
+
+					player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+					nearest.getInventory().add(held.copy());
+					com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(nearest, player, held);
+					String to = nearest.getName().getString();
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: handed " + held.getCount() + " " + held.getHoverName().getString() + " to " + to), true);
+					return 1;
+				}))
 				// The nearest town's house storage: how many chests, barrels and cabinets, how many empty, how full on average.
 				.then(Commands.literal("chests").executes(ctx -> {
 					var source = ctx.getSource();
@@ -822,6 +892,22 @@ public final class DrifterCivilizations implements ModInitializer {
 		return Towns.all().stream().filter(t -> t.name.equalsIgnoreCase(name)).findFirst().orElse(null);
 	}
 
+	/** (Debug.) What's in the player's hand to this Drifter, as if thrown to it. */
+	private static int handOver(CommandSourceStack source, net.minecraft.server.level.ServerPlayer player, DrifterEntity drifter) {
+		ItemStack held = player.getMainHandItem().copy();
+		if (held.isEmpty()) {
+			source.sendFailure(Component.literal("Nothing in your hand"));
+			return 0;
+		}
+
+		player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+		drifter.getInventory().add(held.copy());
+		com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(drifter, player, held);
+		String to = drifter.getName().getString();
+		source.sendSuccess(() -> Component.literal("Debug: handed " + held.getCount() + " " + held.getHoverName().getString() + " to " + to), true);
+		return 1;
+	}
+
 	private static int town(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack source = ctx.getSource();
 		Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
@@ -896,6 +982,17 @@ public final class DrifterCivilizations implements ModInitializer {
 			: " in " + festivalIn + " days")) + (town.shrine != null ? "; a shrine" : "") + (town.fire != null ? "; a gathering fire" : "")
 			+ (town.newest != null ? "; newest: " + town.newest : "") + (town.lastLeft != null ? "; last to leave: " + town.lastLeft : "")
 			+ (town.traditions.isEmpty() ? "" : "; customs: " + String.join(", ", TownTraditions.describe(town)))), false);
+		// Where you stand with it (D1), and its notices (D5).
+		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player you) {
+			String standing = TownReputation.describe(source.getServer(), town, you);
+			source.sendSuccess(() -> Component.literal("  " + standing), false);
+		}
+
+		List<String> posted = TownNotices.lines(town);
+		if (!posted.isEmpty()) {
+			source.sendSuccess(() -> Component.literal("  Notices: " + String.join(" | ", posted)), false);
+		}
+
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (politicsGroup != null && town.leader != null) {

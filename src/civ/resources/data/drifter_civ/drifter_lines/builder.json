@@ -12,5 +12,50 @@
 	"natures": [
 		"builder"
 	],
-	"pool": 3
+	"pool": 3,
+	"_comment": "B6: a mason's goods (glass, bricks, stone bricks, terracotta), made from what it gathers.",
+	"shop": {
+		"from": 10,
+		"sign": "mason",
+		"makes": [
+			{
+				"item": "minecraft:glass",
+				"keep": 16,
+				"batch": 8
+			},
+			{
+				"item": "minecraft:bricks",
+				"keep": 16,
+				"batch": 4
+			},
+			{
+				"item": "minecraft:stone_bricks",
+				"keep": 32,
+				"batch": 8
+			},
+			{
+				"item": "minecraft:terracotta",
+				"keep": 16,
+				"batch": 4
+			},
+			{
+				"item": "minecraft:smooth_stone",
+				"keep": 16,
+				"batch": 8
+			}
+		],
+		"sells": [
+			"minecraft:glass",
+			"minecraft:bricks",
+			"minecraft:stone_bricks",
+			"minecraft:terracotta",
+			"minecraft:smooth_stone",
+			"minecraft:cobblestone"
+		],
+		"buys": [
+			"minecraft:sand",
+			"minecraft:clay_ball",
+			"minecraft:coal"
+		]
+	}
 }
