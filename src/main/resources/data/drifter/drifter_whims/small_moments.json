@@ -1,0 +1,119 @@
+{
+	"whims": [
+		{
+			"id": "check_the_compass", "category": "micro", "action": "steps",
+			"params": {
+				"steps": [
+					{"do": "hold", "item": "minecraft:compass"},
+					{"do": "look_at", "at": "down", "ticks": 40},
+					{"do": "look_around"},
+					{"do": "think", "text": "checked its compass and got its bearings"}
+				]
+			},
+			"needs": [{"item": "minecraft:compass"}],
+			"archetypes": {"nomad": 2.0, "newbie": 1.3}, "traits": {"caution": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "checking its compass"
+		},
+		{
+			"id": "check_the_clock", "category": "micro", "action": "steps", "when": "sunset",
+			"params": {
+				"steps": [
+					{"do": "hold", "item": "minecraft:clock"},
+					{"do": "look_at", "at": "down", "ticks": 40},
+					{"do": "look_at", "at": "sun", "ticks": 30},
+					{"do": "say", "lines": ["getting late", "almost night", "time to head in soon", "sun's going down"], "chance": 0.3}
+				]
+			},
+			"needs": [{"item": "minecraft:clock"}],
+			"archetypes": {"homebody": 1.5, "miner": 1.5}, "traits": {"caution": 0.4}, "cooldown": 24000, "offscreen": "show",
+			"thought": "checking its clock"
+		},
+		{
+			"id": "look_through_the_spyglass", "category": "micro", "action": "steps", "when": "day",
+			"comment": "use_item: the spyglass held up to its eye (the real pose).",
+			"params": {
+				"find": {"open": {"type": "sky", "radius": 12}},
+				"steps": [
+					{"do": "walk_to", "target": "open", "near": 1},
+					{"do": "look_at", "at": "ahead", "ticks": 10},
+					{"do": "use_item", "item": "minecraft:spyglass", "ticks": 100},
+					{"do": "look_around"},
+					{"do": "use_item", "item": "minecraft:spyglass", "ticks": 60},
+					{"do": "say", "lines": ["can see for miles", "ooh whats that over there", "spyglass goes hard", "i spy"], "chance": 0.3}
+				],
+				"make": {"minecraft:spyglass": "minecraft:spyglass"}
+			},
+			"needs": [{"item": "minecraft:spyglass"}],
+			"archetypes": {"nomad": 2.0, "builder": 1.3, "speedrunner": 0.5}, "traits": {"curiosity": 0.6}, "cooldown": 24000, "offscreen": "show",
+			"thought": "looking through its spyglass"
+		},
+		{
+			"id": "blow_the_horn", "category": "micro", "action": "steps",
+			"params": {
+				"steps": [
+					{"do": "look_at", "at": "up", "ticks": 10},
+					{"do": "use_item", "item": "minecraft:goat_horn", "ticks": 60},
+					{"do": "say", "lines": ["AWOOOO", "did u hear that", "horn time", "the horn goes hard"], "chance": 0.3}
+				]
+			},
+			"needs": [{"item": "minecraft:goat_horn"}],
+			"archetypes": {"nomad": 1.5, "newbie": 1.5, "hermit": 0.4}, "traits": {"fidget": 0.5, "sociability": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "blowing its goat horn"
+		},
+		{
+			"id": "watch_an_axolotl", "category": "animals", "action": "steps",
+			"params": {
+				"find": {"axolotl": {"type": "mob", "ids": ["minecraft:axolotl"], "radius": 12}},
+				"steps": [
+					{"do": "walk_to", "target": "axolotl", "near": 2.5},
+					{"do": "crouch", "ticks": 20},
+					{"do": "look_at", "target": "axolotl", "ticks": 80, "hops": true},
+					{"do": "say", "lines": ["axolotl!!", "its smiling at me", "so cute", "the little gills", "i want one"], "chance": 0.4}
+				]
+			},
+			"archetypes": {"newbie": 1.5, "homebody": 1.3}, "traits": {"curiosity": 0.4, "patience": 0.3}, "cooldown": 24000, "offscreen": "show",
+			"thought": "watching an axolotl"
+		},
+		{
+			"id": "watch_a_frog", "category": "animals", "action": "steps",
+			"params": {
+				"find": {"frog": {"type": "mob", "ids": ["minecraft:frog"], "radius": 12}},
+				"steps": [
+					{"do": "walk_to", "target": "frog", "near": 3},
+					{"do": "look_at", "target": "frog", "ticks": 80},
+					{"do": "say", "lines": ["ribbit", "froggy", "hes just a little guy", "frog.", "the tongue!!"], "chance": 0.4}
+				]
+			},
+			"archetypes": {"newbie": 1.5, "nomad": 1.3}, "traits": {"curiosity": 0.4}, "cooldown": 24000, "offscreen": "show",
+			"thought": "watching a frog"
+		},
+		{
+			"id": "watch_glow_squid", "category": "animals", "action": "watch_mob", "when": "night",
+			"params": {"mobs": ["minecraft:glow_squid"], "range": 16},
+			"archetypes": {"newbie": 1.5, "hermit": 1.3}, "traits": {"curiosity": 0.5}, "duration": 160, "cooldown": 24000,
+			"chat": ["glowy squid!", "look its glowing", "glow squid my beloved", "nightlight squid"],
+			"thought": "watching a glow squid shine in the water"
+		},
+		{
+			"id": "eye_a_goat", "category": "animals", "action": "watch_mob",
+			"params": {"mobs": ["minecraft:goat"], "range": 20},
+			"archetypes": {"nomad": 1.3, "newbie": 1.3}, "traits": {"caution": 0.4, "curiosity": 0.3}, "duration": 100, "cooldown": 24000,
+			"chat": ["that goat's looking at me funny", "dont ram me", "i see you goat", "goats are menaces"],
+			"thought": "keeping an eye on a goat"
+		},
+		{
+			"id": "watch_a_sniffer", "category": "animals", "action": "watch_mob",
+			"params": {"mobs": ["minecraft:sniffer"], "range": 16},
+			"archetypes": {"newbie": 1.5, "homebody": 1.5}, "traits": {"curiosity": 0.5}, "duration": 160, "cooldown": 24000,
+			"chat": ["big sniffy guy", "what are you digging for", "sniffer!!", "the nose on that thing"],
+			"thought": "watching a sniffer sniff about"
+		},
+		{
+			"id": "watch_a_camel", "category": "animals", "action": "watch_mob",
+			"params": {"mobs": ["minecraft:camel"], "range": 16},
+			"archetypes": {"nomad": 1.8, "newbie": 1.3}, "traits": {"curiosity": 0.4}, "duration": 120, "cooldown": 24000,
+			"chat": ["camel!", "hes so tall", "desert horse", "look at him just standing there"],
+			"thought": "watching a camel"
+		}
+	]
+}

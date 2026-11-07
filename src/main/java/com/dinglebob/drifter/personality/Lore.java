@@ -72,10 +72,18 @@ public final class Lore {
 
 	/** What it's learned since it came (the rest comes from its personality, so a reroll changes it). */
 	private final EnumSet<Area> learned = EnumSet.noneOf(Area.class);
+	/** When it found each out, this run of the game (not saved: a whim of finding out is for the day it happens). */
+	private final java.util.EnumMap<Area, Long> learnedAt = new java.util.EnumMap<>(Area.class);
 
 	/** Known, from the start or learned. */
 	public boolean knows(DrifterEntity drifter, Area area) {
 		return this.learned.contains(area) || innate(drifter.getPersonality(), area);
+	}
+
+	/** It found this out lately (since the game time given), from seeing, going or being told; not known from the start. */
+	public boolean learnedSince(Area area, long since) {
+		Long at = this.learnedAt.get(area);
+		return at != null && at >= since;
 	}
 
 	/** Known from the start, by its kind of player and Knowledge. */
@@ -97,6 +105,7 @@ public final class Lore {
 		}
 
 		this.learned.add(area);
+		this.learnedAt.put(area, drifter.level().getGameTime());
 		drifter.getMemory().thoughts().add(drifter.level().getGameTime(), "learned about " + area.key.replace('_', ' ') + " (" + how + ")");
 		return true;
 	}

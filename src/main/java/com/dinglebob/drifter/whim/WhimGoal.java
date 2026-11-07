@@ -340,12 +340,22 @@ public final class WhimGoal extends Goals.Goal {
 			return "nobody about";
 		}
 
+		// What it knows of the game (or doesn't yet: a newbie's wonder).
+		String knows = whim.knowsWhyNot(drifter);
+		if (knows != null) {
+			return knows;
+		}
+
 		if (!when(drifter.level(), drifter, whim.when())) {
 			return "not the right time or weather (" + whim.when().name().toLowerCase(java.util.Locale.ROOT) + ")";
 		}
 
 		// What it needs: carried, or (if the whim says how) something it can make quickly from what it has round here.
 		for (Whim.Need need : whim.needs()) {
+			if (need.capped() && count(drifter, need.item()) > need.most()) {
+				return "has more than " + need.most() + " " + need.item();
+			}
+
 			if (count(drifter, need.item()) < need.count() && !WhimPrep.canMake(drifter, whim, need, context == null ? null : context.world())) {
 				return "doesn't have " + need.item() + " (and can't make it)";
 			}
@@ -381,7 +391,16 @@ public final class WhimGoal extends Goals.Goal {
 			case THUNDER -> level.isThundering();
 			case CLEAR -> !level.isRaining() && time < 12000L;
 			case DAWN, MORNING, MIDDAY, AFTERNOON, DUSK -> when.fits(com.dinglebob.drifter.brain.Schedule.ownTime(drifter));
+			// (The moon's face, as a player sees it; only on a clear night, when it can see it.)
+			case FULL_MOON -> time >= 13000L && time < 23000L && !level.isRaining() && level.getMoonPhase() == 0;
+			case NEW_MOON -> time >= 13000L && time < 23000L && !level.isRaining() && level.getMoonPhase() == 4;
+			case SNOW -> snowing(level, drifter.blockPosition());
 		};
+	}
+
+	/** Snow falling where it stands (it's raining, and here that comes down as snow). */
+	static boolean snowing(Level level, net.minecraft.core.BlockPos pos) {
+		return level.isRaining() && level.getBiome(pos).value().getPrecipitationAt(pos) == net.minecraft.world.level.biome.Biome.Precipitation.SNOW;
 	}
 
 	/** How many it carries of an item id, or of an item tag ("#namespace:tag"). */

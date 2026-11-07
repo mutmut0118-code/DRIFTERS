@@ -54,8 +54,9 @@ Only `id`, `action` and (really) `thought` are needed. Everything else has a def
 | `traits` | How much a trait counts: `{"curiosity": 0.5}` means curious ones like it more; a minus number means less. Names: aggression, bravery, caution, patience, tidiness, curiosity, sociability, greed, vengefulness, forgiveness, industriousness, creativity, efficiency, thrift, fidget, skill, knowledge. | none |
 | `moods` | A mood that makes it likelier: `{"bored": 1.0}`. Names: calm, anxious, panicked, confident, frustrated, bored, triumphant, grieving, angry. | none |
 | `stage` | How far along it must be first: 0 arrival, 1 wood, 2 stone, 3 first night, 4 settling, 5 iron, 6 settlement, 7 diamond, 8 enchanting, 9 Nether. | 0 |
-| `when` | any, day, night, sunset, sunrise, rain, thunder, clear. | any |
-| `needs` | What it has to carry: `[{"item": "minecraft:torch", "count": 2}]`. An item can be a tag (`"#minecraft:logs"`). | none |
+| `when` | any, day, night, sunset, sunrise, rain, thunder, clear; parts of its own day (an early riser's come earlier): dawn, morning, midday, afternoon, dusk (a whim of a part of the day counts ten times as much then); full_moon, new_moon (a clear night of that moon, one night in eight each); snow (snow falling where it stands). | any |
+| `needs` | What it has to carry: `[{"item": "minecraft:torch", "count": 2}]`. An item can be a tag (`"#minecraft:logs"`). Add `"most": 2` for "only while it has no more than 2" (its very first diamond). | none |
+| `knows` | What it has to know of the game, or not know yet: `"nether"`, `["enchanting", "brewing"]`, `"!nether"` (only one that doesn't know the Nether yet), `"new:nether"` (one that found out within the last in-game day: seeing a portal, going, or being told; a newbie's wonder at the first portal it sees). Areas: farming, animals, trading, enchanting, nether, brewing, raids, redstone, anvils, fortresses, bartering, end, trial_chambers, netherite, warden, dragon, elytra, beacons. What it knows comes from its Knowledge and kind of player, and grows as it plays and talks (`/drifter lore`). | none |
 | `duration` | How long it watches or stays, in ticks (20 ticks = 1 second), for the actions that use it. | 400 |
 | `cooldown` | Ticks before it does this one again (24000 = one in-game day). | 24000 |
 | `gates` | Letters: `G` griefing (only hostile Drifters, with griefing on), `M` only with a player or Drifter about, `R` risky (careful ones rarely), `L` later (switched off for now). | none |
@@ -143,6 +144,7 @@ Each gets a name you choose (`"fire"` above) and a `type`:
 | `chest` | Its nearest chest at home. | `radius` (16) |
 | `sky` | A spot it knows under the open sky. | `radius` (12) |
 | `ground` | A free bit of flat ground (to put something down). | `radius` (8) |
+| `town` | A place of its town, if it lives in one (the civilizations add-on). | `place` (needed): plaza, well, fire, board, bell, stall, store, fields, market, festival, shrine, home, kitchen, mine. `radius` (160). |
 
 Add `"optional": true` if the whim can go ahead without it (steps that use it are then skipped).
 
@@ -163,7 +165,8 @@ Each step is `{"do": "<step>", ...settings}`. Any step can have `"chance": 0.5` 
 | `jump` | Jumps. | `times` (3) |
 | `swing` | Swings its arm (a wave). | `times` (1) |
 | `look_around` | Looks all round. | `times` (1) |
-| `eat` | Eats an item it carries. | `item` (needed) |
+| `eat` | Eats or drinks an item it carries. | `item` (needed) |
+| `use_item` | Uses an item in the air and holds it up a while, as holding right-click: a spyglass to its eye, a goat horn blown. Not for food or drink (`eat`). | `item` (needed), `ticks` (40) |
 | `drop` | Drops an item. | `item` (needed), `count` (1), `keep` (true: picks it back up later) |
 | `pick_up` | Picks up items lying nearby. | `radius` (4) |
 | `crouch` | Crouches. | `ticks` (40) |
@@ -172,7 +175,9 @@ Items it holds, uses, places, eats or drops must be carried (or listed in `needs
 
 The examples in the mod are in `drifter_whims/steps.json` (warming its hands by a fire, waving to a friend, checking on
 the crops, a morning stretch) and `drifter_whims/everyday.json` (twenty more: smelling a flower, scratching a cat, a coin
-in the water, standing in the rain, knocking on a door, counting its emeralds...).
+in the water, standing in the rain, knocking on a door, counting its emeralds...). `lore.json` has whims by what it
+knows (`knows`), `moon_and_snow.json` the moon and snow times, `small_moments.json` the spyglass and goat horn
+(`use_item`), and `mistakes.json` a need with a `most` (its first diamond).
 
 ## Offscreen
 

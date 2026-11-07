@@ -23,11 +23,11 @@ import com.dinglebob.drifter.personality.Trait;
  */
 public record Whim(String id, String category, String action, JsonObject params, double weight, Map<Archetype, Double> archetypes,
 	Map<Trait, Double> traits, Map<Mood, Double> moods, int stage, When when, List<Need> needs, int duration, int cooldown, Gates gates,
-	List<String> chat, String thought, Offscreen offscreen) {
+	List<String> chat, String thought, Offscreen offscreen, List<String> knows) {
 
 	/** Every field a whim may have (anything else is a typo: the load checks say so). */
 	public static final java.util.Set<String> FIELDS = java.util.Set.of("id", "category", "action", "params", "weight", "archetypes", "traits",
-		"moods", "stage", "when", "needs", "duration", "cooldown", "gates", "chat", "thought", "offscreen", "comment");
+		"moods", "stage", "when", "needs", "duration", "cooldown", "gates", "chat", "thought", "offscreen", "knows", "comment");
 
 	/**
 	 * What it does when nobody is about (milestone 20, docs/OFFSCREEN_WHIMS.md; the user's pick: A + B + C + E). Each action
@@ -49,7 +49,9 @@ public record Whim(String id, String category, String action, JsonObject params,
 		ANY, DAY, NIGHT, SUNSET, SUNRISE, RAIN, THUNDER, CLEAR,
 		/** Parts of its own day (its habit: an early riser's come earlier; milestone 23 C1): first light, the morning, the middle
 		 * of the day, the afternoon, the evening. */
-		DAWN, MORNING, MIDDAY, AFTERNOON, DUSK;
+		DAWN, MORNING, MIDDAY, AFTERNOON, DUSK,
+		/** A night of a full moon, of a new moon (no moon at all); snow falling where it stands. */
+		FULL_MOON, NEW_MOON, SNOW;
 
 		/** One of the parts of its own day. */
 		public boolean ofDay() {
@@ -69,8 +71,12 @@ public record Whim(String id, String category, String action, JsonObject params,
 		}
 	}
 
-	/** Something it has to carry (an item id, or a tag as "#namespace:tag"), and how many. */
-	public record Need(String item, int count) {
+	/** Something it has to carry (an item id, or a tag as "#namespace:tag"), how many, and at most how many ("most": only while it has
+	 * no more than that, such as its very first diamond). */
+	public record Need(String item, int count, int most) {
+		public boolean capped() {
+			return this.most < Integer.MAX_VALUE;
+		}
 	}
 
 	/**
@@ -112,7 +118,13 @@ public record Whim(String id, String category, String action, JsonObject params,
 		if (json.has("needs")) {
 			for (JsonElement element : json.getAsJsonArray("needs")) {
 				JsonObject need = element.getAsJsonObject();
-				needs.add(new Need(need.get("item").getAsString(), need.has("count") ? need.get("count").getAsInt() : 1));
+				int count = need.has("count") ? need.get("count").getAsInt() : 1;
+				int most = need.has("most") ? need.get("most").getAsInt() : Integer.MAX_VALUE;
+				if (most < count) {
+					throw new IllegalArgumentException("a need of " + need.get("item").getAsString() + " has \"most\" " + most + " under its \"count\" " + count);
+				}
+
+				needs.add(new Need(need.get("item").getAsString(), count, most));
 			}
 		}
 
@@ -120,6 +132,34 @@ public record Whim(String id, String category, String action, JsonObject params,
 		List<String> chat = new ArrayList<>();
 		if (json.has("chat")) {
 			json.getAsJsonArray("chat").forEach(line -> chat.add(line.getAsString()));
+		}
+
+		// What it has to know of the game, or not know yet ("!nether"): personality/Lore's areas.
+		List<String> knows = new ArrayList<>();
+		if (json.has("knows")) {
+			JsonElement value = json.get("knows");
+			List<String> raw = new ArrayList<>();
+			if (value.isJsonArray()) {
+				value.getAsJsonArray().forEach(e -> raw.add(e.getAsString()));
+			} else {
+				raw.add(value.getAsString());
+			}
+
+			for (String entry : raw) {
+				String key = entry.toLowerCase(Locale.ROOT).trim();
+				String area = key.startsWith("!") ? key.substring(1) : key.startsWith("new:") ? key.substring(4) : key;
+				if (com.dinglebob.drifter.personality.Lore.Area.of(area) == null) {
+					List<String> names = new ArrayList<>();
+					for (var a : com.dinglebob.drifter.personality.Lore.Area.values()) {
+						names.add(a.key);
+					}
+
+					throw new IllegalArgumentException("no area of the game called \"" + area + "\" in \"knows\"" + WhimCheck.didYouMean(area, names)
+						+ " (there are: " + String.join(", ", names) + ")");
+				}
+
+				knows.add(key);
+			}
 		}
 
 		String action = json.get("action").getAsString();
@@ -130,7 +170,8 @@ public record Whim(String id, String category, String action, JsonObject params,
 			json.has("duration") ? json.get("duration").getAsInt() : 20 * 20, json.has("cooldown") ? json.get("cooldown").getAsInt() : 24000,
 			new Gates(gates.contains("G"), gates.contains("M"), gates.contains("R"), gates.contains("L")), List.copyOf(chat),
 			string(json, "thought", "felt like " + id.replace('_', ' ')),
-			json.has("offscreen") ? named(Offscreen.class, json.get("offscreen").getAsString(), "\"offscreen\"") : WhimActions.offscreen(action));
+			json.has("offscreen") ? named(Offscreen.class, json.get("offscreen").getAsString(), "\"offscreen\"") : WhimActions.offscreen(action),
+			List.copyOf(knows));
 	}
 
 	/** One of an enum's names, any case; a wrong one throws, saying which it is close to and what there is. */
@@ -150,6 +191,31 @@ public record Whim(String id, String category, String action, JsonObject params,
 
 	private static String string(JsonObject json, String key, String fallback) {
 		return json.has(key) ? json.get(key).getAsString() : fallback;
+	}
+
+	/** How lately "new:" means: it found out within the last in-game day. */
+	public static final long NEWLY_LEARNED = 24000L;
+
+	/** Why what it knows doesn't fit ("doesn't know about the nether", "already knows about brewing"), or null if it does. */
+	public String knowsWhyNot(com.dinglebob.drifter.entity.DrifterEntity drifter) {
+		for (String entry : this.knows) {
+			if (entry.startsWith("new:")) {
+				var area = com.dinglebob.drifter.personality.Lore.Area.of(entry.substring(4));
+				if (area != null && !drifter.getLore().learnedSince(area, drifter.level().getGameTime() - NEWLY_LEARNED)) {
+					return "hasn't just found out about " + area.key.replace('_', ' ');
+				}
+
+				continue;
+			}
+
+			boolean not = entry.startsWith("!");
+			var area = com.dinglebob.drifter.personality.Lore.Area.of(not ? entry.substring(1) : entry);
+			if (area != null && drifter.knows(area) == not) {
+				return (not ? "already knows about " : "doesn't know about ") + area.key.replace('_', ' ');
+			}
+		}
+
+		return null;
 	}
 
 	/** A text parameter, or the fallback. */
