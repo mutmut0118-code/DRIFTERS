@@ -28,11 +28,18 @@ public final class RareEntities {
 	}
 
 	private static final Map<ResourceKey<Level>, Set<Entity>> levels = new HashMap<>();
+	/** Of those, lit TNT and falling blocks, apart too. */
+	private static final Map<ResourceKey<Level>, Set<Entity>> tnt = new HashMap<>();
+	private static final Map<ResourceKey<Level>, Set<Entity>> falling = new HashMap<>();
 
 	public static void register() {
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
 			if (watched(entity)) {
 				levels.computeIfAbsent(level.dimension(), key -> new LinkedHashSet<>()).add(entity);
+				var own = own(entity);
+				if (own != null) {
+					own.computeIfAbsent(level.dimension(), key -> new LinkedHashSet<>()).add(entity);
+				}
 			}
 
 			if (SOLID.get(entity.getClass())) {
@@ -45,6 +52,12 @@ public final class RareEntities {
 				if (set != null) {
 					set.remove(entity);
 				}
+
+				var own = own(entity);
+				Set<Entity> ownSet = own == null ? null : own.get(level.dimension());
+				if (ownSet != null) {
+					ownSet.remove(entity);
+				}
 			}
 
 			if (SOLID.get(entity.getClass())) {
@@ -56,6 +69,8 @@ public final class RareEntities {
 		});
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			levels.clear();
+			tnt.clear();
+			falling.clear();
 			solids.clear();
 		});
 		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] solid entities known by {} (boats {}, Drifters {})", COLLIDABLE_NAME,
@@ -133,13 +148,21 @@ public final class RareEntities {
 		return SOLID.get(entity.getClass());
 	}
 
+	@org.jetbrains.annotations.Nullable
+	private static Map<ResourceKey<Level>, Set<Entity>> own(Entity entity) {
+		return entity instanceof PrimedTnt ? tnt : entity instanceof FallingBlockEntity ? falling : null;
+	}
+
 	private static boolean watched(Entity entity) {
 		return entity instanceof Projectile || entity instanceof PrimedTnt || entity instanceof FallingBlockEntity;
 	}
 
 	/** As Level#getEntitiesOfClass, for one of the watched kinds (server side). */
 	public static <T extends Entity> List<T> near(Level level, Class<T> type, AABB box, Predicate<? super T> test) {
-		Set<Entity> set = levels.get(level.dimension());
+		// Lit TNT and falling blocks have lists of their own: a battlefield's stuck arrows were hundreds to look past for
+		// each (milestone 16 crowd pass, 2026-11-08).
+		Map<ResourceKey<Level>, Set<Entity>> lists = type == PrimedTnt.class ? tnt : type == FallingBlockEntity.class ? falling : levels;
+		Set<Entity> set = lists.get(level.dimension());
 		if (set == null || set.isEmpty() || level.isClientSide()) {
 			// (A list the caller may sort, as getEntitiesOfClass gives: an unmodifiable empty one crashed a reflex that sorts.)
 			return level.isClientSide() ? level.getEntitiesOfClass(type, box, test) : new ArrayList<>(0);

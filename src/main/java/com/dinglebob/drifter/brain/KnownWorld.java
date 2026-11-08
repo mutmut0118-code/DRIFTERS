@@ -140,6 +140,15 @@ public final class KnownWorld {
 			return cached;
 		}
 
+		// In a battle or a fight, the scan holds as long as for an unwatched one and three times as far: what it knows of trees
+		// and stone round it only feeds plans to gather and craft, and nothing it could gather beats the fight (milestone 16
+		// crowd pass, 2026-11-08: soldiers re-scanned at every kill, as they moved more than 8 blocks between).
+		if (cached != null && now - cached.scannedAt < UNWATCHED_REUSE_TICKS && now >= cached.scannedAt
+			&& cached.scannedFrom.closerThan(drifter.blockPosition(), FIGHT_REUSE_DISTANCE)
+			&& (com.dinglebob.drifter.world.Battle.inBattle(drifter) || drifter.inCombat())) {
+			return cached;
+		}
+
 		// Watched, a much shorter while and nearer (milestone 16 scale pass, 2026-11-08: a crowd round a player re-scanned what it
 		// knew at every decision, a fourteenth of their time). Its own placing or mining drops the held scan either way.
 		if (cached != null && now - cached.scannedAt < WATCHED_REUSE_TICKS && now >= cached.scannedAt
@@ -152,6 +161,8 @@ public final class KnownWorld {
 		return world;
 	}
 
+	/** How far a scan holds in a battle or a fight. */
+	private static final double FIGHT_REUSE_DISTANCE = 24.0;
 	/** How long a scan holds for a Drifter nobody's watching (staying put). */
 	private static final long UNWATCHED_REUSE_TICKS = 100;
 	/** ...within this of where it was taken (a third of the scan's reach). */

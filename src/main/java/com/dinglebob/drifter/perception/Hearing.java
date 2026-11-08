@@ -89,10 +89,16 @@ public class Hearing implements GameEventListener {
 		this.heardCap = this.heardPerTick * (int)Math.max(1L, Math.min(8L, tick - this.listenedAt));
 		this.listenedAt = tick;
 		if (this.heardUpTo >= 0L) {
-			SoundHub.near(level, this.drifter.getEyePosition(), LISTEN_RADIUS, this.heardUpTo, sound -> this.hear(level, sound.kind(), sound.pos(), sound.maker()));
+			SoundHub.near(level, this.drifter.getEyePosition(), LISTEN_RADIUS, this.heardUpTo, this::full,
+				sound -> this.hear(level, sound.kind(), sound.pos(), sound.maker()));
 		}
 
 		this.heardUpTo = latest;
+	}
+
+	/** It has taken in all the sounds it can pick out this tick (fuses still get through). */
+	private boolean full() {
+		return this.heardTick == this.drifter.level().getGameTime() && this.heardThisTick >= Math.max(this.heardPerTick, this.heardCap);
 	}
 
 	/** One sound reaching it: what it makes of it (sneaking already let go). */

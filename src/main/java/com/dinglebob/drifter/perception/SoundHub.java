@@ -50,6 +50,8 @@ public final class SoundHub {
 		final it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<List<Sound>>[] ring = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap[KEEP_TICKS];
 		final long[] ringTick = new long[KEEP_TICKS];
 		final long[] ringNewest = new long[KEEP_TICKS];
+		/** Fuses lit in each tick (a listener that has heard its fill still hears those). */
+		final int[] ringFuses = new int[KEEP_TICKS];
 
 		LevelSounds() {
 			for (int i = 0; i < KEEP_TICKS; i++) {
@@ -74,6 +76,7 @@ public final class SoundHub {
 			sounds.ring[slot].clear();
 			sounds.ringTick[slot] = now;
 			sounds.ringNewest[slot] = 0L;
+			sounds.ringFuses[slot] = 0;
 			sounds.tick = now;
 		}
 
@@ -110,6 +113,9 @@ public final class SoundHub {
 		long number = sounds.next++;
 		list.add(new Sound(number, kind, pos, maker));
 		sounds.ringNewest[slot] = number;
+		if (kind == HeardSound.Kind.FUSE) {
+			sounds.ringFuses[slot]++;
+		}
 	}
 
 	/** The newest sound's number so far (a listener starting now hears from after it). */
@@ -117,8 +123,12 @@ public final class SoundHub {
 		return sounds(level).next - 1;
 	}
 
-	/** The sounds within {@code radius} of {@code ear} numbered after {@code after}, oldest first, each to {@code hear}. */
-	static void near(ServerLevel level, Vec3 ear, double radius, long after, java.util.function.Consumer<Sound> hear) {
+	/**
+	 * The sounds within {@code radius} of {@code ear} numbered after {@code after}, oldest first, each to {@code hear}. Once
+	 * {@code full} says the listener can take in no more this time, only fuses are passed on (it stops looking through the
+	 * rest: in a battle each soldier went through hundreds of sounds a tick it would never take in; milestone 16 crowd pass).
+	 */
+	static void near(ServerLevel level, Vec3 ear, double radius, long after, java.util.function.BooleanSupplier full, java.util.function.Consumer<Sound> hear) {
 		LevelSounds sounds = sounds(level);
 		int minCx = Mth.floor(ear.x - radius) >> 4;
 		int maxCx = Mth.floor(ear.x + radius) >> 4;
@@ -134,6 +144,12 @@ public final class SoundHub {
 				continue;
 			}
 
+			boolean fusesOnly = full.getAsBoolean();
+			if (fusesOnly && sounds.ringFuses[slot] == 0) {
+				continue;
+			}
+
+			chunks:
 			for (int cx = minCx; cx <= maxCx; cx++) {
 				for (int cz = minCz; cz <= maxCz; cz++) {
 					List<Sound> list = map.get(ChunkPos.asLong(cx, cz));
@@ -141,9 +157,20 @@ public final class SoundHub {
 						continue;
 					}
 
-					for (Sound sound : list) {
+					for (int i = 0, n = list.size(); i < n; i++) {
+						Sound sound = list.get(i);
+						if (fusesOnly && sound.kind() != HeardSound.Kind.FUSE) {
+							continue;
+						}
+
 						if (sound.number() > after && sound.pos().distanceToSqr(ear) <= radiusSqr) {
 							hear.accept(sound);
+							if (!fusesOnly && full.getAsBoolean()) {
+								fusesOnly = true;
+								if (sounds.ringFuses[slot] == 0) {
+									break chunks;
+								}
+							}
 						}
 					}
 				}

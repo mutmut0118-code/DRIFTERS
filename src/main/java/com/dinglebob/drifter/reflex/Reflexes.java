@@ -483,7 +483,7 @@ public class Reflexes {
 			boolean hard = com.dinglebob.drifter.world.Battle.inBattle(drifter);
 			double nearest = Double.MAX_VALUE;
 			long now = drifter.level().getGameTime();
-			for (Awareness awareness : drifter.getSenses().tracked()) {
+			for (Awareness awareness : drifter.getSenses().trackedView()) {
 				if (!(awareness.entity instanceof net.minecraft.world.entity.LivingEntity living) || !living.isAlive() || !awareness.seenWithin(now, 40)) {
 					continue;
 				}
@@ -512,6 +512,12 @@ public class Reflexes {
 		private static boolean lavaNear(DrifterEntity drifter) {
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
+			// (No lava in those chunk sections at all: nothing to look for. Milestone 16 crowd pass.)
+			if (!com.dinglebob.drifter.world.TickChunks.mayHaveLava(level, feet.getX() - 3, feet.getY() - 2, feet.getZ() - 3, feet.getX() + 3, feet.getY() + 1,
+				feet.getZ() + 3)) {
+				return false;
+			}
+
 			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-3, -2, -3), feet.offset(3, 1, 3))) {
 				if (level.getFluidState(pos).is(FluidTags.LAVA)) {
 					return true;
@@ -523,7 +529,7 @@ public class Reflexes {
 
 		private static boolean blazeNear(DrifterEntity drifter) {
 			long now = drifter.level().getGameTime();
-			for (Awareness awareness : drifter.getSenses().tracked()) {
+			for (Awareness awareness : drifter.getSenses().trackedView()) {
 				if (awareness.entity instanceof net.minecraft.world.entity.monster.Blaze blaze && blaze.isAlive() && awareness.seenWithin(now, 40)
 					&& blaze.distanceTo(drifter) < 20.0) {
 					return true;
@@ -1064,6 +1070,9 @@ public class Reflexes {
 		}
 	}
 
+	private static final com.dinglebob.drifter.world.TickChunks.SectionAnswers FIRE_SECTIONS = new com.dinglebob.drifter.world.TickChunks.SectionAnswers(
+		state -> state.is(net.minecraft.tags.BlockTags.FIRE), true);
+
 	private static final class InFireBlock extends Reflex {
 		@Nullable
 		private BlockPos safe;
@@ -1080,6 +1089,13 @@ public class Reflexes {
 			}
 
 			Level level = drifter.level();
+			// (No fire in those chunk sections at all: nothing to look for. Milestone 16 crowd pass.)
+			AABB body = drifter.getBoundingBox();
+			if (!FIRE_SECTIONS.mayHave(level, Mth.floor(body.minX), Mth.floor(drifter.getY()), Mth.floor(body.minZ), Mth.floor(body.maxX),
+				Mth.floor(drifter.getY() + 1.0), Mth.floor(body.maxZ))) {
+				return false;
+			}
+
 			for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(drifter.getBoundingBox().minX, drifter.getY(), drifter.getBoundingBox().minZ),
 				BlockPos.containing(drifter.getBoundingBox().maxX, drifter.getY() + 1.0, drifter.getBoundingBox().maxZ))) {
 				if (level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FIRE)) {
@@ -1322,7 +1338,7 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			Creeper before = this.creeper;
 			this.creeper = null;
-			for (Awareness awareness : drifter.getSenses().tracked()) {
+			for (Awareness awareness : drifter.getSenses().trackedView()) {
 				if (awareness.entity instanceof Creeper creeper && creeper.isAlive() && creeper.distanceTo(drifter) < DANGER_RANGE
 					&& (creeper.getSwellDir() > 0 || creeper.getSwelling(1.0F) > 0.1F)
 					// It sees it swelling, or hears the hiss when it's close.

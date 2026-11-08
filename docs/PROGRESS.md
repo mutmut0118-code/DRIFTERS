@@ -5132,3 +5132,47 @@ Profile of the old build in a 500v500: Drifter code 67% of the server thread (ey
   the battle reports matched), and that walking past a boat or into a crowd still pushes as before.
 - The 1000-at-Full-detail case is still about 100 ms a tick of server thread time (about 10 TPS): that's "a player
   standing next to every one of 1000 Drifters", which doesn't happen in play, but the eyes there are the next target.
+
+## Side session: crowd pass, second round (0.23.30-side.3)
+
+The user (2026-11-08): "lets do whatever is next" after 0.23.30-side.2. Same branch, same test setup. Another session's
+test server was running hard on the PC all through, so builds were alternated (side.2, this, side.2, this) and compared
+on the server thread's own CPU time.
+
+### Results (500v500, ms a tick)
+
+| | 0.23.30-side.2 | Now |
+| --- | --- | --- |
+| server thread CPU, first run | 57 to 72 | 46 to 61 |
+| server thread CPU, second run | 55 to 66 | 53 to 61 |
+| average of the readings | about 63 | about 55 |
+| whole server tick, average (PC busy) | about 71 | about 62 |
+| sight lines off the server thread | 52 to 72% | 61 to 85% |
+| ~1000 wanderers, nobody near (server thread CPU) | 46 to 50 | 44 to 46 |
+| the same, all at Full detail (server thread CPU) | 70 to 73 | 69 to 72 |
+
+(On a quiet PC side.2 measured 52 to 59 ms whole tick; this round takes about another eighth off that.)
+
+### What was done
+
+1. **Picking who to watch in two steps** (`Senses.rankAttention` / `prefetch` / `finishRank`): this tick it gathers who's
+   round it and sends out the sight lines to those it will look at up close; next tick it looks, with the answers back.
+   Who it watches changes 50 ms later than before. Without the path threads, in one step as before.
+2. **Room to stand or crouch** (`DrifterEntity.noBlockCollision`, every tick for a moving Drifter): a quick look at the
+   few blocks first (nothing with a collision shape in the box, nothing tall like a fence reaching in from round it:
+   room); otherwise, or near an unloaded chunk, the game's own check. Blocks whose shape never changes use the game's
+   cached shape; scaffolding, powder snow and liquids are asked with its body, as the game does.
+3. **Hearing stops looking** once it has taken in all it can this tick (only fuses still get through), instead of going
+   through every sound round it (`SoundHub.near`).
+4. **Reflexes**: lit TNT and falling blocks have lists of their own (`RareEntities`), not shared with a battlefield's
+   hundreds of stuck arrows; the fire and lava checks look at the chunk sections' palettes first; the creeper, blaze and
+   hard-fight checks read the watch list without copying it.
+5. **What it knows round it** (`KnownWorld.scan`, for gathering and crafting plans) holds for up to 5 s within 24 blocks
+   in a battle or a fight (soldiers re-scanned at every kill; nothing it could gather beats the fight).
+
+### Next
+
+- What's left in a 500v500: the eyes about a quarter (eye rays, re-ranks, awareness looks, hearing), walking and tasks
+  about a ninth, the game's own movement and block collisions about a ninth, reflexes, decisions, the game's chunk upkeep.
+- A real 500v500 near a player also pays for sending all those bodies' movements to the player's game (not on the
+  headless test server), and the client's FPS (EMF settings, milestone 16).

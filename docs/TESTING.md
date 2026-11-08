@@ -3136,3 +3136,13 @@ Nothing to switch on. Best in creative, so the soldiers leave you alone. Any wor
       survivors still go round picking up the dropped gear.
 - [ ] **1000 at once, away from you.** `/drifter spawnmany 1000 200`, fly 200+ blocks away, wait a minute: smooth, as in
       0.23.30-side.1 (a little faster still).
+
+## 0.23.30-side.3: big battles a little smoother still (new)
+
+Everything under 0.23.30-side.2 above still applies (do those checks with this build). Also:
+
+- [ ] **Crouching under things.** Walk a Drifter (or watch one) under a 1.5-block-high gap, a slab ceiling, or along a
+      fence: it still crouches where it must and stands up when it can, and doesn't get stuck in fences or walls.
+- [ ] **Lit TNT and falling sand.** Light TNT near a Drifter: it runs. Drop sand or gravel over one's head: it steps aside.
+      Light a fire under one: it steps out.
+- [ ] **Creeper.** A creeper hissing next to a Drifter: it gets clear as before.

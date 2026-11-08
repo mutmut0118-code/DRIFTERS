@@ -1970,6 +1970,62 @@ protected void customServerAiStep() {
 		this.setPose(pose);
 	}
 
+	/**
+	 * Level#noBlockCollision, with a quick look first: when every block in the box has no collision shape and none round it
+	 * reaches into it (a fence, a wall), there's nothing to bump; otherwise the game's own check, as before. The game's
+	 * check builds every shape through a general-purpose walker, and this ran every tick for every moving Drifter (4.6% of
+	 * a 500v500; milestone 16 crowd pass, 2026-11-08).
+	 */
+	private boolean noBlockCollision(AABB box) {
+		Level level = this.level();
+		int minX = net.minecraft.util.Mth.floor(box.minX);
+		int minY = net.minecraft.util.Mth.floor(box.minY);
+		int minZ = net.minecraft.util.Mth.floor(box.minZ);
+		int maxX = net.minecraft.util.Mth.floor(box.maxX);
+		int maxY = net.minecraft.util.Mth.floor(box.maxY);
+		int maxZ = net.minecraft.util.Mth.floor(box.maxZ);
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		net.minecraft.world.phys.shapes.CollisionContext context = null;
+		for (int x = minX - 1; x <= maxX + 1; x++) {
+			for (int z = minZ - 1; z <= maxZ + 1; z++) {
+				net.minecraft.world.level.chunk.LevelChunk chunk = com.dinglebob.drifter.world.TickChunks.get(level, x >> 4, z >> 4);
+				if (chunk == null) {
+					return level.noBlockCollision(this, box);
+				}
+
+				for (int y = minY - 1; y <= maxY + 1; y++) {
+					var state = chunk.getBlockState(pos.set(x, y, z));
+					if (state.isAir()) {
+						continue;
+					}
+
+					boolean inside = x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
+					if (inside) {
+						// A block whose shape never changes has its collision shape worked out once by the game (grass, flowers:
+						// none); one that may (scaffolding, powder snow) or a liquid (a strider stands on lava) is asked with
+						// its own body, as the game's check does.
+						if (!state.getBlock().hasDynamicShape() && !(state.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock)
+							&& state.getCollisionShape(level, pos).isEmpty()) {
+							continue;
+						}
+
+						if (context == null) {
+							context = net.minecraft.world.phys.shapes.CollisionContext.of(this);
+						}
+
+						if (!state.getCollisionShape(level, pos, context).isEmpty()) {
+							return level.noBlockCollision(this, box);
+						}
+					} else if (state.hasLargeCollisionShape()) {
+						return level.noBlockCollision(this, box);
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
 	private boolean canPlayerFitWithinBlocksAndEntitiesWhen(Pose pose) {
 		// Standing room is room for every lower pose too (each box is the standing one's width from the same feet, no
 		// taller): one check a tick where it stands (milestone 16: these checks, four or five a tick, were a twentieth of a
@@ -1979,7 +2035,7 @@ protected void customServerAiStep() {
 			this.fitCheckedAt = here;
 			this.fitCheckedTick = this.tickCount;
 			// (Blocks only: whether a boat or a shulker box would let it stand up isn't worth an entity search a tick.)
-			this.standingFits = this.level().noBlockCollision(this, this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
+			this.standingFits = this.noBlockCollision(this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
 		}
 
 		if (this.standingFits && this.getDimensions(pose).height() <= this.getDimensions(Pose.STANDING).height()
@@ -1987,7 +2043,7 @@ protected void customServerAiStep() {
 			return true;
 		}
 
-		return this.level().noBlockCollision(this, this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
+		return this.noBlockCollision(this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
 	}
 
 	/** Its fake-player helper's id and profile, worked out once (FakePlayerBridge). */

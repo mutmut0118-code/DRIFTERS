@@ -269,6 +269,11 @@ public class Senses {
 		return new ArrayList<>(this.tracked.values());
 	}
 
+	/** The same, without a copy: only to read through at once, never while anything might change who it watches. */
+	public java.util.Collection<Awareness> trackedView() {
+		return java.util.Collections.unmodifiableCollection(this.tracked.values());
+	}
+
 	@Nullable
 	public Awareness awarenessOf(Entity entity) {
 		return this.tracked.get(entity.getId());
@@ -325,6 +330,12 @@ public class Senses {
 		// looks at every other tick, but going over the hundreds round it for who to watch was the biggest part of a
 		// 500v500's eyes (milestone 16 crowd pass, 2026-11-08). A player in a crowd doesn't take stock of all of it twice a
 		// second either.
+		if (this.pendingRank != null) {
+			Gathered gathered = this.pendingRank;
+			this.pendingRank = null;
+			this.finishRank(gathered);
+		}
+
 		if (this.ticks % (RANK_INTERVAL * slow * (this.crowded ? 2 : 1)) == 0) {
 			this.rankAttention();
 		}
@@ -732,12 +743,104 @@ public class Senses {
 
 		this.alliesNear = allies;
 		java.util.Arrays.sort(order);
+		Gathered gathered = new Gathered(candidates, order, distances);
+		// With the path threads running, in two steps: this tick it sends out the sight lines to those it will look at, and
+		// next tick it looks, with the answers back (milestone 16 crowd pass, 2026-11-08: these first looks were most of the
+		// sight lines still traced on the server thread). Who it watches changes a tick later, 50 ms.
+		if (this.asyncLines()) {
+			this.prefetch(gathered);
+			this.pendingRank = gathered;
+			return;
+		}
+
+		this.finishRank(gathered);
+	}
+
+	/** Who's round it, nearest (and who matters) first, gathered for a re-rank. */
+	private record Gathered(List<Entity> candidates, long[] order, double[] distances) {
+	}
+
+	/** A re-rank gathered last tick, to finish this tick. */
+	@Nullable
+	private Gathered pendingRank;
+
+	private boolean asyncLines() {
+		return com.dinglebob.drifter.nav.PathWorkers.enabled() && this.level() instanceof net.minecraft.server.level.ServerLevel;
+	}
+
+	/** Which of those it will look at up close (as finishRank picks them), with their sight lines sent out now. */
+	private void prefetch(Gathered gathered) {
+		int nearChecks = 0;
+		for (long packed : gathered.order()) {
+			int i = (int)(packed & ((1L << 30) - 1));
+			if (gathered.distances()[i] > DETAIL_RANGE * DETAIL_RANGE) {
+				continue;
+			}
+
+			Entity entity = gathered.candidates().get(i);
+			Awareness current = this.tracked.get(entity.getId());
+			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold) || entity instanceof Player;
+			if (!keep && nearChecks >= NEAR_CHECKS_PER_RANK) {
+				continue;
+			}
+
+			if (!keep) {
+				nearChecks++;
+			}
+
+			this.prefetchLook(entity);
+		}
+	}
+
+	/** The sight lines look() will want for this creature, sent out if there's no fresh answer (and it could be seen at all). */
+	private void prefetchLook(Entity target) {
+		Vec3 eye = this.drifter.getEyePosition();
+		Vec3 head = target.getEyePosition();
+		if (eye.distanceTo(head) > this.sightRange(target) * sizeFactor(target) || this.zoneOf(this.screenAngles(target.getBoundingBox().getCenter())) == Zone.NONE) {
+			return;
+		}
+
+		if (target instanceof com.dinglebob.drifter.entity.DrifterEntity) {
+			boolean lowFirst = this.drifter.getId() < target.getId();
+			Entity low = lowFirst ? this.drifter : target;
+			Entity high = lowFirst ? target : this.drifter;
+			long key = (long)low.getId() << 32 | high.getId() & 0xFFFFFFFFL;
+			this.askLine(pairLines.computeIfAbsent(key, k -> new SightWork.Line()), low.getEyePosition(), high.getEyePosition());
+		} else {
+			this.askLine(this.lines.computeIfAbsent((long)target.getId() << 2 | LINE_HEAD, k -> new SightWork.Line()), eye, head);
+		}
+
+		this.askLine(this.lines.computeIfAbsent((long)target.getId() << 2 | LINE_FEET, k -> new SightWork.Line()), eye, target.position().add(0.0, 0.1, 0.0));
+	}
+
+	private void askLine(SightWork.Line line, Vec3 from, Vec3 to) {
+		long now = this.now();
+		line.collect();
+		if (line.answer(from, to, now) != 0 && now - line.knownAsked < SightWork.MAX_AGE - 1) {
+			return;
+		}
+
+		this.ensureSight(this.drifter.getEyePosition());
+		line.ask(from, to, now, (net.minecraft.server.level.ServerLevel)this.level());
+	}
+
+	/** The re-rank's looks and choice (the second step, or straight on without the path threads). */
+	private void finishRank(Gathered gathered) {
+		long now = this.now();
+		List<Entity> candidates = gathered.candidates();
+		long[] order = gathered.order();
+		double[] distances = gathered.distances();
 		List<Map.Entry<Entity, Double>> ranked = new ArrayList<>();
 		int farChecks = 0;
 		int nearChecks = 0;
 		for (long packed : order) {
 			int i = (int)(packed & ((1L << 30) - 1));
 			Entity entity = candidates.get(i);
+			// (Gone or dead since it was gathered.)
+			if (entity.isRemoved() || !entity.isAlive() || entity.level() != this.level()) {
+				continue;
+			}
+
 			Awareness current = this.tracked.get(entity.getId());
 			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold) || entity instanceof Player;
 			boolean far = distances[i] > DETAIL_RANGE * DETAIL_RANGE;
