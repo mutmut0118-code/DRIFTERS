@@ -176,6 +176,14 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + by), false);
 					return 1;
 				}))
+				// Debug: the land surveyed from here as a new world's plan would (0.23.31: the continent the nations go on).
+				.then(Commands.literal("land").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					String found = WorldPlan.survey(ctx.getSource().getLevel(), at);
+					LOGGER.info("[plan] the land round {}: {}", at.toShortString(), found);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + found), false);
+					return 1;
+				}))
 				.then(Commands.literal("height").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					// Debug: the land's height here as the plan reads it, and as it's generated.
 					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());

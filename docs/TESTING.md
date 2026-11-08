@@ -3093,3 +3093,16 @@ New world or old, "A world of nations" on. The bell is the one on the plaza by t
       crowd in the store, nobody stuck in its aisles. Everyone in a town carries a boat now.
 - [ ] (Debug: `/drifterciv town alarm` rings the nearest town's alarm for two minutes, the trouble where you stand;
       `/drifterciv town alarm stop` stops it.)
+
+## 0.23.31: the nations on the continent, you start by a town, a longer loading screen (new)
+
+A new world, "A world of nations" on (with the Continents mod, as you play it).
+
+- [ ] **The loading screen.** It's up longer now, at most two minutes: once what you'd see from spawn is built, it says
+      "Building more of the world (N of M towns)" and builds more towns and roads round you before you play (it stops at
+      1:50 at the latest).
+- [ ] **You start by a town.** When it ends you're standing on the road into a town, just outside it (about 135 blocks
+      from its middle), looking down the road at it. Not inside it. Die without a bed and you come back there.
+- [ ] **The nations are on the big land.** Not on the little spawn island: `/drifterciv plan` lists the nations and their
+      towns; they should be on one big continent round you, not scattered over islands. (Debug: `/drifterciv plan land`
+      tells you how big the land you're on is and where a new world's nations would go from there.)

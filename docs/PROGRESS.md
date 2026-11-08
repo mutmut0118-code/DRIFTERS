@@ -4669,6 +4669,37 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.31: the nations on the continent, players start by a town, a longer loading screen** (the user, 2026-11-08,
+  with the Continents mod: "usually i spawn in one of the smaller continents/an island outside of the continent, making
+  the nations not spawn to is full potential. so i want spawn in the nearest 'largest' continent", "i also want the mod to
+  change the spawn point around the nearest town (not in a town)"; "dont be afraid to make the loading screen time a bit
+  longer ... we can load more towns", "lets make it capped at 2").
+  - **The continent** (`WorldPlan.Plan.continent`, `survey`): before its capitals, the plan surveys the land round spawn,
+    a square 192 blocks wide at a time, 32 of them out each way (6,000 blocks), by the generator's own heights (water more
+    than 6 under the sea's level is the sea; a river, a beach, a shallow strait count as land). Each stretch of land
+    joined edge to edge is one; each square knows how far it is from the sea. If spawn's land is big enough for the plan
+    (half the circle its capitals and their towns want), the nations go round spawn, or inland on that land if spawn's by
+    its coast; else on the nearest land that is (the biggest near if none is), at a square 0.6 of the capitals' ring in
+    from its sea, nearest spawn. (The Continents mod makes a spawn island on purpose, its continents in rings round it.)
+    Nothing within 300 blocks of the plan's middle, as before.
+  - **Players start by a town** (`Plan.spawnSpot`, `WorldBuild.moveSpawn`): once its roads are planned, the world's spawn
+    moves to the road into the place nearest the plan's middle (not a ruin), 40 blocks past its reach (about 135 from a
+    town's middle), the road toward the middle first, facing the town; with no road there, just outside it on dry, even
+    land, never in another's reach. That stretch of road is built before play (it's by spawn); when the loading screen
+    ends the spot's settled on the ground there (open sky over it: the first try, off the road, was on the floor of a dark
+    forest) and waiting players are put on it. Anyone without a bed comes back there.
+  - **The loading screen builds more** (`WorldBuild`): once what's in sight of spawn is built, it goes on, nearest first,
+    with the towns and roads within 2,000 blocks, till they're all built or it's been up 1:50 (the user's cap, two
+    minutes; at 1:55 one ran to 2:01, finishing the town it was on); never less than what's in sight. The bar says "Building more of the world (N of M towns)".
+  - Debug: `/drifterciv plan land` (the land surveyed from where you stand, as a new world's plan would: the land there,
+    the biggest about, where the nations would go).
+  - Tested: headless, the user's settings (7 nations), seed 8208968137302710584 with Continents and Tectonic: spawn's
+    land 6,600 blocks across (big enough), spawn by its coast: the nations inland on it; surveyed from points at sea, the
+    nearest big land (4,600 and 6,000 blocks off). The survey: 7 s at 192 a square (20 s at 128). Client, the dev
+    settings (4 nations): the plan 700 blocks inland on spawn's land; spawn moved to the road into Willowwick, 138 blocks
+    from its middle; the loading screen 1:50 (in sight at 51 to 83 s, then 2 or 3 more towns and 11 to 19 stretches of
+    road); the picture: on the dirt road, the town down it.
+
 - **0.23.30: the alarm bell** (the user, 2026-11-08: "for like major stuff like a massacre or a raid will people spam
   ring the bell?", then "yes build it" to the alarm bell proposed).
   - **Rung for trouble** (`TownBells.alarm`): raiders from another town coming in (was three slow strokes once), a pillager

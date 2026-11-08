@@ -159,8 +159,22 @@ final class WorldPlan {
 	/** A nation's towns this far from its capital (times the root of the spread); its hamlets this far past them. */
 	private static final int TOWNS_FROM = 550;
 	private static final int TOWNS_TO = 950;
-	/** Nothing made within this of spawn: you start near a nation, not in it (the user's choice). */
+	/** Nothing made within this of the plan's middle (players start by its nearest town, 0.23.31: outside it, not in it). */
 	private static final int CLEAR_OF_SPAWN = 300;
+	/**
+	 * The land's survey for the continent (0.23.31): squares this wide, this many out from spawn each way (6,000 blocks).
+	 * (At 128 it took 20 s of the loading screen, the user's limit two minutes in all.)
+	 */
+	static final int SURVEY = 192;
+	static final int SURVEY_CELLS = 32;
+	/** Its middle this far in from the sea, as a share of how far its capitals are from it (they look further for land). */
+	private static final double INLAND = 0.6;
+	/** Water deeper than this under the sea's level is the sea (for the survey). */
+	private static final int DEEP = 6;
+	/** Land of this share of what the plan wants is big enough for it. */
+	private static final double BIG_SHARE = 0.5;
+	/** Players start this far past the reach of the town they start by. */
+	private static final int SPAWN_OUT = 40;
 	/**
 	 * The land's grid: everything the plan asks of the generator is asked at the middle of a cell this wide, once (a height
 	 * on the user's Tectonic is slow to work out: the first plan took 200 s asking at every spot); and how many cells a road's
@@ -262,6 +276,7 @@ final class WorldPlan {
 						for (Place place : places) {
 							TownSites.planned(level, place);
 						}
+
 					}
 				});
 				plan.make();
@@ -308,6 +323,11 @@ final class WorldPlan {
 			TownSites.planned(server.overworld(), place);
 		}
 
+		// Its players start by its nearest town, on the road in (a world still being readied: nobody's played it yet).
+		if (plan.spawnAt != null && WorldBuild.building) {
+			WorldBuild.moveSpawn(server, plan.spawnAt[0], plan.spawnAt[1], plan.spawnAt[2], plan.spawnAt[3]);
+		}
+
 		// Its past in the chronicle, days before day 1.
 		if (history != null) {
 			for (History.Event event : history.events) {
@@ -330,6 +350,14 @@ final class WorldPlan {
 		DrifterCivilizations.LOGGER.info("[plan] {} nations, {} places ({} cities), {} roads ({} blocks); made in {} ms", nations.size(), places.size(), cities,
 			highways.size(), highways.stream().mapToInt(h -> h.points.size() * Plan.STEP).sum(), millis);
 		Chronicle.add(server, "plan", "The world has " + nations.size() + " nations: " + String.join(", ", nations.stream().map(PlannedNation::name).toList()));
+	}
+
+	/** Debug: the land surveyed from here as a plan made here would (0.23.31): what it found, where the nations would go. */
+	static String survey(ServerLevel level, BlockPos from) {
+		int count = nationsWanted(level.getSeed());
+		double spread = 1 + (DrifterApi.spreadSetting() - 1) * 0.75;
+		Plan plan = new Plan(level, from, count, spread);
+		return plan.survey(from, plan.needed()).describe();
 	}
 
 	/** Debug: the land's height here as the plan reads it ({@link Plan#real}). */
@@ -491,6 +519,8 @@ final class WorldPlan {
 		private final ChunkGenerator generator;
 		private final RandomState randomState;
 		private final BlockPos spawn;
+		/** Where the nations go round: spawn, or inland on the nearest land big enough ({@link #continent}). */
+		private BlockPos center;
 		private final int count;
 		private final double spread;
 		private final Random random;
@@ -506,6 +536,7 @@ final class WorldPlan {
 			this.generator = level.getChunkSource().getGenerator();
 			this.randomState = level.getChunkSource().randomState();
 			this.spawn = spawn;
+			this.center = spawn;
 			this.count = count;
 			this.spread = spread;
 			this.random = new Random(level.getSeed() ^ 0x77726C64706CL);
@@ -513,6 +544,7 @@ final class WorldPlan {
 
 		void make() {
 			long start = System.nanoTime();
+			this.continent();
 			this.capitals();
 			long capitals = System.nanoTime();
 			for (PlannedNation nation : List.copyOf(this.nations)) {
@@ -528,6 +560,7 @@ final class WorldPlan {
 			long towns = System.nanoTime();
 			this.roads();
 			this.stillWanted();
+			this.spawnAt = this.spawnSpot();
 			long past = System.nanoTime();
 			this.history = new History(this.places, this.nations, this.level.getSeed());
 			this.history.write();
@@ -536,6 +569,301 @@ final class WorldPlan {
 			DrifterCivilizations.LOGGER.info("[plan] capitals {} ms, towns {} ms, roads {} ms; {} heights on its grid, {} in all ({} ms)", (capitals - start)
 				/ 1_000_000, (towns - capitals) / 1_000_000, (System.nanoTime() - towns) / 1_000_000, this.heights.size(), this.realHeights.size(),
 				this.realNanos.sum() / 1_000_000);
+		}
+
+		// ----- The land it's made on (0.23.31) -----
+
+		/**
+		 * Where the nations go round (the user, 2026-11-08, with the Continents mod: "usually i spawn in one of the smaller
+		 * continents/an island outside of the continent, making the nations not spawn to its full potential. so i want spawn
+		 * in the nearest 'largest' continent"): spawn, if the land it's on is big enough for them; else well inland on the
+		 * nearest land that is (the biggest near, if none is); and inland on it, if spawn's by the coast (its capitals' ring half
+		 * in the sea otherwise). The land's surveyed on a coarse grid round spawn
+		 * ({@link #SURVEY} blocks a square, {@link #SURVEY_CELLS} out each way), by the generator's own heights: water deeper
+		 * than {@link #DEEP} under the sea's level is the sea (a river, a beach, a shallow strait are land, for this). Each
+		 * stretch of land joined edge to edge is one; how far each square is from the sea says where its middle is.
+		 */
+		private void continent() {
+			Survey survey = this.survey(this.spawn, this.needed());
+			this.surveyed = survey.describe();
+			DrifterCivilizations.LOGGER.info("[plan] the land round spawn: {}", this.surveyed);
+			if (survey.center != null) {
+				this.center = survey.center;
+			}
+		}
+
+		/** How much land the plan wants (in survey squares): its capitals' ring and their towns round them, a circle. */
+		private double needed() {
+			double r = (this.count > 5 ? OUTER_RING : RING) * this.spread + TOWNS_TO * Math.sqrt(this.spread);
+			return Math.PI * r * r / ((double)SURVEY * SURVEY);
+		}
+
+		/** What the survey found: the land at spawn, the land chosen, where the plan's middle goes (null: spawn, as it is). */
+		static final class Survey {
+			int spawnCells;
+			int chosenCells;
+			boolean chosenOpen;
+			int chosenAway;
+			int lands;
+			int biggest;
+			double needed;
+			@Nullable
+			BlockPos center;
+
+			String describe() {
+				String size = this.spawnCells == 0 ? "spawn's at sea" : "spawn's on land of " + area(this.spawnCells) + (this.spawnCells >= this.needed * BIG_SHARE
+					? " (big enough)" : " (an island, for the nations)");
+				String chosen = this.center == null ? "the nations go round spawn" : "the nations go round " + this.center.getX() + ", " + this.center.getZ()
+					+ ", inland on " + (this.chosenCells == this.spawnCells ? "spawn's own land" : "land of " + area(this.chosenCells) + (this.chosenOpen ? " or more" : ""))
+					+ ", " + this.chosenAway + " blocks off";
+				return size + "; " + this.lands + " stretches of land surveyed, the biggest " + area(this.biggest) + "; they want about " + area((int)this.needed)
+					+ "; " + chosen;
+			}
+
+			private static String area(int cells) {
+				double side = Math.sqrt((double)cells) * SURVEY;
+				return cells + " squares (about " + Math.round(side / 100.0) * 100 + " blocks across)";
+			}
+		}
+
+		Survey survey(BlockPos from, double needed) {
+			int n = SURVEY_CELLS * 2 + 1;
+			int c = SURVEY_CELLS;
+			List<int[]> spots = new ArrayList<>(n * n);
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					spots.add(new int[] {from.getX() + (i - c) * SURVEY, from.getZ() + (j - c) * SURVEY});
+				}
+			}
+
+			this.prefetch(spots);
+			int sea = this.generator.getSeaLevel() - DEEP;
+			boolean[][] land = new boolean[n][n];
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					land[i][j] = this.realLand(from.getX() + (i - c) * SURVEY, from.getZ() + (j - c) * SURVEY)[0] >= sea;
+				}
+			}
+
+			this.stillWanted();
+			// Each stretch of land (joined edge to edge): its squares, its nearest to spawn, whether it runs off the survey.
+			int[][] which = new int[n][n];
+			for (int[] row : which) {
+				java.util.Arrays.fill(row, -1);
+			}
+
+			List<int[]> lands = new ArrayList<>();
+			java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					if (!land[i][j] || which[i][j] >= 0) {
+						continue;
+					}
+
+					int id = lands.size();
+					int[] info = {0, Integer.MAX_VALUE, 0};
+					which[i][j] = id;
+					queue.add(new int[] {i, j});
+					while (!queue.isEmpty()) {
+						int[] cell = queue.poll();
+						info[0]++;
+						info[1] = Math.min(info[1], (cell[0] - c) * (cell[0] - c) + (cell[1] - c) * (cell[1] - c));
+						if (cell[0] == 0 || cell[1] == 0 || cell[0] == n - 1 || cell[1] == n - 1) {
+							info[2] = 1;
+						}
+
+						for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+							int a = cell[0] + d[0];
+							int b = cell[1] + d[1];
+							if (a >= 0 && b >= 0 && a < n && b < n && land[a][b] && which[a][b] < 0) {
+								which[a][b] = id;
+								queue.add(new int[] {a, b});
+							}
+						}
+					}
+
+					lands.add(info);
+				}
+			}
+
+			Survey survey = new Survey();
+			survey.needed = needed;
+			survey.lands = lands.size();
+			survey.biggest = lands.stream().mapToInt(info -> info[0]).max().orElse(0);
+			int mine = which[c][c];
+			survey.spawnCells = mine >= 0 ? lands.get(mine)[0] : 0;
+			double big = needed * BIG_SHARE;
+			if (lands.isEmpty()) {
+				return survey;
+			}
+
+			// Its own land if that's big enough; else the nearest land that is (one running off the survey counts its squares so
+			// far); else the biggest.
+			int chosen = mine >= 0 && lands.get(mine)[0] >= big ? mine : -1;
+			for (int id = 0; id < lands.size() && chosen != mine; id++) {
+				int[] info = lands.get(id);
+				if (info[0] >= big && (chosen < 0 || info[1] < lands.get(chosen)[1])) {
+					chosen = id;
+				}
+			}
+
+			if (chosen < 0) {
+				for (int id = 0; id < lands.size(); id++) {
+					if (chosen < 0 || lands.get(id)[0] > lands.get(chosen)[0]) {
+						chosen = id;
+					}
+				}
+			}
+
+			// How far each square is from the sea (squares, any way round); the edge of the survey isn't the sea.
+			int[][] depth = new int[n][n];
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					depth[i][j] = land[i][j] ? Integer.MAX_VALUE : 0;
+					if (!land[i][j]) {
+						queue.add(new int[] {i, j});
+					}
+				}
+			}
+
+			while (!queue.isEmpty()) {
+				int[] cell = queue.poll();
+				for (int a = cell[0] - 1; a <= cell[0] + 1; a++) {
+					for (int b = cell[1] - 1; b <= cell[1] + 1; b++) {
+						if (a >= 0 && b >= 0 && a < n && b < n && depth[a][b] > depth[cell[0]][cell[1]] + 1) {
+							depth[a][b] = depth[cell[0]][cell[1]] + 1;
+							queue.add(new int[] {a, b});
+						}
+					}
+				}
+			}
+
+			// Its middle: a square as far in as the capitals' ring is from the middle (or as far in as it goes), nearest spawn.
+			int deepest = 0;
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					if (which[i][j] == chosen) {
+						deepest = Math.max(deepest, depth[i][j]);
+					}
+				}
+			}
+
+			// (As far in as the whole ring, the middle went 3,000 blocks inland on the user's settings, the land about it unused.)
+			int want = Math.min(deepest, (int)Math.ceil(INLAND * RING * this.spread / SURVEY));
+			// (On its own land and that far in already: round spawn, as it is. On its own land by the coast: inland on it, so its
+			// capitals' ring isn't half in the sea.)
+			if (chosen == mine && depth[c][c] >= want) {
+				return survey;
+			}
+
+			int best = Integer.MAX_VALUE;
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					int d = (i - c) * (i - c) + (j - c) * (j - c);
+					if (which[i][j] == chosen && depth[i][j] >= want && d < best) {
+						best = d;
+						survey.center = new BlockPos(from.getX() + (i - c) * SURVEY, 0, from.getZ() + (j - c) * SURVEY);
+					}
+				}
+			}
+
+			survey.chosenCells = lands.get(chosen)[0];
+			survey.chosenOpen = lands.get(chosen)[2] == 1;
+			survey.chosenAway = survey.center == null ? 0 : (int)Math.round(Math.hypot(survey.center.getX() - from.getX(), survey.center.getZ() - from.getZ()));
+			return survey;
+		}
+
+		/** What the survey found, for the log and the plan's debug. */
+		String surveyed = "";
+		/** Where its players start: x, z, and the middle of the town they look toward (null: none found). */
+		@Nullable
+		int[] spawnAt;
+
+		/**
+		 * Where its players start (the user, 2026-11-08: "change the spawn point around the nearest town (not in a town)"):
+		 * just outside the reach of the place nearest the plan's middle (not a ruin), on its side toward the middle if the
+		 * land's dry and even there, else round it; never within another's reach.
+		 */
+		@Nullable
+		private int[] spawnSpot() {
+			Place town = this.places.stream().filter(p -> !p.ruin())
+				.min(java.util.Comparator.comparingDouble(p -> Math.hypot(p.x - this.center.getX(), p.z - this.center.getZ()))).orElse(null);
+			if (town == null) {
+				return null;
+			}
+
+			// On a road into it (cleared and paved, the way in plain; built before play, being by spawn): the first point of it
+			// past its reach and a little, on dry land. (Found in testing, off the road: in a dark forest, a tree in the face.)
+			int[] best = null;
+			double bestScore = Double.MAX_VALUE;
+			for (Highway road : this.highways) {
+				if (!road.from.equals(town.id) && !road.to.equals(town.id)) {
+					continue;
+				}
+
+				int count = road.points.size();
+				for (int k = 0; k < count; k++) {
+					int[] point = road.points.get(road.from.equals(town.id) ? k : count - 1 - k);
+					double out = Math.hypot(point[0] - town.x, point[1] - town.z);
+					if (out < town.reach() + SPAWN_OUT) {
+						continue;
+					}
+
+					if (out > town.reach() + SPAWN_OUT + 60) {
+						break;
+					}
+
+					if (this.realLand(point[0], point[1])[1] == 0 && this.places.stream().noneMatch(p -> p != town && Math.hypot(p.x - point[0], p.z - point[1]) < p.reach() + 24)) {
+						// (The road toward the plan's middle first.)
+						double score = Math.hypot(point[0] - this.center.getX(), point[1] - this.center.getZ());
+						if (score < bestScore) {
+							bestScore = score;
+							best = point;
+						}
+
+						break;
+					}
+				}
+			}
+
+			if (best != null) {
+				DrifterCivilizations.LOGGER.info("[plan] players start at {}, {}: on the road into {} ({}, {} blocks from its middle)", best[0], best[1], town.name,
+					town.kind, Math.round(Math.hypot(best[0] - town.x, best[1] - town.z)));
+				return new int[] {best[0], best[1], town.x, town.z};
+			}
+
+			double toward = Math.atan2(this.center.getZ() - town.z, this.center.getX() - town.x);
+			for (int out : new int[] {SPAWN_OUT, SPAWN_OUT + 32, SPAWN_OUT + 72}) {
+				int ring = town.reach() + out;
+				for (int k = 0; k < 16; k++) {
+					double angle = toward + (k % 2 == 0 ? 1 : -1) * ((k + 1) / 2) * Math.PI / 8;
+					int x = town.x + (int)Math.round(Math.cos(angle) * ring);
+					int z = town.z + (int)Math.round(Math.sin(angle) * ring);
+					if (this.goodStart(x, z, town)) {
+						DrifterCivilizations.LOGGER.info("[plan] players start at {}, {}: by {} ({}, {} blocks from its middle)", x, z, town.name, town.kind, ring);
+						return new int[] {x, z, town.x, town.z};
+					}
+				}
+			}
+
+			return null;
+		}
+
+		/** Dry, even land, out of every place's reach. */
+		private boolean goodStart(int x, int z, Place by) {
+			int[] here = this.realLand(x, z);
+			if (here[1] == 1) {
+				return false;
+			}
+
+			for (int[] d : new int[][] {{6, 0}, {-6, 0}, {0, 6}, {0, -6}}) {
+				int[] there = this.realLand(x + d[0], z + d[1]);
+				if (there[1] == 1 || Math.abs(there[0] - here[0]) > 3) {
+					return false;
+				}
+			}
+
+			return this.places.stream().noneMatch(p -> Math.hypot(p.x - x, p.z - z) < p.reach() + (p == by ? SPAWN_OUT - 8 : 24));
 		}
 
 		// ----- Where things go -----
@@ -555,7 +883,7 @@ final class WorldPlan {
 				for (int attempt = 0; attempt < 8 && spot == null; attempt++) {
 					double angle = turn + 2 * Math.PI * k / ofRing + (outer ? Math.PI / ofRing : 0) + (this.random.nextDouble() - 0.5) * (0.4 + 0.3 * attempt);
 					double r = (outer ? OUTER_RING : RING) * this.spread * (0.75 + 0.15 * attempt * this.random.nextDouble() + 0.2 * this.random.nextDouble());
-					spot = this.findSpot(this.spawn.getX() + (int)(Math.cos(angle) * r), this.spawn.getZ() + (int)(Math.sin(angle) * r), 480 + 60 * attempt, Size.CITY);
+					spot = this.findSpot(this.center.getX() + (int)(Math.cos(angle) * r), this.center.getZ() + (int)(Math.sin(angle) * r), 480 + 60 * attempt, Size.CITY);
 					if (spot != null && this.near(spot, CAPITALS_APART * this.spread, "city")) {
 						spot = null;
 					}
@@ -654,9 +982,9 @@ final class WorldPlan {
 			}
 		}
 
-		/** Something (of this kind; null: anything) within this of the spot, or the spot too near spawn. */
+		/** Something (of this kind; null: anything) within this of the spot, or the spot too near the plan's middle. */
 		private boolean near(int[] spot, double within, @Nullable String kind) {
-			if (Math.hypot(spot[0] - this.spawn.getX(), spot[1] - this.spawn.getZ()) < CLEAR_OF_SPAWN) {
+			if (Math.hypot(spot[0] - this.center.getX(), spot[1] - this.center.getZ()) < CLEAR_OF_SPAWN) {
 				return true;
 			}
 
