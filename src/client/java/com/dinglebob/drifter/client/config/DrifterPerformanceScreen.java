@@ -6,7 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Performance settings (milestone 16: "1000 drifters in a world"): how many of the computer's threads Drifters' path
- * searches and eye rays may use besides the server's own, and whether far-off ones think half as often. The same as
+ * searches and eye rays may use besides the server's own, and whether ones away from players think less often. The same as
  * {@code /drifter config paththreads}. And Touch'n Motion on Drifters (its animations cost a little each frame per Drifter).
  */
 public class DrifterPerformanceScreen extends DrifterOptionsScreen {
@@ -23,7 +23,7 @@ public class DrifterPerformanceScreen extends DrifterOptionsScreen {
 				v -> v < 0 ? "auto (" + automatic + ")" : v == 0 ? "off" : String.valueOf(v), DrifterConfig::setPathThreads,
 				"Threads for Drifters' route-finding and eyes, besides the server's own. Off: all on the server thread (slower with many Drifters)."),
 			toggle("Far ones think less", DrifterConfig.farHalfRate(), DrifterConfig::setFarHalfRate,
-				"Drifters with no player within 128 blocks look and think every other tick (never in a fight)."));
+				"Drifters with no player within 48 blocks look and think every other tick, and with none within 128 every fifth (never in a fight, nor with a monster about)."));
 		this.note("Automatic uses a quarter of your computer's threads (" + processors + " here), at most 6.");
 		this.heading("Animations");
 		this.row(toggle("Touch'n Motion", DrifterConfig.touchNMotion(), DrifterConfig::setTouchNMotion,

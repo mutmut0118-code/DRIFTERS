@@ -147,6 +147,10 @@ public class Senses {
 	public static final int FORCED_TRACK_TICKS = 100;
 	/** Items on the ground are noticed within this distance. */
 	public static final double ITEM_SIGHT_RANGE = 32.0;
+	/** Most dropped items it checks for a sight line in one look (the rest on later looks). */
+	private static final int ITEM_CHECKS_PER_LOOK = 24;
+	/** Where in the list of items round it the next look starts. */
+	private int itemsFrom;
 
 	// ----- Seeing blocks (section 5) -----
 	public static final int BLOCK_RAYS_BASE = 6;
@@ -442,10 +446,40 @@ public class Senses {
 			this.ownNightVision = this.drifter.hasEffect(MobEffects.NIGHT_VISION);
 		}
 
-		int light = this.ownNightVision || target.isOnFire() || target.isCurrentlyGlowing() || holdsLight(target) ? 15
-			: level.getRawBrightness(BlockPos.containing(target.getEyePosition()), level.getSkyDarken());
+		int light = this.ownNightVision ? 15 : targetLight(level, target, now);
 		double range = (DARK_RANGE + (com.dinglebob.drifter.DrifterConfig.sightRange() - DARK_RANGE) * light / 15.0) * this.ownWeather;
 		return Math.min(range, this.ownCap);
+	}
+
+	/**
+	 * The light it's seen by (15 when it's on fire, glowing or holding a light): the same for every Drifter looking at it this
+	 * tick, so worked out once a tick per creature (milestone 16 scale pass, 2026-11-08: in a crowd each was looked at by dozens).
+	 */
+	private static int targetLight(Level level, Entity target, long now) {
+		if (now != lightTick || level != lightLevel) {
+			lightTick = now;
+			lightLevel = level;
+			lightOf.clear();
+		}
+
+		int known = lightOf.get(target.getId());
+		if (known >= 0) {
+			return known;
+		}
+
+		int light = target.isOnFire() || target.isCurrentlyGlowing() || holdsLight(target) ? 15
+			: level.getRawBrightness(BlockPos.containing(target.getEyePosition()), level.getSkyDarken());
+		lightOf.put(target.getId(), light);
+		return light;
+	}
+
+	private static long lightTick = Long.MIN_VALUE;
+	@Nullable
+	private static Level lightLevel;
+	private static final it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap lightOf = new it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap();
+
+	static {
+		lightOf.defaultReturnValue(-1);
 	}
 
 	private static boolean holdsLight(Entity entity) {
@@ -833,9 +867,21 @@ public class Senses {
 	/** Dropped items in view go into short-term memory. */
 	private void noticeItems() {
 		Vec3 eye = this.drifter.getEyePosition();
-		for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, this.drifter.getBoundingBox().inflate(ITEM_SIGHT_RANGE))) {
+		List<ItemEntity> items = this.level().getEntitiesOfClass(ItemEntity.class, this.drifter.getBoundingBox().inflate(ITEM_SIGHT_RANGE));
+		// A heap of things lying about (a battlefield's dropped gear and arrows): it takes in so many a look, a different lot
+		// each time, as a player's eye goes over a pile (milestone 16 scale pass, 2026-11-08: every soldier checked hundreds).
+		int checks = 0;
+		int start = items.size() > ITEM_CHECKS_PER_LOOK ? Math.floorMod(this.itemsFrom, items.size()) : 0;
+		this.itemsFrom += ITEM_CHECKS_PER_LOOK;
+		for (int n = 0; n < items.size() && checks < ITEM_CHECKS_PER_LOOK; n++) {
+			ItemEntity item = items.get((start + n) % items.size());
 			Vec3 center = item.getBoundingBox().getCenter();
-			if (this.zoneOf(this.screenAngles(center)) == Zone.CONE && eye.distanceTo(center) <= ITEM_SIGHT_RANGE && this.lineOfSight(eye, center)) {
+			if (this.zoneOf(this.screenAngles(center)) != Zone.CONE || eye.distanceTo(center) > ITEM_SIGHT_RANGE) {
+				continue;
+			}
+
+			checks++;
+			if (this.lineOfSight(eye, center)) {
 				MemoryEntry entry = this.memory.remember(MemoryKind.ITEM, BuiltInRegistries.ITEM.getKey(item.getItem().getItem()).toString(),
 					item.position(), this.dimension(), this.now(), MemorySource.SEEN, 0.3F, item.getUUID()).entry();
 				entry.detail = item.getItem().getCount() + "x";

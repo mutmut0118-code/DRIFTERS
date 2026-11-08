@@ -62,4 +62,78 @@ public final class TickChunks {
 
 		return chunk;
 	}
+
+	/**
+	 * False only when no block in the box can match: each chunk section's palette is looked through instead of every block
+	 * (milestone 16 scale pass, 2026-11-08: the lava check read two dozen blocks round every Drifter every tick). True when
+	 * one might, or a chunk isn't loaded (or off the server thread): then look block by block as before.
+	 */
+	public static boolean mayHave(Level level, int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+		java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> test) {
+		for (int cx = minX >> 4; cx <= maxX >> 4; cx++) {
+			for (int cz = minZ >> 4; cz <= maxZ >> 4; cz++) {
+				LevelChunk chunk = get(level, cx, cz);
+				if (chunk == null) {
+					return true;
+				}
+
+				for (int sy = minY >> 4; sy <= maxY >> 4; sy++) {
+					int index = chunk.getSectionIndexFromSectionY(sy);
+					if (index < 0 || index >= chunk.getSectionsCount()) {
+						continue;
+					}
+
+					var section = chunk.getSection(index);
+					if (!section.hasOnlyAir() && section.maybeHas(test)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * {@link #mayHave} for lava, each section's answer kept for the tick and shared (a thousand Drifters' lava checks went
+	 * through the same few hundred sections' palettes every tick; milestone 16 scale pass, 2026-11-08).
+	 */
+	public static boolean mayHaveLava(Level level, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+		if (!(level instanceof ServerLevel server) || !server.getServer().isSameThread()) {
+			return mayHave(level, minX, minY, minZ, maxX, maxY, maxZ, LAVA);
+		}
+
+		long now = server.getServer().getTickCount();
+		if (now != lavaTick || level != lavaLevel) {
+			lavaTick = now;
+			lavaLevel = level;
+			lavaSections.clear();
+		}
+
+		for (int cx = minX >> 4; cx <= maxX >> 4; cx++) {
+			for (int cz = minZ >> 4; cz <= maxZ >> 4; cz++) {
+				for (int sy = minY >> 4; sy <= maxY >> 4; sy++) {
+					long key = net.minecraft.core.SectionPos.asLong(cx, sy, cz);
+					byte known = lavaSections.get(key);
+					if (known == 0) {
+						known = mayHave(level, cx << 4, sy << 4, cz << 4, cx << 4, sy << 4, cz << 4, LAVA) ? (byte)1 : (byte)-1;
+						lavaSections.put(key, known);
+					}
+
+					if (known > 0) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static final java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> LAVA =
+		state -> state.getFluidState().is(net.minecraft.tags.FluidTags.LAVA);
+	private static long lavaTick = Long.MIN_VALUE;
+	@Nullable
+	private static Level lavaLevel;
+	private static final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap lavaSections = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
 }

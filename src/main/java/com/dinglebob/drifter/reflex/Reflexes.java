@@ -1406,8 +1406,14 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
-			boolean hasBlocks = Tools.buildingBlockCount(drifter) > 0;
 			this.lava = null;
+			// (No lava in the sections round it at all, the usual case: nothing to look for block by block. Milestone 16.)
+			if (!com.dinglebob.drifter.world.TickChunks.mayHaveLava(level, feet.getX() - 1, feet.getY() - 1, feet.getZ() - 1, feet.getX() + 1, feet.getY() + 1,
+				feet.getZ() + 1)) {
+				return false;
+			}
+
+			boolean hasBlocks = Tools.buildingBlockCount(drifter) > 0;
 			// Its feet and head and every side of them, and the floor round it, diagonals too: a lava hole in the floor
 			// ahead counts (found by the user: it walked into one it hadn't checked for).
 			java.util.List<BlockPos> around = new java.util.ArrayList<>();

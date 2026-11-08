@@ -93,6 +93,13 @@ public class Hearing implements GameEventListener {
 			return false;
 		}
 
+		// Out of earshot for this kind of sound: nothing more to ask (first, as it's the cheapest and most sounds in a crowd
+		// are; milestone 16 scale pass, 2026-11-08).
+		Vec3 ear = this.drifter.getEyePosition();
+		if (ear.distanceToSqr(pos) > kind.radius * kind.radius) {
+			return false;
+		}
+
 		// The footsteps of someone it's watching right now tell it nothing it can't see.
 		if (maker != null && kind == HeardSound.Kind.MOVEMENT) {
 			Awareness watched = this.senses.awarenessOf(maker);
@@ -132,8 +139,7 @@ public class Hearing implements GameEventListener {
 			this.lastFrom.put(key, now);
 		}
 
-		Vec3 ear = this.drifter.getEyePosition();
-		if (ear.distanceToSqr(pos) > kind.radius * kind.radius || isOccluded(level, pos, ear)) {
+		if (isOccluded(level, pos, ear)) {
 			return false;
 		}
 

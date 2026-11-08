@@ -668,6 +668,31 @@ public class DrifterEntity extends PathfinderMob {
 
 	public void setShop(@org.jetbrains.annotations.Nullable com.dinglebob.drifter.api.ShopKeeper shop) {
 		this.shop = shop;
+		if (shop != null) {
+			SHOPKEEPERS.add(this);
+		} else {
+			SHOPKEEPERS.remove(this);
+		}
+	}
+
+	/** Drifters with a shop (weakly held), so looking for a stall nearby doesn't search every Drifter round it (milestone 16
+	 * scale pass, 2026-11-08: a thousand Drifters each looked through everyone within 64 blocks every decision). */
+	private static final java.util.Set<DrifterEntity> SHOPKEEPERS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
+	/** Living Drifters with a shop in this level inside the box (the same as searching the box for them, cheaper). */
+	public static List<DrifterEntity> shopkeepersIn(Level level, net.minecraft.world.phys.AABB box) {
+		if (SHOPKEEPERS.isEmpty()) {
+			return List.of();
+		}
+
+		List<DrifterEntity> found = new java.util.ArrayList<>();
+		for (DrifterEntity keeper : SHOPKEEPERS) {
+			if (keeper.level() == level && keeper.isAlive() && !keeper.isRemoved() && keeper.getShop() != null && box.intersects(keeper.getBoundingBox())) {
+				found.add(keeper);
+			}
+		}
+
+		return found;
 	}
 
 	/** A trade run to another town it's on (DrifterApi.setTradeRun), or null. Not saved. */
@@ -826,9 +851,19 @@ public class DrifterEntity extends PathfinderMob {
 			return false;
 		}
 
-		String id = goal.id();
-		return "fight".equals(id) || "flee".equals(id) || "rampage".equals(id) || "pursue".equals(id);
+		// (Asked many times a tick: worked out once per goal it's on. Milestone 16 scale pass, 2026-11-08.)
+		if (goal != this.combatGoal) {
+			String id = goal.id();
+			this.combatGoal = goal;
+			this.combatGoalIsFight = "fight".equals(id) || "flee".equals(id) || "rampage".equals(id) || "pursue".equals(id);
+		}
+
+		return this.combatGoalIsFight;
 	}
+
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.brain.Goals.Goal combatGoal;
+	private boolean combatGoalIsFight;
 
 	private boolean engaged() {
 		var goal = this.brain.currentGoal();
@@ -1479,8 +1514,12 @@ protected void customServerAiStep() {
 		// Far from every player (and not in a fight): it looks about and thinks every other tick, as DESIGN.md section 22's
 		// Far tier has it; its reflexes, what it's doing and its body still run every tick, so nothing it does is slower
 		// (milestone 16: a thousand Drifters; user, 2026-10-19, after the recommendation).
-		boolean thinks = this.tier != DetailTier.FAR || !com.dinglebob.drifter.DrifterConfig.farHalfRate() || this.inCombat()
-			|| ((this.tickCount + this.getId()) & 1) == 0;
+		// (Milestone 16 scale pass, 2026-11-08: Reduced every 2 ticks, Far every 5, as the design's tier table has it; a fight, a
+		// hit in the last 3 s or a hostile it knows of about keeps it at every tick.)
+		int every = com.dinglebob.drifter.DrifterConfig.farHalfRate() ? this.tier.thinkEvery : 1;
+		boolean thinks = every <= 1 || this.inCombat() || this.brain.wary() || this.hurtTime > 0
+			|| this.getLastHurtByMob() != null && this.tickCount - this.getLastHurtByMobTimestamp() < 60
+			|| (this.tickCount + this.getId()) % every == 0;
 		long t = System.nanoTime();
 		if (thinks) {
 			this.senses.tick();

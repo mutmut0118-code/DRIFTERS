@@ -1189,7 +1189,11 @@ public final class Planner {
 		return items;
 	}
 
+	/** Item names, worked out once each (milestone 16 scale pass, 2026-11-08: building the name from its translation every
+	 * time was a fifth of all planning with a thousand Drifters). */
+	private static final java.util.Map<Item, String> NAMES = new java.util.concurrent.ConcurrentHashMap<>();
+
 	public static String name(Item item) {
-		return item.getDescription().getString().toLowerCase(Locale.ROOT);
+		return NAMES.computeIfAbsent(item, it -> it.getDescription().getString().toLowerCase(Locale.ROOT));
 	}
 }

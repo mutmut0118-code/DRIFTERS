@@ -140,6 +140,13 @@ public final class KnownWorld {
 			return cached;
 		}
 
+		// Watched, a much shorter while and nearer (milestone 16 scale pass, 2026-11-08: a crowd round a player re-scanned what it
+		// knew at every decision, a fourteenth of their time). Its own placing or mining drops the held scan either way.
+		if (cached != null && now - cached.scannedAt < WATCHED_REUSE_TICKS && now >= cached.scannedAt
+			&& cached.scannedFrom.closerThan(drifter.blockPosition(), WATCHED_REUSE_DISTANCE)) {
+			return cached;
+		}
+
 		KnownWorld world = new KnownWorld(drifter);
 		drifter.getDrifterBrain().knownWorldCache = world;
 		return world;
@@ -149,6 +156,9 @@ public final class KnownWorld {
 	private static final long UNWATCHED_REUSE_TICKS = 100;
 	/** ...within this of where it was taken (a third of the scan's reach). */
 	private static final double UNWATCHED_REUSE_DISTANCE = 8.0;
+	/** The same for one a player is near: a second and a half, within 3 blocks. */
+	private static final long WATCHED_REUSE_TICKS = 30;
+	private static final double WATCHED_REUSE_DISTANCE = 3.0;
 
 	/** When and where it was taken (for the one-a-tick cache). */
 	private long scannedAt;

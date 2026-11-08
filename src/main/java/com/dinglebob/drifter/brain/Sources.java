@@ -102,8 +102,10 @@ public final class Sources {
 			@Override
 			public void onResourceManagerReload(ResourceManager manager) {
 				load(manager);
+				BY_ITEM.clear();
 			}
 		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents.TAGS_LOADED.register((registries, client) -> BY_ITEM.clear());
 	}
 
 	public static List<Source> all() {
@@ -112,8 +114,12 @@ public final class Sources {
 
 	/** Every source that gives this item. */
 	public static List<Source> forItem(Item item) {
-		return sources.stream().filter(source -> source.givesItem(item)).toList();
+		return BY_ITEM.computeIfAbsent(item, it -> sources.stream().filter(source -> source.givesItem(it)).toList());
 	}
+
+	/** {@link #forItem}, worked out once per item (milestone 16 scale pass, 2026-11-08: the planner asked thousands of times a
+	 * second); cleared when the sources or the tags they name reload. */
+	private static final Map<Item, List<Source>> BY_ITEM = new java.util.concurrent.ConcurrentHashMap<>();
 
 	private static void load(ResourceManager manager) {
 		List<Source> loaded = new ArrayList<>();

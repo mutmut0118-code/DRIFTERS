@@ -438,7 +438,7 @@ public final class DrifterCommands {
 			// Far from every player, looking about and thinking every other tick (milestone 16).
 			.then(Commands.literal("farhalfrate").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setFarHalfRate(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
-				ctx.getSource().sendSuccess(() -> Component.literal("Far-away Drifters think every other tick: "
+				ctx.getSource().sendSuccess(() -> Component.literal("Drifters away from players think less often (every 2nd tick past 48 blocks, every 5th past 128): "
 					+ (com.dinglebob.drifter.DrifterConfig.farHalfRate() ? "on" : "off")), true);
 				return 1;
 			})))

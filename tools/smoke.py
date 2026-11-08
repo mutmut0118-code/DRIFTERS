@@ -71,8 +71,12 @@ for line in open(script, encoding='utf-8'):
         parts = line.split(' ')
         seconds, out = parts[1], parts[2]
         settings = parts[3] if len(parts) > 3 else 'profile'
-        jps = subprocess.run(['jps', '-l'], capture_output=True, text=True).stdout.splitlines()
-        pids = [l.split()[0] for l in jps if 'devlaunchinjector' in l or 'KnotServer' in l or 'fabricmc' in l.lower()]
+        # Only this project's server: other sessions' dev servers and clients may be running on the same machine, and
+        # profiling them too wrote their samples over ours (found 2026-11-08). The launch config path names the project.
+        jps = subprocess.run(['jps', '-lv'], capture_output=True, text=True).stdout.splitlines()
+        own = __import__('os').path.join(__import__('os').path.abspath(project), '.gradle', 'loom-cache').lower().replace('/', '\\')
+        pids = [l.split()[0] for l in jps if ('devlaunchinjector' in l or 'KnotServer' in l or 'fabricmc' in l.lower())
+                and own in l.lower().replace('/', '\\')]
         with lock:
             log.write('>>> jfr %s on %s\n' % (seconds, pids))
         for pid in pids:
