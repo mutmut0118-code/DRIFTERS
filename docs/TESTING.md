@@ -3093,3 +3093,24 @@ New world or old, "A world of nations" on. The bell is the one on the plaza by t
       crowd in the store, nobody stuck in its aisles. Everyone in a town carries a boat now.
 - [ ] (Debug: `/drifterciv town alarm` rings the nearest town's alarm for two minutes, the trouble where you stand;
       `/drifterciv town alarm stop` stops it.)
+
+## 0.23.30-side.1: smoother with lots of Drifters (new)
+
+Nothing to switch on. Best in creative, so the crowd leaves you alone. Any world.
+
+- [ ] **1000 at once.** Fly somewhere open, then `/drifter spawnmany 1000 200`. Fly 200+ blocks away (so nobody is near
+      you) and wait a minute: the game should stay smooth. `/drifter perf` shows "Whole server tick": under 50 ms means a
+      full 20 TPS (it was about 60 before this build).
+- [ ] **They still act normal when you come back.** Fly back into the crowd: the ones round you look about, turn to
+      you, walk, gather and talk as before. Nobody stands frozen. (Away from you they now look and think every 5th tick
+      instead of every 2nd; their bodies and reflexes still run every tick, and a fight puts them back to every tick.)
+- [ ] **Far ones still notice danger.** At night, far from the crowd, watch one with `/drifter thoughts` on it from 130+
+      blocks (spyglass): when a zombie or skeleton comes near it reacts (fights, runs or hides) as before.
+- [ ] **A 150v150.** `/drifter battle 150` in front of you: smooth (it was a little laggy). `/drifter battle stop` ends it.
+- [ ] **A 500v500.** `/drifter battle 500 30`: still laggy (about 11 TPS on the test server, was about 8), but it
+      should play out without freezing; tell me how it feels. `/drifter battle stop`, then `/kill @e[type=drifter:drifter]`.
+- [ ] **Boats still bump.** Leave a boat on land and walk a Drifter into it (or watch one walk past): it bumps into the
+      boat as before, doesn't pass through it.
+- [ ] **Lots of talk.** Stand among 50+ Drifters with chat on: lines come as before, no hitch when many start talking.
+- [ ] If anything feels worse, `/drifter config farhalfrate false` turns the "think less when far" part off (or the
+      "Far ones think less" switch on the Performance page of the settings).
