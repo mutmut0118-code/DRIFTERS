@@ -1032,6 +1032,19 @@
         "the hard way then"
       ]
     },
+    "alarm.heard": {
+      "any": [
+        "the alarm! get inside!",
+        "that's the alarm bell!",
+        "the bell! something's wrong",
+        "ALARM! everyone in!",
+        "you hear that? the alarm!",
+        "trouble! the bell's going!"
+      ],
+      "hermit": [
+        "the bell. trouble."
+      ]
+    },
     "guard.demand": {
       "any": [
         "{player}, you owe {fine} emeralds for {crime}. pay up",

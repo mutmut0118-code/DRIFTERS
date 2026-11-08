@@ -204,6 +204,11 @@ final class Justice {
 						com.dinglebob.drifter.social.ChatLines.speak(member, com.dinglebob.drifter.social.Lines.pick(member, "crime.wanted", "player",
 							criminal.name));
 						alarm(server, town, player);
+						if (!TownBells.alarmed(town)) {
+							bell(server, town, player, criminal.name + ", wanted here", List.of("it's " + criminal.name + "! they're back!",
+								criminal.name + "'s here! guards!", "everyone inside! " + criminal.name + "'s back!"), WANTED_ALARM);
+						}
+
 						break;
 					}
 				}
@@ -407,11 +412,13 @@ final class Justice {
 				criminal.exiledUntil = Math.max(criminal.exiledUntil, day + MASSACRE_EXILE);
 				criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MASSACRE_EXILE);
 				Chronicle.add(server, "law", name + " killed " + victim + " of " + town.name + " too (" + criminal.recentKills + " in all)");
+				bell(server, town, player, "the massacre", massacreLines(name), MASSACRE_ALARM);
 			} else {
 				com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.murder", "player", name,
 					"who", victim));
 				exile(server, town, criminal, Math.max(MURDER_EXILE, criminal.exiledUntil - day), "killing " + victim);
 				criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MURDER_EXILE);
+				bell(server, town, player, "the killing of " + victim, killingLines(name, victim), KILLING_ALARM);
 				if (!wantedAlready && DrifterApi.postBounty(player, "the people of " + town.name, "the killing of " + victim)) {
 					Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + name + "'s head for killing " + victim);
 				}
@@ -427,6 +434,7 @@ final class Justice {
 
 			com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.murder", "player", name,
 				"who", victim));
+			bell(server, town, drifter, "the killing of " + victim, killingLines(name, victim), KILLING_ALARM);
 			if (group != null) {
 				for (UUID id : group.members) {
 					DrifterEntity member = TownFounding.loaded(server, id);
@@ -465,6 +473,39 @@ final class Justice {
 
 	/** Who hears the town's alarm: its people this near where it was raised. */
 	private static final double ALARM = 96.0;
+	/**
+	 * How long the alarm bell can ring (0.23.30): for a killing, a massacre, someone wanted back about the town; each only
+	 * while the one it's for is about the town (this near its middle: {@link #ALARM}).
+	 */
+	private static final long KILLING_ALARM = 20L * 60 * 3;
+	private static final long MASSACRE_ALARM = 20L * 60 * 5;
+	private static final long WANTED_ALARM = 20L * 60 * 2;
+
+	/** The alarm bell for this one (a player or a Drifter): rung while they're about the town, the trouble where they are. */
+	private static void bell(MinecraftServer server, Town town, net.minecraft.world.entity.Entity who, String why, List<String> lines, long lasts) {
+		UUID id = who.getUUID();
+		boolean player = who instanceof ServerPlayer;
+		TownBells.alarm(server, town, why, lines, () -> {
+			net.minecraft.world.entity.Entity there = about(server, town, id, player);
+			return there == null ? null : there.blockPosition();
+		}, () -> about(server, town, id, player) != null, lasts);
+	}
+
+	/** This one (a player, or a Drifter) alive about the town; else null. */
+	@Nullable
+	private static net.minecraft.world.entity.Entity about(MinecraftServer server, Town town, UUID id, boolean player) {
+		net.minecraft.world.entity.Entity one = player ? server.getPlayerList().getPlayer(id) : TownFounding.loaded(server, id);
+		return one != null && one.isAlive() && !one.isRemoved() && one.level().dimension().location().toString().equals(town.dimension)
+			&& one.blockPosition().closerThan(town.center, ALARM) ? one : null;
+	}
+
+	private static List<String> killingLines(String killer, String victim) {
+		return List.of("MURDER! " + killer + " killed " + victim + "!", "guards! " + killer + "'s killed " + victim + "!", "help! murder! it's " + killer + "!");
+	}
+
+	private static List<String> massacreLines(String killer) {
+		return List.of("MASSACRE! " + killer + " is killing everyone!", "everyone inside! " + killer + "'s killing us!", "to arms! stop " + killer + "!");
+	}
 
 	/**
 	 * The town's alarm (a killing seen, someone wanted seen back): its people near hear where the one it's after is, and its
@@ -499,6 +540,7 @@ final class Justice {
 		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.massacre", "player", name, "who", victim));
 		Chronicle.add(server, "law", "The massacre at " + town.name + ": " + name + " killed " + criminal.recentKills + " of its people. Wanted there for "
 			+ MASSACRE_EXILE + " days");
+		bell(server, town, player, "the massacre", massacreLines(name), MASSACRE_ALARM);
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (group != null) {
 			for (UUID id : group.members) {
@@ -538,6 +580,7 @@ final class Justice {
 	private static void drifterMassacre(MinecraftServer server, Town town, DrifterEntity drifter, int kills) {
 		String name = drifter.getName().getString();
 		Chronicle.add(server, "law", "The massacre at " + town.name + ": " + name + " killed " + kills + " of its people. Every town about knows its face now");
+		bell(server, town, drifter, "the massacre", massacreLines(name), MASSACRE_ALARM);
 		for (Town other : Towns.all()) {
 			if (!other.dimension.equals(town.dimension) || !other.center.closerThan(town.center, WORD_SPREADS) || other.group == null) {
 				continue;

@@ -156,7 +156,7 @@ public enum Mode {
 	}
 
 	/** Not one to go after someone wanted: no guard, and a pacifist or not brave enough. */
-	private static boolean timid(DrifterEntity drifter) {
+	public static boolean timid(DrifterEntity drifter) {
 		var town = drifter.getTownWork();
 		return (town == null || !town.guard(drifter)) && (drifter.getSocial().disposition() == Disposition.PACIFIST
 			|| drifter.getPersonality().get(Trait.BRAVERY) < TIMID);

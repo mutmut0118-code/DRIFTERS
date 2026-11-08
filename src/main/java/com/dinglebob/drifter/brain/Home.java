@@ -413,6 +413,18 @@ public final class Home {
 		return new ArrayList<>(this.chests.keySet());
 	}
 
+	/** Its own chests, not its town's (where it puts its own things away); all of them if it has none of its own. */
+	public List<BlockPos> ownChests() {
+		List<BlockPos> own = new ArrayList<>();
+		for (BlockPos pos : this.chests.keySet()) {
+			if (!this.townChests.contains(pos)) {
+				own.add(pos);
+			}
+		}
+
+		return own.isEmpty() ? this.chests() : own;
+	}
+
 	public boolean hasChest() {
 		return !this.chests.isEmpty();
 	}
@@ -544,6 +556,25 @@ public final class Home {
 		return total;
 	}
 
+	/**
+	 * Its chests that are its town's, not its own (the store: 0.23.30). What's in them is the town's: for its work for the
+	 * town (its stall, things to sell, the town's building), not for gearing itself up (found in testing: a town just made,
+	 * each of its people off to the store for its iron, for armor and tools of their own, a crowd there).
+	 */
+	public final java.util.Set<BlockPos> townChests = new java.util.HashSet<>();
+
+	/** What it believes is stored in its own chests (not the town's). */
+	public int storedOwn(Item item) {
+		int total = 0;
+		for (Map.Entry<BlockPos, Map<Item, Integer>> chest : this.chests.entrySet()) {
+			if (!this.townChests.contains(chest.getKey())) {
+				total += chest.getValue().getOrDefault(item, 0);
+			}
+		}
+
+		return total;
+	}
+
 	/** Changes whenever what it believes its chests hold changes (for reusing plans). */
 	public int storedSignature() {
 		return this.chests.hashCode();
@@ -561,11 +592,17 @@ public final class Home {
 	 */
 	@Nullable
 	public BlockPos chestWith(Item item, int wanted, java.util.function.ToIntFunction<BlockPos> busy) {
+		return this.chestWith(item, wanted, busy, false);
+	}
+
+	/** As {@link #chestWith(Item, int, java.util.function.ToIntFunction)}; {@code ownOnly}: not one of its town's. */
+	@Nullable
+	public BlockPos chestWith(Item item, int wanted, java.util.function.ToIntFunction<BlockPos> busy, boolean ownOnly) {
 		BlockPos best = null;
 		double bestScore = Double.MAX_VALUE;
 		for (Map.Entry<BlockPos, Map<Item, Integer>> chest : this.chests.entrySet()) {
 			int count = chest.getValue().getOrDefault(item, 0);
-			if (count <= 0) {
+			if (count <= 0 || ownOnly && this.townChests.contains(chest.getKey())) {
 				continue;
 			}
 
@@ -742,6 +779,10 @@ public final class Home {
 			tag.putLongArray("TownMinePath", this.townMinePath.stream().mapToLong(BlockPos::asLong).toArray());
 		}
 
+		if (!this.townChests.isEmpty()) {
+			tag.putLongArray("TownChests", this.townChests.stream().mapToLong(BlockPos::asLong).toArray());
+		}
+
 		ListTag chests = new ListTag();
 		this.chests.forEach((pos, contents) -> {
 			CompoundTag chest = new CompoundTag();
@@ -837,6 +878,10 @@ public final class Home {
 		home.mineTrips = tag.getInt("MineTrips");
 		for (long at : tag.getLongArray("TownMinePath")) {
 			home.townMinePath.add(BlockPos.of(at));
+		}
+
+		for (long at : tag.getLongArray("TownChests")) {
+			home.townChests.add(BlockPos.of(at));
 		}
 
 		ListTag faces = tag.getList("TownMine", Tag.TAG_COMPOUND);

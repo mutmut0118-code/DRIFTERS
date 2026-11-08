@@ -41,10 +41,37 @@ public class FetchActivity extends Activity {
 	/** Who's on their way to each chest or at it, for it (so others pick another chest that has it, not crowd one). */
 	private static final java.util.Map<BlockPos, Set<java.util.UUID>> USERS = new java.util.HashMap<>();
 
-	/** How many others are fetching from this chest now. */
+	/**
+	 * How many others are fetching from this chest now, or from one beside it (a town's store is one room of chests: a crowd
+	 * at any of them is a crowd at all of them).
+	 */
 	public static int users(BlockPos chest, java.util.UUID besides) {
-		Set<java.util.UUID> users = USERS.get(chest);
-		return users == null ? 0 : (int)users.stream().filter(id -> !id.equals(besides)).count();
+		int count = 0;
+		for (var entry : USERS.entrySet()) {
+			if (entry.getKey().closerThan(chest, SAME_ROOM)) {
+				count += (int)entry.getValue().stream().filter(id -> !id.equals(besides)).count();
+			}
+		}
+
+		return count;
+	}
+
+	/** Chests this near each other are one place to crowd. */
+	private static final double SAME_ROOM = 5.0;
+	/** This many others at the chest already: it waits its turn out of their way (a few times, a few seconds each). */
+	private static final int CROWD = 2;
+	private static final int WAITS = 5;
+	private int waits;
+
+	/** Others standing at the chest now (within a step of it). */
+	private int crowd() {
+		return this.drifter.level().getEntitiesOfClass(com.dinglebob.drifter.entity.DrifterEntity.class,
+			new net.minecraft.world.phys.AABB(this.chest).inflate(2.5), other -> other != this.drifter && other.isAlive()).size();
+	}
+
+	@Override
+	protected boolean countsAsFailure(Task step) {
+		return !(step instanceof com.dinglebob.drifter.executor.task.WaitTask) && super.countsAsFailure(step);
 	}
 
 	@Override
@@ -84,6 +111,16 @@ public class FetchActivity extends Activity {
 		}
 
 		if (!Reach.canReach(this.drifter, this.chest)) {
+			// Others at it already, and it's near: it waits its turn a little way off, as a player would (found in the user's
+			// game: a town just made, a crowd in its store's narrow aisles, stuck there, "can't get to its chest").
+			if (this.waits < WAITS && this.drifter.position().distanceTo(Vec3.atCenterOf(this.chest)) < 12.0 && this.crowd() >= CROWD) {
+				if (this.waits++ == 0) {
+					this.think("others at the chest: waiting its turn");
+				}
+
+				return this.begin(new com.dinglebob.drifter.executor.task.WaitTask(this.drifter, "wait its turn at the chest", () -> this.crowd() < CROWD, 20 * 4));
+			}
+
 			BlockPos spot = this.walked ? null : KnownBlocks.standingSpotFor(this.drifter, this.chest, Set.of());
 			if (spot == null) {
 				// From across town it hasn't seen the floor by the chest yet (found in testing: a town's store it had never been

@@ -151,7 +151,7 @@ final class TownMine {
 	 * with a home that doesn't know them yet. True if anyone did.
 	 */
 	static boolean check(MinecraftServer server, Town town) {
-		if (town.mine == null || town.group == null) {
+		if (town.group == null) {
 			return false;
 		}
 
@@ -165,7 +165,17 @@ final class TownMine {
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
 			Home home = member == null ? null : DrifterApi.home(member);
-			if (home != null && (home.townMine.isEmpty() || home.townMinePath.isEmpty()) && home.center.closerThan(town.center, 160.0)) {
+			// (Its store's chests: its town's, not its own: 0.23.30, worlds from before.)
+			if (home != null && home.center.closerThan(town.center, 160.0)) {
+				for (BlockPos chest : town.store) {
+					if (home.isChest(chest) && !home.townChests.contains(chest)) {
+						DrifterApi.townChest(home, chest);
+						any = true;
+					}
+				}
+			}
+
+			if (home != null && town.mine != null && (home.townMine.isEmpty() || home.townMinePath.isEmpty()) && home.center.closerThan(town.center, 160.0)) {
 				give(town, home, index);
 				any = true;
 			}

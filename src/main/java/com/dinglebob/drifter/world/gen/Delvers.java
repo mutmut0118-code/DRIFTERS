@@ -429,6 +429,8 @@ public final class Delvers {
 		// The tools of its working life.
 		boolean iron = !humble;
 		inventory.add(new ItemStack(iron ? Items.IRON_PICKAXE : Items.STONE_PICKAXE));
+		// (And a spare, as a player keeps one: section 10.17.)
+		inventory.add(new ItemStack(Items.STONE_PICKAXE));
 		inventory.add(new ItemStack(iron ? Items.IRON_AXE : Items.STONE_AXE));
 		inventory.add(new ItemStack(iron && random.nextBoolean() ? Items.IRON_SHOVEL : Items.STONE_SHOVEL));
 		inventory.add(new ItemStack(humble ? Items.WOODEN_HOE : random.nextBoolean() ? Items.IRON_HOE : Items.STONE_HOE));
@@ -438,7 +440,10 @@ public final class Delvers {
 			inventory.add(new ItemStack(random.nextBoolean() ? Items.COOKED_BEEF : Items.COOKED_PORKCHOP, 4 + random.nextInt(6)));
 		}
 
-		inventory.add(new ItemStack(Items.COBBLESTONE, 8 + random.nextInt(16)));
+		// (Enough for a Drifter's first wants, and a boat: found in testing, a town just made sent its people for planks for a
+		// boat and for more cobblestone, the last two things on a newcomer's list, many of them to the store at once.)
+		inventory.add(new ItemStack(Items.COBBLESTONE, 16 + random.nextInt(17)));
+		inventory.add(new ItemStack(Items.OAK_BOAT));
 		if (!humble && random.nextFloat() < 0.4F) {
 			inventory.add(new ItemStack(Items.WATER_BUCKET));
 		}

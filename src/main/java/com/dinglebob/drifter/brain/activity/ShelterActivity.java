@@ -148,7 +148,7 @@ public class ShelterActivity extends Activity {
 	}
 
 	/** A spot to stand beside a bed (by its head or foot), or the bed itself if it's boxed in. */
-	private static BlockPos besideBed(Level level, BlockPos head) {
+	public static BlockPos besideBed(Level level, BlockPos head) {
 		BlockState state = level.getBlockState(head);
 		BlockPos foot = state.hasProperty(net.minecraft.world.level.block.BedBlock.FACING)
 			? head.relative(state.getValue(net.minecraft.world.level.block.BedBlock.FACING).getOpposite()) : head;

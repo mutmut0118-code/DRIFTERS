@@ -577,6 +577,59 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal(in ? "Debug: Bad Omen given; a raid's coming" : "Debug: Bad Omen given (walk into a town)"), true);
 					return 1;
 				}))
+				// Debug: how many are at the nearest town's store now (0.23.30: the rush to it when a town is made).
+				.then(Commands.literal("crowd").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null || town.store.isEmpty()) {
+						source.sendFailure(Component.literal("No town with a store"));
+						return 0;
+					}
+
+					// (Inside it: the room its chests stand round, not the plaza, the stall or the fields outside its walls.)
+					int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, z0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE, z1 = Integer.MIN_VALUE;
+					for (BlockPos chest : town.store) {
+						x0 = Math.min(x0, chest.getX());
+						y0 = Math.min(y0, chest.getY());
+						z0 = Math.min(z0, chest.getZ());
+						x1 = Math.max(x1, chest.getX());
+						y1 = Math.max(y1, chest.getY());
+						z1 = Math.max(z1, chest.getZ());
+					}
+
+					// (Standing at one of its chests: the block beside it, not the plaza or the far side of its wall.)
+					java.util.Set<DrifterEntity> there = new java.util.HashSet<>();
+					for (BlockPos chest : town.store) {
+						there.addAll(source.getLevel().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(chest).inflate(1.0, 0.5, 1.0)));
+					}
+
+					String box = (x1 - x0 + 1) + "x" + (z1 - z0 + 1) + " (" + town.store.size() + " chests)";
+					String names = there.stream().map(one -> one.getName().getString()).sorted().collect(java.util.stream.Collectors.joining(", "));
+					source.sendSuccess(() -> Component.literal("[crowd] " + town.name + ": " + there.size() + " at the store (" + names + ") " + box), false);
+					return there.size();
+				}))
+				// Debug: the nearest town's alarm bell rung (0.23.30), the trouble where you stand, for two minutes; or stopped.
+				.then(Commands.literal("alarm").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null) {
+						source.sendFailure(Component.literal("No town"));
+						return 0;
+					}
+
+					BlockPos at = source.getLevel().getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+						BlockPos.containing(source.getPosition()));
+					TownBells.alarm(source.getServer(), town, "a test", java.util.List.of("ALARM! (a test)", "the bell! everyone, a test!"), () -> at, () -> true,
+						20L * 60 * 2);
+					source.sendSuccess(() -> Component.literal("Debug: " + town.name + "'s alarm raised (two minutes, the trouble here)"), true);
+					return 1;
+				}).then(Commands.literal("stop").executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					boolean was = town != null && TownBells.stopAlarm(town);
+					source.sendSuccess(() -> Component.literal(was ? "Debug: " + town.name + "'s alarm stopped" : "Debug: no alarm on"), true);
+					return 1;
+				})))
 				// Debug: the ruins of a town that failed, made here at once (as world generation now and then makes one).
 				.then(Commands.literal("ruin").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var source = ctx.getSource();

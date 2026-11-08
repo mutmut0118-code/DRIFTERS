@@ -598,7 +598,7 @@ public class MineTripActivity extends Activity {
 		if (!this.foodChecked) {
 			this.foodChecked = true;
 			if (Food.carriedNutrition(this.drifter) < (this.longTrip ? LONG_TRIP_FOOD : TRIP_FOOD)) {
-				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.planOwn(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), TRIP_FOODS, 3);
 				if (plan.feasible() && plan.next() != null && !plan.needsExploring() && noTrip(plan)) {
 					this.think("getting some food together before going down");
@@ -612,17 +612,22 @@ public class MineTripActivity extends Activity {
 			return this.fail("too hurt to go mining yet");
 		}
 
+		// (What it takes down, spare pickaxes, torches, a table and sticks, from its own chests, not its town's store: found in
+		// testing, a town just made, its first miners all at the store for torches and coal, a crowd there.)
 		// Section 10.17 "Spares: keeps a spare pickaxe": with only one, half worn, it makes another before going down.
 		if (!this.spareChecked) {
 			this.spareChecked = true;
 			// Players take a few stone pickaxes down: one lasts 131 blocks, a staircase down 50 is 150 (found in testing:
 			// both wore out just short of the bottom). It estimates the digging and makes more if its pickaxes won't last.
 			Home home = this.drifter.getDrifterBrain().home();
-			int fromY = home != null && home.mineBottom != null ? home.mineBottom.getY() : this.drifter.blockPosition().getY();
+			// (Its town's mine: dug down to its hub already. Found in testing: reckoned from the surface, every one of a town
+			// just made went to the store's crafting table for spare pickaxes before its first trip, a crowd there.)
+			int fromY = home != null && !home.townMinePath.isEmpty() ? home.townMinePath.get(home.townMinePath.size() - 1).getY()
+				: home != null && home.mineBottom != null ? home.mineBottom.getY() : this.drifter.blockPosition().getY();
 			int needed = Math.max(0, fromY - this.depth) * 3 + BRANCH_DIGS + this.tripTicks / (20 * 60) * DIGS_PER_MINUTE;
 			boolean shortOfUses = pickaxeUsesLeft(this.drifter) < needed && pickaxes(this.drifter) < MAX_PICKAXES;
 			if (shortOfUses || pickaxes(this.drifter) == 1 && wear(bestPickaxe(this.drifter)) > 0.5) {
-				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.planOwn(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.STONE_PICKAXE,
 					this.drifter.getInventory().count(stack -> stack.is(Items.STONE_PICKAXE)) + 1);
 				if (plan.feasible() && plan.next() != null && noTrip(plan)) {
@@ -645,7 +650,7 @@ public class MineTripActivity extends Activity {
 					continue;
 				}
 
-				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.planOwn(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), need.getKey(), need.getValue());
 				if (plan.feasible() && plan.next() != null && !plan.needsExploring() && noTrip(plan)) {
 					this.think("taking " + (need.getKey() == Items.STICK ? "sticks" : "a crafting table") + " along, to make a pickaxe down there if one breaks");
@@ -672,7 +677,7 @@ public class MineTripActivity extends Activity {
 			int wanted = (this.caves() ? CAVE_TORCHES : STRIP_TORCHES) * (this.longTrip ? 2 : 1);
 			int torches = this.drifter.getInventory().count(stack -> stack.is(Items.TORCH));
 			if (torches < wanted) {
-				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.plan(this.drifter,
+				com.dinglebob.drifter.brain.Planner.Plan plan = com.dinglebob.drifter.brain.Planner.planOwn(this.drifter,
 					com.dinglebob.drifter.brain.KnownWorld.scan(this.drifter), Items.TORCH, wanted);
 				// Never another mining trip for them (found in testing: torches for a coal trip planned a coal trip, which
 				// planned one for its torches, and so on until the server crashed); it goes down with what it has.
