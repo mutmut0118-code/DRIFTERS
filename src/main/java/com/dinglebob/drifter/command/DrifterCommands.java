@@ -278,9 +278,16 @@ public final class DrifterCommands {
 			String battle = com.dinglebob.drifter.world.Battle.report(ctx.getSource().getServer());
 			String whims = com.dinglebob.drifter.world.WhimTest.report();
 			String walks = com.dinglebob.drifter.world.NavTest.report();
+			// Sight lines to creatures close by since the last report: answered from the path threads, or traced on the spot.
+			long answered = com.dinglebob.drifter.perception.Senses.linesAnswered;
+			long traced = com.dinglebob.drifter.perception.Senses.linesTraced;
+			com.dinglebob.drifter.perception.Senses.linesAnswered = 0;
+			com.dinglebob.drifter.perception.Senses.linesTraced = 0;
+			String lines = String.format(java.util.Locale.ROOT, "%d from the path threads, %d traced on the spot (%.0f%% off the server thread)", answered, traced,
+				answered + traced == 0 ? 0.0 : 100.0 * answered / (answered + traced));
 			ctx.getSource().sendSuccess(() -> Component.literal(com.dinglebob.drifter.debug.DrifterPerf.report() + "\nDetail: " + counts
 				+ "\nPath search speed: " + speed + "\nWorld copy for path threads (" + com.dinglebob.drifter.nav.PathWorkers.threads() + "): "
-				+ com.dinglebob.drifter.nav.WorldCopy.report() + "\nActivity: " + activity + (battle == null ? "" : "\nBattle: " + battle)
+				+ com.dinglebob.drifter.nav.WorldCopy.report() + "\nSight lines to creatures: " + lines + "\nActivity: " + activity + (battle == null ? "" : "\nBattle: " + battle)
 				+ (whims == null ? "" : "\nWhim test: " + whims) + (walks == null ? "" : "\nWalking test: " + walks)), false);
 			return 1;
 		}));

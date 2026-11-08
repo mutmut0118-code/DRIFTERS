@@ -3114,3 +3114,25 @@ Nothing to switch on. Best in creative, so the crowd leaves you alone. Any world
 - [ ] **Lots of talk.** Stand among 50+ Drifters with chat on: lines come as before, no hitch when many start talking.
 - [ ] If anything feels worse, `/drifter config farhalfrate false` turns the "think less when far" part off (or the
       "Far ones think less" switch on the Performance page of the settings).
+
+## 0.23.30-side.2: big battles much smoother (new)
+
+Nothing to switch on. Best in creative, so the soldiers leave you alone. Any world, somewhere open and flat.
+
+- [ ] **A 500v500.** `/drifter battle 500 30`, then watch from a little way off. It should feel close to smooth (on the
+      test server it went from about 11 TPS to about 18). `/drifter perf` shows "Whole server tick": under 50 ms is a full
+      20 TPS. It also shows "Sight lines to creatures: ... (NN% off the server thread)": somewhere around 55 to 70% is
+      normal in a battle. `/drifter battle stop`, then `/kill @e[type=drifter:drifter]` to clear up.
+- [ ] **They still fight properly.** In a `/drifter battle 150` in front of you: soldiers spot the enemy, charge, swing,
+      archers at the back shoot over their friends' heads (not into them), the wounded back off, as before. Nobody stands
+      still for long while an enemy is in plain view close by.
+- [ ] **Walls still hide you.** Put a Drifter in a small field with a stone wall (2 high, 5 wide) in it. Stand in plain
+      view a few blocks away and run `/drifter senses` (it reports on the nearest Drifter): you're under "Tracking" with
+      "in view". Step behind the wall, wait 2 seconds, `/drifter senses` again: "out of view". Step out and it says "in
+      view" again within about half a second.
+- [ ] **Pushing.** Walk into a crowd of Drifters: you push each other as before, and they still bump into a boat left on
+      land instead of passing through it.
+- [ ] **Picking things up.** Drop a stack of something next to a Drifter: it picks it up as before. After a battle the
+      survivors still go round picking up the dropped gear.
+- [ ] **1000 at once, away from you.** `/drifter spawnmany 1000 200`, fly 200+ blocks away, wait a minute: smooth, as in
+      0.23.30-side.1 (a little faster still).

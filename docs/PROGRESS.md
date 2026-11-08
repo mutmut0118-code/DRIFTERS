@@ -5060,3 +5060,75 @@ walking 13%, the game's own body physics 12.5%, reflexes 6%). The talk system (1
   page can go higher.
 - "Now" is the final build (merged with 0.23.30), except the towns rows, from a build a step before it (the last steps
   made hearing and awareness exact and skipped the solid-entity search).
+
+## Side session: crowd pass, a 500v500 toward 20 TPS (0.23.30-side.2)
+
+Asked for by the scale session (the user's "1000 players" goal, milestone 16): make `/drifter battle 500 30` run much
+closer to 20 TPS without breaking the fairness rules. Branch claude/affectionate-blackburn-6269f1, on top of
+0.23.30-side.1 (claude/friendly-chebyshev-e8b006). Nothing in `src/civ` or `src/civClient` was touched.
+
+### How it was measured
+
+As in 0.23.30-side.1: headless server, seed 779, the same saved world restored before every run, no player, port 25567.
+The old build (0.23.30-side.1) and this one were run back to back. Other sessions' Minecraft (a client and test servers)
+were running on the same PC for part of it, which threw the wall-clock numbers about (a run's "Whole server tick" jumped
+by 50% when another client started); `/drifter perf`'s "server thread CPU" line leaves that out, so both are given.
+
+### Results (ms a tick; 50 is the 20 TPS limit)
+
+| Test | 0.23.30-side.1 | Now |
+| --- | --- | --- |
+| 500v500, whole server tick | 67 to 98 (65 to 87 in a second run) | 52 to 59 (53 to 71 in another) |
+| 500v500, server thread CPU | 60 to 88 | 44 to 53 |
+| 150v150, whole server tick | 23 to 29 | 18.5 to 24 |
+| ~1000 wanderers within 200 blocks, nobody near (server thread CPU) | 61 to 63 | 49 to 52 |
+| the same, all at Full detail (server thread CPU) | 103 to 113 | 95 to 105 |
+
+So a 500v500 went from about 11 TPS (8 in the worst stretch) to about 17 to 19 TPS, and nothing else got slower. The
+fight itself looked the same in the reports (soldiers standing, on roofs, drawing bows, "hardly moved" counts); arrows
+into friends 0 to 5 in both builds.
+
+### What was slow, and what was done
+
+Profile of the old build in a 500v500: Drifter code 67% of the server thread (eyes 37%, of which picking who to watch
+14%, hearing 10%, eye rays 7%, watching 4%), the game's own body physics about 10%.
+
+1. **Sight lines to creatures on the helper threads** (`perception/SightWork.Line`, `Senses.sightLine/eyeLine/useLine`).
+   Each look at a creature it's watching takes the answer to the line it asked at its last look, if that was asked at
+   most 10 ticks ago and from within 1.5 blocks of where both stand now, and asks for the next one; otherwise it traces
+   on the spot as before. Traced through the helper threads' copy of the world (`nav/WorldCopy`, as eye rays already are),
+   with the blocks' visual shapes, as `lineOfSight` does; a line through a part the copy doesn't have says "don't know"
+   and the next look traces on the spot. Eye to eye between two Drifters is still one shared line for the pair. Fairness:
+   still a real line through the world between its eyes and the creature, at most one look old (0.1 to 0.5 s) and never
+   from more than 1.5 blocks off; far ones (beyond 32 blocks) and first looks are traced on the spot. In a battle 57 to
+   72% of these lines came off the server thread (`/drifter perf` "Sight lines to creatures").
+2. **One shared grid of bodies a tick** (`world/BodyGrid`): every living thing, boat and minecart (and apart, dropped
+   items and orbs) in 8-block columns, built at the tick's first question. Used by: picking who to watch
+   (`Senses.livingIn`, boxes up to 140 blocks; wider ones ask the game), pushing (`DrifterEntity.pushEntities`, the game's
+   rules and cramming limit, read from the grid), "is a friend in my arrow's path" (`Archery.friendInTheWay`), picking up
+   items and orbs, and noticing dropped loot. Each answer tests the body's box as it is now, with a 3-block margin; a body
+   that came into the world this tick is found from the next.
+3. **Battle soldiers looked up by entity id** (`world/Battle`): entities' UUIDs share hash codes often enough that the
+   soldier map had long chains (a soldier lookup was 2.5% of a 500v500).
+4. **Hearing**: the "wool in the way?" check keeps each chunk section's answer for the tick (`TickChunks.SectionAnswers`,
+   which the lava check now shares; 3.6%); the "same ongoing sound" loop is a plain loop (1.7%); in a crowd (40+ within
+   32 blocks) it picks out 2 new sounds a tick instead of 6 (still 40 a second; each became a thought).
+5. **Picking who to watch** in a crowd: every second instead of every half second (the dozen it watches are still looked
+   at every 2 to 4 ticks). This was the biggest single part of the eyes.
+6. **Smaller**: what a creature looks like (held item, armor) is written into memory once a second instead of at every
+   look (where it is, still every look); the dodge reflex looks through the arrows in flight this tick (listed once for
+   everybody) instead of every arrow in the world, stuck ones too; the far skyline rays in a fight one every 4th tick (was
+   every 2nd); "lava near?" checks on the walk share the tick's per-section answers; the watched-creatures table is keyed
+   by plain ints.
+
+### Not done / next
+
+- What's left in a 500v500 (new profile): the eyes about 28% (who to watch 9%, eye rays 7%, looks 5%, hearing 5%),
+  walking and tasks 13% (route following, the archers' friend check), the game's own body physics and block collisions
+  about 10% (vanilla; Lithium helps there), reflexes 6%, decisions 6%, the game's chunk upkeep 4%.
+- About 40% of sight lines are still traced on the spot: mostly the first look at a creature while picking who to watch.
+  A two-step pick (ask now, decide next tick) would move most of those too.
+- Not checked in the user's game yet: that soldiers still notice, chase and fight as before (they did on the test server:
+  the battle reports matched), and that walking past a boat or into a crowd still pushes as before.
+- The 1000-at-Full-detail case is still about 100 ms a tick of server thread time (about 10 TPS): that's "a player
+  standing next to every one of 1000 Drifters", which doesn't happen in play, but the eyes there are the next target.

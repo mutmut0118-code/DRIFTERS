@@ -48,6 +48,7 @@ public class Hearing implements GameEventListener {
 		this.drifter = drifter;
 		this.senses = senses;
 		this.source = new EntityPositionSource(drifter, drifter.getEyeHeight());
+		this.lastFrom.defaultReturnValue(Long.MIN_VALUE / 2);
 	}
 
 	@Override
@@ -84,7 +85,8 @@ public class Hearing implements GameEventListener {
 		long latest = SoundHub.latest(level);
 		// (Listening every few ticks, away from players, it may take in that many ticks' worth: milestone 16 scale pass.)
 		long tick = level.getGameTime();
-		this.heardCap = HEARD_PER_TICK * (int)Math.max(1L, Math.min(8L, tick - this.listenedAt));
+		this.heardPerTick = this.senses.crowded() ? CROWD_HEARD_PER_TICK : HEARD_PER_TICK;
+		this.heardCap = this.heardPerTick * (int)Math.max(1L, Math.min(8L, tick - this.listenedAt));
 		this.listenedAt = tick;
 		if (this.heardUpTo >= 0L) {
 			SoundHub.near(level, this.drifter.getEyePosition(), LISTEN_RADIUS, this.heardUpTo, sound -> this.hear(level, sound.kind(), sound.pos(), sound.maker()));
@@ -128,14 +130,14 @@ public class Hearing implements GameEventListener {
 			this.heardThisTick = 0;
 		}
 
-		if (this.heardThisTick >= Math.max(HEARD_PER_TICK, this.heardCap) && kind != HeardSound.Kind.FUSE) {
+		if (this.heardThisTick >= Math.max(this.heardPerTick, this.heardCap) && kind != HeardSound.Kind.FUSE) {
 			return false;
 		}
 
 		if (maker != null && kind != HeardSound.Kind.FUSE) {
 			int key = maker.getId() * 8 + kind.ordinal();
 			long now = level.getGameTime();
-			if (this.lastFrom.containsKey(key) && now - this.lastFrom.get(key) < REPEAT_TICKS) {
+			if (now - this.lastFrom.get(key) < REPEAT_TICKS) {
 				return false;
 			}
 
@@ -157,6 +159,12 @@ public class Hearing implements GameEventListener {
 
 	/** Sounds it takes in a tick at most (the rest in a din are lost). */
 	private static final int HEARD_PER_TICK = 6;
+	/**
+	 * In a crowd (Senses#crowded), fewer: in the din of a battle it can't pick out six new sounds a tick (milestone 16 crowd
+	 * pass, 2026-11-08: every soldier took in six, each made into a thought). Forty a second still.
+	 */
+	private static final int CROWD_HEARD_PER_TICK = 2;
+	private int heardPerTick = HEARD_PER_TICK;
 	private long heardTick = Long.MIN_VALUE;
 	private int heardThisTick;
 
@@ -201,20 +209,15 @@ public class Hearing implements GameEventListener {
 	private static final java.util.function.Predicate<net.minecraft.world.level.block.state.BlockState> OCCLUDES =
 		state -> state.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
 
+	private static final com.dinglebob.drifter.world.TickChunks.SectionAnswers OCCLUDERS = new com.dinglebob.drifter.world.TickChunks.SectionAnswers(OCCLUDES, false);
+
 	/** VibrationSystem.Listener#isOccluded (private in vanilla): wool and other vibration-occluding blocks in the way. */
 	private static boolean isOccluded(Level level, Vec3 from, Vec3 to) {
-		// No wool anywhere in the sections between: nothing to stop it (most places; the palettes say so without a ray).
-		var palette = TerrainKnowledge.SectionFilter.palette(level, OCCLUDES);
-		boolean maybe = false;
-		for (int sx = Mth.floor(Math.min(from.x, to.x)) >> 4; sx <= Mth.floor(Math.max(from.x, to.x)) >> 4 && !maybe; sx++) {
-			for (int sy = Mth.floor(Math.min(from.y, to.y)) >> 4; sy <= Mth.floor(Math.max(from.y, to.y)) >> 4 && !maybe; sy++) {
-				for (int sz = Mth.floor(Math.min(from.z, to.z)) >> 4; sz <= Mth.floor(Math.max(from.z, to.z)) >> 4 && !maybe; sz++) {
-					maybe = palette.mayHave(sx, sy, sz);
-				}
-			}
-		}
-
-		if (!maybe) {
+		// No wool anywhere in the sections between: nothing to stop it (most places; the palettes say so without a ray). Each
+		// section's answer is kept for the tick and shared: every sound reaching every Drifter in a battle asked again
+		// (milestone 16 crowd pass, 2026-11-08: a twentieth of a 500v500).
+		if (!OCCLUDERS.mayHave(level, Mth.floor(Math.min(from.x, to.x)), Mth.floor(Math.min(from.y, to.y)), Mth.floor(Math.min(from.z, to.z)),
+			Mth.floor(Math.max(from.x, to.x)), Mth.floor(Math.max(from.y, to.y)), Mth.floor(Math.max(from.z, to.z)))) {
 			return false;
 		}
 

@@ -1649,9 +1649,14 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			this.projectile = null;
 			Vec3 eye = drifter.getEyePosition();
-			List<Projectile> flying = com.dinglebob.drifter.world.RareEntities.near(drifter.level(), Projectile.class, new AABB(eye, eye).inflate(RANGE),
-				p -> (p instanceof AbstractArrow arrow && !((AbstractArrowAccessor)arrow).drifter$isInGround() || p instanceof AbstractHurtingProjectile)
-					&& p.getOwner() != drifter);
+			AABB around = new AABB(eye, eye).inflate(RANGE);
+			List<Projectile> flying = new java.util.ArrayList<>(2);
+			for (Projectile p : flyingNow(drifter.level())) {
+				if (!p.isRemoved() && p.getBoundingBox().intersects(around) && p.getOwner() != drifter) {
+					flying.add(p);
+				}
+			}
+
 			flying.sort(Comparator.comparingDouble(p -> p.distanceToSqr(drifter)));
 			AABB body = drifter.getBoundingBox().inflate(HIT_RADIUS - 1.0 + 0.3);
 			for (Projectile candidate : flying) {
@@ -1673,6 +1678,33 @@ public class Reflexes {
 
 			return false;
 		}
+
+		/**
+		 * What's in the air this tick (arrows not stuck in anything, fireballs), listed once a tick for every Drifter: a
+		 * battle's stuck arrows lie about by the hundred, and each soldier looked through them all every tick (milestone 16
+		 * crowd pass, 2026-11-08). One fired later in the tick is seen from the next.
+		 */
+		private static List<Projectile> flyingNow(net.minecraft.world.level.Level level) {
+			if (level.isClientSide()) {
+				return List.of();
+			}
+
+			long now = level.getGameTime();
+			if (now != flyingTick || level != flyingLevel) {
+				flyingTick = now;
+				flyingLevel = level;
+				flyingList = com.dinglebob.drifter.world.RareEntities.near(level, Projectile.class, EVERYWHERE,
+					p -> p instanceof AbstractArrow arrow && !((AbstractArrowAccessor)arrow).drifter$isInGround() || p instanceof AbstractHurtingProjectile);
+			}
+
+			return flyingList;
+		}
+
+		private static final AABB EVERYWHERE = new AABB(-3.0E7, -1.0E4, -3.0E7, 3.0E7, 1.0E4, 3.0E7);
+		private static long flyingTick = Long.MIN_VALUE;
+		@Nullable
+		private static net.minecraft.world.level.Level flyingLevel;
+		private static List<Projectile> flyingList = List.of();
 
 		/**
 		 * Follows its flight for the next second (arrows fall 0.05 a tick and slow 1% a tick; fireballs fly straight) and

@@ -89,6 +89,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.trade.DrifterDeals.register();
 		com.dinglebob.drifter.perception.SightWork.register();
 		com.dinglebob.drifter.world.RareEntities.register();
+		com.dinglebob.drifter.world.BodyGrid.register();
 		com.dinglebob.drifter.perception.SoundHub.register();
 		com.dinglebob.drifter.perception.BellHearing.register();
 		LOGGER.info("Drifter initialized");

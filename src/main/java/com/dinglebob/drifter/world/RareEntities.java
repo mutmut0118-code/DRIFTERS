@@ -128,6 +128,11 @@ public final class RareEntities {
 		return true;
 	}
 
+	/** A kind of entity that may be solid (boats, minecarts, shulkers...: its class says whether it can be collided with). */
+	public static boolean solidKind(Entity entity) {
+		return SOLID.get(entity.getClass());
+	}
+
 	private static boolean watched(Entity entity) {
 		return entity instanceof Projectile || entity instanceof PrimedTnt || entity instanceof FallingBlockEntity;
 	}
