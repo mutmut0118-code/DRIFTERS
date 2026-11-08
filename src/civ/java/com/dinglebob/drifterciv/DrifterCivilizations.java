@@ -176,6 +176,65 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + by), false);
 					return 1;
 				}))
+				// Debug: logs round here with no leaves on them (bare trunks a road or a town left: the user's picture, 2026-11-08,
+				// "floating thing"), each piece: where, how many logs, how many stand on the ground, whether it's someone's build.
+				.then(Commands.literal("bare").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var level = ctx.getSource().getLevel();
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					int r = 96;
+					java.util.Set<BlockPos> seen = new java.util.HashSet<>();
+					int found = 0;
+					for (BlockPos pos : BlockPos.betweenClosed(at.offset(-r, -40, -r), at.offset(r, 60, r))) {
+						if (seen.contains(pos) || level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4) == null
+							|| !level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS)) {
+							continue;
+						}
+
+						java.util.Set<BlockPos> piece = new java.util.HashSet<>();
+						java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+						piece.add(pos.immutable());
+						queue.add(pos.immutable());
+						while (!queue.isEmpty() && piece.size() < 600) {
+							BlockPos p = queue.poll();
+							for (BlockPos n : BlockPos.betweenClosed(p.offset(-1, -1, -1), p.offset(1, 1, 1))) {
+								if (!piece.contains(n) && level.getChunkSource().getChunkNow(n.getX() >> 4, n.getZ() >> 4) != null
+									&& level.getBlockState(n).is(net.minecraft.tags.BlockTags.LOGS)) {
+									piece.add(n.immutable());
+									queue.add(n.immutable());
+								}
+							}
+						}
+
+						seen.addAll(piece);
+						int leaves = 0;
+						int grounded = 0;
+						boolean built = false;
+						for (BlockPos log : piece) {
+							built |= DrifterApi.isBuilt(level, log);
+							var under = level.getBlockState(log.below());
+							grounded += !piece.contains(log.below()) && !under.isAir() && !under.is(net.minecraft.tags.BlockTags.LEAVES) ? 1 : 0;
+							for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+								var next = level.getBlockState(log.relative(side));
+								leaves += next.is(net.minecraft.tags.BlockTags.LEAVES) ? 1 : 0;
+							}
+						}
+
+						if (leaves == 0 && !built && piece.size() >= 2) {
+							found++;
+							int minY = piece.stream().mapToInt(BlockPos::getY).min().orElse(0);
+							int maxY = piece.stream().mapToInt(BlockPos::getY).max().orElse(0);
+							String block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock()).toString();
+							String line = "[bare] " + piece.size() + " " + block + " at " + pos.toShortString() + " (y " + minY + " to " + maxY + ", " + grounded
+								+ " on the ground, under them: " + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(new BlockPos(pos.getX(),
+								minY - 1, pos.getZ())).getBlock()) + ")";
+							LOGGER.info(line);
+						}
+					}
+
+					int all = found;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + all + " bare pieces of trunk within " + r + " blocks (in the log)"), false);
+					return all;
+				}))
 				// Debug: the land surveyed from here as a new world's plan would (0.23.31: the continent the nations go on).
 				.then(Commands.literal("land").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());

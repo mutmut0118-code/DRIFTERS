@@ -3207,6 +3207,24 @@ public final class TownBuilder {
 				set(this.level, at.relative(side, s).above(4), wood("slab").defaultBlockState());
 			}
 
+			// Each post down to the ground, and the way in (the mouth and a step out from it) on solid ground: the land under
+			// the mouth isn't level (the user, 2026-11-08: "its the mine structure thats floating a bit").
+			for (int s = -2; s <= 2; s += 4) {
+				BlockPos post = at.relative(side, s);
+				for (int d = 1; d <= 8 && !sturdy(this.level, post.below(d)); d++) {
+					set(this.level, post.below(d), wood("log").defaultBlockState());
+				}
+			}
+
+			for (int s = -1; s <= 1; s++) {
+				for (int out = 0; out <= 1; out++) {
+					BlockPos floor = at.relative(way.getOpposite(), out).relative(side, s).below();
+					for (int d = 0; d <= 6 && !sturdy(this.level, floor.below(d)); d++) {
+						set(this.level, floor.below(d), (d == 0 ? this.look.wall() : Blocks.DIRT).defaultBlockState());
+					}
+				}
+			}
+
 			this.mineEntrance = at;
 			// (The stairs' first stretch, shallow under the ground: kept off too, with the lot.)
 			this.taken.add(stairsStretch(at, way));
@@ -3813,6 +3831,12 @@ public final class TownBuilder {
 		}
 	}
 
+	/** Solid to stand on or build on (its top a full face), not a tree's leaves. */
+	private static boolean sturdy(ServerLevel level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		return !state.is(net.minecraft.tags.BlockTags.LEAVES) && state.isFaceSturdy(level, pos, Direction.UP);
+	}
+
 	/** Trees with a log or leaves in this column between these heights felled whole (a player clears a tree, not half). */
 	/**
 	 * Over and beside these columns (a road's, a path's), what felling and cutting left hanging (the user's pictures: leaves
@@ -3910,21 +3934,91 @@ public final class TownBuilder {
 		}
 
 		int[] tops = new int[ring.size()];
+		// (And the ground just out from it and just in: higher there, the fence is a step from it. Found in the user's picture,
+		// 2026-11-08: a pen on a terrace, the bank outside as high as its fence; people walked in over it and couldn't get out.)
+		int[] sides = new int[ring.size()];
 		for (int i = 0; i < ring.size(); i++) {
-			tops[i] = ground(level, ring.get(i).getX(), ring.get(i).getZ()) + 1;
+			BlockPos column = ring.get(i);
+			tops[i] = ground(level, column.getX(), column.getZ()) + 1;
+			int sx = Math.abs(column.getX() - middle.getX()) == half ? Integer.signum(column.getX() - middle.getX()) : 0;
+			int sz = Math.abs(column.getZ() - middle.getZ()) == half ? Integer.signum(column.getZ() - middle.getZ()) : 0;
+			sides[i] = Math.max(ground(level, column.getX() + sx, column.getZ() + sz), ground(level, column.getX() - sx, column.getZ() - sz)) + 1;
 		}
 
 		BlockPos gate = new BlockPos(middle.getX() + front.getStepX() * half, 0, middle.getZ() + front.getStepZ() * half);
 		for (int i = 0; i < ring.size(); i++) {
 			BlockPos column = ring.get(i);
-			int up = Math.max(tops[i], Math.max(tops[(i + 1) % ring.size()], tops[(i + ring.size() - 1) % ring.size()]));
+			int up = Math.max(Math.max(tops[i], sides[i]), Math.max(tops[(i + 1) % ring.size()], tops[(i + ring.size() - 1) % ring.size()]));
+			// (The way through the gate: a bank more than a step higher out from it or in from it cut down to a step.)
+			if (column.getX() == gate.getX() && column.getZ() == gate.getZ()) {
+				for (int k = -1; k <= 1; k += 2) {
+					BlockPos by = new BlockPos(column.getX() + front.getStepX() * k, 0, column.getZ() + front.getStepZ() * k);
+					for (int y = ground(level, by.getX(), by.getZ()); y > tops[i]; y--) {
+						set(level, by.atY(y), Blocks.AIR.defaultBlockState());
+					}
+				}
+			}
+
+			boolean gateColumn = column.getX() == gate.getX() && column.getZ() == gate.getZ();
 			for (int y = tops[i]; y <= up; y++) {
 				BlockPos pos = column.atY(y);
-				boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ() && y == tops[i];
-				place(level, pos, isGate ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, front)
+				// (Nothing over the gate: by a step, a fence went on top of it, the way out one block high, and those who went in
+				// to see to the animals were shut in, jumping at the fence: the user's picture, 2026-11-08.)
+				if (gateColumn && y > tops[i]) {
+					set(level, pos, Blocks.AIR.defaultBlockState());
+					continue;
+				}
+
+				place(level, pos, gateColumn ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, front)
 					: wood("fence").defaultBlockState());
 			}
 		}
+	}
+
+	/** Towns whose pen gate has been looked at this session. */
+	private static final java.util.Set<UUID> gatesLooked = new java.util.HashSet<>();
+
+	/**
+	 * A town's pen from before 0.23.31: a fence on top of its gate taken off (the way out was one block high by a step), and
+	 * its fence put up again as it's put up now (a full fence over the ground on both sides of it, the way through its gate a
+	 * step at most). Once a session, when its pen's loaded. True if anything changed.
+	 */
+	static boolean freePenGate(ServerLevel level, Town town) {
+		if (town.pen == null || gatesLooked.contains(town.id) || !level.isLoaded(town.pen.offset(-6, 0, -6)) || !level.isLoaded(town.pen.offset(6, 0, 6))) {
+			return false;
+		}
+
+		gatesLooked.add(town.id);
+		boolean changed = false;
+		for (BlockPos pos : BlockPos.betweenClosed(town.pen.offset(-5, -4, -5), town.pen.offset(5, 6, 5))) {
+			if (level.getBlockState(pos).getBlock() instanceof FenceGateBlock) {
+				for (int up = 1; up <= 3 && level.getBlockState(pos.above(up)).is(net.minecraft.tags.BlockTags.FENCES); up++) {
+					level.setBlock(pos.above(up), Blocks.AIR.defaultBlockState(), 3);
+					changed = true;
+				}
+			}
+		}
+
+		// Its fence again, by where its gate is.
+		Direction front = null;
+		for (BlockPos pos : BlockPos.betweenClosed(town.pen.offset(-5, -4, -5), town.pen.offset(5, 6, 5))) {
+			if (level.getBlockState(pos).getBlock() instanceof FenceGateBlock) {
+				int dx = pos.getX() - town.pen.getX();
+				int dz = pos.getZ() - town.pen.getZ();
+				front = Math.abs(dx) >= Math.abs(dz) ? (dx > 0 ? Direction.EAST : Direction.WEST) : (dz > 0 ? Direction.SOUTH : Direction.NORTH);
+				break;
+			}
+		}
+
+		if (front != null) {
+			penFence(level, town.pen, 5, front);
+			changed = true;
+		}
+
+		DrifterCivilizations.LOGGER.info("[town] {}: its pen at {} put right (its gate to the {})", town.name, town.pen.toShortString(), front == null ? "none found"
+			: front.getName());
+
+		return changed;
 	}
 
 	/** The turn that puts a door of this plan on {@code front}, or null. */

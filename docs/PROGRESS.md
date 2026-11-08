@@ -4669,6 +4669,24 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.32: the mine's mouth on the ground, people shut in the pen** (the user, 2026-11-08, with pictures: "floating
+  thing", "its the mine structure thats floating a bit"; "i see two players jumping by a fence, i believe they are trying
+  to get out?").
+  - **The mine's mouth** (`TownBuilder.mine`): its frame's posts went up from the height of the ground at the middle of
+    its lot; on a slope one stood in the air (found with `/drifterciv plan bare`: four logs, nothing under them). Each post
+    goes down to solid ground now, and the way in (the mouth and a step out from it) is filled under to solid ground.
+  - **The pen** (`TownBuilder.penFence`): a pen on a terrace had the bank outside it as high as its fence: people walked
+    in over it and couldn't get out (Willowwick, the user's test world). Its fence is a full fence over the ground on
+    both sides of it now (higher where the bank is), nothing goes on top of its gate (by a step a fence went over it, the
+    way out a block high), and a bank more than a step higher out from its gate or in from it is cut down to a step.
+    Pens of towns made before are put up again so once a session (`TownBuilder.freePenGate`, from the town check).
+  - **Gates closed behind** (`NavigateTask`): a Drifter always shuts a fence gate it went through, whatever its door habit
+    (one left open let a cow out of the pen).
+  - Debug: `/drifterciv plan bare` (logs round you with no leaves on them, by piece: where, how many, how many stand on the
+    ground; town houses show up too, they aren't marked as built).
+  - Tested in the user's test world: the pen put right on loading ("its gate to the south"), its fence two high along the
+    bank, one of the two shut in walked out.
+
 - **0.23.31: the nations on the continent, players start by a town, a longer loading screen** (the user, 2026-11-08,
   with the Continents mod: "usually i spawn in one of the smaller continents/an island outside of the continent, making
   the nations not spawn to is full potential. so i want spawn in the nearest 'largest' continent", "i also want the mod to

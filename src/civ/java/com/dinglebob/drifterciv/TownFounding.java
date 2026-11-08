@@ -158,6 +158,14 @@ public final class TownFounding {
 				Towns.all().forEach(town -> TownBounties.check(server, town));
 				// Its mine's faces, for its people from before they knew them (0.23.29).
 				Towns.all().forEach(town -> TownMine.check(server, town));
+				// Its pen's gate free (0.23.31: a fence on it by a step shut its people in).
+				Towns.all().forEach(town -> {
+					var level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+						net.minecraft.resources.ResourceLocation.parse(town.dimension)));
+					if (level != null) {
+						TownBuilder.freePenGate(level, town);
+					}
+				});
 				// Prices settling each day (B4).
 				Towns.all().forEach(town -> {
 					long day = Chronicle.day(server);

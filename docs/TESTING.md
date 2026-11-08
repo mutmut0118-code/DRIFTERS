@@ -3106,3 +3106,12 @@ A new world, "A world of nations" on (with the Continents mod, as you play it).
 - [ ] **The nations are on the big land.** Not on the little spawn island: `/drifterciv plan` lists the nations and their
       towns; they should be on one big continent round you, not scattered over islands. (Debug: `/drifterciv plan land`
       tells you how big the land you're on is and where a new world's nations would go from there.)
+
+## 0.23.32: the mine's mouth on the ground, nobody shut in the pen (new)
+
+- [ ] **The mine's mouth** (in a new town): the log frame over the top of the mine's stairs stands on the ground both
+      sides, nothing hanging in the air, even on a slope. (`/drifterciv town goto mine`.)
+- [ ] **The pen**: nobody gets in over its fence from a bank, and nobody's stuck inside jumping at it. Where the ground
+      outside is higher, the fence is two high. Its gate opens onto ground you can step onto. Towns from before get their
+      pen put right the first time you're near them.
+- [ ] **Gates shut**: townspeople close the pen's gate behind them; the animals stay in.
