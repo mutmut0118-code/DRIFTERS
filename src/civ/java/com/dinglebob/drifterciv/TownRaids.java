@@ -183,6 +183,22 @@ final class TownRaids {
 		}
 
 		Chronicle.add(level.getServer(), "town", "Raiders came for " + raid.town.name + (raid.waves > 1 ? " (wave " + raid.wave + " of " + raid.waves + ")" : ""));
+		// The alarm, while this wave's about (0.23.30).
+		TownBells.alarm(level.getServer(), raid.town, "the raiders", List.of("RAIDERS! to arms!", "pillagers! everyone inside!",
+			"raid! they're coming for the plaza!"), () -> nearest(raid), () -> raids.get(raid.town.id) == raid && !raid.raiders.isEmpty(), GIVES_UP + NEXT_AFTER);
+	}
+
+	/** Where the raiders are: the one nearest the town's middle. */
+	@Nullable
+	private static BlockPos nearest(Raid raid) {
+		BlockPos best = null;
+		for (Mob mob : raid.raiders) {
+			if (mob.isAlive() && (best == null || mob.blockPosition().distSqr(raid.town.center) < best.distSqr(raid.town.center))) {
+				best = mob.blockPosition();
+			}
+		}
+
+		return best;
 	}
 
 	/** Fought off: the chronicle, and its people think better of the player who helped. */

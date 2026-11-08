@@ -186,6 +186,18 @@ public final class DrifterApi {
 	 * Someone its town wants, a guard or a bold one goes looking there ({@link com.dinglebob.drifter.social.Mode#pursuesWanted}).
 	 */
 	public static void alert(DrifterEntity drifter, net.minecraft.world.entity.player.Player player, net.minecraft.core.BlockPos where) {
+		alertOf(drifter, player, where);
+	}
+
+	/**
+	 * Not one to go after trouble: no guard, and a pacifist or not brave enough (it keeps clear of someone wanted, it isn't
+	 * picked to run out to the bell in an alarm).
+	 */
+	public static boolean timid(DrifterEntity drifter) {
+		return com.dinglebob.drifter.social.Mode.timid(drifter);
+	}
+
+	private static void alertOf(DrifterEntity drifter, net.minecraft.world.entity.player.Player player, net.minecraft.core.BlockPos where) {
 		var r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
 		r.lastSeenPos = where.immutable();
 		r.lastSeenAt = drifter.level().getGameTime();
@@ -531,6 +543,7 @@ public final class DrifterApi {
 		}
 
 		shared.forEach(home::addChest);
+		shared.forEach(pos -> home.townChests.add(pos.immutable()));
 		drifter.getDrifterBrain().setHome(home);
 		// Its house furnished as a player furnishes a base (the user's furnishing guidebook, 2026-10-23): a storage wall with
 		// the crafting table in it, furnace and smoker with the fuel chest, a dump chest by the door, a bedside chest. It
@@ -617,6 +630,7 @@ public final class DrifterApi {
 		}
 
 		shared.forEach(home::addChest);
+		shared.forEach(pos -> home.townChests.add(pos.immutable()));
 		long now = level.getGameTime();
 		for (net.minecraft.core.BlockPos pos : net.minecraft.core.BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
 			var state = level.getBlockState(pos);
@@ -697,6 +711,19 @@ public final class DrifterApi {
 	 */
 	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role) {
 		com.dinglebob.drifter.world.gen.Delvers.townKit(drifter, random, role);
+	}
+
+	/**
+	 * (A town being made.) It stands still and decides nothing for this long (ticks; 0: free now), till it's geared and
+	 * its town is ready round it. Not saved.
+	 */
+	public static void holdStill(DrifterEntity drifter, long ticks) {
+		drifter.holdStill(ticks);
+	}
+
+	/** (A town's store.) This chest of its home's is its town's, not its own (for the town's work, not its own gear). */
+	public static void townChest(Home home, net.minecraft.core.BlockPos chest) {
+		home.townChests.add(chest.immutable());
 	}
 
 	/** (A town made ready.) The stall keeper's leather apron: a leather tunic in place of what it wore. */

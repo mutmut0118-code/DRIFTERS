@@ -160,8 +160,14 @@ public interface TownWork {
 	default void rang(DrifterEntity drifter) {
 	}
 
-	/** A bell to ring: where it is, what for ("the festival"), the lines to call out after. */
-	record Bell(BlockPos pos, String why, List<String> lines) {
+	/**
+	 * A bell to ring: where it is, what for ("the festival"), the lines to call out after; and whether it's an alarm (rung
+	 * fast, over and over: raiders, a killing, a massacre; 0.23.30) and where the trouble is, if the town knows.
+	 */
+	record Bell(BlockPos pos, String why, List<String> lines, boolean alarm, @org.jetbrains.annotations.Nullable BlockPos trouble) {
+		public Bell(BlockPos pos, String why, List<String> lines) {
+			this(pos, why, lines, false, null);
+		}
 	}
 
 	/** How soon a crook goes at it again, as a share of the usual wait (a city's crook: much sooner). 1 by default. */

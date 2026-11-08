@@ -4669,6 +4669,58 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.30: the alarm bell** (the user, 2026-11-08: "for like major stuff like a massacre or a raid will people spam
+  ring the bell?", then "yes build it" to the alarm bell proposed).
+  - **Rung for trouble** (`TownBells.alarm`): raiders from another town coming in (was three slow strokes once), a pillager
+    raid's waves (`TownRaids`: was nothing), a killing in the town, a massacre, someone wanted back about it (`Justice`;
+    a player or a Drifter). Whoever's nearest the bell runs to it (not the timid unless nobody else; a guard only if much
+    the nearest: they're wanted at the fight; nobody more than 128 blocks off) and rings it twelve times fast, shouting
+    what's wrong a few strokes in (`BellGoal`, urgency 0.97). Its ringer killed on the way: someone else at once. Rung again forty seconds after it was last rung while the
+    trouble lasts (the raiders still about, the killer still within 96 blocks of the middle), handed to someone else if
+    not rung in thirty seconds, and over when the trouble is (a killing's at most 3 minutes, a massacre's 5, someone
+    wanted back 2, a raid's 20). A killing become a massacre: rung again at once with the new shout. A festival or market
+    day's bell waits while the alarm's on.
+  - **Heard** (`BellHearing`, `BellBlockMixin` on `BellBlock#attemptToRing`): any bell struck five times in five seconds is an
+    alarm, whoever rings it (a player too); every Drifter within 32 blocks hears it (vanilla's: its villagers hear a bell
+    that far), and townspeople pass the word on to those within 24 blocks after a second and a half, so it's round the
+    town in seconds (the first two passings-on of each ringing out loud in chat, `alarm.heard`; the rest quietly). What
+    for and where, if the ringer said (`BellHearing.say`). Not saved.
+  - **What they do** (`AlarmGoal`): only for their own town's bell. Guards, and the brave (bravery 0.5 up, not timid, not
+    hurt below half health), go to the trouble (where the ringer said, else the bell; urgency 0.9, over any work, under fighting:
+    at 0.74, found in testing, farms and stalls won and nobody went) and look about there; whatever they find they fight
+    as they would anyway. The rest go into their houses (by their bed; 0.9) and stay in till the alarm's over (a minute after it was last heard). Asleep in bed: stays there. And vanilla
+    does the rest: a bell rung with raiders near makes them glow.
+  - `TownWork.Bell` has `alarm` and `trouble` now; `DrifterApi.timid`. Debug: `/drifterciv town alarm` (the nearest town's
+    alarm for two minutes, the trouble where you stand), `/drifterciv town alarm stop`.
+  - **The store rush, again** (the user, 2026-11-08: "people are still running into the shared chests as soon as the town
+    spawns"). Their log (Coldvale, a new world): 20 of its 21 people in the store within two and a half minutes, a dozen
+    "can't get to its chest" in its narrow aisles. Counted in testing (`/drifterciv town crowd`: those standing at its
+    chests, every five seconds): up to 8 at once in its 5x7 room, for a minute. The causes, each fixed:
+    - A town's people are spawned over its few seconds of work and geared at the end; those spawned first, with nothing
+      on them, set off for a wooden pickaxe. Now they stand still till they're geared (`DrifterApi.holdStill`, not saved,
+      a minute at most; freed in `townUp`).
+    - The store's chests were each household's too, so its iron was everyone's own to gear up with: chestplates, helmets,
+      shields, flint and steel, all from the store at once. Now a home knows which of its chests are its town's
+      (`Home.townChests`, saved; old worlds marked on the next check), and its own gear (`Goals.Progress`,
+      `Planner.planOwn`), what it takes down a mine (torches, food, spare pickaxes) and putting its things away
+      (`StoreActivity`, `Home.ownChests`) use its own chests only; it mines its own iron, as players do. Work for the
+      town (its stall, things to sell, the town's building, notices) still uses the store.
+    - The spare pickaxes a mining trip makes were reckoned from the surface: from its town's mine's hub now (dug already).
+      And a townsperson starts with a spare stone pickaxe, a boat and 16 to 32 cobblestone (`Delvers.townKit`: the last
+      of a newcomer's first wants, each a trip for planks or stone).
+    - The store is one place for crowding (`FetchActivity.users` counts every chest within 5 blocks), and one that gets
+      to a chest with two others at it waits its turn a little way off instead of squeezing into the aisles.
+    - In testing after: nobody at its chests for the first 70 seconds, then 2 at most; 18 mining trips and 91 rounds of
+      farm work in the first three minutes. In a client test (the player there as it was made): nobody at the store.
+  - Tested: headless (Hollowbrook, `town alarm`): rung at once ("ALARM!"), passed on ("the alarm! get inside!", "you
+    hear that? the alarm!"), people dropped mining and fetching to go in, rung again by another a minute on, over at two
+    minutes. Client, a pillager raid: rung as the first wave came ("raid! they're coming for the plaza!"), again about
+    every minute by others through both waves; 13 went to the raiders, 11 went in; 33 fights with pillagers and
+    vindicators (the first ringer was killed by a vindicator: "rip geyser o7"). Client, killings: "MURDER! Player311
+    killed toffee35!" and the bell; the alarm moved on to the second killing and to the massacre ("MASSACRE! Player311 is
+    killing everyone!", rung again 45 s on); 12 answered, 5 went in; guards chased and searched; walked away: over 5 s
+    later.
+
 - **0.23.29: the user's town bugs, crime taken seriously, notices pay more** (the user, 2026-11-07, with pictures: "the
   town mine has no light, and nobody uses the town mine ... still having random strip mines around town", "when drifters
   wake up, they break 2 blocks to get out?", "found enchanting table outside of house", "structures like stables and town

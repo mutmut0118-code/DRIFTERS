@@ -3378,6 +3378,9 @@ public final class TownBuilder {
 				return;
 			}
 
+			// (Still till it's geared, with the town done round it: freed in townUp.)
+			DrifterApi.holdStill(drifter, HELD);
+
 			this.owners.add(drifter.getName().getString());
 			nameSign(this.level, house, plot.front, drifter.getName().getString());
 			this.pet(drifter, stand);
@@ -3440,6 +3443,8 @@ public final class TownBuilder {
 					break;
 				}
 
+				DrifterApi.holdStill(other, HELD);
+
 				DrifterApi.notABandit(other);
 				Home shared = DrifterApi.settleInToo(other, house, this.store);
 				if (shared == null) {
@@ -3482,6 +3487,9 @@ public final class TownBuilder {
 		}
 
 		/** One group, geared by their places; the town itself, its past and its keeper; its notice board. */
+		/** Its people stand still this long at most while it's made (freed when they're geared: a town takes seconds). */
+		private static final long HELD = 20L * 60;
+
 		private void townUp() {
 			var group = DrifterApi.formGroup(this.people, this.name);
 			// Gear by their place in the town (the user, 2026-10-28: everyone in diamond, "i cant tell a guard from a citizen, or
@@ -3494,6 +3502,7 @@ public final class TownBuilder {
 				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0
 					&& boldest.indexOf(one) < Math.max(2, this.city ? this.people.size() / 7 : this.people.size() / 10) ? "guard" : "citizen";
 				DrifterApi.equipTown(one, this.random, role);
+				DrifterApi.holdStill(one, 0L);
 				if (role.equals("guard")) {
 					guards.add(one.getUUID());
 				}

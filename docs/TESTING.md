@@ -3072,3 +3072,24 @@ New world, "A world of nations" on (the bug fixes are in how a town is made).
 - [ ] **Notices pay more.** A notice pays at least 3 emeralds now ("need 48 white wool, paying 3 emeralds").
 - [ ] Debug, standing in a town: `/drifterciv town check` counts the torches in its mine, beds beside stairs or a
       station, workshops not under a roof, and houses on ground kept for other things (all but the torches should be 0).
+
+## 0.23.30: the alarm bell (new)
+
+New world or old, "A world of nations" on. The bell is the one on the plaza by the notice board.
+
+- [ ] **A raid rings it, again and again.** Walk into a town with Bad Omen (or `/drifterciv town raid` in one). When the
+      raiders come, someone runs to the bell and rings it fast, a dozen times ("RAIDERS! to arms!"), and again every forty
+      seconds or so while raiders are about. The pillagers near the bell glow.
+- [ ] **Everyone hears it.** Guards and the brave head for the raiders; the rest go into their houses and stay in till
+      it's over. (`/drifter thoughts` on someone: "heard the alarm bell", "answering the alarm", "in the house till the
+      alarm's over".) A couple of them shout it on ("the alarm! get inside!").
+- [ ] **It stops when it's over.** The raiders down (or gone): no more ringing, and a minute later everyone's back out.
+- [ ] **A killing rings it.** Kill a townsperson in front of others: the bell ("MURDER! ..."), rung again while you're
+      about the town; walk away and it stops. Kill three: "MASSACRE! ..." straight away.
+- [ ] **You can ring it too.** Hit the bell five times fast: the townspeople near hear an alarm (guards come to the bell,
+      the rest go in). A festival's three slow rings do nothing of the sort.
+- [ ] **Not for festivals.** Market day and festivals still get the three calm rings.
+- [ ] **No rush to the store (again).** When a town appears, its people go to work: farming, mining, their stalls. Not a
+      crowd in the store, nobody stuck in its aisles. Everyone in a town carries a boat now.
+- [ ] (Debug: `/drifterciv town alarm` rings the nearest town's alarm for two minutes, the trouble where you stand;
+      `/drifterciv town alarm stop` stops it.)

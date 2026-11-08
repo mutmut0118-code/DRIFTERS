@@ -161,11 +161,17 @@ public final class Goals {
 					this.planKey = key;
 					this.planLoose = loose;
 					this.plannedAt = now;
-					this.plan = items.isEmpty() ? Planner.INFEASIBLE : Planner.plan(context.drifter(), context.world(), items, count);
+					this.plan = items.isEmpty() ? Planner.INFEASIBLE : this.ownThings(context) ? Planner.planOwn(context.drifter(), context.world(), items, count)
+						: Planner.plan(context.drifter(), context.world(), items, count);
 				}
 			}
 
 			return this.plan;
+		}
+
+		/** It plans from its own chests only, not its town's (its own gear: a town's store is for the town's work). */
+		protected boolean ownThings(Context context) {
+			return false;
 		}
 
 		/**
@@ -1020,6 +1026,13 @@ public final class Goals {
 		@Override
 		public int minCommitTicks() {
 			return 20 * 30;
+		}
+
+		// (Its own gear: not from the town's store. Found in testing: a town just made, its people off to the store at once
+		// for its iron, for chestplates, helmets and shields of their own, a crowd there; they mine their own, as players do.)
+		@Override
+		protected boolean ownThings(Context context) {
+			return true;
 		}
 	}
 
@@ -3180,7 +3193,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.trade.TownMoneyGoals.Wages(), new com.dinglebob.drifter.trade.TownMoneyGoals.Bank(), new com.dinglebob.drifter.trade.TownMoneyGoals.Tax(), new com.dinglebob.drifter.trade.BuyGoal(), new com.dinglebob.drifter.trade.TradeRunGoal(), new com.dinglebob.drifter.social.ErrandGoal(), new com.dinglebob.drifter.social.GuardGoal(), new com.dinglebob.drifter.social.PatrolGoal(), new com.dinglebob.drifter.whim.BellGoal(), new com.dinglebob.drifter.whim.GatherGoal(), new com.dinglebob.drifter.whim.CrierGoal(), new TownPaper(), new Honey(), new com.dinglebob.drifter.social.CrookGoal(), new com.dinglebob.drifter.social.MournGoal(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.trade.TownMoneyGoals.Wages(), new com.dinglebob.drifter.trade.TownMoneyGoals.Bank(), new com.dinglebob.drifter.trade.TownMoneyGoals.Tax(), new com.dinglebob.drifter.trade.BuyGoal(), new com.dinglebob.drifter.trade.TradeRunGoal(), new com.dinglebob.drifter.social.ErrandGoal(), new com.dinglebob.drifter.social.GuardGoal(), new com.dinglebob.drifter.social.PatrolGoal(), new com.dinglebob.drifter.whim.BellGoal(), new com.dinglebob.drifter.social.AlarmGoal(), new com.dinglebob.drifter.whim.GatherGoal(), new com.dinglebob.drifter.whim.CrierGoal(), new TownPaper(), new Honey(), new com.dinglebob.drifter.social.CrookGoal(), new com.dinglebob.drifter.social.MournGoal(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		goals.add(new LabelChestsGoal());
 		goals.add(new DecorateGoal());

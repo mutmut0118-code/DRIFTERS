@@ -805,6 +805,17 @@ public class DrifterEntity extends PathfinderMob {
 		this.delveUntil = 0L;
 	}
 
+	/**
+	 * It stands still and decides nothing till this game time (0.23.30; a town being made: its people spawn over its few
+	 * seconds of work and are geared at the end, and found in the user's game, those spawned first, with nothing on them yet,
+	 * set off for a wooden pickaxe, planks from the town's store). Not saved: a hold a reload interrupts is over.
+	 */
+	private long heldUntil;
+
+	public void holdStill(long ticks) {
+		this.heldUntil = ticks <= 0L ? 0L : this.level().getGameTime() + ticks;
+	}
+
 	public void addPendingCatchUp(long ticks) {
 		this.pendingCatchUp += ticks;
 	}
@@ -1454,6 +1465,14 @@ protected void customServerAiStep() {
 		this.delverDespawn();
 		if (this.isRemoved()) {
 			return;
+		}
+
+		if (this.heldUntil > 0L) {
+			if (this.level().getGameTime() < this.heldUntil) {
+				return;
+			}
+
+			this.heldUntil = 0L;
 		}
 
 		// Its home recorded as built, once (huts from before that was recorded: so it uses the door, not the wall).

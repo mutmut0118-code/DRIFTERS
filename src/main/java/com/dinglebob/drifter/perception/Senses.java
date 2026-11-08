@@ -229,6 +229,28 @@ public class Senses {
 		return this.hearing;
 	}
 
+	/** The last alarm bell it heard (or was told of), and when it was done answering or hiding from one. Never saved. */
+	@org.jetbrains.annotations.Nullable
+	private BellHearing.Heard heardAlarm;
+	private long alarmDone = Long.MIN_VALUE;
+
+	@org.jetbrains.annotations.Nullable
+	public BellHearing.Heard heardAlarm() {
+		return this.heardAlarm;
+	}
+
+	public void heardAlarm(BellHearing.Heard heard) {
+		this.heardAlarm = heard;
+	}
+
+	public long alarmDone() {
+		return this.alarmDone;
+	}
+
+	public void alarmDone(long at) {
+		this.alarmDone = at;
+	}
+
 	public TimeSense time() {
 		return this.time;
 	}

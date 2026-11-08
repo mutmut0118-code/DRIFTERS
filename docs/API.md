@@ -141,6 +141,15 @@ gets this helper as its player), or null; things given to it reach the Drifter w
 helper, not the Drifter's own pack, which is overwritten then). `DrifterApi.drifterBehind(entity)`: the Drifter behind an
 entity (itself, or the one whose helper it is), or null.
 
+The alarm bell (0.23.30): `TownWork.Bell` carries `alarm` (rung fast, twelve strokes) and `trouble` (where it is, or
+null); a bell struck five times in five seconds is an alarm to Drifters within 32 blocks, passed on through a town
+(`perception.BellHearing`: `say` what it's for before ringing; `Senses.heardAlarm()` what it heard). Its own town's alarm:
+its guards and brave go to the trouble, the rest go in (`social.AlarmGoal`). `DrifterApi.timid(drifter)`. A town's chests:
+`Home.townChests` (the store's chests in a home's list: the town's, for its work, not the home's own gear; `settleIn`,
+`settleInToo` and `moveIntoHouse` mark their `shared` chests, `DrifterApi.townChest(home, chest)` marks one more),
+`Home.ownChests()`, `Planner.planOwn`. `DrifterApi.holdStill(drifter, ticks)`: still and deciding nothing for a while (a
+town being made; not saved).
+
 Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
 player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
 `TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid
