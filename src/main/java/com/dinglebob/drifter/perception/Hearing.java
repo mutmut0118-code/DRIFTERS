@@ -72,6 +72,9 @@ public class Hearing implements GameEventListener {
 
 	/** The newest sound in SoundHub it has taken in (-1: not listening yet). */
 	private long heardUpTo = -1L;
+	/** When it last listened, and how many sounds it can pick out this time (6 for each tick since). */
+	private long listenedAt = Long.MIN_VALUE / 2;
+	private int heardCap = HEARD_PER_TICK;
 
 	/**
 	 * Takes in the sounds round its ears since it last listened (SoundHub: the game's vibrations, put down once for all
@@ -79,6 +82,10 @@ public class Hearing implements GameEventListener {
 	 */
 	void listen(ServerLevel level) {
 		long latest = SoundHub.latest(level);
+		// (Listening every few ticks, away from players, it may take in that many ticks' worth: milestone 16 scale pass.)
+		long tick = level.getGameTime();
+		this.heardCap = HEARD_PER_TICK * (int)Math.max(1L, Math.min(8L, tick - this.listenedAt));
+		this.listenedAt = tick;
 		if (this.heardUpTo >= 0L) {
 			SoundHub.near(level, this.drifter.getEyePosition(), LISTEN_RADIUS, this.heardUpTo, sound -> this.hear(level, sound.kind(), sound.pos(), sound.maker()));
 		}
@@ -121,7 +128,7 @@ public class Hearing implements GameEventListener {
 			this.heardThisTick = 0;
 		}
 
-		if (this.heardThisTick >= HEARD_PER_TICK && kind != HeardSound.Kind.FUSE) {
+		if (this.heardThisTick >= Math.max(HEARD_PER_TICK, this.heardCap) && kind != HeardSound.Kind.FUSE) {
 			return false;
 		}
 

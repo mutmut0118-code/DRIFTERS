@@ -20,7 +20,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The sounds Drifters can hear (game events: steps, blocks, doors, eating, hits...), kept for two ticks in a list per
+ * The sounds Drifters can hear (game events: steps, blocks, doors, eating, hits...), kept for a few ticks in a list per
  * chunk, for each Drifter to take in what's round it at its own senses tick (milestone 16). Before, each Drifter was its
  * own vibration listener, and the game handed every step of a crowd to every listener within 16 blocks, one by one:
  * in a 300-Drifter battle a tenth of the server's time. Now each sound is put down once (ServerLevel#gameEvent), and
@@ -35,11 +35,28 @@ public final class SoundHub {
 	record Sound(long number, HeardSound.Kind kind, Vec3 pos, @Nullable Entity maker) {
 	}
 
+	/**
+	 * Ticks of sounds kept: away from players a Drifter listens only every few ticks (every 5th at the Far detail tier),
+	 * and takes in all it missed since (milestone 16 scale pass, 2026-11-08: two ticks were kept when it listened every
+	 * other tick).
+	 */
+	private static final int KEEP_TICKS = 8;
+
 	private static final class LevelSounds {
 		long tick = Long.MIN_VALUE;
 		long next = 1;
-		it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<List<Sound>> current = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
-		it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<List<Sound>> previous = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
+		/** One map (chunk to sounds) per tick, in a ring by tick; which tick each holds, and its newest sound's number. */
+		@SuppressWarnings("unchecked")
+		final it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<List<Sound>>[] ring = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap[KEEP_TICKS];
+		final long[] ringTick = new long[KEEP_TICKS];
+		final long[] ringNewest = new long[KEEP_TICKS];
+
+		LevelSounds() {
+			for (int i = 0; i < KEEP_TICKS; i++) {
+				this.ring[i] = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
+				this.ringTick[i] = Long.MIN_VALUE;
+			}
+		}
 	}
 
 	private static final Map<ResourceKey<Level>, LevelSounds> levels = new HashMap<>();
@@ -52,16 +69,11 @@ public final class SoundHub {
 		LevelSounds sounds = levels.computeIfAbsent(level.dimension(), key -> new LevelSounds());
 		long now = level.getServer().getTickCount();
 		if (sounds.tick != now) {
-			// Last tick's are kept a tick more (a Drifter far from players listens every other tick); older ones go.
-			var old = sounds.previous;
-			old.clear();
-			if (now == sounds.tick + 1) {
-				sounds.previous = sounds.current;
-				sounds.current = old;
-			} else {
-				sounds.current.clear();
-			}
-
+			// This tick's slot in the ring: what it held (KEEP_TICKS ago, or older) goes.
+			int slot = (int)Math.floorMod(now, (long)KEEP_TICKS);
+			sounds.ring[slot].clear();
+			sounds.ringTick[slot] = now;
+			sounds.ringNewest[slot] = 0L;
 			sounds.tick = now;
 		}
 
@@ -86,14 +98,18 @@ public final class SoundHub {
 		}
 
 		LevelSounds sounds = sounds(level);
+		int slot = (int)Math.floorMod(sounds.tick, (long)KEEP_TICKS);
+		var current = sounds.ring[slot];
 		long key = ChunkPos.asLong(Mth.floor(pos.x) >> 4, Mth.floor(pos.z) >> 4);
-		List<Sound> list = sounds.current.get(key);
+		List<Sound> list = current.get(key);
 		if (list == null) {
 			list = new ArrayList<>(4);
-			sounds.current.put(key, list);
+			current.put(key, list);
 		}
 
-		list.add(new Sound(sounds.next++, kind, pos, maker));
+		long number = sounds.next++;
+		list.add(new Sound(number, kind, pos, maker));
+		sounds.ringNewest[slot] = number;
 	}
 
 	/** The newest sound's number so far (a listener starting now hears from after it). */
@@ -109,9 +125,12 @@ public final class SoundHub {
 		int minCz = Mth.floor(ear.z - radius) >> 4;
 		int maxCz = Mth.floor(ear.z + radius) >> 4;
 		double radiusSqr = radius * radius;
-		for (int pass = 0; pass < 2; pass++) {
-			var map = pass == 0 ? sounds.previous : sounds.current;
-			if (map.isEmpty()) {
+		// Oldest tick first; ticks with nothing newer than what it has already had are passed over whole (one that listens
+		// every tick reads only this tick's).
+		for (int age = KEEP_TICKS - 1; age >= 0; age--) {
+			int slot = (int)Math.floorMod(sounds.tick - age, (long)KEEP_TICKS);
+			var map = sounds.ring[slot];
+			if (sounds.ringTick[slot] != sounds.tick - age || sounds.ringNewest[slot] <= after || map.isEmpty()) {
 				continue;
 			}
 

@@ -278,6 +278,11 @@ public class Senses {
 	/** Server only, every tick, before the executor runs. */
 	public void tick() {
 		this.ticks++;
+		// Game ticks since its last look (away from players it looks only every few ticks): what it notices builds up by
+		// the time that passed, not by its looks (milestone 16 scale pass, 2026-11-08).
+		long nowTick = this.now();
+		this.lookTicks = this.lastLookAt == Long.MIN_VALUE ? 1 : (int)Math.max(1L, Math.min(10L, nowTick - this.lastLookAt));
+		this.lastLookAt = nowTick;
 		if (this.time.tick(this.drifter)) {
 			this.consolidate("dusk");
 		}
@@ -699,8 +704,11 @@ public class Senses {
 		this.noticeChestCarts();
 	}
 
-	/** Ticks between awareness updates now (by its detail tier). */
+	/** Looks between awareness updates now (by its detail tier). */
 	private int awarenessEvery = AWARENESS_INTERVAL;
+	/** Game ticks between its looks (1 near a player; more away from players), and when it last looked. */
+	private int lookTicks = 1;
+	private long lastLookAt = Long.MIN_VALUE;
 
 	private void updateAwareness() {
 		long now = this.now();
@@ -708,7 +716,7 @@ public class Senses {
 		for (Awareness awareness : this.tracked.values()) {
 			Entity entity = awareness.entity;
 			if (awareness.forcedTicks > 0) {
-				awareness.forcedTicks -= this.awarenessEvery;
+				awareness.forcedTicks -= this.awarenessEvery * this.lookTicks;
 			}
 
 			// Far ones are re-checked every third update (and gain three updates' worth): cheaper, hardly different. In a crowd,
@@ -720,7 +728,7 @@ public class Senses {
 				continue;
 			}
 
-			int ticks = this.awarenessEvery * every;
+			int ticks = this.awarenessEvery * every * this.lookTicks;
 			Sighting sighting = entity.isRemoved() ? Sighting.NOT_SEEN : this.look(entity);
 			float stealth = stealthFactor(entity);
 			awareness.visibleNow = sighting.seen() && stealth > 0.0F;
