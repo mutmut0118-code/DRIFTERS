@@ -161,11 +161,17 @@ public final class Goals {
 					this.planKey = key;
 					this.planLoose = loose;
 					this.plannedAt = now;
-					this.plan = items.isEmpty() ? Planner.INFEASIBLE : Planner.plan(context.drifter(), context.world(), items, count);
+					this.plan = items.isEmpty() ? Planner.INFEASIBLE : this.ownThings(context) ? Planner.planOwn(context.drifter(), context.world(), items, count)
+						: Planner.plan(context.drifter(), context.world(), items, count);
 				}
 			}
 
 			return this.plan;
+		}
+
+		/** It plans from its own chests only, not its town's (its own gear: a town's store is for the town's work). */
+		protected boolean ownThings(Context context) {
+			return false;
 		}
 
 		/**
@@ -648,6 +654,168 @@ public final class Goals {
 	}
 
 	/**
+	 * Honey from its town's hives (milestone 23 C5; the user, 2026-11-06: "bees and stables"): a hive it knows is full
+	 * (dripping), it takes the honey with a glass bottle, as a player does (the campfire under it keeps the bees calm); with
+	 * no bottle, it makes some first (glass from sand, the way it makes anything). Townspeople only (their town's hives).
+	 */
+	public static final class Honey extends PlannedGoal {
+		private static final int BOTTLES = 2;
+
+		@Override
+		public String id() {
+			return "honey";
+		}
+
+		@Override
+		public String name(Context context) {
+			return bottled(context.drifter()) ? "take honey from a hive" : "make bottles for the honey";
+		}
+
+		private static boolean bottled(DrifterEntity drifter) {
+			return drifter.getInventory().count(stack -> stack.is(Items.GLASS_BOTTLE)) > 0;
+		}
+
+		/** A full hive it knows, near, that it can get to; or null. */
+		@Nullable
+		private static net.minecraft.core.BlockPos hive(DrifterEntity drifter) {
+			for (net.minecraft.core.BlockPos pos : KnownBlocks.find(drifter, 40, state -> state.getBlock() instanceof net.minecraft.world.level.block.BeehiveBlock
+				&& state.getValue(net.minecraft.world.level.block.BeehiveBlock.HONEY_LEVEL) >= net.minecraft.world.level.block.BeehiveBlock.MAX_HONEY_LEVELS, 4)) {
+				if (com.dinglebob.drifter.hands.Reach.canReach(drifter, pos) || KnownBlocks.standingSpotFor(drifter, pos, java.util.Set.of()) != null) {
+					return pos;
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			return List.of(Items.GLASS_BOTTLE);
+		}
+
+		@Override
+		protected int count(Context context) {
+			return BOTTLES;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			if (drifter.getTownWork() == null || Schedule.isNight(drifter) || context.threat().urgent() || hive(drifter) == null) {
+				return 0.0;
+			}
+
+			return bottled(drifter) ? 0.42 : 0.3;
+		}
+
+		@Override
+		public double feasibility(Context context) {
+			return bottled(context.drifter()) ? 1.0 : super.feasibility(context);
+		}
+
+		@Nullable
+		@Override
+		public Activity start(Context context) {
+			DrifterEntity drifter = context.drifter();
+			net.minecraft.core.BlockPos hive = hive(drifter);
+			if (hive == null || !bottled(drifter)) {
+				return super.start(context);
+			}
+
+			return new Activity(drifter) {
+				private int step;
+
+				@Override
+				public String describe() {
+					return "take honey from a hive";
+				}
+
+				@Override
+				protected int timeoutTicks() {
+					return 20 * 60;
+				}
+
+				@Override
+				protected Status next() {
+					switch (this.step++) {
+						case 0 -> {
+							if (com.dinglebob.drifter.hands.Reach.canReach(this.drifter, hive)) {
+								return Status.RUNNING;
+							}
+
+							net.minecraft.core.BlockPos stand = KnownBlocks.standingSpotFor(this.drifter, hive, java.util.Set.of());
+							return stand == null ? Status.FAILURE : this.begin(new com.dinglebob.drifter.executor.task.NavigateTask(this.drifter,
+								net.minecraft.world.phys.Vec3.atBottomCenterOf(stand), 0.6, "go to the hive"));
+						}
+						case 1 -> {
+							return this.begin(new com.dinglebob.drifter.executor.task.SelectItemTask(this.drifter, stack -> stack.is(Items.GLASS_BOTTLE), "a bottle"));
+						}
+						case 2 -> {
+							net.minecraft.core.Direction best = null;
+							double near = Double.MAX_VALUE;
+							for (net.minecraft.core.Direction face : net.minecraft.core.Direction.values()) {
+								var point = com.dinglebob.drifter.hands.Reach.aimPoint(this.drifter, hive, face);
+								if (point.isPresent() && point.get().distanceTo(this.drifter.getEyePosition()) < near) {
+									near = point.get().distanceTo(this.drifter.getEyePosition());
+									best = face;
+								}
+							}
+
+							return best == null ? Status.FAILURE
+								: this.begin(com.dinglebob.drifter.executor.task.UseOnBlockTask.useBlock(this.drifter, hive, best, "take honey from a hive"));
+						}
+						default -> {
+							this.think("took honey from a hive");
+							return Status.SUCCESS;
+						}
+					}
+				}
+			};
+		}
+	}
+
+	/**
+	 * Its town's crier keeps a book and quill or two (made the way it makes anything: paper from sugar cane, leather, a feather,
+	 * an ink sac), to write the morning's paper up in for whoever's about ({@code CrierGoal}).
+	 */
+	public static final class TownPaper extends PlannedGoal {
+		private static final int KEEPS = 2;
+
+		@Override
+		public String id() {
+			return "town_paper";
+		}
+
+		@Override
+		public String name(Context context) {
+			return "make a book and quill for the paper";
+		}
+
+		@Override
+		protected List<Item> items(Context context) {
+			return List.of(Items.WRITABLE_BOOK);
+		}
+
+		@Override
+		protected int count(Context context) {
+			return KEEPS;
+		}
+
+		@Override
+		public double urgency(Context context) {
+			DrifterEntity drifter = context.drifter();
+			var work = drifter.getTownWork();
+			if (work == null || !work.crier(drifter) || Schedule.isNight(drifter) || context.threat().urgent()
+				|| drifter.getInventory().count(stack -> stack.is(Items.WRITABLE_BOOK)) >= KEEPS) {
+				return 0.0;
+			}
+
+			// (A small chore of its own, between its others.)
+			return 0.3;
+		}
+	}
+
+	/**
 	 * Its town's banner (milestone 22 step 6 part 3: a nation's colour on each of its towns' plazas): the leader makes one
 	 * of that colour (six dyed wool and a stick, all its own) and stands it where the town says.
 	 */
@@ -858,6 +1026,13 @@ public final class Goals {
 		@Override
 		public int minCommitTicks() {
 			return 20 * 30;
+		}
+
+		// (Its own gear: not from the town's store. Found in testing: a town just made, its people off to the store at once
+		// for its iron, for chestplates, helmets and shields of their own, a crowd there; they mine their own, as players do.)
+		@Override
+		protected boolean ownThings(Context context) {
+			return true;
 		}
 	}
 
@@ -2717,6 +2892,11 @@ public final class Goals {
 		@Override
 		public String name(Context context) {
 			Home home = context.drifter().getDrifterBrain().home();
+			// (A neighbour's house blown up: helping build it back, HouseDamage.)
+			if (home != null && home.project != null && home.project.label.endsWith("'s house")) {
+				return "help build " + home.project.label + " back";
+			}
+
 			return "work on the town's " + (home == null || home.project == null ? "build" : home.project.label);
 		}
 
@@ -3013,7 +3193,7 @@ public final class Goals {
 	}
 
 	public static List<Goal> all() {
-		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.trade.TownMoneyGoals.Wages(), new com.dinglebob.drifter.trade.TownMoneyGoals.Bank(), new com.dinglebob.drifter.trade.TownMoneyGoals.Tax(), new com.dinglebob.drifter.trade.BuyGoal(), new com.dinglebob.drifter.trade.TradeRunGoal(), new com.dinglebob.drifter.social.ErrandGoal(), new com.dinglebob.drifter.social.GuardGoal(), new com.dinglebob.drifter.social.CrookGoal(), new com.dinglebob.drifter.social.MournGoal(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
+		List<Goal> goals = new java.util.ArrayList<>(List.of(new GetOutOfWater(), new Farm(), new Pen(), new Enchant(), new BuildPortal(), new GetRequested(), new NetherBlocks(), new NetherGood("nether_quartz", "mine some nether quartz", Items.QUARTZ, net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE, 16), new NetherGood("nether_wart", "pick some nether wart", Items.NETHER_WART, net.minecraft.world.level.block.Blocks.NETHER_WART, 8), new NetherGood("nether_glowstone", "break some glowstone", Items.GLOWSTONE_DUST, net.minecraft.world.level.block.Blocks.GLOWSTONE, 16), new House(), new PickUpTable(), new LightBase(), new RoadWork(), new EaseGround(), new TownWater(), new ClearTrees(), new com.dinglebob.drifter.trade.TownMoneyGoals.Wages(), new com.dinglebob.drifter.trade.TownMoneyGoals.Bank(), new com.dinglebob.drifter.trade.TownMoneyGoals.Tax(), new com.dinglebob.drifter.trade.BuyGoal(), new com.dinglebob.drifter.trade.TradeRunGoal(), new com.dinglebob.drifter.social.ErrandGoal(), new com.dinglebob.drifter.social.GuardGoal(), new com.dinglebob.drifter.social.PatrolGoal(), new com.dinglebob.drifter.whim.BellGoal(), new com.dinglebob.drifter.social.AlarmGoal(), new com.dinglebob.drifter.whim.GatherGoal(), new com.dinglebob.drifter.whim.CrierGoal(), new TownPaper(), new Honey(), new com.dinglebob.drifter.social.CrookGoal(), new com.dinglebob.drifter.social.MournGoal(), new com.dinglebob.drifter.social.talk.ConverseGoal(), new com.dinglebob.drifter.social.talk.RequestGoal(), new TidyScaffold(), new LootChest(), new CheckChest(), new GetDown(), new Fight(), new Flee(), new Equip(), new Eat(), new GetFood(), new Cook(), new CollectSmelting(), new TakeShelter(), new NightHunt(),
 			new MakeRoom(), new Settle(), new BuildHut(), new MoveIn(), new Store(), new Progress(), new CaveHunch(), new Wander(), new Idle()));
 		goals.add(new LabelChestsGoal());
 		goals.add(new DecorateGoal());
@@ -3061,6 +3241,9 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.skills.FishGoal());
 		// Its horse (milestone 18, section 10.7).
 		goals.add(new com.dinglebob.drifter.skills.HorseGoal());
+		goals.add(new com.dinglebob.drifter.skills.StableGoal());
+		goals.add(new com.dinglebob.drifter.skills.ServiceGoal());
+		goals.add(new com.dinglebob.drifter.skills.EnchantBooksGoal());
 		// Brewing (milestone 18, section 10.14).
 		goals.add(new com.dinglebob.drifter.skills.BrewGoal());
 		// Netherite gear (milestone 18, section 19).

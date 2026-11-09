@@ -111,6 +111,8 @@ public final class Encounters {
 	static final long WANTED_LASTS = 24000L * 7;
 	/** A Drifter they killed that didn't have it coming: its friends come for revenge this often (a murder: always). */
 	private static final double REVENGE_CHANCE = 0.25;
+	/** On a road between towns, each tick counts this many more toward the next encounter. */
+	private static final long ROAD_HASTE = 2;
 	/** They come this long after (ticks; a quarter of a day to a day). */
 	private static final long REVENGE_DELAY_MIN = 6000L;
 	private static final long REVENGE_DELAY_SPREAD = 18000L;
@@ -440,6 +442,12 @@ public final class Encounters {
 		if (state.wanted != null && !state.wanted.claimed && now > state.wanted.expires) {
 			state.wanted = null;
 			changed();
+		}
+
+		// On a road between towns, the next one comes three times as soon (the user, 2026-11-06: "encounters between towns
+		// should happen when traveling on roads, more frequently than not on a road").
+		if (now < state.nextAt && com.dinglebob.drifter.nav.Legs.onRoad(player.blockPosition())) {
+			state.nextAt -= ROAD_HASTE * CHECK_TICKS;
 		}
 
 		// (Indoors, only a thief in their base: everything else happens out under the sky.)

@@ -37,6 +37,24 @@ final class TownDay {
 		"townbuild", "stall", "trade_run", "fish", "checkchest");
 	/** Its ease: a whim, a chat. */
 	private static final Set<String> EASE = Set.of("whim", "converse");
+	/** Going out: exploring, delving, adventures. */
+	private static final Set<String> OUT = Set.of("explore", "delve", "passthrough", "pursuit", "visit", "netherportal", "build_portal");
+	/** Cooking. */
+	private static final Set<String> COOKING = Set.of("cook", "cookmeal");
+
+	/** A seasoned one: far along (iron at least) and wearing iron or better on its body. */
+	static boolean veteran(DrifterEntity drifter) {
+		// (An iron chestplate's 6 armor points, or better.)
+		var chest = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
+		boolean armored = chest.getItem() instanceof net.minecraft.world.item.ArmorItem armor && armor.getDefense() >= 6;
+		return armored && com.dinglebob.drifter.brain.Strategist.stage(drifter) >= 5;
+	}
+
+	/** At (or near) its home. */
+	static boolean atHome(DrifterEntity drifter, double near) {
+		var home = drifter.getDrifterBrain().home();
+		return home != null && home.center.closerThan(drifter.blockPosition(), near);
+	}
 
 	/** Parts of its own day. */
 	enum Part {
@@ -68,7 +86,13 @@ final class TownDay {
 		Part part = part(DrifterApi.ownTime(drifter));
 		boolean work = WORK.contains(goal) || Trades.leaning(town, drifter, goal) > 0.0;
 		boolean ease = EASE.contains(goal);
-		return switch (part) {
+		// Who it is (the user, 2026-11-06: "normal citizens ... doing home activities. while the geared up and more experienced
+		// drifters set out and explore and run around"): a seasoned one, well geared, is drawn out; the rest keep to the town.
+		double out = OUT.contains(goal) ? veteran(drifter) ? 0.12 : -0.08 : 0.0;
+		// Its meals at home of a morning and an evening (cooking what it has, by the stove: the user, "would kill to see a
+		// drifter cooking in their home").
+		double kitchen = COOKING.contains(goal) && (part == Part.DAWN || part == Part.MORNING || part == Part.DUSK) && atHome(drifter, 24.0) ? 0.15 : 0.0;
+		return out + kitchen + switch (part) {
 			case DAWN -> goal.equals("eat") || goal.equals("checkchest") || goal.equals("farm") ? 0.05 : 0.0;
 			case MORNING -> work ? 0.05 : 0.0;
 			case MIDDAY -> ease ? 0.10 : work ? -0.04 : 0.0;
@@ -87,13 +111,16 @@ final class TownDay {
 			return 0.25;
 		}
 
+		// (A townsperson's whims come about twice as often as a wanderer's: the user, 2026-11-06, "would love for normal
+		// citizens to have a higher chance of whims"; a seasoned one, out and about, less so.)
+		double who = veteran(drifter) || "guard".equals(town.lines.get(drifter.getUUID())) ? 0.9 : 0.5;
 		Part part = part(DrifterApi.ownTime(drifter));
 		boolean gathering = part == Part.MIDDAY || part == Part.DUSK;
 		if (TownEvents.marketDay(town, day)) {
-			return gathering ? 0.4 : 0.6;
+			return who * (gathering ? 0.6 : 0.8);
 		}
 
-		return gathering ? 0.6 : 1.0;
+		return who * (gathering ? 0.7 : 1.0);
 	}
 
 	/** What part of its day it's in, for /drifterciv town and its thoughts. */
@@ -153,6 +180,52 @@ final class TownDay {
 			case "shrine" -> {
 				return TownCulture.shrineSpot(town, drifter);
 			}
+			case "home" -> {
+				// Inside its house: by its bed, or its home's middle.
+				var home = drifter.getDrifterBrain().home();
+				if (home == null || !home.center.closerThan(drifter.blockPosition(), 160.0)) {
+					return null;
+				}
+
+				BlockPos bed = home.houseBed(level);
+				for (BlockPos at : bed != null ? List.of(home.center, bed) : List.of(home.center)) {
+					BlockPos in = indoors(level, at);
+					if (in != null) {
+						return in;
+					}
+				}
+
+				return null;
+			}
+			case "kitchen" -> {
+				// By its stove, furnace or smoker at home (a campfire, a cooking pot), a spot to stand at in front of it.
+				var home = drifter.getDrifterBrain().home();
+				if (home == null || !home.center.closerThan(drifter.blockPosition(), 160.0) || !level.isLoaded(home.center)) {
+					return null;
+				}
+
+				for (BlockPos pos : BlockPos.betweenClosed(home.center.offset(-7, -2, -7), home.center.offset(7, 3, 7))) {
+					var state = level.getBlockState(pos);
+					String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+					if (KITCHEN.contains(id)) {
+						for (Direction side : Direction.Plane.HORIZONTAL) {
+							BlockPos in = indoors(level, pos.relative(side));
+							if (in != null && in.getY() == pos.getY()) {
+								return in;
+							}
+						}
+					}
+				}
+
+				return null;
+			}
+			case "mine" -> {
+				if (town.mine == null) {
+					return null;
+				}
+
+				spots.add(town.mine);
+			}
 			case "board" -> spots.add(c.offset(-5, 0, -4));
 			case "bell" -> spots.add(c.offset(5, 0, -4));
 			case "stall" -> {
@@ -196,6 +269,31 @@ final class TownDay {
 			BlockPos spot = stand(level, spots.get((start + i) % spots.size()));
 			if (spot != null) {
 				return spot;
+			}
+		}
+
+		return null;
+	}
+
+	/** What a kitchen's cooked on. */
+	private static final Set<String> KITCHEN = Set.of("minecraft:furnace", "minecraft:smoker", "minecraft:campfire", "farmersdelight:stove",
+		"farmersdelight:cooking_pot", "farmersdelight:skillet");
+
+	/** A spot to stand at here or a step off it, under a roof or not (floor under, room for one), if it's loaded; else null. */
+	@Nullable
+	private static BlockPos indoors(Level level, BlockPos at) {
+		if (!level.isLoaded(at)) {
+			return null;
+		}
+
+		for (int dy = 0; dy >= -1; dy--) {
+			for (Direction side : new Direction[] {null, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST}) {
+				BlockPos feet = (side == null ? at : at.relative(side)).above(dy);
+				var under = level.getBlockState(feet.below());
+				if (under.isFaceSturdy(level, feet.below(), Direction.UP) && under.getFluidState().isEmpty() && level.getBlockState(feet).getCollisionShape(level, feet).isEmpty()
+					&& level.getBlockState(feet.above()).getCollisionShape(level, feet.above()).isEmpty()) {
+					return feet;
+				}
 			}
 		}
 

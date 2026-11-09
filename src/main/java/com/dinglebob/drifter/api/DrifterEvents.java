@@ -99,6 +99,33 @@ public final class DrifterEvents {
 		}
 	});
 
+	/**
+	 * A player took things out of a chest or a barrel while Drifters saw them at it (what they took, and who saw; the user,
+	 * 2026-11-07: theft seen as it happens). Whose it was, and whether that was theft, is for the listener to say.
+	 */
+	public static final Event<SeenTaking> SEEN_TAKING = EventFactory.createArrayBacked(SeenTaking.class, listeners -> (player, chest, taken, saw) -> {
+		for (SeenTaking listener : listeners) {
+			listener.onSeenTaking(player, chest, taken, saw);
+		}
+	});
+
+	@FunctionalInterface
+	public interface SeenTaking {
+		void onSeenTaking(Player player, net.minecraft.core.BlockPos chest, java.util.List<ItemStack> taken, java.util.List<DrifterEntity> saw);
+	}
+
+	/** A player threw a Drifter something and it picked it up (what it took of it). */
+	public static final Event<Received> RECEIVED = EventFactory.createArrayBacked(Received.class, listeners -> (drifter, player, stack) -> {
+		for (Received listener : listeners) {
+			listener.onReceived(drifter, player, stack);
+		}
+	});
+
+	@FunctionalInterface
+	public interface Received {
+		void onReceived(DrifterEntity drifter, Player player, net.minecraft.world.item.ItemStack stack);
+	}
+
 	@FunctionalInterface
 	public interface Died {
 		void onDied(DrifterEntity drifter, DamageSource source, boolean comesBack);

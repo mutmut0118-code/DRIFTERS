@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dinglebob.drifter.api.DrifterApi;
+import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.api.DrifterEvents;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -71,6 +72,12 @@ public final class DrifterCivilizations implements ModInitializer {
 		WorldBuild.register();
 		TownRaids.register();
 		Trades.register();
+		DrifterApi.setRoutes(Routes::between);
+		DrifterApi.setRoadPoints(Routes::near);
+		DrifterApi.setTownLooters(TownLife::scavengers);
+		TownTraditions.register();
+		TownNotices.register();
+		TownServices.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -114,6 +121,17 @@ public final class DrifterCivilizations implements ModInitializer {
 							? "" : ", in no nation") + ") is at " + place.x + ", " + place.z + ", " + far + " blocks away" + (place.made ? "" : " (not seen yet)")), false);
 						return 1;
 					})))
+			// (Debug: the way along the roads from here to there, as the Drifters going far take it.)
+			.then(Commands.literal("route")
+				.then(Commands.argument("x", com.mojang.brigadier.arguments.IntegerArgumentType.integer())
+					.then(Commands.argument("z", com.mojang.brigadier.arguments.IntegerArgumentType.integer()).executes(ctx -> {
+						BlockPos from = BlockPos.containing(ctx.getSource().getPosition());
+						BlockPos to = new BlockPos(com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "x"), from.getY(),
+							com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "z"));
+						String way = Routes.describe(from, to);
+						ctx.getSource().sendSuccess(() -> Component.literal("To " + to.getX() + ", " + to.getZ() + ": " + way), false);
+						return 1;
+					}))))
 			.then(Commands.literal("plan")
 				.executes(ctx -> {
 					if (!WorldPlan.ready) {
@@ -156,6 +174,73 @@ public final class DrifterCivilizations implements ModInitializer {
 
 					LOGGER.info("[built] round {}: {}", at.toShortString(), by);
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + by), false);
+					return 1;
+				}))
+				// Debug: logs round here with no leaves on them (bare trunks a road or a town left: the user's picture, 2026-11-08,
+				// "floating thing"), each piece: where, how many logs, how many stand on the ground, whether it's someone's build.
+				.then(Commands.literal("bare").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var level = ctx.getSource().getLevel();
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					int r = 96;
+					java.util.Set<BlockPos> seen = new java.util.HashSet<>();
+					int found = 0;
+					for (BlockPos pos : BlockPos.betweenClosed(at.offset(-r, -40, -r), at.offset(r, 60, r))) {
+						if (seen.contains(pos) || level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4) == null
+							|| !level.getBlockState(pos).is(net.minecraft.tags.BlockTags.LOGS)) {
+							continue;
+						}
+
+						java.util.Set<BlockPos> piece = new java.util.HashSet<>();
+						java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+						piece.add(pos.immutable());
+						queue.add(pos.immutable());
+						while (!queue.isEmpty() && piece.size() < 600) {
+							BlockPos p = queue.poll();
+							for (BlockPos n : BlockPos.betweenClosed(p.offset(-1, -1, -1), p.offset(1, 1, 1))) {
+								if (!piece.contains(n) && level.getChunkSource().getChunkNow(n.getX() >> 4, n.getZ() >> 4) != null
+									&& level.getBlockState(n).is(net.minecraft.tags.BlockTags.LOGS)) {
+									piece.add(n.immutable());
+									queue.add(n.immutable());
+								}
+							}
+						}
+
+						seen.addAll(piece);
+						int leaves = 0;
+						int grounded = 0;
+						boolean built = false;
+						for (BlockPos log : piece) {
+							built |= DrifterApi.isBuilt(level, log);
+							var under = level.getBlockState(log.below());
+							grounded += !piece.contains(log.below()) && !under.isAir() && !under.is(net.minecraft.tags.BlockTags.LEAVES) ? 1 : 0;
+							for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+								var next = level.getBlockState(log.relative(side));
+								leaves += next.is(net.minecraft.tags.BlockTags.LEAVES) ? 1 : 0;
+							}
+						}
+
+						if (leaves == 0 && !built && piece.size() >= 2) {
+							found++;
+							int minY = piece.stream().mapToInt(BlockPos::getY).min().orElse(0);
+							int maxY = piece.stream().mapToInt(BlockPos::getY).max().orElse(0);
+							String block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock()).toString();
+							String line = "[bare] " + piece.size() + " " + block + " at " + pos.toShortString() + " (y " + minY + " to " + maxY + ", " + grounded
+								+ " on the ground, under them: " + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(new BlockPos(pos.getX(),
+								minY - 1, pos.getZ())).getBlock()) + ")";
+							LOGGER.info(line);
+						}
+					}
+
+					int all = found;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + all + " bare pieces of trunk within " + r + " blocks (in the log)"), false);
+					return all;
+				}))
+				// Debug: the land surveyed from here as a new world's plan would (0.23.31: the continent the nations go on).
+				.then(Commands.literal("land").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					String found = WorldPlan.survey(ctx.getSource().getLevel(), at);
+					LOGGER.info("[plan] the land round {}: {}", at.toShortString(), found);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + found), false);
 					return 1;
 				}))
 				.then(Commands.literal("height").requires(source -> source.hasPermission(2)).executes(ctx -> {
@@ -261,6 +346,23 @@ public final class DrifterCivilizations implements ModInitializer {
 									+ " (see the chronicle)" : "nobody to send")), true);
 								return sent ? 1 : 0;
 							})))))
+			// A town's notice turned in at a Bountiful board: what its paper's reward runs (TownBounties), "<notice> <item> <count>
+			// <player>"; the town pays them, and takes the things.
+			.then(Commands.literal("bountiful").requires(source -> source.hasPermission(2))
+				.then(Commands.argument("paper", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
+					String[] parts = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "paper").trim().split("\\s+");
+					try {
+						var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(net.minecraft.resources.ResourceLocation.parse(parts[1]));
+						if (parts.length < 4 || item.isEmpty()) {
+							return 0;
+						}
+
+						return TownBounties.cashIn(ctx.getSource().getServer(), java.util.UUID.fromString(parts[0]), item.get(), Integer.parseInt(parts[2]), parts[3]) ? 1 : 0;
+					} catch (RuntimeException e) {
+						ctx.getSource().sendFailure(Component.literal("drifterciv bountiful <notice> <item> <count> <player>"));
+						return 0;
+					}
+				})))
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
@@ -361,7 +463,7 @@ public final class DrifterCivilizations implements ModInitializer {
 						+ ". /locate structure drifter_civ:town finds them too"), false);
 					for (var site : pending.subList(0, Math.min(8, pending.size()))) {
 						ctx.getSource().sendSuccess(() -> Component.literal("  " + site.x + ", " + site.z + " (" + Math.round(Math.hypot(site.x - from.getX(),
-							site.z - from.getZ())) + " blocks away, " + site.households + " households)"), false);
+							site.z - from.getZ())) + " blocks away, " + site.households + " households" + TownSites.progress(ctx.getSource().getLevel(), site) + ")"), false);
 					}
 
 					return pending.size();
@@ -380,13 +482,13 @@ public final class DrifterCivilizations implements ModInitializer {
 				// Debug: the player running it did this in the nearest town, seen by the nearest of its people (theft, farms, murder).
 				.then(Commands.literal("crime").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "murder"), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "murder", "massacre", "pardon"), builder))
 						.executes(ctx -> {
 							var player = ctx.getSource().getPlayerOrException();
 							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), player.blockPosition());
 							String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
 							if (town == null || !Justice.debugCrime(ctx.getSource().getServer(), town, player, kind)) {
-								ctx.getSource().sendFailure(Component.literal("No town (or none of its people) near you, or not a crime: theft, farms, murder"));
+								ctx.getSource().sendFailure(Component.literal("No town (or none of its people) near you, or not a crime: theft, farms, murder, massacre (pardon: forgiven)"));
 								return 0;
 							}
 
@@ -542,12 +644,318 @@ public final class DrifterCivilizations implements ModInitializer {
 					ctx.getSource().sendSuccess(() -> Component.literal(in ? "Debug: Bad Omen given; a raid's coming" : "Debug: Bad Omen given (walk into a town)"), true);
 					return 1;
 				}))
+				// Debug: how many are at the nearest town's store now (0.23.30: the rush to it when a town is made).
+				.then(Commands.literal("crowd").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null || town.store.isEmpty()) {
+						source.sendFailure(Component.literal("No town with a store"));
+						return 0;
+					}
+
+					// (Inside it: the room its chests stand round, not the plaza, the stall or the fields outside its walls.)
+					int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, z0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE, z1 = Integer.MIN_VALUE;
+					for (BlockPos chest : town.store) {
+						x0 = Math.min(x0, chest.getX());
+						y0 = Math.min(y0, chest.getY());
+						z0 = Math.min(z0, chest.getZ());
+						x1 = Math.max(x1, chest.getX());
+						y1 = Math.max(y1, chest.getY());
+						z1 = Math.max(z1, chest.getZ());
+					}
+
+					// (Standing at one of its chests: the block beside it, not the plaza or the far side of its wall.)
+					java.util.Set<DrifterEntity> there = new java.util.HashSet<>();
+					for (BlockPos chest : town.store) {
+						there.addAll(source.getLevel().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(chest).inflate(1.0, 0.5, 1.0)));
+					}
+
+					String box = (x1 - x0 + 1) + "x" + (z1 - z0 + 1) + " (" + town.store.size() + " chests)";
+					String names = there.stream().map(one -> one.getName().getString()).sorted().collect(java.util.stream.Collectors.joining(", "));
+					source.sendSuccess(() -> Component.literal("[crowd] " + town.name + ": " + there.size() + " at the store (" + names + ") " + box), false);
+					return there.size();
+				}))
+				// Debug: the nearest town's alarm bell rung (0.23.30), the trouble where you stand, for two minutes; or stopped.
+				.then(Commands.literal("alarm").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null) {
+						source.sendFailure(Component.literal("No town"));
+						return 0;
+					}
+
+					BlockPos at = source.getLevel().getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+						BlockPos.containing(source.getPosition()));
+					TownBells.alarm(source.getServer(), town, "a test", java.util.List.of("ALARM! (a test)", "the bell! everyone, a test!"), () -> at, () -> true,
+						20L * 60 * 2);
+					source.sendSuccess(() -> Component.literal("Debug: " + town.name + "'s alarm raised (two minutes, the trouble here)"), true);
+					return 1;
+				}).then(Commands.literal("stop").executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					boolean was = town != null && TownBells.stopAlarm(town);
+					source.sendSuccess(() -> Component.literal(was ? "Debug: " + town.name + "'s alarm stopped" : "Debug: no alarm on"), true);
+					return 1;
+				})))
 				// Debug: the ruins of a town that failed, made here at once (as world generation now and then makes one).
 				.then(Commands.literal("ruin").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var source = ctx.getSource();
 					TownBuilder.Result result = TownBuilder.ruin(source.getLevel(), BlockPos.containing(source.getPosition()));
 					source.sendSuccess(() -> Component.literal("Debug: " + result.message()), true);
 					return 1;
+				}))
+				// Debug: the nearest town looked over for what the user found wrong (0.23.29): torches in its mine, beds in the way,
+				// workshops out of doors, houses on its kept ground.
+				.then(Commands.literal("check").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+					if (town == null) {
+						ctx.getSource().sendFailure(Component.literal("No town"));
+						return 0;
+					}
+
+					String report = TownMine.check(ctx.getSource().getLevel(), town);
+					ctx.getSource().sendSuccess(() -> Component.literal(town.name + ": " + report), false);
+					DrifterCivilizations.LOGGER.info("[check] {}: {}", town.name, report);
+					return 1;
+				}))
+				// Debug: to the nearest town's mine, its mouth or its hub at the bottom (facing down its stairs, or along its corridor).
+				.then(Commands.literal("goto").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("place", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("mine", "hub"), builder))
+						.executes(ctx -> {
+							var player = ctx.getSource().getPlayerOrException();
+							Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+							String place = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "place");
+							BlockPos to = town == null ? null : place.equals("hub") ? town.mineBottom : place.equals("mine") ? town.mine : null;
+							if (to == null || town.mineWay == null) {
+								ctx.getSource().sendFailure(Component.literal("The nearest town has no mine (places: mine, hub)"));
+								return 0;
+							}
+
+							float yaw = town.mineWay.toYRot();
+							player.teleportTo(player.serverLevel(), to.getX() + 0.5, to.getY(), to.getZ() + 0.5, yaw, place.equals("hub") ? 10.0F : 35.0F);
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: at " + town.name + "'s " + place + " (" + to.toShortString() + ")"), true);
+							return 1;
+						})))
+				// Debug (with Bountiful): the nearest town's bounty board right-clicked with what's in your hand, from where you are
+				// (an empty hand opens it, a paper is turned in); "paper": its first notice's paper from the board, in your hand.
+				.then(Commands.literal("bounty").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					if (town == null || !TownBounties.click(player, town)) {
+						ctx.getSource().sendFailure(Component.literal("The nearest town has no bounty board (or Bountiful isn't here)"));
+						return 0;
+					}
+
+					return 1;
+				}).then(Commands.literal("paper").executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					ItemStack paper = town == null ? ItemStack.EMPTY : TownBounties.paperOnBoard(ctx.getSource().getServer(), town);
+					if (paper.isEmpty()) {
+						ctx.getSource().sendFailure(Component.literal("No notice on the nearest town's bounty board"));
+						return 0;
+					}
+
+					player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, paper);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + "'s notice paper in your hand"), true);
+					return 1;
+				})).then(Commands.literal("goods").executes(ctx -> {
+					// Debug: what the nearest town's first notice asks for, given you.
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					var notice = town == null || town.notices.isEmpty() ? null : town.notices.get(0);
+					if (notice == null) {
+						ctx.getSource().sendFailure(Component.literal("No notice up in the nearest town"));
+						return 0;
+					}
+
+					player.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+						net.minecraft.resources.ResourceLocation.parse(notice.item)), notice.count));
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: given what " + town.name + "'s notice asks for (" + notice.count + " " + notice.item + ")"), true);
+					return 1;
+				})))
+				// Debug: the nearest of the nearest town's store chests opened, as if you'd right-clicked it (a real click: whoever
+				// sees you at it sees you); "take": the first few stacks taken out of the chest you have open, and it shut.
+				.then(Commands.literal("steal").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					BlockPos chest = town == null ? null : town.store.stream().min(java.util.Comparator.comparingDouble(pos -> pos.distSqr(player.blockPosition())))
+						.orElse(null);
+					if (chest == null) {
+						ctx.getSource().sendFailure(Component.literal("The nearest town has no store chests"));
+						return 0;
+					}
+
+					// (Out of reach, the chest shuts again at once: in front of it first, facing it.)
+					if (player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(chest)) > 4.0) {
+						var state = player.serverLevel().getBlockState(chest);
+						net.minecraft.core.Direction facing = state.hasProperty(net.minecraft.world.level.block.ChestBlock.FACING)
+							? state.getValue(net.minecraft.world.level.block.ChestBlock.FACING) : net.minecraft.core.Direction.NORTH;
+						BlockPos front = chest.relative(facing);
+						player.teleportTo(player.serverLevel(), front.getX() + 0.5, front.getY(), front.getZ() + 0.5, facing.getOpposite().toYRot(), 30.0F);
+					}
+
+					var hit = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(chest), net.minecraft.core.Direction.UP, chest, false);
+					player.gameMode.useItemOn(player, player.serverLevel(), ItemStack.EMPTY, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: opened " + town.name + "'s store chest at " + chest.toShortString()), true);
+					return 1;
+				}).then(Commands.literal("take").executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					if (!(player.containerMenu instanceof net.minecraft.world.inventory.ChestMenu menu)) {
+						ctx.getSource().sendFailure(Component.literal("No chest open"));
+						return 0;
+					}
+
+					int took = 0;
+					for (int slot = 0; slot < menu.getContainer().getContainerSize() && took < 3; slot++) {
+						if (!menu.getContainer().getItem(slot).isEmpty()) {
+							menu.quickMoveStack(player, slot);
+							took++;
+						}
+					}
+
+					player.closeContainer();
+					int stacks = took;
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: took " + stacks + " stacks and shut the chest"), true);
+					return 1;
+				})))
+				// Debug: what's in your hand to the nearest Drifter, as if you'd thrown it to it (a job, a notice; B5, D5).
+				.then(Commands.literal("fill").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					// Debug: the nearest town's first notice filled, as if you'd brought its poster what it asked for.
+					var player = ctx.getSource().getPlayerOrException();
+					Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+					var notice = town == null || town.notices.isEmpty() ? null : town.notices.get(0);
+					DrifterEntity poster = notice == null ? null : TownFounding.loaded(ctx.getSource().getServer(), notice.poster);
+					if (poster == null) {
+						ctx.getSource().sendFailure(Component.literal("No notice up in the nearest town (or its poster isn't loaded)"));
+						return 0;
+					}
+
+					player.teleportTo(poster.getX() + 1.5, poster.getY(), poster.getZ());
+					ItemStack goods = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse(notice.item)),
+						notice.count);
+					poster.getInventory().add(goods.copy());
+					com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(poster, player, goods);
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: brought " + notice.posterName + " what its notice asked for"), true);
+					return 1;
+				}))
+				.then(Commands.literal("hand").requires(source -> source.hasPermission(2)).then(Commands.argument("line", com.mojang.brigadier.arguments.StringArgumentType.word())
+					.executes(ctx -> {
+						// Debug: to the nearest town's Drifter of that line (enchanter, smith...), then what's in your hand to it.
+						var player = ctx.getSource().getPlayerOrException();
+						Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
+						String line = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "line");
+						DrifterEntity found = null;
+						if (town != null) {
+							for (var entry : town.lines.entrySet()) {
+								DrifterEntity one = entry.getValue().equals(line) ? TownFounding.loaded(ctx.getSource().getServer(), entry.getKey()) : null;
+								if (one != null) {
+									found = one;
+									break;
+								}
+							}
+						}
+
+						if (found == null) {
+							ctx.getSource().sendFailure(Component.literal("No " + line + " in the nearest town"));
+							return 0;
+						}
+
+						player.teleportTo(found.getX() + 1.5, found.getY(), found.getZ());
+						return handOver(ctx.getSource(), player, found);
+					})))
+				.then(Commands.literal("hand").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var player = ctx.getSource().getPlayerOrException();
+					ItemStack held = player.getMainHandItem().copy();
+					DrifterEntity nearest = null;
+					for (DrifterEntity one : player.level().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(8.0), DrifterEntity::isAlive)) {
+						if (nearest == null || one.distanceTo(player) < nearest.distanceTo(player)) {
+							nearest = one;
+						}
+					}
+
+					if (held.isEmpty() || nearest == null) {
+						ctx.getSource().sendFailure(Component.literal("Nothing in your hand, or no Drifter within 8 blocks"));
+						return 0;
+					}
+
+					player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+					nearest.getInventory().add(held.copy());
+					com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(nearest, player, held);
+					String to = nearest.getName().getString();
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: handed " + held.getCount() + " " + held.getHoverName().getString() + " to " + to), true);
+					return 1;
+				}))
+				// The nearest town's house storage: how many chests, barrels and cabinets, how many empty, how full on average.
+				.then(Commands.literal("chests").executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null) {
+						source.sendFailure(Component.literal("No town here"));
+						return 0;
+					}
+
+					int containers = 0;
+					int empty = 0;
+					int stacks = 0;
+					int valuables = 0;
+					int cabinets = 0;
+					int kinds = 0;
+					for (Town.Plot plot : town.plots) {
+						if (!plot.built || plot.sizeX == 0) {
+							continue;
+						}
+
+						int x1 = plot.origin.getX() + Math.max(plot.sizeX, plot.sizeZ);
+						int z1 = plot.origin.getZ() + Math.max(plot.sizeX, plot.sizeZ);
+						for (BlockPos pos : BlockPos.betweenClosed(plot.origin.getX() - 2, plot.origin.getY() - 3, plot.origin.getZ() - 2, x1 + 2, plot.origin.getY() + 14, z1 + 2)) {
+							var entity = source.getLevel().getBlockEntity(pos);
+							if (entity instanceof net.minecraft.world.Container pantry && net.minecraft.core.registries.BuiltInRegistries.BLOCK
+								.getKey(source.getLevel().getBlockState(pos).getBlock()).getPath().contains("cabinet")) {
+								cabinets++;
+								java.util.Set<net.minecraft.world.item.Item> items = new java.util.HashSet<>();
+								for (int slot = 0; slot < pantry.getContainerSize(); slot++) {
+									if (!pantry.getItem(slot).isEmpty()) {
+										items.add(pantry.getItem(slot).getItem());
+									}
+								}
+
+								kinds += items.size();
+							}
+
+							if (entity instanceof net.minecraft.world.level.block.entity.ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity) {
+								var container = (net.minecraft.world.Container)entity;
+								containers++;
+								int here = 0;
+								for (int slot = 0; slot < container.getContainerSize(); slot++) {
+									var stack = container.getItem(slot);
+									if (!stack.isEmpty()) {
+										here++;
+										if (DrifterApi.worth(stack) >= 3.0) {
+											valuables++;
+										}
+									}
+								}
+
+								stacks += here;
+								if (here == 0) {
+									empty++;
+								}
+							}
+						}
+					}
+
+					int all = containers;
+					int none = empty;
+					int filled = stacks;
+					int worth = valuables;
+					int pantries = cabinets;
+					int foods = kinds;
+					source.sendSuccess(() -> Component.literal(town.name + "'s houses: " + all + " chests and barrels (each half of a double chest counted), " + none
+						+ " empty, " + (all == 0 ? 0 : filled / all) + " stacks each on average, " + worth + " stacks of valuables (gold, gems, money); "
+						+ pantries + " kitchen cabinets, " + (pantries == 0 ? 0 : foods / pantries) + " kinds of ingredient each"), false);
+					return all;
 				}))
 				// Debug: the nearest town seen from above, saved as a picture in the server's town-maps folder.
 				.then(Commands.literal("map").requires(source -> source.hasPermission(2)).executes(ctx -> townMap(ctx, 0))
@@ -737,6 +1145,22 @@ public final class DrifterCivilizations implements ModInitializer {
 		return Towns.all().stream().filter(t -> t.name.equalsIgnoreCase(name)).findFirst().orElse(null);
 	}
 
+	/** (Debug.) What's in the player's hand to this Drifter, as if thrown to it. */
+	private static int handOver(CommandSourceStack source, net.minecraft.server.level.ServerPlayer player, DrifterEntity drifter) {
+		ItemStack held = player.getMainHandItem().copy();
+		if (held.isEmpty()) {
+			source.sendFailure(Component.literal("Nothing in your hand"));
+			return 0;
+		}
+
+		player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+		drifter.getInventory().add(held.copy());
+		com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(drifter, player, held);
+		String to = drifter.getName().getString();
+		source.sendSuccess(() -> Component.literal("Debug: handed " + held.getCount() + " " + held.getHoverName().getString() + " to " + to), true);
+		return 1;
+	}
+
 	private static int town(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack source = ctx.getSource();
 		Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
@@ -809,7 +1233,19 @@ public final class DrifterCivilizations implements ModInitializer {
 		source.sendSuccess(() -> Component.literal("  Life: " + character + "; market day " + (market < 0 ? "none (no stall)" : market == 0 ? "today" : "in "
 			+ market + (market == 1 ? " day" : " days")) + "; " + (festival == null ? "no festival" : TownCulture.name(festival) + (festivalIn == 0 ? " today"
 			: " in " + festivalIn + " days")) + (town.shrine != null ? "; a shrine" : "") + (town.fire != null ? "; a gathering fire" : "")
-			+ (town.newest != null ? "; newest: " + town.newest : "") + (town.lastLeft != null ? "; last to leave: " + town.lastLeft : "")), false);
+			+ (town.newest != null ? "; newest: " + town.newest : "") + (town.lastLeft != null ? "; last to leave: " + town.lastLeft : "")
+			+ (town.traditions.isEmpty() ? "" : "; customs: " + String.join(", ", TownTraditions.describe(town)))), false);
+		// Where you stand with it (D1), and its notices (D5).
+		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player you) {
+			String standing = TownReputation.describe(source.getServer(), town, you);
+			source.sendSuccess(() -> Component.literal("  " + standing), false);
+		}
+
+		List<String> posted = TownNotices.lines(town);
+		if (!posted.isEmpty()) {
+			source.sendSuccess(() -> Component.literal("  Notices: " + String.join(" | ", posted)), false);
+		}
+
 		// Its politics (step 5): the leader, the laws, the election.
 		var politicsGroup = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (politicsGroup != null && town.leader != null) {

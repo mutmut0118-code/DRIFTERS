@@ -135,8 +135,10 @@ public class StoreActivity extends Activity {
 
 		// Like with like (section 9 stage 6 "organized chests"): first each chest gets more of what it already holds; then
 		// the rest goes wherever there's room.
-		if (this.chest == null && !this.sortedPass && home.chests().size() > 1) {
-			for (BlockPos pos : home.chests()) {
+		// (Its own chests: not its town's store. Found in testing: a town just made, its people putting their things away in
+		// the store, the first of its chests, a crowd there.)
+		if (this.chest == null && !this.sortedPass && home.ownChests().size() > 1) {
+			for (BlockPos pos : home.ownChests()) {
 				if (this.sortedTried.contains(pos)) {
 					continue;
 				}
@@ -158,7 +160,7 @@ public class StoreActivity extends Activity {
 
 		if (this.chest == null) {
 			this.onlyMatching = null;
-			this.chest = home.chests().stream().filter(pos -> !this.tried.contains(pos)).findFirst().orElse(null);
+			this.chest = home.ownChests().stream().filter(pos -> !this.tried.contains(pos)).findFirst().orElse(null);
 			if (this.chest == null) {
 				if (this.unreachable) {
 					if (!this.stored) {

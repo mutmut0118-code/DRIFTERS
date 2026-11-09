@@ -31,6 +31,16 @@ public final class Schedule {
 
 	/** Blocks from home beyond which it no longer heads home for the night (it shelters where it is). */
 	public static final double GO_HOME_RANGE = 96.0;
+	/** The same for a townsperson: its house is where it spends the night, from much further off. */
+	public static final double TOWN_GO_HOME_RANGE = 320.0;
+
+	/**
+	 * How far from home it still heads home for the night: a townsperson from much further (the user, 2026-11-06: "civs
+	 * should go back to their house, instead of hiding in ground").
+	 */
+	public static double goHomeRange(DrifterEntity drifter) {
+		return drifter.getTownWork() != null ? TOWN_GO_HOME_RANGE : GO_HOME_RANGE;
+	}
 
 	/**
 	 * Section 18: far-away Drifters start heading home based on travel time. Ticks it needs to get home at a sprint
@@ -38,7 +48,7 @@ public final class Schedule {
 	 */
 	public static long homeTravelTicks(DrifterEntity drifter) {
 		Home home = drifter.getDrifterBrain().home();
-		if (home == null || !home.near(drifter, GO_HOME_RANGE)) {
+		if (home == null || !home.near(drifter, goHomeRange(drifter))) {
 			return 0L;
 		}
 
@@ -85,6 +95,23 @@ public final class Schedule {
 	public static NightStyle chooseNightStyle(DrifterEntity drifter) {
 		com.dinglebob.drifter.personality.Personality p = drifter.getPersonality();
 		boolean calm = !p.is(com.dinglebob.drifter.personality.Mood.ANXIOUS) && !p.is(com.dinglebob.drifter.personality.Mood.PANICKED);
+		// A townsperson with a house: home for the night (no hole in the ground, no mining from one, no carrying on out in the
+		// dark: the user, 2026-11-06), but for its guards, on their rounds, and now and then the boldest out after mobs (or
+		// one who said it'd hunt with someone tonight).
+		com.dinglebob.drifter.api.TownWork town = drifter.getTownWork();
+		if (town != null && drifter.getDrifterBrain().home() != null) {
+			if (town.guard(drifter) && fitToWork(drifter)) {
+				return NightStyle.WORK;
+			}
+
+			if (calm && fitToHunt(drifter) && (com.dinglebob.drifter.social.talk.Together.huntTonight(drifter)
+				|| p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= TOWN_HUNT_BRAVERY && p.get(com.dinglebob.drifter.personality.Trait.CAUTION) < 0.4)) {
+				return NightStyle.HUNT;
+			}
+
+			return NightStyle.SHELTER;
+		}
+
 		// It said it'd hunt with someone tonight ("hunt tonight?" "bet"): out it goes if it's fit, braver with company.
 		if (calm && fitToHunt(drifter) && com.dinglebob.drifter.social.talk.Together.huntTonight(drifter)) {
 			return NightStyle.HUNT;
@@ -111,6 +138,9 @@ public final class Schedule {
 
 		return NightStyle.SHELTER;
 	}
+
+	/** Bravery a townsperson needs to go out after mobs at night (most stay in). */
+	public static final double TOWN_HUNT_BRAVERY = 0.85;
 
 	/** Caution under which, and Bravery from which, an armed Drifter carries on at night; with a shield too. */
 	public static final double WORK_MAX_CAUTION = 0.7;

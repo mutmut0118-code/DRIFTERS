@@ -249,6 +249,8 @@ The user: "then after that do the rest of the encounters". Every kind on the lis
 - Tested (headless, Bountiful in the dev mods): a board with a known bounty (4 flint for 2 emeralds): taken and turned
   in, 64 flint to 60, 8 emeralds to 10. Random boards mostly ask for several things at once (a librarian's books and
   lecterns, a cleric's nether wart): those wait until it has the lot.
+- With Drifter: Civilizations (0.23.28), a town's notices are bounties on its board too, paid by the town through a
+  reward command (PROGRESS.md, 0.23.28); Drifters fill those like any other.
 - Not yet: gathering things for a bounty it can't fill now; bounties on Drifters from the board (the wanted posters
   above do that part, from our own messenger).
 

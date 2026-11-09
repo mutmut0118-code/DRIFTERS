@@ -1115,7 +1115,9 @@ public class NavigateTask extends Task {
 			if (past) {
 				this.openedDoor = null;
 				BlockState state = this.level().getBlockState(opened);
-				if (this.closesDoors() && state.hasProperty(BlockStateProperties.OPEN) && state.getValue(BlockStateProperties.OPEN)
+				// (A gate always: a pen's animals get out of one left open, found in testing, a cow out of a town's pen.)
+				if ((this.closesDoors() || state.getBlock() instanceof FenceGateBlock) && state.hasProperty(BlockStateProperties.OPEN)
+					&& state.getValue(BlockStateProperties.OPEN)
 					&& !this.pathGoesThrough(opened) && com.dinglebob.drifter.hands.Reach.canReach(this.drifter, opened)) {
 					this.startSub(UseOnBlockTask.useBlock(this.drifter, opened, this.faceToward(opened), "close the door at " + opened.toShortString()));
 					return Status.RUNNING;

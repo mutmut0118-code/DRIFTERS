@@ -38,12 +38,16 @@ final class TownEvents {
 
 	/** Its market day today (a town with a stall up). */
 	static boolean marketDay(Town town, long day) {
-		return town.stallBuilt && town.stallPlot != null && (Math.floorMod(day + (town.id.hashCode() & 7), MARKET_EVERY) == 0 || town.forcedMarketDay == day);
+		// (The big market, its tradition: every third day.)
+		int every = TownTraditions.has(town, "market") ? 3 : MARKET_EVERY;
+		return town.stallBuilt && town.stallPlot != null && (Math.floorMod(day + (town.id.hashCode() & 7), every) == 0 || town.forcedMarketDay == day);
 	}
 
 	/** Its fishing contest today (a town by water: a harbour, a river town, a pier). */
 	static boolean contestDay(Town town, long day) {
-		return town.byWater && Math.floorMod(day + (town.id.hashCode() >>> 3 & 15), CONTEST_EVERY) == 0;
+		// (Its weekly fishing contest, its tradition: every six days.)
+		int every = TownTraditions.has(town, "fishing") ? CONTEST_EVERY / 2 : CONTEST_EVERY;
+		return town.byWater && Math.floorMod(day + (town.id.hashCode() >>> 3 & 15), every) == 0;
 	}
 
 	/** How much more this counts for it today: the keeper at its stall on market day, fishing on a contest day. */
@@ -60,6 +64,9 @@ final class TownEvents {
 		return more;
 	}
 
+	/** Its stall's trades at the start of a market day (not saved). */
+	private static final Map<UUID, Integer> marketTrades = new HashMap<>();
+
 	/** Each check: the morning's call, the contest's start and end. */
 	static void check(MinecraftServer server, Town town) {
 		if (!town.spawned || town.group == null || server.overworld() == null) {
@@ -73,9 +80,17 @@ final class TownEvents {
 			return;
 		}
 
+		// A market day over: how busy it was (toward the big market, its tradition).
+		Integer before = marketTrades.get(town.id);
+		if (before != null && (time >= 12000L || !marketDay(town, day))) {
+			marketTrades.remove(town.id);
+			TownTraditions.marketOver(server, town, town.trades - before);
+		}
+
 		if (time >= 1000L && time < 3000L && town.eventDay < day) {
 			town.eventDay = day;
 			if (marketDay(town, day)) {
+				marketTrades.put(town.id, town.trades);
 				DrifterEntity keeper = town.keeper == null ? null : TownFounding.loaded(server, town.keeper);
 				if (keeper != null) {
 					com.dinglebob.drifter.social.ChatLines.speak(keeper, pick(keeper, "market day! come see whats for sale", "market's open, come on by",
@@ -83,6 +98,7 @@ final class TownEvents {
 				}
 
 				Chronicle.add(server, "market", "Market day in " + town.name);
+				TownBells.ring(server, town, "market day", java.util.List.of("market day! the stall's open", "market's open, come and see!"));
 			}
 
 			if (contestDay(town, day)) {
@@ -130,6 +146,7 @@ final class TownEvents {
 
 				town.contestWinner = name;
 				town.contestDay = day;
+				TownTraditions.contestWon(server, town);
 				Chronicle.add(server, "town", name + " won " + town.name + "'s fishing contest with " + most + (most == 1 ? " fish" : " fish"));
 			}
 

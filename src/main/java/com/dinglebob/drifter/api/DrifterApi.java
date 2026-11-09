@@ -181,6 +181,29 @@ public final class DrifterApi {
 		drifter.getSocial().getOrMeet(player, name).addTrust(change);
 	}
 
+	/**
+	 * It's told this player was just here (a shout, the town's alarm): where to look for them, and that they did wrong.
+	 * Someone its town wants, a guard or a bold one goes looking there ({@link com.dinglebob.drifter.social.Mode#pursuesWanted}).
+	 */
+	public static void alert(DrifterEntity drifter, net.minecraft.world.entity.player.Player player, net.minecraft.core.BlockPos where) {
+		alertOf(drifter, player, where);
+	}
+
+	/**
+	 * Not one to go after trouble: no guard, and a pacifist or not brave enough (it keeps clear of someone wanted, it isn't
+	 * picked to run out to the bell in an alarm).
+	 */
+	public static boolean timid(DrifterEntity drifter) {
+		return com.dinglebob.drifter.social.Mode.timid(drifter);
+	}
+
+	private static void alertOf(DrifterEntity drifter, net.minecraft.world.entity.player.Player player, net.minecraft.core.BlockPos where) {
+		var r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
+		r.lastSeenPos = where.immutable();
+		r.lastSeenAt = drifter.level().getGameTime();
+		r.wronged = true;
+	}
+
 	/** How much it trusts another Drifter (-100 to 100; 0 for a stranger). */
 	public static double trustInDrifter(DrifterEntity drifter, UUID other) {
 		var r = drifter.getBonds().get(other);
@@ -520,6 +543,7 @@ public final class DrifterApi {
 		}
 
 		shared.forEach(home::addChest);
+		shared.forEach(pos -> home.townChests.add(pos.immutable()));
 		drifter.getDrifterBrain().setHome(home);
 		// Its house furnished as a player furnishes a base (the user's furnishing guidebook, 2026-10-23): a storage wall with
 		// the crafting table in it, furnace and smoker with the fuel chest, a dump chest by the door, a bedside chest. It
@@ -606,6 +630,7 @@ public final class DrifterApi {
 		}
 
 		shared.forEach(home::addChest);
+		shared.forEach(pos -> home.townChests.add(pos.immutable()));
 		long now = level.getGameTime();
 		for (net.minecraft.core.BlockPos pos : net.minecraft.core.BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
 			var state = level.getBlockState(pos);
@@ -622,6 +647,29 @@ public final class DrifterApi {
 		drifter.getDrifterBrain().setHome(home);
 		knowsBox(drifter, box.inflatedBy(3));
 		return home;
+	}
+
+	/**
+	 * A spot inside its house for one more piece of furniture (a workshop's table, an anvil): in the room round its bed,
+	 * against a wall, out of the doorway and off the stairs, clear of its other furniture and the floor in front of it, and
+	 * leaving the way through; or null. Not {@code notHere}. (Found by the user: an enchanting table put outside a house, on
+	 * its foundation, the house's outline taken for its inside.)
+	 */
+	@Nullable
+	public static net.minecraft.core.BlockPos furnitureSpot(ServerLevel level, Home home, java.util.Set<net.minecraft.core.BlockPos> notHere) {
+		net.minecraft.core.BlockPos bed = home.houseBed(level);
+		var room = bed == null ? null : com.dinglebob.drifter.building.Interior.of(level, bed);
+		if (room == null) {
+			return null;
+		}
+
+		java.util.Set<net.minecraft.core.BlockPos> excluded = new java.util.HashSet<>(notHere);
+		var plan = home.planId == null || home.planOrigin == null ? null : com.dinglebob.drifter.building.plan.HousePlans.get(level.getServer(), home.planId);
+		if (plan != null) {
+			excluded.addAll(com.dinglebob.drifter.building.Furnishing.keepClear(level, com.dinglebob.drifter.building.plan.PlacedPlan.of(plan, home), home.planBed));
+		}
+
+		return room.spot(com.dinglebob.drifter.building.Interior.Kind.STATION, excluded);
 	}
 
 	/** How many households this house takes: one, and one more for each other room big enough to sleep in (up to four). */
@@ -644,6 +692,11 @@ public final class DrifterApi {
 	}
 
 	/** The tree this log or grown leaf belongs to felled whole, trunk and crown (clearing for a build). True if one was. */
+	/** This block is part of someone's build (a player's, a Drifter's house, a town's), not the land's own. */
+	public static boolean isBuilt(ServerLevel level, net.minecraft.core.BlockPos pos) {
+		return com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, pos);
+	}
+
 	public static boolean fellTree(ServerLevel level, net.minecraft.core.BlockPos pos) {
 		return com.dinglebob.drifter.world.gen.Felling.fellTree(level, pos);
 	}
@@ -663,6 +716,19 @@ public final class DrifterApi {
 	 */
 	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role) {
 		com.dinglebob.drifter.world.gen.Delvers.townKit(drifter, random, role);
+	}
+
+	/**
+	 * (A town being made.) It stands still and decides nothing for this long (ticks; 0: free now), till it's geared and
+	 * its town is ready round it. Not saved.
+	 */
+	public static void holdStill(DrifterEntity drifter, long ticks) {
+		drifter.holdStill(ticks);
+	}
+
+	/** (A town's store.) This chest of its home's is its town's, not its own (for the town's work, not its own gear). */
+	public static void townChest(Home home, net.minecraft.core.BlockPos chest) {
+		home.townChests.add(chest.immutable());
 	}
 
 	/** (A town made ready.) The stall keeper's leather apron: a leather tunic in place of what it wore. */
@@ -722,6 +788,67 @@ public final class DrifterApi {
 	 */
 	public static void setNeighbourly(boolean neighbourly) {
 		com.dinglebob.drifter.social.DrifterBonds.neighbourly = neighbourly;
+	}
+
+	/**
+	 * The ways along roads (from, to: the points in order, or empty), for Drifters going far (raids, trade runs, envoys,
+	 * bandits): they keep to them (a mod with roads between towns).
+	 */
+	public static void setRoutes(java.util.function.BiFunction<net.minecraft.core.BlockPos, net.minecraft.core.BlockPos, List<net.minecraft.core.BlockPos>> routes) {
+		com.dinglebob.drifter.nav.Legs.setRoutes(routes);
+	}
+
+	/**
+	 * The points of the roads between towns within a distance of a spot (x, z): encounters come more often on them, and
+	 * start on them (the user, 2026-11-06: "encounters between towns should happen when traveling on roads").
+	 */
+	public static void setRoadPoints(java.util.function.BiFunction<net.minecraft.core.BlockPos, Integer, List<net.minecraft.core.BlockPos>> points) {
+		com.dinglebob.drifter.nav.Legs.setRoadPoints(points);
+	}
+
+	/** A raid between groups (a war's): who on whom, how far along ("gather", "travel", "attack", "retreat"), since when. */
+	public record RaidInfo(UUID attackers, UUID defenders, String phase, long startedAt) {
+	}
+
+	/** The raid this group is on, or null. */
+	@Nullable
+	public static RaidInfo raidBy(UUID group) {
+		return raidInfo(com.dinglebob.drifter.world.DrifterWars.raidOf(group));
+	}
+
+	/** A raid on this group, or null. */
+	@Nullable
+	public static RaidInfo raidOn(UUID group) {
+		return raidInfo(com.dinglebob.drifter.world.DrifterWars.raidOn(group));
+	}
+
+	@Nullable
+	private static RaidInfo raidInfo(@Nullable com.dinglebob.drifter.world.DrifterWars.Raid raid) {
+		return raid == null ? null : new RaidInfo(raid.attackers, raid.defenders, raid.phase.name().toLowerCase(java.util.Locale.ROOT), raid.startedAt);
+	}
+
+	/**
+	 * Who makes a new Drifter one of a town's people, for the town scavengers met at ruins: for a spot, the way to make one
+	 * the nearest town's (its group, a house), or null when there's no town near with room.
+	 */
+	public static void setTownLooters(@Nullable java.util.function.BiFunction<net.minecraft.server.level.ServerLevel, net.minecraft.core.BlockPos,
+		java.util.function.Consumer<DrifterEntity>> which) {
+		com.dinglebob.drifter.world.gen.Delvers.setTownLooters(which);
+	}
+
+	/**
+	 * Places a Drifter keeps away from on its long walks (a town's: where three of its people died): true for a spot near
+	 * one of them, for this Drifter.
+	 */
+	public static void setKeepAway(java.util.function.BiPredicate<DrifterEntity, net.minecraft.core.BlockPos> keepAway) {
+		com.dinglebob.drifter.nav.Legs.setKeepAway(keepAway);
+	}
+
+	/** (A town made ready.) Its horse (tamed to it), kept in this stall of its town's stable. */
+	public static void keepHorse(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse, net.minecraft.core.BlockPos stall) {
+		horse.setOwnerUUID(drifter.getUUID());
+		drifter.getDrifterBrain().setHorse(horse.getUUID(), stall);
+		drifter.getDrifterBrain().setStall(stall);
 	}
 
 	/** Every group there is. */
@@ -1142,6 +1269,23 @@ public final class DrifterApi {
 	/** About this many points of money as one stack: Numismatic Overhaul coins when that mod is here, else emeralds. */
 	public static net.minecraft.world.item.ItemStack money(double points) {
 		return com.dinglebob.drifter.trade.Money.priceStack(points);
+	}
+
+	/**
+	 * The helper player of the Drifter acting through it right now (inside its break, place, use: what that sets off runs
+	 * then, such as a Bountiful bounty's reward, which gets this helper as its player), or null. Things given to it go to the
+	 * Drifter when the action ends; its Drifter is {@link #drifterBehind}.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static net.minecraft.world.entity.player.Player actingHelper() {
+		DrifterEntity drifter = com.dinglebob.drifter.hands.FakePlayerBridge.acting();
+		return drifter == null ? null : drifter.helperPlayer;
+	}
+
+	/** The Drifter behind this entity: itself, or the Drifter whose helper player it is; null for anyone else. */
+	@org.jetbrains.annotations.Nullable
+	public static DrifterEntity drifterBehind(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.Entity entity) {
+		return com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(entity);
 	}
 
 	/** What a stack of money is worth in points (0: not money). */

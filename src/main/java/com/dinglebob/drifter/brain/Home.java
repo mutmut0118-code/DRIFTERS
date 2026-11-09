@@ -374,6 +374,29 @@ public final class Home {
 	@Nullable
 	public net.minecraft.core.Direction mineDirection;
 	public int mineTrips;
+	/**
+	 * Its town's mine (Drifter: Civilizations; the user, 2026-11-07: "nobody uses the town mine to start strip mining/
+	 * exploration mining, still having random strip mines around town"): the faces to dig on from, each a spot in it and
+	 * the way on (a strip's end, the corridor's end, a landing of its stairs). Its trips start there, not from stairs of
+	 * its own; a trip deeper goes on down from the deepest.
+	 */
+	public final List<MineFace> townMine = new ArrayList<>();
+	/**
+	 * The way down its town's mine, a stretch at a time: its mouth, each landing of its stairs, its hub (found in testing:
+	 * the whole way down as one walk, 140 blocks and 60 down, came apart, and the way back up dug stairs to the surface).
+	 */
+	public final List<BlockPos> townMinePath = new ArrayList<>();
+
+	/**
+	 * A face of a mine to dig on from: where it stands, the way on, and what's dug from it: a strip straight on (the end of a
+	 * strip, beside the others), a branch mine (fresh ground: the corridor's end, a landing), or stairs on down (deeper).
+	 */
+	public record MineFace(BlockPos at, net.minecraft.core.Direction way, Dig dig) {
+	}
+
+	public enum Dig {
+		STRIP, BRANCH, DOWN
+	}
 
 	/** Its chests, in the order it placed them, with what it last saw in each. */
 	private final Map<BlockPos, Map<Item, Integer>> chests = new LinkedHashMap<>();
@@ -388,6 +411,18 @@ public final class Home {
 
 	public List<BlockPos> chests() {
 		return new ArrayList<>(this.chests.keySet());
+	}
+
+	/** Its own chests, not its town's (where it puts its own things away); all of them if it has none of its own. */
+	public List<BlockPos> ownChests() {
+		List<BlockPos> own = new ArrayList<>();
+		for (BlockPos pos : this.chests.keySet()) {
+			if (!this.townChests.contains(pos)) {
+				own.add(pos);
+			}
+		}
+
+		return own.isEmpty() ? this.chests() : own;
 	}
 
 	public boolean hasChest() {
@@ -521,6 +556,25 @@ public final class Home {
 		return total;
 	}
 
+	/**
+	 * Its chests that are its town's, not its own (the store: 0.23.30). What's in them is the town's: for its work for the
+	 * town (its stall, things to sell, the town's building), not for gearing itself up (found in testing: a town just made,
+	 * each of its people off to the store for its iron, for armor and tools of their own, a crowd there).
+	 */
+	public final java.util.Set<BlockPos> townChests = new java.util.HashSet<>();
+
+	/** What it believes is stored in its own chests (not the town's). */
+	public int storedOwn(Item item) {
+		int total = 0;
+		for (Map.Entry<BlockPos, Map<Item, Integer>> chest : this.chests.entrySet()) {
+			if (!this.townChests.contains(chest.getKey())) {
+				total += chest.getValue().getOrDefault(item, 0);
+			}
+		}
+
+		return total;
+	}
+
 	/** Changes whenever what it believes its chests hold changes (for reusing plans). */
 	public int storedSignature() {
 		return this.chests.hashCode();
@@ -531,6 +585,38 @@ public final class Home {
 	}
 
 	/** The chest it believes holds the most of this item, or null. */
+	/**
+	 * The chest to fetch {@code wanted} of this from: one with enough first, its own house's before the town's store (the
+	 * nearest home), and not one others are crowding round already if another has it (found by the user: a town just made,
+	 * half its people at the store's chest together, the one with the most of everything, stuck there).
+	 */
+	@Nullable
+	public BlockPos chestWith(Item item, int wanted, java.util.function.ToIntFunction<BlockPos> busy) {
+		return this.chestWith(item, wanted, busy, false);
+	}
+
+	/** As {@link #chestWith(Item, int, java.util.function.ToIntFunction)}; {@code ownOnly}: not one of its town's. */
+	@Nullable
+	public BlockPos chestWith(Item item, int wanted, java.util.function.ToIntFunction<BlockPos> busy, boolean ownOnly) {
+		BlockPos best = null;
+		double bestScore = Double.MAX_VALUE;
+		for (Map.Entry<BlockPos, Map<Item, Integer>> chest : this.chests.entrySet()) {
+			int count = chest.getValue().getOrDefault(item, 0);
+			if (count <= 0 || ownOnly && this.townChests.contains(chest.getKey())) {
+				continue;
+			}
+
+			int users = busy.applyAsInt(chest.getKey());
+			double score = (count >= wanted ? 0.0 : 200.0) + (users >= 2 ? 100.0 : users * 15.0) + Math.sqrt(chest.getKey().distSqr(this.center));
+			if (score < bestScore) {
+				bestScore = score;
+				best = chest.getKey();
+			}
+		}
+
+		return best;
+	}
+
 	@Nullable
 	public BlockPos chestWith(Item item) {
 		BlockPos best = null;
@@ -679,6 +765,24 @@ public final class Home {
 		}
 
 		tag.putInt("MineTrips", this.mineTrips);
+		if (!this.townMine.isEmpty()) {
+			ListTag faces = new ListTag();
+			for (MineFace face : this.townMine) {
+				CompoundTag one = new CompoundTag();
+				one.putLong("At", face.at().asLong());
+				one.putString("Way", face.way().getName());
+				one.putString("Dig", face.dig().name());
+				faces.add(one);
+			}
+
+			tag.put("TownMine", faces);
+			tag.putLongArray("TownMinePath", this.townMinePath.stream().mapToLong(BlockPos::asLong).toArray());
+		}
+
+		if (!this.townChests.isEmpty()) {
+			tag.putLongArray("TownChests", this.townChests.stream().mapToLong(BlockPos::asLong).toArray());
+		}
+
 		ListTag chests = new ListTag();
 		this.chests.forEach((pos, contents) -> {
 			CompoundTag chest = new CompoundTag();
@@ -772,6 +876,27 @@ public final class Home {
 		home.mineBottom = NbtUtils.readBlockPos(tag, "MineBottom").orElse(null);
 		home.mineDirection = net.minecraft.core.Direction.byName(tag.getString("MineDirection"));
 		home.mineTrips = tag.getInt("MineTrips");
+		for (long at : tag.getLongArray("TownMinePath")) {
+			home.townMinePath.add(BlockPos.of(at));
+		}
+
+		for (long at : tag.getLongArray("TownChests")) {
+			home.townChests.add(BlockPos.of(at));
+		}
+
+		ListTag faces = tag.getList("TownMine", Tag.TAG_COMPOUND);
+		for (int i = 0; i < faces.size(); i++) {
+			net.minecraft.core.Direction way = net.minecraft.core.Direction.byName(faces.getCompound(i).getString("Way"));
+			Dig dig = switch (faces.getCompound(i).getString("Dig")) {
+				case "BRANCH" -> Dig.BRANCH;
+				case "DOWN" -> Dig.DOWN;
+				default -> Dig.STRIP;
+			};
+			if (way != null && way.getAxis().isHorizontal()) {
+				home.townMine.add(new MineFace(BlockPos.of(faces.getCompound(i).getLong("At")), way, dig));
+			}
+		}
+
 		ListTag chests = tag.getList("Chests", Tag.TAG_COMPOUND);
 		for (int i = 0; i < chests.size(); i++) {
 			CompoundTag chest = chests.getCompound(i);

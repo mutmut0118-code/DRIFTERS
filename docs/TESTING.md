@@ -2869,3 +2869,249 @@ Installed as 0.23.22-side.1: also has the other session's 0.23.13-0.23.22 (their
 - [ ] **Lots more to talk about**: stories in several parts, hot takes and long debates, deep talks at night, roasts and
       trolls, venting, would-you-rathers and small talk, and talk about every mob, biome, structure, block, tool and food.
       `/drifter talk status` shows the topics of talks going on.
+
+## 0.23.24: your notes (wars, town life, travel, the world, news, rebuilding) (new)
+
+Make a new world with "A world of nations" on (towns are made as you come near). Commands are typed in chat (T), with
+cheats on. `/drifterciv locate city` and `/drifterciv locate town` find the places; `/tp` there.
+
+- [ ] **A war, from the start.** Stand by a town, then `/drifterciv relations war <other town>` (tab completes the names).
+      Within a minute or two its leader rallies: the bell rings ("to arms!"), about half to seven in ten of the town come
+      to the plaza (not all of it). Once most are there, the leader gives a speech, a line every five seconds (twelve in
+      all), everyone facing it; then they march off **at a walk along the road** to the other town, the leader in front,
+      the rest keeping up. Nobody goes in and out of houses. `/drifter wars` shows the raid: its stage, where the leader
+      is, how far from the target, how many are with it, how many speech lines said. When they get close they charge in.
+- [ ] **Guards at night.** In a city, `/drifterciv town`: the "Work" line lists the guards (about one in seven people). At
+      night, stand in the town: guards walk the town's roads in rounds and the plaza, looking about; they fight the mobs
+      they meet. Everyone else is **in their house** (nobody digging a hole in the ground).
+- [ ] **A festival.** `/drifterciv town festival` in a town (the next morning it's on if it's night): someone rings the bell
+      ("festival time!"), and through the day most of the town is round the plaza, mingling, hopping, chatting.
+- [ ] **The bell on market day**: `/drifterciv town market`: the bell rings in the morning ("market day!").
+- [ ] **Home life.** Watch a townsperson at dawn or dusk: now and then one goes to its stove or furnace at home and
+      cooks, or stands by it making breakfast or supper; others look out of the window, potter about, sit in of an evening.
+      Townspeople do things for fun (whims) about twice as often as before; the ones in iron armor go out exploring more.
+- [ ] **A crook in every city.** `/drifterciv town` in a city: one of its people is its crook (the log says "is
+      Westbury's crook now"); things go missing from chests and fights start much more often than in a town.
+- [ ] **Encounters on the road.** Walk a road between towns for a while: encounters come about three times as often as
+      off it, and they start on the road ahead (a merchant coming along it, someone waiting on it).
+- [ ] **Chests.** Open chests in a town's houses and its store: 9 to 18 stacks each, all sorts (food, Farmer's Delight's
+      crops and dishes, wood and stone, iron, gold, coal, seeds, odds and ends).
+- [ ] **The market stall** (`/drifterciv prices` in a town): dearer than before (bread about 4 an emerald), and besides its
+      everyday goods it sells a few better things (gold, gems, a pie...).
+- [ ] **Looters at ruins.** Walk up to ruined portals, desert pyramids, Philips' ruins: about half have one to three
+      Drifters looting them. Half of those are townsfolk out scavenging (friendly; they've moved into the nearest town and
+      walk home after); the rest are delvers who attack on sight. (Needs "delvers" on in the config, as for mineshafts.)
+- [ ] **The town mine.** By the edge of a new town: a log frame over a wide staircase going down. Follow it: torches, a
+      landing every sixteen steps, down to Y 11; a room with a chest and a crafting table, and a corridor with strip mines
+      off both sides. The town's miners go down it on their mining trips.
+- [ ] **City shapes.** New cities aren't all grids: some are a star (six avenues and a ring road), a double ring (two
+      rings, spokes through both), crossroads, winding, a ring. `/drifterciv town` says which ("Shape:"). Debug: before a
+      city is made, `/drifterciv town shape star` (or `rings`).
+- [ ] **The Gazette.** Right-click the lectern on a town's plaza: "The <town> Gazette", today's headlines on the first
+      page, then the town's news, then news from elsewhere, its people at the back. A new one each morning.
+- [ ] **The crier.** Be on a town's plaza in the morning: one of its people calls out the headlines ("extra extra!
+      ..."), and if it has a book and quill it hands you a copy of the paper (it makes a couple when it can).
+- [ ] **Rebuilding.** Blow up part of a Drifter's house (a creeper by it, or `/summon creeper ~ ~ ~ {Fuse:1,ignited:1b}`
+      next to the house): its owner says so ("MY HOUSE") and builds the hole back with the same blocks over the next day or
+      two, and a neighbour or two come and help ("help build X's house back" in `/drifter thoughts`).
+- [ ] **Tusklins** (Alex's Mobs): Drifters treat them as dangerous: a poorly armed one keeps away or runs; a well-armed
+      one fights them.
+- [ ] **Bugs fixed**: no pen built inside another pen; no fences across a bridge on a road between towns.
+
+## 0.23.25: house chests, valuables at home, roads over water (new)
+
+Make a new world with "A world of nations" on.
+
+- [ ] **House chests full.** Open the chests in a town's houses, both halves of the double chests, barrels and Farmer's
+      Delight cabinets: none empty, 9 to 18 stacks each. `/drifterciv town chests` (standing in a town) counts them: how
+      many, how many empty, stacks each on average, how many stacks of valuables.
+- [ ] **Valuables at home.** Gold, gems (emeralds, diamonds now and then, lapis, amethyst) and money (emeralds, or
+      Numismatic Overhaul's coins) are in the houses' chests, a few in each house. The town's store has wood, stone, ore,
+      coal, food, seeds, but no gems or money.
+- [ ] **Roads over water.** Where towns are split by water: narrow water (up to about 80 blocks) has a long railed bridge
+      on piers. Wider water: the road ends at a dock (planks out over the water, railings, a lantern, a sign "Boats
+      across / to (town)", a boat tied up), and on the far shore another dock where the road goes on. `/drifterciv route
+      <x> <z>` from one town to the other shows the way along the roads. A Drifter going that way (a trade run, a war)
+      walks to the dock and rows across in its own boat.
+
+## 0.23.26: chests kept by personality, pantries (new)
+
+New world, "A world of nations" on, Farmer's Delight installed.
+
+- [ ] **Tidy and messy households.** Open the chests in a few houses. In some, each chest holds one kind of thing (a food
+      chest, a building chest, an ore chest...), stacks together and sorted from the top left, the gold, gems and money
+      all in one chest. In others it's a jumble, things in any slot, valuables anywhere. (`/drifter personality` on the household's
+      Drifter shows its tidiness: high is tidy.)
+- [ ] **Pantries.** Open a house's kitchen cabinet: lots of different ingredients (cabbage, tomatoes, onions, rice, cuts of
+      meat, dough, pasta, milk bottles, tomato sauce, mushrooms, eggs, carrots, potatoes...) and some bowls.
+      `/drifterciv town chests` counts the cabinets and the kinds of ingredient in each. Over a day or two, watch the
+      Drifters cook all sorts of Farmer's Delight dishes in their pots.
+
+## 0.23.27: traditions, stables, bees; what a town thinks of you, notices; prices, services, goods (new)
+
+New world, "A world of nations" on.
+
+- [ ] **Stables.** A town (not a hamlet) has a stable by its edge: three stalls with hay, one to three horses tied up,
+      saddled. Follow a Drifter off on a long trip (a trade run, a war): it walks to its horse, unties it and rides off. Of
+      an evening, it rides back into its stall and ties it up.
+- [ ] **Bees.** By a town's fields: flowers and two or three hives on campfires, bees about. Now and then someone takes
+      honey with a glass bottle from a full one (no angry bees).
+- [ ] **Traditions** (they take time): `/drifterciv town` shows "customs" once a town has some: after its second fishing
+      contest won, a weekly one; after busy market days, the big market every third day; after a war won, Victory Day each
+      year; after its leader's gone, Remembrance Day. Each one is in the chronicle when it starts.
+- [ ] **What a town thinks of you.** `/drifterciv town` shows "You: neutral (0)" at first. Be nice (gifts, help) and it
+      goes up to welcome: cheaper prices at its stall and shops, "hey <you>! welcome back" when you walk in. Steal there
+      (debug: `/drifterciv town crime theft`, twice): wary, then unwelcome or wanted: dearer prices, "keep an eye on that
+      one", a guard following you round, watching; wanted, they won't sell to you or work for you. Other towns nearby hear
+      of it over a few days.
+- [ ] **Notices.** In the morning a town's keeper puts up a notice ("need 24 leather, paying 2 emeralds"): see it in the
+      Gazette (the page after the front), on the plaza board's last sign, and in `/drifterciv town`. Throw the keeper the
+      things (Q, looking at it): it says how many more, then pays you when it has them all. Sometimes a warning: "bandits
+      up north, watch yourselves". (Debug: `/drifterciv town fill`.)
+- [ ] **Prices move.** Buy the same thing from the stall a few times: it gets a bit dearer; the next days it settles back.
+      A town with many miners sells iron cheaper; a farming town, food.
+- [ ] **Services.** Throw a town's enchanter (`/drifterciv town` lists who) a sword or a tool, then 2 emeralds: "ok,
+      give me a minute"; it goes to its enchanting table, enchants it, and throws it back. Throw its smith a worn tool or
+      armour, some of what it's made of (iron ingots for iron), then an emerald: repaired at its anvil, back to you with
+      what it didn't use. A diamond piece, a netherite ingot and the upgrade template, then 3 emeralds: netherite. Walk off
+      without paying and after two minutes it gives everything back. (Debug: hold it and `/drifterciv town hand smith`.)
+- [ ] **What villagers used to sell.** Enchanters sell enchanted books they've made; hunters ender pearls, leather and
+      such; masons (builders) glass, bricks, stone bricks, terracotta; miners ores, now and then a diamond; smiths diamond
+      gear when they have some spare.
+
+## Side session: more whims (new, 0.23.26-side.1)
+
+41 new whims. Any world works; a Creative world with commands is easiest. To try one now, stand next to a Drifter and type
+`/drifter whim <name>` (it does it at once, or tells you why it can't). `/drifter lore` shows what that Drifter knows.
+To make a test pair: `/drifter spawn Nova` and `/drifter spawn Vet` a few blocks apart, then next to Nova
+`/drifter personality reroll newbie`, next to Vet `/drifter personality reroll helper` and `/drifter personality set knowledge 1.0`,
+and next to Vet `/drifter group Nova` (friends).
+
+- [ ] **What it knows.** Put a nether portal, an enchanting table, a brewing stand and an end portal frame near them.
+      A newbie learns what a thing is the moment it first sees one, and that same day it may stand and wonder at it:
+      `what_is_this_portal`, `what_is_this_table`, `what_is_this_stand`, `what_are_these_frames` ("what is this purple
+      thing", "it has a floating book??"). Vet won't ("hasn't just found out about nether"), nor will Nova the next day.
+      Vet gives tips to whoever's about: `tip_about_the_nether`, `tip_about_enchanting`, `tip_about_brewing`,
+      `tip_about_raids`, `tip_about_the_end`, `tip_about_redstone`, `tip_about_trading`, `tip_about_trial_chambers`
+      (Nova can't: "doesn't know about the nether"). Vet also watches the runes go into the enchanting table
+      (`watch_the_runes`), the brewing stand (`watch_the_brewing_stand`), looks up a beacon's beam (`stand_in_the_beacon`),
+      and keeps very still and crouched near a sculk shrieker in the deep dark (`quiet_by_the_sculk`).
+- [ ] **The moon and snow.** `/time set 18000` is a full moon night (day 0 of the 8): `full_moon_gazing` ("big moon
+      tonight"), `full_moon_warning` (Vet, with company). `/time set 114000` is a new moon: `no_moon_tonight` ("cant see a
+      thing"). In a snowy biome with `/weather rain`: `watch_the_snow_fall`, `catch_snowflakes` (looks up and hops). On a snow
+      layer: `snow_angel` (crouches in the snow). `/weather thunder`: `home_before_the_storm` (walks home: give it one with
+      `/drifter home here` first), `lightning_from_the_doorway` (needs its hut or house).
+- [ ] **Little mistakes** (newbies the most). Next to a sweet berry bush: `into_the_berry_bush` (it walks into it and gets
+      pricked, "ow ow ow", it really loses a bit of health). With exactly one or two diamonds: `first_diamond_oops`
+      ("DIAMOND!!", then "wait... a pickaxe takes three"); with more it says "has more than 2". At night:
+      `jump_at_a_noise`. With a home chest: `what_was_i_doing` ("...what was i doing").
+- [ ] **Small moments.** Give items with `/drifter give compass`, `spyglass`, `goat_horn`, `clock`: `check_the_compass`
+      (looks down at it, turns round), `look_through_the_spyglass` (the real spyglass-to-the-eye pose), `blow_the_horn` (you
+      hear the horn), `check_the_clock` (at sunset). Animals: `watch_an_axolotl` (crouches by the water), `watch_a_frog`,
+      `watch_glow_squid` (at night), `eye_a_goat`, `watch_a_sniffer`, `watch_a_camel`.
+- [ ] **With friends** (Vet and Nova grouped): `show_off_a_diamond` (holds up a diamond to its friend, "look what i
+      found"), `high_five` (walks up, swings, hops), `fire_with_a_friend` (at night by a campfire).
+- [ ] **They come up on their own.** Leave Drifters living a few days: in `/drifter thoughts` you should now and then see
+      "gazing at the full moon", "giving a tip about the Nether", "walking into a berry bush (ow)" and the like.
+
+## 0.23.28: a town's notices on the Bountiful bounty board (new)
+
+Needs Bountiful (and Kambrik) in the game, as in DRIFTER TEST. New world, "A world of nations" on.
+
+- [ ] **The notice on the board.** Find a town's bounty board (made-ready towns have one on the plaza, near the well).
+      In the morning, when the keeper puts up a notice, it's also on the board: the paper asks for the notice's things,
+      and the reward is an emerald with "N emeralds from <town>" when you point at it. Its paper is called "Notice from
+      <town>".
+- [ ] **Turn it in.** Take the paper, bring what it asks for, right-click the board with the paper: "<town> paid you N
+      emeralds for the ...". The keeper says thanks if it's near, and the notice is gone from `/drifterciv town` and from
+      the board.
+- [ ] **Filled the other way.** Throw the keeper the things instead (Q, looking at it): within ten seconds the notice is
+      off the board too. A paper you took before that, turned in after, just gives your things back ("That notice was
+      already taken down").
+- [ ] **Drifters fill them too.** Now and then a townsperson reads the board; if it has the things spare it takes the
+      town's bounty and turns it in. `/drifter thoughts` on it: "took a bounty: 40 paper for 1 emerald from Hollowbrook",
+      then "filled Hollowbrook's notice at the board".
+- [ ] Debug, standing in a town: `/drifterciv town bounty` opens its board from where you are; `/drifterciv town bounty
+      paper` puts its notice's paper in your hand; `/drifterciv town bounty goods` gives you what it asks for; then
+      `/drifterciv town bounty` again turns it in.
+
+## 0.23.29: town bugs fixed, crime taken seriously, notices pay more (new)
+
+New world, "A world of nations" on (the bug fixes are in how a town is made).
+
+- [ ] **The mine is lit.** `/drifterciv town goto mine` takes you to the nearest town's mine: torches down the stairs, in
+      the hub at the bottom (`/drifterciv town goto hub`), along the corridor and halfway along each strip.
+- [ ] **They mine from it.** Over a day or two, follow someone off mining (`/drifter thoughts` on them): "down the town's
+      mine, on along a strip (Y 11) for raw iron" or "branching off at Y 27", and the strips down there get longer. Few or
+      no new staircases dug from the edge of the town any more.
+- [ ] **No holes round the town at night.** At night, nobody digs in or walls themselves in inside the town. Anyone who
+      can't get into their house stands by the plaza's fire till morning ("in town for the night: staying out by the
+      light").
+- [ ] **Workshops inside.** A town's enchanter has its enchanting table inside its house (`/drifterciv town` says who),
+      a smith its anvil and smithing table inside, never out on the porch or the foundation.
+- [ ] **Nothing on the houses.** The stable, the mine's mouth and the hives stand on their own ground, not on top of a
+      house. Houses built later don't go over the fields, the pen, the mine, the stable or the hives either.
+- [ ] **No rush to the store.** When a town appears, its people go about their day: not half of them at the store's chest
+      at once.
+- [ ] **Beds out of the way.** In houses with more than one household, the extra beds aren't in front of the stairs, or in
+      front of chests, furnaces or crafting tables.
+- [ ] **Theft is seen.** Open a chest in a town (the store, someone's house) while townspeople can see you and take
+      something: one shouts ("THIEF!"), `/drifterciv town` shows your fine (3 emeralds and what you took was worth), and a
+      guard comes to collect. Refuse to pay (walk off) and you're exiled and wanted. Take something while nobody's looking
+      and nothing happens (until the owner finds it gone). (Debug: stand on the plaza, `/drifterciv town steal`, then
+      `/drifterciv town steal take`.)
+- [ ] **A killing is seen, and they come for you.** Kill a townsperson in front of others: "MURDERER", exiled and wanted
+      for a week, a bounty. Guards and the braver townspeople attack you on sight about the town, and come looking where you
+      were even when you've ducked out of sight; the timid run. Come back later and someone calls it out ("it's {you}! get
+      them!").
+- [ ] **A massacre.** Kill three of a town's people (within three days): the chronicle tells of the massacre, you're
+      wanted there for a month, and the towns round it (1,500 blocks) hear: wanted there too for ten days. (Debug:
+      `/drifterciv town crime massacre`; `/drifterciv town crime pardon` clears your record in that town.)
+- [ ] **Drifters who kill.** A townsperson who kills another in front of others is thrown out, and those who saw fight it
+      on sight. One that kills three is the enemy of every town about.
+- [ ] **Notices pay more.** A notice pays at least 3 emeralds now ("need 48 white wool, paying 3 emeralds").
+- [ ] Debug, standing in a town: `/drifterciv town check` counts the torches in its mine, beds beside stairs or a
+      station, workshops not under a roof, and houses on ground kept for other things (all but the torches should be 0).
+
+## 0.23.30: the alarm bell (new)
+
+New world or old, "A world of nations" on. The bell is the one on the plaza by the notice board.
+
+- [ ] **A raid rings it, again and again.** Walk into a town with Bad Omen (or `/drifterciv town raid` in one). When the
+      raiders come, someone runs to the bell and rings it fast, a dozen times ("RAIDERS! to arms!"), and again every forty
+      seconds or so while raiders are about. The pillagers near the bell glow.
+- [ ] **Everyone hears it.** Guards and the brave head for the raiders; the rest go into their houses and stay in till
+      it's over. (`/drifter thoughts` on someone: "heard the alarm bell", "answering the alarm", "in the house till the
+      alarm's over".) A couple of them shout it on ("the alarm! get inside!").
+- [ ] **It stops when it's over.** The raiders down (or gone): no more ringing, and a minute later everyone's back out.
+- [ ] **A killing rings it.** Kill a townsperson in front of others: the bell ("MURDER! ..."), rung again while you're
+      about the town; walk away and it stops. Kill three: "MASSACRE! ..." straight away.
+- [ ] **You can ring it too.** Hit the bell five times fast: the townspeople near hear an alarm (guards come to the bell,
+      the rest go in). A festival's three slow rings do nothing of the sort.
+- [ ] **Not for festivals.** Market day and festivals still get the three calm rings.
+- [ ] **No rush to the store (again).** When a town appears, its people go to work: farming, mining, their stalls. Not a
+      crowd in the store, nobody stuck in its aisles. Everyone in a town carries a boat now.
+- [ ] (Debug: `/drifterciv town alarm` rings the nearest town's alarm for two minutes, the trouble where you stand;
+      `/drifterciv town alarm stop` stops it.)
+
+## 0.23.31: the nations on the continent, you start by a town, a longer loading screen (new)
+
+A new world, "A world of nations" on (with the Continents mod, as you play it).
+
+- [ ] **The loading screen.** It's up longer now, at most two minutes: once what you'd see from spawn is built, it says
+      "Building more of the world (N of M towns)" and builds more towns and roads round you before you play (it stops at
+      1:50 at the latest).
+- [ ] **You start by a town.** When it ends you're standing on the road into a town, just outside it (about 135 blocks
+      from its middle), looking down the road at it. Not inside it. Die without a bed and you come back there.
+- [ ] **The nations are on the big land.** Not on the little spawn island: `/drifterciv plan` lists the nations and their
+      towns; they should be on one big continent round you, not scattered over islands. (Debug: `/drifterciv plan land`
+      tells you how big the land you're on is and where a new world's nations would go from there.)
+
+## 0.23.32: the mine's mouth on the ground, nobody shut in the pen (new)
+
+- [ ] **The mine's mouth** (in a new town): the log frame over the top of the mine's stairs stands on the ground both
+      sides, nothing hanging in the air, even on a slope. (`/drifterciv town goto mine`.)
+- [ ] **The pen**: nobody gets in over its fence from a bank, and nobody's stuck inside jumping at it. Where the ground
+      outside is higher, the fence is two high. Its gate opens onto ground you can step onto. Towns from before get their
+      pen put right the first time you're near them.
+- [ ] **Gates shut**: townspeople close the pen's gate behind them; the animals stay in.

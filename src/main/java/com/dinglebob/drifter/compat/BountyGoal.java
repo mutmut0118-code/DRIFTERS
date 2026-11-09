@@ -263,7 +263,9 @@ public final class BountyGoal extends Goals.Goal {
 			line.append(" for ");
 			int at = line.length();
 			for (BountifulCompat.Entry entry : offer.rewards()) {
-				line.append(line.length() == at ? "" : ", ").append(entry.amount()).append(" ").append(entry.content().replace("minecraft:", "").replace('_', ' '));
+				// (A reward that's a command shows its name: a town's notice, "9 emeralds from Hollowbrook".)
+				line.append(line.length() == at ? "" : ", ").append(!entry.item() && !entry.name().isEmpty() ? entry.name()
+					: entry.amount() + " " + entry.content().replace("minecraft:", "").replace('_', ' '));
 			}
 
 			return line.toString();

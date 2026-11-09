@@ -1,8 +1,9 @@
 {
-	"_comment": "Books and bookshelves (paper from sugar cane, leather from cows), and what its table gives.",
+	"_comment": "Books and bookshelves (paper from sugar cane, leather from cows), and what its table gives. B6: it enchants books at its table to sell (EnchantBooksGoal). B5: enchants yours.",
 	"goals": [
 		"wares",
-		"enchant"
+		"enchant",
+		"enchant_books"
 	],
 	"natures": [
 		"builder",

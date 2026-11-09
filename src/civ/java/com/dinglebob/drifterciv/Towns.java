@@ -65,6 +65,25 @@ public final class Towns {
 		return false;
 	}
 
+	/** A city: one the world plan made one, or as big as one (its households). */
+	static boolean city(Town town) {
+		for (WorldPlan.Place place : WorldPlan.places) {
+			if (place.id.equals(town.id)) {
+				return place.kind.equals("city");
+			}
+		}
+
+		return town.plots.size() >= TownBuilder.CITY;
+	}
+
+	/**
+	 * How many guards a town of so many people has: a city one in seven, a town one in ten, two at least (the user,
+	 * 2026-11-06: "in a city there should be a higher ratio of guards").
+	 */
+	static int guardsWanted(Town town, int people) {
+		return Math.max(2, city(town) ? people / 7 : people / 10);
+	}
+
 	public static List<Town> all() {
 		return new ArrayList<>(towns.values());
 	}

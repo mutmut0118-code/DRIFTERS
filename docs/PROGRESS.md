@@ -73,7 +73,7 @@ Status values: **Not started**, **In progress**, **Done** (done means its "done 
 | 10 | Offscreen and performance | **Done** in code (2026-10-15): 10 Drifters at 1 to 4 ms a tick, 100 at about 10 ms | Detail tiers, catch-up, abstract travel. Done when: 10 Drifters stay within the per-tick budget. |
 | 11 | Nether | **Done** (2026-10-16): portal, packing, trips, safety, blaze rods, goods, piglins and bartering, storing the haul; polish left (hard fortresses over lava) | Section 19. |
 | 12 | Groups, modpack factions, camps, config polish | **Done** (2026-10-16): Drifter bonds, groups, joint trips, team wars and raids, Mob Control, lived-in world, settings screen | Plan below |
-| 13 | Whim system | In progress: engine, steps whims (docs/WHIMS_HOWTO.md), 141 whims (of about 900 ideas in docs/WHIMS.md), offscreen whims (milestone 20) | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
+| 13 | Whim system | In progress: engine, steps whims (docs/WHIMS_HOWTO.md), 209 whims (188 in the mod, 21 town whims in the addon; of about 900 ideas in docs/WHIMS.md), offscreen whims (milestone 20), whims by what it knows, the moon and snow (0.23.26-side.1) | Whim data format, gates, cooldowns, archetype weights, then the whims in docs/WHIMS.md (vanilla first, modded behind mod detection). Can start any time after milestone 9. Swapped with The End (user, 2026-10-16); End whims stay off until 14. |
 | 14 | The End (optional) | Not started | |
 | 16 | Scale | **In progress** (2026-10-19): helper threads for paths and eyes, crowd perception, cheaper decisions, spread-out catch-up; see "Milestone 16" below | 1000 Drifters across a world and 300 round a player at a steady 20 TPS; a 150v150 battle playable (user, 2026-10-18). |
 | 15 | House plans by the hundred | **Done** (user, 2026-10-19): 9 data-file styles, L and T wings, lofts, corner towers, A-frames, 300 checked plans per world; Drifters pick and build them on their own | A plan generator from parts: footprints (rectangle, L, T, a tower wing), one or two floors and lofts, roof styles (gable, hip, A-frame, flat with parapet, shed), wall styles (log frame with plank infill, stone base with wood above, cobble), windows, porches, chimneys, eaves; materials swapped to what grows nearby. Every plan has to pass the existing checks (buildable by player rules, nothing floating, a roofed room for the bed on the lowest floor, a door out) before it's used. Pictures of a sample for the user to veto styles. Generated once per world (seeded), alongside the hand-made ones. |
@@ -4577,6 +4577,353 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     a farmer with seeds at home waited, "no grass about".
   - Merged the side sessions' 0.23.22-side.3 (Farmer's Delight kitchens and cooking, username words and nicknames).
 
+- **0.23.24: the user's notes of 2026-11-06 (wars, town life, travel, the world, news, rebuilding)**:
+  - **Wars**: a raid takes half to seven in ten of a town (the same ones all the raid long, 40 at most; a town of four or
+    fewer all go), not every armed one within 96 blocks (a city of a hundred all came). Once most have gathered (all of
+    them, or two in three after half the muster's time, half after three quarters), the leader gives a speech: twelve
+    lines five seconds apart (`war.speech_open`, `war.speech`, `war.speech_close`, never the same line twice), its band
+    facing it; then they're confident and march. The leader marches at a walk along the road (the rest jog to keep up when
+    they fall behind; it waits ten seconds at most for anyone 24 or more blocks back); the raid's time to get there is a
+    second and a half a block of the way as the crow flies (six minutes at least); the raid's own goal no longer gives up
+    every four minutes on the way. Tested headless: a speech, 13 of 15 marching with the leader along the road 700
+    blocks, the charge, the fight, home.
+  - **Long walks along the roads** (`nav/Legs`, raids, bandits, trade runs, errands, guards' far rounds, going home at
+    night): a stretch at a time along the road between towns when there's one there (the addon's `Routes`: the plan's
+    roads as a web, the shortest way to a town worked out once and kept; `/drifterciv route <x> <z>`), else straight on to
+    open ground (never a roof: a stretch's end on a house's roof had a war's leader in and out of its own town's houses).
+  - **Town life**: guards by a town's size (a city one in seven, a town one in ten, two at least; existing towns fill up
+    from their boldest), and the **night rounds** (`PatrolGoal`): along a dozen road spots round the town and the plaza,
+    at a walk, a look round at each, by night instead of going in (a round now and then by day); the fight takes over
+    when something's about. **Townspeople go home at night** (no hole in the ground, no mining from one, no carrying on
+    in the dark; only the guards, and now and then the very boldest out after mobs): they head home from up to 320
+    blocks (was 96), a stretch at a time. **Festivals**: everyone gathers at the plaza from morning to evening
+    (`GatherGoal`: there and mingling, a look at whoever's about, a happy hop), work counting much less. **The bell**
+    (`TownBells`, `BellGoal`): rung (three strikes, a line called out) by the leader if near, else whoever's nearest, on a
+    festival's morning, market day's, a war declared on it or by it, its raiders mustering, raiders coming in. **Whims**
+    come twice as often for townspeople (a seasoned one in iron, and guards, less so), and seasoned ones lean out
+    (explore, delve), the rest to town; **home life**: cooking (the real thing: `cook`, `cookmeal`) leans to the morning and
+    the evening at home, and six home whims (breakfast and supper by its stove, a midday bite, looking out of the window,
+    pottering about, sitting in of an evening; town places `home` and `kitchen`). **A crook in every city**
+    (`Justice.cityCrook`: the least neighbourly, not the leader, keeper or a guard; another three days after one's thrown
+    out), at it three times as often as a town's.
+  - **Bugs**: tusklins and Alex's Mobs' other dangerous animals are threats (`drifter_threats/modded.json`: tusklins
+    hostile at 3.5; crocodiles, komodo dragons, anacondas...; bears, tigers, elephants... only when after it); a pen is
+    never put where there's a fence, gate or wall round already (a pen in the town's pen); a bridge's railing never goes on
+    another road's way or the same road's next stretch (`Highways.waysAbout`), and a deck clears a railing a block above
+    it too (fences across bridges); a town site out of range lets go of its land (one asked for while the world was built
+    before it was played held the queue for good: no other town was ever made after it).
+  - **Travel**: encounters come three times as soon on a road between towns, and start on the road when there's one
+    near (`Legs.roadPointsNear`).
+  - **The world**: a town's chests are full (`TownChests`: a household's chests 9 to 18 stacks each, by the kind of
+    household; food, Farmer's Delight's crops and dishes, building stuff, valuables, farming, odds and ends; the store
+    14 to 22 stacks a chest: 135 stacks in a city's store, was 11). The stall sells at 1.6 times the town's price, and up
+    to three of its better things (gold, gems, pies...) besides its everyday goods. **Looters at ruins** (`Delvers.ruin`,
+    tag `drifter:looter_ruins`: ruined portals, pyramids, igloos, Philips Ruins', Hopo's portals): half the ruins have one
+    to three; half of those are townsfolk out scavenging (they join the nearest town with a house free, within 800
+    blocks, and go home after), the rest delvers. **The town mine**: a staircase three wide from a lot by its edge down to
+    Y 11 (a landing every sixteen steps, torches), a hub (chest, table), a corridor with sixteen strip mines; its people's
+    mining trips start at the hub. **City shapes**: a city is a grid, crossroads, winding, ring, **star** (six avenues and
+    a ring) or **double ring** (two rings, spokes through both), never a main street; a river or harbour city by the
+    land.
+  - **News**: the plaza's lectern holds the day's **Gazette**, printed each morning from the chronicle (its headlines,
+    the town's news, news from elsewhere, its people at the back). Its **crier** (the most sociable of its people) calls
+    the headlines on the plaza of a morning ("extra extra! ...") and hands each player about a copy, written in a book and
+    quill of its own (it makes a couple: `TownPaper`).
+  - **Rebuilding**: an explosion that blows a hole in a Drifter's house (from a plan) sets it mending for two days (the
+    plan's missing blocks, in the woods it was built in, gathered again), and two of its group nearby help build it back
+    ("help build X's house back"). Tested: three creepers in a town at night, each owner building back with two
+    neighbours.
+  - Merged the chat side session's 0.23.23-side.2 (10,710 talk topics).
+  - In the test world the capital Westbury had no roads (on a peninsula, the plan's roads went round by land only): the
+    user's answer, a long bridge over narrow water, then by boat (0.23.25).
+
+- **0.23.25: household chests, valuables at home, roads over water** (the user, 2026-11-06: "for chests i mostly meant
+  the households"; "valuable stuff like gems, or coin purses ... should be in households instead of shared chests";
+  "long bridge over narrow water, then by boat").
+  - Every storage block in a house is filled once all its households are in: both halves of each double chest (only the
+    first half was, the other left empty), barrels, Farmer's Delight's cabinets, the extra households' bedside chests.
+    A town of 12 houses: 81 chests and barrels, none empty, 14 stacks each on average. `/drifterciv town chests` counts
+    them.
+  - Valuables are a household's own: gold, gems, Numismatic Overhaul's coins and money bag when it's there, a stack or two
+    a house and its purse (money); the store keeps ore, coal and ingots, never valuables (62 stacks of valuables in that
+    town's houses).
+  - Roads over water: with no way by land, the plan looks again over the water (the narrowest way across). Water up to 80
+    blocks is bridged (a long railed bridge on piers); wider, the road ends at a dock on each shore (`WorldPlan.Ferry`;
+    planks three wide out over the water, railings, a lantern, a sign "Boats across / to (town)", a boat tied up), and the
+    way across is by boat: the route finder joins the two docks, and a Drifter on its way rows across in its own boat
+    (`Legs.FERRY`, then its walk's `BoatTask`). On the test seed the capital, Westbury, on a peninsula with no road
+    before, now has both (665 and 1,146 blocks along the roads), a dock built at each crossing.
+
+- **0.23.26: chests kept by personality, a pantry in each kitchen cabinet** (the user, 2026-11-06: "depending on the
+  personality they could be organized or not in households"; "a wide array of ingredients in the cabinet, to make various
+  amounts of farmers delight foods").
+  - A household's chests by its first household's tidiness: tidy (0.6 and up) one kind of thing a chest (food, building
+    stuff, ore, farming, odds and ends, the kinds it keeps most of first), alike stacked together and sorted from the first
+    slot, its valuables and purse together in one chest; middling, each chest leaning to a kind; messy (under 0.35), a
+    jumble in any slots, its valuables anywhere.
+  - Kitchen cabinets (Farmer's Delight) hold a pantry: 14 to 22 different ingredients, a few to sixteen of each, and bowls
+    (`TownChests.INGREDIENTS`: its crops, cuts, dough, pasta, milk bottles, tomato sauce, pumpkin slices; carrots,
+    potatoes, beetroot, mushrooms, eggs, sugar, cocoa, berries, meat, fish, bones). A town of 12 houses: 13 cabinets, 19
+    kinds of ingredient each. Drifters cook from what's stored at home, so the dishes they can make go up.
+  - Which dish it cooks: its own taste (some dishes it likes more, a little by the day) and something it hasn't got
+    already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
+    mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
+
+- **0.23.32: the mine's mouth on the ground, people shut in the pen** (the user, 2026-11-08, with pictures: "floating
+  thing", "its the mine structure thats floating a bit"; "i see two players jumping by a fence, i believe they are trying
+  to get out?").
+  - **The mine's mouth** (`TownBuilder.mine`): its frame's posts went up from the height of the ground at the middle of
+    its lot; on a slope one stood in the air (found with `/drifterciv plan bare`: four logs, nothing under them). Each post
+    goes down to solid ground now, and the way in (the mouth and a step out from it) is filled under to solid ground.
+  - **The pen** (`TownBuilder.penFence`): a pen on a terrace had the bank outside it as high as its fence: people walked
+    in over it and couldn't get out (Willowwick, the user's test world). Its fence is a full fence over the ground on
+    both sides of it now (higher where the bank is), nothing goes on top of its gate (by a step a fence went over it, the
+    way out a block high), and a bank more than a step higher out from its gate or in from it is cut down to a step.
+    Pens of towns made before are put up again so once a session (`TownBuilder.freePenGate`, from the town check).
+  - **Gates closed behind** (`NavigateTask`): a Drifter always shuts a fence gate it went through, whatever its door habit
+    (one left open let a cow out of the pen).
+  - Debug: `/drifterciv plan bare` (logs round you with no leaves on them, by piece: where, how many, how many stand on the
+    ground; town houses show up too, they aren't marked as built).
+  - Tested in the user's test world: the pen put right on loading ("its gate to the south"), its fence two high along the
+    bank, one of the two shut in walked out.
+
+- **0.23.31: the nations on the continent, players start by a town, a longer loading screen** (the user, 2026-11-08,
+  with the Continents mod: "usually i spawn in one of the smaller continents/an island outside of the continent, making
+  the nations not spawn to is full potential. so i want spawn in the nearest 'largest' continent", "i also want the mod to
+  change the spawn point around the nearest town (not in a town)"; "dont be afraid to make the loading screen time a bit
+  longer ... we can load more towns", "lets make it capped at 2").
+  - **The continent** (`WorldPlan.Plan.continent`, `survey`): before its capitals, the plan surveys the land round spawn,
+    a square 192 blocks wide at a time, 32 of them out each way (6,000 blocks), by the generator's own heights (water more
+    than 6 under the sea's level is the sea; a river, a beach, a shallow strait count as land). Each stretch of land
+    joined edge to edge is one; each square knows how far it is from the sea. If spawn's land is big enough for the plan
+    (half the circle its capitals and their towns want), the nations go round spawn, or inland on that land if spawn's by
+    its coast; else on the nearest land that is (the biggest near if none is), at a square 0.6 of the capitals' ring in
+    from its sea, nearest spawn. (The Continents mod makes a spawn island on purpose, its continents in rings round it.)
+    Nothing within 300 blocks of the plan's middle, as before.
+  - **Players start by a town** (`Plan.spawnSpot`, `WorldBuild.moveSpawn`): once its roads are planned, the world's spawn
+    moves to the road into the place nearest the plan's middle (not a ruin), 40 blocks past its reach (about 135 from a
+    town's middle), the road toward the middle first, facing the town; with no road there, just outside it on dry, even
+    land, never in another's reach. That stretch of road is built before play (it's by spawn); when the loading screen
+    ends the spot's settled on the ground there (open sky over it: the first try, off the road, was on the floor of a dark
+    forest) and waiting players are put on it. Anyone without a bed comes back there.
+  - **The loading screen builds more** (`WorldBuild`): once what's in sight of spawn is built, it goes on, nearest first,
+    with the towns and roads within 2,000 blocks, till they're all built or it's been up 1:50 (the user's cap, two
+    minutes; at 1:55 one ran to 2:01, finishing the town it was on); never less than what's in sight. The bar says "Building more of the world (N of M towns)".
+  - Debug: `/drifterciv plan land` (the land surveyed from where you stand, as a new world's plan would: the land there,
+    the biggest about, where the nations would go).
+  - Tested: headless, the user's settings (7 nations), seed 8208968137302710584 with Continents and Tectonic: spawn's
+    land 6,600 blocks across (big enough), spawn by its coast: the nations inland on it; surveyed from points at sea, the
+    nearest big land (4,600 and 6,000 blocks off). The survey: 7 s at 192 a square (20 s at 128). Client, the dev
+    settings (4 nations): the plan 700 blocks inland on spawn's land; spawn moved to the road into Willowwick, 138 blocks
+    from its middle; the loading screen 1:50 (in sight at 51 to 83 s, then 2 or 3 more towns and 11 to 19 stretches of
+    road); the picture: on the dirt road, the town down it.
+
+- **0.23.30: the alarm bell** (the user, 2026-11-08: "for like major stuff like a massacre or a raid will people spam
+  ring the bell?", then "yes build it" to the alarm bell proposed).
+  - **Rung for trouble** (`TownBells.alarm`): raiders from another town coming in (was three slow strokes once), a pillager
+    raid's waves (`TownRaids`: was nothing), a killing in the town, a massacre, someone wanted back about it (`Justice`;
+    a player or a Drifter). Whoever's nearest the bell runs to it (not the timid unless nobody else; a guard only if much
+    the nearest: they're wanted at the fight; nobody more than 128 blocks off) and rings it twelve times fast, shouting
+    what's wrong a few strokes in (`BellGoal`, urgency 0.97). Its ringer killed on the way: someone else at once. Rung again forty seconds after it was last rung while the
+    trouble lasts (the raiders still about, the killer still within 96 blocks of the middle), handed to someone else if
+    not rung in thirty seconds, and over when the trouble is (a killing's at most 3 minutes, a massacre's 5, someone
+    wanted back 2, a raid's 20). A killing become a massacre: rung again at once with the new shout. A festival or market
+    day's bell waits while the alarm's on.
+  - **Heard** (`BellHearing`, `BellBlockMixin` on `BellBlock#attemptToRing`): any bell struck five times in five seconds is an
+    alarm, whoever rings it (a player too); every Drifter within 32 blocks hears it (vanilla's: its villagers hear a bell
+    that far), and townspeople pass the word on to those within 24 blocks after a second and a half, so it's round the
+    town in seconds (the first two passings-on of each ringing out loud in chat, `alarm.heard`; the rest quietly). What
+    for and where, if the ringer said (`BellHearing.say`). Not saved.
+  - **What they do** (`AlarmGoal`): only for their own town's bell. Guards, and the brave (bravery 0.5 up, not timid, not
+    hurt below half health), go to the trouble (where the ringer said, else the bell; urgency 0.9, over any work, under fighting:
+    at 0.74, found in testing, farms and stalls won and nobody went) and look about there; whatever they find they fight
+    as they would anyway. The rest go into their houses (by their bed; 0.9) and stay in till the alarm's over (a minute after it was last heard). Asleep in bed: stays there. And vanilla
+    does the rest: a bell rung with raiders near makes them glow.
+  - `TownWork.Bell` has `alarm` and `trouble` now; `DrifterApi.timid`. Debug: `/drifterciv town alarm` (the nearest town's
+    alarm for two minutes, the trouble where you stand), `/drifterciv town alarm stop`.
+  - **The store rush, again** (the user, 2026-11-08: "people are still running into the shared chests as soon as the town
+    spawns"). Their log (Coldvale, a new world): 20 of its 21 people in the store within two and a half minutes, a dozen
+    "can't get to its chest" in its narrow aisles. Counted in testing (`/drifterciv town crowd`: those standing at its
+    chests, every five seconds): up to 8 at once in its 5x7 room, for a minute. The causes, each fixed:
+    - A town's people are spawned over its few seconds of work and geared at the end; those spawned first, with nothing
+      on them, set off for a wooden pickaxe. Now they stand still till they're geared (`DrifterApi.holdStill`, not saved,
+      a minute at most; freed in `townUp`).
+    - The store's chests were each household's too, so its iron was everyone's own to gear up with: chestplates, helmets,
+      shields, flint and steel, all from the store at once. Now a home knows which of its chests are its town's
+      (`Home.townChests`, saved; old worlds marked on the next check), and its own gear (`Goals.Progress`,
+      `Planner.planOwn`), what it takes down a mine (torches, food, spare pickaxes) and putting its things away
+      (`StoreActivity`, `Home.ownChests`) use its own chests only; it mines its own iron, as players do. Work for the
+      town (its stall, things to sell, the town's building, notices) still uses the store.
+    - The spare pickaxes a mining trip makes were reckoned from the surface: from its town's mine's hub now (dug already).
+      And a townsperson starts with a spare stone pickaxe, a boat and 16 to 32 cobblestone (`Delvers.townKit`: the last
+      of a newcomer's first wants, each a trip for planks or stone).
+    - The store is one place for crowding (`FetchActivity.users` counts every chest within 5 blocks), and one that gets
+      to a chest with two others at it waits its turn a little way off instead of squeezing into the aisles.
+    - In testing after: nobody at its chests for the first 70 seconds, then 2 at most; 18 mining trips and 91 rounds of
+      farm work in the first three minutes. In a client test (the player there as it was made): nobody at the store.
+  - Tested: headless (Hollowbrook, `town alarm`): rung at once ("ALARM!"), passed on ("the alarm! get inside!", "you
+    hear that? the alarm!"), people dropped mining and fetching to go in, rung again by another a minute on, over at two
+    minutes. Client, a pillager raid: rung as the first wave came ("raid! they're coming for the plaza!"), again about
+    every minute by others through both waves; 13 went to the raiders, 11 went in; 33 fights with pillagers and
+    vindicators (the first ringer was killed by a vindicator: "rip geyser o7"). Client, killings: "MURDER! Player311
+    killed toffee35!" and the bell; the alarm moved on to the second killing and to the massacre ("MASSACRE! Player311 is
+    killing everyone!", rung again 45 s on); 12 answered, 5 went in; guards chased and searched; walked away: over 5 s
+    later.
+
+- **0.23.29: the user's town bugs, crime taken seriously, notices pay more** (the user, 2026-11-07, with pictures: "the
+  town mine has no light, and nobody uses the town mine ... still having random strip mines around town", "when drifters
+  wake up, they break 2 blocks to get out?", "found enchanting table outside of house", "structures like stables and town
+  mines spawn on homes", "whenever a town spawns, everyone has the goal to go use a shared chest", beds in front of stairs
+  and of furnaces, tables and chests; "we need to enforce and up crime awareness and behavior towards me/drifter commiting
+  them, especially theft, killing a drifter with witnesses, or committing a massacre"; and "yes please" to better notice
+  pay).
+  - **The town mine lit**: every torch it meant to put up went to the wrong side (into the mine, so none went up);
+    fixed, and more of them: three a side in the hub, both sides of the corridor, one halfway along each strip.
+  - **The town mine used** (`TownMine`, `Home.townMine`, `Home.MineFace`/`Dig`): its faces worked out from how it's dug
+    (each strip's end, the corridor's end, each landing of its stairs, ways down from the hub's sides) and handed out to
+    its people, a few each (two strips of their own, a landing or the corridor's end while they go round, a way down), so
+    two don't dig into each other's tunnels and take them for caves. A mining trip near the height of a face goes down the
+    town's stairs to it and digs on: a strip straight on (48 blocks) from a strip's end, a branch mine from the corridor's
+    end or a landing; deeper than all of it, stairs on down from the hub (then its own mine from there, as before). Each
+    face moves on to where the trip got. The way down is walked a stretch at a time (its mouth, each landing, its hub;
+    `Home.townMinePath`), and back up the same way (found in testing: the whole way down as one walk, 140 blocks and 60
+    down, came apart, "can't get back to the end of the tunnel", every deep trip; the way back up would dig stairs to the
+    surface, holes in the town). Cavers look for caves from the hub first. The old way (the hub as a staircase of its
+    own, branching round the compass) is gone; worlds from before get their people's faces on the next check. "can't get
+    back to the end of the tunnel" now says why.
+  - **No digging in round the town** (`ShelterActivity` `TOWN`): the test showed 9 townspeople a night "digging in" (and
+    3 "sealed in", 1 "walled in") because they couldn't find their way into their house; they broke out in the morning
+    (the user's "2 blocks to get out") and left holes. In its town it never digs in or walls itself in now: it waits the
+    night out by the plaza's fire, and tries its house again a minute on (twice).
+  - **Workshops inside** (`DrifterApi.furnitureSpot`): an enchanting table, anvil or smithing table goes in the room round
+    its bed (as Drifters place their own stations: against a wall, out of the doorway, off the stairs, clear of the other
+    furniture and the floor in front of it); else on its floor only under its roof and walled in each way (the house's
+    outline took in its porch and foundation). `Interior` keeps stair steps clear too.
+  - **Lots off the houses**: the mine, stable and hives chose their lots without looking at the houses (`lot` checked the
+    other lots and roads only); now they keep three blocks off. And the town keeps its fields, pen, mine (and the first
+    stretch of its stairs), stable, hives, shrine and lookout (`Town.keepOff`, saved): no house built later goes on them.
+  - **No rush to the store**: a town just made sent about half its people to the store's chest at once ("fetch 4 spruce
+    planks from its chest", 11 of 23, all for a shield). Everyone in a town has a shield to start with now; every
+    household keeps the everyday things by it (planks, cobblestone, sticks, torches, coal; `TownChests.household`); the
+    chest it fetches from is one with enough, its own house's before the store's (the nearest home), and not one two
+    others are already on their way to if another has it (`Home.chestWith(item, wanted, busy)`, `FetchActivity.users`).
+    In testing: 3 of 23 at the store in the first minute, the rest at their own houses.
+  - **Beds out of the way** (`BuildPlanActivity.bedSpot`): no half of a bed where you step on or off stairs or a ladder,
+    under a staircase, or in front of something used from the floor (chests, barrels, furnaces, crafting tables, anvils,
+    enchanting tables, lecterns, brewing stands, the workstations, Farmer's Delight's kitchen); only if nowhere else will
+    do. (A house plan's own bed stays where the plan has it.)
+  - **Crime, seen and dealt with** (`Justice`, `ChestWatch`, `DrifterEvents.SEEN_TAKING`, `Mode`):
+    - Theft seen as it happens: a player opens a chest or a barrel; what's in it is noted, and who among the Drifters near
+      (24 blocks) sees them at it; when they shut it, what they took out goes to the town if it was its chest (its till,
+      its store unless they live there, a chest in one of its houses, one about the middle they didn't put there) and one
+      of its people saw. The witnesses think less of them (-20) and one shouts; a fine of 3 emeralds plus what was taken is
+      worth, more each time (a third time, exile); stealing while exiled makes them wanted. A guard comes to collect, as
+      before; refusing is exile and wanted.
+    - A killing: everyone of the town who saw it (48 blocks, the killer in sight within 5 s, or 16 blocks and knowing who),
+      not just one; they trust the killer far less (-60), the rest of the town less (-20). Exiled and wanted for a week, a
+      price on their head the first time.
+    - Wanted (new standing, `TownWork.standing` "wanted"): about the town (its edge and 48 blocks), its guards and its bold
+      people go for them on sight (vengeful), the timid keep clear; someone calls it out when they're back ("it's {player}!
+      get them!"). Exiled only: driven out, as before.
+    - The alarm (`Justice.alarm`, `DrifterApi.alert`, `Mode.pursuesWanted`): a killing seen, or someone wanted seen back,
+      tells the town's people within 96 blocks where they are; its guards and bold ones go looking there (out of sight
+      too, for five minutes, about the town; `HostileGoals.Hunt`). Found in the first client test: after the killings
+      everyone lost sight of the killer within seconds and went back to their day.
+    - A massacre: three of its people killed within three days of each other. Wanted there a month, its people's trust in
+      them gone (-100), a price on their head, and word goes to every town within 1,500 blocks: wanted there too for ten
+      days, and they think much less of them. In the chronicle ("The massacre at Hollowbrook: ...").
+    - A Drifter killer: those who saw it make it their enemy on sight (-90), the rest of the town nearly (-65: still an
+      enemy on sight); one of the town's own is thrown out for good (as a crook is, a bandit once it's gone). A Drifter
+      that massacres (three in three days) is the enemy on sight of every town within 1,500 blocks.
+    - New lines: `crime.massacre`, `crime.wanted`, `guard.force`.
+  - **Notices pay more**: 1.6 times what the things are worth (was 1.3), at least 3 emeralds (was 1).
+  - Debug: `/drifterciv town steal` (right-clicks the nearest store chest as you, for real: whoever sees you sees you),
+    `town steal take` (takes three stacks out and shuts it), `town crime massacre` / `town crime pardon`, `town goto mine`
+    / `town goto hub`, `town check` (torches in its mine, beds beside stairs or a station, workshops not under a roof,
+    houses on its kept ground).
+  - Tested (the test seed): `town check` on Hollowbrook (23 people) and Westbury (91): the mine lit (42 to 94 torches), 0
+    of 46 and 0 of 182 bed halves beside stairs or a station, no workshop outdoors, no house on kept ground (one had the
+    mine's first stretch under a house before the stairs learned to turn aside). A night in each town: no townsperson dug
+    in (9 a night before). A day of mining: trips down the town's mine, none dug new stairs from the town's edge. In the
+    client: "player took stuff from our chest!", "seen stealing 75 things from the town's store (a fine of 9 emeralds)";
+    a killing: "player killed rae!!", exiled and a price on their head, the guards and bold "looking for Player973 where
+    it last saw them", then "going after them" (the player down to under 4 health through Resistance IV); three: "guards!!
+    it's a massacre", "The massacre at Hollowbrook", word reached the town about. The headless server ran it too.
+
+- **0.23.28: a town's notices on Bountiful's bounty board** (the user, 2026-11-07: "will there be notices compat with
+  bountiful?", then "yes build it"). Only with Bountiful installed (`TownBounties`).
+  - Each notice up in a town is also a real bounty on its board (the one on a made-ready town's plaza, or any board within
+    40 blocks of a town's middle, looked for once a day when it has none; `Town.bountyBoard`): asks for the notice's
+    things, its reward a command (`drifterciv bountiful <notice> <item> <count> %PLAYER_NAME%`, run by Bountiful as the
+    server) shown as "9 emeralds from Hollowbrook" with an emerald icon (our pool entry
+    `data/bountiful/bounty_pools/drifter_civ/drifterciv_notice.json`, never used to make bounties; Bountiful logs that
+    it's "not attached to any existing data" once at start, harmless). Named "Notice from <town>", marked with the notice's
+    id (`Notice.id`, saved) in its custom data; runs out when the notice comes down.
+  - Turned in at a board (Bountiful takes the things): the town pays (the poster's money, then the till's, as when thrown;
+    "all it had" if short), the things go to the poster (else the till, else by the board), the notice comes down, the
+    chronicle and the poster say so, the poster trusts the player more. Turned in after the notice is down (filled by
+    throwing, or old): the things back.
+  - Filled by throwing, or taken down: off the board within ten seconds. Pruned by Bountiful: put back. No free slot: one
+    of Bountiful's own taken off for it.
+  - Drifters reading the board (BountyGoal) can fill them with what they can spare: the reward command finds the Drifter
+    through `DrifterApi.actingHelper()` (new; `FakePlayerBridge.acting()`), pays its helper, and the Drifter gets it.
+    Their thoughts show the pay by its name ("took a bounty: 40 paper for 1 emerald from Hollowbrook").
+  - Board reached by reflection (its `bounties`, `addBounty`, `removeBounty`, `getFreeSlots`; Bountiful 8.0.0-beta.2):
+    if that fails it logs once and stops, and notices still work by throwing.
+  - Debug: `/drifterciv town bounty` (right-click the nearest town's board with what's in your hand, from anywhere: an empty
+    hand opens it, a paper is turned in), `bounty paper` (its first notice's paper in your hand), `bounty goods` (what the
+    first notice asks for).
+  - Tested in the client (Hollowbrook, the test seed): the notice on the plaza board with the emerald; a player turned in
+    its paper ("Hollowbrook paid you 1 emerald for the 16 paper", the chronicle line); next day a farmer given the paper
+    the notice wanted read the board, took the town's bounty and turned it in, and was paid.
+
+- **0.23.27: phase C's rest (traditions, stables, bees), D1 and D5, B4, B5 and B6** (the user, 2026-11-06: "lets do c, for
+  traditions, and bees and stables, and then only d1 and d5, and then go to b4 b5 and b6"; whims left to another session).
+  - **Traditions** (`TownTraditions`, `Town.traditions`): two fishing contests won and the contest is weekly (every six
+    days); three busy market days (three trades or more) and it's the big market every third day; a war won and Victory
+    Day each year on that day of its year; a leader gone for good and Remembrance Day for them; three of its people dead
+    near one place outside the town and they keep away from it (their long walks turn round it: `Legs` keep-away). Each
+    told in the chronicle; festivals called out with their own lines and bell; "customs" in `/drifterciv town`.
+  - **Stables** (`TownBuilder.stable`, `StableGoal`): a town of six households or more has a stable on a lot by its edge
+    (planks and logs, a slab roof, three stalls with hay, a chest of leads and wheat, a cauldron of water), a horse a
+    household for its first one to three (tamed, saddled, tied to the stall's fence; `Brain.stall`). Off on a trip of 150
+    blocks or more it walks to its horse, unties it and rides (its walk rides its own saddled horse); of an evening it
+    rides it back into its stall and ties it up again with its lead. Its people know the stable's insides.
+  - **Bees** (`TownBuilder.apiary`, `Goals.Honey`): by its fields, a flower patch and two or three hives each sat on a lit
+    campfire (calm bees), bees in them, honey in some; townspeople know them, and take the honey with a glass bottle when
+    a hive's full (making bottles first if they have none).
+  - **D1, what a town thinks of you** (`TownReputation`): its people's trust in you (those who know you), your crimes
+    there (fines, exile), and what it's heard from the towns round it (each day a town's opinion moves the towns within
+    1,500 blocks a fifth of the way): welcome, neutral, wary, unwelcome, wanted. Its stall and shops: 0.9, 1, 1.15, 1.4
+    times the price, and nothing for the wanted; someone says something as you come into town (once in ten minutes); its
+    nearest guard keeps an eye on you while you're wary or worse (follows you round at a distance, watching);
+    `/drifterciv town` says "You: welcome (+34)".
+  - **D5, the notice board** (`TownNotices`): each morning its keeper (or leader) posts what the town's short of, when it
+    and the till have the money ("need 32 iron, paying 9 emeralds - name"; three at most, three days each); throw the
+    poster that many (in one go or several: "12 of 32, keep em coming") and it pays you on the spot, from its own money
+    then the till's. A warning when there are bandits about ("bandits up north, watch yourselves"). In the Gazette (a
+    notices page after the front), on the plaza board's last sign, in `/drifterciv town`. `DrifterEvents.RECEIVED`: a
+    player threw a Drifter something.
+  - **B4, prices** (`Market.price`): what's selling goes up (six in a hundred a sale, to 1.5 times), a day settles it back,
+    what's stocked and doesn't sell drifts down (to 0.8); what the town makes itself is cheaper there (three miners or
+    smiths: ores and ingots 0.8; four farmers: food 0.85; two fishers: fish 0.8; woodcutters: wood; hunters: leather,
+    feathers, bones, string); and what it thinks of you (D1).
+  - **B5, services** (`TownServices`, `ServiceGoal`): throw its enchanter something to enchant, then 2 emeralds (and lapis
+    if you like), and it enchants it at its table (the table's roll, its own levels and lapis); throw its smith a worn
+    tool or armour, the material, then an emerald, and it repairs it at an anvil (a quarter a unit, a level a unit); a
+    diamond piece with a netherite ingot and the template, then 3 emeralds, and it upgrades it at a smithing table. It
+    holds your things apart while it works, hands it back when you're near (and what it didn't use), gives it all back if
+    you don't pay within two minutes or it can't; one job at a time; dearer if the town doesn't like you, none if you're
+    wanted. In a town made ready, an enchanter or smith gets its workshop when it takes up its craft (an enchanting
+    table, or an anvil and a smithing table, in its house; a few levels; the enchanter lapis and books).
+  - **B6, what villagers gave, had now**: its enchanter enchants books to sell (`EnchantBooksGoal`, four kept at most);
+    the hunter's shop sells ender pearls (from the endermen it hunts), leather, feathers, bones, string, gunpowder, meat;
+    the mason's (builder) makes and sells glass, bricks, stone bricks, terracotta, smooth stone; the miner's sells coal,
+    ores, a diamond or an emerald when it has one to spare; the smith's sells diamond gear when it has a spare piece;
+    the fisher's treasure as before.
+  - Debug: `/drifterciv town hand [line]` (what's in your hand to the nearest Drifter, or to the town's Drifter of that
+    line, as if thrown), `/drifterciv town fill` (the first notice's poster brought what it asked for).
+
 ## Side session: chat, part 5 (0.23.23-side.1)
 
 The user (2026-11-05): more parts to stories and topics of every kind ("controversial opinions, deep and philosophical
@@ -4634,3 +4981,46 @@ to debate) until you hit 10000 total topics".
   asking a speedrunner about the Nether and learning it, then the dragon from its plans. The hover itself isn't checked
   in the client (a vanilla chat hover).
 - Merged the main line's 0.23.23.
+
+## Side session: more whims (0.23.26-side.1)
+
+The user (2026-11-06): "okay cool, lets work on more whims!" Proposed five groups; the user picked A to D (the question
+offered four; E, friends, was in the recommended list and is built too, three whims, easy to drop). 41 new whims (188 in
+the mod, 209 with the addon's town whims); the main-line session keeps out of the whim files (memory note
+`lived-world-order`), and this branch keeps out of the addon's `town.json`.
+
+- **Engine** (docs/WHIMS_HOWTO.md updated, also with the `town` target and the parts of the day it lacked):
+  - `knows` (a field): areas of the game it must know (`personality/Lore`), `"!area"` must not know yet, `"new:area"`
+    found out within the last in-game day (`Lore.learnedSince`, a time per area kept while the game runs, not saved).
+    Checked in `WhimGoal.whyNot` and while away (`WhimsAway`); a wrong area name leaves the whim out with a guess.
+    Found in the smoke test: a Drifter learns the Nether the moment it sees a portal (`Lore.check`), so a "!nether"
+    wonder at a portal could never come up; the wonder whims use `new:` instead (the day it first saw one).
+  - `when` values `full_moon`, `new_moon` (a clear night of that moon; while away from the moon's phase by the day count)
+    and `snow` (raining where the biome makes it snow; never while away).
+  - A need's `most` ("only while it has no more than 2"): `WhimGoal.whyNot` ("has more than 2 minecraft:diamond"),
+    `WhimsAway.carries`.
+  - Steps verb `use_item` (`StepsAction.HoldUp`): the item's own use through the fake player (the horn's call, the
+    spyglass's click), then the Drifter holds it up for `ticks` so the client shows the spyglass or horn pose; refuses
+    food and drink (`eat`).
+- **Whims**: `lore.json` (16: eight veterans' tips by area, M gate, newbies 0.1; four wonders at a portal, enchanting
+  table, brewing stand, end portal frame, `new:`; watching the runes, the brewing stand, a beacon's beam; keeping still
+  and crouched near a sculk shrieker, `knows: warden`); `moon_and_snow.json` (8: full moon gazing and a warning, no moon
+  tonight, snow falling, catching snowflakes, a snow angel, home before the storm, lightning from the doorway);
+  `mistakes.json` (+4: into a berry bush, R gate, real damage; its first diamond, `most` 2; jumping at a noise; forgetting
+  what it came to its chest for); `small_moments.json` (10: compass, clock, spyglass, goat horn; an axolotl, a frog,
+  glow squid, a goat, a sniffer, a camel); `friends.json` (+3: showing off a diamond, a high five, the fire with a friend).
+- **Tested** (headless, a deep flat snowy world, a newbie and a helper with Knowledge 1, each whim forced): all 185 whims
+  load with no warnings; refusals say why ("already knows about nether", "has more than 2 minecraft:diamond", "not the
+  right time or weather (new_moon)"); ran as written: tips, the brewing stand, the beacon, the sculk, the berry bush
+  ("ow"), the first diamond, the compass, the spyglass and the horn (`use_item`), the clock, full moon gazing, no moon
+  tonight, jumping at a noise, snow falling, snowflakes, the snow angel, full moon warnings (both, with company), the fire
+  with a friend (started), home before the storm (started; at night the night shelter took over), and a newbie that had
+  just learned of the Nether wondering at the portal. Tips are near never for a newbie now (one that had only just seen a
+  portal gave "pro tip: never sleep in the nether" in the first run).
+- **Not checked** (need the user's game): the animal whims (axolotl, frog, glow squid, goat, sniffer, camel) and
+  `watch_wildlife` alike find nothing on a headless server: `/drifter senses` tracks no animals there at all, even three
+  standing 4 blocks in front of it (Drifters it does track), so that's the test set-up, not these whims; the spyglass and
+  horn poses and hearing the horn (client); `what_was_i_doing` (needs a home with its own chest); `show_off_a_diamond`
+  and `high_five` (the test pair hadn't spotted each other in time: "nobody about").
+- Lore learning runs about every 30 s (`DrifterEntity` tick), so a `new:` whim can come up from then until a day later.
+

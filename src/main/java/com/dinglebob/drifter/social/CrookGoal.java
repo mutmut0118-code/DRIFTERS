@@ -89,7 +89,10 @@ public final class CrookGoal extends Goals.Goal {
 	}
 
 	private static void rest(DrifterEntity drifter) {
-		next.put(drifter.getUUID(), drifter.level().getGameTime() + REST_MIN + drifter.getRandom().nextInt(REST_MAX - REST_MIN));
+		// (A city's crook: much sooner; the user, 2026-11-06: "a town crook should always be in a city, causing much more crime".)
+		TownWork town = drifter.getTownWork();
+		double pace = town == null ? 1.0 : town.crookPace(drifter);
+		next.put(drifter.getUUID(), drifter.level().getGameTime() + Math.round((REST_MIN + drifter.getRandom().nextInt(REST_MAX - REST_MIN)) * pace));
 	}
 
 	/** One of its town mates it sees now, near: someone would see. */

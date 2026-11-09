@@ -204,6 +204,57 @@
 			"cooldown": 12000,
 			"chat": ["snowball fight!", "get rekt", "incoming", "SNOWBALL FIGHT", "heads up", "catch", "you started this"],
 			"thought": "starting a snowball fight"
+		},
+		{
+			"id": "show_off_a_diamond", "category": "social", "action": "steps", "gates": "M",
+			"params": {
+				"find": {"friend": {"type": "friend", "radius": 12}},
+				"steps": [
+					{"do": "walk_to", "target": "friend", "near": 3},
+					{"do": "hold", "item": "minecraft:diamond"},
+					{"do": "look_at", "target": "friend", "ticks": 40, "hops": true},
+					{"do": "say", "to": "friend", "lines": ["look what i found", "dias!!", "check this out", "look look look", "shiny right"], "chance": 0.7},
+					{"do": "look_at", "target": "friend", "ticks": 30}
+				]
+			},
+			"needs": [{"item": "minecraft:diamond"}],
+			"archetypes": {"newbie": 1.8, "casual": 1.3, "pvp_sweat": 1.3, "hermit": 0.2}, "traits": {"sociability": 0.8}, "moods": {"triumphant": 1.5},
+			"cooldown": 48000, "offscreen": "skip",
+			"thought": "showing a friend its diamond"
+		},
+		{
+			"id": "high_five", "category": "social", "action": "steps", "gates": "M",
+			"params": {
+				"find": {"friend": {"type": "friend", "radius": 10}},
+				"steps": [
+					{"do": "walk_to", "target": "friend", "near": 1.8},
+					{"do": "look_at", "target": "friend", "ticks": 10},
+					{"do": "swing", "times": 1},
+					{"do": "jump", "times": 1},
+					{"do": "say", "to": "friend", "lines": ["up top!", "high five", "ayy", "o/"], "chance": 0.5}
+				]
+			},
+			"archetypes": {"casual": 1.3, "helper": 1.3, "hermit": 0.2}, "traits": {"sociability": 1.0}, "moods": {"triumphant": 1.0}, "cooldown": 24000,
+			"offscreen": "skip",
+			"thought": "giving a friend a high five"
+		},
+		{
+			"id": "fire_with_a_friend", "category": "social", "action": "steps", "gates": "M", "when": "night",
+			"params": {
+				"find": {
+					"friend": {"type": "friend", "radius": 16},
+					"fire": {"type": "block", "ids": ["#minecraft:campfires"], "radius": 16}
+				},
+				"steps": [
+					{"do": "walk_to", "target": "fire", "near": 2},
+					{"do": "crouch", "ticks": 20},
+					{"do": "look_at", "target": "friend", "ticks": 40},
+					{"do": "say", "to": "friend", "lines": ["nice night", "this is nice", "campfire with the homie", "we should do this more"], "chance": 0.4},
+					{"do": "look_at", "target": "fire", "ticks": 160}
+				]
+			},
+			"archetypes": {"homebody": 1.5, "nomad": 1.3}, "traits": {"sociability": 0.7, "patience": 0.4}, "cooldown": 24000, "offscreen": "skip",
+			"thought": "sitting by the fire with a friend"
 		}
 	]
 }

@@ -242,7 +242,19 @@ final class Highways {
 			meet(road.to, corners, false, townRoads);
 		}
 
-		TownBuilder.highway(level, line(corners), townRoads);
+		TownBuilder.highway(level, line(corners), townRoads, waysAbout(corners, road, a, b));
+		// A dock where it meets water too wide to bridge (its boat crossing's end).
+		if (piece == 0 && road.fromDock && road.points.size() > 1) {
+			int[] p = road.points.get(0);
+			int[] q = road.points.get(1);
+			TownBuilder.dock(level, p[0], p[1], p[0] - q[0], p[1] - q[1], placeName(road.to));
+		}
+
+		if (piece == road.built.length - 1 && road.toDock && road.points.size() > 1) {
+			int[] p = road.points.get(road.points.size() - 1);
+			int[] q = road.points.get(road.points.size() - 2);
+			TownBuilder.dock(level, p[0], p[1], p[0] - q[0], p[1] - q[1], placeName(road.to));
+		}
 		if (first) {
 			sign(level, corners, true, road.to);
 		}
@@ -250,6 +262,60 @@ final class Highways {
 		if (last) {
 			sign(level, corners, false, road.from);
 		}
+	}
+
+	/** A place of the plan's name (for a dock's sign). */
+	private static String placeName(java.util.UUID id) {
+		for (WorldPlan.Place place : WorldPlan.places) {
+			if (place.id.equals(id)) {
+				return place.name;
+			}
+		}
+
+		return "the far shore";
+	}
+
+	/**
+	 * The columns of every planned road near this stretch (three wide, as they're built): its own stretches either side and
+	 * any other's, so no railing goes up on one.
+	 */
+	private static java.util.Set<Long> waysAbout(List<double[]> corners, WorldPlan.Highway own, int a, int b) {
+		int x0 = Integer.MAX_VALUE, z0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, z1 = Integer.MIN_VALUE;
+		for (double[] c : corners) {
+			x0 = Math.min(x0, (int)Math.floor(c[0]) - 24);
+			z0 = Math.min(z0, (int)Math.floor(c[1]) - 24);
+			x1 = Math.max(x1, (int)Math.floor(c[0]) + 24);
+			z1 = Math.max(z1, (int)Math.floor(c[1]) + 24);
+		}
+
+		java.util.Set<Long> ways = new java.util.HashSet<>();
+		for (WorldPlan.Highway other : WorldPlan.highways) {
+			for (int i = 0; i + 1 < other.points.size(); i++) {
+				// (Not this stretch itself: its own railings go where they go.)
+				if (other == own && i >= a && i < b) {
+					continue;
+				}
+
+				int[] p = other.points.get(i);
+				int[] q = other.points.get(i + 1);
+				if (Math.max(p[0], q[0]) < x0 || Math.min(p[0], q[0]) > x1 || Math.max(p[1], q[1]) < z0 || Math.min(p[1], q[1]) > z1) {
+					continue;
+				}
+
+				int steps = Math.max(1, (int)Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1])));
+				for (int s = 0; s <= steps; s++) {
+					int x = (int)Math.floor(p[0] + 0.5 + (q[0] - p[0]) * s / (double)steps);
+					int z = (int)Math.floor(p[1] + 0.5 + (q[1] - p[1]) * s / (double)steps);
+					for (int dx = -1; dx <= 1; dx++) {
+						for (int dz = -1; dz <= 1; dz++) {
+							ways.add(BlockPos.asLong(x + dx, 0, z + dz));
+						}
+					}
+				}
+			}
+		}
+
+		return ways;
 	}
 
 	/** The town's road column nearest {@code end} within reach of it (where the stretch there runs on to), or Long.MIN_VALUE. */

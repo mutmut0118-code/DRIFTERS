@@ -15,6 +15,71 @@
 			"id": "eats_rotten_flesh", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:rotten_flesh"]},
 			"archetypes": {"newbie": 2.0, "nomad": 1.2, "hoarder": 0.5}, "traits": {"knowledge": -0.8, "thrift": 0.5}, "weight": 0.5,
 			"cooldown": 72000, "thought": "eating rotten flesh it didn't need to"
+		},
+		{
+			"id": "into_the_berry_bush", "category": "mistakes", "action": "steps", "gates": "R",
+			"comment": "It really walks into the bush and takes the prick, as a player who wasn't looking.",
+			"params": {
+				"find": {"bush": {"type": "block", "ids": ["minecraft:sweet_berry_bush"], "radius": 16}},
+				"steps": [
+					{"do": "walk_to", "target": "bush", "near": 0.4},
+					{"do": "jump", "times": 1},
+					{"do": "say", "lines": ["ow", "ow ow ow", "OW", "why is this bush spiky", "the bush attacked me", "ouch"], "chance": 0.6},
+					{"do": "think", "text": "walked straight into a berry bush"}
+				]
+			},
+			"archetypes": {"newbie": 2.5, "casual": 1.2, "speedrunner": 0.2, "pvp_sweat": 0.2}, "traits": {"skill": -0.8, "knowledge": -0.5},
+			"weight": 0.5, "cooldown": 72000, "offscreen": "skip",
+			"thought": "walking into a berry bush (ow)"
+		},
+		{
+			"id": "first_diamond_oops", "category": "mistakes", "action": "steps",
+			"comment": "\"most\": only while it has its first diamond or two.",
+			"params": {
+				"steps": [
+					{"do": "hold", "item": "minecraft:diamond"},
+					{"do": "look_at", "at": "ahead", "ticks": 30, "hops": true},
+					{"do": "say", "lines": ["DIAMOND!!", "first diamond lets gooo", "DIAMONDS", "im rich"]},
+					{"do": "wait", "ticks": 50},
+					{"do": "look_at", "at": "down", "ticks": 40},
+					{"do": "say", "lines": ["wait... a pickaxe takes three", "oh. i need three for a pick", "ok one diamond isnt much", "...need two more"]},
+					{"do": "think", "text": "found out a pickaxe takes three diamonds"}
+				]
+			},
+			"needs": [{"item": "minecraft:diamond", "count": 1, "most": 2}],
+			"archetypes": {"newbie": 3.0, "casual": 1.5, "speedrunner": 0.1, "pvp_sweat": 0.1}, "traits": {"knowledge": -0.9}, "weight": 2.0,
+			"cooldown": 240000, "offscreen": "show",
+			"thought": "celebrating its first diamond"
+		},
+		{
+			"id": "jump_at_a_noise", "category": "mistakes", "action": "steps", "when": "night",
+			"params": {
+				"steps": [
+					{"do": "jump", "times": 1},
+					{"do": "look_around"},
+					{"do": "say", "lines": ["what was that", "did u hear that", "nope nope nope", "who's there", "...hello?"], "chance": 0.5},
+					{"do": "think", "text": "jumped at a noise in the dark"}
+				]
+			},
+			"archetypes": {"newbie": 2.0, "homebody": 1.3, "pvp_sweat": 0.2}, "traits": {"caution": 0.6, "bravery": -0.6}, "weight": 0.7, "cooldown": 24000,
+			"offscreen": "show",
+			"thought": "jumping at a noise"
+		},
+		{
+			"id": "what_was_i_doing", "category": "mistakes", "action": "steps",
+			"params": {
+				"find": {"chest": {"type": "chest", "radius": 24}},
+				"steps": [
+					{"do": "walk_to", "target": "chest", "near": 2},
+					{"do": "look_at", "target": "chest", "ticks": 40},
+					{"do": "look_around"},
+					{"do": "say", "lines": ["...what was i doing", "why did i come here", "forgot what i came for lol", "wait what did i need"], "chance": 0.5},
+					{"do": "think", "text": "forgot what it came to the chest for"}
+				]
+			},
+			"archetypes": {"newbie": 1.5, "casual": 1.3, "speedrunner": 0.2}, "traits": {"efficiency": -0.6, "skill": -0.3}, "weight": 0.6, "cooldown": 48000,
+			"offscreen": "show",
+			"thought": "forgetting what it came over for"
 		}
 	]
 }

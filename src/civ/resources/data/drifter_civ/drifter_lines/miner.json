@@ -9,5 +9,28 @@
 		"hoarder",
 		"speedrunner"
 	],
-	"pool": 4
+	"pool": 4,
+	"_comment": "B6: what it digs up and has to spare: coal, iron, gold, redstone, lapis, copper; a diamond or an emerald now and then (rare and dear).",
+	"shop": {
+		"from": 10,
+		"sign": "miner",
+		"makes": [],
+		"sells": [
+			"minecraft:coal",
+			"minecraft:iron_ingot",
+			"minecraft:raw_iron",
+			"minecraft:gold_ingot",
+			"minecraft:redstone",
+			"minecraft:lapis_lazuli",
+			"minecraft:copper_ingot",
+			"minecraft:diamond",
+			"minecraft:emerald",
+			"minecraft:amethyst_shard"
+		],
+		"buys": [
+			"minecraft:torch",
+			"minecraft:bread",
+			"minecraft:cooked_beef"
+		]
+	}
 }

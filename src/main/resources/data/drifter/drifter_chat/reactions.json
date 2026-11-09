@@ -988,6 +988,63 @@
         "...{who}."
       ]
     },
+    "crime.massacre": {
+      "any": [
+        "{player} is killing everyone!!",
+        "RUN! {player}'s killing us all",
+        "{who} too?! somebody stop {player}",
+        "guards!! it's a massacre",
+        "{player}, you monster"
+      ],
+      "helper": [
+        "why are you doing this, {player}",
+        "please, {player}, stop"
+      ],
+      "pvp_sweat": [
+        "you're not walking out of here, {player}"
+      ],
+      "hermit": [
+        "..."
+      ]
+    },
+    "crime.wanted": {
+      "any": [
+        "it's {player}! get them!",
+        "{player}'s back! guards!",
+        "that's the one, {player}!",
+        "{player}! you've got some nerve"
+      ],
+      "helper": [
+        "{player}... you shouldn't be here"
+      ],
+      "hermit": [
+        "you."
+      ]
+    },
+    "guard.force": {
+      "any": [
+        "you had your chance, {player}",
+        "by order of {town}: you're done",
+        "stop right there, {player}!",
+        "{player}! drop your weapon!"
+      ],
+      "pvp_sweat": [
+        "the hard way then"
+      ]
+    },
+    "alarm.heard": {
+      "any": [
+        "the alarm! get inside!",
+        "that's the alarm bell!",
+        "the bell! something's wrong",
+        "ALARM! everyone in!",
+        "you hear that? the alarm!",
+        "trouble! the bell's going!"
+      ],
+      "hermit": [
+        "the bell. trouble."
+      ]
+    },
     "guard.demand": {
       "any": [
         "{player}, you owe {fine} emeralds for {crime}. pay up",
@@ -1506,6 +1563,66 @@
         "go. we won't stop you",
         "...ok. {town} is free",
         "your loss. good luck out there"
+      ]
+    },
+    "war.speech_open": {
+      "any": [
+        "alright everyone listen up",
+        "ok quiet down, listen",
+        "everyone gather round, this is important",
+        "listen up {town}, i'll keep it short. ok maybe not short",
+        "eyes on me for a sec",
+        "before we go, hear me out"
+      ]
+    },
+    "war.speech": {
+      "any": [
+        "{enemy} thinks we're soft. we're not",
+        "they've had this coming for a long time",
+        "we built this town with our own hands. nobody pushes us around",
+        "remember what they did to us",
+        "stick together out there, nobody goes off alone",
+        "watch each other's backs",
+        "if you get low, fall back. no heroes today",
+        "we go in fast, we hit hard, we come home",
+        "eat something before we get there",
+        "keep your shields up and your swords sharp",
+        "they've got walls? we've got more people",
+        "i've seen what this town can do. we've got this",
+        "this is for everyone back home",
+        "nobody touches our people and gets away with it",
+        "{enemy} won't know what hit them",
+        "they're probably hiding in their houses already lol",
+        "we don't burn their beds. we're not monsters",
+        "take what you need from their chests, it's ours now",
+        "if i fall, keep going. finish it",
+        "this is how {town} gets remembered",
+        "we stay on the road till we're close, then we charge",
+        "i'm proud of every one of you",
+        "no running off to mine on the way. focus",
+        "they'll be talking about this for years"
+      ]
+    },
+    "war.speech_close": {
+      "any": [
+        "for {town}! let's move",
+        "alright. let's go. stay close",
+        "ok that's it. move out!",
+        "lets go show {enemy} what we're made of",
+        "together. now. let's go",
+        "follow me. to {enemy}!"
+      ]
+    },
+    "house.blown_up": {
+      "any": [
+        "MY HOUSE",
+        "noooo my house",
+        "are you kidding me. a creeper?? in my house??",
+        "great. just great. theres a hole in my wall",
+        "ugh. gonna have to rebuild that",
+        "who let a creeper in here",
+        "my walls!!",
+        "ok. deep breaths. we rebuild"
       ]
     }
   }

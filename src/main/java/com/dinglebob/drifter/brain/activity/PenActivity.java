@@ -390,6 +390,11 @@ public class PenActivity extends Activity {
 
 				for (int dy = -2; dy <= 2; dy++) {
 					BlockPos middle = around.above(dy);
+					// (Not in someone's pen, or by its fence: a pen built inside a town's pen, found in the user's game.)
+					if (fencedNear(level, middle)) {
+						continue;
+					}
+
 					int score = 0;
 					for (int dx = -INSIDE - 1; dx <= INSIDE + 1; dx++) {
 						for (int dz = -INSIDE - 1; dz <= INSIDE + 1; dz++) {
@@ -414,6 +419,18 @@ public class PenActivity extends Activity {
 
 		// (32 of 49 is enough: hillsides rarely give more, and it was turned down 11 times running in testing.)
 		return bestScore >= 32 ? best : null;
+	}
+
+	/** A fence, gate or wall round here already (someone's pen, a yard): no place for another. */
+	private static boolean fencedNear(Level level, BlockPos middle) {
+		for (BlockPos cell : BlockPos.betweenClosed(middle.offset(-INSIDE - 3, -1, -INSIDE - 3), middle.offset(INSIDE + 3, 1, INSIDE + 3))) {
+			BlockState state = level.getBlockState(cell);
+			if (state.is(BlockTags.FENCES) || state.is(BlockTags.FENCE_GATES) || state.is(BlockTags.WALLS)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Anything to do at the pen (for the goal). */

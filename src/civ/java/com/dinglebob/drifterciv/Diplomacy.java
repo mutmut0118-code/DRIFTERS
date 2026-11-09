@@ -750,6 +750,10 @@ final class Diplomacy {
 		long day = Chronicle.day(server);
 		boolean brokePeace = r.pacts.contains(Pact.PEACE) || r.pacts.contains(Pact.ALLIANCE);
 		Chronicle.add(server, "war", attacker.name + " declared war on " + defender.name + (brokePeace ? ", breaking its word" : ""));
+		TownBells.ring(server, attacker, "the war on " + defender.name, java.util.List.of("we're at war with " + defender.name + "!",
+			"war! " + defender.name + " has it coming"));
+		TownBells.ring(server, defender, "war declared by " + attacker.name, java.util.List.of(attacker.name + " declared war on us!",
+			"war! " + attacker.name + " wants a fight"));
 		begin(server, attacker, defender, r, day, "war");
 		if (brokePeace) {
 			brokenWord.merge(attacker.id, 1, Integer::sum);
@@ -831,6 +835,7 @@ final class Diplomacy {
 		// (The side that didn't pay won: a monument to it, C6.)
 		if (payer != null) {
 			TownCulture.won(payer == x ? y : x, payer);
+			TownTraditions.warWon(server, payer == x ? y : x, payer);
 		}
 
 		r.war = false;

@@ -132,6 +132,18 @@ public final class Town {
 	public BlockPos fire;
 	@Nullable
 	public BlockPos pen;
+	/** Its mine (made ready since 0.23.24): the top of its stairs, the hub at their bottom, which way its corridor runs. */
+	@Nullable
+	public BlockPos mine;
+	@Nullable
+	public BlockPos mineBottom;
+	@Nullable
+	public Direction mineWay;
+	/**
+	 * Its ground kept for what isn't a house (its fields, pen, mine, stable, hives, shrine...; x0, z0, x1, z1 each): no new
+	 * house goes over them (found by the user: a stable and a mine on top of homes).
+	 */
+	public final List<int[]> keepOff = new ArrayList<>();
 	/** Where its people are building (or built) its store (step 3c), and whether it's up. */
 	@Nullable
 	public Plot storePlot;
@@ -150,6 +162,10 @@ public final class Town {
 	public final List<Plot> plaza = new ArrayList<>();
 	public boolean wellFilled;
 	public long boardDay = -1;
+	/** Its Bountiful bounty board (its notices go up on it: TownBounties), and the day it last looked for one. */
+	@Nullable
+	public BlockPos bountyBoard;
+	public long bountyLook = -1;
 	/** Comings and goings (milestone 23 C3, {@link TownLife}): the day it last looked, the newest of its people and the latest
 	 * to leave (and the days), the day a newcomer last came up its road. */
 	public long lifeDay = -1;
@@ -222,8 +238,16 @@ public final class Town {
 		public String crime = "";
 		/** The day the exile ends (0: not exiled). */
 		public long exiledUntil;
+		/** The day being wanted ends (0: not wanted): its guards and bold people go for them on sight about the town. */
+		public long wantedUntil;
+		/** Killings of its people seen: all told, lately (each within a few days of the last), and the day of the last. */
+		public int kills;
+		public int recentKills;
+		public long lastKillDay = -100;
 		/** When it was last caught (game time; not saved). */
 		long lastAt = Long.MIN_VALUE / 2;
+		/** When it was last seen stealing (game time; not saved): the same things found gone later aren't another theft. */
+		long lastSeenTheft = Long.MIN_VALUE / 2;
 
 		Criminal(String name) {
 			this.name = name;
@@ -252,6 +276,21 @@ public final class Town {
 	 * crimes"), who steal and pick fights now and then till it throws them out.
 	 */
 	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
+	/** Its customs (C6, {@link TownTraditions}), what it's counted toward them, where its people died out there. */
+	public final java.util.Set<String> traditions = new java.util.LinkedHashSet<>();
+	public final java.util.Map<String, Integer> tally = new java.util.HashMap<>();
+	public final List<BlockPos> deathSpots = new ArrayList<>();
+	/** What it's heard of each player from the towns round it (D1, -100 to 100), and the day it last passed its own word on. */
+	public final java.util.Map<UUID, Double> heard = new java.util.HashMap<>();
+	/** What's been selling at its stall and shops (B4: an item's price, times this), and the day it last settled. */
+	public final java.util.Map<String, Double> demand = new java.util.HashMap<>();
+	public long demandDay = -1;
+	public long wordDay = -1;
+	/** Its notices up (D5, {@link TownNotices}), the day they were last put up, and a warning (not saved). */
+	public final List<TownNotices.Notice> notices = new ArrayList<>();
+	public long noticeDay = -1;
+	@Nullable
+	public String warning;
 	/** Each of its people's line of work (milestone 23 B1: Trades). */
 	public final java.util.Map<UUID, String> lines = new java.util.HashMap<>();
 	/** The last crime of one of its people that was seen: who, what ("theft", "fight", "thrown_out") and the day. */
@@ -332,6 +371,18 @@ public final class Town {
 			tag.putLong("Pen", this.pen.asLong());
 		}
 
+		if (!this.keepOff.isEmpty()) {
+			ListTag kept = new ListTag();
+			this.keepOff.forEach(rect -> kept.add(new net.minecraft.nbt.IntArrayTag(rect)));
+			tag.put("KeepOff", kept);
+		}
+
+		if (this.mine != null && this.mineBottom != null && this.mineWay != null) {
+			tag.putLong("Mine", this.mine.asLong());
+			tag.putLong("MineBottom", this.mineBottom.asLong());
+			tag.putString("MineWay", this.mineWay.getName());
+		}
+
 		if (this.storePlot != null) {
 			tag.put("StorePlot", this.storePlot.save());
 		}
@@ -352,6 +403,9 @@ public final class Town {
 		tag.put("Plaza", plaza);
 		tag.putBoolean("WellFilled", this.wellFilled);
 		tag.putLong("BoardDay", this.boardDay);
+		if (this.bountyBoard != null) {
+			tag.putLong("BountyBoard", this.bountyBoard.asLong());
+		}
 		tag.putLong("LifeDay", this.lifeDay);
 		if (this.newest != null) {
 			tag.putString("Newest", this.newest);
@@ -431,6 +485,25 @@ public final class Town {
 		tag.putString("Upheaval", this.upheaval);
 		tag.putLong("UpheavalDay", this.upheavalDay);
 		tag.putString("OldLeader", this.oldLeader);
+		ListTag customs = new ListTag();
+		this.traditions.forEach(word -> customs.add(net.minecraft.nbt.StringTag.valueOf(word)));
+		tag.put("Traditions", customs);
+		CompoundTag tally = new CompoundTag();
+		this.tally.forEach(tally::putInt);
+		tag.put("Tally", tally);
+		tag.putLongArray("DeathSpots", this.deathSpots.stream().mapToLong(BlockPos::asLong).toArray());
+		CompoundTag heard = new CompoundTag();
+		this.heard.forEach((id, n) -> heard.putDouble(id.toString(), n));
+		tag.put("Heard", heard);
+		CompoundTag demand = new CompoundTag();
+		this.demand.forEach(demand::putDouble);
+		tag.put("Demand", demand);
+		tag.putLong("DemandDay", this.demandDay);
+		tag.putLong("WordDay", this.wordDay);
+		ListTag notices = new ListTag();
+		this.notices.forEach(notice -> notices.add(notice.save()));
+		tag.put("Notices", notices);
+		tag.putLong("NoticeDay", this.noticeDay);
 		tag.putBoolean("Revolt", this.revolt);
 		tag.putBoolean("Conceded", this.conceded);
 		if (this.plotter != null) {
@@ -456,6 +529,10 @@ public final class Town {
 			one.putInt("Fine", c.fine);
 			one.putString("Crime", c.crime);
 			one.putLong("ExiledUntil", c.exiledUntil);
+			one.putLong("WantedUntil", c.wantedUntil);
+			one.putInt("Kills", c.kills);
+			one.putInt("RecentKills", c.recentKills);
+			one.putLong("LastKillDay", c.lastKillDay);
 			crimes.add(one);
 		});
 		tag.put("Crimes", crimes);
@@ -481,6 +558,18 @@ public final class Town {
 		town.well = tag.contains("Well") ? BlockPos.of(tag.getLong("Well")) : null;
 		town.fire = tag.contains("Fire") ? BlockPos.of(tag.getLong("Fire")) : null;
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
+		for (Tag one : tag.getList("KeepOff", Tag.TAG_INT_ARRAY)) {
+			int[] rect = ((net.minecraft.nbt.IntArrayTag)one).getAsIntArray();
+			if (rect.length == 4) {
+				town.keepOff.add(rect);
+			}
+		}
+
+		if (tag.contains("Mine")) {
+			town.mine = BlockPos.of(tag.getLong("Mine"));
+			town.mineBottom = BlockPos.of(tag.getLong("MineBottom"));
+			town.mineWay = Direction.byName(tag.getString("MineWay"));
+		}
 		town.storePlot = tag.contains("StorePlot") ? Plot.load(tag.getCompound("StorePlot")) : null;
 		town.storeBuilt = tag.getBoolean("StoreBuilt") || town.spawned;
 		for (Tag one : tag.getList("Lanes", Tag.TAG_COMPOUND)) {
@@ -503,6 +592,7 @@ public final class Town {
 
 		town.wellFilled = tag.getBoolean("WellFilled");
 		town.boardDay = tag.contains("BoardDay") ? tag.getLong("BoardDay") : -1;
+		town.bountyBoard = tag.contains("BountyBoard") ? BlockPos.of(tag.getLong("BountyBoard")) : null;
 		town.lifeDay = tag.contains("LifeDay") ? tag.getLong("LifeDay") : -1;
 		town.newest = tag.contains("Newest") ? tag.getString("Newest") : null;
 		town.newestDay = tag.contains("NewestDay") ? tag.getLong("NewestDay") : -100;
@@ -571,6 +661,39 @@ public final class Town {
 		town.upheaval = tag.getString("Upheaval");
 		town.upheavalDay = tag.contains("UpheavalDay") ? tag.getLong("UpheavalDay") : -100;
 		town.oldLeader = tag.getString("OldLeader");
+		for (Tag t : tag.getList("Traditions", Tag.TAG_STRING)) {
+			town.traditions.add(t.getAsString());
+		}
+
+		CompoundTag tally = tag.getCompound("Tally");
+		for (String key : tally.getAllKeys()) {
+			town.tally.put(key, tally.getInt(key));
+		}
+
+		for (long spot : tag.getLongArray("DeathSpots")) {
+			town.deathSpots.add(BlockPos.of(spot));
+		}
+
+		CompoundTag heard = tag.getCompound("Heard");
+		for (String key : heard.getAllKeys()) {
+			try {
+				town.heard.put(UUID.fromString(key), heard.getDouble(key));
+			} catch (IllegalArgumentException ignored) {
+			}
+		}
+
+		town.wordDay = tag.contains("WordDay") ? tag.getLong("WordDay") : -1;
+		CompoundTag demand = tag.getCompound("Demand");
+		for (String key : demand.getAllKeys()) {
+			town.demand.put(key, demand.getDouble(key));
+		}
+
+		town.demandDay = tag.contains("DemandDay") ? tag.getLong("DemandDay") : -1;
+		for (Tag t : tag.getList("Notices", Tag.TAG_COMPOUND)) {
+			town.notices.add(TownNotices.Notice.load((CompoundTag)t));
+		}
+
+		town.noticeDay = tag.contains("NoticeDay") ? tag.getLong("NoticeDay") : -1;
 		town.revolt = tag.getBoolean("Revolt");
 		town.conceded = tag.getBoolean("Conceded");
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;
@@ -597,6 +720,10 @@ public final class Town {
 			c.fine = one.getInt("Fine");
 			c.crime = one.getString("Crime");
 			c.exiledUntil = one.getLong("ExiledUntil");
+			c.wantedUntil = one.getLong("WantedUntil");
+			c.kills = one.getInt("Kills");
+			c.recentKills = one.getInt("RecentKills");
+			c.lastKillDay = one.contains("LastKillDay") ? one.getLong("LastKillDay") : -100;
 			town.crimes.put(one.getUUID("Id"), c);
 		}
 		return town;

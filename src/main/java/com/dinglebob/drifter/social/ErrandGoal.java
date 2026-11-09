@@ -98,11 +98,12 @@ public final class ErrandGoal extends Goals.Goal {
 			if (!this.told) {
 				Vec3 there = Vec3.atBottomCenterOf(this.errand.there());
 				if (this.drifter.position().distanceTo(there) > 16.0) {
-					if (this.walks++ > 30) {
+					// (A stretch at a time, along the road there if there's one: a far town takes many.)
+					if (this.walks++ > 90) {
 						return this.giveUp("couldn't find the way to " + this.errand.thereName());
 					}
 
-					return this.begin(new NavigateTask(this.drifter, there, 8.0, "walk to " + this.errand.thereName()));
+					return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, this.errand.there(), 8.0, "walk to " + this.errand.thereName()));
 				}
 
 				DrifterEntity met = this.whom();
@@ -144,11 +145,11 @@ public final class ErrandGoal extends Goals.Goal {
 
 			Vec3 home = Vec3.atBottomCenterOf(this.errand.home());
 			if (this.drifter.position().distanceTo(home) > 24.0) {
-				if (this.walks++ > 30) {
+				if (this.walks++ > 90) {
 					return this.giveUp("couldn't find the way home");
 				}
 
-				return this.begin(new NavigateTask(this.drifter, home, 12.0, "walk home"));
+				return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, this.errand.home(), 12.0, "walk home"));
 			}
 
 			this.think("back from " + this.errand.thereName() + " with the answer");

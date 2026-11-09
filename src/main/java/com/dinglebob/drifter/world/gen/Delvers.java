@@ -65,6 +65,31 @@ public final class Delvers {
 	public static final net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> MINESHAFTS = net.minecraft.tags.TagKey.create(
 		Registries.STRUCTURE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Drifter.MOD_ID, "delver_mineshafts"));
 
+	/**
+	 * The ruins looters come to (the user, 2026-11-06: "50% chance there is a drifter/drifters looting a lootable structure
+	 * (ruins, ruined portals, etc) and a 50% chance those looters are civilians from a town ... or delvers/bandits"): ruined
+	 * portals, pyramids, an igloo, Philips Ruins' and Hopo's when they're there (tag drifter:looter_ruins).
+	 */
+	public static final net.minecraft.tags.TagKey<net.minecraft.world.level.levelgen.structure.Structure> RUINS = net.minecraft.tags.TagKey.create(
+		Registries.STRUCTURE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Drifter.MOD_ID, "looter_ruins"));
+	/** A ruin has looters at it this often (rolled once a visit, the first by the world seed). */
+	private static final double RUIN_LOOTERS = 0.5;
+	/** Of those, this share are a town's people out scavenging (if there's a town near with room), the rest delvers and bandits. */
+	private static final double TOWNSFOLK = 0.5;
+	/** How long a town's scavengers go through the place before they go about their lives (ticks). */
+	private static final long SCAVENGES = 20L * 60 * 4;
+
+	/**
+	 * Who makes a new Drifter one of the nearest town's people (Drifter: Civilizations): for a spot, the way to make one of
+	 * them, or null when there's no town near with room.
+	 */
+	@Nullable
+	private static volatile java.util.function.BiFunction<ServerLevel, BlockPos, java.util.function.Consumer<DrifterEntity>> townLooters;
+
+	public static void setTownLooters(@Nullable java.util.function.BiFunction<ServerLevel, BlockPos, java.util.function.Consumer<DrifterEntity>> which) {
+		townLooters = which;
+	}
+
 	/** Mineshafts decided ("x,z" of their start chunk) and when, saved with the world. */
 	private static final java.util.Map<String, Long> decided = new java.util.HashMap<>();
 
@@ -123,6 +148,11 @@ public final class Delvers {
 
 			var start = level.structureManager().getStructureWithPieceAt(spot, MINESHAFTS);
 			if (!start.isValid()) {
+				var ruin = level.structureManager().getStructureWithPieceAt(spot, RUINS);
+				if (ruin.isValid() && ruin(level, player, spot, ruin, now, distance)) {
+					return;
+				}
+
 				continue;
 			}
 
@@ -148,6 +178,67 @@ public final class Delvers {
 
 			return;
 		}
+	}
+
+	/** A ruin's chest: looters at it, half the time (decided once a visit); true if it was decided now. */
+	private static boolean ruin(ServerLevel level, net.minecraft.server.level.ServerPlayer player, BlockPos spot,
+		net.minecraft.world.level.levelgen.structure.StructureStart start, long now, double distance) {
+		String key = "r" + start.getChunkPos().x + "," + start.getChunkPos().z;
+		Long at = decided.get(key);
+		if (at != null && now - at < REVISIT) {
+			return false;
+		}
+
+		decided.put(key, now);
+		RandomSource roll = at == null ? RandomSource.create(level.getSeed() ^ start.getChunkPos().toLong() ^ 0x1007E5L) : level.getRandom();
+		if (roll.nextDouble() >= RUIN_LOOTERS || !DrifterConfig.worldgenDelvers() || !com.dinglebob.drifter.world.DrifterCensus.roomFor(spot, 3)) {
+			return true;
+		}
+
+		int count = 1 + roll.nextInt(3);
+		var join = roll.nextDouble() < TOWNSFOLK && townLooters != null ? townLooters.apply(level, spot) : null;
+		List<String> who = new java.util.ArrayList<>();
+		for (int i = 0; i < count; i++) {
+			DrifterEntity looter = join != null ? scavenger(level, spot, level.getRandom(), join) : spawn(level, spot, level.getRandom());
+			if (looter != null) {
+				who.add(looter.getName().getString());
+			}
+		}
+
+		if (!who.isEmpty()) {
+			Drifter.LOGGER.info("[Drifter] {} ({}) looting the ruin at {}, {} blocks from {}", String.join(", ", who), join != null ? "townsfolk scavenging"
+				: "delvers", spot.toShortString(), (int)distance, player.getName().getString());
+		}
+
+		return true;
+	}
+
+	/**
+	 * One of a town's people out scavenging at a ruin: a working life's gear, friendly enough, one of the town's ({@code
+	 * join}: its group, a house there), going through the place a few minutes and then about its life (home to its town).
+	 */
+	@Nullable
+	public static DrifterEntity scavenger(ServerLevel level, BlockPos near, RandomSource random, java.util.function.Consumer<DrifterEntity> join) {
+		BlockPos stand = standNear(level, near);
+		DrifterEntity drifter = stand == null ? null : ModEntities.DRIFTER.create(level);
+		if (drifter == null) {
+			return null;
+		}
+
+		drifter.moveTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, random.nextFloat() * 360.0F, 0.0F);
+		drifter.finalizeSpawn(level, level.getCurrentDifficultyAt(stand), MobSpawnType.STRUCTURE, null);
+		double kind = random.nextDouble();
+		drifter.getPersonality().reroll(random, kind < 0.3 ? Archetype.CASUAL : kind < 0.55 ? Archetype.MINER : kind < 0.75 ? Archetype.HOARDER
+			: kind < 0.9 ? Archetype.NOMAD : Archetype.HELPER);
+		drifter.getSocial().setDisposition(random.nextBoolean() ? Disposition.WARY_NEUTRAL : Disposition.FRIENDLY);
+		townKit(drifter, random, "citizen");
+		if (!level.addFreshEntity(drifter)) {
+			return null;
+		}
+
+		join.accept(drifter);
+		drifter.startDelving(stand, level.getGameTime() + SCAVENGES, false);
+		return drifter;
 	}
 
 	/** The player can see the spot from where they are (nothing solid between their eyes and it; a chest itself doesn't count). */
@@ -324,7 +415,9 @@ public final class Delvers {
 			inventory.add(stack);
 		}
 
-		if ((guard || leader || wellOff && random.nextBoolean()) && (!favorite.twoHanded() || !com.dinglebob.drifter.compat.BetterCombatCompat.active())) {
+		// (Everyone in a town has a shield by then: found by the user, a town just made with half its people off to the store
+		// together for planks to make one, crowding it and leaving the town empty.)
+		if (!favorite.twoHanded() || !com.dinglebob.drifter.compat.BetterCombatCompat.active()) {
 			drifter.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
 		}
 
@@ -336,6 +429,8 @@ public final class Delvers {
 		// The tools of its working life.
 		boolean iron = !humble;
 		inventory.add(new ItemStack(iron ? Items.IRON_PICKAXE : Items.STONE_PICKAXE));
+		// (And a spare, as a player keeps one: section 10.17.)
+		inventory.add(new ItemStack(Items.STONE_PICKAXE));
 		inventory.add(new ItemStack(iron ? Items.IRON_AXE : Items.STONE_AXE));
 		inventory.add(new ItemStack(iron && random.nextBoolean() ? Items.IRON_SHOVEL : Items.STONE_SHOVEL));
 		inventory.add(new ItemStack(humble ? Items.WOODEN_HOE : random.nextBoolean() ? Items.IRON_HOE : Items.STONE_HOE));
@@ -345,7 +440,10 @@ public final class Delvers {
 			inventory.add(new ItemStack(random.nextBoolean() ? Items.COOKED_BEEF : Items.COOKED_PORKCHOP, 4 + random.nextInt(6)));
 		}
 
-		inventory.add(new ItemStack(Items.COBBLESTONE, 8 + random.nextInt(16)));
+		// (Enough for a Drifter's first wants, and a boat: found in testing, a town just made sent its people for planks for a
+		// boat and for more cobblestone, the last two things on a newcomer's list, many of them to the store at once.)
+		inventory.add(new ItemStack(Items.COBBLESTONE, 16 + random.nextInt(17)));
+		inventory.add(new ItemStack(Items.OAK_BOAT));
 		if (!humble && random.nextFloat() < 0.4F) {
 			inventory.add(new ItemStack(Items.WATER_BUCKET));
 		}

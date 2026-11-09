@@ -212,6 +212,14 @@ final class TownSites {
 		for (Site site : order) {
 			ServerLevel level = level(server, site.dimension);
 			if (level == null || !site.forced && !near(level, site)) {
+				// (Out of range now, its land asked for when it was in range: let go of it. It held its place in the queue for
+				// good, and no other town was ever made: one asked for while the world was built before it was played, near
+				// spawn, then nobody near it; found in testing, a city made by command waited forever behind it.)
+				if (level != null && site.loading && site != making) {
+					level.getChunkSource().removeRegionTicket(TICKET, site.chunk(), site.loadRadius(), site.chunk());
+					site.loading = false;
+				}
+
 				continue;
 			}
 
@@ -282,6 +290,28 @@ final class TownSites {
 	 */
 	private static boolean near(ServerLevel level, Site site) {
 		return WorldBuild.distance(level, site.x, site.z) < WorldBuild.ahead(level.getServer()) + (site.city() ? CITY_MORE : 0);
+	}
+
+	/** For the sites command: forced, and how much of its land is there while it loads. */
+	static String progress(ServerLevel level, Site site) {
+		if (!site.loading) {
+			return site.forced ? ", to be made" : "";
+		}
+
+		ChunkPos middle = site.chunk();
+		int radius = site.loadRadius();
+		int there = 0;
+		int all = 0;
+		for (int dx = -radius + 1; dx <= radius - 1; dx++) {
+			for (int dz = -radius + 1; dz <= radius - 1; dz++) {
+				all++;
+				if (level.getChunkSource().getChunkNow(middle.x + dx, middle.z + dz) != null) {
+					there++;
+				}
+			}
+		}
+
+		return ", its land loading: " + there + " of " + all + " chunks";
 	}
 
 	private static boolean loaded(ServerLevel level, Site site) {

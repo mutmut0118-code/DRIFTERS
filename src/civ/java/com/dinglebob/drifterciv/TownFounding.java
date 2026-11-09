@@ -151,6 +151,47 @@ public final class TownFounding {
 				Towns.all().forEach(town -> TownCulture.check(server, town));
 				// A Bandit living in a town (one there from before, or one who turned) is its crook: no killing on sight there.
 				Towns.all().forEach(town -> settleDown(server, town));
+				// What it thinks of the players about (D1); its notices (D5).
+				Towns.all().forEach(town -> TownReputation.check(server, town));
+				Towns.all().forEach(town -> TownNotices.check(server, town));
+				// Its notices on its Bountiful board too, when Bountiful's here.
+				Towns.all().forEach(town -> TownBounties.check(server, town));
+				// Its mine's faces, for its people from before they knew them (0.23.29).
+				Towns.all().forEach(town -> TownMine.check(server, town));
+				// Its pen's gate free (0.23.31: a fence on it by a step shut its people in).
+				Towns.all().forEach(town -> {
+					var level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+						net.minecraft.resources.ResourceLocation.parse(town.dimension)));
+					if (level != null) {
+						TownBuilder.freePenGate(level, town);
+					}
+				});
+				// Prices settling each day (B4).
+				Towns.all().forEach(town -> {
+					long day = Chronicle.day(server);
+					if (town.demandDay < day) {
+						town.demandDay = day;
+						DrifterEntity keeper = town.keeper == null ? null : loaded(server, town.keeper);
+						java.util.Set<String> stocked = new java.util.HashSet<>();
+						if (keeper != null && keeper.getShop() != null) {
+							keeper.getShop().stock(keeper).keySet().forEach(item -> stocked.add(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString()));
+						}
+
+						Market.newDay(town, stocked);
+					}
+				});
+				// Jobs done for players (B5): handed back.
+				Towns.all().stream().findFirst().ifPresent(town -> TownServices.check(server, town));
+				// Its paper, printed each morning on its lectern.
+				Towns.all().forEach(town -> TownNews.check(server, town));
+				// Its bell, when something's begun.
+				Towns.all().forEach(town -> TownBells.check(server, town));
+				// A city's crook (always one).
+				Towns.all().forEach(town -> {
+					if (Justice.cityCrook(server, town)) {
+						Towns.save(server);
+					}
+				});
 				Towns.all().forEach(town -> {
 					boolean politics = Politics.check(server, town);
 					if (Justice.check(server, town) || politics) {
@@ -742,6 +783,13 @@ public final class TownFounding {
 		for (Town.Plot plot : taken) {
 			if (x <= plot.origin.getX() + plot.sizeX - 1 + GAP && x + sx - 1 >= plot.origin.getX() - GAP && z <= plot.origin.getZ() + plot.sizeZ - 1 + GAP
 				&& z + sz - 1 >= plot.origin.getZ() - GAP) {
+				return true;
+			}
+		}
+
+		// Nor its fields, pen, mine, stable, hives (found by the user: a stable and a mine on top of homes).
+		for (int[] rect : town.keepOff) {
+			if (x <= rect[2] + GAP && x + sx - 1 >= rect[0] - GAP && z <= rect[3] + GAP && z + sz - 1 >= rect[1] - GAP) {
 				return true;
 			}
 		}

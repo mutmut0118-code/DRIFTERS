@@ -240,6 +240,16 @@ public final class HostileGoals {
 	}
 
 	/** Vengeful: hunts that player; can travel to their known base. */
+	/** How urgent looking for someone wanted about its town is (above its work, below staying alive). */
+	private static final double WANTED_SEARCH = 0.7;
+	/** Where someone wanted was seen or heard of counts this long. */
+	private static final long WANTED_TRAIL = 20L * 60 * 5;
+
+	/** Out of sight, it goes looking for this player: wanted about its town, seen or heard of lately. */
+	private static boolean searching(DrifterEntity drifter, Player player, Relationship r) {
+		return r.lastSeenPos != null && drifter.level().getGameTime() - r.lastSeenAt < WANTED_TRAIL && Mode.pursuesWanted(drifter, player);
+	}
+
 	public static final class Hunt extends Goals.Goal {
 		@Override
 		public String id() {
@@ -267,7 +277,10 @@ public final class HostileGoals {
 
 				Awareness awareness = drifter.getSenses().awarenessOf(player);
 				boolean known = awareness != null && awareness.identified;
-				if (known ? Mode.toward(drifter, player) != Mode.VENGEFUL : !(r.wronged && r.grudgeWeight() >= Mode.VENGEFUL_GRUDGE && r.trust < Mode.HOSTILE_TRUST)) {
+				// (Someone wanted about its town, where the alarm said they were: a guard goes looking.)
+				boolean wanted = !known && searching(drifter, player, r);
+				if (!wanted && (known ? Mode.toward(drifter, player) != Mode.VENGEFUL
+					: !(r.wronged && r.grudgeWeight() >= Mode.VENGEFUL_GRUDGE && r.trust < Mode.HOSTILE_TRUST))) {
 					continue;
 				}
 
@@ -298,6 +311,11 @@ public final class HostileGoals {
 
 			if (inSight) {
 				return URGENCY;
+			}
+
+			// Someone wanted about its town: its guards and bold go looking where they were last seen or heard of.
+			if (player != null && searching(drifter, player, r)) {
+				return WANTED_SEARCH;
 			}
 
 			// Out of sight: a vengeful one goes looking, where it last saw them or at their base.

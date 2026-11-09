@@ -834,6 +834,19 @@ public class Brain {
 		this.horseAt = at == null ? null : at.immutable();
 	}
 
+	/** Where its horse is kept (a stall in its town's stable: StableGoal), or null. */
+	@Nullable
+	private BlockPos stall;
+
+	@Nullable
+	public BlockPos stall() {
+		return this.stall;
+	}
+
+	public void setStall(@Nullable BlockPos stall) {
+		this.stall = stall == null ? null : stall.immutable();
+	}
+
 	/** The villagers' trades it has seen (milestone 18, section 10.12). */
 	private final com.dinglebob.drifter.trade.TradeBook trades = new com.dinglebob.drifter.trade.TradeBook();
 
@@ -905,6 +918,10 @@ public class Brain {
 			if (this.horseAt != null) {
 				tag.putLong("HorseAt", this.horseAt.asLong());
 			}
+
+			if (this.stall != null) {
+				tag.putLong("Stall", this.stall.asLong());
+			}
 		}
 		return tag;
 	}
@@ -919,6 +936,7 @@ public class Brain {
 		this.trades.load(tag.getCompound("Trades"));
 		this.horse = tag.hasUUID("Horse") ? tag.getUUID("Horse") : null;
 		this.horseAt = tag.contains("HorseAt") ? BlockPos.of(tag.getLong("HorseAt")) : null;
+		this.stall = tag.contains("Stall") ? BlockPos.of(tag.getLong("Stall")) : null;
 		this.roamCenter = tag.contains("RoamCenter") ? BlockPos.of(tag.getLong("RoamCenter")) : null;
 		this.roamRadius = tag.getInt("RoamRadius");
 		this.roamDimension = tag.contains("RoamDimension") ? tag.getString("RoamDimension") : "minecraft:overworld";

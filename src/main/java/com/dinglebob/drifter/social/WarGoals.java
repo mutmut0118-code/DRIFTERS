@@ -36,9 +36,12 @@ public final class WarGoals {
 
 	/** At war: the leader leads the raiders this close to the target before the charge (then they run in together). */
 	private static final double CHARGE = 48.0;
+	/** The leader's speech before the march: this many lines, this far apart (ticks). */
+	private static final int SPEECH_LINES = 12;
+	private static final long SPEECH_GAP = 20L * 5;
 	/** On the march, the leader waits for raiders this far behind (a while). */
-	private static final double STRAGGLING = 14.0;
-	private static final long WAITS_FOR_STRAGGLERS = 20L * 15;
+	private static final double STRAGGLING = 24.0;
+	private static final long WAITS_FOR_STRAGGLERS = 20L * 10;
 	/** Fit to fight: a weapon, and this share of its health. */
 	private static final float FIT = 0.6F;
 
@@ -54,9 +57,25 @@ public final class WarGoals {
 	/** Chests it goes for round the rival base. */
 	private static final double LOOT_RANGE = 20.0;
 
+	/** At most this many go on a raid (the leader too). */
+	private static final int MOST_MARCHING = 40;
+
+	/** One of those chosen to go: a share of the group (half to seven in ten), by the raid, the same each time it's asked. */
+	static boolean chosen(DrifterWars.Raid raid, DrifterGroups.Group group, java.util.UUID member) {
+		if (group.members.size() <= 4) {
+			return true;
+		}
+
+		long seed = raid.startedAt * 31 + member.getLeastSignificantBits();
+		seed = (seed ^ seed >>> 29) * 0xBF58476D1CE4E5B9L;
+		double roll = ((seed ^ seed >>> 32) >>> 11) / (double)(1L << 53);
+		double share = Math.min(0.5 + Math.floorMod(raid.startedAt, 21) / 100.0, (double)MOST_MARCHING / group.members.size());
+		return roll < share;
+	}
+
 	/** Its group's raid, if it's one of the raiders (near enough to the leader when it set off, or already on it). */
 	@Nullable
-	static DrifterWars.Raid raidFor(DrifterEntity drifter) {
+	public static DrifterWars.Raid raidFor(DrifterEntity drifter) {
 		DrifterGroups.Group group = DrifterGroups.of(drifter.getUUID());
 		if (group == null) {
 			return null;
@@ -74,6 +93,12 @@ public final class WarGoals {
 		// (Its fighters: armed and well. The rest stay home.)
 		if (raid.phase == DrifterWars.Phase.GATHER && !group.leader.equals(drifter.getUUID())
 			&& (!armed(drifter) || drifter.getHealth() < drifter.getMaxHealth() * FIT)) {
+			return null;
+		}
+
+		// (Not all of a town: half to seven in ten of it, the same ones all the raid long, at most MOST_MARCHING; the user,
+		// 2026-11-06: "wars should only use 50% - 70% of the civs". A city of a hundred all came, every one of them.)
+		if (!group.leader.equals(drifter.getUUID()) && !chosen(raid, group, drifter.getUUID())) {
 			return null;
 		}
 
@@ -166,7 +191,8 @@ public final class WarGoals {
 
 		@Override
 		protected int timeoutTicks() {
-			return 20 * 60 * 4;
+			// (The raid's own parts end it, each in its time: a long march gave up every four minutes on the way, the first test.)
+			return 20 * 60 * 20;
 		}
 
 		@Override
@@ -211,23 +237,71 @@ public final class WarGoals {
 					ChatLines.speak(this.drifter, Lines.pick(this.drifter, "war.rally", "enemy", DrifterWars.name(this.raid.defenders)));
 				}
 
-				// Everyone close: off they go (or the leader stops waiting: see DrifterWars).
-				if (this.musterReady()) {
+				// Everyone close: the leader's speech (the user, 2026-11-06: "after they group up the leader should give a very long
+				// speech for morale, and then they travel"), a line every few seconds; then off they go (or the leader stops
+				// waiting: see DrifterWars).
+				if (this.leader && (this.raid.speech > 0 || this.musterReady())) {
+					if (this.raid.speech == 0) {
+						this.raid.enter(DrifterWars.Phase.GATHER, this.now());
+						this.think("everyone's here: a few words before we go");
+					}
+
+					if (this.raid.speech < SPEECH_LINES) {
+						if (this.now() - this.raid.lastSpoke >= SPEECH_GAP) {
+							this.raid.lastSpoke = this.now();
+							this.raid.speech++;
+							String line = null;
+							for (int tries = 0; tries < 6 && (line == null || this.raid.said.contains(line)); tries++) {
+								line = Lines.pick(this.drifter, this.raid.speech == 1 ? "war.speech_open" : this.raid.speech == SPEECH_LINES ? "war.speech_close"
+									: "war.speech", "enemy", DrifterWars.name(this.raid.defenders), "town", DrifterWars.name(this.raid.attackers));
+							}
+
+							if (line != null) {
+								this.raid.said.add(line);
+								ChatLines.speak(this.drifter, line);
+							}
+						}
+
+						return this.begin(new LookAroundTask(this.drifter));
+					}
+
 					this.raid.enter(DrifterWars.Phase.TRAVEL, this.now());
-					this.think("everyone's here: off to raid " + DrifterWars.name(this.raid.defenders));
+					this.heartened();
+					this.think("the speech is done: off to raid " + DrifterWars.name(this.raid.defenders));
 					return Status.RUNNING;
 				}
 
 				return this.begin(new LookAroundTask(this.drifter));
 			}
 
-			// (To the leader where it's gathering them; it's on its way there.)
-			Vec3 to = leader.blockPosition().closerThan(this.raid.home, 8.0) ? leader.position() : Vec3.atBottomCenterOf(this.raid.home);
+			// (To the leader where it's gathering them; it's on its way there. Listening, once it's speaking: facing it.)
+			// (Round the leader wherever it is about the town: stuck getting to the spot itself, the band waited there without it
+			// and the speech never came; a test of it.)
+			Vec3 to = leader.blockPosition().closerThan(this.raid.home, 40.0) ? leader.position() : Vec3.atBottomCenterOf(this.raid.home);
 			if (this.drifter.position().distanceTo(to) > 5.0) {
 				return this.begin(new NavigateTask(this.drifter, to, 3.0, "go to where the raid gathers"));
 			}
 
+			if (this.raid.speech > 0) {
+				return this.begin(new com.dinglebob.drifter.executor.task.LookAtTask(this.drifter, leader.getEyePosition(), 60));
+			}
+
 			return this.begin(new LookAroundTask(this.drifter));
+		}
+
+		/** Its raiders heartened by the speech (confident for the march and the fight). */
+		private void heartened() {
+			DrifterGroups.Group group = DrifterGroups.byId(this.raid.attackers);
+			if (group == null || this.drifter.getServer() == null) {
+				return;
+			}
+
+			for (java.util.UUID id : group.members) {
+				DrifterEntity member = DrifterWars.loaded(this.drifter.getServer(), id);
+				if (member != null && WarGoals.raidFor(member) == this.raid && member.distanceTo(this.drifter) < 24.0) {
+					member.getPersonality().feel(com.dinglebob.drifter.personality.Mood.CONFIDENT, 0.6, "heard the leader's speech before the raid");
+				}
+			}
 		}
 
 		/** Every member that came along is within a few blocks of the leader. */
@@ -237,15 +311,22 @@ public final class WarGoals {
 				return true;
 			}
 
+			int raiders = 0;
+			int here = 0;
 			for (java.util.UUID id : group.members) {
 				DrifterEntity member = DrifterWars.loaded(this.drifter.getServer(), id);
-				if (member != null && member != this.drifter && member.blockPosition().closerThan(this.raid.home, MUSTER_RANGE)
-					&& member.distanceTo(this.drifter) > 8.0) {
-					return false;
+				if (member != null && member != this.drifter && WarGoals.raidFor(member) == this.raid) {
+					raiders++;
+					if (member.distanceTo(this.drifter) <= 10.0) {
+						here++;
+					}
 				}
 			}
 
-			return true;
+			// (Everyone; or, after a while, most of them: a few always have something on, and the speech waited for them till the
+			// gathering ran out, never given; the first test of it.)
+			return here >= raiders || this.now() - this.raid.phaseSince > DrifterWars.GATHER_TICKS / 2 && here * 3 >= raiders * 2
+				|| this.now() - this.raid.phaseSince > DrifterWars.GATHER_TICKS * 3 / 4 && here * 2 >= raiders;
 		}
 
 		private Status travel() {
@@ -275,11 +356,15 @@ public final class WarGoals {
 				}
 
 				this.waitingSince = -1;
-				return this.begin(this.leg(this.raid.target, "on the way to raid " + DrifterWars.name(this.raid.defenders)));
+				// (The leader marches, at a walk, along the road; the rest keep up at a run when they fall behind.)
+				return this.begin(this.leader ? com.dinglebob.drifter.nav.Legs.toward(this.drifter, this.raid.target, 3.0, "on the way to raid "
+					+ DrifterWars.name(this.raid.defenders), NavigateTask.Pace.STROLL) : this.leg(this.raid.target, "on the way to raid "
+					+ DrifterWars.name(this.raid.defenders)));
 			}
 
 			if (this.drifter.distanceTo(leader) > 6.0) {
-				return this.begin(new NavigateTask(this.drifter, leader.position(), 3.0, "keep up with " + leader.getName().getString()));
+				return this.begin(new NavigateTask(this.drifter, leader.position(), 3.0, "keep up with " + leader.getName().getString(),
+					this.drifter.distanceTo(leader) > 12.0 ? NavigateTask.Pace.TRAVEL : NavigateTask.Pace.STROLL));
 			}
 
 			return this.begin(new LookAroundTask(this.drifter));
@@ -503,18 +588,9 @@ public final class WarGoals {
 			return this.begin(this.leg(this.raid.home, "head home from the raid"));
 		}
 
-		/** A stretch of up to 32 blocks toward somewhere far (the way players cross country, a bit at a time). */
+		/** A stretch toward somewhere far: along the road there, if there's one ({@link com.dinglebob.drifter.nav.Legs}). */
 		private Task leg(BlockPos to, String what) {
-			Vec3 from = this.drifter.position();
-			Vec3 toward = Vec3.atBottomCenterOf(to).subtract(from);
-			double distance = Math.sqrt(toward.x * toward.x + toward.z * toward.z);
-			if (distance <= 32.0) {
-				return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(to), 3.0, what);
-			}
-
-			Vec3 step = from.add(toward.x / distance * 32.0, 0.0, toward.z / distance * 32.0);
-			BlockPos ground = this.drifter.level().getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, BlockPos.containing(step));
-			return new NavigateTask(this.drifter, Vec3.atBottomCenterOf(ground), 4.0, what);
+			return com.dinglebob.drifter.nav.Legs.toward(this.drifter, to, 3.0, what);
 		}
 
 		@Nullable

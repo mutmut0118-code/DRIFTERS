@@ -215,7 +215,7 @@ public final class SocialCommands {
 
 				String truce = now < feud.truceUntil ? String.format(Locale.ROOT, ", truce for %d more min", (feud.truceUntil - now) / 1200) : "";
 				String raiding = raid == null ? "" : ", " + com.dinglebob.drifter.world.DrifterWars.name(raid.attackers) + " raiding (" + raid.phase.name().toLowerCase(Locale.ROOT)
-					+ ", " + java.util.List.of("loot only", "doors and fields too", "fire too").get(raid.grief) + ")";
+					+ ", " + java.util.List.of("loot only", "doors and fields too", "fire too").get(raid.grief) + where(ctx, raid) + ")";
 				say(ctx, String.format(Locale.ROOT, "%s vs %s: %s, tension %d, losses %d / %d%s%s", com.dinglebob.drifter.world.DrifterWars.name(feud.a),
 					com.dinglebob.drifter.world.DrifterWars.name(feud.b), com.dinglebob.drifter.world.DrifterWars.levelName(feud.tension),
 					Math.round(feud.tension), feud.lossesA, feud.lossesB, truce, raiding));
@@ -476,5 +476,29 @@ public final class SocialCommands {
 
 		say(ctx, "Found a mineshaft near " + found.toShortString() + " but couldn't get into it");
 		return 0;
+	}
+
+	/** Where a raid's leader is, how far it is from the target, and how many of its raiders are with it. */
+	private static String where(CommandContext<CommandSourceStack> ctx, com.dinglebob.drifter.world.DrifterWars.Raid raid) {
+		var group = com.dinglebob.drifter.world.DrifterGroups.byId(raid.attackers);
+		DrifterEntity leader = group == null ? null : com.dinglebob.drifter.world.DrifterWars.loaded(ctx.getSource().getServer(), group.leader);
+		if (leader == null) {
+			return ", leader not loaded";
+		}
+
+		int with = 0;
+		int raiders = 0;
+		for (java.util.UUID id : group.members) {
+			DrifterEntity member = com.dinglebob.drifter.world.DrifterWars.loaded(ctx.getSource().getServer(), id);
+			if (member != null && member != leader && com.dinglebob.drifter.social.WarGoals.raidFor(member) == raid) {
+				raiders++;
+				if (member.distanceTo(leader) < 24.0) {
+					with++;
+				}
+			}
+		}
+
+		return String.format(Locale.ROOT, ", leader at %d, %d, %d from the target, %d of %d raiders with it, %d lines said", leader.getBlockX(), leader.getBlockZ(),
+			Math.round(Math.sqrt(leader.blockPosition().distSqr(raid.target))), with, raiders, raid.speech);
 	}
 }

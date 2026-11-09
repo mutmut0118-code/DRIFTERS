@@ -315,7 +315,10 @@ public final class TownBuilder {
 		HARBOUR("harbour", "along a shore: a waterfront road, piers out over the water", 1.0, 3.0, 0.07),
 		HILL("hill", "on a hill: its streets winding round it, houses on terraces, a lookout", 0.4, 0.8, 0.1),
 		RING("ring", "a ring road round the plaza, spokes out from it", 0.8, 5.0, 0.07),
-		GRID("grid", "planned streets on a grid round the plaza", 0.0, 10.0, 0.07);
+		GRID("grid", "planned streets on a grid round the plaza", 0.0, 10.0, 0.07),
+		// (Cities' own: the user, 2026-11-06, "for cities, lets explore different road shapes aswell (excluding the main street one)".)
+		STAR("star", "six avenues out from the plaza like a star, a ring road joining them", 0.5, 6.0, 0.07),
+		RINGS("rings", "two ring roads round the plaza, spokes out through both", 0.8, 5.0, 0.07);
 
 		final String id;
 		final String what;
@@ -364,6 +367,21 @@ public final class TownBuilder {
 	 */
 	private static final double[] SHARES = {0.25, 0.30, 0.20, 0.15, 0.10};
 	private static final Shape[] BY_CHANCE = {Shape.CROSSROADS, Shape.MAIN_STREET, Shape.WINDING, Shape.RING, Shape.GRID};
+	/** A city's shapes, by how often (never a main street). */
+	private static final double[] CITY_SHARES = {0.25, 0.15, 0.1, 0.15, 0.2, 0.15};
+	private static final Shape[] CITY_SHAPES = {Shape.GRID, Shape.CROSSROADS, Shape.WINDING, Shape.RING, Shape.STAR, Shape.RINGS};
+
+	private static Shape cityByChance(RandomSource random) {
+		double roll = random.nextDouble();
+		for (int i = 0; i < CITY_SHARES.length; i++) {
+			roll -= CITY_SHARES[i];
+			if (roll < 0) {
+				return CITY_SHAPES[i];
+			}
+		}
+
+		return Shape.GRID;
+	}
 	/** Grid streets this far apart; a town's grid this far out from the plaza, a city's this far. */
 	private static final int GRID_STEP = 24;
 	private static final int TOWN_GRID = 30;
@@ -492,6 +510,23 @@ public final class TownBuilder {
 		private Rect storeRect;
 		private List<Rect> fieldRects;
 		private Rect penRect;
+		/** Its mine: where the stairs go down, the hub at their bottom, which way its corridor runs, the cells dug. */
+		@Nullable
+		private BlockPos mineEntrance;
+		@Nullable
+		private BlockPos mineBottom;
+		@Nullable
+		private Direction mineWay;
+		private final java.util.Set<BlockPos> mineCells = new java.util.LinkedHashSet<>();
+		/** Its stable's horses and the stall each stands in (handed to households as they settle). */
+		private final List<UUID> horses = new ArrayList<>();
+		private final List<BlockPos> stalls = new ArrayList<>();
+		private int horsesGiven;
+		/** Its apiary's hives, and the stable's insides (its people know them). */
+		private final List<BlockPos> hives = new ArrayList<>();
+		private final List<BlockPos> stableCells = new ArrayList<>();
+		@Nullable
+		private BlockPos stableAt;
 		private final List<Rect> taken = new ArrayList<>();
 		/**
 		 * Columns of its land something's built on already (a house a Drifter put up, a ruin: {@link #built}): its roads,
@@ -555,7 +590,7 @@ public final class TownBuilder {
 			this.world = world;
 			this.ruin = ruin;
 			this.city = households >= CITY && !ruin;
-			this.shape = forcedShape != null ? forcedShape : this.city ? Shape.GRID : households <= 5 ? Shape.MAIN_STREET : byChance(this.random);
+			this.shape = forcedShape != null ? forcedShape : this.city ? cityByChance(this.random) : households <= 5 ? Shape.MAIN_STREET : byChance(this.random);
 			this.steps.add(new Step("layout", this::layout));
 		}
 
@@ -658,8 +693,11 @@ public final class TownBuilder {
 				}
 			}
 
-			if (this.shape == Shape.RING) {
+			if (this.shape == Shape.RING || this.shape == Shape.STAR) {
 				this.addRoad(this.ring(this.city ? RING + 16 : RING));
+			} else if (this.shape == Shape.RINGS) {
+				this.addRoad(this.ring(RING));
+				this.addRoad(this.ring(this.city ? RING + 44 : RING + 28));
 			} else if (this.shape == Shape.GRID) {
 				this.gridStreets(this.city ? CITY_GRID : TOWN_GRID);
 			}
@@ -706,6 +744,19 @@ public final class TownBuilder {
 		private double[] mainHeadings() {
 			return switch (this.shape) {
 				case CROSSROADS, RING, GRID, RIVER, HARBOUR -> new double[] {0, Math.PI / 2, Math.PI, -Math.PI / 2};
+				case STAR -> {
+					double first = this.random.nextDouble() * Math.PI / 3;
+					double[] ways = new double[6];
+					for (int i = 0; i < 6; i++) {
+						ways[i] = first + i * Math.PI / 3;
+					}
+
+					yield ways;
+				}
+				case RINGS -> {
+					double first = this.random.nextDouble() * Math.PI / 4;
+					yield new double[] {first, first + Math.PI / 2, first + Math.PI, first - Math.PI / 2};
+				}
 				case HILL -> new double[] {this.uphill + Math.PI / 2, this.uphill - Math.PI / 2, this.uphill + Math.PI};
 				case MAIN_STREET -> {
 					double way = this.flattestAxis();
@@ -1021,6 +1072,9 @@ public final class TownBuilder {
 			Shape picked = this.shape;
 			if (forcedShape == null && !this.city) {
 				picked = this.river ? Shape.RIVER : this.coast ? Shape.HARBOUR : this.hill ? Shape.HILL : this.shape;
+			} else if (forcedShape == null) {
+				// (A city on a river or a shore: a river city, a harbour city; never a hill town's terraces.)
+				picked = this.river ? Shape.RIVER : this.coast ? Shape.HARBOUR : this.shape;
 			}
 
 			// (Asked for a river or a harbour with no water near: a main street.)
@@ -1476,7 +1530,9 @@ public final class TownBuilder {
 			int looked = 0;
 			for (int[] o : spots) {
 				Rect site = new Rect(mx + o[0] - w / 2, mz + o[1] - d / 2, mx + o[0] - w / 2 + w - 1, mz + o[1] - d / 2 + d - 1);
-				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.nearRoad(site, 2) || this.standingNear(site, 4)) {
+				// (Nor on a house: found by the user, a stable and a mine on top of homes, their lots never checked against them.)
+				if (!this.inReach(site) || this.taken.stream().anyMatch(other -> other.near(site, 3)) || this.houseRects.stream().anyMatch(other -> other.near(site, 3))
+					|| this.nearRoad(site, 2) || this.standingNear(site, 4)) {
 					continue;
 				}
 
@@ -1620,6 +1676,8 @@ public final class TownBuilder {
 				case RIVER, HARBOUR -> 1 + this.households / 5;
 				case RING -> this.households / 6;
 				case GRID -> this.city ? 2 + this.households / 4 : 1;
+				case STAR -> this.households / 6;
+				case RINGS -> this.households / 8;
 			};
 		}
 
@@ -1646,7 +1704,7 @@ public final class TownBuilder {
 		 * road), out into the land, following it as the main roads do, clear of {@code busy} and of each other.
 		 */
 		private void branches(List<Rect> busy, int want, int most) {
-			boolean anyRoad = this.city || this.shape == Shape.WINDING || this.shape == Shape.RING;
+			boolean anyRoad = this.city || this.shape == Shape.WINDING || this.shape == Shape.RING || this.shape == Shape.STAR || this.shape == Shape.RINGS;
 			int shortest = this.shape == Shape.MAIN_STREET ? 16 : SHORTEST_BRANCH;
 			int longest = (this.shape == Shape.MAIN_STREET ? 30 : LONGEST_BRANCH) * (this.city ? 2 : 1);
 			for (int tries = 0; tries < most && this.roads.size() < this.mains + want; tries++) {
@@ -2913,12 +2971,412 @@ public final class TownBuilder {
 				this.emptyHouse = this.houses.size() - 2;
 			}
 
+			this.then("mine", this::mine);
+			this.then("stable", this::stable);
+			this.then("apiary", this::apiary);
 			for (int i = 0; i < this.houses.size(); i++) {
 				int index = i;
 				this.then("household", () -> this.household(index));
 			}
 
 			this.then("townUp", this::townUp);
+		}
+
+		/**
+		 * The town's stable (C5; the user, 2026-11-06: "bees and stables"): on a lot by its edge, eleven across and six deep,
+		 * walls of planks with log corners, a roof of slabs, open at the front; three stalls with hay at the back, a fence
+		 * between each; a horse in each (tamed and saddled, its people's: a household each), tied to the fence; a chest with
+		 * leads and wheat, a cauldron of water. A hamlet has none; a town one horse or two, a city three.
+		 */
+		private void stable() {
+			if (this.ruin || this.households <= 5) {
+				return;
+			}
+
+			Lot lot = this.lot(11, 11, this.penRect, 40, false, false);
+			if (lot == null) {
+				DrifterCivilizations.LOGGER.info("[town] {}: no lot for a stable", this.name);
+				return;
+			}
+
+			Rect site = lot.site();
+			this.taken.add(site);
+			Direction front = lot.front() != null ? lot.front() : Direction.SOUTH;
+			Direction in = front.getOpposite();
+			Direction across = front.getClockWise();
+			int base = lot.base() != null ? lot.base() : median(this.level, site.x0(), site.z0(), site.x1(), site.z1());
+			BlockPos middle = new BlockPos((site.x0() + site.x1()) / 2, base, (site.z0() + site.z1()) / 2);
+			BlockPos frontMid = middle.relative(front, 3);
+			java.util.function.BiFunction<Integer, Integer, BlockPos> at = (a, b) -> frontMid.relative(across, a).relative(in, b);
+			for (int a = -5; a <= 5; a++) {
+				for (int b = 0; b <= 5; b++) {
+					BlockPos floor = at.apply(a, b);
+					for (BlockPos below = floor.below(); below.getY() > base - 6 && (this.level.getBlockState(below).isAir()
+						|| !this.level.getFluidState(below).isEmpty()); below = below.below()) {
+						set(this.level, below, Blocks.DIRT.defaultBlockState());
+					}
+
+					set(this.level, floor, Blocks.COARSE_DIRT.defaultBlockState());
+					for (int h = 1; h <= 5; h++) {
+						set(this.level, floor.above(h), Blocks.AIR.defaultBlockState());
+					}
+
+					boolean wall = Math.abs(a) == 5 || b == 5;
+					if (wall) {
+						for (int h = 1; h <= 3; h++) {
+							set(this.level, floor.above(h), (Math.abs(a) == 5 && (b == 0 || b == 5) ? wood("log") : wood("planks")).defaultBlockState());
+						}
+					}
+
+					set(this.level, floor.above(4), wood("slab").defaultBlockState());
+					for (int h = 0; h <= 4; h++) {
+						this.stableCells.add(floor.above(h));
+					}
+				}
+			}
+
+			// The stalls: [-4, -3], [-1, 1], [3, 4], fences between (front to back but the first row), hay at the back.
+			for (int a : new int[] {-2, 2}) {
+				for (int b = 1; b <= 4; b++) {
+					place(this.level, at.apply(a, b).above(), wood("fence").defaultBlockState());
+				}
+			}
+
+			int[] middles = {-3, 0, 3};
+			for (int k = 0; k < middles.length; k++) {
+				set(this.level, at.apply(middles[k], 4).above(), Blocks.HAY_BLOCK.defaultBlockState());
+				int horses = this.city ? 3 : this.households >= 8 ? 2 : 1;
+				if (k >= horses) {
+					continue;
+				}
+
+				BlockPos stall = at.apply(middles[k], 2).above();
+				BlockPos post = at.apply(middles[k] < 0 ? -2 : 2, 2).above();
+				net.minecraft.world.entity.animal.horse.Horse horse = net.minecraft.world.entity.EntityType.HORSE.create(this.level);
+				if (horse == null) {
+					continue;
+				}
+
+				horse.moveTo(stall.getX() + 0.5, stall.getY(), stall.getZ() + 0.5, in.getOpposite().toYRot(), 0.0F);
+				horse.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(stall), net.minecraft.world.entity.MobSpawnType.STRUCTURE, null);
+				horse.setTamed(true);
+				horse.equipSaddle(new ItemStack(Items.SADDLE), null);
+				horse.setPersistenceRequired();
+				if (this.level.addFreshEntity(horse)) {
+					horse.setLeashedTo(net.minecraft.world.entity.decoration.LeashFenceKnotEntity.getOrCreateKnot(this.level, post), true);
+					this.horses.add(horse.getUUID());
+					this.stalls.add(stall);
+				}
+			}
+
+			BlockPos chestAt = at.apply(4, 0).above();
+			set(this.level, chestAt, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, front));
+			if (this.level.getBlockEntity(chestAt) instanceof ChestBlockEntity chest) {
+				chest.setItem(0, new ItemStack(Items.LEAD, 2));
+				chest.setItem(1, new ItemStack(Items.WHEAT, 16));
+				chest.setItem(2, new ItemStack(Items.HAY_BLOCK, 4));
+			}
+
+			set(this.level, at.apply(-4, 0).above(), Blocks.WATER_CAULDRON.defaultBlockState()
+				.setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
+			this.stableAt = frontMid.above();
+			DrifterCivilizations.LOGGER.info("[town] {}: its stable at {}, {} horses", this.name, frontMid.toShortString(), this.horses.size());
+		}
+
+		/**
+		 * Its apiary (C5): by its fields, a patch of flowers and two or three hives, each sat on a lit campfire (its smoke keeps
+		 * the bees calm when someone takes the honey, as a player keeps them), bees in each, some honey in them already.
+		 */
+		private void apiary() {
+			if (this.ruin || this.fieldRects.isEmpty()) {
+				return;
+			}
+
+			Lot lot = this.lot(7, 7, this.fieldRects.get(0), 24, false, false);
+			if (lot == null) {
+				return;
+			}
+
+			Rect site = lot.site();
+			this.taken.add(site);
+			Block[] flowers = {Blocks.POPPY, Blocks.DANDELION, Blocks.CORNFLOWER, Blocks.OXEYE_DAISY, Blocks.AZURE_BLUET, Blocks.ALLIUM};
+			int hives = 2 + this.random.nextInt(2);
+			int made = 0;
+			for (int x = site.x0() + 1; x <= site.x1() - 1; x++) {
+				for (int z = site.z0() + 1; z <= site.z1() - 1; z++) {
+					int g = ground(this.level, x, z);
+					BlockPos top = new BlockPos(x, g, z);
+					if (!this.level.getFluidState(top).isEmpty() || !this.level.getBlockState(top.above()).isAir() && !plant(this.level.getBlockState(top.above()))) {
+						continue;
+					}
+
+					boolean hive = made < hives && (x - site.x0()) % 3 == 1 && z == site.z0() + 1;
+					if (hive) {
+						set(this.level, top.above(), Blocks.CAMPFIRE.defaultBlockState());
+						BlockState hiveState = Blocks.BEEHIVE.defaultBlockState().setValue(net.minecraft.world.level.block.BeehiveBlock.FACING,
+							lot.front() != null ? lot.front() : Direction.SOUTH).setValue(net.minecraft.world.level.block.BeehiveBlock.HONEY_LEVEL,
+							this.random.nextInt(6));
+						set(this.level, top.above(2), hiveState);
+						if (this.level.getBlockEntity(top.above(2)) instanceof net.minecraft.world.level.block.entity.BeehiveBlockEntity entity) {
+							for (int b = 0; b < 2 + this.random.nextInt(2); b++) {
+								net.minecraft.world.entity.animal.Bee bee = net.minecraft.world.entity.EntityType.BEE.create(this.level);
+								if (bee != null) {
+									bee.moveTo(top.getX() + 0.5, top.getY() + 3, top.getZ() + 0.5);
+									entity.addOccupant(bee);
+								}
+							}
+						}
+
+						this.hives.add(top.above(2));
+						made++;
+					} else if (z > site.z0() + 2 && this.random.nextFloat() < 0.7F) {
+						if (this.level.getBlockState(top).is(Blocks.DIRT) || this.level.getBlockState(top).is(Blocks.COARSE_DIRT)) {
+							set(this.level, top, Blocks.GRASS_BLOCK.defaultBlockState());
+						}
+
+						if (this.level.getBlockState(top).is(net.minecraft.tags.BlockTags.DIRT)) {
+							set(this.level, top.above(), flowers[this.random.nextInt(flowers.length)].defaultBlockState());
+						}
+					}
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[town] {}: an apiary of {} hives", this.name, made);
+		}
+
+		/** Its hub and strip mines this deep (where iron, gold, redstone and lapis are all about, and caves). */
+		private static final int MINE_Y = 11;
+
+		/**
+		 * The town's mine (the user, 2026-11-06: "there should be a dedicated "mine area" where its a huge staircase opening
+		 * into a bunch of strip mines, possibly leading to caves underground"): from a lot near its edge, a staircase three
+		 * wide down to Y 11, a landing every sixteen steps, torches all the way; at its bottom a hub (a chest and a table) and a
+		 * corridor on with a strip mine off it every four blocks either side. Water, lava and sand or gravel over the way are
+		 * walled off; a cave it breaks into is left open. Its people mine from it (their mine: their trips start at its hub).
+		 */
+		private void mine() {
+			if (this.ruin) {
+				return;
+			}
+
+			Lot lot = this.lot(7, 7, this.penRect, 36, false, false);
+			if (lot == null) {
+				DrifterCivilizations.LOGGER.info("[town] {}: no lot for a mine", this.name);
+				return;
+			}
+
+			Rect site = lot.site();
+			this.taken.add(site);
+			int ex = (site.x0() + site.x1()) / 2;
+			int ez = (site.z0() + site.z1()) / 2;
+			// (Down toward the town's middle: under its own land, all loaded, away from the wild beyond.)
+			int dx = this.cx - ex;
+			int dz = this.cz - ez;
+			Direction toward = Math.abs(dx) >= Math.abs(dz) ? (dx >= 0 ? Direction.EAST : Direction.WEST) : (dz >= 0 ? Direction.SOUTH : Direction.NORTH);
+			// (Its stairs' first stretch, shallow under the ground, not under a house: toward the middle if that's clear, else to
+			// a side; found by the user's town check, the first stretch under a house built before it.)
+			int top = ground(this.level, ex, ez);
+			int bottom = top - MINE_Y < 24 ? top - 24 : MINE_Y;
+			// (And all of it on loaded ground: its stairs, landings, hub and corridor.)
+			int reach = (top - bottom) * 19 / 16 + 44;
+			Direction way = toward;
+			for (Direction d : new Direction[] {toward, toward.getClockWise(), toward.getCounterClockWise()}) {
+				BlockPos mouth = new BlockPos(ex, 0, ez).relative(d.getOpposite(), 3);
+				Rect first = stairsStretch(mouth, d);
+				BlockPos end = mouth.relative(d, reach);
+				if (this.houseRects.stream().noneMatch(house -> house.near(first, 1)) && loadedAt(this.level, end.getX(), end.getZ())
+					&& loadedAt(this.level, end.relative(d.getClockWise(), 18).getX(), end.relative(d.getClockWise(), 18).getZ())
+					&& loadedAt(this.level, end.relative(d.getCounterClockWise(), 18).getX(), end.relative(d.getCounterClockWise(), 18).getZ())) {
+					way = d;
+					break;
+				}
+			}
+
+			Direction side = way.getClockWise();
+			BlockState steps = (this.look.wall() == Blocks.SANDSTONE ? Blocks.SANDSTONE_STAIRS : Blocks.COBBLESTONE_STAIRS).defaultBlockState()
+				.setValue(net.minecraft.world.level.block.StairBlock.FACING, way.getOpposite());
+			BlockPos at = new BlockPos(ex, top + 1, ez).relative(way.getOpposite(), 3);
+			// The mouth: a frame of logs and a roof of slabs over the first steps.
+			for (int s = -2; s <= 2; s += 4) {
+				for (int h = 0; h <= 3; h++) {
+					set(this.level, at.relative(side, s).above(h), wood("log").defaultBlockState());
+				}
+			}
+
+			for (int s = -2; s <= 2; s++) {
+				set(this.level, at.relative(side, s).above(4), wood("slab").defaultBlockState());
+			}
+
+			// Each post down to the ground, and the way in (the mouth and a step out from it) on solid ground: the land under
+			// the mouth isn't level (the user, 2026-11-08: "its the mine structure thats floating a bit").
+			for (int s = -2; s <= 2; s += 4) {
+				BlockPos post = at.relative(side, s);
+				for (int d = 1; d <= 8 && !sturdy(this.level, post.below(d)); d++) {
+					set(this.level, post.below(d), wood("log").defaultBlockState());
+				}
+			}
+
+			for (int s = -1; s <= 1; s++) {
+				for (int out = 0; out <= 1; out++) {
+					BlockPos floor = at.relative(way.getOpposite(), out).relative(side, s).below();
+					for (int d = 0; d <= 6 && !sturdy(this.level, floor.below(d)); d++) {
+						set(this.level, floor.below(d), (d == 0 ? this.look.wall() : Blocks.DIRT).defaultBlockState());
+					}
+				}
+			}
+
+			this.mineEntrance = at;
+			// (The stairs' first stretch, shallow under the ground: kept off too, with the lot.)
+			this.taken.add(stairsStretch(at, way));
+			// Down: a block down each block on, a landing of three every sixteen.
+			int feet = top + 1;
+			BlockPos column = at;
+			int run = 0;
+			int guard = 0;
+			while (feet > bottom + 1 && guard++ < 400) {
+				column = column.relative(way);
+				boolean landing = run == 16;
+				if (landing) {
+					for (int i = 0; i < 3; i++) {
+						this.mineSlice(column, feet, side, null, i == 1);
+						column = column.relative(way);
+					}
+
+					run = 0;
+				}
+
+				feet--;
+				run++;
+				this.mineSlice(column, feet, side, steps, run % 5 == 0);
+			}
+
+			// The hub: seven across, four high, a chest and a table.
+			BlockPos hub = new BlockPos(column.getX(), feet, column.getZ()).relative(way, 4);
+			for (int a = -3; a <= 3; a++) {
+				for (int b = -3; b <= 3; b++) {
+					BlockPos cell = hub.relative(way, a).relative(side, b);
+					this.mineCell(cell, 4);
+				}
+			}
+
+			// (Lit along its side walls, three a side: its ends are the stairs and the corridor.)
+			for (int a = -2; a <= 2; a += 2) {
+				for (int b = -3; b <= 3; b += 6) {
+					this.mineTorch(hub.relative(way, a).relative(side, b), b > 0 ? side : side.getOpposite());
+				}
+			}
+
+			set(this.level, hub.relative(way, -2).relative(side, 2), Blocks.CHEST.defaultBlockState()
+				.setValue(net.minecraft.world.level.block.ChestBlock.FACING, side.getOpposite()));
+			set(this.level, hub.relative(way, -2).relative(side, -2), Blocks.CRAFTING_TABLE.defaultBlockState());
+			// On from it: a corridor three wide, and the strip mines off it.
+			BlockPos start = hub.relative(way, 4);
+			for (int i = 0; i < 32; i++) {
+				BlockPos c = start.relative(way, i);
+				for (int b = -1; b <= 1; b++) {
+					this.mineCell(c.relative(side, b), 3);
+				}
+
+				if (i % 8 == 4) {
+					this.mineTorch(c.relative(side, -1), side.getOpposite());
+				} else if (i % 8 == 0) {
+					this.mineTorch(c.relative(side, 1), side);
+				}
+
+				if (i % 4 == 2) {
+					for (Direction out : new Direction[] {side, side.getOpposite()}) {
+						for (int j = 2; j <= 17; j++) {
+							this.mineCell(c.relative(out, j), 2);
+						}
+					}
+				}
+			}
+
+			// A torch halfway along each strip (once they're all dug: a strip's wall may be the next one's end).
+			for (int i = 2; i < 32; i += 4) {
+				for (Direction out : new Direction[] {side, side.getOpposite()}) {
+					this.mineTorch(start.relative(way, i).relative(out, 9), way);
+				}
+			}
+
+			this.mineBottom = hub;
+			this.mineWay = way;
+			DrifterCivilizations.LOGGER.info("[town] {}: its mine from {} down to Y {} ({} blocks dug)", this.name, at.toShortString(), hub.getY(),
+				this.mineCells.size());
+		}
+
+		/** The ground over a mine's stairs where they're still shallow: from its mouth twelve blocks on, two either side. */
+		private static Rect stairsStretch(BlockPos mouth, Direction way) {
+			BlockPos far = mouth.relative(way, 12);
+			return new Rect(Math.min(mouth.getX(), far.getX()) - 2, Math.min(mouth.getZ(), far.getZ()) - 2, Math.max(mouth.getX(), far.getX()) + 2,
+				Math.max(mouth.getZ(), far.getZ()) + 2);
+		}
+
+		/** One step of the stairs: three across, four high, the step under it; a torch on its wall now and then. */
+		private void mineSlice(BlockPos column, int feet, Direction side, @Nullable BlockState step, boolean torch) {
+			for (int b = -1; b <= 1; b++) {
+				BlockPos cell = new BlockPos(column.getX(), feet, column.getZ()).relative(side, b);
+				this.mineCell(cell, 4);
+				if (step != null) {
+					set(this.level, cell, step);
+				}
+			}
+
+			if (torch) {
+				this.mineTorch(new BlockPos(column.getX(), feet, column.getZ()).relative(side, -1).above(), side.getOpposite());
+			}
+		}
+
+		/** A cell of the mine dug out, this high, its floor and walls kept: water, lava, sand and gravel walled off. */
+		private void mineCell(BlockPos feet, int high) {
+			if (!this.level.hasChunkAt(feet)) {
+				return;
+			}
+
+			for (int h = 0; h < high; h++) {
+				BlockPos pos = feet.above(h);
+				set(this.level, pos, Blocks.AIR.defaultBlockState());
+				this.mineCells.add(pos);
+			}
+
+			// Its floor, and round it what would pour or fall in.
+			this.mineSeal(feet.below(), true);
+			this.mineSeal(feet.above(high), false);
+			for (Direction d : Direction.Plane.HORIZONTAL) {
+				for (int h = 0; h < high; h++) {
+					this.mineSeal(feet.relative(d).above(h), false);
+				}
+			}
+		}
+
+		/** Water, lava, or sand or gravel (and, under a floor, nothing at all) here: cobblestone. */
+		private void mineSeal(BlockPos pos, boolean floor) {
+			BlockState state = this.level.getBlockState(pos);
+			if (this.mineCells.contains(pos) && !floor) {
+				return;
+			}
+
+			if (!state.getFluidState().isEmpty() || state.getBlock() instanceof net.minecraft.world.level.block.FallingBlock || floor && state.isAir()) {
+				set(this.level, pos, Blocks.COBBLESTONE.defaultBlockState());
+			}
+		}
+
+		/**
+		 * A torch a block up in this cell, on its wall {@code toWall} of it (the wall made if it's open; none if that's more of
+		 * the mine). Found by the user: the mine all dark, every torch put to the wrong side (into the mine), so none went up.
+		 */
+		private void mineTorch(BlockPos cell, Direction toWall) {
+			BlockPos at = cell.above();
+			BlockPos wall = at.relative(toWall);
+			if (this.mineCells.contains(wall) || !this.level.getBlockState(at).isAir()) {
+				return;
+			}
+
+			if (!this.level.getBlockState(wall).isFaceSturdy(this.level, wall, toWall.getOpposite())) {
+				set(this.level, wall, Blocks.COBBLESTONE.defaultBlockState());
+			}
+
+			set(this.level, at, Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, toWall.getOpposite()));
 		}
 
 		private void household(int i) {
@@ -2937,6 +3395,9 @@ public final class TownBuilder {
 				this.owners.add("");
 				return;
 			}
+
+			// (Still till it's geared, with the town done round it: freed in townUp.)
+			DrifterApi.holdStill(drifter, HELD);
 
 			this.owners.add(drifter.getName().getString());
 			nameSign(this.level, house, plot.front, drifter.getName().getString());
@@ -2959,7 +3420,25 @@ public final class TownBuilder {
 			home.farmRadius = 4;
 			home.pen = this.pen;
 			plot.owner = drifter.getUUID();
-			stock(this.level, home, house.box());
+			// Its town's hives and stable (it knows where they are, and the way in).
+			for (BlockPos hive : this.hives) {
+				drifter.getSenses().terrain().mark(hive);
+			}
+
+			for (BlockPos cell : this.stableCells) {
+				drifter.getSenses().terrain().mark(cell);
+			}
+
+			// A horse of its own in the stable, while there are any to hand out.
+			if (this.horsesGiven < this.horses.size() && this.level.getEntity(this.horses.get(this.horsesGiven))
+				instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+				DrifterApi.keepHorse(drifter, horse, this.stalls.get(this.horsesGiven));
+				this.horsesGiven++;
+			}
+
+			// (The town's mine is its mine: its trips start at its share of the faces down there; it knows the way down.)
+			this.mineShare(drifter, home);
+
 			for (BlockPos chest : home.chests()) {
 				DrifterApi.rememberChest(drifter, chest);
 			}
@@ -2969,6 +3448,7 @@ public final class TownBuilder {
 			this.people.add(drifter);
 			if (i == this.buildingHouse) {
 				DrifterApi.stillBuilding(drifter, 6);
+				stock(this.level, house.box(), DrifterApi.trait(drifter, "tidiness"));
 				return;
 			}
 
@@ -2981,6 +3461,8 @@ public final class TownBuilder {
 					break;
 				}
 
+				DrifterApi.holdStill(other, HELD);
+
 				DrifterApi.notABandit(other);
 				Home shared = DrifterApi.settleInToo(other, house, this.store);
 				if (shared == null) {
@@ -2991,6 +3473,7 @@ public final class TownBuilder {
 				shared.farm = home.farm;
 				shared.farmRadius = 4;
 				shared.pen = this.pen;
+				this.mineShare(other, shared);
 				plot.residents.add(other.getUUID());
 				for (BlockPos chest : shared.chests()) {
 					DrifterApi.rememberChest(other, chest);
@@ -3000,21 +3483,44 @@ public final class TownBuilder {
 				DrifterApi.knowsBox(other, this.plazaBox);
 				this.people.add(other);
 			}
+
+			// Its storage filled once everyone's in (their bedside chests too), kept as its first household keeps things.
+			stock(this.level, house.box(), DrifterApi.trait(drifter, "tidiness"));
+		}
+
+		/** Its share of the town's mine (the next one's, by how many people there are so far): its faces, and the way down. */
+		private void mineShare(DrifterEntity drifter, Home home) {
+			if (this.mineBottom == null || this.mineEntrance == null) {
+				return;
+			}
+
+			home.townMine.clear();
+			home.townMine.addAll(TownMine.share(TownMine.faces(this.mineEntrance, this.mineBottom, this.mineWay), this.people.size()));
+			home.townMinePath.clear();
+			home.townMinePath.addAll(TownMine.path(this.mineEntrance, this.mineBottom, this.mineWay));
+			home.mineTrips = 0;
+			for (BlockPos cell : this.mineCells) {
+				drifter.getSenses().terrain().mark(cell);
+			}
 		}
 
 		/** One group, geared by their places; the town itself, its past and its keeper; its notice board. */
+		/** Its people stand still this long at most while it's made (freed when they're geared: a town takes seconds). */
+		private static final long HELD = 20L * 60;
+
 		private void townUp() {
 			var group = DrifterApi.formGroup(this.people, this.name);
 			// Gear by their place in the town (the user, 2026-10-28: everyone in diamond, "i cant tell a guard from a citizen, or
-			// a citizen from a leader"): its leader (the group's first), its two boldest as guards, the rest a working life's.
+			// a citizen from a leader"): its leader (the group's first), its boldest as guards (a city one in seven, a town one in ten, two at least), the rest a working life's.
 			List<DrifterEntity> boldest = new ArrayList<>(this.people.subList(Math.min(1, this.people.size()), this.people.size()));
 			boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
 				.reversed());
 			List<UUID> guards = new ArrayList<>();
 			for (DrifterEntity one : this.people) {
-				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0 && boldest.indexOf(one) < 2 ? "guard"
-					: "citizen";
+				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0
+					&& boldest.indexOf(one) < Math.max(2, this.city ? this.people.size() / 7 : this.people.size() / 10) ? "guard" : "citizen";
 				DrifterApi.equipTown(one, this.random, role);
+				DrifterApi.holdStill(one, 0L);
 				if (role.equals("guard")) {
 					guards.add(one.getUUID());
 				}
@@ -3034,6 +3540,15 @@ public final class TownBuilder {
 			// (Founded so long ago, by its past: its calendar from then.)
 			town.bornDay = day - this.foundedAgo;
 			town.pen = this.pen;
+			town.mine = this.mineEntrance;
+			town.mineBottom = this.mineBottom;
+			town.mineWay = this.mineWay;
+			// Its ground that isn't for houses (the plaza's kept apart anyway).
+			for (Rect rect : this.taken) {
+				if (rect != this.plaza) {
+					town.keepOff.add(new int[] {rect.x0(), rect.z0(), rect.x1(), rect.z1()});
+				}
+			}
 			town.stallPlot = new Town.Plot(this.stallAt(), 5, 4, DrifterApi.stallPlan(), Rotation.NONE, Direction.NORTH, null);
 			town.stallBuilt = true;
 			town.shape = this.shape.id;
@@ -3281,25 +3796,28 @@ public final class TownBuilder {
 		return new Rect(across, z0, across + along - 1, z0 + depth - 1);
 	}
 
-	/** What a household well on in its life keeps: building stuff and iron in storage, coal for the furnace, food by the bed. */
-	private static void stock(ServerLevel level, Home home, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
-		List<List<ItemStack>> kinds = List.of(
-			List.of(new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.DIRT, 32)),
-			List.of(new ItemStack(Items.OAK_LOG, 32), new ItemStack(Items.OAK_PLANKS, 64), new ItemStack(Items.STICK, 32)),
-			List.of(new ItemStack(Items.IRON_INGOT, 18), new ItemStack(Items.RAW_IRON, 12), new ItemStack(Items.GOLD_INGOT, 4), new ItemStack(Items.REDSTONE, 12)),
-			List.of(new ItemStack(Items.COAL, 48), new ItemStack(Items.CHARCOAL, 16), new ItemStack(Items.TORCH, 32)),
-			List.of(new ItemStack(Items.BREAD, 48), new ItemStack(Items.COOKED_BEEF, 24), new ItemStack(Items.WHEAT_SEEDS, 24)));
-		int kind = 0;
-		for (BlockPos chest : home.chests()) {
-			if (!box.isInside(chest) || !(level.getBlockEntity(chest) instanceof ChestBlockEntity entity) || kind >= kinds.size()) {
-				continue;
-			}
-
-			List<ItemStack> stacks = kinds.get(kind++);
-			for (int slot = 0; slot < stacks.size(); slot++) {
-				entity.setItem(slot, stacks.get(slot).copy());
+	/**
+	 * What a household well on in its life keeps: its chests nine to eighteen stacks each, food (Farmer's Delight's too),
+	 * building stuff, valuables, farming and odds and ends, by the kind of household it is ({@link TownChests}).
+	 */
+	private static void stock(ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox box, double tidiness) {
+		// (Every chest in it, each half of a double chest (only the first half was filled, the other left empty: the user,
+		// 2026-11-06, "most of the chests are empty"), barrels, Farmer's Delight's cabinets; not furnaces. Only empty ones.)
+		List<net.minecraft.world.Container> storage = new ArrayList<>();
+		List<net.minecraft.world.Container> cabinets = new ArrayList<>();
+		for (BlockPos pos : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
+			var entity = level.getBlockEntity(pos);
+			boolean cabinet = entity instanceof net.minecraft.world.Container && net.minecraft.core.registries.BuiltInRegistries.BLOCK
+				.getKey(level.getBlockState(pos).getBlock()).getPath().contains("cabinet");
+			boolean chest = entity instanceof ChestBlockEntity || entity instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity;
+			if ((chest || cabinet) && entity instanceof net.minecraft.world.Container container && container.isEmpty()) {
+				(cabinet ? cabinets : storage).add(container);
 			}
 		}
+
+		TownChests.household(level, storage, cabinets, tidiness, level.random);
+		storage.forEach(net.minecraft.world.Container::setChanged);
+		cabinets.forEach(net.minecraft.world.Container::setChanged);
 	}
 
 	/**
@@ -3311,6 +3829,12 @@ public final class TownBuilder {
 		if (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.PODZOL) || state.is(Blocks.MYCELIUM) || state.is(Blocks.DIRT_PATH)) {
 			set(level, pos, Blocks.DIRT.defaultBlockState());
 		}
+	}
+
+	/** Solid to stand on or build on (its top a full face), not a tree's leaves. */
+	private static boolean sturdy(ServerLevel level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		return !state.is(net.minecraft.tags.BlockTags.LEAVES) && state.isFaceSturdy(level, pos, Direction.UP);
 	}
 
 	/** Trees with a log or leaves in this column between these heights felled whole (a player clears a tree, not half). */
@@ -3410,21 +3934,91 @@ public final class TownBuilder {
 		}
 
 		int[] tops = new int[ring.size()];
+		// (And the ground just out from it and just in: higher there, the fence is a step from it. Found in the user's picture,
+		// 2026-11-08: a pen on a terrace, the bank outside as high as its fence; people walked in over it and couldn't get out.)
+		int[] sides = new int[ring.size()];
 		for (int i = 0; i < ring.size(); i++) {
-			tops[i] = ground(level, ring.get(i).getX(), ring.get(i).getZ()) + 1;
+			BlockPos column = ring.get(i);
+			tops[i] = ground(level, column.getX(), column.getZ()) + 1;
+			int sx = Math.abs(column.getX() - middle.getX()) == half ? Integer.signum(column.getX() - middle.getX()) : 0;
+			int sz = Math.abs(column.getZ() - middle.getZ()) == half ? Integer.signum(column.getZ() - middle.getZ()) : 0;
+			sides[i] = Math.max(ground(level, column.getX() + sx, column.getZ() + sz), ground(level, column.getX() - sx, column.getZ() - sz)) + 1;
 		}
 
 		BlockPos gate = new BlockPos(middle.getX() + front.getStepX() * half, 0, middle.getZ() + front.getStepZ() * half);
 		for (int i = 0; i < ring.size(); i++) {
 			BlockPos column = ring.get(i);
-			int up = Math.max(tops[i], Math.max(tops[(i + 1) % ring.size()], tops[(i + ring.size() - 1) % ring.size()]));
+			int up = Math.max(Math.max(tops[i], sides[i]), Math.max(tops[(i + 1) % ring.size()], tops[(i + ring.size() - 1) % ring.size()]));
+			// (The way through the gate: a bank more than a step higher out from it or in from it cut down to a step.)
+			if (column.getX() == gate.getX() && column.getZ() == gate.getZ()) {
+				for (int k = -1; k <= 1; k += 2) {
+					BlockPos by = new BlockPos(column.getX() + front.getStepX() * k, 0, column.getZ() + front.getStepZ() * k);
+					for (int y = ground(level, by.getX(), by.getZ()); y > tops[i]; y--) {
+						set(level, by.atY(y), Blocks.AIR.defaultBlockState());
+					}
+				}
+			}
+
+			boolean gateColumn = column.getX() == gate.getX() && column.getZ() == gate.getZ();
 			for (int y = tops[i]; y <= up; y++) {
 				BlockPos pos = column.atY(y);
-				boolean isGate = column.getX() == gate.getX() && column.getZ() == gate.getZ() && y == tops[i];
-				place(level, pos, isGate ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, front)
+				// (Nothing over the gate: by a step, a fence went on top of it, the way out one block high, and those who went in
+				// to see to the animals were shut in, jumping at the fence: the user's picture, 2026-11-08.)
+				if (gateColumn && y > tops[i]) {
+					set(level, pos, Blocks.AIR.defaultBlockState());
+					continue;
+				}
+
+				place(level, pos, gateColumn ? wood("fence_gate").defaultBlockState().setValue(FenceGateBlock.FACING, front)
 					: wood("fence").defaultBlockState());
 			}
 		}
+	}
+
+	/** Towns whose pen gate has been looked at this session. */
+	private static final java.util.Set<UUID> gatesLooked = new java.util.HashSet<>();
+
+	/**
+	 * A town's pen from before 0.23.31: a fence on top of its gate taken off (the way out was one block high by a step), and
+	 * its fence put up again as it's put up now (a full fence over the ground on both sides of it, the way through its gate a
+	 * step at most). Once a session, when its pen's loaded. True if anything changed.
+	 */
+	static boolean freePenGate(ServerLevel level, Town town) {
+		if (town.pen == null || gatesLooked.contains(town.id) || !level.isLoaded(town.pen.offset(-6, 0, -6)) || !level.isLoaded(town.pen.offset(6, 0, 6))) {
+			return false;
+		}
+
+		gatesLooked.add(town.id);
+		boolean changed = false;
+		for (BlockPos pos : BlockPos.betweenClosed(town.pen.offset(-5, -4, -5), town.pen.offset(5, 6, 5))) {
+			if (level.getBlockState(pos).getBlock() instanceof FenceGateBlock) {
+				for (int up = 1; up <= 3 && level.getBlockState(pos.above(up)).is(net.minecraft.tags.BlockTags.FENCES); up++) {
+					level.setBlock(pos.above(up), Blocks.AIR.defaultBlockState(), 3);
+					changed = true;
+				}
+			}
+		}
+
+		// Its fence again, by where its gate is.
+		Direction front = null;
+		for (BlockPos pos : BlockPos.betweenClosed(town.pen.offset(-5, -4, -5), town.pen.offset(5, 6, 5))) {
+			if (level.getBlockState(pos).getBlock() instanceof FenceGateBlock) {
+				int dx = pos.getX() - town.pen.getX();
+				int dz = pos.getZ() - town.pen.getZ();
+				front = Math.abs(dx) >= Math.abs(dz) ? (dx > 0 ? Direction.EAST : Direction.WEST) : (dz > 0 ? Direction.SOUTH : Direction.NORTH);
+				break;
+			}
+		}
+
+		if (front != null) {
+			penFence(level, town.pen, 5, front);
+			changed = true;
+		}
+
+		DrifterCivilizations.LOGGER.info("[town] {}: its pen at {} put right (its gate to the {})", town.name, town.pen.toShortString(), front == null ? "none found"
+			: front.getName());
+
+		return changed;
 	}
 
 	/** The turn that puts a door of this plan on {@code front}, or null. */
@@ -3824,16 +4418,10 @@ public final class TownBuilder {
 			chests.add(pos);
 		}
 
-		ItemStack[][] stock = {
-			{new ItemStack(Items.OAK_LOG, 64), new ItemStack(Items.OAK_LOG, 64), new ItemStack(Items.OAK_PLANKS, 64)},
-			{new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.COBBLESTONE, 64)},
-			{new ItemStack(Items.COAL, 32), new ItemStack(Items.IRON_INGOT, 8), new ItemStack(Items.TORCH, 32)},
-			{new ItemStack(Items.BREAD, 32), new ItemStack(Items.WHEAT_SEEDS, 32), new ItemStack(Items.APPLE, 8)}};
-		for (int i = 0; i < stock.length; i++) {
+		// (Its chests well filled, each by what it's for: wood, stone, ore and coal, food, farming, then a bit of everything.)
+		for (int i = 0; i < chests.size(); i++) {
 			if (level.getBlockEntity(chests.get(i)) instanceof ChestBlockEntity chest) {
-				for (int slot = 0; slot < stock[i].length; slot++) {
-					chest.setItem(slot, stock[i][slot]);
-				}
+				TownChests.store(chest, i, level.random);
 			}
 		}
 
@@ -4115,12 +4703,107 @@ public final class TownBuilder {
 		}
 	}
 
+	/**
+	 * A dock where a road between towns meets water too wide to bridge (the user, 2026-11-06: "long bridge over narrow
+	 * water, then by boat"): from the shore at {@code x, z} out over the water toward {@code dx, dz} (a heading), planks a
+	 * block over it three wide and seven long, railings, a lantern at the end, a sign at its foot, a boat tied up beside it.
+	 */
+	static void dock(ServerLevel level, int x, int z, double dx, double dz, String to) {
+		Direction way = Direction.getNearest(dx, 0, dz);
+		Direction across = way.getClockWise();
+		BlockPos shore = new BlockPos(x, 0, z);
+		int edge = -1;
+		for (int d = 0; d <= 16 && edge < 0; d++) {
+			BlockPos at = shore.relative(way, d);
+			if (loadedAt(level, at.getX(), at.getZ()) && wet(level, at.getX(), at.getZ())) {
+				edge = d;
+			}
+		}
+
+		if (edge < 0) {
+			return;
+		}
+
+		BlockPos start = shore.relative(way, edge);
+		int deck = ground(level, start.getX(), start.getZ()) + 1;
+		BlockPos end = null;
+		for (int k = 0; k < 7; k++) {
+			BlockPos mid = start.relative(way, k);
+			if (!loadedAt(level, mid.getX(), mid.getZ())) {
+				break;
+			}
+
+			for (int w = -1; w <= 1; w++) {
+				BlockPos plank = mid.relative(across, w).atY(deck);
+				set(level, plank, wood("planks").defaultBlockState());
+				for (int y = 1; y <= 3; y++) {
+					if (!level.getBlockState(plank.above(y)).isAir()) {
+						set(level, plank.above(y), Blocks.AIR.defaultBlockState());
+					}
+				}
+
+				if (k % 3 == 0) {
+					for (BlockPos pile = plank.below(); pile.getY() > deck - 24 && (level.getBlockState(pile).isAir()
+						|| !level.getFluidState(pile).isEmpty()); pile = pile.below()) {
+						set(level, pile, wood("log").defaultBlockState());
+					}
+				}
+			}
+
+			for (int w = -2; w <= 2; w += 4) {
+				BlockPos side = mid.relative(across, w).atY(deck);
+				set(level, side, wood("planks").defaultBlockState());
+				place(level, side.above(), wood("fence").defaultBlockState());
+			}
+
+			end = mid.atY(deck);
+		}
+
+		if (end == null) {
+			return;
+		}
+
+		BlockPos post = end.relative(across, 2).above(2);
+		place(level, post, wood("fence").defaultBlockState());
+		place(level, post.above(), Blocks.LANTERN.defaultBlockState());
+		// A sign at its foot: where the boats go.
+		BlockPos foot = start.relative(way.getOpposite()).atY(ground(level, start.getX() - way.getStepX(), start.getZ() - way.getStepZ()) + 1);
+		if (level.getBlockState(foot).isAir()) {
+			place(level, foot, Blocks.OAK_SIGN.defaultBlockState().setValue(net.minecraft.world.level.block.StandingSignBlock.ROTATION,
+				net.minecraft.world.level.block.state.properties.RotationSegment.convertToSegment(way.getOpposite())));
+			if (level.getBlockEntity(foot) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
+				sign.setText(new net.minecraft.world.level.block.entity.SignText().setMessage(0, Component.literal("Boats across"))
+					.setMessage(1, Component.literal("to " + to)), true);
+			}
+		}
+
+		// A boat tied up by its end (for anyone crossing without one).
+		BlockPos water = end.relative(way).atY(deck - 1);
+		net.minecraft.world.entity.vehicle.Boat boat = net.minecraft.world.entity.EntityType.BOAT.create(level);
+		if (boat != null && !level.getFluidState(water).isEmpty()) {
+			boat.moveTo(water.getX() + 0.5, water.getY() + 0.6, water.getZ() + 0.5, way.toYRot(), 0.0F);
+			level.addFreshEntity(boat);
+		}
+
+		DrifterCivilizations.LOGGER.info("[roads] a dock at {} for the boats across to {}", start.toShortString(), to);
+	}
+
 	/** Land this many steps long or less in the middle of a crossing is bridged over. */
 	private static final int ISLET = 8;
 	/** A road between towns is cut or built at most this far from the ground. */
 	private static final int HIGHWAY_DEEPEST = 6;
 
 	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep) {
+		highway(level, line, keep, java.util.Set.of());
+	}
+
+	/**
+	 * The same, never putting a railing on {@code avoid}: the columns of the roads about (this road's stretches either side,
+	 * and others'). A railing beside one stretch's end stood on the next stretch's way, a block up or down from its deck so
+	 * the deck didn't clear it: a fence across the bridge (the user, 2026-11-06: "on roads between towns, fences sometimes
+	 * block the path when on rivers").
+	 */
+	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep, java.util.Set<Long> avoid) {
 		if (line.size() < 2) {
 			return;
 		}
@@ -4298,9 +4981,22 @@ public final class TownBuilder {
 				int deck = Math.max(want[cell.getValue()], surface + 1);
 				decks.put(cell.getKey(), deck);
 				set(level, new BlockPos(x, deck, z), wood("planks").defaultBlockState());
-				// (Another road's railing where this deck goes: off it. Two bridges side by side had a fence across where they met.)
-				if (level.getBlockState(new BlockPos(x, deck + 1, z)).getBlock() instanceof net.minecraft.world.level.block.FenceBlock) {
-					set(level, new BlockPos(x, deck + 1, z), Blocks.AIR.defaultBlockState());
+				// (Another road's railing where this deck goes: off it, its plank too if it stands a block up. Two bridges side by
+				// side had a fence across where they met; a railing a block higher than the deck stayed, across the way.)
+				BlockPos one = new BlockPos(x, deck + 1, z);
+				BlockPos two = one.above();
+				if (level.getBlockState(two).getBlock() instanceof net.minecraft.world.level.block.FenceBlock
+					&& level.getBlockState(one).is(net.minecraft.tags.BlockTags.PLANKS)) {
+					set(level, two, Blocks.AIR.defaultBlockState());
+					set(level, one, Blocks.AIR.defaultBlockState());
+				}
+
+				if (level.getBlockState(one).getBlock() instanceof net.minecraft.world.level.block.FenceBlock) {
+					set(level, one, Blocks.AIR.defaultBlockState());
+				}
+
+				if (level.getBlockState(two).getBlock() instanceof net.minecraft.world.level.block.FenceBlock && level.getBlockState(one).isAir()) {
+					set(level, two, Blocks.AIR.defaultBlockState());
 				}
 
 				continue;
@@ -4334,7 +5030,8 @@ public final class TownBuilder {
 				for (Direction side : Direction.Plane.HORIZONTAL) {
 					int nx = x + side.getStepX();
 					int nz = z + side.getStepZ();
-					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || !wet(level, nx, nz) && !islets.contains(cell.getKey())) {
+					if (road.cells.containsKey(BlockPos.asLong(nx, 0, nz)) || avoid.contains(BlockPos.asLong(nx, 0, nz))
+						|| !wet(level, nx, nz) && !islets.contains(cell.getKey())) {
 						continue;
 					}
 
@@ -4369,7 +5066,9 @@ public final class TownBuilder {
 			}
 		}
 
-		bridgeRails(level, rails, road.cells.keySet());
+		java.util.Set<Long> ways = new java.util.HashSet<>(road.cells.keySet());
+		ways.addAll(avoid);
+		bridgeRails(level, rails, ways);
 		tidy(level, road.cells.keySet());
 
 		// The test: steps along it that need a jump (over half a block between columns side by side, off the bridges).

@@ -95,7 +95,7 @@ final class StepsAction implements WhimAction {
 	static final Map<String, Set<String>> VERBS = new LinkedHashMap<>();
 	private static final Set<String> TARGET_KEYS = Set.of("type", "ids", "radius", "optional", "place");
 	/** The places of a town a {@code town} target can name. */
-	static final Set<String> TOWN_PLACES = Set.of("plaza", "well", "fire", "board", "stall", "store", "fields", "bell", "market", "festival", "shrine");
+	static final Set<String> TOWN_PLACES = Set.of("plaza", "well", "fire", "board", "stall", "store", "fields", "bell", "market", "festival", "shrine", "home", "kitchen", "mine");
 	private static final List<String> LOOK_AT = List.of("sun", "moon", "stars", "clouds", "rain", "ahead", "up", "down");
 
 	static {
@@ -111,6 +111,7 @@ final class StepsAction implements WhimAction {
 		VERBS.put("swing", Set.of("times"));
 		VERBS.put("look_around", Set.of("times"));
 		VERBS.put("eat", Set.of("item"));
+		VERBS.put("use_item", Set.of("item", "ticks"));
 		VERBS.put("drop", Set.of("item", "count", "keep"));
 		VERBS.put("pick_up", Set.of("radius"));
 		VERBS.put("crouch", Set.of("ticks"));
@@ -252,7 +253,7 @@ final class StepsAction implements WhimAction {
 			}
 
 			String item = string(json, "item");
-			if (item == null && Set.of("hold", "place", "eat", "drop").contains(verb)) {
+			if (item == null && Set.of("hold", "place", "eat", "drop", "use_item").contains(verb)) {
 				throw new IllegalArgumentException(where + " needs an \"item\"");
 			}
 
@@ -310,6 +311,7 @@ final class StepsAction implements WhimAction {
 			case "swing" -> step.times() * 10;
 			case "look_around" -> step.times() * 100;
 			case "eat" -> 20 * 6;
+			case "use_item" -> step.ticks() + 40;
 			case "pick_up" -> 20 * 10;
 			default -> 40;
 		};
@@ -581,6 +583,10 @@ final class StepsAction implements WhimAction {
 				steps.then(() -> WhimGoal.count(drifter, item) == 0 ? null : new SelectItemTask(drifter, WhimActions.itemMatcher(item), item));
 				steps.then(() -> WhimGoal.count(drifter, item) == 0 ? null : new UseItemTask(drifter));
 			}
+			case "use_item" -> {
+				steps.then(() -> WhimGoal.count(drifter, item) == 0 ? null : new SelectItemTask(drifter, WhimActions.itemMatcher(item), item));
+				steps.then(() -> WhimGoal.count(drifter, item) == 0 ? null : new HoldUp(drifter, step.ticks()));
+			}
 			case "drop" -> steps.then(() -> {
 				var matcher = WhimActions.itemMatcher(item);
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
@@ -665,6 +671,72 @@ final class StepsAction implements WhimAction {
 
 		BlockPos at = drifter.level().getBlockState(f.pos()).canBeReplaced() ? f.pos() : f.pos().above();
 		return drifter.level().getBlockState(at).canBeReplaced() ? at : null;
+	}
+
+	/**
+	 * Uses the held item in the air and holds it up a while, as a player holding right-click: a spyglass to its eye, a goat
+	 * horn blown (the item's own use first, through the fake player: the horn's call, the spyglass's click; then the Drifter
+	 * itself holds it up, so the pose shows). Not for food or drink (the {@code eat} step).
+	 */
+	static final class HoldUp extends Task {
+		private final int ticks;
+		private int t;
+
+		HoldUp(DrifterEntity drifter, int ticks) {
+			super(drifter);
+			this.ticks = ticks;
+		}
+
+		@Override
+		public String describe() {
+			return "hold up " + this.drifter.getMainHandItem().getHoverName().getString();
+		}
+
+		@Override
+		protected int timeoutTicks() {
+			return this.ticks + 40;
+		}
+
+		@Override
+		protected void onStart() {
+			ItemStack held = this.drifter.getMainHandItem();
+			if (held.isEmpty()) {
+				this.fail("its hand is empty");
+				return;
+			}
+
+			if (held.get(net.minecraft.core.component.DataComponents.FOOD) != null || held.getItem() instanceof net.minecraft.world.item.PotionItem) {
+				this.fail("that's for eating or drinking");
+				return;
+			}
+
+			com.dinglebob.drifter.hands.FakePlayerBridge.act(this.drifter, fake -> {
+				var result = fake.gameMode.useItem(fake, this.drifter.level(), fake.getMainHandItem(), InteractionHand.MAIN_HAND);
+				if (fake.isUsingItem()) {
+					fake.stopUsingItem();
+				}
+
+				return result;
+			});
+			this.drifter.startUsingItem(InteractionHand.MAIN_HAND);
+		}
+
+		@Override
+		protected Status onTick() {
+			this.drifter.getKeys().releaseAll();
+			if (!this.drifter.isUsingItem() && this.t > 0) {
+				return Status.SUCCESS;
+			}
+
+			return ++this.t >= this.ticks ? Status.SUCCESS : Status.RUNNING;
+		}
+
+		@Override
+		protected void onStop() {
+			if (this.drifter.isUsingItem()) {
+				this.drifter.stopUsingItem();
+			}
+		}
 	}
 
 	/** Holds sneak for a while (a crouch, a bow to someone). */

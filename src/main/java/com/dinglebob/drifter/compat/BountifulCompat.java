@@ -46,8 +46,11 @@ public final class BountifulCompat {
 		return loaded() ? BuiltInRegistries.BLOCK.getOptional(BOARD).orElse(null) : null;
 	}
 
-	/** One thing a bounty asks for or gives: an item (or "#tag") and how many; or a mob to kill. */
-	public record Entry(String content, int amount, boolean item) {
+	/**
+	 * One thing a bounty asks for or gives: an item (or "#tag") and how many; or a mob to kill; or (a reward) a command, with
+	 * the name it shows (a town's notice pays through one: Drifter: Civilizations).
+	 */
+	public record Entry(String content, int amount, boolean item, String name) {
 	}
 
 	/** A bounty on a board: its slot, what it asks for, what it gives. */
@@ -85,7 +88,8 @@ public final class BountifulCompat {
 		for (Tag t : list) {
 			CompoundTag entry = (CompoundTag)t;
 			String logic = entry.getString("logicName");
-			entries.add(new Entry(entry.getString("content"), entry.getInt("amount"), logic.endsWith(":item") || logic.endsWith(":item_tag")));
+			entries.add(new Entry(entry.getString("content"), entry.getInt("amount"), logic.endsWith(":item") || logic.endsWith(":item_tag"),
+				entry.getString("name")));
 		}
 
 		return entries;

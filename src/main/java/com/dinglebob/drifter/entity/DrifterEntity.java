@@ -602,9 +602,14 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	public void startDelving(BlockPos from, long until) {
+		this.startDelving(from, until, true);
+	}
+
+	/** The same; {@code visitor}: an encounter's delver (gone when nobody's near), else one of the world's own, kept. */
+	public void startDelving(BlockPos from, long until, boolean visitor) {
 		this.delveFrom = from.immutable();
 		this.delveUntil = until;
-		this.delver = true;
+		this.delver = visitor;
 	}
 
 	/**
@@ -773,6 +778,17 @@ public class DrifterEntity extends PathfinderMob {
 
 	public void stopDelving() {
 		this.delveUntil = 0L;
+	}
+
+	/**
+	 * It stands still and decides nothing till this game time (0.23.30; a town being made: its people spawn over its few
+	 * seconds of work and are geared at the end, and found in the user's game, those spawned first, with nothing on them yet,
+	 * set off for a wooden pickaxe, planks from the town's store). Not saved: a hold a reload interrupts is over.
+	 */
+	private long heldUntil;
+
+	public void holdStill(long ticks) {
+		this.heldUntil = ticks <= 0L ? 0L : this.level().getGameTime() + ticks;
 	}
 
 	public void addPendingCatchUp(long ticks) {
@@ -1414,6 +1430,14 @@ protected void customServerAiStep() {
 		this.delverDespawn();
 		if (this.isRemoved()) {
 			return;
+		}
+
+		if (this.heldUntil > 0L) {
+			if (this.level().getGameTime() < this.heldUntil) {
+				return;
+			}
+
+			this.heldUntil = 0L;
 		}
 
 		// Its home recorded as built, once (huts from before that was recorded: so it uses the door, not the wall).
@@ -2332,6 +2356,7 @@ protected void customServerAiStep() {
 				ItemStack taken = before.copyWithCount(count - stack.getCount());
 				if (!taken.isEmpty()) {
 					this.social.watcher().pickedUpFrom(thrower, taken);
+					com.dinglebob.drifter.api.DrifterEvents.RECEIVED.invoker().onReceived(this, thrower, taken);
 				}
 			}
 

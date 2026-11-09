@@ -111,7 +111,8 @@ public final class WhimsAway {
 			for (Whim whim : Whims.all()) {
 				double weight = whim.offscreen() == Whim.Offscreen.SHOW || whim.offscreen() == Whim.Offscreen.TRACE ? WhimGoal.weight(drifter, whim) : 0.0;
 				if (weight <= 0.0 || whim.stage() > stage || whim.gates().griefing() || whim.gates().multiplayer()
-					|| time - state.lastDone(whim.id()) < whim.cooldown() || !fitsTime(whim.when(), day) || !carries(drifter, whim)
+					|| time - state.lastDone(whim.id()) < whim.cooldown() || !fitsTime(whim.when(), day, dayTime + offset) || !carries(drifter, whim)
+					|| whim.knowsWhyNot(drifter) != null
 					|| whim.offscreen() == Whim.Offscreen.TRACE && (home == null || record.traces >= MAX_TRACES) || !plausible(drifter, whim, home)) {
 					continue;
 				}
@@ -174,14 +175,18 @@ public final class WhimsAway {
 	}
 
 	/** The time of day (rain it can't know about after the fact: those whims wait for real rain). */
-	private static boolean fitsTime(Whim.When when, long time) {
+	private static boolean fitsTime(Whim.When when, long time, long dayTime) {
+		// (The moon's phase as the game works it out: a day at a time, eight days round.)
+		int moon = (int)(Math.floorMod(dayTime / 24000L, 8L));
 		return switch (when) {
 			case ANY -> true;
 			case DAY, CLEAR -> time < 12000L;
 			case NIGHT -> time >= 13000L && time < 23000L;
 			case SUNSET -> time >= 11500L && time < 13000L;
 			case SUNRISE -> time >= 22800L || time < 500L;
-			case RAIN, THUNDER -> false;
+			case RAIN, THUNDER, SNOW -> false;
+			case FULL_MOON -> time >= 13000L && time < 23000L && moon == 0;
+			case NEW_MOON -> time >= 13000L && time < 23000L && moon == 4;
 			case DAWN, MORNING, MIDDAY, AFTERNOON, DUSK -> when.fits(time);
 		};
 	}
@@ -189,7 +194,8 @@ public final class WhimsAway {
 	/** What it needs, carried (nothing is made for a whim while away). */
 	private static boolean carries(DrifterEntity drifter, Whim whim) {
 		for (Whim.Need need : whim.needs()) {
-			if (WhimGoal.count(drifter, need.item()) < need.count()) {
+			int count = WhimGoal.count(drifter, need.item());
+			if (count < need.count() || need.capped() && count > need.most()) {
 				return false;
 			}
 		}

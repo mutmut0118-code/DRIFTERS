@@ -248,6 +248,41 @@ final class TownLife {
 		return movesIn(server, level, town, group, one, empty, null, "came up the road looking for a place");
 	}
 
+	/** Towns this far off at most send people out scavenging at a ruin. */
+	private static final double SCAVENGES_FROM = 800.0;
+
+	/**
+	 * A ruin's looters as a town's people out scavenging (the user, 2026-11-06: "a 50% chance those looters are civilians from
+	 * a town"): the nearest town with room (a house standing empty or a room to spare) within reach, and the way to make one
+	 * of its people; null if there's none.
+	 */
+	@Nullable
+	static java.util.function.Consumer<DrifterEntity> scavengers(ServerLevel level, BlockPos spot) {
+		MinecraftServer server = level.getServer();
+		Town best = null;
+		for (Town town : Towns.all()) {
+			if (town.group == null || !town.dimension.equals(level.dimension().location().toString())
+				|| Math.hypot(town.center.getX() - spot.getX(), town.center.getZ() - spot.getZ()) > SCAVENGES_FROM
+				|| emptyHouse(town) == null && spareRoom(level, town) == null) {
+				continue;
+			}
+
+			if (best == null || town.center.distSqr(spot) < best.center.distSqr(spot)) {
+				best = town;
+			}
+		}
+
+		Town town = best;
+		return town == null ? null : one -> {
+			DrifterGroups.Group group = DrifterApi.groupById(town.group);
+			Town.Plot empty = emptyHouse(town);
+			Town.Plot spare = empty == null ? spareRoom(level, town) : null;
+			if (group != null && (empty != null || spare != null)) {
+				movesIn(server, level, town, group, one, empty, spare, "out scavenging at a ruin when met");
+			}
+		};
+	}
+
 	/** It's one of the town now: in its group, in the house (or the room). */
 	private static boolean movesIn(MinecraftServer server, ServerLevel level, Town town, DrifterGroups.Group group, DrifterEntity one, @Nullable Town.Plot empty,
 		@Nullable Town.Plot spare, String how) {
@@ -256,6 +291,9 @@ final class TownLife {
 		if (home == null) {
 			return false;
 		}
+
+		// (The town's mine is its mine too: its share of its faces.)
+		TownMine.give(town, home, group.members.size());
 
 		String name = one.getName().getString();
 		DrifterApi.setGroupLimit(group, Math.max(group.limit(), group.members.size() + 1));

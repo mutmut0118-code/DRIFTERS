@@ -1,5 +1,5 @@
 {
-	"_comment": "Iron tools and armour, from iron it mines or buys.",
+	"_comment": "Iron tools and armour, from iron it mines or buys. B6: diamond gear when it has a piece to spare (rare and dear). B5: repairs at an anvil, netherite at a smithing table.",
 	"goals": [
 		"wares",
 		"progress"
@@ -68,7 +68,15 @@
 				"batch": 1
 			}
 		],
-		"sells": [],
+		"sells": [
+			"minecraft:diamond_sword",
+			"minecraft:diamond_pickaxe",
+			"minecraft:diamond_axe",
+			"minecraft:diamond_helmet",
+			"minecraft:diamond_chestplate",
+			"minecraft:diamond_leggings",
+			"minecraft:diamond_boots"
+		],
 		"buys": [
 			"minecraft:iron_ingot",
 			"minecraft:raw_iron",

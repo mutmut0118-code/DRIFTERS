@@ -164,9 +164,127 @@ final class Trades {
 		if (line == null) {
 			line = choose(town, drifter);
 			town.lines.put(drifter.getUUID(), line);
+			workshop(town, drifter, line);
 		}
 
 		return line;
+	}
+
+	/**
+	 * A craft taken up in a town made ready: its workshop with its starting kit (B5, B6), so its services and wares can be had
+	 * from the first day: an enchanter's table in its house, a few levels, lapis and books; a smith's anvil and smithing
+	 * table, a few levels. Once (it has them after).
+	 */
+	static void workshop(Town town, DrifterEntity drifter, String line) {
+		if (!town.spawned || !line.equals("enchanter") && !line.equals("smith")) {
+			return;
+		}
+
+		Home home = DrifterApi.home(drifter);
+		var box = home == null ? null : home.planBox();
+		if (box == null || !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return;
+		}
+
+		if (line.equals("enchanter")) {
+			if (home.enchantingTable(level) != null) {
+				return;
+			}
+
+			BlockPos spot = indoorSpot(level, home, box, java.util.Set.of());
+			if (spot == null) {
+				return;
+			}
+
+			level.setBlock(spot, net.minecraft.world.level.block.Blocks.ENCHANTING_TABLE.defaultBlockState(), 3);
+			home.enchantingTable = spot;
+			drifter.getSenses().terrain().mark(spot);
+			drifter.giveExperienceLevels(10 + drifter.getRandom().nextInt(11));
+			drifter.getInventory().add(new ItemStack(net.minecraft.world.item.Items.LAPIS_LAZULI, 12 + drifter.getRandom().nextInt(13)));
+			drifter.getInventory().add(new ItemStack(net.minecraft.world.item.Items.BOOK, 3 + drifter.getRandom().nextInt(4)));
+		} else {
+			BlockPos anvil = indoorSpot(level, home, box, java.util.Set.of());
+			if (anvil == null) {
+				return;
+			}
+
+			level.setBlock(anvil, net.minecraft.world.level.block.Blocks.ANVIL.defaultBlockState(), 3);
+			drifter.getSenses().terrain().mark(anvil);
+			BlockPos table = indoorSpot(level, home, box, java.util.Set.of(anvil));
+			if (table != null) {
+				level.setBlock(table, net.minecraft.world.level.block.Blocks.SMITHING_TABLE.defaultBlockState(), 3);
+				drifter.getSenses().terrain().mark(table);
+			}
+
+			drifter.giveExperienceLevels(6 + drifter.getRandom().nextInt(9));
+		}
+
+		drifter.getSenses().terrain().mark(home.center);
+		DrifterCivilizations.LOGGER.info("[trades] {} set up as {} in {}", drifter.getName().getString(), line, town.name);
+	}
+
+	/**
+	 * A free spot in its house for a workshop's thing: the room round its bed first, as a player furnishes it (off the stairs,
+	 * clear of the other furniture); else on its house's floor against a wall, under its roof and walled in each way (not on
+	 * a porch or its foundation: found by the user, an enchanting table outside), nothing on it, room over it, not by a door;
+	 * or null.
+	 */
+	@Nullable
+	private static BlockPos indoorSpot(net.minecraft.server.level.ServerLevel level, Home home, net.minecraft.world.level.levelgen.structure.BoundingBox box,
+		java.util.Set<BlockPos> notHere) {
+		BlockPos inRoom = DrifterApi.furnitureSpot(level, home, notHere);
+		if (inRoom != null) {
+			return inRoom;
+		}
+
+		BlockPos bed = home.houseBed(level);
+		int y = bed != null ? bed.getY() : home.center.getY();
+		for (BlockPos pos : BlockPos.betweenClosed(box.minX() + 1, y, box.minZ() + 1, box.maxX() - 1, y, box.maxZ() - 1)) {
+			var below = level.getBlockState(pos.below());
+			if (notHere.contains(pos) || !level.getBlockState(pos).isAir() || !level.getBlockState(pos.above()).isAir()
+				|| !below.isFaceSturdy(level, pos.below(), net.minecraft.core.Direction.UP) || !indoors(level, box, pos)) {
+				continue;
+			}
+
+			boolean wall = false;
+			boolean door = false;
+			for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+				var next = level.getBlockState(pos.relative(side));
+				wall |= next.isFaceSturdy(level, pos.relative(side), side.getOpposite());
+				door |= next.getBlock() instanceof net.minecraft.world.level.block.DoorBlock || next.is(net.minecraft.tags.BlockTags.BEDS);
+			}
+
+			if (wall && !door) {
+				return pos.immutable();
+			}
+		}
+
+		return null;
+	}
+
+	/** Under a roof (a solid block over it in the house) and walled each way along its floor, within the house. */
+	private static boolean indoors(net.minecraft.server.level.ServerLevel level, net.minecraft.world.level.levelgen.structure.BoundingBox box, BlockPos pos) {
+		boolean roof = false;
+		for (int up = 2; up <= 6 && pos.getY() + up <= box.maxY() && !roof; up++) {
+			roof = !level.getBlockState(pos.above(up)).getCollisionShape(level, pos.above(up)).isEmpty();
+		}
+
+		if (!roof) {
+			return false;
+		}
+
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			boolean wall = false;
+			for (BlockPos at = pos.relative(side); box.isInside(at) && !wall; at = at.relative(side)) {
+				wall = !level.getBlockState(at).getCollisionShape(level, at).isEmpty();
+			}
+
+			if (!wall) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static long count(Town town, String line) {
@@ -188,7 +306,7 @@ final class Trades {
 			return "leader";
 		}
 
-		if (count(town, "guard") < 2 && DrifterApi.trait(drifter, "bravery") + DrifterApi.trait(drifter, "aggression") >= 1.3) {
+		if (count(town, "guard") < Towns.guardsWanted(town, people(town)) && DrifterApi.trait(drifter, "bravery") + DrifterApi.trait(drifter, "aggression") >= 1.1) {
 			return "guard";
 		}
 
@@ -233,8 +351,41 @@ final class Trades {
 		town.lines.keySet().retainAll(group.members);
 		int people = group.members.size();
 		boolean changed = false;
+		// Its guards: the boldest of those in a common line take it up, till there are enough (a city more of them).
+		while (count(town, "guard") < Towns.guardsWanted(town, people)) {
+			Map<String, Long> counts = new HashMap<>();
+			town.lines.values().forEach(other -> counts.merge(other, 1L, Long::sum));
+			DrifterEntity best = null;
+			double bestScore = -1.0;
+			for (UUID id : group.members) {
+				String now = town.lines.get(id);
+				Line was = now == null ? null : line(now);
+				DrifterEntity member = TownFounding.loaded(server, id);
+				if (member == null || was == null || was.pool() < 0 || town.crooks.contains(id) || id.equals(town.leader) || id.equals(town.keeper)
+					|| now.equals("farmer") && counts.getOrDefault("farmer", 0L) <= 2) {
+					continue;
+				}
+
+				double score = DrifterApi.trait(member, "bravery") + DrifterApi.trait(member, "aggression");
+				if (score > bestScore) {
+					best = member;
+					bestScore = score;
+				}
+			}
+
+			if (best == null) {
+				break;
+			}
+
+			town.lines.put(best.getUUID(), "guard");
+			DrifterApi.think(best, "is one of " + town.name + "'s guards now");
+			Chronicle.add(server, "town", best.getName().getString() + " joined " + town.name + "'s guard");
+			changed = true;
+		}
+
 		for (Line line : lines.values()) {
-			while (count(town, line.name()) < wanted(line, people)) {
+			int tries = 0;
+			while (count(town, line.name()) < wanted(line, people) && tries++ < people) {
 				Map<String, Long> counts = new HashMap<>();
 				town.lines.values().forEach(other -> counts.merge(other, 1L, Long::sum));
 				DrifterEntity best = null;
@@ -243,7 +394,9 @@ final class Trades {
 					String now = town.lines.get(id);
 					Line was = now == null ? null : line(now);
 					DrifterEntity member = TownFounding.loaded(server, id);
-					if (member == null || was == null || was.pool() < 0 || now.equals("farmer") && counts.getOrDefault("farmer", 0L) <= 2) {
+					// (Not one in this trade already: taking it up again changed nothing, and the town picked it over and over for
+					// good, its log filling with it; found in a test once the hunter had a shop.)
+					if (member == null || was == null || was.pool() < 0 || now.equals(line.name()) || now.equals("farmer") && counts.getOrDefault("farmer", 0L) <= 2) {
 						continue;
 					}
 
@@ -259,6 +412,7 @@ final class Trades {
 				}
 
 				town.lines.put(best.getUUID(), line.name());
+				workshop(town, best, line.name());
 				DrifterApi.think(best, "is taking up the " + line.name() + "'s trade in " + town.name);
 				Chronicle.add(server, "town", best.getName().getString() + " took up the " + line.name() + "'s trade in " + town.name);
 				changed = true;
@@ -506,8 +660,14 @@ final class Trades {
 		@Override
 		public List<ShopOffer> offers(DrifterEntity keeper, @Nullable Player player) {
 			List<ShopOffer> offers = new ArrayList<>();
+			// What the town thinks of them (D1): dearer the less it likes them; the wanted, nothing.
+			double standing = TownReputation.of(this.town, player).prices;
+			if (standing < 0) {
+				return offers;
+			}
+
 			for (Item item : this.line.shop().sells()) {
-				ShopOffer offer = Market.trade(item, Market.price(keeper, item), forSale(keeper, item), true);
+				ShopOffer offer = Market.trade(item, Market.price(keeper, item) * standing, forSale(keeper, item), true);
 				if (offer != null && !offers.stream().anyMatch(other -> other.goods().is(item))) {
 					offers.add(offer);
 				}
@@ -536,6 +696,9 @@ final class Trades {
 		@Override
 		public void traded(DrifterEntity keeper, Player player, ShopOffer offer) {
 			this.town.trades++;
+			if (DrifterApi.moneyWorth(offer.goods()) <= 0) {
+				Market.sold(this.town, offer.goods().getItem());
+			}
 		}
 
 		@Override

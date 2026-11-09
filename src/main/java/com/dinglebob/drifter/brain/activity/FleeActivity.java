@@ -96,7 +96,7 @@ public class FleeActivity extends Activity {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
 		long time = Schedule.believedTime(this.drifter);
 		boolean evening = time >= Schedule.shelterThinking(this.drifter) && time < Schedule.NIGHT_END;
-		if (evening && home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && !this.drifter.getDrifterBrain().homeCutOff()) {
+		if (evening && home != null && home.near(this.drifter, Schedule.goHomeRange(this.drifter)) && !this.drifter.getDrifterBrain().homeCutOff()) {
 			Vec3 here = this.drifter.position();
 			Vec3 toHome = new Vec3(home.center.getX() + 0.5 - here.x, 0.0, home.center.getZ() + 0.5 - here.z);
 			Vec3 centre = Vec3.ZERO;

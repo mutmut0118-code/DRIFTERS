@@ -366,7 +366,27 @@ public final class Planner {
 	 * Plans how to end up carrying {@code count} of any of the {@code goal} items (for example any cooked meat).
 	 */
 	public static Plan plan(DrifterEntity drifter, KnownWorld world, List<Item> goal, int count) {
+		return plan(drifter, world, goal, count, false);
+	}
+
+	/**
+	 * As {@link #plan(DrifterEntity, KnownWorld, List, int)}, for its own gear: from its own chests only, not its town's (a
+	 * town's store is for the town's work: 0.23.30).
+	 */
+	public static Plan planOwn(DrifterEntity drifter, KnownWorld world, List<Item> goal, int count) {
+		return plan(drifter, world, goal, count, true);
+	}
+
+	public static Plan planOwn(DrifterEntity drifter, KnownWorld world, Item goal, int count) {
+		return plan(drifter, world, List.of(goal), count, true);
+	}
+
+	/** Not from its town's chests (planning its own gear). */
+	private boolean ownOnly;
+
+	private static Plan plan(DrifterEntity drifter, KnownWorld world, List<Item> goal, int count, boolean ownOnly) {
 		Planner planner = new Planner(drifter, world);
+		planner.ownOnly = ownOnly;
 		State start = new State(new HashMap<>(planner.realInventory), new ArrayList<>(), new HashSet<>(), new HashMap<>(), new HashMap<>(), 0.0);
 		State end = planner.obtainAny(start, goal, count, 0);
 		if (planner.steps > MAX_STEPS) {
@@ -448,9 +468,10 @@ public final class Planner {
 		if (home != null && home.near(this.drifter, Home.STORAGE_RANGE)) {
 			double walk = Math.sqrt(this.drifter.blockPosition().distSqr(home.center)) * SECONDS_PER_BLOCK;
 			for (Item item : candidates) {
-				int left = home.stored(item) - base.fromHome.getOrDefault(item, 0);
+				int left = (this.ownOnly ? home.storedOwn(item) : home.stored(item)) - base.fromHome.getOrDefault(item, 0);
 				int take = Math.min(left, remaining);
-				net.minecraft.core.BlockPos chest = take > 0 ? home.chestWith(item) : null;
+				net.minecraft.core.BlockPos chest = take > 0 ? home.chestWith(item, take,
+					pos -> com.dinglebob.drifter.brain.activity.FetchActivity.users(pos, this.drifter.getUUID()), this.ownOnly) : null;
 				if (chest != null) {
 					base.fromHome.merge(item, take, Integer::sum);
 					base.addAction(new Fetch(chest, item, take));

@@ -119,6 +119,100 @@ public interface TownWork {
 		return false;
 	}
 
+	/**
+	 * Its town's bell to ring now, why, and what to call out after (an event's begun: a festival, market day, a war), for
+	 * the one its town picked to ring it; null for everyone else, and when there's nothing to ring for.
+	 */
+	default Bell bell(DrifterEntity drifter) {
+		return null;
+	}
+
+	/**
+	 * Where to be for its town's gathering now (a festival day: the plaza, a spot of its own there), or null when there's
+	 * none on (the user, 2026-11-06: "when festivals happen civs should mainly gather around the plaza").
+	 */
+	default BlockPos gathering(DrifterEntity drifter) {
+		return null;
+	}
+
+	/**
+	 * The news for its town's crier to call out this morning, and the paper to hand out (a written book), if it's the crier
+	 * and hasn't yet today; else null.
+	 */
+	default News news(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** It's its town's crier (it keeps a book and quill or two for the paper). */
+	default boolean crier(DrifterEntity drifter) {
+		return false;
+	}
+
+	/** It cried the news for today. */
+	default void cried(DrifterEntity drifter) {
+	}
+
+	/** The day's headlines, and a copy of the paper. */
+	record News(List<String> headlines, net.minecraft.world.item.ItemStack paper) {
+	}
+
+	/** It rang the bell. */
+	default void rang(DrifterEntity drifter) {
+	}
+
+	/**
+	 * A bell to ring: where it is, what for ("the festival"), the lines to call out after; and whether it's an alarm (rung
+	 * fast, over and over: raiders, a killing, a massacre; 0.23.30) and where the trouble is, if the town knows.
+	 */
+	record Bell(BlockPos pos, String why, List<String> lines, boolean alarm, @org.jetbrains.annotations.Nullable BlockPos trouble) {
+		public Bell(BlockPos pos, String why, List<String> lines) {
+			this(pos, why, lines, false, null);
+		}
+	}
+
+	/** How soon a crook goes at it again, as a share of the usual wait (a city's crook: much sooner). 1 by default. */
+	default double crookPace(DrifterEntity drifter) {
+		return 1.0;
+	}
+
+	/**
+	 * One of its town's guards (the user, 2026-11-06: "in a city there should be a higher ratio of guards, patrolling at
+	 * night so random civs dont get killed"): it walks the town's rounds ({@code PatrolGoal}), by night most of all.
+	 */
+	default boolean guard(DrifterEntity drifter) {
+		return false;
+	}
+
+	/**
+	 * A job it's taken on for a player (B5: an enchanting, a repair, a netherite upgrade), or null: what kind ("enchant",
+	 * "repair", "netherite"), said ("enchant someone's sword"), the item, what it was given to do it with.
+	 */
+	default Service service(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** It's done the job (or couldn't): what goes back to the player (the item, leftovers). */
+	default void serviced(DrifterEntity drifter, List<net.minecraft.world.item.ItemStack> back, boolean done) {
+	}
+
+	record Service(String kind, String what, net.minecraft.world.item.ItemStack item, List<net.minecraft.world.item.ItemStack> materials) {
+	}
+
+	/** It makes enchanted books to sell (its town's enchanter: B6, what villagers gave had now). */
+	default boolean enchantsBooks(DrifterEntity drifter) {
+		return false;
+	}
+
+	/** The player this guard keeps an eye on now (one its town is wary of, or worse, in the town), or null. */
+	default net.minecraft.world.entity.player.Player watched(DrifterEntity guard) {
+		return null;
+	}
+
+	/** A guard's rounds: the spots it walks between, in order (along its town's roads), or empty. */
+	default List<BlockPos> patrol(DrifterEntity drifter) {
+		return List.of();
+	}
+
 	/** This chest is someone else's in the town (the town's store or till, a neighbour's): a crook's to rob. */
 	default boolean othersChest(DrifterEntity drifter, BlockPos chest) {
 		return false;
@@ -131,7 +225,10 @@ public interface TownWork {
 	default void crime(DrifterEntity drifter, String kind, @org.jetbrains.annotations.Nullable DrifterEntity victim, BlockPos where) {
 	}
 
-	/** How its town stands with this player: "exiled" (its people drive them out of the town), or null. */
+	/**
+	 * How its town stands with this player: "wanted" (its guards and bold people go for them on sight about the town, the
+	 * rest keep clear), "exiled" (its people drive them out of the town), or null.
+	 */
 	@org.jetbrains.annotations.Nullable
 	default String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
 		return null;

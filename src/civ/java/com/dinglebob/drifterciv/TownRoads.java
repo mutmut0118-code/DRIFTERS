@@ -324,6 +324,101 @@ final class TownRoads {
 		}
 
 		@Override
+		public double crookPace(DrifterEntity drifter) {
+			return Towns.city(this.town) ? Justice.CITY_CROOK_PACE : 1.0;
+		}
+
+		@Override
+		public TownWork.Bell bell(DrifterEntity drifter) {
+			return TownBells.bellFor(this.town, drifter);
+		}
+
+		@Override
+		public BlockPos gathering(DrifterEntity drifter) {
+			return TownCulture.gathering(this.town, drifter);
+		}
+
+		@Override
+		public TownWork.News news(DrifterEntity drifter) {
+			return TownNews.news(this.town, drifter);
+		}
+
+		@Override
+		public boolean crier(DrifterEntity drifter) {
+			return TownNews.isCrier(this.town, drifter);
+		}
+
+		@Override
+		public void cried(DrifterEntity drifter) {
+			TownNews.cried(this.town, drifter);
+		}
+
+		@Override
+		public void rang(DrifterEntity drifter) {
+			TownBells.rang(this.town, drifter);
+		}
+
+		@Override
+		public net.minecraft.world.entity.player.Player watched(DrifterEntity guard) {
+			return TownReputation.watched(this.town, guard);
+		}
+
+		@Override
+		public TownWork.Service service(DrifterEntity drifter) {
+			return TownServices.service(drifter);
+		}
+
+		@Override
+		public void serviced(DrifterEntity drifter, List<net.minecraft.world.item.ItemStack> back, boolean done) {
+			TownServices.serviced(drifter, back, done);
+		}
+
+		@Override
+		public boolean enchantsBooks(DrifterEntity drifter) {
+			return "enchanter".equals(this.town.lines.get(drifter.getUUID()));
+		}
+
+		@Override
+		public boolean guard(DrifterEntity drifter) {
+			return "guard".equals(this.town.lines.get(drifter.getUUID()));
+		}
+
+		/** Its rounds (columns of its roads, round the town), worked out for so many roads. */
+		private List<BlockPos> rounds = List.of();
+		private int roundsFor = -1;
+
+		@Override
+		public List<BlockPos> patrol(DrifterEntity drifter) {
+			this.refresh();
+			if (this.roundsFor != this.roadColumns.size()) {
+				this.roundsFor = this.roadColumns.size();
+				this.rounds = rounds(this.town, this.roadColumns, Math.max(24, this.radius));
+			}
+
+			if (this.rounds.isEmpty()) {
+				return List.of();
+			}
+
+			// Each guard its own way round (its rounds begun from a different spot, the other way for every other one), where
+			// one can stand there now.
+			List<java.util.UUID> guards = this.town.lines.entrySet().stream().filter(e -> e.getValue().equals("guard")).map(java.util.Map.Entry::getKey).sorted()
+				.toList();
+			int index = Math.max(0, guards.indexOf(drifter.getUUID()));
+			int size = this.rounds.size();
+			int start = guards.isEmpty() ? 0 : index * size / Math.max(1, guards.size());
+			List<BlockPos> mine = new ArrayList<>();
+			for (int i = 0; i < size; i++) {
+				int k = index % 2 == 0 ? (start + i) % size : Math.floorMod(start - i, size);
+				BlockPos spot = roundSpot(drifter.level(), this.rounds.get(k));
+				if (spot != null) {
+					mine.add(spot);
+				}
+			}
+
+			return mine;
+		}
+
+		@Override
 		public double leaning(DrifterEntity drifter, String goal) {
 			long day = DrifterCivilizations.server() == null ? 0 : Chronicle.day(DrifterCivilizations.server());
 			return Trades.leaning(this.town, drifter, goal) + TownDay.leaning(this.town, drifter, goal) + TownEvents.leaning(this.town, drifter, goal, day)
@@ -387,6 +482,67 @@ final class TownRoads {
 			this.refresh();
 			return this.radius;
 		}
+	}
+
+	/** Spots of a guard's rounds: a road column in each of a dozen ways round the town, about two thirds of the way out. */
+	static List<BlockPos> rounds(Town town, List<BlockPos> roads, int radius) {
+		int ways = 12;
+		BlockPos[] best = new BlockPos[ways];
+		double[] off = new double[ways];
+		java.util.Arrays.fill(off, Double.MAX_VALUE);
+		double want = radius * 0.65;
+		for (BlockPos road : roads) {
+			double dx = road.getX() - town.center.getX();
+			double dz = road.getZ() - town.center.getZ();
+			double d = Math.sqrt(dx * dx + dz * dz);
+			if (d < 10.0) {
+				continue;
+			}
+
+			int way = Math.floorMod((int)Math.floor((Math.atan2(dz, dx) + Math.PI) / (2 * Math.PI) * ways), ways);
+			double miss = Math.abs(d - want);
+			if (miss < off[way]) {
+				off[way] = miss;
+				best[way] = road;
+			}
+		}
+
+		List<BlockPos> rounds = new ArrayList<>();
+		for (BlockPos spot : best) {
+			if (spot != null) {
+				rounds.add(spot);
+			}
+		}
+
+		// (And the plaza, once a round.)
+		rounds.add(town.center);
+		return rounds;
+	}
+
+	/** Where one stands at this column of a road (its ground, room for one, not on a lamp), or null (not loaded, nowhere). */
+	@org.jetbrains.annotations.Nullable
+	static BlockPos roundSpot(net.minecraft.world.level.Level level, BlockPos column) {
+		for (int r = 0; r <= 2; r++) {
+			for (int dx = -r; dx <= r; dx++) {
+				for (int dz = -r; dz <= r; dz++) {
+					if (Math.max(Math.abs(dx), Math.abs(dz)) != r || !level.hasChunkAt(column.offset(dx, 0, dz))) {
+						continue;
+					}
+
+					int x = column.getX() + dx;
+					int z = column.getZ() + dz;
+					BlockPos feet = new BlockPos(x, level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+					var under = level.getBlockState(feet.below());
+					if (under.isFaceSturdy(level, feet.below(), Direction.UP) && under.getFluidState().isEmpty() && level.getBlockState(feet).isAir()
+						&& level.getBlockState(feet.above()).isAir() && !under.is(net.minecraft.tags.BlockTags.FENCES) && !under.is(net.minecraft.tags.BlockTags.WALLS)
+						&& !under.is(net.minecraft.world.level.block.Blocks.LANTERN)) {
+						return feet;
+					}
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/** Each of its people in the town's work (not saved: set again each check). */

@@ -44,7 +44,7 @@ public class ShelterActivity extends Activity {
 	private static final int NIGHT_MAX_STEPS = 48;
 
 	private enum Phase {
-		HUT, HOUSE, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE, PERCH
+		HUT, HOUSE, SLEEP, DIG, BOX, SEAL, WAIT, MINE, RETURN, EXIT, DONE, PERCH, TOWN
 	}
 
 	/** Night mining: the digger for tonight's tunnel (made fresh after a break; the tunnel itself is kept by the brain). */
@@ -61,6 +61,9 @@ public class ShelterActivity extends Activity {
 	private int doorTries;
 	/** It has walked home for the night already (or has no home to go to). */
 	private boolean wentHome;
+	/** It thought of heading home; the stretches it's walked home from far off. */
+	private boolean toldHome;
+	private int homeLegs;
 
 	public ShelterActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -106,6 +109,7 @@ public class ShelterActivity extends Activity {
 			case HOUSE -> "go into the house for the night";
 			case WAIT -> "wait for morning in the shelter";
 			case PERCH -> "wait the night out on a pillar";
+			case TOWN -> "wait the night out in the town";
 			case MINE -> "mine from the shelter";
 			case RETURN -> "walk back to the shelter shaft";
 			case EXIT, DONE -> "climb out of the shelter";
@@ -136,7 +140,7 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private BlockPos houseBed() {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()) {
+		if (home == null || !home.near(this.drifter, Schedule.goHomeRange(this.drifter)) || this.drifter.getDrifterBrain().homeCutOff()) {
 			return null;
 		}
 
@@ -144,7 +148,7 @@ public class ShelterActivity extends Activity {
 	}
 
 	/** A spot to stand beside a bed (by its head or foot), or the bed itself if it's boxed in. */
-	private static BlockPos besideBed(Level level, BlockPos head) {
+	public static BlockPos besideBed(Level level, BlockPos head) {
 		BlockState state = level.getBlockState(head);
 		BlockPos foot = state.hasProperty(net.minecraft.world.level.block.BedBlock.FACING)
 			? head.relative(state.getValue(net.minecraft.world.level.block.BedBlock.FACING).getOpposite()) : head;
@@ -168,6 +172,12 @@ public class ShelterActivity extends Activity {
 	}
 
 	private int houseTries;
+	/** Waiting the night out in town: since when (a tick), how often it has gone back to try its house, walks to the plaza. */
+	private long townSince;
+	private int townRetries;
+	private int townWalks;
+	/** It tries its house again this long after giving up on it. */
+	private static final long TOWN_RETRY = 20L * 60;
 
 	/** Ticks asleep before most Drifters get up again (they can't skip the night; section 18 "Sleeping without skipping"). */
 	private static final int NAP_TICKS = 20 * 6;
@@ -235,7 +245,7 @@ public class ShelterActivity extends Activity {
 	@Nullable
 	private com.dinglebob.drifter.building.StarterHut hut() {
 		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
-		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.GO_HOME_RANGE) || this.drifter.getDrifterBrain().homeCutOff()
+		if (home == null || !home.hutBuilt || !home.near(this.drifter, Schedule.goHomeRange(this.drifter)) || this.drifter.getDrifterBrain().homeCutOff()
 			|| home.planBed(this.drifter.level()) != null) {
 			// (Moved into the house it built from a plan: the hut's a shed now; the house routine takes it to bed.)
 			return null;
@@ -333,12 +343,32 @@ public class ShelterActivity extends Activity {
 				// TODO(milestone 8 step 2): sleep in the starter hut instead of digging in beside it.
 				com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
 				if (!this.wentHome && this.top == null) {
-					this.wentHome = true;
-					if (home != null && home.near(this.drifter, Schedule.GO_HOME_RANGE) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4
+					if (home != null && home.near(this.drifter, Schedule.goHomeRange(this.drifter)) && this.drifter.blockPosition().distSqr(home.center) > 4 * 4
 						&& !this.drifter.getDrifterBrain().homeCutOff()) {
-						this.think("heading home for the night");
+						if (!this.toldHome) {
+							this.toldHome = true;
+							this.think("heading home for the night");
+						}
+
+						// (From far off, a stretch at a time, along the road if there is one.)
+						if (this.drifter.blockPosition().distSqr(home.center) > 40 * 40 && ++this.homeLegs <= 24) {
+							return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, home.center, 1.5, "go home for the night"));
+						}
+
+						this.wentHome = true;
 						return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(home.center), 1.5, "go home for the night"));
 					}
+
+					this.wentHome = true;
+				}
+
+				// In its town (lit all night): no hole in its ground, no walls round itself in its street (found by the user: its
+				// people, kept out of their houses by a way they couldn't find, dug in round the town and broke out in the
+				// morning, leaving holes). It sees the night out by the plaza's light instead, and tries its house again now and then.
+				if (this.top == null && com.dinglebob.drifter.brain.TownEdge.inTown(this.drifter, feet)) {
+					this.think("in town for the night: staying out by the light");
+					this.phase = Phase.TOWN;
+					return Status.RUNNING;
 				}
 
 				if (!this.drifter.onGround()) {
@@ -424,8 +454,14 @@ public class ShelterActivity extends Activity {
 					return Status.RUNNING;
 				}
 
-				// The village house round its home spot; the house it built, by the bed.
+				// The village house round its home spot; the house it built, by the bed. (Far: home a stretch at a time, along the
+				// road if there is one, those not counted as tries: a townsperson goes home from far off.)
 				BlockPos inside = home.houseBed != null ? home.center : besideBed(level, bed);
+				if (feet.distSqr(inside) > 40 * 40) {
+					this.houseTries--;
+					return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, inside, 2.0, "go home for the night"));
+				}
+
 				if (feet.distSqr(inside) > 2 * 2) {
 					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(inside), 0.5, "go into the house"));
 				}
@@ -433,6 +469,39 @@ public class ShelterActivity extends Activity {
 				this.think("in the house for the night");
 				this.phase = Phase.SLEEP;
 				return Status.RUNNING;
+			}
+			case TOWN -> {
+				if (!Schedule.isNight(this.drifter)) {
+					this.think("morning: done waiting out the night in town");
+					return Status.SUCCESS;
+				}
+
+				// Its house again, a while on (from the plaza the way may come together).
+				long now = level.getGameTime();
+				if (this.houseBed() != null && this.townRetries < 2 && now - this.townSince > TOWN_RETRY) {
+					this.townRetries++;
+					this.townSince = now;
+					this.houseTries = 0;
+					this.phase = Phase.HOUSE;
+					return Status.RUNNING;
+				}
+
+				if (this.townSince == 0) {
+					this.townSince = now;
+				}
+
+				var town = this.drifter.getTownWork();
+				BlockPos spot = town == null ? null : town.place(this.drifter, "fire");
+				if (spot == null && town != null) {
+					spot = town.place(this.drifter, "plaza");
+				}
+
+				if (spot != null && feet.distSqr(spot) > 3 * 3 && this.townWalks < 3) {
+					this.townWalks++;
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(spot), 2.0, "go to the plaza for the night"));
+				}
+
+				return this.begin(new WaitTask(this.drifter, "wait the night out in the town", () -> !Schedule.isNight(this.drifter), 20 * 15));
 			}
 			case PERCH -> {
 				// Up there till morning: still, looking about (it can't do much else).
@@ -559,13 +628,13 @@ public class ShelterActivity extends Activity {
 			return false;
 		}
 
-		return !(step instanceof WaitTask) && (this.digger == null || this.phase != Phase.MINE || this.digger.countsAsFailure(step));
+		return !(step instanceof WaitTask) && this.phase != Phase.TOWN && (this.digger == null || this.phase != Phase.MINE || this.digger.countsAsFailure(step));
 	}
 
 	@Override
 	public boolean atCheckpoint() {
 		// Only once sealed in or mining between blocks (eating can happen in there); never half dug.
-		return (this.phase == Phase.WAIT || this.phase == Phase.MINE) && super.atCheckpoint();
+		return (this.phase == Phase.WAIT || this.phase == Phase.MINE || this.phase == Phase.TOWN) && super.atCheckpoint();
 	}
 
 	// ---------------------------------------------------------------------------------------------

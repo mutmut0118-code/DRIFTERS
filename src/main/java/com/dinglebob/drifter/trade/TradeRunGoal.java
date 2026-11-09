@@ -146,14 +146,14 @@ public final class TradeRunGoal extends Goals.Goal {
 
 				// 2. There.
 				if (this.drifter.position().distanceTo(Vec3.atBottomCenterOf(this.run.there())) > 16.0) {
-					if (this.walks++ > 30) {
+					if (this.walks++ > 90) {
 						return this.giveUp("couldn't find the way to " + this.run.thereName());
 					}
 
 					this.think("on the road to " + this.run.thereName() + ", " + (int)this.drifter.position().distanceTo(Vec3.atBottomCenterOf(this.run.there()))
 						+ " blocks to go");
 
-					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.run.there()), 8.0, "walk to " + this.run.thereName()));
+					return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, this.run.there(), 8.0, "walk to " + this.run.thereName()));
 				}
 
 				// 3. Trading at the stall, when its keeper's there (a while, then home with what it has).
@@ -188,11 +188,11 @@ public final class TradeRunGoal extends Goals.Goal {
 
 			// 4. Home.
 			if (this.drifter.position().distanceTo(Vec3.atBottomCenterOf(this.run.home())) > 24.0) {
-				if (this.walks++ > 30) {
+				if (this.walks++ > 90) {
 					return this.giveUp("couldn't find the way home");
 				}
 
-				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(this.run.home()), 12.0, "walk home"));
+				return this.begin(com.dinglebob.drifter.nav.Legs.toward(this.drifter, this.run.home(), 12.0, "walk home"));
 			}
 
 			// 5. The money in the till, the goods put away.
