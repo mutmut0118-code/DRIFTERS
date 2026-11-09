@@ -39,6 +39,8 @@ public final class RecipeIndex {
 	private static Map<Item, RecipeHolder<?>> byResult;
 	/** Which modded gear each item is the key ingredient of (built once per reload, on the first ask). */
 	private static Map<Item, List<Item>> unlocks;
+	/** Modded gear a crafting table makes (built once per reload, on the first ask). */
+	private static List<Item> craftableGear;
 
 	private RecipeIndex() {
 	}
@@ -117,6 +119,43 @@ public final class RecipeIndex {
 		}
 
 		return index.getOrDefault(ingredient, List.of());
+	}
+
+	/**
+	 * The modded gear (a weapon, a piece of armor, a shield) that has a crafting-table recipe, by id. The Planner crafts by
+	 * the same rule (a recipe that is not special, fits the 3 by 3 grid and has ingredients), so a smithing-only item is not
+	 * here. One pass over the recipes per reload; every caller shares the list (never scan the registry per Drifter).
+	 */
+	public static List<Item> craftableGear(Level level) {
+		synchronized (KEYS) {
+			if (craftableGear != null) {
+				return craftableGear;
+			}
+		}
+
+		LinkedHashSet<Item> found = new LinkedHashSet<>();
+		for (RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> holder : level.getRecipeManager().getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING)) {
+			net.minecraft.world.item.crafting.CraftingRecipe recipe = holder.value();
+			ItemStack made = recipe.getResultItem(level.registryAccess());
+			if (recipe.isSpecial() || made.isEmpty() || !recipe.canCraftInDimensions(3, 3) || recipe.getIngredients().isEmpty()
+				|| "minecraft".equals(BuiltInRegistries.ITEM.getKey(made.getItem()).getNamespace())) {
+				continue;
+			}
+
+			if (GearValue.isGear(made)) {
+				found.add(made.getItem());
+			}
+		}
+
+		List<Item> sorted = new ArrayList<>(found);
+		sorted.sort(java.util.Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()));
+		synchronized (KEYS) {
+			if (craftableGear == null) {
+				craftableGear = List.copyOf(sorted);
+			}
+
+			return craftableGear;
+		}
 	}
 
 	private static Map<Item, List<Item>> buildUnlocks(Level level) {

@@ -50,6 +50,7 @@ public final class GearCommands {
 					.executes(GearCommands::style)))
 			.then(Commands.literal("friend")
 				.then(Commands.argument("kind", StringArgumentType.word()).executes(GearCommands::friend)))
+			.then(Commands.literal("plans").executes(GearCommands::plans))
 			.then(Commands.literal("pick")
 				.then(Commands.literal("weapon").executes(ctx -> pick(ctx, true)))
 				.then(Commands.literal("armor").executes(ctx -> pick(ctx, false))))
@@ -105,6 +106,7 @@ public final class GearCommands {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 		ItemStack stack = ItemArgument.getItem(ctx, "item").createItemStack(1, false);
 		boolean isNew = drifter.getGearLore().learn(drifter, stack.getItem(), GearLore.How.TOLD, "told");
+		com.dinglebob.drifter.brain.GearPlans.refresh(drifter);
 		String line = drifter.getName().getString() + (isNew ? " learned of " : " already knew ") + GearLore.nameOf(stack.getItem());
 		ctx.getSource().sendSuccess(() -> Component.literal("[gear] " + line), false);
 		return 1;
@@ -113,6 +115,7 @@ public final class GearCommands {
 	private static int forget(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 		drifter.getGearLore().forget();
+		com.dinglebob.drifter.brain.GearPlans.refresh(drifter);
 		ctx.getSource().sendSuccess(() -> Component.literal("[gear] " + drifter.getName().getString() + " forgot what it learned of modded items"), false);
 		return 1;
 	}
@@ -141,8 +144,30 @@ public final class GearCommands {
 		}
 
 		drifter.getGearLore().setStyleOverride(style);
+		com.dinglebob.drifter.brain.GearPlans.refresh(drifter);
 		String line = "[gear] " + drifter.getName().getString() + " style " + GearTaste.style(drifter).id() + (style == null ? " (seeded draw)" : " (debug override)");
 		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		return 1;
+	}
+
+	/** Debug: what it works toward at iron and diamond (GearPlans): the weapon and each armor slot. */
+	private static int plans(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		CommandSourceStack source = ctx.getSource();
+		String name = drifter.getName().getString();
+		for (com.dinglebob.drifter.brain.Weapons.Tier tier : List.of(com.dinglebob.drifter.brain.Weapons.Tier.IRON, com.dinglebob.drifter.brain.Weapons.Tier.DIAMOND)) {
+			com.dinglebob.drifter.brain.Strategist.Target weapon = com.dinglebob.drifter.brain.GearPlans.weaponTarget(drifter, tier);
+			String line = "[gear] plan weapon at " + tier.id() + ": " + (weapon == null ? "none" : BuiltInRegistries.ITEM.getKey(weapon.items().get(0)))
+				+ " (" + name + ", style " + GearTaste.style(drifter).id() + ")";
+			source.sendSuccess(() -> Component.literal(line), false);
+			List<com.dinglebob.drifter.brain.Strategist.Target> armor = com.dinglebob.drifter.brain.GearPlans.armorTargets(drifter, tier);
+			for (int i = 0; i < armor.size(); i++) {
+				String part = "[gear] plan " + com.dinglebob.drifter.brain.GearPlans.SLOTS[i].getName() + " at " + tier.id() + ": "
+					+ BuiltInRegistries.ITEM.getKey(armor.get(i).items().get(0));
+				source.sendSuccess(() -> Component.literal(part), false);
+			}
+		}
+
 		return 1;
 	}
 

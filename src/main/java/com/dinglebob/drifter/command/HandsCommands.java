@@ -96,7 +96,7 @@ final class HandsCommands {
 			var favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
 			StringBuilder text = new StringBuilder(DrifterCommands.label(drifter) + "'s favorite weapon: " + favorite.name() + " (" + favorite.id() + ")");
 			for (var tier : List.of(com.dinglebob.drifter.brain.Weapons.Tier.IRON, com.dinglebob.drifter.brain.Weapons.Tier.DIAMOND)) {
-				var target = com.dinglebob.drifter.brain.Weapons.target(drifter, tier);
+				var target = com.dinglebob.drifter.brain.GearPlans.weaponTarget(drifter, tier);
 				text.append("\n  at ").append(tier.id()).append(": ").append(target == null ? "nothing (it skips this tier)"
 					: target.label() + (target.satisfied().test(drifter) ? " (has one this good)" : ""));
 			}

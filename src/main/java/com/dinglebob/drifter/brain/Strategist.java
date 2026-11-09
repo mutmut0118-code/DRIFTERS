@@ -82,9 +82,9 @@ public final class Strategist {
 			Stations.USE_RANGE, entry -> entry.label.equals("minecraft:furnace")) != null;
 	}
 
-	/** Iron-age armor: worn or owned, iron or better (diamond, netherite). */
-	private static Predicate<DrifterEntity> armor(Item iron, Item diamond, Item netherite) {
-		return drifter -> has(drifter, stack -> stack.is(iron) || stack.is(diamond) || stack.is(netherite));
+	/** Iron-age armor: worn or owned, as good as the iron piece (iron or better; a known modded piece by its value). */
+	private static Predicate<DrifterEntity> armor(net.minecraft.world.entity.EquipmentSlot slot) {
+		return drifter -> GearPlans.hasArmorAtLeast(drifter, slot, Weapons.Tier.IRON);
 	}
 
 	/**
@@ -99,10 +99,10 @@ public final class Strategist {
 			drifter -> has(drifter, stack -> stack.is(Items.BUCKET) || stack.is(Items.WATER_BUCKET) || stack.is(Items.LAVA_BUCKET))),
 		// (As good as the game's own: a crude or stone braced one from early on doesn't count.)
 		new Target("a shield", List.of(Items.SHIELD), 1, com.dinglebob.drifter.hands.Shields::hasIronAge),
-		new Target("an iron chestplate", List.of(Items.IRON_CHESTPLATE), 1, armor(Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
-		new Target("iron leggings", List.of(Items.IRON_LEGGINGS), 1, armor(Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
-		new Target("an iron helmet", List.of(Items.IRON_HELMET), 1, armor(Items.IRON_HELMET, Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
-		new Target("iron boots", List.of(Items.IRON_BOOTS), 1, armor(Items.IRON_BOOTS, Items.DIAMOND_BOOTS, Items.NETHERITE_BOOTS)),
+		new Target("an iron chestplate", List.of(Items.IRON_CHESTPLATE), 1, armor(net.minecraft.world.entity.EquipmentSlot.CHEST)),
+		new Target("iron leggings", List.of(Items.IRON_LEGGINGS), 1, armor(net.minecraft.world.entity.EquipmentSlot.LEGS)),
+		new Target("an iron helmet", List.of(Items.IRON_HELMET), 1, armor(net.minecraft.world.entity.EquipmentSlot.HEAD)),
+		new Target("iron boots", List.of(Items.IRON_BOOTS), 1, armor(net.minecraft.world.entity.EquipmentSlot.FEET)),
 		new Target("shears", List.of(Items.SHEARS), 1, drifter -> has(drifter, stack -> stack.is(Items.SHEARS))),
 		new Target("flint and steel", List.of(Items.FLINT_AND_STEEL), 1, drifter -> has(drifter, stack -> stack.is(Items.FLINT_AND_STEEL))),
 		// A smoker and a blast furnace for its hut (user's request, 2026-10-16): food and ore twice as fast.
@@ -128,9 +128,9 @@ public final class Strategist {
 			net.minecraft.world.phys.Vec3.atCenterOf(home.center), Stations.USE_RANGE, entry -> entry.label.equals(id)) != null;
 	}
 
-	/** Diamond-age armor: worn or owned, diamond or better. */
-	private static Predicate<DrifterEntity> diamondArmor(Item diamond, Item netherite) {
-		return drifter -> has(drifter, stack -> stack.is(diamond) || stack.is(netherite));
+	/** Diamond-age armor: worn or owned, as good as the diamond piece (diamond or better; a known modded piece by its value). */
+	private static Predicate<DrifterEntity> diamondArmor(net.minecraft.world.entity.EquipmentSlot slot) {
+		return drifter -> GearPlans.hasArmorAtLeast(drifter, slot, Weapons.Tier.DIAMOND);
 	}
 
 	/**
@@ -142,10 +142,10 @@ public final class Strategist {
 			drifter -> has(drifter, stack -> stack.is(Items.DIAMOND_PICKAXE) || stack.is(Items.NETHERITE_PICKAXE))),
 		// (Its favorite diamond weapon in its place in the order: laterTargets; any diamond-tier weapon will do.)
 		new Target("a diamond sword", List.of(Items.DIAMOND_SWORD), 1, drifter -> Weapons.hasTier(drifter, Weapons.Tier.DIAMOND)),
-		new Target("a diamond chestplate", List.of(Items.DIAMOND_CHESTPLATE), 1, diamondArmor(Items.DIAMOND_CHESTPLATE, Items.NETHERITE_CHESTPLATE)),
-		new Target("diamond leggings", List.of(Items.DIAMOND_LEGGINGS), 1, diamondArmor(Items.DIAMOND_LEGGINGS, Items.NETHERITE_LEGGINGS)),
-		new Target("a diamond helmet", List.of(Items.DIAMOND_HELMET), 1, diamondArmor(Items.DIAMOND_HELMET, Items.NETHERITE_HELMET)),
-		new Target("diamond boots", List.of(Items.DIAMOND_BOOTS), 1, diamondArmor(Items.DIAMOND_BOOTS, Items.NETHERITE_BOOTS)));
+		new Target("a diamond chestplate", List.of(Items.DIAMOND_CHESTPLATE), 1, diamondArmor(net.minecraft.world.entity.EquipmentSlot.CHEST)),
+		new Target("diamond leggings", List.of(Items.DIAMOND_LEGGINGS), 1, diamondArmor(net.minecraft.world.entity.EquipmentSlot.LEGS)),
+		new Target("a diamond helmet", List.of(Items.DIAMOND_HELMET), 1, diamondArmor(net.minecraft.world.entity.EquipmentSlot.HEAD)),
+		new Target("diamond boots", List.of(Items.DIAMOND_BOOTS), 1, diamondArmor(net.minecraft.world.entity.EquipmentSlot.FEET)));
 
 	/**
 	 * Stage 8 targets (section 9: enchanting): the enchanting table (4 obsidian, 2 diamonds, a book), and lapis to
@@ -279,9 +279,15 @@ public final class Strategist {
 	 */
 	private static List<Target> laterTargets(DrifterEntity drifter) {
 		List<Target> order = new java.util.ArrayList<>(IRON_TARGETS);
+		// Its chosen armor at iron: the vanilla pieces, or a known modded piece it likes better (GearPlans).
+		List<Target> ironArmor = GearPlans.armorTargets(drifter, Weapons.Tier.IRON);
+		for (int i = 0; i < ironArmor.size(); i++) {
+			order.set(3 + i, ironArmor.get(i));
+		}
+
 		// Its favorite weapon (Weapons: a Simply Swords longsword, a claymore...) at iron, right after the shield, if its
 		// family is made at iron (vanilla swords skip iron, as most players do: stone, then diamond).
-		Target ironWeapon = Weapons.target(drifter, Weapons.Tier.IRON);
+		Target ironWeapon = GearPlans.weaponTarget(drifter, Weapons.Tier.IRON);
 		if (ironWeapon != null) {
 			order.add(3, ironWeapon);
 		}
@@ -289,7 +295,7 @@ public final class Strategist {
 		// Its kitchen once its house is up (Farmer's Delight, optional): after the iron basics (the stove and pot take iron).
 		order.addAll(Kitchen.targets(drifter));
 		List<Target> diamond = new java.util.ArrayList<>(DIAMOND_TARGETS.subList(0, 2));
-		Target diamondWeapon = Weapons.target(drifter, Weapons.Tier.DIAMOND);
+		Target diamondWeapon = GearPlans.weaponTarget(drifter, Weapons.Tier.DIAMOND);
 		if (diamondWeapon != null) {
 			diamond.set(1, diamondWeapon);
 		}
@@ -308,7 +314,8 @@ public final class Strategist {
 		}
 		// Diamond chestplate, leggings and helmet before the Nether (user's request, 2026-10-16: blazes and ghasts hit hard,
 		// iron isn't enough there). The boots after: in the Nether its gold piece goes in that slot anyway.
-		order.addAll(DIAMOND_TARGETS.subList(2, 5));
+		List<Target> diamondArmor = GearPlans.armorTargets(drifter, Weapons.Tier.DIAMOND);
+		order.addAll(diamondArmor.subList(0, 3));
 		// The Nether once it enchants (stage 8; section 9: "Day 12 onward"), before the diamond boots and bookshelves.
 		if (stage(drifter) >= 8 && drifter.knows(com.dinglebob.drifter.personality.Lore.Area.NETHER)) {
 			order.addAll(PORTAL_TARGETS);
@@ -321,7 +328,7 @@ public final class Strategist {
 		// Brewing once it has blaze rods (section 10.14, Knowledge-gated): the stand, then bottles (the wart comes from the
 		// Nether trips, the rest BrewGoal makes as it goes).
 		order.addAll(brewingTargets(drifter));
-		order.addAll(DIAMOND_TARGETS.subList(5, DIAMOND_TARGETS.size()));
+		order.add(diamondArmor.get(3));
 		// Then bookshelves round the table, one at a time (3 books each: sugar cane and leather), up to 15.
 		if (drifter.knows(com.dinglebob.drifter.personality.Lore.Area.ENCHANTING)) {
 			order.add(BOOKSHELF_TARGET);
