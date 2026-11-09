@@ -1,0 +1,40 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 5
+execute positioned ~20 ~ ~ run drifter spawn Vanilla
+drifter tier full all
+wait 15
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:leather_helmet
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:leather_chestplate
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:leather_leggings
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:leather_boots
+wait 1
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter wear
+wait 8
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:iron_helmet
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:iron_leggings
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:iron_boots
+wait 1
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter wear
+wait 8
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:diamond_helmet
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:diamond_chestplate
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:diamond_leggings
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter give minecraft:diamond_boots
+wait 1
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter wear
+wait 8
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter inventory
+wait 15
+execute as @e[type=drifter:drifter,name=Vanilla] at @s run drifter inventory
+save-all
+stop

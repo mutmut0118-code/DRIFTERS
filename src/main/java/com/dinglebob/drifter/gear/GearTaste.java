@@ -269,6 +269,11 @@ public final class GearTaste {
 		return chosen;
 	}
 
+	/** The good-enough fraction (a piece under this share of the best is out). */
+	public static double goodEnoughFraction() {
+		return GearData.tables().taste().goodEnough();
+	}
+
 	/** True: this is worth considering at all for a pick whose best is worth {@code best}. */
 	public static boolean goodEnough(double value, double best) {
 		return value >= GearData.tables().taste().goodEnough() * best;
