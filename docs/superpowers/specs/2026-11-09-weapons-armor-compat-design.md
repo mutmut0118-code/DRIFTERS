@@ -65,6 +65,12 @@ and Simply Bows and Better Combat (already supported).
    docs/API.md, in the same change (CLAUDE.md). The user works on the addon in other sessions: keep addon edits focused
    on this, and merge with care.
 
+11. **"Know every recipe" setting** (the user, 2026-11-09: "xray knowledge should be an option (toggleable), because info
+   mods such as Just Enough Items give you access to every recipe"): a DrifterConfig setting, in the Mod Menu screen
+   (every new setting goes there), that makes every Drifter know every item and recipe from the start, as a player with
+   JEI does: goal 2's "seen or unlocked" rule is skipped. Off by default (the fair way); it only affects knowing items and
+   recipes, never seeing through walls or knowing where things are.
+
 ## Non-goals
 
 - Whole new systems such as Iron's Spells 'n Spellbooks (mana, spell casting): later, separately.
