@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
  * arrow gets there, a little high for the drop, and lets go once the crosshair is on that point. Aim error shrinks with
  * Skill and grows with distance and how fast the target moves. It stands its ground while it draws; if the target comes
  * close it puts the bow away (the fight goes on with the sword). A crossbow (any mod's) is loaded, then aimed and fired
- * the same way ({@link #crossbow}). A launcher that never looses is given up on for a while (DeadLaunchers, ruling R23).
+ * the same way ({@link #load}, {@link #fire}). A launcher that never looses is given up on for a while (DeadLaunchers, ruling R23).
  */
 public class ShootTask extends Task {
 	/** A target closer than this: the bow away, melee instead. */
@@ -64,7 +64,8 @@ public class ShootTask extends Task {
 
 	@Override
 	protected Status onTick() {
-		this.checkLoosed();
+		// (A shot it let go of earlier, this task's or the last one's: did anything come of it? DeadLaunchers, ruling R23.)
+		this.countIf(this.drifter.getDeadLaunchers().check(this.drifter));
 		if (!this.target.isAlive()) {
 			this.release(false);
 			return Status.SUCCESS;
@@ -142,7 +143,9 @@ public class ShootTask extends Task {
 
 		// Only what it can see (section 1).
 		boolean seen = this.drifter.getSenses().tracked().stream().anyMatch(a -> a.entity == this.target && a.visibleNow);
-		if (!seen) {
+		if (seen) {
+			this.unseen = 0;
+		} else {
 			// Another one in sight: it switches after a second, as a player does, instead of standing with its bow lowered
 			// waiting for this one (found in testing: four seconds at a time, while the others shot it).
 			boolean another = this.drifter.getSenses().tracked().stream().anyMatch(a -> a.entity != this.target && a.visibleNow
@@ -151,11 +154,22 @@ public class ShootTask extends Task {
 				this.release(false);
 				return this.fail("lost sight of it");
 			}
+		}
 
+		net.minecraft.world.item.ItemStack held = this.drifter.getMainHandItem();
+		boolean crossbow = held.getItem() instanceof CrossbowItem;
+		// A crossbow is loaded (or kept loading) while the target is out of sight for a moment, as a player would.
+		if (crossbow) {
+			Status loading = this.load(held, seen);
+			if (loading != null) {
+				return loading;
+			}
+		}
+
+		if (!seen) {
 			return Status.RUNNING;
 		}
 
-		this.unseen = 0;
 		Steering.stopMoving(this.drifter);
 		// A friend in the line of fire: it holds the draw and steps aside for a clear shot (slowly, as with a bow drawn).
 		if (this.blockedTicks > 0) {
@@ -167,12 +181,10 @@ public class ShootTask extends Task {
 			this.sidestep();
 		}
 
-		net.minecraft.world.item.ItemStack held = this.drifter.getMainHandItem();
-		boolean crossbow = held.getItem() instanceof CrossbowItem;
 		Vec3 aim = this.aimPoint(crossbow ? Archery.CROSSBOW_ARROW_SPEED : Archery.ARROW_SPEED).add(this.error);
 		this.drifter.getCamera().track(aim, CameraModel.TurnSpeed.COMBAT);
 		if (crossbow) {
-			return this.crossbow(held, aim);
+			return this.fire(held, aim);
 		}
 
 		if (!this.drifter.isUsingItem()) {
@@ -186,10 +198,15 @@ public class ShootTask extends Task {
 			return Status.RUNNING;
 		}
 
-		int wanted = this.drifter.distanceTo(this.target) < QUICK_DRAW_RANGE && !Archery.flying(this.target) ? QUICK_DRAW_TICKS : Archery.FULL_DRAW_TICKS;
+		// A short draw at close range with the game's own bow; a modded one gets its full draw, held longer if it learned
+		// that it needs it (a bow that loosed nothing at the usual draw: DeadLaunchers, ruling R29).
+		net.minecraft.world.item.ItemStack drawn = this.drifter.getUseItem();
+		var dead = this.drifter.getDeadLaunchers();
+		int wanted = com.dinglebob.drifter.hands.DeadLaunchers.vanilla(drawn) && this.drifter.distanceTo(this.target) < QUICK_DRAW_RANGE
+			&& !Archery.flying(this.target) ? QUICK_DRAW_TICKS : Archery.FULL_DRAW_TICKS + dead.extraHold(drawn);
 		if (this.drifter.getTicksUsingItem() >= wanted && this.aimedAt(aim, this.drifter.getTicksUsingItem() - wanted)) {
 			// Its bow's power, as it believes it, would hurt a friend, itself or its home: it lowers the bow (gear powers).
-			if (this.heldFire(this.drifter.getUseItem())) {
+			if (this.heldFire(drawn)) {
 				this.release(false);
 				return this.fail("held fire");
 			}
@@ -199,11 +216,10 @@ public class ShootTask extends Task {
 				this.blockedTicks++;
 			} else {
 				this.blockedTicks = 0;
-				net.minecraft.world.item.ItemStack bow = this.drifter.getUseItem();
-				this.watchLoose(bow);
+				// (Watched: a shot counts once something came of it, and a bow that never looses is given up on.)
+				this.countIf(dead.watch(this.drifter, drawn, this.target, true));
 				this.release(true);
-				this.checkLoosed();
-				this.shots++;
+				this.countIf(dead.check(this.drifter));
 			}
 		}
 
@@ -214,36 +230,50 @@ public class ShootTask extends Task {
 	private int aimTicks;
 
 	/**
-	 * A crossbow, as a player uses one (CrossbowItem): unloaded, it holds use for the charge time and lets go, which loads
-	 * it from its arrows ({@code DrifterEntity#getProjectile}); loaded, it aims and fires at once on the aim point. A crossbow
-	 * carried loaded stays loaded until it fires (the next fight's first shot needs no load).
+	 * A crossbow loading, as a player loads one (CrossbowItem): unloaded, it holds use and lets go, which loads it from its
+	 * arrows ({@code DrifterEntity#getProjectile}). It holds for the crossbow's own load time ({@link Archery#loadTicks}), and
+	 * longer for a modded one that it learned needs it (DeadLaunchers, ruling R29), or until it shows loaded. Null once it is
+	 * loaded and not being held (a crossbow carried loaded stays loaded: the next fight's first shot needs no load).
 	 */
-	private Status crossbow(net.minecraft.world.item.ItemStack crossbow, Vec3 aim) {
-		if (!CrossbowItem.isCharged(crossbow)) {
-			this.aimTicks = 0;
-			if (!this.drifter.isUsingItem()) {
-				// Not loading for a shot it won't take (gear powers).
-				if (this.heldFire(crossbow)) {
-					return this.fail("held fire");
-				}
+	@Nullable
+	private Status load(net.minecraft.world.item.ItemStack crossbow, boolean seen) {
+		boolean holding = this.drifter.isUsingItem() && this.drifter.getUseItem() == crossbow;
+		if (!holding && CrossbowItem.isCharged(crossbow)) {
+			return null;
+		}
 
-				this.drifter.startUsingItem(InteractionHand.MAIN_HAND);
-				return Status.RUNNING;
+		this.aimTicks = 0;
+		if (seen) {
+			Steering.stopMoving(this.drifter);
+			this.drifter.getCamera().track(this.target.getEyePosition(), CameraModel.TurnSpeed.COMBAT);
+		}
+
+		if (!holding) {
+			// Not loading for a shot it won't take (gear powers).
+			if (this.heldFire(crossbow)) {
+				return this.fail("held fire");
 			}
 
-			if (this.drifter.getTicksUsingItem() >= CrossbowItem.getChargeDuration(crossbow, this.drifter)) {
-				this.drifter.releaseUsingItem();
-				if (CrossbowItem.isCharged(crossbow)) {
-					this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "loaded its " + crossbow.getHoverName().getString());
-				} else {
-					// Held for the full charge with arrows to hand and nothing loaded: the item doesn't work for it (R23).
-					this.drifter.getDeadLaunchers().failed(this.drifter, crossbow);
-				}
-			}
-
+			this.drifter.startUsingItem(InteractionHand.MAIN_HAND);
 			return Status.RUNNING;
 		}
 
+		var dead = this.drifter.getDeadLaunchers();
+		if (CrossbowItem.isCharged(crossbow) || this.drifter.getTicksUsingItem() >= Archery.loadTicks(crossbow, this.drifter) + dead.extraHold(crossbow)) {
+			this.drifter.releaseUsingItem();
+			if (CrossbowItem.isCharged(crossbow)) {
+				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "loaded its " + crossbow.getHoverName().getString());
+			} else {
+				// Held its whole load time with arrows to hand and nothing loaded: longer next time, then given up on (R23, R29).
+				dead.failedHold(this.drifter, crossbow);
+			}
+		}
+
+		return Status.RUNNING;
+	}
+
+	/** A loaded crossbow: it aims and fires at once on the aim point. */
+	private Status fire(net.minecraft.world.item.ItemStack crossbow, Vec3 aim) {
 		if (this.aimTicks++ == 0) {
 			this.error = this.rollError();
 		}
@@ -264,49 +294,28 @@ public class ShootTask extends Task {
 		}
 
 		this.blockedTicks = 0;
+		this.aimTicks = 0;
 		net.minecraft.world.item.component.ChargedProjectiles loaded = crossbow.get(net.minecraft.core.component.DataComponents.CHARGED_PROJECTILES);
 		double speed = loaded != null && loaded.contains(Items.FIREWORK_ROCKET) ? Archery.CROSSBOW_FIREWORK_SPEED : Archery.CROSSBOW_ARROW_SPEED;
-		this.watchLoose(crossbow);
+		var dead = this.drifter.getDeadLaunchers();
+		this.countIf(dead.watch(this.drifter, crossbow, this.target, false));
 		this.drifter.fireCrossbow(crossbow, (float)speed);
-		this.checkLoosed();
+		if (CrossbowItem.isCharged(crossbow)) {
+			// Still loaded: nothing left it (the mod's firing failed or did nothing). One against it at once, no shot.
+			dead.missed(this.drifter);
+			return Status.RUNNING;
+		}
+
+		this.countIf(dead.check(this.drifter));
 		// What follows the shot may show what the crossbow does (its bolts are in the air now).
 		com.dinglebob.drifter.gear.PowerWatch.start(this.drifter, crossbow, this.target, com.dinglebob.drifter.gear.PowerWatch.Use.SHOT);
-		this.aimTicks = 0;
-		this.shots++;
 		return Status.RUNNING;
 	}
 
-	/** The launcher it just let go of, the tick it did, its wear and its target's health then (null: no shot being watched for). */
-	@Nullable
-	private net.minecraft.world.item.ItemStack loosing;
-	private long loosingAt;
-	private int loosingWear;
-	private float loosingTargetHealth;
-
-	/** It's letting go of this launcher now: was anything loosed? (DeadLaunchers, ruling R23.) */
-	private void watchLoose(net.minecraft.world.item.ItemStack launcher) {
-		this.loosing = launcher;
-		this.loosingAt = this.drifter.level().getGameTime();
-		this.loosingWear = launcher.getDamageValue();
-		this.loosingTargetHealth = this.target.getHealth();
-	}
-
-	/**
-	 * A projectile of its own came into the world since it let go, the launcher wore (as one does per shot) or its target
-	 * was hurt (a bow that strikes with a beam, say): it worked. Nothing within {@link com.dinglebob.drifter.hands.DeadLaunchers#LOOSE_WINDOW_TICKS}: one against that item.
-	 */
-	private void checkLoosed() {
-		if (this.loosing == null) {
-			return;
-		}
-
-		var dead = this.drifter.getDeadLaunchers();
-		if (dead.loosedSince(this.loosingAt) || this.loosing.getDamageValue() != this.loosingWear || this.target.getHealth() < this.loosingTargetHealth) {
-			dead.worked(this.loosing);
-			this.loosing = null;
-		} else if (this.drifter.level().getGameTime() - this.loosingAt >= com.dinglebob.drifter.hands.DeadLaunchers.LOOSE_WINDOW_TICKS) {
-			dead.failed(this.drifter, this.loosing);
-			this.loosing = null;
+	/** A shot it let go of turned out to loose something: it counts. */
+	private void countIf(boolean loosed) {
+		if (loosed) {
+			this.shots++;
 		}
 	}
 
@@ -459,15 +468,10 @@ public class ShootTask extends Task {
 	@Override
 	protected void onStop() {
 		this.release(false);
-		// (A shot still being watched for that did come out counts; one that didn't yet isn't held against the item.)
-		if (this.loosing != null && this.drifter.getDeadLaunchers().loosedSince(this.loosingAt)) {
-			this.drifter.getDeadLaunchers().worked(this.loosing);
-		}
-
-		this.loosing = null;
+		// (A shot still being watched stays with DeadLaunchers: the next shooting settles it.)
 	}
 
-	/** Shots it got off (for the thought log). */
+	/** Shots it got off that loosed something (for the thought log). */
 	public int shots() {
 		return this.shots;
 	}

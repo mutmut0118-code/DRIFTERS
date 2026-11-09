@@ -66,9 +66,33 @@ public final class Archery {
 		return false;
 	}
 
-	/** It could shoot this now: a bow or crossbow with arrows to hand ({@code ammo}) or loaded, and not one it gave up on (DeadLaunchers). */
+	/**
+	 * It could shoot this now: a bow or crossbow with something to shoot from it to hand, or loaded, and not one it gave up
+	 * on (DeadLaunchers). {@code ammo}: it has arrows. A modded one that takes something else (its own bolts:
+	 * {@code DrifterEntity#getProjectile}) may be shot with that; one that seems to take nothing it has is still tried with
+	 * arrows to hand (some shoot with no ammo at all), and given up on if nothing comes of it.
+	 */
 	public static boolean canShoot(DrifterEntity drifter, ItemStack stack, boolean ammo) {
-		return com.dinglebob.drifter.hands.Shields.isLauncher(stack) && (ammo || loaded(stack)) && !DeadLaunchers.resting(drifter, stack);
+		if (!com.dinglebob.drifter.hands.Shields.isLauncher(stack) || DeadLaunchers.resting(drifter, stack)) {
+			return false;
+		}
+
+		return ammo || loaded(stack) || !DeadLaunchers.vanilla(stack) && !drifter.getProjectile(stack).isEmpty();
+	}
+
+	/** A modded crossbow whose own use time is longer than this isn't timed by it (it's the "for ever" of a bow). */
+	public static final int MAX_LOAD_TICKS = 100;
+	/** CrossbowItem's use time is its charge time and this many ticks more. */
+	public static final int CROSSBOW_USE_SLACK_TICKS = 3;
+
+	/**
+	 * Ticks it holds a crossbow to load it before letting go: its own use time less the few ticks the game's crossbow allows
+	 * past its charge (for the vanilla one, exactly its charge time, Quick Charge and all); the vanilla charge time if that
+	 * use time says nothing (a modded one held "for ever").
+	 */
+	public static int loadTicks(ItemStack crossbow, LivingEntity user) {
+		int own = crossbow.getUseDuration(user) - CROSSBOW_USE_SLACK_TICKS;
+		return own > 0 && own <= MAX_LOAD_TICKS ? own : net.minecraft.world.item.CrossbowItem.getChargeDuration(crossbow, user);
 	}
 
 	/** A crossbow with a shot in it (it fires at once, as a player's does). */

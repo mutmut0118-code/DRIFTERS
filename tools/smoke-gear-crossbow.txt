@@ -15,8 +15,9 @@
 #     standing pillager 14 off: arrows go (fewer than 64 + 64), no "gave up on" line.
 #  5  R23, Too Many Bows (disabled in the user's game; its classes name client-only ones, so a dedicated server can't look into them):
 #     Flame with too_many_bows:flame_bow shoots (its helper player lets go: arrows fewer than 64 + 64, "found out Pyre's Embrace: fire");
-#     Dud with too_many_bows:radiance looses nothing for a Drifter: after 3 draws "gave up on Radiance: it never shoots", the shoot fails
-#     ("nothing to shoot with"), and the next "drifter shoot" fails at once, never drawing it for ever.
+#     Dud with too_many_bows:radiance (it spends a player's levels; Dud has none) looses nothing: it draws longer each time (20, 40 ... 100
+#     ticks: ruling R29, a modded bow may need a longer draw), then 3 more full-length draws, then "gave up on Radiance: it won't shoot"
+#     (about 30 s: the first shoot may time out and the second finish it), and the last "drifter shoot" fails at once ("nothing to shoot with").
 until Done_( 900
 wait 3
 forceload add ~-112 ~-112 ~112 ~112
@@ -104,7 +105,7 @@ execute at @e[type=drifter:drifter,name=Flame] run drifter thoughts
 execute at @e[type=drifter:drifter,name=Flame] run drifter inventory
 execute at @e[type=drifter:drifter,name=Dud] run drifter thoughts
 execute at @e[type=drifter:drifter,name=Dud] run drifter inventory
-# 5 again: a launcher given up on isn't drawn.
+# 5 again: drawing on (the first shoot timed out at 30 s), until it gives up.
 execute as @e[type=drifter:drifter,name=Dud] at @s run drifter shoot @e[type=pillager,tag=tDud,limit=1]
 # 1 again: a second skeleton for Cross.
 execute at @e[type=drifter:drifter,name=Cross] positioned ~15 ~ ~ positioned over motion_blocking_no_leaves run summon skeleton ~ ~ ~ {PersistenceRequired:1b,HandItems:[{id:"minecraft:bow",count:1},{}],ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["sCross2"]}
@@ -113,4 +114,7 @@ execute at @e[type=drifter:drifter,name=Cross] run drifter thoughts
 execute at @e[type=drifter:drifter,name=Cross] run drifter inventory
 execute at @e[type=drifter:drifter,name=Dud] run drifter thoughts
 execute at @e[type=drifter:drifter,name=Dud] run drifter inventory
+# 5 last: a launcher given up on isn't drawn.
+execute as @e[type=drifter:drifter,name=Dud] at @s run drifter shoot @e[type=pillager,tag=tDud,limit=1]
+wait 2
 stop

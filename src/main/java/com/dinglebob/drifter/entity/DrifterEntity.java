@@ -2303,12 +2303,31 @@ protected void customServerAiStep() {
 	}
 
 	/**
-	 * What a bow or crossbow shoots, as a player's picks it (Player#getProjectile): its arrows, off hand first. The live stack,
-	 * so loading a crossbow uses them up (CrossbowItem#releaseUsing loads from here; a mob has none).
+	 * What a bow or crossbow shoots, picked as a player's is (Player#getProjectile): what the weapon takes held in a hand
+	 * first (off hand, then main), then the first such stack in its pack, by the weapon's own rule (a modded crossbow that
+	 * takes only its own bolts gets no arrows). The live stack, so loading a crossbow uses it up (CrossbowItem#releaseUsing
+	 * loads from here; a mob has none).
 	 */
 	@Override
 	public ItemStack getProjectile(ItemStack weapon) {
-		return weapon.getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem ? com.dinglebob.drifter.hands.Archery.ammo(this) : super.getProjectile(weapon);
+		if (!(weapon.getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem launcher)) {
+			return super.getProjectile(weapon);
+		}
+
+		ItemStack held = net.minecraft.world.item.ProjectileWeaponItem.getHeldProjectile(this, launcher.getSupportedHeldProjectiles());
+		if (!held.isEmpty()) {
+			return held;
+		}
+
+		java.util.function.Predicate<ItemStack> takes = launcher.getAllSupportedProjectiles();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = this.inventory.getItem(slot);
+			if (takes.test(stack)) {
+				return stack;
+			}
+		}
+
+		return ItemStack.EMPTY;
 	}
 
 	/** How a launcher's class lets go: its own way, the vanilla way, or can't tell (it can't be looked into on this side). */
