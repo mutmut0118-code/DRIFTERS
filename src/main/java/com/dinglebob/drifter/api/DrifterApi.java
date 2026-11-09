@@ -692,6 +692,11 @@ public final class DrifterApi {
 	}
 
 	/** The tree this log or grown leaf belongs to felled whole, trunk and crown (clearing for a build). True if one was. */
+	/** This block is part of someone's build (a player's, a Drifter's house, a town's), not the land's own. */
+	public static boolean isBuilt(ServerLevel level, net.minecraft.core.BlockPos pos) {
+		return com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, pos);
+	}
+
 	public static boolean fellTree(ServerLevel level, net.minecraft.core.BlockPos pos) {
 		return com.dinglebob.drifter.world.gen.Felling.fellTree(level, pos);
 	}
