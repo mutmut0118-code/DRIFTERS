@@ -87,10 +87,10 @@ public final class Combat {
 	 */
 	public static int bestWeaponSlot(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();
-		double[] melee = new double[DrifterInventory.MAIN_SIZE];
 		double bestWeapon = 0.0;
 		int bestOther = -1;
-		double bestOtherDps = weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01;
+		double empty = weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01;
+		double bestOtherDps = empty;
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
 			if (stack.isEmpty()) {
@@ -98,14 +98,12 @@ public final class Combat {
 			}
 
 			com.dinglebob.drifter.gear.GearKinds.Kind kind = com.dinglebob.drifter.gear.GearKinds.of(stack);
-			if (kind != null && (kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.STAFF
-				|| kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.THROWN)) {
+			if (kind != null && !kind.use().usable()) {
 				continue;
 			}
 
 			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
-			if (com.dinglebob.drifter.brain.Weapons.isWeapon(stack)) {
-				melee[slot] = dps;
+			if (com.dinglebob.drifter.brain.Weapons.isWeapon(stack, kind)) {
 				bestWeapon = Math.max(bestWeapon, dps);
 			} else if (dps > bestOtherDps) {
 				bestOtherDps = dps;
@@ -117,20 +115,28 @@ public final class Combat {
 			return bestOther;
 		}
 
+		// Second pass over the same slots: the weapons close enough to the best, by what it likes.
 		int best = -1;
 		double top = -1.0;
-		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
-			if (melee[slot] > 0.0 && com.dinglebob.drifter.gear.GearTaste.goodEnough(melee[slot], bestWeapon)) {
-				double liking = com.dinglebob.drifter.gear.GearTaste.liking(drifter, inventory.getItem(slot), melee[slot]);
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE && bestWeapon > empty; slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			com.dinglebob.drifter.gear.GearKinds.Kind kind = com.dinglebob.drifter.gear.GearKinds.of(stack);
+			if ((kind != null && !kind.use().usable()) || !com.dinglebob.drifter.brain.Weapons.isWeapon(stack, kind)) {
+				continue;
+			}
+
+			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
+			if (com.dinglebob.drifter.gear.GearTaste.goodEnough(dps, bestWeapon)) {
+				double liking = com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, dps);
 				if (liking > top) {
 					top = liking;
 					best = slot;
 				}
 			}
-		}
-
-		if (best >= 0 && melee[best] <= weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01) {
-			return -1;
 		}
 
 		return best;

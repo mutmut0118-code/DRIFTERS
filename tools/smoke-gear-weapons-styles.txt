@@ -1,0 +1,50 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 5
+execute positioned ~20 ~ ~ run drifter spawn Spractical
+execute positioned ~40 ~ ~ run drifter spawn Sflashy
+execute positioned ~60 ~ ~ run drifter spawn Sloyal
+execute positioned ~80 ~ ~ run drifter spawn Sfollower
+drifter tier full all
+wait 15
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter give
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter give simplyswords:diamond_longsword
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter give minecraft:diamond_axe
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter give simplyswords:diamond_cutlass
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter give simplyswords:diamond_rapier
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter gear style flashy
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter give
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter give simplyswords:diamond_longsword
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter give minecraft:diamond_axe
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter give simplyswords:diamond_cutlass
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter give simplyswords:diamond_rapier
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter gear style loyal
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter give
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter give simplyswords:diamond_longsword
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter give minecraft:diamond_axe
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter give simplyswords:diamond_cutlass
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter give simplyswords:diamond_rapier
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter gear style follower
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter give
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter give simplyswords:diamond_longsword
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter give minecraft:diamond_axe
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter give simplyswords:diamond_cutlass
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter give simplyswords:diamond_rapier
+wait 3
+execute as @e[type=drifter:drifter,name=Spractical] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Sflashy] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Sloyal] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Sfollower] at @s run drifter weapon
+save-all
+stop
