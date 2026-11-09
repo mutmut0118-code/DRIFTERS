@@ -93,21 +93,29 @@ public final class Shields {
 		return !stack.isEmpty() && stack.getItem() instanceof BowItem;
 	}
 
-	/** How good a bow is: a modded unique bow over a plain one, enchantments, then the wear left. */
-	public static double bowScore(ItemStack stack) {
-		double score = stack.getItem().getClass() != BowItem.class ? 1000.0 : 0.0;
-		score += 100.0 * stack.getEnchantments().size();
-		return score + (stack.isDamageableItem() ? 1.0 - stack.getDamageValue() / (double)stack.getMaxDamage() : 1.0);
+	/** A bow or a crossbow (what it can shoot arrows from; crossbows are used from the shooting task on). */
+	public static boolean isLauncher(ItemStack stack) {
+		return !stack.isEmpty() && (stack.getItem() instanceof BowItem || stack.getItem() instanceof net.minecraft.world.item.CrossbowItem);
+	}
+
+	/** How much this Drifter likes a bow: its value (enchantments, rarity, own release, wear) with its taste in it. */
+	public static double bowScore(DrifterEntity drifter, ItemStack stack) {
+		return com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, com.dinglebob.drifter.gear.GearValue.ranged(stack));
 	}
 
 	/** Its best bow in the main inventory, or -1. */
 	public static int bestBowSlot(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();
 		int best = -1;
+		double bestScore = 0.0;
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
-			if (isBow(stack) && (best < 0 || bowScore(stack) > bowScore(inventory.getItem(best)))) {
-				best = slot;
+			if (isBow(stack)) {
+				double score = bowScore(drifter, stack);
+				if (best < 0 || score > bestScore) {
+					best = slot;
+					bestScore = score;
+				}
 			}
 		}
 

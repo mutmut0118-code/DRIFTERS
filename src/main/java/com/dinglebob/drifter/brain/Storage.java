@@ -143,7 +143,7 @@ public final class Storage {
 			}
 
 			Integer current = bestToolSlot.get(kind);
-			if (current == null || toolScore(stack) > toolScore(inventory.getItem(current))) {
+			if (current == null || toolScore(drifter, stack) > toolScore(drifter, inventory.getItem(current))) {
 				bestToolSlot.put(kind, slot);
 			}
 		}
@@ -154,7 +154,7 @@ public final class Storage {
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
 			if (stack.is(ItemTags.PICKAXES) && bestPickaxe != null && slot != bestPickaxe
-				&& (sparePickaxe < 0 || toolScore(stack) > toolScore(inventory.getItem(sparePickaxe)))) {
+				&& (sparePickaxe < 0 || toolScore(drifter, stack) > toolScore(drifter, inventory.getItem(sparePickaxe)))) {
 				sparePickaxe = slot;
 			}
 		}
@@ -256,14 +256,14 @@ public final class Storage {
 		return null;
 	}
 
-	private static double toolScore(ItemStack stack) {
+	private static double toolScore(DrifterEntity drifter, ItemStack stack) {
 		// (Shields by the wear they have left; bows, a modded unique one first.)
 		if (com.dinglebob.drifter.hands.Shields.isShield(stack)) {
 			return com.dinglebob.drifter.hands.Shields.score(stack) / 100.0;
 		}
 
 		if (com.dinglebob.drifter.hands.Shields.isBow(stack)) {
-			return com.dinglebob.drifter.hands.Shields.bowScore(stack);
+			return com.dinglebob.drifter.hands.Shields.bowScore(drifter, stack);
 		}
 
 		double tier = stack.getItem() instanceof TieredItem tiered ? tiered.getTier().getSpeed() + tiered.getTier().getAttackDamageBonus() : 1.0;

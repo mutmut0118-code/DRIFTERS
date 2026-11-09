@@ -132,7 +132,16 @@ public final class Weapons {
 
 	/** A melee weapon (any sword, or anything a weapon file lists). */
 	public static boolean isWeapon(ItemStack stack) {
-		return !stack.isEmpty() && (stack.is(MELEE) || byItem.containsKey(stack.getItem()) || uniques.containsKey(stack.getItem()));
+		if (stack.isEmpty()) {
+			return false;
+		}
+
+		if (stack.is(MELEE) || byItem.containsKey(stack.getItem()) || uniques.containsKey(stack.getItem())) {
+			return true;
+		}
+
+		com.dinglebob.drifter.gear.GearKinds.Kind kind = com.dinglebob.drifter.gear.GearKinds.of(stack);
+		return kind != null && (kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.MELEE || kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.TRIDENT);
 	}
 
 	/**
@@ -146,7 +155,7 @@ public final class Weapons {
 		}
 
 		Tier listed = tierOf.get(stack.getItem());
-		if (listed != null || !stack.is(MELEE)) {
+		if (listed != null || !isWeapon(stack)) {
 			return listed;
 		}
 

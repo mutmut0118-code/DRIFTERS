@@ -106,8 +106,10 @@ final class HandsCommands {
 				ItemStack best = drifter.getInventory().getItem(held);
 				var tier = com.dinglebob.drifter.brain.Weapons.tier(drifter, best);
 				var stats = com.dinglebob.drifter.hands.Combat.weaponStats(drifter, best);
-				text.append(String.format(java.util.Locale.ROOT, "\n  best weapon on it: %s (%s tier, %.1f damage x %.2f a second)", best.getHoverName().getString(),
-					tier == null ? "?" : tier.id(), stats.damage(), stats.speed()));
+				var kind = com.dinglebob.drifter.gear.GearKinds.of(best);
+				text.append(String.format(java.util.Locale.ROOT, "\n  best weapon on it: %s (%s tier, %.1f damage x %.2f a second, kind %s, style %s)",
+					best.getHoverName().getString(), tier == null ? "?" : tier.id(), stats.damage(), stats.speed(),
+					kind == null ? "none" : kind.id(), com.dinglebob.drifter.gear.GearTaste.style(drifter).id()));
 			}
 
 			text.append("\n  likes:");

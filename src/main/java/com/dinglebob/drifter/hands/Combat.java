@@ -80,29 +80,57 @@ public final class Combat {
 		return -1;
 	}
 
-	/** How much more it likes its favorite kind of weapon than an equally good other one. */
-	private static final double FAVORITE_BONUS = 1.1;
-
+	/**
+	 * Weapons (see {@code Weapons.isWeapon}) are chosen by taste among those close to the best (the good-enough rule: a
+	 * player with two good swords holds the one they like); anything else that hits harder than the best weapon (an axe,
+	 * a pickaxe) still wins by raw damage, and an empty hand is beaten only by something. Never a thrown weapon or a staff.
+	 */
 	public static int bestWeaponSlot(DrifterEntity drifter) {
 		DrifterInventory inventory = drifter.getInventory();
-		int best = -1;
-		double bestScore = weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01;
-		com.dinglebob.drifter.brain.Weapons.Family favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
+		double[] melee = new double[DrifterInventory.MAIN_SIZE];
+		double bestWeapon = 0.0;
+		int bestOther = -1;
+		double bestOtherDps = weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01;
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
 			if (stack.isEmpty()) {
 				continue;
 			}
 
-			double score = weaponStats(drifter, stack).perSecond();
-			// Its favorite kind of weapon a little ahead of an equal one (a player sticks with the weapon they like).
-			if (com.dinglebob.drifter.brain.Weapons.family(stack) == favorite) {
-				score *= FAVORITE_BONUS;
+			com.dinglebob.drifter.gear.GearKinds.Kind kind = com.dinglebob.drifter.gear.GearKinds.of(stack);
+			if (kind != null && (kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.STAFF
+				|| kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.THROWN)) {
+				continue;
 			}
-			if (score > bestScore) {
-				bestScore = score;
-				best = slot;
+
+			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
+			if (com.dinglebob.drifter.brain.Weapons.isWeapon(stack)) {
+				melee[slot] = dps;
+				bestWeapon = Math.max(bestWeapon, dps);
+			} else if (dps > bestOtherDps) {
+				bestOtherDps = dps;
+				bestOther = slot;
 			}
+		}
+
+		if (bestOther >= 0 && bestOtherDps > bestWeapon) {
+			return bestOther;
+		}
+
+		int best = -1;
+		double top = -1.0;
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (melee[slot] > 0.0 && com.dinglebob.drifter.gear.GearTaste.goodEnough(melee[slot], bestWeapon)) {
+				double liking = com.dinglebob.drifter.gear.GearTaste.liking(drifter, inventory.getItem(slot), melee[slot]);
+				if (liking > top) {
+					top = liking;
+					best = slot;
+				}
+			}
+		}
+
+		if (best >= 0 && melee[best] <= weaponStats(drifter, ItemStack.EMPTY).perSecond() + 0.01) {
+			return -1;
 		}
 
 		return best;

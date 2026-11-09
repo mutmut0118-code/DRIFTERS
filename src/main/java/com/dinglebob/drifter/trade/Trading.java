@@ -272,10 +272,16 @@ public final class Trading {
 		}
 
 		if (com.dinglebob.drifter.brain.Weapons.isWeapon(stack)) {
-			double perSecond = com.dinglebob.drifter.hands.Combat.weaponStats(drifter, stack).perSecond();
+			if (!com.dinglebob.drifter.gear.GearKinds.usableWeapon(stack) && com.dinglebob.drifter.gear.GearKinds.of(stack) != null) {
+				return 0.0;
+			}
+
+			double liked = com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, com.dinglebob.drifter.gear.GearValue.melee(drifter, stack));
 			int slot = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(drifter);
 			ItemStack current = slot < 0 ? ItemStack.EMPTY : drifter.getInventory().getItem(slot);
-			return perSecond > com.dinglebob.drifter.hands.Combat.weaponStats(drifter, current).perSecond() * 1.15 ? WANT_WEAPON : 0.0;
+			double has = current.isEmpty() ? com.dinglebob.drifter.gear.GearValue.melee(drifter, current)
+				: com.dinglebob.drifter.gear.GearTaste.liking(drifter, current, com.dinglebob.drifter.gear.GearValue.melee(drifter, current));
+			return liked > has * 1.15 ? WANT_WEAPON : 0.0;
 		}
 
 		if (stack.has(DataComponents.FOOD)) {

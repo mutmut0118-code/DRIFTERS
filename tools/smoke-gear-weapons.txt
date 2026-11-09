@@ -1,0 +1,46 @@
+# Task 4: weapons chosen by value, kind and taste. python tools/smoke.py . tools/smoke-gear-weapons.txt build/smoke-gear-weapons.log
+# Expect: Prac and Flash print "best weapon on it:" (picks may differ); Staff's best weapon is the stone sword (the Oak Staff stick is skipped);
+# each kills its zombie. Run with run/mods_off holding the four optional mods: 'diamond sword' is the pick.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set midnight
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+difficulty normal
+kill @e[type=drifter:drifter]
+wait 5
+execute positioned ~40 ~ ~ run drifter spawn Prac
+execute positioned ~80 ~ ~ run drifter spawn Flash
+execute positioned ~120 ~ ~ run drifter spawn Staff
+drifter tier full all
+wait 15
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter gear style flashy
+execute as @e[type=drifter:drifter,name=Staff] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter give simplyswords:diamond_katana
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter give simplyswords:diamond_greataxe
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter give minecraft:wooden_axe
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter give simplyswords:diamond_katana
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter give simplyswords:diamond_greataxe
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter give minecraft:wooden_axe
+execute as @e[type=drifter:drifter,name=Staff] at @s run drifter give minecraft:stick[minecraft:attribute_modifiers={modifiers:[{type:"generic.attack_damage",amount:20,operation:"add_value",slot:"mainhand",id:"t:d"}]},minecraft:item_name='"Oak Staff"']
+execute as @e[type=drifter:drifter,name=Staff] at @s run drifter give minecraft:stone_sword
+wait 3
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Staff] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Staff] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Prac] at @s run summon zombie ~3 ~ ~ {PersistenceRequired:1b,ArmorItems:[{},{},{},{id:"minecraft:leather_helmet",count:1}]}
+execute as @e[type=drifter:drifter,name=Flash] at @s run summon zombie ~3 ~ ~ {PersistenceRequired:1b,ArmorItems:[{},{},{},{id:"minecraft:leather_helmet",count:1}]}
+execute as @e[type=drifter:drifter,name=Staff] at @s run summon zombie ~3 ~ ~ {PersistenceRequired:1b,ArmorItems:[{},{},{},{id:"minecraft:leather_helmet",count:1}]}
+wait 25
+execute as @e[type=drifter:drifter,name=Prac] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Flash] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Staff] at @s run drifter inventory
+save-all
+stop

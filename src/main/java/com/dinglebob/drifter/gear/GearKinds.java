@@ -66,7 +66,31 @@ public final class GearKinds {
 			CACHE.put(item, cached);
 		}
 
-		return cached.orElse(null);
+		Kind kind = cached.orElse(null);
+		// A single stack with its own name ("Oak Staff") is read by that name; not cached, it is this stack's.
+		if ((stack.getCount() == 1 || item.getDefaultMaxStackSize() == 1) && (kind == null || kind.use() == Use.MELEE || kind.use() == Use.THROWN || kind.use() == Use.STAFF)
+			&& hasOwnName(stack)) {
+			GearData.KindDef byName = byWords(GearData.tables(), words(stack.getHoverName().getString()));
+			if (byName != null) {
+				return new Kind(byName.id(), byName.use());
+			}
+		}
+
+		return kind;
+	}
+
+	private static boolean hasOwnName(ItemStack stack) {
+		if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) {
+			return true;
+		}
+
+		var patch = stack.getComponentsPatch();
+		if (patch.isEmpty()) {
+			return false;
+		}
+
+		var itemName = patch.get(net.minecraft.core.component.DataComponents.ITEM_NAME);
+		return itemName != null && itemName.isPresent();
 	}
 
 	public static boolean usableWeapon(ItemStack stack) {
