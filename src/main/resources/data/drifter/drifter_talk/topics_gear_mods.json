@@ -1,5 +1,5 @@
 {
- "_comment": "Gear from any mod (weapons and armor project, task 8): passing on what an item does (Powers.tip: a belief about an item it owns or has used, read, seen or told, that the other doesn't hold yet; never one stack's enchantment or lore), a modded item new to it today, and its taste in gear (GearTaste styles: flashy brags, loyal sticks to its kind, follower asks, practical shrugs). Effects: teach_power/learn_power (the listener believes the tip, as told), teach_gear/learn_gear (the listener learns the item exists).",
+ "_comment": "Gear from any mod (weapons and armor project, task 8; gear_tip_seen: the tip was seen in its own use, so it may say so): passing on what an item does (Powers.tip: a belief about an item it owns or has used, read, seen or told, that the other doesn't hold yet; never one stack's enchantment or lore), a modded item new to it today, and its taste in gear (GearTaste styles: flashy brags, loyal sticks to its kind, follower asks, practical shrugs). Effects: teach_power/learn_power (the listener believes the tip, as told), teach_gear/learn_gear (the listener learns the item exists).",
  "topics": [
   {
    "id": "gear_warn_explosive",
@@ -42,7 +42,7 @@
     {"by": "a", "lines": [
      "keep it away from anything wooden",
      "great on mobs, terrible near friends",
-     "one swing near my walls and that was it"
+     "wooden walls don't stand a chance"
     ], "chance": 0.8}
    ],
    "effects": ["teach_power"]
@@ -61,10 +61,9 @@
      "tip for you, the {a.gear_tip_item} {a.gear_tip_power}"
     ]},
     {"by": "b", "lines": ["no way", "really?", "huh, never knew", "since when", "cool"]},
-    {"by": "a", "lines": [
-     "yep, saw it myself",
-     "it's right there if you read it",
-     "worth knowing before a fight"
+    {"by": "a", "options": [
+     {"if": ["a:gear_tip_seen"], "lines": ["yep, saw it myself", "found that out the first time i used one", "worth knowing before a fight"]},
+     {"lines": ["worth knowing before a fight", "trust me on that one", "good to know before you swing one"]}
     ]},
     {"by": "b", "lines": ["i'll remember that", "good tip", "ok that's handy"], "chance": 0.7}
    ],
@@ -86,7 +85,7 @@
     {"by": "b", "lines": [
      "it {b.gear_tip_power}",
      "honestly? it {b.gear_tip_power}",
-     "from what i've seen it {b.gear_tip_power}"
+     "from what i know it {b.gear_tip_power}"
     ]},
     {"by": "a", "lines": ["oh nice", "huh", "glad i asked", "ok good to know"]}
    ],
@@ -105,7 +104,7 @@
      "if you're losing a fight, the {a.gear_tip_item} {a.gear_tip_power}"
     ]},
     {"by": "b", "lines": ["that's huge", "better than eating mid-fight", "ok i want one"]},
-    {"by": "a", "lines": ["don't waste it at full health", "it's saved me more than once"], "chance": 0.7}
+    {"by": "a", "lines": ["don't waste it at full health", "keep it for the bad moments"], "chance": 0.7}
    ],
    "effects": ["teach_power"]
   },
@@ -119,7 +118,7 @@
    "turns": [
     {"by": "a", "lines": [
      "the {a.gear_tip_item} {a.gear_tip_power}, perfect for a horde",
-     "got swarmed and the {a.gear_tip_item} cleared them. it {a.gear_tip_power}"
+     "when you get swarmed, the {a.gear_tip_item} is the one. it {a.gear_tip_power}"
     ]},
     {"by": "b", "lines": ["wish i had that last night", "nice, crowds are the worst", "sounds broken"]},
     {"by": "a", "lines": ["wasted on a single zombie though", "save it for when there's a bunch"], "chance": 0.7}
@@ -129,7 +128,7 @@
   {
    "id": "gear_tip_hard_way",
    "weight": 1.5,
-   "needs": ["a:has_gear_tip", "a:gear_tip_explosive", "!rivals"],
+   "needs": ["a:has_gear_tip", "a:gear_tip_explosive", "a:gear_tip_seen", "!rivals"],
    "tags": ["gear", "powers", "stories"],
    "leads": ["gear", "powers", "death"],
    "about": "learning the hard way",

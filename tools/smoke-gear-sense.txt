@@ -5,11 +5,14 @@
 # Expect:
 #  1a  /drifter shoot at a standing husk 10 off with Pal (in Vet's group, brain off) 2 blocks from it: thought "held fire: Bow would blow up Pal",
 #      no arrow loosed; "[gear] Vet, Bow vs Husk ...: may use no (would blow up Pal), fit 0.20; believes explosive"; Pal "Health 20.0/20.0".
-#  1b  brain on (Vet brave), a live husk 10 off that cannot walk (speed 0: it stays by Pal, so the bow is the choice at 10 blocks; a 1-point hit "by Vet" makes it go for Vet) with Pal by it (Pal invulnerable here, so the husk goes for Vet, and hopping on the spot (brain off, jump key held), so Vet keeps noticing it; with its brain on it runs from the husk, and a friend standing stock still is slow to be noticed again once Vet looks away, and a friend it does not know is there does not count): "held fire: Bow would blow up Pal" from the fight's own choice, then the stone sword
+#  1b  brain on (Vet brave), a live husk 10 off that cannot walk (speed 0 and no knockback: it stays by Pal; a pushed husk ends up over 4 blocks from Pal, and then the bow is right, so the bow is the choice at 10 blocks; a 1-point hit "by Vet" makes it go for Vet) with Pal by it (Pal invulnerable here, so the husk goes for Vet, and hopping on the spot (brain off, jump key held), so Vet keeps noticing it; with its brain on it runs from the husk, and a friend standing stock still is slow to be noticed again once Vet looks away, and a friend it does not know is there does not count): "held fire: Bow would blow up Pal" from the fight's own choice, then the stone sword
 #      ("got it (husk)"), no arrow loosed (64 + 64 still: "drifter inventory").
 #  2   a live husk 3 off, no friend near: no held fire line needed (too close for a bow anyway), the sword, "the fight is over".
 #  3   gear sense: a standing husk 10 off, nobody near: "may use yes, fit 1.00"; 3 blocks off: "may use no (would blow up itself)";
-#      home set where Vet stands: "may use no (would blow up home)", a Fire Aspect sword "may use no (would burn home)";
+#      home set where Vet stands: "may use no (would blow up home)"; a Fire Aspect sword "may use yes, fit 1.00" (R27: enchanted fire has no
+#      rule), a sword whose lore says "Burns with hellfire" "may use no (would burn home)", one with both "may use no (would burn home)";
+#      no husk in view, home still set: "Bow vs nothing: may use yes, fit 1.00" (R26: no target, no rule);
+#  3b  a live husk 3 off by its home, a Fire Aspect iron sword carried: gear sense "Iron Sword vs Husk: may use yes, fit 1.00; believes fire", then "got it (attack the husk)" with the Iron Sword in hand ("drifter info");
 #      a sword whose lore says "Strikes all enemies around you" (area, for one who reads): fit 0.80 against one husk, 1.30 with two more by it.
 #  4   talk: Vet given simplybows:ice_bow/ice_bow (Winterfang: "freeze 0.75 (TEXT)" read from its text) and simplyswords:brimstone_claymore
 #      (a loot-only unique: new gear today); Newb (a newbie) beside it. "drifter gear tip" at Vet: "winterfang freezes things (freeze 0.75); new gear:
@@ -17,6 +20,7 @@
 #      "/drifter gear item simplybows:ice_bow/ice_bow" at Newb "powers: freeze 0.60 (TOLD)". Then "drifter talk gear_new_found":
 #      Newb "learned of Brimstone Claymore (told by Vet)", "/drifter gear item simplyswords:brimstone_claymore" at Newb "knows it: yes (told)".
 #      The lore'd "explodes" bow is never a tip (Newb's "/drifter gear item minecraft:bow": "powers: none").
+#      "/drifter gear tip" at Newb after it: "new gear: none" (R28: told of is not owned, so nothing new to show off).
 until Done_( 900
 wait 3
 forceload add ~-112 ~-112 ~112 ~112
@@ -56,7 +60,7 @@ execute at @e[type=drifter:drifter,name=Vet] run drifter inventory
 # 1b: brain on, a live husk, Pal by it.
 kill @e[type=husk]
 execute at @e[type=drifter:drifter,name=Vet] run drifter stop
-execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~10 positioned over motion_blocking_no_leaves run summon husk ~ ~ ~ {PersistenceRequired:1b,Tags:["t2"],attributes:[{id:"minecraft:generic.movement_speed",base:0.0}]}
+execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~10 positioned over motion_blocking_no_leaves run summon husk ~ ~ ~ {PersistenceRequired:1b,Tags:["t2"],attributes:[{id:"minecraft:generic.movement_speed",base:0.0},{id:"minecraft:generic.knockback_resistance",base:1.0}]}
 data merge entity @e[type=drifter:drifter,name=Pal,limit=1] {Invulnerable:1b}
 execute at @e[type=drifter:drifter,name=Pal] run drifter keys jump 400
 execute as @e[type=drifter:drifter,name=Vet] at @s run tp @s ~ ~ ~ facing entity @e[type=husk,tag=t2,limit=1]
@@ -98,6 +102,25 @@ execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:ir
 execute at @e[type=drifter:drifter,name=Vet] run drifter home here
 execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:bow[minecraft:lore=['"Explodes on impact"']]
 execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:iron_sword[minecraft:lore=['"Burns with hellfire"']]
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}},minecraft:lore=['"Burns with hellfire"']]
+kill @e[type=husk]
+wait 1
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:bow[minecraft:lore=['"Explodes on impact"']]
+# 3b: a real fight by its home with a Fire Aspect sword (R27: enchanted fire has no rule).
+effect give @e[type=drifter:drifter,name=Vet,limit=1] minecraft:instant_health 1 4
+effect give @e[type=drifter:drifter,name=Vet,limit=1] minecraft:saturation 1 10
+execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
+execute at @e[type=drifter:drifter,name=Vet] run drifter lookat stop
+execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~3 positioned over motion_blocking_no_leaves run summon husk ~ ~ ~ {PersistenceRequired:1b,Tags:["t7"]}
+execute as @e[type=drifter:drifter,name=Vet] at @s run tp @s ~ ~ ~ facing entity @e[type=husk,tag=t7,limit=1]
+wait 2
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear sense minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
+execute at @e[type=drifter:drifter,name=Vet] run drifter brain on
+wait 12
+execute at @e[type=drifter:drifter,name=Vet] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Vet] run drifter info
+execute at @e[type=drifter:drifter,name=Vet] run drifter brain off
 execute at @e[type=drifter:drifter,name=Vet] run drifter home clear
 kill @e[type=husk]
 execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~3 positioned over motion_blocking_no_leaves run summon husk ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["t6"]}
@@ -127,5 +150,6 @@ wait 2
 execute at @e[type=drifter:drifter,name=Vet] run drifter talk gear_new_found
 wait 30
 execute at @e[type=drifter:drifter,name=Newb] run drifter gear item simplyswords:brimstone_claymore
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear tip
 execute at @e[type=drifter:drifter,name=Newb] run drifter thoughts
 stop

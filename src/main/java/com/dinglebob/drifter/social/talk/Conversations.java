@@ -372,8 +372,13 @@ public final class Conversations {
 	private static void gearFacts(DrifterEntity me, DrifterEntity other, Facts facts) {
 		com.dinglebob.drifter.gear.Powers.Tip tip = com.dinglebob.drifter.gear.Powers.tip(me, other);
 		if (tip != null) {
+			facts.gearTip = tip;
 			facts.flags.add("has_gear_tip");
 			facts.flags.add("gear_tip_" + tip.power().id());
+			// Where it got it: a line saying "saw it myself" only for what it saw in its own use.
+			if (tip.source() == com.dinglebob.drifter.gear.GearLore.Source.SEEN) {
+				facts.flags.add("gear_tip_seen");
+			}
 			facts.words.put("gear_tip_item", tip.name());
 			facts.words.put("gear_tip_power", tip.words());
 		}
@@ -956,7 +961,8 @@ public final class Conversations {
 				case "teach_power", "learn_power" -> {
 					DrifterEntity learner = effect.startsWith("teach_") ? talk.b : talk.a;
 					DrifterEntity teacher = talk.partnerOf(learner);
-					com.dinglebob.drifter.gear.Powers.Tip tip = com.dinglebob.drifter.gear.Powers.tip(teacher, learner);
+					// The tip its lines named (kept with the facts when the topic began); none kept, nothing taught.
+					com.dinglebob.drifter.gear.Powers.Tip tip = (teacher == talk.a ? talk.aFacts : talk.bFacts).gearTip;
 					if (tip != null) {
 						String how = "told by " + teacher.getName().getString();
 						var lore = learner.getGearLore();

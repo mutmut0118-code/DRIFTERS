@@ -158,6 +158,11 @@ public class ShootTask extends Task {
 		Vec3 aim = this.aimPoint().add(this.error);
 		this.drifter.getCamera().track(aim, CameraModel.TurnSpeed.COMBAT);
 		if (!this.drifter.isUsingItem()) {
+			// Not a draw for a shot it won't take (gear powers); the check before letting go stays, for a friend walking in.
+			if (this.heldFire(this.drifter.getMainHandItem())) {
+				return this.fail("held fire");
+			}
+
 			this.drifter.startUsingItem(InteractionHand.MAIN_HAND);
 			this.error = this.rollError();
 			return Status.RUNNING;
@@ -166,10 +171,7 @@ public class ShootTask extends Task {
 		int wanted = this.drifter.distanceTo(this.target) < QUICK_DRAW_RANGE && !Archery.flying(this.target) ? QUICK_DRAW_TICKS : Archery.FULL_DRAW_TICKS;
 		if (this.drifter.getTicksUsingItem() >= wanted && this.aimedAt(aim, this.drifter.getTicksUsingItem() - wanted)) {
 			// Its bow's power, as it believes it, would hurt a friend, itself or its home: it lowers the bow (gear powers).
-			String why = com.dinglebob.drifter.gear.Powers.whyNot(this.drifter, this.drifter.getUseItem(), this.target);
-			if (why != null) {
-				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "held fire: " + this.drifter.getUseItem().getHoverName().getString() + " "
-					+ com.dinglebob.drifter.gear.Powers.heldFireWords(this.drifter, this.drifter.getUseItem(), why));
+			if (this.heldFire(this.drifter.getUseItem())) {
 				this.release(false);
 				return this.fail("held fire");
 			}
@@ -185,6 +187,18 @@ public class ShootTask extends Task {
 		}
 
 		return Status.RUNNING;
+	}
+
+	/** This bow's power, as it believes it, would hurt a friend, itself or its home on this target: it says so to itself. */
+	private boolean heldFire(net.minecraft.world.item.ItemStack bow) {
+		String why = com.dinglebob.drifter.gear.Powers.whyNot(this.drifter, bow, this.target);
+		if (why == null) {
+			return false;
+		}
+
+		this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "held fire: " + bow.getHoverName().getString() + " "
+			+ com.dinglebob.drifter.gear.Powers.heldFireWords(this.drifter, bow, why));
+		return true;
 	}
 
 	/** The bow in hand was looked at once: no second swap in this task. */

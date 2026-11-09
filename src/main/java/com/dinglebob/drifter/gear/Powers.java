@@ -251,8 +251,9 @@ public final class Powers {
 	/**
 	 * It may use this stack's power on this target (null: no target in mind) as far as it knows: explosive not on a target
 	 * within {@link #SAFE_BLAST} of itself, not with a friend within {@link #BLAST_RADIUS} of it, not near its home; fire not
-	 * near its home nor with a friend within {@link #FIRE_FRIEND} of the target. Cheap: nothing is looked up for a stack it
-	 * believes nothing of.
+	 * near its home nor with a friend within {@link #FIRE_FRIEND} of the target (not for fire that only comes from a Flame or
+	 * Fire Aspect enchantment, R27). With no target in mind there is no rule (R26). Cheap: nothing is looked up for a stack
+	 * it believes nothing of.
 	 */
 	public static boolean mayUse(DrifterEntity d, ItemStack s, @Nullable LivingEntity target) {
 		return whyNot(d, s, target) == null;
@@ -261,32 +262,70 @@ public final class Powers {
 	/** Why it may not ({@link #mayUse}): the friend's name, "itself" or "home"; null when it may. */
 	@Nullable
 	public static String whyNot(DrifterEntity d, ItemStack s, @Nullable LivingEntity target) {
-		if (!mayHavePower(d, s)) {
+		// (No target in mind, nothing lands anywhere: no rule. Ruling R26: "how strong is it" asks for gear stay unchanged.)
+		if (target == null || !mayHavePower(d, s)) {
 			return null;
 		}
 
-		Set<Power> powers = believed(d, s);
-		boolean explosive = powers.contains(Power.EXPLOSIVE);
-		boolean fire = powers.contains(Power.FIRE);
+		return whyNot(d, target, ruled(d, s));
+	}
+
+	private static final int RULE_EXPLOSIVE = 1;
+	private static final int RULE_FIRE = 2;
+	private static final int RULE_AREA = 4;
+
+	/**
+	 * The powers the rules look at, in one pass: from what it believes of the item (at {@link GearLore#ACT_ON}) and from what
+	 * this stack's lore or name says (for one who reads). Not an enchantment's: Flame and Fire Aspect set no blocks alight
+	 * and spread to no bystander (ruling R27), and the other enchantments carry no ruled power. Fire believed of the item or
+	 * written on the stack keeps the rules even when an enchantment gives fire too.
+	 */
+	private static int ruled(DrifterEntity d, ItemStack s) {
+		int bits = 0;
+		for (Map.Entry<Power, GearLore.Belief> entry : d.getGearLore().beliefs(s.getItem()).entrySet()) {
+			if (entry.getValue().confidence() >= GearLore.ACT_ON) {
+				bits |= bit(entry.getKey());
+			}
+		}
+
+		if (hasWriting(s) && readsText(d)) {
+			for (Power power : written(s)) {
+				bits |= bit(power);
+			}
+		}
+
+		return bits;
+	}
+
+	private static int bit(Power power) {
+		return switch (power) {
+			case EXPLOSIVE -> RULE_EXPLOSIVE;
+			case FIRE -> RULE_FIRE;
+			case AREA -> RULE_AREA;
+			default -> 0;
+		};
+	}
+
+	@Nullable
+	private static String whyNot(DrifterEntity d, LivingEntity target, int rules) {
+		boolean explosive = (rules & RULE_EXPLOSIVE) != 0;
+		boolean fire = (rules & RULE_FIRE) != 0;
 		if (!explosive && !fire) {
 			return null;
 		}
 
-		if (explosive && target != null && target.distanceToSqr(d) < SAFE_BLAST * SAFE_BLAST) {
+		if (explosive && target.distanceToSqr(d) < SAFE_BLAST * SAFE_BLAST) {
 			return "itself";
 		}
 
-		if (target != null) {
-			String friend = friendNear(d, target, explosive ? BLAST_RADIUS : FIRE_FRIEND);
-			if (friend != null) {
-				return friend;
-			}
+		String friend = friendNear(d, target, explosive ? BLAST_RADIUS : FIRE_FRIEND);
+		if (friend != null) {
+			return friend;
 		}
 
-		// Where it would go off: at the target, or (no target in mind) where it stands.
+		// Where it would go off: at the target.
 		com.dinglebob.drifter.brain.Home home = d.getDrifterBrain().home();
-		if (home != null && home.dimension.equals(d.level().dimension().location())
-			&& home.center.closerToCenterThan(target != null ? target.position() : d.position(), HOME_GUARD)) {
+		if (home != null && home.dimension.equals(d.level().dimension().location()) && home.center.closerToCenterThan(target.position(), HOME_GUARD)) {
 			return "home";
 		}
 
@@ -295,7 +334,7 @@ public final class Powers {
 
 	/** "would blow up Pal", "would burn home": the end of its "held fire" thought for this stack. */
 	public static String heldFireWords(DrifterEntity d, ItemStack s, String why) {
-		return (believes(d, s, Power.EXPLOSIVE) ? "would blow up " : "would burn ") + why;
+		return ((ruled(d, s) & RULE_EXPLOSIVE) != 0 ? "would blow up " : "would burn ") + why;
 	}
 
 	/**
@@ -304,16 +343,22 @@ public final class Powers {
 	 * round the target, -{@link #AREA_LONE_PENALTY} against a lone one; otherwise 1.
 	 */
 	public static double fit(DrifterEntity d, ItemStack s, @Nullable LivingEntity target) {
-		if (!mayHavePower(d, s)) {
+		// (No target in mind: ruling R26, 1.)
+		if (target == null || !mayHavePower(d, s)) {
 			return 1.0;
 		}
 
-		if (whyNot(d, s, target) != null) {
+		int rules = ruled(d, s);
+		if (rules == 0) {
+			return 1.0;
+		}
+
+		if (whyNot(d, target, rules) != null) {
 			return UNSAFE_FIT;
 		}
 
 		double fit = 1.0;
-		if (target != null && believes(d, s, Power.AREA)) {
+		if ((rules & RULE_AREA) != 0) {
 			int crowd = hostilesNear(d, target, CROWD_RADIUS);
 			fit += crowd >= CROWD_COUNT ? AREA_CROWD_BONUS : crowd == 0 ? -AREA_LONE_PENALTY : 0.0;
 		}
@@ -321,13 +366,18 @@ public final class Powers {
 		return Math.max(UNSAFE_FIT, Math.min(MAX_FIT, fit));
 	}
 
-	/** It could believe something of this stack: a belief about its item, or an enchantment, lore or a name of its own. */
+	/**
+	 * A rule could apply to this stack: it believes something of its item, or the stack has lore or a name of its own. (An
+	 * enchantment alone never does: the only powers enchantments give, enchanted fire and multishot, have no rule, R27; so a
+	 * plain enchanted tool returns here at once.)
+	 */
 	private static boolean mayHavePower(DrifterEntity d, ItemStack s) {
-		if (s.isEmpty()) {
-			return false;
-		}
+		return !s.isEmpty() && (!d.getGearLore().beliefs(s.getItem()).isEmpty() || hasWriting(s));
+	}
 
-		if (!d.getGearLore().beliefs(s.getItem()).isEmpty() || !s.getEnchantments().isEmpty() || s.get(DataComponents.CUSTOM_NAME) != null) {
+	/** The stack has a custom name or lore lines. */
+	private static boolean hasWriting(ItemStack s) {
+		if (s.get(DataComponents.CUSTOM_NAME) != null) {
 			return true;
 		}
 
@@ -450,7 +500,7 @@ public final class Powers {
 	}
 
 	/** A power it could pass on in talk: an item, a power, as it would say them. */
-	public record Tip(Item item, Power power, float confidence) {
+	public record Tip(Item item, Power power, float confidence, GearLore.Source source) {
 		/** "winterfang": the item's name in chat (no id). */
 		public String name() {
 			return GearLore.nameOf(this.item).toLowerCase(Locale.ROOT);
@@ -505,7 +555,7 @@ public final class Powers {
 					}
 				}
 
-				best = new Tip(item, held.getKey(), belief.confidence());
+				best = new Tip(item, held.getKey(), belief.confidence(), belief.source());
 			}
 		}
 

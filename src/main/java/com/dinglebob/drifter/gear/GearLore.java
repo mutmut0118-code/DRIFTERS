@@ -231,7 +231,9 @@ public final class GearLore {
 		this.learned.put(item, how);
 		if (thought) {
 			d.getMemory().thoughts().add(d.level().getGameTime(), "learned of " + nameOf(item) + " (" + where + ")");
-			if (!"minecraft".equals(BuiltInRegistries.ITEM.getKey(item).getNamespace())) {
+			// New gear to talk about is gear it has had in its hands (carried, picked up, crafted, looted: OWNED), never one it
+			// was told of or saw someone with (ruling R28: no "look at this X" about something it never held).
+			if (how == How.OWNED && !"minecraft".equals(BuiltInRegistries.ITEM.getKey(item).getNamespace())) {
 				this.newestItem = item;
 				this.newestAt = d.level().getGameTime();
 			}
@@ -240,12 +242,12 @@ public final class GearLore {
 		return true;
 	}
 
-	/** The modded item it learned of last (not by a seed after a load), and when; not saved. */
+	/** The modded item it last came to own (not by a seed after a load), and when; not saved. */
 	@Nullable
 	private Item newestItem;
 	private long newestAt;
 
-	/** A modded item it learned of within the last in-game day (something new to talk about), or null. */
+	/** A modded item it came to own within the last in-game day (something new to talk about), or null. */
 	@Nullable
 	public Item newGear(long now) {
 		return this.newestItem != null && now - this.newestAt >= 0L && now - this.newestAt <= DAY_TICKS ? this.newestItem : null;
