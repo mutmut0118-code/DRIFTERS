@@ -99,15 +99,24 @@ public final class StallGoal extends Goals.Goal {
 					return Status.SUCCESS;
 				}
 
-				// Stocked up first: what it means to sell and is short of, from its home's chests.
+				// Stocked up first: what it means to sell and is short of, from its home's chests (a trade's shop from its own, not
+				// the town's store), not one others are crowding round: it goes on to its stall with what it has, and stocks up
+				// another time. (Found in the user's game, 0.23.32: a city's every shop stocking from the store as it opened, 22
+				// of the 39 people in the store in a town's first minutes.)
 				Home home = this.drifter.getDrifterBrain().home();
 				if (home != null) {
+					boolean ownOnly = !shop.stocksFromTown(this.drifter);
 					for (Map.Entry<Item, Integer> wanted : shop.stock(this.drifter).entrySet()) {
 						Item item = wanted.getKey();
 						int have = this.drifter.getInventory().count(stack -> stack.is(item));
-						BlockPos chest = home.chestWith(item);
-						if (have * 2 < wanted.getValue() && chest != null && this.fetched.add(item)) {
-							return this.begin(new FetchActivity(this.drifter, chest, item, wanted.getValue() - have));
+						int need = wanted.getValue() - have;
+						if (have * 2 >= wanted.getValue() || !this.fetched.add(item)) {
+							continue;
+						}
+
+						BlockPos chest = home.chestWith(item, need, pos -> FetchActivity.users(pos, this.drifter.getUUID()), ownOnly);
+						if (chest != null && FetchActivity.users(chest, this.drifter.getUUID()) < 2) {
+							return this.begin(new FetchActivity(this.drifter, chest, item, need));
 						}
 					}
 				}

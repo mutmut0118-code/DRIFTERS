@@ -276,6 +276,8 @@ public final class Town {
 	 * crimes"), who steal and pick fights now and then till it throws them out.
 	 */
 	public final java.util.Set<UUID> crooks = new java.util.HashSet<>();
+	/** Its people who've had their trade's first stock (out of the store into their household's chest: 0.23.33). */
+	public final java.util.Set<UUID> lineStocked = new java.util.HashSet<>();
 	/** Its customs (C6, {@link TownTraditions}), what it's counted toward them, where its people died out there. */
 	public final java.util.Set<String> traditions = new java.util.LinkedHashSet<>();
 	public final java.util.Map<String, Integer> tally = new java.util.HashMap<>();
@@ -513,6 +515,9 @@ public final class Town {
 		ListTag crooks = new ListTag();
 		this.crooks.forEach(id -> crooks.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
 		tag.put("Crooks", crooks);
+		ListTag stocked = new ListTag();
+		this.lineStocked.forEach(id -> stocked.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
+		tag.put("LineStocked", stocked);
 		CompoundTag lines = new CompoundTag();
 		this.lines.forEach((id, line) -> lines.putString(id.toString(), line));
 		tag.put("Lines", lines);
@@ -699,6 +704,10 @@ public final class Town {
 		town.plotter = tag.hasUUID("Plotter") ? tag.getUUID("Plotter") : null;
 		for (Tag t : tag.getList("Crooks", Tag.TAG_INT_ARRAY)) {
 			town.crooks.add(net.minecraft.nbt.NbtUtils.loadUUID(t));
+		}
+
+		for (Tag t : tag.getList("LineStocked", Tag.TAG_INT_ARRAY)) {
+			town.lineStocked.add(net.minecraft.nbt.NbtUtils.loadUUID(t));
 		}
 
 		CompoundTag lines = tag.getCompound("Lines");

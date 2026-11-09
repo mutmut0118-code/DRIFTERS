@@ -692,6 +692,15 @@ public final class DrifterApi {
 	}
 
 	/** The tree this log or grown leaf belongs to felled whole, trunk and crown (clearing for a build). True if one was. */
+	/**
+	 * The group it was in as it died (gone for good, it's out of it before anyone hears it died: the town it was one of
+	 * still wants to know who killed it), or null.
+	 */
+	@Nullable
+	public static java.util.UUID groupAtDeath(DrifterEntity drifter) {
+		return drifter.groupAtDeath();
+	}
+
 	/** This block is part of someone's build (a player's, a Drifter's house, a town's), not the land's own. */
 	public static boolean isBuilt(ServerLevel level, net.minecraft.core.BlockPos pos) {
 		return com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, pos);
