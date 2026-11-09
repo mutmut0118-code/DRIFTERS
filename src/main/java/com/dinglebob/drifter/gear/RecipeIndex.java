@@ -50,6 +50,7 @@ public final class RecipeIndex {
 			KEYS.clear();
 			byResult = null;
 			unlocks = null;
+			craftableGear = null;
 		}
 	}
 
