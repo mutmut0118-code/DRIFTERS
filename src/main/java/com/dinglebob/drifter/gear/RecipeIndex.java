@@ -33,6 +33,8 @@ public final class RecipeIndex {
 	public static final int MAX_DEPTH = 3;
 
 	private static final ThreadLocal<int[]> DEPTH = ThreadLocal.withInitial(() -> new int[1]);
+	/** How many times a lookup on this thread was cut short by the depth guard (an answer is complete if this did not move). */
+	private static final ThreadLocal<int[]> TRIPS = ThreadLocal.withInitial(() -> new int[1]);
 	private static final Map<Item, Optional<Ingredient>> KEYS = new HashMap<>();
 	private static Map<Item, RecipeHolder<?>> byResult;
 	/** Which modded gear each item is the key ingredient of (built once per reload, on the first ask). */
@@ -58,6 +60,7 @@ public final class RecipeIndex {
 	public static <T> T guarded(Supplier<T> lookup, T fallback) {
 		int[] depth = DEPTH.get();
 		if (depth[0] >= MAX_DEPTH) {
+			TRIPS.get()[0]++;
 			return fallback;
 		}
 
@@ -81,16 +84,17 @@ public final class RecipeIndex {
 				return cached.orElse(null);
 			}
 
-			int entryDepth = depth();
-			if (entryDepth >= MAX_DEPTH) {
+			if (depth() >= MAX_DEPTH) {
+				TRIPS.get()[0]++;
 				return null;
 			}
 
+			int[] trips = TRIPS.get();
+			int before = trips[0];
 			Ingredient key = guarded(() -> compute(level, result), null);
-			// Only a complete answer is kept (one cut short by the depth guard would be wrong for a shallower caller). The
-			// depth at entry is what counts: inside the cost path it is already 1, and those answers are kept too, as long as
-			// the lookup did not hit the guard on the way.
-			if (entryDepth == 0) {
+			// Only a complete answer is kept: one cut short by the depth guard (anywhere inside the lookup) would be wrong for a
+			// shallower caller. Any depth may keep a complete one, including calls from the cost path.
+			if (trips[0] == before) {
 				KEYS.put(result, Optional.ofNullable(key));
 			}
 

@@ -1,0 +1,6 @@
+until Done_( 900
+wait 3
+drifter tier full all
+wait 14
+execute as @e[type=drifter:drifter,name=Rue] at @s run drifter gear
+stop

@@ -227,6 +227,8 @@ public final class GearLore {
 	public CompoundTag save() {
 		CompoundTag tag = new CompoundTag();
 		tag.putInt("Version", SAVE_VERSION);
+		// Saved before its first check, it must still seed after the next load.
+		tag.putBoolean("Seeded", !this.seedPending);
 		ListTag known = new ListTag();
 		this.learned.forEach((item, how) -> {
 			CompoundTag entry = new CompoundTag();
@@ -241,8 +243,9 @@ public final class GearLore {
 	/** Items whose mod is gone, and kinds of learning this version does not know, are skipped quietly. */
 	public void load(CompoundTag tag) {
 		this.learned.clear();
-		this.seedPending = !tag.contains("Known", Tag.TAG_LIST);
-		if (this.seedPending) {
+		this.seedPending = !tag.getBoolean("Seeded");
+		if (!tag.contains("Known", Tag.TAG_LIST)) {
+			this.seedPending = true;
 			return;
 		}
 

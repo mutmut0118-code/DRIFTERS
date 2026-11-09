@@ -1,0 +1,11 @@
+# Old save saved again before its first check (run 1; then tools/smoke-gear-lore-old2b.txt on the same world).
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+execute positioned ~60 ~ ~ run drifter spawn Rue
+execute as @e[type=drifter:drifter,name=Rue] at @s run drifter give too_many_bows:arcane_bow 1
+execute as @e[type=drifter:drifter,name=Rue] at @s run drifter give immersive_armors:warrior_chestplate 1
+data remove entity @e[type=drifter:drifter,name=Rue,limit=1] DrifterGear
+save-all flush
+stop
