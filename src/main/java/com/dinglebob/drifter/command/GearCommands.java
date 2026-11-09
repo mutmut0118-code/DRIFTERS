@@ -55,6 +55,9 @@ public final class GearCommands {
 				.then(Commands.argument("kind", StringArgumentType.word()).executes(GearCommands::friend)))
 			.then(Commands.literal("plans").executes(GearCommands::plans))
 			.then(Commands.literal("powers").executes(GearCommands::powers))
+			.then(Commands.literal("sense")
+				.then(Commands.argument("item", ItemArgument.item(context)).executes(GearCommands::sense)))
+			.then(Commands.literal("tip").executes(GearCommands::tip))
 			.then(Commands.literal("pick")
 				.then(Commands.literal("weapon").executes(ctx -> pick(ctx, true)))
 				.then(Commands.literal("armor").executes(ctx -> pick(ctx, false))))
@@ -139,6 +142,45 @@ public final class GearCommands {
 		}
 
 		return out.toString();
+	}
+
+	/**
+	 * Debug: would the nearest Drifter use this item's powers on the nearest hostile it sees (or with none in mind), and how
+	 * well they suit it: "[gear] Vet, Bow vs Zombie: may use no (would blow up Pal), fit 0.20; believes explosive".
+	 */
+	private static int sense(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		ItemStack stack = ItemArgument.getItem(ctx, "item").createItemStack(1, false);
+		net.minecraft.world.entity.LivingEntity target = null;
+		double best = Double.MAX_VALUE;
+		for (com.dinglebob.drifter.perception.Awareness seen : drifter.getSenses().tracked()) {
+			if (seen.visibleNow && seen.entity instanceof net.minecraft.world.entity.monster.Enemy && seen.entity instanceof net.minecraft.world.entity.LivingEntity living
+				&& living.isAlive() && living.distanceToSqr(drifter) < best) {
+				best = living.distanceToSqr(drifter);
+				target = living;
+			}
+		}
+
+		String why = Powers.whyNot(drifter, stack, target);
+		List<String> believed = new ArrayList<>();
+		Powers.believed(drifter, stack).forEach(power -> believed.add(power.id()));
+		String line = String.format(Locale.ROOT, "[gear] %s, %s vs %s: may use %s, fit %.2f; believes %s", drifter.getName().getString(),
+			stack.getHoverName().getString(), target == null ? "nothing" : target.getName().getString() + String.format(Locale.ROOT, " (%.1f off)", Math.sqrt(best)),
+			why == null ? "yes" : "no (" + Powers.heldFireWords(drifter, stack, why) + ")", Powers.fit(drifter, stack, target),
+			believed.isEmpty() ? "nothing" : String.join(", ", believed));
+		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		return 1;
+	}
+
+	/** Debug: the tip the nearest Drifter could pass on in talk (to anyone), and the gear it has new today. */
+	private static int tip(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		Powers.Tip tip = Powers.tip(drifter, null);
+		Item fresh = drifter.getGearLore().newGear(drifter.level().getGameTime());
+		String line = "[gear] " + drifter.getName().getString() + "'s tip: " + (tip == null ? "none" : tip.name() + " " + tip.words()
+			+ String.format(Locale.ROOT, " (%s %.2f)", tip.power().id(), tip.confidence())) + "; new gear: " + (fresh == null ? "none" : GearLore.nameOf(fresh));
+		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		return 1;
 	}
 
 	/**

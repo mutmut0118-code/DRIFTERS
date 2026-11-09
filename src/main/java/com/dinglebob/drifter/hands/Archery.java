@@ -171,7 +171,7 @@ public final class Archery {
 	/** A blaze nearer than this is fought with the sword. */
 	public static final double BLAZE_MELEE_RANGE = 5.0;
 
-	public static boolean shouldShoot(DrifterEntity drifter, LivingEntity target) {
+	private static boolean shouldShoot(DrifterEntity drifter, LivingEntity target, boolean checkPowers) {
 		if (!ready(drifter) || com.dinglebob.drifter.executor.task.AttackTask.Protocol.of(target)
 			== com.dinglebob.drifter.executor.task.AttackTask.Protocol.PREY) {
 			return false;
@@ -190,10 +190,32 @@ public final class Archery {
 			return false;
 		}
 
-		if (flying(target)) {
-			return true;
+		boolean wants = flying(target) || (target instanceof Creeper ? distance >= 4.0 : distance >= MELEE_RANGE);
+		return wants && (!checkPowers || heldFire(drifter, target) == null);
+	}
+
+	/** A bow beats a sword here ({@link #shouldShoot}), its bow's powers aside. */
+	public static boolean wantsBow(DrifterEntity drifter, LivingEntity target) {
+		return shouldShoot(drifter, target, false);
+	}
+
+	public static boolean shouldShoot(DrifterEntity drifter, LivingEntity target) {
+		return shouldShoot(drifter, target, true);
+	}
+
+	/**
+	 * Why the bow it would take out may not be used on this target as far as it knows (gear powers: an explosive one not with
+	 * a friend by the target, nor near home or itself): "held fire: Bow would blow up Pal"; null when it may (or has no bow).
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static String heldFire(DrifterEntity drifter, LivingEntity target) {
+		int slot = com.dinglebob.drifter.hands.Shields.bestBowSlot(drifter, target);
+		ItemStack bow = slot >= 0 ? drifter.getInventory().getItem(slot) : ItemStack.EMPTY;
+		if (!com.dinglebob.drifter.hands.Shields.isBow(bow)) {
+			return null;
 		}
 
-		return target instanceof Creeper ? distance >= 4.0 : distance >= MELEE_RANGE;
+		String why = com.dinglebob.drifter.gear.Powers.whyNot(drifter, bow, target);
+		return why == null ? null : "held fire: " + bow.getHoverName().getString() + " " + com.dinglebob.drifter.gear.Powers.heldFireWords(drifter, bow, why);
 	}
 }

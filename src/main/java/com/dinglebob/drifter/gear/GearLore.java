@@ -231,9 +231,24 @@ public final class GearLore {
 		this.learned.put(item, how);
 		if (thought) {
 			d.getMemory().thoughts().add(d.level().getGameTime(), "learned of " + nameOf(item) + " (" + where + ")");
+			if (!"minecraft".equals(BuiltInRegistries.ITEM.getKey(item).getNamespace())) {
+				this.newestItem = item;
+				this.newestAt = d.level().getGameTime();
+			}
 		}
 
 		return true;
+	}
+
+	/** The modded item it learned of last (not by a seed after a load), and when; not saved. */
+	@Nullable
+	private Item newestItem;
+	private long newestAt;
+
+	/** A modded item it learned of within the last in-game day (something new to talk about), or null. */
+	@Nullable
+	public Item newGear(long now) {
+		return this.newestItem != null && now - this.newestAt >= 0L && now - this.newestAt <= DAY_TICKS ? this.newestItem : null;
 	}
 
 	/** It has seen this (gear only: others are not its business). */
@@ -388,6 +403,11 @@ public final class GearLore {
 	public Map<Powers.Power, Belief> beliefs(Item item) {
 		EnumMap<Powers.Power, Belief> held = this.beliefs.get(item);
 		return held == null ? Map.of() : Collections.unmodifiableMap(held);
+	}
+
+	/** Everything it believes of every item (read only; for passing tips on in talk). */
+	public Map<Item, Map<Powers.Power, Belief>> allBeliefs() {
+		return Collections.<Item, Map<Powers.Power, Belief>>unmodifiableMap(this.beliefs);
 	}
 
 	/** It is sure enough of this power to act on it ({@link #ACT_ON}). */
@@ -597,6 +617,7 @@ public final class GearLore {
 		this.learned.clear();
 		this.beliefs.clear();
 		this.read.clear();
+		this.newestItem = null;
 		this.seedPending = false;
 	}
 

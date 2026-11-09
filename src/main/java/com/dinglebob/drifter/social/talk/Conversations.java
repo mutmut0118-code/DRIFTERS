@@ -360,6 +360,36 @@ public final class Conversations {
 				facts.flags.add("new_to_" + area.key);
 			}
 		}
+
+		gearFacts(me, other, facts);
+	}
+
+	/**
+	 * What it could say of gear (any weapon and armor project): a tip about what an item does that the other doesn't know yet
+	 * ("careful, that bow explodes"; only beliefs about an item, never one stack's enchantment or lore), a modded item new to
+	 * it today, and its taste in gear (a flashy one brags, a loyal one sticks to its kind, a follower asks what others use).
+	 */
+	private static void gearFacts(DrifterEntity me, DrifterEntity other, Facts facts) {
+		com.dinglebob.drifter.gear.Powers.Tip tip = com.dinglebob.drifter.gear.Powers.tip(me, other);
+		if (tip != null) {
+			facts.flags.add("has_gear_tip");
+			facts.flags.add("gear_tip_" + tip.power().id());
+			facts.words.put("gear_tip_item", tip.name());
+			facts.words.put("gear_tip_power", tip.words());
+		}
+
+		net.minecraft.world.item.Item fresh = me.getGearLore().newGear(me.level().getGameTime());
+		if (fresh != null) {
+			facts.flags.add("has_new_gear");
+			facts.words.put("new_gear", com.dinglebob.drifter.gear.GearLore.nameOf(fresh).toLowerCase(java.util.Locale.ROOT));
+		}
+
+		facts.flags.add("gear_style_" + com.dinglebob.drifter.gear.GearTaste.style(me).id());
+		String loyal = me.getGearLore().loyalKind();
+		if (loyal != null) {
+			facts.flags.add("has_loyal_kind");
+			facts.words.put("loyal_kind", loyal.replace('_', ' '));
+		}
 	}
 
 	/** The world as they see it, and what the talk's been marked ({@code t:disagree}). */
@@ -920,6 +950,27 @@ public final class Conversations {
 					if (yes) {
 						boolean aLeads = talk.a.getPersonality().get(Trait.SKILL) >= talk.b.getPersonality().get(Trait.SKILL);
 						Together.agree(Together.Kind.MINE, aLeads ? talk.a : talk.b, aLeads ? talk.b : talk.a);
+					}
+				}
+				// What an item does ("teach_power": a tells b; "learn_power": b tells a), and a modded item one of them has new.
+				case "teach_power", "learn_power" -> {
+					DrifterEntity learner = effect.startsWith("teach_") ? talk.b : talk.a;
+					DrifterEntity teacher = talk.partnerOf(learner);
+					com.dinglebob.drifter.gear.Powers.Tip tip = com.dinglebob.drifter.gear.Powers.tip(teacher, learner);
+					if (tip != null) {
+						String how = "told by " + teacher.getName().getString();
+						var lore = learner.getGearLore();
+						lore.learn(learner, tip.item(), com.dinglebob.drifter.gear.GearLore.How.TOLD, how);
+						lore.firm(learner, tip.item(), tip.power(), (float)com.dinglebob.drifter.gear.GearData.tables().powers().toldConfidence(),
+							com.dinglebob.drifter.gear.GearLore.Source.TOLD, how);
+					}
+				}
+				case "teach_gear", "learn_gear" -> {
+					DrifterEntity learner = effect.startsWith("teach_") ? talk.b : talk.a;
+					DrifterEntity teacher = talk.partnerOf(learner);
+					net.minecraft.world.item.Item fresh = teacher.getGearLore().newGear(now);
+					if (fresh != null) {
+						learner.getGearLore().learn(learner, fresh, com.dinglebob.drifter.gear.GearLore.How.TOLD, "told by " + teacher.getName().getString());
 					}
 				}
 				default -> {

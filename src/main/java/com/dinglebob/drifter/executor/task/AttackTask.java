@@ -341,7 +341,7 @@ public class AttackTask extends Task {
 	@Nullable
 	private Status selectWeapon() {
 		if (this.selectWeapon == null) {
-			int slot = Combat.bestWeaponSlot(this.drifter);
+			int slot = Combat.bestWeaponSlot(this.drifter, this.target);
 			ItemStack weapon = slot < 0 ? ItemStack.EMPTY : this.drifter.getInventory().getItem(slot);
 			this.weapon = weapon;
 			if (weapon.isEmpty() || weapon == this.drifter.getMainHandItem()) {

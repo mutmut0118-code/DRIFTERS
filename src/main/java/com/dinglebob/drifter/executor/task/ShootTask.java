@@ -106,17 +106,23 @@ public class ShootTask extends Task {
 			}
 		}
 
-		// The bow in hand first.
-		if (!com.dinglebob.drifter.hands.Shields.isBow(this.drifter.getMainHandItem())) {
+		// The bow in hand first (another one if the one in hand may not be used here and a better one is carried).
+		if (!com.dinglebob.drifter.hands.Shields.isBow(this.drifter.getMainHandItem()) || this.select == null && this.betterBow() || this.swapping) {
 			if (this.select == null) {
-				int best = com.dinglebob.drifter.hands.Shields.bestBowSlot(this.drifter);
+				int best = com.dinglebob.drifter.hands.Shields.bestBowSlot(this.drifter, this.target);
 				net.minecraft.world.item.ItemStack bow = best < 0 ? net.minecraft.world.item.ItemStack.EMPTY : this.drifter.getInventory().getItem(best);
 				this.select = new SelectItemTask(this.drifter, stack -> stack == bow || bow.isEmpty() && com.dinglebob.drifter.hands.Shields.isBow(stack), "the bow");
+				// (From one bow to another: the hand holds a bow all along, so it waits for the swap itself.)
+				this.swapping = com.dinglebob.drifter.hands.Shields.isBow(this.drifter.getMainHandItem());
 			}
 
 			Status status = this.select.tick();
 			if (status == Status.FAILURE) {
 				return this.fail("can't take out the bow");
+			}
+
+			if (status == Status.SUCCESS) {
+				this.swapping = false;
 			}
 
 			return Status.RUNNING;
@@ -159,6 +165,15 @@ public class ShootTask extends Task {
 
 		int wanted = this.drifter.distanceTo(this.target) < QUICK_DRAW_RANGE && !Archery.flying(this.target) ? QUICK_DRAW_TICKS : Archery.FULL_DRAW_TICKS;
 		if (this.drifter.getTicksUsingItem() >= wanted && this.aimedAt(aim, this.drifter.getTicksUsingItem() - wanted)) {
+			// Its bow's power, as it believes it, would hurt a friend, itself or its home: it lowers the bow (gear powers).
+			String why = com.dinglebob.drifter.gear.Powers.whyNot(this.drifter, this.drifter.getUseItem(), this.target);
+			if (why != null) {
+				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "held fire: " + this.drifter.getUseItem().getHoverName().getString() + " "
+					+ com.dinglebob.drifter.gear.Powers.heldFireWords(this.drifter, this.drifter.getUseItem(), why));
+				this.release(false);
+				return this.fail("held fire");
+			}
+
 			if (Archery.friendInTheWay(this.drifter, this.drifter.getViewVector(1.0F), net.minecraft.world.item.BowItem.getPowerForTime(this.drifter.getTicksUsingItem()),
 				this.drifter.distanceTo(this.target))) {
 				this.blockedTicks++;
@@ -170,6 +185,27 @@ public class ShootTask extends Task {
 		}
 
 		return Status.RUNNING;
+	}
+
+	/** The bow in hand was looked at once: no second swap in this task. */
+	private boolean betterChecked;
+	/** Changing from the bow in hand to a better one for this target. */
+	private boolean swapping;
+
+	/** The bow in hand may not be used on this target and the best one for it is another (once per task). */
+	private boolean betterBow() {
+		if (this.betterChecked) {
+			return false;
+		}
+
+		this.betterChecked = true;
+		net.minecraft.world.item.ItemStack held = this.drifter.getMainHandItem();
+		if (com.dinglebob.drifter.gear.Powers.mayUse(this.drifter, held, this.target)) {
+			return false;
+		}
+
+		int best = com.dinglebob.drifter.hands.Shields.bestBowSlot(this.drifter, this.target);
+		return best >= 0 && this.drifter.getInventory().getItem(best) != held;
 	}
 
 	/** Ticks in a row a friend has stood in its line of fire with the bow drawn. */

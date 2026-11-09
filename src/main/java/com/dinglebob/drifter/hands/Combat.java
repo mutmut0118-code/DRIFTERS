@@ -86,6 +86,14 @@ public final class Combat {
 	 * a pickaxe) still wins by raw damage, and an empty hand is beaten only by something. Never a thrown weapon or a staff.
 	 */
 	public static int bestWeaponSlot(DrifterEntity drifter) {
+		return bestWeaponSlot(drifter, null);
+	}
+
+	/**
+	 * The same, against this target (null: none in mind): each weapon's worth is multiplied by how well its powers suit the
+	 * target as it believes ({@code Powers.fit}: an explosive one it can't use up close loses to a plain one).
+	 */
+	public static int bestWeaponSlot(DrifterEntity drifter, @org.jetbrains.annotations.Nullable LivingEntity target) {
 		DrifterInventory inventory = drifter.getInventory();
 		double bestWeapon = 0.0;
 		int bestOther = -1;
@@ -102,7 +110,7 @@ public final class Combat {
 				continue;
 			}
 
-			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
+			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack) * com.dinglebob.drifter.gear.Powers.fit(drifter, stack, target);
 			if (com.dinglebob.drifter.brain.Weapons.isWeapon(stack, kind)) {
 				bestWeapon = Math.max(bestWeapon, dps);
 			} else if (dps > bestOtherDps) {
@@ -129,7 +137,7 @@ public final class Combat {
 				continue;
 			}
 
-			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
+			double dps = com.dinglebob.drifter.gear.GearValue.melee(drifter, stack) * com.dinglebob.drifter.gear.Powers.fit(drifter, stack, target);
 			if (com.dinglebob.drifter.gear.GearTaste.goodEnough(dps, bestWeapon)) {
 				double liking = com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, dps);
 				if (liking > top) {

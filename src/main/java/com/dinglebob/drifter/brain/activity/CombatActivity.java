@@ -88,6 +88,12 @@ public class CombatActivity extends Activity {
 					return this.begin(new com.dinglebob.drifter.executor.task.ShootTask(this.drifter, target, name));
 				}
 
+				// It would have shot, but its bow's power (as it believes) would hurt a friend, itself or its home: the sword.
+				String held = com.dinglebob.drifter.hands.Archery.wantsBow(this.drifter, target) ? com.dinglebob.drifter.hands.Archery.heldFire(this.drifter, target) : null;
+				if (held != null) {
+					this.think(held);
+				}
+
 				return this.begin(new AttackTask(this.drifter, target, target.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)));
 			}
 

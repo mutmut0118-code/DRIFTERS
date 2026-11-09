@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.google.gson.JsonObject;
+
 import com.dinglebob.drifter.Drifter;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.personality.Trait;
@@ -21,6 +23,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -218,6 +221,295 @@ public final class Powers {
 		}
 
 		return d.getGearLore().believes(stack.getItem(), power) || stackOwn(stack, readsText(d)).containsKey(power);
+	}
+
+	// Using powers sensibly (spec goal 6, third layer; anti-goal: "powers used recklessly in ways that hurt its friends or
+	// home once it knows better"). Only what it believes counts ({@link #believed}): a newbie that does not know its bow
+	// explodes may still learn the hard way.
+
+	/** An explosive power is never used on a target this close to itself (blocks). */
+	public static final double SAFE_BLAST = 5.0;
+	/** Nor with a friend this close to the target. */
+	public static final double BLAST_RADIUS = 4.0;
+	/** Neither explosive nor fire where it would land this close to its own home's center (mostly wood, until it isn't). */
+	public static final double HOME_GUARD = 16.0;
+	/** Fire is not used with a friend this close to the target. */
+	public static final double FIRE_FRIEND = 2.0;
+	/** An area power is for a crowd: this many other hostiles within {@link #CROWD_RADIUS} of the target. */
+	public static final int CROWD_COUNT = 2;
+	public static final double CROWD_RADIUS = 4.0;
+	public static final double AREA_CROWD_BONUS = 0.3;
+	public static final double AREA_LONE_PENALTY = 0.2;
+	/** The choosers' multiplier for something it may not use here, and the range of {@link #fit}. */
+	public static final double UNSAFE_FIT = 0.2;
+	public static final double MAX_FIT = 1.3;
+	/** A friend last seen this long ago (ticks) is still taken to be where it was. */
+	private static final long FRIEND_SEEN_TICKS = 60L;
+	/** A belief this sure, of an item it owns or has used, is worth passing on in talk. */
+	public static final float TIP_CONFIDENCE = 0.6F;
+
+	/**
+	 * It may use this stack's power on this target (null: no target in mind) as far as it knows: explosive not on a target
+	 * within {@link #SAFE_BLAST} of itself, not with a friend within {@link #BLAST_RADIUS} of it, not near its home; fire not
+	 * near its home nor with a friend within {@link #FIRE_FRIEND} of the target. Cheap: nothing is looked up for a stack it
+	 * believes nothing of.
+	 */
+	public static boolean mayUse(DrifterEntity d, ItemStack s, @Nullable LivingEntity target) {
+		return whyNot(d, s, target) == null;
+	}
+
+	/** Why it may not ({@link #mayUse}): the friend's name, "itself" or "home"; null when it may. */
+	@Nullable
+	public static String whyNot(DrifterEntity d, ItemStack s, @Nullable LivingEntity target) {
+		if (!mayHavePower(d, s)) {
+			return null;
+		}
+
+		Set<Power> powers = believed(d, s);
+		boolean explosive = powers.contains(Power.EXPLOSIVE);
+		boolean fire = powers.contains(Power.FIRE);
+		if (!explosive && !fire) {
+			return null;
+		}
+
+		if (explosive && target != null && target.distanceToSqr(d) < SAFE_BLAST * SAFE_BLAST) {
+			return "itself";
+		}
+
+		if (target != null) {
+			String friend = friendNear(d, target, explosive ? BLAST_RADIUS : FIRE_FRIEND);
+			if (friend != null) {
+				return friend;
+			}
+		}
+
+		// Where it would go off: at the target, or (no target in mind) where it stands.
+		com.dinglebob.drifter.brain.Home home = d.getDrifterBrain().home();
+		if (home != null && home.dimension.equals(d.level().dimension().location())
+			&& home.center.closerToCenterThan(target != null ? target.position() : d.position(), HOME_GUARD)) {
+			return "home";
+		}
+
+		return null;
+	}
+
+	/** "would blow up Pal", "would burn home": the end of its "held fire" thought for this stack. */
+	public static String heldFireWords(DrifterEntity d, ItemStack s, String why) {
+		return (believes(d, s, Power.EXPLOSIVE) ? "would blow up " : "would burn ") + why;
+	}
+
+	/**
+	 * How well this stack's powers suit this target, as it believes (multiplies a chooser's score, {@link #UNSAFE_FIT} to
+	 * {@link #MAX_FIT}): one it may not use here {@link #UNSAFE_FIT}; an area power +{@link #AREA_CROWD_BONUS} with a crowd
+	 * round the target, -{@link #AREA_LONE_PENALTY} against a lone one; otherwise 1.
+	 */
+	public static double fit(DrifterEntity d, ItemStack s, @Nullable LivingEntity target) {
+		if (!mayHavePower(d, s)) {
+			return 1.0;
+		}
+
+		if (whyNot(d, s, target) != null) {
+			return UNSAFE_FIT;
+		}
+
+		double fit = 1.0;
+		if (target != null && believes(d, s, Power.AREA)) {
+			int crowd = hostilesNear(d, target, CROWD_RADIUS);
+			fit += crowd >= CROWD_COUNT ? AREA_CROWD_BONUS : crowd == 0 ? -AREA_LONE_PENALTY : 0.0;
+		}
+
+		return Math.max(UNSAFE_FIT, Math.min(MAX_FIT, fit));
+	}
+
+	/** It could believe something of this stack: a belief about its item, or an enchantment, lore or a name of its own. */
+	private static boolean mayHavePower(DrifterEntity d, ItemStack s) {
+		if (s.isEmpty()) {
+			return false;
+		}
+
+		if (!d.getGearLore().beliefs(s.getItem()).isEmpty() || !s.getEnchantments().isEmpty() || s.get(DataComponents.CUSTOM_NAME) != null) {
+			return true;
+		}
+
+		ItemLore lore = s.get(DataComponents.LORE);
+		return lore != null && !lore.lines().isEmpty();
+	}
+
+	/** A friend it knows to be within {@code radius} of the target (from those it watches: no look round the world), or null. */
+	@Nullable
+	private static String friendNear(DrifterEntity d, LivingEntity target, double radius) {
+		long now = d.level().getGameTime();
+		double most = radius * radius;
+		for (com.dinglebob.drifter.perception.Awareness seen : d.getSenses().trackedView()) {
+			if (seen.entity == d || seen.entity == target || !seen.entity.isAlive() || !(seen.visibleNow || seen.seenWithin(now, FRIEND_SEEN_TICKS))) {
+				continue;
+			}
+
+			net.minecraft.world.phys.Vec3 at = seen.visibleNow || seen.lastSeenPos == null ? seen.entity.position() : seen.lastSeenPos;
+			if (at.distanceToSqr(target.position()) <= most && isFriend(d, seen.entity)) {
+				return seen.entity.getName().getString();
+			}
+		}
+
+		// One it saw there a little while ago and has not seen leave (its memory of who stood where, written by its senses:
+		// a friend standing still is slow to be noticed again once it looked away).
+		if (d.level() instanceof net.minecraft.server.level.ServerLevel level) {
+			net.minecraft.resources.ResourceLocation dimension = level.dimension().location();
+			for (com.dinglebob.drifter.memory.MemoryKind kind : FRIEND_KINDS) {
+				com.dinglebob.drifter.memory.MemoryEntry entry = d.getMemory().nearest(kind, dimension, target.position(), radius, remembered -> {
+					if (remembered.entityId == null || now - remembered.confirmedAt > FRIEND_REMEMBER_TICKS || remembered.entityId.equals(d.getUUID())
+						|| remembered.entityId.equals(target.getUUID())) {
+						return false;
+					}
+
+					net.minecraft.world.entity.Entity who = level.getEntity(remembered.entityId);
+					return who != null && who.isAlive() && isFriend(d, who);
+				});
+				if (entry != null) {
+					net.minecraft.world.entity.Entity friend = level.getEntity(entry.entityId);
+					return friend == null ? entry.label : friend.getName().getString();
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/** Who it remembers standing somewhere: a player, or another mob (a Drifter is one). */
+	private static final com.dinglebob.drifter.memory.MemoryKind[] FRIEND_KINDS = {com.dinglebob.drifter.memory.MemoryKind.PLAYER,
+		com.dinglebob.drifter.memory.MemoryKind.MOB};
+	/** A friend it saw by the target this long ago (ticks) is still taken to be there. */
+	private static final long FRIEND_REMEMBER_TICKS = 20L * 20;
+
+	/** On its side: its group or battle side, a Drifter it trusts as a friend, or a player it likes. */
+	private static boolean isFriend(DrifterEntity d, net.minecraft.world.entity.Entity other) {
+		if (other instanceof DrifterEntity drifter) {
+			if (com.dinglebob.drifter.hands.Archery.friends(d, drifter)) {
+				return true;
+			}
+
+			com.dinglebob.drifter.social.Relationship bond = d.getBonds().get(drifter.getUUID());
+			return bond != null && bond.trust >= com.dinglebob.drifter.social.DrifterBonds.FRIEND;
+		}
+
+		if (other instanceof net.minecraft.world.entity.player.Player player) {
+			com.dinglebob.drifter.social.Relationship r = d.getSocial().get(player.getUUID());
+			return r != null && r.trust >= com.dinglebob.drifter.social.Mode.FRIENDLY_TRUST;
+		}
+
+		return false;
+	}
+
+	/** Other hostiles it sees within {@code radius} of the target. */
+	private static int hostilesNear(DrifterEntity d, LivingEntity target, double radius) {
+		int count = 0;
+		double most = radius * radius;
+		for (com.dinglebob.drifter.perception.Awareness seen : d.getSenses().trackedView()) {
+			if (seen.visibleNow && seen.entity != target && seen.entity.isAlive() && seen.entity instanceof LivingEntity living
+				&& (living instanceof net.minecraft.world.entity.monster.Enemy || living instanceof net.minecraft.world.entity.Mob mob && mob.getTarget() == d)
+				&& living.distanceToSqr(target) <= most) {
+				count++;
+			}
+		}
+
+		return count;
+	}
+
+	// Simply Swords items no weapon file lists: when to use the ability, from what it believes the item does.
+	private static final JsonObject WHEN_HURT = when("hurt", "health", 0.5);
+	private static final JsonObject WHEN_CROWD = when("crowd", "count", 2);
+	private static final JsonObject WHEN_FIGHT = when("fight", "max", 6.0);
+
+	private static JsonObject when(String when, String key, Number value) {
+		JsonObject entry = new JsonObject();
+		entry.addProperty("when", when);
+		entry.addProperty(key, value);
+		return entry;
+	}
+
+	/**
+	 * A generic ability entry (the weapon file's {@code ability} shape, read only) for a Simply Swords item no file lists:
+	 * healing when hurt (health at half); a cooldown or area power saved for a crowd of two; otherwise any time in a fight.
+	 */
+	@Nullable
+	public static JsonObject abilityFor(DrifterEntity d, ItemStack s) {
+		if (s.isEmpty()) {
+			return null;
+		}
+
+		Set<Power> powers = believed(d, s);
+		if (powers.contains(Power.HEAL)) {
+			return WHEN_HURT;
+		}
+
+		if (powers.contains(Power.COOLDOWN) || powers.contains(Power.AREA)) {
+			return WHEN_CROWD;
+		}
+
+		return WHEN_FIGHT;
+	}
+
+	/** A power it could pass on in talk: an item, a power, as it would say them. */
+	public record Tip(Item item, Power power, float confidence) {
+		/** "winterfang": the item's name in chat (no id). */
+		public String name() {
+			return GearLore.nameOf(this.item).toLowerCase(Locale.ROOT);
+		}
+
+		/** "explodes", "sets things on fire". */
+		public String words() {
+			return switch (this.power) {
+				case EXPLOSIVE -> "explodes";
+				case FIRE -> "sets things on fire";
+				case LIGHTNING -> "calls down lightning";
+				case POISON -> "poisons whatever it hits";
+				case WITHER -> "withers whatever it hits";
+				case FREEZE -> "freezes things";
+				case HEAL -> "heals you";
+				case MULTISHOT -> "shoots a few at once";
+				case AREA -> "hits everything around";
+				case PULL -> "pulls them in";
+				case TELEPORT -> "teleports you";
+				case COOLDOWN -> "needs a while to recharge";
+			};
+		}
+	}
+
+	/**
+	 * What it could tell the other of what an item does: a belief about an item (never a stack's own enchantment or lore: a
+	 * tip "the bow explodes" from one lore'd bow would be about every bow) at {@link #TIP_CONFIDENCE} or more, read, seen or
+	 * told, of an item it owns or has used, that the other does not believe yet. The surest one; null if none.
+	 */
+	@Nullable
+	public static Tip tip(DrifterEntity me, @Nullable DrifterEntity other) {
+		GearLore lore = me.getGearLore();
+		Tip best = null;
+		for (Map.Entry<Item, Map<Power, GearLore.Belief>> entry : lore.allBeliefs().entrySet()) {
+			Item item = entry.getKey();
+			Boolean has = null;
+			for (Map.Entry<Power, GearLore.Belief> held : entry.getValue().entrySet()) {
+				GearLore.Belief belief = held.getValue();
+				if (belief.confidence() < TIP_CONFIDENCE || belief.source() == GearLore.Source.DATA || best != null && belief.confidence() <= best.confidence()
+					|| other != null && other.getGearLore().believes(item, held.getKey())) {
+					continue;
+				}
+
+				if (belief.source() != GearLore.Source.SEEN) {
+					// (Seen: only ever in its own use.) Read or told: of something it owns.
+					if (has == null) {
+						has = lore.how(me, item) == GearLore.How.OWNED || me.getInventory().count(stack -> stack.is(item)) > 0;
+					}
+
+					if (!has) {
+						continue;
+					}
+				}
+
+				best = new Tip(item, held.getKey(), belief.confidence());
+			}
+		}
+
+		return best;
 	}
 
 	/**

@@ -1,0 +1,280 @@
+{
+ "_comment": "Gear from any mod (weapons and armor project, task 8): passing on what an item does (Powers.tip: a belief about an item it owns or has used, read, seen or told, that the other doesn't hold yet; never one stack's enchantment or lore), a modded item new to it today, and its taste in gear (GearTaste styles: flashy brags, loyal sticks to its kind, follower asks, practical shrugs). Effects: teach_power/learn_power (the listener believes the tip, as told), teach_gear/learn_gear (the listener learns the item exists).",
+ "topics": [
+  {
+   "id": "gear_warn_explosive",
+   "weight": 2.5,
+   "needs": ["a:has_gear_tip", "a:gear_tip_explosive", "!rivals"],
+   "tags": ["gear", "powers", "advice"],
+   "leads": ["gear", "powers", "fighting"],
+   "about": "an exploding weapon",
+   "turns": [
+    {"by": "a", "lines": [
+     "careful with that {a.gear_tip_item}, it {a.gear_tip_power}",
+     "heads up, the {a.gear_tip_item} {a.gear_tip_power}",
+     "if you ever get a {a.gear_tip_item}, don't use it up close. it {a.gear_tip_power}"
+    ]},
+    {"by": "b", "lines": ["wait what", "explodes??", "how do you know", "oh no", "seriously?"]},
+    {"by": "a", "lines": [
+     "keep it for when nobody's near the target",
+     "never shoot it at something right next to you",
+     "and not near your base either, trust me",
+     "if a friend's standing by the mob, switch weapons"
+    ]},
+    {"by": "b", "lines": ["noted", "good to know", "i'll keep my distance", "thanks for the warning"], "chance": 0.8}
+   ],
+   "effects": ["teach_power"]
+  },
+  {
+   "id": "gear_warn_fire",
+   "weight": 2.0,
+   "needs": ["a:has_gear_tip", "a:gear_tip_fire", "!rivals"],
+   "tags": ["gear", "powers", "advice"],
+   "leads": ["gear", "powers", "home"],
+   "about": "a burning weapon",
+   "turns": [
+    {"by": "a", "lines": [
+     "fyi the {a.gear_tip_item} {a.gear_tip_power}",
+     "don't swing a {a.gear_tip_item} around your house, it {a.gear_tip_power}",
+     "watch out, that {a.gear_tip_item} {a.gear_tip_power}"
+    ]},
+    {"by": "b", "lines": ["huh", "like actual fire?", "good thing my place is stone", "yikes"]},
+    {"by": "a", "lines": [
+     "keep it away from anything wooden",
+     "great on mobs, terrible near friends",
+     "one swing near my walls and that was it"
+    ], "chance": 0.8}
+   ],
+   "effects": ["teach_power"]
+  },
+  {
+   "id": "gear_tip_share",
+   "weight": 2.0,
+   "needs": ["a:has_gear_tip", "!rivals"],
+   "tags": ["gear", "powers", "weapons"],
+   "leads": ["gear", "powers", "fighting"],
+   "about": "what a weapon does",
+   "turns": [
+    {"by": "a", "lines": [
+     "did you know the {a.gear_tip_item} {a.gear_tip_power}?",
+     "found something out: the {a.gear_tip_item} {a.gear_tip_power}",
+     "tip for you, the {a.gear_tip_item} {a.gear_tip_power}"
+    ]},
+    {"by": "b", "lines": ["no way", "really?", "huh, never knew", "since when", "cool"]},
+    {"by": "a", "lines": [
+     "yep, saw it myself",
+     "it's right there if you read it",
+     "worth knowing before a fight"
+    ]},
+    {"by": "b", "lines": ["i'll remember that", "good tip", "ok that's handy"], "chance": 0.7}
+   ],
+   "effects": ["teach_power"]
+  },
+  {
+   "id": "gear_tip_ask",
+   "weight": 1.5,
+   "needs": ["b:has_gear_tip", "!rivals"],
+   "tags": ["gear", "powers", "questions"],
+   "leads": ["gear", "powers", "weapons"],
+   "about": "what a weapon does",
+   "turns": [
+    {"by": "a", "lines": [
+     "is the {b.gear_tip_item} any good?",
+     "what's the deal with the {b.gear_tip_item}?",
+     "you've used a {b.gear_tip_item} right? what does it do?"
+    ]},
+    {"by": "b", "lines": [
+     "it {b.gear_tip_power}",
+     "honestly? it {b.gear_tip_power}",
+     "from what i've seen it {b.gear_tip_power}"
+    ]},
+    {"by": "a", "lines": ["oh nice", "huh", "glad i asked", "ok good to know"]}
+   ],
+   "effects": ["learn_power"]
+  },
+  {
+   "id": "gear_tip_heal",
+   "weight": 1.5,
+   "needs": ["a:has_gear_tip", "a:gear_tip_heal", "!rivals"],
+   "tags": ["gear", "powers", "health"],
+   "leads": ["gear", "powers", "fighting"],
+   "about": "a healing weapon",
+   "turns": [
+    {"by": "a", "lines": [
+     "the {a.gear_tip_item} {a.gear_tip_power}, save it for when you're low",
+     "if you're losing a fight, the {a.gear_tip_item} {a.gear_tip_power}"
+    ]},
+    {"by": "b", "lines": ["that's huge", "better than eating mid-fight", "ok i want one"]},
+    {"by": "a", "lines": ["don't waste it at full health", "it's saved me more than once"], "chance": 0.7}
+   ],
+   "effects": ["teach_power"]
+  },
+  {
+   "id": "gear_tip_crowd",
+   "weight": 1.5,
+   "needs": ["a:has_gear_tip", "a:gear_tip_area", "!rivals"],
+   "tags": ["gear", "powers", "fighting"],
+   "leads": ["gear", "powers", "mobs"],
+   "about": "a weapon for crowds",
+   "turns": [
+    {"by": "a", "lines": [
+     "the {a.gear_tip_item} {a.gear_tip_power}, perfect for a horde",
+     "got swarmed and the {a.gear_tip_item} cleared them. it {a.gear_tip_power}"
+    ]},
+    {"by": "b", "lines": ["wish i had that last night", "nice, crowds are the worst", "sounds broken"]},
+    {"by": "a", "lines": ["wasted on a single zombie though", "save it for when there's a bunch"], "chance": 0.7}
+   ],
+   "effects": ["teach_power"]
+  },
+  {
+   "id": "gear_tip_hard_way",
+   "weight": 1.5,
+   "needs": ["a:has_gear_tip", "a:gear_tip_explosive", "!rivals"],
+   "tags": ["gear", "powers", "stories"],
+   "leads": ["gear", "powers", "death"],
+   "about": "learning the hard way",
+   "turns": [
+    {"by": "a", "lines": [
+     "found out the hard way that the {a.gear_tip_item} {a.gear_tip_power}",
+     "story time: me, a {a.gear_tip_item}, a mob right in my face"
+    ]},
+    {"by": "b", "lines": ["oh no", "lol what happened", "you ok?", "rip"]},
+    {"by": "a", "lines": [
+     "half my hearts, gone",
+     "blew myself across the field",
+     "never again up close"
+    ]},
+    {"by": "b", "lines": ["lmao", "at least you know now", "that's a lesson"], "chance": 0.8}
+   ],
+   "effects": ["teach_power"]
+  },
+  {
+   "id": "gear_new_brag",
+   "weight": 2.0,
+   "needs": ["a:has_new_gear", "a:gear_style_flashy"],
+   "tags": ["gear", "brag", "weapons"],
+   "leads": ["gear", "brag", "powers"],
+   "about": "new gear",
+   "turns": [
+    {"by": "a", "lines": [
+     "look at this {a.new_gear}",
+     "check it out, a {a.new_gear}",
+     "rate my {a.new_gear}"
+    ]},
+    {"by": "b", "lines": ["ooh shiny", "ok that's sick", "show off", "where'd you get that", "10/10"]},
+    {"by": "a", "lines": ["rarest thing i own", "had to have it", "it even looks better in the dark", "matches my armor too"]}
+   ],
+   "effects": ["teach_gear"]
+  },
+  {
+   "id": "gear_new_found",
+   "weight": 1.5,
+   "needs": ["a:has_new_gear"],
+   "tags": ["gear", "weapons", "loot"],
+   "leads": ["gear", "weapons", "loot"],
+   "about": "new gear",
+   "turns": [
+    {"by": "a", "lines": [
+     "came across a {a.new_gear} today",
+     "ever seen a {a.new_gear}? got one today",
+     "new one for me: {a.new_gear}"
+    ]},
+    {"by": "b", "lines": ["never heard of it", "what's that do?", "lucky", "huh, new to me"]},
+    {"by": "a", "lines": ["no idea yet, still figuring it out", "gonna try it on something", "we'll see"], "chance": 0.8}
+   ],
+   "effects": ["teach_gear"]
+  },
+  {
+   "id": "gear_new_ask",
+   "weight": 1.5,
+   "needs": ["b:has_new_gear", "!strangers"],
+   "tags": ["gear", "questions", "loot"],
+   "leads": ["gear", "loot", "brag"],
+   "about": "new gear",
+   "turns": [
+    {"by": "a", "lines": ["is that a {b.new_gear}?", "where'd you get the {b.new_gear}?", "ok what is that {b.new_gear}"]},
+    {"by": "b", "lines": ["found it", "lucky find", "long story", "it's mine now"]},
+    {"by": "a", "lines": ["jealous", "i want one", "nice"]}
+   ],
+   "effects": ["learn_gear"]
+  },
+  {
+   "id": "gear_loyal_kind",
+   "weight": 1.5,
+   "needs": ["a:has_loyal_kind", "a:gear_style_loyal"],
+   "tags": ["gear", "weapons", "opinions"],
+   "leads": ["weapons", "gear", "argument"],
+   "about": "a favourite kind of weapon",
+   "turns": [
+    {"by": "a", "lines": [
+     "{a.loyal_kind} or nothing",
+     "i'm a {a.loyal_kind} person, always will be",
+     "you can keep your fancy stuff, i'll stick to my {a.loyal_kind}"
+    ]},
+    {"by": "b", "lines": ["respect", "you've never tried anything else", "loyal to a fault", "fair"]},
+    {"by": "a", "lines": ["it just feels right", "we've been through a lot", "why fix what works"]}
+   ]
+  },
+  {
+   "id": "gear_follower_ask",
+   "weight": 1.2,
+   "needs": ["a:gear_style_follower", "!strangers", "!rivals"],
+   "tags": ["gear", "weapons", "questions"],
+   "leads": ["weapons", "gear", "friends"],
+   "about": "what everyone fights with",
+   "turns": [
+    {"by": "a", "lines": [
+     "what are you fighting with these days?",
+     "what's everyone using now? i'll get the same",
+     "should i switch to what you use?"
+    ]},
+    {"by": "b", "lines": ["whatever hits hardest", "{b.held} for now", "same as always", "depends on the mob"]},
+    {"by": "a", "lines": ["ok i'll try that", "might copy you", "if it works for you"]}
+   ]
+  },
+  {
+   "id": "gear_practical_shrug",
+   "weight": 1.0,
+   "needs": ["a:gear_style_practical"],
+   "tags": ["gear", "weapons", "opinions"],
+   "leads": ["weapons", "gear", "tools"],
+   "about": "gear that works",
+   "turns": [
+    {"by": "a", "lines": [
+     "i don't care how it looks, i care how hard it hits",
+     "a weapon's a weapon, i use the best one i've got",
+     "fancy names don't kill mobs"
+    ]},
+    {"by": "b", "lines": ["fair enough", "boring but true", "some of us like style", "can't argue"]}
+   ]
+  },
+  {
+   "id": "gear_flashy_vs_practical",
+   "weight": 1.0,
+   "needs": ["a:gear_style_flashy", "b:gear_style_practical"],
+   "tags": ["gear", "argument", "brag"],
+   "leads": ["gear", "argument", "weapons"],
+   "about": "looks or damage",
+   "turns": [
+    {"by": "a", "lines": ["looks matter, admit it", "i'd rather die in style", "the rare stuff is just cooler"]},
+    {"by": "b", "lines": ["damage matters", "style doesn't block arrows", "you'd die in style alright"], "mark": ["disagree"]},
+    {"by": "a", "lines": ["whatever", "we'll see who wins a duel", "you're no fun"]}
+   ]
+  },
+  {
+   "id": "gear_tip_doubt",
+   "weight": 1.0,
+   "needs": ["a:has_gear_tip", "!rivals", "b:voice_newbie"],
+   "tags": ["gear", "powers", "jokes"],
+   "leads": ["gear", "powers", "argument"],
+   "about": "what a weapon does",
+   "turns": [
+    {"by": "a", "lines": ["the {a.gear_tip_item} {a.gear_tip_power}, no joke", "swear on my bed, the {a.gear_tip_item} {a.gear_tip_power}"]},
+    {"by": "b", "lines": ["you're making that up", "no way", "prove it"]},
+    {"by": "a", "lines": ["fine, don't believe me", "you'll see", "try it yourself then"]},
+    {"by": "b", "lines": ["ok ok i believe you", "maybe", "i'll be careful anyway"], "chance": 0.8}
+   ],
+   "effects": ["teach_power"]
+  }
+ ]
+}

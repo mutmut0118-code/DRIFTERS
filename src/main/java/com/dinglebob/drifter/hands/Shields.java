@@ -105,6 +105,14 @@ public final class Shields {
 
 	/** Its best bow in the main inventory, or -1. */
 	public static int bestBowSlot(DrifterEntity drifter) {
+		return bestBowSlot(drifter, null);
+	}
+
+	/**
+	 * The same, against this target (null: none in mind): how well each bow's powers suit it, as it believes, multiplies its
+	 * score ({@code Powers.fit}: an explosive bow loses to a plain one up close or near friends).
+	 */
+	public static int bestBowSlot(DrifterEntity drifter, @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity target) {
 		DrifterInventory inventory = drifter.getInventory();
 		int best = -1;
 		double bestScore = 0.0;
@@ -112,6 +120,9 @@ public final class Shields {
 			ItemStack stack = inventory.getItem(slot);
 			if (isBow(stack)) {
 				double score = bowScore(drifter, stack);
+				// (A score below zero would be raised by a penalty: one is scaled the other way.)
+				double fit = com.dinglebob.drifter.gear.Powers.fit(drifter, stack, target);
+				score = score >= 0.0 ? score * fit : score * (2.0 - fit);
 				if (best < 0 || score > bestScore) {
 					best = slot;
 					bestScore = score;
