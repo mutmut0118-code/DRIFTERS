@@ -656,6 +656,7 @@ public final class DrifterCommands {
 		EncounterCommands.register(root);
 		HouseCommands.register(root);
 		HeardCommands.register(root);
+		GearCommands.register(root, buildContext);
 		// (After "talk" above: these add to it.)
 		TalkWebCommands.register(root);
 

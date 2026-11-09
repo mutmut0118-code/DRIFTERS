@@ -1,0 +1,136 @@
+package com.dinglebob.drifter.gear;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.dinglebob.drifter.social.ItemValues;
+
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.Level;
+
+/**
+ * What the recipes say about gear, worked out once per reload. This part: an item's key ingredient (the one worth most,
+ * which says what the item costs). Which items unlock which comes with the knowledge task.
+ */
+public final class RecipeIndex {
+	/**
+	 * Values call recipes and recipes call values (a gear item can be an ingredient of other gear): past this depth a
+	 * lookup gives up (no key, no cost) instead of looping.
+	 */
+	public static final int MAX_DEPTH = 3;
+
+	private static final ThreadLocal<int[]> DEPTH = ThreadLocal.withInitial(() -> new int[1]);
+	private static final Map<Item, Optional<Ingredient>> KEYS = new HashMap<>();
+	private static Map<Item, RecipeHolder<?>> byResult;
+
+	private RecipeIndex() {
+	}
+
+	static void clear() {
+		synchronized (KEYS) {
+			KEYS.clear();
+			byResult = null;
+		}
+	}
+
+	/** How deep the current thread's value-and-recipe lookups are. */
+	public static int depth() {
+		return DEPTH.get()[0];
+	}
+
+	/** Runs a lookup one level deeper; {@code fallback} instead if that is past {@link #MAX_DEPTH}. */
+	public static <T> T guarded(Supplier<T> lookup, T fallback) {
+		int[] depth = DEPTH.get();
+		if (depth[0] >= MAX_DEPTH) {
+			return fallback;
+		}
+
+		depth[0]++;
+		try {
+			return lookup.get();
+		} finally {
+			depth[0]--;
+		}
+	}
+
+	/**
+	 * The ingredient of this item's recipe that is worth most (ties: not a stick or planks), or null with no recipe (or a
+	 * lookup that went too deep). The first recipe that makes the item counts.
+	 */
+	@Nullable
+	public static Ingredient key(Level level, Item result) {
+		synchronized (KEYS) {
+			Optional<Ingredient> cached = KEYS.get(result);
+			if (cached != null) {
+				return cached.orElse(null);
+			}
+
+			if (depth() >= MAX_DEPTH) {
+				return null;
+			}
+
+			Ingredient key = guarded(() -> compute(level, result), null);
+			// Only a complete answer is kept (one cut short by the depth guard would be wrong for a shallower caller).
+			if (depth() == 0) {
+				KEYS.put(result, Optional.ofNullable(key));
+			}
+
+			return key;
+		}
+	}
+
+	/** The first item an ingredient accepts (empty: nothing registered for a tag). */
+	public static ItemStack first(Ingredient ingredient) {
+		ItemStack[] items = ingredient.getItems();
+		return items.length == 0 ? ItemStack.EMPTY : items[0];
+	}
+
+	@Nullable
+	private static Ingredient compute(Level level, Item result) {
+		if (byResult == null) {
+			Map<Item, RecipeHolder<?>> map = new HashMap<>();
+			for (RecipeHolder<?> holder : level.getRecipeManager().getRecipes()) {
+				ItemStack made = holder.value().getResultItem(level.registryAccess());
+				if (!made.isEmpty()) {
+					map.putIfAbsent(made.getItem(), holder);
+				}
+			}
+
+			byResult = map;
+		}
+
+		RecipeHolder<?> holder = byResult.get(result);
+		if (holder == null) {
+			return null;
+		}
+
+		Ingredient best = null;
+		double bestValue = -1.0;
+		boolean bestPlain = true;
+		for (Ingredient ingredient : holder.value().getIngredients()) {
+			ItemStack stack = first(ingredient);
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			double value = ItemValues.each(stack);
+			boolean plain = stack.is(Items.STICK) || stack.is(ItemTags.PLANKS);
+			if (value > bestValue || (value == bestValue && bestPlain && !plain)) {
+				best = ingredient;
+				bestValue = value;
+				bestPlain = plain;
+			}
+		}
+
+		return best;
+	}
+}

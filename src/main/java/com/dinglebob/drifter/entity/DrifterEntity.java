@@ -2190,7 +2190,7 @@ protected void customServerAiStep() {
 	@Override
 	public void releaseUsingItem() {
 		ItemStack bow = this.useItem;
-		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isBow(bow) && ownRelease(bow.getItem().getClass())) {
+		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isBow(bow) && ownRelease(bow.getItem().getClass(), net.minecraft.world.item.BowItem.class)) {
 			int remaining = this.getUseItemRemainingTicks();
 			com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
 				bow.releaseUsing(fake.level(), fake, remaining);
@@ -2210,10 +2210,21 @@ protected void customServerAiStep() {
 		super.releaseUsingItem();
 	}
 
-	/** This bow class (or one between it and the vanilla bow) has its own releaseUsing. */
-	private static boolean ownRelease(Class<?> type) {
-		for (Class<?> c = type; c != null && c != net.minecraft.world.item.BowItem.class; c = c.getSuperclass()) {
-			for (java.lang.reflect.Method method : c.getDeclaredMethods()) {
+	/**
+	 * This class (or one between it and the vanilla {@code stop} class: BowItem, CrossbowItem or TridentItem) has its own
+	 * releaseUsing. Callers that aren't sure the class descends from {@code stop} check that first.
+	 */
+	public static boolean ownRelease(Class<?> type, Class<?> stop) {
+		for (Class<?> c = type; c != null && c != stop; c = c.getSuperclass()) {
+			java.lang.reflect.Method[] methods;
+			try {
+				methods = c.getDeclaredMethods();
+			} catch (LinkageError e) {
+				// A method mentions a client-only class (hover text, say) that a server doesn't have: can't tell, go on up.
+				continue;
+			}
+
+			for (java.lang.reflect.Method method : methods) {
 				Class<?>[] params = method.getParameterTypes();
 				if (method.getReturnType() == void.class && params.length == 4 && params[0] == ItemStack.class && params[1] == Level.class
 					&& params[2] == net.minecraft.world.entity.LivingEntity.class && params[3] == int.class) {
