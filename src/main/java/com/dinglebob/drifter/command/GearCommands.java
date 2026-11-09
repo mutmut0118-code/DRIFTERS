@@ -106,28 +106,27 @@ public final class GearCommands {
 		}
 	}
 
-	/** "; powers: explosive 0.75 (TEXT), ...; text guess: explosive" (the nearest Drifter's beliefs, then the text alone). */
+	/**
+	 * "; powers: explosive 0.75 (TEXT), fire (ENCHANT), explosive (LORE); text guess: explosive": the nearest Drifter's beliefs
+	 * about the item, then what this stack does of its own for it (its enchantments; its lore or name if it reads text), then
+	 * what the text alone hints (the item's and this stack's, whoever reads it).
+	 */
 	private static String powersPart(CommandSourceStack source, ItemStack stack) {
 		StringBuilder out = new StringBuilder();
 		try {
 			DrifterEntity drifter = DrifterCommands.nearest(source);
-			java.util.Map<Powers.Power, GearLore.Belief> beliefs = drifter.getGearLore().beliefs(stack.getItem());
-			out.append("; powers: ");
-			if (beliefs.isEmpty()) {
-				out.append("none");
-			}
-
-			boolean first = true;
-			for (java.util.Map.Entry<Powers.Power, GearLore.Belief> entry : beliefs.entrySet()) {
-				out.append(first ? "" : ", ").append(String.format(Locale.ROOT, "%s %.2f (%s)", entry.getKey().id(), entry.getValue().confidence(),
-					entry.getValue().source().name()));
-				first = false;
-			}
+			List<String> parts = new java.util.ArrayList<>();
+			drifter.getGearLore().beliefs(stack.getItem()).forEach((power, belief) -> parts.add(String.format(Locale.ROOT, "%s %.2f (%s)", power.id(),
+				belief.confidence(), belief.source().name())));
+			Powers.stackOwn(stack, Powers.readsText(drifter)).forEach((power, own) -> parts.add(power.id() + " (" + own.name() + ")"));
+			out.append("; powers: ").append(parts.isEmpty() ? "none" : String.join(", ", parts));
 		} catch (CommandSyntaxException e) {
 			// no Drifter near: the text guess alone
 		}
 
-		java.util.Set<Powers.Power> guess = Powers.guess(source.getLevel(), stack);
+		java.util.Set<Powers.Power> guess = java.util.EnumSet.noneOf(Powers.Power.class);
+		guess.addAll(Powers.guess(source.getLevel(), stack));
+		guess.addAll(Powers.written(stack));
 		out.append("; text guess: ");
 		if (guess.isEmpty()) {
 			out.append("none");

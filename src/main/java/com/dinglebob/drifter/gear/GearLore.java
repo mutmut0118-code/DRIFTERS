@@ -29,19 +29,15 @@ import com.dinglebob.drifter.world.DrifterGroups;
 import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.personality.Trait;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemLore;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 /**
  * Which modded items a Drifter knows exist, and how it came to know (spec goal 2): it saw one (in a chest it opened, on the
@@ -49,8 +45,9 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
  * rule), or was told. Veterans know the craftable gear of the installed mods from the start, newbies none. Saved and
  * versioned. The "know every recipe" setting (goal 11) makes everything known; it never touches where things are.
  *
- * <p>It also holds what it believes each item does (spec goal 6, {@link Powers}): read from the hover text by the
- * knowledgeable, seen in use ({@link PowerWatch}), told, or written in a weapon file's {@code ability}; saved in the same tag.
+ * <p>It also holds what it believes each item does (spec goal 6, {@link Powers}): read from the item's own hover text by
+ * the knowledgeable, seen in use ({@link PowerWatch}), told, or written in a weapon file's {@code ability}; saved in the
+ * same tag. What one stack does of its own (enchantments, lore) is not kept here: {@link Powers#believed} adds it.
  */
 public final class GearLore {
 	public enum How {
@@ -114,17 +111,8 @@ public final class GearLore {
 	private final Map<Item, How> learned = new LinkedHashMap<>();
 	/** What it believes each item does (saved). */
 	private final Map<Item, EnumMap<Powers.Power, Belief>> beliefs = new LinkedHashMap<>();
-	/**
-	 * What it has read since it was loaded (not saved: a cheap re-read after a load): a plain item, or a {@link ReadKey} for a
-	 * stack with its own lore, name or enchantments (those are read per stack: another bow may say something else).
-	 */
-	private final Set<Object> read = new HashSet<>();
-	/** The read list starts over past this size (a re-read adds nothing it already believes). */
-	private static final int READ_CAP = 512;
-
-	/** A stack that says more than its item does: the item and a hash of its lore, custom name and enchantments. */
-	private record ReadKey(Item item, int variant) {
-	}
+	/** Items whose own text (or weapon-file ability) it has read since it was loaded (not saved: a cheap re-read after a load). */
+	private final Set<Item> read = new HashSet<>();
 	/** No saved knowledge was loaded: the next check seeds it from what the Drifter carries, wears and stores. */
 	private boolean seedPending = true;
 
@@ -352,22 +340,21 @@ public final class GearLore {
 	}
 
 	/**
-	 * Once per item per load (once per stack with its own lore, name or enchantments): a weapon file's hand-written
-	 * {@code ability} gives data beliefs (crowd: area, hurt: heal) and the item is never guessed at; otherwise, a Drifter
-	 * knowledgeable enough reads the hover text (a newbie does not, until it knows better), each hinted power it holds no
-	 * belief about yet at {@code base + per_knowledge * knowledge}.
+	 * Once per item per load: a weapon file's hand-written {@code ability} gives data beliefs (crowd: area, hurt: heal) and the
+	 * item is never guessed at; otherwise, a Drifter knowledgeable enough reads the item's own hover text (a newbie does not,
+	 * until it knows better), each hinted power it holds no belief about yet at {@code base + per_knowledge * knowledge}.
+	 * What one stack adds of its own (enchantments, lore, a custom name) is never stored here ({@link Powers#stackOwn}).
 	 */
 	private void readPowers(DrifterEntity d, ItemStack stack) {
 		Item item = stack.getItem();
-		Object key = readKey(stack);
-		if (this.read.contains(key)) {
+		if (this.read.contains(item)) {
 			return;
 		}
 
 		Weapons.Unique unique = Weapons.unique(stack);
 		JsonObject ability = unique == null ? null : unique.ability();
 		if (ability != null) {
-			this.markRead(key);
+			this.read.add(item);
 			String when = ability.has("when") ? ability.get("when").getAsString() : "fight";
 			Powers.Power power = switch (when) {
 				case "crowd" -> Powers.Power.AREA;
@@ -381,14 +368,13 @@ public final class GearLore {
 			return;
 		}
 
-		GearData.PowerRules rules = GearData.tables().powers();
-		double knowledge = d.getPersonality().get(Trait.KNOWLEDGE);
-		if (knowledge < rules.readTextKnowledge()) {
+		if (!Powers.readsText(d)) {
 			return;
 		}
 
-		this.markRead(key);
-		float confidence = (float)(rules.textBase() + rules.textPerKnowledge() * knowledge);
+		this.read.add(item);
+		GearData.PowerRules rules = GearData.tables().powers();
+		float confidence = (float)(rules.textBase() + rules.textPerKnowledge() * d.getPersonality().get(Trait.KNOWLEDGE));
 		Map<Powers.Power, Belief> held = this.beliefs.get(item);
 		for (Powers.Power power : Powers.guess(d.level(), stack)) {
 			if (held == null || !held.containsKey(power)) {
@@ -396,36 +382,6 @@ public final class GearLore {
 				held = this.beliefs.get(item);
 			}
 		}
-	}
-
-	private void markRead(Object key) {
-		if (this.read.size() >= READ_CAP) {
-			this.read.clear();
-		}
-
-		this.read.add(key);
-	}
-
-	/** The item for a plain stack; the item with what this stack says of its own (lore, name, enchantments) otherwise. */
-	private static Object readKey(ItemStack stack) {
-		ItemLore lore = stack.get(DataComponents.LORE);
-		Component name = stack.get(DataComponents.CUSTOM_NAME);
-		ItemEnchantments enchantments = stack.getEnchantments();
-		boolean plainLore = lore == null || lore.lines().isEmpty();
-		if (plainLore && name == null && enchantments.isEmpty()) {
-			return stack.getItem();
-		}
-
-		int variant = 1;
-		try {
-			variant = 31 * variant + (plainLore ? 0 : lore.hashCode());
-			variant = 31 * variant + (name == null ? 0 : name.getString().hashCode());
-			variant = 31 * variant + enchantments.hashCode();
-		} catch (RuntimeException e) {
-			// a broken component: read as one variant
-		}
-
-		return new ReadKey(stack.getItem(), variant);
 	}
 
 	/** What it believes this item does (empty: nothing). */

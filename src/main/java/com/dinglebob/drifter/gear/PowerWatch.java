@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.perception.Awareness;
 
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
@@ -23,6 +24,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -34,6 +36,8 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
@@ -91,9 +95,14 @@ public final class PowerWatch {
 	private float lastHealth;
 	/** It was hurt when the watch began (a healing power could show). */
 	private boolean wasHurt;
+	/** The foes it saw around its target when the watch began. */
 	private final List<LivingEntity> others = new ArrayList<>();
+	/** Each one's health a tick ago, and whether a hit of its own (not a burn or poison left on it) has hurt it since. */
 	private float[] otherHealth = new float[0];
+	private boolean[] otherHit = new boolean[0];
 	private boolean othersBaselined;
+	/** What the enchantments on the stack in use do anyway: no news about the item. */
+	private Set<Powers.Power> explained = Set.of();
 	private double pulled;
 	private final EnumSet<Powers.Power> seen = EnumSet.noneOf(Powers.Power.class);
 	/** Landed uses in a row that did not show a text-guessed power, per item (not saved). */
@@ -178,6 +187,7 @@ public final class PowerWatch {
 		this.active = true;
 		this.use = use;
 		this.item = used.getItem();
+		this.explained = explainedBy(used);
 		this.target = target;
 		this.age = 0;
 		this.seen.clear();
@@ -228,6 +238,7 @@ public final class PowerWatch {
 
 	private void baselineOthers() {
 		this.othersBaselined = true;
+		this.otherHit = new boolean[this.others.size()];
 		this.otherHealth = new float[this.others.size()];
 		for (int i = 0; i < this.others.size(); i++) {
 			this.otherHealth[i] = this.others.get(i).getHealth();
@@ -268,16 +279,19 @@ public final class PowerWatch {
 
 			Vec3 now = t.position();
 			Vec3 moved = now.subtract(this.lastTargetPos);
-			if (moved.length() >= TELEPORT_STEP && !(t instanceof EnderMan) && !(t instanceof Shulker) && !t.isPassenger()) {
-				this.sign(d, Powers.Power.TELEPORT);
-			} else {
-				Vec3 toward = new Vec3(d.getX() - this.lastTargetPos.x, 0.0, d.getZ() - this.lastTargetPos.z);
-				if (toward.lengthSqr() > 1.0E-4) {
-					double closing = new Vec3(moved.x, 0.0, moved.z).dot(toward.normalize());
-					if (closing >= PULL_STEP) {
-						this.pulled += closing;
-						if (this.pulled >= PULL_TOTAL) {
-							this.sign(d, Powers.Power.PULL);
+			// What blinks, flies or rides moves like that by itself: an Enderman dodging an arrow is no pull.
+			if (!movesByItself(t)) {
+				if (moved.length() >= TELEPORT_STEP) {
+					this.sign(d, Powers.Power.TELEPORT);
+				} else {
+					Vec3 toward = new Vec3(d.getX() - this.lastTargetPos.x, 0.0, d.getZ() - this.lastTargetPos.z);
+					if (toward.lengthSqr() > 1.0E-4) {
+						double closing = new Vec3(moved.x, 0.0, moved.z).dot(toward.normalize());
+						if (closing >= PULL_STEP) {
+							this.pulled += closing;
+							if (this.pulled >= PULL_TOTAL) {
+								this.sign(d, Powers.Power.PULL);
+							}
 						}
 					}
 				}
@@ -289,16 +303,27 @@ public final class PowerWatch {
 		if (!this.othersBaselined) {
 			this.baselineOthers();
 		} else if (!this.seen.contains(Powers.Power.AREA)) {
-			int hurt = 0;
+			// Only a fresh drop this tick from a hit of its own counts: a burn, poison or the sun still working on a foe it
+			// swept a moment ago has no attacker, and is not an area power.
+			int hit = 0;
 			for (int i = 0; i < this.others.size(); i++) {
 				LivingEntity other = this.others.get(i);
-				LivingEntity by = other.getLastHurtByMob();
-				if (other.getHealth() < this.otherHealth[i] && (by == d || by != null && by == d.helperPlayer)) {
-					hurt++;
+				float health = other.getHealth();
+				if (health < this.otherHealth[i] && !this.otherHit[i]) {
+					DamageSource source = other.getLastDamageSource();
+					Entity by = source == null ? null : source.getEntity();
+					if (by != null && (by == d || by == d.helperPlayer)) {
+						this.otherHit[i] = true;
+					}
+				}
+
+				this.otherHealth[i] = health;
+				if (this.otherHit[i]) {
+					hit++;
 				}
 			}
 
-			if (hurt >= AREA_COUNT) {
+			if (hit >= AREA_COUNT) {
 				this.sign(d, Powers.Power.AREA);
 			}
 		}
@@ -363,6 +388,36 @@ public final class PowerWatch {
 		return owner != null && (owner == d || owner == d.helperPlayer);
 	}
 
+	/**
+	 * What the enchantments on this stack do anyway: their own powers ({@link Powers#enchanted}), and several foes hurt at
+	 * once by a Multishot volley or a Piercing bolt.
+	 */
+	private static Set<Powers.Power> explainedBy(ItemStack used) {
+		Set<Powers.Power> own = Powers.enchanted(used);
+		boolean volley = own.contains(Powers.Power.MULTISHOT);
+		if (!volley) {
+			for (Holder<Enchantment> enchantment : used.getEnchantments().keySet()) {
+				if (enchantment.is(Enchantments.PIERCING)) {
+					volley = true;
+					break;
+				}
+			}
+		}
+
+		if (!volley) {
+			return own;
+		}
+
+		EnumSet<Powers.Power> out = EnumSet.of(Powers.Power.AREA);
+		out.addAll(own);
+		return out;
+	}
+
+	/** An Enderman or Shulker (they blink), a flier, or a rider or mount: its jumps and dashes are its own. */
+	private static boolean movesByItself(LivingEntity t) {
+		return t instanceof EnderMan || t instanceof Shulker || t instanceof FlyingMob || t.isPassenger() || t.isVehicle() || t.isFallFlying();
+	}
+
 	/** On fire for a reason anyone can see: in lava or fire, or the undead in daylight. No sign of what hit it. */
 	private static boolean burnsAnyway(LivingEntity t) {
 		return t.isInLava() || t.getInBlockState().is(BlockTags.FIRE)
@@ -384,9 +439,12 @@ public final class PowerWatch {
 		};
 	}
 
-	/** A sign of a power, once per watch: belief up a step ("found out Bow: fire" the first time). */
+	/**
+	 * A sign of a power, once per watch: belief up a step ("found out Bow: explosive" the first time). Not when the
+	 * enchantments on the stack in use explain it (Flame, Fire Aspect, Multishot): that says nothing about the item.
+	 */
 	private void sign(DrifterEntity d, Powers.Power power) {
-		if (this.item == null || !this.seen.add(power)) {
+		if (this.item == null || !this.seen.add(power) || this.explained.contains(power)) {
 			return;
 		}
 
@@ -432,6 +490,7 @@ public final class PowerWatch {
 		this.active = false;
 		this.target = null;
 		this.item = null;
+		this.explained = Set.of();
 		this.others.clear();
 		WATCHING.remove(d);
 	}

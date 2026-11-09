@@ -1,0 +1,50 @@
+# Task 7, fix round 1: things that must NOT teach a power. python tools/smoke.py . tools/smoke-gear-powers-false.txt build/smoke-gear-powers-false.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, with the optional mods (Better Combat: one swing's arc
+# catches all three). Brains off; /drifter attack and /drifter shoot do the fighting; the targets stand still (NoAI).
+#  Sweep (knowledge 0.1) fights three zombies standing together with a Fire Aspect iron sword, in daylight: they burn from the sun and from the
+#  sword, long after the swing that caught them. Expect: thoughts "caught 3 in one swing"; no "found out" thought; the sword's line
+#  "powers: fire (ENCHANT)": no "area" (a burn left on a bystander is not a hit), no stored "fire" (the stack's own enchantment).
+#  Ender (knowledge 0.1) shoots an Enderman with a plain bow: every arrow makes it blink away, often nearer. Expect: no "found out"
+#  thought; the bow's line "powers: none" (no "pull", no "teleport").
+# Before the fix this run gave "found out Iron Sword: area" (area 1.00 (SEEN)) and "found out Bow: pull" (pull 1.00 (SEEN)).
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+weather clear
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+difficulty normal
+kill @e[type=zombie]
+drifter spawn Sweep
+execute at @e[type=drifter:drifter,name=Sweep] run drifter brain off
+execute positioned ~60 ~ ~ run drifter spawn Ender
+execute at @e[type=drifter:drifter,name=Ender] run drifter brain off
+drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Sweep] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Sweep] run drifter give minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
+execute at @e[type=drifter:drifter,name=Ender] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Ender] run drifter give minecraft:bow
+execute at @e[type=drifter:drifter,name=Ender] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Sweep] positioned ~ ~ ~3 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["mid"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Sweep] positioned ~0.8 ~ ~3 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Sweep] positioned ~-0.8 ~ ~3 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Ender] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon enderman ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+wait 3
+execute as @e[type=drifter:drifter,name=Sweep] at @s run drifter attack @e[type=zombie,tag=mid,limit=1]
+execute as @e[type=drifter:drifter,name=Ender] at @s run drifter shoot @e[type=enderman,limit=1,sort=nearest]
+wait 8
+execute as @e[type=drifter:drifter,name=Ender] at @s run drifter shoot @e[type=enderman,limit=1,sort=nearest]
+wait 8
+execute as @e[type=drifter:drifter,name=Ender] at @s run drifter shoot @e[type=enderman,limit=1,sort=nearest]
+wait 8
+execute as @e[type=drifter:drifter,name=Ender] at @s run drifter shoot @e[type=enderman,limit=1,sort=nearest]
+wait 8
+execute as @e[type=drifter:drifter,name=Ender] at @s run drifter shoot @e[type=enderman,limit=1,sort=nearest]
+wait 8
+execute at @e[type=drifter:drifter,name=Sweep] run drifter gear item minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
+execute at @e[type=drifter:drifter,name=Ender] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Ender] run drifter inventory
+stop

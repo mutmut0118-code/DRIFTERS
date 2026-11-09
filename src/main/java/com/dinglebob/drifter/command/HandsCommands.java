@@ -91,6 +91,16 @@ final class HandsCommands {
 			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.ShootTask(drifter, living, "shoot at " + living.getName().getString()));
 		})));
 
+		// Fighting something hand to hand with what it holds (debug; gear powers: what its own hits teach it).
+		root.then(Commands.literal("attack").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
+			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");
+			if (!(target instanceof net.minecraft.world.entity.LivingEntity living)) {
+				throw new SimpleCommandExceptionType(Component.literal("Not something it can fight")).create();
+			}
+
+			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.AttackTask(drifter, living, living.getName().getString()));
+		})));
+
 		root.then(Commands.literal("weapon").executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 			var favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);

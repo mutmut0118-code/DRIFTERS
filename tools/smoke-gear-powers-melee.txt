@@ -1,29 +1,28 @@
-# Task 7, melee: a power learned from its own sword hits. python tools/smoke.py . tools/smoke-gear-powers-melee.txt build/smoke-gear-powers-melee.log
-# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), at night (the sun burning a zombie is no sign of a power).
-# Brawl knows too little to read the text (knowledge 0.1: "powers: none" first) and fights a zombie with a Fire Aspect iron sword.
-# Expect: the thought "found out Iron Sword: fire", then the sword's line with "fire 0.35 (SEEN)" or more.
+# Task 7, melee: a power learned from its own sword hits, from an item whose stack has no enchantment to explain it.
+# python tools/smoke.py . tools/smoke-gear-powers-melee.txt build/smoke-gear-powers-melee.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, with Simply Swords. Brim knows too little to read
+# text (knowledge 0.1) and fights a standing pillager (not undead: the sun does not burn it) with a Brimstone Claymore, whose hits can
+# brand and ignite. Expect: "powers: none" before; the thought "found out Brimstone Claymore: fire"; then "fire 0.35 (SEEN)" or more.
 until Done_( 900
 wait 3
 forceload add ~-112 ~-112 ~112 ~112
 drifter thoughts log true
-time set midnight
+time set noon
+weather clear
 gamerule doDaylightCycle false
 gamerule doMobSpawning false
 difficulty normal
-kill @e[type=zombie]
-drifter spawn Brawl
-execute at @e[type=drifter:drifter,name=Brawl] run drifter brain off
-execute at @e[type=drifter:drifter,name=Brawl] run drifter personality set knowledge 0.1
-execute at @e[type=drifter:drifter,name=Brawl] run drifter personality set bravery 1.0
-execute at @e[type=drifter:drifter,name=Brawl] run drifter personality set aggression 1.0
-execute at @e[type=drifter:drifter,name=Brawl] run drifter give minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
-execute at @e[type=drifter:drifter,name=Brawl] run drifter give minecraft:shield
-execute at @e[type=drifter:drifter,name=Brawl] run drifter give minecraft:cooked_beef 16
+kill @e[type=pillager]
+drifter spawn Brim
+execute at @e[type=drifter:drifter,name=Brim] run drifter brain off
 drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Brim] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Brim] run drifter give simplyswords:brimstone_claymore
+execute at @e[type=drifter:drifter,name=Brim] positioned ~ ~ ~3 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
 wait 12
-execute at @e[type=drifter:drifter,name=Brawl] run drifter gear item minecraft:iron_sword
-execute at @e[type=drifter:drifter,name=Brawl] positioned ~ ~ ~6 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:100}],Health:100f}
-execute at @e[type=drifter:drifter,name=Brawl] run drifter brain on
-wait 20
-execute at @e[type=drifter:drifter,name=Brawl] run drifter gear item minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Brim] run drifter gear item simplyswords:brimstone_claymore
+execute as @e[type=drifter:drifter,name=Brim] at @s run drifter attack @e[type=pillager,limit=1,sort=nearest]
+wait 25
+execute at @e[type=drifter:drifter,name=Brim] run drifter gear item simplyswords:brimstone_claymore
 stop

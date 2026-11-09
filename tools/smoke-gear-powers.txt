@@ -3,20 +3,22 @@
 # Brains off at once (at midnight they would dig in for the night, and from a hole the arrows hit the ground); /drifter shoot does the shooting
 # at standing (NoAI, 1000 health) zombies, at night so the sun does not burn them (a newbie runs from a live one).
 # The GearLore check runs every ~10 s: every read of a text belief comes 12 s or more after the item was given.
+# What a stack does of its own (its enchantments; its lore or name, for one who reads) is never stored as a belief about the item (ruling R21):
+# the line shows it as "(ENCHANT)" or "(LORE)" beside the stored "(TEXT)"/"(SEEN)" beliefs, for the stack named in the command.
 # Expect, in order of the [gear] lines:
-#  A  Vet's bow (lore "Explodes on impact"): "powers: explosive 0.75 (TEXT)" (0.3 + 0.5 x 0.9), thought "reading Bow: explosive (read it)";
-#  B  Vet's plain iron sword: "powers: none";
-#  C  Newb's bow, before any shot: "powers: none" (a newbie does not read the text or the Flame enchantment);
-#  D  Newb's bow after shooting with it: "fire 0.35 (SEEN)" or more, and the thought "found out Bow: fire";
-#  E  Vet's iron sword after it was given a Fire Aspect one: "fire 0.75 (TEXT)" (enchantments are read per stack);
-#  F  Vet's bow after its shots showed no explosion: "explosive" below 0.75 (doubted every 3 landed shots), still "(TEXT)";
-#  G  too_many_bows:flame_bow for Newb: "powers: none", then "text guess: explosive, fire" (or "none"), no exception;
-#  H  "/drifter gear powers": every gear item's text read on this dedicated server, the count of unreadable ones, no exception;
-#  J  someone else's blast (a ghast-style fireball with no owner) at Newb's target while it shoots: still no "explosive" for Newb's bow;
-#  K  a blast of its own there (a fireball made Newb's: the stand-in for an exploding arrow): "explosive 0.35 (SEEN)", thought "found out Bow: explosive";
-#  L  a blast of its own beside Vet while it shoots: thought "found out the hard way: Bow explodes", Vet's bow "explosive 1.00 (SEEN)";
-#  M  Vet given the flame bow: "powers: explosive 0.75 (TEXT), fire 0.75 (TEXT)" (a headless server reads the mod's description
-#     keys; its hover text itself is client-only code there: no guess from it, one debug line, no exception).
+#  A   Vet (knowledge 0.9), the bow with the lore "Explodes on impact": "powers: explosive (LORE); text guess: explosive";
+#  A2  Vet, a plain bow: "powers: none" (the lore is that one stack's, not the bow's);
+#  A3  Newb (a newbie), the same lore'd bow: "powers: none; text guess: explosive" (it does not read);
+#  B   Vet's plain iron sword: "powers: none";
+#  C   Newb, its Flame bow: "powers: fire (ENCHANT)" (anyone sees an enchantment);
+#  D   after both shot for 20 s: Newb, a plain bow: "powers: none", and no thought "found out Bow: fire" (Flame explains the fire);
+#  E   Vet, who now carries a Fire Aspect iron sword too: the plain iron sword "powers: none", the Fire Aspect one "fire (ENCHANT)";
+#  G   too_many_bows:flame_bow for Newb: "powers: none", "text guess: explosive, fire", no exception;
+#  H   "/drifter gear powers": every gear item's text read on this dedicated server, the count of unreadable ones, no exception;
+#  J   someone else's blast (a ghast-style fireball with no owner) at Newb's target while it shoots: still "powers: none" for Newb's bow;
+#  K   a blast of its own there (a fireball made Newb's: the stand-in for an exploding arrow): "explosive 0.35 (SEEN)", thought "found out Bow: explosive";
+#  L   a blast of its own beside Vet while it shoots: thought "found out the hard way: Bow explodes", a plain bow for Vet "explosive 1.00 (SEEN)";
+#  M   Vet given the flame bow: "powers: explosive 0.75 (TEXT), fire 0.75 (TEXT)" (0.3 + 0.5 x 0.9; the item's own text, so stored).
 # Then run tools/smoke-gear-powers2.txt on the same world: the beliefs are still there after the reload.
 until Done_( 900
 wait 3
@@ -45,8 +47,10 @@ execute at @e[type=drifter:drifter,name=Newb] run drifter give minecraft:arrow 6
 execute at @e[type=drifter:drifter,name=Newb] run drifter give minecraft:arrow 64
 wait 12
 execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow[minecraft:lore=['"Explodes on impact"']]
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow[minecraft:lore=['"Explodes on impact"']]
 execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:iron_sword
-execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow[minecraft:enchantments={levels:{"minecraft:flame":1}}]
 execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
 execute at @e[type=drifter:drifter,name=Newb] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
 execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
@@ -56,7 +60,7 @@ execute as @e[type=drifter:drifter,name=Vet] at @s run drifter shoot @e[type=zom
 wait 20
 execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
 execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:iron_sword
-execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
 execute at @e[type=drifter:drifter,name=Newb] run drifter gear item too_many_bows:flame_bow
 drifter gear powers
 execute as @e[type=drifter:drifter,name=Newb] at @s run drifter shoot @e[type=zombie,limit=1,sort=nearest]
