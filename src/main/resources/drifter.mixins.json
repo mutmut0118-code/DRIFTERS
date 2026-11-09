@@ -15,6 +15,7 @@
 		"BlockItemAccessor",
 		"BlockItemMixin",
 		"BowItemMixin",
+		"CrossbowItemMixin",
 		"ChunkGeneratorStructureStateMixin",
 		"ChunkMapMixin",
 		"EntitySoundMixin",

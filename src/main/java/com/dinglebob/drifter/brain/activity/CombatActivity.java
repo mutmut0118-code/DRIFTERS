@@ -43,8 +43,9 @@ public class CombatActivity extends Activity {
 	protected void stepDone(Task step, Status status) {
 		if ((step instanceof AttackTask || step instanceof com.dinglebob.drifter.executor.task.ShootTask) && status == Status.SUCCESS) {
 			this.kills++;
-			// (A line per kill: the blaze tests count them against the rods it picks up.)
-			this.think("got it (" + step.describe() + ")");
+			// (A line per kill: the blaze tests count them against the rods it picks up. Shots too, for a bow or crossbow.)
+			int shots = step instanceof com.dinglebob.drifter.executor.task.ShootTask shoot ? shoot.shots() : 0;
+			this.think("got it (" + step.describe() + (shots > 0 ? ", " + shots + (shots == 1 ? " shot" : " shots") : "") + ")");
 		}
 
 		// The bow didn't work out (it came close, out of sight, out of arrows): the sword for this fight.
@@ -81,7 +82,8 @@ public class CombatActivity extends Activity {
 			Threats.Assessment assessment = Threats.assess(this.drifter);
 			@Nullable LivingEntity target = assessment.decision().fights() ? assessment.main() : null;
 			if (target != null) {
-				// A bow at range, at fliers and at creepers still a few blocks off (section 13 "Ranged mechanics").
+				// A bow or crossbow at range, at fliers and at creepers still a few blocks off (section 13 "Ranged mechanics";
+				// ShootTask takes out the best launcher it can shoot now: Shields.bestBowSlot).
 				String name = target.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT);
 				if (com.dinglebob.drifter.hands.Archery.shouldShoot(this.drifter, target)
 					&& (this.bowFailures < MAX_BOW_FAILURES || com.dinglebob.drifter.hands.Archery.flying(target))) {

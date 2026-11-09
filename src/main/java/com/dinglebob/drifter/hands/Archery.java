@@ -12,12 +12,16 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/** Bows (DESIGN.md section 13 "Ranged mechanics"): what it shoots with and when a bow beats a sword. */
+/** Bows and crossbows (DESIGN.md section 13 "Ranged mechanics"): what it shoots with and when a bow beats a sword. */
 public final class Archery {
 	/** A full draw (BowItem): 20 ticks, 1 s. */
 	public static final int FULL_DRAW_TICKS = 20;
 	/** Arrow speed at a full draw, blocks a tick (power 1 x 3). */
 	public static final double ARROW_SPEED = 3.0;
+	/** A crossbow's arrow speed, blocks a tick (CrossbowItem's arrow power; the same at any load, no draw to scale it). */
+	public static final double CROSSBOW_ARROW_SPEED = 3.15;
+	/** A crossbow's firework rocket speed (CrossbowItem's firework power). */
+	public static final double CROSSBOW_FIREWORK_SPEED = 1.6;
 	/** Arrows fall this much faster every tick (AbstractArrow's gravity). */
 	public static final double ARROW_GRAVITY = 0.05;
 	/** Closer than this a melee mob is better met with the sword. */
@@ -45,9 +49,31 @@ public final class Archery {
 		return ItemStack.EMPTY;
 	}
 
-	/** It has a bow and something to shoot. */
+	/** It has a bow or crossbow and something to shoot from it, or a crossbow already loaded (not one it gave up on). */
 	public static boolean ready(DrifterEntity drifter) {
-		return drifter.getInventory().count(com.dinglebob.drifter.hands.Shields::isBow) > 0 && !ammo(drifter).isEmpty();
+		return ready(drifter, !ammo(drifter).isEmpty());
+	}
+
+	/** The same, knowing whether it has arrows. */
+	public static boolean ready(DrifterEntity drifter, boolean ammo) {
+		DrifterInventory inventory = drifter.getInventory();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (canShoot(drifter, inventory.getItem(slot), ammo)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** It could shoot this now: a bow or crossbow with arrows to hand ({@code ammo}) or loaded, and not one it gave up on (DeadLaunchers). */
+	public static boolean canShoot(DrifterEntity drifter, ItemStack stack, boolean ammo) {
+		return com.dinglebob.drifter.hands.Shields.isLauncher(stack) && (ammo || loaded(stack)) && !DeadLaunchers.resting(drifter, stack);
+	}
+
+	/** A crossbow with a shot in it (it fires at once, as a player's does). */
+	public static boolean loaded(ItemStack stack) {
+		return stack.getItem() instanceof net.minecraft.world.item.CrossbowItem && net.minecraft.world.item.CrossbowItem.isCharged(stack);
 	}
 
 	/** Out of sword reach for good (flying, or keeps its distance). */
@@ -211,7 +237,7 @@ public final class Archery {
 	public static String heldFire(DrifterEntity drifter, LivingEntity target) {
 		int slot = com.dinglebob.drifter.hands.Shields.bestBowSlot(drifter, target);
 		ItemStack bow = slot >= 0 ? drifter.getInventory().getItem(slot) : ItemStack.EMPTY;
-		if (!com.dinglebob.drifter.hands.Shields.isBow(bow)) {
+		if (!com.dinglebob.drifter.hands.Shields.isLauncher(bow)) {
 			return null;
 		}
 

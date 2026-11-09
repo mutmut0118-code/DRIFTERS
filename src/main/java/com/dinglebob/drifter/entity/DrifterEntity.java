@@ -111,6 +111,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.gear.GearLore gearLore = new com.dinglebob.drifter.gear.GearLore();
 	/** What follows its own hit, shot or ability, watched for an item's powers (only while a watch is on). */
 	private final com.dinglebob.drifter.gear.PowerWatch powerWatch = new com.dinglebob.drifter.gear.PowerWatch();
+	/** Bows and crossbows that never loosed for it, left alone for a while (ruling R23). */
+	private final com.dinglebob.drifter.hands.DeadLaunchers deadLaunchers = new com.dinglebob.drifter.hands.DeadLaunchers();
 	/** Set while it heals by eating's natural regeneration, which is no sign of an item's power. */
 	private boolean healingNaturally;
 	private final VirtualKeys keys = new VirtualKeys();
@@ -505,6 +507,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.gear.PowerWatch getPowerWatch() {
 		return this.powerWatch;
+	}
+
+	public com.dinglebob.drifter.hands.DeadLaunchers getDeadLaunchers() {
+		return this.deadLaunchers;
 	}
 
 	/** Any heal but natural regeneration may be an item's power at work (PowerWatch: life steal and the like). */
@@ -2227,27 +2233,30 @@ protected void customServerAiStep() {
 	}
 
 	/**
-	 * A modded bow with its own way of letting go (Simply Bows' unique bows) is let go by its helper player, as a player
-	 * would: the arrows come out of its own pack (the mod gives any shooter that isn't a player endless arrows), and the
-	 * bow's ability works as it does for a player. Its arrows are then its own (whom they hit, it hit). The vanilla bow
-	 * goes its own way (BowItemMixin).
+	 * A modded bow or crossbow with its own way of letting go (Simply Bows' unique bows) is let go by its helper player, as
+	 * a player would: the arrows come out of its own pack (the mod gives any shooter that isn't a player endless arrows), and
+	 * the bow's ability works as it does for a player. Its arrows are then its own (whom they hit, it hit). One whose class
+	 * can't be looked into on this side (a method of it names a client-only class: Too Many Bows' bows on a dedicated
+	 * server) goes the same way, a player's release being the one such a mod surely supports. If the mod's release throws,
+	 * nothing is loosed (ShootTask counts that against the item: DeadLaunchers). The vanilla bow goes its own way
+	 * (BowItemMixin); the vanilla crossbow loads from {@link #getProjectile}.
 	 */
 	@Override
 	public void releaseUsingItem() {
-		ItemStack bow = this.useItem;
-		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isBow(bow) && ownRelease(bow.getItem().getClass(), net.minecraft.world.item.BowItem.class)) {
+		ItemStack launcher = this.useItem;
+		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isLauncher(launcher) && release(launcher.getItem().getClass()) != Release.VANILLA) {
 			int remaining = this.getUseItemRemainingTicks();
-			com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
-				bow.releaseUsing(fake.level(), fake, remaining);
-				return null;
-			});
-			if (this.helperPlayer != null) {
-				for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
-					this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
-					shot.setOwner(this);
-				}
+			try {
+				com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
+					launcher.releaseUsing(fake.level(), fake, remaining);
+					return null;
+				});
+			} catch (RuntimeException | LinkageError e) {
+				com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] {} couldn't let go of {} ({}); nothing loosed", this.getName().getString(),
+					net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(launcher.getItem()), e.toString());
 			}
 
+			this.adoptHelperShots();
 			this.stopUsingItem();
 			return;
 		}
@@ -2256,16 +2265,100 @@ protected void customServerAiStep() {
 	}
 
 	/**
+	 * Fires the loaded crossbow in its main hand at {@code speed}, where its head points. The vanilla crossbow fires as its
+	 * own (CrossbowItem#performShooting; CrossbowItemMixin makes the bolts critical, as a player's). A modded one is fired by
+	 * its helper player, as a player fires one (a right-click with it loaded), so whatever the mod adds to firing works; its
+	 * bolts are then its own. If the mod's firing throws, nothing is loosed (ShootTask counts that: DeadLaunchers).
+	 */
+	public void fireCrossbow(ItemStack crossbow, float speed) {
+		if (!(crossbow.getItem() instanceof net.minecraft.world.item.CrossbowItem item) || this.level().isClientSide) {
+			return;
+		}
+
+		if (item.getClass() == net.minecraft.world.item.CrossbowItem.class) {
+			item.performShooting(this.level(), this, net.minecraft.world.InteractionHand.MAIN_HAND, crossbow, speed, 1.0F, null);
+			return;
+		}
+
+		try {
+			com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> crossbow.use(fake.level(), fake, net.minecraft.world.InteractionHand.MAIN_HAND));
+		} catch (RuntimeException | LinkageError e) {
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] {} couldn't fire {} ({}); nothing loosed", this.getName().getString(),
+				net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item), e.toString());
+		}
+
+		this.adoptHelperShots();
+	}
+
+	/** What its helper player just shot is its own (whom it hits, it hit). */
+	private void adoptHelperShots() {
+		if (this.helperPlayer == null) {
+			return;
+		}
+
+		for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
+			this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
+			shot.setOwner(this);
+		}
+	}
+
+	/**
+	 * What a bow or crossbow shoots, as a player's picks it (Player#getProjectile): its arrows, off hand first. The live stack,
+	 * so loading a crossbow uses them up (CrossbowItem#releaseUsing loads from here; a mob has none).
+	 */
+	@Override
+	public ItemStack getProjectile(ItemStack weapon) {
+		return weapon.getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem ? com.dinglebob.drifter.hands.Archery.ammo(this) : super.getProjectile(weapon);
+	}
+
+	/** How a launcher's class lets go: its own way, the vanilla way, or can't tell (it can't be looked into on this side). */
+	public enum Release {
+		OWN, VANILLA, UNKNOWN
+	}
+
+	/** Each class's release, worked out once (reflection; asked whenever a bow is valued or let go). */
+	private static final ClassValue<Release> RELEASES = new ClassValue<>() {
+		@Override
+		protected Release computeValue(Class<?> type) {
+			return findRelease(type, vanillaLauncher(type));
+		}
+	};
+
+	/** How this bow, crossbow or trident class lets go, against the vanilla class it comes from. */
+	public static Release release(Class<?> type) {
+		return RELEASES.get(type);
+	}
+
+	private static Class<?> vanillaLauncher(Class<?> type) {
+		if (net.minecraft.world.item.BowItem.class.isAssignableFrom(type)) {
+			return net.minecraft.world.item.BowItem.class;
+		} else if (net.minecraft.world.item.CrossbowItem.class.isAssignableFrom(type)) {
+			return net.minecraft.world.item.CrossbowItem.class;
+		} else if (net.minecraft.world.item.TridentItem.class.isAssignableFrom(type)) {
+			return net.minecraft.world.item.TridentItem.class;
+		}
+
+		return net.minecraft.world.item.Item.class;
+	}
+
+	/**
 	 * This class (or one between it and the vanilla {@code stop} class: BowItem, CrossbowItem or TridentItem) has its own
-	 * releaseUsing. Callers that aren't sure the class descends from {@code stop} check that first.
+	 * releaseUsing (one it can't look into doesn't count). Callers that aren't sure the class descends from {@code stop}
+	 * check that first.
 	 */
 	public static boolean ownRelease(Class<?> type, Class<?> stop) {
+		return (stop == vanillaLauncher(type) ? release(type) : findRelease(type, stop)) == Release.OWN;
+	}
+
+	private static Release findRelease(Class<?> type, Class<?> stop) {
+		boolean unreadable = false;
 		for (Class<?> c = type; c != null && c != stop; c = c.getSuperclass()) {
 			java.lang.reflect.Method[] methods;
 			try {
 				methods = c.getDeclaredMethods();
 			} catch (LinkageError e) {
 				// A method mentions a client-only class (hover text, say) that a server doesn't have: can't tell, go on up.
+				unreadable = true;
 				continue;
 			}
 
@@ -2273,12 +2366,12 @@ protected void customServerAiStep() {
 				Class<?>[] params = method.getParameterTypes();
 				if (method.getReturnType() == void.class && params.length == 4 && params[0] == ItemStack.class && params[1] == Level.class
 					&& params[2] == net.minecraft.world.entity.LivingEntity.class && params[3] == int.class) {
-					return true;
+					return Release.OWN;
 				}
 			}
 		}
 
-		return false;
+		return unreadable ? Release.UNKNOWN : Release.VANILLA;
 	}
 
 	/**

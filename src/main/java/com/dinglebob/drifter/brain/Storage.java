@@ -247,6 +247,9 @@ public final class Storage {
 			return "flint and steel";
 		} else if (com.dinglebob.drifter.hands.Shields.isBow(stack)) {
 			return "bow";
+		} else if (com.dinglebob.drifter.hands.Shields.isLauncher(stack)) {
+			// Its best crossbow stays on it too, beside its best bow (either may be the one it shoots with).
+			return "crossbow";
 		} else if (stack.is(Items.FISHING_ROD)) {
 			return "fishing rod";
 		} else if (com.dinglebob.drifter.executor.task.BoatTask.isBoat(stack)) {
@@ -262,7 +265,7 @@ public final class Storage {
 			return com.dinglebob.drifter.hands.Shields.score(stack) / 100.0;
 		}
 
-		if (com.dinglebob.drifter.hands.Shields.isBow(stack)) {
+		if (com.dinglebob.drifter.hands.Shields.isLauncher(stack)) {
 			return com.dinglebob.drifter.hands.Shields.bowScore(drifter, stack);
 		}
 
