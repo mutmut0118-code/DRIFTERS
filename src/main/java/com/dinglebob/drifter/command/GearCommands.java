@@ -1,8 +1,10 @@
 package com.dinglebob.drifter.command;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,6 +14,7 @@ import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.gear.GearLore;
 import com.dinglebob.drifter.gear.RecipeIndex;
 import com.dinglebob.drifter.gear.GearKinds;
+import com.dinglebob.drifter.gear.GearTaste;
 import com.dinglebob.drifter.gear.GearValue;
 import com.dinglebob.drifter.social.ItemValues;
 
@@ -41,6 +44,15 @@ public final class GearCommands {
 			.then(Commands.literal("learn")
 				.then(Commands.argument("item", ItemArgument.item(context)).executes(GearCommands::learn)))
 			.then(Commands.literal("forget").executes(GearCommands::forget))
+			.then(Commands.literal("style")
+				.then(Commands.argument("style", StringArgumentType.word())
+					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("practical", "flashy", "loyal", "follower", "clear"), builder))
+					.executes(GearCommands::style)))
+			.then(Commands.literal("friend")
+				.then(Commands.argument("kind", StringArgumentType.word()).executes(GearCommands::friend)))
+			.then(Commands.literal("pick")
+				.then(Commands.literal("weapon").executes(ctx -> pick(ctx, true)))
+				.then(Commands.literal("armor").executes(ctx -> pick(ctx, false))))
 			.executes(GearCommands::list));
 	}
 
@@ -105,6 +117,86 @@ public final class GearCommands {
 		return 1;
 	}
 
+	/** Debug: pretend it has seen friends with this kind of weapon (or armor set key) five times. */
+	private static int friend(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		String kind = StringArgumentType.getString(ctx, "kind");
+		for (int i = 0; i < 5; i++) {
+			drifter.getGearLore().noteFriendGear(kind);
+		}
+
+		String line = String.format(Locale.ROOT, "[gear] %s noted friends with %s (share %.2f)", drifter.getName().getString(), kind, drifter.getGearLore().friendShare(kind));
+		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		return 1;
+	}
+
+	/** Debug: pretend a style (not saved); "clear" returns to the seeded draw. */
+	private static int style(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		String word = StringArgumentType.getString(ctx, "style").toLowerCase(Locale.ROOT);
+		GearTaste.Style style = GearTaste.Style.byId(word);
+		if (style == null && !word.equals("clear")) {
+			ctx.getSource().sendFailure(Component.literal("[gear] style is practical, flashy, loyal, follower or clear"));
+			return 0;
+		}
+
+		drifter.getGearLore().setStyleOverride(style);
+		String line = "[gear] " + drifter.getName().getString() + " style " + GearTaste.style(drifter).id() + (style == null ? " (seeded draw)" : " (debug override)");
+		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		return 1;
+	}
+
+	/** Debug: what it would choose among what it carries, with each candidate's value and liking. */
+	private static int pick(CommandContext<CommandSourceStack> ctx, boolean weapon) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		CommandSourceStack source = ctx.getSource();
+		if (weapon) {
+			List<ItemStack> options = new ArrayList<>();
+			for (int slot = 0; slot < drifter.getInventory().getContainerSize(); slot++) {
+				ItemStack stack = drifter.getInventory().getItem(slot);
+				GearKinds.Kind kind = GearKinds.of(stack);
+				if (kind != null && kind.use() == GearKinds.Use.MELEE) {
+					options.add(stack);
+				}
+			}
+
+			report(source, drifter, "weapon", options, null);
+		} else {
+			for (EquipmentSlot slot : new EquipmentSlot[] {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+				List<ItemStack> options = new ArrayList<>();
+				for (int i = 0; i < drifter.getInventory().getContainerSize(); i++) {
+					ItemStack stack = drifter.getInventory().getItem(i);
+					if (GearValue.wornSlot(drifter, stack) == slot) {
+						options.add(stack);
+					}
+				}
+
+				ItemStack worn = drifter.getItemBySlot(slot);
+				if (!worn.isEmpty() && GearValue.armor(worn, slot) > 0.0) {
+					options.add(worn);
+				}
+
+				report(source, drifter, slot.getName(), options, slot);
+			}
+		}
+
+		return 1;
+	}
+
+	private static void report(CommandSourceStack source, DrifterEntity drifter, String what, List<ItemStack> options, EquipmentSlot slot) {
+		java.util.function.ToDoubleFunction<ItemStack> value = stack -> slot == null ? GearValue.melee(drifter, stack) : GearValue.armor(stack, slot);
+		for (ItemStack stack : options) {
+			double v = value.applyAsDouble(stack);
+			String line = String.format(Locale.ROOT, "[gear] pick %s value %.2f liking %.2f", BuiltInRegistries.ITEM.getKey(stack.getItem()), v, GearTaste.liking(drifter, stack, v));
+			source.sendSuccess(() -> Component.literal(line), false);
+		}
+
+		ItemStack chosen = GearTaste.pick(drifter, options, value, stack -> stack);
+		String line = "[gear] picked " + (chosen == null ? "none" : BuiltInRegistries.ITEM.getKey(chosen.getItem()).toString()) + " for " + what
+			+ " (" + drifter.getName().getString() + ", style " + GearTaste.style(drifter).id() + ")";
+		source.sendSuccess(() -> Component.literal(line), false);
+	}
+
 	private static int list(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 		List<Item> items = drifter.getGearLore().learnedItems();
@@ -114,7 +206,8 @@ public final class GearCommands {
 		}
 
 		String line = "[gear] " + drifter.getName().getString() + ": knows " + items.size() + " modded items (" + ids + "); know every recipe "
-			+ (DrifterConfig.knowEveryRecipe() ? "on" : "off");
+			+ (DrifterConfig.knowEveryRecipe() ? "on" : "off")
+			+ "; style " + GearTaste.style(drifter).id() + " (loyal to " + (drifter.getGearLore().loyalKind() == null ? "none" : drifter.getGearLore().loyalKind()) + ")";
 		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
 		return 1;
 	}

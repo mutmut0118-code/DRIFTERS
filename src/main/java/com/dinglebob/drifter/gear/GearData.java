@@ -2,6 +2,7 @@ package com.dinglebob.drifter.gear;
 
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +15,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import com.dinglebob.drifter.Drifter;
+import com.dinglebob.drifter.personality.Archetype;
+import com.dinglebob.drifter.personality.Trait;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -42,9 +45,23 @@ public final class GearData {
 	public record KindDef(String id, GearKinds.Use use, List<String> words, List<TagKey<Item>> tags, List<String> betterCombat) {
 	}
 
+	/** One taste style: how each trait (pull -1..1 around 0.5) and archetype (a factor) leans a Drifter to it. */
+	public record StyleDef(Map<Trait, Double> traits, Map<Archetype, Double> archetypes) {
+	}
+
+	/** The style bonuses, each added to a piece's bonus when it fits the style. */
+	public record Bonus(double flashyRarityStep, double flashyEnchanted, double flashyModded, double flashyCost, double loyalKind, double loyalSet,
+		double followerShare, double favoriteFamily) {
+	}
+
+	/** Taste (spec goal 4): how strong it is, the noise between Drifters, the good-enough rule, the styles and their bonuses. */
+	public record Taste(double strength, double noise, double goodEnough, Map<GearTaste.Style, StyleDef> styles, Bonus bonus) {
+		public static final Taste DEFAULT = new Taste(0.25, 0.05, 0.75, Map.of(), new Bonus(0.25, 0.2, 0.2, 0.2, 0.8, 0.6, 0.8, 0.4));
+	}
+
 	/** Everything the gear files said. {@code byWord}: every kind word with its kind, longest word first. */
-	public record Tables(List<KindDef> kinds, List<Map.Entry<String, KindDef>> byWord) {
-		public static final Tables EMPTY = new Tables(List.of(), List.of());
+	public record Tables(List<KindDef> kinds, List<Map.Entry<String, KindDef>> byWord, Taste taste) {
+		public static final Tables EMPTY = new Tables(List.of(), List.of(), Taste.DEFAULT);
 
 		@Nullable
 		public KindDef kind(String id) {
@@ -59,6 +76,8 @@ public final class GearData {
 	}
 
 	private static volatile Tables tables = Tables.EMPTY;
+	/** Bumped on every reload: anything worked out from the tables (a Drifter's style) is stale when this moves. */
+	private static volatile int version;
 	private static volatile MinecraftServer server;
 
 	private GearData() {
@@ -66,6 +85,10 @@ public final class GearData {
 
 	public static Tables tables() {
 		return tables;
+	}
+
+	public static int version() {
+		return version;
 	}
 
 	/** The overworld, for recipe lookups where there is no level at hand (null before a server runs). */
@@ -103,10 +126,12 @@ public final class GearData {
 		GearKinds.clear();
 		GearValue.clear();
 		RecipeIndex.clear();
+		GearTaste.clear();
 	}
 
 	private static void load(ResourceManager manager) {
 		Map<String, KindDef> loaded = new LinkedHashMap<>();
+		Taste taste = Taste.DEFAULT;
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
@@ -122,6 +147,10 @@ public final class GearData {
 						}
 					}
 				}
+
+				if (root.has("styles")) {
+					taste = taste(root, taste);
+				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter gear file {}", file.getKey(), e);
 			}
@@ -135,9 +164,64 @@ public final class GearData {
 		}
 
 		words.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
-		tables = new Tables(List.copyOf(loaded.values()), List.copyOf(words));
+		tables = new Tables(List.copyOf(loaded.values()), List.copyOf(words), taste);
+		version++;
 		clearCaches();
-		Drifter.LOGGER.info("Loaded {} Drifter gear kinds", loaded.size());
+		Drifter.LOGGER.info("Loaded {} Drifter gear kinds and {} taste styles", loaded.size(), taste.styles().size());
+	}
+
+	private static Taste taste(JsonObject root, Taste before) {
+		Taste base = before;
+		Map<GearTaste.Style, StyleDef> styles = new EnumMap<>(GearTaste.Style.class);
+		for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("styles").entrySet()) {
+			GearTaste.Style style;
+			try {
+				style = GearTaste.Style.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
+			} catch (IllegalArgumentException e) {
+				Drifter.LOGGER.warn("Drifter gear style {} is unknown", entry.getKey());
+				continue;
+			}
+
+			JsonObject def = entry.getValue().getAsJsonObject();
+			Map<Trait, Double> traits = new EnumMap<>(Trait.class);
+			if (def.has("traits")) {
+				for (Map.Entry<String, JsonElement> trait : def.getAsJsonObject("traits").entrySet()) {
+					try {
+						traits.put(Trait.valueOf(trait.getKey().toUpperCase(Locale.ROOT)), trait.getValue().getAsDouble());
+					} catch (IllegalArgumentException e) {
+						Drifter.LOGGER.warn("Drifter gear style {} has an unknown trait {}", entry.getKey(), trait.getKey());
+					}
+				}
+			}
+
+			Map<Archetype, Double> archetypes = new EnumMap<>(Archetype.class);
+			if (def.has("archetypes")) {
+				for (Map.Entry<String, JsonElement> archetype : def.getAsJsonObject("archetypes").entrySet()) {
+					try {
+						archetypes.put(Archetype.valueOf(archetype.getKey().toUpperCase(Locale.ROOT)), archetype.getValue().getAsDouble());
+					} catch (IllegalArgumentException e) {
+						Drifter.LOGGER.warn("Drifter gear style {} has an unknown archetype {}", entry.getKey(), archetype.getKey());
+					}
+				}
+			}
+
+			styles.put(style, new StyleDef(Map.copyOf(traits), Map.copyOf(archetypes)));
+		}
+
+		Bonus bonus = base.bonus();
+		if (root.has("bonus")) {
+			JsonObject b = root.getAsJsonObject("bonus");
+			bonus = new Bonus(num(b, "flashy_rarity_step", bonus.flashyRarityStep()), num(b, "flashy_enchanted", bonus.flashyEnchanted()),
+				num(b, "flashy_modded", bonus.flashyModded()), num(b, "flashy_cost", bonus.flashyCost()), num(b, "loyal_kind", bonus.loyalKind()),
+				num(b, "loyal_set", bonus.loyalSet()), num(b, "follower_share", bonus.followerShare()), num(b, "favorite_family", bonus.favoriteFamily()));
+		}
+
+		return new Taste(num(root, "taste_strength", base.strength()), num(root, "noise", base.noise()), num(root, "good_enough", base.goodEnough()),
+			Map.copyOf(styles), bonus);
+	}
+
+	private static double num(JsonObject object, String key, double fallback) {
+		return object.has(key) ? object.get(key).getAsDouble() : fallback;
 	}
 
 	@Nullable

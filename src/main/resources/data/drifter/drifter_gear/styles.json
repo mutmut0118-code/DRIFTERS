@@ -1,0 +1,8 @@
+{"taste_strength": 0.25, "noise": 0.05, "good_enough": 0.75,
+ "styles": {
+  "practical": {"traits": {"efficiency": 1.0, "skill": 0.6}, "archetypes": {"speedrunner": 2.0, "pvp_sweat": 2.0, "miner": 1.3}},
+  "flashy":    {"traits": {"creativity": 0.8, "greed": 0.6, "thrift": -0.6}, "archetypes": {"bandit": 1.5, "hoarder": 1.5}},
+  "loyal":     {"traits": {"patience": 0.8, "tidiness": 0.6}, "archetypes": {"homebody": 1.5, "builder": 1.3}},
+  "follower":  {"traits": {"sociability": 1.0}, "archetypes": {"helper": 2.0, "newbie": 1.5}}},
+ "bonus": {"flashy_rarity_step": 0.25, "flashy_enchanted": 0.2, "flashy_modded": 0.2, "flashy_cost": 0.2,
+           "loyal_kind": 0.8, "loyal_set": 0.6, "follower_share": 0.8, "favorite_family": 0.4}}
