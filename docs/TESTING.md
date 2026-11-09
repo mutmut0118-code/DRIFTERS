@@ -3168,3 +3168,16 @@ Everything under 0.23.30-side.2 above still applies (do those checks with this b
 - [ ] **Lit TNT and falling sand.** Light TNT near a Drifter: it runs. Drop sand or gravel over one's head: it steps aside.
       Light a fire under one: it steps out.
 - [ ] **Creeper.** A creeper hissing next to a Drifter: it gets clear as before.
+
+## 0.23.32-side.2: a big battle no longer freezes the game with Farmer's Delight (new)
+
+The same as your test: in creative, on the flat world, standing by the battle.
+
+- [ ] **The 500v500.** `/drifter battle 500 30` and watch. `/drifter perf`: "Whole server tick" should be about 50 to 90 ms
+      (was 338), and "brain_score" a few ms (was 237). Tell me the FPS too (F3 shows it at the top left): Touch'n Motion
+      now poses only the nearest 40 Drifters in a crowd.
+- [ ] **Up close they still move as before.** Walk among the soldiers: the ones near you have Touch'n Motion's hands and
+      poses; ones far off move plainly.
+- [ ] **Kitchens still work.** A Drifter with a kitchen still cuts on its board (cabbage leaves, bacon, minced beef) and
+      cooks in the pot. Planks and sticks always come from logs now, never from cutting a door or sign.
+- [ ] `/drifter battle stop`, then `/kill @e[type=drifter:drifter]`.

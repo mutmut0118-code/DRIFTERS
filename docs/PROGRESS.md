@@ -5225,3 +5225,30 @@ on the server thread's own CPU time.
   about a ninth, the game's own movement and block collisions about a ninth, reflexes, decisions, the game's chunk upkeep.
 - A real 500v500 near a player also pays for sending all those bodies' movements to the player's game (not on the
   headless test server), and the client's FPS (EMF settings, milestone 16).
+
+## Side session: the user's own 500v500 (0.23.32-side.1, then 0.23.32-side.2)
+
+The user (2026-11-08): "lets do the test". 0.23.32-side.1 = the crowd pass merged with the main line's 0.23.32, installed
+in DRIFTER TEST. Their 500v500 (a flat world, standing by it): **3 TPS** (338 ms a tick, brain_score 237 ms of it) and
+**1 FPS**. The headless runs never showed it: with no player every soldier was FAR detail, and Farmer's Delight isn't
+loaded in the dev server unless `DRIFTER_FD=1`. A Java Flight Recorder profile of their running game (`jcmd <pid>
+JFR.start`, during the battle) gave both answers.
+
+- **Server: 97% was the planner** (`Goals.Progress.feasibility`, its stone tools plan) **in Farmer's Delight's cutting
+  board recipes.** The board's salvage recipes (a door, a sign, a boat cut back into planks) made every plan for planks or
+  sticks try each wooden thing and what that's made of, to the 30,000 sub-plan cap, every few seconds for every soldier
+  at full detail. Fix (`Planner.obtainItem`): the board only for what it can't gather or craft (bacon, cabbage leaves,
+  straw). Also each ingredient's item list is kept (`Planner.itemsOf`, two fifths of planning). Headless, every soldier
+  forced to full detail, Farmer's Delight on: before, the server froze (a tick every few seconds); now 73 to 81 ms a tick
+  server thread CPU, brain_score 2 to 3 ms, the same as without Farmer's Delight.
+- **Client: 93% of each frame was drawing Drifters**: the EMF player model with the user's 3D pack and armor about half,
+  Touch'n Motion's poses for everyone within 64 blocks about three tenths. Fix (`DrifterTouchNMotion.crowdRange`): in a
+  crowd only the nearest 40 get its poses (the range shrinks to fit, worked out every half second). Not measured yet (the
+  dev client has neither the user's EMF pack nor Touch'n Motion): the user checks FPS.
+
+### Next
+
+- With a player standing by a 500v500 every soldier is at full detail: about 75 to 85 ms a tick on the test server (12 to
+  13 TPS), against about 55 with none near. The eyes (about 28 ms) are the most of it.
+- The client: the rest of a frame is the model itself (EMF's cubes, armor). Lowering the game's Entity Distance or the
+  pack's detail helps; a cheaper look for far-off soldiers would be a design choice for the user.
