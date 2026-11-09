@@ -526,19 +526,11 @@ public class TerrainKnowledge implements KnownTerrain {
 	 * a single block). Box loops looking for lava ask this first (performance, 2026-10-17).
 	 */
 	public static boolean lavaPossible(net.minecraft.world.level.Level level, BlockPos min, BlockPos max) {
-		SectionFilter palette = SectionFilter.palette(level, LAVA);
-		for (int sx = min.getX() >> 4; sx <= max.getX() >> 4; sx++) {
-			for (int sy = min.getY() >> 4; sy <= max.getY() >> 4; sy++) {
-				for (int sz = min.getZ() >> 4; sz <= max.getZ() >> 4; sz++) {
-					if (palette.mayHave(sx, sy, sz)) {
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
+		// (Each section's answer kept for the tick and shared: milestone 16 crowd pass, 2026-11-08.)
+		return LAVA_SECTIONS.mayHave(level, min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
 	}
+
+	private static final com.dinglebob.drifter.world.TickChunks.SectionAnswers LAVA_SECTIONS = new com.dinglebob.drifter.world.TickChunks.SectionAnswers(LAVA, false);
 
 	/** Whether a section (by section coordinates) can have what a scan looks for. */
 	@FunctionalInterface

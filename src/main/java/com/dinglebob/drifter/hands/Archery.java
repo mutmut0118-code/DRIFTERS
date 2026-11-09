@@ -119,8 +119,14 @@ public final class Archery {
 			maxZ = Math.max(maxZ, pos.z);
 		}
 
-		var friends = drifter.level().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(minX, minY, minZ, maxX, maxY, maxZ).inflate(3.0),
-			other -> other != drifter && other.isAlive() && friends(drifter, other));
+		// (From the tick's shared grid of bodies when it can: milestone 16 crowd pass.)
+		var span = new net.minecraft.world.phys.AABB(minX, minY, minZ, maxX, maxY, maxZ).inflate(3.0);
+		java.util.function.Predicate<DrifterEntity> friendly = other -> other != drifter && other.isAlive() && friends(drifter, other);
+		var friends = com.dinglebob.drifter.world.BodyGrid.bodiesOf(drifter.level(), DrifterEntity.class, span, friendly);
+		if (friends == null) {
+			friends = drifter.level().getEntitiesOfClass(DrifterEntity.class, span, friendly);
+		}
+
 		for (DrifterEntity friend : friends) {
 			net.minecraft.world.phys.Vec3 pace = friend.getDeltaMovement().multiply(1.0, 0.0, 1.0);
 			for (int tick = 0; tick + 1 < path.size(); tick++) {

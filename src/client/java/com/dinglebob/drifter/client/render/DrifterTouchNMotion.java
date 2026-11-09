@@ -71,6 +71,16 @@ public final class DrifterTouchNMotion {
 
 	/** Drifters further than this from the camera get none (the addon's work is per creature, every frame). */
 	private static final double RANGE = 64.0;
+	/**
+	 * In a crowd only the nearest this many get its poses (the user's 500v500, 0.23.32-side.1: posing every soldier within
+	 * 64 blocks was three tenths of each frame, at 1 FPS); the range shrinks to fit them.
+	 */
+	private static final int MAX_POSED = 40;
+	/** How often the crowd range is worked out again, in ticks. */
+	private static final int CROWD_EVERY = 10;
+	/** The range now (squared): {@link #RANGE}, or less in a crowd. */
+	private static double rangeSqr = RANGE * RANGE;
+	private static double[] crowdDistances = new double[256];
 	/** A stand-in goes after this many ticks with its Drifter undrawn. */
 	private static final int KEEP_TICKS = 40;
 
@@ -203,7 +213,7 @@ public final class DrifterTouchNMotion {
 		}
 
 		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft.gameRenderer.getMainCamera().getPosition().distanceToSqr(drifter.position()) > RANGE * RANGE) {
+		if (minecraft.gameRenderer.getMainCamera().getPosition().distanceToSqr(drifter.position()) > rangeSqr) {
 			return;
 		}
 
@@ -473,12 +483,41 @@ public final class DrifterTouchNMotion {
 		return standIn;
 	}
 
+	/** {@link #rangeSqr}: the full range, or in a crowd the distance of the {@link #MAX_POSED}th nearest Drifter. */
+	private static void crowdRange(Minecraft minecraft) {
+		var camera = minecraft.gameRenderer.getMainCamera().getPosition();
+		double full = RANGE * RANGE;
+		int n = 0;
+		for (Entity entity : minecraft.level.entitiesForRendering()) {
+			if (entity instanceof DrifterEntity) {
+				double distance = camera.distanceToSqr(entity.position());
+				if (distance <= full) {
+					if (n == crowdDistances.length) {
+						crowdDistances = java.util.Arrays.copyOf(crowdDistances, n * 2);
+					}
+
+					crowdDistances[n++] = distance;
+				}
+			}
+		}
+
+		if (n <= MAX_POSED) {
+			rangeSqr = full;
+			return;
+		}
+
+		java.util.Arrays.sort(crowdDistances, 0, n);
+		rangeSqr = crowdDistances[MAX_POSED - 1];
+	}
+
 	/** After the world's tick: every stand-in a copy of its Drifter again, or gone with it. */
 	private static void tick(Minecraft minecraft) {
 		ticks++;
 		if (minecraft.level == null) {
 			HANDS.clear();
 			RIDING_POSED.clear();
+		} else if (ticks % CROWD_EVERY == 0) {
+			crowdRange(minecraft);
 		}
 
 		if (!WANTED.isEmpty()) {

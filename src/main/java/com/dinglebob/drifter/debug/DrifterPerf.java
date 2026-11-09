@@ -62,6 +62,11 @@ public final class DrifterPerf {
 		}
 	}
 
+	private static final java.lang.management.ThreadMXBean THREADS = java.lang.management.ManagementFactory.getThreadMXBean();
+	private static long windowCpu = -1L;
+	private static double lastCpuPerTick = -1.0;
+	private static double lastServerTick;
+
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			lastPeakTotal = Math.max(lastPeakTotal, tickTotal);
@@ -69,6 +74,12 @@ public final class DrifterPerf {
 			tickTotal = 0;
 			drifters = 0;
 			if (++ticks >= WINDOW_TICKS) {
+				// The server thread's own CPU time over the window: the whole tick's work, whatever else the computer is busy
+				// with (milestone 16 scale pass, 2026-11-08: other programs running made the wall-clock numbers jump about).
+				long cpu = THREADS.isCurrentThreadCpuTimeSupported() ? THREADS.getCurrentThreadCpuTime() : -1L;
+				lastCpuPerTick = cpu >= 0L && windowCpu >= 0L ? (cpu - windowCpu) / (double)ticks / 1_000_000.0 : -1.0;
+				windowCpu = cpu;
+				lastServerTick = server.getAverageTickTimeNanos() / 1_000_000.0;
 				Map<Part, Double> average = new EnumMap<>(Part.class);
 				current.forEach((part, nanos) -> average.put(part, nanos / (double)ticks / 1_000_000.0));
 				lastAverage = average;
@@ -97,6 +108,11 @@ public final class DrifterPerf {
 		}
 
 		line.append(" (budget: 3 to 5 ms for 10)");
+		if (lastCpuPerTick >= 0.0) {
+			line.append(String.format(Locale.ROOT, "\nWhole server tick: %.2f ms; server thread CPU %.2f ms a tick (leaves out other programs' use of the computer)",
+				lastServerTick, lastCpuPerTick));
+		}
+
 		lastWorst.forEach((part, w) -> line.append(String.format(Locale.ROOT, "\n  slowest %s: %.2f ms (%s)", part.name().toLowerCase(Locale.ROOT), w.nanos() / 1_000_000.0, w.what())));
 		lastDrifters = 0;
 		return line.toString();

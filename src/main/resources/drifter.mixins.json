@@ -11,6 +11,7 @@
 		"BoatAccessor",
 		"BoatItemMixin",
 		"BoatMixin",
+		"EntityCollideMixin",
 		"BlockItemAccessor",
 		"BlockItemMixin",
 		"BowItemMixin",

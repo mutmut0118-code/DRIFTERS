@@ -64,8 +64,11 @@ public final class PathWorkers {
 			return setting;
 		}
 
-		return Math.max(1, Math.min(6, Runtime.getRuntime().availableProcessors() / 4));
+		return Math.max(1, Math.min(6, PROCESSORS / 4));
 	}
+
+	/** The machine's threads, asked once (asking is a call into the system; it was asked for every eye ray). */
+	private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
 
 	/** Searches run on other threads (the setting isn't 0). */
 	public static boolean enabled() {

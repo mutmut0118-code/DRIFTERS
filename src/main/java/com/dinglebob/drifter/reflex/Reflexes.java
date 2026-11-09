@@ -483,7 +483,7 @@ public class Reflexes {
 			boolean hard = com.dinglebob.drifter.world.Battle.inBattle(drifter);
 			double nearest = Double.MAX_VALUE;
 			long now = drifter.level().getGameTime();
-			for (Awareness awareness : drifter.getSenses().tracked()) {
+			for (Awareness awareness : drifter.getSenses().trackedView()) {
 				if (!(awareness.entity instanceof net.minecraft.world.entity.LivingEntity living) || !living.isAlive() || !awareness.seenWithin(now, 40)) {
 					continue;
 				}
@@ -512,6 +512,12 @@ public class Reflexes {
 		private static boolean lavaNear(DrifterEntity drifter) {
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
+			// (No lava in those chunk sections at all: nothing to look for. Milestone 16 crowd pass.)
+			if (!com.dinglebob.drifter.world.TickChunks.mayHaveLava(level, feet.getX() - 3, feet.getY() - 2, feet.getZ() - 3, feet.getX() + 3, feet.getY() + 1,
+				feet.getZ() + 3)) {
+				return false;
+			}
+
 			for (BlockPos pos : BlockPos.betweenClosed(feet.offset(-3, -2, -3), feet.offset(3, 1, 3))) {
 				if (level.getFluidState(pos).is(FluidTags.LAVA)) {
 					return true;
@@ -523,7 +529,7 @@ public class Reflexes {
 
 		private static boolean blazeNear(DrifterEntity drifter) {
 			long now = drifter.level().getGameTime();
-			for (Awareness awareness : drifter.getSenses().tracked()) {
+			for (Awareness awareness : drifter.getSenses().trackedView()) {
 				if (awareness.entity instanceof net.minecraft.world.entity.monster.Blaze blaze && blaze.isAlive() && awareness.seenWithin(now, 40)
 					&& blaze.distanceTo(drifter) < 20.0) {
 					return true;
@@ -1064,6 +1070,9 @@ public class Reflexes {
 		}
 	}
 
+	private static final com.dinglebob.drifter.world.TickChunks.SectionAnswers FIRE_SECTIONS = new com.dinglebob.drifter.world.TickChunks.SectionAnswers(
+		state -> state.is(net.minecraft.tags.BlockTags.FIRE), true);
+
 	private static final class InFireBlock extends Reflex {
 		@Nullable
 		private BlockPos safe;
@@ -1080,6 +1089,13 @@ public class Reflexes {
 			}
 
 			Level level = drifter.level();
+			// (No fire in those chunk sections at all: nothing to look for. Milestone 16 crowd pass.)
+			AABB body = drifter.getBoundingBox();
+			if (!FIRE_SECTIONS.mayHave(level, Mth.floor(body.minX), Mth.floor(drifter.getY()), Mth.floor(body.minZ), Mth.floor(body.maxX),
+				Mth.floor(drifter.getY() + 1.0), Mth.floor(body.maxZ))) {
+				return false;
+			}
+
 			for (BlockPos pos : BlockPos.betweenClosed(BlockPos.containing(drifter.getBoundingBox().minX, drifter.getY(), drifter.getBoundingBox().minZ),
 				BlockPos.containing(drifter.getBoundingBox().maxX, drifter.getY() + 1.0, drifter.getBoundingBox().maxZ))) {
 				if (level.getBlockState(pos).is(net.minecraft.tags.BlockTags.FIRE)) {
@@ -1322,7 +1338,7 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			Creeper before = this.creeper;
 			this.creeper = null;
-			for (Awareness awareness : drifter.getSenses().tracked()) {
+			for (Awareness awareness : drifter.getSenses().trackedView()) {
 				if (awareness.entity instanceof Creeper creeper && creeper.isAlive() && creeper.distanceTo(drifter) < DANGER_RANGE
 					&& (creeper.getSwellDir() > 0 || creeper.getSwelling(1.0F) > 0.1F)
 					// It sees it swelling, or hears the hiss when it's close.
@@ -1406,8 +1422,14 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			Level level = drifter.level();
 			BlockPos feet = drifter.blockPosition();
-			boolean hasBlocks = Tools.buildingBlockCount(drifter) > 0;
 			this.lava = null;
+			// (No lava in the sections round it at all, the usual case: nothing to look for block by block. Milestone 16.)
+			if (!com.dinglebob.drifter.world.TickChunks.mayHaveLava(level, feet.getX() - 1, feet.getY() - 1, feet.getZ() - 1, feet.getX() + 1, feet.getY() + 1,
+				feet.getZ() + 1)) {
+				return false;
+			}
+
+			boolean hasBlocks = Tools.buildingBlockCount(drifter) > 0;
 			// Its feet and head and every side of them, and the floor round it, diagonals too: a lava hole in the floor
 			// ahead counts (found by the user: it walked into one it hadn't checked for).
 			java.util.List<BlockPos> around = new java.util.ArrayList<>();
@@ -1643,9 +1665,14 @@ public class Reflexes {
 		protected boolean detect(DrifterEntity drifter) {
 			this.projectile = null;
 			Vec3 eye = drifter.getEyePosition();
-			List<Projectile> flying = com.dinglebob.drifter.world.RareEntities.near(drifter.level(), Projectile.class, new AABB(eye, eye).inflate(RANGE),
-				p -> (p instanceof AbstractArrow arrow && !((AbstractArrowAccessor)arrow).drifter$isInGround() || p instanceof AbstractHurtingProjectile)
-					&& p.getOwner() != drifter);
+			AABB around = new AABB(eye, eye).inflate(RANGE);
+			List<Projectile> flying = new java.util.ArrayList<>(2);
+			for (Projectile p : flyingNow(drifter.level())) {
+				if (!p.isRemoved() && p.getBoundingBox().intersects(around) && p.getOwner() != drifter) {
+					flying.add(p);
+				}
+			}
+
 			flying.sort(Comparator.comparingDouble(p -> p.distanceToSqr(drifter)));
 			AABB body = drifter.getBoundingBox().inflate(HIT_RADIUS - 1.0 + 0.3);
 			for (Projectile candidate : flying) {
@@ -1667,6 +1694,33 @@ public class Reflexes {
 
 			return false;
 		}
+
+		/**
+		 * What's in the air this tick (arrows not stuck in anything, fireballs), listed once a tick for every Drifter: a
+		 * battle's stuck arrows lie about by the hundred, and each soldier looked through them all every tick (milestone 16
+		 * crowd pass, 2026-11-08). One fired later in the tick is seen from the next.
+		 */
+		private static List<Projectile> flyingNow(net.minecraft.world.level.Level level) {
+			if (level.isClientSide()) {
+				return List.of();
+			}
+
+			long now = level.getGameTime();
+			if (now != flyingTick || level != flyingLevel) {
+				flyingTick = now;
+				flyingLevel = level;
+				flyingList = com.dinglebob.drifter.world.RareEntities.near(level, Projectile.class, EVERYWHERE,
+					p -> p instanceof AbstractArrow arrow && !((AbstractArrowAccessor)arrow).drifter$isInGround() || p instanceof AbstractHurtingProjectile);
+			}
+
+			return flyingList;
+		}
+
+		private static final AABB EVERYWHERE = new AABB(-3.0E7, -1.0E4, -3.0E7, 3.0E7, 1.0E4, 3.0E7);
+		private static long flyingTick = Long.MIN_VALUE;
+		@Nullable
+		private static net.minecraft.world.level.Level flyingLevel;
+		private static List<Projectile> flyingList = List.of();
 
 		/**
 		 * Follows its flight for the next second (arrows fall 0.05 a tick and slow 1% a tick; fireballs fly straight) and

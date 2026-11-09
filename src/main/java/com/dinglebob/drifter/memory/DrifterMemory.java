@@ -209,16 +209,33 @@ public class DrifterMemory {
 	/** Capacity limit: when a kind is over its cap, the lowest importance x confidence goes first. */
 	private void trim(MemoryKind kind, long now) {
 		Map<String, MemoryEntry> tier = this.tier(kind);
-		List<MemoryEntry> ofKind = tier.values().stream().filter(entry -> entry.kind == kind).toList();
-		int excess = ofKind.size() - kind.capacity;
+		int count = 0;
+		for (MemoryEntry entry : tier.values()) {
+			if (entry.kind == kind) {
+				count++;
+			}
+		}
+
+		int excess = count - kind.capacity;
 		if (excess <= 0) {
 			return;
 		}
 
-		ofKind.stream()
-			.sorted(Comparator.comparingDouble(entry -> entry.importance * entry.confidence(now)))
-			.limit(excess)
-			.forEach(entry -> tier.values().remove(entry));
+		// Over: the least important go, and a little more room is made than needed, so the next few new ones don't sort it
+		// all again (milestone 16 scale pass, 2026-11-08: on a battlefield strewn with dropped gear, every item a soldier
+		// noticed sorted its whole memory, and each one forgotten was a walk through all of it; a fifth of a 500v500's time).
+		excess = Math.min(count, excess + Math.max(1, kind.capacity / 16));
+		List<MemoryEntry> ofKind = new ArrayList<>(count);
+		for (MemoryEntry entry : tier.values()) {
+			if (entry.kind == kind) {
+				ofKind.add(entry);
+			}
+		}
+
+		ofKind.sort(Comparator.comparingDouble(entry -> entry.importance * entry.confidence(now)));
+		java.util.Set<MemoryEntry> drop = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+		drop.addAll(ofKind.subList(0, excess));
+		tier.values().removeIf(drop::contains);
 	}
 
 	/**

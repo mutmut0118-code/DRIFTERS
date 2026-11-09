@@ -337,6 +337,15 @@ public class Brain {
 	private Activity activity;
 	private long goalStarted;
 	private int sinceRescore = RESCORE_TICKS;
+	/** Its own tick count at its last brain tick and last danger check (it may think only every few ticks). */
+	private int lastBrainTick = Integer.MIN_VALUE;
+	private int lastThreatCheck = Integer.MIN_VALUE;
+	/** A hostile it knows of is about (at the last danger check): it thinks every tick, whatever its detail tier. */
+	private boolean wary;
+
+	public boolean wary() {
+		return this.wary;
+	}
 	private boolean phased;
 	/** The tick (its own count) of its first decision, or -1 before its first brain tick. */
 	private int firstDecisionAt = -1;
@@ -387,10 +396,30 @@ public class Brain {
 
 		this.watchForStall();
 
-		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks.
-		boolean danger = (this.drifter.tickCount + this.drifter.getId()) % THREAT_CHECK_TICKS == 0 && this.current != null && !"fight".equals(this.current.id())
-			&& !"flee".equals(this.current.id()) && Threats.assess(this.drifter).urgent();
-		if (++this.sinceRescore < this.drifter.tier().rescoreTicks && !finished && this.activity != null && !danger) {
+		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks (every 10 far
+		// from players). Counted in ticks, not in its thoughts: away from players it thinks only every few ticks (milestone 16).
+		int nowTick = this.drifter.tickCount;
+		int step = this.lastBrainTick == Integer.MIN_VALUE ? 1 : Math.max(1, nowTick - this.lastBrainTick);
+		this.lastBrainTick = nowTick;
+		if (this.lastThreatCheck == Integer.MIN_VALUE) {
+			this.lastThreatCheck = nowTick - Math.floorMod(this.drifter.getId(), THREAT_CHECK_TICKS);
+		}
+
+		boolean danger = false;
+		int threatEvery = this.drifter.tier() == com.dinglebob.drifter.entity.DetailTier.FAR ? THREAT_CHECK_TICKS * 2 : THREAT_CHECK_TICKS;
+		if (nowTick - this.lastThreatCheck >= threatEvery) {
+			this.lastThreatCheck = nowTick;
+			if (this.current != null && !"fight".equals(this.current.id()) && !"flee".equals(this.current.id())) {
+				Threats.Assessment threat = Threats.assess(this.drifter);
+				this.wary = !threat.hostiles().isEmpty();
+				danger = threat.urgent();
+			} else {
+				this.wary = false;
+			}
+		}
+
+		this.sinceRescore += step;
+		if (this.sinceRescore < this.drifter.tier().rescoreTicks && !finished && this.activity != null && !danger) {
 			return;
 		}
 
@@ -453,6 +482,7 @@ public class Brain {
 		// best is taken as it is), so the rest aren't scored at all (in a battle every soldier worked out crafting plans and
 		// whims every second; the first decisions of 300 soldiers took half a second in one tick).
 		boolean survivalDecided = false;
+		Scored firstTop = null;
 		List<Goals.Goal> rest = new ArrayList<>();
 		for (Goals.Goal goal : this.orderedGoals()) {
 			if (survivalDecided && !FIRST_GOALS.contains(goal.id()) && goal != this.current) {
@@ -460,7 +490,7 @@ public class Brain {
 			}
 
 			if (!survivalDecided && !FIRST_GOALS.contains(goal.id()) && !scores.isEmpty()) {
-				Scored top = scores.stream().max(Comparator.comparingDouble(Scored::score)).orElse(null);
+				Scored top = firstTop;
 				if (top != null && top.urgent() && top.base() > 0.0
 					&& (top.score() >= DECIDED_SCORE || top.goal() == this.current && top.score() >= DECIDED_CONTINUING)) {
 					survivalDecided = true;
@@ -471,7 +501,12 @@ public class Brain {
 			}
 
 			if (FIRST_GOALS.contains(goal.id())) {
-				scores.add(this.scoreOne(goal, context, now, nether, Double.NaN));
+				Scored scored = this.scoreOne(goal, context, now, nether, Double.NaN);
+				scores.add(scored);
+				// (The best of these so far, kept as they come: it was looked for again for every goal after them.)
+				if (firstTop == null || scored.score() > firstTop.score()) {
+					firstTop = scored;
+				}
 			} else {
 				rest.add(goal);
 			}

@@ -571,6 +571,8 @@ public final class Planner {
 				best = cheaper(best, this.craft(state.copy(), recipe.value(), item, count, depth));
 			}
 
+			boolean crafts = best != null;
+
 			if (item == Items.OBSIDIAN) {
 				best = cheaper(best, this.makeObsidian(state.copy(), count, depth));
 			}
@@ -583,9 +585,14 @@ public final class Planner {
 				best = cheaper(best, this.smelt(state.copy(), recipe.value(), item, count, depth));
 			}
 
-			// The kitchen (Farmer's Delight, optional): the cutting board and the cooking pot.
-			for (com.dinglebob.drifter.compat.FarmersDelight.CutRecipe recipe : cutting(this.level).getOrDefault(item, List.of())) {
-				best = cheaper(best, this.cut(state.copy(), recipe, item, count, depth));
+			// The kitchen (Farmer's Delight, optional): the cutting board and the cooking pot. The board only for what it can't
+			// gather or craft (bacon, cabbage leaves, straw): its many salvage recipes (a door, a sign, a boat cut back into
+			// planks) made every plan for planks or sticks try each wooden thing and what that's made of, 30,000 sub-plans a
+			// pickaxe; a thousand soldiers at full detail ran the game at 3 TPS (the user's 500v500, 0.23.32-side.1).
+			if (!crafts) {
+				for (com.dinglebob.drifter.compat.FarmersDelight.CutRecipe recipe : cutting(this.level).getOrDefault(item, List.of())) {
+					best = cheaper(best, this.cut(state.copy(), recipe, item, count, depth));
+				}
 			}
 
 			for (com.dinglebob.drifter.compat.FarmersDelight.PotRecipe recipe : potCooking(this.level).getOrDefault(item, List.of())) {
@@ -1109,6 +1116,10 @@ public final class Planner {
 			return;
 		}
 
+		synchronized (ITEMS_OF) {
+			ITEMS_OF.clear();
+		}
+
 		Map<Item, List<RecipeHolder<CraftingRecipe>>> crafting = new HashMap<>();
 		for (RecipeHolder<CraftingRecipe> holder : manager.getAllRecipesFor(RecipeType.CRAFTING)) {
 			CraftingRecipe recipe = holder.value();
@@ -1194,8 +1205,24 @@ public final class Planner {
 		return cookedIndex.get(raw);
 	}
 
+	/** Each recipe ingredient's items, worked out once (a fresh list each time was two fifths of planning). Emptied when
+	 * the recipes reload. */
+	private static final Map<Ingredient, List<Item>> ITEMS_OF = new java.util.IdentityHashMap<>();
+
 	private static List<Item> itemsOf(Ingredient ingredient) {
-		return Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).distinct().toList();
+		synchronized (ITEMS_OF) {
+			List<Item> items = ITEMS_OF.get(ingredient);
+			if (items == null) {
+				items = Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).distinct().toList();
+				if (ITEMS_OF.size() > 100_000) {
+					ITEMS_OF.clear();
+				}
+
+				ITEMS_OF.put(ingredient, items);
+			}
+
+			return items;
+		}
 	}
 
 	/** Items in a tag that burn in a furnace (crimson and warped wood don't). */
@@ -1209,7 +1236,11 @@ public final class Planner {
 		return items;
 	}
 
+	/** Item names, worked out once each (milestone 16 scale pass, 2026-11-08: building the name from its translation every
+	 * time was a fifth of all planning with a thousand Drifters). */
+	private static final java.util.Map<Item, String> NAMES = new java.util.concurrent.ConcurrentHashMap<>();
+
 	public static String name(Item item) {
-		return item.getDescription().getString().toLowerCase(Locale.ROOT);
+		return NAMES.computeIfAbsent(item, it -> it.getDescription().getString().toLowerCase(Locale.ROOT));
 	}
 }

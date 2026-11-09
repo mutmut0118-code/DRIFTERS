@@ -1720,6 +1720,12 @@ attention every second instead of every half second, updates what it's watching 
 second, and casts far sight every fourth tick; a fight always puts a Drifter at Full. Away from players its knowledge
 scan and plans are reused for a few seconds while it stays about where it was.
 
+As built (scale pass, 2026-11-08, toward 1000 Drifters): a Reduced Drifter looks about and thinks every 2nd tick and a Far
+one every 5th, as the table above has it (they were every tick and every 2nd); its body, reflexes and what it's doing
+still run every tick, and a fight, a hit in the last 3 s or a hostile it knows of about put it back to every tick.
+Re-thinking its goals is counted in ticks: every 1 s Full, 1.5 s Reduced, 4 s Far. A watched Drifter's knowledge scan is
+reused for 1.5 s while it stays within 3 blocks (its own placing or mining drops it).
+
 ### Catch-up simulation
 
 When a Drifter's chunk loads again after a gap, it fast-forwards using rates instead of actions:

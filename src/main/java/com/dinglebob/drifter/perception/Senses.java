@@ -117,6 +117,11 @@ public class Senses {
 	private int alliesNear;
 	public static final double ALLY_RANGE = 10.0;
 
+	/** In a crowd (40 or more within 32 blocks) as of its last re-rank. */
+	public boolean crowded() {
+		return this.crowded;
+	}
+
 	public int alliesNear() {
 		return this.alliesNear;
 	}
@@ -147,6 +152,10 @@ public class Senses {
 	public static final int FORCED_TRACK_TICKS = 100;
 	/** Items on the ground are noticed within this distance. */
 	public static final double ITEM_SIGHT_RANGE = 32.0;
+	/** Most dropped items it checks for a sight line in one look (the rest on later looks). */
+	private static final int ITEM_CHECKS_PER_LOOK = 24;
+	/** Where in the list of items round it the next look starts. */
+	private int itemsFrom;
 
 	// ----- Seeing blocks (section 5) -----
 	public static final int BLOCK_RAYS_BASE = 6;
@@ -205,7 +214,7 @@ public class Senses {
 	private final Hearing hearing;
 	private final TimeSense time = new TimeSense();
 	private final TerrainKnowledge terrain = new TerrainKnowledge();
-	private final Map<Integer, Awareness> tracked = new HashMap<>();
+	private final it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<Awareness> tracked = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
 	private final Deque<HeardSound> sounds = new ArrayDeque<>();
 	private final Deque<Ray> recentRays = new ArrayDeque<>();
 	private int ticks;
@@ -260,6 +269,11 @@ public class Senses {
 		return new ArrayList<>(this.tracked.values());
 	}
 
+	/** The same, without a copy: only to read through at once, never while anything might change who it watches. */
+	public java.util.Collection<Awareness> trackedView() {
+		return java.util.Collections.unmodifiableCollection(this.tracked.values());
+	}
+
 	@Nullable
 	public Awareness awarenessOf(Entity entity) {
 		return this.tracked.get(entity.getId());
@@ -296,6 +310,11 @@ public class Senses {
 	/** Server only, every tick, before the executor runs. */
 	public void tick() {
 		this.ticks++;
+		// Game ticks since its last look (away from players it looks only every few ticks): what it notices builds up by
+		// the time that passed, not by its looks (milestone 16 scale pass, 2026-11-08).
+		long nowTick = this.now();
+		this.lookTicks = this.lastLookAt == Long.MIN_VALUE ? 1 : (int)Math.max(1L, Math.min(10L, nowTick - this.lastLookAt));
+		this.lastLookAt = nowTick;
 		if (this.time.tick(this.drifter)) {
 			this.consolidate("dusk");
 		}
@@ -307,7 +326,17 @@ public class Senses {
 		long t = System.nanoTime();
 		// Far from every player, a little slower (section 22 tiers; milestone 16): nobody's there to see it.
 		int slow = this.drifter.tier().senseSlowdown;
-		if (this.ticks % (RANK_INTERVAL * slow) == 0) {
+		// In a crowd (40 or more within 32 blocks), every second rather than every half: the dozen it's watching it still
+		// looks at every other tick, but going over the hundreds round it for who to watch was the biggest part of a
+		// 500v500's eyes (milestone 16 crowd pass, 2026-11-08). A player in a crowd doesn't take stock of all of it twice a
+		// second either.
+		if (this.pendingRank != null) {
+			Gathered gathered = this.pendingRank;
+			this.pendingRank = null;
+			this.finishRank(gathered);
+		}
+
+		if (this.ticks % (RANK_INTERVAL * slow * (this.crowded ? 2 : 1)) == 0) {
 			this.rankAttention();
 		}
 
@@ -413,32 +442,85 @@ public class Senses {
 	private boolean ownNightVision;
 
 	/**
-	 * Eye to eye with another creature: the same line seen from either end, so worked out once a tick for the pair (in a
-	 * battle each soldier looks at the ones looking at it; milestone 16).
+	 * Eye to eye with another Drifter: the same line seen from either end, so shared by the pair (in a battle each soldier
+	 * looks at the ones looking at it; milestone 16). Traced on the path threads when it can be ({@link #sightLine}).
 	 */
 	private boolean eyeLine(Entity other) {
 		long now = this.now();
+		boolean lowFirst = this.drifter.getId() < other.getId();
+		Entity low = lowFirst ? this.drifter : other;
+		Entity high = lowFirst ? other : this.drifter;
+		long key = (long)low.getId() << 32 | high.getId() & 0xFFFFFFFFL;
 		if (now != pairTick) {
 			pairTick = now;
-			pairSight.clear();
+			if (now % 100 == 0) {
+				// Pairs nobody has looked along for a while.
+				pairLines.values().removeIf(line -> now - line.knownAsked > 100 && !line.out);
+			}
 		}
 
-		int a = Math.min(this.drifter.getId(), other.getId());
-		int b = Math.max(this.drifter.getId(), other.getId());
-		long key = (long)a << 32 | b & 0xFFFFFFFFL;
-		byte known = pairSight.get(key);
-		if (known != 0) {
-			return known > 0;
+		SightWork.Line line = pairLines.get(key);
+		if (line == null) {
+			line = new SightWork.Line();
+			pairLines.put(key, line);
 		}
 
-		boolean seen = this.lineOfSight(this.drifter.getEyePosition(), other.getEyePosition());
-		// (Only between Drifters, whose eyes each look from: another creature looks from its own eyes, the same line.)
-		pairSight.put(key, (byte)(seen ? 1 : -1));
-		return seen;
+		return this.useLine(line, low.getEyePosition(), high.getEyePosition(), this.tracked.containsKey(other.getId()));
 	}
 
 	private static long pairTick = Long.MIN_VALUE;
-	private static final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap pairSight = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
+	private static final it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<SightWork.Line> pairLines = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
+	/** Its own sight lines to the creatures round it (by id << 2 | which part), for {@link #sightLine}. */
+	private final it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<SightWork.Line> lines = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
+	private static final int LINE_HEAD = 0;
+	private static final int LINE_FEET = 1;
+
+	/** Sight lines answered from the path threads, and traced on the spot (for `/drifter perf`). */
+	public static long linesAnswered;
+	public static long linesTraced;
+
+	/**
+	 * A sight line to a creature close by. On the path threads when they run (SightWork.Line: the answer to the line asked
+	 * at its last look, if that's recent and from close to where both are now), else traced now.
+	 */
+	private boolean sightLine(Vec3 from, Vec3 to, Entity target, int part) {
+		long key = (long)target.getId() << 2 | part;
+		SightWork.Line line = this.lines.get(key);
+		if (line == null) {
+			line = new SightWork.Line();
+			this.lines.put(key, line);
+		}
+
+		return this.useLine(line, from, to, this.tracked.containsKey(target.getId()));
+	}
+
+	/** {@code again}: it will look along this line again soon (it's watching that creature), so ask for the next answer. */
+	private boolean useLine(SightWork.Line line, Vec3 from, Vec3 to, boolean again) {
+		boolean async = com.dinglebob.drifter.nav.PathWorkers.enabled() && this.level() instanceof net.minecraft.server.level.ServerLevel;
+		long now = this.now();
+		line.collect();
+		byte known = async ? line.answer(from, to, now) : 0;
+		if (known != 0) {
+			linesAnswered++;
+			if (again && line.knownAsked < now) {
+				this.ensureSight(this.drifter.getEyePosition());
+				line.ask(from, to, now, (net.minecraft.server.level.ServerLevel)this.level());
+			}
+
+			return known > 0;
+		}
+
+		linesTraced++;
+		boolean clear = this.lineOfSight(from, to);
+		line.traced(from, to, now, clear);
+		return clear;
+	}
+
+	/** Its sight lines to creatures it hasn't looked at for a while are let go (at each re-rank). */
+	private void forgetLines() {
+		long now = this.now();
+		this.lines.values().removeIf(line -> now - line.knownAsked > 60 && !line.out);
+	}
 
 	/** How far it can see this entity right now: light at the target, weather, water and effects. */
 	private double sightRange(Entity target) {
@@ -464,10 +546,40 @@ public class Senses {
 			this.ownNightVision = this.drifter.hasEffect(MobEffects.NIGHT_VISION);
 		}
 
-		int light = this.ownNightVision || target.isOnFire() || target.isCurrentlyGlowing() || holdsLight(target) ? 15
-			: level.getRawBrightness(BlockPos.containing(target.getEyePosition()), level.getSkyDarken());
+		int light = this.ownNightVision ? 15 : targetLight(level, target, now);
 		double range = (DARK_RANGE + (com.dinglebob.drifter.DrifterConfig.sightRange() - DARK_RANGE) * light / 15.0) * this.ownWeather;
 		return Math.min(range, this.ownCap);
+	}
+
+	/**
+	 * The light it's seen by (15 when it's on fire, glowing or holding a light): the same for every Drifter looking at it this
+	 * tick, so worked out once a tick per creature (milestone 16 scale pass, 2026-11-08: in a crowd each was looked at by dozens).
+	 */
+	private static int targetLight(Level level, Entity target, long now) {
+		if (now != lightTick || level != lightLevel) {
+			lightTick = now;
+			lightLevel = level;
+			lightOf.clear();
+		}
+
+		int known = lightOf.get(target.getId());
+		if (known >= 0) {
+			return known;
+		}
+
+		int light = target.isOnFire() || target.isCurrentlyGlowing() || holdsLight(target) ? 15
+			: level.getRawBrightness(BlockPos.containing(target.getEyePosition()), level.getSkyDarken());
+		lightOf.put(target.getId(), light);
+		return light;
+	}
+
+	private static long lightTick = Long.MIN_VALUE;
+	@Nullable
+	private static Level lightLevel;
+	private static final it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap lightOf = new it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap();
+
+	static {
+		lightOf.defaultReturnValue(-1);
 	}
 
 	private static boolean holdsLight(Entity entity) {
@@ -505,8 +617,8 @@ public class Senses {
 		} else {
 			// A ray to the head and one to the feet: either counts, both count more. (Head to head with another Drifter: the
 			// line it looks at us along, shared.)
-			boolean headSeen = target instanceof com.dinglebob.drifter.entity.DrifterEntity ? this.eyeLine(target) : this.lineOfSight(eye, head);
-			boolean feetSeen = this.lineOfSight(eye, target.position().add(0.0, 0.1, 0.0));
+			boolean headSeen = target instanceof com.dinglebob.drifter.entity.DrifterEntity ? this.eyeLine(target) : this.sightLine(eye, head, target, LINE_HEAD);
+			boolean feetSeen = this.sightLine(eye, target.position().add(0.0, 0.1, 0.0), target, LINE_FEET);
 			visibility = headSeen && feetSeen ? 1.0F : headSeen || feetSeen ? 0.6F : 0.0F;
 		}
 
@@ -541,13 +653,23 @@ public class Senses {
 		return entity.isDiscrete() ? SNEAKING_FACTOR : 1.0F;
 	}
 
+	/**
+	 * The living things (besides itself) in a box: from the tick's shared grid of bodies (milestone 16 crowd pass,
+	 * 2026-11-08: each soldier's own search of the game's entity sections was a twentieth of a 500v500), or the game's own
+	 * search for a box too wide for it.
+	 */
+	private List<Entity> livingIn(AABB box, java.util.function.Predicate<Entity> living) {
+		List<Entity> found = com.dinglebob.drifter.world.BodyGrid.bodies(this.level(), this.drifter, box, living);
+		return found != null ? found : this.level().getEntities(this.drifter, box, living);
+	}
+
 	/** Attention budget (section 5): re-rank what's worth tracking in detail. Players and forced ones always stay. */
 	private void rankAttention() {
 		long now = this.now();
 		java.util.function.Predicate<Entity> living = entity -> entity instanceof LivingEntity && entity.isAlive() && !entity.isSpectator();
 		// Close by first: in a crowd it keeps its eyes on those (and on whoever it's watching, and players), and doesn't scan
 		// the distance at all.
-		List<Entity> candidates = this.level().getEntities(this.drifter, this.drifter.getBoundingBox().inflate(DETAIL_RANGE, DETAIL_RANGE, DETAIL_RANGE), living);
+		List<Entity> candidates = this.livingIn(this.drifter.getBoundingBox().inflate(DETAIL_RANGE, DETAIL_RANGE, DETAIL_RANGE), living);
 		this.crowded = candidates.size() >= CROWD;
 		if (!this.crowded) {
 			// Farther out it only ever looks at the nearest few of the far ones (FAR_CHECKS_PER_RANK, nearest first), so it asks a
@@ -555,7 +677,7 @@ public class Senses {
 			// world thick with Drifters, all of them within sight was hundreds; milestone 16). Those it's watching and players
 			// are always in.
 			AABB middle = this.drifter.getBoundingBox().inflate(MIDDLE_RANGE, VERTICAL_RANGE, MIDDLE_RANGE);
-			List<Entity> nearer = this.level().getEntities(this.drifter, middle, living);
+			List<Entity> nearer = this.livingIn(middle, living);
 			if (nearer.size() - candidates.size() >= FAR_CHECKS_PER_RANK) {
 				candidates = nearer;
 				java.util.Set<Entity> in = new java.util.HashSet<>(candidates);
@@ -574,7 +696,7 @@ public class Senses {
 			} else {
 				AABB area = this.drifter.getBoundingBox().inflate(com.dinglebob.drifter.DrifterConfig.sightRange(), VERTICAL_RANGE,
 					com.dinglebob.drifter.DrifterConfig.sightRange());
-				candidates = this.level().getEntities(this.drifter, area, living);
+				candidates = this.livingIn(area, living);
 			}
 		} else {
 			java.util.Set<Entity> near = new java.util.HashSet<>(candidates);
@@ -621,12 +743,104 @@ public class Senses {
 
 		this.alliesNear = allies;
 		java.util.Arrays.sort(order);
+		Gathered gathered = new Gathered(candidates, order, distances);
+		// With the path threads running, in two steps: this tick it sends out the sight lines to those it will look at, and
+		// next tick it looks, with the answers back (milestone 16 crowd pass, 2026-11-08: these first looks were most of the
+		// sight lines still traced on the server thread). Who it watches changes a tick later, 50 ms.
+		if (this.asyncLines()) {
+			this.prefetch(gathered);
+			this.pendingRank = gathered;
+			return;
+		}
+
+		this.finishRank(gathered);
+	}
+
+	/** Who's round it, nearest (and who matters) first, gathered for a re-rank. */
+	private record Gathered(List<Entity> candidates, long[] order, double[] distances) {
+	}
+
+	/** A re-rank gathered last tick, to finish this tick. */
+	@Nullable
+	private Gathered pendingRank;
+
+	private boolean asyncLines() {
+		return com.dinglebob.drifter.nav.PathWorkers.enabled() && this.level() instanceof net.minecraft.server.level.ServerLevel;
+	}
+
+	/** Which of those it will look at up close (as finishRank picks them), with their sight lines sent out now. */
+	private void prefetch(Gathered gathered) {
+		int nearChecks = 0;
+		for (long packed : gathered.order()) {
+			int i = (int)(packed & ((1L << 30) - 1));
+			if (gathered.distances()[i] > DETAIL_RANGE * DETAIL_RANGE) {
+				continue;
+			}
+
+			Entity entity = gathered.candidates().get(i);
+			Awareness current = this.tracked.get(entity.getId());
+			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold) || entity instanceof Player;
+			if (!keep && nearChecks >= NEAR_CHECKS_PER_RANK) {
+				continue;
+			}
+
+			if (!keep) {
+				nearChecks++;
+			}
+
+			this.prefetchLook(entity);
+		}
+	}
+
+	/** The sight lines look() will want for this creature, sent out if there's no fresh answer (and it could be seen at all). */
+	private void prefetchLook(Entity target) {
+		Vec3 eye = this.drifter.getEyePosition();
+		Vec3 head = target.getEyePosition();
+		if (eye.distanceTo(head) > this.sightRange(target) * sizeFactor(target) || this.zoneOf(this.screenAngles(target.getBoundingBox().getCenter())) == Zone.NONE) {
+			return;
+		}
+
+		if (target instanceof com.dinglebob.drifter.entity.DrifterEntity) {
+			boolean lowFirst = this.drifter.getId() < target.getId();
+			Entity low = lowFirst ? this.drifter : target;
+			Entity high = lowFirst ? target : this.drifter;
+			long key = (long)low.getId() << 32 | high.getId() & 0xFFFFFFFFL;
+			this.askLine(pairLines.computeIfAbsent(key, k -> new SightWork.Line()), low.getEyePosition(), high.getEyePosition());
+		} else {
+			this.askLine(this.lines.computeIfAbsent((long)target.getId() << 2 | LINE_HEAD, k -> new SightWork.Line()), eye, head);
+		}
+
+		this.askLine(this.lines.computeIfAbsent((long)target.getId() << 2 | LINE_FEET, k -> new SightWork.Line()), eye, target.position().add(0.0, 0.1, 0.0));
+	}
+
+	private void askLine(SightWork.Line line, Vec3 from, Vec3 to) {
+		long now = this.now();
+		line.collect();
+		if (line.answer(from, to, now) != 0 && now - line.knownAsked < SightWork.MAX_AGE - 1) {
+			return;
+		}
+
+		this.ensureSight(this.drifter.getEyePosition());
+		line.ask(from, to, now, (net.minecraft.server.level.ServerLevel)this.level());
+	}
+
+	/** The re-rank's looks and choice (the second step, or straight on without the path threads). */
+	private void finishRank(Gathered gathered) {
+		long now = this.now();
+		List<Entity> candidates = gathered.candidates();
+		long[] order = gathered.order();
+		double[] distances = gathered.distances();
 		List<Map.Entry<Entity, Double>> ranked = new ArrayList<>();
 		int farChecks = 0;
 		int nearChecks = 0;
 		for (long packed : order) {
 			int i = (int)(packed & ((1L << 30) - 1));
 			Entity entity = candidates.get(i);
+			// (Gone or dead since it was gathered.)
+			if (entity.isRemoved() || !entity.isAlive() || entity.level() != this.level()) {
+				continue;
+			}
+
 			Awareness current = this.tracked.get(entity.getId());
 			boolean keep = current != null && (current.forcedTicks > 0 || current.value >= Awareness.Level.GLIMPSE.threshold) || entity instanceof Player;
 			boolean far = distances[i] > DETAIL_RANGE * DETAIL_RANGE;
@@ -669,7 +883,7 @@ public class Senses {
 		}
 
 		ranked.sort(Map.Entry.<Entity, Double>comparingByValue().reversed());
-		Map<Integer, Awareness> next = new HashMap<>();
+		it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<Awareness> next = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
 		for (Map.Entry<Entity, Double> candidate : ranked) {
 			Entity entity = candidate.getKey();
 			Awareness current = this.tracked.get(entity.getId());
@@ -683,12 +897,16 @@ public class Senses {
 
 		this.tracked.clear();
 		this.tracked.putAll(next);
+		this.forgetLines();
 		this.noticeItems();
 		this.noticeChestCarts();
 	}
 
-	/** Ticks between awareness updates now (by its detail tier). */
+	/** Looks between awareness updates now (by its detail tier). */
 	private int awarenessEvery = AWARENESS_INTERVAL;
+	/** Game ticks between its looks (1 near a player; more away from players), and when it last looked. */
+	private int lookTicks = 1;
+	private long lastLookAt = Long.MIN_VALUE;
 
 	private void updateAwareness() {
 		long now = this.now();
@@ -696,7 +914,7 @@ public class Senses {
 		for (Awareness awareness : this.tracked.values()) {
 			Entity entity = awareness.entity;
 			if (awareness.forcedTicks > 0) {
-				awareness.forcedTicks -= this.awarenessEvery;
+				awareness.forcedTicks -= this.awarenessEvery * this.lookTicks;
 			}
 
 			// Far ones are re-checked every third update (and gain three updates' worth): cheaper, hardly different. In a crowd,
@@ -708,7 +926,7 @@ public class Senses {
 				continue;
 			}
 
-			int ticks = this.awarenessEvery * every;
+			int ticks = this.awarenessEvery * every * this.lookTicks;
 			Sighting sighting = entity.isRemoved() ? Sighting.NOT_SEEN : this.look(entity);
 			float stealth = stealthFactor(entity);
 			awareness.visibleNow = sighting.seen() && stealth > 0.0F;
@@ -746,7 +964,7 @@ public class Senses {
 				}
 			}
 
-			this.rememberEntity(entity);
+			this.rememberEntity(awareness);
 		} else if (level.ordinal() > awareness.lastLevel.ordinal() && level != Awareness.Level.DETECTED && !awareness.identified) {
 			this.think((level == Awareness.Level.GLIMPSE ? "glimpsed something " : "something suspicious ") + this.direction(entity.position()));
 			this.glanceAt(entity.getEyePosition());
@@ -764,18 +982,33 @@ public class Senses {
 		awareness.lastLevel = level;
 	}
 
-	/** Once identified, a mob or player goes into memory (with what a player could see of them). */
-	private void rememberEntity(Entity entity) {
+	/** What it looks like is written down again at most this often (it's looked at every other tick or so). */
+	private static final int DESCRIBE_EVERY = 20;
+
+	/**
+	 * Once identified, a mob or player goes into memory (with what a player could see of them). Where it is, every look;
+	 * what it looks like, once a second (the description was built anew at every look, 1.2% of a 500v500; milestone 16
+	 * crowd pass, 2026-11-08).
+	 */
+	private void rememberEntity(Awareness awareness) {
+		Entity entity = awareness.entity;
 		long now = this.now();
+		boolean describe = now - awareness.describedAt >= DESCRIBE_EVERY;
 		if (entity instanceof Player player) {
-			MemoryEntry entry = this.memory.remember(MemoryKind.PLAYER, player.getGameProfile().getName(), player.position(), this.dimension(), now,
-				MemorySource.SEEN, 0.8F, player.getUUID()).entry();
-			entry.detail = appearance(player);
+			DrifterMemory.Remembered remembered = this.memory.remember(MemoryKind.PLAYER, player.getGameProfile().getName(), player.position(), this.dimension(), now,
+				MemorySource.SEEN, 0.8F, player.getUUID());
+			if (describe || remembered.isNew()) {
+				remembered.entry().detail = appearance(player);
+				awareness.describedAt = now;
+			}
 		} else {
 			float importance = entity instanceof Enemy ? 0.4F : 0.2F;
-			MemoryEntry entry = this.memory.remember(MemoryKind.MOB, BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString(),
-				entity.position(), this.dimension(), now, MemorySource.SEEN, importance, entity.getUUID()).entry();
-			entry.detail = entity instanceof LivingEntity living ? appearance(living) : "";
+			DrifterMemory.Remembered remembered = this.memory.remember(MemoryKind.MOB, BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString(),
+				entity.position(), this.dimension(), now, MemorySource.SEEN, importance, entity.getUUID());
+			if (describe || remembered.isNew()) {
+				remembered.entry().detail = entity instanceof LivingEntity living ? appearance(living) : "";
+				awareness.describedAt = now;
+			}
 		}
 	}
 
@@ -855,9 +1088,26 @@ public class Senses {
 	/** Dropped items in view go into short-term memory. */
 	private void noticeItems() {
 		Vec3 eye = this.drifter.getEyePosition();
-		for (ItemEntity item : this.level().getEntitiesOfClass(ItemEntity.class, this.drifter.getBoundingBox().inflate(ITEM_SIGHT_RANGE))) {
+		AABB itemArea = this.drifter.getBoundingBox().inflate(ITEM_SIGHT_RANGE);
+		List<ItemEntity> items = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(), ItemEntity.class, itemArea, item -> item.isAlive());
+		if (items == null) {
+			items = this.level().getEntitiesOfClass(ItemEntity.class, itemArea);
+		}
+
+		// A heap of things lying about (a battlefield's dropped gear and arrows): it takes in so many a look, a different lot
+		// each time, as a player's eye goes over a pile (milestone 16 scale pass, 2026-11-08: every soldier checked hundreds).
+		int checks = 0;
+		int start = items.size() > ITEM_CHECKS_PER_LOOK ? Math.floorMod(this.itemsFrom, items.size()) : 0;
+		this.itemsFrom += ITEM_CHECKS_PER_LOOK;
+		for (int n = 0; n < items.size() && checks < ITEM_CHECKS_PER_LOOK; n++) {
+			ItemEntity item = items.get((start + n) % items.size());
 			Vec3 center = item.getBoundingBox().getCenter();
-			if (this.zoneOf(this.screenAngles(center)) == Zone.CONE && eye.distanceTo(center) <= ITEM_SIGHT_RANGE && this.lineOfSight(eye, center)) {
+			if (this.zoneOf(this.screenAngles(center)) != Zone.CONE || eye.distanceTo(center) > ITEM_SIGHT_RANGE) {
+				continue;
+			}
+
+			checks++;
+			if (this.lineOfSight(eye, center)) {
 				MemoryEntry entry = this.memory.remember(MemoryKind.ITEM, BuiltInRegistries.ITEM.getKey(item.getItem().getItem()).toString(),
 					item.position(), this.dimension(), this.now(), MemorySource.SEEN, 0.3F, item.getUUID()).entry();
 				entry.detail = item.getItem().getCount() + "x";
@@ -960,9 +1210,10 @@ public class Senses {
 		// that's inside its view (looking at its feet, it doesn't see the skyline).
 		float low = Math.max(-FAR_PITCH_UP, this.drifter.getXRot() - coneHalfPitch());
 		float high = Math.min(FAR_PITCH_DOWN, this.drifter.getXRot() + coneHalfPitch());
-		// (In a fight or a crowd, one far ray every other tick: its eyes are on what's round it, and a crowd hides the
-		// horizon anyway. Far rays are long: they were over a third of a battle's ray time.)
-		int farRays = fighting || this.crowded ? (this.ticks % 2 == 0 ? 1 : 0)
+		// (In a crowd, one far ray every other tick: its eyes are on what's round it, and a crowd hides the horizon anyway; in
+		// a fight, one every fourth (milestone 16 crowd pass: still a twentieth of a 500v500). Far rays are long: they were
+		// over a third of a battle's ray time.)
+		int farRays = fighting ? (this.ticks % 4 == 0 ? 1 : 0) : this.crowded ? (this.ticks % 2 == 0 ? 1 : 0)
 			: this.drifter.tier().senseSlowdown > 1 ? (this.ticks % (2 * this.drifter.tier().senseSlowdown) == 0 ? FAR_RAYS : 0) : FAR_RAYS;
 		for (int i = 0; i < farRays && low < high; i++) {
 			float yaw = this.drifter.getYHeadRot() + (this.drifter.getRandom().nextFloat() * 2.0F - 1.0F) * coneHalfYaw();
@@ -1462,9 +1713,18 @@ public class Senses {
 		Vec3 rough = this.roughly(source);
 		double roughDistance = Math.max(1.0, Math.round(eye.distanceTo(rough)));
 		// Footsteps and digging repeat: the same kind of sound from about the same place is one ongoing sound.
-		boolean ongoing = this.sounds.removeIf(sound -> sound.kind() == kind && sound.roughPos().distanceTo(rough) < SAME_SOUND_DISTANCE
-			&& this.now() - sound.time() < SAME_SOUND_TICKS);
-		this.sounds.addLast(new HeardSound(kind, rough, roughDistance, this.now()));
+		// (A plain loop: the stream-like removeIf with its square roots was 1.7% of a 500v500; milestone 16 crowd pass.)
+		long now = this.now();
+		boolean ongoing = false;
+		for (java.util.Iterator<HeardSound> it = this.sounds.iterator(); it.hasNext(); ) {
+			HeardSound sound = it.next();
+			if (sound.kind() == kind && now - sound.time() < SAME_SOUND_TICKS && sound.roughPos().distanceToSqr(rough) < SAME_SOUND_DISTANCE * SAME_SOUND_DISTANCE) {
+				it.remove();
+				ongoing = true;
+			}
+		}
+
+		this.sounds.addLast(new HeardSound(kind, rough, roughDistance, now));
 		while (this.sounds.size() > MAX_SOUNDS) {
 			this.sounds.removeFirst();
 		}

@@ -117,7 +117,7 @@ public final class DrifterConfig {
 		boolean ragdolls = true;
 		/** Threads for path searches (milestone 16): -1 automatic, 0 on the server thread as before. */
 		int pathThreads = -1;
-		/** Drifters far from every player look about and think every other tick (milestone 16). */
+		/** Drifters away from players look about and think less often: every other tick with none within 48 blocks, every fifth with none within 128 (milestone 16). */
 		boolean farHalfRate = true;
 		/** Real player skins, downloaded like a multiplayer server's (user, 2026-10-20); off: the game's default skins. */
 		boolean realSkins = true;

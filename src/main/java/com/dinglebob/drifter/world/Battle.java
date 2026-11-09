@@ -37,6 +37,13 @@ public final class Battle {
 	}
 
 	private static final Map<UUID, Soldier> soldiers = new HashMap<>();
+	/**
+	 * The same, by entity id, filled as asked (NOT_SOLDIER for the rest), emptied when a battle starts or ends. Entities'
+	 * UUIDs share hash codes often enough that the map above had long chains: a soldier's lookups were 2.5% of a 500v500
+	 * (milestone 16 crowd pass, 2026-11-08).
+	 */
+	private static final it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<Soldier> byId = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
+	private static final Soldier NOT_SOLDIER = new Soldier(0, -1, false);
 	/** Where each battle's two armies stood (the other side marches on it), by battle. */
 	private static final Map<Integer, Vec3[]> lines = new HashMap<>();
 	private static int nextBattle = 1;
@@ -65,13 +72,27 @@ public final class Battle {
 	/** Its side in its battle, or null if it's not in one. */
 	@Nullable
 	public static Integer side(DrifterEntity drifter) {
-		Soldier soldier = soldiers.isEmpty() ? null : soldiers.get(drifter.getUUID());
+		Soldier soldier = soldier(drifter);
 		return soldier == null ? null : soldier.side();
 	}
 
 	@Nullable
 	private static Soldier soldier(DrifterEntity drifter) {
-		return soldiers.isEmpty() ? null : soldiers.get(drifter.getUUID());
+		if (soldiers.isEmpty()) {
+			return null;
+		}
+
+		Soldier soldier = byId.get(drifter.getId());
+		if (soldier == null) {
+			soldier = soldiers.get(drifter.getUUID());
+			if (byId.size() > 20000) {
+				byId.clear();
+			}
+
+			byId.put(drifter.getId(), soldier == null ? NOT_SOLDIER : soldier);
+		}
+
+		return soldier == NOT_SOLDIER ? null : soldier;
 	}
 
 	public static boolean inBattle(DrifterEntity drifter) {
@@ -162,6 +183,7 @@ public final class Battle {
 	public static int stop() {
 		int count = soldiers.size();
 		soldiers.clear();
+		byId.clear();
 		lines.clear();
 		friendlyArrows = 0;
 		reportedPositions.clear();
@@ -171,6 +193,7 @@ public final class Battle {
 	/** This battle over (an encounter's): its soldiers are soldiers no more. */
 	public static void stop(int battle) {
 		soldiers.values().removeIf(soldier -> soldier.battle() == battle);
+		byId.clear();
 		lines.remove(battle);
 	}
 
@@ -225,6 +248,7 @@ public final class Battle {
 					: SoldierKit.Role.INFANTRY;
 				SoldierKit.equip(drifter, level, armies[side], role, random);
 				soldiers.put(drifter.getUUID(), new Soldier(battle, side, archer));
+				byId.clear();
 				if (beforeAdd != null) {
 					beforeAdd.accept(drifter, side);
 				}
@@ -233,6 +257,7 @@ public final class Battle {
 					spawned.add(drifter);
 				} else {
 					soldiers.remove(drifter.getUUID());
+					byId.clear();
 				}
 			}
 		}

@@ -5024,3 +5024,231 @@ the mod, 209 with the addon's town whims); the main-line session keeps out of th
   and `high_five` (the test pair hadn't spotted each other in time: "nobody about").
 - Lore learning runs about every 30 s (`DrifterEntity` tick), so a `new:` whim can come up from then until a day later.
 
+
+## Side session: scale pass toward 1000 Drifters (0.23.30-side.1)
+
+The user (2026-11-08): "lets work on the scale and go back to that goal we had of making it possible with 1000 players"
+(1000 Drifters alive at once; the milestone 16 goal). Branch claude/friendly-chebyshev-e8b006, merged with the main
+line's 0.23.30. Nothing in `src/civ` or `src/civClient` was touched.
+
+### How it was measured
+
+Headless server, seed 779 (a civilized Tectonic world), four forceload tiles round spawn (784 chunks), the same saved
+world restored before every run, no player (so everyone is Far unless forced). Ramp: `/drifter spawnmany 250 200`, again,
+then 500 more; `/drifter tier full all` for the "player near everyone" case; `/drifter battle 150` and `/drifter battle
+500`; four towns (`/drifterciv town spawn 12 <name>`) plus 600 wanderers; 400 Drifters close together, then
+`execute as @e[type=drifter:drifter] at @s run drifter talk long` (about 160 long talks started in one tick).
+Other sessions' Minecraft tests were running on the same PC, so every comparison ran the original 0.23.29 code
+(a separate copy) and this build back to back. `/drifter perf` now also prints the whole server tick and the server
+thread's own CPU time. `tools/smoke.py`'s `jfr` line now profiles only its own server (it used to attach to every dev
+server on the machine, and two sessions' profiles overwrote each other).
+
+### Results (whole server tick, ms; 50 is the 20 TPS limit)
+
+| Test | 0.23.29 | Now |
+| --- | --- | --- |
+| 250 wanderers, nobody near | 18.5 to 19 | 13.5 |
+| 500 wanderers, nobody near | 34 to 40 | 21 to 23 |
+| ~1000 wanderers within 200 blocks, nobody near | 61 to 66 | 43 to 45 |
+| ~850 of them all at Full detail (as if a player stood by each) | 83 to 91 | 66 to 69 |
+| 150v150 battle | 30 to 37 | 20 to 26 |
+| 500v500 battle | 113 to 138 | 86 to 98 |
+| 4 small towns + 600 wanderers | 41 to 42 | 30.5 to 32 |
+| the same, all at Full detail | 62 to 64 | 53 to 55 |
+| 400 Drifters, ~160 long talks started at once: the worst tick | ~85 | 44 to 49 |
+| ...and while they talk | 22 to 27 | 18 to 23 |
+
+So 1000 loaded Drifters with nobody near now hold a full 20 TPS with room to spare (they were at 15 to 16 TPS), a 150v150 is comfortably
+smooth, and a 500v500 went from about 8 TPS to about 11. 1000 spread across a world (most unloaded, catching up when
+you come) was already cheap.
+
+### What was slow, and what was done
+
+The profile was "death by a thousand cuts": Drifter code was 92% of the server thread at 1000 (eyes 21%, decisions 14%,
+walking 13%, the game's own body physics 12.5%, reflexes 6%). The talk system (10,710 topics), `Together` plans,
+`Lore.check`, `ChatLines` and the civ addon were near 0% in these tests.
+
+1. **How often away-from-player Drifters look about and think** (`entity/DetailTier`): Reduced (no player within 48
+   blocks) every 2nd tick, Far (none within 128) every 5th, as DESIGN.md section 22's table has it (they were every tick
+   and every 2nd). Body, reflexes and the task at hand still every tick; a fight, a hit in the last 3 s, or a hostile it
+   knows of about (`Brain.wary()`, from the danger check) put it back to every tick. Re-scoring and danger checks are
+   counted in game ticks now (it counted its thoughts, so "every 2 s" at Far was really 4 s; kept at 4 s). Awareness
+   builds by game time (a far one notices as fast as before), and hearing keeps 8 ticks of sounds per tick slot, each
+   listener reading only the ticks since it last listened (it kept 2, so a far one would have missed sounds); the "6
+   sounds a tick" limit counts those ticks. Setting: "Far ones think less" on the Performance page /
+   `/drifter config farhalfrate`. Measured in one run, on vs off: the eyes went from about 28 ms to 11 ms a tick at 1000.
+2. **Planning**: item names (`Planner.name`, a fifth of all planning: it rebuilt each name from its translation) and
+   "what gives this item" (`Sources.forItem`) are worked out once (cleared on a datapack/tag reload).
+3. **Shopping**: `BuyGoal` searched every Drifter within 64 blocks at every decision for a shopkeeper; shopkeepers are
+   now kept in a short list (`DrifterEntity.shopkeepersIn`).
+4. **Battles**: dropped gear and arrows: each soldier checked every item within 32 blocks every half second, and each
+   new one sorted its whole memory (`DrifterMemory.trim`, a fifth of a 500v500). Now at most 24 items a look (a different
+   lot each time) and trimming makes a little room at once (1/16 of the kind's capacity) without streams.
+   Hearing: the out-of-earshot test comes first. A moving Drifter with no boat, shulker or other solid entity near skips
+   the game's search of every entity round it for solid ones (`mixin/EntityCollideMixin`, a MixinExtras wrap so other mods'
+   changes to that call still run; `RareEntities.noSolidsIn`; a kind counts as solid if its class overrides
+   `canBeCollidedWith`, found by reflection with the game's runtime name).
+5. **Small ones**: the light a creature is seen by, once per creature per tick (not once per looker); `inCombat` once per
+   goal; the lava reflex looks at the sections' palettes first and keeps each section's answer for the tick
+   (`TickChunks.mayHaveLava`); a watched Drifter's knowledge scan is reused for 1.5 s within 3 blocks (its own placing or
+   mining still drops it, the fix for the old "85 crafting tables"); the machine's thread count asked once
+   (`PathWorkers`); the first goals' best score kept as they're scored; talk conditions parsed once (`Topics.holds`:
+   it cut strings up 20,000 times a topic pick).
+
+### Not done / next
+
+- The 500v500 is still about 90 ms a tick. What's left there: the eyes in a crowd (attention re-ranks and sight lines,
+  about a third), the game's own body physics and pushing for 1000 packed bodies (about a quarter), dropped items'
+  own ticking (vanilla), hearing, walking. Next steps would be the awareness sight lines on the helper threads (as the
+  block rays already are) and a crowd budget for attention.
+- Not checked in the user's game yet: that far-away Drifters still look and act normal when you walk up to them, and the
+  FPS side of big battles (EMF settings noted in milestone 16).
+- `WhimGoal.pick` (about 1.5% at 1000) was left alone: the whims session works on those files.
+- Right after 1000 are spawned at once, a third of their walking time is waiting for a route for the first minute or so
+  (the same in 0.23.29): the 4 helper threads (a quarter of a 16-thread PC) are full. "Helper threads" on the Performance
+  page can go higher.
+- "Now" is the final build (merged with 0.23.30), except the towns rows, from a build a step before it (the last steps
+  made hearing and awareness exact and skipped the solid-entity search).
+
+## Side session: crowd pass, a 500v500 toward 20 TPS (0.23.30-side.2)
+
+Asked for by the scale session (the user's "1000 players" goal, milestone 16): make `/drifter battle 500 30` run much
+closer to 20 TPS without breaking the fairness rules. Branch claude/affectionate-blackburn-6269f1, on top of
+0.23.30-side.1 (claude/friendly-chebyshev-e8b006). Nothing in `src/civ` or `src/civClient` was touched.
+
+### How it was measured
+
+As in 0.23.30-side.1: headless server, seed 779, the same saved world restored before every run, no player, port 25567.
+The old build (0.23.30-side.1) and this one were run back to back. Other sessions' Minecraft (a client and test servers)
+were running on the same PC for part of it, which threw the wall-clock numbers about (a run's "Whole server tick" jumped
+by 50% when another client started); `/drifter perf`'s "server thread CPU" line leaves that out, so both are given.
+
+### Results (ms a tick; 50 is the 20 TPS limit)
+
+| Test | 0.23.30-side.1 | Now |
+| --- | --- | --- |
+| 500v500, whole server tick | 67 to 98 (65 to 87 in a second run) | 52 to 59 (53 to 71 in another) |
+| 500v500, server thread CPU | 60 to 88 | 44 to 53 |
+| 150v150, whole server tick | 23 to 29 | 18.5 to 24 |
+| ~1000 wanderers within 200 blocks, nobody near (server thread CPU) | 61 to 63 | 49 to 52 |
+| the same, all at Full detail (server thread CPU) | 103 to 113 | 95 to 105 |
+
+So a 500v500 went from about 11 TPS (8 in the worst stretch) to about 17 to 19 TPS, and nothing else got slower. The
+fight itself looked the same in the reports (soldiers standing, on roofs, drawing bows, "hardly moved" counts); arrows
+into friends 0 to 5 in both builds.
+
+### What was slow, and what was done
+
+Profile of the old build in a 500v500: Drifter code 67% of the server thread (eyes 37%, of which picking who to watch
+14%, hearing 10%, eye rays 7%, watching 4%), the game's own body physics about 10%.
+
+1. **Sight lines to creatures on the helper threads** (`perception/SightWork.Line`, `Senses.sightLine/eyeLine/useLine`).
+   Each look at a creature it's watching takes the answer to the line it asked at its last look, if that was asked at
+   most 10 ticks ago and from within 1.5 blocks of where both stand now, and asks for the next one; otherwise it traces
+   on the spot as before. Traced through the helper threads' copy of the world (`nav/WorldCopy`, as eye rays already are),
+   with the blocks' visual shapes, as `lineOfSight` does; a line through a part the copy doesn't have says "don't know"
+   and the next look traces on the spot. Eye to eye between two Drifters is still one shared line for the pair. Fairness:
+   still a real line through the world between its eyes and the creature, at most one look old (0.1 to 0.5 s) and never
+   from more than 1.5 blocks off; far ones (beyond 32 blocks) and first looks are traced on the spot. In a battle 57 to
+   72% of these lines came off the server thread (`/drifter perf` "Sight lines to creatures").
+2. **One shared grid of bodies a tick** (`world/BodyGrid`): every living thing, boat and minecart (and apart, dropped
+   items and orbs) in 8-block columns, built at the tick's first question. Used by: picking who to watch
+   (`Senses.livingIn`, boxes up to 140 blocks; wider ones ask the game), pushing (`DrifterEntity.pushEntities`, the game's
+   rules and cramming limit, read from the grid), "is a friend in my arrow's path" (`Archery.friendInTheWay`), picking up
+   items and orbs, and noticing dropped loot. Each answer tests the body's box as it is now, with a 3-block margin; a body
+   that came into the world this tick is found from the next.
+3. **Battle soldiers looked up by entity id** (`world/Battle`): entities' UUIDs share hash codes often enough that the
+   soldier map had long chains (a soldier lookup was 2.5% of a 500v500).
+4. **Hearing**: the "wool in the way?" check keeps each chunk section's answer for the tick (`TickChunks.SectionAnswers`,
+   which the lava check now shares; 3.6%); the "same ongoing sound" loop is a plain loop (1.7%); in a crowd (40+ within
+   32 blocks) it picks out 2 new sounds a tick instead of 6 (still 40 a second; each became a thought).
+5. **Picking who to watch** in a crowd: every second instead of every half second (the dozen it watches are still looked
+   at every 2 to 4 ticks). This was the biggest single part of the eyes.
+6. **Smaller**: what a creature looks like (held item, armor) is written into memory once a second instead of at every
+   look (where it is, still every look); the dodge reflex looks through the arrows in flight this tick (listed once for
+   everybody) instead of every arrow in the world, stuck ones too; the far skyline rays in a fight one every 4th tick (was
+   every 2nd); "lava near?" checks on the walk share the tick's per-section answers; the watched-creatures table is keyed
+   by plain ints.
+
+### Not done / next
+
+- What's left in a 500v500 (new profile): the eyes about 28% (who to watch 9%, eye rays 7%, looks 5%, hearing 5%),
+  walking and tasks 13% (route following, the archers' friend check), the game's own body physics and block collisions
+  about 10% (vanilla; Lithium helps there), reflexes 6%, decisions 6%, the game's chunk upkeep 4%.
+- About 40% of sight lines are still traced on the spot: mostly the first look at a creature while picking who to watch.
+  A two-step pick (ask now, decide next tick) would move most of those too.
+- Not checked in the user's game yet: that soldiers still notice, chase and fight as before (they did on the test server:
+  the battle reports matched), and that walking past a boat or into a crowd still pushes as before.
+- The 1000-at-Full-detail case is still about 100 ms a tick of server thread time (about 10 TPS): that's "a player
+  standing next to every one of 1000 Drifters", which doesn't happen in play, but the eyes there are the next target.
+
+## Side session: crowd pass, second round (0.23.30-side.3)
+
+The user (2026-11-08): "lets do whatever is next" after 0.23.30-side.2. Same branch, same test setup. Another session's
+test server was running hard on the PC all through, so builds were alternated (side.2, this, side.2, this) and compared
+on the server thread's own CPU time.
+
+### Results (500v500, ms a tick)
+
+| | 0.23.30-side.2 | Now |
+| --- | --- | --- |
+| server thread CPU, first run | 57 to 72 | 46 to 61 |
+| server thread CPU, second run | 55 to 66 | 53 to 61 |
+| average of the readings | about 63 | about 55 |
+| whole server tick, average (PC busy) | about 71 | about 62 |
+| sight lines off the server thread | 52 to 72% | 61 to 85% |
+| ~1000 wanderers, nobody near (server thread CPU) | 46 to 50 | 44 to 46 |
+| the same, all at Full detail (server thread CPU) | 70 to 73 | 69 to 72 |
+
+(On a quiet PC side.2 measured 52 to 59 ms whole tick; this round takes about another eighth off that.)
+
+### What was done
+
+1. **Picking who to watch in two steps** (`Senses.rankAttention` / `prefetch` / `finishRank`): this tick it gathers who's
+   round it and sends out the sight lines to those it will look at up close; next tick it looks, with the answers back.
+   Who it watches changes 50 ms later than before. Without the path threads, in one step as before.
+2. **Room to stand or crouch** (`DrifterEntity.noBlockCollision`, every tick for a moving Drifter): a quick look at the
+   few blocks first (nothing with a collision shape in the box, nothing tall like a fence reaching in from round it:
+   room); otherwise, or near an unloaded chunk, the game's own check. Blocks whose shape never changes use the game's
+   cached shape; scaffolding, powder snow and liquids are asked with its body, as the game does.
+3. **Hearing stops looking** once it has taken in all it can this tick (only fuses still get through), instead of going
+   through every sound round it (`SoundHub.near`).
+4. **Reflexes**: lit TNT and falling blocks have lists of their own (`RareEntities`), not shared with a battlefield's
+   hundreds of stuck arrows; the fire and lava checks look at the chunk sections' palettes first; the creeper, blaze and
+   hard-fight checks read the watch list without copying it.
+5. **What it knows round it** (`KnownWorld.scan`, for gathering and crafting plans) holds for up to 5 s within 24 blocks
+   in a battle or a fight (soldiers re-scanned at every kill; nothing it could gather beats the fight).
+
+### Next
+
+- What's left in a 500v500: the eyes about a quarter (eye rays, re-ranks, awareness looks, hearing), walking and tasks
+  about a ninth, the game's own movement and block collisions about a ninth, reflexes, decisions, the game's chunk upkeep.
+- A real 500v500 near a player also pays for sending all those bodies' movements to the player's game (not on the
+  headless test server), and the client's FPS (EMF settings, milestone 16).
+
+## Side session: the user's own 500v500 (0.23.32-side.1, then 0.23.32-side.2)
+
+The user (2026-11-08): "lets do the test". 0.23.32-side.1 = the crowd pass merged with the main line's 0.23.32, installed
+in DRIFTER TEST. Their 500v500 (a flat world, standing by it): **3 TPS** (338 ms a tick, brain_score 237 ms of it) and
+**1 FPS**. The headless runs never showed it: with no player every soldier was FAR detail, and Farmer's Delight isn't
+loaded in the dev server unless `DRIFTER_FD=1`. A Java Flight Recorder profile of their running game (`jcmd <pid>
+JFR.start`, during the battle) gave both answers.
+
+- **Server: 97% was the planner** (`Goals.Progress.feasibility`, its stone tools plan) **in Farmer's Delight's cutting
+  board recipes.** The board's salvage recipes (a door, a sign, a boat cut back into planks) made every plan for planks or
+  sticks try each wooden thing and what that's made of, to the 30,000 sub-plan cap, every few seconds for every soldier
+  at full detail. Fix (`Planner.obtainItem`): the board only for what it can't gather or craft (bacon, cabbage leaves,
+  straw). Also each ingredient's item list is kept (`Planner.itemsOf`, two fifths of planning). Headless, every soldier
+  forced to full detail, Farmer's Delight on: before, the server froze (a tick every few seconds); now 73 to 81 ms a tick
+  server thread CPU, brain_score 2 to 3 ms, the same as without Farmer's Delight.
+- **Client: 93% of each frame was drawing Drifters**: the EMF player model with the user's 3D pack and armor about half,
+  Touch'n Motion's poses for everyone within 64 blocks about three tenths. Fix (`DrifterTouchNMotion.crowdRange`): in a
+  crowd only the nearest 40 get its poses (the range shrinks to fit, worked out every half second). Not measured yet (the
+  dev client has neither the user's EMF pack nor Touch'n Motion): the user checks FPS.
+
+### Next
+
+- With a player standing by a 500v500 every soldier is at full detail: about 75 to 85 ms a tick on the test server (12 to
+  13 TPS), against about 55 with none near. The eyes (about 28 ms) are the most of it.
+- The client: the rest of a frame is the model itself (EMF's cubes, armor). Lowering the game's Entity Distance or the
+  pack's detail helps; a cheaper look for far-off soldiers would be a design choice for the user.

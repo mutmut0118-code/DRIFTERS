@@ -28,11 +28,22 @@ public final class RareEntities {
 	}
 
 	private static final Map<ResourceKey<Level>, Set<Entity>> levels = new HashMap<>();
+	/** Of those, lit TNT and falling blocks, apart too. */
+	private static final Map<ResourceKey<Level>, Set<Entity>> tnt = new HashMap<>();
+	private static final Map<ResourceKey<Level>, Set<Entity>> falling = new HashMap<>();
 
 	public static void register() {
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
 			if (watched(entity)) {
 				levels.computeIfAbsent(level.dimension(), key -> new LinkedHashSet<>()).add(entity);
+				var own = own(entity);
+				if (own != null) {
+					own.computeIfAbsent(level.dimension(), key -> new LinkedHashSet<>()).add(entity);
+				}
+			}
+
+			if (SOLID.get(entity.getClass())) {
+				solids.computeIfAbsent(level.dimension(), key -> new LinkedHashSet<>()).add(entity);
 			}
 		});
 		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
@@ -41,9 +52,105 @@ public final class RareEntities {
 				if (set != null) {
 					set.remove(entity);
 				}
+
+				var own = own(entity);
+				Set<Entity> ownSet = own == null ? null : own.get(level.dimension());
+				if (ownSet != null) {
+					ownSet.remove(entity);
+				}
+			}
+
+			if (SOLID.get(entity.getClass())) {
+				Set<Entity> set = solids.get(level.dimension());
+				if (set != null) {
+					set.remove(entity);
+				}
 			}
 		});
-		ServerLifecycleEvents.SERVER_STOPPED.register(server -> levels.clear());
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			levels.clear();
+			tnt.clear();
+			falling.clear();
+			solids.clear();
+		});
+		com.dinglebob.drifter.Drifter.LOGGER.info("[Drifter] solid entities known by {} (boats {}, Drifters {})", COLLIDABLE_NAME,
+			SOLID.get(net.minecraft.world.entity.vehicle.Boat.class), SOLID.get(com.dinglebob.drifter.entity.DrifterEntity.class));
+	}
+
+	/**
+	 * Loaded entities of a kind that can be bumped into (a boat, a minecart, a shulker: any whose class says it can be
+	 * collided with, modded ones too), per level. Moving, a Drifter asks the game for the solid entities in its way, and
+	 * the game looks through every entity round it to find them: in a packed army, hundreds a tick each, to find none
+	 * (milestone 16 scale pass, 2026-11-08: a twelfth of a 500v500's time). With none of these near, the answer is none.
+	 */
+	private static final Map<ResourceKey<Level>, Set<Entity>> solids = new HashMap<>();
+
+	/** The game's own name for Entity#canBeCollidedWith at run time (it differs between the dev setup and a real game). */
+	private interface SerialPredicate extends java.util.function.Predicate<Entity>, java.io.Serializable {
+	}
+
+	@org.jetbrains.annotations.Nullable
+	private static final String COLLIDABLE_NAME = collidableName();
+
+	@org.jetbrains.annotations.Nullable
+	private static String collidableName() {
+		try {
+			SerialPredicate reference = Entity::canBeCollidedWith;
+			java.lang.reflect.Method replace = reference.getClass().getDeclaredMethod("writeReplace");
+			replace.setAccessible(true);
+			return ((java.lang.invoke.SerializedLambda)replace.invoke(reference)).getImplMethodName();
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return null;
+		}
+	}
+
+	/** This kind of entity says (in its own class or one between it and Entity) whether it can be collided with. */
+	private static final ClassValue<Boolean> SOLID = new ClassValue<>() {
+		@Override
+		protected Boolean computeValue(Class<?> type) {
+			if (COLLIDABLE_NAME == null) {
+				return true;
+			}
+
+			try {
+				return type.getMethod(COLLIDABLE_NAME).getDeclaringClass() != Entity.class;
+			} catch (NoSuchMethodException | RuntimeException e) {
+				return true;
+			}
+		}
+	};
+
+	/**
+	 * No entity that could be solid is loaded in this box (server side): the game's search for solid entities there would
+	 * find none. False whenever it can't be sure (the name lookup failed: then every kind counts as maybe solid).
+	 */
+	public static boolean noSolidsIn(Level level, AABB box) {
+		if (level.isClientSide() || COLLIDABLE_NAME == null) {
+			return false;
+		}
+
+		Set<Entity> set = solids.get(level.dimension());
+		if (set == null || set.isEmpty()) {
+			return true;
+		}
+
+		for (Entity entity : set) {
+			if (!entity.isRemoved() && entity.getBoundingBox().intersects(box)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** A kind of entity that may be solid (boats, minecarts, shulkers...: its class says whether it can be collided with). */
+	public static boolean solidKind(Entity entity) {
+		return SOLID.get(entity.getClass());
+	}
+
+	@org.jetbrains.annotations.Nullable
+	private static Map<ResourceKey<Level>, Set<Entity>> own(Entity entity) {
+		return entity instanceof PrimedTnt ? tnt : entity instanceof FallingBlockEntity ? falling : null;
 	}
 
 	private static boolean watched(Entity entity) {
@@ -52,7 +159,10 @@ public final class RareEntities {
 
 	/** As Level#getEntitiesOfClass, for one of the watched kinds (server side). */
 	public static <T extends Entity> List<T> near(Level level, Class<T> type, AABB box, Predicate<? super T> test) {
-		Set<Entity> set = levels.get(level.dimension());
+		// Lit TNT and falling blocks have lists of their own: a battlefield's stuck arrows were hundreds to look past for
+		// each (milestone 16 crowd pass, 2026-11-08).
+		Map<ResourceKey<Level>, Set<Entity>> lists = type == PrimedTnt.class ? tnt : type == FallingBlockEntity.class ? falling : levels;
+		Set<Entity> set = lists.get(level.dimension());
 		if (set == null || set.isEmpty() || level.isClientSide()) {
 			// (A list the caller may sort, as getEntitiesOfClass gives: an unmodifiable empty one crashed a reflex that sorts.)
 			return level.isClientSide() ? level.getEntitiesOfClass(type, box, test) : new ArrayList<>(0);
