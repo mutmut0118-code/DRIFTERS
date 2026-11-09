@@ -46,6 +46,8 @@ public class Awareness {
 	/** Reached DETECTED at some point while tracked: it knows what this is. */
 	public boolean identified;
 	public boolean visibleNow;
+	/** When what it looks like (held item, armor...) last went into memory (Senses#rememberEntity). */
+	public long describedAt = Long.MIN_VALUE / 2;
 	public Vec3 lastSeenPos;
 	public long lastSeenTick;
 	/** Ticks this entity stays in the tracked set regardless of the attention budget (it hit us, a fuse hissed). */

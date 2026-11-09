@@ -68,12 +68,126 @@ public final class SightWork {
 		}
 	}
 
+	/**
+	 * A sight line to a creature (Senses#look: eye to its head, feet or middle), traced on the path threads (milestone 16
+	 * crowd pass, 2026-11-08: in a 500v500 the soldiers' sight lines to each other were a twentieth of the server's time).
+	 * Each look takes the answer to the line it asked at its last look, if that was asked lately from close to where both
+	 * stand now, and asks again; otherwise it traces on the spot as before. So what it sees of a creature it's watching is
+	 * at most a look old (a tenth of a second or two, and never from more than a block and a half off), through the world as
+	 * it was a tick ago, as its eye rays already are.
+	 */
+	public static final class Line {
+		/** What the last finished line said (1 clear, -1 blocked, 0 none), between which points, and when it was asked. */
+		byte known;
+		Vec3 knownFrom = Vec3.ZERO;
+		Vec3 knownTo = Vec3.ZERO;
+		long knownAsked = Long.MIN_VALUE / 2;
+		/** The line out on the path threads (when {@link #out}). */
+		boolean out;
+		Vec3 from = Vec3.ZERO;
+		Vec3 to = Vec3.ZERO;
+		long asked;
+		volatile byte result;
+		volatile boolean done;
+
+		/** Takes in a finished line, if one is back. */
+		void collect() {
+			if (this.out && this.done) {
+				this.out = false;
+				this.known = this.result;
+				this.knownFrom = this.from;
+				this.knownTo = this.to;
+				this.knownAsked = this.asked;
+			}
+		}
+
+		/** Last known answer usable for a line between these points now, or 0. */
+		byte answer(Vec3 from, Vec3 to, long now) {
+			if (this.known == 0 || now - this.knownAsked > MAX_AGE) {
+				return 0;
+			}
+
+			return this.knownFrom.distanceToSqr(from) <= MAX_DRIFT * MAX_DRIFT && this.knownTo.distanceToSqr(to) <= MAX_DRIFT * MAX_DRIFT ? this.known : 0;
+		}
+
+		/** Traced on the spot: the answer to keep. */
+		void traced(Vec3 from, Vec3 to, long now, boolean clear) {
+			this.known = clear ? (byte)1 : (byte)-1;
+			this.knownFrom = from;
+			this.knownTo = to;
+			this.knownAsked = now;
+		}
+
+		/** Sends the line out to be traced for the next look (unless one is out already). */
+		void ask(Vec3 from, Vec3 to, long now, net.minecraft.server.level.ServerLevel level) {
+			if (this.out) {
+				return;
+			}
+
+			this.out = true;
+			this.done = false;
+			this.result = 0;
+			this.from = from;
+			this.to = to;
+			this.asked = now;
+			queuedLines.computeIfAbsent(level, key -> new ArrayList<>()).add(this);
+		}
+
+		void trace(NavWorld world) {
+			try {
+				this.result = visualLine(world, this.from, this.to);
+			} catch (RuntimeException e) {
+				this.result = 0;
+			} finally {
+				this.done = true;
+			}
+		}
+	}
+
+	/** An answer older than this (ticks) isn't used. */
+	static final long MAX_AGE = 10;
+	/** Nor one from more than this (blocks) from where either end is now. */
+	static final double MAX_DRIFT = 1.5;
+
+	/** A line through a part of the world the copy doesn't have: stop and say "don't know". */
+	private static final BlockHitResult NOT_COPIED = BlockHitResult.miss(Vec3.ZERO, Direction.UP, BlockPos.ZERO);
+
+	/**
+	 * Senses#lineOfSight on the copy (the blocks' visual shapes, fluids let through): 1 clear, -1 blocked, 0 when the line
+	 * crosses a part of the world the copy doesn't have.
+	 */
+	static byte visualLine(NavWorld world, Vec3 from, Vec3 to) {
+		CollisionContext context = CollisionContext.empty();
+		BlockHitResult hit = BlockGetter.traverseBlocks(from, to, world, (getter, pos) -> {
+			if (!getter.loaded(pos)) {
+				return NOT_COPIED;
+			}
+
+			BlockState state = getter.getBlockState(pos);
+			if (state.isAir()) {
+				return null;
+			}
+
+			VoxelShape shape = ClipContext.Block.VISUAL.get(state, getter, pos, context);
+			return shape.isEmpty() ? null : getter.clipWithInteractionOverride(from, to, pos, shape, state);
+		}, getter -> BlockHitResult.miss(to, Direction.UP, BlockPos.containing(to)));
+		if (hit == NOT_COPIED) {
+			return 0;
+		}
+
+		return hit.getType() == HitResult.Type.MISS ? (byte)1 : (byte)-1;
+	}
+
 	/** Batches made this tick, handed to the path threads at its end (in groups, not one by one). */
 	private static final List<Batch> queued = new ArrayList<>();
+	/** Lines asked this tick, by level. */
+	private static final java.util.Map<net.minecraft.server.level.ServerLevel, List<Line>> queuedLines = new java.util.IdentityHashMap<>();
 	private static final int PER_JOB = 32;
+	private static final int LINES_PER_JOB = 128;
 
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> flush());
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> queuedLines.clear());
 	}
 
 	static void queue(Batch batch) {
@@ -81,6 +195,17 @@ public final class SightWork {
 	}
 
 	private static void flush() {
+		for (var entry : queuedLines.entrySet()) {
+			List<Line> lines = entry.getValue();
+			for (int start = 0; start < lines.size(); start += LINES_PER_JOB) {
+				List<Line> group = List.copyOf(lines.subList(start, Math.min(lines.size(), start + LINES_PER_JOB)));
+				// (A view of the copy for each job: a view remembers the last column it read, so it's one thread's.)
+				NavWorld view = com.dinglebob.drifter.nav.WorldCopy.view(entry.getKey());
+				PathWorkers.submit(() -> group.forEach(line -> line.trace(view)), -1);
+			}
+		}
+
+		queuedLines.clear();
 		if (queued.isEmpty()) {
 			return;
 		}

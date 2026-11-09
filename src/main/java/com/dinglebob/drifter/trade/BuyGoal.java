@@ -92,8 +92,11 @@ public final class BuyGoal extends Goals.Goal {
 			return null;
 		}
 
-		for (DrifterEntity keeper : drifter.level().getEntitiesOfClass(DrifterEntity.class, drifter.getBoundingBox().inflate(RANGE),
-			other -> other != drifter && other.isAlive() && other.getShop() != null)) {
+		for (DrifterEntity keeper : DrifterEntity.shopkeepersIn(drifter.level(), drifter.getBoundingBox().inflate(RANGE))) {
+			if (keeper == drifter) {
+				continue;
+			}
+
 			ShopKeeper shop = keeper.getShop();
 			var stand = shop.stand(keeper);
 			// Open, at its stall, and one it knows of (seen the keeper, seen the stall's spot, or its own town's).

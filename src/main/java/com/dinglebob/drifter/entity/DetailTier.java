@@ -13,18 +13,18 @@ import net.minecraft.world.phys.Vec3;
  */
 public enum DetailTier {
 	/** A player within {@link #FULL_RANGE} blocks, or one looking its way: everything. */
-	FULL(6, 20, 1),
+	FULL(6, 20, 1, 1),
 	/**
 	 * No player within {@link #FULL_RANGE}: no mannerisms, fewer eye rays, re-thinks every 1.5 s. (Milestone 16, a thousand
 	 * Drifters: 4 rays, was 6.)
 	 */
-	REDUCED(4, 30, 1),
+	REDUCED(4, 30, 1, 2),
 	/**
-	 * No player within {@link #REDUCED_RANGE}: fewer eye rays still (1, was 4), far sight every fourth tick, re-ranks what
-	 * it's watching every second and updates it every fourth tick, re-thinks every 2 s. Nobody's there to see the difference;
-	 * a fight puts it back to full.
+	 * No player within {@link #REDUCED_RANGE}: fewer eye rays still (1, was 4), looks about and thinks every fifth tick (so
+	 * re-ranks what it's watching every 5 s, updates it every second, far sight every second), re-thinks its goals every 4 s.
+	 * Nobody's there to see the difference; a fight, a hit or a hostile about puts it back to every tick.
 	 */
-	FAR(1, 40, 2);
+	FAR(1, 80, 2, 5);
 
 	public static final double FULL_RANGE = 48.0;
 	public static final double REDUCED_RANGE = 128.0;
@@ -33,15 +33,22 @@ public enum DetailTier {
 
 	/** Eye rays a tick (not counting far sight, which always runs: landmarks are how it finds its way). */
 	public final int blockRays;
-	/** Ticks between re-scoring its goals (danger is still checked every 5). */
+	/** Ticks between re-scoring its goals (danger is still checked every 5, every 10 at Far). */
 	public final int rescoreTicks;
-	/** How much slower than full detail it re-ranks and updates what it's watching, and casts far sight. */
+	/** How much slower than full detail it re-ranks and updates what it's watching, and casts far sight (in its looks). */
 	public final int senseSlowdown;
+	/**
+	 * It looks about and thinks every this many ticks (DESIGN.md section 22: Reduced "AI every 2 to 4 ticks", Far "every 5 to
+	 * 10"; milestone 16 scale pass, 2026-11-08: Reduced every 2, Far every 5, was every tick and every 2). Its body, reflexes and
+	 * what it's doing still run every tick; a fight, being hit or a hostile about puts it back to every tick.
+	 */
+	public final int thinkEvery;
 
-	DetailTier(int blockRays, int rescoreTicks, int senseSlowdown) {
+	DetailTier(int blockRays, int rescoreTicks, int senseSlowdown, int thinkEvery) {
 		this.blockRays = blockRays;
 		this.rescoreTicks = rescoreTicks;
 		this.senseSlowdown = senseSlowdown;
+		this.thinkEvery = thinkEvery;
 	}
 
 	public boolean mannerisms() {

@@ -668,6 +668,31 @@ public class DrifterEntity extends PathfinderMob {
 
 	public void setShop(@org.jetbrains.annotations.Nullable com.dinglebob.drifter.api.ShopKeeper shop) {
 		this.shop = shop;
+		if (shop != null) {
+			SHOPKEEPERS.add(this);
+		} else {
+			SHOPKEEPERS.remove(this);
+		}
+	}
+
+	/** Drifters with a shop (weakly held), so looking for a stall nearby doesn't search every Drifter round it (milestone 16
+	 * scale pass, 2026-11-08: a thousand Drifters each looked through everyone within 64 blocks every decision). */
+	private static final java.util.Set<DrifterEntity> SHOPKEEPERS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
+	/** Living Drifters with a shop in this level inside the box (the same as searching the box for them, cheaper). */
+	public static List<DrifterEntity> shopkeepersIn(Level level, net.minecraft.world.phys.AABB box) {
+		if (SHOPKEEPERS.isEmpty()) {
+			return List.of();
+		}
+
+		List<DrifterEntity> found = new java.util.ArrayList<>();
+		for (DrifterEntity keeper : SHOPKEEPERS) {
+			if (keeper.level() == level && keeper.isAlive() && !keeper.isRemoved() && keeper.getShop() != null && box.intersects(keeper.getBoundingBox())) {
+				found.add(keeper);
+			}
+		}
+
+		return found;
 	}
 
 	/** A trade run to another town it's on (DrifterApi.setTradeRun), or null. Not saved. */
@@ -837,9 +862,19 @@ public class DrifterEntity extends PathfinderMob {
 			return false;
 		}
 
-		String id = goal.id();
-		return "fight".equals(id) || "flee".equals(id) || "rampage".equals(id) || "pursue".equals(id);
+		// (Asked many times a tick: worked out once per goal it's on. Milestone 16 scale pass, 2026-11-08.)
+		if (goal != this.combatGoal) {
+			String id = goal.id();
+			this.combatGoal = goal;
+			this.combatGoalIsFight = "fight".equals(id) || "flee".equals(id) || "rampage".equals(id) || "pursue".equals(id);
+		}
+
+		return this.combatGoalIsFight;
 	}
+
+	@org.jetbrains.annotations.Nullable
+	private com.dinglebob.drifter.brain.Goals.Goal combatGoal;
+	private boolean combatGoalIsFight;
 
 	private boolean engaged() {
 		var goal = this.brain.currentGoal();
@@ -1346,6 +1381,46 @@ public class DrifterEntity extends PathfinderMob {
 	}
 
 	/**
+	 * LivingEntity#pushEntities, the same rules (who can be pushed, the cramming limit), with the bodies against it found in
+	 * the tick's shared grid (BodyGrid): the game's search went through every soldier in its 16-block section, in a packed
+	 * army a hundred, for each of them every tick (milestone 16 crowd pass, 2026-11-08).
+	 */
+	@Override
+	protected void pushEntities() {
+		if (this.level().isClientSide()) {
+			super.pushEntities();
+			return;
+		}
+
+		List<net.minecraft.world.entity.Entity> list = com.dinglebob.drifter.world.BodyGrid.bodies(this.level(), this, this.getBoundingBox(),
+			net.minecraft.world.entity.EntitySelector.pushableBy(this));
+		if (list == null) {
+			super.pushEntities();
+			return;
+		}
+
+		if (!list.isEmpty()) {
+			int limit = this.level().getGameRules().getInt(net.minecraft.world.level.GameRules.RULE_MAX_ENTITY_CRAMMING);
+			if (limit > 0 && list.size() > limit - 1 && this.random.nextInt(4) == 0) {
+				int count = 0;
+				for (net.minecraft.world.entity.Entity entity : list) {
+					if (!entity.isPassenger()) {
+						count++;
+					}
+				}
+
+				if (count > limit - 1) {
+					this.hurt(this.damageSources().cramming(), 6.0F);
+				}
+			}
+
+			for (net.minecraft.world.entity.Entity entity : list) {
+				this.doPush(entity);
+			}
+		}
+	}
+
+	/**
 	 * Any block its body overlaps could suffocate it (a quick look at the few blocks round it first: almost always it
 	 * stands in the open, and the full collision checks were a measurable cost every tick; performance, 2026-10-17).
 	 */
@@ -1498,8 +1573,12 @@ protected void customServerAiStep() {
 		// Far from every player (and not in a fight): it looks about and thinks every other tick, as DESIGN.md section 22's
 		// Far tier has it; its reflexes, what it's doing and its body still run every tick, so nothing it does is slower
 		// (milestone 16: a thousand Drifters; user, 2026-10-19, after the recommendation).
-		boolean thinks = this.tier != DetailTier.FAR || !com.dinglebob.drifter.DrifterConfig.farHalfRate() || this.inCombat()
-			|| ((this.tickCount + this.getId()) & 1) == 0;
+		// (Milestone 16 scale pass, 2026-11-08: Reduced every 2 ticks, Far every 5, as the design's tier table has it; a fight, a
+		// hit in the last 3 s or a hostile it knows of about keeps it at every tick.)
+		int every = com.dinglebob.drifter.DrifterConfig.farHalfRate() ? this.tier.thinkEvery : 1;
+		boolean thinks = every <= 1 || this.inCombat() || this.brain.wary() || this.hurtTime > 0
+			|| this.getLastHurtByMob() != null && this.tickCount - this.getLastHurtByMobTimestamp() < 60
+			|| (this.tickCount + this.getId()) % every == 0;
 		long t = System.nanoTime();
 		if (thinks) {
 			this.senses.tick();
@@ -1891,6 +1970,62 @@ protected void customServerAiStep() {
 		this.setPose(pose);
 	}
 
+	/**
+	 * Level#noBlockCollision, with a quick look first: when every block in the box has no collision shape and none round it
+	 * reaches into it (a fence, a wall), there's nothing to bump; otherwise the game's own check, as before. The game's
+	 * check builds every shape through a general-purpose walker, and this ran every tick for every moving Drifter (4.6% of
+	 * a 500v500; milestone 16 crowd pass, 2026-11-08).
+	 */
+	private boolean noBlockCollision(AABB box) {
+		Level level = this.level();
+		int minX = net.minecraft.util.Mth.floor(box.minX);
+		int minY = net.minecraft.util.Mth.floor(box.minY);
+		int minZ = net.minecraft.util.Mth.floor(box.minZ);
+		int maxX = net.minecraft.util.Mth.floor(box.maxX);
+		int maxY = net.minecraft.util.Mth.floor(box.maxY);
+		int maxZ = net.minecraft.util.Mth.floor(box.maxZ);
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		net.minecraft.world.phys.shapes.CollisionContext context = null;
+		for (int x = minX - 1; x <= maxX + 1; x++) {
+			for (int z = minZ - 1; z <= maxZ + 1; z++) {
+				net.minecraft.world.level.chunk.LevelChunk chunk = com.dinglebob.drifter.world.TickChunks.get(level, x >> 4, z >> 4);
+				if (chunk == null) {
+					return level.noBlockCollision(this, box);
+				}
+
+				for (int y = minY - 1; y <= maxY + 1; y++) {
+					var state = chunk.getBlockState(pos.set(x, y, z));
+					if (state.isAir()) {
+						continue;
+					}
+
+					boolean inside = x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
+					if (inside) {
+						// A block whose shape never changes has its collision shape worked out once by the game (grass, flowers:
+						// none); one that may (scaffolding, powder snow) or a liquid (a strider stands on lava) is asked with
+						// its own body, as the game's check does.
+						if (!state.getBlock().hasDynamicShape() && !(state.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock)
+							&& state.getCollisionShape(level, pos).isEmpty()) {
+							continue;
+						}
+
+						if (context == null) {
+							context = net.minecraft.world.phys.shapes.CollisionContext.of(this);
+						}
+
+						if (!state.getCollisionShape(level, pos, context).isEmpty()) {
+							return level.noBlockCollision(this, box);
+						}
+					} else if (state.hasLargeCollisionShape()) {
+						return level.noBlockCollision(this, box);
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
 	private boolean canPlayerFitWithinBlocksAndEntitiesWhen(Pose pose) {
 		// Standing room is room for every lower pose too (each box is the standing one's width from the same feet, no
 		// taller): one check a tick where it stands (milestone 16: these checks, four or five a tick, were a twentieth of a
@@ -1900,7 +2035,7 @@ protected void customServerAiStep() {
 			this.fitCheckedAt = here;
 			this.fitCheckedTick = this.tickCount;
 			// (Blocks only: whether a boat or a shulker box would let it stand up isn't worth an entity search a tick.)
-			this.standingFits = this.level().noBlockCollision(this, this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
+			this.standingFits = this.noBlockCollision(this.getDimensions(Pose.STANDING).makeBoundingBox(here).deflate(1.0E-7));
 		}
 
 		if (this.standingFits && this.getDimensions(pose).height() <= this.getDimensions(Pose.STANDING).height()
@@ -1908,7 +2043,7 @@ protected void customServerAiStep() {
 			return true;
 		}
 
-		return this.level().noBlockCollision(this, this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
+		return this.noBlockCollision(this.getDimensions(pose).makeBoundingBox(here).deflate(1.0E-7));
 	}
 
 	/** Its fake-player helper's id and profile, worked out once (FakePlayerBridge). */
@@ -2171,21 +2306,28 @@ protected void customServerAiStep() {
 			reach = this.getBoundingBox().inflate(1.0, 0.5, 1.0);
 		}
 
-		// One look for both (as Player#aiStep does): items first, then orbs.
-		List<net.minecraft.world.entity.Entity> near = this.level().getEntities(this, reach,
-			entity -> entity instanceof ItemEntity || entity instanceof net.minecraft.world.entity.ExperienceOrb);
-		for (net.minecraft.world.entity.Entity entity : near) {
-			if (entity instanceof ItemEntity item) {
-				this.tryPickUp(item);
-			}
+		// Both found before either is touched (as Player#aiStep's one look does): items first, then orbs. Asked by kind, which
+		// the game keeps in lists of their own: the general look went through every body in a packed army (2.7% of a 500v500;
+		// milestone 16 crowd pass, 2026-11-08).
+		// (From the tick's shared grid when it can: an item dropped this tick is in reach from the next, 50 ms on.)
+		List<ItemEntity> items = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(), ItemEntity.class, reach, entity -> true);
+		List<net.minecraft.world.entity.ExperienceOrb> orbs = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(),
+			net.minecraft.world.entity.ExperienceOrb.class, reach, entity -> true);
+		if (items == null || orbs == null) {
+			items = this.level().getEntitiesOfClass(ItemEntity.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS);
+			orbs = this.level().getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS);
+		}
+
+		for (ItemEntity item : items) {
+			this.tryPickUp(item);
 		}
 
 		if (this.takeXpDelay > 0) {
 			this.takeXpDelay--;
 		}
 
-		for (net.minecraft.world.entity.Entity entity : near) {
-			if (entity instanceof net.minecraft.world.entity.ExperienceOrb orb && !orb.isRemoved()) {
+		for (net.minecraft.world.entity.ExperienceOrb orb : orbs) {
+			if (!orb.isRemoved()) {
 				this.touchOrb(orb);
 			}
 		}

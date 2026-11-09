@@ -100,6 +100,7 @@ public final class Topics {
 
 			@Override
 			public void onResourceManagerReload(ResourceManager manager) {
+				PARSED.clear();
 				load(manager);
 			}
 		});
@@ -348,23 +349,50 @@ public final class Topics {
 
 	/** These conditions hold, for a (who brought it up) and b, in this world. */
 	public static boolean holds(List<String> conditions, Facts a, Facts b, Set<String> world) {
-		for (String condition : conditions) {
-			boolean not = condition.startsWith("!");
-			String c = not ? condition.substring(1) : condition;
-			boolean is;
-			if (c.startsWith("a:")) {
-				is = a.flags.contains(c.substring(2));
-			} else if (c.startsWith("b:")) {
-				is = b.flags.contains(c.substring(2));
-			} else {
-				is = world.contains(c) || a.flags.contains(c);
-			}
+		if (conditions.isEmpty()) {
+			return true;
+		}
 
-			if (is == not) {
+		for (Condition c : parsed(conditions)) {
+			boolean is = c.side == Condition.A ? a.flags.contains(c.key) : c.side == Condition.B ? b.flags.contains(c.key)
+				: world.contains(c.key) || a.flags.contains(c.key);
+			if (is == c.not) {
 				return false;
 			}
 		}
 
 		return true;
+	}
+
+	/**
+	 * A condition taken apart once ("!a:found_ore": not, a's, "found_ore"): picking a topic checks every one of ten thousand
+	 * topics for both of them, and cutting the strings up each time made a heap of garbage (milestone 16 scale pass,
+	 * 2026-11-08). Kept by the list's contents, so a topic file reload starts afresh.
+	 */
+	private record Condition(int side, boolean not, String key) {
+		static final int WORLD = 0;
+		static final int A = 1;
+		static final int B = 2;
+	}
+
+	private static final Map<List<String>, Condition[]> PARSED = new java.util.concurrent.ConcurrentHashMap<>();
+
+	private static Condition[] parsed(List<String> conditions) {
+		Condition[] known = PARSED.get(conditions);
+		if (known != null) {
+			return known;
+		}
+
+		Condition[] made = new Condition[conditions.size()];
+		for (int i = 0; i < made.length; i++) {
+			String condition = conditions.get(i);
+			boolean not = condition.startsWith("!");
+			String c = not ? condition.substring(1) : condition;
+			made[i] = c.startsWith("a:") ? new Condition(Condition.A, not, c.substring(2)) : c.startsWith("b:") ? new Condition(Condition.B, not, c.substring(2))
+				: new Condition(Condition.WORLD, not, c);
+		}
+
+		PARSED.put(List.copyOf(conditions), made);
+		return made;
 	}
 }
