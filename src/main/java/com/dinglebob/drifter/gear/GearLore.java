@@ -94,7 +94,7 @@ public final class GearLore {
 
 	/** Fights with one kind of weapon before it is loyal to it. */
 	public static final int LOYAL_FIGHTS = 3;
-	/** A fight is a target after at least this many quiet ticks. */
+	/** A fight is a swing after at least this many ticks without one. */
 	private static final int FIGHT_GAP = 200;
 	private static final long DAY_TICKS = 24000L;
 	/** Friends' gear is weighed anew this often (ticks), halving each in-game day. */
@@ -324,12 +324,12 @@ public final class GearLore {
 		}
 	}
 
-	/** Called every tick: counts a fight with the weapon in hand; the kind it keeps fighting with becomes its loyal kind. */
-	public void watchFight(DrifterEntity d) {
-		if (d.getTarget() == null) {
-			return;
-		}
-
+	/**
+	 * Called when it swings at a foe in reach (Combat.attack): the first swing of a fight (none for FIGHT_GAP ticks before)
+	 * counts the fight for the usable weapon in its hand, so a weapon drawn after it saw the foe still counts. The kind it keeps
+	 * fighting with becomes its loyal kind.
+	 */
+	public void noteSwing(DrifterEntity d) {
 		long tick = d.tickCount;
 		boolean fresh = tick - this.lastTargetTick > FIGHT_GAP;
 		this.lastTargetTick = tick;
@@ -338,7 +338,13 @@ public final class GearLore {
 		}
 
 		GearKinds.Kind kind = GearKinds.of(d.getMainHandItem());
-		if (kind != null && kind.use().usable() && this.fightsByKind.merge(kind.id(), 1, Integer::sum) >= LOYAL_FIGHTS) {
+		if (kind == null || !kind.use().usable()) {
+			// A fight with a tool or bare hands: it does not count for any weapon; the next swing may (if it is still the same fight)
+			this.lastTargetTick = Long.MIN_VALUE / 2;
+			return;
+		}
+
+		if (this.fightsByKind.merge(kind.id(), 1, Integer::sum) >= LOYAL_FIGHTS) {
 			this.loyalKind = kind.id();
 			d.getMemory().thoughts().add(d.level().getGameTime(), "i keep reaching for the " + kind.id() + "; it feels like mine");
 		}

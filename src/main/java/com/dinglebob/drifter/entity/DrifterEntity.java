@@ -1389,7 +1389,6 @@ public class DrifterEntity extends PathfinderMob {
 				this.lore.check(this);
 			}
 
-			this.gearLore.watchFight(this);
 			if ((this.tickCount + (this.getId() & 0xFF)) % com.dinglebob.drifter.gear.GearLore.CHECK_INTERVAL == com.dinglebob.drifter.gear.GearLore.CHECK_OFFSET) {
 				this.gearLore.check(this);
 			}

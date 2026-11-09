@@ -208,6 +208,7 @@ public final class Combat {
 			return false;
 		}
 
+		drifter.getGearLore().noteSwing(drifter);
 		int sinceAttack = drifter.ticksSinceAttack();
 		boolean wasSprinting = drifter.isSprinting();
 		boolean stillSprinting = FakePlayerBridge.act(drifter, fake -> {

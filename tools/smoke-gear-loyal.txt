@@ -1,0 +1,43 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+wait 3
+drifter thoughts log true
+time set noon
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+drifter spawn Kat
+drifter tier full all
+wait 2
+drifter give simplyswords:diamond_katana
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+execute at @e[type=drifter:drifter,name=Kat] run summon zombie ~3 ~ ~ {PersistenceRequired:1b}
+wait 13
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+save-all
+stop
+# Second run, same world: python tools/smoke.py . tools/smoke-gear-loyal2.txt build/smoke-gear-loyal2.log
