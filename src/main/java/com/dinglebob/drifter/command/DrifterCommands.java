@@ -436,6 +436,12 @@ public final class DrifterCommands {
 					+ " (this game's own setting; in multiplayer each player's)"), true);
 				return 1;
 			})))
+			// Every Drifter knows every item and recipe (like Just Enough Items); never where anything is.
+			.then(Commands.literal("knoweveryrecipe").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setKnowEveryRecipe(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Know every recipe " + (com.dinglebob.drifter.DrifterConfig.knowEveryRecipe() ? "on" : "off")), true);
+				return 1;
+			})))
 			// Gap jumps on or off (to compare, or if they cause trouble).
 			.then(Commands.literal("parkour").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setParkour(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));

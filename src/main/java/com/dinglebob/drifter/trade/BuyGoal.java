@@ -108,6 +108,10 @@ public final class BuyGoal extends Goals.Goal {
 				continue;
 			}
 
+			for (ShopKeeper.ShopOffer shown : shop.offers(keeper, null)) {
+				drifter.getGearLore().see(drifter, shown.goods(), "in a shop");
+			}
+
 			for (Need need : needs) {
 				for (ShopKeeper.ShopOffer offer : shop.offers(keeper, null)) {
 					if (!need.is().test(offer.goods()) || !(offer.pay().is(Items.EMERALD) || Money.isCoin(offer.pay())) || offer.times() <= 0) {

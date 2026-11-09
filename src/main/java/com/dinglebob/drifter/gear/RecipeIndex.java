@@ -1,6 +1,9 @@
 package com.dinglebob.drifter.gear;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -9,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.social.ItemValues;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +23,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * What the recipes say about gear, worked out once per reload. This part: an item's key ingredient (the one worth most,
- * which says what the item costs). Which items unlock which comes with the knowledge task.
+ * which says what the item costs) and which items unlock which.
  */
 public final class RecipeIndex {
 	/**
@@ -31,6 +35,8 @@ public final class RecipeIndex {
 	private static final ThreadLocal<int[]> DEPTH = ThreadLocal.withInitial(() -> new int[1]);
 	private static final Map<Item, Optional<Ingredient>> KEYS = new HashMap<>();
 	private static Map<Item, RecipeHolder<?>> byResult;
+	/** Which modded gear each item is the key ingredient of (built once per reload, on the first ask). */
+	private static Map<Item, List<Item>> unlocks;
 
 	private RecipeIndex() {
 	}
@@ -39,6 +45,7 @@ public final class RecipeIndex {
 		synchronized (KEYS) {
 			KEYS.clear();
 			byResult = null;
+			unlocks = null;
 		}
 	}
 
@@ -74,17 +81,72 @@ public final class RecipeIndex {
 				return cached.orElse(null);
 			}
 
-			if (depth() >= MAX_DEPTH) {
+			int entryDepth = depth();
+			if (entryDepth >= MAX_DEPTH) {
 				return null;
 			}
 
 			Ingredient key = guarded(() -> compute(level, result), null);
-			// Only a complete answer is kept (one cut short by the depth guard would be wrong for a shallower caller).
-			if (depth() == 0) {
+			// Only a complete answer is kept (one cut short by the depth guard would be wrong for a shallower caller). The
+			// depth at entry is what counts: inside the cost path it is already 1, and those answers are kept too, as long as
+			// the lookup did not hit the guard on the way.
+			if (entryDepth == 0) {
 				KEYS.put(result, Optional.ofNullable(key));
 			}
 
 			return key;
+		}
+	}
+
+	/**
+	 * The modded gear that holding this item unlocks (the recipe book's rule: you have what the recipe is mostly made of).
+	 * One pass over the recipes per reload; vanilla results are left out (every Drifter knows those).
+	 */
+	public static List<Item> unlockedBy(Level level, Item ingredient) {
+		Map<Item, List<Item>> index;
+		synchronized (KEYS) {
+			index = unlocks;
+		}
+
+		if (index == null) {
+			index = buildUnlocks(level);
+		}
+
+		return index.getOrDefault(ingredient, List.of());
+	}
+
+	private static Map<Item, List<Item>> buildUnlocks(Level level) {
+		// The recipes by result first (key() fills it); then each modded gear result's key ingredient.
+		key(level, Items.AIR);
+		List<Item> results;
+		synchronized (KEYS) {
+			results = new ArrayList<>(byResult == null ? List.of() : byResult.keySet());
+		}
+
+		Map<Item, LinkedHashSet<Item>> built = new HashMap<>();
+		for (Item result : results) {
+			if ("minecraft".equals(BuiltInRegistries.ITEM.getKey(result).getNamespace()) || !GearValue.isGear(new ItemStack(result))) {
+				continue;
+			}
+
+			Ingredient key = key(level, result);
+			if (key == null) {
+				continue;
+			}
+
+			for (ItemStack option : key.getItems()) {
+				built.computeIfAbsent(option.getItem(), item -> new LinkedHashSet<>()).add(result);
+			}
+		}
+
+		Map<Item, List<Item>> index = new HashMap<>();
+		built.forEach((item, set) -> index.put(item, List.copyOf(set)));
+		synchronized (KEYS) {
+			if (unlocks == null) {
+				unlocks = index;
+			}
+
+			return unlocks;
 		}
 	}
 

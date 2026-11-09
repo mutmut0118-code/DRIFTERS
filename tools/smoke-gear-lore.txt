@@ -1,0 +1,26 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+kill @e[type=drifter:drifter]
+drifter spawn Nell
+drifter tier full all
+execute as @e[type=drifter:drifter,name=Nell] at @s run drifter personality reroll newbie
+drifter gear item too_many_bows:arcane_bow
+drifter gear item immersive_armors:warrior_chestplate
+setblock ~2 ~ ~ chest{Items:[{Slot:0b,id:"immersive_armors:warrior_chestplate",count:1}]}
+drifter container ~2 ~ ~ takeall
+wait 10
+drifter gear item immersive_armors:warrior_chestplate
+drifter gear item immersive_armors:bone_chestplate
+drifter give minecraft:bone 1
+wait 12
+drifter gear item immersive_armors:bone_chestplate
+drifter gear
+drifter config knoweveryrecipe true
+drifter gear item too_many_bows:shulker_blast
+drifter config knoweveryrecipe false
+save-all
+stop
+# Second run, same world: python tools/smoke.py . tools/smoke-gear-lore2.txt build/smoke-gear-lore2.log
+# (expects the same "knows 5 modded items" as before the stop)

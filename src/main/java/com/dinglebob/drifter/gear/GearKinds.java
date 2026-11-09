@@ -144,7 +144,9 @@ public final class GearKinds {
 
 	private static String name(Item item) {
 		try {
-			return item.getDescription().getString();
+			String name = item.getDescription().getString();
+			// A dedicated server has no translations: the name is the key ("item.mod.path"), whose mod id could hold any word.
+			return name.equals(item.getDescriptionId()) ? "" : name;
 		} catch (RuntimeException e) {
 			return "";
 		}

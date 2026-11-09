@@ -1,0 +1,5 @@
+until Done_( 900
+wait 5
+drifter gear
+save-all
+stop

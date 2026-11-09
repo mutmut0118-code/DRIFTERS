@@ -62,6 +62,8 @@ public class DrifterConfigScreen extends DrifterOptionsScreen {
 				"\"gg\" or \"W\" in chat when you make an advancement. Off: they let it pass."));
 		this.row(toggle("Whims (things for fun)", DrifterConfig.whims(), DrifterConfig::setWhims, "Watching sunsets, little builds, snowball fights: what they do when bored."),
 			toggle("Parkour jumps", DrifterConfig.parkour(), DrifterConfig::setParkour, "Jumping gaps on their routes, as players do."));
+		this.row(toggle("Know every recipe", DrifterConfig.knowEveryRecipe(), DrifterConfig::setKnowEveryRecipe,
+			"Like a player with Just Enough Items: every Drifter knows every item and recipe from the start. Off: they learn modded gear by seeing it or holding what it's made from. Never shows them where anything is."), null);
 
 		this.heading("When a Drifter dies");
 		var lives = slider("Lives", 1, DrifterConfig.MAX_LIVES, DrifterConfig.lives(), v -> String.valueOf(v), DrifterConfig::setLives,

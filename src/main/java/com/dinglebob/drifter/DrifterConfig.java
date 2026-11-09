@@ -113,6 +113,8 @@ public final class DrifterConfig {
 		boolean banditsKillOnSight = true;
 		/** Gap jumps in pathfinding (user, 2026-10-17: parkour). */
 		boolean parkour = true;
+		/** Every Drifter knows every item and recipe from the start, as a player with Just Enough Items (user, 2026-11-09). Never where things are. */
+		boolean knowEveryRecipe = false;
 		/** A Drifter that dies becomes a ragdoll (and a lootable corpse) when Sable Player Ragdoll is installed (user, 2026-10-17). */
 		boolean ragdolls = true;
 		/** Threads for path searches (milestone 16): -1 automatic, 0 on the server thread as before. */
@@ -231,6 +233,15 @@ public final class DrifterConfig {
 
 	public static void setRagdolls(boolean on) {
 		data.ragdolls = on;
+		save();
+	}
+
+	public static boolean knowEveryRecipe() {
+		return data.knowEveryRecipe;
+	}
+
+	public static void setKnowEveryRecipe(boolean on) {
+		data.knowEveryRecipe = on;
 		save();
 	}
 
