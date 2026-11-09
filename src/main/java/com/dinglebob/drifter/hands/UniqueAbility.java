@@ -127,7 +127,15 @@ public final class UniqueAbility {
 
 	private static void activate(DrifterEntity drifter, ServerLevel level, ItemStack held, LivingEntity target) {
 		Object context = context(level, held, drifter, target);
-		if (context != null && call(tryActivate, context)) {
+		if (context == null) {
+			return;
+		}
+
+		// What follows may show what the ability does (watched from before it goes off; its cooldown is read after).
+		com.dinglebob.drifter.gear.PowerWatch.start(drifter, held, target, com.dinglebob.drifter.gear.PowerWatch.Use.ABILITY);
+		if (!call(tryActivate, context)) {
+			com.dinglebob.drifter.gear.PowerWatch.cancel(drifter);
+		} else {
 			drifter.getMemory().thoughts().add(level.getGameTime(), "used " + held.getHoverName().getString() + "'s ability on the "
 				+ target.getName().getString());
 		}

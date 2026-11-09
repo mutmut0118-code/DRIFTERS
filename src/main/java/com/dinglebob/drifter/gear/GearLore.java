@@ -1,14 +1,20 @@
 package com.dinglebob.drifter.gear;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
+
+import com.google.gson.JsonObject;
 
 import com.dinglebob.drifter.DrifterConfig;
 import com.dinglebob.drifter.Drifter;
@@ -23,21 +29,28 @@ import com.dinglebob.drifter.world.DrifterGroups;
 import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.personality.Trait;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 /**
  * Which modded items a Drifter knows exist, and how it came to know (spec goal 2): it saw one (in a chest it opened, on the
  * ground, held or worn by someone, offered in a trade), owns one, holds what its recipe is mostly made of (the recipe book's
  * rule), or was told. Veterans know the craftable gear of the installed mods from the start, newbies none. Saved and
  * versioned. The "know every recipe" setting (goal 11) makes everything known; it never touches where things are.
+ *
+ * <p>It also holds what it believes each item does (spec goal 6, {@link Powers}): read from the hover text by the
+ * knowledgeable, seen in use ({@link PowerWatch}), told, or written in a weapon file's {@code ability}; saved in the same tag.
  */
 public final class GearLore {
 	public enum How {
@@ -58,6 +71,39 @@ public final class GearLore {
 		}
 	}
 
+	/** Where a power belief came from. Strength (which one a belief keeps): text, told, seen, data. */
+	public enum Source {
+		TEXT(0), SEEN(2), TOLD(1), DATA(3);
+
+		private final int rank;
+
+		Source(int rank) {
+			this.rank = rank;
+		}
+
+		public int rank() {
+			return this.rank;
+		}
+
+		@Nullable
+		static Source byName(String name) {
+			for (Source source : values()) {
+				if (source.name().equals(name)) {
+					return source;
+				}
+			}
+
+			return null;
+		}
+	}
+
+	/** How sure it is that an item has a power (0 to 1), and where its strongest reason came from. */
+	public record Belief(float confidence, Source source) {
+	}
+
+	/** It acts on a power belief this sure. */
+	public static final float ACT_ON = 0.5F;
+
 	public static final int SAVE_VERSION = 1;
 	/** At or above this KNOWLEDGE, a Drifter knows the installed mods' craftable gear from the start. */
 	public static final double VETERAN_KNOWLEDGE = 0.7;
@@ -66,6 +112,19 @@ public final class GearLore {
 	public static final int CHECK_OFFSET = 100;
 
 	private final Map<Item, How> learned = new LinkedHashMap<>();
+	/** What it believes each item does (saved). */
+	private final Map<Item, EnumMap<Powers.Power, Belief>> beliefs = new LinkedHashMap<>();
+	/**
+	 * What it has read since it was loaded (not saved: a cheap re-read after a load): a plain item, or a {@link ReadKey} for a
+	 * stack with its own lore, name or enchantments (those are read per stack: another bow may say something else).
+	 */
+	private final Set<Object> read = new HashSet<>();
+	/** The read list starts over past this size (a re-read adds nothing it already believes). */
+	private static final int READ_CAP = 512;
+
+	/** A stack that says more than its item does: the item and a hash of its lore, custom name and enchantments. */
+	private record ReadKey(Item item, int variant) {
+	}
 	/** No saved knowledge was loaded: the next check seeds it from what the Drifter carries, wears and stores. */
 	private boolean seedPending = true;
 
@@ -237,6 +296,14 @@ public final class GearLore {
 
 			if (GearValue.isGear(stack)) {
 				this.learn(d, stack.getItem(), How.OWNED, "owned");
+				this.readPowers(d, stack);
+			}
+		}
+
+		for (EquipmentSlot slot : EquipmentSlot.values()) {
+			ItemStack worn = d.getItemBySlot(slot);
+			if (!worn.isEmpty() && GearValue.isGear(worn)) {
+				this.readPowers(d, worn);
 			}
 		}
 
@@ -282,6 +349,135 @@ public final class GearLore {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Once per item per load (once per stack with its own lore, name or enchantments): a weapon file's hand-written
+	 * {@code ability} gives data beliefs (crowd: area, hurt: heal) and the item is never guessed at; otherwise, a Drifter
+	 * knowledgeable enough reads the hover text (a newbie does not, until it knows better), each hinted power it holds no
+	 * belief about yet at {@code base + per_knowledge * knowledge}.
+	 */
+	private void readPowers(DrifterEntity d, ItemStack stack) {
+		Item item = stack.getItem();
+		Object key = readKey(stack);
+		if (this.read.contains(key)) {
+			return;
+		}
+
+		Weapons.Unique unique = Weapons.unique(stack);
+		JsonObject ability = unique == null ? null : unique.ability();
+		if (ability != null) {
+			this.markRead(key);
+			String when = ability.has("when") ? ability.get("when").getAsString() : "fight";
+			Powers.Power power = switch (when) {
+				case "crowd" -> Powers.Power.AREA;
+				case "hurt" -> Powers.Power.HEAL;
+				default -> null;
+			};
+			if (power != null) {
+				this.firm(d, item, power, 1.0F, Source.DATA, "weapon file", false);
+			}
+
+			return;
+		}
+
+		GearData.PowerRules rules = GearData.tables().powers();
+		double knowledge = d.getPersonality().get(Trait.KNOWLEDGE);
+		if (knowledge < rules.readTextKnowledge()) {
+			return;
+		}
+
+		this.markRead(key);
+		float confidence = (float)(rules.textBase() + rules.textPerKnowledge() * knowledge);
+		Map<Powers.Power, Belief> held = this.beliefs.get(item);
+		for (Powers.Power power : Powers.guess(d.level(), stack)) {
+			if (held == null || !held.containsKey(power)) {
+				this.firm(d, item, power, confidence, Source.TEXT, "read it");
+				held = this.beliefs.get(item);
+			}
+		}
+	}
+
+	private void markRead(Object key) {
+		if (this.read.size() >= READ_CAP) {
+			this.read.clear();
+		}
+
+		this.read.add(key);
+	}
+
+	/** The item for a plain stack; the item with what this stack says of its own (lore, name, enchantments) otherwise. */
+	private static Object readKey(ItemStack stack) {
+		ItemLore lore = stack.get(DataComponents.LORE);
+		Component name = stack.get(DataComponents.CUSTOM_NAME);
+		ItemEnchantments enchantments = stack.getEnchantments();
+		boolean plainLore = lore == null || lore.lines().isEmpty();
+		if (plainLore && name == null && enchantments.isEmpty()) {
+			return stack.getItem();
+		}
+
+		int variant = 1;
+		try {
+			variant = 31 * variant + (plainLore ? 0 : lore.hashCode());
+			variant = 31 * variant + (name == null ? 0 : name.getString().hashCode());
+			variant = 31 * variant + enchantments.hashCode();
+		} catch (RuntimeException e) {
+			// a broken component: read as one variant
+		}
+
+		return new ReadKey(stack.getItem(), variant);
+	}
+
+	/** What it believes this item does (empty: nothing). */
+	public Map<Powers.Power, Belief> beliefs(Item item) {
+		EnumMap<Powers.Power, Belief> held = this.beliefs.get(item);
+		return held == null ? Map.of() : Collections.unmodifiableMap(held);
+	}
+
+	/** It is sure enough of this power to act on it ({@link #ACT_ON}). */
+	public boolean believes(Item item, Powers.Power power) {
+		Belief belief = this.beliefs(item).get(power);
+		return belief != null && belief.confidence() >= ACT_ON;
+	}
+
+	/** It is surer the item has this power: confidence up by {@code by} (to 1 at most), keeping the strongest source. */
+	public void firm(DrifterEntity d, Item item, Powers.Power power, float by, Source source, String how) {
+		this.firm(d, item, power, by, source, how, true);
+	}
+
+	/**
+	 * The same; {@code thought}: say so in its thoughts when this is the first belief from a source this strong ("found out
+	 * Bow: fire" the first time it sees it).
+	 */
+	void firm(DrifterEntity d, Item item, Powers.Power power, float by, Source source, String how, boolean thought) {
+		EnumMap<Powers.Power, Belief> held = this.beliefs.computeIfAbsent(item, key -> new EnumMap<>(Powers.Power.class));
+		Belief before = held.get(power);
+		float confidence = Math.min(1.0F, (before == null ? 0.0F : before.confidence()) + Math.max(0.0F, by));
+		boolean stronger = before == null || source.rank() > before.source().rank();
+		held.put(power, new Belief(confidence, stronger ? source : before.source()));
+		if (thought && stronger) {
+			String name = nameOf(item);
+			String line = switch (source) {
+				case SEEN -> "found out " + name + ": " + power.id();
+				case TEXT -> "reading " + name + ": " + power.id() + " (" + how + ")";
+				case TOLD -> "heard " + name + ": " + power.id() + " (" + how + ")";
+				case DATA -> null;
+			};
+			if (line != null) {
+				d.getMemory().thoughts().add(d.level().getGameTime(), line);
+			}
+		}
+	}
+
+	/** It is less sure: confidence down by {@code by} (to 0 at least; kept, so the text is not read back in). Data stays. */
+	public void doubt(Item item, Powers.Power power, float by) {
+		EnumMap<Powers.Power, Belief> held = this.beliefs.get(item);
+		Belief before = held == null ? null : held.get(power);
+		if (before == null || before.source() == Source.DATA) {
+			return;
+		}
+
+		held.put(power, new Belief(Math.max(0.0F, before.confidence() - Math.max(0.0F, by)), before.source()));
 	}
 
 	private boolean isFriend(DrifterEntity d, @Nullable DrifterGroups.Group group, UUID other) {
@@ -443,6 +639,8 @@ public final class GearLore {
 	/** Debug: it forgets what it learned (and seeds again from what it has on the next check). */
 	public void forget() {
 		this.learned.clear();
+		this.beliefs.clear();
+		this.read.clear();
 		this.seedPending = false;
 	}
 
@@ -463,12 +661,39 @@ public final class GearLore {
 			known.add(entry);
 		});
 		tag.put("Known", known);
+		ListTag beliefs = new ListTag();
+		this.beliefs.forEach((item, held) -> held.forEach((power, belief) -> {
+			CompoundTag entry = new CompoundTag();
+			entry.putString("Item", BuiltInRegistries.ITEM.getKey(item).toString());
+			entry.putString("Power", power.id());
+			entry.putFloat("Conf", belief.confidence());
+			entry.putString("Source", belief.source().name());
+			beliefs.add(entry);
+		}));
+		tag.put("Beliefs", beliefs);
 		return tag;
 	}
 
 	/** Items whose mod is gone, and kinds of learning this version does not know, are skipped quietly. */
 	public void load(CompoundTag tag) {
 		this.learned.clear();
+		this.beliefs.clear();
+		this.read.clear();
+		// Power beliefs (additive to version 1): items whose mod is gone and powers this version does not know are skipped.
+		ListTag beliefs = tag.getList("Beliefs", Tag.TAG_COMPOUND);
+		for (int i = 0; i < beliefs.size(); i++) {
+			CompoundTag entry = beliefs.getCompound(i);
+			ResourceLocation id = ResourceLocation.tryParse(entry.getString("Item"));
+			Powers.Power power = Powers.Power.byId(entry.getString("Power"));
+			Source source = Source.byName(entry.getString("Source"));
+			if (id == null || power == null || source == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+				continue;
+			}
+
+			float confidence = Math.max(0.0F, Math.min(1.0F, entry.getFloat("Conf")));
+			this.beliefs.computeIfAbsent(BuiltInRegistries.ITEM.get(id), key -> new EnumMap<>(Powers.Power.class)).put(power, new Belief(confidence, source));
+		}
+
 		this.seedPending = !tag.getBoolean("Seeded");
 		this.loyalKind = tag.contains("LoyalKind", Tag.TAG_STRING) ? tag.getString("LoyalKind") : null;
 		if (!tag.contains("Known", Tag.TAG_LIST)) {

@@ -43,7 +43,7 @@ public abstract class ExplosionMixin {
 	@Inject(method = "finalizeExplosion", at = @At("HEAD"))
 	private void drifter$hearExplosion(boolean spawnParticles, CallbackInfo ci) {
 		if (this.level instanceof ServerLevel serverLevel) {
-			ExplosionHearing.onExplosion(serverLevel, this.center());
+			ExplosionHearing.onExplosion(serverLevel, this.center(), this.getDirectSourceEntity());
 			if (this.interactsWithBlocks()) {
 				try {
 					com.dinglebob.drifter.building.HouseDamage.exploded(serverLevel, this.center(), this.getToBlow(), this.getDirectSourceEntity());

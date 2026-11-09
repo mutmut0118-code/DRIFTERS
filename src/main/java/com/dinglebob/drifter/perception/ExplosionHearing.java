@@ -12,6 +12,17 @@ public final class ExplosionHearing {
 	}
 
 	public static void onExplosion(ServerLevel level, Vec3 center) {
+		onExplosion(level, center, null);
+	}
+
+	/** The same, with what set it off (a watching Drifter may learn its item explodes: PowerWatch). */
+	public static void onExplosion(ServerLevel level, Vec3 center, @org.jetbrains.annotations.Nullable net.minecraft.world.entity.Entity cause) {
+		try {
+			com.dinglebob.drifter.gear.PowerWatch.explosion(level, center, cause);
+		} catch (RuntimeException e) {
+			com.dinglebob.drifter.Drifter.LOGGER.error("[Drifter] couldn't watch an explosion for item powers", e);
+		}
+
 		double radius = HeardSound.Kind.EXPLOSION.radius;
 		for (DrifterEntity drifter : level.getEntitiesOfClass(DrifterEntity.class, new AABB(center, center).inflate(radius))) {
 			drifter.getSenses().hearing().hearExplosion(center);

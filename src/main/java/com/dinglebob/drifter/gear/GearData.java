@@ -36,7 +36,7 @@ import net.minecraft.world.item.Item;
  * The gear tables (docs/superpowers/specs/2026-11-09-weapons-armor-compat-design.md): one reload listener for
  * {@code data/<namespace>/drifter_gear/*.json}. A file may say {@code "requires": "<mod id>"} and is skipped when that
  * mod is absent (as {@code drifter_weapons} does); a later file with the same kind id replaces the earlier one. Today the
- * tables hold the weapon kinds; clothing styles and power words come in later tasks.
+ * tables hold the weapon kinds, the taste styles and the power words (hover-text guesses and learning by use).
  */
 public final class GearData {
 	public static final String DIRECTORY = "drifter_gear";
@@ -59,9 +59,19 @@ public final class GearData {
 		public static final Taste DEFAULT = new Taste(0.25, 0.05, 0.75, Map.of(), new Bonus(0.25, 0.2, 0.2, 0.2, 0.8, 0.6, 0.8, 0.4));
 	}
 
+	/**
+	 * Powers (spec goal 6): the words in an item's hover text that hint at each power, phrases that look like one but are not
+	 * ({@code except}: "health" is not "heal"), how much KNOWLEDGE it takes to read the text and how sure that makes it, and the
+	 * steps of learning by use (each sign seen, a doubt after uses that showed nothing, how long a watch lasts).
+	 */
+	public record PowerRules(Map<Powers.Power, List<String>> words, List<String> except, double readTextKnowledge, double textBase,
+		double textPerKnowledge, double seenStep, double toldConfidence, double doubtStep, int doubtAfterUses, int watchTicks) {
+		public static final PowerRules DEFAULT = new PowerRules(Map.of(), List.of(), 0.35, 0.3, 0.5, 0.35, 0.6, 0.15, 3, 40);
+	}
+
 	/** Everything the gear files said. {@code byWord}: every kind word with its kind, longest word first. */
-	public record Tables(List<KindDef> kinds, List<Map.Entry<String, KindDef>> byWord, Taste taste) {
-		public static final Tables EMPTY = new Tables(List.of(), List.of(), Taste.DEFAULT);
+	public record Tables(List<KindDef> kinds, List<Map.Entry<String, KindDef>> byWord, Taste taste, PowerRules powers) {
+		public static final Tables EMPTY = new Tables(List.of(), List.of(), Taste.DEFAULT, PowerRules.DEFAULT);
 
 		@Nullable
 		public KindDef kind(String id) {
@@ -117,6 +127,7 @@ public final class GearData {
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> {
 			server = null;
 			clearCaches();
+			PowerWatch.clearAll();
 		});
 		// Recipes may reload after our own listener: drop what was worked out from the old ones.
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((started, manager, success) -> clearCaches());
@@ -127,11 +138,13 @@ public final class GearData {
 		GearValue.clear();
 		RecipeIndex.clear();
 		GearTaste.clear();
+		Powers.clear();
 	}
 
 	private static void load(ResourceManager manager) {
 		Map<String, KindDef> loaded = new LinkedHashMap<>();
 		Taste taste = Taste.DEFAULT;
+		PowerRules powers = PowerRules.DEFAULT;
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
@@ -151,6 +164,10 @@ public final class GearData {
 				if (root.has("styles")) {
 					taste = taste(root, taste);
 				}
+
+				if (root.has("words")) {
+					powers = powers(root, powers);
+				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter gear file {}", file.getKey(), e);
 			}
@@ -164,10 +181,36 @@ public final class GearData {
 		}
 
 		words.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
-		tables = new Tables(List.copyOf(loaded.values()), List.copyOf(words), taste);
+		tables = new Tables(List.copyOf(loaded.values()), List.copyOf(words), taste, powers);
 		version++;
 		clearCaches();
-		Drifter.LOGGER.info("Loaded {} Drifter gear kinds and {} taste styles", loaded.size(), taste.styles().size());
+		Drifter.LOGGER.info("Loaded {} Drifter gear kinds, {} taste styles and words for {} powers", loaded.size(), taste.styles().size(), powers.words().size());
+	}
+
+	/** A later file's words for a power replace an earlier file's; numbers it leaves out stay as they were. */
+	private static PowerRules powers(JsonObject root, PowerRules before) {
+		Map<Powers.Power, List<String>> words = new EnumMap<>(Powers.Power.class);
+		words.putAll(before.words());
+		for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("words").entrySet()) {
+			Powers.Power power = Powers.Power.byId(entry.getKey());
+			if (power == null) {
+				Drifter.LOGGER.warn("Drifter gear power {} is unknown", entry.getKey());
+				continue;
+			}
+
+			List<String> list = new ArrayList<>();
+			for (JsonElement word : entry.getValue().getAsJsonArray()) {
+				list.add(word.getAsString().toLowerCase(Locale.ROOT));
+			}
+
+			words.put(power, List.copyOf(list));
+		}
+
+		List<String> except = root.has("except") ? strings(root, "except") : before.except();
+		return new PowerRules(Map.copyOf(words), except, num(root, "read_text_knowledge", before.readTextKnowledge()),
+			num(root, "text_confidence_base", before.textBase()), num(root, "text_confidence_per_knowledge", before.textPerKnowledge()),
+			num(root, "seen_step", before.seenStep()), num(root, "told_confidence", before.toldConfidence()), num(root, "doubt_step", before.doubtStep()),
+			(int)num(root, "doubt_after_uses", before.doubtAfterUses()), (int)num(root, "watch_ticks", before.watchTicks()));
 	}
 
 	private static Taste taste(JsonObject root, Taste before) {

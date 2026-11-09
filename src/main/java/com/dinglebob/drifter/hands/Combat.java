@@ -243,6 +243,10 @@ public final class Combat {
 		}
 
 		drifter.getGearLore().noteSwing(drifter);
+		if (target instanceof net.minecraft.world.entity.LivingEntity living) {
+			// What follows this swing may show what the weapon does (seen before the swing lands).
+			com.dinglebob.drifter.gear.PowerWatch.start(drifter, drifter.getMainHandItem(), living);
+		}
 		int sinceAttack = drifter.ticksSinceAttack();
 		boolean wasSprinting = drifter.isSprinting();
 		boolean stillSprinting = FakePlayerBridge.act(drifter, fake -> {

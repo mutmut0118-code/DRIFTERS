@@ -1,0 +1,84 @@
+# Task 7: powers from hover text (the knowledgeable) and learned by use. python tools/smoke.py . tools/smoke-gear-powers.txt build/smoke-gear-powers.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run: a normal world may start the two in the sea), with the optional mods in run/mods.
+# Brains off at once (at midnight they would dig in for the night, and from a hole the arrows hit the ground); /drifter shoot does the shooting
+# at standing (NoAI, 1000 health) zombies, at night so the sun does not burn them (a newbie runs from a live one).
+# The GearLore check runs every ~10 s: every read of a text belief comes 12 s or more after the item was given.
+# Expect, in order of the [gear] lines:
+#  A  Vet's bow (lore "Explodes on impact"): "powers: explosive 0.75 (TEXT)" (0.3 + 0.5 x 0.9), thought "reading Bow: explosive (read it)";
+#  B  Vet's plain iron sword: "powers: none";
+#  C  Newb's bow, before any shot: "powers: none" (a newbie does not read the text or the Flame enchantment);
+#  D  Newb's bow after shooting with it: "fire 0.35 (SEEN)" or more, and the thought "found out Bow: fire";
+#  E  Vet's iron sword after it was given a Fire Aspect one: "fire 0.75 (TEXT)" (enchantments are read per stack);
+#  F  Vet's bow after its shots showed no explosion: "explosive" below 0.75 (doubted every 3 landed shots), still "(TEXT)";
+#  G  too_many_bows:flame_bow for Newb: "powers: none", then "text guess: explosive, fire" (or "none"), no exception;
+#  H  "/drifter gear powers": every gear item's text read on this dedicated server, the count of unreadable ones, no exception;
+#  J  someone else's blast (a ghast-style fireball with no owner) at Newb's target while it shoots: still no "explosive" for Newb's bow;
+#  K  a blast of its own there (a fireball made Newb's: the stand-in for an exploding arrow): "explosive 0.35 (SEEN)", thought "found out Bow: explosive";
+#  L  a blast of its own beside Vet while it shoots: thought "found out the hard way: Bow explodes", Vet's bow "explosive 1.00 (SEEN)";
+#  M  Vet given the flame bow: "powers: explosive 0.75 (TEXT), fire 0.75 (TEXT)" (a headless server reads the mod's description
+#     keys; its hover text itself is client-only code there: no guess from it, one debug line, no exception).
+# Then run tools/smoke-gear-powers2.txt on the same world: the beliefs are still there after the reload.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set midnight
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+gamerule mobGriefing false
+difficulty normal
+kill @e[type=zombie]
+drifter spawn Vet
+execute at @e[type=drifter:drifter,name=Vet] run drifter brain off
+execute positioned ~40 ~ ~ run drifter spawn Newb
+execute at @e[type=drifter:drifter,name=Newb] run drifter brain off
+drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Vet] run drifter personality set knowledge 0.9
+execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:bow[minecraft:lore=['"Explodes on impact"']]
+execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Newb] run drifter personality reroll newbie
+execute at @e[type=drifter:drifter,name=Newb] run drifter give minecraft:bow[minecraft:enchantments={levels:{"minecraft:flame":1}}]
+execute at @e[type=drifter:drifter,name=Newb] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Newb] run drifter give minecraft:arrow 64
+wait 12
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow[minecraft:lore=['"Explodes on impact"']]
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Vet] run drifter give minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:fire_aspect":1}}]
+execute at @e[type=drifter:drifter,name=Newb] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+wait 3
+execute as @e[type=drifter:drifter,name=Newb] at @s run drifter shoot @e[type=zombie,limit=1,sort=nearest]
+execute as @e[type=drifter:drifter,name=Vet] at @s run drifter shoot @e[type=zombie,limit=1,sort=nearest]
+wait 20
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item too_many_bows:flame_bow
+drifter gear powers
+execute as @e[type=drifter:drifter,name=Newb] at @s run drifter shoot @e[type=zombie,limit=1,sort=nearest]
+wait 3
+execute at @e[type=drifter:drifter,name=Newb] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon fireball ~ ~8 ~ {ExplosionPower:1b,Motion:[0.0d,-0.5d,0.0d]}
+wait 4
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Newb] positioned ~ ~ ~8 positioned over motion_blocking_no_leaves run summon fireball ~ ~8 ~ {ExplosionPower:1b,Tags:["newbs"]}
+data modify entity @e[type=fireball,tag=newbs,limit=1] Owner set from entity @e[type=drifter:drifter,name=Newb,limit=1] UUID
+data modify entity @e[type=fireball,tag=newbs,limit=1] Motion set value [0.0d,-0.5d,0.0d]
+wait 4
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+execute as @e[type=drifter:drifter,name=Vet] at @s run drifter shoot @e[type=zombie,limit=1,sort=nearest]
+wait 3
+execute at @e[type=drifter:drifter,name=Vet] positioned ~1.3 ~ ~ positioned over motion_blocking_no_leaves run summon fireball ~ ~8 ~ {ExplosionPower:1b,Tags:["vets"]}
+data modify entity @e[type=fireball,tag=vets,limit=1] Owner set from entity @e[type=drifter:drifter,name=Vet,limit=1] UUID
+data modify entity @e[type=fireball,tag=vets,limit=1] Motion set value [0.0d,-0.5d,0.0d]
+wait 4
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Vet] run drifter give too_many_bows:flame_bow
+wait 12
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item too_many_bows:flame_bow
+save-all
+wait 3
+stop

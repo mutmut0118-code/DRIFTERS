@@ -16,6 +16,7 @@ import com.dinglebob.drifter.gear.RecipeIndex;
 import com.dinglebob.drifter.gear.GearKinds;
 import com.dinglebob.drifter.gear.GearTaste;
 import com.dinglebob.drifter.gear.GearValue;
+import com.dinglebob.drifter.gear.Powers;
 import com.dinglebob.drifter.social.ItemValues;
 
 import net.minecraft.commands.CommandBuildContext;
@@ -31,7 +32,9 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 /**
  * Gear commands (any weapon, armor and trinket project): {@code /drifter gear item <item>} says how Drifter reads one
- * item (its kind, melee, ranged and armor value, rarity, cost and trade points), for checking modded gear.
+ * item (its kind, melee, ranged and armor value, rarity, cost and trade points), for checking modded gear; with the nearest
+ * Drifter's power beliefs about it and what the item's text hints at; {@code /drifter gear powers} reads every gear
+ * item's text at once (how many hint at a power, how many could not be read).
  */
 public final class GearCommands {
 	private GearCommands() {
@@ -51,6 +54,7 @@ public final class GearCommands {
 			.then(Commands.literal("friend")
 				.then(Commands.argument("kind", StringArgumentType.word()).executes(GearCommands::friend)))
 			.then(Commands.literal("plans").executes(GearCommands::plans))
+			.then(Commands.literal("powers").executes(GearCommands::powers))
 			.then(Commands.literal("pick")
 				.then(Commands.literal("weapon").executes(ctx -> pick(ctx, true)))
 				.then(Commands.literal("armor").executes(ctx -> pick(ctx, false))))
@@ -76,7 +80,7 @@ public final class GearCommands {
 		String line = String.format(Locale.ROOT, "[gear] %s: kind %s (%s), melee %.1f, ranged %.1f, armor %.1f (%s), rarity %d, cost %.1f, points %.1f",
 			id, kind == null ? "none" : kind.id(), kind == null ? "none" : kind.use().name(), melee, GearValue.ranged(stack), armor,
 			slot == null ? "none" : slot.getName(), GearValue.rarity(stack), GearValue.cost(source.getLevel(), stack.getItem()), ItemValues.each(stack))
-			+ ", key " + describeKey(source, stack) + knowsPart(source, stack);
+			+ ", key " + describeKey(source, stack) + knowsPart(source, stack) + powersPart(source, stack);
 		source.sendSuccess(() -> Component.literal(line), false);
 		return 1;
 	}
@@ -100,6 +104,75 @@ public final class GearCommands {
 		} catch (CommandSyntaxException e) {
 			return "";
 		}
+	}
+
+	/** "; powers: explosive 0.75 (TEXT), ...; text guess: explosive" (the nearest Drifter's beliefs, then the text alone). */
+	private static String powersPart(CommandSourceStack source, ItemStack stack) {
+		StringBuilder out = new StringBuilder();
+		try {
+			DrifterEntity drifter = DrifterCommands.nearest(source);
+			java.util.Map<Powers.Power, GearLore.Belief> beliefs = drifter.getGearLore().beliefs(stack.getItem());
+			out.append("; powers: ");
+			if (beliefs.isEmpty()) {
+				out.append("none");
+			}
+
+			boolean first = true;
+			for (java.util.Map.Entry<Powers.Power, GearLore.Belief> entry : beliefs.entrySet()) {
+				out.append(first ? "" : ", ").append(String.format(Locale.ROOT, "%s %.2f (%s)", entry.getKey().id(), entry.getValue().confidence(),
+					entry.getValue().source().name()));
+				first = false;
+			}
+		} catch (CommandSyntaxException e) {
+			// no Drifter near: the text guess alone
+		}
+
+		java.util.Set<Powers.Power> guess = Powers.guess(source.getLevel(), stack);
+		out.append("; text guess: ");
+		if (guess.isEmpty()) {
+			out.append("none");
+		}
+
+		boolean first = true;
+		for (Powers.Power power : guess) {
+			out.append(first ? "" : ", ").append(power.id());
+			first = false;
+		}
+
+		return out.toString();
+	}
+
+	/**
+	 * Debug: reads the hover text of every gear item in the game (as a knowledgeable Drifter would, one by one) and says how
+	 * many hint at each power and how many could not be read (client-only hover text: no guess, logged once at debug level).
+	 */
+	private static int powers(CommandContext<CommandSourceStack> ctx) {
+		CommandSourceStack source = ctx.getSource();
+		java.util.Map<Powers.Power, Integer> counts = new java.util.EnumMap<>(Powers.Power.class);
+		int gear = 0;
+		int guessed = 0;
+		for (net.minecraft.world.item.Item item : BuiltInRegistries.ITEM) {
+			ItemStack stack = new ItemStack(item);
+			if (stack.isEmpty() || !GearValue.isGear(stack)) {
+				continue;
+			}
+
+			gear++;
+			java.util.Set<Powers.Power> guess = Powers.guess(source.getLevel(), stack);
+			if (!guess.isEmpty()) {
+				guessed++;
+			}
+
+			for (Powers.Power power : guess) {
+				counts.merge(power, 1, Integer::sum);
+			}
+		}
+
+		StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "[gear] text guesses: %d gear items, %d with a guess, %d unreadable", gear, guessed,
+			Powers.unreadable()));
+		counts.forEach((power, count) -> line.append(", ").append(power.id()).append(' ').append(count));
+		source.sendSuccess(() -> Component.literal(line.toString()), false);
+		return 1;
 	}
 
 	private static int learn(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

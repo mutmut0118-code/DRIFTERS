@@ -109,6 +109,10 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.personality.Lore lore = new com.dinglebob.drifter.personality.Lore();
 	/** Which modded items it knows exist, and how it found out (gear project). */
 	private final com.dinglebob.drifter.gear.GearLore gearLore = new com.dinglebob.drifter.gear.GearLore();
+	/** What follows its own hit, shot or ability, watched for an item's powers (only while a watch is on). */
+	private final com.dinglebob.drifter.gear.PowerWatch powerWatch = new com.dinglebob.drifter.gear.PowerWatch();
+	/** Set while it heals by eating's natural regeneration, which is no sign of an item's power. */
+	private boolean healingNaturally;
 	private final VirtualKeys keys = new VirtualKeys();
 	private final CameraModel camera;
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
@@ -497,6 +501,30 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.gear.GearLore getGearLore() {
 		return this.gearLore;
+	}
+
+	public com.dinglebob.drifter.gear.PowerWatch getPowerWatch() {
+		return this.powerWatch;
+	}
+
+	/** Any heal but natural regeneration may be an item's power at work (PowerWatch: life steal and the like). */
+	@Override
+	public void heal(float amount) {
+		float before = this.getHealth();
+		super.heal(amount);
+		if (!this.healingNaturally && this.getHealth() > before && !this.level().isClientSide) {
+			com.dinglebob.drifter.gear.PowerWatch.healed(this);
+		}
+	}
+
+	/** Natural regeneration (food, Peaceful): a heal that says nothing about what it holds. */
+	public void healNaturally(float amount) {
+		this.healingNaturally = true;
+		try {
+			this.heal(amount);
+		} finally {
+			this.healingNaturally = false;
+		}
 	}
 
 	/** It knows this item exists (seen, owned, unlocked, told, or known from the start). */
@@ -1392,6 +1420,8 @@ public class DrifterEntity extends PathfinderMob {
 			if ((this.tickCount + (this.getId() & 0xFF)) % com.dinglebob.drifter.gear.GearLore.CHECK_INTERVAL == com.dinglebob.drifter.gear.GearLore.CHECK_OFFSET) {
 				this.gearLore.check(this);
 			}
+
+			this.powerWatch.tick(this);
 		}
 	}
 
@@ -1714,7 +1744,7 @@ protected void customServerAiStep() {
 	private void tickPeacefulRegeneration() {
 		if (this.level().getDifficulty() == Difficulty.PEACEFUL && this.level().getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION)) {
 			if (this.getHealth() < this.getMaxHealth() && this.tickCount % 20 == 0) {
-				this.heal(1.0F);
+				this.healNaturally(1.0F);
 			}
 
 			if (this.foodData.getSaturationLevel() < FoodConstants.MAX_SATURATION && this.tickCount % 20 == 0) {

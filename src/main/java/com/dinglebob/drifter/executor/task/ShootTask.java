@@ -276,7 +276,10 @@ public class ShootTask extends Task {
 		}
 
 		if (shoot) {
+			net.minecraft.world.item.ItemStack bow = this.drifter.getUseItem();
 			this.drifter.releaseUsingItem();
+			// What follows the shot may show what the bow does (its arrows are in the air now).
+			com.dinglebob.drifter.gear.PowerWatch.start(this.drifter, bow, this.target, com.dinglebob.drifter.gear.PowerWatch.Use.SHOT);
 		} else {
 			this.drifter.stopUsingItem();
 		}
