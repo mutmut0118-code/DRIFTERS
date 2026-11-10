@@ -1302,14 +1302,14 @@ public final class DrifterApi {
 
 	/**
 	 * What one of these is worth to a Drifter, in points (an emerald is 6): what it trades by. Any mod's weapons, armor,
-	 * shields and trinkets are valued from the item itself (API 4: {@code GearValue.points}); vanilla items as always.
+	 * shields and trinkets are valued from the item itself (API 5: {@code GearValue.points}); vanilla items as always.
 	 */
 	public static double worth(net.minecraft.world.item.ItemStack stack) {
 		return com.dinglebob.drifter.social.ItemValues.each(stack);
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// Gear: any mod's weapons, armor and trinkets (API 4)
+	// Gear: any mod's weapons, armor and trinkets (API 5)
 	// ---------------------------------------------------------------------------------------------
 
 	/** A weapon of some kind, a piece of armor, a shield, or a trinket (Trinkets, optional): any mod's, read from the item. */

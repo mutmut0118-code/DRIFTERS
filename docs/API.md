@@ -178,7 +178,7 @@ way on, and `Dig` STRIP, BRANCH or DOWN); a home's mining trips start there. `Ho
 chest to fetch from (one with enough, nearest home, not crowded). `DrifterApi.furnitureSpot(level, home, notHere)`: a spot
 in the room round its bed for one more piece of furniture.
 
-## Gear (API 4)
+## Gear (API 5)
 
 Any mod's weapons, armor, shields and trinkets, read from the items themselves (their attribute modifiers, rarity and
 recipes), with what each Drifter knows of them and its taste. All on the server thread.
@@ -234,7 +234,7 @@ near home.
 Fabric's data attachments (`AttachmentRegistry.createPersistent(...)` with a codec, then `drifter.setAttached(...)`):
 saved with the Drifter, versioned by the addon, and Drifter's own save format never changes for it.
 
-## Friends: talk and closeness with players (0.23.38-side.1, API 5, `TalkApi`)
+## Friends: talk and closeness with players (0.23.38-side.2, API 4, `TalkApi`)
 
 For the addon's friendships (D2, docs/LIVED_WORLD.md). In a class of its own so this door grows in one place per
 feature. Each hook is one listener, a no-op until the addon sets it.

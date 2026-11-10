@@ -4669,7 +4669,7 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
-- **0.23.38-side.1: D2 friends** (the user, 2026-11-10: "start with D2 friends"; designed with them question by question:
+- **0.23.38-side.2: D2 friends** (the user, 2026-11-10: "start with D2 friends"; designed with them question by question:
   docs/superpowers/specs/2026-11-10-d2-friends-design.md, plan docs/superpowers/plans/2026-11-10-d2-friends.md; then "we
   should also make friends by conversating and thatll make an aquaintance ... think of like a Sims 4 system", and "a
   seperate option category for friendship ... with presets aswell").
@@ -4709,7 +4709,7 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     Civilizations, Configure, Friendship), presets Relaxed, Normal, Slow burn, Hardcore (Custom once a slider moves), and
     every setting (pace, best friend, cooling, agree/disagree weights, repeat talks, each perk, tips and favors every,
     discount, whispers, announcements, townspeople only). `/drifterciv config friendship [preset <name> | <setting> <value>]`.
-  - API 5 (the gear work took 4): `TalkApi` (whispers, the chat handler, player facts for topics, trust floors, name notes, the whisper rule,
+  - API 4 (the gear work's is 5): `TalkApi` (whispers, the chat handler, player facts for topics, trust floors, name notes, the whisper rule,
     familiarity, memories, spare food and bringing it, starting a talk) and `DrifterEvents.PLAYER_ANSWERED`.
   - Commands: `/drifterciv friends` (and its line in `/drifterciv town`); debug `set <stage>`, `add <trust> <familiarity>`,
     `talk [topic]`, `tip`, `favor <kind>`, `invite`, `days <n>`, `end`.
