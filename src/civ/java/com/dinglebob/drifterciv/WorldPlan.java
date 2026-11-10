@@ -272,7 +272,7 @@ final class WorldPlan {
 				Plan plan = new Plan(level, spawn, count, spread);
 				plan.generation = made;
 				// (Its places, as soon as they're chosen: their land generated while the roads between them are planned.)
-				plan.placesChosen = () -> server.execute(() -> {
+				plan.placesChosen = () -> DrifterApi.onServerThread(server, () -> {
 					if (made == generation && server.overworld() == level && !ready) {
 						places.clear();
 						places.addAll(plan.places);
@@ -283,7 +283,7 @@ final class WorldPlan {
 					}
 				});
 				plan.make();
-				server.execute(() -> {
+				DrifterApi.onServerThread(server, () -> {
 					// (Only for the world it was made for: a world left before its plan was ready, and another made, got both
 					// worlds' places, the first's capital in the sea there: the user's log, 2026-10-31.)
 					if (made == generation && server.overworld() == level) {

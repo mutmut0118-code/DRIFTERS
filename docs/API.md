@@ -164,6 +164,9 @@ timid stands and fights as at war.
 its people who aren't cowards (`DrifterApi.timid`: Bravery under 0.3, no guard) go for them wherever they see them.
 `DrifterApi.markBuilt(level, pos)`: a block of a build (a town mine's stairs): not dug for stone nor tunnelled through.
 
+0.23.38: `DrifterApi.onServerThread(server, task)`: work a background thread hands back, run on the server thread's next
+turn, dropped if the server's stopping (use it, not `server.execute`, from any background thread).
+
 0.23.37: `DrifterApi.quicksave()`: Quicksave is installed. `DrifterApi.autosave(player, label)`: a Quicksave autosave now
 (called this in its list), tried again for 30 s while Quicksave refuses for the moment (a fight, a fall).
 

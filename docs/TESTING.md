@@ -3231,3 +3231,10 @@ The same as your test: in creative, on the flat world, standing by the battle.
 - [ ] **Autosaves.** Walk into a town from outside: Quicksave's toast, saved as the town's name (not again for 5 minutes,
       nor the same town for 20). An encounter (an ambush, bounty hunters...): saved just before it ("Before an ambush"); die
       to it and you're back just before it.
+
+## 0.23.38: pens, quitting (new)
+
+- [ ] **Pens stay one fence high.** A town pen that grew a tall stack of fences (one layer a session) is back to one fence
+      the first time it's loaded, and stays that way however often the world's opened.
+- [ ] **Quitting doesn't hang.** Save and quit to title (several times, in a world with towns): never stuck on "Saving
+      worlds".

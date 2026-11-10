@@ -540,7 +540,7 @@ public final class RealSkins {
 
 		inFlight++;
 		CompletableFuture.supplyAsync(() -> lookUp(server, request.accounts()), Util.backgroundExecutor())
-			.whenComplete((result, error) -> server.execute(() -> {
+			.whenComplete((result, error) -> com.dinglebob.drifter.world.ServerThread.later(server, () -> {
 				inFlight--;
 				if (error != null) {
 					Drifter.LOGGER.debug("[Drifter] skin lookup failed", error);
@@ -599,7 +599,7 @@ public final class RealSkins {
 		batch.forEach(account -> ASKING.add(key(account)));
 		batch.stream().filter(account -> userList.contains(account)).forEach(account -> RESERVED.add(key(account)));
 		CompletableFuture.supplyAsync(() -> lookUpNames(server, batch), Util.backgroundExecutor())
-			.whenComplete((ids, error) -> server.execute(() -> {
+			.whenComplete((ids, error) -> com.dinglebob.drifter.world.ServerThread.later(server, () -> {
 				batchesOut--;
 				if (error != null || ids == null) {
 					batch.forEach(account -> {
@@ -636,7 +636,7 @@ public final class RealSkins {
 					}
 
 					CompletableFuture.supplyAsync(() -> fetchSkin(server, account, id), FETCHERS)
-						.whenComplete((answered, failed) -> server.execute(() -> {
+						.whenComplete((answered, failed) -> com.dinglebob.drifter.world.ServerThread.later(server, () -> {
 							RESERVED.remove(key(account));
 							ASKING.remove(key(account));
 							if (fetchFailed(server, failed != null || answered == null || !answered)) {
@@ -666,7 +666,7 @@ public final class RealSkins {
 
 			fillsOut++;
 			CompletableFuture.supplyAsync(() -> fetchSkin(server, account, fromHex(account)), FETCHERS)
-				.whenComplete((answered, error) -> server.execute(() -> {
+				.whenComplete((answered, error) -> com.dinglebob.drifter.world.ServerThread.later(server, () -> {
 					fillsOut--;
 					if (fetchFailed(server, error != null || answered == null || !answered)) {
 						// (Most likely an account that's gone: not asked about again for a week.)

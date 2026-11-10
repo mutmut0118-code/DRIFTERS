@@ -701,6 +701,14 @@ public final class DrifterApi {
 		return drifter.groupAtDeath();
 	}
 
+	/**
+	 * Work a background thread hands back to the server, run on the server thread's next turn; dropped if the server's
+	 * stopping (MinecraftServer#execute would run it at once on the background thread, touching the world while it's saved).
+	 */
+	public static void onServerThread(net.minecraft.server.MinecraftServer server, Runnable task) {
+		com.dinglebob.drifter.world.ServerThread.later(server, task);
+	}
+
 	/** Quicksave is installed (Bethesda-style saves: dying puts the world back to the last save). */
 	public static boolean quicksave() {
 		return com.dinglebob.drifter.compat.QuicksaveCompat.present();
