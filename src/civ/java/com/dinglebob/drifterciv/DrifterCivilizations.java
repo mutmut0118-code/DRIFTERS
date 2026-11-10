@@ -55,6 +55,7 @@ public final class DrifterCivilizations implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		CivConfig.load();
 		ServerLifecycleEvents.SERVER_STARTING.register(started -> server = started);
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> server = null);
 		DrifterEvents.DIED.register((drifter, source, comesBack) -> deathsHeard++);
@@ -78,6 +79,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownTraditions.register();
 		TownNotices.register();
 		TownServices.register();
+		Friends.register();
+		FriendCommands.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
