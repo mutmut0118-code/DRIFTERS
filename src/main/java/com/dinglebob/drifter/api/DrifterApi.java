@@ -1298,28 +1298,12 @@ public final class DrifterApi {
 	 * Comparable between pieces of the same use, not across uses.
 	 */
 	public static double gearValue(DrifterEntity drifter, net.minecraft.world.item.ItemStack stack) {
-		if (stack.isEmpty()) {
-			return 0.0;
-		}
+		return com.dinglebob.drifter.brain.GearPlans.useValue(drifter, stack);
+	}
 
-		var slot = com.dinglebob.drifter.gear.GearValue.armorSlot(stack);
-		if (slot != null) {
-			return com.dinglebob.drifter.gear.GearValue.armor(stack, slot);
-		}
-
-		if (com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
-			return com.dinglebob.drifter.gear.GearValue.trinket(drifter, stack);
-		}
-
-		var kind = com.dinglebob.drifter.gear.GearKinds.of(stack);
-		if (kind == null) {
-			return 0.0;
-		}
-
-		return switch (kind.use()) {
-			case BOW, CROSSBOW, TRIDENT -> com.dinglebob.drifter.gear.GearValue.ranged(stack);
-			default -> com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
-		};
+	/** A melee weapon, vanilla or any mod's (a sword, a katana, a weapon file's item; not a bow, shield or tool). */
+	public static boolean isWeapon(net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.brain.Weapons.isWeapon(stack);
 	}
 
 	/** Its armor points worn in the slot it's made for, as a player's armor bar counts them (an iron chestplate 6); 0 if not armor. */
@@ -1352,8 +1336,9 @@ public final class DrifterApi {
 	/**
 	 * The gear it knows how to make at a crafting table, at {@code maxTier} or lower (1 wood, 2 stone, 3 iron, 4 diamond,
 	 * 5 netherite: a weapon by the sword it matches, armor by the vanilla piece its score matches, a bow, crossbow, shield
-	 * or trinket as iron): every such vanilla piece, then at most four modded pieces it knows, those it likes best by
-	 * value and taste (they hold until what it knows changes). Got the way it gets anything if it's to make them.
+	 * or trinket, or a weapon of unknown tier, as iron): every such vanilla piece, then at most four modded pieces it knows,
+	 * those it likes best by their use value with its taste, against the iron piece of the same use (they hold until what
+	 * it knows changes). Got the way it gets anything if it's to make them.
 	 */
 	public static List<net.minecraft.world.item.Item> gearItCanMake(DrifterEntity drifter, int maxTier) {
 		return gearItCanMake(drifter, maxTier, stack -> true);

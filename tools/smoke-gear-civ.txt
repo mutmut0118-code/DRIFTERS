@@ -5,6 +5,9 @@
 # smith's name is new each run. Expect: the first 'prices' lists only the smithy json's vanilla items; after the day, the
 # smith's "Making:" line names modded gear it knows (at most four pieces, iron tier or lower), and once it carries a spare
 # heavy chestplate its stand offers it for about its 'points' (gear item) times the market factor.
+# Fix round 1: picks rank by use value against the iron piece of the same use, so with Simply Swords the smith's four are
+# usually iron weapons, not the heavy chestplate (then it isn't offered). Armour keeps none for itself: 3 iron helmets carried
+# are offered 3 times; 3 of a picked weapon (cutlass, twinblade) are offered 2 times (one kept).
 until Done_( 900
 until places_( 900
 wait 3
@@ -23,6 +26,10 @@ execute positioned -1392 100 2648 run drifter gear item immersive_armors:heavy_c
 execute positioned -1392 100 2648 run drifter gear item immersive_armors:bone_chestplate
 execute positioned -1392 100 2648 run drifter gear item immersive_armors:warrior_chestplate
 execute positioned -1392 100 2648 run drifter gear item minecraft:iron_chestplate
+execute positioned -1392 100 2648 run drifter gear item minecraft:iron_sword
+execute positioned -1392 100 2648 run drifter gear item simplyswords:iron_cutlass
+execute positioned -1392 100 2648 run drifter gear item simplyswords:iron_twinblade
+execute positioned -1392 100 2648 run drifter gear item simplyswords:iron_halberd
 execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter gear learn immersive_armors:heavy_chestplate
 execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give minecraft:iron_block 16
 wait 5
@@ -30,6 +37,9 @@ execute positioned -1392 100 2648 run drifterciv prices
 sprint 24000
 execute positioned -1392 100 2648 run drifterciv prices
 execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give immersive_armors:heavy_chestplate 3
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give minecraft:iron_helmet 3
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give simplyswords:iron_cutlass 3
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give simplyswords:iron_twinblade 3
 wait 3
 execute positioned -1392 100 2648 run drifterciv prices
 wait 5

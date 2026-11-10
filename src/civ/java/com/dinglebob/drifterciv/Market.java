@@ -18,6 +18,7 @@ import com.dinglebob.drifter.world.DrifterGroups;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -316,7 +317,7 @@ public final class Market {
 	/** Not its tools, weapons or armour (any mod's), nor money, nor things that are part of its house. */
 	private static boolean sellable(Item item) {
 		ItemStack stack = new ItemStack(item);
-		return !DrifterApi.isGear(stack) && !(item instanceof TieredItem) && DrifterApi.moneyWorth(stack) <= 0.0 && item != Items.CHEST
+		return !DrifterApi.isGear(stack) && !(item instanceof TieredItem) && !(item instanceof ArmorItem) && DrifterApi.moneyWorth(stack) <= 0.0 && item != Items.CHEST
 			&& item != Items.CRAFTING_TABLE && item != Items.FURNACE && !stack.is(net.minecraft.tags.ItemTags.BEDS);
 	}
 

@@ -237,7 +237,8 @@ public final class GearPlans {
 	/**
 	 * The gear it knows how to make at a crafting table (the Planner's rule: {@link RecipeIndex#craftableGear}) at
 	 * {@code maxTier} or lower ({@link #tierEquivalent}) that {@code which} takes: every such vanilla piece, then at most
-	 * {@link #MAKE_MODDED} modded ones it knows (GearLore), those it likes best by their trade points and its taste. The
+	 * {@link #MAKE_MODDED} modded ones it knows (GearLore), those it likes best by use value and taste ({@link #useValue},
+	 * against the iron piece of the same use). The
 	 * picks hold until what it knows changes (no list flickering day to day). Kept per Drifter; cheap to ask often.
 	 */
 	public static List<Item> canMake(DrifterEntity drifter, int maxTier, java.util.function.Predicate<ItemStack> which) {
@@ -262,6 +263,55 @@ public final class GearPlans {
 		}
 
 		return out;
+	}
+
+	/**
+	 * What this is worth to it for its use: armor worn in its slot, a trinket in its best slot, a bow, crossbow or trident by
+	 * its ranged score, any other weapon kind by its damage per second in its hands; 0 for anything else (a shield).
+	 */
+	public static double useValue(DrifterEntity drifter, ItemStack stack) {
+		if (stack.isEmpty()) {
+			return 0.0;
+		}
+
+		EquipmentSlot slot = GearValue.armorSlot(stack);
+		if (slot != null) {
+			return GearValue.armor(stack, slot);
+		}
+
+		if (com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
+			return GearValue.trinket(drifter, stack);
+		}
+
+		GearKinds.Kind kind = GearKinds.of(stack);
+		if (kind == null) {
+			return 0.0;
+		}
+
+		return switch (kind.use()) {
+			case BOW, CROSSBOW, TRIDENT -> GearValue.ranged(stack);
+			default -> GearValue.melee(drifter, stack);
+		};
+	}
+
+	/** The iron (or plain vanilla) piece's {@link #useValue} for the same use, to compare across uses; 1 where there is none. */
+	private static double reference(ItemStack stack, double ironSword) {
+		EquipmentSlot slot = GearValue.armorSlot(stack);
+		if (slot != null) {
+			return Math.max(1.0E-6, vanillaValue(slot, Weapons.Tier.IRON));
+		}
+
+		GearKinds.Kind kind = GearKinds.of(stack);
+		if (kind == null || com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
+			return 1.0;
+		}
+
+		return switch (kind.use()) {
+			case BOW -> GearValue.BASE_BOW;
+			case CROSSBOW -> GearValue.BASE_CROSSBOW;
+			case TRIDENT -> GearValue.BASE_TRIDENT;
+			default -> ironSword;
+		};
 	}
 
 	private static Making making(DrifterEntity drifter, int maxTier) {
@@ -298,10 +348,13 @@ public final class GearPlans {
 		if (kept != null && kept.source() == source && kept.candidates().equals(candidates)) {
 			ranked = kept.ranked();
 		} else {
+			// By what each is worth for its use, with its taste in it, against the iron piece of the same use (so armor's bigger
+			// numbers don't crowd out weapons); not by trade points, which count what it's made of.
 			Map<Item, Double> liking = new java.util.HashMap<>();
+			double ironSword = Math.max(1.0E-6, GearValue.melee(drifter, new ItemStack(Items.IRON_SWORD)));
 			for (Item item : candidates) {
 				ItemStack stack = new ItemStack(item);
-				liking.put(item, GearTaste.liking(drifter, stack, GearValue.points(stack)));
+				liking.put(item, GearTaste.liking(drifter, stack, useValue(drifter, stack)) / reference(stack, ironSword));
 			}
 
 			List<Item> sorted = new ArrayList<>(candidates);
