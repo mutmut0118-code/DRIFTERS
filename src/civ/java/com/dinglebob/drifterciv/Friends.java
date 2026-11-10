@@ -63,7 +63,7 @@ final class Friends {
 	}
 
 	/** A favor a friend asked of a player: what, when, by when, and whether they said they'd do it. */
-	record Favor(String kind, long asked, long due, boolean promised, int done) {
+	record Favor(String kind, long asked, long due, boolean promised, int done, @Nullable BlockPos at) {
 	}
 
 	/** One Drifter and one player. */
@@ -78,6 +78,8 @@ final class Friends {
 		long since;
 		/** When they were last near each other, it seeing them (game time). */
 		long lastTogether;
+		/** When they turned up after a day or more apart (not saved: for its welcome). */
+		long returned = -1;
 		/** Time together since it cooled, toward picking up again (ticks). */
 		long warming;
 		/** The in-game day of {@link #talksToday}: answers to its questions that day (repeat talks count less). */
@@ -156,6 +158,10 @@ final class Friends {
 				favor.putLong("Due", this.favor.due());
 				favor.putBoolean("Promised", this.favor.promised());
 				favor.putInt("Done", this.favor.done());
+				if (this.favor.at() != null) {
+					favor.putLong("At", this.favor.at().asLong());
+				}
+
 				tag.put("Favor", favor);
 			}
 
@@ -189,7 +195,8 @@ final class Friends {
 			b.lastInvite = tag.getLong("LastInvite");
 			if (tag.contains("Favor")) {
 				CompoundTag f = tag.getCompound("Favor");
-				b.favor = new Favor(f.getString("Kind"), f.getLong("Asked"), f.getLong("Due"), f.getBoolean("Promised"), f.getInt("Done"));
+				b.favor = new Favor(f.getString("Kind"), f.getLong("Asked"), f.getLong("Due"), f.getBoolean("Promised"), f.getInt("Done"),
+					f.contains("At") ? BlockPos.of(f.getLong("At")) : null);
 			}
 
 			b.saved = tag.getBoolean("Saved");
@@ -200,6 +207,11 @@ final class Friends {
 		}
 	}
 
+	/** What a player does to it that ends a friendship there and then. */
+	private static final java.util.Set<SocialEvent> ENDS = java.util.EnumSet.of(SocialEvent.ATTACKED, SocialEvent.NEARLY_KILLED, SocialEvent.KILLED,
+		SocialEvent.KILLED_PET, SocialEvent.CAUGHT_STEALING, SocialEvent.TOOK_VALUABLES, SocialEvent.HAD_ITS_THINGS, SocialEvent.KILLED_FRIEND,
+		SocialEvent.FIRE_NEAR_BASE);
+
 	/** How far round a player the loop looks for Drifters, and how often (ticks). */
 	private static final double NEAR = 32.0;
 	private static final int EVERY = 20;
@@ -208,10 +220,14 @@ final class Friends {
 	/** Time together after cooling before it picks up again (ticks: five minutes), and the trust that takes. */
 	private static final long WARM_AGAIN = 20L * 60 * 5;
 	private static final double WARM_TRUST = 25.0;
-	/** Stage thresholds at the Normal pace, for an average nature (see {@link #need}). */
-	private static final double ACQ_FAMILIARITY = 10.0;
+	/**
+	 * Stage thresholds at the Normal pace, for an average nature (see {@link #need}). Familiarity: Drifter gives 1 for each 5
+	 * minutes within 16 blocks (about 4 a day spent round someone) and a day's talks about 2 more, so a friend in 3 to 4 such
+	 * days, about two or three play sessions; trust needs deeds besides (gifts, help, favors), as it drifts back each day.
+	 */
+	private static final double ACQ_FAMILIARITY = 8.0;
 	private static final double FRIEND_TRUST = 50.0;
-	private static final double FRIEND_FAMILIARITY = 30.0;
+	private static final double FRIEND_FAMILIARITY = 20.0;
 	private static final int FRIEND_AGREED = 2;
 	private static final double BEST_TRUST = 70.0;
 	private static final int BEST_AGREED = 6;
@@ -257,8 +273,15 @@ final class Friends {
 				bondOrNew(drifter, player).saved = true;
 				dirty();
 			}
+
+			// Wronged: over at once (a single hit then backing off isn't: an accident between friends).
+			if (ENDS.contains(deed)) {
+				end(drifter.getUUID(), player.getUUID(), deed.what);
+			}
 		});
 		TalkApi.setTrustFloor(Friends::floor);
+		// Where something is, told to a friend: whispered.
+		TalkApi.setWhisperRule((drifter, player, key) -> CivConfig.friends().whisper && isFriend(drifter, player));
 		TalkApi.registerPlayerFacts((drifter, player, words, flags) -> {
 			Bond b = bond(drifter.getUUID(), player.getUUID());
 			if (b == null) {
@@ -308,7 +331,8 @@ final class Friends {
 
 	@Nullable
 	static Bond bond(UUID drifter, UUID player) {
-		return bonds.get(key(drifter, player));
+		// (Friendships off: none count, kept for when they're on again.)
+		return CivConfig.friends().on ? bonds.get(key(drifter, player)) : null;
 	}
 
 	@Nullable
@@ -348,6 +372,61 @@ final class Friends {
 		return b != null && b.best();
 	}
 
+	/** The price factor at its stall or shop for this player: a friend's price (the setting's discount) when cheaper. */
+	static double price(DrifterEntity keeper, @Nullable Player player, double standing) {
+		if (player == null || !isFriend(keeper, player)) {
+			return standing;
+		}
+
+		return Math.min(standing, 1.0 - CivConfig.friends().discount / 100.0);
+	}
+
+	/** A friend seeing them take something from its town: let down a little, not more. */
+	static final double LET_DOWN = -3.0;
+	/** Why it cooled when word of a big crime elsewhere reached its town. */
+	private static final String HEARD = "what they did in ";
+
+	/** Its Drifter is one of this town (its group's), or was last seen as one. */
+	private static boolean ofTown(Bond b, Town town) {
+		var group = DrifterApi.group(b.drifter);
+		return group != null && town.group != null ? group.id.equals(town.group) : b.town.equals(town.name);
+	}
+
+	/** Its people's friendships with this player over (a murder in their town). */
+	static void endTown(Town town, UUID player, String why) {
+		for (Bond b : of(player)) {
+			if (ofTown(b, town) && (b.active() || b.state == State.COOLED)) {
+				end(b.drifter, player, why);
+			}
+		}
+	}
+
+	/** Its people's friendships with this player cooled: word of something big they did in another town. */
+	static void coolTown(Town town, UUID player, String where) {
+		for (Bond b : of(player)) {
+			if (ofTown(b, town) && b.friend()) {
+				cool(b, HEARD + where);
+			}
+		}
+	}
+
+	/**
+	 * Whether this Drifter of this town leaves them be although its town wants them: a friend, over something small (not
+	 * kill on sight); or one cooled only by word from another town.
+	 */
+	static boolean sparedBy(DrifterEntity drifter, Player player, Town town) {
+		Bond b = bond(drifter, player);
+		if (b == null) {
+			return false;
+		}
+
+		if (b.state == State.COOLED && b.why.startsWith(HEARD)) {
+			return true;
+		}
+
+		return b.friend() && !Justice.killOnSight(town, player);
+	}
+
 	/** Every bond of this player's (any stage, any state). */
 	static List<Bond> of(UUID player) {
 		List<Bond> out = new ArrayList<>();
@@ -358,6 +437,11 @@ final class Friends {
 		}
 
 		return out;
+	}
+
+	/** Every bond. */
+	static java.util.Collection<Bond> all() {
+		return bonds.values();
 	}
 
 	/** Every bond of this Drifter's. */
@@ -523,6 +607,10 @@ final class Friends {
 			}
 
 			if (together) {
+				if (now - b.lastTogether >= FriendPerks.WELCOME_APART) {
+					b.returned = now;
+				}
+
 				b.lastTogether = now;
 				b.where = drifter.blockPosition();
 				Town town = Market.townOf(drifter);
@@ -612,40 +700,9 @@ final class Friends {
 			.then(Commands.literal("set").requires(source -> source.hasPermission(2))
 				.then(Commands.argument("stage", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(List.of("stranger", "acquaintance", "friend", "best"), builder))
-					.executes(ctx -> {
-						ServerPlayer player = ctx.getSource().getPlayerOrException();
-						DrifterEntity drifter = looked(player);
-						String word = StringArgumentType.getString(ctx, "stage");
-						Stage stage = switch (word) {
-							case "stranger" -> Stage.STRANGER;
-							case "acquaintance" -> Stage.ACQUAINTANCE;
-							case "friend" -> Stage.FRIEND;
-							case "best", "best_friend" -> Stage.BEST_FRIEND;
-							default -> null;
-						};
-						if (drifter == null || stage == null) {
-							ctx.getSource().sendFailure(Component.literal(drifter == null ? "No Drifter in front of you" : "No such stage"));
-							return 0;
-						}
-
-						Bond b = bondOrNew(drifter, player);
-						// (Its trust and time with them made to fit, so Drifter's own behaviour goes with it.)
-						double trust = stage == Stage.BEST_FRIEND ? 75.0 : stage == Stage.FRIEND ? 55.0 : stage == Stage.ACQUAINTANCE ? 10.0 : 0.0;
-						double familiarity = stage == Stage.BEST_FRIEND ? 60.0 : stage == Stage.FRIEND ? 32.0 : stage == Stage.ACQUAINTANCE ? 12.0 : 0.0;
-						double had = DrifterApi.trustInPlayer(drifter, player.getUUID());
-						if (had < trust) {
-							DrifterApi.addTrustInPlayer(drifter, player.getUUID(), player.getGameProfile().getName(), trust - had);
-						}
-
-						double knew = TalkApi.familiarity(drifter, player.getUUID());
-						if (knew < familiarity) {
-							TalkApi.addFamiliarity(drifter, player.getUUID(), player.getGameProfile().getName(), familiarity - knew);
-						}
-
-						reach(drifter, player, b, stage, true);
-						ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + drifter.getName().getString() + " is your " + stage.word + " now"), false);
-						return 1;
-					})))
+					.then(Commands.argument("who", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> setStage(ctx,
+						net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "who") instanceof DrifterEntity d ? d : null)))
+					.executes(ctx -> setStage(ctx, looked(ctx.getSource().getPlayerOrException())))))
 			.then(Commands.literal("days").requires(source -> source.hasPermission(2))
 				.then(Commands.argument("days", IntegerArgumentType.integer(1, 100)).executes(ctx -> {
 					ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -657,6 +714,24 @@ final class Friends {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: your friendships aged " + days + " days apart"), false);
 					return 1;
 				})))
+			.then(Commands.literal("add").requires(source -> source.hasPermission(2))
+				.then(Commands.argument("trust", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(-100, 100))
+					.then(Commands.argument("familiarity", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(-100, 100)).executes(ctx -> {
+						ServerPlayer player = ctx.getSource().getPlayerOrException();
+						DrifterEntity drifter = looked(player);
+						if (drifter == null) {
+							ctx.getSource().sendFailure(Component.literal("No Drifter in front of you"));
+							return 0;
+						}
+
+						String name = player.getGameProfile().getName();
+						DrifterApi.addTrustInPlayer(drifter, player.getUUID(), name, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "trust"));
+						TalkApi.addFamiliarity(drifter, player.getUUID(), name, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "familiarity"));
+						String shown = String.format(java.util.Locale.ROOT, "Debug: %s: trust %.1f, familiarity %.1f, %s", drifter.getName().getString(),
+							DrifterApi.trustInPlayer(drifter, player.getUUID()), TalkApi.familiarity(drifter, player.getUUID()), stage(drifter, player).word);
+						ctx.getSource().sendSuccess(() -> Component.literal(shown), false);
+						return 1;
+					}))))
 			.then(Commands.literal("end").requires(source -> source.hasPermission(2)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				DrifterEntity drifter = looked(player);
@@ -670,10 +745,61 @@ final class Friends {
 				return 1;
 			}))
 			.then(FriendTalk.command())
-			.then(FriendPerks.command());
+			.then(FriendPerks.tipCommand())
+			.then(FriendPerks.favorCommand())
+			.then(FriendPerks.inviteCommand())
+			.then(FriendPerks.handCommand())
+			.then(FriendPerks.backupCommand());
 	}
 
-	/** The Drifter a player is looking at, within 8 blocks (or the nearest within 4). */
+	private static int setStage(CommandContext<CommandSourceStack> ctx, @Nullable DrifterEntity drifter) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ServerPlayer player = ctx.getSource().getPlayerOrException();
+		String word = StringArgumentType.getString(ctx, "stage");
+		Stage stage = switch (word) {
+			case "stranger" -> Stage.STRANGER;
+			case "acquaintance" -> Stage.ACQUAINTANCE;
+			case "friend" -> Stage.FRIEND;
+			case "best", "best_friend" -> Stage.BEST_FRIEND;
+			default -> null;
+		};
+		if (drifter == null || stage == null) {
+			ctx.getSource().sendFailure(Component.literal(drifter == null ? "No Drifter in front of you" : "No such stage"));
+			return 0;
+		}
+
+		Bond b = bondOrNew(drifter, player);
+		// (Its trust and time with them made to fit, so Drifter's own behaviour goes with it.)
+		double trust = stage == Stage.BEST_FRIEND ? 75.0 : stage == Stage.FRIEND ? 55.0 : stage == Stage.ACQUAINTANCE ? 10.0 : 0.0;
+		double familiarity = stage == Stage.BEST_FRIEND ? 60.0 : stage == Stage.FRIEND ? 32.0 : stage == Stage.ACQUAINTANCE ? 12.0 : 0.0;
+		double had = DrifterApi.trustInPlayer(drifter, player.getUUID());
+		if (had < trust) {
+			DrifterApi.addTrustInPlayer(drifter, player.getUUID(), player.getGameProfile().getName(), trust - had);
+		}
+
+		double knew = TalkApi.familiarity(drifter, player.getUUID());
+		if (knew < familiarity) {
+			TalkApi.addFamiliarity(drifter, player.getUUID(), player.getGameProfile().getName(), familiarity - knew);
+		}
+
+		reach(drifter, player, b, stage, true);
+		ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + drifter.getName().getString() + " is your " + stage.word + " now"), false);
+		return 1;
+	}
+
+	/** The nearest friend of theirs within 24 blocks (debug), or the one they're looking at. */
+	@Nullable
+	static DrifterEntity friendNear(ServerPlayer player) {
+		DrifterEntity best = null;
+		for (DrifterEntity d : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(24.0), d -> d.isAlive() && isFriend(d, player))) {
+			if (best == null || d.distanceToSqr(player) < best.distanceToSqr(player)) {
+				best = d;
+			}
+		}
+
+		return best != null ? best : looked(player);
+	}
+
+	/** The Drifter a player is looking at, within 16 blocks (or the nearest within 16). */
 	@Nullable
 	static DrifterEntity looked(ServerPlayer player) {
 		Vec3 eye = player.getEyePosition();
@@ -681,8 +807,8 @@ final class Friends {
 		DrifterEntity best = null;
 		double bestDot = 0.9;
 		DrifterEntity nearest = null;
-		double nearestDistance = 16.0;
-		for (DrifterEntity d : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(8.0), DrifterEntity::isAlive)) {
+		double nearestDistance = 256.0;
+		for (DrifterEntity d : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(16.0), DrifterEntity::isAlive)) {
 			Vec3 to = d.getEyePosition().subtract(eye);
 			double dot = to.normalize().dot(look);
 			if (dot > bestDot) {
@@ -740,7 +866,7 @@ final class Friends {
 	static String inTown(Town town, Player player) {
 		List<String> here = new ArrayList<>();
 		for (Bond b : of(player.getUUID())) {
-			if (b.active() && b.stage != Stage.STRANGER && b.town.equals(town.name)) {
+			if (b.active() && b.stage != Stage.STRANGER && ofTown(b, town)) {
 				here.add(b.drifterName + " (" + b.stage.word + ")");
 			}
 		}

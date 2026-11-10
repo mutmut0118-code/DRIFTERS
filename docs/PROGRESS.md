@@ -4669,6 +4669,50 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.38-side.2: D2 friends** (the user, 2026-11-10: "start with D2 friends"; designed with them question by question:
+  docs/superpowers/specs/2026-11-10-d2-friends-design.md, plan docs/superpowers/plans/2026-11-10-d2-friends.md; then "we
+  should also make friends by conversating and thatll make an aquaintance ... think of like a Sims 4 system", and "a
+  seperate option category for friendship ... with presets aswell").
+  - **Stages** (`Friends`): stranger, acquaintance, friend, best friend, kept per Drifter and player with the world
+    (`drifter_civ_friends`, version 1), so `/drifterciv friends` knows friends far away. Acquaintance: familiarity 8 and
+    trust over 0; friend: trust 50, familiarity 20 and two opinions agreed (or it was saved by them); best friend: trust 70,
+    familiarity 40, six agreed, and at most two best friends (four for the very sociable). Time needed divided by the
+    setting's pace and its nature's ease (0.5 to 1.5: sociable and forgiving quicker, vengeful slower); trust less so.
+    Reaching friend and best friend is said in chat; a stage holds (its trust doesn't drift down under 30, 50 for a best
+    friend: `TalkApi.setTrustFloor`) until it cools or ends. Ten days apart: "used to be friends" (trust floor 10); five
+    minutes together picks it up again. Anyone but Bandits and delvers (and Drifters met once); a setting for townspeople only.
+  - **Talk** (`FriendTalk`, topics in `drifter_civ/drifter_talk/friends_*.json`, made by `tools/talk_gen/friends.py`): 64 hot
+    takes for acquaintances and closer, each ending on a question (do "opinion"); their yes or no is heard through Drifter's
+    new `PLAYER_ANSWERED`. Agreeing +3 trust and +1 familiarity; disagreeing: an argumentative one (aggression 0.6+,
+    forgiveness 0.4+) +1, a thin-skinned one (patience under 0.35, vengefulness 0.6+) -2, others -0.5; each further talk of
+    the day with them worth half (the setting). What they agreed on is kept (24 at most) and brought up by best friends
+    ("lol remember when we both said we hate phantoms"). Acquaintances and friends bring things up more often (every 6, 4,
+    3 minutes by stage) and a sitting goes on to 2, 4, 8 topics; "what do you think about creepers?" gets its take; hungry,
+    hurt, grieving or fighting it brushes them off ("not rn").
+  - **Perks** (`FriendPerks`, `FriendGoals`): welcome back after a day apart (it walks over and asks how it went); food
+    when they're low (its own spare food); asked in at night or in the rain when they're outside near its house (it walks
+    to its door and waits; its spare bed offered when its house has more beds than households); tips whispered from its
+    memory (ores it saw, spawners, portals, fortresses; diamonds and debris only for a best friend; exact, rounded or a
+    direction by its nature), else its town's bandit warning or a town against its own; backup against Bandits and
+    hostile Drifters attacking them (not its own household; its own town's only for a best friend over something small);
+    a friend's price at its stall and its trade's shop (20% off); a whispered warning when its town wants them (and when
+    word of a big crime elsewhere reaches it); favors now and then (8 iron, 4 food, or 3 monsters killed by its house by
+    morning): done +6 trust, said yes and not done -3 ("you said you'd help lol").
+  - **Endings**: small crimes in its town (theft, fines, false alarm, horses, animals): still a friend, only let down (-3
+    instead of a witness's -25), never chasing them (`TownWork.standing` and `killOnSight` answer per Drifter now). A
+    murder in its town (its leader's, a massacre): over. Wanted there only by word from another town: cooled, and it leaves
+    them be. Its own wrongs (attacked again and again, nearly killed, stealing from it, its pet or a friend of it killed,
+    fire near its home): over at once; a single hit isn't.
+  - **Whispers** (`TalkApi.whisper`): shown as a /msg, to that player only; nobody else sees them, no Drifter overhears.
+    Drifter's own answers that say where something is go as a whisper to a friend too.
+  - **Settings** (`CivConfig`, config/drifter_civ.json): the addon's own settings screen in Mod Menu (Drifter:
+    Civilizations, Configure, Friendship), presets Relaxed, Normal, Slow burn, Hardcore (Custom once a slider moves), and
+    every setting (pace, best friend, cooling, agree/disagree weights, repeat talks, each perk, tips and favors every,
+    discount, whispers, announcements, townspeople only). `/drifterciv config friendship [preset <name> | <setting> <value>]`.
+  - API 4 (the gear work's is 5): `TalkApi` (whispers, the chat handler, player facts for topics, trust floors, name notes, the whisper rule,
+    familiarity, memories, spare food and bringing it, starting a talk) and `DrifterEvents.PLAYER_ANSWERED`.
+  - Commands: `/drifterciv friends` (and its line in `/drifterciv town`); debug `set <stage>`, `add <trust> <familiarity>`,
+    `talk [topic]`, `tip`, `favor <kind>`, `invite`, `days <n>`, `end`.
 - **0.23.38: a pen's fence no longer stacks up; a quit no longer hangs on "Saving worlds"** (the user, 2026-11-10, a
   picture from one of the test worlds: a pen walled in six fences high, "is this supposed to happen?").
   - **The pen** (`TownBuilder.penGround`, `freePenGate`): putting a pen right, once a session (0.23.32), took the fence there

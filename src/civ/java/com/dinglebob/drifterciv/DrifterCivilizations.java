@@ -82,6 +82,9 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownNotices.register();
 		TownServices.register();
 		Friends.register();
+		FriendTalk.register();
+		FriendPerks.register();
+		FriendGoals.register();
 		FriendCommands.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {

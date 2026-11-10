@@ -24,7 +24,7 @@ a test and an entry here.
 | B | Trades and services instead of villager trading | Done: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9), B4 prices, B5 services (enchanting, repairs, netherite), B6 what villagers gave (0.23.27); not yet: B7 |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); the user's notes (0.23.24): guards by size and night rounds, home at night, festival crowds, bells (an alarm bell for raids, killings and massacres, rung again while the trouble lasts, 0.23.30), home whims and cooking, a crook in every city, the Gazette and a crier, the town mine, fuller chests, rebuilding after an explosion; traditions, stables and bees (0.23.27); not yet: cults |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | D1 what a town thinks of you, D5 the notice board (0.23.27; on Bountiful's bounty board too, 0.23.28; crime seen and
-dealt with harder, theft as it happens, wanted, massacres, 0.23.29); not yet: D2 friends, D3 companions, D4 living there (D6 built in step 5) |
+dealt with harder, theft as it happens, wanted, massacres, 0.23.29); D2 friends (0.23.38-side.2: stranger, acquaintance, friend, best friend by talk and deeds, perks, favors, endings, a Friendship settings page with presets); not yet: D3 companions, D4 living there (D6 built in step 5) |
 
 Already built that this stands on: see "What's there to build on" below.
 
@@ -1340,3 +1340,10 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   - Farmers count the seeds in their chests at home (`FarmActivity.seedsAround`): with no grass gathered in town (0.23.21)
     a farmer with seeds at home waited, "no grass about".
   - Merged the side sessions' 0.23.22-side.3 (Farmer's Delight kitchens and cooking, username words and nicknames).
+- **0.23.38-side.2: D2, friends** (the user, 2026-11-10; design docs/superpowers/specs/2026-11-10-d2-friends-design.md). Sims-like
+  stages (stranger, acquaintance, friend, best friend) built by talk (hot takes agreed or not, shared opinions kept, less
+  from talking non-stop) and Drifter's own trust and time together; a friend's perks (welcome back, food when low, asked in
+  at night with its spare bed, tips whispered from its memory, backup against Bandits and hostile Drifters, a friend's
+  price, a warning when its town's after you, favors); small crimes forgiven, a murder in its town ends it, word of one
+  elsewhere cools it; ten days apart cools it. The addon's own settings screen, a Friendship page with presets. Details
+  in docs/PROGRESS.md (0.23.38-side.2). Next: C cults (its own session, branch claude/determined-hopper-b81040), then A10.

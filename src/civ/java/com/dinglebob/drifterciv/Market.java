@@ -248,6 +248,9 @@ public final class Market {
 				return offers;
 			}
 
+			// A friend's price (D2), when that's cheaper.
+			standing = Friends.price(keeper, player, standing);
+
 			// Selling: what it took from the store to sell, as much as it carries.
 			for (Item item : this.stock(keeper).keySet()) {
 				int carried = keeper.getInventory().count(stack -> stack.is(item));
