@@ -15,7 +15,6 @@ import com.dinglebob.drifter.executor.task.NavigateTask;
 import com.dinglebob.drifter.executor.task.WaitTask;
 import com.dinglebob.drifter.nav.Legs;
 import com.dinglebob.drifter.perception.BellHearing;
-import com.dinglebob.drifter.personality.Trait;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
@@ -30,8 +29,19 @@ import net.minecraft.world.phys.Vec3;
 public final class AlarmGoal extends Goals.Goal {
 	/** An alarm heard counts this long (its town has it rung again every forty seconds or so while the trouble lasts). */
 	public static final long FRESH = 20L * 60;
-	/** As brave as this (or a guard, and not timid): it goes to the trouble. */
-	private static final double ANSWERS = 0.5;
+	/**
+	 * Down the town's mine, one who answers runs to its mouth and shouts down it (those digging there hear no bell): this
+	 * far from the mouth they hear (a shout down a shaft, along the tunnels). The user, 0.23.35: "alot of citizens were in
+	 * a mining trip or doing something else than defending an invaded town".
+	 */
+	private static final double CALL_DOWN = 48.0;
+	/** Who runs to the mine for each town's alarm (by its bell; the first to answer that isn't a guard), since when, and done. */
+	private record Run(java.util.UUID who, long since, boolean done) {
+	}
+
+	private static final java.util.Map<BlockPos, Run> runners = new java.util.HashMap<>();
+	/** One run to the mine an alarm: another this long after (the bell is rung again every forty seconds or so). */
+	private static final long RUN_AGAIN = 20L * 60 * 5;
 	/** Hurt this badly: it goes in whatever it's like. */
 	private static final float HURT = 0.5F;
 	/** Near enough the trouble: it looks about there. */
@@ -65,14 +75,50 @@ public final class AlarmGoal extends Goals.Goal {
 		return (ours != null ? ours.closerThan(heard.bell(), 12.0) : TownEdge.inTown(drifter, heard.bell())) ? heard : null;
 	}
 
-	/** It goes to the trouble (a guard, or brave and not timid, and not badly hurt); else it goes in. */
+	/**
+	 * It goes to the trouble (a guard, or anyone not timid, and not badly hurt); else it goes in. (Till 0.23.35 only the
+	 * brave, half and up: in the user's massacre most of a city went in, and nobody fought once its guards were dead.)
+	 */
 	static boolean answers(DrifterEntity drifter) {
 		TownWork town = drifter.getTownWork();
 		if (drifter.getHealth() < drifter.getMaxHealth() * HURT) {
 			return false;
 		}
 
-		return town != null && town.guard(drifter) || !Mode.timid(drifter) && drifter.getPersonality().get(Trait.BRAVERY) >= ANSWERS;
+		return town != null && town.guard(drifter) || !Mode.timid(drifter);
+	}
+
+	/** The way down its town's mine starts here (its mouth), or null: it has none. */
+	@Nullable
+	private static BlockPos mineMouth(DrifterEntity drifter) {
+		Home home = drifter.getDrifterBrain().home();
+		return home == null || home.townMinePath.isEmpty() ? null : home.townMinePath.get(0);
+	}
+
+	/** Is it the one to run to the mine for this alarm (once an alarm: the first to answer that isn't a guard)? */
+	private static boolean runner(DrifterEntity drifter, BellHearing.Heard heard) {
+		TownWork town = drifter.getTownWork();
+		if (mineMouth(drifter) == null || town != null && town.guard(drifter)) {
+			return false;
+		}
+
+		long now = drifter.level().getGameTime();
+		if (runners.size() > 64) {
+			runners.values().removeIf(run -> now - run.since > RUN_AGAIN);
+		}
+
+		Run run = runners.get(heard.bell());
+		if (run == null || now - run.since > RUN_AGAIN) {
+			run = new Run(drifter.getUUID(), now, false);
+			runners.put(heard.bell(), run);
+		}
+
+		return !run.done && run.who.equals(drifter.getUUID());
+	}
+
+	/** The run to the mine for this alarm is over (shouted down, or it couldn't get there). */
+	private static void ran(BellHearing.Heard heard) {
+		runners.computeIfPresent(heard.bell(), (bell, run) -> new Run(run.who, run.since, true));
 	}
 
 	/** Where it goes in: its house (by its bed), or null if it has none near. */
@@ -130,11 +176,20 @@ public final class AlarmGoal extends Goals.Goal {
 		return answers(drifter) ? new Answer(drifter) : new Hide(drifter);
 	}
 
-	/** To the trouble, and a look about there. */
+	/**
+	 * To the trouble, and a look about there; and it keeps watch there, going wherever the trouble's said to be next, till
+	 * the alarm's over (0.23.35: it went back to its work after one look, while the one it was for went on killing). The one
+	 * picked to, first runs to the town's mine and shouts down it.
+	 */
 	private static final class Answer extends Activity {
 		private int walks;
 		private int looks;
 		private boolean said;
+		private boolean watching;
+		@Nullable
+		private BlockPos went;
+		private boolean calledDown;
+		private int runs;
 
 		Answer(DrifterEntity drifter) {
 			super(drifter);
@@ -163,7 +218,44 @@ public final class AlarmGoal extends Goals.Goal {
 				return Status.SUCCESS;
 			}
 
+			// The mine first, if it's the one to call those down there up.
+			BlockPos mouth = mineMouth(this.drifter);
+			if (!this.calledDown && mouth != null && runner(this.drifter, heard)) {
+				if (this.runs == 0) {
+					this.think("running to the mine to call everyone up" + (heard.why() == null ? "" : " (" + heard.why() + ")"));
+				}
+
+				double far = Math.sqrt(this.drifter.blockPosition().distSqr(mouth));
+				if (far > 40.0 && this.runs < 8) {
+					this.runs++;
+					return this.begin(Legs.toward(this.drifter, mouth, 4.0, "run to the mine"));
+				}
+
+				if (far > 4.0 && this.runs < 8) {
+					this.runs++;
+					return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(mouth), 3.0, "run to the mine", NavigateTask.Pace.TRAVEL));
+				}
+
+				this.calledDown = true;
+				ran(heard);
+				if (far <= 8.0) {
+					int heardIt = BellHearing.callDown(this.drifter, heard, mouth, CALL_DOWN);
+					com.dinglebob.drifter.social.ChatLines.speak(this.drifter, "everyone up! " + (heard.why() == null ? "the alarm's ringing!" : heard.why() + "!"));
+					this.think("shouted down the mine: " + heardIt + " heard");
+				} else {
+					this.think("couldn't get to the mine");
+				}
+			}
+
 			BlockPos to = heard.trouble() != null && heard.trouble().closerThan(heard.bell(), TOO_FAR) ? heard.trouble() : heard.bell();
+			// The trouble's somewhere else now (the ringer said where it went): there instead, looking afresh.
+			if (this.went == null || !to.closerThan(this.went, THERE)) {
+				this.went = to;
+				this.walks = 0;
+				this.looks = 0;
+				this.watching = false;
+			}
+
 			if (!this.said) {
 				this.said = true;
 				this.think("answering the alarm" + (heard.why() == null ? "" : " (" + heard.why() + ")") + ": going to " + (to == heard.bell() ? "the bell" : "the trouble"));
@@ -185,9 +277,18 @@ public final class AlarmGoal extends Goals.Goal {
 				return this.begin(new LookAroundTask(this.drifter, 4, 15));
 			}
 
-			this.think("looked about where the alarm was: nothing there now");
-			this.drifter.getSenses().alarmDone(this.now());
-			return Status.SUCCESS;
+			// Nothing there now: it keeps watch there till the alarm's over or the trouble's said to be elsewhere.
+			if (!this.watching) {
+				this.watching = true;
+				this.think("looked about where the alarm was: nothing there now. keeping watch");
+			}
+
+			this.looks = 1;
+			BlockPos at = this.went;
+			return this.begin(new WaitTask(this.drifter, "keep watch for the trouble", () -> {
+				BellHearing.Heard now = alarm(this.drifter);
+				return now == null || now.trouble() != null && !now.trouble().closerThan(at, THERE);
+			}, 20 * 4));
 		}
 	}
 

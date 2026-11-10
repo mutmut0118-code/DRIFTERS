@@ -645,6 +645,74 @@ public final class DrifterCivilizations implements ModInitializer {
 					return 1;
 				}))
 				// Debug: how many are at the nearest town's store now (0.23.30: the rush to it when a town is made).
+				// Debug (0.23.35, crime tests): the one running it is put beside the nearest town's bell, pen, a horse of its
+				// people's or its leader; the animal, horse or leader there gets a tag for selectors (town_animal, town_horse,
+				// town_leader).
+				.then(Commands.literal("spot").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("what", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(ctx -> {
+						var source = ctx.getSource();
+						String what = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "what");
+						var level = source.getLevel();
+						Town town = Towns.nearest(level.dimension().location().toString(), BlockPos.containing(source.getPosition()));
+						var group = town == null || town.group == null ? null : com.dinglebob.drifter.api.DrifterApi.groupById(town.group);
+						if (town == null || group == null || source.getEntity() == null) {
+							source.sendFailure(Component.literal("No town near (or no one to put there)"));
+							return 0;
+						}
+
+						net.minecraft.world.entity.Entity thing = null;
+						BlockPos at = null;
+						switch (what) {
+							case "bell" -> at = TownBells.bell(town, level);
+							// (The middle of the nearest other town: a second one to test in.)
+							case "town2" -> {
+								Town other = Towns.all().stream().filter(t -> t != town && t.dimension.equals(town.dimension))
+									.min(java.util.Comparator.comparingDouble(t -> t.center.distSqr(town.center))).orElse(null);
+								if (other != null) {
+									// (Loaded first: an unloaded chunk's heightmap is the bottom of the world.)
+									level.getChunk(other.center.getX() >> 4, other.center.getZ() >> 4);
+									at = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, other.center);
+								}
+							}
+							case "leader" -> thing = town.leader == null ? null : TownFounding.loaded(source.getServer(), town.leader);
+							case "pen" -> thing = town.pen == null ? null : level.getEntitiesOfClass(net.minecraft.world.entity.animal.Animal.class,
+								new net.minecraft.world.phys.AABB(town.pen).inflate(10.0), a -> a.isAlive() && !(a instanceof net.minecraft.world.entity.OwnableEntity o
+									&& o.getOwnerUUID() != null)).stream().findFirst().orElse(null);
+							case "horse" -> thing = level.getEntitiesOfClass(net.minecraft.world.entity.animal.horse.AbstractHorse.class,
+								new net.minecraft.world.phys.AABB(town.center).inflate(160.0), h -> h.isAlive() && h.getOwnerUUID() != null
+									&& group.members.contains(h.getOwnerUUID())).stream().findFirst().orElse(null);
+							default -> {
+							}
+						}
+
+						if (thing != null) {
+							thing.addTag(switch (what) {
+								case "leader" -> "town_leader";
+								case "pen" -> "town_animal";
+								default -> "town_horse";
+							});
+							at = thing.blockPosition();
+						}
+
+						if (at == null) {
+							source.sendFailure(Component.literal("No " + what + " found in " + town.name));
+							return 0;
+						}
+
+						BlockPos stand = at.offset(2, 0, 0);
+						for (BlockPos near : new BlockPos[] {at.offset(2, 0, 0), at.offset(-2, 0, 0), at.offset(0, 0, 2), at.offset(0, 0, -2), at.offset(2, 1, 0),
+							at.offset(-2, 1, 0), at.offset(0, 1, 2), at.offset(0, 1, -2)}) {
+							if (level.getBlockState(near).getCollisionShape(level, near).isEmpty() && level.getBlockState(near.above()).getCollisionShape(level, near.above()).isEmpty()
+								&& !level.getBlockState(near.below()).getCollisionShape(level, near.below()).isEmpty()) {
+								stand = near;
+								break;
+							}
+						}
+						source.getEntity().teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
+						String said = town.name + ": " + what + " at " + at.toShortString() + (thing == null ? "" : " (" + thing.getName().getString() + ")");
+						source.sendSuccess(() -> Component.literal(said), false);
+						return 1;
+					})))
 				.then(Commands.literal("crowd").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var source = ctx.getSource();
 					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));

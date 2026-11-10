@@ -415,6 +415,18 @@ public final class Threats {
 			}
 		}
 
+		// Defending its town from someone wanted there (a killing, a massacre; the user, 0.23.35: "since i killed the guards
+		// nobody else really fights"): as at war, it stands and fights with its neighbours unless it's hopeless, and falls back
+		// once it's low. The timid still keep clear (they aren't the ones going after them: Mode.pursuesWanted).
+		if (main instanceof net.minecraft.world.entity.player.Player player && com.dinglebob.drifter.social.Mode.pursuesWanted(drifter, player)) {
+			boolean low = drifter.getHealth() < drifter.getMaxHealth() * WAR_FALL_BACK;
+			if (!low && (decision == Decision.AVOID || decision == Decision.RETREAT || decision == Decision.FLEE && ratio >= WAR_HOPELESS)) {
+				decision = Decision.ENGAGE_CAREFUL;
+			} else if (low && decision.fights() && !(recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5 && stuckInPlace(drifter, now))) {
+				decision = Decision.RETREAT;
+			}
+		}
+
 		// An archer close by (a skeleton): backing off in the open only gets it shot in the back, so it rushes it unless it's
 		// hopeless (found in a user's test: shot dead switching between fighting and fleeing a skeleton).
 		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && main != null && isArcher(main) && main.distanceTo(drifter) < ARCHER_RUSH) {

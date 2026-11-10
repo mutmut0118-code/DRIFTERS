@@ -131,6 +131,34 @@ public final class DevClientTest {
 						Drifter.LOGGER.info("[Drifter test] attack {}: {} at {}", name, reach <= 3.0 ? "swung" : "out of reach", String.format(java.util.Locale.ROOT, "%.1f", reach));
 					}
 				}
+			} else if (line.equals("ring")) {
+				// The player strikes the nearest bell (within 6 blocks) as their click would (BellBlock#attemptToRing with them
+				// as the one ringing), on the server. For crime tests (0.23.35: an alarm rung for nothing).
+				MinecraftServer server = mc.getSingleplayerServer();
+				if (mc.player != null && server != null) {
+					java.util.UUID id = mc.player.getUUID();
+					server.execute(() -> {
+						net.minecraft.server.level.ServerPlayer player = server.getPlayerList().getPlayer(id);
+						if (player == null) {
+							return;
+						}
+
+						net.minecraft.core.BlockPos found = null;
+						for (net.minecraft.core.BlockPos pos : net.minecraft.core.BlockPos.betweenClosed(player.blockPosition().offset(-6, -3, -6), player.blockPosition().offset(6, 3, 6))) {
+							if (player.level().getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.BellBlock
+								&& (found == null || pos.distSqr(player.blockPosition()) < found.distSqr(player.blockPosition()))) {
+								found = pos.immutable();
+							}
+						}
+
+						if (found == null) {
+							Drifter.LOGGER.info("[Drifter test] ring: no bell near");
+						} else {
+							((net.minecraft.world.level.block.BellBlock)player.level().getBlockState(found).getBlock()).attemptToRing(player, player.level(), found, null);
+							Drifter.LOGGER.info("[Drifter test] ring: struck the bell at {}", found.toShortString());
+						}
+					});
+				}
 			} else if (line.startsWith("shot ")) {
 				String name = line.substring(5).trim() + ".png";
 				Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), message -> Drifter.LOGGER.info("[Drifter test] {}", message.getString()));

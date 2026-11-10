@@ -4669,6 +4669,43 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.35: a town fights for itself; its leader's murder counts; horse theft, killing its animals, false alarms**
+  (the user, 2026-11-09, after a massacre in their world: "not many people were fighting back, alot of citizens were in a
+  mining trip or doing something else", "since i killed the guards nobody else really fights", "people would hear the
+  bell, get alarmed, then just going back to their own thing", "not enough impact killing the leader", "more crime things
+  too like stealing a horse, killing farm animals, spam ringing the bell for no reason"). Their log: most of Millwick went
+  in, a few answered, one hunted them.
+  - **Who answers** (`AlarmGoal.answers`): a guard or anyone not timid (was: brave, half and up). The timid still go in.
+  - **Keeps at it** (`AlarmGoal.Answer`): it went back to its work after one look about; now it keeps watch where the
+    trouble was, and goes wherever the trouble's said to be next, till the alarm's over.
+  - **Down the mine** (`AlarmGoal`, `BellHearing.callDown`): the first to answer that isn't a guard runs to the town mine's
+    mouth and shouts down it ("everyone up!"): those within 48 blocks of it hear, and pass it on. Once an alarm.
+  - **Stands and fights** (`Threats`): against a player wanted in its town, one that isn't timid stands and fights with its
+    neighbours as at war (unless hopeless, and falling back once low), not backing off a better-armed killer.
+  - **Guards** (`Justice.pickGuards`): one killed, two picked at once (was: the next check).
+  - **A visitor killed in a town** (`Justice.whereKilled`): murder there too, if its people saw it (not a Bandit, nor one
+    they had against them or were at war with). Found in testing: a passer-by killed on a plaza was nothing to the town,
+    its people turned on the killer for it, and killing them was then "self-defence".
+  - **Its leader murdered** (`Justice.leaderMurdered`): the whole town's trust gone, wanted and exiled there 30 days, the
+    alarm for it, a price on their head, and wanted for 30 days in every other town of its nation (10 days in the towns
+    about, without one). The chronicle: "X mourns Y".
+  - **More crimes** (`Justice`, kinds in `KINDS`): a horse of its people's ridden off (5 emeralds; once a horse), its
+    animals killed (in its pen, or its people's own: 2; any town now, was only with the farms law), its alarm bell rung
+    by a player for nothing (1; not while its alarm's on, nor with monsters near the bell). Seen by any of its people. A
+    new API event, `DrifterEvents.ALARM_RUNG`.
+  - **Its bell rung** (`BellGoal`, `TownBells`): found in testing, the ringer stood beside the bell and every stroke missed
+    (a bell rings struck front or back): it stands front or back now. And the ringer picked was digging under the town:
+    down a mine counts four times as far, and the leader rings it only if it's up top.
+  - Test helpers: client-test `ring`, debug `drifterciv town spot <bell|pen|horse|leader|town2>`.
+  - Tested (dev client, death for good, seed 8208968137302710584): a town's cow killed in front of its people: "a fine
+    of 2"; a town horse ridden off in town: "caught stealing a horse (5)"; the bell rung six times by day, no monsters
+    near: "caught ringing the alarm for nothing" (with zombies about the bell, rightly nothing). In Pinebury: its leader
+    killed on the plaza: "Pinebury mourns GustTrinket ... wanted there for 30 days", the bell rung 6 s later (it took two
+    minutes before the ringer fix); two more killed: the massacre, word to the town about. Of the 18 who heard the alarm,
+    4 answered, 2 fought and 2 hunted the killer, 8 (the timid: cowardly or pacifist, about half a town) went in; nobody
+    gave in; one ran to the mine and shouted down it (6 heard). In the user's massacre (0.23.33) most went in, about 2
+    answered, 1 hunted; 21 gave in over that day's play.
+
 - **0.23.34: Drifters block a player's hits with their shields; giving in very rare, and no more stripping** (the user,
   2026-11-09: "can drifters block my attacks using their shields?", "it seems to easy to kill drifters (with a good weapon)
   and i would like for them to block some of my attacks, not everytime"; "every citizen (even ones with better gear than i
