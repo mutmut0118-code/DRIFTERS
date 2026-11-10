@@ -334,6 +334,10 @@ final class FriendTalk {
 		};
 		List<String> ids = new ArrayList<>(TalkApi.playerTopics(tag));
 		ids.removeIf(id -> !id.startsWith("friends_"));
+		// (The ones that bring up a shared opinion need one: a best friend made by the debug command may have none.)
+		if (b.agreed() == 0) {
+			ids.removeIf(id -> id.contains("shared") || id.contains("tease"));
+		}
 		if (tag.equals("opinion")) {
 			// (Mostly ones not yet asked; now and then an old one again.)
 			List<String> fresh = new ArrayList<>(ids);
