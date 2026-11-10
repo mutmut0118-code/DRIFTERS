@@ -24,6 +24,12 @@ execute as @e[type=drifter:drifter,name=GuardA] at @s run drifter gear uniform k
 execute as @e[type=drifter:drifter,name=GuardB] at @s run drifter gear uniform kit guard 11111111-2222-3333-4444-555555555555
 execute as @e[type=drifter:drifter,name=GuardC] at @s run drifter gear uniform kit guard aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
 execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
+# (The leader's chest is the set's or a tier up, half and half: kitted a few more times to see both; the last one stays.)
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
 execute as @e[type=drifter:drifter,name=GuardX] at @s run drifter gear uniform kit guard 11111111-2222-3333-4444-555555555555 nonexistent:set
 execute as @e[type=drifter:drifter,name=Citizen] at @s run drifter gear uniform kit citizen 11111111-2222-3333-4444-555555555555
 wait 1

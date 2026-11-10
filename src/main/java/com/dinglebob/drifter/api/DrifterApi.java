@@ -759,8 +759,8 @@ public final class DrifterApi {
 
 	/**
 	 * (API 6, a town with a uniform.) Gear by its place in the town, in the town's uniform: a "guard" wears the uniform's set
-	 * with its trim on every piece; the "leader" the set's legs and boots, a gold crown and a chestplate a tier up, all
-	 * trimmed; a "citizen" a working life's pieces, now and then any mod's of the same tier, untrimmed. A null uniform is
+	 * with its trim on every piece; the "leader" the set's legs and boots, a gold crown and a chestplate that is the set's
+	 * or a tier up (half and half, as before uniforms), all trimmed; a "citizen" a working life's pieces, now and then any mod's of the same tier, untrimmed. A null uniform is
 	 * {@link #equipTown(DrifterEntity, net.minecraft.util.RandomSource, String)}.
 	 */
 	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role, @Nullable TownUniform uniform) {

@@ -368,7 +368,8 @@ public final class Delvers {
 	 * The town kit in its town's uniform (modded armor in starting kits, spec 2026-11-10-modded-armor-kits-design.md): a guard
 	 * wears the uniform's set on every slot (iron where the set is unknown or gone), its trim on every piece that takes one, no
 	 * diamond piece (a uniform is the same on every guard); the leader the set's legs and boots, a gold helmet for a crown and
-	 * a chestplate a tier up (diamond's, or a modded one of diamond's tier that takes a trim), all trimmed; a citizen its
+	 * a chestplate that is, as before uniforms, half the time the set's own and half the time a tier up (diamond's, or a modded
+	 * one of diamond's tier that takes a trim), all trimmed; a citizen its
 	 * working life's pieces as before, each now and then a modded piece of the same tier instead ({@link #CITIZEN_MODDED_CHANCE}),
 	 * with no town trim. Null uniform: {@link #townKit(DrifterEntity, RandomSource, String)}'s kit exactly.
 	 */
@@ -487,15 +488,15 @@ public final class Delvers {
 
 	/**
 	 * A guard's or the leader's armor in the town's uniform: the set's piece in every slot (iron where it has none), the
-	 * leader's helmet a gold crown and its chestplate a tier up; the uniform's trim on every piece that takes one; enchanted
-	 * now and then, as before uniforms.
+	 * leader's helmet a gold crown and its chestplate, as before uniforms, as likely the set's own as a tier up (no stronger
+	 * than a leader before uniforms); the uniform's trim on every piece that takes one; enchanted now and then, as before.
 	 */
 	private static void dressInUniform(ServerLevel level, DrifterEntity drifter, RandomSource random, boolean leader, TownUniform uniform) {
 		ArmorSets.Set set = Uniforms.set(uniform);
 		ArmorTrim trim = Uniforms.trim(level.registryAccess(), uniform);
 		for (EquipmentSlot slot : ArmorSets.SLOTS) {
 			Item piece = leader && slot == EquipmentSlot.HEAD ? Items.GOLDEN_HELMET
-				: leader && slot == EquipmentSlot.CHEST ? leaderChest(drifter, random)
+				: leader && slot == EquipmentSlot.CHEST ? (random.nextBoolean() ? leaderChest(drifter, random) : Uniforms.piece(set, slot))
 				: Uniforms.piece(set, slot);
 			ItemStack stack = Uniforms.trimmed(new ItemStack(piece), trim);
 			if (random.nextFloat() < 0.3F) {
@@ -507,7 +508,7 @@ public final class Delvers {
 	}
 
 	/**
-	 * The leader's chestplate, a tier above its guards': a modded one of diamond's tier now and then
+	 * The leader's chestplate when it rolls a tier above its guards': a modded one of diamond's tier now and then
 	 * ({@link #LEADER_MODDED_CHEST_CHANCE}, leaned by its taste, only one that takes the town's trim), else diamond's.
 	 */
 	private static Item leaderChest(DrifterEntity drifter, RandomSource random) {
