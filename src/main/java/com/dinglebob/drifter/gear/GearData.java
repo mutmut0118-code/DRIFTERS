@@ -65,8 +65,8 @@ public final class GearData {
 	 * steps of learning by use (each sign seen, a doubt after uses that showed nothing, how long a watch lasts).
 	 */
 	public record PowerRules(Map<Powers.Power, List<String>> words, List<String> except, double readTextKnowledge, double textBase,
-		double textPerKnowledge, double seenStep, double toldConfidence, double doubtStep, int doubtAfterUses, int watchTicks) {
-		public static final PowerRules DEFAULT = new PowerRules(Map.of(), List.of(), 0.35, 0.3, 0.5, 0.35, 0.6, 0.15, 3, 40);
+		double textPerKnowledge, double seenStep, double toldConfidence, double doubtStep, int doubtAfterUses, int doubtSeenAfterUses, int watchTicks) {
+		public static final PowerRules DEFAULT = new PowerRules(Map.of(), List.of(), 0.35, 0.3, 0.5, 0.35, 0.6, 0.15, 3, 6, 40);
 	}
 
 	/** Everything the gear files said. {@code byWord}: every kind word with its kind, longest word first. */
@@ -123,6 +123,9 @@ public final class GearData {
 		ServerLifecycleEvents.SERVER_STARTED.register(started -> {
 			server = started;
 			clearCaches();
+			// Trinkets' drop rule for Drifters (R33) is registered as Trinkets is first looked at: now, so a Drifter that dies
+			// right after the load (before anything asked about a trinket) still drops its Artifacts as a player would.
+			com.dinglebob.drifter.compat.TrinketsCompat.active();
 		});
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> {
 			server = null;
@@ -210,7 +213,8 @@ public final class GearData {
 		return new PowerRules(Map.copyOf(words), except, num(root, "read_text_knowledge", before.readTextKnowledge()),
 			num(root, "text_confidence_base", before.textBase()), num(root, "text_confidence_per_knowledge", before.textPerKnowledge()),
 			num(root, "seen_step", before.seenStep()), num(root, "told_confidence", before.toldConfidence()), num(root, "doubt_step", before.doubtStep()),
-			(int)num(root, "doubt_after_uses", before.doubtAfterUses()), (int)num(root, "watch_ticks", before.watchTicks()));
+			(int)num(root, "doubt_after_uses", before.doubtAfterUses()), (int)num(root, "doubt_seen_after_uses", before.doubtSeenAfterUses()),
+			(int)num(root, "watch_ticks", before.watchTicks()));
 	}
 
 	private static Taste taste(JsonObject root, Taste before) {

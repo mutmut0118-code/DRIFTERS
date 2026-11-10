@@ -1,0 +1,66 @@
+# Final fix wave: the explosive signs (smoke-gear-powers.txt's K and L) on a modded weapon, since a vanilla item is never watched now; and a
+# seen belief fading when uses keep not showing it (fix 1d). python tools/smoke.py . tools/smoke-gear-powers-explode.txt build/smoke-gear-powers-explode.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), at night (no sun on the zombies), Simply Swords. Brains off;
+# /drifter attack does the fighting at standing (NoAI, 1000 health) zombies. Each has a Simply Swords iron longsword (no power of its own).
+# Expect:
+#  K  someone else's blast (a fireball with no owner) at Newb's zombie while it swings: "powers: none"; then a blast of its own there (a
+#     fireball made Newb's: the stand-in for an exploding weapon): thought "found out Iron Longsword: explosive", "explosive 0.35 (SEEN)";
+#  L  a blast of its own beside Vet while it swings (Vet has no resistance): thought "found out the hard way: Iron Longsword explodes",
+#     "explosive 1.00 (SEEN)" if the blast hurts it; with Combat Roll it often rolls away from the falling fireball, and then it is an
+#     ordinary sign by its target: "found out Iron Longsword: explosive", 0.35 (both runs in the final fix wave);
+#  D  Newb keeps swinging at its zombie for 30 s with no more blasts: every 6 landed swings in a row that show none take 0.15 off (a text
+#     guess: every 3; powers.json doubt_seen_after_uses), so its line ends at or near "explosive 0.00 (SEEN)" (before the fix a seen belief
+#     was never doubted: it stayed at 0.35); Vet the same (from 0.35 to 0.00; from 1.00, after the hard way, to about 0.25).
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set midnight
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+gamerule mobGriefing false
+difficulty normal
+kill @e[type=zombie]
+drifter spawn Vet
+execute at @e[type=drifter:drifter,name=Vet] run drifter brain off
+execute positioned ~40 ~ ~ run drifter spawn Newb
+execute at @e[type=drifter:drifter,name=Newb] run drifter brain off
+drifter tier full all
+wait 2
+effect give @e[type=drifter:drifter,name=Newb] minecraft:resistance 600 4 true
+effect give @e[type=drifter:drifter] minecraft:regeneration 600 2 true
+execute at @e[type=drifter:drifter,name=Vet] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Vet] run drifter give simplyswords:iron_longsword
+execute at @e[type=drifter:drifter,name=Newb] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Newb] run drifter give simplyswords:iron_longsword
+execute at @e[type=drifter:drifter,name=Newb] positioned ~ ~ ~2.5 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["zn"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Vet] positioned ~ ~ ~2.5 positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["zv"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+wait 3
+execute as @e[type=drifter:drifter,name=Newb] at @s run drifter attack @e[type=zombie,tag=zn,limit=1]
+wait 2
+execute at @e[type=zombie,tag=zn] run summon fireball ~ ~8 ~ {ExplosionPower:1b,Motion:[0.0d,-0.5d,0.0d]}
+wait 4
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item simplyswords:iron_longsword
+execute as @e[type=drifter:drifter,name=Newb] at @s run drifter attack @e[type=zombie,tag=zn,limit=1]
+wait 1
+execute at @e[type=zombie,tag=zn] run summon fireball ~ ~4 ~ {ExplosionPower:1b,Tags:["newbs"]}
+data modify entity @e[type=fireball,tag=newbs,limit=1] Owner set from entity @e[type=drifter:drifter,name=Newb,limit=1] UUID
+data modify entity @e[type=fireball,tag=newbs,limit=1] Motion set value [0.0d,-0.5d,0.0d]
+wait 3
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item simplyswords:iron_longsword
+execute as @e[type=drifter:drifter,name=Vet] at @s run drifter attack @e[type=zombie,tag=zv,limit=1]
+wait 1
+execute at @e[type=drifter:drifter,name=Vet] positioned ~1.3 ~ ~ positioned over motion_blocking_no_leaves run summon fireball ~ ~6 ~ {ExplosionPower:1b,Tags:["vets"]}
+data modify entity @e[type=fireball,tag=vets,limit=1] Owner set from entity @e[type=drifter:drifter,name=Vet,limit=1] UUID
+data modify entity @e[type=fireball,tag=vets,limit=1] Motion set value [0.0d,-0.5d,0.0d]
+wait 3
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item simplyswords:iron_longsword
+execute as @e[type=drifter:drifter,name=Newb] at @s run drifter attack @e[type=zombie,tag=zn,limit=1]
+execute as @e[type=drifter:drifter,name=Vet] at @s run drifter attack @e[type=zombie,tag=zv,limit=1]
+wait 15
+execute as @e[type=drifter:drifter,name=Newb] at @s run drifter attack @e[type=zombie,tag=zn,limit=1]
+execute as @e[type=drifter:drifter,name=Vet] at @s run drifter attack @e[type=zombie,tag=zv,limit=1]
+wait 15
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item simplyswords:iron_longsword
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item simplyswords:iron_longsword
+stop

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +94,9 @@ public final class GearPlans {
 	/**
 	 * It has (carried, worn or stored) a piece for this slot at least as good as the tier's vanilla one. A vanilla piece
 	 * counts by what it is (iron or better, as before: a gold or chain helmet has the same value as an iron one but is not
-	 * iron age); a modded one by its value, so a known modded set counts for what it is worth.
+	 * iron age); a modded one by its value, at {@link #ARMOR_FLOOR} of the vanilla piece's: the same rule that lets it be
+	 * chosen as a target ({@link #armorTargets}), so a piece it made for the slot satisfies the slot (it made it again and
+	 * again when this asked for the full value).
 	 */
 	public static boolean hasArmorAtLeast(DrifterEntity drifter, EquipmentSlot slot, Weapons.Tier tier) {
 		Item base = piece(slot, tier);
@@ -118,7 +118,7 @@ public final class GearPlans {
 				return false;
 			}
 
-			return GearValue.wornSlot(drifter, stack) == slot && GearValue.armor(stack, slot) >= need - 1.0E-9;
+			return GearValue.wornSlot(drifter, stack) == slot && GearValue.armor(stack, slot) >= ARMOR_FLOOR * need - 1.0E-9;
 		});
 	}
 
@@ -167,19 +167,16 @@ public final class GearPlans {
 	// Targets (kept per Drifter for a short while)
 	// ---------------------------------------------------------------------------------------------
 
-	private record Key(UUID id, boolean armor, Weapons.Tier tier) {
+	// (Kept on the Drifter itself, GearLore#planCache, not in a shared map: no cap for a thousand Drifters to thrash.)
+	private record Key(boolean armor, Weapons.Tier tier) {
 	}
 
 	private record Kept(long until, Object value) {
 	}
 
-	private static final Map<Key, Kept> KEPT = new ConcurrentHashMap<>();
-
 	/** Forgets this Drifter's kept picks (a debug command changed what it knows or likes). */
 	public static void refresh(DrifterEntity drifter) {
-		UUID id = drifter.getUUID();
-		KEPT.keySet().removeIf(key -> key.id().equals(id));
-		MAKING.keySet().removeIf(key -> key.id().equals(id));
+		drifter.getGearLore().planCache().clear();
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -194,14 +191,12 @@ public final class GearPlans {
 	/** What it knows is looked at again this often (ticks); its picks change only when that has. */
 	public static final long MAKE_RECHECK = 1200L;
 
-	private record MakeKey(UUID id, int maxTier) {
+	private record MakeKey(int maxTier) {
 	}
 
 	/** The gear lists it came from, the vanilla pieces, the modded candidates, and those ranked by its taste (best first). */
 	private record Making(List<Item> source, List<Item> vanilla, java.util.Set<Item> candidates, List<Item> ranked, long checkedAt) {
 	}
-
-	private static final Map<MakeKey, Making> MAKING = new ConcurrentHashMap<>();
 
 	/** A bow or crossbow (vanilla or any mod's). */
 	public static boolean isLauncher(ItemStack stack) {
@@ -350,9 +345,10 @@ public final class GearPlans {
 
 	private static Making making(DrifterEntity drifter, int maxTier) {
 		long now = drifter.level().getGameTime();
-		MakeKey key = new MakeKey(drifter.getUUID(), maxTier);
+		MakeKey key = new MakeKey(maxTier);
 		List<Item> source = RecipeIndex.craftableGear(drifter.level());
-		Making kept = MAKING.get(key);
+		Map<Object, Object> cache = drifter.getGearLore().planCache();
+		Making kept = cache.get(key) instanceof Making making ? making : null;
 		if (kept != null && kept.source() == source && now - kept.checkedAt() >= 0L && now - kept.checkedAt() < MAKE_RECHECK) {
 			return kept;
 		}
@@ -397,12 +393,8 @@ public final class GearPlans {
 			ranked = List.copyOf(sorted);
 		}
 
-		if (MAKING.size() > 2048) {
-			MAKING.clear();
-		}
-
 		Making made = new Making(source, vanilla, java.util.Set.copyOf(candidates), ranked, now);
-		MAKING.put(key, made);
+		cache.put(key, made);
 		return made;
 	}
 
@@ -410,17 +402,13 @@ public final class GearPlans {
 	@SuppressWarnings("unchecked")
 	private static <T> T kept(DrifterEntity drifter, Key key, java.util.function.Supplier<T> compute) {
 		long now = drifter.level().getGameTime();
-		Kept kept = KEPT.get(key);
-		if (kept != null && kept.until() > now && kept.until() - now <= TTL) {
+		Map<Object, Object> cache = drifter.getGearLore().planCache();
+		if (cache.get(key) instanceof Kept kept && kept.until() > now && kept.until() - now <= TTL) {
 			return (T)kept.value();
 		}
 
 		T value = compute.get();
-		if (KEPT.size() > 2048) {
-			KEPT.clear();
-		}
-
-		KEPT.put(key, new Kept(now + TTL, value));
+		cache.put(key, new Kept(now + TTL, value));
 		return value;
 	}
 
@@ -443,7 +431,7 @@ public final class GearPlans {
 			return base;
 		}
 
-		return kept(drifter, new Key(drifter.getUUID(), false, tier), () -> computeWeapon(drifter, tier, base));
+		return kept(drifter, new Key(false, tier), () -> computeWeapon(drifter, tier, base));
 	}
 
 	@Nullable
@@ -484,7 +472,7 @@ public final class GearPlans {
 			return base;
 		}
 
-		return kept(drifter, new Key(drifter.getUUID(), true, tier), () -> computeArmor(drifter, tier, base, split));
+		return kept(drifter, new Key(true, tier), () -> computeArmor(drifter, tier, base, split));
 	}
 
 	private static List<Strategist.Target> computeArmor(DrifterEntity drifter, Weapons.Tier tier, List<Strategist.Target> base, Split split) {

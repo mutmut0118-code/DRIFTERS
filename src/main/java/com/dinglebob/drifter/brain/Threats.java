@@ -291,7 +291,8 @@ public final class Threats {
 	public static double power(DrifterEntity drifter) {
 		double health = (drifter.getHealth() + drifter.getAbsorptionAmount()) / 20.0;
 		double armor = 1.0 + (drifter.getArmorValue() + drifter.getAttributeValue(Attributes.ARMOR_TOUGHNESS) / 2.0) / 12.0;
-		int weaponSlot = Combat.bestWeaponSlot(drifter);
+		// (Its pick kept a second: this runs at every danger check.)
+		int weaponSlot = Combat.keptWeaponSlot(drifter);
 		double weapon = Combat.weaponStats(drifter, weaponSlot < 0 ? net.minecraft.world.item.ItemStack.EMPTY
 			: drifter.getInventory().getItem(weaponSlot)).perSecond() / 4.0;
 		double shield = drifter.getInventory().count(com.dinglebob.drifter.hands.Shields::isShield) > 0 ? 1.3 : 1.0;

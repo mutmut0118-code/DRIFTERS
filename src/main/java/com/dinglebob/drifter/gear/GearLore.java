@@ -139,6 +139,48 @@ public final class GearLore {
 	private String wornSet;
 	private long wornSetTick = Long.MIN_VALUE / 2;
 
+	/**
+	 * Picks worked out from what it knows and likes, kept on it for a short while (not saved): brain.GearPlans' targets and
+	 * what it can make, keyed by GearPlans' own keys. On the Drifter, so a thousand Drifters' picks never crowd each other out.
+	 */
+	private final Map<Object, Object> planCache = new HashMap<>();
+	/** Its best melee weapon's slot (Combat.bestWeaponSlot with no target), the stack there then, and when (not saved). */
+	private int weaponSlot = -1;
+	@Nullable
+	private ItemStack weaponStack;
+	private long weaponAt = Long.MIN_VALUE / 2;
+
+	/** brain.GearPlans' per-Drifter picks (see the field). */
+	public Map<Object, Object> planCache() {
+		return this.planCache;
+	}
+
+	/**
+	 * Its best weapon slot as last worked out, if worked out within {@code ttl} ticks and the stack in that slot is still the
+	 * very same one (moved, used up or swapped: worked out again); otherwise {@code Integer.MIN_VALUE}.
+	 */
+	public int keptWeaponSlot(DrifterEntity d, long ttl) {
+		long now = d.level().getGameTime();
+		if (now - this.weaponAt < 0L || now - this.weaponAt >= ttl) {
+			return Integer.MIN_VALUE;
+		}
+
+		if (this.weaponSlot >= 0) {
+			ItemStack there = d.getInventory().getItem(this.weaponSlot);
+			if (there != this.weaponStack || there.isEmpty()) {
+				return Integer.MIN_VALUE;
+			}
+		}
+
+		return this.weaponSlot;
+	}
+
+	public void keepWeaponSlot(DrifterEntity d, int slot) {
+		this.weaponAt = d.level().getGameTime();
+		this.weaponSlot = slot;
+		this.weaponStack = slot >= 0 ? d.getInventory().getItem(slot) : null;
+	}
+
 	/** Fights with one kind of weapon before it is loyal to it. */
 	public static final int LOYAL_FIGHTS = 3;
 	/** A fight is a swing after at least this many ticks without one. */
@@ -318,11 +360,21 @@ public final class GearLore {
 			}
 		}
 
+		// Learned quietly, one thought per ingredient (an iron ingot unlocks dozens of items: one each flooded its thoughts).
 		for (Item item : has) {
+			int count = 0;
+			Item only = null;
 			for (Item unlocked : RecipeIndex.unlockedBy(d.level(), item)) {
-				if (!this.knows(d, unlocked)) {
-					this.learn(d, unlocked, How.UNLOCKED, "unlocked: has " + nameOf(item));
+				if (this.learn(d, unlocked, How.UNLOCKED, "", false)) {
+					count++;
+					only = unlocked;
 				}
+			}
+
+			if (count == 1) {
+				d.getMemory().thoughts().add(d.level().getGameTime(), "learned of " + nameOf(only) + " (unlocked: has " + nameOf(item) + ")");
+			} else if (count > 1) {
+				d.getMemory().thoughts().add(d.level().getGameTime(), "learned of " + count + " items it could make from " + nameOf(item));
 			}
 		}
 
@@ -365,6 +417,12 @@ public final class GearLore {
 	private void readPowers(DrifterEntity d, ItemStack stack) {
 		Item item = stack.getItem();
 		if (this.read.contains(item)) {
+			return;
+		}
+
+		if (Powers.vanilla(item)) {
+			// (Vanilla items have no hidden powers: nothing to read.)
+			this.read.add(item);
 			return;
 		}
 
@@ -665,7 +723,9 @@ public final class GearLore {
 			ResourceLocation id = ResourceLocation.tryParse(entry.getString("Item"));
 			Powers.Power power = Powers.Power.byId(entry.getString("Power"));
 			Source source = Source.byName(entry.getString("Source"));
-			if (id == null || power == null || source == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+			// (A belief about a vanilla item, from an earlier build's watch, which a blaze's flames could fool, is dropped:
+			// they have no hidden powers, and no watch runs on them now to correct it.)
+			if (id == null || power == null || source == null || !BuiltInRegistries.ITEM.containsKey(id) || "minecraft".equals(id.getNamespace())) {
 				continue;
 			}
 

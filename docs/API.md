@@ -171,7 +171,7 @@ recipes), with what each Drifter knows of them and its taste. All on the server 
 | --- | --- |
 | `DrifterApi.isGear(stack)` | A weapon of some kind, a piece of armor, a shield, or a trinket (Trinkets, optional): any mod's. |
 | `DrifterApi.isLauncher(stack)` | A bow or crossbow, vanilla or any mod's. |
-| `DrifterApi.isWeapon(stack)` | A melee weapon, vanilla or any mod's (a sword, a katana, a weapon file's item; not a bow, shield or tool). |
+| `DrifterApi.isWeapon(stack)` | A weapon it can fight with in hand, vanilla or any mod's: a sword, a katana, a weapon file's item, an axe, and a trident (thrown or swung). Not a bow, crossbow or shield, and not a pickaxe, shovel or hoe. |
 | `DrifterApi.gearValue(drifter, stack)` | What it's worth to that Drifter for its use: armor worn in its slot, a trinket in its best slot, a bow, crossbow or trident by its ranged score, any other weapon by damage per second in its hands; 0 otherwise. Compare within one use only. |
 | `DrifterApi.armorPoints(stack)` | Its armor points in the slot it's made for, as the armor bar counts them (an iron chestplate 6); 0 if not armor. |
 | `DrifterApi.knowsItem(drifter, item)` | It knows the item exists (vanilla, a weapon family, a veteran's craftable gear, or seen, owned, unlocked, told). |

@@ -1133,11 +1133,16 @@ public final class DrifterCommands {
 		DrifterInventory inventory = drifter.getInventory();
 		StringBuilder text = new StringBuilder(label(drifter)).append("'s inventory:");
 		boolean any = false;
+		// (What it would put in its chest, and so could also give or trade away: Storage.toDeposit, which spare() starts from.)
+		java.util.Map<Integer, Integer> away = com.dinglebob.drifter.brain.Storage.toDeposit(drifter);
 		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
 			ItemStack stack = inventory.getItem(slot);
 			if (!stack.isEmpty()) {
 				any = true;
 				text.append("\n  ").append(slotName(slot)).append(": ").append(describe(stack));
+				if (away.containsKey(slot)) {
+					text.append(" [stores ").append(away.get(slot)).append("]");
+				}
 			}
 		}
 

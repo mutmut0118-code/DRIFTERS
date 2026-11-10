@@ -16,8 +16,9 @@
 #  G   too_many_bows:flame_bow for Newb: "powers: none", "text guess: explosive, fire", no exception;
 #  H   "/drifter gear powers": every gear item's text read on this dedicated server, the count of unreadable ones, no exception;
 #  J   someone else's blast (a ghast-style fireball with no owner) at Newb's target while it shoots: still "powers: none" for Newb's bow;
-#  K   a blast of its own there (a fireball made Newb's: the stand-in for an exploding arrow): "explosive 0.35 (SEEN)", thought "found out Bow: explosive";
-#  L   a blast of its own beside Vet while it shoots: thought "found out the hard way: Bow explodes", a plain bow for Vet "explosive 1.00 (SEEN)";
+#  K   a blast of its own there (a fireball made Newb's): still "powers: none" (final fix wave: a vanilla item is never watched, it has no
+#      hidden powers; the explosive signs on a modded weapon are in tools/smoke-gear-powers-explode.txt);
+#  L   a blast of its own beside Vet while it shoots: no "found out" thought, a plain bow for Vet "powers: none" (the same);
 #  M   Vet given the flame bow: "powers: explosive 0.75 (TEXT), fire 0.75 (TEXT)" (0.3 + 0.5 x 0.9; the item's own text, so stored).
 # Then run tools/smoke-gear-powers2.txt on the same world: the beliefs are still there after the reload.
 until Done_( 900

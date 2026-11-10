@@ -1,0 +1,51 @@
+# Final fix wave, fix 1: no false power belief from a blaze. python tools/smoke.py . tools/smoke-gear-blaze.txt build/smoke-gear-blaze.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, with Simply Swords. Brains off; /drifter attack does
+# the fighting. Each Drifter has fire resistance and resistance (the blaze's fireballs can't hurt it); each blaze has AI (so it charges up and
+# shows as alight while it shoots: Blaze#isOnFire is its "charged" flag) but can't move, and lots of health.
+#  Plain (knowledge 0.1), a plain iron sword: a vanilla item, so no watch at all. Expect: no "found out Iron Sword" thought; the sword's
+#  line "powers: none".
+#  Longy (knowledge 0.1), a Simply Swords iron longsword (no fire of its own): watched, but a blaze is fire-immune and alight by its charge,
+#  not by fire ticks. Expect: no "found out Iron Longsword: fire" thought; the longsword's line "powers: none".
+# Before the fix: "found out Iron Sword: fire" (fire 0.35 (SEEN) or more) within a few swings.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+weather clear
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+gamerule doFireTick false
+gamerule mobGriefing false
+difficulty normal
+kill @e[type=blaze]
+drifter spawn Plain
+execute at @e[type=drifter:drifter,name=Plain] run drifter brain off
+execute positioned ~60 ~ ~ run drifter spawn Longy
+execute at @e[type=drifter:drifter,name=Longy] run drifter brain off
+drifter tier full all
+wait 2
+effect give @e[type=drifter:drifter] minecraft:fire_resistance 600 0 true
+effect give @e[type=drifter:drifter] minecraft:resistance 600 4 true
+effect give @e[type=drifter:drifter] minecraft:regeneration 600 2 true
+execute at @e[type=drifter:drifter,name=Plain] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Plain] run drifter give minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Longy] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Longy] run drifter give simplyswords:iron_longsword
+execute at @e[type=drifter:drifter,name=Plain] positioned ~ ~ ~2.6 positioned over motion_blocking_no_leaves run summon blaze ~ ~ ~ {PersistenceRequired:1b,Tags:["bp"],attributes:[{id:"minecraft:generic.max_health",base:1000},{id:"minecraft:generic.movement_speed",base:0},{id:"minecraft:generic.flying_speed",base:0}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Longy] positioned ~ ~ ~2.6 positioned over motion_blocking_no_leaves run summon blaze ~ ~ ~ {PersistenceRequired:1b,Tags:["bl"],attributes:[{id:"minecraft:generic.max_health",base:1000},{id:"minecraft:generic.movement_speed",base:0},{id:"minecraft:generic.flying_speed",base:0}],Health:1000f}
+wait 3
+execute at @e[type=drifter:drifter,name=Plain] run drifter gear item minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Longy] run drifter gear item simplyswords:iron_longsword
+execute as @e[type=drifter:drifter,name=Plain] at @s run drifter attack @e[type=blaze,tag=bp,limit=1]
+execute as @e[type=drifter:drifter,name=Longy] at @s run drifter attack @e[type=blaze,tag=bl,limit=1]
+wait 30
+execute as @e[type=drifter:drifter,name=Plain] at @s run drifter attack @e[type=blaze,tag=bp,limit=1]
+execute as @e[type=drifter:drifter,name=Longy] at @s run drifter attack @e[type=blaze,tag=bl,limit=1]
+wait 30
+data get entity @e[type=blaze,tag=bp,limit=1] Health
+data get entity @e[type=blaze,tag=bl,limit=1] Health
+execute at @e[type=drifter:drifter,name=Plain] run drifter gear item minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Longy] run drifter gear item simplyswords:iron_longsword
+execute at @e[type=drifter:drifter,name=Plain] run drifter gear tip
+stop

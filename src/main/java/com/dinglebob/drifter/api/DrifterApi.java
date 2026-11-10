@@ -1301,7 +1301,10 @@ public final class DrifterApi {
 		return com.dinglebob.drifter.brain.GearPlans.useValue(drifter, stack);
 	}
 
-	/** A melee weapon, vanilla or any mod's (a sword, a katana, a weapon file's item; not a bow, shield or tool). */
+	/**
+	 * A weapon it can fight with in hand, vanilla or any mod's: a sword, a katana, a weapon file's item, an axe, a trident.
+	 * Not a bow, crossbow or shield, nor a pickaxe, shovel or hoe.
+	 */
 	public static boolean isWeapon(net.minecraft.world.item.ItemStack stack) {
 		return com.dinglebob.drifter.brain.Weapons.isWeapon(stack);
 	}

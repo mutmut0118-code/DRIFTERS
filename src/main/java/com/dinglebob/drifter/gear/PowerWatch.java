@@ -118,7 +118,7 @@ public final class PowerWatch {
 	 * ends first.
 	 */
 	public static void start(DrifterEntity d, ItemStack used, @Nullable LivingEntity target, Use use) {
-		if (used.isEmpty() || !(d.level() instanceof ServerLevel)) {
+		if (used.isEmpty() || !(d.level() instanceof ServerLevel) || plain(used)) {
 			return;
 		}
 
@@ -181,6 +181,14 @@ public final class PowerWatch {
 
 	public boolean active() {
 		return this.active;
+	}
+
+	/**
+	 * A vanilla item: nothing to find out. The game's own items have no hidden powers, and what an enchantment on one does is
+	 * read from the stack ({@link Powers#enchanted}); a watch could only teach it something false (a blaze is always alight).
+	 */
+	private static boolean plain(ItemStack used) {
+		return Powers.vanilla(used.getItem());
 	}
 
 	private void begin(DrifterEntity d, ItemStack used, @Nullable LivingEntity target, Use use) {
@@ -253,8 +261,11 @@ public final class PowerWatch {
 
 		this.age++;
 		LivingEntity t = this.target;
-		if (t != null && !t.isRemoved()) {
-			if (t.isOnFire() && this.targetFire <= 0 && !this.seen.contains(Powers.Power.FIRE) && !burnsAnyway(t)) {
+		// What happens to the target is its item's doing only while it was the last to hurt it (a skeleton's arrow, another
+		// fighter's poison or a witch's potion is not).
+		if (t != null && !t.isRemoved() && hurtBy(d, t)) {
+			// Burning, by fire ticks (a Blaze always shows as alight), on what fire can hurt.
+			if (t.getRemainingFireTicks() > 0 && !t.fireImmune() && this.targetFire <= 0 && !this.seen.contains(Powers.Power.FIRE) && !burnsAnyway(t)) {
 				this.sign(d, Powers.Power.FIRE);
 			}
 
@@ -298,6 +309,10 @@ public final class PowerWatch {
 			}
 
 			this.lastTargetPos = now;
+		} else if (t != null && !t.isRemoved()) {
+			// (Kept up while someone else's doing, so its next tick of its own measures from here.)
+			this.lastTargetPos = t.position();
+			this.lastFrozen = t.getTicksFrozen();
 		}
 
 		if (!this.othersBaselined) {
@@ -413,6 +428,12 @@ public final class PowerWatch {
 		return out;
 	}
 
+	/** It (or its helper, whose hits are its own) was the last to hurt the target. */
+	private static boolean hurtBy(DrifterEntity d, LivingEntity t) {
+		LivingEntity by = t.getLastHurtByMob();
+		return by != null && (by == d || by == d.helperPlayer);
+	}
+
 	/** An Enderman or Shulker (they blink), a flier, or a rider or mount: its jumps and dashes are its own. */
 	private static boolean movesByItself(LivingEntity t) {
 		return t instanceof EnderMan || t instanceof Shulker || t instanceof FlyingMob || t.isPassenger() || t.isVehicle() || t.isFallFlying();
@@ -452,19 +473,20 @@ public final class PowerWatch {
 	}
 
 	/**
-	 * The watch is over: a landed use that showed none of a text guess counts toward doubting it, when it could have shown
-	 * it (no multishot from a sword swing, no area power with nobody else around).
+	 * The watch is over: a landed use that showed none of a believed power counts toward doubting it, when it could have
+	 * shown it (no multishot from a sword swing, no area power with nobody else around). Read, seen and told beliefs alike
+	 * (a sign misread once, or a tip that was wrong, fades as uses keep not showing it); a weapon file's never.
 	 */
 	private void finish(DrifterEntity d) {
 		Item used = this.item;
 		LivingEntity t = this.target;
-		boolean landed = t != null && (t.getHealth() < this.targetHealth || t.isDeadOrDying() || t.isRemoved()) || this.use == Use.ABILITY;
+		boolean landed = t != null && hurtBy(d, t) && (t.getHealth() < this.targetHealth || t.isDeadOrDying() || t.isRemoved()) || this.use == Use.ABILITY;
 		if (used != null && landed) {
 			GearData.PowerRules rules = GearData.tables().powers();
 			GearLore lore = d.getGearLore();
 			List<Powers.Power> unseen = new ArrayList<>();
 			for (Map.Entry<Powers.Power, GearLore.Belief> entry : lore.beliefs(used).entrySet()) {
-				if (entry.getValue().source() == GearLore.Source.TEXT && entry.getValue().confidence() > 0.0F && !this.seen.contains(entry.getKey())
+				if (entry.getValue().source() != GearLore.Source.DATA && entry.getValue().confidence() > 0.0F && !this.seen.contains(entry.getKey())
 					&& this.couldShow(entry.getKey(), t)) {
 					unseen.add(entry.getKey());
 				}
@@ -476,7 +498,11 @@ public final class PowerWatch {
 			}
 
 			for (Powers.Power power : unseen) {
-				if (counts.merge(power, 1, Integer::sum) >= rules.doubtAfterUses()) {
+				// A guess read from text is doubted after a few uses in a row that don't show it; what it saw or was told, after
+				// twice as many (a real power that shows one hit in five or six, a fire brand, stays believed; a false one fades).
+				GearLore.Belief belief = lore.beliefs(used).get(power);
+				int after = belief != null && belief.source() == GearLore.Source.TEXT ? rules.doubtAfterUses() : rules.doubtSeenAfterUses();
+				if (counts.merge(power, 1, Integer::sum) >= after) {
 					counts.remove(power);
 					lore.doubt(used, power, (float)rules.doubtStep());
 				}

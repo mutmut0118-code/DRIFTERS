@@ -1,0 +1,53 @@
+# Final fix wave: fix 3 (a modded piece at the 0.9 floor satisfies its slot), fix 2 (it keeps the weapon it fights with), fix 6 (one
+# thought for what an ingredient unlocks). python tools/smoke.py . tools/smoke-gear-armor-floor.txt build/smoke-gear-armor-floor.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), with Immersive Armors and Simply Swords. Brains off.
+#  Floor (knowledge 0.3: no veteran, learns what its ingredients unlock) carries a diamond pickaxe and sword and wears iron armor, and is told of
+#  the Immersive Armors warrior leggings (armor 61 against the diamond leggings' 62; the 0.9 floor is 55.8). Expect: first "plan legs at
+#  diamond: ... (wanted)"; after it wears the warrior leggings, "plan legs at diamond: ... (has one)" (before the fix: still wanted, so it
+#  crafted another pair, and another). Given iron ingots: one thought "learned of N items it could make from Iron Ingot" (not one per item).
+#  Keeper carries an iron sword, two tridents and a second iron sword. Expect in "drifter inventory": the trident it would fight with (Combat's
+#  pick, "drifter weapon") has no "[stores]" mark, the other trident "[stores 1]"; one iron sword kept, the other "[stores 1]" (before the fix
+#  every trident counted as a sword: both tridents stored).
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+difficulty peaceful
+drifter spawn Floor
+execute at @e[type=drifter:drifter,name=Floor] run drifter brain off
+execute positioned ~60 ~ ~ run drifter spawn Keeper
+execute at @e[type=drifter:drifter,name=Keeper] run drifter brain off
+drifter tier full all
+wait 3
+execute at @e[type=drifter:drifter,name=Floor] run drifter personality set knowledge 0.3
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:diamond_pickaxe
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:diamond_sword
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:iron_helmet
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:iron_chestplate
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:iron_leggings
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:iron_boots
+wait 1
+execute at @e[type=drifter:drifter,name=Floor] run drifter wear
+wait 8
+execute at @e[type=drifter:drifter,name=Floor] run drifter gear learn immersive_armors:warrior_leggings
+execute at @e[type=drifter:drifter,name=Floor] run drifter gear plans
+execute at @e[type=drifter:drifter,name=Floor] run drifter give immersive_armors:warrior_leggings
+wait 1
+execute at @e[type=drifter:drifter,name=Floor] run drifter wear
+wait 8
+execute at @e[type=drifter:drifter,name=Floor] run drifter inventory
+execute at @e[type=drifter:drifter,name=Floor] run drifter gear plans
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:iron_ingot 5
+execute at @e[type=drifter:drifter,name=Floor] run drifter give minecraft:slime_ball 4
+wait 12
+execute at @e[type=drifter:drifter,name=Keeper] run drifter give minecraft:iron_sword
+execute at @e[type=drifter:drifter,name=Keeper] run drifter give minecraft:trident
+execute at @e[type=drifter:drifter,name=Keeper] run drifter give minecraft:trident
+execute at @e[type=drifter:drifter,name=Keeper] run drifter give minecraft:iron_sword
+wait 1
+execute at @e[type=drifter:drifter,name=Keeper] run drifter weapon
+execute at @e[type=drifter:drifter,name=Keeper] run drifter inventory
+stop

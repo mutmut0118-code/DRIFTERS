@@ -326,13 +326,13 @@ public final class GearCommands {
 		String name = drifter.getName().getString();
 		for (com.dinglebob.drifter.brain.Weapons.Tier tier : List.of(com.dinglebob.drifter.brain.Weapons.Tier.IRON, com.dinglebob.drifter.brain.Weapons.Tier.DIAMOND)) {
 			com.dinglebob.drifter.brain.Strategist.Target weapon = com.dinglebob.drifter.brain.GearPlans.weaponTarget(drifter, tier);
-			String line = "[gear] plan weapon at " + tier.id() + ": " + (weapon == null ? "none" : BuiltInRegistries.ITEM.getKey(weapon.items().get(0)))
-				+ " (" + name + ", style " + GearTaste.style(drifter).id() + ")";
+			String line = "[gear] plan weapon at " + tier.id() + ": " + (weapon == null ? "none" : BuiltInRegistries.ITEM.getKey(weapon.items().get(0))
+				+ (weapon.satisfied().test(drifter) ? " (has one)" : " (wanted)")) + " (" + name + ", style " + GearTaste.style(drifter).id() + ")";
 			source.sendSuccess(() -> Component.literal(line), false);
 			List<com.dinglebob.drifter.brain.Strategist.Target> armor = com.dinglebob.drifter.brain.GearPlans.armorTargets(drifter, tier);
 			for (int i = 0; i < armor.size(); i++) {
 				String part = "[gear] plan " + com.dinglebob.drifter.brain.GearPlans.SLOTS[i].getName() + " at " + tier.id() + ": "
-					+ BuiltInRegistries.ITEM.getKey(armor.get(i).items().get(0));
+					+ BuiltInRegistries.ITEM.getKey(armor.get(i).items().get(0)) + (armor.get(i).satisfied().test(drifter) ? " (has one)" : " (wanted)");
 				source.sendSuccess(() -> Component.literal(part), false);
 			}
 		}

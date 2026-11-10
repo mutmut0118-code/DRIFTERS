@@ -79,18 +79,17 @@ public final class GearKinds {
 		return kind;
 	}
 
+	/**
+	 * A custom name, or an item name other than the item's own. Read straight from the stack's components (no
+	 * {@code getComponentsPatch}: that builds a patch and marks the stack copy-on-write, on every damaged stack, every call).
+	 */
 	private static boolean hasOwnName(ItemStack stack) {
 		if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) {
 			return true;
 		}
 
-		var patch = stack.getComponentsPatch();
-		if (patch.isEmpty()) {
-			return false;
-		}
-
-		var itemName = patch.get(net.minecraft.core.component.DataComponents.ITEM_NAME);
-		return itemName != null && itemName.isPresent();
+		Object name = stack.get(net.minecraft.core.component.DataComponents.ITEM_NAME);
+		return name != null && !name.equals(stack.getItem().components().get(net.minecraft.core.component.DataComponents.ITEM_NAME));
 	}
 
 	public static boolean usableWeapon(ItemStack stack) {

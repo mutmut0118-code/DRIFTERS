@@ -113,12 +113,15 @@ public final class Powers {
 		return base;
 	}
 
-	/** The powers this stack's enchantments give it (flame or fire aspect: fire; multishot), plain to anyone who holds it. */
+	/**
+	 * The powers this stack's enchantments give it (flame or fire aspect: fire; multishot; channeling: lightning, in a storm),
+	 * plain to anyone who holds it. None of them is ruled (R27; lightning has no rule), so they never hold its fire.
+	 */
 	public static Set<Power> enchanted(ItemStack stack) {
 		EnumSet<Power> out = null;
 		for (Holder<Enchantment> enchantment : stack.getEnchantments().keySet()) {
 			Power power = enchantment.is(Enchantments.FLAME) || enchantment.is(Enchantments.FIRE_ASPECT) ? Power.FIRE
-				: enchantment.is(Enchantments.MULTISHOT) ? Power.MULTISHOT : null;
+				: enchantment.is(Enchantments.MULTISHOT) ? Power.MULTISHOT : enchantment.is(Enchantments.CHANNELING) ? Power.LIGHTNING : null;
 			if (power != null) {
 				if (out == null) {
 					out = EnumSet.noneOf(Power.class);
@@ -187,6 +190,14 @@ public final class Powers {
 		}
 
 		return out;
+	}
+
+	/**
+	 * A vanilla item: no hidden powers to believe in (what an enchantment on one does is read from the stack). No watch, text
+	 * guess, tip or saved belief is ever about one: nothing in play could correct a false one.
+	 */
+	public static boolean vanilla(Item item) {
+		return "minecraft".equals(BuiltInRegistries.ITEM.getKey(item).getNamespace());
 	}
 
 	/** It knows enough to read an item's text (a newbie does not). */
@@ -536,6 +547,10 @@ public final class Powers {
 		Tip best = null;
 		for (Map.Entry<Item, Map<Power, GearLore.Belief>> entry : lore.allBeliefs().entrySet()) {
 			Item item = entry.getKey();
+			if (vanilla(item)) {
+				continue;
+			}
+
 			Boolean has = null;
 			for (Map.Entry<Power, GearLore.Belief> held : entry.getValue().entrySet()) {
 				GearLore.Belief belief = held.getValue();

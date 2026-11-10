@@ -15,6 +15,7 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.TridentItem;
 
 /**
  * What it keeps on it and what goes in the chest (DESIGN.md section 10.18, "Emergency kit" and "Going home"). It keeps
@@ -148,6 +149,18 @@ public final class Storage {
 			}
 		}
 
+		// The weapon it fights with stays, whatever the tool scores say: the very one Combat picks (a trident, a modded weapon
+		// that isn't a tiered item). Its kept "sword" is that one when it is of that kind; otherwise it also keeps its best
+		// sword-kind weapon as before. (spare() starts from this list, so it never gives or trades away what it fights with.)
+		int weapon = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(drifter);
+		if (weapon >= 0 && !Weapons.isWeapon(inventory.getItem(weapon))) {
+			weapon = -1;
+		}
+
+		if (weapon >= 0 && "sword".equals(toolKind(inventory.getItem(weapon)))) {
+			bestToolSlot.put("sword", weapon);
+		}
+
 		// Section 10.17: it keeps a spare pickaxe on it too (the next best one).
 		Integer bestPickaxe = bestToolSlot.get("pickaxe");
 		int sparePickaxe = -1;
@@ -168,7 +181,7 @@ public final class Storage {
 
 			String kind = toolKind(stack);
 			if (kind != null) {
-				if (bestToolSlot.get(kind) != slot && slot != sparePickaxe) {
+				if (bestToolSlot.get(kind) != slot && slot != sparePickaxe && slot != weapon) {
 					deposit.put(slot, stack.getCount());
 				}
 
@@ -235,6 +248,9 @@ public final class Storage {
 			return "axe";
 		} else if (stack.is(ItemTags.SHOVELS)) {
 			return "shovel";
+		} else if (stack.getItem() instanceof TridentItem) {
+			// (Before the weapons: a trident is thrown as well as swung; its best one, by its ranged worth, stays.)
+			return "trident";
 		} else if (Weapons.isWeapon(stack)) {
 			return "sword";
 		} else if (stack.is(ItemTags.HOES)) {
@@ -259,6 +275,9 @@ public final class Storage {
 		return null;
 	}
 
+	/** A launcher it has given up on for now scores this, below any working one (a liking can go below zero). */
+	private static final double RESTING_LAUNCHER_SCORE = -1.0E9;
+
 	private static double toolScore(DrifterEntity drifter, ItemStack stack) {
 		// (Shields by the wear they have left; bows, a modded unique one first.)
 		if (com.dinglebob.drifter.hands.Shields.isShield(stack)) {
@@ -266,7 +285,14 @@ public final class Storage {
 		}
 
 		if (com.dinglebob.drifter.hands.Shields.isLauncher(stack)) {
-			return com.dinglebob.drifter.hands.Shields.bowScore(drifter, stack);
+			// One it gave up on for now (a modded bow it couldn't loose) is last, below any that works.
+			return com.dinglebob.drifter.hands.DeadLaunchers.resting(drifter, stack) ? RESTING_LAUNCHER_SCORE
+				: com.dinglebob.drifter.hands.Shields.bowScore(drifter, stack);
+		}
+
+		if (stack.getItem() instanceof TridentItem) {
+			double durability = stack.isDamageableItem() ? 1.0 - stack.getDamageValue() / (double)stack.getMaxDamage() : 1.0;
+			return com.dinglebob.drifter.gear.GearValue.ranged(stack) + durability * 0.5;
 		}
 
 		double tier = stack.getItem() instanceof TieredItem tiered ? tiered.getTier().getSpeed() + tiered.getTier().getAttackDamageBonus() : 1.0;

@@ -89,6 +89,26 @@ public final class Combat {
 		return bestWeaponSlot(drifter, null);
 	}
 
+	/** A no-target weapon pick is reused this long (ticks) for an estimate of its strength ({@link #keptWeaponSlot}). */
+	public static final long WEAPON_SLOT_KEEP = 20L;
+
+	/**
+	 * {@link #bestWeaponSlot(DrifterEntity)}, worked out at most once per {@link #WEAPON_SLOT_KEEP} ticks while the stack in
+	 * that slot stays put: for the danger check's sense of its own strength (Threats.power, every few ticks per Drifter), which
+	 * can be a second behind a weapon just picked up. Choosing what to swing with asks fresh.
+	 */
+	public static int keptWeaponSlot(DrifterEntity drifter) {
+		com.dinglebob.drifter.gear.GearLore lore = drifter.getGearLore();
+		int kept = lore.keptWeaponSlot(drifter, WEAPON_SLOT_KEEP);
+		if (kept != Integer.MIN_VALUE) {
+			return kept;
+		}
+
+		int slot = bestWeaponSlot(drifter, null);
+		lore.keepWeaponSlot(drifter, slot);
+		return slot;
+	}
+
 	/**
 	 * The same, against this target (null: none in mind): each weapon's worth is multiplied by how well its powers suit the
 	 * target as it believes ({@code Powers.fit}: an explosive one it can't use up close loses to a plain one).
