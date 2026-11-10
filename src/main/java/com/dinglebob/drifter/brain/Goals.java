@@ -3166,7 +3166,7 @@ public final class Goals {
 				return 0.97;
 			}
 
-			return WearArmorTask.hasUpgrade(context.drifter()) ? 0.75 : 0.0;
+			return WearArmorTask.hasUpgrade(context.drifter()) || com.dinglebob.drifter.executor.task.WearTrinketsTask.hasUpgrade(context.drifter()) ? 0.75 : 0.0;
 		}
 
 		@Override
@@ -3187,7 +3187,7 @@ public final class Goals {
 		@Override
 		public Activity start(Context context) {
 			return new Activity(context.drifter()) {
-				private boolean done;
+				private int step;
 
 				@Override
 				public String describe() {
@@ -3196,12 +3196,22 @@ public final class Goals {
 
 				@Override
 				protected Status next() {
-					if (this.done) {
-						return Status.SUCCESS;
+					// Armor and shield first, then trinkets (Trinkets, optional), each only if it has something better for it.
+					if (this.step == 0) {
+						this.step = 1;
+						if (WearArmorTask.hasUpgrade(this.drifter) || WearArmorTask.goldPending(this.drifter)) {
+							return this.begin(new WearArmorTask(this.drifter));
+						}
 					}
 
-					this.done = true;
-					return this.begin(new WearArmorTask(this.drifter));
+					if (this.step == 1) {
+						this.step = 2;
+						if (com.dinglebob.drifter.executor.task.WearTrinketsTask.hasUpgrade(this.drifter)) {
+							return this.begin(new com.dinglebob.drifter.executor.task.WearTrinketsTask(this.drifter));
+						}
+					}
+
+					return Status.SUCCESS;
 				}
 			};
 		}

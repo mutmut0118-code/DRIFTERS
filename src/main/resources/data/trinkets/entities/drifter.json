@@ -1,0 +1,5 @@
+{
+  "entities": ["drifter:drifter"],
+  "slots": ["head/hat", "head/face", "chest/necklace", "chest/back", "chest/cape", "legs/belt",
+            "hand/glove", "hand/ring", "offhand/glove", "offhand/ring", "feet/shoes", "feet/aglet"]
+}

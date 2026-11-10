@@ -2992,6 +2992,9 @@ protected void customServerAiStep() {
 			}
 		}
 
+		// Its trinkets (Trinkets, optional) are left there too.
+		worth += com.dinglebob.drifter.compat.TrinketsCompat.wornCount(this);
+
 		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
 			this.social.watcher().killedBy(player);
 		}
@@ -3097,6 +3100,10 @@ protected void customServerAiStep() {
 	@org.jetbrains.annotations.Nullable
 	private com.dinglebob.drifter.compat.RagdollCompat.Ragdoll ragdoll;
 
+	/**
+	 * Its trinkets (Trinkets, optional) drop in the super call: Trinkets drops any mob's trinket slots at the end of
+	 * LivingEntity#dropEquipment, by each slot's and trinket's drop rule (keep, drop, destroy; Curse of Vanishing destroys).
+	 */
 	@Override
 	protected void dropEquipment() {
 		super.dropEquipment();

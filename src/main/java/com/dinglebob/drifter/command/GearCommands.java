@@ -58,6 +58,7 @@ public final class GearCommands {
 			.then(Commands.literal("sense")
 				.then(Commands.argument("item", ItemArgument.item(context)).executes(GearCommands::sense)))
 			.then(Commands.literal("tip").executes(GearCommands::tip))
+			.then(Commands.literal("trinkets").executes(GearCommands::trinkets))
 			.then(Commands.literal("pick")
 				.then(Commands.literal("weapon").executes(ctx -> pick(ctx, true)))
 				.then(Commands.literal("armor").executes(ctx -> pick(ctx, false))))
@@ -83,8 +84,62 @@ public final class GearCommands {
 		String line = String.format(Locale.ROOT, "[gear] %s: kind %s (%s), melee %.1f, ranged %.1f, armor %.1f (%s), rarity %d, cost %.1f, points %.1f",
 			id, kind == null ? "none" : kind.id(), kind == null ? "none" : kind.use().name(), melee, GearValue.ranged(stack), armor,
 			slot == null ? "none" : slot.getName(), GearValue.rarity(stack), GearValue.cost(source.getLevel(), stack.getItem()), ItemValues.each(stack))
-			+ ", key " + describeKey(source, stack) + knowsPart(source, stack) + powersPart(source, stack);
+			+ trinketPart(source, stack) + ", key " + describeKey(source, stack) + knowsPart(source, stack) + powersPart(source, stack);
 		source.sendSuccess(() -> Component.literal(line), false);
+		return 1;
+	}
+
+	/** ", trinket 21.0" (its value to the nearest Drifter), ", trinket yes" (no Drifter near), or nothing if it isn't one. */
+	private static String trinketPart(CommandSourceStack source, ItemStack stack) {
+		if (!com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
+			return "";
+		}
+
+		try {
+			DrifterEntity drifter = DrifterCommands.nearest(source);
+			return String.format(Locale.ROOT, ", trinket %.1f", GearValue.trinket(drifter, stack));
+		} catch (CommandSyntaxException e) {
+			return ", trinket yes";
+		}
+	}
+
+	/**
+	 * Debug: the nearest Drifter's trinket slots and what is in each, with its value there ("[gear] Trink's trinkets:
+	 * chest/necklace artifacts:cross_necklace (21.0), hand/ring empty, ...").
+	 */
+	private static int trinkets(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		CommandSourceStack source = ctx.getSource();
+		if (!com.dinglebob.drifter.compat.TrinketsCompat.installed()) {
+			source.sendSuccess(() -> Component.literal("[gear] Trinkets isn't installed"), false);
+			return 0;
+		}
+
+		if (!com.dinglebob.drifter.compat.TrinketsCompat.active()) {
+			source.sendSuccess(() -> Component.literal("[gear] Trinkets' API didn't match: Drifters don't wear trinkets"), false);
+			return 0;
+		}
+
+		DrifterEntity drifter = DrifterCommands.nearest(source);
+		List<com.dinglebob.drifter.compat.TrinketsCompat.Slot> slots = com.dinglebob.drifter.compat.TrinketsCompat.slots(drifter);
+		StringBuilder line = new StringBuilder("[gear] " + drifter.getName().getString() + "'s trinkets (" + slots.size() + " slots):");
+		for (int i = 0; i < slots.size(); i++) {
+			com.dinglebob.drifter.compat.TrinketsCompat.Slot slot = slots.get(i);
+			ItemStack worn = slot.worn();
+			line.append(i == 0 ? " " : ", ").append(slot.id()).append(slot.index() > 0 ? "#" + slot.index() : "").append(' ');
+			if (worn.isEmpty()) {
+				line.append("empty");
+			} else {
+				line.append(BuiltInRegistries.ITEM.getKey(worn.getItem())).append(String.format(Locale.ROOT, " (%.1f)", GearValue.trinketIn(drifter, slot, worn)));
+			}
+		}
+
+		if (slots.isEmpty()) {
+			line.append(" none (Trinkets gave it no slots)");
+		}
+
+		line.append("; carries a better one: ").append(com.dinglebob.drifter.executor.task.WearTrinketsTask.hasUpgrade(drifter) ? "yes" : "no");
+
+		source.sendSuccess(() -> Component.literal(line.toString()), false);
 		return 1;
 	}
 
