@@ -304,6 +304,14 @@ public final class Town {
 	public String lastCrook = "";
 	public String lastCrime = "";
 	public long lastCrimeDay = -100;
+	/**
+	 * Its uniform ({@link TownUniforms}): the armor set its guards wear ("" till first needed: a town from before uniforms);
+	 * a switch of trim still due on its guards and leader not loaded when it joined or left a nation (the trims they may
+	 * still wear, "pattern|material", ";" between; "": none) and the day of it.
+	 */
+	public String uniformSet = "";
+	public String retrimFrom = "";
+	public long retrimDay = -1;
 
 	/** Its till: the first chest of its store, or null before it has one. */
 	@Nullable
@@ -525,6 +533,15 @@ public final class Town {
 		tag.putString("LastCrook", this.lastCrook);
 		tag.putString("LastCrime", this.lastCrime);
 		tag.putLong("LastCrimeDay", this.lastCrimeDay);
+		if (!this.uniformSet.isEmpty()) {
+			tag.putString("UniformSet", this.uniformSet);
+		}
+
+		if (!this.retrimFrom.isEmpty()) {
+			tag.putString("RetrimFrom", this.retrimFrom);
+			tag.putLong("RetrimDay", this.retrimDay);
+		}
+
 		ListTag crimes = new ListTag();
 		this.crimes.forEach((id, c) -> {
 			CompoundTag one = new CompoundTag();
@@ -722,6 +739,10 @@ public final class Town {
 		town.lastCrook = tag.getString("LastCrook");
 		town.lastCrime = tag.getString("LastCrime");
 		town.lastCrimeDay = tag.contains("LastCrimeDay") ? tag.getLong("LastCrimeDay") : -100;
+		// (Towns from before uniforms: none; a set is chosen the first time it's needed.)
+		town.uniformSet = tag.getString("UniformSet");
+		town.retrimFrom = tag.getString("RetrimFrom");
+		town.retrimDay = tag.contains("RetrimDay") ? tag.getLong("RetrimDay") : -1;
 		for (Tag t : tag.getList("Crimes", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
 			Criminal c = new Criminal(one.getString("Name"));

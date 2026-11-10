@@ -206,6 +206,9 @@ final class Nations {
 	/** {@code town} joins {@code head}'s nation (a new one, {@code head} its capital, if it has none). */
 	static Nation join(MinecraftServer server, Town head, Town town, boolean conquered) {
 		long day = Chronicle.day(server);
+		// (Their uniforms' trims before: each switches to the nation's, once.)
+		var headWas = TownUniforms.uniform(head);
+		var townWas = TownUniforms.uniform(town);
 		Nation nation = of(head);
 		if (nation == null) {
 			DrifterEntity ruler = head.leader == null ? null : TownFounding.loaded(server, head.leader);
@@ -238,6 +241,8 @@ final class Nations {
 			}
 		}
 
+		TownUniforms.changed(server, head, headWas);
+		TownUniforms.changed(server, town, townWas);
 		Towns.save(server);
 		return nation;
 	}
@@ -295,6 +300,10 @@ final class Nations {
 		}
 
 		long day = Chronicle.day(server);
+		// (Its uniform's trim before: back to its own, once; its capital's too if the nation is no more.)
+		var townWas = TownUniforms.uniform(town);
+		Town capital = Diplomacy.byId(nation.capital.toString());
+		var capitalWas = capital == null ? null : TownUniforms.uniform(capital);
 		nation.members.remove(town.id);
 		// (At peace with its old fellows still, but no longer their ally.)
 		for (UUID id : nation.towns()) {
@@ -314,6 +323,11 @@ final class Nations {
 		if (nation.members.isEmpty()) {
 			nations.remove(nation.id);
 			Chronicle.add(server, "nation", nation.name + " is no more");
+		}
+
+		TownUniforms.changed(server, town, townWas);
+		if (capital != null) {
+			TownUniforms.changed(server, capital, capitalWas);
 		}
 
 		Towns.save(server);
@@ -587,6 +601,8 @@ final class Nations {
 	// ---------------------------------------------------------------------------------------------
 
 	static void check(MinecraftServer server, Town town) {
+		// (A uniform's switch still due on its guards and leader not loaded when it joined or left: those loaded now.)
+		TownUniforms.check(server, town);
 		Nation nation = of(town);
 		if (nation == null) {
 			return;

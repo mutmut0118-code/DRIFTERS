@@ -1,0 +1,24 @@
+# Modded armor in starting kits, task 4, part 1: a town from before uniforms (an "old save" for smoke-kits-civ.txt).
+# Run with the build from BEFORE town uniforms (commit 6e1f36a) on a fresh world: server.properties level-seed=779 and a
+# new level-name (world_kits_civ); immersive_armors in run/mods. python tools/smoke.py . tools/smoke-kits-civ-old.txt build/smoke-kits-civ-old.log
+# Makes Oldbury at the plains test spot -1392,2648 and saves it (no "UniformSet"); then run tools/smoke-kits-civ.txt on the
+# same world with the new build. Before uniforms: "drifterciv town uniform" is unknown and the guards wear untrimmed iron.
+# (Dev servers here may hang on stop: once "Saved the game" is in the log, stop the server JVM by its own PID.)
+until Done_( 900
+until places_( 900
+wait 3
+forceload add -1488 2552 -1296 2744
+drifter thoughts log false
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+wait 10
+execute positioned -1392 100 2648 positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Oldbury
+wait 40
+execute positioned -1392 100 2648 run drifterciv town
+execute positioned -1392 100 2648 run drifterciv town uniform
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..120] if items entity @s armor.chest minecraft:iron_chestplate at @s run drifter inventory
+wait 3
+save-all
+wait 10
+stop

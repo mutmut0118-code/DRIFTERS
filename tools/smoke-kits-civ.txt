@@ -1,0 +1,62 @@
+# Modded armor in starting kits, task 4: a town's uniform, the nation's trim, the switch on joining and leaving.
+# python tools/smoke.py . tools/smoke-kits-civ.txt build/smoke-kits-civ.log
+# Run on the world tools/smoke-kits-civ-old.txt made with the build from before uniforms (seed 779, level-name
+# world_kits_civ: Oldbury at -1392,2648, saved with no "UniformSet", still force-loaded). Twice: with immersive_armors in
+# run/mods, then with it moved to run/mods_off/ (towns made with a modded set load with a set that no longer exists).
+# Expect:
+# - Oldbury (old save): "drifterciv town uniform" says its set "(chosen now)"; its guards still wear what they had (no trim).
+# - Northvale (-1392,2398) and Southford (-1642,3148), made now: each its own set and trim, worn by its guards and leader on every piece (the leader's
+#   gold crown too); the two trims differ.
+# - Southford joins Northvale's nation: both towns' guards and leaders now wear the nation's trim (material by the nation's
+#   colour), except one Southford guard's diamond helmet with a loot trim (wild copper), left alone.
+# - Southford goes free: the nation is no more, both back to their own trims.
+# - Southford joins again while its chunks aren't loaded: "still to switch from ..." and its people not loaded; once loaded
+#   and checked (every 10 s), its guards wear the nation's trim and nothing is still to switch.
+# - Oldbury joins: its untrimmed guards are left as they are (only pieces carrying the old trim switch); its set set to one
+#   that doesn't exist, it goes free again: no crash.
+# (Dev servers here may hang on stop: once the last "Saved the game" is in the log, stop the server JVM by its own PID.)
+until Done_( 900
+wait 5
+drifter thoughts log false
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+forceload add -1488 2302 -1296 2494
+forceload add -1738 3052 -1546 3244
+wait 20
+execute positioned -1392 100 2648 run drifterciv town uniform
+execute positioned -1392 100 2398 positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Northvale
+wait 30
+execute positioned -1642 100 3148 positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Southford
+wait 30
+execute positioned -1392 100 2398 run drifterciv town uniform
+execute positioned -1642 100 3148 run drifterciv town uniform
+# One of Southford's guards (a trimmed chest, no crown) given a loot-trimmed helmet: not a uniform piece.
+execute as @e[type=drifter:drifter,x=-1642,y=100,z=3148,distance=..120] if items entity @s armor.chest *[minecraft:trim] unless items entity @s armor.head minecraft:golden_helmet run tag @s add kits_guard
+execute as @e[type=drifter:drifter,tag=kits_guard,limit=1] run item replace entity @s armor.head with minecraft:diamond_helmet[minecraft:trim={pattern:"minecraft:wild",material:"minecraft:copper"}]
+execute positioned -1392 100 2398 run drifterciv nations join Southford
+execute positioned -1392 100 2398 run drifterciv nations
+execute positioned -1392 100 2398 run drifterciv town uniform
+execute positioned -1642 100 3148 run drifterciv town uniform
+execute positioned -1392 100 2398 run drifterciv nations free Southford
+execute positioned -1392 100 2398 run drifterciv town uniform
+execute positioned -1642 100 3148 run drifterciv town uniform
+# Southford's people unloaded, then it joins.
+forceload remove -1738 3052 -1546 3244
+wait 30
+execute positioned -1392 100 2398 run drifterciv nations join Southford
+execute positioned -1642 100 3148 run drifterciv town uniform
+forceload add -1738 3052 -1546 3244
+wait 30
+execute positioned -1642 100 3148 run drifterciv town uniform
+execute positioned -1392 100 2398 run drifterciv town uniform
+# The old town joins (its untrimmed guards: nothing to switch), then a set that doesn't exist, and it goes free.
+execute positioned -1392 100 2398 run drifterciv nations join Oldbury
+execute positioned -1392 100 2648 run drifterciv town uniform
+execute positioned -1392 100 2648 run drifterciv town uniform set nonexistent:set
+execute positioned -1392 100 2398 run drifterciv nations free Oldbury
+execute positioned -1392 100 2648 run drifterciv town uniform
+wait 3
+save-all
+wait 10
+stop

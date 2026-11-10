@@ -1,0 +1,28 @@
+# Modded armor in starting kits, task 4, part 3: without Immersive Armors. Move run/mods/immersive_armors-*.jar to
+# run/mods_off/ (put it back after), then on the world tools/smoke-kits-civ.txt left (seed 779, level-name world_kits_civ):
+# python tools/smoke.py . tools/smoke-kits-civ-nomods.txt build/smoke-kits-civ-nomods.log
+# Expect: Northvale's and Southford's sets (Immersive Armors ones) no longer exist: shown as kept, no crash; their guards'
+# modded pieces are gone with the mod, what's left keeps its trim. Eastmere (made now, -1642,2898): set minecraft:iron, its
+# guards in trimmed iron on every piece. Eastmere joins Northvale's nation and goes free: its pieces switch and back.
+until Done_( 900
+wait 20
+drifter thoughts log false
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+execute positioned -1392 100 2398 run drifterciv town uniform
+execute positioned -1642 100 3148 run drifterciv town uniform
+forceload add -1738 2802 -1546 2994
+wait 20
+execute positioned -1642 100 2898 positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Eastmere
+wait 30
+execute positioned -1642 100 2898 run drifterciv town uniform
+execute positioned -1392 100 2398 run drifterciv nations join Eastmere
+execute positioned -1642 100 2898 run drifterciv town uniform
+execute positioned -1392 100 2398 run drifterciv nations free Eastmere
+execute positioned -1642 100 2898 run drifterciv town uniform
+execute positioned -1392 100 2398 run drifterciv town uniform
+wait 3
+save-all
+wait 10
+stop

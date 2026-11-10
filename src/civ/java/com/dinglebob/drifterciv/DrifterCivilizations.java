@@ -297,6 +297,22 @@ public final class DrifterCivilizations implements ModInitializer {
 							var nation = Nations.join(ctx.getSource().getServer(), town, other, false);
 							ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + other.name + " is in " + nation.name + " now"), true);
 							return 1;
+						})))
+				// Debug: the named town goes free of its nation at once (as a ruler letting it go), no envoy.
+				.then(Commands.literal("free").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("town", com.mojang.brigadier.arguments.StringArgumentType.word())
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.executes(ctx -> {
+							Town town = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "town"));
+							var nation = town == null ? null : Nations.of(town);
+							if (nation == null || nation.capital.equals(town.id)) {
+								ctx.getSource().sendFailure(Component.literal("No such town in a nation (or it's the capital)"));
+								return 0;
+							}
+
+							Nations.leave(ctx.getSource().getServer(), town, "left " + nation.name + ", free again (debug)");
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + town.name + " is free of " + nation.name + " now"), true);
+							return 1;
 						}))))
 			// The nearest town's dealings with the others it knows of (step 6, part 1); debug: a standing set, an envoy sent now.
 			.then(Commands.literal("relations")
@@ -371,6 +387,13 @@ public final class DrifterCivilizations implements ModInitializer {
 			// Towns: the nearest, all of them, and (debug, for testing) one made at once.
 			.then(Commands.literal("town")
 				.executes(DrifterCivilizations::town)
+				// The nearest town's uniform (API 6): its set, its trim (or its nation's), what its guards and leader wear; debug: its set
+				// changed (no one re-dressed: a stale or unknown one is worn as trimmed iron by those dressed in it).
+				.then(Commands.literal("uniform")
+					.executes(ctx -> uniform(ctx, null))
+					.then(Commands.literal("set").requires(source -> source.hasPermission(2))
+						.then(Commands.argument("set", net.minecraft.commands.arguments.ResourceLocationArgument.id())
+							.executes(ctx -> uniform(ctx, net.minecraft.commands.arguments.ResourceLocationArgument.getId(ctx, "set").toString())))))
 				// Debug: the nearest town's market day, or Founding Day, today (milestone 23 C4, C6).
 				.then(Commands.literal("market").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
@@ -1153,6 +1176,25 @@ public final class DrifterCivilizations implements ModInitializer {
 
 		source.sendSuccess(() -> Component.literal("Made the town of " + result.message() + " (" + seconds + " s). /drifterciv town tells about it"), true);
 		return result.town().plots.size();
+	}
+
+	/** The nearest town's uniform (its set changed first, debug, if {@code set} isn't null). */
+	private static int uniform(CommandContext<CommandSourceStack> ctx, @Nullable String set) {
+		Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
+		if (town == null) {
+			ctx.getSource().sendFailure(Component.literal("No town here"));
+			return 0;
+		}
+
+		if (set != null) {
+			town.uniformSet = set;
+		}
+
+		List<String> lines = TownUniforms.describe(ctx.getSource().getServer(), town);
+		// (Its set chosen just now, a town from before uniforms: kept.)
+		Towns.save(ctx.getSource().getServer());
+		lines.forEach(line -> ctx.getSource().sendSuccess(() -> Component.literal(line), false));
+		return lines.size();
 	}
 
 	/** The nearest town: its name, when it was founded, its people, its store. */

@@ -3518,10 +3518,14 @@ public final class TownBuilder {
 			boldest.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> DrifterApi.trait(one, "bravery") + DrifterApi.trait(one, "aggression"))
 				.reversed());
 			List<UUID> guards = new ArrayList<>();
+			// Its uniform (API 6): a set kept with the town, its trim (a planned nation's town wears the nation's from the start).
+			UUID townId = this.plannedId != null ? this.plannedId : UUID.randomUUID();
+			String uniformSet = DrifterApi.chooseUniformSet(this.random);
+			var uniform = TownUniforms.uniform(townId, uniformSet);
 			for (DrifterEntity one : this.people) {
 				String role = group != null && one.getUUID().equals(group.leader) ? "leader" : boldest.indexOf(one) >= 0
 					&& boldest.indexOf(one) < Math.max(2, this.city ? this.people.size() / 7 : this.people.size() / 10) ? "guard" : "citizen";
-				DrifterApi.equipTown(one, this.random, role);
+				DrifterApi.equipTown(one, this.random, role, uniform);
 				DrifterApi.holdStill(one, 0L);
 				if (role.equals("guard")) {
 					guards.add(one.getUUID());
@@ -3529,8 +3533,8 @@ public final class TownBuilder {
 			}
 
 			long day = Chronicle.day(this.server);
-			Town town = new Town(this.plannedId != null ? this.plannedId : UUID.randomUUID(), this.name, group == null ? null : group.id, this.dimension,
-				new BlockPos(this.cx, this.y0, this.cz), day, true);
+			Town town = new Town(townId, this.name, group == null ? null : group.id, this.dimension, new BlockPos(this.cx, this.y0, this.cz), day, true);
+			town.uniformSet = uniformSet;
 			this.town = town;
 			town.plots.addAll(this.plots);
 			town.store.addAll(this.store);
