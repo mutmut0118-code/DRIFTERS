@@ -223,6 +223,9 @@ public final class TrinketsCompat {
 		String why = null;
 		if (!CompatMixinPlugin.trinketsHook) {
 			why = "the hook into TrinketsApi didn't go in";
+		} else if (getTrinketComponent == null || getTrinketComponent.getReturnType() != Optional.class) {
+			// (The hook answers Optional.empty(): only safe while that's what the method returns.)
+			why = "getTrinketComponent doesn't return an Optional";
 		} else {
 			try {
 				LivingEntity.class.getDeclaredField("lastEquippedTrinkets");
