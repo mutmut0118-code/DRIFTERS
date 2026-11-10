@@ -18,6 +18,9 @@
 		],
 		"client": [
 			"com.dinglebob.drifterciv.client.DrifterCivilizationsClient"
+		],
+		"modmenu": [
+			"com.dinglebob.drifterciv.client.CivModMenu"
 		]
 	},
 	"depends": {

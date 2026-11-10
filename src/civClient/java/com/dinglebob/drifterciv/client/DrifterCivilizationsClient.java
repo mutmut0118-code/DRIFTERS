@@ -21,5 +21,16 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 				client.setScreen(new WorldBuildScreen(progress));
 			}
 		});
+		// Debug only: DRIFTER_CIV_SCREEN set, the Friendship settings page opens once a world's been open a while (a client
+		// test screenshots it; the test harness can't click through Mod Menu).
+		if (System.getenv("DRIFTER_CIV_SCREEN") != null) {
+			int[] ticks = {0};
+			net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
+				if (client.level != null && ticks[0] >= 0 && ++ticks[0] == 300) {
+					client.setScreen(new FriendshipScreen(new CivConfigScreen(null)));
+					ticks[0] = -1;
+				}
+			});
+		}
 	}
 }

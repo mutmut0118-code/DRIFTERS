@@ -507,6 +507,7 @@ final class Justice {
 		criminal.offences++;
 		criminal.lastAt = now;
 		criminal.crime = kind;
+		FriendPerks.warn(server, town, player, null);
 		Kind of = KINDS.getOrDefault(kind, KINDS.get("farms"));
 		String what = of.what();
 		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime." + kind, "player", criminal.name));
@@ -586,11 +587,13 @@ final class Justice {
 		criminal.lastSeenTheft = now;
 		criminal.lastAt = now;
 		for (DrifterEntity one : saw) {
-			DrifterApi.addTrustInPlayer(one, player.getUUID(), name, SAW_THEFT);
+			// (A friend's only let down: D2.)
+			DrifterApi.addTrustInPlayer(one, player.getUUID(), name, Friends.isFriend(one, player) ? Friends.LET_DOWN : SAW_THEFT);
 			DrifterApi.think(one, "saw " + name + " take " + what + " from " + whose);
 		}
 
 		if (!more) {
+			FriendPerks.warn(server, town, player, null);
 			DrifterEntity witness = saw.get(0);
 			com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.theft", "player", name));
 		}
@@ -642,6 +645,8 @@ final class Justice {
 
 		if (player != null) {
 			String name = player.getGameProfile().getName();
+			// (A murder in its town: no friend of its people's any more, D2.)
+			Friends.endTown(town, player.getUUID(), "murder in " + town.name);
 			Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
 			boolean wantedAlready = criminal.wantedUntil > day;
 			criminal.offences++;
@@ -837,6 +842,8 @@ final class Justice {
 			there.exiledUntil = Math.max(there.exiledUntil, day + HEARD_MASSACRE);
 			there.wantedUntil = Math.max(there.wantedUntil, day + HEARD_MASSACRE);
 			other.heard.merge(player.getUUID(), -60.0, (a, b) -> Math.max(-100.0, a + b));
+			Friends.coolTown(other, player.getUUID(), town.name);
+			FriendPerks.warn(server, other, player, town.name);
 			heard++;
 		}
 
@@ -896,6 +903,8 @@ final class Justice {
 			there.exiledUntil = Math.max(there.exiledUntil, day + lasts);
 			there.wantedUntil = Math.max(there.wantedUntil, day + lasts);
 			other.heard.merge(player.getUUID(), nation != null ? -80.0 : -60.0, (a, b) -> Math.max(-100.0, a + b));
+			Friends.coolTown(other, player.getUUID(), town.name);
+			FriendPerks.warn(server, other, player, town.name);
 			told++;
 		}
 

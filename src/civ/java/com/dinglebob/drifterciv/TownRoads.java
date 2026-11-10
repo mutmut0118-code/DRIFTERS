@@ -315,12 +315,13 @@ final class TownRoads {
 		@Override
 		@org.jetbrains.annotations.Nullable
 		public String standing(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
-			return Justice.standing(this.town, player);
+			// (A friend won't go after them over something small; nor one that's only heard of it from another town: D2.)
+			return Friends.sparedBy(drifter, player, this.town) ? null : Justice.standing(this.town, player);
 		}
 
 		@Override
 		public boolean killOnSight(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
-			return Justice.killOnSight(this.town, player);
+			return !Friends.sparedBy(drifter, player, this.town) && Justice.killOnSight(this.town, player);
 		}
 
 		@Override

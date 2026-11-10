@@ -753,6 +753,9 @@ final class Trades {
 				return offers;
 			}
 
+			// A friend's price (D2), when that's cheaper.
+			standing = Friends.price(keeper, player, standing);
+
 			for (Item item : this.line.shop().sells()) {
 				ShopOffer offer = Market.trade(item, Market.price(keeper, item) * standing, forSale(keeper, item), true);
 				if (offer != null && !offers.stream().anyMatch(other -> other.goods().is(item))) {

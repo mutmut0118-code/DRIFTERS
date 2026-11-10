@@ -222,6 +222,8 @@ feature. Each hook is one listener, a no-op until the addon sets it.
 | `TalkApi.spareFood(drifter)`, `bring(drifter, player, item, count)` | Food it can spare; it walks over and tosses a player that many (gives up after a minute). |
 | `TalkApi.startTalk(drifter, player, topic)` | It brings up a player topic (by id, or one that suits) with a player now. Addon topics go in `data/<addon>/drifter_talk/` as `player_topics`. |
 | `TalkApi.hostileOnSight(drifter)`, `talking(drifter)` | A Bandit (now) or a delver; in a talk now. |
+| `TalkApi.callName(drifter, player)`, `meaning(text, keys...)` | What it calls a player; which of the chat files' `answers` meanings a message has (an addon's own phrases too). |
+| `TalkApi.topicAbout(topic)`, `playerTopics(tag)` | A player topic's `about` words; the player topics with a tag (or a word of their id). |
 
 ## Rules for the addon
 

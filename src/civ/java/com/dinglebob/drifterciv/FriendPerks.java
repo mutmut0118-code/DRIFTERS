@@ -120,14 +120,18 @@ final class FriendPerks {
 					thank(drifter, player, b);
 				}
 
-				if (!sees || TalkApi.talking(drifter) || drifter.getTarget() != null) {
+				// (Chatting with its neighbours doesn't stop it: in a town someone's nearly always talking.)
+				if (!sees || drifter.getTarget() != null) {
 					continue;
 				}
 
 				// Food when they're low.
 				if (cfg.perkFood && player.getFoodData().getFoodLevel() <= HUNGRY && !player.isUsingItem() && now - b.lastFood > FOOD_GAP) {
 					Item food = TalkApi.spareFood(drifter);
-					if (food != null) {
+					if (food == null) {
+						b.lastFood = now;
+						DrifterApi.think(drifter, player.getGameProfile().getName() + " looks starved, but it's got no food to spare");
+					} else {
 						b.lastFood = now;
 						say(drifter, player, "friends.food", false);
 						TalkApi.bring(drifter, player, food, 2);
@@ -142,7 +146,8 @@ final class FriendPerks {
 				}
 
 				// A favor now and then.
-				if (cfg.favors && b.favor == null && now - b.lastFavor > (long)(cfg.favorDays * 24000) && drifter.getRandom().nextDouble() < 0.01) {
+				if (cfg.favors && b.favor == null && now - b.lastFavor > (long)(cfg.favorDays * 24000) && !TalkApi.talking(drifter)
+					&& drifter.getRandom().nextDouble() < 0.01) {
 					offerFavor(drifter, player, b, null);
 				}
 			}
@@ -581,11 +586,72 @@ final class FriendPerks {
 	static LiteralArgumentBuilder<CommandSourceStack> tipCommand() {
 		return Commands.literal("tip").requires(source -> source.hasPermission(2)).executes(ctx -> {
 			ServerPlayer player = ctx.getSource().getPlayerOrException();
-			DrifterEntity drifter = Friends.looked(player);
+			DrifterEntity drifter = Friends.friendNear(player);
 			Friends.Bond b = drifter == null ? null : Friends.bond(drifter, player);
 			boolean told = b != null && b.friend() && tip(drifter, player, b);
 			ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + (told ? "a tip" : "nothing to tell (a friend? anything it's seen?)")), false);
 			return told ? 1 : 0;
+		});
+	}
+
+	/** Debug: whether its invite is due now, and if not why not; {@code home}: it and you put by its front door first. */
+	static LiteralArgumentBuilder<CommandSourceStack> inviteCommand() {
+		return Commands.literal("invite").requires(source -> source.hasPermission(2))
+			.then(Commands.literal("home").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				DrifterEntity drifter = Friends.friendNear(player);
+				Town.Plot plot = drifter == null ? null : plotOf(drifter);
+				BlockPos door = plot == null || drifter.getServer() == null ? null : DrifterApi.frontDoor(drifter.getServer(), plot.planId, plot.origin, plot.rotation, plot.front);
+				if (door == null) {
+					ctx.getSource().sendFailure(Component.literal("No friend with a house near"));
+					return 0;
+				}
+
+				BlockPos out = door.relative(plot.front, 4);
+				drifter.teleportTo(out.getX() + 0.5, out.getY(), out.getZ() + 0.5);
+				player.teleportTo(out.getX() + 1.5, out.getY(), out.getZ() + 1.5);
+				ctx.getSource().sendSuccess(() -> Component.literal("Debug: by " + drifter.getName().getString() + "'s door at " + door.toShortString()), false);
+				return 1;
+			}))
+			.executes(ctx -> {
+			ServerPlayer player = ctx.getSource().getPlayerOrException();
+			DrifterEntity drifter = Friends.friendNear(player);
+			String why;
+			if (drifter == null) {
+				why = "no friend near";
+			} else {
+				Town.Plot plot = plotOf(drifter);
+				BlockPos door = plot == null || drifter.getServer() == null ? null : DrifterApi.frontDoor(drifter.getServer(), plot.planId, plot.origin, plot.rotation, plot.front);
+				long time = drifter.level().getDayTime() % 24000L;
+				why = drifter.getName().getString() + ": " + (plot == null ? "no house in a town" : !plot.built ? "house not up"
+					: door == null ? "no door found" : "door at " + door.toShortString() + ", " + (int)Math.sqrt(door.distSqr(drifter.blockPosition())) + " blocks off")
+					+ "; time " + time + (drifter.level().isRaining() ? " (rain)" : "") + "; you outside: " + drifter.level().canSeeSky(player.blockPosition().above())
+					+ "; due: " + (findInvite(drifter, Friends.now()) != null) + (plot != null && drifter.level() instanceof ServerLevel level ? "; spare bed: " + spareBed(level, plot) : "");
+			}
+
+			String shown = why;
+			ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + shown), false);
+			return 1;
+		});
+	}
+
+	/** Debug: what's in your hand to your friend near, as if thrown. */
+	static LiteralArgumentBuilder<CommandSourceStack> handCommand() {
+		return Commands.literal("hand").requires(source -> source.hasPermission(2)).executes(ctx -> {
+			ServerPlayer player = ctx.getSource().getPlayerOrException();
+			DrifterEntity drifter = Friends.friendNear(player);
+			ItemStack held = player.getMainHandItem().copy();
+			if (drifter == null || held.isEmpty()) {
+				ctx.getSource().sendFailure(Component.literal("Nothing in your hand, or no friend near"));
+				return 0;
+			}
+
+			player.getMainHandItem().setCount(0);
+			drifter.getInventory().add(held.copy());
+			DrifterEvents.RECEIVED.invoker().onReceived(drifter, player, held);
+			ctx.getSource().sendSuccess(() -> Component.literal("Debug: handed " + held.getCount() + " " + held.getHoverName().getString() + " to "
+				+ drifter.getName().getString()), false);
+			return 1;
 		});
 	}
 
@@ -594,7 +660,7 @@ final class FriendPerks {
 			.then(Commands.argument("kind", StringArgumentType.word()).suggests((ctx, builder) -> SharedSuggestionProvider.suggest(FAVORS, builder))
 				.executes(ctx -> {
 					ServerPlayer player = ctx.getSource().getPlayerOrException();
-					DrifterEntity drifter = Friends.looked(player);
+					DrifterEntity drifter = Friends.friendNear(player);
 					Friends.Bond b = drifter == null ? null : Friends.bond(drifter, player);
 					String kind = StringArgumentType.getString(ctx, "kind");
 					boolean asked = b != null && b.friend() && FAVORS.contains(kind) && offerFavor(drifter, player, b, kind);

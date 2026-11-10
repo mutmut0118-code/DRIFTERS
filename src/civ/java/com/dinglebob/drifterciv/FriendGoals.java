@@ -56,7 +56,7 @@ final class FriendGoals {
 
 		@Override
 		public double urgency(Goals.Context context) {
-			return CivConfig.friends().perkWelcome && back(context.drifter()) != null ? 0.5 : 0.0;
+			return CivConfig.friends().perkWelcome && back(context.drifter()) != null ? 0.6 : 0.0;
 		}
 
 		@Override
@@ -115,7 +115,7 @@ final class FriendGoals {
 
 		@Override
 		public double urgency(Goals.Context context) {
-			return CivConfig.friends().perkInvite && FriendPerks.inviteDue(context.drifter()) != null ? 0.45 : 0.0;
+			return CivConfig.friends().perkInvite && FriendPerks.inviteDue(context.drifter()) != null ? 0.98 : 0.0;
 		}
 
 		@Override

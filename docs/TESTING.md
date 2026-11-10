@@ -3222,3 +3222,47 @@ The same as your test: in creative, on the flat world, standing by the battle.
       session (the log says "its mine stairs mended"): steps back, nothing blocking them, room to jump. Over a day or two its
       people don't dig into the stairs' steps or walls, and no cobblestone walls appear in the mine's strips and corridor.
       Their own staircases are a block taller: you can walk down and jump up them without hitting your head.
+
+## 0.23.37: friends (D2) (new)
+
+Making friends with Drifters, Sims-style: **stranger, acquaintance, friend, best friend**. Talk to them in chat as you
+would on a server; nothing here uses a menu except the settings page. `/drifterciv friends` lists everyone you know and
+where you stand; hovering a Drifter's name in chat says "your friend" and so on.
+
+- [ ] **Getting to know someone.** Hang round a town and chat. After a few talks a Drifter is your acquaintance (it knows
+      your name). Acquaintances bring up hot takes and ask what you think ("the nether is the best dimension, agree?").
+      Answer in chat: "yeah", "fr", "facts" (agree) or "nah", "no" (disagree). Agreeing warms it most; a hothead enjoys an
+      argument; a touchy one takes a "nah" hard. Talking non-stop gives less and less: a few talks spread over days work best.
+- [ ] **Ask it yourself.** Say "what do you think about creepers?" (or "you like the nether?") to an acquaintance: it gives
+      its take and asks back.
+- [ ] **Becoming friends.** After a few in-game days of being decent (talks, trading, gifts, helping in fights, the town's
+      notices) it says so in chat ("ngl youre alright, come by mine whenever"). Saving its life skips most of the wait.
+      Best friend takes about twice as long ("ok youre officially my best friend lol"), and only a few people get that close.
+- [ ] **What a friend does.**
+      - Comes over when you get back after a day or more away and asks how it went.
+      - Throws you some of its own food when you're hungry (food bar at 3 drumsticks or less).
+      - At night or in the rain, if you're outside near its house: "come in", it walks to its door and waits; if its house
+        has a spare bed it says you can have it.
+      - Whispers you tips (shows like a /msg, only you see it): iron, gold, a dungeon, a portal it has really seen, a town
+        that hates its own, bandits about. Diamonds and ancient debris only to a best friend.
+      - Fights bandits and hostile Drifters attacking you (it already helped against monsters).
+      - Cheaper prices at its stall (20% off on Normal).
+      - Whispers a warning when its town's guards are after you ("dude the guards are looking for you").
+      - Now and then asks you a favor: 8 iron, some food, or help with the zombies by its house tonight. Say yes and do it
+        (throw it the items, or kill 3 monsters near its house by morning): it's grateful. Say yes and don't: "you said you'd
+        help lol". Saying no costs nothing.
+- [ ] **When it ends or cools.**
+      - Steal, get fined or ring the bell for nothing in its town: still your friend, doesn't chase you, warns you.
+      - Murder someone in its town (or its leader, or a massacre): it's over.
+      - Do something big in another town of its nation and become wanted in its town by word: it cools ("bro what did you do
+        in ...") but won't hunt you.
+      - Attack it (more than one accidental hit), steal from its own chest, kill its pet or a close friend of it: over at once.
+      - Ten in-game days apart: "used to be friends". Spend five minutes round it and it picks up again ("been ages!").
+- [ ] **The settings page.** Mod Menu, Drifter: Civilizations, Configure, Friendship. Pick a preset (Relaxed, Normal, Slow
+      burn, Hardcore) and the sliders move; change any slider and the preset says Custom. Also by command:
+      `/drifterciv config friendship`, `/drifterciv config friendship preset relaxed`.
+
+Test commands (creative/cheats): `/drifterciv friends set friend` (the Drifter you're looking at becomes your friend; also
+`acquaintance`, `best`, `stranger`), `/drifterciv friends talk` (it brings something up), `/drifterciv friends tip`,
+`/drifterciv friends favor iron` (or `food`, `zombies`), `/drifterciv friends days 11` (as if 11 days apart),
+`/drifterciv friends end`.

@@ -207,6 +207,11 @@ final class Friends {
 		}
 	}
 
+	/** What a player does to it that ends a friendship there and then. */
+	private static final java.util.Set<SocialEvent> ENDS = java.util.EnumSet.of(SocialEvent.ATTACKED, SocialEvent.NEARLY_KILLED, SocialEvent.KILLED,
+		SocialEvent.KILLED_PET, SocialEvent.CAUGHT_STEALING, SocialEvent.TOOK_VALUABLES, SocialEvent.HAD_ITS_THINGS, SocialEvent.KILLED_FRIEND,
+		SocialEvent.FIRE_NEAR_BASE);
+
 	/** How far round a player the loop looks for Drifters, and how often (ticks). */
 	private static final double NEAR = 32.0;
 	private static final int EVERY = 20;
@@ -264,8 +269,15 @@ final class Friends {
 				bondOrNew(drifter, player).saved = true;
 				dirty();
 			}
+
+			// Wronged: over at once (a single hit then backing off isn't: an accident between friends).
+			if (ENDS.contains(deed)) {
+				end(drifter.getUUID(), player.getUUID(), deed.what);
+			}
 		});
 		TalkApi.setTrustFloor(Friends::floor);
+		// Where something is, told to a friend: whispered.
+		TalkApi.setWhisperRule((drifter, player, key) -> CivConfig.friends().whisper && isFriend(drifter, player));
 		TalkApi.registerPlayerFacts((drifter, player, words, flags) -> {
 			Bond b = bond(drifter.getUUID(), player.getUUID());
 			if (b == null) {
@@ -315,7 +327,8 @@ final class Friends {
 
 	@Nullable
 	static Bond bond(UUID drifter, UUID player) {
-		return bonds.get(key(drifter, player));
+		// (Friendships off: none count, kept for when they're on again.)
+		return CivConfig.friends().on ? bonds.get(key(drifter, player)) : null;
 	}
 
 	@Nullable
@@ -353,6 +366,61 @@ final class Friends {
 	static boolean isBest(UUID drifter, UUID player) {
 		Bond b = bond(drifter, player);
 		return b != null && b.best();
+	}
+
+	/** The price factor at its stall or shop for this player: a friend's price (the setting's discount) when cheaper. */
+	static double price(DrifterEntity keeper, @Nullable Player player, double standing) {
+		if (player == null || !isFriend(keeper, player)) {
+			return standing;
+		}
+
+		return Math.min(standing, 1.0 - CivConfig.friends().discount / 100.0);
+	}
+
+	/** A friend seeing them take something from its town: let down a little, not more. */
+	static final double LET_DOWN = -3.0;
+	/** Why it cooled when word of a big crime elsewhere reached its town. */
+	private static final String HEARD = "what they did in ";
+
+	/** Its Drifter is one of this town (its group's), or was last seen as one. */
+	private static boolean ofTown(Bond b, Town town) {
+		var group = DrifterApi.group(b.drifter);
+		return group != null && town.group != null ? group.id.equals(town.group) : b.town.equals(town.name);
+	}
+
+	/** Its people's friendships with this player over (a murder in their town). */
+	static void endTown(Town town, UUID player, String why) {
+		for (Bond b : of(player)) {
+			if (ofTown(b, town) && (b.active() || b.state == State.COOLED)) {
+				end(b.drifter, player, why);
+			}
+		}
+	}
+
+	/** Its people's friendships with this player cooled: word of something big they did in another town. */
+	static void coolTown(Town town, UUID player, String where) {
+		for (Bond b : of(player)) {
+			if (ofTown(b, town) && b.friend()) {
+				cool(b, HEARD + where);
+			}
+		}
+	}
+
+	/**
+	 * Whether this Drifter of this town leaves them be although its town wants them: a friend, over something small (not
+	 * kill on sight); or one cooled only by word from another town.
+	 */
+	static boolean sparedBy(DrifterEntity drifter, Player player, Town town) {
+		Bond b = bond(drifter, player);
+		if (b == null) {
+			return false;
+		}
+
+		if (b.state == State.COOLED && b.why.startsWith(HEARD)) {
+			return true;
+		}
+
+		return b.friend() && !Justice.killOnSight(town, player);
 	}
 
 	/** Every bond of this player's (any stage, any state). */
@@ -705,7 +773,22 @@ final class Friends {
 			}))
 			.then(FriendTalk.command())
 			.then(FriendPerks.tipCommand())
-			.then(FriendPerks.favorCommand());
+			.then(FriendPerks.favorCommand())
+			.then(FriendPerks.inviteCommand())
+			.then(FriendPerks.handCommand());
+	}
+
+	/** The nearest friend of theirs within 24 blocks (debug), or the one they're looking at. */
+	@Nullable
+	static DrifterEntity friendNear(ServerPlayer player) {
+		DrifterEntity best = null;
+		for (DrifterEntity d : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(24.0), d -> d.isAlive() && isFriend(d, player))) {
+			if (best == null || d.distanceToSqr(player) < best.distanceToSqr(player)) {
+				best = d;
+			}
+		}
+
+		return best != null ? best : looked(player);
 	}
 
 	/** The Drifter a player is looking at, within 16 blocks (or the nearest within 16). */
@@ -775,7 +858,7 @@ final class Friends {
 	static String inTown(Town town, Player player) {
 		List<String> here = new ArrayList<>();
 		for (Bond b : of(player.getUUID())) {
-			if (b.active() && b.stage != Stage.STRANGER && b.town.equals(town.name)) {
+			if (b.active() && b.stage != Stage.STRANGER && ofTown(b, town)) {
 				here.add(b.drifterName + " (" + b.stage.word + ")");
 			}
 		}
