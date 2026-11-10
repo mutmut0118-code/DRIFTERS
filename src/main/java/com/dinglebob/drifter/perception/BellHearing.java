@@ -127,6 +127,10 @@ public final class BellHearing {
 		if (ringing == null || now - ringing.last > ANOTHER) {
 			ringing = new Ringing(nextId++, now);
 			ringings.put(key, ringing);
+			// (A player ringing it: for a town to say whether it was for anything. 0.23.35.)
+			if (by instanceof net.minecraft.world.entity.player.Player player) {
+				com.dinglebob.drifter.api.DrifterEvents.ALARM_RUNG.invoker().onAlarmRung(player, bell.immutable());
+			}
 		}
 
 		ringing.last = now;
@@ -156,6 +160,30 @@ public final class BellHearing {
 		if (drifter.getTownWork() != null && passing.size() < 2000) {
 			passing.add(new PassOn(level, drifter, heard, level.getGameTime() + PASS_ON));
 		}
+	}
+
+	/**
+	 * Shouted down a mine (0.23.35: one who answered its town's alarm runs to the town's mine and calls those down there up):
+	 * those within this of the spot hear it, as from the teller, and pass it on in turn. How many heard it new.
+	 */
+	public static int callDown(DrifterEntity teller, Heard heard, BlockPos at, double reach) {
+		if (!(teller.level() instanceof ServerLevel level)) {
+			return 0;
+		}
+
+		long now = level.getGameTime();
+		Heard told = new Heard(heard.alarm(), heard.bell(), heard.why(), heard.trouble(), now, teller.getName().getString());
+		int reached = 0;
+		for (DrifterEntity other : level.getEntitiesOfClass(DrifterEntity.class, new AABB(at).inflate(reach),
+			d -> d != teller && d.isAlive() && at.closerToCenterThan(d.position(), reach))) {
+			Heard theirs = other.getSenses().heardAlarm();
+			if (theirs == null || theirs.alarm() != told.alarm()) {
+				hear(level, other, told);
+				reached++;
+			}
+		}
+
+		return reached;
 	}
 
 	/** Those who heard pass the word on to those near them who haven't. */

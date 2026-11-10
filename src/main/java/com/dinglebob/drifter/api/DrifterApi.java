@@ -701,6 +701,14 @@ public final class DrifterApi {
 		return drifter.groupAtDeath();
 	}
 
+	/**
+	 * This block is part of a build (a town's mine stairs: 0.23.35): Drifters don't dig it for stone or tunnel through it,
+	 * as for a house.
+	 */
+	public static void markBuilt(net.minecraft.world.level.LevelAccessor level, net.minecraft.core.BlockPos pos) {
+		com.dinglebob.drifter.world.PlayerPlacedBlocks.recordBuilt(level, pos);
+	}
+
 	/** This block is part of someone's build (a player's, a Drifter's house, a town's), not the land's own. */
 	public static boolean isBuilt(ServerLevel level, net.minecraft.core.BlockPos pos) {
 		return com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, pos);

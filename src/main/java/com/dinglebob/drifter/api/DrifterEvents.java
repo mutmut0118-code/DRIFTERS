@@ -114,6 +114,21 @@ public final class DrifterEvents {
 		void onSeenTaking(Player player, net.minecraft.core.BlockPos chest, java.util.List<ItemStack> taken, java.util.List<DrifterEntity> saw);
 	}
 
+	/**
+	 * A player rang a bell as an alarm (struck it fast, five times: 0.23.35), once a ringing: the bell. Whether that was for
+	 * nothing (a false alarm) is the listener's call.
+	 */
+	public static final Event<AlarmRung> ALARM_RUNG = EventFactory.createArrayBacked(AlarmRung.class, listeners -> (player, bell) -> {
+		for (AlarmRung listener : listeners) {
+			listener.onAlarmRung(player, bell);
+		}
+	});
+
+	@FunctionalInterface
+	public interface AlarmRung {
+		void onAlarmRung(Player player, net.minecraft.core.BlockPos bell);
+	}
+
 	/** A player threw a Drifter something and it picked it up (what it took of it). */
 	public static final Event<Received> RECEIVED = EventFactory.createArrayBacked(Received.class, listeners -> (drifter, player, stack) -> {
 		for (Received listener : listeners) {

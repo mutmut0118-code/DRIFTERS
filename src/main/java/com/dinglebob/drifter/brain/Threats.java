@@ -191,7 +191,11 @@ public final class Threats {
 		}
 
 		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
-		boolean after = isAfter(drifter, entity);
+		// (A player it's out to get, wanted in its town, is one to fight on sight, as one that's after it: till 0.23.35 a player
+		// was a threat only once they'd hit it, so a town answering the alarm stood looking about with the killer right there
+		// till they hit them; the user, "half the town is standing and looking around until i hit them".)
+		boolean after = isAfter(drifter, entity) || entity instanceof net.minecraft.world.entity.player.Player player
+			&& com.dinglebob.drifter.social.Mode.pursuesWanted(drifter, player);
 		double danger;
 		if (entry != null) {
 			if (entry.neutral() && !after) {
@@ -412,6 +416,18 @@ public final class Threats {
 		// (the user, 2026-10-29: "few would fight and others would just hide; should be more fighting but if everybody gets low
 		// they retreat").
 		if (main instanceof com.dinglebob.drifter.entity.DrifterEntity enemy && com.dinglebob.drifter.world.DrifterWars.atWar(drifter, enemy)) {
+			boolean low = drifter.getHealth() < drifter.getMaxHealth() * WAR_FALL_BACK;
+			if (!low && (decision == Decision.AVOID || decision == Decision.RETREAT || decision == Decision.FLEE && ratio >= WAR_HOPELESS)) {
+				decision = Decision.ENGAGE_CAREFUL;
+			} else if (low && decision.fights() && !(recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5 && stuckInPlace(drifter, now))) {
+				decision = Decision.RETREAT;
+			}
+		}
+
+		// Defending its town from someone wanted there (a killing, a massacre; the user, 0.23.35: "since i killed the guards
+		// nobody else really fights"): as at war, it stands and fights with its neighbours unless it's hopeless, and falls back
+		// once it's low. The timid still keep clear (they aren't the ones going after them: Mode.pursuesWanted).
+		if (main instanceof net.minecraft.world.entity.player.Player player && com.dinglebob.drifter.social.Mode.pursuesWanted(drifter, player)) {
 			boolean low = drifter.getHealth() < drifter.getMaxHealth() * WAR_FALL_BACK;
 			if (!low && (decision == Decision.AVOID || decision == Decision.RETREAT || decision == Decision.FLEE && ratio >= WAR_HOPELESS)) {
 				decision = Decision.ENGAGE_CAREFUL;

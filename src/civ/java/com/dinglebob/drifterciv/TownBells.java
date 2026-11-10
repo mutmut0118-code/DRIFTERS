@@ -208,7 +208,8 @@ final class TownBells {
 		}
 
 		DrifterEntity leader = town.leader == null ? null : TownFounding.loaded(server, town.leader);
-		DrifterEntity pick = leader != null && !town.leader.equals(not) && leader.blockPosition().closerThan(bell, LEADER_NEAR) ? leader : null;
+		DrifterEntity pick = leader != null && !town.leader.equals(not) && leader.blockPosition().closerThan(bell, LEADER_NEAR)
+			&& Math.abs(leader.getY() - bell.getY()) < 12.0 ? leader : null;
 		if (pick == null) {
 			double best = Double.MAX_VALUE;
 			for (UUID id : group.members) {
@@ -217,7 +218,12 @@ final class TownBells {
 					continue;
 				}
 
-				double d = member.blockPosition().distSqr(bell);
+				// (Down a mine counts four times as far: found in testing, 0.23.35, the one picked was digging under the town
+				// and the alarm went unrung for two minutes.)
+				double dx = member.getX() - bell.getX();
+				double dy = (member.getY() - bell.getY()) * 4.0;
+				double dz = member.getZ() - bell.getZ();
+				double d = dx * dx + dy * dy + dz * dz;
 				if (d < best) {
 					best = d;
 					pick = member;

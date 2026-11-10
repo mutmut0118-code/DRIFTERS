@@ -319,6 +319,11 @@ final class TownRoads {
 		}
 
 		@Override
+		public boolean killOnSight(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+			return Justice.killOnSight(this.town, player);
+		}
+
+		@Override
 		public boolean crook(DrifterEntity drifter) {
 			return this.town.crooks.contains(drifter.getUUID());
 		}

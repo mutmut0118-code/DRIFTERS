@@ -3198,3 +3198,27 @@ The same as your test: in creative, on the flat world, standing by the battle.
       your hits blocked (more for skilled, careful ones), with the shield's clang. An axe knocks its shield down for 5 s.
 - [ ] **Giving in is rare.** Beating townspeople (death "gone for good" too): hardly any give in; one that does throws
       things from its pockets, never its armour, shield or the weapon in its hand.
+
+## 0.23.35: the town fights back, the leader, more crimes (new)
+
+- [ ] **The town fights back.** Kill townspeople in front of others: the bell rings soon (the ringer is someone up top),
+      most of the town comes for you (only the timid go in), they keep looking and keeping watch while the bell rings, and
+      they stand and fight together even if you're better armed (they fall back when badly hurt). Someone runs to the
+      town mine and shouts "everyone up!"; the miners come up. Kill the guards: two more are picked at once.
+- [ ] **The leader.** Kill a town's leader in front of others: "THEY KILLED ...!", the whole town against you, wanted there
+      30 days and in every town of its nation (the chronicle: "X mourns Y ... wanted in all N other towns of ...").
+- [ ] **Horse theft.** Ride off on a town horse (from its stable) where its people see: "horse thief!", a fine of 5.
+- [ ] **Its animals.** Kill an animal in a town's pen (or a townsperson's horse or dog) where they see: a fine of 2 (any town).
+- [ ] **False alarm.** Ring a town's bell fast (5 times in 5 seconds) with nothing wrong (day, no monsters near): "stop
+      ringing the bell!", a fine of 1. Three crimes in a town: exiled.
+
+## 0.23.36: everyone but cowards fights, kill on sight, the mine stairs (new)
+
+- [ ] **Most of the town fights.** Kill townspeople in front of others: only a few (the cowards) go in; the rest come for
+      you, and those answering the alarm go for you as soon as they see you ("there they are"), not standing looking about.
+- [ ] **Kill on sight.** Kill a town's leader (or massacre a town): its people (and those of its nation's other towns) who
+      aren't cowards attack you wherever they see you, even out of town, and stand and fight.
+- [ ] **The mine stairs.** In an existing world, a town's mine stairs are put right the first time you're near them each
+      session (the log says "its mine stairs mended"): steps back, nothing blocking them, room to jump. Over a day or two its
+      people don't dig into the stairs' steps or walls, and no cobblestone walls appear in the mine's strips and corridor.
+      Their own staircases are a block taller: you can walk down and jump up them without hitting your head.

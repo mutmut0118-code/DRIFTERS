@@ -972,6 +972,30 @@
         "outsiders don't touch the farms"
       ]
     },
+    "crime.horse": {
+      "any": [
+        "hey! that's our horse!",
+        "{player}'s stealing a horse!",
+        "horse thief!",
+        "get off that horse, {player}!"
+      ]
+    },
+    "crime.livestock": {
+      "any": [
+        "{player}, those animals are ours!",
+        "hey! you killed our animal!",
+        "stop killing our animals!",
+        "that was ours, {player}!"
+      ]
+    },
+    "crime.peace": {
+      "any": [
+        "{player}, stop ringing the bell!",
+        "there's nothing wrong! quit it, {player}",
+        "you scared everyone for nothing!",
+        "is this a joke to you, {player}?"
+      ]
+    },
     "crime.murder": {
       "any": [
         "{player} killed {who}!!",

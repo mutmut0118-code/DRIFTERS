@@ -4669,6 +4669,73 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.36: everyone but a coward fights, kill on sight after a leader's murder, the killer a threat on sight; the
+  mine's stairs kept** (the user, 2026-11-10: "more of them should be fighting", "if im wanted after i kill the leader it
+  should be kill on sight for anybody who isnt a coward", "half the town is standing and looking around until i hit
+  them"; with pictures: "this is what the mines look like after a day or so, people keep mining the stairs, the walls in
+  the stairs, blocking the mines", "whenever i go down the stairs i always hit my head, and i cant jump").
+  - **Cowards only** (`Mode.timid`): a townsperson keeps clear of someone wanted, and goes in at an alarm, only if its own
+    Bravery is under 0.3 (the coward of `Threats.COWARD_BRAVERY`); was under 0.35 by the moment's Bravery, and every
+    pacifist (about half a town). A guard never.
+  - **Kill on sight** (`TownWork.killOnSight`, `Justice.killOnSight`): wanted for its leader's murder or a massacre (in the
+    town, and in the towns told of it), its people go for them wherever they see them, not only about the town, and stand
+    and fight (`Mode.pursuesWanted`). A later killing doesn't make it a lesser crime (`Justice.grave`).
+  - **The killer a threat on sight** (`Threats.danger`): a player was a threat only once they'd hit it, so those who came
+    to the alarm stood looking about with the killer in front of them. One it's out to get counts as after it now; and the
+    alarm gives way when it sees them ("there they are": `AlarmGoal.seesQuarry`).
+  - **Stairs with headroom** (`TunnelDigger`): a staircase step is dug a block taller (four over each step's floor), so it's
+    walked down and jumped up without a bump. The town mine's stairs five high, the step included (`TownMine.STAIRS_HIGH`).
+  - **Not walled off** (`TunnelDigger.someonesTunnel`, `Home.inTownMine`): breaking into air that's lit (a torch's light)
+    or in its town's mine is someone's tunnel: no plug, and the dig turns off it. In the user's log, 16 holes plugged in a
+    day, nearly all in Millwick's own mine (its strips and corridor, taken for caves).
+  - **The town mine's stairs kept** (`TownMine.protect`, `DrifterApi.markBuilt`): its steps, the floor under them and the
+    walls beside them are its people's build (not dug for stone or tunnelled through; a landing's walls stay faces). And
+    once a session each town's stairs are mended (`TownMine.mend`): each step back, the way over it clear and five high
+    (torches kept), holes in the floor and walls filled (only where rock is behind: a way into someone's tunnel stays open;
+    never on anyone).
+  - Tested (dev client, death for good): a leader killed on a plaza, then two more: 7 fought, 5 hunted, 8 answered, 1
+    went in, none gave in (0.23.35's run: 2, 2, 4 and 8 in); in another run those answering saw the killer ("there they
+    are") and went for them. Loading a world made before: "Pinebury: its mine stairs mended (222 blocks put right)",
+    Stonegate 181. Headless, a city of 61 for a day (96 mining trips): one hole plugged, in a real cave 140 blocks from
+    its mine; twice a dig turned off someone's tunnel; no deaths.
+
+- **0.23.35: a town fights for itself; its leader's murder counts; horse theft, killing its animals, false alarms**
+  (the user, 2026-11-09, after a massacre in their world: "not many people were fighting back, alot of citizens were in a
+  mining trip or doing something else", "since i killed the guards nobody else really fights", "people would hear the
+  bell, get alarmed, then just going back to their own thing", "not enough impact killing the leader", "more crime things
+  too like stealing a horse, killing farm animals, spam ringing the bell for no reason"). Their log: most of Millwick went
+  in, a few answered, one hunted them.
+  - **Who answers** (`AlarmGoal.answers`): a guard or anyone not timid (was: brave, half and up). The timid still go in.
+  - **Keeps at it** (`AlarmGoal.Answer`): it went back to its work after one look about; now it keeps watch where the
+    trouble was, and goes wherever the trouble's said to be next, till the alarm's over.
+  - **Down the mine** (`AlarmGoal`, `BellHearing.callDown`): the first to answer that isn't a guard runs to the town mine's
+    mouth and shouts down it ("everyone up!"): those within 48 blocks of it hear, and pass it on. Once an alarm.
+  - **Stands and fights** (`Threats`): against a player wanted in its town, one that isn't timid stands and fights with its
+    neighbours as at war (unless hopeless, and falling back once low), not backing off a better-armed killer.
+  - **Guards** (`Justice.pickGuards`): one killed, two picked at once (was: the next check).
+  - **A visitor killed in a town** (`Justice.whereKilled`): murder there too, if its people saw it (not a Bandit, nor one
+    they had against them or were at war with). Found in testing: a passer-by killed on a plaza was nothing to the town,
+    its people turned on the killer for it, and killing them was then "self-defence".
+  - **Its leader murdered** (`Justice.leaderMurdered`): the whole town's trust gone, wanted and exiled there 30 days, the
+    alarm for it, a price on their head, and wanted for 30 days in every other town of its nation (10 days in the towns
+    about, without one). The chronicle: "X mourns Y".
+  - **More crimes** (`Justice`, kinds in `KINDS`): a horse of its people's ridden off (5 emeralds; once a horse), its
+    animals killed (in its pen, or its people's own: 2; any town now, was only with the farms law), its alarm bell rung
+    by a player for nothing (1; not while its alarm's on, nor with monsters near the bell). Seen by any of its people. A
+    new API event, `DrifterEvents.ALARM_RUNG`.
+  - **Its bell rung** (`BellGoal`, `TownBells`): found in testing, the ringer stood beside the bell and every stroke missed
+    (a bell rings struck front or back): it stands front or back now. And the ringer picked was digging under the town:
+    down a mine counts four times as far, and the leader rings it only if it's up top.
+  - Test helpers: client-test `ring`, debug `drifterciv town spot <bell|pen|horse|leader|town2>`.
+  - Tested (dev client, death for good, seed 8208968137302710584): a town's cow killed in front of its people: "a fine
+    of 2"; a town horse ridden off in town: "caught stealing a horse (5)"; the bell rung six times by day, no monsters
+    near: "caught ringing the alarm for nothing" (with zombies about the bell, rightly nothing). In Pinebury: its leader
+    killed on the plaza: "Pinebury mourns GustTrinket ... wanted there for 30 days", the bell rung 6 s later (it took two
+    minutes before the ringer fix); two more killed: the massacre, word to the town about. Of the 18 who heard the alarm,
+    4 answered, 2 fought and 2 hunted the killer, 8 (the timid: cowardly or pacifist, about half a town) went in; nobody
+    gave in; one ran to the mine and shouted down it (6 heard). In the user's massacre (0.23.33) most went in, about 2
+    answered, 1 hunted; 21 gave in over that day's play.
+
 - **0.23.34: Drifters block a player's hits with their shields; giving in very rare, and no more stripping** (the user,
   2026-11-09: "can drifters block my attacks using their shields?", "it seems to easy to kill drifters (with a good weapon)
   and i would like for them to block some of my attacks, not everytime"; "every citizen (even ones with better gear than i

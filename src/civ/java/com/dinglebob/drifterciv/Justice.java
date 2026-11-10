@@ -51,6 +51,14 @@ import net.minecraft.world.entity.player.Player;
  *       out; a Drifter who massacres is the enemy of every town about.</li>
  *   <li>A fine refused: exile, and wanted for it.</li>
  * </ul>
+ * More (the user, 0.23.35: "i think we should enhance the crime system a bit more"):
+ * <ul>
+ *   <li>Its leader murdered: the whole town turns on them, wanted there a month, the alarm, a price on their head, and wanted
+ *       in every town of its nation for a month too (the towns about, if it has none).</li>
+ *   <li>A guard killed: two more picked at once.</li>
+ *   <li>A horse of its people's ridden off (5 emeralds), its animals killed (in its pen, or its people's own: 2; any town now,
+ *       not only one with the farms law), its alarm bell rung for nothing (1): seen by any of its people.</li>
+ * </ul>
  */
 final class Justice {
 	private Justice() {
@@ -58,6 +66,27 @@ final class Justice {
 
 	private static final int FINE_THEFT = 3;
 	private static final int FINE_FARMS = 1;
+	private static final int FINE_HORSE = 5;
+	private static final int FINE_LIVESTOCK = 2;
+	private static final int FINE_PEACE = 1;
+
+	/** Each lesser crime (by its kind): what it's called, and its fine (emeralds, one more each time after). */
+	private record Kind(String what, int fine) {
+	}
+
+	private static final Map<String, Kind> KINDS = Map.of("theft", new Kind("stealing", FINE_THEFT), "farms", new Kind("harming the town's farms", FINE_FARMS),
+		"horse", new Kind("stealing a horse", FINE_HORSE), "livestock", new Kind("killing the town's animals", FINE_LIVESTOCK), "peace",
+		new Kind("ringing the alarm for nothing", FINE_PEACE));
+	/** Its pen's animals are within this of its pen. */
+	private static final double PEN_REACH = 12.0;
+	/** Monsters this near its bell: a reason to ring it. */
+	private static final double ALARM_REASON = 32.0;
+	/** Its leader murdered: wanted there, and in its nation's towns, this long (days). */
+	private static final long LEADER_EXILE = 30;
+	/** The horses each player has been seen riding off with (not saved): each one theft once. */
+	private static final Map<UUID, java.util.Set<UUID>> horsesTaken = new HashMap<>();
+	/** A town's guards: this many. */
+	private static final int GUARDS = 2;
 	/** Offences before it's exile instead of a fine. */
 	private static final int REPEAT = 3;
 	/** Exile (days): for an unpaid fine or offending again, for a killing. */
@@ -113,7 +142,13 @@ final class Justice {
 						crime(serverPlayer.server, town, serverPlayer, "theft", drifter);
 					}
 				}
-				case KILLED_FARM_ANIMAL, TRAMPLED_CROPS -> {
+				case KILLED_FARM_ANIMAL -> {
+					// (Its animals: anywhere now, not only with the farms law. 0.23.35.)
+					if (!citizen(serverPlayer, town)) {
+						crime(serverPlayer.server, town, serverPlayer, "livestock", drifter);
+					}
+				}
+				case TRAMPLED_CROPS -> {
 					if (town.laws.contains(Politics.FARMS) && !citizen(serverPlayer, town)) {
 						crime(serverPlayer.server, town, serverPlayer, "farms", drifter);
 					}
@@ -126,6 +161,54 @@ final class Justice {
 		DrifterEvents.SEEN_TAKING.register((player, chest, taken, saw) -> {
 			if (player instanceof ServerPlayer serverPlayer) {
 				seenTaking(serverPlayer, chest, taken, saw);
+			}
+		});
+
+		// The town's animals killed by an outsider, seen (0.23.35, the user: "more crime things too like stealing a horse,
+		// killing farm animals"): those in its pen, and its people's own (a horse, a dog), in any town.
+		ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {
+			if (!(victim instanceof net.minecraft.world.entity.animal.Animal animal) || !(source.getEntity() instanceof ServerPlayer player)
+				|| !(victim.level() instanceof ServerLevel level)) {
+				return;
+			}
+
+			Town town = townsAnimal(level, animal);
+			if (town == null || citizen(player, town)) {
+				return;
+			}
+
+			DrifterEntity witness = witness(level.getServer(), town, player);
+			if (witness != null) {
+				crime(level.getServer(), town, player, "livestock", witness);
+			}
+		});
+
+		// A player ringing a town's alarm bell for nothing (0.23.35, the user: "spam ringing the bell for no reason"):
+		// disturbing the peace, if one of its people saw them at it. Not while its own alarm is on (raiders, a killing), nor
+		// with monsters about the bell.
+		DrifterEvents.ALARM_RUNG.register((player, bell) -> {
+			if (!(player instanceof ServerPlayer serverPlayer)) {
+				return;
+			}
+
+			ServerLevel level = serverPlayer.serverLevel();
+			for (Town town : Towns.all()) {
+				BlockPos ours = town.dimension.equals(level.dimension().location().toString()) ? TownBells.bell(town, level) : null;
+				if (ours == null || !ours.closerThan(bell, 3.0)) {
+					continue;
+				}
+
+				if (TownBells.alarmed(town) || !level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class, new net.minecraft.world.phys.AABB(bell)
+					.inflate(ALARM_REASON), mob -> mob instanceof net.minecraft.world.entity.monster.Enemy && mob.isAlive()).isEmpty()) {
+					return;
+				}
+
+				DrifterEntity witness = witness(serverPlayer.server, town, serverPlayer);
+				if (witness != null) {
+					crime(serverPlayer.server, town, serverPlayer, "peace", witness);
+				}
+
+				return;
 			}
 		});
 
@@ -150,7 +233,17 @@ final class Justice {
 
 			// (Gone for good, it's out of its town's group before this: the town it died one of. Found in the user's world,
 			// 0.23.32: three of a city's people killed in front of it, nothing done.)
-			Town town = townOrWasOf(dead);
+			// (Killed in another town than its own, or with none: a visitor, and murder there too, if its people saw it. Found in
+			// testing, 0.23.35: a passer-by killed on a plaza was nothing to the town, its people turned on the killer for it, and
+			// then killing them was "self-defence".)
+			Town own = townOrWasOf(dead);
+			Town town = whereKilled(dead, own);
+			boolean visitor = town != null && town != own;
+			// One of its guards dead: two picked now, not at the next check (0.23.35: "since i killed the guards nobody else
+			// really fights").
+			if (town != null && guards.getOrDefault(town.id, List.of()).contains(dead.getUUID())) {
+				pickGuards(level.getServer(), town, dead.getUUID());
+			}
 
 			DrifterEntity drifterKiller = source.getEntity() instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity());
 			Player playerKiller = drifterKiller == null && source.getEntity() instanceof ServerPlayer p ? p : null;
@@ -184,8 +277,34 @@ final class Justice {
 				return;
 			}
 
-			murder(level.getServer(), town, dead, playerKiller instanceof ServerPlayer p ? p : null, drifterKiller, witnesses);
+			// (A visitor its people had against them, or one at war with them, isn't murdered: a raider, an enemy.)
+			if (visitor && (DrifterApi.trustInDrifter(witnesses.get(0), dead.getUUID()) <= -60.0
+				|| com.dinglebob.drifter.world.DrifterWars.atWar(witnesses.get(0), dead))) {
+				return;
+			}
+
+			murder(level.getServer(), town, dead, playerKiller instanceof ServerPlayer p ? p : null, drifterKiller, witnesses, visitor);
 		});
+	}
+
+	/**
+	 * The town a killing was in: its own, if it died about it; else the one it died in (a visitor there), if it isn't a
+	 * Bandit; else its own (or none).
+	 */
+	@Nullable
+	private static Town whereKilled(DrifterEntity dead, @Nullable Town own) {
+		if (own != null && dead.blockPosition().closerThan(own.center, IN_TOWN) || DrifterApi.bandit(dead)) {
+			return own;
+		}
+
+		String dimension = dead.level().dimension().location().toString();
+		for (Town town : Towns.all()) {
+			if (town != own && town.dimension.equals(dimension) && dead.blockPosition().closerThan(town.center, IN_TOWN)) {
+				return town;
+			}
+		}
+
+		return own;
 	}
 
 	/** Its town, or (gone for good, out of its group already) the town it died one of. */
@@ -291,18 +410,90 @@ final class Justice {
 			return true;
 		});
 
-		// Its guards: its two boldest with a weapon (not its leader).
+		// A horse of its people's ridden off by a player, seen: horse theft (0.23.35), once each horse.
+		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+			if (!(player.getVehicle() instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) || horse.getOwnerUUID() == null
+				|| !group.members.contains(horse.getOwnerUUID()) || !player.level().dimension().location().toString().equals(town.dimension)
+				|| !player.blockPosition().closerThan(town.center, IN_TOWN * 2.0)
+				|| horsesTaken.getOrDefault(player.getUUID(), java.util.Set.of()).contains(horse.getUUID())) {
+				continue;
+			}
+
+			DrifterEntity witness = witness(server, town, player);
+			if (witness == null) {
+				continue;
+			}
+
+			horsesTaken.computeIfAbsent(player.getUUID(), id -> new java.util.HashSet<>()).add(horse.getUUID());
+			crime(server, town, player, "horse", witness);
+			DrifterEntity owner = TownFounding.loaded(server, horse.getOwnerUUID());
+			if (owner != null) {
+				DrifterApi.addTrustInPlayer(owner, player.getUUID(), player.getGameProfile().getName(), -30.0);
+				DrifterApi.think(owner, player.getGameProfile().getName() + " rode off on its horse");
+			}
+
+			changed = true;
+		}
+
+		pickGuards(server, town, null);
+		return changed;
+	}
+
+	/** Its guards: its boldest two with a weapon (not its leader, nor this one: just died). */
+	private static void pickGuards(MinecraftServer server, Town town, @Nullable UUID not) {
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group == null) {
+			return;
+		}
+
 		List<DrifterEntity> fit = new ArrayList<>();
 		for (UUID id : group.members) {
 			DrifterEntity member = TownFounding.loaded(server, id);
-			if (member != null && !id.equals(town.leader) && member.getInventory().count(stack -> stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) > 0) {
+			if (member != null && member.isAlive() && !id.equals(not) && !id.equals(town.leader) && armed(member)) {
 				fit.add(member);
 			}
 		}
 
 		fit.sort(Comparator.comparingDouble((DrifterEntity member) -> DrifterApi.trait(member, "bravery") + DrifterApi.trait(member, "aggression")).reversed());
-		guards.put(town.id, fit.stream().limit(2).map(DrifterEntity::getUUID).toList());
-		return changed;
+		guards.put(town.id, fit.stream().limit(GUARDS).map(DrifterEntity::getUUID).toList());
+	}
+
+	/** One of its people who sees this player now (near enough to), or null. */
+	@Nullable
+	private static DrifterEntity witness(MinecraftServer server, Town town, ServerPlayer player) {
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group == null) {
+			return null;
+		}
+
+		for (UUID id : group.members) {
+			DrifterEntity member = TownFounding.loaded(server, id);
+			if (member != null && member.isAlive() && member.level() == player.level() && member.distanceTo(player) <= WITNESS
+				&& member.getSocial().watcher().sees(player)) {
+				return member;
+			}
+		}
+
+		return null;
+	}
+
+	/** The town this animal is one of (in its pen, or one of its people's own), or null. */
+	@Nullable
+	private static Town townsAnimal(ServerLevel level, net.minecraft.world.entity.animal.Animal animal) {
+		String dimension = level.dimension().location().toString();
+		UUID owner = animal instanceof net.minecraft.world.entity.OwnableEntity ownable ? ownable.getOwnerUUID() : null;
+		for (Town town : Towns.all()) {
+			if (!town.dimension.equals(dimension) || !animal.blockPosition().closerThan(town.center, IN_TOWN * 2.0)) {
+				continue;
+			}
+
+			DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+			if (town.pen != null && town.pen.closerThan(animal.blockPosition(), PEN_REACH) || owner != null && group != null && group.members.contains(owner)) {
+				return town;
+			}
+		}
+
+		return null;
 	}
 
 	/** A law broken by a player, seen by one of its people. */
@@ -316,12 +507,13 @@ final class Justice {
 		criminal.offences++;
 		criminal.lastAt = now;
 		criminal.crime = kind;
-		String what = kind.equals("theft") ? "stealing" : "harming the town's farms";
+		Kind of = KINDS.getOrDefault(kind, KINDS.get("farms"));
+		String what = of.what();
 		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime." + kind, "player", criminal.name));
 		if (criminal.offences >= REPEAT) {
 			exile(server, town, criminal, EXILE, what + " again (" + criminal.offences + " times)");
 		} else {
-			criminal.fine += (kind.equals("theft") ? FINE_THEFT : FINE_FARMS) + (criminal.offences - 1);
+			criminal.fine += of.fine() + (criminal.offences - 1);
 			Chronicle.add(server, "law", criminal.name + " was caught " + what + " in " + town.name + " (a fine of " + criminal.fine + " emeralds)");
 		}
 
@@ -428,12 +620,17 @@ final class Justice {
 
 	/** One of its people killed, and seen. */
 	private static void murder(MinecraftServer server, Town town, DrifterEntity dead, @Nullable ServerPlayer player, @Nullable DrifterEntity drifter,
-		List<DrifterEntity> witnesses) {
+		List<DrifterEntity> witnesses, boolean visitor) {
 		DrifterEntity witness = witnesses.get(0);
 		long day = Chronicle.day(server);
 		String victim = dead.getName().getString();
 		DrifterGroups.Group townGroup = town.group == null ? null : DrifterApi.groupById(town.group);
-		if (townGroup != null) {
+		if (visitor) {
+			Chronicle.add(server, "law", victim + " was murdered in " + town.name + ", a visitor there, by "
+				+ (player != null ? player.getGameProfile().getName() : drifter != null ? drifter.getName().getString() : "someone"));
+		}
+
+		if (townGroup != null && !visitor) {
 			// (The leader couldn't keep them safe: step 5, part 3.)
 			Unrest.killed(town, townGroup);
 		}
@@ -448,7 +645,10 @@ final class Justice {
 			Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
 			boolean wantedAlready = criminal.wantedUntil > day;
 			criminal.offences++;
-			criminal.crime = "murder";
+			// (Not over something graver: kill on sight stays.)
+			if (!grave(criminal.crime)) {
+				criminal.crime = "murder";
+			}
 			criminal.kills++;
 			criminal.recentKills = day - criminal.lastKillDay <= MASSACRE_DAYS ? criminal.recentKills + 1 : 1;
 			criminal.lastKillDay = day;
@@ -486,6 +686,10 @@ final class Justice {
 				if (!wantedAlready && DrifterApi.postBounty(player, "the people of " + town.name, "the killing of " + victim)) {
 					Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + name + "'s head for killing " + victim);
 				}
+			}
+
+			if (dead.getUUID().equals(town.leader)) {
+				leaderMurdered(server, town, player, criminal, victim);
 			}
 		} else if (drifter != null) {
 			String name = drifter.getName().getString();
@@ -627,7 +831,9 @@ final class Justice {
 			}
 
 			Town.Criminal there = other.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
-			there.crime = "massacre";
+			if (!"murder of the leader".equals(there.crime)) {
+				there.crime = "massacre";
+			}
 			there.exiledUntil = Math.max(there.exiledUntil, day + HEARD_MASSACRE);
 			there.wantedUntil = Math.max(there.wantedUntil, day + HEARD_MASSACRE);
 			other.heard.merge(player.getUUID(), -60.0, (a, b) -> Math.max(-100.0, a + b));
@@ -638,6 +844,63 @@ final class Justice {
 			Chronicle.add(server, "law", "Word of the massacre at " + town.name + " reached " + heard + (heard == 1 ? " town" : " towns") + " about: " + name
 				+ " is wanted there too");
 		}
+	}
+
+	/**
+	 * Its leader murdered by a player (0.23.35, the user: "there is also not enough impact killing the leader"): the whole
+	 * town turns on them for good, wanted and exiled there a month, the alarm rung for it, a price on their head; and word
+	 * goes through its nation (or the towns about, if it has none): wanted in every one of its towns for a month too.
+	 */
+	private static void leaderMurdered(MinecraftServer server, Town town, ServerPlayer player, Town.Criminal criminal, String victim) {
+		long day = Chronicle.day(server);
+		String name = player.getGameProfile().getName();
+		if (!"massacre".equals(criminal.crime)) {
+			criminal.crime = "murder of the leader";
+		}
+
+		criminal.fine = 0;
+		criminal.exiledUntil = Math.max(criminal.exiledUntil, day + LEADER_EXILE);
+		criminal.wantedUntil = Math.max(criminal.wantedUntil, day + LEADER_EXILE);
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group != null) {
+			for (UUID id : group.members) {
+				DrifterEntity member = TownFounding.loaded(server, id);
+				if (member != null) {
+					DrifterApi.addTrustInPlayer(member, player.getUUID(), name, -100.0);
+					DrifterApi.think(member, name + " murdered " + victim + ", our leader");
+				}
+			}
+		}
+
+		town.heard.put(player.getUUID(), -100.0);
+		bell(server, town, player, "the murder of " + victim, List.of("THEY KILLED " + victim.toUpperCase(java.util.Locale.ROOT) + "! get " + name + "!",
+			name + " murdered " + victim + "! to arms!", victim + "'s dead! don't let " + name + " get away!"), MASSACRE_ALARM);
+		if (DrifterApi.postBounty(player, "the people of " + town.name, "the murder of " + victim + ", leader of " + town.name)) {
+			Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + name + "'s head for the murder of " + victim);
+		}
+
+		// (A nation of its own alone: the towns about, as without one. Found in testing.)
+		Nations.Nation found = Nations.of(town);
+		Nations.Nation nation = found != null && found.members.size() > 1 ? found : null;
+		int told = 0;
+		for (Town other : Towns.all()) {
+			boolean hears = nation != null ? nation.members.containsKey(other.id)
+				: other.dimension.equals(town.dimension) && other.center.closerThan(town.center, WORD_SPREADS);
+			if (other == town || !hears) {
+				continue;
+			}
+
+			Town.Criminal there = other.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
+			there.crime = "murder of the leader";
+			long lasts = nation != null ? LEADER_EXILE : HEARD_MASSACRE;
+			there.exiledUntil = Math.max(there.exiledUntil, day + lasts);
+			there.wantedUntil = Math.max(there.wantedUntil, day + lasts);
+			other.heard.merge(player.getUUID(), nation != null ? -80.0 : -60.0, (a, b) -> Math.max(-100.0, a + b));
+			told++;
+		}
+
+		Chronicle.add(server, "law", town.name + " mourns " + victim + ". " + name + " is wanted there for " + LEADER_EXILE + " days"
+			+ (told == 0 ? "" : nation != null ? ", and in all " + told + " other towns of " + nation.name : ", and in " + told + (told == 1 ? " town" : " towns") + " about"));
 	}
 
 	/** A Drifter's massacre: the enemy on sight of every town about (their people's trust in it gone). */
@@ -1050,6 +1313,17 @@ final class Justice {
 		}
 
 		Towns.save(server);
+	}
+
+	/** Wanted for something past forgiving (its leader's murder, a massacre; heard of from another town too): kill on sight. */
+	static boolean killOnSight(Town town, Player player) {
+		Town.Criminal criminal = town.crimes.get(player.getUUID());
+		return criminal != null && criminal.wantedUntil > 0 && grave(criminal.crime);
+	}
+
+	/** A crime past forgiving. */
+	private static boolean grave(@Nullable String crime) {
+		return "massacre".equals(crime) || "murder of the leader".equals(crime);
 	}
 
 	/** "wanted" while this player is (its guards and bold people go for them), "exiled" while they're only that. */

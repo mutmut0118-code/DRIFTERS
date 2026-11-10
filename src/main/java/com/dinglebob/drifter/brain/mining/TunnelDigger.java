@@ -271,7 +271,9 @@ public final class TunnelDigger {
 		}
 
 		BlockPos front = feet.relative(t.direction);
-		BlockPos[] cells = leg.stairs() ? new BlockPos[]{front.above(), front, front.below()} : new BlockPos[]{front.above(), front};
+		// (A staircase step a block taller than it needs: walked down and jumped up without a bump on the head. The user,
+		// 0.23.35: "whenever i go down the stairs i always hit my head, and i cant jump".)
+		BlockPos[] cells = leg.stairs() ? new BlockPos[]{front.above(2), front.above(), front, front.below()} : new BlockPos[]{front.above(), front};
 		BlockPos nextFeet = leg.stairs() ? front.below() : front;
 		for (BlockPos cell : cells) {
 			String why = this.bad(level, cell);
@@ -388,6 +390,11 @@ public final class TunnelDigger {
 		}
 
 		if (open) {
+			// Someone's tunnel (lit, or its town's mine): not this way, and no cave (0.23.35).
+			if (!this.tunnel.opened.contains(cell) && !level.canSeeSky(cell) && this.someonesTunnel(level, cell)) {
+				return "someone's tunnel";
+			}
+
 			// Air it didn't make, underground: a cave.
 			return !this.tunnel.opened.contains(cell) && !level.canSeeSky(cell) ? "a cave" : null;
 		}
@@ -415,6 +422,15 @@ public final class TunnelDigger {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Air it broke into that's someone's tunnel, as a player can tell through the hole: lit by a torch (a dark cave isn't; lava
+	 * lights one, but that's a way to turn from too), or in its town's mine (it knows its own town's).
+	 */
+	private boolean someonesTunnel(Level level, BlockPos air) {
+		com.dinglebob.drifter.brain.Home home = this.drifter.getDrifterBrain().home();
+		return level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, air) > 0 || home != null && home.inTownMine(air);
 	}
 
 	/** A staircase step that way has nothing bad in it, and it doesn't head into its hut. */
@@ -578,6 +594,13 @@ public final class TunnelDigger {
 						this.say("dug into someone's house: not this way");
 					}
 
+					continue;
+				}
+
+				// Into someone's tunnel (lit: a torch's light in it; or its town's mine): not a cave, nothing to plug (0.23.35, the
+				// user: "people keep ... blocking the mines": its people took the town mine's strips and corridor, and each
+				// other's tunnels, for caves and walled them off). The tunnel turns off it (bad()).
+				if (state.isAir() && !outdoors && level.getFluidState(neighbor).isEmpty() && this.someonesTunnel(level, neighbor)) {
 					continue;
 				}
 

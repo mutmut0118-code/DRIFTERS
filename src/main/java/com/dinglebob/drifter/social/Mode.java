@@ -62,8 +62,12 @@ public enum Mode {
 	public static final int IN_TOWN_MARGIN = 2;
 	/** Someone wanted in its town is gone after this far past the town's edge. */
 	public static final int WANTED_REACH = 48;
-	/** Under this Bravery a townsperson (not a guard) keeps clear of someone wanted rather than going for them. */
-	public static final double TIMID = 0.35;
+	/**
+	 * Under this Bravery (its own, not the moment's) a townsperson (not a guard) is a coward: it keeps clear of someone wanted
+	 * and goes in at an alarm rather than going for them. (Till 0.23.35 0.35, and every pacifist too: about half a town hid
+	 * in a massacre; the user: "more of them should be fighting". The coward of section 13, as in Threats.)
+	 */
+	public static final double TIMID = com.dinglebob.drifter.brain.Threats.COWARD_BRAVERY;
 
 	public String id() {
 		return this.name().toLowerCase(Locale.ROOT);
@@ -101,6 +105,12 @@ public enum Mode {
 		String standing = town == null ? null : town.standing(drifter, player);
 		double fromTown = town == null ? Double.MAX_VALUE : player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center()));
 		boolean mayFight = drifter.level().getDifficulty() != Difficulty.PEACEFUL && com.dinglebob.drifter.DrifterConfig.playerAggression() > 0;
+		// Past forgiving (its leader murdered, a massacre): wherever it sees them, unless it's a coward. 0.23.35.
+		if (town != null && town.killOnSight(drifter, player) && mayFight) {
+			r.wronged = true;
+			return timid(drifter) ? AVOIDING : VENGEFUL;
+		}
+
 		// Wanted there (a killing seen, a massacre, an arrest resisted; the user, 2026-11-07: "enforce and up crime awareness
 		// and behavior"): about the town, its guards and its bold go for them on sight; the rest keep well clear.
 		if ("wanted".equals(standing) && fromTown <= town.radius() + WANTED_REACH && mayFight) {
@@ -155,11 +165,10 @@ public enum Mode {
 		return wanted;
 	}
 
-	/** Not one to go after someone wanted: no guard, and a pacifist or not brave enough. */
+	/** Not one to go after someone wanted: no guard, and a coward ({@link #TIMID}). */
 	public static boolean timid(DrifterEntity drifter) {
 		var town = drifter.getTownWork();
-		return (town == null || !town.guard(drifter)) && (drifter.getSocial().disposition() == Disposition.PACIFIST
-			|| drifter.getPersonality().get(Trait.BRAVERY) < TIMID);
+		return (town == null || !town.guard(drifter)) && drifter.getPersonality().base(Trait.BRAVERY) < TIMID;
 	}
 
 	/**
@@ -168,8 +177,8 @@ public enum Mode {
 	 */
 	public static boolean pursuesWanted(DrifterEntity drifter, Player player) {
 		var town = drifter.getTownWork();
-		return town != null && "wanted".equals(town.standing(drifter, player)) && !timid(drifter)
-			&& player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center())) <= town.radius() + WANTED_REACH
+		return town != null && !timid(drifter) && (town.killOnSight(drifter, player) || "wanted".equals(town.standing(drifter, player))
+			&& player.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(town.center())) <= town.radius() + WANTED_REACH)
 			&& drifter.level().getDifficulty() != Difficulty.PEACEFUL && com.dinglebob.drifter.DrifterConfig.playerAggression() > 0;
 	}
 

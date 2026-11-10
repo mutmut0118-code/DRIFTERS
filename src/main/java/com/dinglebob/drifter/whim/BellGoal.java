@@ -95,7 +95,12 @@ public final class BellGoal extends Goals.Goal {
 				return null;
 			}
 
-			BlockPos stand = KnownBlocks.standingSpotFor(drifter, pos, Set.of());
+			// (In front of it or behind it, where a stroke rings it: found in testing, 0.23.35, it stood beside one, every stroke
+			// missed, and nobody heard the alarm for a killing.)
+			BlockPos stand = ringingSpot(drifter, pos);
+			if (stand == null) {
+				stand = KnownBlocks.standingSpotFor(drifter, pos, Set.of());
+			}
 			return stand == null ? new NavigateTask(drifter, Vec3.atBottomCenterOf(pos), 2.0, "go to the bell")
 				: new NavigateTask(drifter, Vec3.atBottomCenterOf(stand), 0.6, "go to the bell");
 		});
@@ -134,6 +139,46 @@ public final class BellGoal extends Goals.Goal {
 			return null;
 		});
 		return steps;
+	}
+
+	/**
+	 * A spot to stand and ring it from: a block or two off it on a side a stroke rings it on (BellBlock#isProperHit: along
+	 * its facing on the floor, across it on a wall), with ground under it and room to stand; the nearest; or null.
+	 */
+	@org.jetbrains.annotations.Nullable
+	private static BlockPos ringingSpot(DrifterEntity drifter, BlockPos bell) {
+		var level = drifter.level();
+		var state = level.getBlockState(bell);
+		if (!(state.getBlock() instanceof net.minecraft.world.level.block.BellBlock)) {
+			return null;
+		}
+
+		var attach = state.getValue(net.minecraft.world.level.block.BellBlock.ATTACHMENT);
+		Direction facing = state.getValue(net.minecraft.world.level.block.BellBlock.FACING);
+		BlockPos best = null;
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			boolean rings = switch (attach) {
+				case FLOOR -> facing.getAxis() == side.getAxis();
+				case SINGLE_WALL, DOUBLE_WALL -> facing.getAxis() != side.getAxis();
+				case CEILING -> true;
+			};
+			if (!rings) {
+				continue;
+			}
+
+			for (int out = 1; out <= 2; out++) {
+				for (int dy = -1; dy <= 0; dy++) {
+					BlockPos at = bell.relative(side, out).above(dy);
+					if (level.getBlockState(at).getCollisionShape(level, at).isEmpty() && level.getBlockState(at.above()).getCollisionShape(level, at.above()).isEmpty()
+						&& !level.getBlockState(at.below()).getCollisionShape(level, at.below()).isEmpty()
+						&& (best == null || at.distSqr(drifter.blockPosition()) < best.distSqr(drifter.blockPosition()))) {
+						best = at;
+					}
+				}
+			}
+		}
+
+		return best;
 	}
 
 	private static void shout(DrifterEntity drifter, TownWork.Bell bell) {

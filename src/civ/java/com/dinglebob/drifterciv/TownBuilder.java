@@ -3301,6 +3301,8 @@ public final class TownBuilder {
 
 			this.mineBottom = hub;
 			this.mineWay = way;
+			// (Its stairs its people's build: not dug for stone. 0.23.35.)
+			TownMine.protect(this.level, at, hub, way);
 			DrifterCivilizations.LOGGER.info("[town] {}: its mine from {} down to Y {} ({} blocks dug)", this.name, at.toShortString(), hub.getY(),
 				this.mineCells.size());
 		}
@@ -3312,11 +3314,11 @@ public final class TownBuilder {
 				Math.max(mouth.getZ(), far.getZ()) + 2);
 		}
 
-		/** One step of the stairs: three across, four high, the step under it; a torch on its wall now and then. */
+		/** One step of the stairs: three across, five high (room to jump: 0.23.35), the step under it; a torch now and then. */
 		private void mineSlice(BlockPos column, int feet, Direction side, @Nullable BlockState step, boolean torch) {
 			for (int b = -1; b <= 1; b++) {
 				BlockPos cell = new BlockPos(column.getX(), feet, column.getZ()).relative(side, b);
-				this.mineCell(cell, 4);
+				this.mineCell(cell, TownMine.STAIRS_HIGH);
 				if (step != null) {
 					set(this.level, cell, step);
 				}
