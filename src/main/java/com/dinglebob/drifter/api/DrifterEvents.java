@@ -66,6 +66,16 @@ public final class DrifterEvents {
 	 * saddened it). {@code from}: the Drifter that told it (null: put there by a mod). Another mod's news ({@code Kind.CUSTOM})
 	 * is that mod's to act on here.
 	 */
+	/**
+	 * A player answered a question a Drifter asked them in chat (yes or no, however they said it), before it says what it
+	 * says to that or does what a yes means (API 4, 0.23.37: an addon hears an opinion agreed with, a favor taken on).
+	 */
+	public static final Event<PlayerAnswered> PLAYER_ANSWERED = EventFactory.createArrayBacked(PlayerAnswered.class, listeners -> (drifter, player, topic, does, yes) -> {
+		for (PlayerAnswered listener : listeners) {
+			listener.onAnswered(drifter, player, topic, does, yes);
+		}
+	});
+
 	public static final Event<HeardNews> HEARD_NEWS = EventFactory.createArrayBacked(HeardNews.class, listeners -> (drifter, news, from) -> {
 		for (HeardNews listener : listeners) {
 			listener.onHeardNews(drifter, news, from);
@@ -179,6 +189,12 @@ public final class DrifterEvents {
 	@FunctionalInterface
 	public interface Feud {
 		void onFeud(UUID a, UUID b, String what);
+	}
+
+	/** A player answered a Drifter's question (a topic's, or one it asked itself): {@code does} is what a yes means ("team", "opinion"...). */
+	@FunctionalInterface
+	public interface PlayerAnswered {
+		void onAnswered(DrifterEntity drifter, net.minecraft.server.level.ServerPlayer player, String topic, String does, boolean yes);
 	}
 
 	@FunctionalInterface

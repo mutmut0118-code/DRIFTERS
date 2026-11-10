@@ -258,7 +258,7 @@ public final class Telling {
 		String foodName = new ItemStack(food).getHoverName().getString().toLowerCase(Locale.ROOT);
 		Object[] vars = {"player", name, "food", foodName};
 		PlayerTalk.reply(drifter, "told.news.hungry_offer", null, vars);
-		PlayerTalk.ask(drifter, player, new Topics.Question(Lines.voices("told.hungry_yes"), "give_food", Lines.voices("told.hungry_no")), vars, now);
+		PlayerTalk.ask(drifter, player, new Topics.Question(Lines.voices("told.hungry_yes"), "give_food", Lines.voices("told.hungry_no")), vars, now, "told.hungry");
 	}
 
 	/**

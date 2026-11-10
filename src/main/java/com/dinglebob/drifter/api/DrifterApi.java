@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 3;
+	public static final int API_VERSION = 4;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();

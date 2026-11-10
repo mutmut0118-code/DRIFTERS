@@ -90,11 +90,14 @@ public final class PlayerTalk {
 	private record Focus(UUID drifter, long until, long wantsItemUntil) {
 	}
 
-	private record Reply(DrifterEntity drifter, String text, long at, @Nullable Runnable then) {
+	private record Reply(DrifterEntity drifter, String text, long at, @Nullable Runnable then, @Nullable ServerPlayer whisperTo) {
+		Reply(DrifterEntity drifter, String text, long at, @Nullable Runnable then) {
+			this(drifter, text, at, then, null);
+		}
 	}
 
 	/** A question a Drifter asked a player (phase 3: "wanna team up?"), waiting for their yes or no. */
-	private record Asked(DrifterEntity drifter, Topics.Question question, Object[] vars, long until) {
+	private record Asked(DrifterEntity drifter, Topics.Question question, Object[] vars, long until, String topic) {
 	}
 
 	/** How long a question waits for an answer. */
@@ -165,6 +168,13 @@ public final class PlayerTalk {
 			return false;
 		}
 
+		// (An addon's turn first: a talk it's holding with them, a question it answers itself.)
+		if (com.dinglebob.drifter.api.TalkApi.chatHandled(player, drifter, text, intent)) {
+			focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+			drifter.getSocial().watcher().spokenTo(player);
+			return true;
+		}
+
 		// Something they tell it ("call me X", "my base is at ...", "going mining"): it remembers, and answers.
 		if (Telling.told(drifter, player, text, intent, now)) {
 			focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
@@ -197,8 +207,8 @@ public final class PlayerTalk {
 	}
 
 	/** It asked them this (phase 3): their next yes or no is the answer. */
-	static void ask(DrifterEntity drifter, ServerPlayer player, Topics.Question question, Object[] vars, long now) {
-		asked.put(player.getUUID(), new Asked(drifter, question, vars, now + ANSWER_WITHIN));
+	static void ask(DrifterEntity drifter, ServerPlayer player, Topics.Question question, Object[] vars, long now, String topic) {
+		asked.put(player.getUUID(), new Asked(drifter, question, vars, now + ANSWER_WITHIN, topic));
 		focusOn(player, drifter, now);
 	}
 
@@ -212,6 +222,8 @@ public final class PlayerTalk {
 	private static void answered(Asked question, ServerPlayer player, boolean yes, long now) {
 		DrifterEntity drifter = question.drifter();
 		Topics.Question q = question.question();
+		// (An addon hears the answer first: an opinion agreed with, a favor taken on.)
+		com.dinglebob.drifter.api.DrifterEvents.PLAYER_ANSWERED.invoker().onAnswered(drifter, player, question.topic(), q.does(), yes);
 		String line = Lines.pickFrom(drifter, yes ? q.yes() : q.no(), question.vars());
 		Runnable then = !yes ? null : switch (q.does()) {
 			case "team" -> () -> drifter.getSocial().watcher().invite(player, INVITE_STANDS, TEAM_FOLLOWS);
@@ -262,6 +274,12 @@ public final class PlayerTalk {
 		}
 
 		return null;
+	}
+
+	/** Food it can spare, or null (for addons: {@link com.dinglebob.drifter.api.TalkApi#spareFood}). */
+	@Nullable
+	public static Item spareFoodOf(DrifterEntity drifter) {
+		return spareFood(drifter);
 	}
 
 	/** A line of its own said at this time (the rounds, a bystander's bit). */
@@ -819,7 +837,20 @@ public final class PlayerTalk {
 		}
 
 		long at = now + 15 + Math.min(80, line.length() * 2) + drifter.getRandom().nextInt(15);
-		replies.add(new Reply(drifter, line, at, then));
+		// (Where something is, to a friend: whispered, if an addon says so.)
+		ServerPlayer whisperTo = null;
+		for (int i = 0; i + 1 < vars.length; i += 2) {
+			if ("coords".equals(vars[i])) {
+				ServerPlayer listener = listener(drifter);
+				if (listener != null && com.dinglebob.drifter.api.TalkApi.whispers(drifter, listener, key)) {
+					whisperTo = listener;
+				}
+
+				break;
+			}
+		}
+
+		replies.add(new Reply(drifter, line, at, then, whisperTo));
 		replyAt.put(drifter.getUUID(), at);
 	}
 
@@ -848,6 +879,15 @@ public final class PlayerTalk {
 				it.remove();
 				answeredAt.put(reply.drifter().getUUID(), reply.drifter().level().getGameTime());
 				// (To the player talking with it, if one is: its name in chat says so.)
+				if (reply.whisperTo() != null) {
+					ChatLines.whisper(reply.drifter(), reply.whisperTo(), reply.text());
+					if (reply.then() != null) {
+						reply.then().run();
+					}
+
+					continue;
+				}
+
 				ServerPlayer listener = listener(reply.drifter());
 				if (listener != null) {
 					ChatLines.to(reply.drifter(), listener);
