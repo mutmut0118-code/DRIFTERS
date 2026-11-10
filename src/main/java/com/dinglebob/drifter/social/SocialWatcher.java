@@ -381,10 +381,12 @@ public class SocialWatcher {
 			this.record(player, SocialEvent.NEARLY_KILLED, 0.0);
 		}
 
-		// Losing, and dying would cost a lot (stakes, part 2): it gives in, once.
-		if (healthAfter > 0.0F && healthAfter <= GIVES_IN && !w.gaveIn && this.givesIn(player)) {
+		// Losing, and dying would cost a lot (stakes, part 2): it gives in, once (thought of once a fight: 0.23.34).
+		if (healthAfter > 0.0F && healthAfter <= GIVES_IN && !w.gaveIn) {
 			w.gaveIn = true;
-			this.giveIn(player);
+			if (this.givesIn(player)) {
+				this.giveIn(player);
+			}
 		}
 	}
 
@@ -402,11 +404,18 @@ public class SocialWatcher {
 	private static final double GIVE_IN_WARINESS = 0.5;
 	/** What it hands over: its best few stacks. */
 	private static final int GIVES = 3;
+	/**
+	 * Even wary, losing and timid, how seldom it gives in. The user, 0.23.34: "every citizen (even ones with better gear
+	 * than i have) surrender and throw their weapons/armor out making them way easier to kill, that should be VERY rare"
+	 * (with death for good every Drifter is as wary as can be, so every timid one losing a fight gave in).
+	 */
+	private static final double GIVE_IN_CHANCE = 0.05;
 
 	/** Wary enough, not the kind to give in to anyone (a Bandit, a hunter), and not winning this. */
 	private boolean givesIn(Player player) {
 		if (com.dinglebob.drifter.brain.Stakes.wariness(this.drifter) < GIVE_IN_WARINESS || com.dinglebob.drifter.brain.Pursuit.relentless(this.drifter)
-			|| this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= 0.6) {
+			|| this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= 0.6
+			|| this.drifter.getRandom().nextDouble() >= GIVE_IN_CHANCE) {
 			return false;
 		}
 
@@ -415,14 +424,18 @@ public class SocialWatcher {
 	}
 
 	/**
-	 * Gives in to a player who's beating it: faces them, says so, and throws them its best few things (its armour and weapon
-	 * stay on it). Then it gets away as it would anyway. It's no gift: they're still the one who did this.
+	 * Gives in to a player who's beating it: faces them, says so, and throws them its best few things (its armour, shield and
+	 * weapon stay on it: out of its pockets only; till 0.23.34 it went through every slot, worn and held too, and those were
+	 * always its best, so it stripped). Then it gets away as it would anyway. It's no gift: they're still the one who did this.
 	 */
 	private void giveIn(Player player) {
 		var inventory = this.drifter.getInventory();
+		int weapon = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(this.drifter);
 		java.util.List<Integer> slots = new java.util.ArrayList<>();
-		for (int i = 0; i < inventory.getContainerSize(); i++) {
-			if (!inventory.getItem(i).isEmpty() && !com.dinglebob.drifter.brain.Storage.isJunk(this.drifter, inventory.getItem(i))) {
+		for (int i = 0; i < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; i++) {
+			if (i != inventory.getSelected() && i != weapon && !inventory.getItem(i).isEmpty()
+				&& !com.dinglebob.drifter.hands.Shields.isShield(inventory.getItem(i))
+				&& !com.dinglebob.drifter.brain.Storage.isJunk(this.drifter, inventory.getItem(i))) {
 				slots.add(i);
 			}
 		}

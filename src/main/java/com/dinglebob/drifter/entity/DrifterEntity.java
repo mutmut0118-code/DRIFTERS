@@ -1118,6 +1118,13 @@ public class DrifterEntity extends PathfinderMob {
 	/** Player#hurtCurrentlyUsedShield: a blocked hit wears the shield down (and can break it). */
 	@Override
 	public void hurtCurrentlyUsedShield(float damage) {
+		// The block's clang, from here for everyone near (0.23.34, the user: "add the shield block sound"). The game's own is an
+		// entity event the client plays only as the local player's sound, so a Drifter's blocks were silent.
+		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isShield(this.useItem)) {
+			this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.SHIELD_BLOCK, this.getSoundSource(), 1.0F,
+				0.8F + this.level().random.nextFloat() * 0.4F);
+		}
+
 		if (com.dinglebob.drifter.hands.Shields.isShield(this.useItem) && damage >= 3.0F) {
 			int wear = 1 + Mth.floor(damage);
 			net.minecraft.world.InteractionHand hand = this.getUsedItemHand();

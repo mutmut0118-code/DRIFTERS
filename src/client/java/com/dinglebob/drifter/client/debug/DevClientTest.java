@@ -109,6 +109,28 @@ public final class DevClientTest {
 				if (mc.player != null) {
 					mc.player.connection.sendChat(line.substring(5));
 				}
+			} else if (line.startsWith("attack ")) {
+				// The player turns to the named Drifter and swings at it as a player does (a click: the attack goes to the server
+				// with its reach check), if it's in reach; logged either way. For fight tests (0.23.34: shields against players).
+				String name = line.substring(7).trim();
+				if (mc.player != null && mc.level != null && mc.gameMode != null) {
+					var target = mc.level.getEntitiesOfClass(com.dinglebob.drifter.entity.DrifterEntity.class, mc.player.getBoundingBox().inflate(8.0),
+						d -> d.getName().getString().equals(name)).stream().findFirst().orElse(null);
+					if (target == null) {
+						Drifter.LOGGER.info("[Drifter test] attack: no {} near", name);
+					} else {
+						net.minecraft.world.phys.Vec3 to = target.getBoundingBox().getCenter().subtract(mc.player.getEyePosition());
+						mc.player.setYRot((float)(Math.atan2(-to.x, to.z) * (180.0 / Math.PI)));
+						mc.player.setXRot((float)(-Math.atan2(to.y, to.horizontalDistance()) * (180.0 / Math.PI)));
+						double reach = mc.player.getEyePosition().distanceTo(target.getBoundingBox().getCenter());
+						if (reach <= 3.0) {
+							mc.gameMode.attack(mc.player, target);
+							mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+						}
+
+						Drifter.LOGGER.info("[Drifter test] attack {}: {} at {}", name, reach <= 3.0 ? "swung" : "out of reach", String.format(java.util.Locale.ROOT, "%.1f", reach));
+					}
+				}
 			} else if (line.startsWith("shot ")) {
 				String name = line.substring(5).trim() + ".png";
 				Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), message -> Drifter.LOGGER.info("[Drifter test] {}", message.getString()));

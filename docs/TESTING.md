@@ -3190,3 +3190,11 @@ The same as your test: in creative, on the flat world, standing by the battle.
       murder.
 - [ ] **No rush to the store in a city.** A new city: its shopkeepers go to their own stalls by their doors, not all into
       the store; nobody stuck in it. The town's own stall (on the plaza) still sells the store's goods.
+
+## 0.23.34: shields against you, giving in (new)
+
+- [ ] **They block some of your hits.** Fight a Drifter with a sword and shield: it backs off after hitting, holds its
+      shield up while you're in reach with your swing ready, and drops it to hit back after you swing. About a third of
+      your hits blocked (more for skilled, careful ones), with the shield's clang. An axe knocks its shield down for 5 s.
+- [ ] **Giving in is rare.** Beating townspeople (death "gone for good" too): hardly any give in; one that does throws
+      things from its pockets, never its armour, shield or the weapon in its hand.
