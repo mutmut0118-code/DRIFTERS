@@ -4674,9 +4674,9 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
   should also make friends by conversating and thatll make an aquaintance ... think of like a Sims 4 system", and "a
   seperate option category for friendship ... with presets aswell").
   - **Stages** (`Friends`): stranger, acquaintance, friend, best friend, kept per Drifter and player with the world
-    (`drifter_civ_friends`, version 1), so `/drifterciv friends` knows friends far away. Acquaintance: familiarity 10 and
-    trust over 0; friend: trust 50, familiarity 30 and two opinions agreed (or it was saved by them); best friend: trust 70,
-    familiarity 60, six agreed, and at most two best friends (four for the very sociable). Time needed divided by the
+    (`drifter_civ_friends`, version 1), so `/drifterciv friends` knows friends far away. Acquaintance: familiarity 8 and
+    trust over 0; friend: trust 50, familiarity 20 and two opinions agreed (or it was saved by them); best friend: trust 70,
+    familiarity 40, six agreed, and at most two best friends (four for the very sociable). Time needed divided by the
     setting's pace and its nature's ease (0.5 to 1.5: sociable and forgiving quicker, vengeful slower); trust less so.
     Reaching friend and best friend is said in chat; a stage holds (its trust doesn't drift down under 30, 50 for a best
     friend: `TalkApi.setTrustFloor`) until it cools or ends. Ten days apart: "used to be friends" (trust floor 10); five
