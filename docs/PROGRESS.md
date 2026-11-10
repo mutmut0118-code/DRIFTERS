@@ -5361,3 +5361,101 @@ JFR.start`, during the battle) gave both answers.
   13 TPS), against about 55 with none near. The eyes (about 28 ms) are the most of it.
 - The client: the rest of a frame is the model itself (EMF's cubes, armor). Lowering the game's Entity Distance or the
   pack's detail helps; a cheaper look for far-off soldiers would be a design choice for the user.
+
+## Compatibility project 1: weapons, armor, trinkets (0.23.36-side.1)
+
+The user (2026-11-09): Drifters should use any weapon, armor and trinket mod seamlessly, the way a player would: pick
+them up, judge them, want them, make them, use their powers sensibly. Spec:
+`docs/superpowers/specs/2026-11-09-weapons-armor-compat-design.md`; plan: `docs/superpowers/plans/2026-11-09-weapons-armor-compat.md`.
+Checked with the mods in DRIFTER TEST: Simply Swords, Simply Bows (the modded-bow reference, since Too Many Bows is turned
+off there), Immersive Armors, Trinkets, Artifacts and Better Combat. Too Many Bows was also checked in the dev game. Branch
+`claude/drifter-chat-expansion-574ebe`, with the main line 0.23.36 merged in.
+
+### Done (smoke-tested on the headless dev server; not played yet)
+
+1. **Value** (`gear/GearValue`, `GearKinds`, `GearData`, `drifter_gear/kinds.json`). Any modded weapon, armor piece or
+   trinket gets a value from the item itself: its attack numbers, armor and toughness, launcher type, rarity and what its
+   recipe costs. Vanilla items keep exactly the points they had before. Unknown weapons are sorted into kinds (sword,
+   axe, spear, staff, thrown...) by their Better Combat category, their class and the words in their name. Staffs and
+   thrown things are never carried in place of a real weapon.
+2. **Knowledge** (`GearLore`). An item is known only once it has been seen (on the ground, in a chest, a trade or a shop)
+   or "unlocked" (it has held the recipe's dearest ingredient, as the recipe book does). Veterans (knowledge 0.7 or more)
+   know every installed mod's craftable gear from the start; newbies know only vanilla and the weapon families. Saved
+   with the Drifter (old saves seed it from what they carry). The "Know every recipe" setting (Mod Menu, or
+   `/drifter config knoweveryrecipe true`, off by default) makes everything known, like having Just Enough Items. It
+   never shows where anything is.
+3. **Taste** (`GearTaste`, `drifter_gear/styles.json`). Each Drifter has a style: practical (the best numbers), flashy
+   (rare, shiny things), loyal (keeps to a kind of weapon and an armor set it has fought with) or follower (likes what its
+   friends carry). Within "good enough" of the best, taste picks, so a town ends up with a mix of gear, not one item.
+4. **Weapons and bows** (`Combat.bestWeaponSlot`, `Weapons`, `Shields`, `Trading`). Chosen by value, kind and taste.
+5. **Armor** (`WearArmorTask`). Chosen by value and taste per slot; any wearable counts, not only vanilla armor items.
+6. **Making modded gear** (`brain/GearPlans`). A known modded weapon or armor piece that beats the vanilla one at its tier
+   becomes something to craft (`/drifter gear plans`). Once it has one that's good enough, it stops.
+7. **Powers, part 1** (`Powers`, `PowerWatch`, `drifter_gear/powers.json`). Knowledgeable Drifters guess powers from the
+   item's hover text (English only). Every Drifter learns them by using the item and seeing what happens (fire, explosions,
+   lightning, area hits, pulling, healing...). It remembers this per item. What one stack's enchantment or lore does is
+   read off that stack, not believed of every item of that kind.
+8. **Powers, part 2** (`Powers.fit`, talk topics). Powers are used sensibly. It holds fire when a shot would blow up or
+   burn a friend, its own home or itself, or when it's too close. It uses area weapons on crowds. Vanilla Fire Aspect and
+   Flame are fine at home, since they don't set blocks alight. Drifters pass power tips on in talk.
+9. **Crossbows** (`ShootTask`, `Archery`). Any crossbow is loaded with real arrows from the pack, aimed and fired as a
+   player does. A modded bow that needs a longer draw gets held longer next time. A launcher that never fires (it needs
+   something a player needs too: XP, shards, hunger) is given up on, never drawn forever.
+10. **Tridents** (`ThrowTridentTask`, `TridentItemMixin`). Thrown and fetched back; one out at a time. Loyalty tridents fly back.
+    Riptide ones are only swung. A trident that is its only weapon isn't thrown at a fresh mob it could fight in melee.
+11. **Trinkets** (optional, needs the Trinkets mod; `compat/TrinketsCompat`, `WearTrinketsTask`). Worn by value, rarity and
+    taste in the 12 slots. On death they drop as a player's would, so Artifacts' rule that destroys a mob's artifacts is
+    overridden for Drifters, unless a player would lose the item too (Curse of Vanishing). Drifters wearing nothing skip
+    Trinkets' own per-tick scan (500v500 with Trinkets: +1% server time, was +30%).
+12. **API v4 and Drifter: Civilizations** (`DrifterApi`: `isGear`, `gearValue`, `armorPoints`, `knowsItem`, `learnItem`,
+    `gearStyle`, `gearLiking`, `gearItCanMake`, `isLauncher`; docs/API.md). Smiths make and sell up to 2 modded weapons
+    and 2 modded armor pieces they know (iron tier or lower, picked by their taste). The fletcher sells bows and crossbows,
+    modded ones included. Markets price modded gear by its value. A town veteran is anyone wearing a chestplate of 6 or
+    more armor points.
+13. **Fixes from the final review**: no false power beliefs on plain gear (a blaze's glow, someone else's hits), and
+    seen or told beliefs fade after 20 uses that don't show them. It keeps in storage the weapon it actually fights with.
+    A modded armor target counts as met once it has a good-enough piece, so no endless crafting. Some hot paths are
+    cheaper. The helper player's hunger now matches the Drifter's, so a launcher that costs hunger costs its own food (no free shots). One thought
+    for what an ingredient unlocks, not a flood. A shop is learned only when its stall is actually seen.
+
+Debug commands (stand near the Drifter, or `execute as <drifter> at @s run ...`): `/drifter gear` (what it knows, its
+style), `/drifter gear item <item>` (how Drifter reads one item: kind, melee, ranged, armor, rarity, cost, points, key
+ingredient, whether it knows it, its power beliefs), `gear learn <item>`, `gear forget`, `gear style <practical|flashy|loyal|follower|clear>`,
+`gear friend <kind>`, `gear pick weapon|armor`, `gear plans`, `gear powers`, `gear sense <item>`, `gear tip`,
+`gear trinkets` (and `gear trinkets clear`), `/drifter throw <target>`, `/drifter shoot <target>`. Smoke scripts:
+`tools/smoke-gear-*.txt`.
+
+Calls made along the way (say if any is wrong): "unlocked" means it has held the recipe's dearest ingredient; veterans
+know only craftable modded gear, never loot-only items; riptide tridents are never thrown; vanilla axes can be a Drifter's
+pick by taste, and a flashy one may wear gold or chainmail over iron when they're close; a smith offers at most 2 modded
+weapons and 2 modded armor pieces; a trinket drops as a player's would.
+
+### Design questions (for the user, each with my recommendation)
+
+- **Hurt crossbow Drifters run from skeletons.** `Threats.power` (how strong a Drifter thinks it is) ignores bows and
+  crossbows. So a hurt Drifter with a crossbow often runs from a skeleton instead of shooting it. Changing that changes how
+  every archer judges every fight. Recommendation: leave it for now and do it as its own balance pass, with tests of
+  archers against skeletons, pillagers and players.
+- **Modded gear made only at a smithing table isn't crafted** (netherite-style upgrades of modded gear). It is valued,
+  worn and traded, just not made, because the planner doesn't smith modded items yet. Recommendation: fine for now; add
+  it only if a mod you use has gear you'd want them to make this way.
+- **Some mods' effects run only for real players.** Drifters aren't players, so a few effects may do nothing on them. For
+  example Artifacts' running shoes raise the Drifter's sprinting-speed attribute (that part works), but whether it really
+  runs faster needs checking in game. Recommendation: check the artifacts you care about (TESTING.md). Tell me which don't
+  work, and I'll look at each one; some can't be fixed without that mod's help.
+- **No upper cap on modded armor value at iron tier.** A modded piece made from iron that's much stronger than iron armor
+  counts as an iron-tier target, so an early Drifter may aim for it. Recommendation: leave it (it costs what its recipe
+  costs). Add a cap only if you see iron-age Drifters in near-diamond armor too early.
+- **Taste strength 0.25** (`styles.json`). That is how much taste can outweigh raw numbers. In the tests only some styles
+  picked differently. Recommendation: watch a town in game; if everyone carries the same weapon, raise it (to about 0.4).
+- **Hover-text guesses need English.** Power guesses read the item's English hover text, so in another language only
+  learning by use works. On a dedicated server, text that a mod adds only on the client side isn't read either.
+  Recommendation: fine for an English game. A word list per language could come later if you want it.
+
+### Next
+
+- (a) **Town kits with modded armor** (approved by the user 2026-11-10, next): when a town is made, its guards get sturdy
+  modded pieces at their tier, its leader a showy or rare piece, and citizens humble ones. Each Drifter's taste picks
+  within its rank; vanilla when nothing modded fits.
+- (b) **The next compatibility projects**, in the user's order: 2 Farmer's Delight addons, 3 block and furniture mods in
+  houses, 4 structure mods, 5 player and server mods.

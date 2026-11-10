@@ -3222,3 +3222,83 @@ The same as your test: in creative, on the flat world, standing by the battle.
       session (the log says "its mine stairs mended"): steps back, nothing blocking them, room to jump. Over a day or two its
       people don't dig into the stairs' steps or walls, and no cobblestone walls appear in the mine's strips and corridor.
       Their own staircases are a block taller: you can walk down and jump up them without hitting your head.
+
+## 0.23.36-side.1: any weapon, armor and trinket mod (new)
+
+Drifters now judge, want, make and use modded weapons, armor and trinkets the way a player would. These checks use the mods
+already in DRIFTER TEST: Simply Swords, Simply Bows, Immersive Armors, Trinkets, Artifacts and Better Combat. (Too Many Bows
+works too if you turn it back on; it isn't needed for any check here.) Everything from 0.23.36 above still applies.
+
+Setup: a Creative world with commands on, by day. Spawn a test Drifter with `/drifter spawn Gus` and stand next to it.
+The `/drifter ...` commands below act on the nearest Drifter. Its thoughts show with `/drifter thoughts`.
+
+- [ ] **Reading an item.** `/drifter gear item simplyswords:diamond_katana`, then `/drifter gear item immersive_armors:warrior_chestplate`.
+      Each prints a line: its kind (katana, chest armor), its melee, ranged and armor numbers, rarity, cost and points, and
+      whether Gus knows it. Nothing crashes, and the numbers look about right next to `/drifter gear item minecraft:diamond_sword`.
+- [ ] **What it knows.** `/drifter gear` lists the modded items Gus knows and its style (practical, flashy, loyal or
+      follower). Drop a modded item on the ground in front of it (or put one in a chest it opens), wait 10 seconds,
+      and run `/drifter gear` again: now it knows that item ("seen").
+- [ ] **"Know every recipe" in Mod Menu.** Mods button on the title screen, find Drifter, click its settings icon: the "Know every recipe" switch is there (under
+      "Drifters"), off by default. Turn it on, close the screen, open it again: still on. With it off, a newbie
+      (`/drifter personality set knowledge 0.1`) doesn't know a katana it has never seen (`/drifter gear item simplyswords:iron_katana`
+      says "knows it: no"). With it on, the same line says it knows it. The command works too: `/drifter config knoweveryrecipe true` / `false`.
+      Turn it off again after.
+- [ ] **A mix of gear in a town.** In a town (or among a few Drifters you've let play a few days), look at what they carry
+      and wear: not everyone has the same weapon or armor. Some wear modded armor, not all. Tell me if they all look alike
+      (that's the "taste strength" question in PROGRESS.md).
+- [ ] **Picking a weapon.** `/drifter give simplyswords:diamond_katana`, `/drifter give minecraft:diamond_sword`, then
+      `/drifter weapon`: it says "best weapon on it: ..." with the weapon's kind and Gus's style. Summon a zombie near it: it
+      fights with that one.
+- [ ] **Making modded armor (Immersive Armors).** Pick a Drifter that has a home and is past its iron tools (one that has
+      played a few days). Stand by it and run `/drifter gear learn immersive_armors:heavy_chestplate`,
+      `/drifter give minecraft:iron_ingot 64` and `/drifter give minecraft:iron_block 9`. Then `/drifter gear plans` shows a
+      line like "chest at iron: immersive_armors:heavy_chestplate (wanted)". Let it play an in-game day (wait, or speed up
+      with `/tick sprint 24000` while you stand near it). Once it has made the piece it wears it, `/drifter gear plans` says
+      "(has one)", and it doesn't make a second one.
+- [ ] **Blazes don't teach false fire.** Give a Drifter a plain iron sword and a bow with arrows, take it to a Nether fortress
+      and let it fight blazes (or let it go hunting there itself). Back home: `/drifter thoughts` never shows "held fire: ...
+      would burn home" for the plain sword or bow, and `/drifter gear item minecraft:iron_sword` says "powers: none". At its
+      base it still fights zombies with its sword.
+- [ ] **Powers from Simply Swords and Simply Bows.** Spawn a Drifter, `/drifter personality set knowledge 0.9`,
+      `/drifter give simplyswords:brimstone_claymore`, `/drifter give simplybows:ice_bow`, `/drifter give simplybows:blossom_bow`,
+      `/drifter give minecraft:arrow 64`. Wait 15 seconds, then run `/drifter gear powers` and `/drifter gear item simplyswords:brimstone_claymore`.
+      No crash, and the line shows what it guessed from the item's text. Then open
+      `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\logs\latest.log` and search for "Exception": none
+      that mentions drifter, simplyswords or simplybows. (This is the one check the test server can't do: single player
+      runs the mods' client parts too.)
+- [ ] **Learning a power by use.** A newbie (`/drifter personality set knowledge 0.1`) with the Brimstone Claymore fights a
+      pillager or a few zombies: after some hits a thought "found out Brimstone Claymore: fire", and `/drifter gear item
+      simplyswords:brimstone_claymore` shows "fire ... (SEEN)".
+- [ ] **Holding fire near friends.** A Drifter with an exploding or fire weapon (a bow whose powers line says "explosive" or
+      "fire") doesn't shoot a mob standing next to its friend or next to its own house ("held fire: ... would blow up ..." or
+      "... would burn home"). It shoots once the mob is clear, or switches to its sword.
+- [ ] **Crossbows.** `/drifter give minecraft:crossbow`, `/drifter give minecraft:arrow 32`, summon a zombie 15 blocks off.
+      Loading makes the crossbow's click sound, and each shot shows the crit trail. Its arrows go down in its inventory
+      (`/drifter inventory`). With both a bow and a crossbow it now usually picks the crossbow; that's expected. Known
+      issue: a badly hurt crossbow Drifter may run from a skeleton instead of shooting (a design question in PROGRESS.md).
+- [ ] **Tridents.** Give a Drifter a trident and a sword (`/drifter give minecraft:trident`, `/drifter give minecraft:iron_sword`),
+      then put a drowned in water near it (`/summon drowned` while standing in water). It throws the trident at the
+      drowned, then goes and picks it up. Let it go home and use its chests: it still has the trident afterwards
+      (`/drifter inventory`). A Loyalty trident (`/drifter give minecraft:trident[minecraft:enchantments={levels:{"minecraft:loyalty":3}}]`)
+      flies back to it by itself. A Drifter with only a trident and a full-health zombie in front of it fights with it in
+      hand instead of throwing it away.
+- [ ] **Trinkets (Trinkets plus Artifacts).** `/drifter give artifacts:running_shoes`, `/drifter give artifacts:cross_necklace`.
+      Within a few seconds (once it finishes what it's doing) `/drifter gear trinkets` shows them worn (feet/shoes and
+      chest/necklace), and they've left its inventory. They don't show on its body: expected.
+- [ ] **Do Artifacts' effects work on a Drifter?** Running shoes: does it run faster when sprinting? Cross necklace: does it
+      blink longer after being hit? Try any other artifact you like (cloud in a bottle, etc.). Some effects a mod only runs
+      for real players, so they may do nothing; tell me which ones work and which don't.
+- [ ] **Trinkets drop on death.** Kill the Drifter while it wears them (hit it yourself, or let a mob or lava do it): the
+      trinkets drop where it died, one of each, no copies. When it comes back, it doesn't have them.
+- [ ] **Civilizations: the smith and the fletcher.** In a town, stand near it and run `/drifterciv prices`. The smith's
+      "Making:" line names at most 2 modded weapons and 2 modded armor pieces besides the usual iron things. Over a day or
+      two, some show up under "At home to sell", and its trade screen sells them for a sensible price (about the price of the
+      iron piece of the same kind, more for rare ones). The fletcher's line includes bows and crossbows (Simply Bows ones too
+      once it knows them). The town's own stall never sells weapons or armor.
+- [ ] **All the optional mods removed.** Make a copy of the DRIFTER TEST profile (in the Modrinth App: the profile's ...
+      menu > Duplicate), and in the copy turn off Trinkets, Artifacts, Simply Swords, Simply Bows, Immersive Armors and
+      Better Combat (also EMF Compat Better Combat, which needs Better Combat). The game starts, a world loads, and Drifters
+      fight and wear armor as before. `/drifter gear trinkets` says "Trinkets isn't installed". The copy's `logs\latest.log`
+      has no errors that mention drifter.
+- [ ] **Only in English.** Guessing a power from an item's hover text works only with the game in English. In another
+      language Drifters still learn powers by using the item. Nothing to check unless you play in another language.
