@@ -26,7 +26,10 @@ final class TownUniforms {
 	private TownUniforms() {
 	}
 
-	/** A switch still to make on its guards and leader not loaded when it was due is given up after this many days. */
+	/**
+	 * A switch still to make on its guards and leader not loaded when it was due is given up after this many days on which
+	 * some of them were loaded and checked (days nobody was loaded don't count: K2, amended).
+	 */
 	static final long RETRIM_DAYS = 7;
 
 	/** Its uniform now (its set chosen and kept the first time it's needed: a town from before uniforms). */
@@ -69,30 +72,43 @@ final class TownUniforms {
 		from.remove(next);
 		town.retrimFrom = String.join(";", from);
 		town.retrimDay = Chronicle.day(server);
-		if (retrim(server, town, now)) {
+		if (retrim(server, town, now).all()) {
 			town.retrimFrom = "";
 		}
 	}
 
-	/** Each check: the switch still due on its guards and leader now loaded; done when all of them were, or after a week. */
+	/**
+	 * Each check: the switch still due on its guards and leader now loaded; done when all of them were, or after a week of
+	 * days some of them were loaded (a town nobody's near keeps it till its people are: its clock held while none are).
+	 */
 	static void check(MinecraftServer server, Town town) {
 		if (town.retrimFrom.isEmpty()) {
 			return;
 		}
 
-		if (Chronicle.day(server) - town.retrimDay > RETRIM_DAYS || retrim(server, town, uniform(town))) {
+		Pass pass = retrim(server, town, uniform(town));
+		long today = Chronicle.day(server);
+		if (pass.all() || pass.any() && today - town.retrimDay > RETRIM_DAYS) {
 			town.retrimFrom = "";
 			Towns.save(server);
+		} else if (!pass.any() && town.retrimDay != today) {
+			town.retrimDay = today;
+			Towns.save(server);
 		}
+	}
+
+	/** A switch's pass over its guards and leader: all of them loaded, any of them loaded. */
+	private record Pass(boolean all, boolean any) {
 	}
 
 	private static List<String> froms(Town town) {
 		return town.retrimFrom.isEmpty() ? List.of() : List.of(town.retrimFrom.split(";"));
 	}
 
-	/** Switches its loaded guards' and leader's pieces from each pending trim to {@code now}'s; true if every one was loaded. */
-	private static boolean retrim(MinecraftServer server, Town town, TownUniform now) {
+	/** Switches its loaded guards' and leader's pieces from each pending trim to {@code now}'s; whether all, and any, were loaded. */
+	private static Pass retrim(MinecraftServer server, Town town, TownUniform now) {
 		boolean all = true;
+		boolean any = false;
 		int changed = 0;
 		for (UUID id : wearers(town)) {
 			DrifterEntity one = TownFounding.loaded(server, id);
@@ -100,6 +116,8 @@ final class TownUniforms {
 				all = false;
 				continue;
 			}
+
+			any = true;
 
 			for (String from : froms(town)) {
 				String[] parts = from.split("\\|", 2);
@@ -113,7 +131,7 @@ final class TownUniforms {
 			DrifterCivilizations.LOGGER.info("[uniform] {}: {} worn pieces switched to {} {}", town.name, changed, now.trimPattern(), now.trimMaterial());
 		}
 
-		return all;
+		return new Pass(all, any);
 	}
 
 	/** Who wears its uniform: its guards (of its people still) and its leader. */

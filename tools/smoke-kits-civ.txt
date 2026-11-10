@@ -11,7 +11,8 @@
 #   colour), except one Southford guard's diamond helmet with a loot trim (wild copper), left alone.
 # - Southford goes free: the nation is no more, both back to their own trims.
 # - Southford joins again while its chunks aren't loaded: "still to switch from ..." and its people not loaded; once loaded
-#   and checked (every 10 s), its guards wear the nation's trim and nothing is still to switch.
+#   and checked (every 10 s), its guards wear the nation's trim and nothing is still to switch. Before it's loaded, 8+ days
+#   pass ("time add 200000"): the switch is still due afterwards ("since day" the day it is now), not given up.
 # - Oldbury joins: its untrimmed guards are left as they are (only pieces carrying the old trim switch); its set set to one
 #   that doesn't exist, it goes free again: no crash.
 # (Dev servers here may hang on stop: once the last "Saved the game" is in the log, stop the server JVM by its own PID.)
@@ -45,6 +46,11 @@ execute positioned -1642 100 3148 run drifterciv town uniform
 forceload remove -1738 3052 -1546 3244
 wait 30
 execute positioned -1392 100 2398 run drifterciv nations join Southford
+execute positioned -1642 100 3148 run drifterciv town uniform
+# More than a week passes with nobody of Southford loaded: its switch is kept (its clock held), still due.
+wait 15
+time add 200000
+wait 15
 execute positioned -1642 100 3148 run drifterciv town uniform
 forceload add -1738 3052 -1546 3244
 wait 30

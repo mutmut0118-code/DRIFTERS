@@ -307,7 +307,8 @@ public final class Town {
 	/**
 	 * Its uniform ({@link TownUniforms}): the armor set its guards wear ("" till first needed: a town from before uniforms);
 	 * a switch of trim still due on its guards and leader not loaded when it joined or left a nation (the trims they may
-	 * still wear, "pattern|material", ";" between; "": none) and the day of it.
+	 * still wear, "pattern|material", ";" between; "": none) and the day its week began (moved on while none of them are
+	 * loaded, so only days they were count).
 	 */
 	public String uniformSet = "";
 	public String retrimFrom = "";
