@@ -121,6 +121,18 @@ public final class AlarmGoal extends Goals.Goal {
 		runners.computeIfPresent(heard.bell(), (bell, run) -> new Run(run.who, run.since, true));
 	}
 
+	/** It sees someone it's out to get (wanted in its town): the hunt for them, not the alarm, is its business now. */
+	private static boolean seesQuarry(DrifterEntity drifter) {
+		for (net.minecraft.world.entity.player.Player player : drifter.level().players()) {
+			var seen = drifter.getSenses().awarenessOf(player);
+			if (seen != null && seen.identified && seen.visibleNow && Mode.pursuesWanted(drifter, player)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** Where it goes in: its house (by its bed), or null if it has none near. */
 	@Nullable
 	private static BlockPos inside(DrifterEntity drifter) {
@@ -143,8 +155,8 @@ public final class AlarmGoal extends Goals.Goal {
 
 		// (Over any work: found in testing, at 0.74 its farm and its stall won and nobody went. Under fighting and fleeing.)
 		if (answers(drifter)) {
-			// (Something in sight to fight or flee: that first.)
-			return context.threat().urgent() ? 0.0 : ANSWER;
+			// (Something in sight to fight or flee: that first. The one it's out to get in sight: after them, not looking about.)
+			return context.threat().urgent() || seesQuarry(drifter) ? 0.0 : ANSWER;
 		}
 
 		// (Asleep in its bed: it's in already.)
@@ -215,6 +227,12 @@ public final class AlarmGoal extends Goals.Goal {
 			BellHearing.Heard heard = alarm(this.drifter);
 			if (heard == null) {
 				this.drifter.getSenses().alarmDone(this.now());
+				return Status.SUCCESS;
+			}
+
+			// The one it's out to get, in sight: after them (another goal's), not on looking about.
+			if (seesQuarry(this.drifter)) {
+				this.think("there they are");
 				return Status.SUCCESS;
 			}
 

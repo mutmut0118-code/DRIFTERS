@@ -235,6 +235,15 @@ public interface TownWork {
 	}
 
 	/**
+	 * Its town wants this player for something past forgiving (its leader's murder, a massacre; 0.23.35, the user: "if im
+	 * wanted after i kill the leader it should be kill on sight for anybody who isnt a coward"): its people who aren't
+	 * cowards go for them wherever they see them, not only about the town, and stand and fight.
+	 */
+	default boolean killOnSight(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+		return false;
+	}
+
+	/**
 	 * A banner its town wants it to make and stand at a spot (a nation's colour on the plaza: milestone 22 step 6 part 3), or
 	 * null. Asked of each of its people (one of them makes it).
 	 */

@@ -645,7 +645,10 @@ final class Justice {
 			Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
 			boolean wantedAlready = criminal.wantedUntil > day;
 			criminal.offences++;
-			criminal.crime = "murder";
+			// (Not over something graver: kill on sight stays.)
+			if (!grave(criminal.crime)) {
+				criminal.crime = "murder";
+			}
 			criminal.kills++;
 			criminal.recentKills = day - criminal.lastKillDay <= MASSACRE_DAYS ? criminal.recentKills + 1 : 1;
 			criminal.lastKillDay = day;
@@ -828,7 +831,9 @@ final class Justice {
 			}
 
 			Town.Criminal there = other.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(name));
-			there.crime = "massacre";
+			if (!"murder of the leader".equals(there.crime)) {
+				there.crime = "massacre";
+			}
 			there.exiledUntil = Math.max(there.exiledUntil, day + HEARD_MASSACRE);
 			there.wantedUntil = Math.max(there.wantedUntil, day + HEARD_MASSACRE);
 			other.heard.merge(player.getUUID(), -60.0, (a, b) -> Math.max(-100.0, a + b));
@@ -1308,6 +1313,17 @@ final class Justice {
 		}
 
 		Towns.save(server);
+	}
+
+	/** Wanted for something past forgiving (its leader's murder, a massacre; heard of from another town too): kill on sight. */
+	static boolean killOnSight(Town town, Player player) {
+		Town.Criminal criminal = town.crimes.get(player.getUUID());
+		return criminal != null && criminal.wantedUntil > 0 && grave(criminal.crime);
+	}
+
+	/** A crime past forgiving. */
+	private static boolean grave(@Nullable String crime) {
+		return "massacre".equals(crime) || "murder of the leader".equals(crime);
 	}
 
 	/** "wanted" while this player is (its guards and bold people go for them), "exiled" while they're only that. */

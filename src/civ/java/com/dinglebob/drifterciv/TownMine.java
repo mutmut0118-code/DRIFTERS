@@ -36,6 +36,174 @@ final class TownMine {
 	private static final int LANDING_EVERY = 16;
 	private static final int LANDING = 3;
 
+	/** Its stairs' slices are this high, the step included (0.23.35: five, room to jump; was four). */
+	static final int STAIRS_HIGH = 5;
+
+	/**
+	 * Each slice of its stairs, as {@link TownBuilder} digs them: the middle of the slice at its feet (a step's own block),
+	 * and whether it's a landing's (level, no step).
+	 */
+	static void slices(BlockPos entrance, BlockPos hub, Direction way, java.util.function.BiConsumer<BlockPos, Boolean> each) {
+		int feet = entrance.getY();
+		BlockPos column = entrance;
+		int run = 0;
+		int guard = 0;
+		while (feet > hub.getY() && guard++ < 400) {
+			column = column.relative(way);
+			if (run == LANDING_EVERY) {
+				for (int i = 0; i < LANDING; i++) {
+					each.accept(new BlockPos(column.getX(), feet, column.getZ()), true);
+					column = column.relative(way);
+				}
+
+				run = 0;
+			}
+
+			feet--;
+			run++;
+			each.accept(new BlockPos(column.getX(), feet, column.getZ()), false);
+		}
+	}
+
+	/**
+	 * Its stairs are its people's build (0.23.35, the user: "people keep mining the stairs, the walls in the stairs,
+	 * blocking the mines"): each step, the floor under it and the walls beside it, not to be dug for stone or tunnelled
+	 * through. Not a landing's walls: they're faces to branch off from.
+	 */
+	static void protect(net.minecraft.server.level.ServerLevel level, BlockPos entrance, BlockPos hub, Direction way) {
+		Direction side = way.getClockWise();
+		slices(entrance, hub, way, (feet, landing) -> {
+			if (landing) {
+				return;
+			}
+
+			for (int b = -2; b <= 2; b++) {
+				BlockPos cell = feet.relative(side, b);
+				if (Math.abs(b) <= 1) {
+					DrifterApi.markBuilt(level, cell);
+					DrifterApi.markBuilt(level, cell.below());
+				} else {
+					for (int h = 0; h < STAIRS_HIGH; h++) {
+						DrifterApi.markBuilt(level, cell.above(h));
+					}
+				}
+			}
+		});
+	}
+
+	/** Towns whose mine stairs have been mended this session. */
+	private static final java.util.Set<UUID> mended = new java.util.HashSet<>();
+
+	/**
+	 * A town's mine stairs put right, once a session when they're all loaded (0.23.35: dug into, blocked with cobblestone,
+	 * low enough to bump a head on): every step back, the way over it clear and five high (torches kept), the floor and the
+	 * walls whole again (not out in the open air, nor where someone's standing), and the lot its people's build from now on.
+	 * True if anything changed.
+	 */
+	static boolean mend(net.minecraft.server.level.ServerLevel level, Town town) {
+		if (town.mine == null || town.mineBottom == null || town.mineWay == null || mended.contains(town.id)
+			|| !town.dimension.equals(level.dimension().location().toString())) {
+			return false;
+		}
+
+		List<BlockPos> feet = new ArrayList<>();
+		List<Boolean> landings = new ArrayList<>();
+		slices(town.mine, town.mineBottom, town.mineWay, (at, landing) -> {
+			feet.add(at);
+			landings.add(landing);
+		});
+		for (BlockPos at : feet) {
+			if (!level.isLoaded(at)) {
+				return false;
+			}
+		}
+
+		mended.add(town.id);
+		Direction way = town.mineWay;
+		Direction side = way.getClockWise();
+		// (Its own stairs' block and wall: what's there already, cobblestone if none is.)
+		net.minecraft.world.level.block.state.BlockState steps = net.minecraft.world.level.block.Blocks.COBBLESTONE_STAIRS.defaultBlockState();
+		for (BlockPos at : feet) {
+			if (level.getBlockState(at).getBlock() instanceof net.minecraft.world.level.block.StairBlock) {
+				steps = level.getBlockState(at).getBlock().defaultBlockState();
+				break;
+			}
+		}
+
+		steps = steps.setValue(net.minecraft.world.level.block.StairBlock.FACING, way.getOpposite());
+		net.minecraft.world.level.block.state.BlockState wall = steps.is(net.minecraft.world.level.block.Blocks.SANDSTONE_STAIRS)
+			? net.minecraft.world.level.block.Blocks.SANDSTONE.defaultBlockState() : net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState();
+		int changed = 0;
+		for (int i = 0; i < feet.size(); i++) {
+			BlockPos at = feet.get(i);
+			boolean landing = landings.get(i);
+			for (int b = -1; b <= 1; b++) {
+				BlockPos cell = at.relative(side, b);
+				if (!landing && !(level.getBlockState(cell).getBlock() instanceof net.minecraft.world.level.block.StairBlock) && clear(level, cell)) {
+					level.setBlock(cell, steps, 3);
+					changed++;
+				}
+
+				for (int h = landing ? 0 : 1; h < STAIRS_HIGH; h++) {
+					BlockPos over = cell.above(h);
+					var state = level.getBlockState(over);
+					if (!state.isAir() && !lightOrTorch(state) && state.getFluidState().isEmpty()) {
+						level.setBlock(over, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+						changed++;
+					}
+				}
+
+				// (Over its new top: nothing to fall or pour in.)
+				BlockPos top = cell.above(STAIRS_HIGH);
+				var above = level.getBlockState(top);
+				if (above.getBlock() instanceof net.minecraft.world.level.block.FallingBlock || !above.getFluidState().isEmpty()) {
+					level.setBlock(top, wall, 3);
+					changed++;
+				}
+
+				BlockPos floor = cell.below();
+				if (level.getBlockState(floor).getCollisionShape(level, floor).isEmpty() && clear(level, floor)) {
+					level.setBlock(floor, wall, 3);
+					changed++;
+				}
+			}
+
+			if (!landing) {
+				for (int b = -2; b <= 2; b += 4) {
+					for (int h = 0; h < STAIRS_HIGH; h++) {
+						BlockPos pos = at.relative(side, b).above(h);
+						var state = level.getBlockState(pos);
+						// (Only a hole dug for its stone: rock behind it. A way through into someone's tunnel stays open: walling it
+						// would shut them in.)
+						BlockPos behind = at.relative(side, b > 0 ? 3 : -3).above(h);
+						if (state.getCollisionShape(level, pos).isEmpty() && !lightOrTorch(state) && !level.canSeeSky(pos) && clear(level, pos)
+							&& !level.getBlockState(behind).getCollisionShape(level, behind).isEmpty()) {
+							level.setBlock(pos, wall, 3);
+							changed++;
+						}
+					}
+				}
+			}
+		}
+
+		protect(level, town.mine, town.mineBottom, town.mineWay);
+		if (changed > 0) {
+			DrifterCivilizations.LOGGER.info("[town] {}: its mine stairs mended ({} blocks put right)", town.name, changed);
+		}
+
+		return changed > 0;
+	}
+
+	/** A torch, a lantern: kept where it is. */
+	private static boolean lightOrTorch(net.minecraft.world.level.block.state.BlockState state) {
+		return state.getBlock() instanceof net.minecraft.world.level.block.TorchBlock || state.getBlock() instanceof net.minecraft.world.level.block.LanternBlock;
+	}
+
+	/** Nobody standing in it (no block put on anyone). */
+	private static boolean clear(net.minecraft.server.level.ServerLevel level, BlockPos pos) {
+		return level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, new net.minecraft.world.phys.AABB(pos)).isEmpty();
+	}
+
 	/** The way down it, a stretch at a time: its mouth, the middle of each landing of its stairs, its hub. */
 	static List<BlockPos> path(BlockPos entrance, BlockPos hub, Direction way) {
 		List<BlockPos> path = new ArrayList<>();

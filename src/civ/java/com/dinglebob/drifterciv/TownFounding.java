@@ -164,6 +164,8 @@ public final class TownFounding {
 						net.minecraft.resources.ResourceLocation.parse(town.dimension)));
 					if (level != null) {
 						TownBuilder.freePenGate(level, town);
+						// Its mine stairs put right and kept (0.23.35).
+						TownMine.mend(level, town);
 					}
 				});
 				// Prices settling each day (B4).

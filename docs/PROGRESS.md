@@ -4669,6 +4669,36 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.36: everyone but a coward fights, kill on sight after a leader's murder, the killer a threat on sight; the
+  mine's stairs kept** (the user, 2026-11-10: "more of them should be fighting", "if im wanted after i kill the leader it
+  should be kill on sight for anybody who isnt a coward", "half the town is standing and looking around until i hit
+  them"; with pictures: "this is what the mines look like after a day or so, people keep mining the stairs, the walls in
+  the stairs, blocking the mines", "whenever i go down the stairs i always hit my head, and i cant jump").
+  - **Cowards only** (`Mode.timid`): a townsperson keeps clear of someone wanted, and goes in at an alarm, only if its own
+    Bravery is under 0.3 (the coward of `Threats.COWARD_BRAVERY`); was under 0.35 by the moment's Bravery, and every
+    pacifist (about half a town). A guard never.
+  - **Kill on sight** (`TownWork.killOnSight`, `Justice.killOnSight`): wanted for its leader's murder or a massacre (in the
+    town, and in the towns told of it), its people go for them wherever they see them, not only about the town, and stand
+    and fight (`Mode.pursuesWanted`). A later killing doesn't make it a lesser crime (`Justice.grave`).
+  - **The killer a threat on sight** (`Threats.danger`): a player was a threat only once they'd hit it, so those who came
+    to the alarm stood looking about with the killer in front of them. One it's out to get counts as after it now; and the
+    alarm gives way when it sees them ("there they are": `AlarmGoal.seesQuarry`).
+  - **Stairs with headroom** (`TunnelDigger`): a staircase step is dug a block taller (four over each step's floor), so it's
+    walked down and jumped up without a bump. The town mine's stairs five high, the step included (`TownMine.STAIRS_HIGH`).
+  - **Not walled off** (`TunnelDigger.someonesTunnel`, `Home.inTownMine`): breaking into air that's lit (a torch's light)
+    or in its town's mine is someone's tunnel: no plug, and the dig turns off it. In the user's log, 16 holes plugged in a
+    day, nearly all in Millwick's own mine (its strips and corridor, taken for caves).
+  - **The town mine's stairs kept** (`TownMine.protect`, `DrifterApi.markBuilt`): its steps, the floor under them and the
+    walls beside them are its people's build (not dug for stone or tunnelled through; a landing's walls stay faces). And
+    once a session each town's stairs are mended (`TownMine.mend`): each step back, the way over it clear and five high
+    (torches kept), holes in the floor and walls filled (only where rock is behind: a way into someone's tunnel stays open;
+    never on anyone).
+  - Tested (dev client, death for good): a leader killed on a plaza, then two more: 7 fought, 5 hunted, 8 answered, 1
+    went in, none gave in (0.23.35's run: 2, 2, 4 and 8 in); in another run those answering saw the killer ("there they
+    are") and went for them. Loading a world made before: "Pinebury: its mine stairs mended (222 blocks put right)",
+    Stonegate 181. Headless, a city of 61 for a day (96 mining trips): one hole plugged, in a real cave 140 blocks from
+    its mine; twice a dig turned off someone's tunnel; no deaths.
+
 - **0.23.35: a town fights for itself; its leader's murder counts; horse theft, killing its animals, false alarms**
   (the user, 2026-11-09, after a massacre in their world: "not many people were fighting back, alot of citizens were in a
   mining trip or doing something else", "since i killed the guards nobody else really fights", "people would hear the

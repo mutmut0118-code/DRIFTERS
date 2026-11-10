@@ -3211,3 +3211,14 @@ The same as your test: in creative, on the flat world, standing by the battle.
 - [ ] **Its animals.** Kill an animal in a town's pen (or a townsperson's horse or dog) where they see: a fine of 2 (any town).
 - [ ] **False alarm.** Ring a town's bell fast (5 times in 5 seconds) with nothing wrong (day, no monsters near): "stop
       ringing the bell!", a fine of 1. Three crimes in a town: exiled.
+
+## 0.23.36: everyone but cowards fights, kill on sight, the mine stairs (new)
+
+- [ ] **Most of the town fights.** Kill townspeople in front of others: only a few (the cowards) go in; the rest come for
+      you, and those answering the alarm go for you as soon as they see you ("there they are"), not standing looking about.
+- [ ] **Kill on sight.** Kill a town's leader (or massacre a town): its people (and those of its nation's other towns) who
+      aren't cowards attack you wherever they see you, even out of town, and stand and fight.
+- [ ] **The mine stairs.** In an existing world, a town's mine stairs are put right the first time you're near them each
+      session (the log says "its mine stairs mended"): steps back, nothing blocking them, room to jump. Over a day or two its
+      people don't dig into the stairs' steps or walls, and no cobblestone walls appear in the mine's strips and corridor.
+      Their own staircases are a block taller: you can walk down and jump up them without hitting your head.

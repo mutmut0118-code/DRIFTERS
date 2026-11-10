@@ -391,6 +391,30 @@ public final class Home {
 	 * A face of a mine to dig on from: where it stands, the way on, and what's dug from it: a strip straight on (the end of a
 	 * strip, beside the others), a branch mine (fresh ground: the corridor's end, a landing), or stairs on down (deeper).
 	 */
+	/**
+	 * This spot is in its town's mine as it knows it (the box round its faces and the way down, a few blocks out): air there
+	 * is the mine's, not a cave (0.23.35: its people took its own strips and corridor for caves and walled them off).
+	 */
+	public boolean inTownMine(BlockPos pos) {
+		if (this.townMine.isEmpty() && this.townMinePath.isEmpty()) {
+			return false;
+		}
+
+		int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, z0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE, z1 = Integer.MIN_VALUE;
+		java.util.List<BlockPos> spots = new java.util.ArrayList<>(this.townMinePath);
+		this.townMine.forEach(face -> spots.add(face.at()));
+		for (BlockPos spot : spots) {
+			x0 = Math.min(x0, spot.getX());
+			y0 = Math.min(y0, spot.getY());
+			z0 = Math.min(z0, spot.getZ());
+			x1 = Math.max(x1, spot.getX());
+			y1 = Math.max(y1, spot.getY());
+			z1 = Math.max(z1, spot.getZ());
+		}
+
+		return pos.getX() >= x0 - 3 && pos.getX() <= x1 + 3 && pos.getZ() >= z0 - 3 && pos.getZ() <= z1 + 3 && pos.getY() >= y0 - 2 && pos.getY() <= y1 + 6;
+	}
+
 	public record MineFace(BlockPos at, net.minecraft.core.Direction way, Dig dig) {
 	}
 

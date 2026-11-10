@@ -160,6 +160,10 @@ mine) to the Drifters within reach of it. A town's alarm is answered by anyone n
 keep watch till it's over; against a player wanted in its town (`TownWork.standing` "wanted"), a Drifter that isn't
 timid stands and fights as at war.
 
+0.23.36: `TownWork.killOnSight(drifter, player)`: its town wants them past forgiving (its leader's murder, a massacre):
+its people who aren't cowards (`DrifterApi.timid`: Bravery under 0.3, no guard) go for them wherever they see them.
+`DrifterApi.markBuilt(level, pos)`: a block of a build (a town mine's stairs): not dug for stone nor tunnelled through.
+
 Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
 player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
 `TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid

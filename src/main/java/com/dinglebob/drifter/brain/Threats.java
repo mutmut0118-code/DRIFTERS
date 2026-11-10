@@ -187,7 +187,11 @@ public final class Threats {
 		}
 
 		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
-		boolean after = isAfter(drifter, entity);
+		// (A player it's out to get, wanted in its town, is one to fight on sight, as one that's after it: till 0.23.35 a player
+		// was a threat only once they'd hit it, so a town answering the alarm stood looking about with the killer right there
+		// till they hit them; the user, "half the town is standing and looking around until i hit them".)
+		boolean after = isAfter(drifter, entity) || entity instanceof net.minecraft.world.entity.player.Player player
+			&& com.dinglebob.drifter.social.Mode.pursuesWanted(drifter, player);
 		double danger;
 		if (entry != null) {
 			if (entry.neutral() && !after) {
