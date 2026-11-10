@@ -164,6 +164,12 @@ timid stands and fights as at war.
 its people who aren't cowards (`DrifterApi.timid`: Bravery under 0.3, no guard) go for them wherever they see them.
 `DrifterApi.markBuilt(level, pos)`: a block of a build (a town mine's stairs): not dug for stone nor tunnelled through.
 
+0.23.38: `DrifterApi.onServerThread(server, task)`: work a background thread hands back, run on the server thread's next
+turn, dropped if the server's stopping (use it, not `server.execute`, from any background thread).
+
+0.23.37: `DrifterApi.quicksave()`: Quicksave is installed. `DrifterApi.autosave(player, label)`: a Quicksave autosave now
+(called this in its list), tried again for 30 s while Quicksave refuses for the moment (a fight, a fall).
+
 Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
 player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
 `TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid
@@ -202,7 +208,7 @@ near home.
 Fabric's data attachments (`AttachmentRegistry.createPersistent(...)` with a codec, then `drifter.setAttached(...)`):
 saved with the Drifter, versioned by the addon, and Drifter's own save format never changes for it.
 
-## Friends: talk and closeness with players (0.23.37, API 4, `TalkApi`)
+## Friends: talk and closeness with players (0.23.38-side.1, API 4, `TalkApi`)
 
 For the addon's friendships (D2, docs/LIVED_WORLD.md). In a class of its own so this door grows in one place per
 feature. Each hook is one listener, a no-op until the addon sets it.

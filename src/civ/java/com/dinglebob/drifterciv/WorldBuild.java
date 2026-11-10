@@ -42,6 +42,8 @@ public final class WorldBuild {
 	private static boolean started;
 	private static long since;
 	private static String stage = "";
+	/** The screen has said the world's being saved for Quicksave (the save itself is next). */
+	private static boolean saveShown;
 	private static int done;
 	private static int total;
 	/** Built this many chunks out past a player's view distance; before play, all this many out from spawn's. */
@@ -73,6 +75,7 @@ public final class WorldBuild {
 		building = !builtBefore && (newPlanned || buildingBefore);
 		started = false;
 		more = false;
+		saveShown = false;
 		spawnSpot = null;
 		held.clear();
 		wasInvulnerable.clear();
@@ -126,6 +129,20 @@ public final class WorldBuild {
 				}
 
 				if (elapsed >= MOST_MS || furtherMade >= further.size() && furtherRoads[0] >= furtherRoads[1]) {
+					// (With Quicksave, its first save of all this land comes next, and takes a while: said on the screen first.
+					// 0.23.37.)
+					if (com.dinglebob.drifter.api.DrifterApi.quicksave() && !saveShown) {
+						saveShown = true;
+						stage = "Saving the world (Quicksave)";
+						done = 100;
+						total = 100;
+						for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+							send(player, false);
+						}
+
+						return;
+					}
+
 					DrifterCivilizations.LOGGER.info("[build] {} of {} places and {} of {} stretches of road within {} blocks built before play", furtherMade,
 						further.size(), furtherRoads[0], furtherRoads[1], LOADING_REACH);
 					finish(server);
@@ -164,6 +181,10 @@ public final class WorldBuild {
 			if (was != null) {
 				player.setInvulnerable(was);
 			}
+
+			// (With Quicksave: a save of the world as it's played from, its towns built and spawn moved. Its own first save was
+			// five seconds into the loading screen, before any of it: dying put the world back to that. 0.23.37.)
+			com.dinglebob.drifter.api.DrifterApi.autosave(player, "The world's towns built");
 
 			send(player, true);
 		}

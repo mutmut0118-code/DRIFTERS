@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 
 /**
- * Talk and closeness with players, for addons (API 4, 0.23.37: Drifter: Civilizations' friendships, docs/API.md
+ * Talk and closeness with players, for addons (API 4, 0.23.38-side.1: Drifter: Civilizations' friendships, docs/API.md
  * "Friends"). Kept apart from {@link DrifterApi} so the door grows in one place per feature. Every hook is one listener
  * (the addon's), a no-op until set.
  */

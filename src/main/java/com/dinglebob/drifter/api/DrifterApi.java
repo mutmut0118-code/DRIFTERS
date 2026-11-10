@@ -702,6 +702,28 @@ public final class DrifterApi {
 	}
 
 	/**
+	 * Work a background thread hands back to the server, run on the server thread's next turn; dropped if the server's
+	 * stopping (MinecraftServer#execute would run it at once on the background thread, touching the world while it's saved).
+	 */
+	public static void onServerThread(net.minecraft.server.MinecraftServer server, Runnable task) {
+		com.dinglebob.drifter.world.ServerThread.later(server, task);
+	}
+
+	/** Quicksave is installed (Bethesda-style saves: dying puts the world back to the last save). */
+	public static boolean quicksave() {
+		return com.dinglebob.drifter.compat.QuicksaveCompat.present();
+	}
+
+	/**
+	 * An autosave in Quicksave, if it's installed, for this player, called this in its list (0.23.37: on reaching a town,
+	 * once a new world's towns are built). Quicksave's own guard still says no in a fight, falling or in lava: then it's
+	 * tried again for half a minute.
+	 */
+	public static void autosave(net.minecraft.server.level.ServerPlayer player, String label) {
+		com.dinglebob.drifter.compat.QuicksaveCompat.autosave(player, label);
+	}
+
+	/**
 	 * This block is part of a build (a town's mine stairs: 0.23.35): Drifters don't dig it for stone or tunnel through it,
 	 * as for a house.
 	 */
