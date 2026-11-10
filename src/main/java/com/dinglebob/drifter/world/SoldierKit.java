@@ -69,7 +69,7 @@ public final class SoldierKit {
 	/** Colours armies take (two at once never the same), and the trim material that goes with each. */
 	private static final List<DyeColor> COLOURS = List.of(DyeColor.RED, DyeColor.BLUE, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.WHITE,
 		DyeColor.PURPLE, DyeColor.BLACK, DyeColor.ORANGE, DyeColor.LIGHT_BLUE, DyeColor.CYAN);
-	/** The trim patterns an army (or a town or nation, {@link Uniforms}) takes. */
+	/** The trim patterns an army takes (towns and nations have their own frozen copy: {@link Uniforms}). */
 	static final List<ResourceKey<TrimPattern>> PATTERNS = List.of(TrimPatterns.SENTRY, TrimPatterns.VEX, TrimPatterns.WILD, TrimPatterns.COAST,
 		TrimPatterns.DUNE, TrimPatterns.WARD, TrimPatterns.RIB, TrimPatterns.SNOUT, TrimPatterns.TIDE, TrimPatterns.SPIRE, TrimPatterns.FLOW, TrimPatterns.BOLT);
 

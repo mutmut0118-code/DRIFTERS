@@ -25,6 +25,7 @@ import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.item.armortrim.TrimMaterial;
 import net.minecraft.world.item.armortrim.TrimMaterials;
 import net.minecraft.world.item.armortrim.TrimPattern;
+import net.minecraft.world.item.armortrim.TrimPatterns;
 
 /**
  * Town uniforms (modded armor in starting kits, spec 2026-11-10-modded-armor-kits-design.md, goals 1, 2, 3 and 9): a
@@ -40,6 +41,14 @@ public final class Uniforms {
 	private static final List<ResourceKey<TrimMaterial>> MATERIALS = List.of(TrimMaterials.QUARTZ, TrimMaterials.IRON, TrimMaterials.NETHERITE,
 		TrimMaterials.REDSTONE, TrimMaterials.COPPER, TrimMaterials.GOLD, TrimMaterials.EMERALD, TrimMaterials.DIAMOND, TrimMaterials.LAPIS,
 		TrimMaterials.AMETHYST);
+	/**
+	 * The trim patterns a town's or nation's trim is drawn from (the same entries and order armies had when uniforms were made).
+	 * Never reorder or append: town and nation trims are derived from this order and not saved, so a change would switch every
+	 * town's trim and break the joining and leaving switch (it looks for the old trim on what guards wear).
+	 */
+	private static final List<ResourceKey<TrimPattern>> PATTERNS = List.of(TrimPatterns.SENTRY, TrimPatterns.VEX, TrimPatterns.WILD,
+		TrimPatterns.COAST, TrimPatterns.DUNE, TrimPatterns.WARD, TrimPatterns.RIB, TrimPatterns.SNOUT, TrimPatterns.TIDE, TrimPatterns.SPIRE,
+		TrimPatterns.FLOW, TrimPatterns.BOLT);
 
 	private Uniforms() {
 	}
@@ -60,14 +69,14 @@ public final class Uniforms {
 	 */
 	public static TownUniform townTrim(UUID town, String armorSet) {
 		int hash = town.hashCode();
-		ResourceKey<TrimPattern> pattern = SoldierKit.PATTERNS.get(Math.floorMod(hash, SoldierKit.PATTERNS.size()));
-		ResourceKey<TrimMaterial> material = MATERIALS.get(Math.floorMod(Math.floorDiv(hash, SoldierKit.PATTERNS.size()), MATERIALS.size()));
+		ResourceKey<TrimPattern> pattern = PATTERNS.get(Math.floorMod(hash, PATTERNS.size()));
+		ResourceKey<TrimMaterial> material = MATERIALS.get(Math.floorMod(Math.floorDiv(hash, PATTERNS.size()), MATERIALS.size()));
 		return new TownUniform(armorSet, pattern.location().toString(), material.location().toString());
 	}
 
 	/** A town in a nation: its own set, the nation's trim (the material from the nation's colour, as an army's; the pattern from its id). */
 	public static TownUniform nationTrim(UUID nation, DyeColor colour, String armorSet) {
-		ResourceKey<TrimPattern> pattern = SoldierKit.PATTERNS.get(Math.floorMod(nation.hashCode(), SoldierKit.PATTERNS.size()));
+		ResourceKey<TrimPattern> pattern = PATTERNS.get(Math.floorMod(nation.hashCode(), PATTERNS.size()));
 		return new TownUniform(armorSet, pattern.location().toString(), SoldierKit.trimFor(colour).location().toString());
 	}
 
@@ -115,9 +124,13 @@ public final class Uniforms {
 	/**
 	 * The trim switched on what it wears (joining or leaving a nation): every worn armor piece carrying {@code from}'s trim
 	 * (pattern and material) takes {@code to}'s; pieces with another trim or none are left alone, nothing is added. Returns how
-	 * many pieces changed (0 when {@code to}'s trim isn't registered here).
+	 * many pieces changed (0 when {@code to}'s trim isn't registered here, or either uniform is null).
 	 */
-	public static int retrim(DrifterEntity drifter, TownUniform from, TownUniform to) {
+	public static int retrim(DrifterEntity drifter, @Nullable TownUniform from, @Nullable TownUniform to) {
+		if (from == null || to == null) {
+			return 0;
+		}
+
 		RegistryAccess registries = drifter.level().registryAccess();
 		ArmorTrim next = trim(registries, to);
 		ResourceLocation pattern = ResourceLocation.tryParse(from.trimPattern());

@@ -5554,8 +5554,9 @@ line and D2 friends (0.23.38-side.2) merged in. Checked with Immersive Armors (i
 1. **Armor sets** (`gear/ArmorSets`). Every armor mod's matching sets are found from the registered items (pieces sharing
    an id such as `immersive_armors:warrior_*`, or the same armor material), and each is rated against the vanilla tiers
    (leather, chain, iron, diamond) by `GearValue`: its pieces' total within 15% of the vanilla set's, and no single piece
-   stronger than the next tier's piece. A set missing a slot gets the vanilla piece of its tier there. Single modded
-   pieces are sorted by tier the same way. Rebuilt on every reload. Immersive Armors gives 10 sets: bone, robe and wooden
+   stronger than the next tier's piece. A set missing a slot gets the vanilla piece of its tier there. A single modded
+   piece goes to the one tier whose vanilla piece it's closest to (within 15% of it; K11). Rebuilt on every reload; a
+   modded item that breaks when it's read is left out with a warning in the log (it never stops kits from working). Immersive Armors gives 10 sets: bone, robe and wooden
    (leather tier), wither (chain), steampunk and warrior (iron), divine and prismarine (diamond); heavy and slime fit no
    tier (one piece is too strong for the rest of the set), so they never come in a kit. `/drifter gear sets` lists them.
 2. **Town uniforms** (`world/Uniforms`, `Delvers.townKit`, API 6: `TownUniform`, `DrifterApi.chooseUniformSet`,
@@ -5574,7 +5575,8 @@ line and D2 friends (0.23.38-side.2) merged in. Checked with Immersive Armors (i
    wears the band's trim as before, its dyeable pieces (leather, Immersive Armors' robe and divine) the band's colour.
    Delvers now and then (10%) have a random trim on one piece, loot from elsewhere. Without armor mods the kits are
    exactly as before (the same random rolls). Measured on 96 fighters per band tier and 80 delvers: about 40% of pieces
-   modded, about 8% full sets.
+   modded, about 8% full sets. After K11 (single pieces at one tier only) the mix smoke (30 delvers and 4 bands) shows
+   about 35% of pieces modded (47% before K11 in the same smoke) and 9% full sets.
 4. **Civilizations** (`TownUniforms`, `Town`, `TownBuilder`, `Nations`). A town keeps its uniform set (saved; old towns
    get one chosen the first time it's needed, and their guards' old untrimmed gear is left alone). A town in a nation
    wears the nation's trim (material from the nation's colour, as an army's banner trim; pattern from the nation's id),
@@ -5593,6 +5595,12 @@ line and D2 friends (0.23.38-side.2) merged in. Checked with Immersive Armors (i
    Armors and again without it (14 runs): no exception from Drifter, the addon or Immersive Armors. Guards of a town all
    in one set and trim, towns' trims different, the switch on joining (also for a town not loaded, kept over 8 days
    away) and back on going free, old towns' untrimmed guards left alone, an unknown set worn as iron.
+7. **Final review fixes** (2026-11-10): K11 (single pieces at one tier), K12 (no apron on a guard or leader keeper; seen:
+   Kpb's leader keeps its stall in its uniform's trimmed diamond chest, citizen keepers still in the apron), K13 (towns'
+   own trim pattern list), one bad modded item can't break kits, a null uniform in `retrim` is ignored. Single modded
+   pieces per tier with Immersive Armors (head/chest/legs/feet) are now leather 2/3/3/3, chain 2/2/1/3, iron 3/2/1/4,
+   diamond 4/1/3/2 (before: 4/4/5/3, 2/3/2/5, 6/6/5/6, 4/2/3/2). The sets, uniform, mix and civ smokes ran again with and
+   without Immersive Armors: no exception.
 
 ### Calls made (say if any is wrong)
 
@@ -5634,6 +5642,15 @@ The controller's rulings while building (also for the user to check):
 - K8: a town's trim pattern and material are picked independently from its id (all 120 pairs can come up, not 60).
 - K2 (amended): a pending switch for people not loaded is kept until all were loaded, or until 7 days on which some of
   them were loaded have passed; days with nobody of the town loaded don't count (so a long time away never loses it).
+- K11 (final review): a single modded piece is handed out at one tier only, the one whose vanilla piece of that slot it's
+  closest to, if it's within 15% of that piece and not above the next tier's piece (before, a piece counted for a tier
+  from 85% of its piece all the way up to the next tier's piece, so an "iron" piece could be as strong as diamond). Where
+  two tiers' vanilla pieces are equally strong in a slot (chainmail and iron helmets, leather and chainmail boots), a
+  piece of that strength fits both. Sets and uniforms are unchanged.
+- K12 (final review): a market keeper who is a guard or the leader keeps the uniform (no apron).
+- K13 (final review): town and nation trims are drawn from their own fixed list of trim patterns, separate from the
+  armies' list, so changing the armies' patterns can never silently change every town's trim (trims are worked out, not
+  saved).
 
 ### Design questions and known issues
 
@@ -5645,11 +5662,9 @@ The controller's rulings while building (also for the user to check):
   `SUBMIT`, about line 425), it doesn't check whether the beaten town is already in another nation; a union does
   (`UNION` checks). Recommendation: a small fix of its own (refuse, or have it leave the old nation first), outside this
   work.
-- **The market keeper's apron replaces a uniform chest (pre-existing, found in the full runs).** When a town is made, its
-  stall keeper is put in a leather tunic (`TownBuilder`, `DrifterApi.wearApron`), in place of whatever chest it wore. When
-  the keeper happens to be a guard or the leader, that one wears an untrimmed leather chest instead of the uniform's (seen:
-  a guard of Oldbury, the leader of Northvale). Recommendation: don't pick a guard or the leader as keeper, or trim the
-  apron with the town's trim; a small change for the final review to weigh.
+- ~~The market keeper's apron replaced a uniform chest~~ **Fixed (final review, K12).** When a town is made, its stall
+  keeper is put in a leather tunic (`TownBuilder`, `DrifterApi.wearApron`); a keeper who is a guard or the leader now
+  keeps the uniform's chestplate instead (still gets the keeper's emeralds; who keeps the stall is unchanged).
 - A town with no group never runs its pending switch (nobody to switch). A loot piece that happens to carry exactly the
   town's old trim would switch too (vanishingly rare).
 - Not exercised in the smokes (read only): a planned nation's town wearing the nation's trim from the start (needs a

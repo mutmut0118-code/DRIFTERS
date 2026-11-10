@@ -3386,6 +3386,7 @@ close (trims are the coloured patterns on the pieces).
         then lists the guards and the leader with each piece they wear and its trim.
       - Look at the guards: all of them in the same armor, all with the same trim on every piece. The leader has a gold
         helmet, the same trim on everything, and a chestplate that's either the set's own or a diamond-strength one.
+        No guard and no leader in a plain leather tunic (the market keeper's apron is only for a keeper who isn't one).
       - Ordinary townsfolk wear what they did before (leather, chain, some iron), now and then one modded piece, no trim.
       Northvale's trim and Southford's are different (two towns may happen to get the same set; the trims still differ).
 - [ ] **A nation forms: the trim switches.** Fly back to Northvale and run `/drifterciv nations join Southford`. Now run
@@ -3419,10 +3420,8 @@ close (trims are the coloured patterns on the pieces).
 - [ ] **No errors.** In DRIFTER TEST's `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\logs\latest.log`,
       search for "Exception": none that mentions drifter or immersive_armors.
 
-Known: the town's market keeper wears a plain leather tunic (its apron). If the keeper is one of the guards or the leader,
-that one has the leather tunic instead of the uniform's chestplate (a design question in PROGRESS.md).
-
-By design: a guard who's promoted or replaced, or a new leader, after a switch keeps whatever trim they had; only the
+By design: the town's market keeper wears a plain leather tunic (its apron), unless the keeper is one of the guards or the
+leader: then it keeps the uniform's chestplate (no apron), so every guard still looks the same. A guard who's promoted or replaced, or a new leader, after a switch keeps whatever trim they had; only the
 pieces worn at the moment of joining or leaving switch. Old towns (made before this version) keep their guards' old
 untrimmed armor; they get a uniform set chosen the first time it's needed, but nothing is handed out.
 

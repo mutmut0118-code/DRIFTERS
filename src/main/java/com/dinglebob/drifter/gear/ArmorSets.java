@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.dinglebob.drifter.Drifter;
 import com.dinglebob.drifter.entity.DrifterEntity;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -33,7 +34,10 @@ import net.minecraft.world.item.Items;
  * reads precomputed lists.
  */
 public final class ArmorSets {
-	/** A set is at a tier when its pieces' total is within this share of the same vanilla slots' total (and a piece within the next tier). */
+	/**
+	 * A set is at a tier when its pieces' total is within this share of the same vanilla slots' total (and a piece within the next
+	 * tier); a single piece when it is within this share of the tier's vanilla piece, the closest tier's.
+	 */
 	public static final double SET_TIER_BAND = 0.15;
 	/** The armor slots, head to feet (the order sets list their pieces in). */
 	public static final EquipmentSlot[] SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
@@ -128,8 +132,8 @@ public final class ArmorSets {
 	}
 
 	/**
-	 * A single modded piece for that slot whose value fits the tier: at least the tier's vanilla piece less the band, at most the
-	 * next tier's piece (diamond: its own plus the band). Random among them; with a Drifter, leaned by its taste
+	 * A single modded piece for that slot whose value fits the tier: closer to the tier's vanilla piece than to any other tier's,
+	 * within the band of it, and at most the next tier's piece (diamond: its own plus the band; ruling K11). Random among them; with a Drifter, leaned by its taste
 	 * ({@link GearTaste#liking}). Null when no modded piece fits.
 	 */
 	@Nullable
@@ -189,13 +193,38 @@ public final class ArmorSets {
 			synchronized (ArmorSets.class) {
 				current = index;
 				if (current == null) {
-					current = build();
+					try {
+						current = build();
+					} catch (RuntimeException e) {
+						// (Never a lookup failing on every spawn: without the index, kits are vanilla until the next reload.)
+						Drifter.LOGGER.error("[Drifter] armor sets: couldn't work out the modded armor sets; kits stay vanilla", e);
+						current = empty();
+					}
+
 					index = current;
 				}
 			}
 		}
 
 		return current;
+	}
+
+	/** No modded sets or pieces at all (what a build that failed leaves). */
+	private static Index empty() {
+		Map<Tier, List<Set>> noSets = new EnumMap<>(Tier.class);
+		Map<Tier, List<Piece>> noPieces = new EnumMap<>(Tier.class);
+		for (Tier tier : Tier.values()) {
+			noSets.put(tier, List.of());
+			noPieces.put(tier, List.of());
+		}
+
+		Map<EquipmentSlot, Map<Tier, List<Piece>>> pieces = new EnumMap<>(EquipmentSlot.class);
+		for (EquipmentSlot slot : SLOTS) {
+			pieces.put(slot, Collections.unmodifiableMap(noPieces));
+		}
+
+		return new Index(List.of(), Map.of(), Collections.unmodifiableMap(noSets), Collections.unmodifiableMap(noSets),
+			Collections.unmodifiableMap(pieces));
 	}
 
 	/** The vanilla value of each tier's piece per slot ({@code [tier][slot]}, slots as {@link #SLOTS}). */
@@ -211,10 +240,34 @@ public final class ArmorSets {
 		return values;
 	}
 
-	/** The most a single piece of that tier may be worth in that slot: the next tier's piece, or diamond's plus the band. */
+	/** The most a piece of that tier may be worth in that slot: the next tier's piece, or diamond's plus the band. */
 	private static double upper(double[][] vanilla, Tier tier, int slot) {
 		Tier next = tier.next();
 		return next != null ? vanilla[next.ordinal()][slot] : vanilla[tier.ordinal()][slot] * (1.0 + SET_TIER_BAND);
+	}
+
+	/**
+	 * The tier a single modded piece is handed out at (ruling K11, K4's closest-wins per piece): the tier whose vanilla piece of
+	 * that slot it is closest to, when it is within the band of that piece and not above the next tier's piece; none otherwise.
+	 * Where two tiers' vanilla pieces are worth the same in that slot (chainmail and iron helmets, leather and chainmail boots)
+	 * the piece fits both equally, so it is at both; it is never at two tiers of different strength.
+	 */
+	private static List<Tier> singleTiers(double[][] vanilla, int slot, double value) {
+		double closest = Double.MAX_VALUE;
+		for (Tier tier : Tier.values()) {
+			closest = Math.min(closest, Math.abs(value - vanilla[tier.ordinal()][slot]));
+		}
+
+		List<Tier> tiers = new ArrayList<>(2);
+		for (Tier tier : Tier.values()) {
+			double reference = vanilla[tier.ordinal()][slot];
+			double off = Math.abs(value - reference);
+			if (off <= closest + 1.0E-6 && off <= reference * SET_TIER_BAND + 1.0E-6 && value <= upper(vanilla, tier, slot) + 1.0E-6) {
+				tiers.add(tier);
+			}
+		}
+
+		return tiers;
 	}
 
 	private static int slotIndex(EquipmentSlot slot) {
@@ -247,20 +300,26 @@ public final class ArmorSets {
 				continue;
 			}
 
-			ItemStack stack = new ItemStack(item);
-			EquipmentSlot slot = stack.isEmpty() ? null : GearValue.armorSlot(stack);
-			if (slot == null) {
+			// (One mod's item that breaks when made or read is left out, not every spawn after it failing to build this.)
+			Piece piece;
+			String key;
+			try {
+				ItemStack stack = new ItemStack(item);
+				EquipmentSlot slot = stack.isEmpty() ? null : GearValue.armorSlot(stack);
+				if (slot == null) {
+					continue;
+				}
+
+				piece = new Piece(item, stack, slot, GearValue.armor(stack, slot));
+				key = GearTaste.setKey(stack);
+			} catch (RuntimeException e) {
+				Drifter.LOGGER.warn("[Drifter] armor sets: couldn't read {} ({}); left out of modded kits", id, e.toString());
 				continue;
 			}
 
-			Piece piece = new Piece(item, stack, slot, GearValue.armor(stack, slot));
-			String key = GearTaste.setKey(stack);
-			byKey.computeIfAbsent(key, k -> new EnumMap<>(EquipmentSlot.class)).computeIfAbsent(slot, k -> new ArrayList<>()).add(piece);
-			int s = slotIndex(slot);
-			for (Tier tier : Tier.values()) {
-				if (piece.value() + 1.0E-6 >= vanilla[tier.ordinal()][s] * (1.0 - SET_TIER_BAND) && piece.value() <= upper(vanilla, tier, s) + 1.0E-6) {
-					singles.get(slot).get(tier).add(piece);
-				}
+			byKey.computeIfAbsent(key, k -> new EnumMap<>(EquipmentSlot.class)).computeIfAbsent(piece.slot(), k -> new ArrayList<>()).add(piece);
+			for (Tier tier : singleTiers(vanilla, slotIndex(piece.slot()), piece.value())) {
+				singles.get(piece.slot()).get(tier).add(piece);
 			}
 		}
 
@@ -314,7 +373,11 @@ public final class ArmorSets {
 
 		List<Set> sets = new ArrayList<>();
 		for (Map.Entry<String, Map<EquipmentSlot, List<Piece>>> group : groups.entrySet()) {
-			sets.add(rate(group.getKey(), group.getValue(), vanilla));
+			try {
+				sets.add(rate(group.getKey(), group.getValue(), vanilla));
+			} catch (RuntimeException e) {
+				Drifter.LOGGER.warn("[Drifter] armor sets: couldn't rate the set {} ({}); left out of modded kits", group.getKey(), e.toString());
+			}
 		}
 
 		sets.sort((a, b) -> a.id().compareTo(b.id()));
