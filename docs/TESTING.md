@@ -3429,3 +3429,24 @@ Test commands: `/drifter gear sets`, `/drifterciv town uniform`, `/drifterciv to
 stored set only), `/drifterciv nations join <town>` (the named town joins the nearest town's nation), `/drifterciv nations
 free <town>`, `/drifter gear uniform kit guard <any UUID>` (debug: the nearest Drifter dressed as a guard of that town),
 `/drifter wanderer delver`, `/drifter encounter band <0-2> <count>`.
+
+## 0.23.39: crash fix for tall plants by roads and towns (new)
+
+Your game crashed (2026-11-10, world "New World111") with an error from Thai Delight's lime plant. Here's what happened.
+A road was built through land where a lime plant (two blocks tall) was growing. The road's ground shaping put a grass slab
+over the plant's bottom half and left its top half floating. A minute later the top half looked for its bottom half, found
+a slab, and Thai Delight's code crashed the game. Now, whenever town or road building replaces half of anything two
+blocks tall (tall grass, sunflowers, doors, Thai Delight's lime, any mod's), the other half goes too. Everything from
+0.23.38-side.3 above still applies.
+
+- [ ] **A new world plays past the first few minutes.** Make a new world as you did before (Thai Delight and Terrain Slabs
+      are in DRIFTER TEST). Walk along the roads near spawn for 10 minutes or so: no crash.
+- [ ] **No floating plant tops by the roads.** Where a road goes past tall grass, sunflowers or ferns, no plant top sits
+      floating over a slab or the road's edge.
+- [ ] **Cleaning up a world made before 0.23.39.** The old "New World111" still has the floating lime top, so it may crash
+      again within a minute or so of loading near it. To rescue it: load it, and straight away run
+      `/drifterciv town halves 160` (cheats on). It takes off every floating plant top within 160 blocks of you and says how
+      many ("Took off 1 floating plant top within 160 blocks."). If it still crashes before you can type, make a new world
+      instead (that one was only a few minutes old).
+
+Test command: `/drifterciv town halves [radius]` (radius 4 to 160 blocks across, 32 up and down; 64 if left out).

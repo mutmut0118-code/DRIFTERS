@@ -5238,10 +5238,73 @@ public final class TownBuilder {
 	 * neighbours in turn). Plants on moved ground are cleared by whatever moves it. Only when it changes.
 	 */
 	static void set(ServerLevel level, BlockPos pos, BlockState state) {
-		if (level.getBlockState(pos) != state) {
+		BlockState old = level.getBlockState(pos);
+		if (old != state) {
 			level.setBlock(pos, state, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
 			changed(pos.getX(), pos.getZ());
+			if (old.getBlock() != state.getBlock()) {
+				otherHalfOff(level, pos, old);
+			}
 		}
+	}
+
+	/**
+	 * Half of a two-block thing just replaced at {@code pos} (a tall plant, a door, any mod's): its other half off too. Blocks
+	 * are set here without telling their neighbours, so the other half stayed: a road's grass slab over a lime plant's foot
+	 * (Thai Delight) left its top floating, and the top's growing looked for its foot and crashed the game (0.23.39).
+	 */
+	private static void otherHalfOff(ServerLevel level, BlockPos pos, BlockState old) {
+		DoubleBlockHalf half = half(old);
+		if (half == null) {
+			return;
+		}
+
+		BlockPos other = half == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
+		BlockState there = level.getBlockState(other);
+		if (there.is(old.getBlock()) && half(there) == (half == DoubleBlockHalf.LOWER ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER)) {
+			level.setBlock(other, there.getFluidState().createLegacyBlock(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+			changed(other.getX(), other.getZ());
+		}
+	}
+
+	/** Which half of a two-block thing this is (any property of upper and lower: mods make their own), or null if it isn't one. */
+	@Nullable
+	static DoubleBlockHalf half(BlockState state) {
+		for (net.minecraft.world.level.block.state.properties.Property<?> property : state.getProperties()) {
+			if (property.getValueClass() == DoubleBlockHalf.class) {
+				return (DoubleBlockHalf)state.getValue(property);
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Debug and repair: every top half of a two-block thing within {@code radius} of {@code centre} across, 32 up and down, with
+	 * no foot under it (left by town and road building before 0.23.39), taken off. How many. (Only tops: a young plant can be
+	 * a foot alone.)
+	 */
+	static int strayHalves(ServerLevel level, BlockPos centre, int radius) {
+		int found = 0;
+		int up = Math.min(radius, 32);
+		for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-radius, -up, -radius), centre.offset(radius, up, radius))) {
+			if (level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4) == null) {
+				continue;
+			}
+
+			BlockState state = level.getBlockState(pos);
+			if (half(state) != DoubleBlockHalf.UPPER) {
+				continue;
+			}
+
+			BlockState foot = level.getBlockState(pos.below());
+			if (!foot.is(state.getBlock()) || half(foot) != DoubleBlockHalf.LOWER) {
+				level.setBlock(pos, state.getFluidState().createLegacyBlock(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+				found++;
+			}
+		}
+
+		return found;
 	}
 
 	/** A block set with its neighbours told (fences join up, a lantern sits on its post). */

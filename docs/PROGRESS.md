@@ -5669,3 +5669,30 @@ The controller's rulings while building (also for the user to check):
   town's old trim would switch too (vanishingly rare).
 - Not exercised in the smokes (read only): a planned nation's town wearing the nation's trim from the start (needs a
   player near a planned town); sets found by armor material or with a missing slot (no installed mod has one).
+
+## 0.23.39: tall plants' tops left floating by town and road building (a crash with Thai Delight)
+
+The user (2026-11-10): "my instance crashed". DRIFTER TEST, a new planned world (0.23.38-side.3), about 3.5 minutes in:
+`IllegalArgumentException: Cannot get property half ... in Block{terrain_slabs:grass_slab}` from Thai Delight's
+`LimePlantBlock.randomTick` (the top half of its two-block lime plant reads the block under it as its foot).
+
+**Cause.** Two road stretches had been built right where the player stood (-2769,880 and -2803,914). Ground shaping
+(`GroundPlan.footSlab`) lays Terrain Slabs' grass slab at the foot of a step, into air or a plant; the plant there was a
+lime plant's foot. Every block the builder sets goes through `TownBuilder.set`, which sets it without telling neighbours,
+so the plant's top never broke and floated over the slab. Vanilla tall plants only look wrong that way; Thai Delight's
+lime crashes on its next random tick.
+
+**Fix.** `TownBuilder.set`: replacing a block that's half of a two-block thing (any property of upper/lower,
+`DoubleBlockHalf`: tall plants, doors, mods' own) takes its matching other half off too (to its fluid: water for tall
+seagrass). Repair for worlds made before: `/drifterciv town halves [radius]` (radius up to 160 across, 32 up and down)
+takes off every top half with no foot under it (only tops: a young plant can be a foot alone). A full 160 scan: 137 ms.
+
+**Checked** (`tools/smoke-halves.txt`, fresh world seed 779 with Tectonic + Terrain Slabs, 110+ sunflower, tall grass and
+large fern patches over a town site, then the town built): the old code (0.23.38-side.3 with only the counting command
+added) left 13 floating tops; 0.23.39 left none, no exceptions. Thai Delight itself isn't in the dev setup (it needs
+Farmer's Delight); the fix is generic, so its lime is covered the same way as vanilla's tall plants. Built on
+0.23.38-side.3 (the weapons session's modded armor kits, with D2 friends), so it carries all of it.
+
+- Not done: structure templates (houses) placed over the foot of a tall plant whose top sticks out above the template's
+  box could still leave a top; houses clear their space, so it hasn't been seen. Drifter's own world-gen camps don't use
+  `TownBuilder.set` and weren't changed.
