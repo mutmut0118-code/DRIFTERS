@@ -3181,3 +3181,12 @@ The same as your test: in creative, on the flat world, standing by the battle.
 - [ ] **Kitchens still work.** A Drifter with a kitchen still cuts on its board (cabbage leaves, bacon, minced beef) and
       cooks in the pot. Planks and sticks always come from logs now, never from cutting a door or sign.
 - [ ] `/drifter battle stop`, then `/kill @e[type=drifter:drifter]`.
+
+## 0.23.33: crime when death is for good, killings in a fight, the store rush in a city (new)
+
+- [ ] **Killings count in a fight.** With death "gone for good" (or not), fight a townsperson (it hits back) and kill it in
+      front of others: "MURDERER", exiled for a week, the alarm bell. Three: the massacre ("The massacre at ..."), wanted
+      for a month, the next towns told. Killing one that came at you first (a crook, someone who had it in for you) isn't
+      murder.
+- [ ] **No rush to the store in a city.** A new city: its shopkeepers go to their own stalls by their doors, not all into
+      the store; nobody stuck in it. The town's own stall (on the plaza) still sells the store's goods.

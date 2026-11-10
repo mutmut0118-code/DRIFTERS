@@ -4669,6 +4669,28 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.33: crime in a world where death is for good, killings in a fight, the store rush in a city** (the user,
+  2026-11-09, with a picture: "i dont think the crime and massacre mechanic is working", "people are rushing the shared
+  chests again"; their world: a city of 100, death "gone for good"). Merged the crowd session's 0.23.32-side.2 first.
+  - **Crime never seen in their world** (`Justice`): two faults. (1) With death for good, a Drifter is out of its town's
+    group as it dies, before the death event the town hears it by: the town it died one of (`DrifterApi.groupAtDeath`)
+    now. (2) Self-defence was "the dead was fighting the killer at the end" (its target, or the last to hurt the killer):
+    anyone struck fights back, so every killing in a fight passed for self-defence (the tests had killed with one blow).
+    Who struck the first blow of their fight now (`ServerLivingEntityEvents.AFTER_DAMAGE`, a fight being blows less than
+    30 s apart): killing the one who came at you is self-defence, killing one you came at is murder.
+  - **The store rush in a city** (their log: 39 of Millwick's people in the store in its first 2.5 minutes; 22 of them to
+    keep their stall). Every trade's shop (B6) counted the store's goods as its own to sell, and stocked up from the store
+    as shops opened, as a town is made (the morning). A trade's shop sells its household's things now
+    (`ShopKeeper.stocksFromTown`, `Trades.LineShop`: own chests only; "make things to sell" counts its household's too);
+    the town's own stall still sells the store's. Each trade's first stock is moved once out of the store into its
+    household's chest (`Trades.firstStock`, saved: `Town.lineStocked`), as a town made ready's trades were at it before.
+    Stocking (`StallGoal`) picks a chest by the crowd at it and leaves a crowded one for another time. Cooking its own
+    food (`Goals.Cook`, `CookMeal`: soup, stew) from its own chests, as its own gear (0.23.30).
+  - Tested: a client test with death for good (a townsperson fought and killed in front of others: MURDERER, exile, the
+    alarm; the third: the massacre, word to the next towns). A city of 55 (Stonestead, seed 8208968137302710584): at most
+    1 at the store chests in 3 minutes, mostly none; but the same city before the change was no worse (it set up 5 trades
+    to the user's dozens), so the rush itself is only checked against the user's log, not reproduced here.
+
 - **0.23.32: the mine's mouth on the ground, people shut in the pen** (the user, 2026-11-08, with pictures: "floating
   thing", "its the mine structure thats floating a bit"; "i see two players jumping by a fence, i believe they are trying
   to get out?").

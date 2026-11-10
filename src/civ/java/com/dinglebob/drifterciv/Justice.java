@@ -129,12 +129,29 @@ final class Justice {
 			}
 		});
 
+		// Who struck first in each fight (0.23.33: self-defence is killing the one who started it).
+		ServerLivingEntityEvents.AFTER_DAMAGE.register((victim, source, base, taken, blocked) -> {
+			net.minecraft.world.entity.Entity attacker = source.getEntity();
+			DrifterEntity owner = com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(attacker);
+			if (owner != null) {
+				attacker = owner;
+			}
+
+			if (attacker instanceof net.minecraft.world.entity.LivingEntity hitter && hitter != victim && (victim instanceof DrifterEntity
+				|| hitter instanceof DrifterEntity) && victim.level() instanceof ServerLevel level) {
+				struck(level.getGameTime(), hitter.getUUID(), victim.getUUID());
+			}
+		});
+
 		ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {
 			if (!(victim instanceof DrifterEntity dead) || dead.isTemporary() || !(victim.level() instanceof ServerLevel level)) {
 				return;
 			}
 
-			Town town = townOf(dead);
+			// (Gone for good, it's out of its town's group before this: the town it died one of. Found in the user's world,
+			// 0.23.32: three of a city's people killed in front of it, nothing done.)
+			Town town = townOrWasOf(dead);
+
 			DrifterEntity drifterKiller = source.getEntity() instanceof DrifterEntity d ? d : com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(source.getEntity());
 			Player playerKiller = drifterKiller == null && source.getEntity() instanceof ServerPlayer p ? p : null;
 			if (town == null || drifterKiller == null && playerKiller == null) {
@@ -142,11 +159,13 @@ final class Justice {
 			}
 
 			// (Self-defence isn't murder: it came at them first. Found: a leader killing the one who turned on it. Not for someone
-			// wanted there, though: the guards who come for them are in the right.)
+			// wanted there, though: the guards who come for them are in the right. Who came at whom first is who struck the first
+			// blow of their fight: it was whether the dead was fighting the killer at the end, and anyone struck fights back, so
+			// every killing in a fight was self-defence; found in the user's world, 0.23.32.)
 			var killer = playerKiller != null ? playerKiller : drifterKiller;
 			Town.Criminal record = playerKiller == null ? null : town.crimes.get(playerKiller.getUUID());
 			boolean wanted = record != null && record.wantedUntil > 0;
-			if (!wanted && (com.dinglebob.drifter.hands.FakePlayerBridge.ownerOf(killer.getLastHurtByMob()) == dead || dead.getTarget() == killer)) {
+			if (!wanted && dead.getUUID().equals(firstBlow(level.getGameTime(), killer.getUUID(), dead.getUUID()))) {
 				return;
 			}
 
@@ -167,6 +186,51 @@ final class Justice {
 
 			murder(level.getServer(), town, dead, playerKiller instanceof ServerPlayer p ? p : null, drifterKiller, witnesses);
 		});
+	}
+
+	/** Its town, or (gone for good, out of its group already) the town it died one of. */
+	@Nullable
+	private static Town townOrWasOf(DrifterEntity dead) {
+		Town town = townOf(dead);
+		UUID was = DrifterApi.groupAtDeath(dead);
+		if (town == null && was != null) {
+			for (Town one : Towns.all()) {
+				if (was.equals(one.group)) {
+					return one;
+				}
+			}
+		}
+
+		return town;
+	}
+
+	/** A fight: who struck its first blow, and when its last was (each pair, either way round). */
+	private record Fight(UUID first, long last) {
+	}
+
+	private static final Map<String, Fight> fights = new HashMap<>();
+	/** Blows this far apart are another fight. */
+	private static final long FIGHT_GAP = 20L * 30;
+
+	private static String pair(UUID a, UUID b) {
+		return a.compareTo(b) < 0 ? a + "|" + b : b + "|" + a;
+	}
+
+	/** One struck another. */
+	private static void struck(long now, UUID hitter, UUID hit) {
+		String key = pair(hitter, hit);
+		Fight fight = fights.get(key);
+		fights.put(key, new Fight(fight == null || now - fight.last > FIGHT_GAP ? hitter : fight.first, now));
+		if (fights.size() > 4096) {
+			fights.values().removeIf(f -> now - f.last > FIGHT_GAP);
+		}
+	}
+
+	/** Who struck the first blow of these two's fight now (null: no fight between them lately). */
+	@Nullable
+	private static UUID firstBlow(long now, UUID a, UUID b) {
+		Fight fight = fights.get(pair(a, b));
+		return fight == null || now - fight.last > FIGHT_GAP ? null : fight.first;
 	}
 
 	/** Its exiles over, and its guards picked. True if anything changed. */

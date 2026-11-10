@@ -397,6 +397,13 @@ public final class Goals {
 	 * to do something else until it's done.
 	 */
 	public static final class Cook extends PlannedGoal {
+		// (Its own food from its own chests, not its town's store: found in the user's game, a city's people cooking their
+		// soup from the store's chickens as the town was made, a crowd there; 0.23.33.)
+		@Override
+		protected boolean ownThings(Context context) {
+			return true;
+		}
+
 		/** Enough raw food to be worth a trip to the furnace before it's hungry. */
 		private static final int BATCH = 3;
 
@@ -511,6 +518,13 @@ public final class Goals {
 	 * the board, cooked in the pot, served into bowls.
 	 */
 	public static final class CookMeal extends PlannedGoal {
+		// (Its own food from its own chests, not its town's store: found in the user's game, a city's people cooking their
+		// soup from the store's chickens as the town was made, a crowd there; 0.23.33.)
+		@Override
+		protected boolean ownThings(Context context) {
+			return true;
+		}
+
 		@Nullable
 		private Item meal(Context context) {
 			return Kitchen.chooseMeal(context.drifter(), context.world());

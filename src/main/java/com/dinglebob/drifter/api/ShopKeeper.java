@@ -39,6 +39,14 @@ public interface ShopKeeper {
 		return Map.of();
 	}
 
+	/**
+	 * It stocks up from its town's chests too (the town's own stall, selling the store's goods); false: from its own chests
+	 * only (a trade's shop, selling what its household made: 0.23.33).
+	 */
+	default boolean stocksFromTown(DrifterEntity keeper) {
+		return true;
+	}
+
 	/** A trade was made. */
 	default void traded(DrifterEntity keeper, Player player, ShopOffer offer) {
 	}

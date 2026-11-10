@@ -474,6 +474,8 @@ final class Trades {
 					DrifterApi.setShop(member, new LineShop(town, line));
 				}
 
+				firstStock(member, town, line);
+
 				((LineShop)member.getShop()).sign(member);
 			} else if (member.getShop() instanceof LineShop) {
 				DrifterApi.setShop(member, null);
@@ -500,7 +502,8 @@ final class Trades {
 		int have = 0;
 		int batch = 1;
 		for (Make make : line.shop().makes()) {
-			int stock = home.stored(make.item()) + forSale(drifter, make.item());
+			// (Its household's: the store's are the town stall's to sell. 0.23.33.)
+			int stock = home.storedOwn(make.item()) + forSale(drifter, make.item());
 			if (stock < make.keep()) {
 				short_.add(make.item());
 				// (What it carries of them counts toward the plan: it ends up with that many more.)
@@ -510,6 +513,83 @@ final class Trades {
 		}
 
 		return short_.isEmpty() ? null : new TownWork.Wares(short_, have + batch, line.name().equals("smith") ? "tools to sell" : "things to sell");
+	}
+
+	/**
+	 * A trade's first stock, once (0.23.33: its shop sells its household's things, not the store's): the things its trade
+	 * makes that are in the town's store, as many as it keeps of each, out of the store's chests into its household's own
+	 * chest (a town made ready: its trades were at it before anyone came). Without it, every trade of a town just made was
+	 * short of everything at once, and off to the store for the makings together.
+	 */
+	private static void firstStock(DrifterEntity member, Town town, Line line) {
+		if (town.lineStocked.contains(member.getUUID()) || !(member.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return;
+		}
+
+		Home home = DrifterApi.home(member);
+		net.minecraft.core.BlockPos own = home == null ? null : home.ownChests().stream().filter(pos -> !home.townChests.contains(pos)
+			&& level.isLoaded(pos) && level.getBlockEntity(pos) instanceof net.minecraft.world.Container).findFirst().orElse(null);
+		if (own == null || town.store.stream().anyMatch(pos -> !level.isLoaded(pos))) {
+			return;
+		}
+
+		town.lineStocked.add(member.getUUID());
+		net.minecraft.world.Container into = (net.minecraft.world.Container)level.getBlockEntity(own);
+		int moved = 0;
+		for (Make make : line.shop().makes()) {
+			int want = make.keep() - home.storedOwn(make.item());
+			for (net.minecraft.core.BlockPos from : town.store) {
+				if (want <= 0 || !(level.getBlockEntity(from) instanceof net.minecraft.world.Container store)) {
+					continue;
+				}
+
+				for (int slot = 0; slot < store.getContainerSize() && want > 0; slot++) {
+					ItemStack stack = store.getItem(slot);
+					if (!stack.is(make.item())) {
+						continue;
+					}
+
+					ItemStack taken = stack.split(Math.min(want, stack.getCount()));
+					ItemStack left = put(into, taken);
+					int put = taken.getCount() - left.getCount();
+					want -= put;
+					moved += put;
+					if (!left.isEmpty()) {
+						stack.grow(left.getCount());
+						want = 0;
+					}
+
+					store.setChanged();
+				}
+			}
+		}
+
+		into.setChanged();
+		DrifterApi.rememberChest(member, own);
+		town.store.forEach(pos -> DrifterApi.rememberChest(member, pos));
+		if (moved > 0) {
+			DrifterCivilizations.LOGGER.info("[trades] {} ({}): {} things of its trade out of {}'s store into its own chest", member.getName().getString(), line.name(),
+				moved, town.name);
+		}
+	}
+
+	/** As much of this as fits into the container (merged into stacks of it first); what's left over. */
+	private static ItemStack put(net.minecraft.world.Container into, ItemStack stack) {
+		for (int pass = 0; pass < 2 && !stack.isEmpty(); pass++) {
+			for (int slot = 0; slot < into.getContainerSize() && !stack.isEmpty(); slot++) {
+				ItemStack there = into.getItem(slot);
+				if (pass == 0 && ItemStack.isSameItemSameComponents(there, stack) && there.getCount() < there.getMaxStackSize()) {
+					int n = Math.min(stack.getCount(), there.getMaxStackSize() - there.getCount());
+					there.grow(n);
+					stack.shrink(n);
+				} else if (pass == 1 && there.isEmpty()) {
+					into.setItem(slot, stack.copy());
+					stack.setCount(0);
+				}
+			}
+		}
+
+		return stack;
 	}
 
 	/** One it uses itself (a tool, a weapon: it keeps one of each kind). */
@@ -548,6 +628,12 @@ final class Trades {
 		public boolean open(DrifterEntity keeper) {
 			long time = Schedule.believedTime(keeper) % 24000L;
 			return time >= OPENS && time < CLOSES;
+		}
+
+		/** Its own household's things to sell, not the town's store's (0.23.33). */
+		@Override
+		public boolean stocksFromTown(DrifterEntity keeper) {
+			return false;
 		}
 
 		/** Its house in the town. */
@@ -647,7 +733,8 @@ final class Trades {
 			Home home = DrifterApi.home(keeper);
 			if (home != null) {
 				for (Item item : this.line.shop().sells()) {
-					int stored = home.stored(item);
+					// (What its household has: the town's store is the town stall's to sell.)
+					int stored = home.storedOwn(item);
 					if (stored > 0) {
 						stock.put(item, Math.min(stored, item.getDefaultMaxStackSize() == 1 ? 3 : 32));
 					}
