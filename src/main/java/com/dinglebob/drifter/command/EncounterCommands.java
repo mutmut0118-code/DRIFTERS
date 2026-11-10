@@ -72,6 +72,21 @@ public final class EncounterCommands {
 				say(ctx, nearest.getName().getString() + ": " + encounter.interact(nearest, player));
 				return 1;
 			}))
+			// Debug: an ambush's band (count of them, kitted for a player of that gear tier, 0 to 2) stood here in a row, with no
+			// player needed (headless tests); says each one's worn armor with its trims.
+			.then(Commands.literal("band").then(Commands.argument("tier", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 2))
+				.then(Commands.argument("count", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 12)).executes(ctx -> {
+					var level = ctx.getSource().getLevel();
+					int tier = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "tier");
+					var band = Encounters.debugBand(level, net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()), tier,
+						com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "count"));
+					say(ctx, "[gear] band of " + band.size() + " at tier " + tier);
+					for (var member : band) {
+						say(ctx, GearCommands.wornLine(member));
+					}
+
+					return band.size();
+				}))))
 			.then(Commands.literal("now").executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Encounters.dueNow(player);

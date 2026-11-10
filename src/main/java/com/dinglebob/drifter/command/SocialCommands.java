@@ -124,7 +124,7 @@ public final class SocialCommands {
 					var delver = com.dinglebob.drifter.world.gen.Delvers.spawn(level, net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()),
 						level.getRandom());
 					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(delver == null ? "couldn't"
-						: "spawned a delver, " + delver.getSocial().disposition().label() + " (careful: most aren't friendly)"), true);
+						: "spawned a delver, " + delver.getSocial().disposition().label() + " (careful: most aren't friendly)\n" + GearCommands.wornLine(delver)), true);
 					return delver == null ? 0 : 1;
 				}
 

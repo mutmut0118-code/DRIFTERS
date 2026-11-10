@@ -1,0 +1,59 @@
+# Modded armor in starting kits, task 3: a realistic mix for bandits, ambushers and delvers.
+# Run twice: with run/mods as is (Immersive Armors there: across the delvers some Immersive Armors pieces, mostly mixed
+# with iron and diamond, now and then a whole set (8%, 16% for the loyal style) or a random trim on one piece (10%); the
+# band's pieces now and then modded at its standard, its trimmable metal in the band's trim, leather dyed), then with
+# immersive_armors-*.jar moved to run/mods_off/ (only vanilla pieces, no stray trims on delvers: today's kits).
+# "drifter wanderer delver" prints the new delver's worn armor (each piece with its trim; the line names its gear style);
+# "drifter encounter band <tier> <count>" stands an ambush's band here (no player needed) and prints each one's armor.
+# 30 delvers: the first 10 are the brief's; the rest give a full set a fair chance to show.
+until Done_( 900
+wait 3
+forceload add ~-64 ~-64 ~64 ~64
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 5
+drifter gear sets
+execute positioned ~-40 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-36 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-32 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-28 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-24 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-20 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-16 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-12 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-8 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-4 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+wait 1
+execute positioned ~0 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~4 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~8 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~12 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~16 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~20 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~24 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~28 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~32 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~36 ~ ~20 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-40 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-36 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-32 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-28 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-24 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-20 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-16 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-12 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-8 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+execute positioned ~-4 ~ ~28 positioned over motion_blocking_no_leaves run drifter wanderer delver
+wait 1
+# Ambush bands: militia (tier 0: leather dyed, no trim), regulars (tier 1) and veterans (tier 2: trimmed metal), 4 each
+# (the last an archer, a standard lighter).
+execute positioned ~-20 ~ ~-20 positioned over motion_blocking_no_leaves run drifter encounter band 0 4
+execute positioned ~-20 ~ ~-28 positioned over motion_blocking_no_leaves run drifter encounter band 1 4
+execute positioned ~-20 ~ ~-36 positioned over motion_blocking_no_leaves run drifter encounter band 2 4
+execute positioned ~-20 ~ ~-44 positioned over motion_blocking_no_leaves run drifter encounter band 2 4
+wait 2
+kill @e[type=drifter:drifter]
+wait 2
+stop

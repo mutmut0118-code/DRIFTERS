@@ -7,6 +7,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.brain.Weapons;
 import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.gear.ArmorSets;
+import com.dinglebob.drifter.gear.GearTaste;
+import com.dinglebob.drifter.gear.GearValue;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -32,7 +35,8 @@ import net.minecraft.world.level.block.BannerBlock;
 /**
  * A fighter's kit, with some variety (the user, 2026-10-20: "can we add more variety into the gear?"; before, every
  * soldier wore the same iron). An army has a colour and a standard of kit; each of its fighters' pieces is picked on its
- * own (leather, chainmail, iron, gold, diamond, now and then none), leather dyed the army's colour, metal trimmed in it,
+ * own (leather, chainmail, iron, gold, diamond, now and then none; with armor mods now and then a modded piece of the same
+ * tier, or rarely one whole modded set: {@link #mixed}, {@link #lootedSet}), leather dyed the army's colour, metal trimmed in it,
  * shields painted it, and its captain wears the army's banner on its head. Weapons are its favourite kind (modded ones
  * too) at a grade fitting the standard; veterans carry the odd enchantment; it's all been through a fight or two (worn).
  * The kit is its starting kit (DESIGN.md section 1): what it drops is what it had.
@@ -68,6 +72,16 @@ public final class SoldierKit {
 	/** The trim patterns an army (or a town or nation, {@link Uniforms}) takes. */
 	static final List<ResourceKey<TrimPattern>> PATTERNS = List.of(TrimPatterns.SENTRY, TrimPatterns.VEX, TrimPatterns.WILD, TrimPatterns.COAST,
 		TrimPatterns.DUNE, TrimPatterns.WARD, TrimPatterns.RIB, TrimPatterns.SNOUT, TrimPatterns.TIDE, TrimPatterns.SPIRE, TrimPatterns.FLOW, TrimPatterns.BOLT);
+
+	/**
+	 * Modded armor in starting kits (spec 2026-11-10-modded-armor-kits-design.md, goal 5): a fighter's or delver's piece is a
+	 * modded one of the same tier this often, when one fits (the loyal style less: {@link #LOYAL_MODDED_PIECE_CHANCE}).
+	 */
+	public static final double MODDED_PIECE_CHANCE = 0.4;
+	/** The loyal style takes a stray modded piece less often (it would sooner wear a whole set: twice the full-set chance). */
+	public static final double LOYAL_MODDED_PIECE_CHANCE = 0.25;
+	/** Now and then a fighter or delver wears one whole modded set at its tier, as if looted whole (twice this for the loyal style). */
+	public static final double BAND_FULL_SET_CHANCE = 0.08;
 
 	private SoldierKit() {
 	}
@@ -111,10 +125,13 @@ public final class SoldierKit {
 	/** Its kit for its part in this army: armour, weapon, shield (its colours), a bow, food, a pickaxe and some blocks. */
 	public static void equip(DrifterEntity drifter, ServerLevel level, Army army, Role role, RandomSource random) {
 		Quality quality = army.quality();
-		// Armour, a piece at a time (archers go lighter).
+		// Armour, a piece at a time (archers go lighter), any mod's pieces in the mix; now and then one whole modded set, at
+		// the tier one of its pieces would have had (looted whole).
 		Quality armour = role == Role.ARCHER && quality != Quality.MILITIA ? Quality.values()[quality.ordinal() - 1] : quality;
-		for (EquipmentSlot slot : new EquipmentSlot[] {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
-			Item piece = piece(slot, armour, random);
+		ArmorSets.Set looted = rollsLootedSet(random, drifter) ? lootedSet(tierOf(piece(EquipmentSlot.CHEST, armour, random), EquipmentSlot.CHEST), random, drifter)
+			: null;
+		for (EquipmentSlot slot : ArmorSets.SLOTS) {
+			Item piece = looted != null ? looted.pieces().get(slot) : mixed(piece(slot, armour, random), slot, random, drifter);
 			if (piece != null) {
 				drifter.setItemSlot(slot, dress(level, new ItemStack(piece), army, random));
 			}
@@ -158,6 +175,90 @@ public final class SoldierKit {
 		if (role == Role.CAPTAIN) {
 			inventory.add(new ItemStack(Items.EMERALD, 4 + random.nextInt(7) + 4 * quality.ordinal()));
 		}
+	}
+
+	/** True (rolled): it wears one whole modded set. Never with no armor mods, and then nothing is rolled (kits as before). */
+	public static boolean rollsLootedSet(RandomSource random, DrifterEntity drifter) {
+		return armorMods() && random.nextDouble() < BAND_FULL_SET_CHANCE * (GearTaste.style(drifter) == GearTaste.Style.LOYAL ? 2.0 : 1.0);
+	}
+
+	/**
+	 * The whole set it wears when {@link #rollsLootedSet} came up: one of the modded sets at this tier (never above it: the
+	 * tiers stay as they were), leaned by its taste (how much it likes the set's own pieces); null when no set is at that tier
+	 * (or there is no tier: no piece, or gold), and then it dresses piece by piece.
+	 */
+	@Nullable
+	public static ArmorSets.Set lootedSet(@Nullable ArmorSets.Tier tier, RandomSource random, DrifterEntity drifter) {
+		List<ArmorSets.Set> sets = tier == null ? List.of() : ArmorSets.at(tier, false);
+		if (sets.isEmpty()) {
+			return null;
+		}
+
+		double[] weights = new double[sets.size()];
+		double total = 0.0;
+		for (int i = 0; i < weights.length; i++) {
+			ArmorSets.Set set = sets.get(i);
+			for (EquipmentSlot slot : ArmorSets.SLOTS) {
+				if (!set.filler(slot)) {
+					ItemStack stack = new ItemStack(set.pieces().get(slot));
+					weights[i] += GearTaste.liking(drifter, stack, GearValue.armor(stack, slot));
+				}
+			}
+
+			total += weights[i];
+		}
+
+		if (!(total > 0.0)) {
+			return sets.get(random.nextInt(sets.size()));
+		}
+
+		double at = random.nextDouble() * total;
+		for (int i = 0; i < weights.length; i++) {
+			at -= weights[i];
+			if (at <= 0.0) {
+				return sets.get(i);
+			}
+		}
+
+		return sets.get(sets.size() - 1);
+	}
+
+	/**
+	 * A kit's vanilla piece, or now and then (by its taste: {@link #MODDED_PIECE_CHANCE}, {@link #LOYAL_MODDED_PIECE_CHANCE}) a
+	 * modded one of the same tier in its place ({@link ArmorSets#modPieceAt}, leaned by its taste), as pieces picked up here
+	 * and there would be. Gold, or no piece: as it is. With no modded piece at that tier nothing is rolled.
+	 */
+	@Nullable
+	public static Item mixed(@Nullable Item vanilla, EquipmentSlot slot, RandomSource random, DrifterEntity drifter) {
+		ArmorSets.Tier tier = tierOf(vanilla, slot);
+		Item modded = tier == null ? null : ArmorSets.modPieceAt(slot, tier, random, drifter);
+		if (modded == null) {
+			return vanilla;
+		}
+
+		double chance = GearTaste.style(drifter) == GearTaste.Style.LOYAL ? LOYAL_MODDED_PIECE_CHANCE : MODDED_PIECE_CHANCE;
+		return random.nextDouble() < chance ? modded : vanilla;
+	}
+
+	/** The kit tier of a vanilla armor piece in its slot (leather, chainmail, iron, diamond), or null (gold, none, modded). */
+	@Nullable
+	public static ArmorSets.Tier tierOf(@Nullable Item piece, EquipmentSlot slot) {
+		if (piece == null) {
+			return null;
+		}
+
+		for (ArmorSets.Tier tier : ArmorSets.Tier.values()) {
+			if (tier.vanilla(slot) == piece) {
+				return tier;
+			}
+		}
+
+		return null;
+	}
+
+	/** Armor mods are in (any modded matching set): only then does a kit roll for modded sets or stray trims. */
+	public static boolean armorMods() {
+		return !ArmorSets.sets().isEmpty();
 	}
 
 	/** A piece of armour for this slot at this standard, or none (now and then a bare head or legs). */
@@ -205,12 +306,15 @@ public final class SoldierKit {
 		};
 	}
 
-	/** In the army's colours: leather dyed, metal trimmed; a veteran's chestplate now and then enchanted; worn. */
+	/**
+	 * In the army's colours: leather dyed, metal trimmed (a modded piece too, if it takes a trim); a veteran's piece now and
+	 * then enchanted; worn.
+	 */
 	private static ItemStack dress(ServerLevel level, ItemStack stack, Army army, RandomSource random) {
 		if (stack.is(net.minecraft.tags.ItemTags.DYEABLE)) {
 			stack.set(DataComponents.DYED_COLOR, new DyedItemColor(army.colour().getTextureDiffuseColor(), false));
 		} else if (army.trim() != null && army.pattern() != null) {
-			stack.set(DataComponents.TRIM, new ArmorTrim(army.trim(), army.pattern(), false));
+			Uniforms.trimmed(stack, new ArmorTrim(army.trim(), army.pattern(), false));
 		}
 
 		if (army.quality() == Quality.VETERANS && random.nextInt(4) == 0) {

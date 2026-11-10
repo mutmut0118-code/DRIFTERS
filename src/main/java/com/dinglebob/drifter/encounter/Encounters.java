@@ -750,6 +750,12 @@ public final class Encounters {
 		return true;
 	}
 
+	/** Debug (`/drifter encounter band <tier> <count>`): an ambush's band kitted here, with no player or encounter behind it. */
+	public static java.util.List<com.dinglebob.drifter.entity.DrifterEntity> debugBand(net.minecraft.server.level.ServerLevel level,
+		net.minecraft.core.BlockPos spot, int tier, int count) {
+		return EncounterSpawner.debugBand(level, spot, tier, count);
+	}
+
 	/** A price on their head now (debug: `/drifter encounter bounty`). */
 	public static void postBountyNow(ServerPlayer player) {
 		state(player.getUUID()).bounty = new Bounty("someone you crossed", "a debug command", player.level().getGameTime(), -1, null, 0);

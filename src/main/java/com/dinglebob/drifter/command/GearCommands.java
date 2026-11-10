@@ -422,9 +422,12 @@ public final class GearCommands {
 		return 1;
 	}
 
-	/** "[gear] Gus wears: head immersive_armors:warrior_helmet (trim minecraft:sentry minecraft:gold), chest ..., feet nothing". */
-	private static String wornLine(DrifterEntity drifter) {
-		StringBuilder line = new StringBuilder("[gear] " + drifter.getName().getString() + " wears:");
+	/**
+	 * "[gear] Gus (flashy) wears: head immersive_armors:warrior_helmet (trim minecraft:sentry minecraft:gold), chest
+	 * minecraft:leather_chestplate (no trim) (dyed #B02E26), ..., feet nothing": each piece's trim, and its dye if dyed.
+	 */
+	static String wornLine(DrifterEntity drifter) {
+		StringBuilder line = new StringBuilder("[gear] " + drifter.getName().getString() + " (" + GearTaste.style(drifter).id() + ") wears:");
 		for (int i = 0; i < ArmorSets.SLOTS.length; i++) {
 			EquipmentSlot slot = ArmorSets.SLOTS[i];
 			ItemStack stack = drifter.getItemBySlot(slot);
@@ -438,6 +441,10 @@ public final class GearCommands {
 			ArmorTrim trim = stack.get(DataComponents.TRIM);
 			line.append(trim == null ? " (no trim)" : " (trim " + trim.pattern().unwrapKey().map(k -> k.location().toString()).orElse("?") + " "
 				+ trim.material().unwrapKey().map(k -> k.location().toString()).orElse("?") + ")");
+			net.minecraft.world.item.component.DyedItemColor dye = stack.get(DataComponents.DYED_COLOR);
+			if (dye != null) {
+				line.append(String.format(Locale.ROOT, " (dyed #%06X)", dye.rgb() & 0xFFFFFF));
+			}
 		}
 
 		return line.toString();

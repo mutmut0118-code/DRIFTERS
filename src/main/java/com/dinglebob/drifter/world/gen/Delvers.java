@@ -14,6 +14,7 @@ import com.dinglebob.drifter.gear.ArmorSets;
 import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.registry.ModEntities;
 import com.dinglebob.drifter.social.Disposition;
+import com.dinglebob.drifter.world.SoldierKit;
 import com.dinglebob.drifter.world.Uniforms;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -87,6 +88,8 @@ public final class Delvers {
 	public static final double CITIZEN_MODDED_CHANCE = 0.2;
 	/** A town leader's chestplate is a modded one of diamond's tier this often (when one fits and takes a trim), else diamond. */
 	public static final double LEADER_MODDED_CHEST_CHANCE = 0.5;
+	/** With armor mods, a delver has a stray trim (random pattern and material) on one piece that takes one this often. */
+	public static final double LOOT_TRIM_CHANCE = 0.1;
 
 	/**
 	 * Who makes a new Drifter one of the nearest town's people (Drifter: Civilizations): for a spot, the way to make one of
@@ -285,20 +288,28 @@ public final class Delvers {
 		return level.addFreshEntity(drifter) ? drifter : null;
 	}
 
-	/** Iron to diamond (a share of diamond pieces it rolls), its favorite weapon at that tier, a bow, and what a delve takes. */
+	/**
+	 * Iron to diamond (a share of diamond pieces it rolls), its favorite weapon at that tier, a bow, and what a delve takes.
+	 * With armor mods its armor is a realistic mix (spec 2026-11-10-modded-armor-kits-design.md, goal 5): each piece now and
+	 * then a modded one of its tier ({@link SoldierKit#mixed}), rarely one whole modded set at the tier it rolled
+	 * ({@link SoldierKit#lootedSet}), and now and then a stray trim on one piece ({@link #LOOT_TRIM_CHANCE}).
+	 */
 	private static void kit(ServerLevel level, DrifterEntity drifter, RandomSource random) {
 		double diamond = random.nextDouble();
-		Item[][] armor = {
-			{Items.IRON_HELMET, Items.DIAMOND_HELMET}, {Items.IRON_CHESTPLATE, Items.DIAMOND_CHESTPLATE},
-			{Items.IRON_LEGGINGS, Items.DIAMOND_LEGGINGS}, {Items.IRON_BOOTS, Items.DIAMOND_BOOTS}};
-		EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-		for (int i = 0; i < slots.length; i++) {
-			ItemStack piece = new ItemStack(armor[i][random.nextDouble() < diamond ? 1 : 0]);
+		ArmorSets.Set looted = SoldierKit.rollsLootedSet(random, drifter)
+			? SoldierKit.lootedSet(random.nextDouble() < diamond ? ArmorSets.Tier.DIAMOND : ArmorSets.Tier.IRON, random, drifter) : null;
+		for (EquipmentSlot slot : ArmorSets.SLOTS) {
+			ArmorSets.Tier tier = random.nextDouble() < diamond ? ArmorSets.Tier.DIAMOND : ArmorSets.Tier.IRON;
+			ItemStack piece = new ItemStack(looted != null ? looted.pieces().get(slot) : SoldierKit.mixed(tier.vanilla(slot), slot, random, drifter));
 			if (random.nextDouble() < 0.3) {
 				enchant(level, piece, random);
 			}
 
-			drifter.setItemSlot(slots[i], piece);
+			drifter.setItemSlot(slot, piece);
+		}
+
+		if (SoldierKit.armorMods() && random.nextDouble() < LOOT_TRIM_CHANCE) {
+			lootTrim(level, drifter, random);
 		}
 
 		Weapons.Tier tier = random.nextDouble() < diamond ? Weapons.Tier.DIAMOND : Weapons.Tier.IRON;
@@ -520,6 +531,31 @@ public final class Delvers {
 		}
 
 		return ArmorSets.Tier.DIAMOND.vanilla(EquipmentSlot.CHEST);
+	}
+
+	/**
+	 * A stray trim, like loot from elsewhere: one of its worn pieces that takes a trim (at random) gets a random pattern and
+	 * material of those registered (no town's colours: a delver belongs to none).
+	 */
+	private static void lootTrim(ServerLevel level, DrifterEntity drifter, RandomSource random) {
+		List<ItemStack> trimmable = new java.util.ArrayList<>();
+		for (EquipmentSlot slot : ArmorSets.SLOTS) {
+			ItemStack worn = drifter.getItemBySlot(slot);
+			if (!worn.isEmpty() && worn.is(ItemTags.TRIMMABLE_ARMOR)) {
+				trimmable.add(worn);
+			}
+		}
+
+		if (trimmable.isEmpty()) {
+			return;
+		}
+
+		ItemStack piece = trimmable.get(random.nextInt(trimmable.size()));
+		var pattern = level.registryAccess().registryOrThrow(Registries.TRIM_PATTERN).getRandom(random);
+		var material = level.registryAccess().registryOrThrow(Registries.TRIM_MATERIAL).getRandom(random);
+		if (pattern.isPresent() && material.isPresent()) {
+			Uniforms.trimmed(piece, new ArmorTrim(material.get(), pattern.get(), false));
+		}
 	}
 
 	/** An enchanting-table enchantment at level 8 to 25, as a player of its gear would have. */

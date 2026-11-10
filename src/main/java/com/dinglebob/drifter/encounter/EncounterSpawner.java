@@ -198,6 +198,30 @@ final class EncounterSpawner {
 			: com.dinglebob.drifter.world.SoldierKit.Role.INFANTRY, random);
 	}
 
+	/**
+	 * Debug ({@code /drifter encounter band}): an ambush's band of {@code count} round this spot, kitted as an ambush kits
+	 * its Bandits for a player of that gear tier (one band, its last an archer when there are three or more), put in the world
+	 * with no encounter or player behind it (so a headless test can look at a band's kit).
+	 */
+	static List<DrifterEntity> debugBand(ServerLevel level, BlockPos spot, int tier, int count) {
+		RandomSource random = level.getRandom();
+		var band = band(level, tier, random);
+		List<DrifterEntity> made = new ArrayList<>();
+		for (int i = 0; i < count; i++) {
+			BlockPos at = ground(level, spot.getX() + 3 * i, spot.getZ());
+			boolean archer = i == count - 1 && count >= 3;
+			DrifterEntity bandit = spawn(level, at == null ? spot : at, Archetype.BANDIT, drifter -> {
+				drifter.getSocial().setDisposition(com.dinglebob.drifter.social.Disposition.BANDIT);
+				fighter(drifter, band, archer, random);
+			});
+			if (bandit != null && add(level, bandit)) {
+				made.add(bandit);
+			}
+		}
+
+		return made;
+	}
+
 	/** A band's colours and kit, for how well armed the player looks (its members all alike: hunters, a gang, raiders). */
 	static com.dinglebob.drifter.world.SoldierKit.Army band(ServerLevel level, int tier, RandomSource random) {
 		net.minecraft.world.item.DyeColor[] colours = net.minecraft.world.item.DyeColor.values();
