@@ -1,5 +1,5 @@
 {
-	"_comment": "Iron tools and armour, from iron it mines or buys. B6: diamond gear when it has a piece to spare (rare and dear). B5: repairs at an anvil, netherite at a smithing table.",
+	"_comment": "Iron tools and armour, from iron it mines or buys. B6: diamond gear when it has a piece to spare (rare and dear). B5: repairs at an anvil, netherite at a smithing table. Plus any modded weapon or armor it knows how to make (Drifter's gear knowledge; a few it likes best, iron tier or lower).",
 	"goals": [
 		"wares",
 		"progress"

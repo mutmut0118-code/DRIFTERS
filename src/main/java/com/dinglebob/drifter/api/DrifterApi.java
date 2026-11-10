@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 3;
+	public static final int API_VERSION = 4;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -1270,9 +1270,99 @@ public final class DrifterApi {
 		return 0.5;
 	}
 
-	/** What one of these is worth to a Drifter, in points (an emerald is 6): what it trades by. */
+	/**
+	 * What one of these is worth to a Drifter, in points (an emerald is 6): what it trades by. Any mod's weapons, armor,
+	 * shields and trinkets are valued from the item itself (API 4: {@code GearValue.points}); vanilla items as always.
+	 */
 	public static double worth(net.minecraft.world.item.ItemStack stack) {
 		return com.dinglebob.drifter.social.ItemValues.each(stack);
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Gear: any mod's weapons, armor and trinkets (API 4)
+	// ---------------------------------------------------------------------------------------------
+
+	/** A weapon of some kind, a piece of armor, a shield, or a trinket (Trinkets, optional): any mod's, read from the item. */
+	public static boolean isGear(net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.gear.GearValue.isGear(stack);
+	}
+
+	/** A bow or crossbow, vanilla or any mod's. */
+	public static boolean isLauncher(net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.brain.GearPlans.isLauncher(stack);
+	}
+
+	/**
+	 * What this is worth to it for what it's for: armor worn in its slot, a trinket in its best slot, a bow, crossbow or
+	 * trident by its ranged score, any other weapon by its damage per second in its hands; 0 for anything else (a shield).
+	 * Comparable between pieces of the same use, not across uses.
+	 */
+	public static double gearValue(DrifterEntity drifter, net.minecraft.world.item.ItemStack stack) {
+		if (stack.isEmpty()) {
+			return 0.0;
+		}
+
+		var slot = com.dinglebob.drifter.gear.GearValue.armorSlot(stack);
+		if (slot != null) {
+			return com.dinglebob.drifter.gear.GearValue.armor(stack, slot);
+		}
+
+		if (com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
+			return com.dinglebob.drifter.gear.GearValue.trinket(drifter, stack);
+		}
+
+		var kind = com.dinglebob.drifter.gear.GearKinds.of(stack);
+		if (kind == null) {
+			return 0.0;
+		}
+
+		return switch (kind.use()) {
+			case BOW, CROSSBOW, TRIDENT -> com.dinglebob.drifter.gear.GearValue.ranged(stack);
+			default -> com.dinglebob.drifter.gear.GearValue.melee(drifter, stack);
+		};
+	}
+
+	/** Its armor points worn in the slot it's made for, as a player's armor bar counts them (an iron chestplate 6); 0 if not armor. */
+	public static double armorPoints(net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.gear.GearValue.armorPoints(stack);
+	}
+
+	/** It knows this item exists (vanilla, a weapon family, a veteran's craftable gear, or seen, owned, unlocked, told). */
+	public static boolean knowsItem(DrifterEntity drifter, net.minecraft.world.item.Item item) {
+		return drifter.knowsItem(item);
+	}
+
+	/** It has seen this item ({@code where}: how, for its thought, "on a stall"); nothing if it knew it already. */
+	public static void learnItem(DrifterEntity drifter, net.minecraft.world.item.Item item, String where) {
+		if (drifter.getGearLore().learn(drifter, item, com.dinglebob.drifter.gear.GearLore.How.SEEN, where)) {
+			com.dinglebob.drifter.brain.GearPlans.refresh(drifter);
+		}
+	}
+
+	/** Its taste in gear, lower case: "practical", "flashy", "loyal" or "follower". */
+	public static String gearStyle(DrifterEntity drifter) {
+		return com.dinglebob.drifter.gear.GearTaste.style(drifter).id();
+	}
+
+	/** How much it likes this piece: its {@link #gearValue} with its taste in it (never below 0). */
+	public static double gearLiking(DrifterEntity drifter, net.minecraft.world.item.ItemStack stack) {
+		return com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, gearValue(drifter, stack));
+	}
+
+	/**
+	 * The gear it knows how to make at a crafting table, at {@code maxTier} or lower (1 wood, 2 stone, 3 iron, 4 diamond,
+	 * 5 netherite: a weapon by the sword it matches, armor by the vanilla piece its score matches, a bow, crossbow, shield
+	 * or trinket as iron): every such vanilla piece, then at most four modded pieces it knows, those it likes best by
+	 * value and taste (they hold until what it knows changes). Got the way it gets anything if it's to make them.
+	 */
+	public static List<net.minecraft.world.item.Item> gearItCanMake(DrifterEntity drifter, int maxTier) {
+		return gearItCanMake(drifter, maxTier, stack -> true);
+	}
+
+	/** The same, only the gear {@code which} takes (the four modded pieces counted among those). */
+	public static List<net.minecraft.world.item.Item> gearItCanMake(DrifterEntity drifter, int maxTier,
+		java.util.function.Predicate<net.minecraft.world.item.ItemStack> which) {
+		return com.dinglebob.drifter.brain.GearPlans.canMake(drifter, maxTier, which);
 	}
 
 	/** About this many points of money as one stack: Numismatic Overhaul coins when that mod is here, else emeralds. */

@@ -44,9 +44,9 @@ final class TownDay {
 
 	/** A seasoned one: far along (iron at least) and wearing iron or better on its body. */
 	static boolean veteran(DrifterEntity drifter) {
-		// (An iron chestplate's 6 armor points, or better.)
+		// (An iron chestplate's 6 armor points, or better: any mod's chestplate by its own armor.)
 		var chest = drifter.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
-		boolean armored = chest.getItem() instanceof net.minecraft.world.item.ArmorItem armor && armor.getDefense() >= 6;
+		boolean armored = DrifterApi.armorPoints(chest) >= 6;
 		return armored && com.dinglebob.drifter.brain.Strategist.stage(drifter) >= 5;
 	}
 

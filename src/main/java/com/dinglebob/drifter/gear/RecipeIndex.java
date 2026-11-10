@@ -41,6 +41,8 @@ public final class RecipeIndex {
 	private static Map<Item, List<Item>> unlocks;
 	/** Modded gear a crafting table makes (built once per reload, on the first ask). */
 	private static List<Item> craftableGear;
+	/** Vanilla gear a crafting table makes (built with {@link #craftableGear}). */
+	private static List<Item> craftableVanilla;
 
 	private RecipeIndex() {
 	}
@@ -51,6 +53,7 @@ public final class RecipeIndex {
 			byResult = null;
 			unlocks = null;
 			craftableGear = null;
+			craftableVanilla = null;
 		}
 	}
 
@@ -134,28 +137,53 @@ public final class RecipeIndex {
 			}
 		}
 
+		buildCraftable(level);
+		synchronized (KEYS) {
+			return craftableGear;
+		}
+	}
+
+	/** The same for vanilla gear (the minecraft namespace), by the same rule; built in the same pass. */
+	public static List<Item> craftableVanillaGear(Level level) {
+		synchronized (KEYS) {
+			if (craftableVanilla != null) {
+				return craftableVanilla;
+			}
+		}
+
+		buildCraftable(level);
+		synchronized (KEYS) {
+			return craftableVanilla;
+		}
+	}
+
+	private static void buildCraftable(Level level) {
 		LinkedHashSet<Item> found = new LinkedHashSet<>();
+		LinkedHashSet<Item> vanilla = new LinkedHashSet<>();
 		for (RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> holder : level.getRecipeManager().getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING)) {
 			net.minecraft.world.item.crafting.CraftingRecipe recipe = holder.value();
 			ItemStack made = recipe.getResultItem(level.registryAccess());
-			if (recipe.isSpecial() || made.isEmpty() || !recipe.canCraftInDimensions(3, 3) || recipe.getIngredients().isEmpty()
-				|| "minecraft".equals(BuiltInRegistries.ITEM.getKey(made.getItem()).getNamespace())) {
+			if (recipe.isSpecial() || made.isEmpty() || !recipe.canCraftInDimensions(3, 3) || recipe.getIngredients().isEmpty()) {
 				continue;
 			}
 
 			if (GearValue.isGear(made)) {
-				found.add(made.getItem());
+				("minecraft".equals(BuiltInRegistries.ITEM.getKey(made.getItem()).getNamespace()) ? vanilla : found).add(made.getItem());
 			}
 		}
 
 		List<Item> sorted = new ArrayList<>(found);
 		sorted.sort(java.util.Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()));
+		List<Item> sortedVanilla = new ArrayList<>(vanilla);
+		sortedVanilla.sort(java.util.Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()));
 		synchronized (KEYS) {
 			if (craftableGear == null) {
 				craftableGear = List.copyOf(sorted);
 			}
 
-			return craftableGear;
+			if (craftableVanilla == null) {
+				craftableVanilla = List.copyOf(sortedVanilla);
+			}
 		}
 	}
 

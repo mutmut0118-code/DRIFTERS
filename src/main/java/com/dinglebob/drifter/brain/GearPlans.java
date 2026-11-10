@@ -179,6 +179,144 @@ public final class GearPlans {
 	public static void refresh(DrifterEntity drifter) {
 		UUID id = drifter.getUUID();
 		KEPT.keySet().removeIf(key -> key.id().equals(id));
+		MAKING.keySet().removeIf(key -> key.id().equals(id));
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// What it can make (a town's smith or fletcher: Drifter: Civilizations, through the API)
+	// ---------------------------------------------------------------------------------------------
+
+	/** At most this many modded pieces in what it can make (a veteran knows hundreds; a shop sells a few it likes). */
+	public static final int MAKE_MODDED = 4;
+	/** What it knows is looked at again this often (ticks); its picks change only when that has. */
+	public static final long MAKE_RECHECK = 1200L;
+
+	private record MakeKey(UUID id, int maxTier) {
+	}
+
+	/** The gear lists it came from, the vanilla pieces, the modded candidates, and those ranked by its taste (best first). */
+	private record Making(List<Item> source, List<Item> vanilla, java.util.Set<Item> candidates, List<Item> ranked, long checkedAt) {
+	}
+
+	private static final Map<MakeKey, Making> MAKING = new ConcurrentHashMap<>();
+
+	/** A bow or crossbow (vanilla or any mod's). */
+	public static boolean isLauncher(ItemStack stack) {
+		GearKinds.Kind kind = GearKinds.of(stack);
+		return kind != null && (kind.use() == GearKinds.Use.BOW || kind.use() == GearKinds.Use.CROSSBOW);
+	}
+
+	/**
+	 * 1 (wood) to 5 (netherite): a weapon by {@link Weapons#tier} (gold as wood), armor by the vanilla piece its score
+	 * matches, anything else (a bow, a crossbow, a shield, a trinket) as iron.
+	 */
+	public static int tierEquivalent(DrifterEntity drifter, ItemStack stack) {
+		int armor = GearValue.armorTier(stack);
+		if (armor > 0) {
+			return armor;
+		}
+
+		if (isLauncher(stack)) {
+			return 3;
+		}
+
+		Weapons.Tier tier = Weapons.tier(drifter, stack);
+		if (tier == null) {
+			return 3;
+		}
+
+		return switch (tier) {
+			case WOOD, GOLD -> 1;
+			case STONE -> 2;
+			case IRON -> 3;
+			case DIAMOND -> 4;
+			case NETHERITE -> 5;
+		};
+	}
+
+	/**
+	 * The gear it knows how to make at a crafting table (the Planner's rule: {@link RecipeIndex#craftableGear}) at
+	 * {@code maxTier} or lower ({@link #tierEquivalent}) that {@code which} takes: every such vanilla piece, then at most
+	 * {@link #MAKE_MODDED} modded ones it knows (GearLore), those it likes best by their trade points and its taste. The
+	 * picks hold until what it knows changes (no list flickering day to day). Kept per Drifter; cheap to ask often.
+	 */
+	public static List<Item> canMake(DrifterEntity drifter, int maxTier, java.util.function.Predicate<ItemStack> which) {
+		Making making = making(drifter, maxTier);
+		List<Item> out = new ArrayList<>();
+		for (Item item : making.vanilla()) {
+			if (which.test(new ItemStack(item))) {
+				out.add(item);
+			}
+		}
+
+		int modded = 0;
+		for (Item item : making.ranked()) {
+			if (modded >= MAKE_MODDED) {
+				break;
+			}
+
+			if (which.test(new ItemStack(item))) {
+				out.add(item);
+				modded++;
+			}
+		}
+
+		return out;
+	}
+
+	private static Making making(DrifterEntity drifter, int maxTier) {
+		long now = drifter.level().getGameTime();
+		MakeKey key = new MakeKey(drifter.getUUID(), maxTier);
+		List<Item> source = RecipeIndex.craftableGear(drifter.level());
+		Making kept = MAKING.get(key);
+		if (kept != null && kept.source() == source && now - kept.checkedAt() >= 0L && now - kept.checkedAt() < MAKE_RECHECK) {
+			return kept;
+		}
+
+		List<Item> vanilla;
+		if (kept != null && kept.source() == source) {
+			vanilla = kept.vanilla();
+		} else {
+			List<Item> found = new ArrayList<>();
+			for (Item item : RecipeIndex.craftableVanillaGear(drifter.level())) {
+				if (tierEquivalent(drifter, new ItemStack(item)) <= maxTier) {
+					found.add(item);
+				}
+			}
+
+			vanilla = List.copyOf(found);
+		}
+
+		java.util.Set<Item> candidates = new java.util.LinkedHashSet<>();
+		for (Item item : source) {
+			if (drifter.knowsItem(item) && tierEquivalent(drifter, new ItemStack(item)) <= maxTier) {
+				candidates.add(item);
+			}
+		}
+
+		List<Item> ranked;
+		if (kept != null && kept.source() == source && kept.candidates().equals(candidates)) {
+			ranked = kept.ranked();
+		} else {
+			Map<Item, Double> liking = new java.util.HashMap<>();
+			for (Item item : candidates) {
+				ItemStack stack = new ItemStack(item);
+				liking.put(item, GearTaste.liking(drifter, stack, GearValue.points(stack)));
+			}
+
+			List<Item> sorted = new ArrayList<>(candidates);
+			sorted.sort(java.util.Comparator.<Item>comparingDouble(liking::get).reversed()
+				.thenComparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()));
+			ranked = List.copyOf(sorted);
+		}
+
+		if (MAKING.size() > 2048) {
+			MAKING.clear();
+		}
+
+		Making made = new Making(source, vanilla, java.util.Set.copyOf(candidates), ranked, now);
+		MAKING.put(key, made);
+		return made;
 	}
 
 	@Nullable

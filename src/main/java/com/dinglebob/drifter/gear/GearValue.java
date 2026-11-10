@@ -162,6 +162,31 @@ public final class GearValue {
 		return isArmorSlot(slot) && armor(stack, slot) > 0.0 ? slot : null;
 	}
 
+	/**
+	 * Its armor points worn in the slot it is made for: the plain additions to armor only (a vanilla iron chestplate 6),
+	 * as a player's armor bar counts them; 0 if it is not armor.
+	 */
+	public static double armorPoints(ItemStack stack) {
+		EquipmentSlot slot = slotOf(stack);
+		if (stack.isEmpty() || slot == null) {
+			return 0.0;
+		}
+
+		double[] sum = {0.0};
+		stack.forEachModifier(slot, (attribute, modifier) -> {
+			if (attribute.is(Attributes.ARMOR) && modifier.operation() == AttributeModifier.Operation.ADD_VALUE && !Double.isNaN(modifier.amount())) {
+				sum[0] += modifier.amount();
+			}
+		});
+		return Math.max(0.0, sum[0]);
+	}
+
+	/** 1 (leather) to 5 (netherite): the best vanilla piece for its slot its armor score matches; 0 if it is not armor. */
+	public static int armorTier(ItemStack stack) {
+		EquipmentSlot slot = armorSlot(stack);
+		return slot == null ? 0 : (int)armorTier(stack, slot);
+	}
+
 	/** The armor slot this is armor for, without an entity (same rule as {@link #wornSlot}). */
 	@Nullable
 	public static EquipmentSlot armorSlot(ItemStack stack) {
