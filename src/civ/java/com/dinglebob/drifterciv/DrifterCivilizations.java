@@ -1310,6 +1310,10 @@ public final class DrifterCivilizations implements ModInitializer {
 		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player you) {
 			String standing = TownReputation.describe(source.getServer(), town, you);
 			source.sendSuccess(() -> Component.literal("  " + standing), false);
+			String yours = Friends.inTown(town, you);
+			if (yours != null) {
+				source.sendSuccess(() -> Component.literal("  " + yours), false);
+			}
 		}
 
 		List<String> posted = TownNotices.lines(town);

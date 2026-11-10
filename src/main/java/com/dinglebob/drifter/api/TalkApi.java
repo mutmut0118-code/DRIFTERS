@@ -125,6 +125,38 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.Lines.pick(drifter, key, vars);
 	}
 
+	/** What it calls a player (the nickname they asked for, or their name). */
+	public static String callName(DrifterEntity drifter, Player player) {
+		return com.dinglebob.drifter.social.talk.Heard.callName(drifter, player);
+	}
+
+	/**
+	 * Which of these meanings a message has (the chat files' {@code answers} phrases, matched as Drifter matches its own: the
+	 * longest phrase found, slang and typos allowed), or null.
+	 */
+	@Nullable
+	public static String meaning(String text, String... keys) {
+		return com.dinglebob.drifter.social.Lines.answer(text, keys);
+	}
+
+	/** A player topic's word for what it's about ({@code "about"}; empty if none or no such topic). */
+	public static String topicAbout(String topicId) {
+		var topic = com.dinglebob.drifter.social.talk.Topics.playerTopic(topicId);
+		return topic == null ? "" : topic.web().about();
+	}
+
+	/** The player topics' ids that have this tag, or whose id has this word. */
+	public static List<String> playerTopics(String tag) {
+		List<String> ids = new ArrayList<>();
+		for (var topic : com.dinglebob.drifter.social.talk.Topics.forPlayers()) {
+			if (topic.web().tags().contains(tag) || java.util.Arrays.asList(topic.id().split("_")).contains(tag)) {
+				ids.add(topic.id());
+			}
+		}
+
+		return ids;
+	}
+
 	/** How well it knows a player (0 to 100: time spent around them). */
 	public static double familiarity(DrifterEntity drifter, UUID player) {
 		var r = drifter.getSocial().get(player);
