@@ -2,20 +2,255 @@
   "_comment": "Friendships with players (D2, Friends.java, FriendTalk.java, FriendPerks.java). {player} is what it calls you. Voices as everywhere (any, newbie, hermit, helper, pvp_sweat, ...).",
   "lines": {
     "friends.up.friend": {
-      "any": ["ngl youre alright {player}, come by mine whenever", "ok {player} youre cool, were friends now i guess", "honestly {player} youre one of the good ones", "you know what {player}, youre alright. friends?", "{player} youre chill, my door's open", "ok we're friends now {player}, no takebacks", "glad you showed up round here {player} fr", "{player} youre basically one of us now lol"],
-      "hermit": ["...you're alright, {player}. dont tell anyone", "i dont say this much. youre alright {player}"],
-      "helper": ["{player}!! youre officially my friend now :D", "so glad we met {player}, friends for real"],
-      "newbie": ["omg {player} are we friends now?? we're friends now", "{player} youre like my first real friend here lol"],
-      "pvp_sweat": ["youre alright {player}. still clap you in a 1v1 tho", "ok {player} youre cool. friends. dont get soft"]
+      "any": [
+        "ngl youre alright {player}, come by mine whenever",
+        "ok {player} youre cool, were friends now i guess",
+        "honestly {player} youre one of the good ones",
+        "you know what {player}, youre alright. friends?",
+        "{player} youre chill, my door's open",
+        "ok we're friends now {player}, no takebacks",
+        "glad you showed up round here {player} fr",
+        "{player} youre basically one of us now lol"
+      ],
+      "hermit": [
+        "...you're alright, {player}. dont tell anyone",
+        "i dont say this much. youre alright {player}"
+      ],
+      "helper": [
+        "{player}!! youre officially my friend now :D",
+        "so glad we met {player}, friends for real"
+      ],
+      "newbie": [
+        "omg {player} are we friends now?? we're friends now",
+        "{player} youre like my first real friend here lol"
+      ],
+      "pvp_sweat": [
+        "youre alright {player}. still clap you in a 1v1 tho",
+        "ok {player} youre cool. friends. dont get soft"
+      ]
     },
     "friends.up.best": {
-      "any": ["ok youre officially my best friend lol {player}", "{player} youre my best friend here, not even close", "ngl {player} youre my favourite person on this server", "best friends {player}. i mean it", "{player} if anything ever happens youre who i'd call", "you and me {player}, best friends. deal with it"],
-      "hermit": ["{player}. youre the only one i actually trust round here", "...best friend. yeah. dont make it weird {player}"],
-      "helper": ["{player} youre my BEST friend!! :D", "best friends forever {player} <3"],
-      "pvp_sweat": ["{player} youre my duo now. best friend. thats final"]
+      "any": [
+        "ok youre officially my best friend lol {player}",
+        "{player} youre my best friend here, not even close",
+        "ngl {player} youre my favourite person on this server",
+        "best friends {player}. i mean it",
+        "{player} if anything ever happens youre who i'd call",
+        "you and me {player}, best friends. deal with it"
+      ],
+      "hermit": [
+        "{player}. youre the only one i actually trust round here",
+        "...best friend. yeah. dont make it weird {player}"
+      ],
+      "helper": [
+        "{player} youre my BEST friend!! :D",
+        "best friends forever {player} <3"
+      ],
+      "pvp_sweat": [
+        "{player} youre my duo now. best friend. thats final"
+      ]
     },
     "friends.back_from_cool": {
-      "any": ["{player}!! been ages, where you been", "oh hey {player}, long time no see", "{player} you disappeared on me lol, good to see you", "look who it is. missed you round here {player}", "{player}! thought you quit fr"]
+      "any": [
+        "{player}!! been ages, where you been",
+        "oh hey {player}, long time no see",
+        "{player} you disappeared on me lol, good to see you",
+        "look who it is. missed you round here {player}",
+        "{player}! thought you quit fr"
+      ]
+    },
+    "friends.brush_off": {
+      "any": [
+        "not rn {player}",
+        "sorry cant talk rn",
+        "later {player}, kinda busy",
+        "not now lol",
+        "gimme a sec",
+        "cant rn, sorry"
+      ],
+      "hermit": [
+        "not now.",
+        "..."
+      ],
+      "helper": [
+        "sorry {player}! not a good time, later?"
+      ]
+    },
+    "friends.food": {
+      "any": [
+        "yo {player} you look starved, here",
+        "catch, eat something",
+        "{player} eat something before you pass out lol",
+        "here, i got spare",
+        "you're starving dude, take this",
+        "heard your stomach from here lol, catch"
+      ],
+      "helper": [
+        "{player}! you need food, here you go!",
+        "eat eat eat, here"
+      ],
+      "hermit": [
+        "...eat. here"
+      ]
+    },
+    "friends.invite.night": {
+      "any": [
+        "{player} its getting dark, come in",
+        "come inside, its night",
+        "yo come in before the mobs show up",
+        "get in here {player}, its dark out",
+        "door's open, come in",
+        "{player} you can crash at mine tonight"
+      ],
+      "helper": [
+        "come in come in! its dangerous out there",
+        "{player}! stay at mine tonight!"
+      ],
+      "hermit": [
+        "...come in. dont touch anything"
+      ]
+    },
+    "friends.invite.rain": {
+      "any": [
+        "come in, its pouring",
+        "{player} get out of the rain lol",
+        "its raining, come inside",
+        "you're soaked, come in"
+      ],
+      "helper": [
+        "come in out of the rain {player}!"
+      ]
+    },
+    "friends.bed": {
+      "any": [
+        "theres a spare bed if you want it",
+        "you can sleep in the spare bed",
+        "spare bed's yours tonight",
+        "take the spare bed, its fine"
+      ],
+      "helper": [
+        "the spare bed's all yours!"
+      ]
+    },
+    "friends.tip.ore": {
+      "any": [
+        "psst, saw {what} at {where}",
+        "{what} at {where}, didnt get round to it",
+        "btw theres {what} at {where}",
+        "saw some {what} around {where} if you need it",
+        "found {what} at {where}, go for it"
+      ]
+    },
+    "friends.tip.diamonds": {
+      "any": [
+        "ok dont tell anyone. {what} at {where}",
+        "{what} at {where}. keep it quiet",
+        "only telling you this. {what}, {where}",
+        "my secret spot: {what} at {where}",
+        "you didnt hear it from me. {what} at {where}"
+      ]
+    },
+    "friends.tip.place": {
+      "any": [
+        "theres {what} at {where} btw",
+        "found {what} at {where}",
+        "saw {what} around {where}, careful",
+        "fyi theres {what} at {where}"
+      ]
+    },
+    "friends.tip.town": {
+      "any": [
+        "stay away from {town}, they hate us. {way}",
+        "dont go to {town}, they dont like our lot ({way})",
+        "heads up, {town}'s bad news. its {way}",
+        "{town} is {way}. wouldnt go there"
+      ]
+    },
+    "friends.tip.bandits": {
+      "any": [
+        "heads up: {warning}",
+        "btw, {warning}",
+        "careful out there. {warning}"
+      ]
+    },
+    "friends.warn.wanted": {
+      "any": [
+        "dude the guards are looking for you",
+        "yo lay low, the guards are after you",
+        "{player} the guards want you, careful",
+        "they're after you {player}. just saying",
+        "psst. guards are looking for you",
+        "bro what did you do, the guards are after you"
+      ]
+    },
+    "friends.warn.wanted_elsewhere": {
+      "any": [
+        "bro what did you do in {town}",
+        "everyone's talking about what happened in {town}",
+        "heard about {town}... not cool {player}",
+        "{town}?? seriously? i cant help you with that one",
+        "dont come round for a bit. word from {town} got here"
+      ]
+    },
+    "friends.favor.flaked": {
+      "any": [
+        "you said you'd help with {what} lol",
+        "still waiting on {what} btw",
+        "guess you forgot {what}",
+        "thanks for nothing with {what} lol",
+        "you said you'd come lol"
+      ]
+    },
+    "friends.favor.thanks.iron": {
+      "any": [
+        "you're a legend, thanks for the iron",
+        "ty for the iron!! i owe you",
+        "clutch, thanks",
+        "ok thats the iron sorted, ty"
+      ]
+    },
+    "friends.favor.thanks.food": {
+      "any": [
+        "omg thank you, i was starving",
+        "ty ty ty, saved my life",
+        "thanks for the food!!",
+        "you're the best, thanks"
+      ]
+    },
+    "friends.favor.thanks.zombies": {
+      "any": [
+        "thanks for clearing them out",
+        "you actually did it, ty",
+        "no more zombies at mine, thanks to you",
+        "owe you one for the zombies"
+      ]
     }
+  },
+  "answers": {
+    "friends_think": [
+      "what do you think about",
+      "what do you think of",
+      "what do u think about",
+      "what do u think of",
+      "what you think about",
+      "what you think of",
+      "whats your take on",
+      "what's your take on",
+      "your take on",
+      "thoughts on",
+      "opinion on",
+      "your opinion on",
+      "how do you feel about",
+      "how do u feel about",
+      "do you like",
+      "do u like",
+      "you like",
+      "u like",
+      "do you hate",
+      "you hate",
+      "is it good",
+      "whats better",
+      "what's better"
+    ]
   }
 }

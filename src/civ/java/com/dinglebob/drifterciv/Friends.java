@@ -63,7 +63,7 @@ final class Friends {
 	}
 
 	/** A favor a friend asked of a player: what, when, by when, and whether they said they'd do it. */
-	record Favor(String kind, long asked, long due, boolean promised, int done) {
+	record Favor(String kind, long asked, long due, boolean promised, int done, @Nullable BlockPos at) {
 	}
 
 	/** One Drifter and one player. */
@@ -78,6 +78,8 @@ final class Friends {
 		long since;
 		/** When they were last near each other, it seeing them (game time). */
 		long lastTogether;
+		/** When they turned up after a day or more apart (not saved: for its welcome). */
+		long returned = -1;
 		/** Time together since it cooled, toward picking up again (ticks). */
 		long warming;
 		/** The in-game day of {@link #talksToday}: answers to its questions that day (repeat talks count less). */
@@ -156,6 +158,10 @@ final class Friends {
 				favor.putLong("Due", this.favor.due());
 				favor.putBoolean("Promised", this.favor.promised());
 				favor.putInt("Done", this.favor.done());
+				if (this.favor.at() != null) {
+					favor.putLong("At", this.favor.at().asLong());
+				}
+
 				tag.put("Favor", favor);
 			}
 
@@ -189,7 +195,8 @@ final class Friends {
 			b.lastInvite = tag.getLong("LastInvite");
 			if (tag.contains("Favor")) {
 				CompoundTag f = tag.getCompound("Favor");
-				b.favor = new Favor(f.getString("Kind"), f.getLong("Asked"), f.getLong("Due"), f.getBoolean("Promised"), f.getInt("Done"));
+				b.favor = new Favor(f.getString("Kind"), f.getLong("Asked"), f.getLong("Due"), f.getBoolean("Promised"), f.getInt("Done"),
+					f.contains("At") ? BlockPos.of(f.getLong("At")) : null);
 			}
 
 			b.saved = tag.getBoolean("Saved");
@@ -360,6 +367,11 @@ final class Friends {
 		return out;
 	}
 
+	/** Every bond. */
+	static java.util.Collection<Bond> all() {
+		return bonds.values();
+	}
+
 	/** Every bond of this Drifter's. */
 	static List<Bond> ofDrifter(UUID drifter) {
 		List<Bond> out = new ArrayList<>();
@@ -523,6 +535,10 @@ final class Friends {
 			}
 
 			if (together) {
+				if (now - b.lastTogether >= FriendPerks.WELCOME_APART) {
+					b.returned = now;
+				}
+
 				b.lastTogether = now;
 				b.where = drifter.blockPosition();
 				Town town = Market.townOf(drifter);
@@ -657,6 +673,24 @@ final class Friends {
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: your friendships aged " + days + " days apart"), false);
 					return 1;
 				})))
+			.then(Commands.literal("add").requires(source -> source.hasPermission(2))
+				.then(Commands.argument("trust", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(-100, 100))
+					.then(Commands.argument("familiarity", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(-100, 100)).executes(ctx -> {
+						ServerPlayer player = ctx.getSource().getPlayerOrException();
+						DrifterEntity drifter = looked(player);
+						if (drifter == null) {
+							ctx.getSource().sendFailure(Component.literal("No Drifter in front of you"));
+							return 0;
+						}
+
+						String name = player.getGameProfile().getName();
+						DrifterApi.addTrustInPlayer(drifter, player.getUUID(), name, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "trust"));
+						TalkApi.addFamiliarity(drifter, player.getUUID(), name, com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(ctx, "familiarity"));
+						String shown = String.format(java.util.Locale.ROOT, "Debug: %s: trust %.1f, familiarity %.1f, %s", drifter.getName().getString(),
+							DrifterApi.trustInPlayer(drifter, player.getUUID()), TalkApi.familiarity(drifter, player.getUUID()), stage(drifter, player).word);
+						ctx.getSource().sendSuccess(() -> Component.literal(shown), false);
+						return 1;
+					}))))
 			.then(Commands.literal("end").requires(source -> source.hasPermission(2)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				DrifterEntity drifter = looked(player);
@@ -670,10 +704,11 @@ final class Friends {
 				return 1;
 			}))
 			.then(FriendTalk.command())
-			.then(FriendPerks.command());
+			.then(FriendPerks.tipCommand())
+			.then(FriendPerks.favorCommand());
 	}
 
-	/** The Drifter a player is looking at, within 8 blocks (or the nearest within 4). */
+	/** The Drifter a player is looking at, within 16 blocks (or the nearest within 16). */
 	@Nullable
 	static DrifterEntity looked(ServerPlayer player) {
 		Vec3 eye = player.getEyePosition();
@@ -681,8 +716,8 @@ final class Friends {
 		DrifterEntity best = null;
 		double bestDot = 0.9;
 		DrifterEntity nearest = null;
-		double nearestDistance = 16.0;
-		for (DrifterEntity d : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(8.0), DrifterEntity::isAlive)) {
+		double nearestDistance = 256.0;
+		for (DrifterEntity d : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(16.0), DrifterEntity::isAlive)) {
 			Vec3 to = d.getEyePosition().subtract(eye);
 			double dot = to.normalize().dot(look);
 			if (dot > bestDot) {
