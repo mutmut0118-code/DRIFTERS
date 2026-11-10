@@ -5535,8 +5535,122 @@ weapons and 2 modded armor pieces; a trinket drops as a player's would.
 
 ### Next
 
-- (a) **Town kits with modded armor** (approved by the user 2026-11-10, next): when a town is made, its guards get sturdy
-  modded pieces at their tier, its leader a showy or rare piece, and citizens humble ones. Each Drifter's taste picks
-  within its rank; vanilla when nothing modded fits.
+- (a) **Town kits with modded armor** (approved by the user 2026-11-10): built, as uniforms with trims for guards and
+  leaders and a realistic mix for the rest; see "Modded armor in starting kits" below.
 - (b) **The next compatibility projects**, in the user's order: 2 Farmer's Delight addons, 3 block and furniture mods in
   houses, 4 structure mods, 5 player and server mods.
+
+## Modded armor in starting kits (0.23.38-side.3)
+
+The user (2026-11-10): guards and people in authority "in uniform so people know whos in charge"; "for bandits,
+ambushers, delvers, it should be mixed (sometimes matching) but realistically mixed"; different towns told apart "using
+armor trims", and the towns of one nation "share one trim as the nation". Joining or leaving a nation switches the trim
+(the user took the recommendation). Spec: `docs/superpowers/specs/2026-11-10-modded-armor-kits-design.md`; plan:
+`docs/superpowers/plans/2026-11-10-modded-armor-kits.md`. Branch `claude/drifter-chat-expansion-574ebe`, with the main
+line and D2 friends (0.23.38-side.2) merged in. Checked with Immersive Armors (in DRIFTER TEST) and without it.
+
+### Done (smoke-tested on the headless dev server, with and without Immersive Armors; not played yet)
+
+1. **Armor sets** (`gear/ArmorSets`). Every armor mod's matching sets are found from the registered items (pieces sharing
+   an id such as `immersive_armors:warrior_*`, or the same armor material), and each is rated against the vanilla tiers
+   (leather, chain, iron, diamond) by `GearValue`: its pieces' total within 15% of the vanilla set's, and no single piece
+   stronger than the next tier's piece. A set missing a slot gets the vanilla piece of its tier there. Single modded
+   pieces are sorted by tier the same way. Rebuilt on every reload. Immersive Armors gives 10 sets: bone, robe and wooden
+   (leather tier), wither (chain), steampunk and warrior (iron), divine and prismarine (diamond); heavy and slime fit no
+   tier (one piece is too strong for the rest of the set), so they never come in a kit. `/drifter gear sets` lists them.
+2. **Town uniforms** (`world/Uniforms`, `Delvers.townKit`, API 6: `TownUniform`, `DrifterApi.chooseUniformSet`,
+   `townUniform`, `nationUniform`, the 4-argument `equipTown`, `retrim`; docs/API.md "Uniforms (API 6)"). A town picks one
+   uniform set once (a trimmable modded set at iron's tier, at random so towns differ, or iron with none) and a trim
+   (pattern and material, worked out from the town's id). Every guard wears the set on all four slots with the town's
+   trim; the leader a gold crown, the set's legs and boots and a chest that's half the time the set's own and half the
+   time diamond-tier (vanilla diamond, or a trimmable modded diamond-tier chest), all trimmed; citizens their usual humble
+   kit, a piece now and then swapped for a modded one of the same tier (20%), untrimmed. Guards no longer get the odd
+   diamond piece (a uniform is the same on everyone). Without armor mods: guards and leader in iron as before, now
+   trimmed. A set id that no longer exists (mod removed) is worn as iron.
+3. **A realistic mix** (`SoldierKit`, `Delvers.kit`): bandits, ambushers, bounty hunters, warband and battle soldiers, and
+   delvers. Each piece of their usual kit is, 40% of the time (25% for a "loyal" Drifter), a modded piece of the same
+   tier, picked leaning on the Drifter's gear taste. Now and then (8%, 16% for loyal) one wears a whole modded set, as if
+   looted whole, its tier rolled the way its pieces would be; never always the same "best" set. A band's trimmable metal
+   wears the band's trim as before, its dyeable pieces (leather, Immersive Armors' robe and divine) the band's colour.
+   Delvers now and then (10%) have a random trim on one piece, loot from elsewhere. Without armor mods the kits are
+   exactly as before (the same random rolls). Measured on 96 fighters per band tier and 80 delvers: about 40% of pieces
+   modded, about 8% full sets.
+4. **Civilizations** (`TownUniforms`, `Town`, `TownBuilder`, `Nations`). A town keeps its uniform set (saved; old towns
+   get one chosen the first time it's needed, and their guards' old untrimmed gear is left alone). A town in a nation
+   wears the nation's trim (material from the nation's colour, as an army's banner trim; pattern from the nation's id),
+   shared by all its towns; each town keeps its own set. When a town joins a nation (or a nation forms), its guards' and
+   leader's worn pieces carrying the old trim switch to the nation's; when it goes free, back to its own. People not
+   loaded at that moment switch when they're next loaded (checked every 10 s); the switch waits for them (up to 7 days
+   on which some of them were loaded).
+5. **Debug commands.** `/drifter gear sets`; `/drifter gear uniform kit <guard|leader|citizen> <town UUID> [set]` (the
+   nearest Drifter dressed as that role in that town's uniform, its armor and trims listed), `gear uniform join <town>
+   <nation> <colour>`, `gear uniform worn`; `/drifter encounter band <tier 0-2> <count>` (an ambush's band stood here, no
+   player needed, each one's armor listed); `/drifter wanderer delver` now lists the delver's armor;
+   `/drifterciv town uniform` (the nearest town's set, own trim, the nation's trim worn, any switch still due, each loaded
+   guard's and the leader's pieces), debug `/drifterciv town uniform set <id>`, debug `/drifterciv nations free <town>`
+   (a town goes free of its nation at once). Smoke scripts: `tools/smoke-kits-*.txt`.
+6. **Full runs** (2026-11-10): every `tools/smoke-kits-*.txt` and `tools/smoke-gear-civ.txt`, each with Immersive
+   Armors and again without it (14 runs): no exception from Drifter, the addon or Immersive Armors. Guards of a town all
+   in one set and trim, towns' trims different, the switch on joining (also for a town not loaded, kept over 8 days
+   away) and back on going free, old towns' untrimmed guards left alone, an unknown set worn as iron.
+
+### Calls made (say if any is wrong)
+
+From the spec:
+- **The uniform set is chosen per town**, once, among the trimmable modded sets at iron's tier, at random (variety
+  between towns, not always the best set). A set that can't take a trim is never a uniform: then trimmed iron.
+- **A town in a nation keeps its own set** but wears the nation's trim (towns of a nation share the trim; their sets can
+  differ).
+- **Armies and encounter bands keep their per-fighter variety** and army colours; modded pieces join that mix at the
+  band's standard. Captains keep the banner.
+- **"Matching set"** = the pieces an armor mod makes as one set (same id prefix or same material); a missing slot is
+  filled with the vanilla piece of the same tier.
+- **Drifter picks the uniform, the addon keeps it**: the addon stores the set id with the town and passes it back.
+- **Old towns and nations**: nothing changes for guards already geared; a set is chosen the first time one is needed;
+  a switch only touches pieces carrying the old trim.
+- **Guards' occasional diamond piece is dropped** (it was 8%): a uniform is the same on every guard.
+- **"At the guards' tier"**: a set's total within about 15% of the vanilla set's, no single piece above the next tier's.
+- **The leader**: the uniform's set with the gold crown and a chest a tier up half the time, everything trimmed; no
+  stronger than before.
+- **Without armor mods** guards now always wear their town's trim on iron (the small visible change that is the point).
+- Made while building (Task 3): a band member's whole looted set takes the tier one of its pieces would have had (rolled
+  from its standard), so militia mostly wear leather-tier sets and veterans iron with some diamond; stray loot trims and
+  whole sets only happen with an armor mod that has sets installed; dyeable modded pieces in a band take its dye, not its
+  trim (as leather does).
+- Guards' 30% chance of an enchanted piece is still rolled per guard: a uniform means the same items and trim, not the
+  same enchantments.
+- A guard promoted or replaced, or a new leader, after a switch keeps whatever trim they had (re-dressing them is out of
+  scope by the spec).
+
+The controller's rulings while building (also for the user to check):
+- K3: the diamond tier's upper limit for a piece is the diamond piece's value × 1.15 (there's no netherite tier in
+  kits), so no role gets stronger than a delver's diamond.
+- K4: a set's tier is judged over its real pieces only (against the same slots of the vanilla set); when two tiers'
+  bands overlap, the closest wins; none fits: no tier, never in a kit.
+- K6: the leader keeps the old half-and-half roll between an iron-tier chest (the set's own) and a diamond-tier one,
+  rather than always diamond (spec goal 7, no stronger than before).
+- K7: citizens are dressed through the uniform call too, so they get the occasional modded piece (they ignore the set
+  and trim).
+- K8: a town's trim pattern and material are picked independently from its id (all 120 pairs can come up, not 60).
+- K2 (amended): a pending switch for people not loaded is kept until all were loaded, or until 7 days on which some of
+  them were loaded have passed; days with nobody of the town loaded don't count (so a long time away never loses it).
+
+### Design questions and known issues
+
+- **Dev smoke servers in this worktree hang on `stop`** (the server thread spins unloading chunks while the addon is still
+  generating far-off chunks of its world plan). Seen on code from before this work too, so not caused by it; the smoke
+  runs stop their own server process by its ID once the world is saved. Worth a look of its own if it ever shows in the
+  user's game (a world that takes a long time to close).
+- **A town can end up in two nations (pre-existing).** When a winning town makes a beaten one submit (Nations.java,
+  `SUBMIT`, about line 425), it doesn't check whether the beaten town is already in another nation; a union does
+  (`UNION` checks). Recommendation: a small fix of its own (refuse, or have it leave the old nation first), outside this
+  work.
+- **The market keeper's apron replaces a uniform chest (pre-existing, found in the full runs).** When a town is made, its
+  stall keeper is put in a leather tunic (`TownBuilder`, `DrifterApi.wearApron`), in place of whatever chest it wore. When
+  the keeper happens to be a guard or the leader, that one wears an untrimmed leather chest instead of the uniform's (seen:
+  a guard of Oldbury, the leader of Northvale). Recommendation: don't pick a guard or the leader as keeper, or trim the
+  apron with the town's trim; a small change for the final review to weigh.
+- A town with no group never runs its pending switch (nobody to switch). A loot piece that happens to carry exactly the
+  town's old trim would switch too (vanishingly rare).
+- Not exercised in the smokes (read only): a planned nation's town wearing the nation's trim from the start (needs a
+  player near a planned town); sets found by armor material or with a missing slot (no installed mod has one).

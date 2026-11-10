@@ -3362,3 +3362,71 @@ Test commands (creative/cheats): `/drifterciv friends set friend` (the Drifter y
 `acquaintance`, `best`, `stranger`), `/drifterciv friends talk` (it brings something up), `/drifterciv friends tip`,
 `/drifterciv friends favor iron` (or `food`, `zombies`), `/drifterciv friends days 11` (as if 11 days apart),
 `/drifterciv friends end`.
+
+## 0.23.38-side.3: modded armor in starting kits (new)
+
+Guards now wear a uniform: every guard of a town in the same armor, with the town's own armor trim on every piece, so you
+can tell whose guards they are. With Immersive Armors that's one of its iron-strength sets (Warrior or Steampunk);
+without armor mods it's iron, as before, only now trimmed. The leader wears a gold crown and the same trim. Towns in a
+nation all wear the nation's trim. Bandits, ambushers and delvers wear a realistic mix of modded and vanilla pieces, and
+once in a while a whole modded set. Everything from 0.23.38-side.2 above still applies. Immersive Armors is already in
+DRIFTER TEST.
+
+Setup: a new Creative world with commands on, by day, on fairly flat land. To see trims well, look at the armor up
+close (trims are the coloured patterns on the pieces).
+
+- [ ] **Which sets it found.** `/drifter gear sets` lists Immersive Armors' sets, each with a tier: Bone, Robe and
+      Wooden (leather), Wither (chain), Steampunk and Warrior (iron), Divine and Prismarine (diamond). Heavy and Slime say
+      "none" (one of their pieces is too strong for the rest), so they're never in a kit.
+- [ ] **Two towns, two uniforms.** Stand somewhere open and run `/drifterciv town spawn 6 Northvale`. Wait until the town
+      is made (a chat line says so). Fly about 300 blocks away and run `/drifterciv town spawn 6 Southford`.
+      In each town:
+      - Run `/drifterciv town uniform` (it's about the nearest town). It says the town's set (for example
+        `immersive_armors:warrior`) and its own trim (a pattern and a material, for example `minecraft:dune minecraft:lapis`),
+        then lists the guards and the leader with each piece they wear and its trim.
+      - Look at the guards: all of them in the same armor, all with the same trim on every piece. The leader has a gold
+        helmet, the same trim on everything, and a chestplate that's either the set's own or a diamond-strength one.
+      - Ordinary townsfolk wear what they did before (leather, chain, some iron), now and then one modded piece, no trim.
+      Northvale's trim and Southford's are different (two towns may happen to get the same set; the trims still differ).
+- [ ] **A nation forms: the trim switches.** Fly back to Northvale and run `/drifterciv nations join Southford`. Now run
+      `/drifterciv town uniform` in Northvale: it says it's wearing the nation's trim (its material goes with the
+      nation's colour, for example pink: iron, red: redstone, blue: lapis), and the guards' and leader's pieces now show
+      that trim. Fly to Southford: within about 10 seconds of arriving, its guards switch to the same trim (they weren't
+      loaded while you were away, so they switch when you come back). `/drifterciv town uniform` there no longer says
+      "still to switch". Each town keeps its own armor set; only the trim is shared.
+- [ ] **A town goes free: back to its own trim.** Run `/drifterciv nations free Southford`. With only two towns the
+      nation is gone, so both towns' guards go back to their own trims (Southford's when you're there, as above). Check
+      with `/drifterciv town uniform` in each.
+- [ ] **Delvers.** Run `/drifter wanderer delver` five or six times (each makes a delver next to you and lists its
+      armor in chat; delvers are hostile, so stay in Creative). Most wear a mix: an Immersive Armors piece or two with iron
+      or diamond. Now and then one wears a whole modded set, and now and then one piece has a random trim (loot from
+      elsewhere). They don't all wear the same set.
+- [ ] **An ambush.** `/drifter encounter band 2 4` stands four veteran ambushers in a row next to you and lists their armor
+      (`/drifter encounter band 0 4` for militia). Their metal pieces wear the band's trim, their leather (and Immersive
+      Armors' Robe and Divine pieces) the band's colour; their pieces are a mix of modded and vanilla, once in a while a
+      whole set. For a real one (Survival): `/drifter encounter start ambush`, then look at what they wear (and drop).
+- [ ] **Without Immersive Armors.** Make a copy of the DRIFTER TEST profile (in the Modrinth App: the profile's ... menu >
+      Duplicate) and turn off Immersive Armors in the copy. In a new world there:
+      - `/drifter gear sets` says "no modded armor sets".
+      - Make two towns as above: the guards wear iron on every piece, trimmed, the same trim on every guard of a town and
+        a different one in the other town; the leader a gold helmet with iron or diamond, trimmed. The nation and
+        free-again checks above work the same way.
+      - Delvers and an ambush (as above) wear only vanilla pieces, and delvers have no stray trims: just as before this
+        version.
+      - Optional: open the first world in the copy. The Immersive Armors pieces are gone (that's what removing an armor mod
+        does), the game doesn't crash, and `/drifterciv town uniform` still answers.
+      - The copy's `logs\latest.log` has no errors that mention drifter.
+- [ ] **No errors.** In DRIFTER TEST's `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\logs\latest.log`,
+      search for "Exception": none that mentions drifter or immersive_armors.
+
+Known: the town's market keeper wears a plain leather tunic (its apron). If the keeper is one of the guards or the leader,
+that one has the leather tunic instead of the uniform's chestplate (a design question in PROGRESS.md).
+
+By design: a guard who's promoted or replaced, or a new leader, after a switch keeps whatever trim they had; only the
+pieces worn at the moment of joining or leaving switch. Old towns (made before this version) keep their guards' old
+untrimmed armor; they get a uniform set chosen the first time it's needed, but nothing is handed out.
+
+Test commands: `/drifter gear sets`, `/drifterciv town uniform`, `/drifterciv town uniform set <id>` (debug: changes the
+stored set only), `/drifterciv nations join <town>` (the named town joins the nearest town's nation), `/drifterciv nations
+free <town>`, `/drifter gear uniform kit guard <any UUID>` (debug: the nearest Drifter dressed as a guard of that town),
+`/drifter wanderer delver`, `/drifter encounter band <0-2> <count>`.
