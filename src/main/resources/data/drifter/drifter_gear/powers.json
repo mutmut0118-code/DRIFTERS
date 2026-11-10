@@ -5,4 +5,4 @@
  "pull": ["pull", "grapple", "draw enemies"], "teleport": ["teleport", "blink", "warp"], "cooldown": ["cooldown", "recharge"]},
  "except": ["boomerang", "fires ", "fired ", "firing ", "fire-rate", "fire rate", "fire at ", "fire a ", "fire an ", "to fire ", "health", "fire resistance", "fire resistant", "fire protection", "fireproof", "blast protection", "frost walker"],
  "read_text_knowledge": 0.35, "text_confidence_base": 0.3, "text_confidence_per_knowledge": 0.5,
- "seen_step": 0.35, "told_confidence": 0.6, "doubt_step": 0.15, "doubt_after_uses": 3, "doubt_seen_after_uses": 6, "watch_ticks": 40}
+ "seen_step": 0.35, "told_confidence": 0.6, "doubt_step": 0.15, "doubt_after_uses": 3, "doubt_seen_after_uses": 20, "watch_ticks": 40}

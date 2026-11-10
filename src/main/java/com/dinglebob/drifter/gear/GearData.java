@@ -66,7 +66,7 @@ public final class GearData {
 	 */
 	public record PowerRules(Map<Powers.Power, List<String>> words, List<String> except, double readTextKnowledge, double textBase,
 		double textPerKnowledge, double seenStep, double toldConfidence, double doubtStep, int doubtAfterUses, int doubtSeenAfterUses, int watchTicks) {
-		public static final PowerRules DEFAULT = new PowerRules(Map.of(), List.of(), 0.35, 0.3, 0.5, 0.35, 0.6, 0.15, 3, 6, 40);
+		public static final PowerRules DEFAULT = new PowerRules(Map.of(), List.of(), 0.35, 0.3, 0.5, 0.35, 0.6, 0.15, 3, 20, 40);
 	}
 
 	/** Everything the gear files said. {@code byWord}: every kind word with its kind, longest word first. */
