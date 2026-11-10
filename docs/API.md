@@ -164,6 +164,9 @@ timid stands and fights as at war.
 its people who aren't cowards (`DrifterApi.timid`: Bravery under 0.3, no guard) go for them wherever they see them.
 `DrifterApi.markBuilt(level, pos)`: a block of a build (a town mine's stairs): not dug for stone nor tunnelled through.
 
+0.23.37: `DrifterApi.quicksave()`: Quicksave is installed. `DrifterApi.autosave(player, label)`: a Quicksave autosave now
+(called this in its list), tried again for 30 s while Quicksave refuses for the moment (a fight, a fall).
+
 Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
 player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
 `TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid

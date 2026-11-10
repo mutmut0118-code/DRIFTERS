@@ -160,6 +160,21 @@ public final class Towns {
 		return overworld.getDataStorage().computeIfAbsent(new SavedData.Factory<>(State::new, State::load, null), "drifter_civ_towns").tag;
 	}
 
+	/**
+	 * A brand new civilized world, as it loads: saved at once as planned and being built (0.23.37), so a copy of the world
+	 * taken before its plan is ready (Quicksave's first save, five seconds in, during the loading screen) picks the build up
+	 * again when it's put back, the same plan (it's the seed's), not taken for a world from before the plan (towns where
+	 * villages would be, none near spawn: found by the user dying with Quicksave).
+	 */
+	static void markFresh(net.minecraft.server.level.ServerLevel overworld) {
+		CompoundTag tag = new CompoundTag();
+		tag.putInt("Version", SAVE_VERSION);
+		WorldPlan.save(tag);
+		State state = overworld.getDataStorage().computeIfAbsent(new SavedData.Factory<>(State::new, State::load, null), "drifter_civ_towns");
+		state.tag = tag;
+		state.setDirty();
+	}
+
 	static void save(MinecraftServer server) {
 		CompoundTag tag = new CompoundTag();
 		tag.putInt("Version", SAVE_VERSION);

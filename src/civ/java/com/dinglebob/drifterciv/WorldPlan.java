@@ -248,6 +248,9 @@ final class WorldPlan {
 		boolean fresh = overworld.getGameTime() == 0 && !saved.contains("Towns") && DrifterApi.civilizedWorld();
 		planned = saved.getBoolean("Planned") || fresh;
 		WorldBuild.decide(fresh, saved.getBoolean("Built"), saved.getBoolean("Building"));
+		if (fresh) {
+			Towns.markFresh(overworld);
+		}
 		DrifterCivilizations.LOGGER.info("[plan] this world is {}", planned ? "a civilized world (nations made with it)" : "not planned (towns where villages would be)");
 	}
 

@@ -701,6 +701,20 @@ public final class DrifterApi {
 		return drifter.groupAtDeath();
 	}
 
+	/** Quicksave is installed (Bethesda-style saves: dying puts the world back to the last save). */
+	public static boolean quicksave() {
+		return com.dinglebob.drifter.compat.QuicksaveCompat.present();
+	}
+
+	/**
+	 * An autosave in Quicksave, if it's installed, for this player, called this in its list (0.23.37: on reaching a town,
+	 * once a new world's towns are built). Quicksave's own guard still says no in a fight, falling or in lava: then it's
+	 * tried again for half a minute.
+	 */
+	public static void autosave(net.minecraft.server.level.ServerPlayer player, String label) {
+		com.dinglebob.drifter.compat.QuicksaveCompat.autosave(player, label);
+	}
+
 	/**
 	 * This block is part of a build (a town's mine stairs: 0.23.35): Drifters don't dig it for stone or tunnel through it,
 	 * as for a house.

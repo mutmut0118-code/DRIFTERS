@@ -4669,6 +4669,28 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.37: Quicksave: a new world's towns kept through a death; autosaves on reaching a town and before an encounter**
+  (the user, 2026-11-10: "found a bug while playing with the quicksave mod, whenever i die the town plans reset to a
+  different plan, and it takes me back to 0 0 spawn, without the towns (i think it saved before civs planned the towns)",
+  "when you walk into a town or an encounter the game autosaves"; no superpowers for this).
+  - **The cause:** Quicksave takes its first autosave five seconds after joining a world with none; in a new civilized
+    world that's during the loading screen, before the plan's ready, the towns are built or spawn is moved. Dying before its
+    next timed save (10 minutes) put the world back to that: spawn at 0, 0, no towns; and with nothing of the plan saved and
+    time gone by, the world loaded as one from before the plan (towns where villages would be): "a different plan".
+  - **A new world saved as planned at once** (`Towns.markFresh`, from `WorldPlan.decide`): planned and being built, so a copy
+    taken before the plan is ready picks the build up again when it's put back (a whole civilized world; the plan may differ
+    a little, as some land was generated before the copy).
+  - **Quicksave compat** (`compat.QuicksaveCompat`, optional, by reflection: Quicksave's own `SaveService.trySave`, its guard
+    still refusing in a fight, falling or in lava, tried again every 2 s for 30 s): an autosave once a new world's towns are
+    built (the loading screen says "Saving the world (Quicksave)": the first save of all that land took 50 s in testing,
+    better there than ten minutes into play), on walking into a town (`Arrivals`: from outside it, at most every 5 minutes,
+    not the same town within 20), and just before an encounter starts (not a notice). API: `DrifterApi.quicksave()`,
+    `DrifterApi.autosave(player, label)`.
+  - Tested (dev client with Quicksave): its first save at 21 s into the loading screen; "The world's towns built" at the end
+    (50 s); "Willowwick" on walking in (6 s); "Before an ambush"; killed: Quicksave put back the Willowwick save and the world
+    opened as a civilized world with both its towns. Headless: a new world saved 8 s in has Planned and Building set; opened
+    again, its build goes on.
+
 - **0.23.36: everyone but a coward fights, kill on sight after a leader's murder, the killer a threat on sight; the
   mine's stairs kept** (the user, 2026-11-10: "more of them should be fighting", "if im wanted after i kill the leader it
   should be kill on sight for anybody who isnt a coward", "half the town is standing and looking around until i hit

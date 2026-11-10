@@ -604,6 +604,12 @@ public final class Encounters {
 			active.remove(player.getUUID());
 		}
 
+		// An autosave first, with Quicksave (the user, 0.23.37: "when you walk into a town or an encounter the game autosaves";
+		// they found it dying to an ambush): dying to it puts them back just before it. Not for a notice (no one comes).
+		if (kind != Kind.WANTED && kind != Kind.REWARD && com.dinglebob.drifter.compat.QuicksaveCompat.present()) {
+			com.dinglebob.drifter.compat.QuicksaveCompat.saveNow(player, "Before " + kind.label);
+		}
+
 		Encounter encounter;
 		try {
 			encounter = make(player, kind);
