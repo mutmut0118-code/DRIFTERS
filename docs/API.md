@@ -150,6 +150,10 @@ its guards and brave go to the trouble, the rest go in (`social.AlarmGoal`). `Dr
 `Home.ownChests()`, `Planner.planOwn`. `DrifterApi.holdStill(drifter, ticks)`: still and deciding nothing for a while (a
 town being made; not saved).
 
+0.23.33: `ShopKeeper.stocksFromTown(keeper)`: whether its shop stocks up from the town's chests too (default true; false:
+its household's own chests only, as a trade's shop). `DrifterApi.groupAtDeath(drifter)`: the group it was in as it died
+(with death for good it's out of its group before the death event; null if none).
+
 Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
 player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
 `TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid
