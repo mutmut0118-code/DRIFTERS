@@ -35,6 +35,7 @@ public class Drifter implements ModInitializer {
 		Threats.register();
 		com.dinglebob.drifter.world.CatchUp.register();
 		com.dinglebob.drifter.compat.RagdollCompat.register();
+		com.dinglebob.drifter.compat.QuicksaveCompat.register();
 		com.dinglebob.drifter.entity.RealSkins.register();
 		com.dinglebob.drifter.world.DrifterRegistry.register();
 		com.dinglebob.drifter.world.Respawns.register();

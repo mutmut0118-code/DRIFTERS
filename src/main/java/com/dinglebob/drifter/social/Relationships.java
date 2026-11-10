@@ -237,6 +237,8 @@ public class Relationships {
 				r.grudges.removeIf(g -> g.severity() < GRUDGE_GONE);
 				// Trust drifts toward the baseline, held down by what it still holds against them.
 				double target = Math.max(-Relationship.MAX_TRUST, baseline - r.grudgeWeight());
+				// (A friend an addon keeps: it doesn't drift down past where the friendship holds it.)
+				target = Math.max(target, com.dinglebob.drifter.api.TalkApi.trustFloor(this.drifter, r.player));
 				double rate = DRIFT_MIN + DRIFT_SPREAD * forgiveness;
 				r.addTrust((target - r.trust) * rate);
 				// Fear fades too, down to what their gear earns.

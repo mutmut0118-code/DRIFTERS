@@ -297,6 +297,8 @@ public final class Facts {
 			}
 		}
 
+		// (What an addon knows of the two of them: a friendship's stage.)
+		com.dinglebob.drifter.api.TalkApi.playerFacts(me, player, facts.words, facts.flags);
 		return facts;
 	}
 

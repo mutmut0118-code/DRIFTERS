@@ -3917,7 +3917,8 @@ public final class TownBuilder {
 	 * hills, the fences dont connect when a block goes upward"): at a step the lower post goes up as high as the next one, as
 	 * a player builds a fence on a slope. A gate on the east side.
 	 */
-	private static void penFence(ServerLevel level, BlockPos middle, int half, Direction front) {
+	/** The columns of a pen's fence, round its middle (y 0). */
+	private static List<BlockPos> penRing(BlockPos middle, int half) {
 		List<BlockPos> ring = new ArrayList<>();
 		for (int i = -half; i < half; i++) {
 			ring.add(new BlockPos(middle.getX() + i, 0, middle.getZ() - half));
@@ -3935,16 +3936,42 @@ public final class TownBuilder {
 			ring.add(new BlockPos(middle.getX() - half, 0, middle.getZ() + i));
 		}
 
+		return ring;
+	}
+
+	/**
+	 * The ground under a pen's fence: not a fence, a gate, a wall or a light on one (0.23.37: a fence there already was taken
+	 * for the ground, so each time the pen was put right, once a session, another fence went on top: the user's picture of a
+	 * pen walled in six high).
+	 */
+	private static int penGround(ServerLevel level, int x, int z) {
+		int y = ground(level, x, z);
+		while (y > level.getMinBuildHeight()) {
+			BlockState state = level.getBlockState(new BlockPos(x, y, z));
+			if (!(state.is(net.minecraft.tags.BlockTags.FENCES) || state.is(net.minecraft.tags.BlockTags.FENCE_GATES) || state.is(net.minecraft.tags.BlockTags.WALLS)
+				|| state.getBlock() instanceof net.minecraft.world.level.block.LanternBlock || state.getBlock() instanceof net.minecraft.world.level.block.TorchBlock)) {
+				break;
+			}
+
+			y--;
+		}
+
+		return y;
+	}
+
+	private static void penFence(ServerLevel level, BlockPos middle, int half, Direction front) {
+		List<BlockPos> ring = penRing(middle, half);
+
 		int[] tops = new int[ring.size()];
 		// (And the ground just out from it and just in: higher there, the fence is a step from it. Found in the user's picture,
 		// 2026-11-08: a pen on a terrace, the bank outside as high as its fence; people walked in over it and couldn't get out.)
 		int[] sides = new int[ring.size()];
 		for (int i = 0; i < ring.size(); i++) {
 			BlockPos column = ring.get(i);
-			tops[i] = ground(level, column.getX(), column.getZ()) + 1;
+			tops[i] = penGround(level, column.getX(), column.getZ()) + 1;
 			int sx = Math.abs(column.getX() - middle.getX()) == half ? Integer.signum(column.getX() - middle.getX()) : 0;
 			int sz = Math.abs(column.getZ() - middle.getZ()) == half ? Integer.signum(column.getZ() - middle.getZ()) : 0;
-			sides[i] = Math.max(ground(level, column.getX() + sx, column.getZ() + sz), ground(level, column.getX() - sx, column.getZ() - sz)) + 1;
+			sides[i] = Math.max(penGround(level, column.getX() + sx, column.getZ() + sz), penGround(level, column.getX() - sx, column.getZ() - sz)) + 1;
 		}
 
 		BlockPos gate = new BlockPos(middle.getX() + front.getStepX() * half, 0, middle.getZ() + front.getStepZ() * half);
@@ -4013,6 +4040,21 @@ public final class TownBuilder {
 		}
 
 		if (front != null) {
+			// (What a fence stacked up by the putting right before 0.23.37 left: off, its lights too, then the fence once.)
+			for (BlockPos column : penRing(town.pen, 5)) {
+				int ground = penGround(level, column.getX(), column.getZ());
+				for (int y = ground + 1; y <= ground + 12; y++) {
+					BlockPos pos = column.atY(y);
+					BlockState state = level.getBlockState(pos);
+					if (state.is(net.minecraft.tags.BlockTags.FENCES) || state.is(net.minecraft.tags.BlockTags.FENCE_GATES)
+						|| state.getBlock() instanceof net.minecraft.world.level.block.LanternBlock || state.getBlock() instanceof net.minecraft.world.level.block.TorchBlock) {
+						level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+
+				changed(column.getX(), column.getZ());
+			}
+
 			penFence(level, town.pen, 5, front);
 			changed = true;
 		}

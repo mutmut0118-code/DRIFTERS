@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 4;
+	public static final int API_VERSION = 5;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -702,6 +702,28 @@ public final class DrifterApi {
 	}
 
 	/**
+	 * Work a background thread hands back to the server, run on the server thread's next turn; dropped if the server's
+	 * stopping (MinecraftServer#execute would run it at once on the background thread, touching the world while it's saved).
+	 */
+	public static void onServerThread(net.minecraft.server.MinecraftServer server, Runnable task) {
+		com.dinglebob.drifter.world.ServerThread.later(server, task);
+	}
+
+	/** Quicksave is installed (Bethesda-style saves: dying puts the world back to the last save). */
+	public static boolean quicksave() {
+		return com.dinglebob.drifter.compat.QuicksaveCompat.present();
+	}
+
+	/**
+	 * An autosave in Quicksave, if it's installed, for this player, called this in its list (0.23.37: on reaching a town,
+	 * once a new world's towns are built). Quicksave's own guard still says no in a fight, falling or in lava: then it's
+	 * tried again for half a minute.
+	 */
+	public static void autosave(net.minecraft.server.level.ServerPlayer player, String label) {
+		com.dinglebob.drifter.compat.QuicksaveCompat.autosave(player, label);
+	}
+
+	/**
 	 * This block is part of a build (a town's mine stairs: 0.23.35): Drifters don't dig it for stone or tunnel through it,
 	 * as for a house.
 	 */
@@ -1280,14 +1302,14 @@ public final class DrifterApi {
 
 	/**
 	 * What one of these is worth to a Drifter, in points (an emerald is 6): what it trades by. Any mod's weapons, armor,
-	 * shields and trinkets are valued from the item itself (API 4: {@code GearValue.points}); vanilla items as always.
+	 * shields and trinkets are valued from the item itself (API 5: {@code GearValue.points}); vanilla items as always.
 	 */
 	public static double worth(net.minecraft.world.item.ItemStack stack) {
 		return com.dinglebob.drifter.social.ItemValues.each(stack);
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// Gear: any mod's weapons, armor and trinkets (API 4)
+	// Gear: any mod's weapons, armor and trinkets (API 5)
 	// ---------------------------------------------------------------------------------------------
 
 	/** A weapon of some kind, a piece of armor, a shield, or a trinket (Trinkets, optional): any mod's, read from the item. */

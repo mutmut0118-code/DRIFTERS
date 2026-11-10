@@ -55,6 +55,7 @@ public final class DrifterCivilizations implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		CivConfig.load();
 		ServerLifecycleEvents.SERVER_STARTING.register(started -> server = started);
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> server = null);
 		DrifterEvents.DIED.register((drifter, source, comesBack) -> deathsHeard++);
@@ -65,6 +66,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		Towns.register();
 		TownFounding.register();
 		Justice.register();
+		// An autosave on walking into a town, with Quicksave (0.23.37).
+		Arrivals.register();
 		Diplomacy.register();
 		TownSites.register();
 		WorldPlan.register();
@@ -78,6 +81,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownTraditions.register();
 		TownNotices.register();
 		TownServices.register();
+		Friends.register();
+		FriendCommands.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()
@@ -1307,6 +1312,10 @@ public final class DrifterCivilizations implements ModInitializer {
 		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player you) {
 			String standing = TownReputation.describe(source.getServer(), town, you);
 			source.sendSuccess(() -> Component.literal("  " + standing), false);
+			String yours = Friends.inTown(town, you);
+			if (yours != null) {
+				source.sendSuccess(() -> Component.literal("  " + yours), false);
+			}
 		}
 
 		List<String> posted = TownNotices.lines(town);

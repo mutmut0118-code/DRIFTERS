@@ -3223,7 +3223,23 @@ The same as your test: in creative, on the flat world, standing by the battle.
       people don't dig into the stairs' steps or walls, and no cobblestone walls appear in the mine's strips and corridor.
       Their own staircases are a block taller: you can walk down and jump up them without hitting your head.
 
-## 0.23.36-side.1: any weapon, armor and trinket mod (new)
+## 0.23.37: Quicksave (new)
+
+- [ ] **A death keeps the towns.** With Quicksave on, make a new world: at the end of the loading screen it says "Saving the
+      world (Quicksave)" (can take a while, once). Die soon after: the world comes back with its towns and the spawn by the
+      road into the nearest town, not at 0, 0.
+- [ ] **Autosaves.** Walk into a town from outside: Quicksave's toast, saved as the town's name (not again for 5 minutes,
+      nor the same town for 20). An encounter (an ambush, bounty hunters...): saved just before it ("Before an ambush"); die
+      to it and you're back just before it.
+
+## 0.23.38: pens, quitting (new)
+
+- [ ] **Pens stay one fence high.** A town pen that grew a tall stack of fences (one layer a session) is back to one fence
+      the first time it's loaded, and stays that way however often the world's opened.
+- [ ] **Quitting doesn't hang.** Save and quit to title (several times, in a world with towns): never stuck on "Saving
+      worlds".
+
+## 0.23.38-side.1: any weapon, armor and trinket mod (new)
 
 Drifters now judge, want, make and use modded weapons, armor and trinkets the way a player would. These checks use the mods
 already in DRIFTER TEST: Simply Swords, Simply Bows, Immersive Armors, Trinkets, Artifacts and Better Combat. (Too Many Bows

@@ -233,7 +233,7 @@ public final class PlayerChats {
 	/** Said its piece: it waits for an answer to its question, or a bystander may add something. */
 	private static void end(Opening opening, long now) {
 		if (opening.topic.question() != null && opening.said) {
-			PlayerTalk.ask(opening.drifter, opening.player, opening.topic.question(), vars(opening), now);
+			PlayerTalk.ask(opening.drifter, opening.player, opening.topic.question(), vars(opening), now, opening.topic.id());
 		}
 
 		chime(opening.drifter, opening.player, opening.topic.chime(), now, "player", opening.player.getGameProfile().getName(), "name",

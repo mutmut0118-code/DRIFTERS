@@ -47,6 +47,11 @@ public final class RequestGoal extends Goals.Goal {
 		}
 	}
 
+	/** It brings this player that many of this and tosses it over (for addons: {@link com.dinglebob.drifter.api.TalkApi#bring}). */
+	public static void bring(DrifterEntity drifter, Player player, Item item, int count) {
+		ask(drifter, Kind.GIVE, player, item, count);
+	}
+
 	@Nullable
 	private static Request request(DrifterEntity drifter) {
 		Request request = requests.get(drifter.getUUID());

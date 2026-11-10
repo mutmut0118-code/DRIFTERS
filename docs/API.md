@@ -164,6 +164,12 @@ timid stands and fights as at war.
 its people who aren't cowards (`DrifterApi.timid`: Bravery under 0.3, no guard) go for them wherever they see them.
 `DrifterApi.markBuilt(level, pos)`: a block of a build (a town mine's stairs): not dug for stone nor tunnelled through.
 
+0.23.38: `DrifterApi.onServerThread(server, task)`: work a background thread hands back, run on the server thread's next
+turn, dropped if the server's stopping (use it, not `server.execute`, from any background thread).
+
+0.23.37: `DrifterApi.quicksave()`: Quicksave is installed. `DrifterApi.autosave(player, label)`: a Quicksave autosave now
+(called this in its list), tried again for 30 s while Quicksave refuses for the moment (a fight, a fall).
+
 Seen taking (0.23.29): `DrifterEvents.SEEN_TAKING` (player, chest, what they took, the Drifters who saw them at it): a
 player took things out of a chest or a barrel while Drifters saw them; whether that was theft is the listener's call.
 `TownWork.standing` may answer "wanted" too: about the town, its guards and bold people go for them on sight, the timid
@@ -172,7 +178,7 @@ way on, and `Dig` STRIP, BRANCH or DOWN); a home's mining trips start there. `Ho
 chest to fetch from (one with enough, nearest home, not crowded). `DrifterApi.furnitureSpot(level, home, notHere)`: a spot
 in the room round its bed for one more piece of furniture.
 
-## Gear (API 4)
+## Gear (API 5)
 
 Any mod's weapons, armor, shields and trinkets, read from the items themselves (their attribute modifiers, rarity and
 recipes), with what each Drifter knows of them and its taste. All on the server thread.
@@ -227,6 +233,27 @@ near home.
 
 Fabric's data attachments (`AttachmentRegistry.createPersistent(...)` with a codec, then `drifter.setAttached(...)`):
 saved with the Drifter, versioned by the addon, and Drifter's own save format never changes for it.
+
+## Friends: talk and closeness with players (0.23.37, API 4, `TalkApi`)
+
+For the addon's friendships (D2, docs/LIVED_WORLD.md). In a class of its own so this door grows in one place per
+feature. Each hook is one listener, a no-op until the addon sets it.
+
+| Member | What it does |
+| --- | --- |
+| `DrifterEvents.PLAYER_ANSWERED (drifter, player, topic, does, yes)` | A player answered a question a Drifter asked in chat (a topic's question, or one it asked itself: topic `"told.hungry"`), before it answers back. `does`: what a yes means (`"team"`, `"follow"`, `"come"`, `"give_food"`, or an addon's own word such as `"opinion"`). |
+| `TalkApi.registerChatHandler((player, drifter, text, intent) -> handled)` | Asked first when a player says something a Drifter takes as said to it (after the encounter check); true: the addon answered, Drifter says nothing of its own. |
+| `TalkApi.registerPlayerFacts((drifter, player, words, flags) -> ...)` | Adds to what a Drifter knows of a player for its talk: flags for `b:` conditions in topics, words for `{b.word}`. |
+| `TalkApi.setTrustFloor((drifter, player) -> floor)` | The least its trust in a player drifts down to each day (`Double.NEGATIVE_INFINITY`: none). |
+| `TalkApi.setNameNote((drifter, viewer) -> note)` | A line for that player on the hover of its name in chat ("your friend"). |
+| `TalkApi.setWhisperRule((drifter, player, key) -> whisper)` | Its answers to a player that say where something is (coordinates) are whispered when this says so. |
+| `TalkApi.whisper(drifter, player, text)` | A line to one player, shown as a /msg ("X whispers to you: ..."); nobody else sees it, no Drifter overhears. |
+| `TalkApi.sayTo(drifter, player, text)`, `line(drifter, key, vars...)` | Says a line aloud to a player; picks a line from the chat files in its voice. |
+| `TalkApi.familiarity(drifter, player)`, `addFamiliarity(drifter, player, name, change)`, `lastSeen(drifter, player)` | How well it knows a player (0 to 100), and when it last saw them. |
+| `TalkApi.memories(drifter, kind)` | What it remembers of a `MemoryKind` (ORE, STRUCTURE, LANDMARK...): a copy. Only what it saw or was told. |
+| `TalkApi.spareFood(drifter)`, `bring(drifter, player, item, count)` | Food it can spare; it walks over and tosses a player that many (gives up after a minute). |
+| `TalkApi.startTalk(drifter, player, topic)` | It brings up a player topic (by id, or one that suits) with a player now. Addon topics go in `data/<addon>/drifter_talk/` as `player_topics`. |
+| `TalkApi.hostileOnSight(drifter)`, `talking(drifter)` | A Bandit (now) or a delver; in a talk now. |
 
 ## Rules for the addon
 

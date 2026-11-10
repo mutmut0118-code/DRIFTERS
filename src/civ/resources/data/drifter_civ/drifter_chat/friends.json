@@ -1,0 +1,21 @@
+{
+  "_comment": "Friendships with players (D2, Friends.java, FriendTalk.java, FriendPerks.java). {player} is what it calls you. Voices as everywhere (any, newbie, hermit, helper, pvp_sweat, ...).",
+  "lines": {
+    "friends.up.friend": {
+      "any": ["ngl youre alright {player}, come by mine whenever", "ok {player} youre cool, were friends now i guess", "honestly {player} youre one of the good ones", "you know what {player}, youre alright. friends?", "{player} youre chill, my door's open", "ok we're friends now {player}, no takebacks", "glad you showed up round here {player} fr", "{player} youre basically one of us now lol"],
+      "hermit": ["...you're alright, {player}. dont tell anyone", "i dont say this much. youre alright {player}"],
+      "helper": ["{player}!! youre officially my friend now :D", "so glad we met {player}, friends for real"],
+      "newbie": ["omg {player} are we friends now?? we're friends now", "{player} youre like my first real friend here lol"],
+      "pvp_sweat": ["youre alright {player}. still clap you in a 1v1 tho", "ok {player} youre cool. friends. dont get soft"]
+    },
+    "friends.up.best": {
+      "any": ["ok youre officially my best friend lol {player}", "{player} youre my best friend here, not even close", "ngl {player} youre my favourite person on this server", "best friends {player}. i mean it", "{player} if anything ever happens youre who i'd call", "you and me {player}, best friends. deal with it"],
+      "hermit": ["{player}. youre the only one i actually trust round here", "...best friend. yeah. dont make it weird {player}"],
+      "helper": ["{player} youre my BEST friend!! :D", "best friends forever {player} <3"],
+      "pvp_sweat": ["{player} youre my duo now. best friend. thats final"]
+    },
+    "friends.back_from_cool": {
+      "any": ["{player}!! been ages, where you been", "oh hey {player}, long time no see", "{player} you disappeared on me lol, good to see you", "look who it is. missed you round here {player}", "{player}! thought you quit fr"]
+    }
+  }
+}

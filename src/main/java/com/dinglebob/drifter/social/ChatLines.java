@@ -89,14 +89,43 @@ public final class ChatLines {
 	 * town "there is alot of conversations happening, but i dont know whos talking to who").
 	 */
 	private static Component line(DrifterEntity drifter, String text, @org.jetbrains.annotations.Nullable To to, net.minecraft.server.level.ServerPlayer player) {
+		return Component.literal("<").append(name(drifter, to, player)).append("> " + text);
+	}
+
+	/**
+	 * Its name as this player sees it in chat: hovering it says who it's talking to, and what an addon notes for this player
+	 * ("your friend": {@link com.dinglebob.drifter.api.TalkApi#setNameNote}).
+	 */
+	private static net.minecraft.network.chat.MutableComponent name(DrifterEntity drifter, @org.jetbrains.annotations.Nullable To to,
+		net.minecraft.server.level.ServerPlayer player) {
 		net.minecraft.network.chat.MutableComponent name = Component.literal(drifter.getName().getString());
-		if (to != null) {
-			String who = to.who().equals(player.getUUID()) ? "you" : to.shown();
-			name = name.withStyle(style -> style.withHoverEvent(new net.minecraft.network.chat.HoverEvent(
-				net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.literal("talking to " + who))));
+		String hover = to == null ? null : "talking to " + (to.who().equals(player.getUUID()) ? "you" : to.shown());
+		String note = com.dinglebob.drifter.api.TalkApi.nameNote(drifter, player);
+		if (note != null) {
+			hover = hover == null ? note : hover + "\n" + note;
 		}
 
-		return Component.literal("<").append(name).append("> " + text);
+		if (hover != null) {
+			String shown = hover;
+			name = name.withStyle(style -> style.withHoverEvent(new net.minecraft.network.chat.HoverEvent(
+				net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.literal(shown))));
+		}
+
+		return name;
+	}
+
+	/**
+	 * A line to one player only, as a /msg shows ("X whispers to you: ..."); no other player sees it and no Drifter overhears
+	 * (the user, 2026-11-10: a friend tells where the diamonds are "using the whisper command"). The server log has it.
+	 */
+	public static void whisper(DrifterEntity drifter, net.minecraft.server.level.ServerPlayer player, String text) {
+		if (!DrifterConfig.chatLines() || drifter.getServer() == null) {
+			return;
+		}
+
+		player.sendSystemMessage(Component.translatable("commands.message.display.incoming", name(drifter, null, player), Component.literal(text))
+			.withStyle(net.minecraft.ChatFormatting.GRAY, net.minecraft.ChatFormatting.ITALIC));
+		drifter.getServer().sendSystemMessage(Component.literal(drifter.getName().getString() + " whispers to " + player.getGameProfile().getName() + ": " + text));
 	}
 
 	/** Who it's talking to just now: their UUID, the name it calls them (their nickname) and their username. */
