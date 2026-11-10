@@ -71,6 +71,11 @@ public final class TrinketsCompat {
 	private static Method evaluatePredicateSet;
 	private static Method getTrinket;
 	private static Method canEquip;
+	private static Method canUnequip;
+	private static Method getDropRule;
+	/** TrinketEnums.DropRule.DESTROY and DEFAULT. */
+	private static Object destroy;
+	private static Object useDefault;
 	private static Method getModifiers;
 	private static Method slotIdentifier;
 	private static Method getEntitySlots;
@@ -123,6 +128,7 @@ public final class TrinketsCompat {
 			evaluatePredicateSet = api.getMethod("evaluatePredicateSet", Set.class, ItemStack.class, reference, LivingEntity.class);
 			getTrinket = api.getMethod("getTrinket", Item.class);
 			canEquip = trinket.getMethod("canEquip", ItemStack.class, reference, LivingEntity.class);
+			canUnequip = trinket.getMethod("canUnequip", ItemStack.class, reference, LivingEntity.class);
 			getModifiers = trinket.getMethod("getModifiers", ItemStack.class, reference, LivingEntity.class, ResourceLocation.class);
 			slotIdentifier = Class.forName("dev.emi.trinkets.api.SlotAttributes").getMethod("getIdentifier", reference);
 			getEntitySlots = api.getMethod("getEntitySlots", Level.class, EntityType.class);
@@ -137,11 +143,70 @@ public final class TrinketsCompat {
 
 			ready = true;
 			Drifter.LOGGER.info("[Drifter] Trinkets found: Drifters wear trinkets");
+			registerDropRule(trinket, reference);
 		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
 			fail(e);
 		}
 
 		return ready;
+	}
+
+	/**
+	 * Its trinkets drop at death as a player's would (it takes every loss a player does, and no more): Trinkets asks the
+	 * trinket's own drop rule, then this callback. A DESTROY the trinket gives only because the wearer is a mob (Artifacts
+	 * destroys a mob's worn artifacts when no player killed it, so zombies can't farm them) becomes DEFAULT, so the slot's
+	 * rule, Curse of Vanishing and the rest still decide; a DESTROY the trinket would also give a player (asked through the
+	 * Drifter's helper player) stays. If this can't be set up, it says so once and trinkets drop by the mods' rules as they are.
+	 */
+	private static void registerDropRule(Class<?> trinket, Class<?> reference) {
+		try {
+			Class<?> rule = Class.forName("dev.emi.trinkets.api.TrinketEnums$DropRule");
+			Class<?> callback = Class.forName("dev.emi.trinkets.api.event.TrinketDropCallback");
+			getDropRule = trinket.getMethod("getDropRule", ItemStack.class, reference, LivingEntity.class);
+			destroy = rule.getField("DESTROY").get(null);
+			useDefault = rule.getField("DEFAULT").get(null);
+			Object listener = java.lang.reflect.Proxy.newProxyInstance(callback.getClassLoader(), new Class<?>[] {callback}, (proxy, method, args) -> {
+				if (method.getDeclaringClass() == Object.class) {
+					return switch (method.getName()) {
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						default -> "Drifter's trinket drop rule";
+					};
+				}
+
+				return args != null && args.length == 4 ? dropRule(args[0], args[1], args[2], args[3]) : args == null ? null : args[0];
+			});
+			@SuppressWarnings("unchecked")
+			net.fabricmc.fabric.api.event.Event<Object> event = (net.fabricmc.fabric.api.event.Event<Object>)callback.getField("EVENT").get(null);
+			event.register(listener);
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+			getDropRule = null;
+			Drifter.LOGGER.warn("[Drifter] Trinkets' drop callback didn't match ({}); a Drifter's trinkets drop by the mods' own rules", e.toString());
+		}
+	}
+
+	/** The callback itself: {@code rule} so far for this stack in this slot of this entity. Never throws. */
+	private static Object dropRule(Object rule, Object stack, Object reference, Object entity) {
+		if (rule != destroy || getDropRule == null || !(entity instanceof com.dinglebob.drifter.entity.DrifterEntity drifter) || !(stack instanceof ItemStack item)) {
+			return rule;
+		}
+
+		try {
+			Object trinket = getTrinket.invoke(null, item.getItem());
+			// Not the trinket's own rule (another mod's callback, which a player gets too): stays.
+			if (getDropRule.invoke(trinket, item, reference, drifter) != destroy) {
+				return rule;
+			}
+
+			net.minecraft.world.entity.player.Player player = com.dinglebob.drifter.hands.FakePlayerBridge.helper(drifter);
+			if (player == null || getDropRule.invoke(trinket, item, reference, player) == destroy) {
+				return rule;
+			}
+
+			return useDefault;
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+			return rule;
+		}
 	}
 
 	private static void fail(Throwable e) {
@@ -156,7 +221,10 @@ public final class TrinketsCompat {
 		slotTags = null;
 	}
 
-	/** A trinket that fits one of the Drifter's slot types (by Trinkets' tags; no entity needed). Cached per item. */
+	/**
+	 * A trinket that fits one of the Drifter's slot types (by Trinkets' tags; no entity needed). Cached per item. Tags only:
+	 * a trinket that some mod lets in only through its own slot predicate (no tag) isn't seen, so it isn't worn.
+	 */
 	public static boolean isTrinket(ItemStack stack) {
 		if (!active() || stack.isEmpty()) {
 			return false;
@@ -283,6 +351,24 @@ public final class TrinketsCompat {
 			}
 
 			return (boolean)canEquip.invoke(getTrinket.invoke(null, stack.getItem()), stack, reference, entity);
+		} catch (InvocationTargetException e) {
+			broken(stack, e);
+			return false;
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+			fail(e);
+			return false;
+		}
+	}
+
+	/** Trinkets would let this come out of that slot (the trinket's own canUnequip: Curse of Binding, or a mod's rule). */
+	public static boolean canUnequip(LivingEntity entity, Slot slot, ItemStack stack) {
+		if (!active() || stack.isEmpty()) {
+			return true;
+		}
+
+		try {
+			Object reference = slotReference.newInstance(slot.inventory(), slot.index());
+			return (boolean)canUnequip.invoke(getTrinket.invoke(null, stack.getItem()), stack, reference, entity);
 		} catch (InvocationTargetException e) {
 			broken(stack, e);
 			return false;

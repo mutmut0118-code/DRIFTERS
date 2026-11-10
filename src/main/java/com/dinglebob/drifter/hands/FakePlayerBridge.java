@@ -38,6 +38,27 @@ public final class FakePlayerBridge {
 			throw new IllegalStateException("Drifter interactions only run on the server");
 		}
 
+		FakePlayer fake = helper(drifter, level);
+		syncIn(drifter, fake);
+		ACTING.push(drifter);
+		try {
+			return action.apply(fake);
+		} finally {
+			ACTING.pop();
+			syncOut(drifter, fake);
+		}
+	}
+
+	/**
+	 * Its helper, without syncing anything into it (empty-handed, wherever it last acted): only for asking a mod what it
+	 * would do to a player, never for acting. Null off the server.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static FakePlayer helper(DrifterEntity drifter) {
+		return drifter.level() instanceof ServerLevel level ? helper(drifter, level) : null;
+	}
+
+	private static FakePlayer helper(DrifterEntity drifter, ServerLevel level) {
 		// Its own helper, kept (milestone 16: looked up through Fabric's weakly kept map every time, and the first time made
 		// as a whole player; see PlayerAdvancementsMixin).
 		GameProfile profile = profileFor(drifter);
@@ -49,14 +70,7 @@ public final class FakePlayerBridge {
 			OWNERS.put(fake.getUUID(), new java.lang.ref.WeakReference<>(drifter));
 		}
 
-		syncIn(drifter, fake);
-		ACTING.push(drifter);
-		try {
-			return action.apply(fake);
-		} finally {
-			ACTING.pop();
-			syncOut(drifter, fake);
-		}
+		return fake;
 	}
 
 	/** The Drifters acting through their helpers right now, innermost first (server thread only). */

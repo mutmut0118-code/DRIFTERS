@@ -19,6 +19,7 @@ import com.dinglebob.drifter.brain.activity.SmeltActivity;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.executor.task.LookAroundTask;
 import com.dinglebob.drifter.executor.task.WearArmorTask;
+import com.dinglebob.drifter.executor.task.WearTrinketsTask;
 
 import net.minecraft.world.entity.LivingEntity;
 
@@ -3166,7 +3167,7 @@ public final class Goals {
 				return 0.97;
 			}
 
-			return WearArmorTask.hasUpgrade(context.drifter()) || com.dinglebob.drifter.executor.task.WearTrinketsTask.hasUpgrade(context.drifter()) ? 0.75 : 0.0;
+			return WearArmorTask.hasUpgrade(context.drifter()) || WearTrinketsTask.hasUpgrade(context.drifter()) ? 0.75 : 0.0;
 		}
 
 		@Override
@@ -3206,8 +3207,8 @@ public final class Goals {
 
 					if (this.step == 1) {
 						this.step = 2;
-						if (com.dinglebob.drifter.executor.task.WearTrinketsTask.hasUpgrade(this.drifter)) {
-							return this.begin(new com.dinglebob.drifter.executor.task.WearTrinketsTask(this.drifter));
+						if (WearTrinketsTask.hasUpgrade(this.drifter)) {
+							return this.begin(new WearTrinketsTask(this.drifter));
 						}
 					}
 

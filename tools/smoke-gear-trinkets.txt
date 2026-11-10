@@ -28,8 +28,8 @@ attribute @e[type=drifter:drifter,limit=1,sort=nearest,name=Trink] minecraft:gen
 attribute @e[type=drifter:drifter,limit=1,sort=nearest,name=Trink] minecraft:generic.movement_speed base get
 # Artifacts' own effects (its abilities, not Trinkets modifiers): the running shoes' sprinting speed, if Artifacts gives mobs it.
 attribute @e[type=drifter:drifter,limit=1,sort=nearest,name=Trink] artifacts:generic.sprinting_speed get
-# Death: each worn trinket drops once (Trinkets drops a mob's trinket slots itself), nothing twice; except that Artifacts
-# destroys a mob's worn artifacts when no player killed it (its own drop rule), so the necklace and shoes count 0 here.
+# Death: each worn trinket drops once, as a player's would (Trinkets drops a mob's trinket slots itself; Artifacts' rule that
+# destroys a mob's worn artifacts when no player killed it doesn't apply to a Drifter): count 1 each, nothing twice.
 kill @e[type=item]
 kill @e[type=drifter:drifter,name=Trink]
 wait 3

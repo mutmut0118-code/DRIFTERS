@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.dinglebob.drifter.compat.TrinketsCompat;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.hands.Combat;
 import com.dinglebob.drifter.social.ItemValues;
@@ -72,7 +73,7 @@ public final class GearValue {
 		}
 
 		TIERS = null;
-		com.dinglebob.drifter.compat.TrinketsCompat.clear();
+		TrinketsCompat.clear();
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -233,13 +234,13 @@ public final class GearValue {
 
 	/** What a trinket is worth to this entity: its best slot's value ({@link #trinketIn}); 0 if it fits none of its slots. */
 	public static double trinket(LivingEntity entity, ItemStack stack) {
-		if (!com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
+		if (!TrinketsCompat.isTrinket(stack)) {
 			return 0.0;
 		}
 
 		double best = 0.0;
-		for (com.dinglebob.drifter.compat.TrinketsCompat.Slot slot : com.dinglebob.drifter.compat.TrinketsCompat.slots(entity)) {
-			if (com.dinglebob.drifter.compat.TrinketsCompat.fits(entity, slot, stack)) {
+		for (TrinketsCompat.Slot slot : TrinketsCompat.slots(entity)) {
+			if (TrinketsCompat.fits(entity, slot, stack)) {
 				best = Math.max(best, trinketIn(entity, slot, stack));
 			}
 		}
@@ -251,12 +252,12 @@ public final class GearValue {
 	 * What a trinket is worth worn in that slot (the caller checks it fits): a little for being one, its attribute modifiers
 	 * there ({@code TrinketsCompat.modifierValue}), 5 per power a Drifter believes it has, 5 per rarity step.
 	 */
-	public static double trinketIn(LivingEntity entity, com.dinglebob.drifter.compat.TrinketsCompat.Slot slot, ItemStack stack) {
+	public static double trinketIn(LivingEntity entity, TrinketsCompat.Slot slot, ItemStack stack) {
 		if (stack.isEmpty()) {
 			return 0.0;
 		}
 
-		double value = TRINKET_BASE + com.dinglebob.drifter.compat.TrinketsCompat.modifierValue(entity, slot, stack) + TRINKET_RARITY_STEP * rarity(stack);
+		double value = TRINKET_BASE + TrinketsCompat.modifierValue(entity, slot, stack) + TRINKET_RARITY_STEP * rarity(stack);
 		if (entity instanceof DrifterEntity drifter) {
 			value += TRINKET_POWER_STEP * Powers.believed(drifter, stack).size();
 		}
@@ -380,7 +381,7 @@ public final class GearValue {
 			points = weaponTier(stack) * POINTS_PER_WEAPON_TIER;
 		} else if (stack.getItem() instanceof ShieldItem) {
 			points = SHIELD_POINTS;
-		} else if (com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack)) {
+		} else if (TrinketsCompat.isTrinket(stack)) {
 			points = TRINKET_POINTS;
 		} else {
 			points = 0.0;
@@ -398,6 +399,6 @@ public final class GearValue {
 		}
 
 		return GearKinds.of(stack) != null || armorSlot(stack) != null || stack.getItem() instanceof ShieldItem
-			|| com.dinglebob.drifter.compat.TrinketsCompat.isTrinket(stack);
+			|| TrinketsCompat.isTrinket(stack);
 	}
 }

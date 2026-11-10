@@ -2992,7 +2992,8 @@ protected void customServerAiStep() {
 			}
 		}
 
-		// Its trinkets (Trinkets, optional) are left there too.
+		// Its trinkets (Trinkets, optional) are left there too: they drop as a player's do (TrinketsCompat's drop callback; a
+		// trinket that a player would lose too, by Curse of Vanishing or its own rule, is the one exception it may overcount).
 		worth += com.dinglebob.drifter.compat.TrinketsCompat.wornCount(this);
 
 		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
@@ -3102,7 +3103,9 @@ protected void customServerAiStep() {
 
 	/**
 	 * Its trinkets (Trinkets, optional) drop in the super call: Trinkets drops any mob's trinket slots at the end of
-	 * LivingEntity#dropEquipment, by each slot's and trinket's drop rule (keep, drop, destroy; Curse of Vanishing destroys).
+	 * LivingEntity#dropEquipment, by each trinket's and slot's drop rule (keep, drop, destroy; Curse of Vanishing destroys).
+	 * A rule that destroys only a mob's trinkets (Artifacts') is turned back to the default for it by TrinketsCompat's drop
+	 * callback, so it loses what a player would and no more.
 	 */
 	@Override
 	protected void dropEquipment() {

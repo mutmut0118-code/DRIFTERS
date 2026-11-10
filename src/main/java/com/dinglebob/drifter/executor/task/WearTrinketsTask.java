@@ -20,8 +20,9 @@ import net.minecraft.world.item.ShieldItem;
  * Equip (trinkets part; Trinkets, optional): opens its inventory and puts the trinkets it carries in its trinket slots, one
  * slot per click, swapping out worse ones, the way {@link WearArmorTask} does armor. "Best" is the trinket's value
  * ({@link GearValue#trinketIn}: its attribute modifiers there, the powers it believes it has, its rarity) with its taste in
- * it, and the good-enough rule applies per slot. Only what it carries goes on. When it dies they drop by Trinkets' own rules
- * (Trinkets drops any mob's trinket slots at the end of its death drops), as a player's do.
+ * it, and the good-enough rule applies per slot. Only what it carries goes on, and what can't come off (Curse of Binding)
+ * stays. When it dies they drop as a player's do: Trinkets drops any mob's trinket slots at the end of its death drops, and
+ * a rule that destroys only a mob's trinkets doesn't apply to it ({@code TrinketsCompat}'s drop callback).
  */
 public class WearTrinketsTask extends Task {
 	/** How long a "has an upgrade" answer stands before it is worked out again (the equip goal asks often). */
@@ -199,12 +200,18 @@ public class WearTrinketsTask extends Task {
 	private static int bestIndex(DrifterEntity drifter, TrinketsCompat.Slot slot) {
 		DrifterInventory inventory = drifter.getInventory();
 		ItemStack worn = slot.worn();
+		if (!worn.isEmpty() && !TrinketsCompat.canUnequip(drifter, slot, worn)) {
+			return -1;
+		}
+
+		// (A stack of several can't go in an occupied slot with no room for what comes out: wearBest refuses it.)
+		boolean noRoom = !worn.isEmpty() && inventory.getFreeSlot() < 0;
 		double wornRaw = worn.isEmpty() ? 0.0 : GearValue.trinketIn(drifter, slot, worn);
 		double best = wornRaw;
 		boolean any = false;
 		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
 			ItemStack stack = inventory.getItem(i);
-			if (wearable(stack) && TrinketsCompat.fits(drifter, slot, stack)) {
+			if (wearable(stack) && !(noRoom && stack.getCount() > 1) && TrinketsCompat.fits(drifter, slot, stack)) {
 				any = true;
 				best = Math.max(best, GearValue.trinketIn(drifter, slot, stack));
 			}
@@ -219,7 +226,7 @@ public class WearTrinketsTask extends Task {
 		int chosen = -1;
 		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
 			ItemStack stack = inventory.getItem(i);
-			if (!wearable(stack) || !TrinketsCompat.fits(drifter, slot, stack)) {
+			if (!wearable(stack) || noRoom && stack.getCount() > 1 || !TrinketsCompat.fits(drifter, slot, stack)) {
 				continue;
 			}
 
