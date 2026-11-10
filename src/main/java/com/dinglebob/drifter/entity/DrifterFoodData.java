@@ -50,14 +50,14 @@ public class DrifterFoodData {
 			this.tickTimer++;
 			if (this.tickTimer >= FoodConstants.HEALTH_TICK_COUNT_SATURATED) {
 				float spent = Math.min(this.saturationLevel, FoodConstants.EXHAUSTION_HEAL);
-				drifter.heal(spent / FoodConstants.EXHAUSTION_HEAL);
+				drifter.healNaturally(spent / FoodConstants.EXHAUSTION_HEAL);
 				this.addExhaustion(spent);
 				this.tickTimer = 0;
 			}
 		} else if (naturalRegen && this.foodLevel >= FoodConstants.HEAL_LEVEL && drifter.isHurt()) {
 			this.tickTimer++;
 			if (this.tickTimer >= FoodConstants.HEALTH_TICK_COUNT) {
-				drifter.heal(1.0F);
+				drifter.healNaturally(1.0F);
 				this.addExhaustion(FoodConstants.EXHAUSTION_HEAL);
 				this.tickTimer = 0;
 			}

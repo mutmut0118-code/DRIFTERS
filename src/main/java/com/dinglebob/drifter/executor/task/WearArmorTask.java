@@ -11,7 +11,7 @@ import net.minecraft.world.item.Items;
 
 /**
  * Equip (armor part, DESIGN.md sections 8 and 10.17): opens its inventory and puts on the best armor it carries,
- * one piece per click, swapping out worse pieces. "Best" is armor points, then toughness.
+ * one piece per click, swapping out worse pieces. "Best" is the armor value of its attributes with its taste in it (GearValue, GearTaste).
  */
 public class WearArmorTask extends Task {
 	private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
@@ -83,13 +83,9 @@ public class WearArmorTask extends Task {
 
 	/** Has armor better than what it wears, or a shield it isn't holding in its offhand. */
 	public static boolean hasUpgrade(DrifterEntity drifter) {
-		DrifterInventory inventory = drifter.getInventory();
 		for (EquipmentSlot slot : ARMOR_SLOTS) {
-			double worn = score(drifter, drifter.getItemBySlot(slot), slot);
-			for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
-				if (score(drifter, inventory.getItem(i), slot) > worn) {
-					return true;
-				}
+			if (bestIndex(drifter, slot) >= 0) {
+				return true;
 			}
 		}
 
@@ -170,16 +166,7 @@ public class WearArmorTask extends Task {
 
 	private static boolean wearBest(DrifterEntity drifter, EquipmentSlot slot) {
 		DrifterInventory inventory = drifter.getInventory();
-		int bestSlot = -1;
-		double bestScore = score(drifter, drifter.getItemBySlot(slot), slot);
-		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
-			double candidate = score(drifter, inventory.getItem(i), slot);
-			if (candidate > bestScore) {
-				bestScore = candidate;
-				bestSlot = i;
-			}
-		}
-
+		int bestSlot = bestIndex(drifter, slot);
 		if (bestSlot < 0) {
 			return false;
 		}
@@ -191,17 +178,72 @@ public class WearArmorTask extends Task {
 		return true;
 	}
 
-	private static double score(DrifterEntity drifter, ItemStack stack, EquipmentSlot slot) {
+	/**
+	 * The inventory slot of the piece it would rather wear than what it wears in this slot, or -1 to keep what it has. The
+	 * good-enough rule applies per slot (taste only chooses among pieces close to the best value, so a flashy Drifter keeps
+	 * iron over leather), and the choice is the same every time for the same items, so a piece it just took off never looks
+	 * better again.
+	 */
+	private static int bestIndex(DrifterEntity drifter, EquipmentSlot slot) {
+		DrifterInventory inventory = drifter.getInventory();
+		ItemStack worn = drifter.getItemBySlot(slot);
+		double best = rawScore(drifter, worn, slot);
+		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
+			ItemStack stack = inventory.getItem(i);
+			if (!stack.isEmpty()) {
+				best = Math.max(best, rawScore(drifter, stack, slot));
+			}
+		}
+
+		if (best <= 0.0) {
+			return -1;
+		}
+
+		double threshold = com.dinglebob.drifter.gear.GearTaste.goodEnoughFraction() * best;
+		double top = !worn.isEmpty() && rawScore(drifter, worn, slot) >= threshold ? score(drifter, worn, slot) : (worn.isEmpty() ? 0.0 : -1.0);
+		int chosen = -1;
+		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
+			ItemStack stack = inventory.getItem(i);
+			if (stack.isEmpty()) {
+				continue;
+			}
+
+			double raw = rawScore(drifter, stack, slot);
+			if (raw <= 0.0 || raw < threshold) {
+				continue;
+			}
+
+			double liked = com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, raw);
+			if (liked > top) {
+				top = liked;
+				chosen = i;
+			}
+		}
+
+		return chosen;
+	}
+
+	/** What a piece is worth in this slot with its taste in it: gold first in the Nether, else its attribute value; empty 0; else -1. */
+	public static double score(DrifterEntity drifter, ItemStack stack, EquipmentSlot slot) {
+		double raw = rawScore(drifter, stack, slot);
+		return raw <= 0.0 ? raw : com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, raw);
+	}
+
+	/** {@link #score} without taste. */
+	private static double rawScore(DrifterEntity drifter, ItemStack stack, EquipmentSlot slot) {
+		if (stack.isEmpty()) {
+			return 0.0;
+		}
+
 		if (stack.getItem() instanceof ArmorItem armor && armor.getEquipmentSlot() == slot) {
 			// In the Nether one gold piece comes first, the one thing that keeps piglins friendly (section 19 piglin
 			// etiquette; it packs one for the trip): over iron in its slot, unless another slot already has gold.
 			if (armor.getMaterial().is(net.minecraft.world.item.ArmorMaterials.GOLD) && goldTime(drifter) && !goldElsewhere(drifter, slot)) {
 				return GOLD_IN_THE_NETHER + armor.getDefense();
 			}
-
-			return armor.getDefense() * 10.0 + armor.getToughness();
 		}
 
-		return stack.isEmpty() ? 0.0 : -1.0;
+		// An elytra, pumpkin or head has no armor value: never the choice (and never replaces a chestplate).
+		return com.dinglebob.drifter.gear.GearValue.wornSlot(drifter, stack) == slot ? com.dinglebob.drifter.gear.GearValue.armor(stack, slot) : -1.0;
 	}
 }

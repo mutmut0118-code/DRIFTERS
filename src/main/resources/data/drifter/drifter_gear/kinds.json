@@ -1,0 +1,22 @@
+{
+	"_comment": "Weapon kinds (any weapon mod). A kind is found, in this order: a drifter_weapons family, the vanilla bow/crossbow/trident classes, Better Combat's category (better_combat), an item tag (tags), then a whole word of the item id or English name (words; longest word first, only unstackable items), else a melee weapon with real attack damage is a sword. use: melee, bow, crossbow, trident, thrown or staff (thrown and staff are known but not wielded yet). A later file with the same id replaces it; a file may say requires: <mod id>.",
+	"kinds": [
+		{"id": "sword", "use": "melee", "words": ["sword", "cutlass", "saber", "sabre", "scimitar", "broadsword", "shortsword", "falchion"], "tags": [], "better_combat": ["sword", "cutlass", "saber"]},
+		{"id": "longsword", "use": "melee", "words": ["longsword"], "tags": [], "better_combat": ["longsword"]},
+		{"id": "katana", "use": "melee", "words": ["katana", "tachi", "odachi", "uchigatana"], "tags": ["c:tools/katana"], "better_combat": ["katana"]},
+		{"id": "dagger", "use": "melee", "words": ["dagger", "dirk", "kris", "stiletto"], "tags": ["c:tools/dagger"], "better_combat": ["dagger"]},
+		{"id": "rapier", "use": "melee", "words": ["rapier", "epee", "foil"], "tags": [], "better_combat": ["rapier"]},
+		{"id": "greatsword", "use": "melee", "words": ["greatsword", "claymore", "greatblade", "zweihander"], "tags": [], "better_combat": ["claymore", "greatsword", "twinblade"]},
+		{"id": "spear", "use": "melee", "words": ["spear", "lance", "glaive", "halberd", "pike", "warglaive"], "tags": ["c:tools/spear"], "better_combat": ["spear", "lance", "glaive", "halberd", "pike"]},
+		{"id": "hammer", "use": "melee", "words": ["hammer", "mace", "warhammer", "maul", "greathammer", "flail"], "tags": ["c:tools/mace"], "better_combat": ["hammer", "mace", "warhammer", "maul"]},
+		{"id": "axe", "use": "melee", "words": ["axe", "battleaxe", "waraxe", "greataxe", "hatchet"], "tags": [], "better_combat": ["axe", "battleaxe", "waraxe"]},
+		{"id": "scythe", "use": "melee", "words": ["scythe", "sickle"], "tags": [], "better_combat": ["scythe", "sickle"]},
+		{"id": "sai", "use": "melee", "words": ["sai"], "tags": [], "better_combat": ["sai"]},
+		{"id": "chakram", "use": "thrown", "words": ["chakram"], "tags": [], "better_combat": ["chakram"]},
+		{"id": "throwing", "use": "thrown", "words": ["javelin", "shuriken", "kunai"], "tags": ["c:tools/thrown"], "better_combat": ["throwing", "javelin", "shuriken"]},
+		{"id": "staff", "use": "staff", "words": ["staff", "wand", "scepter", "sceptre"], "tags": ["c:tools/wand"], "better_combat": ["staff", "wand"]},
+		{"id": "bow", "use": "bow", "words": ["bow", "longbow", "shortbow"], "tags": ["c:tools/bow"], "better_combat": ["bow"]},
+		{"id": "crossbow", "use": "crossbow", "words": ["crossbow"], "tags": ["c:tools/crossbow"], "better_combat": ["crossbow"]},
+		{"id": "trident", "use": "trident", "words": ["trident"], "tags": ["c:tools/trident"], "better_combat": ["trident"]}
+	]
+}

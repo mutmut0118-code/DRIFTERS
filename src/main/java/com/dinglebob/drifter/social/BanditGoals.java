@@ -294,7 +294,18 @@ public final class BanditGoals {
 			}
 
 			var awareness = this.drifter.getSenses().awarenessOf(this.target);
-			return awareness != null && awareness.visibleNow;
+			if (awareness == null || !awareness.visibleNow) {
+				return false;
+			}
+
+			// Its bow's power (as it believes) would hurt a friend, itself or its home there: no draw, the sword (gear powers).
+			String held = com.dinglebob.drifter.hands.Archery.heldFire(this.drifter, this.target);
+			if (held != null) {
+				this.think(held);
+				return false;
+			}
+
+			return true;
 		}
 
 		@Override

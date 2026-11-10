@@ -107,7 +107,7 @@ public class TradeTask extends Task {
 
 				this.open = true;
 				long now = this.drifter.level().getGameTime();
-				this.drifter.getDrifterBrain().trades().saw(this.villager, now);
+				this.drifter.getDrifterBrain().trades().saw(this.villager, now, this.drifter);
 				this.phase = Phase.READ;
 				this.wait = 0;
 			}
@@ -174,7 +174,7 @@ public class TradeTask extends Task {
 
 			// What it saw is what's there after its trades.
 			if (this.villager.isAlive()) {
-				this.drifter.getDrifterBrain().trades().saw(this.villager, this.drifter.level().getGameTime());
+				this.drifter.getDrifterBrain().trades().saw(this.villager, this.drifter.level().getGameTime(), this.drifter);
 			}
 		}
 	}

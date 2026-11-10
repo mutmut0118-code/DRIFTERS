@@ -12,12 +12,16 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/** Bows (DESIGN.md section 13 "Ranged mechanics"): what it shoots with and when a bow beats a sword. */
+/** Bows and crossbows (DESIGN.md section 13 "Ranged mechanics"): what it shoots with and when a bow beats a sword. */
 public final class Archery {
 	/** A full draw (BowItem): 20 ticks, 1 s. */
 	public static final int FULL_DRAW_TICKS = 20;
 	/** Arrow speed at a full draw, blocks a tick (power 1 x 3). */
 	public static final double ARROW_SPEED = 3.0;
+	/** A crossbow's arrow speed, blocks a tick (CrossbowItem's arrow power; the same at any load, no draw to scale it). */
+	public static final double CROSSBOW_ARROW_SPEED = 3.15;
+	/** A crossbow's firework rocket speed (CrossbowItem's firework power). */
+	public static final double CROSSBOW_FIREWORK_SPEED = 1.6;
 	/** Arrows fall this much faster every tick (AbstractArrow's gravity). */
 	public static final double ARROW_GRAVITY = 0.05;
 	/** Closer than this a melee mob is better met with the sword. */
@@ -45,9 +49,55 @@ public final class Archery {
 		return ItemStack.EMPTY;
 	}
 
-	/** It has a bow and something to shoot. */
+	/** It has a bow or crossbow and something to shoot from it, or a crossbow already loaded (not one it gave up on). */
 	public static boolean ready(DrifterEntity drifter) {
-		return drifter.getInventory().count(com.dinglebob.drifter.hands.Shields::isBow) > 0 && !ammo(drifter).isEmpty();
+		return ready(drifter, !ammo(drifter).isEmpty());
+	}
+
+	/** The same, knowing whether it has arrows. */
+	public static boolean ready(DrifterEntity drifter, boolean ammo) {
+		DrifterInventory inventory = drifter.getInventory();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (canShoot(drifter, inventory.getItem(slot), ammo)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * It could shoot this now: a bow or crossbow with something to shoot from it to hand, or loaded, and not one it gave up
+	 * on (DeadLaunchers). {@code ammo}: it has arrows. A modded one that takes something else (its own bolts:
+	 * {@code DrifterEntity#getProjectile}) may be shot with that; one that seems to take nothing it has is still tried with
+	 * arrows to hand (some shoot with no ammo at all), and given up on if nothing comes of it.
+	 */
+	public static boolean canShoot(DrifterEntity drifter, ItemStack stack, boolean ammo) {
+		if (!com.dinglebob.drifter.hands.Shields.isLauncher(stack) || DeadLaunchers.resting(drifter, stack)) {
+			return false;
+		}
+
+		return ammo || loaded(stack) || !DeadLaunchers.vanilla(stack) && !drifter.getProjectile(stack).isEmpty();
+	}
+
+	/** A modded crossbow whose own use time is longer than this isn't timed by it (it's the "for ever" of a bow). */
+	public static final int MAX_LOAD_TICKS = 100;
+	/** CrossbowItem's use time is its charge time and this many ticks more. */
+	public static final int CROSSBOW_USE_SLACK_TICKS = 3;
+
+	/**
+	 * Ticks it holds a crossbow to load it before letting go: its own use time less the few ticks the game's crossbow allows
+	 * past its charge (for the vanilla one, exactly its charge time, Quick Charge and all); the vanilla charge time if that
+	 * use time says nothing (a modded one held "for ever").
+	 */
+	public static int loadTicks(ItemStack crossbow, LivingEntity user) {
+		int own = crossbow.getUseDuration(user) - CROSSBOW_USE_SLACK_TICKS;
+		return own > 0 && own <= MAX_LOAD_TICKS ? own : net.minecraft.world.item.CrossbowItem.getChargeDuration(crossbow, user);
+	}
+
+	/** A crossbow with a shot in it (it fires at once, as a player's does). */
+	public static boolean loaded(ItemStack stack) {
+		return stack.getItem() instanceof net.minecraft.world.item.CrossbowItem && net.minecraft.world.item.CrossbowItem.isCharged(stack);
 	}
 
 	/** Out of sword reach for good (flying, or keeps its distance). */
@@ -171,7 +221,7 @@ public final class Archery {
 	/** A blaze nearer than this is fought with the sword. */
 	public static final double BLAZE_MELEE_RANGE = 5.0;
 
-	public static boolean shouldShoot(DrifterEntity drifter, LivingEntity target) {
+	private static boolean shouldShoot(DrifterEntity drifter, LivingEntity target, boolean checkPowers) {
 		if (!ready(drifter) || com.dinglebob.drifter.executor.task.AttackTask.Protocol.of(target)
 			== com.dinglebob.drifter.executor.task.AttackTask.Protocol.PREY) {
 			return false;
@@ -190,10 +240,158 @@ public final class Archery {
 			return false;
 		}
 
-		if (flying(target)) {
-			return true;
+		boolean wants = flying(target) || (target instanceof Creeper ? distance >= 4.0 : distance >= MELEE_RANGE);
+		return wants && (!checkPowers || heldFire(drifter, target) == null);
+	}
+
+	/** A bow beats a sword here ({@link #shouldShoot}), its bow's powers aside. */
+	public static boolean wantsBow(DrifterEntity drifter, LivingEntity target) {
+		return shouldShoot(drifter, target, false);
+	}
+
+	public static boolean shouldShoot(DrifterEntity drifter, LivingEntity target) {
+		return shouldShoot(drifter, target, true);
+	}
+
+	/** A thrown trident's speed, blocks a tick (TridentItem's shoot power). */
+	public static final double TRIDENT_SPEED = net.minecraft.world.item.TridentItem.SHOOT_POWER;
+	/** It throws its trident at targets at least this far off (closer, it's a better spear in hand)... */
+	public static final double TRIDENT_MIN_RANGE = 5.0;
+	/** ...and no farther than this (most throws would miss, and it has to go and fetch it). */
+	public static final double TRIDENT_MAX_RANGE = 20.0;
+
+	/**
+	 * A trident throw beats the alternatives here: it carries a trident it can throw ({@link #throwableTridentSlot}), the target
+	 * is {@link #TRIDENT_MIN_RANGE} to {@link #TRIDENT_MAX_RANGE} blocks off and in sight now, it has no bow or crossbow ready
+	 * (or the target is in water, where arrows soon stop and a trident doesn't), never at prey (it hunts those up close), and
+	 * its trident's powers, as it believes them, may be used on this target (an explosive one not with a friend by it, nor near
+	 * home or itself: {@code Powers.mayUse}). Cheap when it carries no trident (one pass over its pack, nothing made).
+	 * Only one out at a time (ruling R31: a second throw would make it forget the first). And it doesn't throw away its only
+	 * weapon at a fresh foe (ruling R32): a trident without Loyalty goes only if it keeps another melee weapon, or the throw
+	 * should finish the target, or the target can't be fought hand to hand ({@link #outOfMeleeReach}).
+	 */
+	public static boolean shouldThrow(DrifterEntity drifter, LivingEntity target) {
+		return shouldThrow(drifter, target, false);
+	}
+
+	/** The same; {@code meleeFailed}: it already tried to fight this one hand to hand and couldn't get to it (CombatActivity). */
+	public static boolean shouldThrow(DrifterEntity drifter, LivingEntity target, boolean meleeFailed) {
+		if (drifter.thrownTrident() != null) {
+			return false;
 		}
 
-		return target instanceof Creeper ? distance >= 4.0 : distance >= MELEE_RANGE;
+		int slot = throwableTridentSlot(drifter);
+		if (slot < 0) {
+			return false;
+		}
+
+		double distance = drifter.distanceTo(target);
+		if (distance < TRIDENT_MIN_RANGE || distance > TRIDENT_MAX_RANGE
+			|| com.dinglebob.drifter.executor.task.AttackTask.Protocol.of(target) == com.dinglebob.drifter.executor.task.AttackTask.Protocol.PREY) {
+			return false;
+		}
+
+		com.dinglebob.drifter.perception.Awareness seen = drifter.getSenses().awarenessOf(target);
+		if (seen == null || !seen.visibleNow || !target.isInWater() && ready(drifter)) {
+			return false;
+		}
+
+		ItemStack trident = drifter.getInventory().getItem(slot);
+		if (!loyal(drifter, trident) && !otherMeleeWeapon(drifter, slot) && !finishes(drifter, trident, target) && !meleeFailed
+			&& !outOfMeleeReach(drifter, target)) {
+			return false;
+		}
+
+		return com.dinglebob.drifter.gear.Powers.mayUse(drifter, trident, target);
+	}
+
+	/** A target this much higher or lower than it is out of reach of its hands for now (on a ledge, down a drop). */
+	public static final double MELEE_HEIGHT_GAP = 3.0;
+
+	/**
+	 * It can't fight this one hand to hand, as far as it can tell at a glance: in water, flying, or well above or below it
+	 * ({@link #MELEE_HEIGHT_GAP}).
+	 */
+	public static boolean outOfMeleeReach(DrifterEntity drifter, LivingEntity target) {
+		return target.isInWater() || flying(target) || Math.abs(target.getY() - drifter.getY()) > MELEE_HEIGHT_GAP;
+	}
+
+	/** This trident comes back by itself (Loyalty, ThrownTrident's own test). */
+	public static boolean loyal(DrifterEntity drifter, ItemStack trident) {
+		return drifter.level() instanceof net.minecraft.server.level.ServerLevel level
+			&& net.minecraft.world.item.enchantment.EnchantmentHelper.getTridentReturnToOwnerAcceleration(level, trident, drifter) > 0;
+	}
+
+	/** It keeps a melee weapon besides the trident in {@code tridentSlot} (in its pack or off hand). */
+	private static boolean otherMeleeWeapon(DrifterEntity drifter, int tridentSlot) {
+		DrifterInventory inventory = drifter.getInventory();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (slot != tridentSlot && com.dinglebob.drifter.brain.Weapons.isWeapon(inventory.getItem(slot))) {
+				return true;
+			}
+		}
+
+		return com.dinglebob.drifter.brain.Weapons.isWeapon(drifter.getOffhandItem());
+	}
+
+	/**
+	 * The throw should finish the target: its health (and absorption) no more than the thrown trident's damage as ThrownTrident
+	 * deals it ({@link net.minecraft.world.item.TridentItem#BASE_DAMAGE}, with the trident's enchantments, Impaling and the
+	 * like), less what the target's armor takes off.
+	 */
+	public static boolean finishes(DrifterEntity drifter, ItemStack trident, LivingEntity target) {
+		float damage = net.minecraft.world.item.TridentItem.BASE_DAMAGE;
+		net.minecraft.world.damagesource.DamageSource source = drifter.damageSources().trident(drifter, drifter);
+		if (drifter.level() instanceof net.minecraft.server.level.ServerLevel level) {
+			damage = net.minecraft.world.item.enchantment.EnchantmentHelper.modifyDamage(level, trident, target, source, damage);
+		}
+
+		damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(target, damage, source, target.getArmorValue(),
+			(float)target.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR_TOUGHNESS));
+		return target.getHealth() + target.getAbsorptionAmount() <= damage;
+	}
+
+	/**
+	 * The trident it would throw: the one in its hand if that one will go, otherwise the first in its pack that will (a
+	 * TridentItem, any mod's, not Riptide, which never leaves the hand, not one point from breaking, and not one it gave up on
+	 * because it never threw: DeadLaunchers); -1 if none.
+	 */
+	public static int throwableTridentSlot(DrifterEntity drifter) {
+		DrifterInventory inventory = drifter.getInventory();
+		int selected = inventory.getSelected();
+		if (throwable(drifter, inventory.getItem(selected))) {
+			return selected;
+		}
+
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (slot != selected && throwable(drifter, inventory.getItem(slot))) {
+				return slot;
+			}
+		}
+
+		return -1;
+	}
+
+	/** This stack is a trident it can throw now (see {@link #throwableTridentSlot}). */
+	public static boolean throwable(DrifterEntity drifter, ItemStack stack) {
+		return stack.getItem() instanceof net.minecraft.world.item.TridentItem && stack.getDamageValue() < stack.getMaxDamage() - 1
+			&& net.minecraft.world.item.enchantment.EnchantmentHelper.getTridentSpinAttackStrength(stack, drifter) <= 0.0F
+			&& !DeadLaunchers.resting(drifter, stack);
+	}
+
+	/**
+	 * Why the bow it would take out may not be used on this target as far as it knows (gear powers: an explosive one not with
+	 * a friend by the target, nor near home or itself): "held fire: Bow would blow up Pal"; null when it may (or has no bow).
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static String heldFire(DrifterEntity drifter, LivingEntity target) {
+		int slot = com.dinglebob.drifter.hands.Shields.bestBowSlot(drifter, target);
+		ItemStack bow = slot >= 0 ? drifter.getInventory().getItem(slot) : ItemStack.EMPTY;
+		if (!com.dinglebob.drifter.hands.Shields.isLauncher(bow)) {
+			return null;
+		}
+
+		String why = com.dinglebob.drifter.gear.Powers.whyNot(drifter, bow, target);
+		return why == null ? null : "held fire: " + bow.getHoverName().getString() + " " + com.dinglebob.drifter.gear.Powers.heldFireWords(drifter, bow, why);
 	}
 }

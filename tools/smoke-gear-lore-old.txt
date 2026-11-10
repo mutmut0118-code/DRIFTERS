@@ -1,0 +1,14 @@
+# Old save: a Drifter with no DrifterGear tag seeds its knowledge from what it carries.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+execute positioned ~60 ~ ~ run drifter spawn Pia
+drifter tier full all
+execute as @e[type=drifter:drifter,name=Pia] at @s run drifter give too_many_bows:arcane_bow 1
+execute as @e[type=drifter:drifter,name=Pia] at @s run drifter give immersive_armors:warrior_chestplate 1
+wait 2
+data remove entity @e[type=drifter:drifter,name=Pia,limit=1] DrifterGear
+wait 12
+execute as @e[type=drifter:drifter,name=Pia] at @s run drifter gear
+stop

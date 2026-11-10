@@ -52,9 +52,13 @@ public final class Threats {
 	/** How far it watches threats with a bow ready. */
 	public static final double BOW_RANGE = 24.0;
 
-	/** Worth an arrow now: it has a bow, the bow beats the sword here, and the thing is coming at it (or flies). */
+	/**
+	 * Worth an arrow now: it has a bow, the bow beats the sword here, and the thing is coming at it (or flies). Or worth a
+	 * trident throw the same way (Archery.shouldThrow: no bow ready, a trident it can throw, the target in throwing range), so
+	 * a trident is met at range as a bow is.
+	 */
 	public static boolean worthShooting(DrifterEntity drifter, @org.jetbrains.annotations.Nullable LivingEntity target) {
-		return target != null && com.dinglebob.drifter.hands.Archery.shouldShoot(drifter, target)
+		return target != null && (com.dinglebob.drifter.hands.Archery.shouldShoot(drifter, target) || com.dinglebob.drifter.hands.Archery.shouldThrow(drifter, target))
 			&& (isAfter(drifter, target) || com.dinglebob.drifter.hands.Archery.flying(target));
 	}
 	/** A hostile within this, or one that hit it in the last 2 s, makes the decision urgent. */
@@ -291,7 +295,8 @@ public final class Threats {
 	public static double power(DrifterEntity drifter) {
 		double health = (drifter.getHealth() + drifter.getAbsorptionAmount()) / 20.0;
 		double armor = 1.0 + (drifter.getArmorValue() + drifter.getAttributeValue(Attributes.ARMOR_TOUGHNESS) / 2.0) / 12.0;
-		int weaponSlot = Combat.bestWeaponSlot(drifter);
+		// (Its pick kept a second: this runs at every danger check.)
+		int weaponSlot = Combat.keptWeaponSlot(drifter);
 		double weapon = Combat.weaponStats(drifter, weaponSlot < 0 ? net.minecraft.world.item.ItemStack.EMPTY
 			: drifter.getInventory().getItem(weaponSlot)).perSecond() / 4.0;
 		double shield = drifter.getInventory().count(com.dinglebob.drifter.hands.Shields::isShield) > 0 ? 1.3 : 1.0;

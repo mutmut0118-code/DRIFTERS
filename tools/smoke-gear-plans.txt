@@ -1,0 +1,100 @@
+# Task 6: known modded gear as Strategist targets. python tools/smoke.py . tools/smoke-gear-plans.txt build/smoke-gear-plans.log
+# Aker's first 'gear plans' (before it is told) is vanilla only; after 'gear forget' at the end it is vanilla again (no x-ray).
+# (Both carry a diamond pickaxe and sword, so a Miner's diamonds-first order does not hide the armor targets.)
+# Needs immersive_armors in run/mods. Expect: Aker (told of the heavy chestplate, armor 69 against the iron chestplate's 60) plans
+# 'chest at iron: immersive_armors:heavy_chestplate', 'drifter brain' names a heavy chestplate as its target, and after the sprint it
+# carries or wears it; Bplain (told nothing) plans the vanilla iron chestplate. (The warrior chestplate, 51, is under the 0.9 floor of 54: not an option.)
+# With the optional mods moved out (run/mods_off) every plan line is a minecraft: piece.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 5
+execute positioned ~50 ~ ~ run drifter spawn Aker
+execute positioned ~90 ~ ~ run drifter spawn Bplain
+drifter tier full all
+wait 15
+execute as @e[type=drifter:drifter,name=Aker] at @s run setblock ~1 ~ ~ chest
+execute as @e[type=drifter:drifter,name=Aker] at @s run setblock ~ ~ ~1 chest
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter home here
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:wooden_pickaxe
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:stone_pickaxe
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:iron_pickaxe
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:stone_sword
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:stone_axe
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:stone_shovel
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:furnace
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:bucket
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:shield
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:oak_boat
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:crafting_table
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:smoker
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:blast_furnace
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:shears
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:flint_and_steel
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:leather
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:leather_chestplate
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:leather_helmet
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:cobblestone 64
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:torch 16
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:oak_planks 32
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:iron_ingot 45
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:diamond_pickaxe
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Bplain] at @s run setblock ~1 ~ ~ chest
+execute as @e[type=drifter:drifter,name=Bplain] at @s run setblock ~ ~ ~1 chest
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter home here
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:wooden_pickaxe
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:stone_pickaxe
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:iron_pickaxe
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:stone_sword
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:stone_axe
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:stone_shovel
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:furnace
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:bucket
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:shield
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:oak_boat
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:crafting_table
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:smoker
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:blast_furnace
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:shears
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:flint_and_steel
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:leather
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:leather_chestplate
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:leather_helmet
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:cobblestone 64
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:torch 16
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:oak_planks 32
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:iron_ingot 45
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:diamond_pickaxe
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter give minecraft:diamond_sword
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear plans
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear learn immersive_armors:heavy_chestplate
+wait 25
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear item immersive_armors:heavy_chestplate
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter brain
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear plans
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter gear item immersive_armors:heavy_chestplate
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter brain
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter weapon
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter gear plans
+sprint 20000
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter brain
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear plans
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter brain
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter gear plans
+execute as @e[type=drifter:drifter,name=Bplain] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear forget
+execute as @e[type=drifter:drifter,name=Aker] at @s run drifter gear plans
+wait 5
+save-all
+stop

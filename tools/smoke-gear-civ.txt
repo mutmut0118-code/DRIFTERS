@@ -1,0 +1,47 @@
+# Task 12: Civilizations smiths make and price modded gear they know. python tools/smoke.py . tools/smoke-gear-civ.txt build/smoke-gear-civ.log
+# Needs immersive_armors in run/mods. A fresh world of seed 779 (server.properties level-seed=779, a new level-name), town
+# made at the plains test spot -1392,2648. The town's people are told of X = immersive_armors:heavy_chestplate (gear item:
+# key minecraft:iron_block, armor 69 against the iron chestplate's 60: iron tier) and given its key ingredient, since the
+# smith's name is new each run. Expect: the first 'prices' lists only the smithy json's vanilla items; after the day, the
+# smith's "Making:" line names modded gear it knows (at most four pieces, iron tier or lower), and once it carries a spare
+# heavy chestplate its stand offers it for about its 'points' (gear item) times the market factor.
+# Fix round 1: picks rank by use value against the iron piece of the same use, so with Simply Swords the smith's four are
+# usually iron weapons, not the heavy chestplate (then it isn't offered). Armour keeps none for itself: 3 iron helmets carried
+# are offered 3 times; 3 of a picked weapon (cutlass, twinblade) are offered 2 times (one kept).
+until Done_( 900
+until places_( 900
+wait 3
+forceload add -1504 2536 -1281 2759
+drifter thoughts log false
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+wait 20
+execute positioned -1392 100 2648 positioned over motion_blocking_no_leaves run drifterciv town spawn 12 Testvale
+wait 60
+drifter tier full all
+execute positioned -1392 100 2648 run drifterciv town
+execute positioned -1392 100 2648 run drifterciv prices
+execute positioned -1392 100 2648 run drifter gear item immersive_armors:heavy_chestplate
+execute positioned -1392 100 2648 run drifter gear item immersive_armors:bone_chestplate
+execute positioned -1392 100 2648 run drifter gear item immersive_armors:warrior_chestplate
+execute positioned -1392 100 2648 run drifter gear item minecraft:iron_chestplate
+execute positioned -1392 100 2648 run drifter gear item minecraft:iron_sword
+execute positioned -1392 100 2648 run drifter gear item simplyswords:iron_cutlass
+execute positioned -1392 100 2648 run drifter gear item simplyswords:iron_twinblade
+execute positioned -1392 100 2648 run drifter gear item simplyswords:iron_halberd
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter gear learn immersive_armors:heavy_chestplate
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give minecraft:iron_block 16
+wait 5
+execute positioned -1392 100 2648 run drifterciv prices
+sprint 24000
+execute positioned -1392 100 2648 run drifterciv prices
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give immersive_armors:heavy_chestplate 3
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give minecraft:iron_helmet 3
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give simplyswords:iron_cutlass 3
+execute as @e[type=drifter:drifter,x=-1392,y=100,z=2648,distance=..160] at @s run drifter give simplyswords:iron_twinblade 3
+wait 3
+execute positioned -1392 100 2648 run drifterciv prices
+wait 5
+save-all
+stop

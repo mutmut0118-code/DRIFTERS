@@ -48,9 +48,18 @@ public final class TradeBook {
 
 	/** It has its trading screen open: it sees all of the villager's offers. */
 	public void saw(AbstractVillager villager, long now) {
+		this.saw(villager, now, null);
+	}
+
+	/** {@code reader}: the Drifter whose eyes these are; the gear it sees offered teaches it. */
+	public void saw(AbstractVillager villager, long now, @org.jetbrains.annotations.Nullable com.dinglebob.drifter.entity.DrifterEntity reader) {
 		List<Offer> offers = new ArrayList<>();
 		int index = 0;
 		for (MerchantOffer offer : villager.getOffers()) {
+			if (reader != null) {
+				reader.getGearLore().see(reader, offer.getResult(), "in a trade");
+			}
+
 			offers.add(note(index++, offer));
 		}
 

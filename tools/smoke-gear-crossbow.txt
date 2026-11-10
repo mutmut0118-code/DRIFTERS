@@ -1,0 +1,120 @@
+# Task 9: crossbows (any CrossbowItem) loaded, aimed and fired as a player does; and a launcher that never looses is given up on (ruling R23).
+# python tools/smoke.py . tools/smoke-gear-crossbow.txt build/smoke-gear-crossbow.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, no mob spawning, optional mods in run/mods (Simply Bows,
+# Too Many Bows). The skeletons wear iron helmets (no burning by day; at night the Drifters go out hunting and walk right up to them) and are
+# given their bows (summoned with tags, a skeleton comes empty-handed and runs in to punch). Each Drifter is 60 blocks from the others.
+# Expect:
+#  1  Cross (brain on, brave) with only a crossbow, 16 arrows and a stone sword, a skeleton 15 off: "loaded its Crossbow" before each shot,
+#     "got it (shoot the skeleton, N shot(s))", "the fight is over"; arrows fewer than 16 ("drifter inventory": loading used them).
+#     A second skeleton after the first dies: the same again (a crossbow left loaded fires with no "loaded" line before it). Hurt by then, it
+#     may run from the second instead (its health decides).
+#  2  Multi, the same with a Multishot crossbow: one arrow spent per load, three bolts per shot;
+#     "drifter gear item minecraft:crossbow": "powers: none" (R21: the enchantment explains the volley, so nothing is learned about the item).
+#  3  Ready, a crossbow given already loaded and 8 arrows: its first shot has no "loaded" line before it (a loaded crossbow fires at once).
+#  4  R23, Simply Bows first: Ice (brain off) with simplybows:ice_bow/ice_bow and Earth with simplybows:earth_bow/earth_bow, "drifter shoot" at a
+#     standing pillager 14 off: arrows go (fewer than 64 + 64), no "gave up on" line.
+#  5  R23, Too Many Bows (disabled in the user's game; its classes name client-only ones, so a dedicated server can't look into them):
+#     Flame with too_many_bows:flame_bow shoots (its helper player lets go: arrows fewer than 64 + 64, "found out Pyre's Embrace: fire");
+#     Dud with too_many_bows:radiance (it spends a player's levels; Dud has none) looses nothing: it draws longer each time (20, 40 ... 100
+#     ticks: ruling R29, a modded bow may need a longer draw), then 3 more full-length draws, then "gave up on Radiance: it won't shoot"
+#     (about 30 s: the first shoot may time out and the second finish it), and the last "drifter shoot" fails at once ("nothing to shoot with").
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+weather clear
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+gamerule mobGriefing false
+difficulty normal
+kill @e[type=skeleton]
+kill @e[type=pillager]
+drifter spawn Cross
+execute at @e[type=drifter:drifter,name=Cross] run drifter brain off
+execute positioned ~ ~ ~60 run drifter spawn Multi
+execute at @e[type=drifter:drifter,name=Multi] run drifter brain off
+execute positioned ~ ~ ~-60 run drifter spawn Ready
+execute at @e[type=drifter:drifter,name=Ready] run drifter brain off
+execute positioned ~-60 ~ ~ run drifter spawn Ice
+execute at @e[type=drifter:drifter,name=Ice] run drifter brain off
+execute positioned ~-60 ~ ~60 run drifter spawn Earth
+execute at @e[type=drifter:drifter,name=Earth] run drifter brain off
+execute positioned ~60 ~ ~ run drifter spawn Flame
+execute at @e[type=drifter:drifter,name=Flame] run drifter brain off
+execute positioned ~60 ~ ~60 run drifter spawn Dud
+execute at @e[type=drifter:drifter,name=Dud] run drifter brain off
+drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Cross] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Cross] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Cross] run drifter give minecraft:crossbow
+execute at @e[type=drifter:drifter,name=Cross] run drifter give minecraft:arrow 16
+execute at @e[type=drifter:drifter,name=Cross] run drifter give minecraft:stone_sword
+execute at @e[type=drifter:drifter,name=Multi] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Multi] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Multi] run drifter give minecraft:crossbow[minecraft:enchantments={levels:{"minecraft:multishot":1}}]
+execute at @e[type=drifter:drifter,name=Multi] run drifter give minecraft:arrow 16
+execute at @e[type=drifter:drifter,name=Multi] run drifter give minecraft:stone_sword
+execute at @e[type=drifter:drifter,name=Ready] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Ready] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Ready] run drifter give minecraft:crossbow[minecraft:charged_projectiles=[{id:"minecraft:arrow",count:1}]]
+execute at @e[type=drifter:drifter,name=Ready] run drifter give minecraft:arrow 8
+execute at @e[type=drifter:drifter,name=Ready] run drifter give minecraft:stone_sword
+execute at @e[type=drifter:drifter,name=Ice] run drifter give simplybows:ice_bow/ice_bow
+execute at @e[type=drifter:drifter,name=Ice] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Ice] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Earth] run drifter give simplybows:earth_bow/earth_bow
+execute at @e[type=drifter:drifter,name=Earth] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Earth] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Flame] run drifter give too_many_bows:flame_bow
+execute at @e[type=drifter:drifter,name=Flame] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Flame] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Dud] run drifter give too_many_bows:radiance
+execute at @e[type=drifter:drifter,name=Dud] run drifter give minecraft:arrow 64
+# 4 and 5: shooting a standing pillager 14 off (debug shoot, brains off).
+execute at @e[type=drifter:drifter,name=Ice] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tIce"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Earth] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tEarth"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Flame] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tFlame"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Dud] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tDud"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+wait 3
+execute as @e[type=drifter:drifter,name=Ice] at @s run drifter shoot @e[type=pillager,tag=tIce,limit=1]
+execute as @e[type=drifter:drifter,name=Earth] at @s run drifter shoot @e[type=pillager,tag=tEarth,limit=1]
+execute as @e[type=drifter:drifter,name=Flame] at @s run drifter shoot @e[type=pillager,tag=tFlame,limit=1]
+execute as @e[type=drifter:drifter,name=Dud] at @s run drifter shoot @e[type=pillager,tag=tDud,limit=1]
+# 1-3: a skeleton 15 off each crossbow Drifter, brains on.
+execute at @e[type=drifter:drifter,name=Cross] positioned ~15 ~ ~ positioned over motion_blocking_no_leaves run summon skeleton ~ ~ ~ {PersistenceRequired:1b,HandItems:[{id:"minecraft:bow",count:1},{}],ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["sCross"]}
+execute at @e[type=drifter:drifter,name=Multi] positioned ~15 ~ ~ positioned over motion_blocking_no_leaves run summon skeleton ~ ~ ~ {PersistenceRequired:1b,HandItems:[{id:"minecraft:bow",count:1},{}],ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["sMulti"]}
+execute at @e[type=drifter:drifter,name=Ready] positioned ~15 ~ ~ positioned over motion_blocking_no_leaves run summon skeleton ~ ~ ~ {PersistenceRequired:1b,HandItems:[{id:"minecraft:bow",count:1},{}],ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["sReady"]}
+execute at @e[type=drifter:drifter,name=Cross] run drifter brain on
+execute at @e[type=drifter:drifter,name=Multi] run drifter brain on
+execute at @e[type=drifter:drifter,name=Ready] run drifter brain on
+wait 30
+execute at @e[type=drifter:drifter,name=Cross] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Cross] run drifter inventory
+execute at @e[type=drifter:drifter,name=Multi] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Multi] run drifter inventory
+execute at @e[type=drifter:drifter,name=Multi] run drifter gear item minecraft:crossbow
+execute at @e[type=drifter:drifter,name=Ready] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Ready] run drifter inventory
+execute at @e[type=drifter:drifter,name=Ice] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Ice] run drifter inventory
+execute at @e[type=drifter:drifter,name=Earth] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Earth] run drifter inventory
+execute at @e[type=drifter:drifter,name=Flame] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Flame] run drifter inventory
+execute at @e[type=drifter:drifter,name=Dud] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Dud] run drifter inventory
+# 5 again: drawing on (the first shoot timed out at 30 s), until it gives up.
+execute as @e[type=drifter:drifter,name=Dud] at @s run drifter shoot @e[type=pillager,tag=tDud,limit=1]
+# 1 again: a second skeleton for Cross.
+execute at @e[type=drifter:drifter,name=Cross] positioned ~15 ~ ~ positioned over motion_blocking_no_leaves run summon skeleton ~ ~ ~ {PersistenceRequired:1b,HandItems:[{id:"minecraft:bow",count:1},{}],ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["sCross2"]}
+wait 25
+execute at @e[type=drifter:drifter,name=Cross] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Cross] run drifter inventory
+execute at @e[type=drifter:drifter,name=Dud] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Dud] run drifter inventory
+# 5 last: a launcher given up on isn't drawn.
+execute as @e[type=drifter:drifter,name=Dud] at @s run drifter shoot @e[type=pillager,tag=tDud,limit=1]
+wait 2
+stop

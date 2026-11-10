@@ -42,6 +42,8 @@ public final class BetterCombatCompat {
 	private static Method attackUpswing;
 	private static Method setComboCount;
 	private static Method playSound;
+	/** WeaponAttributes#category(), optional: older or newer Better Combat builds may not have it. */
+	private static Method category;
 
 	public static boolean active() {
 		if (ready || failed) {
@@ -74,6 +76,13 @@ public final class BetterCombatCompat {
 			attackUpswing = attack.getMethod("upswing");
 			setComboCount = properties.getMethod("setComboCount", int.class);
 			playSound = Class.forName("net.bettercombat.utils.SoundHelper").getMethod("playSound", ServerLevel.class, Entity.class, sound);
+			try {
+				category = attributes.getMethod("category");
+			} catch (ReflectiveOperationException | RuntimeException e) {
+				category = null;
+				Drifter.LOGGER.info("[Drifter] Better Combat has no weapon category here ({}); modded weapons are typed by name instead", e.toString());
+			}
+
 			ready = true;
 			Drifter.LOGGER.info("[Drifter] Better Combat found: Drifters fight with its weapon reach and combos");
 		} catch (ReflectiveOperationException | RuntimeException e) {
@@ -106,6 +115,24 @@ public final class BetterCombatCompat {
 	/** It has Better Combat attributes (a weapon it knows). */
 	public static boolean isWeapon(ItemStack stack) {
 		return attributes(stack) != null;
+	}
+
+	/** Better Combat's weapon type for this item (sword, katana, staff...), lower case; null if it has none or the mod has no category. */
+	@Nullable
+	public static String category(ItemStack stack) {
+		Object attributes = attributes(stack);
+		if (attributes == null || category == null) {
+			return null;
+		}
+
+		try {
+			Object value = category.invoke(attributes);
+			return value instanceof String text && !text.isBlank() ? text.toLowerCase(java.util.Locale.ROOT) : null;
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			category = null;
+			Drifter.LOGGER.info("[Drifter] Better Combat's weapon category failed ({}); modded weapons are typed by name instead", e.toString());
+			return null;
+		}
 	}
 
 	/** Its attack reach with this in hand (the base reach if it isn't one of Better Combat's weapons). */

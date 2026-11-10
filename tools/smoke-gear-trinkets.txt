@@ -1,0 +1,40 @@
+# Trinkets (optional): a Drifter wears the trinkets it carries, by value, rarity and taste, and drops them when it dies.
+# Needs a fresh flat world (level-type=minecraft\:flat, run/world moved aside). Without Trinkets (and Too Many Bows, which
+# needs it) in run/mods: "gear trinkets" says "Trinkets isn't installed", and nothing throws.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 3
+# (Given at once, before it starts deciding: once it is on a job it only switches when that job lets it.)
+execute positioned ~20 ~ ~ run drifter spawn Trink
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter give artifacts:cross_necklace
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter give artifacts:running_shoes
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter give too_many_bows:sharpshot_ring
+drifter tier full all
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear trinkets
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear item artifacts:cross_necklace
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear item artifacts:running_shoes
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear item too_many_bows:sharpshot_ring
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear trinkets
+wait 15
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear trinkets
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter inventory
+attribute @e[type=drifter:drifter,limit=1,sort=nearest,name=Trink] minecraft:generic.movement_speed get
+attribute @e[type=drifter:drifter,limit=1,sort=nearest,name=Trink] minecraft:generic.movement_speed base get
+# Artifacts' own effects (its abilities, not Trinkets modifiers): the running shoes' sprinting speed, if Artifacts gives mobs it.
+attribute @e[type=drifter:drifter,limit=1,sort=nearest,name=Trink] artifacts:generic.sprinting_speed get
+# Death: each worn trinket drops once, as a player's would (Trinkets drops a mob's trinket slots itself; Artifacts' rule that
+# destroys a mob's worn artifacts when no player killed it doesn't apply to a Drifter): count 1 each, nothing twice.
+kill @e[type=item]
+kill @e[type=drifter:drifter,name=Trink]
+wait 3
+execute if entity @e[type=item,nbt={Item:{id:"artifacts:cross_necklace"}}]
+execute if entity @e[type=item,nbt={Item:{id:"artifacts:running_shoes"}}]
+execute if entity @e[type=item,nbt={Item:{id:"too_many_bows:sharpshot_ring"}}]
+wait 3
+stop

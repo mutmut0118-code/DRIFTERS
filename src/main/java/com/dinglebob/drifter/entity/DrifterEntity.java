@@ -107,6 +107,14 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.social.talk.Diary diary = new com.dinglebob.drifter.social.talk.Diary();
 	/** What it knows of the game beyond the basics (the Nether, enchanting, the End...): see Lore. */
 	private final com.dinglebob.drifter.personality.Lore lore = new com.dinglebob.drifter.personality.Lore();
+	/** Which modded items it knows exist, and how it found out (gear project). */
+	private final com.dinglebob.drifter.gear.GearLore gearLore = new com.dinglebob.drifter.gear.GearLore();
+	/** What follows its own hit, shot or ability, watched for an item's powers (only while a watch is on). */
+	private final com.dinglebob.drifter.gear.PowerWatch powerWatch = new com.dinglebob.drifter.gear.PowerWatch();
+	/** Bows and crossbows that never loosed for it, left alone for a while (ruling R23). */
+	private final com.dinglebob.drifter.hands.DeadLaunchers deadLaunchers = new com.dinglebob.drifter.hands.DeadLaunchers();
+	/** Set while it heals by eating's natural regeneration, which is no sign of an item's power. */
+	private boolean healingNaturally;
 	private final VirtualKeys keys = new VirtualKeys();
 	private final CameraModel camera;
 	/** The executor (DESIGN.md section 8, layer 4): runs hand and body tasks one at a time. */
@@ -491,6 +499,233 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.personality.Lore getLore() {
 		return this.lore;
+	}
+
+	public com.dinglebob.drifter.gear.GearLore getGearLore() {
+		return this.gearLore;
+	}
+
+	public com.dinglebob.drifter.gear.PowerWatch getPowerWatch() {
+		return this.powerWatch;
+	}
+
+	public com.dinglebob.drifter.hands.DeadLaunchers getDeadLaunchers() {
+		return this.deadLaunchers;
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Its thrown trident (Task 10): the real item, out in the world until it picks it up again (not saved)
+	// ---------------------------------------------------------------------------------------------
+
+	/** Farther than this from its thrown trident, it has left it behind (lost). */
+	public static final double TRIDENT_FORGET_DISTANCE = 64.0;
+
+	/** The trident it threw and hasn't got back yet (the entity's id), or null. */
+	@org.jetbrains.annotations.Nullable
+	private UUID thrownTrident;
+	/** When it started going after it (-1: not yet; CollectItemsTask gives up after a while). */
+	private long tridentFetchSince = -1L;
+
+	@org.jetbrains.annotations.Nullable
+	public UUID thrownTrident() {
+		return this.thrownTrident;
+	}
+
+	/** It just threw this trident (TridentItemMixin, or its helper player for a modded one). */
+	public void setThrownTrident(UUID id) {
+		this.thrownTrident = id;
+		this.tridentFetchSince = -1L;
+		this.thrownTridentSeen = false;
+		this.thrownTridentLoyal = -1;
+	}
+
+	/** Whether its thrown trident comes back by itself (-1: not looked at yet, 0 no, 1 yes). */
+	private int thrownTridentLoyal = -1;
+
+	/**
+	 * Its thrown trident has Loyalty (ThrownTrident's own test: the enchantment's return speed on its item): it flies back by
+	 * itself, from anywhere it can (out of lava too), so it's waited for and never given up while it's still in the world.
+	 */
+	public boolean thrownTridentLoyal(net.minecraft.world.entity.projectile.AbstractArrow trident) {
+		if (this.thrownTridentLoyal < 0) {
+			this.thrownTridentLoyal = trident instanceof net.minecraft.world.entity.projectile.ThrownTrident
+				&& this.level() instanceof net.minecraft.server.level.ServerLevel level
+				&& EnchantmentHelper.getTridentReturnToOwnerAcceleration(level, trident.getPickupItemStackOrigin(), trident) > 0 ? 1 : 0;
+		}
+
+		return this.thrownTridentLoyal == 1;
+	}
+
+	/**
+	 * It still wants its thrown trident back: it has one out, and hasn't been going after it longer than
+	 * {@code CollectItemsTask.TRIDENT_FETCH_TICKS} (the fight goal holds for it till then).
+	 */
+	public boolean wantsTridentBack(long now) {
+		return this.thrownTrident != null && (this.tridentFetchSince < 0L
+			|| now - this.tridentFetchSince <= com.dinglebob.drifter.executor.task.CollectItemsTask.TRIDENT_FETCH_TICKS);
+	}
+
+	/** It has seen its thrown trident lying where it landed (so it knows where to go for it: section 1). */
+	private boolean thrownTridentSeen;
+
+	public void sawThrownTrident() {
+		this.thrownTridentSeen = true;
+	}
+
+	/**
+	 * It can see this thrown trident from where it stands: nothing solid between its eyes and the trident's shaft (a little
+	 * above its point, which is stuck in the block it hit), and not lying in lava (which hides it; water doesn't).
+	 */
+	public boolean canSeeThrownTrident(net.minecraft.world.entity.projectile.AbstractArrow trident) {
+		if (trident.isInLava()) {
+			return false;
+		}
+
+		Vec3 eye = this.getEyePosition();
+		Vec3 shaft = trident.position().add(0.0, TRIDENT_SHAFT_HEIGHT, 0.0);
+		if (eye.distanceToSqr(shaft) > TRIDENT_FORGET_DISTANCE * TRIDENT_FORGET_DISTANCE) {
+			return false;
+		}
+
+		return this.level().clip(new net.minecraft.world.level.ClipContext(eye, shaft, net.minecraft.world.level.ClipContext.Block.COLLIDER,
+			net.minecraft.world.level.ClipContext.Fluid.NONE, this)).getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+	}
+
+	/** How far above a thrown trident's point it looks for it (the shaft sticks out of what it hit). */
+	private static final double TRIDENT_SHAFT_HEIGHT = 0.3;
+
+	public boolean thrownTridentSeen() {
+		return this.thrownTridentSeen;
+	}
+
+	/** Its thrown trident still out there and still its own, or null. */
+	@org.jetbrains.annotations.Nullable
+	public net.minecraft.world.entity.projectile.AbstractArrow thrownTridentEntity() {
+		if (this.thrownTrident == null || !(this.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return null;
+		}
+
+		return level.getEntity(this.thrownTrident) instanceof net.minecraft.world.entity.projectile.AbstractArrow trident && !trident.isRemoved()
+			&& trident.getOwner() == this ? trident : null;
+	}
+
+	/** The game tick it started going after its thrown trident ({@code now} if it starts now). */
+	public long tridentFetchSince(long now) {
+		if (this.tridentFetchSince < 0L) {
+			this.tridentFetchSince = now;
+		}
+
+		return this.tridentFetchSince;
+	}
+
+	/** Its thrown trident is gone for good (burnt, out of the world, out of reach, left behind): it says so once. */
+	public void loseThrownTrident() {
+		if (this.thrownTrident == null) {
+			return;
+		}
+
+		this.thrownTrident = null;
+		this.tridentFetchSince = -1L;
+		this.memory.thoughts().add(this.level().getGameTime(), "lost its trident");
+	}
+
+	/**
+	 * Its thrown trident, touched (AbstractArrow#playerTouch and ThrownTrident#tryPickup, for its owner): stuck in something,
+	 * or flying back to it by Loyalty, and done shaking, it goes back into its pack as the same item. Gone from the world, it's
+	 * lost.
+	 */
+	private void touchThrownTrident(AABB reach) {
+		net.minecraft.world.entity.projectile.AbstractArrow trident = this.thrownTridentEntity();
+		if (trident == null) {
+			// (Gone: fell out of the world, destroyed, or its chunk unloaded behind it.)
+			this.loseThrownTrident();
+			return;
+		}
+
+		// (Left far behind, or gone after too long without getting it: lost, unless it comes back by itself. Here as well as in
+		// CollectItemsTask, which may not be running when the time runs out.)
+		if ((trident.distanceToSqr(this) > TRIDENT_FORGET_DISTANCE * TRIDENT_FORGET_DISTANCE || !this.wantsTridentBack(this.level().getGameTime()))
+			&& !this.thrownTridentLoyal(trident)) {
+			this.loseThrownTrident();
+			return;
+		}
+
+		boolean returning = trident.isNoPhysics();
+		if (!trident.getBoundingBox().intersects(reach) || trident.shakeTime > 0
+			|| !returning && (!((com.dinglebob.drifter.mixin.AbstractArrowAccessor)trident).drifter$isInGround()
+				|| trident.pickup != net.minecraft.world.entity.projectile.AbstractArrow.Pickup.ALLOWED)) {
+			return;
+		}
+
+		this.takeThrownTrident(trident);
+	}
+
+	/** What its item pickup looks at: dropped items, and tridents (its own flying back to it: {@link #touchReturningTrident}). */
+	private static boolean touchable(net.minecraft.world.entity.Entity entity) {
+		return entity instanceof ItemEntity || entity instanceof net.minecraft.world.entity.projectile.ThrownTrident;
+	}
+
+	/**
+	 * A trident of its own flying back to it (Loyalty) touches it: it goes in, as ThrownTrident#tryPickup lets its owner have
+	 * it ({@code isNoPhysics() && ownedBy(player)}), whether or not it remembers throwing it (a second one, or one in flight
+	 * across a reload; ruling R31). Done shaking, as AbstractArrow#playerTouch asks.
+	 */
+	private void touchReturningTrident(net.minecraft.world.entity.projectile.ThrownTrident trident) {
+		if (trident.isNoPhysics() && trident.shakeTime <= 0 && trident.getOwner() == this) {
+			this.takeThrownTrident(trident);
+		}
+	}
+
+	/** Its thrown trident back into its pack as the same item (the take animation, the entity gone); false if there's no room. */
+	private boolean takeThrownTrident(net.minecraft.world.entity.projectile.AbstractArrow trident) {
+		if (!this.inventory.add(trident.getPickupItemStackOrigin().copy())) {
+			return false;
+		}
+
+		this.take(trident, 1);
+		trident.discard();
+		if (trident.getUUID().equals(this.thrownTrident)) {
+			this.thrownTrident = null;
+			this.tridentFetchSince = -1L;
+		}
+
+		this.memory.thoughts().add(this.level().getGameTime(), "got its trident back");
+		return true;
+	}
+
+	/** Takes this exact stack out of its hands or pack (as Inventory#removeItem does for a player). */
+	public void removeStack(ItemStack stack) {
+		for (int slot = 0; slot < this.inventory.getContainerSize(); slot++) {
+			if (this.inventory.getItem(slot) == stack) {
+				this.inventory.setItem(slot, ItemStack.EMPTY);
+				return;
+			}
+		}
+	}
+
+	/** Any heal but natural regeneration may be an item's power at work (PowerWatch: life steal and the like). */
+	@Override
+	public void heal(float amount) {
+		float before = this.getHealth();
+		super.heal(amount);
+		if (!this.healingNaturally && this.getHealth() > before && !this.level().isClientSide) {
+			com.dinglebob.drifter.gear.PowerWatch.healed(this);
+		}
+	}
+
+	/** Natural regeneration (food, Peaceful): a heal that says nothing about what it holds. */
+	public void healNaturally(float amount) {
+		this.healingNaturally = true;
+		try {
+			this.heal(amount);
+		} finally {
+			this.healingNaturally = false;
+		}
+	}
+
+	/** It knows this item exists (seen, owned, unlocked, told, or known from the start). */
+	public boolean knowsItem(net.minecraft.world.item.Item item) {
+		return this.gearLore.knows(this, item);
 	}
 
 	/** It knows this part of the game (from the start, or learned since). */
@@ -1337,7 +1572,12 @@ public class DrifterEntity extends PathfinderMob {
 
 	@Override
 	public void tick() {
+		this.trinketScanWindow = false;
 		super.tick();
+		if (this.trinketScanWindow) {
+			this.closeTrinketScanWindow();
+		}
+
 		if (!this.level().isClientSide) {
 			if (!this.isEyeInFluid(net.minecraft.tags.FluidTags.WATER)) {
 				this.lastAir = this.getEyePosition().subtract(0.0, this.getEyeHeight() - 0.1, 0.0);
@@ -1384,6 +1624,12 @@ public class DrifterEntity extends PathfinderMob {
 			if ((this.tickCount + (this.getId() & 0xFF)) % 200 == 0) {
 				this.lore.check(this);
 			}
+
+			if ((this.tickCount + (this.getId() & 0xFF)) % com.dinglebob.drifter.gear.GearLore.CHECK_INTERVAL == com.dinglebob.drifter.gear.GearLore.CHECK_OFFSET) {
+				this.gearLore.check(this);
+			}
+
+			this.powerWatch.tick(this);
 		}
 	}
 
@@ -1706,7 +1952,7 @@ protected void customServerAiStep() {
 	private void tickPeacefulRegeneration() {
 		if (this.level().getDifficulty() == Difficulty.PEACEFUL && this.level().getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION)) {
 			if (this.getHealth() < this.getMaxHealth() && this.tickCount % 20 == 0) {
-				this.heal(1.0F);
+				this.healNaturally(1.0F);
 			}
 
 			if (this.foodData.getSaturationLevel() < FoodConstants.MAX_SATURATION && this.tickCount % 20 == 0) {
@@ -2096,7 +2342,54 @@ protected void customServerAiStep() {
 			animStep *= -1.0F;
 		}
 
+		// (After all its own doings this tick: what's left of the tick up to Trinkets' scan is the game's.)
+		if (!this.level().isClientSide && com.dinglebob.drifter.compat.TrinketsCompat.scanSkip()) {
+			this.openTrinketScanWindow();
+		}
+
 		return animStep;
+	}
+
+	// Trinkets (optional, R40): its scan of every entity's trinket slots at the end of each tick costs a lot with a thousand
+	// Drifters. One wearing nothing, that Trinkets has already seen empty, skips it (compatmixin.TrinketsApiMixin); anything
+	// that may have put a trinket on it runs the scan again, and so does a check every few seconds (fail open).
+
+	/** Every this many ticks Trinkets' scan runs anyway, in case something put a trinket on it without saying so. */
+	public static final int TRINKET_RECHECK_TICKS = 100;
+	/** It may have a trinket on, or Trinkets hasn't yet seen its slots empty: Trinkets' scan runs (not saved: true on load). */
+	private boolean mayHaveTrinkets = true;
+	/** From its head turn to the end of LivingEntity#tick, where Trinkets' scan runs. */
+	private boolean trinketScanWindow;
+
+	/** Something may have put a trinket in one of its slots (or taken one off): Trinkets' scan runs again. */
+	public void markMayHaveTrinkets() {
+		this.mayHaveTrinkets = true;
+	}
+
+	/** Debug: Trinkets' scan is being skipped for it (nothing worn, already seen empty). */
+	public boolean trinketScanSkipped() {
+		return !this.mayHaveTrinkets;
+	}
+
+	/** Now is Trinkets' scan, and it wears nothing Trinkets doesn't already know is gone: the scan can be skipped. */
+	public boolean skipTrinketScan() {
+		return this.trinketScanWindow && !this.mayHaveTrinkets;
+	}
+
+	private void openTrinketScanWindow() {
+		if ((this.tickCount + (this.getId() & 0xFF)) % TRINKET_RECHECK_TICKS == 0) {
+			this.mayHaveTrinkets = true;
+		}
+
+		this.trinketScanWindow = true;
+	}
+
+	/** Trinkets' scan has run if it was going to: once it ran with every slot empty, it stays skipped until something changes. */
+	private void closeTrinketScanWindow() {
+		this.trinketScanWindow = false;
+		if (this.mayHaveTrinkets && com.dinglebob.drifter.compat.TrinketsCompat.allEmpty(this)) {
+			this.mayHaveTrinkets = false;
+		}
 	}
 
 	/** Player#getMaxHeadRotationRelativeToBody: the head stays within 15 degrees of the body while blocking. */
@@ -2189,27 +2482,32 @@ protected void customServerAiStep() {
 	}
 
 	/**
-	 * A modded bow with its own way of letting go (Simply Bows' unique bows) is let go by its helper player, as a player
-	 * would: the arrows come out of its own pack (the mod gives any shooter that isn't a player endless arrows), and the
-	 * bow's ability works as it does for a player. Its arrows are then its own (whom they hit, it hit). The vanilla bow
-	 * goes its own way (BowItemMixin).
+	 * A modded bow or crossbow with its own way of letting go (Simply Bows' unique bows) is let go by its helper player, as
+	 * a player would: the arrows come out of its own pack (the mod gives any shooter that isn't a player endless arrows), and
+	 * the bow's ability works as it does for a player. Its arrows are then its own (whom they hit, it hit). One whose class
+	 * can't be looked into on this side (a method of it names a client-only class: Too Many Bows' bows on a dedicated
+	 * server) goes the same way, a player's release being the one such a mod surely supports. If the mod's release throws,
+	 * nothing is loosed (ShootTask counts that against the item: DeadLaunchers). The vanilla bow goes its own way
+	 * (BowItemMixin); the vanilla crossbow loads from {@link #getProjectile}.
 	 */
 	@Override
 	public void releaseUsingItem() {
-		ItemStack bow = this.useItem;
-		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isBow(bow) && ownRelease(bow.getItem().getClass())) {
+		ItemStack launcher = this.useItem;
+		net.minecraft.world.item.Item launcherItem = launcher.getItem();
+		boolean trident = launcherItem instanceof net.minecraft.world.item.TridentItem;
+		if (!this.level().isClientSide && (trident || com.dinglebob.drifter.hands.Shields.isLauncher(launcher)) && release(launcher.getItem().getClass()) != Release.VANILLA) {
 			int remaining = this.getUseItemRemainingTicks();
-			com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
-				bow.releaseUsing(fake.level(), fake, remaining);
-				return null;
-			});
-			if (this.helperPlayer != null) {
-				for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
-					this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
-					shot.setOwner(this);
-				}
+			try {
+				com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
+					launcher.releaseUsing(fake.level(), fake, remaining);
+					return null;
+				});
+			} catch (RuntimeException | LinkageError e) {
+				com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] {} couldn't let go of {} ({}); nothing loosed", this.getName().getString(),
+					net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(launcher.getItem()), e.toString());
 			}
 
+			this.adoptHelperShots(trident ? launcherItem : null);
 			this.stopUsingItem();
 			return;
 		}
@@ -2217,19 +2515,145 @@ protected void customServerAiStep() {
 		super.releaseUsingItem();
 	}
 
-	/** This bow class (or one between it and the vanilla bow) has its own releaseUsing. */
-	private static boolean ownRelease(Class<?> type) {
-		for (Class<?> c = type; c != null && c != net.minecraft.world.item.BowItem.class; c = c.getSuperclass()) {
-			for (java.lang.reflect.Method method : c.getDeclaredMethods()) {
+	/**
+	 * Fires the loaded crossbow in its main hand at {@code speed}, where its head points. The vanilla crossbow fires as its
+	 * own (CrossbowItem#performShooting; CrossbowItemMixin makes the bolts critical, as a player's). A modded one is fired by
+	 * its helper player, as a player fires one (a right-click with it loaded), so whatever the mod adds to firing works; its
+	 * bolts are then its own. If the mod's firing throws, nothing is loosed (ShootTask counts that: DeadLaunchers).
+	 */
+	public void fireCrossbow(ItemStack crossbow, float speed) {
+		if (!(crossbow.getItem() instanceof net.minecraft.world.item.CrossbowItem item) || this.level().isClientSide) {
+			return;
+		}
+
+		if (item.getClass() == net.minecraft.world.item.CrossbowItem.class) {
+			item.performShooting(this.level(), this, net.minecraft.world.InteractionHand.MAIN_HAND, crossbow, speed, 1.0F, null);
+			return;
+		}
+
+		try {
+			com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> crossbow.use(fake.level(), fake, net.minecraft.world.InteractionHand.MAIN_HAND));
+		} catch (RuntimeException | LinkageError e) {
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] {} couldn't fire {} ({}); nothing loosed", this.getName().getString(),
+				net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item), e.toString());
+		}
+
+		this.adoptHelperShots(null);
+	}
+
+	/**
+	 * What its helper player just shot is its own (whom it hits, it hit). {@code trident}: the trident it let go of (null for a
+	 * bow or crossbow), so the trident-like shot (an AbstractArrow; its helper player had it, so it may be picked up) is its
+	 * thrown trident.
+	 */
+	private void adoptHelperShots(@org.jetbrains.annotations.Nullable net.minecraft.world.item.Item trident) {
+		if (this.helperPlayer == null) {
+			return;
+		}
+
+		for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
+			this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
+			shot.setOwner(this);
+			if (trident != null && shot instanceof net.minecraft.world.entity.projectile.AbstractArrow) {
+				this.setThrownTrident(shot.getUUID());
+			} else if (trident != null) {
+				// (Not a trident-like entity: it can't be picked up again as one, so it isn't remembered. Said, not silent.)
+				com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] {}: its trident {} threw a {}, not a trident it can fetch", this.getName().getString(),
+					net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(trident),
+					net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(shot.getType()));
+			}
+		}
+	}
+
+	/**
+	 * What a bow or crossbow shoots, picked as a player's is (Player#getProjectile): what the weapon takes held in a hand
+	 * first (off hand, then main), then the first such stack in its pack, by the weapon's own rule (a modded crossbow that
+	 * takes only its own bolts gets no arrows). The live stack, so loading a crossbow uses it up (CrossbowItem#releaseUsing
+	 * loads from here; a mob has none).
+	 */
+	@Override
+	public ItemStack getProjectile(ItemStack weapon) {
+		if (!(weapon.getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem launcher)) {
+			return super.getProjectile(weapon);
+		}
+
+		ItemStack held = net.minecraft.world.item.ProjectileWeaponItem.getHeldProjectile(this, launcher.getSupportedHeldProjectiles());
+		if (!held.isEmpty()) {
+			return held;
+		}
+
+		java.util.function.Predicate<ItemStack> takes = launcher.getAllSupportedProjectiles();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			ItemStack stack = this.inventory.getItem(slot);
+			if (takes.test(stack)) {
+				return stack;
+			}
+		}
+
+		return ItemStack.EMPTY;
+	}
+
+	/** How a launcher's class lets go: its own way, the vanilla way, or can't tell (it can't be looked into on this side). */
+	public enum Release {
+		OWN, VANILLA, UNKNOWN
+	}
+
+	/** Each class's release, worked out once (reflection; asked whenever a bow is valued or let go). */
+	private static final ClassValue<Release> RELEASES = new ClassValue<>() {
+		@Override
+		protected Release computeValue(Class<?> type) {
+			return findRelease(type, vanillaLauncher(type));
+		}
+	};
+
+	/** How this bow, crossbow or trident class lets go, against the vanilla class it comes from. */
+	public static Release release(Class<?> type) {
+		return RELEASES.get(type);
+	}
+
+	private static Class<?> vanillaLauncher(Class<?> type) {
+		if (net.minecraft.world.item.BowItem.class.isAssignableFrom(type)) {
+			return net.minecraft.world.item.BowItem.class;
+		} else if (net.minecraft.world.item.CrossbowItem.class.isAssignableFrom(type)) {
+			return net.minecraft.world.item.CrossbowItem.class;
+		} else if (net.minecraft.world.item.TridentItem.class.isAssignableFrom(type)) {
+			return net.minecraft.world.item.TridentItem.class;
+		}
+
+		return net.minecraft.world.item.Item.class;
+	}
+
+	/**
+	 * This class (or one between it and the vanilla {@code stop} class: BowItem, CrossbowItem or TridentItem) has its own
+	 * releaseUsing (one it can't look into doesn't count). Callers that aren't sure the class descends from {@code stop}
+	 * check that first.
+	 */
+	public static boolean ownRelease(Class<?> type, Class<?> stop) {
+		return (stop == vanillaLauncher(type) ? release(type) : findRelease(type, stop)) == Release.OWN;
+	}
+
+	private static Release findRelease(Class<?> type, Class<?> stop) {
+		boolean unreadable = false;
+		for (Class<?> c = type; c != null && c != stop; c = c.getSuperclass()) {
+			java.lang.reflect.Method[] methods;
+			try {
+				methods = c.getDeclaredMethods();
+			} catch (LinkageError e) {
+				// A method mentions a client-only class (hover text, say) that a server doesn't have: can't tell, go on up.
+				unreadable = true;
+				continue;
+			}
+
+			for (java.lang.reflect.Method method : methods) {
 				Class<?>[] params = method.getParameterTypes();
 				if (method.getReturnType() == void.class && params.length == 4 && params[0] == ItemStack.class && params[1] == Level.class
 					&& params[2] == net.minecraft.world.entity.LivingEntity.class && params[3] == int.class) {
-					return true;
+					return Release.OWN;
 				}
 			}
 		}
 
-		return false;
+		return unreadable ? Release.UNKNOWN : Release.VANILLA;
 	}
 
 	/**
@@ -2317,16 +2741,23 @@ protected void customServerAiStep() {
 		// the game keeps in lists of their own: the general look went through every body in a packed army (2.7% of a 500v500;
 		// milestone 16 crowd pass, 2026-11-08).
 		// (From the tick's shared grid when it can: an item dropped this tick is in reach from the next, 50 ms on.)
-		List<ItemEntity> items = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(), ItemEntity.class, reach, entity -> true);
+		// (Its own tridents flying back to it come in the same look: ThrownTrident#tryPickup.)
+		List<net.minecraft.world.entity.Entity> items = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(), net.minecraft.world.entity.Entity.class, reach,
+			DrifterEntity::touchable);
 		List<net.minecraft.world.entity.ExperienceOrb> orbs = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(),
 			net.minecraft.world.entity.ExperienceOrb.class, reach, entity -> true);
 		if (items == null || orbs == null) {
-			items = this.level().getEntitiesOfClass(ItemEntity.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS);
+			items = new java.util.ArrayList<>(this.level().getEntitiesOfClass(ItemEntity.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS));
+			items.addAll(this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.ThrownTrident.class, reach, entity -> true));
 			orbs = this.level().getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS);
 		}
 
-		for (ItemEntity item : items) {
-			this.tryPickUp(item);
+		for (net.minecraft.world.entity.Entity entity : items) {
+			if (entity instanceof ItemEntity item) {
+				this.tryPickUp(item);
+			} else if (entity instanceof net.minecraft.world.entity.projectile.ThrownTrident trident && !trident.isRemoved()) {
+				this.touchReturningTrident(trident);
+			}
 		}
 
 		if (this.takeXpDelay > 0) {
@@ -2337,6 +2768,11 @@ protected void customServerAiStep() {
 			if (!orb.isRemoved()) {
 				this.touchOrb(orb);
 			}
+		}
+
+		// Its own thrown trident, if it has one out (looked up by its id: no search).
+		if (this.thrownTrident != null) {
+			this.touchThrownTrident(reach);
 		}
 	}
 
@@ -2594,6 +3030,7 @@ protected void customServerAiStep() {
 	 */
 	@Override
 	public void die(DamageSource source) {
+		this.mayHaveTrinkets = true;
 		this.tasks.cancel("died");
 		if (!this.level().isClientSide()) {
 			com.dinglebob.drifter.social.talk.Diary.died(this, this.getCombatTracker().getDeathMessage().getString());
@@ -2614,6 +3051,10 @@ protected void customServerAiStep() {
 				worth++;
 			}
 		}
+
+		// Its trinkets (Trinkets, optional) are left there too: they drop as a player's do (TrinketsCompat's drop callback; a
+		// trinket that a player would lose too, by Curse of Vanishing or its own rule, is the one exception it may overcount).
+		worth += com.dinglebob.drifter.compat.TrinketsCompat.wornCount(this);
 
 		if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
 			this.social.watcher().killedBy(player);
@@ -2720,6 +3161,12 @@ protected void customServerAiStep() {
 	@org.jetbrains.annotations.Nullable
 	private com.dinglebob.drifter.compat.RagdollCompat.Ragdoll ragdoll;
 
+	/**
+	 * Its trinkets (Trinkets, optional) drop in the super call: Trinkets drops any mob's trinket slots at the end of
+	 * LivingEntity#dropEquipment, by each trinket's and slot's drop rule (keep, drop, destroy; Curse of Vanishing destroys).
+	 * A rule that destroys only a mob's trinkets (Artifacts') is turned back to the default for it by TrinketsCompat's drop
+	 * callback, so it loses what a player would and no more.
+	 */
 	@Override
 	protected void dropEquipment() {
 		super.dropEquipment();
@@ -2886,6 +3333,7 @@ protected void customServerAiStep() {
 		tag.put("DrifterInventory", this.inventory.save(this.registryAccess()));
 		tag.put("Diary", this.diary.save());
 		tag.put("DrifterLore", this.lore.save());
+		tag.put("DrifterGear", this.gearLore.save());
 		tag.putInt("SelectedItemSlot", this.inventory.getSelected());
 		this.foodData.addAdditionalSaveData(tag);
 		tag.putString("Skin", this.getSkinTexture().toString());
@@ -2942,6 +3390,8 @@ protected void customServerAiStep() {
 	@Override
 	public void readAdditionalSaveData(CompoundTag tag) {
 		super.readAdditionalSaveData(tag);
+		// (Trinkets loads its slots with the entity: its scan runs until it has seen them, R40.)
+		this.mayHaveTrinkets = true;
 		// Version 1 is the first format; future versions migrate older tags here.
 		this.inventory.load(this.registryAccess(), tag.getList("DrifterInventory", Tag.TAG_COMPOUND));
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
@@ -2949,6 +3399,8 @@ protected void customServerAiStep() {
 		this.diary.load(tag.getCompound("Diary"));
 		// (Older saves have none: it knows what its personality gives it, and learns the rest again.)
 		this.lore.load(tag.getCompound("DrifterLore"));
+		// (No DrifterGear tag, an older save: it seeds from what it carries on its next check.)
+		this.gearLore.load(tag.getCompound("DrifterGear"));
 		this.experienceProgress = tag.getFloat("XpP");
 		this.experienceLevel = tag.getInt("XpLevel");
 		this.totalExperience = tag.getInt("XpTotal");

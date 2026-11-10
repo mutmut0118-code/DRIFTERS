@@ -178,6 +178,32 @@ way on, and `Dig` STRIP, BRANCH or DOWN); a home's mining trips start there. `Ho
 chest to fetch from (one with enough, nearest home, not crowded). `DrifterApi.furnitureSpot(level, home, notHere)`: a spot
 in the room round its bed for one more piece of furniture.
 
+## Gear (API 4)
+
+Any mod's weapons, armor, shields and trinkets, read from the items themselves (their attribute modifiers, rarity and
+recipes), with what each Drifter knows of them and its taste. All on the server thread.
+
+| Call | What it does |
+| --- | --- |
+| `DrifterApi.isGear(stack)` | A weapon of some kind, a piece of armor, a shield, or a trinket (Trinkets, optional): any mod's. |
+| `DrifterApi.isLauncher(stack)` | A bow or crossbow, vanilla or any mod's. |
+| `DrifterApi.isWeapon(stack)` | A weapon it can fight with in hand, vanilla or any mod's: a sword, a katana, a weapon file's item, an axe, and a trident (thrown or swung). Not a bow, crossbow or shield, and not a pickaxe, shovel or hoe. |
+| `DrifterApi.gearValue(drifter, stack)` | What it's worth to that Drifter for its use: armor worn in its slot, a trinket in its best slot, a bow, crossbow or trident by its ranged score, any other weapon by damage per second in its hands; 0 otherwise. Compare within one use only. |
+| `DrifterApi.armorPoints(stack)` | Its armor points in the slot it's made for, as the armor bar counts them (an iron chestplate 6); 0 if not armor. |
+| `DrifterApi.knowsItem(drifter, item)` | It knows the item exists (vanilla, a weapon family, a veteran's craftable gear, or seen, owned, unlocked, told). |
+| `DrifterApi.learnItem(drifter, item, where)` | It has seen the item (`where`: for its thought); nothing if it knew it. Only for what it could really have seen. |
+| `DrifterApi.gearStyle(drifter)` | Its taste: `"practical"`, `"flashy"`, `"loyal"` or `"follower"`. |
+| `DrifterApi.gearLiking(drifter, stack)` | Its `gearValue` with its taste in it (never below 0). |
+| `DrifterApi.gearItCanMake(drifter, maxTier)` | The gear it knows how to make at a crafting table, at `maxTier` or lower (1 wood, 2 stone, 3 iron, 4 diamond, 5 netherite; a weapon by the sword it matches, armor by the vanilla piece its score matches, a bow, crossbow, shield or trinket as iron): every such vanilla piece, then at most four modded pieces it knows (two weapons and two armor pieces, a side's unused places going to the other), those it likes best by their use value with its taste, each against the iron piece of the same use (they hold until what it knows changes). Kept per Drifter: cheap to ask often. |
+| `DrifterApi.gearItCanMake(drifter, maxTier, which)` | The same, only what `which` (a `Predicate<ItemStack>`) takes; the four modded pieces counted among those. |
+
+A weapon whose tier is unknown counts as iron (3) in `gearItCanMake`.
+
+`DrifterApi.worth(stack)` prices modded gear by its value (`GearValue.points`: its tier, rarity and what it's made of),
+even a mod's `ArmorItem` or `TieredItem`; vanilla items keep their prices. Drifter: Civilizations' smiths make and sell
+the modded weapons and armor they know (no trinkets or shields; fletchers their bows and crossbows), the stall doesn't sell any mod's gear as
+goods, and a town's veteran is one in a chestplate of 6 armor points or more, any mod's.
+
 ## Groups (a town's beginnings)
 
 `DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the
@@ -208,7 +234,7 @@ near home.
 Fabric's data attachments (`AttachmentRegistry.createPersistent(...)` with a codec, then `drifter.setAttached(...)`):
 saved with the Drifter, versioned by the addon, and Drifter's own save format never changes for it.
 
-## Friends: talk and closeness with players (0.23.38-side.1, API 4, `TalkApi`)
+## Friends: talk and closeness with players (0.23.38-side.1, API 5, `TalkApi`)
 
 For the addon's friendships (D2, docs/LIVED_WORLD.md). In a class of its own so this door grows in one place per
 feature. Each hook is one listener, a no-op until the addon sets it.

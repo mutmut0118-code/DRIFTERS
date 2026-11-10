@@ -436,6 +436,12 @@ public final class DrifterCommands {
 					+ " (this game's own setting; in multiplayer each player's)"), true);
 				return 1;
 			})))
+			// Every Drifter knows every item and recipe (like Just Enough Items); never where anything is.
+			.then(Commands.literal("knoweveryrecipe").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setKnowEveryRecipe(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Know every recipe " + (com.dinglebob.drifter.DrifterConfig.knowEveryRecipe() ? "on" : "off")), true);
+				return 1;
+			})))
 			// Gap jumps on or off (to compare, or if they cause trouble).
 			.then(Commands.literal("parkour").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setParkour(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
@@ -656,6 +662,7 @@ public final class DrifterCommands {
 		EncounterCommands.register(root);
 		HouseCommands.register(root);
 		HeardCommands.register(root);
+		GearCommands.register(root, buildContext);
 		// (After "talk" above: these add to it.)
 		TalkWebCommands.register(root);
 
@@ -1126,11 +1133,16 @@ public final class DrifterCommands {
 		DrifterInventory inventory = drifter.getInventory();
 		StringBuilder text = new StringBuilder(label(drifter)).append("'s inventory:");
 		boolean any = false;
+		// (What it would put in its chest, and so could also give or trade away: Storage.toDeposit, which spare() starts from.)
+		java.util.Map<Integer, Integer> away = com.dinglebob.drifter.brain.Storage.toDeposit(drifter);
 		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
 			ItemStack stack = inventory.getItem(slot);
 			if (!stack.isEmpty()) {
 				any = true;
 				text.append("\n  ").append(slotName(slot)).append(": ").append(describe(stack));
+				if (away.containsKey(slot)) {
+					text.append(" [stores ").append(away.get(slot)).append("]");
+				}
 			}
 		}
 

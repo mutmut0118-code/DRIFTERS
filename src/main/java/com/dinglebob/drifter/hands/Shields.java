@@ -93,21 +93,42 @@ public final class Shields {
 		return !stack.isEmpty() && stack.getItem() instanceof BowItem;
 	}
 
-	/** How good a bow is: a modded unique bow over a plain one, enchantments, then the wear left. */
-	public static double bowScore(ItemStack stack) {
-		double score = stack.getItem().getClass() != BowItem.class ? 1000.0 : 0.0;
-		score += 100.0 * stack.getEnchantments().size();
-		return score + (stack.isDamageableItem() ? 1.0 - stack.getDamageValue() / (double)stack.getMaxDamage() : 1.0);
+	/** A bow or a crossbow, any mod's (what it can shoot arrows from: the shooting task uses either). */
+	public static boolean isLauncher(ItemStack stack) {
+		return !stack.isEmpty() && (stack.getItem() instanceof BowItem || stack.getItem() instanceof net.minecraft.world.item.CrossbowItem);
 	}
 
-	/** Its best bow in the main inventory, or -1. */
+	/** How much this Drifter likes a bow or crossbow: its value (enchantments, rarity, own release, wear) with its taste in it. */
+	public static double bowScore(DrifterEntity drifter, ItemStack stack) {
+		return com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, com.dinglebob.drifter.gear.GearValue.ranged(stack));
+	}
+
+	/** Its best bow or crossbow to shoot with now in the main inventory, or -1. */
 	public static int bestBowSlot(DrifterEntity drifter) {
+		return bestBowSlot(drifter, null);
+	}
+
+	/**
+	 * The same, against this target (null: none in mind): how well each launcher's powers suit it, as it believes, multiplies
+	 * its score ({@code Powers.fit}: an explosive bow loses to a plain one up close or near friends). Only ones it could
+	 * shoot now (Archery#canShoot: with no arrows, only a loaded crossbow; never one it gave up on).
+	 */
+	public static int bestBowSlot(DrifterEntity drifter, @org.jetbrains.annotations.Nullable net.minecraft.world.entity.LivingEntity target) {
 		DrifterInventory inventory = drifter.getInventory();
+		boolean ammo = !Archery.ammo(drifter).isEmpty();
 		int best = -1;
+		double bestScore = 0.0;
 		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
 			ItemStack stack = inventory.getItem(slot);
-			if (isBow(stack) && (best < 0 || bowScore(stack) > bowScore(inventory.getItem(best)))) {
-				best = slot;
+			if (Archery.canShoot(drifter, stack, ammo)) {
+				double score = bowScore(drifter, stack);
+				// (A score below zero would be raised by a penalty: one is scaled the other way.)
+				double fit = com.dinglebob.drifter.gear.Powers.fit(drifter, stack, target);
+				score = score >= 0.0 ? score * fit : score * (2.0 - fit);
+				if (best < 0 || score > bestScore) {
+					best = slot;
+					bestScore = score;
+				}
 			}
 		}
 

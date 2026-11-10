@@ -35,12 +35,10 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShearsItem;
-import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 
@@ -80,6 +78,8 @@ final class Trades {
 	/** It buys what it has fewer than this of. */
 	private static final int SHORT = 32;
 	private static final double BUYS_AT = 0.8;
+	/** Modded gear a smith (or fletcher) makes to sell, beyond its file's list: iron tier or lower (B6 keeps diamond to "sells"). */
+	private static final int GEAR_TIER = 3;
 
 	private static Map<String, Line> lines = Map.of();
 
@@ -512,6 +512,14 @@ final class Trades {
 			}
 		}
 
+		// Modded gear it knows how to make (Drifter's gear knowledge), one of each kept.
+		for (Item item : gearMakes(line, drifter)) {
+			if (home.storedOwn(item) + forSale(drifter, item) < 1) {
+				short_.add(item);
+				have += drifter.getInventory().count(stack -> stack.is(item));
+			}
+		}
+
 		return short_.isEmpty() ? null : new TownWork.Wares(short_, have + batch, line.name().equals("smith") ? "tools to sell" : "things to sell");
 	}
 
@@ -592,12 +600,54 @@ final class Trades {
 		return stack;
 	}
 
-	/** One it uses itself (a tool, a weapon: it keeps one of each kind). */
-	private static boolean ownUse(Item item) {
-		return item instanceof TieredItem || item instanceof ShearsItem || item instanceof BowItem || item instanceof FishingRodItem || item instanceof ShieldItem;
+	/**
+	 * The modded gear (any weapon or armor mod) a smith makes beyond its file's list (weapons and armour only: no trinkets
+	 * or shields), or a fletcher's bows and crossbows: what it knows how to make (Drifter's gear knowledge, a few it likes
+	 * best), iron tier or lower. None for other trades.
+	 */
+	private static List<Item> gearMakes(Line line, DrifterEntity drifter) {
+		boolean smith = line.name().equals("smith");
+		if (!smith && !line.name().equals("fletcher")) {
+			return List.of();
+		}
+
+		List<Item> out = new ArrayList<>();
+		for (Item item : DrifterApi.gearItCanMake(drifter, GEAR_TIER, stack -> smith ? DrifterApi.armorPoints(stack) > 0 || DrifterApi.isWeapon(stack)
+			: DrifterApi.isLauncher(stack))) {
+			if (!"minecraft".equals(BuiltInRegistries.ITEM.getKey(item).getNamespace()) && line.shop().makes().stream().noneMatch(make -> make.item() == item)) {
+				out.add(item);
+			}
+		}
+
+		return out;
 	}
 
-	/** How many of these it carries to sell: all but its own (one of a tool, a few meals). Armour it wears isn't in its pockets. */
+	/** What its shop sells: its file's list, and the modded gear it makes ({@link #gearMakes}). */
+	private static List<Item> sells(Line line, DrifterEntity keeper) {
+		List<Item> gear = gearMakes(line, keeper);
+		if (gear.isEmpty()) {
+			return line.shop().sells();
+		}
+
+		List<Item> all = new ArrayList<>(line.shop().sells());
+		gear.stream().filter(item -> !all.contains(item)).forEach(all::add);
+		return all;
+	}
+
+	/**
+	 * One it uses itself (a tool, a weapon, a bow, a shield, any mod's: it keeps one of each kind). Not armour: what it wears
+	 * is in its armour slots, not its pockets.
+	 */
+	private static boolean ownUse(Item item) {
+		ItemStack stack = new ItemStack(item);
+		return (DrifterApi.isGear(stack) && DrifterApi.armorPoints(stack) <= 0) || item instanceof ShearsItem || item instanceof FishingRodItem
+			|| item instanceof TieredItem;
+	}
+
+	/**
+	 * How many of these it carries to sell: all but its own (one of a tool, weapon, bow or shield, a few meals). Armour it
+	 * carries is all for sale: what it wears isn't in its pockets.
+	 */
 	private static int forSale(DrifterEntity drifter, Item item) {
 		int carried = drifter.getInventory().count(stack -> stack.is(item));
 		int keep = ownUse(item) ? 1 : new ItemStack(item).has(net.minecraft.core.component.DataComponents.FOOD) ? KEEP_FOOD : 0;
@@ -732,7 +782,7 @@ final class Trades {
 			Map<Item, Integer> stock = new LinkedHashMap<>();
 			Home home = DrifterApi.home(keeper);
 			if (home != null) {
-				for (Item item : this.line.shop().sells()) {
+				for (Item item : sells(this.line, keeper)) {
 					// (What its household has: the town's store is the town stall's to sell.)
 					int stored = home.storedOwn(item);
 					if (stored > 0) {
@@ -756,7 +806,7 @@ final class Trades {
 			// A friend's price (D2), when that's cheaper.
 			standing = Friends.price(keeper, player, standing);
 
-			for (Item item : this.line.shop().sells()) {
+			for (Item item : sells(this.line, keeper)) {
 				ShopOffer offer = Market.trade(item, Market.price(keeper, item) * standing, forSale(keeper, item), true);
 				if (offer != null && !offers.stream().anyMatch(other -> other.goods().is(item))) {
 					offers.add(offer);

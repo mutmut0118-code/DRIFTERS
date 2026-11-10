@@ -108,6 +108,14 @@ public final class BuyGoal extends Goals.Goal {
 				continue;
 			}
 
+			// What is on offer it sees only at the stall: the keeper in sight and near enough to make out the goods.
+			if (seen != null && seen.visibleNow
+				&& keeper.distanceToSqr(drifter) <= com.dinglebob.drifter.perception.Senses.DETAIL_RANGE * com.dinglebob.drifter.perception.Senses.DETAIL_RANGE) {
+				for (ShopKeeper.ShopOffer shown : shop.offers(keeper, null)) {
+					drifter.getGearLore().see(drifter, shown.goods(), "in a shop");
+				}
+			}
+
 			for (Need need : needs) {
 				for (ShopKeeper.ShopOffer offer : shop.offers(keeper, null)) {
 					if (!need.is().test(offer.goods()) || !(offer.pay().is(Items.EMERALD) || Money.isCoin(offer.pay())) || offer.times() <= 0) {

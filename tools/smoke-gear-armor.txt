@@ -1,0 +1,81 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 5
+execute positioned ~20 ~ ~ run drifter spawn Aloyal
+execute positioned ~40 ~ ~ run drifter spawn Aprac
+execute positioned ~60 ~ ~ run drifter spawn Aheavy
+execute positioned ~80 ~ ~ run drifter spawn Aloyal2
+execute positioned ~100 ~ ~ run drifter spawn Aelytra
+execute positioned ~120 ~ ~ run drifter spawn Aflash
+drifter tier full all
+wait 15
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter gear style loyal
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter gear style loyal
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter gear style practical
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter gear style flashy
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter give minecraft:iron_helmet
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter give minecraft:iron_leggings
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter give minecraft:iron_boots
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter give minecraft:iron_helmet
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter give minecraft:iron_leggings
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter give minecraft:iron_boots
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter give minecraft:iron_helmet
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter give minecraft:iron_leggings
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter give minecraft:iron_boots
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter give minecraft:iron_helmet
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter give minecraft:iron_leggings
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter give minecraft:iron_boots
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter give minecraft:iron_helmet
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter give minecraft:iron_chestplate
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter give minecraft:iron_leggings
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter give minecraft:iron_boots
+wait 2
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter wear
+wait 10
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter give immersive_armors:warrior_chestplate
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter give immersive_armors:warrior_chestplate
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter give immersive_armors:heavy_chestplate
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter give immersive_armors:prismarine_chestplate
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter give minecraft:elytra
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter give minecraft:carved_pumpkin
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter give minecraft:leather_chestplate[enchantments={levels:{"minecraft:protection":4}}]
+wait 1
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter wear
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter wear
+wait 12
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter gear
+execute as @e[type=drifter:drifter,name=Aloyal] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter gear
+execute as @e[type=drifter:drifter,name=Aprac] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter gear
+execute as @e[type=drifter:drifter,name=Aheavy] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter gear
+execute as @e[type=drifter:drifter,name=Aloyal2] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter gear
+execute as @e[type=drifter:drifter,name=Aelytra] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter gear
+execute as @e[type=drifter:drifter,name=Aflash] at @s run drifter inventory
+wait 20
+save-all
+stop

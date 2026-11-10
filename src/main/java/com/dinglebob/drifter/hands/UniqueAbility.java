@@ -86,7 +86,7 @@ public final class UniqueAbility {
 	 */
 	public static boolean tick(DrifterEntity drifter, LivingEntity target, double distance) {
 		ItemStack held = drifter.getMainHandItem();
-		JsonObject ability = abilityOf(held);
+		JsonObject ability = abilityOf(drifter, held);
 		if (ability == null || !(drifter.level() instanceof ServerLevel level) || !active()) {
 			return false;
 		}
@@ -127,7 +127,15 @@ public final class UniqueAbility {
 
 	private static void activate(DrifterEntity drifter, ServerLevel level, ItemStack held, LivingEntity target) {
 		Object context = context(level, held, drifter, target);
-		if (context != null && call(tryActivate, context)) {
+		if (context == null) {
+			return;
+		}
+
+		// What follows may show what the ability does (watched from before it goes off; its cooldown is read after).
+		com.dinglebob.drifter.gear.PowerWatch.start(drifter, held, target, com.dinglebob.drifter.gear.PowerWatch.Use.ABILITY);
+		if (!call(tryActivate, context)) {
+			com.dinglebob.drifter.gear.PowerWatch.cancel(drifter);
+		} else {
 			drifter.getMemory().thoughts().add(level.getGameTime(), "used " + held.getHoverName().getString() + "'s ability on the "
 				+ target.getName().getString());
 		}
@@ -163,6 +171,11 @@ public final class UniqueAbility {
 	}
 
 	private static boolean wanted(DrifterEntity drifter, LivingEntity target, double distance, JsonObject ability) {
+		// Not an ability it believes would blow up or burn a friend, itself or its home (gear powers).
+		if (!com.dinglebob.drifter.gear.Powers.mayUse(drifter, drifter.getMainHandItem(), target)) {
+			return false;
+		}
+
 		String when = ability.has("when") ? ability.get("when").getAsString() : "fight";
 		double max = ability.has("max") ? ability.get("max").getAsDouble() : 6.0;
 		return switch (when) {
@@ -186,9 +199,26 @@ public final class UniqueAbility {
 			drifter)).getType() == HitResult.Type.MISS;
 	}
 
+	/**
+	 * When to use the held item's ability: an item a weapon file lists keeps its entry (no {@code ability}: none); a Simply
+	 * Swords item no file lists gets a generic one from what this Drifter believes it does ({@code Powers.abilityFor}).
+	 */
 	@Nullable
-	public static JsonObject abilityOf(ItemStack stack) {
+	public static JsonObject abilityOf(DrifterEntity drifter, ItemStack stack) {
+		if (stack.isEmpty()) {
+			return null;
+		}
+
 		Weapons.Unique unique = Weapons.unique(stack);
-		return unique == null ? null : unique.ability();
+		if (unique != null) {
+			return unique.ability();
+		}
+
+		if (Weapons.family(stack) != null
+			|| !"simplyswords".equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace())) {
+			return null;
+		}
+
+		return com.dinglebob.drifter.gear.Powers.abilityFor(drifter, stack);
 	}
 }

@@ -1,0 +1,12 @@
+{
+	"required": false,
+	"package": "com.dinglebob.drifter.compatmixin",
+	"plugin": "com.dinglebob.drifter.compat.CompatMixinPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"TrinketsApiMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

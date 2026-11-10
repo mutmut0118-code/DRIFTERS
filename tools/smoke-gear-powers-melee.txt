@@ -1,0 +1,28 @@
+# Task 7, melee: a power learned from its own sword hits, from an item whose stack has no enchantment to explain it.
+# python tools/smoke.py . tools/smoke-gear-powers-melee.txt build/smoke-gear-powers-melee.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, with Simply Swords. Brim knows too little to read
+# text (knowledge 0.1) and fights a standing pillager (not undead: the sun does not burn it) with a Brimstone Claymore, whose hits can
+# brand and ignite. Expect: "powers: none" before; the thought "found out Brimstone Claymore: fire"; then "fire 0.35 (SEEN)" or more.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+weather clear
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+difficulty normal
+kill @e[type=pillager]
+drifter spawn Brim
+execute at @e[type=drifter:drifter,name=Brim] run drifter brain off
+drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Brim] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Brim] run drifter give simplyswords:brimstone_claymore
+execute at @e[type=drifter:drifter,name=Brim] positioned ~ ~ ~3 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+wait 12
+execute at @e[type=drifter:drifter,name=Brim] run drifter gear item simplyswords:brimstone_claymore
+execute as @e[type=drifter:drifter,name=Brim] at @s run drifter attack @e[type=pillager,limit=1,sort=nearest]
+wait 25
+execute at @e[type=drifter:drifter,name=Brim] run drifter gear item simplyswords:brimstone_claymore
+stop

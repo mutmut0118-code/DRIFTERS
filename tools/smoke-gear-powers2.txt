@@ -1,0 +1,17 @@
+# Task 7, part 2: run right after tools/smoke-gear-powers.txt on the same world (no fresh world). python tools/smoke.py . tools/smoke-gear-powers2.txt build/smoke-gear-powers2.log
+# Expect: the beliefs came back with the save, the same as the last lines of the first run: Vet's bow "powers: none" (final fix wave:
+# no belief about a vanilla item; one saved by an older build is dropped on load), Vet's flame bow "explosive 0.75 (TEXT), fire 0.75
+# (TEXT)", Newb's bow "powers: none" (read 3 s after the server is
+# up, before any GearLore check), and the same again 14 s later (a check has run by then: nothing is read twice, no second
+# "reading" or "found out" thought). What a stack does of its own is not saved: it is read off the stack (the lore'd bow for
+# Vet: "explosive (LORE)").
+until Done_( 900
+wait 3
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item too_many_bows:flame_bow
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+wait 14
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item minecraft:bow[minecraft:lore=['"Explodes on impact"']]
+execute at @e[type=drifter:drifter,name=Vet] run drifter gear item too_many_bows:flame_bow
+execute at @e[type=drifter:drifter,name=Newb] run drifter gear item minecraft:bow
+stop

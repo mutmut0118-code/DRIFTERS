@@ -399,6 +399,7 @@ public final class CatchUp {
 			placeChest(drifter, report);
 			// Its best armor and shield on before anything goes in the chest (or spares and its best both went in).
 			com.dinglebob.drifter.executor.task.WearArmorTask.equipAllNow(drifter);
+			com.dinglebob.drifter.executor.task.WearTrinketsTask.equipAllNow(drifter);
 			store(drifter, report);
 			// Experience from mining and fighting, at a player's pace (found by the user: they all came back at level 0).
 			int xp = (int)Math.round(workHours * r.xpPerWorkHour() * (0.6 + 0.8 * random.nextDouble()));
@@ -429,6 +430,7 @@ public final class CatchUp {
 			}
 
 			com.dinglebob.drifter.executor.task.WearArmorTask.equipAllNow(drifter);
+			com.dinglebob.drifter.executor.task.WearTrinketsTask.equipAllNow(drifter);
 		}
 
 		// Healed by the time that passed, as a fed player would be.

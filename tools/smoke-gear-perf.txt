@@ -1,0 +1,9 @@
+# Many Drifters: server-thread CPU (compare back to back with the build before; docs/superpowers plan Review Focus 5).
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter spawnmany 60 48
+drifter tier full all
+wait 60
+drifter perf
+stop

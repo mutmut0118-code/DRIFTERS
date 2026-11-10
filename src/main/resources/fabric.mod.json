@@ -26,6 +26,7 @@
 	},
 	"mixins": [
 		"drifter.mixins.json",
+		"drifter.compat.mixins.json",
 		{
 			"config": "drifter.client.mixins.json",
 			"environment": "client"

@@ -91,12 +91,32 @@ final class HandsCommands {
 			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.ShootTask(drifter, living, "shoot at " + living.getName().getString()));
 		})));
 
+		// Throwing its trident at something (debug; Task 10: tridents).
+		root.then(Commands.literal("throw").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
+			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");
+			if (!(target instanceof net.minecraft.world.entity.LivingEntity living)) {
+				throw new SimpleCommandExceptionType(Component.literal("Not something it can throw at")).create();
+			}
+
+			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.ThrowTridentTask(drifter, living, living.getName().getString().toLowerCase(Locale.ROOT)));
+		})));
+
+		// Fighting something hand to hand with what it holds (debug; gear powers: what its own hits teach it).
+		root.then(Commands.literal("attack").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
+			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");
+			if (!(target instanceof net.minecraft.world.entity.LivingEntity living)) {
+				throw new SimpleCommandExceptionType(Component.literal("Not something it can fight")).create();
+			}
+
+			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.AttackTask(drifter, living, living.getName().getString()));
+		})));
+
 		root.then(Commands.literal("weapon").executes(ctx -> {
 			DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
 			var favorite = com.dinglebob.drifter.brain.Weapons.favorite(drifter);
 			StringBuilder text = new StringBuilder(DrifterCommands.label(drifter) + "'s favorite weapon: " + favorite.name() + " (" + favorite.id() + ")");
 			for (var tier : List.of(com.dinglebob.drifter.brain.Weapons.Tier.IRON, com.dinglebob.drifter.brain.Weapons.Tier.DIAMOND)) {
-				var target = com.dinglebob.drifter.brain.Weapons.target(drifter, tier);
+				var target = com.dinglebob.drifter.brain.GearPlans.weaponTarget(drifter, tier);
 				text.append("\n  at ").append(tier.id()).append(": ").append(target == null ? "nothing (it skips this tier)"
 					: target.label() + (target.satisfied().test(drifter) ? " (has one this good)" : ""));
 			}
@@ -106,8 +126,10 @@ final class HandsCommands {
 				ItemStack best = drifter.getInventory().getItem(held);
 				var tier = com.dinglebob.drifter.brain.Weapons.tier(drifter, best);
 				var stats = com.dinglebob.drifter.hands.Combat.weaponStats(drifter, best);
-				text.append(String.format(java.util.Locale.ROOT, "\n  best weapon on it: %s (%s tier, %.1f damage x %.2f a second)", best.getHoverName().getString(),
-					tier == null ? "?" : tier.id(), stats.damage(), stats.speed()));
+				var kind = com.dinglebob.drifter.gear.GearKinds.of(best);
+				text.append(String.format(java.util.Locale.ROOT, "\n  best weapon on it: %s (%s tier, %.1f damage x %.2f a second, kind %s, style %s)",
+					best.getHoverName().getString(), tier == null ? "?" : tier.id(), stats.damage(), stats.speed(),
+					kind == null ? "none" : kind.id(), com.dinglebob.drifter.gear.GearTaste.style(drifter).id()));
 			}
 
 			text.append("\n  likes:");

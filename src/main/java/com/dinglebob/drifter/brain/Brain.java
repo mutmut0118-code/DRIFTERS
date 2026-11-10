@@ -762,7 +762,8 @@ public class Brain {
 
 		// Standing to fight, shoot or wait (for blazes by a spawner, say) is still, not stuck.
 		Task leaf = this.drifter.getTasks().current() == null ? null : this.drifter.getTasks().current().leaf();
-		if (leaf instanceof com.dinglebob.drifter.executor.task.ShootTask || leaf instanceof com.dinglebob.drifter.executor.task.AttackTask
+		if (leaf instanceof com.dinglebob.drifter.executor.task.ShootTask || leaf instanceof com.dinglebob.drifter.executor.task.ThrowTridentTask
+			|| leaf instanceof com.dinglebob.drifter.executor.task.AttackTask
 			|| leaf instanceof com.dinglebob.drifter.executor.task.WaitTask) {
 			this.stallSince = now;
 			return;

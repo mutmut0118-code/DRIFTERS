@@ -18,7 +18,7 @@ import net.minecraft.world.item.PotionItem;
  *       eating animation, particles and sounds show on it and it slows to sneak pace while eating.</li>
  *   <li>Instant items (buckets, ender pearls, snowballs, ...) are used through the fake player.</li>
  * </ul>
- * TODO(milestone 6): bows, crossbows, shields and tridents (hold-and-release items).
+ * TODO(milestone 6): shields (a hold-and-release item; bows and crossbows are ShootTask's, tridents ThrowTridentTask's).
  * TODO: milk and honey only give back their bucket or bottle to real players in vanilla; handle them before use.
  */
 public class UseItemTask extends Task {

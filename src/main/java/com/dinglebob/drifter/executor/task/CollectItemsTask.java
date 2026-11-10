@@ -51,8 +51,117 @@ public class CollectItemsTask extends Task {
 		return 20 * 30;
 	}
 
+	/** It gives up on fetching its thrown trident this long after it first went for it ("lost its trident"). */
+	public static final int TRIDENT_FETCH_TICKS = 20 * 20;
+	/** It goes for its thrown trident this far off even when its other drops are only looked for nearer (a missed throw flies on). */
+	public static final double TRIDENT_FETCH_RADIUS = 48.0;
+	/** Standing by its trident this long without it going in (still shaking, or its pack full): it leaves it. */
+	private static final int TRIDENT_ARRIVED_TICKS = 40;
+
+	@Nullable
+	private NavigateTask tridentWalk;
+	private int tridentArrived;
+
+	/**
+	 * Its thrown trident first (the real item, out in the world: ThrowTridentTask): a Loyalty one, or one still in the air, is
+	 * waited for; one it has seen lying there (now, or as it landed) within a walk ({@link #TRIDENT_FETCH_RADIUS}, or its radius
+	 * if wider) is walked to, and the normal pickup takes it (DrifterEntity#touchThrownTrident). One it can't see, can't get to,
+	 * or hasn't got within {@link #TRIDENT_FETCH_TICKS} of first going for it, is lost. Null when there's nothing to do about a
+	 * trident.
+	 */
+	@Nullable
+	private Status fetchTrident() {
+		if (this.drifter.thrownTrident() == null) {
+			// (Picked up on the way: the walk ends.)
+			this.stopTridentWalk();
+			return null;
+		}
+
+		net.minecraft.world.entity.projectile.AbstractArrow trident = this.drifter.thrownTridentEntity();
+		long now = this.drifter.level().getGameTime();
+		if (trident == null) {
+			this.stopTridentWalk();
+			this.drifter.loseThrownTrident();
+			return null;
+		}
+
+		boolean over = now - this.drifter.tridentFetchSince(now) > TRIDENT_FETCH_TICKS;
+		// A Loyalty one comes back by itself (out of lava too): it waits for it and never walks after it. Past the wait it goes
+		// on with the rest, but the trident is still its own: it goes in whenever it arrives.
+		if (this.drifter.thrownTridentLoyal(trident)) {
+			this.stopTridentWalk();
+			if (over) {
+				return null;
+			}
+
+			this.drifter.getCamera().track(trident.position(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+			return Status.RUNNING;
+		}
+
+		if (over) {
+			this.stopTridentWalk();
+			this.drifter.loseThrownTrident();
+			return null;
+		}
+
+		// Still flying: it waits for it to land.
+		if (trident.isNoPhysics() || !((com.dinglebob.drifter.mixin.AbstractArrowAccessor)trident).drifter$isInGround()) {
+			this.stopTridentWalk();
+			this.drifter.getCamera().track(trident.position(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+			return Status.RUNNING;
+		}
+
+		// Only one it has seen lying there (section 1: now, or as it landed), within a walk; otherwise it can't find it.
+		if (this.tridentWalk == null) {
+			if (this.drifter.canSeeThrownTrident(trident)) {
+				this.drifter.sawThrownTrident();
+			}
+
+			if (!this.drifter.thrownTridentSeen() || this.drifter.distanceTo(trident) > Math.max(this.radius, TRIDENT_FETCH_RADIUS)) {
+				this.drifter.loseThrownTrident();
+				return null;
+			}
+		}
+
+		if (this.tridentWalk == null) {
+			this.drifter.getMemory().thoughts().add(now, "going to fetch its trident");
+			this.tridentWalk = new NavigateTask(this.drifter, trident.position(), PICKUP_REACH, "walk to its trident");
+		}
+
+		Status walking = this.tridentWalk.tick();
+		if (walking == Status.FAILURE) {
+			// No way there (in lava, over a drop, walled off): gone for it.
+			this.stopTridentWalk();
+			this.drifter.loseThrownTrident();
+			return null;
+		}
+
+		if (walking == Status.SUCCESS && ++this.tridentArrived > TRIDENT_ARRIVED_TICKS) {
+			this.stopTridentWalk();
+			this.drifter.loseThrownTrident();
+			return null;
+		}
+
+		return Status.RUNNING;
+	}
+
+	private void stopTridentWalk() {
+		this.tridentArrived = 0;
+		if (this.tridentWalk != null) {
+			this.tridentWalk.stop();
+			this.tridentWalk = null;
+		}
+	}
+
 	@Override
 	protected Status onTick() {
+		Status trident = this.fetchTrident();
+		if (trident != null) {
+			this.stopWalk();
+			this.current = null;
+			return trident;
+		}
+
 		if (this.current == null || this.current.isRemoved()) {
 			this.stopWalk();
 			Optional<Entity> next = this.drifter.level()
@@ -111,5 +220,6 @@ public class CollectItemsTask extends Task {
 	@Override
 	protected void onStop() {
 		this.stopWalk();
+		this.stopTridentWalk();
 	}
 }

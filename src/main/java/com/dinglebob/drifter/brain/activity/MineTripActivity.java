@@ -216,15 +216,19 @@ public class MineTripActivity extends Activity {
 	private static int ironStillWanted(DrifterEntity drifter) {
 		int[] ingots = {3, 3, 1, 8, 7, 5, 4, 2, 1, 0, 5};
 		java.util.List<com.dinglebob.drifter.brain.Strategist.Target> targets = com.dinglebob.drifter.brain.Strategist.IRON_TARGETS;
+		// The armor it would pick (a known modded piece counts what its own recipe takes), as the Strategist's order has it.
+		java.util.List<com.dinglebob.drifter.brain.Strategist.Target> armor = com.dinglebob.drifter.brain.GearPlans.armorTargets(drifter,
+			com.dinglebob.drifter.brain.Weapons.Tier.IRON);
 		int wanted = 0;
 		for (int i = 0; i < targets.size() && i < ingots.length; i++) {
-			if (!targets.get(i).satisfied().test(drifter)) {
-				wanted += ingots[i];
+			com.dinglebob.drifter.brain.Strategist.Target target = i >= 3 && i <= 6 ? armor.get(i - 3) : targets.get(i);
+			if (!target.satisfied().test(drifter)) {
+				wanted += target == targets.get(i) ? ingots[i] : com.dinglebob.drifter.brain.Weapons.ironCost(drifter.level(), target.items().get(0));
 			}
 		}
 
 		// Its favorite iron weapon too, if it makes one (a Simply Swords longsword: two ingots).
-		com.dinglebob.drifter.brain.Strategist.Target weapon = com.dinglebob.drifter.brain.Weapons.target(drifter, com.dinglebob.drifter.brain.Weapons.Tier.IRON);
+		com.dinglebob.drifter.brain.Strategist.Target weapon = com.dinglebob.drifter.brain.GearPlans.weaponTarget(drifter, com.dinglebob.drifter.brain.Weapons.Tier.IRON);
 		if (weapon != null && !weapon.satisfied().test(drifter)) {
 			wanted += com.dinglebob.drifter.brain.Weapons.ironCost(drifter.level(), weapon.items().get(0));
 		}

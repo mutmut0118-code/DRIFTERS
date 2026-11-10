@@ -43,7 +43,7 @@ public final class BodyGrid {
 	private static final class LevelGrid {
 		long tick = Long.MIN_VALUE;
 		final it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<ArrayList<Entity>> cells = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
-		/** Dropped items and experience orbs, the same way. */
+		/** Dropped items, experience orbs and thrown tridents (picked up by their owners), the same way. */
 		final it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<ArrayList<Entity>> loose = new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>();
 		/** Emptied lists from the last build, used again. */
 		final ArrayList<ArrayList<Entity>> spare = new ArrayList<>();
@@ -73,7 +73,8 @@ public final class BodyGrid {
 				}
 
 				var map = entity instanceof LivingEntity || RareEntities.solidKind(entity) ? grid.cells
-					: entity instanceof net.minecraft.world.entity.item.ItemEntity || entity instanceof net.minecraft.world.entity.ExperienceOrb ? grid.loose : null;
+					: entity instanceof net.minecraft.world.entity.item.ItemEntity || entity instanceof net.minecraft.world.entity.ExperienceOrb
+						|| entity instanceof net.minecraft.world.entity.projectile.ThrownTrident ? grid.loose : null;
 				if (map == null) {
 					continue;
 				}
@@ -123,8 +124,8 @@ public final class BodyGrid {
 	}
 
 	/**
-	 * As {@link #bodies}, for dropped items and experience orbs (picking up, noticing loot: a battlefield's dropped gear lies
-	 * among the soldiers).
+	 * As {@link #bodies}, for dropped items, experience orbs and thrown tridents (picking up, noticing loot: a battlefield's
+	 * dropped gear lies among the soldiers).
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")

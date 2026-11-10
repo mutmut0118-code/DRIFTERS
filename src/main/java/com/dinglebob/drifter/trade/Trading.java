@@ -250,8 +250,9 @@ public final class Trading {
 	/** How much it wants this (0: not at all): better armour, a better weapon or tool, food when it's short. */
 	public static double want(DrifterEntity drifter, ItemStack stack) {
 		Item item = stack.getItem();
-		if (item instanceof ArmorItem armor) {
-			return armorScore(stack) > bestArmor(drifter, armor.getEquipmentSlot()) ? WANT_ARMOR : 0.0;
+		EquipmentSlot armorSlot = com.dinglebob.drifter.gear.GearValue.wornSlot(drifter, stack);
+		if (armorSlot != null) {
+			return com.dinglebob.drifter.executor.task.WearArmorTask.score(drifter, stack, armorSlot) > bestArmor(drifter, armorSlot) ? WANT_ARMOR : 0.0;
 		}
 
 		if (item instanceof DiggerItem && !(item instanceof AxeItem && com.dinglebob.drifter.brain.Weapons.isWeapon(stack))) {
@@ -272,10 +273,16 @@ public final class Trading {
 		}
 
 		if (com.dinglebob.drifter.brain.Weapons.isWeapon(stack)) {
-			double perSecond = com.dinglebob.drifter.hands.Combat.weaponStats(drifter, stack).perSecond();
+			if (!com.dinglebob.drifter.gear.GearKinds.usableWeapon(stack) && com.dinglebob.drifter.gear.GearKinds.of(stack) != null) {
+				return 0.0;
+			}
+
+			double liked = com.dinglebob.drifter.gear.GearTaste.liking(drifter, stack, com.dinglebob.drifter.gear.GearValue.melee(drifter, stack));
 			int slot = com.dinglebob.drifter.hands.Combat.bestWeaponSlot(drifter);
 			ItemStack current = slot < 0 ? ItemStack.EMPTY : drifter.getInventory().getItem(slot);
-			return perSecond > com.dinglebob.drifter.hands.Combat.weaponStats(drifter, current).perSecond() * 1.15 ? WANT_WEAPON : 0.0;
+			double has = current.isEmpty() ? com.dinglebob.drifter.gear.GearValue.melee(drifter, current)
+				: com.dinglebob.drifter.gear.GearTaste.liking(drifter, current, com.dinglebob.drifter.gear.GearValue.melee(drifter, current));
+			return liked > has * 1.15 ? WANT_WEAPON : 0.0;
 		}
 
 		if (stack.has(DataComponents.FOOD)) {
@@ -303,18 +310,14 @@ public final class Trading {
 		return null;
 	}
 
-	private static double armorScore(ItemStack stack) {
-		return stack.getItem() instanceof ArmorItem armor ? armor.getDefense() * 10.0 + armor.getToughness() : 0.0;
-	}
-
 	/** Its best armour for this slot, worn or carried. */
 	private static double bestArmor(DrifterEntity drifter, EquipmentSlot slot) {
-		double best = armorScore(drifter.getItemBySlot(slot));
+		double best = com.dinglebob.drifter.executor.task.WearArmorTask.score(drifter, drifter.getItemBySlot(slot), slot);
 		DrifterInventory inventory = drifter.getInventory();
 		for (int i = 0; i < DrifterInventory.MAIN_SIZE; i++) {
 			ItemStack stack = inventory.getItem(i);
-			if (stack.getItem() instanceof ArmorItem armor && armor.getEquipmentSlot() == slot) {
-				best = Math.max(best, armorScore(stack));
+			if (!stack.isEmpty()) {
+				best = Math.max(best, com.dinglebob.drifter.executor.task.WearArmorTask.score(drifter, stack, slot));
 			}
 		}
 

@@ -1,0 +1,5 @@
+until Done_( 900
+forceload add ~-112 ~-112 ~112 ~112
+wait 8
+execute as @e[type=drifter:drifter,name=Kat] at @s run drifter gear
+stop

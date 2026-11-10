@@ -61,6 +61,10 @@ public final class ItemValues {
 			value = 12.0;
 		} else if (item == Items.LAPIS_LAZULI || item == Items.REDSTONE || item == Items.COAL || item == Items.COPPER_INGOT) {
 			value = 0.5;
+		} else if (!"minecraft".equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getNamespace())
+			&& com.dinglebob.drifter.gear.GearValue.isGear(stack)) {
+			// A mod's weapons, armor and shields: valued from the item itself. Vanilla items keep the points below.
+			value = com.dinglebob.drifter.gear.GearValue.points(stack);
 		} else if (item instanceof ArmorItem armor) {
 			value = armorTier(armor) * 4.0;
 		} else if (item instanceof TieredItem tiered) {

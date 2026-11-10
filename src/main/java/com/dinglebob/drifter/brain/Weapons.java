@@ -132,7 +132,20 @@ public final class Weapons {
 
 	/** A melee weapon (any sword, or anything a weapon file lists). */
 	public static boolean isWeapon(ItemStack stack) {
-		return !stack.isEmpty() && (stack.is(MELEE) || byItem.containsKey(stack.getItem()) || uniques.containsKey(stack.getItem()));
+		return isWeapon(stack, stack.isEmpty() ? null : com.dinglebob.drifter.gear.GearKinds.of(stack));
+	}
+
+	/** The same, with the stack's kind already looked up (so a hot loop reads it once). */
+	public static boolean isWeapon(ItemStack stack, @Nullable com.dinglebob.drifter.gear.GearKinds.Kind kind) {
+		if (stack.isEmpty()) {
+			return false;
+		}
+
+		if (stack.is(MELEE) || byItem.containsKey(stack.getItem()) || uniques.containsKey(stack.getItem())) {
+			return true;
+		}
+
+		return kind != null && (kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.MELEE || kind.use() == com.dinglebob.drifter.gear.GearKinds.Use.TRIDENT);
 	}
 
 	/**
@@ -146,7 +159,7 @@ public final class Weapons {
 		}
 
 		Tier listed = tierOf.get(stack.getItem());
-		if (listed != null || !stack.is(MELEE)) {
+		if (listed != null || !isWeapon(stack)) {
 			return listed;
 		}
 

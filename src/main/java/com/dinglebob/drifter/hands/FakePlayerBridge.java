@@ -13,7 +13,9 @@ import com.dinglebob.drifter.entity.DrifterInventory;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.food.FoodConstants;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -38,6 +40,27 @@ public final class FakePlayerBridge {
 			throw new IllegalStateException("Drifter interactions only run on the server");
 		}
 
+		FakePlayer fake = helper(drifter, level);
+		syncIn(drifter, fake);
+		ACTING.push(drifter);
+		try {
+			return action.apply(fake);
+		} finally {
+			ACTING.pop();
+			syncOut(drifter, fake);
+		}
+	}
+
+	/**
+	 * Its helper, without syncing anything into it (empty-handed, wherever it last acted): only for asking a mod what it
+	 * would do to a player, never for acting. Null off the server.
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static FakePlayer helper(DrifterEntity drifter) {
+		return drifter.level() instanceof ServerLevel level ? helper(drifter, level) : null;
+	}
+
+	private static FakePlayer helper(DrifterEntity drifter, ServerLevel level) {
 		// Its own helper, kept (milestone 16: looked up through Fabric's weakly kept map every time, and the first time made
 		// as a whole player; see PlayerAdvancementsMixin).
 		GameProfile profile = profileFor(drifter);
@@ -49,14 +72,7 @@ public final class FakePlayerBridge {
 			OWNERS.put(fake.getUUID(), new java.lang.ref.WeakReference<>(drifter));
 		}
 
-		syncIn(drifter, fake);
-		ACTING.push(drifter);
-		try {
-			return action.apply(fake);
-		} finally {
-			ACTING.pop();
-			syncOut(drifter, fake);
-		}
+		return fake;
 	}
 
 	/** The Drifters acting through their helpers right now, innermost first (server thread only). */
@@ -130,6 +146,10 @@ public final class FakePlayerBridge {
 		fake.setShiftKeyDown(drifter.isShiftKeyDown());
 		fake.setPose(drifter.getPose());
 		fake.getFoodData().setExhaustion(0.0F);
+		// Its own hunger (ruling R30): a mod's item that costs the "player" food (a bow that shoots on hunger) or asks how full
+		// it is sees the Drifter's. The helper never ticks, so this never drains or heals it by itself.
+		fake.getFoodData().setFoodLevel(drifter.getFoodData().getFoodLevel());
+		fake.getFoodData().setSaturation(drifter.getFoodData().getSaturationLevel());
 		// Its own experience (the enchanting table spends levels, a furnace's output gives points).
 		fake.experienceLevel = drifter.experienceLevel();
 		fake.experienceProgress = drifter.experienceProgress();
@@ -164,6 +184,12 @@ public final class FakePlayerBridge {
 		own.setItem(DrifterInventory.OFFHAND_SLOT, inventory.offhand.get(0));
 
 		drifter.setExperience(fake.experienceLevel, fake.experienceProgress, fake.totalExperience, fake.getEnchantmentSeed());
+
+		// Food and saturation as the action left the "player" are the Drifter's (R30: a hunger-cost bow's shots cost it food).
+		// Copied whole, not as a change, so an action inside another one is counted once. Then the exhaustion, which only its
+		// own hunger ticks turn into lost food (the helper never ticks, so nothing is taken twice).
+		drifter.getFoodData().setFoodLevel(Mth.clamp(fake.getFoodData().getFoodLevel(), 0, FoodConstants.MAX_FOOD));
+		drifter.getFoodData().setSaturation(Mth.clamp(fake.getFoodData().getSaturationLevel(), 0.0F, drifter.getFoodData().getFoodLevel()));
 
 		// Exhaustion the action cost the "player" (0.005 per block broken, for example) is the Drifter's.
 		drifter.causeFoodExhaustion(fake.getFoodData().getExhaustionLevel());

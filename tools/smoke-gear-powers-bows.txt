@@ -1,0 +1,139 @@
+# Task 7, Simply Bows (the user's modded-bow reference): the text guess, and powers learned by shooting the real bows.
+# python tools/smoke.py . tools/smoke-gear-powers-bows.txt build/smoke-gear-powers-bows.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, brains off. Each shooter (knowledge 0.1: reads nothing)
+# has one Simply Bows bow and shoots a standing pillager 14 blocks off (a full draw: at under 10 blocks it draws short, and the bows' abilities
+# need the full draw) with two more pillagers beside it. None of the bows is enchanted, so what is seen is news about the item (R21).
+# Expect:
+#  Sage (knowledge 0.9, carries all seven): the text guess of each as "0.75 (TEXT)" beliefs: Winterfang (ice) freeze, Buzzkill (bee) poison,
+#   Everbloom (vine) heal, Petalwind (blossom) lightning (a wrong guess from "blossom storms": see Wise); earth, bubble, echo "powers: none"
+#   ("Fires an arrow" is not fire: the verb is in powers.json's except list);
+#  the display items simplybows:ice_bow_visual_pull_0 and echo_bow_visual_pull_2: "kind none (none)" (not gear, not a bow: nothing to exclude);
+#  after 25 s of shooting: Ice "found out Winterfang: multishot" and ": area" (a fan of three homing arrows), Earth "found out Tremorstrike: area",
+#   Vine "found out Everbloom: area", Blossom "found out Petalwind: area", Echo "found out Echo: multishot", all "(SEEN)"; Bee and Bubble
+#   "powers: none" (their bees and bubbles do nothing PowerWatch can see here);
+#  Wise (knowledge 0.9, the blossom bow): "lightning 0.75 (TEXT)" before; after, "lightning" below 0.75, still "(TEXT)" (doubted: its shots
+#   landed and no lightning came); it may also see "area" (one run of two: its bystanders must be in view when it starts).
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+weather clear
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+gamerule mobGriefing false
+difficulty normal
+kill @e[type=pillager]
+drifter spawn Sage
+execute at @e[type=drifter:drifter,name=Sage] run drifter brain off
+execute positioned ~-70 ~ ~30 run drifter spawn Ice
+execute at @e[type=drifter:drifter,name=Ice] run drifter brain off
+execute positioned ~-50 ~ ~30 run drifter spawn Earth
+execute at @e[type=drifter:drifter,name=Earth] run drifter brain off
+execute positioned ~-30 ~ ~30 run drifter spawn Vine
+execute at @e[type=drifter:drifter,name=Vine] run drifter brain off
+execute positioned ~-10 ~ ~30 run drifter spawn Blossom
+execute at @e[type=drifter:drifter,name=Blossom] run drifter brain off
+execute positioned ~10 ~ ~30 run drifter spawn Echo
+execute at @e[type=drifter:drifter,name=Echo] run drifter brain off
+execute positioned ~30 ~ ~30 run drifter spawn Bee
+execute at @e[type=drifter:drifter,name=Bee] run drifter brain off
+execute positioned ~50 ~ ~30 run drifter spawn Bubble
+execute at @e[type=drifter:drifter,name=Bubble] run drifter brain off
+execute positioned ~70 ~ ~30 run drifter spawn Wise
+execute at @e[type=drifter:drifter,name=Wise] run drifter brain off
+drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Sage] run drifter personality set knowledge 0.9
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:ice_bow/ice_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:earth_bow/earth_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:vine_bow/vine_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:blossom_bow/blossom_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:echo_bow/echo_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:bee_bow/bee_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter give simplybows:bubble_bow/bubble_bow
+execute at @e[type=drifter:drifter,name=Ice] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Ice] run drifter give simplybows:ice_bow/ice_bow
+execute at @e[type=drifter:drifter,name=Ice] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Ice] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Ice] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tIce"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Ice] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oIce"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Ice] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oIce"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Earth] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Earth] run drifter give simplybows:earth_bow/earth_bow
+execute at @e[type=drifter:drifter,name=Earth] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Earth] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Earth] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tEarth"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Earth] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oEarth"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Earth] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oEarth"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Vine] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Vine] run drifter give simplybows:vine_bow/vine_bow
+execute at @e[type=drifter:drifter,name=Vine] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Vine] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Vine] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tVine"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Vine] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oVine"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Vine] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oVine"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Blossom] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Blossom] run drifter give simplybows:blossom_bow/blossom_bow
+execute at @e[type=drifter:drifter,name=Blossom] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Blossom] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Blossom] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tBlossom"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Blossom] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oBlossom"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Blossom] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oBlossom"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Echo] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Echo] run drifter give simplybows:echo_bow/echo_bow
+execute at @e[type=drifter:drifter,name=Echo] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Echo] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Echo] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tEcho"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Echo] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oEcho"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Echo] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oEcho"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Bee] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Bee] run drifter give simplybows:bee_bow/bee_bow
+execute at @e[type=drifter:drifter,name=Bee] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Bee] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Bee] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tBee"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Bee] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oBee"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Bee] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oBee"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Bubble] run drifter personality set knowledge 0.1
+execute at @e[type=drifter:drifter,name=Bubble] run drifter give simplybows:bubble_bow/bubble_bow
+execute at @e[type=drifter:drifter,name=Bubble] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Bubble] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Bubble] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tBubble"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Bubble] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oBubble"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Bubble] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oBubble"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Wise] run drifter personality set knowledge 0.9
+execute at @e[type=drifter:drifter,name=Wise] run drifter give simplybows:blossom_bow/blossom_bow
+execute at @e[type=drifter:drifter,name=Wise] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Wise] run drifter give minecraft:arrow 64
+execute at @e[type=drifter:drifter,name=Wise] positioned ~ ~ ~14 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["tWise"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Wise] positioned ~1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oWise"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+execute at @e[type=drifter:drifter,name=Wise] positioned ~-1.5 ~ ~14.5 positioned over motion_blocking_no_leaves run summon pillager ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Tags:["oWise"],attributes:[{id:"minecraft:generic.max_health",base:1000}],Health:1000f}
+wait 12
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:ice_bow/ice_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:earth_bow/earth_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:vine_bow/vine_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:blossom_bow/blossom_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:echo_bow/echo_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:bee_bow/bee_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:bubble_bow/bubble_bow
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:ice_bow_visual_pull_0
+execute at @e[type=drifter:drifter,name=Sage] run drifter gear item simplybows:echo_bow_visual_pull_2
+execute at @e[type=drifter:drifter,name=Wise] run drifter gear item simplybows:blossom_bow/blossom_bow
+execute as @e[type=drifter:drifter,name=Ice] at @s run drifter shoot @e[type=pillager,tag=tIce,limit=1]
+execute as @e[type=drifter:drifter,name=Earth] at @s run drifter shoot @e[type=pillager,tag=tEarth,limit=1]
+execute as @e[type=drifter:drifter,name=Vine] at @s run drifter shoot @e[type=pillager,tag=tVine,limit=1]
+execute as @e[type=drifter:drifter,name=Blossom] at @s run drifter shoot @e[type=pillager,tag=tBlossom,limit=1]
+execute as @e[type=drifter:drifter,name=Echo] at @s run drifter shoot @e[type=pillager,tag=tEcho,limit=1]
+execute as @e[type=drifter:drifter,name=Bee] at @s run drifter shoot @e[type=pillager,tag=tBee,limit=1]
+execute as @e[type=drifter:drifter,name=Bubble] at @s run drifter shoot @e[type=pillager,tag=tBubble,limit=1]
+execute as @e[type=drifter:drifter,name=Wise] at @s run drifter shoot @e[type=pillager,tag=tWise,limit=1]
+wait 25
+execute at @e[type=drifter:drifter,name=Ice] run drifter gear item simplybows:ice_bow/ice_bow
+execute at @e[type=drifter:drifter,name=Earth] run drifter gear item simplybows:earth_bow/earth_bow
+execute at @e[type=drifter:drifter,name=Vine] run drifter gear item simplybows:vine_bow/vine_bow
+execute at @e[type=drifter:drifter,name=Blossom] run drifter gear item simplybows:blossom_bow/blossom_bow
+execute at @e[type=drifter:drifter,name=Echo] run drifter gear item simplybows:echo_bow/echo_bow
+execute at @e[type=drifter:drifter,name=Bee] run drifter gear item simplybows:bee_bow/bee_bow
+execute at @e[type=drifter:drifter,name=Bubble] run drifter gear item simplybows:bubble_bow/bubble_bow
+execute at @e[type=drifter:drifter,name=Wise] run drifter gear item simplybows:blossom_bow/blossom_bow
+stop

@@ -1,0 +1,162 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+wait 3
+drifter thoughts log true
+time set noon
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 20
+execute positioned ~4 ~ ~40 run drifter spawn T1
+execute positioned ~8 ~ ~40 run drifter spawn T2
+execute positioned ~12 ~ ~40 run drifter spawn T3
+execute positioned ~16 ~ ~40 run drifter spawn T4
+execute positioned ~20 ~ ~40 run drifter spawn T5
+execute positioned ~24 ~ ~40 run drifter spawn T6
+execute positioned ~28 ~ ~40 run drifter spawn T7
+execute positioned ~32 ~ ~40 run drifter spawn T8
+execute positioned ~36 ~ ~40 run drifter spawn T9
+execute positioned ~40 ~ ~40 run drifter spawn T10
+execute positioned ~44 ~ ~40 run drifter spawn T11
+execute positioned ~48 ~ ~40 run drifter spawn T12
+drifter tier full all
+wait 2
+execute as @e[type=drifter:drifter,name=T1] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T2] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T3] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T4] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T5] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T6] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T7] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T8] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T9] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T10] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T11] at @s run drifter gear
+wait 1
+execute as @e[type=drifter:drifter,name=T12] at @s run drifter gear
+wait 1
+execute positioned ~66 ~ ~40 run drifter spawn Qpra
+execute positioned ~72 ~ ~40 run drifter spawn Qfla
+execute positioned ~78 ~ ~40 run drifter spawn Qloy
+execute positioned ~84 ~ ~40 run drifter spawn Qfol
+execute positioned ~90 ~ ~40 run drifter spawn Rpra
+execute positioned ~96 ~ ~40 run drifter spawn Rfla
+execute positioned ~102 ~ ~40 run drifter spawn Rloy
+execute positioned ~108 ~ ~40 run drifter spawn Rfol
+drifter tier full all
+wait 2
+execute as @e[type=drifter:drifter,name=Qpra] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Qpra] at @s run drifter give simplyswords:diamond_katana
+wait 1
+execute as @e[type=drifter:drifter,name=Qpra] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Qpra] at @s run drifter give minecraft:golden_sword[enchantments={levels:{"minecraft:sharpness":3}}]
+wait 1
+execute as @e[type=drifter:drifter,name=Qpra] at @s run drifter gear style practical
+wait 1
+execute as @e[type=drifter:drifter,name=Qpra] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Qfla] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Qfla] at @s run drifter give simplyswords:diamond_katana
+wait 1
+execute as @e[type=drifter:drifter,name=Qfla] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Qfla] at @s run drifter give minecraft:golden_sword[enchantments={levels:{"minecraft:sharpness":3}}]
+wait 1
+execute as @e[type=drifter:drifter,name=Qfla] at @s run drifter gear style flashy
+wait 1
+execute as @e[type=drifter:drifter,name=Qfla] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Qloy] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Qloy] at @s run drifter give simplyswords:diamond_katana
+wait 1
+execute as @e[type=drifter:drifter,name=Qloy] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Qloy] at @s run drifter give minecraft:golden_sword[enchantments={levels:{"minecraft:sharpness":3}}]
+wait 1
+execute as @e[type=drifter:drifter,name=Qloy] at @s run drifter gear style loyal
+wait 1
+execute as @e[type=drifter:drifter,name=Qloy] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Qfol] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Qfol] at @s run drifter give simplyswords:diamond_katana
+wait 1
+execute as @e[type=drifter:drifter,name=Qfol] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Qfol] at @s run drifter give minecraft:golden_sword[enchantments={levels:{"minecraft:sharpness":3}}]
+wait 1
+execute as @e[type=drifter:drifter,name=Qfol] at @s run drifter gear style follower
+wait 1
+execute as @e[type=drifter:drifter,name=Qfol] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Rpra] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Rpra] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Rpra] at @s run drifter gear style practical
+wait 1
+execute as @e[type=drifter:drifter,name=Rpra] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Rfla] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Rfla] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Rfla] at @s run drifter gear style flashy
+wait 1
+execute as @e[type=drifter:drifter,name=Rfla] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Rloy] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Rloy] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Rloy] at @s run drifter gear style loyal
+wait 1
+execute as @e[type=drifter:drifter,name=Rloy] at @s run drifter gear pick weapon
+wait 1
+execute as @e[type=drifter:drifter,name=Rfol] at @s run drifter give minecraft:diamond_sword
+wait 1
+execute as @e[type=drifter:drifter,name=Rfol] at @s run drifter give simplyswords:diamond_longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Rfol] at @s run drifter gear style follower
+wait 1
+execute as @e[type=drifter:drifter,name=Rfol] at @s run drifter gear friend longsword
+wait 1
+execute as @e[type=drifter:drifter,name=Rfol] at @s run drifter gear pick weapon
+wait 1
+execute positioned ~114 ~ ~40 run drifter spawn Arm
+drifter tier full all
+wait 2
+execute as @e[type=drifter:drifter,name=Arm] at @s run drifter give minecraft:iron_chestplate
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run drifter give immersive_armors:warrior_chestplate
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run item replace entity @s armor.legs with immersive_armors:warrior_leggings
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run item replace entity @s armor.feet with immersive_armors:warrior_boots
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run drifter gear style practical
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run drifter gear pick armor
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run drifter gear style loyal
+wait 1
+execute as @e[type=drifter:drifter,name=Arm] at @s run drifter gear pick armor
+wait 1
+save-all
+stop

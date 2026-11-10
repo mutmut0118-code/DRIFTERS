@@ -29,6 +29,9 @@ import net.minecraft.world.item.Items;
 public final class Facts {
 	public final Map<String, Object> words = new HashMap<>();
 	public final Set<String> flags = new HashSet<>();
+	/** The gear tip its lines name ({@code gear_tip_item}, {@code gear_tip_power}), kept so the talk teaches that one. */
+	@org.jetbrains.annotations.Nullable
+	public com.dinglebob.drifter.gear.Powers.Tip gearTip;
 
 	private Facts() {
 	}

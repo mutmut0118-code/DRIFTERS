@@ -1,0 +1,24 @@
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+drifter spawn Vala
+drifter tier full all
+drifter gear item minecraft:iron_sword
+drifter gear item minecraft:iron_chestplate
+drifter gear item minecraft:elytra
+drifter gear item minecraft:crossbow
+drifter gear item minecraft:trident
+drifter gear item simplyswords:iron_katana
+drifter gear item immersive_armors:warrior_chestplate
+drifter gear item too_many_bows:flame_bow
+drifter gear item minecraft:stick
+drifter gear item minecraft:iron_chestplate[minecraft:attribute_modifiers={modifiers:[{type:"generic.armor",amount:0.5,operation:"add_multiplied_total",slot:"chest",id:"t:m"},{type:"generic.armor",amount:-3,operation:"add_value",slot:"chest",id:"t:n"}]}]
+drifter gear item minecraft:iron_pickaxe
+drifter gear item minecraft:bow
+drifter gear item minecraft:shield
+drifter gear item minecraft:golden_sword
+drifter gear item minecraft:netherite_chestplate
+drifter gear item minecraft:diamond_axe
+drifter gear item minecraft:iron_sword[minecraft:enchantments={levels:{"minecraft:sharpness":3}}]
+stop

@@ -1111,6 +1111,7 @@ public class Senses {
 				MemoryEntry entry = this.memory.remember(MemoryKind.ITEM, BuiltInRegistries.ITEM.getKey(item.getItem().getItem()).toString(),
 					item.position(), this.dimension(), this.now(), MemorySource.SEEN, 0.3F, item.getUUID()).entry();
 				entry.detail = item.getItem().getCount() + "x";
+				this.drifter.getGearLore().see(this.drifter, item.getItem(), "on the ground");
 			}
 		}
 	}
@@ -1592,6 +1593,7 @@ public class Senses {
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty()) {
+				this.drifter.getGearLore().see(this.drifter, stack, "in a chest");
 				totals.merge(BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().replace('_', ' '), stack.getCount(), Integer::sum);
 			}
 		}
