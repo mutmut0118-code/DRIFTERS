@@ -220,10 +220,14 @@ final class Friends {
 	/** Time together after cooling before it picks up again (ticks: five minutes), and the trust that takes. */
 	private static final long WARM_AGAIN = 20L * 60 * 5;
 	private static final double WARM_TRUST = 25.0;
-	/** Stage thresholds at the Normal pace, for an average nature (see {@link #need}). */
-	private static final double ACQ_FAMILIARITY = 10.0;
+	/**
+	 * Stage thresholds at the Normal pace, for an average nature (see {@link #need}). Familiarity: Drifter gives 1 for each 5
+	 * minutes within 16 blocks (about 4 a day spent round someone) and a day's talks about 2 more, so a friend in 3 to 4 such
+	 * days, about two or three play sessions; trust needs deeds besides (gifts, help, favors), as it drifts back each day.
+	 */
+	private static final double ACQ_FAMILIARITY = 8.0;
 	private static final double FRIEND_TRUST = 50.0;
-	private static final double FRIEND_FAMILIARITY = 30.0;
+	private static final double FRIEND_FAMILIARITY = 20.0;
 	private static final int FRIEND_AGREED = 2;
 	private static final double BEST_TRUST = 70.0;
 	private static final int BEST_AGREED = 6;
@@ -696,40 +700,9 @@ final class Friends {
 			.then(Commands.literal("set").requires(source -> source.hasPermission(2))
 				.then(Commands.argument("stage", StringArgumentType.word())
 					.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(List.of("stranger", "acquaintance", "friend", "best"), builder))
-					.executes(ctx -> {
-						ServerPlayer player = ctx.getSource().getPlayerOrException();
-						DrifterEntity drifter = looked(player);
-						String word = StringArgumentType.getString(ctx, "stage");
-						Stage stage = switch (word) {
-							case "stranger" -> Stage.STRANGER;
-							case "acquaintance" -> Stage.ACQUAINTANCE;
-							case "friend" -> Stage.FRIEND;
-							case "best", "best_friend" -> Stage.BEST_FRIEND;
-							default -> null;
-						};
-						if (drifter == null || stage == null) {
-							ctx.getSource().sendFailure(Component.literal(drifter == null ? "No Drifter in front of you" : "No such stage"));
-							return 0;
-						}
-
-						Bond b = bondOrNew(drifter, player);
-						// (Its trust and time with them made to fit, so Drifter's own behaviour goes with it.)
-						double trust = stage == Stage.BEST_FRIEND ? 75.0 : stage == Stage.FRIEND ? 55.0 : stage == Stage.ACQUAINTANCE ? 10.0 : 0.0;
-						double familiarity = stage == Stage.BEST_FRIEND ? 60.0 : stage == Stage.FRIEND ? 32.0 : stage == Stage.ACQUAINTANCE ? 12.0 : 0.0;
-						double had = DrifterApi.trustInPlayer(drifter, player.getUUID());
-						if (had < trust) {
-							DrifterApi.addTrustInPlayer(drifter, player.getUUID(), player.getGameProfile().getName(), trust - had);
-						}
-
-						double knew = TalkApi.familiarity(drifter, player.getUUID());
-						if (knew < familiarity) {
-							TalkApi.addFamiliarity(drifter, player.getUUID(), player.getGameProfile().getName(), familiarity - knew);
-						}
-
-						reach(drifter, player, b, stage, true);
-						ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + drifter.getName().getString() + " is your " + stage.word + " now"), false);
-						return 1;
-					})))
+					.then(Commands.argument("who", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> setStage(ctx,
+						net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "who") instanceof DrifterEntity d ? d : null)))
+					.executes(ctx -> setStage(ctx, looked(ctx.getSource().getPlayerOrException())))))
 			.then(Commands.literal("days").requires(source -> source.hasPermission(2))
 				.then(Commands.argument("days", IntegerArgumentType.integer(1, 100)).executes(ctx -> {
 					ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -775,7 +748,42 @@ final class Friends {
 			.then(FriendPerks.tipCommand())
 			.then(FriendPerks.favorCommand())
 			.then(FriendPerks.inviteCommand())
-			.then(FriendPerks.handCommand());
+			.then(FriendPerks.handCommand())
+			.then(FriendPerks.backupCommand());
+	}
+
+	private static int setStage(CommandContext<CommandSourceStack> ctx, @Nullable DrifterEntity drifter) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ServerPlayer player = ctx.getSource().getPlayerOrException();
+		String word = StringArgumentType.getString(ctx, "stage");
+		Stage stage = switch (word) {
+			case "stranger" -> Stage.STRANGER;
+			case "acquaintance" -> Stage.ACQUAINTANCE;
+			case "friend" -> Stage.FRIEND;
+			case "best", "best_friend" -> Stage.BEST_FRIEND;
+			default -> null;
+		};
+		if (drifter == null || stage == null) {
+			ctx.getSource().sendFailure(Component.literal(drifter == null ? "No Drifter in front of you" : "No such stage"));
+			return 0;
+		}
+
+		Bond b = bondOrNew(drifter, player);
+		// (Its trust and time with them made to fit, so Drifter's own behaviour goes with it.)
+		double trust = stage == Stage.BEST_FRIEND ? 75.0 : stage == Stage.FRIEND ? 55.0 : stage == Stage.ACQUAINTANCE ? 10.0 : 0.0;
+		double familiarity = stage == Stage.BEST_FRIEND ? 60.0 : stage == Stage.FRIEND ? 32.0 : stage == Stage.ACQUAINTANCE ? 12.0 : 0.0;
+		double had = DrifterApi.trustInPlayer(drifter, player.getUUID());
+		if (had < trust) {
+			DrifterApi.addTrustInPlayer(drifter, player.getUUID(), player.getGameProfile().getName(), trust - had);
+		}
+
+		double knew = TalkApi.familiarity(drifter, player.getUUID());
+		if (knew < familiarity) {
+			TalkApi.addFamiliarity(drifter, player.getUUID(), player.getGameProfile().getName(), familiarity - knew);
+		}
+
+		reach(drifter, player, b, stage, true);
+		ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + drifter.getName().getString() + " is your " + stage.word + " now"), false);
+		return 1;
 	}
 
 	/** The nearest friend of theirs within 24 blocks (debug), or the one they're looking at. */

@@ -220,7 +220,7 @@ final class FriendPerks {
 	static Invite inviteDue(DrifterEntity drifter) {
 		long now = Friends.now();
 		long[] checked = inviteChecked.computeIfAbsent(drifter.getUUID(), k -> new long[] {Long.MIN_VALUE / 2});
-		if (now - checked[0] < 40) {
+		if (now - checked[0] < 20) {
 			return inviteCache.get(drifter.getUUID());
 		}
 
@@ -261,8 +261,9 @@ final class FriendPerks {
 		long nightId = nightId(level);
 		for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, drifter.getBoundingBox().inflate(INVITE_NEAR), p -> p.isAlive() && !p.isSpectator())) {
 			Friends.Bond b = Friends.bond(drifter, player);
+			// (Seen in the last minute: it knows they're out there, even from inside.)
 			if (b != null && b.friend() && b.lastInvite != nightId && level.canSeeSky(player.blockPosition().above())
-				&& now - TalkApi.lastSeen(drifter, player.getUUID()) <= 100) {
+				&& now - TalkApi.lastSeen(drifter, player.getUUID()) <= 1200) {
 				return new Invite(player, FriendGoals.inside(plot, door), plot);
 			}
 		}
@@ -607,7 +608,7 @@ final class FriendPerks {
 					return 0;
 				}
 
-				BlockPos out = door.relative(plot.front, 4);
+				BlockPos out = door.relative(plot.front, 7);
 				drifter.teleportTo(out.getX() + 0.5, out.getY(), out.getZ() + 0.5);
 				player.teleportTo(out.getX() + 1.5, out.getY(), out.getZ() + 1.5);
 				ctx.getSource().sendSuccess(() -> Component.literal("Debug: by " + drifter.getName().getString() + "'s door at " + door.toShortString()), false);
@@ -630,6 +631,21 @@ final class FriendPerks {
 			}
 
 			String shown = why;
+			ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + shown), false);
+			return 1;
+		});
+	}
+
+	/** Debug: who your friend near would back you up against now, and why not. */
+	static LiteralArgumentBuilder<CommandSourceStack> backupCommand() {
+		return Commands.literal("backup").requires(source -> source.hasPermission(2)).executes(ctx -> {
+			ServerPlayer player = ctx.getSource().getPlayerOrException();
+			DrifterEntity drifter = Friends.friendNear(player);
+			var by = player.getLastHurtByMob();
+			var against = drifter == null ? null : FriendGoals.BackUp.attacker(drifter);
+			String shown = drifter == null ? "no friend near" : drifter.getName().getString() + ": last hurt by " + (by == null ? "nothing" : by.getName().getString()
+				+ " " + (player.tickCount - player.getLastHurtByMobTimestamp()) + " ticks ago, " + (int)by.distanceTo(drifter) + " blocks from it") + "; backs you against: "
+				+ (against == null ? "nobody" : against.getName().getString());
 			ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + shown), false);
 			return 1;
 		});
