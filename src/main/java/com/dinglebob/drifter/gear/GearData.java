@@ -140,6 +140,7 @@ public final class GearData {
 		GearKinds.clear();
 		GearValue.clear();
 		RecipeIndex.clear();
+		ArmorSets.clear();
 		GearTaste.clear();
 		Powers.clear();
 	}

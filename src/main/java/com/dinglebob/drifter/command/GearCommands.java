@@ -11,6 +11,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import com.dinglebob.drifter.DrifterConfig;
 import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.gear.ArmorSets;
 import com.dinglebob.drifter.gear.GearLore;
 import com.dinglebob.drifter.gear.RecipeIndex;
 import com.dinglebob.drifter.gear.GearKinds;
@@ -34,7 +35,8 @@ import net.minecraft.world.item.crafting.Ingredient;
  * Gear commands (any weapon, armor and trinket project): {@code /drifter gear item <item>} says how Drifter reads one
  * item (its kind, melee, ranged and armor value, rarity, cost and trade points), for checking modded gear; with the nearest
  * Drifter's power beliefs about it and what the item's text hints at; {@code /drifter gear powers} reads every gear
- * item's text at once (how many hint at a power, how many could not be read).
+ * item's text at once (how many hint at a power, how many could not be read); {@code /drifter gear sets} lists the modded
+ * matching armor sets and the tier each is rated at.
  */
 public final class GearCommands {
 	private GearCommands() {
@@ -55,6 +57,7 @@ public final class GearCommands {
 				.then(Commands.argument("kind", StringArgumentType.word()).executes(GearCommands::friend)))
 			.then(Commands.literal("plans").executes(GearCommands::plans))
 			.then(Commands.literal("powers").executes(GearCommands::powers))
+			.then(Commands.literal("sets").executes(GearCommands::sets))
 			.then(Commands.literal("sense")
 				.then(Commands.argument("item", ItemArgument.item(context)).executes(GearCommands::sense)))
 			.then(Commands.literal("tip").executes(GearCommands::tip))
@@ -291,6 +294,51 @@ public final class GearCommands {
 		counts.forEach((power, count) -> line.append(", ").append(power.id()).append(' ').append(count));
 		source.sendSuccess(() -> Component.literal(line.toString()), false);
 		return 1;
+	}
+
+	/**
+	 * Debug: every modded matching armor set and its rating ("[gear] set immersive_armors:warrior: tier iron, trimmable true,
+	 * value 152.0; head immersive_armors:warrior_helmet, ..., feet minecraft:iron_boots (filler)"), then how many single modded
+	 * pieces fit each tier per slot (what a mixed kit can draw from).
+	 */
+	private static int sets(CommandContext<CommandSourceStack> ctx) {
+		CommandSourceStack source = ctx.getSource();
+		List<ArmorSets.Set> sets = ArmorSets.sets();
+		if (sets.isEmpty()) {
+			source.sendSuccess(() -> Component.literal("[gear] no modded armor sets"), false);
+		} else {
+			source.sendSuccess(() -> Component.literal("[gear] " + sets.size() + " modded armor sets"), false);
+		}
+
+		for (ArmorSets.Set set : sets) {
+			StringBuilder line = new StringBuilder("[gear] set " + set.id() + ": tier " + (set.tier() == null ? "none" : set.tier().id())
+				+ ", trimmable " + set.trimmable());
+			double value = 0.0;
+			for (EquipmentSlot slot : ArmorSets.SLOTS) {
+				if (!set.filler(slot)) {
+					value += GearValue.armor(new ItemStack(set.pieces().get(slot)), slot);
+				}
+			}
+
+			line.append(String.format(Locale.ROOT, ", value %.1f;", value));
+			for (int i = 0; i < ArmorSets.SLOTS.length; i++) {
+				EquipmentSlot slot = ArmorSets.SLOTS[i];
+				line.append(i == 0 ? " " : ", ").append(slot.getName()).append(' ').append(BuiltInRegistries.ITEM.getKey(set.pieces().get(slot)))
+					.append(set.filler(slot) ? " (filler)" : "");
+			}
+
+			source.sendSuccess(() -> Component.literal(line.toString()), false);
+		}
+
+		StringBuilder pieces = new StringBuilder("[gear] single modded pieces per tier (head/chest/legs/feet):");
+		for (ArmorSets.Tier tier : ArmorSets.Tier.values()) {
+			int[] counts = ArmorSets.pieceCounts(tier);
+			pieces.append(' ').append(tier.id()).append(' ').append(counts[0]).append('/').append(counts[1]).append('/').append(counts[2]).append('/')
+				.append(counts[3]).append(tier.next() == null ? "" : ",");
+		}
+
+		source.sendSuccess(() -> Component.literal(pieces.toString()), false);
+		return sets.size();
 	}
 
 	private static int learn(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

@@ -1,0 +1,402 @@
+package com.dinglebob.drifter.gear;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.dinglebob.drifter.entity.DrifterEntity;
+
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
+/**
+ * The matching armor sets armor mods add (modded armor in starting kits, spec 2026-11-10-modded-armor-kits-design.md),
+ * found from the registered items and rated against the vanilla tiers by {@link GearValue#armor}, so any armor mod works
+ * with no list. A set is the head, chest, legs and feet items one mod makes together: the same id with the slot word taken
+ * out ({@link GearTaste#setKey}: {@code immersive_armors:warrior_helmet} and {@code _boots} are {@code immersive_armors:warrior}),
+ * or, for pieces whose ids share nothing, the same armor material. Two slots or more make a set; a missing slot is filled with
+ * the vanilla piece of the set's tier. Built once per reload ({@link #clear} from {@link GearData}); every lookup after that
+ * reads precomputed lists.
+ */
+public final class ArmorSets {
+	/** A set is at a tier when its pieces' total is within this share of the same vanilla slots' total (and a piece within the next tier). */
+	public static final double SET_TIER_BAND = 0.15;
+	/** The armor slots, head to feet (the order sets list their pieces in). */
+	public static final EquipmentSlot[] SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+
+	/** The vanilla armor tiers a kit is dressed at, weakest first (gold and netherite are not a kit's tier). */
+	public enum Tier {
+		LEATHER(Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE, Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS),
+		CHAIN(Items.CHAINMAIL_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.CHAINMAIL_LEGGINGS, Items.CHAINMAIL_BOOTS),
+		IRON(Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS),
+		DIAMOND(Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS);
+
+		private final Item head;
+		private final Item chest;
+		private final Item legs;
+		private final Item feet;
+
+		Tier(Item head, Item chest, Item legs, Item feet) {
+			this.head = head;
+			this.chest = chest;
+			this.legs = legs;
+			this.feet = feet;
+		}
+
+		/** The vanilla piece of this tier for an armor slot (the chestplate for any other slot). */
+		public Item vanilla(EquipmentSlot slot) {
+			return switch (slot) {
+				case HEAD -> this.head;
+				case LEGS -> this.legs;
+				case FEET -> this.feet;
+				default -> this.chest;
+			};
+		}
+
+		/** The tier above, or null for diamond (whose upper bound is its own piece plus the band). */
+		@Nullable
+		public Tier next() {
+			int at = this.ordinal() + 1;
+			return at < values().length ? values()[at] : null;
+		}
+
+		public String id() {
+			return this.name().toLowerCase(java.util.Locale.ROOT);
+		}
+	}
+
+	/**
+	 * One matching set. {@code pieces} has every armor slot: the mod's own pieces, and the vanilla piece of {@code tier} (iron
+	 * when it has no tier) where the mod made none. {@code trimmable}: every one of the mod's pieces takes an armor trim.
+	 */
+	public record Set(String id, Map<EquipmentSlot, Item> pieces, boolean trimmable, @Nullable Tier tier) {
+		/** True: the piece in this slot is a vanilla filler, not the mod's own. */
+		public boolean filler(EquipmentSlot slot) {
+			Item item = this.pieces.get(slot);
+			return item == null || "minecraft".equals(BuiltInRegistries.ITEM.getKey(item).getNamespace());
+		}
+	}
+
+	/** A modded piece and its value worn in its slot (a prototype stack for taste, never handed out). */
+	private record Piece(Item item, ItemStack stack, double value) {
+	}
+
+	/** Everything worked out at once: the sets by id and by tier, and the single modded pieces per slot and tier. */
+	private record Index(List<Set> sets, Map<String, Set> byId, Map<Tier, List<Set>> atTier, Map<Tier, List<Set>> trimmableAtTier,
+		Map<EquipmentSlot, Map<Tier, List<Piece>>> pieces) {
+	}
+
+	private static volatile Index index;
+
+	private ArmorSets() {
+	}
+
+	/** Drops the cache (gear data or recipes reloaded, a server started or stopped); the next lookup builds it again. */
+	static void clear() {
+		index = null;
+	}
+
+	/** Every modded matching set, sorted by id; empty without armor mods. */
+	public static List<Set> sets() {
+		return index().sets();
+	}
+
+	@Nullable
+	public static Set byId(String id) {
+		return id == null ? null : index().byId().get(id);
+	}
+
+	/** The sets at a tier (only the trimmable ones if asked); a set with no tier is never here. */
+	public static List<Set> at(Tier tier, boolean trimmableOnly) {
+		Index current = index();
+		List<Set> list = (trimmableOnly ? current.trimmableAtTier() : current.atTier()).get(tier);
+		return list == null ? List.of() : list;
+	}
+
+	/**
+	 * A single modded piece for that slot whose value fits the tier: at least the tier's vanilla piece less the band, at most the
+	 * next tier's piece (diamond: its own plus the band). Random among them; with a Drifter, leaned by its taste
+	 * ({@link GearTaste#liking}). Null when no modded piece fits.
+	 */
+	@Nullable
+	public static Item modPieceAt(EquipmentSlot slot, Tier tier, RandomSource random, @Nullable DrifterEntity taste) {
+		Map<Tier, List<Piece>> bySlot = index().pieces().get(slot);
+		List<Piece> options = bySlot == null ? null : bySlot.get(tier);
+		if (options == null || options.isEmpty()) {
+			return null;
+		}
+
+		if (taste == null || options.size() == 1) {
+			return options.get(random.nextInt(options.size())).item();
+		}
+
+		double[] weights = new double[options.size()];
+		double total = 0.0;
+		for (int i = 0; i < weights.length; i++) {
+			Piece piece = options.get(i);
+			weights[i] = GearTaste.liking(taste, piece.stack(), piece.value());
+			total += weights[i];
+		}
+
+		if (!(total > 0.0)) {
+			return options.get(random.nextInt(options.size())).item();
+		}
+
+		double at = random.nextDouble() * total;
+		for (int i = 0; i < weights.length; i++) {
+			at -= weights[i];
+			if (at <= 0.0) {
+				return options.get(i).item();
+			}
+		}
+
+		return options.get(options.size() - 1).item();
+	}
+
+	/** How many single modded pieces fit each slot at a tier (debug), head to feet. */
+	public static int[] pieceCounts(Tier tier) {
+		int[] counts = new int[SLOTS.length];
+		Index current = index();
+		for (int i = 0; i < SLOTS.length; i++) {
+			List<Piece> list = current.pieces().get(SLOTS[i]).get(tier);
+			counts[i] = list == null ? 0 : list.size();
+		}
+
+		return counts;
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Building
+	// ---------------------------------------------------------------------------------------------
+
+	private static Index index() {
+		Index current = index;
+		if (current == null) {
+			synchronized (ArmorSets.class) {
+				current = index;
+				if (current == null) {
+					current = build();
+					index = current;
+				}
+			}
+		}
+
+		return current;
+	}
+
+	/** The vanilla value of each tier's piece per slot ({@code [tier][slot]}, slots as {@link #SLOTS}). */
+	private static double[][] vanillaValues() {
+		Tier[] tiers = Tier.values();
+		double[][] values = new double[tiers.length][SLOTS.length];
+		for (Tier tier : tiers) {
+			for (int s = 0; s < SLOTS.length; s++) {
+				values[tier.ordinal()][s] = GearValue.armor(new ItemStack(tier.vanilla(SLOTS[s])), SLOTS[s]);
+			}
+		}
+
+		return values;
+	}
+
+	/** The most a single piece of that tier may be worth in that slot: the next tier's piece, or diamond's plus the band. */
+	private static double upper(double[][] vanilla, Tier tier, int slot) {
+		Tier next = tier.next();
+		return next != null ? vanilla[next.ordinal()][slot] : vanilla[tier.ordinal()][slot] * (1.0 + SET_TIER_BAND);
+	}
+
+	private static int slotIndex(EquipmentSlot slot) {
+		for (int i = 0; i < SLOTS.length; i++) {
+			if (SLOTS[i] == slot) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	private static Index build() {
+		double[][] vanilla = vanillaValues();
+		// Every modded armor piece, grouped by its id with the slot word taken out.
+		Map<String, Map<EquipmentSlot, List<Piece>>> byKey = new LinkedHashMap<>();
+		Map<EquipmentSlot, Map<Tier, List<Piece>>> singles = new EnumMap<>(EquipmentSlot.class);
+		for (EquipmentSlot slot : SLOTS) {
+			Map<Tier, List<Piece>> perTier = new EnumMap<>(Tier.class);
+			for (Tier tier : Tier.values()) {
+				perTier.put(tier, new ArrayList<>());
+			}
+
+			singles.put(slot, perTier);
+		}
+
+		for (Item item : BuiltInRegistries.ITEM) {
+			ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+			if ("minecraft".equals(id.getNamespace())) {
+				continue;
+			}
+
+			ItemStack stack = new ItemStack(item);
+			EquipmentSlot slot = stack.isEmpty() ? null : GearValue.armorSlot(stack);
+			if (slot == null) {
+				continue;
+			}
+
+			Piece piece = new Piece(item, stack, GearValue.armor(stack, slot));
+			String key = GearTaste.setKey(stack);
+			byKey.computeIfAbsent(key, k -> new EnumMap<>(EquipmentSlot.class)).computeIfAbsent(slot, k -> new ArrayList<>()).add(piece);
+			int s = slotIndex(slot);
+			for (Tier tier : Tier.values()) {
+				if (piece.value() + 1.0E-6 >= vanilla[tier.ordinal()][s] * (1.0 - SET_TIER_BAND) && piece.value() <= upper(vanilla, tier, s) + 1.0E-6) {
+					singles.get(slot).get(tier).add(piece);
+				}
+			}
+		}
+
+		// Groups of one slot (ids that share no prefix) are tried again by their shared armor material, within their mod.
+		Map<String, Map<EquipmentSlot, List<Piece>>> groups = new LinkedHashMap<>();
+		Map<String, Map<EquipmentSlot, List<Piece>>> byMaterial = new LinkedHashMap<>();
+		for (Map.Entry<String, Map<EquipmentSlot, List<Piece>>> group : byKey.entrySet()) {
+			if (group.getValue().size() >= 2) {
+				groups.put(setId(group.getKey()), group.getValue());
+				continue;
+			}
+
+			for (List<Piece> pieces : group.getValue().values()) {
+				for (Piece piece : pieces) {
+					String material = materialKey(piece.item());
+					if (material != null) {
+						EquipmentSlot slot = GearValue.armorSlot(piece.stack());
+						byMaterial.computeIfAbsent(material, k -> new EnumMap<>(EquipmentSlot.class)).computeIfAbsent(slot, k -> new ArrayList<>()).add(piece);
+					}
+				}
+			}
+		}
+
+		for (Map.Entry<String, Map<EquipmentSlot, List<Piece>>> group : byMaterial.entrySet()) {
+			if (group.getValue().size() >= 2) {
+				String id = group.getKey();
+				groups.put(groups.containsKey(id) ? id + "_material" : id, group.getValue());
+			}
+		}
+
+		List<Set> sets = new ArrayList<>();
+		for (Map.Entry<String, Map<EquipmentSlot, List<Piece>>> group : groups.entrySet()) {
+			sets.add(rate(group.getKey(), group.getValue(), vanilla));
+		}
+
+		sets.sort((a, b) -> a.id().compareTo(b.id()));
+		Map<String, Set> byId = new HashMap<>();
+		Map<Tier, List<Set>> atTier = new EnumMap<>(Tier.class);
+		Map<Tier, List<Set>> trimmableAtTier = new EnumMap<>(Tier.class);
+		for (Tier tier : Tier.values()) {
+			List<Set> all = new ArrayList<>();
+			List<Set> trimmable = new ArrayList<>();
+			for (Set set : sets) {
+				if (set.tier() == tier) {
+					all.add(set);
+					if (set.trimmable()) {
+						trimmable.add(set);
+					}
+				}
+			}
+
+			atTier.put(tier, List.copyOf(all));
+			trimmableAtTier.put(tier, List.copyOf(trimmable));
+		}
+
+		for (Set set : sets) {
+			byId.put(set.id(), set);
+		}
+
+		Map<EquipmentSlot, Map<Tier, List<Piece>>> frozen = new EnumMap<>(EquipmentSlot.class);
+		singles.forEach((slot, perTier) -> {
+			Map<Tier, List<Piece>> copy = new EnumMap<>(Tier.class);
+			perTier.forEach((tier, list) -> copy.put(tier, List.copyOf(list)));
+			frozen.put(slot, Collections.unmodifiableMap(copy));
+		});
+		return new Index(List.copyOf(sets), Collections.unmodifiableMap(byId), Collections.unmodifiableMap(atTier),
+			Collections.unmodifiableMap(trimmableAtTier), Collections.unmodifiableMap(frozen));
+	}
+
+	/** {@code immersive_armors:warrior_} (a set key) is the set {@code immersive_armors:warrior}. */
+	private static String setId(String key) {
+		return key.endsWith("_") ? key.substring(0, key.length() - 1) : key;
+	}
+
+	/** The mod and its armor material ({@code somemod:bronze}) for grouping pieces whose ids share nothing; null if not an ArmorItem. */
+	@Nullable
+	private static String materialKey(Item item) {
+		if (!(item instanceof ArmorItem armor)) {
+			return null;
+		}
+
+		String namespace = BuiltInRegistries.ITEM.getKey(item).getNamespace();
+		return armor.getMaterial().unwrapKey().map(key -> namespace + ":" + key.location().getPath()).orElse(null);
+	}
+
+	/**
+	 * Rates a group: one piece per slot (the best worth when a mod made two for one slot), its tier judged over the mod's own
+	 * pieces only (their total within the band of the same slots' vanilla total, and no piece above the next tier's piece;
+	 * where two tiers' bands overlap, the closer total wins), then the missing slots filled with that tier's vanilla piece
+	 * (iron with no tier).
+	 */
+	private static Set rate(String id, Map<EquipmentSlot, List<Piece>> group, double[][] vanilla) {
+		Map<EquipmentSlot, Piece> chosen = new EnumMap<>(EquipmentSlot.class);
+		group.forEach((slot, pieces) -> {
+			Piece best = null;
+			for (Piece piece : pieces) {
+				if (best == null || piece.value() > best.value()
+					|| piece.value() == best.value() && BuiltInRegistries.ITEM.getKey(piece.item()).compareTo(BuiltInRegistries.ITEM.getKey(best.item())) < 0) {
+					best = piece;
+				}
+			}
+
+			chosen.put(slot, best);
+		});
+
+		double total = 0.0;
+		boolean trimmable = true;
+		for (Piece piece : chosen.values()) {
+			total += piece.value();
+			trimmable &= piece.stack().is(ItemTags.TRIMMABLE_ARMOR);
+		}
+
+		Tier tier = null;
+		double closest = Double.MAX_VALUE;
+		for (Tier candidate : Tier.values()) {
+			double reference = 0.0;
+			boolean capped = true;
+			for (Map.Entry<EquipmentSlot, Piece> entry : chosen.entrySet()) {
+				int s = slotIndex(entry.getKey());
+				reference += vanilla[candidate.ordinal()][s];
+				capped &= entry.getValue().value() <= upper(vanilla, candidate, s) + 1.0E-6;
+			}
+
+			double off = Math.abs(total - reference);
+			if (capped && reference > 0.0 && off <= reference * SET_TIER_BAND + 1.0E-6 && off < closest) {
+				closest = off;
+				tier = candidate;
+			}
+		}
+
+		Tier fill = tier == null ? Tier.IRON : tier;
+		Map<EquipmentSlot, Item> pieces = new EnumMap<>(EquipmentSlot.class);
+		for (EquipmentSlot slot : SLOTS) {
+			Piece piece = chosen.get(slot);
+			pieces.put(slot, piece != null ? piece.item() : fill.vanilla(slot));
+		}
+
+		return new Set(id, Collections.unmodifiableMap(pieces), trimmable, tier);
+	}
+}

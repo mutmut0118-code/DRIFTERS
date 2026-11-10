@@ -1,0 +1,13 @@
+# Modded armor in starting kits, task 1: the matching armor sets found and rated against the vanilla tiers.
+# Run twice: with run/mods as is (Immersive Armors there: its sets listed with a tier, trimmable true, a missing slot
+# shown as the vanilla filler), then with immersive_armors-*.jar moved to run/mods_off/ ("no modded armor sets", no
+# exception). The /reload in the middle drops the cache and the second list is built again the same.
+until Done_( 900
+wait 3
+drifter gear sets
+wait 2
+reload
+wait 5
+drifter gear sets
+wait 2
+stop
