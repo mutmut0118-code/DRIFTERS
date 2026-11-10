@@ -91,6 +91,16 @@ final class HandsCommands {
 			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.ShootTask(drifter, living, "shoot at " + living.getName().getString()));
 		})));
 
+		// Throwing its trident at something (debug; Task 10: tridents).
+		root.then(Commands.literal("throw").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
+			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");
+			if (!(target instanceof net.minecraft.world.entity.LivingEntity living)) {
+				throw new SimpleCommandExceptionType(Component.literal("Not something it can throw at")).create();
+			}
+
+			return start(ctx, drifter -> new com.dinglebob.drifter.executor.task.ThrowTridentTask(drifter, living, living.getName().getString().toLowerCase(Locale.ROOT)));
+		})));
+
 		// Fighting something hand to hand with what it holds (debug; gear powers: what its own hits teach it).
 		root.then(Commands.literal("attack").then(Commands.argument("target", net.minecraft.commands.arguments.EntityArgument.entity()).executes(ctx -> {
 			net.minecraft.world.entity.Entity target = net.minecraft.commands.arguments.EntityArgument.getEntity(ctx, "target");

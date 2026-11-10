@@ -8,6 +8,7 @@ import com.dinglebob.drifter.executor.Task;
 import com.dinglebob.drifter.executor.task.AttackTask;
 import com.dinglebob.drifter.executor.task.CollectItemsTask;
 import com.dinglebob.drifter.executor.task.LookAroundTask;
+import com.dinglebob.drifter.executor.task.ThrowTridentTask;
 
 import net.minecraft.world.entity.LivingEntity;
 
@@ -24,6 +25,8 @@ public class CombatActivity extends Activity {
 	/** Bow shots that didn't end the fight; after a few it sticks to the sword (unless it can't reach the target). */
 	private int bowFailures;
 	private static final int MAX_BOW_FAILURES = 3;
+	/** Trident throws that didn't come off (it came close, out of sight, it wouldn't throw); after a few, melee. */
+	private int throwFailures;
 
 	public CombatActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -41,6 +44,18 @@ public class CombatActivity extends Activity {
 
 	@Override
 	protected void stepDone(Task step, Status status) {
+		// A throw counts as a kill if the target died before the trident landed.
+		if (step instanceof ThrowTridentTask throwing) {
+			if (status != Status.SUCCESS) {
+				this.throwFailures++;
+			} else if (throwing.killed()) {
+				this.kills++;
+				this.think("got it (" + step.describe() + ")");
+			}
+
+			return;
+		}
+
 		if ((step instanceof AttackTask || step instanceof com.dinglebob.drifter.executor.task.ShootTask) && status == Status.SUCCESS) {
 			this.kills++;
 			// (A line per kill: the blaze tests count them against the rods it picks up. Shots too, for a bow or crossbow.)
@@ -85,6 +100,13 @@ public class CombatActivity extends Activity {
 				// A bow or crossbow at range, at fliers and at creepers still a few blocks off (section 13 "Ranged mechanics";
 				// ShootTask takes out the best launcher it can shoot now: Shields.bestBowSlot).
 				String name = target.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT);
+				// No bow ready, or the target is in water (arrows soon stop there, a trident doesn't): its trident, thrown; it
+				// fetches it afterwards, a Loyalty one comes back. (Asked before the bow: with a bow ready, Archery.shouldThrow is
+				// only true for a target in water, so otherwise the bow comes first as before.)
+				if (this.throwFailures < MAX_BOW_FAILURES && com.dinglebob.drifter.hands.Archery.shouldThrow(this.drifter, target)) {
+					return this.begin(new ThrowTridentTask(this.drifter, target, name));
+				}
+
 				if (com.dinglebob.drifter.hands.Archery.shouldShoot(this.drifter, target)
 					&& (this.bowFailures < MAX_BOW_FAILURES || com.dinglebob.drifter.hands.Archery.flying(target))) {
 					return this.begin(new com.dinglebob.drifter.executor.task.ShootTask(this.drifter, target, name));
@@ -109,6 +131,9 @@ public class CombatActivity extends Activity {
 			this.phase = 1;
 			if (this.kills > 0) {
 				this.think("the fight is over");
+			} else if (this.drifter.wantsTridentBack(this.drifter.level().getGameTime())) {
+				// Back only to fetch its thrown trident (Goals.Fight holds for it): no looking round first.
+				this.phase = 2;
 			}
 		}
 

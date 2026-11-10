@@ -253,6 +253,68 @@ public final class Archery {
 		return shouldShoot(drifter, target, true);
 	}
 
+	/** A thrown trident's speed, blocks a tick (TridentItem's shoot power). */
+	public static final double TRIDENT_SPEED = net.minecraft.world.item.TridentItem.SHOOT_POWER;
+	/** It throws its trident at targets at least this far off (closer, it's a better spear in hand)... */
+	public static final double TRIDENT_MIN_RANGE = 5.0;
+	/** ...and no farther than this (most throws would miss, and it has to go and fetch it). */
+	public static final double TRIDENT_MAX_RANGE = 20.0;
+
+	/**
+	 * A trident throw beats the alternatives here: it carries a trident it can throw ({@link #throwableTridentSlot}), the target
+	 * is {@link #TRIDENT_MIN_RANGE} to {@link #TRIDENT_MAX_RANGE} blocks off and in sight now, it has no bow or crossbow ready
+	 * (or the target is in water, where arrows soon stop and a trident doesn't), never at prey (it hunts those up close), and
+	 * its trident's powers, as it believes them, may be used on this target (an explosive one not with a friend by it, nor near
+	 * home or itself: {@code Powers.mayUse}). Cheap when it carries no trident (one pass over its pack, nothing made).
+	 */
+	public static boolean shouldThrow(DrifterEntity drifter, LivingEntity target) {
+		int slot = throwableTridentSlot(drifter);
+		if (slot < 0) {
+			return false;
+		}
+
+		double distance = drifter.distanceTo(target);
+		if (distance < TRIDENT_MIN_RANGE || distance > TRIDENT_MAX_RANGE
+			|| com.dinglebob.drifter.executor.task.AttackTask.Protocol.of(target) == com.dinglebob.drifter.executor.task.AttackTask.Protocol.PREY) {
+			return false;
+		}
+
+		com.dinglebob.drifter.perception.Awareness seen = drifter.getSenses().awarenessOf(target);
+		if (seen == null || !seen.visibleNow || !target.isInWater() && ready(drifter)) {
+			return false;
+		}
+
+		return com.dinglebob.drifter.gear.Powers.mayUse(drifter, drifter.getInventory().getItem(slot), target);
+	}
+
+	/**
+	 * The trident it would throw: the one in its hand if that one will go, otherwise the first in its pack that will (a
+	 * TridentItem, any mod's, not Riptide, which never leaves the hand, not one point from breaking, and not one it gave up on
+	 * because it never threw: DeadLaunchers); -1 if none.
+	 */
+	public static int throwableTridentSlot(DrifterEntity drifter) {
+		DrifterInventory inventory = drifter.getInventory();
+		int selected = inventory.getSelected();
+		if (throwable(drifter, inventory.getItem(selected))) {
+			return selected;
+		}
+
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (slot != selected && throwable(drifter, inventory.getItem(slot))) {
+				return slot;
+			}
+		}
+
+		return -1;
+	}
+
+	/** This stack is a trident it can throw now (see {@link #throwableTridentSlot}). */
+	public static boolean throwable(DrifterEntity drifter, ItemStack stack) {
+		return stack.getItem() instanceof net.minecraft.world.item.TridentItem && stack.getDamageValue() < stack.getMaxDamage() - 1
+			&& net.minecraft.world.item.enchantment.EnchantmentHelper.getTridentSpinAttackStrength(stack, drifter) <= 0.0F
+			&& !DeadLaunchers.resting(drifter, stack);
+	}
+
 	/**
 	 * Why the bow it would take out may not be used on this target as far as it knows (gear powers: an explosive one not with
 	 * a friend by the target, nor near home or itself): "held fire: Bow would blow up Pal"; null when it may (or has no bow).

@@ -513,6 +513,171 @@ public class DrifterEntity extends PathfinderMob {
 		return this.deadLaunchers;
 	}
 
+	// ---------------------------------------------------------------------------------------------
+	// Its thrown trident (Task 10): the real item, out in the world until it picks it up again (not saved)
+	// ---------------------------------------------------------------------------------------------
+
+	/** Farther than this from its thrown trident, it has left it behind (lost). */
+	public static final double TRIDENT_FORGET_DISTANCE = 64.0;
+
+	/** The trident it threw and hasn't got back yet (the entity's id), or null. */
+	@org.jetbrains.annotations.Nullable
+	private UUID thrownTrident;
+	/** When it started going after it (-1: not yet; CollectItemsTask gives up after a while). */
+	private long tridentFetchSince = -1L;
+
+	@org.jetbrains.annotations.Nullable
+	public UUID thrownTrident() {
+		return this.thrownTrident;
+	}
+
+	/** It just threw this trident (TridentItemMixin, or its helper player for a modded one). */
+	public void setThrownTrident(UUID id) {
+		this.thrownTrident = id;
+		this.tridentFetchSince = -1L;
+		this.thrownTridentSeen = false;
+		this.thrownTridentLoyal = -1;
+	}
+
+	/** Whether its thrown trident comes back by itself (-1: not looked at yet, 0 no, 1 yes). */
+	private int thrownTridentLoyal = -1;
+
+	/**
+	 * Its thrown trident has Loyalty (ThrownTrident's own test: the enchantment's return speed on its item): it flies back by
+	 * itself, from anywhere it can (out of lava too), so it's waited for and never given up while it's still in the world.
+	 */
+	public boolean thrownTridentLoyal(net.minecraft.world.entity.projectile.AbstractArrow trident) {
+		if (this.thrownTridentLoyal < 0) {
+			this.thrownTridentLoyal = trident instanceof net.minecraft.world.entity.projectile.ThrownTrident
+				&& this.level() instanceof net.minecraft.server.level.ServerLevel level
+				&& EnchantmentHelper.getTridentReturnToOwnerAcceleration(level, trident.getPickupItemStackOrigin(), trident) > 0 ? 1 : 0;
+		}
+
+		return this.thrownTridentLoyal == 1;
+	}
+
+	/**
+	 * It still wants its thrown trident back: it has one out, and hasn't been going after it longer than
+	 * {@code CollectItemsTask.TRIDENT_FETCH_TICKS} (the fight goal holds for it till then).
+	 */
+	public boolean wantsTridentBack(long now) {
+		return this.thrownTrident != null && (this.tridentFetchSince < 0L
+			|| now - this.tridentFetchSince <= com.dinglebob.drifter.executor.task.CollectItemsTask.TRIDENT_FETCH_TICKS);
+	}
+
+	/** It has seen its thrown trident lying where it landed (so it knows where to go for it: section 1). */
+	private boolean thrownTridentSeen;
+
+	public void sawThrownTrident() {
+		this.thrownTridentSeen = true;
+	}
+
+	/**
+	 * It can see this thrown trident from where it stands: nothing solid between its eyes and the trident's shaft (a little
+	 * above its point, which is stuck in the block it hit), and not lying in lava (which hides it; water doesn't).
+	 */
+	public boolean canSeeThrownTrident(net.minecraft.world.entity.projectile.AbstractArrow trident) {
+		if (trident.isInLava()) {
+			return false;
+		}
+
+		Vec3 eye = this.getEyePosition();
+		Vec3 shaft = trident.position().add(0.0, TRIDENT_SHAFT_HEIGHT, 0.0);
+		if (eye.distanceToSqr(shaft) > TRIDENT_FORGET_DISTANCE * TRIDENT_FORGET_DISTANCE) {
+			return false;
+		}
+
+		return this.level().clip(new net.minecraft.world.level.ClipContext(eye, shaft, net.minecraft.world.level.ClipContext.Block.COLLIDER,
+			net.minecraft.world.level.ClipContext.Fluid.NONE, this)).getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+	}
+
+	/** How far above a thrown trident's point it looks for it (the shaft sticks out of what it hit). */
+	private static final double TRIDENT_SHAFT_HEIGHT = 0.3;
+
+	public boolean thrownTridentSeen() {
+		return this.thrownTridentSeen;
+	}
+
+	/** Its thrown trident still out there and still its own, or null. */
+	@org.jetbrains.annotations.Nullable
+	public net.minecraft.world.entity.projectile.AbstractArrow thrownTridentEntity() {
+		if (this.thrownTrident == null || !(this.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return null;
+		}
+
+		return level.getEntity(this.thrownTrident) instanceof net.minecraft.world.entity.projectile.AbstractArrow trident && !trident.isRemoved()
+			&& trident.getOwner() == this ? trident : null;
+	}
+
+	/** The game tick it started going after its thrown trident ({@code now} if it starts now). */
+	public long tridentFetchSince(long now) {
+		if (this.tridentFetchSince < 0L) {
+			this.tridentFetchSince = now;
+		}
+
+		return this.tridentFetchSince;
+	}
+
+	/** Its thrown trident is gone for good (burnt, out of the world, out of reach, left behind): it says so once. */
+	public void loseThrownTrident() {
+		if (this.thrownTrident == null) {
+			return;
+		}
+
+		this.thrownTrident = null;
+		this.tridentFetchSince = -1L;
+		this.memory.thoughts().add(this.level().getGameTime(), "lost its trident");
+	}
+
+	/**
+	 * Its thrown trident, touched (AbstractArrow#playerTouch and ThrownTrident#tryPickup, for its owner): stuck in something,
+	 * or flying back to it by Loyalty, and done shaking, it goes back into its pack as the same item. Gone from the world, it's
+	 * lost.
+	 */
+	private void touchThrownTrident(AABB reach) {
+		net.minecraft.world.entity.projectile.AbstractArrow trident = this.thrownTridentEntity();
+		if (trident == null) {
+			// (Gone: fell out of the world, destroyed, or its chunk unloaded behind it.)
+			this.loseThrownTrident();
+			return;
+		}
+
+		// (Left far behind, or gone after too long without getting it: lost, unless it comes back by itself. Here as well as in
+		// CollectItemsTask, which may not be running when the time runs out.)
+		if ((trident.distanceToSqr(this) > TRIDENT_FORGET_DISTANCE * TRIDENT_FORGET_DISTANCE || !this.wantsTridentBack(this.level().getGameTime()))
+			&& !this.thrownTridentLoyal(trident)) {
+			this.loseThrownTrident();
+			return;
+		}
+
+		boolean returning = trident.isNoPhysics();
+		if (!trident.getBoundingBox().intersects(reach) || trident.shakeTime > 0
+			|| !returning && (!((com.dinglebob.drifter.mixin.AbstractArrowAccessor)trident).drifter$isInGround()
+				|| trident.pickup != net.minecraft.world.entity.projectile.AbstractArrow.Pickup.ALLOWED)) {
+			return;
+		}
+
+		if (!this.inventory.add(trident.getPickupItemStackOrigin().copy())) {
+			return;
+		}
+
+		this.take(trident, 1);
+		trident.discard();
+		this.thrownTrident = null;
+		this.tridentFetchSince = -1L;
+		this.memory.thoughts().add(this.level().getGameTime(), "got its trident back");
+	}
+
+	/** Takes this exact stack out of its hands or pack (as Inventory#removeItem does for a player). */
+	public void removeStack(ItemStack stack) {
+		for (int slot = 0; slot < this.inventory.getContainerSize(); slot++) {
+			if (this.inventory.getItem(slot) == stack) {
+				this.inventory.setItem(slot, ItemStack.EMPTY);
+				return;
+			}
+		}
+	}
+
 	/** Any heal but natural regeneration may be an item's power at work (PowerWatch: life steal and the like). */
 	@Override
 	public void heal(float amount) {
@@ -2244,7 +2409,8 @@ protected void customServerAiStep() {
 	@Override
 	public void releaseUsingItem() {
 		ItemStack launcher = this.useItem;
-		if (!this.level().isClientSide && com.dinglebob.drifter.hands.Shields.isLauncher(launcher) && release(launcher.getItem().getClass()) != Release.VANILLA) {
+		boolean trident = launcher.getItem() instanceof net.minecraft.world.item.TridentItem;
+		if (!this.level().isClientSide && (trident || com.dinglebob.drifter.hands.Shields.isLauncher(launcher)) && release(launcher.getItem().getClass()) != Release.VANILLA) {
 			int remaining = this.getUseItemRemainingTicks();
 			try {
 				com.dinglebob.drifter.hands.FakePlayerBridge.act(this, fake -> {
@@ -2256,7 +2422,7 @@ protected void customServerAiStep() {
 					net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(launcher.getItem()), e.toString());
 			}
 
-			this.adoptHelperShots();
+			this.adoptHelperShots(trident);
 			this.stopUsingItem();
 			return;
 		}
@@ -2287,11 +2453,14 @@ protected void customServerAiStep() {
 				net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item), e.toString());
 		}
 
-		this.adoptHelperShots();
+		this.adoptHelperShots(false);
 	}
 
-	/** What its helper player just shot is its own (whom it hits, it hit). */
-	private void adoptHelperShots() {
+	/**
+	 * What its helper player just shot is its own (whom it hits, it hit). {@code trident}: it was a trident it let go of, so
+	 * the trident-like shot (an AbstractArrow; its helper player had it, so it may be picked up) is its thrown trident.
+	 */
+	private void adoptHelperShots(boolean trident) {
 		if (this.helperPlayer == null) {
 			return;
 		}
@@ -2299,6 +2468,9 @@ protected void customServerAiStep() {
 		for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
 			this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
 			shot.setOwner(this);
+			if (trident && shot instanceof net.minecraft.world.entity.projectile.AbstractArrow) {
+				this.setThrownTrident(shot.getUUID());
+			}
 		}
 	}
 
@@ -2498,6 +2670,11 @@ protected void customServerAiStep() {
 			if (!orb.isRemoved()) {
 				this.touchOrb(orb);
 			}
+		}
+
+		// Its own thrown trident, if it has one out (looked up by its id: no search).
+		if (this.thrownTrident != null) {
+			this.touchThrownTrident(reach);
 		}
 	}
 

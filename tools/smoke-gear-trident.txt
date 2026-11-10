@@ -1,0 +1,120 @@
+# Task 10: tridents (any TridentItem) thrown and fetched back as a player does; riptide ones swung, never thrown.
+# python tools/smoke.py . tools/smoke-gear-trident.txt build/smoke-gear-trident.log
+# Fresh world, flat (server.properties level-type=minecraft\:flat for this run), by day, no mob spawning. The zombies wear iron helmets (no
+# burning by day). Each Drifter is 60 blocks from the others, a zombie 12 blocks off each .
+# Expect:
+#  1  Thrower (brain on, brave) with only a trident, a zombie 16 off with 6 health (it may notice it late, when it's close: then a melee kill
+#     and no throw; run again): "threw its trident at the zombie", the zombie dies
+#     ("got it (throw a trident at the zombie)"), then "going to fetch its trident" and "got its trident back"; "drifter inventory": the
+#     trident (a little worn).
+#  2  Loyal, a Loyalty III trident, a full-health zombie standing still 12 off; told to throw twice (debug "drifter throw", brain off): each
+#     "threw its trident at the zombie" is followed within a second by "got its trident back" with no "going to fetch" line (it flies back
+#     by itself); the second throw works (the trident it got back is thrown again).
+#  3  Spinner, a Riptide trident: no "threw" line ever; it kills the zombie in melee with the trident ("got it (attack the zombie)").
+#  4  Lava, a trident and a stone sword, its zombie (6 health, hanging still in the air) over a 9x9 pool of lava; told to throw (debug "drifter
+#     throw", brain off, so it doesn't walk into the lava to swing at it), then brain on: "threw its trident at the zombie", the trident
+#     falls into the lava (a trident doesn't burn: it lies on the bottom, hidden by the lava), "picked fetch its trident" (the fight goal
+#     holds for it), then "lost its trident" at once (it can't see it in there; no walking into lava) and it goes on to something else
+#     ("drifter brain": not fetching), well within 20 s. "drifter inventory": the stone sword, no trident. "trident here" from the one
+#     in the lava (the real item stays in the world).
+#  5  Void, the same throw at a still zombie on dry ground, then the trident is killed (as if it fell out of the world): "lost its
+#     trident" at once, no fetching.
+#  6  Isle, the same throw at a still zombie on the far side of a stone island in a lava pool: the trident drops onto the island, in
+#     sight but with no way there: "going to fetch its trident", then "lost its trident" (no path), within 20 s; no lava damage.
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+weather clear
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+gamerule mobGriefing false
+difficulty normal
+kill @e[type=zombie]
+kill @e[type=trident]
+drifter spawn Thrower
+execute at @e[type=drifter:drifter,name=Thrower] run drifter brain off
+execute positioned ~ ~ ~60 run drifter spawn Loyal
+execute at @e[type=drifter:drifter,name=Loyal] run drifter brain off
+execute positioned ~ ~ ~-60 run drifter spawn Spinner
+execute at @e[type=drifter:drifter,name=Spinner] run drifter brain off
+execute positioned ~-60 ~ ~ run drifter spawn Lava
+execute at @e[type=drifter:drifter,name=Lava] run drifter brain off
+execute positioned ~-60 ~ ~-60 run drifter spawn Void
+execute at @e[type=drifter:drifter,name=Void] run drifter brain off
+execute positioned ~-60 ~ ~60 run drifter spawn Isle
+execute at @e[type=drifter:drifter,name=Isle] run drifter brain off
+drifter tier full all
+wait 2
+execute at @e[type=drifter:drifter,name=Thrower] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Thrower] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Thrower] run drifter give minecraft:trident
+execute at @e[type=drifter:drifter,name=Loyal] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Loyal] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Loyal] run drifter give minecraft:trident[minecraft:enchantments={levels:{"minecraft:loyalty":3}}]
+execute at @e[type=drifter:drifter,name=Spinner] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Spinner] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Spinner] run drifter give minecraft:trident[minecraft:enchantments={levels:{"minecraft:riptide":3}}]
+execute at @e[type=drifter:drifter,name=Lava] run drifter personality set bravery 1.0
+execute at @e[type=drifter:drifter,name=Lava] run drifter personality set caution 0.1
+execute at @e[type=drifter:drifter,name=Lava] run drifter give minecraft:trident
+execute at @e[type=drifter:drifter,name=Lava] run drifter give minecraft:stone_sword
+execute at @e[type=drifter:drifter,name=Void] run drifter give minecraft:trident
+execute at @e[type=drifter:drifter,name=Isle] run drifter give minecraft:trident
+execute at @e[type=drifter:drifter,name=Isle] run drifter give minecraft:stone_sword
+# 6: an 11x11 pool of lava 12 off with a 5x5 stone island in it; the zombie on the island's far side.
+execute at @e[type=drifter:drifter,name=Isle] positioned ~12 ~ ~ run fill ~-5 ~-1 ~-5 ~5 ~-1 ~5 minecraft:lava
+execute at @e[type=drifter:drifter,name=Isle] positioned ~12 ~ ~ run fill ~-2 ~-1 ~-2 ~2 ~-1 ~2 minecraft:stone
+execute at @e[type=drifter:drifter,name=Isle] positioned ~14 ~ ~ run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Health:6f,ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["zIsle"]}
+# 4: a 9x9 pool of lava 12 off, its zombie hanging still just above the middle (a trident that hits drops a block or two short of
+# what it hit, as vanilla's does: into the lava).
+execute at @e[type=drifter:drifter,name=Lava] positioned ~12 ~ ~ run fill ~-4 ~-1 ~-4 ~4 ~-1 ~4 minecraft:lava
+execute at @e[type=drifter:drifter,name=Lava] positioned ~12 ~ ~ run summon zombie ~ ~0.2 ~ {PersistenceRequired:1b,NoAI:1b,NoGravity:1b,Health:6f,ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["zLava"]}
+execute at @e[type=drifter:drifter,name=Thrower] positioned ~16 ~ ~ positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,Health:6f,ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["zThrower"]}
+execute at @e[type=drifter:drifter,name=Loyal] positioned ~12 ~ ~ positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["zLoyal"]}
+execute at @e[type=drifter:drifter,name=Spinner] positioned ~12 ~ ~ positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["zSpinner"]}
+execute at @e[type=drifter:drifter,name=Void] positioned ~12 ~ ~ positioned over motion_blocking_no_leaves run summon zombie ~ ~ ~ {PersistenceRequired:1b,NoAI:1b,Health:40f,ArmorItems:[{},{},{},{id:"minecraft:iron_helmet",count:1}],Tags:["zVoid"]}
+# 1 and 3 face their zombies, so they see them coming.
+execute as @e[type=drifter:drifter,name=Thrower] at @s run tp @s ~ ~ ~ facing entity @e[type=zombie,tag=zThrower,limit=1]
+execute as @e[type=drifter:drifter,name=Spinner] at @s run tp @s ~ ~ ~ facing entity @e[type=zombie,tag=zSpinner,limit=1]
+execute at @e[type=drifter:drifter,name=Thrower] run drifter brain on
+execute at @e[type=drifter:drifter,name=Spinner] run drifter brain on
+# 2, 4, 5 and 6: facing their zombies, told to throw.
+execute as @e[type=drifter:drifter,name=Loyal] at @s run tp @s ~ ~ ~ facing entity @e[type=zombie,tag=zLoyal,limit=1]
+execute as @e[type=drifter:drifter,name=Lava] at @s run tp @s ~ ~ ~ facing entity @e[type=zombie,tag=zLava,limit=1]
+execute as @e[type=drifter:drifter,name=Void] at @s run tp @s ~ ~ ~ facing entity @e[type=zombie,tag=zVoid,limit=1]
+execute as @e[type=drifter:drifter,name=Isle] at @s run tp @s ~ ~ ~ facing entity @e[type=zombie,tag=zIsle,limit=1]
+wait 2
+execute as @e[type=drifter:drifter,name=Lava] at @s run drifter throw @e[type=zombie,tag=zLava,limit=1]
+execute as @e[type=drifter:drifter,name=Void] at @s run drifter throw @e[type=zombie,tag=zVoid,limit=1]
+execute as @e[type=drifter:drifter,name=Loyal] at @s run drifter throw @e[type=zombie,tag=zLoyal,limit=1]
+execute as @e[type=drifter:drifter,name=Isle] at @s run drifter throw @e[type=zombie,tag=zIsle,limit=1]
+wait 4
+execute at @e[type=drifter:drifter,name=Void] run kill @e[type=trident,distance=..20]
+execute as @e[type=drifter:drifter,name=Loyal] at @s run drifter throw @e[type=zombie,tag=zLoyal,limit=1]
+execute at @e[type=drifter:drifter,name=Lava] run drifter brain on
+execute at @e[type=drifter:drifter,name=Void] run drifter brain on
+execute at @e[type=drifter:drifter,name=Isle] run drifter brain on
+wait 8
+execute at @e[type=drifter:drifter,name=Lava] run drifter brain
+wait 15
+execute at @e[type=drifter:drifter,name=Thrower] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Thrower] run drifter inventory
+execute at @e[type=drifter:drifter,name=Loyal] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Loyal] run drifter inventory
+execute at @e[type=drifter:drifter,name=Spinner] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Spinner] run drifter inventory
+execute at @e[type=drifter:drifter,name=Lava] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Lava] run drifter inventory
+execute at @e[type=drifter:drifter,name=Lava] run drifter brain
+execute at @e[type=drifter:drifter,name=Void] run drifter thoughts
+execute at @e[type=drifter:drifter,name=Void] run drifter inventory
+execute at @e[type=drifter:drifter,name=Isle] run drifter inventory
+execute at @e[type=drifter:drifter,name=Isle] run drifter brain
+execute as @e[type=trident] run say trident here
+wait 10
+execute at @e[type=drifter:drifter,name=Lava] run drifter brain
+execute at @e[type=drifter:drifter,name=Thrower] run drifter inventory
+wait 2
+stop

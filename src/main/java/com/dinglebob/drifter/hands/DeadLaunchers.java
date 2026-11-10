@@ -15,7 +15,8 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Launchers that never loose (ruling R23): a modded bow or crossbow whose release doesn't work for a Drifter (one that only
- * fires for real players, or one that fails on a dedicated server). Each release or shot is watched: a projectile of its own
+ * fires for real players, or one that fails on a dedicated server), and a trident that never leaves the hand (ThrowTridentTask:
+ * a modded one whose own release does nothing for it). Each release or shot is watched: a projectile of its own
  * coming into the world, the launcher wearing or the target hurt means it worked. A modded one that looses nothing is first
  * held longer next time, as a player tries a longer draw (ruling R29: a draw or load longer than the game's own); once even
  * the longest hold looses nothing, each failure counts, and after a few in a row it leaves that item alone for a while, with
@@ -216,6 +217,7 @@ public final class DeadLaunchers {
 
 		long now = drifter.level().getGameTime();
 		this.resting.put(item, now + REST_TICKS);
-		drifter.getMemory().thoughts().add(now, "gave up on " + stack.getHoverName().getString() + ": it won't shoot");
+		drifter.getMemory().thoughts().add(now, "gave up on " + stack.getHoverName().getString()
+			+ (stack.getItem() instanceof net.minecraft.world.item.TridentItem ? ": it won't throw" : ": it won't shoot"));
 	}
 }

@@ -1305,12 +1305,26 @@ public final class Goals {
 		@Override
 		public String name(Context context) {
 			LivingEntity main = context.threat().main();
+			if (main == null && context.drifter().wantsTridentBack(context.drifter().level().getGameTime())) {
+				return "fetch its trident";
+			}
+
 			return main == null ? "fight" : "fight the " + main.getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT);
 		}
+
+		/**
+		 * Nothing left to fight but its thrown trident is still out there: the fight isn't over until it has it back, as for a
+		 * player (CombatActivity picks it up; CollectItemsTask gives it up as lost after a while, so this never holds for ever).
+		 */
+		public static final double TRIDENT_FETCH_URGENCY = 0.6;
 
 		@Override
 		public double urgency(Context context) {
 			Threats.Assessment threat = context.threat();
+			if (threat.main() == null && context.drifter().wantsTridentBack(context.drifter().level().getGameTime())) {
+				return TRIDENT_FETCH_URGENCY;
+			}
+
 			// Sheltered, it lets them howl outside; only something that got in and hit it gets a fight.
 			if (context.sealedIn() && !threat.recentlyHit() || !threat.decision().fights()) {
 				return 0.0;
@@ -1339,8 +1353,8 @@ public final class Goals {
 
 		@Override
 		public double feasibility(Context context) {
-			// Only something it can see (one it only heard, it looks for first).
-			return context.threat().main() != null ? 1.0 : 0.0;
+			// Only something it can see (one it only heard, it looks for first), or its thrown trident to fetch.
+			return context.threat().main() != null || context.drifter().wantsTridentBack(context.drifter().level().getGameTime()) ? 1.0 : 0.0;
 		}
 
 		@Override
