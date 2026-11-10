@@ -27,7 +27,8 @@ import net.minecraft.world.item.Items;
  * found from the registered items and rated against the vanilla tiers by {@link GearValue#armor}, so any armor mod works
  * with no list. A set is the head, chest, legs and feet items one mod makes together: the same id with the slot word taken
  * out ({@link GearTaste#setKey}: {@code immersive_armors:warrior_helmet} and {@code _boots} are {@code immersive_armors:warrior}),
- * or, for pieces whose ids share nothing, the same armor material. Two slots or more make a set; a missing slot is filled with
+ * and a piece whose id shares nothing joins a set of the same mod and armor material that lacks its slot (or such pieces make
+ * one by material alone). Two slots or more make a set; a missing slot is filled with
  * the vanilla piece of the set's tier. Built once per reload ({@link #clear} from {@link GearData}); every lookup after that
  * reads precomputed lists.
  */
@@ -91,7 +92,7 @@ public final class ArmorSets {
 	}
 
 	/** A modded piece and its value worn in its slot (a prototype stack for taste, never handed out). */
-	private record Piece(Item item, ItemStack stack, double value) {
+	private record Piece(Item item, ItemStack stack, EquipmentSlot slot, double value) {
 	}
 
 	/** Everything worked out at once: the sets by id and by tier, and the single modded pieces per slot and tier. */
@@ -252,7 +253,7 @@ public final class ArmorSets {
 				continue;
 			}
 
-			Piece piece = new Piece(item, stack, GearValue.armor(stack, slot));
+			Piece piece = new Piece(item, stack, slot, GearValue.armor(stack, slot));
 			String key = GearTaste.setKey(stack);
 			byKey.computeIfAbsent(key, k -> new EnumMap<>(EquipmentSlot.class)).computeIfAbsent(slot, k -> new ArrayList<>()).add(piece);
 			int s = slotIndex(slot);
@@ -263,30 +264,51 @@ public final class ArmorSets {
 			}
 		}
 
-		// Groups of one slot (ids that share no prefix) are tried again by their shared armor material, within their mod.
-		Map<String, Map<EquipmentSlot, List<Piece>>> groups = new LinkedHashMap<>();
-		Map<String, Map<EquipmentSlot, List<Piece>>> byMaterial = new LinkedHashMap<>();
+		// Groups of two slots or more are sets by their id. The pieces left over (ids that share no prefix, as a slot word the
+		// key doesn't know: bronze_greaves) join a set of the same mod and armor material that lacks their slot (the lowest
+		// set id if several), so bronze_helmet/_chestplate/_greaves/_sabatons stay one set; the rest group by material alone.
+		Map<String, Map<EquipmentSlot, List<Piece>>> groups = new java.util.TreeMap<>();
+		List<Piece> leftovers = new ArrayList<>();
 		for (Map.Entry<String, Map<EquipmentSlot, List<Piece>>> group : byKey.entrySet()) {
 			if (group.getValue().size() >= 2) {
 				groups.put(setId(group.getKey()), group.getValue());
+			} else {
+				group.getValue().values().forEach(leftovers::addAll);
+			}
+		}
+
+		leftovers.sort((a, b) -> BuiltInRegistries.ITEM.getKey(a.item()).compareTo(BuiltInRegistries.ITEM.getKey(b.item())));
+		Map<String, Map<EquipmentSlot, List<Piece>>> byMaterial = new java.util.TreeMap<>();
+		for (Piece piece : leftovers) {
+			String material = materialKey(piece.item());
+			if (material == null) {
 				continue;
 			}
 
-			for (List<Piece> pieces : group.getValue().values()) {
-				for (Piece piece : pieces) {
-					String material = materialKey(piece.item());
-					if (material != null) {
-						EquipmentSlot slot = GearValue.armorSlot(piece.stack());
-						byMaterial.computeIfAbsent(material, k -> new EnumMap<>(EquipmentSlot.class)).computeIfAbsent(slot, k -> new ArrayList<>()).add(piece);
-					}
+			Map<EquipmentSlot, List<Piece>> home = null;
+			for (Map<EquipmentSlot, List<Piece>> group : groups.values()) {
+				if (!group.containsKey(piece.slot()) && hasMaterial(group, material)) {
+					home = group;
+					break;
 				}
 			}
+
+			if (home == null) {
+				home = byMaterial.computeIfAbsent(material, k -> new EnumMap<>(EquipmentSlot.class));
+			}
+
+			home.computeIfAbsent(piece.slot(), k -> new ArrayList<>()).add(piece);
 		}
 
 		for (Map.Entry<String, Map<EquipmentSlot, List<Piece>>> group : byMaterial.entrySet()) {
 			if (group.getValue().size() >= 2) {
+				// A prefix set of that name is of another material (one of the same took these pieces above): number this one.
 				String id = group.getKey();
-				groups.put(groups.containsKey(id) ? id + "_material" : id, group.getValue());
+				for (int n = 2; groups.containsKey(id); n++) {
+					id = group.getKey() + "_" + n;
+				}
+
+				groups.put(id, group.getValue());
 			}
 		}
 
@@ -332,6 +354,19 @@ public final class ArmorSets {
 	/** {@code immersive_armors:warrior_} (a set key) is the set {@code immersive_armors:warrior}. */
 	private static String setId(String key) {
 		return key.endsWith("_") ? key.substring(0, key.length() - 1) : key;
+	}
+
+	/** True: one of the group's pieces is of that material ({@link #materialKey}). */
+	private static boolean hasMaterial(Map<EquipmentSlot, List<Piece>> group, String material) {
+		for (List<Piece> pieces : group.values()) {
+			for (Piece piece : pieces) {
+				if (material.equals(materialKey(piece.item()))) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/** The mod and its armor material ({@code somemod:bronze}) for grouping pieces whose ids share nothing; null if not an ArmorItem. */
