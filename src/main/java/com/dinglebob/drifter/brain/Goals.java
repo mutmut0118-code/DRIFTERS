@@ -1322,7 +1322,8 @@ public final class Goals {
 		public double urgency(Context context) {
 			Threats.Assessment threat = context.threat();
 			if (threat.main() == null && context.drifter().wantsTridentBack(context.drifter().level().getGameTime())) {
-				return TRIDENT_FETCH_URGENCY;
+				// (Sealed in its shelter, it fetches it later.)
+				return context.sealedIn() ? 0.0 : TRIDENT_FETCH_URGENCY;
 			}
 
 			// Sheltered, it lets them howl outside; only something that got in and hit it gets a fight.

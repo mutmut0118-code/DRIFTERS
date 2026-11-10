@@ -25,8 +25,11 @@ public class CombatActivity extends Activity {
 	/** Bow shots that didn't end the fight; after a few it sticks to the sword (unless it can't reach the target). */
 	private int bowFailures;
 	private static final int MAX_BOW_FAILURES = 3;
-	/** Trident throws that didn't come off (it came close, out of sight, it wouldn't throw); after a few, melee. */
+	/** Trident throws that didn't come off (it came close, out of sight, it wouldn't throw); after this many, melee. */
 	private int throwFailures;
+	private static final int MAX_THROW_FAILURES = 3;
+	/** It couldn't get to its target to fight it hand to hand (no path): a trident may be thrown then (Archery.shouldThrow). */
+	private boolean meleeFailed;
 
 	public CombatActivity(DrifterEntity drifter) {
 		super(drifter);
@@ -61,6 +64,10 @@ public class CombatActivity extends Activity {
 			// (A line per kill: the blaze tests count them against the rods it picks up. Shots too, for a bow or crossbow.)
 			int shots = step instanceof com.dinglebob.drifter.executor.task.ShootTask shoot ? shoot.shots() : 0;
 			this.think("got it (" + step.describe() + (shots > 0 ? ", " + shots + (shots == 1 ? " shot" : " shots") : "") + ")");
+		}
+
+		if (step instanceof AttackTask && status == Status.FAILURE && step.failureReason() != null && step.failureReason().startsWith("can't get to it")) {
+			this.meleeFailed = true;
 		}
 
 		// The bow didn't work out (it came close, out of sight, out of arrows): the sword for this fight.
@@ -103,7 +110,7 @@ public class CombatActivity extends Activity {
 				// No bow ready, or the target is in water (arrows soon stop there, a trident doesn't): its trident, thrown; it
 				// fetches it afterwards, a Loyalty one comes back. (Asked before the bow: with a bow ready, Archery.shouldThrow is
 				// only true for a target in water, so otherwise the bow comes first as before.)
-				if (this.throwFailures < MAX_BOW_FAILURES && com.dinglebob.drifter.hands.Archery.shouldThrow(this.drifter, target)) {
+				if (this.throwFailures < MAX_THROW_FAILURES && com.dinglebob.drifter.hands.Archery.shouldThrow(this.drifter, target, this.meleeFailed)) {
 					return this.begin(new ThrowTridentTask(this.drifter, target, name));
 				}
 

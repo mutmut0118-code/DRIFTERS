@@ -657,15 +657,40 @@ public class DrifterEntity extends PathfinderMob {
 			return;
 		}
 
+		this.takeThrownTrident(trident);
+	}
+
+	/** What its item pickup looks at: dropped items, and tridents (its own flying back to it: {@link #touchReturningTrident}). */
+	private static boolean touchable(net.minecraft.world.entity.Entity entity) {
+		return entity instanceof ItemEntity || entity instanceof net.minecraft.world.entity.projectile.ThrownTrident;
+	}
+
+	/**
+	 * A trident of its own flying back to it (Loyalty) touches it: it goes in, as ThrownTrident#tryPickup lets its owner have
+	 * it ({@code isNoPhysics() && ownedBy(player)}), whether or not it remembers throwing it (a second one, or one in flight
+	 * across a reload; ruling R31). Done shaking, as AbstractArrow#playerTouch asks.
+	 */
+	private void touchReturningTrident(net.minecraft.world.entity.projectile.ThrownTrident trident) {
+		if (trident.isNoPhysics() && trident.shakeTime <= 0 && trident.getOwner() == this) {
+			this.takeThrownTrident(trident);
+		}
+	}
+
+	/** Its thrown trident back into its pack as the same item (the take animation, the entity gone); false if there's no room. */
+	private boolean takeThrownTrident(net.minecraft.world.entity.projectile.AbstractArrow trident) {
 		if (!this.inventory.add(trident.getPickupItemStackOrigin().copy())) {
-			return;
+			return false;
 		}
 
 		this.take(trident, 1);
 		trident.discard();
-		this.thrownTrident = null;
-		this.tridentFetchSince = -1L;
+		if (trident.getUUID().equals(this.thrownTrident)) {
+			this.thrownTrident = null;
+			this.tridentFetchSince = -1L;
+		}
+
 		this.memory.thoughts().add(this.level().getGameTime(), "got its trident back");
+		return true;
 	}
 
 	/** Takes this exact stack out of its hands or pack (as Inventory#removeItem does for a player). */
@@ -2409,7 +2434,8 @@ protected void customServerAiStep() {
 	@Override
 	public void releaseUsingItem() {
 		ItemStack launcher = this.useItem;
-		boolean trident = launcher.getItem() instanceof net.minecraft.world.item.TridentItem;
+		net.minecraft.world.item.Item launcherItem = launcher.getItem();
+		boolean trident = launcherItem instanceof net.minecraft.world.item.TridentItem;
 		if (!this.level().isClientSide && (trident || com.dinglebob.drifter.hands.Shields.isLauncher(launcher)) && release(launcher.getItem().getClass()) != Release.VANILLA) {
 			int remaining = this.getUseItemRemainingTicks();
 			try {
@@ -2422,7 +2448,7 @@ protected void customServerAiStep() {
 					net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(launcher.getItem()), e.toString());
 			}
 
-			this.adoptHelperShots(trident);
+			this.adoptHelperShots(trident ? launcherItem : null);
 			this.stopUsingItem();
 			return;
 		}
@@ -2453,14 +2479,15 @@ protected void customServerAiStep() {
 				net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item), e.toString());
 		}
 
-		this.adoptHelperShots(false);
+		this.adoptHelperShots(null);
 	}
 
 	/**
-	 * What its helper player just shot is its own (whom it hits, it hit). {@code trident}: it was a trident it let go of, so
-	 * the trident-like shot (an AbstractArrow; its helper player had it, so it may be picked up) is its thrown trident.
+	 * What its helper player just shot is its own (whom it hits, it hit). {@code trident}: the trident it let go of (null for a
+	 * bow or crossbow), so the trident-like shot (an AbstractArrow; its helper player had it, so it may be picked up) is its
+	 * thrown trident.
 	 */
-	private void adoptHelperShots(boolean trident) {
+	private void adoptHelperShots(@org.jetbrains.annotations.Nullable net.minecraft.world.item.Item trident) {
 		if (this.helperPlayer == null) {
 			return;
 		}
@@ -2468,8 +2495,13 @@ protected void customServerAiStep() {
 		for (net.minecraft.world.entity.projectile.Projectile shot : this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.Projectile.class,
 			this.getBoundingBox().inflate(4.0), shot -> shot.getOwner() == this.helperPlayer)) {
 			shot.setOwner(this);
-			if (trident && shot instanceof net.minecraft.world.entity.projectile.AbstractArrow) {
+			if (trident != null && shot instanceof net.minecraft.world.entity.projectile.AbstractArrow) {
 				this.setThrownTrident(shot.getUUID());
+			} else if (trident != null) {
+				// (Not a trident-like entity: it can't be picked up again as one, so it isn't remembered. Said, not silent.)
+				com.dinglebob.drifter.Drifter.LOGGER.debug("[Drifter] {}: its trident {} threw a {}, not a trident it can fetch", this.getName().getString(),
+					net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(trident),
+					net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(shot.getType()));
 			}
 		}
 	}
@@ -2650,16 +2682,23 @@ protected void customServerAiStep() {
 		// the game keeps in lists of their own: the general look went through every body in a packed army (2.7% of a 500v500;
 		// milestone 16 crowd pass, 2026-11-08).
 		// (From the tick's shared grid when it can: an item dropped this tick is in reach from the next, 50 ms on.)
-		List<ItemEntity> items = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(), ItemEntity.class, reach, entity -> true);
+		// (Its own tridents flying back to it come in the same look: ThrownTrident#tryPickup.)
+		List<net.minecraft.world.entity.Entity> items = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(), net.minecraft.world.entity.Entity.class, reach,
+			DrifterEntity::touchable);
 		List<net.minecraft.world.entity.ExperienceOrb> orbs = com.dinglebob.drifter.world.BodyGrid.looseOf(this.level(),
 			net.minecraft.world.entity.ExperienceOrb.class, reach, entity -> true);
 		if (items == null || orbs == null) {
-			items = this.level().getEntitiesOfClass(ItemEntity.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS);
+			items = new java.util.ArrayList<>(this.level().getEntitiesOfClass(ItemEntity.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS));
+			items.addAll(this.level().getEntitiesOfClass(net.minecraft.world.entity.projectile.ThrownTrident.class, reach, entity -> true));
 			orbs = this.level().getEntitiesOfClass(net.minecraft.world.entity.ExperienceOrb.class, reach, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS);
 		}
 
-		for (ItemEntity item : items) {
-			this.tryPickUp(item);
+		for (net.minecraft.world.entity.Entity entity : items) {
+			if (entity instanceof ItemEntity item) {
+				this.tryPickUp(item);
+			} else if (entity instanceof net.minecraft.world.entity.projectile.ThrownTrident trident && !trident.isRemoved()) {
+				this.touchReturningTrident(trident);
+			}
 		}
 
 		if (this.takeXpDelay > 0) {

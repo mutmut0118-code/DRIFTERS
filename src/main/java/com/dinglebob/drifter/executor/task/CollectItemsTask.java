@@ -146,6 +146,7 @@ public class CollectItemsTask extends Task {
 	}
 
 	private void stopTridentWalk() {
+		this.tridentArrived = 0;
 		if (this.tridentWalk != null) {
 			this.tridentWalk.stop();
 			this.tridentWalk = null;

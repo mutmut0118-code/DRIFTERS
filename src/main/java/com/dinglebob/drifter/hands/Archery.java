@@ -266,8 +266,20 @@ public final class Archery {
 	 * (or the target is in water, where arrows soon stop and a trident doesn't), never at prey (it hunts those up close), and
 	 * its trident's powers, as it believes them, may be used on this target (an explosive one not with a friend by it, nor near
 	 * home or itself: {@code Powers.mayUse}). Cheap when it carries no trident (one pass over its pack, nothing made).
+	 * Only one out at a time (ruling R31: a second throw would make it forget the first). And it doesn't throw away its only
+	 * weapon at a fresh foe (ruling R32): a trident without Loyalty goes only if it keeps another melee weapon, or the throw
+	 * should finish the target, or the target can't be fought hand to hand ({@link #outOfMeleeReach}).
 	 */
 	public static boolean shouldThrow(DrifterEntity drifter, LivingEntity target) {
+		return shouldThrow(drifter, target, false);
+	}
+
+	/** The same; {@code meleeFailed}: it already tried to fight this one hand to hand and couldn't get to it (CombatActivity). */
+	public static boolean shouldThrow(DrifterEntity drifter, LivingEntity target, boolean meleeFailed) {
+		if (drifter.thrownTrident() != null) {
+			return false;
+		}
+
 		int slot = throwableTridentSlot(drifter);
 		if (slot < 0) {
 			return false;
@@ -284,7 +296,59 @@ public final class Archery {
 			return false;
 		}
 
-		return com.dinglebob.drifter.gear.Powers.mayUse(drifter, drifter.getInventory().getItem(slot), target);
+		ItemStack trident = drifter.getInventory().getItem(slot);
+		if (!loyal(drifter, trident) && !otherMeleeWeapon(drifter, slot) && !finishes(drifter, trident, target) && !meleeFailed
+			&& !outOfMeleeReach(drifter, target)) {
+			return false;
+		}
+
+		return com.dinglebob.drifter.gear.Powers.mayUse(drifter, trident, target);
+	}
+
+	/** A target this much higher or lower than it is out of reach of its hands for now (on a ledge, down a drop). */
+	public static final double MELEE_HEIGHT_GAP = 3.0;
+
+	/**
+	 * It can't fight this one hand to hand, as far as it can tell at a glance: in water, flying, or well above or below it
+	 * ({@link #MELEE_HEIGHT_GAP}).
+	 */
+	public static boolean outOfMeleeReach(DrifterEntity drifter, LivingEntity target) {
+		return target.isInWater() || flying(target) || Math.abs(target.getY() - drifter.getY()) > MELEE_HEIGHT_GAP;
+	}
+
+	/** This trident comes back by itself (Loyalty, ThrownTrident's own test). */
+	public static boolean loyal(DrifterEntity drifter, ItemStack trident) {
+		return drifter.level() instanceof net.minecraft.server.level.ServerLevel level
+			&& net.minecraft.world.item.enchantment.EnchantmentHelper.getTridentReturnToOwnerAcceleration(level, trident, drifter) > 0;
+	}
+
+	/** It keeps a melee weapon besides the trident in {@code tridentSlot} (in its pack or off hand). */
+	private static boolean otherMeleeWeapon(DrifterEntity drifter, int tridentSlot) {
+		DrifterInventory inventory = drifter.getInventory();
+		for (int slot = 0; slot < DrifterInventory.MAIN_SIZE; slot++) {
+			if (slot != tridentSlot && com.dinglebob.drifter.brain.Weapons.isWeapon(inventory.getItem(slot))) {
+				return true;
+			}
+		}
+
+		return com.dinglebob.drifter.brain.Weapons.isWeapon(drifter.getOffhandItem());
+	}
+
+	/**
+	 * The throw should finish the target: its health (and absorption) no more than the thrown trident's damage as ThrownTrident
+	 * deals it ({@link net.minecraft.world.item.TridentItem#BASE_DAMAGE}, with the trident's enchantments, Impaling and the
+	 * like), less what the target's armor takes off.
+	 */
+	public static boolean finishes(DrifterEntity drifter, ItemStack trident, LivingEntity target) {
+		float damage = net.minecraft.world.item.TridentItem.BASE_DAMAGE;
+		net.minecraft.world.damagesource.DamageSource source = drifter.damageSources().trident(drifter, drifter);
+		if (drifter.level() instanceof net.minecraft.server.level.ServerLevel level) {
+			damage = net.minecraft.world.item.enchantment.EnchantmentHelper.modifyDamage(level, trident, target, source, damage);
+		}
+
+		damage = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb(target, damage, source, target.getArmorValue(),
+			(float)target.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR_TOUGHNESS));
+		return target.getHealth() + target.getAbsorptionAmount() <= damage;
 	}
 
 	/**
