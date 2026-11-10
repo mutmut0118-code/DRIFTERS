@@ -58,7 +58,8 @@ public final class GearCommands {
 			.then(Commands.literal("sense")
 				.then(Commands.argument("item", ItemArgument.item(context)).executes(GearCommands::sense)))
 			.then(Commands.literal("tip").executes(GearCommands::tip))
-			.then(Commands.literal("trinkets").executes(GearCommands::trinkets))
+			.then(Commands.literal("trinkets").executes(GearCommands::trinkets)
+				.then(Commands.literal("clear").executes(GearCommands::clearTrinkets)))
 			.then(Commands.literal("pick")
 				.then(Commands.literal("weapon").executes(ctx -> pick(ctx, true)))
 				.then(Commands.literal("armor").executes(ctx -> pick(ctx, false))))
@@ -104,6 +105,25 @@ public final class GearCommands {
 	}
 
 	/**
+	 * Debug: empties the nearest Drifter's trinket slots (the trinkets are gone), as a mod or command might from outside, without
+	 * telling the Drifter: Trinkets' own scan must still see them come off once and take their modifiers away (R40).
+	 */
+	private static int clearTrinkets(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		int cleared = 0;
+		for (com.dinglebob.drifter.compat.TrinketsCompat.Slot slot : com.dinglebob.drifter.compat.TrinketsCompat.slots(drifter)) {
+			if (!slot.worn().isEmpty()) {
+				slot.inventory().setItem(slot.index(), ItemStack.EMPTY);
+				cleared++;
+			}
+		}
+
+		int count = cleared;
+		ctx.getSource().sendSuccess(() -> Component.literal("[gear] cleared " + count + " trinket slot(s) of " + drifter.getName().getString()), false);
+		return count;
+	}
+
+	/**
 	 * Debug: the nearest Drifter's trinket slots and what is in each, with its value there ("[gear] Trink's trinkets:
 	 * chest/necklace artifacts:cross_necklace (21.0), hand/ring empty, ...").
 	 */
@@ -138,6 +158,8 @@ public final class GearCommands {
 		}
 
 		line.append("; carries a better one: ").append(com.dinglebob.drifter.executor.task.WearTrinketsTask.hasUpgrade(drifter) ? "yes" : "no");
+		line.append("; Trinkets' scan: ").append(!com.dinglebob.drifter.compat.TrinketsCompat.scanSkip() ? "always runs (skip off)"
+			: drifter.trinketScanSkipped() ? "skipped (nothing worn)" : "runs");
 
 		source.sendSuccess(() -> Component.literal(line.toString()), false);
 		return 1;

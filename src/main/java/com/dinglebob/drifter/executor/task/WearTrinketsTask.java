@@ -189,6 +189,8 @@ public class WearTrinketsTask extends Task {
 		}
 
 		slot.inventory().setItem(slot.index(), one);
+		// (Trinkets' per-tick scan runs for it again: it sees the change and puts the trinket's modifiers on, R40.)
+		drifter.markMayHaveTrinkets();
 		return true;
 	}
 

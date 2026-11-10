@@ -445,8 +445,22 @@ public final class PowerWatch {
 			|| t.getType().is(EntityTypeTags.UNDEAD) && t.level().isDay() && t.level().canSeeSky(t.blockPosition());
 	}
 
-	/** This watch could have shown the power (so not seeing it counts against a text guess). */
-	private boolean couldShow(Powers.Power power, @Nullable LivingEntity t) {
+	/**
+	 * This watch could have shown the power (so not seeing it counts against a belief). A sign on the target (fire, poison,
+	 * wither, freeze, lightning, pull, teleport) is only counted while it was the last to hurt the target ({@link #hurtBy}), so
+	 * not seeing one counts only then too: an ability that never hurts a target it hadn't hit could not have shown it.
+	 */
+	private boolean couldShow(Powers.Power power, @Nullable LivingEntity t, boolean ownHit) {
+		switch (power) {
+			case FIRE, POISON, WITHER, FREEZE, LIGHTNING, PULL, TELEPORT -> {
+				if (!ownHit) {
+					return false;
+				}
+			}
+			default -> {
+			}
+		}
+
 		return switch (power) {
 			case FIRE -> t != null && this.targetFire <= 0 && !t.fireImmune() && !burnsAnyway(t);
 			case POISON -> t != null && !this.hadPoison && t.canBeAffected(new MobEffectInstance(MobEffects.POISON, 1));
@@ -482,12 +496,13 @@ public final class PowerWatch {
 		LivingEntity t = this.target;
 		boolean landed = t != null && hurtBy(d, t) && (t.getHealth() < this.targetHealth || t.isDeadOrDying() || t.isRemoved()) || this.use == Use.ABILITY;
 		if (used != null && landed) {
+			boolean ownHit = t != null && hurtBy(d, t);
 			GearData.PowerRules rules = GearData.tables().powers();
 			GearLore lore = d.getGearLore();
 			List<Powers.Power> unseen = new ArrayList<>();
 			for (Map.Entry<Powers.Power, GearLore.Belief> entry : lore.beliefs(used).entrySet()) {
 				if (entry.getValue().source() != GearLore.Source.DATA && entry.getValue().confidence() > 0.0F && !this.seen.contains(entry.getKey())
-					&& this.couldShow(entry.getKey(), t)) {
+					&& this.couldShow(entry.getKey(), t, ownHit)) {
 					unseen.add(entry.getKey());
 				}
 			}

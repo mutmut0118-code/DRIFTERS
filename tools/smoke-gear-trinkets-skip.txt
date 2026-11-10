@@ -1,0 +1,45 @@
+# Perf fix R40: a Drifter wearing no trinkets skips Trinkets' per-tick scan; one wearing any runs it, and taking them off is
+# still seen once. python tools/smoke.py . tools/smoke-gear-trinkets-skip.txt build/smoke-gear-trinkets-skip.log
+# Fresh flat world (level-type=minecraft\:flat, run/world moved aside), Trinkets, Artifacts and Too Many Bows in run/mods.
+# Expect:
+#  - the log has no "won't skip Trinkets' per-tick scan" warning;
+#  - Bare (given nothing): "gear trinkets" ends "Trinkets' scan: skipped (nothing worn)";
+#  - Trink (given the cross necklace, running shoes, sharpshot ring): wears all three; "Trinkets' scan: runs"; its
+#    artifacts:generic.sprinting_speed is 1.4 (the running shoes' Trinkets modifier, put on by Trinkets' scan);
+#  - "gear trinkets clear" at Trink (the slots emptied from outside, the Drifter not told): a moment later sprinting_speed is back
+#    to 1.0 (Trinkets saw them come off and took the modifier away) and "Trinkets' scan: skipped (nothing worn)";
+#  - Bare then given the running shoes: wears them when its job lets it (up to 40 s), "runs", sprinting_speed 1.4; killed: the shoes
+#    drop once ("Test passed, count: 1").
+until Done_( 900
+wait 3
+forceload add ~-112 ~-112 ~112 ~112
+drifter thoughts log true
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 3
+execute positioned ~20 ~ ~ run drifter spawn Trink
+execute positioned ~60 ~ ~ run drifter spawn Bare
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter give artifacts:cross_necklace
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter give artifacts:running_shoes
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter give too_many_bows:sharpshot_ring
+drifter tier full all
+wait 15
+execute as @e[type=drifter:drifter,name=Bare] at @s run drifter gear trinkets
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear trinkets
+attribute @e[type=drifter:drifter,limit=1,name=Trink] artifacts:generic.sprinting_speed get
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear trinkets clear
+wait 2
+attribute @e[type=drifter:drifter,limit=1,name=Trink] artifacts:generic.sprinting_speed get
+execute as @e[type=drifter:drifter,name=Trink] at @s run drifter gear trinkets
+execute as @e[type=drifter:drifter,name=Bare] at @s run drifter give artifacts:running_shoes
+wait 40
+execute as @e[type=drifter:drifter,name=Bare] at @s run drifter gear trinkets
+attribute @e[type=drifter:drifter,limit=1,name=Bare] artifacts:generic.sprinting_speed get
+kill @e[type=item]
+kill @e[type=drifter:drifter,name=Bare]
+wait 3
+execute if entity @e[type=item,nbt={Item:{id:"artifacts:running_shoes"}}]
+wait 2
+stop

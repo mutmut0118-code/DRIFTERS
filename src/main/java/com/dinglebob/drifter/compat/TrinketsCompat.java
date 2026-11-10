@@ -144,6 +144,7 @@ public final class TrinketsCompat {
 			ready = true;
 			Drifter.LOGGER.info("[Drifter] Trinkets found: Drifters wear trinkets");
 			registerDropRule(trinket, reference);
+			scanSkip = checkScanSkip();
 		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
 			fail(e);
 		}
@@ -206,6 +207,69 @@ public final class TrinketsCompat {
 			return useDefault;
 		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
 			return rule;
+		}
+	}
+
+	/** Drifters wearing no trinkets skip Trinkets' per-tick scan (R40): the hook is in and this Trinkets works as expected. */
+	private static boolean scanSkip;
+
+	/**
+	 * The skip (compatmixin.TrinketsApiMixin) is safe only with the Trinkets it was written against: its per-tick scan, merged
+	 * into LivingEntity with its record of what each slot last held, asks TrinketsApi.getTrinketComponent first (Trinkets
+	 * 3.10). With the hook missing, or no such record (another version), it is off, with one warning: everything still works,
+	 * only slower with many Drifters.
+	 */
+	private static boolean checkScanSkip() {
+		String why = null;
+		if (!CompatMixinPlugin.trinketsHook) {
+			why = "the hook into TrinketsApi didn't go in";
+		} else {
+			try {
+				LivingEntity.class.getDeclaredField("lastEquippedTrinkets");
+			} catch (NoSuchFieldException | RuntimeException | LinkageError e) {
+				why = "its per-tick scan isn't the one Drifter knows (" + e + ")";
+			}
+		}
+
+		if (why != null) {
+			Drifter.LOGGER.warn("[Drifter] Trinkets: {}; Drifters wearing no trinkets won't skip Trinkets' per-tick scan (slower with many Drifters)", why);
+			return false;
+		}
+
+		return true;
+	}
+
+	/** Drifters wearing no trinkets may skip Trinkets' per-tick scan (R40). */
+	public static boolean scanSkip() {
+		return scanSkip && ready;
+	}
+
+	/** Nothing in any of its trinket slots (no Trinkets, or it can't tell: false, so Trinkets' scan keeps running). */
+	public static boolean allEmpty(LivingEntity entity) {
+		if (!active()) {
+			return false;
+		}
+
+		try {
+			Optional<?> component = (Optional<?>)getTrinketComponent.invoke(null, entity);
+			if (component.isEmpty()) {
+				return false;
+			}
+
+			for (Object group : ((Map<?, ?>)getInventory.invoke(component.get())).values()) {
+				for (Object type : ((Map<?, ?>)group).values()) {
+					Container inventory = (Container)type;
+					for (int i = 0; i < inventory.getContainerSize(); i++) {
+						if (!inventory.getItem(i).isEmpty()) {
+							return false;
+						}
+					}
+				}
+			}
+
+			return true;
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+			return false;
 		}
 	}
 

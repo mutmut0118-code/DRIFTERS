@@ -1572,7 +1572,12 @@ public class DrifterEntity extends PathfinderMob {
 
 	@Override
 	public void tick() {
+		this.trinketScanWindow = false;
 		super.tick();
+		if (this.trinketScanWindow) {
+			this.closeTrinketScanWindow();
+		}
+
 		if (!this.level().isClientSide) {
 			if (!this.isEyeInFluid(net.minecraft.tags.FluidTags.WATER)) {
 				this.lastAir = this.getEyePosition().subtract(0.0, this.getEyeHeight() - 0.1, 0.0);
@@ -2337,7 +2342,54 @@ protected void customServerAiStep() {
 			animStep *= -1.0F;
 		}
 
+		// (After all its own doings this tick: what's left of the tick up to Trinkets' scan is the game's.)
+		if (!this.level().isClientSide && com.dinglebob.drifter.compat.TrinketsCompat.scanSkip()) {
+			this.openTrinketScanWindow();
+		}
+
 		return animStep;
+	}
+
+	// Trinkets (optional, R40): its scan of every entity's trinket slots at the end of each tick costs a lot with a thousand
+	// Drifters. One wearing nothing, that Trinkets has already seen empty, skips it (compatmixin.TrinketsApiMixin); anything
+	// that may have put a trinket on it runs the scan again, and so does a check every few seconds (fail open).
+
+	/** Every this many ticks Trinkets' scan runs anyway, in case something put a trinket on it without saying so. */
+	public static final int TRINKET_RECHECK_TICKS = 100;
+	/** It may have a trinket on, or Trinkets hasn't yet seen its slots empty: Trinkets' scan runs (not saved: true on load). */
+	private boolean mayHaveTrinkets = true;
+	/** From its head turn to the end of LivingEntity#tick, where Trinkets' scan runs. */
+	private boolean trinketScanWindow;
+
+	/** Something may have put a trinket in one of its slots (or taken one off): Trinkets' scan runs again. */
+	public void markMayHaveTrinkets() {
+		this.mayHaveTrinkets = true;
+	}
+
+	/** Debug: Trinkets' scan is being skipped for it (nothing worn, already seen empty). */
+	public boolean trinketScanSkipped() {
+		return !this.mayHaveTrinkets;
+	}
+
+	/** Now is Trinkets' scan, and it wears nothing Trinkets doesn't already know is gone: the scan can be skipped. */
+	public boolean skipTrinketScan() {
+		return this.trinketScanWindow && !this.mayHaveTrinkets;
+	}
+
+	private void openTrinketScanWindow() {
+		if ((this.tickCount + (this.getId() & 0xFF)) % TRINKET_RECHECK_TICKS == 0) {
+			this.mayHaveTrinkets = true;
+		}
+
+		this.trinketScanWindow = true;
+	}
+
+	/** Trinkets' scan has run if it was going to: once it ran with every slot empty, it stays skipped until something changes. */
+	private void closeTrinketScanWindow() {
+		this.trinketScanWindow = false;
+		if (this.mayHaveTrinkets && com.dinglebob.drifter.compat.TrinketsCompat.allEmpty(this)) {
+			this.mayHaveTrinkets = false;
+		}
 	}
 
 	/** Player#getMaxHeadRotationRelativeToBody: the head stays within 15 degrees of the body while blocking. */
@@ -2978,6 +3030,7 @@ protected void customServerAiStep() {
 	 */
 	@Override
 	public void die(DamageSource source) {
+		this.mayHaveTrinkets = true;
 		this.tasks.cancel("died");
 		if (!this.level().isClientSide()) {
 			com.dinglebob.drifter.social.talk.Diary.died(this, this.getCombatTracker().getDeathMessage().getString());
@@ -3337,6 +3390,8 @@ protected void customServerAiStep() {
 	@Override
 	public void readAdditionalSaveData(CompoundTag tag) {
 		super.readAdditionalSaveData(tag);
+		// (Trinkets loads its slots with the entity: its scan runs until it has seen them, R40.)
+		this.mayHaveTrinkets = true;
 		// Version 1 is the first format; future versions migrate older tags here.
 		this.inventory.load(this.registryAccess(), tag.getList("DrifterInventory", Tag.TAG_COMPOUND));
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
