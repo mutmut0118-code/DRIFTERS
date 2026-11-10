@@ -204,6 +204,25 @@ even a mod's `ArmorItem` or `TieredItem`; vanilla items keep their prices. Drift
 the modded weapons and armor they know (no trinkets or shields; fletchers their bows and crossbows), the stall doesn't sell any mod's gear as
 goods, and a town's veteran is one in a chestplate of 6 armor points or more, any mod's.
 
+## Uniforms (API 6)
+
+A town's guards wear one uniform: one armor set on every guard, with the town's armor trim on every piece, so you can
+tell whose guards they are. A `TownUniform(armorSet, trimPattern, trimMaterial)` is three plain strings to keep with the
+town: `armorSet` a modded matching set's id (`immersive_armors:warrior`) or `"minecraft:iron"`, the trim fields registry
+ids (`minecraft:sentry`, `minecraft:gold`). All on the server thread.
+
+| Call | What it does |
+| --- | --- |
+| `DrifterApi.chooseUniformSet(random)` | A new town's set: a trimmable modded set at iron's tier, at random among those installed (towns differ), or `"minecraft:iron"` with none. Choose it once and keep it. |
+| `DrifterApi.townUniform(town, armorSet)` | The town's uniform: that set and the town's own trim, worked out from the town's UUID (the same every time, nothing to save but the set). |
+| `DrifterApi.nationUniform(nation, colour, armorSet)` | A town's uniform while in a nation: its own set, the nation's trim (material by the nation's `DyeColor`, as an army's; pattern from the nation's UUID), shared by its towns. |
+| `DrifterApi.equipTown(drifter, random, role, uniform)` | Town gear in the uniform: a `"guard"` wears the set on every slot, trimmed (no diamond piece); the `"leader"` the set's legs and boots, a gold crown and a diamond-tier chestplate (diamond, or a trimmable modded one), all trimmed; a `"citizen"` a working life's pieces, now and then any mod's of the same tier, untrimmed. A null uniform is the 3-argument `equipTown` (guards in untrimmed iron, as before). |
+| `DrifterApi.retrim(drifter, from, to)` | Joining or leaving a nation: every worn piece carrying `from`'s trim takes `to`'s (others untouched, nothing added); returns how many changed. |
+
+A set id that no longer names a trimmable iron-tier set (its mod removed or changed) is worn as iron; a trim id not
+registered in the world puts no trim. Debug: `/drifter gear uniform kit <role> <town UUID> [set]` dresses the nearest
+Drifter in that town's uniform and lists its armor with trims (`join <town> <nation> <colour>`, `worn`).
+
 ## Groups (a town's beginnings)
 
 `DrifterApi.group(uuid)` is a Drifter's group: `name`, `leader`, `members`, `base` (the leader's home) and `chests` (the

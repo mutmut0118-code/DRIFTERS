@@ -7,11 +7,14 @@ import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.Drifter;
 import com.dinglebob.drifter.DrifterConfig;
+import com.dinglebob.drifter.api.TownUniform;
 import com.dinglebob.drifter.brain.Weapons;
 import com.dinglebob.drifter.entity.DrifterEntity;
+import com.dinglebob.drifter.gear.ArmorSets;
 import com.dinglebob.drifter.personality.Archetype;
 import com.dinglebob.drifter.registry.ModEntities;
 import com.dinglebob.drifter.social.Disposition;
+import com.dinglebob.drifter.world.Uniforms;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -23,6 +26,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobSpawnType;
@@ -30,6 +34,7 @@ import net.minecraft.world.entity.vehicle.MinecartChest;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -78,6 +83,10 @@ public final class Delvers {
 	private static final double TOWNSFOLK = 0.5;
 	/** How long a town's scavengers go through the place before they go about their lives (ticks). */
 	private static final long SCAVENGES = 20L * 60 * 4;
+	/** In a town with a uniform, a citizen's armor piece is a modded one of the same tier this often (when one fits). */
+	public static final double CITIZEN_MODDED_CHANCE = 0.2;
+	/** A town leader's chestplate is a modded one of diamond's tier this often (when one fits and takes a trim), else diamond. */
+	public static final double LEADER_MODDED_CHEST_CHANCE = 0.5;
 
 	/**
 	 * Who makes a new Drifter one of the nearest town's people (Drifter: Civilizations): for a spot, the way to make one of
@@ -349,8 +358,21 @@ public final class Delvers {
 	 *   <li>"guard": a full iron suit (a diamond piece now and then, enchanted sometimes), an iron weapon, shield and bow;</li>
 	 *   <li>"leader": a gold helmet for a crown, an iron or diamond chestplate, a diamond weapon, a shield.</li>
 	 * </ul>
+	 * No uniform: the kit as before uniforms (guards in untrimmed iron); {@link #townKit(DrifterEntity, RandomSource, String, TownUniform)}.
 	 */
 	public static void townKit(DrifterEntity drifter, RandomSource random, String role) {
+		townKit(drifter, random, role, null);
+	}
+
+	/**
+	 * The town kit in its town's uniform (modded armor in starting kits, spec 2026-11-10-modded-armor-kits-design.md): a guard
+	 * wears the uniform's set on every slot (iron where the set is unknown or gone), its trim on every piece that takes one, no
+	 * diamond piece (a uniform is the same on every guard); the leader the set's legs and boots, a gold helmet for a crown and
+	 * a chestplate a tier up (diamond's, or a modded one of diamond's tier that takes a trim), all trimmed; a citizen its
+	 * working life's pieces as before, each now and then a modded piece of the same tier instead ({@link #CITIZEN_MODDED_CHANCE}),
+	 * with no town trim. Null uniform: {@link #townKit(DrifterEntity, RandomSource, String)}'s kit exactly.
+	 */
+	public static void townKit(DrifterEntity drifter, RandomSource random, String role, @Nullable TownUniform uniform) {
 		ServerLevel level = (ServerLevel)drifter.level();
 		var inventory = drifter.getInventory();
 		Weapons.Family favorite = Weapons.favorite(drifter);
@@ -368,7 +390,13 @@ public final class Delvers {
 			{Items.CHAINMAIL_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.CHAINMAIL_LEGGINGS, Items.CHAINMAIL_BOOTS},
 			{Items.IRON_HELMET, Items.IRON_CHESTPLATE, Items.IRON_LEGGINGS, Items.IRON_BOOTS},
 			{Items.DIAMOND_HELMET, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_LEGGINGS, Items.DIAMOND_BOOTS}};
-		for (int i = 0; i < slots.length; i++) {
+		// (A guard or the leader of a town with a uniform wears it; the rest, and everyone of a town without one, as before.)
+		boolean uniformed = uniform != null && (guard || leader);
+		if (uniformed) {
+			dressInUniform(level, drifter, random, leader, uniform);
+		}
+
+		for (int i = 0; i < slots.length && !uniformed; i++) {
 			Item piece = null;
 			if (guard) {
 				// (A diamond piece at most.)
@@ -380,8 +408,16 @@ public final class Delvers {
 			} else if ((wellOff ? random.nextFloat() < 0.5F : !humble && random.nextFloat() < 0.35F || humble && random.nextFloat() < 0.15F) && worn < (wellOff ? 3 : 2)) {
 				// (Never a full suit: that's a guard's look.)
 				float kind = random.nextFloat();
-				piece = suits[humble ? 0 : wellOff ? (kind < 0.55F ? 2 : 1) : kind < 0.5F ? 0 : kind < 0.75F ? 1 : 2][i];
+				int suit = humble ? 0 : wellOff ? (kind < 0.55F ? 2 : 1) : kind < 0.5F ? 0 : kind < 0.75F ? 1 : 2;
+				piece = suits[suit][i];
 				worn++;
+				// (In a town with a uniform, any mod's armor too: now and then a modded piece of the same tier.)
+				if (uniform != null && random.nextDouble() < CITIZEN_MODDED_CHANCE) {
+					Item modded = ArmorSets.modPieceAt(slots[i], ArmorSets.Tier.values()[suit], random, drifter);
+					if (modded != null) {
+						piece = modded;
+					}
+				}
 			}
 
 			if (piece != null) {
@@ -447,6 +483,42 @@ public final class Delvers {
 		if (!humble && random.nextFloat() < 0.4F) {
 			inventory.add(new ItemStack(Items.WATER_BUCKET));
 		}
+	}
+
+	/**
+	 * A guard's or the leader's armor in the town's uniform: the set's piece in every slot (iron where it has none), the
+	 * leader's helmet a gold crown and its chestplate a tier up; the uniform's trim on every piece that takes one; enchanted
+	 * now and then, as before uniforms.
+	 */
+	private static void dressInUniform(ServerLevel level, DrifterEntity drifter, RandomSource random, boolean leader, TownUniform uniform) {
+		ArmorSets.Set set = Uniforms.set(uniform);
+		ArmorTrim trim = Uniforms.trim(level.registryAccess(), uniform);
+		for (EquipmentSlot slot : ArmorSets.SLOTS) {
+			Item piece = leader && slot == EquipmentSlot.HEAD ? Items.GOLDEN_HELMET
+				: leader && slot == EquipmentSlot.CHEST ? leaderChest(drifter, random)
+				: Uniforms.piece(set, slot);
+			ItemStack stack = Uniforms.trimmed(new ItemStack(piece), trim);
+			if (random.nextFloat() < 0.3F) {
+				enchant(level, stack, random);
+			}
+
+			drifter.setItemSlot(slot, stack);
+		}
+	}
+
+	/**
+	 * The leader's chestplate, a tier above its guards': a modded one of diamond's tier now and then
+	 * ({@link #LEADER_MODDED_CHEST_CHANCE}, leaned by its taste, only one that takes the town's trim), else diamond's.
+	 */
+	private static Item leaderChest(DrifterEntity drifter, RandomSource random) {
+		if (random.nextDouble() < LEADER_MODDED_CHEST_CHANCE) {
+			Item modded = ArmorSets.modPieceAt(EquipmentSlot.CHEST, ArmorSets.Tier.DIAMOND, random, drifter);
+			if (modded != null && new ItemStack(modded).is(ItemTags.TRIMMABLE_ARMOR)) {
+				return modded;
+			}
+		}
+
+		return ArmorSets.Tier.DIAMOND.vanilla(EquipmentSlot.CHEST);
 	}
 
 	/** An enchanting-table enchantment at level 8 to 25, as a player of its gear would have. */

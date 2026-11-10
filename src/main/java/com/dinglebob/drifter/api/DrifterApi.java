@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 5;
+	public static final int API_VERSION = 6;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -755,6 +755,45 @@ public final class DrifterApi {
 	 */
 	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role) {
 		com.dinglebob.drifter.world.gen.Delvers.townKit(drifter, random, role);
+	}
+
+	/**
+	 * (API 6, a town with a uniform.) Gear by its place in the town, in the town's uniform: a "guard" wears the uniform's set
+	 * with its trim on every piece; the "leader" the set's legs and boots, a gold crown and a chestplate a tier up, all
+	 * trimmed; a "citizen" a working life's pieces, now and then any mod's of the same tier, untrimmed. A null uniform is
+	 * {@link #equipTown(DrifterEntity, net.minecraft.util.RandomSource, String)}.
+	 */
+	public static void equipTown(DrifterEntity drifter, net.minecraft.util.RandomSource random, String role, @Nullable TownUniform uniform) {
+		com.dinglebob.drifter.world.gen.Delvers.townKit(drifter, random, role, uniform);
+	}
+
+	/**
+	 * (API 6.) A new town's uniform set: a trimmable modded armor set at iron's tier, picked at random among those installed,
+	 * or {@code "minecraft:iron"} with none. Choose it once and keep it with the town.
+	 */
+	public static String chooseUniformSet(net.minecraft.util.RandomSource random) {
+		return com.dinglebob.drifter.world.Uniforms.chooseSet(random);
+	}
+
+	/** (API 6.) A town's uniform: that set with the town's own trim, worked out from its id (the same every time). */
+	public static TownUniform townUniform(UUID town, String armorSet) {
+		return com.dinglebob.drifter.world.Uniforms.townTrim(town, armorSet);
+	}
+
+	/**
+	 * (API 6.) A town's uniform while it is in a nation: its own set, the nation's trim (the material by the nation's colour,
+	 * the pattern from the nation's id), shared by all the nation's towns.
+	 */
+	public static TownUniform nationUniform(UUID nation, net.minecraft.world.item.DyeColor colour, String armorSet) {
+		return com.dinglebob.drifter.world.Uniforms.nationTrim(nation, colour, armorSet);
+	}
+
+	/**
+	 * (API 6, joining or leaving a nation.) Every worn armor piece carrying {@code from}'s trim takes {@code to}'s; other
+	 * pieces are left alone and nothing is added. Returns how many pieces changed.
+	 */
+	public static int retrim(DrifterEntity drifter, TownUniform from, TownUniform to) {
+		return com.dinglebob.drifter.world.Uniforms.retrim(drifter, from, to);
 	}
 
 	/**

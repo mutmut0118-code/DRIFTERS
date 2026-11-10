@@ -65,13 +65,15 @@ public final class SoldierKit {
 	/** Colours armies take (two at once never the same), and the trim material that goes with each. */
 	private static final List<DyeColor> COLOURS = List.of(DyeColor.RED, DyeColor.BLUE, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.WHITE,
 		DyeColor.PURPLE, DyeColor.BLACK, DyeColor.ORANGE, DyeColor.LIGHT_BLUE, DyeColor.CYAN);
-	private static final List<ResourceKey<TrimPattern>> PATTERNS = List.of(TrimPatterns.SENTRY, TrimPatterns.VEX, TrimPatterns.WILD, TrimPatterns.COAST,
+	/** The trim patterns an army (or a town or nation, {@link Uniforms}) takes. */
+	static final List<ResourceKey<TrimPattern>> PATTERNS = List.of(TrimPatterns.SENTRY, TrimPatterns.VEX, TrimPatterns.WILD, TrimPatterns.COAST,
 		TrimPatterns.DUNE, TrimPatterns.WARD, TrimPatterns.RIB, TrimPatterns.SNOUT, TrimPatterns.TIDE, TrimPatterns.SPIRE, TrimPatterns.FLOW, TrimPatterns.BOLT);
 
 	private SoldierKit() {
 	}
 
-	private static ResourceKey<TrimMaterial> trimFor(DyeColor colour) {
+	/** The trim material that goes with a colour (an army's, or a nation's for its uniform: {@link Uniforms#nationTrim}). */
+	static ResourceKey<TrimMaterial> trimFor(DyeColor colour) {
 		return switch (colour) {
 			case RED -> TrimMaterials.REDSTONE;
 			case BLUE -> TrimMaterials.LAPIS;

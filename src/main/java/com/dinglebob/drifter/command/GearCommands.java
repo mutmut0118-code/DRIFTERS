@@ -3,6 +3,9 @@ package com.dinglebob.drifter.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -10,6 +13,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import com.dinglebob.drifter.DrifterConfig;
+import com.dinglebob.drifter.api.TownUniform;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.gear.ArmorSets;
 import com.dinglebob.drifter.gear.GearLore;
@@ -19,16 +23,23 @@ import com.dinglebob.drifter.gear.GearTaste;
 import com.dinglebob.drifter.gear.GearValue;
 import com.dinglebob.drifter.gear.Powers;
 import com.dinglebob.drifter.social.ItemValues;
+import com.dinglebob.drifter.world.Uniforms;
+import com.dinglebob.drifter.world.gen.Delvers;
 
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.item.crafting.Ingredient;
 
 /**
@@ -36,7 +47,9 @@ import net.minecraft.world.item.crafting.Ingredient;
  * item (its kind, melee, ranged and armor value, rarity, cost and trade points), for checking modded gear; with the nearest
  * Drifter's power beliefs about it and what the item's text hints at; {@code /drifter gear powers} reads every gear
  * item's text at once (how many hint at a power, how many could not be read); {@code /drifter gear sets} lists the modded
- * matching armor sets and the tier each is rated at.
+ * matching armor sets and the tier each is rated at; {@code /drifter gear uniform kit <role> <town id> [set]} dresses the
+ * nearest Drifter in a town's uniform ({@code join <town> <nation> <colour>} switches it to a nation's trim, {@code worn}
+ * lists its armor with trims).
  */
 public final class GearCommands {
 	private GearCommands() {
@@ -58,6 +71,17 @@ public final class GearCommands {
 			.then(Commands.literal("plans").executes(GearCommands::plans))
 			.then(Commands.literal("powers").executes(GearCommands::powers))
 			.then(Commands.literal("sets").executes(GearCommands::sets))
+			.then(Commands.literal("uniform")
+				.then(Commands.literal("kit")
+					.then(Commands.argument("role", StringArgumentType.word())
+						.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("guard", "leader", "citizen"), builder))
+						.then(Commands.argument("town", UuidArgument.uuid()).executes(ctx -> uniformKit(ctx, null))
+							.then(Commands.argument("set", StringArgumentType.greedyString()).executes(ctx -> uniformKit(ctx, StringArgumentType.getString(ctx, "set")))))))
+				.then(Commands.literal("join")
+					.then(Commands.argument("town", UuidArgument.uuid())
+						.then(Commands.argument("nation", UuidArgument.uuid())
+							.then(Commands.argument("colour", StringArgumentType.word()).executes(GearCommands::uniformJoin)))))
+				.then(Commands.literal("worn").executes(GearCommands::uniformWorn)))
 			.then(Commands.literal("sense")
 				.then(Commands.argument("item", ItemArgument.item(context)).executes(GearCommands::sense)))
 			.then(Commands.literal("tip").executes(GearCommands::tip))
@@ -339,6 +363,84 @@ public final class GearCommands {
 
 		source.sendSuccess(() -> Component.literal(pieces.toString()), false);
 		return sets.size();
+	}
+
+	/**
+	 * Debug: dresses the nearest Drifter as that part of a town ("guard", "leader" or "citizen") in the town's uniform: the
+	 * set given (any text, even one that names no set), else the one the town's id picks (as a town keeps the one it chose),
+	 * with the town's trim. Everything it carried and wore goes first. Then says the uniform and each worn piece with its trim.
+	 */
+	private static int uniformKit(CommandContext<CommandSourceStack> ctx, @Nullable String set) throws CommandSyntaxException {
+		CommandSourceStack source = ctx.getSource();
+		DrifterEntity drifter = DrifterCommands.nearest(source);
+		String role = StringArgumentType.getString(ctx, "role").toLowerCase(Locale.ROOT);
+		if (!List.of("guard", "leader", "citizen").contains(role)) {
+			source.sendFailure(Component.literal("[gear] role is guard, leader or citizen"));
+			return 0;
+		}
+
+		UUID town = UuidArgument.getUuid(ctx, "town");
+		String armorSet = set != null ? set.trim() : Uniforms.chooseSet(RandomSource.create(town.getMostSignificantBits() ^ town.getLeastSignificantBits()));
+		TownUniform uniform = Uniforms.townTrim(town, armorSet);
+		drifter.getInventory().clearContent();
+		Delvers.townKit(drifter, drifter.getRandom(), role, uniform);
+		ArmorSets.Set worn = Uniforms.set(uniform);
+		String line = "[gear] uniform kit " + role + " for " + drifter.getName().getString() + ": set " + uniform.armorSet() + " (worn as "
+			+ (worn == null ? Uniforms.IRON : worn.id()) + "), trim " + uniform.trimPattern() + " " + uniform.trimMaterial();
+		source.sendSuccess(() -> Component.literal(line), false);
+		String pieces = wornLine(drifter);
+		source.sendSuccess(() -> Component.literal(pieces), false);
+		return 1;
+	}
+
+	/**
+	 * Debug: the nearest Drifter's town joins a nation: its worn pieces with the town's trim switch to the nation's (the
+	 * nation's colour by name: red, blue, ...), as {@code DrifterApi.retrim}; says how many changed.
+	 */
+	private static int uniformJoin(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		CommandSourceStack source = ctx.getSource();
+		DrifterEntity drifter = DrifterCommands.nearest(source);
+		DyeColor colour = DyeColor.byName(StringArgumentType.getString(ctx, "colour").toLowerCase(Locale.ROOT), null);
+		if (colour == null) {
+			source.sendFailure(Component.literal("[gear] colour is a dye colour: red, blue, green, ..."));
+			return 0;
+		}
+
+		TownUniform from = Uniforms.townTrim(UuidArgument.getUuid(ctx, "town"), Uniforms.IRON);
+		TownUniform to = Uniforms.nationTrim(UuidArgument.getUuid(ctx, "nation"), colour, Uniforms.IRON);
+		int changed = Uniforms.retrim(drifter, from, to);
+		String line = "[gear] " + drifter.getName().getString() + " joined the nation: trim " + from.trimPattern() + " " + from.trimMaterial() + " -> "
+			+ to.trimPattern() + " " + to.trimMaterial() + ", " + changed + " piece(s) changed";
+		source.sendSuccess(() -> Component.literal(line), false);
+		return changed;
+	}
+
+	/** Debug: the nearest Drifter's worn armor, each piece with its trim. */
+	private static int uniformWorn(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		String line = wornLine(DrifterCommands.nearest(ctx.getSource()));
+		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+		return 1;
+	}
+
+	/** "[gear] Gus wears: head immersive_armors:warrior_helmet (trim minecraft:sentry minecraft:gold), chest ..., feet nothing". */
+	private static String wornLine(DrifterEntity drifter) {
+		StringBuilder line = new StringBuilder("[gear] " + drifter.getName().getString() + " wears:");
+		for (int i = 0; i < ArmorSets.SLOTS.length; i++) {
+			EquipmentSlot slot = ArmorSets.SLOTS[i];
+			ItemStack stack = drifter.getItemBySlot(slot);
+			line.append(i == 0 ? " " : ", ").append(slot.getName()).append(' ');
+			if (stack.isEmpty()) {
+				line.append("nothing");
+				continue;
+			}
+
+			line.append(BuiltInRegistries.ITEM.getKey(stack.getItem()));
+			ArmorTrim trim = stack.get(DataComponents.TRIM);
+			line.append(trim == null ? " (no trim)" : " (trim " + trim.pattern().unwrapKey().map(k -> k.location().toString()).orElse("?") + " "
+				+ trim.material().unwrapKey().map(k -> k.location().toString()).orElse("?") + ")");
+		}
+
+		return line.toString();
 	}
 
 	private static int learn(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

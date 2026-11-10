@@ -1,0 +1,43 @@
+# Modded armor in starting kits, task 2: town uniforms and trims.
+# Run twice: with run/mods as is (Immersive Armors there: the guards of town A wear one IRON-tier Immersive Armors set,
+# trimmed alike), then with immersive_armors-*.jar moved to run/mods_off/ (every guard in trimmed iron, no exception).
+# Town A (11111111-...) has two guards, a leader, a citizen and a guard given a set that doesn't exist; town B (aaaaaaaa-...)
+# one guard. "drifter gear uniform kit" dresses the Drifter as that role in its town's uniform (the set picked from the
+# town's id, as a town keeps one) and prints each worn piece with its trim; "join" switches a guard's town trim to a
+# nation's (Uniforms.retrim) and says how many pieces changed.
+until Done_( 900
+wait 3
+forceload add ~-32 ~-32 ~32 ~32
+time set noon
+gamerule doMobSpawning false
+difficulty peaceful
+kill @e[type=drifter:drifter]
+wait 5
+execute positioned ~4 ~ ~ run drifter spawn GuardA
+execute positioned ~8 ~ ~ run drifter spawn GuardB
+execute positioned ~12 ~ ~ run drifter spawn GuardC
+execute positioned ~16 ~ ~ run drifter spawn Leader
+execute positioned ~20 ~ ~ run drifter spawn GuardX
+execute positioned ~24 ~ ~ run drifter spawn Citizen
+wait 2
+execute as @e[type=drifter:drifter,name=GuardA] at @s run drifter gear uniform kit guard 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=GuardB] at @s run drifter gear uniform kit guard 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=GuardC] at @s run drifter gear uniform kit guard aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter gear uniform kit leader 11111111-2222-3333-4444-555555555555
+execute as @e[type=drifter:drifter,name=GuardX] at @s run drifter gear uniform kit guard 11111111-2222-3333-4444-555555555555 nonexistent:set
+execute as @e[type=drifter:drifter,name=Citizen] at @s run drifter gear uniform kit citizen 11111111-2222-3333-4444-555555555555
+wait 1
+execute as @e[type=drifter:drifter,name=GuardA] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=GuardB] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=GuardC] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Leader] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=GuardX] at @s run drifter inventory
+execute as @e[type=drifter:drifter,name=Citizen] at @s run drifter inventory
+wait 1
+execute as @e[type=drifter:drifter,name=GuardA] at @s run drifter gear uniform join 11111111-2222-3333-4444-555555555555 99999999-8888-7777-6666-555555555555 red
+execute as @e[type=drifter:drifter,name=GuardA] at @s run drifter gear uniform worn
+execute as @e[type=drifter:drifter,name=GuardA] at @s run drifter gear uniform join 11111111-2222-3333-4444-555555555555 99999999-8888-7777-6666-555555555555 red
+wait 2
+kill @e[type=drifter:drifter]
+wait 2
+stop
