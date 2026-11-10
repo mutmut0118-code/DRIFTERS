@@ -188,6 +188,9 @@ public final class GearPlans {
 
 	/** At most this many modded pieces in what it can make (a veteran knows hundreds; a shop sells a few it likes). */
 	public static final int MAKE_MODDED = 4;
+	/** Of those, this many weapons and this many armor pieces first; a side's unused places go to the other (or the rest). */
+	public static final int MAKE_WEAPONS = 2;
+	public static final int MAKE_ARMOR = 2;
 	/** What it knows is looked at again this often (ticks); its picks change only when that has. */
 	public static final long MAKE_RECHECK = 1200L;
 
@@ -237,7 +240,8 @@ public final class GearPlans {
 	/**
 	 * The gear it knows how to make at a crafting table (the Planner's rule: {@link RecipeIndex#craftableGear}) at
 	 * {@code maxTier} or lower ({@link #tierEquivalent}) that {@code which} takes: every such vanilla piece, then at most
-	 * {@link #MAKE_MODDED} modded ones it knows (GearLore), those it likes best by use value and taste ({@link #useValue},
+	 * {@link #MAKE_MODDED} modded ones it knows (GearLore; {@link #MAKE_WEAPONS} weapons and {@link #MAKE_ARMOR} armor
+	 * pieces, a side's unused places going to the other), those it likes best by use value and taste ({@link #useValue},
 	 * against the iron piece of the same use). The
 	 * picks hold until what it knows changes (no list flickering day to day). Kept per Drifter; cheap to ask often.
 	 */
@@ -250,15 +254,45 @@ public final class GearPlans {
 			}
 		}
 
-		int modded = 0;
+		// The modded places: MAKE_WEAPONS weapons and MAKE_ARMOR armor pieces first (each its best by rank), then any places
+		// left (a side with fewer it knows, or neither: a fletcher's bows) to the best of the rest, in rank order.
+		List<Item> matching = new ArrayList<>();
 		for (Item item : making.ranked()) {
-			if (modded >= MAKE_MODDED) {
+			if (which.test(new ItemStack(item))) {
+				matching.add(item);
+			}
+		}
+
+		List<Item> picked = new ArrayList<>(MAKE_MODDED);
+		int weapons = 0;
+		int armor = 0;
+		for (Item item : matching) {
+			ItemStack stack = new ItemStack(item);
+			if (GearValue.armorTier(stack) > 0) {
+				if (armor < MAKE_ARMOR) {
+					picked.add(item);
+					armor++;
+				}
+			} else if (Weapons.isWeapon(stack) && weapons < MAKE_WEAPONS) {
+				picked.add(item);
+				weapons++;
+			}
+		}
+
+		for (Item item : matching) {
+			if (picked.size() >= MAKE_MODDED) {
 				break;
 			}
 
-			if (which.test(new ItemStack(item))) {
+			if (!picked.contains(item)) {
+				picked.add(item);
+			}
+		}
+
+		// (In rank order, as before.)
+		for (Item item : matching) {
+			if (picked.contains(item)) {
 				out.add(item);
-				modded++;
 			}
 		}
 

@@ -1336,7 +1336,8 @@ public final class DrifterApi {
 	/**
 	 * The gear it knows how to make at a crafting table, at {@code maxTier} or lower (1 wood, 2 stone, 3 iron, 4 diamond,
 	 * 5 netherite: a weapon by the sword it matches, armor by the vanilla piece its score matches, a bow, crossbow, shield
-	 * or trinket, or a weapon of unknown tier, as iron): every such vanilla piece, then at most four modded pieces it knows,
+	 * or trinket, or a weapon of unknown tier, as iron): every such vanilla piece, then at most four modded pieces it knows
+	 * (two weapons and two armor pieces; a side's unused places go to the other),
 	 * those it likes best by their use value with its taste, against the iron piece of the same use (they hold until what
 	 * it knows changes). Got the way it gets anything if it's to make them.
 	 */
