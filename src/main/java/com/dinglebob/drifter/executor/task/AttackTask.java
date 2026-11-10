@@ -95,11 +95,39 @@ public class AttackTask extends Task {
 				return RANGED;
 			}
 
-			// (Another Drifter fights back like a player: footwork, shield and bow, not a chase after an animal.)
-			return target instanceof Enemy || target instanceof com.dinglebob.drifter.entity.DrifterEntity || target instanceof Mob mob && mob.isAggressive()
-				? MELEE : PREY;
+			// (Another Drifter fights back like a player: footwork, shield and bow, not a chase after an animal. A player too:
+			// they were prey till 0.23.34, so it ran in swinging and never raised its shield at them; the user: "it seems too
+			// easy to kill drifters (with a good weapon) and i would like for them to block some of my attacks".)
+			return target instanceof Enemy || target instanceof com.dinglebob.drifter.entity.DrifterEntity
+				|| target instanceof net.minecraft.world.entity.player.Player || target instanceof Mob mob && mob.isAggressive() ? MELEE : PREY;
 		}
 	}
+
+	/**
+	 * Against a player: whether it guards this gap between its swings (rolled at each swing), as a player doesn't always
+	 * think to; the user, 0.23.34: "not everytime but just to up the difficulty". From the least skilled and careless to
+	 * the most skilled and careful; a turtle nearly always, a panicking one hardly. Monsters and other Drifters: always
+	 * (as fought and tested before).
+	 */
+	private static final float GUARD_LEAST = 0.3F;
+	private static final float GUARD_MOST = 0.8F;
+	private static final float GUARD_TURTLE = 0.95F;
+	private static final float GUARD_PANICKED = 0.15F;
+	private boolean guards = true;
+	/**
+	 * Against a player, a shield is for their swing (0.23.34): with their weapon charged (time since the swing it saw, by
+	 * what they hold) and them in reach, it waits behind the shield (if it guards this one); once they swing, it drops it
+	 * and goes in while they recharge. Not past this long at a time (a standoff: it goes in anyway).
+	 */
+	private static final int GUARD_HOLD_TICKS = 40;
+	/** Their swing counts as charged again this far through their weapon's cooldown. */
+	private static final float THEIR_READY = 0.7F;
+	/** They're in reach of it this close (a player's 3 blocks and a step). */
+	private static final double THEIR_REACH = 4.0;
+	private long theySwungAt = Long.MIN_VALUE / 2;
+	private boolean theyWereSwinging;
+	private long guardSince = -1;
+	private boolean guardSpent;
 
 	/** Blazes glowing this close are worth holding the shield up for. */
 	private static final double BLAZE_GUARD_RANGE = 24.0;
@@ -171,6 +199,56 @@ public class AttackTask extends Task {
 		this.label = label;
 		this.protocol = Protocol.of(target);
 		this.style = Style.of(drifter);
+		this.rollGuard();
+	}
+
+	/** Against a player: their swing is charged and they're in reach, and it's waiting behind its shield for it. */
+	private boolean guardFromPlayer(double distance, long now) {
+		if (!(this.target instanceof net.minecraft.world.entity.player.Player player)) {
+			return false;
+		}
+
+		// (A swing is in plain sight: the arm coming down.)
+		if (player.swinging && !this.theyWereSwinging) {
+			this.theySwungAt = now;
+			this.guardSince = -1;
+			this.guardSpent = false;
+			this.rollGuard();
+		}
+
+		this.theyWereSwinging = player.swinging;
+		// (How long their weapon takes to charge, by what's in their hand, as Player#getCurrentItemAttackStrengthDelay.)
+		float theirDelay = (float)(20.0 / Math.max(0.1, player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED)));
+		boolean charged = now - this.theySwungAt >= theirDelay * THEIR_READY;
+		boolean guard = this.guards && !this.guardSpent && charged && distance <= THEIR_REACH && this.hasShield();
+		if (!guard) {
+			this.guardSince = -1;
+			return false;
+		}
+
+		if (this.guardSince < 0) {
+			this.guardSince = now;
+		} else if (now - this.guardSince > GUARD_HOLD_TICKS) {
+			this.guardSpent = true;
+			this.guardSince = -1;
+			return false;
+		}
+
+		return true;
+	}
+
+	/** Does it guard the next gap between its swings (see {@link #GUARD_LEAST}). */
+	private void rollGuard() {
+		if (!(this.target instanceof net.minecraft.world.entity.player.Player)) {
+			this.guards = true;
+			return;
+		}
+
+		com.dinglebob.drifter.personality.Personality p = this.drifter.getPersonality();
+		float chance = p.is(com.dinglebob.drifter.personality.Mood.PANICKED) ? GUARD_PANICKED
+			: this.style == Style.TURTLE ? GUARD_TURTLE
+			: Mth.lerp((this.skill() + p.getF(com.dinglebob.drifter.personality.Trait.CAUTION)) / 2.0F, GUARD_LEAST, GUARD_MOST);
+		this.guards = this.drifter.getRandom().nextFloat() < chance;
 	}
 
 	public Style style() {
@@ -404,6 +482,22 @@ public class AttackTask extends Task {
 			return;
 		}
 
+		// A player in reach with their swing charged: behind the shield till they swing (if it guards this one).
+		if (this.guardFromPlayer(distance, now)) {
+			if (distance < this.scaled(HOVER_MIN)) {
+				this.stepBack(at);
+			} else {
+				Steering.stopMoving(this.drifter);
+			}
+
+			this.strafe(keys);
+			this.guardFootwork(at);
+			keys.set(VirtualKeys.Key.SPRINT, false);
+			keys.set(VirtualKeys.Key.JUMP, false);
+			this.shieldIf(true);
+			return;
+		}
+
 		if (--this.strafeTicks <= 0) {
 			this.strafeLeft = this.drifter.getRandom().nextBoolean();
 			this.strafeTicks = this.protocol == Protocol.RANGED && distance > this.scaled(HOVER_MAX)
@@ -428,7 +522,7 @@ public class AttackTask extends Task {
 			keys.set(VirtualKeys.Key.SPRINT, false);
 			keys.set(VirtualKeys.Key.JUMP, false);
 			// Shield up while an archer draws or a mob is about to swing in reach (a turtle keeps it up all the while).
-			this.shieldIf(this.threatening(distance) || this.style == Style.TURTLE);
+			this.shieldIf(this.guards && (this.threatening(distance) || this.style == Style.TURTLE));
 			return;
 		}
 
@@ -529,7 +623,7 @@ public class AttackTask extends Task {
 		this.guardFootwork(at);
 		keys.set(VirtualKeys.Key.SPRINT, false);
 		keys.set(VirtualKeys.Key.JUMP, this.drifter.horizontalCollision && this.drifter.onGround() && !keys.isDown(VirtualKeys.Key.SNEAK));
-		this.shieldIf(distance < 4.0);
+		this.shieldIf(this.guards && distance < 4.0);
 	}
 
 	private void stepBack(Vec3 from) {
@@ -578,8 +672,10 @@ public class AttackTask extends Task {
 	/** An archer drawing its bow, or a mob close enough to swing at it. */
 	private boolean threatening(double distance) {
 		// (A blaze about to fire glows: Blaze#isOnFire is its "charged" flag, the fire you see on it.)
+		// (Or anyone drawing a bow or crossbow at it: a player, another Drifter.)
 		return this.protocol == Protocol.RANGED && (this.target.isUsingItem()
-			|| this.target instanceof net.minecraft.world.entity.monster.Blaze && this.target.isOnFire()) || distance < 3.0;
+			|| this.target instanceof net.minecraft.world.entity.monster.Blaze && this.target.isOnFire()) || distance < 3.0
+			|| this.target.isUsingItem() && this.target.getUseItem().getItem() instanceof net.minecraft.world.item.ProjectileWeaponItem;
 	}
 
 	/**
@@ -620,11 +716,14 @@ public class AttackTask extends Task {
 			this.critJump = false;
 			this.missedCrit = false;
 			this.rollCrit();
+			this.rollGuard();
 			return;
 		}
 
 		if (Combat.attack(this.drifter, this.target)) {
 			this.rollCrit();
+			this.rollGuard();
+			this.guardSpent = false;
 			if (!this.target.isAlive()) {
 				this.drifter.getMannerisms().onKill(this.target);
 			}

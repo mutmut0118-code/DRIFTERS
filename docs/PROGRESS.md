@@ -4669,6 +4669,26 @@ name (ms_, jk_) no longer keeps the rest from splitting into words (ms_softstati
     already, not always the most filling one (it cooked chicken soup all day). A day in a town: cooked rice, dumplings,
     mushroom rice, chicken soup, beetroot soup, pumpkin soup (was chicken soup 19 times, beef stew 5).
 
+- **0.23.34: Drifters block a player's hits with their shields; giving in very rare, and no more stripping** (the user,
+  2026-11-09: "can drifters block my attacks using their shields?", "it seems to easy to kill drifters (with a good weapon)
+  and i would like for them to block some of my attacks, not everytime"; "every citizen (even ones with better gear than i
+  have) surrender and throw their weapons/armor out ... that should be VERY rare"; "add the shield block sound").
+  - **A player is a fight now, not prey** (`AttackTask.Protocol`): a player was fought like an animal (run in, swing, no
+    shield ever). Now as another Drifter (footwork, backing off after a hit, shield), and against a player the shield is
+    for their swing: their weapon charged (since the swing it saw, by what they hold) and them in reach, it waits behind
+    it; once they swing it drops it and goes in while they recharge; never more than 2 s at a time. Whether it guards the
+    next one is rolled at each swing (`GUARD_LEAST` 0.3 to `GUARD_MOST` 0.8 by skill and caution; a turtle 0.95, panicking
+    0.15), so not every time. Anyone drawing a bow at it counts as a threat too. An axe still knocks it down for 5 s.
+  - **The block's clang** (`DrifterEntity.hurtCurrentlyUsedShield`): the game's own is an entity event the client plays
+    only as the local player's sound, so a Drifter's blocks (arrows too) were silent; played from the server now.
+  - **Giving in** (`SocialWatcher.giveIn`): it threw "its best few things" out of every slot, worn and held too, and
+    those were always its armour and weapon. Out of its pockets only now (not its weapon or a shield). And with death for
+    good every Drifter is as wary as can be, so every timid one losing a fight gave in: now 1 in 20 of those
+    (`GIVE_IN_CHANCE`), thought of once a fight.
+  - Tested (dev client, a new `attack <name>` client-test line: the player turns to a Drifter and swings, a real click):
+    two Drifters with sword and shield (guard chance 0.57, 0.58) blocked 11 of 29 and 6 of 18 swings (about a third).
+    Before, none (a player was prey).
+
 - **0.23.33: crime in a world where death is for good, killings in a fight, the store rush in a city** (the user,
   2026-11-09, with a picture: "i dont think the crime and massacre mechanic is working", "people are rushing the shared
   chests again"; their world: a city of 100, death "gone for good"). Merged the crowd session's 0.23.32-side.2 first.
