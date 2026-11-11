@@ -144,3 +144,11 @@ The wording and thresholds are the builder's **(builder's call)**.
 
 Built, tested in the dev client and headless, both jars installed in DRIFTER TEST with a new version number (next on
 the main line), PROGRESS.md, TESTING.md, LIVED_WORLD.md and (if it grew) API.md updated, committed and pushed.
+
+## As built (0.23.41)
+
+- A friend's town you've never been to is "heard of" (no coordinates, no standing), not been to.
+- "Wanted" is never kept as a last-seen standing: it shows only while your record there says so; otherwise "unwelcome".
+- Nothing is owed to the player in the game today, so Favors is only what friends asked of you.
+- The book is not scaled down: two pages (292 by 197) fit the smallest window the game allows (320 by 240).
+

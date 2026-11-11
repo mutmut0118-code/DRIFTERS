@@ -3378,6 +3378,35 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.41: the player's journal (the J key), part 1 of the "RPG profile" idea** (the user, 2026-11-11: "all the data
+  about my player with other drifters/myself that is only accessible doing /drifterciv commands easily displayed in a ui
+  thats immersive and faithful to vanilla"; "a key, J by default; this should be made only using vanilla resources, no ai
+  generated art"; "only what i'd know, in words"). Design: docs/superpowers/specs/2026-11-11-player-journal-design.md;
+  plan: docs/superpowers/plans/2026-11-11-player-journal.md.
+  - **What it is:** J (rebindable, Controls > Drifter: Civilizations) opens an open journal: two pages of the vanilla
+    book (the left one mirrored so the stitching meets at the spine), bookmarks along the top, the vanilla font in a
+    book's ink, the book's page-turn sound. Left page: you (name, your skin, your reputation in words, where you're
+    wanted, a price on your head). Right page by bookmark: **People** (friends by stage, cooled, fell out, gone; then
+    those you've only met: stranger, likes you, wary of you, holds a grudge), **Towns** (been to: standing as you last
+    saw it there; wanted and exiled always current; heard of: only that you're wanted, no coordinates), **Law** (your
+    record town by town, the bounty tied to its town), **Favors** (what friends asked: progress, time left, said yes or
+    not). A line with more to it opens on a click ("< Back" or right click to return); the wheel scrolls.
+  - **How:** the server works the whole journal out as lines of words (`Journal.of`, `Journal.Book/Tab/Line`) and sends
+    it when the client asks (`Journal.Ask`); the client (`JournalScreen`) only draws it, so later parts add bookmarks on
+    the server alone. Newly saved with the world (`drifter_civ_journal`, version 1): the Drifters each player has met (one
+    within 6 blocks that has just seen them; friends count already) and the towns they've been to with the standing last
+    seen there (towns with a friend or a crime of theirs count already, so old worlds aren't blank).
+  - **API 7:** `DrifterApi.bounty(playerId)` reads the price on a player's head (who put it up, why). The game holds no
+    amount, so the journal shows none.
+  - `/drifterciv journal`: the same as chat text; `/drifterciv journal note` (testing): the nearest town counts as been
+    to and every Drifter near as met.
+  - **Tested:** dev client (screenshots of every bookmark and a detail of each with a best friend, friend, acquaintance,
+    six strangers, a favor asked, a murder: wanted, exiled, the bounty); a new player's empty pages; friendships off (both
+    pages say so); the saved journal read back on the next load; a headless server starts and stops with it. **Not
+    tested:** a list long enough to scroll (100+ people), a window other than the default size, pressing J on a server
+    without the addon (the key checks the server can take it), and a real multiplayer server.
+  - **Next (the user's order):** part 2 the start-of-world menu (name, pronouns, nation; adds the nation line), part 3 the
+    chronicle revamp (noteworthy events only, a Chronicle bookmark), part 4 quests (and maybe bounty amounts).
 - **0.23.40: night life in towns; Drifters no longer stuck in pens; nobody left lying in bed "walking"** (the user,
   2026-11-11: "at night the town is really empty, especially in a city where its brightly lit and no mobs spawn, would be
   nice if some bustling night life happened with a few drifters going to sleep"; then, watching a test, "drifters are

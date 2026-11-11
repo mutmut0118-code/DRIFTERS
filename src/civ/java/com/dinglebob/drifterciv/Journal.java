@@ -115,14 +115,11 @@ public final class Journal {
 			ServerPlayer player = context.player();
 			context.server().execute(() -> ServerPlayNetworking.send(player, of(player)));
 		});
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			known.clear();
-			state(server);
-		});
+		ServerLifecycleEvents.SERVER_STARTED.register(Journal::state);
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> known.clear());
 		ServerTickEvents.END_SERVER_TICK.register(Journal::tick);
 		// `/drifterciv journal`: the journal as chat lines (and in the log, for tests); `note` (testing): the nearest town
-		// counts as been to and the nearest Drifter as met.
+		// counts as been to and every Drifter near as met.
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(
 			net.minecraft.commands.Commands.literal("drifterciv").then(net.minecraft.commands.Commands.literal("journal").executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -133,11 +130,14 @@ public final class Journal {
 			}).then(net.minecraft.commands.Commands.literal("note").requires(source -> source.hasPermission(2)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
-				DrifterEntity nearest = player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(32.0), Friends::eligible).stream()
-					.min(Comparator.comparingDouble(d -> d.distanceToSqr(player))).orElse(null);
-				note(player, town, nearest);
+				List<DrifterEntity> near = player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(48.0), Friends::eligible);
+				note(player, town, null);
+				for (DrifterEntity drifter : near) {
+					note(player, null, drifter);
+				}
+
 				ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("Noted: been to " + (town == null ? "no town" : town.name)
-					+ ", met " + (nearest == null ? "nobody" : nearest.getName().getString())), false);
+					+ ", met " + near.size() + " Drifters"), false);
 				return 1;
 			})))));
 	}
@@ -169,7 +169,9 @@ public final class Journal {
 			for (Town town : Towns.all()) {
 				if (town.dimension.equals(dimension)
 					&& Math.hypot(player.getX() - town.center.getX(), player.getZ() - town.center.getZ()) < town.land()) {
+					// (Wanted and exiled come from their record there, always current; what's kept is how its people took them.)
 					String standing = TownReputation.standing(server, town, player.getUUID()).word;
+					standing = standing.equals("wanted") ? "unwelcome" : standing;
 					Been before = mine.been.get(town.id);
 					if (before == null || !before.standing.equals(standing)) {
 						mine.been.put(town.id, new Been(standing, day));
@@ -201,6 +203,7 @@ public final class Journal {
 		// Towns: been to (written down, or a friend's, or where they broke its law), and only heard of (wanted by word).
 		Map<Town, String> standings = new LinkedHashMap<>();
 		List<Town> heardOf = new ArrayList<>();
+		List<Town> friendTowns = new ArrayList<>();
 		List<Town> towns = Towns.all();
 		towns.sort(Comparator.comparingDouble(town -> town.dimension.equals(dimension) ? town.center.distSqr(player.blockPosition()) : Double.MAX_VALUE));
 		for (Town town : towns) {
@@ -208,10 +211,12 @@ public final class Journal {
 			Town.Criminal criminal = town.crimes.get(id);
 			boolean friendThere = bonds.stream().anyMatch(b -> b.stage != Friends.Stage.STRANGER && town.name.equals(b.town));
 			String live = criminal == null ? null : criminal.wantedUntil > 0 ? "wanted" : criminal.exiledUntil > 0 ? "exiled" : null;
-			if (been != null || friendThere || criminal != null && criminal.offences > 0) {
-				standings.put(town, live != null ? live : been != null ? been.standing : "neutral");
+			if (been != null || criminal != null && criminal.offences > 0) {
+				standings.put(town, live != null ? live : been == null ? "neutral" : been.standing.equals("wanted") ? "unwelcome" : been.standing);
 			} else if (live != null) {
 				heardOf.add(town);
+			} else if (friendThere) {
+				friendTowns.add(town);
 			}
 		}
 
@@ -226,6 +231,7 @@ public final class Journal {
 		int exiled = count(standings, "exiled");
 		int wanted = count(standings, "wanted") + heardOf.size();
 		String reputation = wanted > 0 || bounty != null ? "An outlaw" : standings.isEmpty() ? "Nobody knows you yet"
+			: welcome + wary + unwelcome + exiled == 0 ? "A new face"
 			: unwelcome + exiled > 0 || wary > welcome ? "Not trusted" : welcome * 2 > standings.size() ? "Well liked" : "Known here and there";
 		you.add(new Line(reputation, "", wanted > 0 || bounty != null || reputation.equals("Not trusted") ? BAD : reputation.equals("Well liked") ? GOOD : PLAIN,
 			List.of()));
@@ -258,7 +264,7 @@ public final class Journal {
 
 		return new Book(player.getGameProfile().getName(), you, List.of(
 			people(server, player, mine, bonds, friendsOn, now),
-			towns(server, player, standings, heardOf, bonds, day, bounty),
+			towns(server, player, standings, heardOf, friendTowns, bonds, day, bounty),
 			law(player, towns, day, bounty),
 			favors(bonds, friendsOn, now)));
 	}
@@ -290,7 +296,7 @@ public final class Journal {
 			};
 			List<String> detail = new ArrayList<>();
 			detail.add(b.drifterName + ": " + switch (b.state) {
-				case ACTIVE -> "your " + b.stage.word + ", " + days((now - b.since) / 24000L) + " now";
+				case ACTIVE -> "your " + b.stage.word + ((now - b.since) / 24000L < 1 ? " since today" : " for " + days((now - b.since) / 24000L) + " now");
 				case COOLED -> "you used to be friends";
 				case ENDED -> "you fell out";
 				case GONE -> "gone for good";
@@ -347,7 +353,8 @@ public final class Journal {
 		return new Tab("People", lines, "Nobody yet. Go say hi to someone.");
 	}
 
-	private static Tab towns(MinecraftServer server, ServerPlayer player, Map<Town, String> standings, List<Town> heardOf, List<Friends.Bond> bonds,
+	private static Tab towns(MinecraftServer server, ServerPlayer player, Map<Town, String> standings, List<Town> heardOf, List<Town> friendTowns,
+		List<Friends.Bond> bonds,
 		long day, @Nullable DrifterApi.PlayerBounty bounty) {
 		List<Line> lines = new ArrayList<>();
 		for (Map.Entry<Town, String> entry : standings.entrySet()) {
@@ -388,6 +395,22 @@ public final class Journal {
 
 			lines.add(new Line(town.name, "Wanted (heard of)", BAD, List.of(town.name + ": you've never been, but word of what you did got there.",
 				"You're wanted there.")));
+		}
+
+		for (Town town : friendTowns) {
+			if (lines.size() >= MOST) {
+				break;
+			}
+
+			List<String> friends = new ArrayList<>();
+			for (Friends.Bond b : bonds) {
+				if (b.stage != Friends.Stage.STRANGER && town.name.equals(b.town)) {
+					friends.add(b.drifterName);
+				}
+			}
+
+			lines.add(new Line(town.name, "Heard of", FAINT, List.of(town.name + ": you've never been, but you know someone from there.",
+				"From there: " + String.join(", ", friends))));
 		}
 
 		return new Tab("Towns", lines, "You haven't been to a town yet. Follow a road.");
@@ -490,11 +513,11 @@ public final class Journal {
 		}
 
 		if (criminal.wantedUntil > 0) {
-			parts.add("wanted for " + days(Math.max(1, criminal.wantedUntil - day)) + " more");
+			parts.add("wanted for " + Math.max(1, criminal.wantedUntil - day) + " more " + (criminal.wantedUntil - day <= 1 ? "day" : "days"));
 		}
 
 		if (criminal.exiledUntil > 0) {
-			parts.add("exiled for " + days(Math.max(1, criminal.exiledUntil - day)) + " more");
+			parts.add("exiled for " + Math.max(1, criminal.exiledUntil - day) + " more " + (criminal.exiledUntil - day <= 1 ? "day" : "days"));
 		}
 
 		if (bounty != null && bounty.issuer().contains(town.name)) {
@@ -575,6 +598,7 @@ public final class Journal {
 	private static final class Saved extends SavedData {
 		static Saved load(CompoundTag tag, HolderLookup.Provider registries) {
 			// Version 1 is the first format.
+			known.clear();
 			CompoundTag players = tag.getCompound("Players");
 			for (String key : players.getAllKeys()) {
 				try {

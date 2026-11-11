@@ -207,28 +207,43 @@ final class JournalScreen extends Screen {
 			return;
 		}
 
-		int shown = this.rows();
-		this.scroll = Math.max(0, Math.min(this.scroll, tab.lines().size() - shown));
-		for (int i = this.scroll; i < tab.lines().size() && i < this.scroll + shown; i++) {
+		this.scroll = Math.max(0, Math.min(this.scroll, tab.lines().size() - 1));
+		int i = this.scroll;
+		for (; i < tab.lines().size(); i++) {
 			Journal.Line line = tab.lines().get(i);
-			boolean hover = !line.detail().isEmpty() && mouseX >= x && mouseX < x + TEXT_WIDTH && mouseY >= y - 1 && mouseY < y + ROW - 1;
-			int rightWidth = this.font.width(line.right());
-			String left = this.font.plainSubstrByWidth(line.left(), TEXT_WIDTH - rightWidth - (rightWidth > 0 ? 4 : 0));
-			if (hover) {
-				graphics.fill(x - 1, y - 1, x + TEXT_WIDTH + 1, y + 9, 0x30A08040);
+			int height = this.height(line);
+			if (y + height > top + TEXT_BOTTOM + 2) {
+				break;
 			}
 
-			graphics.drawString(this.font, left, x, y, INK, false);
-			graphics.drawString(this.font, line.right(), x + TEXT_WIDTH - rightWidth, y, ink(line.ink()), false);
+			boolean hover = !line.detail().isEmpty() && mouseX >= x && mouseX < x + TEXT_WIDTH && mouseY >= y - 1 && mouseY < y + height - 1;
+			int rightWidth = this.font.width(line.right());
+			if (hover) {
+				graphics.fill(x - 1, y - 1, x + TEXT_WIDTH + 1, y + height - 2, 0x30A08040);
+			}
+
+			graphics.drawString(this.font, this.clip(line.left(), TEXT_WIDTH), x, y, INK, false);
+			// (How it stands to the right of it, or on a line of its own when they don't both fit.)
+			int rightY = height > ROW ? y + 9 : y;
+			graphics.drawString(this.font, this.clip(line.right(), TEXT_WIDTH), x + TEXT_WIDTH - Math.min(rightWidth, TEXT_WIDTH), rightY, ink(line.ink()), false);
 			// (A dotted rule under each, as in a ledger.)
 			for (int dot = x; dot < x + TEXT_WIDTH; dot += 2) {
-				graphics.fill(dot, y + 9, dot + 1, y + 10, RULE);
+				graphics.fill(dot, y + height - 2, dot + 1, y + height - 1, RULE);
 			}
 
-			y += ROW;
+			y += height;
 		}
 
-		this.more(graphics, x, top, tab.lines().size() > this.scroll + shown);
+		this.more(graphics, x, top, i < tab.lines().size());
+	}
+
+	/** A line's height on the page: one row, or two when its two ends don't fit side by side. */
+	private int height(Journal.Line line) {
+		return line.right().isEmpty() || this.font.width(line.left()) + this.font.width(line.right()) + 4 <= TEXT_WIDTH ? ROW : ROW + 9;
+	}
+
+	private String clip(String text, int width) {
+		return this.font.width(text) <= width ? text : this.font.plainSubstrByWidth(text, width - this.font.width("...")) + "...";
 	}
 
 	/** "more" at the foot of the page while there is more below. */
@@ -237,10 +252,6 @@ final class JournalScreen extends Screen {
 			String text = below ? this.scroll > 0 ? "scroll for more" : "scroll down for more" : "scroll up";
 			graphics.drawString(this.font, text, x + TEXT_WIDTH - this.font.width(text), top + TEXT_BOTTOM + 1, FAINT, false);
 		}
-	}
-
-	private int rows() {
-		return (TEXT_BOTTOM - TEXT_TOP) / ROW;
 	}
 
 	private static int ink(int ink) {
@@ -297,14 +308,26 @@ final class JournalScreen extends Screen {
 		}
 
 		if (mouseX >= x && mouseX < x + TEXT_WIDTH && mouseY >= y - 1) {
-			int row = (int)(mouseY - (y - 1)) / ROW;
-			int index = this.scroll + row;
-			if (row < this.rows() && index < this.lines().size() && !this.lines().get(index).detail().isEmpty()) {
-				this.listScroll = this.scroll;
-				this.open = index;
-				this.scroll = 0;
-				this.turn();
-				return true;
+			List<Journal.Line> lines = this.lines();
+			for (int index = this.scroll; index < lines.size(); index++) {
+				int height = this.height(lines.get(index));
+				if (y + height > top + TEXT_BOTTOM + 2) {
+					break;
+				}
+
+				if (mouseY < y + height - 1) {
+					if (!lines.get(index).detail().isEmpty()) {
+						this.listScroll = this.scroll;
+						this.open = index;
+						this.scroll = 0;
+						this.turn();
+						return true;
+					}
+
+					break;
+				}
+
+				y += height;
 			}
 		}
 

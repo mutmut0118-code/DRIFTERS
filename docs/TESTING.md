@@ -3481,3 +3481,28 @@ Off by default. Turn it on in Mod Menu (Drifter's settings, the "Spawning" page,
       fence.
 - [ ] **No one lying in bed "walking".** After loading a world at night, nobody lies in their bed while trying to go
       somewhere.
+
+## 0.23.41: your journal, the J key (new)
+
+- [ ] **Open it.** In any world with the two mods, press **J**. An open book appears: you on the left page, a list on the
+      right, four bookmarks along the top (People, Towns, Law, Favors). J or Esc closes it. The game keeps running behind
+      it. (To change the key: Options > Controls > Key Binds > Drifter: Civilizations > Open journal.)
+- [ ] **It looks like vanilla.** The pages are the vanilla book's, the writing is the vanilla font, and turning a page
+      makes the book's sound. Tell me anything that looks off (text over the edge, hard to read, off-centre).
+- [ ] **Towns.** Walk into a town, open the journal, click **Towns**: the town is listed with where you stand (welcome,
+      neutral, wary, unwelcome, wanted). Click it for more (what kind of place, its nation, where it is, your friends
+      there). A town you've never been to isn't listed.
+- [ ] **People.** Stand near some townspeople for a few seconds, open the journal: they're under **People** as
+      "Stranger". Make a friend (talk, gifts; or, to test quickly, look at one and run `/drifterciv friends set friend`):
+      they're at the top as "Friend" in green. Click a name for more.
+- [ ] **Favors.** With a friend near, run `/drifterciv friends favor iron` and answer them: **Favors** shows who asked,
+      "0 of 8" and how long is left. Throw them iron ingots and the count goes up next time you open it.
+- [ ] **Law.** Standing in a town, run `/drifterciv town crime theft`: **Law** lists the town with what you did and the
+      fine. Then `/drifterciv town crime murder`: the left page says "An outlaw", "Wanted in <town>" and the price on your
+      head in red, and **Law** shows how many days you're wanted and exiled. `/drifterciv town crime pardon` clears it.
+- [ ] **Nothing you wouldn't know.** No numbers for how people feel about you, nobody you haven't met, no coordinates for
+      a town you've only heard of.
+- [ ] **A long list.** In a city, after meeting many people, the People page scrolls with the mouse wheel and says
+      "scroll down for more" at the bottom. (I couldn't test a list this long myself.)
+- [ ] **As text.** `/drifterciv journal` prints the same in chat.
+
