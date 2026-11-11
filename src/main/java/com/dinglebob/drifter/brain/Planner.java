@@ -544,7 +544,7 @@ public final class Planner {
 			result |= all;
 		}
 
-		for (RecipeHolder<? extends AbstractCookingRecipe> recipe : result ? List.<RecipeHolder<? extends AbstractCookingRecipe>>of()
+		for (RecipeHolder<? extends AbstractCookingRecipe> recipe : result || !DishLore.allowed(this.drifter, item) ? List.<RecipeHolder<? extends AbstractCookingRecipe>>of()
 			: smelting(this.level).getOrDefault(item, List.of())) {
 			result |= itemsOf(recipe.value().getIngredients().get(0)).stream().anyMatch(input -> this.promising(input, depth + 1));
 		}
@@ -586,7 +586,8 @@ public final class Planner {
 				best = cheaper(best, this.takeBed(state.copy(), item));
 			}
 
-			for (RecipeHolder<? extends AbstractCookingRecipe> recipe : smelting(this.level).getOrDefault(item, List.of())) {
+			for (RecipeHolder<? extends AbstractCookingRecipe> recipe : mayMake ? smelting(this.level).getOrDefault(item, List.of())
+				: List.<RecipeHolder<? extends AbstractCookingRecipe>>of()) {
 				best = cheaper(best, this.smelt(state.copy(), recipe.value(), item, count, depth));
 			}
 

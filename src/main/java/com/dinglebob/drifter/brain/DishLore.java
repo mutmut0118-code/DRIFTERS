@@ -11,6 +11,7 @@ import java.util.Set;
 import com.dinglebob.drifter.Drifter;
 import com.dinglebob.drifter.DrifterConfig;
 import com.dinglebob.drifter.compat.Dishes;
+import com.dinglebob.drifter.compat.FarmersDelight;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.gear.GearLore;
 import com.dinglebob.drifter.personality.Archetype;
@@ -167,7 +168,10 @@ public final class DishLore {
 						for (Dishes.Recipe recipe : recipes) {
 							for (Ingredient ingredient : recipe.inputs()) {
 								for (ItemStack input : ingredient.getItems()) {
-									found.computeIfAbsent(input.getItem(), key -> new LinkedHashSet<>()).add(dish);
+									// (A bowl teaches nothing, even where a table recipe lists it: it's what the dish is served in.)
+									if (!FarmersDelight.isServing(input)) {
+										found.computeIfAbsent(input.getItem(), key -> new LinkedHashSet<>()).add(dish);
+									}
 								}
 							}
 						}
