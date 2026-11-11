@@ -237,6 +237,14 @@ final class WorldPlan {
 					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text), false);
 					return wrong.isEmpty() ? 1 : 0;
 				}))
+				.then(net.minecraft.commands.Commands.literal("take").executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), net.minecraft.core.BlockPos.containing(
+						ctx.getSource().getPosition()));
+					String text = town == null ? "No town near" : debugTake(ctx.getSource().getServer(), town);
+					DrifterCivilizations.LOGGER.info("[history] take: {}", text);
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text), false);
+					return 1;
+				}))
 				.then(net.minecraft.commands.Commands.literal("news").executes(ctx -> {
 					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), net.minecraft.core.BlockPos.containing(
 						ctx.getSource().getPosition()));
@@ -691,9 +699,13 @@ final class WorldPlan {
 		history.step(server);
 		Nations.follow(server, places, nations);
 		nations.removeIf(nation -> history.nation(nation.id()) == null);
-		// What the summary has between the pairs it rolled for, written to their made towns.
-		made = madeTowns();
-		powers = new ArrayList<>(made.keySet());
+		push(server, owned);
+	}
+
+	/** What the summary has between the pairs it rolled for, written to their made towns. */
+	private static void push(MinecraftServer server, Set<String> owned) {
+		Map<UUID, List<Town>> made = madeTowns();
+		List<UUID> powers = new ArrayList<>(made.keySet());
 		for (int i = 0; i < powers.size(); i++) {
 			for (int j = i + 1; j < powers.size(); j++) {
 				UUID a = powers.get(i);
@@ -711,6 +723,53 @@ final class WorldPlan {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Debug: this made town is taken on paper, now, by the nation its own is at war with (none: the other nation seated
+	 * nearest), as a war fought far away would have it. What was done, in words.
+	 */
+	static String debugTake(MinecraftServer server, Town town) {
+		Place place = place(town.id);
+		if (history == null || place == null || !place.made) {
+			return town.name + " isn't a town of the world's plan";
+		}
+
+		UUID own = history.power(place);
+		PlannedNation was = nation(own);
+		if (was != null && was.capital().equals(place.id)) {
+			return town.name + " is its nation's capital: a capital only goes with its whole nation";
+		}
+
+		PlannedNation by = null;
+		double best = Double.MAX_VALUE;
+		for (PlannedNation other : nations) {
+			Place seat = place(other.capital());
+			History.Ties ties = history.ties.get(History.key(own, other.id()));
+			if (other.id().equals(own) || seat == null || Nations.all().stream().noneMatch(n -> n.id.equals(other.id()))) {
+				continue;
+			}
+
+			double far = Math.hypot(seat.x - place.x, seat.z - place.z) - (ties != null && ties.war ? 1_000_000 : 0);
+			if (far < best) {
+				best = far;
+				by = other;
+			}
+		}
+
+		if (by == null) {
+			return "No other nation to take " + town.name;
+		}
+
+		String from = history.name(own);
+		place.nation = by.id();
+		place.conquered = true;
+		place.loyalty = -10;
+		history.tell(server, "war", by.name() + " took " + town.name + " from " + from, own, by.id());
+		Nations.follow(server, places, nations);
+		push(server, history.owned);
+		Towns.save(server);
+		return by.name() + " took " + town.name + " from " + from + " (on paper)";
 	}
 
 	/** What the made towns of two powers have between them, into the ties (nothing between any of them: left as it is). */
@@ -764,8 +823,8 @@ final class WorldPlan {
 
 	/**
 	 * The news from afar a town would have heard in the last {@code days} (the user, 2026-11-11: "you hear it in towns";
-	 * news travels): its own power's; that of a power tied to its own (at war, at peace by a pact, allied); that of a power
-	 * seated near enough to be a neighbour. A town in no power of the plan: only its neighbours'. Newest first.
+	 * news travels): its own power's; that of a power its own is at war or allied with; that of a power seated near enough
+	 * to be a neighbour. A town in no power of the plan: only its neighbours'. Newest first.
 	 */
 	static List<History.News> newsFor(Town town, long day, int days) {
 		List<History.News> heard = new ArrayList<>();
@@ -789,7 +848,7 @@ final class WorldPlan {
 
 				History.Ties ties = own == null || own.equals(power) ? null : history.ties.get(History.key(own, power));
 				Place seat = history.seat(power);
-				reaches |= power.equals(own) || ties != null && (ties.war || ties.peace || ties.alliance)
+				reaches |= power.equals(own) || ties != null && (ties.war || ties.alliance)
 					|| seat != null && Math.hypot(seat.x - town.center.getX(), seat.z - town.center.getZ()) < NEWS_REACH;
 			}
 
@@ -802,7 +861,7 @@ final class WorldPlan {
 	}
 
 	/** A power seated this near a town is its neighbour: its news reaches it. */
-	private static final double NEWS_REACH = 2600;
+	private static final double NEWS_REACH = 1200;
 
 	/** For the debug commands: each pair of powers, how they stand, and who rolls for them today. */
 	static List<String> tiesLines() {

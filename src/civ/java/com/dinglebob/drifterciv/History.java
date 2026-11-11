@@ -361,7 +361,7 @@ final class History {
 		double p = present == null ? 1.0 : this.pace;
 		double near = Math.max(0, 1 - Math.hypot(sa.x - sb.x, sa.z - sb.z) / FAR);
 		t.standing += 0.03 * (sa.warmth + sb.warmth - 1) - 0.05 * (sa.aggression + sb.aggression - 1) - 0.02 * near + (t.peace ? 0.03 : 0)
-			+ (t.alliance ? 0.03 : 0) - (t.war ? 0.05 : 0) + this.random.nextGaussian() * 0.6;
+			+ (t.alliance ? 0.03 : 0) - (t.war ? 0.05 : 0) + this.random.nextGaussian() * 0.6 * Math.sqrt(p);
 		// A quarrel at the border, more often the nearer they are.
 		if (!t.war && this.random.nextFloat() < 0.003 * (0.3 + near) * p) {
 			double hurt = 6 + this.random.nextInt(14);
@@ -425,14 +425,16 @@ final class History {
 	/** A day of their war: maybe a battle, a frontier town taken or burned, a nation conquered; peace when they're weary. */
 	private void war(UUID a, UUID b, Ties t, @Nullable MinecraftServer present) {
 		long days = this.day - t.since;
-		if (this.random.nextFloat() < 0.06) {
+		// (Now, a war's as many days shorter as the world's pace is faster: its battles as much closer together, so a war
+		// is fought out as it was in the written past, not over before a blow's struck.)
+		double p = present == null ? 1.0 : this.pace;
+		if (this.random.nextFloat() < 0.06 * p) {
 			this.battle(a, b, t, present);
 			if (!t.war) {
 				return;
 			}
 		}
 
-		double p = present == null ? 1.0 : this.pace;
 		if (days > 40 / p && this.random.nextFloat() < (0.004 + (days - 40 / p) / 20000.0) * p) {
 			this.peace(a, b, t, present, "after " + days + " days of war");
 		}
@@ -495,7 +497,8 @@ final class History {
 		UUID loser = aLost ? a : b;
 		WorldPlan.Place town = aLost ? fa : fb;
 		double ratio = (aLost ? sb : sa) / (aLost ? sa : sb);
-		if (town.people > 2 && !(ratio > 1.5 && this.random.nextFloat() < 0.05)) {
+		// (Now: a town's lost a little more readily than in the written past, a war being the news it is.)
+		if (town.people > 2 && !(ratio > (present == null ? 1.5 : 1.3) && this.random.nextFloat() < (present == null ? 0.05 : 0.08))) {
 			return;
 		}
 
@@ -514,6 +517,13 @@ final class History {
 
 				this.nations.remove(lost);
 				this.tell(present, "war", won.name() + " conquered " + lost.name() + ": its towns are " + won.name() + "'s now", a, b);
+				t.war = false;
+			} else if (present != null && won != null && lost == null && !this.watched.test(town)) {
+				// (Now: a town in no nation, beaten by a nation, is taken into it. In the written past it never was.)
+				town.nation = won.id();
+				town.conquered = true;
+				town.loyalty = -10;
+				this.tell(present, "war", won.name() + " took " + town.name, a, b);
 				t.war = false;
 			}
 
@@ -600,7 +610,7 @@ final class History {
 	/** What the chronicle's lines of the present begin with (left out of the morning's chat; a town's gazette picks). */
 	static final String AFAR = "News from afar: ";
 
-	private void tell(@Nullable MinecraftServer present, String kind, String text, UUID... powers) {
+	void tell(@Nullable MinecraftServer present, String kind, String text, UUID... powers) {
 		if (present != null) {
 			Chronicle.add(present, kind, AFAR + text);
 			long today = Chronicle.day(present);
