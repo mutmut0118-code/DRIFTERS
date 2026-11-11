@@ -534,7 +534,8 @@ public final class Planner {
 				: source.mobType() != null && this.world.knowsAnimal(source.mobType());
 		}
 
-		for (RecipeHolder<CraftingRecipe> recipe : result ? List.<RecipeHolder<CraftingRecipe>>of() : crafting(this.level).getOrDefault(item, List.of())) {
+		for (RecipeHolder<CraftingRecipe> recipe : result || !DishLore.allowed(this.drifter, item) ? List.<RecipeHolder<CraftingRecipe>>of()
+			: crafting(this.level).getOrDefault(item, List.of())) {
 			boolean all = true;
 			for (Ingredient ingredient : recipe.value().getIngredients()) {
 				all &= ingredient.isEmpty() || itemsOf(ingredient).stream().anyMatch(input -> this.promising(input, depth + 1));
@@ -567,7 +568,11 @@ public final class Planner {
 				best = cheaper(best, attempt);
 			}
 
-			for (RecipeHolder<CraftingRecipe> recipe : crafting(this.level).getOrDefault(item, List.of())) {
+			// An addon's dish (the Farmer's Delight addons) it hasn't learned it doesn't make, at any station (DishLore); its
+			// ingredients and everything else it makes as before.
+			boolean mayMake = DishLore.allowed(this.drifter, item);
+			for (RecipeHolder<CraftingRecipe> recipe : mayMake ? crafting(this.level).getOrDefault(item, List.of())
+				: List.<RecipeHolder<CraftingRecipe>>of()) {
 				best = cheaper(best, this.craft(state.copy(), recipe.value(), item, count, depth));
 			}
 
@@ -589,13 +594,14 @@ public final class Planner {
 			// gather or craft (bacon, cabbage leaves, straw): its many salvage recipes (a door, a sign, a boat cut back into
 			// planks) made every plan for planks or sticks try each wooden thing and what that's made of, 30,000 sub-plans a
 			// pickaxe; a thousand soldiers at full detail ran the game at 3 TPS (the user's 500v500, 0.23.32-side.1).
-			if (!crafts) {
+			if (!crafts && mayMake) {
 				for (com.dinglebob.drifter.compat.FarmersDelight.CutRecipe recipe : cutting(this.level).getOrDefault(item, List.of())) {
 					best = cheaper(best, this.cut(state.copy(), recipe, item, count, depth));
 				}
 			}
 
-			for (com.dinglebob.drifter.compat.FarmersDelight.PotRecipe recipe : potCooking(this.level).getOrDefault(item, List.of())) {
+			for (com.dinglebob.drifter.compat.FarmersDelight.PotRecipe recipe : mayMake ? potCooking(this.level).getOrDefault(item, List.of())
+				: List.<com.dinglebob.drifter.compat.FarmersDelight.PotRecipe>of()) {
 				best = cheaper(best, this.potCook(state.copy(), recipe, item, count, depth));
 			}
 

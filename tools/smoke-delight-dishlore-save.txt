@@ -1,0 +1,30 @@
+# Dish lore save and reload (Farmer's Delight addons, task 3), part 1 of 2: run with DRIFTER_DELIGHT=1, then run
+# tools/smoke-delight-dishlore-load.txt (part 2 checks and cleans up; run it even if this part fails).
+# (The same 16 x 16 chunks as smoke-delight-dishes.txt: a smaller area sent her off "outside the running world".)
+# Lea (casual, Knowledge 0.2) is given cut tentacles and learns Ocean's Delight's squid rings; the server saves and stops with her in it.
+# Expected: `kitchen lore` "has learned no addon dish", then "has learned ... oceansdelight:squid_rings"; DrifterDishes {Version: 1,
+# Known: [..."oceansdelight:squid_rings"...]}.
+until Done_( 900
+wait 3
+gamerule doMobSpawning false
+forceload add 4880 4880 5135 5135
+wait 120
+fill 4990 199 4990 5026 206 5026 glass
+fill 4991 200 4991 5025 205 5025 air
+fill 4991 199 4991 5025 199 5025 stone
+execute positioned 5016 200 5008 run drifter spawn Lea
+wait 2
+execute positioned 5016 200 5008 run tag @e[type=drifter:drifter,sort=nearest,limit=1] add dishlea
+execute as @e[tag=dishlea] at @s run drifter tier full
+execute as @e[tag=dishlea] at @s run drifter thoughts log true
+execute as @e[tag=dishlea] at @s run drifter personality reroll casual
+execute as @e[tag=dishlea] at @s run drifter personality set knowledge 0.2
+execute as @e[tag=dishlea] at @s run drifter kitchen lore
+execute as @e[tag=dishlea] at @s run drifter give oceansdelight:cut_tentacles 1
+sprint 250
+execute as @e[tag=dishlea] at @s run drifter kitchen lore
+execute as @e[tag=dishlea] at @s run drifter thoughts
+execute as @e[tag=dishlea] at @s run data get entity @s DrifterDishes
+save-all flush
+wait 5
+stop

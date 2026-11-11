@@ -4,6 +4,13 @@
 # Expected with the addons: `kitchen dishes` lists More Delight's sandwiches and pot dishes and Ocean's pot dishes; the
 # plan crafts the sandwich at the table; she cooks it ("cook chicken sandwich ..."); Bob, hungry, eats a sandwich before bread.
 # With Farmer's Delight only: its dishes only (no moredelight/oceansdelight ids). With neither: "No dishes".
+# Dish lore (task 3): Lea, a casual Drifter with Knowledge 0.2, carries the makings of Ocean's Delight's squid rings once removed
+# (tentacles to cut, wheat and an egg for dough, a knife, a bowl) but none of its ingredients. Expected with the addons: her plan
+# for squid rings says she doesn't know how to make it (an addon dish she hasn't learned), while Farmer's Delight's beef stew plans
+# (pot) without learning; given cut tentacles (an ingredient), within 200 ticks "learned how to make squid rings (has cut
+# tentacles)", `kitchen lore` lists it, and the plan for squid rings is made. Vet (Knowledge 0.9) knows every addon dish at once.
+# (Thai's Delight's pesto, the brief's example, needs the mortar of task 4 and a client run: Thai's can't load headless.)
+# Save and reload: tools/smoke-delight-dishlore-save.txt, then tools/smoke-delight-dishlore-load.txt.
 until Done_( 900
 wait 3
 time set 1000
@@ -19,6 +26,7 @@ setblock 5010 200 5004 crafting_table
 setblock 5012 200 5004 furnace
 setblock 5014 200 5004 farmersdelight:stove[lit=true]
 setblock 5014 201 5004 farmersdelight:cooking_pot
+setblock 5016 200 5004 farmersdelight:cutting_board
 execute positioned 5008 200 5010 run drifter spawn Alice
 wait 2
 execute positioned 5008 200 5010 run drifter tier full
@@ -55,6 +63,47 @@ execute as @e[tag=dishbob] at @s run drifter brain goal eat
 sprint 300
 execute as @e[tag=dishbob] at @s run drifter brain
 execute as @e[tag=dishbob] at @s run drifter inventory
+# Dish lore (task 3).
+execute positioned 5016 200 5008 run drifter spawn Lea
+wait 2
+execute positioned 5016 200 5008 run tag @e[type=drifter:drifter,sort=nearest,limit=1] add dishlea
+execute as @e[tag=dishlea] at @s run drifter tier full
+execute as @e[tag=dishlea] at @s run drifter personality reroll casual
+execute as @e[tag=dishlea] at @s run drifter personality set knowledge 0.2
+execute as @e[tag=dishlea] at @s run drifter give oceansdelight:tentacles 1
+execute as @e[tag=dishlea] at @s run drifter give wheat 3
+execute as @e[tag=dishlea] at @s run drifter give egg 1
+execute as @e[tag=dishlea] at @s run drifter give bowl 2
+execute as @e[tag=dishlea] at @s run drifter give farmersdelight:flint_knife 1
+# (She stands still and looks at the pot and the board: left to wander she may never notice them, and without a pot she knows of
+# every pot plan is "knows no way", whatever she knows. The beef stew's makings only now.)
+execute as @e[tag=dishlea] at @s run drifter brain off
+execute as @e[tag=dishlea] at @s run drifter lookat 5015 201 5004
+sprint 100
+execute as @e[tag=dishlea] at @s run drifter thoughts
+execute as @e[tag=dishlea] at @s run drifter give beef 1
+execute as @e[tag=dishlea] at @s run drifter give carrot 1
+execute as @e[tag=dishlea] at @s run drifter give potato 1
+execute as @e[tag=dishlea] at @s run drifter kitchen lore
+execute as @e[tag=dishlea] at @s run drifter plan oceansdelight:squid_rings
+execute as @e[tag=dishlea] at @s run drifter plan farmersdelight:beef_stew
+# (The gate is all that stops her: with "know every recipe" on, the same plan is made; off again at once.)
+drifter config knoweveryrecipe true
+execute as @e[tag=dishlea] at @s run drifter plan oceansdelight:squid_rings
+drifter config knoweveryrecipe false
+execute as @e[tag=dishlea] at @s run drifter give oceansdelight:cut_tentacles 1
+sprint 250
+execute as @e[tag=dishlea] at @s run drifter kitchen lore
+execute as @e[tag=dishlea] at @s run drifter thoughts
+execute as @e[tag=dishlea] at @s run drifter plan oceansdelight:squid_rings
+execute as @e[tag=dishlea] at @s run data get entity @s DrifterDishes
+execute positioned 4996 200 4996 run drifter spawn Vet
+wait 2
+execute positioned 4996 200 4996 run tag @e[type=drifter:drifter,sort=nearest,limit=1] add dishvet
+execute as @e[tag=dishvet] at @s run drifter personality reroll casual
+execute as @e[tag=dishvet] at @s run drifter personality set knowledge 0.9
+execute as @e[tag=dishvet] at @s run drifter kitchen lore
+execute as @e[tag=dishvet] at @s run drifter plan oceansdelight:squid_rings
 gamerule doDaylightCycle true
 gamerule doMobSpawning true
 # (Leaves the shared dev world as it was: the test Drifters and the glass box go.)

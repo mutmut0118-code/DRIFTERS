@@ -38,7 +38,9 @@ public final class HouseCommands {
 	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
 		root.then(Commands.literal("houses").executes(HouseCommands::list));
 		// Debug: every dish a kitchen makes (compat.Dishes), by station, with how filling each is.
-		root.then(Commands.literal("kitchen").then(Commands.literal("dishes").executes(HouseCommands::dishes)));
+		root.then(Commands.literal("kitchen").then(Commands.literal("dishes").executes(HouseCommands::dishes))
+			// Debug: the addon dishes the nearest one has learned (DishLore).
+			.then(Commands.literal("lore").executes(HouseCommands::dishLore)));
 		root.then(Commands.literal("house")
 			.then(Commands.literal("status").executes(HouseCommands::status))
 			// Debug: the house as a map, layer by layer.
@@ -498,6 +500,17 @@ public final class HouseCommands {
 		}
 
 		return 1;
+	}
+
+	private static int dishLore(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		DrifterEntity drifter = DrifterCommands.nearest(ctx.getSource());
+		var learned = drifter.getDishLore().learned();
+		String known = com.dinglebob.drifter.brain.DishLore.innate(drifter) ? " knows every addon dish (a veteran, or the setting)"
+			: learned.isEmpty() ? " has learned no addon dish"
+			: " has learned " + learned.size() + " addon dishes: " + learned.stream()
+				.map(item -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString()).collect(java.util.stream.Collectors.joining(", "));
+		say(ctx, DrifterCommands.label(drifter) + known);
+		return learned.size();
 	}
 
 	private static int dishes(CommandContext<CommandSourceStack> ctx) {

@@ -204,6 +204,19 @@ even a mod's `ArmorItem` or `TieredItem`; vanilla items keep their prices. Drift
 the modded weapons and armor they know (no trinkets or shields; fletchers their bows and crossbows), the stall doesn't sell any mod's gear as
 goods, and a town's veteran is one in a chestplate of 6 armor points or more, any mod's.
 
+## Dishes (API 7)
+
+The Farmer's Delight addons' dishes (More Delight, Ocean's Delight, Thai's Delight...: food made in a cooking pot, at a
+crafting table, on a cutting board, in a mortar, that isn't vanilla's or Farmer's Delight's own) are learned: a Drifter
+makes one only once it has held one of its ingredients (veterans and the "know every recipe" setting know them all;
+vanilla food and Farmer's Delight's meals are always known). All on the server thread.
+
+| Call | What it does |
+| --- | --- |
+| `DrifterApi.learnDishesFrom(drifter, container)` | It learns the addon dishes one of whose ingredients is in the container (a town house's pantry), with a thought for each ingredient that taught it something. Returns how many it learned (0 without the addons, or if it knew them all). |
+
+Debug: `/drifter kitchen lore` lists the addon dishes the nearest Drifter has learned (or says it knows them all).
+
 ## Uniforms (API 6)
 
 A town's guards wear one uniform: one armor set on every guard, with the town's armor trim on every piece, so you can

@@ -1,0 +1,19 @@
+# Dish lore save and reload, part 2 of 2 (after tools/smoke-delight-dishlore-save.txt; DRIFTER_DELIGHT=1).
+# Expected: Lea, loaded from the save, still knows squid rings at once (`kitchen lore` lists oceansdelight:squid_rings) and
+# never thinks "learned how to make squid rings" again in this run (a lost save would learn it again from the cut tentacles she
+# still carries); her plan for squid rings says "knows no way" (no dough, no pot here), not "doesn't know how to make".
+# Then the box, Lea and the forceload go.
+until Done_( 900
+wait 3
+execute as @e[tag=dishlea] at @s run drifter kitchen lore
+execute as @e[tag=dishlea] at @s run data get entity @s DrifterDishes
+sprint 400
+execute as @e[tag=dishlea] at @s run drifter kitchen lore
+execute as @e[tag=dishlea] at @s run drifter thoughts
+execute as @e[tag=dishlea] at @s run drifter plan oceansdelight:squid_rings
+gamerule doMobSpawning true
+execute as @e[type=drifter:drifter,x=4990,y=195,z=4990,dx=36,dy=15,dz=36] at @s run drifter remove
+fill 4990 199 4990 5026 206 5026 air
+forceload remove 4880 4880 5135 5135
+wait 2
+stop

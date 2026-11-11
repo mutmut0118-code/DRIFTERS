@@ -109,6 +109,8 @@ public class DrifterEntity extends PathfinderMob {
 	private final com.dinglebob.drifter.personality.Lore lore = new com.dinglebob.drifter.personality.Lore();
 	/** Which modded items it knows exist, and how it found out (gear project). */
 	private final com.dinglebob.drifter.gear.GearLore gearLore = new com.dinglebob.drifter.gear.GearLore();
+	/** The Farmer's Delight addons' dishes it has learned to make (saved). */
+	private final com.dinglebob.drifter.brain.DishLore dishLore = new com.dinglebob.drifter.brain.DishLore();
 	/** What follows its own hit, shot or ability, watched for an item's powers (only while a watch is on). */
 	private final com.dinglebob.drifter.gear.PowerWatch powerWatch = new com.dinglebob.drifter.gear.PowerWatch();
 	/** Bows and crossbows that never loosed for it, left alone for a while (ruling R23). */
@@ -503,6 +505,10 @@ public class DrifterEntity extends PathfinderMob {
 
 	public com.dinglebob.drifter.gear.GearLore getGearLore() {
 		return this.gearLore;
+	}
+
+	public com.dinglebob.drifter.brain.DishLore getDishLore() {
+		return this.dishLore;
 	}
 
 	public com.dinglebob.drifter.gear.PowerWatch getPowerWatch() {
@@ -1627,6 +1633,10 @@ public class DrifterEntity extends PathfinderMob {
 
 			if ((this.tickCount + (this.getId() & 0xFF)) % com.dinglebob.drifter.gear.GearLore.CHECK_INTERVAL == com.dinglebob.drifter.gear.GearLore.CHECK_OFFSET) {
 				this.gearLore.check(this);
+			}
+
+			if ((this.tickCount + (this.getId() & 0xFF)) % com.dinglebob.drifter.brain.DishLore.CHECK_INTERVAL == com.dinglebob.drifter.brain.DishLore.CHECK_OFFSET) {
+				this.dishLore.check(this);
 			}
 
 			this.powerWatch.tick(this);
@@ -3334,6 +3344,7 @@ protected void customServerAiStep() {
 		tag.put("Diary", this.diary.save());
 		tag.put("DrifterLore", this.lore.save());
 		tag.put("DrifterGear", this.gearLore.save());
+		tag.put("DrifterDishes", this.dishLore.save());
 		tag.putInt("SelectedItemSlot", this.inventory.getSelected());
 		this.foodData.addAdditionalSaveData(tag);
 		tag.putString("Skin", this.getSkinTexture().toString());
@@ -3401,6 +3412,8 @@ protected void customServerAiStep() {
 		this.lore.load(tag.getCompound("DrifterLore"));
 		// (No DrifterGear tag, an older save: it seeds from what it carries on its next check.)
 		this.gearLore.load(tag.getCompound("DrifterGear"));
+		// (No DrifterDishes tag, an older save: it knows no addon dish yet and learns them again from what it holds.)
+		this.dishLore.load(tag.getCompound("DrifterDishes"));
 		this.experienceProgress = tag.getFloat("XpP");
 		this.experienceLevel = tag.getInt("XpLevel");
 		this.totalExperience = tag.getInt("XpTotal");

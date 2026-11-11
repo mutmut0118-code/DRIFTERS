@@ -53,7 +53,9 @@ public final class BrainCommands {
 		ctx.getSource().sendSuccess(() -> Component.literal(DrifterCommands.label(drifter) + (plan.feasible()
 			? String.format(Locale.ROOT, " plans for %d %s (%.0f s): %s", count, com.dinglebob.drifter.brain.Planner.name(item), plan.cost(),
 				steps.isEmpty() ? "has it already" : steps)
-			: " knows no way to get " + com.dinglebob.drifter.brain.Planner.name(item))), false);
+			: !com.dinglebob.drifter.brain.DishLore.allowed(drifter, item)
+				? " doesn't know how to make " + com.dinglebob.drifter.brain.Planner.name(item) + " (an addon dish it hasn't learned)"
+				: " knows no way to get " + com.dinglebob.drifter.brain.Planner.name(item))), false);
 		return 1;
 	}
 

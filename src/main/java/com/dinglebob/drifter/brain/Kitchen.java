@@ -195,6 +195,11 @@ public final class Kitchen {
 			// a real meal: tomato sauce is for cooking with.) Pot dishes only with a pot it can use.
 			Map<Item, Double> ready = new java.util.HashMap<>();
 			Dishes.makeable(drifter.level()).forEach((meal, recipes) -> {
+				// (An addon's dish only once it has learned it: DishLore.)
+				if (!DishLore.allowed(drifter, meal)) {
+					return;
+				}
+
 				double readiness = -1.0;
 				for (Dishes.Recipe recipe : recipes) {
 					if (pot || !recipe.station().equals(Dishes.POT)) {

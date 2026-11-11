@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 6;
+	public static final int API_VERSION = 7;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -1386,6 +1386,14 @@ public final class DrifterApi {
 	/** It knows this item exists (vanilla, a weapon family, a veteran's craftable gear, or seen, owned, unlocked, told). */
 	public static boolean knowsItem(DrifterEntity drifter, net.minecraft.world.item.Item item) {
 		return drifter.knowsItem(item);
+	}
+
+	/**
+	 * It learns how to make the Farmer's Delight addons' dishes whose ingredients are in this container (a town house's
+	 * pantry), as it does from what it carries; returns how many it learned (0 without the addons, or if it knew them).
+	 */
+	public static int learnDishesFrom(DrifterEntity drifter, net.minecraft.world.Container container) {
+		return drifter.getDishLore().learnFrom(drifter, container, "stored: ");
 	}
 
 	/** It has seen this item ({@code where}: how, for its thought, "on a stall"); nothing if it knew it already. */
