@@ -268,6 +268,64 @@ final class Diplomacy {
 		return r;
 	}
 
+	/**
+	 * What the world's summary has between two made towns' powers, written to the towns (A10 part 1: one record; no
+	 * chronicle line, the summary told it): their standing, pacts, a war begun or ended. News of it for their people's talk.
+	 */
+	static void mirror(MinecraftServer server, Town x, Town y, double standing, boolean peace, boolean alliance, boolean war, boolean xStarted,
+		long truceDays) {
+		Relation r = meet(server, x, y, standing, null);
+		long day = Chronicle.day(server);
+		boolean changed = false;
+		if (war && !r.war) {
+			begin(server, xStarted ? x : y, xStarted ? y : x, r, day, "war");
+			changed = true;
+		} else if (!war && r.war) {
+			r.war = false;
+			r.truceUntilDay = day + truceDays;
+			r.pacts.add(Pact.PEACE);
+			r.news = "peace_made";
+			r.newsDay = day;
+			if (x.group != null && y.group != null) {
+				DrifterApi.makePeace(server, x.group, y.group, (int)Math.max(1, Math.min(truceDays, 1000)));
+			}
+
+			changed = true;
+		}
+
+		if (!war) {
+			r.standing = Math.max(-100.0, Math.min(100.0, standing));
+			if ((peace || alliance) != r.pacts.contains(Pact.PEACE)) {
+				if (peace || alliance) {
+					r.pacts.add(Pact.PEACE);
+					r.news = "peace";
+					r.newsDay = day;
+				} else {
+					r.pacts.remove(Pact.PEACE);
+				}
+
+				changed = true;
+			}
+
+			if (alliance != r.pacts.contains(Pact.ALLIANCE)) {
+				if (alliance) {
+					r.pacts.add(Pact.ALLIANCE);
+					r.alliedSinceDay = day;
+					r.news = "alliance";
+					r.newsDay = day;
+				} else {
+					r.pacts.remove(Pact.ALLIANCE);
+				}
+
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			Towns.save(server);
+		}
+	}
+
 	/** Something between them: the standing moved, and maybe news for their people's talk. */
 	static void incident(MinecraftServer server, Town x, Town y, double change, @Nullable String news) {
 		Relation r = meet(server, x, y, 0.0, null);
@@ -362,8 +420,9 @@ final class Diplomacy {
 				continue;
 			}
 
-			// Once a day per pair (the one first by id does it): natures, pacts, land.
-			if (r.a.equals(town.id)) {
+			// Once a day per pair (the one first by id does it): natures, pacts, land. (Not a pair the world's summary rolls
+			// for today: nobody near either's nation. A10 part 1.)
+			if (r.a.equals(town.id) && !WorldPlan.paper(town, other)) {
 				DrifterEntity theirs = other.leader == null ? null : TownFounding.loaded(server, other.leader);
 				double warmth = (trait(leader, "sociability") + trait(leader, "forgiveness") + trait(theirs, "sociability") + trait(theirs, "forgiveness")) / 4.0
 					- 0.5;
@@ -398,7 +457,8 @@ final class Diplomacy {
 		double bestNeed = 0.0;
 		for (Relation r : of(town)) {
 			Town other = byId(r.other(town.id));
-			if (other == null || other.leader == null || day - r.lastEnvoyDay < ENVOY_EVERY || !other.center.closerThan(town.center, FARTHEST)) {
+			if (other == null || other.leader == null || day - r.lastEnvoyDay < ENVOY_EVERY || !other.center.closerThan(town.center, FARTHEST)
+				|| WorldPlan.paper(town, other)) {
 				continue;
 			}
 

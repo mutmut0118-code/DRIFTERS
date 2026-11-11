@@ -222,7 +222,9 @@ public final class Chronicle {
 			return;
 		}
 
-		List<Entry> lines = day(ended);
+		// (Not the news from afar: nobody's told of that the morning after. They hear it in towns. A10 part 1.)
+		List<Entry> lines = new ArrayList<>(day(ended));
+		lines.removeIf(entry -> entry.text().startsWith(History.AFAR));
 		if (lines.isEmpty()) {
 			return;
 		}

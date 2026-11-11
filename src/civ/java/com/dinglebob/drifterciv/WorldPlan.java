@@ -69,6 +69,8 @@ final class WorldPlan {
 		boolean fell;
 		boolean conquered;
 		double loyalty = 50;
+		/** Made, and people of it died in a war fought on paper (A10 part 1): how many, for when its people live by the summary. */
+		int paperLost;
 		/** The ways (radians, from its middle) its roads arrive from: when it's made, a main road goes out each way to meet them. */
 		final List<Double> gates = new ArrayList<>();
 
@@ -215,6 +217,59 @@ final class WorldPlan {
 	private static final double MOST_ROUND = 1.7;
 
 	static void register() {
+		// Debug (A10 part 1): `/drifterciv plan ties` (each pair of powers, how they stand, who rolls for them today), `plan
+		// check` (where the summary, the towns and the nations disagree), `plan pace [quiet|normal|lively]`, `plan news`
+		// (what the nearest town would have heard from afar).
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(
+			net.minecraft.commands.Commands.literal("drifterciv").requires(source -> source.hasPermission(2)).then(net.minecraft.commands.Commands.literal("plan")
+				.then(net.minecraft.commands.Commands.literal("ties").executes(ctx -> {
+					List<String> lines = tiesLines();
+					String text = lines.isEmpty() ? "Nothing between the powers worth telling" : String.join("\n", lines);
+					DrifterCivilizations.LOGGER.info("[history] ties: {}", String.join(" | ", lines));
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text), false);
+					return 1;
+				}))
+				.then(net.minecraft.commands.Commands.literal("check").executes(ctx -> {
+					List<String> wrong = check();
+					String text = wrong.isEmpty() ? "Consistent: the summary, the towns and the nations agree" : String.join("\n", wrong);
+					DrifterCivilizations.LOGGER.info("[history] check (day {}): {}", history == null ? -1 : history.day - History.DAYS,
+						wrong.isEmpty() ? "consistent" : String.join(" | ", wrong));
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text), false);
+					return wrong.isEmpty() ? 1 : 0;
+				}))
+				.then(net.minecraft.commands.Commands.literal("news").executes(ctx -> {
+					Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), net.minecraft.core.BlockPos.containing(
+						ctx.getSource().getPosition()));
+					List<String> lines = new ArrayList<>();
+					if (town != null) {
+						for (History.News one : newsFor(town, Chronicle.day(ctx.getSource().getServer()), History.NEWS_KEPT)) {
+							lines.add("Day " + one.day() + ": " + one.text());
+						}
+					}
+
+					String text = town == null ? "No town near" : town.name + " has heard: " + (lines.isEmpty() ? "nothing from afar" : "\n" + String.join("\n", lines));
+					DrifterCivilizations.LOGGER.info("[history] news: {}", text.replace("\n", " | "));
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text), false);
+					return 1;
+				}))
+				.then(net.minecraft.commands.Commands.literal("pace").executes(ctx -> {
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("World events: " + CivConfig.WORLD_PACES[CivConfig.worldPace()]),
+						false);
+					return 1;
+				}).then(net.minecraft.commands.Commands.argument("pace", com.mojang.brigadier.arguments.StringArgumentType.word()).executes(ctx -> {
+					String asked = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "pace");
+					for (int i = 0; i < CivConfig.WORLD_PACES.length; i++) {
+						if (CivConfig.WORLD_PACES[i].equalsIgnoreCase(asked)) {
+							CivConfig.setWorldPace(i);
+							ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("World events: " + CivConfig.WORLD_PACES[CivConfig.worldPace()]),
+								false);
+							return 1;
+						}
+					}
+
+					ctx.getSource().sendFailure(net.minecraft.network.chat.Component.literal("quiet, normal or lively"));
+					return 0;
+				}))))));
 		ServerWorldEvents.LOAD.register((server, level) -> {
 			if (level.dimension() == Level.OVERWORLD) {
 				decide(level);
@@ -492,23 +547,359 @@ final class WorldPlan {
 		return place == null || history == null ? -1 : history.foundedAgo(place);
 	}
 
-	/** W7: the places nobody's near live their days by the summary, a step each game day. */
+	/** A made town counts as watched with a player this far past its land (about where its people are loaded and acting). */
+	private static final int WATCHED = 192;
+	/** How much more often things happen between powers at each pace (quiet: as in the written past; normal; lively). */
+	private static final double[] PACE = {1.0, 4.0, 8.0};
+	/** The pairs the towns' own diplomacy rolled for at the last step (read back into the ties at the next). */
+	private static java.util.Set<String> ownedBefore = java.util.Set.of();
+	/** Since this world was opened, every pair with made towns has been read back once (what happened in play is kept). */
+	private static boolean pulledAll;
+	/** The longest a day's step has taken (for the perf line). */
+	private static long slowestNanos;
+
+	/** A made place with a player near: what happens there is what really happens, nothing on paper. */
+	static boolean watched(Place place) {
+		Town town = place.made ? Diplomacy.byId(place.id.toString()) : null;
+		MinecraftServer server = DrifterCivilizations.server();
+		if (town == null || server == null) {
+			return false;
+		}
+
+		double reach = town.land() + WATCHED;
+		for (net.minecraft.server.level.ServerPlayer player : server.getPlayerList().getPlayers()) {
+			if (!player.isSpectator() && player.level().dimension().location().toString().equals(town.dimension)
+				&& Math.hypot(player.getX() - town.center.getX(), player.getZ() - town.center.getZ()) < reach) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** These two made towns are of different powers of the plan, and the summary rolls for the pair today (not their own diplomacy). */
+	static boolean paper(Town x, Town y) {
+		if (!ready || history == null) {
+			return false;
+		}
+
+		Place px = place(x.id);
+		Place py = place(y.id);
+		if (px == null || py == null) {
+			return false;
+		}
+
+		UUID a = history.power(px);
+		UUID b = history.power(py);
+		return !a.equals(b) && history.seat(a) != null && history.seat(b) != null && !history.owned.contains(History.key(a, b));
+	}
+
+	/**
+	 * W7, and A10 part 1 (0.23.43): the world's places live their days by the summary, a step each game day, towns made
+	 * or not. The ties between two powers are the one record; the relations between their made towns mirror it. A day:
+	 * made places take their nation from the towns (what happened in play); pairs their own diplomacy rolled for are read
+	 * back into the ties; the summary's day, for every place not made and every pair nobody's watching; places moved to
+	 * the nation it says ({@link Nations#follow}), made ones too; and the ties of the pairs it rolled for written to their
+	 * made towns' relations.
+	 */
 	private static void present(MinecraftServer server) {
 		if (!ready || history == null || server.getTickCount() % 40 != 0) {
 			return;
 		}
 
 		long want = History.DAYS + Chronicle.day(server);
-		boolean stepped = false;
 		for (int i = 0; i < 3 && history.day < want; i++) {
+			long started = System.nanoTime();
 			history.day++;
-			history.step(server);
-			stepped = true;
+			day(server);
+			long took = System.nanoTime() - started;
+			if (took > slowestNanos) {
+				slowestNanos = took;
+				if (took > 2_000_000L) {
+					DrifterCivilizations.LOGGER.info("[history] a day of the world took {} ms (the longest yet)", took / 1_000_000.0);
+				}
+			}
+		}
+	}
+
+	/** Each power's made towns (by the plan's places: a town Drifters founded is in no power of the plan). */
+	private static Map<UUID, List<Town>> madeTowns() {
+		Map<UUID, List<Town>> made = new java.util.LinkedHashMap<>();
+		for (Place place : places) {
+			Town town = place.made ? Diplomacy.byId(place.id.toString()) : null;
+			if (town != null && history.seat(history.power(place)) != null) {
+				made.computeIfAbsent(history.power(place), k -> new ArrayList<>()).add(town);
+			}
 		}
 
-		if (stepped) {
-			Nations.follow(server, places, nations);
+		return made;
+	}
+
+	private static void day(MinecraftServer server) {
+		// Made places: in the nation their town is really in (joined or left in play), a nation formed in play known here.
+		for (Place place : places) {
+			Town town = place.made ? Diplomacy.byId(place.id.toString()) : null;
+			if (town == null) {
+				continue;
+			}
+
+			Nations.Nation real = Nations.of(town);
+			Nations.Member member = real == null ? null : real.members.get(town.id);
+			place.nation = real == null ? null : real.id;
+			place.conquered = member != null && member.conquered;
+			if (real != null && history.nation(real.id) == null && place(real.capital) != null) {
+				PlannedNation known = new PlannedNation(real.id, real.name, real.capital, real.colour);
+				history.adopt(known);
+				if (nation(real.id) == null) {
+					nations.add(known);
+				}
+			}
 		}
+
+		// Who rolls for each pair today: their towns' own diplomacy if a made town of either has a player near.
+		Map<UUID, List<Town>> made = madeTowns();
+		Set<UUID> watchedPowers = new HashSet<>();
+		for (Place place : places) {
+			if (place.made && watched(place)) {
+				watchedPowers.add(history.power(place));
+			}
+		}
+
+		List<UUID> powers = new ArrayList<>(made.keySet());
+		Set<String> owned = new HashSet<>();
+		for (int i = 0; i < powers.size(); i++) {
+			for (int j = i + 1; j < powers.size(); j++) {
+				UUID a = powers.get(i);
+				UUID b = powers.get(j);
+				String key = History.key(a, b);
+				if (watchedPowers.contains(a) || watchedPowers.contains(b)) {
+					owned.add(key);
+				}
+
+				// What their towns decided, read back (the first time since the world was opened: every pair's).
+				if (!pulledAll || owned.contains(key) || ownedBefore.contains(key)) {
+					pull(server, a, b, made.get(a), made.get(b));
+				}
+			}
+		}
+
+		pulledAll = true;
+		ownedBefore = owned;
+		history.owned = owned;
+		history.pace = PACE[Math.max(0, Math.min(PACE.length - 1, CivConfig.worldPace()))];
+		history.watched = WorldPlan::watched;
+		history.step(server);
+		Nations.follow(server, places, nations);
+		nations.removeIf(nation -> history.nation(nation.id()) == null);
+		// What the summary has between the pairs it rolled for, written to their made towns.
+		made = madeTowns();
+		powers = new ArrayList<>(made.keySet());
+		for (int i = 0; i < powers.size(); i++) {
+			for (int j = i + 1; j < powers.size(); j++) {
+				UUID a = powers.get(i);
+				UUID b = powers.get(j);
+				if (owned.contains(History.key(a, b))) {
+					continue;
+				}
+
+				History.Ties ties = history.ties(a, b);
+				for (Town x : made.get(a)) {
+					for (Town y : made.get(b)) {
+						Diplomacy.mirror(server, x, y, ties.standing, ties.peace, ties.alliance, ties.war, a.equals(ties.startedBy),
+							Math.max(0, ties.truceUntil - history.day));
+					}
+				}
+			}
+		}
+	}
+
+	/** What the made towns of two powers have between them, into the ties (nothing between any of them: left as it is). */
+	private static void pull(MinecraftServer server, UUID a, UUID b, List<Town> ofA, List<Town> ofB) {
+		double standing = 0;
+		int count = 0;
+		boolean war = false;
+		boolean peace = false;
+		boolean alliance = false;
+		boolean aStarted = false;
+		long truce = -100;
+		for (Town x : ofA) {
+			for (Town y : ofB) {
+				Diplomacy.Relation r = Diplomacy.relation(x, y);
+				if (r == null) {
+					continue;
+				}
+
+				count++;
+				standing += r.standing;
+				if (r.war) {
+					war = true;
+					aStarted = x.id.equals(r.startedBy);
+				}
+
+				peace |= r.pacts.contains(Diplomacy.Pact.PEACE);
+				alliance |= r.pacts.contains(Diplomacy.Pact.ALLIANCE);
+				truce = Math.max(truce, r.truceUntilDay);
+			}
+		}
+
+		if (count == 0) {
+			return;
+		}
+
+		History.Ties ties = history.ties(a, b);
+		if (war && !ties.war) {
+			ties.war = true;
+			ties.since = history.day;
+			ties.startedBy = aStarted ? a : b;
+		} else if (!war && ties.war) {
+			ties.war = false;
+			ties.since = history.day;
+			ties.truceUntil = History.DAYS + truce;
+		}
+
+		ties.alliance = !war && alliance;
+		ties.peace = !war && (peace || alliance);
+		ties.standing = standing / count;
+	}
+
+	/**
+	 * The news from afar a town would have heard in the last {@code days} (the user, 2026-11-11: "you hear it in towns";
+	 * news travels): its own power's; that of a power tied to its own (at war, at peace by a pact, allied); that of a power
+	 * seated near enough to be a neighbour. A town in no power of the plan: only its neighbours'. Newest first.
+	 */
+	static List<History.News> newsFor(Town town, long day, int days) {
+		List<History.News> heard = new ArrayList<>();
+		if (history == null) {
+			return heard;
+		}
+
+		Place here = place(town.id);
+		UUID own = here == null ? null : history.power(here);
+		for (int i = history.news.size() - 1; i >= 0; i--) {
+			History.News one = history.news.get(i);
+			if (day - one.day() >= days) {
+				continue;
+			}
+
+			boolean reaches = false;
+			for (UUID power : one.powers()) {
+				if (power == null) {
+					continue;
+				}
+
+				History.Ties ties = own == null || own.equals(power) ? null : history.ties.get(History.key(own, power));
+				Place seat = history.seat(power);
+				reaches |= power.equals(own) || ties != null && (ties.war || ties.peace || ties.alliance)
+					|| seat != null && Math.hypot(seat.x - town.center.getX(), seat.z - town.center.getZ()) < NEWS_REACH;
+			}
+
+			if (reaches) {
+				heard.add(one);
+			}
+		}
+
+		return heard;
+	}
+
+	/** A power seated this near a town is its neighbour: its news reaches it. */
+	private static final double NEWS_REACH = 2600;
+
+	/** For the debug commands: each pair of powers, how they stand, and who rolls for them today. */
+	static List<String> tiesLines() {
+		List<String> lines = new ArrayList<>();
+		if (history == null) {
+			return lines;
+		}
+
+		Map<UUID, List<Town>> made = madeTowns();
+		List<UUID> powers = new ArrayList<>();
+		for (Place place : places) {
+			UUID power = history.power(place);
+			if (!place.ruin() && !powers.contains(power) && history.seat(power) != null) {
+				powers.add(power);
+			}
+		}
+
+		for (int i = 0; i < powers.size(); i++) {
+			for (int j = i + 1; j < powers.size(); j++) {
+				UUID a = powers.get(i);
+				UUID b = powers.get(j);
+				History.Ties t = history.ties.get(History.key(a, b));
+				if (t == null || !t.war && !t.peace && !t.alliance && Math.abs(t.standing) < 25) {
+					continue;
+				}
+
+				lines.add(history.name(a) + " and " + history.name(b) + ": " + (t.war ? "at war" : t.alliance ? "allied" : t.peace ? "at peace" : "no pact")
+					+ ", standing " + Math.round(t.standing) + (t.dead > 0 ? ", " + t.dead + " dead between them" : "")
+					+ (made.containsKey(a) && made.containsKey(b) ? history.owned.contains(History.key(a, b)) ? " (their towns' own)" : " (on paper)" : ""));
+			}
+		}
+
+		return lines;
+	}
+
+	/** For the debug command: everything where the summary, the towns' relations and the nations disagree (none: consistent). */
+	static List<String> check() {
+		List<String> wrong = new ArrayList<>();
+		if (history == null) {
+			return wrong;
+		}
+
+		for (Place place : places) {
+			Town town = place.made ? Diplomacy.byId(place.id.toString()) : null;
+			Nations.Nation real = Nations.of(place.id);
+			UUID want = place.ruin() && !place.made ? null : place.nation;
+			if (place.made && town == null) {
+				continue;
+			}
+
+			if (real == null ? want != null && Nations.all().stream().anyMatch(n -> n.id.equals(want)) : !real.id.equals(want)) {
+				wrong.add(place.name + " is in " + (real == null ? "no nation" : real.name) + ", the summary says " + (want == null ? "none" : history.name(want)));
+			}
+
+			long in = Nations.all().stream().filter(n -> n.has(place.id)).count();
+			if (in > 1) {
+				wrong.add(place.name + " is in " + in + " nations");
+			}
+		}
+
+		Map<UUID, List<Town>> made = madeTowns();
+		List<UUID> powers = new ArrayList<>(made.keySet());
+		for (int i = 0; i < powers.size(); i++) {
+			for (int j = i + 1; j < powers.size(); j++) {
+				UUID a = powers.get(i);
+				UUID b = powers.get(j);
+				History.Ties t = history.ties.get(History.key(a, b));
+				for (Town x : made.get(a)) {
+					for (Town y : made.get(b)) {
+						Diplomacy.Relation r = Diplomacy.relation(x, y);
+						if (r == null || t == null) {
+							continue;
+						}
+
+						if (r.war != t.war) {
+							wrong.add(x.name + " and " + y.name + " are " + (r.war ? "at war" : "not at war") + ", " + history.name(a) + " and " + history.name(b)
+								+ " are " + (t.war ? "at war" : "not") + (history.owned.contains(History.key(a, b)) ? " (their towns' own today)" : ""));
+						}
+					}
+				}
+			}
+		}
+
+		for (Nations.Nation nation : Nations.all()) {
+			for (UUID x : nation.towns()) {
+				for (UUID y : nation.towns()) {
+					Town tx = Diplomacy.byId(x.toString());
+					Town ty = Diplomacy.byId(y.toString());
+					Diplomacy.Relation r = tx == null || ty == null || tx == ty ? null : Diplomacy.relation(tx, ty);
+					if (r != null && r.war && x.compareTo(y) < 0 && !Nations.rebellion(tx, ty)) {
+						wrong.add(tx.name + " and " + ty.name + " are at war inside " + nation.name);
+					}
+				}
+			}
+		}
+
+		return wrong;
 	}
 
 	/** The nearest place of this kind ("city", "town", "hamlet", "ruin"; null: any) to here. */
@@ -1870,6 +2261,7 @@ final class WorldPlan {
 			one.putBoolean("Fell", place.fell);
 			one.putBoolean("Conquered", place.conquered);
 			one.putDouble("Loyalty", place.loyalty);
+			one.putInt("PaperLost", place.paperLost);
 			ListTag gates = new ListTag();
 			place.gates.forEach(gate -> gates.add(net.minecraft.nbt.DoubleTag.valueOf(gate)));
 			one.put("Gates", gates);
@@ -1932,6 +2324,8 @@ final class WorldPlan {
 	}
 
 	static void load(CompoundTag tag) {
+		pulledAll = false;
+		ownedBefore = java.util.Set.of();
 		places.clear();
 		nations.clear();
 		highways.clear();
@@ -1963,6 +2357,7 @@ final class WorldPlan {
 			place.fell = one.getBoolean("Fell");
 			place.conquered = one.getBoolean("Conquered");
 			place.loyalty = one.contains("Loyalty") ? one.getDouble("Loyalty") : 50;
+			place.paperLost = one.getInt("PaperLost");
 			for (Tag gate : one.getList("Gates", Tag.TAG_DOUBLE)) {
 				place.gates.add(((net.minecraft.nbt.DoubleTag)gate).getAsDouble());
 			}

@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.jetbrains.annotations.Nullable;
 
 import com.dinglebob.drifter.api.DrifterApi;
+import com.dinglebob.drifter.api.TownUniform;
 import com.dinglebob.drifter.api.TownWork;
 import com.dinglebob.drifter.entity.DrifterEntity;
 
@@ -144,8 +145,39 @@ final class Nations {
 	 */
 	static void follow(MinecraftServer server, List<WorldPlan.Place> places, List<WorldPlan.PlannedNation> planned) {
 		long day = Chronicle.day(server);
+		// A nation whose capital the summary has in another nation now (conquered whole): no more, its made towns' banners
+		// and colours with it (each is put in the nation it's in now, below).
+		for (Nation nation : List.copyOf(nations.values())) {
+			WorldPlan.Place seat = WorldPlan.place(nation.capital);
+			if (seat == null || nation.id.equals(seat.nation)) {
+				continue;
+			}
+
+			List<Town> its = new ArrayList<>();
+			List<TownUniform> were = new ArrayList<>();
+			for (UUID id : nation.towns()) {
+				Town town = Diplomacy.byId(id.toString());
+				if (town != null) {
+					its.add(town);
+					were.add(TownUniforms.uniform(town));
+				}
+			}
+
+			nations.remove(nation.id);
+			for (int i = 0; i < its.size(); i++) {
+				TownUniforms.changed(server, its.get(i), were.get(i));
+			}
+
+			DrifterCivilizations.LOGGER.info("[nation] {} is no more (conquered whole, on paper)", nation.name);
+		}
+
 		for (WorldPlan.Place place : places) {
 			if (place.made) {
+				Town town = Diplomacy.byId(place.id.toString());
+				if (town != null) {
+					moved(server, town, place, day);
+				}
+
 				continue;
 			}
 
@@ -170,6 +202,60 @@ final class Nations {
 
 		nations.values().removeIf(nation -> planned.stream().noneMatch(p -> p.id().equals(nation.id)) && places.stream().anyMatch(p -> p.id.equals(
 			nation.capital)) && places.stream().noneMatch(p -> p.made && nation.has(p.id)));
+	}
+
+	/**
+	 * A made town the summary has in another nation now (taken in a war fought on paper, or joined its ally's: A10 part 1):
+	 * out of its old one (its banner there no more, no longer its fellows' ally), in the new one, at peace and allied with
+	 * its new fellows; its people change their colours and banner when they're there to. A capital only goes with its nation.
+	 */
+	private static void moved(MinecraftServer server, Town town, WorldPlan.Place place, long day) {
+		Nation now = of(town.id);
+		UUID want = place.nation;
+		if (now == null ? want == null : now.id.equals(want) || now.capital.equals(town.id)) {
+			return;
+		}
+
+		Nation to = want == null ? null : nations.get(want);
+		if (want != null && to == null) {
+			return;
+		}
+
+		TownUniform was = TownUniforms.uniform(town);
+		if (now != null) {
+			now.members.remove(town.id);
+			now.banners.remove(town.id);
+			now.bannerSpots.remove(town.id);
+			for (UUID id : now.towns()) {
+				Town other = Diplomacy.byId(id.toString());
+				Diplomacy.Relation r = other == null ? null : Diplomacy.relation(town, other);
+				if (r != null) {
+					r.pacts.remove(Diplomacy.Pact.ALLIANCE);
+				}
+			}
+		}
+
+		if (to != null) {
+			Member member = new Member(town.id, day);
+			member.conquered = place.conquered;
+			member.tributeDay = day + TRIBUTE_EVERY;
+			to.members.put(town.id, member);
+			to.news = place.conquered ? "submitted" : "joined";
+			to.newsTown = town.name;
+			to.newsDay = day;
+			for (UUID id : to.towns()) {
+				Town other = Diplomacy.byId(id.toString());
+				if (other != null && other != town) {
+					// (At peace and allied with its new fellows, whatever was between them.)
+					Diplomacy.mirror(server, town, other, Math.max(0.0, Diplomacy.meet(server, town, other, 0.0, null).standing), true, true, false, false, 0);
+				}
+			}
+		}
+
+		TownUniforms.changed(server, town, was);
+		DrifterCivilizations.LOGGER.info("[nation] {} is {} now (on paper)", town.name, to == null ? "in no nation" : (place.conquered ? "taken by " : "in ")
+			+ to.name);
+		Towns.save(server);
 	}
 
 	static Nation of(UUID town) {

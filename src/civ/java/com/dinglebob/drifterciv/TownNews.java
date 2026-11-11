@@ -102,9 +102,14 @@ final class TownNews {
 				if (day - entry.day() < OWN_DAYS) {
 					own.add(entry);
 				}
-			} else if (day - entry.day() < WORLD_DAYS && !entry.kind().equals("weather")) {
+			} else if (day - entry.day() < WORLD_DAYS && !entry.kind().equals("weather") && !entry.text().startsWith(History.AFAR)) {
 				world.add(entry);
 			}
+		}
+
+		// (News from afar: only what would have reached it. WorldPlan.newsFor.)
+		for (History.News heard : WorldPlan.newsFor(town, day, WORLD_DAYS)) {
+			world.add(new Chronicle.Entry(heard.day(), 0L, heard.kind(), heard.text()));
 		}
 
 		List<Filterable<Component>> pages = new ArrayList<>();

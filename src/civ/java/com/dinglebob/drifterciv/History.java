@@ -31,8 +31,16 @@ import net.minecraft.util.RandomSource;
  * all, days before day 1. Towns are made to match ({@link WorldPlan#made}).
  *
  * <p>W7: after day 1 the powers none of whose towns are made yet go on the same way, a step each game day (their news in
- * the chronicle); a town made later is made as its summary has it then. A power with a town made lives by the towns'
- * own diplomacy from then on.
+ * the chronicle); a town made later is made as its summary has it then.
+ *
+ * <p>A10 part 1 (0.23.43; the user, 2026-11-11: the world's history never stops): it goes on for every power, towns
+ * made or not, wherever nobody's near. The ties between two powers here are the one record; the relations between
+ * their made towns mirror it ({@link WorldPlan#present}). Each day a pair is rolled for here unless a made town of
+ * either is watched (a player near: {@link #owned}): then the towns' own diplomacy rolls, and what it decides is read
+ * back into the ties. A place not made lives by its summary whatever its nation's other towns are. A made town is
+ * never where a paper battle is fought while it's watched, is never burned (taken instead: its blocks aren't touched),
+ * keeps its leader (a real Drifter), and what it loses on paper is a number kept for later ({@code paperLost}). How
+ * often things happen now is the world's pace ({@link #pace}); the written past keeps its own.
  */
 final class History {
 	/** How many days of history before day 1. */
@@ -60,6 +68,20 @@ final class History {
 	/** Something that happened: the history day, what kind (the chronicle's), the words. */
 	record Event(long day, String kind, String text) {
 	}
+
+	/** News of the present: the game day, its kind and words, and the powers it's about (for who'd hear of it). */
+	record News(long day, String kind, String text, List<UUID> powers) {
+	}
+
+	/** News kept this many days. */
+	static final int NEWS_KEPT = 30;
+	/** How much more often things happen between powers now than in the written past (the world's pace setting). */
+	double pace = 1.0;
+	/** The pairs of powers (by {@link #key}) the towns' own diplomacy rolls for this step: a made town of either watched. */
+	java.util.Set<String> owned = java.util.Set.of();
+	/** A made place with a player near: nothing's decided for it here. */
+	java.util.function.Predicate<WorldPlan.Place> watched = place -> false;
+	final List<News> news = new ArrayList<>();
 
 	private final List<WorldPlan.Place> places;
 	private final List<WorldPlan.PlannedNation> nations;
@@ -127,21 +149,23 @@ final class History {
 				continue;
 			}
 
-			if (present != null && (place.made || this.live(this.power(place)))) {
+			// (A made town's own life is its people's: nothing of it here. One not made lives by this, whatever its nation's
+			// other towns are.)
+			if (present != null && place.made) {
 				continue;
 			}
 
 			if (this.day == date[0] && place.kind.equals("city") && place.nation != null) {
 				WorldPlan.PlannedNation nation = this.nation(place.nation);
 				if (nation != null) {
-					this.tell(present, "nation", place.name + " was founded, and " + nation.name() + " with it, " + place.leader + " its first ruler");
+					this.tell(present, "nation", place.name + " was founded, and " + nation.name() + " with it, " + place.leader + " its first ruler", place.nation);
 				}
 			}
 
 			if (this.day == date[1]) {
 				place.fell = true;
 				String[] how = {"after a hard winter", "when its well ran dry", "after a sickness", "when its fields failed", "after a fire"};
-				this.tell(present, "town", place.name + " was abandoned " + how[this.random.nextInt(how.length)] + "; its people went their ways");
+				this.tell(present, "town", place.name + " was abandoned " + how[this.random.nextInt(how.length)] + "; its people went their ways", this.power(place));
 				continue;
 			}
 
@@ -153,7 +177,7 @@ final class History {
 				if (nation != null && nation.capital().equals(place.id)) {
 					String[] how = {"died", "died", "stepped down", "was voted out"};
 					this.tell(present, "nation", was + ", who had ruled " + nation.name() + " for " + (this.day - since) + " days, " + how[this.random.nextInt(
-						how.length)] + "; " + place.leader + " rules it now");
+						how.length)] + "; " + place.leader + " rules it now", place.nation);
 				}
 			}
 
@@ -168,7 +192,8 @@ final class History {
 			for (int j = i + 1; j < powers.size(); j++) {
 				UUID a = powers.get(i);
 				UUID b = powers.get(j);
-				if (present != null && (this.live(a) || this.live(b))) {
+				// (A pair with a made town watched: their towns' own diplomacy rolls for them today.)
+				if (present != null && this.owned.contains(key(a, b))) {
 					continue;
 				}
 
@@ -234,7 +259,7 @@ final class History {
 
 	/** Its seat: a nation's capital, or the town itself. */
 	@Nullable
-	private WorldPlan.Place seat(UUID power) {
+	WorldPlan.Place seat(UUID power) {
 		WorldPlan.PlannedNation nation = this.nation(power);
 		UUID id = nation != null ? nation.capital() : power;
 		for (WorldPlan.Place place : this.places) {
@@ -247,7 +272,7 @@ final class History {
 	}
 
 	@Nullable
-	private WorldPlan.PlannedNation nation(UUID id) {
+	WorldPlan.PlannedNation nation(UUID id) {
 		for (WorldPlan.PlannedNation nation : this.nations) {
 			if (nation.id().equals(id)) {
 				return nation;
@@ -268,8 +293,8 @@ final class History {
 		return seat != null ? seat.name : "?";
 	}
 
-	/** A town of it made (it lives by the towns' own diplomacy now). */
-	boolean live(UUID power) {
+	/** A place of it is made. */
+	private boolean anyMade(UUID power) {
 		for (WorldPlan.Place place : this.places) {
 			if (place.made && this.power(place).equals(power)) {
 				return true;
@@ -277,6 +302,24 @@ final class History {
 		}
 
 		return false;
+	}
+
+	/** A made place of it has a player near. */
+	private boolean anyWatched(UUID power) {
+		for (WorldPlan.Place place : this.places) {
+			if (place.made && this.power(place).equals(power) && this.watched.test(place)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** A nation formed in play, its capital a place of the plan: known here from now on. */
+	void adopt(WorldPlan.PlannedNation nation) {
+		if (this.nation(nation.id()) == null) {
+			this.nations.add(nation);
+		}
 	}
 
 	private int strength(UUID power) {
@@ -314,15 +357,17 @@ final class History {
 		}
 
 		Ties t = this.ties(a, b);
+		// (Now: as often as the world's pace has it. The written past: as it was.)
+		double p = present == null ? 1.0 : this.pace;
 		double near = Math.max(0, 1 - Math.hypot(sa.x - sb.x, sa.z - sb.z) / FAR);
 		t.standing += 0.03 * (sa.warmth + sb.warmth - 1) - 0.05 * (sa.aggression + sb.aggression - 1) - 0.02 * near + (t.peace ? 0.03 : 0)
 			+ (t.alliance ? 0.03 : 0) - (t.war ? 0.05 : 0) + this.random.nextGaussian() * 0.6;
 		// A quarrel at the border, more often the nearer they are.
-		if (!t.war && this.random.nextFloat() < 0.003 * (0.3 + near)) {
+		if (!t.war && this.random.nextFloat() < 0.003 * (0.3 + near) * p) {
 			double hurt = 6 + this.random.nextInt(14);
 			t.standing -= hurt;
 			if (hurt >= 14) {
-				this.tell(present, "diplomacy", "A quarrel at the border set " + this.name(a) + " and " + this.name(b) + " against each other");
+				this.tell(present, "diplomacy", "A quarrel at the border set " + this.name(a) + " and " + this.name(b) + " against each other", a, b);
 			}
 		}
 
@@ -332,21 +377,21 @@ final class History {
 			return;
 		}
 
-		if (!t.peace && t.standing > 25 && this.random.nextFloat() < 0.015) {
+		if (!t.peace && t.standing > 25 && this.random.nextFloat() < 0.015 * p) {
 			t.peace = true;
 			t.since = this.day;
-			this.tell(present, "diplomacy", this.name(a) + " and " + this.name(b) + " made a peace pact");
-		} else if (t.peace && !t.alliance && t.standing > 55 && this.day - t.since > 80 && this.random.nextFloat() < 0.008) {
+			this.tell(present, "diplomacy", this.name(a) + " and " + this.name(b) + " made a peace pact", a, b);
+		} else if (t.peace && !t.alliance && t.standing > 55 && this.day - t.since > 80 / p && this.random.nextFloat() < 0.008 * p) {
 			t.alliance = true;
 			t.since = this.day;
-			this.tell(present, "diplomacy", this.name(a) + " and " + this.name(b) + " became allies");
-		} else if (t.alliance && t.standing > 70 && this.random.nextFloat() < 0.004) {
+			this.tell(present, "diplomacy", this.name(a) + " and " + this.name(b) + " became allies", a, b);
+		} else if (t.alliance && t.standing > 70 && this.random.nextFloat() < 0.004 * p && !this.anyWatched(a) && !this.anyWatched(b)) {
 			this.union(a, b, present);
 		} else if (this.day >= t.truceUntil && t.standing < -35) {
 			// The more aggressive of their rulers may go to war over it.
 			UUID by = sa.aggression >= sb.aggression ? a : b;
 			double aggression = Math.max(sa.aggression, sb.aggression);
-			if (aggression > 0.55 && this.random.nextFloat() < 0.006 * aggression) {
+			if (aggression > 0.55 && this.random.nextFloat() < 0.006 * aggression * p) {
 				t.war = true;
 				t.peace = false;
 				t.alliance = false;
@@ -354,7 +399,7 @@ final class History {
 				t.startedBy = by;
 				t.standing = Math.max(LOWEST, t.standing - 15);
 				UUID other = by.equals(a) ? b : a;
-				this.tell(present, "war", this.name(by) + " declared war on " + this.name(other));
+				this.tell(present, "war", this.name(by) + " declared war on " + this.name(other), a, b);
 			}
 		}
 	}
@@ -373,7 +418,7 @@ final class History {
 			place.nation = nation.id();
 			place.conquered = false;
 			place.loyalty = 40;
-			this.tell(present, "nation", place.name + " joined " + nation.name());
+			this.tell(present, "nation", place.name + " joined " + nation.name(), a, b);
 		}
 	}
 
@@ -387,7 +432,8 @@ final class History {
 			}
 		}
 
-		if (days > 40 && this.random.nextFloat() < 0.004 + (days - 40) / 20000.0) {
+		double p = present == null ? 1.0 : this.pace;
+		if (days > 40 / p && this.random.nextFloat() < (0.004 + (days - 40 / p) / 20000.0) * p) {
 			this.peace(a, b, t, present, "after " + days + " days of war");
 		}
 	}
@@ -396,9 +442,9 @@ final class History {
 		t.war = false;
 		t.peace = true;
 		t.since = this.day;
-		t.truceUntil = this.day + 200;
+		t.truceUntil = this.day + (long)(200 / (present == null ? 1.0 : this.pace));
 		t.standing = Math.max(t.standing, -20);
-		this.tell(present, "war", this.name(a) + " and " + this.name(b) + " made peace " + how);
+		this.tell(present, "war", this.name(a) + " and " + this.name(b) + " made peace " + how, a, b);
 	}
 
 	private void battle(UUID a, UUID b, Ties t, @Nullable MinecraftServer present) {
@@ -412,21 +458,35 @@ final class History {
 		double sb = Math.max(1, this.strength(b));
 		int lostA = (int)Math.round(this.random.nextDouble() * 4 * sb / (sa + sb));
 		int lostB = (int)Math.round(this.random.nextDouble() * 4 * sa / (sa + sb));
+		lostA = (int)Math.min(lostA, fa.people);
+		lostB = (int)Math.min(lostB, fb.people);
 		fa.people = Math.max(0, fa.people - lostA);
 		fb.people = Math.max(0, fb.people - lostB);
+		// (A made town's dead on paper: a number for now; who they were is for when its people live by the summary.)
+		if (fa.made) {
+			fa.paperLost += lostA;
+		}
+
+		if (fb.made) {
+			fb.paperLost += lostB;
+		}
+
 		t.dead += lostA + lostB;
 		WorldPlan.Place where = lostA >= lostB ? fa : fb;
 		if (lostA + lostB >= 4 || lostA + lostB > 0 && this.random.nextFloat() < 0.3) {
 			String dead = lostA > 0 && lostB > 0 ? lostA + " of " + this.name(a) + "'s people and " + lostB + " of " + this.name(b) + "'s"
 				: lostA > 0 ? lostA + " of " + this.name(a) + "'s people" : lostB + " of " + this.name(b) + "'s people";
-			this.tell(present, "war", dead + " died fighting near " + where.name);
+			this.tell(present, "war", dead + " died fighting near " + where.name, a, b);
 		}
 
 		if (this.random.nextFloat() < 0.02) {
 			WorldPlan.Place fallen = this.random.nextBoolean() ? fa : fb;
-			String was = fallen.leader;
-			this.newLeader(fallen, this.day);
-			this.tell(present, "war", was + ", leader of " + fallen.name + ", fell in the fighting; " + fallen.leader + " leads it now");
+			// (A made town's leader is one of its people: not changed on paper.)
+			if (!fallen.made) {
+				String was = fallen.leader;
+				this.newLeader(fallen, this.day);
+				this.tell(present, "war", was + ", leader of " + fallen.name + ", fell in the fighting; " + fallen.leader + " leads it now", a, b);
+			}
 		}
 
 		// The side that lost more: its frontier town may be lost.
@@ -443,8 +503,9 @@ final class History {
 		WorldPlan.PlannedNation lost = this.nation(loser);
 		WorldPlan.Place seat = this.seat(loser);
 		if (seat == town) {
-			// Its seat: a nation conquered whole, now and then, by one much stronger.
-			if (won != null && lost != null && ratio > 2 && this.random.nextFloat() < 0.3) {
+			// Its seat: a nation conquered whole, now and then, by one much stronger. (One with towns made: more seldom, and
+			// never with a player in any of them.)
+			if (won != null && lost != null && ratio > 2 && this.random.nextFloat() < (this.anyMade(loser) ? 0.1 : 0.3) && !this.anyWatched(loser)) {
 				for (WorldPlan.Place place : this.of(loser)) {
 					place.nation = won.id();
 					place.conquered = true;
@@ -452,21 +513,26 @@ final class History {
 				}
 
 				this.nations.remove(lost);
-				this.tell(present, "war", won.name() + " conquered " + lost.name() + ": its towns are " + won.name() + "'s now");
+				this.tell(present, "war", won.name() + " conquered " + lost.name() + ": its towns are " + won.name() + "'s now", a, b);
 				t.war = false;
 			}
 
 			return;
 		}
 
-		if (won != null && this.random.nextFloat() < 0.6) {
+		// (A made town is taken, never burned: its blocks aren't touched. By a town in no nation: it holds.)
+		if (town.made && won == null) {
+			return;
+		}
+
+		if (won != null && (town.made || this.random.nextFloat() < 0.6)) {
 			town.nation = won.id();
 			town.conquered = true;
 			town.loyalty = -10;
-			this.tell(present, "war", won.name() + " took " + town.name + " from " + this.name(loser));
+			this.tell(present, "war", won.name() + " took " + town.name + " from " + this.name(loser), a, b);
 		} else {
 			town.fell = true;
-			this.tell(present, "war", town.name + " was burned in the war between " + this.name(a) + " and " + this.name(b) + "; its people scattered");
+			this.tell(present, "war", town.name + " was burned in the war between " + this.name(a) + " and " + this.name(b) + "; its people scattered", a, b);
 		}
 
 		if (this.random.nextFloat() < 0.5) {
@@ -481,6 +547,11 @@ final class History {
 		double bestDistance = Double.MAX_VALUE;
 		List<WorldPlan.Place> theirs = this.of(enemy);
 		for (WorldPlan.Place mine : this.of(power)) {
+			// (Not where a player is: what happens there is what really happens.)
+			if (mine.made && this.watched.test(mine)) {
+				continue;
+			}
+
 			for (WorldPlan.Place their : theirs) {
 				double d = Math.hypot(mine.x - their.x, mine.z - their.z);
 				if (d < bestDistance) {
@@ -503,8 +574,9 @@ final class History {
 			}
 		}
 
-		place.loyalty += atWar ? -0.08 : -0.02;
-		if (place.loyalty > -40 || place.ambition < 0.55 || this.random.nextFloat() > 0.004) {
+		double p = present == null ? 1.0 : this.pace;
+		place.loyalty += (atWar ? -0.08 : -0.02) * p;
+		if (place.loyalty > -40 || place.ambition < 0.55 || this.random.nextFloat() > 0.004 * p) {
 			return;
 		}
 
@@ -517,17 +589,23 @@ final class History {
 			t.since = this.day;
 			t.startedBy = place.id;
 			t.standing = -60;
-			this.tell(present, "war", place.name + " rose against " + was);
+			this.tell(present, "war", place.name + " rose against " + was, place.id, nation);
 		} else {
 			t.standing = -30;
 			t.truceUntil = this.day + 150;
-			this.tell(present, "nation", place.name + " won its freedom from " + was);
+			this.tell(present, "nation", place.name + " won its freedom from " + was, place.id, nation);
 		}
 	}
 
-	private void tell(@Nullable MinecraftServer present, String kind, String text) {
+	/** What the chronicle's lines of the present begin with (left out of the morning's chat; a town's gazette picks). */
+	static final String AFAR = "News from afar: ";
+
+	private void tell(@Nullable MinecraftServer present, String kind, String text, UUID... powers) {
 		if (present != null) {
-			Chronicle.add(present, kind, "News from afar: " + text);
+			Chronicle.add(present, kind, AFAR + text);
+			long today = Chronicle.day(present);
+			this.news.add(new News(today, kind, text, List.of(powers)));
+			this.news.removeIf(old -> today - old.day() > NEWS_KEPT);
 		} else {
 			this.events.add(new Event(this.day, kind, text));
 		}
@@ -590,6 +668,22 @@ final class History {
 		}
 
 		tag.put("Dates", dates);
+		ListTag told = new ListTag();
+		for (News one : this.news) {
+			CompoundTag item = new CompoundTag();
+			item.putLong("Day", one.day());
+			item.putString("Kind", one.kind());
+			item.putString("Text", one.text());
+			ListTag powers = new ListTag();
+			for (UUID power : one.powers()) {
+				powers.add(net.minecraft.nbt.NbtUtils.createUUID(power));
+			}
+
+			item.put("Powers", powers);
+			told.add(item);
+		}
+
+		tag.put("News", told);
 	}
 
 	void load(CompoundTag tag) {
@@ -613,6 +707,17 @@ final class History {
 		for (Tag t : tag.getList("Dates", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
 			this.dates.put(one.getUUID("Place"), one.getLongArray("Dates"));
+		}
+
+		this.news.clear();
+		for (Tag t : tag.getList("News", Tag.TAG_COMPOUND)) {
+			CompoundTag one = (CompoundTag)t;
+			List<UUID> powers = new ArrayList<>();
+			for (Tag power : one.getList("Powers", Tag.TAG_INT_ARRAY)) {
+				powers.add(net.minecraft.nbt.NbtUtils.loadUUID(power));
+			}
+
+			this.news.add(new News(one.getLong("Day"), one.getString("Kind"), one.getString("Text"), powers));
 		}
 	}
 }

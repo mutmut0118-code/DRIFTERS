@@ -90,6 +90,19 @@ public final class CivConfig {
 	private static final class Data {
 		int version = 1;
 		Friends friends = new Friends();
+		/** How lively the world is where nobody's near (A10 part 1): 0 quiet (as its written past), 1 normal, 2 lively. */
+		int worldPace = 1;
+	}
+
+	public static final String[] WORLD_PACES = {"Quiet", "Normal", "Lively"};
+
+	public static int worldPace() {
+		return Math.max(0, Math.min(WORLD_PACES.length - 1, data.worldPace));
+	}
+
+	public static void setWorldPace(int pace) {
+		data.worldPace = Math.max(0, Math.min(WORLD_PACES.length - 1, pace));
+		save();
 	}
 
 	private static Data data = new Data();
