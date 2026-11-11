@@ -3450,3 +3450,10 @@ blocks tall (tall grass, sunflowers, doors, Thai Delight's lime, any mod's), the
       instead (that one was only a few minutes old).
 
 Test command: `/drifterciv town halves [radius]` (radius 4 to 160 blocks across, 32 up and down; 64 if left out).
+
+## Side session: 200,000 skins (new, 0.23.39-side.1)
+
+- [ ] **More different faces.** Make a new world and spawn a crowd: `/drifter spawnmany 40`. Give it a minute: they should
+      wear real players' skins, with hardly ever the same one twice.
+- [ ] **No slower to start.** The world loads as quickly as before. (The game's log says "Loaded 200000 accounts for Drifter
+      skins in ... ms": about a third of a second on the test server.)
