@@ -1,0 +1,141 @@
+# 0.23.39: town and road building no longer leaves tall plants' tops floating (Thai Delight's lime crashed the game on one).
+# python tools/smoke.py . tools/smoke-halves.txt build/smoke-halves.log   (fresh world: seed 779, Tectonic + Terrain Slabs in run/mods)
+# Sunflower, tall grass and large fern patches every 15 blocks over a town site, a town built over them, then floating tops counted.
+# Expect: "No floating plant tops" after the town (before 0.23.39 the same run counts some).
+# Fresh world: the forceload generates 169 chunks in one tick, so set max-tick-time=-1 in run/server.properties first.
+until Done_( 900
+until places_( 900
+wait 5
+drifter thoughts log false
+gamerule doMobSpawning false
+difficulty peaceful
+forceload add -1488 2302 -1296 2494
+wait 30
+execute positioned -1392 100 2398 run drifterciv town halves 96
+execute positioned -1467 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1452 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1437 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1422 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1407 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1392 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1377 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1362 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1347 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1332 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1317 100 2323 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1467 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1452 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1437 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1422 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1407 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1392 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1377 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1362 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1347 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1332 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1317 100 2338 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1467 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1452 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1437 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1422 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1407 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1392 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1377 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1362 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1347 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1332 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1317 100 2353 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1467 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1452 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1437 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1422 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1407 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1392 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1377 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1362 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1347 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1332 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1317 100 2368 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1467 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1452 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1437 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1422 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1407 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1392 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1377 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1362 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1347 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1332 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1317 100 2383 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1467 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1452 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1437 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1422 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1407 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1392 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1377 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1362 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1347 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1332 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1317 100 2398 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1467 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1452 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1437 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1422 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1407 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1392 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1377 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1362 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1347 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1332 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1317 100 2413 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1467 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1452 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1437 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1422 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1407 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1392 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1377 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1362 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1347 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1332 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1317 100 2428 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1467 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1452 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1437 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1422 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1407 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1392 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1377 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1362 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1347 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1332 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1317 100 2443 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1467 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1452 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1437 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1422 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1407 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1392 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1377 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1362 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1347 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1332 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1317 100 2458 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1467 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1452 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1437 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1422 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1407 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1392 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1377 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1362 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1347 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_large_fern
+execute positioned -1332 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_tall_grass
+execute positioned -1317 100 2473 positioned over motion_blocking_no_leaves run place feature minecraft:patch_sunflower
+execute positioned -1392 100 2398 run drifterciv town halves 96
+execute positioned -1392 100 2398 positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Halfton
+wait 40
+execute positioned -1392 100 2398 run drifterciv town halves 96
+wait 3
+stop

@@ -1056,6 +1056,11 @@ public final class DrifterCivilizations implements ModInitializer {
 						+ pantries + " kitchen cabinets, " + (pantries == 0 ? 0 : foods / pantries) + " kinds of ingredient each"), false);
 					return all;
 				}))
+				// Repair: tops of tall plants (and doors) floating with no foot under them near here, taken off (town and road
+				// building before 0.23.39 left them; Thai Delight's lime crashed the game on one).
+				.then(Commands.literal("halves").requires(source -> source.hasPermission(2)).executes(ctx -> strayHalves(ctx, 64))
+					.then(Commands.argument("radius", IntegerArgumentType.integer(4, 160)).executes(ctx -> strayHalves(ctx, IntegerArgumentType.getInteger(ctx,
+						"radius")))))
 				// Debug: the nearest town seen from above, saved as a picture in the server's town-maps folder.
 				.then(Commands.literal("map").requires(source -> source.hasPermission(2)).executes(ctx -> townMap(ctx, 0))
 					.then(Commands.argument("radius", IntegerArgumentType.integer(16, 1024)).executes(ctx -> townMap(ctx, IntegerArgumentType.getInteger(ctx,
@@ -1146,6 +1151,15 @@ public final class DrifterCivilizations implements ModInitializer {
 	}
 
 	/** Debug: the nearest town (or, with a radius, the land round here) from above, as a picture in the server's town-maps folder. */
+	private static int strayHalves(CommandContext<CommandSourceStack> ctx, int radius) {
+		long start = System.nanoTime();
+		int found = TownBuilder.strayHalves(ctx.getSource().getLevel(), BlockPos.containing(ctx.getSource().getPosition()), radius);
+		DrifterCivilizations.LOGGER.info("[town] floating plant tops within {}: {} taken off in {} ms", radius, found, (System.nanoTime() - start) / 1_000_000);
+		ctx.getSource().sendSuccess(() -> Component.literal(found == 0 ? "No floating plant tops within " + radius + " blocks."
+			: "Took off " + found + " floating plant top" + (found == 1 ? "" : "s") + " within " + radius + " blocks."), true);
+		return found;
+	}
+
 	private static int townMap(CommandContext<CommandSourceStack> ctx, int radius) {
 		var source = ctx.getSource();
 		Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
