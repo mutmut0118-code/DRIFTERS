@@ -30,6 +30,13 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 				}
 			}
 
+			// (Asked who they are and not answered: the menu comes back if something closed it; they're held until they say.)
+			if (asked != null && client.level == null) {
+				asked = null;
+			} else if (asked != null && client.screen == null) {
+				client.setScreen(new WhoScreen(asked, asked.building() ? lastProgress : null));
+			}
+
 			tourTick(client);
 		});
 		ClientPlayNetworking.registerGlobalReceiver(Journal.Book.TYPE, (book, context) -> {
@@ -75,6 +82,7 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		// "Who are you?": asked as they first enter a world (it can't be closed), or to change their name from the journal.
 		ClientPlayNetworking.registerGlobalReceiver(Citizens.Menu.TYPE, (menu, context) -> {
 			var client = context.client();
+			asked = menu.first() ? menu : asked;
 			if (client.screen instanceof WhoScreen who && who.first() == menu.first()) {
 				who.update(menu);
 			} else {
@@ -87,6 +95,7 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 				if (!answer.ok()) {
 					who.refused(answer.why());
 				} else {
+					asked = null;
 					// (A world still being built: on to its loading screen, the world not shown between.)
 					client.setScreen(who.first() && who.progress() != null ? new WorldBuildScreen(who.progress()) : null);
 				}
@@ -95,7 +104,25 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		// Debug only: DRIFTER_CIV_SCREEN set, the Friendship settings page opens once a world's been open a while (a client
 		// test screenshots it; the test harness can't click through Mod Menu).
 		String debug = System.getenv("DRIFTER_CIV_SCREEN");
-		if (debug != null && debug.startsWith("who")) {
+		if (debug != null && debug.startsWith("whochange")) {
+			// Debug only: DRIFTER_CIV_SCREEN=whochange@<ticks>:<name>: that long after a world opens, the change of name is
+			// asked for as from the journal; the name's typed, a shot taken (screenshots/who_change.png), and Done pressed.
+			String[] parts = debug.substring(debug.indexOf('@') + 1).split(":");
+			int[] ticks = {0};
+			try {
+				int at = Integer.parseInt(parts[0]);
+				WhoScreen.debugName = parts.length < 2 ? "" : parts[1];
+				net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
+					if (client.level != null && ticks[0] >= 0 && ++ticks[0] == at && ClientPlayNetworking.canSend(Citizens.Change.TYPE)) {
+						WhoScreen.debugAt = 20;
+						ClientPlayNetworking.send(new Citizens.Change());
+						ticks[0] = -1;
+					}
+				});
+			} catch (NumberFormatException e) {
+				WhoScreen.debugAt = -1;
+			}
+		} else if (debug != null && debug.startsWith("who")) {
 			// Debug only: DRIFTER_CIV_SCREEN=who@<ticks>:<card or none>[:<name>]: that long after "Who are you?" opens, that
 			// card's picked (and the name typed), a shot taken (screenshots/who_<card>.png), and Begin pressed.
 			String[] parts = debug.substring(debug.indexOf('@') + 1).split(":");
@@ -132,6 +159,8 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 
 	/** How the world's build was going as last told (for the menu opened over it). */
 	private static WorldBuild.Progress lastProgress;
+	/** The first-time menu as last sent, until it's answered. */
+	private static Citizens.Menu asked;
 	private static Journal.Book tourBook;
 	private static int tourShot;
 

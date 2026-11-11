@@ -157,7 +157,7 @@ final class WhoScreen extends Screen {
 		super.tick();
 		// (A nation, or none, picked first; none to pick from: straight on.)
 		this.begin.active = !this.sent && (!this.nations() || !this.menu.drawing() && this.picked >= 0);
-		if (debugAt >= 0 && this.menu.first() && !this.menu.drawing() && this.minecraft != null) {
+		if (debugAt >= 0 && !this.menu.drawing() && this.minecraft != null) {
 			this.open++;
 			if (this.open == debugAt) {
 				if (!debugName.isEmpty()) {
@@ -166,7 +166,7 @@ final class WhoScreen extends Screen {
 
 				this.picked = Math.min(debugCard < 0 ? this.cards() - 1 : debugCard, this.cards() - 1);
 			} else if (this.open == debugAt + 10) {
-				net.minecraft.client.Screenshot.grab(this.minecraft.gameDirectory, "who_" + (debugCard < 0 ? "none" : debugCard) + ".png",
+				net.minecraft.client.Screenshot.grab(this.minecraft.gameDirectory, "who_" + (!this.menu.first() ? "change" : debugCard < 0 ? "none" : debugCard) + ".png",
 					this.minecraft.getMainRenderTarget(), message -> {
 					});
 			} else if (this.open == debugAt + 20) {

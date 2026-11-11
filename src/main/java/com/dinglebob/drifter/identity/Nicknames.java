@@ -308,7 +308,8 @@ public final class Nicknames {
 	// ---------------------------------------------------------------------------------------------
 
 	private static Set<String> people = Set.of();
-	private static long peopleAt = Long.MIN_VALUE;
+	// (Not Long.MIN_VALUE: "now - peopleAt" overflowed, and the list was never made: only names it knew were people.)
+	private static long peopleAt = -100L;
 	private static final long PEOPLE_EVERY = 100L;
 
 	/** Someone's username: a player online, a loaded Drifter, or someone it knows of. */

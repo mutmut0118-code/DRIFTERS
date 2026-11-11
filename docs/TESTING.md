@@ -3506,3 +3506,34 @@ Off by default. Turn it on in Mod Menu (Drifter's settings, the "Spawning" page,
       "scroll down for more" at the bottom. (I couldn't test a list this long myself.)
 - [ ] **As text.** `/drifterciv journal` prints the same in chat.
 
+
+## 0.23.42: "Who are you?", the menu as a new world starts (new)
+
+- [ ] **A new world.** Create a new world (both mods in). The game's own loading screen (the square map and a
+      percentage) stays up longer than before, up to about a minute: the nations are being planned behind it. Then a
+      menu opens straight away: **Who are you?**
+- [ ] **The menu.** On the left: a name box, a Pronouns button (click to go through they, he, she), and your skin. On
+      the right: the world's nations, each with its banner, what its people are like, how big it is, who it's at war or
+      allied with, and a line of its past; "No nation" is last (scroll with the mouse wheel). Along the bottom the towns
+      are being built ("Building towns (2 of 6)"). Esc doesn't close it. Tell me anything that looks off.
+- [ ] **Begin as a citizen.** Type a name, click a nation, press **Begin** (or Enter). The usual building screen follows,
+      then you're standing in one of that nation's ordinary towns (not its capital: that's for you to find). Someone
+      near says hello by the name you typed ("Mira! one of our own").
+- [ ] **Your journal.** Press **J**: the left page has your chosen name at the top, then "Citizen of <nation>" and "From
+      <town>". Under **Towns** your home town is "welcome", and its page says "Your home town."
+- [ ] **Welcome at home, wary abroad.** Walk into another town of your nation: you're welcome there too. A town of a
+      nation at war with yours is "wary" of you. Break the law at home (`/drifterciv town crime theft`) and you lose the
+      welcome like anyone.
+- [ ] **No nation.** New world again, pick **No nation**, Begin: you start on the road by a town as before, and the
+      journal says "Of no nation".
+- [ ] **Leave the name empty.** Drifters call you by your Minecraft name, as before.
+- [ ] **A bad name.** Two letters, or a name with `!` in it: the menu says why in red and stays open.
+- [ ] **Change it later.** In the journal, click your name at the top of the left page: the same menu without the
+      nations. Change the name or pronouns, press **Done**. The nation can't be changed.
+- [ ] **A world you already have.** Open an older world: the menu comes up once, over the dark menu background (you can't
+      be hurt while it's open). You aren't moved. Picking a nation there gives you its welcome and a "From <town>" line.
+      A world with no nations only asks for a name and pronouns.
+- [ ] **Pronouns.** Pick he or she, then annoy a town until it's wary of you: people there say things like "keep an eye
+      on him". (Few lines use pronouns yet: the chronicle and quests will.)
+- [ ] **Check who you are.** `/drifterciv who` says it in chat. (Testing only: `/drifterciv who again` asks you again as
+      if you were new.)

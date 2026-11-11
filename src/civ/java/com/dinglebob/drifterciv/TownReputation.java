@@ -109,7 +109,8 @@ final class TownReputation {
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			Standing standing = standing(server, town, player.getUUID());
 			mine.put(player.getUUID(), standing);
-			boolean here = player.level().dimension().location().toString().equals(town.dimension)
+			// (Not while the world's built before it's played: they can't see or hear yet.)
+			boolean here = !WorldBuild.building && player.level().dimension().location().toString().equals(town.dimension)
 				&& Math.hypot(player.getX() - town.center.getX(), player.getZ() - town.center.getZ()) < town.land();
 			if (here && inside.add(player.getUUID())) {
 				arrived(server, town, player, standing);

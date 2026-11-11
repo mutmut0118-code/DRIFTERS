@@ -285,6 +285,20 @@ feature. Each hook is one listener, a no-op until the addon sets it.
 `DrifterApi.bounty(playerId)` reads it: a `PlayerBounty(issuer, reason)` or null. For showing a player their own (the
 addon's journal), never for a Drifter to know.
 
+## What a player is called (API 8)
+
+`DrifterApi.callPlayer(playerId, minecraftName, name, pronouns)` tells Drifter what a player chose to be called and their
+pronouns (`"they"`, `"he"`, `"she"`). Drifters then say that name, as typed, wherever they'd say the nickname of the
+player's Minecraft name, and chat lines about a player may use `{they} {them} {their} {theirs} {themself} {theyre}
+{theyve}` (and `{They}`...), filled from the player given as `{player}`. An empty name means their Minecraft name.
+Drifter doesn't save it: tell it again each time the server starts. Nothing told: the Minecraft name and "they", as
+before. `DrifterApi.pronouns(line, playerId)` fills the same words in a line of the addon's own.
+
+`DrifterApi.waitOnServerThread(server, done, mostMillis, each)`: the server thread waits until `done`, running what
+background threads hand back with `onServerThread` meanwhile and `each` every few milliseconds. For work that must be
+finished before a world's first tick (the addon's world plan in single player: the game's own loading screen stays up
+over it). The server's own task queue runs nothing before the first tick, so a plain wait there would never end.
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

@@ -539,7 +539,7 @@ public final class Citizens {
 				lines.add(past);
 			}
 
-			cards.add(new Card(nation.id.toString(), nation.name, nation.colour.getId(), lines));
+			cards.add(new Card(nation.id.toString(), Character.toUpperCase(nation.name.charAt(0)) + nation.name.substring(1), nation.colour.getId(), lines));
 		}
 
 		return cards;
@@ -608,7 +608,16 @@ public final class Citizens {
 			}
 		}
 
-		return best == null ? null : "Its past: " + best + (best.endsWith(".") ? "" : ".");
+		if (best == null) {
+			return null;
+		}
+
+		// (A founding is told short: where, not who.)
+		if (best.contains(" was founded") && best.contains(",")) {
+			best = best.substring(0, best.indexOf(','));
+		}
+
+		return "Its past: " + best + (best.endsWith(".") ? "" : ".");
 	}
 
 	private static String list(List<String> names) {
