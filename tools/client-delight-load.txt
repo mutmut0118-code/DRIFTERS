@@ -1,0 +1,13 @@
+# Client load check for the Delight addons. Run with Thai's too (it cannot load on a dedicated server):
+#   DRIFTER_DELIGHT=1 DRIFTER_THAI=1 DRIFTER_CLIENT_TEST=tools/client-delight-load.txt ./gradlew runClient --args="--quickPlaySingleplayer <existing world>"
+# (run/ needs options.txt and the world in run/saves/<name>). `wait` is game ticks; `cmd` runs as the server console.
+wait 200
+cmd execute as @p at @p run drifter spawn Alice
+wait 100
+cmd drifter plan moredelight:mashed_potatoes
+cmd drifter plan oceansdelight:squid_rings
+cmd drifter plan muffins_thaidelight:pesto_sauce
+cmd drifter plan cratedelight:carrot_crate
+cmd drifter plan storagedelight:oak_drawer
+wait 60
+quit

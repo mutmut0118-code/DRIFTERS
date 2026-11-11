@@ -103,6 +103,9 @@ dependencies {
 	// Thai's Delight 2.0.0 touches a client-only class in its common init (ThaiDelightFabric.onInitialize, line 97:
 	// NoClassDefFoundError net.minecraft.client.multiplayer.ClientLevel), so it cannot load on a dedicated server (runServer,
 	// the smoke tests). It loads on runClient: add it there with DRIFTER_THAI=1 (or -Pthai) together with DRIFTER_DELIGHT=1.
+	if (!delight && (project.hasProperty("thai") || System.getenv("DRIFTER_THAI") == "1")) {
+		logger.warn("DRIFTER_THAI / -Pthai is set without DRIFTER_DELIGHT=1 / -Pdelight: Thai's Delight is NOT loaded.")
+	}
 	if (delight && (project.hasProperty("thai") || System.getenv("DRIFTER_THAI") == "1")) {
 		modLocalRuntime "maven.modrinth:muffins-thais-delight:${project.thais_delight_version}"
 		modLocalRuntime "maven.modrinth:muffins-oven-api:${project.muffins_oven_api_version}"

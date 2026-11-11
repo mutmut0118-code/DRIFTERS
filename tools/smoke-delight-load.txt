@@ -4,6 +4,7 @@ drifter spawn Alice
 wait 3
 drifter plan moredelight:mashed_potatoes
 drifter plan oceansdelight:squid_rings
+# Thai's Delight cannot load on a dedicated server, so the next line prints "No such item" headless, by design (tools/client-delight-load.txt checks it).
 drifter plan muffins_thaidelight:pesto_sauce
 drifter plan cratedelight:carrot_crate
 drifter plan storagedelight:oak_drawer
