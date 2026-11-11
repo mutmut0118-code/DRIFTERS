@@ -3378,6 +3378,32 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.40: night life in towns; Drifters no longer stuck in pens; nobody left lying in bed "walking"** (the user,
+  2026-11-11: "at night the town is really empty, especially in a city where its brightly lit and no mobs spawn, would be
+  nice if some bustling night life happened with a few drifters going to sleep"; then, watching a test, "drifters are
+  getting stuck in the pen", "it looks drifters are trying to jump over the pen like its a normal block"). Merged the
+  real-usernames side (0.23.39-side.2) first.
+  - **Night life** (`TownWork.bedtime`, `TownDay.bedtime`, `Schedule.NightStyle.TOWN`, `Schedule.outInTown`,
+    `social.NightOutGoal`): each night a share of a town's people stay out, by chance and by who they are (the sociable,
+    fidgety, curious and night owls more, the careful and hard-working less; not the same ones every night): a city about
+    half (as keen as most), the keenest past midnight; a town about a quarter, till nine or ten; a hamlet a few. Nobody in
+    rain or a storm, with the alarm on; not its guards (their rounds) or crooks; not down a mine (one there comes up as ever,
+    then goes out); not one hurt, hungry or shaken; not once in bed. Out, it goes where people gather (the fire, the plaza,
+    the well, the stall), stays about there talking with whoever's out, strolls on now and then; at its bedtime, home to
+    bed. Its work and trips out (a mining trip with a friend most of all) count for less while it's out.
+  - **Stuck in the pen** (`NavigateTask.feet`, `NavView`): (1) standing against a fence, in its square but not on it, its
+    routes were planned from on top of the fence ("jump up" onto it, over and over): the open square it stands in most now;
+    (2) its pen's floor unseen was guessed from the fence tops (a block too high): fences, walls and gates aren't ground in a
+    guess now; (3) its own town's ground near its own height counts as seen for its routes (it knows the lie of its town;
+    only for routes); (4) it knows what's within two blocks of it every second (was one). At low detail (no survival player
+    near: the test's spectator) two put in a pen hopped at its fence and stayed there; after, both were out in seconds.
+  - **Lying in bed "walking"** (`Brain.tick`): saved asleep, loaded with something else to do, a townsperson lay in its bed
+    all night, its steps going nowhere. In bed with no sleep of its own going on, it gets up.
+  - Debug: `drifterciv town night` (who of the nearest town is out tonight, till when), `drifterciv town pendump`.
+  - Tested (dev client, Pinebury, a town of 20): out tonight 5, 6, 7 of 20 on three nights; at dusk those out went out
+    ("out on the plaza for the evening (bed about 20:56)") and home to bed at their bedtimes. Headless, a big town of 67: 6
+    of 15 out, 4 at the well and the stall, home between 19:46 and 22:14.
+
 - **0.23.0: A1 + A2 + A11's site choice (towns where villages were, made a step at a time, on the flattest ground).**
   - Villages replaced (setting "Towns replace villages", on; new chunks only): Drifter's hook `DrifterApi.setTownsForVillages`
     (the addon sets it); Drifter's mixins give anything tagged #minecraft:village no placements (`ChunkGeneratorStructureState`)

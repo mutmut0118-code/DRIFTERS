@@ -3470,3 +3470,14 @@ Off by default. Turn it on in Mod Menu (Drifter's settings, the "Spawning" page,
       that skin and that name.
 - [ ] **In a town.** With it on, make a new world with towns. The name on a house's sign is the name over its owner's head.
 - [ ] **Off again.** `/drifter config realnames false`: new Drifters get made-up names again; the ones already named keep theirs.
+
+## 0.23.40: night life, pens (new)
+
+- [ ] **A city at night.** After dark, about half a city's people are out by the fire, the plaza, the well and the stall,
+      talking; they go home to bed one by one, a few past midnight. A town: about a quarter, till nine or ten; a hamlet a
+      few. Nobody out in the rain or with the alarm ringing. `/drifterciv town night` (standing in a town) says who's out
+      tonight and till when.
+- [ ] **No one stuck in a pen.** Townspeople who go in to see to the animals walk out through the gate, not hopping at the
+      fence.
+- [ ] **No one lying in bed "walking".** After loading a world at night, nobody lies in their bed while trying to go
+      somewhere.

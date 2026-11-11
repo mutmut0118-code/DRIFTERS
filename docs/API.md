@@ -164,6 +164,9 @@ timid stands and fights as at war.
 its people who aren't cowards (`DrifterApi.timid`: Bravery under 0.3, no guard) go for them wherever they see them.
 `DrifterApi.markBuilt(level, pos)`: a block of a build (a town mine's stairs): not dug for stone nor tunnelled through.
 
+0.23.40: `TownWork.bedtime(drifter)`: tonight's time of day it goes in at (its town keeps it up: night life), or -1.
+`DrifterApi.outInTown(drifter)`: out in its town tonight still.
+
 0.23.38: `DrifterApi.onServerThread(server, task)`: work a background thread hands back, run on the server thread's next
 turn, dropped if the server's stopping (use it, not `server.execute`, from any background thread).
 
