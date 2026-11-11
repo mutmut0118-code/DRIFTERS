@@ -55,7 +55,7 @@ import net.minecraft.util.RandomSource;
  *   <li>the user's own list (config/drifter/skins.txt: names or UUIDs, a friend's, a favourite player's), each one
  *   on one Drifter at a time;</li>
  *   <li>the account with its own name, if there is one (as a real player would look);</li>
- *   <li>a real player picked at random from the bundled list (20,000 UUIDs from the user's list of public accounts;
+ *   <li>a real player picked at random from the bundled list (200,000 UUIDs from the user's list of public accounts;
  *   datapacks can add more under drifter_skins/).</li>
  * </ol>
  * The server asks Mojang (the same lookups a server makes for player heads) and the answer is saved with the Drifter.
@@ -179,6 +179,7 @@ public final class RealSkins {
 	// ----- The lists -----
 
 	private static void loadBundled(ResourceManager manager) {
+		long started = System.nanoTime();
 		List<String> all = new ArrayList<>();
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".txt")).entrySet()) {
 			try (BufferedReader reader = file.getValue().openAsReader()) {
@@ -191,7 +192,7 @@ public final class RealSkins {
 		bundled = List.copyOf(all);
 		bundledSet = Set.copyOf(all.stream().map(RealSkins::key).toList());
 		rebuildPool();
-		Drifter.LOGGER.info("Loaded {} accounts for Drifter skins", bundled.size());
+		Drifter.LOGGER.info("Loaded {} accounts for Drifter skins in {} ms", bundled.size(), (System.nanoTime() - started) / 1_000_000L);
 	}
 
 	public static Path userFile() {
@@ -786,11 +787,30 @@ public final class RealSkins {
 		return new UUID(Long.parseUnsignedLong(hex.substring(0, 16), 16), Long.parseUnsignedLong(hex.substring(16), 16));
 	}
 
-	/** A skin on it now: the account is taken. */
+	/** A skin on it now: the account is taken (and, with the experimental setting, so is its username). */
 	private static void apply(DrifterEntity drifter, Found found) {
 		WORN.add(key(found.name()));
 		WORN.add(key(found.id()));
 		drifter.setRealSkin(found);
+		if (DrifterConfig.realNames()) {
+			drifter.takeAccountName(found.name());
+		}
+	}
+
+	/**
+	 * Experimental real usernames: a Drifter just made takes a ready skin at once, so it has its real name before anything
+	 * writes the name down (a house's sign, the town's history). Waits its turn if the user's own list has someone free, and
+	 * with the pool dry it gets its skin (and name) a little later, the usual way.
+	 */
+	public static void atOnce(DrifterEntity drifter) {
+		if (!DrifterConfig.realNames() || !DrifterConfig.realSkins() || userList.stream().anyMatch(account -> !WORN.contains(key(account)))) {
+			return;
+		}
+
+		Found ready = takeReady();
+		if (ready != null) {
+			apply(drifter, ready);
+		}
 	}
 
 	private static void finish(MinecraftServer server, Request request, Result result) {

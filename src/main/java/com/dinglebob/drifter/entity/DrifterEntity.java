@@ -149,6 +149,8 @@ public class DrifterEntity extends PathfinderMob {
 	private int keysReleaseTimer = -1;
 	/** It has its username (section 4): generated at spawn, or on first load for Drifters from before milestone 7. */
 	private boolean named;
+	/** The username the game gave it, while it still goes by it (or by a real account's: the experimental real names); a name you gave it isn't this. */
+	private String autoName = "";
 	/** The last spot it stood on dry ground (where it came from, when it's lost in water). Not saved. */
 	@org.jetbrains.annotations.Nullable
 	private BlockPos lastDryGround;
@@ -1499,6 +1501,20 @@ public class DrifterEntity extends PathfinderMob {
 		}
 	}
 
+	/**
+	 * Experimental real usernames: it goes by the account whose skin it wears, unless you named it yourself, the name is
+	 * one the name lists wouldn't allow (real accounts can be rude), or someone here already goes by it.
+	 */
+	public void takeAccountName(String account) {
+		if (this.autoName.isEmpty() || this.getServer() == null || !this.getName().getString().equals(this.autoName) || account.equals(this.autoName)
+			|| !com.dinglebob.drifter.identity.Usernames.allowed(account) || com.dinglebob.drifter.identity.Usernames.inUse(this.getServer(), account)) {
+			return;
+		}
+
+		this.autoName = account;
+		this.setCustomName(net.minecraft.network.chat.Component.literal(account));
+	}
+
 	/** No account among its names: its default skin for good (a command can still give it one). */
 	public void noRealSkin() {
 		this.realSkinState = REAL_SKIN_NONE;
@@ -1559,8 +1575,9 @@ public class DrifterEntity extends PathfinderMob {
 
 		this.named = true;
 		if (!this.hasCustomName()) {
-			this.setCustomName(net.minecraft.network.chat.Component.literal(
-				com.dinglebob.drifter.identity.Usernames.generate(this.random, this.getServer())));
+			this.autoName = com.dinglebob.drifter.identity.Usernames.generate(this.random, this.getServer());
+			this.setCustomName(net.minecraft.network.chat.Component.literal(this.autoName));
+			RealSkins.atOnce(this);
 		}
 
 		this.setCustomNameVisible(true);
@@ -3354,6 +3371,7 @@ protected void customServerAiStep() {
 		tag.put("DrifterNews", this.news.save());
 		tag.put("DrifterHeard", this.heard.save());
 		tag.putBoolean("DrifterNamed", this.named);
+		tag.putString("DrifterAutoName", this.autoName);
 		tag.putFloat("XpP", this.experienceProgress);
 		tag.putInt("XpLevel", this.experienceLevel);
 		tag.putInt("XpTotal", this.totalExperience);
@@ -3449,6 +3467,7 @@ protected void customServerAiStep() {
 
 		// Drifters saved before milestone 7 have no personality yet: they keep the one rolled at load, which is then saved.
 		this.named = tag.getBoolean("DrifterNamed");
+		this.autoName = tag.getString("DrifterAutoName");
 		if (tag.contains("DrifterSocial", Tag.TAG_COMPOUND)) {
 			this.social.load(tag.getCompound("DrifterSocial"));
 			this.bonds.load(tag.getCompound("DrifterBonds"));

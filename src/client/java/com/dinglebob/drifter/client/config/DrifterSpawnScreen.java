@@ -25,7 +25,9 @@ public class DrifterSpawnScreen extends DrifterOptionsScreen {
 		// How new Drifters look: real players' skins, downloaded like a multiplayer server's (user, 2026-10-20).
 		this.heading("Looks");
 		this.row(toggle("Real player skins", DrifterConfig.realSkins(), DrifterConfig::setRealSkins,
-			"Real players' skins, downloaded as a multiplayer server does (needs the internet; default skins without it)."), null);
+			"Real players' skins, downloaded as a multiplayer server does (needs the internet; default skins without it)."),
+			toggle("Real usernames (experimental)", DrifterConfig.realNames(), DrifterConfig::setRealNames,
+				"A Drifter that gets a real player's skin goes by that player's username instead of a made-up one. New Drifters only; a name you gave one stays."));
 	}
 
 	/** Each setting's short name here (the full one is in its tooltip), and its value in few words. */

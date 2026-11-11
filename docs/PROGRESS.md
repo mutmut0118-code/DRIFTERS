@@ -5696,3 +5696,35 @@ Farmer's Delight); the fix is generic, so its lime is covered the same way as va
 - Not done: structure templates (houses) placed over the foot of a tall plant whose top sticks out above the template's
   box could still leave a top; houses clear their space, so it hasn't been seen. Drifter's own world-gen camps don't use
   `TownBuilder.set` and weren't changed.
+
+## Side session: 200,000 skins (0.23.39-side.1)
+
+The user (2026-11-11): "lets add 180,000 more". `data/drifter/drifter_skins/players.txt` goes from 20,000 to 200,000 UUIDs:
+the old 20,000 kept, 180,000 more drawn at random from the same list (`Downloads/uuid_list.txt`, 6,749,939 accounts), none
+repeated (checked: 200,000 lines, 200,000 different). 6.8 MB of text. How skins are picked hasn't changed, so Mojang gets
+no more requests than before. The load line now gives its time.
+- Tested (headless, 40 Drifters, an empty skin cache): "Loaded 200000 accounts" in 347 ms at start and 203 ms on `/reload`
+  (the one pause it adds, on those two occasions only); the skins it fetched came from both parts of the list (65 accounts
+  from the new 180,000, 7 from the old 20,000, about what nine to one would give).
+- Mojang answered 429 (too many requests) a few times with 40 Drifters and an empty cache; the existing back-off handled it.
+  That's the rate of asking, not the list's size.
+- Memory for the list: about 17 MB by calculation (was about 2), not measured.
+
+## Side session: real usernames, experimental (0.23.39-side.2)
+
+The user (2026-11-11): "can their be an expiremental option for the UUID to give that skin their actual username instead of
+a generated name?" (they kept recognizing skins of YouTubers). A setting, off by default: "Real usernames (experimental)" on
+the Spawning page, `/drifter config realnames true|false` (`DrifterConfig.realNames`).
+- A Drifter keeps the name the game gave it in `autoName` (saved as `DrifterAutoName`; empty on Drifters from older saves, so
+  those are never renamed). `RealSkins.apply` calls `DrifterEntity.takeAccountName`: it takes the account's name unless its name
+  isn't its `autoName` any more (you named it), `Usernames.allowed` refuses the name (real accounts can be rude; the skin is
+  still worn), or someone here goes by it already.
+- `RealSkins.atOnce`, from `ensureName`: with the setting on, a new Drifter takes a ready skin as it's named, so the real name
+  is there before a house's sign or the town's history writes it down (`finalizeSpawn` runs `ensureName`). If the pool is dry
+  it gets its skin and name a little later, and anything already written keeps the made-up name. The user's own skin list goes
+  first (atOnce waits while it has someone free).
+- Tested (headless): 4 Drifters with it off kept made-up names; 25 with it on all got their skin account's name; "Nova"
+  (spawned by name) stayed Nova; a Drifter with a made-up name, after a server restart, given `/drifter skin SSundee`
+  became SSundee (name and `DrifterAutoName`, so the save works).
+- Not tested: a rude name being refused (`Usernames.allowed` as used for every made-up name), the signs in a real town, and
+  the settings-page toggle (compiles; the client wasn't opened, the user had the game open).
