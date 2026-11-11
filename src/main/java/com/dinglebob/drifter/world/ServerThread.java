@@ -36,10 +36,10 @@ public final class ServerThread {
 		try {
 			while (!done.getAsBoolean() && server.isRunning() && System.currentTimeMillis() < until) {
 				for (Runnable task = mine.poll(); task != null; task = mine.poll()) {
-					task.run();
+					run(task);
 				}
 
-				each.run();
+				run(each);
 				java.util.concurrent.locks.LockSupport.parkNanos(2_000_000L);
 			}
 		} finally {
@@ -48,8 +48,17 @@ public final class ServerThread {
 			}
 
 			for (Runnable task = mine.poll(); task != null; task = mine.poll()) {
-				task.run();
+				run(task);
 			}
+		}
+	}
+
+	/** (As the server's own queue does: what a task throws is logged, the rest go on.) */
+	private static void run(Runnable task) {
+		try {
+			task.run();
+		} catch (Throwable e) {
+			com.dinglebob.drifter.Drifter.LOGGER.error("[Drifter] a task handed back to the server thread failed", e);
 		}
 	}
 

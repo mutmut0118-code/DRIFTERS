@@ -336,6 +336,11 @@ final class WorldPlan {
 			ready ? "" : " (not made yet: it goes on in the background)");
 	}
 
+	/** The plan's being made now (not made, and not being made: it failed). */
+	static boolean making() {
+		return making;
+	}
+
 	private static int nationsWanted(long seed) {
 		Random random = new Random(seed ^ 0x6E6174696F6EL);
 		return switch (DrifterApi.nationsSetting()) {

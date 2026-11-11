@@ -24,7 +24,7 @@ a test and an entry here.
 | B | Trades and services instead of villager trading | Done: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9), B4 prices, B5 services (enchanting, repairs, netherite), B6 what villagers gave (0.23.27); not yet: B7 |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); the user's notes (0.23.24): guards by size and night rounds, home at night, festival crowds, bells (an alarm bell for raids, killings and massacres, rung again while the trouble lasts, 0.23.30), home whims and cooking, a crook in every city, the Gazette and a crier, the town mine, fuller chests, rebuilding after an explosion; traditions, stables and bees (0.23.27); not yet: cults |
 | D | You and the town (reputation, friends, companions, living there, the notice board) | D1 what a town thinks of you, D5 the notice board (0.23.27; on Bountiful's bounty board too, 0.23.28; crime seen and
-dealt with harder, theft as it happens, wanted, massacres, 0.23.29); D2 friends (0.23.38-side.2: stranger, acquaintance, friend, best friend by talk and deeds, perks, favors, endings, a Friendship settings page with presets); the player's journal on the J key (0.23.41: you, people, towns, law, favors in one vanilla-looking book; the first of four parts, then a start-of-world menu, a chronicle of noteworthy events, quests); not yet: D3 companions, D4 living there (D6 built in step 5) |
+dealt with harder, theft as it happens, wanted, massacres, 0.23.29); D2 friends (0.23.38-side.2: stranger, acquaintance, friend, best friend by talk and deeds, perks, favors, endings, a Friendship settings page with presets); the player's journal on the J key (0.23.41: you, people, towns, law, favors in one vanilla-looking book; the first of four parts; the second, the start-of-world menu "Who are you?", 0.23.42: name, pronouns, a nation or none, a citizen's home town and welcome; then a chronicle of noteworthy events, quests); not yet: D3 companions, D4 living there (D6 built in step 5) |
 
 Already built that this stands on: see "What's there to build on" below.
 
@@ -1353,3 +1353,11 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   you'd know, in words; nothing but vanilla's textures and font. Worked out on the server, drawn by the client. Details in
   docs/PROGRESS.md (0.23.41) and docs/superpowers/specs/2026-11-11-player-journal-design.md. Next: part 2, the
   start-of-world menu.
+- 2026-11-11 (0.23.42): **"Who are you?"**, part 2: entering a world the first time, a menu for your name, pronouns and
+  a nation (or none), the nations told of in words, the towns built behind it (a home town for each nation first). The
+  plan is made inside the game's own loading screen in single player. A citizen starts in an ordinary town of their
+  nation, welcome in its towns and looked at warily by its enemies; nothing else is given. Drifters say the chosen name
+  and pronouns (API 8). The journal says "Citizen of X / From Y"; name and pronouns change from it, the nation doesn't.
+  Details in docs/PROGRESS.md (0.23.42) and docs/superpowers/specs/2026-11-11-start-of-world-menu-design.md. The user's
+  order from here: A10 next (every nation has a town made from the first minute now, so the summary history stops for
+  all of them: A10 is what keeps them going), then the chronicle revamp, then quests.

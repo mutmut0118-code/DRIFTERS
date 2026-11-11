@@ -68,6 +68,14 @@ public final class WorldBuild {
 				send(handler.getPlayer(), false);
 			}
 		});
+		// (A held player is unhurtable: let go as they leave and as the server stops, before they're saved, or they'd be
+		// saved unhurtable and come back taken for one who always was. Held again if they come back while it's built.)
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> release(handler.getPlayer()));
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+				release(player);
+			}
+		});
 	}
 
 	/** As the world loads: to be built (new, planned) or not. */
@@ -97,6 +105,13 @@ public final class WorldBuild {
 		if (!building) {
 			homes = java.util.Set.of();
 			homeIds = java.util.Set.of();
+			return;
+		}
+
+		// (Its plan couldn't be made: played as it is, nobody kept waiting.)
+		if (!WorldPlan.ready && !WorldPlan.making()) {
+			DrifterCivilizations.LOGGER.warn("[build] the world's plan wasn't made: the world's played without it being built first");
+			finish(server);
 			return;
 		}
 

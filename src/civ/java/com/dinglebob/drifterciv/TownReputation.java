@@ -54,6 +54,14 @@ final class TownReputation {
 
 	/** Its opinion of a player: -100 to 100. */
 	static double opinion(MinecraftServer server, Town town, UUID player) {
+		return opinion(server, town, player, true);
+	}
+
+	/**
+	 * {@code citizen}: with what being one of its nation's own (or its enemy's) adds ({@link Citizens#bonus}). Left out of
+	 * the word that spreads to other towns: each adds its own, and passed on it grew by itself, day after day.
+	 */
+	private static double opinion(MinecraftServer server, Town town, UUID player, boolean citizen) {
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
 		double sum = 0;
 		int knowing = 0;
@@ -71,7 +79,10 @@ final class TownReputation {
 		double heard = town.heard.getOrDefault(player, 0.0);
 		double own = knowing == 0 ? heard : (1 - HEARD_SHARE) * sum / knowing + HEARD_SHARE * heard;
 		// (One of its nation's own, or of a nation it's at war with: where they start from. Citizens.)
-		own += Citizens.bonus(server, town, player);
+		if (citizen) {
+			own += Citizens.bonus(server, town, player);
+		}
+
 		Town.Criminal criminal = town.crimes.get(player);
 		if (criminal != null) {
 			own -= 15.0 * criminal.offences;
@@ -169,7 +180,7 @@ final class TownReputation {
 	/** The word about each player it has an opinion of, passed on to the towns round it (a fifth of the way). */
 	private static void spread(MinecraftServer server, Town town) {
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			double opinion = opinion(server, town, player.getUUID());
+			double opinion = opinion(server, town, player.getUUID(), false);
 			if (Math.abs(opinion) < 10) {
 				continue;
 			}

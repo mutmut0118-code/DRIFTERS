@@ -1196,6 +1196,11 @@ public final class DrifterApi {
 		com.dinglebob.drifter.identity.PlayerNames.set(player, minecraftName, name, pronouns);
 	}
 
+	/** What players asked to be called, all forgotten (as a world opens: names don't carry over from the last one; API 8). */
+	public static void forgetPlayersCalled() {
+		com.dinglebob.drifter.identity.PlayerNames.clear();
+	}
+
 	/** A line with a player's pronouns filled in ({they} {them} {their} {theirs} {themself} {theyre} {theyve}; API 8). */
 	public static String pronouns(String line, @org.jetbrains.annotations.Nullable java.util.UUID player) {
 		return com.dinglebob.drifter.identity.PlayerNames.fill(line, player);

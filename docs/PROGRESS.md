@@ -3378,6 +3378,55 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.42: "Who are you?", the start-of-world menu, part 2 of the "RPG profile" idea** (the user, 2026-11-11: "while
+  creating a new world and the town plan is loading we get a menu, picking our name and pronouns, and a nation we want
+  to be a citizen of, or no nation at all"; "it should actually be a nation's town, for the capital for us to be
+  discovered"; "the planning stage is blended in with the world gen loading screen; after the planning is done, the menu
+  opens with the towns building"; "one home town per nation sounds right"; "the nation is a one-time pick"). Design:
+  docs/superpowers/specs/2026-11-11-start-of-world-menu-design.md; plan:
+  docs/superpowers/plans/2026-11-11-start-of-world-menu.md.
+  - **What it is:** entering a world the first time opens "Who are you?" (`WhoScreen`; the game's menu background, text
+    box, buttons and font; a nation's banner is the banner item): a name, pronouns (they, he, she), and the world's
+    nations as cards in words (its people by their ruler's nature, its size, its wars and allies, the biggest thing in its
+    written past), "No nation" last; the towns being built shown along the bottom. It can't be closed (and comes back if
+    something closes it). **Begin**: a citizen is put in their nation's home town (an ordinary town, the furthest from the
+    capital, never the capital or a ruin) once it's made, their respawn point there; "No nation" starts on the road by
+    the town nearest the middle, as before.
+  - **A citizen:** welcome in every town of their nation from the first day and looked at warily by towns at war with it
+    (`Citizens.bonus`: +30 / -10 on the town's opinion, read live, so it follows wars and what they do; a crime at home
+    still costs them). Nothing else is given: no house, items or friends. They belong to the nation, not the town; a
+    nation gone leaves them "Of no nation, once of ...". The journal's left page says "Citizen of X / From Y", its top
+    is the chosen name, and the home town's page says "Your home town."
+  - **Name and pronouns:** Drifters say the chosen name, as typed, wherever they'd say the nickname of the name over a
+    player's head (hooked in `Nicknames.of`; thoughts, logs and commands keep the Minecraft name); lines about a player
+    can use `{they} {them} {their} {theirs} {themself} {theyre} {theyve}` (a town's words as you walk in use them: "keep
+    an eye on him"). Changed later from the journal (click your name): the same menu without the nations. A name is 3 to
+    16 letters, numbers, spaces or `_`, and not another player's.
+  - **The loading:** in single player the server waits for the plan before the world's first tick
+    (`WorldPlan.await`, `DrifterApi.waitOnServerThread`), so the game's own loading screen stays up over it (it shows
+    100% meanwhile: the number is vanilla's count of spawn's land, not the plan) and the separate "Planning the nations"
+    stage is gone; a dedicated server doesn't wait (a player joining before the plan's ready sees "The nations are being
+    drawn up..." in the list). While anyone is choosing, every nation's home town is built before anything else; the
+    build doesn't finish until everyone online has chosen and those with a home are in it ("Ready when you are").
+  - **Who's asked:** every player once per world: new worlds, old worlds (not moved; no bar), servers. No nations: name
+    and pronouns only. A client without the addon isn't asked (of no nation, never held).
+  - **API 8:** `DrifterApi.callPlayer`, `pronouns`, `waitOnServerThread` (docs/API.md). Saved with the world:
+    `drifter_civ_citizens`, version 1.
+  - **Fixed on the way:** Drifters who didn't know a player said their raw username, not their nickname (the list of
+    who's a person was never made: a time compared from Long.MIN_VALUE overflowed).
+  - **Tested** (dev client, new Tectonic world, seed 97709457): plan waited for in the loading screen (31 and 36 s), the
+    menu with the four nations and the bar, Begin as a citizen ("Mira": placed in Hollowbrook, greeted "Mira! one of our
+    own", journal "Citizen of the Highcrest Accord / From Hollowbrook", welcome there); "No nation"; an old world's first
+    join (not moved, a nation picked there); a refused name; the name changed from the journal; saved choices read on
+    the next start. Headless: a dedicated server starts without waiting, plans in the background, restarts on the plan.
+  - **Timings (this PC, Tectonic):** about a minute on the game's loading screen (the plan, then the land where you
+    start), then the menu; about 110 s from pressing "Create" to playing when you pick at once, as before.
+  - **Not tested:** two players at once (one choosing while another begins; one leaving mid-menu), a real dedicated
+    server with a player joining during the plan, a nation destroyed after it was picked ("once of"), window sizes other
+    than the default.
+  - **Follow-ups:** whim lines that name a player keep the Minecraft name (whim files weren't touched: for the whims
+    session). Next: A10 (towns nobody's near as summaries: every nation has a town made from the first minute now, so
+    its summary history stops there), then part 3 (the chronicle revamp), then part 4 (quests).
 - **0.23.41: the player's journal (the J key), part 1 of the "RPG profile" idea** (the user, 2026-11-11: "all the data
   about my player with other drifters/myself that is only accessible doing /drifterciv commands easily displayed in a ui
   thats immersive and faithful to vanilla"; "a key, J by default; this should be made only using vanilla resources, no ai

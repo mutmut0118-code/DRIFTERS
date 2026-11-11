@@ -155,6 +155,8 @@ public final class Citizens {
 			});
 		});
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			// (Names from the world before this one, in the same game, forgotten.)
+			DrifterApi.forgetPlayersCalled();
 			state(server);
 			people.forEach((id, who) -> DrifterApi.callPlayer(id, who.minecraftName, who.name, who.pronouns));
 		});
@@ -166,10 +168,7 @@ public final class Citizens {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> joined(server, handler.getPlayer()));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			UUID id = handler.getPlayer().getUUID();
-			if (choosing.remove(id) && !WorldBuild.building) {
-				WorldBuild.release(handler.getPlayer());
-			}
-
+			choosing.remove(id);
 			drawing.remove(id);
 		});
 		ServerTickEvents.END_SERVER_TICK.register(Citizens::tick);
@@ -230,7 +229,8 @@ public final class Citizens {
 	}
 
 	private static void send(MinecraftServer server, ServerPlayer player) {
-		boolean planning = WorldPlan.planned && !WorldPlan.ready;
+		// (A plan that couldn't be made isn't waited for: no nations to pick from.)
+		boolean planning = WorldPlan.planned && !WorldPlan.ready && WorldPlan.making();
 		if (planning) {
 			drawing.add(player.getUUID());
 		} else {
@@ -252,7 +252,7 @@ public final class Citizens {
 					WorldBuild.holdOne(player);
 				}
 
-				if (drawing.contains(player.getUUID()) && (!WorldPlan.planned || WorldPlan.ready)) {
+				if (drawing.contains(player.getUUID()) && (!WorldPlan.planned || WorldPlan.ready || !WorldPlan.making())) {
 					send(server, player);
 				}
 			}
@@ -270,7 +270,8 @@ public final class Citizens {
 			}
 
 			Town town = town(who.home);
-			if (town != null && town.dimension.equals(Level.OVERWORLD.location().toString())) {
+			// (Only as the world's built before it's played: one who left then and comes back later stays where they are.)
+			if (WorldBuild.building && town != null && town.dimension.equals(Level.OVERWORLD.location().toString())) {
 				ServerLevel level = server.overworld();
 				BlockPos at = WorldBuild.standNear(level, town.center.getX(), town.center.getZ());
 				WorldBuild.putAt(player, at, player.getYRot());
