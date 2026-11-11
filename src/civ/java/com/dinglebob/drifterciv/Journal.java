@@ -224,6 +224,13 @@ public final class Journal {
 
 		// The left page: them.
 		List<Line> you = new ArrayList<>();
+		// (Who they chose to be: their nation and where they're from. Citizens.)
+		for (String line : Citizens.line(server, id)) {
+			if (!line.isEmpty()) {
+				you.add(new Line(line, "", you.isEmpty() ? PLAIN : FAINT, List.of()));
+			}
+		}
+
 		int welcome = count(standings, "welcome");
 		int neutral = count(standings, "neutral");
 		int wary = count(standings, "wary");
@@ -262,7 +269,7 @@ public final class Journal {
 			you.add(new Line("A price on your head: " + bounty.issuer() + ", for " + bounty.reason(), "", BAD, List.of()));
 		}
 
-		return new Book(player.getGameProfile().getName(), you, List.of(
+		return new Book(Citizens.called(player), you, List.of(
 			people(server, player, mine, bonds, friendsOn, now),
 			towns(server, player, standings, heardOf, friendTowns, bonds, day, bounty),
 			law(player, towns, day, bounty),
@@ -367,6 +374,10 @@ public final class Journal {
 			List<String> detail = new ArrayList<>();
 			Nations.Nation nation = Nations.of(town);
 			detail.add(town.name + ": a " + kind(town) + (nation == null ? "" : " of " + nation.name));
+			if (town.id.equals(Citizens.homeOf(player.getUUID()))) {
+				detail.add("Your home town.");
+			}
+
 			detail.add("At " + town.center.getX() + ", " + town.center.getZ());
 			detail.add("You're " + standing + " here" + (standing.equals("wanted") || standing.equals("exiled") ? "." : ", as far as you last saw."));
 			List<String> friends = new ArrayList<>();

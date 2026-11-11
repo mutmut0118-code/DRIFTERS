@@ -85,12 +85,36 @@ public final class WorldBuild {
 		}
 	}
 
+	/** The home towns built before anything else (a citizen starts in one: {@link Citizens}), as x and z; each tick's. */
+	private static java.util.Set<Long> homes = java.util.Set.of();
+	private static java.util.Set<UUID> homeIds = java.util.Set.of();
+
+	private static long key(int x, int z) {
+		return (long)x << 32 | z & 0xFFFFFFFFL;
+	}
+
 	private static void tick(MinecraftServer server) {
 		if (!building) {
+			homes = java.util.Set.of();
+			homeIds = java.util.Set.of();
 			return;
 		}
 
 		hold(server);
+		if (WorldPlan.ready) {
+			java.util.Set<UUID> wanted = Citizens.wantedHomes(server);
+			java.util.Set<Long> at = new java.util.HashSet<>();
+			for (UUID id : wanted) {
+				WorldPlan.Place place = WorldPlan.place(id);
+				if (place != null && !place.made) {
+					at.add(key(place.x, place.z));
+				}
+			}
+
+			homeIds = wanted;
+			homes = at;
+		}
+
 		if (!WorldPlan.ready) {
 			stage = "Planning the nations";
 			done = 0;
@@ -101,8 +125,8 @@ public final class WorldBuild {
 			// out of sight. Everything ahead first took over a minute, most of it waiting for land to be generated.)
 			int ahead = (server.getPlayerList().getViewDistance() + FIRST_CHUNKS) * 16;
 			// The places and stretches of road near enough to build now (a stretch at a town's end once its town is).
-			List<WorldPlan.Place> near = WorldPlan.places.stream().filter(place -> distance(level, place.x, place.z) < ahead + (place.kind.equals("city") ? 128 : 0))
-				.toList();
+			List<WorldPlan.Place> near = WorldPlan.places.stream()
+				.filter(place -> homeIds.contains(place.id) || distance(level, place.x, place.z) < ahead + (place.kind.equals("city") ? 128 : 0)).toList();
 			int places = near.size();
 			int made = (int)near.stream().filter(place -> place.made).count();
 			int[] roads = Highways.nearStretches(level, ahead);
@@ -129,6 +153,20 @@ public final class WorldBuild {
 				}
 
 				if (elapsed >= MOST_MS || furtherMade >= further.size() && furtherRoads[0] >= furtherRoads[1]) {
+					// (Not before everyone here has said who they are, and those with a home town are in it.)
+					if (Citizens.waiting(server)) {
+						stage = "Ready when you are";
+						done = 100;
+						total = 100;
+						if (server.getTickCount() % 10 == 0) {
+							for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+								send(player, false);
+							}
+						}
+
+						return;
+					}
+
 					// (With Quicksave, its first save of all this land comes next, and takes a while: said on the screen first.
 					// 0.23.37.)
 					if (com.dinglebob.drifter.api.DrifterApi.quicksave() && !saveShown) {
@@ -209,6 +247,10 @@ public final class WorldBuild {
 
 	/** From the nearest player to here (across: x and z), or from spawn while the world's readied before it's played. */
 	static double distance(ServerLevel level, int x, int z) {
+		if (building && homes.contains(key(x, z))) {
+			return 0;
+		}
+
 		double best = Double.MAX_VALUE;
 		for (ServerPlayer player : level.players()) {
 			best = Math.min(best, Math.hypot(player.getX() - x, player.getZ() - z));
@@ -252,7 +294,7 @@ public final class WorldBuild {
 		spawnSpot = new int[] {x, z, townX, townZ};
 		level.setDefaultSpawnPos(at, yaw);
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			if (player.level() == level) {
+			if (player.level() == level && !Citizens.hasHome(player.getUUID())) {
 				player.teleportTo(level, at.getX() + 0.5, at.getY(), at.getZ() + 0.5, yaw, 0.0F);
 				held.put(player.getUUID(), player.position());
 			}
@@ -300,14 +342,52 @@ public final class WorldBuild {
 	/** Waiting players kept where they stand, unhurt (nothing gets at them while they can't see). */
 	private static void hold(MinecraftServer server) {
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			Vec3 at = held.computeIfAbsent(player.getUUID(), id -> player.position());
-			wasInvulnerable.computeIfAbsent(player.getUUID(), id -> player.isInvulnerable());
-			player.setInvulnerable(true);
-			player.setDeltaMovement(Vec3.ZERO);
-			player.fallDistance = 0;
-			if (player.position().distanceToSqr(at) > 0.25) {
-				player.teleportTo(player.serverLevel(), at.x, at.y, at.z, player.getYRot(), player.getXRot());
+			holdOne(player);
+		}
+	}
+
+	/** One player kept where they stand, unhurt (also: one saying who they are in a world already built, {@link Citizens}). */
+	static void holdOne(ServerPlayer player) {
+		Vec3 at = held.computeIfAbsent(player.getUUID(), id -> player.position());
+		wasInvulnerable.computeIfAbsent(player.getUUID(), id -> player.isInvulnerable());
+		player.setInvulnerable(true);
+		player.setDeltaMovement(Vec3.ZERO);
+		player.fallDistance = 0;
+		if (player.position().distanceToSqr(at) > 0.25) {
+			player.teleportTo(player.serverLevel(), at.x, at.y, at.z, player.getYRot(), player.getXRot());
+		}
+	}
+
+	/** One player held by {@link #holdOne} let go, as they were. */
+	static void release(ServerPlayer player) {
+		held.remove(player.getUUID());
+		Boolean was = wasInvulnerable.remove(player.getUUID());
+		if (was != null) {
+			player.setInvulnerable(was);
+		}
+	}
+
+	/** Solid ground with open sky near this spot (a town's middle), as {@link #moveSpawn} finds it. */
+	static BlockPos standNear(ServerLevel level, int x, int z) {
+		for (int pass = 0; pass < 2; pass++) {
+			for (BlockPos.MutableBlockPos spot : BlockPos.spiralAround(new BlockPos(x, 0, z), pass == 0 ? 24 : 12, net.minecraft.core.Direction.EAST,
+				net.minecraft.core.Direction.SOUTH)) {
+				BlockPos here = standOn(level, spot.getX(), spot.getZ());
+				if (here != null && (pass == 1 || open(level, here))) {
+					return here;
+				}
 			}
+		}
+
+		level.getChunk(x >> 4, z >> 4);
+		return level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
+	}
+
+	/** A waiting player put here (held here from now on). */
+	static void putAt(ServerPlayer player, BlockPos at, float yaw) {
+		player.teleportTo(player.server.overworld(), at.getX() + 0.5, at.getY(), at.getZ() + 0.5, yaw, 0.0F);
+		if (held.containsKey(player.getUUID())) {
+			held.put(player.getUUID(), player.position());
 		}
 	}
 

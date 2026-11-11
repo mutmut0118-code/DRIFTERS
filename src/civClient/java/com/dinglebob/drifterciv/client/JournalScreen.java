@@ -83,6 +83,13 @@ final class JournalScreen extends Screen {
 		return this.middle() + INSET;
 	}
 
+	private boolean overName(int mouseX, int mouseY) {
+		int width = this.font.width(this.book.name());
+		int left = this.leftText() + (TEXT_WIDTH - width) / 2;
+		int y = this.top() + TEXT_TOP;
+		return mouseX >= left - 2 && mouseX < left + width + 2 && mouseY >= y - 2 && mouseY < y + 11;
+	}
+
 	private int leftText() {
 		return this.middle() - INSET - TEXT_WIDTH;
 	}
@@ -145,7 +152,15 @@ final class JournalScreen extends Screen {
 		int x = this.leftText();
 		int top = this.top();
 		int y = top + TEXT_TOP;
-		graphics.drawString(this.font, this.book.name(), x + (TEXT_WIDTH - this.font.width(this.book.name())) / 2, y, INK, false);
+		int nameWidth = this.font.width(this.book.name());
+		int nameLeft = x + (TEXT_WIDTH - nameWidth) / 2;
+		graphics.drawString(this.font, this.book.name(), nameLeft, y, INK, false);
+		// (Their name's a way to change it and their pronouns: underlined under the mouse.)
+		if (this.overName(mouseX, mouseY)) {
+			graphics.fill(nameLeft, y + 9, nameLeft + nameWidth, y + 10, INK);
+			this.setTooltipForNextRenderPass(Component.literal("Change your name and pronouns"));
+		}
+
 		y += 12;
 		if (this.minecraft != null && this.minecraft.player != null) {
 			InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + TEXT_WIDTH / 2 - 26, y, x + TEXT_WIDTH / 2 + 26, y + 62, 27, 0.0625F, mouseX, mouseY,
@@ -280,6 +295,12 @@ final class JournalScreen extends Screen {
 
 		if (button != 0) {
 			return super.mouseClicked(mouseX, mouseY, button);
+		}
+
+		if (this.overName((int)mouseX, (int)mouseY)
+			&& net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.canSend(com.dinglebob.drifterciv.Citizens.Change.TYPE)) {
+			net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new com.dinglebob.drifterciv.Citizens.Change());
+			return true;
 		}
 
 		int[][] tabs = this.tabs();

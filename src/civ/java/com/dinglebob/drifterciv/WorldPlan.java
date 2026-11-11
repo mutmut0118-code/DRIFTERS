@@ -302,6 +302,40 @@ final class WorldPlan {
 		thread.start();
 	}
 
+	/** The plan waited for this long at most before the world's opened anyway (it goes on in the background). */
+	private static final long AWAIT_MS = 120_000L;
+
+	/**
+	 * In single player, a new world's plan is waited for here, before the world's first tick (the user, 2026-11-11: "the
+	 * planning stage is blended in with the world gen loading screen"): the game's own loading screen stays up until it's
+	 * made, and the player walks in to nations already there. Meanwhile the land of its first towns is asked for and
+	 * generated, as it was while the plan was made behind the addon's screen. A dedicated server doesn't wait (nobody's
+	 * watching it start, and its watchdog would take a long first tick for a hang).
+	 */
+	static void await(MinecraftServer server) {
+		if (server.isDedicatedServer() || !planned || ready || !making || !WorldBuild.building) {
+			return;
+		}
+
+		long started = System.currentTimeMillis();
+		long[] ticked = {started};
+		DrifterApi.waitOnServerThread(server, () -> ready || !making, AWAIT_MS, () -> {
+			// (Land generated: the chunk system's own work, done on this thread.)
+			long until = System.nanoTime() + 20_000_000L;
+			while (server.overworld().getChunkSource().pollTask() && System.nanoTime() < until) {
+			}
+
+			// (Its first towns' land asked for, as each tick would: twenty times a second.)
+			long now = System.currentTimeMillis();
+			if (now - ticked[0] >= 50) {
+				ticked[0] = now;
+				TownSites.tick(server);
+			}
+		});
+		DrifterCivilizations.LOGGER.info("[plan] waited {} ms for the plan before the world opened{}", System.currentTimeMillis() - started,
+			ready ? "" : " (not made yet: it goes on in the background)");
+	}
+
 	private static int nationsWanted(long seed) {
 		Random random = new Random(seed ^ 0x6E6174696F6EL);
 		return switch (DrifterApi.nationsSetting()) {

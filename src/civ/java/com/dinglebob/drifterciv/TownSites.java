@@ -169,7 +169,7 @@ final class TownSites {
 	// Each tick: spots found, land loaded for the near ones, the town being made
 	// ---------------------------------------------------------------------------------------------
 
-	private static void tick(MinecraftServer server) {
+	static void tick(MinecraftServer server) {
 		boolean changed = false;
 		for (Site site; (site = found.poll()) != null;) {
 			Site one = site;

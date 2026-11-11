@@ -153,6 +153,7 @@ public final class Towns {
 		TownSites.load(state(server).tag);
 		WorldPlan.load(state(server).tag);
 		WorldPlan.start(server);
+		WorldPlan.await(server);
 	}
 
 	/** What's saved, read as the overworld loads (before the towns are: to know whether it's a planned world). */

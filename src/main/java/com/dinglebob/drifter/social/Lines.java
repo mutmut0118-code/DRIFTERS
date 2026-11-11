@@ -242,6 +242,8 @@ public final class Lines {
 	private static List<String> fillable(List<String> pool, Object... vars) {
 		java.util.Set<String> have = new java.util.HashSet<>();
 		have.add("name");
+		// (A line about a player may use their pronouns: {they}, {them}...)
+		have.addAll(com.dinglebob.drifter.identity.PlayerNames.WORDS);
 		for (int i = 0; i + 1 < vars.length; i += 2) {
 			if (vars[i + 1] != null) {
 				have.add(String.valueOf(vars[i]));
@@ -271,6 +273,15 @@ public final class Lines {
 	 */
 	private static String fill(DrifterEntity drifter, String line, Object... vars) {
 		String filled = line.replace("{name}", com.dinglebob.drifter.identity.Nicknames.of(drifter));
+		// (The player it's about, by the name it was given: their pronouns, "they" if it wasn't told.)
+		String about = null;
+		for (int i = 0; i + 1 < vars.length; i += 2) {
+			if ("player".equals(vars[i]) && vars[i + 1] instanceof String player) {
+				about = player;
+			}
+		}
+
+		filled = com.dinglebob.drifter.identity.PlayerNames.fill(filled, com.dinglebob.drifter.identity.PlayerNames.pronounsOf(about));
 		for (int i = 0; i + 1 < vars.length; i += 2) {
 			String value = String.valueOf(vars[i + 1]);
 			if (vars[i + 1] instanceof String text && !"nick".equals(vars[i])) {

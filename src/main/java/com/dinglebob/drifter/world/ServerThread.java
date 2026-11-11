@@ -12,9 +12,57 @@ public final class ServerThread {
 	private ServerThread() {
 	}
 
+	/** While the server thread waits ({@link #waitFor}): what's handed back, run by the wait itself. */
+	private static java.util.Queue<Runnable> waiting;
+	private static final Object LOCK = new Object();
+
+	/**
+	 * The server thread waits here for work done on other threads (a world's plan made before its first tick, so the wait
+	 * sits in the game's own loading screen): what they hand back with {@link #later} is run here meanwhile, and
+	 * {@code each} every turn (a few milliseconds). Until {@code done}, the server stops, or {@code mostMillis} have gone.
+	 * The server's own queue isn't used: before the first tick it runs nothing handed to it.
+	 */
+	public static void waitFor(MinecraftServer server, java.util.function.BooleanSupplier done, long mostMillis, Runnable each) {
+		if (!server.isSameThread()) {
+			return;
+		}
+
+		java.util.Queue<Runnable> mine = new java.util.concurrent.ConcurrentLinkedQueue<>();
+		synchronized (LOCK) {
+			waiting = mine;
+		}
+
+		long until = System.currentTimeMillis() + mostMillis;
+		try {
+			while (!done.getAsBoolean() && server.isRunning() && System.currentTimeMillis() < until) {
+				for (Runnable task = mine.poll(); task != null; task = mine.poll()) {
+					task.run();
+				}
+
+				each.run();
+				java.util.concurrent.locks.LockSupport.parkNanos(2_000_000L);
+			}
+		} finally {
+			synchronized (LOCK) {
+				waiting = null;
+			}
+
+			for (Runnable task = mine.poll(); task != null; task = mine.poll()) {
+				task.run();
+			}
+		}
+	}
+
 	public static void later(MinecraftServer server, Runnable task) {
 		if (!server.isRunning()) {
 			return;
+		}
+
+		synchronized (LOCK) {
+			if (waiting != null) {
+				waiting.add(task);
+				return;
+			}
 		}
 
 		server.execute(() -> {

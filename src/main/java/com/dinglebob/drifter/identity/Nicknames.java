@@ -47,6 +47,12 @@ public final class Nicknames {
 
 	/** What everyone calls the one with this username. */
 	public static String of(String username) {
+		// (A player who chose what they're called: that, as typed.)
+		String chosen = PlayerNames.chosen(username);
+		if (chosen != null) {
+			return chosen;
+		}
+
 		return CACHE.computeIfAbsent(username, Nicknames::work);
 	}
 

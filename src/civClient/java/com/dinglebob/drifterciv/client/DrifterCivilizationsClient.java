@@ -1,5 +1,6 @@
 package com.dinglebob.drifterciv.client;
 
+import com.dinglebob.drifterciv.Citizens;
 import com.dinglebob.drifterciv.Journal;
 import com.dinglebob.drifterciv.WorldBuild;
 
@@ -57,7 +58,11 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		});
 		ClientPlayNetworking.registerGlobalReceiver(WorldBuild.Progress.TYPE, (progress, context) -> {
 			var client = context.client();
-			if (progress.finished()) {
+			lastProgress = progress.finished() ? null : progress;
+			if (client.screen instanceof WhoScreen who) {
+				// (Saying who they are meanwhile: the bar's along the bottom of that.)
+				who.progress(progress.finished() ? null : progress);
+			} else if (progress.finished()) {
 				if (client.screen instanceof WorldBuildScreen) {
 					client.setScreen(null);
 				}
@@ -67,10 +72,41 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 				client.setScreen(new WorldBuildScreen(progress));
 			}
 		});
+		// "Who are you?": asked as they first enter a world (it can't be closed), or to change their name from the journal.
+		ClientPlayNetworking.registerGlobalReceiver(Citizens.Menu.TYPE, (menu, context) -> {
+			var client = context.client();
+			if (client.screen instanceof WhoScreen who && who.first() == menu.first()) {
+				who.update(menu);
+			} else {
+				client.setScreen(new WhoScreen(menu, menu.building() ? lastProgress : null));
+			}
+		});
+		ClientPlayNetworking.registerGlobalReceiver(Citizens.Answer.TYPE, (answer, context) -> {
+			var client = context.client();
+			if (client.screen instanceof WhoScreen who) {
+				if (!answer.ok()) {
+					who.refused(answer.why());
+				} else {
+					// (A world still being built: on to its loading screen, the world not shown between.)
+					client.setScreen(who.first() && who.progress() != null ? new WorldBuildScreen(who.progress()) : null);
+				}
+			}
+		});
 		// Debug only: DRIFTER_CIV_SCREEN set, the Friendship settings page opens once a world's been open a while (a client
 		// test screenshots it; the test harness can't click through Mod Menu).
 		String debug = System.getenv("DRIFTER_CIV_SCREEN");
-		if (debug != null && debug.startsWith("journal")) {
+		if (debug != null && debug.startsWith("who")) {
+			// Debug only: DRIFTER_CIV_SCREEN=who@<ticks>:<card or none>[:<name>]: that long after "Who are you?" opens, that
+			// card's picked (and the name typed), a shot taken (screenshots/who_<card>.png), and Begin pressed.
+			String[] parts = debug.substring(debug.indexOf('@') + 1).split(":");
+			try {
+				WhoScreen.debugAt = Integer.parseInt(parts[0]);
+				WhoScreen.debugCard = parts.length < 2 || parts[1].equals("none") ? -1 : Integer.parseInt(parts[1]);
+				WhoScreen.debugName = parts.length < 3 ? "" : parts[2];
+			} catch (NumberFormatException e) {
+				WhoScreen.debugAt = -1;
+			}
+		} else if (debug != null && debug.startsWith("journal")) {
 			// Debug only: DRIFTER_CIV_SCREEN=journal@<ticks>: that long after a world opens the journal is asked for, then each
 			// of its pages is shown and screenshotted (screenshots/journal_<n>.png).
 			int at = debug.contains("@") ? Integer.parseInt(debug.substring(debug.indexOf('@') + 1)) : 300;
@@ -94,6 +130,8 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		}
 	}
 
+	/** How the world's build was going as last told (for the menu opened over it). */
+	private static WorldBuild.Progress lastProgress;
 	private static Journal.Book tourBook;
 	private static int tourShot;
 

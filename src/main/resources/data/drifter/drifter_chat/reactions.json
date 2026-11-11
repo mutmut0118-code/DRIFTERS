@@ -1033,7 +1033,7 @@
     },
     "crime.wanted": {
       "any": [
-        "it's {player}! get them!",
+        "it's {player}! get {them}!",
         "{player}'s back! guards!",
         "that's the one, {player}!",
         "{player}! you've got some nerve"

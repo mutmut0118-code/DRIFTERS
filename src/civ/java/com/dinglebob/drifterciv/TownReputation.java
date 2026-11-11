@@ -70,6 +70,8 @@ final class TownReputation {
 
 		double heard = town.heard.getOrDefault(player, 0.0);
 		double own = knowing == 0 ? heard : (1 - HEARD_SHARE) * sum / knowing + HEARD_SHARE * heard;
+		// (One of its nation's own, or of a nation it's at war with: where they start from. Citizens.)
+		own += Citizens.bonus(server, town, player);
 		Town.Criminal criminal = town.crimes.get(player);
 		if (criminal != null) {
 			own -= 15.0 * criminal.offences;
@@ -148,15 +150,19 @@ final class TownReputation {
 		}
 
 		greeted.put(key, now);
-		String name = player.getGameProfile().getName();
+		// (What they chose to be called; said about them to the others, their pronouns. Citizens.)
+		String name = Citizens.called(player);
 		List<String> lines = switch (standing) {
-			case WELCOME -> List.of("hey " + name + "! welcome back", "oh hey " + name, name + "!! good to see you", "look who it is. hi " + name);
-			case WARY -> List.of("keep an eye on that one", "hm. " + name + " again", "...hi", "we're watching you " + name);
-			case UNWELCOME -> List.of("you again? we dont want trouble", name + ". just keep walking", "nobody wants you here " + name);
-			case WANTED -> List.of("its " + name + "! guards!", "GUARDS! its " + name, "you've got some nerve showing up here");
+			case WELCOME -> Citizens.ownTown(town, player.getUUID())
+				? List.of("hey " + name + ", good to have you home", name + "! one of our own", "oh hey " + name + ". {theyre} one of ours", "welcome home " + name)
+				: List.of("hey " + name + "! welcome back", "oh hey " + name, name + "!! good to see you", "look who it is. hi " + name);
+			case WARY -> List.of("keep an eye on {them}", "hm. " + name + " again", "...hi", "we're watching you " + name, "dont let {them} out of your sight");
+			case UNWELCOME -> List.of("you again? we dont want trouble", name + ". just keep walking", "nobody wants you here " + name,
+				"{theyve} got no business here");
+			case WANTED -> List.of("its " + name + "! guards!", "GUARDS! its " + name, "you've got some nerve showing up here", "its " + name + "! get {them}!");
 			default -> List.of("hey");
 		};
-		com.dinglebob.drifter.social.ChatLines.speak(speaker, lines.get(speaker.getRandom().nextInt(lines.size())));
+		com.dinglebob.drifter.social.ChatLines.speak(speaker, DrifterApi.pronouns(lines.get(speaker.getRandom().nextInt(lines.size())), player.getUUID()));
 	}
 
 	/** The word about each player it has an opinion of, passed on to the towns round it (a fifth of the way). */

@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 7;
+	public static final int API_VERSION = 8;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -709,6 +709,15 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.ServerThread.later(server, task);
 	}
 
+	/**
+	 * The server thread waits (at most {@code mostMillis}) until {@code done}, running what background threads hand back
+	 * with {@link #onServerThread} meanwhile, and {@code each} every few milliseconds (API 8). For work that must be
+	 * finished before a world's first tick: the game's own loading screen stays up over it.
+	 */
+	public static void waitOnServerThread(net.minecraft.server.MinecraftServer server, java.util.function.BooleanSupplier done, long mostMillis, Runnable each) {
+		com.dinglebob.drifter.world.ServerThread.waitFor(server, done, mostMillis, each);
+	}
+
 	/** Out in its town tonight still (0.23.40, night life: its town keeps it up, its bedtime hasn't come). */
 	public static boolean outInTown(DrifterEntity drifter) {
 		return com.dinglebob.drifter.brain.Schedule.outInTown(drifter);
@@ -1176,6 +1185,20 @@ public final class DrifterApi {
 	@org.jetbrains.annotations.Nullable
 	public static PlayerBounty bounty(java.util.UUID player) {
 		return com.dinglebob.drifter.encounter.Encounters.bountyOn(player);
+	}
+
+	/**
+	 * What this player asked to be called and their pronouns ("they", "he", "she"; API 8): Drifters say the name as typed
+	 * where they'd say the player's nickname, and lines about them use the pronouns. An empty name: their Minecraft name.
+	 * Not saved by Drifter: tell it again each time the server starts.
+	 */
+	public static void callPlayer(java.util.UUID player, String minecraftName, String name, String pronouns) {
+		com.dinglebob.drifter.identity.PlayerNames.set(player, minecraftName, name, pronouns);
+	}
+
+	/** A line with a player's pronouns filled in ({they} {them} {their} {theirs} {themself} {theyre} {theyve}; API 8). */
+	public static String pronouns(String line, @org.jetbrains.annotations.Nullable java.util.UUID player) {
+		return com.dinglebob.drifter.identity.PlayerNames.fill(line, player);
 	}
 
 	/** It goes on this trade run to another town (step 4), or (null) it's off it. */
