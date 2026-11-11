@@ -523,7 +523,7 @@ final class FriendPerks {
 		Friends.dirty();
 	}
 
-	private static int needed(String kind) {
+	static int needed(String kind) {
 		return switch (kind) {
 			case "iron" -> IRON_NEEDED;
 			case "food" -> FOOD_NEEDED;
