@@ -244,6 +244,14 @@ public interface TownWork {
 	}
 
 	/**
+	 * Tonight its town keeps it up (0.23.40: a night out, where people gather, till it goes home to bed): the time of day
+	 * (the sun's, as {@code level.getDayTime() % 24000}) it goes in at; or -1, in with the sun as ever.
+	 */
+	default long bedtime(DrifterEntity drifter) {
+		return -1L;
+	}
+
+	/**
 	 * A banner its town wants it to make and stand at a spot (a nation's colour on the plaza: milestone 22 step 6 part 3), or
 	 * null. Asked of each of its people (one of them makes it).
 	 */

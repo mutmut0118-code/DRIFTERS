@@ -247,6 +247,34 @@ public class NavigateTask extends Task {
 		BlockState state = this.level().getBlockState(feet);
 		var shape = state.getCollisionShape(this.level(), feet);
 		if (!shape.isEmpty() && shape.max(Direction.Axis.Y) > NavView.LOW_BLOCK_HEIGHT) {
+			// Beside a tall thin block, in its square but not on it (a fence's post, a wall, a gate): the open square beside that
+			// it stands in most. (Found by the user, 0.23.40: Drifters in a pen hopping at its fence, every route planned from
+			// on top of the fence they stood against.)
+			if (shape.max(Direction.Axis.Y) > 1.0 && this.drifter.getY() < feet.getY() + shape.max(Direction.Axis.Y) - 0.01) {
+				AABB box = this.drifter.getBoundingBox();
+				BlockPos best = null;
+				double bestArea = 0.0;
+				for (int dx = -1; dx <= 1; dx++) {
+					for (int dz = -1; dz <= 1; dz++) {
+						BlockPos cell = feet.offset(dx, 0, dz);
+						if ((dx != 0 || dz != 0) && this.level().getBlockState(cell).getCollisionShape(this.level(), cell).isEmpty()
+							&& this.level().getBlockState(cell.above()).getCollisionShape(this.level(), cell.above()).isEmpty() && this.hasFloor(cell)) {
+							// (Its share of the box, and a little for being the nearest: a square it only touches still beats none.)
+							double area = overlap(box.minX, box.maxX, cell.getX()) * overlap(box.minZ, box.maxZ, cell.getZ())
+								+ 0.001 / (1.0 + Vec3.atBottomCenterOf(cell).distanceToSqr(this.drifter.position()));
+							if (area > bestArea) {
+								bestArea = area;
+								best = cell;
+							}
+						}
+					}
+				}
+
+				if (best != null) {
+					return best;
+				}
+			}
+
 			return feet.above();
 		}
 

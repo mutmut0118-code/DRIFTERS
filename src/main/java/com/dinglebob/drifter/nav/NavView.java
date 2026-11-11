@@ -210,13 +210,20 @@ public final class NavView {
 		boolean openAbove = false;
 		for (int y = top; y >= bottom; y--) {
 			at.set(x, y, z);
-			if (!this.knowledge.isKnown(at)) {
+			if (!this.known(at)) {
 				openAbove = false;
 				continue;
 			}
 
 			BlockState state = this.state(at);
-			boolean ground = !state.getCollisionShape(this.world, at).isEmpty() || !state.getFluidState().isEmpty();
+			// (A fence, a wall, a gate: over the ground, not it; a pen's fence tops counted as its floor, so the floor inside it
+			// unseen was guessed a block too high, and it planned to hop up onto it and over the fence. 0.23.40.)
+			var shape = state.getCollisionShape(this.world, at);
+			if (!shape.isEmpty() && shape.max(Direction.Axis.Y) > 1.0) {
+				continue;
+			}
+
+			boolean ground = !shape.isEmpty() || !state.getFluidState().isEmpty();
 			if (ground && openAbove && !state.is(net.minecraft.tags.BlockTags.LEAVES)) {
 				return y;
 			}
@@ -241,8 +248,21 @@ public final class NavView {
 	}
 
 	public boolean isKnown(BlockPos pos) {
-		return this.knowledge.isKnown(pos);
+		return this.known(pos);
 	}
+
+	/** It has seen this block, or it's its own town's ground near its own height ({@link #TOWN_KNOWN_SPAN}). */
+	private boolean known(BlockPos pos) {
+		return this.knowledge.isKnown(pos) || !this.underground && this.townGround != null && Math.abs(pos.getY() - this.feet.getY()) <= TOWN_KNOWN_SPAN
+			&& this.townGround.contains(pos.getX(), pos.getZ());
+	}
+
+	/**
+	 * Its own town it knows the lie of, as a player knows their street (0.23.40): its town's ground this far up or down from
+	 * its feet counts as seen for its routes (only for routes: what's buried, ores, it learns by seeing as ever). Found by
+	 * the user: Drifters in their town's pen hopping at its fence, its floor unseen and guessed a step higher.
+	 */
+	private static final int TOWN_KNOWN_SPAN = 6;
 
 	private Cell compute(BlockPos pos) {
 		if (!this.world.loaded(pos) || this.world.isOutsideBuildHeight(pos)) {
@@ -260,18 +280,18 @@ public final class NavView {
 			return new Cell(Kind.BANNED, Float.POSITIVE_INFINITY, false, false);
 		}
 
-		if (!this.knowledge.isKnown(pos)) {
+		if (!this.known(pos)) {
 			// Under water it has seen, it expects more water, not ground (its sight stops at the surface; found in
 			// testing: it planned to walk across a pond on "unseen ground" just under the surface, and couldn't get out).
 			BlockPos above = pos.above();
-			if (this.knowledge.isKnown(above) && this.state(above).getFluidState().is(FluidTags.WATER)) {
+			if (this.known(above) && this.state(above).getFluidState().is(FluidTags.WATER)) {
 				return new Cell(Kind.WATER, 0.0F, false, false);
 			}
 
 			// Beside water it has seen, at the same height: water is level, so it expects more of it (the banks it can see).
 			for (Direction side : Direction.Plane.HORIZONTAL) {
 				BlockPos next = pos.relative(side);
-				if (this.knowledge.isKnown(next) && this.state(next).getFluidState().is(FluidTags.WATER) && this.state(next).getFluidState().isSource()) {
+				if (this.known(next) && this.state(next).getFluidState().is(FluidTags.WATER) && this.state(next).getFluidState().isSource()) {
 					return new Cell(Kind.WATER, 0.0F, false, false);
 				}
 			}
@@ -387,7 +407,7 @@ public final class NavView {
 		for (Direction direction : Direction.values()) {
 			if (direction != Direction.DOWN) {
 				FluidState neighbor = this.state(pos.relative(direction)).getFluidState();
-				if (neighbor.is(FluidTags.LAVA) && this.knowledge.isKnown(pos.relative(direction))) {
+				if (neighbor.is(FluidTags.LAVA) && this.known(pos.relative(direction))) {
 					// Digging this would open into known lava: never.
 					dig = Float.POSITIVE_INFINITY;
 				} else if (!neighbor.isEmpty()) {
@@ -494,7 +514,7 @@ public final class NavView {
 	private final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap lavaNear = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
 
 	private boolean knownLavaAt(BlockPos pos) {
-		return this.lavaSection(pos) && this.knowledge.isKnown(pos) && this.state(pos).getFluidState().is(FluidTags.LAVA);
+		return this.lavaSection(pos) && this.known(pos) && this.state(pos).getFluidState().is(FluidTags.LAVA);
 	}
 
 	/** Each section's "can it have lava at all?" from its palette (most can't: the check is then free). */
@@ -564,7 +584,7 @@ public final class NavView {
 		Cell cell = this.cell(floor);
 		// Unseen (or assumed rock underground): assumed fine to stand on, without peeking at what's really there. Unless it
 		// guesses that's air (well above the ground it has seen round about).
-		if (cell.kind() == Kind.UNKNOWN || !this.knowledge.isKnown(floor)) {
+		if (cell.kind() == Kind.UNKNOWN || !this.known(floor)) {
 			return cell.kind() != Kind.OPEN;
 		}
 
@@ -586,7 +606,7 @@ public final class NavView {
 	 * a full block (stairs, a top slab) one. Anything it hasn't seen as solid counts as a full block.
 	 */
 	public double floorTop(BlockPos floor) {
-		if (!this.knowledge.isKnown(floor) || this.cell(floor).kind() != Kind.SOLID) {
+		if (!this.known(floor) || this.cell(floor).kind() != Kind.SOLID) {
 			return 1.0;
 		}
 
@@ -599,7 +619,7 @@ public final class NavView {
 	 * soul sand, which change how a jump goes), so the jump goes as the physics says.
 	 */
 	public boolean jumpFooting(BlockPos floor) {
-		if (!this.knowledge.isKnown(floor) || this.cell(floor).kind() != Kind.SOLID) {
+		if (!this.known(floor) || this.cell(floor).kind() != Kind.SOLID) {
 			return false;
 		}
 
@@ -625,7 +645,7 @@ public final class NavView {
 			return face != null && state.getValue(face);
 		}
 
-		return this.knowledge.isKnown(climb.relative(going)) && this.cell(climb.relative(going)).kind() == Kind.SOLID;
+		return this.known(climb.relative(going)) && this.cell(climb.relative(going)).kind() == Kind.SOLID;
 	}
 
 	private boolean besidePortal(BlockPos pos) {

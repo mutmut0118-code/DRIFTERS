@@ -325,6 +325,11 @@ final class TownRoads {
 		}
 
 		@Override
+		public long bedtime(DrifterEntity drifter) {
+			return TownDay.bedtime(this.town, drifter);
+		}
+
+		@Override
 		public boolean crook(DrifterEntity drifter) {
 			return this.town.crooks.contains(drifter.getUUID());
 		}

@@ -43,6 +43,8 @@ public record Needs(double hunger, double health, double shelter, double gear, d
 		Schedule.NightStyle style = drifter.getDrifterBrain().nightStyle();
 		boolean hunting = !sealedIn && (style == Schedule.NightStyle.HUNT && Schedule.fitToHunt(drifter)
 			|| style == Schedule.NightStyle.WORK && Schedule.fitToWork(drifter)
+			// Out in its town for the evening, till its bedtime (0.23.40, night life).
+			|| style == Schedule.NightStyle.TOWN && Schedule.outInTown(drifter)
 			// A manhunt hunter keeps going through the night, as human hunters do.
 			|| com.dinglebob.drifter.social.Manhunt.isHunter(drifter) && drifter.getHealth() >= 8.0F);
 		double shelter;

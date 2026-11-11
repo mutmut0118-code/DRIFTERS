@@ -394,6 +394,12 @@ public class Brain {
 			this.activity = null;
 		}
 
+		// In bed with no sleep of its own going on (saved asleep, loaded with another thing to do; found in testing, 0.23.40: a
+		// townsperson lay in its bed all night "walking" to a chest): it gets up. Its sleep keeps it in bed while it sleeps.
+		if (this.drifter.isSleeping() && this.activity != null && !(this.activity instanceof com.dinglebob.drifter.brain.activity.ShelterActivity)) {
+			this.drifter.stopSleeping();
+		}
+
 		this.watchForStall();
 
 		// Danger doesn't wait for the once-a-second re-score: a close or hitting hostile is checked every 5 ticks (every 10 far

@@ -71,7 +71,7 @@ public final class Schedule {
 	 * TODO(milestone 8): sleeping in a bed first; TODO(milestone 9): hostile ones stalking players at night.
 	 */
 	public enum NightStyle {
-		SHELTER, HUNT, MINE, WORK;
+		SHELTER, HUNT, MINE, WORK, TOWN;
 
 		public String describe() {
 			return switch (this) {
@@ -79,8 +79,30 @@ public final class Schedule {
 				case HUNT -> "goes out hunting mobs";
 				case MINE -> "digs in, then mines";
 				case WORK -> "carries on through the night";
+				case TOWN -> "stays out in town for the evening";
 			};
 		}
+	}
+
+	/**
+	 * Out in its town tonight, still (0.23.40, night life: {@link com.dinglebob.drifter.social.NightOutGoal}): it's one its
+	 * town keeps up, its bedtime hasn't come, it's in the town, and it's well (not hurt, hungry or shaken).
+	 */
+	public static boolean outInTown(DrifterEntity drifter) {
+		com.dinglebob.drifter.api.TownWork town = drifter.getTownWork();
+		// (Gone to bed already: it stays in.)
+		if (town == null || drifter.isSleeping() || drifter.getDrifterBrain().nightStyle() != NightStyle.TOWN || drifter.getHealth() < 10.0F
+			|| drifter.getFoodData().getFoodLevel() < 6 || drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.PANICKED)
+			|| drifter.getPersonality().is(com.dinglebob.drifter.personality.Mood.ANXIOUS)) {
+			return false;
+		}
+
+		long bed = town.bedtime(drifter);
+		long time = believedTime(drifter);
+		// (Up in the town, not under it: one still down a mine at dusk comes up as ever, and goes out once it's up. Found in
+		// testing: those out for the evening on a mining trip mined all night, the pull home off.)
+		return bed > 0 && time < bed && time >= NIGHT_START - 1500 && TownEdge.inTown(drifter, drifter.blockPosition())
+			&& !com.dinglebob.drifter.brain.mining.Caver.underground(drifter, drifter.blockPosition());
 	}
 
 	/** Bravery (mood included) needed to go out at night; and Caution must be under {@link #HUNT_MAX_CAUTION}. */
@@ -107,6 +129,11 @@ public final class Schedule {
 			if (calm && fitToHunt(drifter) && (com.dinglebob.drifter.social.talk.Together.huntTonight(drifter)
 				|| p.get(com.dinglebob.drifter.personality.Trait.BRAVERY) >= TOWN_HUNT_BRAVERY && p.get(com.dinglebob.drifter.personality.Trait.CAUTION) < 0.4)) {
 				return NightStyle.HUNT;
+			}
+
+			// One its town keeps up tonight: out where people gather till its bedtime (0.23.40, night life).
+			if (calm && town.bedtime(drifter) > NIGHT_START) {
+				return NightStyle.TOWN;
 			}
 
 			return NightStyle.SHELTER;

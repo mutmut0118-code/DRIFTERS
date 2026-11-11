@@ -744,6 +744,86 @@ public final class DrifterCivilizations implements ModInitializer {
 						source.sendSuccess(() -> Component.literal(said), false);
 						return 1;
 					})))
+				// Debug (0.23.40): who of the nearest town is out tonight and till when (night life), to the log and a summary.
+				.then(Commands.literal("night").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					var group = town == null || town.group == null ? null : com.dinglebob.drifter.api.DrifterApi.groupById(town.group);
+					if (group == null) {
+						source.sendFailure(Component.literal("No town near"));
+						return 0;
+					}
+
+					int people = 0;
+					int out = 0;
+					int late = 0;
+					for (java.util.UUID id : group.members) {
+						DrifterEntity member = TownFounding.loaded(source.getServer(), id);
+						if (member == null) {
+							continue;
+						}
+
+						people++;
+						long bed = TownDay.bedtime(town, member);
+						if (bed > 0) {
+							out++;
+							late += bed >= 18000L ? 1 : 0;
+						}
+
+						DrifterCivilizations.LOGGER.info("[night] {}: {} (style {})", member.getName().getString(), bed > 0 ? "out till " + bed : "in with the sun",
+							member.getDrifterBrain().nightStyle());
+					}
+
+					String said = town.name + (Towns.city(town) ? " (a city)" : "") + ": " + out + " of " + people + " out tonight, " + late + " past midnight";
+					DrifterCivilizations.LOGGER.info("[night] {}", said);
+					source.sendSuccess(() -> Component.literal(said), false);
+					return 1;
+				}))
+				// Debug (0.23.40): the nearest town's pen, its fence line column by column (the blocks over the ground), to the log.
+				.then(Commands.literal("pendump").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var source = ctx.getSource();
+					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));
+					if (town == null || town.pen == null) {
+						source.sendFailure(Component.literal("No town pen near"));
+						return 0;
+					}
+
+					DrifterCivilizations.LOGGER.info("[pendump] {}: pen at {}", town.name, town.pen.toShortString());
+					for (BlockPos column : TownBuilder.penRingFor(town.pen)) {
+						StringBuilder line = new StringBuilder();
+						for (int y = town.pen.getY() - 3; y <= town.pen.getY() + 5; y++) {
+							var state = source.getLevel().getBlockState(column.atY(y));
+							String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+							if (!state.isAir()) {
+								line.append(y).append('=').append(id.replace("_fence_gate", "GATE").replace("_fence", "FENCE"))
+									.append(state.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock ? (state.getValue(net.minecraft.world.level.block.FenceGateBlock.OPEN) ? "(open)" : "(shut)") : "").append(' ');
+							}
+						}
+
+						DrifterCivilizations.LOGGER.info("[pendump] {},{}: {}", column.getX(), column.getZ(), line);
+					}
+
+					// (Inside it too: whatever's over its floor.)
+					for (int x = town.pen.getX() - 4; x <= town.pen.getX() + 4; x++) {
+						StringBuilder line = new StringBuilder();
+						for (int z = town.pen.getZ() - 4; z <= town.pen.getZ() + 4; z++) {
+							for (int y = town.pen.getY() - 1; y <= town.pen.getY() + 2; y++) {
+								var state = source.getLevel().getBlockState(new BlockPos(x, y, z));
+								if (!state.isAir() && !state.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK) && !state.is(net.minecraft.world.level.block.Blocks.DIRT)) {
+									line.append(x).append(',').append(y).append(',').append(z).append('=')
+										.append(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath()).append(' ');
+								}
+							}
+						}
+
+						if (line.length() > 0) {
+							DrifterCivilizations.LOGGER.info("[pendump] inside x {}: {}", x, line);
+						}
+					}
+
+					source.sendSuccess(() -> Component.literal("Pen dumped to the log"), false);
+					return 1;
+				}))
 				.then(Commands.literal("crowd").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					var source = ctx.getSource();
 					Town town = Towns.nearest(source.getLevel().dimension().location().toString(), BlockPos.containing(source.getPosition()));

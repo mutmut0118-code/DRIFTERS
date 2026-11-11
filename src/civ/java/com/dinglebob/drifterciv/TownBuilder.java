@@ -3924,6 +3924,11 @@ public final class TownBuilder {
 	 * hills, the fences dont connect when a block goes upward"): at a step the lower post goes up as high as the next one, as
 	 * a player builds a fence on a slope. A gate on the east side.
 	 */
+	/** A town pen's fence columns (its builder's half-width), for the debug dump. */
+	static List<BlockPos> penRingFor(BlockPos pen) {
+		return penRing(pen, 5);
+	}
+
 	/** The columns of a pen's fence, round its middle (y 0). */
 	private static List<BlockPos> penRing(BlockPos middle, int half) {
 		List<BlockPos> ring = new ArrayList<>();

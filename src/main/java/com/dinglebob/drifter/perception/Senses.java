@@ -201,6 +201,8 @@ public class Senses {
 	public static final int GLANCE_COOLDOWN_TICKS = 40;
 	/** It always knows the blocks this close around its feet (touch and the edge of its vision). */
 	public static final int BODY_KNOWLEDGE_RADIUS = 1;
+	/** And this close, every second (the edge of what it can't miss). */
+	public static final int NEAR_KNOWLEDGE_RADIUS = 2;
 	/** Blocks around it it can tell while swimming. */
 	public static final int WATER_KNOWLEDGE_RADIUS = 3;
 	/** Kept for the debug overlay: the most recent block rays. */
@@ -354,7 +356,9 @@ public class Senses {
 		if (this.ticks % 5 == 0) {
 			// Swimming, it can tell the water and the banks right around it (found in testing: in a dark pond the water a
 			// block or two away counted as unseen ground, and it planned walks across the surface).
-			int radius = this.drifter.isInWater() ? WATER_KNOWLEDGE_RADIUS : BODY_KNOWLEDGE_RADIUS;
+			// (And every second a block further: a pen's fence and floor two blocks off, unseen by a few rays at low detail, had it
+			// hopping at the fence; 0.23.40.)
+			int radius = this.drifter.isInWater() ? WATER_KNOWLEDGE_RADIUS : this.ticks % 20 == 0 ? NEAR_KNOWLEDGE_RADIUS : BODY_KNOWLEDGE_RADIUS;
 			this.terrain.markAround(this.drifter.blockPosition(), radius, 2, 3);
 		}
 

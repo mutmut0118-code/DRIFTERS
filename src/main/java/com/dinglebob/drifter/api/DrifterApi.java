@@ -709,6 +709,11 @@ public final class DrifterApi {
 		com.dinglebob.drifter.world.ServerThread.later(server, task);
 	}
 
+	/** Out in its town tonight still (0.23.40, night life: its town keeps it up, its bedtime hasn't come). */
+	public static boolean outInTown(DrifterEntity drifter) {
+		return com.dinglebob.drifter.brain.Schedule.outInTown(drifter);
+	}
+
 	/** Quicksave is installed (Bethesda-style saves: dying puts the world back to the last save). */
 	public static boolean quicksave() {
 		return com.dinglebob.drifter.compat.QuicksaveCompat.present();

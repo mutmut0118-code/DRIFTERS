@@ -50,6 +50,48 @@ final class TownDay {
 		return armored && com.dinglebob.drifter.brain.Strategist.stage(drifter) >= 5;
 	}
 
+	/**
+	 * Night life (0.23.40, the user: "at night the town is really empty, especially in a city where its brightly lit and no
+	 * mobs spawn, would be nice if some bustling night life happened with a few drifters going to sleep"): who of its people
+	 * stays out tonight, and till when. The sociable, fidgety and curious (and night owls) stay up, the careful and
+	 * hard-working go in with the sun; a city keeps more up and later (about half out after dark, a few past midnight), a
+	 * town about a quarter for the early night, a hamlet a few. Not the same ones every night (a little each night's own),
+	 * and nobody in rain or a storm, with the alarm on; not its guards (on their rounds) or its crooks.
+	 */
+	static long bedtime(Town town, DrifterEntity drifter) {
+		var level = drifter.level();
+		java.util.UUID id = drifter.getUUID();
+		if (level.isRaining() || level.isThundering() || TownBells.alarmed(town) || "guard".equals(town.lines.get(id)) || town.crooks.contains(id)) {
+			return -1L;
+		}
+
+		boolean city = Towns.city(town);
+		boolean hamlet = town.plots.size() < HAMLET;
+		// How keen on a night out it is (1: as keen as most): the sociable, fidgety, curious and night owls more, the careful
+		// and hard-working less.
+		double keen = net.minecraft.util.Mth.clamp(1.0 + (DrifterApi.trait(drifter, "sociability") - 0.5) + 0.5 * (DrifterApi.trait(drifter, "fidget") - 0.5)
+			+ 0.5 * (DrifterApi.trait(drifter, "curiosity") - 0.5) - (DrifterApi.trait(drifter, "caution") - 0.5)
+			- 0.5 * (DrifterApi.trait(drifter, "industriousness") - 0.5) + 0.5 * com.dinglebob.drifter.brain.Schedule.habit(drifter) / 1500.0, 0.2, 2.0);
+		long night = level.getDayTime() / 24000L;
+		java.util.Random tonight = new java.util.Random(id.getMostSignificantBits() ^ night * 0x9E3779B97F4A7C15L);
+		if (tonight.nextDouble() >= (city ? OUT_CITY : hamlet ? OUT_HAMLET : OUT_TOWN) * keen) {
+			return -1L;
+		}
+
+		// How late: the keener, the later (a city's latest past midnight).
+		double late = Math.min(1.0, tonight.nextDouble() * keen * 0.75);
+		return NIGHT_OUT_FROM + Math.round(late * (city ? 7500 : hamlet ? 1500 : 3500));
+	}
+
+	/** Fewer homes than this: a hamlet. */
+	private static final int HAMLET = 6;
+	/** The share of its people (as keen as most) out tonight: a city's, a town's, a hamlet's. */
+	private static final double OUT_CITY = 0.55;
+	private static final double OUT_TOWN = 0.28;
+	private static final double OUT_HAMLET = 0.1;
+	/** The earliest bedtime of those out (a little after dark). */
+	private static final long NIGHT_OUT_FROM = 13300L;
+
 	/** At (or near) its home. */
 	static boolean atHome(DrifterEntity drifter, double near) {
 		var home = drifter.getDrifterBrain().home();
@@ -98,7 +140,9 @@ final class TownDay {
 			case MIDDAY -> ease ? 0.10 : work ? -0.04 : 0.0;
 			case AFTERNOON -> goal.equals("trade_run") ? 0.08 : work ? 0.04 : 0.0;
 			case DUSK -> ease ? 0.08 : work ? -0.08 : 0.0;
-			case NIGHT -> 0.0;
+			// (Out for the evening: its ease, not its work, nor off out of town or down a mine with a friend: found in testing,
+			// those out for the evening went mining with a friend in the night, with nothing calling them home. 0.23.40.)
+			case NIGHT -> DrifterApi.outInTown(drifter) ? ease ? 0.08 : goal.equals("jointrip") ? -0.35 : OUT.contains(goal) ? -0.2 : work ? -0.1 : 0.0 : 0.0;
 		};
 	}
 
