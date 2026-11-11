@@ -3457,3 +3457,16 @@ Test command: `/drifterciv town halves [radius]` (radius 4 to 160 blocks across,
       wear real players' skins, with hardly ever the same one twice.
 - [ ] **No slower to start.** The world loads as quickly as before. (The game's log says "Loaded 200000 accounts for Drifter
       skins in ... ms": about a third of a second on the test server.)
+
+## Side session: real usernames, experimental (new, 0.23.39-side.2)
+
+Off by default. Turn it on in Mod Menu (Drifter's settings, the "Spawning" page, "Real usernames (experimental)"), or with
+`/drifter config realnames true`. It works on Drifters that get a skin after it's on, so make a new world or spawn new ones.
+
+- [ ] **Skin and name match.** `/drifter spawnmany 20`, then look at them: the name over each head is the real account
+      whose skin it's wearing, not a made-up name. Keep an eye out for ones you recognize.
+- [ ] **A name you gave stays.** `/drifter spawn Nova`: it's still Nova, whatever skin it gets.
+- [ ] **Pick someone.** Stand by a Drifter that has a made-up name and type `/drifter skin SSundee`: a few seconds later it has
+      that skin and that name.
+- [ ] **In a town.** With it on, make a new world with towns. The name on a house's sign is the name over its owner's head.
+- [ ] **Off again.** `/drifter config realnames false`: new Drifters get made-up names again; the ones already named keep theirs.

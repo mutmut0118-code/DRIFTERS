@@ -123,6 +123,8 @@ public final class DrifterConfig {
 		boolean farHalfRate = true;
 		/** Real player skins, downloaded like a multiplayer server's (user, 2026-10-20); off: the game's default skins. */
 		boolean realSkins = true;
+		/** Experimental (user, 2026-11-11): a Drifter wearing a real player's skin goes by that player's username, not a made-up one. */
+		boolean realNames = false;
 		/** Touch'n Motion's animations on Drifters too, when it's installed (user, 2026-10-30); client only. */
 		boolean touchNMotion = true;
 		/** Encounters (milestone 21, user 2026-10-20): random events with Drifters you meet once and never again. */
@@ -194,6 +196,15 @@ public final class DrifterConfig {
 
 	public static void setRealSkins(boolean on) {
 		data.realSkins = on;
+		save();
+	}
+
+	public static boolean realNames() {
+		return data.realNames;
+	}
+
+	public static void setRealNames(boolean on) {
+		data.realNames = on;
 		save();
 	}
 

@@ -429,6 +429,13 @@ public final class DrifterCommands {
 					+ " (for Drifters that haven't got one yet)"), true);
 				return 1;
 			})))
+			// Experimental (user, 2026-11-11): a real skin's real username too.
+			.then(Commands.literal("realnames").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
+				com.dinglebob.drifter.DrifterConfig.setRealNames(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));
+				ctx.getSource().sendSuccess(() -> Component.literal("Experimental real usernames " + (com.dinglebob.drifter.DrifterConfig.realNames() ? "on" : "off")
+					+ " (for Drifters that get a real skin from now on)"), true);
+				return 1;
+			})))
 			// Touch'n Motion on Drifters (a client setting: in singleplayer, the same as the settings page's).
 			.then(Commands.literal("touchnmotion").then(Commands.argument("on", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(ctx -> {
 				com.dinglebob.drifter.DrifterConfig.setTouchNMotion(com.mojang.brigadier.arguments.BoolArgumentType.getBool(ctx, "on"));

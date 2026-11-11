@@ -787,11 +787,30 @@ public final class RealSkins {
 		return new UUID(Long.parseUnsignedLong(hex.substring(0, 16), 16), Long.parseUnsignedLong(hex.substring(16), 16));
 	}
 
-	/** A skin on it now: the account is taken. */
+	/** A skin on it now: the account is taken (and, with the experimental setting, so is its username). */
 	private static void apply(DrifterEntity drifter, Found found) {
 		WORN.add(key(found.name()));
 		WORN.add(key(found.id()));
 		drifter.setRealSkin(found);
+		if (DrifterConfig.realNames()) {
+			drifter.takeAccountName(found.name());
+		}
+	}
+
+	/**
+	 * Experimental real usernames: a Drifter just made takes a ready skin at once, so it has its real name before anything
+	 * writes the name down (a house's sign, the town's history). Waits its turn if the user's own list has someone free, and
+	 * with the pool dry it gets its skin (and name) a little later, the usual way.
+	 */
+	public static void atOnce(DrifterEntity drifter) {
+		if (!DrifterConfig.realNames() || !DrifterConfig.realSkins() || userList.stream().anyMatch(account -> !WORN.contains(key(account)))) {
+			return;
+		}
+
+		Found ready = takeReady();
+		if (ready != null) {
+			apply(drifter, ready);
+		}
 	}
 
 	private static void finish(MinecraftServer server, Request request, Result result) {

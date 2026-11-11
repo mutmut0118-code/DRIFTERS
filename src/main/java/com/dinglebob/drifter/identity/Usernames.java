@@ -166,6 +166,11 @@ public final class Usernames {
 		return true;
 	}
 
+	/** Someone the server knows of right now already goes by this name. */
+	public static boolean inUse(MinecraftServer server, String name) {
+		return taken(server).contains(name.toLowerCase(Locale.ROOT));
+	}
+
 	/** Names in use: players online and every loaded Drifter. */
 	private static Set<String> taken(MinecraftServer server) {
 		Set<String> taken = new HashSet<>();
